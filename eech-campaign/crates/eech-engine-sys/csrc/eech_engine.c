@@ -1611,3 +1611,24 @@ int eech_engine_collision_trace_read (int kind, int offset, int count, char *tex
 }
 
 #endif
+
+#ifdef EECH_COLLISION_FIXTURE
+
+/*
+ * TEST-ONLY (EEDCS-49): arms the controlled forest geometry witness for the NEXT collision probe only (eech_collision_fixture.c). The probe consumes the arming whatever its
+ * outcome. It touches no campaign state and needs no host; armed or not, the shipping module has no such entry.
+ */
+extern int eech_collision_geometry_arm_run (int on);
+
+int eech_engine_collision_geometry_arm (int on)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	(void) eech_collision_geometry_arm_run (on);
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif

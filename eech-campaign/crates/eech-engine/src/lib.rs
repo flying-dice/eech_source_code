@@ -4580,6 +4580,15 @@ impl Engine {
         check(unsafe { sys::eech_engine_collision_trace_arm(c_int::from(on)) })
     }
 
+    /// TEST-ONLY (feature `collision-fixture`, EEDCS-49): arms (or disarms) the controlled forest geometry witness for the NEXT `collision_probe` only; the probe consumes the arming
+    /// whatever its outcome. Armed, the probe gives the forest tree object a small fixture-owned collision model for its duration (see `csrc/eech_collision_fixture.c`), runs the unchanged
+    /// original queries, restores everything it replaced and appends a `col-geometry-witness` row that states the restoration. Unarmed, the probe and its report are unchanged.
+    #[cfg(feature = "collision-fixture")]
+    pub fn collision_geometry_arm(&self, on: bool) -> Result<(), EngineError> {
+        // SAFETY: no pointers cross.
+        check(unsafe { sys::eech_engine_collision_geometry_arm(c_int::from(on)) })
+    }
+
     /// TEST-ONLY (feature `collision-fixture`, EEDCS-49): reads the transcript back. `kind` 0 returns the state row and the facts block; `kind` 1 returns the records
     /// `offset` to `offset + count` (`count` 1 to 256). The second value is the number of records the transcript holds. A text that does not fit is refused.
     #[cfg(feature = "collision-fixture")]

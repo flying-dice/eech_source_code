@@ -45,6 +45,7 @@
 --   frame_ms  1 to 1000 (default 100)
 --   probe     yes (default) or no (the control)
 --   require_coverage  no (default) or yes
+--   geometry_witness  no (default) or yes: the CONTROLLED FOREST GEOMETRY WITNESS (see below). yes needs probe=yes and trace_out.
 --   trace_out=<path>  optional: a PRIVATE JSON Lines transcript of every tree query the probe makes (see below). The path must not exist, must differ from out, and the run must
 --             probe (probe=yes) with tree_cases at most 8000 (the fixture holds at most 32768 records, at most 4 per random tree case plus about 160 structured). Off by default,
 --             and the probe's report is identical either way.
@@ -56,6 +57,16 @@
 -- driver parses it strictly, checks it against the report it accompanies (record counts per group and stage, hits, warm agreement, miss-time writes, derived-axis rays, tree census), requires
 -- no overflow and no unrecorded lookup, requires repeated transcripts to be identical, and writes repeat 1 to trace_out only after every repeat has passed (a trace file without its
 -- trace-end line is incomplete). The raw transcript is private runtime output and stays out of Git. It records the original's answers only.
+--
+-- CONTROLLED FOREST GEOMETRY WITNESS (geometry_witness=yes). The measured retail maps give the forest tree object NO collision triangles, so the original's type-1 geometry branch of
+-- get_line_of_sight_collision_tree has never run on them. With the witness, each probe is armed (engine:collision_geometry_arm (true), consumed by that probe) and the fixture gives the
+-- forest tree object a small fixture-owned collision model for the duration of the probe (a copy of the real object table plus the model; the real table untouched), runs the unchanged
+-- original queries on the real type-1 trees of the loaded map, restores everything and appends a col-geometry-witness row. The decoded triangles, the hits, the intercept points and the
+-- normals are the ORIGINAL code's; the model is the only supplied input and is labelled as controlled (the report row, the tf-witness facts row and a geometry_witness field on the boot
+-- and trace-start events). The driver REQUIRES: installation and exact restoration (data pointer, scene index, the hash of the whole real object table and of the scene entry), the
+-- mesh the emitter names, tf-forest geometry=1 with the model's triangle count, per-query geometry-branch facts in the transcript (g_calls g_true g_last g_depth) that agree with the
+-- report's per-stage counts, and it names every family the witness did not reach as a coverage gap. Without geometry_witness=yes any witness row or field is refused as unknown, so the
+-- default report and transcript are exactly the ones the driver has always accepted.
 
 io.stdout:setvbuf ("no")
 
@@ -66,7 +77,7 @@ local function refuse (message)
 end
 
 local known = { root = true, out = true, scenario = true, seed = true, entity_cases = true, tree_cases = true, repeats = true, seconds = true,
-	after = true, frame_ms = true, probe = true, require_coverage = true, trace_out = true }
+	after = true, frame_ms = true, probe = true, require_coverage = true, trace_out = true, geometry_witness = true }
 for key in pairs (args) do
 	if not known [key] then refuse ("unknown argument '" .. tostring (key) .. "'") end
 end
@@ -112,6 +123,9 @@ local after = whole_arg ("after", args.after, 0, 0, 3600)
 local frame_ms = whole_arg ("frame_ms", args.frame_ms, 100, 1, 1000)
 local probe = choice_arg ("probe", args.probe, "yes", { "yes", "no" })
 local require_coverage = choice_arg ("require_coverage", args.require_coverage, "no", { "no", "yes" })
+local geometry_witness = choice_arg ("geometry_witness", args.geometry_witness, "no", { "no", "yes" })
+if geometry_witness == "yes" and probe ~= "yes" then refuse ("geometry_witness=yes needs probe=yes: the witness is a mode of the probe") end
+if geometry_witness == "yes" and args.trace_out == nil then refuse ("geometry_witness=yes needs trace_out: the witness is established from the transcript of the probe's tree queries") end
 
 -- the optional tree-query transcript: every argument checked before anything is opened, required or booted
 local TRACE_TREE_CASES_MAX = 8000
@@ -289,6 +303,22 @@ local KEYED = {
 	["col-tree-common"] = { keys = { "group" }, fields = COMMON_FIELDS, required = { "struct", "random" } },
 }
 
+local function witness_report_fields ()
+	local spec = {
+		{ "label", "token" }, { "source", "token" }, { "installed", "flag" }, { "restored", "flag" }, { "data_restored", "flag" }, { "scene_restored", "flag" },
+		{ "copy_identical", "flag" }, { "objects_count", "count" }, { "scene_index_before", "signed" }, { "scene_index_after", "signed" }, { "objects_before", "hex16" },
+		{ "objects_after", "hex16" }, { "entry_before", "hex16" }, { "entry_after", "hex16" }, { "mesh_points", "count" }, { "mesh_faces", "count" }, { "mesh_surfaces", "count" },
+		{ "mesh_triangles", "count" }, { "mesh_fold", "hex16" },
+	}
+	for stage = 0, 3 do
+		for _, letter in ipairs { "q", "b", "g", "o", "e" } do spec [#spec + 1] = { letter .. stage, "count" } end
+	end
+	for depth = 0, 7 do spec [#spec + 1] = { "d" .. depth, "count" } end
+	spec [#spec + 1] = { "dbeyond", "count" }
+	return spec
+end
+local WITNESS_REPORT_SCHEMA = { ["col-geometry-witness"] = witness_report_fields () }
+
 local SAMPLE_FIELDS = { { "kind", "word" }, { "role", "signed" }, { "hit", "flag" }, { "type", "signed" }, { "hosted", "flag" }, { "a", "hex8x3" }, { "b", "hex8x3" },
 	{ "point", "hex8x3" }, { "normal", "hex8x3" } }
 
@@ -369,6 +399,7 @@ local function read_report (report, repeat_index)
 			keyed [event] [id] = typed
 		else
 			local schema = SCHEMA [event]
+			if schema == nil and geometry_witness == "yes" then schema = WITNESS_REPORT_SCHEMA [event] end
 			if event == "col-refused" then refuse ("the probe was refused: " .. line) end
 			if schema == nil then refuse ("the report has an unknown row '" .. event .. "'") end
 			if rows [event] ~= nil then refuse ("the report has more than one " .. event .. " row") end
@@ -382,6 +413,7 @@ local function read_report (report, repeat_index)
 	for event in pairs (SCHEMA) do
 		if rows [event] == nil then refuse ("the report has no " .. event .. " row") end
 	end
+	if geometry_witness == "yes" and rows ["col-geometry-witness"] == nil then refuse ("the report has no col-geometry-witness row") end
 	for event, spec in pairs (KEYED) do
 		if spec.required then
 			local have = keyed [event] or {}
@@ -644,6 +676,22 @@ local TRACE_MANY = {
 		{ "a", H3 }, { "b", H3 }, { "init_point", H3 }, { "init_normal", H3 }, { "lookups", "count" }, { "extra_lookups", "count" }, { "l0", H3 }, { "l1", H3 }, { "hit", "flag" },
 		{ "point", H3 }, { "normal", H3 } },
 }
+-- the controlled witness only: a facts row, and four more fields on every tq row
+local WITNESS_TRACE_ONCE = {
+	["tf-witness"] = { { "label", "token" }, { "source", "token" }, { "mesh_points", "count" }, { "mesh_faces", "count" }, { "mesh_surfaces", "count" }, { "mesh_triangles", "count" },
+		{ "mesh_fold", "hex16" } },
+}
+local WITNESS_TQ_EXTRA = { { "g_calls", "count" }, { "g_true", "count" }, { "g_last", "flag" }, { "g_depth", "count" } }
+local function trace_many_spec (event)
+	local spec = TRACE_MANY [event]
+	if spec ~= nil and event == "tq" and geometry_witness == "yes" then
+		local extended = {}
+		for _, item in ipairs (spec) do extended [#extended + 1] = item end
+		for _, item in ipairs (WITNESS_TQ_EXTRA) do extended [#extended + 1] = item end
+		return extended
+	end
+	return spec
+end
 local TRACE_CHUNK = 200
 local ZERO3, SENTINEL3 = "00000000,00000000,00000000", "5a5a5a5a,5a5a5a5a,5a5a5a5a"
 
@@ -654,12 +702,14 @@ local function parse_trace_text (text, state)
 		local event = words [1]
 		local fields = row_fields (event, words)
 		local raw = fields
-		if TRACE_ONCE [event] then
+		local once_spec = TRACE_ONCE [event]
+		if once_spec == nil and geometry_witness == "yes" then once_spec = WITNESS_TRACE_ONCE [event] end
+		if once_spec then
 			if state.once [event] ~= nil then refuse ("the transcript has more than one " .. event .. " row") end
-			state.once [event] = typed_row (event, TRACE_ONCE [event], raw)
+			state.once [event] = typed_row (event, once_spec, raw)
 			state.order [#state.order + 1] = { event = event, typed = state.once [event] }
 		elseif TRACE_MANY [event] then
-			local typed = typed_row (event, TRACE_MANY [event], raw)
+			local typed = typed_row (event, trace_many_spec (event), raw)
 			state.many [event] = state.many [event] or {}
 			state.many [event] [#state.many [event] + 1] = typed
 			state.order [#state.order + 1] = { event = event, typed = typed }
@@ -727,6 +777,95 @@ local SIGNATURE = { "group", "kind", "role", "ignore_edge", "skip_top", "a", "b"
 local function need_same_signature (q, paired)
 	local label = "tq " .. tostring (q.ordinal) .. " against its stage " .. tostring (paired.stage) .. " record " .. tostring (paired.ordinal)
 	for _, name in ipairs (SIGNATURE) do need_equal (label, name, q [name], paired [name]) end
+end
+
+-- The constants of the emitter's model (eech_collision_fixture.c, WITNESS_*), like EMITTER_PER_CLASS: a report that names another mesh is refused rather than believed.
+local WITNESS_MESH = { points = 12, faces = 3, surfaces = 2, triangles = 6 }
+
+-- The witness against its report and its transcript. It counts and compares what the fixture recorded; it derives no physical answer.
+local function check_witness (trace, rows)
+	local w, facts, forest = rows ["col-geometry-witness"], trace.once ["tf-witness"], trace.once ["tf-forest"]
+	if w == nil then refuse ("the report has no col-geometry-witness row") end
+	if facts == nil then refuse ("the transcript has no tf-witness row") end
+	need_equal ("col-geometry-witness", "label", w.label, "controlled_forest_geometry")
+	need_equal ("col-geometry-witness", "source", w.source, "fixture_owned_mesh")
+	for _, name in ipairs { "installed", "restored", "data_restored", "scene_restored", "copy_identical" } do need_equal ("col-geometry-witness", name, w [name], 1) end
+	need_equal ("col-geometry-witness", "scene_index_after", w.scene_index_after, w.scene_index_before)
+	need_equal ("col-geometry-witness", "objects_after", w.objects_after, w.objects_before)
+	need_equal ("col-geometry-witness", "entry_after", w.entry_after, w.entry_before)
+	if w.objects_count < 2 then refuse ("col-geometry-witness: objects_count is " .. tostring (w.objects_count) .. ", fewer than the null object and one real object") end
+	need_equal ("col-geometry-witness", "mesh_points", w.mesh_points, WITNESS_MESH.points)
+	need_equal ("col-geometry-witness", "mesh_faces", w.mesh_faces, WITNESS_MESH.faces)
+	need_equal ("col-geometry-witness", "mesh_surfaces", w.mesh_surfaces, WITNESS_MESH.surfaces)
+	need_equal ("col-geometry-witness", "mesh_triangles", w.mesh_triangles, WITNESS_MESH.triangles)
+	for _, name in ipairs { "label", "source", "mesh_points", "mesh_faces", "mesh_surfaces", "mesh_triangles", "mesh_fold" } do need_equal ("tf-witness", name, facts [name], w [name]) end
+	-- the ORIGINAL decoder walked the supplied model: it reports as many triangles as the model's faces make (a fan of n - 2 per face)
+	need_equal ("tf-forest", "geometry", forest.geometry, 1)
+	need_equal ("tf-forest", "triangles", forest.triangles, WITNESS_MESH.triangles)
+
+	local seen = {}
+	for stage = 0, 3 do seen [stage] = { q = 0, b = 0, g = 0, o = 0, e = 0 } end
+	local depth_hit, beyond = {}, 0
+	for depth = 0, 7 do depth_hit [depth] = 0 end
+	for _, q in ipairs (trace.many ["tq"] or {}) do
+		local label = "tq " .. tostring (q.ordinal)
+		if q.g_true > q.g_calls then refuse (label .. ": g_true " .. q.g_true .. " is more than g_calls " .. q.g_calls) end
+		if q.g_true == 0 and (q.g_last ~= 0 or q.g_depth ~= 0) then refuse (label .. ": a query the geometry branch never answered has a last answer or a depth") end
+		if q.g_last == 1 and q.hit ~= 1 then refuse (label .. ": the last triangle answered yes but the query is not a hit (the first successful triangle returns at once)") end
+		if q.g_true > 0 and q.g_depth >= WITNESS_MESH.triangles then refuse (label .. ": g_depth " .. q.g_depth .. " is outside the model's " .. WITNESS_MESH.triangles .. " triangles") end
+		local s = seen [q.stage]
+		s.q = s.q + 1
+		if q.g_true > 0 then
+			s.b = s.b + 1
+			if q.g_last == 0 then s.e = s.e + 1 end
+		end
+		if q.hit == 1 then
+			if q.g_last == 1 then
+				s.g = s.g + 1
+				if q.stage == 0 then depth_hit [q.g_depth] = (depth_hit [q.g_depth] or 0) + 1 end
+			else
+				s.o = s.o + 1
+			end
+		end
+	end
+	for stage = 0, 3 do
+		for _, letter in ipairs { "q", "b", "g", "o", "e" } do
+			need_equal ("col-geometry-witness", letter .. stage .. " against the transcript", w [letter .. stage], seen [stage] [letter])
+		end
+	end
+	for depth = 0, 7 do need_equal ("col-geometry-witness", "d" .. depth .. " against the transcript", w ["d" .. depth], depth_hit [depth] or 0) end
+	need_equal ("col-geometry-witness", "dbeyond", w.dbeyond, beyond)
+end
+
+-- What the witness did not reach, by name. A gap is a fact about the loaded world and the chosen cases, never a pass and never a failure of the original.
+local function witness_gaps (trace)
+	local gaps = {}
+	local function need (ok, name) if not ok then gaps [#gaps + 1] = name end end
+	local entered, geometry_hits, after_first, exhausted, misses, partial = 0, 0, 0, 0, 0, 0
+	local combos = { ["0/0"] = 0, ["0/1"] = 0, ["1/0"] = 0, ["1/1"] = 0 }
+	for _, q in ipairs (trace.many ["tq"] or {}) do
+		if q.stage == 0 and q.g_true > 0 then
+			entered = entered + 1
+			combos [q.ignore_edge .. "/" .. q.skip_top] = combos [q.ignore_edge .. "/" .. q.skip_top] + 1
+			if q.g_last == 0 then exhausted = exhausted + 1 end
+			if q.hit == 1 and q.g_last == 1 then
+				geometry_hits = geometry_hits + 1
+				if q.g_depth > 0 then after_first = after_first + 1 end
+			end
+			if q.hit == 0 then
+				misses = misses + 1
+				if q.point ~= ZERO3 or q.normal ~= SENTINEL3 then partial = partial + 1 end
+			end
+		end
+	end
+	need (entered > 0, "geometry_branch_never_entered")
+	need (geometry_hits > 0, "no_geometry_hit")
+	need (after_first > 0, "no_geometry_hit_after_the_first_triangle")
+	need (exhausted > 0, "geometry_walk_never_exhausted")
+	need (misses > 0, "no_geometry_query_miss")
+	need (partial > 0, "no_geometry_miss_with_a_partial_write")
+	for _, combo in ipairs { "0/0", "0/1", "1/0", "1/1" } do need (combos [combo] > 0, "geometry_branch_not_seen_with_flags_" .. string.gsub (combo, "/", "_")) end
+	return gaps, { entered = entered, geometry_hits = geometry_hits, after_first = after_first, exhausted = exhausted, misses = misses, partial = partial, combos = combos }
 end
 
 -- The transcript against the report it accompanies and against its own structure. Nothing here re-derives a physical answer: it counts and compares what the fixture recorded.
@@ -842,6 +981,8 @@ local function check_trace (trace, rows, keyed)
 	end
 	need_equal ("tq", "stage after the last record", expect_stage == 1 or expect_stage == 3, false)
 
+	if geometry_witness == "yes" then check_witness (trace, rows) end
+
 	for group, name in pairs { [2] = "struct", [3] = "random" } do
 		local row, g = tc [name], seen [group]
 		local label = "tq group " .. name
@@ -858,8 +999,10 @@ local function check_trace (trace, rows, keyed)
 end
 
 local function write_trace (file, trace, meta)
-	trace_write (file, { event = "trace-start", scenario = meta.scenario, seed = meta.seed, entity_cases = meta.entity_cases, tree_cases = meta.tree_cases, seconds = meta.seconds,
-		frame_ms = meta.frame_ms })
+	local start = { event = "trace-start", scenario = meta.scenario, seed = meta.seed, entity_cases = meta.entity_cases, tree_cases = meta.tree_cases, seconds = meta.seconds,
+		frame_ms = meta.frame_ms }
+	if geometry_witness == "yes" then start.geometry_witness = "controlled_forest_geometry" end
+	trace_write (file, start)
 	for _, item in ipairs (trace.order) do
 		local t = { event = item.event }
 		for k, v in pairs (item.typed) do t [k] = v end
@@ -877,8 +1020,12 @@ local engine = dc.boot {
 	line_of_sight = host.line_of_sight,
 	sense = host.sense, aim = host.aim,
 }
-emit { event = "boot", scenario = scenario_name, seed = seed, entity_cases = entity_cases, tree_cases = tree_cases, repeats = repeats, seconds = seconds,
-	after = after, frame_ms = frame_ms, probe = probe, require_coverage = require_coverage }
+do
+	local boot_event = { event = "boot", scenario = scenario_name, seed = seed, entity_cases = entity_cases, tree_cases = tree_cases, repeats = repeats, seconds = seconds,
+		after = after, frame_ms = frame_ms, probe = probe, require_coverage = require_coverage }
+	if geometry_witness == "yes" then boot_event.geometry_witness = "controlled_forest_geometry" end
+	emit (boot_event)
+end
 
 local function run_frames (count)
 	for _ = 1, count do engine:frame (frame_ms) end
@@ -935,6 +1082,14 @@ if probe == "yes" then
 		if trace_file then
 			trace_armed = true
 			engine:collision_trace_arm (true)
+		end
+		if geometry_witness == "yes" then
+			-- one-shot: the fixture consumes the arming in the very next probe, whatever that probe's outcome, so there is nothing to disarm
+			local armed, arm_error = pcall (function () engine:collision_geometry_arm (true) end)
+			if not armed then
+				emit { event = "probe_refused", repeat_index = repeat_index, error = "the geometry witness could not be armed: " .. tostring (arm_error) }
+				refuse ("the geometry witness could not be armed: " .. tostring (arm_error))
+			end
 		end
 		local ok, report = pcall (function () return engine:collision_probe (seed, entity_cases, tree_cases) end)
 		if not ok then
@@ -1010,6 +1165,15 @@ if probe == "yes" then
 		run_probes ()
 	end
 	total_gaps = coverage_gaps (first_rows, first_keyed)
+	if geometry_witness == "yes" then
+		local gaps, counts = witness_gaps (first_trace)
+		for _, gap in ipairs (gaps) do total_gaps [#total_gaps + 1] = gap end
+		local w = first_rows ["col-geometry-witness"]
+		emit { event = "geometry_witness_coverage", label = w.label, branch_entered = counts.entered, geometry_hits = counts.geometry_hits, hits_after_the_first_triangle = counts.after_first,
+			walks_exhausted = counts.exhausted, geometry_misses = counts.misses, geometry_misses_with_a_partial_write = counts.partial,
+			flags_0_0 = counts.combos ["0/0"], flags_0_1 = counts.combos ["0/1"], flags_1_0 = counts.combos ["1/0"], flags_1_1 = counts.combos ["1/1"],
+			gaps = (#gaps == 0) and "none" or table.concat (gaps, ","), restored = w.restored }
+	end
 	emit { event = "coverage", gaps = (#total_gaps == 0) and "none" or table.concat (total_gaps, ","), gap_count = #total_gaps,
 		moving_targets = first_rows ["col-targets"].moving_geometry + first_rows ["col-targets"].moving_box,
 		structured_entity_hits = first_keyed ["col-entity-kind"] ["struct/through"].hit,

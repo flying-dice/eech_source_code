@@ -9,8 +9,10 @@
 -- and no tolerance is applied: the floats are compared as the hex bits the host echoes. Not passing is the default; the final line
 -- TREE_LUA_REPLAY_DONE queries=N lookups=M hits=H misses=X mismatches=0 is printed only when everything matched.
 --
--- The retail facts record no forest tree collision triangles (tf-forest geometry 0); this script supports that case only and refuses a transcript with
--- triangles (tests/tree_conformance.rs hands recorded triangles to the kernel).
+-- Forest geometry: the retail facts record no forest tree collision triangles (tf-forest geometry 0), and then the host is told so explicitly ("absent"). A transcript
+-- that records triangles (the CONTROLLED forest geometry witness of the original: tf-forest geometry 1 with its tf-triangle rows) is replayed with those recorded triangles, in order,
+-- as the host-owned mesh. Anything else (a capped, miscounted or out-of-order triangle list) is refused: it is never counted as a pass of the absent case. The geometry branch of the
+-- host kernel is NOT considered validated by this script unless a controlled transcript was replayed and every query matched.
 
 local transcript_path = host.args.transcript
 local map_dir = host.args.map_dir
@@ -76,7 +78,27 @@ local layout = single ("tf-layout")
 assert (layout.record_size == 8 and layout.x_offset == 0 and layout.z_offset == 2 and layout.y_offset == 4 and layout.colour_offset == 6, "tf-layout")
 
 local forest = single ("tf-forest")
-assert (forest.capped == 0 and forest.geometry == 0 and forest.triangles == 0, "this script supports only the retail case of no forest tree triangles")
+assert (forest.capped == 0, "the capture capped the forest triangles")
+local forest_geometry
+if forest.geometry == 0 then
+	assert (forest.triangles == 0 and (one["tf-triangle"] or 0) == 0, "tf-forest says no geometry but triangles are recorded")
+	forest_geometry = "absent"
+else
+	assert (forest.geometry == 1 and forest.triangles > 0 and one["tf-triangle"] == forest.triangles, "tf-forest geometry and its tf-triangle rows disagree")
+	forest_geometry = {}
+	local expected_index = 0
+	for _, row in ipairs (rows) do
+		if row.event == "tf-triangle" then
+			assert (row.i == expected_index, "tf-triangle rows out of order")
+			expected_index = expected_index + 1
+			local flat = {}
+			for _, key in ipairs { "p0", "p1", "p2" } do
+				for _, value in ipairs (numbers (triple (row[key]))) do flat [#flat + 1] = value end
+			end
+			forest_geometry [#forest_geometry + 1] = flat
+		end
+	end
+end
 
 local facts = single ("tf-map")
 assert (facts.terrain_sector_side == 2048 and facts.max_tree_height == 35, "tf-map")
@@ -87,7 +109,7 @@ local map = {
 	minimum_height = f32_from_hex (facts.height_minimum), scaled_height_difference = f32_from_hex (facts.height_scale),
 }
 
-local census = host.tree_collision { mode = "load", directory = map_dir, map = map, forest_geometry = "absent" }
+local census = host.tree_collision { mode = "load", directory = map_dir, map = map, forest_geometry = forest_geometry }
 assert (census.loaded == true, "the map's trees were not loaded: " .. tostring (census.no_trees))
 assert (census.tree_total == facts.tree_total, "tree_total " .. tostring (census.tree_total) .. " against " .. tostring (facts.tree_total))
 assert (census.sectors_with_trees == facts.sectors_with_trees, "sectors_with_trees " .. tostring (census.sectors_with_trees))

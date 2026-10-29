@@ -88,6 +88,28 @@
  * the bit order of the packed height and type byte), the map and tree scales, the forest tree object's collision triangles and the first live tree
  * records as raw bytes. The transcript is read back in bounded chunks by eech_collision_trace_read_run and written to a private file by the driver. It records
  * only the original's answers; a miss, a partial write or an absent output is data.
+ *
+ * CONTROLLED FOREST GEOMETRY WITNESS (optional, armed one-shot by eech_collision_geometry_arm_run; off by default, and the default report and transcript are byte for byte
+ * what they were without it). The measured retail maps have NO collision triangles for the forest tree object (tf-forest geometry=0), so the original's type-1 geometry
+ * branch in get_line_of_sight_collision_tree has never run against them. The witness gives that branch a small, explicitly supplied ENVIRONMENTAL INPUT and observes the
+ * ORIGINAL code on it; it computes no answer of its own:
+ *   - the input is a fixture-owned, bounded model: 12 points, 3 faces (a quad, a triangle and a pentagon: fan order and depth order), 2 surfaces whose per-surface point
+ *     tables are not the identity, a bounding box that fixes the short-point scaling, and the zero SENTINEL surface the original reads after the last face. The decoded
+ *     triangles (and so the coordinates, the fan order and the scaling) are produced ONLY by the original get_object_3d_collision_object_geometry_triangle;
+ *   - the original reads the model through objects_3d_data[scene.collision_object_index]. The witness never touches a real object: it copies the real object table (every
+ *     real index keeps its place and its content), appends its own object after the last real index, points objects_3d_data at the copy and sets the forest tree scene's
+ *     collision_object_index to that appended index, for exactly the duration of one probe. Object index 0 (the retail null object) is not used. The real table, the scene
+ *     entry and the copy are hashed before and after; the pointers are put back FIRST and the copy freed AFTER, on every path (probe refused, report too big, normal);
+ *     restoration is asserted in the report (data pointer, scene index, hash of the whole real object table, hash of the scene entry) and a restoration that fails is a
+ *     failed run, never a pass;
+ *   - the real type-1 trees of the loaded map are the trees (no tree, file, list or position is changed). They are classified as geometry trees by the same
+ *     forest_tree_has_geometry check as before, so the unchanged structured and random cases exercise the branch;
+ *   - a passive wrapper (eech_collision_tree_geometry_triangle, called from en_cllsn.c through TREE_QUERY_GEOMETRY_TRIANGLE only in this feature) calls the ORIGINAL decoder once,
+ *     with the same arguments in the same order, and records by value how often the branch asked, how often it was answered yes and the depth of the last yes. From that the
+ *     report states, per query stage, how many queries ENTERED the geometry branch, how many HIT through it (the first successful triangle returns at once), how many hit
+ *     through the quad path although geometry was present, and how many walked a tree's triangles to the end; and for stage 0 which triangle depth hit. No extra decoder,
+ *     terrain or intersection query is made;
+ *   - the transcript rows carry the same facts per query (g_calls, g_true, g_last, g_depth) and a tf-witness row labels the transcript as controlled.
  */
 
 #ifdef EECH_COLLISION_FIXTURE
@@ -761,10 +783,11 @@ static void end_outputs (struct col_probe *p, struct col_qr *r, const vec3d *a, 
 struct col_trace_rec
 {
 	int ordinal, group, kind, role, stage, ignore_edge, skip_top, lookups, extra_lookups, hit;
+	int g_calls, g_true, g_last, g_depth; /* the controlled geometry witness only (zero otherwise, and not written unless it ran) */
 	uint32_t a[3], b[3], init_point[3], init_normal[3], look[TRACE_LOOKUPS][3], point[3], normal[3];
 };
 
-static int trace_armed, trace_n, trace_overflow;
+static int trace_armed, trace_n, trace_overflow, trace_witness;
 static struct col_trace_rec trace_recs[TRACE_MAX];
 static struct col_trace_rec *trace_cur;
 static char trace_facts[TRACE_FACTS_MAX];
@@ -780,6 +803,7 @@ static void trace_reset_records (void)
 static void trace_reset (int armed)
 {
 	trace_armed = armed;
+	trace_witness = 0;
 	trace_reset_records ();
 	trace_facts[0] = '\0';
 	trace_facts_out.text = trace_facts;
@@ -852,6 +876,275 @@ static void trace_end (struct col_trace_rec *rec, int hit, const vec3d *point, c
 	trace_bits3 (rec->normal, normal);
 }
 
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* the optional CONTROLLED FOREST GEOMETRY WITNESS (see the header) */
+
+#define WITNESS_POINTS 12
+#define WITNESS_FACES 3
+#define WITNESS_SURFACES 2
+#define WITNESS_TRIANGLES 6
+#define WITNESS_REFS 12
+#define WITNESS_SURFACE_POINTS 12
+#define WITNESS_DEPTHS 8
+#define WITNESS_STAGES 4
+
+/* the model, in 16-bit point units: 32767 is the bounding box extent on that axis */
+#define WA 32767
+#define WH 32767
+#define WM 16384
+
+static const short witness_point_source[WITNESS_POINTS][3] = {
+	{ 0, 0, -WA }, { 0, 0, WA }, { 0, WH, WA }, { 0, WH, -WA },		/* 0 to 3: a quad in the plane x = 0 */
+	{ -WA, 0, 0 }, { WA, 0, 0 }, { 0, WH, 0 },						/* 4 to 6: a triangle in the plane z = 0 */
+	{ -WA, WM, 0 }, { -WA / 2, WM, -WA }, { WA / 2, WM, -WA }, { WA, WM, 0 }, { 0, WM, WA }	/* 7 to 11: a convex pentagon at mid height */
+};
+static const unsigned char witness_face_size_source[WITNESS_FACES] = { 4, 3, 5 };
+/* each face's points as indexes LOCAL to its surface, face after face */
+static const unsigned char witness_face_ref_source[WITNESS_REFS] = { 0, 1, 2, 3, 4, 5, 6, 0, 1, 2, 3, 4 };
+/* each surface's local index to the object's point: surface 0 (7 entries) is not the identity, surface 1 (5 entries) restarts its local indexes at 0 */
+static const unsigned short witness_surface_point_source[WITNESS_SURFACE_POINTS] = { 3, 2, 1, 0, 4, 5, 6, 7, 8, 9, 10, 11 };
+
+static object_short_3d_point witness_points[WITNESS_POINTS];
+static struct OBJECT_3D_FACE witness_faces[WITNESS_FACES];
+static struct POINT_3D_SHORT_REFERENCE witness_refs[WITNESS_REFS];
+static struct FACE_SURFACE_DESCRIPTION witness_surfaces[WITNESS_SURFACES + 1]; /* the last is the zero sentinel read after the last face of the last surface */
+static struct POINT_3D_PLAIN_REFERENCE witness_surface_points[WITNESS_SURFACE_POINTS];
+
+static int witness_armed, witness_active;
+
+/* what the original tree query asked of the decoder during the query now open */
+static struct { int calls, true_calls, last_result, last_depth; } geo_obs;
+
+struct col_witness
+{
+	int installed, removed, restored, data_restored, scene_restored, copy_identical, objects_count, scene_index_before, scene_index_after;
+	uint64_t objects_before, objects_after, entry_before, entry_after, mesh_fold;
+	struct OBJECT_3D *saved_data, *copy;
+	int queries[WITNESS_STAGES], branch[WITNESS_STAGES], geometry_hit[WITNESS_STAGES], other_hit[WITNESS_STAGES], exhausted[WITNESS_STAGES];
+	int depth_hit[WITNESS_DEPTHS], depth_beyond;
+};
+
+static struct col_witness witness;
+
+static uint64_t fold_bytes (uint64_t hash, const void *data, size_t n)
+{
+	const unsigned char *bytes = (const unsigned char *) data;
+	size_t i;
+
+	for (i = 0; i < n; i++)
+	{
+		hash ^= (uint64_t) bytes[i];
+		hash *= FNV_PRIME;
+	}
+	return hash;
+}
+
+/*
+ * The passive wrapper the original tree query calls at its two reads of the forest tree object's collision triangles (en_cllsn.c, EECH_COLLISION_FIXTURE only). It makes the
+ * identical call to the original decoder, once, with the same arguments, and returns the identical value; while a witness query is open it notes by value that the branch
+ * asked, the answer and the depth. It makes no other query.
+ */
+int eech_collision_tree_geometry_triangle (vec3d *points, int depth)
+{
+	int result = get_object_3d_collision_object_geometry_triangle (OBJECT_3D_FOREST_TREE_OBJECT, points, depth);
+
+	if (witness_active)
+	{
+		geo_obs.calls++;
+		geo_obs.last_result = result ? 1 : 0;
+		if (result)
+		{
+			geo_obs.true_calls++;
+			geo_obs.last_depth = depth;
+		}
+	}
+	return result;
+}
+
+/* the model object, filled in from the constant source above; returns a fold of the SOURCE (the identity of the input), not of anything the original decodes */
+static uint64_t witness_build (struct OBJECT_3D *obj)
+{
+	uint64_t fold = FNV_OFFSET;
+	int i, j;
+
+	memset (witness_points, 0, sizeof (witness_points));
+	memset (witness_faces, 0, sizeof (witness_faces));
+	memset (witness_refs, 0, sizeof (witness_refs));
+	memset (witness_surfaces, 0, sizeof (witness_surfaces));
+	memset (witness_surface_points, 0, sizeof (witness_surface_points));
+	for (i = 0; i < WITNESS_POINTS; i++)
+	{
+		witness_points[i].x = witness_point_source[i][0];
+		witness_points[i].y = witness_point_source[i][1];
+		witness_points[i].z = witness_point_source[i][2];
+		for (j = 0; j < 3; j++)
+		{
+			fold = fold64 (fold, (uint32_t) (int) witness_point_source[i][j]);
+		}
+	}
+	for (i = 0; i < WITNESS_FACES; i++)
+	{
+		witness_faces[i].number_of_points = witness_face_size_source[i];
+		fold = fold64 (fold, witness_face_size_source[i]);
+	}
+	for (i = 0; i < WITNESS_REFS; i++)
+	{
+		witness_refs[i].point = witness_face_ref_source[i];
+		fold = fold64 (fold, witness_face_ref_source[i]);
+	}
+	for (i = 0; i < WITNESS_SURFACE_POINTS; i++)
+	{
+		witness_surface_points[i].point = witness_surface_point_source[i];
+		fold = fold64 (fold, witness_surface_point_source[i]);
+	}
+	witness_surfaces[0].number_of_points = 7;
+	witness_surfaces[0].number_of_faces = 2;
+	witness_surfaces[1].number_of_points = 5;
+	witness_surfaces[1].number_of_faces = 1;
+	fold = fold64 (fold, 7u);
+	fold = fold64 (fold, 2u);
+	fold = fold64 (fold, 5u);
+	fold = fold64 (fold, 1u);
+
+	memset (obj, 0, sizeof (*obj));
+	obj->number_of_points = WITNESS_POINTS;
+	obj->number_of_faces = WITNESS_FACES;
+	obj->number_of_surfaces = WITNESS_SURFACES;
+	obj->bounding_box.xmin = -0.25f;
+	obj->bounding_box.xmax = 0.25f;
+	obj->bounding_box.ymin = 0.0f;
+	obj->bounding_box.ymax = 1.0f;
+	obj->bounding_box.zmin = -0.25f;
+	obj->bounding_box.zmax = 0.25f;
+	obj->points = witness_points;
+	obj->faces = witness_faces;
+	obj->object_faces_point_plain_list = witness_refs;
+	obj->surfaces = witness_surfaces;
+	obj->surface_points = witness_surface_points;
+	fold = fold64 (fold, float_bits (obj->bounding_box.xmin));
+	fold = fold64 (fold, float_bits (obj->bounding_box.xmax));
+	fold = fold64 (fold, float_bits (obj->bounding_box.ymin));
+	fold = fold64 (fold, float_bits (obj->bounding_box.ymax));
+	fold = fold64 (fold, float_bits (obj->bounding_box.zmin));
+	fold = fold64 (fold, float_bits (obj->bounding_box.zmax));
+	return fold;
+}
+
+/* Installs the model for one probe. Returns NULL, or the reason it was refused (nothing is changed then). */
+static const char *witness_install (struct col_witness *w)
+{
+	int count = total_number_of_raw_3d_objects + 1; /* the real table holds indexes 0 to total_number_of_raw_3d_objects */
+	size_t bytes;
+
+	memset (w, 0, sizeof (*w));
+	if (!objects_3d_data || !objects_3d_scene_database || total_number_of_raw_3d_objects < 1)
+	{
+		return "model_database_not_loaded";
+	}
+	if (forest_tree_has_geometry ())
+	{
+		return "forest_tree_object_already_has_collision_geometry";
+	}
+	bytes = (size_t) count * sizeof (struct OBJECT_3D);
+	w->saved_data = objects_3d_data;
+	w->scene_index_before = objects_3d_scene_database[OBJECT_3D_FOREST_TREE_OBJECT].collision_object_index;
+	w->objects_count = count;
+	w->objects_before = fold_bytes (FNV_OFFSET, objects_3d_data, bytes);
+	w->entry_before = fold_bytes (FNV_OFFSET, &objects_3d_scene_database[OBJECT_3D_FOREST_TREE_OBJECT], sizeof (objects_3d_scene_database[0]));
+	w->copy = (struct OBJECT_3D *) safe_malloc ((size_t) (count + 1) * sizeof (struct OBJECT_3D));
+	if (!w->copy)
+	{
+		return "out_of_memory_for_the_witness_object_table";
+	}
+	memcpy (w->copy, w->saved_data, bytes);
+	w->copy_identical = memcmp (w->copy, w->saved_data, bytes) == 0;
+	w->mesh_fold = witness_build (&w->copy[count]);
+	objects_3d_data = w->copy;
+	objects_3d_scene_database[OBJECT_3D_FOREST_TREE_OBJECT].collision_object_index = count;
+	w->installed = 1;
+	return NULL;
+}
+
+/* Puts everything back and states whether it is back. The pointers go back FIRST, the storage they pointed into is freed AFTER. Safe to call when nothing was installed. */
+static void witness_remove (struct col_witness *w)
+{
+	if (!w->installed || w->removed)
+	{
+		return;
+	}
+	objects_3d_scene_database[OBJECT_3D_FOREST_TREE_OBJECT].collision_object_index = w->scene_index_before;
+	objects_3d_data = w->saved_data;
+	safe_free (w->copy);
+	w->copy = NULL;
+	w->removed = 1;
+	w->data_restored = objects_3d_data == w->saved_data;
+	w->scene_index_after = objects_3d_scene_database[OBJECT_3D_FOREST_TREE_OBJECT].collision_object_index;
+	w->scene_restored = w->scene_index_after == w->scene_index_before;
+	w->objects_after = fold_bytes (FNV_OFFSET, objects_3d_data, (size_t) w->objects_count * sizeof (struct OBJECT_3D));
+	w->entry_after = fold_bytes (FNV_OFFSET, &objects_3d_scene_database[OBJECT_3D_FOREST_TREE_OBJECT], sizeof (objects_3d_scene_database[0]));
+	w->restored = w->data_restored && w->scene_restored && w->objects_before == w->objects_after && w->entry_before == w->entry_after;
+}
+
+/* accounts one finished tree query (stage 0 to 3) from what the wrapper saw */
+static void witness_note_query (int stage, int hit)
+{
+	if (stage < 0 || stage >= WITNESS_STAGES)
+	{
+		return;
+	}
+	witness.queries[stage]++;
+	if (geo_obs.true_calls > 0)
+	{
+		witness.branch[stage]++;
+		if (geo_obs.last_result == 0)
+		{
+			witness.exhausted[stage]++;
+		}
+	}
+	if (hit)
+	{
+		if (geo_obs.last_result == 1)
+		{
+			witness.geometry_hit[stage]++;
+			if (stage == 0)
+			{
+				if (geo_obs.last_depth >= 0 && geo_obs.last_depth < WITNESS_DEPTHS)
+				{
+					witness.depth_hit[geo_obs.last_depth]++;
+				}
+				else
+				{
+					witness.depth_beyond++;
+				}
+			}
+		}
+		else
+		{
+			witness.other_hit[stage]++;
+		}
+	}
+}
+
+static void witness_emit (struct out *o, const struct col_witness *w)
+{
+	int s;
+
+	emit (o, "col-geometry-witness label=controlled_forest_geometry source=fixture_owned_mesh installed=%d restored=%d data_restored=%d scene_restored=%d copy_identical=%d "
+		"objects_count=%d scene_index_before=%d scene_index_after=%d objects_before=%016llx objects_after=%016llx entry_before=%016llx entry_after=%016llx mesh_points=%d mesh_faces=%d "
+		"mesh_surfaces=%d mesh_triangles=%d mesh_fold=%016llx", w->installed, w->restored, w->data_restored, w->scene_restored, w->copy_identical, w->objects_count,
+		w->scene_index_before, w->scene_index_after, (unsigned long long) w->objects_before, (unsigned long long) w->objects_after, (unsigned long long) w->entry_before,
+		(unsigned long long) w->entry_after, WITNESS_POINTS, WITNESS_FACES, WITNESS_SURFACES, WITNESS_TRIANGLES, (unsigned long long) w->mesh_fold);
+	for (s = 0; s < WITNESS_STAGES; s++)
+	{
+		emit (o, " q%d=%d b%d=%d g%d=%d o%d=%d e%d=%d", s, w->queries[s], s, w->branch[s], s, w->geometry_hit[s], s, w->other_hit[s], s, w->exhausted[s]);
+	}
+	for (s = 0; s < WITNESS_DEPTHS; s++)
+	{
+		emit (o, " d%d=%d", s, w->depth_hit[s]);
+	}
+	emit (o, " dbeyond=%d\n", w->depth_beyond);
+}
+
 static void query_entity (struct col_probe *p, entity *src, entity *tgt, const vec3d *a0, const vec3d *b0, int cold, struct col_qr *r)
 {
 	vec3d a = *a0, b = *b0;
@@ -882,13 +1175,28 @@ static void query_tree (struct col_probe *p, const vec3d *a0, const vec3d *b0, i
 		rec = trace_begin (p, stage, ignore_edge, skip_top, &a, &b, r);
 	}
 	trace_cur = rec;
+	if (witness_active)
+	{
+		memset (&geo_obs, 0, sizeof (geo_obs));
+	}
 	r->hit = get_line_of_sight_collision_tree (&a, &b, &r->point, &r->normal, ignore_edge, skip_top) ? 1 : 0;
 	trace_cur = NULL;
 	r->en = NULL;
 	end_outputs (p, r, &a, &b, a0, b0);
+	if (witness_active)
+	{
+		witness_note_query (stage, r->hit);
+	}
 	if (rec)
 	{
 		trace_end (rec, r->hit, &r->point, &r->normal);
+		if (witness_active)
+		{
+			rec->g_calls = geo_obs.calls;
+			rec->g_true = geo_obs.true_calls;
+			rec->g_last = geo_obs.last_result;
+			rec->g_depth = geo_obs.last_depth;
+		}
 	}
 }
 
@@ -1674,6 +1982,13 @@ static void trace_build_facts (struct col_probe *p)
 		}
 	}
 
+	if (witness_active)
+	{
+		emit (o, "tf-witness label=controlled_forest_geometry source=fixture_owned_mesh mesh_points=%d mesh_faces=%d mesh_surfaces=%d mesh_triangles=%d mesh_fold=%016llx\n",
+			WITNESS_POINTS, WITNESS_FACES, WITNESS_SURFACES, WITNESS_TRIANGLES, (unsigned long long) witness.mesh_fold);
+		trace_witness = 1;
+	}
+
 	/* the first live tree records of the first sector that has any, as raw bytes */
 	for (x = 0; x < terrain_3d_sector_x_max && shown == 0; x++)
 	{
@@ -1714,6 +2029,12 @@ static void emit_trace_rec (struct out *o, const struct col_trace_rec *r)
 		r->ignore_edge, r->skip_top, r->a[0], r->a[1], r->a[2], r->b[0], r->b[1], r->b[2], r->init_point[0], r->init_point[1], r->init_point[2], r->init_normal[0],
 		r->init_normal[1], r->init_normal[2], r->lookups, r->extra_lookups, r->look[0][0], r->look[0][1], r->look[0][2], r->look[1][0], r->look[1][1], r->look[1][2], r->hit,
 		r->point[0], r->point[1], r->point[2], r->normal[0], r->normal[1], r->normal[2]);
+	if (trace_witness && !o->overflow)
+	{
+		/* the controlled witness only: the same line, one more group of fields before its newline */
+		o->used--;
+		emit (o, " g_calls=%d g_true=%d g_last=%d g_depth=%d\n", r->g_calls, r->g_true, r->g_last, r->g_depth);
+	}
 }
 
 /*
@@ -1900,7 +2221,7 @@ static void flags_restore (struct col_probe *p)
  * Runs the structured and random cases and writes the report. Returns 0, or -1 with `col-refused reason=...` in the report (a precondition
  * failed before anything was altered) or with nothing useful when the report does not fit.
  */
-int eech_collision_probe_run (uint32_t seed, int entity_cases, int tree_cases, char *text, int capacity)
+static int probe_run_body (uint32_t seed, int entity_cases, int tree_cases, char *text, int capacity)
 {
 	struct col_probe *p = &probe_storage;
 	struct out out;
@@ -2153,6 +2474,62 @@ int eech_collision_probe_run (uint32_t seed, int entity_cases, int tree_cases, c
 		return -1;
 	}
 	return 0;
+}
+
+/*
+ * Arms (or disarms) the controlled forest geometry witness for the NEXT probe only: the probe consumes the arming whatever its outcome, so there is no state to clean up. The
+ * default (unarmed) probe is exactly probe_run_body.
+ */
+int eech_collision_geometry_arm_run (int on)
+{
+	witness_armed = on ? 1 : 0;
+	return 0;
+}
+
+/*
+ * The probe. Unarmed, it is the body unchanged. Armed, it installs the controlled model (or refuses with its reason before anything is changed), runs the body with the witness
+ * accounting on, removes the model on EVERY path (the body's own refusals included), and appends the col-geometry-witness row to what the body wrote. A restoration that failed is
+ * stated in that row (restored=0) and the driver refuses it; the row is never dropped.
+ */
+int eech_collision_probe_run (uint32_t seed, int entity_cases, int tree_cases, char *text, int capacity)
+{
+	int armed = witness_armed;
+	int result;
+	const char *reason;
+	struct out o;
+
+	witness_armed = 0;
+	if (!armed)
+	{
+		return probe_run_body (seed, entity_cases, tree_cases, text, capacity);
+	}
+	if (!text || capacity <= 0)
+	{
+		return -1;
+	}
+	text[0] = '\0';
+	witness_active = 0;
+	reason = witness_install (&witness);
+	if (reason)
+	{
+		refuse (text, capacity, reason);
+		return -1;
+	}
+	witness_active = 1;
+	result = probe_run_body (seed, entity_cases, tree_cases, text, capacity);
+	witness_active = 0;
+	witness_remove (&witness);
+	o.text = text;
+	o.capacity = capacity;
+	o.used = (int) strlen (text);
+	o.overflow = 0;
+	witness_emit (&o, &witness);
+	if (o.overflow)
+	{
+		refuse (text, capacity, "report_does_not_fit");
+		return -1;
+	}
+	return result;
 }
 
 #endif

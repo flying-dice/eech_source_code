@@ -247,6 +247,28 @@ local modes = {
   trace_facts_tree_total = function() end,
   trace_triangle_count = function() end,
   trace_forest_capped = function() end,
+  -- the controlled geometry witness: single defects in the witness row, the geometry facts or the per-query geometry fields (all no-ops for the ordinary report)
+  witness_row_missing = function() end,
+  witness_row_unarmed = function() end,
+  witness_field_unarmed = function() end,
+  witness_facts_unarmed = function() end,
+  witness_not_restored = function() end,
+  witness_data_not_restored = function() end,
+  witness_scene_not_restored = function() end,
+  witness_objects_differ = function() end,
+  witness_entry_differs = function() end,
+  witness_scene_index_differs = function() end,
+  witness_copy_differs = function() end,
+  witness_wrong_mesh = function() end,
+  witness_label_wrong = function() end,
+  witness_count_mismatch = function() end,
+  witness_depth_mismatch = function() end,
+  witness_last_without_hit = function() end,
+  witness_depth_range = function() end,
+  witness_true_exceeds_calls = function() end,
+  witness_triangle_count = function() end,
+  witness_facts_mismatch = function() end,
+  witness_arm_fails = function() end,
   -- warm pairing, lookup coherence, and the valid outside/boundary transcripts
   trace_warm_endpoint = function() end,
   trace_warm_flags = function() end,
@@ -351,6 +373,26 @@ local ZERO3, SENT3 = '00000000,00000000,00000000', '5a5a5a5a,5a5a5a5a,5a5a5a5a'
 local trace_armed = false
 local trace_reads = 0
 
+-- The controlled geometry witness. The stand-in lays out, for the last report, the per-query geometry facts a real witness would record (they add up to the witness row); it measures
+-- nothing about the original's geometry branch.
+local witness_armed, witness_in_trace = false, false
+local WITNESS_TRIANGLES = 6
+
+local function geometry_fields(r, i, state)
+  local g
+  if r.hit == 1 then
+    g = { calls = 2, true_calls = 2, last = 1, depth = (i - 1) % WITNESS_TRIANGLES }
+  elseif i % 2 == 0 then
+    g = { calls = 3, true_calls = 2, last = 0, depth = 1 }
+  else
+    g = { calls = 0, true_calls = 0, last = 0, depth = 0 }
+  end
+  if mode == 'witness_last_without_hit' and r.hit == 0 and not state.last_done then g = { calls = 3, true_calls = 2, last = 1, depth = 1 } state.last_done = true end
+  if mode == 'witness_depth_range' and r.hit == 1 and not state.depth_done then g.depth = WITNESS_TRIANGLES state.depth_done = true end
+  if mode == 'witness_true_exceeds_calls' and i == 1 then g = { calls = 1, true_calls = 2, last = 0, depth = 0 } end
+  return g
+end
+
 local function trace_lines()
   local plan = trace_plan
   -- records as field tables first, so a mode can change one field; the terrain lookups are DERIVED from the final endpoints (old then new, each only if inside the map: the stand-in
@@ -413,6 +455,8 @@ local function trace_lines()
     return x, z, triple:match('^(%x+),') ~= 'c0000000' and triple:match('^(%x+),') ~= '46fffe01'
   end
   local lines = {}
+  local gstate = {}
+  local gstats = { q = { 0, 0, 0, 0 }, b = { 0, 0, 0, 0 }, g = { 0, 0, 0, 0 }, o = { 0, 0, 0, 0 }, e = { 0, 0, 0, 0 }, d = { 0, 0, 0, 0, 0, 0, 0, 0 }, beyond = 0 }
   for i, r in ipairs(recs) do
     local lookups = {}
     local ax, az, a_in = inside(r.a)
@@ -427,26 +471,72 @@ local function trace_lines()
     lines[#lines + 1] = string.format('tq ordinal=%d group=%d kind=%d role=%d stage=%d ignore_edge=%d skip_top=%d a=%s b=%s init_point=%s init_normal=%s lookups=%d extra_lookups=0 ' ..
       'l0=%s l1=%s hit=%d point=%s normal=%s', i - 1, r.group, r.kind, r.role, r.stage, r.ignore_edge, r.skip_top, r.a, r.b, r.init_point or ZERO3, r.init_normal or SENT3,
       #lookups, l0, l1, r.hit, r.point, r.normal)
+    if witness_in_trace or mode == 'witness_field_unarmed' then
+      local g = geometry_fields(r, i, gstate)
+      lines[#lines] = lines[#lines] .. string.format(' g_calls=%d g_true=%d g_last=%d g_depth=%d', g.calls, g.true_calls, g.last, g.depth)
+      local st = r.stage + 1
+      gstats.q[st] = gstats.q[st] + 1
+      if g.true_calls > 0 then
+        gstats.b[st] = gstats.b[st] + 1
+        if g.last == 0 then gstats.e[st] = gstats.e[st] + 1 end
+      end
+      if r.hit == 1 then
+        if g.last == 1 then
+          gstats.g[st] = gstats.g[st] + 1
+          if r.stage == 0 then gstats.d[g.depth + 1] = (gstats.d[g.depth + 1] or 0) + 1 end
+        else
+          gstats.o[st] = gstats.o[st] + 1
+        end
+      end
+    end
   end
   recs = lines
   if mode == 'trace_short' then table.remove(recs) end
   if mode == 'trace_unknown_row' then recs[#recs + 1] = 'tq-extra n=1' end
 
   local trees = plan.trees
+  local base_triangles = witness_in_trace and ((mode == 'witness_triangle_count') and 5 or WITNESS_TRIANGLES) or 2
   local facts = {
     'tf-layout record_size=8 x_offset=0 z_offset=2 y_offset=4 colour_offset=6 probe=feff341200cdabef height_only=0000000000000000 type_only=0000000000000000',
     string.format('tf-map terrain_sectors_x=6 terrain_sectors_z=4 terrain_sector_side=2048 xz_scale=3a000000 height_scale=3c000000 height_minimum=c0000000 max_tree_height=35 ' ..
       'map_min_x=00000000 map_min_z=00000000 map_max_x=46fffe00 map_max_z=46fffe00 tree_total=%d sectors_with_trees=%d', trees and ((mode == 'trace_facts_tree_total') and 99 or 100) or 0, trees and 10 or 0),
     -- a COHERENT truncation in trace_forest_capped: the emitter's cap is 512, so a forest with more triangles gives exactly 512 indexed rows, triangles=512 and capped=1
     string.format('tf-forest geometry=%d triangles=%d capped=%d fold=0123456789abcdef', trees and 1 or 0,
-      trees and ((mode == 'trace_forest_capped') and 512 or ((mode == 'trace_triangle_count') and 3 or 2)) or 0, (trees and mode == 'trace_forest_capped') and 1 or 0),
+      trees and ((mode == 'trace_forest_capped') and 512 or ((mode == 'trace_triangle_count') and 3 or base_triangles)) or 0, (trees and mode == 'trace_forest_capped') and 1 or 0),
   }
   if trees then
-    local triangles = (mode == 'trace_forest_capped') and 512 or 2
+    local triangles = (mode == 'trace_forest_capped') and 512 or base_triangles
     for i = 0, triangles - 1 do facts[#facts + 1] = string.format('tf-triangle i=%d p0=%s p1=%s p2=%s', i, V3, V3, V3) end
+    if witness_in_trace or mode == 'witness_facts_unarmed' then
+      facts[#facts + 1] = string.format('tf-witness label=controlled_forest_geometry source=fixture_owned_mesh mesh_points=%d mesh_faces=3 mesh_surfaces=2 mesh_triangles=6 mesh_fold=%s',
+        (mode == 'witness_facts_mismatch') and 13 or 12, 'fedcba9876543210')
+    end
     for i = 0, 7 do facts[#facts + 1] = string.format('tf-sample sx=1 sz=2 count=12 index=%d bytes=00112233445566%02x', i, i) end
   end
-  return recs, facts
+  return recs, facts, gstats
+end
+
+local function witness_row()
+  local _, _, g = trace_lines()
+  local objects_after = (mode == 'witness_objects_differ') and '0123456789abcdee' or '0123456789abcdef'
+  local entry_after = (mode == 'witness_entry_differs') and '00112233445566fe' or '00112233445566ff'
+  local parts = { string.format('col-geometry-witness label=%s source=fixture_owned_mesh installed=1 restored=%d data_restored=%d scene_restored=%d copy_identical=%d objects_count=4097 ' ..
+    'scene_index_before=-1 scene_index_after=%d objects_before=0123456789abcdef objects_after=%s entry_before=00112233445566ff entry_after=%s mesh_points=%d mesh_faces=3 mesh_surfaces=2 ' ..
+    'mesh_triangles=6 mesh_fold=fedcba9876543210', (mode == 'witness_label_wrong') and 'some_other_witness' or 'controlled_forest_geometry', (mode == 'witness_not_restored') and 0 or 1,
+    (mode == 'witness_data_not_restored') and 0 or 1, (mode == 'witness_scene_not_restored') and 0 or 1, (mode == 'witness_copy_differs') and 0 or 1,
+    (mode == 'witness_scene_index_differs') and 4096 or -1, objects_after, entry_after, (mode == 'witness_wrong_mesh') and 11 or 12) }
+  for stage = 1, 4 do
+    local b = g.b[stage]
+    if mode == 'witness_count_mismatch' and stage == 1 then b = b + 1 end
+    parts[#parts + 1] = string.format('q%d=%d b%d=%d g%d=%d o%d=%d e%d=%d', stage - 1, g.q[stage], stage - 1, b, stage - 1, g.g[stage], stage - 1, g.o[stage], stage - 1, g.e[stage])
+  end
+  for depth = 1, 8 do
+    local d = g.d[depth] or 0
+    if mode == 'witness_depth_mismatch' and depth == 1 then d = d + 1 end
+    parts[#parts + 1] = string.format('d%d=%d', depth - 1, d)
+  end
+  parts[#parts + 1] = 'dbeyond=0'
+  return table.concat(parts, ' ') .. '\n'
 end
 
 function engine:collision_trace_arm(on)
@@ -470,9 +560,19 @@ function engine:collision_trace_read(kind, offset, count)
   return table.concat(lines, '\n') .. '\n', total
 end
 
+function engine:collision_geometry_arm(on)
+  note('geometry_arm ' .. tostring(on))
+  if mode == 'witness_arm_fails' then error('stand-in arm failure', 0) end
+  witness_armed = on
+end
+
 function engine:collision_probe(seed, entity_cases, tree_cases)
   probes = probes + 1
-  note('probe ' .. seed .. ' ' .. entity_cases .. ' ' .. tree_cases)
+  -- one-shot, as in the fixture: consumed by the next probe whatever its outcome
+  local armed = witness_armed
+  witness_armed = false
+  witness_in_trace = armed
+  note('probe ' .. seed .. ' ' .. entity_cases .. ' ' .. tree_cases .. (armed and ' witness' or ''))
   if mode == 'refuse' then error('col-refused reason=no_terrain_loaded', 0) end
   if mode == 'refuse_controls' then
     -- a refusal whose text is what a real one can be: a traceback's tabs and newlines, a quote, a backslash, every control byte 0 to 31 in order, and UTF-8
@@ -485,7 +585,9 @@ function engine:collision_probe(seed, entity_cases, tree_cases)
     local text = report(seed, entity_cases, tree_cases)
     return (string.gsub(text, '1234567890123456', string.format('%016d', probes), 1))
   end
-  return report(seed, entity_cases, tree_cases)
+  local text = report(seed, entity_cases, tree_cases)
+  if (armed and mode ~= 'witness_row_missing') or mode == 'witness_row_unarmed' then text = text .. witness_row() end
+  return text
 end
 
 -- I/O failure injection for the driver's NEW trace file only: a thin proxy over the real file whose write, flush or close fails in the trace_io_* modes. Every other file the

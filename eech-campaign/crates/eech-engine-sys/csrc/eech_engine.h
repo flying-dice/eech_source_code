@@ -392,6 +392,12 @@ int eech_engine_collision_probe (uint32_t seed, int entity_cases, int tree_cases
  */
 int eech_engine_collision_trace_arm (int on);
 int eech_engine_collision_trace_read (int kind, int offset, int count, char *text, int capacity, int *total);
+/*
+ * The optional CONTROLLED FOREST GEOMETRY WITNESS (EEDCS-49, test-only; off by default, and the default probe is unchanged). Arming applies to the NEXT collision probe only and is consumed by it
+ * whatever its outcome. The armed probe supplies the forest tree object a small fixture-owned collision model for the duration of that probe (a copy of the real object table plus the
+ * model, the real table untouched), runs the unchanged original queries, restores everything and appends a col-geometry-witness row that states the restoration. See eech_collision_fixture.c.
+ */
+int eech_engine_collision_geometry_arm (int on);
 #endif
 
 #endif

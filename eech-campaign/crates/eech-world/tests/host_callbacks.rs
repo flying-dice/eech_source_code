@@ -2793,3 +2793,204 @@ fn the_collision_driver_accepts_outside_and_boundary_endpoints_with_the_original
         );
     }
 }
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// The controlled forest geometry witness (EEDCS-49): the DRIVER's flow and its checks of what a witnessed probe returns, against the stand-in. Whether the original's geometry branch
+// behaves as characterised is the native run's to show, with a DLL built with the `collision-fixture` feature and the retail roots; nothing here measures it.
+
+fn read_transcript_rows(path: &std::path::Path) -> Vec<serde_json::Value> {
+    std::fs::read_to_string(path)
+        .expect("the transcript file")
+        .lines()
+        .map(|l| serde_json::from_str(l).unwrap_or_else(|e| panic!("transcript row not strict JSON {l:?}: {e}")))
+        .collect()
+}
+
+#[test]
+fn the_collision_driver_accepts_a_complete_controlled_geometry_witness_labels_it_and_names_what_it_did_not_reach() {
+    let ((status, stdout, stderr, trace, rows), path) = run_collision_trace_case("ok", &["entity_cases=40", "tree_cases=40", "geometry_witness=yes"]);
+    assert!(status.success() && stdout.contains("COLLISION_CALLER_DONE"), "{stdout}\n{stderr}");
+    // armed before each of the two probes (one-shot: nothing to disarm), the transcript armed and disarmed as always
+    assert_eq!(
+        (trace.matches("geometry_arm true").count(), trace.matches(" witness").count()),
+        (2, 2),
+        "{trace}"
+    );
+    assert_eq!(
+        (trace.matches("trace_arm true").count(), trace.matches("trace_arm false").count()),
+        (2, 1),
+        "{trace}"
+    );
+    let lines = read_transcript_rows(&path);
+    let _ = std::fs::remove_file(&path);
+    // labelled as controlled, in the output, in the transcript's first row and in its facts
+    assert_eq!(
+        rows.iter().find(|r| r["event"] == "boot").unwrap()["geometry_witness"].as_str(),
+        Some("controlled_forest_geometry"),
+        "{rows:?}"
+    );
+    assert_eq!(lines[0]["geometry_witness"].as_str(), Some("controlled_forest_geometry"), "{}", lines[0]);
+    let facts = lines.iter().find(|l| l["event"] == "tf-witness").expect("the tf-witness facts row");
+    assert_eq!(facts["mesh_triangles"].as_i64(), Some(6), "{facts}");
+    assert_eq!(lines.iter().filter(|l| l["event"] == "tf-triangle").count(), 6);
+    let forest = lines.iter().find(|l| l["event"] == "tf-forest").unwrap();
+    assert_eq!((forest["geometry"].as_i64(), forest["triangles"].as_i64()), (Some(1), Some(6)), "{forest}");
+    // every tree query carries its geometry-branch facts
+    let queries: Vec<_> = lines.iter().filter(|l| l["event"] == "tq").collect();
+    assert_eq!(queries.len(), 242);
+    assert!(
+        queries
+            .iter()
+            .all(|q| ["g_calls", "g_true", "g_last", "g_depth"].iter().all(|k| q[*k].is_i64())),
+        "every tq has the geometry fields"
+    );
+    // the report row states the restoration
+    let witness = rows.iter().find(|r| r["event"] == "col-geometry-witness").expect("the report's witness row");
+    for key in ["installed", "restored", "data_restored", "scene_restored", "copy_identical"] {
+        assert_eq!(witness[key].as_i64(), Some(1), "{key}: {witness}");
+    }
+    assert_eq!(witness["objects_before"], witness["objects_after"], "{witness}");
+    assert_eq!(witness["entry_before"], witness["entry_after"], "{witness}");
+    // coverage is stated: the stand-in only ever asks with the consumer flags, so the other combinations are named gaps, and a partial write is not seen
+    let coverage = rows
+        .iter()
+        .find(|r| r["event"] == "geometry_witness_coverage")
+        .expect("the witness coverage row");
+    assert!(
+        coverage["branch_entered"].as_i64().unwrap() > 0 && coverage["geometry_hits"].as_i64().unwrap() > 0,
+        "{coverage}"
+    );
+    assert_eq!(coverage["restored"].as_i64(), Some(1), "{coverage}");
+    let gaps = coverage["gaps"].as_str().unwrap();
+    for gap in [
+        "geometry_branch_not_seen_with_flags_0_0",
+        "geometry_branch_not_seen_with_flags_1_0",
+        "geometry_branch_not_seen_with_flags_1_1",
+        "no_geometry_miss_with_a_partial_write",
+    ] {
+        assert!(gaps.contains(gap), "{gap} not named in {gaps}");
+    }
+    assert!(!gaps.contains("geometry_branch_not_seen_with_flags_0_1"), "{gaps}");
+    let done = rows.iter().find(|r| r["event"] == "done").unwrap();
+    assert!(
+        done["coverage_gaps"].as_str().unwrap().contains("no_geometry_miss_with_a_partial_write"),
+        "{done}"
+    );
+
+    // off by default: no arming, no label, no witness row, and a report and transcript exactly as before
+    let ((status, stdout, stderr, trace, rows), path) = run_collision_trace_case("ok", &["entity_cases=40", "tree_cases=40"]);
+    assert!(status.success() && stdout.contains("COLLISION_CALLER_DONE"), "{stdout}\n{stderr}");
+    let lines = read_transcript_rows(&path);
+    let _ = std::fs::remove_file(&path);
+    assert!(!trace.contains("geometry_arm"), "{trace}");
+    assert!(
+        rows.iter()
+            .all(|r| r["event"] != "col-geometry-witness" && r["event"] != "geometry_witness_coverage" && r.get("geometry_witness").is_none()),
+        "{rows:?}"
+    );
+    assert!(
+        lines
+            .iter()
+            .all(|l| l["event"] != "tf-witness" && l.get("geometry_witness").is_none() && l.get("g_calls").is_none()),
+        "a witness field leaked into the default transcript"
+    );
+    assert_eq!(lines.iter().filter(|l| l["event"] == "tf-triangle").count(), 2);
+}
+
+// One defect each in the witness, in its row, its facts or its per-query fields. Each must fail the run with the named reason, leave the transcript file empty and write no success row.
+#[test]
+fn the_collision_driver_names_the_one_defect_in_a_geometry_witness_and_leaves_the_transcript_empty() {
+    let witness = ["entity_cases=40", "tree_cases=40", "geometry_witness=yes"];
+    let controls: [(&str, &[&str], &str); 20] = [
+        // restoration: every element of it is required, none is inferred from another
+        ("witness_not_restored", &witness, "col-geometry-witness: restored is 0, expected 1"),
+        ("witness_data_not_restored", &witness, "col-geometry-witness: data_restored is 0, expected 1"),
+        ("witness_scene_not_restored", &witness, "col-geometry-witness: scene_restored is 0, expected 1"),
+        ("witness_copy_differs", &witness, "col-geometry-witness: copy_identical is 0, expected 1"),
+        (
+            "witness_objects_differ",
+            &witness,
+            "col-geometry-witness: objects_after is 0123456789abcdee, expected 0123456789abcdef",
+        ),
+        (
+            "witness_entry_differs",
+            &witness,
+            "col-geometry-witness: entry_after is 00112233445566fe, expected 00112233445566ff",
+        ),
+        (
+            "witness_scene_index_differs",
+            &witness,
+            "col-geometry-witness: scene_index_after is 4096, expected -1",
+        ),
+        // the model and its label are the emitter's
+        ("witness_wrong_mesh", &witness, "col-geometry-witness: mesh_points is 11, expected 12"),
+        (
+            "witness_label_wrong",
+            &witness,
+            "col-geometry-witness: label is some_other_witness, expected controlled_forest_geometry",
+        ),
+        ("witness_facts_mismatch", &witness, "tf-witness: mesh_points is 13, expected 12"),
+        ("witness_triangle_count", &witness, "tf-forest: triangles is 5, expected 6"),
+        // the report's per-stage counts must agree with the transcript's per-query facts
+        ("witness_count_mismatch", &witness, "col-geometry-witness: b0 against the transcript is"),
+        ("witness_depth_mismatch", &witness, "col-geometry-witness: d0 against the transcript is"),
+        // per-query facts that cannot be: the first successful triangle returns at once, so a last yes is a hit; counts and depths are bounded
+        (
+            "witness_last_without_hit",
+            &witness,
+            "the last triangle answered yes but the query is not a hit",
+        ),
+        ("witness_depth_range", &witness, "tq 0: g_depth 6 is outside the model's 6 triangles"),
+        ("witness_true_exceeds_calls", &witness, "tq 0: g_true 2 is more than g_calls 1"),
+        // armed but no row, and a witness that cannot be armed
+        ("witness_row_missing", &witness, "the report has no col-geometry-witness row"),
+        ("witness_arm_fails", &witness, "the geometry witness could not be armed: stand-in arm failure"),
+        // NOT armed: a witness row or a witness field is unknown and refused, so the default report and transcript stay exactly what they were
+        (
+            "witness_row_unarmed",
+            &["entity_cases=40", "tree_cases=40"],
+            "the report has an unknown row 'col-geometry-witness'",
+        ),
+        ("witness_field_unarmed", &["entity_cases=40", "tree_cases=40"], "tq: unexpected key g_calls"),
+    ];
+    for (mode, args, reason) in controls {
+        let ((status, stdout, stderr, trace, rows), path) = run_collision_trace_case(mode, args);
+        let size = std::fs::metadata(&path).map(|m| m.len());
+        let _ = std::fs::remove_file(&path);
+        assert!(!status.success() && !stdout.contains("COLLISION_CALLER_DONE"), "{mode}: {stdout}\n{stderr}");
+        assert!(stderr.contains(reason), "{mode}: expected {reason:?} in {stderr}");
+        assert_eq!(
+            size.ok(),
+            Some(0),
+            "{mode}: the transcript file must exist and be empty after a rejected witness"
+        );
+        assert_eq!(trace.matches("trace_arm false").count(), 1, "{mode}: {trace}");
+        assert!(
+            rows.iter().all(|r| !matches!(
+                r["event"].as_str().unwrap_or(""),
+                "trace_written" | "coverage" | "state_digest" | "done" | "geometry_witness_coverage"
+            )),
+            "{mode}: a success row was written: {rows:?}"
+        );
+    }
+    // a witness fact in an unarmed run
+    let ((status, _, stderr, _, _), path) = run_collision_trace_case("witness_facts_unarmed", &["entity_cases=40", "tree_cases=40"]);
+    let _ = std::fs::remove_file(&path);
+    assert!(
+        !status.success() && stderr.contains("the transcript has an unknown row 'tf-witness'"),
+        "{stderr}"
+    );
+}
+
+#[test]
+fn the_collision_driver_refuses_bad_geometry_witness_arguments_before_booting() {
+    for (args, reason) in [
+        (vec!["geometry_witness=maybe"], "geometry_witness must be one of no, yes, got 'maybe'"),
+        (vec!["geometry_witness=yes"], "geometry_witness=yes needs trace_out"),
+        (vec!["geometry_witness=yes", "probe=no"], "geometry_witness=yes needs probe=yes"),
+    ] {
+        let (status, _, stderr, trace, rows) = run_collision_case("ok", &args);
+        assert!(!status.success() && stderr.contains(reason), "{args:?}: {stderr}");
+        assert!(trace.is_empty() && rows.is_empty(), "{args:?}: the engine was booted or a row written: {trace}");
+    }
+}

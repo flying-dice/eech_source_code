@@ -1,24 +1,81 @@
-# User-requested commit/push checkpoint — original geometry witness PARTIAL, UNBUILT, UNRUN
+# Original forest-tree GEOMETRY witness — source PREPARED, UNBUILT, UNRUN, unreviewed (EEDCS-49, D3 characterization before the model-loading extraction)
 
-On 2026-10-29, Root stopped the verified Sonnet High writer (PID456, born
-21:11:31.810825Z; relevant local session39ea8c20-d032-41ae-bbbb-c52fb100b440)
-to preserve a consistent checkpoint at the user's request. The controller exited
-4294967295 and was collected; this was an intentional interruption, not a quota
-failure or a completed implementation. No implementation writer remains active.
+This completes the partial checkpoint 5154bc7e7 (the feature-only observation hook in `en_cllsn.c`) into a bounded, controlled witness of the ORIGINAL forest-tree geometry branch and the ORIGINAL
+model-triangle decoder. Nothing here was built, formatted, tested or run. The measured host tree preparation at `8c452f197449d3a08b8f7bfbad5c34ae652c22c1` (below) is unchanged and not re-reviewed;
+no host kernel, loader or Lua API file was touched. Production dispatch is unchanged; the shipping expansion of the new macro is exactly the original call. Task47 shipping115 is untouched.
+Task49 and D3 remain In Progress; the model loader, the host geometry branch's agreement with the original, entity collision, G1 integration, production authority and the DCS mapping remain open.
 
-The only new source edit is the feature-gated tree geometry observation hook in
-`en_cllsn.c`: two existing original decoder calls are routed through a proposed
-fixture wrapper. That wrapper is NOT YET IMPLEMENTED, so a collision-fixture
-build is expected to be incomplete. Shipping macro expansion retains the
-original calls, but this checkpoint has not been built or tested. It is not
-covered by the closed review of measured source8c452f197 below.
+## Why
 
-Next: resume the same local Claude context, finish the bounded ORIGINAL geometry
-witness and full model/scene/pointer restoration, then build fresh and measure
-the real original path before extracting model loading. Preserve default report
-and trace bytes, inputs, existing evidence, and the original live shipping run.
-Production remains coupled; Task49 and D3 remain In Progress. No acceptance,
-merge, baseline or tolerance change is implied by this checkpoint.
+The measured retail maps give the forest tree object NO collision triangles (`tf-forest geometry=0`), so the original's type-1 geometry branch of `get_line_of_sight_collision_tree` has never run against
+them: the 554/600/600 exact replays prove the quad path only. The host kernel carries the geometry branch as the original's text but unexercised, and the model-loading responsibility cannot be moved
+before the ORIGINAL's decoder and branch have been measured on a known input.
+
+## What the witness is (all answers are the original code's)
+
+* Input (environment, constants, labelled controlled): a fixture-owned model of 12 points, 3 faces (a quad, a triangle and a pentagon, so fan order and depth order), 2 surfaces whose per-surface point tables are
+  not the identity (surface 0 permutes its 7 entries, surface 1 restarts local indexes at 0 with 5), 16-bit points scaled by a bounding box of x/z plus or minus 0.25 and y 0 to 1, and the zero SENTINEL surface the original
+  reads after the last face of the last surface. It makes 6 triangles (4-gon: 2, triangle: 1, 5-gon: 3). Decoded coordinates, fan order, scaling and the walk are produced ONLY by the original
+  `get_object_3d_collision_object_geometry_triangle`; the fixture never decodes, intersects or predicts.
+* Seam: the original reads the model through `objects_3d_data[objects_3d_scene_database[FOREST_TREE_OBJECT].collision_object_index]`. Index 0 (the retail null object, which the accepted C1 patch maps to -1) is NOT used.
+  The witness copies the real object table (`total_number_of_raw_3d_objects + 1` entries, content identical, checked), appends its own object after the last real index, points `objects_3d_data` at the copy and
+  sets only the forest scene's `collision_object_index` to the appended index, for exactly one probe. Entity queries see an identical table; no real object, tree, file, list or position is changed; the real type-1
+  trees of the loaded map are the trees.
+* Restoration (every path: normal, the body's own refusals, report too big): the scene index and the `objects_3d_data` pointer are put back FIRST, the copy is freed AFTER. The report then states `data_restored`
+  (pointer), `scene_restored` (index), `copy_identical`, the hash of the WHOLE real object table before/after, the hash of the forest scene entry before/after and the scene index before/after; the driver
+  requires every one, and a failed restoration is a failed run with the raw report kept (`report_invalid`).
+* Observation: `en_cllsn.c`'s two reads of the decoder go through `TREE_QUERY_GEOMETRY_TRIANGLE`; under `EECH_COLLISION_FIXTURE` it calls the fixture wrapper, which calls the original decoder once, with the same
+  arguments in the same order, and records by value (calls, yes answers, last answer, depth of the last yes). No extra decoder, terrain or intersection query exists. From it: per stage (0 primary cold, 1 primary warm,
+  2 nearer-check cold, 3 nearer-check warm) the queries made, those that ENTERED the branch, those that HIT through it (the first successful triangle returns at once), those that hit through the quad path although geometry
+  was present, and those that walked a tree's triangles to the end; and for stage 0 which triangle depth hit.
+* One-shot arming: `engine:collision_geometry_arm(true)` (new, feature-only, mirroring `collision_trace_arm`) applies to the NEXT `collision_probe` and is consumed by it whatever its outcome, so no disarm path exists.
+  The driver gets `geometry_witness=yes` (requires `probe=yes` and `trace_out`; anything else is refused before booting).
+
+## Default (witness off) is unchanged
+
+The unarmed probe is the original probe body byte for byte (it was only renamed and wrapped): same report rows, same transcript rows and bytes. The new row, fact row and per-query fields exist only when armed. In
+the driver, without `geometry_witness=yes` a `col-geometry-witness` row, a `tf-witness` row or a `g_*` field is an UNKNOWN row/key and is refused, so the reviewed f3 default reports (205 ordinary values, 206 trace-report
+rows) must still compare byte for byte; Root's native default run is the proof, not this statement.
+
+## New report/transcript shape (checks, not physical answers)
+
+* Report row `col-geometry-witness`: `label=controlled_forest_geometry source=fixture_owned_mesh installed restored data_restored scene_restored copy_identical objects_count scene_index_before scene_index_after
+  objects_before objects_after entry_before entry_after mesh_points=12 mesh_faces=3 mesh_surfaces=2 mesh_triangles=6 mesh_fold` then `q0 b0 g0 o0 e0 ... q3 b3 g3 o3 e3` and `d0..d7 dbeyond`.
+* Transcript: `trace-start` carries `geometry_witness=controlled_forest_geometry`; a `tf-witness` facts row; `tf-forest geometry=1 triangles=6` with 6 `tf-triangle` rows (the ORIGINAL's decoded output); every `tq` row gains
+  `g_calls g_true g_last g_depth`. Everything else (tf-map, tf-sample, caller bits, ordered terrain lookups, final hit/point/normal bits) is the existing format, so `tests/tree_conformance.rs` and
+  `lua/tree-collision-replay.lua` replay the SAME transcript (the Lua replay now accepts recorded triangles; it still refuses a capped, miscounted or out-of-order list).
+* Driver checks: exactly the labels/mesh constants above; `restored` and the four identity elements; `tf-forest geometry=1`, `triangles=6`; per query `g_true <= g_calls`, a never-answered branch has no last answer or depth,
+  a last yes is a hit, `g_depth < 6`; and the report's per-stage `q/b/g/o/e` and depth counts must EQUAL the same counts recomputed from the transcript's per-query facts.
+* Named coverage gaps (never a pass, `require_coverage=yes` fails on them): `geometry_branch_never_entered`, `no_geometry_hit`, `no_geometry_hit_after_the_first_triangle`, `geometry_walk_never_exhausted`,
+  `no_geometry_query_miss`, `no_geometry_miss_with_a_partial_write`, `geometry_branch_not_seen_with_flags_<ignore_edge>_<skip_top>` for each of the four flag combinations. Event `geometry_witness_coverage` carries the counts.
+
+## Changed files
+
+`aphavoc/.../en_cllsn.c` (already in 5154bc7e7); `eech-campaign/crates/eech-engine-sys/csrc/eech_collision_fixture.c` (model, install/remove, wrapper, accounting, rows, one-shot arm, wrapped entry),
+`eech_engine.c` (byte-safe append of `eech_engine_collision_geometry_arm`; its single NUL byte preserved), `eech_engine.h`, `eech-engine-sys/src/lib.rs`, `eech-engine/src/lib.rs`, `eech-dc/src/module.rs`
+(`collision_geometry_arm`), `eech-world/lua/collision-characterization.lua`, `lua/tree-collision-replay.lua`, `tests/lua/collision-caller.lua` (stand-in: arm method, witness row, geometry fields, 20 single-defect modes),
+`tests/host_callbacks.rs` (3 new tests: acceptance + default isolation, 20 single-defect controls + the unarmed fact control, 3 argument refusals); this file and the collision doc. No host tree kernel/loader/API file changed.
+
+## Root: commands and expected shapes (NOT RUN)
+
+1. Build a fresh clean collision-fixture engine on Windows as for the d5 fixture (`tools/build-windows-collision-fixture.sh`), then verify exports include `eech_engine_collision_geometry_arm`.
+2. DEFAULT passivity (witness off): the same run as the reviewed f3 smokes (seed 20261029, `entity_cases=200 tree_cases=200 seconds=0 repeats=2`, `trace_out=<new>`) on Georgia and Lebanon retail roots; the report
+   rows and trace bytes must equal the reviewed f3 default ones.
+3. WITNESS: `eech-world lua/collision-characterization.lua root=<fresh verified retail root> out=<new.jsonl> scenario=<lebanon_retail|georgia_retail> seed=20261029 entity_cases=200 tree_cases=2000 seconds=0
+   repeats=2 geometry_witness=yes trace_out=<new.trace.jsonl>` (add `require_coverage=yes` to make any named gap fatal). Expect: exit 0, `col-geometry-witness` with `installed=restored=data_restored=scene_restored=copy_identical=1`,
+   equal before/after hashes and scene index (`-1` expected on the retail DB but not assumed), `mesh_triangles=6`, `tf-forest geometry=1 triangles=6`, `b0>0`, `g0>0`, hits at more than one depth, `e0>0`, misses,
+   all four flag combinations seen, a stable transcript across the two repeats, and the world/RNG/record/flags guards as before. These are shape checks; no physical answer is expected here.
+4. Cross-check the host (a FINDING about the host kernel's geometry branch, not about the original): `EECH_TREE_REQUIRED=1 EECH_TREE_TRANSCRIPT=<witness trace> EECH_TREE_MAP_DIR=<map terrain dir>
+   cargo test -p eech-world --test tree_conformance -- --nocapture` and `eech-world lua/tree-collision-replay.lua transcript=<…> map_dir=<…>`. A mismatch must be reported as such, never normalised.
+5. Portable: `cargo test -p eech-world --test host_callbacks collision` (the driver against the stand-in), then format and Clippy; then the ONE independent review of the new witness before any model-loader extraction.
+
+## Remaining unknowns
+
+Whether the retail DB's forest scene index is -1 (expected from C1) or an empty object; whether the 128 KiB report buffer and the 160 KiB facts buffer hold the witness additions (a clean `report_does_not_fit` refusal
+if not); whether real type-1 trees fall in the structured target classes (the random cases draw from all trees); how many random cases hit at depth above 0 and miss with partial writes (named gaps otherwise); the exact
+hit/miss/point/normal bits (they are the original's and are what the host must later match); `acos`/`sqrt` library agreement between the original build and the host build on those cases.
+
+---
 
 # Host tree loader/kernel preparation — reviewed, exact original-query replay; production still coupled
 

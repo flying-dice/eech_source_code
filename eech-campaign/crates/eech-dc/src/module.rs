@@ -1774,6 +1774,11 @@ impl LuaUserData for LuaEngine {
         methods.add_method("collision_trace_arm", |_, this, on: bool| {
             this.engine.collision_trace_arm(on).map_err(lua_error)
         });
+        // TEST-ONLY (feature `collision-fixture`, EEDCS-49): arms the controlled forest geometry witness for the NEXT collision_probe only (consumed by it); not part of the shipping module.
+        #[cfg(feature = "collision-fixture")]
+        methods.add_method("collision_geometry_arm", |_, this, on: bool| {
+            this.engine.collision_geometry_arm(on).map_err(lua_error)
+        });
         #[cfg(feature = "collision-fixture")]
         methods.add_method("collision_trace_read", |_, this, (kind, offset, count): (i32, i32, i32)| {
             this.engine.collision_trace_read(kind, offset, count).map_err(lua_error)
