@@ -1,3 +1,37 @@
+# Host tree loader/kernel preparation — reviewed, exact original-query replay; production still coupled
+
+Measured frozen source `8c452f197449d3a08b8f7bfbad5c34ae652c22c1` passes the
+focused Linux and actual Windows checks. Linux format,17 tree units,1 real-host
+Lua test and all-host-target Clippy with warnings denied complete0. Windows
+build0/all8 exports verified;17 units and1 real-host Lua test pass. All554 Georgia
+and600 each Lebanon/repeat original queries match every answer bit and all
+1102/1120/1120 ordered terrain lookups through both library and real host Lua.
+Library Up/Down/Zero replays also match, with caller x87/SSE control/status and
+nonzero exception flags restored. Every pre/post-input check passes; all native
+payloads and immutable original transcripts remain unchanged.
+
+The same six protocol and three getter controls reproduce old defects and pass
+on this source: sparse geometry refuses, failed ordinary or reentrant begin and
+terrain requests cannot leave a query answerable, and healthy controls remain
+valid. The one combined review and focused correction follow-up are CLOSED with
+no open findings. Final review SHA256:
+`4258f1b94e9eeb0821a1dc692190451ee1606454dc2631e148261605d47876ca`.
+Safe validation SHA256:
+`4687c6a8297188b58c17e72acac3797cc92b4f45a7bd759a73adf238a7c50243`.
+Reports are under `eech-campaign/reference/d3-collision-characterization/`.
+Original/intermediate failures and the initial C5 review remain immutable.
+
+This is host-component preparation, not production ownership or Task49/D3
+acceptance. Campaign queries still run the original DLL service. Next: establish
+a controlled ORIGINAL forest-geometry/model-decoder witness before moving the
+remaining required model loading/geometry services. Native forest geometry was
+absent from these retail captures. Entity collision, G1 integration, public
+authority/refusal, DCS mapping/workarounds and shipping remain required. Actual
+unmasked-exception entries and induced environment-operation failures are not
+claimed exercised. Task47 shipping115 remains live; only partial recording
+equality is available. ProductionG2/G3 delivery gates remain. D4/D5 have not started.
+
+
 # Host tree kernel — f81eb31bc runtime controls PASS; Linux Clippy 101 on two test-only lints; the two edits PREPARED, UNBUILT, UNRUN (EEDCS-49, D3 preparation)
 
 Measured by Root on f81eb31bc454492c57d64dbd8cf0c0105041b1e5 (retained, not re-derived here): Windows build 0 with 8 exports; Linux 17 tree unit tests, 1 real-host Lua transport test and fmt 0; Root's same 6 protocol controls
