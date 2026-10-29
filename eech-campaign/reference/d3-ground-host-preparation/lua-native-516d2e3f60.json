@@ -1,0 +1,326 @@
+{
+  "payloads_unchanged": true,
+  "started_utc": "2026-10-29T17:30:25.157882+00:00",
+  "old_fixture_source": "febbb7cc57f41d66f752a696feb1f4447cbbcd32",
+  "old_export_manifest_count": 46,
+  "completed_utc": "2026-10-29T17:31:05.926931+00:00",
+  "results": [
+    {
+      "case": "georgia",
+      "actual_native_exit": 0,
+      "post_inputs": 0,
+      "skipped": false,
+      "rows": 45,
+      "failed_checks": [],
+      "last_row": {
+        "event": "check",
+        "n": 45,
+        "name": "an impact endpoint off the terrain is refused",
+        "ok": true
+      },
+      "raw_sha256": "68bf4401a926e7f17ec7e3908b383e1ca7efb64af674756ecdc09c92d499f0d0"
+    },
+    {
+      "case": "lebanon",
+      "actual_native_exit": 0,
+      "post_inputs": 0,
+      "skipped": false,
+      "rows": 45,
+      "failed_checks": [],
+      "last_row": {
+        "event": "check",
+        "n": 45,
+        "name": "an impact endpoint off the terrain is refused",
+        "ok": true
+      },
+      "raw_sha256": "68bf4401a926e7f17ec7e3908b383e1ca7efb64af674756ecdc09c92d499f0d0"
+    }
+  ],
+  "review": "Independent review of new Lua delta in progress; no completed extraction/shipping claim",
+  "driver_witnesses": {
+    "control": {
+      "digest_rows": [
+        {
+          "alive": 1577,
+          "digest": "08b68c8f",
+          "elapsed": 3.9999969005585,
+          "event": "state_digest",
+          "frames": 40,
+          "objects": 1577,
+          "probed": true
+        }
+      ],
+      "raw_sha256": "6d37c3bac200c3e1d36d4c443225c2111d8afb456a495249bbd3e26960e2c4b4",
+      "restoration_observed": true,
+      "strict_json_rows": 60
+    },
+    "required": {
+      "digest_rows": [
+        {
+          "alive": 1577,
+          "digest": "08b68c8f",
+          "elapsed": 3.9999969005585,
+          "event": "state_digest",
+          "frames": 40,
+          "objects": 1577,
+          "probed": true
+        }
+      ],
+      "raw_sha256": "6d37c3bac200c3e1d36d4c443225c2111d8afb456a495249bbd3e26960e2c4b4",
+      "restoration_observed": true,
+      "strict_json_rows": 60
+    }
+  },
+  "actual_exit": 0,
+  "scope": "Host Lua preparation only. Real-map direct tests and public missing-handoff witness with an unchanged old DLL; no extraction/shipping acceptance.",
+  "public_handoff": {
+    "actual_test_exit": 0,
+    "skipped": false,
+    "post_inputs": {
+      "control": 0,
+      "required": 0
+    },
+    "summaries": {
+      "control": {
+        "event": "ground_handoff",
+        "handoff": "control",
+        "healthy": true,
+        "passed": true,
+        "point": 88878,
+        "fast": 0,
+        "map": 1,
+        "ground_below": 0,
+        "ground_impact": 0,
+        "other": 0,
+        "message": "ground-handoff: control: zero ground requests with 88878 point request(s): the unmoved DLL computes the ground predicates and the impact search itself"
+      },
+      "required": {
+        "event": "ground_handoff",
+        "handoff": "required",
+        "healthy": true,
+        "passed": false,
+        "point": 88878,
+        "fast": 0,
+        "map": 1,
+        "ground_below": 0,
+        "ground_impact": 0,
+        "other": 0,
+        "message": "GROUND-HANDOFF-RED: no ground_below or ground_impact request reached the host terrain provider (88878 point request(s)): the DLL still computes the ground predicates and the impact search itself"
+      }
+    }
+  },
+  "host_source": "516d2e3f60add91d2a76c50b5d36b9c171eb650d",
+  "hybrid_components": [
+    {
+      "file": "eech-world.exe",
+      "source": "516d2e3f60add91d2a76c50b5d36b9c171eb650d",
+      "sha256": "348cdce79383a7ae9736e72fad629a0115f52122132e3e76446624a76e46c9f4"
+    },
+    {
+      "file": "lua.dll",
+      "source": "516d2e3f60add91d2a76c50b5d36b9c171eb650d",
+      "sha256": "7b2ec3f3fd174f6b65a2159ee46dc8e9102624a350d978e16ddf4396d7c2be0b"
+    },
+    {
+      "file": "eech_dc.dll",
+      "source": "febbb7cc57f41d66f752a696feb1f4447cbbcd32",
+      "sha256": "bdd6393d06a8cde461b6e562b499e98b47003afc1dce8e0437e1382e288e099c"
+    }
+  ],
+  "new_build_manifest": [
+    {
+      "file": "eech-world.exe",
+      "sha256": "348cdce79383a7ae9736e72fad629a0115f52122132e3e76446624a76e46c9f4"
+    },
+    {
+      "file": "ground_provider.exe",
+      "sha256": "1043e55fb6f2deff84d4155eaa40d9cf7cdd2d91c21913c97e9dd6a092e696ae"
+    },
+    {
+      "file": "ground_handoff.exe",
+      "sha256": "47c0d44cbe9899855740eb609ebd5260e8e5a40255217aac3b1d0f8ef7e38510"
+    },
+    {
+      "file": "lua.dll",
+      "sha256": "7b2ec3f3fd174f6b65a2159ee46dc8e9102624a350d978e16ddf4396d7c2be0b"
+    }
+  ],
+  "actual_commands": [
+    {
+      "argv": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\ground-host-lua-fixed-source\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\ground-host-lua-roots-516d2e3f60\\georgia",
+        "--compare",
+        "R:\\d3-evidence\\ground-host-lua-fixed-source\\eech-campaign\\reference\\m4-s3-mutation\\inputs-georgia.json"
+      ],
+      "pid": 11548,
+      "started_utc": "2026-10-29T17:30:26.052584+00:00",
+      "log": "R:\\d3-evidence\\ground-host-lua-516d2e3f60-native-20261029\\georgia-pre-inputs.log",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-29T17:30:30.300973+00:00"
+    },
+    {
+      "argv": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\ground-host-lua-fixed-source\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\ground-host-lua-roots-516d2e3f60\\lebanon",
+        "--compare",
+        "R:\\d3-evidence\\ground-host-lua-fixed-source\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 17600,
+      "started_utc": "2026-10-29T17:30:31.152025+00:00",
+      "log": "R:\\d3-evidence\\ground-host-lua-516d2e3f60-native-20261029\\lebanon-pre-inputs.log",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-29T17:30:35.268558+00:00"
+    },
+    {
+      "argv": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\ground-host-lua-fixed-source\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\ground-host-lua-roots-516d2e3f60\\control",
+        "--compare",
+        "R:\\d3-evidence\\ground-host-lua-fixed-source\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 21964,
+      "started_utc": "2026-10-29T17:30:36.117098+00:00",
+      "log": "R:\\d3-evidence\\ground-host-lua-516d2e3f60-native-20261029\\control-pre-inputs.log",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-29T17:30:40.127782+00:00"
+    },
+    {
+      "argv": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\ground-host-lua-fixed-source\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\ground-host-lua-roots-516d2e3f60\\required",
+        "--compare",
+        "R:\\d3-evidence\\ground-host-lua-fixed-source\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 12424,
+      "started_utc": "2026-10-29T17:30:40.965105+00:00",
+      "log": "R:\\d3-evidence\\ground-host-lua-516d2e3f60-native-20261029\\required-pre-inputs.log",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-29T17:30:44.895572+00:00"
+    },
+    {
+      "argv": [
+        "R:\\d3-evidence\\ground-host-lua-fixed-source\\eech-campaign\\target\\ground-host-lua\\516d2e3f60\\ground_provider.exe",
+        "--nocapture",
+        "--test-threads",
+        "1"
+      ],
+      "pid": 20632,
+      "started_utc": "2026-10-29T17:30:45.007573+00:00",
+      "log": "R:\\d3-evidence\\ground-host-lua-516d2e3f60-native-20261029\\georgia-transport.log",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-29T17:30:45.095914+00:00"
+    },
+    {
+      "argv": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\ground-host-lua-fixed-source\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\ground-host-lua-roots-516d2e3f60\\georgia",
+        "--compare",
+        "R:\\d3-evidence\\ground-host-lua-fixed-source\\eech-campaign\\reference\\m4-s3-mutation\\inputs-georgia.json"
+      ],
+      "pid": 18460,
+      "started_utc": "2026-10-29T17:30:45.108531+00:00",
+      "log": "R:\\d3-evidence\\ground-host-lua-516d2e3f60-native-20261029\\georgia-post-inputs.log",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-29T17:30:46.188385+00:00"
+    },
+    {
+      "argv": [
+        "R:\\d3-evidence\\ground-host-lua-fixed-source\\eech-campaign\\target\\ground-host-lua\\516d2e3f60\\ground_provider.exe",
+        "--nocapture",
+        "--test-threads",
+        "1"
+      ],
+      "pid": 14524,
+      "started_utc": "2026-10-29T17:30:46.194552+00:00",
+      "log": "R:\\d3-evidence\\ground-host-lua-516d2e3f60-native-20261029\\lebanon-transport.log",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-29T17:30:46.242617+00:00"
+    },
+    {
+      "argv": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\ground-host-lua-fixed-source\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\ground-host-lua-roots-516d2e3f60\\lebanon",
+        "--compare",
+        "R:\\d3-evidence\\ground-host-lua-fixed-source\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 25168,
+      "started_utc": "2026-10-29T17:30:46.25874+00:00",
+      "log": "R:\\d3-evidence\\ground-host-lua-516d2e3f60-native-20261029\\lebanon-post-inputs.log",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-29T17:30:47.258625+00:00"
+    },
+    {
+      "argv": [
+        "R:\\d3-evidence\\ground-host-lua-fixed-source\\eech-campaign\\target\\ground-host-lua\\516d2e3f60\\ground_handoff.exe",
+        "--nocapture",
+        "--test-threads",
+        "1"
+      ],
+      "pid": 7452,
+      "started_utc": "2026-10-29T17:30:47.969778+00:00",
+      "log": "R:\\d3-evidence\\ground-host-lua-516d2e3f60-native-20261029\\public-control-required.log",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-29T17:31:03.734688+00:00"
+    },
+    {
+      "argv": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\ground-host-lua-fixed-source\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\ground-host-lua-roots-516d2e3f60\\control",
+        "--compare",
+        "R:\\d3-evidence\\ground-host-lua-fixed-source\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 20536,
+      "started_utc": "2026-10-29T17:31:03.745099+00:00",
+      "log": "R:\\d3-evidence\\ground-host-lua-516d2e3f60-native-20261029\\control-post-inputs.log",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-29T17:31:04.809951+00:00"
+    },
+    {
+      "argv": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\ground-host-lua-fixed-source\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\ground-host-lua-roots-516d2e3f60\\required",
+        "--compare",
+        "R:\\d3-evidence\\ground-host-lua-fixed-source\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 20812,
+      "started_utc": "2026-10-29T17:31:04.821857+00:00",
+      "log": "R:\\d3-evidence\\ground-host-lua-516d2e3f60-native-20261029\\required-post-inputs.log",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-29T17:31:05.863989+00:00"
+    }
+  ],
+  "status": "completed"
+}

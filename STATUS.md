@@ -1,3 +1,13 @@
+Host Lua native checkpoint at clean516d2e3f60: Windows build0/four exports verified;
+Georgia and Lebanon direct3/3/45checks each pass without skips/pre-post inputs0.
+Public old-DLL harness7/7: healthy control passed, required-handoff failed with
+GROUND-HANDOFF-RED only after healthy completion; each88878point/map1/ground0.
+Control/required post-inputs0, all4new/all46old payloads unchanged. Sole independent
+new-Lua review in progress. No G2 cutover or shipping/Task48/D3 acceptance.
+See eech-campaign/reference/d3-ground-host-preparation/lua-native-516d2e3f60.json.
+
+The following is the preceding checkpoint/failure history.
+
 # D3 ground-host preparation checkpoint — 2026-10-29
 
 EEDCS-48 / Epic EEDCS-21; branch `codex/d3-ground-host-preparation`,

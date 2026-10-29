@@ -1,6 +1,6 @@
 # D3 G2: ground contact, reference-host preparation (EEDCS-48)
 
-**Status: kernel Windows conformance on all three retail roots passed and independent kernel review closed without findings at `14bfd3ed6`. The newer Lua transport and handoff harness passed Linux build/guards/lint; their Windows/retail execution and independent review are pending.** Branch `codex/d3-ground-host-preparation`, base `1b6218b06a0d0ca61f884a4b913c0c1e5ded3b01`. This prepares the HOST side of
+**Status: kernel Windows conformance on all three retail roots passed and independent kernel review closed without findings at `14bfd3ed6`. The newer Lua transport and handoff harness passed Linux build/guards/lint and actual Windows retail/control/RED checks at `516d2e3f60`; independent review of that new delta is pending.** Branch `codex/d3-ground-host-preparation`, base `1b6218b06a0d0ca61f884a4b913c0c1e5ded3b01`. This prepares the HOST side of
 the below-ground and ground-impact extraction. It binds nothing: the campaign DLL (`wn_move.c`, `mb_hostterrain.c`, the public module bridge) is unchanged and still computes both
 itself, and the shipping behaviour is unchanged. Production cutover follows Task47 delivery and integration re-verification (ledger 14548994; Epic EEDCS-21). No completed extraction, shipping
 pass, G2 cutover or D3 completion is claimed. The original characterisation (`m5-ground-characterization.md`) and its retained c119 raws are the oracle and are not touched.
@@ -128,3 +128,21 @@ no-read records, hints, endpoint correction, signed zero and subnormal round tri
 integral Lua number `integer` and any other `number`; the diagnostics for a field that must be a NUMBER (`got nil`, `got string`, `got boolean`) come from Lua's own `type`. Three expectations were wrong in the same way
 (`world = 5`, `above = 5`, `hint = 7`) and are corrected to `got integer`; one case (`world = 5.5`, `got number`) is added so that both names are asserted. No product code, refusal, physical check or other input changed, and nothing
 was loosened to accept an invalid request. The refusals after check 29, the Lebanon run and the public control/RED have **not** run since; no pass is claimed.
+
+## Actual Lua preparation native results at 516d2e3f60
+
+The corrected clean Windows host/test build exited0 and all four exported payload
+hashes verified. Both Georgia and Lebanon direct-provider tests ran3/3 without
+skips, with all45 strict Lua checks passing per map and pre/post input manifests0.
+The real public old-DLL control/required harness ran7/7 without skips: both healthy
+child runs made88878 point requests and zero ground_below/ground_impact requests.
+Control passed; required mode failed after a healthy run with GROUND-HANDOFF-RED.
+Both driver digests/restorations completed. Control/required pre/post inputs0;
+all four new payloads and all46 old exports remained unchanged. The test-only
+hybrid explicitly identifies the new516d2e3f60 host and frozenfebbb7cc5 fixture DLL.
+
+The priorf66 mistaken diagnostic expectation failure remains preserved. This
+proves the prepared host Lua path and the old DLL's missing handoff, not production
+G2 authority, weapon launch-glue coverage or shipping conformance. Independent
+review of this new delta is in progress. See reference/d3-ground-host-preparation/
+lua-native-516d2e3f60.json. Raw retail rays/recordings/binaries remain private.
