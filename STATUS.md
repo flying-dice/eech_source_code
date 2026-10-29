@@ -37,6 +37,17 @@ fast_hit + slow_scans + cuba == calls partition; "preprocessed output unchanged"
 is withdrawn (feature-off logic unchanged by inspection only; diagnostic source
 locations shift). Details: docs/handover/D3-SCOPE-AUDIT.md section 9.
 
+Delta pass on f05005832 (source only, not built or run by this lane): the
+fixture driver now takes every due probe at each frame, not one, fixing probe
+times that share a frame (Root's local real-Lua scheduling helper was 3/5 on
+f05005832; re-run pending, local workflow only, not native acceptance; a native
+one-frame two-due-probe smoke stays required); the audit's G7 line reads
+"unproven reachability", not "dormant".
+
+Root local verification now passes 14/14 setup guards, 5/5 controlled-clock
+scheduling cases and Lua syntax. These checks do not boot EECH or validate
+terrain; the Windows build, actual native smokes and original runs remain.
+
 The earlier D2 delivery and historical checkpoints below are preserved.
 
 # D2 combat and perception — implementation delivery record

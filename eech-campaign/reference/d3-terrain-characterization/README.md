@@ -127,3 +127,19 @@ Tested driver SHA-256: 4400e7eded209f3cd721f3dfa290f7853011eddd9fcca99cb8c9a104d
 The helper uses an output-opening tripwire and never boots EECH or runs a frame.
 This supersedes the pending guard re-run statements above; C/Rust compilation,
 original native characterization and observation controls remain unrun.
+
+## Delta pass on `f05005832`
+
+- **Due-probe draining.** The driver now takes *every* due probe at each frame (`while`, bounded by the finite probe list), in
+  order and each at its requested time, instead of one per frame; the old behaviour lost accepted times that fall in the same
+  frame. Defaults and the zero-duration mode are unchanged. The Root's local scheduling helper
+  (`R:/d3-evidence/terrain-driver-schedule.py`: real Lua 5.1, one controlled engine-clock collaborator) was 3/5 on `f05005832`;
+  the re-run is the Root's. It is not native evidence: a native one-frame, two-due-probe smoke remains required after the build.
+- The audit's G7 label in section 7 is now "unproven reachability", not "dormant".
+
+Root verification after the due-probe correction: actual Lua 5.1 syntax passes,
+all 14 setup guard cases pass and all five local scheduling cases pass.
+Driver SHA-256: 0a42d3c6928c1da65d2861979e1a4024cd2a9d390457343aeadd822d8af6d035.
+The scheduling test controls only the fixture clock collaborator; it does not
+boot EECH or implement terrain. The actual native one-frame/two-probe smoke
+and all original characterization/recording controls remain required.

@@ -145,7 +145,7 @@ These are candidates for the D3 services, not claims of DCS behaviour; M6 verifi
   source locations (for example the off-map `ASSERT`, which embeds `__LINE__`, moved from line 1268 to 1281). No numerical drift in
   the shipping build is alleged. Preprocess, compile and runtime checks are pending.
 - **Reused as baseline:** accepted D2 pack (40 checks, eight complete artifacts byte identical).
-- **Dormant and uncovered, retained:** G7 above; the off-map path; the Cuba flaw area unless the Cuba map is run;
+- **Unproven reachability and uncovered paths, retained:** G7 above; the off-map path; the Cuba flaw area unless the Cuba map is run;
   player, multiplayer and save/restore paths.
 
 ## 8. Blockers and next actions
@@ -187,3 +187,27 @@ Tested driver SHA-256: 4400e7eded209f3cd721f3dfa290f7853011eddd9fcca99cb8c9a104d
 The helper uses an output-opening tripwire and never boots EECH or runs a frame.
 This supersedes the pending guard re-run statements above; C/Rust compilation,
 original native characterization and observation controls remain unrun.
+
+### Delta pass on `f05005832`
+
+The census, slow-scan and feature-off-wording findings were closed; one residual of the argument finding and one label remain,
+both corrected in source only.
+
+- **Due-probe draining** (`terrain-characterization.lua`): the frame loop took at most one due probe per frame, so accepted
+  ascending times inside one frame (for example `seconds=0.1 frame_ms=100 probe_at=0.01,0.02`) lost the later ones and failed the
+  reached-probe assertion. It now takes every due probe at each frame in order, with `while`, bounded by the finite probe list
+  (`next_probe` only increases). Default `0,300`, the zero-duration mode, report order, one probe per requested time and the
+  actual frame and clock values are unchanged. The Root's local scheduling check (`R:/d3-evidence/terrain-driver-schedule.py`,
+  real Lua 5.1 with one controlled engine-clock collaborator, not EECH) was 3/5 on `f05005832` (single_due, zero_duration and
+  no_probe passed; two_due_same_frame and last_frame_burst failed). It is a local workflow test, not native characterization; a
+  one-frame, two-due-probe native smoke stays required after the fixture build. No result for the corrected driver is claimed
+  here; the re-run is the Root's.
+- **Label**: section 7 called G7 "dormant and uncovered", against the table's not-yet-proven disposition. It now reads "Unproven
+  reachability and uncovered paths". No dispatch census was repeated and no dormant proof is claimed.
+
+Root verification after the due-probe correction: actual Lua 5.1 syntax passes,
+all 14 setup guard cases pass and all five local scheduling cases pass.
+Driver SHA-256: 0a42d3c6928c1da65d2861979e1a4024cd2a9d390457343aeadd822d8af6d035.
+The scheduling test controls only the fixture clock collaborator; it does not
+boot EECH or implement terrain. The actual native one-frame/two-probe smoke
+and all original characterization/recording controls remain required.

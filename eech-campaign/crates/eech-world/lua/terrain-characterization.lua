@@ -187,7 +187,8 @@ for f = 1, frames do
 		refuse (string.format ("the simulated clock did not advance at frame %d (%s after %s)", f, tostring (clock.elapsed_seconds), tostring (previous_elapsed)))
 	end
 	previous_elapsed = clock.elapsed_seconds
-	if next_probe <= #probe_at and clock.elapsed_seconds >= probe_at [next_probe] then
+	-- every probe now due is taken at this frame, in order, each at its requested time; the list is finite and next_probe only grows
+	while next_probe <= #probe_at and clock.elapsed_seconds >= probe_at [next_probe] do
 		take_probe (probe_at [next_probe], f, clock.elapsed_seconds)
 		next_probe = next_probe + 1
 	end
