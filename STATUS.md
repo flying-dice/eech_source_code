@@ -1,54 +1,54 @@
-# D3 ground-contact characterization — distinct grids checkpoint
+# D3 ground-contact — original measurements and encoder checkpoint
 
-29 October 2026. Task EEDCS-48 / epic EEDCS-21 In Progress. Branch
-codex/d3-ground-contact is based on accepted integration
-6bbaa8197a4843181d03cd355d562af998c75321. Live authority: M5 goal11534337v3,
-migration ledger14548994v55. D3 remains incomplete; D4/D5 have not started.
+29 October 2026. EEDCS-48 / EEDCS-21 In Progress. Branch codex/d3-ground-contact
+starts from accepted integration6bbaa8197a4843181d03cd355d562af998c75321.
+Authority: M5 goal11534337v3, migration ledger14548994v55. D3 is incomplete;
+D4/D5 have not started. Campaign geography/routes/timers/scheduling/consequences
+stay in EECH_DC. Other D3 spatial/model/environment/time groups remain in scope.
 
-This checkout characterizes the ORIGINAL point_above_ground, point_below_ground
-and get_ground_impact_point through a test-only fixture and public Lua/module
-driver. Ordinary shipping behavior and original query expressions are unchanged.
-No physical responsibility has moved in Task48. See
-eech-campaign/docs/m5-ground-characterization.md.
+Task48 has moved no physical responsibility. It characterizes the ORIGINAL
+above/below-ground and ground-impact queries through a test-only public Lua/module
+fixture. Ordinary shipping behavior and original query expressions are unchanged.
+See eech-campaign/docs/m5-ground-characterization.md and reference evidence.
 
-Source9e607637f compiled0 as a clean Windows fixture, all43 exported manifest
-entries verified. Its first Georgia/Lebanon/separate-Lebanon-repeat probes all
-terminated1 before any case because the fixture incorrectly equated campaign
-sectors with physical terrain sectors. All three post-input manifests pass0.
-Raw failures are preserved; no oracle or successful original measurement exists.
+Clean c119a7370 original fixture build0 / all43 exported entries verified. Georgia,
+Lebanon and separate Lebanon-repeat each passed native0 with20,000 point cases and
+5,000 impacts repeated twice, campaign seed1/private seed20261029. All117 rows per
+raw file pass strict JSON; in-process reports match and separate Lebanon complete
+raw files are byte identical. All3 post-input manifests pass0. Full aggregate
+counters/folds and raw hashes are retained without uploading private samples.
 
-The fixture now retains the exact physical/world extent check, uses the actual
-physical terrain grid for physical boundary cases, and reports the two grids
-separately. Campaign sectors can be4096m while physical terrain sectors are2048m.
-Original functions, numerical rules, RNG draws, record restoration and physical
-hash expressions are unchanged. The current repair still needs independent
-source-delta review, a clean Windows build and actual original retail probes.
-Actual Linux host/Lua5.1 ground-driver tests and affected Clippy pass0 after the
-schema repair, including differing/equal-grid and malformed-report controls;
-formatting/check, both Lua syntax parses and diffcheck pass. Exact tested hashes
-and failed native/input evidence are committed in the reference folder.
+The first9e runs refused before any case because the fixture equated campaign and
+physical grids; their native1/raw failures and postinputs0 remain preserved. The
+c119 repair keeps exact extents and uses the actual physical terrain grid, with
+both grids reported separately. Independent review accepts that source change.
+It also found raw traceback tabs made those old REFUSAL rows invalid JSON; the
+healthy c119 positive measurements are strictly valid. The latest encoder repair
+preserves all control characters through proper JSON escapes. Actual Linux host/
+Lua5.1 driver tests now11PASS, affected Clippy0, formatting/check0, Lua parses0 and
+diffcheck0. New encoder-delta review and healthy-measurement reuse review pending.
+Original C/case/hash expressions are unchanged by that encoder repair.
 
-Earlier warm-record/hash/completeness findings are resolved and independently
-reviewed. The same missing-sample collaborator now fails with a named error and
-no digest; the old false acceptance and positive-test repeat-count failure are
-preserved. Review evidence distinguishes driver tests from original C behavior.
+The separate original probe/no-probe control runs from immutable c119 on two
+verified roots:300s before,60s after,100ms frames. Controllers10879/94227 and actual
+native PIDs22292/13944 were confirmed live. Keep them and their roots untouched;
+actual exits, final strict parsing/digest comparison and post-inputs are pending.
+The control digest is coarse, not a full Tacview or all-state proof.
 
-Task47 surface services remain separately implemented/reviewed and pushed at
-f03a680c9 in R:/d2-sensor-detections, all nine hosted CI checks green. The frozen
-ordinary shipping regression from runtime06d425578 is still RUNNING untouched.
-Latest live comparison: both15,085,218-byte Tacview prefixes and both9,359,360-byte
-observation prefixes equal accepted bytes. Full40/eight-complete-artifact and
-post-input acceptance, review/currentCI/normal delivery remain pending.
+Task47 surface queries are implemented/reviewed separately at pushedf03a680c9,
+all9 hostedCI green. Its frozen runtime06d425578 ordinary shipping pack remains
+RUNNING on four roots. Latest checked prefixes: both15,085,218-byte Tacview and
+both9,359,360-byte observations equal accepted bytes. Complete40/eight-file and
+post-input gates, final review/currentCI/normal delivery remain pending.
 
-Next: review/build the distinct-grid fixture repair; run original probes on the
-fresh manifest-verified ground-grid-original-roots-20261029 roots and retain the
-actual values/repeats, then the separate original probe/no-probe control. No G2
-production cutover before Task47 delivery and integration verification. Campaign
-geography/routes/timers/scheduling/consequences stay in EECH_DC. Other D3 spatial,
-model, environment/time services and whole-D3 closure remain outstanding.
+Next: close encoder-delta review and collect the existing control processes to
+actual completion, verify evidence and record original behavior/limits. Do not
+cut over G2 production before Task47 delivery and integration verification. Then
+perform the host extraction, actual authority/refusal proof, unchanged shipping
+pack/full comparisons and normal review/merge/Jira/ledger delivery. Whole D3 scope
+is not reduced to Task47/48. Same-host checkpoint: R:/d3-evidence/D3-NEXT-ACTION.json.
 
-Same-host checkpoint: R:/d3-evidence/D3-NEXT-ACTION.json. Failed roots and raw
-artifacts remain private; fresh corrected-grid roots and two control roots are
-ready. Two closed superseded a14/06 target caches were removed after all86 exported
-bundle entries verified and build logs preserved; current9e target, source/bin
-snapshots, active shipping pack, daemon/registry and drive mapping are retained.
+Preserve raw successes/failures and tested snapshots/binaries. Two closed a14/06
+fixture target caches were removed after86 exported entries verified and raw build
+logs exported; current native/control/shipping targets, sources, registry/daemon,
+R: mapping and all live outputs remain intact.

@@ -96,12 +96,21 @@ end
 
 local out = assert (io.open (out_path, "w"))
 
+-- A JSON string (RFC 8259). Lua's %q writes LUA source, not JSON: it leaves a tab (and every other control byte) raw, which a strict JSON parser refuses, and writes a
+-- newline as a backslash and a real newline. So: the quote and the backslash are escaped, every control byte 0x00 to 0x1f becomes its short escape (\b \t \n \f \r) or
+-- \u00XX, and every other byte, UTF-8 included, is written unchanged. Nothing is dropped or flattened: an error text with a traceback's tabs and newlines is recorded exactly.
+local JSON_SHORT = { ["\b"] = "\\b", ["\t"] = "\\t", ["\n"] = "\\n", ["\f"] = "\\f", ["\r"] = "\\r", ["\""] = "\\\"", ["\\"] = "\\\\" }
+
+local function json_string (text)
+	local escaped = string.gsub (text, "[%z\1-\31\"\\]", function (c) return JSON_SHORT [c] or string.format ("\\u%04x", string.byte (c)) end)
+	return "\"" .. escaped .. "\""
+end
+
 local function emit (t)
 	local parts = {}
 	for k, v in pairs (t) do
-		-- a line break inside a string would not be JSON (%q writes it as a backslash and a newline): an error text may have several lines
-		local value = type (v) == "string" and string.format ("%q", (string.gsub (v, "[\r\n]+", " "))) or tostring (v)
-		parts [#parts + 1] = string.format ("%q:%s", k, value)
+		local value = type (v) == "string" and json_string (v) or tostring (v)
+		parts [#parts + 1] = json_string (tostring (k)) .. ":" .. value
 	end
 	table.sort (parts)
 	out:write ("{" .. table.concat (parts, ",") .. "}\n")

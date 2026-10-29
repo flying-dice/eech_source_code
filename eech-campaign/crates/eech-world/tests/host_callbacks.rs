@@ -2144,6 +2144,31 @@ fn the_ground_driver_refuses_a_malformed_argument_before_booting_or_writing_anyt
     }
 }
 
+// REGRESSION: the driver wrote its JSON strings with Lua's %q, which is Lua source syntax: it leaves a tab (and every other control byte) raw and writes a newline as a backslash and a
+// real newline, so a refusal whose text held a traceback's tabs was an invalid JSONL row for a strict parser (a lenient reader accepted it). The stand-in refuses the probe with a text
+// that has a traceback's tabs and newlines, a quote, a backslash, every control byte 0 to 31 in order and UTF-8. `run_ground_case` parses EVERY row of the output with serde_json, which
+// refuses a raw control character inside a string, so reaching the assertions already proves each row is strict JSON; the refusal must also come back byte for byte.
+#[test]
+fn the_ground_driver_records_a_refusal_with_every_control_byte_as_strict_json_and_loses_none_of_it() {
+    let controls: String = (0u8..32).map(char::from).collect();
+    let expected =
+        format!("ground-refused reason=bad \"quoted\" back\\slash\n\tstack traceback:\n\t[C]: in function 'error'\n\tcontrols={controls} end \u{e9}");
+    let (status, stdout, stderr, trace, rows) = run_ground_case("refuse_controls", &["points=5", "impacts=5"]);
+    assert!(!status.success() && !stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert!(stderr.contains("the probe was refused"), "{stderr}");
+    let refused: Vec<_> = rows.iter().filter(|r| r["event"] == "probe_refused").collect();
+    assert_eq!(refused.len(), 1, "{rows:?}");
+    assert_eq!(
+        refused[0]["error"].as_str(),
+        Some(expected.as_str()),
+        "the refusal text must round-trip exactly"
+    );
+    assert_eq!(refused[0]["repeat_index"].as_i64(), Some(1));
+    assert!(rows.iter().any(|r| r["event"] == "boot"), "the boot row is still there and parsed");
+    assert!(rows.iter().all(|r| r["event"] != "state_digest"), "no digest after a refusal");
+    assert_eq!(trace.matches("probe ").count(), 1, "{trace}");
+}
+
 #[test]
 fn the_ground_driver_fails_on_a_refused_probe_and_on_a_repeat_that_differs() {
     // an engine that refuses the probe: the refusal is recorded and the run fails, never a quiet success

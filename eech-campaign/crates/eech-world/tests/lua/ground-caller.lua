@@ -289,6 +289,12 @@ function engine:ground_probe(seed, points, impacts)
   probes = probes + 1
   note('probe ' .. seed .. ' ' .. points .. ' ' .. impacts)
   if mode == 'refuse' then error('ground-refused reason=no_terrain_loaded', 0) end
+  if mode == 'refuse_controls' then
+    -- a refusal whose text is what a real one can be: a traceback's tabs and newlines, a quote, a backslash, every control byte 0 to 31 in order, and UTF-8
+    local controls = {}
+    for b = 0, 31 do controls[#controls + 1] = string.char(b) end
+    error('ground-refused reason=bad "quoted" back\\slash\n\tstack traceback:\n\t[C]: in function \'error\'\n\tcontrols=' .. table.concat(controls) .. ' end \195\169', 0)
+  end
   if mode == 'differs_between_repeats' then
     -- a valid report whose legacy combined hash changes from one probe to the next
     local text = report(seed, points, impacts)

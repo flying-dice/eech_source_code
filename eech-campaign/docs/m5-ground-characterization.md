@@ -320,3 +320,45 @@ learned or changed.
 
 **Pending, nothing run.** The C change, the driver and the tests have not been built or executed by this lane. Root's fresh retry of the original probes is the first evidence that the repaired precondition admits the
 retail maps; until it exists, no original behaviour is characterised.
+
+## 9. Correction: the JSONL rows must be strict JSON (driver recording defect; no physical behaviour involved)
+
+The retained failed attempts of `9e607637f` were re-read with a strict JSON parser and the refusal row of each held literal TAB characters (a traceback's), which a strict parser correctly refuses; PowerShell had
+accepted them. The cause was the driver's string encoding: Lua's `%q` writes Lua source, which leaves a tab and every other control byte raw, and the driver also flattened line breaks to spaces. Those raw
+failures stay exactly as retained; they are not rewritten.
+
+`ground-characterization.lua` now encodes strings with a JSON encoder of its own (`json_string`): the quote and the backslash are escaped, every control byte 0x00 to 0x1f becomes its short escape (`\b \t \n \f \r`)
+or `\u00XX`, and every other byte (UTF-8 included) is written unchanged. Nothing is stripped or flattened, so a refusal's tabs and newlines are recorded and round-trip exactly. Numbers, booleans, row names,
+schema, quotas, the sample validator, the report text, the hashes and the C fixture are unchanged.
+
+Test: `the_ground_driver_records_a_refusal_with_every_control_byte_as_strict_json_and_loses_none_of_it` refuses the probe, through the real driver, with a text holding a traceback's tabs and newlines, a quote, a
+backslash, all control bytes 0 to 31 in order and UTF-8. The test harness parses every output row with `serde_json` (strict about control characters), and the refusal text must come back byte for byte, with a
+refused exit and no `state_digest`. Not executed by this lane; Root's run is pending.
+
+### Executed original measurements and encoder gate — 29 October 2026
+
+Clean c119a7370 fixture build0, all43 exported manifest entries verified. Original
+Georgia, Lebanon and separately booted Lebanon-repeat runs each terminated0 with
+20,000 point cases and5,000 impacts, two reports per process, campaign seed1 and
+private seed20261029. Each complete raw JSONL has117 strictly parsed rows. Both
+in-process reports match; the two Lebanon processes' complete raw files are byte
+identical (SHA256248ca1e81a4c72bad8011d28f77271c28aba916dec16dd4b17602c7c38f00b91).
+All three post-input manifests pass0. Aliased/separate and warm impact answers
+agree for all5,000 cases on both maps, no x/z input mutations or post-correction
+assert violations were observed, and the shared record restoration checks pass.
+Aggregate counters/folds and exact raw hashes are retained separately from the
+private raw samples. These are original-query measurements, not a host extraction
+or shipping/Tacview acceptance.
+
+Independent review accepted the distinct-grid source correction but identified
+invalid JSON in the three earlier9e REFUSAL rows: traceback tabs were raw. Those
+failed bytes remain untouched. The later c119 healthy measurements are strict JSON
+and contain no such errors. The new encoder changes only string escaping, not C,
+case generation, hashes or report parsing. All11 actual Linux host/Lua5.1 driver
+tests now pass, including exact round-trip of all control bytes, quote/backslash,
+traceback tabs/newlines and UTF-8; affected Clippy, formatting/check, both Lua syntax
+parses and diffcheck pass. Exact tested hashes are retained. Independent review of
+this new encoder delta and reuse of the healthy c119 measurements remain pending.
+The separate300s-before/60s-after original probe/no-probe control is running from
+immutable c119 source on two unused verified roots; its coarse digest is not a
+full recording comparison. All Task48 production/shipping delivery gates remain.

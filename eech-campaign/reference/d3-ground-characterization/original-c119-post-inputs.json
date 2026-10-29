@@ -1,0 +1,19 @@
+{
+  "source": "c119a7370b5de43923a86d7a8124f9532bb523ee",
+  "records": [
+    {
+      "actual_exit": 0,
+      "map": "georgia"
+    },
+    {
+      "actual_exit": 0,
+      "map": "lebanon"
+    },
+    {
+      "actual_exit": 0,
+      "map": "lebanon-repeat"
+    }
+  ],
+  "scope": "Three completed positive original-ground probe roots still match accepted inputs",
+  "completed_utc": "2026-10-29T14:43:50.7055008Z"
+}

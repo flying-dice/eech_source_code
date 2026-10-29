@@ -1,0 +1,6 @@
+{
+  "source": "c119a7370b5de43923a86d7a8124f9532bb523ee",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-29T14:42:05.1911262Z",
+  "scope": "Corrected distinct-grid test-only original fixture; not shipping/oracle acceptance"
+}
