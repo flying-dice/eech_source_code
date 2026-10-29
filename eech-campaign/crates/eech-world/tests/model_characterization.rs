@@ -150,13 +150,29 @@ fn corrupt_lua(key: &str, n: usize, body: &str) -> String {
 
 const NO_CORRUPTION: &str = "function CORRUPT(key, n, a, text) return text end\n";
 
+/// The reviewed driver, compiled into this test: its bytes are written unchanged into each run's own directory, so no source path of the machine that built the test is needed at run time.
+const DRIVER: &str = include_str!("../lua/model-characterization.lua");
+
+/// The host process. An explicit `EECH_WORLD_BIN` names the one to run (for a test binary built elsewhere, as in a container, whose baked-in Cargo path does not exist here): it must be an existing
+/// file, and a bad one is an error, never a silent fall back to another binary. Without it, Cargo's own binary for this package. The environment is only read.
+fn host_binary() -> std::path::PathBuf {
+    match std::env::var_os("EECH_WORLD_BIN") {
+        Some(value) => {
+            let path = std::path::PathBuf::from(&value);
+            assert!(
+                !value.is_empty() && path.is_file(),
+                "EECH_WORLD_BIN is set to {value:?}, which is not an existing file; refusing to fall back to the Cargo binary"
+            );
+            path
+        }
+        None => std::path::PathBuf::from(env!("CARGO_BIN_EXE_eech-world")),
+    }
+}
+
 fn run_driver(corrupt: &str, extra: &[&str], opt: Opt) -> Run {
     static COUNTER: AtomicUsize = AtomicUsize::new(0);
-    let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("lua")
-        .display()
-        .to_string()
-        .replace('\u{5c}', "/");
+    let host = host_binary();
+    let slashes = |p: &std::path::Path| p.display().to_string().replace('\u{5c}', "/");
     let tag = format!("{}-{}", std::process::id(), COUNTER.fetch_add(1, Ordering::SeqCst));
     let dir = std::env::temp_dir().join(format!("eech-world-model-driver-{tag}"));
     let _ = std::fs::remove_dir_all(&dir);
@@ -172,14 +188,15 @@ fn run_driver(corrupt: &str, extra: &[&str], opt: Opt) -> Run {
     if opt.existing_out {
         std::fs::write(&out, "do not overwrite\n").unwrap();
     }
+    // the driver under test, byte for byte, beside the stand-in that loads it
+    std::fs::write(dir.join("model-characterization.lua"), DRIVER).unwrap();
     let script = dir.join("stand-in.lua");
     let text = STAND_IN
         .replace("@FORBID_BOOT@", if opt.forbid_boot { "true" } else { "false" })
         .replace("@CORRUPT@", corrupt)
-        .replace("@LUA_DIR@", &lua_dir);
+        .replace("@LUA_DIR@", &slashes(&dir));
     std::fs::write(&script, text).unwrap();
-    let slashes = |p: &std::path::Path| p.display().to_string().replace('\u{5c}', "/");
-    let mut command = Command::new(env!("CARGO_BIN_EXE_eech-world"));
+    let mut command = Command::new(&host);
     command
         .arg(&script)
         .arg(format!("root={}", slashes(&root)))
@@ -216,7 +233,7 @@ fn events<'a>(rows: &'a [Value], event: &str) -> Vec<&'a Value> {
 
 fn describe(run: &Run) -> String {
     let tail: Vec<String> = run.rows.iter().rev().take(4).map(|r| r.to_string()).collect();
-    format!("status {}\nstderr: {}\nlast rows: {tail:?}", run.status, run.stderr)
+    format!("status {}\nstdout: {}\nstderr: {}\nlast rows: {tail:?}", run.status, run.stdout, run.stderr)
 }
 
 /// the rows after each scene's `model-geometry` headers, grouped by scene, headers counted separately

@@ -1,3 +1,14 @@
+# Current D3 test-harness fix — EEDCS-50 model driver guards (29 October 2026): SOURCE ONLY, UNBUILT, UNRUN
+
+Driver source `c44173556` (frozen) passed the Linux guards (8/8), formatting and the Root's actual-native checks of the corrected driver with the original `366622e0c` DLL; Linux all-target Clippy
+failed on the unused `Run.stdout`, and the Windows guards failed before launching the host (OS error 3) because the test used the container-baked Cargo binary and manifest paths. That is a test
+set-up failure, not a production red, and no expectation was relaxed. This change touches only `crates/eech-world/tests/model_characterization.rs` (and a factual doc note): an explicit
+`EECH_WORLD_BIN` selects the host (a missing or non-file value is an error, never a fallback; unset uses Cargo's binary; the environment is only read), the reviewed driver is compiled into the
+test with `include_str!` and written unchanged into each run's temporary directory, and `Run.stdout` now appears in the failure diagnostics. Guard cases, stand-in protocol, driver, C, Rust
+product, FFI and API are unchanged; no new DLL. Not formatted, built or run in this lane. Next (Root): Linux 8/Clippy, Windows 8 with the physical same-source host plus the invalid-override
+control, then the focused changed-source review of the driver closure. Whole-D3 scope, the custom / mixed-layout gaps, production coupling and the live Task 47 run 115 are unchanged; the host
+loader/geometry move follows review.
+
 # Current D3 correction — EEDCS-50 diagnostic-driver response validation (29 October 2026): SOURCE ONLY, UNBUILT, UNRUN
 
 Measured (Root, fixture `366622e0c08b2caaa5a5317f5197c0ee3d7050e9`, original DLL): three retail catalogues of 3,025 scenes each and eleven selected scenes per root run through the

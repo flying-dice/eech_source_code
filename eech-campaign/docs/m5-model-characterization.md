@@ -141,7 +141,12 @@ table of ten invented scenes and corrupts one reply per case. They are response-
 analysis nor a loader. They cover a healthy run (three catalogue pages with a short last, multi-page geometry, absent, refused, empty, an unbacked end, a false on a later page's first row,
 an end inside the first page, a capped walk), the two measured controls, about 60 malformed replies (catalogue, summary, state, clock, geometry; see the test table), accepted original
 anomalies, a changed model state (still a failed check, as before), a refusal that stops the run before it asks anything further, and the argument / synthetic-database / existing-output
-refusals before boot. They have not been compiled or run.
+refusals before boot. (When written they had not been compiled or run; the Root's later runs are recorded in STATUS.md.)
+
+Test-harness note (set-up only, after the first cross-machine runs): the guards run the host named by `EECH_WORLD_BIN` when it is set (a test binary built in a container bakes in a Cargo path
+that does not exist on the machine that runs it); an explicit value that is not an existing file is an error, never a silent fall back to Cargo's binary, and without it Cargo's own binary is used.
+The driver under test is compiled into the test (`include_str!`) and written unchanged into each run's own temporary directory, so no source path of the build machine is needed at run time.
+The guard expectations, the stand-in protocol and the driver are unchanged by this. Unbuilt and unrun in this lane; the driver itself was measured natively by the Root (original `366622e0c` DLL).
 
 ## Not done / next unmet measurements
 
