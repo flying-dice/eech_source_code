@@ -1,3 +1,23 @@
+# User-requested Git checkpoint — partial tree kernel, UNBUILT and UNRUN
+
+The implementation writer was interrupted on 29 October 2026 to commit and push
+the current work. Its existing local Sonnet session is
+`39ea8c20-d032-41ae-bbbb-c52fb100b440`; the verified process was PID 21552, started
+at 20:02:00 UTC. It is stopped, not waiting for review or reporting completion.
+
+The partial new files are `eech-campaign/crates/eech-world/csrc/tree_step.c` and
+`eech-campaign/crates/eech-world/src/trees.rs`. They contain draft host tree-file
+loading, collision state and physical calculations. They are not wired into the
+build/module, not compiled, not tested and not independently reviewed. Their
+comments and embedded tests describe intended behavior, not demonstrated results.
+No production dispatch or accepted baseline changed. Resume the same focused
+implementation context, inspect these files, complete build/Lua integration and
+replay the saved original query inputs before claiming a host extraction.
+
+The reviewed capture evidence below remains valid for its named source. Task47's
+existing shipping run was left running; complete byte identity is still pending.
+D3 remains incomplete. This is preservation of partial work only.
+
 # Current tree-input capture — reviewed and measured; host kernel preparation next
 
 Capture review is CLOSED with no open findings at f3fd93dfb2ad81b6cbe4d89174953376efd07611.
