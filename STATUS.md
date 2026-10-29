@@ -1,3 +1,36 @@
+# Current D2 lead checkpoint — final native validation complete
+
+The original shipping regression completed on 28 October 2026 at 23:53:56 UTC.
+D2/EEDCS-18 and EEDCS-46/PR105 remain delivery candidates, pending final
+independent review, checks on the publication commit, normal merge and
+Jira/Confluence acceptance. D3 has not started.
+
+The original controller and runner exited 0. The exact accepted set of 40 checks
+passed, and all eight complete Tacview, observation and metric artifacts match
+the completed destination baseline byte for byte. All three external post-input
+checks and the additional internal Lebanon copy passed. The 42-entry shipping
+file manifest and BUILD-INFO identity are unchanged. Baselines and tolerances
+were preserved. Exact reports and hashes are in:
+eech-campaign/reference/d2-combat-characterization/final-shipping-fullpack/.
+Complete recordings, retail roots and binaries remain private.
+
+The actual runtime build remains 64cf0f1c5551a2e59309a92917c32e6189d8ae60.
+All nine CI checks passed at daf3960d8. Seven coarse source frontiers match the
+runtime source; crates differs only in the integration test host_callbacks.rs.
+Production compilation inputs are unchanged. The build is never relabelled as
+a later metadata commit. The final 9000-frame cost control and its reviews are
+closed, with their loaded elapsed-time and DCS-budget limits retained.
+
+The finite D2 matrix is in docs/handover/D2-SCOPE-AUDIT.md. Prior source, causal
+host/report and component runtime reviews retain their declared coverage.
+Campaign decisions and consequences remain in EECH_DC; terrain/model services,
+entity mirrors/heap, RNG, effects and sounds remain explicit coupling.
+Next: final evidence/publication/composition review, current-head CI, normal
+PR105 merge and fetched merge-tree verification; then Task46 Done, whole-epic
+acceptance, the final ledger append preserving all five reports, and completed
+disposable-cache cleanup. Older checkpoints below retain their at-time state
+and failed experiments and are superseded by this entry.
+
 # Current D2 lead checkpoint — 28 October 2026, 16:53 UTC
 
 D2/EEDCS-18 and Task46/PR105 remain ACTIVE/UNACCEPTED; noD3. Final ordinary

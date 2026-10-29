@@ -1,0 +1,71 @@
+{
+  "when_utc": "2026-10-28T17:03:10.769037+00:00",
+  "head": "daf3960d845def1b59d29c7fa1a07480f5936390",
+  "pull_request": {
+    "baseRefOid": "3b91ca34730a88e944700af1d0b7d777e071c73e",
+    "headRefOid": "daf3960d845def1b59d29c7fa1a07480f5936390",
+    "isDraft": true,
+    "mergeable": "MERGEABLE"
+  },
+  "actual_gh_view_exit": 0,
+  "actual_gh_checks_exit": 0,
+  "checks": [
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40730517184/job/122965257873",
+      "name": "test (x86_64-unknown-linux-gnu)",
+      "state": "SUCCESS",
+      "workflow": "eech-campaign"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40730516997/job/122965256626",
+      "name": "verify",
+      "state": "SUCCESS",
+      "workflow": "eech-core-ts"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40730517023/job/122965256992",
+      "name": "Slice 1a historical equivalence",
+      "state": "SUCCESS",
+      "workflow": "eech-loss-structural"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40730517184/job/122965257949",
+      "name": "test (i686-unknown-linux-gnu)",
+      "state": "SUCCESS",
+      "workflow": "eech-campaign"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40730517184/job/122965257724",
+      "name": "test (i686-unknown-linux-gnu, EECH_ORIGINAL_STACK_ATTRIBUTES=1)",
+      "state": "SUCCESS",
+      "workflow": "eech-campaign"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40730517184/job/122965257896",
+      "name": "test (x86_64-unknown-linux-gnu, EECH_C_OPT=2)",
+      "state": "SUCCESS",
+      "workflow": "eech-campaign"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40730517184/job/122965258216",
+      "name": "evidence-selftest",
+      "state": "SUCCESS",
+      "workflow": "eech-campaign"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40730517184/job/122965257861",
+      "name": "dcs-probe-tools",
+      "state": "SUCCESS",
+      "workflow": "eech-campaign"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40730517184/job/122965257238",
+      "name": "windows-cross",
+      "state": "SUCCESS",
+      "workflow": "eech-campaign"
+    }
+  ],
+  "exact_check_set": true,
+  "all9_success": true,
+  "limits": "Currentdaf CI only. Source/cost/publication reviewclosed; originalfull40/full8/post3 remainsACTIVE, finalcompletepackreview/merge/D2acceptance pending. Laterfinalevidencecommits need owncurrentchecks."
+}

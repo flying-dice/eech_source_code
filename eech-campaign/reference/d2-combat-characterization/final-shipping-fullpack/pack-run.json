@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "pid": 23828,
+  "when_utc": "2026-10-28T23:53:56.298682+00:00",
+  "native_cwd": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5",
+  "runner": "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\tools\\regression-pack.py",
+  "arguments": [
+    "--georgia",
+    "R:\\d2-evidence\\candidate-roots-d2-combat-final\\georgia",
+    "--lebanon",
+    "R:\\d2-evidence\\candidate-roots-d2-combat-final\\lebanon",
+    "--lebanon-repeat",
+    "R:\\d2-evidence\\candidate-roots-d2-combat-final\\lebanon-repeat",
+    "--bin",
+    "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\target\\windows-d2-combat-final-64cf0f1c5",
+    "--out",
+    "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5"
+  ],
+  "exit_code": 0
+}
