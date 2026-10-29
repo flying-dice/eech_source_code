@@ -142,8 +142,11 @@ local answered = provider (once)
 check ("a getter is read once and answered", reads == 1 and answered.below == true, reads)
 
 -- ---- refusals: shapes, strict numbers, absent fields, the non-finite policy, a read off the terrain ----
+-- Two diagnostics name a type. A field that must be a TABLE is named by the host's Lua binding (mlua LuaValue::type_name), which tells an integral Lua number from any other:
+-- "integer" for 5 or 7, "number" for 5.5. A field that must be a NUMBER is named by Lua's own type (nil, string, boolean, table, function). Both are asserted as they are.
 refused ("an absent world", { op = "ground_below", x = 1000, y = 0, z = 1000 }, "world must be a table, got nil")
-refused ("a world that is not a table", { op = "ground_below", world = 5, x = 1000, y = 0, z = 1000 }, "world must be a table, got number")
+refused ("a world that is not a table", { op = "ground_below", world = 5, x = 1000, y = 0, z = 1000 }, "world must be a table, got integer")
+refused ("a world that is a non-integral number", { op = "ground_below", world = 5.5, x = 1000, y = 0, z = 1000 }, "world must be a table, got number")
 refused ("a world bound that is a numeric string", { op = "ground_below", world = { min_x = "0", min_z = 0, max_x = 1, max_z = 1 }, x = 1000, y = 0, z = 1000 },
 	"world.min_x: min_x must be a number, got string")
 refused ("a world with an absent bound", { op = "ground_below", world = { min_x = 0, min_z = 0, max_x = 1 }, x = 1000, y = 0, z = 1000 }, "world.max_z")
@@ -151,9 +154,9 @@ refused ("an absent y", { op = "ground_below", world = world, x = 1000, z = 1000
 refused ("a numeric string x", { op = "ground_below", world = world, x = "1000", y = 0, z = 1000 }, "x must be a number, got string")
 refused ("a boolean z", { op = "ground_below", world = world, x = 1000, y = 0, z = true }, "z must be a number, got boolean")
 refused ("a double that is not an exact single", { op = "ground_below", world = world, x = 0.1, y = 0, z = 1000 }, "is not an exact single-precision value")
-refused ("an impact endpoint that is not a table", { op = "ground_impact", world = world, above = 5, below = { x = 1, y = 1, z = 1 } }, "above must be a table, got number")
+refused ("an impact endpoint that is not a table", { op = "ground_impact", world = world, above = 5, below = { x = 1, y = 1, z = 1 } }, "above must be a table, got integer")
 refused ("an impact endpoint with an absent coordinate", { op = "ground_impact", world = world, above = { x = 1, y = 1 }, below = { x = 1, y = 1, z = 1 } }, "above.z")
-refused ("a hint that is a number", { op = "ground_below", world = world, x = 1000, y = 0, z = 1000, hint = 7 }, "hint must be a string or nil, got number")
+refused ("a hint that is a number", { op = "ground_below", world = world, x = 1000, y = 0, z = 1000, hint = 7 }, "hint must be a string or nil, got integer")
 refused ("a hint that is not of this host's form", { op = "ground_below", world = world, x = 1000, y = 0, z = 1000, hint = "zz" }, "terrain hint:")
 refused ("a non-finite x", { op = "ground_below", world = world, x = 1 / zero, y = 0, z = 1000 }, "not finite")
 refused ("a NaN y", { op = "ground_below", world = world, x = 1000, y = zero / zero, z = 1000 }, "not finite")

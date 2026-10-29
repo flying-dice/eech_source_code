@@ -1,0 +1,51 @@
+{
+  "limits": "First direct Georgia run only; later refusals, Lebanon and public handoff not executed. Native101, outer1; Georgia post-input0. Mistaken test diagnostic expectation, no production refusal changed.",
+  "results": [
+    {
+      "case": "georgia",
+      "actual_native_exit": 101,
+      "post_inputs": 0,
+      "skipped": false,
+      "rows": 29,
+      "failed_checks": [
+        {
+          "event": "check",
+          "n": 29,
+          "name": "a world that is not a table is refused",
+          "ok": false
+        }
+      ],
+      "last_row": {
+        "event": "check",
+        "n": 29,
+        "name": "a world that is not a table is refused",
+        "ok": false
+      },
+      "raw_sha256": "d1a9a2646ed5b2f82922c696492cd200d9a7708a9f3a51b344f9844a57fb4418"
+    }
+  ],
+  "source": "f66ba1f139ee5047414a99aac5ce21e367c28c9d",
+  "scope": "Host Lua preparation only. Real-map direct tests and public missing-handoff witness with an unchanged old DLL; no extraction/shipping acceptance.",
+  "error": "AssertionError({'case': 'georgia', 'actual_native_exit': 101, 'post_inputs': 0, 'skipped': False, 'rows': 29, 'failed_checks': [{'event': 'check', 'n': 29, 'name': 'a world that is not a table is refused', 'ok': False}], 'last_row': {'event': 'check', 'n': 29, 'name': 'a world that is not a table is refused', 'ok': False}, 'raw_sha256': 'd1a9a2646ed5b2f82922c696492cd200d9a7708a9f3a51b344f9844a57fb4418'})",
+  "new_build_manifest": [
+    {
+      "file": "eech-world.exe",
+      "sha256": "de4f5996e5e161c9cc1ff6a68cad2fecb1155507efd39a18a6becfc08d33d015"
+    },
+    {
+      "file": "ground_provider.exe",
+      "sha256": "5c7be6a7273b756b2663fccf1dd6114bd8931145bc50b08c21b5fc4141f8e19b"
+    },
+    {
+      "file": "ground_handoff.exe",
+      "sha256": "82b18feae8eba4097e41c8a72c5bbadbfc0c843e5859e898d9e13c2729672311"
+    },
+    {
+      "file": "lua.dll",
+      "sha256": "7b2ec3f3fd174f6b65a2159ee46dc8e9102624a350d978e16ddf4396d7c2be0b"
+    }
+  ],
+  "old_export_manifest_count": 46,
+  "status": "failed",
+  "completed_utc": "2026-10-29T17:25:54.702152+00:00"
+}

@@ -119,3 +119,12 @@ The wrapper counts the provider's requests by operation and delegates every one 
 ### Still coupled
 The DLL's `wn_move` glue, a new `mb_hostterrain` operation and its client, the public bridge (`TERRAIN_BRIDGE` carries only map/point/fast), the DLL-side sector rows used by G2, the other `point_below_ground`/`point_above_ground` consumers
 (avionics, particles), G3, loader/solver removal, and the spatial/model, environment and time inputs remain D3 scope. D4/D5 have not started. Nothing here is a cutover, a completed extraction, shipping evidence or Task48/D3 closure.
+
+### Real failure of the first native run, and the source correction (not yet re-run)
+
+The first native run of `ground_provider.exe` on the actual Georgia retail map (clean Windows build of f66ba1f13; raw log, strict rows and exit retained by Root, immutable) passed checks 1 to 28 (reply shapes, the
+no-read records, hints, endpoint correction, signed zero and subnormal round trips, the single getter read) and **failed check 29**. The product was right: `world = 5` is refused with
+`host.terrain: world must be a table, got integer`. The test expected `got number`. The diagnostic that names a table field's actual value comes from the host's Lua binding (mlua `LuaValue::type_name`), which calls an
+integral Lua number `integer` and any other `number`; the diagnostics for a field that must be a NUMBER (`got nil`, `got string`, `got boolean`) come from Lua's own `type`. Three expectations were wrong in the same way
+(`world = 5`, `above = 5`, `hint = 7`) and are corrected to `got integer`; one case (`world = 5.5`, `got number`) is added so that both names are asserted. No product code, refusal, physical check or other input changed, and nothing
+was loosened to accept an invalid request. The refusals after check 29, the Lebanon run and the public control/RED have **not** run since; no pass is claimed.

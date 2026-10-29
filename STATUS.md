@@ -43,3 +43,10 @@ weather/environment/RNG and host-time inputs remain D3 scope. No baseline,
 tolerance, original oracle or generator was changed. Private retail inputs,
 binaries and raw recordings stay outside Git in `R:/d3-evidence`; external
 `D3-NEXT-ACTION.json` and `D3-REQUIREMENTS.json` carry the continuation state.
+
+Host provider transport, first native run (Georgia, build of f66ba1f13): checks 1..28 passed and
+check 29 FAILED on a wrong TEST expectation (the product's `got integer` refusal for `world = 5` was
+right; the test expected `got number`). The expectations are corrected in source and a non-integral
+case added; the raw failure is retained, and the refusals after check 29, Lebanon and the public
+control/RED have not run since. No pass, cutover or D3 acceptance is claimed. See
+eech-campaign/docs/m5-ground-host-preparation.md.
