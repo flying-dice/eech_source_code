@@ -555,8 +555,14 @@ local clock = engine:clock ()
 emit { event = "state_digest", objects = #objects, alive = alive, digest = string.format ("%08x", digest), elapsed = clock.elapsed_seconds,
 	frames = frames_before + frames_after, probed = probe == "yes" }
 out:close ()
-local legacy = "none"
-if last_rows then legacy = (last_rows ["ground-hash"] or last_rows ["ground-semantic-hash"]).combined end
+-- The footer names the diagnostic hash by the profile that wrote it (the raw JSON rows already do): the ORIGINAL profile's ground-hash is the legacy hash, the host-semantic
+-- profile's ground-semantic-hash is a semantic hash, and the two are different diagnostics. With no probe (the control) there is none.
+local diagnostic_label, diagnostic_hash = "diagnostic hash", "none"
+if last_rows and last_rows ["ground-semantic-hash"] then
+	diagnostic_label, diagnostic_hash = "semantic hash (host_semantic profile)", last_rows ["ground-semantic-hash"].combined
+elseif last_rows and last_rows ["ground-hash"] then
+	diagnostic_label, diagnostic_hash = "legacy hash (original profile)", last_rows ["ground-hash"].combined
+end
 local physical = last_rows and last_rows ["ground-physical"].combined or "none"
-io.stderr:write (string.format ("ground-characterization: probe %s, %d repeats, legacy hash %s, physical hash %s, state digest %08x over %d objects\n", probe,
-	probe == "yes" and repeats or 0, tostring (legacy), tostring (physical), digest, #objects))
+io.stderr:write (string.format ("ground-characterization: probe %s, %d repeats, %s %s, physical hash %s, state digest %08x over %d objects\n", probe,
+	probe == "yes" and repeats or 0, diagnostic_label, tostring (diagnostic_hash), tostring (physical), digest, #objects))

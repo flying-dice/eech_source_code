@@ -414,3 +414,25 @@ runtime equivalence claim; the new host diagnostic branches require review and
 actual native measurements. Native composition build/probes and full physical
 comparisons remain pending. G1 remains unaccepted and the long shipping pack is
 untouched. No G2productioncutover, baseline or tolerance change is made.
+
+## Native composition checkpoint — physical comparison RED
+
+The earlier unbuilt/unrun and pending-native notes above describe the preparation
+stage. Clean measured composition3ad209417 has now built0/all46 manifest entries,
+and three native20k/5k/two-repeat runs completed0 with119 strict rows each, repeat/
+restoration checks and post-input checks passing. The physical above/below/combined
+folds DO NOT match originalc119, despite equal impact folds, emitted physical
+samples/counters and common cache fields. This is an unresolved failure, not an
+accepted extraction. The legacy and semantic diagnostic folds remain separate.
+
+Unchanged-binary prefix bisection completed0 with equal14/unequal15, identifying
+case index14 as the first observed divergence. A separate actual library test
+executes one test and fails101 on Lua request-coordinate signed-zero/tiny-value
+fidelity; causality for the physical mismatch remains unproven. Production code
+and numerical expressions are unchanged. The newly committed test is intentionally
+RED. The footer-label correction only names diagnostic hashes by their profile.
+
+See reference/d3-ground-characterization/composition-physical-red-checkpoint.json
+for exact source/test identities and limits. Native raw evidence and both original
+and composed frozen binaries remain private and immutable. No baseline/tolerance
+change, G1 acceptance, G2 cutover or full shipping-pack pass is claimed.

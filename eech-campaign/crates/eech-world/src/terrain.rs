@@ -794,4 +794,55 @@ mod tests {
         assert!(map_number_of(Path::new("root/common/maps/lebanon/terrain")).is_err());
         assert!(map_number_of(Path::new("terrain")).is_err());
     }
+
+    // EEDCS-48 / EEDCS-47 classification test: the actual library run fails for both fields of negative zero,
+    // the smallest positive/negative subnormal and the smallest normal. No production fix is included.
+    //
+    // The campaign's bridge hands the provider a Lua table `{ op, x, z, hint, winter }` whose x and z are Lua numbers made from the query's single-precision floats, and
+    // `coordinate` reads them back with `request.get::<LuaValue>`. main.rs documents (exact_numbers) that mlua 0.10 on Lua 5.1 reports ANY number within f64::EPSILON of an integer
+    // as `LuaValue::Integer`, so -0.0 and values such as 1.4e-45 arrive as Integer(0) and `coordinate` returns +0.0: the sign of a zero and every sub-epsilon magnitude are erased
+    // before the terrain is asked. The original ground fixture's point generator deliberately asks for -0.0 and the next float above 0.0 (map-edge coordinates).
+    //
+    // This builds the request exactly as the bridge does (a Lua function making the table from Rust f64 arguments) and asserts the exact f32 bits `coordinate` returns, for the
+    // edge values and for ordinary ones. This proves input-bit loss, not the cause of the separate ground-physical hash mismatch:
+    // the terrain kernel's coordinate offset can absorb these tiny differences. That mismatch still requires case-level tracing.
+    #[test]
+    fn a_request_coordinate_keeps_its_exact_single_precision_bits_including_signed_zero_and_tiny_values() {
+        let lua = Lua::new();
+        let bridge: LuaFunction = lua
+            .load("return function (op, x, z) return { op = op, x = x, z = z } end")
+            .eval()
+            .expect("the request builder");
+        let cases: [(&str, f32); 12] = [
+            ("negative zero", -0.0),
+            ("positive zero", 0.0),
+            ("smallest positive", f32::from_bits(1)),
+            ("smallest negative", -f32::from_bits(1)),
+            ("smallest normal", f32::MIN_POSITIVE),
+            ("one", 1.0),
+            ("a sector boundary", 2048.0),
+            ("one float below a sector boundary", 2048.0_f32.next_down()),
+            ("an ordinary fraction", 1234.5678),
+            ("a large integer-valued coordinate", 155_647.0),
+            ("one float below it", 155_647.0_f32.next_down()),
+            ("an ordinary negative", -17.25),
+        ];
+        // every case is checked before the test fails, so one run classifies all of them
+        let mut wrong = Vec::new();
+        for (label, value) in cases {
+            let request: LuaTable = bridge.call(("point", f64::from(value), f64::from(value))).expect("a request");
+            for field in ["x", "z"] {
+                match coordinate(&request, field) {
+                    Ok(read) if read.to_bits() == value.to_bits() => {}
+                    Ok(read) => wrong.push(format!(
+                        "{label} ({field}): the provider read {:#010x}, the campaign sent {:#010x}",
+                        read.to_bits(),
+                        value.to_bits()
+                    )),
+                    Err(e) => wrong.push(format!("{label} ({field}): refused: {e}")),
+                }
+            }
+        }
+        assert!(wrong.is_empty(), "coordinates that did not arrive with their exact bits:\n{}", wrong.join("\n"));
+    }
 }
