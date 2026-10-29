@@ -21,6 +21,14 @@ Safe validation SHA256:
 Reports are under `eech-campaign/reference/d3-collision-characterization/`.
 Original/intermediate failures and the initial C5 review remain immutable.
 
+Ledger14548994v65 readback preserves all prior HTML and all five epic reports
+exactly; Jira10860 records closure of preparation. Four closed Windows Cargo
+caches were removed only after all8 exports, all3 cached/exported logs and zero
+container owners verified. Frozen sources, tested binaries, roots, successes and
+failures remain retained. Current8c and shared caches and shipping115 are untouched.
+The latest checked shipping prefixes are43.4MB Tacview/28.7MB observations exact;
+all six original process identities remain live. Full-pack acceptance is pending.
+
 This is host-component preparation, not production ownership or Task49/D3
 acceptance. Campaign queries still run the original DLL service. Next: establish
 a controlled ORIGINAL forest-geometry/model-decoder witness before moving the
