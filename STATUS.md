@@ -1,3 +1,25 @@
+# D3 checkpoint — model fixture built; three retail catalogues measured
+
+EEDCS-50 / draft PR110, measured source `366622e0c08b2caaa5a5317f5197c0ee3d7050e9`.
+The Windows model-fixture build completed with actual exit 0 and 43 verified
+exports. The repository PowerShell runner completed with actual exit 0 on
+Georgia, Lebanon and Lebanon-repeat; all three pre/post input checks pass,
+all payloads remain unchanged, and each before/after native state digest matches.
+Each catalogue enumerates 3,025 scenes: 769 safe-to-probe, 2,009 absent,
+14 custom-object refusals, 45 face-layout mismatches and 188 missing scenes.
+These are catalogue results, not measured retail triangle equivalence. The full
+raw catalogue hashes differ and are retained; no cross-process byte equality
+is claimed. Safe metadata and exact build identity are recorded in
+`eech-campaign/reference/d3-model-characterization/`.
+
+The sole Sonnet High invocation completed with exit 0; no model implementation
+writer is running. Next: select campaign-used safe models with backed end reads,
+measure original triangles and refusal/absence/end behavior, then independent
+review before host loader extraction. No host loader or production dispatch has
+moved. Task50 and D3 remain In Progress; D4/D5 have not started. The original
+Task47 shipping processes remain running, untouched by this commit/push request;
+full-pack acceptance remains pending.
+
 # D3 checkpoint — original geometry witness closed; Task50 model-data work active
 
 Original forest-geometry witness preparation is independently CLOSED with no
