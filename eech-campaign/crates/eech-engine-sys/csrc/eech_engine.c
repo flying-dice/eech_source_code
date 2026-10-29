@@ -1232,6 +1232,67 @@ int eech_engine_sensor_probe (char *text, int capacity, const struct eech_engine
 
 #endif
 
+#ifdef EECH_TERRAIN_FIXTURE
+
+/*
+ * TEST-ONLY terrain surface characterisation (EEDCS-47): the run-wide trace of every terrain query the campaign's own update loop makes,
+ * and a read-only, deterministic probe sweep over the loaded map (eech_terrain_fixture.c). Both run inside the engine entry, so they see
+ * EECH's round-toward-zero mode as the campaign's own queries do. None of them constructs an entity or replaces a handler, and the probe
+ * restores the shared find-fast record. The report is text, `key=value` lines; nothing in it is an entity index or an address.
+ */
+extern int eech_terrain_trace_get (char *text, int capacity);
+extern void eech_terrain_trace_clear (void);
+extern int eech_terrain_probe_run (uint32_t seed, int count, int emit, char *text, int capacity);
+
+int eech_engine_terrain_trace (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_terrain_trace_get (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_terrain_trace_reset (void)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	eech_terrain_trace_clear ();
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_terrain_probe (uint32_t seed, int count, int emit, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || (count < 0) || (count > 200000) || (emit < 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_terrain_probe_run (seed, count, emit, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif
+
 #ifdef EECH_AIM_FIXTURE
 
 /*

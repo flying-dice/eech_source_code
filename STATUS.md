@@ -1,3 +1,29 @@
+# D3 terrain and environmental services — active
+
+29 October 2026. D3/EEDCS-21 is In Progress after accepted D2 closure.
+Verified integration base: 6bbaa8197a4843181d03cd355d562af998c75321.
+First extraction: EEDCS-47, host terrain surface services, on
+codex/d3-terrain-services. The original-behavior characterization and finite
+D3 source census are underway; no D3 shipping responsibility has moved yet.
+
+Physical terrain/spatial queries, weather/environment services and host time
+inputs are D3 scope. Campaign geography, route planning, timers and scheduling
+semantics remain in EECH_DC. Live M5 goal v3 and migration ledger v50 govern.
+The epic initially had no children; EEDCS-47 was created as work started.
+
+Reuse accepted D2: 40/40 checks and all eight complete artifacts byte identical.
+No new D3 Tacview comparison is claimed. Accepted baselines, tolerances, seed,
+durations and retail data remain protected. One Claude Sonnet 5.5 High -p lane
+is active; one independent Codex reviewer is retained. Root owns builds, native
+runs, exact artifact comparisons, review/normal delivery and live record updates.
+
+Next: finish original terrain characterization before moving physical queries.
+Terrain/model services, weather/time inputs, entity mirrors/heap, RNG, effects
+and sounds remain coupled as documented. D4 and D5 have not started.
+Private process/source/evidence checkpoint: R:/d3-evidence/D3-NEXT-ACTION.json.
+
+The earlier D2 delivery and historical checkpoints below are preserved.
+
 # D2 combat and perception — implementation delivery record
 
 29 October 2026. The physical D2 increment is delivered on integration through

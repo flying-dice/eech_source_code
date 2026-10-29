@@ -1330,6 +1330,13 @@ extern "C" {
     pub fn eech_engine_sensor_probe(text: *mut c_char, capacity: c_int, host: *const eech_engine_host) -> c_int;
 }
 
+#[cfg(feature = "terrain-fixture")]
+extern "C" {
+    pub fn eech_engine_terrain_trace(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_terrain_trace_reset() -> c_int;
+    pub fn eech_engine_terrain_probe(seed: u32, count: c_int, emit: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+}
+
 #[cfg(feature = "weapon-fixture")]
 extern "C" {
     pub fn eech_engine_cmb_trace(text: *mut c_char, capacity: c_int) -> c_int;

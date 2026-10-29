@@ -324,6 +324,23 @@ int eech_engine_sensor_trace_reset (void);
 int eech_engine_sensor_probe (char *text, int capacity, const struct eech_engine_host *host);
 #endif
 
+#ifdef EECH_TERRAIN_FIXTURE
+/*
+ * TEST-ONLY (feature terrain-fixture, EEDCS-47): see eech_terrain_fixture.c. Not part of the shipping module.
+ * The report is `key=value` text lines: an order-dependent hash over every terrain query, the call counts (shared or private find-fast
+ * record, hint tried and hit, sector scans, no face found, clamped, Cuba flaw area), a surface-type histogram and a per-call-site table.
+ * Fails (bad argument) when the report does not fit `capacity`.
+ */
+/* The run-wide trace of every terrain query the campaign has made since boot or the last reset. */
+int eech_engine_terrain_trace (char *text, int capacity);
+int eech_engine_terrain_trace_reset (void);
+/*
+ * Runs the deterministic probe sweep over the loaded map (six fixed points, then `count` from the private generator seeded with `seed`),
+ * emitting the first `emit` samples (at most 256) in full; the run-wide trace and the shared find-fast record are left as found.
+ */
+int eech_engine_terrain_probe (uint32_t seed, int count, int emit, char *text, int capacity);
+#endif
+
 #ifdef EECH_AIM_FIXTURE
 /*
  * TEST-ONLY (feature aim-fixture, EEDCS-44): see eech_aim_fixture.c. Not part of the shipping module.

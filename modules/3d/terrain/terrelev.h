@@ -74,7 +74,18 @@ extern void initialise_3d_terrain_elevation ( void );
 
 extern void clear_3d_terrain_point_data ( terrain_3d_point_data *point_data );
 
-#if ( DEBUG_TERRAIN )
+//
+// TEST-ONLY (EEDCS-47, build define EECH_TERRAIN_FIXTURE, never in the shipping module): the call-site form below is compiled so that
+// the terrain characterisation fixture can attribute each query to its caller.  Without the define nothing here changes.
+//
+
+#if ( DEBUG_TERRAIN ) || defined ( EECH_TERRAIN_FIXTURE )
+#define TERRAIN_CALL_SITES 1
+#else
+#define TERRAIN_CALL_SITES 0
+#endif
+
+#if ( TERRAIN_CALL_SITES )
 
 extern float get_3d_terrain_point_data_ex ( float x, float z, terrain_3d_point_data *point_data, const char *file, int line );
 
@@ -82,6 +93,19 @@ extern float get_3d_terrain_point_data_ex ( float x, float z, terrain_3d_point_d
 
 #else
 extern float get_3d_terrain_point_data ( float x, float z, terrain_3d_point_data *point_data );
+#endif
+
+#if defined ( EECH_TERRAIN_FIXTURE )
+
+//
+// TEST-ONLY (EEDCS-47): the fixture's observer, called once at each return of the query with what the query did, and the shared
+// find-fast record.  See eech-campaign/crates/eech-engine-sys/csrc/eech_terrain_fixture.c.
+//
+
+extern void eech_terrain_record ( const char *file, int line, float x, float z, int hint_null, int fast_attempted, int fast_hit, int found, int clamped, int cuba, float result, const terrain_3d_point_data *point_data );
+
+extern terrain_3d_point_data *eech_terrain_system_point_data ( void );
+
 #endif
 
 extern vec3d *get_3d_terrain_point_data_normal ( terrain_3d_point_data *point_data );
@@ -104,7 +128,7 @@ extern void get_3d_terrain_last_normal ( vec3d *normal );
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#if ( DEBUG_TERRAIN )
+#if ( TERRAIN_CALL_SITES )
 #define get_3d_terrain_elevation(X,Z) (get_3d_terrain_point_data_ex ((X), (Z), NULL, __FILE__, __LINE__))
 #else
 #define get_3d_terrain_elevation(X,Z) (get_3d_terrain_point_data ((X), (Z), NULL))

@@ -956,6 +956,10 @@ pub struct Clock {
 #[cfg(feature = "sensor-fixture")]
 const SENSOR_REPORT_CAPACITY: usize = 96 * 1024;
 
+/// TEST-ONLY (feature `terrain-fixture`): room for one terrain report (the probe's samples and the per-call-site table); a report that does not fit is refused, never cut short.
+#[cfg(feature = "terrain-fixture")]
+const TERRAIN_REPORT_CAPACITY: usize = 192 * 1024;
+
 /// TEST-ONLY (feature `aim-fixture`): room for one aiming report; a report that does not fit is refused, never cut short.
 #[cfg(feature = "aim-fixture")]
 const AIM_REPORT_CAPACITY: usize = 96 * 1024;
@@ -4951,6 +4955,36 @@ impl Engine {
     pub fn sensor_trace_reset(&self) -> Result<(), EngineError> {
         // SAFETY: no pointers cross.
         check(unsafe { sys::eech_engine_sensor_trace_reset() })
+    }
+
+    /// TEST-ONLY (feature `terrain-fixture`, EEDCS-47): the run-wide report of every terrain query the campaign has made since boot or the
+    /// last reset, as `key=value` text lines. Read-only.
+    #[cfg(feature = "terrain-fixture")]
+    pub fn terrain_trace(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; TERRAIN_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_terrain_trace(text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `terrain-fixture`, EEDCS-47): clears the run-wide terrain trace.
+    #[cfg(feature = "terrain-fixture")]
+    pub fn terrain_trace_reset(&self) -> Result<(), EngineError> {
+        // SAFETY: no pointers cross.
+        check(unsafe { sys::eech_engine_terrain_trace_reset() })
+    }
+
+    /// TEST-ONLY (feature `terrain-fixture`, EEDCS-47): runs the deterministic terrain probe sweep over the loaded map (six fixed points,
+    /// then `count` from a private generator seeded with `seed`), writing the first `emit` samples (at most 256) in full. Read-only: the
+    /// run-wide trace and the shared find-fast record are left as found. It asks nothing of the host.
+    #[cfg(feature = "terrain-fixture")]
+    pub fn terrain_probe(&self, seed: u32, count: i32, emit: i32) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; TERRAIN_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_terrain_probe(seed, count, emit, text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
     }
 
     /// TEST-ONLY (feature `sensor-fixture`, EEDCS-43): runs the AI target-scan group functions for every eligible live source,

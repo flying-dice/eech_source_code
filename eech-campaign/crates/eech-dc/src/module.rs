@@ -2035,6 +2035,18 @@ impl LuaUserData for LuaEngine {
                 .sensor_probe(&mut binder, &mut observer, &mut reach, &mut mover, &mut sighter, &mut sensor, &mut aimer)
                 .map_err(lua_error)
         });
+        // TEST-ONLY (feature `terrain-fixture`, EEDCS-47): the run-wide report of the terrain queries; not part of the shipping module.
+        #[cfg(feature = "terrain-fixture")]
+        methods.add_method("terrain_trace", |_, this, ()| this.engine.terrain_trace().map_err(lua_error));
+        // TEST-ONLY (feature `terrain-fixture`, EEDCS-47): clears that trace; not part of the shipping module.
+        #[cfg(feature = "terrain-fixture")]
+        methods.add_method("terrain_trace_reset", |_, this, ()| this.engine.terrain_trace_reset().map_err(lua_error));
+        // TEST-ONLY (feature `terrain-fixture`, EEDCS-47): the read-only deterministic terrain sweep; not part of the shipping module. It asks
+        // nothing of the host.
+        #[cfg(feature = "terrain-fixture")]
+        methods.add_method("terrain_probe", |_, this, (seed, count, emit): (u32, i32, i32)| {
+            this.engine.terrain_probe(seed, count, emit).map_err(lua_error)
+        });
         // TEST-ONLY (feature `dependent-fixture`, EEDCS-40): not part of the shipping module.
         #[cfg(feature = "dependent-fixture")]
         methods.add_method(
