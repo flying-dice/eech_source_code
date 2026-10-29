@@ -1,3 +1,8 @@
+Linux result for source 5416adb3b (actual, terminal, exit 101): format passed, 8 driver tests passed, 1 failed, Clippy not run. The failure was a stale test expectation
+(common_cases_wrong expected 72; the validator and stand-in correctly give 44), not a physical regression. A follow-up corrects that and the second stale one (census_paths_wrong: 16, not 17)
+after re-deriving all 73 negative expectations; it is test source only and UNRUN until Root executes it. The Windows physical build of 5416adb3b is LIVE, not passed. The old d5 failed
+moving probes stay failed with no valid oracle; review remains changes required; whole D3 active.
+
 Native checkpoint at clean d5ca5ee5b: Windows fixture build0/all43 exports verified;
 three seconds0 probes on fresh verified roots native0/pre/post0,199 strict rows each,
 repeat/restoration/RNG/candidate-state checks pass and separate Lebanon raw bytes
@@ -280,3 +285,13 @@ control; its `state_digest` is compared with the probed run's offline. The inter
 Compile the clean named fixture build, run the guard/stand-in tests and the native probes on fresh verified roots (Georgia, Lebanon, Lebanon repeat,
 `seconds=0` and `seconds=120`, with and without probe), classify differences and gaps, and obtain independent review. Only then can the host handoff for
 G3a be designed, and production G3 switching still waits for validated preceding delivery and freshly verified integration.
+# Current native result (29 October 2026)
+
+Clean fixture source `5416adb3b` built successfully and passed all three boot
+probes with both FP masks 63 and terrain/update-flag restoration. All 199 original
+boot-row values, folds and samples match the retained d5 measurements; six new
+diagnostic rows are separate. The 205-row Lebanon reports repeat byte for byte,
+and all three pre/post manifests pass. Moving probes and controls are running;
+there is still no valid old moving oracle. Two stale test diagnostic strings are
+corrected below, with their new Linux/Windows validation and independent review
+pending. The earlier status paragraphs are historical checkpoints.

@@ -1,3 +1,37 @@
+# Current collision checkpoint — corrected native boot reports match retained original values
+
+The clean Windows fixture at 5416adb3b built successfully (actual exit 0), with all
+43 exported payloads verified. Georgia, Lebanon and the separate Lebanon repeat
+boot probes each exit 0 with 205 strict JSON rows, restored terrain/update flags,
+unchanged game RNG and both FP exception masks 63. Every value in all 199 retained
+d5 boot rows matches, including physical/legacy folds and samples; the six added
+rows are new census/FP/flag diagnostics. Full raw Lebanon repeat reports match.
+All three pre/post input manifests pass. This is bounded boot evidence with the
+original coverage gaps; it is neither moving-case conformance nor shipping proof.
+
+Fresh 120s+30s original-query probes and matched controls are running on immutable
+5416adb3b. The test-only expectation correction below changes two strings, with no
+native/driver behavior change; its Linux/Windows checks and independent delta
+review remain pending. Task47 shipping115 remains running unchanged. No collision
+responsibility has moved; production G2 and the rest of D3 remain required.
+
+The following sections preserve earlier results and their at-the-time status.
+
+# Source 5416adb3b Linux guard result and test-expectation follow-up — follow-up UNRUN
+
+Actual first Linux run of corrected source 5416adb3b is TERMINAL (exit 101; completion collision-driver-linux-5416adb3b-completion.json, 18:40:16Z): format passed, 8 driver
+tests passed, 1 failed, and Clippy did not run (the script stops at the first failure). The failure is in the_collision_driver_names_the_one_defect_in_a_report_and_writes_no_success_row:
+the validator correctly reported "col-entity-common struct: hit + miss is 71, expected 44" for mode common_cases_wrong (the stand-in sets cases 44), while the test still expected "expected 72".
+That is a stale test expectation left over from the coherent 15-target valid stand-in, not a physical regression and not a validator or stand-in defect.
+
+Follow-up (test source only; production source, native C and driver semantics unchanged; UNRUN until Root executes it): every one of the 73 negative-mode expectations was re-derived from the
+CURRENT stand-in values and validator order. Two were stale and are corrected: common_cases_wrong (expected 44, as the stand-in sets) and census_paths_wrong (the stand-in sets box_path 7, so
+"geometry_path + box_path is 16, expected 18", not 17). All other expectations match. Nothing was weakened; all 73 negative controls, the strict-JSON report retention and the positive valid-world
+constraints remain. Root formats and runs this corrected test source, cross-builds its Windows guard binary and pins every measured source; the initial failure is preserved.
+
+The Windows physical build of 5416adb3b is LIVE and has not passed. The old d5 failed moving probes stay failed with no valid oracle. The same independent review remains CHANGES REQUIRED pending the
+new source and actual results. Whole D3 stays active; no production G2/G3, D4 or D5.
+
 # Fixture observer P1 — SOURCE CORRECTION PREPARED, UNBUILT, UNRUN (working tree over f8092241d)
 
 The terminal long-run failure (world_unchanged0 after1200 frames; both controls complete) is explained: the d5 fingerprint called the ORIGINAL destructive INT_TYPE_UPDATED getter
