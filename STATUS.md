@@ -8,7 +8,7 @@ D3 source census are underway; no D3 shipping responsibility has moved yet.
 
 Physical terrain/spatial queries, weather/environment services and host time
 inputs are D3 scope. Campaign geography, route planning, timers and scheduling
-semantics remain in EECH_DC. Live M5 goal v3 and migration ledger v50 govern.
+semantics remain in EECH_DC. Live M5 goal v3 governs; ledger v51 records D3 start.
 The epic initially had no children; EEDCS-47 was created as work started.
 
 Reuse accepted D2: 40/40 checks and all eight complete artifacts byte identical.
@@ -21,6 +21,21 @@ Next: finish original terrain characterization before moving physical queries.
 Terrain/model services, weather/time inputs, entity mirrors/heap, RNG, effects
 and sounds remain coupled as documented. D4 and D5 have not started.
 Private process/source/evidence checkpoint: R:/d3-evidence/D3-NEXT-ACTION.json.
+
+Correction batch after the first independent source review of 257a18879 (source
+only; nothing built or run by this lane): the fixture driver now validates every
+argument before output, module or boot side effects while preserving the valid
+instantaneous seconds=0/probe_at=0 mode and probe_seed=0 (the C sweep treats 0
+as 1); Root's real-Lua argument-setup guard was RED on 257a18879 (v1), green
+11/11 on an earlier correction hash, and v2 caught the two zero-mode regressions
+that this fix restores. Root now verifies 14/14 v2 guards (none of it is native
+characterization acceptance); the census now
+lists active model device/sub-object viewpoints and target points as D3 (G3b,
+G3c) and does not call any render or player user dormant without function-level evidence;
+the fixture counts every full sector scan, including failed ones, with a checked
+fast_hit + slow_scans + cuba == calls partition; "preprocessed output unchanged"
+is withdrawn (feature-off logic unchanged by inspection only; diagnostic source
+locations shift). Details: docs/handover/D3-SCOPE-AUDIT.md section 9.
 
 The earlier D2 delivery and historical checkpoints below are preserved.
 

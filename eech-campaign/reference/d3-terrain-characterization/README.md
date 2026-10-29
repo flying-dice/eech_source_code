@@ -15,7 +15,7 @@ campaign DLL, run through the public path (host Lua `require ("eech_dc")` -> nat
 
 | Piece | File | Role |
 |---|---|---|
-| Observer hooks | `modules/3d/terrain/terrelev.c`, `terrelev.h` | Under `EECH_TERRAIN_FIXTURE` only: the query macros pass `__FILE__`/`__LINE__` (the existing `DEBUG_TERRAIN` form, now keyed on `TERRAIN_CALL_SITES`), and each return calls `eech_terrain_record`. Without the define the preprocessed source is unchanged. |
+| Observer hooks | `modules/3d/terrain/terrelev.c`, `terrelev.h` | Under `EECH_TERRAIN_FIXTURE` only: the query macros pass `__FILE__`/`__LINE__` (the existing `DEBUG_TERRAIN` form, now keyed on `TERRAIN_CALL_SITES`), and each return calls `eech_terrain_record`. With the feature off the solver and its control logic are unchanged by inspection only (no preprocess, compile or runtime check yet); the added lines shift diagnostic source locations such as the off-map `ASSERT` (`__LINE__` 1268 -> 1281). No numerical drift is alleged. |
 | Trace + sweep | `crates/eech-engine-sys/csrc/eech_terrain_fixture.c` | Run-wide trace, per-call-site table, deterministic probe sweep, text report. |
 | Engine entries | `eech_engine.c/.h`, `eech-engine-sys` (`lib.rs`, `build/main.rs`, `Cargo.toml`), `eech-engine`, `eech-dc` | `terrain_trace`, `terrain_trace_reset`, `terrain_probe (seed, count, emit)` Lua methods. |
 | Driver | `crates/eech-world/lua/terrain-characterization.lua` | Boots Lebanon or Georgia, reports boot-phase queries, runs frames, takes probes, asserts the probe leaves the run-wide trace unchanged. |
@@ -35,8 +35,8 @@ left as found, and keeps its own trace.
 
 - **Run-wide** (`scope=boot`, then `scope=run`): order-dependent FNV-1a hash over every query's x and z bits, the
   hint/fast/found/clamped/Cuba flags, the returned elevation, `last_elevation`, the normal and the type; counts of
-  shared-record (`hint_null`) and private-record queries, hints tried (`fast_attempted`) and hit, sector scans, no
-  face found, Cuba area, clamped; a surface-type histogram; and one row per call site (file, line, calls,
+  shared-record (`hint_null`) and private-record queries, hints tried (`fast_attempted`) and hit, full sector scans (`slow_scans`, whether or not a face was found), the
+  queries that found no face (`not_found`, a subset of those scans), Cuba-area returns, clamped queries, and `partition_ok` (1 when `fast_hit + slow_scans + cuba == calls`); a surface-type histogram; and one row per call site (file, line, calls,
   shared-record calls, fast hits, not found). The boot report precedes the trace reset, so boot-time geography
   is counted too.
 - **Probe**: six fixed points (four corners inset 1 cm, the centre, one sector-corner point) then `count` random
@@ -96,3 +96,34 @@ belongs in Git. Existing evidence to reuse without rerun: the frozen LOS terrain
 2. Root builds the fixture and runs R1 to R5; retains raw results.
 3. Settle the open questions in the audit (section 5) with the technical lead.
 4. Only then the smallest terrain surface extraction on EEDCS-47, with the red/green checks described in AGENT.md.
+
+## Corrections after the first independent source review (pinned `257a18879`)
+
+Source only; nothing built or run.
+
+- **Driver argument validation (P2).** `terrain-characterization.lua` refuses a bad argument with a
+  `terrain-characterization:` error *before* it opens the output file, requires the module or boots. Bounds (documented in the
+  script header): `frame_ms` integer 10..1000; `seconds` decimal 0..36000 (positive: 1..1,000,000 frames and the clock must advance
+  every frame; exactly `0`: an instantaneous boot-and-sweep that runs no frame and so has no clock-progress check, with every requested
+  probe still required to be taken); `probe_seed` integer 0..4294967295 (a u32; the C sweep treats 0 as 1, so seeds 0 and 1 give the
+  same sweep); `probe_count` 0..200000; `emit` 0..256; `scenario` one of the three; `root` and `out` non-empty. `probe_at` is empty
+  (`probe_at=`, the no-probe control) or a strictly ascending list of plain non-negative decimals, none beyond the simulated total
+  (so the default `0,300` is refused with `seconds=0`); malformed, empty, repeated, descending, negative and non-finite tokens are
+  refused. Defaults are unchanged (600 s, 100 ms, `0,300`, seed 1, 20000 points, 64 samples). Unknown argument names are not
+  rejected. Root's real-Lua-5.1 guard helper covers only argument setup under an I/O tripwire and never boots EECH or runs a frame:
+  v1 was RED on `257a18879`; the corrected working tree was 11/11 at an earlier hash (`577ffab4`); the v2 cases (which add the two
+  zero modes) were 4/14 on `257a18879` and 12/14 on the first correction, failing only `valid_probe_only` and
+  `valid_zero_seed_alias`, which this preservation fix restores. The re-run is the Root's; none of it is native characterization
+  acceptance.
+- **Observer fidelity (P3).** `slow_scans` counts every non-fast, non-Cuba query, including a full scan that finds no face.
+  Added `partition_ok`; the driver refuses a report where it is not 1. No claim is made that a no-face query occurs.
+- **Evidence wording (P3).** See "Observer hooks" above: feature-off logic unchanged by inspection only.
+- **Census (P2).** The audit now lists active model/device/target-point geometry as D3 (G3b, G3c) and no longer calls any active
+  service dormant without evidence; see `docs/handover/D3-SCOPE-AUDIT.md`.
+
+Root verification after the preservation fix: the real Lua 5.1 v2 setup guard
+completed with actual exit 0, all 14 cases passing; syntax parsing also passed.
+Tested driver SHA-256: 4400e7eded209f3cd721f3dfa290f7853011eddd9fcca99cb8c9a104d9e0749f.
+The helper uses an output-opening tripwire and never boots EECH or runs a frame.
+This supersedes the pending guard re-run statements above; C/Rust compilation,
+original native characterization and observation controls remain unrun.

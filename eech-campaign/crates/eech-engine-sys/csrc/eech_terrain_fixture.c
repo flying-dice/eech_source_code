@@ -8,7 +8,7 @@
  * EECH_TERRAIN_FIXTURE, calls eech_terrain_record at each return. This file keeps two things:
  *
  *   1. The run-wide trace. Every query the campaign's own update loop makes since boot or the last reset: how many, how many used the
- *      shared record or a private one, how many tried and hit the face hint, how many scanned the sector, how many failed to find a face,
+ *      shared record or a private one, how many tried and hit the face hint, how many scanned the whole sector (whether or not a face was found), how many of those found no face,
  *      how many were clamped to the map or fell in the Cuba flaw area, a histogram of the surface type read, a per-call-site table
  *      (file and line, the query macros pass them) and an order-dependent FNV-1a hash over the inputs' bit patterns and the answers.
  *      It only observes: nothing it reads is altered.
@@ -148,7 +148,7 @@ void eech_terrain_record (const char *file, int line, float x, float z, int hint
 	{
 		trace->fast_hit++;
 	}
-	else if (!cuba && found)
+	else if (!cuba)
 	{
 		trace->slow_scans++;
 	}
@@ -267,10 +267,12 @@ static void report_trace (struct text *out, const char *scope, const struct terr
 	int count = 0, i, j;
 
 	put (out, "terrain-hash scope=%s run=%016llx\n", scope, (unsigned long long) trace->hash);
-	put (out, "terrain-calls scope=%s calls=%llu hint_null=%llu hint_private=%llu fast_attempted=%llu fast_hit=%llu slow_scans=%llu not_found=%llu cuba=%llu clamped=%llu\n",
+	put (out, "terrain-calls scope=%s calls=%llu hint_null=%llu hint_private=%llu fast_attempted=%llu fast_hit=%llu slow_scans=%llu not_found=%llu cuba=%llu clamped=%llu partition_ok=%d\n",
 		scope, (unsigned long long) trace->calls, (unsigned long long) trace->hint_null, (unsigned long long) trace->hint_private,
 		(unsigned long long) trace->fast_attempted, (unsigned long long) trace->fast_hit, (unsigned long long) trace->slow_scans,
-		(unsigned long long) trace->not_found, (unsigned long long) trace->cuba, (unsigned long long) trace->clamped);
+		(unsigned long long) trace->not_found, (unsigned long long) trace->cuba, (unsigned long long) trace->clamped,
+		/* every query is exactly one of: a hint hit, a Cuba-area return, or a full sector scan (which may find no face; not_found counts those) */
+		trace->fast_hit + trace->slow_scans + trace->cuba == trace->calls);
 	for (i = 0; i < TERRAIN_TYPE_LAST; i++)
 	{
 		if (trace->by_type[i])

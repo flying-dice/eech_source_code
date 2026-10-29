@@ -19,26 +19,95 @@
 --            the no-probe control, and any requested time that is never reached fails the run), probe_seed (default 1), probe_count
 --            (default 20000), emit (default 64, at most 256: samples written in full), out (JSON Lines path)
 
-io.stdout:setvbuf ("no")
+-- Every argument is validated here, before the output file is opened, the module is required or anything is booted, so a refused
+-- run has no side effect. Bounds of the fixture (defaults are inside them and unchanged):
+--   frame_ms     integer 10 .. 1000                         seconds     decimal 0 .. 36000 (10 h of simulated time); 0 is the instantaneous mode
+--   frames       floor (seconds * 1000 / frame_ms): 1 .. 1000000 for a positive duration; exactly 0 for seconds=0, where no frame is run
+--                and so no clock-progress check applies (the boot and the probes at time 0 still run, and every requested probe must be taken)
+--   probe_at     "" (no probe) or a strictly ascending list of non-negative decimals, each at most frames * frame_ms / 1000;
+--                0 is only the first and is taken before any frame
+--   probe_seed   integer 0 .. 4294967295 (a u32; the C sweep deliberately treats a seed of 0 as 1, so 0 and 1 give the same sweep)
+--   probe_count  integer 0 .. 200000 (the native entry refuses more)     emit  integer 0 .. 256 (the native report holds at most 256)
+--   scenario     one of the three below                      root, out   non-empty strings
+local function refuse (message)
+	error ("terrain-characterization: " .. message, 0)
+end
 
 local args = host.args
-local root = assert (args.root, "root=<installation root>")
-local seconds = tonumber (args.seconds or "600")
-local frame_ms = tonumber (args.frame_ms or "100")
-local probe_seed = tonumber (args.probe_seed or "1")
-local probe_count = tonumber (args.probe_count or "20000")
-local emit_samples = tonumber (args.emit or "64")
-local out = assert (io.open (assert (args.out, "out=<JSON Lines path>"), "w"))
+if type (args) ~= "table" then refuse ("host.args is not a table") end
 
-local probe_at = {}
-for s in string.gmatch (args.probe_at or "0,300", "[^,]+") do probe_at [#probe_at + 1] = tonumber (s) end
+local function text_arg (name, default)
+	local value = args [name]
+	if value == nil then value = default end
+	if type (value) ~= "string" then refuse (name .. " is not a string") end
+	return value
+end
+
+-- a plain non-negative decimal: digits, optionally one point and digits; no sign, exponent, hex, spaces, inf or nan
+local function decimal (name, text)
+	if not (string.match (text, "^%d+$") or string.match (text, "^%d+%.%d+$")) then
+		refuse (string.format ("%s=%q is not a plain non-negative decimal number", name, text))
+	end
+	local value = tonumber (text)
+	if value == nil or value ~= value or value == math.huge then refuse (string.format ("%s=%q is not finite", name, text)) end
+	return value
+end
+
+local function integer_arg (name, default, minimum, maximum)
+	local text = text_arg (name, default)
+	if not string.match (text, "^%d+$") then refuse (string.format ("%s=%q is not a plain non-negative integer", name, text)) end
+	local value = tonumber (text)
+	if value == nil or value ~= value or value == math.huge or value < minimum or value > maximum then
+		refuse (string.format ("%s=%q is outside %s .. %s", name, text, tostring (minimum), tostring (maximum)))
+	end
+	return value
+end
+
+local root = text_arg ("root", "")
+if root == "" then refuse ("root=<installation root> is required and not empty") end
+local out_path = text_arg ("out", "")
+if out_path == "" then refuse ("out=<JSON Lines path> is required and not empty") end
 
 local scenarios = {
 	lebanon_retail = { map = "..\\common\\maps\\map5", campaign = "LEBANON.CHC" },
 	georgia_retail = { map = "..\\common\\maps\\map3", campaign = "GEORGIA.CHC" },
 	georgia = { map = "..\\common\\maps\\map16", campaign = "georgia.chc" },
 }
-local scenario = assert (scenarios [args.scenario or "lebanon_retail"], "scenario=lebanon_retail|georgia_retail|georgia")
+local scenario_name = text_arg ("scenario", "lebanon_retail")
+local scenario = scenarios [scenario_name]
+if scenario == nil then refuse (string.format ("scenario=%q is not lebanon_retail, georgia_retail or georgia", scenario_name)) end
+
+local seconds = decimal ("seconds", text_arg ("seconds", "600"))
+if seconds > 36000 then refuse (string.format ("seconds=%s is outside 0 .. 36000", args.seconds or "600")) end
+local frame_ms = integer_arg ("frame_ms", "100", 10, 1000)
+local frames = math.floor (seconds * 1000 / frame_ms + 1e-9)
+-- a positive duration needs at least one bounded frame; only a duration of exactly 0 runs none (a boot and an instantaneous sweep)
+if seconds == 0 then frames = 0 end
+if (seconds > 0 and frames < 1) or frames > 1000000 then refuse (string.format ("seconds / frame_ms gives %d frames, outside 1 .. 1000000", frames)) end
+local simulated_total = frames * frame_ms / 1000
+
+local probe_seed = integer_arg ("probe_seed", "1", 0, 4294967295)
+local probe_count = integer_arg ("probe_count", "20000", 0, 200000)
+local emit_samples = integer_arg ("emit", "64", 0, 256)
+
+-- an explicitly empty probe_at= is the no-probe control; any other empty, malformed, repeated, descending or unreachable token is refused
+local probe_at = {}
+local probe_text = text_arg ("probe_at", "0,300")
+if probe_text ~= "" then
+	for token in string.gmatch (probe_text .. ",", "([^,]*),") do
+		local at = decimal ("probe_at token", token)
+		if #probe_at > 0 and at <= probe_at [#probe_at] then
+			refuse (string.format ("probe_at=%q is not strictly ascending at %q", probe_text, token))
+		end
+		if at > simulated_total then
+			refuse (string.format ("probe_at time %s is beyond the %g simulated seconds the run covers", token, simulated_total))
+		end
+		probe_at [#probe_at + 1] = at
+	end
+end
+
+io.stdout:setvbuf ("no")
+local out = assert (io.open (out_path, "w"))
 
 local function emit (t)
 	local parts = {}
@@ -66,6 +135,10 @@ local function emit_report (scope, at, report)
 			t [k] = (not string_keys [k] and tonumber (v)) or v
 		end
 		emit (t)
+		-- every query is a hint hit, a Cuba-area return or a full sector scan (found or not): the three counts add up to the calls
+		if event == "terrain-calls" and t.partition_ok ~= 1 then
+			refuse ("the " .. scope .. " report's fast_hit + slow_scans + cuba does not equal calls")
+		end
 	end
 end
 
@@ -78,7 +151,7 @@ local engine = dc.boot {
 	line_of_sight = host.line_of_sight,
 	sense = host.sense, aim = host.aim,
 }
-emit { event = "boot", scenario = args.scenario or "lebanon_retail", seconds = seconds, frame_ms = frame_ms, probe_seed = probe_seed, probe_count = probe_count }
+emit { event = "boot", scenario = scenario_name, seconds = seconds, frame_ms = frame_ms, probe_seed = probe_seed, probe_count = probe_count }
 
 -- the queries made while the campaign and forces loaded, before the first frame, then a clean run-wide trace for the frames
 emit_report ("boot", 0, engine:terrain_trace ())
@@ -105,10 +178,15 @@ if probe_at [next_probe] == 0 then
 	next_probe = next_probe + 1
 end
 
-local frames = math.floor (seconds * 1000 / frame_ms)
+local previous_elapsed = engine:clock ().elapsed_seconds
 for f = 1, frames do
 	engine:frame (frame_ms)
 	local clock = engine:clock ()
+	-- the simulated clock must move forward with every frame, or the run is not the one that was asked for
+	if not (clock.elapsed_seconds > previous_elapsed) then
+		refuse (string.format ("the simulated clock did not advance at frame %d (%s after %s)", f, tostring (clock.elapsed_seconds), tostring (previous_elapsed)))
+	end
+	previous_elapsed = clock.elapsed_seconds
 	if next_probe <= #probe_at and clock.elapsed_seconds >= probe_at [next_probe] then
 		take_probe (probe_at [next_probe], f, clock.elapsed_seconds)
 		next_probe = next_probe + 1

@@ -42,11 +42,13 @@ comments and are not runtime call counts. The same ripgrep pass over all compile
 |---|---|---|---|---|
 | G1 | **Terrain surface at a point**: elevation, surface type, class and ground-vehicle suitability, face normal, plus the find-fast record that carries a hint between queries | `modules/3d/terrain/terrelev.c` (`get_3d_terrain_point_data` and the wrappers); type tables `aphavoc/source/misc/terr_db.c`. Movement: `hc_move.c` 33, `fw_move.c` 27, `rv_move.c` 17, `rv_hostmv.c` 4, `ps_move.c`, `aa_move.c`; targeting `mb_tgt.c` 6; `weapon.c` 3; `wn_move.c` lookups ELEVATION and FACE_NORMAL; LOS terrain phases `mb_hostlos.c` 2; `en_cllsn.c` 7; guides `ag_attck.c` 7, `gd_cover.c` 5, `aa_attck.c` 2; creation and update paths (`rv_creat`, `ps_creat`, `aa_creat`, `hc_creat`, `fw_creat`, `hc_updt` 6, `fw_updt`, `cg_updt`) | Host service. The type-to-class table and ground-vehicle suitability are campaign-owned data (`m5-host-boundary.md`) | **EEDCS-47** (first) |
 | G2 | **Terrain-derived physical geometry**: ground probe (`point_below_ground`, `en_world.h`), ground impact point (`get_ground_impact_point`, `en_cllsn.c:107`), terrain-following look-ahead samples, crater/bridge/person terrain facts that D2 already asks of the campaign | `wn_move.c:399-470` (lookup kinds ELEVATION, FACE_NORMAL, GROUND_PROBE, GROUND_IMPACT); the helicopter and fixed-wing plan lookups in `hc_move.c`/`fw_move.c`; `mb_hostaim.c` impact/bridge `need_terrain`; LOS `need_terrain` | Host service (the answer), campaign keeps what it does with it | later D3 Task, after G1 |
-| G3 | **Object/model collision and geometry**: first object or tree a segment meets, object bounds and windows | `get_line_of_sight_collision_entity` (`en_cllsn.c:1144`), `get_line_of_sight_collision_tree` (`:1747`); campaign-side callers `mb_tgt.c:455`, `mb_hostlos.c:275`, `wn_move.c` COLLISION and TREES lookups; D2 blast/bridge object windows | Host service; entity-pointer exclusion and object bounds data are coupling D2 declared | later D3 Task |
+| G3a | **Object/tree collision**: first object or tree a segment meets, object windows | `get_line_of_sight_collision_entity` (`en_cllsn.c:1144`), `get_line_of_sight_collision_tree` (`:1747`); campaign-side callers `mb_tgt.c:455`, `mb_hostlos.c:275`, `wn_move.c` COLLISION and TREES lookups; D2 blast/bridge object windows | Host service; entity-pointer exclusion is coupling D2 declared | later D3 Task |
+| G3b | **Model sub-object and device viewpoints** (active): the world position and attitude of a weapon device's heading, pitch, weapon-station and muzzle sub-objects, found by walking the entity's 3D model (`find_object_3d_sub_object`, `get_3d_sub_object_world_viewpoint`/`get_3d_sub_object_viewpoint`) | `weapon.c`: `get_viewpoint_from_weapon` (`:197`, world viewpoint at `:221`), `detach_local_entity_weapon` (`:323`, station viewpoint `:421`, muzzle `:447`, `:585`), `update_entity_weapon_systems` (`:1265`, sub-object search `:1756`), `update_entity_weapon_system_weapon_and_target_vectors` (`:2214`, `:2360`), `get_local_entity_selected_weapon_to_target_offsets` (`:2404`, `:2516`), `get_local_entity_selected_weapon_viewpoint` (`:2538`, `:2628`), `suppress_ineffective_ship_weapons` (`:2836`, `:2962`); `sub_anim.c:169 get_sub_object_relative_position`; model database `modules/3d/3dobjdb.c`, `3dsubobj.c`. D2's hosted aim, launch and device-step paths receive the results of these reads as campaign-supplied step inputs (per `D2-SCOPE-AUDIT.md`; the exact step fields were not re-audited here) | **D3 physical model service** (host reports the model geometry; the campaign must not read its own model for a physical solve). Not deferred to D5 | later D3 Task |
+| G3c | **Model target points, offsets and bounds** (active): the aim point of a target entity from the model's TARGET_POINT sub-object, or for a fixed object its position plus the per-shape `target_point_offsets` rotated by heading | `en_maths.c:166 get_local_entity_target_point` (sub-object search `:199`, world viewpoint `:205`, offsets `:228-245`); callers `weapon.c:748` and `:957 fill_aim_target` (hosted aim step input, commented "transitional lookup: the host may know better"), `wn_move.c:379` (weapon-step TARGET_VEC lookup), `wn_msgs.c:339`; the offset table `target_point_offsets` is declared in the weapon database (`wn_dbase.c`/`.h`) and also read in `wn_funcs.c` and `gd_attck.c` | **D3**: the model sub-object lookup is a host model service; the per-shape offset table is campaign data that a DCS host would need a named replacement for (DCS object types differ from EECH shape indexes) | later D3 Task |
 | G4 | **Weather and environment**: wind at a point, weather model position and mode | `session.c:595 get_session_wind_velocity_at_point`; the only campaign-reachable consumer found is the weapon step lookup `wn_move.c:399-411`. The session entity also *advances* wind gusting and weather position with `get_delta_time` (`ss_updt.c:484`, `:357-390`) and draws its random start values from the shared random stream (`set_session_random_weather_mode`, `session.c`, `frand1`/`rand16`) | Host service for wind; the RNG draws must be accounted for, see 5.4 | later D3 Task |
 | G5 | **Host time inputs**: frame milliseconds, simulated clock, session elapsed time and time of day | `eech_engine.c:296` seeds the simulated clock from the run seed, `:332-334` advances it by the host's milliseconds and calls `set_delta_time` (which keeps a delta-time average and history); `ss_updt.c:79-119` applies elapsed time and time acceleration to time of day; `get_session_random_start_time_of_day` (`ss_creat.c:139`) draws the start | Host supplies the elapsed time; the campaign keeps update semantics, timers and scheduling | later D3 Task |
 | G6 | **Campaign-owned consumers of terrain**: setup geography, route planning, task generation | `popread.c` 14, `faction.c` 9, `taskgen.c` 5, `croute.c` 2, `ai_route.c` 3, `keysite.c`, `wp_creat.c` | **Stay in the campaign.** Only the source of the terrain value changes, through G1 | no extraction; verified through G1 |
-| G7 | **Not in the supported campaign-DLL runtime (to be proven)**: gunship flight dynamics (13 models, 188 occurrences in 14 files), cameras, cockpit/avionics/EO/radar, UI maps, drawing (`*_draw.c`, `3dshadow.c`, `3dstrike.c`), Tacview overlay | compiled, but the headless frame does not draw (`eech_engine.c:306-336`) and there is no Lua export for them | Disposition needs a compiled-symbol and dispatch audit like D2's cockpit-sight case; none done yet | a closing audit |
+| G7 | **Candidate render, view and player-only users** of the same terrain and model APIs (not yet proven dormant): gunship flight dynamics (13 models, 188 occurrences in 14 files), cameras (`cm_*.c`, many call `get_local_entity_target_point`), cockpit/avionics/EO/radar/HUD/MFD (`co_eo.c`, `co_hms.c`, `co_radar.c`, `*_hud.c`, `*_mfd.c`, `*_vckpt.c`), `vm_*.c` views, UI maps, drawing (`*_draw.c`, `3dshadow.c`, `3dstrike.c`), `animate_and_draw_entity_muzzle_flash_effect` (`weapon.c:2023`), helicopter rotor animation and damage-fragment geometry (`hc_anim.c`: `damage_helicopter_main_rotors` `:1009`, `..._tail_rotors` `:1215`), Tacview overlay | compiled. The headless frame does not draw (`eech_engine.c:306-336`) and no Lua export reaches the player and view code, **by source reading only**. No compiled-symbol or call-graph audit has been done. The rotor-damage functions change model visibility state and read sub-object positions on a damage path and are *not* classified here: whether any campaign path calls them is open | A function is moved to "dormant" only with source and dispatch evidence of that function (as D2 did for the cockpit sight); until then an active-looking user stays in scope. An active service is never inferred dormant, and never deferred to D5 by a comment | a closing audit |
 | G8 | **The terrain solver and loader themselves**: `terrelev.c`, `terrdata.c`, `terrmap.c`, `terrgeom.c`, `terrsel.c`, `terrtype.c`, `terrobjs.c`, `terrre.c`, `terrbuf.c`, `terrcons.c`, `terrdr*.c` | listed in `sources.txt` 1016-1027 | Leaves the DLL only when no active consumer remains (the epic's done-when) | last |
 
 A candidate "G1 only" cut is a **large** change: G1 has dozens of consumers across movement,
@@ -130,7 +132,7 @@ These are candidates for the D3 services, not claims of DCS behaviour; M6 verifi
 | Roads (route data) | `land.getClosestPointOnRoads`, `land.findPathOnRoads` (campaign route planning stays core) |
 | Wind | `atmosphere.getWind(vec3)`, `getWindWithTurbulence`; temperature and pressure `getTemperatureAndPressure` |
 | Time | `timer.getTime`, `timer.getAbsTime`, `timer.getPause`; scheduling stays in the campaign |
-| Objects / collision | not covered by these four files; to be mapped |
+| Objects / collision, model viewpoints, target points | not covered by these four files; to be mapped (G3a to G3c) |
 
 ## 7. Executed versus prepared
 
@@ -138,7 +140,10 @@ These are candidates for the D3 services, not claims of DCS behaviour; M6 verifi
   the new C was possible, and no build, native run or test was run.
 - **Prepared (source only, uncompiled):** the `terrain-fixture` feature and the characterisation script, described in
   `eech-campaign/reference/d3-terrain-characterization/README.md`. Fixture-gated lines were added to
-  `modules/3d/terrain/terrelev.c` and `terrelev.h` (preprocessed output is unchanged without the define).
+  `modules/3d/terrain/terrelev.c` and `terrelev.h`. With the feature off, the solver and its control logic are unchanged
+  **by inspection only**; no preprocess, compile or runtime check has been made, and the added source lines shift diagnostic
+  source locations (for example the off-map `ASSERT`, which embeds `__LINE__`, moved from line 1268 to 1281). No numerical drift in
+  the shipping build is alleged. Preprocess, compile and runtime checks are pending.
 - **Reused as baseline:** accepted D2 pack (40 checks, eight complete artifacts byte identical).
 - **Dormant and uncovered, retained:** G7 above; the off-map path; the Cuba flaw area unless the Cuba map is run;
   player, multiplayer and save/restore paths.
@@ -148,3 +153,37 @@ These are candidates for the D3 services, not claims of DCS behaviour; M6 verifi
 Blockers: the fixture has never been compiled; a Windows fixture build (Docker image) is the Root's.
 The questions in section 5.3 and 5.5 need the lead before any extraction. Next bounded action: independent review
 of the fixture source, then the build and runs in the README plan.
+
+## 9. Corrections after the first independent source review (pinned `257a18879`)
+
+Two P2 and two P3 findings; nothing here was built or run.
+
+1. **P2, driver arguments** (`terrain-characterization.lua`): arguments are now validated, with `terrain-characterization:`
+   errors, before the output file is opened, the module is required or anything boots. Bounds and the
+   rules for `probe_at` are in the driver's header; defaults (600 s, 100 ms, `0,300`, 20000, 64, seed 1) are unchanged,
+   and an explicit empty `probe_at=` is still the no-probe control. The clock must advance on every frame. Two existing valid
+   modes are preserved and not narrowed: `seconds=0` (with `probe_at=0`) is an instantaneous boot-and-sweep that runs no frame,
+   so no clock-progress check applies and every requested probe must still be taken (the default `probe_at=0,300` with
+   `seconds=0` is still refused, since 300 is unreachable); `probe_seed=0` is accepted as a u32 and the existing C sweep
+   treats 0 as 1, so seeds 0 and 1 give the same sweep. A positive duration still needs at least one bounded frame.
+   Guard history, all through the Root's real Lua 5.1 argument-setup helper with an I/O tripwire (never boots EECH or
+   runs a frame, so it does not show that a frame loop terminates in a run): v1 was RED on `257a18879` (1 valid control
+   passed, all 10 invalid cases touched the output file); the Root's corrected working tree was 11/11 at an earlier
+   hash (`577ffab4`); the v2 cases, which add the two positive modes above, were 4/14 on `257a18879` and 12/14 on the first
+   correction (only `valid_probe_only` and `valid_zero_seed_alias` failed). The re-run on the bytes carrying this
+   preservation fix is the Root's; none of this is native characterization acceptance.
+2. **P2, census gap**: G3 omitted active model geometry. It is now G3a (collision), G3b (device and sub-object
+   viewpoints) and G3c (model target points, offsets, bounds), all classed D3; G7 is narrowed to candidate render, view and
+   player-only users that are *not yet proven* dormant. No active service is inferred dormant or deferred to D5.
+3. **P3, observer fidelity** (`eech_terrain_fixture.c`): `slow_scans` now counts every full sector scan, including one
+   that finds no face (`not_found` stays a separate subset). Each report line carries `partition_ok`, which is 1 when
+   `fast_hit + slow_scans + cuba == calls`, and the driver refuses a report where it is 0. This adds no claim that a
+   no-face query occurs at runtime.
+4. **P3, evidence wording**: "preprocessed output unchanged" was removed from this audit and the README (section 7).
+
+Root verification after the preservation fix: the real Lua 5.1 v2 setup guard
+completed with actual exit 0, all 14 cases passing; syntax parsing also passed.
+Tested driver SHA-256: 4400e7eded209f3cd721f3dfa290f7853011eddd9fcca99cb8c9a104d9e0749f.
+The helper uses an output-opening tripwire and never boots EECH or runs a frame.
+This supersedes the pending guard re-run statements above; C/Rust compilation,
+original native characterization and observation controls remain unrun.
