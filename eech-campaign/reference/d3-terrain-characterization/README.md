@@ -143,3 +143,127 @@ Driver SHA-256: 0a42d3c6928c1da65d2861979e1a4024cd2a9d390457343aeadd822d8af6d035
 The scheduling test controls only the fixture clock collaborator; it does not
 boot EECH or implement terrain. The actual native one-frame/two-probe smoke
 and all original characterization/recording controls remain required.
+
+## Increment 1 of the extraction: independent host terrain backend and public-provider RED preparation (source only)
+
+Base `a8effa9f3` (frozen original source `R:/d3-evidence/terrain-original-source-a8effa9f3`, original native results under
+`R:/d3-evidence/original-*-a8effa9f3`). **Nothing below has been compiled or run** (no C compiler or cargo in the author's tool
+environment); the Root builds and executes. **No production dispatch changed**: the campaign DLL still answers every terrain
+question from its own solver, so this increment moves no behaviour and claims no D3 delivery.
+
+### What now exists, and who owns what
+
+| Path | Role |
+|---|---|
+| `eech-campaign/crates/eech-world/csrc/terrain_ref.c`, `.h` | The host's terrain kernel: loader, point-surface query, fast grid, map facts, and a conformance-only sweep |
+| `eech-campaign/crates/eech-world/src/terrain.rs` | Rust ownership of the map bytes, FFI, opaque hint codec, the Lua provider `host.terrain_open` |
+| `eech-campaign/crates/eech-world/build.rs`, `src/lib.rs`, `src/main.rs` | Wiring only (the kernel is compiled with the other host kernels, same flags; `main.rs` gains one `terrain::install` call) |
+| `eech-campaign/crates/eech-world/tests/terrain_conformance.rs` | Compares the kernel with the original probe's retained results (gated on the private data) |
+| `eech-campaign/crates/eech-world/lua/terrain-provider.lua` | Public-path RED harness for the provider contract |
+
+The host owns and loads the terrain itself from `terrain.ffp`, `default.sec` (`default-W.sec` in winter) and `terrain.sim`, through no
+DLL callback, sidecar or second campaign. All kernel public symbols carry the `host_` prefix, so the archive cannot interpose on the
+engine DLL's symbols.
+
+### Source-backed inputs (verified by reading `terrdata.c`, `terrsel.c`, `terrmap.c`, `zone_sc.c`, `parsgen.c`)
+
+- Files: `<install>/common/maps/map<N>/terrain/`. `load_3d_terrain` also maps `default.rgb` (colours, tree files) which the solver does not
+  use; the winter rule needs both `default-W.sec` and `default-W.rgb` to exist. **Season is an explicit input** (`winter`), set in the
+  original from the campaign file's SEASON tag; the production wiring must derive it from the campaign data. The map number is the trailing
+  digits of the directory above `terrain` (the Cuba flaw rule is `map_number == 2`).
+- `default.sec`: version `u32`, width `u16`, height `u16`, min and max height `f32`, then `width*height` 48-byte sector records (counts,
+  radius, three heights and six offsets into `terrain.ffp`, two unused), then the approximation list the solver does not read. Checked against
+  the Lebanon file exactly: 16 + 76*92*48 + 4 = 335,636 bytes.
+- `terrain.sim` (the fast grid, `get_3d_terrain_fast_elevation`): `i32` width and height, `f32` x and z grid sizes, then the `f32` samples:
+  16 + 513*513*4 = 1,052,692 bytes for Lebanon. It is *not* derived from the point loader: if the file is absent the original generates it by
+  sampling the point query on the shared record (`generate_terrain_simple_elevation`, 256 m) and saves it. Both retail maps ship the file,
+  so the host refuses a map without a grid rather than generate one (a named gap).
+- The derived facts (`max_x = width*2048 - 1`, `scaled_height_difference`, grid reciprocals) are computed under round-toward-zero, as the engine
+  computes them.
+
+### How the characterised behaviour is kept
+
+- The triangle tests and `get_3d_terrain_point_data` are **verbatim copies** from base `6bbaa8197` (`terrelev.c` lines 145-1193 and 1208-2005),
+  with only: the `host_` names; the engine's own build patches applied (N1 NaN position to the map corner, N3 degenerate face takes the up vector,
+  X1 float-to-int by truncation); the ASSERT and `debug_log` not compiled; the off-map ASSERT replaced by a flag on the clamp it falls through to
+  (its effect in the original is uncharacterised and source-only); and observation flags for the conformance record. The polygon-type table is
+  taken from `terrtype.c` (every assignment agrees across both rendering modes; the 15 temporary generation types are explicitly unknown).
+- The legacy find-fast **record** (pointers into sector memory) crosses as a plain `host_terrain_hint` value: sector, face index, offset of the
+  face's references, triangle, type and stored normal. The query rebuilds the record the verbatim solver expects, runs it, and encodes the record it
+  leaves. A fresh or cleared record is "no hint". The shared NULL record and the private records stay the campaign's, in the campaign's order, which is
+  the intended way to preserve the cache and order behaviour (the 375 Lebanon and 385 Georgia primed-hint differences); that is a design intent,
+  **not yet shown**: the conformance run is the evidence. A hint is checked against the map on every use (sector, face, reference offset, type,
+  triangle, normal) so that a forged or stale one is refused; these guards are implemented by inspection only. Empirical conformance and a review of
+  the unsafe parsing and pointer arithmetic are pending, and no memory-safety claim is made before them.
+- The loader is written to check the files against their length before use (by inspection; not yet exercised): every offset and count, every point reference, every face of at least three points,
+  every surface id. A file the original would read unchecked is an error here. This is stricter than the original, deliberately (a declared difference); the retail maps are
+  expected to pass and the conformance run is what shows it.
+- Rounding: the query sets round-toward-zero (as `get_terrain_3d_sector` does) and restores the caller's environment. Whether that is bitwise the
+  engine's environment on the real build is exactly what the conformance test checks; it is not assumed.
+- The Lua boundary (`host.terrain_open { terrain_dir, winter, map_number }` returns `provider(request)`): `{op="map"}`, `{op="point",x,z,hint}`, `{op="fast",x,z}`.
+  Elevation, stored elevation, normal (3 numbers) and surface type (EECH `terrain_types` ids) cross by value; the hint is an opaque string `e1` + 72 hex
+  digits that the campaign only stores and returns. An answer's `notes` table is diagnostic. A host that keeps no state returns no hint and ignores one it
+  is given, and needs none of the EECH layout or kernel. Requests whose numbers are not exactly single precision are refused (nothing is rounded silently).
+- The campaign's class, ground-vehicle suitability and route policy (`terr_db.c`, `ai_route.c`, ...) stay in the core.
+
+### Checks to run (Root), none run yet
+
+    cargo test --locked -p eech-world terrain               # hint codec and map-number unit tests
+    EECH_TERRAIN_DIR=<private>/common/maps/map5/terrain \
+    EECH_TERRAIN_ORACLE=R:/d3-evidence/original-smokes-a8effa9f3/lebanon/trace.jsonl \
+      cargo test --locked -p eech-world --test terrain_conformance -- --nocapture
+
+and the same with the Georgia directory (`map3`) and `.../georgia/trace.jsonl`. Without the two variables the conformance tests print `SKIPPED` and
+pass; a SKIPPED run is not evidence. Expected from the oracle: sample hash `5019c81ccaa3bf8d` / primed `42669569d4a35a25` (Lebanon) and `0199bfae4fbe4ff5` /
+`6f61a1158a8ab759` (Georgia), the 256 raw samples bit for bit, `private_primed` 375/385, `elevation_macro` 92/128, `repeat` 0. Limits: the sweep starts
+with a cleared shared record (the oracle started with the campaign's, which could differ only in the first iteration's discarded primer); there is
+**the a8 oracle has no fast-elevation data** (that fixture did not sample it); a trace from the fast-extended fixture (below) is needed for that comparison, and the older
+trace only prints `FAST ORACLE ABSENT`. The node-value test checks the file parser only, not the interpolation. Cuba and off-map
+behaviour remain source-only.
+
+### Public-provider RED harness
+
+`lua/terrain-provider.lua` boots the real campaign with a `terrain` provider (`reference`, `raised`, `generic`, `missing`, `bad_nil`, `bad_elevation`,
+`bad_normal`, `bad_type`, `bad_hint`, `bad_error`) and observes only the public surface: the elevation of every mobile handed to `bind_mobile` (boot
+placement), the elevations the campaign reports in the host's line-of-sight dialogue, and the provider's call counts. On the **unmoved** baseline the
+`terrain` key is ignored (the boot reads only the keys it knows), so the run is the contract's RED: the provider is never consulted, `raised` equals
+`reference`, `missing` boots, and no `bad_*` mode fails. After the extraction the script header lists the expected effects. Run it with an external
+`eech-world` built from this source (the shipped a8 bundle has no `host.terrain_open`) against the immutable a8 DLL; the frozen 43-file bundle must
+not be modified.
+
+### Risks and what remains
+
+- **Cost.** The original Lebanon 600 s run makes 46,387,862 terrain queries (about 7,700 per 100 ms frame; 77,953 at boot), 92% through the shared NULL
+  record, and 82% of the hint-using ones hit the hint. A Lua provider call per query, each carrying a 74-character hint, is a real frame-cost question;
+  batching or campaign-side caching without reordering is the likely follow-up and needs measurement.
+- Uncompiled C and Rust (see above). The kernel is not thread safe.
+- Production wiring is **not done**: the DLL client (replacing the solver body with a provider call), the `terrain` boot provider and its refusal when
+  missing, the boot map facts and `get_3d_terrain_fast_elevation` consumers (`fw_move.c`, `mobile.c`), the hint stored in the legacy record (including
+  the two `terrain_face == NULL` tests in `fw_move.c`), and removing the solver from `sources.txt`.
+- **Named transitional DLL terrain users that remain** until G2/G3 are extracted in D3, and are removed by whole-D3 closure, not deferred to D5: the legacy
+  loader and sector data (`terrdata.c`, `terrmap.c`), per-sector type triangles (`gd_cover.c`), `get_terrain_3d_types_in_sector` (`ss_updt.c`), the tree
+  data (`terrobjs`/`en_cllsn.c`), `get_ground_impact_point`, and the model/device geometry of audit groups G3a to G3c.
+- DCS: `land.getHeight`, `land.getSurfaceType` (mapped to EECH ids by a named table) and an explicit named workaround for the face normal and the
+  stored-elevation distinction are the intended adapter; none is built or verified here.
+
+## Fast-elevation oracle addition to the original fixture (source only; not built or run)
+
+The original `get_3d_terrain_fast_elevation` (`terrsel.c`) had no recorded original behaviour, so the host kernel's fast grid had nothing to be compared
+with except its own file. `eech_terrain_fixture.c` now also samples the **original** fast function in the original DLL at each of the sweep's
+20,006 points (the six fixed and `count` generated), after everything the point queries do for that point:
+
+- It is source-verified read-only: the function reads the loaded grid and the grid's header values, and its one write is a private test counter that
+  nothing reads; it uses no find-fast record and no random number. It therefore cannot change the point queries, so the point hashes, counters, order
+  and raw samples are expected to be exactly those of a8 (to be confirmed by the Root's comparison of the new build against the a8 point results).
+- New report lines, separate from the old ones: `terrain-probe-fast-hash available=<0|1> count=<n> fast=<16 hex>` (an order-dependent FNV-1a over the
+  bit patterns of x, z and the answer) and, for the first `emit` points, `terrain-fast-sample i= x= z= fast=` (hex bit strings; the driver keeps
+  `fast` a string key). With no grid loaded nothing is sampled and `available` is 0.
+- The conformance test compares the kernel's fast elevation with these samples and hash, bit for bit, when the trace has them.
+
+Identity of the inputs the Root should record with the new oracle run, so the fast comparison is attributable: for each fresh private root, the size and
+SHA-256 of `terrain.ffp`, `default.sec` (or `default-W.sec`) and `terrain.sim` (Lebanon: 17,043,748 / 335,636 / 1,052,692 bytes as read here), the
+season used (summer), and the grid header (513 x 513, grid sizes 304 and 368 for Lebanon).
+
+**Named compatibility gap, not hidden by this addition:** a map without `terrain.sim` is, in the original, given a generated grid (the point query sampled
+on a 256 m lattice, saved to disk). The host does not do that, and no retail map exercises it, so full supported G1 behaviour is not claimed until this
+is reconciled (generate it in the host from the same kernel, or state it unsupported with a review). Rebaselining is not the way to close it.

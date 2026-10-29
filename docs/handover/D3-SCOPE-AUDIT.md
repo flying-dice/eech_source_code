@@ -211,3 +211,22 @@ Driver SHA-256: 0a42d3c6928c1da65d2861979e1a4024cd2a9d390457343aeadd822d8af6d035
 The scheduling test controls only the fixture clock collaborator; it does not
 boot EECH or implement terrain. The actual native one-frame/two-probe smoke
 and all original characterization/recording controls remain required.
+
+## 10. Task 47 implementation, increment 1: independent host terrain backend (source only; nothing built or run)
+
+Scope per the lead's decisions: the required point-surface queries, `get_3d_terrain_fast_elevation` and the boot map facts move to a host that
+owns and loads the terrain itself, with EECH's own solver kept in C in `eech-world` and the legacy find-fast record carried across the public Lua
+boundary as an opaque value. This increment adds the backend and the RED preparation only; **production DLL dispatch is unchanged** and nothing is
+delivered. Details, inputs, validation and the exact checks to run are in `eech-campaign/reference/d3-terrain-characterization/README.md`.
+
+- New: `eech-world/csrc/terrain_ref.c|h`, `src/terrain.rs`, `tests/terrain_conformance.rs`, `lua/terrain-provider.lua`; wiring in `build.rs`, `lib.rs`,
+  `main.rs`. The solver body is verbatim from `terrelev.c` at `6bbaa8197` with the engine's own patches N1, N3 and X1 applied.
+- The fast grid is a separate file (`terrain.sim`) with its own format, not derived from the point loader; absent, the original generates and saves
+  it, which the host does not do.
+- Measured on the original (R1, Lebanon 600 s): 46.4 M terrain queries (about 7,700 per frame), 92% on the shared record. A provider call per query is
+  an open cost question for the production design.
+- Named D3 transitional coupling still in the DLL after this increment (removed by whole-D3 closure): the legacy terrain loader and sector data,
+  `gd_cover.c` type triangles, `ss_updt.c` sector types, tree data, ground-impact geometry, and the model/device geometry of G3a to G3c.
+- Not claimed: compilation, any conformance result, the RED run, the DLL client, host registration, or any regression. The original fixture does
+  not probe the fast grid in the a8 build; the fixture source now samples the original fast elevation at the sweep points (README, "Fast-elevation oracle
+  addition"), which the Root builds and runs before the comparison exists. The missing-grid generation of the original is a named compatibility gap.

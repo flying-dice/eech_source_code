@@ -123,7 +123,7 @@ end
 -- hashes and bit patterns are hex: always strings, even when every digit is decimal; names and paths are strings too
 local string_keys = {
 	run = true, sample = true, primed = true, x = true, z = true, result = true, last = true, nx = true, ny = true, nz = true,
-	file = true, name = true,
+	file = true, name = true, fast = true,
 }
 
 -- one JSON object per report line: the first word is the event, `key=value` words are its fields

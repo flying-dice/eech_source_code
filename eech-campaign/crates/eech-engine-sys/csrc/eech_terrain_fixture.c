@@ -393,6 +393,30 @@ static void ask (float x, float z, terrain_3d_point_data *record, struct answer 
 	answer->fast_hit = active_trace->fast_hit != before;
 }
 
+/*
+ * The original fast elevation (terrsel.c get_3d_terrain_fast_elevation) at a sweep point: a read of the loaded grid, with no find-fast record, no
+ * random draw and no write (its one side effect is a private test counter nothing reads), so it cannot change the point queries around it. It is
+ * folded in its own order-dependent hash over the point's and the answer's bit patterns, separately from the point hashes.
+ */
+static void fold_fast (uint64_t *hash, float x, float z, float fast)
+{
+	uint32_t words[3];
+	int w, byte;
+
+	words[0] = float_bits (x);
+	words[1] = float_bits (z);
+	words[2] = float_bits (fast);
+
+	for (w = 0; w < 3; w++)
+	{
+		for (byte = 0; byte < 4; byte++)
+		{
+			*hash ^= (uint64_t) ((words[w] >> (8 * byte)) & 0xffu);
+			*hash *= FNV_PRIME;
+		}
+	}
+}
+
 static void fold_answer (uint64_t *hash, const struct answer *a)
 {
 	uint32_t words[7];
@@ -431,7 +455,10 @@ int eech_terrain_probe_run (uint32_t seed, int count, int emit, char *text, int 
 	terrain_3d_point_data *shared = eech_terrain_system_point_data ();
 	terrain_3d_point_data shared_saved = *shared;
 	uint32_t state = seed ? seed : 1u;
-	uint64_t sample_hash = FNV_OFFSET, primed_hash = FNV_OFFSET;
+	uint64_t sample_hash = FNV_OFFSET, primed_hash = FNV_OFFSET, fast_hash = FNV_OFFSET;
+	float fast_x[MAX_EMIT], fast_z[MAX_EMIT], fast_value[MAX_EMIT];
+	int fast_available = terrain_3d_simple_elevation_grid != NULL;
+	int fast_count = 0;
 	uint64_t repeat_mismatch = 0, shared_prime_mismatch = 0, private_prime_mismatch = 0, shared_prime_fast = 0, private_prime_fast = 0, macro_mismatch = 0, normal_wrapper_mismatch = 0,
 		face_normal_mismatch = 0, result_ne_last = 0, snapped = 0, primer_skipped = 0;
 	uint64_t type_seen[TERRAIN_TYPE_LAST], class_seen[TERRAIN_CLASS_LAST];
@@ -579,6 +606,22 @@ int eech_terrain_probe_run (uint32_t seed, int count, int emit, char *text, int 
 				float_bits (fresh.result), float_bits (fresh.last), float_bits (fresh.nx), float_bits (fresh.ny), float_bits (fresh.nz), type,
 				valid ? (int) get_terrain_type_class ((terrain_types) type) : -1, valid ? get_terrain_type_suitable_for_ground_vehicle ((terrain_types) type) : -1);
 		}
+
+		/* the original fast elevation at the same point, after everything the point queries do for it; it reads the grid only */
+		if (fast_available)
+		{
+			float fast = get_3d_terrain_fast_elevation (x, z);
+
+			fold_fast (&fast_hash, x, z, fast);
+			fast_count++;
+
+			if (i < emit)
+			{
+				fast_x[i] = x;
+				fast_z[i] = z;
+				fast_value[i] = fast;
+			}
+		}
 	}
 
 	active_trace = saved;
@@ -607,6 +650,13 @@ int eech_terrain_probe_run (uint32_t seed, int count, int emit, char *text, int 
 		}
 	}
 	put (&out, "terrain-probe-state shared_record_restored=%d\n", memcmp (shared, &shared_saved, sizeof (*shared)) == 0);
+	/* EEDCS-47: the original fast elevation at the sweep's points (separate events; the point lines above are unchanged by it). With no grid loaded
+	   nothing is sampled and `available` is 0. */
+	put (&out, "terrain-probe-fast-hash available=%d count=%d fast=%016llx\n", fast_available, fast_count, (unsigned long long) fast_hash);
+	for (i = 0; fast_available && i < emit && i < total; i++)
+	{
+		put (&out, "terrain-fast-sample i=%d x=%08x z=%08x fast=%08x\n", i, float_bits (fast_x[i]), float_bits (fast_z[i]), float_bits (fast_value[i]));
+	}
 	report_trace (&out, "probe", &probe_trace);
 	return out.failed ? -1 : 0;
 }

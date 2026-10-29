@@ -1,3 +1,67 @@
+# D3 terrain services — committed source checkpoint, validation pending
+
+29 October 2026. User-requested commit/push checkpoint on
+codex/d3-terrain-services for EEDCS-47 / draft PR107. The host point/fast/map-facts
+backend, public-provider test driver and original fast-elevation oracle are now
+prepared in source. The sole Sonnet 5.5 High invocation finished successfully;
+it did not build or run this new source. Production DLL terrain dispatch is
+unchanged. No D3 physical responsibility has moved yet.
+
+The four original 600-second runs completed with native/controller exit 0.
+Lebanon and its repeat are byte identical; the no-probe control matches all
+137 ordinary boot/run report lines exactly. All four post-input checks and
+all 43 original build files match. The original 900-second recording control
+also reports native exit 0; its complete artifact comparison and post-input
+audit remain pending. Earlier partial-prefix results below are historical.
+
+This checkpoint is not build, regression, review or merge acceptance. Next:
+finish the original recording audit; review the new parser/FFI/backend and
+oracle delta; build a clean new fixture; check quick original fast samples
+and both real-map host conformance cases; prove the missing provider contract
+against the old DLL, then implement and validate the actual host handoff.
+Keep the accepted D2 baseline and frozen a8 source/binaries unchanged. Missing
+fast-grid generation remains an explicit compatibility gap. The remaining
+D3 spatial/model, environment and host-time groups are still outstanding.
+
+The earlier records below are preserved as dated historical checkpoints.
+
+# D3 terrain services — original native controls and host backend in progress
+
+29 October 2026. EEDCS-47 / draft PR107 remains In Progress under EEDCS-21.
+Source a8effa9f3213c595c4d38f7a00e6a1b845cc1f6d has closed its independent
+source findings. Its clean Windows terrain-fixture build/controller exited 0;
+all 43 exported files match. Actual image c19c68fda43976d456689475bef923f48d01f60577d802cb16f7a89e7bae1455
+and binary identities are retained separately from prior D2 binaries.
+
+Three actual native smoke cases exited 0: 20,006-point probes on both retail
+maps and one frame with two due probes. Three post-input manifests and all
+43 build files still match. Cache priming changes physical answer tuples at
+375 Lebanon / 385 Georgia points; exact same-record repeats differ at none.
+Shared/private hint semantics and query order are part of reference behavior.
+
+Four original 600-second repeat/map/no-probe runs and the ordinary 900-second
+recording control are active on immutable a8 source and separate verified roots.
+Initial captured prefixes match the verified D2 shipping control (1.77 MB
+Tacview, 1.16 MB observations); these are partial results, not final acceptance.
+The complete controls and independent native-evidence review remain pending.
+No D3 physical service has moved and no new shipping/full-pack result is claimed.
+
+A compact Opus 5.5 Medium read-only plan completed. The sole Sonnet 5.5 High
+lane is implementing an independent host point/fast-elevation/data backend and
+preparing public-provider red cases; production DLL dispatch stays unchanged
+in this first increment. Fast elevation and boot map facts are included in47.
+Sector/tree/model services, weather and host time remain explicit D3 work;
+active device/sub-object/target-point geometry is not deferred to D5.
+Campaign geography, route planning, timers and scheduling stay in EECH_DC.
+
+Live ledger v52 and Jira comment10833 record the preliminary native evidence;
+all prior ledger HTML and five reports are exact. Accepted D2 40/40 and eight
+complete byte-identical artifacts remain the baseline. No accepted baseline,
+tolerance, scenario or seed changed. D4/D5 have not started.
+Current source/bin/root/output paths, original tool sessions/PIDs, proofs and
+next gates: R:/d3-evidence/D3-NEXT-ACTION.json. Do not restart quiet live runs.
+The earlier source-preparation and D2 records below are historical checkpoints.
+
 # D3 terrain and environmental services — active
 
 29 October 2026. D3/EEDCS-21 is In Progress after accepted D2 closure.
