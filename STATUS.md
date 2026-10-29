@@ -1,3 +1,30 @@
+# D3 checkpoint — original retail model characterization reviewed; host loader next
+
+Task50 original-model preparation is independently closed with no open findings.
+Original native measurements remain366622e0c; the corrected diagnostic driver and
+portable guards are reviewed at309b3f050. Closure report SHA256:
+ab48e5079bcc07f119236d31555f70c082f733ae5a979956071bd6d6b8a62bce.
+Jira10864 and ledger14548994v69 record closure and implementation start; all prior
+HTML and all five epic reports read back exactly.
+Linux format/all8 guard groups/all-target Clippy pass. Windows host/test build0,
+all8 guard groups pass; an explicit invalid-host override is correctly refused.
+All3 new-driver native catalogue/selected-geometry runs complete0 and preserve
+exact original catalogue and geometry row bytes, including line endings. State,
+clock, input and original43 payload checks remain unchanged. Native366 is not
+relabeled as a new DLL build. C441 Clippy and Windows harness failures, and Root's
+aggregate log-label error with reviewed read-only recovery, remain retained.
+
+No physical responsibility has moved in this preparation. Collision-model
+loading/queries remain in the DLL. The sole Sonnet5.5High lane is now implementing the actual host-owned collision
+model loader/query component within EEDCS-50 (tool37865/PID2460, localcontext20f8), preserving original fan/depth/scaling and
+required binary/EEO/EES input semantics. The active custom/mixed-layout gaps must
+be investigated; no always-absent substitute is accepted. Model hierarchy,
+viewpoint/device/muzzle/target-point, entity collision, environment, host-time and
+required physical solver/loader removal remain whole-D3 work. Campaign decisions,
+consequences, geography, routes and timers stay in EECH_DC. Task47 original
+shipping115 continues; full40/eight complete files/post-input and normal delivery
+remain pending. D3 stays In Progress; D4/D5 have not started.
+
 # D3 checkpoint — real retail geometry measured; diagnostic correction active
 
 Task50 / draft PR110 publishes original source366 measurements and the combined
