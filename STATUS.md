@@ -1,3 +1,24 @@
+# Current D3 checkpoint — first tree host replay found numeric differences
+
+Task49 source `0db20ab3a46582110bd7c4706c26edaaa9335478` is committed/pushed
+and frozen separately. Its Windows host/test build succeeds; all eight exported
+payloads verify. Actual library and host-Lua replay of all554 Georgia and600 each
+Lebanon/repeat queries fails with output-bit differences. Original transcripts,
+all three pre/post-input manifests and all exported payloads remain unchanged.
+These are preserved failures, not acceptance. Linux/Windows14 tree unit tests
+pass; the real-host synthetic Lua test has a separate mistaken assertion that
+outside endpoints imply no collision. Linux Clippy was not reached.
+
+The same sole Sonnet High session is correcting the missing original rounding
+boundary and the synthetic test. The original engine runs under FE_TOWARDZERO;
+the first host draft only checks exception masks. Root will build a new frozen
+source and repeat exact library/Lua replay plus caller-environment restoration
+checks before the sole independent review of this new component. No campaign
+dispatch has changed. Geometry/model loading, entity collision, public authority,
+DCS mapping/workarounds and all remaining D3 requirements stay open. Task47's
+original shipping run remains live; checked35.3MB Tacview/22.9MB observation
+prefixes match, with no complete40/eight-file acceptance. D4/D5 have not started.
+
 # User-requested Git checkpoint — implementation stopped and partial source preserved
 
 On 29 October 2026 the user requested committing and pushing all current work.
