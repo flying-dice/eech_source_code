@@ -1,3 +1,25 @@
+# User-requested commit/push checkpoint — original geometry witness PARTIAL, UNBUILT, UNRUN
+
+On 2026-10-29, Root stopped the verified Sonnet High writer (PID456, born
+21:11:31.810825Z; relevant local session39ea8c20-d032-41ae-bbbb-c52fb100b440)
+to preserve a consistent checkpoint at the user's request. The controller exited
+4294967295 and was collected; this was an intentional interruption, not a quota
+failure or a completed implementation. No implementation writer remains active.
+
+The only new source edit is the feature-gated tree geometry observation hook in
+`en_cllsn.c`: two existing original decoder calls are routed through a proposed
+fixture wrapper. That wrapper is NOT YET IMPLEMENTED, so a collision-fixture
+build is expected to be incomplete. Shipping macro expansion retains the
+original calls, but this checkpoint has not been built or tested. It is not
+covered by the closed review of measured source8c452f197 below.
+
+Next: resume the same local Claude context, finish the bounded ORIGINAL geometry
+witness and full model/scene/pointer restoration, then build fresh and measure
+the real original path before extracting model loading. Preserve default report
+and trace bytes, inputs, existing evidence, and the original live shipping run.
+Production remains coupled; Task49 and D3 remain In Progress. No acceptance,
+merge, baseline or tolerance change is implied by this checkpoint.
+
 # Host tree loader/kernel preparation — reviewed, exact original-query replay; production still coupled
 
 Measured frozen source `8c452f197449d3a08b8f7bfbad5c34ae652c22c1` passes the

@@ -1758,6 +1758,20 @@ extern float eech_collision_tree_elevation (float x, float z);
 #define TREE_QUERY_TERRAIN_ELEVATION(X,Z) get_3d_terrain_elevation (X, Z)
 #endif
 
+//
+// EECH_COLLISION_FIXTURE (test-only, EEDCS-49, controlled forest geometry witness): the tree query's two reads of the forest tree object's collision triangles below go
+// through a fixture function that makes the IDENTICAL call (get_object_3d_collision_object_geometry_triangle with OBJECT_3D_FOREST_TREE_OBJECT and the same two arguments, once,
+// in the same order) and, when a witness query is open, records by value that the branch asked, what it answered and at which depth. It adds no other query. Without the
+// feature this macro expands to exactly the original call, so the shipping text is unchanged. It is used ONLY at the two reads in get_line_of_sight_collision_tree.
+//
+
+#ifdef EECH_COLLISION_FIXTURE
+extern int eech_collision_tree_geometry_triangle (vec3d *points, int depth);
+#define TREE_QUERY_GEOMETRY_TRIANGLE(P,D) eech_collision_tree_geometry_triangle (P, D)
+#else
+#define TREE_QUERY_GEOMETRY_TRIANGLE(P,D) get_object_3d_collision_object_geometry_triangle (OBJECT_3D_FOREST_TREE_OBJECT, P, D)
+#endif
+
 int get_line_of_sight_collision_tree
 (
 	vec3d *source_old_position,
@@ -1987,7 +2001,7 @@ int get_line_of_sight_collision_tree
 								if ((tree_position.x + 25.0 >= source_min_position.x) && (tree_position.x - 25.0 <= source_max_position.x) &&
 									(tree_position.z + 25.0 >= source_min_position.z) && (tree_position.z - 25.0 <= source_max_position.z))
 								{
-									if (tree->type == 1 && get_object_3d_collision_object_geometry_triangle (OBJECT_3D_FOREST_TREE_OBJECT, p, depth++))
+									if (tree->type == 1 && TREE_QUERY_GEOMETRY_TRIANGLE (p, depth++))
 									{
 										get_identity_matrix3x3(attitude);
 
@@ -2020,7 +2034,7 @@ int get_line_of_sight_collision_tree
 												return TRUE;
 											}
 										}
-										while (get_object_3d_collision_object_geometry_triangle (OBJECT_3D_FOREST_TREE_OBJECT, p, depth++));
+										while (TREE_QUERY_GEOMETRY_TRIANGLE (p, depth++));
 									}
 									else
 									{
