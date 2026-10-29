@@ -456,13 +456,17 @@ fn terrain_i32(value: f64, marker: &str) -> Result<i32, String> {
     }
 }
 
+/// What the Lua terrain bridge returns, in order: the refusal marker, the text of the answer's numbers, the surface type, the record's hint and whether a
+/// surface is stored (each absent when the answer does not carry it).
+type BridgeAnswer = (Option<String>, Option<String>, Option<i64>, Option<String>, Option<bool>);
+
 fn call_terrain(bridge: &LuaFunction, query: TerrainQuery) -> Result<TerrainAnswer, String> {
     let (op, x, z, hint, winter) = match &query {
         TerrainQuery::Map { winter } => ("map", None, None, None, *winter),
         TerrainQuery::Point { x, z, hint, winter } => ("point", Some(f64::from(*x)), Some(f64::from(*z)), hint.clone(), *winter),
         TerrainQuery::Fast { x, z, winter } => ("fast", Some(f64::from(*x)), Some(f64::from(*z)), None, *winter),
     };
-    let (marker, text, kind, hint_out, stored): (Option<String>, Option<String>, Option<i64>, Option<String>, Option<bool>) = bridge
+    let (marker, text, kind, hint_out, stored): BridgeAnswer = bridge
         .call((op, x, z, hint, winter))
         .map_err(|error| format!("[terrain-provider:{op}.callback] {error}"))?;
     if let Some(marker) = marker {
@@ -3053,8 +3057,14 @@ mod tests {
         }
     }
 
+    /// The error of a provider call that must be refused (`expect_err` is denied in this crate): a call that is accepted fails the test with the answer.
+    fn refusal_of(result: Result<TerrainAnswer, String>, what: &str) -> String {
+        assert!(result.is_err(), "{what}: the call must be refused, got {result:?}");
+        result.err().unwrap_or_default()
+    }
+
     fn refused(provider: &mut TerrainProvider, query: TerrainQuery, marker: &str) {
-        let error = provider(query).expect_err(marker);
+        let error = refusal_of(provider(query), marker);
         assert!(error.starts_with(&format!("[terrain-provider:{marker}]")), "{marker}: {error}");
         assert!(
             !error.contains('\n') || error.lines().next().is_some_and(|line| line.contains(marker)),
@@ -3159,7 +3169,7 @@ mod tests {
                 "point.elevation",
             ),
             (
-                format!("return {{ elevation = 1, last_elevation = 1, normal = {{ 0, 1 }}, type = 9 }}"),
+                "return { elevation = 1, last_elevation = 1, normal = { 0, 1 }, type = 9 }".to_string(),
                 "two normal components".into(),
                 "point.normal",
             ),
@@ -3219,14 +3229,14 @@ mod tests {
         ];
         for (source, name, marker) in cases {
             let mut provider = terrain_of(&lua, &source)?;
-            let error = provider(point(1.0, 2.0, None)).expect_err(&name);
+            let error = refusal_of(provider(point(1.0, 2.0, None)), &name);
             assert!(error.starts_with(&format!("[terrain-provider:{marker}]")), "{name}: {error}");
         }
         // the limit itself, and a provider's own error with its original text
         let mut at_the_limit = terrain_of(&lua, &format!("return {{ {good}, hint = string.rep ('a', 127) }}"))?;
         assert!(matches!(at_the_limit(point(1.0, 2.0, None))?, TerrainAnswer::Point { hint: Some(h), .. } if h.len() == 127));
         let mut failing = terrain_of(&lua, "error ('provider failed on purpose')")?;
-        let error = failing(point(1.0, 2.0, None)).expect_err("a raising provider");
+        let error = refusal_of(failing(point(1.0, 2.0, None)), "a raising provider");
         assert!(
             error.starts_with("[terrain-provider:point.callback]") && error.contains("provider failed on purpose"),
             "{error}"
@@ -3276,7 +3286,7 @@ mod tests {
             ("a missing height", facts.replace("max_height = 3069,", "")),
         ] {
             let mut provider = terrain_of(&lua, &format!("return {{ {source} }}"))?;
-            let error = provider(TerrainQuery::Map { winter: false }).expect_err(name);
+            let error = refusal_of(provider(TerrainQuery::Map { winter: false }), name);
             assert!(error.starts_with("[terrain-provider:map.facts]"), "{name}: {error}");
         }
         let mut no_map = terrain_of(&lua, "return 'nothing'")?;

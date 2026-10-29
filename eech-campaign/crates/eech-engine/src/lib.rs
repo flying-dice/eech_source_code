@@ -8985,7 +8985,9 @@ mod tests {
 
     #[test]
     fn a_terrain_answer_of_the_wrong_kind_is_refused_before_anything_is_written() {
-        let answers: [(&str, fn() -> TerrainAnswer); 3] = [
+        // an operation name and the answer a provider gives (of a kind that is right for only one of the three operations)
+        type GivenAnswer = (&'static str, fn() -> TerrainAnswer);
+        let answers: [GivenAnswer; 3] = [
             ("map", || TerrainAnswer::Map(terrain_facts())),
             ("point", || terrain_point(None, true)),
             ("fast", || TerrainAnswer::Fast { elevation: 2.0 }),
