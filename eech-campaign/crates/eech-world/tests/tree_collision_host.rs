@@ -52,6 +52,18 @@ refused({ mode = 'load', directory = dir, map = map, forest_geometry = 'present'
 refused({ mode = 'load', directory = dir, map = { min_x = 0 }, forest_geometry = 'absent' }, 'map.max_x')
 refused({ mode = 'load', directory = dir, map = { min_x = 0, max_x = 4095, min_z = 0, max_z = 4095, sectors_x = 1.5, sectors_z = 2, minimum_height = 0, scaled_height_difference = 1 }, forest_geometry = 'absent' }, 'must be an integer')
 
+-- the forest geometry must be a dense, ordered list of triangles of exactly nine numbers: a sparse or holey list is refused BEFORE any geometry is discarded or "absent" is
+-- assumed, and an empty list is not a statement either. A valid list and the explicit "absent" are accepted.
+local tri = { 0, 0, 0, 1, 0, 0, 0, 1, 0 }
+refused({ mode = 'load', directory = dir, map = map, forest_geometry = { [2] = tri } }, 'dense')
+refused({ mode = 'load', directory = dir, map = map, forest_geometry = { [1] = tri, [3] = tri } }, 'dense')
+refused({ mode = 'load', directory = dir, map = map, forest_geometry = {} }, 'empty')
+refused({ mode = 'load', directory = dir, map = map, forest_geometry = { { 0, 0, 0, 1, 0, 0, 0, 1 } } }, 'nine numbers')
+refused({ mode = 'load', directory = dir, map = map, forest_geometry = { { [1] = 0, [2] = 0, [3] = 0, [4] = 1, [5] = 0, [6] = 0, [7] = 0, [8] = 1, [10] = 0 } } }, 'nine numbers')
+refused({ mode = 'load', directory = dir, map = map, forest_geometry = { 'triangle' } }, 'triangle')
+local with_triangles = host.tree_collision({ mode = 'load', directory = dir, map = map, forest_geometry = { tri, tri } })
+assert(with_triangles.loaded == true, 'a dense list of triangles is accepted')
+
 -- the loader reads the file spelling the map has (this test writes the upper-case one)
 local census = host.tree_collision({ mode = 'load', directory = dir, map = map, forest_geometry = 'absent' })
 assert(census.loaded == true and census.no_trees == nil, 'loaded')
@@ -102,8 +114,27 @@ refused({ mode = 'terrain', elevation = 1 / 0 }, 'elevation')
 host.tree_collision({ mode = 'abandon' })
 refused({ mode = 'terrain', elevation = 0 }, 'no query open')
 
+-- a refused request closes the pending query (fail closed): a healthy pending query continues, but after a malformed begin or a non-finite terrain answer the OLD request is gone
+local healthy = begin({ 1000, 10, 1024 }, { 1048, 10, 1024 })
+assert(healthy.state == 'need_terrain' and healthy.endpoint == 'old', 'healthy pending control')
+assert(host.tree_collision({ mode = 'terrain', elevation = 0 }).endpoint == 'new', 'the healthy pending request continues')
+begin({ 1000, 10, 1024 }, { 1048, 10, 1024 })
+refused({ mode = 'begin', old_position = { 0, 0 }, new_position = { 1, 0, 0 }, intercept_point = { 0, 0, 0 }, face_normal = { 0, 0, 0 }, ignore_forest_edge_trees = false, skip_tree_top_test = false }, 'old_position')
+refused({ mode = 'terrain', elevation = 0 }, 'no query open')
+begin({ 1000, 10, 1024 }, { 1048, 10, 1024 })
+refused({ mode = 'begin', old_position = { 0, 0, 0 }, new_position = { 1, 0, 0 }, intercept_point = { 0, 0, 0 }, face_normal = { 0, 0, 0 }, ignore_forest_edge_trees = 1, skip_tree_top_test = false }, 'must be a boolean')
+refused({ mode = 'terrain', elevation = 0 }, 'no query open')
+begin({ 1000, 10, 1024 }, { 1048, 10, 1024 })
+refused({ mode = 'terrain', elevation = 1 / 0 }, 'elevation')
+refused({ mode = 'terrain', elevation = 0 }, 'no query open')
+begin({ 1000, 10, 1024 }, { 1048, 10, 1024 })
+refused({ mode = 'terrain', elevation = 'high' }, 'elevation')
+refused({ mode = 'terrain', elevation = 0 }, 'no query open')
+
 -- numbers cross exactly: a negative zero, the smallest f32 subnormal and a power of two far below any integer come back as the same bits
-local negative_zero = 0 * -1
+-- (0 * -1 is folded by this Lua to a POSITIVE zero; the reciprocal of infinity is a real negative zero)
+local negative_zero = -1 / math.huge
+assert(1 / negative_zero == -math.huge, 'the test input is a genuine negative zero')
 local tiny = math.ldexp(1, -149)
 local small = math.ldexp(1, -100)
 local exact = begin({ 1000, 10, negative_zero }, { tiny, 10, small })

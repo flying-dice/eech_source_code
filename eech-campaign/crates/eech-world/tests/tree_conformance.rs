@@ -20,8 +20,8 @@
 //! The retail facts record no forest tree collision triangles, so the geometry branch of the kernel is NOT exercised by retail data; if a transcript
 //! did record triangles this test would hand them to the kernel as the host-owned mesh, and says which case ran.
 use eech_world::trees::{
-    clear_exception_flags, exception_flags, fp_state, rounding, ForestGeometry, Rounding, ScopedRounding, TreeCollision, TreeMap, TreeRecord, TreeRequest,
-    TreeScene, RECORD_BYTES, SECTOR_SIDE,
+    clear_exception_flags, exception_flags, fp_state, raise_exception_flags, rounding, ForestGeometry, Rounding, ScopedRounding, TreeCollision, TreeMap,
+    TreeRecord, TreeRequest, TreeScene, RECORD_BYTES, SECTOR_SIDE,
 };
 use serde_json::Value;
 use std::path::PathBuf;
@@ -430,7 +430,9 @@ fn every_captured_original_tree_query_replays_bit_for_bit_through_the_host_loade
     // flags must be given back. Nothing is relaxed: the oracle is the original's recorded bits in every mode.
     for mode in [Rounding::Up, Rounding::Down, Rounding::Zero] {
         let scope = ScopedRounding::set(mode).unwrap();
+        // the caller's exception status is not clear: it must be given back, not cleared and not replaced by the kernel's own
         clear_exception_flags().unwrap();
+        raise_exception_flags().unwrap();
         let before = (fp_state().unwrap(), rounding().unwrap(), exception_flags());
         let replayed = replay(&scene, &queries);
         let after = (fp_state().unwrap(), rounding().unwrap(), exception_flags());
@@ -443,9 +445,10 @@ fn every_captured_original_tree_query_replays_bit_for_bit_through_the_host_loade
             replayed.mismatches.len()
         );
         assert_eq!(before.1, mode, "the test's own setup");
+        assert_ne!(before.2, 0, "the test's own setup: the caller's exception status is not clear");
         assert_eq!(
             before, after,
-            "the caller's masks, rounding and raised flags are given back unchanged under {mode:?}"
+            "the caller's masks, rounding, raw x87 control word, raw MXCSR (control and status) and raised flags are given back unchanged under {mode:?}"
         );
         assert!(
             replayed.mismatches.is_empty(),

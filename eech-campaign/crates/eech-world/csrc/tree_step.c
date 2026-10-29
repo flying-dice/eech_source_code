@@ -28,8 +28,9 @@
  * the original runs under round-toward-zero. The engine entry saves the caller's environment and sets FE_TOWARDZERO for everything it runs, and
  * the original's get_terrain_3d_sector sets it again. Every public entry here (eech_tree_begin, eech_tree_terrain) therefore (1) reads and
  * REQUIRES the x87 and SSE exception masks to be 63 and 63 before any arithmetic (never masking exceptions itself), (2) saves the caller's
- * environment with fegetenv, (3) sets FE_TOWARDZERO, (4) runs the original's arithmetic, and (5) restores the caller's environment with fesetenv
- * on EVERY exit: a lookup request, a final answer, a fault, a refusal. Nothing of the guard is held between calls, so no guard state is held
+ * COMPLETE floating-point state (the x87 environment with fegetenv and the whole of MXCSR, control and status bits, with stmxcsr, because fesetenv alone does not
+ * give the SSE word back on the Windows toolchain), (3) sets FE_TOWARDZERO for both units, (4) runs the original's arithmetic, and (5) restores the caller's state
+ * (fesetenv, then ldmxcsr, then a read-back that must equal what was saved, else an environment failure) on EVERY exit: a lookup request, a final answer, a fault, a refusal. Nothing of the guard is held between calls, so no guard state is held
  * across the Lua/campaign callbacks that supply the elevations. The bodies are not inlined into the entries, so no arithmetic can be scheduled
  * outside the guard, and the file is deliberately NOT compiled with -frounding-math: the original's compile-time constant folding (for example
  * 19/127.0f and PI2 - 0.01) happened at the default rounding, and the host must fold the same constants the same way. Whether this reproduces
@@ -172,11 +173,12 @@ size_t eech_tree_scene_size(void)
 }
 
 /*
- * The floating-point exception masks of this thread, read and never written (the fixture's guard reads the same two registers): the low six
- * bits of the x87 control word and bits 7 to 12 of MXCSR, each 63 when every exception is masked, as the original's callers have them. The
- * SSE rounding control is reported too (the entries below set round-toward-zero themselves).  Returns 0, or -1 where the registers cannot be read.
+ * The floating-point state of this thread, read and never written (the fixture's guard reads the same two registers): the low six bits of the x87
+ * control word and bits 7 to 12 of MXCSR are the exception masks, each 63 when every exception is masked, as the original's callers have them; the SSE
+ * rounding control is bits 13 and 14 of MXCSR (0 nearest, 1 down, 2 up, 3 toward zero). The raw x87 control word and the raw MXCSR (control AND status
+ * bits) are reported too, for exact comparison. Returns 0, or -1 where the registers cannot be read.
  */
-int eech_tree_fp_state(int *x87_masks, int *sse_masks, int *sse_rounding)
+int eech_tree_fp_state(int *x87_masks, int *sse_masks, int *sse_rounding, uint32_t *x87_control, uint32_t *mxcsr_bits)
 {
 #if defined(__x86_64__) || defined(__i386__)
 	uint16_t control_word = 0;
@@ -187,11 +189,15 @@ int eech_tree_fp_state(int *x87_masks, int *sse_masks, int *sse_rounding)
 	*x87_masks = (int) (control_word & 0x3fu);
 	*sse_masks = (int) ((mxcsr >> 7) & 0x3fu);
 	*sse_rounding = (int) ((mxcsr >> 13) & 0x3u);
+	*x87_control = (uint32_t) control_word;
+	*mxcsr_bits = mxcsr;
 	return 0;
 #else
 	*x87_masks = 0;
 	*sse_masks = 0;
 	*sse_rounding = 0;
+	*x87_control = 0;
+	*mxcsr_bits = 0;
 	return -1;
 #endif
 }
@@ -974,25 +980,123 @@ static int __attribute__((noinline)) terrain_body(eech_tree_query *q, const eech
 /* The environment boundary of the public entries (see the header comment). */
 /* ------------------------------------------------------------------------------------------------------------------------------------ */
 
-/* Reads and requires the original's exception masks, then saves the caller's environment and sets round-toward-zero. TREE_OK, TREE_MASKS or TREE_ENVIRONMENT; on a
- * non-OK result the environment is as the caller left it. */
-static int enter_environment(fenv_t *caller)
+/*
+ * The caller's COMPLETE floating-point state. fegetenv/fesetenv alone are not enough: on the Windows toolchain fesetenv does not give back the SSE control and
+ * status word (the first environment test saw the SSE rounding left at round-toward-zero and the inexact flag left raised), so the x87 environment is saved
+ * and restored with fegetenv/fesetenv and MXCSR, control bits AND status bits, is saved with stmxcsr and restored with ldmxcsr and then READ BACK; a restore
+ * that does not read back as saved is an environment failure. The exception masks are part of what is saved and restored exactly; they are never weakened.
+ */
+typedef struct eech_tree_caller_environment
+{
+	fenv_t x87;
+	uint32_t mxcsr;
+} eech_tree_caller_environment;
+
+#define MXCSR_ROUNDING_MASK 0x6000u
+#define MXCSR_ROUND_TOWARD_ZERO 0x6000u
+
+#if defined(__x86_64__) || defined(__i386__)
+static uint32_t read_mxcsr(void)
+{
+	uint32_t mxcsr = 0;
+
+	__asm__ __volatile__("stmxcsr %0" : "=m"(mxcsr));
+
+	return (mxcsr);
+}
+
+static void write_mxcsr(uint32_t mxcsr)
+{
+	__asm__ __volatile__("ldmxcsr %0" : : "m"(mxcsr));
+}
+#else
+static uint32_t read_mxcsr(void)
+{
+	return (0);
+}
+
+static void write_mxcsr(uint32_t mxcsr)
+{
+}
+#endif
+
+static int save_caller_environment(eech_tree_caller_environment *saved)
+{
+#if defined(__x86_64__) || defined(__i386__)
+	if (fegetenv(&saved->x87) != 0)
+	{
+		return (-1);
+	}
+
+	saved->mxcsr = read_mxcsr();
+
+	return (0);
+#else
+	return (-1);
+#endif
+}
+
+static int restore_caller_environment(const eech_tree_caller_environment *saved)
+{
+#if defined(__x86_64__) || defined(__i386__)
+	int failed = 0;
+
+	if (fesetenv(&saved->x87) != 0)
+	{
+		failed = 1;
+	}
+
+	write_mxcsr(saved->mxcsr);
+
+	if (read_mxcsr() != saved->mxcsr)
+	{
+		failed = 1;
+	}
+
+	return (failed ? -1 : 0);
+#else
+	return (-1);
+#endif
+}
+
+/* Sets round-toward-zero for the x87 unit and the SSE unit and reads both back. */
+static int set_round_toward_zero(void)
+{
+	if (fesetround(FE_TOWARDZERO) != 0)
+	{
+		return (-1);
+	}
+
+	write_mxcsr((read_mxcsr() & ~MXCSR_ROUNDING_MASK) | MXCSR_ROUND_TOWARD_ZERO);
+
+	if (fegetround() != FE_TOWARDZERO || (read_mxcsr() & MXCSR_ROUNDING_MASK) != MXCSR_ROUND_TOWARD_ZERO)
+	{
+		return (-1);
+	}
+
+	return (0);
+}
+
+/* Reads and requires the original's exception masks, then saves the caller's complete state and sets round-toward-zero. TREE_OK, TREE_MASKS or TREE_ENVIRONMENT; on a
+ * non-OK result the caller's state is as the caller left it. */
+static int enter_environment(eech_tree_caller_environment *caller)
 {
 	int x87_masks = 0, sse_masks = 0, sse_rounding = 0;
+	uint32_t x87_control = 0, mxcsr = 0;
 
-	if (eech_tree_fp_state(&x87_masks, &sse_masks, &sse_rounding) != 0 || x87_masks != 63 || sse_masks != 63)
+	if (eech_tree_fp_state(&x87_masks, &sse_masks, &sse_rounding, &x87_control, &mxcsr) != 0 || x87_masks != 63 || sse_masks != 63)
 	{
 		return (TREE_MASKS);
 	}
 
-	if (fegetenv(caller) != 0)
+	if (save_caller_environment(caller) != 0)
 	{
 		return (TREE_ENVIRONMENT);
 	}
 
-	if (fesetround(FE_TOWARDZERO) != 0)
+	if (set_round_toward_zero() != 0)
 	{
-		fesetenv(caller);
+		restore_caller_environment(caller);
 
 		return (TREE_ENVIRONMENT);
 	}
@@ -1000,10 +1104,10 @@ static int enter_environment(fenv_t *caller)
 	return (TREE_OK);
 }
 
-/* Restores the caller's environment: the result of the call when that works, TREE_ENVIRONMENT (and the query closed, the answer withheld) when it does not. */
-static int leave_environment(const fenv_t *caller, eech_tree_query *q, eech_tree_request *out, int result)
+/* Restores the caller's complete state: the result of the call when that works, TREE_ENVIRONMENT (and the query closed, the answer withheld) when it does not. */
+static int leave_environment(const eech_tree_caller_environment *caller, eech_tree_query *q, eech_tree_request *out, int result)
 {
-	if (fesetenv(caller) != 0)
+	if (restore_caller_environment(caller) != 0)
 	{
 		q->awaiting = AWAIT_NONE;
 		memset(out, 0, sizeof(*out));
@@ -1022,7 +1126,7 @@ static int leave_environment(const fenv_t *caller, eech_tree_query *q, eech_tree
 int eech_tree_begin(eech_tree_query *q, const eech_tree_scene *scene, const float *old_position, const float *new_position, const float *intercept_point,
 	const float *face_normal, int ignore_forest_edge_trees, int skip_tree_top_test, eech_tree_request *out)
 {
-	fenv_t caller;
+	eech_tree_caller_environment caller;
 	int entered, result;
 
 	memset(out, 0, sizeof(*out));
@@ -1046,7 +1150,7 @@ int eech_tree_begin(eech_tree_query *q, const eech_tree_scene *scene, const floa
  */
 int eech_tree_terrain(eech_tree_query *q, const eech_tree_scene *scene, float elevation, eech_tree_request *out)
 {
-	fenv_t caller;
+	eech_tree_caller_environment caller;
 	int entered, result;
 
 	memset(out, 0, sizeof(*out));
@@ -1074,55 +1178,73 @@ int eech_tree_terrain(eech_tree_query *q, const eech_tree_scene *scene, float el
 /* Environment access for the boundary tests and the host's reports: reading and setting the CALLING thread's state, never used by the entries. */
 /* ------------------------------------------------------------------------------------------------------------------------------------ */
 
-/* 0 nearest, 1 upward, 2 downward, 3 toward zero, -1 anything else */
+/* 0 nearest, 1 upward, 2 downward, 3 toward zero for the x87 unit; -1 when that is not one of the four OR the SSE unit's rounding is not the same mode */
 int eech_tree_rounding(void)
 {
+	int mode;
+	uint32_t sse = (read_mxcsr() & MXCSR_ROUNDING_MASK) >> 13;
+
 	switch (fegetround())
 	{
 		case FE_TONEAREST:
-			return (0);
+			mode = 0;
+			break;
 		case FE_UPWARD:
-			return (1);
+			mode = 1;
+			break;
 		case FE_DOWNWARD:
-			return (2);
+			mode = 2;
+			break;
 		case FE_TOWARDZERO:
-			return (3);
+			mode = 3;
+			break;
+		default:
+			return (-1);
 	}
 
-	return (-1);
+	/* MXCSR's rounding field: 0 nearest, 1 down, 2 up, 3 toward zero */
+	if ((mode == 0 && sse != 0) || (mode == 1 && sse != 2) || (mode == 2 && sse != 1) || (mode == 3 && sse != 3))
+	{
+		return (-1);
+	}
+
+	return (mode);
 }
 
-/* sets the calling thread's rounding (0 nearest, 1 upward, 2 downward, 3 toward zero); 0 on success */
+/* sets the calling thread's rounding for BOTH units (0 nearest, 1 upward, 2 downward, 3 toward zero); 0 on success, read back */
 int eech_tree_set_rounding(int which)
 {
-	switch (which)
+	static const int modes[4] = { FE_TONEAREST, FE_UPWARD, FE_DOWNWARD, FE_TOWARDZERO };
+	static const uint32_t sse_fields[4] = { 0u, 2u, 1u, 3u };
+
+	if (which < 0 || which > 3)
 	{
-		case 0:
-			return (fesetround(FE_TONEAREST));
-		case 1:
-			return (fesetround(FE_UPWARD));
-		case 2:
-			return (fesetround(FE_DOWNWARD));
-		case 3:
-			return (fesetround(FE_TOWARDZERO));
+		return (-1);
 	}
 
-	return (-1);
+	if (fesetround(modes[which]) != 0)
+	{
+		return (-1);
+	}
+
+	write_mxcsr((read_mxcsr() & ~MXCSR_ROUNDING_MASK) | (sse_fields[which] << 13));
+
+	return (eech_tree_rounding() == which ? 0 : -1);
 }
 
-size_t eech_tree_fenv_size(void)
+size_t eech_tree_environment_size(void)
 {
-	return sizeof(fenv_t);
+	return sizeof(eech_tree_caller_environment);
 }
 
-int eech_tree_fenv_save(void *environment)
+int eech_tree_environment_save(void *environment)
 {
-	return (fegetenv((fenv_t *) environment));
+	return (save_caller_environment((eech_tree_caller_environment *) environment));
 }
 
-int eech_tree_fenv_restore(const void *environment)
+int eech_tree_environment_restore(const void *environment)
 {
-	return (fesetenv((const fenv_t *) environment));
+	return (restore_caller_environment((const eech_tree_caller_environment *) environment));
 }
 
 /* the calling thread's raised exception flags, as the platform's FE_ bits (0 when none) */
@@ -1133,5 +1255,15 @@ int eech_tree_exception_flags(void)
 
 int eech_tree_clear_exception_flags(void)
 {
+	write_mxcsr(read_mxcsr() & ~0x3fu);
+
 	return (feclearexcept(FE_ALL_EXCEPT));
+}
+
+/* raises the inexact and divide-by-zero flags in both units WITHOUT changing the masks (test setup for a caller whose status is not clear); 0 on success */
+int eech_tree_raise_exception_flags(void)
+{
+	write_mxcsr(read_mxcsr() | 0x24u);
+
+	return (feraiseexcept(FE_INEXACT | FE_DIVBYZERO));
 }

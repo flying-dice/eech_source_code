@@ -1,0 +1,194 @@
+{
+  "source": "d72610f85bc71ecf554c074025e699115e8eb0a1",
+  "status": "CHANGES REQUIRED; numeric matches do not make boundary checks pass",
+  "windows_build_actual_exit": 0,
+  "verified_exports": 8,
+  "exports_unchanged": true,
+  "build_info_sha256": "5dbc2c046db17b69fd8ada4169be0100a32acb8fe967a88a6cea91f9a504f458",
+  "linux": {
+    "tree_units_passed": 15,
+    "invocation_actual_exit": 101,
+    "clippy": "NOT REACHED"
+  },
+  "windows": {
+    "tree_units_passed": 14,
+    "tree_units_failed": 1,
+    "unit_exit": 101,
+    "synthetic_lua_exit": 101,
+    "controller_exit": 1
+  },
+  "cases": [
+    {
+      "case": "georgia",
+      "expected_queries": 554,
+      "expected_lookups": 1102,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "original_transcript_sha256": "0647eea11e9c87777ce47183c905ae47011ebce9da10ce7d2a8cc87b0e180adc",
+      "library_actual_exit": 101,
+      "lua_actual_exit": 0,
+      "all_default_and_up_original_query_bits_match": true,
+      "complete_host_lua_original_replay_matches": true,
+      "caller_state_restoration": "FAILED; SSE RC2->3 and flags0->32 under Up",
+      "full_down_zero_sweeps": "NOT REACHED after restoration assertion",
+      "overall_component_accepted": false
+    },
+    {
+      "case": "lebanon",
+      "expected_queries": 600,
+      "expected_lookups": 1120,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "original_transcript_sha256": "af14a4dd071fb8233637aa001a046710434e8d41bc838b2d1cf906466a074d00",
+      "library_actual_exit": 101,
+      "lua_actual_exit": 0,
+      "all_default_and_up_original_query_bits_match": true,
+      "complete_host_lua_original_replay_matches": true,
+      "caller_state_restoration": "FAILED; SSE RC2->3 and flags0->32 under Up",
+      "full_down_zero_sweeps": "NOT REACHED after restoration assertion",
+      "overall_component_accepted": false
+    },
+    {
+      "case": "lebanon-repeat",
+      "expected_queries": 600,
+      "expected_lookups": 1120,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "original_transcript_sha256": "af14a4dd071fb8233637aa001a046710434e8d41bc838b2d1cf906466a074d00",
+      "library_actual_exit": 101,
+      "lua_actual_exit": 0,
+      "all_default_and_up_original_query_bits_match": true,
+      "complete_host_lua_original_replay_matches": true,
+      "caller_state_restoration": "FAILED; SSE RC2->3 and flags0->32 under Up",
+      "full_down_zero_sweeps": "NOT REACHED after restoration assertion",
+      "overall_component_accepted": false
+    }
+  ],
+  "negative_zero_diagnostic": "Same frozen host: original0*-1 test input is +0 and fails; dynamic -1/math.huge is -0 and whole transport script passes0 with unchanged expected bits. Test construction defect, not measured numeric-reader defect.",
+  "protocol_red": "Same frozen host accepts sparse [2] and hole after first triangle; malformed new begin/terrain is refused but following terrain can continue old pending query. Healthy dense/pending controls pass.",
+  "independent_review_sha256": "c5f921039fb6b6deb154a96d8c15d049fbd829996bb426a34775530ae2df2a0b",
+  "review_findings": "FiveP2: validated map invariant, complete FP restoration, thread affinity, dense geometry, pending cleanup. TwoP3: dynamic negative-zero setup and precise loader allocation wording.",
+  "evidence": [
+    {
+      "file": "tree-host-rounding-d72610f85-native-20261029\\controller.json",
+      "bytes": 14428,
+      "sha256": "e42f875d72a73749aa70517419888ccc77f10d3bb77b062fac474851c6338050",
+      "retained": "Private raw original; safe summary only"
+    },
+    {
+      "file": "tree-host-rounding-d72610f85-native-20261029\\georgia-library-replay.log",
+      "bytes": 1359,
+      "sha256": "5f9bae0757ef9eeabc9ed698fcdf252e7f09789b8c5c3092fe8ce24f95cf06d2",
+      "retained": "Private raw original; safe summary only"
+    },
+    {
+      "file": "tree-host-rounding-d72610f85-native-20261029\\georgia-lua-replay.log",
+      "bytes": 241,
+      "sha256": "643cb0e953f930135bd32f4b931ade7402221cec7df927440f2046f7c91cca32",
+      "retained": "Private raw original; safe summary only"
+    },
+    {
+      "file": "tree-host-rounding-d72610f85-native-20261029\\georgia-post-inputs.log",
+      "bytes": 318,
+      "sha256": "16320605f96737ced2fb95f225c1975f0ec296457b93a6e2b9d54c48b3d795c4",
+      "retained": "Private raw original; safe summary only"
+    },
+    {
+      "file": "tree-host-rounding-d72610f85-native-20261029\\georgia-pre-inputs.log",
+      "bytes": 318,
+      "sha256": "16320605f96737ced2fb95f225c1975f0ec296457b93a6e2b9d54c48b3d795c4",
+      "retained": "Private raw original; safe summary only"
+    },
+    {
+      "file": "tree-host-rounding-d72610f85-native-20261029\\lebanon-library-replay.log",
+      "bytes": 1362,
+      "sha256": "4ad906649271b81de9dc422f6c19d5bdf1864811f88d9346193c288a3e84144c",
+      "retained": "Private raw original; safe summary only"
+    },
+    {
+      "file": "tree-host-rounding-d72610f85-native-20261029\\lebanon-lua-replay.log",
+      "bytes": 242,
+      "sha256": "6b2dab1c803b969c192482d6a956988d3b94089d1b0edc386fbb7ac69ab39489",
+      "retained": "Private raw original; safe summary only"
+    },
+    {
+      "file": "tree-host-rounding-d72610f85-native-20261029\\lebanon-post-inputs.log",
+      "bytes": 306,
+      "sha256": "998f873a278fd29f8e47b4d3c8674e867c62e83ea79591602735517f84a18286",
+      "retained": "Private raw original; safe summary only"
+    },
+    {
+      "file": "tree-host-rounding-d72610f85-native-20261029\\lebanon-pre-inputs.log",
+      "bytes": 306,
+      "sha256": "998f873a278fd29f8e47b4d3c8674e867c62e83ea79591602735517f84a18286",
+      "retained": "Private raw original; safe summary only"
+    },
+    {
+      "file": "tree-host-rounding-d72610f85-native-20261029\\lebanon-repeat-library-replay.log",
+      "bytes": 1376,
+      "sha256": "eb61d81963d13f4f8cc3d2b25f97891ae00b2cde5942d1f0e1491dac60ba9ac0",
+      "retained": "Private raw original; safe summary only"
+    },
+    {
+      "file": "tree-host-rounding-d72610f85-native-20261029\\lebanon-repeat-lua-replay.log",
+      "bytes": 242,
+      "sha256": "6b2dab1c803b969c192482d6a956988d3b94089d1b0edc386fbb7ac69ab39489",
+      "retained": "Private raw original; safe summary only"
+    },
+    {
+      "file": "tree-host-rounding-d72610f85-native-20261029\\lebanon-repeat-post-inputs.log",
+      "bytes": 313,
+      "sha256": "9efd048576eea32968ba892d4049db310ecaa34363987c05e5e1883004fb80b1",
+      "retained": "Private raw original; safe summary only"
+    },
+    {
+      "file": "tree-host-rounding-d72610f85-native-20261029\\lebanon-repeat-pre-inputs.log",
+      "bytes": 313,
+      "sha256": "9efd048576eea32968ba892d4049db310ecaa34363987c05e5e1883004fb80b1",
+      "retained": "Private raw original; safe summary only"
+    },
+    {
+      "file": "tree-host-rounding-d72610f85-native-20261029\\lua-transport-contracts.log",
+      "bytes": 803,
+      "sha256": "0bb01150d6d4b7c08e6e49d1d91e4ba133c3c17e8df8192893a13ae69a20af7f",
+      "retained": "Private raw original; safe summary only"
+    },
+    {
+      "file": "tree-host-rounding-d72610f85-native-20261029\\unit-contracts.log",
+      "bytes": 2209,
+      "sha256": "cce76cb5e351bde956aa6ea641850ee8ebc03e7b29784e6294ba58d82b2759d7",
+      "retained": "Private raw original; safe summary only"
+    },
+    {
+      "file": "tree-host-negative-zero-d72610f85-diagnostic-20261029\\controller.json",
+      "bytes": 1327,
+      "sha256": "9a0e09d8e72e5f8a4d1812e1e5c15bb8d61eadcc456023b78611429d2271460b",
+      "retained": "Private raw original; safe summary only"
+    },
+    {
+      "file": "tree-host-boundary-red-d72610f85-20261029\\controller.json",
+      "bytes": 1915,
+      "sha256": "7e508d8d08a1e91d952830336ac733bb298db833a3c5e9e36ba690f716e8afdf",
+      "retained": "Private raw original; safe summary only"
+    },
+    {
+      "file": "tree-host-boundary-controls-20261029.lua",
+      "bytes": 1854,
+      "sha256": "fa77370fbd1cfd20fe1bf43378474b775deea189a85978813be6e361fae149de",
+      "retained": "Private raw original; safe summary only"
+    },
+    {
+      "file": "tree-host-rounding-linux-d72610f85-20261029.log",
+      "bytes": 1819,
+      "sha256": "6da6ab618016188b0c70511edd06c5b0bb6a26e930b8d3526d2658583aa223ca",
+      "retained": "Private raw original; safe summary only"
+    },
+    {
+      "file": "independent-tree-host-preparation-review-d72610f85.json",
+      "bytes": 17923,
+      "sha256": "c5f921039fb6b6deb154a96d8c15d049fbd829996bb426a34775530ae2df2a0b",
+      "retained": "Private raw original; safe summary only"
+    }
+  ],
+  "limits": "Host preparation only. No production dispatch/cutover, original forest-geometry witness, model loader, entity collision, shipping or Task49/D3 acceptance. Original oracles, baseline and tolerances unchanged."
+}

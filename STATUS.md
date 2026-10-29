@@ -1,3 +1,63 @@
+# Host tree kernel — d72610f85 measured: default library and Lua replays bit-exact, boundary checks FAILED; independent-review batch PREPARED, UNBUILT, UNRUN (EEDCS-49, D3 preparation)
+
+## What the d72610f85 native measurements actually showed (terminal; NOT an acceptance and NOT "overall passed")
+
+* Windows host and test build 0, all 8 exports verified. Linux: 15/15 tree unit tests passed; the real-host Lua transport test FAILED (exit 101) at the newly reached negative-zero assertion; Clippy not reached.
+  Windows: 14 unit tests passed and 1 FAILED (the new environment-restoration test); the Lua transport test failed 101.
+* ALL captured original queries (554 Georgia / 600 Lebanon / 600 repeat; 1102 / 1120 / 1120 recorded terrain replies) replay through the default library path with ZERO mismatches of lookups and ZERO answer-bit
+  mismatches, and each full real-host Lua replay exits 0 with zero mismatches. The rounding correction therefore made the default-caller replays bit-exact. This is evidence for those replays only.
+* The library replay under a caller in Up also had zero bit mismatches, and then FAILED the environment assertion: before `63/63`, SSE rounding 2, x87 Up, flags 0; after `63/63`, SSE rounding 3, x87 Up, flags 32.
+  The Down and Zero replays were not reached. Controller 11796, terminal, 1 collected. Raw `R:/d3-evidence/tree-host-rounding-d72610f85-native-20261029/controller.json` and case logs. All 3 pre/post input
+  manifests 0, all 8 payloads and every original transcript hash unchanged.
+* Negative zero diagnosed by Root without source changes (`R:/d3-evidence/tree-host-negative-zero-d72610f85-diagnostic-20261029/controller.json`): the test's `local negative_zero = 0 * -1` is folded by this Lua to a
+  POSITIVE zero (reciprocal +inf, `%.17g` "0"). Constructing it as `-1 / math.huge` gives a genuine negative zero (reciprocal -inf, "-0") and the whole synthetic transport script then exits 0 with the tiny expected bits.
+* Root's protocol RED controls against the same host (`R:/d3-evidence/tree-host-boundary-red-d72610f85-20261029/controller.json`, script
+  `R:/d3-evidence/tree-host-boundary-controls-20261029.lua` SHA256 `fa77370fbd1cfd20fe1bf43378474b775deea189a85978813be6e361fae149de`, to be replayed UNCHANGED against the next host): a dense valid geometry list was
+  accepted, and so were sparse `{[2]=tri}` and holey `{[1]=tri,[3]=tri}` lists (bad acceptances); a pending request continued after a malformed `begin` was refused and after a non-finite `terrain` answer was refused
+  (ghost continuations). A healthy pending request continues. These are measured defects, not pass claims.
+
+## The single independent review's batch, and what the prepared source does (source only; arithmetic untouched — the reviewer found NO discrepancy between the C and the original arithmetic)
+
+1. P2 map invariant. `TreeMap`'s public fields let a forged value bypass `new()` (for example min_x = max_x = f32::MAX with 2 sectors could reach an undefined C float-to-int conversion; the reviewer did not execute that malformed native query). The invariant is
+   now REVALIDATED: `TreeMap::validate()` (the checks of `new`, which now calls it) is called first by EVERY public scene constructor: `without_trees`, `from_bytes`, and `load` including its absent-file path.
+   Valid metadata and all math unchanged. Unit test `a_tree_map_built_by_hand_is_revalidated_by_every_scene_constructor` feeds nine forged literals to all four paths (none is executed in C) and checks the valid map
+   and an empty triangle list; an empty `Triangles(vec![])` is itself refused (it is not a statement about the geometry).
+2. P2 complete caller floating-point state. On the Windows toolchain `fesetenv` did not give back MXCSR (the SSE rounding stayed round-toward-zero and the inexact flag stayed raised). The C entry now saves the x87
+   environment (`fegetenv`) AND the whole MXCSR (`stmxcsr`: control and status bits), sets round-toward-zero in both units and reads both back, runs the original arithmetic, and on EVERY exit restores with
+   `fesetenv` then `ldmxcsr` and reads MXCSR back; a restore (or set) that does not read back as expected is `TREE_ENVIRONMENT`: the answer is withheld and the query closed. The exception masks are saved/restored
+   exactly and never weakened; unmasked callers are still refused up front. `ScopedRounding` uses the same save/restore. `FpState` now also carries the raw x87 control word and raw MXCSR. The library and the
+   real-query tests now enter from callers in each rounding mode with a NON-CLEAR exception status (inexact and divide-by-zero raised before the call; asserted non-zero) and compare masks, rounding, raw control
+   words, raw MXCSR and raised flags before and after. An actual unmasked-exception entry and an actual `fesetround`/`fesetenv`/`ldmxcsr` failure are NOT exercised and not claimed.
+3. P2 thread affinity. `ScopedRounding` carries a `PhantomData<*const ()>`, so it is neither `Send` nor `Sync`. A compile-time contract in the unit tests (the `AmbiguousIfSend`/`AmbiguousIfSync` technique of the
+   static_assertions crate, no new dependency) fails the test build if either bound is ever implemented.
+4. P2 dense geometry. `host.tree_collision{mode='load'}` requires `forest_geometry` to be `"absent"` or a DENSE ordered list (`dense_length`: every key an integer 1..n, no hole or extra key) of triangles that are
+   each a dense list of exactly nine numbers; a sparse, holey, empty or malformed list is refused BEFORE any geometry is discarded or absence is assumed, and a refused load leaves the loaded scene untouched. Host
+   script controls: `{[2]=tri}`, `{[1]=tri,[3]=tri}`, `{}`, an eight-number triangle, a holey triangle and a non-table item are refused; `{tri, tri}` and `"absent"` are accepted. No physical oracle was added and
+   native geometry is not claimed validated.
+5. P2 pending-query cleanup. The Lua `begin` abandons any pending query BEFORE parsing its arguments (a begin replaces the pending query anyway), and a `terrain` whose elevation cannot be read abandons it; in Rust a
+   non-finite `terrain` answer closes the pending query. Contract: a refused begin or terrain answer ends the pending query, so a later valid `terrain` is refused with "no query open"; a refused `load` changes
+   neither the scene nor a pending query. The real-host script covers pending -> malformed begin, pending -> non-boolean flag, pending -> non-finite elevation, pending -> non-numeric elevation, and the healthy
+   pending control that continues. Root's unchanged protocol script above is the second check.
+6. P3 negative zero. The synthetic script constructs it as `-1 / math.huge` and asserts `1 / negative_zero == -math.huge`; the expected `80000000` and the numeric reader are unchanged.
+7. P3 loader wording. The module documentation no longer says "before anything is allocated": it says the two files are read whole, each size is first checked against `MAX_SECTOR_FILE_BYTES` and
+   `MAX_DATA_FILE_BYTES` (a bound on what `fs::read` allocates; retail Georgia is 226 KB and 6.8 MB), the forest triangles are flattened as given, and every length, multiplication and span is checked in `u64`
+   BEFORE any record is decoded or any table is allocated or indexed. No format change.
+
+## Changed files in this batch (under `eech-campaign/crates/eech-world/`)
+
+`csrc/tree_step.c`, `src/trees.rs`, `src/main.rs`, `tests/tree_collision_host.rs`, `tests/tree_conformance.rs`, plus this file and `eech-campaign/docs/m5-collision-characterization.md`.
+
+## Root's next step (expected, NOT RUN)
+
+Format; freeze a NEW source; build Windows and Linux; `cargo test -p eech-world --lib trees`, `--test tree_collision_host`, then for EACH of Georgia / Lebanon / Lebanon-repeat the library replay
+(`--test tree_conformance`, `EECH_TREE_REQUIRED=1`, which repeats in Up / Down / Zero with a non-clear caller status) and `lua/tree-collision-replay.lua`; replay Root's unchanged protocol controls old -> new;
+then the SAME reviewer checks only the new fixes and evidence. Nothing here claims D3, Task49 or extraction complete: geometry (model loader, native witness), entity collision, G1 integration, production authority,
+shipping, and the DCS mapping or documented workaround (a D3 requirement; live DCS execution is M6) remain open. Task47 shipping115 is untouched.
+
+---
+
+# SUPERSEDED (kept for the record): rounding-environment correction d72610f85 — see the measurements above
+
 # Host tree kernel — first native checks FAILED (real RED); rounding-environment correction PREPARED, UNBUILT, UNRUN (EEDCS-49, D3 preparation)
 
 ## What the first native checks of source 0db20ab3a46582110bd7c4706c26edaaa9335478 actually showed (retained; terminal; NOT passed)

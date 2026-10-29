@@ -24,15 +24,19 @@
 //! * Both files absent (or only one of them) is a known "no trees loaded", reported in the census, as in the original; a sector header that
 //!   differs from the terrain's sector counts is also a known "no trees loaded" (the original ditches the trees there), and the census says so.
 //! * Anything else that is wrong, a file shorter than its header says, a sector whose trees lie outside the data file, a negative count, is an
-//!   error. Lengths are checked in `u64` arithmetic before anything is allocated or indexed.
+//!   error. The two files are read whole (`std::fs::read` allocates their length, and the forest triangles are flattened as given), so each file's
+//!   size is first checked against a fixed bound ([`MAX_SECTOR_FILE_BYTES`], [`MAX_DATA_FILE_BYTES`], far above any retail file) before it is read;
+//!   every length, multiplication and span is then checked in `u64` arithmetic BEFORE any record is decoded or any table is allocated or indexed, so
+//!   the decoded storage is bounded by the file lengths already in memory.
 //! * Trailing bytes beyond what the header and the whole records account for are accepted and counted in the census, not interpreted.
 //!
 //! # Floating-point environment
 //!
 //! The original runs under round-toward-zero: the engine entry saves the caller's environment and sets `FE_TOWARDZERO` for everything it runs, and
 //! `get_terrain_3d_sector` sets it again. Every kernel entry therefore reads and REQUIRES the x87 and SSE exception masks to be 63 and 63 before any
-//! arithmetic (it never masks exceptions itself), saves the caller's environment, sets round-toward-zero, runs the original's arithmetic and restores the
-//! caller's environment on every exit, a request, an answer or a refusal. No guard is held between calls, so none is held across the callbacks that supply the
+//! arithmetic (it never masks exceptions itself), saves the caller's COMPLETE floating-point state (the x87 environment and the whole of MXCSR, control and
+//! status bits, because the Windows toolchain's `fesetenv` does not give the SSE word back), sets round-toward-zero for both units, runs the original's
+//! arithmetic and restores the caller's state, read back and compared, on every exit, a request, an answer or a refusal. No guard is held between calls, so none is held across the callbacks that supply the
 //! elevations, and the answer does not depend on the caller's rounding mode (see [`ScopedRounding`]). A failure to save, set or restore the environment
 //! closes the query and is an error, never a silent success. Exceptions that are unmasked in the caller are refused, not handled; no test enters the
 //! kernel with unmasked exceptions, so that refusal is a source guard, not runtime-proven.
@@ -51,6 +55,9 @@ use std::sync::Arc;
 
 /// The terrain sector side the tree sector tables are indexed by (`TERRAIN_3D_SECTOR_SIDE_LENGTH`).
 pub const SECTOR_SIDE: i32 = 2048;
+/// The largest sector file and data file [`TreeScene::load`] will read whole (retail Georgia: 226 KB and 6.8 MB). A bound on what `std::fs::read` allocates, not a format limit.
+pub const MAX_SECTOR_FILE_BYTES: u64 = 8 + 8 * 4096 * 4096 + 1024 * 1024;
+pub const MAX_DATA_FILE_BYTES: u64 = 1 << 30;
 /// The bytes of one tree record in the retail files (`sizeof (terrain_3d_tree_data)`, verified natively).
 pub const RECORD_BYTES: usize = 8;
 
@@ -100,7 +107,9 @@ struct SectorRecord {
     first: u32,
 }
 
-/// The terrain's metadata the tree query reads. All of it is the terrain's, not the campaign's.
+/// The terrain's metadata the tree query reads. All of it is the terrain's, not the campaign's. The fields are public to read, so a value can be
+/// built or changed without [`TreeMap::new`]; therefore EVERY public scene constructor ([`TreeScene::without_trees`], [`TreeScene::from_bytes`] and
+/// [`TreeScene::load`], including its absent-file path) calls [`TreeMap::validate`] before it stores anything or hands anything to the C kernel.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct TreeMap {
     pub min_x: f32,
@@ -124,20 +133,7 @@ impl TreeMap {
         minimum_height: f32,
         scaled_height_difference: f32,
     ) -> Result<Self, String> {
-        let finite = [min_x, max_x, min_z, max_z, minimum_height, scaled_height_difference];
-        if finite.iter().any(|value| !value.is_finite()) {
-            return Err("tree map metadata must be finite".into());
-        }
-        if !(1..=4096).contains(&sectors_x) || !(1..=4096).contains(&sectors_z) {
-            return Err(format!("tree map sector counts {sectors_x} by {sectors_z} are outside 1 to 4096"));
-        }
-        if min_x < 0.0 || min_z < 0.0 || min_x > max_x || min_z > max_z {
-            return Err("tree map extents must satisfy 0 <= min <= max on x and z".into());
-        }
-        if max_x >= (sectors_x * SECTOR_SIDE) as f32 || max_z >= (sectors_z * SECTOR_SIDE) as f32 {
-            return Err("tree map extents reach beyond the terrain sector grid".into());
-        }
-        Ok(Self {
+        let map = Self {
             min_x,
             max_x,
             min_z,
@@ -146,7 +142,35 @@ impl TreeMap {
             sectors_z,
             minimum_height,
             scaled_height_difference,
-        })
+        };
+        map.validate()?;
+        Ok(map)
+    }
+
+    /// The invariant the kernel relies on: the metadata is finite, the map is a non-empty positive rectangle and every position inside it converts to a
+    /// sector number the terrain grid has (so the float to integer conversion in the C scan cannot overflow and the sector table is covered).
+    pub fn validate(&self) -> Result<(), String> {
+        let finite = [
+            self.min_x,
+            self.max_x,
+            self.min_z,
+            self.max_z,
+            self.minimum_height,
+            self.scaled_height_difference,
+        ];
+        if finite.iter().any(|value| !value.is_finite()) {
+            return Err("tree map metadata must be finite".into());
+        }
+        if !(1..=4096).contains(&self.sectors_x) || !(1..=4096).contains(&self.sectors_z) {
+            return Err(format!("tree map sector counts {} by {} are outside 1 to 4096", self.sectors_x, self.sectors_z));
+        }
+        if self.min_x < 0.0 || self.min_z < 0.0 || self.min_x > self.max_x || self.min_z > self.max_z {
+            return Err("tree map extents must satisfy 0 <= min <= max on x and z".into());
+        }
+        if self.max_x >= (self.sectors_x * SECTOR_SIDE) as f32 || self.max_z >= (self.sectors_z * SECTOR_SIDE) as f32 {
+            return Err("tree map extents reach beyond the terrain sector grid".into());
+        }
+        Ok(())
     }
 }
 
@@ -223,6 +247,9 @@ fn geometry_from(geometry: ForestGeometry) -> Result<(Vec<f32>, bool), String> {
     match geometry {
         ForestGeometry::KnownAbsent => Ok((Vec::new(), false)),
         ForestGeometry::Triangles(triangles) => {
+            if triangles.is_empty() {
+                return Err("forest tree collision triangles: an empty list is not a statement; say KnownAbsent if the original has none".into());
+            }
             let flat: Vec<f32> = triangles.iter().flat_map(|triangle| triangle.iter().flatten().copied()).collect();
             if flat.iter().any(|value| !value.is_finite()) {
                 return Err("forest tree collision triangles must be finite".into());
@@ -239,6 +266,7 @@ fn le_i32(bytes: &[u8], at: usize) -> i32 {
 impl TreeScene {
     /// A scene with no trees loaded, for a map that has none (or a test that wants none).
     pub fn without_trees(map: TreeMap, geometry: ForestGeometry) -> Result<Self, String> {
+        map.validate()?;
         let (geometry, geometry_present) = geometry_from(geometry)?;
         Ok(Self {
             map,
@@ -252,6 +280,7 @@ impl TreeScene {
 
     /// Decodes a sector file and a data file already in memory, as the original does after it has opened them.
     pub fn from_bytes(map: TreeMap, sector_file: &[u8], data_file: &[u8], geometry: ForestGeometry) -> Result<Self, String> {
+        map.validate()?;
         let (geometry, geometry_present) = geometry_from(geometry)?;
         if sector_file.len() < 8 {
             return Err(format!("tree sector file is {} bytes, shorter than its 8-byte header", sector_file.len()));
@@ -353,6 +382,7 @@ impl TreeScene {
 
     /// Reads the map's own tree files from `directory`, spelled as they are on disk (see the module documentation).
     pub fn load(directory: &Path, map: TreeMap, geometry: ForestGeometry) -> Result<Self, String> {
+        map.validate()?;
         let find = |wanted: &str| -> Result<Option<String>, String> {
             let mut found: Vec<String> = Vec::new();
             for entry in std::fs::read_dir(directory).map_err(|e| format!("cannot list {}: {e}", directory.display()))? {
@@ -383,6 +413,14 @@ impl TreeScene {
                 }),
             });
         };
+        for (name, limit) in [(&sector_name, MAX_SECTOR_FILE_BYTES), (&data_name, MAX_DATA_FILE_BYTES)] {
+            let length = std::fs::metadata(directory.join(name))
+                .map_err(|e| format!("cannot inspect {name}: {e}"))?
+                .len();
+            if length > limit {
+                return Err(format!("{name} is {length} bytes, more than the {limit} the loader will read"));
+            }
+        }
         let sector_bytes = std::fs::read(directory.join(&sector_name)).map_err(|e| format!("cannot read {sector_name}: {e}"))?;
         let data_bytes = std::fs::read(directory.join(&data_name)).map_err(|e| format!("cannot read {data_name}: {e}"))?;
         let mut scene = Self::from_bytes(map, &sector_bytes, &data_bytes, geometry)?;
@@ -467,7 +505,7 @@ extern "C" {
     fn eech_tree_record_size() -> usize;
     fn eech_tree_sector_size() -> usize;
     fn eech_tree_scene_size() -> usize;
-    fn eech_tree_fp_state(x87_masks: *mut c_int, sse_masks: *mut c_int, sse_rounding: *mut c_int) -> c_int;
+    fn eech_tree_fp_state(x87_masks: *mut c_int, sse_masks: *mut c_int, sse_rounding: *mut c_int, x87_control: *mut u32, mxcsr: *mut u32) -> c_int;
     fn eech_tree_begin(
         query: *mut c_void,
         scene: *const RawScene,
@@ -482,11 +520,12 @@ extern "C" {
     fn eech_tree_terrain(query: *mut c_void, scene: *const RawScene, elevation: f32, out: *mut RawRequest) -> c_int;
     fn eech_tree_rounding() -> c_int;
     fn eech_tree_set_rounding(which: c_int) -> c_int;
-    fn eech_tree_fenv_size() -> usize;
-    fn eech_tree_fenv_save(environment: *mut c_void) -> c_int;
-    fn eech_tree_fenv_restore(environment: *const c_void) -> c_int;
+    fn eech_tree_environment_size() -> usize;
+    fn eech_tree_environment_save(environment: *mut c_void) -> c_int;
+    fn eech_tree_environment_restore(environment: *const c_void) -> c_int;
     fn eech_tree_exception_flags() -> c_int;
     fn eech_tree_clear_exception_flags() -> c_int;
+    fn eech_tree_raise_exception_flags() -> c_int;
 }
 
 /// The rounding mode of a thread's floating-point environment.
@@ -518,6 +557,16 @@ pub fn exception_flags() -> i32 {
     unsafe { eech_tree_exception_flags() }
 }
 
+/// Raises the calling thread's inexact and divide-by-zero flags, in both units, WITHOUT changing the masks (test setup for a caller whose status is not clear).
+pub fn raise_exception_flags() -> Result<(), String> {
+    // SAFETY: changes only the calling thread's floating-point status flags.
+    if unsafe { eech_tree_raise_exception_flags() } == 0 {
+        Ok(())
+    } else {
+        Err("the floating-point exception flags could not be raised".into())
+    }
+}
+
 /// Clears the calling thread's raised floating-point exception flags (test setup).
 pub fn clear_exception_flags() -> Result<(), String> {
     // SAFETY: changes only the calling thread's floating-point status flags.
@@ -528,20 +577,24 @@ pub fn clear_exception_flags() -> Result<(), String> {
     }
 }
 
-/// Test and report support: sets the CALLING thread's rounding mode for as long as the value lives and then restores the whole floating-point
-/// environment it found (rounding, masks and flags). It exists to enter the tree kernel from a caller whose rounding is not the original's.
-/// It is not used by the kernel, which does its own save, set and restore on every call. Code run while one is alive is subject to the mode,
-/// so a user keeps what it does in between to integer work.
+/// Test and report support: sets the CALLING thread's rounding mode, in both the x87 and the SSE unit, for as long as the value lives and then restores the
+/// caller's COMPLETE floating-point state it found (x87 environment, MXCSR control and status bits, read back). It exists to enter the tree kernel from a caller
+/// whose rounding is not the original's. It is not used by the kernel, which does its own save, set and restore on every call. Code run while one is alive is
+/// subject to the mode, so a user keeps what it does in between to integer work.
+///
+/// It is neither `Send` nor `Sync`: the state it saves and restores belongs to the thread that created it, so it cannot be moved to another thread, which would
+/// restore the wrong thread and leave the creator changed. The unit tests prove this at compile time.
 pub struct ScopedRounding {
     saved: Vec<u64>,
+    _thread_bound: std::marker::PhantomData<*const ()>,
 }
 
 impl ScopedRounding {
     pub fn set(mode: Rounding) -> Result<Self, String> {
         // SAFETY: a size query, then a save into a block of that size and 8-byte alignment.
-        let mut saved = vec![0u64; unsafe { eech_tree_fenv_size() }.div_ceil(8)];
+        let mut saved = vec![0u64; unsafe { eech_tree_environment_size() }.div_ceil(8)];
         // SAFETY: `saved` is large enough for the platform's environment type.
-        if unsafe { eech_tree_fenv_save(saved.as_mut_ptr().cast()) } != 0 {
+        if unsafe { eech_tree_environment_save(saved.as_mut_ptr().cast()) } != 0 {
             return Err("the floating-point environment could not be saved".into());
         }
         let which = match mode {
@@ -553,36 +606,41 @@ impl ScopedRounding {
         // SAFETY: changes only the calling thread's rounding mode.
         if unsafe { eech_tree_set_rounding(which) } != 0 {
             // SAFETY: restoring what was just saved.
-            unsafe { eech_tree_fenv_restore(saved.as_ptr().cast()) };
+            unsafe { eech_tree_environment_restore(saved.as_ptr().cast()) };
             return Err(format!("the rounding mode {mode:?} could not be set"));
         }
-        Ok(Self { saved })
+        Ok(Self {
+            saved,
+            _thread_bound: std::marker::PhantomData,
+        })
     }
 }
 
 impl Drop for ScopedRounding {
     fn drop(&mut self) {
-        // SAFETY: restoring the environment saved by `set`.
-        if unsafe { eech_tree_fenv_restore(self.saved.as_ptr().cast()) } != 0 {
+        // SAFETY: restoring the environment saved by `set`, on the thread that saved it (the type is not `Send`).
+        if unsafe { eech_tree_environment_restore(self.saved.as_ptr().cast()) } != 0 {
             eprintln!("tree collision: the caller's floating-point environment could not be restored");
         }
     }
 }
 
 /// The floating-point state of the calling thread, read and never written: the exception masks (63 when every exception is masked, as the
-/// original's callers have them) and the SSE rounding control.
+/// original's callers have them), the SSE rounding control, and the raw x87 control word and MXCSR (control AND status bits) for exact comparison.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct FpState {
     pub x87_masks: i32,
     pub sse_masks: i32,
     pub sse_rounding: i32,
+    pub x87_control: u32,
+    pub mxcsr: u32,
 }
 
 /// Reads the calling thread's floating-point state; `Err` where it cannot be read.
 pub fn fp_state() -> Result<FpState, String> {
-    let (mut x87, mut sse, mut rounding) = (0, 0, 0);
-    // SAFETY: three valid out slots; the call only reads registers.
-    let code = unsafe { eech_tree_fp_state(&mut x87, &mut sse, &mut rounding) };
+    let (mut x87, mut sse, mut rounding, mut control, mut mxcsr) = (0, 0, 0, 0u32, 0u32);
+    // SAFETY: five valid out slots; the call only reads registers.
+    let code = unsafe { eech_tree_fp_state(&mut x87, &mut sse, &mut rounding, &mut control, &mut mxcsr) };
     if code != 0 {
         return Err("the floating-point exception masks cannot be read on this architecture".into());
     }
@@ -590,6 +648,8 @@ pub fn fp_state() -> Result<FpState, String> {
         x87_masks: x87,
         sse_masks: sse,
         sse_rounding: rounding,
+        x87_control: control,
+        mxcsr,
     })
 }
 
@@ -687,7 +747,9 @@ impl TreeCollision {
     /// The elevation for the lookup just asked about.
     pub fn terrain(&mut self, elevation: f32) -> Result<TreeRequest, String> {
         if !elevation.is_finite() {
-            return Err("tree collision terrain elevation must be finite".into());
+            // fail closed: a refused answer ends the query it was meant for, so a later valid answer cannot continue a request the caller never answered
+            self.open = false;
+            return Err("tree collision terrain elevation must be finite; the pending query is closed".into());
         }
         if !self.open {
             return Err("tree collision: a terrain answer arrived with no query open".into());
@@ -1198,7 +1260,9 @@ mod tests {
         let mut baseline: Option<Vec<(Vec<u32>, bool)>> = None;
         for mode in [Rounding::Nearest, Rounding::Up, Rounding::Down, Rounding::Zero] {
             let scope = ScopedRounding::set(mode).unwrap();
+            // a caller whose exception STATUS is not clear: the kernel raises inexact and divide-by-zero itself, and must give back this caller's status, neither clearing it nor keeping its own
             clear_exception_flags().unwrap();
+            raise_exception_flags().unwrap();
             let before = (fp_state().unwrap(), rounding().unwrap(), exception_flags());
             let results: Vec<(Vec<u32>, bool)> = cases
                 .iter()
@@ -1207,9 +1271,10 @@ mod tests {
             let after = (fp_state().unwrap(), rounding().unwrap(), exception_flags());
             drop(scope);
             assert_eq!(before.1, mode, "the test's own setup");
+            assert_ne!(before.2, 0, "the test's own setup: the caller's exception status is not clear");
             assert_eq!(
                 before, after,
-                "the caller's masks, rounding and raised flags are given back unchanged under {mode:?}"
+                "the caller's masks, rounding, raw x87 control word, raw MXCSR (control and status) and raised flags are given back unchanged under {mode:?}"
             );
             assert!(
                 results.iter().all(|(_, kept)| *kept),
@@ -1226,6 +1291,101 @@ mod tests {
         // the segment with both end points outside the map really does cross the tree: no lookup is asked and the answer is a hit
         let outside = &baseline.unwrap()[3].0;
         assert_eq!(outside[0], 1, "a hit, with no lookup requests before it");
+    }
+
+    // A compile-time contract: ScopedRounding is neither Send nor Sync. If it were Send, the second impl below would make `<ScopedRounding as AmbiguousIfSend<_>>`
+    // ambiguous and this test module would not compile (the technique of the static_assertions crate, without the dependency).
+    trait AmbiguousIfSend<A> {
+        fn some_item() {}
+    }
+    impl<T: ?Sized> AmbiguousIfSend<()> for T {}
+    impl<T: ?Sized + Send> AmbiguousIfSend<u8> for T {}
+    trait AmbiguousIfSync<A> {
+        fn some_item() {}
+    }
+    impl<T: ?Sized> AmbiguousIfSync<()> for T {}
+    impl<T: ?Sized + Sync> AmbiguousIfSync<u8> for T {}
+    const _: fn() = || {
+        let _ = <ScopedRounding as AmbiguousIfSend<_>>::some_item;
+        let _ = <ScopedRounding as AmbiguousIfSync<_>>::some_item;
+    };
+
+    #[test]
+    fn a_tree_map_built_by_hand_is_revalidated_by_every_scene_constructor() {
+        // The fields are public, so a value need not come from TreeMap::new. Each of these would reach the C scan (an outside, finite query converts a position that
+        // large to a sector number: undefined behaviour in C) if a constructor trusted it; none is executed, every constructor must refuse it first.
+        let valid = map();
+        let forged = [
+            TreeMap {
+                min_x: f32::MAX,
+                max_x: f32::MAX,
+                ..valid
+            },
+            TreeMap { max_x: f32::MAX, ..valid },
+            TreeMap { max_z: 4096.0, ..valid },
+            TreeMap { min_x: -1.0, ..valid },
+            TreeMap {
+                min_z: 5.0,
+                max_z: 4.0,
+                ..valid
+            },
+            TreeMap { sectors_x: 0, ..valid },
+            TreeMap { sectors_z: i32::MAX, ..valid },
+            TreeMap {
+                minimum_height: f32::NAN,
+                ..valid
+            },
+            TreeMap {
+                scaled_height_difference: f32::INFINITY,
+                ..valid
+            },
+        ];
+        let sectors = sector_file(GRID, GRID, &[(0, 0), (0, 0), (0, 0), (0, 0)]);
+        let base = std::env::temp_dir().join(format!("eech-tree-forged-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&base);
+        let (with_files, without_files) = (base.join("files"), base.join("none"));
+        std::fs::create_dir_all(&with_files).unwrap();
+        std::fs::create_dir_all(&without_files).unwrap();
+        std::fs::write(with_files.join("tree_pos.sec"), &sectors).unwrap();
+        std::fs::write(with_files.join("tree_pos.dat"), []).unwrap();
+        for (index, bad) in forged.iter().enumerate() {
+            assert!(bad.validate().is_err(), "forged map {index} validates");
+            assert!(
+                TreeScene::without_trees(*bad, ForestGeometry::KnownAbsent).is_err(),
+                "without_trees accepted forged map {index}"
+            );
+            assert!(
+                TreeScene::from_bytes(*bad, &sectors, &[], ForestGeometry::KnownAbsent).is_err(),
+                "from_bytes accepted forged map {index}"
+            );
+            assert!(
+                TreeScene::load(&with_files, *bad, ForestGeometry::KnownAbsent).is_err(),
+                "load (files present) accepted forged map {index}"
+            );
+            assert!(
+                TreeScene::load(&without_files, *bad, ForestGeometry::KnownAbsent).is_err(),
+                "load (absent files) accepted forged map {index}"
+            );
+        }
+        let _ = std::fs::remove_dir_all(&base);
+        // the same constructors still accept the valid map, and an empty triangle list is not a statement about the geometry
+        assert!(valid.validate().is_ok());
+        assert!(TreeScene::without_trees(valid, ForestGeometry::KnownAbsent).is_ok());
+        let error = TreeScene::without_trees(valid, ForestGeometry::Triangles(Vec::new()))
+            .err()
+            .expect("an empty triangle list is refused");
+        assert!(error.contains("empty list"), "{error}");
+    }
+
+    #[test]
+    fn a_refused_terrain_answer_closes_the_pending_query() {
+        let mut query = TreeCollision::new(lone_tree()).unwrap();
+        query
+            .begin([1000.0, 10.0, 1024.0], [1048.0, 10.0, 1024.0], [0.0; 3], [0.0; 3], false, true)
+            .unwrap();
+        assert!(query.terrain(f32::INFINITY).unwrap_err().contains("closed"));
+        // the old request is gone: a valid answer now has nothing to continue
+        assert!(query.terrain(0.0).unwrap_err().contains("no query open"));
     }
 
     #[test]

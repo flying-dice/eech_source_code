@@ -263,6 +263,29 @@ fn shape(field: &str, n: usize) -> String {
     )
 }
 
+/// The length of a Lua table that is EXACTLY a dense list 1..=n: every key an integer from 1 to n, no hole, no extra or non-integer key (a plain iteration
+/// of the sequence part would silently stop at the first hole).
+fn dense_length(table: &LuaTable) -> Result<usize, String> {
+    let mut indices: Vec<usize> = Vec::new();
+    for pair in table.pairs::<LuaValue, LuaValue>() {
+        let (key, _) = pair.map_err(|e| e.to_string())?;
+        let number = match key {
+            LuaValue::Integer(value) => value as f64,
+            LuaValue::Number(value) => value,
+            other => return Err(format!("it has a {} key", other.type_name())),
+        };
+        if number.fract() != 0.0 || number < 1.0 || number > 1e9 {
+            return Err(format!("it has the key {number}"));
+        }
+        indices.push(number as usize);
+    }
+    let length = indices.len();
+    if indices.iter().any(|index| *index > length) {
+        return Err(format!("it has {length} entries but a key beyond {length}: a hole"));
+    }
+    Ok(length)
+}
+
 /// A finite double exactly as Lua holds it, whatever the FPU rounding mode. `exact_f64s` formats at 17 significant digits, and the engine
 /// runs a callback under round-toward-zero, where the C library's formatting truncates instead of rounding: the parsed double can then be one
 /// ulp low. This reads the double in exact steps instead (`math.frexp`, a multiplication by a power of two, a floor, a subtraction: all exact in
@@ -1476,6 +1499,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // The reference host's transport to the host-owned tree loader and tree segment query (EEDCS-49, D3 PREPARATION). It is only the reference host's Lua
         // surface onto `eech_world::trees`: the campaign DLL does not call it and its tree queries still run the original solver. Every number is read exactly as
         // Lua holds it (`exact_numbers`), and the answers echo the bits of every float so that a caller can compare them without a lossy round trip.
+        // Fail closed: a refused `begin` (a begin replaces any pending query) or a refused `terrain` answer ends the pending query, so the old request can never be
+        // continued by a later valid answer; a refused `load` changes neither the loaded scene nor a pending query. `forest_geometry` is "absent" or a dense list of
+        // triangles (nine numbers each); a sparse, holey or empty list is refused before anything is discarded.
         let trees: Rc<RefCell<Option<TreeCollision>>> = Rc::new(RefCell::new(None));
         host.set(
             "tree_collision",
@@ -1511,12 +1537,35 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         let geometry = match step.get::<LuaValue>("forest_geometry")? {
                             LuaValue::String(text) if &*text.to_str()? == "absent" => ForestGeometry::KnownAbsent,
                             LuaValue::Table(geometry) => {
-                                // a list of triangles, each a list of nine numbers (the three points in turn), in the order the original returns them
-                                let mut triangles = Vec::new();
-                                for item in geometry.sequence_values::<LuaValue>() {
+                                // a DENSE, ordered list of triangles, each a dense list of exactly nine numbers (the three points in turn), in the order the original
+                                // returns them. A sparse or holey list (which an iteration would silently truncate) and an empty list are refused before any geometry is
+                                // discarded or "absent" is assumed.
+                                let count = dense_length(&geometry).map_err(|e| fail(format!("forest_geometry must be a dense list of triangles ({e})")))?;
+                                if count == 0 {
+                                    return Err(fail("forest_geometry is an empty list: say \"absent\" if the original has no triangles".into()));
+                                }
+                                let mut triangles = Vec::with_capacity(count);
+                                for index in 1..=count {
+                                    let triangle = match geometry.get::<LuaValue>(index)? {
+                                        LuaValue::Table(triangle) => triangle,
+                                        other => {
+                                            return Err(fail(format!(
+                                                "forest_geometry triangle {index} must be a table of exactly nine numbers, got {}",
+                                                other.type_name()
+                                            )))
+                                        }
+                                    };
+                                    let length = dense_length(&triangle)
+                                        .map_err(|e| fail(format!("forest_geometry triangle {index} must be a table of exactly nine numbers ({e})")))?;
+                                    if length != 9 {
+                                        return Err(fail(format!(
+                                            "forest_geometry triangle {index} must be a table of exactly nine numbers, got {length}"
+                                        )));
+                                    }
                                     let holder = lua.create_table()?;
-                                    holder.set("triangle", item?)?;
-                                    let flat = exact_numbers::<9>(lua, &holder, "triangle").map_err(fail)?;
+                                    holder.set("triangle", triangle)?;
+                                    let flat =
+                                        exact_numbers::<9>(lua, &holder, "triangle").map_err(|e| fail(format!("forest_geometry triangle {index}: {e}")))?;
                                     triangles.push([[flat[0], flat[1], flat[2]], [flat[3], flat[4], flat[5]], [flat[6], flat[7], flat[8]]]);
                                 }
                                 ForestGeometry::Triangles(triangles)
@@ -1548,6 +1597,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         return Ok(result);
                     }
                     "begin" => {
+                        // fail closed: a begin replaces any pending query, so a begin that is refused for its arguments must not leave the OLD request answerable
+                        if let Some(pending) = trees.borrow_mut().as_mut() {
+                            pending.abandon();
+                        }
                         let old = exact_numbers::<3>(lua, &step, "old_position").map_err(fail)?;
                         let new = exact_numbers::<3>(lua, &step, "new_position").map_err(fail)?;
                         let point = exact_numbers::<3>(lua, &step, "intercept_point").map_err(fail)?;
@@ -1564,7 +1617,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         holder.begin(old, new, point, normal, ignore_edge, skip_top).map_err(fail)?
                     }
                     "terrain" => {
-                        let [elevation] = exact_numbers::<1>(lua, &step, "elevation").map_err(fail)?;
+                        // fail closed: a malformed answer ends the query it was meant for
+                        let [elevation] = match exact_numbers::<1>(lua, &step, "elevation") {
+                            Ok(value) => value,
+                            Err(message) => {
+                                if let Some(pending) = trees.borrow_mut().as_mut() {
+                                    pending.abandon();
+                                }
+                                return Err(fail(message));
+                            }
+                        };
                         let mut holder = trees.borrow_mut();
                         let holder = holder.as_mut().ok_or_else(|| fail("no tree scene is loaded (mode \"load\" first)".into()))?;
                         holder.terrain(elevation).map_err(fail)?
