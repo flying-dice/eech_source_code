@@ -232,8 +232,60 @@ case numbers or out-of-domain tags and types passed. The driver now checks what 
 - the sample values are the values the counters count: point samples inside the map area are at most `in_map` and those outside at most `off_map`; a sample outside the map area has `above=-1` (it was not asked) and
   one inside has `above` 0 or 1; samples with `above` 1 or 0, `below` 1 or 0, `alias_equal` 1 or 0 and `warm_same` 1 or 0 are at most the matching counter (`true`, `false`, `alias_equal`, `alias_unequal`,
   `warm_same`, `warm_different`). Distinct case numbers make each sampled case a case that was counted once;
-- both caps in the header are at least 1 (a probe that samples nothing characterises nothing).
+- the header's quotas are the emitter's compile-time constants, `POINT_SAMPLES_PER_TAG` 2 and `IMPACT_SAMPLES_PER_TYPE` 4 in `eech_ground_fixture.c`, written into every report's header. The driver accepts
+  **only those values** (a header naming another is refused as `samples_per_point_tag is N, expected 2`), because every completeness check below assumes the quota and a larger one would excuse cases the emitter takes;
+- **no case may be skipped before a class is full** (see the next subsection).
 
-Tests: 22 more single-defect reports through the real driver (61 in all, each compared with its exact message), and positive runs with the caps binding (40 cases each: 12 point and 32 impact samples), not binding (5 each:
+Tests (second review): 22 more single-defect reports through the real driver (61 in all at that revision, each compared with its exact message; the zero-quota case now lives in the forced-gap test below, so the table holds 60), and positive runs with the caps binding (40 cases each: 12 point and 32 impact samples), not binding (5 each:
 every case sampled) and with one type holding all five impact cases (four samples). The stand-in writes a self-consistent complete sample set; it is not the C generator, and these tests are scoped to what the driver
 accepts and refuses, not to the ground queries. No C, numeric, query or digest change is made.
+
+### Forced samples before any class is full (third review of the driver; unbuilt, unrun)
+
+The previous completeness checks still accepted `points=5` with the samples for cases 0, 2, 3 and 4 (the case-1 sample dropped), with case 4 dropped, or five impact cases of one type with samples for cases 0, 2, 3 and 4
+(the exact count of four, the order, the domain and the caps all hold). The emitter samples a case **unless its own tag (or type) already holds its quota**, so while no tag has two samples (no type four) there is no
+class a skipped case could belong to: every consecutive case must be sampled. The driver now applies this to **both** families, after the exact impact-type counts:
+
+- walking a family's samples in case order, it counts samples per tag (type); the family is **full** from the first moment any one class reaches the quota (2 for a point tag, 4 for an impact type);
+- a gap between consecutive sample numbers, or a tail that stops before the last case, is refused **while not full**: `point case 1 is not sampled, but no tag has reached 2 samples (the gap is cases 1 to 1)` and
+  `point samples stop at case 3 of 5, but no tag has reached 2 samples (cases 4 to 4 are unsampled)` (and the `impact`/`type` forms);
+- once a class is full, a gap or tail is accepted: the skipped cases may belong to it. The driver does not guess which; the point cases' per-tag population is not reported and the generator is not reproduced here.
+  A gap that falls **before** the first full class is refused even if a class fills afterwards.
+
+Tests (named in `host_callbacks.rs`): `the_ground_driver_refuses_a_skipped_sample_case_before_any_class_is_full_and_a_quota_the_emitter_does_not_take` (interior gaps at cases 1 and 2, an unfinished tail, a gap not excused by
+a later saturation, the concentrated-impact gap, and the three header quotas 0, 3 and 8 of the point/impact kind) and
+`the_ground_driver_accepts_the_omissions_the_emitter_makes_once_a_class_is_full_and_complete_small_runs` (zero and one case of a family, small complete runs, five points of one tag that stop after the tag's two
+samples, and a saturated tag followed by other tags), beside the earlier positives (caps binding at 40 cases each, 5 each, and the concentrated impact complete at four samples). The stand-in is a driver-truthfulness
+collaborator, not the C generator, and these tests say nothing about the ground queries.
+
+**Validation status.** None of this is executed. The Lua parse, the `host_callbacks` tests with the real driver, the fixture build and the original retail probes are Root's to run; the earlier immutable
+06 native build result, if it completes, is a separate fact and does not validate this driver change. No runtime PASS is claimed here. The C fixture, its numerics, queries and digests are unchanged by this revision.
+
+**Test-assertion correction (Linux run of `06ce4b7bc`: 6 passed, 1 failed).** The driver records every repeat's report, so the sample-cardinality positives that asserted 12/32, 5/5 and 4 sample rows from a default two-repeat run
+saw 24/64 and so on. That was a test defect, not a driver or emitter one: those positives now request `repeats=1`, and the caps-binding case also runs with the default two repeats and checks the doubled totals and the
+12/32 counts per `repeat_index`, so separate repeat behaviour stays covered. The forced-gap positives count the same way. Still not re-run after this edit.
+
+### Executed checker checkpoint — 29 October 2026
+
+Root executed the corrected working-tree driver and embedded stand-in through the
+real Linux host and Lua 5.1: all nine ground-driver tests pass, including the
+single-defect controls, small/zero families, legitimate saturated omissions,
+exact sample cardinality and repeat separation. The affected host_callbacks
+Clippy target passes with warnings denied; formatting/check and both Lua 5.1
+syntax parses pass. The execution record retains the exact tested file hashes;
+this is driver validation, not original C query or shipping acceptance.
+
+A retained red/green replay uses the exact same corrupted old collaborator,
+missing point case1: the immutable06 driver wrongly exits0 and emits a digest;
+the corrected driver exits1 with the named missing-case error, one report_invalid
+and no digest. Its before/after driver hashes match. Separately, the first actual06
+suite had six passes and one test-assertion failure: flat sample totals ignored
+the default second repeat. Single-report assertions now request repeats1; an
+explicit default-two-repeat case also checks each repeat's12/32 samples. No
+emitter, query or expected physical answer was changed to correct that assertion.
+
+The immutable06 Windows original fixture built0 and all43 exported manifest entries
+verify. Its separate Windows guard executable compiled0 but has not run. A clean
+snapshot of this corrected source must be built before the original retail probe,
+repeat and probe/control gates. No original oracle exists yet; final independent
+source-delta review and all host-extraction/shipping delivery gates remain pending.

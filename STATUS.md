@@ -21,12 +21,13 @@ no original oracle exists, and no shipping or Task48 acceptance is claimed.
 The first independent review found two P2 fixture issues and one P3 comparison
 issue. The next delta review closed warm-record contamination and qualified the
 legacy diagnostic comparison, but found incomplete/invalid samples still accepted.
-The latest sole Sonnet 5.5 High correction requires distinct ordered case IDs,
+The latest sole Sonnet 5.5 High corrections require distinct ordered case IDs,
 valid tag/type domains, per-class caps, exact impact sample counts from reported
 tallies, and consistency with counters. It adds 22 negative cases (61 total) and
 positive cap controls. The original C fixture is unchanged. Rust formatting and
-check, both changed Lua syntax parses, and diffcheck pass. The new driver/tests
-remain uncompiled/unrun and require independent delta review. Earlier reports and
+check, both changed Lua syntax parses, and diffcheck pass. The corrected driver passes all nine actual Linux host/Lua5.1 tests and affected
+Clippy with warnings denied. Missing-case red/green replay passes. The new source
+still requires independent delta review and a clean Windows fixture build. Earlier reports and
 current static/build results are retained in the reference folder.
 
 Task47 surface services are separately implemented/reviewed on
@@ -47,3 +48,8 @@ in scope. Same-host continuity: R:/d3-evidence/D3-NEXT-ACTION.json.
 D1/D2 acceptance remains in the migration ledger and accepted repository evidence.
 HOST-HANDOVER.md is the historical D1 handover. Private retail inputs, raw runtime
 recordings and disposable build caches are local artifacts, not source to publish.
+
+Latest correction also refuses missing cases before any class saturates and an
+unsaturated tail, and enforces the emitter quotas2/4. The prior06 positive-count
+assertion failure is retained; corrected tests explicitly cover one and two repeats.
+Exact tested file hashes and red/green evidence are committed in the reference folder.

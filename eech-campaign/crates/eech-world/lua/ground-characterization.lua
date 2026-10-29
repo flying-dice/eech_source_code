@@ -175,6 +175,11 @@ local SAMPLE_SCHEMA = {
 -- the FNV-1a offset basis: the value of a fold that folded nothing
 local FOLD_EMPTY = "cbf29ce484222325"
 
+-- The sample quotas are compile-time constants of the fixture (POINT_SAMPLES_PER_TAG and IMPACT_SAMPLES_PER_TYPE in eech_ground_fixture.c), written into the
+-- header of every report. The completeness checks below are only as strong as the quota they assume, so a header that names any other quota is refused
+-- rather than believed: a larger quota would excuse unsampled cases that the emitter takes.
+local EMITTER_POINT_QUOTA, EMITTER_IMPACT_QUOTA = 2, 4
+
 -- one row's words after the event, as raw `key=value` text: a word that is not key=value, or a key that appears twice, is refused
 local function row_fields (event, words)
 	local fields = {}
@@ -259,6 +264,8 @@ local function read_report (report, repeat_index)
 		refuse (string.format ("the report is for seed %s points %s impacts %s, not the %s %s %s asked", tostring (header.seed), tostring (header.points),
 			tostring (header.impacts), tostring (seed), tostring (points), tostring (impacts)))
 	end
+	need_equal ("ground-probe", "samples_per_point_tag", header.samples_per_point_tag, EMITTER_POINT_QUOTA)
+	need_equal ("ground-probe", "samples_per_impact_type", header.samples_per_impact_type, EMITTER_IMPACT_QUOTA)
 	local map = rows ["ground-map"]
 	if map.sectors_x < 1 or map.sectors_z < 1 or map.sector_side < 1 then refuse ("ground-map: the map has no sectors") end
 
@@ -328,13 +335,10 @@ local function read_report (report, repeat_index)
 	-- a tag has at most samples_per_point_tag samples; and, because the impact type tally is reported, a type has EXACTLY
 	-- min(its tally, samples_per_impact_type) samples. The per-tag tally of point cases is not reported, so a point tag is bounded only from above.
 	local POINT_TAGS, IMPACT_TYPES = 6, 8
-	local per_tag_cap, per_type_cap = header.samples_per_point_tag, header.samples_per_impact_type
-	if per_tag_cap < 1 or per_type_cap < 1 then
-		refuse ("ground-probe: samples_per_point_tag and samples_per_impact_type must be at least 1, got " .. per_tag_cap .. " and " .. per_type_cap)
-	end
+	local per_tag_cap, per_type_cap = EMITTER_POINT_QUOTA, EMITTER_IMPACT_QUOTA
 	if (points == 0) ~= (samples.point == 0) then refuse ("ground-sample: " .. samples.point .. " point samples for " .. points .. " point cases") end
 	if (impacts == 0) ~= (samples.impact == 0) then refuse ("ground-sample: " .. samples.impact .. " impact samples for " .. impacts .. " impact cases") end
-	local family = { point = { cases = points, last = nil, by_class = {} }, impact = { cases = impacts, last = nil, by_class = {} } }
+	local family = { point = { cases = points, last = nil, by_class = {}, sampled = {} }, impact = { cases = impacts, last = nil, by_class = {}, sampled = {} } }
 	local seen_impact = false
 	local flags = { inside = { [0] = 0, [1] = 0 }, above = { [0] = 0, [1] = 0 }, below = { [0] = 0, [1] = 0 },
 		alias_equal = { [0] = 0, [1] = 0 }, warm_same = { [0] = 0, [1] = 0 } }
@@ -356,6 +360,7 @@ local function read_report (report, repeat_index)
 		local class_name = kind == "point" and "tag" or "type"
 		if class >= domain then refuse ("ground-sample: " .. class_name .. " must be 0 to " .. (domain - 1) .. ", got " .. class) end
 		f.by_class [class] = (f.by_class [class] or 0) + 1
+		f.sampled [#f.sampled + 1] = { n = v.n, class = class }
 		need_at_most ("ground-sample", kind .. " samples of " .. class_name .. " " .. class, f.by_class [class], cap)
 		if kind == "point" then
 			-- the same values the counters count: whether the point was inside the map area, and what the two macros answered
@@ -387,6 +392,30 @@ local function read_report (report, repeat_index)
 		local expected = math.min (types ["t" .. k], per_type_cap)
 		local actual = family.impact.by_class [k] or 0
 		if actual ~= expected then refuse ("ground-sample: impact samples of type " .. k .. " is " .. actual .. ", expected " .. expected) end
+	end
+
+	-- NO CASE MAY BE SKIPPED BEFORE A CLASS IS FULL. The emitter samples a case unless its own tag (or type) already has its quota, and a skipped case's class is not
+	-- reported. So a case that is not sampled is explained only if some class has already reached its quota among the samples before it; while no class has,
+	-- every consecutive case must be sampled, and a gap (or a tail that stops short) is refused. After a class is full, skipped cases may belong to it, and the
+	-- driver does not guess which: it has no per-tag population of the point cases and does not reproduce the generator.
+	for _, name in ipairs { "point", "impact" } do
+		local f = family [name]
+		local quota = name == "point" and per_tag_cap or per_type_cap
+		local class_name = name == "point" and "tag" or "type"
+		local counts, last, full = {}, -1, false
+		for _, item in ipairs (f.sampled) do
+			if item.n > last + 1 and not full then
+				refuse ("ground-sample: " .. name .. " case " .. (last + 1) .. " is not sampled, but no " .. class_name .. " has reached " .. quota ..
+					" samples (the gap is cases " .. (last + 1) .. " to " .. (item.n - 1) .. ")")
+			end
+			counts [item.class] = (counts [item.class] or 0) + 1
+			if counts [item.class] >= quota then full = true end
+			last = item.n
+		end
+		if last < f.cases - 1 and not full then
+			refuse ("ground-sample: " .. name .. " samples stop at case " .. last .. " of " .. f.cases .. ", but no " .. class_name .. " has reached " .. quota ..
+				" samples (cases " .. (last + 1) .. " to " .. (f.cases - 1) .. " are unsampled)")
+		end
 	end
 	return events, rows
 end

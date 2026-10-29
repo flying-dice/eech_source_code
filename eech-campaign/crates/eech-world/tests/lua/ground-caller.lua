@@ -157,6 +157,16 @@ local function concentrate(rows, impacts, taken)
   for n = 0, taken - 1 do rows[#rows + 1] = impact_sample(n, 0) end
 end
 
+-- the point samples replaced by exactly these (n, tag) pairs, placed before the impact samples as the fixture writes them
+local function replace_points(rows, pairs_list)
+  drop_all(rows, 'point')
+  local at = #rows + 1
+  for i, r in ipairs(rows) do
+    if r[1] == 'ground-sample' and r[2][1][2] == 'impact' then at = i break end
+  end
+  for k, p in ipairs(pairs_list) do table.insert(rows, at + k - 1, point_sample(p[1], p[2])) end
+end
+
 -- a word that is not key=value, appended to a row
 local function add_word(rows, name, word) local fields = row(rows, name)[2] fields[#fields + 1] = { nil, word } end
 local function add_field(rows, name, key, value) local fields = row(rows, name)[2] fields[#fields + 1] = { key, value } end
@@ -224,6 +234,22 @@ local modes = {
   impact_types_concentrated_short = function(r, points, impacts) concentrate(r, impacts, 1) end,
   impact_types_concentrated_complete = function(r, points, impacts) concentrate(r, impacts, 4) end,
   header_sample_cap_zero = function(r) set(r, 'ground-probe', 'samples_per_point_tag', 0) end,
+  header_point_quota_larger = function(r) set(r, 'ground-probe', 'samples_per_point_tag', 3) end,
+  header_impact_quota_larger = function(r) set(r, 'ground-probe', 'samples_per_impact_type', 8) end,
+  -- NO CASE MAY BE SKIPPED BEFORE A CLASS IS FULL (5 point cases, no tag reaches 2 samples): an interior gap, another interior gap, an unfinished tail,
+  -- and a gap that a LATER saturation does not excuse
+  sample_point_gap_n1 = function(r) drop_nth(r, 'point', 2) end,
+  sample_point_gap_n2 = function(r) drop_nth(r, 'point', 3) end,
+  sample_point_tail_n4 = function(r) drop_nth(r, 'point', 5) end,
+  points_gap_before_saturation = function(r) replace_points(r, { { 0, 0 }, { 2, 0 } }) end,
+  -- the same for impacts, in the form the exact per-type count alone cannot see: all five cases of type 0, four samples, but case 1 is missing
+  impact_concentrated_gap = function(r, points, impacts)
+    concentrate(r, impacts, 0)
+    for _, n in ipairs({ 0, 2, 3, 4 }) do r[#r + 1] = impact_sample(n, 0) end
+  end,
+  -- legitimate omissions, accepted: once a tag holds its 2 samples, later cases may belong to it
+  points_same_tag_saturated = function(r) replace_points(r, { { 0, 0 }, { 1, 0 } }) end,
+  points_saturated_then_other_tags = function(r) replace_points(r, { { 0, 0 }, { 1, 0 }, { 3, 1 }, { 4, 2 } }) end,
   -- sample values against the counters they are counted in
   sample_off_map_with_above = function(r) set(r, 'ground-sample', 'inside', 0, 'point') end,
   sample_off_map_counter = function(r) set(r, 'ground-sample', 'inside', 0, 'point') set(r, 'ground-sample', 'above', -1, 'point') end,

@@ -2186,17 +2186,30 @@ fn ground_samples(rows: &[serde_json::Value], kind: &str) -> usize {
 
 #[test]
 fn the_ground_driver_accepts_the_complete_sample_set_the_emitter_takes_when_the_caps_bind_and_when_they_do_not() {
+    // The driver records every repeat's report, so a sample count is a count per report only when ONE report is made: these runs ask for repeats=1.
     // 40 cases of each kind: every point tag and every impact type has more cases than its cap, so the caps bind: 2 samples for each of 6 point tags
     // and 4 for each of 8 impact types
-    let (status, stdout, stderr, _, rows) = run_ground_case("ok", &["points=40", "impacts=40"]);
+    let (status, stdout, stderr, _, rows) = run_ground_case("ok", &["points=40", "impacts=40", "repeats=1"]);
     assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
     assert_eq!((ground_samples(&rows, "point"), ground_samples(&rows, "impact")), (12, 32));
+    // the same run with the default two repeats records each report once: twice the rows, and each repeat holds exactly the one-report counts
+    let (status, stdout, stderr, _, rows) = run_ground_case("ok", &["points=40", "impacts=40"]);
+    assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert_eq!((ground_samples(&rows, "point"), ground_samples(&rows, "impact")), (24, 64));
+    for repeat in [1, 2] {
+        let in_repeat = |kind: &str| {
+            rows.iter()
+                .filter(|r| r["event"] == "ground-sample" && r["kind"] == kind && r["repeat_index"] == repeat)
+                .count()
+        };
+        assert_eq!((in_repeat("point"), in_repeat("impact")), (12, 32), "repeat {repeat}");
+    }
     // 5 cases of each kind: no tag or type reaches its cap, so every case is sampled
-    let (status, stdout, stderr, _, rows) = run_ground_case("ok", &["points=5", "impacts=5"]);
+    let (status, stdout, stderr, _, rows) = run_ground_case("ok", &["points=5", "impacts=5", "repeats=1"]);
     assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
     assert_eq!((ground_samples(&rows, "point"), ground_samples(&rows, "impact")), (5, 5));
     // all 5 impact cases of one type: the sample count is min(5, 4) = 4, not 1 (the short form of this report is refused above)
-    let (status, stdout, stderr, _, rows) = run_ground_case("impact_types_concentrated_complete", &["points=5", "impacts=5"]);
+    let (status, stdout, stderr, _, rows) = run_ground_case("impact_types_concentrated_complete", &["points=5", "impacts=5", "repeats=1"]);
     assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
     assert_eq!(ground_samples(&rows, "impact"), 4);
     assert!(rows.iter().any(|r| r["event"] == "state_digest"));
@@ -2214,7 +2227,7 @@ fn ground_refusal(reason: &str) -> String {
 fn the_ground_driver_names_the_one_defect_in_a_report_and_writes_no_success_row() {
     let counts: &[&str] = &["points=5", "impacts=5"];
     let no_impacts: &[&str] = &["points=5", "impacts=0"];
-    let defects: [(&str, &[&str], &str); 61] = [
+    let defects: [(&str, &[&str], &str); 60] = [
         (
             "unrestored",
             counts,
@@ -2310,11 +2323,6 @@ fn the_ground_driver_names_the_one_defect_in_a_report_and_writes_no_success_row(
             counts,
             "ground-sample: impact samples of type 0 is 1, expected 4",
         ),
-        (
-            "header_sample_cap_zero",
-            counts,
-            "ground-probe: samples_per_point_tag and samples_per_impact_type must be at least 1, got 0 and 4",
-        ),
         // sample values against the counters they are counted in
         (
             "sample_off_map_with_above",
@@ -2345,23 +2353,91 @@ fn the_ground_driver_names_the_one_defect_in_a_report_and_writes_no_success_row(
         ),
     ];
     for (mode, args, reason) in defects {
-        let expected = ground_refusal(reason);
-        let (status, stdout, stderr, trace, rows) = run_ground_case(mode, args);
-        assert!(
-            !status.success() && !stdout.contains("GROUND_CALLER_DONE"),
-            "{mode}: accepted\n{stdout}\n{stderr}"
-        );
-        assert!(stderr.contains(&expected), "{mode}: expected {expected:?}, got {stderr}");
-        let invalid: Vec<_> = rows.iter().filter(|r| r["event"] == "report_invalid").collect();
-        assert_eq!(invalid.len(), 1, "{mode}: {rows:?}");
-        assert_eq!(invalid[0]["error"].as_str(), Some(expected.as_str()), "{mode}");
-        for success in ["repeat_identical", "state_digest"] {
-            assert!(rows.iter().all(|r| r["event"] != success), "{mode}: a {success} row follows a rejected report");
-        }
-        assert!(
-            rows.iter().all(|r| !r["event"].as_str().unwrap_or("").starts_with("ground-")),
-            "{mode}: a row of the rejected report was recorded"
-        );
-        assert_eq!(trace.matches("probe ").count(), 1, "{mode}: the run stops at the rejected report: {trace}");
+        assert_ground_defect(mode, args, reason);
     }
+}
+
+// One report with one defect, through the real driver: the run fails with exactly the named reason, records it once as `report_invalid`, writes no row of the rejected
+// report and no success row (`repeat_identical`, `state_digest`), and stops at the first probe.
+fn assert_ground_defect(mode: &str, args: &[&str], reason: &str) {
+    let expected = ground_refusal(reason);
+    let (status, stdout, stderr, trace, rows) = run_ground_case(mode, args);
+    assert!(
+        !status.success() && !stdout.contains("GROUND_CALLER_DONE"),
+        "{mode}: accepted\n{stdout}\n{stderr}"
+    );
+    assert!(stderr.contains(&expected), "{mode}: expected {expected:?}, got {stderr}");
+    let invalid: Vec<_> = rows.iter().filter(|r| r["event"] == "report_invalid").collect();
+    assert_eq!(invalid.len(), 1, "{mode}: {rows:?}");
+    assert_eq!(invalid[0]["error"].as_str(), Some(expected.as_str()), "{mode}");
+    for success in ["repeat_identical", "state_digest"] {
+        assert!(rows.iter().all(|r| r["event"] != success), "{mode}: a {success} row follows a rejected report");
+    }
+    assert!(
+        rows.iter().all(|r| !r["event"].as_str().unwrap_or("").starts_with("ground-")),
+        "{mode}: a row of the rejected report was recorded"
+    );
+    assert_eq!(trace.matches("probe ").count(), 1, "{mode}: the run stops at the rejected report: {trace}");
+}
+
+// REGRESSION: the sample-completeness checks accepted a point or impact sample set with a case missing while no tag or type had reached its quota (the emitter samples every
+// case until a class is full), and trusted whatever quota the header named. Each report below has one such defect; the same driver accepts the legitimate omissions in the next test.
+#[test]
+fn the_ground_driver_refuses_a_skipped_sample_case_before_any_class_is_full_and_a_quota_the_emitter_does_not_take() {
+    let counts: &[&str] = &["points=5", "impacts=5"];
+    for (mode, reason) in [
+        // an interior case is missing (case 1, then case 2): no tag has two samples, so every case up to the last sample must be there
+        (
+            "sample_point_gap_n1",
+            "ground-sample: point case 1 is not sampled, but no tag has reached 2 samples (the gap is cases 1 to 1)",
+        ),
+        (
+            "sample_point_gap_n2",
+            "ground-sample: point case 2 is not sampled, but no tag has reached 2 samples (the gap is cases 2 to 2)",
+        ),
+        // the last case is missing: the samples stop short and no tag is full
+        (
+            "sample_point_tail_n4",
+            "ground-sample: point samples stop at case 3 of 5, but no tag has reached 2 samples (cases 4 to 4 are unsampled)",
+        ),
+        // a gap is not excused by a tag that fills up AFTER it
+        (
+            "points_gap_before_saturation",
+            "ground-sample: point case 1 is not sampled, but no tag has reached 2 samples (the gap is cases 1 to 1)",
+        ),
+        // all five impact cases are of type 0 and four samples are present (the exact per-type count passes), but case 1 is missing
+        (
+            "impact_concentrated_gap",
+            "ground-sample: impact case 1 is not sampled, but no type has reached 4 samples (the gap is cases 1 to 1)",
+        ),
+        // the quotas are the emitter's constants (2 and 4); a header naming another is refused, so a larger quota cannot excuse unsampled cases
+        ("header_sample_cap_zero", "ground-probe: samples_per_point_tag is 0, expected 2"),
+        ("header_point_quota_larger", "ground-probe: samples_per_point_tag is 3, expected 2"),
+        ("header_impact_quota_larger", "ground-probe: samples_per_impact_type is 8, expected 4"),
+    ] {
+        assert_ground_defect(mode, counts, reason);
+    }
+}
+
+#[test]
+fn the_ground_driver_accepts_the_omissions_the_emitter_makes_once_a_class_is_full_and_complete_small_runs() {
+    // zero and one case of a family, a family with every case sampled, and caps that bind: nothing is missing that the emitter would take
+    for args in [
+        ["points=1", "impacts=0"],
+        ["points=0", "impacts=1"],
+        ["points=1", "impacts=1"],
+        ["points=2", "impacts=3"],
+    ] {
+        let (status, stdout, stderr, _, rows) = run_ground_case("ok", &args);
+        assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{args:?}: {stdout}\n{stderr}");
+        assert!(rows.iter().any(|r| r["event"] == "state_digest"), "{args:?}");
+    }
+    // five point cases all of one tag: cases 0 and 1 are sampled, the tag is then full, so cases 2 to 4 are legitimately unsampled
+    let (status, stdout, stderr, _, rows) = run_ground_case("points_same_tag_saturated", &["points=5", "impacts=5", "repeats=1"]);
+    assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert_eq!(ground_samples(&rows, "point"), 2);
+    // tag 0 fills at case 1, so case 2 may belong to it; cases 3 and 4 then follow without a gap
+    let (status, stdout, stderr, _, rows) = run_ground_case("points_saturated_then_other_tags", &["points=5", "impacts=5", "repeats=1"]);
+    assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert_eq!(ground_samples(&rows, "point"), 4);
 }
