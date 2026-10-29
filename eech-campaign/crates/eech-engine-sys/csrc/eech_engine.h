@@ -370,4 +370,18 @@ int eech_engine_cmb_case_bridge (int op, int ordinal, int index, int criterion, 
 int eech_engine_cmb_events (char *text, int capacity, int *more);
 #endif
 
+#ifdef EECH_COLLISION_FIXTURE
+/*
+ * TEST-ONLY (feature collision-fixture, EEDCS-49): see eech_collision_fixture.c. Not part of the shipping module.
+ * One probe of the original get_line_of_sight_collision_entity and get_line_of_sight_collision_tree against the loaded world: a finite structured
+ * case set taken from the real sector lists and tree data, plus entity_cases and tree_cases seeded random cases from a private generator
+ * seeded with seed. The report is key=value text lines: the census, per-kind hit counts, exclusion and ordering counters, cache and
+ * miss-write counters, an order-dependent physical fold (float bit patterns), a separate legacy fold, and bounded raw samples. The shared terrain
+ * point record is restored byte for byte; the game's random stream and the candidates' state are compared before and after. Needs no host. A refused
+ * probe (a precondition not held, a report that does not fit) writes "col-refused reason=..." and fails as a bad argument; each of entity_cases
+ * and tree_cases is 0 to 20000.
+ */
+int eech_engine_collision_probe (uint32_t seed, int entity_cases, int tree_cases, char *text, int capacity);
+#endif
+
 #endif

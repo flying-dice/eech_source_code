@@ -1539,3 +1539,35 @@ int eech_engine_wpn_case_launch (const char *launcher_id, const char *target_id,
 }
 
 #endif
+
+#ifdef EECH_COLLISION_FIXTURE
+
+/*
+ * TEST-ONLY object and tree collision characterisation (EEDCS-49): one probe of the original get_line_of_sight_collision_entity and
+ * get_line_of_sight_collision_tree against the loaded world (eech_collision_fixture.c). It runs inside the engine entry, so it sees EECH's
+ * round-toward-zero mode as the campaign's own queries do, and it needs no host: neither query asks one. It snapshots the shared terrain
+ * point record and writes it back byte for byte, and compares the game's random stream and the collision candidates' state before and
+ * after. The report is text, `key=value` lines; no pointer, address or entity index is in it except the diagnostic legacy fold.
+ * A request the probe refuses (a precondition) or whose report does not fit writes `col-refused reason=...` and is a bad argument.
+ */
+extern int eech_collision_probe_run (uint32_t seed, int entity_cases, int tree_cases, char *text, int capacity);
+
+int eech_engine_collision_probe (uint32_t seed, int entity_cases, int tree_cases, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || (entity_cases < 0) || (entity_cases > 20000) || (tree_cases < 0) || (tree_cases > 20000))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_collision_probe_run (seed, entity_cases, tree_cases, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif

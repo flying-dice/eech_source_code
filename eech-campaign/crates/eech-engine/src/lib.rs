@@ -56,7 +56,8 @@ fn check(code: c_int) -> Result<(), EngineError> {
 /// TEST-ONLY (feature `weapon-fixture`, EEDCS-46): the report text of a controlled combat case when the engine rejected its arguments. The case driver writes its reason
 /// (`cmb-case-error reason=... detail=...`) into the report buffer before it returns the argument error, and `check` turns every argument error into "rejected by the engine";
 /// this keeps the reason instead of discarding it. Any other failure, and a rejection that wrote nothing, is unchanged.
-#[cfg(feature = "weapon-fixture")]
+/// The collision probe (feature `collision-fixture`, EEDCS-49) writes `col-refused reason=...` the same way and uses it too.
+#[cfg(any(feature = "weapon-fixture", feature = "collision-fixture"))]
 fn keep_case_reason(status: Result<(), EngineError>, text: &[std::os::raw::c_char]) -> Result<String, EngineError> {
     // SAFETY: the buffer was zero-filled and the engine NUL-terminates anything it writes within it.
     let report = unsafe { CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned();
@@ -959,6 +960,14 @@ const SENSOR_REPORT_CAPACITY: usize = 96 * 1024;
 /// TEST-ONLY (feature `aim-fixture`): room for one aiming report; a report that does not fit is refused, never cut short.
 #[cfg(feature = "aim-fixture")]
 const AIM_REPORT_CAPACITY: usize = 96 * 1024;
+
+/// TEST-ONLY (feature `collision-fixture`, EEDCS-49): room for one collision report; a report that does not fit is refused, never cut short.
+#[cfg(feature = "collision-fixture")]
+const COLLISION_REPORT_CAPACITY: usize = 128 * 1024;
+
+/// TEST-ONLY (feature `collision-fixture`, EEDCS-49): the most random entity cases or random tree cases one probe is asked for.
+#[cfg(feature = "collision-fixture")]
+pub const COLLISION_PROBE_CASES_MAX: i32 = 20_000;
 
 /// TEST-ONLY (feature `weapon-fixture`): room for one weapon-execution report or one chunk of the event log; a report that does not fit is refused, never cut short.
 #[cfg(feature = "weapon-fixture")]
@@ -4533,6 +4542,24 @@ impl Engine {
         check(unsafe { sys::eech_engine_sensor_trace(text.as_mut_ptr(), text.len() as i32) })?;
         // SAFETY: the engine wrote a NUL-terminated string within the buffer.
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `collision-fixture`, EEDCS-49): one probe of the original `get_line_of_sight_collision_entity` and `get_line_of_sight_collision_tree` against the
+    /// loaded world (see `csrc/eech_collision_fixture.c`): a finite structured case set from the real sector lists and tree data, plus `entity_cases` and `tree_cases` seeded
+    /// random cases. It returns the report as `key=value` text lines. The shared terrain point record is restored byte for byte and the game's random stream and the collision
+    /// candidates' state are compared before and after. A request out of range, or one the engine refuses (a precondition not held, a report that does not fit), fails; a refusal keeps
+    /// the engine's reason (`col-refused reason=...`).
+    #[cfg(feature = "collision-fixture")]
+    pub fn collision_probe(&self, seed: u32, entity_cases: i32, tree_cases: i32) -> Result<String, EngineError> {
+        if !(0..=COLLISION_PROBE_CASES_MAX).contains(&entity_cases) || !(0..=COLLISION_PROBE_CASES_MAX).contains(&tree_cases) {
+            return Err(EngineError::BadArgument(format!(
+                "collision_probe: entity_cases and tree_cases must each be 0 to {COLLISION_PROBE_CASES_MAX}, got {entity_cases} and {tree_cases}"
+            )));
+        }
+        let mut text = vec![0 as std::os::raw::c_char; COLLISION_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        let status = check(unsafe { sys::eech_engine_collision_probe(seed, entity_cases, tree_cases, text.as_mut_ptr(), text.len() as i32) });
+        keep_case_reason(status, &text)
     }
 
     /// TEST-ONLY (feature `aim-fixture`, EEDCS-44): the run-wide report of the physical weapon-aiming code the campaign's own update loop has run

@@ -36,6 +36,8 @@ sensor-fixture = ["eech-engine/sensor-fixture"]
 aim-fixture = ["eech-engine/aim-fixture"]
 # TEST-ONLY (EEDCS-45): the physical weapon-execution characterisation trace, event log and controlled launch case. Never enabled in the shipping build.
 weapon-fixture = ["eech-engine/weapon-fixture"]
+# TEST-ONLY (EEDCS-49): the object and tree collision characterisation probe. Never enabled in the shipping build.
+collision-fixture = ["eech-engine/collision-fixture"]
 
 # Code that runs inside a host's process: a panic in this DLL takes the host
 # down. The reference crate's restriction lints, denied here.

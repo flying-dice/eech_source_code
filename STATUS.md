@@ -1,3 +1,55 @@
+# Latest collision characterization checkpoint — driver guards passed
+
+Actual working-tree Linux format/check, eight the_collision_driver_* tests and
+host all-target Clippy passed0 at 2026-10-29T18:02:22Z. These are stand-in/driver
+flow and schema tests, not original C/retail collision evidence. Exact tested
+hashes and log are in reference/d3-collision-characterization/ under eech-campaign.
+Three fresh reserved Georgia/Lebanon/separate-repeat roots match the repository
+input manifests; no native collision campaign has run on them yet.
+
+Next: clean named Windows collision-fixture build and verified exports; first
+seconds=0 native probes, then seconds=120 paired probe/control runs and separate
+repeat, all on verified private roots. Record actual exits, differences and coverage
+gaps, independently review new source/results, then continue host extraction.
+Production switching waits validated preceding deliveries and freshly verified
+integration. Ground host kernel/Lua preparation reviews are closed; production G2
+handoff/shipping delivery and Task47 final shipping115 still remain. Whole D3 scope
+is retained; D4/D5 not started. Current ledger is14548994v60; the following records
+the author's earlier live v59 read and source-preparation checkpoint.
+
+# D3 object and tree collision queries (EEDCS-49) — original characterisation source prepared
+
+29 October 2026. **Source only: unbuilt, unrun, unreviewed.** Task [EEDCS-49](https://flying-dice.atlassian.net/browse/EEDCS-49) (parent
+[D3/EEDCS-21](https://flying-dice.atlassian.net/browse/EEDCS-21)) on branch `codex/d3-object-tree-collision`, base accepted integration
+`6bbaa8197a4843181d03cd355d562af998c75321` (clean when work began). Live authority read 29 October: M5 goal v3, migration ledger v59, EEDCS-49 and
+EEDCS-21 (no tool was unavailable). D1 and D2 are accepted; D3 is the only active epic; D4/D5 have not started.
+
+Gate advanced: original characterisation of `get_line_of_sight_collision_entity` and `get_line_of_sight_collision_tree` before any ownership change.
+**No physical responsibility has moved, no production dispatch changed, and nothing here completes EEDCS-49, G3a or D3.** Production G3 switching still
+waits for validated preceding delivery (EEDCS-47 shipping regression, the G2 host-Lua review) and freshly verified integration.
+
+Prepared (all feature-gated test-only; none in the shipping module): `collision-fixture` feature chain `eech-dc` → `eech-engine` → `eech-engine-sys`;
+`csrc/eech_collision_fixture.c` (calls the ORIGINAL functions with the consumers' call shape against the loaded sector lists, 3D object database and tree
+data); `eech_engine_collision_probe` entry in `eech_engine.c/.h`; `Engine::collision_probe`; Lua method `engine:collision_probe`;
+`lua/collision-characterization.lua` (arguments checked before anything is opened or booted, strict JSON, report accepted only as a whole, coverage
+stated); `tools/build-windows-collision-fixture.sh`; a stand-in and `the_collision_driver_*` tests; and
+[docs/m5-collision-characterization.md](eech-campaign/docs/m5-collision-characterization.md) with the source findings, finite case set, report schema,
+unsupported inputs, run command and risks.
+
+Source findings worth the lead's attention (read from the source; **not runtime evidence**): the entity query is first-found in a fixed scan order,
+not nearest-hit; exclusion tests only the sector-list entity, so excluding a city building does nothing and excluding its city excludes all of its
+buildings; both intersection helpers write the face normal (and the plane-crossing point) before deciding hit or miss, so a miss can leave written
+outputs that the weapon-step lookup reports to the host; the tree query has two tie rules (first triangle hit versus nearest quad) and divides by the
+segment's x and z extents; both queries write the shared terrain point record. The gunship consumers (`co_force.c` uses the face normal) are compiled; their
+reachability disposition is not decided here.
+
+Not done and still required: compile the clean named fixture build; execute the stand-in tests (their expected messages were derived by reading the
+driver); run the native probes on fresh verified Georgia, Lebanon and Lebanon-repeat roots at `seconds=0` and `120`, with and without probe, and
+`repeats>=2`; learn whether the retail worlds offer tree data, moving targets, buildings and geometry targets (the `coverage` event says); classify
+differences; independent review. Adding `lua/collision-characterization.lua` adds one entry to the build file manifest; the C and Rust changes outside the
+feature are `#ifdef`/`cfg` only and are expected, but not verified, to leave shipping bytes unchanged. No baseline, tolerance, scenario or seed changed;
+all prior records below are preserved.
+
 # D2 combat and perception — implementation delivery record
 
 29 October 2026. The physical D2 increment is delivered on integration through
