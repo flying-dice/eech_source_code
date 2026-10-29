@@ -2031,12 +2031,15 @@ fn run_collision_case(mode: &str, extra: &[&str]) -> (std::process::ExitStatus, 
     std::fs::write(&script, text).unwrap();
     std::fs::write(&driver, COLLISION_DRIVER_SCRIPT).unwrap();
     let mut command = Command::new(collision_host_exe());
-    command
-        .arg(&script)
-        .arg("root=none")
-        .arg(format!("out={}", out.display().to_string().replace('\u{5c}', "/")));
+    let out_text = out.display().to_string().replace('\u{5c}', "/");
+    // @OUT_DOT_ALIAS@ in an extra argument is another spelling of the same output file (dir/./name), for the path-alias control
+    let out_alias = match out_text.rfind('/') {
+        Some(i) => format!("{}/.{}", &out_text[..i], &out_text[i..]),
+        None => out_text.clone(),
+    };
+    command.arg(&script).arg("root=none").arg(format!("out={out_text}"));
     for arg in extra {
-        command.arg(arg);
+        command.arg(arg.replace("@OUT_DOT_ALIAS@", &out_alias));
     }
     let run = command.output().unwrap();
     std::fs::remove_file(&script).unwrap();
@@ -2554,4 +2557,206 @@ fn the_collision_driver_accepts_flag_counts_with_realisable_added_bits() {
         (Some(2), Some(0), Some(2)),
         "{flags}"
     );
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// The optional private tree-query transcript (trace_out): the driver's own checks of it, against a stand-in that lays out a transcript consistent with its report.
+
+fn collision_trace_path() -> std::path::PathBuf {
+    static COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+    std::env::temp_dir().join(format!(
+        "eech-world-collision-tree-trace-{}-{}.jsonl",
+        std::process::id(),
+        COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst)
+    ))
+}
+
+type CollisionCaseResult = (std::process::ExitStatus, String, String, String, Vec<serde_json::Value>);
+
+// Runs a case with trace_out set to a fresh path; returns the case result and the path (the caller reads and removes the file).
+fn run_collision_trace_case(mode: &str, extra: &[&str]) -> (CollisionCaseResult, std::path::PathBuf) {
+    let path = collision_trace_path();
+    let _ = std::fs::remove_file(&path);
+    let argument = format!("trace_out={}", path.display().to_string().replace('\u{5c}', "/"));
+    let mut arguments: Vec<&str> = extra.to_vec();
+    arguments.push(&argument);
+    (run_collision_case(mode, &arguments), path)
+}
+
+#[test]
+fn the_collision_driver_writes_a_complete_private_tree_transcript_only_when_asked() {
+    let ((status, stdout, stderr, trace, rows), path) = run_collision_trace_case("ok", &["entity_cases=40", "tree_cases=40"]);
+    assert!(status.success() && stdout.contains("COLLISION_CALLER_DONE"), "{stdout}\n{stderr}");
+    // armed before each of the two probes, disarmed once after them
+    assert_eq!(
+        (trace.matches("trace_arm true").count(), trace.matches("trace_arm false").count()),
+        (2, 1),
+        "{trace}"
+    );
+    let text = std::fs::read_to_string(&path).expect("the transcript file");
+    let _ = std::fs::remove_file(&path);
+    let lines: Vec<serde_json::Value> = text
+        .lines()
+        .map(|l| serde_json::from_str(l).unwrap_or_else(|e| panic!("transcript row not strict JSON {l:?}: {e}")))
+        .collect();
+    assert_eq!(lines.first().map(|l| l["event"].as_str()), Some(Some("trace-start")), "{:?}", lines.first());
+    assert_eq!(lines.last().map(|l| l["event"].as_str()), Some(Some("trace-end")), "{:?}", lines.last());
+    // 2 x (74 + 36) primary queries (cold and warm) and 2 x (4 + 7) nearer-check queries
+    let queries: Vec<_> = lines.iter().filter(|l| l["event"] == "tq").collect();
+    assert_eq!(queries.len(), 242);
+    assert_eq!(lines.last().unwrap()["records"].as_i64(), Some(242));
+    assert!(
+        queries.iter().enumerate().all(|(i, q)| q["ordinal"].as_i64() == Some(i as i64)),
+        "contiguous ordinals"
+    );
+    let layout = lines.iter().find(|l| l["event"] == "tf-layout").expect("the layout fact");
+    assert_eq!(layout["record_size"].as_i64(), Some(8), "{layout}");
+    assert_eq!(lines.iter().filter(|l| l["event"] == "tf-triangle").count(), 2);
+    // a hex word stays text, a count is a number
+    assert_eq!(queries[0]["a"].as_str(), Some("3f800000,40000000,3f800000"), "{}", queries[0]);
+    assert_eq!(queries[0]["lookups"].as_i64(), Some(2), "{}", queries[0]);
+    let written = rows.iter().find(|r| r["event"] == "trace_written").expect("the written event");
+    assert_eq!(written["records"].as_i64(), Some(242), "{written}");
+
+    // off by default: no transcript is armed or read, and no trace event is written
+    let (status, stdout, stderr, trace, rows) = run_collision_case("ok", &["entity_cases=40", "tree_cases=40"]);
+    assert!(status.success() && stdout.contains("COLLISION_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert!(!trace.contains("trace_arm") && rows.iter().all(|r| r["event"] != "trace_written"), "{trace}");
+}
+
+// One defect each in the transcript. Each must fail the run with exactly the named reason, write no transcript content (the file exists, created before the run, and stays empty, so an
+// incomplete transcript can never look complete), and write no success row.
+#[test]
+fn the_collision_driver_names_the_one_defect_in_a_transcript_and_leaves_the_file_empty() {
+    let controls: [(&str, &str); 10] = [
+        ("trace_overflow", "tr-state: overflow is 1, expected 0"),
+        ("trace_extra_lookups", "tr-state: extra_lookups is 3, expected 0"),
+        ("trace_short", "tr-state: records is 241, expected 242"),
+        ("trace_stage_order", "tq 1: stage 0 where stage 1 was expected"),
+        ("trace_warm_differs", "tq group struct: warm agreements is 73, expected 74"),
+        (
+            "trace_init_normal",
+            "tq 0: init_normal is 00000000,00000000,00000000, expected 5a5a5a5a,5a5a5a5a,5a5a5a5a",
+        ),
+        ("trace_not_repeatable", "the tree-query transcript of repeat 2 differs from repeat 1"),
+        ("trace_facts_tree_total", "tf-map: tree_total is 99, expected 100"),
+        ("trace_triangle_count", "tf-forest: triangles is 3, expected 2"),
+        ("trace_unknown_row", "the transcript has an unknown row 'tq-extra'"),
+    ];
+    for (mode, reason) in controls {
+        let ((status, stdout, stderr, trace, rows), path) = run_collision_trace_case(mode, &["entity_cases=40", "tree_cases=40"]);
+        let size = std::fs::metadata(&path).map(|m| m.len());
+        let _ = std::fs::remove_file(&path);
+        assert!(!status.success() && !stdout.contains("COLLISION_CALLER_DONE"), "{mode}: {stdout}\n{stderr}");
+        assert!(stderr.contains(&collision_refusal(reason)), "{mode}: expected {reason:?} in {stderr}");
+        assert_eq!(
+            size.ok(),
+            Some(0),
+            "{mode}: the transcript file must exist and be empty after a rejected transcript"
+        );
+        // the armed transcript is disarmed on the failure path, and the failure is recorded as such
+        assert_eq!(trace.matches("trace_arm false").count(), 1, "{mode}: {trace}");
+        assert!(rows.iter().any(|r| r["event"] == "trace_failed"), "{mode}: no trace_failed event: {rows:?}");
+        assert!(
+            rows.iter()
+                .all(|r| !matches!(r["event"].as_str().unwrap_or(""), "trace_written" | "coverage" | "state_digest" | "done")),
+            "{mode}: a success row was written: {rows:?}"
+        );
+    }
+}
+
+#[test]
+fn the_collision_driver_refuses_bad_trace_arguments_before_booting_or_touching_files() {
+    // an existing file is never overwritten
+    let existing = collision_trace_path();
+    std::fs::write(&existing, "keep me").unwrap();
+    let argument = format!("trace_out={}", existing.display().to_string().replace('\u{5c}', "/"));
+    let (status, _, stderr, trace, rows) = run_collision_case("ok", &[&argument]);
+    assert!(
+        !status.success() && stderr.contains("already exists: an existing file is never overwritten"),
+        "{stderr}"
+    );
+    assert!(trace.is_empty() && rows.is_empty(), "the engine was booted or a row written: {trace}");
+    assert_eq!(std::fs::read_to_string(&existing).unwrap(), "keep me");
+    let _ = std::fs::remove_file(&existing);
+
+    // the transcript is of the probe's queries: a control without a probe has none to trace
+    let fresh = collision_trace_path();
+    let argument = format!("trace_out={}", fresh.display().to_string().replace('\u{5c}', "/"));
+    let (status, _, stderr, trace, rows) = run_collision_case("ok", &["probe=no", &argument]);
+    assert!(!status.success() && stderr.contains("trace_out needs probe=yes"), "{stderr}");
+    assert!(
+        trace.is_empty() && rows.is_empty() && !fresh.exists(),
+        "nothing may be opened or booted: {trace}"
+    );
+
+    // another spelling of the output file itself (dir/./name) is the same file: it is found existing once the output is created, and is never truncated
+    let (status, _, stderr, trace, rows) = run_collision_case("ok", &["trace_out=@OUT_DOT_ALIAS@"]);
+    assert!(
+        !status.success() && stderr.contains("already exists: an existing file is never overwritten"),
+        "{stderr}"
+    );
+    assert!(trace.is_empty() && rows.is_empty(), "the engine was booted or a row written: {trace}");
+
+    // more random tree cases than the fixture's bounded transcript can hold
+    let (status, _, stderr, trace, rows) = run_collision_case("ok", &["tree_cases=8001", &argument]);
+    assert!(!status.success() && stderr.contains("trace_out needs tree_cases at most 8000"), "{stderr}");
+    assert!(
+        trace.is_empty() && rows.is_empty() && !fresh.exists(),
+        "nothing may be opened or booted: {trace}"
+    );
+}
+
+// Failures of the new trace file's own I/O and of the disarm fail the run closed: before trace_written and done, with the failure recorded, the transcript disarmed and the file
+// closed, and a cleanup error never replaces the primary diagnostic. A file is accepted only when the output holds trace_written.
+#[test]
+fn the_collision_driver_fails_closed_on_trace_write_flush_close_and_disarm_errors() {
+    for (mode, reason) in [
+        (
+            "trace_io_write",
+            "collision-characterization: the tree-query transcript could not be written: stand-in write failure",
+        ),
+        (
+            "trace_io_flush",
+            "collision-characterization: the tree-query transcript could not be flushed: stand-in flush failure",
+        ),
+        (
+            "trace_io_close",
+            "collision-characterization: the tree-query transcript could not be closed: stand-in close failure",
+        ),
+        ("trace_disarm_fails", "stand-in disarm failure"),
+    ] {
+        let ((status, stdout, stderr, trace, rows), path) = run_collision_trace_case(mode, &["entity_cases=40", "tree_cases=40"]);
+        let text = std::fs::read_to_string(&path).unwrap_or_default();
+        let _ = std::fs::remove_file(&path);
+        assert!(
+            !status.success() && !stdout.contains("COLLISION_CALLER_DONE") && !stdout.contains("COLLISION_CHARACTERIZATION_DONE"),
+            "{mode}: {stdout}\n{stderr}"
+        );
+        assert!(stderr.contains(reason), "{mode}: expected {reason:?} in {stderr}");
+        assert!(
+            rows.iter()
+                .all(|r| !matches!(r["event"].as_str().unwrap_or(""), "trace_written" | "coverage" | "state_digest" | "done")),
+            "{mode}: a success row was written: {rows:?}"
+        );
+        assert_eq!(rows.iter().filter(|r| r["event"] == "trace_failed").count(), 1, "{mode}: {rows:?}");
+        let complete = text.lines().last().is_some_and(|l| l.contains("\"event\":\"trace-end\""));
+        match mode {
+            // nothing reached the file; the disarm that failed is attempted again by the cleanup, which also fails and is recorded without hiding the first error
+            "trace_io_write" => assert!(text.is_empty() && trace.matches("trace_arm false").count() == 1, "{mode}: {trace}"),
+            "trace_io_flush" => assert!(
+                !text.is_empty() && !complete && trace.matches("trace_arm false").count() == 1,
+                "{mode}: {trace}"
+            ),
+            // every line and the end line were written, but the close failed: the file is NOT accepted, because the output has no trace_written
+            "trace_io_close" => assert!(complete && trace.matches("trace_arm false").count() == 1, "{mode}: {trace}"),
+            _ => {
+                assert!(text.is_empty() && trace.matches("trace_arm false").count() == 2, "{mode}: {trace}");
+                assert!(
+                    rows.iter().any(|r| r["event"] == "trace_cleanup_failed" && r["what"] == "disarm"),
+                    "{mode}: {rows:?}"
+                );
+            }
+        }
+    }
 }

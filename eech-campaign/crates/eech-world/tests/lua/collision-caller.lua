@@ -44,6 +44,8 @@ local WORLD = { moving_geometry = 1, moving_box = 1, stationary_geometry = 5, st
 local CLASSES = { 'moving_geometry', 'moving_box', 'stationary_geometry', 'stationary_box', 'fixed_geometry', 'fixed_box', 'building_geometry', 'building_box',
   'tree_quad', 'tree_geometry' }
 
+local trace_plan = nil -- what the last built report says about the tree queries, for the transcript the stand-in writes
+
 local function build(seed, entity_cases, tree_cases)
   local trees = mode ~= 'no_trees'
   local census, targets = {}, {}
@@ -148,6 +150,8 @@ local function build(seed, entity_cases, tree_cases)
   end
   samples('entity', e_struct_hit + e_random_hit, (e_struct_cases - e_struct_hit) + (entity_cases - e_random_hit))
   samples('tree', t_struct_hit + t_random_hit, (t_struct_cases - t_struct_hit) + (t_random - t_random_hit))
+  trace_plan = { trees = trees, s_cases = t_struct_cases, s_hits = t_struct_hit, s_near = trees and 4 or 0, s_derived = trees and 1 or 0, r_cases = t_random, r_hits = t_random_hit,
+    r_near = t_random_hit, r_derived = (t_random_hit >= 2) and 2 or 0 }
   return rows
 end
 
@@ -232,6 +236,22 @@ local modes = {
   end,
   -- a rejected report is kept whole: an unknown row whose value holds quote, backslash, a control byte and UTF-8
   raw_with_controls = function(r) r[#r + 1] = { 'col-extra', { { 'x', '\1"\\\195\169' } } } end,
+  -- the tree-query transcript, one defect each (the report is the valid one)
+  trace_overflow = function() end,
+  trace_extra_lookups = function() end,
+  trace_short = function() end,
+  trace_stage_order = function() end,
+  trace_warm_differs = function() end,
+  trace_init_normal = function() end,
+  trace_not_repeatable = function() end,
+  trace_facts_tree_total = function() end,
+  trace_triangle_count = function() end,
+  trace_unknown_row = function() end,
+  -- failures of the NEW trace file's I/O and of the disarm (the defect is injected below, not in the report or the transcript)
+  trace_io_write = function() end,
+  trace_io_flush = function() end,
+  trace_io_close = function() end,
+  trace_disarm_fails = function() end,
   fp_x87_unmasked = function(r) set(r, 'col-fp', 'x87_masks', 59) end,
   fp_sse_unmasked = function(r) set(r, 'col-fp', 'sse_masks', 0) end,
   fp_missing_row = function(r) drop_row(r, 'col-fp') end,
@@ -311,6 +331,83 @@ local function report(seed, entity_cases, tree_cases)
   return table.concat(lines, '\n') .. '\n'
 end
 
+-- A complete, self-consistent transcript for the last report (the stand-in measures nothing: it lays out records whose counts, hits, warm agreements, derived rays and tree
+-- facts add up to the report), and in a trace_* mode ONE defect in it.
+local ZERO3, SENT3 = '00000000,00000000,00000000', '5a5a5a5a,5a5a5a5a,5a5a5a5a'
+local trace_armed = false
+local trace_reads = 0
+
+local function trace_lines()
+  local plan = trace_plan
+  local recs, ordinal = {}, 0
+  local function add(group, kind, stage, hit, a, b, point, normal)
+    recs[#recs + 1] = string.format('tq ordinal=%d group=%d kind=%d role=%d stage=%d ignore_edge=0 skip_top=1 a=%s b=%s init_point=%s init_normal=%s lookups=2 extra_lookups=0 ' ..
+      'l0=3f800000,40000000,41200000 l1=40000000,40800000,41200000 hit=%d point=%s normal=%s', ordinal, group, kind, kind, stage, a, b, ZERO3, SENT3, hit, point, normal)
+    ordinal = ordinal + 1
+  end
+  local A = '3f800000,40000000,3f800000'
+  local function group(g, cases, hits, near, derived)
+    for i = 1, cases do
+      local hit = (i <= hits) and 1 or 0
+      local kind = (g == 3) and 10 or ((i - 1) % 10)
+      local b = '40000000,41000000,40400000'
+      local point, normal = ZERO3, SENT3
+      if hit == 1 then point, normal = '3f800000,40000000,40800000', V3 end
+      add(g, kind, 0, hit, A, b, point, normal)
+      add(g, kind, 1, hit, A, b, point, normal)
+      if hit == 1 and i <= near then
+        -- the shortened nearer-check ray; the first 'derived' of them have a zero x extent
+        local nb = (i <= derived) and '3f800000,41000000,40400000' or '40000000,41000000,40400000'
+        add(g, kind, 2, 0, A, nb, ZERO3, SENT3)
+        add(g, kind, 3, 0, A, nb, ZERO3, SENT3)
+      end
+    end
+  end
+  group(2, plan.s_cases, plan.s_hits, plan.s_near, plan.s_derived)
+  group(3, plan.r_cases, plan.r_hits, plan.r_near, plan.r_derived)
+
+  if mode == 'trace_short' then table.remove(recs) end
+  if mode == 'trace_stage_order' then recs[2] = string.gsub(recs[2], 'stage=1', 'stage=0', 1) end
+  if mode == 'trace_warm_differs' then recs[2] = string.gsub(recs[2], 'point=3f800000,40000000,40800000', 'point=3f800000,40000000,40800001', 1) end
+  if mode == 'trace_init_normal' then recs[1] = string.gsub(recs[1], 'init_normal=' .. SENT3, 'init_normal=' .. ZERO3, 1) end
+  if mode == 'trace_not_repeatable' and trace_reads >= 2 then recs[3] = string.gsub(recs[3], 'l0=3f800000', 'l0=3f800001', 1) end
+  if mode == 'trace_unknown_row' then recs[#recs + 1] = 'tq-extra n=1' end
+
+  local trees = plan.trees
+  local facts = {
+    'tf-layout record_size=8 x_offset=0 z_offset=2 y_offset=4 colour_offset=6 probe=feff341200cdabef height_only=0000000000000000 type_only=0000000000000000',
+    string.format('tf-map terrain_sectors_x=6 terrain_sectors_z=4 terrain_sector_side=2048 xz_scale=3a000000 height_scale=3c000000 height_minimum=c0000000 max_tree_height=35 ' ..
+      'map_min_x=00000000 map_min_z=00000000 map_max_x=46fffe00 map_max_z=46fffe00 tree_total=%d sectors_with_trees=%d', trees and ((mode == 'trace_facts_tree_total') and 99 or 100) or 0, trees and 10 or 0),
+    string.format('tf-forest geometry=%d triangles=%d capped=0 fold=0123456789abcdef', trees and 1 or 0, trees and ((mode == 'trace_triangle_count') and 3 or 2) or 0),
+  }
+  if trees then
+    for i = 0, 1 do facts[#facts + 1] = string.format('tf-triangle i=%d p0=%s p1=%s p2=%s', i, V3, V3, V3) end
+    for i = 0, 7 do facts[#facts + 1] = string.format('tf-sample sx=1 sz=2 count=12 index=%d bytes=00112233445566%02x', i, i) end
+  end
+  return recs, facts
+end
+
+function engine:collision_trace_arm(on)
+  trace_armed = on
+  note('trace_arm ' .. tostring(on))
+  if mode == 'trace_disarm_fails' and on == false then error('stand-in disarm failure', 0) end
+end
+
+function engine:collision_trace_read(kind, offset, count)
+  local recs, facts = trace_lines()
+  local total = #recs
+  if kind == 0 then
+    trace_reads = trace_reads + 1
+    local state = string.format('tr-state armed=1 records=%d capacity=32768 overflow=%d extra_lookups=%d facts_overflow=0 facts_bytes=%d', total,
+      mode == 'trace_overflow' and 1 or 0, mode == 'trace_extra_lookups' and 3 or 0, 100)
+    return state .. '\n' .. table.concat(facts, '\n') .. '\n', total
+  end
+  local lines = {}
+  for i = offset + 1, math.min(offset + count, total) do lines[#lines + 1] = recs[i] end
+  if #lines == 0 then return '', total end
+  return table.concat(lines, '\n') .. '\n', total
+end
+
 function engine:collision_probe(seed, entity_cases, tree_cases)
   probes = probes + 1
   note('probe ' .. seed .. ' ' .. entity_cases .. ' ' .. tree_cases)
@@ -327,6 +424,36 @@ function engine:collision_probe(seed, entity_cases, tree_cases)
     return (string.gsub(text, '1234567890123456', string.format('%016d', probes), 1))
   end
   return report(seed, entity_cases, tree_cases)
+end
+
+-- I/O failure injection for the driver's NEW trace file only: a thin proxy over the real file whose write, flush or close fails in the trace_io_* modes. Every other file the
+-- driver opens (its report output, its existence checks) is the real one.
+local io_fault = ({ trace_io_write = 'write', trace_io_flush = 'flush', trace_io_close = 'close' })[mode]
+if io_fault then
+  local real_open = io.open
+  io.open = function(path, how)
+    local file, err = real_open(path, how)
+    if file and how == 'w' and path == host.args.trace_out then
+      local proxy = {}
+      function proxy:write(...)
+        if io_fault == 'write' then return nil, 'stand-in write failure' end
+        local ok, e = file:write(...)
+        if not ok then return nil, e end
+        return self
+      end
+      function proxy:flush()
+        if io_fault == 'flush' then return nil, 'stand-in flush failure' end
+        return file:flush()
+      end
+      function proxy:close()
+        local ok, e = file:close()
+        if io_fault == 'close' then return nil, 'stand-in close failure' end
+        return ok, e
+      end
+      return proxy
+    end
+    return file, err
+  end
 end
 
 package.loaded['eech_dc'] = {

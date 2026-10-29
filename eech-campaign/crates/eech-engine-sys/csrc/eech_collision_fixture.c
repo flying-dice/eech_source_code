@@ -42,7 +42,7 @@
  *   - the FPU is in round-toward-zero mode, as inside every engine entry;
  *   - all six floating-point exceptions are MASKED in BOTH the x87 control word (bits 0 to 5) and the SSE MXCSR (bits 7 to 12), read with
  *     fnstcw and stmxcsr and never written; only those mask bits are inspected, not the sticky status flags, the rounding mode or the
- *     precision. The original tree query divides by the segment's x and z extent (en_cllsn.c 2021 and 2024), so a zero extent is an
+ *     precision. The original tree query divides by the segment's x and z extent (en_cllsn.c 2021 and 2024 at 03413ccd3; 2035 and 2038 after the transcript hook added 14 lines), so a zero extent is an
  *     IEEE division by zero that traps unless it is masked. The probe REQUIRES the masks; it never sets them. On an architecture whose
  *     control registers this file cannot read the probe is refused;
  *   - a terrain is loaded and its extents equal the world map's;
@@ -78,6 +78,16 @@
  *
  * Counters: warm_same and warm_different compare only the PRIMARY cold query with its warm repeat; the warm repeat of the shortened
  * nearer-check ray is made but not compared.
+ *
+ * TREE-QUERY TRANSCRIPT (optional, armed by eech_collision_trace_arm_run; off by default, and the report is identical either way): every tree query the
+ * fixture makes (primary cold, primary warm, shortened nearer-check cold and warm), in execution order, is recorded in a bounded private in-memory table
+ * (TRACE_MAX records; overflow is flagged, never silently truncated) with its ordinal, group, kind, role, stage, the two flags, the f32 endpoint bits, the
+ * caller's initial intercept (zero) and normal (sentinel) bits, the ordered terrain lookups the ORIGINAL made (x, z and the elevation it returned, as bits,
+ * captured by the passive wrapper eech_collision_tree_elevation at the original's own two lookups, with NO extra terrain query), and the final hit, intercept
+ * and normal bits including a miss's partial writes. A separate facts block records the tree record layout (size, member offsets and a byte dump that fixes
+ * the bit order of the packed height and type byte), the map and tree scales, the forest tree object's collision triangles and the first live tree
+ * records as raw bytes. The transcript is read back in bounded chunks by eech_collision_trace_read_run and written to a private file by the driver. It records
+ * only the original's answers; a miss, a partial write or an absent output is data.
  */
 
 #ifdef EECH_COLLISION_FIXTURE
@@ -318,6 +328,7 @@ struct col_flag_effect
 struct col_probe
 {
 	uint32_t rng, pool_rng;
+	int trace_group, trace_kind, trace_role; /* context of the tree query being made, for the optional transcript only */
 	unsigned int flags_saved[COL_FLAG_ARRAYS][COL_FLAG_WORDS]; /* [0] updated, [1] moved, [2] rotated: the copy taken before anything is observed */
 	struct col_flag_effect flags;
 	terrain_3d_point_data *record, sentinel;
@@ -739,6 +750,108 @@ static void end_outputs (struct col_probe *p, struct col_qr *r, const vec3d *a, 
 	}
 }
 
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* the optional private tree-query transcript */
+
+#define TRACE_MAX 32768
+#define TRACE_LOOKUPS 2
+#define TRACE_FACTS_MAX (160 * 1024)
+#define TRACE_TRIANGLE_CAP 512
+
+struct col_trace_rec
+{
+	int ordinal, group, kind, role, stage, ignore_edge, skip_top, lookups, extra_lookups, hit;
+	uint32_t a[3], b[3], init_point[3], init_normal[3], look[TRACE_LOOKUPS][3], point[3], normal[3];
+};
+
+static int trace_armed, trace_n, trace_overflow;
+static struct col_trace_rec trace_recs[TRACE_MAX];
+static struct col_trace_rec *trace_cur;
+static char trace_facts[TRACE_FACTS_MAX];
+static struct out trace_facts_out;
+
+static void trace_reset_records (void)
+{
+	trace_n = 0;
+	trace_overflow = 0;
+	trace_cur = NULL;
+}
+
+static void trace_reset (int armed)
+{
+	trace_armed = armed;
+	trace_reset_records ();
+	trace_facts[0] = '\0';
+	trace_facts_out.text = trace_facts;
+	trace_facts_out.capacity = TRACE_FACTS_MAX;
+	trace_facts_out.used = 0;
+	trace_facts_out.overflow = 0;
+}
+
+/*
+ * The passive wrapper the original tree query calls at its two terrain lookups (en_cllsn.c, EECH_COLLISION_FIXTURE only). It makes the identical call and returns
+ * the identical float; when a transcript record is open it notes the arguments and the result. It makes no other terrain query.
+ */
+float eech_collision_tree_elevation (float x, float z)
+{
+	float elevation = get_3d_terrain_elevation (x, z);
+
+	if (trace_cur)
+	{
+		if (trace_cur->lookups < TRACE_LOOKUPS)
+		{
+			trace_cur->look[trace_cur->lookups][0] = float_bits (x);
+			trace_cur->look[trace_cur->lookups][1] = float_bits (z);
+			trace_cur->look[trace_cur->lookups][2] = float_bits (elevation);
+			trace_cur->lookups++;
+		}
+		else
+		{
+			trace_cur->extra_lookups++;
+		}
+	}
+	return elevation;
+}
+
+static void trace_bits3 (uint32_t *to, const vec3d *v)
+{
+	to[0] = float_bits (v->x);
+	to[1] = float_bits (v->y);
+	to[2] = float_bits (v->z);
+}
+
+static struct col_trace_rec *trace_begin (struct col_probe *p, int stage, int ignore_edge, int skip_top, const vec3d *a, const vec3d *b, const struct col_qr *r)
+{
+	struct col_trace_rec *rec;
+
+	if (trace_n >= TRACE_MAX)
+	{
+		trace_overflow = 1;
+		return NULL;
+	}
+	rec = &trace_recs[trace_n];
+	memset (rec, 0, sizeof (*rec));
+	rec->ordinal = trace_n++;
+	rec->group = p->trace_group;
+	rec->kind = p->trace_kind;
+	rec->role = p->trace_role;
+	rec->stage = stage;
+	rec->ignore_edge = ignore_edge;
+	rec->skip_top = skip_top;
+	trace_bits3 (rec->a, a);
+	trace_bits3 (rec->b, b);
+	trace_bits3 (rec->init_point, &r->point);
+	trace_bits3 (rec->init_normal, &r->normal);
+	return rec;
+}
+
+static void trace_end (struct col_trace_rec *rec, int hit, const vec3d *point, const vec3d *normal)
+{
+	rec->hit = hit;
+	trace_bits3 (rec->point, point);
+	trace_bits3 (rec->normal, normal);
+}
+
 static void query_entity (struct col_probe *p, entity *src, entity *tgt, const vec3d *a0, const vec3d *b0, int cold, struct col_qr *r)
 {
 	vec3d a = *a0, b = *b0;
@@ -753,18 +866,30 @@ static void query_entity (struct col_probe *p, entity *src, entity *tgt, const v
 	end_outputs (p, r, &a, &b, a0, b0);
 }
 
-static void query_tree (struct col_probe *p, const vec3d *a0, const vec3d *b0, int ignore_edge, int skip_top, int cold, struct col_qr *r)
+/* stage of a tree query in the optional transcript: 0 primary cold, 1 primary warm, 2 nearer-check cold, 3 nearer-check warm */
+static void query_tree (struct col_probe *p, const vec3d *a0, const vec3d *b0, int ignore_edge, int skip_top, int cold, int stage, struct col_qr *r)
 {
 	vec3d a = *a0, b = *b0;
+	struct col_trace_rec *rec = NULL;
 
 	begin_outputs (r);
 	if (cold)
 	{
 		memcpy (p->record, &p->sentinel, sizeof (*p->record));
 	}
+	if (trace_armed)
+	{
+		rec = trace_begin (p, stage, ignore_edge, skip_top, &a, &b, r);
+	}
+	trace_cur = rec;
 	r->hit = get_line_of_sight_collision_tree (&a, &b, &r->point, &r->normal, ignore_edge, skip_top) ? 1 : 0;
+	trace_cur = NULL;
 	r->en = NULL;
 	end_outputs (p, r, &a, &b, a0, b0);
+	if (rec)
+	{
+		trace_end (rec, r->hit, &r->point, &r->normal);
+	}
 }
 
 static int same_answer (const struct col_qr *x, const struct col_qr *y)
@@ -930,8 +1055,11 @@ static void run_tree (struct col_probe *p, int group, int kind, int role, const 
 	struct col_kinds *k = &p->tkinds[group == G_TREE_RANDOM ? 1 : 0][kind];
 	struct col_qr cold, warm;
 
-	query_tree (p, a, b, ignore_edge, skip_top, 1, &cold);
-	query_tree (p, a, b, ignore_edge, skip_top, 0, &warm);
+	p->trace_group = group;
+	p->trace_kind = kind;
+	p->trace_role = role | (ignore_edge << 8) | (skip_top << 9);
+	query_tree (p, a, b, ignore_edge, skip_top, 1, 0, &cold);
+	query_tree (p, a, b, ignore_edge, skip_top, 0, 1, &warm);
 	fold_query (p, group, role | (ignore_edge << 8) | (skip_top << 9), a, b, &cold);
 	note_common (common, &cold, &warm);
 	k->cases++;
@@ -951,8 +1079,8 @@ static void run_tree (struct col_probe *p, int group, int kind, int role, const 
 		{
 			common->derived_axis++;
 		}
-		query_tree (p, a, &end, ignore_edge, skip_top, 1, &near_cold);
-		query_tree (p, a, &end, ignore_edge, skip_top, 0, &near_warm);
+		query_tree (p, a, &end, ignore_edge, skip_top, 1, 2, &near_cold);
+		query_tree (p, a, &end, ignore_edge, skip_top, 0, 3, &near_warm);
 		fold_query (p, group, role + ROLE_NEARER, a, &end, &near_cold);
 		common->nearer_checked++;
 		if (near_cold.hit)
@@ -1452,6 +1580,187 @@ static int read_fp_masks (int *x87_masks, int *sse_masks)
 }
 #endif
 
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* the transcript's facts block and its bounded read-back */
+
+static void hex_bytes (char *to, const unsigned char *bytes, size_t n)
+{
+	static const char digits[] = "0123456789abcdef";
+	size_t i;
+
+	for (i = 0; i < n; i++)
+	{
+		to[2 * i] = digits[bytes[i] >> 4];
+		to[2 * i + 1] = digits[bytes[i] & 0xfu];
+	}
+	to[2 * n] = '\0';
+}
+
+/* a record of the live tree data as raw bytes, at most 16 of them (the layout row says the real size) */
+static void tree_record_hex (const terrain_3d_tree_data *tree, char *to)
+{
+	unsigned char raw[sizeof (terrain_3d_tree_data)];
+	size_t n = sizeof (raw) < 16 ? sizeof (raw) : 16;
+
+	memcpy (raw, tree, sizeof (raw));
+	hex_bytes (to, raw, n);
+}
+
+/*
+ * The facts a host-owned tree loader and kernel need and the live data alone cannot state: the native size and bit order of the tree record (a known pattern
+ * is stored in a record and its bytes dumped; nothing is assumed from the declaration), the scales and bounds the original uses, the forest tree object's
+ * collision triangles (the geometry path's only input), and the first live records as raw bytes. Read-only: no terrain query, no flag read.
+ */
+static void trace_build_facts (struct col_probe *p)
+{
+	struct out *o = &trace_facts_out;
+	terrain_3d_tree_data t;
+	char probe_hex[40], height_hex[40], type_hex[40];
+	unsigned char raw[sizeof (terrain_3d_tree_data)];
+	size_t n = sizeof (raw) < 16 ? sizeof (raw) : 16;
+	vec3d tri[8];
+	uint64_t fold = FNV_OFFSET;
+	int depth = 0, capped = 0, x, z, i, j, shown = 0;
+
+	memset (&t, 0, sizeof (t));
+	t.x = -2;
+	t.z = 0x1234;
+	t.y = 0xabcd;
+	t.colour = 0xef;
+	t.height = 0x55;
+	t.type = 1;
+	memcpy (raw, &t, sizeof (raw));
+	hex_bytes (probe_hex, raw, n);
+	memset (&t, 0, sizeof (t));
+	t.height = 0x7f;
+	memcpy (raw, &t, sizeof (raw));
+	hex_bytes (height_hex, raw, n);
+	memset (&t, 0, sizeof (t));
+	t.type = 1;
+	memcpy (raw, &t, sizeof (raw));
+	hex_bytes (type_hex, raw, n);
+	emit (o, "tf-layout record_size=%d x_offset=%d z_offset=%d y_offset=%d colour_offset=%d probe=%s height_only=%s type_only=%s\n", (int) sizeof (terrain_3d_tree_data),
+		(int) offsetof (terrain_3d_tree_data, x), (int) offsetof (terrain_3d_tree_data, z), (int) offsetof (terrain_3d_tree_data, y),
+		(int) offsetof (terrain_3d_tree_data, colour), probe_hex, height_hex, type_hex);
+	emit (o, "tf-map terrain_sectors_x=%d terrain_sectors_z=%d terrain_sector_side=%d xz_scale=%08x height_scale=%08x height_minimum=%08x max_tree_height=%d map_min_x=%08x "
+		"map_min_z=%08x map_max_x=%08x map_max_z=%08x tree_total=%ld sectors_with_trees=%d\n", terrain_3d_sector_x_max, terrain_3d_sector_z_max, (int) TERRAIN_3D_SECTOR_SIDE_LENGTH,
+		float_bits (TERRAIN_3D_XZ_SCALE), float_bits (terrain_3d_map_scaled_height_difference), float_bits (terrain_3d_map_minimum_height), (int) TERRAIN_3D_MAX_TREE_HEIGHT,
+		float_bits (terrain_3d_min_map_x), float_bits (terrain_3d_min_map_z), float_bits (terrain_3d_max_map_x), float_bits (terrain_3d_max_map_z), p->census.trees_total,
+		p->census.sectors_with_trees);
+
+	/* the forest tree object's collision triangles, walked as the original walks them (depth 0, 1, 2 ...) */
+	while (get_object_3d_collision_object_geometry_triangle (OBJECT_3D_FOREST_TREE_OBJECT, tri, depth))
+	{
+		if (depth >= TRACE_TRIANGLE_CAP)
+		{
+			capped = 1;
+			break;
+		}
+		for (j = 0; j < 3; j++)
+		{
+			fold = fold64 (fold, float_bits (tri[j].x));
+			fold = fold64 (fold, float_bits (tri[j].y));
+			fold = fold64 (fold, float_bits (tri[j].z));
+		}
+		depth++;
+	}
+	emit (o, "tf-forest geometry=%d triangles=%d capped=%d fold=%016llx\n", depth > 0 ? 1 : 0, depth, capped, (unsigned long long) fold);
+	for (i = 0; i < depth; i++)
+	{
+		if (get_object_3d_collision_object_geometry_triangle (OBJECT_3D_FOREST_TREE_OBJECT, tri, i))
+		{
+			emit (o, "tf-triangle i=%d p0=%08x,%08x,%08x p1=%08x,%08x,%08x p2=%08x,%08x,%08x\n", i, float_bits (tri[0].x), float_bits (tri[0].y), float_bits (tri[0].z),
+				float_bits (tri[1].x), float_bits (tri[1].y), float_bits (tri[1].z), float_bits (tri[2].x), float_bits (tri[2].y), float_bits (tri[2].z));
+		}
+	}
+
+	/* the first live tree records of the first sector that has any, as raw bytes */
+	for (x = 0; x < terrain_3d_sector_x_max && shown == 0; x++)
+	{
+		for (z = 0; z < terrain_3d_sector_z_max && shown == 0; z++)
+		{
+			terrain_3d_tree_data *trees = NULL;
+			int count = get_terrain_3d_tree_sector_data (x, z, &trees);
+
+			if (count > 0 && trees)
+			{
+				int limit = count < 8 ? count : 8;
+
+				for (i = 0; i < limit; i++)
+				{
+					char record_hex[40];
+
+					tree_record_hex (&trees[i], record_hex);
+					emit (o, "tf-sample sx=%d sz=%d count=%d index=%d bytes=%s\n", x, z, count, i, record_hex);
+				}
+				shown = 1;
+			}
+		}
+	}
+}
+
+/* arms or disarms the transcript and clears it (records and facts) */
+int eech_collision_trace_arm_run (int on)
+{
+	trace_reset (on ? 1 : 0);
+	return 0;
+}
+
+/* a word per record: its fields, in the order of the struct */
+static void emit_trace_rec (struct out *o, const struct col_trace_rec *r)
+{
+	emit (o, "tq ordinal=%d group=%d kind=%d role=%d stage=%d ignore_edge=%d skip_top=%d a=%08x,%08x,%08x b=%08x,%08x,%08x init_point=%08x,%08x,%08x init_normal=%08x,%08x,%08x "
+		"lookups=%d extra_lookups=%d l0=%08x,%08x,%08x l1=%08x,%08x,%08x hit=%d point=%08x,%08x,%08x normal=%08x,%08x,%08x\n", r->ordinal, r->group, r->kind, r->role, r->stage,
+		r->ignore_edge, r->skip_top, r->a[0], r->a[1], r->a[2], r->b[0], r->b[1], r->b[2], r->init_point[0], r->init_point[1], r->init_point[2], r->init_normal[0],
+		r->init_normal[1], r->init_normal[2], r->lookups, r->extra_lookups, r->look[0][0], r->look[0][1], r->look[0][2], r->look[1][0], r->look[1][1], r->look[1][2], r->hit,
+		r->point[0], r->point[1], r->point[2], r->normal[0], r->normal[1], r->normal[2]);
+}
+
+/*
+ * Reads the transcript back. kind 0: the state row and the whole facts block. kind 1: the records [offset, offset + count). *total is the number of records held.
+ * A text that does not fit is refused, never cut short.
+ */
+int eech_collision_trace_read_run (int kind, int offset, int count, char *text, int capacity, int *total)
+{
+	struct out o;
+	int i, end, extra = 0;
+
+	text[0] = '\0';
+	*total = trace_n;
+	o.text = text;
+	o.capacity = capacity;
+	o.used = 0;
+	o.overflow = 0;
+	if (kind == 0)
+	{
+		for (i = 0; i < trace_n; i++)
+		{
+			extra += trace_recs[i].extra_lookups;
+		}
+		emit (&o, "tr-state armed=%d records=%d capacity=%d overflow=%d extra_lookups=%d facts_overflow=%d facts_bytes=%d\n", trace_armed, trace_n, TRACE_MAX, trace_overflow, extra,
+			trace_facts_out.overflow, trace_facts_out.used);
+		emit (&o, "%s", trace_facts);
+	}
+	else
+	{
+		end = offset + count;
+		if (end > trace_n)
+		{
+			end = trace_n;
+		}
+		for (i = offset; i < end; i++)
+		{
+			emit_trace_rec (&o, &trace_recs[i]);
+		}
+	}
+	if (o.overflow)
+	{
+		snprintf (text, (size_t) capacity, "col-trace-refused reason=text_does_not_fit\n");
+		return -1;
+	}
+	return 0;
+}
+
 static void refuse (char *text, int capacity, const char *reason)
 {
 	snprintf (text, (size_t) capacity, "col-refused reason=%s\n", reason);
@@ -1662,6 +1971,15 @@ int eech_collision_probe_run (uint32_t seed, int entity_cases, int tree_cases, c
 		return -1;
 	}
 	scan_trees (p);
+	if (trace_armed)
+	{
+		/* the facts are read-only; the records are cleared so each probe's transcript is its own */
+		trace_facts_out.used = 0;
+		trace_facts_out.overflow = 0;
+		trace_facts[0] = '\0';
+		trace_build_facts (p);
+		trace_reset_records ();
+	}
 
 	memcpy (&snapshot, p->record, sizeof (snapshot));
 	record_before = record_words_hash (&snapshot);

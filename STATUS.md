@@ -1,3 +1,59 @@
+# Trace instrumentation prebuild correction (driver I/O and resource cleanup) — SOURCE ONLY, UNBUILT, UNRUN (working tree over 03413ccd3)
+
+Root's focused prebuild inspection found a false-success path in the NEW transcript driver code: the trace writer ignored the results of file write and flush, the final close was ignored,
+so trace_written and a normal done could follow a disk error; and the armed transcript and open file were cleaned up only on the happy path. Also trace_out=dir/./name could alias a just-created
+output file that a string comparison does not catch. Corrected in the real driver only (no C, arithmetic, generator, order, terrain hook, physical fold or report change; trace off is unchanged):
+* every trace write and flush is checked (new trace_write, with encode_line shared by the unchanged report writer): "could not be written"/"could not be flushed" fail the run before trace_written;
+  the final close is checked ("could not be closed"); a file is accepted only when the output holds trace_written, whatever its last line says. Partial output is kept, never marked accepted.
+* with a trace file the probe/read/check/repeat/write path runs under one handler: on any failure it records trace_failed, disarms the transcript if armed, closes the file, and re-raises the
+  ORIGINAL error unchanged; a disarm or close error during cleanup is recorded as trace_cleanup_failed and never replaces the primary diagnostic or turns the failure into a pass.
+* the existing-file check is repeated immediately after the output is created and before the trace file is created, so an alias of the output (dir/./name, and on Windows case or drive spellings)
+  is resolved by the operating system and refused, never truncated; the output is closed on refusal. This is a check then a create, NOT claimed race-proof; Root uses fresh unique names.
+Real-script stand-in controls (the stand-in proxies only the new trace file): write, flush, close and disarm failures (non-zero, no trace_written/coverage/done, trace_failed recorded, disarm and
+close accounted, a cleanup failure recorded without hiding the first error) and a dir/./name alias control. The 10 transcript controls now also require disarm and a trace_failed record. All 77
+report controls, trace-off output and the positive capture test are unchanged. UNRUN until Root executes it; no physical or query source change.
+
+Read-only file-format facts from Root's audit (tree-file-format-audit-20261029.json, exit0; they do NOT replace the native sizeof and per-record height/type verification the trace performs):
+Georgia tree_pos.sec/.dat (lowercase names) 848187 eight-byte records, 2894 with the high bit of the last byte set; Lebanon TREE_POS.SEC/.DAT (uppercase) 213955 records, 371 high-bit; stride, counts
+and header dimensions match the measured native census. The host loader and kernel are NOT started: they wait for Root's run of the trace and its review.
+
+# Next G3a step: private TREE-QUERY TRANSCRIPT instrumentation prepared — UNBUILT, UNRUN (working tree over 03413ccd3)
+
+Inherited, closed boundaries (not re-reviewed, not re-run): the correction phase is closed. One independent pass found no open findings at native 5416adb3b and final driver 54e5ece85
+(report SHA-256 92ad84e8764c6a0b4068712a3faf9f82bb7ca4bfbcd46861193bb50776931bff, reference/d3-collision-characterization/independent-correction-review-54e5ece85.json); all five
+moving 120s+30s native cases and the controller exited0 with input checks0 and the original queries' flag effects restored; Linux 10/10 with format and Clippy, Windows 10/10 with the
+invalid-override control101 expected and the four old 438 false-pass cases reproduced; fresh 54e driver with the unchanged 5416adb3b native binary gave all 205 boot-report rows byte-identical.
+The old d5 moving failures stay failed with no valid oracle. Live authority read by Root: M5 goal v3, ledger v62 (all prior HTML and the five epic reports exact), Task49 In Progress under
+D3/EEDCS-21, draft PR109. All D3 terrain/spatial/model/environment/time, required physical solver and loader removal remain D3 scope (not deferred to D5; an unsupported or refused query is not
+completion). Campaign geography, routes, timers, scheduling, decisions and consequences stay in EECH_DC. D4/D5 have not started. Task47 corrected shipping115 (tool59652) is LIVE; Task48
+host kernel/Lua prep is closed but production G2 is NOT cut over. No G2/G3 production cutover before validated preceding delivery and verified integration.
+
+What was prepared (fixture-only, feature-gated, no host kernel, loader, production dispatch or framework): the missing INPUT characterization the host-owned tree kernel and tree-file loader
+need. Every tree query the probe makes (primary cold and warm, shortened nearer-check cold and warm) can be recorded in execution order in a bounded private transcript: ordinal, group, kind,
+role, stage, the two flags, f32 endpoint bits, the caller's initial intercept (zero) and normal (sentinel) bits, the ORDERED terrain lookups the original actually made (x, z, the elevation
+it returned) and the final hit, intercept and normal bits including a miss's partial writes. Lookups are captured passively: en_cllsn.c's two terrain-elevation calls in
+get_line_of_sight_collision_tree go through a TREE_QUERY_TERRAIN_ELEVATION macro that, without EECH_COLLISION_FIXTURE, expands to exactly the original get_3d_terrain_elevation call (14 lines
+added to en_cllsn.c; the division lines move from 2021/2024 to 2035/2038), and with it calls a fixture function that makes the identical call, returns the identical float and records.
+No extra terrain query, no solver arithmetic, control flow, generator, call count or order, getter, FPU mask, RNG, quad/triangle helper or early return is changed; the flag/terrain snapshot,
+effects report and restoration are untouched. A facts block records the tree record layout measured natively (size, member offsets and a known-pattern byte dump that fixes the packed
+height/type bit order: the declaration is eight bytes on these builds, not six, but nothing is assumed), the scales and bounds, the forest tree object's collision triangles and the first live
+records as raw bytes. Raw output is private and out of Git. Interface: Lua driver argument trace_out=<path> (default off; the report is identical either way), engine:collision_trace_arm(on)
+and engine:collision_trace_read(kind, offset, count) (kind0 state+facts, kind1 records, count 1..256). Bounds: 32768 records (about 4 per random tree case plus about 160 structured, so the
+driver requires tree_cases <= 8000 with trace_out), 160 KiB of facts, 512 forest triangles; overflow, an extra lookup or a facts overflow is flagged and the driver FAILS rather than truncate.
+Cleanup/safety: an existing trace file is never overwritten (refused before anything is opened or booted), the file is created before the run and written only after every repeat's
+transcript has passed, so a failed run leaves it empty; a transcript without trace-end is incomplete; the transcript statics are cleared on arm and disarmed after the repeats.
+The driver parses the transcript strictly and checks it against its own report (record counts per group and stage, hits, warm agreement, miss-time writes, derived zero-extent rays, tree
+census and map facts, initial outputs, stage order, no unrecorded lookup) and requires repeated transcripts to be identical; 10 transcript negative controls, 3 argument guards and a
+complete-transcript positive test were added to the real-script tests. The 77 report controls, strict-JSON retention and the host-path override are unchanged.
+
+Not done: nothing here is built or run. Root formats, freezes and builds ONE new named fixture, runs seconds0 with the existing seed20261029/entity200/tree200/repeats2 and trace_out on
+fresh verified Georgia, Lebanon and separate-repeat roots, compares all 205 existing report rows/folds/samples/counters with 5416adb3b (new metadata separate), inspects the lookup
+counts, pair order and raw transcripts, and obtains one independent review of the NEW instrumentation and evidence. Only then does the host-owned tree loader/kernel start. That work must
+preserve the 8-byte tree file layout, float/double promotions and FPU, map gates and sector/tree order, the 35 m and 0.1 early returns, the flags, strict-nearest quad and first-triangle
+rules, partial writes and the ordered terrain cache effects, with the full remaining D3 scope. A first quad-path-with-geometry refusal would be preparation only; no permanent unsupported or
+miss substitute is approved and no unverified DCS API is claimed. Unresolved risk: the transcript is captured at the C wrapper, so the elevation values are the original's return values as
+floats; a build whose float evaluation differed would show it as a changed old fold, which Root compares.
+
 # Current collision checkpoint — correction review closed; host preparation next
 
 Independent correction review is closed with no open findings at native source

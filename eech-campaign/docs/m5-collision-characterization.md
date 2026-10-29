@@ -1,3 +1,15 @@
+Prebuild correction of the tree-transcript driver code (UNBUILT/UNRUN; STATUS.md has the full text): trace write, flush and close results are now checked and fail the run before
+trace_written/done; any probe, read, check, repeat or I/O failure disarms the transcript, closes the file and re-raises the original error (a cleanup error is recorded, never substituted); and the
+existence of trace_out is re-checked right after the output is created so a dir/./name alias of it is refused, not truncated (check-then-create, not claimed race-proof). Real-script controls cover
+write, flush, close, disarm and alias. No physical, query or C change. File-format audit facts (8-byte records; Georgia 848187/2894 type-1, Lebanon 213955/371) are read-only inputs the trace must
+still confirm natively. The host loader/kernel waits for Root's trace run and review.
+
+Current-first: private tree-query transcript instrumentation (`trace_out`) is prepared for the first G3a extraction (the reference-host TREE collision solver and tree-file loader), UNBUILT and UNRUN.
+It records each tree query in order with the original's own terrain lookups (passive wrapper at the two lookups in get_line_of_sight_collision_tree; the shipping expansion is unchanged), the
+initial and final output bits, and a facts block (native 8-byte tree record layout and bit order, scales, forest triangles, raw live records). Bounded, private, fail-closed, off by default, report
+identical either way. The correction phase and its closed review (native 5416adb3b, driver 54e5ece85) are inherited and not repeated; nothing is extracted; whole D3 active; production G2 not cut over;
+D4/D5 not started. Root runs the seconds0 trace and compares all 205 report rows with 5416adb3b before the host kernel/loader work begins. See STATUS.md for the full design and bounds.
+
 Current: source 5416adb3b moving 120s+30s witnesses all TERMINATED exit0 (digests equal, Lebanon reports identical, restoration/masks hold; Georgia 10 changed updated words / 62 cleared bits,
 5 moving targets; Lebanon 6) as original observations with gaps, no valid oracle for the old d5 failures. Source 438940d39 Linux 9/9 + fmt + Clippy pass; its Windows run is in progress, not recorded as passed.
 A review P2 in the driver feasibility check of `col-flags` is corrected in the real driver, UNBUILT/UNRUN: per array cleared_bits <= 32 x changed_words; sum over arrays of max(0, changed_words -
@@ -83,7 +95,7 @@ corrected source. The original queries, the structured and random case generator
    The facts are reported (`col-fp arch x87_masks sse_masks`) and re-checked by the driver. The old d5 reports have no such fact: **d5 did not check the masks, and nothing here infers that it
    ran with them masked.** The old claim "never queries a tree ray with zero x or z extent" was only true of the PRIMARY random tree rays (those are still skipped and counted as `skipped_axis`,
    which keeps the random case set unchanged). The nearer-check ray cut short of a returned f32 hit is a DERIVED ray: at large coordinates its x or z extent can be exactly zero while its range is
-   above 0.1 m, so it reaches the original's division (`en_cllsn.c` 2021 and 2024). It is still queried, never screened or skipped, and is now counted: `derived_axis` (a new field of
+   above 0.1 m, so it reaches the original's division (`en_cllsn.c` 2021 and 2024 at 03413ccd3; 2035 and 2038 after the transcript hook added 14 lines). It is still queried, never screened or skipped, and is now counted: `derived_axis` (a new field of
    `col-entity-common`, always 0, and `col-tree-common`; the driver requires `derived_axis <= nearer_checked`). The deliberate vertical and sub-0.1 m structured tree rays remain
    range-gated cases (the gate returns before the division; the 0.05 m offset can round to zero extent at large coordinates). With the masks required, a zero-extent division is IEEE-defined
    (inf or NaN, no trap). That covers the rays counted; **a source check of axis extents alone is not a statement of the original's full physics.**

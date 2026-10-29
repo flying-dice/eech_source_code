@@ -1571,3 +1571,43 @@ int eech_engine_collision_probe (uint32_t seed, int entity_cases, int tree_cases
 }
 
 #endif
+
+#ifdef EECH_COLLISION_FIXTURE
+
+/*
+ * TEST-ONLY (EEDCS-49): the optional private tree-query transcript of the collision probe (eech_collision_fixture.c). Arming clears it; the probe fills it while it
+ * runs its tree queries; reading returns the state and facts or a bounded chunk of records. It touches no campaign state and needs no host.
+ */
+extern int eech_collision_trace_arm_run (int on);
+extern int eech_collision_trace_read_run (int kind, int offset, int count, char *text, int capacity, int *total);
+
+int eech_engine_collision_trace_arm (int on)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	(void) eech_collision_trace_arm_run (on);
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_collision_trace_read (int kind, int offset, int count, char *text, int capacity, int *total)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || !total || (capacity <= 0) || (kind < 0) || (kind > 1) || (offset < 0) || (count < 1) || (count > 256))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_collision_trace_read_run (kind, offset, count, text, capacity, total) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif

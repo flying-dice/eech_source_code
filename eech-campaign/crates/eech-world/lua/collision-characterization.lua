@@ -45,6 +45,17 @@
 --   frame_ms  1 to 1000 (default 100)
 --   probe     yes (default) or no (the control)
 --   require_coverage  no (default) or yes
+--   trace_out=<path>  optional: a PRIVATE JSON Lines transcript of every tree query the probe makes (see below). The path must not exist, must differ from out, and the run must
+--             probe (probe=yes) with tree_cases at most 8000 (the fixture holds at most 32768 records, at most 4 per random tree case plus about 160 structured). Off by default,
+--             and the probe's report is identical either way.
+--
+-- TREE-QUERY TRANSCRIPT (trace_out): the fixture records, in execution order, each tree query it makes (primary cold and warm, shortened nearer-check cold and warm) with the f32
+-- endpoint bits, the caller's initial intercept (zero) and normal (sentinel) bits, the terrain lookups the ORIGINAL made (x, z and the elevation it returned, captured by a passive
+-- wrapper at the original's own two lookups; no extra terrain query), and the final hit, intercept and normal bits including a miss's partial writes, plus a facts block (tree record
+-- size, offsets and byte dumps that fix the packed height/type bit order, map and tree scales, the forest tree object's collision triangles and the first live records as raw bytes). The
+-- driver parses it strictly, checks it against the report it accompanies (record counts per group and stage, hits, warm agreement, miss-time writes, derived-axis rays, tree census), requires
+-- no overflow and no unrecorded lookup, requires repeated transcripts to be identical, and writes repeat 1 to trace_out only after every repeat has passed (a trace file without its
+-- trace-end line is incomplete). The raw transcript is private runtime output and stays out of Git. It records the original's answers only.
 
 io.stdout:setvbuf ("no")
 
@@ -55,7 +66,7 @@ local function refuse (message)
 end
 
 local known = { root = true, out = true, scenario = true, seed = true, entity_cases = true, tree_cases = true, repeats = true, seconds = true,
-	after = true, frame_ms = true, probe = true, require_coverage = true }
+	after = true, frame_ms = true, probe = true, require_coverage = true, trace_out = true }
 for key in pairs (args) do
 	if not known [key] then refuse ("unknown argument '" .. tostring (key) .. "'") end
 end
@@ -102,6 +113,23 @@ local frame_ms = whole_arg ("frame_ms", args.frame_ms, 100, 1, 1000)
 local probe = choice_arg ("probe", args.probe, "yes", { "yes", "no" })
 local require_coverage = choice_arg ("require_coverage", args.require_coverage, "no", { "no", "yes" })
 
+-- the optional tree-query transcript: every argument checked before anything is opened, required or booted
+local TRACE_TREE_CASES_MAX = 8000
+local trace_path = args.trace_out
+if trace_path ~= nil then
+	if type (trace_path) ~= "string" or trace_path == "" then refuse ("trace_out must be a non-empty path") end
+	if trace_path == out_path then refuse ("trace_out must differ from out") end
+	if probe ~= "yes" then refuse ("trace_out needs probe=yes: the transcript is of the probe's tree queries") end
+	if tree_cases > TRACE_TREE_CASES_MAX then
+		refuse ("trace_out needs tree_cases at most " .. TRACE_TREE_CASES_MAX .. " (the fixture holds 32768 records, up to 4 per random tree case), got " .. tree_cases)
+	end
+	local existing = io.open (trace_path, "rb")
+	if existing then
+		existing:close ()
+		refuse ("trace_out '" .. trace_path .. "' already exists: an existing file is never overwritten")
+	end
+end
+
 local MAX_FRAMES = 72000
 local frames_before = math.floor (seconds * 1000 / frame_ms)
 local frames_after = math.floor (after * 1000 / frame_ms)
@@ -111,6 +139,23 @@ end
 
 -- Only now, with every argument good, is anything opened, required or booted.
 local out = assert (io.open (out_path, "w"))
+local trace_file = nil
+if trace_path ~= nil then
+	-- Checked again NOW, after out exists. The string comparison above is not file identity (out=dir/report.jsonl and trace_out=dir/./report.jsonl name one file, as do case or
+	-- drive-letter spellings on Windows), and the first check ran before out was created; the operating system resolves an alias here, so an alias of out is found as existing and is
+	-- never truncated. This is a check followed by a create, not an exclusive create, and is not claimed race-proof: the run uses fresh unique names.
+	local existing = io.open (trace_path, "rb")
+	if existing then
+		existing:close ()
+		pcall (function () out:close () end)
+		refuse ("trace_out '" .. trace_path .. "' already exists: an existing file is never overwritten")
+	end
+	trace_file = io.open (trace_path, "w")
+	if trace_file == nil then
+		pcall (function () out:close () end)
+		refuse ("trace_out '" .. trace_path .. "' cannot be created")
+	end
+end
 
 -- A JSON string (RFC 8259). Lua's %q writes LUA source, not JSON: it leaves a tab (and every other control byte) raw, which a strict JSON parser refuses, and
 -- writes a newline as a backslash and a real newline. So: the quote and the backslash are escaped, every control byte 0x00 to 0x1f becomes its short escape
@@ -122,7 +167,7 @@ local function json_string (text)
 	return "\"" .. escaped .. "\""
 end
 
-local function emit (t)
+local function encode_line (t)
 	local parts = {}
 	for k, v in pairs (t) do
 		local value
@@ -136,8 +181,24 @@ local function emit (t)
 		parts [#parts + 1] = json_string (tostring (k)) .. ":" .. value
 	end
 	table.sort (parts)
-	out:write ("{" .. table.concat (parts, ",") .. "}\n")
-	out:flush ()
+	return "{" .. table.concat (parts, ",") .. "}\n"
+end
+
+local function emit_to (file, t)
+	file:write (encode_line (t))
+	file:flush ()
+end
+
+-- The tree-query transcript's writer: every write and flush is CHECKED. A failure is a failure of the run (before trace_written and done), never ignored.
+local function trace_write (file, t)
+	local ok, err = file:write (encode_line (t))
+	if not ok then refuse ("the tree-query transcript could not be written: " .. tostring (err)) end
+	ok, err = file:flush ()
+	if not ok then refuse ("the tree-query transcript could not be flushed: " .. tostring (err)) end
+end
+
+local function emit (t)
+	emit_to (out, t)
 end
 
 -- THE REPORT SCHEMA. A report is a result only if every row the fixture writes is present exactly once (or, for the keyed rows, once per key) with exactly
@@ -145,7 +206,7 @@ end
 -- malformed measurement is never read as zero, as absent-equals-absent, or as a pass.
 local DESCRIBE = {
 	count = "a decimal count", signed = "a decimal integer", flag = "0 or 1", word = "a word", token = "a token of letters, digits and underscores",
-	hex16 = "16 lowercase hex digits", hex8 = "8 lowercase hex digits", hex8x3 = "three 8-digit lowercase hex words joined by commas",
+	hexs = "an even number of lowercase hex digits (at most 32)", hex16 = "16 lowercase hex digits", hex8 = "8 lowercase hex digits", hex8x3 = "three 8-digit lowercase hex words joined by commas",
 }
 
 local function typed_value (kind, text)
@@ -159,6 +220,8 @@ local function typed_value (kind, text)
 		if string.match (text, "^%a+$") then return text end
 	elseif kind == "token" then
 		if string.match (text, "^[%w_]+$") then return text end
+	elseif kind == "hexs" then
+		if string.match (text, "^[0-9a-f]+$") and #text % 2 == 0 and #text <= 32 then return text end
 	elseif kind == "hex16" then
 		if string.match (text, "^[0-9a-f]+$") and #text == 16 then return text end
 	elseif kind == "hex8" then
@@ -562,6 +625,199 @@ local function coverage_gaps (rows, keyed)
 	return gaps
 end
 
+-- THE TRANSCRIPT SCHEMA (see above). Each row has exactly its keys, each of its exact type.
+local H3 = "hex8x3"
+local TRACE_ONCE = {
+	["tr-state"] = { { "armed", "flag" }, { "records", "count" }, { "capacity", "count" }, { "overflow", "flag" }, { "extra_lookups", "count" }, { "facts_overflow", "flag" },
+		{ "facts_bytes", "count" } },
+	["tf-layout"] = { { "record_size", "count" }, { "x_offset", "count" }, { "z_offset", "count" }, { "y_offset", "count" }, { "colour_offset", "count" }, { "probe", "hexs" },
+		{ "height_only", "hexs" }, { "type_only", "hexs" } },
+	["tf-map"] = { { "terrain_sectors_x", "count" }, { "terrain_sectors_z", "count" }, { "terrain_sector_side", "count" }, { "xz_scale", "hex8" }, { "height_scale", "hex8" },
+		{ "height_minimum", "hex8" }, { "max_tree_height", "count" }, { "map_min_x", "hex8" }, { "map_min_z", "hex8" }, { "map_max_x", "hex8" }, { "map_max_z", "hex8" },
+		{ "tree_total", "count" }, { "sectors_with_trees", "count" } },
+	["tf-forest"] = { { "geometry", "flag" }, { "triangles", "count" }, { "capped", "flag" }, { "fold", "hex16" } },
+}
+local TRACE_MANY = {
+	["tf-triangle"] = { { "i", "count" }, { "p0", H3 }, { "p1", H3 }, { "p2", H3 } },
+	["tf-sample"] = { { "sx", "count" }, { "sz", "count" }, { "count", "count" }, { "index", "count" }, { "bytes", "hexs" } },
+	["tq"] = { { "ordinal", "count" }, { "group", "count" }, { "kind", "count" }, { "role", "count" }, { "stage", "count" }, { "ignore_edge", "flag" }, { "skip_top", "flag" },
+		{ "a", H3 }, { "b", H3 }, { "init_point", H3 }, { "init_normal", H3 }, { "lookups", "count" }, { "extra_lookups", "count" }, { "l0", H3 }, { "l1", H3 }, { "hit", "flag" },
+		{ "point", H3 }, { "normal", H3 } },
+}
+local TRACE_CHUNK = 200
+local ZERO3, SENTINEL3 = "00000000,00000000,00000000", "5a5a5a5a,5a5a5a5a,5a5a5a5a"
+
+local function parse_trace_text (text, state)
+	for line in string.gmatch (text, "[^\r\n]+") do
+		local words = {}
+		for word in string.gmatch (line, "%S+") do words [#words + 1] = word end
+		local event = words [1]
+		local fields = row_fields (event, words)
+		local raw = fields
+		if TRACE_ONCE [event] then
+			if state.once [event] ~= nil then refuse ("the transcript has more than one " .. event .. " row") end
+			state.once [event] = typed_row (event, TRACE_ONCE [event], raw)
+			state.order [#state.order + 1] = { event = event, typed = state.once [event] }
+		elseif TRACE_MANY [event] then
+			local typed = typed_row (event, TRACE_MANY [event], raw)
+			state.many [event] = state.many [event] or {}
+			state.many [event] [#state.many [event] + 1] = typed
+			state.order [#state.order + 1] = { event = event, typed = typed }
+		else
+			refuse ("the transcript has an unknown row '" .. event .. "'")
+		end
+	end
+end
+
+-- The transcript as the fixture returned it: the state row and facts block, then every record in chunks. Returns the parsed rows and the exact text.
+local function read_trace (engine)
+	local state = { once = {}, many = {}, order = {} }
+	local facts_text, total = engine:collision_trace_read (0, 0, 1)
+	parse_trace_text (facts_text, state)
+	local pieces = { facts_text }
+	local offset = 0
+	while offset < total do
+		local want = math.min (TRACE_CHUNK, total - offset)
+		local text, again = engine:collision_trace_read (1, offset, TRACE_CHUNK)
+		if again ~= total then refuse ("the transcript changed while it was read: " .. tostring (total) .. " records, then " .. tostring (again)) end
+		local _, lines = string.gsub (text, "\n", "")
+		if lines ~= want then refuse ("the transcript chunk at " .. offset .. " held " .. lines .. " records, expected " .. want) end
+		pieces [#pieces + 1] = text
+		parse_trace_text (text, state)
+		offset = offset + want
+	end
+	return state, table.concat (pieces)
+end
+
+local function bits_equal_axis (x, y)
+	-- the f32 bit words are equal, or both are a zero (the original's test is a float subtraction equal to 0)
+	return x == y or (tonumber (x, 16) % 2147483648 == 0 and tonumber (y, 16) % 2147483648 == 0)
+end
+
+local function first_word (triple) return string.match (triple, "^(%x+),") end
+local function second_word (triple) return string.match (triple, "^%x+,(%x+),") end
+local function third_word (triple) return string.match (triple, ",(%x+)$") end
+
+-- The transcript against the report it accompanies and against its own structure. Nothing here re-derives a physical answer: it counts and compares what the fixture recorded.
+local function check_trace (trace, rows, keyed)
+	local st, once, many = trace.once ["tr-state"], trace.once, trace.many
+	if st == nil then refuse ("the transcript has no tr-state row") end
+	for _, name in ipairs { "tf-layout", "tf-map", "tf-forest" } do
+		if once [name] == nil then refuse ("the transcript has no " .. name .. " row") end
+	end
+	need_equal ("tr-state", "armed", st.armed, 1)
+	need_equal ("tr-state", "overflow", st.overflow, 0)
+	need_equal ("tr-state", "extra_lookups", st.extra_lookups, 0)
+	need_equal ("tr-state", "facts_overflow", st.facts_overflow, 0)
+	local tc = keyed ["col-tree-common"]
+	local expected = 2 * (tc.struct.cases + tc.random.cases) + 2 * (tc.struct.nearer_checked + tc.random.nearer_checked)
+	local tqs = many ["tq"] or {}
+	need_equal ("tr-state", "records", st.records, expected)
+	need_equal ("tq", "rows", #tqs, expected)
+
+	-- facts against the report's census
+	local layout, map, forest, ct, cm = once ["tf-layout"], once ["tf-map"], once ["tf-forest"], rows ["col-census-tree"], rows ["col-map"]
+	local shown = math.min (layout.record_size, 16) * 2
+	for _, name in ipairs { "probe", "height_only", "type_only" } do
+		need_equal ("tf-layout", name .. " length", #layout [name], shown)
+	end
+	need_equal ("tf-map", "terrain_sectors_x", map.terrain_sectors_x, cm.terrain_sectors_x)
+	need_equal ("tf-map", "terrain_sectors_z", map.terrain_sectors_z, cm.terrain_sectors_z)
+	need_equal ("tf-map", "terrain_sector_side", map.terrain_sector_side, cm.terrain_sector_side)
+	need_equal ("tf-map", "tree_total", map.tree_total, ct.trees_total)
+	need_equal ("tf-map", "sectors_with_trees", map.sectors_with_trees, ct.sectors_with_trees)
+	need_equal ("tf-forest", "geometry", forest.geometry, ct.forest_geometry)
+	need_equal ("tf-forest", "triangles", forest.triangles, #(many ["tf-triangle"] or {}))
+	for i, tri in ipairs (many ["tf-triangle"] or {}) do need_equal ("tf-triangle", "i", tri.i, i - 1) end
+	if forest.geometry == 0 then need_equal ("tf-forest", "triangles without geometry", forest.triangles, 0) end
+	local samples = many ["tf-sample"] or {}
+	if ct.trees_total > 0 then
+		if #samples == 0 then refuse ("tf-sample: no sample rows although the census found " .. tostring (ct.trees_total) .. " trees") end
+		need_equal ("tf-sample", "rows", #samples, math.min (8, samples [1].count))
+	else
+		need_equal ("tf-sample", "rows without trees", #samples, 0)
+	end
+	for i, sample in ipairs (samples) do
+		need_equal ("tf-sample", "index", sample.index, i - 1)
+		need_equal ("tf-sample", "sector", sample.sx .. "," .. sample.sz, samples [1].sx .. "," .. samples [1].sz)
+		need_equal ("tf-sample", "bytes length", #sample.bytes, shown)
+	end
+
+	-- the records: contiguous, in range, stage order, and counted against the report
+	local seen = { [2] = { s0 = 0, s1 = 0, s2 = 0, s3 = 0, hit = 0, warm_same = 0, miss_point = 0, miss_normal = 0, derived = 0 },
+		[3] = { s0 = 0, s1 = 0, s2 = 0, s3 = 0, hit = 0, warm_same = 0, miss_point = 0, miss_normal = 0, derived = 0 } }
+	local previous, cold_record, expect_stage = nil, nil, 0
+	for i, q in ipairs (tqs) do
+		need_equal ("tq", "ordinal", q.ordinal, i - 1)
+		if q.group ~= 2 and q.group ~= 3 then refuse ("tq " .. tostring (q.ordinal) .. ": group must be 2 or 3, got " .. tostring (q.group)) end
+		if q.kind > 10 then refuse ("tq " .. tostring (q.ordinal) .. ": kind must be 0 to 10, got " .. tostring (q.kind)) end
+		if (q.group == 3) ~= (q.kind == 10) then refuse ("tq " .. tostring (q.ordinal) .. ": group " .. tostring (q.group) .. " does not fit kind " .. tostring (q.kind)) end
+		if q.stage > 3 then refuse ("tq " .. tostring (q.ordinal) .. ": stage must be 0 to 3, got " .. tostring (q.stage)) end
+		if q.lookups > 2 then refuse ("tq " .. tostring (q.ordinal) .. ": lookups must be 0 to 2, got " .. tostring (q.lookups)) end
+		need_equal ("tq " .. tostring (q.ordinal), "extra_lookups", q.extra_lookups, 0)
+		need_equal ("tq " .. tostring (q.ordinal), "init_point", q.init_point, ZERO3)
+		need_equal ("tq " .. tostring (q.ordinal), "init_normal", q.init_normal, SENTINEL3)
+		if q.lookups < 2 then need_equal ("tq " .. tostring (q.ordinal), "unused l1", q.l1, ZERO3) end
+		if q.lookups < 1 then need_equal ("tq " .. tostring (q.ordinal), "unused l0", q.l0, ZERO3) end
+		-- stage order: 0, 1, then for a hit optionally 2, 3; a nearer-check follows only a primary hit
+		if q.stage == 0 then
+			if expect_stage ~= 0 and expect_stage ~= 2 then refuse ("tq " .. tostring (q.ordinal) .. ": stage 0 where stage " .. tostring (expect_stage) .. " was expected") end
+			cold_record = q
+			expect_stage = 1
+		elseif q.stage == 1 then
+			if expect_stage ~= 1 then refuse ("tq " .. tostring (q.ordinal) .. ": stage 1 where stage " .. tostring (expect_stage) .. " was expected") end
+			expect_stage = (cold_record.hit == 1) and 2 or 0
+		elseif q.stage == 2 then
+			if expect_stage ~= 2 then refuse ("tq " .. tostring (q.ordinal) .. ": stage 2 without a primary hit before it") end
+			expect_stage = 3
+		else
+			if expect_stage ~= 3 then refuse ("tq " .. tostring (q.ordinal) .. ": stage 3 where stage " .. tostring (expect_stage) .. " was expected") end
+			expect_stage = 0
+		end
+		local g = seen [q.group]
+		g ["s" .. q.stage] = g ["s" .. q.stage] + 1
+		if q.stage == 0 then
+			if q.hit == 1 then
+				g.hit = g.hit + 1
+			else
+				if q.point ~= ZERO3 then g.miss_point = g.miss_point + 1 end
+				if q.normal ~= SENTINEL3 then g.miss_normal = g.miss_normal + 1 end
+			end
+		elseif q.stage == 1 then
+			if q.hit == cold_record.hit and q.point == cold_record.point and q.normal == cold_record.normal then g.warm_same = g.warm_same + 1 end
+		elseif q.stage == 2 then
+			-- the derived ray: its f32 x or z extent is exactly zero
+			if bits_equal_axis (first_word (q.a), first_word (q.b)) or bits_equal_axis (third_word (q.a), third_word (q.b)) then g.derived = g.derived + 1 end
+		end
+	end
+	need_equal ("tq", "stage after the last record", expect_stage == 1 or expect_stage == 3, false)
+
+	for group, name in pairs { [2] = "struct", [3] = "random" } do
+		local row, g = tc [name], seen [group]
+		local label = "tq group " .. name
+		need_equal (label, "stage 0 records", g.s0, row.cases)
+		need_equal (label, "stage 1 records", g.s1, row.cases)
+		need_equal (label, "stage 2 records", g.s2, row.nearer_checked)
+		need_equal (label, "stage 3 records", g.s3, row.nearer_checked)
+		need_equal (label, "primary hits", g.hit, row.hit)
+		need_equal (label, "warm agreements", g.warm_same, row.warm_same)
+		need_equal (label, "miss-time point writes", g.miss_point, row.miss_point_written)
+		need_equal (label, "miss-time normal writes", g.miss_normal, row.miss_normal_written)
+		need_equal (label, "derived zero-extent rays", g.derived, row.derived_axis)
+	end
+end
+
+local function write_trace (file, trace, meta)
+	trace_write (file, { event = "trace-start", scenario = meta.scenario, seed = meta.seed, entity_cases = meta.entity_cases, tree_cases = meta.tree_cases, seconds = meta.seconds,
+		frame_ms = meta.frame_ms })
+	for _, item in ipairs (trace.order) do
+		local t = { event = item.event }
+		for k, v in pairs (item.typed) do t [k] = v end
+		trace_write (file, t)
+	end
+	trace_write (file, { event = "trace-end", records = #(trace.many ["tq"] or {}), rows = #trace.order })
+end
+
 local dc = require ("eech_dc")
 dc.prepare_installation (root)
 local engine = dc.boot {
@@ -596,9 +852,40 @@ emit { event = "frames_before", frames = frames_before }
 
 local probed = false
 local first_report, first_rows, first_keyed
+local first_trace, first_trace_text
 local total_gaps = {}
+-- The armed transcript and the open trace file are cleaned up on EVERY failure of the probe/trace path (a probe or read error, a rejected report or transcript, a differing
+-- repeat, a write, flush or close error), not only on success. Cleanup is best effort and never replaces the primary failure: a cleanup error is recorded as its own event and the
+-- original diagnostic is re-raised unchanged.
+local trace_armed = false
+
+local function fail_trace (err)
+	pcall (emit, { event = "trace_failed", error = tostring (err) })
+	if trace_armed then
+		local ok, cleanup_error = pcall (function () engine:collision_trace_arm (false) end)
+		if ok then
+			trace_armed = false
+		else
+			pcall (emit, { event = "trace_cleanup_failed", what = "disarm", error = tostring (cleanup_error) })
+		end
+	end
+	if trace_file then
+		local ok, closed, cleanup_error = pcall (function () return trace_file:close () end)
+		if not ok or not closed then
+			pcall (emit, { event = "trace_cleanup_failed", what = "close", error = tostring (ok and cleanup_error or closed) })
+		end
+		trace_file = nil
+	end
+	error (err, 0)
+end
+
 if probe == "yes" then
+	local function run_probes ()
 	for repeat_index = 1, repeats do
+		if trace_file then
+			trace_armed = true
+			engine:collision_trace_arm (true)
+		end
 		local ok, report = pcall (function () return engine:collision_probe (seed, entity_cases, tree_cases) end)
 		if not ok then
 			emit { event = "probe_refused", repeat_index = repeat_index, error = tostring (report) }
@@ -624,6 +911,16 @@ if probe == "yes" then
 		end
 		for _, e in ipairs (events) do emit (e) end
 		probed = true
+		if trace_file then
+			local trace, trace_text = read_trace (engine)
+			check_trace (trace, rows, keyed)
+			if repeat_index == 1 then
+				first_trace, first_trace_text = trace, trace_text
+			elseif trace_text ~= first_trace_text then
+				emit { event = "trace_differs", repeat_index = repeat_index }
+				refuse ("the tree-query transcript of repeat " .. repeat_index .. " differs from repeat 1")
+			end
+		end
 		if repeat_index == 1 then
 			first_report, first_rows, first_keyed = report, rows, keyed
 		else
@@ -638,6 +935,29 @@ if probe == "yes" then
 				refuse ("repeat " .. repeat_index .. " differs from repeat 1: the report is not repeatable for the seed and the loaded world")
 			end
 		end
+	end
+	if trace_file then
+		engine:collision_trace_arm (false)
+		trace_armed = false
+		-- every repeat's transcript has passed; only now is the private file written, and its last line says it is complete
+		write_trace (trace_file, first_trace, { scenario = scenario_name, seed = seed, entity_cases = entity_cases, tree_cases = tree_cases, seconds = seconds, frame_ms = frame_ms })
+		-- the close is checked too: a file is accepted only when this event is in the output, whatever the file's last line says
+		local file = trace_file
+		trace_file = nil
+		local closed, close_error = file:close ()
+		if not closed then
+			trace_file = nil
+			refuse ("the tree-query transcript could not be closed: " .. tostring (close_error))
+		end
+		emit { event = "trace_written", records = #(first_trace.many ["tq"] or {}), rows = #first_trace.order }
+	end
+	end
+
+	if trace_file then
+		local ok, err = pcall (run_probes)
+		if not ok then fail_trace (err) end
+	else
+		run_probes ()
 	end
 	total_gaps = coverage_gaps (first_rows, first_keyed)
 	emit { event = "coverage", gaps = (#total_gaps == 0) and "none" or table.concat (total_gaps, ","), gap_count = #total_gaps,

@@ -965,6 +965,14 @@ const AIM_REPORT_CAPACITY: usize = 96 * 1024;
 #[cfg(feature = "collision-fixture")]
 const COLLISION_REPORT_CAPACITY: usize = 128 * 1024;
 
+/// TEST-ONLY (feature `collision-fixture`, EEDCS-49): room for one chunk of the tree-query transcript or its facts block; a text that does not fit is refused, never cut short.
+#[cfg(feature = "collision-fixture")]
+const COLLISION_TRACE_CAPACITY: usize = 256 * 1024;
+
+/// TEST-ONLY (feature `collision-fixture`, EEDCS-49): the most transcript records one read returns.
+#[cfg(feature = "collision-fixture")]
+pub const COLLISION_TRACE_CHUNK_MAX: i32 = 256;
+
 /// TEST-ONLY (feature `collision-fixture`, EEDCS-49): the most random entity cases or random tree cases one probe is asked for.
 #[cfg(feature = "collision-fixture")]
 pub const COLLISION_PROBE_CASES_MAX: i32 = 20_000;
@@ -4562,6 +4570,30 @@ impl Engine {
         // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
         let status = check(unsafe { sys::eech_engine_collision_probe(seed, entity_cases, tree_cases, text.as_mut_ptr(), text.len() as i32) });
         keep_case_reason(status, &text)
+    }
+
+    /// TEST-ONLY (feature `collision-fixture`, EEDCS-49): arms (or disarms) the private tree-query transcript of the collision probe; arming clears it. The probe's report is
+    /// identical either way.
+    #[cfg(feature = "collision-fixture")]
+    pub fn collision_trace_arm(&self, on: bool) -> Result<(), EngineError> {
+        // SAFETY: no pointers cross.
+        check(unsafe { sys::eech_engine_collision_trace_arm(c_int::from(on)) })
+    }
+
+    /// TEST-ONLY (feature `collision-fixture`, EEDCS-49): reads the transcript back. `kind` 0 returns the state row and the facts block; `kind` 1 returns the records
+    /// `offset` to `offset + count` (`count` 1 to 256). The second value is the number of records the transcript holds. A text that does not fit is refused.
+    #[cfg(feature = "collision-fixture")]
+    pub fn collision_trace_read(&self, kind: i32, offset: i32, count: i32) -> Result<(String, i32), EngineError> {
+        if !(0..=1).contains(&kind) || offset < 0 || !(1..=COLLISION_TRACE_CHUNK_MAX).contains(&count) {
+            return Err(EngineError::BadArgument(format!(
+                "collision_trace_read: kind must be 0 or 1, offset 0 or more and count 1 to {COLLISION_TRACE_CHUNK_MAX}, got {kind}, {offset}, {count}"
+            )));
+        }
+        let mut text = vec![0 as std::os::raw::c_char; COLLISION_TRACE_CAPACITY];
+        let mut total: c_int = 0;
+        // SAFETY: the buffer and the total outlive the call and the capacity passed is the buffer's length; the engine NUL-terminates the text.
+        let status = check(unsafe { sys::eech_engine_collision_trace_read(kind, offset, count, text.as_mut_ptr(), text.len() as i32, &mut total) });
+        Ok((keep_case_reason(status, &text)?, total))
     }
 
     /// TEST-ONLY (feature `aim-fixture`, EEDCS-44): the run-wide report of the physical weapon-aiming code the campaign's own update loop has run

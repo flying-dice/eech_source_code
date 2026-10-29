@@ -1768,6 +1768,16 @@ impl LuaUserData for LuaEngine {
         methods.add_method("collision_probe", |_, this, (seed, entity_cases, tree_cases): (u32, i32, i32)| {
             this.engine.collision_probe(seed, entity_cases, tree_cases).map_err(lua_error)
         });
+        // TEST-ONLY (feature `collision-fixture`, EEDCS-49): the optional private tree-query transcript of the collision probe (arm, then read the state and facts or a chunk of records);
+        // not part of the shipping module.
+        #[cfg(feature = "collision-fixture")]
+        methods.add_method("collision_trace_arm", |_, this, on: bool| {
+            this.engine.collision_trace_arm(on).map_err(lua_error)
+        });
+        #[cfg(feature = "collision-fixture")]
+        methods.add_method("collision_trace_read", |_, this, (kind, offset, count): (i32, i32, i32)| {
+            this.engine.collision_trace_read(kind, offset, count).map_err(lua_error)
+        });
         // TEST-ONLY (feature `aim-fixture`, EEDCS-44): the run-wide report of the physical weapon-aiming code; not part of the shipping module.
         #[cfg(feature = "aim-fixture")]
         methods.add_method("aim_trace", |_, this, ()| this.engine.aim_trace().map_err(lua_error));

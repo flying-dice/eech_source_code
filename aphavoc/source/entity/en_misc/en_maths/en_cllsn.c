@@ -1744,6 +1744,20 @@ entity *get_line_of_sight_collision_entity
 
 #define TREE_RADIUS	(5.0)
 
+//
+// EECH_COLLISION_FIXTURE (test-only, EEDCS-49): the tree query's two terrain-elevation lookups below go through a fixture function that makes the IDENTICAL call
+// (same macro, same two float arguments, same float result, same order) and, when a private transcript is armed, records the coordinates and the elevation it
+// returned. Without the feature this macro expands to exactly the original call, so the shipping text is unchanged. It is used ONLY at the two lookups in
+// get_line_of_sight_collision_tree; get_ground_impact_point and everything else are untouched.
+//
+
+#ifdef EECH_COLLISION_FIXTURE
+extern float eech_collision_tree_elevation (float x, float z);
+#define TREE_QUERY_TERRAIN_ELEVATION(X,Z) eech_collision_tree_elevation (X, Z)
+#else
+#define TREE_QUERY_TERRAIN_ELEVATION(X,Z) get_3d_terrain_elevation (X, Z)
+#endif
+
 int get_line_of_sight_collision_tree
 (
 	vec3d *source_old_position,
@@ -1825,7 +1839,7 @@ int get_line_of_sight_collision_tree
 
 	if (point_inside_map_area (source_old_position))
 	{
-		source_old_position_rad_alt = source_old_position->y - get_3d_terrain_elevation (source_old_position->x, source_old_position->z);
+		source_old_position_rad_alt = source_old_position->y - TREE_QUERY_TERRAIN_ELEVATION (source_old_position->x, source_old_position->z);
 	}
 	else
 	{
@@ -1834,7 +1848,7 @@ int get_line_of_sight_collision_tree
 
 	if (point_inside_map_area (source_new_position))
 	{
-		source_new_position_rad_alt = source_new_position->y - get_3d_terrain_elevation (source_new_position->x, source_new_position->z);
+		source_new_position_rad_alt = source_new_position->y - TREE_QUERY_TERRAIN_ELEVATION (source_new_position->x, source_new_position->z);
 	}
 	else
 	{
