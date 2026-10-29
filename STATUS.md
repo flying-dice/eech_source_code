@@ -1,3 +1,31 @@
+# Current whole-D3 checkpoint — collision characterization reviewed; production gates remain
+
+Task49 draftPR109 is pushed at03413ccd33ef14da169354bae8ebb2cf0fad5495 on
+codex/d3-object-tree-collision. Measured native5416adb3b passes three boot and five
+moving/control cases, with post-inputs0, unchanged payloads, exact boot values,
+repeat equality and matching coarse control digests. Original query update-flag
+effects are reported and restored. Final driver/helper54e5ece85 passes10/10 tests
+on Linux and actual Windows, format and host Clippy0; four actual old-checker false
+passes are reproduced and corrected. One combined correction review is closed
+without open findings (SHA92ad84e8764c6a0b4068712a3faf9f82bb7ca4bfbcd46861193bb50776931bff).
+Coverage gaps remain; these are original measurements, not a host extraction.
+
+The sole SonnetHigh lane is preparing a bounded passive tree-query/ordered-terrain
+transcript under the same Task49. It is unbuilt/unrun; host tree loader/kernel
+preparation follows measured inputs. Entity/tree geometry paths and required
+physical loaders remain D3 work. Current ledger14548994v62 preserves all prior
+HTML and all five epic reports, verified on readback. Jira10854/10855 andPR109
+retain the source/evidence/review boundaries; raw retail artifacts remain private.
+
+Task47 corrected shipping115 remains live unchanged. Checked23.4MB Tacview and
+14.6MB observation prefixes match accepted bytes; final40/eight complete files,
+post-inputs, final review and normal delivery remain pending. Task48 reviewed
+host ground preparation is retained below; production G2/G3 cutover still follows
+validated preceding delivery and integration verification. Campaign geography,
+routes, timers, scheduling and consequences stay core. Remaining model/environment/
+host-time/physical solver and loader removal remain whole-D3 requirements.
+D3 stays active; D4/D5 have not started. No baseline or tolerance changed.
+
 # Current D3 checkpoint — host ground Lua preparation reviewed
 
 Task48 supplemental branch codex/d3-ground-host-preparation is pushed at55e3d195d.
