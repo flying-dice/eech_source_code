@@ -1,3 +1,22 @@
+# Host tree kernel — f81eb31bc runtime controls PASS; Linux Clippy 101 on two test-only lints; the two edits PREPARED, UNBUILT, UNRUN (EEDCS-49, D3 preparation)
+
+Measured by Root on f81eb31bc454492c57d64dbd8cf0c0105041b1e5 (retained, not re-derived here): Windows build 0 with 8 exports; Linux 17 tree unit tests, 1 real-host Lua transport test and fmt 0; Root's same 6 protocol controls
+and same 3 re-entrant getter controls all PASS on the new host (an erroring or malformed getter can no longer continue a nested query; the healthy getter is unchanged); the 3-map native original replay (controller 42087)
+was still running, Georgia already 0 on both paths with every original bit exact, the full results being Root's to collect. The reviewer inspected only the f81 delta and has no further correction finding; closure awaits the
+actual checks. There is no overall acceptance yet. Linux Clippy now gets past the previous three lints and fails with exactly three errors that are two tiny edits in `tests/tree_conformance.rs` only
+(raw `R:/d3-evidence/tree-host-final-linux-f81eb31bc-20261029.log`, Linux invocation 101).
+
+Prepared (source only; no host library, `main.rs`, C, FPU, physics, loader or protocol change; no lint allow or suppression, no dependency or toolchain change):
+1. `doc_lazy_continuation` (lines 17 and 18): a blank `//!` line now separates the bullet list from the paragraph "The loader is checked ..."; the prose is unchanged.
+2. `manual_is_multiple_of` (line 54): `text.len() % 2 != 0` is now `!text.len().is_multiple_of(2)`, the same odd-length hex refusal; parsing and expected bits are unchanged. (`is_multiple_of` on unsigned integers needs a
+   recent stable Rust, as Clippy's own suggestion implies; Root's builds show whether every toolchain has it.)
+
+Root will format and freeze the new source, run `cargo clippy --keep-going` to expose any remaining independent target issue, the appropriate checks, and then the same reviewer closes only these edits and the evidence. The allocation
+wording that Root qualified is kept. Forest geometry (model loader and native witness), entity collision, G1 integration, production authority, the DCS mapping or documented workaround (live DCS execution is M6) and shipping
+remain D3 requirements. This does not complete Task49, production or D3.
+
+---
+
 # Host tree kernel — reviewer's remaining pending-query seam (re-entrant `__index` during `begin`): measured RED, cleanup PREPARED, UNBUILT, UNRUN (EEDCS-49, D3 preparation)
 
 ## Measured state of the 684fb6981 source (retained; this does NOT cover the new code)

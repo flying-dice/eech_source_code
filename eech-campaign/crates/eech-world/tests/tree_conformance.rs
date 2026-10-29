@@ -14,6 +14,7 @@
 //!  * the host asks for exactly the terrain lookups the original made: their number, their order and the bits of their x and z;
 //!  * only the recorded elevation bits are fed back, in order;
 //!  * the answer is bit-identical to the original's: the hit, and the final intercept point and normal, including the partial writes of a miss.
+//!
 //! The loader is checked against the native facts recorded in the same transcript (record layout, tree total, sectors with trees, the first
 //! sector's first records) without re-deriving any physics. Nothing is normalised and no tolerance is applied.
 //!
@@ -51,7 +52,7 @@ fn floats<const N: usize>(bits: [u32; N]) -> [f32; N] {
 }
 
 fn hex_bytes(text: &str) -> Result<Vec<u8>, String> {
-    if text.len() % 2 != 0 {
+    if !text.len().is_multiple_of(2) {
         return Err(format!("{text:?} has an odd number of hex digits"));
     }
     (0..text.len() / 2)
