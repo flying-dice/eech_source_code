@@ -300,6 +300,10 @@ struct TERRAIN_3D_SECTOR
 	unsigned char
 		*face_type;
 
+	/* the one allocation that holds this sector's copy of the geometry above (and the two host arrays), 4-aligned */
+	void
+		*block;
+
 	uint32_t
 		total_references;
 };
@@ -1441,7 +1445,6 @@ int host_point_inside_terrain_strip_byte_triangle ( const float x_offset, const 
 /* ---- terrelev.c get_3d_terrain_point_data, verbatim but for the marked host changes (name, off-map note, N1, N3) ---- */
 
 static float host_get_3d_terrain_point_data ( float x, float z, terrain_3d_point_data *point_data )
-#endif
 {
 
 	int
@@ -2280,6 +2283,7 @@ struct host_terrain
 	terrain_3d_sector **rows;
 	const uint8_t *grid;
 	size_t grid_length;
+	uint64_t key; /* this map instance's identity, folded into every hint it issues */
 };
 
 static int fail (char *error, size_t error_size, const char *format, ...) __attribute__ ((format (printf, 3, 4)));
@@ -2338,6 +2342,17 @@ static float read_f (struct cursor *c)
 	return value;
 }
 
+/* a span of `length` bytes at `offset` lies inside a file of `total` bytes (64-bit, so 32-bit offsets and lengths cannot wrap) */
+static int span_inside (uint64_t offset, uint64_t length, uint64_t total)
+{
+	return offset <= total && length <= total - offset;
+}
+
+static uint64_t align4 (uint64_t value)
+{
+	return (value + 3u) & ~(uint64_t) 3u;
+}
+
 static void host_terrain_free_sectors (host_terrain *map)
 {
 	if (map->sector_memory)
@@ -2346,8 +2361,7 @@ static void host_terrain_free_sectors (host_terrain *map)
 
 		for (i = 0; i < count; i++)
 		{
-			free (map->sector_memory[i].face_reference_offset);
-			free (map->sector_memory[i].face_type);
+			free (map->sector_memory[i].block);
 		}
 
 		free (map->sector_memory);
@@ -2369,13 +2383,14 @@ void host_terrain_close (host_terrain *map)
 
 /* terrdata.c load_3d_terrain, for the facts and sectors the solver reads, from memory. The file offsets are into `geometry` (terrain.ffp). */
 host_terrain *host_terrain_open (const uint8_t *sector, size_t sector_length, const uint8_t *geometry, size_t geometry_length, const uint8_t *grid, size_t grid_length,
-	int32_t map_number, char *error, size_t error_size)
+	int32_t map_number, uint64_t map_key, char *error, size_t error_size)
 {
 	host_terrain *map;
 	struct cursor c;
 	fenv_t saved;
 	int width, height, x, z;
 	uint32_t version;
+	uint64_t geometry_total = geometry_length;
 
 	if (!sector || !geometry)
 	{
@@ -2412,6 +2427,7 @@ host_terrain *host_terrain_open (const uint8_t *sector, size_t sector_length, co
 	map->facts.sector_x_max = width;
 	map->facts.sector_z_max = height;
 	map->facts.map_number = map_number;
+	map->key = map_key;
 	map->facts.version = version;
 	map->facts.min_x = 0.0;
 	map->facts.min_z = 0.0;
@@ -2448,8 +2464,10 @@ host_terrain *host_terrain_open (const uint8_t *sector, size_t sector_length, co
 		{
 			terrain_3d_sector *s = &map->rows[z][x];
 			uint32_t off_y, off_xz, off_ref, off_poly, off_surface;
-			size_t index = 0, faces, refs = 0, bits = 0, ref_bytes, f, r;
-			const terrain_3d_face *face;
+			uint64_t refs = 0, bits = 0, ref_bytes, offset_y, offset_ref, offset_poly, offset_surface, offset_face_reference, offset_face_type, block_size;
+			size_t index = 0, faces, points, f, r;
+			const terrain_3d_face *face_source;
+			unsigned char *block;
 
 			s->number_of_points = (unsigned short) read_u (&c, 2);
 			(void) read_u (&c, 2);
@@ -2476,86 +2494,106 @@ host_terrain *host_terrain_open (const uint8_t *sector, size_t sector_length, co
 			}
 
 			faces = s->number_of_polygons;
-			ref_bytes = (s->number_of_points < 257) ? 1 : 2;
+			points = s->number_of_points;
+			ref_bytes = (points < 257) ? 1 : 2;
 
-			if ((size_t) off_y + 2 * (size_t) s->number_of_points > geometry_length || (size_t) off_xz + 4 * (size_t) s->number_of_points > geometry_length
-				|| (size_t) off_poly + faces > geometry_length)
+			/* every span is checked in 64-bit arithmetic against the file length before any pointer into the file is formed (offsets are 32-bit) */
+			if (!span_inside (off_y, 2u * points, geometry_total) || !span_inside (off_xz, 4u * points, geometry_total) || !span_inside (off_poly, faces, geometry_total))
 			{
 				fail (error, error_size, "terrain: sector %d,%d points or faces lie outside the geometry file", x, z);
 				host_terrain_close (map);
 				return NULL;
 			}
 
-			s->points_y = (terrain_3d_point_y *) (geometry + off_y);
-			s->points_xz = (terrain_3d_point_xz *) (geometry + off_xz);
-			s->polygons = (terrain_3d_face *) (geometry + off_poly);
-
-			face = s->polygons;
+			/* a face is one byte (alignment 1), so reading the faces in the file is safe once the span is inside */
+			face_source = (const terrain_3d_face *) (geometry + off_poly);
 
 			for (f = 0; f < faces; f++)
 			{
-				if (face[f].number_of_points < 3)
+				if (face_source[f].number_of_points < 3)
 				{
 					fail (error, error_size, "terrain: sector %d,%d face %u has fewer than three points", x, z, (unsigned) f);
 					host_terrain_close (map);
 					return NULL;
 				}
 
-				refs += face[f].number_of_points;
-				bits += face[f].surface_change;
+				refs += face_source[f].number_of_points;
+				bits += face_source[f].surface_change;
 			}
 
-			if ((size_t) off_ref + refs * ref_bytes > geometry_length || (size_t) off_surface + bits + 1 > geometry_length)
+			if (!span_inside (off_ref, refs * ref_bytes, geometry_total) || !span_inside (off_surface, bits + 1, geometry_total))
 			{
 				fail (error, error_size, "terrain: sector %d,%d references or surfaces lie outside the geometry file", x, z);
 				host_terrain_close (map);
 				return NULL;
 			}
 
-			s->point_byte_references = (terrain_3d_point_byte_reference *) (geometry + off_ref);
-			s->surface_changes = (terrain_3d_surface *) (geometry + off_surface);
+			/*
+			 * The sector's geometry is copied into one block of the host's own, 4-aligned, so that the typed reads of the solver (16-bit coordinates and
+			 * references, 32-bit offsets) are never made through a misaligned pointer into the file, whatever offsets the file holds. The solver
+			 * reads the same bytes, so its arithmetic is unchanged.
+			 */
+			offset_y = 4u * (uint64_t) points;
+			offset_ref = offset_y + align4 (2u * (uint64_t) points);
+			offset_poly = offset_ref + align4 (refs * ref_bytes);
+			offset_surface = offset_poly + align4 (faces);
+			offset_face_reference = offset_surface + align4 (bits + 1);
+			offset_face_type = offset_face_reference + 4u * (uint64_t) faces;
+			block_size = offset_face_type + (uint64_t) faces;
+
+			block = (unsigned char *) malloc ((size_t) (block_size ? block_size : 1));
+
+			if (!block)
+			{
+				fail (error, error_size, "terrain: out of memory");
+				host_terrain_close (map);
+				return NULL;
+			}
+
+			s->block = block;
+
+			memcpy (block, geometry + off_xz, 4u * (size_t) points);
+			memcpy (block + offset_y, geometry + off_y, 2u * (size_t) points);
+			memcpy (block + offset_ref, geometry + off_ref, (size_t) (refs * ref_bytes));
+			memcpy (block + offset_poly, geometry + off_poly, faces);
+			memcpy (block + offset_surface, geometry + off_surface, (size_t) (bits + 1));
+
+			s->points_xz = (terrain_3d_point_xz *) block;
+			s->points_y = (terrain_3d_point_y *) (block + offset_y);
+			s->point_byte_references = (terrain_3d_point_byte_reference *) (block + offset_ref);
+			s->polygons = (terrain_3d_face *) (block + offset_poly);
+			s->surface_changes = (terrain_3d_surface *) (block + offset_surface);
+			s->face_reference_offset = (uint32_t *) (block + offset_face_reference);
+			s->face_type = block + offset_face_type;
 			s->total_references = (uint32_t) refs;
 
 			for (r = 0; r < refs; r++)
 			{
 				unsigned point = (ref_bytes == 1) ? s->point_byte_references[r].point : s->point_word_references[r].point;
 
-				if (point >= s->number_of_points)
+				if (point >= points)
 				{
-					fail (error, error_size, "terrain: sector %d,%d reference %u names point %u of %u", x, z, (unsigned) r, point, (unsigned) s->number_of_points);
+					fail (error, error_size, "terrain: sector %d,%d reference %u names point %u of %u", x, z, (unsigned) r, point, (unsigned) points);
 					host_terrain_close (map);
 					return NULL;
 				}
 			}
 
-			if (faces)
-			{
-				s->face_reference_offset = (uint32_t *) malloc (faces * sizeof (uint32_t));
-				s->face_type = (unsigned char *) malloc (faces);
+			refs = 0;
 
-				if (!s->face_reference_offset || !s->face_type)
+			for (f = 0; f < faces; f++)
+			{
+				/* terrelev.c: `surface += face->surface_change` before the face's type is read */
+				index += s->polygons[f].surface_change;
+				s->face_reference_offset[f] = (uint32_t) refs;
+				s->face_type[f] = s->surface_changes[index].surface_id;
+				refs += s->polygons[f].number_of_points;
+
+				if (s->face_type[f] >= TERRAIN_TYPE_LAST)
 				{
-					fail (error, error_size, "terrain: out of memory");
+					fail (error, error_size, "terrain: sector %d,%d face %u has surface type %u", x, z, (unsigned) f, (unsigned) s->face_type[f]);
 					host_terrain_close (map);
 					return NULL;
-				}
-
-				refs = 0;
-
-				for (f = 0; f < faces; f++)
-				{
-					/* terrelev.c: `surface += face->surface_change` before the face's type is read */
-					index += face[f].surface_change;
-					s->face_reference_offset[f] = (uint32_t) refs;
-					s->face_type[f] = s->surface_changes[index].surface_id;
-					refs += face[f].number_of_points;
-
-					if (s->face_type[f] >= TERRAIN_TYPE_LAST)
-					{
-						fail (error, error_size, "terrain: sector %d,%d face %u has surface type %u", x, z, (unsigned) f, (unsigned) s->face_type[f]);
-						host_terrain_close (map);
-						return NULL;
-					}
 				}
 			}
 		}
@@ -2616,6 +2654,46 @@ static int finite3 (const float *v)
 	return isfinite (v[0]) && isfinite (v[1]) && isfinite (v[2]);
 }
 
+/*
+ * The tag of a hint: a keyed 64-bit FNV-1a over the issuing map instance's key and every field of the hint. It binds a hint to the map that issued it
+ * (a hint from another map, or from an earlier instance of the same files, is refused even when its indices happen to be valid) and to the normal and
+ * triangle it carries, so an edited hint is refused. It needs no table of issued hints. It is an integrity check against accident and staleness; it is
+ * not a secret, and the structural checks below still run on a hint whose tag matches.
+ */
+static uint64_t hint_tag (const host_terrain *map, const host_terrain_hint *hint)
+{
+	uint64_t hash = 14695981039346656037ull;
+	uint32_t words[9];
+	int w, byte;
+
+	words[0] = (uint32_t) hint->x_sector;
+	words[1] = (uint32_t) hint->z_sector;
+	words[2] = hint->face_index;
+	words[3] = hint->reference_offset;
+	words[4] = (uint32_t) hint->triangle_offset;
+	words[5] = (uint32_t) hint->type;
+	memcpy (&words[6], &hint->normal[0], sizeof (uint32_t));
+	memcpy (&words[7], &hint->normal[1], sizeof (uint32_t));
+	memcpy (&words[8], &hint->normal[2], sizeof (uint32_t));
+
+	for (byte = 0; byte < 8; byte++)
+	{
+		hash ^= (uint64_t) ((map->key >> (8 * byte)) & 0xffu);
+		hash *= 1099511628211ull;
+	}
+
+	for (w = 0; w < 9; w++)
+	{
+		for (byte = 0; byte < 4; byte++)
+		{
+			hash ^= (uint64_t) ((words[w] >> (8 * byte)) & 0xffu);
+			hash *= 1099511628211ull;
+		}
+	}
+
+	return hash;
+}
+
 /* turns a hint back into the record the original solver expects, checking everything it will read */
 static int record_from_hint (const host_terrain *map, const host_terrain_hint *hint, terrain_3d_point_data *record, char *error, size_t error_size)
 {
@@ -2627,6 +2705,11 @@ static int record_from_hint (const host_terrain *map, const host_terrain_hint *h
 	if (!hint)
 	{
 		return 0;
+	}
+
+	if (hint->tag != hint_tag (map, hint))
+	{
+		return fail (error, error_size, "terrain hint: not issued by this map, or altered since it was issued");
 	}
 
 	if (hint->x_sector < 0 || hint->x_sector >= map->facts.sector_x_max || hint->z_sector < 0 || hint->z_sector >= map->facts.sector_z_max)
@@ -2649,7 +2732,8 @@ static int record_from_hint (const host_terrain *map, const host_terrain_hint *h
 		return fail (error, error_size, "terrain hint: the face, its reference offset and its surface type do not agree");
 	}
 
-	if (hint->triangle_offset < 0 || hint->triangle_offset > (int) face->number_of_points - 3 || !finite3 (hint->normal))
+	/* a normal the solver stored is finite with a positive y component (N3 guarantees it); a zero normal would make a fast hit compute 0/0 */
+	if (hint->triangle_offset < 0 || hint->triangle_offset > (int) face->number_of_points - 3 || !finite3 (hint->normal) || !(hint->normal[1] > 0.00001f))
 	{
 		return fail (error, error_size, "terrain hint: the triangle or the stored normal is not valid");
 	}
@@ -2677,7 +2761,7 @@ static int record_from_hint (const host_terrain *map, const host_terrain_hint *h
 	return 0;
 }
 
-static void hint_from_record (const terrain_3d_point_data *record, host_terrain_answer *answer)
+static void hint_from_record (const host_terrain *map, const terrain_3d_point_data *record, host_terrain_answer *answer)
 {
 	const terrain_3d_sector *s = record->terrain_sector;
 
@@ -2699,6 +2783,7 @@ static void hint_from_record (const terrain_3d_point_data *record, host_terrain_
 	answer->hint.normal[0] = record->face_normal.x;
 	answer->hint.normal[1] = record->face_normal.y;
 	answer->hint.normal[2] = record->face_normal.z;
+	answer->hint.tag = hint_tag (map, &answer->hint);
 }
 
 int host_terrain_query (const host_terrain *map, float x, float z, const host_terrain_hint *hint, host_terrain_answer *out, char *error, size_t error_size)
@@ -2741,7 +2826,7 @@ int host_terrain_query (const host_terrain *map, float x, float z, const host_te
 	out->cuba = host_note_cuba;
 	out->nan_position = host_note_nan;
 
-	hint_from_record (&record, out);
+	hint_from_record (map, &record, out);
 
 	return 0;
 }
@@ -2947,11 +3032,29 @@ int host_terrain_conformance_sweep (const host_terrain *map, uint32_t seed, int 
 	const float side = (float) TERRAIN_3D_SECTOR_SIDE_LENGTH;
 	fenv_t saved;
 	float min_x, max_x, min_z, max_z;
-	int total = 6 + count, i, rc = 0;
+	int total, i, rc = 0;
 
-	if (count < 0 || emit < 0 || emit > 256 || (emit && !samples))
+	/* the original probe's bounds (eech_engine_terrain_probe): a count of 0 to 200000, a non-negative emit that is capped at 256; checked before any arithmetic on them */
+	if (count < 0 || count > 200000 || emit < 0 || !out)
 	{
 		return fail (error, error_size, "terrain sweep: count %d or emit %d is out of range", count, emit);
+	}
+
+	total = 6 + count;
+
+	if (emit > 256)
+	{
+		emit = 256;
+	}
+
+	if (emit > total)
+	{
+		emit = total;
+	}
+
+	if (emit && !samples)
+	{
+		return fail (error, error_size, "terrain sweep: no sample buffer");
 	}
 
 	memset (out, 0, sizeof (*out));

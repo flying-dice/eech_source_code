@@ -1,0 +1,191 @@
+{
+  "scope": "Completed original terrain-fixture characterization only; not host extraction, new shipping full-pack acceptance, visual inspection or performance proof",
+  "source": "a8effa9f3213c595c4d38f7a00e6a1b845cc1f6d",
+  "integration_base": "6bbaa8197a4843181d03cd355d562af998c75321",
+  "fixture_build_info_sha256": "03f79c2e85777a9d047035d44ab5cc355c07b9afceb6076d8291d2720598e773",
+  "image": "sha256:c19c68fda43976d456689475bef923f48d01f60577d802cb16f7a89e7bae1455",
+  "four_600s_cases": [
+    {
+      "case": "r1-lebanon",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "trace_bytes": 147009,
+      "trace_sha256": "8d99032c14c69919a3cb97bec1908ee7f11a48f3be4cce7278a841bb1f15366e",
+      "final": {
+        "elapsed": 599.90252685547,
+        "event": "run",
+        "frames": 6000,
+        "probes": 2
+      },
+      "natural_calls": {
+        "at": 599.90252685547,
+        "calls": 46387862,
+        "clamped": 0,
+        "cuba": 0,
+        "event": "terrain-calls",
+        "fast_attempted": 45165244,
+        "fast_hit": 38078460,
+        "hint_null": 42732399,
+        "hint_private": 3655463,
+        "not_found": 0,
+        "partition_ok": 1,
+        "report": "run",
+        "scope": "run",
+        "slow_scans": 8309402
+      }
+    },
+    {
+      "case": "r2-lebanon-repeat",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "trace_bytes": 147009,
+      "trace_sha256": "8d99032c14c69919a3cb97bec1908ee7f11a48f3be4cce7278a841bb1f15366e",
+      "final": {
+        "elapsed": 599.90252685547,
+        "event": "run",
+        "frames": 6000,
+        "probes": 2
+      },
+      "natural_calls": {
+        "at": 599.90252685547,
+        "calls": 46387862,
+        "clamped": 0,
+        "cuba": 0,
+        "event": "terrain-calls",
+        "fast_attempted": 45165244,
+        "fast_hit": 38078460,
+        "hint_null": 42732399,
+        "hint_private": 3655463,
+        "not_found": 0,
+        "partition_ok": 1,
+        "report": "run",
+        "scope": "run",
+        "slow_scans": 8309402
+      }
+    },
+    {
+      "case": "r3-georgia",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "trace_bytes": 142695,
+      "trace_sha256": "67766061f7017091cb5dc8ca3d897ecf69a64b71a5fc425306ad2211744b3458",
+      "final": {
+        "elapsed": 599.90252685547,
+        "event": "run",
+        "frames": 6000,
+        "probes": 2
+      },
+      "natural_calls": {
+        "at": 599.90252685547,
+        "calls": 13985979,
+        "clamped": 0,
+        "cuba": 0,
+        "event": "terrain-calls",
+        "fast_attempted": 13362414,
+        "fast_hit": 12242431,
+        "hint_null": 13331563,
+        "hint_private": 654416,
+        "not_found": 0,
+        "partition_ok": 1,
+        "report": "run",
+        "scope": "run",
+        "slow_scans": 1743548
+      }
+    },
+    {
+      "case": "r4-lebanon-no-probe",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "trace_bytes": 22498,
+      "trace_sha256": "9e328b654d85daf19a7efbda79e58ea9b5ccd1f00ca1ca6aa23b95cb2103ec46",
+      "final": {
+        "elapsed": 599.90252685547,
+        "event": "run",
+        "frames": 6000,
+        "probes": 0
+      },
+      "natural_calls": {
+        "at": 599.90252685547,
+        "calls": 46387862,
+        "clamped": 0,
+        "cuba": 0,
+        "event": "terrain-calls",
+        "fast_attempted": 45165244,
+        "fast_hit": 38078460,
+        "hint_null": 42732399,
+        "hint_private": 3655463,
+        "not_found": 0,
+        "partition_ok": 1,
+        "report": "run",
+        "scope": "run",
+        "slow_scans": 8309402
+      }
+    }
+  ],
+  "repeat_complete_trace_equal": true,
+  "no_probe_ordinary_report_lines_equal": true,
+  "compared_ordinary_lines": 137,
+  "no_probe_comparison_scope": "Select original RAW lines whose report is boot or run; no parsing/reserialization/normalization of compared bytes. Probe rows intentionally absent in R4; final run metadata probe counts2vs0 are expected and checked separately. Not whole-file R1/R4 equality. Originals untouched.",
+  "partitions_and_probe_guards": true,
+  "four_post_input_exits": {
+    "lebanon": 0,
+    "repeat": 0,
+    "georgia": 0,
+    "no-probe": 0
+  },
+  "all43_post_build_entries_match": true,
+  "recording_control": {
+    "seconds": 900,
+    "hours": 0.25,
+    "frame_ms": 100,
+    "scenario": "lebanon_retail",
+    "native_exit": 0,
+    "controller_exit": 0,
+    "post_input_exit": 0,
+    "input_files": 1179,
+    "input_combined_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+    "complete_files": [
+      {
+        "file": "recording.acmi",
+        "baseline_bytes": 11363845,
+        "candidate_bytes": 11363845,
+        "baseline_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+        "candidate_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+        "matches": true
+      },
+      {
+        "file": "observations.jsonl",
+        "baseline_bytes": 6629273,
+        "candidate_bytes": 6629273,
+        "baseline_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+        "candidate_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+        "matches": true
+      },
+      {
+        "file": "metrics.json",
+        "baseline_bytes": 11777,
+        "candidate_bytes": 11777,
+        "baseline_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+        "candidate_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+        "matches": true
+      }
+    ],
+    "donor_runtime_source": "64cf0f1c5551a2e59309a92917c32e6189d8ae60"
+  },
+  "limits": [
+    "Original physical solver still executes in DLL.",
+    "No host terrain backend runtime result yet.",
+    "Same-record and primed behavior is bounded to characterized retail points.",
+    "No accepted baseline or tolerance changed."
+  ],
+  "private_evidence": [
+    "R:/d3-evidence/root-original-R1-R4-completion-a8effa9f3.json",
+    "R:/d3-evidence/root-original-R5-completion-a8effa9f3.json",
+    "R:/d3-evidence/original-a8effa9f3-post-R5-build.json"
+  ],
+  "independent_review": {
+    "file": "independent-host-backend-review-f4b61a475.json",
+    "sha256": "2a53309a00090fd4b692fbdb2e82e70656133385b51d75f4bd1729de1c903d26",
+    "scope": "Bounded original a8 R1-R5 audit passes; new f4 source requests changes, not accepted"
+  }
+}

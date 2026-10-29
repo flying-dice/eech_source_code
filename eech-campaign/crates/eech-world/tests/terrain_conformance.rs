@@ -50,7 +50,12 @@ fn the_host_kernel_reproduces_the_original_probe() {
         .collect();
     // the probe taken at simulated time 0, in the loaded and unstepped world
     let probe: Vec<&Value> = lines.iter().filter(|v| v["report"] == "probe" && v["at"].as_f64() == Some(0.0)).collect();
-    let by_event = |event: &str| *probe.iter().find(|v| v["event"] == event).unwrap_or_else(|| panic!("the oracle has no {event} line"));
+    let by_event = |event: &str| {
+        *probe
+            .iter()
+            .find(|v| v["event"] == event)
+            .unwrap_or_else(|| panic!("the oracle has no {event} line"))
+    };
 
     let header = by_event("terrain-probe");
     let (seed, count, emitted) = (number(header, "seed") as u32, number(header, "count") as i32, number(header, "emitted") as i32);
@@ -58,8 +63,16 @@ fn the_host_kernel_reproduces_the_original_probe() {
     let (report, samples) = terrain.conformance_sweep(seed, count, emitted).expect("the sweep runs");
 
     let hashes = by_event("terrain-probe-hash");
-    assert_eq!(format!("{:016x}", report.sample_hash), text(hashes, "sample"), "fresh-record answers (sample hash)");
-    assert_eq!(format!("{:016x}", report.primed_hash), text(hashes, "primed"), "hint-primed answers (primed hash)");
+    assert_eq!(
+        format!("{:016x}", report.sample_hash),
+        text(hashes, "sample"),
+        "fresh-record answers (sample hash)"
+    );
+    assert_eq!(
+        format!("{:016x}", report.primed_hash),
+        text(hashes, "primed"),
+        "hint-primed answers (primed hash)"
+    );
 
     let diff = by_event("terrain-probe-diff");
     let counters = [
@@ -86,7 +99,15 @@ fn the_host_kernel_reproduces_the_original_probe() {
         let i = number(original, "i") as usize;
         assert_eq!(samples[i], *ours, "samples arrive in order");
         let bits = |value: f32| format!("{:08x}", value.to_bits());
-        for (key, value) in [("x", ours.x), ("z", ours.z), ("result", ours.result), ("last", ours.last), ("nx", ours.nx), ("ny", ours.ny), ("nz", ours.nz)] {
+        for (key, value) in [
+            ("x", ours.x),
+            ("z", ours.z),
+            ("result", ours.result),
+            ("last", ours.last),
+            ("nx", ours.nx),
+            ("ny", ours.ny),
+            ("nz", ours.nz),
+        ] {
             assert_eq!(bits(value), text(original, key), "sample {i} {key}");
         }
         assert_eq!(i64::from(ours.kind), original["type"].as_i64().unwrap(), "sample {i} type");
@@ -95,12 +116,19 @@ fn the_host_kernel_reproduces_the_original_probe() {
     // The original fast elevation (terrsel.c, run in the original DLL by the same probe): the kernel's fast grid must give the same answer at the
     // same points, bit for bit. An oracle recorded before the fixture sampled it (the a8 results) has none of these lines: say so, do not pass it.
     match probe.iter().find(|v| v["event"] == "terrain-probe-fast-hash") {
-        None => eprintln!("terrain_conformance: FAST ORACLE ABSENT in {}: the fast elevation was NOT compared", oracle.display()),
+        None => eprintln!(
+            "terrain_conformance: FAST ORACLE ABSENT in {}: the fast elevation was NOT compared",
+            oracle.display()
+        ),
         Some(fast) => {
             assert_eq!(number(fast, "available"), 1, "the original had a fast grid loaded");
             assert_eq!(report.fast_available, 1, "the host map has a fast grid");
             assert_eq!(report.fast_count, number(fast, "count"), "fast elevation points");
-            assert_eq!(format!("{:016x}", report.fast_hash), text(fast, "fast"), "fast elevation hash (order-dependent over x, z and the answer)");
+            assert_eq!(
+                format!("{:016x}", report.fast_hash),
+                text(fast, "fast"),
+                "fast elevation hash (order-dependent over x, z and the answer)"
+            );
             let originals: Vec<&&Value> = probe.iter().filter(|v| v["event"] == "terrain-fast-sample").collect();
             assert_eq!(originals.len(), samples.len(), "number of emitted fast samples");
             for (original, ours) in originals.iter().zip(&samples) {
@@ -124,15 +152,30 @@ fn a_forged_hint_is_refused_not_trusted() {
     assert!(terrain.query(1000.5, 1000.5, Some(&real)).is_ok());
     let forged = [
         Hint { x_sector: -1, ..real },
-        Hint { x_sector: facts.sector_x_max, ..real },
-        Hint { z_sector: facts.sector_z_max, ..real },
+        Hint {
+            x_sector: facts.sector_x_max,
+            ..real
+        },
+        Hint {
+            z_sector: facts.sector_z_max,
+            ..real
+        },
         Hint { face_index: u32::MAX, ..real },
-        Hint { reference_offset: real.reference_offset.wrapping_add(1), ..real },
+        Hint {
+            reference_offset: real.reference_offset.wrapping_add(1),
+            ..real
+        },
         Hint { kind: real.kind ^ 1, ..real },
         Hint { kind: -3, ..real },
         Hint { triangle_offset: -1, ..real },
-        Hint { triangle_offset: i32::MAX, ..real },
-        Hint { normal: [f32::NAN, 0.0, 1.0], ..real },
+        Hint {
+            triangle_offset: i32::MAX,
+            ..real
+        },
+        Hint {
+            normal: [f32::NAN, 0.0, 1.0],
+            ..real
+        },
     ];
     for hint in forged {
         let error = terrain.query(1000.0, 1000.0, Some(&hint)).expect_err(&format!("accepted {hint:?}"));
@@ -147,7 +190,11 @@ fn the_fast_grid_returns_its_node_values() {
     let terrain = Terrain::open(&dir, false, None).expect("the private map loads");
     let facts = *terrain.facts();
     assert!(facts.fast_width > 0, "the map has a fast grid");
-    let file = std::fs::read_dir(&dir).unwrap().filter_map(|e| e.ok()).find(|e| e.file_name().to_string_lossy().eq_ignore_ascii_case("terrain.sim")).unwrap();
+    let file = std::fs::read_dir(&dir)
+        .unwrap()
+        .filter_map(|e| e.ok())
+        .find(|e| e.file_name().to_string_lossy().eq_ignore_ascii_case("terrain.sim"))
+        .unwrap();
     let bytes = std::fs::read(file.path()).unwrap();
     for (i, j) in [(0, 0), (1, 0), (0, 1), (7, 11), (facts.fast_width - 2, facts.fast_height - 2)] {
         let offset = 16 + 4 * (j as usize * facts.fast_width as usize + i as usize);

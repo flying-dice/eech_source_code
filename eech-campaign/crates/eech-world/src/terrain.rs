@@ -13,12 +13,35 @@
 //! - `{ op = "fast", x, z }`: the fast grid's elevation.
 //!
 //! A malformed request, a hint this host did not issue and any missing data are errors with a message; nothing falls back to another solver.
-//! Not thread safe, as the solver it keeps (it reads its map facts from file statics).
+//!
+//! Threads: the C solver reads its map facts from process-global statics, so every query and every conformance sweep, on any map, runs inside one
+//! process-wide lock (`C_SOLVER`); independent `Terrain` instances may therefore be used on different threads (each is `!Send`, so it is created
+//! on the thread that uses it). Floating-point state is per thread and is saved and restored around each query by the kernel.
 
 use mlua::prelude::*;
 use std::ffi::{c_char, c_void};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::{Mutex, MutexGuard};
+
+/// The one lock around every use of the C solver's process-global statics (see the module comment).
+static C_SOLVER: Mutex<()> = Mutex::new(());
+
+fn solver_lock() -> MutexGuard<'static, ()> {
+    // a panic while the lock was held leaves no state behind (the statics are reloaded by every query), so a poisoned lock is still a lock
+    C_SOLVER.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
+}
+
+/// A fresh identity for a map instance, folded into every hint it issues so that a hint cannot be presented to another map or instance.
+fn new_map_key() -> u64 {
+    use std::collections::hash_map::RandomState;
+    use std::hash::{BuildHasher, Hasher};
+    static SERIAL: AtomicU64 = AtomicU64::new(1);
+    let mut hasher = RandomState::new().build_hasher();
+    hasher.write_u64(SERIAL.fetch_add(1, Ordering::Relaxed));
+    hasher.finish()
+}
 
 /// `host_terrain_facts` (csrc/terrain_ref.h).
 #[repr(C)]
@@ -52,6 +75,8 @@ pub struct Hint {
     pub triangle_offset: i32,
     pub kind: i32,
     pub normal: [f32; 3],
+    /// binds the hint to the map instance that issued it and to the fields above (csrc/terrain_ref.c `hint_tag`)
+    pub tag: u64,
 }
 
 #[repr(C)]
@@ -117,6 +142,7 @@ extern "C" {
         grid: *const u8,
         grid_length: usize,
         map_number: i32,
+        map_key: u64,
         error: *mut c_char,
         error_size: usize,
     ) -> *mut c_void;
@@ -152,18 +178,17 @@ pub struct Answer {
     pub nan_position: bool,
 }
 
-/// A loaded map. It owns the file bytes the solver points into.
+/// A loaded map. The kernel keeps its own copy of the sector geometry; the fast grid it reads in place, so that buffer is owned here.
 pub struct Terrain {
     map: *mut c_void,
     facts: Facts,
-    _sector: Vec<u8>,
-    _geometry: Vec<u8>,
     _grid: Option<Vec<u8>>,
 }
 
 impl Drop for Terrain {
     fn drop(&mut self) {
-        // SAFETY: `map` came from host_terrain_open and is closed once; the byte buffers it points into are dropped after this.
+        let _guard = solver_lock();
+        // SAFETY: `map` came from host_terrain_open and is closed once, under the solver lock; the grid buffer it points into is dropped after this.
         unsafe { host_terrain_close(self.map) }
     }
 }
@@ -189,8 +214,17 @@ pub fn map_number_of(terrain_dir: &Path) -> Result<i32, String> {
         .and_then(|p| p.file_name())
         .map(|n| n.to_string_lossy().into_owned())
         .ok_or_else(|| format!("terrain: {} has no parent directory to take the map number from", terrain_dir.display()))?;
-    let digits: String = parent.chars().rev().take_while(|c| c.is_ascii_digit()).collect::<Vec<_>>().into_iter().rev().collect();
-    digits.parse::<i32>().map_err(|_| format!("terrain: the directory {parent:?} above {} does not end in a map number", terrain_dir.display()))
+    let digits: String = parent
+        .chars()
+        .rev()
+        .take_while(|c| c.is_ascii_digit())
+        .collect::<Vec<_>>()
+        .into_iter()
+        .rev()
+        .collect();
+    digits
+        .parse::<i32>()
+        .map_err(|_| format!("terrain: the directory {parent:?} above {} does not end in a map number", terrain_dir.display()))
 }
 
 impl Terrain {
@@ -217,8 +251,15 @@ impl Terrain {
             Some(path) => Some(read(&path)?),
             None => None,
         };
+        Terrain::from_bytes(&sector, &geometry, grid, number)
+    }
+
+    /// Builds a map from the bytes of `default.sec`, `terrain.ffp` and (when there is one) `terrain.sim`. The kernel checks every offset and count
+    /// against the lengths and copies what it keeps; a malformed input is an error, never a read outside the buffers.
+    pub fn from_bytes(sector: &[u8], geometry: &[u8], grid: Option<Vec<u8>>, map_number: i32) -> Result<Terrain, String> {
         let mut error = [0 as c_char; 512];
-        // SAFETY: the buffers are valid for their lengths and are kept alive in the returned value for as long as the map exists.
+        // SAFETY: the sector and geometry slices are valid for their lengths for the call only (the kernel copies what it keeps); the grid buffer is
+        // kept alive in the returned value for as long as the map exists; `error` is valid for its length.
         let map = unsafe {
             host_terrain_open(
                 sector.as_ptr(),
@@ -227,7 +268,8 @@ impl Terrain {
                 geometry.len(),
                 grid.as_ref().map_or(std::ptr::null(), |g| g.as_ptr()),
                 grid.as_ref().map_or(0, |g| g.len()),
-                number,
+                map_number,
+                new_map_key(),
                 error.as_mut_ptr(),
                 error.len(),
             )
@@ -238,13 +280,7 @@ impl Terrain {
         let mut facts = Facts::default();
         // SAFETY: `map` is a live map and `facts` is a valid out pointer.
         unsafe { host_terrain_get_facts(map, &mut facts) };
-        Ok(Terrain {
-            map,
-            facts,
-            _sector: sector,
-            _geometry: geometry,
-            _grid: grid,
-        })
+        Ok(Terrain { map, facts, _grid: grid })
     }
 
     pub fn facts(&self) -> &Facts {
@@ -255,7 +291,9 @@ impl Terrain {
     pub fn query(&self, x: f32, z: f32, hint: Option<&Hint>) -> Result<Answer, String> {
         let mut raw = RawAnswer::default();
         let mut error = [0 as c_char; 256];
-        // SAFETY: the map is live; the hint, when given, is a valid pointer for the call (the kernel validates its contents); the out pointers are valid.
+        let _guard = solver_lock();
+        // SAFETY: the map is live; the hint, when given, is a valid pointer for the call (the kernel validates its contents); the out pointers are valid;
+        // the solver's process-global statics are used only under the solver lock.
         let status = unsafe {
             host_terrain_query(
                 self.map,
@@ -288,12 +326,29 @@ impl Terrain {
     /// CONFORMANCE ONLY: the characterisation probe of `eech_terrain_fixture.c` (seed, `count` random points after six fixed ones, the first
     /// `emit` reference answers returned) run against this map. See `host_terrain_conformance_sweep`.
     pub fn conformance_sweep(&self, seed: u32, count: i32, emit: i32) -> Result<(SweepReport, Vec<SweepSample>), String> {
+        // the original probe's bounds, checked before any arithmetic on them: a count of 0..=200000 and a non-negative emit, capped at 256
+        if !(0..=200_000).contains(&count) || emit < 0 {
+            return Err(format!("terrain sweep: count {count} or emit {emit} is out of range"));
+        }
+        // only the samples the sweep really produces are returned: no more than `emit` (capped at 256) and no more than the points there are
+        let produced = emit.min(256).min(count + 6) as usize;
         let mut report = SweepReport::default();
-        let mut samples = vec![SweepSample::default(); emit.clamp(0, 256) as usize];
+        let mut samples = vec![SweepSample::default(); produced];
         let mut error = [0 as c_char; 256];
-        // SAFETY: the map is live; `samples` holds at least `emit` entries (the kernel refuses an emit above 256 and `samples` is sized by it); the out pointers are valid.
+        let _guard = solver_lock();
+        // SAFETY: the map is live; `samples` holds exactly the number of entries the kernel will write (it applies the same caps); the out pointers are
+        // valid; the solver's process-global statics are used only under the solver lock, held across the whole sweep.
         let status = unsafe {
-            host_terrain_conformance_sweep(self.map, seed, count, emit, &mut report, samples.as_mut_ptr(), error.as_mut_ptr(), error.len())
+            host_terrain_conformance_sweep(
+                self.map,
+                seed,
+                count,
+                produced as i32,
+                &mut report,
+                samples.as_mut_ptr(),
+                error.as_mut_ptr(),
+                error.len(),
+            )
         };
         if status != 0 {
             return Err(message(&error));
@@ -314,8 +369,8 @@ impl Terrain {
     }
 }
 
-const HINT_PREFIX: &str = "e1";
-const HINT_BYTES: usize = 36;
+const HINT_PREFIX: &str = "e2";
+const HINT_BYTES: usize = 44;
 
 /// The opaque form of a hint for the Lua boundary: a version tag and the hint's fields, little endian, in hex. Only this host reads it.
 pub fn encode_hint(hint: &Hint) -> String {
@@ -329,6 +384,7 @@ pub fn encode_hint(hint: &Hint) -> String {
     for component in hint.normal {
         bytes.extend_from_slice(&component.to_le_bytes());
     }
+    bytes.extend_from_slice(&hint.tag.to_le_bytes());
     let mut text = String::with_capacity(HINT_PREFIX.len() + 2 * HINT_BYTES);
     text.push_str(HINT_PREFIX);
     for byte in bytes {
@@ -339,7 +395,9 @@ pub fn encode_hint(hint: &Hint) -> String {
 
 /// The inverse; anything that is not exactly what `encode_hint` writes is refused.
 pub fn decode_hint(text: &str) -> Result<Hint, String> {
-    let digits = text.strip_prefix(HINT_PREFIX).ok_or_else(|| "terrain hint: not a hint this host issued".to_string())?;
+    let digits = text
+        .strip_prefix(HINT_PREFIX)
+        .ok_or_else(|| "terrain hint: not a hint this host issued".to_string())?;
     if digits.len() != 2 * HINT_BYTES || !digits.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b)) {
         return Err("terrain hint: not a hint this host issued".into());
     }
@@ -356,6 +414,7 @@ pub fn decode_hint(text: &str) -> Result<Hint, String> {
         triangle_offset: i32::from_le_bytes(word(4)),
         kind: i32::from_le_bytes(word(5)),
         normal: [f32::from_le_bytes(word(6)), f32::from_le_bytes(word(7)), f32::from_le_bytes(word(8))],
+        tag: u64::from_le_bytes([bytes[36], bytes[37], bytes[38], bytes[39], bytes[40], bytes[41], bytes[42], bytes[43]]),
     })
 }
 
@@ -369,7 +428,9 @@ fn coordinate(request: &LuaTable, field: &str) -> LuaResult<f32> {
     };
     let single = value as f32;
     if value.is_finite() && f64::from(single) != value {
-        return Err(LuaError::runtime(format!("host.terrain: {field} {value} is not an exact single-precision value")));
+        return Err(LuaError::runtime(format!(
+            "host.terrain: {field} {value} is not an exact single-precision value"
+        )));
     }
     Ok(single)
 }
@@ -408,9 +469,16 @@ pub fn provider(lua: &Lua, terrain: Rc<Terrain>) -> LuaResult<LuaFunction> {
                 let hint = match request.get::<LuaValue>("hint")? {
                     LuaValue::Nil => None,
                     LuaValue::String(text) => Some(decode_hint(&*text.to_str()?).map_err(LuaError::runtime)?),
-                    other => return Err(LuaError::runtime(format!("host.terrain: hint must be a string or nil, got {}", other.type_name()))),
+                    other => {
+                        return Err(LuaError::runtime(format!(
+                            "host.terrain: hint must be a string or nil, got {}",
+                            other.type_name()
+                        )))
+                    }
                 };
-                let answer = terrain.query(x, z, hint.as_ref()).map_err(|e| LuaError::runtime(format!("host.terrain: {e}")))?;
+                let answer = terrain
+                    .query(x, z, hint.as_ref())
+                    .map_err(|e| LuaError::runtime(format!("host.terrain: {e}")))?;
                 let table = lua.create_table()?;
                 table.set("elevation", f64::from(answer.elevation))?;
                 table.set("last_elevation", f64::from(answer.last_elevation))?;
@@ -449,17 +517,32 @@ pub fn install(lua: &Lua, host: &LuaTable) -> LuaResult<()> {
         lua.create_function(|lua, spec: LuaTable| {
             let dir: String = match spec.get::<LuaValue>("terrain_dir")? {
                 LuaValue::String(dir) => dir.to_str()?.to_string(),
-                other => return Err(LuaError::runtime(format!("host.terrain_open: terrain_dir must be a string, got {}", other.type_name()))),
+                other => {
+                    return Err(LuaError::runtime(format!(
+                        "host.terrain_open: terrain_dir must be a string, got {}",
+                        other.type_name()
+                    )))
+                }
             };
             let winter = match spec.get::<LuaValue>("winter")? {
                 LuaValue::Nil => false,
                 LuaValue::Boolean(winter) => winter,
-                other => return Err(LuaError::runtime(format!("host.terrain_open: winter must be a boolean, got {}", other.type_name()))),
+                other => {
+                    return Err(LuaError::runtime(format!(
+                        "host.terrain_open: winter must be a boolean, got {}",
+                        other.type_name()
+                    )))
+                }
             };
             let map_number = match spec.get::<LuaValue>("map_number")? {
                 LuaValue::Nil => None,
                 LuaValue::Integer(number) => Some(i32::try_from(number).map_err(|_| LuaError::runtime("host.terrain_open: map_number is out of range"))?),
-                other => return Err(LuaError::runtime(format!("host.terrain_open: map_number must be an integer, got {}", other.type_name()))),
+                other => {
+                    return Err(LuaError::runtime(format!(
+                        "host.terrain_open: map_number must be an integer, got {}",
+                        other.type_name()
+                    )))
+                }
             };
             let terrain = Terrain::open(Path::new(&dir), winter, map_number).map_err(|e| LuaError::runtime(format!("host.terrain_open: {e}")))?;
             provider(lua, Rc::new(terrain))
@@ -481,19 +564,20 @@ mod tests {
             triangle_offset: 3,
             kind: 9,
             normal: [0.0, 0.97, -0.25],
+            tag: 0x0123_4567_89ab_cdef,
         };
         let text = encode_hint(&hint);
-        assert_eq!(text.len(), 2 + 72);
+        assert_eq!(text.len(), 2 + 88);
         assert_eq!(decode_hint(&text).unwrap(), hint);
         let bad: Vec<String> = vec![
             String::new(),
-            "e1".into(),
+            "e2".into(),
             "e2".into(),
             text[..text.len() - 2].to_string(),
             format!("{text}00"),
             text.to_uppercase(),
-            text.replacen("e1", "x1", 1),
-            "e1zz".into(),
+            text.replacen("e2", "x2", 1),
+            "e2zz".into(),
         ];
         for bad in &bad {
             assert!(decode_hint(bad).is_err(), "accepted {bad:?}");

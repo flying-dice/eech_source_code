@@ -8,9 +8,10 @@ Epic [EEDCS-21](https://flying-dice.atlassian.net/browse/EEDCS-21) and Task
 [EEDCS-47](https://flying-dice.atlassian.net/browse/EEDCS-47). Old W07/W08 wording, the
 TypeScript experiments and earlier inventories are not authority.
 
-**Status: source census and a prepared, not yet built or run, original-solver fixture.
-Nothing has moved. No D3 native run exists.** Everything in sections 2 to 6 is *source
-reading* (reported by inspection); only section 7 lists what is executed, and it is empty.
+**Status: original a8 fixture controls completed; host backend checkpoint f4 does
+not compile and is under one independent combined review. No physical service
+has moved.** Sections 2 to 6 record the initial source survey; section 7 gives
+current execution evidence. Original controls do not establish host ownership.
 Accepted D2 evidence (`D2-SCOPE-AUDIT.md`, `reference/d2-combat-characterization/final-shipping-fullpack`,
 baseline `R:/d2-evidence/baseline-host-20261026-shortpath`, bundle `R:/eech-regression-20261025`,
 shipping source `64cf0f1c5`) is reused as the regression baseline and is not rerun.
@@ -68,8 +69,8 @@ host protocol; section 6 lists what the characterisation must settle first.
    triangle first and, on a hit, keeps the record's *stored* normal and type. A full scan tests all fans in
    face order, then strips in face order, skipping hedge, wall and forest-side types in the strip pass. So
    where faces overlap in x/z the answer can depend on the hint left by the previous query on that
-   record. Whether this ever changes a value on the shipped maps is **unmeasured**; the fixture sweep
-   measures it.
+   record. The original fixture sweep subsequently found changed physical tuples
+   at 375 Lebanon and 385 Georgia points; same-record exact repeats matched.
 4. **Shared state.** Every query that passes NULL (`get_3d_terrain_elevation` and most movement code)
    reads and writes the one `system_point_data`; the answer of one subsystem leaves the hint for the next.
    Order of calls across subsystems therefore matters for the *path* taken (fast or slow), and the
@@ -136,23 +137,37 @@ These are candidates for the D3 services, not claims of DCS behaviour; M6 verifi
 
 ## 7. Executed versus prepared
 
-- **Executed:** none for D3. The tool environment has no C compiler or cargo on its path; no syntax check of
-  the new C was possible, and no build, native run or test was run.
-- **Prepared (source only, uncompiled):** the `terrain-fixture` feature and the characterisation script, described in
-  `eech-campaign/reference/d3-terrain-characterization/README.md`. Fixture-gated lines were added to
-  `modules/3d/terrain/terrelev.c` and `terrelev.h`. With the feature off, the solver and its control logic are unchanged
-  **by inspection only**; no preprocess, compile or runtime check has been made, and the added source lines shift diagnostic
-  source locations (for example the off-map `ASSERT`, which embeds `__LINE__`, moved from line 1268 to 1281). No numerical drift in
-  the shipping build is alleged. Preprocess, compile and runtime checks are pending.
+- **Executed original behavior:** clean a8 Windows fixture build/controller 0;
+  both 20,006-point retail probes and the one-frame/two-due-probe smoke passed.
+  Four 600-second controls completed with native/controller 0. Complete
+  Lebanon/repeat traces match; all 137 ordinary boot/run lines match the no-probe
+  control. The ordinary 900-second control completed with native/controller 0;
+  complete Tacview, observations and metrics match the verified D2 shipping900
+  donor. All five post-input checks and 43 build entries match. Safe summary:
+  `eech-campaign/reference/d3-terrain-characterization/original-controls-a8effa9f3.json`.
+  The combined f4 review independently checked these bounded original results,
+  input hashes and build files; no visual/performance claim.
+- **Prepared backend, not accepted:** f4b61a475 adds the host terrain backend,
+  public-provider harness and original fast-elevation oracle. Its clean Windows
+  fixture compile exited 1 at `terrain_ref.c:1444` (unmatched `#endif`). No backend
+  native run, fast-oracle result or host authority is established. Production DLL
+  dispatch remains unchanged. The new parser/FFI/harness delta is under review.
+- **Feature-off limit:** the old solver/control logic is unchanged by inspection,
+  but exact preprocessed identity is not claimed: diagnostic source locations
+  shift. A new shipping build and regression remain delivery requirements.
 - **Reused as baseline:** accepted D2 pack (40 checks, eight complete artifacts byte identical).
 - **Unproven reachability and uncovered paths, retained:** G7 above; the off-map path; the Cuba flaw area unless the Cuba map is run;
   player, multiplayer and save/restore paths.
 
 ## 8. Blockers and next actions
 
-Blockers: the fixture has never been compiled; a Windows fixture build (Docker image) is the Root's.
-The questions in section 5.3 and 5.5 need the lead before any extraction. Next bounded action: independent review
-of the fixture source, then the build and runs in the README plan.
+Next: correct the combined f4 source findings, freeze and build corrected source,
+run quick original fast-oracle probes and both real-map conformance cases, then
+prove the new public contract fails on the old DLL and implement the required
+host handoff. Preserve shared/private hints, query order and original quirks.
+The missing fast-grid generation path is an explicit compatibility gap. Final
+shipping regression, independent review, checks and normal merge remain required.
+The lead's backend decisions and remaining D3 coupling are recorded in section 10.
 
 ## 9. Corrections after the first independent source review (pinned `257a18879`)
 
@@ -230,3 +245,11 @@ delivered. Details, inputs, validation and the exact checks to run are in `eech-
 - Not claimed: compilation, any conformance result, the RED run, the DLL client, host registration, or any regression. The original fixture does
   not probe the fast grid in the a8 build; the fixture source now samples the original fast elevation at the sweep points (README, "Fast-elevation oracle
   addition"), which the Root builds and runs before the comparison exists. The missing-grid generation of the original is a named compatibility gap.
+
+### Correction batch after the independent review of `f4b61a475` (source only)
+
+Six grouped findings (one build blocker, five P2) on the new host terrain backend are corrected in source: the stray `#endif`, overflow-safe geometry spans with
+aligned kernel-owned copies, one lock around the C solver's statics, hints bound to the issuing map instance and to their fields, the sweep's original bounds
+with only produced samples returned, and a provider harness that accepts only the right refusal. Details and the new synthetic-map tests are in the README of
+`eech-campaign/reference/d3-terrain-characterization/`. Nothing is built or run; no conformance or acceptance claim; production DLL dispatch unchanged; the
+missing-grid generation gap stays open.

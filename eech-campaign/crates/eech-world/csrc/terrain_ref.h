@@ -29,6 +29,8 @@ typedef struct host_terrain_hint
 	uint32_t face_index, reference_offset;
 	int32_t triangle_offset, type;
 	float normal[3];
+	/* binds the hint to the map instance that issued it and to every field above: a corrupted, edited or foreign hint is refused (an integrity check against accident and staleness, not a secret) */
+	uint64_t tag;
 } host_terrain_hint;
 
 typedef struct host_terrain_answer
@@ -44,7 +46,7 @@ typedef struct host_terrain_answer
 
 /* The buffers belong to the caller and must outlive the map. `grid` may be NULL (no fast grid). Returns NULL and a message on a malformed input. */
 host_terrain *host_terrain_open (const uint8_t *sector, size_t sector_length, const uint8_t *geometry, size_t geometry_length, const uint8_t *grid, size_t grid_length,
-	int32_t map_number, char *error, size_t error_size);
+	int32_t map_number, uint64_t map_key, char *error, size_t error_size);
 void host_terrain_close (host_terrain *map);
 void host_terrain_get_facts (const host_terrain *map, host_terrain_facts *out);
 
@@ -73,7 +75,7 @@ typedef struct host_terrain_sweep
 	uint64_t fast_hash, fast_count, fast_available; /* the fast elevation at the same points: hash over (x, z, answer) bits, how many, and whether the map has a grid */
 } host_terrain_sweep;
 
-/* the first `emit` samples (at most 256) are written to `samples` */
+/* `count` is 0..200000; `emit` is capped at 256 and at count + 6; `samples` must hold the capped number of entries and only those are written */
 int host_terrain_conformance_sweep (const host_terrain *map, uint32_t seed, int count, int emit, host_terrain_sweep *out, host_terrain_sweep_sample *samples,
 	char *error, size_t error_size);
 

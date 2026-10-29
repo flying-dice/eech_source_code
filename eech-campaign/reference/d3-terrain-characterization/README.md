@@ -3,9 +3,13 @@
 Base `6bbaa8197a4843181d03cd355d562af998c75321`, branch `codex/d3-terrain-services`, 29 October 2026.
 Census and group map: [`docs/handover/D3-SCOPE-AUDIT.md`](../../../docs/handover/D3-SCOPE-AUDIT.md).
 
-**Status: fixture source written; not compiled, not built, not run. No retained baseline exists yet.**
-This directory holds no results. Sections marked *source finding* come from reading code; *planned*
-items are not evidence. Nothing in the shipping module's behaviour was moved or changed.
+**Status: original a8 Windows fixture controls completed; new f4 host backend
+checkpoint fails compilation and is under review. No physical service has moved.**
+[`original-controls-a8effa9f3.json`](original-controls-a8effa9f3.json) summarizes
+the completed original controls and complete 900-second recording equality.
+Raw recordings, retail data and binaries remain private. Source findings and
+planned checks below retain their stated limits; no backend conformance,
+fast-oracle result or new shipping acceptance is claimed.
 
 ## What is prepared
 
@@ -159,6 +163,7 @@ question from its own solver, so this increment moves no behaviour and claims no
 | `eech-campaign/crates/eech-world/src/terrain.rs` | Rust ownership of the map bytes, FFI, opaque hint codec, the Lua provider `host.terrain_open` |
 | `eech-campaign/crates/eech-world/build.rs`, `src/lib.rs`, `src/main.rs` | Wiring only (the kernel is compiled with the other host kernels, same flags; `main.rs` gains one `terrain::install` call) |
 | `eech-campaign/crates/eech-world/tests/terrain_conformance.rs` | Compares the kernel with the original probe's retained results (gated on the private data) |
+| `eech-campaign/crates/eech-world/tests/terrain_backend.rs` | Synthetic-map tests of the loader, hints, sweep bounds, fast grid and two maps on two threads (no assets) |
 | `eech-campaign/crates/eech-world/lua/terrain-provider.lua` | Public-path RED harness for the provider contract |
 
 The host owns and loads the terrain itself from `terrain.ffp`, `default.sec` (`default-W.sec` in winter) and `terrain.sim`, through no
@@ -201,7 +206,7 @@ engine DLL's symbols.
 - Rounding: the query sets round-toward-zero (as `get_terrain_3d_sector` does) and restores the caller's environment. Whether that is bitwise the
   engine's environment on the real build is exactly what the conformance test checks; it is not assumed.
 - The Lua boundary (`host.terrain_open { terrain_dir, winter, map_number }` returns `provider(request)`): `{op="map"}`, `{op="point",x,z,hint}`, `{op="fast",x,z}`.
-  Elevation, stored elevation, normal (3 numbers) and surface type (EECH `terrain_types` ids) cross by value; the hint is an opaque string `e1` + 72 hex
+  Elevation, stored elevation, normal (3 numbers) and surface type (EECH `terrain_types` ids) cross by value; the hint is an opaque string `e2` + 88 hex
   digits that the campaign only stores and returns. An answer's `notes` table is diagnostic. A host that keeps no state returns no hint and ignores one it
   is given, and needs none of the EECH layout or kernel. Requests whose numbers are not exactly single precision are refused (nothing is rounded silently).
 - The campaign's class, ground-vehicle suitability and route policy (`terr_db.c`, `ai_route.c`, ...) stay in the core.
@@ -236,7 +241,7 @@ not be modified.
 - **Cost.** The original Lebanon 600 s run makes 46,387,862 terrain queries (about 7,700 per 100 ms frame; 77,953 at boot), 92% through the shared NULL
   record, and 82% of the hint-using ones hit the hint. A Lua provider call per query, each carrying a 74-character hint, is a real frame-cost question;
   batching or campaign-side caching without reordering is the likely follow-up and needs measurement.
-- Uncompiled C and Rust (see above). The kernel is not thread safe.
+- Uncompiled C and Rust (see above). The C solver keeps process-global statics, so the Rust wrapper serialises every query and sweep, on any map, under one lock (see the correction batch below).
 - Production wiring is **not done**: the DLL client (replacing the solver body with a provider call), the `terrain` boot provider and its refusal when
   missing, the boot map facts and `get_3d_terrain_fast_elevation` consumers (`fw_move.c`, `mobile.c`), the hint stored in the legacy record (including
   the two `terrain_face == NULL` tests in `fw_move.c`), and removing the solver from `sources.txt`.
@@ -267,3 +272,46 @@ season used (summer), and the grid header (513 x 513, grid sizes 304 and 368 for
 **Named compatibility gap, not hidden by this addition:** a map without `terrain.sim` is, in the original, given a generated grid (the point query sampled
 on a 256 m lattice, saved to disk). The host does not do that, and no retail map exercises it, so full supported G1 behaviour is not claimed until this
 is reconciled (generate it in the host from the same kernel, or state it unsupported with a review). Rebaselining is not the way to close it.
+
+## Correction batch after the independent review of `f4b61a475` (source only; not built or run)
+
+The review (`independent-host-backend-review-f4b61a475.json`) requested changes: one P1 and five grouped P2 findings. The Root's compile of the
+unchanged recipe had already stopped at the first. All six are corrected below in source; **none is shown fixed until the Root builds and runs the
+tests**, and no conformance, native or acceptance claim is made. Production DLL dispatch is unchanged. `rustfmt` is absent in the build image, so formatting
+is unchecked.
+
+1. **Build blocker.** A stray `#endif` after the copied function declaration (an artefact of the extraction from `terrelev.c`, where it closed the
+   original's `DEBUG_TERRAIN` branch) is removed; the preprocessor conditionals are balanced again (17 `#endif` for 17 openers). No statement of the
+   numerical body changed.
+2. **Geometry views.** Every span of the sector record is now checked in 64-bit arithmetic with `offset <= total && length <= total - offset` before any
+   pointer into the file is formed. The sector's points, references, faces and surface list are copied into one 4-aligned block owned by the kernel, so the
+   solver's typed 16- and 32-bit reads are never made through a misaligned pointer into the file, whatever offsets the file holds. The kernel no longer
+   keeps pointers into the sector and geometry files (the Rust map owns only the fast grid, which is read with `memcpy`). The copy assumes a little-endian host,
+   as the original does.
+3. **Concurrency.** Every query and every conformance sweep, on any map, runs under one process-wide lock in `terrain.rs` (`C_SOLVER`), as does closing
+   a map. Maps are `!Send`, so each is created on the thread that uses it; the floating-point environment is per thread and is saved and restored by the
+   kernel as before. Query order and arithmetic are unchanged.
+4. **Hint provenance.** A hint now carries a 64-bit tag, a keyed FNV-1a over a per-instance random key and every field of the hint (sector, face, reference
+   offset, triangle, type and the stored normal). A query refuses a hint whose tag does not match: one issued by another map, by an earlier instance of the same
+   files, or edited in any field, including a normal that is still finite. A stored normal must also be finite with `y > 0.00001` (the solver guarantees it),
+   so a forged zero normal can never reach the `0/0` of a fast hit. Legitimate hints are untouched: the cached normal, type and elevation bits come from the
+   solver and travel unchanged. There is no table of issued hints. The tag is an integrity check against accident and staleness, not a secret; the structural
+   checks still run on a hint whose tag matches. The Lua string is now `e2` + 88 hex digits. A host that returns no hint, or ignores one, is unaffected.
+5. **Sweep bounds.** The sweep refuses a count outside 0..200000 or a negative emit before any arithmetic on them (the original probe's bounds), caps emit at
+   256 and at the number of points, and the Rust wrapper returns only the samples that were produced (no invented zeros).
+6. **Provider harness.** `lua/terrain-provider.lua` now accepts a refusal only for what it is: `missing` must fail at boot with an error that names the terrain
+   provider; each `bad_*` mode must fail after its malformed answer was actually sent (`malformed_sent`), with an error that names the terrain provider
+   (and `bad_error` with the provider's own message); healthy modes fail on any boot or frame error. Completed and requested frames are reported separately.
+   On the unmoved DLL the outcome is a RED for the right reason: the provider is never consulted, so a healthy run asserts "never consulted", `missing` asserts
+   that it booted, and a `bad_*` run asserts that the malformed answer was never sent or that nothing failed.
+
+New tests (all in `crates/eech-world/tests/terrain_backend.rs`, on synthetic one-sector maps built from bytes, through the real loader, query and sweep):
+odd offsets give bit-identical answers; offsets near `u32::MAX`, a wrapping reference offset, too many polygons, a two-point face, a bad reference and a bad
+surface type are all refused; an edited valid hint (zero normal, another finite normal, another triangle or type, no or another tag) and a valid hint presented to
+another map instance with identical structure are refused while the real one is accepted; the sweep bounds, including `i32::MAX`, negatives and `count 0, emit
+256` returning six samples; the fast grid's checks and exact interpolation; and two maps created in two threads giving the single-thread answers over repeated
+interleaved queries and sweeps. The private-data checks in `terrain_conformance.rs` are unchanged and still gated.
+
+Proposed commands (Root): `cargo test --locked -p eech-world --test terrain_backend` and `cargo test --locked -p eech-world terrain`, then the gated conformance run as
+above with `EECH_TERRAIN_DIR=R:/d3-evidence/backend-test-roots/lebanon/common/maps/map5/terrain` (Georgia: `map3`), and the Lua harness against the unmoved DLL.
+Not done: the missing-grid generation of the original remains a named compatibility gap to reconcile; it is not declared unsupported here to ease acceptance.

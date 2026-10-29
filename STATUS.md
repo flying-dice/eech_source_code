@@ -11,8 +11,31 @@ The four original 600-second runs completed with native/controller exit 0.
 Lebanon and its repeat are byte identical; the no-probe control matches all
 137 ordinary boot/run report lines exactly. All four post-input checks and
 all 43 original build files match. The original 900-second recording control
-also reports native exit 0; its complete artifact comparison and post-input
-audit remain pending. Earlier partial-prefix results below are historical.
+also completed with native/controller exit 0. All three complete artifacts
+(Tacview, observations and metrics) are byte identical to the verified D2
+shipping900 donor. All 1,179 post-input files and 43 build entries still match.
+Safe summary: reference/d3-terrain-characterization/original-controls-a8effa9f3.json
+under eech-campaign. Earlier partial-prefix results below are historical.
+
+The clean f4b61a475 fixture compile exited 1 at terrain_ref.c:1444 (unmatched
+#endif), before any new backend ran. The combined independent pass completed
+with one build blocker and five P2 parser/FFI/hint/sweep/harness findings;
+one Sonnet 5.5 High invocation is correcting them. The same review independently
+verified the bounded original controls and input/build hashes. Its report is
+preserved beside the safe summary in the reference directory.
+
+The correction invocation has now completed with actual exit 0. The new delta
+adds safe geometry copies/spans, serialized C calls, map-bound tagged hints,
+bounded sweep results, specific refusal evidence and asset-free loader/query
+tests. Working-tree C syntax, Lua syntax and whole-workspace Rust formatting
+checks pass. Compiled tests, real-map conformance, fast-oracle results and the
+independent correction-delta review remain pending; none is implied by syntax.
+
+Live Jira comment10834 and ledger v53 record completed original controls and
+the source checkpoint. All prior ledger HTML and five reports remain exact.
+The finished original and failed f4 target caches were removed only after
+native/controller termination, evidence export and container-user checks;
+frozen source, binaries, recordings and shared runtime/cache remain intact.
 
 This checkpoint is not build, regression, review or merge acceptance. Next:
 finish the original recording audit; review the new parser/FFI/backend and

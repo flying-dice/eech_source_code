@@ -68,6 +68,7 @@ local function counted (inner)
 end
 
 local first_point = true
+local malformed_sent = false
 local provider
 if mode == "reference" then
 	provider = counted (reference)
@@ -98,6 +99,8 @@ elseif mode:sub (1, 4) == "bad_" then
 		if request.op ~= "point" or not first_point then return reference (request) end
 		first_point = false
 		local answer = reference (request)
+		-- from here the malformed operation is on its way to the campaign: the checks below need to know that it was actually sent
+		malformed_sent = true
 		if mode == "bad_nil" then return nil
 		elseif mode == "bad_elevation" then answer.elevation = 0 / 0 return answer
 		elseif mode == "bad_normal" then answer.normal = { 0, 1 } return answer
@@ -140,38 +143,69 @@ local config = {
 	supply_reached = host.supply_reached, line_of_sight = line_of_sight, sense = host.sense, aim = host.aim,
 	terrain = provider,
 }
-local ok, engine = pcall (dc.boot, config)
-if not ok then
-	emit { event = "boot_failed", mode = mode, error = (tostring (engine):gsub ("\n.*", "")), terrain_calls = calls.map + calls.point + calls.fast }
-	out:close ()
-	io.stderr:write ("terrain-provider: boot failed: " .. (tostring (engine):gsub ("\n.*", "")) .. "\n")
-	assert (mode == "missing" or mode:sub (1, 4) == "bad_", "boot failed in a mode that must boot")
-	return
+-- What counts as the contract's refusal, in each mode (anything else is a setup or unrelated failure and fails the check):
+--   a healthy mode (reference, raised, generic) must boot and run to the end; any boot or frame error fails;
+--   missing must be refused AT BOOT with an error that names the terrain provider (so a campaign that boots is a failure of the contract, and an
+--   unrelated boot error is a failure of the setup);
+--   bad_* must stop the engine, at boot or in a frame, with an error that names the terrain provider, AFTER the malformed answer was actually sent
+--   (a failure with nothing sent, or a run that ends without failing, is not the refusal); bad_error must also carry the provider's own message.
+local function first_line (value)
+	return (tostring (value):gsub ("\n.*", ""))
 end
 
-local frames = math.floor (seconds * 1000 / frame_ms)
+local function names_terrain (message)
+	return message:lower ():find ("terrain", 1, true) ~= nil
+end
+
+local function check_refusal (where, message)
+	if mode == "missing" then
+		assert (where == "boot", "terrain-provider: a campaign without a terrain provider booted and ran")
+		assert (names_terrain (message), "terrain-provider: the boot failed without naming the terrain provider (an unrelated boot error?): " .. message)
+	else
+		assert (malformed_sent, "terrain-provider: the campaign failed (" .. where .. ") but the malformed terrain answer was never sent: " .. message)
+		assert (names_terrain (message), "terrain-provider: the " .. where .. " failure does not name the terrain provider (an unrelated error?): " .. message)
+		if mode == "bad_error" then
+			assert (message:find ("provider failed on purpose", 1, true), "terrain-provider: the provider's own error was not carried: " .. message)
+		end
+	end
+end
+
+local refusal_expected = mode == "missing" or mode:sub (1, 4) == "bad_"
+local ok, engine = pcall (dc.boot, config)
+if not ok then
+	local message = first_line (engine)
+	emit { event = "boot_failed", mode = mode, error = message, terrain_calls = calls.map + calls.point + calls.fast, malformed_sent = malformed_sent }
+	out:close ()
+	io.stderr:write ("terrain-provider: boot failed: " .. message .. "\n")
+	assert (refusal_expected, "terrain-provider: boot failed in a mode that must boot: " .. message)
+	check_refusal ("boot", message)
+	return
+end
+assert (mode ~= "missing", "terrain-provider: a campaign without a terrain provider booted and ran")
+
+local frames_requested = math.floor (seconds * 1000 / frame_ms)
+local frames_completed = 0
 local failure
-for f = 1, frames do
+for f = 1, frames_requested do
 	local frame_ok, err = pcall (engine.frame, engine, frame_ms)
-	if not frame_ok then failure = (tostring (err):gsub ("\n.*", "")) break end
+	if not frame_ok then failure = first_line (err) break end
+	frames_completed = f
 end
 emit {
-	event = "summary", mode = mode, frames = frames, failure = failure or "",
+	event = "summary", mode = mode, frames_requested = frames_requested, frames_completed = frames_completed, failure = failure or "", malformed_sent = malformed_sent,
 	map_calls = calls.map, point_calls = calls.point, fast_calls = calls.fast,
 	placed_count = placed.count, placed_sum = string.format ("%.9g", placed.sum),
 	los_terrain_count = los.count, los_terrain_sum = string.format ("%.9g", los.sum),
 }
 out:close ()
-io.stderr:write (string.format ("terrain-provider: mode=%s map=%d point=%d fast=%d placed=%d/%.9g los=%d/%.9g failure=%s\n", mode, calls.map, calls.point, calls.fast,
-	placed.count, placed.sum, los.count, los.sum, failure or "none"))
--- a run that must not complete (missing provider, a malformed answer) is a failure of the check when it completes
-if mode == "missing" then
-	error ("terrain-provider: a campaign without a terrain provider booted and ran")
-elseif mode:sub (1, 4) == "bad_" then
-	assert (failure, "a malformed terrain answer was accepted: mode " .. mode)
-elseif failure then
-	error (failure)
+io.stderr:write (string.format ("terrain-provider: mode=%s frames=%d/%d map=%d point=%d fast=%d placed=%d/%.9g los=%d/%.9g malformed_sent=%s failure=%s\n", mode,
+	frames_completed, frames_requested, calls.map, calls.point, calls.fast, placed.count, placed.sum, los.count, los.sum, tostring (malformed_sent), failure or "none"))
+
+if refusal_expected then
+	assert (failure, "terrain-provider: a malformed terrain answer was accepted: mode " .. mode)
+	check_refusal ("frame", failure)
 else
+	assert (not failure, "terrain-provider: a frame failed in a mode that must run: " .. tostring (failure))
 	-- the new contract: the campaign's physical terrain comes from the provider (RED on the unmoved baseline, where nothing is asked)
 	assert (calls.point + calls.fast > 0, "terrain-provider: the campaign never consulted the terrain provider")
 end
