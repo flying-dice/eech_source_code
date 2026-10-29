@@ -1,3 +1,17 @@
+# User-requested commit/push checkpoint — geometry writer stopped, partial work preserved
+
+Task49 checkpoint `5154bc7e736c1145869cc181564b78fc3c504d55`.
+
+Root intentionally stopped the verified Sonnet High geometry-witness writer on
+2026-10-29 for a consistent commit/push checkpoint. Its local context is retained
+as39ea8c20-d032-41ae-bbbb-c52fb100b440. The Task49 branch preserves an unfinished
+feature-only observation hook; its fixture wrapper is not yet implemented. The
+new source is UNBUILT, UNRUN and unreviewed. Resume that context to finish the
+original geometry witness before further model-loader extraction. The reviewed
+8c452f197 host preparation below remains the measured evidence. Existing shipping
+regression processes were left running. D3 remains In Progress; no merge or
+acceptance is claimed.
+
 # Current D3 checkpoint — reviewed host tree component; original geometry witness active
 
 Task49 host tree loader/kernel preparation is reviewed at measured source
