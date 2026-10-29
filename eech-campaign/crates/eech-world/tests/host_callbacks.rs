@@ -2901,7 +2901,7 @@ fn the_collision_driver_accepts_a_complete_controlled_geometry_witness_labels_it
 #[test]
 fn the_collision_driver_names_the_one_defect_in_a_geometry_witness_and_leaves_the_transcript_empty() {
     let witness = ["entity_cases=40", "tree_cases=40", "geometry_witness=yes"];
-    let controls: [(&str, &[&str], &str); 20] = [
+    let controls: [(&str, &[&str], &str); 26] = [
         // restoration: every element of it is required, none is inferred from another
         ("witness_not_restored", &witness, "col-geometry-witness: restored is 0, expected 1"),
         ("witness_data_not_restored", &witness, "col-geometry-witness: data_restored is 0, expected 1"),
@@ -2942,6 +2942,39 @@ fn the_collision_driver_names_the_one_defect_in_a_geometry_witness_and_leaves_th
         ),
         ("witness_depth_range", &witness, "tq 0: g_depth 6 is outside the model's 6 triangles"),
         ("witness_true_exceeds_calls", &witness, "tq 0: g_true 2 is more than g_calls 1"),
+        // IMPOSSIBLE decoder call histories whose report buckets (recomputed from the same fields) are coherent, so only the conservation rule can reject them. For the fixed 6-triangle
+        // model a complete walk asks 6 times yes and once no, a walk that hits at depth d asks d + 1 times yes: g_true = 6 * F + (hit ? d + 1 : 0) with F = g_calls - g_true, and an
+        // exhausted history's last yes is at depth 5. (zero_call_depth is also refused by the older neutral-depth rule: the old driver refuses it too, the other five it accepted.)
+        (
+            "witness_history_true_count",
+            &witness,
+            "tq 0: g_true 2 is impossible: 0 completed walks of 6 triangles and a final walk that hit at depth 0 make 1",
+        ),
+        (
+            "witness_history_final_depth",
+            &witness,
+            "tq 0: g_true 2 is impossible: 0 completed walks of 6 triangles and a final walk that hit at depth 3 make 4",
+        ),
+        (
+            "witness_history_incomplete_walk",
+            &witness,
+            "g_true 2 is impossible: 1 completed walks of 6 triangles and a final walk that did not hit make 6",
+        ),
+        (
+            "witness_history_exhausted_depth",
+            &witness,
+            "an exhausted walk's last yes is at depth 5, g_depth is 4",
+        ),
+        (
+            "witness_history_calls_without_true",
+            &witness,
+            "g_true 0 is impossible: 3 completed walks of 6 triangles and a final walk that did not hit make 18",
+        ),
+        (
+            "witness_history_zero_call_depth",
+            &witness,
+            "a query the geometry branch never answered has a last answer or a depth",
+        ),
         // armed but no row, and a witness that cannot be armed
         ("witness_row_missing", &witness, "the report has no col-geometry-witness row"),
         ("witness_arm_fails", &witness, "the geometry witness could not be armed: stand-in arm failure"),

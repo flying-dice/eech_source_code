@@ -1,0 +1,154 @@
+{
+  "source": "47a4af0d1a5a5694c1678147a19240b071627fac",
+  "actual_native_controller_exit": 0,
+  "verified_exports": 49,
+  "payloads_unchanged": true,
+  "source_not_yet_independently_reviewed": true,
+  "scope": "Original geometry witness and existing host replay only; no production/model-loader/shipping/D3 acceptance",
+  "cases": [
+    {
+      "case": "georgia",
+      "original_default_report_byte_equal": true,
+      "original_default_trace_byte_equal": true,
+      "controlled_trace_byte_equal_537": true,
+      "queries": 4802,
+      "lookups": 9598,
+      "geometry_entered": 35,
+      "geometry_hits": 22,
+      "geometry_misses": 13,
+      "geometry_hit_depths": [
+        0,
+        1
+      ],
+      "host_library_actual_exit": 0,
+      "host_lua_actual_exit": 0,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "coverage": [
+        {
+          "branch_entered": 35,
+          "event": "geometry_witness_coverage",
+          "flags_0_0": 3,
+          "flags_0_1": 25,
+          "flags_1_0": 3,
+          "flags_1_1": 4,
+          "gaps": "none",
+          "geometry_hits": 22,
+          "geometry_misses": 13,
+          "geometry_misses_with_a_partial_write": 13,
+          "hits_after_the_first_triangle": 3,
+          "label": "controlled_forest_geometry",
+          "restored": 1,
+          "walks_exhausted": 13
+        }
+      ],
+      "one_shot": {
+        "actual_exit": 0,
+        "marker": true,
+        "script_sha256": "614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15"
+      },
+      "refusal_controls": [
+        {
+          "case": "range",
+          "actual_exit": 0,
+          "marker": true,
+          "script_sha256": "ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895"
+        },
+        {
+          "case": "conversion",
+          "actual_exit": 0,
+          "marker": true,
+          "script_sha256": "b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0"
+        }
+      ],
+      "default_sha256": "fa280a6e35ecc0cd8f8d0a0d845bdad1717df7223f2f5daeed3aec963e03774f",
+      "default_trace_sha256": "0647eea11e9c87777ce47183c905ae47011ebce9da10ce7d2a8cc87b0e180adc",
+      "controlled_trace_sha256": "6d4407214194d43747394e3a517065f554a42ad4789e2178744fb55bf645aac0"
+    },
+    {
+      "case": "lebanon",
+      "original_default_report_byte_equal": true,
+      "original_default_trace_byte_equal": true,
+      "controlled_trace_byte_equal_537": true,
+      "queries": 5126,
+      "lookups": 10148,
+      "geometry_entered": 24,
+      "geometry_hits": 19,
+      "geometry_misses": 5,
+      "geometry_hit_depths": [
+        0,
+        1
+      ],
+      "host_library_actual_exit": 0,
+      "host_lua_actual_exit": 0,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "coverage": [
+        {
+          "branch_entered": 24,
+          "event": "geometry_witness_coverage",
+          "flags_0_0": 3,
+          "flags_0_1": 15,
+          "flags_1_0": 3,
+          "flags_1_1": 3,
+          "gaps": "none",
+          "geometry_hits": 19,
+          "geometry_misses": 5,
+          "geometry_misses_with_a_partial_write": 5,
+          "hits_after_the_first_triangle": 1,
+          "label": "controlled_forest_geometry",
+          "restored": 1,
+          "walks_exhausted": 5
+        }
+      ],
+      "one_shot": null,
+      "refusal_controls": null,
+      "default_sha256": "8f0e3f602c84aa2e3f352ebfa5de3e46ee4faf1a7079d98d79a9c3573abcda3b",
+      "default_trace_sha256": "af14a4dd071fb8233637aa001a046710434e8d41bc838b2d1cf906466a074d00",
+      "controlled_trace_sha256": "647927fc7ed66d8489dbc230d36a08076f7ba365f753eb531ba3d8243dbf4698"
+    },
+    {
+      "case": "lebanon-repeat",
+      "original_default_report_byte_equal": true,
+      "original_default_trace_byte_equal": true,
+      "controlled_trace_byte_equal_537": true,
+      "queries": 5126,
+      "lookups": 10148,
+      "geometry_entered": 24,
+      "geometry_hits": 19,
+      "geometry_misses": 5,
+      "geometry_hit_depths": [
+        0,
+        1
+      ],
+      "host_library_actual_exit": 0,
+      "host_lua_actual_exit": 0,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "coverage": [
+        {
+          "branch_entered": 24,
+          "event": "geometry_witness_coverage",
+          "flags_0_0": 3,
+          "flags_0_1": 15,
+          "flags_1_0": 3,
+          "flags_1_1": 3,
+          "gaps": "none",
+          "geometry_hits": 19,
+          "geometry_misses": 5,
+          "geometry_misses_with_a_partial_write": 5,
+          "hits_after_the_first_triangle": 1,
+          "label": "controlled_forest_geometry",
+          "restored": 1,
+          "walks_exhausted": 5
+        }
+      ],
+      "one_shot": null,
+      "refusal_controls": null,
+      "default_sha256": "8f0e3f602c84aa2e3f352ebfa5de3e46ee4faf1a7079d98d79a9c3573abcda3b",
+      "default_trace_sha256": "af14a4dd071fb8233637aa001a046710434e8d41bc838b2d1cf906466a074d00",
+      "controlled_trace_sha256": "647927fc7ed66d8489dbc230d36a08076f7ba365f753eb531ba3d8243dbf4698"
+    }
+  ],
+  "raw_controller_sha256": "8cf4c921a5815cdc6c9a587fd9a238374de71c25a804c658b8d3fe371b739d9d"
+}

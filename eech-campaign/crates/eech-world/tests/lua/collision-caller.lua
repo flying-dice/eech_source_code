@@ -269,6 +269,13 @@ local modes = {
   witness_triangle_count = function() end,
   witness_facts_mismatch = function() end,
   witness_arm_fails = function() end,
+  -- impossible decoder call histories with coherent report buckets (the conservation rule); zero_call_depth is also refused by the older neutral-depth rule
+  witness_history_true_count = function() end,
+  witness_history_final_depth = function() end,
+  witness_history_incomplete_walk = function() end,
+  witness_history_exhausted_depth = function() end,
+  witness_history_calls_without_true = function() end,
+  witness_history_zero_call_depth = function() end,
   -- warm pairing, lookup coherence, and the valid outside/boundary transcripts
   trace_warm_endpoint = function() end,
   trace_warm_flags = function() end,
@@ -378,15 +385,34 @@ local trace_reads = 0
 local witness_armed, witness_in_trace = false, false
 local WITNESS_TRIANGLES = 6
 
+-- A POSSIBLE decoder call history for the fixed 6-triangle model: each complete walk asks 6 times (yes) and once more (no); a walk that hits at depth d asks d + 1 times (yes) and the
+-- query returns. F complete walks before the last: g_true = 6 * F + (hit at depth d ? d + 1 : 0), g_calls = g_true + F, and an exhausted history's last yes is at depth 5.
+local function walk_history(complete, hit_depth)
+  local true_calls = WITNESS_TRIANGLES * complete + (hit_depth and (hit_depth + 1) or 0)
+  return { calls = true_calls + complete, true_calls = true_calls, last = hit_depth and 1 or 0, depth = hit_depth or ((complete > 0) and (WITNESS_TRIANGLES - 1) or 0) }
+end
+
 local function geometry_fields(r, i, state)
   local g
-  if r.hit == 1 then
-    g = { calls = 2, true_calls = 2, last = 1, depth = (i - 1) % WITNESS_TRIANGLES }
+  if r.hit == 1 and i % 7 == 0 then
+    -- a hit through the quad path although geometry was present: one or two complete walks, no geometry hit
+    g = walk_history(1 + (i % 2), nil)
+  elseif r.hit == 1 then
+    -- a geometry hit at depth 0 to 5, after none, one or two complete walks of other trees
+    g = walk_history(math.floor((i - 1) / WITNESS_TRIANGLES) % 3, (i - 1) % WITNESS_TRIANGLES)
   elseif i % 2 == 0 then
-    g = { calls = 3, true_calls = 2, last = 0, depth = 1 }
+    -- a true miss after one, two or three complete walks
+    g = walk_history(1 + (i % 3), nil)
   else
-    g = { calls = 0, true_calls = 0, last = 0, depth = 0 }
+    g = walk_history(0, nil)
   end
+  -- impossible histories whose report buckets (recomputed from the same fields) stay coherent: only the conservation rule can reject them
+  if mode == 'witness_history_true_count' and r.hit == 1 and not state.history_done then g = { calls = 2, true_calls = 2, last = 1, depth = 0 } state.history_done = true end
+  if mode == 'witness_history_final_depth' and r.hit == 1 and not state.history_done then g = { calls = 2, true_calls = 2, last = 1, depth = 3 } state.history_done = true end
+  if mode == 'witness_history_incomplete_walk' and r.hit == 0 and i % 2 == 0 and not state.history_done then g = { calls = 3, true_calls = 2, last = 0, depth = 1 } state.history_done = true end
+  if mode == 'witness_history_exhausted_depth' and r.hit == 0 and i % 2 == 0 and not state.history_done then g = { calls = 7, true_calls = 6, last = 0, depth = 4 } state.history_done = true end
+  if mode == 'witness_history_calls_without_true' and r.hit == 0 and i % 2 == 1 and not state.history_done then g = { calls = 3, true_calls = 0, last = 0, depth = 0 } state.history_done = true end
+  if mode == 'witness_history_zero_call_depth' and r.hit == 0 and i % 2 == 1 and not state.history_done then g = { calls = 0, true_calls = 0, last = 0, depth = 2 } state.history_done = true end
   if mode == 'witness_last_without_hit' and r.hit == 0 and not state.last_done then g = { calls = 3, true_calls = 2, last = 1, depth = 1 } state.last_done = true end
   if mode == 'witness_depth_range' and r.hit == 1 and not state.depth_done then g.depth = WITNESS_TRIANGLES state.depth_done = true end
   if mode == 'witness_true_exceeds_calls' and i == 1 then g = { calls = 1, true_calls = 2, last = 0, depth = 0 } end

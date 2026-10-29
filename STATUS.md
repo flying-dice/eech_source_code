@@ -1,3 +1,58 @@
+# Original geometry witness — 47a4af0d1 runtime and native evidence GREEN; the review's one P2 (decoder call-history conservation) PREPARED, UNRUN (EEDCS-49, D3)
+
+## Measured on 47a4af0d1 (Root; retained, not repeated here, and not an acceptance)
+
+Fresh Windows build 35133 exit 0 with all 49 fixture and test exports. Linux 77060: format, the 18 driver guards and all-host-target Clippy 0. Windows 18070: all 18 guards 0, the missing-host override
+control correctly refused (101), all 5 hashes unchanged. Native 64020: controller 0; all 3 pre/post inputs 0; all 49 payloads unchanged. The same 3 private CRLF native state controls (one-shot trace, public range
+refusal, Lua conversion refusal) are now GREEN with byte-equal before/after sidecars. The 3 default 206-row reports and transcripts are still EXACT f3; the 3 controlled complete transcripts are EXACT the original
+537 ones (Georgia 4802 queries / 9598 lookups, each Lebanon 5126 / 10148). The library and the real-host Lua replays match every bit and every ordered reply; the library Up/Down/Zero control and status preservation hold. The
+ORIGINAL controlled geometry made 6 triangles with a real hit, a later-depth hit, misses, partial writes, exhausted walks, all 4 flag combinations and gaps `none`. No production, model-loader, shipping or D3
+acceptance. Safe summary `R:/d3-evidence/tree-geometry-state-47a4af0d1-native-summary.json`, validation `…-validation.json`, raw `R:/d3-evidence/tree-geometry-state-47a4af0d1-native-20261029`.
+
+The ONE independent combined review of all 47a code and evidence (`R:/d3-evidence/independent-original-forest-geometry-review-47a4af0d1-20261029.json`, SHA256
+d796840610b1ca6b50ec4f5a08af8bfe73f2659aa8075510654db9d84a60c285) is complete with exactly one P2 and no other C ownership, restoration, arithmetic, FFI or source finding. Its CHANGES_REQUIRED verdict is retained
+until the changed checker closes below. The closed 8c452f197 component and the 47a physical code are not re-reviewed or changed.
+
+## The P2 and the correction (validator and collaborator only; no C, engine, module, host-kernel or physical-input change)
+
+`check_witness` accepted decoder call histories that cannot occur, and so did the stand-in's healthy input: for example `g_calls=2 g_true=2 g_last=1 g_depth=0` (a hit at depth 0 asks once), later depths with the same calls,
+and the exhausted `g_calls=3 g_true=2 g_last=0 g_depth=1` (an exhausted walk asks 6 times yes and once no). The report buckets are recomputed from the same fields, so coherent buckets did not prove a possible call sequence.
+The 18-guard positive accepted that input: a known checker weakness, not a native physical failure.
+
+New rule in `lua/collision-characterization.lua` (after all the older bounds and hit implications, which are unchanged), for the FIXED 6-triangle model, with F = `g_calls - g_true`:
+`g_true = 6 * F + (g_last == 1 ? g_depth + 1 : 0)`; and when `g_true > 0` and `g_last == 0` the last yes is at depth 5. A query that never asked keeps the neutral zero depth. It checks call-history conservation only, not
+an intersection or any answer. Root's independent audit of the actual native histories (`R:/d3-evidence/geometry-47a-native-history-conservation-audit.json`: Georgia 4802, each Lebanon 5126, ZERO violations, original trace
+hashes unchanged) agrees; no native campaign or witness is re-run for this.
+
+Diagnostics (new): `tq N: g_true T is impossible: F completed walks of 6 triangles and a final walk that hit at depth D / did not hit make E` and `tq N: an exhausted walk's last yes is at depth 5, g_depth is D`. The existing
+diagnostics (`g_true … more than g_calls`, never-answered with a last answer or depth, last yes without a hit, depth outside the model) keep their text and order ahead of them.
+
+## Collaborator (stand-in) and guards
+
+* Healthy histories are now POSSIBLE ones (`walk_history`): geometry hits at depth 0 to 5 after none, one or two complete walks of other trees; a hit through the quad path after one or two complete walks (g_last 0,
+  depth 5); true misses after one to three complete walks; and no-call misses. The report buckets are still derived from the same fields.
+* Six new single-defect modes, each with COHERENT report buckets so that only the new rule can reject them (tests in `tests/host_callbacks.rs`; the guard array grows from 20 to 26):
+
+| mode | history | expected reason |
+| --- | --- | --- |
+| `witness_history_true_count` | calls 2, true 2, last 1, depth 0 | `tq 0: g_true 2 is impossible: 0 completed walks of 6 triangles and a final walk that hit at depth 0 make 1` |
+| `witness_history_final_depth` | calls 2, true 2, last 1, depth 3 | `tq 0: g_true 2 is impossible: 0 completed walks of 6 triangles and a final walk that hit at depth 3 make 4` |
+| `witness_history_incomplete_walk` | calls 3, true 2, last 0, depth 1 | `g_true 2 is impossible: 1 completed walks of 6 triangles and a final walk that did not hit make 6` |
+| `witness_history_exhausted_depth` | calls 7, true 6, last 0, depth 4 | `an exhausted walk's last yes is at depth 5, g_depth is 4` |
+| `witness_history_calls_without_true` | calls 3, true 0, last 0, depth 0 | `g_true 0 is impossible: 3 completed walks of 6 triangles and a final walk that did not hit make 18` |
+| `witness_history_zero_call_depth` | calls 0, true 0, last 0, depth 2 | `a query the geometry branch never answered has a last answer or a depth` (the older rule: refused by the OLD driver too) |
+
+## Root: old/new driver matrix (NOT RUN)
+
+Run the NEW stand-in (`tests/lua/collision-caller.lua`) in `ok` and in each of the six modes, with `geometry_witness=yes` and a fresh `trace_out`, against BOTH the retained 47a driver and the new driver. Expected: `ok` is accepted by
+both (the healthy histories satisfy every older bound too); the OLD driver ACCEPTS the first five modes (exit 0) and refuses `witness_history_zero_call_depth`; the NEW driver refuses all six with the reasons above, leaves the
+transcript file empty and writes no success row. Then: format, the Linux `cargo test -p eech-world --test host_callbacks collision` guards (26 witness guards + 3 argument refusals + the rest), Clippy, and the actual
+Windows guards. Verify that the native-code blobs, the fixture exports and the 3 private CRLF scripts are unchanged. The same reviewer then gets only the changed validator, collaborator and guards and the new evidence;
+the model-loader extraction starts after this closes. Task47 shipping115 (original six processes) is untouched. Full D3 (model, entity, environment, time and solver/loader removal), G1, production authority, the DCS mapping
+and D4/D5 remain open.
+
+---
+
 # Original forest-geometry witness — 537c36faf measured (physical, default and host agree); three REAL state-contract defects found; corrections PREPARED, UNBUILT, UNRUN (EEDCS-49, D3)
 
 ## Measured on frozen source `537c36faf` (Root; preserved, not repeated or rewritten here)

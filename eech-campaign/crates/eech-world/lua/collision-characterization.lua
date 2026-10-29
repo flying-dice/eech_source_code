@@ -813,6 +813,19 @@ local function check_witness (trace, rows)
 		if q.g_true == 0 and (q.g_last ~= 0 or q.g_depth ~= 0) then refuse (label .. ": a query the geometry branch never answered has a last answer or a depth") end
 		if q.g_last == 1 and q.hit ~= 1 then refuse (label .. ": the last triangle answered yes but the query is not a hit (the first successful triangle returns at once)") end
 		if q.g_true > 0 and q.g_depth >= WITNESS_MESH.triangles then refuse (label .. ": g_depth " .. q.g_depth .. " is outside the model's " .. WITNESS_MESH.triangles .. " triangles") end
+		-- CONSERVATION of the decoder's call history, for this fixed model of T triangles. A tree's walk asks depth 0, 1, 2 ... : a walk that finds no hit asks T times (yes) and once more
+		-- (no, the end), and a walk that hits at depth d asks d + 1 times (all yes) and the query returns. So with F = g_calls - g_true complete walks in the query (each one "no"),
+		-- g_true = T * F + (g_last == 1 and g_depth + 1 or 0), and when the last answer is "no" the last "yes" was at depth T - 1. This checks that the recorded call counts and the final
+		-- depth can be a sequence the decoder produced; it does not check any intersection or physical answer. (A query that never asked has F = 0 and no depth: checked above.)
+		local falses = q.g_calls - q.g_true
+		local expected_true = WITNESS_MESH.triangles * falses + ((q.g_last == 1) and (q.g_depth + 1) or 0)
+		if q.g_true ~= expected_true then
+			refuse (label .. ": g_true " .. q.g_true .. " is impossible: " .. falses .. " completed walks of " .. WITNESS_MESH.triangles .. " triangles and a final walk that "
+				.. ((q.g_last == 1) and ("hit at depth " .. q.g_depth) or "did not hit") .. " make " .. expected_true)
+		end
+		if q.g_true > 0 and q.g_last == 0 and q.g_depth ~= WITNESS_MESH.triangles - 1 then
+			refuse (label .. ": an exhausted walk's last yes is at depth " .. (WITNESS_MESH.triangles - 1) .. ", g_depth is " .. q.g_depth)
+		end
 		local s = seen [q.stage]
 		s.q = s.q + 1
 		if q.g_true > 0 then
