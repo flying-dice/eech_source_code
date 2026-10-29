@@ -356,6 +356,24 @@ local function cross_check (rows, keyed, samples)
 	end
 	-- a changed word differs in at least one bit, cleared or added
 	need_at_most ("col-flags", "changed words", changed, cleared + fl.added_bits)
+	-- Feasibility of the counts for 32-bit words (a finite legacy diagnostic, not a host contract). added_bits is ONE aggregate across the three arrays, and the original only
+	-- clears, so it is not forced to 0, but the counts must still be realisable:
+	--   1. an array's cleared bits fit in its own changed words (at most 32 per word), so no bits at all with no changed word;
+	--   2. a changed word with no cleared bit in its own array differs only by an ADDED bit: the changed words an array has beyond its cleared bits, summed over the arrays,
+	--      need at least that many added bits (another array's cleared bits cannot account for them);
+	--   3. all the differing bits, cleared and added, fit in all the changed words.
+	local array_effects = { { "updated", fl.updated_changed_words, fl.updated_cleared_bits }, { "moved", fl.moved_changed_words, fl.moved_cleared_bits },
+		{ "rotated", fl.rotated_changed_words, fl.rotated_cleared_bits } }
+	local required_additions = 0
+	for _, effect in ipairs (array_effects) do
+		need_at_most ("col-flags", effect [1] .. "_cleared_bits", effect [3], 32 * effect [2])
+		if effect [2] > effect [3] then required_additions = required_additions + (effect [2] - effect [3]) end
+	end
+	if required_additions > fl.added_bits then
+		refuse ("col-flags: changed words without a cleared bit in their own array need at least " .. tostring (required_additions) .. " added bits, added_bits is "
+			.. tostring (fl.added_bits))
+	end
+	need_at_most ("col-flags", "cleared bits + added_bits", cleared + fl.added_bits, 32 * changed)
 	-- the hash after the queries equals the copy's exactly when no word changed
 	if (changed == 0) ~= (fl.after_queries == fl.before) then
 		refuse ("col-flags: " .. tostring (changed) .. " changed words but after_queries " .. fl.after_queries .. " against before " .. fl.before)

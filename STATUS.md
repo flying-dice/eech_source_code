@@ -1,3 +1,23 @@
+# Current collision state: source 5416adb3b moving witnesses complete; col-flags feasibility follow-up UNBUILT, UNRUN (working tree over 438940d39)
+
+Actual results (all by Root, none by this edit). Source 5416adb3b: Windows physical build exit0 with 43 entries; three boot probes exit0 with every old d5 199-row value identical (six new
+diagnostic rows separate). Its five moving 120s+30s native cases (controller tool68773) have all TERMINATED exit0: all five pre/post checks0; probe and control coarse identity/kind/side/alive digests
+equal; the separate Lebanon entire reports are byte identical and both probe-report repeats identical; FPU masks 63/63 and record/RNG/world/flag restoration hold. Georgia: 10 changed updated-flag
+words, 62 cleared bits, restored1, 5 moving targets; Lebanon and its repeat: 6 selected moving targets. Exact raw and controller output: collision-observer-5416adb3b-controls-20261029 (private).
+These are original-behaviour observations with explicit gaps: no new physical or Tacview claim; the old d5 failed moving probes stay failed with no valid oracle. Source 438940d39: Linux 9/9, format
+and all-target Clippy exit0; Windows guard and matching host built exit0 with the four payloads hashed. The actual Windows override run now passes all9 tests using a verified host path
+containing spaces, and the invalid-host control fails101 with the explicit no-fallback diagnostic. All4 payloads remain unchanged. All12 retained native flag rows satisfy the stronger bounds.
+
+New bounded P2 from the one combined independent review (driver feasibility validation of col-flags, not a C snapshot defect): zero changed words with a nonzero cleared bit was accepted, counts
+could exceed 32 bits per changed word, and one array's changed words with no bits could be hidden by another array's clears. Source follow-up in the REAL driver, UNBUILT/UNRUN, no change to C,
+production code, generation, folds, masks or restoration: (1) each array's cleared_bits <= 32 x its changed_words; (2) the minimum additions, sum over arrays of max(0, changed_words - cleared_bits),
+must be <= added_bits (a changed word with no cleared bit in its own array differs only by an added bit); (3) sum(cleared_bits) + added_bits <= 32 x sum(changed_words). added_bits is NOT forced to 0
+and the existing nonnegative, capacity, lower-bound and hash checks stay. Four one-defect stand-in controls (bits with no changed word; per-array overflow; aggregate overflow; a changed array
+lacking bits despite another's clears) and one positive control (realisable aggregated added bits are accepted); 77 negative controls now. Dynamic bit-31/refusal coverage is not claimed.
+Root audits the stronger rules against all retained native flag rows without changing them, runs new Linux and Windows guards, and may run fresh boot probes through the new driver with the
+unchanged 5416adb3b C binary, clearly labelled. One combined independent review remains pending. No collision query is extracted; production G2 remains gated and Task47 shipping115 is live and untouched;
+whole D3 stays active; D4 and D5 have not started.
+
 # Collision driver Windows setup defect and host-path override — follow-up UNBUILT, UNRUN (working tree over d16c08bec)
 
 Actual results to date. Source 5416adb3b: Windows physical build exit0 with 43 entries; three native boot probes exit0 with 205 rows each, every old d5 199-row value matching (the six new

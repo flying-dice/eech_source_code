@@ -1,3 +1,9 @@
+Current: source 5416adb3b moving 120s+30s witnesses all TERMINATED exit0 (digests equal, Lebanon reports identical, restoration/masks hold; Georgia 10 changed updated words / 62 cleared bits,
+5 moving targets; Lebanon 6) as original observations with gaps, no valid oracle for the old d5 failures. Source 438940d39 Linux 9/9 + fmt + Clippy pass; its Windows run is in progress, not recorded as passed.
+A review P2 in the driver feasibility check of `col-flags` is corrected in the real driver, UNBUILT/UNRUN: per array cleared_bits <= 32 x changed_words; sum over arrays of max(0, changed_words -
+cleared_bits) <= added_bits; sum(cleared_bits) + added_bits <= 32 x sum(changed_words). added_bits is not forced to 0. Four new one-defect controls and one positive control were added (77 negative
+controls). Review pending; no extraction; whole D3 active.
+
 Windows guard result for d16c08bec (actual): 0/9 passed, every test failed with OS error 3 starting the host, because the test helper still used the compiled-in Linux CARGO_BIN_EXE path;
 Linux d16 passed 9/9 with format and Clippy. A helper-only follow-up adds the runtime override EECH_WORLD_BIN (an existing file, else a clear failure; unset falls back to the cargo path) for the
 collision driver tests only. It is UNBUILT/UNRUN until Root runs all 9 on Windows with the matching same-source eech-world.exe. Source 5416adb3b physical build and three boot probes passed

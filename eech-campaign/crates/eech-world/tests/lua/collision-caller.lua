@@ -214,6 +214,22 @@ local modes = {
   flags_changed_without_bits = function(r) set(r, 'col-flags', 'updated_cleared_bits', 0) end,
   flags_hash_inconsistent = function(r) set(r, 'col-flags', 'after_queries', '1122334455667788') end,
   flags_words_zero = function(r) set(r, 'col-flags', 'words', 0) end,
+  -- feasibility of the counts for 32-bit words, one defect each (the valid row is updated 3 changed words / 7 cleared bits, the rest 0, added_bits 0):
+  -- bits with no changed word at all, hashes equal; one array's clears over 32 per changed word; cleared plus added over 32 per changed word in all; and a changed array
+  -- with no cleared bit while another array's clears keep the old totals satisfied
+  flags_bits_without_changed_words = function(r)
+    set(r, 'col-flags', 'updated_changed_words', 0)
+    set(r, 'col-flags', 'updated_cleared_bits', 1)
+    set(r, 'col-flags', 'after_queries', '1122334455667788')
+  end,
+  flags_cleared_over_capacity = function(r) set(r, 'col-flags', 'updated_cleared_bits', 97) end,
+  flags_aggregate_over_capacity = function(r) set(r, 'col-flags', 'added_bits', 90) end,
+  flags_array_lacks_bits = function(r) set(r, 'col-flags', 'moved_changed_words', 2) end,
+  -- a legitimate aggregated added-bit diagnostic is ACCEPTED: moved 2 changed words with no cleared bit need 2 added bits
+  flags_added_bits_legitimate = function(r)
+    set(r, 'col-flags', 'moved_changed_words', 2)
+    set(r, 'col-flags', 'added_bits', 2)
+  end,
   -- a rejected report is kept whole: an unknown row whose value holds quote, backslash, a control byte and UTF-8
   raw_with_controls = function(r) r[#r + 1] = { 'col-extra', { { 'x', '\1"\\\195\169' } } } end,
   fp_x87_unmasked = function(r) set(r, 'col-fp', 'x87_masks', 59) end,

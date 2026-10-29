@@ -1,0 +1,38 @@
+{
+  "source": "438940d3905a7cf659225e336596950f5de2bff9",
+  "started_utc": "2026-10-29T18:51:22.480486+00:00",
+  "build_info_sha256": "89597785977c1fb23c3cb98a5cdc5667f5b8a1e5ce05a2658ba08909f6b7acb4",
+  "payloads_verified": 4,
+  "commands": [
+    {
+      "name": "valid-host",
+      "argv": [
+        "R:\\d3-evidence\\collision-guard-source-438940d39\\eech-campaign\\target\\collision-driver-tests\\438940d39\\host_callbacks.exe",
+        "the_collision_driver_",
+        "--nocapture"
+      ],
+      "EECH_WORLD_BIN": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d3-evidence\\collision-guard-source-438940d39\\eech-campaign\\target\\collision-driver-tests\\438940d39\\eech-world.exe",
+      "actual_exit": 0,
+      "log_sha256": "ee68e6c57e37a4a771c9334c598e5a5e73dd65c065f63102113d26461938277e",
+      "log": "R:\\d3-evidence\\collision-driver-windows-438940d39-actual-20261029\\valid-host.log"
+    },
+    {
+      "name": "missing-host-control",
+      "argv": [
+        "R:\\d3-evidence\\collision-guard-source-438940d39\\eech-campaign\\target\\collision-driver-tests\\438940d39\\host_callbacks.exe",
+        "the_collision_driver_control_does_not_probe_and_ends_with_the_same_digest_and_no_coverage_claim",
+        "--exact",
+        "--nocapture"
+      ],
+      "EECH_WORLD_BIN": "R:\\d3-evidence\\collision-driver-windows-438940d39-actual-20261029\\this-host-does-not-exist.exe",
+      "actual_exit": 101,
+      "log_sha256": "e2a6a7a101d48a35dd6ab6668cd2114f4d89e2f2408e55859bfc2b856cd9cf23",
+      "log": "R:\\d3-evidence\\collision-driver-windows-438940d39-actual-20261029\\missing-host-control.log"
+    }
+  ],
+  "all9_pass": true,
+  "invalid_override_refused": true,
+  "payloads_unchanged": true,
+  "actual_exit": 0,
+  "completed_utc": "2026-10-29T18:51:54.144308+00:00"
+}

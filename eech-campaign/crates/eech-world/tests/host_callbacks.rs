@@ -2365,7 +2365,7 @@ fn the_collision_driver_accepts_a_report_with_no_random_cases_and_a_report_with_
 #[test]
 fn the_collision_driver_names_the_one_defect_in_a_report_and_writes_no_success_row() {
     let counts: &[&str] = &["entity_cases=40", "tree_cases=40"];
-    let defects: [(&str, &str); 73] = [
+    let defects: [(&str, &str); 77] = [
         ("unrestored", "col-guard: record_restored is 0, expected 1"),
         (
             "words_differ",
@@ -2390,6 +2390,13 @@ fn the_collision_driver_names_the_one_defect_in_a_report_and_writes_no_success_r
             "col-flags: 3 changed words but after_queries 1122334455667788 against before 1122334455667788",
         ),
         ("flags_words_zero", "col-flags: words is 0, expected at least 1"),
+        ("flags_bits_without_changed_words", "col-flags: updated_cleared_bits is 1, more than 0"),
+        ("flags_cleared_over_capacity", "col-flags: updated_cleared_bits is 97, more than 96"),
+        ("flags_aggregate_over_capacity", "col-flags: cleared bits + added_bits is 97, more than 96"),
+        (
+            "flags_array_lacks_bits",
+            "col-flags: changed words without a cleared bit in their own array need at least 2 added bits, added_bits is 0",
+        ),
         ("raw_with_controls", "the report has an unknown row 'col-extra'"),
         ("fp_x87_unmasked", "col-fp: x87_masks is 59, expected 63"),
         ("fp_sse_unmasked", "col-fp: sse_masks is 0, expected 63"),
@@ -2528,5 +2535,23 @@ fn the_collision_driver_keeps_a_rejected_report_whole_as_strict_json() {
     assert!(
         raw.contains("col-legacy entity_struct=0000000000000002 "),
         "the second report, whose legacy word the stand-in changed: {raw:?}"
+    );
+}
+
+// The flag-count feasibility rules do not force added_bits to 0: the original only clears, but a diagnostic that reports aggregated added bits which the counts can realise is accepted.
+// Here the moved array has 2 changed words and no cleared bit, so it needs at least 2 added bits, which the report states.
+#[test]
+fn the_collision_driver_accepts_flag_counts_with_realisable_added_bits() {
+    let (status, stdout, stderr, _, rows) = run_collision_case("flags_added_bits_legitimate", &["entity_cases=5", "tree_cases=5"]);
+    assert!(status.success() && stdout.contains("COLLISION_CALLER_DONE"), "{stdout}\n{stderr}");
+    let flags = rows.iter().find(|r| r["event"] == "col-flags").expect("the flags row is recorded");
+    assert_eq!(
+        (
+            flags["moved_changed_words"].as_i64(),
+            flags["moved_cleared_bits"].as_i64(),
+            flags["added_bits"].as_i64()
+        ),
+        (Some(2), Some(0), Some(2)),
+        "{flags}"
     );
 }
