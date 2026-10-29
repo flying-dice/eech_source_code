@@ -1,22 +1,97 @@
-# User-requested Git checkpoint — partial tree kernel, UNBUILT and UNRUN
+# Host tree loader and tree segment kernel — source PREPARED, UNBUILT, UNRUN (EEDCS-49, D3 preparation; not Task49/D3 completion)
 
-The implementation writer was interrupted on 29 October 2026 to commit and push
-the current work. Its existing local Sonnet session is
-`39ea8c20-d032-41ae-bbbb-c52fb100b440`; the verified process was PID 21552, started
-at 20:02:00 UTC. It is stopped, not waiting for review or reporting completion.
+This completes the preserved partial work (checkpoint f0bd165c9) into the first host-owned physical component, as source only. Nothing was compiled, formatted, tested or run by the
+implementation writer; every statement below describes what the source is meant to do and what Root must run, not a result. The campaign DLL's tree queries still run the ORIGINAL solver; no
+production dispatch, accepted baseline, tolerance, capture, oracle or original physical file changed. Production G2/G3 cutover stays gated on the preceding delivery and verified integration;
+Task47 frozen shipping115 is untouched; D4/D5 have not started; whole D3 remains open.
 
-The partial new files are `eech-campaign/crates/eech-world/csrc/tree_step.c` and
-`eech-campaign/crates/eech-world/src/trees.rs`. They contain draft host tree-file
-loading, collision state and physical calculations. They are not wired into the
-build/module, not compiled, not tested and not independently reviewed. Their
-comments and embedded tests describe intended behavior, not demonstrated results.
-No production dispatch or accepted baseline changed. Resume the same focused
-implementation context, inspect these files, complete build/Lua integration and
-replay the saved original query inputs before claiming a host extraction.
+## Changed files (all under `eech-campaign/crates/eech-world/`)
 
-The reviewed capture evidence below remains valid for its named source. Task47's
-existing shipping run was left running; complete byte identity is still pending.
-D3 remains incomplete. This is preservation of partial work only.
+* `csrc/tree_step.c` — NEW. The host-private C kernel: EECH's own `get_line_of_sight_collision_tree` (en_cllsn.c) with `get_3d_line_quad_intersection` and
+  `get_3d_line_triangle_intersection` (maths/vector.c), expression for expression, as a resumable NeedTerrain/Done state machine. Built with the existing `eech_steps` flags and `eech_arith.h`.
+* `src/trees.rs` — NEW. Checked ownership and API: `TreeRecord` (explicit 8-byte decode), `TreeMap` (checked terrain metadata), `ForestGeometry` (must be stated), `TreeScene` (loader, immutable owned
+  storage, census), `TreeCollision` (one open query, `begin`/`terrain`/`abandon`), `fp_state` (read-only), plus focused unit tests with hand-derived expectations.
+* `src/lib.rs` (`pub mod trees`), `build.rs` (`tree_step.c` in the `cc` file list and `rerun-if-changed`), `src/main.rs` (`host.tree_collision`, the reference host's Lua transport).
+* `tests/tree_conformance.rs` — NEW. Replays EVERY captured original query through the library path (needs the retail inputs below; says plainly "NOT RUN" without them).
+* `tests/tree_collision_host.rs` — NEW. Starts the real `eech-world` host on a Lua script against a tiny map written by the test (ordered lookups, refusals, out-of-sequence, exact number reads).
+* `lua/tree-collision-replay.lua` — NEW. The same real-query replay through the host's Lua transport (Lua -> host -> C kernel -> Lua), with the host's bit echoes compared as strings.
+* `STATUS.md`, `docs/m5-collision-characterization.md` — this record.
+
+## Component ownership (what moved under the host and what did not)
+
+Host-owned in this source: the tree_pos.sec/.dat file reading and checking, the decoded tree records and sector tables, the map metadata the tree query reads (supplied explicitly, see below), the
+optional forest-tree triangles, and the whole tree segment calculation including its normals, intercepts, flags, nearest-tree choice and the early exits. Campaign-owned and unchanged: every decision
+about when and why a tree query is made. Still the CAMPAIGN DLL's, supplied as values through NeedTerrain: the two terrain elevations the original reads (one at the old end point, then one at the
+new one, only for end points inside the map). The kernel makes no terrain call of its own and no extra or reordered lookup, so the shared terrain point hint/record effects of the original stay
+visible for the later G1 composition. The surrounding ENTITY collision (the UPDATED/delta-time coupling and the `&=` getter) is the next component and is not touched.
+
+## Lifetime model
+
+`TreeScene` owns every table (records, sector `count`/`first` pairs, flat triangle floats) and is immutable after construction. `TreeCollision` holds an `Arc<TreeScene>` and one opaque query block.
+Each kernel call is handed a descriptor built from that `Arc` for the duration of the call; the C side retains no pointer between calls, so a pending query can never outlive its storage and
+dropping the holder drops the query. Raw pointers exist only inside the module's `unsafe` calls; the public Rust API and the Lua contract carry values only. The Rust and C layouts are compared at
+`TreeCollision::new` (record 10 bytes, sector 8, scene descriptor size) and a mismatch is an error.
+
+## Loader behaviour
+
+Files are found by listing the map directory and matching `tree_pos.sec`/`tree_pos.dat` ignoring ASCII case, then opening the entry's OWN spelling (Georgia/map3 lower case, Lebanon/map5 upper case);
+nothing is renamed and case-insensitivity is never assumed; two spellings of one name are refused. Both files absent (or one) is a known "no trees loaded" in the census; a header that differs from the
+terrain's sector counts is a known "no trees loaded" (the original ditches the trees there) and the census records the header. Anything else wrong (file shorter than its header, negative count or
+offset, a sector reaching past the data file, offset+count overflow) is an error, with every length computed in 64 bits before allocation. Trailing bytes are counted in the census and not interpreted.
+Records are decoded explicitly: x i16 LE at 0, z i16 LE at 2, y u16 LE at 4, colour at 6, last byte height (low 7 bits) and type (high bit); SEC is LE i32 width and height then row-major (z, x)
+pairs of count and record offset. The original's scan order is kept (x outer, z inner, each sector's trees in file order).
+
+## Map metadata (G1 dependency)
+
+This branch predates the unaccepted G1 terrain host module, so `TreeMap` (min/max x and z, terrain sector counts, terrain minimum height and scaled height difference) is an EXPLICIT constructor:
+the conformance test and replay script feed the facts the original recorded (`tf-map`) as controlled inputs. Production will reuse the accepted host terrain module's metadata; it must not borrow
+DLL pointers. No second world, no core-owned scene API and no terrain loader were added.
+
+## Geometry (remaining D3 dependencies, explicit)
+
+The kernel includes the original's geometry branch (type-1 tree and a forest-tree collision triangle at depth 0: the identity-matrix transform, the height/position scaling, the do/while over the
+triangles, and an immediate return on the first triangle hit). `ForestGeometry` has no default: it is `KnownAbsent` (the original's triangle function returns FALSE at depth 0, the retail facts) or
+the decoded triangles. Retail Georgia and Lebanon record geometry 0 / 0 triangles, so ONLY the quad path is numerically compared with the original by the retail data; the geometry branch is the
+original's text carried over, unrun against any native witness, and its hand-derived unit test is a worked example, not a conformance claim. REMAINING for D3: the model geometry LOADER (decoding the
+forest-tree collision object's faces to triangles, 3dobjdb.c) and a controlled native geometry witness before complete query delivery.
+
+## Floating point
+
+The kernel is compiled with the existing host flags and `eech_arith.h`, so float/double promotion is the original's (`sqrt` narrowed to float, `TREE_RADIUS`, `0.5`, `25.0` double; the tree position
+and height scaling as written). `begin` and `terrain` READ the x87 exception masks and MXCSR masks (and report the SSE rounding control) and refuse unless both are 63; they never set or change
+anything, so there is nothing to restore. Division by `dx`/`dz` is unguarded and IEEE results are kept. The rounding mode is reported, not judged; the original's `set_fpu_rounding_mode_zero` in
+`get_terrain_3d_sector` is not reproduced (the host converts with a C truncation, as the patched 64-bit engine does).
+
+## Declared limits and numerical unknowns
+
+* End points must be finite and terrain elevations finite; the original accepts NaN/infinity and the host refuses them (no captured query contains one).
+* `acos` and `sqrt` come from the host C library; whether they match the original build's last bit near the 2*pi-0.01 threshold is verified only through the conformance replay, never assumed.
+* The sector scan is bounds-checked against the table (a second line of defence); the original reads without a check. Consistent metadata makes it unreachable.
+* A DCS tree-raycast equivalent is NOT designed or claimed here. The needed DCS mapping or documented workaround remains a D3 acceptance requirement; live DCS execution belongs to M6.
+* The conformance claim exists only after Root runs the replay below and every one of the 554/600/600 queries and 1102/1120/1120 lookups matches.
+
+## What Root runs (expected, NOT YET RUN)
+
+Retail inputs (private, unmodified; raw reviewed captures in `R:/d3-evidence/tree-input-f3fd93dfb-smokes-20261029/<scenario>/tree-transcript.jsonl`, capture review SHA d71fcaea…2d8 at f3fd93dfb,
+Git LF copy SHA 5c48a1cd…c22; map trees in `R:/d3-evidence/tree-input-roots-f3fd93dfb-20261029/`):
+
+| scenario | EECH_TREE_TRANSCRIPT | EECH_TREE_MAP_DIR | expected counts |
+| --- | --- | --- | --- |
+| georgia | `…/georgia/tree-transcript.jsonl` | `…/tree-input-roots-f3fd93dfb-20261029/georgia/common/maps/map3/terrain` | 554 queries, 1102 lookups, tree_total 848187, sectors 8689 |
+| lebanon | `…/lebanon/tree-transcript.jsonl` | `…/lebanon/common/maps/map5/terrain` | 600 queries, 1120 lookups, tree_total 213955, sectors 1338 |
+| lebanon-repeat | `…/lebanon-repeat/tree-transcript.jsonl` | `…/lebanon-repeat/common/maps/map5/terrain` | 600 queries, 1120 lookups |
+
+1. Library path, per scenario (set `EECH_TREE_REQUIRED=1`; a run without the two paths prints `TREE_CONFORMANCE NOT RUN` and proves nothing):
+   `cargo test -p eech-world --test tree_conformance -- --nocapture` — prints `TREE_CONFORMANCE … mismatches=0` and passes only if every query's lookups and answer bits match.
+2. Lua path, per scenario: `eech-world lua/tree-collision-replay.lua transcript=<…> map_dir=<…>` — prints `TREE_LUA_REPLAY_LOADED …` then `TREE_LUA_REPLAY_DONE queries=… mismatches=0`, or errors.
+3. Synthetic and unit contracts: `cargo test -p eech-world --lib trees` and `cargo test -p eech-world --test tree_collision_host` (set `EECH_WORLD_BIN` to run a separately built host).
+4. Then format, host Clippy, the existing eech-world suite (nothing else was edited), and the one independent review of this new component.
+
+Any difference is investigated as a regression, an unsupported case or a harness defect; the transcripts and expectations are never normalised, re-recorded or loosened.
+
+---
+
+The earlier "User-requested Git checkpoint" block (partial files preserved at f0bd165c9, UNBUILT/UNRUN) is superseded by the section above; the reviewed capture evidence below is unchanged.
 
 # Current tree-input capture — reviewed and measured; host kernel preparation next
 

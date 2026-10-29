@@ -265,7 +265,10 @@ impl TreeScene {
         }
         // the header equals the validated map counts, so both are positive and at most 4096
         let cells = (tree_sectors_x as u64) * (tree_sectors_z as u64);
-        let table_bytes = cells.checked_mul(8).and_then(|bytes| bytes.checked_add(8)).ok_or("tree sector table size overflows")?;
+        let table_bytes = cells
+            .checked_mul(8)
+            .and_then(|bytes| bytes.checked_add(8))
+            .ok_or("tree sector table size overflows")?;
         if (sector_file.len() as u64) < table_bytes {
             return Err(format!(
                 "tree sector file is {} bytes, shorter than the {table_bytes} its {tree_sectors_x} by {tree_sectors_z} header needs",
@@ -308,8 +311,13 @@ impl TreeScene {
         let type1_trees = sectors
             .iter()
             .filter(|sector| sector.count > 0)
-            .map(|sector| trees[sector.first as usize..sector.first as usize + sector.count as usize].iter().filter(|tree| tree.kind == 1).count() as u64)
-            .sum();
+            .map(|sector| {
+                trees[sector.first as usize..sector.first as usize + sector.count as usize]
+                    .iter()
+                    .filter(|tree| tree.kind == 1)
+                    .count() as u64
+            })
+            .sum::<u64>();
         let census = TreeCensus {
             no_trees: None,
             sector_file: None,
@@ -700,7 +708,13 @@ mod tests {
     }
 
     /// Runs one query to its answer, giving `terrain (x, z)` for each lookup and recording the lookups in the order asked.
-    fn run(scene: &Arc<TreeScene>, old: [f32; 3], new: [f32; 3], flags: (bool, bool), terrain: impl Fn(f32, f32) -> f32) -> (TreeRequest, Vec<(Endpoint, f32, f32)>) {
+    fn run(
+        scene: &Arc<TreeScene>,
+        old: [f32; 3],
+        new: [f32; 3],
+        flags: (bool, bool),
+        terrain: impl Fn(f32, f32) -> f32,
+    ) -> (TreeRequest, Vec<(Endpoint, f32, f32)>) {
         let mut query = TreeCollision::new(scene.clone()).unwrap();
         let mut asked = Vec::new();
         let mut next = query.begin(old, new, [1.0, 2.0, 3.0], [4.0, 5.0, 6.0], flags.0, flags.1).unwrap();
@@ -716,6 +730,11 @@ mod tests {
         }
     }
 
+    /// The normalisation and the plane intercept are float arithmetic with a division, so a hand-derived point or normal is compared to a millimetre, not bit for bit.
+    fn close(got: [f32; 3], want: [f32; 3]) -> bool {
+        got.iter().zip(want).all(|(got, want)| (got - want).abs() < 0.001)
+    }
+
     fn done(request: TreeRequest) -> (bool, [f32; 3], [f32; 3]) {
         match request {
             TreeRequest::Done { hit, point, normal } => (hit, point, normal),
@@ -728,7 +747,10 @@ mod tests {
         // the native probe (tf-layout): x = -2, z = 0x1234, y = 0xabcd, colour = 0xef, height = 0x55, type = 1 stored as feff3412cdabefd5;
         // a height of 127 alone is a last byte of 0x7f and a type of 1 alone is 0x80
         let record = TreeRecord::from_bytes([0xfe, 0xff, 0x34, 0x12, 0xcd, 0xab, 0xef, 0xd5]);
-        assert_eq!((record.x, record.z, record.y, record.colour, record.height, record.kind), (-2, 0x1234, 0xabcd, 0xef, 0x55, 1));
+        assert_eq!(
+            (record.x, record.z, record.y, record.colour, record.height, record.kind),
+            (-2, 0x1234, 0xabcd, 0xef, 0x55, 1)
+        );
         assert_eq!(record.to_bytes(), [0xfe, 0xff, 0x34, 0x12, 0xcd, 0xab, 0xef, 0xd5]);
         let height_only = TreeRecord::from_bytes([0, 0, 0, 0, 0, 0, 0, 0x7f]);
         assert_eq!((height_only.height, height_only.kind), (127, 0));
@@ -750,7 +772,10 @@ mod tests {
         assert_eq!(scene.sector_trees(1, 1), &records[1..3]);
         assert!(scene.sector_trees(1, 0).is_empty() && scene.sector_trees(0, 1).is_empty() && scene.sector_trees(9, 9).is_empty());
         let census = scene.census();
-        assert_eq!((census.tree_total, census.sectors_with_trees, census.type1_trees, census.records_in_file), (3, 2, 2, 3));
+        assert_eq!(
+            (census.tree_total, census.sectors_with_trees, census.type1_trees, census.records_in_file),
+            (3, 2, 2, 3)
+        );
         assert_eq!((census.data_trailing_bytes, census.sector_trailing_bytes), (3, 5));
         assert!(census.no_trees.is_none());
     }
@@ -758,17 +783,43 @@ mod tests {
     #[test]
     fn a_header_that_differs_from_the_terrain_is_a_known_no_trees_and_malformed_data_is_an_error() {
         let mismatch = TreeScene::from_bytes(map(), &sector_file(3, 2, &[]), &[], ForestGeometry::KnownAbsent).unwrap();
-        assert_eq!(mismatch.census().no_trees, Some(NoTrees::HeaderMismatch { tree_sectors_x: 3, tree_sectors_z: 2 }));
+        assert_eq!(
+            mismatch.census().no_trees,
+            Some(NoTrees::HeaderMismatch {
+                tree_sectors_x: 3,
+                tree_sectors_z: 2
+            })
+        );
         assert!(mismatch.sector_trees(0, 0).is_empty());
 
         let one = [tree(0, 0, 0, 0, 0)];
         let cases: [(&str, Vec<u8>, Vec<u8>, &str); 7] = [
             ("empty sector file", vec![1, 2, 3], vec![], "shorter than its 8-byte header"),
             ("truncated table", sector_file(GRID, GRID, &[(0, 0), (0, 0)]), vec![], "shorter than the 40"),
-            ("negative count", sector_file(GRID, GRID, &[(-1, 0), (0, 0), (0, 0), (0, 0)]), data_file(&one), "negative tree count -1"),
-            ("negative offset", sector_file(GRID, GRID, &[(1, -1), (0, 0), (0, 0), (0, 0)]), data_file(&one), "negative record offset -1"),
-            ("past the end", sector_file(GRID, GRID, &[(2, 0), (0, 0), (0, 0), (0, 0)]), data_file(&one), "reaches records 0 to 2 but the data file holds 1"),
-            ("offset past the end", sector_file(GRID, GRID, &[(1, 1), (0, 0), (0, 0), (0, 0)]), data_file(&one), "reaches records 1 to 2"),
+            (
+                "negative count",
+                sector_file(GRID, GRID, &[(-1, 0), (0, 0), (0, 0), (0, 0)]),
+                data_file(&one),
+                "negative tree count -1",
+            ),
+            (
+                "negative offset",
+                sector_file(GRID, GRID, &[(1, -1), (0, 0), (0, 0), (0, 0)]),
+                data_file(&one),
+                "negative record offset -1",
+            ),
+            (
+                "past the end",
+                sector_file(GRID, GRID, &[(2, 0), (0, 0), (0, 0), (0, 0)]),
+                data_file(&one),
+                "reaches records 0 to 2 but the data file holds 1",
+            ),
+            (
+                "offset past the end",
+                sector_file(GRID, GRID, &[(1, 1), (0, 0), (0, 0), (0, 0)]),
+                data_file(&one),
+                "reaches records 1 to 2",
+            ),
             (
                 "i32 overflow",
                 sector_file(GRID, GRID, &[(i32::MAX, i32::MAX), (0, 0), (0, 0), (0, 0)]),
@@ -777,7 +828,9 @@ mod tests {
             ),
         ];
         for (name, sectors, data, expected) in cases {
-            let error = TreeScene::from_bytes(map(), &sectors, &data, ForestGeometry::KnownAbsent).err().unwrap_or_else(|| panic!("{name} was accepted"));
+            let error = TreeScene::from_bytes(map(), &sectors, &data, ForestGeometry::KnownAbsent)
+                .err()
+                .unwrap_or_else(|| panic!("{name} was accepted"));
             assert!(error.contains(expected), "{name}: {error}");
         }
     }
@@ -802,12 +855,21 @@ mod tests {
         std::fs::create_dir_all(&one_file).unwrap();
         std::fs::write(one_file.join("tree_pos.sec"), &sectors).unwrap();
         let scene = TreeScene::load(&one_file, map(), ForestGeometry::KnownAbsent).unwrap();
-        assert_eq!(scene.census().no_trees, Some(NoTrees::FilesAbsent { sector_file: true, data_file: false }));
+        assert_eq!(
+            scene.census().no_trees,
+            Some(NoTrees::FilesAbsent {
+                sector_file: true,
+                data_file: false
+            })
+        );
         let neither = base.join("neither");
         std::fs::create_dir_all(&neither).unwrap();
         assert_eq!(
             TreeScene::load(&neither, map(), ForestGeometry::KnownAbsent).unwrap().census().no_trees,
-            Some(NoTrees::FilesAbsent { sector_file: false, data_file: false })
+            Some(NoTrees::FilesAbsent {
+                sector_file: false,
+                data_file: false
+            })
         );
         // a case-sensitive file system can hold both spellings: that is ambiguous and refused (Windows cannot make the second file)
         let both = base.join("both");
@@ -815,7 +877,9 @@ mod tests {
         std::fs::write(both.join("tree_pos.sec"), &sectors).unwrap();
         if std::fs::write(both.join("TREE_POS.SEC"), &sectors).is_ok() && std::fs::read_dir(&both).unwrap().count() == 2 {
             std::fs::write(both.join("tree_pos.dat"), data_file(&record)).unwrap();
-            let error = TreeScene::load(&both, map(), ForestGeometry::KnownAbsent).err().expect("two spellings are ambiguous");
+            let error = TreeScene::load(&both, map(), ForestGeometry::KnownAbsent)
+                .err()
+                .expect("two spellings are ambiguous");
             assert!(error.contains("more than one spelling"), "{error}");
         }
         let _ = std::fs::remove_dir_all(&base);
@@ -851,8 +915,8 @@ mod tests {
         let (answer, asked) = run(&lone_tree(), [1000.0, 10.0, 1024.0], [1048.0, 10.0, 1024.0], (false, true), |_, _| 0.0);
         let (hit, point, normal) = done(answer);
         assert!(hit);
-        assert_eq!(point, [1024.0, 10.0, 1024.0]);
-        assert_eq!(normal, [1.0, 0.0, 0.0]);
+        assert!(close(point, [1024.0, 10.0, 1024.0]), "{point:?}");
+        assert!(close(normal, [1.0, 0.0, 0.0]), "{normal:?}");
         assert_eq!(asked, vec![(Endpoint::Old, 1000.0, 1024.0), (Endpoint::New, 1048.0, 1024.0)]);
     }
 
@@ -871,7 +935,7 @@ mod tests {
             let (answer, _) = run(&scene, [1000.0, 10.0, 1024.0], [1048.0, 10.0, 1024.0], (false, true), |_, _| 0.0);
             let (hit, point, _) = done(answer);
             assert!(hit);
-            assert_eq!(point, [1020.875, 10.0, 1024.0]);
+            assert!(close(point, [1020.875, 10.0, 1024.0]), "{point:?}");
         }
     }
 
@@ -886,9 +950,11 @@ mod tests {
         let (hit, point, normal) = done(answer);
         assert!(!hit && point == [1.0, 2.0, 3.0] && normal == [4.0, 5.0, 6.0]);
         assert_eq!(asked.len(), 2);
-        // one end above 35 m, the other low: the LOWER radial altitude decides, so the scan goes on and finds the tree
-        let (answer, _) = run(&lone_tree(), [1000.0, 10.0, 1024.0], [1048.0, 60.0, 1024.0], (false, true), |_, _| 0.0);
-        let _ = done(answer);
+        // one end above 35 m, the other low: the LOWER radial altitude decides, so the scan goes on. The ray climbs 30 m over 48 m (ratio 0.625), so at
+        // the tree's middle, 24 m along, its height is 10 + 15 = 25 m, inside the tree (0 to 27.5 m), and it crosses the x = 1024 plane at mu = 0.5, y = 25
+        let (answer, _) = run(&lone_tree(), [1000.0, 10.0, 1024.0], [1048.0, 40.0, 1024.0], (false, true), |_, _| 0.0);
+        let (hit, point, _) = done(answer);
+        assert!(hit && close(point, [1024.0, 25.0, 1024.0]), "{point:?}");
     }
 
     #[test]
@@ -914,16 +980,19 @@ mod tests {
             let (answer, _) = run(scene, [1000.0, 10.0, 1024.0], [1048.0, 10.0, 1024.0], (ignore, true), |_, _| 0.0);
             assert_eq!(done(answer).0, expected);
         }
-        // a segment dropping onto the tree from above hits only the top quad: with skip_tree_top_test set it misses, without it it hits at the tree top
-        // (the tree top is at y = 27.5 m to float rounding; the segment runs from y = 40 to y = 20 over 4 m of x at z = 1024, crossing the top at x = ...)
-        let (answer, _) = run(&lone_tree(), [1022.0, 40.0, 1024.0], [1026.0, 20.0, 1024.0], (false, false), |_, _| 0.0);
-        let with_top = done(answer);
-        let (answer, _) = run(&lone_tree(), [1022.0, 40.0, 1024.0], [1026.0, 20.0, 1024.0], (false, true), |_, _| 0.0);
-        let without_top = done(answer);
-        assert!(with_top.0 || !without_top.0, "skipping the top test can only lose hits");
-        if with_top.0 && !without_top.0 {
-            assert!((with_top.1[1] - 27.5).abs() < 0.01, "the top quad is at the tree top: {:?}", with_top.1);
-        }
+        // A segment that dips onto the tree top and stops short of the side planes: from (1021, 30, 1024) to (1023, 26, 1024). It lies in the z = 1024
+        // plane (the z-facing quad's denominator is 0) and ends before x = 1024 (the x-facing quad is crossed at mu = 1.5, a miss), but the original's
+        // height test uses the EXTENDED line: 3 m from the tree's middle at a ratio of -2 it is at 30 - 6 = 24 m, inside the tree. The top quad (y = 27.5,
+        // x and z within 2.5 m of the middle) is crossed where 30 - 4 mu = 27.5, mu = 0.625, at x = 1022.25, and its normal is +y. With skip_tree_top_test
+        // set the top quad is not tried, so the same segment misses.
+        let (answer, _) = run(&lone_tree(), [1021.0, 30.0, 1024.0], [1023.0, 26.0, 1024.0], (false, false), |_, _| 0.0);
+        let (hit, point, normal) = done(answer);
+        assert!(
+            hit && close(point, [1022.25, 27.5, 1024.0]) && close(normal, [0.0, 1.0, 0.0]),
+            "{point:?} {normal:?}"
+        );
+        let (answer, _) = run(&lone_tree(), [1021.0, 30.0, 1024.0], [1023.0, 26.0, 1024.0], (false, true), |_, _| 0.0);
+        assert!(!done(answer).0);
     }
 
     #[test]
@@ -935,19 +1004,19 @@ mod tests {
         let scene = scene_with(&[tree(0, 0, 0, 127, 1)], ForestGeometry::Triangles(triangle.clone()));
         let (answer, _) = run(&scene, [1000.0, 5.0, 1030.0], [1048.0, 5.0, 1030.0], (false, true), |_, _| 0.0);
         let (hit, point, normal) = done(answer);
-        assert!(hit);
-        for (got, want) in point.iter().zip([1024.0, 5.0, 1030.0]) {
-            assert!((got - want).abs() < 0.001, "{point:?}");
-        }
-        for (got, want) in normal.iter().zip([1.0, 0.0, 0.0]) {
-            assert!((got - want).abs() < 0.001, "{normal:?}");
-        }
+        assert!(
+            hit && close(point, [1024.0, 5.0, 1030.0]) && close(normal, [1.0, 0.0, 0.0]),
+            "{point:?} {normal:?}"
+        );
         // the same segment past the triangle's far corner (z = 1060, outside it) misses, and a type 0 tree never uses the triangles
         let (answer, _) = run(&scene, [1000.0, 5.0, 1060.0], [1048.0, 5.0, 1060.0], (false, true), |_, _| 0.0);
         assert!(!done(answer).0);
         let edge = scene_with(&[tree(0, 0, 0, 127, 0)], ForestGeometry::Triangles(triangle));
         let (answer, _) = run(&edge, [1000.0, 5.0, 1030.0], [1048.0, 5.0, 1030.0], (false, true), |_, _| 0.0);
-        assert!(!done(answer).0, "off the tree's own quads (z = 1024 plus or minus 2.5 m) the quad path misses at z = 1030");
+        assert!(
+            !done(answer).0,
+            "off the tree's own quads (z = 1024 plus or minus 2.5 m) the quad path misses at z = 1030"
+        );
         // non-finite triangles are refused
         assert!(TreeScene::without_trees(map(), ForestGeometry::Triangles(vec![[[f32::NAN; 3]; 3]])).is_err());
     }
@@ -956,16 +1025,22 @@ mod tests {
     fn answers_out_of_sequence_and_non_finite_inputs_are_refused() {
         let mut query = TreeCollision::new(lone_tree()).unwrap();
         assert!(query.terrain(0.0).unwrap_err().contains("no query open"));
-        let first = query.begin([1000.0, 10.0, 1024.0], [1048.0, 10.0, 1024.0], [0.0; 3], [0.0; 3], false, true).unwrap();
+        let first = query
+            .begin([1000.0, 10.0, 1024.0], [1048.0, 10.0, 1024.0], [0.0; 3], [0.0; 3], false, true)
+            .unwrap();
         assert!(matches!(first, TreeRequest::NeedTerrain { endpoint: Endpoint::Old, .. }));
         assert!(query.terrain(f32::NAN).unwrap_err().contains("finite"));
         // a new begin replaces the open query: the next lookup asked is the first again
-        let again = query.begin([1000.0, 10.0, 1024.0], [1048.0, 10.0, 1024.0], [0.0; 3], [0.0; 3], false, true).unwrap();
+        let again = query
+            .begin([1000.0, 10.0, 1024.0], [1048.0, 10.0, 1024.0], [0.0; 3], [0.0; 3], false, true)
+            .unwrap();
         assert_eq!(first, again);
         assert!(matches!(query.terrain(0.0).unwrap(), TreeRequest::NeedTerrain { endpoint: Endpoint::New, .. }));
         assert!(matches!(query.terrain(0.0).unwrap(), TreeRequest::Done { .. }));
         assert!(query.terrain(0.0).unwrap_err().contains("no query open"), "an answer after the query ended");
-        query.begin([1000.0, 10.0, 1024.0], [1048.0, 10.0, 1024.0], [0.0; 3], [0.0; 3], false, true).unwrap();
+        query
+            .begin([1000.0, 10.0, 1024.0], [1048.0, 10.0, 1024.0], [0.0; 3], [0.0; 3], false, true)
+            .unwrap();
         query.abandon();
         assert!(query.terrain(0.0).is_err());
         assert!(query.begin([f32::INFINITY, 0.0, 0.0], [0.0; 3], [0.0; 3], [0.0; 3], false, true).is_err());
@@ -973,9 +1048,9 @@ mod tests {
     }
 
     #[test]
-    fn a_scene_whose_tables_do_not_cover_the_scan_is_a_fault_not_an_out_of_bounds_read() {
-        // map metadata that says 2 by 2 sectors while the tree table has none is impossible to build through `from_bytes`; a consistent scene has every
-        // sector the clamped scan can reach, so the whole-map scan is fine
+    fn a_whole_map_scan_reaches_only_sectors_the_scene_has() {
+        // the map metadata is checked against the sector grid when it is built and the tree table against the header, so the clamped scan of the whole
+        // map reads every sector once and nothing outside the table (the kernel's own bounds check is a second line, not reachable through this API)
         let scene = scene_with(&[tree(0, 0, 0, 127, 0)], ForestGeometry::KnownAbsent);
         let (answer, asked) = run(&scene, [0.0, 10.0, 0.0], [4095.0, 10.0, 4095.0], (false, true), |_, _| 0.0);
         assert_eq!(asked.len(), 2);
@@ -987,6 +1062,10 @@ mod tests {
         let first = fp_state().unwrap();
         let second = fp_state().unwrap();
         assert_eq!(first, second);
-        assert_eq!((first.x87_masks, first.sse_masks), (63, 63), "a test thread has every exception masked, as the kernel requires");
+        assert_eq!(
+            (first.x87_masks, first.sse_masks),
+            (63, 63),
+            "a test thread has every exception masked, as the kernel requires"
+        );
     }
 }

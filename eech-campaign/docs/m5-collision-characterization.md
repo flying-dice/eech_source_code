@@ -1,3 +1,12 @@
+Host tree loader and kernel (EEDCS-49, D3 PREPARATION; source prepared, UNBUILT, UNRUN; STATUS.md has the full record): the first host-owned physical component is in source under eech-world. csrc/tree_step.c is EECH's own
+get_line_of_sight_collision_tree with its line-quad and line-triangle intersections, expression for expression, as a resumable NeedTerrain/Done machine (the two terrain elevations the original reads, old
+then new, only for end points inside the map, stay the campaign's, supplied by value); src/trees.rs owns the checked tree_pos.sec/.dat loader (8-byte records decoded explicitly, file spelling as on disk, absent
+files and a header mismatch are a known "no trees", malformed data is an error), the immutable scene, the single-query holder and a read-only floating-point mask guard (63/63 required, never set). The campaign DLL
+still runs the original solver: nothing is claimed as moved. Replay of ALL captured original queries (Georgia 554, Lebanon 600, repeat 600) is prepared as tests/tree_conformance.rs (library) and
+lua/tree-collision-replay.lua (through host.tree_collision), with tests/tree_collision_host.rs covering the Lua transport on a synthetic map; no result exists until Root runs them. Retail has no forest triangles,
+so the geometry branch is carried over from the original text but not exercised by retail data; the model geometry loader and a native geometry witness remain D3 work, as do the G1 terrain metadata
+integration, the entity collision component and the unresolved DCS tree-raycast mapping.
+
 Third capture P2 (UNBUILT/UNRUN; STATUS.md has the full text): the transcript checker now requires a warm record (stage 1) to be the same query as its cold one (stage 0), and stage 3 as stage 2, in group,
 kind, role, flags, endpoints and initial outputs (answers and terrain elevations are not compared), and requires the recorded lookups to be the old then new endpoints x and z, bit for bit, only for
 endpoints inside the map by the original inclusive rule (en_world.h 149). 9 refusing and 3 accepting real-driver controls were added (20 transcript controls). With the paging and capped-facts corrections

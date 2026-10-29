@@ -29,6 +29,13 @@
  * collision faces into triangles (3dobjdb.c get_object_3d_collision_object_geometry_triangle) is not the host's yet: the scene says either that
  * there are no triangles (the retail facts) or supplies them already decoded, and no other state is accepted.
  *
+ * STATUS: PREPARATION. This is the host-private kernel of the first host-owned physical component (static tree data and the tree segment query),
+ * written and checked against the reviewed original captures before anything depends on it. The campaign DLL's tree queries still run the
+ * original solver; no production dispatch has moved here, and nothing in this file claims that the responsibility has moved. Still open for D3:
+ * the decoding of the forest tree's collision model into the triangles the geometry branch reads (the branch below is the original's text and has
+ * not been run against a native witness; the retail facts have no triangles), the terrain heights the two lookups ask for, and the entity
+ * collision that shares the original's surrounding code.
+ *
  * The state is one open query. A new eech_tree_begin replaces whatever was open; an answer with nothing pending is refused.
  */
 #include <stddef.h>

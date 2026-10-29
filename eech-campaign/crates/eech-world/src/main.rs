@@ -19,11 +19,13 @@ use eech_world::movement::{
 };
 use eech_world::sense::{self, Sense};
 use eech_world::tacview::{ObjectInfo, Recorder};
+use eech_world::trees::{Endpoint as TreeEndpoint, ForestGeometry, TreeCollision, TreeMap, TreeRequest, TreeScene};
 use mlua::prelude::*;
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::io::BufWriter;
 use std::rc::Rc;
+use std::sync::Arc;
 
 /// what the recorder knows about an EECH object
 struct Tracked {
@@ -1464,6 +1466,134 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     LosRequest::Done { visible } => {
                         result.set("state", "done")?;
                         result.set("visible", visible)?;
+                    }
+                }
+                Ok(result)
+            })?,
+        )?;
+    }
+    {
+        // The reference host's transport to the host-owned tree loader and tree segment query (EEDCS-49, D3 PREPARATION). It is only the reference host's Lua
+        // surface onto `eech_world::trees`: the campaign DLL does not call it and its tree queries still run the original solver. Every number is read exactly as
+        // Lua holds it (`exact_numbers`), and the answers echo the bits of every float so that a caller can compare them without a lossy round trip.
+        let trees: Rc<RefCell<Option<TreeCollision>>> = Rc::new(RefCell::new(None));
+        host.set(
+            "tree_collision",
+            lua.create_function(move |lua, step: LuaTable| {
+                let fail = |message: String| LuaError::runtime(format!("host.tree_collision: {message}"));
+                let word = |value: f32| format!("{:08x}", value.to_bits());
+                let words = |values: [f32; 3]| format!("{},{},{}", word(values[0]), word(values[1]), word(values[2]));
+                let mode: String = step.get("mode")?;
+                let request = match mode.as_str() {
+                    "load" => {
+                        let directory: String = step.get("directory")?;
+                        let map_table: LuaTable = step.get("map")?;
+                        let number_of = |name: &str| -> LuaResult<f32> {
+                            let [value] = exact_numbers::<1>(lua, &map_table, name).map_err(|e| fail(format!("map.{e}")))?;
+                            Ok(value)
+                        };
+                        let count_of = |name: &str| -> LuaResult<i32> {
+                            match map_table.get::<LuaValue>(name)? {
+                                LuaValue::Integer(value) => i32::try_from(value).map_err(|_| fail(format!("map.{name} {value} is out of range"))),
+                                LuaValue::Number(value) if value.fract() == 0.0 && value.abs() < 1e9 => Ok(value as i32),
+                                other => Err(fail(format!("map.{name} must be an integer, got {}", other.type_name()))),
+                            }
+                        };
+                        let map = TreeMap::new(
+                            (number_of("min_x")?, number_of("max_x")?, number_of("min_z")?, number_of("max_z")?),
+                            count_of("sectors_x")?,
+                            count_of("sectors_z")?,
+                            number_of("minimum_height")?,
+                            number_of("scaled_height_difference")?,
+                        )
+                        .map_err(fail)?;
+                        // the forest tree's collision triangles must be STATED: there is no default, and an unknown provider is not "absent"
+                        let geometry = match step.get::<LuaValue>("forest_geometry")? {
+                            LuaValue::String(text) if &*text.to_str()? == "absent" => ForestGeometry::KnownAbsent,
+                            LuaValue::Table(geometry) => {
+                                // a list of triangles, each a list of nine numbers (the three points in turn), in the order the original returns them
+                                let mut triangles = Vec::new();
+                                for item in geometry.sequence_values::<LuaValue>() {
+                                    let holder = lua.create_table()?;
+                                    holder.set("triangle", item?)?;
+                                    let flat = exact_numbers::<9>(lua, &holder, "triangle").map_err(fail)?;
+                                    triangles.push([[flat[0], flat[1], flat[2]], [flat[3], flat[4], flat[5]], [flat[6], flat[7], flat[8]]]);
+                                }
+                                ForestGeometry::Triangles(triangles)
+                            }
+                            LuaValue::Nil => return Err(fail("forest_geometry must be stated: \"absent\" or a list of triangles".into())),
+                            other => {
+                                return Err(fail(format!(
+                                    "forest_geometry must be \"absent\" or a list of triangles, got {}",
+                                    other.type_name()
+                                )))
+                            }
+                        };
+                        let scene = TreeScene::load(std::path::Path::new(&directory), map, geometry).map_err(fail)?;
+                        let census = scene.census().clone();
+                        *trees.borrow_mut() = Some(TreeCollision::new(Arc::new(scene)).map_err(fail)?);
+                        let result = lua.create_table()?;
+                        result.set("loaded", census.no_trees.is_none())?;
+                        result.set("no_trees", census.no_trees.as_ref().map(|reason| format!("{reason:?}")))?;
+                        result.set("sector_file", census.sector_file)?;
+                        result.set("data_file", census.data_file)?;
+                        result.set("sector_file_bytes", census.sector_file_bytes)?;
+                        result.set("data_file_bytes", census.data_file_bytes)?;
+                        result.set("sector_trailing_bytes", census.sector_trailing_bytes)?;
+                        result.set("data_trailing_bytes", census.data_trailing_bytes)?;
+                        result.set("records_in_file", census.records_in_file)?;
+                        result.set("tree_total", census.tree_total)?;
+                        result.set("sectors_with_trees", census.sectors_with_trees)?;
+                        result.set("type1_trees", census.type1_trees)?;
+                        return Ok(result);
+                    }
+                    "begin" => {
+                        let old = exact_numbers::<3>(lua, &step, "old_position").map_err(fail)?;
+                        let new = exact_numbers::<3>(lua, &step, "new_position").map_err(fail)?;
+                        let point = exact_numbers::<3>(lua, &step, "intercept_point").map_err(fail)?;
+                        let normal = exact_numbers::<3>(lua, &step, "face_normal").map_err(fail)?;
+                        let flag = |name: &str| -> LuaResult<bool> {
+                            match step.get::<LuaValue>(name)? {
+                                LuaValue::Boolean(value) => Ok(value),
+                                other => Err(fail(format!("{name} must be a boolean, got {}", other.type_name()))),
+                            }
+                        };
+                        let (ignore_edge, skip_top) = (flag("ignore_forest_edge_trees")?, flag("skip_tree_top_test")?);
+                        let mut holder = trees.borrow_mut();
+                        let holder = holder.as_mut().ok_or_else(|| fail("no tree scene is loaded (mode \"load\" first)".into()))?;
+                        holder.begin(old, new, point, normal, ignore_edge, skip_top).map_err(fail)?
+                    }
+                    "terrain" => {
+                        let [elevation] = exact_numbers::<1>(lua, &step, "elevation").map_err(fail)?;
+                        let mut holder = trees.borrow_mut();
+                        let holder = holder.as_mut().ok_or_else(|| fail("no tree scene is loaded (mode \"load\" first)".into()))?;
+                        holder.terrain(elevation).map_err(fail)?
+                    }
+                    "abandon" => {
+                        if let Some(holder) = trees.borrow_mut().as_mut() {
+                            holder.abandon();
+                        }
+                        return lua.create_table();
+                    }
+                    other => return Err(fail(format!("unknown mode {other:?}"))),
+                };
+                let result = lua.create_table()?;
+                match request {
+                    TreeRequest::NeedTerrain { endpoint, x, z } => {
+                        result.set("state", "need_terrain")?;
+                        result.set("endpoint", if endpoint == TreeEndpoint::Old { "old" } else { "new" })?;
+                        result.set("x", x)?;
+                        result.set("z", z)?;
+                        result.set("x_bits", word(x))?;
+                        result.set("z_bits", word(z))?;
+                    }
+                    TreeRequest::Done { hit, point, normal } => {
+                        result.set("state", "done")?;
+                        result.set("hit", hit)?;
+                        result.set("point", point.to_vec())?;
+                        result.set("normal", normal.to_vec())?;
+                        result.set("point_bits", words(point))?;
+                        result.set("normal_bits", words(normal))?;
                     }
                 }
                 Ok(result)
