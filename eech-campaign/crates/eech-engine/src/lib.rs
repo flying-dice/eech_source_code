@@ -56,7 +56,8 @@ fn check(code: c_int) -> Result<(), EngineError> {
 /// TEST-ONLY (feature `weapon-fixture`, EEDCS-46): the report text of a controlled combat case when the engine rejected its arguments. The case driver writes its reason
 /// (`cmb-case-error reason=... detail=...`) into the report buffer before it returns the argument error, and `check` turns every argument error into "rejected by the engine";
 /// this keeps the reason instead of discarding it. Any other failure, and a rejection that wrote nothing, is unchanged.
-#[cfg(feature = "weapon-fixture")]
+/// The ground-contact probe (feature `ground-fixture`, EEDCS-48) writes `ground-refused reason=...` the same way and uses it too.
+#[cfg(any(feature = "weapon-fixture", feature = "ground-fixture"))]
 fn keep_case_reason(status: Result<(), EngineError>, text: &[std::os::raw::c_char]) -> Result<String, EngineError> {
     // SAFETY: the buffer was zero-filled and the engine NUL-terminates anything it writes within it.
     let report = unsafe { CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned();
@@ -959,6 +960,14 @@ const SENSOR_REPORT_CAPACITY: usize = 96 * 1024;
 /// TEST-ONLY (feature `aim-fixture`): room for one aiming report; a report that does not fit is refused, never cut short.
 #[cfg(feature = "aim-fixture")]
 const AIM_REPORT_CAPACITY: usize = 96 * 1024;
+
+/// TEST-ONLY (feature `ground-fixture`, EEDCS-48): room for one ground-contact report; a report that does not fit is refused, never cut short.
+#[cfg(feature = "ground-fixture")]
+const GROUND_REPORT_CAPACITY: usize = 192 * 1024;
+
+/// TEST-ONLY (feature `ground-fixture`, EEDCS-48): the most point cases or impact cases one probe is asked for.
+#[cfg(feature = "ground-fixture")]
+pub const GROUND_PROBE_CASES_MAX: i32 = 100_000;
 
 /// TEST-ONLY (feature `weapon-fixture`): room for one weapon-execution report or one chunk of the event log; a report that does not fit is refused, never cut short.
 #[cfg(feature = "weapon-fixture")]
@@ -4533,6 +4542,24 @@ impl Engine {
         check(unsafe { sys::eech_engine_sensor_trace(text.as_mut_ptr(), text.len() as i32) })?;
         // SAFETY: the engine wrote a NUL-terminated string within the buffer.
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `ground-fixture`, EEDCS-48): one read-only probe of the original `point_above_ground`, `point_below_ground` and
+    /// `get_ground_impact_point` against the loaded terrain (see `csrc/eech_ground_fixture.c`): `points` point cases and `impacts` impact cases from
+    /// a private generator seeded with `seed`. It returns the report as `key=value` text lines. The shared terrain point record is restored byte for
+    /// byte. A request out of range, or one the engine refuses (a precondition not held, a report that does not fit), fails; a refusal keeps the
+    /// engine's reason (`ground-refused reason=...`).
+    #[cfg(feature = "ground-fixture")]
+    pub fn ground_probe(&self, seed: u32, points: i32, impacts: i32) -> Result<String, EngineError> {
+        if !(0..=GROUND_PROBE_CASES_MAX).contains(&points) || !(0..=GROUND_PROBE_CASES_MAX).contains(&impacts) || points + impacts == 0 {
+            return Err(EngineError::BadArgument(format!(
+                "ground_probe: points and impacts must each be 0 to {GROUND_PROBE_CASES_MAX} and not both 0, got {points} and {impacts}"
+            )));
+        }
+        let mut text = vec![0 as std::os::raw::c_char; GROUND_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        let status = check(unsafe { sys::eech_engine_ground_probe(seed, points, impacts, text.as_mut_ptr(), text.len() as i32) });
+        keep_case_reason(status, &text)
     }
 
     /// TEST-ONLY (feature `aim-fixture`, EEDCS-44): the run-wide report of the physical weapon-aiming code the campaign's own update loop has run

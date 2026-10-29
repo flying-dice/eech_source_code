@@ -1986,3 +1986,220 @@ fn the_object_witness_says_so_when_there_is_no_such_structure_and_refuses_a_malf
         "{stderr}"
     );
 }
+
+// The ground-contact characterisation driver (EEDCS-48; lua/ground-characterization.lua) against a small stand-in for the engine: only its argument safety, its flow and its own checks of what the probe
+// returns are exercised here (the arguments refused BEFORE the engine is booted, the probe called with the asked seed and counts as often as asked, the control that does not probe, the report parsed into
+// events with hash words kept as text, a refused probe, a repeat that differs, a record not restored, a report that is not the one asked for). Whether the original ground queries behave as characterised
+// is the native run's to show, with a DLL built with the `ground-fixture` feature.
+const GROUND_CASE_CALLER_SCRIPT: &str = r#"
+local mode = '@MODE@'
+local function note(text)
+  local f = io.open('@TRACE@', 'a')
+  f:write(text, '\n')
+  f:close()
+end
+local time = 0
+local probes = 0
+local engine = {}
+function engine:clock() return { elapsed_seconds = time } end
+function engine:frame(ms) time = time + ms / 1000 note('frame') end
+function engine:objects()
+  return {
+    { id = 2, kind = 'helicopter', side = 'blue', alive = true },
+    { id = 1, kind = 'ground_vehicle', side = 'red', alive = false },
+  }
+end
+local function report(seed, points, impacts)
+  local restored = (mode == 'unrestored') and 0 or 1
+  local after = (mode == 'unrestored') and 'bbbb' or 'aaaa'
+  local lines = {
+    'ground-probe seed=' .. seed .. ' points=' .. (mode == 'wrongheader' and points + 1 or points) .. ' impacts=' .. impacts .. ' samples_per_kind=12',
+    'ground-record anchored=1 restored=' .. restored .. ' words_before=aaaa words_after=' .. after,
+    'ground-points cases=' .. points .. ' in_map=' .. points .. ' off_map=0 input_mutated=0',
+    'ground-above cases=' .. points .. ' true=1 false=2 record_touched=1 true_record_untouched=0 warm_same=3',
+    'ground-below cases=' .. points .. ' true=1 false=2 record_touched=1 true_record_untouched=0 warm_same=3 off_map_true=0 off_map_record_touched=0',
+    'ground-complement in_map_cases=3 complement=3 not_complement=0 both_true=0 both_false=0',
+    'ground-impact cases=' .. impacts .. ' a_corrected=0',
+    'ground-asserts original_below_endpoint_still_above=0 extra_above_endpoint_not_above=0',
+    'ground-hash combined=1234567890123456 above=0000000000000001 below=0000000000000002 impact=3000000000000000',
+    'ground-sample kind=point n=0 x=40000000 y=3f800000',
+  }
+  if mode == 'missing' then table.remove(lines, 7) end
+  if mode == 'vary' then lines[#lines + 1] = 'ground-extra n=' .. probes end
+  return table.concat(lines, '\n') .. '\n'
+end
+function engine:ground_probe(seed, points, impacts)
+  probes = probes + 1
+  note('probe ' .. seed .. ' ' .. points .. ' ' .. impacts)
+  if mode == 'refuse' then error('ground-refused reason=no_terrain_loaded', 0) end
+  return report(seed, points, impacts)
+end
+package.loaded['eech_dc'] = {
+  prepare_installation = function() note('prepare') end,
+  boot = function() note('boot') return engine end,
+}
+dofile('@LUA_DIR@/ground-characterization.lua')
+print('GROUND_CALLER_DONE')
+"#;
+
+fn run_ground_case(mode: &str, extra: &[&str]) -> (std::process::ExitStatus, String, String, String, Vec<serde_json::Value>) {
+    let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("lua")
+        .display()
+        .to_string()
+        .replace('\u{5c}', "/");
+    static COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+    let tag = format!("{}-{}", std::process::id(), COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst));
+    let script = std::env::temp_dir().join(format!("eech-world-ground-caller-{tag}.lua"));
+    let out = std::env::temp_dir().join(format!("eech-world-ground-caller-{tag}.jsonl"));
+    let trace = std::env::temp_dir().join(format!("eech-world-ground-caller-{tag}.trace"));
+    let _ = std::fs::remove_file(&out);
+    let _ = std::fs::remove_file(&trace);
+    let text = GROUND_CASE_CALLER_SCRIPT
+        .replace("@MODE@", mode)
+        .replace("@TRACE@", &trace.display().to_string().replace('\u{5c}', "/"))
+        .replace("@LUA_DIR@", &lua_dir);
+    std::fs::write(&script, text).unwrap();
+    let mut command = Command::new(env!("CARGO_BIN_EXE_eech-world"));
+    command
+        .arg(&script)
+        .arg("root=none")
+        .arg(format!("out={}", out.display().to_string().replace('\u{5c}', "/")));
+    for arg in extra {
+        command.arg(arg);
+    }
+    let run = command.output().unwrap();
+    std::fs::remove_file(&script).unwrap();
+    let rows = if out.exists() {
+        std::fs::read_to_string(&out)
+            .unwrap()
+            .lines()
+            .map(|l| serde_json::from_str(l).unwrap_or_else(|e| panic!("malformed output row {l:?}: {e}")))
+            .collect()
+    } else {
+        Vec::new()
+    };
+    let trace_text = std::fs::read_to_string(&trace).unwrap_or_default();
+    let _ = std::fs::remove_file(&out);
+    let _ = std::fs::remove_file(&trace);
+    (
+        run.status,
+        String::from_utf8_lossy(&run.stdout).to_string(),
+        String::from_utf8_lossy(&run.stderr).to_string(),
+        trace_text,
+        rows,
+    )
+}
+
+// the digest the driver computes over the object list in id order (a modular polynomial hash), written out here from the stand-in's two objects
+fn ground_expected_digest() -> String {
+    let mut digest: u64 = 5381;
+    for byte in "1:ground_vehicle:red:false;2:helicopter:blue:true;".bytes() {
+        digest = (digest * 31 + u64::from(byte)) % 2_147_483_647;
+    }
+    format!("{digest:08x}")
+}
+
+#[test]
+fn the_ground_driver_probes_with_the_asked_seed_and_counts_as_often_as_asked_and_parses_the_report() {
+    let (status, stdout, stderr, trace, rows) = run_ground_case(
+        "ok",
+        &["points=40", "impacts=10", "seed=77", "repeats=3", "seconds=1", "after=1", "frame_ms=500"],
+    );
+    assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert_eq!(trace.matches("probe 77 40 10").count(), 3, "{trace}");
+    assert_eq!(trace.matches("frame").count(), 4, "{trace}");
+    // two frames, then the probes, then two more frames, then nothing
+    let first_probe = trace.find("probe ").unwrap();
+    let last_probe = trace.rfind("probe ").unwrap();
+    assert_eq!(trace[..first_probe].matches("frame").count(), 2, "{trace}");
+    assert_eq!(trace[last_probe..].matches("frame").count(), 2, "{trace}");
+    assert_eq!(rows.iter().filter(|r| r["event"] == "ground-hash").count(), 3);
+    // a hash word of decimal digits stays text; a counter is a number
+    let hash = rows.iter().find(|r| r["event"] == "ground-hash").unwrap();
+    assert_eq!(hash["combined"].as_str(), Some("1234567890123456"), "{hash}");
+    let sample = rows.iter().find(|r| r["event"] == "ground-sample").unwrap();
+    assert_eq!((sample["x"].as_str(), sample["y"].as_str()), (Some("40000000"), Some("3f800000")), "{sample}");
+    let above = rows.iter().find(|r| r["event"] == "ground-above").unwrap();
+    assert_eq!(above["cases"].as_i64(), Some(40), "{above}");
+    assert_eq!(rows.iter().filter(|r| r["event"] == "repeat_identical" && r["ok"] == true).count(), 2);
+    let digest = rows.iter().find(|r| r["event"] == "state_digest").unwrap();
+    assert_eq!(
+        (
+            digest["objects"].as_i64(),
+            digest["alive"].as_i64(),
+            digest["probed"].as_bool(),
+            digest["digest"].as_str()
+        ),
+        (Some(2), Some(1), Some(true), Some(ground_expected_digest().as_str())),
+        "{digest}"
+    );
+}
+
+#[test]
+fn the_ground_driver_control_does_not_probe_and_ends_with_the_same_digest() {
+    let (status, _, stderr, trace, rows) = run_ground_case("ok", &["probe=no", "seconds=1", "after=1", "frame_ms=500"]);
+    assert!(status.success(), "{stderr}");
+    assert_eq!(trace.matches("probe ").count(), 0, "the control must not probe: {trace}");
+    assert!(rows.iter().any(|r| r["event"] == "probe_skipped"));
+    assert!(
+        rows.iter().all(|r| !r["event"].as_str().unwrap_or("").starts_with("ground-")),
+        "no probe report in the control"
+    );
+    let digest = rows.iter().find(|r| r["event"] == "state_digest").unwrap();
+    assert_eq!(
+        (digest["probed"].as_bool(), digest["digest"].as_str()),
+        (Some(false), Some(ground_expected_digest().as_str())),
+        "{digest}"
+    );
+}
+
+#[test]
+fn the_ground_driver_refuses_a_malformed_argument_before_booting_or_writing_anything() {
+    for (bad, what) in [
+        (vec!["points=abc"], "points must be a whole number"),
+        (vec!["points=-1"], "points must be a whole number"),
+        (vec!["points=1.5"], "points must be a whole number"),
+        (vec!["points=100001"], "points must be a whole number from 0 to 100000"),
+        (vec!["impacts=1e3"], "impacts must be a whole number"),
+        (vec!["points=0", "impacts=0"], "there is nothing to probe"),
+        (vec!["seed=0"], "seed must be a whole number from 1"),
+        (vec!["seed=4294967296"], "seed must be a whole number from 1"),
+        (vec!["repeats=0"], "repeats must be a whole number from 1 to 5"),
+        (vec!["repeats=6"], "repeats must be a whole number from 1 to 5"),
+        (vec!["seconds=3601"], "seconds must be a whole number from 0 to 3600"),
+        (vec!["frame_ms=0"], "frame_ms must be a whole number from 1 to 1000"),
+        (vec!["frame_ms=1", "seconds=3600", "after=3600"], "the most this driver runs is"),
+        (vec!["scenario=nowhere"], "scenario must be lebanon_retail, georgia_retail or georgia"),
+        (vec!["probe=maybe"], "probe must be one of yes, no"),
+        (vec!["point=5"], "unknown argument 'point'"),
+    ] {
+        let (status, _, stderr, trace, rows) = run_ground_case("ok", &bad);
+        assert!(!status.success(), "{bad:?} was accepted");
+        assert!(stderr.contains(what), "{bad:?}: {stderr}");
+        assert!(trace.is_empty() && rows.is_empty(), "{bad:?}: the engine was booted or a row written: {trace}");
+    }
+}
+
+#[test]
+fn the_ground_driver_fails_on_a_refused_probe_and_on_a_report_that_is_not_a_result() {
+    // an engine that refuses the probe: the refusal is recorded and the run fails, never a quiet success
+    let (status, stdout, stderr, trace, rows) = run_ground_case("refuse", &["points=5", "impacts=5"]);
+    assert!(!status.success() && !stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert!(stderr.contains("the probe was refused") && stderr.contains("no_terrain_loaded"), "{stderr}");
+    let refused = rows.iter().find(|r| r["event"] == "probe_refused").expect("the refusal is recorded");
+    assert!(refused["error"].as_str().unwrap().contains("no_terrain_loaded"), "{refused}");
+    assert!(rows.iter().all(|r| r["event"] != "state_digest"), "no digest after a refusal");
+    assert_eq!(trace.matches("probe ").count(), 1, "the run stops at the first refusal: {trace}");
+    for (mode, what) in [
+        ("vary", "differs from repeat 1"),
+        ("unrestored", "did not restore the shared terrain record"),
+        ("wrongheader", "the report is for seed"),
+        ("missing", "the report has no ground-impact line"),
+    ] {
+        let (status, _, stderr, _, rows) = run_ground_case(mode, &["points=5", "impacts=5"]);
+        assert!(!status.success(), "{mode}: accepted");
+        assert!(stderr.contains(what), "{mode}: {stderr}");
+        assert!(rows.iter().all(|r| r["event"] != "state_digest"), "{mode}: no digest after a failed check");
+    }
+}

@@ -2035,6 +2035,12 @@ impl LuaUserData for LuaEngine {
                 .sensor_probe(&mut binder, &mut observer, &mut reach, &mut mover, &mut sighter, &mut sensor, &mut aimer)
                 .map_err(lua_error)
         });
+        // TEST-ONLY (feature `ground-fixture`, EEDCS-48): the read-only ground-contact probe of the original point_above_ground, point_below_ground and
+        // get_ground_impact_point against the loaded terrain; not part of the shipping module. It needs no host callbacks: none of the three asks one.
+        #[cfg(feature = "ground-fixture")]
+        methods.add_method("ground_probe", |_, this, (seed, points, impacts): (u32, i32, i32)| {
+            this.engine.ground_probe(seed, points, impacts).map_err(lua_error)
+        });
         // TEST-ONLY (feature `dependent-fixture`, EEDCS-40): not part of the shipping module.
         #[cfg(feature = "dependent-fixture")]
         methods.add_method(

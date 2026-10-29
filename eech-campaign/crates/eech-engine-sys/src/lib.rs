@@ -1380,6 +1380,11 @@ extern "C" {
     ) -> c_int;
 }
 
+#[cfg(feature = "ground-fixture")]
+extern "C" {
+    pub fn eech_engine_ground_probe(seed: u32, points: c_int, impacts: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+}
+
 #[cfg(feature = "aim-fixture")]
 extern "C" {
     pub fn eech_engine_aim_trace(text: *mut c_char, capacity: c_int) -> c_int;
