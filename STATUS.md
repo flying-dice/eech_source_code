@@ -1,3 +1,28 @@
+# D3 checkpoint — original geometry measured; fixture state corrections in progress
+
+Frozen/pushed Task49 source `537c36fafae6e16555bcea0c95b4a272921cfd93` now builds
+on Windows; all49 combined fixture/test exports verify. Actual Linux format,
+18 driver guards and Clippy pass; actual Windows18 guards and the invalid-host
+override control pass. All3 default reports and complete transcripts are byte
+identical to reviewed f3. Original controlled geometry produces6 triangles and
+real geometry hits, later-triangle hits, misses/partial writes, exhaustion and
+all4 flag combinations, with no geometry coverage gaps. Model/scene/pointer
+restoration checks pass. Both host library and actual Lua match every query and
+ordered terrain reply: Georgia4802/9598, each Lebanon5126/10148. All pre/post
+inputs and exported payloads remain unchanged. Host physical code is unchanged.
+
+Overall native controller45228 exits1 for an actual fixture state defect: the
+default-controlled-default control leaves witness fields on the next default
+record pages, while report/facts remain identical. Two further native controls
+show one-shot arming surviving a public range or Lua conversion refusal. All3
+RED scripts, raw reports and binaries remain retained. The same sole Sonnet High
+context is correcting that bounded cleanup contract (tool26934); no new witness
+review or acceptance is claimed. Model loading, entity collision, production
+authority, environment/time and required native solver/loader removal remain
+D3 work. Task47 shipping115 continues; checked prefixes match, full acceptance
+is pending. Jira10861 and ledger14548994v66 record this scope; prior ledger HTML
+and all5 epic reports read back exactly. D3 remains active; D4/D5 have not started.
+
 # User-requested commit/push checkpoint — geometry writer stopped, partial work preserved
 
 Task49 checkpoint `5154bc7e736c1145869cc181564b78fc3c504d55`.
