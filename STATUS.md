@@ -1,3 +1,24 @@
+# Latest candidate — coordinate reader fix, native proof pending
+
+29 October 2026. A focused provider-coordinate reader fix is implemented in this
+supplemental source. The old LuaValue conversion erased signed zero/tiny values.
+The new numeric-only reader preserves exact number bits with one field lookup;
+inexact finite doubles still refuse and NaN/infinity retain their prior handling.
+Actual Linux terrain library6/6 (including the prior RED test), host callback40/40,
+all-target host Clippy and formatting pass0. The40 are callback guards, not the
+shipping40. Two new diagnostic native runs reproduced the immutable prefix15
+physical folds and located different terrain/inputY words at case14; its Z is the
+smallest positive float. Directed rounding means that input loss can affect height.
+
+The fix still needs a clean Windows fixture build, three original20k/5k/2 native
+comparisons and independent review. No physical compatibility GREEN, G2 cutover,
+shipping pass, final-source acceptance or merge is claimed. The original frozen06
+shipping pack remains live and unchanged. Preserve every prior RED output.
+
+Safe focused evidence: reference/d3-ground-characterization/coordinate-input-fix-linux.json.
+
+The following is the previous frozen3ad/4e checkpoint, retained as historical evidence.
+
 # D3 test-only ground/G1 composition — RED investigation checkpoint
 
 Supplemental branch codex/d3-ground-g1-compose. Frozen measured merge3ad209417
