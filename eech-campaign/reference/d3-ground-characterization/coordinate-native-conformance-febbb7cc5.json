@@ -1,0 +1,211 @@
+{
+  "kind": "Fixed input-reader native physical compatibility GREEN, bounded fixture evidence only",
+  "created_utc": "2026-10-29T16:05:53.463390+00:00",
+  "source": "febbb7cc57f41d66f752a696feb1f4447cbbcd32",
+  "code_commit": "4b204350079ebc8dbf2ae3460a848546cc57f320",
+  "tested_terrain_file_sha256": "763316a9e3d192114cf8de6d00227d905b4c378975f923d1060ec9abf32bc1bd",
+  "clean_build_exit": 0,
+  "build_manifest_entries": 46,
+  "build_verification_exit": 0,
+  "native_controller_exit": 0,
+  "native_runs": [
+    {
+      "scenario": "lebanon-repeat",
+      "actual_native_exit": 0,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "comparison_exit": 0,
+      "physical_equal": true,
+      "cache_and_semantic_samples_equal": true,
+      "differences": [],
+      "raw_bytes": 39581,
+      "raw_sha256": "16e870fb3381b5739f065a7cff4ccdd68ea79a9ed1521d87108a00c2929682e5"
+    },
+    {
+      "scenario": "lebanon",
+      "actual_native_exit": 0,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "comparison_exit": 0,
+      "physical_equal": true,
+      "cache_and_semantic_samples_equal": true,
+      "differences": [],
+      "raw_bytes": 39581,
+      "raw_sha256": "16e870fb3381b5739f065a7cff4ccdd68ea79a9ed1521d87108a00c2929682e5"
+    },
+    {
+      "scenario": "georgia",
+      "actual_native_exit": 0,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "comparison_exit": 0,
+      "physical_equal": true,
+      "cache_and_semantic_samples_equal": true,
+      "differences": [],
+      "raw_bytes": 39559,
+      "raw_sha256": "0e6a9d7bc787c627922f69afc60cf40eadda24ab91d15710683738588b3861d7"
+    }
+  ],
+  "all_pre_post_inputs": 0,
+  "lebanon_complete_raw_byte_equal": true,
+  "comparisons": [
+    {
+      "original": {
+        "source": "c119a7370b5de43923a86d7a8124f9532bb523ee",
+        "raw_bytes": 39327,
+        "raw_sha256": "5d2d40ed04ad77d485d09fea3e7afef340967edae52a8013dd0b80327092844a",
+        "rows": 117
+      },
+      "candidate": {
+        "source": "febbb7cc57f41d66f752a696feb1f4447cbbcd32",
+        "raw_bytes": 39559,
+        "raw_sha256": "0e6a9d7bc787c627922f69afc60cf40eadda24ab91d15710683738588b3861d7",
+        "rows": 119
+      },
+      "scenario": {
+        "after": 0,
+        "campaign_seed": 1,
+        "event": "boot",
+        "frame_ms": 100,
+        "impacts": 5000,
+        "points": 20000,
+        "probe": "yes",
+        "repeats": 2,
+        "scenario": "georgia_retail",
+        "seconds": 0,
+        "seed": 20261029
+      },
+      "profiles_and_restoration_valid": true,
+      "in_process_repeats_valid": true,
+      "physical_equal": true,
+      "cache_and_semantic_samples_equal": true,
+      "differences": [],
+      "uncompared_fields": "Profile-specific record/hash layouts by design; all common physical/cache fields explicitly listed in this helper. This is bounded case evidence, not full shipping/Tacview acceptance.",
+      "helper_sha256": "93b4aef72c97c54664a08cc32f16f4aa47166385e31b831e73b6e69c8f87d2bb",
+      "scenario_root": "georgia",
+      "comparison_proof_sha256": "ad4a7cd64aba27c68bcbae96b293494d1a1dfc9f77a95c5b4e88d29a9b9f0d02",
+      "physical_folds": [
+        {
+          "repeat_index": 1,
+          "above": "0c97c389344445d4",
+          "below": "9201db667b7422d1",
+          "combined": "03c997493d4ab73d",
+          "impact": "f659d0d3669dcbe4"
+        },
+        {
+          "repeat_index": 2,
+          "above": "0c97c389344445d4",
+          "below": "9201db667b7422d1",
+          "combined": "03c997493d4ab73d",
+          "impact": "f659d0d3669dcbe4"
+        }
+      ]
+    },
+    {
+      "original": {
+        "source": "c119a7370b5de43923a86d7a8124f9532bb523ee",
+        "raw_bytes": 39349,
+        "raw_sha256": "248ca1e81a4c72bad8011d28f77271c28aba916dec16dd4b17602c7c38f00b91",
+        "rows": 117
+      },
+      "candidate": {
+        "source": "febbb7cc57f41d66f752a696feb1f4447cbbcd32",
+        "raw_bytes": 39581,
+        "raw_sha256": "16e870fb3381b5739f065a7cff4ccdd68ea79a9ed1521d87108a00c2929682e5",
+        "rows": 119
+      },
+      "scenario": {
+        "after": 0,
+        "campaign_seed": 1,
+        "event": "boot",
+        "frame_ms": 100,
+        "impacts": 5000,
+        "points": 20000,
+        "probe": "yes",
+        "repeats": 2,
+        "scenario": "lebanon_retail",
+        "seconds": 0,
+        "seed": 20261029
+      },
+      "profiles_and_restoration_valid": true,
+      "in_process_repeats_valid": true,
+      "physical_equal": true,
+      "cache_and_semantic_samples_equal": true,
+      "differences": [],
+      "uncompared_fields": "Profile-specific record/hash layouts by design; all common physical/cache fields explicitly listed in this helper. This is bounded case evidence, not full shipping/Tacview acceptance.",
+      "helper_sha256": "93b4aef72c97c54664a08cc32f16f4aa47166385e31b831e73b6e69c8f87d2bb",
+      "scenario_root": "lebanon",
+      "comparison_proof_sha256": "67a23387ac5915d75ca1f4694b2dc304f265d722b9d9435683f392fc4888f7dc",
+      "physical_folds": [
+        {
+          "repeat_index": 1,
+          "above": "b419196047efb93d",
+          "below": "54db721aed53d535",
+          "combined": "ea3064a7736c904f",
+          "impact": "e1c9860d868fc6e3"
+        },
+        {
+          "repeat_index": 2,
+          "above": "b419196047efb93d",
+          "below": "54db721aed53d535",
+          "combined": "ea3064a7736c904f",
+          "impact": "e1c9860d868fc6e3"
+        }
+      ]
+    },
+    {
+      "original": {
+        "source": "c119a7370b5de43923a86d7a8124f9532bb523ee",
+        "raw_bytes": 39349,
+        "raw_sha256": "248ca1e81a4c72bad8011d28f77271c28aba916dec16dd4b17602c7c38f00b91",
+        "rows": 117
+      },
+      "candidate": {
+        "source": "febbb7cc57f41d66f752a696feb1f4447cbbcd32",
+        "raw_bytes": 39581,
+        "raw_sha256": "16e870fb3381b5739f065a7cff4ccdd68ea79a9ed1521d87108a00c2929682e5",
+        "rows": 119
+      },
+      "scenario": {
+        "after": 0,
+        "campaign_seed": 1,
+        "event": "boot",
+        "frame_ms": 100,
+        "impacts": 5000,
+        "points": 20000,
+        "probe": "yes",
+        "repeats": 2,
+        "scenario": "lebanon_retail",
+        "seconds": 0,
+        "seed": 20261029
+      },
+      "profiles_and_restoration_valid": true,
+      "in_process_repeats_valid": true,
+      "physical_equal": true,
+      "cache_and_semantic_samples_equal": true,
+      "differences": [],
+      "uncompared_fields": "Profile-specific record/hash layouts by design; all common physical/cache fields explicitly listed in this helper. This is bounded case evidence, not full shipping/Tacview acceptance.",
+      "helper_sha256": "93b4aef72c97c54664a08cc32f16f4aa47166385e31b831e73b6e69c8f87d2bb",
+      "scenario_root": "lebanon-repeat",
+      "comparison_proof_sha256": "24c47655a44037dfddf2cc249279a426b66069f3712b93cf211227368f7ad0a7",
+      "physical_folds": [
+        {
+          "repeat_index": 1,
+          "above": "b419196047efb93d",
+          "below": "54db721aed53d535",
+          "combined": "ea3064a7736c904f",
+          "impact": "e1c9860d868fc6e3"
+        },
+        {
+          "repeat_index": 2,
+          "above": "b419196047efb93d",
+          "below": "54db721aed53d535",
+          "combined": "ea3064a7736c904f",
+          "impact": "e1c9860d868fc6e3"
+        }
+      ]
+    }
+  ],
+  "classification": "Extraction regression in Lua request input fidelity: LuaValue integer conversion erased signed-zero and tiny f32 magnitudes. Directed rounding permits a tiny erased coordinate to alter physical terrain height. Original one-test RED and unchanged-binary first-case trace are retained; numeric-only bit-preserving reader now restores all original physical hashes/counters/samples/cache observations for this exact20k/5k/two-repeat scenario on all three roots. No physical solver/formula, case generator, accepted baseline or tolerance changed.",
+  "limits": "Legacy and semantic record diagnostic hashes remain separate. Full physical folds plus emitted samples establish this bounded deterministic scenario, not every possible coordinate or shipping/Tacview acceptance. Original06 shipping pack remains partial and cannot prove the changed final-source reader. Independent new-source/native evidence review and final-source shipping validation/CI/normal merge remain required. No G2 production cutover or task/epic acceptance."
+}
