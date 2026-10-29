@@ -47,5 +47,15 @@
   ],
   "old_export_manifest_count": 46,
   "status": "failed",
-  "completed_utc": "2026-10-29T17:25:54.702152+00:00"
+  "completed_utc": "2026-10-29T17:25:54.702152+00:00",
+  "publication_copy": {
+    "private_original": "ground-host-lua-f66ba1f139-native-20261029/georgia-transport.jsonl",
+    "private_original_unchanged": true,
+    "private_original_line_endings": "CRLF",
+    "transformation": "Publication copy replaces CRLF with LF only. All29 decoded rows/text are identical. raw_sha256 above identifies immutable private bytes, not this Git copy.",
+    "git_copy": "eech-campaign/reference/d3-ground-host-preparation/first-f66ba1f139-georgia-transport.jsonl",
+    "private_original_sha256": "d1a9a2646ed5b2f82922c696492cd200d9a7708a9f3a51b344f9844a57fb4418",
+    "git_copy_sha256": "80bf943ae666229677d6c5c6bfa953bb1059b9d6a35755b0fcb579ff8d1220f3",
+    "git_copy_line_endings": "LF"
+  }
 }
