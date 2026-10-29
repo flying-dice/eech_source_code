@@ -1,4 +1,4 @@
-# D3 ground-contact characterization — source checkpoint
+# D3 ground-contact characterization — corrected source checkpoint
 
 29 October2026. EEDCS-48 is In Progress under EEDCS-21. Branch
 codex/d3-ground-contact starts from verified accepted integration
@@ -15,6 +15,15 @@ diffcheck and all40 Lua syntax parses pass. Compilation, actual driver guards,
 original retail probes, deterministic repeats, probe/no-probe control and independent
 source review remain pending. The source is unbuilt and unaccepted. Read
 [the characterization notes](eech-campaign/docs/m5-ground-characterization.md).
+
+
+The initial source review found two P2 fixture issues and one P3 comparison issue.
+A sole Sonnet5.5 High correction batch completed0: warm checks now start from the
+intended record; the driver requires complete typed hashes/restoration/family counts;
+and a separate physical-only digest excludes legacy record bookkeeping. New negative
+real-script controls are prepared. Rust formatting/check, changed Lua parse and
+diffcheck pass0. These corrections remain uncompiled/unrun and need a new delta review.
+No original oracle exists yet. The initial review is retained in the reference folder.
 
 Task47 surface services are separately implemented/reviewed on
 R:/d2-sensor-detections, current head f03a680c9, with all9CI checks green. Its final

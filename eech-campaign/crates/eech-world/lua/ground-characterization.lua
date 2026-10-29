@@ -10,6 +10,11 @@
 -- The probe is repeated (`repeats`, default 2) in the same process with no frames between: the reports must be byte identical, which
 -- shows the probe is a pure function of the seed and the loaded map, and that the shared terrain record is left as it was found (the
 -- record's value words are reported before and after each probe and must match). A difference fails the run; nothing is tuned to pass.
+--
+-- A report is accepted only as a whole (read_report): every row once, with exactly its keys, each of its exact type (decimal count, flag, or
+-- fixed-width lowercase hex), counts that agree with the request and with each other, and both folds present. `ground-hash` is the LEGACY fold
+-- (it includes the original record's private bookkeeping); `ground-physical` is the PHYSICAL fold (inputs, answers and written vectors only). A
+-- malformed or incomplete report records `report_invalid` and fails the run; no repeat_identical or state_digest row follows it.
 -- `probe=no` is the control: the same frames, no probe call, and the same state digest at the end, so a probe run and a control run can be
 -- compared offline. The digest is the object list's identity, kind, side and alive flag in id order after the frames: a coarse witness
 -- that the probe did not disturb the campaign, not a proof (see docs/m5-ground-characterization.md).
@@ -103,25 +108,230 @@ local function emit (t)
 	out:flush ()
 end
 
--- one JSON object per report line: the first word is the event and the `key=value` words are its fields. Sample and hash lines, and the
--- hex words of the record line, are strings (a hex word of decimal digits must not become a number); every counter is a number.
-local function report_events (report, repeat_index)
-	local events = {}
-	for line in string.gmatch (report, "[^\n]+") do
-		local event, rest = string.match (line, "^(%S+)%s*(.*)$")
-		local t = { event = event, repeat_index = repeat_index }
-		for k, v in string.gmatch (rest, "(%S+)=(%S+)") do
-			local as_text = event == "ground-sample" or event == "ground-hash" or event == "ground-refused" or k == "words_before" or k == "words_after"
-			t [k] = (not as_text and tonumber (v)) or v
-		end
-		events [#events + 1] = t
+-- THE REPORT SCHEMA. A report is a result only if every row the fixture writes is present exactly once with exactly its keys, every value has its
+-- exact type (a decimal count, a flag, or fixed-width lowercase hex), and the counts agree with what was asked and with each other. Anything else is
+-- refused by name; a missing or malformed measurement is never read as zero, as absent-equals-absent, or as a pass.
+local DESCRIBE = {
+	count = "a decimal count", signed = "a decimal integer", flag = "0 or 1", sflag = "-1, 0 or 1", word = "a word",
+	hex16 = "16 lowercase hex digits", hex8 = "8 lowercase hex digits", hex8x3 = "three 8-digit lowercase hex words joined by commas",
+}
+
+local function typed_value (kind, text)
+	if kind == "count" then
+		if string.match (text, "^%d+$") and #text <= 10 then return tonumber (text) end
+	elseif kind == "signed" then
+		if string.match (text, "^-?%d+$") and #text <= 11 then return tonumber (text) end
+	elseif kind == "flag" then
+		if text == "0" or text == "1" then return tonumber (text) end
+	elseif kind == "sflag" then
+		if text == "-1" or text == "0" or text == "1" then return tonumber (text) end
+	elseif kind == "word" then
+		if string.match (text, "^%a+$") then return text end
+	elseif kind == "hex16" then
+		if string.match (text, "^[0-9a-f]+$") and #text == 16 then return text end
+	elseif kind == "hex8" then
+		if string.match (text, "^[0-9a-f]+$") and #text == 8 then return text end
+	elseif kind == "hex8x3" then
+		if string.match (text, "^%x%x%x%x%x%x%x%x,%x%x%x%x%x%x%x%x,%x%x%x%x%x%x%x%x$") and not string.match (text, "%u") then return text end
 	end
-	return events
+	return nil
 end
 
-local function find_event (events, name)
-	for _, t in ipairs (events) do if t.event == name then return t end end
-	return nil
+local SCHEMA = {
+	["ground-probe"] = { { "seed", "count" }, { "points", "count" }, { "impacts", "count" }, { "samples_per_point_tag", "count" },
+		{ "samples_per_impact_type", "count" } },
+	["ground-map"] = { { "sectors_x", "count" }, { "sectors_z", "count" }, { "sector_side", "count" } },
+	["ground-record"] = { { "anchored", "flag" }, { "restored", "flag" }, { "words_before", "hex16" }, { "words_after", "hex16" } },
+	["ground-points"] = { { "cases", "count" }, { "in_map", "count" }, { "off_map", "count" }, { "input_mutated", "count" } },
+	["ground-above"] = { { "cases", "count" }, { "true", "count" }, { "false", "count" }, { "record_touched", "count" },
+		{ "true_record_untouched", "count" }, { "warm_same", "count" }, { "warm_start_intact", "count" } },
+	["ground-below"] = { { "cases", "count" }, { "true", "count" }, { "false", "count" }, { "record_touched", "count" },
+		{ "true_record_untouched", "count" }, { "warm_same", "count" }, { "warm_start_intact", "count" }, { "off_map_true", "count" },
+		{ "off_map_record_touched", "count" } },
+	["ground-complement"] = { { "in_map_cases", "count" }, { "complement", "count" }, { "not_complement", "count" }, { "both_true", "count" },
+		{ "both_false", "count" } },
+	["ground-impact"] = { { "cases", "count" }, { "a_corrected", "count" }, { "b_corrected", "count" }, { "xz_changed", "count" },
+		{ "alias_equal", "count" }, { "alias_unequal", "count" }, { "warm_same", "count" }, { "warm_different", "count" },
+		{ "record_touched", "count" }, { "record_untouched", "count" }, { "impact_equals_corrected_below", "count" },
+		{ "warm_start_intact", "count" } },
+	["ground-impact-classes"] = { { "invalid", "count" }, { "water", "count" }, { "forest", "count" }, { "land", "count" }, { "other", "count" } },
+	["ground-impact-types"] = { { "t0", "count" }, { "t1", "count" }, { "t2", "count" }, { "t3", "count" }, { "t4", "count" }, { "t5", "count" },
+		{ "t6", "count" }, { "t7", "count" } },
+	["ground-asserts"] = { { "original_below_endpoint_still_above", "count" }, { "extra_above_endpoint_not_above", "count" } },
+	-- the LEGACY fold (it includes the original record's private bookkeeping) and the PHYSICAL fold (inputs, answers, written vectors only)
+	["ground-hash"] = { { "combined", "hex16" }, { "above", "hex16" }, { "below", "hex16" }, { "impact", "hex16" } },
+	["ground-physical"] = { { "combined", "hex16" }, { "above", "hex16" }, { "below", "hex16" }, { "impact", "hex16" } },
+}
+
+local SAMPLE_SCHEMA = {
+	point = { { "kind", "word" }, { "n", "count" }, { "tag", "count" }, { "x", "hex8" }, { "y", "hex8" }, { "z", "hex8" }, { "inside", "flag" },
+		{ "above", "sflag" }, { "above_touched", "flag" }, { "below", "flag" }, { "below_touched", "flag" }, { "above_elev", "hex8" },
+		{ "above_type", "signed" }, { "below_elev", "hex8" }, { "below_type", "signed" } },
+	impact = { { "kind", "word" }, { "n", "count" }, { "type", "count" }, { "a0", "hex8x3" }, { "b0", "hex8x3" }, { "class_alias", "signed" },
+		{ "pa", "hex8x3" }, { "qa", "hex8x3" }, { "class_separate", "signed" }, { "pb", "hex8x3" }, { "qb", "hex8x3" }, { "rb", "hex8x3" },
+		{ "alias_equal", "flag" }, { "warm_same", "flag" }, { "touched", "flag" }, { "elev", "hex8" }, { "type_word", "signed" } },
+}
+
+-- the FNV-1a offset basis: the value of a fold that folded nothing
+local FOLD_EMPTY = "cbf29ce484222325"
+
+-- one row's words after the event, as raw `key=value` text: a word that is not key=value, or a key that appears twice, is refused
+local function row_fields (event, words)
+	local fields = {}
+	for i = 2, #words do
+		local key, text = string.match (words [i], "^([%w_]+)=(.+)$")
+		if not key then refuse (event .. ": '" .. words [i] .. "' is not key=value") end
+		if fields [key] ~= nil then refuse (event .. ": " .. key .. " appears twice") end
+		fields [key] = text
+	end
+	return fields
+end
+
+-- the fields of a row against its schema: every key present, of its exact type, and no other key. Returns the typed values (hex stays text).
+local function typed_row (event, schema, fields)
+	local typed = {}
+	for _, spec in ipairs (schema) do
+		local key, kind = spec [1], spec [2]
+		local text = fields [key]
+		if text == nil then refuse (event .. ": " .. key .. " is missing") end
+		local value = typed_value (kind, text)
+		if value == nil then refuse (event .. ": " .. key .. " must be " .. DESCRIBE [kind] .. ", got '" .. text .. "'") end
+		typed [key] = value
+		fields [key] = nil
+	end
+	local extra = {}
+	for key in pairs (fields) do extra [#extra + 1] = key end
+	table.sort (extra)
+	if extra [1] then refuse (event .. ": unexpected key " .. extra [1]) end
+	return typed
+end
+
+local function need_equal (event, key, actual, expected)
+	if actual ~= expected then refuse (event .. ": " .. key .. " is " .. tostring (actual) .. ", expected " .. tostring (expected)) end
+end
+
+local function need_at_most (event, key, actual, limit)
+	if actual > limit then refuse (event .. ": " .. key .. " is " .. tostring (actual) .. ", more than " .. tostring (limit)) end
+end
+
+-- A report as the fixture writes it, checked in full; returns the events to record (in report order) and the rows by name. Refuses, by name, anything
+-- that is not a complete, well-typed result for the seed and counts asked.
+local function read_report (report, repeat_index)
+	local events, rows, samples = {}, {}, { point = 0, impact = 0 }
+	local sample_numbers = {}
+	for line in string.gmatch (report, "[^\r\n]+") do
+		local words = {}
+		for word in string.gmatch (line, "%S+") do words [#words + 1] = word end
+		local event = words [1]
+		if event == nil then refuse ("the report has a blank line") end
+		if event == "ground-sample" then
+			local fields = row_fields (event, words)
+			local kind = fields.kind
+			local schema = SAMPLE_SCHEMA [kind]
+			if schema == nil then refuse ("ground-sample: kind must be point or impact, got '" .. tostring (kind) .. "'") end
+			local raw = {}
+			for k, v in pairs (fields) do raw [k] = v end
+			local typed = typed_row (event, schema, fields)
+			samples [kind] = samples [kind] + 1
+			sample_numbers [#sample_numbers + 1] = { kind = kind, n = typed.n }
+			-- a sample keeps every field as text: its words are bit patterns
+			local t = { event = event, repeat_index = repeat_index }
+			for k, v in pairs (raw) do t [k] = v end
+			events [#events + 1] = t
+		else
+			local schema = SCHEMA [event]
+			if schema == nil then refuse ("the report has an unknown row '" .. event .. "'") end
+			if rows [event] ~= nil then refuse ("the report has more than one " .. event .. " row") end
+			local typed = typed_row (event, schema, row_fields (event, words))
+			rows [event] = typed
+			local t = { event = event, repeat_index = repeat_index }
+			for k, v in pairs (typed) do t [k] = v end
+			events [#events + 1] = t
+		end
+	end
+	for name in pairs (SCHEMA) do
+		if rows [name] == nil then refuse ("the report has no " .. name .. " row") end
+	end
+
+	-- the report is for the request made
+	local header = rows ["ground-probe"]
+	if header.seed ~= seed or header.points ~= points or header.impacts ~= impacts then
+		refuse (string.format ("the report is for seed %s points %s impacts %s, not the %s %s %s asked", tostring (header.seed), tostring (header.points),
+			tostring (header.impacts), tostring (seed), tostring (points), tostring (impacts)))
+	end
+	local map = rows ["ground-map"]
+	if map.sectors_x < 1 or map.sectors_z < 1 or map.sector_side < 1 then refuse ("ground-map: the map has no sectors") end
+
+	-- the shared terrain record is left exactly as it was found
+	local record = rows ["ground-record"]
+	need_equal ("ground-record", "anchored", record.anchored, 1)
+	if record.restored ~= 1 or record.words_before ~= record.words_after then
+		refuse ("the probe did not restore the shared terrain record: restored=" .. tostring (record.restored) .. " words " .. tostring (record.words_before) ..
+			" -> " .. tostring (record.words_after))
+	end
+
+	-- the counts agree with the request and with each other (a family with no cases is valid and reports zeros)
+	local pts, above, below, comp = rows ["ground-points"], rows ["ground-above"], rows ["ground-below"], rows ["ground-complement"]
+	need_equal ("ground-points", "cases", pts.cases, points)
+	need_equal ("ground-points", "in_map + off_map", pts.in_map + pts.off_map, points)
+	need_at_most ("ground-points", "input_mutated", pts.input_mutated, points)
+	need_equal ("ground-above", "cases", above.cases, pts.in_map)
+	need_equal ("ground-above", "true + false", above ["true"] + above ["false"], above.cases)
+	need_at_most ("ground-above", "record_touched", above.record_touched, above.cases)
+	need_at_most ("ground-above", "true_record_untouched", above.true_record_untouched, above ["true"])
+	need_at_most ("ground-above", "warm_same", above.warm_same, above.cases)
+	need_equal ("ground-above", "warm_start_intact", above.warm_start_intact, above.cases)
+	need_equal ("ground-below", "cases", below.cases, points)
+	need_equal ("ground-below", "true + false", below ["true"] + below ["false"], below.cases)
+	need_at_most ("ground-below", "record_touched", below.record_touched, below.cases)
+	need_at_most ("ground-below", "true_record_untouched", below.true_record_untouched, below ["true"])
+	need_at_most ("ground-below", "warm_same", below.warm_same, below.cases)
+	need_equal ("ground-below", "warm_start_intact", below.warm_start_intact, below.cases)
+	need_at_most ("ground-below", "off_map_true", below.off_map_true, pts.off_map)
+	need_at_most ("ground-below", "off_map_record_touched", below.off_map_record_touched, pts.off_map)
+	need_equal ("ground-complement", "in_map_cases", comp.in_map_cases, pts.in_map)
+	need_equal ("ground-complement", "complement + not_complement", comp.complement + comp.not_complement, comp.in_map_cases)
+	need_at_most ("ground-complement", "both_true + both_false", comp.both_true + comp.both_false, comp.in_map_cases)
+
+	local impact, classes, types, asserts = rows ["ground-impact"], rows ["ground-impact-classes"], rows ["ground-impact-types"], rows ["ground-asserts"]
+	need_equal ("ground-impact", "cases", impact.cases, impacts)
+	need_at_most ("ground-impact", "a_corrected", impact.a_corrected, impact.cases)
+	need_at_most ("ground-impact", "b_corrected", impact.b_corrected, impact.cases)
+	need_at_most ("ground-impact", "xz_changed", impact.xz_changed, impact.cases)
+	need_equal ("ground-impact", "alias_equal + alias_unequal", impact.alias_equal + impact.alias_unequal, impact.cases)
+	need_equal ("ground-impact", "warm_same + warm_different", impact.warm_same + impact.warm_different, impact.cases)
+	need_equal ("ground-impact", "record_touched + record_untouched", impact.record_touched + impact.record_untouched, impact.cases)
+	need_at_most ("ground-impact", "impact_equals_corrected_below", impact.impact_equals_corrected_below, impact.cases)
+	need_equal ("ground-impact", "warm_start_intact", impact.warm_start_intact, impact.cases)
+	need_equal ("ground-impact-classes", "invalid + water + forest + land + other",
+		classes.invalid + classes.water + classes.forest + classes.land + classes.other, impacts)
+	need_equal ("ground-impact-types", "t0 .. t7", types.t0 + types.t1 + types.t2 + types.t3 + types.t4 + types.t5 + types.t6 + types.t7, impacts)
+	need_at_most ("ground-asserts", "original_below_endpoint_still_above", asserts.original_below_endpoint_still_above, impacts)
+	need_at_most ("ground-asserts", "extra_above_endpoint_not_above", asserts.extra_above_endpoint_not_above, impacts)
+
+	-- both folds: a family that ran no case folded nothing, and a family that ran folded something (the above and below folds take every point)
+	for _, name in ipairs { "ground-hash", "ground-physical" } do
+		local row = rows [name]
+		for _, family in ipairs { { "above", points }, { "below", points }, { "impact", impacts } } do
+			local key, ran = family [1], family [2]
+			if (ran == 0) ~= (row [key] == FOLD_EMPTY) then
+				refuse (name .. ": " .. key .. " is " .. row [key] .. " for " .. ran .. " cases")
+			end
+		end
+		if row.combined == FOLD_EMPTY then refuse (name .. ": combined is the empty fold for " .. (points + impacts) .. " cases") end
+	end
+
+	-- the samples are bounded, present for every family that ran, and name cases that exist
+	local point_cap, impact_cap = 6 * header.samples_per_point_tag, 8 * header.samples_per_impact_type
+	if (points == 0) ~= (samples.point == 0) then refuse ("ground-sample: " .. samples.point .. " point samples for " .. points .. " point cases") end
+	if (impacts == 0) ~= (samples.impact == 0) then refuse ("ground-sample: " .. samples.impact .. " impact samples for " .. impacts .. " impact cases") end
+	need_at_most ("ground-sample", "point samples", samples.point, point_cap)
+	need_at_most ("ground-sample", "impact samples", samples.impact, impact_cap)
+	for _, s in ipairs (sample_numbers) do
+		local cases = s.kind == "point" and points or impacts
+		if s.n >= cases then refuse ("ground-sample: a " .. s.kind .. " sample names case " .. s.n .. " of " .. cases) end
+	end
+	return events, rows
 end
 
 local dc = require ("eech_dc")
@@ -142,7 +352,7 @@ end
 
 run_frames (frames_before)
 
-local first_report, last_events
+local first_report, last_rows
 if probe == "yes" then
 	for r = 1, repeats do
 		local ok, report = pcall (function () return engine:ground_probe (seed, points, impacts) end)
@@ -151,25 +361,14 @@ if probe == "yes" then
 			emit { event = "probe_refused", repeat_index = r, error = tostring (report) }
 			error ("ground-characterization: the probe was refused: " .. tostring (report), 0)
 		end
-		local events = report_events (report, r)
+		-- a report is a result only when the whole schema holds (see read_report); otherwise the run fails here, with the reason recorded, and no
+		-- success row (repeat_identical, state_digest) is ever written for it
+		local valid, events, rows = pcall (read_report, report, r)
+		if not valid then
+			emit { event = "report_invalid", repeat_index = r, error = tostring (events) }
+			error (events, 0)
+		end
 		for _, t in ipairs (events) do emit (t) end
-		-- a report that does not describe the request, or lacks a part, is not a result
-		local header = find_event (events, "ground-probe")
-		local record = find_event (events, "ground-record")
-		local hash = find_event (events, "ground-hash")
-		for _, name in ipairs { "ground-points", "ground-above", "ground-below", "ground-complement", "ground-impact", "ground-asserts" } do
-			if not find_event (events, name) then refuse ("the report has no " .. name .. " line") end
-		end
-		if not (header and record and hash) then refuse ("the report has no ground-probe, ground-record or ground-hash line") end
-		if header.seed ~= seed or header.points ~= points or header.impacts ~= impacts then
-			refuse (string.format ("the report is for seed %s points %s impacts %s, not the %s %s %s asked", tostring (header.seed), tostring (header.points),
-				tostring (header.impacts), tostring (seed), tostring (points), tostring (impacts)))
-		end
-		-- the shared terrain record is left exactly as it was found
-		if record.restored ~= 1 or record.words_before ~= record.words_after then
-			refuse ("the probe did not restore the shared terrain record: restored=" .. tostring (record.restored) .. " words " .. tostring (record.words_before) ..
-				" -> " .. tostring (record.words_after))
-		end
 		if first_report == nil then
 			first_report = report
 		else
@@ -178,7 +377,7 @@ if probe == "yes" then
 			emit { event = "repeat_identical", repeat_index = r, ok = same }
 			if not same then refuse ("repeat " .. r .. " differs from repeat 1: the probe is not a pure function of the seed and the loaded map") end
 		end
-		last_events = events
+		last_rows = rows
 	end
 else
 	emit { event = "probe_skipped", reason = "probe=no (the control)" }
@@ -200,6 +399,7 @@ local clock = engine:clock ()
 emit { event = "state_digest", objects = #objects, alive = alive, digest = string.format ("%08x", digest), elapsed = clock.elapsed_seconds,
 	frames = frames_before + frames_after, probed = probe == "yes" }
 out:close ()
-local combined = last_events and find_event (last_events, "ground-hash") and find_event (last_events, "ground-hash").combined or "none"
-io.stderr:write (string.format ("ground-characterization: probe %s, %d repeats, combined hash %s, state digest %08x over %d objects\n", probe, probe == "yes" and repeats or 0,
-	tostring (combined), digest, #objects))
+local legacy = last_rows and last_rows ["ground-hash"].combined or "none"
+local physical = last_rows and last_rows ["ground-physical"].combined or "none"
+io.stderr:write (string.format ("ground-characterization: probe %s, %d repeats, legacy hash %s, physical hash %s, state digest %08x over %d objects\n", probe,
+	probe == "yes" and repeats or 0, tostring (legacy), tostring (physical), digest, #objects))

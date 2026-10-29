@@ -16,9 +16,17 @@
  *     whether a sector and a face are held) are folded and sampled. No pointer or address is ever emitted;
  *   - the impact point with the output aliased with the below endpoint (the caller's shape) and with a separate output, and
  *     whether the two agree;
- *   - a warm repeat (the same call again, on the record as the first call left it) and whether it agrees;
+ *   - a warm repeat (the very next query, on exactly the record the first call left, which is checked to be unchanged before the repeat)
+ *     and whether it agrees;
  *   - whether the endpoints, after the call, satisfy the original function's own ASSERT conditions (checked by the same macros,
- *     outside the function, because ASSERT is a non-fatal write_debug_log in this build and would otherwise go unseen).
+ *     outside the function, because ASSERT is a non-fatal write_debug_log in this build and would otherwise go unseen). These are
+ *     extra queries and are made only after every call being characterised, because point_above_ground can write the shared record.
+ *
+ * Three kinds of fact are kept apart in the report (docs/m5-ground-characterization.md, "What can be compared"):
+ *   - PHYSICAL: the inputs a query was given, its booleans and classes, and the vectors it wrote. `ground-physical` folds only these.
+ *   - SHORT-CIRCUIT and CACHE: whether a call read the terrain (record touched), and whether a warm repeat agrees. Counters only.
+ *   - LEGACY record diagnostics: the shared record's value words, sector and triangle indices and held-reference bits. `ground-hash`, the
+ *     `record_*` words and the `elev`/`type` sample fields carry them; they exist only because the original record exists.
  *
  * The points come from a private xorshift generator, so the probe never touches the game's random stream; the terrain heights it
  * uses to place points come from a private point-data record. The probe runs inside the engine entry, so it sees EECH's
@@ -84,12 +92,47 @@ static float bits_float (uint32_t bits)
 	return value;
 }
 
+/*
+ * Two separate folds, never mixed (the report names them separately, and a difference in either is classified on its own):
+ *   - the LEGACY fold (`combined`, `above`, `below`, `impact`; report line `ground-hash`) is the original diagnostic fold. It includes the
+ *     shared record's private bookkeeping (sector and triangle indices, whether a sector and a face are held, via fold_view), so it is only
+ *     comparable between two builds that keep that very record. It is unchanged by the physical fold below.
+ *   - the PHYSICAL fold (`phys_*`; report line `ground-physical`) folds only what a query was given and what it answered: the input
+ *     vectors, the booleans and classes, the vectors the call wrote (endpoint corrections and the impact point). It excludes the record's
+ *     bookkeeping, the short-circuit facts (whether the record was touched) and the cache facts (warm repeats), which are reported as
+ *     counters of their own, so it can compare a later candidate that has no such record.
+ */
 struct hashes
 {
 	uint64_t combined, above, below, impact;
+	uint64_t phys_combined, phys_above, phys_below, phys_impact;
 };
 
 enum { KIND_ABOVE, KIND_BELOW, KIND_IMPACT };
+
+static void pfold (struct hashes *h, int kind, uint32_t word)
+{
+	h->phys_combined = fold64 (h->phys_combined, word);
+	switch (kind)
+	{
+	case KIND_ABOVE:
+		h->phys_above = fold64 (h->phys_above, word);
+		break;
+	case KIND_BELOW:
+		h->phys_below = fold64 (h->phys_below, word);
+		break;
+	default:
+		h->phys_impact = fold64 (h->phys_impact, word);
+		break;
+	}
+}
+
+static void pfold_vec (struct hashes *h, int kind, const vec3d *v)
+{
+	pfold (h, kind, float_bits (v->x));
+	pfold (h, kind, float_bits (v->y));
+	pfold (h, kind, float_bits (v->z));
+}
 
 static void fold (struct hashes *h, int kind, uint32_t word)
 {
@@ -278,6 +321,8 @@ struct tally
 	int impacts, by_type[IMPACT_TYPES], class_count[8], class_other;
 	int a_changed, b_changed, xz_changed, alias_equal, alias_unequal, warm_same, warm_different, touched, untouched;
 	int impact_is_below_endpoint, post_above_not_above, assert_below_violations;
+	/* the warm repeat began on exactly the record the cold call left (nothing ran between them), per family */
+	int above_warm_intact, below_warm_intact, impact_warm_intact;
 };
 
 struct probe
@@ -311,6 +356,7 @@ static void point_case (struct probe *p, int n, int tag, vec3d point)
 	struct tally *t = &p->tally;
 	vec3d before = point;
 	struct record_view above_view, below_view;
+	terrain_3d_point_data left;
 	int inside = point_inside_map_area (&point) ? 1 : 0;
 	int above = -1, below, above_again = -1, below_again;
 
@@ -326,7 +372,11 @@ static void point_case (struct probe *p, int n, int tag, vec3d point)
 		/* point_above_ground reads the sector maximum, which stops the engine off the terrain: only ever asked inside the map area */
 		arm (p);
 		above = point_above_ground (&point) ? 1 : 0;
+		/* the warm repeat is the next query after the cold one, on exactly the record the cold call left: the record is copied at once, the
+		   (read-only) observation runs, and the warm call is made only after the record is checked to be that copy */
+		memcpy (&left, p->record, sizeof (left));
 		view_record (p->record, &p->sentinel, &above_view);
+		t->above_warm_intact += memcmp (p->record, &left, sizeof (left)) == 0;
 		above_again = point_above_ground (&point) ? 1 : 0;
 		t->above_cases++;
 		t->above_true += above;
@@ -342,16 +392,24 @@ static void point_case (struct probe *p, int n, int tag, vec3d point)
 		fold (&p->hashes, KIND_ABOVE, (uint32_t) above);
 		fold (&p->hashes, KIND_ABOVE, (uint32_t) above_again);
 		fold_view (&p->hashes, KIND_ABOVE, &above_view);
+		/* physical: the input as given, the cold answer, the input after the call (a mutation would show) */
+		pfold_vec (&p->hashes, KIND_ABOVE, &before);
+		pfold (&p->hashes, KIND_ABOVE, (uint32_t) above);
+		pfold_vec (&p->hashes, KIND_ABOVE, &point);
 	}
 	else
 	{
 		t->off_map_cases++;
 		fold (&p->hashes, KIND_ABOVE, 0xffffffffu);
+		pfold_vec (&p->hashes, KIND_ABOVE, &before);
+		pfold (&p->hashes, KIND_ABOVE, 0xffffffffu);
 	}
 
 	arm (p);
 	below = point_below_ground (&point) ? 1 : 0;
+	memcpy (&left, p->record, sizeof (left));
 	view_record (p->record, &p->sentinel, &below_view);
+	t->below_warm_intact += memcmp (p->record, &left, sizeof (left)) == 0;
 	below_again = point_below_ground (&point) ? 1 : 0;
 	t->below_cases++;
 	t->below_true += below;
@@ -373,6 +431,9 @@ static void point_case (struct probe *p, int n, int tag, vec3d point)
 	fold (&p->hashes, KIND_BELOW, (uint32_t) below_again);
 	fold (&p->hashes, KIND_BELOW, (uint32_t) inside);
 	fold_view (&p->hashes, KIND_BELOW, &below_view);
+	pfold_vec (&p->hashes, KIND_BELOW, &before);
+	pfold (&p->hashes, KIND_BELOW, (uint32_t) below);
+	pfold_vec (&p->hashes, KIND_BELOW, &point);
 
 	if (inside)
 	{
@@ -420,6 +481,7 @@ static void impact_case (struct probe *p, int n, int type, vec3d a0, vec3d b0)
 	vec3d pb = a0, qb = b0, rb;
 	vec3d pw = a0, qw = b0, rw;
 	struct record_view alias_view, separate_view;
+	terrain_3d_point_data left;
 	int class_alias, class_separate, class_warm;
 	int equal, warm, a_changed, b_changed, xz_changed;
 
@@ -435,10 +497,19 @@ static void impact_case (struct probe *p, int n, int type, vec3d a0, vec3d b0)
 
 	arm (p);
 	class_separate = (int) get_ground_impact_point (&pb, &qb, &rb);
+	/* the warm call is the very next query after the separate one, on exactly the record the separate call left: the record is copied at once,
+	   the (read-only) observation runs, and the warm call is made only after the record is checked to be that copy. The diagnostic predicate
+	   checks below run AFTER the warm call, because point_above_ground can write the shared record. */
+	memcpy (&left, p->record, sizeof (left));
 	view_record (p->record, &p->sentinel, &separate_view);
+	t->impact_warm_intact += memcmp (p->record, &left, sizeof (left)) == 0;
+
+	/* warm: the same separate call again, on the record as the separate call left it */
+	class_warm = (int) get_ground_impact_point (&pw, &qw, &rw);
 
 	/* the original function's ASSERT (!point_above_ground (below_ground)) on the corrected below endpoint, asked outside it because the build's
-	   ASSERT is a no-op log; and, not an original assert, whether the corrected above endpoint is above the ground */
+	   ASSERT is a no-op log; and, not an original assert, whether the corrected above endpoint is above the ground. They are extra queries, made
+	   after every call being characterised, so they cannot change what those calls saw. */
 	if (!point_above_ground (&pb))
 	{
 		t->post_above_not_above++;
@@ -447,9 +518,6 @@ static void impact_case (struct probe *p, int n, int type, vec3d a0, vec3d b0)
 	{
 		t->assert_below_violations++;
 	}
-
-	/* warm: the same separate call again, on the record as it now stands */
-	class_warm = (int) get_ground_impact_point (&pw, &qw, &rw);
 
 	a_changed = !bits_equal3 (&pb, &a0);
 	b_changed = !bits_equal3 (&qb, &b0);
@@ -493,6 +561,18 @@ static void impact_case (struct probe *p, int n, int type, vec3d a0, vec3d b0)
 	fold_vec (&p->hashes, KIND_IMPACT, &rb);
 	fold_view (&p->hashes, KIND_IMPACT, &separate_view);
 	fold (&p->hashes, KIND_IMPACT, (uint32_t) (equal | (warm << 1)));
+
+	/* physical: what the calls were given and answered, both output shapes, and the endpoint corrections; no record bookkeeping, no
+	   short-circuit or cache facts (those are the counters) */
+	pfold_vec (&p->hashes, KIND_IMPACT, &a0);
+	pfold_vec (&p->hashes, KIND_IMPACT, &b0);
+	pfold (&p->hashes, KIND_IMPACT, (uint32_t) class_alias);
+	pfold_vec (&p->hashes, KIND_IMPACT, &pa);
+	pfold_vec (&p->hashes, KIND_IMPACT, &qa);
+	pfold (&p->hashes, KIND_IMPACT, (uint32_t) class_separate);
+	pfold_vec (&p->hashes, KIND_IMPACT, &pb);
+	pfold_vec (&p->hashes, KIND_IMPACT, &qb);
+	pfold_vec (&p->hashes, KIND_IMPACT, &rb);
 
 	if (p->samples.impact_by_type[type] < IMPACT_SAMPLES_PER_TYPE)
 	{
@@ -785,6 +865,7 @@ int eech_ground_probe_run (uint32_t seed, int points, int impacts, char *text, i
 
 	memset (p, 0, sizeof (*p));
 	p->hashes.combined = p->hashes.above = p->hashes.below = p->hashes.impact = FNV_OFFSET;
+	p->hashes.phys_combined = p->hashes.phys_above = p->hashes.phys_below = p->hashes.phys_impact = FNV_OFFSET;
 	p->record = shared_record ();
 	p->max_x = MAX_MAP_X;
 	p->max_z = MAX_MAP_Z;
@@ -834,17 +915,18 @@ int eech_ground_probe_run (uint32_t seed, int points, int impacts, char *text, i
 	emit (&out, "ground-record anchored=1 restored=%d words_before=%016llx words_after=%016llx\n", restored, (unsigned long long) record_hash_before,
 		(unsigned long long) record_hash_after);
 	emit (&out, "ground-points cases=%d in_map=%d off_map=%d input_mutated=%d\n", t->points, t->above_cases, t->off_map_cases, t->input_mutated);
-	emit (&out, "ground-above cases=%d true=%d false=%d record_touched=%d true_record_untouched=%d warm_same=%d\n", t->above_cases, t->above_true,
-		t->above_cases - t->above_true, t->above_touched, t->above_true_untouched, t->above_warm_same);
-	emit (&out, "ground-below cases=%d true=%d false=%d record_touched=%d true_record_untouched=%d warm_same=%d off_map_true=%d off_map_record_touched=%d\n", t->below_cases,
-		t->below_true, t->below_cases - t->below_true, t->below_touched, t->below_true_untouched, t->below_warm_same, t->off_map_below_true,
+	emit (&out, "ground-above cases=%d true=%d false=%d record_touched=%d true_record_untouched=%d warm_same=%d warm_start_intact=%d\n", t->above_cases, t->above_true,
+		t->above_cases - t->above_true, t->above_touched, t->above_true_untouched, t->above_warm_same, t->above_warm_intact);
+	emit (&out, "ground-below cases=%d true=%d false=%d record_touched=%d true_record_untouched=%d warm_same=%d warm_start_intact=%d off_map_true=%d "
+		"off_map_record_touched=%d\n", t->below_cases,
+		t->below_true, t->below_cases - t->below_true, t->below_touched, t->below_true_untouched, t->below_warm_same, t->below_warm_intact, t->off_map_below_true,
 		t->off_map_below_touched);
 	emit (&out, "ground-complement in_map_cases=%d complement=%d not_complement=%d both_true=%d both_false=%d\n", t->in_map_both, t->complement, t->not_complement,
 		t->both_true, t->both_false);
 	emit (&out, "ground-impact cases=%d a_corrected=%d b_corrected=%d xz_changed=%d alias_equal=%d alias_unequal=%d warm_same=%d warm_different=%d record_touched=%d "
-		"record_untouched=%d impact_equals_corrected_below=%d\n",
+		"record_untouched=%d impact_equals_corrected_below=%d warm_start_intact=%d\n",
 		t->impacts, t->a_changed, t->b_changed, t->xz_changed, t->alias_equal, t->alias_unequal, t->warm_same, t->warm_different, t->touched, t->untouched,
-		t->impact_is_below_endpoint);
+		t->impact_is_below_endpoint, t->impact_warm_intact);
 	emit (&out, "ground-impact-classes invalid=%d water=%d forest=%d land=%d other=%d\n", t->class_count[TERRAIN_CLASS_INVALID], t->class_count[TERRAIN_CLASS_WATER],
 		t->class_count[TERRAIN_CLASS_FOREST], t->class_count[TERRAIN_CLASS_LAND], t->class_other + t->class_count[4] + t->class_count[5] + t->class_count[6] + t->class_count[7]);
 	emit (&out, "ground-impact-types t0=%d t1=%d t2=%d t3=%d t4=%d t5=%d t6=%d t7=%d\n", t->by_type[0], t->by_type[1], t->by_type[2], t->by_type[3], t->by_type[4],
@@ -852,6 +934,8 @@ int eech_ground_probe_run (uint32_t seed, int points, int impacts, char *text, i
 	emit (&out, "ground-asserts original_below_endpoint_still_above=%d extra_above_endpoint_not_above=%d\n", t->assert_below_violations, t->post_above_not_above);
 	emit (&out, "ground-hash combined=%016llx above=%016llx below=%016llx impact=%016llx\n", (unsigned long long) p->hashes.combined,
 		(unsigned long long) p->hashes.above, (unsigned long long) p->hashes.below, (unsigned long long) p->hashes.impact);
+	emit (&out, "ground-physical combined=%016llx above=%016llx below=%016llx impact=%016llx\n", (unsigned long long) p->hashes.phys_combined,
+		(unsigned long long) p->hashes.phys_above, (unsigned long long) p->hashes.phys_below, (unsigned long long) p->hashes.phys_impact);
 
 	if (out.overflow)
 	{

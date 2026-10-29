@@ -1989,58 +1989,11 @@ fn the_object_witness_says_so_when_there_is_no_such_structure_and_refuses_a_malf
 
 // The ground-contact characterisation driver (EEDCS-48; lua/ground-characterization.lua) against a small stand-in for the engine: only its argument safety, its flow and its own checks of what the probe
 // returns are exercised here (the arguments refused BEFORE the engine is booted, the probe called with the asked seed and counts as often as asked, the control that does not probe, the report parsed into
-// events with hash words kept as text, a refused probe, a repeat that differs, a record not restored, a report that is not the one asked for). Whether the original ground queries behave as characterised
-// is the native run's to show, with a DLL built with the `ground-fixture` feature.
-const GROUND_CASE_CALLER_SCRIPT: &str = r#"
-local mode = '@MODE@'
-local function note(text)
-  local f = io.open('@TRACE@', 'a')
-  f:write(text, '\n')
-  f:close()
-end
-local time = 0
-local probes = 0
-local engine = {}
-function engine:clock() return { elapsed_seconds = time } end
-function engine:frame(ms) time = time + ms / 1000 note('frame') end
-function engine:objects()
-  return {
-    { id = 2, kind = 'helicopter', side = 'blue', alive = true },
-    { id = 1, kind = 'ground_vehicle', side = 'red', alive = false },
-  }
-end
-local function report(seed, points, impacts)
-  local restored = (mode == 'unrestored') and 0 or 1
-  local after = (mode == 'unrestored') and 'bbbb' or 'aaaa'
-  local lines = {
-    'ground-probe seed=' .. seed .. ' points=' .. (mode == 'wrongheader' and points + 1 or points) .. ' impacts=' .. impacts .. ' samples_per_kind=12',
-    'ground-record anchored=1 restored=' .. restored .. ' words_before=aaaa words_after=' .. after,
-    'ground-points cases=' .. points .. ' in_map=' .. points .. ' off_map=0 input_mutated=0',
-    'ground-above cases=' .. points .. ' true=1 false=2 record_touched=1 true_record_untouched=0 warm_same=3',
-    'ground-below cases=' .. points .. ' true=1 false=2 record_touched=1 true_record_untouched=0 warm_same=3 off_map_true=0 off_map_record_touched=0',
-    'ground-complement in_map_cases=3 complement=3 not_complement=0 both_true=0 both_false=0',
-    'ground-impact cases=' .. impacts .. ' a_corrected=0',
-    'ground-asserts original_below_endpoint_still_above=0 extra_above_endpoint_not_above=0',
-    'ground-hash combined=1234567890123456 above=0000000000000001 below=0000000000000002 impact=3000000000000000',
-    'ground-sample kind=point n=0 x=40000000 y=3f800000',
-  }
-  if mode == 'missing' then table.remove(lines, 7) end
-  if mode == 'vary' then lines[#lines + 1] = 'ground-extra n=' .. probes end
-  return table.concat(lines, '\n') .. '\n'
-end
-function engine:ground_probe(seed, points, impacts)
-  probes = probes + 1
-  note('probe ' .. seed .. ' ' .. points .. ' ' .. impacts)
-  if mode == 'refuse' then error('ground-refused reason=no_terrain_loaded', 0) end
-  return report(seed, points, impacts)
-end
-package.loaded['eech_dc'] = {
-  prepare_installation = function() note('prepare') end,
-  boot = function() note('boot') return engine end,
-}
-dofile('@LUA_DIR@/ground-characterization.lua')
-print('GROUND_CALLER_DONE')
-"#;
+// events with hash words kept as text, a refused probe, a repeat that differs, a record not restored, a report that is not the one asked for, and a table of reports with ONE defect each: absent or malformed
+// record words, bare or short hash and physical-fold rows, missing or wrong counts, duplicate or unknown rows). The stand-in (tests/lua/ground-caller.lua, loaded with include_str! so no path is needed) writes a
+// complete well-formed report and measures nothing about the ground queries: whether the original ground queries behave as characterised is the native run's to show, with a DLL built with the
+// `ground-fixture` feature.
+const GROUND_CASE_CALLER_SCRIPT: &str = include_str!("lua/ground-caller.lua");
 
 fn run_ground_case(mode: &str, extra: &[&str]) -> (std::process::ExitStatus, String, String, String, Vec<serde_json::Value>) {
     let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -2118,6 +2071,16 @@ fn the_ground_driver_probes_with_the_asked_seed_and_counts_as_often_as_asked_and
     // a hash word of decimal digits stays text; a counter is a number
     let hash = rows.iter().find(|r| r["event"] == "ground-hash").unwrap();
     assert_eq!(hash["combined"].as_str(), Some("1234567890123456"), "{hash}");
+    // the physical fold is a row of its own, separate from the legacy fold, and every repeat records both
+    assert_eq!(rows.iter().filter(|r| r["event"] == "ground-physical").count(), 3);
+    let physical = rows.iter().find(|r| r["event"] == "ground-physical").unwrap();
+    assert_eq!(physical["combined"].as_str(), Some("fedcba9876543210"), "{physical}");
+    let record = rows.iter().find(|r| r["event"] == "ground-record").unwrap();
+    assert_eq!(
+        (record["words_before"].as_str(), record["words_after"].as_str(), record["restored"].as_i64()),
+        (Some("0123456789abcdef"), Some("0123456789abcdef"), Some(1)),
+        "{record}"
+    );
     let sample = rows.iter().find(|r| r["event"] == "ground-sample").unwrap();
     assert_eq!((sample["x"].as_str(), sample["y"].as_str()), (Some("40000000"), Some("3f800000")), "{sample}");
     let above = rows.iter().find(|r| r["event"] == "ground-above").unwrap();
@@ -2182,7 +2145,7 @@ fn the_ground_driver_refuses_a_malformed_argument_before_booting_or_writing_anyt
 }
 
 #[test]
-fn the_ground_driver_fails_on_a_refused_probe_and_on_a_report_that_is_not_a_result() {
+fn the_ground_driver_fails_on_a_refused_probe_and_on_a_repeat_that_differs() {
     // an engine that refuses the probe: the refusal is recorded and the run fails, never a quiet success
     let (status, stdout, stderr, trace, rows) = run_ground_case("refuse", &["points=5", "impacts=5"]);
     assert!(!status.success() && !stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
@@ -2191,15 +2154,130 @@ fn the_ground_driver_fails_on_a_refused_probe_and_on_a_report_that_is_not_a_resu
     assert!(refused["error"].as_str().unwrap().contains("no_terrain_loaded"), "{refused}");
     assert!(rows.iter().all(|r| r["event"] != "state_digest"), "no digest after a refusal");
     assert_eq!(trace.matches("probe ").count(), 1, "the run stops at the first refusal: {trace}");
-    for (mode, what) in [
-        ("vary", "differs from repeat 1"),
-        ("unrestored", "did not restore the shared terrain record"),
-        ("wrongheader", "the report is for seed"),
-        ("missing", "the report has no ground-impact line"),
-    ] {
-        let (status, _, stderr, _, rows) = run_ground_case(mode, &["points=5", "impacts=5"]);
-        assert!(!status.success(), "{mode}: accepted");
-        assert!(stderr.contains(what), "{mode}: {stderr}");
-        assert!(rows.iter().all(|r| r["event"] != "state_digest"), "{mode}: no digest after a failed check");
+
+    // two well-formed reports that differ: the second is not the first, so the probe is not a pure function of its request
+    let (status, stdout, stderr, _, rows) = run_ground_case("differs_between_repeats", &["points=5", "impacts=5"]);
+    assert!(!status.success() && !stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    let message = "ground-characterization: repeat 2 differs from repeat 1: the probe is not a pure function of the seed and the loaded map";
+    assert!(stderr.contains(message), "{stderr}");
+    let same = rows.iter().find(|r| r["event"] == "repeat_identical").expect("the comparison is recorded");
+    assert_eq!(same["ok"].as_bool(), Some(false), "{same}");
+    assert!(rows.iter().all(|r| r["event"] != "state_digest"), "no digest after a repeat that differs");
+}
+
+#[test]
+fn the_ground_driver_accepts_a_complete_report_in_which_a_family_has_no_cases() {
+    // a valid report may have zero point cases or zero impact cases: that family folds nothing and reports zeros, and is not an error
+    for (args, empty_family) in [(["points=0", "impacts=5"], "above"), (["points=5", "impacts=0"], "impact")] {
+        let (status, stdout, stderr, _, rows) = run_ground_case("ok", &args);
+        assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{args:?}: {stdout}\n{stderr}");
+        for fold in ["ground-hash", "ground-physical"] {
+            let row = rows.iter().find(|r| r["event"] == fold).unwrap_or_else(|| panic!("{args:?}: no {fold} row"));
+            assert_eq!(row[empty_family].as_str(), Some("cbf29ce484222325"), "{args:?}: {row}");
+        }
+        assert!(rows.iter().any(|r| r["event"] == "state_digest"), "{args:?}");
+    }
+}
+
+// The message the driver refuses with: its own prefix and the reason.
+fn ground_refusal(reason: &str) -> String {
+    format!("ground-characterization: {reason}")
+}
+
+// Reports with ONE defect each, from the stand-in (tests/lua/ground-caller.lua), run through the REAL driver. Each must fail the run with exactly the named reason (not any error that happens to contain a
+// similar word), record it as `report_invalid` once, write no row of the rejected report, and write no success row: no `repeat_identical` and no `state_digest`. A measurement that is absent, of the wrong
+// type or width, or inconsistent with the request is never read as zero, as nil equal to nil, or as a pass.
+#[test]
+fn the_ground_driver_names_the_one_defect_in_a_report_and_writes_no_success_row() {
+    let counts: &[&str] = &["points=5", "impacts=5"];
+    let no_impacts: &[&str] = &["points=5", "impacts=0"];
+    let defects: [(&str, &[&str], &str); 39] = [
+        (
+            "unrestored",
+            counts,
+            "the probe did not restore the shared terrain record: restored=0 words 0123456789abcdef -> 0123456789abcdef",
+        ),
+        (
+            "words_differ",
+            counts,
+            "the probe did not restore the shared terrain record: restored=1 words 0123456789abcdef -> ffffffffffffffff",
+        ),
+        ("not_anchored", counts, "ground-record: anchored is 0, expected 1"),
+        (
+            "wrongheader",
+            counts,
+            "the report is for seed 20261029 points 6 impacts 5, not the 20261029 5 5 asked",
+        ),
+        ("record_words_absent", counts, "ground-record: words_before is missing"),
+        ("record_before_absent", counts, "ground-record: words_before is missing"),
+        (
+            "record_word_short",
+            counts,
+            "ground-record: words_after must be 16 lowercase hex digits, got 'abcd'",
+        ),
+        (
+            "record_word_upper",
+            counts,
+            "ground-record: words_before must be 16 lowercase hex digits, got '0123456789ABCDEF'",
+        ),
+        ("hash_bare", counts, "ground-hash: combined is missing"),
+        ("hash_missing_field", counts, "ground-hash: impact is missing"),
+        ("hash_short", counts, "ground-hash: below must be 16 lowercase hex digits, got '1'"),
+        ("hash_row_missing", counts, "the report has no ground-hash row"),
+        ("physical_bare", counts, "ground-physical: combined is missing"),
+        ("physical_missing_field", counts, "ground-physical: combined is missing"),
+        ("physical_missing_row", counts, "the report has no ground-physical row"),
+        ("count_missing", counts, "ground-above: warm_same is missing"),
+        ("count_wrong", counts, "ground-above: cases is 6, expected 5"),
+        ("count_hex", counts, "ground-below: cases must be a decimal count, got '0x5'"),
+        ("count_negative", counts, "ground-impact: cases must be a decimal count, got '-1'"),
+        ("count_float", counts, "ground-impact: a_corrected must be a decimal count, got '1.5'"),
+        ("impact_cases_wrong", counts, "ground-impact: cases is 4, expected 5"),
+        (
+            "classes_sum",
+            counts,
+            "ground-impact-classes: invalid + water + forest + land + other is 4, expected 5",
+        ),
+        ("types_sum", counts, "ground-impact-types: t0 .. t7 is 4, expected 5"),
+        ("family_sum", counts, "ground-below: true + false is 7, expected 5"),
+        ("warm_intact_short", counts, "ground-impact: warm_start_intact is 4, expected 5"),
+        ("warm_intact_point_short", counts, "ground-above: warm_start_intact is 4, expected 5"),
+        ("duplicate_row", counts, "the report has more than one ground-map row"),
+        ("unknown_row", counts, "the report has an unknown row 'ground-extra'"),
+        ("unexpected_key", counts, "ground-asserts: unexpected key bonus"),
+        ("bare_word", counts, "ground-map: 'oops' is not key=value"),
+        ("duplicate_key", counts, "ground-map: sectors_x appears twice"),
+        ("empty_fold", counts, "ground-hash: above is cbf29ce484222325 for 5 cases"),
+        ("full_fold", no_impacts, "ground-physical: impact is 3333333333333333 for 0 cases"),
+        ("sample_bad_hex", counts, "ground-sample: x must be 8 lowercase hex digits, got '4000'"),
+        ("sample_missing", counts, "ground-sample: 0 point samples for 5 point cases"),
+        ("sample_unknown_kind", counts, "ground-sample: kind must be point or impact, got 'rock'"),
+        ("sample_case_out_of_range", counts, "ground-sample: a point sample names case 5 of 5"),
+        (
+            "sample_triple_short",
+            counts,
+            "ground-sample: pa must be three 8-digit lowercase hex words joined by commas, got '3f800000,40000000'",
+        ),
+        ("sample_flag", counts, "ground-sample: inside must be 0 or 1, got '2'"),
+    ];
+    for (mode, args, reason) in defects {
+        let expected = ground_refusal(reason);
+        let (status, stdout, stderr, trace, rows) = run_ground_case(mode, args);
+        assert!(
+            !status.success() && !stdout.contains("GROUND_CALLER_DONE"),
+            "{mode}: accepted\n{stdout}\n{stderr}"
+        );
+        assert!(stderr.contains(&expected), "{mode}: expected {expected:?}, got {stderr}");
+        let invalid: Vec<_> = rows.iter().filter(|r| r["event"] == "report_invalid").collect();
+        assert_eq!(invalid.len(), 1, "{mode}: {rows:?}");
+        assert_eq!(invalid[0]["error"].as_str(), Some(expected.as_str()), "{mode}");
+        for success in ["repeat_identical", "state_digest"] {
+            assert!(rows.iter().all(|r| r["event"] != success), "{mode}: a {success} row follows a rejected report");
+        }
+        assert!(
+            rows.iter().all(|r| !r["event"].as_str().unwrap_or("").starts_with("ground-")),
+            "{mode}: a row of the rejected report was recorded"
+        );
+        assert_eq!(trace.matches("probe ").count(), 1, "{mode}: the run stops at the rejected report: {trace}");
     }
 }

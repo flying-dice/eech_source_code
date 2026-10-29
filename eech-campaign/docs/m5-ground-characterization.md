@@ -1,6 +1,6 @@
 # D3 G2: ground contact, original characterisation (EEDCS-48)
 
-**Status: source written, NOT built, NOT compiled, NOT run, NOT reviewed.** Task EEDCS-48 (parent EEDCS-21, D3), branch `codex/d3-ground-contact`, from accepted integration
+**Status: source written, NOT built, NOT compiled, NOT run. One independent source review of `7a4c12ca0` found two P2 and one P3 (no change to any original formula); this revision corrects them (section 7) and awaits Root validation and a review of that delta.** Task EEDCS-48 (parent EEDCS-21, D3), branch `codex/d3-ground-contact`, from accepted integration
 `6bbaa8197a4843181d03cd355d562af998c75321`. This is the **original characterisation only**: a test-only fixture and a driver that exercise the unchanged ground-contact code through the public
 Lua -> `require ("eech_dc")` -> `Engine` path. New engine hooks are test-feature guarded; ordinary shipping flags, behavior and physical expressions remain unchanged. Nothing here moves behavior to a host. Every result named below as
 "to be measured" is unmeasured; no golden, hash, count or coverage figure exists yet, and none may be quoted from this document.
@@ -61,7 +61,7 @@ Compiled only with `--features eech-dc/ground-fixture` (`EECH_GROUND_FIXTURE`); 
 | `crates/eech-engine-sys/{Cargo.toml,build/main.rs,src/lib.rs}`, `crates/eech-engine`, `crates/eech-dc` | the feature, its `-D`, the binding, `Engine::ground_probe`, the Lua method `engine:ground_probe (seed, points, impacts)` |
 | `crates/eech-world/lua/ground-characterization.lua` | the one driver |
 | `tools/build-windows-ground-fixture.sh` | the unchanged `build-windows.sh` with the one cargo argument added (the same two-line adaptation check as the LOS wrapper) |
-| `crates/eech-world/tests/host_callbacks.rs` | `the_ground_driver_*` tests: the real driver against a stand-in engine, for argument refusal and flow only |
+| `crates/eech-world/tests/host_callbacks.rs`, `tests/lua/ground-caller.lua` | `the_ground_driver_*` tests: the real driver against a stand-in engine (loaded with `include_str!`), for argument refusal, flow, and a table of 39 single-defect reports that must each be refused by name |
 
 ### What one probe does
 
@@ -78,15 +78,40 @@ Terrain heights used to place points come from a private point-data record. Ever
    next float above 0, `1`, the maximum, one float below it, `maximum - 1`, `2048`), 5 **outside the map area**. The height is one of sixteen offsets from the terrain elevation `e` and the sector maximum `M`:
    `e-500, e-1, e-0.001, nextbelow(e), e, nextabove(e), e+0.001, e+1, e+500, nextbelow(M), M, nextabove(M), M-1, M+1, MIN_MAP_Y, MAX_MAP_Y`.
    `point_above_ground` is asked **only** when `point_inside_map_area` holds (it stops the engine otherwise); `point_below_ground` is asked for every point, including outside the map area. Each is
-   asked cold (record = sentinel) and once more warm, and the two answers compared. The input vector is checked for mutation.
+   asked cold (record = sentinel) and once more warm, and the two answers compared. The warm call is the very next query after the cold one: the record is copied the instant the cold call returns,
+   the (read-only) observation runs, and the warm call is made only after the record is checked to be that copy (`warm_start_intact`, which must equal the case count). The input vector is checked for mutation.
 4. **Impact cases** (`ground-impact*`): eight types: 0 a valid crossing, 1 above endpoint actually below ground (first correction), 2 below endpoint actually above ground (second correction), 3 both,
    4 identical `x, z` (bisection on `y` only), 5 both exactly at the terrain elevation, 6 above endpoint exactly at its sector maximum, 7 endpoints straddling a sector boundary. Horizontal separations
    of 0.25, 0.9, 1, 1.1, 2, 10, 100, 1 000 and 10 000 m bracket the 1 m (squared 1.0) stop. Each case runs **three** calls: aliased as the caller does (`&p, &q, &q`), separate output, and the separate call
    again warm. Observed: class, the bits of every vector it can write, the record after each cold call, whether aliased and separate agree (`alias_equal`), whether warm agrees (`warm_same`), which inputs were
-   corrected (`a_corrected`, `b_corrected`, and `xz_changed`, expected 0 and to be measured), and whether the impact equals the corrected below endpoint.
-5. **Hashes and samples**: an order-dependent FNV-1a over every case's inputs and outputs (`combined`, and one per call family). `ground-sample` lines carry **float bit patterns in hex only** (no
-   printf of floats under round-toward-zero): two point samples per tag, four impact samples per type. The report size is independent of the counts and fits its 192 KiB buffer; a report that does not fit is
-   refused, never cut short.
+   corrected (`a_corrected`, `b_corrected`, and `xz_changed`, expected 0 and to be measured), and whether the impact equals the corrected below endpoint. The sequence is: aliased call, record re-armed,
+   separate call, warm call, and **only then** the two extra diagnostic `point_above_ground` checks of the corrected endpoints (`ground-asserts`). Those checks are queries the original code does not make
+   there, and `point_above_ground` can write the shared record, so they run after every call being characterised and cannot change what those calls saw. The original function's own `ASSERT` evaluations
+   are untouched and happen inside it, in its own order. (The first committed form ran the diagnostics before the warm call and so measured a warm repeat on a different record; corrected after independent review.)
+5. **Hashes and samples**: two order-dependent FNV-1a folds, reported on separate rows and never mixed (see "What can be compared" below): `ground-hash`, the legacy fold, and `ground-physical`, the physical-only
+   fold. `ground-sample` lines carry **float bit patterns in hex only** (no printf of floats under round-toward-zero): two point samples per tag, four impact samples per type. The report size is independent of
+   the counts and fits its 192 KiB buffer; a report that does not fit is refused, never cut short.
+
+### What can be compared
+
+The fixture was written against the accepted integration, where the shared terrain record is the original struct (`terrdata.h`) with sector and triangle indices and sector/face pointers. The G1 lane
+(Task 47) replaces that record with semantic values and optional hints, and the record's layout is **never** a generic or DCS host requirement. So the report keeps three kinds of fact apart, and a later
+candidate may be compared only as far as each kind allows:
+
+| Kind | Where it is reported | What it is | Comparing a later candidate |
+|---|---|---|---|
+| **Physical** | `ground-physical` (`combined`, `above`, `below`, `impact`); the counters `ground-points`, `ground-above` and `-below` (`cases`, `true`, `false`), `ground-complement`, `ground-impact` (`a_corrected`, `b_corrected`, `xz_changed`, `alias_equal`, `alias_unequal`, `impact_equals_corrected_below`), `-classes`, `-types`; the `x y z`, `a0 b0 pa qa pb qb rb`, `class_*`, `above`, `below`, `inside` fields of `ground-sample` | what each query was given and answered: input vectors as given and after the call (so an input mutation shows), the booleans, the terrain class, the endpoint corrections and the impact point, for the aliased and the separate output shapes. `ground-physical` folds exactly these, from the cold calls only | the whole-query comparison that needs no private index or pointer. A difference is a regression, an approved defect correction, an intentional semantic change or expected input variation, and is classified, never normalised |
+| **Short-circuit and cache** | `record_touched`, `true_record_untouched`, `off_map_record_touched`, `record_touched/record_untouched` (impact); `warm_same`, `warm_different`, `warm_start_intact`; `above_touched`, `below_touched` and `touched` in samples | whether a call read the terrain at all (the sector-maximum clause, the off-map clause) and whether a repeat on the state the first call left agrees. Counters only; **not** in `ground-physical` | a candidate with no shared record has no "record touched"; it is compared through its own declared hint/cache facts (G1's semantic cache comparison) where they exist, and a short-circuit that the candidate does not reproduce is reported as a difference, not dropped |
+| **Legacy record diagnostics** | `ground-hash` (all four hashes), `ground-record` (`words_before`, `words_after`), and the `elev`/`type` words of `ground-sample` (`above_elev`, `above_type`, `below_elev`, `below_type`, `elev`, `type_word`) | the original shared record's value words and its private bookkeeping: x and z sector indices, the triangle offset and whether a sector and a face are held, folded by `fold_view`. They exist only because the original record exists | not interchangeable physical answers and not a provider requirement. A `ground-hash` difference against a candidate with a different record is expected and is **classified, never normalised into physical equality** and never "fixed" by forcing indices or pointers into a host contract |
+
+`ground-hash` is unchanged by the physical fold (the legacy folds are the same expressions over the same words, and the physical fold is a second, independent accumulator). The legacy hashes may differ from
+the first committed form of the fixture, because the warm repeat now starts from the correct record (above); no oracle was ever recorded from that form.
+
+**Comparison scope after G1/G2 composition.** The original oracle stays as recorded, with its legacy diagnostics, as the characterisation of the unchanged code. Composing this fixture with the G1 branch
+needs a **deliberate fixture adaptation**: the record access (`shared_record`, `view_record`, `fold_view`, `record_words_hash`, the sentinel) reads the legacy struct and must be replaced by whatever G1
+exposes (its semantic value record), and that adaptation is itself reviewed. After it, the comparison is: `ground-physical` and the physical counters and samples must match the original oracle under the
+declared classification; the short-circuit and cache facts are compared as G1's semantic cache comparison permits; the legacy rows are reported for the original side only. This document does not define a host
+API for any of it. The physical fold folds the same cold-call inputs and outputs in the same order, so a candidate that reproduces the answers reproduces the digest without exposing a single private index.
 
 ### Preconditions, refusals and limits
 
@@ -111,7 +136,16 @@ the map and seed, not a requirement.
 
 `ground-characterization.lua` boots with the reference host's callbacks exactly as the LOS driver does, optionally runs `seconds` of frames, calls the probe `repeats` times with no frames between, runs
 `after` seconds of frames, and writes one JSON Lines event per report line plus a `state_digest`. It fails (not green) when: an argument is unknown, malformed or out of range (checked **before boot**,
-before the output file is opened); the probe is refused; the report lacks a required line or is not for the seed and counts asked; the record is not restored; or a repeat differs from the first.
+before the output file is opened); the probe is refused; the report is not a complete result (below); the record is not restored; or a repeat differs from the first.
+
+**A report is accepted only as a whole.** Every row of the fixture's schema (`ground-probe`, `-map`, `-record`, `-points`, `-above`, `-below`, `-complement`, `-impact`, `-impact-classes`, `-impact-types`,
+`-asserts`, `-hash`, `-physical`) must be present exactly once with exactly its keys: a missing key, an unexpected key, a repeated key, a word that is not `key=value`, an unknown row or a repeated row is
+refused by name. Every value must have its exact type: a decimal count (digits only, so not `0x5`, `-1`, `1.5` or `1e3`), a 0/1 flag, or lowercase hex of the exact width (16 for record words and folds, 8 per
+float word in a sample, three comma-joined for a vector). The counts must agree with the request and with each other (cases equal the points or impacts asked, `true + false` equals the cases, the class and
+type tallies sum to the impact cases, `warm_start_intact` equals the cases, a repeat's `restored` is 1 and its `words_before` equals `words_after`), a family that ran no case folded nothing (its hash is the
+empty-fold value) and a family that did is not empty, and samples are present for every family that ran, bounded, and name cases that exist. A zero-case family is a valid report. A report that fails any of
+this records `report_invalid` with the reason, fails the run, and **no `repeat_identical` or `state_digest` row follows it**. The reason is the driver's own message for that one defect; the tests compare it
+exactly, not by a shared word. (The first committed driver only checked that a few rows existed, so a report with no record words, or a bare `ground-hash`, could pass, because `nil == nil`.)
 `probe=no` is the control: the same frames, no call, and the same digest line (object ids, kind, side and alive in id order, a modular hash below 2^31 because Lua 5.1 formats through a 32-bit `long`
 on Windows). Hash words and samples are kept as text so a hex word of decimal digits is never turned into a number.
 
@@ -169,3 +203,18 @@ against the candidate and compares `ground-hash`, the counters and the samples; 
 - `edge_coord` and `boundary_coord` reach the exact map maximum, where the terrain sector index equals the last sector; this is intended (it is inside the map area) and is the case most likely to expose a
   surprise. If it stops the engine, the run fails with the engine's message and the case is recorded as unsupported, not skipped.
 - The probe/no-probe digest is a coarse witness (object identity, kind, side, alive) after the same frames; it is not proof that the campaign's state is untouched. A fuller control is Root's call.
+
+## 7. Corrections after the independent source review of `7a4c12ca0` (unbuilt, unrun)
+
+Review: `R:/d3-evidence/independent-ground-original-source-review-7a4c12ca0.json` (SHA-256 `1e6f5d4b2753b123db2bec6152a04aaac4a154110b4a59cdb6967d8ab245edf4`). No original production expression, shipping flag, data, root,
+oracle, baseline or tolerance is touched by any of the three.
+
+| Finding | Correction |
+|---|---|
+| P2 warm impact state: diagnostic `point_above_ground` checks ran between the separate impact call and the warm call and could overwrite the shared record | the two diagnostic checks now run **after** the warm call; the record is copied when the separate call returns and checked to be that copy immediately before the warm call (`warm_start_intact`, per family, required to equal the case count). The aliased sequence is unaffected (the record is re-armed to the sentinel before the separate call, which is the cold reference by design) and the point cases already repeat immediately; the anchor check at probe start writes then restores its own snapshot. No query was added to the behaviour being characterised |
+| P2 driver truthfulness: absent `words_before`/`words_after` compared `nil == nil`; a bare `ground-hash` passed; row names alone satisfied the family checks | the strict whole-report schema of section 3, with 39 single-defect negative controls through the real driver (absent, short and upper-case record words; bare, short and missing hash and physical rows; missing, hex, negative, fractional and inconsistent counts; duplicate, unknown and malformed rows; a fold that is empty for a family that ran or full for one that did not; bad, missing and out-of-range samples) plus the refused probe and a repeat that differs. Each is compared with its own exact message |
+| P3 legacy record comparability | section 2, "What can be compared": physical, short-circuit/cache and legacy-record facts are separated; a new `ground-physical` fold (inputs as given and after the call, answers, classes, endpoint corrections, the impact point in both output shapes; no record bookkeeping, no short-circuit or cache facts) is reported next to the unchanged legacy `ground-hash`; the driver requires both; a deliberate, reviewed fixture adaptation is required when composing with G1 |
+
+Remaining limits of this revision: the physical fold is only as meaningful as the cases that run (it is a digest of what was probed, not of the whole function); the fixture still reads the legacy record
+directly and so still cannot be built against the G1 record without the adaptation above; `warm_start_intact` is an invariant check on the fixture's own sequence, not evidence about the original code; none of
+the C, Rust or Lua has been compiled or run.
