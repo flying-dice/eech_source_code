@@ -41,6 +41,13 @@ Their originals under `R:/d3-evidence/` and their saved outputs are not rewritte
   A completed probe still consumes the arming in C; a successful probe never clears anything extra.
 * No new test double: the three real scripts above are the boundary tests (a mock would only prove its own setup). The 18 portable driver guards and the 3 argument refusals are unchanged.
 
+Publication provenance: the three native controls retain their exact measured
+private CRLF bytes for RED/GREEN execution. Git publishes canonical LF copies;
+their separate SHA256 values and decoded-text equality are recorded in
+`reference/d3-collision-characterization/geometry-witness-publication-provenance-754dda36e.json`.
+The first safe measurement summary has the same disclosed CRLF/LF distinction.
+No original report, transcript, recording or accepted output was normalized.
+
 ## Root: expected next steps (NOT RUN)
 
 Freeze the corrected source; rebuild the Windows fixture, driver and tree tests and Linux format/Clippy; re-run the three EXACT script bytes natively against the fresh binaries (expect `TREE_GEOMETRY_ONE_SHOT_OK` and
