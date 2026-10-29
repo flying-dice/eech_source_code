@@ -1,3 +1,29 @@
+# Current whole-D3 checkpoint — tree inputs reviewed; host loader/kernel preparation active
+
+Task49 draftPR109 is published at00d1cef8fdd64fae52e4bc0fb45fc3039d296498. The
+passive tree-input capture atf3fd93dfb has one CLOSED independent review with no
+open findings. Three retail captures0/prepost0 preserve all205 old report values;
+all six complete reports/transcripts match initial41 bytes. Georgia554 queries/
+1102 actual terrain lookups, Lebanon600/1120; native8-byte layout and actual file
+records verified. Linux and actualWindows15/15 guards, format/Clippy0; real C
+paging0 (108records,6EOF/extreme cases,6refusals). Ten actual old-checker false
+passes are corrected, with three valid boundary cases preserved. Review-copy
+CRLF/LF hashes are explicitly distinguished; decoded content is identical.
+
+The sole SonnetHigh lane is now implementing host-owned tree file loading and
+the physical kernel against these immutable inputs. This is unbuilt/unrun
+preparation; no production collision cutover. Native forest geometry is absent
+in measured maps and remains unexercised. Required entity/tree/model geometry,
+physical loaders and all remaining D3 responsibilities remain in scope.
+
+Ledger14548994v63 preserves all prior HTML and all five epic reports exactly on
+readback; Jira10856/10857 andPR109 record current evidence/limits. Task47 shipping115
+is live unchanged, checked31.2MB Tacview/19.7MB observations prefixes exact; full40,
+eight complete files, post-inputs and normal delivery remain pending. Production
+G2/G3 still waits validated preceding delivery and integration verification.
+Campaign geography, routes, timers, scheduling and consequences remain core.
+D3 stays active; D4/D5 have not started. The following preserves older checkpoints.
+
 # Current whole-D3 checkpoint — collision characterization reviewed; production gates remain
 
 Task49 draftPR109 is pushed at03413ccd33ef14da169354bae8ebb2cf0fad5495 on
