@@ -2179,6 +2179,29 @@ fn the_ground_driver_accepts_a_complete_report_in_which_a_family_has_no_cases() 
     }
 }
 
+// The number of `ground-sample` rows of one kind that the driver recorded.
+fn ground_samples(rows: &[serde_json::Value], kind: &str) -> usize {
+    rows.iter().filter(|r| r["event"] == "ground-sample" && r["kind"] == kind).count()
+}
+
+#[test]
+fn the_ground_driver_accepts_the_complete_sample_set_the_emitter_takes_when_the_caps_bind_and_when_they_do_not() {
+    // 40 cases of each kind: every point tag and every impact type has more cases than its cap, so the caps bind: 2 samples for each of 6 point tags
+    // and 4 for each of 8 impact types
+    let (status, stdout, stderr, _, rows) = run_ground_case("ok", &["points=40", "impacts=40"]);
+    assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert_eq!((ground_samples(&rows, "point"), ground_samples(&rows, "impact")), (12, 32));
+    // 5 cases of each kind: no tag or type reaches its cap, so every case is sampled
+    let (status, stdout, stderr, _, rows) = run_ground_case("ok", &["points=5", "impacts=5"]);
+    assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert_eq!((ground_samples(&rows, "point"), ground_samples(&rows, "impact")), (5, 5));
+    // all 5 impact cases of one type: the sample count is min(5, 4) = 4, not 1 (the short form of this report is refused above)
+    let (status, stdout, stderr, _, rows) = run_ground_case("impact_types_concentrated_complete", &["points=5", "impacts=5"]);
+    assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert_eq!(ground_samples(&rows, "impact"), 4);
+    assert!(rows.iter().any(|r| r["event"] == "state_digest"));
+}
+
 // The message the driver refuses with: its own prefix and the reason.
 fn ground_refusal(reason: &str) -> String {
     format!("ground-characterization: {reason}")
@@ -2191,7 +2214,7 @@ fn ground_refusal(reason: &str) -> String {
 fn the_ground_driver_names_the_one_defect_in_a_report_and_writes_no_success_row() {
     let counts: &[&str] = &["points=5", "impacts=5"];
     let no_impacts: &[&str] = &["points=5", "impacts=0"];
-    let defects: [(&str, &[&str], &str); 39] = [
+    let defects: [(&str, &[&str], &str); 61] = [
         (
             "unrestored",
             counts,
@@ -2252,13 +2275,74 @@ fn the_ground_driver_names_the_one_defect_in_a_report_and_writes_no_success_row(
         ("sample_bad_hex", counts, "ground-sample: x must be 8 lowercase hex digits, got '4000'"),
         ("sample_missing", counts, "ground-sample: 0 point samples for 5 point cases"),
         ("sample_unknown_kind", counts, "ground-sample: kind must be point or impact, got 'rock'"),
-        ("sample_case_out_of_range", counts, "ground-sample: a point sample names case 5 of 5"),
+        ("sample_case_out_of_range", counts, "ground-sample: point sample names case 5 of 5"),
         (
             "sample_triple_short",
             counts,
             "ground-sample: pa must be three 8-digit lowercase hex words joined by commas, got '3f800000,40000000'",
         ),
         ("sample_flag", counts, "ground-sample: inside must be 0 or 1, got '2'"),
+        // case numbers of the samples: distinct, increasing, in range, case 0 always sampled; point samples before impact samples
+        ("sample_n_duplicate_point", counts, "ground-sample: point sample repeats case 0"),
+        ("sample_n_order_point", counts, "ground-sample: point sample case 2 follows case 4"),
+        (
+            "sample_first_not_zero_point",
+            counts,
+            "ground-sample: the first point sample names case 1, not case 0",
+        ),
+        ("sample_n_duplicate_impact", counts, "ground-sample: impact sample repeats case 0"),
+        (
+            "sample_first_not_zero_impact",
+            counts,
+            "ground-sample: the first impact sample names case 1, not case 0",
+        ),
+        ("sample_out_of_range_impact", counts, "ground-sample: impact sample names case 5 of 5"),
+        ("sample_point_after_impact", counts, "ground-sample: a point sample follows an impact sample"),
+        // tag and type domains, per-tag and per-type caps, and the exact count of impact samples per type: min(tally, cap)
+        ("sample_tag_domain", counts, "ground-sample: tag must be 0 to 5, got 6"),
+        ("sample_type_domain", counts, "ground-sample: type must be 0 to 7, got 8"),
+        ("sample_tag_cap", counts, "ground-sample: point samples of tag 0 is 3, more than 2"),
+        ("sample_type_cap", counts, "ground-sample: impact samples of type 0 is 5, more than 4"),
+        ("sample_type_omitted", counts, "ground-sample: impact samples of type 2 is 0, expected 1"),
+        ("sample_type_extra", counts, "ground-sample: impact samples of type 0 is 2, expected 1"),
+        (
+            "impact_types_concentrated_short",
+            counts,
+            "ground-sample: impact samples of type 0 is 1, expected 4",
+        ),
+        (
+            "header_sample_cap_zero",
+            counts,
+            "ground-probe: samples_per_point_tag and samples_per_impact_type must be at least 1, got 0 and 4",
+        ),
+        // sample values against the counters they are counted in
+        (
+            "sample_off_map_with_above",
+            counts,
+            "ground-sample: point sample at case 0 is off the map area but has above=1 above_touched=0",
+        ),
+        (
+            "sample_off_map_counter",
+            counts,
+            "ground-sample: point samples off the map area is 1, more than 0",
+        ),
+        (
+            "sample_inside_not_asked",
+            counts,
+            "ground-sample: point sample at case 0 is inside the map area but was not asked above",
+        ),
+        ("sample_above_counter", counts, "ground-sample: point samples with above=0 is 1, more than 0"),
+        ("sample_below_counter", counts, "ground-sample: point samples with below=1 is 1, more than 0"),
+        (
+            "sample_alias_counter",
+            counts,
+            "ground-sample: impact samples with alias_equal=0 is 1, more than 0",
+        ),
+        (
+            "sample_warm_counter",
+            counts,
+            "ground-sample: impact samples with warm_same=0 is 1, more than 0",
+        ),
     ];
     for (mode, args, reason) in defects {
         let expected = ground_refusal(reason);

@@ -218,7 +218,7 @@ end
 -- that is not a complete, well-typed result for the seed and counts asked.
 local function read_report (report, repeat_index)
 	local events, rows, samples = {}, {}, { point = 0, impact = 0 }
-	local sample_numbers = {}
+	local sample_list = {}
 	for line in string.gmatch (report, "[^\r\n]+") do
 		local words = {}
 		for word in string.gmatch (line, "%S+") do words [#words + 1] = word end
@@ -233,7 +233,7 @@ local function read_report (report, repeat_index)
 			for k, v in pairs (fields) do raw [k] = v end
 			local typed = typed_row (event, schema, fields)
 			samples [kind] = samples [kind] + 1
-			sample_numbers [#sample_numbers + 1] = { kind = kind, n = typed.n }
+			sample_list [#sample_list + 1] = { kind = kind, v = typed }
 			-- a sample keeps every field as text: its words are bit patterns
 			local t = { event = event, repeat_index = repeat_index }
 			for k, v in pairs (raw) do t [k] = v end
@@ -321,15 +321,72 @@ local function read_report (report, repeat_index)
 		if row.combined == FOLD_EMPTY then refuse (name .. ": combined is the empty fold for " .. (points + impacts) .. " cases") end
 	end
 
-	-- the samples are bounded, present for every family that ran, and name cases that exist
-	local point_cap, impact_cap = 6 * header.samples_per_point_tag, 8 * header.samples_per_impact_type
+	-- THE SAMPLES. What must be present follows from how the fixture emits them (eech_ground_fixture.c), not from re-deriving its cases: the cases are
+	-- visited in order, every point case has a tag 0 to 5 and every impact case a type 0 to 7, and a case is sampled when fewer than
+	-- samples_per_point_tag (of its tag) or samples_per_impact_type (of its type) earlier cases were. So: the point samples come before the impact
+	-- samples; within a family the case numbers are distinct, increasing and below the case count; case 0 is always sampled (nothing precedes it);
+	-- a tag has at most samples_per_point_tag samples; and, because the impact type tally is reported, a type has EXACTLY
+	-- min(its tally, samples_per_impact_type) samples. The per-tag tally of point cases is not reported, so a point tag is bounded only from above.
+	local POINT_TAGS, IMPACT_TYPES = 6, 8
+	local per_tag_cap, per_type_cap = header.samples_per_point_tag, header.samples_per_impact_type
+	if per_tag_cap < 1 or per_type_cap < 1 then
+		refuse ("ground-probe: samples_per_point_tag and samples_per_impact_type must be at least 1, got " .. per_tag_cap .. " and " .. per_type_cap)
+	end
 	if (points == 0) ~= (samples.point == 0) then refuse ("ground-sample: " .. samples.point .. " point samples for " .. points .. " point cases") end
 	if (impacts == 0) ~= (samples.impact == 0) then refuse ("ground-sample: " .. samples.impact .. " impact samples for " .. impacts .. " impact cases") end
-	need_at_most ("ground-sample", "point samples", samples.point, point_cap)
-	need_at_most ("ground-sample", "impact samples", samples.impact, impact_cap)
-	for _, s in ipairs (sample_numbers) do
-		local cases = s.kind == "point" and points or impacts
-		if s.n >= cases then refuse ("ground-sample: a " .. s.kind .. " sample names case " .. s.n .. " of " .. cases) end
+	local family = { point = { cases = points, last = nil, by_class = {} }, impact = { cases = impacts, last = nil, by_class = {} } }
+	local seen_impact = false
+	local flags = { inside = { [0] = 0, [1] = 0 }, above = { [0] = 0, [1] = 0 }, below = { [0] = 0, [1] = 0 },
+		alias_equal = { [0] = 0, [1] = 0 }, warm_same = { [0] = 0, [1] = 0 } }
+	for _, s in ipairs (sample_list) do
+		local kind, v = s.kind, s.v
+		local f = family [kind]
+		if kind == "impact" then seen_impact = true elseif seen_impact then refuse ("ground-sample: a point sample follows an impact sample") end
+		if v.n >= f.cases then refuse ("ground-sample: " .. kind .. " sample names case " .. v.n .. " of " .. f.cases) end
+		if f.last == nil then
+			if v.n ~= 0 then refuse ("ground-sample: the first " .. kind .. " sample names case " .. v.n .. ", not case 0") end
+		elseif v.n == f.last then
+			refuse ("ground-sample: " .. kind .. " sample repeats case " .. v.n)
+		elseif v.n < f.last then
+			refuse ("ground-sample: " .. kind .. " sample case " .. v.n .. " follows case " .. f.last)
+		end
+		f.last = v.n
+		local class, domain, cap = v.tag, POINT_TAGS, per_tag_cap
+		if kind == "impact" then class, domain, cap = v.type, IMPACT_TYPES, per_type_cap end
+		local class_name = kind == "point" and "tag" or "type"
+		if class >= domain then refuse ("ground-sample: " .. class_name .. " must be 0 to " .. (domain - 1) .. ", got " .. class) end
+		f.by_class [class] = (f.by_class [class] or 0) + 1
+		need_at_most ("ground-sample", kind .. " samples of " .. class_name .. " " .. class, f.by_class [class], cap)
+		if kind == "point" then
+			-- the same values the counters count: whether the point was inside the map area, and what the two macros answered
+			if v.inside == 0 and (v.above ~= -1 or v.above_touched ~= 0) then
+				refuse ("ground-sample: point sample at case " .. v.n .. " is off the map area but has above=" .. v.above .. " above_touched=" .. v.above_touched)
+			end
+			if v.inside == 1 and v.above == -1 then refuse ("ground-sample: point sample at case " .. v.n .. " is inside the map area but was not asked above") end
+			flags.inside [v.inside] = flags.inside [v.inside] + 1
+			if v.above ~= -1 then flags.above [v.above] = flags.above [v.above] + 1 end
+			flags.below [v.below] = flags.below [v.below] + 1
+		else
+			flags.alias_equal [v.alias_equal] = flags.alias_equal [v.alias_equal] + 1
+			flags.warm_same [v.warm_same] = flags.warm_same [v.warm_same] + 1
+		end
+	end
+	-- the case numbers above are within the case count and distinct, so each sampled case is a case the counters counted once
+	need_at_most ("ground-sample", "point samples inside the map area", flags.inside [1], pts.in_map)
+	need_at_most ("ground-sample", "point samples off the map area", flags.inside [0], pts.off_map)
+	need_at_most ("ground-sample", "point samples with above=1", flags.above [1], above ["true"])
+	need_at_most ("ground-sample", "point samples with above=0", flags.above [0], above ["false"])
+	need_at_most ("ground-sample", "point samples with below=1", flags.below [1], below ["true"])
+	need_at_most ("ground-sample", "point samples with below=0", flags.below [0], below ["false"])
+	need_at_most ("ground-sample", "impact samples with alias_equal=1", flags.alias_equal [1], impact.alias_equal)
+	need_at_most ("ground-sample", "impact samples with alias_equal=0", flags.alias_equal [0], impact.alias_unequal)
+	need_at_most ("ground-sample", "impact samples with warm_same=1", flags.warm_same [1], impact.warm_same)
+	need_at_most ("ground-sample", "impact samples with warm_same=0", flags.warm_same [0], impact.warm_different)
+	-- every impact type has exactly the samples the emitter takes for it: the first min(tally, cap) cases of that type
+	for k = 0, IMPACT_TYPES - 1 do
+		local expected = math.min (types ["t" .. k], per_type_cap)
+		local actual = family.impact.by_class [k] or 0
+		if actual ~= expected then refuse ("ground-sample: impact samples of type " .. k .. " is " .. actual .. ", expected " .. expected) end
 	end
 	return events, rows
 end

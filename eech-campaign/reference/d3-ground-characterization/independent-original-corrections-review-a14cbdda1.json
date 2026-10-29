@@ -1,0 +1,73 @@
+{
+  "kind": "Independent focused Task48 original-characterization correction review",
+  "created_utc": "2026-10-29T14:10:54.455282+00:00",
+  "repository": "R:\\eech_source_code",
+  "base": "7a4c12ca0ee6d61ee605d7f3576d9f08e13d8baf",
+  "head": "a14cbdda1d59fbe8a88bb7437e21a98f82052c04",
+  "clean_pinned_head_before_after": true,
+  "scope": "Only new eight-path correction delta; original source review reused. Combined correctness, clean-code, boundary and test-meaningfulness pass. No host extraction or new public host API design.",
+  "disposition": "Warm-record P2 and legacy-comparability P3 source-resolved. Missing restoration/hash-field P2 examples resolved. One remaining P2 in the expanded report sample validation; no new original-physics or memory/ABI defect found. Actual compilation/original runtime gates not reviewed as passed.",
+  "findings": [
+    {
+      "id": "INCOMPLETE_OR_INVALID_SAMPLES_ACCEPTED",
+      "priority": "P2",
+      "file": "R:\\eech_source_code\\eech-campaign\\crates\\eech-world\\lua\\ground-characterization.lua",
+      "line": 324,
+      "end_line": 333,
+      "related": [
+        {
+          "file": "R:\\eech_source_code\\eech-campaign\\crates\\eech-world\\tests\\lua\\ground-caller.lua",
+          "line": 45
+        },
+        {
+          "file": "R:\\eech_source_code\\eech-campaign\\crates\\eech-world\\tests\\lua\\ground-caller.lua",
+          "line": 58
+        },
+        {
+          "file": "R:\\eech_source_code\\eech-campaign\\crates\\eech-engine-sys\\csrc\\eech_ground_fixture.c",
+          "line": 577
+        }
+      ],
+      "title": "Tie samples to actual per-type counts and reject invalid/duplicate identities",
+      "mechanism": "The driver requires only a nonzero sample count for a nonempty family, a global cap and n<cases. It does not bound point tag to0..5 or impact type to0..7, reject duplicate family/case n, enforce per-tag/type limits, or require the sample count production emits for each impact type. Concrete existing positive stand-in: impacts=5, t0=5, samples_per_impact_type=4, but only one type0 sample. Every current guard accepts it, although production must emit min(5,4)=4. Thus a partially missing/corrupt raw sample record can be labelled complete; the positive collaborator itself is not a complete production-shaped sample report.",
+      "bounded_correction": "Validate fixed header sample quotas against the fixture constants; range-check tags/types; require unique case IDs within each family and per-tag/type caps. Derive required impact samples per type as min(tN, quota) and require that exact count. Preserve valid zero-case families; update the collaborator to emit the required samples and add single-defect dropped/duplicate/out-of-range sample controls. Point-tag population is not in the report, so do not invent unavailable per-tag totals.",
+      "evidence_level": "Verified source failure mechanism; no Lua/test/native reproduction executed by reviewer."
+    }
+  ],
+  "closed_or_qualified_prior_findings": {
+    "WARM_RECORD_CONTAMINATION": "Resolved: separate impact -> immediate memcpy of post-record -> read-only view/memcmp -> warm impact -> extra endpoint predicates. No terrain query intervenes before warm. Point families similarly snapshot/check immediately. Original function own ASSERT evaluations remain untouched. warm_start_intact is a fixture invariant, not independent evidence of original physics.",
+    "MISSING_RESULT_MEASUREMENTS_ACCEPTED": "Original nil==nil and bare hash examples now refused: all13 summary rows exactly once, required keys, exact16-digit hex, restored/anchored flags, numeric family count correspondence, empty-family folds and report_invalid/no-success behavior. Expanded sample completeness still has the remaining P2 above.",
+    "LEGACY_RECORD_DIAGNOSTIC_COMPARABILITY": "Resolved by separate ground-physical accumulator and explicit physical/short-circuit-cache/legacy table. Original legacy record accesses/folds remain for original-only measurements; later G1 composition explicitly requires reviewed fixture adaptation and no legacy indices/pointers in generic/DCS contract."
+  },
+  "new_source_assessment": [
+    "ground-physical has independent FNV states initialized explicitly. Point folds include ordered input, cold boolean/sentinel, and resulting input vector; impacts include ordered endpoints, cold aliased class and output vectors, cold separate class and corrected endpoints/impact. It excludes record bookkeeping, touched flags, warm-state and warm-agreement diagnostics. No point/impact numerical rule moved or reimplemented.",
+    "Legacy folds are not silently replaced. Warm sequence correction can change them before the first original oracle; no prior native oracle exists or is rewritten. Legacy diagnostic difference after G1 is qualified, never normalized into physical equality.",
+    "New C additions are private record copies/memcmp, integer hashes and counters/report fields. No new public pointer, FFI shape, allocation lifetime or callback/reentrancy path. Existing healthy/refusal restoration and bounds conclusions reused.",
+    "Report parser refuses malformed mandatory fields before emitting accepted report rows; invalid rows emit one report_invalid and rethrow. Real-script negative controls check exact error text and absence of repeat/digest success; these are meaningful driver checks, not original-C/physics evidence.",
+    "39 single-defect controls and zero-family positives are prepared source only; their execution is pending. The sample-producing collaborator is embedded with include_str; actual driver is still invoked via its source path. No portability/runtime result inferred from source.",
+    "Documents and static JSON distinguish source-only checks, uncompiled/unrun original probes and current Task47 isolation. No new Task/epic delivery claim."
+  ],
+  "limits": [
+    "No reviewer edits, builds/compiler/preprocessor/tests/Lua/native runs, process actions, delegation or external writes. Pinned source inspection/hash comparisons and authorized private report write only.",
+    "Root-reported fmt/check0, changed Lua parse0 and diffcheck0 are not re-executed. Root parallel fixture build is outside this pass; no passed compile/runtime/oracle result supplied or accepted.",
+    "Original Task48 native controls, deterministic repeats and probe/control observations must follow corrected source and successful build. Actual original edge behavior, FPU and family reachability remain unmeasured.",
+    "No unchanged Task47 source/runtime review or process/cache action. Whole D3 remains incomplete."
+  ],
+  "changed_path_sha256": {
+    "STATUS.md": "21eac1b7ed224fb61b8b14369d1d4ffea1296df07020f339464b599f4154aa99",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_ground_fixture.c": "bdc14a2b8ab74667866db3c2a027f97e9f4788114391e1d256321d42c9c894bf",
+    "eech-campaign/crates/eech-world/lua/ground-characterization.lua": "630759bc0c6dc20a302cd454ac334fd2f009337a3d712213cb99eb2ac3d78631",
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs": "648014998fc5e50bfb24879cc1a6bffb5259001bb0add91b26a3e17797572442",
+    "eech-campaign/crates/eech-world/tests/lua/ground-caller.lua": "3128136ffdd8ffc97a7eeadc356ef1d69db388e832696d872443f567fdc30237",
+    "eech-campaign/docs/m5-ground-characterization.md": "b2ef76c98bbfba0b25ae63067663b787587112bb4298db8f8c362218ffed9d52",
+    "eech-campaign/reference/d3-ground-characterization/independent-original-source-review-7a4c12ca0.json": "1e6f5d4b2753b123db2bec6152a04aaac4a154110b4a59cdb6967d8ab245edf4",
+    "eech-campaign/reference/d3-ground-characterization/original-corrections-static.json": "fb5eb7267d5d53282ff590a093d4aa40d33fbeedf8cc8df5f9fb3dba92eab09d"
+  },
+  "original_implementations_unchanged": {
+    "aphavoc/source/entity/system/en_main/en_world.h": "e299d37dad40a95cde40a8406a11046ba15ecd7991c785586edcdcb6569ebc02",
+    "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c": "2a85122a70cd2f6c80b143e7f865aea742b25573187cb9b08ef45b40d55beafb",
+    "modules/3d/terrain/terrelev.c": "ef897d423c2d1a30bfec9cc9205c492a759020b5e0d85ee1d2a68d3df7311c9e",
+    "modules/3d/terrain/terrdata.c": "d2ff4997c5141ffb4ab79e6f70d218aa8d75960da53144a6e7e6586dcdcba63c",
+    "modules/3d/terrain/terrdata.h": "4733b873ca9507ba192aaacfdc1a6b31945ccd723d953becd411e505d1f166e1"
+  }
+}

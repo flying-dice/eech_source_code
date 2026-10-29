@@ -143,7 +143,7 @@ before the output file is opened); the probe is refused; the report is not a com
 refused by name. Every value must have its exact type: a decimal count (digits only, so not `0x5`, `-1`, `1.5` or `1e3`), a 0/1 flag, or lowercase hex of the exact width (16 for record words and folds, 8 per
 float word in a sample, three comma-joined for a vector). The counts must agree with the request and with each other (cases equal the points or impacts asked, `true + false` equals the cases, the class and
 type tallies sum to the impact cases, `warm_start_intact` equals the cases, a repeat's `restored` is 1 and its `words_before` equals `words_after`), a family that ran no case folded nothing (its hash is the
-empty-fold value) and a family that did is not empty, and samples are present for every family that ran, bounded, and name cases that exist. A zero-case family is a valid report. A report that fails any of
+empty-fold value) and a family that did is not empty, and the samples are complete as the C emitter takes them (next paragraph). A zero-case family is a valid report. A report that fails any of
 this records `report_invalid` with the reason, fails the run, and **no `repeat_identical` or `state_digest` row follows it**. The reason is the driver's own message for that one defect; the tests compare it
 exactly, not by a shared word. (The first committed driver only checked that a few rows existed, so a report with no record words, or a bare `ground-hash`, could pass, because `nil == nil`.)
 `probe=no` is the control: the same frames, no call, and the same digest line (object ids, kind, side and alive in id order, a modular hash below 2^31 because Lua 5.1 formats through a 32-bit `long`
@@ -218,3 +218,22 @@ oracle, baseline or tolerance is touched by any of the three.
 Remaining limits of this revision: the physical fold is only as meaningful as the cases that run (it is a digest of what was probed, not of the whole function); the fixture still reads the legacy record
 directly and so still cannot be built against the G1 record without the adaptation above; `warm_start_intact` is an invariant check on the fixture's own sequence, not evidence about the original code; none of
 the C, Rust or Lua has been compiled or run.
+
+### Sample completeness (second review of the driver; unbuilt, unrun)
+
+The first corrected checker accepted any non-empty sample set under a global cap, so an impact tally of five cases of one type with a single sample was accepted although the emitter takes four, and duplicate
+case numbers or out-of-domain tags and types passed. The driver now checks what follows from **how `eech_ground_fixture.c` emits samples**, and nothing it would have to re-derive from the private generator:
+
+- cases are visited in order and a case is sampled while fewer than `samples_per_point_tag` (of its tag) or `samples_per_impact_type` (of its type) earlier cases were, so within a family the sampled case
+  numbers are **distinct, strictly increasing and below the case count**, case 0 is **always** the first sample (nothing precedes it), and all point samples precede all impact samples;
+- a point tag is 0 to 5 and an impact type 0 to 7 (the impact-type tally has exactly eight members), and a tag or type has **at most** its cap of samples;
+- because the impact type tally (`ground-impact-types`) is reported, each type has **exactly `min(tally, samples_per_impact_type)`** samples. The per-tag tally of point cases is not reported, so a point tag is
+  bounded only from above; the driver does not guess the generator's tags;
+- the sample values are the values the counters count: point samples inside the map area are at most `in_map` and those outside at most `off_map`; a sample outside the map area has `above=-1` (it was not asked) and
+  one inside has `above` 0 or 1; samples with `above` 1 or 0, `below` 1 or 0, `alias_equal` 1 or 0 and `warm_same` 1 or 0 are at most the matching counter (`true`, `false`, `alias_equal`, `alias_unequal`,
+  `warm_same`, `warm_different`). Distinct case numbers make each sampled case a case that was counted once;
+- both caps in the header are at least 1 (a probe that samples nothing characterises nothing).
+
+Tests: 22 more single-defect reports through the real driver (61 in all, each compared with its exact message), and positive runs with the caps binding (40 cases each: 12 point and 32 impact samples), not binding (5 each:
+every case sampled) and with one type holding all five impact cases (four samples). The stand-in writes a self-consistent complete sample set; it is not the C generator, and these tests are scoped to what the driver
+accepts and refuses, not to the ground queries. No C, numeric, query or digest change is made.
