@@ -1,3 +1,18 @@
+# Fixture observer P1 — SOURCE CORRECTION PREPARED, UNBUILT, UNRUN (working tree over f8092241d)
+
+The terminal long-run failure (world_unchanged0 after1200 frames; both controls complete) is explained: the d5 fingerprint called the ORIGINAL destructive INT_TYPE_UPDATED getter
+(mb_int.c398 `array[index] &= mask`), which clears the other bits of the entity's 32-entity word in the bounded up_update.c arrays. Old d5 zero-frame smokes, the failed moving probes
+and the coarse-only controls stay as measured d5 identities with their limited scope; there is no valid moving oracle and none is normalised. The production getter and the original
+collision code (which itself calls the getter) are untouched.
+
+Source correction, none of it built or run: the fingerprint reads the RAW updated bit (no getter); the three bounded flag arrays are copied in full before anything is observed, the
+ORIGINAL queries' effect on them is measured against the copy and reported as LEGACY diagnostics (col-flags: hashes and counts only), the copy is written back on every exit and before the
+FINAL fingerprint (so any other change is still caught; the terrain record is restored as before; the game RNG is not reset). The driver requires restoration and coherent counts; a rejected
+real report is now retained whole as raw_report in the private output (JSON-escaped), as is a differing repeat. Tests: seven col-flags negative controls and a strict-JSON round trip of
+a retained report. The fingerprint still excludes CITY children and identities and the warm counters still cover primary queries only; no state-purity claim. Root builds ONE new clean
+source, runs Linux and cross-built Windows guards, zero-frame conformance with masks, and fresh moving probe/control witnesses before any of this is accepted. The same review remains
+CHANGES REQUIRED. Whole D3 stays active; no production G2/G3, D4 or D5.
+
 # Current collision gate — observed destructive-flag observer defect; no moving oracle
 
 The original long run is TERMINAL1 (tool84252;18:18:29Z). All three probes fail

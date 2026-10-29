@@ -2114,12 +2114,30 @@ fn the_collision_driver_probes_with_the_asked_seed_and_counts_as_often_as_asked_
     let class_census = rows.iter().find(|r| r["event"] == "col-census-class").unwrap();
     let targets = rows.iter().find(|r| r["event"] == "col-targets").unwrap();
     assert_eq!(
-        (class_census["stationary_geometry"].as_i64(), targets["stationary_geometry"].as_i64(), class_census["tree_quad"].as_i64(), targets["tree_quad"].as_i64()),
+        (
+            class_census["stationary_geometry"].as_i64(),
+            targets["stationary_geometry"].as_i64(),
+            class_census["tree_quad"].as_i64(),
+            targets["tree_quad"].as_i64()
+        ),
         (Some(5), Some(3), Some(40), Some(3)),
         "the quota binds: {class_census} {targets}"
     );
     let fp = rows.iter().find(|r| r["event"] == "col-fp").unwrap();
     assert_eq!((fp["x87_masks"].as_i64(), fp["sse_masks"].as_i64()), (Some(63), Some(63)), "{fp}");
+    // the update-flag arrays: restored to the copy, with the original queries' own effect on them reported as legacy diagnostics (hashes and counts, no array)
+    let flags = rows.iter().find(|r| r["event"] == "col-flags").unwrap();
+    assert_eq!(
+        (
+            flags["restored"].as_i64(),
+            flags["before"].as_str(),
+            flags["after_restore"].as_str(),
+            flags["after_queries"].as_str(),
+            flags["updated_cleared_bits"].as_i64()
+        ),
+        (Some(1), Some("1122334455667788"), Some("1122334455667788"), Some("aabbccddeeff0011"), Some(7)),
+        "{flags}"
+    );
     // keyed rows: one per key per repeat, none dropped or merged
     assert_eq!(rows.iter().filter(|r| r["event"] == "col-entity-kind").count(), 7 * 3);
     assert_eq!(rows.iter().filter(|r| r["event"] == "col-tree-kind").count(), 11 * 3);
@@ -2329,7 +2347,7 @@ fn the_collision_driver_accepts_a_report_with_no_random_cases_and_a_report_with_
 #[test]
 fn the_collision_driver_names_the_one_defect_in_a_report_and_writes_no_success_row() {
     let counts: &[&str] = &["entity_cases=40", "tree_cases=40"];
-    let defects: [(&str, &str); 65] = [
+    let defects: [(&str, &str); 73] = [
         ("unrestored", "col-guard: record_restored is 0, expected 1"),
         (
             "words_differ",
@@ -2341,6 +2359,20 @@ fn the_collision_driver_names_the_one_defect_in_a_report_and_writes_no_success_r
             "world_fold_differs",
             "the sector-list fingerprint changed during the probe: fold 00112233445566ff -> ffffffffffffffff",
         ),
+        ("flags_row_missing", "the report has no col-flags row"),
+        ("flags_unrestored", "col-flags: restored is 0, expected 1"),
+        (
+            "flags_hash_differs",
+            "the update-flag arrays were not restored to the copy taken before the probe: fold 1122334455667788 -> ffffffffffffffff",
+        ),
+        ("flags_changed_over_words", "col-flags: updated_changed_words is 99999, more than 16384"),
+        ("flags_changed_without_bits", "col-flags: changed words is 3, more than 0"),
+        (
+            "flags_hash_inconsistent",
+            "col-flags: 3 changed words but after_queries 1122334455667788 against before 1122334455667788",
+        ),
+        ("flags_words_zero", "col-flags: words is 0, expected at least 1"),
+        ("raw_with_controls", "the report has an unknown row 'col-extra'"),
         ("fp_x87_unmasked", "col-fp: x87_masks is 59, expected 63"),
         ("fp_sse_unmasked", "col-fp: sse_masks is 0, expected 63"),
         ("fp_missing_row", "the report has no col-fp row"),
@@ -2421,6 +2453,14 @@ fn the_collision_driver_names_the_one_defect_in_a_report_and_writes_no_success_r
         let invalid: Vec<_> = rows.iter().filter(|r| r["event"] == "report_invalid").collect();
         assert_eq!(invalid.len(), 1, "{mode}: {rows:?}");
         assert!(invalid[0]["error"].as_str().unwrap().contains(reason), "{mode}: {}", invalid[0]);
+        // the exact text the fixture returned is retained (the stand-in's report always opens with its col-probe row), never reduced to the error text
+        let raw = invalid[0]["raw_report"]
+            .as_str()
+            .unwrap_or_else(|| panic!("{mode}: no raw_report retained: {}", invalid[0]));
+        assert!(
+            raw.starts_with("col-probe seed=20261029 ") && raw.ends_with('\n') && raw.lines().count() > 20,
+            "{mode}: {raw:?}"
+        );
         assert!(
             rows.iter().all(|r| {
                 let event = r["event"].as_str().unwrap_or("");
@@ -2434,4 +2474,41 @@ fn the_collision_driver_names_the_one_defect_in_a_report_and_writes_no_success_r
             "{mode}: the run stops at the first rejected report: {trace}"
         );
     }
+}
+
+// A rejected report is kept in the private output as the exact text the fixture returned, JSON-escaped: the stand-in's report ends with an unknown row whose value holds a quote, a backslash, a
+// control byte and UTF-8. `run_collision_case` parses every row with serde_json (which refuses a raw control character), so reaching the assertions proves the row is strict JSON; the retained
+// text must also come back byte for byte at its end, and its other rows must be intact. A repeat that differs keeps the differing report the same way.
+#[test]
+fn the_collision_driver_keeps_a_rejected_report_whole_as_strict_json() {
+    let (status, stdout, stderr, _, rows) = run_collision_case("raw_with_controls", &["entity_cases=5", "tree_cases=5"]);
+    assert!(!status.success() && !stdout.contains("COLLISION_CALLER_DONE"), "{stdout}\n{stderr}");
+    let invalid: Vec<_> = rows.iter().filter(|r| r["event"] == "report_invalid").collect();
+    assert_eq!(invalid.len(), 1, "{rows:?}");
+    let raw = invalid[0]["raw_report"].as_str().expect("the raw report is retained");
+    assert!(raw.ends_with("col-extra x=\u{1}\"\\\u{e9}\n"), "{raw:?}");
+    assert!(
+        raw.contains("\ncol-guard record_restored=1 ") && raw.contains("\ncol-flags restored=1 words=16384 "),
+        "{raw:?}"
+    );
+    assert!(
+        raw.lines()
+            .next()
+            .is_some_and(|l| l.starts_with("col-probe seed=20261029 entity_random=5 tree_random=5 ")),
+        "{raw:?}"
+    );
+    assert!(
+        rows.iter().all(|r| !r["event"].as_str().unwrap_or("").starts_with("col-")),
+        "no row of the rejected report is written as a result"
+    );
+
+    let (status, _, _, _, rows) = run_collision_case("differs_between_repeats", &["entity_cases=5", "tree_cases=5"]);
+    assert!(!status.success());
+    let same = rows.iter().find(|r| r["event"] == "repeat_identical").expect("the comparison is recorded");
+    assert_eq!(same["ok"].as_bool(), Some(false), "{same}");
+    let raw = same["raw_report"].as_str().expect("the differing report is retained");
+    assert!(
+        raw.contains("col-legacy entity_struct=0000000000000002 "),
+        "the second report, whose legacy word the stand-in changed: {raw:?}"
+    );
 }

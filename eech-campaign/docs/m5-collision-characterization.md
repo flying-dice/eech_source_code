@@ -14,6 +14,39 @@ The original C fixture/native retail runs remain unbuilt/unrun. Three fresh root
 are copied and pre-manifest verified. The following is the source-preparation
 record from before those guards ran; live ledger is now v60.
 
+# Observer defect (P1) and its source correction — UNBUILT, UNRUN
+
+**What was measured.** The d5 long probes ended with `col-guard: world_unchanged is 0` after 1200 frames; the three zero-frame d5 smokes passed because nothing is flagged at boot. Those d5 results,
+the failed moving probes and the coarse-only no-probe controls are retained as measured identities of the d5 source and are not re-labelled; the failed probes' raw measurements were not
+retained (the driver discarded the report on validation failure) and there is **no valid moving oracle** to normalise.
+
+**Cause (confirmed by source).** The d5 fingerprint (`world_fold`) read the updated flag with `get_local_entity_int_value (en, INT_TYPE_UPDATED)`. That getter is not a read:
+`aphavoc/source/entity/mobile/mb_int.c` 398 does `value = updated_entities [index] &= mask` (moved 400 and rotated 402 are the same), which clears every OTHER bit of the entity's 32-entity
+word in the bounded arrays defined in `up_update.c` 86 to 88 (`MAX_NUM_ENTITIES / (sizeof (unsigned int) * 8)` words each, exposed unsized in `up_update.h`). The observer therefore changed the state the
+original moving-target collision reads (`en_cllsn.c` 1330) before and after the measured queries. This is a defect of the extra observer, not a finding about a production mutation.
+
+**What does NOT change.** The production getter and the original collision code are untouched. The original moving collision itself calls the same destructive getter, so the original
+queries legitimately change these arrays; that effect stays inside the measured query sequence, in the same order, and is now measured instead of hidden.
+
+**Source correction (this working tree).**
+* The fingerprint reads the RAW updated bit, `(updated_entities [index >> 5] >> (index & 31)) & 1`, with the original's own index arithmetic and no getter. The fixture no longer calls
+  the destructive getter anywhere.
+* Before anything is observed the three arrays are copied in full (`flags_save`). After the queries the original's effect on the live arrays is measured against the copy
+  (`flags_measure`: words changed, bits cleared, bits added; added bits are a finding, the original only clears) and the copy is written back (`flags_restore`) on every exit after the
+  copy and at the end. The final fingerprint is taken only AFTER the restoration, so any other position, motion or list change is still caught; nothing else is restored to suppress a
+  difference, the shared terrain record is restored exactly as before, and the game random stream is not reset.
+* The result is reported as one LEGACY-diagnostic row, `col-flags` (`restored`, `words`, `before`, `after_queries`, `after_restore` as hashes; the per-array changed-word and cleared-bit counts;
+  `added_bits`). No array, pointer or layout is in the report. The driver requires `restored=1`, `after_restore == before`, per-array changed words within `words`, changed words
+  accounted for by cleared or added bits, and the hashes agreeing with the counts. The copy exists for the extra observer only; it is not a production semantic.
+* **Failure retention.** When validation rejects a real report, `report_invalid` now carries the exact text the fixture returned as `raw_report` (JSON-escaped, in the private output), and a
+  repeat that differs carries the differing report in `repeat_identical`. A malformed report is still never accepted and no physical rule is changed. Raw reports stay out of Git.
+* Guarded by real-script tests without a second validator: seven `col-flags` negative controls and a strict-JSON round trip of a retained report with quote, backslash, control byte and UTF-8.
+
+**Scope that remains precise.** The fingerprint still excludes the children of a CITY and any per-entity identity; the primary warm counters still do not cover the subsidiary near/warm queries.
+Nothing here claims complete state purity. The original warm/cold answers of a moving target can legitimately differ because an earlier query cleared the bit that a later query reads;
+that is an original behaviour the warm counters record, not something this correction normalises. Whether the zero-frame d5 physical folds, samples and counters still match after
+the correction is for Root's run; it is not claimed here.
+
 # Reviewer corrections to the d5 fixture — SOURCE ONLY, UNBUILT, UNRUN
 
 One combined independent review of pinned `d5ca5ee5b` found four P2 defects and one P3 scope issue. They are corrected in source after the pinned d5 build and smokes

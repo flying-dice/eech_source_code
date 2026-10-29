@@ -12,6 +12,15 @@
 -- mobile motion; not city buildings or identities) is equal before and after (the report states all three; each must hold). A difference fails the run;
 -- nothing is tuned to pass. The probe also REQUIRES all six floating-point exceptions masked in the x87 control word and the SSE MXCSR (`col-fp`).
 --
+-- The ORIGINAL getter for the updated, moved and rotated flags is not a read (mb_int.c: `value = array [index] &= mask` clears the other bits of the entity's
+-- 32-entity word), and the original moving-target collision calls it, so the original queries really change those bounded arrays. The fixture's own observer reads
+-- the raw bit instead, copies the three arrays before anything is observed, reports what the ORIGINAL queries did to them (`col-flags`, LEGACY diagnostics: hashes
+-- and counts only) and writes the copy back before the final fingerprint; the driver requires that restoration and that the restored arrays equal the copy. The copy
+-- exists for the extra observer only. Nothing else is restored to suppress a fingerprint difference.
+--
+-- A report that fails validation is kept: `report_invalid` carries the exact text the fixture returned as `raw_report` (JSON-escaped) in the private output, so a rejected
+-- measurement is never reduced to its error text. That text is a diagnostic, not a result; a malformed report is never accepted and no physical rule is changed.
+--
 -- A report is accepted only as a whole (read_report): every row once, with exactly its keys, each of its exact type, counts that agree with the request
 -- and with each other, and both folds present. A malformed or incomplete report records `report_invalid` and fails the run; no repeat_identical,
 -- coverage or state_digest row follows it. `col-physical` is the PHYSICAL fold; `col-legacy` is the LEGACY diagnostic fold (heap slot of a hit and the
@@ -186,6 +195,11 @@ local SCHEMA = {
 		"building_box", "tree_quad", "tree_geometry" },
 	-- the floating-point exception masks the probe read (a set bit is a masked exception); both must be all six
 	["col-fp"] = { { "arch", "token" }, { "x87_masks", "count" }, { "sse_masks", "count" } },
+	-- LEGACY diagnostics of the three bounded update-flag arrays: the full copy taken before observation, what the ORIGINAL queries did to the live arrays, and the arrays
+	-- after the copy was written back. Hashes and counts only; no array, pointer or layout leaves the fixture.
+	["col-flags"] = { { "restored", "flag" }, { "words", "count" }, { "before", "hex16" }, { "after_queries", "hex16" }, { "after_restore", "hex16" },
+		{ "updated_changed_words", "count" }, { "updated_cleared_bits", "count" }, { "moved_changed_words", "count" }, { "moved_cleared_bits", "count" },
+		{ "rotated_changed_words", "count" }, { "rotated_cleared_bits", "count" }, { "added_bits", "count" } },
 	["col-targets"] = counts { "moving_geometry", "moving_box", "stationary_geometry", "stationary_box", "fixed_geometry", "fixed_box", "building_geometry",
 		"building_box", "tree_quad", "tree_geometry" },
 	["col-entity-exclusion"] = counts { "through_cases", "through_hit_target", "through_hit_other", "base_cases", "src_removed", "tgt_removed", "both_removed",
@@ -328,6 +342,24 @@ local function cross_check (rows, keyed, samples)
 	-- the probe's precondition, reported and re-checked here: all six exceptions masked in both the x87 control word and the SSE MXCSR
 	need_equal ("col-fp", "x87_masks", rows ["col-fp"].x87_masks, 63)
 	need_equal ("col-fp", "sse_masks", rows ["col-fp"].sse_masks, 63)
+	-- the update-flag arrays: the copy was written back, and the restored arrays are the copy (the original queries' own effect on them is reported, not hidden)
+	local fl = rows ["col-flags"]
+	need_equal ("col-flags", "restored", fl.restored, 1)
+	if fl.after_restore ~= fl.before then
+		refuse ("the update-flag arrays were not restored to the copy taken before the probe: fold " .. fl.before .. " -> " .. fl.after_restore)
+	end
+	if fl.words < 1 then refuse ("col-flags: words is " .. tostring (fl.words) .. ", expected at least 1") end
+	local changed = fl.updated_changed_words + fl.moved_changed_words + fl.rotated_changed_words
+	local cleared = fl.updated_cleared_bits + fl.moved_cleared_bits + fl.rotated_cleared_bits
+	for _, name in ipairs { "updated_changed_words", "moved_changed_words", "rotated_changed_words" } do
+		need_at_most ("col-flags", name, fl [name], fl.words)
+	end
+	-- a changed word differs in at least one bit, cleared or added
+	need_at_most ("col-flags", "changed words", changed, cleared + fl.added_bits)
+	-- the hash after the queries equals the copy's exactly when no word changed
+	if (changed == 0) ~= (fl.after_queries == fl.before) then
+		refuse ("col-flags: " .. tostring (changed) .. " changed words but after_queries " .. fl.after_queries .. " against before " .. fl.before)
+	end
 	-- the bounded guards: restoration of the terrain record is asserted, not assumed
 	need_equal ("col-guard", "record_restored", c.record_restored, 1)
 	if c.record_words_before ~= c.record_words_after then
@@ -569,7 +601,7 @@ if probe == "yes" then
 			if not checked_ok then parsed_ok, events = false, checked end
 		end
 		if not parsed_ok then
-			emit { event = "report_invalid", repeat_index = repeat_index, error = tostring (events) }
+			emit { event = "report_invalid", repeat_index = repeat_index, error = tostring (events), raw_report = report }
 			error (tostring (events), 0)
 		end
 		for _, e in ipairs (events) do emit (e) end
@@ -578,7 +610,12 @@ if probe == "yes" then
 			first_report, first_rows, first_keyed = report, rows, keyed
 		else
 			local same = report == first_report
-			emit { event = "repeat_identical", repeat_index = repeat_index, ok = same }
+			if same then
+				emit { event = "repeat_identical", repeat_index = repeat_index, ok = true }
+			else
+				-- the differing report is kept whole, as the invalid one is
+				emit { event = "repeat_identical", repeat_index = repeat_index, ok = false, raw_report = report }
+			end
 			if not same then
 				refuse ("repeat " .. repeat_index .. " differs from repeat 1: the report is not repeatable for the seed and the loaded world")
 			end

@@ -4548,7 +4548,8 @@ impl Engine {
     /// loaded world (see `csrc/eech_collision_fixture.c`): a finite structured case set from the real sector lists and tree data, plus `entity_cases` and `tree_cases` seeded
     /// random cases. It returns the report as `key=value` text lines. The probe requires all six floating-point exceptions masked in both the x87 control word and the SSE MXCSR (read, never
     /// written). The shared terrain point record is restored byte for byte, the game's random stream is compared before and after, and a sector-list fingerprint (not a proof of purity: it
-    /// covers sector-list entities' type, flags, position and mobile motion, not city buildings or identities) is compared before and after. A request out of range, or one the engine refuses (a precondition not held, a report that does not fit), fails; a refusal keeps
+    /// covers sector-list entities' type, flags, position, mobile motion and the raw updated bit, not city buildings or identities) is compared before and after, the second time after the
+    /// update-flag arrays (which the original moving collision itself clears) were copied back from the copy taken first; the original queries' effect on them is reported as legacy diagnostics. A request out of range, or one the engine refuses (a precondition not held, a report that does not fit), fails; a refusal keeps
     /// the engine's reason (`col-refused reason=...`).
     #[cfg(feature = "collision-fixture")]
     pub fn collision_probe(&self, seed: u32, entity_cases: i32, tree_cases: i32) -> Result<String, EngineError> {

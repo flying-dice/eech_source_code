@@ -60,10 +60,20 @@
  * State the probe changes, and what is checked about it (this is a bounded set of observations, not a proof of purity):
  *   - the shared terrain record: snapshot before, byte-for-byte restore after, both asserted (record_restored);
  *   - the game random stream: its seed word is read before and after (rng_unchanged);
- *   - a SECTOR-LIST FINGERPRINT (world_before/world_after): in sector order, per sector a marker, then per sector-list entity in list
- *     order its type and collision-candidate flags, and for a candidate its position and, for a mobile, its motion vector and updated
- *     flag, plus the frame delta time. It does NOT traverse the buildings of a city, hash any per-entity identity, or cover any other
- *     field; equal fingerprints are not a proof that no state changed.
+ *   - the three bounded UPDATE-FLAG bit arrays (up_update.c: updated_entities, moved_entities, rotated_entities, MAX_NUM_ENTITIES / 32 words
+ *     each). The ORIGINAL getter get_local_entity_int_value (INT_TYPE_UPDATED, INT_TYPE_MOVED or INT_TYPE_ROTATED) is not a read: mb_int.c does
+ *     `value = updated_entities [index] &= mask`, clearing every OTHER bit of the entity's 32-entity word. The original moving-target
+ *     collision calls it (en_cllsn.c), so the original queries really do change these arrays, and those effects stay in the measured query
+ *     sequence unchanged. This file therefore NEVER calls that getter: its own observation reads the raw bit
+ *     `(array [index >> 5] >> (index & 31)) & 1`. The three arrays are copied in full before anything is observed or queried, the
+ *     effect of the original queries on them is measured against that copy and reported as LEGACY diagnostics (col-flags), and the copy is
+ *     written back before the final fingerprint (the arrays then equal the copy, asserted as flags_restored). This restoration is for the
+ *     extra observer only; it is not a production semantic and no actor state other than these arrays is restored;
+ *   - a SECTOR-LIST FINGERPRINT (world_before/world_after), taken with raw reads only and the final one AFTER the flag restoration: in
+ *     sector order, per sector a marker, then per sector-list entity in list order its type and collision-candidate flags, and for a
+ *     candidate its position and, for a mobile, its motion vector and the RAW updated bit, plus the frame delta time. It does NOT
+ *     traverse the buildings of a city, hash any per-entity identity, or cover any other field; equal fingerprints are not a proof that no
+ *     state changed. A fingerprint difference is a finding and is never suppressed by restoring more state.
  * The queries call no host. No entity is created, moved or destroyed by this file.
  *
  * Counters: warm_same and warm_different compare only the PRIMARY cold query with its warm repeat; the warm repeat of the shortened
@@ -294,9 +304,22 @@ struct col_exclusion
 		building_city_src_removed, building_city_tgt_removed, chain_cases, chain_depth1, chain_depth2, chain_depth3, chain_stalled, chain_order_violations;
 };
 
+/* the bounded size of each update-flag array, as up_update.c defines it (the header declares them unsized, so sizeof is not available here) */
+#define COL_FLAG_WORDS ((int) (MAX_NUM_ENTITIES / (sizeof (unsigned int) * 8)))
+#define COL_FLAG_ARRAYS 3
+
+struct col_flag_effect
+{
+	int changed_words[COL_FLAG_ARRAYS], cleared_bits[COL_FLAG_ARRAYS], added_bits;
+	uint64_t before, after_queries, after_restore;
+	int restored;
+};
+
 struct col_probe
 {
 	uint32_t rng, pool_rng;
+	unsigned int flags_saved[COL_FLAG_ARRAYS][COL_FLAG_WORDS]; /* [0] updated, [1] moved, [2] rotated: the copy taken before anything is observed */
+	struct col_flag_effect flags;
 	terrain_3d_point_data *record, sentinel;
 	uint64_t phys[G_COUNT], legacy[G_COUNT];
 	struct out *out;
@@ -608,9 +631,21 @@ static void scan_trees (struct col_probe *p)
 }
 
 /*
+ * The RAW updated bit of an entity. The original getter for INT_TYPE_UPDATED clears the other bits of the 32-entity word (mb_int.c: `&= mask`), so the observer
+ * must not call it; this reads the bit with the original's own index and bit arithmetic (index >> 5, 1 << (index & 0x1f)) and writes nothing.
+ */
+static uint32_t raw_updated_bit (entity *en)
+{
+	int index = get_local_entity_index (en);
+
+	return (uint32_t) ((updated_entities[index >> 5] >> (index & 0x1f)) & 1u);
+}
+
+/*
  * A SECTOR-LIST FINGERPRINT: in sector order a marker per sector, then per sector-list entity in list order its type and collision-candidate flags and,
- * for a candidate, its position and (a mobile) motion vector and updated flag, plus the frame delta time. It does not traverse the buildings of a city and
- * hashes no per-entity identity, so equal fingerprints before and after are a bounded observation, not a proof that nothing changed.
+ * for a candidate, its position and (a mobile) motion vector and RAW updated bit, plus the frame delta time. It reads with no destructive getter. It does not
+ * traverse the buildings of a city and hashes no per-entity identity, so equal fingerprints before and after are a bounded observation, not a proof that
+ * nothing changed.
  */
 static uint64_t world_fold (void)
 {
@@ -653,7 +688,7 @@ static uint64_t world_fold (void)
 					hash = fold64 (hash, float_bits (motion->x));
 					hash = fold64 (hash, float_bits (motion->y));
 					hash = fold64 (hash, float_bits (motion->z));
-					hash = fold64 (hash, (uint32_t) get_local_entity_int_value (en, INT_TYPE_UPDATED));
+					hash = fold64 (hash, raw_updated_bit (en));
 				}
 			}
 		}
@@ -1450,6 +1485,96 @@ static void emit_common (struct out *o, const char *event, const char *group, co
 		c->miss_normal_written, c->input_mutated, c->nearer_checked, c->nearer_exists, c->skipped_axis, c->derived_axis);
 }
 
+/* the live update-flag array: 0 updated, 1 moved, 2 rotated (the same three arrays the original getter reads and clears) */
+static unsigned int *flag_array (int which)
+{
+	return which == 0 ? updated_entities : (which == 1 ? moved_entities : rotated_entities);
+}
+
+static int popcount32 (unsigned int value)
+{
+	int n = 0;
+
+	while (value)
+	{
+		n += (int) (value & 1u);
+		value >>= 1;
+	}
+	return n;
+}
+
+static uint64_t flags_hash (const unsigned int *updated, const unsigned int *moved, const unsigned int *rotated)
+{
+	uint64_t hash = FNV_OFFSET;
+	const unsigned int *arrays[COL_FLAG_ARRAYS];
+	int a, w;
+
+	arrays[0] = updated;
+	arrays[1] = moved;
+	arrays[2] = rotated;
+	for (a = 0; a < COL_FLAG_ARRAYS; a++)
+	{
+		for (w = 0; w < COL_FLAG_WORDS; w++)
+		{
+			hash = fold64 (hash, (uint32_t) arrays[a][w]);
+		}
+	}
+	return hash;
+}
+
+/* copy the three live arrays in full, before anything is observed */
+static void flags_save (struct col_probe *p)
+{
+	int a;
+
+	for (a = 0; a < COL_FLAG_ARRAYS; a++)
+	{
+		memcpy (p->flags_saved[a], flag_array (a), (size_t) COL_FLAG_WORDS * sizeof (unsigned int));
+	}
+	p->flags.before = flags_hash (p->flags_saved[0], p->flags_saved[1], p->flags_saved[2]);
+}
+
+/* what the ORIGINAL queries did to the live arrays, against the copy: words changed, bits cleared, bits added (the original only clears, so added is a finding if not 0) */
+static void flags_measure (struct col_probe *p)
+{
+	int a, w;
+
+	p->flags.after_queries = flags_hash (updated_entities, moved_entities, rotated_entities);
+	for (a = 0; a < COL_FLAG_ARRAYS; a++)
+	{
+		const unsigned int *live = flag_array (a);
+
+		for (w = 0; w < COL_FLAG_WORDS; w++)
+		{
+			unsigned int was = p->flags_saved[a][w], now = live[w];
+
+			if (was != now)
+			{
+				p->flags.changed_words[a]++;
+				p->flags.cleared_bits[a] += popcount32 (was & ~now);
+				p->flags.added_bits += popcount32 (now & ~was);
+			}
+		}
+	}
+}
+
+/* write the copy back and check it; idempotent, so every exit after the copy can call it */
+static void flags_restore (struct col_probe *p)
+{
+	int a;
+
+	p->flags.restored = 1;
+	for (a = 0; a < COL_FLAG_ARRAYS; a++)
+	{
+		memcpy (flag_array (a), p->flags_saved[a], (size_t) COL_FLAG_WORDS * sizeof (unsigned int));
+		if (memcmp (flag_array (a), p->flags_saved[a], (size_t) COL_FLAG_WORDS * sizeof (unsigned int)) != 0)
+		{
+			p->flags.restored = 0;
+		}
+	}
+	p->flags.after_restore = flags_hash (updated_entities, moved_entities, rotated_entities);
+}
+
 /*
  * Runs the structured and random cases and writes the report. Returns 0, or -1 with `col-refused reason=...` in the report (a precondition
  * failed before anything was altered) or with nothing useful when the report does not fit.
@@ -1525,11 +1650,14 @@ int eech_collision_probe_run (uint32_t seed, int entity_cases, int tree_cases, c
 	}
 	p->record = shared_record ();
 	make_sentinel (&p->sentinel);
+	/* the update-flag arrays are copied in full before anything is observed (see the header); every exit below restores them */
+	flags_save (p);
 
 	/* read-only census and selection, before the shared record is touched */
 	scan_entities (p);
 	if (p->census.invalid_shape > 0)
 	{
+		flags_restore (p);
 		refuse (text, capacity, "a_collision_candidate_has_no_valid_3d_shape_or_bounds");
 		return -1;
 	}
@@ -1544,6 +1672,7 @@ int eech_collision_probe_run (uint32_t seed, int entity_cases, int tree_cases, c
 	memcpy (p->record, &snapshot, sizeof (snapshot));
 	if (!anchored)
 	{
+		flags_restore (p);
 		refuse (text, capacity, "shared_record_not_reachable_through_accessors");
 		return -1;
 	}
@@ -1585,7 +1714,11 @@ int eech_collision_probe_run (uint32_t seed, int entity_cases, int tree_cases, c
 		tree_random_case (p);
 	}
 
-	/* put everything back and check it */
+	/* what the original queries did to the update flags is measured first, then the copy is written back; only then is the fingerprint taken again */
+	flags_measure (p);
+	flags_restore (p);
+
+	/* put the terrain record back and check it */
 	memcpy (p->record, &snapshot, sizeof (snapshot));
 	restored = memcmp (p->record, &snapshot, sizeof (snapshot)) == 0;
 	record_after = record_words_hash (p->record);
@@ -1599,6 +1732,10 @@ int eech_collision_probe_run (uint32_t seed, int entity_cases, int tree_cases, c
 	emit (&out, "col-guard record_restored=%d record_words_before=%016llx record_words_after=%016llx rng_unchanged=%d world_unchanged=%d world_before=%016llx world_after=%016llx\n",
 		restored, (unsigned long long) record_before, (unsigned long long) record_after, rng_before == rng_after, world_before == world_after, (unsigned long long) world_before,
 		(unsigned long long) world_after);
+	emit (&out, "col-flags restored=%d words=%d before=%016llx after_queries=%016llx after_restore=%016llx updated_changed_words=%d updated_cleared_bits=%d moved_changed_words=%d "
+		"moved_cleared_bits=%d rotated_changed_words=%d rotated_cleared_bits=%d added_bits=%d\n", p->flags.restored, COL_FLAG_WORDS, (unsigned long long) p->flags.before,
+		(unsigned long long) p->flags.after_queries, (unsigned long long) p->flags.after_restore, p->flags.changed_words[0], p->flags.cleared_bits[0], p->flags.changed_words[1],
+		p->flags.cleared_bits[1], p->flags.changed_words[2], p->flags.cleared_bits[2], p->flags.added_bits);
 	emit (&out, "col-census-entity list_entities=%d mobile_candidates=%d mobile_moving=%d mobile_stationary=%d fixed_plain=%d cities=%d cities_with_buildings=%d buildings=%d "
 		"listed_buildings=%d geometry_path=%d box_path=%d align_terrain=%d pool=%d\n", p->census.list_entities, p->census.mobile_candidates, p->census.mobile_moving,
 		p->census.mobile_stationary, p->census.fixed_plain, p->census.cities, p->census.cities_with_buildings, p->census.buildings, p->census.listed_buildings,
