@@ -1,23 +1,31 @@
-# Current D3 checkpoint — first tree host replay found numeric differences
+# Current D3 checkpoint — original tree bits match; boundary corrections required
 
-Task49 source `0db20ab3a46582110bd7c4706c26edaaa9335478` is committed/pushed
-and frozen separately. Its Windows host/test build succeeds; all eight exported
-payloads verify. Actual library and host-Lua replay of all554 Georgia and600 each
-Lebanon/repeat queries fails with output-bit differences. Original transcripts,
-all three pre/post-input manifests and all exported payloads remain unchanged.
-These are preserved failures, not acceptance. Linux/Windows14 tree unit tests
-pass; the real-host synthetic Lua test has a separate mistaken assertion that
-outside endpoints imply no collision. Linux Clippy was not reached.
+Task49 source `d72610f85bc71ecf554c074025e699115e8eb0a1` is pushed and frozen.
+Windows build0/all8 exports verified. All three complete real host-Lua replays
+exit0 with every original bit/ordered lookup matching:554/1102 Georgia,600/1120
+each Lebanon/repeat. Library default and Up replay bits also match, but Windows
+caller-state restoration fails: SSE rounding/status changes. Overall controller1;
+Windows tree units14 pass/1 fail, Linux15 pass. Down/Zero full sweeps and Linux
+Clippy are not reached. All3pre/post manifests, original transcripts and exported
+hashes remain unchanged. The first0db numeric failures remain retained.
 
-The same sole Sonnet High session is correcting the missing original rounding
-boundary and the synthetic test. The original engine runs under FE_TOWARDZERO;
-the first host draft only checks exception masks. Root will build a new frozen
-source and repeat exact library/Lua replay plus caller-environment restoration
-checks before the sole independent review of this new component. No campaign
-dispatch has changed. Geometry/model loading, entity collision, public authority,
-DCS mapping/workarounds and all remaining D3 requirements stay open. Task47's
-original shipping run remains live; checked35.3MB Tacview/22.9MB observation
-prefixes match, with no complete40/eight-file acceptance. D4/D5 have not started.
+The one combined independent review requires five P2 corrections: metadata
+invariants, complete FP-state restoration, thread-bound rounding guard, dense
+geometry lists and pending-query cleanup after malformed Lua requests. Actual
+unchanged-host controls reproduce sparse-list acceptance and stale continuation.
+A separate diagnostic proves Lua folds the test's0*-1 into positive zero;
+dynamic negative zero makes that same host pass the complete transport script
+with unchanged expected bits. The same sole Sonnet High session is correcting
+this finite batch; new fixes are unbuilt/unrun. Follow-up covers changed source
+and evidence only. No production dispatch has changed.
+
+Ledger14548994v64 readback preserves all prior HTML and all five epic reports
+exactly; Jira10858/10859 and draftPR109 retain results and limits. Full geometry/
+model loading and original geometry witness, entity collision, authority, DCS
+mapping/workarounds and remaining D3 scope stay open. Task47's original shipping
+run remains live, checked35.3MB Tacview/22.9MB observations prefixes exact; full40,
+eight complete files, post-input acceptance and normal delivery remain pending.
+ProductionG2/G3 gates remain. D3 is incomplete; D4/D5 have not started.
 
 # User-requested Git checkpoint — implementation stopped and partial source preserved
 
