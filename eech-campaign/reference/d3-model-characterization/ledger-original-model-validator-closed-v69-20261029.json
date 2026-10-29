@@ -1,0 +1,15 @@
+{
+  "content_id": "14548994",
+  "version": 69,
+  "snapshot": "v:69",
+  "prior_html_exact": true,
+  "five_epic_reports_exact": true,
+  "appended_content_exact_except_generated_local_ids": true,
+  "prior_characters": 124266,
+  "readback_characters": 127453,
+  "jira_comment": "10864",
+  "original_native_source": "366622e0c08b2caaa5a5317f5197c0ee3d7050e9",
+  "reviewed_diagnostic_source": "309b3f0505ba33e50a65fe8ad59d95443eb9806b",
+  "closure_report_sha256": "ab48e5079bcc07f119236d31555f70c082f733ae5a979956071bd6d6b8a62bce",
+  "scope": "Original-model validator preparation closed; actual host collision-model loader implementation starts. No production/Task50/D3 acceptance."
+}
