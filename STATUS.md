@@ -1,3 +1,38 @@
+# Original geometry witness — independently CLOSED; native47a and diagnosticb44 evidence retained
+
+The original forest-geometry witness preparation is closed with no open finding.
+Native measurements remain labelled `47a4af0d1a5a5694c1678147a19240b071627fac`;
+the stricter checker and its tests are reviewed/tested at
+`b44d2c96faa4e84e92b0f7507d81e4d80106edb9`. No native DLL rebuild is claimed for
+the diagnostic-only correction: ten exact Git blob identities establish reuse.
+All15054 original queries and29894 ordered replies match through host library
+and actual Lua; default f3 reports/transcripts and controlled537 transcripts
+remain byte identical. All native state/refusal controls, input checks and49
+original export hashes remain as measured and independently verified.
+
+Linux formatting/18 driver guards/Clippy and actual Windows18 guards pass;
+the invalid host override still refuses101. The14 actual old/new driver cases
+prove five newly blocked impossible histories, a healthy input accepted by both,
+and the preexisting neutral-depth refusal preserved. Root's original aggregate
+exit1 is retained: it expected the wrong failure-event name. Separate read-only
+assessment0 uses the actual `trace_failed` stage, preserves all outputs and was
+independently reviewed. No failed result was overwritten or labelled exit0.
+
+Final focused closure SHA256:
+`4a97eb5468dc7cbc3202a9f68d572e7cd376441347f60624349d2d68c3606573`.
+The original CHANGES_REQUIRED reviewd796 remains immutable. Safe validation,
+source-reuse, assessment and closure reports are under
+`reference/d3-collision-characterization/`.
+
+This is characterization/preparation, not Task49 or D3 delivery. Production
+queries and model loading still run in the DLL. New EEDCS-50 now starts the
+required collision-model loader/geometry extraction from freshly verified
+integration6bbaa8197, with real retail model characterization first. Task47
+shipping115 remains live; checked48.5MB Tacview/32.7MB observation prefixes match
+only. Full40/eight-complete-artifact acceptance and normal delivery are pending.
+Required model/entity/environment/time/solver-loader removal remains D3 scope;
+D4/D5 have not started.
+
 # Original geometry witness — 47a4af0d1 runtime and native evidence GREEN; the review's one P2 (decoder call-history conservation) PREPARED, UNRUN (EEDCS-49, D3)
 
 ## Measured on 47a4af0d1 (Root; retained, not repeated here, and not an acceptance)

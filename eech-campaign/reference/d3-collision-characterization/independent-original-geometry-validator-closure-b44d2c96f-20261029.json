@@ -1,0 +1,205 @@
+{
+  "review_kind": "Focused correction/evidence closure of the single decoder-history conservation P2; no repeated native/model/kernel pass",
+  "reviewed_utc": "2026-10-29T22:04:06.486518+00:00",
+  "base": "47a4af0d1a5a5694c1678147a19240b071627fac",
+  "reviewed_validator_tested_head": "b44d2c96faa4e84e92b0f7507d81e4d80106edb9",
+  "frozen_snapshot": "R:\\d3-evidence\\tree-geometry-checker-source-b44d2c96f",
+  "snapshot_clean_before_and_after": true,
+  "reused_native_measured_head": "47a4af0d1a5a5694c1678147a19240b071627fac",
+  "preserved_original_review": {
+    "path": "R:\\d3-evidence\\independent-original-forest-geometry-review-47a4af0d1-20261029.json",
+    "sha256": "d796840610b1ca6b50ec4f5a08af8bfe73f2659aa8075510654db9d84a60c285",
+    "unchanged": true
+  },
+  "verdict": "CLOSED: decoder-history P2 resolved; no new actionable finding in the bounded validator/test/recovery delta. Original47a measurements remain labelled47a. No production/model-loader/task49/shipping/whole-D3 acceptance.",
+  "open_findings": [],
+  "finding_disposition": {
+    "id": "P2-decoder-history-conservation",
+    "status": "resolved",
+    "path": "R:\\d3-evidence\\tree-geometry-checker-source-b44d2c96f\\eech-campaign\\crates\\eech-world\\lua\\collision-characterization.lua",
+    "line": 817,
+    "resolution": "For fixed T=6, validator computes F=g_calls-g_true and requires g_true=T*F+(g_last==1 ? g_depth+1 :0). A nonzero exhausted history requires final depth5; prior zero-call/depth/hit/count bounds remain. Counts are checked before cross-report aggregation. No intersection/physical answer is derived.",
+    "positive_collaborator": "Now emits possible histories: zero reads, complete6-yes/1-no walks, final depth0..5 hits after0/1/2 complete walks, quad hits after exhaustion, and misses after1/2/3 walks. Coherent report buckets are recomputed; malformed variants change one bounded history while preserving matching buckets.",
+    "guard_controls": "Six added malformed-history modes make26 geometry modes in the existing18-driver-test suite. Five newly demonstrate old0/new1; zero-call-depth was already rejected by both and is honestly labelled. Healthy control accepted by both."
+  },
+  "actual_affected_checks": {
+    "linux": "Recorded terminal actual0: formatting, all18 collision-driver tests with26 malformed geometry controls, all host-target strict Clippy0.",
+    "windows_build": "Recorded actual0 host-only Rust/Lua guard build. Four manifest entries rehashed; no new native fixture DLL build claimed.",
+    "windows_native_guards": "Actual18/18 guard tests0; invalid EECH_WORLD_BIN override actual101 with explicit refusal, no fallback; controller0 and all4 payload hashes unchanged.",
+    "windows_guard_build_info_sha256": "b5a56a516408711f642573a3fdf6aad7181b7bd5198bae7addf98a3fc4d18108",
+    "old_new_matrix": "Same new coherent collaborator, same retained47a host VM, only old47/newb44 driver differs.14 actual processes: healthy0 on both; five impossible histories old0/new1 with named primary errors; zero-call-depth1 on both. Every refusal has one trace_failed row, empty transcript and no trace_written/coverage/geometry_witness_coverage/done success row or marker."
+  },
+  "assessment_recovery": {
+    "original_aggregate_actual_exit": 1,
+    "original_controller_sha256": "50a3c7f45f07ee8b7864e6a3c75b408d74f42a9a49ff94ba1ef6f52f2bc86a36",
+    "cause": "Original Root assessor required report_invalid, but these failures occur inside fail_trace, which emits trace_failed at collision-characterization.lua1073. The original script/controller and all process statuses/outputs remain unchanged.",
+    "separate_readonly_assessment_actual_exit": 0,
+    "cases_verified": 14,
+    "review_assessment": "Read both generator and recovery source. Recovery reads retained statuses/logs/callers/reports/transcripts, checks the correct failure stage, preserves original controller bytes/hash, and writes a separate result. Reviewer independently rehashed all14 caller/log files and parsed all14 reports/transcripts; statuses0/1 and absence/presence of success rows agree. This is a valid assessment recovery, not an original aggregate0 or rerun.",
+    "no_status_overrides_or_native_changes": true
+  },
+  "native_reuse": {
+    "proof_sha256": "d1d68597c3044ad262f4ec8a0aaa0a8dc005f2b648f4728263e80c8fe7e0d0da",
+    "ten_git_blob_identities_independently_verified": true,
+    "scope": "C fixture/engine/header/sys bridge/engine Rust/DC module/host kernel/library/main and Lua physical replay bytes equal measured47a at pinned Git blobs. Only checker/collaborator/guard tests and docs/evidence changed. No new physics/ABI/lifecycle source review or relabelled native build.",
+    "actual47a_histories": "Previous independent full review verified4802/5126/5126 histories satisfy this exact stronger predicate. Read-only aggregate audit confirms15054 histories, zero violations and unchanged original transcript SHAs. New predicate therefore admits the retained measured data; no need to rerun unchanged original campaigns solely for this diagnostic fix.",
+    "retained47a_controlled_transcripts": {
+      "georgia": "6d4407214194d43747394e3a517065f554a42ad4789e2178744fb55bf645aac0",
+      "lebanon_and_repeat": "647927fc7ed66d8489dbc230d36a08076f7ba365f753eb531ba3d8243dbf4698"
+    },
+    "cache_cleanup_limit": "Cleanup is separate Root administrative evidence; original sources/binaries/raw oracles remain retained. Reviewer did not inspect or control Docker/WSL/process/cache state and makes no new cleanup execution claim."
+  },
+  "limits": [
+    "Diagnostic validation closure only. No host model-loader extraction, production tree/entity handoff/authority/refusal, final shipping, task49 or whole-D3 acceptance.",
+    "Prior47a controlled original witness/full review remains the physical evidence. Its explicit mesh, original decoder, real tree positions, actual hit depths0/1 and other coverage limits are unchanged; no general retail-model or all-geometry completion inferred.",
+    "Remaining model/entity/environment/time/spatial services, DCS mapping/workarounds and physical solver/loader removal remain D3. No D4/D5 deferral or unsupported miss substitute approved.",
+    "No formal GitHub APPROVED, external publication, nested agent, source edit, test/build/native execution, Git/auth mutation or process/cache action by reviewer; only read-only analysis and this new private report.",
+    "Task47 original shipping115 and all unrelated live work remain untouched; current CI/delivery state is outside this closure."
+  ],
+  "source_sha256": {
+    "eech-campaign/crates/eech-world/lua/collision-characterization.lua": "b4b90a677b1238017352d45cfaec87c05eb8ff4aa3842bf7933abcf910a904a7",
+    "eech-campaign/crates/eech-world/tests/lua/collision-caller.lua": "f4d3e90cbb32194ad27e8a252813b5ca84d36a0a6e52d1e5e9cc6cc54233e7e5",
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs": "7d359b5489fcfc14fdf812fd41dffd55628307bc4a89369d4433358810dd3d20"
+  },
+  "evidence_sha256": {
+    "R:\\d3-evidence\\geometry-b44-native-source-reuse-proof.json": "d1d68597c3044ad262f4ec8a0aaa0a8dc005f2b648f4728263e80c8fe7e0d0da",
+    "R:\\d3-evidence\\tree-geometry-checker-linux-b44d2c96f-20261029-completion.json": "ddbed4d6fcf73235ed3220c83cf31c7d5419fbda8e50a8a95645ba7a224f3fa8",
+    "R:\\d3-evidence\\tree-geometry-checker-linux-b44d2c96f-20261029.log": "fee76d460092779eed15f0fa17c654cca9171f84b9046a601cb7ce59374e9dca",
+    "R:\\d3-evidence\\tree-geometry-checker-windows-b44d2c96f-20261029-completion.json": "55d1b913b8122ec846d101ede6179165b7d62c3d2c64ae900f21ca96ed9eef76",
+    "R:\\d3-evidence\\geometry-history-windows-guards-b44d2c96f-20261029\\controller.json": "c320ee052ffcf020b18ed3df66792eaeb89a9d8ac5f8f661453b9f2153da6522",
+    "R:\\d3-evidence\\geometry-history-driver-red-green-b44d2c96f-20261029\\controller.json": "50a3c7f45f07ee8b7864e6a3c75b408d74f42a9a49ff94ba1ef6f52f2bc86a36",
+    "R:\\d3-evidence\\geometry-history-driver-b44d2c96f-assessment-recovery.json": "822fb71a2cff73cdd9fa79350ccf780c9c4acf147e599684ca78689874fd333b",
+    "R:\\d3-evidence\\assess-geometry-history-driver-b44d2c96f-20261029.py": "40c52c0fb760a94c5189cbe57d6611d8e4521c5a7a1a7ccad9518f64b6ad1b35",
+    "R:\\d3-evidence\\run-geometry-history-driver-red-green-b44d2c96f-20261029.py": "8ab520ee7804bede8936e72996dd095e24f343323b2387b55c2824fe2638305b",
+    "R:\\d3-evidence\\geometry-47a-native-history-conservation-audit.json": "0123d2f8519c94eca0299a134c80422516190348c4730236e5276393c317867c",
+    "R:\\d3-evidence\\cleanup-closed-geometry-537-cache-readonly-20261029.json": "76d78617b37d07b09f0f646bc56f1f86084303c287b37e7d9ffa2d1df22760ab"
+  },
+  "matrix_retained_file_identities": [
+    {
+      "version": "old47",
+      "mode": "ok",
+      "actual_process_exit": 0,
+      "report_sha256": "45e52051c0b86ac7c26691504d126cae3b614893915afe0552627fcef357e7bd",
+      "transcript_sha256": "3abc16a7af2d12d12920b8afb2030b18e1ed6b2ecd47075065350ddefc8f1bed",
+      "caller_sha256": "f4a0f7617e1e55c97edbc7c3baf58f55b96225db095bd2742636dc167194bfdd",
+      "log_sha256": "340b6c92c4e0badc734ffc04b8834e9127f85f62140f52d7e57a616c20262342"
+    },
+    {
+      "version": "old47",
+      "mode": "witness_history_true_count",
+      "actual_process_exit": 0,
+      "report_sha256": "45e52051c0b86ac7c26691504d126cae3b614893915afe0552627fcef357e7bd",
+      "transcript_sha256": "24f17cf4b794a9d1d4f2ee42d1e4bdb1c85d60566397d98019bd5425dea1ea60",
+      "caller_sha256": "35a8c01cca8598ac4358cf9323ca50f1d488276394a2f2e50ebc7ea0a261f61e",
+      "log_sha256": "340b6c92c4e0badc734ffc04b8834e9127f85f62140f52d7e57a616c20262342"
+    },
+    {
+      "version": "old47",
+      "mode": "witness_history_final_depth",
+      "actual_process_exit": 0,
+      "report_sha256": "28459cd2abee83f052d7d99ea2f3542d921a84576adec99751a86865f82c74e8",
+      "transcript_sha256": "5f550618f490bd2c409dabc26045a8f04870bef5ae6711496839a03a92d57c89",
+      "caller_sha256": "2546506b44a8e59791238449ed43febd22d42c4d771eeb81924433905b21bcde",
+      "log_sha256": "340b6c92c4e0badc734ffc04b8834e9127f85f62140f52d7e57a616c20262342"
+    },
+    {
+      "version": "old47",
+      "mode": "witness_history_incomplete_walk",
+      "actual_process_exit": 0,
+      "report_sha256": "45e52051c0b86ac7c26691504d126cae3b614893915afe0552627fcef357e7bd",
+      "transcript_sha256": "26067bcba4f6c84071ccb18003055b30e4713c7699a2e682d49d63bacf75abbc",
+      "caller_sha256": "aac3e002bad2e14eea924881b1ace07fb0eb165144e3e158c2278e7e956e2b20",
+      "log_sha256": "340b6c92c4e0badc734ffc04b8834e9127f85f62140f52d7e57a616c20262342"
+    },
+    {
+      "version": "old47",
+      "mode": "witness_history_exhausted_depth",
+      "actual_process_exit": 0,
+      "report_sha256": "45e52051c0b86ac7c26691504d126cae3b614893915afe0552627fcef357e7bd",
+      "transcript_sha256": "7c8c4ef94294c147f10f0c26ad59ad3e872ff28c08555c67eb60f9e50b8c42d3",
+      "caller_sha256": "f4e5ecb7decc47aaa20b72f38921fb07412acaa40f749daa50dc59ab991a8b08",
+      "log_sha256": "340b6c92c4e0badc734ffc04b8834e9127f85f62140f52d7e57a616c20262342"
+    },
+    {
+      "version": "old47",
+      "mode": "witness_history_calls_without_true",
+      "actual_process_exit": 0,
+      "report_sha256": "45e52051c0b86ac7c26691504d126cae3b614893915afe0552627fcef357e7bd",
+      "transcript_sha256": "f813df693374c025c1472a36dded0c16606728b621be0de11279ca40d937ef17",
+      "caller_sha256": "76c9cd35930147c080e8a0faf682dbc2933188dc1cad46ac4446d4c11fc31df1",
+      "log_sha256": "340b6c92c4e0badc734ffc04b8834e9127f85f62140f52d7e57a616c20262342"
+    },
+    {
+      "version": "old47",
+      "mode": "witness_history_zero_call_depth",
+      "actual_process_exit": 1,
+      "report_sha256": "a3e578872828048e0c2aaa40fd8d6faed40462c8d92c7c1bf7712bbdfa282c8b",
+      "transcript_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "caller_sha256": "5662332397110dce5f9b2a7e6e7d830cd90ecfd5933551e8ae821a1f742a2466",
+      "log_sha256": "e0ebda05896a0aa2a4883be5ca21794610eb5ac54739ef2194b86baeb5a2010b"
+    },
+    {
+      "version": "newb44",
+      "mode": "ok",
+      "actual_process_exit": 0,
+      "report_sha256": "45e52051c0b86ac7c26691504d126cae3b614893915afe0552627fcef357e7bd",
+      "transcript_sha256": "3abc16a7af2d12d12920b8afb2030b18e1ed6b2ecd47075065350ddefc8f1bed",
+      "caller_sha256": "73b4fca0274529a9500923c8c523084067c47987c4841995763f37700e01bf7d",
+      "log_sha256": "340b6c92c4e0badc734ffc04b8834e9127f85f62140f52d7e57a616c20262342"
+    },
+    {
+      "version": "newb44",
+      "mode": "witness_history_true_count",
+      "actual_process_exit": 1,
+      "report_sha256": "f7df512f835e2c15d005c60adcaac967360b24466e0662e368260892746aa7e9",
+      "transcript_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "caller_sha256": "642f71e43f39afb6d74eeacad7a7018961f5d7ef85328c5b2347e71463bbaa94",
+      "log_sha256": "ee13d22ecaa582b2676c87a521c26c1cec143c2093cf5834b835ba1f87c25790"
+    },
+    {
+      "version": "newb44",
+      "mode": "witness_history_final_depth",
+      "actual_process_exit": 1,
+      "report_sha256": "b20af819165624e6713a1043108705fb9bb9559b9758bea541a93c35fb58cb69",
+      "transcript_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "caller_sha256": "d49de6d1dae7a61bd81db6b88a72225a66dda5ad5395d6fb63bc48aefbb4b4dd",
+      "log_sha256": "6eee929740a5eca35563150dd15eb0e50bff7cbe233235b7c890a5c56fb5b04c"
+    },
+    {
+      "version": "newb44",
+      "mode": "witness_history_incomplete_walk",
+      "actual_process_exit": 1,
+      "report_sha256": "a0309812425218b906e0351adc6c984dae13289796116f34f179c165cb3a8d20",
+      "transcript_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "caller_sha256": "a2a873e1c42835a35cf9f069dc4fe19052d929e3b9c6abb9d67d1e453df16426",
+      "log_sha256": "9f45d719c11627ddfe521b27e1f091245c76cc610b00938bd3d83cec0aa1ac9e"
+    },
+    {
+      "version": "newb44",
+      "mode": "witness_history_exhausted_depth",
+      "actual_process_exit": 1,
+      "report_sha256": "5fd5f284c26b171df408577f1c02d3703bd0f9e5e47b6a46deceea54a8b6cdf9",
+      "transcript_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "caller_sha256": "17d1b43ac270adbb9941719c3e00b0c091b72816ee8dd2914c4bfab07b3e4997",
+      "log_sha256": "220e006f0af3c2e1c0afee60bef53ff30f2a5b66b495ed51f9351426d05951f9"
+    },
+    {
+      "version": "newb44",
+      "mode": "witness_history_calls_without_true",
+      "actual_process_exit": 1,
+      "report_sha256": "3239c3bdbfc9cc379f5e5af8ca18f39a9a92337bf08ae65e10d921ec2ee2aed1",
+      "transcript_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "caller_sha256": "ac46a6db7224cfc6c8fa7a524652616ba0acd9ca35660407a05b3a4146dc2dc4",
+      "log_sha256": "1a7cedd6a0f342f4c25b64cc4e1f93ddad16553471be8465daf09a7272e82915"
+    },
+    {
+      "version": "newb44",
+      "mode": "witness_history_zero_call_depth",
+      "actual_process_exit": 1,
+      "report_sha256": "a3e578872828048e0c2aaa40fd8d6faed40462c8d92c7c1bf7712bbdfa282c8b",
+      "transcript_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "caller_sha256": "b440ca729951162e03f92aea8477ab4661d4968885071469264d7ec812d3390d",
+      "log_sha256": "7cfa720e9ed4aad1d33d3ec43d7bb80812a3b180d982182a2ca7148cf1b4da8f"
+    }
+  ]
+}
