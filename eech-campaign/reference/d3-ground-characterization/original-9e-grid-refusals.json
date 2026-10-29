@@ -1,0 +1,49 @@
+{
+  "completed_utc": "2026-10-29T14:38:52.6449863Z",
+  "records": [
+    {
+      "pid": 16956,
+      "map": "georgia",
+      "raw_jsonl_sha256": "b8e68c2cbe6da11e0eefb1f53838f2249661d26938c4e85f50c1d4e629e3bc3e",
+      "refusal": "world_map_is_not_the_terrain_extents",
+      "post_input_actual_exit": 0,
+      "measurements_accepted": false,
+      "actual_native_exit": 1,
+      "event_names": [
+        "boot",
+        "probe_refused"
+      ],
+      "created_utc": "2026-10-29T14:35:02.9627914Z"
+    },
+    {
+      "pid": 15116,
+      "map": "lebanon",
+      "raw_jsonl_sha256": "d46a835dab4607fa1a2d49cb31ccd9da5b790099f324a58453bd10c0f0fbb8ee",
+      "refusal": "world_map_is_not_the_terrain_extents",
+      "post_input_actual_exit": 0,
+      "measurements_accepted": false,
+      "actual_native_exit": 1,
+      "event_names": [
+        "boot",
+        "probe_refused"
+      ],
+      "created_utc": "2026-10-29T14:35:02.962773Z"
+    },
+    {
+      "pid": 24664,
+      "map": "lebanon-repeat",
+      "raw_jsonl_sha256": "d46a835dab4607fa1a2d49cb31ccd9da5b790099f324a58453bd10c0f0fbb8ee",
+      "refusal": "world_map_is_not_the_terrain_extents",
+      "post_input_actual_exit": 0,
+      "measurements_accepted": false,
+      "actual_native_exit": 1,
+      "event_names": [
+        "boot",
+        "probe_refused"
+      ],
+      "created_utc": "2026-10-29T14:35:02.9627797Z"
+    }
+  ],
+  "source": "9e607637f750e2a08d0cb6c36d79709a68296d15",
+  "scope": "First original probes refused due incorrect fixture grid equality before case loops; no oracle. All inputs remain accepted. Repair keeps original queries/extents unchanged and separates campaign/physical grids."
+}

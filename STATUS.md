@@ -1,63 +1,39 @@
-# D3 terrain and environmental services — active
+# D3 ground-contact on G1 — private test-only composition checkpoint
 
-29 October2026. Authority is the live M5 goal11534337v3 and migration ledger14548994v55.
-D1/EEDCS-15 and D2/EEDCS-18 are accepted. D3/EEDCS-21 is In Progress; D4/D5 have not started.
-Campaign geography, planning, timers, scheduling and consequences stay in EECH_DC.
-The finite remaining scope is recorded in docs/handover/D3-SCOPE-AUDIT.md. Old status
-entries remain in Git history; HOST-HANDOVER.md is the historical D1 handover.
+29 October 2026. This is an ISOLATED composition checkout, not a delivery branch. Authority: M5 goal 11534337 v3, migration ledger 14548994.
+D3/EEDCS-21 is In Progress; D4/D5 have not started. Campaign geography, routes, timers, scheduling and consequences stay in EECH_DC. Other D3 spatial, model,
+environment and host-time groups remain in scope. The finite D3 scope is docs/handover/D3-SCOPE-AUDIT.md.
 
-## Current extraction
+## What is composed, and what is not
 
-EEDCS-47, PR107, branch codex/d3-terrain-services, verified integration base
-6bbaa8197a4843181d03cd355d562af998c75321. Point, fast-elevation and map-fact queries
-now dispatch to the host. The DLL retains semantic value records and optional opaque
-hints; the numerical point/fast solver is in the reference host. DLL2D loading/grid
-generation, derived terrain geometry, spatial/model services, environment and host-time
-coverage remain whole-D3 work. Task47 and the epic are not delivered yet.
+- Parent G1 (Task47 / EEDCS-47, PR107, branch codex/d3-terrain-services) at pinned f03a680c9625b89ac966322faf0dd96460a3e03d. **G1 is NOT accepted or delivered.**
+  Its frozen immutable-06 ordinary shipping pack is a separate live run and is not touched here. Point, fast-elevation and map-fact queries dispatch to the host provider; the
+  DLL keeps semantic value records and optional opaque hints. The sector-maximum getter and the physical terrain sector grid are still the campaign's own (G2 has not moved).
+- Task48 / EEDCS-48 original characterization at pinned d44a19612d014fa25cddb8e455dbe145f3549e41 (original fixture source from c119a7370, plus the strict JSON encoder and
+  comment-only wording). It is merged normally into the G1 head in this isolated checkout. Conflicts were only STATUS.md and
+  eech-campaign/crates/eech-dc/src/module.rs, resolved additively: the terrain-fixture methods and the ground_probe method are both kept.
+- **This lane is test-only.** It adapts the ORIGINAL ground fixture so the same original queries (point_above_ground, point_below_ground, get_ground_impact_point), the same
+  case generator (including the physical terrain grid), seed and draw order, and the same `ground-physical` fold can run against G1's host-terrain module. It does not move G2,
+  does not cut over production, adds no host API and changes no ordinary shipping source. The original query expressions (en_world.h, en_cllsn.c) and terrdata.c are byte-identical to the base.
 
-## Verified evidence
+## Original evidence (preserved, never rewritten)
 
-- Original controls include both maps, deterministic20k probes, repeated600s runs and
-  a900s control whose complete Tacview/observations/metrics match the accepted D2 donor.
-- Both complete generated grids equal independent original-generated files byte for
-  byte; point/primed/fast conformance passes on both generated and provided grids.
-- Public reference placement/LOS match original; raised terrain changes both. Missing
-  and all six malformed replies refuse with the specific expected markers.
-- Public moved-client probes match all256 emitted physical point/fast samples and
-  complete20006-fast-call hashes on both maps. Primed/run diagnostic folds are qualified.
-- Six real face-predicate cases pass for reference/nohint providers and native season,
-  Summer assertion and Winter fallback. Retail has no winter pair; distinct seasonal
-  file selection is tested separately. Shipping nohint preserves original observations.
-- Frozen runtime06d42557843aba5728ffafae937451413115fb6c: ordinary Windows build0,
-  all45 manifest entries verified, backend17/17, refusal-driver7/7, face-driver5/5,
-  actual DLL boot-contract1/1 and both final whole-grid comparisons pass0. Prior
-  engine9/world18 terrain checks and independently reviewed a9 public cases are reused.
-- The analytic all-land Lebanon case remains FAILED1: changed WATER geography removes
-  the required USS TARAWA anchorage. Its failure is preserved, never swallowed as a
-  provider refusal. No baseline, input manifest, oracle or tolerance was changed.
+- Oracles: R:/d3-evidence/ground-original-c119a7370-{georgia,lebanon,lebanon-repeat}/ground.jsonl (fixture build c119a7370, 43 entries verified). Georgia, Lebanon and a separate
+  Lebanon repeat each ran native exit 0 with 20,000 point cases and 5,000 impacts, twice, campaign seed 1, private seed 20261029; 117 rows per file pass strict JSON; reports are
+  in-process identical; the separate Lebanon raw files are byte identical; all three post-input checks pass. These are the ORIGINAL profile (legacy record diagnostics).
+- The first 9e607637f runs were refused before any case (campaign grid conflated with the physical grid) and their raw failures stay preserved.
+- Original probe/no-probe control (300 s before, 60 s after, 100 ms frames, two verified roots): both exited 0 with 3600 frames, 1726 objects, 1712 alive, digest 2c4dce1c and
+  elapsed 359.96115112305, identical except the probed flag; strict JSON 117 and 3 rows, post-inputs 0. The digest is coarse; it is not a full Tacview or all-state proof.
+- Source-level Linux evidence for the original driver (11 real-Lua tests, Clippy 0, formatting and Lua parses 0) is from the original branch, not from this composition.
 
-Safe evidence and independent reports: eech-campaign/reference/d3-terrain-characterization/.
-Raw retail assets, coordinates, binaries and recordings remain outside Git. Accepted D2
-runtime64cf0f1c5551a2e59309a92917c32e6189d8ae60 and its40/eight-artifact proof are reused.
+## Composition validation and remaining gates
 
-## Final regression and next gate
+1. Root source/driver checks PASS: all40 real Linux host_callbacks guards (not the shipping pack), affected Clippy0, fmt/check0, both Lua5.1 parses0 and diffcheck0. Exact tested hashes retained. Selecting the four non-host branches reproduces the original C token stream; original query/extent files are unchanged. This does not prove hosted physical equality.
+2. Root: commit the clean composition; independent review of the new adaptation and completed original-control evidence is pending.
+3. Root: clean fixture build of the composition, then the SAME 20k points / 5k impacts / 2 repeats probes on fresh manifest-verified roots through the real G1 module and
+   `host.terrain_provider`, and exact comparison against the original oracles: `ground-physical`, the counters and the samples' physical words are the common comparison; the diagnostic
+   rows are NOT comparable and must be classified, never normalized. Real mismatches are investigated from raw cases. Cache, short-circuit and restoration measurements are compared
+   separately with their limits; differences are preserved.
+4. After G1 delivery and integration re-verification: G2 production extraction (not started), unchanged shipping pack, authority and refusal proof, normal review and delivery.
 
-The unchanged40-check shipping pack is RUNNING from clean frozen runtime06, seed1,
-100ms frames and3simhours per scenario, using three fresh manifest-verified roots.
-Controller tool55606; runner PID23548 created2026-10-29T13:03:32.911797Z. Four native
-processes21112/21948/6588/9768 are live on distinct roots; verify creation/argv before
-acting. Both Tacview and observation LIVE PREFIXES match accepted bytes; this is
-partial evidence only. Complete all8 files, actual runner exit and post-input checks
-remain required. Do not restart from a quiet console or observation timeout.
-
-Source06 has an independent delta review with no findings. Its hosted runtime tests
-pass, but workspace lint exposed additional tuple/test-style issues. Those corrections
-are prepared without numerical/ABI/contract changes. Actual affected Linux engine9/9
-and ALL module13/13 tests pass0. Actual FULL-workspace strict Linux Clippy passes0; new-delta review/currentCI remain pending;
-the frozen regression continues unchanged. No full-pack or task/epic acceptance claimed.
-
-Use the eech-regression skill and existing repo runner/checkers. Same-host process,
-source/bin/root/output paths and next actions: R:/d3-evidence/D3-NEXT-ACTION.json.
-After final comparison, applicableCI and independent new-delta/evidence review, perform
-a normal Task47 merge and update Jira/Confluence, preserving all five epic reports.
-Continue all remaining D3 services and audit the whole scope before closing the epic.
+No full 40-check, Tacview, Task47 or epic acceptance is claimed. Details: eech-campaign/docs/m5-ground-characterization.md (section 10).

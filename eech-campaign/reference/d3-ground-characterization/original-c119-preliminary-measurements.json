@@ -1,0 +1,419 @@
+{
+  "source": "c119a7370b5de43923a86d7a8124f9532bb523ee",
+  "scope": "Preliminary ORIGINAL C ground measurements, all three actual native0, strict JSON0, two in-process reports and separate Lebanon raw repeat equal. Driver refusal-encoder repair/review and post-input gates still pending; not extraction/shipping acceptance.",
+  "separate_lebanon_raw_equal": true,
+  "records": [
+    {
+      "map": "georgia",
+      "actual_native_exit": 0,
+      "strict_json_rows": 117,
+      "raw_bytes": 39327,
+      "raw_sha256": "5d2d40ed04ad77d485d09fea3e7afef340967edae52a8013dd0b80327092844a",
+      "repeat_identical": true,
+      "measurements": {
+        "ground-map": {
+          "event": "ground-map",
+          "repeat_index": 1,
+          "terrain_sector_side": 2048,
+          "terrain_sectors_x": 244,
+          "terrain_sectors_z": 116,
+          "world_sector_side": 4096,
+          "world_sectors_x": 122,
+          "world_sectors_z": 58
+        },
+        "ground-record": {
+          "anchored": 1,
+          "event": "ground-record",
+          "repeat_index": 1,
+          "restored": 1,
+          "words_after": "e7cc00aebc6f92f3",
+          "words_before": "e7cc00aebc6f92f3"
+        },
+        "ground-points": {
+          "cases": 20000,
+          "event": "ground-points",
+          "in_map": 16702,
+          "input_mutated": 0,
+          "off_map": 3298,
+          "repeat_index": 1
+        },
+        "ground-above": {
+          "cases": 16702,
+          "event": "ground-above",
+          "false": 5374,
+          "record_touched": 11299,
+          "repeat_index": 1,
+          "true": 11328,
+          "true_record_untouched": 5403,
+          "warm_same": 16702,
+          "warm_start_intact": 16702
+        },
+        "ground-below": {
+          "cases": 20000,
+          "event": "ground-below",
+          "false": 11328,
+          "off_map_record_touched": 0,
+          "off_map_true": 3298,
+          "record_touched": 11299,
+          "repeat_index": 1,
+          "true": 8672,
+          "true_record_untouched": 3298,
+          "warm_same": 20000,
+          "warm_start_intact": 20000
+        },
+        "ground-complement": {
+          "both_false": 0,
+          "both_true": 0,
+          "complement": 16702,
+          "event": "ground-complement",
+          "in_map_cases": 16702,
+          "not_complement": 0,
+          "repeat_index": 1
+        },
+        "ground-impact": {
+          "a_corrected": 1271,
+          "alias_equal": 5000,
+          "alias_unequal": 0,
+          "b_corrected": 1830,
+          "cases": 5000,
+          "event": "ground-impact",
+          "impact_equals_corrected_below": 0,
+          "record_touched": 5000,
+          "record_untouched": 0,
+          "repeat_index": 1,
+          "warm_different": 0,
+          "warm_same": 5000,
+          "warm_start_intact": 5000,
+          "xz_changed": 0
+        },
+        "ground-impact-classes": {
+          "event": "ground-impact-classes",
+          "forest": 825,
+          "invalid": 0,
+          "land": 3208,
+          "other": 0,
+          "repeat_index": 1,
+          "water": 967
+        },
+        "ground-impact-types": {
+          "event": "ground-impact-types",
+          "repeat_index": 1,
+          "t0": 620,
+          "t1": 653,
+          "t2": 627,
+          "t3": 618,
+          "t4": 655,
+          "t5": 585,
+          "t6": 619,
+          "t7": 623
+        },
+        "ground-asserts": {
+          "event": "ground-asserts",
+          "extra_above_endpoint_not_above": 0,
+          "original_below_endpoint_still_above": 0,
+          "repeat_index": 1
+        },
+        "ground-hash": {
+          "above": "1fbe5e87b54005bd",
+          "below": "5942387f1d92f37d",
+          "combined": "07661a4ed5a09fef",
+          "event": "ground-hash",
+          "impact": "7a56f23fa54e4ecf",
+          "repeat_index": 1
+        },
+        "ground-physical": {
+          "above": "0c97c389344445d4",
+          "below": "9201db667b7422d1",
+          "combined": "03c997493d4ab73d",
+          "event": "ground-physical",
+          "impact": "f659d0d3669dcbe4",
+          "repeat_index": 1
+        }
+      },
+      "state_digest": {
+        "alive": 1211,
+        "digest": "22ebb4c1",
+        "elapsed": 0,
+        "event": "state_digest",
+        "frames": 0,
+        "objects": 1211,
+        "probed": true
+      }
+    },
+    {
+      "map": "lebanon",
+      "actual_native_exit": 0,
+      "strict_json_rows": 117,
+      "raw_bytes": 39349,
+      "raw_sha256": "248ca1e81a4c72bad8011d28f77271c28aba916dec16dd4b17602c7c38f00b91",
+      "repeat_identical": true,
+      "measurements": {
+        "ground-map": {
+          "event": "ground-map",
+          "repeat_index": 1,
+          "terrain_sector_side": 2048,
+          "terrain_sectors_x": 76,
+          "terrain_sectors_z": 92,
+          "world_sector_side": 4096,
+          "world_sectors_x": 38,
+          "world_sectors_z": 46
+        },
+        "ground-record": {
+          "anchored": 1,
+          "event": "ground-record",
+          "repeat_index": 1,
+          "restored": 1,
+          "words_after": "0e2de7291e9e2f6f",
+          "words_before": "0e2de7291e9e2f6f"
+        },
+        "ground-points": {
+          "cases": 20000,
+          "event": "ground-points",
+          "in_map": 16702,
+          "input_mutated": 0,
+          "off_map": 3298,
+          "repeat_index": 1
+        },
+        "ground-above": {
+          "cases": 16702,
+          "event": "ground-above",
+          "false": 5382,
+          "record_touched": 11276,
+          "repeat_index": 1,
+          "true": 11320,
+          "true_record_untouched": 5426,
+          "warm_same": 16702,
+          "warm_start_intact": 16702
+        },
+        "ground-below": {
+          "cases": 20000,
+          "event": "ground-below",
+          "false": 11320,
+          "off_map_record_touched": 0,
+          "off_map_true": 3298,
+          "record_touched": 11276,
+          "repeat_index": 1,
+          "true": 8680,
+          "true_record_untouched": 3298,
+          "warm_same": 20000,
+          "warm_start_intact": 20000
+        },
+        "ground-complement": {
+          "both_false": 0,
+          "both_true": 0,
+          "complement": 16702,
+          "event": "ground-complement",
+          "in_map_cases": 16702,
+          "not_complement": 0,
+          "repeat_index": 1
+        },
+        "ground-impact": {
+          "a_corrected": 1271,
+          "alias_equal": 5000,
+          "alias_unequal": 0,
+          "b_corrected": 1830,
+          "cases": 5000,
+          "event": "ground-impact",
+          "impact_equals_corrected_below": 0,
+          "record_touched": 5000,
+          "record_untouched": 0,
+          "repeat_index": 1,
+          "warm_different": 0,
+          "warm_same": 5000,
+          "warm_start_intact": 5000,
+          "xz_changed": 0
+        },
+        "ground-impact-classes": {
+          "event": "ground-impact-classes",
+          "forest": 422,
+          "invalid": 0,
+          "land": 3313,
+          "other": 0,
+          "repeat_index": 1,
+          "water": 1265
+        },
+        "ground-impact-types": {
+          "event": "ground-impact-types",
+          "repeat_index": 1,
+          "t0": 620,
+          "t1": 653,
+          "t2": 627,
+          "t3": 618,
+          "t4": 655,
+          "t5": 585,
+          "t6": 619,
+          "t7": 623
+        },
+        "ground-asserts": {
+          "event": "ground-asserts",
+          "extra_above_endpoint_not_above": 0,
+          "original_below_endpoint_still_above": 0,
+          "repeat_index": 1
+        },
+        "ground-hash": {
+          "above": "bf616df1700c5abe",
+          "below": "555b03dda15f8962",
+          "combined": "cd739cb202090db8",
+          "event": "ground-hash",
+          "impact": "604ac35f1184d4c0",
+          "repeat_index": 1
+        },
+        "ground-physical": {
+          "above": "b419196047efb93d",
+          "below": "54db721aed53d535",
+          "combined": "ea3064a7736c904f",
+          "event": "ground-physical",
+          "impact": "e1c9860d868fc6e3",
+          "repeat_index": 1
+        }
+      },
+      "state_digest": {
+        "alive": 1577,
+        "digest": "08b68c8f",
+        "elapsed": 0,
+        "event": "state_digest",
+        "frames": 0,
+        "objects": 1577,
+        "probed": true
+      }
+    },
+    {
+      "map": "lebanon-repeat",
+      "actual_native_exit": 0,
+      "strict_json_rows": 117,
+      "raw_bytes": 39349,
+      "raw_sha256": "248ca1e81a4c72bad8011d28f77271c28aba916dec16dd4b17602c7c38f00b91",
+      "repeat_identical": true,
+      "measurements": {
+        "ground-map": {
+          "event": "ground-map",
+          "repeat_index": 1,
+          "terrain_sector_side": 2048,
+          "terrain_sectors_x": 76,
+          "terrain_sectors_z": 92,
+          "world_sector_side": 4096,
+          "world_sectors_x": 38,
+          "world_sectors_z": 46
+        },
+        "ground-record": {
+          "anchored": 1,
+          "event": "ground-record",
+          "repeat_index": 1,
+          "restored": 1,
+          "words_after": "0e2de7291e9e2f6f",
+          "words_before": "0e2de7291e9e2f6f"
+        },
+        "ground-points": {
+          "cases": 20000,
+          "event": "ground-points",
+          "in_map": 16702,
+          "input_mutated": 0,
+          "off_map": 3298,
+          "repeat_index": 1
+        },
+        "ground-above": {
+          "cases": 16702,
+          "event": "ground-above",
+          "false": 5382,
+          "record_touched": 11276,
+          "repeat_index": 1,
+          "true": 11320,
+          "true_record_untouched": 5426,
+          "warm_same": 16702,
+          "warm_start_intact": 16702
+        },
+        "ground-below": {
+          "cases": 20000,
+          "event": "ground-below",
+          "false": 11320,
+          "off_map_record_touched": 0,
+          "off_map_true": 3298,
+          "record_touched": 11276,
+          "repeat_index": 1,
+          "true": 8680,
+          "true_record_untouched": 3298,
+          "warm_same": 20000,
+          "warm_start_intact": 20000
+        },
+        "ground-complement": {
+          "both_false": 0,
+          "both_true": 0,
+          "complement": 16702,
+          "event": "ground-complement",
+          "in_map_cases": 16702,
+          "not_complement": 0,
+          "repeat_index": 1
+        },
+        "ground-impact": {
+          "a_corrected": 1271,
+          "alias_equal": 5000,
+          "alias_unequal": 0,
+          "b_corrected": 1830,
+          "cases": 5000,
+          "event": "ground-impact",
+          "impact_equals_corrected_below": 0,
+          "record_touched": 5000,
+          "record_untouched": 0,
+          "repeat_index": 1,
+          "warm_different": 0,
+          "warm_same": 5000,
+          "warm_start_intact": 5000,
+          "xz_changed": 0
+        },
+        "ground-impact-classes": {
+          "event": "ground-impact-classes",
+          "forest": 422,
+          "invalid": 0,
+          "land": 3313,
+          "other": 0,
+          "repeat_index": 1,
+          "water": 1265
+        },
+        "ground-impact-types": {
+          "event": "ground-impact-types",
+          "repeat_index": 1,
+          "t0": 620,
+          "t1": 653,
+          "t2": 627,
+          "t3": 618,
+          "t4": 655,
+          "t5": 585,
+          "t6": 619,
+          "t7": 623
+        },
+        "ground-asserts": {
+          "event": "ground-asserts",
+          "extra_above_endpoint_not_above": 0,
+          "original_below_endpoint_still_above": 0,
+          "repeat_index": 1
+        },
+        "ground-hash": {
+          "above": "bf616df1700c5abe",
+          "below": "555b03dda15f8962",
+          "combined": "cd739cb202090db8",
+          "event": "ground-hash",
+          "impact": "604ac35f1184d4c0",
+          "repeat_index": 1
+        },
+        "ground-physical": {
+          "above": "b419196047efb93d",
+          "below": "54db721aed53d535",
+          "combined": "ea3064a7736c904f",
+          "event": "ground-physical",
+          "impact": "e1c9860d868fc6e3",
+          "repeat_index": 1
+        }
+      },
+      "state_digest": {
+        "alive": 1577,
+        "digest": "08b68c8f",
+        "elapsed": 0,
+        "event": "state_digest",
+        "frames": 0,
+        "objects": 1577,
+        "probed": true
+      }
+    }
+  ],
+  "created_utc": "2026-10-29T14:43:01.376154+00:00"
+}

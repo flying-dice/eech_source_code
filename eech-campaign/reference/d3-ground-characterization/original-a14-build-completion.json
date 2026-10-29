@@ -1,0 +1,6 @@
+{
+  "completed_utc": "2026-10-29T14:16:45.6636097Z",
+  "source": "a14cbdda1d59fbe8a88bb7437e21a98f82052c04",
+  "actual_exit": 0,
+  "scope": "Test-only ORIGINAL ground fixture compile. C source reviewed; checker completeness correction pending. Not shipping or oracle acceptance."
+}

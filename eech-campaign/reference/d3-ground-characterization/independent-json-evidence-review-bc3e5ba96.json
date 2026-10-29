@@ -1,0 +1,99 @@
+{
+  "kind": "Independent focused Task48 JSON-encoder correction and original measurement evidence review",
+  "created_utc": "2026-10-29T14:48:41.343712+00:00",
+  "repository": "R:\\eech_source_code",
+  "base": "c119a7370b5de43923a86d7a8124f9532bb523ee",
+  "head": "bc3e5ba96fd38d3c5ff12a3580eaeaee1840af28",
+  "clean_pinned_head_before_after": true,
+  "disposition": "REFUSAL_CONTROL_BYTES_NOT_JSON P2 resolved. No new actionable findings. Completed healthy c119 original measurements are reusable with their exact original source/binary identities; no claim of a newly executed bc native binary. Original purity controls and Task48/whole-D3 acceptance remain pending.",
+  "findings": [],
+  "encoder_review": [
+    "json_string escapes double quote, backslash and every byte0..31 with JSON short escapes or u00XX; emits surrounding quotes and preserves other UTF-8 bytes. Keys use the same encoder. Newlines/tabs are preserved as string content rather than flattened. Numeric/boolean output and sorted row-key order are unchanged.",
+    "The new test runs the actual driver through real Linux host/Lua5.1, strictly parses every output line with serde_json, and compares decoded refusal text containing all32 controls, quote/backslash, traceback tabs/newlines and UTF-8 exactly. It asserts process failure, one refusal, boot row and no digest. No success/refusal confusion.",
+    "No C, case generation, query ordering, schema, quota, physical/legacy fold or public ABI change; prior source reviews reused."
+  ],
+  "actual_driver_evidence": {
+    "completion": "ground-driver-linux-json-working-completion.json actual0; exact tested hashes all match pinned bc blobs",
+    "log": "11ground-driver tests PASS0,24filtered; affected host_callbacks Clippy finishes0. Script uses set-e and explicit locked test/lint commands; formatting/check/parses records retained.",
+    "scope": "Driver recording/guard validation only, not original C/retail/shipping physics."
+  },
+  "completed_original_measurements": [
+    {
+      "map": "georgia",
+      "source": "c119a7370b5de43923a86d7a8124f9532bb523ee",
+      "actual_native_exit": 0,
+      "raw_bytes": 39327,
+      "raw_sha256": "5d2d40ed04ad77d485d09fea3e7afef340967edae52a8013dd0b80327092844a",
+      "strict_JSON_rows": 117,
+      "ground_rows_equal_per_repeat": 57,
+      "run_sha256": "f8f7fbd94a9c430cc1fbeffc0e3e666ae0d2dcab6afb2d6c0b946506ec5a2c92"
+    },
+    {
+      "map": "lebanon",
+      "source": "c119a7370b5de43923a86d7a8124f9532bb523ee",
+      "actual_native_exit": 0,
+      "raw_bytes": 39349,
+      "raw_sha256": "248ca1e81a4c72bad8011d28f77271c28aba916dec16dd4b17602c7c38f00b91",
+      "strict_JSON_rows": 117,
+      "ground_rows_equal_per_repeat": 57,
+      "run_sha256": "5e2c3480a021442fdf2786c198de86c192f4eb78f6a8b6662bcefb0bc155dbf7"
+    },
+    {
+      "map": "lebanon-repeat",
+      "source": "c119a7370b5de43923a86d7a8124f9532bb523ee",
+      "actual_native_exit": 0,
+      "raw_bytes": 39349,
+      "raw_sha256": "248ca1e81a4c72bad8011d28f77271c28aba916dec16dd4b17602c7c38f00b91",
+      "strict_JSON_rows": 117,
+      "ground_rows_equal_per_repeat": 57,
+      "run_sha256": "b6cc9778bc936a4ea8c0e64fdcf3b39745761de1a6f051ed66e52b178de657b2"
+    }
+  ],
+  "original_evidence_assessment": [
+    "Clean c119 fixture BUILD-INFO names c119/dirty0/test-only ground-fixture. Actual build completion0 and43 file-manifest entries independently rehashed with zero mismatches. Run BINF/script identities agree with that bundle.",
+    "Actual run records sourcec119/native0, campaign seed1/private seed20261029,20,000points/5,000impacts,2repeats,seconds0/after0/frame100. Every raw line strictly parsed;117rows each. Independent comparison covered every one of57ground rows per repeat, including all samples, not merely aggregate folds.",
+    "Separate Lebanon raw files39349bytes each are byte-identical SHA248ca1e81a4c72bad8011d28f77271c28aba916dec16dd4b17602c7c38f00b91. Georgia39327bytes SHA5d2d40ed04ad77d485d09fea3e7afef340967edae52a8013dd0b80327092844a.",
+    "Observed on both maps:5,000aliased/separate agreements and5,000warm agreements; warm-start invariants and record restoration hold; x/z mutation0 and checked endpoint assert violations0. Water/forest/land classes all measured. This is the generated case set, not every possible original call/branch.",
+    "All three post-input logs report IDENTICAL to accepted manifests and completion records0. Raw samples/assets remain private; published aggregates retain source and limits.",
+    "Private analyzer parses strict JSON and checks selected aggregates/repeats; reviewer additionally checked all per-repeat ground rows and the complete separate-process byte comparison. No raw output, tolerance or baseline changed."
+  ],
+  "encoder_only_reuse": {
+    "allowed": "Reuse completed measurements as actual c119 original-query evidence. C fixture source hash is identical across c119..bc and only the Lua string encoder executes differently outside the query calls.",
+    "healthy_correspondence": "All completed healthy rows have printable-ASCII string keys/values, no refusal/error controls. Old/new encoders produce the same JSON strings for those values and preserve sorted field order, nonstring formatting, schema and sample data; no repeated native campaign is needed solely to fix the refusal encoder.",
+    "not_allowed": "Do not relabel binaries/runs as bc, claim old malformed9e failure rows are now valid JSON, infer whole campaign purity from a coarse digest, or claim pending control completion."
+  },
+  "old_failure_preservation": {
+    "all3raw_hashes_reverified_unchanged": {
+      "lebanon": "d46a835dab4607fa1a2d49cb31ccd9da5b790099f324a58453bd10c0f0fbb8ee",
+      "lebanon-repeat": "d46a835dab4607fa1a2d49cb31ccd9da5b790099f324a58453bd10c0f0fbb8ee",
+      "georgia": "b8e68c2cbe6da11e0eefb1f53838f2249661d26938c4e85f50c1d4e629e3bc3e"
+    },
+    "scope": "9e native1/precondition failures remain exact invalid-JSON raw artifacts; no oracle from them."
+  },
+  "limits": [
+    "Only read-only source/artifact/hash/strict-parse inspection and this authorized private report write. No reviewer source edit, compiler/build/test/Lua/native execution, process/cache action, delegation or external write.",
+    "300s-before/60s-after c119 probe/no-probe controls remain running and were not inspected as completed. Their coarse digest is not full recording equivalence.",
+    "No bc native build/run claimed; no Task48 extraction/shipping delivery or whole-D3 acceptance. Task47 frozen06/source/process/cache untouched."
+  ],
+  "changed_path_sha256": {
+    "STATUS.md": "c74255a05ee01661ab325cdd15378f89ef66bbbebff3ae0cd6dca55256e57349",
+    "eech-campaign/crates/eech-world/lua/ground-characterization.lua": "7f13e0ac02550d1359e023efcb3470590de182ee5ed4259af8c8e3afdcc09711",
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs": "db385be08ee6d89cbce818aa679426700c1f6a41b49846eee5c83714dd8fe732",
+    "eech-campaign/crates/eech-world/tests/lua/ground-caller.lua": "0fdf2e6898f48d29f1870e85c696a0dbf73d9a20789055f2e40e95930393e4d8",
+    "eech-campaign/docs/m5-ground-characterization.md": "8df3aa5bc10ffd8a1f13af79d4ab74082682fa1d8c6c522bcc009cb4f2410136",
+    "eech-campaign/reference/d3-ground-characterization/independent-distinct-grid-review-c119a7370.json": "9e1306d9e7a623d5c6f318585385a2002d7edd82ee40305a06babe6a5d6c93cf",
+    "eech-campaign/reference/d3-ground-characterization/json-control-driver-execution.json": "d20239c9f7bf09699bc6bc8ef0b0a256be7370b087d3417076c48ebf76da9c2d",
+    "eech-campaign/reference/d3-ground-characterization/original-c119-build-completion.json": "0f47db4ac429b197b48afc0d79f85766c7b05f47f7be96a70bc7fab2de39abd0",
+    "eech-campaign/reference/d3-ground-characterization/original-c119-post-inputs.json": "6bb22badf570731fb6d2517b278538567a9e1f8d7fc8f879e901f409bdeb2262",
+    "eech-campaign/reference/d3-ground-characterization/original-c119-preliminary-measurements.json": "739e63fa11c62643b1b1cd75e9aed7c8d2a7448a1a022d315c11c53cbaf552c7"
+  },
+  "evidence_sha256": {
+    "ground-driver-linux-json-working-completion.json": "82f28b952b6725b709aef66d3beed336eb093ff0c6b14eaab3ed400ff7aa4bfa",
+    "ground-driver-linux-json-working.log": "5cf16046a87a411a1fa70fa2337177deb3a9a03d4361885cd8ea0c25598acce7",
+    "run-ground-driver-linux-json-working.sh": "c86d6f8b2c377145c86ec8fdd973a82a93689932d44255ba0ceaefa6408f9bec",
+    "analyze-ground-original-c119a7370.py": "25e10fe076a518e0cfc6e32753e89927cbe89c4b4cc847ed1e3c5d0a89d2eb2a",
+    "ground-original-c119a7370-preliminary-analysis.json": "97b7a2d1aebc3f788746aaffb7102b251dc6744320b2910f350ba8490c0de788",
+    "verify-ground-original-c119a7370-build.json": "e28977a6cd6486b7812f413877bf744060b9fce94a4009f1bcd1b8c8866891a9",
+    "ground-c119a7370-post-inputs.json": "8b050c07dc431c1f80f79748fa12f40d3a47eb3acacb27c4facd8f75ce28e667"
+  }
+}

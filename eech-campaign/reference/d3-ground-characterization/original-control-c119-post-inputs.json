@@ -1,0 +1,15 @@
+{
+  "completed_utc": "2026-10-29T14:57:43.2462519Z",
+  "records": [
+    {
+      "case": "lebanon-probe",
+      "actual_exit": 0
+    },
+    {
+      "case": "lebanon-control",
+      "actual_exit": 0
+    }
+  ],
+  "source": "c119a7370b5de43923a86d7a8124f9532bb523ee",
+  "scope": "Post-inputs for two completed original-ground control roots"
+}
