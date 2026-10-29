@@ -1762,7 +1762,8 @@ impl LuaUserData for LuaEngine {
             los_trace_table(lua, &trace)
         });
         // TEST-ONLY (feature `collision-fixture`, EEDCS-49): the probe of the original object and tree collision queries against the loaded world; not part of the shipping
-        // module. It needs no host callbacks: neither query asks one. The seed is a whole number; the case counts are checked again by the engine wrapper.
+        // module. It needs no host callbacks: neither query asks one. The seed is a whole number; the case counts are checked again by the engine wrapper. The engine refuses it
+        // unless every floating-point exception is masked (x87 and SSE), which it only reads.
         #[cfg(feature = "collision-fixture")]
         methods.add_method("collision_probe", |_, this, (seed, entity_cases, tree_cases): (u32, i32, i32)| {
             this.engine.collision_probe(seed, entity_cases, tree_cases).map_err(lua_error)

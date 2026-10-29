@@ -14,6 +14,43 @@ The original C fixture/native retail runs remain unbuilt/unrun. Three fresh root
 are copied and pre-manifest verified. The following is the source-preparation
 record from before those guards ran; live ledger is now v60.
 
+# Reviewer corrections to the d5 fixture — SOURCE ONLY, UNBUILT, UNRUN
+
+One combined independent review of pinned `d5ca5ee5b` found four P2 defects and one P3 scope issue. They are corrected in source after the pinned d5 build and smokes
+(which stay measured identities of the d5 source and are not re-labelled). Nothing below has been compiled or executed; the live d5 long runs are not a pass of the
+corrected source. The original queries, the structured and random case generators, their order and the physical folds are unchanged.
+
+1. **Exact hit-type conservation.** The fixture emits every positive `col-entity-type` bucket, so the driver now requires each group's bucket hits to add up to
+   EXACTLY the group's hit count (it accepted `<=`, so a deleted bucket, or all of them, reached `done`). Negative controls: one struct bucket deleted, one random bucket
+   deleted, all buckets omitted, and a bucket over-count. The valid stand-in now has buckets that sum to its 12 structured hits.
+2. **Exact target selection.** The structured targets are the first 3 of each class in scan order, so each selected count must be EXACTLY `min(class census, 3)`. The
+   report previously gave only totals, which cannot express that, so a new row `col-census-class` carries the census of each of the 8 entity classes and 2 tree classes (every
+   candidate seen, not only those selected). The driver checks that it agrees with `col-census-entity` and `col-census-tree` (category totals, geometry/box path totals, tree
+   split by `forest_geometry`) and that `col-targets` equals `min(class census, 3)` for all ten; a positive census with zero or under-selected targets is a defective report, not a coverage
+   gap. The valid stand-in was impossible (4 stationary candidates, 1+1 selected; 40/60 trees, 2/1 selected); it now has a coherent census in which five classes exceed the quota.
+3. **Verified floating-point mask contract; derived axis rays.** At probe entry the fixture READS (`fnstcw`, `stmxcsr`; never writes) the x87 control word masks (bits 0 to 5) and the SSE
+   MXCSR masks (bits 7 to 12) and REQUIRES all six in both (63 and 63); otherwise the probe is refused (`x87_exceptions_not_all_masked`, `sse_exceptions_not_all_masked`, or
+   `fp_masks_unreadable_on_this_architecture` off x86). Only mask bits are inspected, not sticky status flags, rounding or precision, and the existing round-toward-zero check stays.
+   The facts are reported (`col-fp arch x87_masks sse_masks`) and re-checked by the driver. The old d5 reports have no such fact: **d5 did not check the masks, and nothing here infers that it
+   ran with them masked.** The old claim "never queries a tree ray with zero x or z extent" was only true of the PRIMARY random tree rays (those are still skipped and counted as `skipped_axis`,
+   which keeps the random case set unchanged). The nearer-check ray cut short of a returned f32 hit is a DERIVED ray: at large coordinates its x or z extent can be exactly zero while its range is
+   above 0.1 m, so it reaches the original's division (`en_cllsn.c` 2021 and 2024). It is still queried, never screened or skipped, and is now counted: `derived_axis` (a new field of
+   `col-entity-common`, always 0, and `col-tree-common`; the driver requires `derived_axis <= nearer_checked`). The deliberate vertical and sub-0.1 m structured tree rays remain
+   range-gated cases (the gate returns before the division; the 0.05 m offset can round to zero extent at large coordinates). With the masks required, a zero-extent division is IEEE-defined
+   (inf or NaN, no trap). That covers the rays counted; **a source check of axis extents alone is not a statement of the original's full physics.**
+4. **Portable real-script guards.** The Rust tests embed the ACTUAL `collision-characterization.lua` with `include_str!`, copy it to a private file in the test directory and the
+   stand-in loads that copy (`@DRIVER@`). The previous `@LUA_DIR@` built from `CARGO_MANIFEST_DIR` named the source machine's path inside a cross-built Windows test. There is no duplicate
+   validator; Linux guards alone do not prove the Windows executable, which Root runs natively.
+5. **P3 — honest scope of the repeat and state guards.** The sector-list fingerprint (`world_before`/`world_after`, flag `world_unchanged`; names kept) covers, in sector order, a marker per
+   sector and per sector-list entity in list order its type and collision-candidate flags, for a candidate its position, for a mobile its motion vector and updated flag, and the frame delta time.
+   It does **not** traverse the buildings of a city and hashes no per-entity identity. The warm counters (`warm_same`/`warm_different`) compare only the PRIMARY cold query with its warm repeat;
+   the warm repeat of the shortened nearer-check ray is made but not compared. Byte-identical repeated reports plus a coarse state digest are repeatability and bounded observations, not complete
+   candidate-state purity, all-state equivalence or Tacview equivalence. The driver's failure texts say so (`the sector-list fingerprint changed during the probe`; `the report is not
+   repeatable for the seed and the loaded world`). The old d5 raw reports are preserved; this is a correction of what they may be claimed to show, not a finding that anything mutated at runtime.
+
+New report rows and fields (metadata, not physical): `col-census-class`, `col-fp`, `derived_axis`. Root compares the physical folds, samples and counters of the corrected build with the
+retained d5 and separates those additions.
+
 # D3 object and tree collision queries — original characterisation (EEDCS-49)
 
 29 October 2026. **SOURCE ONLY: nothing in this document has been built or run.** This is the original-behaviour characterisation fixture for
@@ -99,7 +136,7 @@ Feature `collision-fixture` (chain: `eech-dc/collision-fixture` → `eech-engine
 
 ### Finite case set
 
-*Structured* (a pure function of the loaded world; no random draw). Targets are real entities from the real sector lists in scan order, the first 3 of
+*Structured* (derived from the loaded world only; no random draw). Targets are real entities from the real sector lists in scan order, the first 3 of
 each of 8 classes: moving / stationary mobile, fixed object, city building, each with / without collision-geometry triangles; and real trees from the
 real tree sectors, the first 3 of each of 2 classes: quad-plane and geometry. Per entity target: a ray through its centre, the same ray reversed, a lateral
 miss, and a ray over it; on the through ray, source/target/both exclusion of the target, a real decoy, the owning city of a building, and the chain of
@@ -107,7 +144,7 @@ hits found by excluding each hit in turn (up to three objects). Per tree: the th
 over, under, lateral, slant, high (above the 35 m gate), vertical and sub-0.1 m rays. Plus two edge rays per family across the map boundary (supported:
 the entity scan clamps to the map, the tree query has an explicit outside-map branch).
 
-*Random*: `entity_cases` and `tree_cases` seeded cases around entities/trees from a private reservoir sample (seed-derived; the game's random stream is
+*Random*: `entity_cases` and `tree_cases` seeded cases around entities/trees from a private reservoir sample (seed-derived; the game's random stream word is
 compared before and after and must not change).
 
 ### What each query records
@@ -119,11 +156,11 @@ of the reported point; a hit there proves the first answer was not the nearest �
 
 ### Report schema (`key=value` text lines → one JSON Lines event each)
 
-`col-probe`, `col-map`, `col-guard`, `col-census-entity`, `col-census-tree`, `col-targets`, `col-entity-kind` ×7 (struct: through, reverse, lateral,
+`col-probe`, `col-map`, `col-guard`, `col-fp`, `col-census-entity`, `col-census-tree`, `col-census-class`, `col-targets`, `col-entity-kind` ×7 (struct: through, reverse, lateral,
 above, exclusion, edge; random), `col-entity-exclusion`, `col-entity-common` ×2, `col-entity-type` ×0..n, `col-tree-kind` ×11, `col-tree-flags` ×8,
 `col-tree-common` ×2, `col-physical`, `col-legacy`, `col-sample` ×≤(16+8)×2. The driver accepts a report only as a whole: exact row set, exact keys,
 exact types (decimal count / flag / signed / 16- or 8-digit lowercase hex / three-word hex), counts that agree with the request and with each other
-(see `cross_check`), sample counts equal to the quota or to the number of cases if fewer, and a header equal to the request. Anything else is
+(see `cross_check`; selected targets exactly `min(class census, 3)`, type-bucket hits exactly the hit count, both FP mask sets 63), sample counts equal to the quota or to the number of cases if fewer, and a header equal to the request. Anything else is
 `report_invalid` and fails the run; nothing is read as zero.
 
 Three kinds of fact are kept apart: **PHYSICAL** (`col-physical`: inputs, exclusion role, hit flag, hit kind/hosted id/position, point, normal),
@@ -131,16 +168,17 @@ Three kinds of fact are kept apart: **PHYSICAL** (`col-physical`: inputs, exclus
 slot and the terrain record's private bookkeeping — comparable only with a build that keeps both; never promoted to a physical claim). No pointer is
 emitted.
 
-### Preserved state, asserted
+### State checked, and its true scope
 
 The shared terrain point record is snapshotted and restored byte for byte (`record_restored`, `record_words_before/after`); the game's random stream
-is read before and after (`rng_unchanged`); every collision candidate's position, motion and updated flag, the sector membership and the frame delta
-time are folded before and after (`world_unchanged`). The driver fails the run if any of the three does not hold. The probe is not claimed read-only
+is read before and after (`rng_unchanged`); a sector-list fingerprint (entity type, collision flags, candidates' position, mobiles' motion and updated flag, the frame delta time; not
+city buildings, not identities) is compared before and after (`world_unchanged`). The driver fails the run if any of the three does not hold. These are bounded observations, not a proof that
+nothing else changed. The probe is not claimed read-only
 by name: it **does** write the shared terrain record during each query, which is why each cold query starts from a known sentinel record.
 
 ### Unsupported / never probed (declared)
 
-NaN or infinite coordinates; a tree ray with exactly zero x or z extent (division by zero; depends on the FP exception mask, which is not verified);
+NaN or infinite coordinates; a PRIMARY random tree ray with exactly zero x or z extent (skipped and counted as `skipped_axis`); any run in which the six floating-point exceptions are not all masked in both the x87 control word and the SSE MXCSR (refused; the masks are read, never set). Zero-extent rays that are queried and only counted: the deliberate vertical and sub-0.1 m tree rays (range-gated) and the derived shortened nearer-check rays (`derived_axis`);
 `draw_collision_boxes` set; any world whose collision candidate has an invalid 3D shape or bounds (the probe is **refused** with
 `col-refused reason=...` before anything is altered); a terrain whose extents differ from the world map; FPU not in round-toward-zero mode.
 
@@ -189,6 +227,7 @@ control; its `state_digest` is compared with the probed run's offline. The inter
 | Tree and moving-target coverage in the retail worlds | **unknown** until run (headless boot loads trees only if the map's tree files exist and match the terrain) |
 | Same-frame control for the terrain-record side effect | covered by design (cold sentinel + warm repeat + restore assertion); **unproven until run** |
 | Production change / host handoff | **none** |
+| Reviewer corrections 1 to 5 above (exact type and selection checks, FP mask precondition, derived-axis counter, embedded real driver, wording) | source only: **UNBUILT, UNRUN**; the d5 build and smokes are not a pass of them |
 
 ## Risks and couplings the characterisation is meant to expose
 

@@ -6,9 +6,11 @@
 -- get_line_of_sight_collision_tree against the world the campaign's own boot loaded (see csrc/eech_collision_fixture.c). The report is `key=value`
 -- text lines; each becomes one JSON Lines event. Raw coordinates appear only in that runtime output (float bit patterns in hex), kept outside Git.
 --
--- The probe is repeated (`repeats`, default 2) in the same process with no frames between: the reports must be byte identical, which shows the probe
--- is a pure function of the seed and the loaded world, and that it leaves the shared terrain record, the game's random stream and the collision
--- candidates' state as it found them (the report states all three; each must hold). A difference fails the run; nothing is tuned to pass.
+-- The probe is repeated (`repeats`, default 2) in the same process with no frames between: the reports must be byte identical. That shows the report is
+-- repeatable for the seed and the loaded world; it is not a proof that the probe changes nothing. What is checked about state is bounded: the shared terrain
+-- record is restored byte for byte, the game's random stream word is unchanged, and a sector-list fingerprint (entity type, collision flags, position and
+-- mobile motion; not city buildings or identities) is equal before and after (the report states all three; each must hold). A difference fails the run;
+-- nothing is tuned to pass. The probe also REQUIRES all six floating-point exceptions masked in the x87 control word and the SSE MXCSR (`col-fp`).
 --
 -- A report is accepted only as a whole (read_report): every row once, with exactly its keys, each of its exact type, counts that agree with the request
 -- and with each other, and both folds present. A malformed or incomplete report records `report_invalid` and fails the run; no repeat_identical,
@@ -166,7 +168,7 @@ end
 
 local COMMON_FIELDS = { { "group", "word" }, { "cases", "count" }, { "hit", "count" }, { "miss", "count" }, { "record_touched", "count" }, { "warm_same", "count" },
 	{ "warm_different", "count" }, { "miss_point_written", "count" }, { "miss_normal_written", "count" }, { "input_mutated", "count" }, { "nearer_checked", "count" },
-	{ "nearer_exists", "count" }, { "skipped_axis", "count" } }
+	{ "nearer_exists", "count" }, { "skipped_axis", "count" }, { "derived_axis", "count" } }
 
 local SCHEMA = {
 	["col-probe"] = counts { "seed", "entity_random", "tree_random", "per_class", "samples_hit", "samples_miss" },
@@ -179,6 +181,11 @@ local SCHEMA = {
 		"buildings", "listed_buildings", "geometry_path", "box_path", "align_terrain", "pool" },
 	["col-census-tree"] = { { "tree_data", "flag" }, { "trees_total", "count" }, { "sectors_with_trees", "count" }, { "trees_type0", "count" },
 		{ "trees_type1", "count" }, { "forest_geometry", "flag" }, { "pool", "count" } },
+	-- every candidate of each class in the real sector lists and tree sectors, not only the quota the structured cases take
+	["col-census-class"] = counts { "moving_geometry", "moving_box", "stationary_geometry", "stationary_box", "fixed_geometry", "fixed_box", "building_geometry",
+		"building_box", "tree_quad", "tree_geometry" },
+	-- the floating-point exception masks the probe read (a set bit is a masked exception); both must be all six
+	["col-fp"] = { { "arch", "token" }, { "x87_masks", "count" }, { "sse_masks", "count" } },
 	["col-targets"] = counts { "moving_geometry", "moving_box", "stationary_geometry", "stationary_box", "fixed_geometry", "fixed_box", "building_geometry",
 		"building_box", "tree_quad", "tree_geometry" },
 	["col-entity-exclusion"] = counts { "through_cases", "through_hit_target", "through_hit_other", "base_cases", "src_removed", "tgt_removed", "both_removed",
@@ -318,7 +325,10 @@ end
 local function cross_check (rows, keyed, samples)
 	local p, c, ce, ct, tg, ex = rows ["col-probe"], rows ["col-guard"], rows ["col-census-entity"], rows ["col-census-tree"], rows ["col-targets"],
 		rows ["col-entity-exclusion"]
-	-- the integrity guards: restoration is asserted, not assumed
+	-- the probe's precondition, reported and re-checked here: all six exceptions masked in both the x87 control word and the SSE MXCSR
+	need_equal ("col-fp", "x87_masks", rows ["col-fp"].x87_masks, 63)
+	need_equal ("col-fp", "sse_masks", rows ["col-fp"].sse_masks, 63)
+	-- the bounded guards: restoration of the terrain record is asserted, not assumed
 	need_equal ("col-guard", "record_restored", c.record_restored, 1)
 	if c.record_words_before ~= c.record_words_after then
 		refuse ("the probe did not restore the shared terrain record: words " .. c.record_words_before .. " -> " .. c.record_words_after)
@@ -326,7 +336,7 @@ local function cross_check (rows, keyed, samples)
 	need_equal ("col-guard", "rng_unchanged", c.rng_unchanged, 1)
 	need_equal ("col-guard", "world_unchanged", c.world_unchanged, 1)
 	if c.world_before ~= c.world_after then
-		refuse ("the probe changed the collision candidates' state: fold " .. c.world_before .. " -> " .. c.world_after)
+		refuse ("the sector-list fingerprint changed during the probe: fold " .. c.world_before .. " -> " .. c.world_after)
 	end
 	-- the quotas are the ones this driver's completeness checks assume
 	need_equal ("col-probe", "per_class", p.per_class, EMITTER_PER_CLASS)
@@ -345,19 +355,29 @@ local function cross_check (rows, keyed, samples)
 	need_equal ("col-census-tree", "tree_data", ct.tree_data, ct.trees_total > 0 and 1 or 0)
 	need_at_most ("col-census-tree", "sectors_with_trees", ct.sectors_with_trees, ct.trees_total)
 
-	-- the structured targets: at most the quota of each class, and none of a class the census did not find
+	-- the class census must agree with the census it refines: the four entity categories, the two model paths, and the trees
+	local cc = rows ["col-census-class"]
+	need_equal ("col-census-class", "moving_geometry + moving_box", cc.moving_geometry + cc.moving_box, ce.mobile_moving)
+	need_equal ("col-census-class", "stationary_geometry + stationary_box", cc.stationary_geometry + cc.stationary_box, ce.mobile_stationary)
+	need_equal ("col-census-class", "fixed_geometry + fixed_box", cc.fixed_geometry + cc.fixed_box, ce.fixed_plain)
+	need_equal ("col-census-class", "building_geometry + building_box", cc.building_geometry + cc.building_box, ce.buildings)
+	need_equal ("col-census-class", "geometry classes", cc.moving_geometry + cc.stationary_geometry + cc.fixed_geometry + cc.building_geometry, ce.geometry_path)
+	need_equal ("col-census-class", "box classes", cc.moving_box + cc.stationary_box + cc.fixed_box + cc.building_box, ce.box_path)
+	need_equal ("col-census-class", "tree_quad + tree_geometry", cc.tree_quad + cc.tree_geometry, ct.trees_total)
+	-- a tree is a geometry tree when it is type 1 and the forest tree object has collision geometry, else a quad-plane tree
+	need_equal ("col-census-class", "tree_geometry", cc.tree_geometry, ct.forest_geometry == 1 and ct.trees_type1 or 0)
+
+	-- the structured targets are exactly the first quota of each class in scan order, so exactly min(class census, quota): a class the census found is never
+	-- left unselected or under-selected, and a class it did not find has none
 	local classes = { "moving_geometry", "moving_box", "stationary_geometry", "stationary_box", "fixed_geometry", "fixed_box", "building_geometry", "building_box",
 		"tree_quad", "tree_geometry" }
-	for _, name in ipairs (classes) do need_at_most ("col-targets", name, tg [name], EMITTER_PER_CLASS) end
-	need_at_most ("col-targets", "moving_geometry + moving_box", tg.moving_geometry + tg.moving_box, ce.mobile_moving)
-	need_at_most ("col-targets", "stationary_geometry + stationary_box", tg.stationary_geometry + tg.stationary_box, ce.mobile_stationary)
-	need_at_most ("col-targets", "fixed_geometry + fixed_box", tg.fixed_geometry + tg.fixed_box, ce.fixed_plain)
-	need_at_most ("col-targets", "building_geometry + building_box", tg.building_geometry + tg.building_box, ce.buildings)
+	for _, name in ipairs (classes) do
+		need_at_most ("col-targets", name, tg [name], EMITTER_PER_CLASS)
+		need_equal ("col-targets", name, tg [name], math.min (cc [name], EMITTER_PER_CLASS))
+	end
 	local entity_targets = sum (tg, { "moving_geometry", "moving_box", "stationary_geometry", "stationary_box", "fixed_geometry", "fixed_box", "building_geometry",
 		"building_box" })
 	local tree_targets = tg.tree_quad + tg.tree_geometry
-	need_at_most ("col-targets", "tree_quad + tree_geometry", tree_targets, ct.trees_total)
-	if ct.tree_data == 0 then need_equal ("col-targets", "tree targets without tree data", tree_targets, 0) end
 
 	-- entity kinds: each structured target has exactly one ray of each kind; the two edge rays are fixed; the random cases are the ones asked (none if there is
 	-- no entity to draw from)
@@ -383,6 +403,7 @@ local function cross_check (rows, keyed, samples)
 		need_at_most ("col-entity-common " .. group, "nearer_exists", row.nearer_exists, row.nearer_checked)
 		need_at_most ("col-entity-common " .. group, "nearer_checked", row.nearer_checked, row.hit)
 		need_equal ("col-entity-common " .. group, "skipped_axis", row.skipped_axis, 0)
+		need_equal ("col-entity-common " .. group, "derived_axis", row.derived_axis, 0)
 	end
 	need_equal ("col-entity-common struct", "cases", ec.struct.cases, struct_cases)
 	need_equal ("col-entity-common struct", "hit", ec.struct.hit, struct_hits)
@@ -407,14 +428,15 @@ local function cross_check (rows, keyed, samples)
 	need_at_most ("col-entity-exclusion", "chain_stalled", ex.chain_stalled, ex.chain_cases)
 	need_at_most ("col-entity-exclusion", "chain_order_violations", ex.chain_order_violations, ex.chain_depth2 + ex.chain_depth3)
 
-	-- hit entity kinds: each row's hits fit in its group's hit count, and the groups' rows together do not exceed it
+	-- hit entity kinds: the fixture emits EVERY positive bucket, so each group's bucket hits must add up to exactly its hit count; a deleted bucket, or all of
+	-- them, is a defective report
 	local type_hits = { struct = 0, random = 0 }
 	for id, row in pairs (keyed ["col-entity-type"]) do
 		if row.group ~= "struct" and row.group ~= "random" then refuse ("col-entity-type " .. id .. ": group must be struct or random") end
 		type_hits [row.group] = type_hits [row.group] + row.hits
 	end
-	need_at_most ("col-entity-type", "struct hits", type_hits.struct, ec.struct.hit)
-	need_at_most ("col-entity-type", "random hits", type_hits.random, ec.random.hit)
+	need_equal ("col-entity-type", "struct hits", type_hits.struct, ec.struct.hit)
+	need_equal ("col-entity-type", "random hits", type_hits.random, ec.random.hit)
 
 	-- tree kinds
 	local tk = keyed ["col-tree-kind"]
@@ -448,6 +470,8 @@ local function cross_check (rows, keyed, samples)
 		need_at_most ("col-tree-common " .. group, "miss_normal_written", row.miss_normal_written, row.miss)
 		need_at_most ("col-tree-common " .. group, "nearer_exists", row.nearer_exists, row.nearer_checked)
 		need_at_most ("col-tree-common " .. group, "nearer_checked", row.nearer_checked, row.hit)
+		-- a derived (shortened nearer-check) ray with a zero x or z extent is queried, never skipped; it can only come from a nearer-check
+		need_at_most ("col-tree-common " .. group, "derived_axis", row.derived_axis, row.nearer_checked)
 	end
 	need_equal ("col-tree-common struct", "cases", tc.struct.cases, tstruct_cases)
 	need_equal ("col-tree-common struct", "hit", tc.struct.hit, tstruct_hits)
@@ -556,7 +580,7 @@ if probe == "yes" then
 			local same = report == first_report
 			emit { event = "repeat_identical", repeat_index = repeat_index, ok = same }
 			if not same then
-				refuse ("repeat " .. repeat_index .. " differs from repeat 1: the probe is not a pure function of the seed and the loaded world")
+				refuse ("repeat " .. repeat_index .. " differs from repeat 1: the report is not repeatable for the seed and the loaded world")
 			end
 		end
 	end
@@ -566,7 +590,10 @@ if probe == "yes" then
 		structured_entity_hits = first_keyed ["col-entity-kind"] ["struct/through"].hit,
 		structured_tree_hits = first_keyed ["col-tree-kind"] ["struct/through"].hit,
 		random_entity_hits = first_keyed ["col-entity-kind"] ["random/random"].hit,
-		random_tree_hits = first_keyed ["col-tree-kind"] ["random/random"].hit }
+		random_tree_hits = first_keyed ["col-tree-kind"] ["random/random"].hit,
+		fp_x87_masks = first_rows ["col-fp"].x87_masks, fp_sse_masks = first_rows ["col-fp"].sse_masks, fp_arch = first_rows ["col-fp"].arch,
+		skipped_axis_rays = first_keyed ["col-tree-common"].random.skipped_axis,
+		derived_axis_rays = first_keyed ["col-tree-common"].struct.derived_axis + first_keyed ["col-tree-common"].random.derived_axis }
 else
 	emit { event = "probe_skipped", reason = "probe=no (the control)" }
 end

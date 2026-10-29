@@ -377,7 +377,9 @@ int eech_engine_cmb_events (char *text, int capacity, int *more);
  * case set taken from the real sector lists and tree data, plus entity_cases and tree_cases seeded random cases from a private generator
  * seeded with seed. The report is key=value text lines: the census, per-kind hit counts, exclusion and ordering counters, cache and
  * miss-write counters, an order-dependent physical fold (float bit patterns), a separate legacy fold, and bounded raw samples. The shared terrain
- * point record is restored byte for byte; the game's random stream and the candidates' state are compared before and after. Needs no host. A refused
+ * point record is restored byte for byte; the game's random stream and a sector-list fingerprint (entity type, flags, position and mobile motion; not city buildings or
+ * identities, so a bounded observation and not a proof of purity) are compared before and after. All six FP exceptions must be masked in the x87 control word and
+ * the SSE MXCSR (read, never written). Needs no host. A refused
  * probe (a precondition not held, a report that does not fit) writes "col-refused reason=..." and fails as a bad argument; each of entity_cases
  * and tree_cases is 0 to 20000.
  */

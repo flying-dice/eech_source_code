@@ -40,17 +40,34 @@
  *
  * Preconditions (a probe that does not hold them is refused with its reason in the report, before anything is altered):
  *   - the FPU is in round-toward-zero mode, as inside every engine entry;
+ *   - all six floating-point exceptions are MASKED in BOTH the x87 control word (bits 0 to 5) and the SSE MXCSR (bits 7 to 12), read with
+ *     fnstcw and stmxcsr and never written; only those mask bits are inspected, not the sticky status flags, the rounding mode or the
+ *     precision. The original tree query divides by the segment's x and z extent (en_cllsn.c 2021 and 2024), so a zero extent is an
+ *     IEEE division by zero that traps unless it is masked. The probe REQUIRES the masks; it never sets them. On an architecture whose
+ *     control registers this file cannot read the probe is refused;
  *   - a terrain is loaded and its extents equal the world map's;
  *   - the entity sector map exists, and every collision candidate in every sector list has a valid 3D shape and bounds (the original
  *     asserts and then reads them; a world with an invalid one is refused here instead of being run into the engine);
  *   - the shared terrain point record can be located through the public accessors.
- * Never probed (declared, not silently skipped): NaN or infinite coordinates; a tree ray with exactly zero x or z extent (the
- * similar-triangle test divides by it; the result then depends on the FP exception mask, which this fixture does not verify, and a
- * weapon travelling exactly along an axis can reach it); anything while draw_collision_boxes is set.
+ * Never probed (declared, not silently skipped): NaN or infinite coordinates; a PRIMARY random tree ray whose f32 x or z extent is
+ * exactly zero (counted as skipped_axis; this keeps the random case set what it was); anything while draw_collision_boxes is set.
+ * Zero-extent rays that ARE queried, counted and not screened: the deliberate vertical and sub-0.1 m structured tree rays (the 2D range
+ * gate returns before the division, and at large coordinates the 0.05 m offset can round to zero extent), and the DERIVED shortened
+ * nearer-check ray of a tree hit, whose f32 end can have zero x or z extent yet a range above 0.1 m and so reach the division;
+ * `derived_axis` counts them. With the masks required above, that division is IEEE-defined (inf or NaN, no trap). Source checks of the
+ * axis extents alone are not a statement of the original's full physics.
  *
- * Side effects, all restored and asserted: the shared terrain record (snapshot, byte-for-byte restore); the game random stream
- * (compared before and after); the candidates' state (position, motion, updated flag, list membership: folded before and after). The
- * queries call no host. No entity is created, moved or destroyed.
+ * State the probe changes, and what is checked about it (this is a bounded set of observations, not a proof of purity):
+ *   - the shared terrain record: snapshot before, byte-for-byte restore after, both asserted (record_restored);
+ *   - the game random stream: its seed word is read before and after (rng_unchanged);
+ *   - a SECTOR-LIST FINGERPRINT (world_before/world_after): in sector order, per sector a marker, then per sector-list entity in list
+ *     order its type and collision-candidate flags, and for a candidate its position and, for a mobile, its motion vector and updated
+ *     flag, plus the frame delta time. It does NOT traverse the buildings of a city, hash any per-entity identity, or cover any other
+ *     field; equal fingerprints are not a proof that no state changed.
+ * The queries call no host. No entity is created, moved or destroyed by this file.
+ *
+ * Counters: warm_same and warm_different compare only the PRIMARY cold query with its warm repeat; the warm repeat of the shortened
+ * nearer-check ray is made but not compared.
  */
 
 #ifdef EECH_COLLISION_FIXTURE
@@ -263,7 +280,7 @@ struct col_census
 
 struct col_common
 {
-	int cases, hit, miss, record_touched, warm_same, warm_different, miss_point_written, miss_normal_written, input_mutated, nearer_checked, nearer_exists, skipped_axis;
+	int cases, hit, miss, record_touched, warm_same, warm_different, miss_point_written, miss_normal_written, input_mutated, nearer_checked, nearer_exists, skipped_axis, derived_axis;
 };
 
 struct col_kinds
@@ -287,12 +304,14 @@ struct col_probe
 
 	struct col_target sel[CLS_COUNT][PER_CLASS];
 	int sel_n[CLS_COUNT];
+	int class_seen[CLS_COUNT]; /* every candidate of the class in the sector lists, not only the first PER_CLASS */
 	struct col_target pool[POOL_MAX];
 	int pool_n;
 	long pool_seen;
 
 	struct col_treeref tsel[2][PER_CLASS]; /* [0] quad-plane trees, [1] geometry trees */
 	int tsel_n[2];
+	int tclass_seen[2]; /* every tree of the class in the tree sectors, not only the first PER_CLASS */
 	struct col_treeref tpool[POOL_MAX];
 	int tpool_n;
 	long tpool_seen;
@@ -392,6 +411,7 @@ static void add_pool (struct col_probe *p, entity *en, entity *city, int klass)
 static void add_selection (struct col_probe *p, entity *en, entity *city, int klass)
 {
 	add_pool (p, en, city, klass);
+	p->class_seen[klass]++;
 	if (p->sel_n[klass] < PER_CLASS)
 	{
 		p->sel[klass][p->sel_n[klass]].en = en;
@@ -546,6 +566,7 @@ static void scan_trees (struct col_probe *p)
 			{
 				int klass = (trees[i].type == 1 && geometry) ? 1 : 0;
 
+				p->tclass_seen[klass]++;
 				c->trees_total++;
 				if (trees[i].type == 1)
 				{
@@ -586,7 +607,11 @@ static void scan_trees (struct col_probe *p)
 	c->tree_data = c->trees_total > 0;
 }
 
-/* the candidates' state, folded: the same fold before and after the probe shows the probe left the world as it found it */
+/*
+ * A SECTOR-LIST FINGERPRINT: in sector order a marker per sector, then per sector-list entity in list order its type and collision-candidate flags and,
+ * for a candidate, its position and (a mobile) motion vector and updated flag, plus the frame delta time. It does not traverse the buildings of a city and
+ * hashes no per-entity identity, so equal fingerprints before and after are a bounded observation, not a proof that nothing changed.
+ */
 static uint64_t world_fold (void)
 {
 	uint64_t hash = FNV_OFFSET;
@@ -886,6 +911,11 @@ static void run_tree (struct col_probe *p, int group, int kind, int role, const 
 		struct col_qr near_cold, near_warm;
 
 		shorten (a, &cold.point, &end);
+		/* the derived ray is queried as it is, never screened; one whose f32 x or z extent is exactly zero reaches the original's division and is only counted */
+		if (end.x - a->x == 0.0f || end.z - a->z == 0.0f)
+		{
+			common->derived_axis++;
+		}
 		query_tree (p, a, &end, ignore_edge, skip_top, 1, &near_cold);
 		query_tree (p, a, &end, ignore_edge, skip_top, 0, &near_warm);
 		fold_query (p, group, role + ROLE_NEARER, a, &end, &near_cold);
@@ -1344,7 +1374,7 @@ static void tree_random_case (struct col_probe *p)
 	}
 	else
 	{
-		/* one draw per statement: the order in which a call's arguments are evaluated is unspecified, and the case set must be a pure function of the seed */
+		/* one draw per statement: the order in which a call's arguments are evaluated is unspecified, and the random case set must be the same for the same seed */
 		int ignore_edge = (int) (next_random (&p->rng) & 1u);
 		int skip_top = (int) (next_random (&p->rng) & 1u);
 
@@ -1354,6 +1384,38 @@ static void tree_random_case (struct col_probe *p)
 
 /* ---------------------------------------------------------------------------------------------------------------------------- */
 /* the report */
+
+/*
+ * The floating-point exception MASKS, read and never written. x87 control word bits 0 to 5 (invalid, denormal, zero-divide, overflow, underflow,
+ * precision) and SSE MXCSR bits 7 to 12 are the masks; a set bit means the exception is masked. Only those bits are returned: the sticky status flags,
+ * the rounding mode and the precision control are not looked at. Returns 0 where this file cannot read the registers.
+ */
+#if defined(__x86_64__) || defined(__i386__)
+#ifdef __x86_64__
+#define COL_FP_ARCH_NAME "x86_64"
+#else
+#define COL_FP_ARCH_NAME "i386"
+#endif
+static int read_fp_masks (int *x87_masks, int *sse_masks)
+{
+	uint16_t control_word = 0;
+	uint32_t mxcsr = 0;
+
+	__asm__ __volatile__ ("fnstcw %0" : "=m" (control_word));
+	__asm__ __volatile__ ("stmxcsr %0" : "=m" (mxcsr));
+	*x87_masks = (int) (control_word & 0x3fu);
+	*sse_masks = (int) ((mxcsr >> 7) & 0x3fu);
+	return 1;
+}
+#else
+#define COL_FP_ARCH_NAME "unsupported"
+static int read_fp_masks (int *x87_masks, int *sse_masks)
+{
+	*x87_masks = 0;
+	*sse_masks = 0;
+	return 0;
+}
+#endif
 
 static void refuse (char *text, int capacity, const char *reason)
 {
@@ -1384,8 +1446,8 @@ static void sanitise (const char *name, char *to, size_t size)
 static void emit_common (struct out *o, const char *event, const char *group, const struct col_common *c)
 {
 	emit (o, "%s group=%s cases=%d hit=%d miss=%d record_touched=%d warm_same=%d warm_different=%d miss_point_written=%d miss_normal_written=%d input_mutated=%d nearer_checked=%d "
-		"nearer_exists=%d skipped_axis=%d\n", event, group, c->cases, c->hit, c->miss, c->record_touched, c->warm_same, c->warm_different, c->miss_point_written,
-		c->miss_normal_written, c->input_mutated, c->nearer_checked, c->nearer_exists, c->skipped_axis);
+		"nearer_exists=%d skipped_axis=%d derived_axis=%d\n", event, group, c->cases, c->hit, c->miss, c->record_touched, c->warm_same, c->warm_different, c->miss_point_written,
+		c->miss_normal_written, c->input_mutated, c->nearer_checked, c->nearer_exists, c->skipped_axis, c->derived_axis);
 }
 
 /*
@@ -1399,11 +1461,27 @@ int eech_collision_probe_run (uint32_t seed, int entity_cases, int tree_cases, c
 	terrain_3d_point_data snapshot;
 	uint64_t record_before, record_after, world_before, world_after;
 	int rng_before, rng_after, restored, anchored, i, k, c;
+	int fp_x87_masks = 0, fp_sse_masks = 0;
 
 	text[0] = '\0';
 	if (fegetround () != FE_TOWARDZERO)
 	{
 		refuse (text, capacity, "fpu_not_round_toward_zero");
+		return -1;
+	}
+	if (!read_fp_masks (&fp_x87_masks, &fp_sse_masks))
+	{
+		refuse (text, capacity, "fp_masks_unreadable_on_this_architecture");
+		return -1;
+	}
+	if (fp_x87_masks != 63)
+	{
+		refuse (text, capacity, "x87_exceptions_not_all_masked");
+		return -1;
+	}
+	if (fp_sse_masks != 63)
+	{
+		refuse (text, capacity, "sse_exceptions_not_all_masked");
 		return -1;
 	}
 	if (!terrain_sectors || terrain_3d_sector_x_max <= 0 || terrain_3d_sector_z_max <= 0)
@@ -1530,6 +1608,11 @@ int eech_collision_probe_run (uint32_t seed, int entity_cases, int tree_cases, c
 	emit (&out, "col-targets moving_geometry=%d moving_box=%d stationary_geometry=%d stationary_box=%d fixed_geometry=%d fixed_box=%d building_geometry=%d building_box=%d tree_quad=%d "
 		"tree_geometry=%d\n", p->sel_n[CLS_MOVING_GEO], p->sel_n[CLS_MOVING_BOX], p->sel_n[CLS_STATIONARY_GEO], p->sel_n[CLS_STATIONARY_BOX], p->sel_n[CLS_FIXED_GEO],
 		p->sel_n[CLS_FIXED_BOX], p->sel_n[CLS_BUILDING_GEO], p->sel_n[CLS_BUILDING_BOX], p->tsel_n[0], p->tsel_n[1]);
+
+	emit (&out, "col-census-class moving_geometry=%d moving_box=%d stationary_geometry=%d stationary_box=%d fixed_geometry=%d fixed_box=%d building_geometry=%d building_box=%d "
+		"tree_quad=%d tree_geometry=%d\n", p->class_seen[CLS_MOVING_GEO], p->class_seen[CLS_MOVING_BOX], p->class_seen[CLS_STATIONARY_GEO], p->class_seen[CLS_STATIONARY_BOX],
+		p->class_seen[CLS_FIXED_GEO], p->class_seen[CLS_FIXED_BOX], p->class_seen[CLS_BUILDING_GEO], p->class_seen[CLS_BUILDING_BOX], p->tclass_seen[0], p->tclass_seen[1]);
+	emit (&out, "col-fp arch=%s x87_masks=%d sse_masks=%d\n", COL_FP_ARCH_NAME, fp_x87_masks, fp_sse_masks);
 
 	for (k = 0; k < EK_COUNT; k++)
 	{

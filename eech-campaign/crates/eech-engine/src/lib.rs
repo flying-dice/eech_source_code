@@ -4546,8 +4546,9 @@ impl Engine {
 
     /// TEST-ONLY (feature `collision-fixture`, EEDCS-49): one probe of the original `get_line_of_sight_collision_entity` and `get_line_of_sight_collision_tree` against the
     /// loaded world (see `csrc/eech_collision_fixture.c`): a finite structured case set from the real sector lists and tree data, plus `entity_cases` and `tree_cases` seeded
-    /// random cases. It returns the report as `key=value` text lines. The shared terrain point record is restored byte for byte and the game's random stream and the collision
-    /// candidates' state are compared before and after. A request out of range, or one the engine refuses (a precondition not held, a report that does not fit), fails; a refusal keeps
+    /// random cases. It returns the report as `key=value` text lines. The probe requires all six floating-point exceptions masked in both the x87 control word and the SSE MXCSR (read, never
+    /// written). The shared terrain point record is restored byte for byte, the game's random stream is compared before and after, and a sector-list fingerprint (not a proof of purity: it
+    /// covers sector-list entities' type, flags, position and mobile motion, not city buildings or identities) is compared before and after. A request out of range, or one the engine refuses (a precondition not held, a report that does not fit), fails; a refusal keeps
     /// the engine's reason (`col-refused reason=...`).
     #[cfg(feature = "collision-fixture")]
     pub fn collision_probe(&self, seed: u32, entity_cases: i32, tree_cases: i32) -> Result<String, EngineError> {

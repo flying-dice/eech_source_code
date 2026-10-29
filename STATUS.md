@@ -1,3 +1,45 @@
+# Current collision gate — observed destructive-flag observer defect; no moving oracle
+
+The original long run is TERMINAL1 (tool84252;18:18:29Z). All three probes fail
+native1 after1200frames with world_unchanged0, before measurements/digest/coverage
+are accepted. Both controls complete1500frames/native0; all5post-inputs0 and43
+exports unchanged. Pair digest comparison is UNAVAILABLE, not an observed mismatch;
+failed Lebanon raw equality is failure reproducibility only. Old d5 boot-smoke
+results retain their limited scope. Safe failure proof and the full independent
+review are in reference/d3-collision-characterization/ under eech-campaign.
+
+The same combined review requires changes:1P1/4P2/1P3. Source-only corrections for
+bucket/target completeness, verified FP masks/derived-axis accounting, portable
+actual-script guards and precise scope wording are prepared but UNBUILT/UNRUN.
+The NEW P1 remains OPEN: world_fold calls the original destructive UPDATED getter
+(mb_int.c398 uses &=), changing shared flags before measurement. Original moving
+collision also legitimately invokes it. Before ANY new build, the sole Sonnet lane
+must add nondestructive fixture observation, bounded flag snapshot/effects report/
+restore on all exits, preserving production &= and all original queries/order.
+Do not relax the assertion or normalize a moving oracle. The production queries,
+case generator/fold algorithms, baselines/tolerances remain unchanged.
+
+The following records earlier checkpoints and the first source-correction batch.
+
+# Collision fixture reviewer corrections — SOURCE ONLY, UNBUILT, UNRUN (working tree over publication bd2a31949)
+
+One combined independent review of pinned d5ca5ee5b found four P2 defects and one P3 scope issue; all are corrected in source after the pinned d5 build and smokes.
+The d5 build, its three seconds0 smokes and the five live 120s+30s processes remain measured identities of the d5 source: this is NOT a new corrected-source pass, and nothing
+below was compiled or executed. Original queries, the structured and random case generators and order, and the physical folds are unchanged.
+
+1. Exact hit-type conservation: summed col-entity-type hits must equal each group's hits (was <=); deleted-bucket and all-omitted negative controls.
+2. Exact target selection: new row col-census-class (class census, not only selection); col-targets must equal min(class census, 3) for all ten classes and the class census must
+   agree with col-census-entity/-tree; the positive stand-in was impossible and is now coherent (quota-binding classes included); under-selection controls added.
+3. FP mask contract: the probe reads (fnstcw, stmxcsr; never writes) the x87 and SSE masks and requires all six in both (63/63) or is refused; reported as col-fp. d5 did not check
+   this and nothing infers it did. The primary random tree rays with zero x or z extent are still skipped and counted (skipped_axis); the DERIVED shortened nearer-check ray, which
+   can reach en_cllsn.c 2021/2024 with a zero extent, is queried unscreened and counted (derived_axis, new field, must be <= nearer_checked). Source axis checks alone are not a full physics statement.
+4. Portable guards: the Rust tests embed the actual driver with include_str! and copy it to the private test directory (@DRIVER@); no source-machine path at run time. Root cross-builds and runs it on Windows.
+5. P3: the world fingerprint covers sector-list entities' type/flags/position and mobile motion/updated flag plus delta time, not city buildings or identities; warm counters cover primary
+   queries only; repeated reports plus a coarse digest are repeatability and bounded observations, not candidate-state purity or Tacview equivalence. Messages and docs say so.
+
+Still required: Root builds a NEW clean named correction, runs Linux and cross-built Windows guards and native smokes with masks, compares physical folds/samples/counters with retained d5
+(separating the new rows/fields), and obtains same-review delta verification. D3 stays active; production G2/G3 switching, remaining model/weather/time/loader services, D4 and D5 are unchanged.
+
 # Latest original collision native checkpoint — smokes completed; controls live
 
 Clean measured source d5ca5ee5bb1f784318ce9c76903169cb97bbe362 Windows fixture

@@ -2,7 +2,7 @@
 -- checks of what a probe returns are exercised. The stand-in writes a COMPLETE, well-formed report for the request it is given (every row of the fixture's
 -- schema, counts that add up, hex words of the right width) and, in a negative mode, ONE defect in it. It measures nothing about the collision queries:
 -- whether the original behaves as characterised is the native run's to show, with a DLL built with the `collision-fixture` feature.
--- Placeholders are filled in by the test: @MODE@, @TRACE@ and @LUA_DIR@.
+-- Placeholders are filled in by the test: @MODE@, @TRACE@ and @DRIVER@ (the path of a private copy of the real driver script, made by the test).
 local mode = '@MODE@'
 
 local function note(text)
@@ -25,21 +25,47 @@ end
 
 local V3 = '3f800000,40000000,3f800000'
 
--- the stand-in's world: eight entity targets (one of each class) and, unless the mode removes them, three trees (two quad-plane, one geometry)
+local function row(rows, name, nth)
+  local seen = 0
+  for _, r in ipairs(rows) do
+    if r[1] == name then
+      seen = seen + 1
+      if seen == (nth or 1) then return r end
+    end
+  end
+  error('stand-in: no row ' .. name)
+end
+
+-- the stand-in's world. The class census is what the fixture counts for every candidate in the real sector lists and tree sectors; the structured targets are the
+-- first 3 of each class, so min(census, 3). Stationary geometry (5), fixed box (4) and both tree classes (40, 60) exceed the quota of 3; the rest do not.
+local PER_CLASS = 3
+local WORLD = { moving_geometry = 1, moving_box = 1, stationary_geometry = 5, stationary_box = 1, fixed_geometry = 2, fixed_box = 4, building_geometry = 1,
+  building_box = 3, tree_quad = 40, tree_geometry = 60 }
+local CLASSES = { 'moving_geometry', 'moving_box', 'stationary_geometry', 'stationary_box', 'fixed_geometry', 'fixed_box', 'building_geometry', 'building_box',
+  'tree_quad', 'tree_geometry' }
+
 local function build(seed, entity_cases, tree_cases)
   local trees = mode ~= 'no_trees'
-  local tq, tgm = trees and 2 or 0, trees and 1 or 0
+  local census, targets = {}, {}
+  for _, name in ipairs(CLASSES) do
+    census[name] = WORLD[name]
+    if not trees and (name == 'tree_quad' or name == 'tree_geometry') then census[name] = 0 end
+    targets[name] = math.min(census[name], PER_CLASS)
+  end
+  local T = 0 -- entity targets
+  for _, name in ipairs(CLASSES) do if not string.find(name, 'tree') then T = T + targets[name] end end
+  local tq, tgm = targets.tree_quad, targets.tree_geometry
   local ttargets = tq + tgm
   local function kind(group, k, cases, hit) return { 'col-entity-kind', { { 'group', group }, { 'kind', k }, { 'cases', cases }, { 'hit', hit } } } end
   local function tkind(group, k, cases, hit) return { 'col-tree-kind', { { 'group', group }, { 'kind', k }, { 'cases', cases }, { 'hit', hit } } } end
-  local function common(event, group, cases, hit, touched, checked, exists, skipped)
+  local function common(event, group, cases, hit, touched, checked, exists, skipped, derived)
     return { event, { { 'group', group }, { 'cases', cases }, { 'hit', hit }, { 'miss', cases - hit }, { 'record_touched', touched }, { 'warm_same', cases },
       { 'warm_different', 0 }, { 'miss_point_written', 0 }, { 'miss_normal_written', 0 }, { 'input_mutated', 0 }, { 'nearer_checked', checked },
-      { 'nearer_exists', exists }, { 'skipped_axis', skipped } } }
+      { 'nearer_exists', exists }, { 'skipped_axis', skipped }, { 'derived_axis', derived or 0 } } }
   end
-  -- entity: 8 targets, one primary ray of each of four kinds, 9 follow-up exclusion queries (2 hits), 2 edge rays, and the random cases
+  -- entity: T targets, one primary ray of each of four kinds, 9 follow-up exclusion queries (2 hits), 2 edge rays, and the random cases
   local e_random_hit = math.floor(entity_cases / 4)
-  local e_struct_cases, e_struct_hit = 8 * 4 + 9 + 2, 5 + 4 + 0 + 1 + 2
+  local e_struct_cases, e_struct_hit = 4 * T + 9 + 2, 5 + 4 + 0 + 1 + 2
   -- tree: 4 flag combinations of the through ray, 8 other kinds, 2 edge rays; random cases less the axis-aligned ones that are never probed
   local t_skipped = trees and math.floor(tree_cases / 10) or 0
   local t_random = trees and (tree_cases - t_skipped) or 0
@@ -47,32 +73,48 @@ local function build(seed, entity_cases, tree_cases)
   local through_hits = trees and 6 or 0
   local t_struct_cases = 4 * ttargets + 8 * ttargets + 2
   local t_struct_hit = trees and (6 + 1 + 1) or 0
+  local candidates = 8 + 6 + 4 -- mobile (2 moving + 6 stationary), fixed objects, buildings
   local rows = {
     { 'col-probe', { { 'seed', seed }, { 'entity_random', entity_cases }, { 'tree_random', tree_cases }, { 'per_class', 3 }, { 'samples_hit', 16 }, { 'samples_miss', 8 } } },
     { 'col-map', { { 'world_sectors_x', 3 }, { 'world_sectors_z', 2 }, { 'world_sector_side', 4096 }, { 'terrain_sectors_x', 6 }, { 'terrain_sectors_z', 4 },
       { 'terrain_sector_side', 2048 }, { 'delta_time', '3dcccccd' } } },
     { 'col-guard', { { 'record_restored', 1 }, { 'record_words_before', '0123456789abcdef' }, { 'record_words_after', '0123456789abcdef' }, { 'rng_unchanged', 1 },
       { 'world_unchanged', 1 }, { 'world_before', '00112233445566ff' }, { 'world_after', '00112233445566ff' } } },
-    { 'col-census-entity', { { 'list_entities', 50 }, { 'mobile_candidates', 6 }, { 'mobile_moving', 2 }, { 'mobile_stationary', 4 }, { 'fixed_plain', 6 }, { 'cities', 2 },
-      { 'cities_with_buildings', 2 }, { 'buildings', 5 }, { 'listed_buildings', 0 }, { 'geometry_path', 9 }, { 'box_path', 8 }, { 'align_terrain', 3 }, { 'pool', 17 } } },
+    { 'col-fp', { { 'arch', 'x86_64' }, { 'x87_masks', 63 }, { 'sse_masks', 63 } } },
+    { 'col-census-entity', { { 'list_entities', 50 }, { 'mobile_candidates', 8 }, { 'mobile_moving', 2 }, { 'mobile_stationary', 6 }, { 'fixed_plain', 6 }, { 'cities', 2 },
+      { 'cities_with_buildings', 2 }, { 'buildings', 4 }, { 'listed_buildings', 0 }, { 'geometry_path', 9 }, { 'box_path', 9 }, { 'align_terrain', 3 },
+      { 'pool', candidates } } },
     { 'col-census-tree', { { 'tree_data', trees and 1 or 0 }, { 'trees_total', trees and 100 or 0 }, { 'sectors_with_trees', trees and 10 or 0 },
       { 'trees_type0', trees and 40 or 0 }, { 'trees_type1', trees and 60 or 0 }, { 'forest_geometry', trees and 1 or 0 }, { 'pool', trees and 100 or 0 } } },
-    { 'col-targets', { { 'moving_geometry', 1 }, { 'moving_box', 1 }, { 'stationary_geometry', 1 }, { 'stationary_box', 1 }, { 'fixed_geometry', 1 }, { 'fixed_box', 1 },
-      { 'building_geometry', 1 }, { 'building_box', 1 }, { 'tree_quad', tq }, { 'tree_geometry', tgm } } },
-    kind('struct', 'through', 8, 5), kind('struct', 'reverse', 8, 4), kind('struct', 'lateral', 8, 0), kind('struct', 'above', 8, 1), kind('struct', 'exclusion', 9, 2),
+    { 'col-census-class', {} },
+    { 'col-targets', {} },
+    kind('struct', 'through', T, 5), kind('struct', 'reverse', T, 4), kind('struct', 'lateral', T, 0), kind('struct', 'above', T, 1), kind('struct', 'exclusion', 9, 2),
     kind('struct', 'edge', 2, 0), kind('random', 'random', entity_cases, e_random_hit),
-    { 'col-entity-exclusion', { { 'through_cases', 8 }, { 'through_hit_target', 3 }, { 'through_hit_other', 2 }, { 'base_cases', 3 }, { 'src_removed', 3 },
+    { 'col-entity-exclusion', { { 'through_cases', T }, { 'through_hit_target', 3 }, { 'through_hit_other', 2 }, { 'base_cases', 3 }, { 'src_removed', 3 },
       { 'tgt_removed', 3 }, { 'both_removed', 3 }, { 'decoy_cases', 3 }, { 'decoy_unchanged', 3 }, { 'building_base', 1 }, { 'building_src_removed', 0 },
       { 'building_city_src_removed', 1 }, { 'building_city_tgt_removed', 1 }, { 'chain_cases', 5 }, { 'chain_depth1', 5 }, { 'chain_depth2', 2 }, { 'chain_depth3', 1 },
       { 'chain_stalled', 1 }, { 'chain_order_violations', 0 } } },
     common('col-entity-common', 'struct', e_struct_cases, e_struct_hit, 10, 10, 1, 0),
     common('col-entity-common', 'random', entity_cases, e_random_hit, entity_cases, e_random_hit, 0, 0),
-    { 'col-entity-type', { { 'group', 'struct' }, { 'type', 5 }, { 'name', 'ENTITY_TYPE_ROUTED_VEHICLE' }, { 'hits', 4 } } },
-    { 'col-entity-type', { { 'group', 'random' }, { 'type', 9 }, { 'name', 'ENTITY_TYPE_CITY_BUILDING' }, { 'hits', e_random_hit } } },
+  }
+  for _, name in ipairs(CLASSES) do
+    table.insert(row(rows, 'col-census-class')[2], { name, census[name] })
+    table.insert(row(rows, 'col-targets')[2], { name, targets[name] })
+  end
+  -- the fixture emits EVERY positive bucket of hits by entity kind: the struct buckets add up to the struct hits (12), the random buckets to the random hits
+  local function type_row(group, k, name, hits) return { 'col-entity-type', { { 'group', group }, { 'type', k }, { 'name', name }, { 'hits', hits } } } end
+  rows[#rows + 1] = type_row('struct', 5, 'ENTITY_TYPE_ROUTED_VEHICLE', 4)
+  rows[#rows + 1] = type_row('struct', 7, 'ENTITY_TYPE_ANTI_AIRCRAFT', 5)
+  rows[#rows + 1] = type_row('struct', 9, 'ENTITY_TYPE_CITY_BUILDING', 3)
+  local first, second = e_random_hit - math.floor(e_random_hit / 2), math.floor(e_random_hit / 2)
+  if first > 0 then rows[#rows + 1] = type_row('random', 5, 'ENTITY_TYPE_ROUTED_VEHICLE', first) end
+  if second > 0 then rows[#rows + 1] = type_row('random', 9, 'ENTITY_TYPE_CITY_BUILDING', second) end
+  local more = {
     tkind('struct', 'through', 4 * ttargets, through_hits), tkind('struct', 'reverse', ttargets, trees and 1 or 0), tkind('struct', 'over', ttargets, 0),
     tkind('struct', 'under', ttargets, 0), tkind('struct', 'lateral', ttargets, 0), tkind('struct', 'slant', ttargets, trees and 1 or 0), tkind('struct', 'high', ttargets, 0),
     tkind('struct', 'vertical', ttargets, 0), tkind('struct', 'short', ttargets, 0), tkind('struct', 'edge', 2, 0), tkind('random', 'random', t_random, t_random_hit),
   }
+  for _, r in ipairs(more) do rows[#rows + 1] = r end
   local flag_hits = { quad = { [0] = { [0] = 1, [1] = 1 }, [1] = { [0] = 0, [1] = 1 } }, geometry = { [0] = { [0] = 1, [1] = 1 }, [1] = { [0] = 0, [1] = 1 } } }
   for _, class in ipairs { 'quad', 'geometry' } do
     for ignore = 0, 1 do
@@ -82,8 +124,9 @@ local function build(seed, entity_cases, tree_cases)
       end
     end
   end
-  rows[#rows + 1] = common('col-tree-common', 'struct', t_struct_cases, t_struct_hit, t_struct_cases, trees and 4 or 0, 0, 0)
-  rows[#rows + 1] = common('col-tree-common', 'random', t_random, t_random_hit, t_random, t_random_hit, 0, t_skipped)
+  -- derived axis rays (a shortened nearer-check ray with a zero x or z extent) are counted among the nearer-checks: 1 structured, 2 random
+  rows[#rows + 1] = common('col-tree-common', 'struct', t_struct_cases, t_struct_hit, t_struct_cases, trees and 4 or 0, 0, 0, trees and 1 or 0)
+  rows[#rows + 1] = common('col-tree-common', 'random', t_random, t_random_hit, t_random, t_random_hit, 0, t_skipped, t_random_hit >= 2 and 2 or 0)
   rows[#rows + 1] = { 'col-physical', { { 'entity_struct', 'fedcba9876543210' }, { 'entity_random', '1111111111111111' }, { 'tree_struct', '2222222222222222' },
     { 'tree_random', '3333333333333333' } } }
   -- a legacy word of decimal digits only must stay text
@@ -103,17 +146,6 @@ local function build(seed, entity_cases, tree_cases)
   samples('entity', e_struct_hit + e_random_hit, (e_struct_cases - e_struct_hit) + (entity_cases - e_random_hit))
   samples('tree', t_struct_hit + t_random_hit, (t_struct_cases - t_struct_hit) + (t_random - t_random_hit))
   return rows
-end
-
-local function row(rows, name, nth)
-  local seen = 0
-  for _, r in ipairs(rows) do
-    if r[1] == name then
-      seen = seen + 1
-      if seen == (nth or 1) then return r end
-    end
-  end
-  error('stand-in: no row ' .. name)
 end
 
 local function field(rows, name, key, nth)
@@ -171,6 +203,10 @@ local modes = {
   rng_changed = function(r) set(r, 'col-guard', 'rng_unchanged', 0) end,
   world_flag = function(r) set(r, 'col-guard', 'world_unchanged', 0) end,
   world_fold_differs = function(r) set(r, 'col-guard', 'world_after', 'ffffffffffffffff') end,
+  fp_x87_unmasked = function(r) set(r, 'col-fp', 'x87_masks', 59) end,
+  fp_sse_unmasked = function(r) set(r, 'col-fp', 'sse_masks', 0) end,
+  fp_missing_row = function(r) drop_row(r, 'col-fp') end,
+  fp_arch_bad = function(r) set(r, 'col-fp', 'arch', 'x86-64') end,
   wrongheader = function(r, entity_cases) set(r, 'col-probe', 'entity_random', entity_cases + 1) end,
   quota_changed = function(r) set(r, 'col-probe', 'per_class', 4) end,
   sample_quota_changed = function(r) set(r, 'col-probe', 'samples_hit', 32) end,
@@ -192,10 +228,24 @@ local modes = {
   chain_not_nested = function(r) set(r, 'col-entity-exclusion', 'chain_depth3', 3) end,
   hit_target_other_sum = function(r) set(r, 'col-entity-exclusion', 'through_hit_other', 1) end,
   targets_over_quota = function(r) set(r, 'col-targets', 'fixed_box', 4) end,
-  targets_without_candidates = function(r) set(r, 'col-census-entity', 'mobile_moving', 1) set(r, 'col-census-entity', 'mobile_stationary', 5) end,
+  -- a class the census found must be selected exactly min(census, 3): none at all, one short of its census, one short of the quota (the quota binds), and the trees
+  entity_unselected = function(r) set(r, 'col-targets', 'stationary_geometry', 0) end,
+  entity_under_selected_small_class = function(r) set(r, 'col-targets', 'moving_box', 0) end,
+  entity_under_selected_at_quota = function(r) set(r, 'col-targets', 'fixed_box', 2) end,
+  tree_under_selected = function(r) set(r, 'col-targets', 'tree_quad', 2) end,
+  tree_unselected = function(r) set(r, 'col-targets', 'tree_geometry', 0) end,
+  -- the class census must agree with the census it refines
+  class_census_missing = function(r) drop_row(r, 'col-census-class') end,
+  class_census_sum = function(r) set(r, 'col-census-class', 'fixed_box', 3) end,
+  class_census_geometry_sum = function(r) set(r, 'col-census-class', 'moving_geometry', 2) end,
+  class_census_tree_sum = function(r) set(r, 'col-census-class', 'tree_quad', 39) end,
+  class_census_tree_split = function(r) set(r, 'col-census-class', 'tree_quad', 41) set(r, 'col-census-class', 'tree_geometry', 59) end,
+  derived_over_checked = function(r) set(r, 'col-tree-common', 'derived_axis', 5, 1) end,
+  derived_missing = function(r) drop(r, 'col-tree-common', 'derived_axis', 1) end,
+  entity_derived_axis = function(r) set(r, 'col-entity-common', 'derived_axis', 1, 1) end,
   census_paths_wrong = function(r) set(r, 'col-census-entity', 'box_path', 7) end,
   tree_total_wrong = function(r) set(r, 'col-census-tree', 'trees_type1', 59) end,
-  tree_flag_cases = function(r) set(r, 'col-tree-flags', 'cases', 3, 1) end,
+  tree_flag_cases = function(r) set(r, 'col-tree-flags', 'cases', 4, 1) end,
   tree_flag_hits = function(r) set(r, 'col-tree-flags', 'hit', 2, 4) end,
   kind_missing = function(r) drop_kind_row(r, 'col-entity-kind', 'struct', 'edge') end,
   kind_duplicate = function(r) r[#r + 1] = find(r, 'col-entity-kind', 'kind', 'edge') end,
@@ -203,7 +253,11 @@ local modes = {
   tree_kind_missing = function(r) drop_kind_row(r, 'col-tree-kind', 'struct', 'short') end,
   type_group_bad = function(r) set(r, 'col-entity-type', 'group', 'elsewhere', 1) end,
   type_name_bad = function(r) set(r, 'col-entity-type', 'name', 'not a token', 1) end,
-  type_hits_over = function(r) set(r, 'col-entity-type', 'hits', 13, 1) end,
+  type_hits_over = function(r) set(r, 'col-entity-type', 'hits', 5, 1) end,
+  -- the fixture emits every positive bucket: one deleted (struct, then random), or all of them, must be refused
+  type_bucket_missing = function(r) drop_row(r, 'col-entity-type', 2) end,
+  type_random_bucket_missing = function(r) drop_row(r, 'col-entity-type', 4) end,
+  type_buckets_omitted = function(r) for _ = 1, 5 do drop_row(r, 'col-entity-type', 1) end end,
   sample_missing = function(r) drop_sample(r, 'entity', 1) end,
   sample_unknown_kind = function(r) set(r, 'col-sample', 'kind', 'rock', 1) end,
   sample_triple_short = function(r) set(r, 'col-sample', 'a', '3f800000,40000000', 1) end,
@@ -250,5 +304,5 @@ package.loaded['eech_dc'] = {
   prepare_installation = function() note('prepare') end,
   boot = function() note('boot') return engine end,
 }
-dofile('@LUA_DIR@/collision-characterization.lua')
+dofile('@DRIVER@')
 print('COLLISION_CALLER_DONE')

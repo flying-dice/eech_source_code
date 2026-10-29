@@ -1,0 +1,160 @@
+{
+  "failed_raw_equality_scope": "Failure reproducibility only; NOT physical conformance",
+  "source": "d5ca5ee5bb1f784318ce9c76903169cb97bbe362",
+  "all43exports_unchanged": true,
+  "scope": "Retained FAILED moving characterization and successful coarse controls, no extraction/shipping acceptance",
+  "completed_utc": "2026-10-29T18:18:29.906632+00:00",
+  "probe_control_comparison": "UNAVAILABLE: all probes failed validation before post-probe frames and digest; not an observed digest mismatch",
+  "actual_outer_exit": 1,
+  "failed_lebanon_raw_equal": true,
+  "root_source_finding": {
+    "statement": "value = updated_entities[index] &= mask",
+    "fixture_call": "world_fold: get_local_entity_int_value(en,INT_TYPE_UPDATED)",
+    "path": "aphavoc/source/entity/mobile/mb_int.c",
+    "line": 398,
+    "impact": "The observer itself clears other update bits before measurement; original moving query also destructively reads the same array. Preserve production behavior, add nondestructive fixture observation and scoped snapshot/report/restore.",
+    "verification": "Confirmed source defect by Root and independent reviewer; corrected native behavior NOT YET verified"
+  },
+  "cases": [
+    {
+      "actual_native_exit": 1,
+      "valid": false,
+      "digest": [],
+      "native_log_sha256": "941d8fc14403ffdfc45d377222906bf3fb50ae773818272e826f94d3f1dc9787",
+      "frames_before": [
+        {
+          "event": "frames_before",
+          "frames": 1200
+        }
+      ],
+      "strict_rows": 3,
+      "post_inputs": 0,
+      "pre_inputs": 0,
+      "frames_after": [],
+      "raw_sha256": "654f33c8267c3b5ad5a9aebb6daab1ee620756993aceacaa5e4a8efd9a15cc70",
+      "case": "georgia-probe",
+      "report_invalid": [
+        {
+          "error": "collision-characterization: col-guard: world_unchanged is 0, expected 1",
+          "event": "report_invalid",
+          "repeat_index": 1
+        }
+      ]
+    },
+    {
+      "actual_native_exit": 1,
+      "valid": false,
+      "digest": [],
+      "native_log_sha256": "5edbe0b47640bec86a08e9fe940e2ddff9695a09cb50cb309c6d7fd7fd93d20a",
+      "frames_before": [
+        {
+          "event": "frames_before",
+          "frames": 1200
+        }
+      ],
+      "strict_rows": 3,
+      "post_inputs": 0,
+      "pre_inputs": 0,
+      "frames_after": [],
+      "raw_sha256": "f0138ec5275a7bc97e05a8e28394eb04b6436c53dcc44a5d498af9d885111d8e",
+      "case": "lebanon-probe",
+      "report_invalid": [
+        {
+          "error": "collision-characterization: col-guard: world_unchanged is 0, expected 1",
+          "event": "report_invalid",
+          "repeat_index": 1
+        }
+      ]
+    },
+    {
+      "actual_native_exit": 0,
+      "valid": true,
+      "digest": [
+        {
+          "alive": 1483,
+          "digest": "0ffb3b0d",
+          "event": "state_digest",
+          "objects": 1483,
+          "probed": false
+        }
+      ],
+      "native_log_sha256": "23a48963f69e98ef319591a1a2c951801ada829dbb20465eba9ecc5f73c5ece9",
+      "frames_before": [
+        {
+          "event": "frames_before",
+          "frames": 1200
+        }
+      ],
+      "strict_rows": 6,
+      "post_inputs": 0,
+      "pre_inputs": 0,
+      "frames_after": [
+        {
+          "event": "frames_after",
+          "frames": 300
+        }
+      ],
+      "raw_sha256": "c55d5d9b162acc6d0abba4d361822b81418d82e2cf0d07ffa50edf43b200eaa5",
+      "case": "georgia-control",
+      "report_invalid": []
+    },
+    {
+      "actual_native_exit": 1,
+      "valid": false,
+      "digest": [],
+      "native_log_sha256": "5b7af5308f34163c938705515b56076ab98af55b4cb8dd1944f898944520d5c2",
+      "frames_before": [
+        {
+          "event": "frames_before",
+          "frames": 1200
+        }
+      ],
+      "strict_rows": 3,
+      "post_inputs": 0,
+      "pre_inputs": 0,
+      "frames_after": [],
+      "raw_sha256": "f0138ec5275a7bc97e05a8e28394eb04b6436c53dcc44a5d498af9d885111d8e",
+      "case": "lebanon-repeat",
+      "report_invalid": [
+        {
+          "error": "collision-characterization: col-guard: world_unchanged is 0, expected 1",
+          "event": "report_invalid",
+          "repeat_index": 1
+        }
+      ]
+    },
+    {
+      "actual_native_exit": 0,
+      "valid": true,
+      "digest": [
+        {
+          "alive": 1722,
+          "digest": "50143464",
+          "event": "state_digest",
+          "objects": 1727,
+          "probed": false
+        }
+      ],
+      "native_log_sha256": "475a65e8562a0bb3eb4c3d6ff8d941e3f2a99057ddea26c04fe330acb036f8a0",
+      "frames_before": [
+        {
+          "event": "frames_before",
+          "frames": 1200
+        }
+      ],
+      "strict_rows": 6,
+      "post_inputs": 0,
+      "pre_inputs": 0,
+      "frames_after": [
+        {
+          "event": "frames_after",
+          "frames": 300
+        }
+      ],
+      "raw_sha256": "864a4c280b0db66c41ddb4011f899b7c967a3b5d0677181021d36c8a8b2aaa58",
+      "case": "lebanon-control",
+      "report_invalid": []
+    }
+  ],
+  "private_controller_sha256": "da9425f74566a9a0e78a9c2445fc739f03c1902c8ec31a198b7fb4a6e7dabeb3"
+}

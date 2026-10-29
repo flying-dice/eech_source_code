@@ -1990,19 +1990,18 @@ fn the_object_witness_says_so_when_there_is_no_such_structure_and_refuses_a_malf
 // The object and tree collision characterisation driver (EEDCS-49; lua/collision-characterization.lua) against a small stand-in for the engine: only its argument safety, its flow and its own checks of
 // what the probe returns are exercised here (the arguments refused BEFORE anything is opened, required or booted; the probe called with the asked seed and counts as often as asked; the control that does
 // not probe; the report parsed into typed events with hash words kept as text; a refused probe whose text is strict JSON; a repeat that differs; a world that offers no tree data, which is stated as a coverage
-// gap and fails only when coverage is required; and a table of reports with ONE defect each). The stand-in (tests/lua/collision-caller.lua, loaded with include_str! so no path is needed) writes a complete
+// gap and fails only when coverage is required; and a table of reports with ONE defect each). The stand-in (tests/lua/collision-caller.lua, loaded with include_str!) loads the ACTUAL driver, embedded the same way and copied to the private test directory, so no source-machine path is used at run time writes a complete
 // well-formed report and measures nothing about the collision queries: whether the original behaves as characterised is the native run's to show, with a DLL built with the `collision-fixture` feature.
 const COLLISION_CASE_CALLER_SCRIPT: &str = include_str!("lua/collision-caller.lua");
+// The real driver, embedded at compile time. The test copies it to a private file and the stand-in loads that copy, so a test executable cross-built on one machine and run on another
+// needs no source path, and there is no second implementation of the driver's validation to drift from the real one.
+const COLLISION_DRIVER_SCRIPT: &str = include_str!("../lua/collision-characterization.lua");
 
 fn run_collision_case(mode: &str, extra: &[&str]) -> (std::process::ExitStatus, String, String, String, Vec<serde_json::Value>) {
-    let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("lua")
-        .display()
-        .to_string()
-        .replace('\u{5c}', "/");
     static COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
     let tag = format!("{}-{}", std::process::id(), COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst));
     let script = std::env::temp_dir().join(format!("eech-world-collision-caller-{tag}.lua"));
+    let driver = std::env::temp_dir().join(format!("eech-world-collision-driver-{tag}.lua"));
     let out = std::env::temp_dir().join(format!("eech-world-collision-caller-{tag}.jsonl"));
     let trace = std::env::temp_dir().join(format!("eech-world-collision-caller-{tag}.trace"));
     let _ = std::fs::remove_file(&out);
@@ -2010,8 +2009,9 @@ fn run_collision_case(mode: &str, extra: &[&str]) -> (std::process::ExitStatus, 
     let text = COLLISION_CASE_CALLER_SCRIPT
         .replace("@MODE@", mode)
         .replace("@TRACE@", &trace.display().to_string().replace('\u{5c}', "/"))
-        .replace("@LUA_DIR@", &lua_dir);
+        .replace("@DRIVER@", &driver.display().to_string().replace('\u{5c}', "/"));
     std::fs::write(&script, text).unwrap();
+    std::fs::write(&driver, COLLISION_DRIVER_SCRIPT).unwrap();
     let mut command = Command::new(env!("CARGO_BIN_EXE_eech-world"));
     command
         .arg(&script)
@@ -2022,6 +2022,7 @@ fn run_collision_case(mode: &str, extra: &[&str]) -> (std::process::ExitStatus, 
     }
     let run = command.output().unwrap();
     std::fs::remove_file(&script).unwrap();
+    std::fs::remove_file(&driver).unwrap();
     let rows = if out.exists() {
         std::fs::read_to_string(&out)
             .unwrap()
@@ -2108,7 +2109,17 @@ fn the_collision_driver_probes_with_the_asked_seed_and_counts_as_often_as_asked_
         "{guard}"
     );
     let exclusion = rows.iter().find(|r| r["event"] == "col-entity-exclusion").unwrap();
-    assert_eq!(exclusion["through_cases"].as_i64(), Some(8), "{exclusion}");
+    // 15 structured entity targets: min(census, 3) of each of the eight classes (1+1, 3+1, 2+3, 1+3), not a hand-picked small set
+    assert_eq!(exclusion["through_cases"].as_i64(), Some(15), "{exclusion}");
+    let class_census = rows.iter().find(|r| r["event"] == "col-census-class").unwrap();
+    let targets = rows.iter().find(|r| r["event"] == "col-targets").unwrap();
+    assert_eq!(
+        (class_census["stationary_geometry"].as_i64(), targets["stationary_geometry"].as_i64(), class_census["tree_quad"].as_i64(), targets["tree_quad"].as_i64()),
+        (Some(5), Some(3), Some(40), Some(3)),
+        "the quota binds: {class_census} {targets}"
+    );
+    let fp = rows.iter().find(|r| r["event"] == "col-fp").unwrap();
+    assert_eq!((fp["x87_masks"].as_i64(), fp["sse_masks"].as_i64()), (Some(63), Some(63)), "{fp}");
     // keyed rows: one per key per repeat, none dropped or merged
     assert_eq!(rows.iter().filter(|r| r["event"] == "col-entity-kind").count(), 7 * 3);
     assert_eq!(rows.iter().filter(|r| r["event"] == "col-tree-kind").count(), 11 * 3);
@@ -2132,6 +2143,18 @@ fn the_collision_driver_probes_with_the_asked_seed_and_counts_as_often_as_asked_
             coverage["random_tree_hits"].as_i64()
         ),
         (Some("none"), Some(0), Some(2), Some(5), Some(6), Some(10), Some(7)),
+        "{coverage}"
+    );
+    // the new facts are stated, not implied: the masks read, the primary random tree rays skipped for a zero extent, and the derived rays that were queried and counted
+    assert_eq!(
+        (
+            coverage["fp_x87_masks"].as_i64(),
+            coverage["fp_sse_masks"].as_i64(),
+            coverage["fp_arch"].as_str(),
+            coverage["skipped_axis_rays"].as_i64(),
+            coverage["derived_axis_rays"].as_i64()
+        ),
+        (Some(63), Some(63), Some("x86_64"), Some(4), Some(3)),
         "{coverage}"
     );
     let digest = rows.iter().find(|r| r["event"] == "state_digest").unwrap();
@@ -2240,10 +2263,10 @@ fn the_collision_driver_fails_on_a_refused_probe_and_on_a_repeat_that_differs() 
     assert!(rows.iter().all(|r| r["event"] != "state_digest"), "no digest after a refusal");
     assert_eq!(trace.matches("probe ").count(), 1, "the run stops at the first refusal: {trace}");
 
-    // two well-formed reports that differ: the second is not the first, so the probe is not a pure function of its request
+    // two well-formed reports that differ: the second is not the first, so the report is not repeatable for its request
     let (status, stdout, stderr, _, rows) = run_collision_case("differs_between_repeats", &["entity_cases=5", "tree_cases=5"]);
     assert!(!status.success() && !stdout.contains("COLLISION_CALLER_DONE"), "{stdout}\n{stderr}");
-    let message = collision_refusal("repeat 2 differs from repeat 1: the probe is not a pure function of the seed and the loaded world");
+    let message = collision_refusal("repeat 2 differs from repeat 1: the report is not repeatable for the seed and the loaded world");
     assert!(stderr.contains(&message), "{stderr}");
     let same = rows.iter().find(|r| r["event"] == "repeat_identical").expect("the comparison is recorded");
     assert_eq!(same["ok"].as_bool(), Some(false), "{same}");
@@ -2302,11 +2325,11 @@ fn the_collision_driver_accepts_a_report_with_no_random_cases_and_a_report_with_
 
 // Reports with ONE defect each, from the stand-in, run through the REAL driver. Each must fail the run with exactly the named reason (not any error that happens to contain a similar word), record it as
 // `report_invalid` once, write no row of the rejected report, and write no success row: no `repeat_identical`, `coverage`, `state_digest` or `done`. A measurement that is absent, of the wrong type or width, or
-// inconsistent with the request is never read as zero, as nil equal to nil, or as a pass. The requested counts are 40 and 40, so the stand-in's random hits are 10 entity and 7 tree.
+// inconsistent with the request is never read as zero, as nil equal to nil, or as a pass. The requested counts are 40 and 40, so the stand-in's random hits are 10 entity and 7 tree, its struct hits 12 and its entity targets 15.
 #[test]
 fn the_collision_driver_names_the_one_defect_in_a_report_and_writes_no_success_row() {
     let counts: &[&str] = &["entity_cases=40", "tree_cases=40"];
-    let defects: [(&str, &str); 46] = [
+    let defects: [(&str, &str); 65] = [
         ("unrestored", "col-guard: record_restored is 0, expected 1"),
         (
             "words_differ",
@@ -2316,8 +2339,12 @@ fn the_collision_driver_names_the_one_defect_in_a_report_and_writes_no_success_r
         ("world_flag", "col-guard: world_unchanged is 0, expected 1"),
         (
             "world_fold_differs",
-            "the probe changed the collision candidates' state: fold 00112233445566ff -> ffffffffffffffff",
+            "the sector-list fingerprint changed during the probe: fold 00112233445566ff -> ffffffffffffffff",
         ),
+        ("fp_x87_unmasked", "col-fp: x87_masks is 59, expected 63"),
+        ("fp_sse_unmasked", "col-fp: sse_masks is 0, expected 63"),
+        ("fp_missing_row", "the report has no col-fp row"),
+        ("fp_arch_bad", "col-fp: arch must be a token of letters, digits and underscores, got 'x86-64'"),
         (
             "wrongheader",
             "the report is for seed 20261029 entity_cases 41 tree_cases 40, not the 20261029 40 40 asked",
@@ -2337,10 +2364,13 @@ fn the_collision_driver_names_the_one_defect_in_a_report_and_writes_no_success_r
         ("count_float", "col-entity-exclusion: src_removed must be a decimal count, got '1.5'"),
         ("flag_two", "col-census-tree: forest_geometry must be 0 or 1, got '2'"),
         ("hex_width", "col-map: delta_time must be 8 lowercase hex digits, got '3dcccc'"),
-        ("common_cases_wrong", "col-entity-common struct: hit + miss is 43, expected 44"),
-        ("warm_sum", "col-entity-common struct: warm_same + warm_different is 40, expected 43"),
-        ("touched_more_than_cases", "col-tree-common struct: record_touched is 99, more than 38"),
+        ("common_cases_wrong", "col-entity-common struct: hit + miss is 71, expected 72"),
+        ("warm_sum", "col-entity-common struct: warm_same + warm_different is 40, expected 71"),
+        ("touched_more_than_cases", "col-tree-common struct: record_touched is 99, more than 74"),
         ("nearer_more_than_checked", "col-entity-common struct: nearer_exists is 11, more than 10"),
+        ("derived_over_checked", "col-tree-common struct: derived_axis is 5, more than 4"),
+        ("derived_missing", "col-tree-common: derived_axis is missing"),
+        ("entity_derived_axis", "col-entity-common struct: derived_axis is 1, expected 0"),
         ("exclusion_more_than_base", "col-entity-exclusion: src_removed is 4, more than 3"),
         ("chain_not_nested", "col-entity-exclusion: chain_depth3 is 3, more than 2"),
         (
@@ -2348,10 +2378,19 @@ fn the_collision_driver_names_the_one_defect_in_a_report_and_writes_no_success_r
             "col-entity-exclusion: through_hit_target + through_hit_other is 4, expected 5",
         ),
         ("targets_over_quota", "col-targets: fixed_box is 4, more than 3"),
-        ("targets_without_candidates", "col-targets: moving_geometry + moving_box is 2, more than 1"),
-        ("census_paths_wrong", "col-census-entity: geometry_path + box_path is 16, expected 17"),
+        ("entity_unselected", "col-targets: stationary_geometry is 0, expected 3"),
+        ("entity_under_selected_small_class", "col-targets: moving_box is 0, expected 1"),
+        ("entity_under_selected_at_quota", "col-targets: fixed_box is 2, expected 3"),
+        ("tree_under_selected", "col-targets: tree_quad is 2, expected 3"),
+        ("tree_unselected", "col-targets: tree_geometry is 0, expected 3"),
+        ("class_census_missing", "the report has no col-census-class row"),
+        ("class_census_sum", "col-census-class: fixed_geometry + fixed_box is 5, expected 6"),
+        ("class_census_geometry_sum", "col-census-class: moving_geometry + moving_box is 3, expected 2"),
+        ("class_census_tree_sum", "col-census-class: tree_quad + tree_geometry is 99, expected 100"),
+        ("class_census_tree_split", "col-census-class: tree_geometry is 59, expected 60"),
+        ("census_paths_wrong", "col-census-entity: geometry_path + box_path is 17, expected 18"),
         ("tree_total_wrong", "col-census-tree: trees_type0 + trees_type1 is 99, expected 100"),
-        ("tree_flag_cases", "col-tree-flags quad/0/0: cases is 3, expected 2"),
+        ("tree_flag_cases", "col-tree-flags quad/0/0: cases is 4, expected 3"),
         ("tree_flag_hits", "col-tree-flags: hits against struct/through hits is 7, expected 6"),
         ("kind_missing", "the report has no col-entity-kind row for struct/edge"),
         ("kind_duplicate", "the report has more than one col-entity-kind row for struct/edge"),
@@ -2359,7 +2398,10 @@ fn the_collision_driver_names_the_one_defect_in_a_report_and_writes_no_success_r
         ("tree_kind_missing", "the report has no col-tree-kind row for struct/short"),
         ("type_group_bad", "col-entity-type elsewhere/5: group must be struct or random"),
         ("type_name_bad", "col-entity-type: 'a' is not key=value"),
-        ("type_hits_over", "col-entity-type: struct hits is 13, more than 12"),
+        ("type_hits_over", "col-entity-type: struct hits is 13, expected 12"),
+        ("type_bucket_missing", "col-entity-type: struct hits is 7, expected 12"),
+        ("type_random_bucket_missing", "col-entity-type: random hits is 5, expected 10"),
+        ("type_buckets_omitted", "col-entity-type: struct hits is 0, expected 12"),
         ("sample_missing", "col-sample: entity hit samples is 15, expected 16"),
         ("sample_unknown_kind", "col-sample: kind must be entity or tree, got 'rock'"),
         (
