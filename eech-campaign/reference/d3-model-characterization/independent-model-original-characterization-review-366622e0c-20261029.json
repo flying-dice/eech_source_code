@@ -1,0 +1,230 @@
+{
+  "schema": "independent-review/v1",
+  "component": "EEDCS-50 original retail model characterization",
+  "reviewed_base": "6bbaa8197a4843181d03cd355d562af998c75321",
+  "measured_source": "366622e0c08b2caaa5a5317f5197c0ee3d7050e9",
+  "reviewed_publication_head": "e84c5782713dbb0bd7a006665b8016b9f225b195",
+  "frozen_source": "R:/d3-evidence/model-original-source-366622e0c",
+  "frozen_source_clean_at_final_check": true,
+  "disposition": "CHANGES_REQUIRED",
+  "finding_count": {
+    "P2": 1
+  },
+  "scope": "One combined correctness, clean-code, FFI/memory/lifetime, observer purity, boundary safety, original decoder fidelity and actual evidence review. Original fixture preparation only; unchanged Task49 and accepted D2/G1/G2 components reused, not re-reviewed.",
+  "findings": [
+    {
+      "id": "MODEL-DRIVER-COMPLETENESS",
+      "priority": "P2",
+      "path": "eech-campaign/crates/eech-world/lua/model-characterization.lua",
+      "lines": [
+        139,
+        160,
+        170,
+        189
+      ],
+      "title": "Require complete, correlated catalogue and geometry responses before success",
+      "reason": "The driver counts scene rows without exact page/scene identity and accepts geometry terminal markers or an empty report without correlating requested scene/depth/count, calls, actual return/write rows and termination. A malformed report can therefore finish with failures=0 while omitting the original measurements.",
+      "actual_reproductions": [
+        {
+          "mode": "missing_triangles",
+          "native_exit": 0,
+          "done_failures": 0,
+          "observation": "A proxy invokes the real native accessor once, then replaces the safe scene8 results with depth0 end/calls0. The original driver accepts, with no scene8 triangles. The retained pylon row is not evidence of scene8 measurement.",
+          "raw_sha256": "a19b44bc8afd808d5f13206ac7d1430d800ab1ff1d8327dc00654d0ed0de8211"
+        },
+        {
+          "mode": "duplicate_catalogue_id",
+          "native_exit": 0,
+          "done_failures": 0,
+          "observation": "Changing the first scene ID1 to2 preserves3025 rows but leaves3024 unique scenes; the original driver accepts.",
+          "raw_sha256": "ce5518d3d2b5324a8f4f78ea9d0940740bed4b872d042e88a4c35583a6b23a57"
+        }
+      ],
+      "bounded_correction": "Validate exact report schemas, finite integer/cardinality/range fields, page identity and ascending complete scene sequence; correlate geometry header/request, contiguous returned depths, return/write/bit fields, call totals and explicit terminal reason. Preserve legitimate absent/refused/capped/unbacked outputs as distinct data, without deriving geometry or inventing triangle counts. Add actual-driver corrupt-response controls, reusing the retained real-DLL proxy for old/new behavior.",
+      "reuse": "The retained native measurements satisfy independent stricter correspondence checks and may be reused under measured source366. A checker correction does not require another original physical run solely to regenerate the same rows."
+    }
+  ],
+  "source_assessment": [
+    "Feature chain, build wiring and scalar/text C/Rust/Lua boundary were inspected. New C entrypoints are feature-gated; ordinary engine.c retains the exact accepted prefix and its one embedded NUL. No physical decoder or loader formula was changed.",
+    "Original geometry accessor is called once per requested depth in ascending order; TRUE/FALSE, changed-word bit outputs, absence and refused/no-helper cases remain distinct. Fan counts and array spans are safety limits, not replacement physical answers.",
+    "Loaded-table checks cover surface spans, face/point references, neighboring-array capacity limits and bounded page/depth arithmetic. Custom objects and face mismatches are explicitly refused rather than treated as original answers.",
+    "Observer paths use read-only shape getters, no frames or RNG draws; before/after digests cover model tables and safe referenced arrays. Addresses/padding participate in state digests, so cross-process whole-file equality is not a supported claim.",
+    "No concrete additional C/FFI memory, lifetime, ownership, arithmetic/FPU or feature-off defect was established within the verified loaded-retail contract. This is not a hardened arbitrary-asset parser proof."
+  ],
+  "evidence_assessment": {
+    "build": {
+      "actual_windows_build_exit": 0,
+      "file_manifest_entries_verified": 43,
+      "build_info_sha256": "46bcfa350d85d5b44d95f3c9b31ee708af40264b8dca3f3fae3e9b2ba8562353",
+      "wording": "File-manifest entries, not a count of DLL exports."
+    },
+    "catalogues": {
+      "maps": [
+        "georgia",
+        "lebanon",
+        "lebanon-repeat"
+      ],
+      "actual_native_and_repo_powershell_exits": [
+        0,
+        0,
+        0
+      ],
+      "strict_rows_per_map": 3102,
+      "scene_rows_per_map": 3025,
+      "exact_ids": "1..3025, ordered; scene_last3026",
+      "page_rows": 32,
+      "statuses_per_map": {
+        "safe": 769,
+        "absent": 2009,
+        "custom_object": 14,
+        "face_mismatch": 45,
+        "no_scene": 188
+      },
+      "state_before_after_equal": true,
+      "done_failures": 0
+    },
+    "selected_geometry": {
+      "maps": [
+        "georgia",
+        "lebanon",
+        "lebanon-repeat"
+      ],
+      "actual_native_and_repo_powershell_exits": [
+        0,
+        0,
+        0
+      ],
+      "strict_rows_per_map": 250,
+      "selected_scenes": [
+        8,
+        2643,
+        2543,
+        1213,
+        1424,
+        1426,
+        1241,
+        188,
+        1,
+        1412,
+        1165
+      ],
+      "per_map": {
+        "safe_models": 6,
+        "original_true": 208,
+        "safe_end_false": 6,
+        "absent_false": 1,
+        "refused_no_helper": 4
+      },
+      "semantic_geometry_rows_equal_across_three_maps": true,
+      "whole_raw_files_equal": false,
+      "state_before_after_equal": true,
+      "done_failures": 0
+    },
+    "public_boundary_controls": {
+      "runner": "Direct frozen exe/private Lua, not repository PowerShell runner",
+      "v2_native_and_pre_post_exit": 0,
+      "v2_strict_rows": 76,
+      "checks": 27,
+      "invalid_scene_checks": 8,
+      "other_public_refusal_rows": 14,
+      "includes": "Last-page truncation, beyond-safe-depth no original helper, then healthy MI24 and absent-pylon queries.",
+      "first_attempt": "Native/pre/post0, Root aggregate1 from private Lua percent-q error_text encoding producing invalid JSON control bytes. Raw/script/controller retained. Fresh v2 omits error_text; no C/Rust/binary or physical expectation changed."
+    },
+    "near_integer_hypothesis": {
+      "native_and_pre_post_exit": 0,
+      "strict_rows": 82,
+      "input": "1.0000000000000002; number; fractional=true",
+      "all_five_named_arguments_refused": true,
+      "disposition": "No demonstrated coercion gap; no reader change justified."
+    },
+    "corruption_red": "Root aggregate0 means both validator defects were reproduced. The reused geometry_semantic_equal=true field is vacuous None==None here and is not comparison evidence; the explicit per-case original-driver acceptance and raw rows are the evidence.",
+    "strict_retained_audit": "Root read-only strict audit actual0 corroborates all retained catalogue page/scene and selected geometry request/depth/return/write/terminal correspondence. Its source and result were inspected; it was not executed by this reviewer. Independent row/count/state/semantic comparisons support reuse without rewriting raws or tolerances.",
+    "immutability": "Actual pre/post input checks0 and unchanged binary/state records were inspected.43 manifest entries and controller/log/raw identities were checked. Asset provenance records1089 model paths per map within verified1179-input roots; this reviewer did not independently rehash all1089 asset files.",
+    "source_publication": "Seven program-file Git identities between measured366 and metadatae84 were checked. Current e84 opening marks the source-only notes historical and reports actual catalogue completion. The initially proposed stale-status P3 is withdrawn. Root selected-run summary was metadata-only/untracked during review; it is not a new measured source."
+  },
+  "limits": [
+    "The14 custom objects and45 face-mismatch scenes are not characterized as original decoder answers.769 safe-to-probe scenes are not a claim of exhaustive selected geometry, equivalence or shipping readiness.",
+    "Selected6 safe models208 TRUE and7 total FALSE plus4 refusals do not establish all-model geometry or arbitrary malformed-asset behavior.",
+    "No host loader, production authority/cutover, DCS mapping, Task50 delivery, full shipping regression or whole D3 acceptance is established.",
+    "Full raw selected files differ because process-specific state/address digests differ; only selected semantic geometry rows match across maps.",
+    "No shipping process, cache, native campaign or source was changed by this reviewer. Task47 live shipping processes and prefix-only evidence are outside this pass.",
+    "Parent began the sole driver correction after this source inspection completed. This report remains pinned to measured366/current-at-review e84; subsequent mutable edits were not inspected or accepted."
+  ],
+  "source_hashes": [
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_model_fixture.c",
+      "sha256": "d8e99c783769508a808ccbda90e561a16b9bf57066d56fe1661ffc3754b809c5"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+      "sha256": "6ed9c08db903d676cec70dbe6a27567bcc8b74cb7c4cee4d0a34a1662daa9020"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "sha256": "c19131c99ac076b538282890d8b4b4a8ee95b100ae9ffdb4a4d31a1a6c952e99"
+    },
+    {
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "sha256": "c7d6435b54ae5d4c22341c162cec3bf897ac9c241a91bbb6db4481c83905b8f5"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/model-characterization.lua",
+      "sha256": "6f7ab2e9ee5f55f47563f71248281efa8e106b6a840ec48ff44cf9a3cbdf40e8"
+    },
+    {
+      "path": "eech-campaign/tools/model-characterization-windows.ps1",
+      "sha256": "8576c140069f0ef501f92bb60bfb4d6aaf398deacc176889b649cf1d1c67daa7"
+    }
+  ],
+  "evidence_identities": [
+    {
+      "path": "R:/d3-evidence/model-original-366622e0c-catalogues-20261029/controller.json",
+      "sha256": "612b183c17b0adeba6f842291fe68953e49e798470eb3ea777308400ac604125"
+    },
+    {
+      "path": "R:/d3-evidence/model-original-366622e0c-selected-geometry-20261029/controller.json",
+      "sha256": "0cf112e005a0b98ee19b0f4a1188f1a5853109e18df32c6407ad076051f4a22e"
+    },
+    {
+      "path": "R:/d3-evidence/model-original-366622e0c-boundary-controls-20261029/controller.json",
+      "sha256": "68115ff985791eb5a362bf9e5a1416be18d7338dac3fe218e8e60a0defa34d9e"
+    },
+    {
+      "path": "R:/d3-evidence/model-original-366622e0c-boundary-controls-v2-20261029/controller.json",
+      "sha256": "a4d7a6d22859c88f400e649d10fc70f9d8a8f848152394644397cba97a522962"
+    },
+    {
+      "path": "R:/d3-evidence/model-original-366622e0c-near-integer-diagnostic-20261029/controller.json",
+      "sha256": "39e939bf88d0ea6ba24b0986a5681b6a34cafd4ce1f71542dc84560ed57ee568"
+    },
+    {
+      "path": "R:/d3-evidence/model-original-366622e0c-report-corruption-red-20261029/controller.json",
+      "sha256": "b35388ae914f0e3e7ed6caf79104ac3e87cf33bd8934865c97267770755de4dd"
+    },
+    {
+      "path": "R:/d3-evidence/model-original-366622e0c-retained-measurements-strict-audit-20261029.json",
+      "sha256": "5046ba78d76faaed5cc7a9c236ab9f65e8881b6d5bc0cda68ff45fe1a3f00e7e"
+    },
+    {
+      "path": "R:/d3-evidence/audit-model-original-366622e0c-retained-measurements-20261029.py",
+      "sha256": "25033e32a35c5bd86dd0f76f4108a8972c6b57615973c87637c608b22502ba1e"
+    },
+    {
+      "path": "R:/d3-evidence/model-original-366622e0c-asset-provenance.json",
+      "sha256": "06753518b3b063cc4254ed2d1fb431e4dea15bdb7236e146bb8e6825c8b41697"
+    },
+    {
+      "path": "R:/d3-evidence/model-original-public-boundary-controls-v2-20261029.lua",
+      "sha256": "1bb9f67fef4280c45a0e9b797a58cf411a063d9127f1ab21620ed0871991f1e9"
+    },
+    {
+      "path": "R:/d3-evidence/model-original-near-integer-diagnostic-20261029.lua",
+      "sha256": "eed10320b33f6f797d3542e6c52fad5a54e0e296228e6eb5414f65f75b4bfed0"
+    },
+    {
+      "path": "R:/d3-evidence/model-original-report-corruption-control-20261029.lua",
+      "sha256": "e1e0908c094503ec81e93371e8807b51143ecd9135dce7ab0c17e774b2a52509"
+    }
+  ],
+  "review_actions": "Read-only source/Git/file/hash and retained JSON analysis. No supplied test/audit script, build, Lua or native process was executed. Only this new review report was written."
+}

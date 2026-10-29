@@ -1,0 +1,13 @@
+{
+  "content_id": "14548994",
+  "version": 68,
+  "snapshot": "v:68",
+  "prior_html_exact": true,
+  "five_epic_reports_exact": true,
+  "appended_content_exact_except_generated_local_ids": true,
+  "prior_characters": 120668,
+  "readback_characters": 124266,
+  "jira_comment": "10863",
+  "source": "366622e0c08b2caaa5a5317f5197c0ee3d7050e9",
+  "scope": "Measured original model characterization; diagnostic correction active. No new physical responsibility delivered. FullD3 remains InProgress."
+}
