@@ -1,3 +1,30 @@
+# Current tree-input capture — reviewed and measured; host kernel preparation next
+
+Capture review is CLOSED with no open findings at f3fd93dfb2ad81b6cbe4d89174953376efd07611.
+Review SHA256 d71fcaea939a6207b2267a45ad7183d05eae74a6621e0ff329e3ac71a5d82fd8.
+The three findings (page arithmetic, capped facts, paired-query/lookup coherence)
+are resolved. Clean Windows fixture build0/all43 exports; Linux and actualWindows
+15/15 driver/report/transcript/I-O tests, format and host Clippy0. Real public
+Lua/module/C paging passes normal108-record/last pages, six EOF/extreme-offset
+empty pages and six invalid-argument refusals, with pre/post inputs0 and no skips.
+
+Three corrected retail trace probes complete0/pre/post0. Every old205 report value
+matches541; all six complete206-row reports/transcripts match the initial41 bytes.
+Georgia captures554 queries/1102 actual terrain lookups; Lebanon600/1120. Warm
+pairs, lookup coordinates/order, native8-byte packing and separate repeat bytes
+are independently verified. No raw sample or oracle changed. Forest geometry is0
+on these maps; native geometry/cap branches remain unexercised and are not counted
+as full tree geometry coverage. Bounded checker red/green has10 actual old0/new1
+malformed cases and three valid boundary cases passing both.
+
+The next Task49 work prepares the host-owned tree file loader and physical kernel
+against these immutable inputs. Production entity/tree collision, model geometry
+loaders, public authority/refusal, shipping and normal delivery remain required.
+Task47 shipping115 is still live; checked31.2MB Tacview/19.7MB observation prefixes
+match, with no complete-pack acceptance. ProductionG2/G3 gates and the full D3
+model/environment/time/required-physical-solver/loader scope stay open. D4/D5 have
+not started. The following records earlier checkpoints with their at-time status.
+
 # Third capture P2 (warm-pair and lookup coherence) — correction UNBUILT, UNRUN; all three P2 source corrections now prepared (working tree over 41f94952e)
 
 The one independent source sweep of the NEW capture (41f94952e) is complete with exactly three P2s and no others: (1) paging arithmetic and (2) capped forest-geometry acceptance, both already
@@ -669,29 +696,3 @@ Use installed ~/.codex/skills/eech-regression/SKILL.md and runbook for full pack
 Existing WSL2 EECH-D2-Build/localUnixDocker daemon exec37778 stays running; inspect before restart/cleanup. Use physicalC paths forWSL. Preserve Latin1/embeddedNUL C sources, exported binaries and useful failures before removing disposable caches. Private retail assets/binaries/full rawrecordings stay outsideGit. Logged-in GitHubidentity fd-starscream-bot and autonomous normalmerges are human-directed; no self-approval/authchanges/adminbypass.
 
 Detailed live checkpoint: R:/d2-evidence/ACTIVE-RUNS.json. WholeD2 goal remains ACTIVE. After weaponexecution, complete combatresolution/factualreports and whole-scope audit beforeD3. No historicalTypeScript port/call-map scope.
-# Current tree-input capture — reviewed and measured; host kernel preparation next
-
-Capture review is CLOSED with no open findings at f3fd93dfb2ad81b6cbe4d89174953376efd07611.
-Review SHA256 d71fcaea939a6207b2267a45ad7183d05eae74a6621e0ff329e3ac71a5d82fd8.
-The three findings (page arithmetic, capped facts, paired-query/lookup coherence)
-are resolved. Clean Windows fixture build0/all43 exports; Linux and actualWindows
-15/15 driver/report/transcript/I-O tests, format and host Clippy0. Real public
-Lua/module/C paging passes normal108-record/last pages, six EOF/extreme-offset
-empty pages and six invalid-argument refusals, with pre/post inputs0 and no skips.
-
-Three corrected retail trace probes complete0/pre/post0. Every old205 report value
-matches541; all six complete206-row reports/transcripts match the initial41 bytes.
-Georgia captures554 queries/1102 actual terrain lookups; Lebanon600/1120. Warm
-pairs, lookup coordinates/order, native8-byte packing and separate repeat bytes
-are independently verified. No raw sample or oracle changed. Forest geometry is0
-on these maps; native geometry/cap branches remain unexercised and are not counted
-as full tree geometry coverage. Bounded checker red/green has10 actual old0/new1
-malformed cases and three valid boundary cases passing both.
-
-The next Task49 work prepares the host-owned tree file loader and physical kernel
-against these immutable inputs. Production entity/tree collision, model geometry
-loaders, public authority/refusal, shipping and normal delivery remain required.
-Task47 shipping115 is still live; checked31.2MB Tacview/19.7MB observation prefixes
-match, with no complete-pack acceptance. ProductionG2/G3 gates and the full D3
-model/environment/time/required-physical-solver/loader scope stay open. D4/D5 have
-not started. The following records earlier checkpoints with their at-time status.
