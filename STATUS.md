@@ -1,3 +1,16 @@
+# Latest execution checkpoint — host kernel conformance GREEN
+
+Clean measured source14bfd3ed6 Windows host-test build0; all4 payload hashes verify.
+Actual native terrain_backend17/17 and ground_conformance4/4 on EACH fresh verified
+Georgia/Lebanon/separate-repeat root pass0, with NO skips. All pre/post-input
+manifests pass0; immutable originalc119 raw hashes remain unchanged. Original20k/
+5k physical folds/counters/samples/common cache facts match; the host's second
+full sweep equals its first. Source/native independent review is now in progress.
+No DLL G2 dispatch, public authority, shipping acceptance or extraction delivery is
+proved. See reference/d3-ground-host-preparation/windows-conformance-14bfd3ed6.json.
+
+The following records preparation scope and earlier pre-native gates.
+
 # D3 G2 host ground preparation — retail conformance pending
 
 EEDCS-48 / D3 EEDCS-21, branch codex/d3-ground-host-preparation, base1b6218b06.
