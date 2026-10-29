@@ -1,63 +1,49 @@
-# D3 terrain and environmental services — active
+# D3 terrain services — delivery gated by physical RED
 
-29 October2026. Authority is the live M5 goal11534337v3 and migration ledger14548994v55.
-D1/EEDCS-15 and D2/EEDCS-18 are accepted. D3/EEDCS-21 is In Progress; D4/D5 have not started.
-Campaign geography, planning, timers, scheduling and consequences stay in EECH_DC.
-The finite remaining scope is recorded in docs/handover/D3-SCOPE-AUDIT.md. Old status
-entries remain in Git history; HOST-HANDOVER.md is the historical D1 handover.
+EEDCS-47, PR107, branch codex/d3-terrain-services. Host point/fast/map services
+are implemented atf03a680c9 but not accepted or delivered. Existing public terrain
+conformance, source review and all9 hosted checks atf03 are retained. This checkpoint
+changes documentation/evidence only; frozen06 runtime and running pack are untouched.
 
-## Current extraction
+29 October 2026. Authority: M5 goal11534337v3, migration ledger14548994v57.
+D1/D2 are accepted. D3/EEDCS-21 remains In Progress; D4/D5 have not started.
+Campaign geography, decisions, routes, timers, scheduling and consequences remain
+in EECH_DC. Whole D3 scope includes the remaining geometry/model, environment,
+host-time and DLL physical-code removal gates; Task47/48 are not the whole epic.
 
-EEDCS-47, PR107, branch codex/d3-terrain-services, verified integration base
-6bbaa8197a4843181d03cd355d562af998c75321. Point, fast-elevation and map-fact queries
-now dispatch to the host. The DLL retains semantic value records and optional opaque
-hints; the numerical point/fast solver is in the reference host. DLL2D loading/grid
-generation, derived terrain geometry, spatial/model services, environment and host-time
-coverage remain whole-D3 work. Task47 and the epic are not delivered yet.
+The supplemental test-only composition at3ad209417 combines Task47f03 and
+Task48d44 without a G2 production extraction. Its clean Windows fixture build
+passed0/all46 manifest entries. Three fresh retail roots completed native0 with
+20k points/5k impacts/two repeats;119 strict JSON rows each, full restoration,
+in-process repeats, separate Lebanon raw repeat and all post-input checks pass.
 
-## Verified evidence
+PHYSICAL COMPARISON IS RED: above, below and combined folds differ from immutable
+originalc119 on both maps. Impact folds, all emitted physical samples/counters
+and common cache fields match. Legacy and semantic diagnostic hashes are kept
+separate. No baseline, scenario, tolerance or expected output was changed.
+A finite unchanged-binary prefix diagnostic completed0: first observed unequal
+prefix15, immediately after equal prefix14 (case index14). All14 pairs used fresh
+roots and passed native/pre/post-input checks. Actual case-level cause is unresolved.
 
-- Original controls include both maps, deterministic20k probes, repeated600s runs and
-  a900s control whose complete Tacview/observations/metrics match the accepted D2 donor.
-- Both complete generated grids equal independent original-generated files byte for
-  byte; point/primed/fast conformance passes on both generated and provided grids.
-- Public reference placement/LOS match original; raised terrain changes both. Missing
-  and all six malformed replies refuse with the specific expected markers.
-- Public moved-client probes match all256 emitted physical point/fast samples and
-  complete20006-fast-call hashes on both maps. Primed/run diagnostic folds are qualified.
-- Six real face-predicate cases pass for reference/nohint providers and native season,
-  Summer assertion and Winter fallback. Retail has no winter pair; distinct seasonal
-  file selection is tested separately. Shipping nohint preserves original observations.
-- Frozen runtime06d42557843aba5728ffafae937451413115fb6c: ordinary Windows build0,
-  all45 manifest entries verified, backend17/17, refusal-driver7/7, face-driver5/5,
-  actual DLL boot-contract1/1 and both final whole-grid comparisons pass0. Prior
-  engine9/world18 terrain checks and independently reviewed a9 public cases are reused.
-- The analytic all-land Lebanon case remains FAILED1: changed WATER geography removes
-  the required USS TARAWA anchorage. Its failure is preserved, never swallowed as a
-  provider refusal. No baseline, input manifest, oracle or tolerance was changed.
+A new focused library test executed ONE test and failed101: both request fields
+lose negative zero and very small f32 coordinates through the Lua number reader.
+This establishes an input-fidelity defect, not the cause of the physical folds;
+the terrain kernel offset may absorb those values. No production fix is included.
+The initial wrong binary test target executed ZERO tests; its0 is not pass evidence.
+The supplemental branch preserves the RED test and the reviewed footer-label fix.
 
-Safe evidence and independent reports: eech-campaign/reference/d3-terrain-characterization/.
-Raw retail assets, coordinates, binaries and recordings remain outside Git. Accepted D2
-runtime64cf0f1c5551a2e59309a92917c32e6189d8ae60 and its40/eight-artifact proof are reused.
+The frozen Task47 runtime06d425578 shipping pack is still RUNNING on its original
+four native processes. The latest retained live audit found both Tacview prefixes
+(18,214,082/18,205,890 bytes) and both observation prefixes(11,288,576 bytes) exact.
+This is partial evidence only. Complete40/eight full files, actual runner exit,
+post-inputs, classification of the new physical RED, final review/current CI and
+normal delivery remain required. Do not restart based on a quiet console.
 
-## Final regression and next gate
+Safe checkpoint: eech-campaign/reference/d3-ground-characterization/
+composition-physical-red-checkpoint.json. Private raw inputs/runs, source/binary
+snapshots and failed attempts remain under R:/d3-evidence. Do not upload retail
+assets, raw coordinates, binaries or recordings. No acceptance or merge is claimed.
 
-The unchanged40-check shipping pack is RUNNING from clean frozen runtime06, seed1,
-100ms frames and3simhours per scenario, using three fresh manifest-verified roots.
-Controller tool55606; runner PID23548 created2026-10-29T13:03:32.911797Z. Four native
-processes21112/21948/6588/9768 are live on distinct roots; verify creation/argv before
-acting. Both Tacview and observation LIVE PREFIXES match accepted bytes; this is
-partial evidence only. Complete all8 files, actual runner exit and post-input checks
-remain required. Do not restart from a quiet console or observation timeout.
-
-Source06 has an independent delta review with no findings. Its hosted runtime tests
-pass, but workspace lint exposed additional tuple/test-style issues. Those corrections
-are prepared without numerical/ABI/contract changes. Actual affected Linux engine9/9
-and ALL module13/13 tests pass0. Actual FULL-workspace strict Linux Clippy passes0; new-delta review/currentCI remain pending;
-the frozen regression continues unchanged. No full-pack or task/epic acceptance claimed.
-
-Use the eech-regression skill and existing repo runner/checkers. Same-host process,
-source/bin/root/output paths and next actions: R:/d3-evidence/D3-NEXT-ACTION.json.
-After final comparison, applicableCI and independent new-delta/evidence review, perform
-a normal Task47 merge and update Jira/Confluence, preserving all five epic reports.
-Continue all remaining D3 services and audit the whole scope before closing the epic.
+Next: preserve the first differing point case, trace its actual inputs/answers,
+and classify the mismatch before accepting G1. Keep the original oracles unchanged.
+Same-host execution details: R:/d3-evidence/D3-NEXT-ACTION.json.
