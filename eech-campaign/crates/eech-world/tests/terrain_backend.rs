@@ -399,10 +399,40 @@ fn the_fast_grid_loads_checked_and_interpolates() {
     ] {
         assert!(with_grid(bytes).is_err(), "accepted a grid with {name}");
     }
-    assert!(
-        map(Shape::default()).fast_elevation(0.0, 0.0).is_err(),
-        "a map without a grid is a refusal, never a generated grid"
+}
+
+/// A map with no terrain.sim gets the fast grid the original builds at load (terrsel.c generate_terrain_simple_elevation, 256 m posts, dimensions rounded
+/// to a power of two, +2 m on land and -5000 on the sea), from the host's own point query; it is not refused, and it is not written anywhere.
+#[test]
+fn a_map_without_a_fast_grid_gets_the_generated_one() {
+    // one 2048 m sector: 8 cells of 256 m, so 9 posts a side
+    let land = map(Shape::default());
+    let facts = land.facts();
+    assert_eq!((facts.fast_width, facts.fast_height), (9, 9));
+    assert_eq!((facts.fast_x_grid, facts.fast_z_grid), (256.0, 256.0));
+    for (x, z) in [(0.0, 0.0), (512.0, 1024.0), (2047.0, 2047.0), (1000.5, 333.25)] {
+        let height = land.fast_elevation(x, z).unwrap();
+        assert!((height - 1002.0).abs() < 0.05, "land post at {x},{z}: {height}");
+    }
+    // the sea rule: -5000, not the elevation plus 2
+    let sea = map(Shape {
+        surface: 7,
+        ..Shape::default()
+    });
+    assert_eq!(sea.fast_elevation(0.0, 0.0).unwrap(), -5000.0);
+    assert_eq!(sea.fast_elevation(1024.0, 512.0).unwrap(), -5000.0);
+    // the grid is deterministic and each map has its own
+    assert_eq!(
+        map(Shape::default()).fast_elevation(300.0, 700.0).unwrap().to_bits(),
+        land.fast_elevation(300.0, 700.0).unwrap().to_bits()
     );
+    let higher = map(Shape { y: 2000, ..Shape::default() });
+    assert!((higher.fast_elevation(300.0, 700.0).unwrap() - 2002.0).abs() < 0.05);
+    // an explicit terrain.sim is used as it is, not replaced by a generated grid
+    let parts = build(Shape::default());
+    let given = Terrain::from_bytes(&parts.sector, &parts.geometry, Some(grid(2, 2, 2048.0, 2048.0, &[10.0, 20.0, 30.0, 40.0])), 5).unwrap();
+    assert_eq!(given.fast_elevation(0.0, 0.0).unwrap(), 10.0);
+    assert_eq!((given.facts().fast_width, given.facts().fast_height), (2, 2));
 }
 
 /// A sector of 257 points or more is read through 16-bit references (the other tests use the byte-reference branch). This goes through the real

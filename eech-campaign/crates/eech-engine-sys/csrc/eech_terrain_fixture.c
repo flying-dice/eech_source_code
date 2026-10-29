@@ -25,6 +25,12 @@
  *      The sweep's points never touch the game's random stream, and the shared record is saved and restored byte for byte, so the sweep
  *      leaves EECH's own hint state alone. Its trace is separate from the run-wide one.
  *
+ *
+ * AFTER THE G1 HANDOFF (EEDCS-47, build define EECH_CAMPAIGN_HOST_TERRAIN): the solver is the host's, and the observer in terrelev.c no longer exists. The
+ * same hook (eech_terrain_record) is then called by the campaign's client in aphavoc/source/entity/mobile/mb_hostterrain.c, which sees only what the host
+ * answered: it cannot tell a hint hit from a sector scan, a face not found or the Cuba area, so those counters read as a client's view (the hint was
+ * sent, the answer carried a hint) and are NOT comparable with the original's. The point answers, the hashes over them and the fast elevation are
+ * comparable: a moved-build report is evidence of what the campaign now receives, not a repeat of the original characterisation.
  * The same script and the same hashes are used before and after any extraction, so a difference is a difference in answers. Points are
  * kept at least 1 cm inside the map: the off-map path asserts in the original and is not probed.
  */

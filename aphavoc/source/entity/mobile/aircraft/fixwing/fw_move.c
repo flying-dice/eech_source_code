@@ -2509,7 +2509,11 @@ void basic_fixed_wing_death_movement (entity *en)
 	// check terrain elevation is valid
 	//
 
+#ifdef EECH_CAMPAIGN_HOST_TERRAIN
+	if (!get_3d_terrain_point_data_has_face (&raw->ac.terrain_info))
+#else
 	if (raw->ac.terrain_info.terrain_face == NULL)
+#endif
 	{
 		ASSERT(point_inside_map_area(pos));
 
@@ -2800,7 +2804,11 @@ void basic_fixed_wing_death_movement (entity *en)
 	// check terrain elevation is valid
 	//
 
+#ifdef EECH_CAMPAIGN_HOST_TERRAIN
+	if (!get_3d_terrain_point_data_has_face (&raw->ac.terrain_info))
+#else
 	if (raw->ac.terrain_info.terrain_face == NULL)
+#endif
 	{
 		ASSERT(point_inside_map_area(pos));
 

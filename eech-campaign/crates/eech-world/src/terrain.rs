@@ -230,8 +230,8 @@ pub fn map_number_of(terrain_dir: &Path) -> Result<i32, String> {
 impl Terrain {
     /// Loads the map in `terrain_dir` (the `map<N>/terrain` directory): `terrain.ffp`, the sector file and, when present, `terrain.sim`.
     /// The sector file is `default.sec`, or in winter `default-W.sec` when both it and `default-W.rgb` exist (terrdata.c), so the season is
-    /// an explicit input. `map_number` overrides the number taken from the path. A map without `terrain.sim` has no fast grid; the original
-    /// would generate and save one, which the host does not.
+    /// an explicit input. `map_number` overrides the number taken from the path. A map without `terrain.sim` gets the fast grid the original builds at
+    /// load (256 m posts from the point query; the host keeps it in memory instead of writing it into the installation).
     pub fn open(terrain_dir: &Path, winter: bool, map_number: Option<i32>) -> Result<Terrain, String> {
         let geometry_path = find_file(terrain_dir, "terrain.ffp").ok_or_else(|| format!("terrain: no terrain.ffp in {}", terrain_dir.display()))?;
         let sector_path = (if winter && find_file(terrain_dir, "default-W.sec").is_some() && find_file(terrain_dir, "default-W.rgb").is_some() {
@@ -258,6 +258,8 @@ impl Terrain {
     /// against the lengths and copies what it keeps; a malformed input is an error, never a read outside the buffers.
     pub fn from_bytes(sector: &[u8], geometry: &[u8], grid: Option<Vec<u8>>, map_number: i32) -> Result<Terrain, String> {
         let mut error = [0 as c_char; 512];
+        // generating the fast grid of a map without one uses the solver, so opening takes the solver lock as a query does
+        let _guard = solver_lock();
         // SAFETY: the sector and geometry slices are valid for their lengths for the call only (the kernel copies what it keeps); the grid buffer is
         // kept alive in the returned value for as long as the map exists; `error` is valid for its length.
         let map = unsafe {
@@ -371,6 +373,7 @@ impl Terrain {
 
 const HINT_PREFIX: &str = "e2";
 const HINT_BYTES: usize = 44;
+const HEX: &[u8; 16] = b"0123456789abcdef";
 
 /// The opaque form of a hint for the Lua boundary: a version tag and the hint's fields, little endian, in hex. Only this host reads it.
 pub fn encode_hint(hint: &Hint) -> String {
@@ -388,7 +391,8 @@ pub fn encode_hint(hint: &Hint) -> String {
     let mut text = String::with_capacity(HINT_PREFIX.len() + 2 * HINT_BYTES);
     text.push_str(HINT_PREFIX);
     for byte in bytes {
-        text.push_str(&format!("{byte:02x}"));
+        text.push(HEX[usize::from(byte >> 4)] as char);
+        text.push(HEX[usize::from(byte & 15)] as char);
     }
     text
 }
@@ -468,7 +472,7 @@ pub fn provider(lua: &Lua, terrain: Rc<Terrain>) -> LuaResult<LuaFunction> {
                 let (x, z) = (coordinate(&request, "x")?, coordinate(&request, "z")?);
                 let hint = match request.get::<LuaValue>("hint")? {
                     LuaValue::Nil => None,
-                    LuaValue::String(text) => Some(decode_hint(&*text.to_str()?).map_err(LuaError::runtime)?),
+                    LuaValue::String(text) => Some(decode_hint(&text.to_str()?).map_err(LuaError::runtime)?),
                     other => {
                         return Err(LuaError::runtime(format!(
                             "host.terrain: hint must be a string or nil, got {}",
@@ -487,15 +491,17 @@ pub fn provider(lua: &Lua, terrain: Rc<Terrain>) -> LuaResult<LuaFunction> {
                 if let Some(hint) = answer.hint {
                     table.set("hint", encode_hint(&hint))?;
                 }
-                // what the query did: a diagnostic for conformance records, not part of what the campaign relies on
-                let notes = lua.create_table()?;
-                notes.set("fast_attempted", answer.fast_attempted)?;
-                notes.set("fast_hit", answer.fast_hit)?;
-                notes.set("found", answer.found)?;
-                notes.set("clamped", answer.clamped)?;
-                notes.set("cuba", answer.cuba)?;
-                notes.set("nan_position", answer.nan_position)?;
-                table.set("notes", notes)?;
+                // what the query did: a diagnostic for conformance records, given only when the request asks (`diagnostic = true`); the campaign never does
+                if matches!(request.get::<LuaValue>("diagnostic")?, LuaValue::Boolean(true)) {
+                    let notes = lua.create_table()?;
+                    notes.set("fast_attempted", answer.fast_attempted)?;
+                    notes.set("fast_hit", answer.fast_hit)?;
+                    notes.set("found", answer.found)?;
+                    notes.set("clamped", answer.clamped)?;
+                    notes.set("cuba", answer.cuba)?;
+                    notes.set("nan_position", answer.nan_position)?;
+                    table.set("notes", notes)?;
+                }
                 Ok(table)
             }
             "fast" => {
@@ -508,6 +514,49 @@ pub fn provider(lua: &Lua, terrain: Rc<Terrain>) -> LuaResult<LuaFunction> {
             other => Err(LuaError::runtime(format!("host.terrain: unknown op {other:?}"))),
         }
     })
+}
+
+thread_local! {
+    // the maps this host has opened, by terrain directory, season and map number: two providers for one map share it (and so the identity its hints
+    // carry), and a script that asks for a provider more than once does not reload the files
+    static OPEN_MAPS: std::cell::RefCell<std::collections::HashMap<(PathBuf, bool, Option<i32>), Rc<Terrain>>> = std::cell::RefCell::new(std::collections::HashMap::new());
+}
+
+fn open_cached(dir: &Path, winter: bool, map_number: Option<i32>) -> Result<Rc<Terrain>, String> {
+    OPEN_MAPS.with(|maps| {
+        let key = (dir.to_path_buf(), winter, map_number);
+        if let Some(terrain) = maps.borrow().get(&key) {
+            return Ok(terrain.clone());
+        }
+        let terrain = Rc::new(Terrain::open(dir, winter, map_number)?);
+        maps.borrow_mut().insert(key, terrain.clone());
+        Ok(terrain)
+    })
+}
+
+/// The terrain directory of the map a campaign is booted with: EECH map paths are relative to the installation's `cohokum` directory (the engine's
+/// working directory), as in `..\common\maps\map5`.
+pub fn terrain_dir_for(install_root: &str, map: &str) -> PathBuf {
+    let map = map.replace('\\', "/");
+    let root = Path::new(install_root);
+    match map.strip_prefix("../") {
+        Some(rest) => root.join(rest).join("terrain"),
+        None => root.join("cohokum").join(&map).join("terrain"),
+    }
+}
+
+/// Installs `host.terrain_provider (install_root, map [, winter])`: the reference host's terrain provider for the map a campaign boots with, to be given to
+/// `dc.boot` as `terrain = ...`. It is a small shared helper for the reference host's scripts, not a default: the module never takes a provider from the
+/// host's globals, and a boot without `terrain` is refused.
+fn install_provider(lua: &Lua, host: &LuaTable) -> LuaResult<()> {
+    host.set(
+        "terrain_provider",
+        lua.create_function(|lua, (install_root, map, winter): (String, String, Option<bool>)| {
+            let dir = terrain_dir_for(&install_root, &map);
+            let terrain = open_cached(&dir, winter.unwrap_or(false), None).map_err(|e| LuaError::runtime(format!("host.terrain_provider: {e}")))?;
+            provider(lua, terrain)
+        })?,
+    )
 }
 
 /// Installs `host.terrain_open { terrain_dir = "<...>/map<N>/terrain", winter = false, map_number = nil }`, which loads the map and returns its provider.
@@ -544,10 +593,11 @@ pub fn install(lua: &Lua, host: &LuaTable) -> LuaResult<()> {
                     )))
                 }
             };
-            let terrain = Terrain::open(Path::new(&dir), winter, map_number).map_err(|e| LuaError::runtime(format!("host.terrain_open: {e}")))?;
-            provider(lua, Rc::new(terrain))
+            let terrain = open_cached(Path::new(&dir), winter, map_number).map_err(|e| LuaError::runtime(format!("host.terrain_open: {e}")))?;
+            provider(lua, terrain)
         })?,
-    )
+    )?;
+    install_provider(lua, host)
 }
 
 #[cfg(test)]
@@ -582,6 +632,16 @@ mod tests {
         for bad in &bad {
             assert!(decode_hint(bad).is_err(), "accepted {bad:?}");
         }
+    }
+
+    #[test]
+    fn a_boot_map_path_names_its_terrain_directory() {
+        assert_eq!(
+            terrain_dir_for("R:/root", "..\\common\\maps\\map5"),
+            Path::new("R:/root/common/maps/map5/terrain")
+        );
+        assert_eq!(terrain_dir_for("R:/root", "../common/maps/map3"), Path::new("R:/root/common/maps/map3/terrain"));
+        assert_eq!(terrain_dir_for("R:/root", "maps\\map16"), Path::new("R:/root/cohokum/maps/map16/terrain"));
     }
 
     #[test]

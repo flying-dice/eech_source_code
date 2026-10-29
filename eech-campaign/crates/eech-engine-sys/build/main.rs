@@ -150,6 +150,7 @@ fn main() {
         .define("EECH_CAMPAIGN_HOST_ARRIVALS", None)
         .define("EECH_CAMPAIGN_HOST_MOVEMENT", None)
         .define("EECH_CAMPAIGN_HOST_LOS", None)
+        .define("EECH_CAMPAIGN_HOST_TERRAIN", None)
         .opt_level_str(&opt)
         .debug(true)
         .pic(true)

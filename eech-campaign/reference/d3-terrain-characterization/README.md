@@ -367,3 +367,124 @@ No kernel code changed in this batch.
 
 Commands for the Root (not run by the author): `cargo test --locked -p eech-world --test terrain_provider_harness` and `--test terrain_backend`; `cargo fmt --check`
 is needed (rustfmt is not available to the author). The missing-grid generation of the original remains a named compatibility gap and is not declared unsupported.
+
+## G1 production handoff: the physical terrain surface becomes the host's (EEDCS-47; source only, not built or run by the author)
+
+Base `7eae2424b`. This section supersedes the earlier statements in this file that the DLL answers terrain from its own solver, that a host that returned no
+fast grid was refused, and that the missing-grid generation is an open gap (they stay above as the at-the-time record). **Nothing here has been compiled or
+run**; the Root builds, runs the tests, the public GREEN and the shipping 40-check/eight-complete-file gates. D3 is not complete: G2, G3, weather and time remain.
+
+### What moved, and what stayed
+
+| | Before | Now |
+|---|---|---|
+| Point surface query (`get_3d_terrain_point_data`, `get_3d_terrain_elevation`, the record getters, `clear_3d_terrain_point_data`) | the original solver in the DLL (`modules/3d/terrain/terrelev.c`) | `aphavoc/source/entity/mobile/mb_hostterrain.c` asks the host; the solver is not compiled |
+| Fast gridpost elevation (`get_3d_terrain_fast_elevation`) | `terrsel.c` arithmetic over a grid the DLL loaded | the same client asks the host; the arithmetic in `terrsel.c` is not compiled |
+| Map extents and heights the core reads | the DLL's loader | the host's, installed once straight after the terrain loads (`campaign_terrain_install_map_facts`) |
+| The find-fast record (`terrain_3d_point_data`) | pointers into the DLL's terrain geometry | `last_elevation`, `face_normal`, `terrain_type`, a `face_stored` flag and a bounded opaque `hint` string; no pointer |
+| Terrain class, ground-vehicle suitability, geography, route planning, task generation, every consequence | the campaign | the campaign (unchanged: `terr_db.c`, `ai_route.c`, `popread.c`, ...) |
+
+**Compile and dispatch separation.** The headless build defines `EECH_CAMPAIGN_HOST_TERRAIN` (`eech-engine-sys/build/main.rs`). Under it `terrelev.c` is
+wholly excluded (`#ifndef`) and `terrsel.c` excludes only `get_3d_terrain_fast_elevation`; the original text stays for the original game build and as the
+reference the host kernel was taken from. `mb_hostterrain.c` (added to `sources.txt`) implements the module's public queries and contains no terrain arithmetic or
+geometry; its only terrain source is the host callback. No fallback path exists: with no provider installed the first query stops the engine. To verify on the
+built DLL (Root): the symbols `point_inside_terrain_*` and `system_point_data` of the original solver must be absent, `get_3d_terrain_point_data` and
+`get_3d_terrain_fast_elevation` must resolve into `mb_hostterrain.o`, and `terrain_elevation_point_*_references` must be absent.
+
+**Required provider.** `dc.boot { ..., terrain = <function> }`. A boot without it, or with a non-function, is refused before anything boots with
+`eech: [terrain-provider:missing] ...`; another missing callback is still reported as itself. The engine installs the provider before it loads the terrain
+(`Engine::boot`, a thread-local the C callback reads), keeps it for the process, and every entry (a frame, a probe, a trace) can use it. There is no default
+from globals.
+
+### The provider contract (host Lua -> module)
+
+`terrain (request) -> answer`, a Lua function called synchronously with a table `{ op, x, z, hint }`:
+
+| op | request | answer (all fields required unless marked) |
+|---|---|---|
+| `map` | `{ op = "map" }` | `sector_x_max`, `sector_z_max` (integers >= 1), `fast_width`, `fast_height` (integers >= 0), `min_x`, `min_z`, `max_x`, `max_z`, `min_height`, `max_height`, `scaled_height_difference` (finite) |
+| `point` | `{ op = "point", x, z, hint }`; `hint` is the string this host last returned for the same record, or nil | `elevation` (what the query returns), `last_elevation` (what it stores; it differs from `elevation` only where the host says so, e.g. the original's Cuba flaw area), `normal` (three finite numbers, stored as given: never normalised or repaired), `type` (an integer 0..61, the EECH `terrain_types` ids), `hint` (optional: nil, or 1 to 127 printable ASCII bytes) |
+| `fast` | `{ op = "fast", x, z }` | `elevation` (finite) |
+
+`x` and `z` are exactly the campaign's single-precision position (a not-a-number position is passed on as it is: the original answered it with the map corner and
+the reference host does). Numbers cross as exact doubles and are read back through `%.17g` and the nearest `f32`, as every other number the engine takes from a host
+callback (the engine calls the provider under round-toward-zero); a subnormal and a negative zero survive bit for bit. The campaign keeps one hint per record, in the
+order and on the record the original used (a shared record when the caller passes none, private ones in entities and locals), stores it, and sends it with the next
+query on that record: it never parses, builds or compares one, and a host that keeps no such state returns no hint and ignores the one it is given. The fixed-wing
+movement's old test of `terrain_face == NULL` is now `get_3d_terrain_point_data_has_face`: "an answer has left a hint since the record was cleared", the same
+condition as the original's stale non-NULL face pointer.
+
+Refusals stop the engine with a first-line marker `[terrain-provider:<marker>]` (the Rust bridge in `eech-dc/src/module.rs`, `TERRAIN_BRIDGE`, validates in Lua where
+the values are):
+
+| Marker | Raised when |
+|---|---|
+| `missing` | no terrain provider at boot (or not a function) |
+| `map.answer` / `point.answer` / `fast.answer` | the answer is not a table |
+| `map.facts` | a map fact is missing, not finite, or not an integer where required; the host's sector counts differ from the terrain the campaign loaded (see below) |
+| `point.elevation` | `elevation` or `last_elevation` missing or not finite |
+| `point.normal` | `normal` is not three finite numbers |
+| `point.type` | `type` is not an integer in 0..61 |
+| `point.hint` | `hint` is neither nil nor 1..127 printable ASCII bytes |
+| `fast.elevation` | `elevation` missing or not finite |
+| `map.callback` / `point.callback` / `fast.callback` | the provider function raised; the message carries its original text |
+
+The C side re-checks the numbers, the type range and the hint terminator and stops with `[terrain-provider:point.answer]` otherwise; a panic in the host closure is an error,
+not an unwinding across C. The driver `lua/terrain-provider.lua` and `tests/terrain_provider_harness.rs` accept exactly these markers.
+
+### The reference host
+
+`host.terrain_provider (install_root, map [, winter])` (new, `eech-world/src/terrain.rs`) returns the reference host's provider for the map a campaign boots with (the
+map path is relative to `cohokum`, as EECH's: `..\common\maps\map5`); it caches the loaded map, so two providers for one map share it and its hint identity.
+`host.terrain_open { terrain_dir, winter, map_number }` is unchanged. Each reference script that boots the DLL passes `terrain = host.terrain_provider (root, <its map>)`:
+all of `eech-world/lua/*.lua` that call `dc.boot` (including `campaign.lua`, which the regression runner uses), and the characterisation and fixture scripts. The
+provider uses the verbatim EECH numeric kernel in `csrc/terrain_ref.c`; an alternative host answers from its own physical world and needs none of it.
+
+**Missing fast grid.** The original builds the grid when `terrain.sim` is absent (`generate_terrain_simple_elevation`, 256 m posts from the point query, power-of-two
+dimensions, +2 m on land and -5000 on the sea) and saves it. `host_terrain_open` now does the same in memory, on its own record, with the original's expressions, under
+round-toward-zero; it is covered by `a_map_without_a_fast_grid_gets_the_generated_one`. It does not write the file; the DLL still loads or, if the file is absent,
+builds and saves its own copy for the 2D map (a transitional use, below). Both retail maps have the file, so this path is not exercised by the baselines.
+
+### Boot facts
+
+After the terrain loads, the engine asks `map`. The sector counts must equal the terrain the DLL loaded (the G2/G3 users below still read it), otherwise the boot stops with
+`[terrain-provider:map.facts]`; the extents, heights and scaled difference the core reads are then the host's. A host with a different map therefore cannot boot until
+G2/G3 move: that is the named transitional coupling, not a hidden default.
+
+### Consumers audited
+
+`rg` over the compiled sources for every field of the old record: only `terrelev.c` (excluded), the two `terrain_face == NULL` tests in `fw_move.c` (replaced under the
+define), `terrain_info.terrain_type` in `sg_dbase.c` and a commented-out line in `ai_route.c` read it; every other user zeroes a record and uses the getters. The
+fixed-wing movement, `mb_tgt.c`, `mb_hostlos.c`, `faction.c`, `popread.c`, `taskgen.c`, `croute.c`, `ai_route.c`, `gd_cover.c`, weapon steps and the hosted movement keep
+their calls, their order and their records unchanged. `eech_engine.c` requires the terrain callback of every entry that requires the others.
+
+### Remaining coupling (named; not extracted here; removed by whole-D3 closure, not deferred to D5)
+
+The DLL still loads `default.sec`/`terrain.ffp` for the sector-level users (G2: trees, per-sector surface types in `gd_cover.c` and `ss_updt.c`, `get_ground_impact_point`,
+the contour/2D map and its use of the fast grid file); the object/model/device geometry (G3a to G3c); weather, wind and time (G4, G5).
+
+### Mapping to DCS (reference only; not live-verified; the M6 adapter's job)
+
+The retained `tslua-dcs` copy declares `land.getHeight`, `land.getSurfaceHeightWithSeabed`, `land.getSurfaceType`, `land.getIP`, `land.isVisible`, `land.profile` and
+the road calls. For this contract: `point.elevation` = `land.getHeight` of the position (EECH `x` east and `z` north; DCS `{x = north, y = east}` plus the map origin: a
+transform the adapter owns); `last_elevation` = the same; `type` = a **named table** from `land.getSurfaceType` (land, shallow water, water, road, runway) to EECH
+`terrain_types` ids (the campaign's class and suitability tables then apply unchanged); `normal` has **no DCS call**: the named workaround is central differences of
+`land.getHeight` around the position (the numerical difference from EECH's face normal is an adapter-declared difference, never hidden), or a flat (0, 1, 0) normal where
+the campaign's use is insensitive; `fast` = `land.getHeight` (there is no grid); `hint` = none; `map` extents and heights from the mission's map data. DCS has no counterpart
+of the sector counts: until G2/G3 move, a DCS host cannot satisfy `map.facts`. The probe script under `tools/dcs-probe` predates the host contract and does not supply it.
+
+### Tests added in this batch (written against the real code; none run by the author)
+
+`eech-dc` unit tests drive the real bridge and answer parsing with Lua providers (exact figures, every marker, the 127/128 hint limit, a raising provider, the fast and map
+operations); `tests/terrain_boot_contract.rs` boots the real module without a provider; `tests/terrain_backend.rs` gains the generated-grid test; the driver guards
+(`terrain_provider_harness.rs`) are unchanged and now describe a contract the DLL implements. Public GREEN to run (Root): `terrain-provider.lua` modes `reference`
+(placement 1444/759892.264 and LOS 1164/232000.902 expected, as measured on the original), `raised` (both sums must change), `generic`, `missing` and each `bad_*`.
+
+### Risks and open items
+
+- **Cost.** The original Lebanon 600 s run makes 46,387,862 terrain queries (about 7,700 per frame). Each is now a C -> Rust -> Lua -> Rust -> C round trip with table
+  creation and text formatting; the frame cost must be measured before the shipping pack is trusted to finish in its budget. Batching or answering from a native provider would
+  need a separate, reviewed contract change.
+- **Floating point.** The kernel and the bridge keep the original's rounding discipline; whether the moved build is bit-identical is what the final regression decides.
+- **Fixture.** The terrain fixture's hooks now run in the client; its counters are a client's view and are not comparable with the original's (noted in `eech_terrain_fixture.c`).
+- Uncompiled C, Rust and Lua throughout; `rustfmt` unavailable to the author.

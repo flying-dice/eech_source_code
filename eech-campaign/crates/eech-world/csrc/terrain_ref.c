@@ -2284,6 +2284,7 @@ struct host_terrain
 	const uint8_t *grid;
 	size_t grid_length;
 	uint64_t key; /* this map instance's identity, folded into every hint it issues */
+	float *generated; /* the fast grid built here for a map that has no terrain.sim (grid then points at it) */
 };
 
 static int fail (char *error, size_t error_size, const char *format, ...) __attribute__ ((format (printf, 3, 4)));
@@ -2377,9 +2378,12 @@ void host_terrain_close (host_terrain *map)
 	if (map)
 	{
 		host_terrain_free_sectors (map);
+		free (map->generated);
 		free (map);
 	}
 }
+static int host_terrain_generate_grid (host_terrain *map, char *error, size_t error_size);
+
 
 /* terrdata.c load_3d_terrain, for the facts and sectors the solver reads, from memory. The file offsets are into `geometry` (terrain.ffp). */
 host_terrain *host_terrain_open (const uint8_t *sector, size_t sector_length, const uint8_t *geometry, size_t geometry_length, const uint8_t *grid, size_t grid_length,
@@ -2627,6 +2631,12 @@ host_terrain *host_terrain_open (const uint8_t *sector, size_t sector_length, co
 		map->facts.fast_x_grid = gx;
 		map->facts.fast_z_grid = gz;
 	}
+	else if (host_terrain_generate_grid (map, error, error_size))
+	{
+		/* a map with no terrain.sim: the original generates the grid at load from the point query (and saves it); so does the host, in memory */
+		host_terrain_close (map);
+		return NULL;
+	}
 
 	return map;
 }
@@ -2647,6 +2657,140 @@ static void host_terrain_enter (const host_terrain *map)
 	terrain_3d_map_scaled_height_difference = map->facts.scaled_height_difference;
 	terrain_sectors = map->rows;
 	current_terrain_version.map_number = map->facts.map_number;
+}
+
+/*
+ * terrsel.c generate_terrain_simple_elevation (256.0), for a map that has no terrain.sim.  The original builds the fast grid at load by asking the point
+ * query for every gridpost, on the shared record, in this order (x fastest), and then saves the file; the host does the same with its own record (cleared
+ * at the start, as the original's shared record is cleared when a map is loaded) and keeps the grid in memory instead of writing it into the installation.
+ * The expressions, the power-of-two rounding of the dimensions and the sea rule (a sea gridpost is -5000, any other is its elevation plus 2) are the
+ * original's, kept in order; the sampling runs under round-toward-zero as the engine's does.
+ */
+static int host_terrain_generate_grid (host_terrain *map, char *error, size_t error_size)
+{
+	const float elevation_grid_size = 256.0f;
+	int x_size, z_size, x_grid, z_grid, power, x_rounded, z_rounded;
+	float x_elevation_grid_size, z_elevation_grid_size;
+	terrain_3d_point_data record;
+	fenv_t saved;
+	float *grid;
+
+	x_size = ( int ) ( ( map->facts.sector_x_max * TERRAIN_3D_SECTOR_SIDE_LENGTH ) / elevation_grid_size );
+	z_size = ( int ) ( ( map->facts.sector_z_max * TERRAIN_3D_SECTOR_SIDE_LENGTH ) / elevation_grid_size );
+
+	x_rounded = z_rounded = FALSE;
+
+	for ( power = 2; power < 32768; power *= 2 )
+	{
+		if ( !x_rounded )
+		{
+			if ( ( x_size == power ) || ( x_size < power ) )
+			{
+				x_size = power;
+				x_rounded = TRUE;
+			}
+		}
+
+		if ( !z_rounded )
+		{
+			if ( ( z_size == power ) || ( z_size < power ) )
+			{
+				z_size = power;
+				z_rounded = TRUE;
+			}
+		}
+	}
+
+	x_elevation_grid_size = ( float ) ( ( map->facts.sector_x_max * TERRAIN_3D_SECTOR_SIDE_LENGTH ) / x_size );
+	z_elevation_grid_size = ( float ) ( ( map->facts.sector_z_max * TERRAIN_3D_SECTOR_SIDE_LENGTH ) / z_size );
+
+	x_size++;
+	z_size++;
+
+	if ( ( x_size < 3 ) || ( z_size < 3 ) || ( ( int64_t ) x_size * ( int64_t ) z_size > 16777216 ) )
+	{
+		return fail ( error, error_size, "terrain: a generated fast grid of %d by %d posts is outside the supported size", x_size, z_size );
+	}
+
+	grid = ( float * ) malloc ( ( size_t ) x_size * ( size_t ) z_size * sizeof ( float ) );
+
+	if ( !grid )
+	{
+		return fail ( error, error_size, "terrain: out of memory" );
+	}
+
+	memset ( &record, 0, sizeof ( record ) );
+
+	fegetenv ( &saved );
+	fesetround ( FE_TOWARDZERO );
+
+	host_terrain_enter ( map );
+
+	for ( z_grid = 0; z_grid < z_size; z_grid++ )
+	{
+		float
+			*elevations;
+
+		elevations = grid + ( ( size_t ) z_grid * ( size_t ) x_size );
+
+		for ( x_grid = 0; x_grid < x_size; x_grid++ )
+		{
+			float
+				x,
+				z,
+				height;
+
+			terrain_types
+				type;
+
+			x = x_grid * x_elevation_grid_size;
+			z = z_grid * z_elevation_grid_size;
+
+			x = bound ( x, 0, terrain_3d_max_map_x );
+			z = bound ( z, 0, terrain_3d_max_map_z );
+
+			height = host_get_3d_terrain_point_data ( x, z, &record );
+
+			//
+			// Find if sea or not
+			//
+
+			type = record.terrain_type;
+
+			switch ( type )
+			{
+				case TERRAIN_TYPE_SEA:
+				{
+					height = -5000;
+
+					break;
+				}
+				default:
+				{
+					height += 2;
+				}
+			}
+
+			if ( type == TERRAIN_TYPE_SEA )
+			{
+				height = -5000;
+			}
+
+			*elevations++ = height;
+		}
+	}
+
+	fesetenv ( &saved );
+
+	map->generated = grid;
+	map->grid = ( const uint8_t * ) grid;
+	map->grid_length = ( size_t ) x_size * ( size_t ) z_size * sizeof ( float );
+	map->facts.fast_width = x_size;
+	map->facts.fast_height = z_size;
+	map->facts.fast_x_grid = x_elevation_grid_size;
+	map->facts.fast_z_grid = z_elevation_grid_size;
+
+	return 0;
 }
 
 static int finite3 (const float *v)
@@ -2861,7 +3005,7 @@ int host_terrain_fast_elevation (const host_terrain *map, float x, float z, floa
 
 	if (!map->grid)
 	{
-		return fail (error, error_size, "terrain: this map has no fast elevation grid (the original would generate and save one; the host does not)");
+		return fail (error, error_size, "terrain: this map has no fast elevation grid");
 	}
 
 	if (!isfinite (x) || !isfinite (z))

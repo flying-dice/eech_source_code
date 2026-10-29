@@ -108,6 +108,17 @@ extern terrain_3d_point_data *eech_terrain_system_point_data ( void );
 
 #endif
 
+#ifdef EECH_CAMPAIGN_HOST_TERRAIN
+
+//
+// EEDCS-47 (D3): the record holds no pointers, so the legacy tests of its internals ("terrain_face == NULL" in the fixed-wing movement) ask this: has an
+// answer left the record a face (a hint) since it was cleared?  Implemented, like every query of this module, by aphavoc/.../mb_hostterrain.c.
+//
+
+extern int get_3d_terrain_point_data_has_face ( terrain_3d_point_data *point_data );
+
+#endif
+
 extern vec3d *get_3d_terrain_point_data_normal ( terrain_3d_point_data *point_data );
 
 extern float get_3d_terrain_point_data_elevation ( terrain_3d_point_data *point_data );

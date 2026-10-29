@@ -263,3 +263,14 @@ aligned kernel-owned copies, one lock around the C solver's statics, hints bound
 with only produced samples returned, and a provider harness that accepts only the right refusal. Details and the new synthetic-map tests are in the README of
 `eech-campaign/reference/d3-terrain-characterization/`. Nothing is built or run; no conformance or acceptance claim; production DLL dispatch unchanged; the
 missing-grid generation gap stays open.
+
+## 11. G1 production handoff (source only; not built or run by the author)
+
+The physical terrain surface (point query, fast elevation, record getters, boot facts) is now the host's in the headless module: a required `terrain` provider at boot
+(`[terrain-provider:missing]` otherwise), the original solver excluded from the shipping DLL by `EECH_CAMPAIGN_HOST_TERRAIN` (`terrelev.c`, the fast function of
+`terrsel.c`), `mb_hostterrain.c` as the only terrain source, opaque bounded hints stored in a pointer-free record, stable first-line refusal markers, the reference host's
+`host.terrain_provider` registered in every reference script that boots the DLL, and the original's missing-grid generation reproduced in the host kernel. Campaign class,
+suitability, geography, route planning and consequences are unchanged. Named transitional coupling remains and is not deferred to D5: the DLL's own load of
+`default.sec`/`terrain.ffp` for the sector users (G2: trees, per-sector types, ground impact, the 2D map), the object/model/device geometry (G3a to G3c), weather and time.
+Contract, DCS mapping and workarounds, the consumer audit, the tests added and the risks (notably the cost of about 7,700 provider round trips per frame) are in
+`eech-campaign/reference/d3-terrain-characterization/README.md`. Not claimed: compilation, any run, the public GREEN, the ordinary shipping regression, or D3 delivery.

@@ -973,6 +973,172 @@ pub struct Engine {
     _not_send: std::marker::PhantomData<*const ()>,
 }
 
+/// One question the campaign asks of the host's physical terrain (aphavoc/.../mb_hostterrain.h). No EECH pointer or layout is in it: the hint is the
+/// host's own opaque string for one find-fast record, kept by the campaign and returned with the next query on that record.
+#[derive(Clone, Debug, PartialEq)]
+pub enum TerrainQuery {
+    /// the map facts the core reads once at boot
+    Map,
+    /// the surface at a point, for a record whose last hint was `hint` (`None` for a fresh or cleared record)
+    Point { x: f32, z: f32, hint: Option<String> },
+    /// the fast gridpost elevation at a point
+    Fast { x: f32, z: f32 },
+}
+
+/// The facts about the map the host owns (`TerrainQuery::Map`). `fast_width`/`fast_height` are 0 when the host has no fast grid.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct TerrainMapFacts {
+    pub sector_x_max: i32,
+    pub sector_z_max: i32,
+    pub fast_width: i32,
+    pub fast_height: i32,
+    pub min_x: f32,
+    pub min_z: f32,
+    pub max_x: f32,
+    pub max_z: f32,
+    pub min_height: f32,
+    pub max_height: f32,
+    pub scaled_height_difference: f32,
+}
+
+/// What the host answers. A point answer carries what the query returns (`elevation`) and what it stores in the record (`last_elevation`, the
+/// normal, the surface type `kind` as an EECH terrain-type id) and the record's next `hint` (`None` when the query left none).
+#[derive(Clone, Debug, PartialEq)]
+pub enum TerrainAnswer {
+    Map(TerrainMapFacts),
+    Point {
+        elevation: f32,
+        last_elevation: f32,
+        normal: [f32; 3],
+        kind: i32,
+        hint: Option<String>,
+    },
+    Fast {
+        elevation: f32,
+    },
+}
+
+/// The host's terrain provider. It is installed once, at boot, and is the only source of the campaign's physical terrain: the campaign has no
+/// terrain solver of its own to fall back to.
+pub type TerrainProvider = Box<dyn FnMut(TerrainQuery) -> Result<TerrainAnswer, String>>;
+
+thread_local! {
+    // the engine and its host run on one thread; a provider is not `Send`
+    static TERRAIN: std::cell::RefCell<Option<TerrainProvider>> = std::cell::RefCell::new(None);
+}
+
+fn terrain_hint_text(buffer: &[c_char]) -> Result<Option<String>, String> {
+    let bytes: Vec<u8> = buffer.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect();
+    if bytes.is_empty() {
+        return Ok(None);
+    }
+    String::from_utf8(bytes)
+        .map(Some)
+        .map_err(|_| "[terrain-provider:point.hint] the record's hint is not UTF-8".to_string())
+}
+
+fn terrain_hint_into(buffer: &mut [c_char], hint: Option<&str>) -> Result<(), String> {
+    buffer.iter_mut().for_each(|byte| *byte = 0);
+    if let Some(text) = hint {
+        let bytes = text.as_bytes();
+        if bytes.is_empty() || bytes.len() > sys::EECH_TERRAIN_HINT_MAX || bytes.contains(&0) {
+            return Err(format!(
+                "[terrain-provider:point.hint] a hint is 1 to {} bytes without a NUL, got {}",
+                sys::EECH_TERRAIN_HINT_MAX,
+                bytes.len()
+            ));
+        }
+        for (slot, byte) in buffer.iter_mut().zip(bytes) {
+            *slot = *byte as c_char;
+        }
+    }
+    Ok(())
+}
+
+/// The C side's terrain callback (mb_hostterrain.h). It runs the installed provider; a missing provider, a refusal and a panic all become an error
+/// the engine stops on, with the provider's marker in the message.
+unsafe extern "C" fn terrain_callback(
+    request: *const sys::eech_terrain_request,
+    reply_out: *mut sys::eech_terrain_reply,
+    error: *mut c_char,
+    error_size: usize,
+    _user: *mut c_void,
+) -> c_int {
+    let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
+        if request.is_null() || reply_out.is_null() {
+            return Err("[terrain-provider:point.callback] invalid native terrain callback context".into());
+        }
+        // SAFETY: C supplies a readable request for the duration of this callback.
+        let source = unsafe { &*request };
+        let query = match source.op {
+            sys::EECH_TERRAIN_MAP => TerrainQuery::Map,
+            sys::EECH_TERRAIN_POINT => TerrainQuery::Point {
+                x: source.x,
+                z: source.z,
+                hint: terrain_hint_text(&source.hint)?,
+            },
+            sys::EECH_TERRAIN_FAST => TerrainQuery::Fast { x: source.x, z: source.z },
+            other => return Err(format!("[terrain-provider:point.callback] terrain received unknown operation {other}")),
+        };
+        let answer = TERRAIN.with(|slot| -> Result<TerrainAnswer, String> {
+            let mut slot = slot
+                .try_borrow_mut()
+                .map_err(|_| "[terrain-provider:point.callback] the terrain provider was asked again while it was answering".to_string())?;
+            match slot.as_mut() {
+                Some(provider) => provider(query),
+                None => Err("[terrain-provider:missing] no terrain provider is installed".to_string()),
+            }
+        })?;
+        // SAFETY: every field of the reply is plain data, and zero is a valid value for each
+        let mut reply: sys::eech_terrain_reply = unsafe { std::mem::zeroed() };
+        match answer {
+            TerrainAnswer::Map(facts) => {
+                reply.sector_x_max = facts.sector_x_max;
+                reply.sector_z_max = facts.sector_z_max;
+                reply.fast_width = facts.fast_width;
+                reply.fast_height = facts.fast_height;
+                reply.min_x = facts.min_x;
+                reply.min_z = facts.min_z;
+                reply.max_x = facts.max_x;
+                reply.max_z = facts.max_z;
+                reply.min_height = facts.min_height;
+                reply.max_height = facts.max_height;
+                reply.scaled_height_difference = facts.scaled_height_difference;
+            }
+            TerrainAnswer::Point {
+                elevation,
+                last_elevation,
+                normal,
+                kind,
+                hint,
+            } => {
+                reply.elevation = elevation;
+                reply.last_elevation = last_elevation;
+                reply.normal = normal;
+                reply.kind = kind;
+                terrain_hint_into(&mut reply.hint, hint.as_deref())?;
+            }
+            TerrainAnswer::Fast { elevation } => reply.elevation = elevation,
+        }
+        // SAFETY: C supplies a writable reply for the duration of this callback.
+        unsafe { *reply_out = reply };
+        Ok(())
+    }));
+    match result {
+        Ok(Ok(())) => 0,
+        Ok(Err(message)) => {
+            // SAFETY: C owns this writable error buffer for the callback.
+            unsafe { write_callback_text(error, error_size, &message) };
+            1
+        }
+        Err(_) => {
+            // SAFETY: C owns this writable error buffer for the callback.
+            unsafe { write_callback_text(error, error_size, "[terrain-provider:point.callback] the terrain provider panicked") };
+            1
+        }
+    }
+}
+
 struct HostContext<'a, F, G, H, M, L, D, A> {
     bind_mobile: &'a mut F,
     observe_loss: &'a mut G,
@@ -4201,6 +4367,7 @@ where
         line_of_sight: Some(line_of_sight::<F, G, H, M, L, D, A>),
         sense: Some(sense::<F, G, H, M, L, D, A>),
         aim: Some(aim::<F, G, H, M, L, D, A>),
+        terrain: Some(terrain_callback),
         user: (&mut context as *mut HostContext<'_, F, G, H, M, L, D, A>).cast::<c_void>(),
     };
     check(call(&host))
@@ -4239,6 +4406,7 @@ impl Engine {
         line_of_sight_fn: &mut L,
         sense_fn: &mut D,
         aim_fn: &mut A,
+        terrain: TerrainProvider,
     ) -> Result<Engine, EngineError>
     where
         F: FnMut(MemberDescriptor) -> Result<String, String>,
@@ -4268,6 +4436,9 @@ impl Engine {
             random_seed: config.random_seed,
             arguments: argv.as_ptr(),
         };
+        // The host's terrain provider is installed before the engine boots: the campaign asks about terrain while it loads and places its forces, and
+        // from every entry afterwards. It is kept for the life of the process (the engine is one per process).
+        TERRAIN.with(|slot| *slot.borrow_mut() = Some(terrain));
         // SAFETY: every config pointer and the temporary host callback are valid for the call.
         with_host(
             bind_mobile_fn,
