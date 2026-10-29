@@ -1717,14 +1717,28 @@ static void emit_trace_rec (struct out *o, const struct col_trace_rec *r)
 }
 
 /*
- * Reads the transcript back. kind 0: the state row and the whole facts block. kind 1: the records [offset, offset + count). *total is the number of records held.
- * A text that does not fit is refused, never cut short.
+ * Reads the transcript back. kind 0: the state row and the whole facts block (offset and count are validated but otherwise ignored). kind 1: the records
+ * [offset, offset + count). *total is the number of records held, always reported. A text that does not fit is refused, never cut short.
+ *
+ * PAGING CONTRACT, safe by itself: it does not rely on the caller's checks or on wrapping signed arithmetic. A missing buffer or total pointer, a kind other than 0 or 1, a negative
+ * offset or a count outside 1 to 256 is REFUSED (col-trace-refused reason=bad_arguments). An offset at or beyond the number of records is the END of the transcript: a successful
+ * EMPTY page, with the total still reported. Otherwise the page is min(count, records - offset) records starting at offset; offset < records <= TRACE_MAX, so no addition here
+ * can overflow, whatever offset the caller passed up to INT_MAX.
  */
 int eech_collision_trace_read_run (int kind, int offset, int count, char *text, int capacity, int *total)
 {
 	struct out o;
-	int i, end, extra = 0;
+	int i, extra = 0;
 
+	if (!text || !total || capacity <= 0)
+	{
+		return -1;
+	}
+	if ((kind != 0 && kind != 1) || offset < 0 || count < 1 || count > 256)
+	{
+		snprintf (text, (size_t) capacity, "col-trace-refused reason=bad_arguments\n");
+		return -1;
+	}
 	text[0] = '\0';
 	*total = trace_n;
 	o.text = text;
@@ -1741,14 +1755,12 @@ int eech_collision_trace_read_run (int kind, int offset, int count, char *text, 
 			trace_facts_out.overflow, trace_facts_out.used);
 		emit (&o, "%s", trace_facts);
 	}
-	else
+	else if (offset < trace_n)
 	{
-		end = offset + count;
-		if (end > trace_n)
-		{
-			end = trace_n;
-		}
-		for (i = offset; i < end; i++)
+		int available = trace_n - offset;
+		int page = count < available ? count : available;
+
+		for (i = offset; i < offset + page; i++)
 		{
 			emit_trace_rec (&o, &trace_recs[i]);
 		}

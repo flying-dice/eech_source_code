@@ -2628,7 +2628,7 @@ fn the_collision_driver_writes_a_complete_private_tree_transcript_only_when_aske
 // incomplete transcript can never look complete), and write no success row.
 #[test]
 fn the_collision_driver_names_the_one_defect_in_a_transcript_and_leaves_the_file_empty() {
-    let controls: [(&str, &str); 10] = [
+    let controls: [(&str, &str); 20] = [
         ("trace_overflow", "tr-state: overflow is 1, expected 0"),
         ("trace_extra_lookups", "tr-state: extra_lookups is 3, expected 0"),
         ("trace_short", "tr-state: records is 241, expected 242"),
@@ -2641,6 +2641,22 @@ fn the_collision_driver_names_the_one_defect_in_a_transcript_and_leaves_the_file
         ("trace_not_repeatable", "the tree-query transcript of repeat 2 differs from repeat 1"),
         ("trace_facts_tree_total", "tf-map: tree_total is 99, expected 100"),
         ("trace_triangle_count", "tf-forest: triangles is 3, expected 2"),
+        // 512 indexed triangle rows, triangles=512 and capped=1: a coherent truncation the emitter can produce, which an old checker accepted as a complete transcript
+        ("trace_forest_capped", "tf-forest: capped is 1, expected 0"),
+        // a warm repeat (stage 1) or nearer-check warm repeat (stage 3) that is not the same query as its cold one; an old checker counted these as the same query
+        (
+            "trace_warm_endpoint",
+            "tq 1 against its stage 0 record 0: b is 40000001,41000000,40400000, expected 40000000,41000000,40400000",
+        ),
+        ("trace_warm_flags", "tq 1 against its stage 0 record 0: ignore_edge is 1, expected 0"),
+        ("trace_warm_context", "tq 1 against its stage 0 record 0: kind is 5, expected 0"),
+        ("trace_near_warm_context", "tq 3 against its stage 2 record 2: role is 7, expected 0"),
+        // recorded terrain lookups that are not the original's: the endpoints' x and z, in order, only for endpoints inside the (inclusive) map
+        ("trace_lookup_x", "tq 0: lookup 1 x is 3f800001, expected 3f800000"),
+        ("trace_lookup_z", "tq 0: lookup 2 z is 40400001, expected 40400000"),
+        ("trace_lookup_order", "tq 0: lookup 1 x is 40000000, expected 3f800000"),
+        ("trace_lookup_count", "tq 0: lookups is 1, expected 2"),
+        ("trace_outside_wrong", "tq 0: lookups is 2, expected 1"),
         ("trace_unknown_row", "the transcript has an unknown row 'tq-extra'"),
     ];
     for (mode, reason) in controls {
@@ -2758,5 +2774,22 @@ fn the_collision_driver_fails_closed_on_trace_write_flush_close_and_disarm_error
                 );
             }
         }
+    }
+}
+
+// Valid transcripts the coherence checks must ACCEPT: the new endpoint outside the map (one lookup, the second unused and zero), exactly on the inclusive maximum bound (two lookups) and one ulp
+// past it (one lookup). They guard against a checker that is stricter than the original's inclusive point_inside_map_area, which would reject real data.
+#[test]
+fn the_collision_driver_accepts_outside_and_boundary_endpoints_with_the_original_lookup_rule() {
+    for mode in ["trace_outside_ok", "trace_boundary_inclusive", "trace_boundary_outside_ok"] {
+        let ((status, stdout, stderr, _, rows), path) = run_collision_trace_case(mode, &["entity_cases=40", "tree_cases=40"]);
+        let text = std::fs::read_to_string(&path).unwrap_or_default();
+        let _ = std::fs::remove_file(&path);
+        assert!(status.success() && stdout.contains("COLLISION_CALLER_DONE"), "{mode}: {stdout}\n{stderr}");
+        assert!(rows.iter().any(|r| r["event"] == "trace_written"), "{mode}: {rows:?}");
+        assert!(
+            text.lines().last().is_some_and(|l| l.contains("\"event\":\"trace-end\"")),
+            "{mode}: the transcript is complete"
+        );
     }
 }

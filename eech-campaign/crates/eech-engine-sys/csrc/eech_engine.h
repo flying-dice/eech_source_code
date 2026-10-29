@@ -388,7 +388,7 @@ int eech_engine_collision_probe (uint32_t seed, int entity_cases, int tree_cases
 /*
  * The optional private tree-query transcript of the probe (off by default; the probe's report is identical either way). Arming clears it and makes the next probe record every
  * tree query it makes, with the terrain lookups the original made. Reading: kind 0 returns the state row and the facts block, kind 1 returns records [offset, offset + count),
- * count 1 to 256; *total is the number of records held. A text that does not fit is refused. See eech_collision_fixture.c.
+ * count 1 to 256; *total is the number of records held. An offset at or past the end is a successful empty page; bad arguments are refused; a text that does not fit is refused. See eech_collision_fixture.c.
  */
 int eech_engine_collision_trace_arm (int on);
 int eech_engine_collision_trace_read (int kind, int offset, int count, char *text, int capacity, int *total);

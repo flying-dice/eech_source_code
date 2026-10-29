@@ -1,3 +1,76 @@
+# Third capture P2 (warm-pair and lookup coherence) — correction UNBUILT, UNRUN; all three P2 source corrections now prepared (working tree over 41f94952e)
+
+The one independent source sweep of the NEW capture (41f94952e) is complete with exactly three P2s and no others: (1) paging arithmetic and (2) capped forest-geometry acceptance, both already
+prepared, and (3) pair/lookup coherence, addressed here in the real driver only (no C, physical, solver, query, generator, hook or fold change; no actual C wrong lookup was observed).
+The checker counted a stage-1 warm record as warm agreement from its hit/point/normal without requiring it to be the same query as its stage-0 record (a changed warm endpoint was accepted), did the
+same for stage 3 against stage 2, and never tied the supplied terrain lookups to the recorded endpoints (the valid stand-in had A.z=1 but l0.z=2). Now:
+* A stage-1 record must equal its preceding stage-0 record, and a stage-3 record its preceding stage-2 record, in group, kind, role, ignore_edge, skip_top, a, b, initial point and initial normal
+  (the existing fixed initial-output checks remain). Answers (hit, intercept, normal) and terrain ELEVATIONS are NOT compared across cold/warm, because cached hints can legitimately differ, and no
+  physical answer is recomputed.
+* The recorded lookups must be exactly what the original does: the x and z (bit for bit) of the old endpoint then the new endpoint, in that order, each only if it lies inside the map by
+  point_inside_map_area (en_world.h 149: x and z only, min and max INCLUSIVE, y ignored), using the captured tf-map bounds and an exact f32-bit-to-value conversion (signed zero, infinities and NaN
+  handled as the original's float comparisons would; actual data is never sanitised). The lookup count must equal the number inside; unused-lookup zeroing, the overflow guard and the strict schema are kept.
+* The valid stand-in's lookups are now derived from its endpoints (old, then new, inside the stand-in map), so the feasible positive is coherent; its counters, answers and the 77 report controls are unchanged.
+New real-driver controls beside the 11 earlier transcript controls (20 now): trace_warm_endpoint, trace_warm_flags, trace_warm_context (stage 1) and trace_near_warm_context (stage 3), and
+trace_lookup_x, trace_lookup_z, trace_lookup_order, trace_lookup_count, trace_outside_wrong; each is a single defect that the old 41 driver accepts (so Root can reproduce the actual false pass with the same
+stand-in and host) and the new driver refuses with, respectively: "tq 1 against its stage 0 record 0: b is 40000001,41000000,40400000, expected 40000000,41000000,40400000"; "... ignore_edge is 1,
+expected 0"; "... kind is 5, expected 0"; "tq 3 against its stage 2 record 2: role is 7, expected 0"; "tq 0: lookup 1 x is 3f800001, expected 3f800000"; "tq 0: lookup 2 z is 40400001, expected
+40400000"; "tq 0: lookup 1 x is 40000000, expected 3f800000"; "tq 0: lookups is 1, expected 2"; "tq 0: lookups is 2, expected 1". Three ACCEPTING controls (trace_outside_ok, trace_boundary_inclusive,
+trace_boundary_outside_ok) show the checker is not stricter than the original's inclusive rule. The cap-512 control, the I/O, alias, default trace-off and capture-positive tests are retained.
+
+Valid actual data must remain valid, and Root's independent audit (tree-query-context-41f94952e-audit.json) says it does against these same rules: Georgia 554 records / 277 matched warm pairs / 1102
+ordered lookups; Lebanon and the repeat 600 / 300 / 1120; every pair matches all nine signature fields, and lookup counts, x, z and order match the inclusive endpoint-in-map predicate, with no
+height answer derived. The raw transcripts and the 205 old report rows are immutable and are not rewritten. Source 41 remains NOT finally accepted: its three P2s are corrected in source only, UNBUILT and
+UNRUN. Root formats, freezes and builds the combined source once and supplies the actual C paging witness, guards, traces and old/new red/green to the same reviewer.
+
+The 5416adb3b / 54e5ece85 review stays closed within its old scope. No host tree kernel or loader has started; it waits for Root's validation of the new capture. All required whole-D3 entity, tree
+geometry, environment, time, physical solver and loader-removal work remains; Task47 shipping115 is live and untouched; the production G2/G3 gates remain; D4/D5 have not started.
+
+# Capped forest-facts P2 and the actual source 41f94952e capture results — correction UNBUILT, UNRUN (working tree over 41f94952e)
+
+Second P2 from the same ongoing combined capture review: check_trace validated tf-forest.geometry and the triangle count but never required capped == 0. The emitter stops at 512 forest
+triangles and writes capped=1 when another exists, so a coherent truncated facts block (512 indexed rows, triangles=512, capped=1) could reach trace_written, trace-end and done. A truncated
+forest geometry is not a complete input for a host loader or kernel. Corrected in the real driver only: tf-forest must have capped == 0 ("tf-forest: capped is 1, expected 0") or the transcript
+is not complete; geometry is not dropped, baselines are not widened and the capped set is never presented as whole. No physical C, solver, trajectory, query, generator or hook change. The current
+retail data (forest geometry 0, capped 0) stays valid and unchanged. Real-driver control trace_forest_capped (a coherent 512-row truncation the emitter can actually produce, not a one-triangle
+capped flag, which the emitter cannot produce) joins the transcript controls (11); the 77 report controls, I/O fault, alias and capture-positive tests are retained. Root's bounded red/green: the old
+41 driver must falsely accept this stand-in transcript, the new driver must refuse it with exactly that diagnostic. UNBUILT/UNRUN until Root executes it.
+
+Actual results of frozen source 41f94952e (Root's, collected): Windows fixture build exit0 with all 43 exports; Linux 14/14 plus format and Clippy exit0; actual Windows 14/14 with the missing-host
+control exit101 as expected, controller exit0 and all four guard payloads unchanged. Three fresh retail trace probes (seed20261029, entity200/tree200/repeats2/seconds0/trace_out) native and controller
+exit0 with all three pre/post input checks0; EVERY old 205 report-row value equals source 5416adb3b exactly, the only addition being trace_written (206). Georgia: 568 transcript rows, 554 actual tree
+queries, 1102 terrain lookups; Lebanon and the separate repeat: 614 rows, 600 queries, 1120 lookups; all ordinal and overflow guards pass; the separate Lebanon whole report AND transcript are byte
+equal. Native facts: tf-layout record_size 8, offsets x0 z2 y4 colour6, height_only 000000000000007f, type_only 0000000000000080, probe feff3412cdabefd5; forest geometry 0, capped 0. Exact audit
+R:/d3-evidence/tree-input-41f94952e-audit.json; raw tree-input-41f94952e-smokes-20261029. This shows passivity for the tested cases; it is NOT acceptance of source 41f94952e, which carries the known
+paging and capped-check defects. The 5416adb3b / 54e5ece85 review stays closed within its old scope.
+
+No host tree kernel or loader has started. The one combined new-capture review stays open until the paging bound, the capped check, the native paging witness and new actual tests are verified.
+Task47 shipping115 is live and untouched. All required D3 geometry, entity, environment, time and loader solvers remain required; D4/D5 have not started. Root formats, freezes and rebuilds the
+combined new source after this follow-up.
+
+# Transcript paging P2 (signed overflow before clipping) — bounded SOURCE correction, UNBUILT, UNRUN (working tree over 41f94952e)
+
+One combined independent review of the NEW tree capture found a concrete P2: eech_collision_trace_read_run computed the signed int end = offset + count before clipping it to the record count,
+while the Rust wrapper and the C entry accept any non-negative i32 offset with count up to 256, so an offset near INT_MAX reached signed overflow in the C itself. (A build with -fwrapv would have
+wrapped it to a negative sum and returned an empty page by accident, which is why the old behaviour was not observably different; the defect was the unsafe arithmetic, not a wrong page.)
+Corrected in the C read function only, independent of the Rust and entry guards: it now refuses a missing buffer or total pointer, a kind other than 0 or 1, a negative offset, or a count outside
+1 to 256 (col-trace-refused reason=bad_arguments); an offset at or beyond the record count is the END of the transcript, a SUCCESSFUL EMPTY page with the total still reported; otherwise the page is
+min(count, records - offset) records from offset, computed from a value already known to be below TRACE_MAX, so no addition can overflow. Normal paging, the reported total and the refusal of
+bad arguments keep their documented meaning. This is paging only: no captured record, physical C, fold, case set, query order or report changed, and no output expectation changed.
+Native witness (not a stand-in; a mock cannot show the C arithmetic is safe): tests/lua/collision-trace-paging.lua, run by Root with the actual built host and DLL on a fresh verified root:
+  eech-world.exe collision-trace-paging.lua root=<root> out=<new .jsonl> [scenario=lebanon_retail|georgia_retail|georgia]
+It arms the transcript, runs one small probe (seed 20261029, 5+5 cases, seconds0), then checks the normal pages of 256 (counts, starting ordinals, unchanged total), the last record alone,
+END pages at offsets total, total+1, 2147483647, 2147483646, 2147483392 (INT_MAX-255) and 2147483391, each count 256 and each a successful empty page with the total, and six refusals (negative
+offset, count 0, count 257, kind 2, kind -1, offset beyond 32 bits). A pass is exactly the printed line COLLISION_TRACE_PAGING_OK total=.. normal_pages=.. end_pages=6 refusals=6; anything else, or
+no line, is a failure and never a skip. Linux/Windows driver guards and the existing 14 stand-in tests are unaffected by this change.
+
+Frozen 41f94952e stays the known initial paging-defect source identity, not an accepted source. Actual results to date (Root's, not this edit's): its Windows fixture and driver guard build exit0 at
+19:27:56Z (image 87cd7e37766a7253713f125b4866ad915115728ccb4551883a92d8dfdc8d509a, physical exports verified); Linux format, 14 driver/report/transcript/I-O tests and all-target Clippy passed;
+the first retail trace probes (three fresh roots, seed20261029, entity200/tree200/repeats2/seconds0/trace_out, tool86719) and the Windows 14-test run (98355) were LIVE when this was written and are
+not recorded as passed. The one combined new-capture review is still in progress; the source 5416adb3b / 54e5ece85 correction review stays closed and all prior raw is preserved. Task47 shipping115
+is live and untouched; there is no host kernel or loader and no cutover; whole D3 stays active; D4/D5 have not started. Root formats, pins, rebuilds and runs the combined next source and supplies the
+completed results to the same reviewer.
+
 # Trace instrumentation prebuild correction (driver I/O and resource cleanup) — SOURCE ONLY, UNBUILT, UNRUN (working tree over 03413ccd3)
 
 Root's focused prebuild inspection found a false-success path in the NEW transcript driver code: the trace writer ignored the results of file write and flush, the final close was ignored,

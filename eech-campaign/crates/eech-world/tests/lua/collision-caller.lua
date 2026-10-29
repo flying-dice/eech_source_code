@@ -246,6 +246,20 @@ local modes = {
   trace_not_repeatable = function() end,
   trace_facts_tree_total = function() end,
   trace_triangle_count = function() end,
+  trace_forest_capped = function() end,
+  -- warm pairing, lookup coherence, and the valid outside/boundary transcripts
+  trace_warm_endpoint = function() end,
+  trace_warm_flags = function() end,
+  trace_warm_context = function() end,
+  trace_near_warm_context = function() end,
+  trace_lookup_x = function() end,
+  trace_lookup_z = function() end,
+  trace_lookup_order = function() end,
+  trace_lookup_count = function() end,
+  trace_outside_wrong = function() end,
+  trace_outside_ok = function() end,
+  trace_boundary_inclusive = function() end,
+  trace_boundary_outside_ok = function() end,
   trace_unknown_row = function() end,
   -- failures of the NEW trace file's I/O and of the disarm (the defect is injected below, not in the report or the transcript)
   trace_io_write = function() end,
@@ -339,11 +353,11 @@ local trace_reads = 0
 
 local function trace_lines()
   local plan = trace_plan
-  local recs, ordinal = {}, 0
+  -- records as field tables first, so a mode can change one field; the terrain lookups are DERIVED from the final endpoints (old then new, each only if inside the map: the stand-in
+  -- map is x and z from 0 to 32767.0, inclusive), so a valid transcript's lookups are always coherent with its endpoints and a control breaks exactly one thing
+  local recs = {}
   local function add(group, kind, stage, hit, a, b, point, normal)
-    recs[#recs + 1] = string.format('tq ordinal=%d group=%d kind=%d role=%d stage=%d ignore_edge=0 skip_top=1 a=%s b=%s init_point=%s init_normal=%s lookups=2 extra_lookups=0 ' ..
-      'l0=3f800000,40000000,41200000 l1=40000000,40800000,41200000 hit=%d point=%s normal=%s', ordinal, group, kind, kind, stage, a, b, ZERO3, SENT3, hit, point, normal)
-    ordinal = ordinal + 1
+    recs[#recs + 1] = { group = group, kind = kind, role = kind, stage = stage, ignore_edge = 0, skip_top = 1, a = a, b = b, hit = hit, point = point, normal = normal }
   end
   local A = '3f800000,40000000,3f800000'
   local function group(g, cases, hits, near, derived)
@@ -366,11 +380,56 @@ local function trace_lines()
   group(2, plan.s_cases, plan.s_hits, plan.s_near, plan.s_derived)
   group(3, plan.r_cases, plan.r_hits, plan.r_near, plan.r_derived)
 
+  -- single-defect modes on the field tables (record 1 is ordinal 0)
+  if mode == 'trace_stage_order' then recs[2].stage = 0 end
+  if mode == 'trace_warm_differs' then recs[2].point = '3f800000,40000000,40800001' end
+  if mode == 'trace_init_normal' then recs[1].init_normal = ZERO3 end
+  if mode == 'trace_not_repeatable' and trace_reads >= 2 then recs[3].elev0 = '41200001' end
+  -- a warm repeat or a nearer-check warm repeat that is not the same query as its cold one
+  if mode == 'trace_warm_endpoint' then recs[2].b = '40000001,41000000,40400000' end
+  if mode == 'trace_warm_flags' then recs[2].ignore_edge = 1 end
+  if mode == 'trace_warm_context' then recs[2].kind = 5 end
+  if mode == 'trace_near_warm_context' then recs[4].role = 7 end
+  -- lookups that are not the original's: a wrong x, a wrong z, the two swapped, one too few, and one for an endpoint outside the map
+  if mode == 'trace_lookup_x' then recs[1].l0_text = '3f800001,3f800000,41200000' end
+  if mode == 'trace_lookup_z' then recs[1].l1_text = '40000000,40400001,41200000' end
+  if mode == 'trace_lookup_order' then
+    recs[1].l0_text = '40000000,40400000,41200000'
+    recs[1].l1_text = '3f800000,3f800000,41200000'
+  end
+  if mode == 'trace_lookup_count' then recs[1].lookups_override = 1 end
+  if mode == 'trace_outside_wrong' then
+    recs[1].b = 'c0000000,41000000,40400000'
+    recs[1].lookups_override = 2
+  end
+  -- valid transcripts the checker must ACCEPT: the new endpoint outside the map (one lookup), exactly on the inclusive maximum (two) and one ulp past it (one)
+  local function new_endpoint(b) recs[1].b = b recs[2].b = b end
+  if mode == 'trace_outside_ok' then new_endpoint('c0000000,41000000,40400000') end
+  if mode == 'trace_boundary_inclusive' then new_endpoint('46fffe00,41000000,40400000') end
+  if mode == 'trace_boundary_outside_ok' then new_endpoint('46fffe01,41000000,40400000') end
+
+  local function inside(triple)
+    local x, z = triple:match('^(%x+),%x+,(%x+)$')
+    return x, z, triple:match('^(%x+),') ~= 'c0000000' and triple:match('^(%x+),') ~= '46fffe01'
+  end
+  local lines = {}
+  for i, r in ipairs(recs) do
+    local lookups = {}
+    local ax, az, a_in = inside(r.a)
+    local bx, bz, b_in = inside(r.b)
+    if a_in then lookups[#lookups + 1] = { ax, az } end
+    if b_in then lookups[#lookups + 1] = { bx, bz } end
+    if r.lookups_override == 2 and #lookups == 1 then lookups[2] = { bx, bz } end
+    if r.lookups_override == 1 then lookups = { lookups[1] } end
+    local elev0 = r.elev0 or '41200000'
+    local l0 = r.l0_text or (lookups[1] and (lookups[1][1] .. ',' .. lookups[1][2] .. ',' .. elev0) or ZERO3)
+    local l1 = r.l1_text or (lookups[2] and (lookups[2][1] .. ',' .. lookups[2][2] .. ',41200000') or ZERO3)
+    lines[#lines + 1] = string.format('tq ordinal=%d group=%d kind=%d role=%d stage=%d ignore_edge=%d skip_top=%d a=%s b=%s init_point=%s init_normal=%s lookups=%d extra_lookups=0 ' ..
+      'l0=%s l1=%s hit=%d point=%s normal=%s', i - 1, r.group, r.kind, r.role, r.stage, r.ignore_edge, r.skip_top, r.a, r.b, r.init_point or ZERO3, r.init_normal or SENT3,
+      #lookups, l0, l1, r.hit, r.point, r.normal)
+  end
+  recs = lines
   if mode == 'trace_short' then table.remove(recs) end
-  if mode == 'trace_stage_order' then recs[2] = string.gsub(recs[2], 'stage=1', 'stage=0', 1) end
-  if mode == 'trace_warm_differs' then recs[2] = string.gsub(recs[2], 'point=3f800000,40000000,40800000', 'point=3f800000,40000000,40800001', 1) end
-  if mode == 'trace_init_normal' then recs[1] = string.gsub(recs[1], 'init_normal=' .. SENT3, 'init_normal=' .. ZERO3, 1) end
-  if mode == 'trace_not_repeatable' and trace_reads >= 2 then recs[3] = string.gsub(recs[3], 'l0=3f800000', 'l0=3f800001', 1) end
   if mode == 'trace_unknown_row' then recs[#recs + 1] = 'tq-extra n=1' end
 
   local trees = plan.trees
@@ -378,10 +437,13 @@ local function trace_lines()
     'tf-layout record_size=8 x_offset=0 z_offset=2 y_offset=4 colour_offset=6 probe=feff341200cdabef height_only=0000000000000000 type_only=0000000000000000',
     string.format('tf-map terrain_sectors_x=6 terrain_sectors_z=4 terrain_sector_side=2048 xz_scale=3a000000 height_scale=3c000000 height_minimum=c0000000 max_tree_height=35 ' ..
       'map_min_x=00000000 map_min_z=00000000 map_max_x=46fffe00 map_max_z=46fffe00 tree_total=%d sectors_with_trees=%d', trees and ((mode == 'trace_facts_tree_total') and 99 or 100) or 0, trees and 10 or 0),
-    string.format('tf-forest geometry=%d triangles=%d capped=0 fold=0123456789abcdef', trees and 1 or 0, trees and ((mode == 'trace_triangle_count') and 3 or 2) or 0),
+    -- a COHERENT truncation in trace_forest_capped: the emitter's cap is 512, so a forest with more triangles gives exactly 512 indexed rows, triangles=512 and capped=1
+    string.format('tf-forest geometry=%d triangles=%d capped=%d fold=0123456789abcdef', trees and 1 or 0,
+      trees and ((mode == 'trace_forest_capped') and 512 or ((mode == 'trace_triangle_count') and 3 or 2)) or 0, (trees and mode == 'trace_forest_capped') and 1 or 0),
   }
   if trees then
-    for i = 0, 1 do facts[#facts + 1] = string.format('tf-triangle i=%d p0=%s p1=%s p2=%s', i, V3, V3, V3) end
+    local triangles = (mode == 'trace_forest_capped') and 512 or 2
+    for i = 0, triangles - 1 do facts[#facts + 1] = string.format('tf-triangle i=%d p0=%s p1=%s p2=%s', i, V3, V3, V3) end
     for i = 0, 7 do facts[#facts + 1] = string.format('tf-sample sx=1 sz=2 count=12 index=%d bytes=00112233445566%02x', i, i) end
   end
   return recs, facts

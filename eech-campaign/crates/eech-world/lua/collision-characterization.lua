@@ -698,6 +698,37 @@ local function first_word (triple) return string.match (triple, "^(%x+),") end
 local function second_word (triple) return string.match (triple, "^%x+,(%x+),") end
 local function third_word (triple) return string.match (triple, ",(%x+)$") end
 
+-- An f32 bit word as the number it is, exactly (a double holds every f32 exactly): sign, 8-bit exponent, 23-bit mantissa; a signed zero keeps its sign, infinities are infinite and a NaN
+-- compares false with everything, as in the original's float comparisons. Used only to ask whether a recorded endpoint lies inside the map, never to derive an answer.
+local function f32_from_hex (hex)
+	local n = tonumber (hex, 16)
+	local sign = (n >= 2147483648) and -1 or 1
+	local exponent = math.floor (n / 8388608) % 256
+	local mantissa = n % 8388608
+	if exponent == 255 then
+		if mantissa == 0 then return sign * math.huge end
+		return 0 / 0
+	elseif exponent == 0 then
+		return sign * mantissa * 2 ^ -149
+	end
+	return sign * (1 + mantissa / 8388608) * 2 ^ (exponent - 127)
+end
+
+-- point_inside_map_area (en_world.h): x and z only, bounds INCLUSIVE, y ignored. The bounds are the tf-map facts (the probe requires them to equal the world map's).
+local function endpoint_inside (triple, bounds)
+	local x, z = f32_from_hex (first_word (triple)), f32_from_hex (third_word (triple))
+	return x >= bounds.min_x and x <= bounds.max_x and z >= bounds.min_z and z <= bounds.max_z
+end
+
+-- A warm repeat (stage 1) is the same query as its cold one (stage 0), and a nearer-check warm repeat (stage 3) the same as its cold one (stage 2): same context, flags, endpoints and
+-- initial outputs. The ANSWERS (hit, intercept, normal, terrain elevations) may legitimately differ with the terrain cache, so they are not compared here.
+local SIGNATURE = { "group", "kind", "role", "ignore_edge", "skip_top", "a", "b", "init_point", "init_normal" }
+
+local function need_same_signature (q, paired)
+	local label = "tq " .. tostring (q.ordinal) .. " against its stage " .. tostring (paired.stage) .. " record " .. tostring (paired.ordinal)
+	for _, name in ipairs (SIGNATURE) do need_equal (label, name, q [name], paired [name]) end
+end
+
 -- The transcript against the report it accompanies and against its own structure. Nothing here re-derives a physical answer: it counts and compares what the fixture recorded.
 local function check_trace (trace, rows, keyed)
 	local st, once, many = trace.once ["tr-state"], trace.once, trace.many
@@ -727,6 +758,9 @@ local function check_trace (trace, rows, keyed)
 	need_equal ("tf-map", "tree_total", map.tree_total, ct.trees_total)
 	need_equal ("tf-map", "sectors_with_trees", map.sectors_with_trees, ct.sectors_with_trees)
 	need_equal ("tf-forest", "geometry", forest.geometry, ct.forest_geometry)
+	-- the fixture stops at 512 triangles and says so (capped=1) when another exists. A truncated forest geometry is NOT a complete input for a host loader or kernel, so the transcript
+	-- is not complete: it fails here, however coherent its 512 rows and its count are. It is never dropped, widened or presented as the whole set.
+	need_equal ("tf-forest", "capped", forest.capped, 0)
 	need_equal ("tf-forest", "triangles", forest.triangles, #(many ["tf-triangle"] or {}))
 	for i, tri in ipairs (many ["tf-triangle"] or {}) do need_equal ("tf-triangle", "i", tri.i, i - 1) end
 	if forest.geometry == 0 then need_equal ("tf-forest", "triangles without geometry", forest.triangles, 0) end
@@ -746,7 +780,8 @@ local function check_trace (trace, rows, keyed)
 	-- the records: contiguous, in range, stage order, and counted against the report
 	local seen = { [2] = { s0 = 0, s1 = 0, s2 = 0, s3 = 0, hit = 0, warm_same = 0, miss_point = 0, miss_normal = 0, derived = 0 },
 		[3] = { s0 = 0, s1 = 0, s2 = 0, s3 = 0, hit = 0, warm_same = 0, miss_point = 0, miss_normal = 0, derived = 0 } }
-	local previous, cold_record, expect_stage = nil, nil, 0
+	local bounds = { min_x = f32_from_hex (map.map_min_x), max_x = f32_from_hex (map.map_max_x), min_z = f32_from_hex (map.map_min_z), max_z = f32_from_hex (map.map_max_z) }
+	local previous, cold_record, near_cold, expect_stage = nil, nil, nil, 0
 	for i, q in ipairs (tqs) do
 		need_equal ("tq", "ordinal", q.ordinal, i - 1)
 		if q.group ~= 2 and q.group ~= 3 then refuse ("tq " .. tostring (q.ordinal) .. ": group must be 2 or 3, got " .. tostring (q.group)) end
@@ -759,6 +794,18 @@ local function check_trace (trace, rows, keyed)
 		need_equal ("tq " .. tostring (q.ordinal), "init_normal", q.init_normal, SENTINEL3)
 		if q.lookups < 2 then need_equal ("tq " .. tostring (q.ordinal), "unused l1", q.l1, ZERO3) end
 		if q.lookups < 1 then need_equal ("tq " .. tostring (q.ordinal), "unused l0", q.l0, ZERO3) end
+		-- the original looks up the terrain at the old endpoint, then at the new one, each only if it is inside the map: the recorded lookups must be exactly those, in that order, at
+		-- the recorded endpoints' x and z (bit for bit). The elevation each returned is data and is not derived or compared.
+		local expected_lookups = {}
+		for _, endpoint in ipairs { q.a, q.b } do
+			if endpoint_inside (endpoint, bounds) then expected_lookups [#expected_lookups + 1] = { first_word (endpoint), third_word (endpoint) } end
+		end
+		need_equal ("tq " .. tostring (q.ordinal), "lookups", q.lookups, #expected_lookups)
+		for n, want in ipairs (expected_lookups) do
+			local lookup = (n == 1) and q.l0 or q.l1
+			need_equal ("tq " .. tostring (q.ordinal), "lookup " .. n .. " x", first_word (lookup), want [1])
+			need_equal ("tq " .. tostring (q.ordinal), "lookup " .. n .. " z", second_word (lookup), want [2])
+		end
 		-- stage order: 0, 1, then for a hit optionally 2, 3; a nearer-check follows only a primary hit
 		if q.stage == 0 then
 			if expect_stage ~= 0 and expect_stage ~= 2 then refuse ("tq " .. tostring (q.ordinal) .. ": stage 0 where stage " .. tostring (expect_stage) .. " was expected") end
@@ -766,12 +813,15 @@ local function check_trace (trace, rows, keyed)
 			expect_stage = 1
 		elseif q.stage == 1 then
 			if expect_stage ~= 1 then refuse ("tq " .. tostring (q.ordinal) .. ": stage 1 where stage " .. tostring (expect_stage) .. " was expected") end
+			need_same_signature (q, cold_record)
 			expect_stage = (cold_record.hit == 1) and 2 or 0
 		elseif q.stage == 2 then
 			if expect_stage ~= 2 then refuse ("tq " .. tostring (q.ordinal) .. ": stage 2 without a primary hit before it") end
+			near_cold = q
 			expect_stage = 3
 		else
 			if expect_stage ~= 3 then refuse ("tq " .. tostring (q.ordinal) .. ": stage 3 where stage " .. tostring (expect_stage) .. " was expected") end
+			need_same_signature (q, near_cold)
 			expect_stage = 0
 		end
 		local g = seen [q.group]

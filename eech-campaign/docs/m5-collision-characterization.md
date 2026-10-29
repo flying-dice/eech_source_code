@@ -1,3 +1,18 @@
+Third capture P2 (UNBUILT/UNRUN; STATUS.md has the full text): the transcript checker now requires a warm record (stage 1) to be the same query as its cold one (stage 0), and stage 3 as stage 2, in group,
+kind, role, flags, endpoints and initial outputs (answers and terrain elevations are not compared), and requires the recorded lookups to be the old then new endpoints x and z, bit for bit, only for
+endpoints inside the map by the original inclusive rule (en_world.h 149). 9 refusing and 3 accepting real-driver controls were added (20 transcript controls). With the paging and capped-facts corrections
+all three capture P2 source corrections are prepared; Root builds and runs them once. Valid retail data remains valid per Root's audit; no host loader/kernel started.
+
+Capped forest facts P2 (UNBUILT/UNRUN; STATUS.md has the full text and the actual 41f94952e capture results): the driver now requires tf-forest capped == 0 (a truncated 512-triangle facts block
+is not a complete loader/kernel input and fails clear, never dropped or presented as whole). Control trace_forest_capped uses a coherent 512-row truncation. Retail forest geometry is 0/capped 0 and stays valid.
+Source 41f94952e: all three retail trace probes passed, every old 205 report row equals 5416adb3b (only trace_written added), native record size 8 with the byte layout recorded in STATUS; it is a passivity
+witness for the tested cases, not an accepted source. No host loader/kernel started; the combined review is open.
+
+Transcript paging P2 (UNBUILT/UNRUN; STATUS.md has the full text): the C read function no longer adds offset + count before clipping. Contract: bad arguments (missing pointers, kind not 0/1,
+negative offset, count outside 1..256) are refused; an offset at or beyond the record count is a successful EMPTY page with the total reported; otherwise min(count, records - offset) records. Native
+witness: tests/lua/collision-trace-paging.lua (normal pages, last record, six end offsets including INT_MAX, six refusals; pass line COLLISION_TRACE_PAGING_OK, never a skip). Paging only; no captured
+record or physical change. Frozen 41f94952e remains the known initial defect source; the combined new-capture review is in progress.
+
 Prebuild correction of the tree-transcript driver code (UNBUILT/UNRUN; STATUS.md has the full text): trace write, flush and close results are now checked and fail the run before
 trace_written/done; any probe, read, check, repeat or I/O failure disarms the transcript, closes the file and re-raises the original error (a cleanup error is recorded, never substituted); and the
 existence of trace_out is re-checked right after the output is created so a dir/./name alias of it is refused, not truncated (check-then-create, not claimed race-proof). Real-script controls cover
