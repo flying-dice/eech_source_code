@@ -1,31 +1,32 @@
-# Current D3 checkpoint — original tree bits match; boundary corrections required
+# Current D3 checkpoint — reviewed host tree component; original geometry witness active
 
-Task49 source `d72610f85bc71ecf554c074025e699115e8eb0a1` is pushed and frozen.
-Windows build0/all8 exports verified. All three complete real host-Lua replays
-exit0 with every original bit/ordered lookup matching:554/1102 Georgia,600/1120
-each Lebanon/repeat. Library default and Up replay bits also match, but Windows
-caller-state restoration fails: SSE rounding/status changes. Overall controller1;
-Windows tree units14 pass/1 fail, Linux15 pass. Down/Zero full sweeps and Linux
-Clippy are not reached. All3pre/post manifests, original transcripts and exported
-hashes remain unchanged. The first0db numeric failures remain retained.
+Task49 host tree loader/kernel preparation is reviewed at measured source
+`8c452f197449d3a08b8f7bfbad5c34ae652c22c1`, published in draftPR109 at
+`5022df48a466477f65b44ef6bd9595afce07753e`. The combined review and focused
+changed-source follow-up are CLOSED with no open findings; final review SHA
+4258f1b94e9eeb0821a1dc692190451ee1606454dc2631e148261605d47876ca. Linux format,
+17 tree units,1 real-host Lua and all-host-target Clippy complete0. Windows build0/
+all8 exports,17 units/1 real-host Lua and all three original captures pass. Every
+query/ordered lookup/answer bit matches through library and actual Lua:554/1102
+Georgia,600/1120 each Lebanon/repeat. Up/Down/Zero library caller modes preserve
+answers and complete control/status with nonzero flags. Same6 protocol/3 getter
+controls pass. All pre/post inputs, original traces and exported hashes unchanged.
+Earlier numerical, environment, checker and getter failures remain immutable.
 
-The one combined independent review requires five P2 corrections: metadata
-invariants, complete FP-state restoration, thread-bound rounding guard, dense
-geometry lists and pending-query cleanup after malformed Lua requests. Actual
-unchanged-host controls reproduce sparse-list acceptance and stale continuation.
-A separate diagnostic proves Lua folds the test's0*-1 into positive zero;
-dynamic negative zero makes that same host pass the complete transport script
-with unchanged expected bits. The same sole Sonnet High session is correcting
-this finite batch; new fixes are unbuilt/unrun. Follow-up covers changed source
-and evidence only. No production dispatch has changed.
+The same sole Sonnet High lane is now preparing a controlled ORIGINAL forest-tree
+geometry/model-decoder witness within Task49. This source work is unbuilt/unrun;
+the measured maps had no forest collision mesh. Required model loading follows
+original characterization. The reviewed host kernel remains unchanged, and
+production campaign queries still use the original DLL service. Full geometry,
+entity collision, authority/refusal and DCS mapping/workarounds remain required.
 
-Ledger14548994v64 readback preserves all prior HTML and all five epic reports
-exactly; Jira10858/10859 and draftPR109 retain results and limits. Full geometry/
-model loading and original geometry witness, entity collision, authority, DCS
-mapping/workarounds and remaining D3 scope stay open. Task47's original shipping
-run remains live, checked35.3MB Tacview/22.9MB observations prefixes exact; full40,
-eight complete files, post-input acceptance and normal delivery remain pending.
-ProductionG2/G3 gates remain. D3 is incomplete; D4/D5 have not started.
+Ledger14548994v65 readback preserves all prior HTML and all five epic reports;
+Jira10860 and draftPR109 retain exact evidence/limits. Four closed Cargo caches
+were removed after export/log/zero-owner checks, preserving all useful artifacts.
+Task47's original shipping115 remains live; checked43.4MB Tacview/28.7MB observation
+prefixes match. Full40/eight complete files/post-input acceptance and normal
+delivery still gate productionG2/G3. Remaining model/environment/host-time and
+required physical solver/loader removal remain whole-D3 scope. D4/D5 not started.
 
 # User-requested Git checkpoint — implementation stopped and partial source preserved
 
