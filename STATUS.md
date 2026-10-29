@@ -1,7 +1,7 @@
 # Latest Task48 progress — reviewed host ground kernel; public handoff pending
 
 Existing EEDCS-48 / PR108. Host-only preparation branch codex/d3-ground-host-preparation
-is pushed at55c06998b; actual clean measured source14bfd3ed6 has native Windows
+is pushed atf66ba1f139; actual clean measured kernel source14bfd3ed6 has native Windows
 backend17/17 and ground_conformance4/4 on EACH fresh Georgia/Lebanon/separate-repeat
 root, no skips, all pre/post-inputs0. Original20k/5k physical hashes/counters/samples/
 common cache observations match immutablec119; a second host sweep equals its first.
@@ -15,11 +15,21 @@ predicate in host, preserves complete semantic record/hint results and no-read
 short circuits, ASSERT predicate side effects and endpoint alias reconstruction.
 This is host preparation; the production DLL/client/wn_move still use the old path.
 
-The sole Sonnet5.5High lane is adding Lua-provider exposure and real direct/healthy
-old-DLL missing-handoff checks in the isolated preparation branch. Those NEW changes
-are currently source in progress, unbuilt/unrun/unreviewed; no public authority,
-G2 cutover, completed Task48 or D3 acceptance is claimed. Task47 delivery/base
-verification still gates production G2 switching. Full D3 scope is retained.
+The sole Sonnet5.5High lane completed Lua-provider exposure and direct/healthy
+old-DLL missing-handoff test source in the isolated preparation branch. Its Linux
+build, format/check, six library tests, eight map-free guards and all-target Clippy
+passed0. The real-map and public native functions explicitly SKIPPED without their
+environment: Windows/retail execution and review of this new Lua step remain pending.
+No Claude implementation process remains live. No public authority, G2 cutover,
+completed Task48 or D3 acceptance is claimed. Task47 delivery/base verification
+still gates production G2 switching. Full D3 scope is retained. Ledger v59 records
+the reviewed kernel; the newer Lua check result is a subsequent checkpoint.
+
+Next: named clean Windows host/test build, actual direct transport on both maps,
+then healthy control and expected missing-handoff RED with the explicitly identified
+test-only frozen febbb7cc5 DLL/new-host hybrid, followed by independent review.
+Task47's shipping source1156c8fbb remains running unchanged (tool59652); retained
+prefixes match only partially. Complete40/full recordings/post-input gates remain.
 
 Safe evidence: eech-campaign/reference/d3-ground-host-preparation/.
 The following is the previous checkpoint, retained with its source identities.
