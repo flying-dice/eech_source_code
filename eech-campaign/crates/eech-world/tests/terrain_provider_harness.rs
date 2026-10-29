@@ -10,7 +10,9 @@
 use mlua::Lua;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-const SCRIPT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/lua/terrain-provider.lua");
+// Carry the actual source into cross-compiled test executables: the build
+// machine's manifest path is unavailable when they run on Windows.
+const SCRIPT: &str = include_str!("../lua/terrain-provider.lua");
 
 const MISSING: &str = "[terrain-provider:missing]";
 const ELEVATION: &str = "[terrain-provider:point.elevation]";
@@ -59,8 +61,7 @@ fn run(mode: &str, boot: &str, frame: &str) -> (Result<(), String>, String) {
         "#
     );
     lua.load(setup).set_name("collaborator").exec().expect("the collaborator is valid Lua");
-    let script = std::fs::read_to_string(SCRIPT).expect("the script is readable");
-    let result = lua.load(script).set_name("terrain-provider.lua").exec().map_err(|e| e.to_string());
+    let result = lua.load(SCRIPT).set_name("terrain-provider.lua").exec().map_err(|e| e.to_string());
     let written = std::fs::read_to_string(&out).unwrap_or_default();
     let _ = std::fs::remove_file(&out);
     (result, written)
