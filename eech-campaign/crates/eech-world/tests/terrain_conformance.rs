@@ -254,14 +254,21 @@ fn the_host_generated_grid_equals_the_originals_terrain_sim() {
     assert_eq!(ours.len(), original.len(), "the grid size in bytes");
     let mut differing = Vec::new();
     let mut count = 0usize;
-    for (index, (host, theirs)) in ours[16..].chunks_exact(4).zip(original[16..].chunks_exact(4)).enumerate() {
+    // the posts as 4-byte chunks (the lengths are equal, asserted above); a trailing partial post in either grid is a malformed grid, not a post to skip
+    let (host_posts, host_rest) = ours[16..].as_chunks::<4>();
+    let (original_posts, original_rest) = original[16..].as_chunks::<4>();
+    assert!(
+        host_rest.is_empty() && original_rest.is_empty(),
+        "a grid is whole posts after its 16-byte header"
+    );
+    for (index, (host, theirs)) in host_posts.iter().zip(original_posts).enumerate() {
         if host != theirs {
             count += 1;
             if differing.len() < 8 {
                 differing.push(format!(
                     "post {index}: host {:08x}, original {:08x}",
-                    u32::from_le_bytes([host[0], host[1], host[2], host[3]]),
-                    u32::from_le_bytes([theirs[0], theirs[1], theirs[2], theirs[3]])
+                    u32::from_le_bytes(*host),
+                    u32::from_le_bytes(*theirs)
                 ));
             }
         }

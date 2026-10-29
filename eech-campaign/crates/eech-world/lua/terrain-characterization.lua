@@ -10,9 +10,9 @@
 --     and the same points asked again with a hint left by an earlier query (the order dependence of the original solver), through the
 --     wrappers the campaign calls, and the surface type, class and ground-vehicle suitability of every type met. Its report is
 --     separate from the run-wide one and it leaves the shared find-fast record as it found it.
--- The terrain is the campaign's own, loaded from the installation: no host callback is involved in the sweep. The same script is run on
--- the unchanged solver and on a later extraction candidate; a difference in a hash, count or sample is a difference in behaviour, and
--- nothing here is tuned to make a run pass.
+-- On the original solver the sweep reads the DLL's terrain. After the G1 handoff the same client queries dispatch to the host provider.
+-- Physical sample words and fast elevations can be compared; primed/run hashes also fold the original's private fast-hit diagnostic,
+-- which the moved client cannot observe. See eech_terrain_fixture.c for the exact comparison limits. No oracle is rewritten here.
 --
 -- host.args: root, scenario (lebanon_retail default, georgia_retail, georgia), seconds (default 600), frame_ms (default 100),
 --            probe_at (comma list of simulated seconds, default 0,300; 0 is the loaded, unstepped world; an explicitly empty probe_at= is

@@ -1,3 +1,45 @@
+# D3 terrain services — public GREEN complete; final pack candidate prepared
+
+29 October2026. Runtime a9d9e838a ordinary shipping and separate terrain fixture
+builds both completed actual0 from clean frozen source; all45 manifest entries
+verify in each. Actual build-container image IDs match their BUILD-INFO records.
+Windows backend17/17, refusal-driver7/7, face-driver5/5 and real DLL boot-contract
+1/1 all pass0. The earlier c4 engine9/world18 terrain-related unit checks and
+complete generated-grid equality/conformance on both maps are reused honestly.
+
+The PUBLIC moved-client probes completed native/controller0 on BOTH retail maps,
+all pre/post inputs unchanged. Every256 emitted physical point/fast sample matches
+the independent original, and the entire20006-fast-call hash matches on each map.
+Primed/run folds include private diagnostic bits and are not falsely compared.
+All six REAL face-predicate cases pass native/controller0 with unchanged inputs:
+reference and nohint-provider modes, native selection, Summer assertion, Winter
+override with the original default-pair fallback. Retail has no winter file pair;
+distinct seasonal loader selection is covered by the17 synthetic tests.
+
+The ordinary shipping nohint case passes one100ms frame with79152 point calls,
+map1/fast0 and the exact original placement1444/759892.264, LOS1164/232000.902.
+This is compatible reference-backed terrain with optional cache metadata omitted,
+not proof of a data-free analytic world's geography. The all-land generic failure
+at USS TARAWA remains preserved as a changed-world variation. Safe a9 records:
+public-green-a9d9e838a.json, public-fast-comparison-a9d9e838a.json and
+independent-residual-review-a9d9e838a.json in the terrain reference directory.
+
+Independent a9 review has no new shipping defect; its one comment P3 is corrected.
+Eight hosted checks pass, with x64 standard blocked only by Clippy cache-type
+complexity. The source now names private cache types, and the new grid comparison
+uses fixed-size chunks without changing bytes/order/expectations. Actual Windows
+world ALL TARGETS Clippy -Dwarnings passes0 after those corrections. These tiny
+source/test/comment changes need a new frozen shipping build and delta review.
+
+Full-pack PREFLIGHT passed with exactly40 accepted checks, child Python3.12.14
+and all three reserved fresh roots. No campaign was started by preflight. Final
+shipping40/eight complete Tacview/observation/metric equality, post-inputs, current
+CI and normal merge are still REQUIRED. Task47/PR107 and Epic21 remain In Progress;
+remaining2D loader/geometry/model/environment/time services and whole-D3 closure
+remain in scope. No full-pack or whole-D3 acceptance is claimed.
+
+Earlier at-the-time checkpoints follow.
+
 # D3 terrain services — generated-grid equality and public authority verified
 
 29 October 2026. Clean runtime c4a56d9a4 has an ordinary Windows build0 and

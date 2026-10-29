@@ -11,8 +11,7 @@
 -- Both must leave a record with a face after a successful point query, and none when fresh and after a clear. Nothing here is tuned to pass.
 --
 -- host.args: root, scenario (lebanon_retail default, georgia_retail, georgia), mode (reference default, generic), winter (optional: omitted means no override and no
--- assertion, the season is whatever the session actually has and is captured from the boot; true or false boots with that explicit season and requires the engine
--- to report it to the provider)
+-- assertion, the season is captured from the boot; true selects Winter and asserts it, while false preserves native selection and asserts Summer)
 local function refuse (message)
 	error ("terrain-has-face: " .. message, 0)
 end
@@ -37,7 +36,7 @@ local scenario = scenarios [text_arg ("scenario", "lebanon_retail")]
 if scenario == nil then refuse ("scenario is not lebanon_retail, georgia_retail or georgia") end
 local mode = text_arg ("mode", "reference")
 if mode ~= "reference" and mode ~= "generic" then refuse ("mode is not reference or generic") end
--- optional: omitted is no override (the session's actual season) and no assertion; an explicit season is booted with and asserted
+-- Omitted means no override or assertion. True selects Winter; false only asserts Summer after native season selection.
 local winter
 if args.winter ~= nil then
 	if args.winter ~= "true" and args.winter ~= "false" then refuse ("winter is not true or false") end

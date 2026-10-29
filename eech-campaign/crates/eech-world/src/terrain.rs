@@ -650,10 +650,16 @@ fn respond(lua: &Lua, terrain: &Terrain, request: &LuaTable) -> LuaResult<LuaTab
     }
 }
 
+/// The identity of an opened map: its terrain directory, the season it was opened for, and the map number override (if any).
+type OpenMapKey = (PathBuf, bool, Option<i32>);
+
+/// The maps this host has opened, by `OpenMapKey`.
+type OpenMaps = std::collections::HashMap<OpenMapKey, Rc<Terrain>>;
+
 thread_local! {
     // the maps this host has opened, by terrain directory, season and map number: two providers for one map share it (and so the identity its hints
     // carry), and a script that asks for a provider more than once does not reload the files
-    static OPEN_MAPS: std::cell::RefCell<std::collections::HashMap<(PathBuf, bool, Option<i32>), Rc<Terrain>>> = std::cell::RefCell::new(std::collections::HashMap::new());
+    static OPEN_MAPS: std::cell::RefCell<OpenMaps> = std::cell::RefCell::new(OpenMaps::new());
 }
 
 fn open_cached(dir: &Path, winter: bool, map_number: Option<i32>) -> Result<Rc<Terrain>, String> {
