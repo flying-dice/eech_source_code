@@ -1,0 +1,36 @@
+{
+  "source": "54e5ece8571d824afac35bbb37bc91b5abbef063",
+  "scope": "Real-driver guard validation only; fixture C remains separately measured source541",
+  "linux": {
+    "log_text": "   Compiling mlua-sys v0.6.8 (/src/eech-campaign/patches/mlua-sys-0.6.8)\r\n   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)\r\n   Compiling mlua v0.10.5\r\n    Finished `release` profile [optimized] target(s) in 8.45s\r\n     Running tests/host_callbacks.rs (/target/release/deps/host_callbacks-820ad9372bf87df0)\r\n\r\nrunning 10 tests\r\ntest the_collision_driver_control_does_not_probe_and_ends_with_the_same_digest_and_no_coverage_claim ... ok\r\ntest the_collision_driver_records_a_refusal_with_every_control_byte_as_strict_json_and_loses_none_of_it ... ok\r\ntest the_collision_driver_probes_with_the_asked_seed_and_counts_as_often_as_asked_and_parses_the_report ... ok\r\ntest the_collision_driver_accepts_flag_counts_with_realisable_added_bits ... ok\r\ntest the_collision_driver_keeps_a_rejected_report_whole_as_strict_json ... ok\r\ntest the_collision_driver_fails_on_a_refused_probe_and_on_a_repeat_that_differs ... ok\r\ntest the_collision_driver_states_a_coverage_gap_and_fails_on_it_only_when_coverage_is_required ... ok\r\ntest the_collision_driver_refuses_a_malformed_argument_before_booting_or_writing_anything ... ok\r\ntest the_collision_driver_accepts_a_report_with_no_random_cases_and_a_report_with_no_entity_cases ... ok\r\ntest the_collision_driver_names_the_one_defect_in_a_report_and_writes_no_success_row ... ok\r\n\r\ntest result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 24 filtered out; finished in 0.90s\r\n\r\n   Compiling mlua-sys v0.6.8 (/src/eech-campaign/patches/mlua-sys-0.6.8)\r\n   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)\r\n    Checking mlua v0.10.5\r\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.50s\r\n",
+    "tests_passed": 10,
+    "actual_exit": 0,
+    "host_all_target_clippy": 0,
+    "log_sha256": "f44b1379093dbeef449e0324ab8dac98d95619202a8ff383d57bcf3f0be9aa82",
+    "format_check": 0
+  },
+  "windows": {
+    "invalid_override_actual_exit": 101,
+    "tests_passed": 10,
+    "actual_exit": 0,
+    "payloads_verified_before_after": 4
+  },
+  "new_driver_boot": {
+    "all_native_and_input_exits": 0,
+    "driver_source": "54e5ece8571d824afac35bbb37bc91b5abbef063",
+    "runs": 3,
+    "native_fixture_source": "5416adb3b0ede34d8592ffed317e6dab5048b796",
+    "each_complete_raw_report_matches_source541_boot": true
+  },
+  "defect_red_green": {
+    "feasible_added_bits_pass_both": true,
+    "malformed_modes": 4,
+    "all_new_driver_refusal_exits": 1,
+    "all_old_driver_false_pass_exits": 0
+  },
+  "closed_d5_cache_cleanup": {
+    "scope": "Only closed original Windows Cargo and old working Linux Cargo volumes removed after full log export and payload verification; source/binaries/raw/retail roots retained",
+    "original_build_log_sha256": "5d0072478c2dd781d1a4595b665e7c6ea95b04a1dda258ad17cd6df817377126",
+    "actual_exit": 0
+  }
+}

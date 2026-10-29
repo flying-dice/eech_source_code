@@ -1,0 +1,488 @@
+{
+  "schema": "independent-review-v1",
+  "reviewed_utc": "2026-10-29T19:00:53.484132+00:00",
+  "task": "EEDCS-49 original-observer correction continuation",
+  "base_reviewed_source": "d5ca5ee5bb1f784318ce9c76903169cb97bbe362",
+  "prior_review_sha256": "35fa0a77ecd4f98d74e0a1e4265236f1e8b817c69dfd4b40a644f1d3a1750527",
+  "measured_C_source": "5416adb3b0ede34d8592ffed317e6dab5048b796",
+  "measured_C_repository": "R:\\d3-evidence\\collision-observer-source-5416adb3b",
+  "final_driver_helper_source": "54e5ece8571d824afac35bbb37bc91b5abbef063",
+  "final_repository": "R:\\d3-evidence\\collision-guard-source-54e5ece85",
+  "intermediate_guard_sources": [
+    "d16c08bec8fe90cc540c47552820bfc7827476e8",
+    "438940d3905a7cf659225e336596950f5de2bff9"
+  ],
+  "clean_pins_verified": true,
+  "disposition": "CORRECTION_REVIEW_CLOSED; NO_OPEN_ACTIONABLE_FINDINGS; NOT_EXTRACTION_OR_TASK_DELIVERY",
+  "open_findings": [],
+  "finding_dispositions": [
+    {
+      "prior": "P1-OBSERVER-DESTRUCTIVE-UPDATED",
+      "disposition": "CLOSED",
+      "source": "C541 raw_updated_bit / flags_save / flags_measure / flags_restore",
+      "reason": "Observation no longer calls the destructive getter. Full bounded unsigned arrays are copied before observation, original query/getter effects remain inside the measured sequence, effects are reported before restore, and flags are restored before final fingerprint/normal error exits. Actual moving probes measured62cleared bits in10updated words on Georgia and104bits in17words on Lebanon, then identical full before/restore hashes, two identical reports and matching coarse controls. Production &= is unchanged."
+    },
+    {
+      "prior": "P2-TYPE-BUCKET-CONSERVATION",
+      "disposition": "CLOSED",
+      "reason": "Both groups now require exact type-hit conservation. Feasible synthetic buckets and real-script dropped-positive/entire-bucket controls replace the old undercounting collaborator. Actual native rows conserve all hits."
+    },
+    {
+      "prior": "P2-TARGET-SELECTION-COMPLETENESS",
+      "disposition": "CLOSED",
+      "reason": "C adds actual class census; driver checks census refinements and exact min(class_count,3) selection for all10classes. Synthetic census/targets now satisfy the emitter, with explicit under-selection/class inconsistency controls. No physical hit expectation was invented."
+    },
+    {
+      "prior": "P2-DERIVED-AXIS-FP-CONTRACT",
+      "disposition": "CLOSED",
+      "reason": "C reads x87 CW/SSE MXCSR masks without writing them and refuses unless both six-bit masks are63. Original generator/query order/folds remain; derived axis queries are counted instead of silently screened. All actual corrected native reports read63/63. These runs have derived_axis0; actual derived-division and unmasked-C refusal branches are not claimed executed."
+    },
+    {
+      "prior": "P2-CROSS-BUILT-DRIVER-PATH",
+      "disposition": "CLOSED",
+      "reason": "Actual driver is embedded/copied per test; helper438 adds strict optional OsString/PathBuf EECH_WORLD_BIN override to replace the Linux compile-time executable path. Real Windows final10/10 pass using a verified C: path with spaces; invalid supplied path101 explicitly refuses without fallback. Ordinary Linux Cargo fallback also passes."
+    },
+    {
+      "prior": "P3-EXACT-STATE-WARM-SCOPE",
+      "disposition": "CLOSED",
+      "reason": "C/API/driver/docs now describe sector-list fingerprint without city-child/identity/all-state guarantees, primary-only warm comparisons and explicit flag effects/restoration. Report repeatability is not called proof of purity. Cold/warm compares the actual evolving query state, not an isolated proof of cache causality."
+    },
+    {
+      "new": "P2-FLAG-COUNT-FEASIBILITY",
+      "disposition": "CLOSED_AT_54e",
+      "reason": "Driver enforces per-array clears<=32*changed, required aggregate additions>=sum(max(0,changed-clears)), and cleared+added<=32*total_changed, while keeping prior bounds/hash checks and allowing feasible additions. Actual same-host/same-new-collaborator old438-driver RED passes all4impossible modes0, new54driver rejects each1 with raw report retained/no success rows; legitimate added-bit diagnostic passes both. All12 actual C flag rows independently satisfy the stronger conditions."
+    }
+  ],
+  "review_scope": "One combined NEW correction/evidence pass only. Closed D1/D2/G1/G2/kernel groups reused. Read-only Git/file/hash/JSON inspections; no supplied test/build/Lua/native execution, process/cache/auth/source mutation/external write or delegation. Only this private report written.",
+  "pinned_hashes": {
+    "C541_and_same_C_in_54e": "64d6dc7b20c4ecd0435d02e846b955fd7182d3520ce52402a36f4b87d7b02ef2",
+    "final_source_files": {
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_collision_fixture.c": "64d6dc7b20c4ecd0435d02e846b955fd7182d3520ce52402a36f4b87d7b02ef2",
+      "eech-campaign/crates/eech-world/lua/collision-characterization.lua": "2e5967aecfd9aad96d734e3b8d9cf09ef5eac5b3700fdb91c0f34b560c123c5a",
+      "eech-campaign/crates/eech-world/tests/host_callbacks.rs": "89497da743a679e78e3f385bb0f6f505075ff6b7c492485e967f4d4e88a0a00a",
+      "eech-campaign/crates/eech-world/tests/lua/collision-caller.lua": "f700120300699b3cb38a29f7842fbd4e3362cf0ebf93c1c58edf0e8b2aa4b303"
+    },
+    "C541_driver": "98cfef5a82dd2da2d79fdc54993965727adef391cf4f68aaa0ffa0433aba7c59",
+    "BUILD_INFO_C541": "7f2a604d91c2c09647e876164c4f17d9fe85fe4a7a96730a198c255d18ef8dbe",
+    "native43_manifest_entries_verified": true,
+    "original_aphavoc_modules_diff_d5_to_final_empty": true,
+    "C_engine_DC_production_diff_541_to_final_empty": true
+  },
+  "boot_evidence": {
+    "actual_outer_exit_recorded": 0,
+    "controller_sha256": "0fabb5fb3ec6d5e76c1e71162e8e8a29ce5e1347c23d926dbbdb2460f79ad793",
+    "completion_sha256": "cad54a070edba89f0dd5d429e1fc6460c4d468e1a5532a8f0896b6071c40370c",
+    "runs": [
+      {
+        "case": "georgia",
+        "actual_native_exit": 0,
+        "pre_post_inputs": [
+          0,
+          0
+        ],
+        "raw_rows": 205,
+        "raw_bytes": 38665,
+        "raw_sha256": "8fdc6e71b25b4c3d9a6cab649e6c208f15060420babb2b4960513cb72114bbc3",
+        "native_log_sha256": "73b2655759351228007e286f3fc9e627f1dc28e0a1592f084728693a9e89f0f5",
+        "flags_first_repeat": {
+          "added_bits": 0,
+          "after_queries": "1a0564b2e8de2325",
+          "after_restore": "1a0564b2e8de2325",
+          "before": "1a0564b2e8de2325",
+          "event": "col-flags",
+          "moved_changed_words": 0,
+          "moved_cleared_bits": 0,
+          "repeat_index": 1,
+          "restored": 1,
+          "rotated_changed_words": 0,
+          "rotated_cleared_bits": 0,
+          "updated_changed_words": 0,
+          "updated_cleared_bits": 0,
+          "words": 16384
+        },
+        "coverage": {
+          "derived_axis_rays": 0,
+          "event": "coverage",
+          "fp_arch": "x86_64",
+          "fp_sse_masks": 63,
+          "fp_x87_masks": 63,
+          "gap_count": 5,
+          "gaps": "no_moving_mobile_target,no_terrain_aligned_fixed_object,no_two_object_ray_for_scan_order,forest_tree_object_has_no_collision_geometry,no_geometry_tree_target",
+          "moving_targets": 0,
+          "random_entity_hits": 94,
+          "random_tree_hits": 30,
+          "skipped_axis_rays": 0,
+          "structured_entity_hits": 14,
+          "structured_tree_hits": 6
+        },
+        "digest": {
+          "alive": 1211,
+          "digest": "22ebb4c1",
+          "event": "state_digest",
+          "objects": 1211,
+          "probed": true
+        }
+      },
+      {
+        "case": "lebanon",
+        "actual_native_exit": 0,
+        "pre_post_inputs": [
+          0,
+          0
+        ],
+        "raw_rows": 205,
+        "raw_bytes": 38639,
+        "raw_sha256": "3c1b7f522a4e22a8405d84fe5a36d64032569809bfa3d5ee597f3287dc1fd252",
+        "native_log_sha256": "f523c1a79b383e5c830ac57a3f4e61419f1c28375b48ad418af629332f96e6f1",
+        "flags_first_repeat": {
+          "added_bits": 0,
+          "after_queries": "1a0564b2e8de2325",
+          "after_restore": "1a0564b2e8de2325",
+          "before": "1a0564b2e8de2325",
+          "event": "col-flags",
+          "moved_changed_words": 0,
+          "moved_cleared_bits": 0,
+          "repeat_index": 1,
+          "restored": 1,
+          "rotated_changed_words": 0,
+          "rotated_cleared_bits": 0,
+          "updated_changed_words": 0,
+          "updated_cleared_bits": 0,
+          "words": 16384
+        },
+        "coverage": {
+          "derived_axis_rays": 0,
+          "event": "coverage",
+          "fp_arch": "x86_64",
+          "fp_sse_masks": 63,
+          "fp_x87_masks": 63,
+          "gap_count": 4,
+          "gaps": "no_moving_mobile_target,no_terrain_aligned_fixed_object,forest_tree_object_has_no_collision_geometry,no_geometry_tree_target",
+          "moving_targets": 0,
+          "random_entity_hits": 84,
+          "random_tree_hits": 53,
+          "skipped_axis_rays": 0,
+          "structured_entity_hits": 14,
+          "structured_tree_hits": 6
+        },
+        "digest": {
+          "alive": 1577,
+          "digest": "08b68c8f",
+          "event": "state_digest",
+          "objects": 1577,
+          "probed": true
+        }
+      },
+      {
+        "case": "lebanon-repeat",
+        "actual_native_exit": 0,
+        "pre_post_inputs": [
+          0,
+          0
+        ],
+        "raw_rows": 205,
+        "raw_bytes": 38639,
+        "raw_sha256": "3c1b7f522a4e22a8405d84fe5a36d64032569809bfa3d5ee597f3287dc1fd252",
+        "native_log_sha256": "f3c83e1fb5410aa86772c1255a04bec139afbce35df01a70f3540c55962d5b23",
+        "flags_first_repeat": {
+          "added_bits": 0,
+          "after_queries": "1a0564b2e8de2325",
+          "after_restore": "1a0564b2e8de2325",
+          "before": "1a0564b2e8de2325",
+          "event": "col-flags",
+          "moved_changed_words": 0,
+          "moved_cleared_bits": 0,
+          "repeat_index": 1,
+          "restored": 1,
+          "rotated_changed_words": 0,
+          "rotated_cleared_bits": 0,
+          "updated_changed_words": 0,
+          "updated_cleared_bits": 0,
+          "words": 16384
+        },
+        "coverage": {
+          "derived_axis_rays": 0,
+          "event": "coverage",
+          "fp_arch": "x86_64",
+          "fp_sse_masks": 63,
+          "fp_x87_masks": 63,
+          "gap_count": 4,
+          "gaps": "no_moving_mobile_target,no_terrain_aligned_fixed_object,forest_tree_object_has_no_collision_geometry,no_geometry_tree_target",
+          "moving_targets": 0,
+          "random_entity_hits": 84,
+          "random_tree_hits": 53,
+          "skipped_axis_rays": 0,
+          "structured_entity_hits": 14,
+          "structured_tree_hits": 6
+        },
+        "digest": {
+          "alive": 1577,
+          "digest": "08b68c8f",
+          "event": "state_digest",
+          "objects": 1577,
+          "probed": true
+        }
+      }
+    ],
+    "old_d5_preservation": "All199ordered original row values match on each map; only6new diagnostic rows and explicitly named common/coverage fields are extra. No arbitrary normalization or old raw rewrite. No valid old moving oracle exists."
+  },
+  "moving_evidence": {
+    "actual_original_controller68773_terminal_exit_supplied": 0,
+    "actual_outer_exit_recorded": 0,
+    "controller_sha256": "d002be2e1e5632fe9a1b92f7ec8b93857c16c317986884123a1c2058122f4996",
+    "completion_sha256": "2695563d6e1149eb6f54827461eb01d837a75426b2f0e8e971bf52fca38915d3",
+    "configuration": "120s before+30s after,100ms/1500frames; private seed20261029,bootseed1,2000random each family,repeats2",
+    "runs": [
+      {
+        "case": "georgia-control",
+        "actual_native_exit": 0,
+        "pre_post_inputs": [
+          0,
+          0
+        ],
+        "raw_rows": 6,
+        "raw_bytes": 481,
+        "raw_sha256": "c55d5d9b162acc6d0abba4d361822b81418d82e2cf0d07ffa50edf43b200eaa5",
+        "native_log_sha256": "4c0c805bb667798be61ce1197e290474fd591c47f1b432599e85fa515915e373",
+        "flags_first_repeat": null,
+        "coverage": null,
+        "digest": {
+          "alive": 1483,
+          "digest": "0ffb3b0d",
+          "event": "state_digest",
+          "objects": 1483,
+          "probed": false
+        }
+      },
+      {
+        "case": "georgia-probe",
+        "actual_native_exit": 0,
+        "pre_post_inputs": [
+          0,
+          0
+        ],
+        "raw_rows": 213,
+        "raw_bytes": 39633,
+        "raw_sha256": "dcb094ba554593e08169c5390784ecd9981f03e8a3cef67db72bc0dbd6d0a0fa",
+        "native_log_sha256": "b5beda4b7ad7cb3a417c839ef960d1cc053474bb86cb0cce77f6d1ba6e2c6baa",
+        "flags_first_repeat": {
+          "added_bits": 0,
+          "after_queries": "11a74147067ce7cb",
+          "after_restore": "6d49b7f46d857f0d",
+          "before": "6d49b7f46d857f0d",
+          "event": "col-flags",
+          "moved_changed_words": 0,
+          "moved_cleared_bits": 0,
+          "repeat_index": 1,
+          "restored": 1,
+          "rotated_changed_words": 0,
+          "rotated_cleared_bits": 0,
+          "updated_changed_words": 10,
+          "updated_cleared_bits": 62,
+          "words": 16384
+        },
+        "coverage": {
+          "derived_axis_rays": 0,
+          "event": "coverage",
+          "fp_arch": "x86_64",
+          "fp_sse_masks": 63,
+          "fp_x87_masks": 63,
+          "gap_count": 4,
+          "gaps": "no_terrain_aligned_fixed_object,no_two_object_ray_for_scan_order,forest_tree_object_has_no_collision_geometry,no_geometry_tree_target",
+          "moving_targets": 5,
+          "random_entity_hits": 777,
+          "random_tree_hits": 295,
+          "skipped_axis_rays": 0,
+          "structured_entity_hits": 18,
+          "structured_tree_hits": 6
+        },
+        "digest": {
+          "alive": 1483,
+          "digest": "0ffb3b0d",
+          "event": "state_digest",
+          "objects": 1483,
+          "probed": true
+        }
+      },
+      {
+        "case": "lebanon-control",
+        "actual_native_exit": 0,
+        "pre_post_inputs": [
+          0,
+          0
+        ],
+        "raw_rows": 6,
+        "raw_bytes": 481,
+        "raw_sha256": "864a4c280b0db66c41ddb4011f899b7c967a3b5d0677181021d36c8a8b2aaa58",
+        "native_log_sha256": "09cd4d0ac51beb35cb3ee4673c0e961013dfae10e0fd937d78a17b6f119cdafd",
+        "flags_first_repeat": null,
+        "coverage": null,
+        "digest": {
+          "alive": 1722,
+          "digest": "50143464",
+          "event": "state_digest",
+          "objects": 1727,
+          "probed": false
+        }
+      },
+      {
+        "case": "lebanon-repeat",
+        "actual_native_exit": 0,
+        "pre_post_inputs": [
+          0,
+          0
+        ],
+        "raw_rows": 211,
+        "raw_bytes": 39363,
+        "raw_sha256": "a96edb114516e805066733e6aba35f1baa2c8c78efb41c9ba1d0fe0a2ab0e6e2",
+        "native_log_sha256": "be496d385eaf5a8e7eac81dce3b3f7e53ff2a82a44abf0bd7631da83dae9f6fe",
+        "flags_first_repeat": {
+          "added_bits": 0,
+          "after_queries": "3c4d555899bd96c1",
+          "after_restore": "3c0d58a6393eb3e5",
+          "before": "3c0d58a6393eb3e5",
+          "event": "col-flags",
+          "moved_changed_words": 0,
+          "moved_cleared_bits": 0,
+          "repeat_index": 1,
+          "restored": 1,
+          "rotated_changed_words": 0,
+          "rotated_cleared_bits": 0,
+          "updated_changed_words": 17,
+          "updated_cleared_bits": 104,
+          "words": 16384
+        },
+        "coverage": {
+          "derived_axis_rays": 0,
+          "event": "coverage",
+          "fp_arch": "x86_64",
+          "fp_sse_masks": 63,
+          "fp_x87_masks": 63,
+          "gap_count": 3,
+          "gaps": "no_terrain_aligned_fixed_object,forest_tree_object_has_no_collision_geometry,no_geometry_tree_target",
+          "moving_targets": 6,
+          "random_entity_hits": 756,
+          "random_tree_hits": 453,
+          "skipped_axis_rays": 0,
+          "structured_entity_hits": 20,
+          "structured_tree_hits": 6
+        },
+        "digest": {
+          "alive": 1722,
+          "digest": "50143464",
+          "event": "state_digest",
+          "objects": 1727,
+          "probed": true
+        }
+      },
+      {
+        "case": "lebanon-probe",
+        "actual_native_exit": 0,
+        "pre_post_inputs": [
+          0,
+          0
+        ],
+        "raw_rows": 211,
+        "raw_bytes": 39363,
+        "raw_sha256": "a96edb114516e805066733e6aba35f1baa2c8c78efb41c9ba1d0fe0a2ab0e6e2",
+        "native_log_sha256": "70c9fea9e8d1a9292e953b41e512af04e574e6ce2e615b36861d3a48e77a1e55",
+        "flags_first_repeat": {
+          "added_bits": 0,
+          "after_queries": "3c4d555899bd96c1",
+          "after_restore": "3c0d58a6393eb3e5",
+          "before": "3c0d58a6393eb3e5",
+          "event": "col-flags",
+          "moved_changed_words": 0,
+          "moved_cleared_bits": 0,
+          "repeat_index": 1,
+          "restored": 1,
+          "rotated_changed_words": 0,
+          "rotated_cleared_bits": 0,
+          "updated_changed_words": 17,
+          "updated_cleared_bits": 104,
+          "words": 16384
+        },
+        "coverage": {
+          "derived_axis_rays": 0,
+          "event": "coverage",
+          "fp_arch": "x86_64",
+          "fp_sse_masks": 63,
+          "fp_x87_masks": 63,
+          "gap_count": 3,
+          "gaps": "no_terrain_aligned_fixed_object,forest_tree_object_has_no_collision_geometry,no_geometry_tree_target",
+          "moving_targets": 6,
+          "random_entity_hits": 756,
+          "random_tree_hits": 453,
+          "skipped_axis_rays": 0,
+          "structured_entity_hits": 20,
+          "structured_tree_hits": 6
+        },
+        "digest": {
+          "alive": 1722,
+          "digest": "50143464",
+          "event": "state_digest",
+          "objects": 1727,
+          "probed": true
+        }
+      }
+    ],
+    "both_probe_control_coarse_digests_match_except_probed": true,
+    "whole_separate_Lebanon_raw_equal": true,
+    "all5pre_post_manifests0_and43files_unchanged": true,
+    "limits": "Identity/kind/side/alive digest only; no positions/all-state/Tacview comparison. Native source remains541. Original d5 three moving failures remain failures, not accepted oracles."
+  },
+  "final_driver_retail_smokes": {
+    "combination": "54e actual Lua script with unchanged labelled541 native fixture; NOT a54e C build",
+    "controller_sha256": "53c87de68976b1c91b3e722d7f33bc5ffd2910f6e1c77982741a97b8f7e88be2",
+    "driver_sha256": "2e5967aecfd9aad96d734e3b8d9cf09ef5eac5b3700fdb91c0f34b560c123c5a",
+    "actual_outer_exit_recorded": 0,
+    "all3native_prepost0": true,
+    "all3whole205row_raws_equal_earlier541_boot_raws": true
+  },
+  "guard_evidence": {
+    "Linux54e": {
+      "actual_exit": 0,
+      "actual_driver_tests": 10,
+      "fmt_and_host_all_target_Clippy": 0,
+      "completion_sha256": "e6833e3497c7ea757a792da6055e67d315e3c7bf00737bfe4d0b6c9b1b0a282c",
+      "log_sha256": "f44b1379093dbeef449e0324ab8dac98d95619202a8ff383d57bcf3f0be9aa82"
+    },
+    "Windows54e": {
+      "actual_controller_exit": 0,
+      "valid_host_native_exit": 0,
+      "actual_driver_tests": 10,
+      "missing_override_native_exit": 101,
+      "missing_override_is_expected_setup_control": true,
+      "verified_matching_host_path_contains_spaces": true,
+      "controller_sha256": "b55a1050e9b62a6ea493beec5626b72f2cf46f330852745013344abf8c215071",
+      "all4manifest_entries_unchanged_including_build_log": true
+    },
+    "feasibility_RED_GREEN": {
+      "controller_sha256": "7401dff964fb11812792687e87addc52e3310a390f54eb01220a6054a8f540bf",
+      "actual_outer_exit": 0,
+      "host_source": "438940d3905a7cf659225e336596950f5de2bff9",
+      "collaborator_source": "54e5ece8571d824afac35bbb37bc91b5abbef063",
+      "old_driver": "438940d3905a7cf659225e336596950f5de2bff9",
+      "new_driver": "54e5ece8571d824afac35bbb37bc91b5abbef063",
+      "four_impossible_modes_old0_new1": true,
+      "feasible_added_bits_positive_old0_new0": true,
+      "inputs_unchanged": true,
+      "scope": "Synthetic actual real-Lua-driver validation only; no C/retail/oracle change."
+    }
+  },
+  "preserved_failures": {
+    "original_d5_moving": "All3probe natives1/world_unchanged0, overall1; retained unchanged in prior review.",
+    "first541_Linux": "Actual101:8functions pass,1stale diagnostic expectation fails; Clippy not reached. d16 changes only2test diagnostic strings plus metadata.",
+    "d16_Windows": "Actual101:all9guard functions fail setup due compile-time CARGO_BIN_EXE Linux path; not a physical C failure.438 optional executable override fixes it.",
+    "invalid_host_override": "Expected101 controls remain labelled negative helper controls, not campaign/physics regressions."
+  },
+  "proof_adequacy_and_limits": [
+    "P1 is supported by actual multi-word positive native effects/restoration plus full-size memcpy/unsigned-peek source inspection. No separate C selftest is essential merely to mirror that implementation. Same-word/multiple-word effects are covered by actual clear counts; isolated bit31 and post-snapshot refusal/overflow restoration remain source-verified, not dynamically demonstrated.",
+    "FP masking was measured only in corrected541 builds. Do not attribute it to old d5. The C guard reads both registers but no native unmasked-control-word refusal test was run; driver schema negative controls are not a substitute claim.",
+    "No aligned fixed-object or forest collision-geometry/geometry-tree native coverage. Georgia still lacks a two-object ray. Derived-axis counters are0 in these actual runs. Player/gunship/client/MP reachability and other data/model contracts remain explicit work.",
+    "The flags diagnostics are legacy observer facts, not a required host layout or public world solver. Primary warm comparisons can reflect any query-state effect, including original flag reads; they do not isolate terrain-cache causation.",
+    "C control and query source remain541 through the helper/validation-only54e steps; final54e source is not relabelled as the measured native DLL. Only the explicit54e-driver/541-binary boot combination is claimed.",
+    "Current-head CI/delivery are separate pending gates. This closes the bounded original-characterization correction/evidence review, not EEDCS-49 delivery, host authority/extraction, ordinary shipping, whole D3 or GitHub APPROVED. Task47 running shipping processes/inputs were untouched."
+  ],
+  "next_bounded_gates": "Publish the exact scoped review/proof; finish current-head CI. Preserve known original measurements/gaps. Any subsequent physical host cutover requires its own genuinely NEW source/authority/refusal/default/shipping evidence after preceding Task47 delivery/base verification; remaining spatial/model/environment/time/loader scope is not deferred to D5."
+}

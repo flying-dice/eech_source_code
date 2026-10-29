@@ -1,3 +1,35 @@
+# Current collision checkpoint — correction review closed; host preparation next
+
+Independent correction review is closed with no open findings at native source
+5416adb3b and final driver/helper source54e5ece85. Retained review SHA256:
+92ad84e8764c6a0b4068712a3faf9f82bb7ca4bfbcd46861193bb50776931bff.
+All three original boot probes and five moving/control cases complete0; actual
+query flag effects are reported and restored, repeated reports agree and coarse
+campaign digest pairs match. Coverage gaps and the old failed d5 runs remain.
+
+Final actual-driver checks pass10/10 on both Linux and Windows; Linux format and
+host all-target Clippy pass. Four impossible-flag reports actually pass the old
+driver and fail the corrected one; legitimate added-bit counts pass both. A
+missing Windows host path fails explicitly. Fresh54e driver/unchanged541 native
+boot reports match all previous205 rows byte for byte. All input checks pass;
+the retained runtime remains541, without a relabelled native build or oracle.
+
+No collision responsibility has moved to production. The next bounded Task49
+step captures tree-query inputs, ordered terrain lookups and outputs without
+altering original queries, then prepares a host tree loader/kernel. The source
+tree record is eight bytes (not six); file parsing and bit order require measured
+verification. Entity collision, model geometry and the full tree geometry path
+remain required withinD3. No unsupported tree path may become a completed query.
+Task47 shipping115 is still live; latest23.4MB Tacview/14.6MB observation prefixes
+match accepted bytes, with no full-pack acceptance yet. Production G2/G3 delivery
+and the remaining whole-D3 environment/time/solver/loader work remain required.
+
+Safe evidence and the independent review are under
+eech-campaign/reference/d3-collision-characterization/. Two closed d5 Cargo
+caches were removed after full build-log export, payload and ownership checks;
+all source, binaries, successful/failed raw runs and retail roots are retained.
+The following sections preserve earlier checkpoints with their at-time status.
+
 # Current collision state: source 5416adb3b moving witnesses complete; col-flags feasibility follow-up UNBUILT, UNRUN (working tree over 438940d39)
 
 Actual results (all by Root, none by this edit). Source 5416adb3b: Windows physical build exit0 with 43 entries; three boot probes exit0 with every old d5 199-row value identical (six new

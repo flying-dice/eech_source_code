@@ -1,0 +1,228 @@
+{
+  "started_utc": "2026-10-29T18:56:29.314708+00:00",
+  "old_driver_source": "438940d3905a7cf659225e336596950f5de2bff9",
+  "new_driver_source": "54e5ece8571d824afac35bbb37bc91b5abbef063",
+  "collaborator_source": "54e5ece8571d824afac35bbb37bc91b5abbef063",
+  "host_source": "438940d3905a7cf659225e336596950f5de2bff9",
+  "scope": "Actual real-Lua-driver validation RED/GREEN only, synthetic reports; no C/retail/physical/oracle change",
+  "inputs": {
+    "R:\\d3-evidence\\collision-guard-source-438940d39\\eech-campaign\\target\\collision-driver-tests\\438940d39\\eech-world.exe": "77af935d936a26e4de10795760930e3de1d73c49cacaf27898a9e162c019dab7",
+    "R:\\d3-evidence\\collision-guard-source-438940d39\\eech-campaign\\crates\\eech-world\\lua\\collision-characterization.lua": "98cfef5a82dd2da2d79fdc54993965727adef391cf4f68aaa0ffa0433aba7c59",
+    "R:\\d3-evidence\\collision-guard-source-54e5ece85\\eech-campaign\\crates\\eech-world\\lua\\collision-characterization.lua": "2e5967aecfd9aad96d734e3b8d9cf09ef5eac5b3700fdb91c0f34b560c123c5a",
+    "R:\\d3-evidence\\collision-guard-source-54e5ece85\\eech-campaign\\crates\\eech-world\\tests\\lua\\collision-caller.lua": "f700120300699b3cb38a29f7842fbd4e3362cf0ebf93c1c58edf0e8b2aa4b303"
+  },
+  "results": [
+    {
+      "mode": "flags_bits_without_changed_words",
+      "driver": "old",
+      "argv": [
+        "R:\\d3-evidence\\collision-guard-source-438940d39\\eech-campaign\\target\\collision-driver-tests\\438940d39\\eech-world.exe",
+        "R:\\d3-evidence\\collision-flags-feasibility-red-green-54e5ece85-20261029\\flags_bits_without_changed_words-old\\caller.lua",
+        "root=none",
+        "out=R:/d3-evidence/collision-flags-feasibility-red-green-54e5ece85-20261029/flags_bits_without_changed_words-old/report.jsonl",
+        "entity_cases=40",
+        "tree_cases=40",
+        "seed=20261029",
+        "seconds=0",
+        "after=0",
+        "repeats=1"
+      ],
+      "actual_exit": 0,
+      "expected_pass": true,
+      "valid": true,
+      "raw_sha256": "034ef01c10657f1dd9a3b67ab9ee160a475a37eb3717f317f4492ae241581a3b",
+      "log_sha256": "69c6793e0c88b8279985d6cb13f8c84381ce67087d6fe3055809ee703b9faf0e"
+    },
+    {
+      "mode": "flags_bits_without_changed_words",
+      "driver": "new",
+      "argv": [
+        "R:\\d3-evidence\\collision-guard-source-438940d39\\eech-campaign\\target\\collision-driver-tests\\438940d39\\eech-world.exe",
+        "R:\\d3-evidence\\collision-flags-feasibility-red-green-54e5ece85-20261029\\flags_bits_without_changed_words-new\\caller.lua",
+        "root=none",
+        "out=R:/d3-evidence/collision-flags-feasibility-red-green-54e5ece85-20261029/flags_bits_without_changed_words-new/report.jsonl",
+        "entity_cases=40",
+        "tree_cases=40",
+        "seed=20261029",
+        "seconds=0",
+        "after=0",
+        "repeats=1"
+      ],
+      "actual_exit": 1,
+      "expected_pass": false,
+      "valid": true,
+      "raw_sha256": "c890ff6bd51d3de44d82808e6585e88ad3b38c4be6b22ec214895cd8ec9aa609",
+      "log_sha256": "4302326768913050c523e848c2d391bea15db07fdb1d8c1ee62097b05cad4158"
+    },
+    {
+      "mode": "flags_cleared_over_capacity",
+      "driver": "old",
+      "argv": [
+        "R:\\d3-evidence\\collision-guard-source-438940d39\\eech-campaign\\target\\collision-driver-tests\\438940d39\\eech-world.exe",
+        "R:\\d3-evidence\\collision-flags-feasibility-red-green-54e5ece85-20261029\\flags_cleared_over_capacity-old\\caller.lua",
+        "root=none",
+        "out=R:/d3-evidence/collision-flags-feasibility-red-green-54e5ece85-20261029/flags_cleared_over_capacity-old/report.jsonl",
+        "entity_cases=40",
+        "tree_cases=40",
+        "seed=20261029",
+        "seconds=0",
+        "after=0",
+        "repeats=1"
+      ],
+      "actual_exit": 0,
+      "expected_pass": true,
+      "valid": true,
+      "raw_sha256": "5ee2f99940937f4fb7bff16f41b2f08f198f6f1e48eb2f8614e4486c338ddccb",
+      "log_sha256": "69c6793e0c88b8279985d6cb13f8c84381ce67087d6fe3055809ee703b9faf0e"
+    },
+    {
+      "mode": "flags_cleared_over_capacity",
+      "driver": "new",
+      "argv": [
+        "R:\\d3-evidence\\collision-guard-source-438940d39\\eech-campaign\\target\\collision-driver-tests\\438940d39\\eech-world.exe",
+        "R:\\d3-evidence\\collision-flags-feasibility-red-green-54e5ece85-20261029\\flags_cleared_over_capacity-new\\caller.lua",
+        "root=none",
+        "out=R:/d3-evidence/collision-flags-feasibility-red-green-54e5ece85-20261029/flags_cleared_over_capacity-new/report.jsonl",
+        "entity_cases=40",
+        "tree_cases=40",
+        "seed=20261029",
+        "seconds=0",
+        "after=0",
+        "repeats=1"
+      ],
+      "actual_exit": 1,
+      "expected_pass": false,
+      "valid": true,
+      "raw_sha256": "e887bdaedb0969af1fa96393d4efc0e32b976123801c7b8f26d5aedfb6c8562f",
+      "log_sha256": "f872116742268f6f9ff963beb57e1e121f9ce1d9923cf3f5b4a72146e7727b82"
+    },
+    {
+      "mode": "flags_aggregate_over_capacity",
+      "driver": "old",
+      "argv": [
+        "R:\\d3-evidence\\collision-guard-source-438940d39\\eech-campaign\\target\\collision-driver-tests\\438940d39\\eech-world.exe",
+        "R:\\d3-evidence\\collision-flags-feasibility-red-green-54e5ece85-20261029\\flags_aggregate_over_capacity-old\\caller.lua",
+        "root=none",
+        "out=R:/d3-evidence/collision-flags-feasibility-red-green-54e5ece85-20261029/flags_aggregate_over_capacity-old/report.jsonl",
+        "entity_cases=40",
+        "tree_cases=40",
+        "seed=20261029",
+        "seconds=0",
+        "after=0",
+        "repeats=1"
+      ],
+      "actual_exit": 0,
+      "expected_pass": true,
+      "valid": true,
+      "raw_sha256": "3ffd2deb6d682287e15571f4cd4b8273450945567abd29a455ff7622042cee63",
+      "log_sha256": "69c6793e0c88b8279985d6cb13f8c84381ce67087d6fe3055809ee703b9faf0e"
+    },
+    {
+      "mode": "flags_aggregate_over_capacity",
+      "driver": "new",
+      "argv": [
+        "R:\\d3-evidence\\collision-guard-source-438940d39\\eech-campaign\\target\\collision-driver-tests\\438940d39\\eech-world.exe",
+        "R:\\d3-evidence\\collision-flags-feasibility-red-green-54e5ece85-20261029\\flags_aggregate_over_capacity-new\\caller.lua",
+        "root=none",
+        "out=R:/d3-evidence/collision-flags-feasibility-red-green-54e5ece85-20261029/flags_aggregate_over_capacity-new/report.jsonl",
+        "entity_cases=40",
+        "tree_cases=40",
+        "seed=20261029",
+        "seconds=0",
+        "after=0",
+        "repeats=1"
+      ],
+      "actual_exit": 1,
+      "expected_pass": false,
+      "valid": true,
+      "raw_sha256": "4a001ed0b2b0eb7e967d900efae50adb07b6f25625cea4297ef90eec3393ae0c",
+      "log_sha256": "576e304f0f10425920e9a24945effd59264f76e68c123ff20a5506b364a350c7"
+    },
+    {
+      "mode": "flags_array_lacks_bits",
+      "driver": "old",
+      "argv": [
+        "R:\\d3-evidence\\collision-guard-source-438940d39\\eech-campaign\\target\\collision-driver-tests\\438940d39\\eech-world.exe",
+        "R:\\d3-evidence\\collision-flags-feasibility-red-green-54e5ece85-20261029\\flags_array_lacks_bits-old\\caller.lua",
+        "root=none",
+        "out=R:/d3-evidence/collision-flags-feasibility-red-green-54e5ece85-20261029/flags_array_lacks_bits-old/report.jsonl",
+        "entity_cases=40",
+        "tree_cases=40",
+        "seed=20261029",
+        "seconds=0",
+        "after=0",
+        "repeats=1"
+      ],
+      "actual_exit": 0,
+      "expected_pass": true,
+      "valid": true,
+      "raw_sha256": "98dff8fb1f9a4582fa9c4295301b3f732546f04a812360f1a505665a2983fee2",
+      "log_sha256": "69c6793e0c88b8279985d6cb13f8c84381ce67087d6fe3055809ee703b9faf0e"
+    },
+    {
+      "mode": "flags_array_lacks_bits",
+      "driver": "new",
+      "argv": [
+        "R:\\d3-evidence\\collision-guard-source-438940d39\\eech-campaign\\target\\collision-driver-tests\\438940d39\\eech-world.exe",
+        "R:\\d3-evidence\\collision-flags-feasibility-red-green-54e5ece85-20261029\\flags_array_lacks_bits-new\\caller.lua",
+        "root=none",
+        "out=R:/d3-evidence/collision-flags-feasibility-red-green-54e5ece85-20261029/flags_array_lacks_bits-new/report.jsonl",
+        "entity_cases=40",
+        "tree_cases=40",
+        "seed=20261029",
+        "seconds=0",
+        "after=0",
+        "repeats=1"
+      ],
+      "actual_exit": 1,
+      "expected_pass": false,
+      "valid": true,
+      "raw_sha256": "d0efcd2a2786716f608224445f136c272dbf295213288cfbf3fb5d948dc79ac1",
+      "log_sha256": "1877520fd6efadaf6fe239a0484e6ab2ca75e39487015017e6dc24d2ff2857df"
+    },
+    {
+      "mode": "flags_added_bits_legitimate",
+      "driver": "old",
+      "argv": [
+        "R:\\d3-evidence\\collision-guard-source-438940d39\\eech-campaign\\target\\collision-driver-tests\\438940d39\\eech-world.exe",
+        "R:\\d3-evidence\\collision-flags-feasibility-red-green-54e5ece85-20261029\\flags_added_bits_legitimate-old\\caller.lua",
+        "root=none",
+        "out=R:/d3-evidence/collision-flags-feasibility-red-green-54e5ece85-20261029/flags_added_bits_legitimate-old/report.jsonl",
+        "entity_cases=40",
+        "tree_cases=40",
+        "seed=20261029",
+        "seconds=0",
+        "after=0",
+        "repeats=1"
+      ],
+      "actual_exit": 0,
+      "expected_pass": true,
+      "valid": true,
+      "raw_sha256": "1a403f9b2e87c96c6166cd6fd03077f1c6088709cbe64e18cf930f04c9fda932",
+      "log_sha256": "69c6793e0c88b8279985d6cb13f8c84381ce67087d6fe3055809ee703b9faf0e"
+    },
+    {
+      "mode": "flags_added_bits_legitimate",
+      "driver": "new",
+      "argv": [
+        "R:\\d3-evidence\\collision-guard-source-438940d39\\eech-campaign\\target\\collision-driver-tests\\438940d39\\eech-world.exe",
+        "R:\\d3-evidence\\collision-flags-feasibility-red-green-54e5ece85-20261029\\flags_added_bits_legitimate-new\\caller.lua",
+        "root=none",
+        "out=R:/d3-evidence/collision-flags-feasibility-red-green-54e5ece85-20261029/flags_added_bits_legitimate-new/report.jsonl",
+        "entity_cases=40",
+        "tree_cases=40",
+        "seed=20261029",
+        "seconds=0",
+        "after=0",
+        "repeats=1"
+      ],
+      "actual_exit": 0,
+      "expected_pass": true,
+      "valid": true,
+      "raw_sha256": "1a403f9b2e87c96c6166cd6fd03077f1c6088709cbe64e18cf930f04c9fda932",
+      "log_sha256": "69c6793e0c88b8279985d6cb13f8c84381ce67087d6fe3055809ee703b9faf0e"
+    }
+  ],
+  "actual_exit": 0,
+  "completed_utc": "2026-10-29T18:56:29.890469+00:00"
+}
