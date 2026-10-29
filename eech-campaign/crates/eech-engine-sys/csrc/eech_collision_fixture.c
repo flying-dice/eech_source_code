@@ -1986,7 +1986,6 @@ static void trace_build_facts (struct col_probe *p)
 	{
 		emit (o, "tf-witness label=controlled_forest_geometry source=fixture_owned_mesh mesh_points=%d mesh_faces=%d mesh_surfaces=%d mesh_triangles=%d mesh_fold=%016llx\n",
 			WITNESS_POINTS, WITNESS_FACES, WITNESS_SURFACES, WITNESS_TRIANGLES, (unsigned long long) witness.mesh_fold);
-		trace_witness = 1;
 	}
 
 	/* the first live tree records of the first sector that has any, as raw bytes */
@@ -2312,6 +2311,9 @@ static int probe_run_body (uint32_t seed, int entity_cases, int tree_cases, char
 		trace_facts[0] = '\0';
 		trace_build_facts (p);
 		trace_reset_records ();
+		/* The representation of the records now held is set from THIS probe's mode, after the records are cleared (trace_reset_records does not touch it, and it is cleared only
+		 * here and by arming): a controlled probe's pages carry the geometry fields, and a default probe after it, on the same arming, writes the old bytes again. */
+		trace_witness = witness_active;
 	}
 
 	memcpy (&snapshot, p->record, sizeof (snapshot));

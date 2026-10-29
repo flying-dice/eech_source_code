@@ -4559,8 +4559,21 @@ impl Engine {
     /// covers sector-list entities' type, flags, position, mobile motion and the raw updated bit, not city buildings or identities) is compared before and after, the second time after the
     /// update-flag arrays (which the original moving collision itself clears) were copied back from the copy taken first; the original queries' effect on them is reported as legacy diagnostics. A request out of range, or one the engine refuses (a precondition not held, a report that does not fit), fails; a refusal keeps
     /// the engine's reason (`col-refused reason=...`).
+    ///
+    /// A probe that was entered consumes any arming of the controlled geometry witness (`collision_geometry_arm`) whatever happens to it: a refusal here, before the engine is
+    /// called, clears the arming exactly as the engine's own refusals and a completed probe do, so the next probe is never unexpectedly controlled.
     #[cfg(feature = "collision-fixture")]
     pub fn collision_probe(&self, seed: u32, entity_cases: i32, tree_cases: i32) -> Result<String, EngineError> {
+        let result = self.collision_probe_entered(seed, entity_cases, tree_cases);
+        if result.is_err() {
+            // idempotent; its own failure (an engine that is not running) leaves nothing armed that this could clear
+            let _ = self.collision_geometry_arm(false);
+        }
+        result
+    }
+
+    #[cfg(feature = "collision-fixture")]
+    fn collision_probe_entered(&self, seed: u32, entity_cases: i32, tree_cases: i32) -> Result<String, EngineError> {
         if !(0..=COLLISION_PROBE_CASES_MAX).contains(&entity_cases) || !(0..=COLLISION_PROBE_CASES_MAX).contains(&tree_cases) {
             return Err(EngineError::BadArgument(format!(
                 "collision_probe: entity_cases and tree_cases must each be 0 to {COLLISION_PROBE_CASES_MAX}, got {entity_cases} and {tree_cases}"

@@ -1,3 +1,55 @@
+# Original forest-geometry witness — 537c36faf measured (physical, default and host agree); three REAL state-contract defects found; corrections PREPARED, UNBUILT, UNRUN (EEDCS-49, D3)
+
+## Measured on frozen source `537c36faf` (Root; preserved, not repeated or rewritten here)
+
+Source tree `tree-geometry-original-source-537c36faf`. The ordinary wrapper's Windows fixture, driver and tree tests build 71228 exit 0 with all 49 exports verified. Linux 58033: format, all 18 collision driver
+guards and host all-target Clippy 0. Windows 32952: all 18 guards 0, plus the missing-host override control refused with 101 as it must; all 5 test-export hashes unchanged. Native 45228: controller 1 for the
+three boundary failures below, NOT for a physical answer. Every pre/post input manifest passed and all 49 payloads are unchanged. Summary
+`R:/d3-evidence/tree-geometry-original-537c36faf-first-measurements.json`; immutable raw `R:/d3-evidence/tree-geometry-original-537c36faf-native-20261029`.
+
+* All 3 default 206-row reports and the complete original transcripts are BYTE IDENTICAL to the reviewed f3 ones (witness off changes nothing).
+* The controlled ORIGINAL decoder produced 6 triangles; all restoration flags 1; all four flag combinations, geometry hits, hits at depth above 0, misses, partial writes and exhausted walks were observed; geometry
+  coverage gaps `none`.
+* Georgia 4802 queries / 9598 ordered lookups and each Lebanon 5126 / 10148 match EVERY output bit through BOTH the actual Windows library and the real-host Lua replay. The host tree C, library and Lua API are
+  UNCHANGED. This is new characterization of the ORIGINAL geometry branch and decoder plus agreement of the existing host kernel on it; it is not the model-loader extraction and not production delivery. The new
+  witness itself is unreviewed and not accepted; the old 8c452f197 component review remains closed.
+
+## The three real RED controls (each exit 1; preserved unchanged, to be re-run GREEN)
+
+Real public host-Lua to native C witnesses, byte-copied into the repository with the same contents and SHA-256:
+`tests/lua/tree-geometry-one-shot-control.lua` (614efb209ed37da6e432189fa58227d8164b45d25d89d62f62f936ce18297c15), `tests/lua/tree-geometry-refused-probe-control.lua`
+(ef470bd924110fb81a8fcce1c4190845fefb53af94791ecd7b4bdb7e8ab2f895), `tests/lua/tree-geometry-conversion-refused-control.lua` (b3a13b108b22b18c138aea10b0a5cab14afdd9bb51158d1b7d0aebd0966217c0).
+Their originals under `R:/d3-evidence/` and their saved outputs are not rewritten.
+
+1. DEFAULT then CONTROLLED then DEFAULT on ONE trace arming: the default report and facts came back byte identical, but the next default record pages kept `g_calls g_true g_last g_depth`. Cause:
+   `trace_witness` (how the held records are written) was set to 1 while the facts were built for a controlled probe and cleared only by `collision_trace_arm`, never per probe.
+2. `collision_geometry_arm(true)` then `collision_probe(20261029, -1, 5)`: the range refusal happened in `Engine::collision_probe` before any C, so the arming survived and the next valid probe was controlled.
+3. `collision_geometry_arm(true)` then `collision_probe("not-a-seed", 5, 5)`: the typed tuple conversion refused before the Lua method body ran, so the arming survived likewise.
+
+## The corrections (source only; no mesh, vertex, original math, call order, baseline, tolerance or host-kernel change)
+
+* State representation (1): in `probe_run_body`, `trace_witness = witness_active` is set immediately AFTER `trace_reset_records()` (which does not touch it) in the same `if (trace_armed)` block that rebuilds the facts, and the
+  assignment inside `trace_build_facts` is removed. The flag therefore always describes the records held: a controlled probe's pages carry the geometry fields; a default probe on the same arming writes the old
+  bytes again; arming still clears it. A probe that does not touch the transcript leaves records and flag together.
+* One-shot at every entered refusal (2 and 3), at each layer, with no ambient/session framework:
+  * C engine entry `eech_engine_collision_probe`: the `ENGINE_RUNNING` check and the argument check now call `eech_collision_geometry_arm_run(0)` before refusing (byte-safe edit; the file's single NUL byte preserved).
+  * `Engine::collision_probe` (Rust): the body moved to `collision_probe_entered`; ANY `Err` (the range refusal before C, the engine's refusals, the report refusals) clears the arming with `collision_geometry_arm(false)`
+    (idempotent; its own failure is ignored because an engine that is not running cannot be armed).
+  * Lua method `collision_probe` (eech-dc): it now takes the raw argument list (`mlua::MultiValue`) and converts it INSIDE the method with `FromLuaMulti` into the same `(u32, i32, i32)`, the same scalar conversions and
+    coercions the typed signature used; any error (conversion, engine) clears the arming and the original error is returned unchanged. The error TEXT of a conversion refusal can differ in its argument-position prefix from the
+    typed signature's, since mlua adds that prefix only for typed arguments; the refusal itself and the engine's reasons are unchanged. No `RefCell` or other borrow is held across the conversion, which can run Lua metamethods.
+  A completed probe still consumes the arming in C; a successful probe never clears anything extra.
+* No new test double: the three real scripts above are the boundary tests (a mock would only prove its own setup). The 18 portable driver guards and the 3 argument refusals are unchanged.
+
+## Root: expected next steps (NOT RUN)
+
+Freeze the corrected source; rebuild the Windows fixture, driver and tree tests and Linux format/Clippy; re-run the three EXACT script bytes natively against the fresh binaries (expect `TREE_GEOMETRY_ONE_SHOT_OK` and
+`TREE_GEOMETRY_REFUSAL_CONSUMES_ARM_OK` twice, exit 0, with the saved before/controlled/after sidecars: default before == default after; controlled with the witness fields; refused-probe and conversion-refused next probe
+equal to the earlier default); re-run the default passivity (206-row reports and transcripts still byte identical to f3), the controlled capture and the Georgia/Lebanon library and Lua replays; then ONE independent review of
+this witness before the required model-loader extraction. Full D3 remains incomplete: model loader, entity collision, G1 integration, production authority, the DCS mapping, shipping. Shipping115 is untouched.
+
+---
+
 # Original forest-tree GEOMETRY witness — source PREPARED, UNBUILT, UNRUN, unreviewed (EEDCS-49, D3 characterization before the model-loading extraction)
 
 This completes the partial checkpoint 5154bc7e7 (the feature-only observation hook in `en_cllsn.c`) into a bounded, controlled witness of the ORIGINAL forest-tree geometry branch and the ORIGINAL

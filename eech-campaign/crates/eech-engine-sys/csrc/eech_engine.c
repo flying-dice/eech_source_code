@@ -1551,16 +1551,20 @@ int eech_engine_wpn_case_launch (const char *launcher_id, const char *target_id,
  * A request the probe refuses (a precondition) or whose report does not fit writes `col-refused reason=...` and is a bad argument.
  */
 extern int eech_collision_probe_run (uint32_t seed, int entity_cases, int tree_cases, char *text, int capacity);
+extern int eech_collision_geometry_arm_run (int on);
 
 int eech_engine_collision_probe (uint32_t seed, int entity_cases, int tree_cases, char *text, int capacity)
 {
 	ENTER (OPERATION_OBSERVE, NULL);
 	if (state != ENGINE_RUNNING)
 	{
+		/* a probe that was entered consumes any arming of the controlled geometry witness, whatever refuses it */
+		(void) eech_collision_geometry_arm_run (0);
 		LEAVE (EECH_ENGINE_STATE);
 	}
 	if (!text || (capacity <= 0) || (entity_cases < 0) || (entity_cases > 20000) || (tree_cases < 0) || (tree_cases > 20000))
 	{
+		(void) eech_collision_geometry_arm_run (0);
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
 	if (eech_collision_probe_run (seed, entity_cases, tree_cases, text, capacity) != 0)
