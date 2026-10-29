@@ -472,6 +472,20 @@ static void point_case (struct probe *p, int n, int tag, vec3d point)
 			n, tag, float_bits (point.x), float_bits (point.y), float_bits (point.z), inside, above, above_view.touched, below, below_view.touched,
 			above_view.elevation_bits, above_view.type, below_view.elevation_bits, below_view.type);
 	}
+	/* DIAGNOSTIC (private point-trace fork, EEDCS-48): one fixed case, observed AFTER every query, fold, counter and sample of the case. Read-only: it uses only the
+	   locals above and the bit helpers, asks the terrain nothing, writes no record and no report, and prints bit patterns (no float formatting) to stderr only. */
+	if (n == 14)
+	{
+		fprintf (stderr,
+			"ground-trace-case n=%d tag=%d inside=%d before=%08x,%08x,%08x after=%08x,%08x,%08x above=%d above_again=%d below=%d below_again=%d "
+			"above_elev=%08x above_type=%d above_touched=%d below_elev=%08x below_type=%d below_touched=%d "
+			"phys_above=%016llx phys_below=%016llx phys_combined=%016llx\n",
+			n, tag, inside, float_bits (before.x), float_bits (before.y), float_bits (before.z), float_bits (point.x), float_bits (point.y), float_bits (point.z), above,
+			above_again, below, below_again, above_view.elevation_bits, above_view.type, above_view.touched, below_view.elevation_bits, below_view.type,
+			below_view.touched, (unsigned long long) p->hashes.phys_above, (unsigned long long) p->hashes.phys_below, (unsigned long long) p->hashes.phys_combined);
+		fflush (stderr);
+	}
+
 }
 
 /* ---------------------------------------------------------------------------------------------------------------------------- */
