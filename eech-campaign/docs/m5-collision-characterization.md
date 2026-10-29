@@ -1,3 +1,12 @@
+Native checkpoint at clean d5ca5ee5b: Windows fixture build0/all43 exports verified;
+three seconds0 probes on fresh verified roots native0/pre/post0,199 strict rows each,
+repeat/restoration/RNG/candidate-state checks pass and separate Lebanon raw bytes
+match. Moving/terrain-aligned/geometry-tree coverage gaps remain explicit. Five
+120s+30s probe/control/repeat runs are LIVE; final results and combined review pending.
+No Tacview/all-state/physical-extraction or shipping acceptance is inferred.
+See reference/d3-collision-characterization/original-smokes-d5ca5ee5b.json.
+The following is the earlier preparation/guard history.
+
 Current execution checkpoint: eight actual Linux driver guard tests, formatting
 and host all-target Clippy pass0; these use the stand-in and prove no physical
 query. Tested hashes/exact log are in reference/d3-collision-characterization/.
