@@ -1,0 +1,98 @@
+{
+  "observed_utc": "2026-10-29T00:07:58.425673+00:00",
+  "head": "6220bd5d92a3318c1f358d005bc57c098e651007",
+  "base": "3b91ca34730a88e944700af1d0b7d777e071c73e",
+  "all9_success": true,
+  "checks": [
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-29T00:07:27Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/flying-dice/eech_source_code/actions/runs/40791221896/job/123176628795",
+      "name": "test (x86_64-unknown-linux-gnu)",
+      "startedAt": "2026-10-29T00:00:57Z",
+      "status": "COMPLETED",
+      "workflowName": "eech-campaign"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-29T00:03:23Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/flying-dice/eech_source_code/actions/runs/40791221870/job/123176628855",
+      "name": "verify",
+      "startedAt": "2026-10-29T00:00:57Z",
+      "status": "COMPLETED",
+      "workflowName": "eech-core-ts"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-29T00:01:26Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/flying-dice/eech_source_code/actions/runs/40791222206/job/123176628823",
+      "name": "Slice 1a historical equivalence",
+      "startedAt": "2026-10-29T00:00:57Z",
+      "status": "COMPLETED",
+      "workflowName": "eech-loss-structural"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-29T00:04:48Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/flying-dice/eech_source_code/actions/runs/40791221896/job/123176629017",
+      "name": "test (i686-unknown-linux-gnu)",
+      "startedAt": "2026-10-29T00:00:57Z",
+      "status": "COMPLETED",
+      "workflowName": "eech-campaign"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-29T00:04:37Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/flying-dice/eech_source_code/actions/runs/40791221896/job/123176628877",
+      "name": "test (i686-unknown-linux-gnu, EECH_ORIGINAL_STACK_ATTRIBUTES=1)",
+      "startedAt": "2026-10-29T00:00:57Z",
+      "status": "COMPLETED",
+      "workflowName": "eech-campaign"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-29T00:05:01Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/flying-dice/eech_source_code/actions/runs/40791221896/job/123176628826",
+      "name": "test (x86_64-unknown-linux-gnu, EECH_C_OPT=2)",
+      "startedAt": "2026-10-29T00:00:57Z",
+      "status": "COMPLETED",
+      "workflowName": "eech-campaign"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-29T00:01:15Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/flying-dice/eech_source_code/actions/runs/40791221896/job/123176628798",
+      "name": "evidence-selftest",
+      "startedAt": "2026-10-29T00:00:57Z",
+      "status": "COMPLETED",
+      "workflowName": "eech-campaign"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-29T00:02:29Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/flying-dice/eech_source_code/actions/runs/40791221896/job/123176628809",
+      "name": "dcs-probe-tools",
+      "startedAt": "2026-10-29T00:00:57Z",
+      "status": "COMPLETED",
+      "workflowName": "eech-campaign"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-29T00:05:12Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/flying-dice/eech_source_code/actions/runs/40791221896/job/123176628687",
+      "name": "windows-cross",
+      "startedAt": "2026-10-29T00:00:57Z",
+      "status": "COMPLETED",
+      "workflowName": "eech-campaign"
+    }
+  ]
+}
