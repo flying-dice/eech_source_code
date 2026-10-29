@@ -29,11 +29,12 @@ Lua5.1 driver tests now11PASS, affected Clippy0, formatting/check0, Lua parses0 
 diffcheck0. Independent encoder-delta and healthy-measurement reuse review passed with no findings.
 Original C/case/hash expressions are unchanged by that encoder repair.
 
-The separate original probe/no-probe control runs from immutable c119 on two
-verified roots:300s before,60s after,100ms frames. Controllers10879/94227 and actual
-native PIDs22292/13944 were confirmed live. Keep them and their roots untouched;
-actual exits, final strict parsing/digest comparison and post-inputs are pending.
-The control digest is coarse, not a full Tacview or all-state proof.
+The separate original probe/no-probe controls both completed native0 after3,600
+frames (300s before/60s after at100ms). Probe117/control3 strict JSON rows pass;
+objects1,726/alive1,712/digest2c4dce1c/elapsed359.96115112305 match except the intended
+probedflag. Repeated probe/restoration checks and both post-input manifests pass0.
+The digest is coarse, not a full Tacview or all-state proof. Raw bytes/exits/hashes
+and completed control evidence are retained in the reference folder.
 
 Task47 surface queries are implemented/reviewed separately at pushedf03a680c9,
 all9 hostedCI green. Its frozen runtime06d425578 ordinary shipping pack remains
@@ -41,11 +42,16 @@ RUNNING on four roots. Latest checked prefixes: both15,085,218-byte Tacview and
 both9,359,360-byte observations equal accepted bytes. Complete40/eight-file and
 post-input gates, final review/currentCI/normal delivery remain pending.
 
-Next: collect the existing control processes to
-actual completion, verify evidence and record original behavior/limits. Do not
-cut over G2 production before Task47 delivery and integration verification. Then
-perform the host extraction, actual authority/refusal proof, unchanged shipping
-pack/full comparisons and normal review/merge/Jira/ledger delivery. Whole D3 scope
+Next: complete the TEST-ONLY G1-compatible fixture composition in private
+R:/d3-evidence/ground-g1-compose (G1f03 plus Task48d44, merge pending). The sole
+Sonnet5.5High lane resolves the two real conflicts and adapts legacy record
+observations to G1semantic record diagnostics while keeping physical cases/folds
+unchanged. This source is not yet built, reviewed or accepted. Main Task48 and
+Task47 worktrees, original oracles and the shipping pack remain untouched.
+G2productioncutover still waits Task47 delivery and integration verification;
+then actual host extraction/authority/refusal, shipping pack/full comparisons and
+normal delivery remain required.
+Whole D3 scope
 is not reduced to Task47/48. Same-host checkpoint: R:/d3-evidence/D3-NEXT-ACTION.json.
 
 Preserve raw successes/failures and tested snapshots/binaries. Two closed a14/06

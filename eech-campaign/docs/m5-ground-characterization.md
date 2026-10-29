@@ -362,3 +362,24 @@ this new encoder delta and reuse of the healthy c119 measurements remain pending
 The separate300s-before/60s-after original probe/no-probe control is running from
 immutable c119 source on two unused verified roots; its coarse digest is not a
 full recording comparison. All Task48 production/shipping delivery gates remain.
+
+### Original probe/control completed — 29 October 2026
+
+Both immutable c119 control processes terminated0. Probe:117 strict JSON rows;
+control:3 strict rows with no ground measurements. At3,600 frames (300s before and
+60s after at100ms), elapsed359.96115112305, both report1,726 objects/1,712 alive and
+digest2c4dce1c; all digest fields match except the intentionally different probed
+flag. Both post-input manifests pass0. The probe's two reports match and both
+restoration records report identical before/after words. This is a coarse
+identity/kind/side/alive witness, not proof of all campaign state or full recordings.
+Raw files, actual process exits, hashes and limitations are retained.
+
+Next preparation is a private TEST-ONLY composition against frozen, unaccepted
+G1source f03a680c9. A separate no-hardlink/no-alternate checkout at
+R:/d3-evidence/ground-g1-compose merges Task48d44a19612 into that source. The sole
+Sonnet5.5High lane is resolving its actual two conflicts and adapting the fixture
+for G1's semantic terrain record. No G2productioncutover, new hostAPI or integration
+merge occurs. Original c119 physical folds/cases and raw oracles remain unchanged;
+legacy bookkeeping stays original-only and semantic cache diagnostics will be
+separate. This necessary comparison preparation progresses while Task47's frozen
+full shipping pack runs. It is unbuilt/unreviewed until actual gates complete.
