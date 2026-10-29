@@ -1997,6 +1997,24 @@ const COLLISION_CASE_CALLER_SCRIPT: &str = include_str!("lua/collision-caller.lu
 // needs no source path, and there is no second implementation of the driver's validation to drift from the real one.
 const COLLISION_DRIVER_SCRIPT: &str = include_str!("../lua/collision-characterization.lua");
 
+// The host executable the collision driver tests start. Cargo bakes the path of its own build of eech-world into the test at compile time (CARGO_BIN_EXE_eech-world), which is the build
+// machine's path: a test executable cross-built on Linux and run on Windows would try to start a Linux path. EECH_WORLD_BIN, when set, names the executable to start instead, read at run
+// time as an OsString path (spaces are fine). A set value that is not an existing file FAILS the test with a clear message; it never falls back, skips or passes. Unset, the ordinary cargo
+// path is used. Only the collision driver tests use it.
+fn collision_host_exe() -> std::path::PathBuf {
+    match std::env::var_os("EECH_WORLD_BIN") {
+        Some(path) => {
+            let path = std::path::PathBuf::from(path);
+            assert!(
+                path.is_file(),
+                "EECH_WORLD_BIN is set to {path:?}, which is not an existing file: the collision driver tests will not fall back to the compiled-in cargo path"
+            );
+            path
+        }
+        None => std::path::PathBuf::from(env!("CARGO_BIN_EXE_eech-world")),
+    }
+}
+
 fn run_collision_case(mode: &str, extra: &[&str]) -> (std::process::ExitStatus, String, String, String, Vec<serde_json::Value>) {
     static COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
     let tag = format!("{}-{}", std::process::id(), COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst));
@@ -2012,7 +2030,7 @@ fn run_collision_case(mode: &str, extra: &[&str]) -> (std::process::ExitStatus, 
         .replace("@DRIVER@", &driver.display().to_string().replace('\u{5c}', "/"));
     std::fs::write(&script, text).unwrap();
     std::fs::write(&driver, COLLISION_DRIVER_SCRIPT).unwrap();
-    let mut command = Command::new(env!("CARGO_BIN_EXE_eech-world"));
+    let mut command = Command::new(collision_host_exe());
     command
         .arg(&script)
         .arg("root=none")

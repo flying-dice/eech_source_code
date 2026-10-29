@@ -1,3 +1,19 @@
+# Collision driver Windows setup defect and host-path override — follow-up UNBUILT, UNRUN (working tree over d16c08bec)
+
+Actual results to date. Source 5416adb3b: Windows physical build exit0 with 43 entries; three native boot probes exit0 with 205 rows each, every old d5 199-row value matching (the six new
+diagnostic rows are separate); Lebanon raw reports identical; all pre/post checks0. Its moving 120s+30s probes/control/repeat (tool68773, controller13108) are LIVE and not accepted.
+Source d16c08bec: Linux 9/9 driver tests, format and all-target Clippy PASS (exit0). Its Windows driver guard binary built (exit0; the three exported entries match before and after), but the
+actual Windows run is TERMINAL exit101 with 0/9 passed: every test failed identically with OS error 3 at the command.output unwrap in run_collision_case. Cause: the helper still started
+Command::new(env!("CARGO_BIN_EXE_eech-world")), the Linux build path baked in at compile time; the earlier include_str driver embedding removed the source-path dependence but not the executable-path
+one. No driver or physical test passed on Windows, no baseline changed; the failed log and completion are preserved.
+
+Follow-up (test helper only; production, fixture C, driver validation, generation, folds, order, masks and restoration untouched): run_collision_case now starts collision_host_exe(). The runtime
+override is EECH_WORLD_BIN (the name the ground handoff tests already use): when set it names the eech-world executable to start, read as an OsString/PathBuf so spaces work; a set value that is not an existing
+file FAILS the test with a clear message (no fallback, skip or pass); unset, the ordinary cargo path is used. Only the collision driver tests use it; the other old host_callbacks tests are not touched.
+The 73 malformed-report controls and the strict-JSON retention assertions are unchanged. This change is UNBUILT and UNRUN until Root exports the matching same-source eech-world.exe beside the test and lua.dll,
+sets the override for that single native process and runs all 9 on Windows. One combined new-delta independent review is pending. No collision query is extracted; whole D3 stays active; Task47
+shipping tool59652 is untouched; no D4 or D5.
+
 # Current collision checkpoint — corrected native boot reports match retained original values
 
 The clean Windows fixture at 5416adb3b built successfully (actual exit 0), with all

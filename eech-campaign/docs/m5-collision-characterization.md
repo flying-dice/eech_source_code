@@ -1,3 +1,8 @@
+Windows guard result for d16c08bec (actual): 0/9 passed, every test failed with OS error 3 starting the host, because the test helper still used the compiled-in Linux CARGO_BIN_EXE path;
+Linux d16 passed 9/9 with format and Clippy. A helper-only follow-up adds the runtime override EECH_WORLD_BIN (an existing file, else a clear failure; unset falls back to the cargo path) for the
+collision driver tests only. It is UNBUILT/UNRUN until Root runs all 9 on Windows with the matching same-source eech-world.exe. Source 5416adb3b physical build and three boot probes passed
+(205 rows, old 199 d5 row values matching, six new diagnostic rows separate); its moving probes are LIVE, not accepted. Review pending; whole D3 active.
+
 Linux result for source 5416adb3b (actual, terminal, exit 101): format passed, 8 driver tests passed, 1 failed, Clippy not run. The failure was a stale test expectation
 (common_cases_wrong expected 72; the validator and stand-in correctly give 44), not a physical regression. A follow-up corrects that and the second stale one (census_paths_wrong: 16, not 17)
 after re-deriving all 73 negative expectations; it is test source only and UNRUN until Root executes it. The Windows physical build of 5416adb3b is LIVE, not passed. The old d5 failed
