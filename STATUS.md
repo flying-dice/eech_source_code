@@ -1,3 +1,31 @@
+# D3 checkpoint — real retail geometry measured; diagnostic correction active
+
+Task50 / draft PR110 publishes original source366 measurements and the combined
+review at `2d94dc7ab`. On all three verified roots, six real models yield208
+original TRUE triangles, six end FALSE calls and one absence FALSE. Four selected
+unsupported models are explicitly refused without original calls. All selected
+geometry bits/events match across roots; full raw files retain distinct state
+hashes. Every input, payload and before/after state/clock check passes. The strict
+read-only audit and independent review validate reuse of these original rows.
+
+The combined review has exactly one P2: the Lua diagnostic driver can accept
+incomplete or misidentified responses. Two actual real-DLL/old-driver controls
+reproduce missing-triangle and duplicate-catalogue-ID false success. The sole
+Sonnet5.5High context20f8 is correcting this bounded contract (tool94801,
+PID19040 born22:57:03UTC); no second implementation lane is active. Its moving
+source is unbuilt/unrun/unreviewed. Next: actual guards and unchanged native
+corruption controls against the corrected driver, focused changed-source review,
+then actual host collision-model loading/geometry extraction.
+
+Jira10863 and ledger14548994v68 record the measurements and open correction;
+all prior HTML and all five epic reports read back exactly. Task47 shipping115
+remains live in the original six processes; checked59MB Tacview/41MB observation
+prefixes match only. Full40/eight complete artifacts/post-input acceptance and
+normal delivery are pending. No new physical responsibility has moved. Active
+custom/mixed-layout model gaps, required hierarchy/viewpoint/device/muzzle/
+target-point, entity collision, environment, host-time and native physical solver/
+loader removal remain D3 work. D3 is In Progress; D4/D5 have not started.
+
 # D3 checkpoint — model fixture built; three retail catalogues measured
 
 EEDCS-50 / draft PR110, measured source `366622e0c08b2caaa5a5317f5197c0ee3d7050e9`.
