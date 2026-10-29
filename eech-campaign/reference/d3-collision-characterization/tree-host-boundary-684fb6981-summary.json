@@ -1,0 +1,200 @@
+{
+  "source": "684fb69817fb8e075415e817594c52e2bcac808c",
+  "scope": "Host preparation focused evidence; not production/Task49/D3 acceptance",
+  "windows_build_actual_exit": 0,
+  "verified_exports": 8,
+  "exports_unchanged": true,
+  "build_info_sha256": "6982dee2ebf3b53a3d57168a7684463046f44faf3a64e51f7d14782b07cbaae4",
+  "windows": {
+    "unit_passed": 17,
+    "unit_exit": 0,
+    "real_host_lua_transport_exit": 0,
+    "native_controller_exit": 0
+  },
+  "linux": {
+    "unit_passed": 17,
+    "real_host_lua_transport_passed": 1,
+    "format_exit": 0,
+    "invocation_exit": 101,
+    "clippy": "FAILED with3lints: chunks_exact_to_as_chunks, err_expect, type_complexity; cleanups not yet measured"
+  },
+  "cases": [
+    {
+      "case": "georgia",
+      "expected_queries": 554,
+      "expected_lookups": 1102,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "original_transcript_sha256": "0647eea11e9c87777ce47183c905ae47011ebce9da10ce7d2a8cc87b0e180adc",
+      "library_actual_exit": 0,
+      "lua_actual_exit": 0,
+      "exact_complete_replay": true,
+      "library_original_bits_in_default_up_down_zero": "EXACT; caller state including nonzero flags restored",
+      "host_lua_original_bits": "EXACT"
+    },
+    {
+      "case": "lebanon",
+      "expected_queries": 600,
+      "expected_lookups": 1120,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "original_transcript_sha256": "af14a4dd071fb8233637aa001a046710434e8d41bc838b2d1cf906466a074d00",
+      "library_actual_exit": 0,
+      "lua_actual_exit": 0,
+      "exact_complete_replay": true,
+      "library_original_bits_in_default_up_down_zero": "EXACT; caller state including nonzero flags restored",
+      "host_lua_original_bits": "EXACT"
+    },
+    {
+      "case": "lebanon-repeat",
+      "expected_queries": 600,
+      "expected_lookups": 1120,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "original_transcript_sha256": "af14a4dd071fb8233637aa001a046710434e8d41bc838b2d1cf906466a074d00",
+      "library_actual_exit": 0,
+      "lua_actual_exit": 0,
+      "exact_complete_replay": true,
+      "library_original_bits_in_default_up_down_zero": "EXACT; caller state including nonzero flags restored",
+      "host_lua_original_bits": "EXACT"
+    }
+  ],
+  "protocol_old_new": {
+    "actual_exit": 0,
+    "passed": 6,
+    "script_sha256": "fa77370fbd1cfd20fe1bf43378474b775deea189a85978813be6e361fae149de",
+    "defects_fixed": [
+      "sparse geometry",
+      "holey geometry",
+      "stale pending after ordinary bad begin",
+      "stale pending after bad terrain"
+    ],
+    "valid_controls_unchanged": [
+      "dense geometry",
+      "healthy pending"
+    ]
+  },
+  "remaining_reentry": {
+    "status": "PENDING-query P2 not fully closed",
+    "script_sha256": "2bb59f7553686b0edc9a3d253d6c7b05866effc04e8b1055aff46a193b058244",
+    "actual": "A getter can start a nested valid begin then error/return malformed outer vector; outer refused but nested pending continues. Healthy getter control remains valid."
+  },
+  "remaining_review": "Same reviewer correction closure pending new getter cleanup and style checks. Original review C5 remains immutable.",
+  "limits": "Original forest geometry unexercised; model loader/native geometry witness/entity collision/production authority/DCS mapping/shipping/full D3 remain required. No original expected data/baseline/tolerance changed.",
+  "evidence": [
+    {
+      "file": "tree-host-boundary-684fb6981-native-20261029\\controller.json",
+      "bytes": 14405,
+      "sha256": "d3170b69285f581699af7fb0d3e51954a64b01831bf9fc65aaf007a95d326376",
+      "retained": "Private raw original"
+    },
+    {
+      "file": "tree-host-boundary-684fb6981-native-20261029\\georgia-library-replay.log",
+      "bytes": 875,
+      "sha256": "af137dc2d12549d5f28337dd86f12885add038c30ab6dcf93fdb68e694f78cc6",
+      "retained": "Private raw original"
+    },
+    {
+      "file": "tree-host-boundary-684fb6981-native-20261029\\georgia-lua-replay.log",
+      "bytes": 241,
+      "sha256": "643cb0e953f930135bd32f4b931ade7402221cec7df927440f2046f7c91cca32",
+      "retained": "Private raw original"
+    },
+    {
+      "file": "tree-host-boundary-684fb6981-native-20261029\\georgia-post-inputs.log",
+      "bytes": 318,
+      "sha256": "b1c1aaa516aa1426b88c5755bb1c842b40ec71430b00cfb4c5027fb2e8382f37",
+      "retained": "Private raw original"
+    },
+    {
+      "file": "tree-host-boundary-684fb6981-native-20261029\\georgia-pre-inputs.log",
+      "bytes": 318,
+      "sha256": "b1c1aaa516aa1426b88c5755bb1c842b40ec71430b00cfb4c5027fb2e8382f37",
+      "retained": "Private raw original"
+    },
+    {
+      "file": "tree-host-boundary-684fb6981-native-20261029\\lebanon-library-replay.log",
+      "bytes": 876,
+      "sha256": "fdd769a67c6085197ca8e2a1aa7254645b2041413a45a8d8b13c8c7a0738499f",
+      "retained": "Private raw original"
+    },
+    {
+      "file": "tree-host-boundary-684fb6981-native-20261029\\lebanon-lua-replay.log",
+      "bytes": 242,
+      "sha256": "6b2dab1c803b969c192482d6a956988d3b94089d1b0edc386fbb7ac69ab39489",
+      "retained": "Private raw original"
+    },
+    {
+      "file": "tree-host-boundary-684fb6981-native-20261029\\lebanon-post-inputs.log",
+      "bytes": 306,
+      "sha256": "5fd9e437ffa45d6f102374f903518e5cafe76382dd3b5f749b2ede6e2f759541",
+      "retained": "Private raw original"
+    },
+    {
+      "file": "tree-host-boundary-684fb6981-native-20261029\\lebanon-pre-inputs.log",
+      "bytes": 306,
+      "sha256": "5fd9e437ffa45d6f102374f903518e5cafe76382dd3b5f749b2ede6e2f759541",
+      "retained": "Private raw original"
+    },
+    {
+      "file": "tree-host-boundary-684fb6981-native-20261029\\lebanon-repeat-library-replay.log",
+      "bytes": 890,
+      "sha256": "2a7a6407f5069bedda032923bf1421bd2d4198a949701c7481d1faf41c91dd8f",
+      "retained": "Private raw original"
+    },
+    {
+      "file": "tree-host-boundary-684fb6981-native-20261029\\lebanon-repeat-lua-replay.log",
+      "bytes": 242,
+      "sha256": "6b2dab1c803b969c192482d6a956988d3b94089d1b0edc386fbb7ac69ab39489",
+      "retained": "Private raw original"
+    },
+    {
+      "file": "tree-host-boundary-684fb6981-native-20261029\\lebanon-repeat-post-inputs.log",
+      "bytes": 313,
+      "sha256": "7ec20921319c3e782603beee3e6c3bfb840f97fb28836e6d1befc13e825f55c9",
+      "retained": "Private raw original"
+    },
+    {
+      "file": "tree-host-boundary-684fb6981-native-20261029\\lebanon-repeat-pre-inputs.log",
+      "bytes": 313,
+      "sha256": "7ec20921319c3e782603beee3e6c3bfb840f97fb28836e6d1befc13e825f55c9",
+      "retained": "Private raw original"
+    },
+    {
+      "file": "tree-host-boundary-684fb6981-native-20261029\\lua-transport-contracts.log",
+      "bytes": 186,
+      "sha256": "a480ffce0c5a58d1a215e92333d88aad9c602c94e4b22b3aaccb228b3308092f",
+      "retained": "Private raw original"
+    },
+    {
+      "file": "tree-host-boundary-684fb6981-native-20261029\\unit-contracts.log",
+      "bytes": 1706,
+      "sha256": "25f7cdf24353388e936bb21cb32343f34d0f1e0a53c603d984af736a99224a74",
+      "retained": "Private raw original"
+    },
+    {
+      "file": "tree-host-boundary-green-684fb6981-20261029\\controller.json",
+      "bytes": 5012,
+      "sha256": "769b466d8b7e9c4c518ccbee9e05a5872b7c96ee0333014ac664d6220b2daf75",
+      "retained": "Private raw original"
+    },
+    {
+      "file": "tree-host-reentrant-red-684fb6981-20261029\\controller.json",
+      "bytes": 1286,
+      "sha256": "aacdbf021ea38f7adab55a2c35139ea78172b7a27026bd2b1c2bb53648167eea",
+      "retained": "Private raw original"
+    },
+    {
+      "file": "tree-host-reentrant-begin-control-20261029.lua",
+      "bytes": 1608,
+      "sha256": "2bb59f7553686b0edc9a3d253d6c7b05866effc04e8b1055aff46a193b058244",
+      "retained": "Private raw original"
+    },
+    {
+      "file": "tree-host-boundary-linux-684fb6981-20261029.log",
+      "bytes": 2590,
+      "sha256": "ccf6b25ed4c7cd49f681d98d0f41ad238e611a9dfecd061f90998255b455d4da",
+      "retained": "Private raw original"
+    }
+  ]
+}

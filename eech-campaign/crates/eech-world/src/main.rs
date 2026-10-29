@@ -1601,20 +1601,34 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         if let Some(pending) = trees.borrow_mut().as_mut() {
                             pending.abandon();
                         }
-                        let old = exact_numbers::<3>(lua, &step, "old_position").map_err(fail)?;
-                        let new = exact_numbers::<3>(lua, &step, "new_position").map_err(fail)?;
-                        let point = exact_numbers::<3>(lua, &step, "intercept_point").map_err(fail)?;
-                        let normal = exact_numbers::<3>(lua, &step, "face_normal").map_err(fail)?;
-                        let flag = |name: &str| -> LuaResult<bool> {
-                            match step.get::<LuaValue>(name)? {
-                                LuaValue::Boolean(value) => Ok(value),
-                                other => Err(fail(format!("{name} must be a boolean, got {}", other.type_name()))),
+                        // Reading the request's fields can run Lua (an `__index` metamethod), and that code can re-enter this function and start a pending query of its own before
+                        // it raises an error or returns a malformed value. The pre-parse abandon above cannot see that, so the whole parse and application runs in one scope and EVERY
+                        // error leaving it abandons whatever is pending NOW. No `RefCell` borrow is held while Lua runs: each borrow is taken for a single call and dropped.
+                        let begun = (|| -> LuaResult<TreeRequest> {
+                            let old = exact_numbers::<3>(lua, &step, "old_position").map_err(fail)?;
+                            let new = exact_numbers::<3>(lua, &step, "new_position").map_err(fail)?;
+                            let point = exact_numbers::<3>(lua, &step, "intercept_point").map_err(fail)?;
+                            let normal = exact_numbers::<3>(lua, &step, "face_normal").map_err(fail)?;
+                            let flag = |name: &str| -> LuaResult<bool> {
+                                match step.get::<LuaValue>(name)? {
+                                    LuaValue::Boolean(value) => Ok(value),
+                                    other => Err(fail(format!("{name} must be a boolean, got {}", other.type_name()))),
+                                }
+                            };
+                            let (ignore_edge, skip_top) = (flag("ignore_forest_edge_trees")?, flag("skip_tree_top_test")?);
+                            let mut holder = trees.borrow_mut();
+                            let holder = holder.as_mut().ok_or_else(|| fail("no tree scene is loaded (mode \"load\" first)".into()))?;
+                            holder.begin(old, new, point, normal, ignore_edge, skip_top).map_err(fail)
+                        })();
+                        match begun {
+                            Ok(request) => request,
+                            Err(error) => {
+                                if let Some(pending) = trees.borrow_mut().as_mut() {
+                                    pending.abandon();
+                                }
+                                return Err(error);
                             }
-                        };
-                        let (ignore_edge, skip_top) = (flag("ignore_forest_edge_trees")?, flag("skip_tree_top_test")?);
-                        let mut holder = trees.borrow_mut();
-                        let holder = holder.as_mut().ok_or_else(|| fail("no tree scene is loaded (mode \"load\" first)".into()))?;
-                        holder.begin(old, new, point, normal, ignore_edge, skip_top).map_err(fail)?
+                        }
                     }
                     "terrain" => {
                         // fail closed: a malformed answer ends the query it was meant for

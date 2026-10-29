@@ -1,3 +1,72 @@
+# Host tree kernel — reviewer's remaining pending-query seam (re-entrant `__index` during `begin`): measured RED, cleanup PREPARED, UNBUILT, UNRUN (EEDCS-49, D3 preparation)
+
+## Measured state of the 684fb6981 source (retained; this does NOT cover the new code)
+
+684fb6981 already measured: Windows 17/17 units, 1/1 real-host Lua transport, ALL 554/600/600 original queries with 1102/1120/1120 lookups exact through the library (default and Up/Down/Zero callers with non-zero
+exception status restored) AND Lua, all 3 pre/post manifests 0 and all 8 payloads unchanged; Root's unchanged protocol script passing all 6 cases. Linux 17/17 units, Lua transport and fmt passed and Clippy exit 101 on three
+style lints; those three fixes (as_chunks, expect_err, a local `Case` alias) are PREPARED in the working tree, UNCOMMITTED, UNBUILT, UNRUN and are preserved here.
+
+## The seam (found by the same reviewer's closure of the five pending-query/protocol fixes only)
+
+`begin` abandoned the OLD pending query before it read its Lua fields, but reading a field can run Lua (`__index`). A getter can re-enter `host.tree_collision` with a VALID begin and then raise an error or return a
+malformed `old_position`: the OUTER begin is refused, but the NESTED query it created survives and a later `terrain` continues it. Root's actual RED on the frozen 684 host (SHA256
+706f4b39b005381a447421a03531297f425c0c2162938decded246db3615fd43; private `R:/d3-evidence/tree-host-reentrant-red-684fb6981-20261029/controller.json`; script
+`R:/d3-evidence/tree-host-reentrant-begin-control-20261029.lua` SHA256 2bb59f7553686b0edc9a3d253d6c7b05866effc04e8b1055aff46a193b058244, to be replayed UNCHANGED against the next host): each real getter ran
+exactly once; `getter_error` and `getter_malformed` each gave outer accepted=false but continued=true / `need_terrain` (ghost continuation); `healthy_reentry` gave outer accepted=true, continued=true. All 3 diagnostic
+native processes exited 0. These observe the bug; they are not pass claims.
+
+## The cleanup (source only; no formula, FPU, loader, physical or protocol change)
+
+`src/main.rs`, `host.tree_collision{mode='begin'}`: the whole argument parse AND the call into the kernel now run inside one small `Result` scope; EVERY `Err` leaving that scope abandons whatever is pending AT THAT
+MOMENT (including a nested query the getter started) before the error is returned. The earlier pre-parse abandon stays (it still closes the old query on an ordinary malformed request). No `RefCell` borrow is held
+while Lua runs: each borrow is taken for one call and dropped, so a re-entering getter never meets a held borrow. There is no recursion ban and no transaction framework, so the healthy control is unchanged: a getter
+that starts a nested query and then returns a valid vector still yields an accepted outer begin that replaces the nested query and continues. `terrain` already abandoned after a parse error and still does.
+
+Real-host controls added to `tests/tree_collision_host.rs` (all old protocol, tiny / negative-zero and geometry checks kept): a metatable getter that starts a valid nested begin and then (a) errors, (b) returns a 2-element
+`old_position`: the outer begin is refused, the getter ran exactly once and the next `terrain` is refused with "no query open"; (c) returns a valid vector: the outer begin is accepted and the request continues to the new
+end point.
+
+## Root's next step (expected, NOT RUN)
+
+Format; freeze the combined source (three lint fixes + this cleanup); Linux fmt and Clippy and the unit tests; Windows build, the 17 contracts plus the new getter control, the library and Lua replays of all 554/600/600
+original queries, Root's protocol script and the re-entrant script old -> new (the RED must become: both bad cases refused AND not continued, the healthy case unchanged); then the same reviewer checks only the new fixes
+and evidence. Original oracles, baselines and tolerances are untouched. Geometry (model loader, native witness), entity collision, G1 integration, production authority, the DCS mapping or documented workaround (live DCS
+execution is M6), shipping and the rest of D3 remain open; Task49, D3 and the extraction are not complete.
+
+---
+
+# Host tree kernel — 684fb6981 measured GREEN on Windows and protocol controls; Linux Clippy 101 on three style lints; the three fixes PREPARED, UNBUILT, UNRUN (EEDCS-49, D3 preparation)
+
+## Actual 684fb6981 results (Root-measured; retained)
+
+* Windows: build 0, all 8 exports verified; native controller 23989 terminal, 0 collected: 17/17 tree unit tests, 1/1 real-host Lua transport test, and ALL 554 Georgia / 600 Lebanon / 600 repeat original queries with
+  1102 / 1120 / 1120 recorded lookups exact through the library AND the Lua path, every exit 0, no skips. The library replays in Up, Down and Zero were bit-exact with the caller's x87/SSE control and status words and its
+  NON-ZERO exception flags restored; the default replay is exact too. All 3 pre/post manifests 0, all 8 payloads and every original transcript hash unchanged. Raw
+  `R:/d3-evidence/tree-host-boundary-684fb6981-native-20261029/controller.json` and logs.
+* Root's UNCHANGED protocol script (SHA256 fa77370fbd1cfd20fe1bf43378474b775deea189a85978813be6e361fae149de) now passes all 6 cases: valid dense list and healthy pending unchanged; sparse and holey lists refused; a
+  pending request cannot continue after a bad begin or a bad terrain answer. Green controller `R:/d3-evidence/tree-host-boundary-green-684fb6981-20261029/controller.json`; the d726 RED is retained.
+* Linux: 17/17 units, 1/1 real-host Lua transport and format PASS; Clippy exit 101 on exactly three style lints (below). Raw `R:/d3-evidence/tree-host-boundary-linux-684fb6981-20261029.log`. Linux is NOT overall passed.
+  No review of 684fb6981 has been performed yet; the same reviewer will check only the changed fixes and this evidence.
+
+## The three Clippy fixes (source only; no allow/suppression, no dependency or toolchain change; no physical, FPU or protocol change)
+
+1. `chunks_exact_to_as_chunks` in the loader: the data file's whole records are now taken with `data_file.as_chunks::<RECORD_BYTES>().0.iter()` and decoded with `TreeRecord::from_bytes(*chunk)`: the same whole 8-byte
+   records in the same order, no `try_into`/`expect`; the bytes after the last whole record are the remainder and are still counted as the census's trailing bytes (computed from the length, as before).
+2. `err_expect` in the map-metadata test: `result.err().expect("accepted")` became `result.expect_err("accepted")` (TreeMap already implements Debug, so no new Debug implementation was needed). It still panics if the
+   forged map is accepted and still asserts the diagnostic text. The other `.err()` calls are on `TreeScene` results, which have no Debug and were not flagged.
+3. `type_complexity` in the rounding test: a local `type Case = (Arc<TreeScene>, [f32; 3], [f32; 3], (bool, bool));` replaces the long tuple type. Nothing else changed.
+
+Everything else of 684fb6981 is kept: the 17 unit tests, the thread-affinity compile-time contract, the map revalidation, the complete caller state (x87 environment and MXCSR) restoration, the dense-geometry and fail-closed
+protocol checks, and all expected data, goldens and tolerances. Note: `as_chunks` needs a recent stable Rust (Clippy's own suggestion implies the Linux toolchain has it); Root's Windows rebuild shows whether that
+toolchain does as well. Root will freeze a new source, rerun Linux fmt/Clippy and the Windows proof (original queries, Lua, protocol controls), then the same reviewer closes only these fixes.
+
+Still D3 requirements, not done: forest geometry / model loader and a native original-geometry witness, entity collision, G1 terrain integration, production authority, the DCS mapping or documented workaround (live DCS
+execution is M6), and shipping. Task47 shipping115 is untouched. This does not complete Task49, D3 or the extraction.
+
+---
+
+# SUPERSEDED (kept for the record): the review-batch section for 684fb6981 as prepared, before its measurement
+
 # Host tree kernel — d72610f85 measured: default library and Lua replays bit-exact, boundary checks FAILED; independent-review batch PREPARED, UNBUILT, UNRUN (EEDCS-49, D3 preparation)
 
 ## What the d72610f85 native measurements actually showed (terminal; NOT an acceptance and NOT "overall passed")
@@ -41,7 +110,7 @@
 6. P3 negative zero. The synthetic script constructs it as `-1 / math.huge` and asserts `1 / negative_zero == -math.huge`; the expected `80000000` and the numeric reader are unchanged.
 7. P3 loader wording. The module documentation no longer says "before anything is allocated": it says the two files are read whole, each size is first checked against `MAX_SECTOR_FILE_BYTES` and
    `MAX_DATA_FILE_BYTES` (a bound on what `fs::read` allocates; retail Georgia is 226 KB and 6.8 MB), the forest triangles are flattened as given, and every length, multiplication and span is checked in `u64`
-   BEFORE any record is decoded or any table is allocated or indexed. No format change.
+   with sector-table byte sizes checked before allocating that table and each sector's record span checked before tree-record decoding or indexing. No format change.
 
 ## Changed files in this batch (under `eech-campaign/crates/eech-world/`)
 

@@ -26,8 +26,8 @@
 //! * Anything else that is wrong, a file shorter than its header says, a sector whose trees lie outside the data file, a negative count, is an
 //!   error. The two files are read whole (`std::fs::read` allocates their length, and the forest triangles are flattened as given), so each file's
 //!   size is first checked against a fixed bound ([`MAX_SECTOR_FILE_BYTES`], [`MAX_DATA_FILE_BYTES`], far above any retail file) before it is read;
-//!   every length, multiplication and span is then checked in `u64` arithmetic BEFORE any record is decoded or any table is allocated or indexed, so
-//!   the decoded storage is bounded by the file lengths already in memory.
+//!   sector-table byte sizes are checked in `u64` arithmetic before allocating the sector table. Each sector's record span is checked before
+//!   decoding the tree records or indexing them; decoded storage is bounded by the file lengths already in memory.
 //! * Trailing bytes beyond what the header and the whole records account for are accepted and counted in the census, not interpreted.
 //!
 //! # Floating-point environment
@@ -343,9 +343,12 @@ impl TreeScene {
             sectors_with_trees += 1;
             sectors.push(SectorRecord { count, first });
         }
+        // the whole records only, in file order; the bytes after the last whole record are the trailing bytes counted in the census (as_chunks leaves them as its remainder)
         let trees: Vec<TreeRecord> = data_file
-            .chunks_exact(RECORD_BYTES)
-            .map(|chunk| TreeRecord::from_bytes(chunk.try_into().expect("a whole record")))
+            .as_chunks::<RECORD_BYTES>()
+            .0
+            .iter()
+            .map(|chunk| TreeRecord::from_bytes(*chunk))
             .collect();
         let type1_trees = sectors
             .iter()
@@ -1056,7 +1059,7 @@ mod tests {
             (TreeMap::new((2.0, 1.0, 0.0, 1.0), 1, 1, 0.0, 1.0), "0 <= min <= max"),
         ];
         for (result, expected) in bad {
-            let error = result.err().expect("accepted");
+            let error = result.expect_err("accepted");
             assert!(error.contains(expected), "{error}");
         }
     }
@@ -1250,7 +1253,8 @@ mod tests {
         // an outside end point only avoids the terrain lookup), and a triangle hit through the geometry branch.
         let triangle = vec![[[0.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]];
         let geometry = scene_with(&[tree(0, 0, 0, 127, 1)], ForestGeometry::Triangles(triangle));
-        let cases: Vec<(Arc<TreeScene>, [f32; 3], [f32; 3], (bool, bool))> = vec![
+        type Case = (Arc<TreeScene>, [f32; 3], [f32; 3], (bool, bool));
+        let cases: Vec<Case> = vec![
             (lone_tree(), [1000.0, 10.0, 1024.0], [1048.0, 10.0, 1024.0], (false, true)),
             (lone_tree(), [1021.0, 30.0, 1024.0], [1023.0, 26.0, 1024.0], (false, false)),
             (lone_tree(), [1000.0, 40.0, 1024.0], [1048.0, 40.0, 1024.0], (false, true)),

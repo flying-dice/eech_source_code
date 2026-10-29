@@ -131,6 +131,39 @@ begin({ 1000, 10, 1024 }, { 1048, 10, 1024 })
 refused({ mode = 'terrain', elevation = 'high' }, 'elevation')
 refused({ mode = 'terrain', elevation = 0 }, 'no query open')
 
+-- re-entry: reading the request's fields runs Lua (an __index metamethod). A getter that calls host.tree_collision with a VALID begin and then raises an error, or returns a
+-- malformed old_position, starts a nested pending query while the OUTER begin is refused: the refusal must close the nested query too, so a later terrain answer cannot continue
+-- it. A getter that starts a nested query and then returns a valid vector is healthy re-entry: the outer begin replaces the nested query and continues as before.
+local function reenter(case)
+  assert(begin({ 1000, 10, 1024 }, { 1048, 10, 1024 }).state == 'need_terrain', 'pending before the outer request')
+  local called = 0
+  local request = setmetatable({ mode = 'begin', new_position = { 1048, 10, 1024 }, intercept_point = { 1, 2, 3 }, face_normal = { 4, 5, 6 }, ignore_forest_edge_trees = false, skip_tree_top_test = true }, {
+    __index = function(_, key)
+      if key == 'old_position' then
+        called = called + 1
+        assert(begin({ 1000, 10, 1024 }, { 1048, 10, 1024 }).state == 'need_terrain', 'healthy nested begin')
+        if case == 'error' then error('GETTER_ERROR') end
+        if case == 'malformed' then return { 0, 0 } end
+        return { 1000, 10, 1024 }
+      end
+    end,
+  })
+  local ok, outer = pcall(host.tree_collision, request)
+  assert(called == 1, 'the getter ran exactly once')
+  local continued, result = pcall(host.tree_collision, { mode = 'terrain', elevation = 0 })
+  return ok, outer, continued, result
+end
+for _, case in ipairs({ 'error', 'malformed' }) do
+  local ok, outer, continued, result = reenter(case)
+  assert(not ok, case .. ': the outer begin is refused')
+  assert(not continued and tostring(result):find('no query open', 1, true), case .. ': the nested pending query was closed with it: ' .. tostring(result))
+end
+do
+  local ok, outer, continued, result = reenter('healthy')
+  assert(ok and outer.state == 'need_terrain' and outer.endpoint == 'old', 'healthy re-entry: the outer begin is accepted')
+  assert(continued and result.state == 'need_terrain' and result.endpoint == 'new', 'healthy re-entry: the request continues')
+end
+
 -- numbers cross exactly: a negative zero, the smallest f32 subnormal and a power of two far below any integer come back as the same bits
 -- (0 * -1 is folded by this Lua to a POSITIVE zero; the reciprocal of infinity is a real negative zero)
 local negative_zero = -1 / math.huge
