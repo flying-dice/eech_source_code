@@ -1,3 +1,38 @@
+# Current D3 checkpoint — host ground Lua preparation reviewed
+
+Task48 supplemental branch codex/d3-ground-host-preparation is pushed at55e3d195d.
+Measured clean516d2e3f60 Windows build0/all4 exports verified. Direct real Lua/map
+transport3/3 on EACH Georgia/Lebanon passes all45 checks without skips. Public
+old-DLL harness7/7: healthy control passes; required handoff fails only after the
+same healthy40 frames with GROUND-HANDOFF-RED. Both60-row reports/digests/restored
+records match; each88878 point/map1/ground0. All4 pre/post-input manifests0;
+all4new/all46old payloads unchanged. Explicit TEST-ONLY hybrid: new516 host and
+unchanged frozenfebbb7cc5 fixture DLL. No production G2 switch or shipping claim.
+
+One combined independent new-Lua review closed without open findings, pinned to
+measured516 and publication0e4987b5a; a P3 CRLF-private/LF-Git failure-copy provenance
+issue was corrected and verified. ReportSHAdeab8ab8c39e518bddf755d0045f8223c9989f018d5475e6fbdcc270cce86dcb.
+Safe proof/review/failure/cleanup records: reference/d3-ground-host-preparation/.
+Only the obsolete firstf66 Cargo cache was removed after export/log/owner checks;
+all tested binaries, original raw failures and roots remain preserved.
+
+Task47 shipping115 tool59652 is still live and untouched. Larger checked12.4MB
+Tacview/7.9MB observation prefixes match, but final40/eight complete files/post-inputs
+and delivery remain gates. Production G2 handoff waits Task47 normal delivery and
+verified integration, then requires actual changed/withheld authority and launch-glue
+witnesses, shipping regression and normal delivery. Existing40 callback guards are
+not shipping40. Accepted baselines, tolerances and original oracles are unchanged.
+
+EEDCS-49 (object/tree collision queries) is now In Progress after a live duplicate
+check and freshly fetched integration6bbaa8197. Sole Sonnet5.5High source-only
+original characterization runs in R:/d3-evidence/collision-characterization-20261029,
+branch codex/d3-object-tree-collision; no new native evidence or physical extraction.
+One independent reviewer is idle after the closed Lua pass. Model/device/target
+geometry, weather/environment/RNG, host time and required DLL physical solver/loader
+removal remain D3 scope. D3 is incomplete; D4/D5 have not started.
+
+The following checkpoints retain their original source and evidence identities.
+
 # Latest Task48 progress — reviewed host ground kernel; public handoff pending
 
 Existing EEDCS-48 / PR108. Host-only preparation branch codex/d3-ground-host-preparation
