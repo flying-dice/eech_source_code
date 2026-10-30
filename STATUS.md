@@ -1,3 +1,41 @@
+# Current D3 correction — EEDCS-50 host model store, first-validation batch (29 October 2026): SOURCE ONLY, UNBUILT, UNRUN
+
+Published source `0b5750f7a` (frozen by the Root as `model-host-source-0b5750f7a`) is the actual first host-owned model component; this entry corrects it after its first ACTUAL results and does not
+claim the component accepted: it has had no independent review, and it is not Task Done, not whole-D3, not production. Authority and scope are unchanged (M5 goal Confluence 11534337, ledger
+14548994, Epic EEDCS-21, Task EEDCS-50; D4 and D5 not started; the six-process Task 47 shipping run 115 and its full 40-check / eight-artifact acceptance still pending; the original
+characterization closure `ab48e507…` for `366622e0c`/`309b3f050` is valid and unchanged).
+
+**Actual first results at `0b5750f7a` (Root-run, not assumed):** formatting 0; Linux and Windows `model_store` 23 tests, 21 PASS and 2 FAIL (both in `lua/model-host-compare.lua`'s error paths: Lua `%q`
+wrote a raw escaped newline, so a multi-line Rust/Lua error was not JSON and the strict reader refused the line); the separate all-target Clippy on the exact frozen source failed with six findings
+(`models.rs`: two over-indented doc-list lines, four `chunks_exact` with a constant size). The first retail host-only comparisons completed 0 on all three verified roots: 3357 strict JSON rows and
+1,278,301 bytes each, identical across Georgia, Lebanon and the repeat; 3025 scene rows compared with no evaluated scene or triangle mismatch and 215 original calls compared (208 TRUE, 6 end FALSE, 1
+absence); no campaign DLL loaded and no engine booted; inputs, the original reports and the five host payloads unchanged. The load summary was 36 binary EEO, 144 EES and 811 named objects, with no
+unsupported, unresolved or duplicate file. The host reports four original-REFUSED models as UNMEASURED (its own triangle counts for scenes 188, 1, 1412 and 1165): that is not equivalence evidence, and
+all 59 custom and mixed-layout gaps remain required work.
+
+**The core loader defect found by the Root's separate source and identity audit (`model-host-0b5750f7a-first-retail-identity-audit`):** `get_next_object_id` is `return total_number_of_objects++` and the
+counter starts at the table's object COUNT N, so the FIRST named custom object is number N and REPLACES the last table object; the loader started at N + 1. Every one of the 61 retail named main and
+collision numbers was therefore one too high and the consolidated surface block 52,518 against the original's 52,517. The comparator hid it: it skipped every named object number
+(`ids_not_compared` 61). Corrected here from the original source, not to fit the output: the counter starts at N; the consolidation runs from 1 up to and INCLUDING the counter's final value (with no named
+object that is the last table object; with M named objects the counter N + M is an unused zero slot that is in the loop and adds nothing); a scene's bounds are still computed when it is read, from the objects as they
+then stand, and are not recomputed when a later named object overwrites one (query order as the original). `compare_original` no longer skips or normalises anything: main and collision object numbers are
+compared as they are, the original's numbers for named custom objects included (a same-input reference comparison; DCS is not required to use EECH's private indices).
+
+**Other corrections:** `lua/model-host-compare.lua` now writes dynamic strings and keys with real JSON escaping (quote, backslash, every control byte 0 to 31 and 127; UTF-8 kept), keeping the error and
+detail text, the strict JSON, the checked writes, the no-overwrite and the non-zero exits; only the new driver changes. The six Clippy findings are fixed idiomatically (list items without over-indented
+continuations; `chunks_exact(6)` and `(2)` replaced by index-based element reads, no `as_chunks`, no MSRV change, no `allow`). No C numeric kernel, FP guard, physical rule or tolerance changed.
+
+**Guards added or corrected (written, not run):** the named-scene numbering test now expects the first named object to be number 4 for the four-object table (with source provenance), the second 5, the
+overwritten table object read through the table scene that still names it, that scene's bounds NOT recomputed, objects_total 6 and a surface block of 4; a new test keeps the last table object consolidated
+when nothing is named (total 4, block 4); the comparator now has main and collision number alterations in its list and a named-number-shift control (host 4/4 against a report that says 5/5 is reported and fails).
+The retail 61-number and 52,517/52,518 differences are the RED proof; no expected triangle or number is computed by the new code.
+
+**Next (Root):** format and freeze, rerun Linux `model_store` and the old `model_characterization` guards with all-target Clippy, Windows `model_store` with `EECH_WORLD_BIN` plus the invalid-override control,
+then the three retail comparisons (expect all 3025 scene fields, 215 original calls, no skipped number, surface block 52,517), and inspect every difference without adding tolerance, normalisation or skips;
+then ONE initial combined independent review of the new component. Later: resolve the 14 custom and 45 mixed-layout gaps through minimal original backing/provenance instrumentation, not by treating the host's new numbers
+as the oracle; the production hand-off; and the whole remaining D3 scope (model hierarchy, viewpoint, device, muzzle and target-point services, entity collision, terrain, spatial, environment and host-time services, removal of the
+physical solvers and loaders from EECH_DC). Campaign policy, geography, routes, timers and consequences stay in EECH_DC. No Git, build, test or native action was taken in this lane.
+
 # Current D3 component — EEDCS-50 host-owned collision-model store (29 October 2026): SOURCE PREPARED, UNBUILT, UNRUN
 
 Base: branch `codex/d3-model-geometry` at the reviewed original characterization (`366622e0c` fixture and measurements; driver `309b3f050`, independent closure with no open findings),

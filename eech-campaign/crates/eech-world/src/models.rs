@@ -3,12 +3,10 @@
 //!
 //! What is read, from the original's own formats (modules/3d/3dobjdb.c `initialise_3d_objects`, `read_scene`, `read_object`, `read_custom_scene`, 3dobjid.c):
 //!
-//!   * `bininfo.bin`            the scene names, checked against the compiled list (`data/scene-names.txt`, derived from modules/3d/3dmodels.h)
-//!   * `3dobjs.bin/.pts/.sp`    the object table: per object the counts, bounds, radius, surfaces (the 18-byte record the loader reads into 16-byte structs), faces,
-//!                              the point list and the surface-point references, over the file-mapped point and surface-point arrays
-//!   * `3dobjdb.bin`            the scene table: every `read_scene` record, walked by its own variable counts (cameras, links, lights, keyframes, sub-object trees)
-//!   * `OBJECTS/????.EEO`       binary-hex object overrides; `OBJECTS/<dir>/*.EES` named scenes (versions -1 to -3) with their named `.EEO` objects, resolved per
-//!                              directory, objects numbered after the retail table as the original numbers them
+//! * `bininfo.bin`: the scene names, checked against the compiled list (`data/scene-names.txt`, derived from modules/3d/3dmodels.h).
+//! * `3dobjs.bin/.pts/.sp`: the object table. Per object the counts, bounds, radius, surfaces (the 18-byte record the loader reads into 16-byte structs), faces, the point list and the surface-point references, over the file-mapped point and surface-point arrays.
+//! * `3dobjdb.bin`: the scene table. Every `read_scene` record, walked by its own variable counts (cameras, links, lights, keyframes, sub-object trees).
+//! * `OBJECTS/????.EEO` and `OBJECTS/<dir>/*.EES`: binary-hex object overrides, and named scenes (versions -1 to -3) with their named `.EEO` objects resolved per directory. Named objects are numbered from the retail table's object COUNT as the original numbers them: the first replaces the last retail object.
 //!
 //! What is NOT read: textures, animations, cameras, lights, normals, the d3d buffers (their records are walked or skipped by the original's own counts, never by guessed
 //! offsets); `3dobjs.spn/.spt`; the camera database after the scenes.
@@ -265,6 +263,16 @@ impl<'a> Reader<'a> {
             }
         }
     }
+}
+
+/// little-endian 16-bit words and 3 x 16-bit points out of a byte run (the callers have already checked the run holds whole elements)
+fn words_of(raw: &[u8]) -> Vec<u16> {
+    (0..raw.len() / 2).map(|i| u16::from_le_bytes([raw[2 * i], raw[2 * i + 1]])).collect()
+}
+
+fn points_of(raw: &[u8]) -> Vec<[i16; 3]> {
+    let at = |i: usize, k: usize| i16::from_le_bytes([raw[6 * i + 2 * k], raw[6 * i + 2 * k + 1]]);
+    (0..raw.len() / 6).map(|i| [at(i, 0), at(i, 1), at(i, 2)]).collect()
 }
 
 fn find_file(dir: &Path, name: &str) -> Result<Option<PathBuf>, ModelError> {
@@ -559,7 +567,9 @@ impl Loader {
         }
         self.table_objects = total_objects;
         self.raw_objects = total_objects + CUSTOM_OBJECT_ROOM as usize;
-        self.next_object = total_objects + 1;
+        // get_next_object_id returns total_number_of_objects++ from its initial value N, the table's object COUNT: the first custom object is numbered N and REPLACES the
+        // last table object, and the counter then stands one past the last number given out
+        self.next_object = total_objects;
         self.room = CUSTOM_OBJECT_ROOM;
         self.objects = vec![Object::null(); self.raw_objects + 1];
         self.object_bounds = vec![0.0; (self.raw_objects + 1) * 12];
@@ -570,17 +580,8 @@ impl Loader {
         self.summary.surface_points_trailing_bytes = sp.len() % 2;
         self.summary.points_block = points_len;
         self.summary.surface_points_block = sp_len;
-        let block_points: Vec<[i16; 3]> = pts
-            .chunks_exact(6)
-            .map(|c| {
-                [
-                    i16::from_le_bytes([c[0], c[1]]),
-                    i16::from_le_bytes([c[2], c[3]]),
-                    i16::from_le_bytes([c[4], c[5]]),
-                ]
-            })
-            .collect();
-        let block_sp: Vec<u16> = sp.chunks_exact(2).map(|c| u16::from_le_bytes([c[0], c[1]])).collect();
+        let block_points = points_of(pts);
+        let block_sp = words_of(sp);
         self.points.add(block_points);
         self.surface_points.add(block_sp);
 
@@ -780,16 +781,7 @@ impl Loader {
         let mut points = Vec::new();
         if n_points != 0 {
             let raw = r.take(n_points * 6)?;
-            points = raw
-                .chunks_exact(6)
-                .map(|c| {
-                    [
-                        i16::from_le_bytes([c[0], c[1]]),
-                        i16::from_le_bytes([c[2], c[3]]),
-                        i16::from_le_bytes([c[4], c[5]]),
-                    ]
-                })
-                .collect();
+            points = points_of(raw);
         }
         let faces_raw: Vec<u8> = if n_polygoned != 0 { r.take(n_polygoned)?.to_vec() } else { Vec::new() };
         r.skip(2 * n_point_normals as u64)?;
@@ -806,10 +798,7 @@ impl Loader {
         r.skip(2 * n_face_normals as u64)?;
         r.skip(8 * n_texture_points as u64)?;
         let sp_raw: Vec<u16> = if n_surface_point_refs != 0 {
-            r.take(n_surface_point_refs * 2)?
-                .chunks_exact(2)
-                .map(|c| u16::from_le_bytes([c[0], c[1]]))
-                .collect()
+            words_of(r.take(n_surface_point_refs * 2)?)
         } else {
             Vec::new()
         };
@@ -1413,7 +1402,9 @@ impl Loader {
 
     /// The consolidated surface block (the original's "reallocates surfaces memory"), the summary, the store.
     fn finish(mut self) -> Result<ModelStore, ModelError> {
-        let final_objects = self.next_object - 1;
+        // the original consolidates objects 1 ..= total_number_of_objects, INCLUSIVE of the counter's final value: with no custom object that is the last table object, and with
+        // M custom ones the counter N + M names a slot nobody was given (zero surfaces), which is in the loop and adds nothing
+        let final_objects = self.next_object;
         let mut surfaces: Vec<Surface> = Vec::new();
         for index in 1..=final_objects {
             let Some(own) = self.own_surfaces.remove(&index) else { continue };

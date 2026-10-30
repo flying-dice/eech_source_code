@@ -6,7 +6,7 @@
 --   * provenance and the store's load summary (what overrides were applied, what was skipped or unresolved);
 --   * with catalogue=1 (default), a `host-model-scene` row for every scene: name, loaded, indices, radius and bounds as float bit patterns, the collision object's counts;
 --   * for each scene named in scenes=, `host-model-tri` rows from depth 0 until the host's end / absence / refusal (or max_triangles, reported `host-model-capped`);
---   * with original=<path to a retained original model-driver report>, the comparison: every `model-scene` row's name, indices (where both number objects alike), radius,
+--   * with original=<path to a retained original model-driver report>, the comparison: every `model-scene` row's name, object numbers (compared as they are, named custom objects included), radius,
 --     bounds and collision-object counts, and every `model-tri` row's return and nine float bit patterns, against the store. Mismatches are listed (the totals are complete).
 --     A scene the original REFUSED (a custom object, a mixed layout) has no original triangles; the host's answer for it is listed as such, not counted as a match.
 -- A missing asset is NOT RUN (an error before any output beyond the provenance row), a refused store is an error, any mismatch fails the run, and a comparison that compared
@@ -54,11 +54,19 @@ do
 end
 local out = assert (io.open (out_path, "w"))
 
+-- JSON string escaping for the dynamic text this driver writes (names, error messages with their newlines, report lines): the quote, the backslash and every control
+-- byte (0..31, and 127) are escaped; every other byte, UTF-8 included, is kept as it is. Lua's %q is not JSON (it writes a raw escaped newline).
+local json_escapes = { ['"'] = '\\"', ['\\'] = '\\\\', ['\b'] = '\\b', ['\f'] = '\\f', ['\n'] = '\\n', ['\r'] = '\\r', ['\t'] = '\\t' }
+local function json_string (text)
+	local escaped = string.gsub (text, '[%c"\\]', function (c) return json_escapes [c] or string.format ("\\u%04x", string.byte (c)) end)
+	return '"' .. escaped .. '"'
+end
+
 local function emit (t)
 	local parts = {}
 	for k, v in pairs (t) do
-		local value = type (v) == "string" and string.format ("%q", v) or tostring (v)
-		parts [#parts + 1] = string.format ("%q:%s", k, value)
+		local value = type (v) == "string" and json_string (v) or tostring (v)
+		parts [#parts + 1] = json_string (tostring (k)) .. ":" .. value
 	end
 	table.sort (parts)
 	assert (out:write ("{" .. table.concat (parts, ",") .. "}\n"))

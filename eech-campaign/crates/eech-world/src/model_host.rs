@@ -151,7 +151,6 @@ impl LuaUserData for StoreHandle {
                 ("scene_rows", report.scene_rows),
                 ("scene_rows_compared", report.scene_rows_compared),
                 ("scene_mismatches", report.scene_mismatches),
-                ("scene_ids_not_compared", report.ids_not_compared),
                 ("original_no_scene", report.original_no_scene),
                 ("original_absent", report.original_absent),
                 ("original_refused_rows", report.original_refused_rows),
@@ -189,7 +188,6 @@ struct Report {
     scene_rows: usize,
     scene_rows_compared: usize,
     scene_mismatches: usize,
-    ids_not_compared: usize,
     original_no_scene: usize,
     original_absent: usize,
     original_refused_rows: usize,
@@ -230,15 +228,14 @@ fn parse_bits(list: &str) -> Option<Vec<u32>> {
 }
 
 /// Compares the store with a retained original model report (the JSON Lines the original-DLL model driver wrote: `model-scene` rows and `model-geometry` groups). The
-/// original is the oracle; nothing here computes an expectation. Object indices are compared only where the original and the host number objects alike (the retail
-/// table); a scene the original refused (a custom object, a mixed layout) has no original triangles to compare, and the host's answer for it is listed as such.
+/// original is the oracle; nothing here computes an expectation. Object numbers (main and collision) are compared as they are, the original's numbers for named custom objects included: this is a same-input
+/// reference comparison and their order and overwrite are part of the contract. A scene the original refused (a custom object, a mixed layout) has no original triangles to compare, and the host's answer for it is listed as such.
 fn compare_original(store: &ModelStore, path: &Path) -> Result<Report, String> {
     let meta = std::fs::metadata(path).map_err(|e| format!("{}: {e}", path.display()))?;
     if meta.len() > MAX_REPORT {
         return Err(format!("{} is {} bytes, over the {MAX_REPORT}-byte limit", path.display(), meta.len()));
     }
     let content = std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
-    let table_objects = store.summary().table_objects as i64;
     let mut report = Report::default();
     // the geometry group in progress: (scene, the original's status for it)
     let mut group: Option<(i64, String)> = None;
@@ -288,15 +285,16 @@ fn compare_original(store: &ModelStore, path: &Path) -> Result<Report, String> {
                         report.mismatch(false, format!("scene {scene}: {field} original {:?} host {host}", text(&row, field)));
                     }
                 }
-                // object indices: comparable where both number objects as the retail table does
+                // object indices: this is a same-input REFERENCE comparison, so the original's own object numbers are compared as they are, the numbers the original gave
+                // to named custom objects included (their order and the overwrite of the table's last object are part of the contract). Nothing is skipped or normalised.
                 let (original_main, original_collision) = (int(&row, "main"), int(&row, "collision"));
                 match original_main {
-                    Some(main) if main <= table_objects && (view.main as i64) <= table_objects => {
+                    Some(main) => {
                         if main != view.main as i64 {
                             report.mismatch(false, format!("scene {scene}: main object original {main} host {}", view.main));
                         }
                     }
-                    _ => report.ids_not_compared += 1,
+                    None => report.mismatch(false, format!("scene {scene}: the original row has no main field")),
                 }
                 match original_collision {
                     Some(-1) => {
@@ -309,17 +307,8 @@ fn compare_original(store: &ModelStore, path: &Path) -> Result<Report, String> {
                         }
                     }
                     Some(collision) => {
-                        if view.collision < 1 {
-                            report.mismatch(
-                                false,
-                                format!("scene {scene}: the original has collision object {collision}, the host {}", view.collision),
-                            );
-                        } else if collision <= table_objects && (view.collision as i64) <= table_objects {
-                            if collision != view.collision as i64 {
-                                report.mismatch(false, format!("scene {scene}: collision object original {collision} host {}", view.collision));
-                            }
-                        } else {
-                            report.ids_not_compared += 1;
+                        if collision != view.collision as i64 {
+                            report.mismatch(false, format!("scene {scene}: collision object original {collision} host {}", view.collision));
                         }
                     }
                     None => report.mismatch(false, format!("scene {scene}: the original row has no collision field")),

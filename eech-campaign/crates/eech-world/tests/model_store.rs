@@ -690,24 +690,65 @@ fn an_override_the_original_would_ignore_or_reject_is_recorded_not_applied_quiet
 }
 
 #[test]
-fn a_named_scene_replaces_the_scene_and_numbers_its_objects_after_the_table() {
+fn a_named_scene_replaces_the_scene_and_numbers_its_objects_from_the_tables_object_count() {
+    // Provenance: modules/3d/3dobjdb.c get_next_object_id is `return total_number_of_objects++` and total_number_of_objects starts at the table's object COUNT (4 here), so the
+    // FIRST named object is number 4 and REPLACES the last table object; the second is 5. (The retail audit found the first version of this loader one too high on all 61 named
+    // objects and the consolidated surface block one too large.)
     let root = standard();
-    let mut mesh = identity_quad();
-    mesh.points = vec![[0, 0, 0], [5, 0, 0], [5, 6, 0], [0, 6, 0]];
-    let scene_name = compiled_scene_name(1).unwrap();
-    root.write(&format!("OBJECTS/MODDIR/{scene_name}.ees"), &ees("Chassis"));
-    root.write("OBJECTS/MODDIR/chassis.eeo", &eeo(1, &mesh));
+    let mut chassis = identity_quad();
+    chassis.points = vec![[0, 0, 0], [5, 0, 0], [5, 6, 0], [0, 6, 0]];
+    chassis.bb2 = [0.0, 5.0, 0.0, 6.0, 0.0, 0.0];
+    let mut turret = identity_quad();
+    turret.points = vec![[0, 0, 0], [7, 0, 0], [7, 8, 0], [0, 8, 0]];
+    root.write(&format!("OBJECTS/MODDIR/{}.ees", compiled_scene_name(1).unwrap()), &ees("Chassis"));
+    root.write(&format!("OBJECTS/MODDIR/{}.ees", compiled_scene_name(2).unwrap()), &ees("Turret"));
+    root.write("OBJECTS/MODDIR/chassis.eeo", &eeo(1, &chassis));
+    root.write("OBJECTS/MODDIR/turret.eeo", &eeo(1, &turret));
     let store = root.load().unwrap();
-    assert_eq!((store.summary().ees_applied, store.summary().named_objects), (1, 1));
+    assert_eq!((store.summary().ees_applied, store.summary().named_objects), (2, 2));
     let scene = store.scene(1).unwrap();
     assert_eq!(scene.source, SceneSource::Ees);
-    // the first object past the table's four
-    assert_eq!((scene.main, scene.collision), (5, 5));
+    assert_eq!(
+        (scene.main, scene.collision),
+        (4, 4),
+        "the first named object takes the table's count as its number"
+    );
     assert_eq!(scene.collision_object.unwrap().source, ObjectSource::Named);
     let Triangle::Found(t) = store.triangle(1, 0).unwrap() else { panic!() };
     assert_eq!(coords(&t), [0.0, 0.0, 0.0, 5.0, 0.0, 0.0, 5.0, 6.0, 0.0]);
+    assert_eq!(store.scene(1).unwrap().bounding_box2.map(f32::from_bits), [0.0, 5.0, 0.0, 6.0, 0.0, 0.0]);
+    let second = store.scene(2).unwrap();
+    assert_eq!((second.main, second.collision), (5, 5), "the second is the next number");
+    let Triangle::Found(t) = store.triangle(2, 0).unwrap() else { panic!() };
+    assert_eq!(coords(&t), [0.0, 0.0, 0.0, 7.0, 0.0, 0.0, 7.0, 8.0, 0.0]);
+
+    // the first named object overwrote table object 4, which table scene 4 still names: it now reads the named object
+    let table_scene = store.scene(4).unwrap();
+    assert_eq!((table_scene.source, table_scene.main, table_scene.collision), (SceneSource::Table, 4, 4));
+    assert_eq!(table_scene.collision_object.unwrap().source, ObjectSource::Named);
+    // but the bounds of that scene were computed when it was read, from the object as it then was, and are not recomputed
+    assert_eq!(table_scene.bounding_box2.map(f32::from_bits), [0.0, 32767.0, 0.0, 32767.0, 0.0, 32767.0]);
+
+    // the consolidation runs to the counter's final value (4 + 2 = 6, a slot nobody holds): objects 1 and 3 (a surface each), the named 4 and 5 (a surface each)
+    let summary = store.summary();
+    assert_eq!((summary.table_objects, summary.objects_total, summary.surface_block), (4, 6, 4));
     // the other scenes are the table's
     assert_eq!(store.scene(3).unwrap().source, SceneSource::Table);
+}
+
+#[test]
+fn with_no_named_object_the_last_table_object_is_kept_and_consolidated() {
+    let root = standard();
+    let store = root.load().unwrap();
+    let summary = store.summary();
+    // the loop runs to the counter, which stays at the table's count: objects 1 (1 surface), 3 (1) and 4 (2) are in the block
+    assert_eq!(
+        (summary.table_objects, summary.objects_total, summary.surface_block, summary.named_objects),
+        (4, 4, 4, 0)
+    );
+    let last = store.scene(4).unwrap().collision_object.unwrap();
+    assert_eq!((last.source, last.layout, last.surfaces), (ObjectSource::Table, "mixed", 2));
+    assert!(matches!(store.triangle(4, 0).unwrap(), Triangle::Found(_)));
 }
 
 #[test]
@@ -985,6 +1026,16 @@ fn the_comparison_finds_counts_and_fails_on_every_kind_of_alteration() {
             alter(|r| scene_row(r, 1)["name"] = "SOMETHING_ELSE".into()),
         ),
         (
+            "a different main object number",
+            "scene_mismatches",
+            alter(|r| scene_row(r, 1)["main"] = 2.into()),
+        ),
+        (
+            "a different collision object number",
+            "scene_mismatches",
+            alter(|r| scene_row(r, 1)["collision"] = 2.into()),
+        ),
+        (
             "the original has no scene where the host loaded one",
             "scene_mismatches",
             alter(|r| scene_row(r, 3)["status"] = "no_scene".into()),
@@ -1089,4 +1140,37 @@ fn a_scene_the_host_cannot_list_is_a_failure_and_the_cap_is_reported_not_hidden(
     assert!(run.status.success(), "{}", run.stderr);
     assert_eq!(rows_of(&run, "host-model-capped").len(), 1);
     assert_eq!(rows_of(&run, "host-model-tri").len(), 1, "one triangle, then the cap");
+}
+
+#[test]
+fn the_comparison_reports_a_shifted_named_object_number_it_does_not_skip_named_objects() {
+    // The first version of the loader numbered the first named object one higher than the original (N + 1 for N table objects, where the original gives N) and the comparison
+    // skipped every named object number, so the retail audit found what the comparison could not. A same-input reference report is compared number for number.
+    let root = standard();
+    root.write(&format!("OBJECTS/MODDIR/{}.ees", compiled_scene_name(1).unwrap()), &ees("Chassis"));
+    root.write("OBJECTS/MODDIR/chassis.eeo", &eeo(1, &identity_quad()));
+    let first = drive(&root.dir, &["scenes=1".to_string()], false);
+    assert!(first.status.success(), "{}", first.stderr);
+    let host_scene = rows_of(&first, "host-model-scene").into_iter().find(|r| r["scene"] == 1).unwrap();
+    assert_eq!((host_scene["main"].as_i64(), host_scene["collision"].as_i64()), (Some(4), Some(4)));
+
+    let report = original_report(&first, &[1]);
+    let (dir, path) = write_report(&report);
+    let same = drive(&root.dir, &compare_args(&path), false);
+    let _ = std::fs::remove_dir_all(dir);
+    assert!(same.status.success(), "{}", same.stderr);
+
+    let mut shifted = report.clone();
+    scene_row(&mut shifted, 1)["main"] = 5.into();
+    scene_row(&mut shifted, 1)["collision"] = 5.into();
+    let (dir, path) = write_report(&shifted);
+    let run = drive(&root.dir, &compare_args(&path), false);
+    let _ = std::fs::remove_dir_all(dir);
+    assert!(!run.status.success(), "a named object number one too high was accepted\n{}", run.stderr);
+    let listed: Vec<String> = rows_of(&run, "compare-mismatch")
+        .iter()
+        .map(|r| r["text"].as_str().unwrap().to_string())
+        .collect();
+    assert!(listed.iter().any(|t| t.contains("main object original 5 host 4")), "{listed:?}");
+    assert!(listed.iter().any(|t| t.contains("collision object original 5 host 4")), "{listed:?}");
 }

@@ -53,10 +53,10 @@ the consolidated surface block, the per-object spans) are private to `models.rs`
   counted `eeo_invalid`, and decoding it is refused. Two files for one object are refused.
 * **`OBJECTS/<dir>/*.EES`** (named scenes, versions -1 to -3, `read_custom_scene`): the same scene record in named mode (names instead of indices, `skip_schem` for version -3, ambient and
   distant lights for -2 and below). Names resolve as `get_object` does: the last path component upper-cased, `XXXX.LWO` a retail object by number, otherwise a per-directory history and a new
-  object numbered after the table (room for 2000), loaded from `<dir>/<NAME>.EEO` found case-insensitively. A scene replaces the table's. A missing or rejected object, a truncated file
+  object numbered from the table's object COUNT N (`get_next_object_id` is `total_number_of_objects++`: the first is N and REPLACES the last table object, the next N+1; room for 2000), loaded from `<dir>/<NAME>.EEO` found case-insensitively. A scene replaces the table's. A missing or rejected object, a truncated file
   or an exhausted room is a refusal (the original's load is fatal). An unsupported version, and a name no scene has, are skipped as in the original and **counted** (`ees_unsupported_version`,
   `ees_unresolved_names`); two files defining one scene are listed (`ees_duplicate_scenes`).
-* **Surface consolidation** (the original's "reallocates surfaces memory"): every object's surfaces (the table's, then the overrides', then the new objects') in one block in object order.
+* **Surface consolidation** (the original's "reallocates surfaces memory"): objects 1 up to and INCLUDING the counter's final value, in object order: with no named object that is the last table object, with M named objects the counter N + M names an unused zero slot that is in the loop and adds nothing. A scene's bounds are computed when it is read, from the objects as they then stand, and are not recomputed when a later named object overwrites one.
 
 ## The decoder, and what "backed" means
 
