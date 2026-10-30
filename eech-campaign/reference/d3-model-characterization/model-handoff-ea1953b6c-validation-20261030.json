@@ -1,0 +1,42 @@
+{
+  "recorded_utc": "2026-10-30T03:45:15.104167+00:00",
+  "source": "ea1953b6cf8218020e05eda3d2ae498d976a09bf",
+  "frozen_source": "R:/d3-evidence/model-handoff-source-ea1953b6c",
+  "windows_shipping_actual_exit": 0,
+  "windows_fixture_actual_exit": 0,
+  "verified_payloads_each": 48,
+  "linux_actual_exit": 101,
+  "complete_pass_suite_counts": [
+    15,
+    2,
+    73,
+    235,
+    19,
+    24,
+    2,
+    8
+  ],
+  "model_store_pass": 41,
+  "model_store_fail": 1,
+  "total_pass": 419,
+  "clippy": "NOT REACHED",
+  "json_writer": "Actual shipped Lua writer emits correct tiny decimal; independent JSON parser recovers exact original bits. Rust default decoder assertion remains RED.",
+  "review": "independent-model-public-handoff-correction-review-ea1953b6c-20261030.json",
+  "review_sha256": "0c94b2efa9df651b7648e6ecabe7d0ed56e5bff1ca509a3a8598318b7a5ae188",
+  "verdict": "CHANGES_REQUIRED",
+  "remaining_findings": "1P2 refusal-stage classification;3P3 outer-entry FPU proof/wording, precise test decoder, extern doc warning",
+  "next_author": {
+    "tool": 52528,
+    "pid": 22296,
+    "controller_pid": 10536,
+    "birth_utc": "2026-10-30T03:41:46.975357Z",
+    "model": "claude-sonnet-5-5",
+    "effort": "high",
+    "session": "20f8be8d-68b1-4ff9-947f-73e2362b0071",
+    "state": "LIVE actual CIM/init verified; current source unbuilt/unrun/unreviewed"
+  },
+  "retail_handoff": "HELD; no native campaign/public handoff run yet",
+  "core_generated_bootstrap": "Prepared Core-generated-model root retains Georgia map/config support; actual boot unrun, no nonretail-map claim",
+  "prior_component": "All828 retail model comparisons closed/reused, unchanged kernel not reswept",
+  "shipping": "Original Task47 processes retained, nineteenth4 exact prefixes partial only; full40/eight complete artifacts pending"
+}

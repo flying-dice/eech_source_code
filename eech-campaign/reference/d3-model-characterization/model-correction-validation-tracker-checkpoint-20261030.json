@@ -1,0 +1,15 @@
+{
+  "page": "14548994",
+  "before_version": 74,
+  "published_version": 75,
+  "prior_html_prefix_exact": true,
+  "five_epic_reports_exact": true,
+  "new_appendix_exact": true,
+  "source": "ea1953b6cf8218020e05eda3d2ae498d976a09bf",
+  "review": "0c94b2efa9df651b7648e6ecabe7d0ed56e5bff1ca509a3a8598318b7a5ae188",
+  "verdict": "CHANGES_REQUIRED",
+  "jira_comment": "10870",
+  "pr": 110,
+  "head": "ea1953b6cf8218020e05eda3d2ae498d976a09bf",
+  "draft": true
+}
