@@ -979,8 +979,9 @@ pub struct Engine {
     _not_send: std::marker::PhantomData<*const ()>,
 }
 
-/// TEST SUPPORT (feature `fpu-test-support`, EEDCS-50 D3): runs `f` under round-toward-zero, the mode the engine entry sets around every host callback, and returns whether `f`
-/// left that mode as it found it. The thread's complete floating-point environment is handed back bit for bit afterwards. It calls no engine code.
+/// TEST SUPPORT (feature `fpu-test-support`, EEDCS-50 D3): runs `f` under round-toward-zero, the mode the engine entry sets around every host callback, and returns whether `f` left the
+/// ROUNDING MODE as it found it (`fegetround` only; the flags, masks and MXCSR are not compared, and the helper restores the environment itself, so this is not evidence that an engine
+/// entry preserves a caller's state: `Engine::model_host_fpu` measures that). It calls no engine code.
 #[cfg(feature = "fpu-test-support")]
 pub fn under_round_toward_zero<R>(f: impl FnOnce() -> R) -> (R, bool) {
     // SAFETY: the two C functions only read and write this thread's floating-point environment.
@@ -4871,6 +4872,24 @@ impl Engine {
         // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
         check(unsafe { sys::eech_engine_model_host_probe(scene, depth, text.as_mut_ptr(), text.len() as i32) })?;
         // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `model-host-fixture`, EEDCS-50 D3): the COMPLETE outer floating-point state (x87 control and status words, MXCSR) around one real public entry, measured
+    /// from the caller's side: `kind` 0 is the probe entry (the accessors, the host callback, the Lua provider and bridge; a host that cannot answer takes the fatal path), `kind` 1
+    /// the counters entry alone. The caller state is set first (`rounding` 0 nearest, 1 down, 2 up, 3 toward zero, every exception masked, nonzero flags in both units); the report
+    /// gives the words before and after and whether each is identical, and the process's own environment is put back afterwards. It repairs nothing and decides nothing.
+    #[cfg(feature = "model-host-fixture")]
+    pub fn model_host_fpu(&self, kind: i32, scene: i32, depth: i32, rounding: i32) -> Result<String, EngineError> {
+        if !(0..=1).contains(&kind) || scene < 1 || depth < 0 || !(0..=3).contains(&rounding) {
+            return Err(EngineError::BadArgument(format!(
+                "model host fpu: kind {kind} must be 0 or 1, scene {scene} at least 1, depth {depth} non-negative and rounding {rounding} within 0..=3"
+            )));
+        }
+        let mut text = vec![0 as std::os::raw::c_char; 2048];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the harness NUL-terminates it.
+        check(unsafe { sys::eech_engine_model_host_fpu(kind, scene, depth, rounding, text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the harness wrote a NUL-terminated string within the buffer.
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
     }
 

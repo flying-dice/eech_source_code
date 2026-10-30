@@ -1,14 +1,16 @@
 /*
  * TEST SUPPORT (EEDCS-50, D3; feature fpu-test-support). Never part of the shipping module.
  *
- * The engine runs every host callback under round-toward-zero (the entry sets it and hands the caller's complete environment back). A unit test of the Lua provider's number
- * parsing wants the same mode around the code under test, and wants to know that the code left it as it found it. These two entries do exactly that on the calling thread:
+ * The engine runs every host callback under round-toward-zero. A unit test of the Lua provider's number parsing wants the same ROUNDING MODE around the code under test and wants to know
+ * that the code did not change it. These two entries do that on the calling thread, and ONLY that:
  *
- *   eech_test_enter_toward_zero   saves this thread's complete floating-point environment (the x87 environment and, on x86, the whole of MXCSR) and sets round-toward-zero
- *   eech_test_leave_toward_zero   reports whether the rounding mode was STILL toward-zero (1: the code under test did not change it; 0: it did) and hands the saved
- *                                 environment back; -1 where it cannot be read
+ *   eech_test_enter_toward_zero   saves this thread's floating-point environment (the x87 environment and, on x86, MXCSR) so it can be handed back, and sets round-toward-zero
+ *   eech_test_leave_toward_zero   reports whether fegetround () was STILL toward-zero (1: the code under test did not change the mode; 0: it did; -1 where the environment cannot be
+ *                                 read), then puts the saved environment back ITSELF
  *
- * They call no engine code and touch nothing else.
+ * It is NOT evidence about the complete floating-point state: it compares the rounding mode and nothing else (not the x87 control or status word, not the exception flags or masks,
+ * not MXCSR), and the restore at the end is this helper's own, so it says nothing about whether any entry of the engine restores a caller's state. That is measured, on the real
+ * public entries, by eech_engine_model_host_fpu (eech_model_host_fixture.c). These entries call no engine code and touch nothing else.
  */
 
 #ifdef EECH_FPU_TEST_SUPPORT

@@ -384,6 +384,13 @@ int eech_engine_model_host_poison (void);
    original fixture's rows (float bit patterns, the return, the number of the nine buffer words written, the rounding mode before and after). Fails (bad argument) for a scene
    outside 1 .. OBJECT_3D_LAST - 1, a negative depth, or a report that does not fit `capacity`. A host that cannot answer stops the engine with its reason. */
 int eech_engine_model_host_probe (int scene, int depth, char *text, int capacity);
+/* The COMPLETE outer floating-point state (x87 control and status words, MXCSR) around a real public entry, from the caller's side. NOT an engine entry: it is the caller. It sets
+   the requested rounding mode (0 nearest, 1 down, 2 up, 3 toward zero) in both units with every exception masked and nonzero exception flags in both, calls kind 0
+   (eech_engine_model_host_probe: the entry, the accessors, the host callback, the Lua provider and bridge; a host that cannot answer takes the entry's fatal path) or kind 1
+   (eech_engine_model_host_counters: the entry alone), reads the words back at once, reports before and after and whether each is identical, then restores the process's own
+   environment. It decides nothing and repairs nothing. Returns OK when it ran (the entry's own status is `result=` in the report); bad argument for an argument out of range, a
+   report that does not fit, or a target without these registers. */
+int eech_engine_model_host_fpu (int kind, int scene, int depth, int rounding, char *text, int capacity);
 #endif
 
 #ifdef EECH_WEAPON_FIXTURE

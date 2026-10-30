@@ -1442,22 +1442,23 @@ extern "C" {
     ) -> c_int;
 }
 
-/// TEST SUPPORT (feature fpu-test-support): see csrc/eech_fpu_test.c.
+// TEST SUPPORT (feature fpu-test-support): see csrc/eech_fpu_test.c.
 #[cfg(feature = "fpu-test-support")]
 extern "C" {
     pub fn eech_test_enter_toward_zero() -> c_int;
     pub fn eech_test_leave_toward_zero() -> c_int;
 }
 
-/// TEST-ONLY (feature model-host-fixture, EEDCS-50 D3): the host-model counters and the overwrite of the campaign's own model arrays; see csrc/eech_model_host_fixture.c.
+// TEST-ONLY (feature model-host-fixture, EEDCS-50 D3): the host-model counters and the overwrite of the campaign's own model arrays; see csrc/eech_model_host_fixture.c.
 #[cfg(feature = "model-host-fixture")]
 extern "C" {
     pub fn eech_engine_model_host_counters(text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_model_host_poison() -> c_int;
     pub fn eech_engine_model_host_probe(scene: c_int, depth: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_host_fpu(kind: c_int, scene: c_int, depth: c_int, rounding: c_int, text: *mut c_char, capacity: c_int) -> c_int;
 }
 
-/// TEST-ONLY (feature model-fixture, EEDCS-50): read-only questions to the original model accessors; see csrc/eech_model_fixture.c.
+// TEST-ONLY (feature model-fixture, EEDCS-50): read-only questions to the original model accessors; see csrc/eech_model_fixture.c.
 #[cfg(feature = "model-fixture")]
 extern "C" {
     pub fn eech_engine_model_summary(text: *mut c_char, capacity: c_int) -> c_int;

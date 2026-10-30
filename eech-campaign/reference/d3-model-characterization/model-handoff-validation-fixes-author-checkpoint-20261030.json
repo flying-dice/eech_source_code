@@ -1,0 +1,32 @@
+{
+  "author": {
+    "pid": 22296,
+    "controller_pid": 10536,
+    "started_utc": "2026-10-30T03:41:46.973331+00:00",
+    "completed_utc": "2026-10-30T03:50:48.932254+00:00",
+    "session": "20f8be8d-68b1-4ff9-947f-73e2362b0071",
+    "model": "claude-sonnet-5-5",
+    "effort": "high",
+    "state": "terminal",
+    "actual_exit": 0
+  },
+  "tool_session": 52528,
+  "collected": true,
+  "formatting": [
+    {
+      "stage": "check-before",
+      "exit": 1
+    },
+    {
+      "stage": "format",
+      "exit": 0
+    },
+    {
+      "stage": "check-after",
+      "exit": 0
+    }
+  ],
+  "engine_c_nul_count": 1,
+  "state": "CORRECTION SOURCE PREPARED; builds/tests/native/delta-review pending",
+  "scope": "Finite remaining1P2+3P3; earlier red/closed geometry preserved"
+}

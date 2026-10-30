@@ -2356,6 +2356,22 @@ impl ScriptRun {
             .find(|r| r["event"] == event)
             .unwrap_or_else(|| panic!("no {event} row in the output\n{}", self.stderr))
     }
+
+    /// A number of the `event` row decoded from the row's own text with Rust's correctly rounded `f64` parse (the default serde_json decoder is not exact for every
+    /// 17-digit double). The writer's keys are sorted and its numbers are plain, so the number ends at the next comma or the closing brace.
+    fn raw_number(&self, event: &str, key: &str) -> f64 {
+        let text = std::fs::read_to_string(&self.out).unwrap();
+        let line = text
+            .lines()
+            .find(|l| l.contains(&format!("\"event\":\"{event}\"")))
+            .unwrap_or_else(|| panic!("no {event} row in the output\n{}", self.stderr));
+        let marker = format!("\"{key}\":");
+        let start = line.find(&marker).unwrap_or_else(|| panic!("no {key} in {line}")) + marker.len();
+        let end = line[start..].find([',', '}']).map_or(line.len(), |i| start + i);
+        line[start..end]
+            .parse::<f64>()
+            .unwrap_or_else(|e| panic!("{key} in {line} is not a number: {e}"))
+    }
 }
 
 impl Drop for ScriptRun {
@@ -2418,7 +2434,10 @@ fn the_strict_json_writer_keeps_every_byte_and_raises_every_output_failure() {
         ),
         (Some(0), Some(-3), Some(1.5), Some(1_099_511_627_776))
     );
-    assert_eq!(numbers["tiny"].as_f64(), Some(1e-20));
+    // 1e-20 is written at 17 significant digits (9.9999999999999995e-21): the exact image of the double. serde_json's DEFAULT decoder (no `float_roundtrip` feature) reads that
+    // text one unit in the last place high, so the number is decoded here from the row's own text by Rust's correctly rounded `str::parse`, which is exact; the expected value
+    // is the literal, unrounded, and the comparison is equality.
+    assert_eq!(run.raw_number("numbers", "tiny"), 1e-20);
     assert_eq!((numbers["yes"].as_bool(), numbers["no"].as_bool()), (Some(true), Some(false)));
     // a non-finite number, a value that is not text, number or boolean, a failed write, a failed flush, a failed close, an existing output and a closed writer all RAISE
     assert_eq!(run.row("nonfinite")["refused"].as_bool(), Some(true));
@@ -2506,26 +2525,74 @@ fn the_authority_script_refuses_every_malformed_argument_before_it_writes_or_boo
 /// advances) or noprobe (the DLL has no probe method).
 const STAND_IN: &str = r#"
 local standin = host.args.standin or "healthy"
+-- when this engine asks the provider a triangle question the way the campaign does: never, at boot, in the second frame, or in the first requested probe
+local ask = host.args.ask or "never"
+local swallow = host.args.swallow == "1"
+local unrelated = host.args.unrelated == "1"
+
+-- the native stop on a provider refusal: the engine turns the provider's error (or a `refused` answer) into an error carrying the provider's marker. `swallow=1` plays an
+-- engine that ACCEPTS the refused answer and goes on.
+local function native_triangle (config)
+	local ok, answer = pcall (config.model, "triangle", 1, 0)
+	local message
+	if not ok then message = "eech: [model-provider:triangle.callback] " .. tostring (answer)
+	elseif type (answer) == "table" and answer.result == "refused" then message = "eech: [model-provider:triangle.refused] " .. tostring (answer.reason) end
+	if message and not swallow then error (message, 0) end
+end
+
 package.preload["eech_dc"] = function ()
 	local dc = { name = "stand-in" }
 	function dc.prepare_installation () end
 	function dc.boot (config)
+		if config.model == nil then error ("eech: [model-provider:missing] boot was given no model provider", 0) end
 		io.stderr:write ("stand-in booted\n")
 		assert (config.model ("catalogue").scenes > 0)
 		for scene = 0, 5 do config.model ("scene", scene) end
-		for depth = 0, 2 do config.model ("triangle", 1, depth) end
+		-- the healthy runs ask three triangle steps at boot, as the campaign's own boot reaches the accessor; a negative mode asks only where `ask=` says
+		if (host.args.mode or "reference") == "reference" then
+			for depth = 0, 2 do config.model ("triangle", 1, depth) end
+		end
+		if ask == "boot" then native_triangle (config) end
 		local now = 0
+		local calls = 0
 		local engine = {}
-		function engine:frame (ms) if standin ~= "stuck" then now = now + ms / 1000 end end
+		function engine:frame (ms)
+			calls = calls + 1
+			if calls == 2 then
+				if ask == "frame" then native_triangle (config) end
+				if unrelated then error ("unrelated engine failure", 0) end
+			end
+			if standin ~= "stuck" then now = now + ms / 1000 end
+		end
 		function engine:clock () return { elapsed_seconds = now } end
 		function engine:objects () return {} end
 		function engine:model_host_poison () end
 		function engine:model_host_counters () return "model-host catalogue=1 scene=3026\n" end
 		function engine:model_host_probe (scene, depth)
+			if ask == "probe" then native_triangle (config) end
 			if standin == "refuse" then error ("the probe was refused\nby the stand-in") end
 			if standin == "other" then return string.format ("model-host-scene scene=%d radius=0x00000000\nmodel-host-tri scene=%d depth=%d return=0\n", scene + 1, scene, depth) end
 			return string.format ("model-host-scene scene=%d radius=0x00000000 bb2=0 bb=0 stable=1\nmodel-host-tri scene=%d depth=%d return=0 writes=0 round_before=3072 round_after=3072\n", scene, scene, depth)
 		end
+		-- the complete outer floating-point state around a public entry, as the diagnostic build reports it. `fpu_diff` plays an entry that leaves MXCSR changed on its probe
+		-- entry; `ask=fpu` plays a probe entry that takes the fatal path on the provider's refusal (every entry after it is POISONED, result 2)
+		local stopped = false
+		function engine:model_host_fpu (kind, scene, depth, rounding)
+			local result, mxcsr, fatal = 0, 1, ""
+			if stopped then
+				result = 2
+			elseif kind == 0 and standin == "fpu_fatal" then
+				result, stopped, fatal = 1, true, "model-host-fpu-fatal the engine stopped\n"
+			elseif kind == 0 and ask == "fpu" then
+				local ok, err = pcall (native_triangle, config)
+				if not ok then result, stopped, fatal = 1, true, "model-host-fpu-fatal " .. tostring (err) .. "\n" end
+			end
+			if standin == "fpu_diff" and kind == 0 then mxcsr = 0 end
+			return string.format ("model-host-fpu kind=%d rounding=%d scene=%d depth=%d result=%d before_x87_control=0x037f before_x87_status=0x0034 before_mxcsr=0x00001fb4"
+				.. " after_x87_control=0x037f after_x87_status=0x0034 after_mxcsr=0x%08x same_x87_control=1 same_x87_status=1 same_mxcsr=%d\n%s",
+				kind, rounding, scene, depth, result, mxcsr == 1 and 0x1fb4 or 0x1f80, mxcsr, fatal)
+		end
+		if standin == "nofpu" then engine.model_host_fpu = nil end
 		if standin == "noprobe" then engine.model_host_probe = nil end
 		return engine
 	end
@@ -2657,4 +2724,149 @@ fn a_stuck_clock_a_missing_sweep_and_a_lost_output_are_failures_not_coverage() {
         run.stderr
     );
     assert_eq!(std::fs::read_to_string(run.dir.join("existing.jsonl")).unwrap(), "do not overwrite\n");
+}
+
+// A negative mode is covered only by its OWN primary failure, at whatever stage the campaign first reaches the guarded answer: boot, a frame, or a requested probe. A later or
+// unrelated failure, and a run that never gave the answer, are not coverage.
+#[test]
+fn a_negative_mode_is_covered_only_by_its_own_primary_failure_at_whatever_stage_it_comes() {
+    for mode in ["decline", "refused"] {
+        let marker = if mode == "decline" {
+            "[model-provider:triangle.callback]"
+        } else {
+            "[model-provider:triangle.refused]"
+        };
+        for ask in ["boot", "frame", "probe"] {
+            let run = stand_in_run(&[&format!("mode={mode}"), &format!("ask={ask}"), "probe_scenes=1", "probe_depths=0"], "healthy");
+            assert!(
+                run.status.success(),
+                "{mode} asked at {ask}: the guard that was raised was not recognised\n{}",
+                run.stderr
+            );
+            if ask == "boot" {
+                let boot = run.row("boot_failed");
+                assert_eq!(
+                    (boot["stage"].as_str(), boot["matched"].as_bool(), boot["tripped"].as_bool()),
+                    (Some("boot"), Some(true), Some(true)),
+                    "{mode}"
+                );
+                assert!(boot["error"].as_str().unwrap().contains(marker), "{boot}");
+            } else {
+                let summary = run.row("summary");
+                assert_eq!(summary["primary_stage"].as_str(), Some(ask), "{mode}");
+                assert_eq!(summary["primary_matched"].as_bool(), Some(true), "{mode} {ask}");
+                assert_eq!(summary["tripped"].as_bool(), Some(true), "{mode} {ask}");
+                assert!(summary["primary_message"].as_str().unwrap().contains(marker), "{summary}");
+                // a probe-stage refusal is the primary failure; the other probes (which fail because the engine has stopped) do not change the verdict
+                if ask == "frame" {
+                    assert_eq!(summary["frames_run"].as_i64(), Some(1));
+                }
+            }
+        }
+        // the answer was never asked for: UNREACHED, not coverage
+        let run = stand_in_run(&[&format!("mode={mode}"), "ask=never"], "healthy");
+        assert!(!run.status.success() && run.stderr.contains("UNREACHED"), "{mode}: {}", run.stderr);
+        // the answer was given and accepted (an engine that swallowed it), and then something UNRELATED stopped the run: not coverage
+        let run = stand_in_run(&[&format!("mode={mode}"), "ask=boot", "swallow=1", "unrelated=1"], "healthy");
+        assert!(!run.status.success() && run.stderr.contains("for another reason"), "{mode}: {}", run.stderr);
+        let summary = run.row("summary");
+        assert_eq!(
+            (
+                summary["primary_stage"].as_str(),
+                summary["primary_matched"].as_bool(),
+                summary["tripped"].as_bool()
+            ),
+            (Some("frame"), Some(false), Some(true))
+        );
+        // the answer was given, swallowed, and nothing stopped the engine at all: the guard did not fire
+        let run = stand_in_run(&[&format!("mode={mode}"), "ask=frame", "swallow=1"], "healthy");
+        assert!(!run.status.success() && run.stderr.contains("accepted"), "{mode}: {}", run.stderr);
+    }
+    // a healthy mode still fails on a guard raised by a probe, a missing provider is the boot failure it expects, and a boot that fails in a healthy mode is a failure
+    let run = stand_in_run(&["mode=missing"], "healthy");
+    assert!(run.status.success(), "{}", run.stderr);
+    assert_eq!(run.row("boot_failed")["matched"].as_bool(), Some(true));
+    let run = stand_in_run(&["mode=decline", "ask=boot", "standin=healthy"], "healthy");
+    assert!(run.status.success(), "{}", run.stderr);
+}
+
+// The complete outer floating-point state around the real public entries (fpu=1): the script measures nothing itself (the registers are the diagnostic DLL's harness's); what is
+// tested here is that it asks for every requested initial rounding on both entries, judges each of the three words, classifies the refused entry as the PRIMARY failure at its own
+// stage, does not judge the entries after the stop, and fails on a word that changed or on a DLL that cannot measure.
+#[test]
+fn the_script_judges_the_complete_outer_floating_point_words_across_healthy_and_refused_entries() {
+    // healthy: both entries at all four initial roundings, every word identical
+    let run = stand_in_run(&["fpu=1"], "healthy");
+    assert!(run.status.success(), "{}", run.stderr);
+    let rows: Vec<Value> = run.rows().into_iter().filter(|r| r["event"] == "fpu").collect();
+    assert_eq!(rows.len(), 8, "{rows:?}");
+    assert!(rows
+        .iter()
+        .all(|r| r["judged"] == true && r["same_x87_control"] == 1 && r["same_x87_status"] == 1 && r["same_mxcsr"] == 1 && r["result"] == 0));
+    let kinds: Vec<(i64, i64)> = rows.iter().map(|r| (r["kind"].as_i64().unwrap(), r["rounding"].as_i64().unwrap())).collect();
+    assert_eq!(kinds, [(1, 0), (1, 1), (1, 2), (1, 3), (0, 0), (0, 1), (0, 2), (0, 3)]);
+    assert_eq!(run.row("summary")["fpu_rows"].as_i64(), Some(8));
+
+    // a word that changed across an entry is a measured failure, named, with the evidence kept
+    let run = stand_in_run(&["fpu=1", "fpu_rounding=3"], "fpu_diff");
+    assert!(
+        !run.status.success() && run.stderr.contains("MXCSR changed across the public entry"),
+        "{}",
+        run.stderr
+    );
+    assert!(run.rows().iter().any(|r| r["event"] == "fpu" && r["same_mxcsr"] == 0));
+
+    // the refused entry, at each initial rounding in its own process: the refusal is the PRIMARY failure at the fpu stage and covers the mode; the entries after it are not judged
+    for rounding in 0..=3 {
+        let run = stand_in_run(&["mode=decline", "ask=fpu", "fpu=1", &format!("fpu_rounding={rounding}")], "healthy");
+        assert!(run.status.success(), "rounding {rounding}: {}", run.stderr);
+        let summary = run.row("summary");
+        assert_eq!(
+            (
+                summary["primary_stage"].as_str(),
+                summary["primary_matched"].as_bool(),
+                summary["tripped"].as_bool()
+            ),
+            (Some("fpu"), Some(true), Some(true))
+        );
+        assert_eq!(summary["fpu_rows"].as_i64(), Some(2));
+    }
+    let run = stand_in_run(&["mode=decline", "ask=fpu", "fpu=1", "fpu_rounding=0,2"], "healthy");
+    assert!(run.status.success(), "{}", run.stderr);
+    let rows: Vec<Value> = run.rows().into_iter().filter(|r| r["event"] == "fpu").collect();
+    // kind 1 at 0 and 2 (judged), kind 0 at 0 (the refused entry, judged), kind 0 at 2 (POISONED, not judged)
+    assert_eq!(rows.len(), 4);
+    assert_eq!((rows[2]["result"].as_i64(), rows[2]["judged"].as_bool()), (Some(1), Some(true)));
+    assert!(rows[2]["fatal"].as_str().unwrap().contains("[model-provider:triangle.callback]"));
+    assert_eq!((rows[3]["result"].as_i64(), rows[3]["judged"].as_bool()), (Some(2), Some(false)));
+    // a refused entry that ALSO left a word changed still fails the run, though its refusal is the covered one
+    let run = stand_in_run(&["mode=decline", "ask=fpu", "fpu=1", "fpu_rounding=1"], "fpu_diff");
+    assert!(
+        !run.status.success() && run.stderr.contains("MXCSR changed across the public entry"),
+        "{}",
+        run.stderr
+    );
+    // a refusal at the fpu stage in a HEALTHY mode is a failure of that stage
+    let run = stand_in_run(&["mode=reference", "fpu=1", "fpu_rounding=2"], "fpu_fatal");
+    assert!(!run.status.success() && run.stderr.contains("the fpu stage failed"), "{}", run.stderr);
+
+    // a DLL that cannot measure, and arguments out of range, are failures, never coverage
+    let run = stand_in_run(&["fpu=1"], "nofpu");
+    assert!(!run.status.success() && run.stderr.contains("model-host-fixture"), "{}", run.stderr);
+    for bad in [
+        "fpu_rounding=4",
+        "fpu_rounding=1,1",
+        "fpu_rounding=0,1,2,3,0",
+        "fpu_scene=0",
+        "fpu_depth=-1",
+        "fpu=2",
+    ] {
+        let root = standard();
+        let run = run_lua(
+            &[("json-lines.lua", JSON_LINES), ("model-authority.lua", MODEL_AUTHORITY)],
+            "model-authority.lua",
+            &[format!("root={}", slashes(&root.dir)), bad.to_string()],
+        );
+        assert!(!run.status.success() && !run.out.exists(), "{bad}: {}", run.stderr);
+    }
 }

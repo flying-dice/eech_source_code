@@ -57,15 +57,21 @@ is no fallback to the arrays and no always-miss: a host that cannot answer, or a
   image of the double, -0 and subnormals included) that `nearest_f32` narrows, or the bit pattern. The catalogue count is a whole number tested in Lua (`1e-20` is not 0), `loaded` and
   `collider` are booleans, and the name is text of at most 127 bytes without a NUL. A list of six or nine is a table holding exactly the numbers 1..N (a number at every index, nothing at
   N+1, no key outside 1..N) or a text of exactly `11 * N - 1` bytes of N bit patterns; the length is tested before anything is parsed and the N slots are filled one token at a time, so no
-  input can make the engine allocate more than N floats. This is the protected pattern `exact_numbers` uses for poses: nothing longjmps across Rust, and the caller's floating-point
-  state is not touched (the narrowing does not depend on the rounding mode). The reference host's requests are checked the same way (`STRICT_REQUEST` in `model_host.rs`): a scene
+  input can make the engine allocate more than N floats. This is the protected pattern `exact_numbers` uses for poses: nothing longjmps across Rust. What is NOT claimed: that the
+  provider code leaves the x87 or MXCSR words untouched (Lua and libc formatting may raise exception flags); the narrowing's RESULT does not depend on the rounding mode, which is all the
+  unit tests show, and they check only the rounding mode (`fegetround`). The reference host's requests are checked the same way (`STRICT_REQUEST` in `model_host.rs`): a scene
   or depth must be exactly a whole number.
 * **The reference host** (`host.model`) is the f9 `ModelStore` (immutable, exact, with its reviewed numeric kernel; no new math), loaded from `host.args.root` when the campaign first
   asks (at boot); a root with no model assets refuses the boot as `NOT RUN: model assets absent`, never an empty database. Every campaign script of the repository passes
   `model = host.model` (31 scripts; the closed original-characterisation driver `model-characterization.lua` does not: see the variants).
-* **FPU, RNG, order**: the callback runs inside the engine entry (round-toward-zero set); the host's kernel requires the exception masks, sets and restores the caller's complete
+* **FPU, RNG, order**: the callback runs inside the engine entry (round-toward-zero set); the host's kernel (kernel-only evidence, unchanged) requires the exception masks, sets and restores the caller's complete
   x87/SSE state around its arithmetic (reviewed, unchanged), and nothing in the exchange draws a random number, reads the clock or reorders the caller's calls (the accessors are
   replaced in place; the caller's `depth++` loops are untouched).
+* **The complete outer floating-point state across the PUBLIC entries is NOT yet evidenced for this boundary, and is measured, not assumed.** The kernel's complete-state tests cover the
+  kernel only. The shipped `ENTER`/`LEAVE` macros save the caller's environment with `fegetenv`, set round-toward-zero and restore with `fesetenv` (on the setjmp fatal path too);
+  whether that gives back the x87 control and status words and the SSE word (MXCSR, flags included) on each toolchain, with the Lua model callback and its parser in between, is what the
+  diagnostic build's `eech_engine_model_host_fpu` measures from the caller's side, on a successful entry and on a provider-refused one, at each initial rounding mode with every exception
+  masked and nonzero exception flags set in both units. Nothing about the macros is repaired or assumed here; a difference is a finding to characterise.
 
 
 ## Variants (explicit)
@@ -100,7 +106,7 @@ switch in this change.
 ## Controls PREPARED, NOT RUN
 
 * `crates/eech-dc/src/module.rs` unit tests (feature `fpu-test-support` of the engine, a dev-dependency): the REAL Lua bridge, asked under round-toward-zero as the engine's callback
-  runs it, with the code under test required to leave the mode as it found it. A scene with `1e-20` (within EPSILON of 0), subnormal `1e-45`, `5e-324` and negative zero keeps every
+  runs it, with the code under test required to leave the ROUNDING MODE (`fegetround` only; not the flags, masks or MXCSR) as it found it. A scene with `1e-20` (within EPSILON of 0), subnormal `1e-45`, `5e-324` and negative zero keeps every
   bit; bit patterns are exact (a subnormal pattern; NaN and infinity patterns and numbers refused, a `0X` prefix refused); a triangle is a table or a text of exactly nine and an
   extra at 10, an extra at 11 after a hole at 10, an extra far away, a string key, a key 0, eight numbers, a hole, ten patterns, six patterns, comma-and-space, semicolons, a hundred
   thousand patterns, a NaN, a bit pattern inside a table, a boolean and no `p` are each refused by name (upper-case digits and the exact text are accepted); every field of an
@@ -130,6 +136,18 @@ switch in this change.
   between the first opposed pair of live mobiles; the changed modes must move that fold relative to `reference`. Where it does not (no ray met a model), that is reported, not
   asserted. That the native code checks the presence declaration before it writes the caller's buffer is a property of the order of the checks in `campaign_model_triangle` (read, and
   exercised by the control above stopping the engine); the stop unwinds the engine, so the buffer cannot be inspected afterwards.
+* **Which stage refused (`model-authority.lua`).** The first failure of a run is the PRIMARY one, recorded with its stage (boot, frame, probe, los or fpu) and message
+  (`primary_stage`, `primary_message`, `primary_matched`). A negative mode is covered only when its answer was given AND the primary failure, at whatever stage, is the engine's stop on
+  that mode's marker: a guard raised by a requested probe on healthy frames, a triangle refusal at boot, and a frame refusal are all recognised; a failure after the primary one (the
+  engine has stopped, every later call fails), an unrelated failure, an accepted answer and an answer never given (`UNREACHED`) are not coverage. The `model_store.rs` stand-in controls
+  play boot-first, frame-first and probe-first refusals (`decline` and `refused`), the never-asked, swallowed-then-unrelated and swallowed-and-accepted cases, and `missing`.
+* **The complete outer floating-point state (`fpu=1`, diagnostic DLL).** For each `fpu_rounding` (0 nearest, 1 down, 2 up, 3 toward zero) the caller state is set (rounding in both units,
+  every exception masked, divide-by-zero, underflow and inexact flags raised in the x87 status word and MXCSR) and the counters entry (ENTER/LEAVE alone) and the probe entry
+  (accessors, model callback, Lua provider and bridge) are called; x87 control word, x87 status word and MXCSR are compared before and after, and the process's own environment is
+  restored afterwards. In a mode that makes the host refuse, the first probe entry takes the fatal path: that is the refused entry measured (run once per rounding; the entries
+  after it are POISONED and not judged). A changed word fails the run and nothing is repaired. The stand-in controls test only the script's asking and judging (every rounding on
+  both entries, each word, the refused entry as the primary failure at its own stage, the unjudged entries after it, a changed word, a DLL that cannot measure, out-of-range arguments).
+  The native measurement is the Root's.
 * **Counters, named for what they are.** `reference_*` count what the reference host answered, before a mode rewrote it; `replied_*` count what the provider function handed to the
   campaign; `native_counters` (diagnostic build) are what the native code ACCEPTED (and the questions asked, the table reads and the presence diagnostic). None of them is authority
   proof on its own; with the poison and the LOS fold they are.

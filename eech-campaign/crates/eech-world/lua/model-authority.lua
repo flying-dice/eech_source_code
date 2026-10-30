@@ -31,6 +31,11 @@
 -- A bad_* mode whose precondition the run did not reach (for the triangle ones: no triangle question of the matching kind was asked) is reported `UNREACHED` and fails the run,
 -- never counted as covered.
 --
+-- THE STAGE. The first failure of the run is the PRIMARY one and its stage (boot, frame, probe or los) is recorded with its message (`primary_stage`, `primary_message`). A negative
+-- mode is covered only when its answer was actually given AND the primary failure, at whatever stage it came (a triangle question may first be asked at boot, in a frame or by a
+-- requested probe), is the engine's stop on that mode's provider marker. A failure after the primary one (every later call fails once the engine has stopped), or an unrelated
+-- one, is never coverage: the run fails naming the stage and the message. A healthy mode fails on any primary failure and on any unmet requested observation.
+--
 -- With a DLL built with the `model-host-fixture` feature, the script can also (all explicit, all reported):
 --   poison=1          overwrite the campaign's own arrays that the ORIGINAL accessors read (radius, both bounds, collision object index) right after boot, so the whole run can
 --                     only have used the host's answers; the observations of a poisoned run are compared by the Root with those of the unpoisoned reference run
@@ -48,7 +53,14 @@
 -- host.args: root, out (a NEW JSON Lines path), scenario (lebanon_retail default, georgia_retail), seconds (a decimal greater than 0 and at most 86400, default 60),
 --            frame_ms (a whole number 1..10000, default 100; at most 1000000 frames in all), mode (default reference), poison (0 or 1, default 0), los (0 or 1, default 0),
 --            sweeps (1..10000, default 200), seed (0..2147483647, default 7), probe_scenes (at most 64 distinct whole numbers >= 1), probe_depths (at most 64 whole numbers >= 0,
---            default 0,1,2; at most 1024 probes in all)
+--            default 0,1,2; at most 1024 probes in all), fpu (0 or 1, default 0), fpu_rounding (distinct 0..3 list, default 0,1,2,3), fpu_scene (default 1), fpu_depth (default 0)
+--
+-- fpu=1 (model-host-fixture DLL): the COMPLETE outer floating-point state (x87 control word, x87 status word, MXCSR) around REAL public engine entries, measured from the caller's side
+-- (eech_engine_model_host_fpu): for each fpu_rounding the caller state is set (that rounding mode in both units, every exception masked, NONZERO exception flags in both) and the
+-- entry is called, the counters entry (ENTER/LEAVE alone, no callback) and then the probe entry (the accessors, the host callback, the Lua provider and bridge across the native
+-- campaign), and the three words are compared before and after. In a mode that makes the host refuse, the first probe entry takes the entry's fatal path and that is the refused
+-- entry measured (the entries after it return POISONED and are reported, not judged); run it once per initial rounding with fpu_rounding=N. A word that differs is a measured
+-- failure of the shipped entry's restore and fails the run; nothing is repaired here. The registers are the harness's, not fegetround's: a rounding mode alone proves nothing else.
 
 io.stdout:setvbuf ("no")
 
@@ -125,6 +137,10 @@ local probe_depths = whole_list (args.probe_depths or (args.probe_scenes and "0,
 if #probe_scenes * #probe_depths > 1024 then fail_args ("probe_scenes x probe_depths is more than 1024 probes") end
 if args.probe_depths and #probe_scenes == 0 then fail_args ("probe_depths without probe_scenes") end
 local probes_requested = #probe_scenes * #probe_depths
+local fpu_requested = whole (args.fpu or "0", "fpu", 0, 1) == 1
+local fpu_roundings = whole_list (args.fpu_rounding or "0,1,2,3", "fpu_rounding", 0, 3, 4, true)
+local fpu_scene = whole (args.fpu_scene or "1", "fpu_scene", 1, 2147483646)
+local fpu_depth = whole (args.fpu_depth or "0", "fpu_depth", 0, 2147483646)
 
 local out = json.open (assert (args.out, "out=<JSON Lines path>"))
 local emit = out.emit
@@ -275,6 +291,26 @@ local function replying (inner)
 	end
 end
 
+-- The FIRST failure of the run, with the stage it happened at (boot, frame, probe or los) and its message. Everything after it is secondary: once the engine has stopped, every later
+-- call fails too, and those later failures are never read as coverage of anything.
+local primary
+local function record_primary (stage, message)
+	if not primary then primary = { stage = stage, message = message } end
+end
+
+-- the provider marker an engine stop carries in each negative mode. A boot-time model answer is asked at boot; a triangle question may be asked at boot, in a frame or by a requested
+-- probe, whichever the campaign reaches first: the stage is recorded, and the marker decides.
+local boot_markers = { missing = "[model-provider:missing]", bad_nil = "[model-provider:catalogue.", bad_catalogue = "[model-provider:catalogue.mismatch]",
+	bad_name = "[model-provider:catalogue.identity]", bad_scene_nan = "[model-provider:scene.answer]", bad_collider_unloaded = "[model-provider:scene.answer]",
+	bad_scene0_loaded = "[model-provider:scene.answer]" }
+local triangle_markers = { decline = "[model-provider:triangle.callback]", refused = "[model-provider:triangle.refused]", bad_kind = "[model-provider:triangle.answer]",
+	bad_nan = "[model-provider:triangle.answer]", bad_count = "[model-provider:triangle.answer]", bad_hex = "[model-provider:triangle.answer]",
+	bad_absent = "[model-provider:triangle.answer]", bad_end_absent = "[model-provider:triangle.answer]", bad_found_declared_absent = "[model-provider:triangle.answer]",
+	bad_end_declared_absent = "[model-provider:triangle.answer]" }
+local expected_marker = boot_markers [mode] or triangle_markers [mode]
+
+local function matches (message) return expected_marker ~= nil and string.find (message, expected_marker, 1, true) ~= nil end
+
 -- ---------------------------------------------------------------------------------------------------------------------------------
 -- boot
 
@@ -287,16 +323,15 @@ local config = {
 }
 local ok, engine = pcall (dc.boot, config)
 if not ok then
-	emit { event = "boot_failed", mode = mode, error = first_line (engine) }
+	local message = first_line (engine)
+	record_primary ("boot", message)
+	emit { event = "boot_failed", mode = mode, stage = "boot", error = message, expected_marker = expected_marker or "", matched = matches (message), tripped = tripped }
 	out.close ()
-	io.stderr:write ("model-authority: boot failed: " .. first_line (engine) .. "\n")
-	-- a refusal at boot is the expected result of exactly the modes that are wrong before the first frame
-	local expected = { missing = "[model-provider:missing]", bad_nil = "[model-provider:catalogue.", bad_catalogue = "[model-provider:catalogue.mismatch]",
-		bad_name = "[model-provider:catalogue.identity]", bad_scene_nan = "[model-provider:scene.answer]", bad_collider_unloaded = "[model-provider:scene.answer]",
-		bad_scene0_loaded = "[model-provider:scene.answer]" }
-	local marker = expected [mode]
-	assert (marker, "boot failed: " .. first_line (engine))
-	assert (string.find (first_line (engine), marker, 1, true), "boot failed without the provider marker " .. marker .. ": " .. first_line (engine))
+	io.stderr:write ("model-authority: boot failed: " .. message .. "\n")
+	-- the boot failure is the expected result of a negative mode ONLY if that mode's answer was given (`missing` gives none) and the engine stopped on that answer's marker
+	if not expected_marker then error ("boot failed in a mode that expects a healthy boot: " .. message, 0) end
+	if mode ~= "missing" and not tripped then error ("UNREACHED: " .. mode .. " failed before its answer was given (" .. message .. "); the control is unavailable, not covered", 0) end
+	if not matches (message) then error ("boot stopped for another reason than " .. expected_marker .. ": " .. message, 0) end
 	return
 end
 assert (mode ~= "missing", "boot succeeded without a model provider")
@@ -328,6 +363,7 @@ for f = 1, frames do
 	clock_last = now
 	ran = f
 end
+if failure then record_primary ("frame", failure) end
 local progress_problem
 if not failure then
 	local advanced, expected_advance = clock_last - clock_start, frames * frame_ms / 1000
@@ -338,7 +374,7 @@ end
 -- the campaign observation a host-authored change must move: the LOS fold of a sweep between the first opposed pair of live mobiles
 
 local los, los_problem
-if not failure and los_requested then
+if not primary and los_requested then
 	if type (engine.los_probe) ~= "function" then
 		los_problem = "los=1 needs a DLL built with the los-fixture feature: unavailable, not covered"
 	else
@@ -357,9 +393,15 @@ if not failure and los_requested then
 			end
 		end
 		if pair then
-			los = engine:los_probe (pair.a.id, pair.b.id, sweep_seed, sweeps)
-			emit { event = "los_probe", pair = pair.label, source = pair.a.id, target = pair.b.id, hash = los.hash, calls = los.calls, visible = los.visible, skipped = los.skipped,
-				lookup_hash = los.lookup_hash, lookups = los.lookups }
+			local swept, result = pcall (engine.los_probe, engine, pair.a.id, pair.b.id, sweep_seed, sweeps)
+			if swept then
+				los = result
+				emit { event = "los_probe", pair = pair.label, source = pair.a.id, target = pair.b.id, hash = los.hash, calls = los.calls, visible = los.visible, skipped = los.skipped,
+					lookup_hash = los.lookup_hash, lookups = los.lookups }
+			else
+				record_primary ("los", first_line (result))
+				los_problem = "the line-of-sight sweep failed: " .. first_line (result)
+			end
 		else
 			los_problem = "UNREACHED: no live opposed pair of supported mobiles for the line-of-sight sweep"
 		end
@@ -367,17 +409,19 @@ if not failure and los_requested then
 end
 
 -- ---------------------------------------------------------------------------------------------------------------------------------
--- the real public accessors, for the scenes asked for: EVERY requested probe must succeed and report its own row
+-- the real public accessors, for the scenes asked for: EVERY requested probe must succeed and report its own row. A probe that RAISES is the engine's own stop (a provider refusal
+-- arrives here when the campaign has asked no triangle question before): the first such failure is the primary one of the run; the probes after it fail because the engine has stopped.
 
 local probes_ok, probes_failed = 0, 0
 local probe_problem
-if probes_requested > 0 and not failure then
+if probes_requested > 0 and not primary then
 	if type (engine.model_host_probe) ~= "function" then
 		probe_problem = "probe_scenes needs a DLL built with the model-host-fixture feature: unavailable, not covered"
 	else
 		for _, scene in ipairs (probe_scenes) do
 			for _, depth in ipairs (probe_depths) do
 				local probed, text = pcall (engine.model_host_probe, engine, scene, depth)
+				if not probed then record_primary ("probe", first_line (text)) end
 				local wanted_scene = string.format ("model-host-scene scene=%d ", scene)
 				local wanted_tri = string.format ("model-host-tri scene=%d depth=%d ", scene, depth)
 				local good = probed and type (text) == "string" and string.find (text, wanted_scene, 1, true) ~= nil and string.find (text, wanted_tri, 1, true) ~= nil
@@ -391,44 +435,98 @@ if probes_requested > 0 and not failure then
 	end
 end
 
+-- ---------------------------------------------------------------------------------------------------------------------------------
+-- the complete outer floating-point state around the real public entries (fpu=1)
+
+local fpu_problem
+local fpu_rows = 0
+if fpu_requested and not primary then
+	if type (engine.model_host_fpu) ~= "function" then
+		fpu_problem = "fpu=1 needs a DLL built with the model-host-fixture feature: unavailable, not covered"
+	else
+		local ENGINE_OK, ENGINE_FATAL = 0, 1
+		local engine_stopped = false
+		local function same (report, name) return tonumber (string.match (report, "same_" .. name .. "=(%d)")) end
+		for _, kind in ipairs { 1, 0 } do
+			for _, rounding in ipairs (fpu_roundings) do
+				local measured, report = pcall (engine.model_host_fpu, engine, kind, fpu_scene, fpu_depth, rounding)
+				if not measured then
+					emit { event = "fpu", kind = kind, rounding = rounding, ok = false, report = first_line (report) }
+					fpu_problem = fpu_problem or ("the floating-point harness failed (kind " .. kind .. ", rounding " .. rounding .. "): " .. first_line (report))
+				else
+					fpu_rows = fpu_rows + 1
+					local result = tonumber (string.match (report, "result=(%-?%d+)"))
+					local x87c, x87s, mx = same (report, "x87_control"), same (report, "x87_status"), same (report, "mxcsr")
+					local fatal = string.match (report, "model%-host%-fpu%-fatal ([^\n]*)")
+					-- once the engine has stopped (the refused entry), every later entry returns POISONED: reported, not judged
+					local judged = not engine_stopped
+					emit { event = "fpu", kind = kind, rounding = rounding, scene = fpu_scene, depth = fpu_depth, ok = true, result = result or -1, judged = judged,
+						same_x87_control = x87c or -1, same_x87_status = x87s or -1, same_mxcsr = mx or -1, fatal = fatal or "", report = report }
+					if judged then
+						if result == ENGINE_FATAL then
+							engine_stopped = true
+							record_primary ("fpu", fatal or "the entry took its fatal path without a message")
+						elseif result ~= ENGINE_OK then
+							fpu_problem = fpu_problem or string.format ("the public entry returned %s (kind %d, rounding %d)", tostring (result), kind, rounding)
+						end
+						if x87c ~= 1 or x87s ~= 1 or mx ~= 1 then
+							local differing = {}
+							if x87c ~= 1 then differing [#differing + 1] = "x87 control word" end
+							if x87s ~= 1 then differing [#differing + 1] = "x87 status word" end
+							if mx ~= 1 then differing [#differing + 1] = "MXCSR" end
+							fpu_problem = fpu_problem or string.format ("the caller's %s changed across the public entry (kind %d, rounding %d)", table.concat (differing, " and "), kind, rounding)
+						end
+					end
+				end
+			end
+		end
+		if fpu_rows == 0 and not fpu_problem then fpu_problem = "no floating-point measurement was made" end
+	end
+end
+
 local native_counters = ""
-if has_fixture and not failure then
+if has_fixture and not primary then
 	local counters_ok, counters = pcall (engine.model_host_counters, engine)
 	native_counters = counters_ok and counters or ("unavailable: " .. first_line (counters))
 	emit { event = "native_counters", note = "what the native code ACCEPTED from the host; see the header", report = native_counters }
 end
 
 emit { event = "summary", mode = mode, frames = frames, frames_run = ran, failure = failure or "", poisoned = poison, tripped = tripped,
+	primary_stage = primary and primary.stage or "", primary_message = primary and primary.message or "", expected_marker = expected_marker or "",
+	primary_matched = primary ~= nil and matches (primary.message),
 	reference_catalogue = reference_counts.catalogue, reference_scene = reference_counts.scene, reference_triangle = reference_counts.triangle,
 	reference_found = reference_counts.found, reference_ended = reference_counts.ended, reference_absent = reference_counts.absent, reference_refused = reference_counts.refused,
 	replied_catalogue = replied.catalogue, replied_scene = replied.scene, replied_triangle = replied.triangle, replied_found = replied.found, replied_ended = replied.ended,
 	replied_absent = replied.absent, replied_refused = replied.refused, replied_other = replied.other,
 	los_requested = los_requested, los_hash = los and los.hash or "", los_lookup_hash = los and los.lookup_hash or "", los_visible = los and los.visible or -1,
 	probes_requested = probes_requested, probes_ok = probes_ok, probes_failed = probes_failed,
-	progress_problem = progress_problem or "", los_problem = los_problem or "", probe_problem = probe_problem or "" }
+	progress_problem = progress_problem or "", los_problem = los_problem or "", probe_problem = probe_problem or "", fpu_requested = fpu_requested, fpu_rows = fpu_rows, fpu_problem = fpu_problem or "" }
 out.close ()
-io.stderr:write (string.format ("model-authority: mode=%s frames=%d/%d reference triangle=%d found=%d ended=%d absent=%d; replied found=%d ended=%d absent=%d; failure=%s\n", mode, ran, frames,
-	reference_counts.triangle, reference_counts.found, reference_counts.ended, reference_counts.absent, replied.found, replied.ended, replied.absent, failure or "none"))
+io.stderr:write (string.format ("model-authority: mode=%s frames=%d/%d reference triangle=%d found=%d ended=%d absent=%d; replied found=%d ended=%d absent=%d; primary=%s\n", mode, ran, frames,
+	reference_counts.triangle, reference_counts.found, reference_counts.ended, reference_counts.absent, replied.found, replied.ended, replied.absent,
+	primary and (primary.stage .. ": " .. primary.message) or "none"))
 
 -- ---------------------------------------------------------------------------------------------------------------------------------
--- the verdict. A mode that must be refused is only covered if its answer was given AND the engine stopped with its marker; every requested observation must have been made
+-- the verdict. A negative mode is covered ONLY if its answer was given AND the PRIMARY failure of the run, at whatever stage it came, is the engine's stop on that answer's marker.
+-- A later or unrelated failure is not coverage; a mode whose answer was never given is UNREACHED; every requested observation of a healthy run must have been made.
 
-local triangle_markers = { decline = "[model-provider:triangle.callback]", refused = "[model-provider:triangle.refused]", bad_kind = "[model-provider:triangle.answer]",
-	bad_nan = "[model-provider:triangle.answer]", bad_count = "[model-provider:triangle.answer]", bad_hex = "[model-provider:triangle.answer]",
-	bad_absent = "[model-provider:triangle.answer]", bad_end_absent = "[model-provider:triangle.answer]", bad_found_declared_absent = "[model-provider:triangle.answer]",
-	bad_end_declared_absent = "[model-provider:triangle.answer]" }
-local marker = triangle_markers [mode]
-if marker then
+if expected_marker then
 	if not tripped then
-		-- the precondition (a triangle question of the matching kind) was not reached in this run: unavailable, never counted as covered
 		io.stderr:write ("model-authority: UNREACHED: the " .. mode .. " answer was never given in this run; the control is unavailable, not covered\n")
 		error ("UNREACHED: " .. mode, 0)
 	end
-	assert (failure, "a malformed or declined provider answer was accepted: mode " .. mode)
-	assert (string.find (failure, marker, 1, true), "the engine stopped without the provider marker " .. marker .. ": " .. failure)
+	if not primary then error ("a malformed or declined provider answer was accepted: mode " .. mode, 0) end
+	if not matches (primary.message) then
+		error (string.format("mode %s: the run stopped at the %s stage for another reason than %s: %s", mode, primary.stage, expected_marker, primary.message), 0)
+	end
+	-- the refusal is covered; a measured change of the caller's floating-point state across the refused entry still fails the run
+	if fpu_problem then error (fpu_problem, 0) end
 	return
 end
-if failure then error (failure, 0) end
+if primary then
+	error (string.format ("the %s stage failed: %s%s", primary.stage, primary.message, probe_problem and ("; " .. probe_problem) or ""), 0)
+end
 if progress_problem then error (progress_problem, 0) end
 if los_problem then error (los_problem, 0) end
 if probe_problem then error (probe_problem, 0) end
+if fpu_problem then error (fpu_problem, 0) end

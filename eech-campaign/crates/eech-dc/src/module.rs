@@ -1866,6 +1866,18 @@ impl LuaUserData for LuaEngine {
         methods.add_method("model_host_counters", |_, this, ()| this.engine.model_host_counters().map_err(lua_error));
         #[cfg(feature = "model-host-fixture")]
         methods.add_method("model_host_poison", |_, this, ()| this.engine.model_host_poison().map_err(lua_error));
+        // the complete outer floating-point state around a real public entry (see eech_engine_model_host_fpu); the arguments are whole numbers in range, checked before the engine is entered
+        #[cfg(feature = "model-host-fixture")]
+        methods.add_method(
+            "model_host_fpu",
+            |_, this, (kind, scene, depth, rounding): (LuaValue, LuaValue, LuaValue, LuaValue)| {
+                let kind = model_int(&kind, "kind", 0, 1)?;
+                let scene = model_int(&scene, "scene", 1, i32::MAX - 1)?;
+                let depth = model_int(&depth, "depth", 0, i32::MAX - 1)?;
+                let rounding = model_int(&rounding, "rounding", 0, 3)?;
+                this.engine.model_host_fpu(kind, scene, depth, rounding).map_err(lua_error)
+            },
+        );
         // the scene and depth are whole numbers in range, checked before the engine is entered (the same helper as the original-accessor fixture's)
         #[cfg(feature = "model-host-fixture")]
         methods.add_method("model_host_probe", |_, this, (scene, depth): (LuaValue, LuaValue)| {
@@ -2287,8 +2299,11 @@ fn gunship(name: &str) -> LuaResult<Gunship> {
 /// `LuaValue` would arrive as 0 and a negative zero would lose its sign. No physical number, and no whole number the campaign checks, is therefore read as a `LuaValue`: the
 /// bridge below is a Lua function that reads every field of the answer ONCE (a stateful getter is not asked twice), checks its raw Lua type, and hands Rust text: the number
 /// formatted at 17 significant digits (an exact image of the double, -0 and subnormals included) which `nearest_f32` narrows, or the bit-pattern text. This is the protected
-/// pattern `exact_numbers` uses for the poses: nothing longjmps across Rust, and the caller's floating-point state is not touched (parsing and narrowing are integer and
-/// `nearest_f32` arithmetic that does not depend on the rounding mode).
+/// pattern `exact_numbers` uses for the poses: nothing longjmps across Rust. WHAT IS AND IS NOT CLAIMED about floating point: the numbers the bridge hands back are decoded by a
+/// correctly rounded `f64` parse and narrowed by `nearest_f32`, whose RESULT does not depend on the rounding mode (tested under round-toward-zero; only the rounding MODE is checked there,
+/// by `fegetround`). That is all the unit tests show. The provider code (Lua, libc formatting, the parse) may raise exception flags and is not claimed to leave the x87 or MXCSR words
+/// untouched; the caller's COMPLETE state (control and status words, MXCSR) is what the engine entry restores, and that is measured at the public entries by the diagnostic build's
+/// `eech_engine_model_host_fpu`, not asserted here.
 const MODEL_BRIDGE: &str = r#"
 local provider = ...
 local floor, huge, format, concat, next, type, find = math.floor, math.huge, string.format, table.concat, next, type, string.find
@@ -3151,7 +3166,8 @@ mod tests {
         Ok(model_provider(lua, function)?)
     }
 
-    /// one question, asked under round-toward-zero as the engine's callback runs it; the code under test must leave the mode as it found it
+    /// one question, asked under round-toward-zero as the engine's callback runs it; the code under test must leave the ROUNDING MODE as it found it (`fegetround` only: not a proof of the flags,
+    /// masks or MXCSR, which the native `eech_engine_model_host_fpu` measures at the public entries)
     fn ask(provider: &mut ModelProvider, query: ModelQuery) -> Result<ModelAnswer, String> {
         let (answer, kept) = eech_engine::under_round_toward_zero(|| provider(query));
         assert!(kept, "the provider changed the rounding mode");
