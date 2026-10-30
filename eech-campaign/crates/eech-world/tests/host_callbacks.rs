@@ -1987,11 +1987,81 @@ fn the_object_witness_says_so_when_there_is_no_such_structure_and_refuses_a_malf
     );
 }
 
-// The environment characterisation driver (EEDCS-51, lua/env-characterization.lua) run as the host binary runs it, against a stand-in engine: the checks protect its CONTRACT (arguments refused
-// before anything runs, a genuine refusal without the fixture, a control run that asks for no witness, strings that stay strings, a witness that did not restore failing the run). The stand-in
-// answers canned reports; nothing here says anything about the original code's weather, wind or clock.
-const ENV_DRIVER_SCRIPT: &str = r#"
+// The environment characterisation driver (EEDCS-51, lua/env-characterization.lua) run as the host binary runs it, against a stand-in engine. The checks protect its CONTRACT: arguments refused before
+// anything runs, a genuine refusal without the fixture, a control run that asks for no witness, strings that stay strings, the emitted protocol checked for EVERY family (a marker-only, wrong-family,
+// incomplete, duplicated, mistyped, mis-identified or fingerprint-inconsistent report is refused), a bounded periodic schedule, and the portable wiring below. The stand-in answers well-formed
+// canned reports; nothing here says anything about the original code's weather, wind or clock. No retail input is used.
+//
+// PORTABILITY. The driver under test is embedded in this executable (include_str) and written to a per-run temporary directory, so a test executable cross-built in a container needs no source
+// tree beside it. The host binary is the ordinary Cargo one (CARGO_BIN_EXE_eech-world) unless EECH_WORLD_TEST_HOST names another: a native Windows run of a cross-built test sets it to the verified
+// host executable. A supplied value that is empty, relative, missing or not a file is REFUSED (the test panics naming it); it never falls back to the Cargo path, and a Cargo path that does not exist
+// here is refused with the same instruction rather than skipped.
+const ENV_DRIVER_LUA: &str = include_str!("../lua/env-characterization.lua");
+const ENV_HOST_OVERRIDE: &str = "EECH_WORLD_TEST_HOST";
+
+fn resolve_env_host(supplied: Option<std::ffi::OsString>, cargo_default: &str) -> Result<std::path::PathBuf, String> {
+    match supplied {
+        Some(value) => {
+            if value.to_string_lossy().trim().is_empty() {
+                return Err(format!("{ENV_HOST_OVERRIDE} is set but empty"));
+            }
+            let path = std::path::PathBuf::from(&value);
+            if !path.is_absolute() {
+                return Err(format!("{ENV_HOST_OVERRIDE}={} is not an absolute path", path.display()));
+            }
+            if !path.is_file() {
+                return Err(format!("{ENV_HOST_OVERRIDE}={} is not an existing file", path.display()));
+            }
+            Ok(path)
+        }
+        None => {
+            let path = std::path::PathBuf::from(cargo_default);
+            if path.is_file() {
+                Ok(path)
+            } else {
+                Err(format!(
+                    "the Cargo-built host {} does not exist here (a cross-built test executable?): set {ENV_HOST_OVERRIDE} to the verified eech-world executable",
+                    path.display()
+                ))
+            }
+        }
+    }
+}
+
+fn env_host() -> std::path::PathBuf {
+    resolve_env_host(std::env::var_os(ENV_HOST_OVERRIDE), env!("CARGO_BIN_EXE_eech-world")).unwrap_or_else(|why| panic!("{why}"))
+}
+
+#[test]
+fn the_environment_host_override_is_strict_and_never_falls_back() {
+    let real = std::env::current_exe().unwrap();
+    let real_text = real.display().to_string();
+    // no override: the Cargo path, if it is here
+    assert_eq!(resolve_env_host(None, &real_text).unwrap(), real);
+    assert!(resolve_env_host(None, "/no/such/eech-world").unwrap_err().contains(ENV_HOST_OVERRIDE));
+    // a valid override wins over any default
+    assert_eq!(resolve_env_host(Some(real.clone().into_os_string()), "/no/such/eech-world").unwrap(), real);
+    // an invalid override is refused even when the Cargo default is perfectly good
+    let temp = std::env::temp_dir();
+    let missing = temp.join("eech-world-no-such-host-executable");
+    for bad in [
+        std::ffi::OsString::new(),
+        std::ffi::OsString::from("   "),
+        std::ffi::OsString::from("eech-world"),
+        std::ffi::OsString::from("./eech-world"),
+        missing.clone().into_os_string(),
+        temp.clone().into_os_string(),
+    ] {
+        let why = resolve_env_host(Some(bad.clone()), &real_text).unwrap_err();
+        assert!(why.contains(ENV_HOST_OVERRIDE), "{bad:?}: {why}");
+    }
+}
+
+// the stand-in engine, in three parts: the clock and frames, the fixture's per-family reports, and the wiring. The mutations damage ONE report after it is made, so every other report stays well formed.
+const ENV_STAND_IN_BASE: &str = r#"
 local time = 0
+local JUMP = @JUMP@
+local frames = 0
 local function note(text)
   local f = io.open('@TRACE@', 'a')
   f:write(text, '\n')
@@ -2000,27 +2070,154 @@ end
 local engine = {}
 function engine:clock() return { elapsed_seconds = time } end
 function engine:frame(ms)
-  if time > 100 then error('stand-in cap: the clock ran past 100 seconds') end
+  frames = frames + 1
+  if frames > 60 then error('stand-in cap: more than 60 frames') end
   note('frame ' .. ms)
-  time = time + ms / 1000
+  time = time + ms * JUMP / 1000
 end
 function engine:objects() return { { id = 1, kind = 'helicopter', sub_type = 2, side = 'blue', alive = true, position = { 1.5, 2.5, 3.5 }, heading = 0.5, pitch = 0, roll = 0, ammo = 0, fuel = 0 } } end
-@ENV_METHOD@
+"#;
+
+const ENV_STAND_IN_FIXTURE: &str = r#"
+local MUTATION = '@MUTATION@'
+local TARGET_GROUP = @TARGET_GROUP@
+local TARGET_INDEX = @TARGET_INDEX@
+local O = '3f800000'
+local FP = '0123456789abcdef'
+-- ' key=word ...' for the names given; 'name:word' picks the word
+local function ws(...)
+  local parts = {}
+  for _, k in ipairs({ ... }) do
+    local name, word = k:match('^(.-):(%x+)$')
+    parts[#parts + 1] = (name or k) .. '=' .. (word or O)
+  end
+  return table.concat(parts, ' ')
+end
+local function state(prefix, tag)
+  return prefix .. '-time tag=' .. tag .. ' ' .. ws('start_time_w', 'elapsed_time_w', 'time_of_day_w') .. ' day=1 day_segment_type=1 ' .. ws('time_of_day_acceleration_w') .. ' skip_night_time=0 ' .. ws('time_of_day_resync_w') .. '\n'
+    .. prefix .. '-weather tag=' .. tag .. ' local_weather_model=1 weather_increasing=1 ' .. ws('weather_radius_w') .. ' weather_mode=1 target_weather_mode=1 '
+    .. ws('transitional_status_w', 'transitional_period_w', 'lightning_timer_w', 'weather_pos_x_w', 'weather_pos_y_w', 'weather_pos_z_w', 'weather_vel_x_w', 'weather_vel_y_w', 'weather_vel_z_w') .. '\n'
+    .. prefix .. '-wind tag=' .. tag .. ' wind_increasing=0 ' .. ws('wind_effect_radius_w', 'gusting_value_w', 'minimum_speed_w', 'maximum_speed_w', 'direction_x_w', 'direction_y_w', 'direction_z_w',
+      'effect_pos_x_w', 'effect_pos_y_w', 'effect_pos_z_w', 'effect_vel_x_w', 'effect_vel_y_w', 'effect_vel_z_w') .. '\n'
+    .. prefix .. '-globals tag=' .. tag .. ' season=2 rng=-5 ' .. ws('rng_w', 'delta_time_w') .. ' comms_model=1 in_cockpit=0 camera=1 ' .. ws('camera_x_w', 'camera_y_w', 'camera_z_w') .. '\n'
+end
+local function query(event, tag, point)
+  return event .. ' tag=' .. tag .. ' point=' .. point .. ' ' .. ws('x_w', 'y_w', 'z_w') .. ' cwm=1 twm=1 ' .. ws('ts_w') .. ' simple=1 ' .. ws('wind_speed_w', 'wind_x_w', 'wind_y_w', 'wind_z_w') .. '\n'
+end
+local function finish(group, index)
+  return 'env-witness-end group=' .. group .. ' index=' .. index .. ' restored=1 fp_before=' .. FP .. ' fp_after=' .. FP .. '\n'
+end
+local function report(group, index)
+  if group == 0 then
+    return 'env-census version=1 session_bytes=1024 weather_cases=2 wind_cases=2 gust_cases=2 time_cases=3 init_cases=2 update_time_cases=1 update_weather_cases=2\n'
+      .. 'env-census-enums dry=1 light_rain=2 heavy_rain=3 snow=4 season_summer=2 season_winter=3 season_desert=4 segment_dawn=0 segment_day=1 segment_dusk=2 segment_night=3 comms_server=1\n'
+      .. 'env-census-constants ' .. ws('min_weather_radius_w', 'max_weather_radius_w', 'weather_expansion_rate_w', 'min_wind_radius_w', 'max_wind_radius_w', 'wind_expansion_rate_w', 'wind_gust_frequency_w',
+        'session_resync_frequency_w', 'default_min_wind_speed_w', 'default_max_wind_speed_w', 'one_hour_w', 'one_day_w') .. '\n'
+      .. 'env-census-configured ' .. ws('weather_rain_radius_min_w', 'weather_rain_radius_max_w', 'weather_rain_speed_w', 'weather_wind_radius_min_w', 'weather_wind_radius_max_w', 'weather_wind_speed_w') .. '\n'
+      .. 'env-census-map ' .. ws('min_map_x_w', 'max_map_x_w', 'min_map_z_w', 'max_map_z_w', 'mid_map_x_w', 'mid_map_z_w') .. '\n'
+      .. 'env-unsupported item=get_session_random_start_time_of_day reason=a_reason\n'
+      .. 'env-unsupported item=update_lightning_effect reason=a_reason\n'
+      .. 'env-unsupported item=update_session_sound_effects reason=a_reason\n'
+      .. 'env-unsupported item=update_time_of_day_resync reason=a_reason\n'
+      .. 'env-unsupported item=wind_gust_outside_0_1 reason=a_reason\n'
+      .. 'env-unsupported item=session_state_loading_and_serialisation reason=a_reason\n'
+  end
+  if group == 1 then
+    return state('env-state', 'retail') .. 'env-state-fingerprint tag=retail fp=' .. FP .. '\n' .. query('env-query', 'retail', 'camera') .. query('env-query', 'retail', 'map_centre')
+      .. query('env-query', 'retail', 'weather_centre') .. query('env-query', 'retail', 'wind_centre')
+  end
+  if group == 2 then
+    return 'env-weather kind=witness i=' .. index .. ' model=local season=2 ' .. ws('radius_w') .. ' in_cwm=1 in_twm=1 ' .. ws('in_ts_w', 'range_w') .. '\n' .. query('env-weather-answer', 'witness', 'case') .. finish(group, index)
+  end
+  if group == 3 then
+    return 'env-wind kind=witness i=' .. index .. ' ' .. ws('radius_w', 'centre_x_w', 'centre_z_w', 'minimum_w', 'maximum_w', 'gust_w:3f000000', 'dir_x_w', 'dir_z_w', 'x_w', 'z_w', 'range_w', 'modulation_w',
+      'speed_w:00000000', 'vx_w', 'vy_w', 'vz_w', 'null_speed_w') .. ' null_same=1\n' .. finish(group, index)
+  end
+  if group == 4 then
+    if index == 1 then return 'env-gust kind=witness i=1 gust_w=3f800000 refused=original_asserts_outside_0_1\n' .. finish(group, index) end
+    return 'env-gust kind=witness i=' .. index .. ' ' .. ws('gust_w:3f000000', 'modulation_w', 'calm_speed_w', 'calm_vx_w') .. '\n' .. finish(group, index)
+  end
+  if group == 5 then
+    if index == 1 then return 'env-time kind=witness i=1 what=segment ' .. ws('tod_w') .. ' segment=1\n' .. finish(group, index) end
+    if index == 2 then
+      return 'env-time kind=witness i=2 what=constants ' .. ws('segment_time_dawn_w', 'segment_time_day_w', 'segment_time_dusk_w', 'segment_time_night_w', 'preset_dawn_w', 'preset_midday_w', 'preset_afternoon_w',
+        'preset_dusk_w', 'preset_midnight_w') .. '\n' .. finish(group, index)
+    end
+    return 'env-time kind=witness i=0 what=calculate ' .. ws('start_w', 'elapsed_w', 'tod_w') .. ' rolled_days=0 ' .. ws('accessor_tod_w') .. ' accessor_day=1 segment=1\n' .. finish(group, index)
+  end
+  if group == 6 then
+    local head = index == 0 and ('env-init kind=witness i=0 what=fixed mode=1 rng=-5\n') or ('env-init kind=witness i=1 what=random seed_in=1 rng=-5 rng_w=fffffffb\n')
+    return head .. state('env-init-state', 'witness') .. query('env-init-query', 'witness', 'origin') .. query('env-init-query', 'witness', 'map_centre') .. finish(group, index)
+  end
+  if group == 7 then
+    return 'env-update-time kind=witness i=0 label=midday_real_time ' .. ws('delta_w', 'accel_w') .. ' skip_night=0 ' .. ws('tod_before_w') .. ' day_before=1\n' .. state('env-update-time-state', 'before_0')
+      .. 'env-update-time-result kind=witness i=0 ' .. ws('tod_after_w') .. ' day_after=1\n' .. state('env-update-time-state', 'after_0') .. finish(group, index)
+  end
+  if group == 8 then
+    if index == 1 then
+      return 'env-update-weather kind=witness i=1 refused=unavailable_in_cockpit_or_no_camera_or_not_server in_cockpit=1 camera=1 comms_model=1\n' .. finish(group, index)
+    end
+    return 'env-update-weather kind=witness i=0 label=local_interior ' .. ws('delta_w') .. ' camera_dependent_fields=weather_mode,target_weather_mode,transitional_status_when_local_and_radius_nonzero camera=1\n'
+      .. state('env-update-weather-state', 'before_0') .. state('env-update-weather-state', 'after_0') .. finish(group, index)
+  end
+  error('stand-in: no such group ' .. group)
+end
+local mutations = {
+  marker_only = function(t) return t:match('[^\n]*\n$') end,
+  wrong_family = function() return (report(2, 0):gsub('group=2', 'group=3')) end,
+  missing_field = function(t) return (t:gsub(' vz_w=%x+', '', 1)) end,
+  duplicate_field = function(t) return (t:gsub('gust_w=(%x+)', 'gust_w=%1 gust_w=00000000', 1)) end,
+  bad_word = function(t) return (t:gsub('speed_w=%x+', 'speed_w=3F80ABCD', 1)) end,
+  short_word = function(t) return (t:gsub('speed_w=%x+', 'speed_w=3f80', 1)) end,
+  fp_mismatch = function(t) return (t:gsub('fp_after=%x+', 'fp_after=fedcba9876543210')) end,
+  restored_zero = function(t) return (t:gsub('restored=1', 'restored=0')) end,
+  wrong_index = function(t) return (t:gsub('(env%-wind kind=witness i=)%d+', '%19')) end,
+  wrong_end_index = function(t) return (t:gsub('index=%d+', 'index=7')) end,
+  extra_row = function(t) return t:match('^[^\n]*\n') .. t end,
+  unknown_field = function(t) return (t:gsub('(env%-wind [^\n]*)\n', '%1 extra=1\n', 1)) end,
+  truncated = function(t) return t:sub(1, -2) end,
+  empty_line = function(t) return (t:gsub('\n', '\n\n', 1)) end,
+  gust_in_domain_refused = function(t) return (t:gsub('gust_w=%x+', 'gust_w=3f000000', 1)) end,
+  gust_out_of_domain_called = function(t) return (t:gsub('gust_w=%x+', 'gust_w=3f800000', 1)) end,
+  census_zero = function(t) return (t:gsub('weather_cases=%d+', 'weather_cases=0')) end,
+  census_huge = function(t) return (t:gsub('weather_cases=%d+', 'weather_cases=100000')) end,
+  census_enum = function(t) return (t:gsub('dry=1', 'dry=9')) end,
+  census_missing_unsupported = function(t) return (t:gsub('env%-unsupported item=session[^\n]*\n', '')) end,
+  snapshot_bad_fingerprint = function(t) return (t:gsub('fp=%x+', 'fp=abc')) end,
+}
+function engine:env_case(group, index)
+  note('case ' .. group .. ':' .. index)
+  local text = report(group, index)
+  if MUTATION ~= 'none' and group == TARGET_GROUP and (TARGET_INDEX < 0 or index == TARGET_INDEX) then text = mutations[MUTATION](text) end
+  return text
+end
+"#;
+
+const ENV_STAND_IN_WIRING: &str = r#"
 package.loaded['eech_dc'] = {
   prepare_installation = function() note('prepare') end,
   boot = function() note('boot') return engine end,
 }
-dofile('@LUA_DIR@/env-characterization.lua')
+dofile('@DRIVER@')
 "#;
 
-const ENV_METHOD: &str = r#"
-function engine:env_case(group, index)
-  note('case ' .. group .. ':' .. index)
-  if group == 0 then return 'env-census version=1 session_bytes=1 weather_cases=3 wind_cases=2 gust_cases=1 time_cases=1 init_cases=1 update_time_cases=1 update_weather_cases=1\nenv-unsupported item=x reason=y\n' end
-  if group == 1 then return 'env-state-time tag=retail start_time_w=00000000 day=1\nenv-state-fingerprint tag=retail fp=0123456789012345\n' end
-  return 'env-wind kind=witness i=' .. index .. ' speed_w=00000000 vx_w=80000000 rng=-5\nenv-witness-end group=' .. group .. ' index=' .. index .. ' restored=@RESTORED@ fp_before=0000000000000001 fp_after=0000000000000001\n'
-end
-"#;
+struct EnvStandIn {
+    fixture: bool,
+    jump: f64,
+    mutation: &'static str,
+    group: i32,
+    index: i32,
+}
+
+impl EnvStandIn {
+    const WELL_FORMED: EnvStandIn = EnvStandIn {
+        fixture: true,
+        jump: 1.0,
+        mutation: "none",
+        group: -1,
+        index: -1,
+    };
+}
 
 struct EnvRun {
     status: std::process::ExitStatus,
@@ -2031,29 +2228,48 @@ struct EnvRun {
     rows: Vec<serde_json::Value>,
 }
 
-fn run_env_driver(method: &str, restored: i32, args: &[&str]) -> EnvRun {
-    let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("lua")
-        .display()
-        .to_string()
-        .replace('\u{5c}', "/");
+// a per-run temporary directory, removed when the run is over, however it ends
+struct EnvTempDir(std::path::PathBuf);
+
+impl Drop for EnvTempDir {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.0);
+    }
+}
+
+fn forward(path: &std::path::Path) -> String {
+    path.display().to_string().replace('\u{5c}', "/")
+}
+
+// the host runs for at most this long; a driver that does not finish is killed and the test fails (a loop that does not end is a failure, not a hang)
+const ENV_DRIVER_DEADLINE: std::time::Duration = std::time::Duration::from_secs(90);
+
+fn run_env_scenario(stand_in: &EnvStandIn, args: &[&str]) -> EnvRun {
     static COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
     let tag = format!("{}-{}", std::process::id(), COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst));
-    let script = std::env::temp_dir().join(format!("eech-world-env-driver-{tag}.lua"));
-    let out = std::env::temp_dir().join(format!("eech-world-env-driver-{tag}.jsonl"));
-    let trace = std::env::temp_dir().join(format!("eech-world-env-driver-{tag}.trace"));
-    let _ = std::fs::remove_file(&out);
-    let _ = std::fs::remove_file(&trace);
-    let text = ENV_DRIVER_SCRIPT
-        .replace("@ENV_METHOD@", &method.replace("@RESTORED@", &restored.to_string()))
-        .replace("@TRACE@", &trace.display().to_string().replace('\u{5c}', "/"))
-        .replace("@LUA_DIR@", &lua_dir);
+    let dir = EnvTempDir(std::env::temp_dir().join(format!("eech-world-env-driver-{tag}")));
+    std::fs::create_dir_all(&dir.0).unwrap();
+    let driver = dir.0.join("env-characterization.lua");
+    let script = dir.0.join("stand-in.lua");
+    let out = dir.0.join("out.jsonl");
+    let trace = dir.0.join("trace.txt");
+    std::fs::write(&driver, ENV_DRIVER_LUA).unwrap();
+    let mut text = String::from(ENV_STAND_IN_BASE);
+    if stand_in.fixture {
+        text.push_str(ENV_STAND_IN_FIXTURE);
+    }
+    text.push_str(ENV_STAND_IN_WIRING);
+    let text = text
+        .replace("@JUMP@", &format!("{}", stand_in.jump))
+        .replace("@MUTATION@", stand_in.mutation)
+        .replace("@TARGET_GROUP@", &stand_in.group.to_string())
+        .replace("@TARGET_INDEX@", &stand_in.index.to_string())
+        .replace("@TRACE@", &forward(&trace))
+        .replace("@DRIVER@", &forward(&driver));
     std::fs::write(&script, text).unwrap();
-    let mut command = Command::new(env!("CARGO_BIN_EXE_eech-world"));
-    command
-        .arg(&script)
-        .arg("root=none")
-        .arg(format!("out={}", out.display().to_string().replace('\u{5c}', "/")));
+
+    let mut command = Command::new(env_host());
+    command.arg(&script).arg("root=none").arg(format!("out={}", forward(&out)));
     // an argument given by the test replaces the same-named one of the defaults
     let key = |arg: &str| arg.split('=').next().unwrap_or_default().to_string();
     let defaults = ["seconds=1", "frame_ms=100", "snapshot_frames=2", "snapshot_every=0"];
@@ -2061,8 +2277,21 @@ fn run_env_driver(method: &str, restored: i32, args: &[&str]) -> EnvRun {
     for arg in defaults.iter().filter(|a| !overridden.contains(&key(a))).chain(args.iter()) {
         command.arg(arg);
     }
-    let run = command.output().unwrap();
-    std::fs::remove_file(&script).unwrap();
+    command.stdout(std::process::Stdio::piped()).stderr(std::process::Stdio::piped());
+    let mut child = command.spawn().unwrap();
+    let started = std::time::Instant::now();
+    let status = loop {
+        if let Some(status) = child.try_wait().unwrap() {
+            break status;
+        }
+        if started.elapsed() > ENV_DRIVER_DEADLINE {
+            let _ = child.kill();
+            let _ = child.wait();
+            panic!("the environment driver did not finish within {ENV_DRIVER_DEADLINE:?} and was killed");
+        }
+        std::thread::sleep(std::time::Duration::from_millis(20));
+    };
+    let output = child.wait_with_output().unwrap();
     let out_exists = out.exists();
     let out_text = if out_exists { std::fs::read_to_string(&out).unwrap() } else { String::new() };
     // every line must parse: a malformed row is a failure here, never silently dropped
@@ -2071,16 +2300,18 @@ fn run_env_driver(method: &str, restored: i32, args: &[&str]) -> EnvRun {
         .map(|l| serde_json::from_str(l).unwrap_or_else(|e| panic!("malformed output row {l:?}: {e}")))
         .collect();
     let trace_text = std::fs::read_to_string(&trace).unwrap_or_default();
-    let _ = std::fs::remove_file(&out);
-    let _ = std::fs::remove_file(&trace);
     EnvRun {
-        status: run.status,
-        stderr: String::from_utf8_lossy(&run.stderr).to_string(),
+        status,
+        stderr: String::from_utf8_lossy(&output.stderr).to_string(),
         trace: trace_text,
         out_exists,
         out_text,
         rows,
     }
+}
+
+fn run_env_driver(args: &[&str]) -> EnvRun {
+    run_env_scenario(&EnvStandIn::WELL_FORMED, args)
 }
 
 fn env_rows<'a>(rows: &'a [serde_json::Value], event: &str) -> Vec<&'a serde_json::Value> {
@@ -2119,7 +2350,7 @@ fn the_environment_driver_refuses_a_malformed_argument_before_anything_is_prepar
         (&["frame_ms=1", "seconds=200"], "frames"),
     ];
     for (args, name) in cases {
-        let run = run_env_driver(ENV_METHOD, 1, args);
+        let run = run_env_driver(args);
         assert!(!run.status.success(), "{args:?} was accepted");
         assert!(
             run.stderr.contains("env-characterization:") && run.stderr.contains(name),
@@ -2133,7 +2364,13 @@ fn the_environment_driver_refuses_a_malformed_argument_before_anything_is_prepar
 
 #[test]
 fn the_environment_driver_refuses_a_module_without_the_fixture_and_runs_no_frame() {
-    let run = run_env_driver("", 1, &["probes=3"]);
+    let run = run_env_scenario(
+        &EnvStandIn {
+            fixture: false,
+            ..EnvStandIn::WELL_FORMED
+        },
+        &["probes=3"],
+    );
     assert!(
         !run.status.success(),
         "a module without the fixture was reported as measured:\n{}",
@@ -2147,30 +2384,34 @@ fn the_environment_driver_refuses_a_module_without_the_fixture_and_runs_no_frame
 
 #[test]
 fn the_environment_driver_control_asks_for_no_witness_and_the_probe_run_keeps_words_as_strings_and_reports_its_coverage() {
-    let control = run_env_driver(ENV_METHOD, 1, &["probes=0"]);
+    let control = run_env_driver(&["probes=0"]);
     assert!(control.status.success(), "{}\n{}", control.stderr, control.out_text);
     assert_eq!(env_witness_calls(&control.trace), 0, "the control asked for a witness: {}", control.trace);
     assert_eq!(env_rows(&control.rows, "boot")[0]["mode"], "control");
 
-    // 10 witness cases exist in the stand-in's census; the cap of 4 truncates, and the coverage row says so
-    let probe = run_env_driver(ENV_METHOD, 1, &["probes=4"]);
+    // 14 witness cases exist in the stand-in's census; the cap of 4 truncates, and the coverage row says so
+    let probe = run_env_driver(&["probes=4"]);
     assert!(probe.status.success(), "{}\n{}", probe.stderr, probe.out_text);
     assert_eq!(env_witness_calls(&probe.trace), 4, "{}", probe.trace);
     let winds = env_rows(&probe.rows, "env-wind");
-    assert_eq!(winds.len(), 4);
-    // a float word that is all decimal digits, and a signed-zero word, stay strings; a plain integer is a number
+    assert_eq!(winds.len(), 2);
+    // a float word that is all decimal digits, and the all-zero word, stay strings; a plain integer is a number
     assert_eq!(winds[0]["speed_w"], "00000000");
-    assert_eq!(winds[0]["vx_w"], "80000000");
-    assert_eq!(winds[0]["rng"], -5);
+    assert_eq!(winds[0]["vx_w"], "3f800000");
+    let states = env_rows(&probe.rows, "env-state-globals");
+    assert!(
+        !states.is_empty() && states.iter().all(|r| r["rng"] == -5 && r["rng_w"] == "3f800000"),
+        "{states:?}"
+    );
     let snapshots = env_rows(&probe.rows, "env-state-fingerprint");
-    assert!(snapshots.iter().all(|r| r["fp"] == "0123456789012345"), "{snapshots:?}");
+    assert!(snapshots.iter().all(|r| r["fp"] == "0123456789abcdef"), "{snapshots:?}");
     let noninterference = env_rows(&probe.rows, "probe_noninterference");
     assert_eq!(noninterference.len(), 1);
     assert_eq!(noninterference[0]["retail_equal"], true);
     let run = env_rows(&probe.rows, "run");
     assert_eq!(run.len(), 1);
     assert_eq!(run[0]["probes_run"], 4);
-    assert_eq!(run[0]["cases_available"], 10);
+    assert_eq!(run[0]["cases_available"], 14);
     assert_eq!(run[0]["complete"], false);
     let coverage = env_rows(&probe.rows, "coverage");
     assert_eq!(coverage.len(), 7);
@@ -2179,10 +2420,117 @@ fn the_environment_driver_control_asks_for_no_witness_and_the_probe_run_keeps_wo
 }
 
 #[test]
-fn the_environment_driver_fails_the_run_when_a_witness_did_not_restore_what_it_touched() {
-    let run = run_env_driver(ENV_METHOD, 0, &["probes=2"]);
-    assert!(!run.status.success(), "a witness that did not restore passed:\n{}", run.out_text);
-    assert!(run.stderr.contains("restored"), "{}", run.stderr);
-    assert_eq!(env_rows(&run.rows, "failure").len(), 1, "{}", run.out_text);
-    assert!(env_rows(&run.rows, "run").is_empty());
+fn the_environment_driver_accepts_every_family_in_its_declared_form_including_the_genuine_refusals_and_counts_them() {
+    let run = run_env_driver(&["probes=512"]);
+    assert!(run.status.success(), "{}\n{}", run.stderr, run.out_text);
+    assert_eq!(env_witness_calls(&run.trace), 14, "{}", run.trace);
+    let summary = &env_rows(&run.rows, "run")[0];
+    assert_eq!(summary["complete"], true);
+    assert_eq!(summary["probes_run"], 14);
+    // the stand-in's gust case 1 and update-weather case 1 are refused in their declared forms: the report is accepted as such, and counted
+    let validation = &env_rows(&run.rows, "validation")[0];
+    assert_eq!(validation["witnesses"], 14);
+    assert_eq!(validation["refused_witnesses"], 2);
+    assert_eq!(env_rows(&run.rows, "env-gust").len(), 2);
+    assert_eq!(env_rows(&run.rows, "env-gust").iter().filter(|r| r.get("refused").is_some()).count(), 1);
+    assert_eq!(env_rows(&run.rows, "env-witness-end").iter().filter(|r| r["restored"] == 1).count(), 14);
+}
+
+#[test]
+fn the_environment_driver_refuses_every_report_that_is_not_the_fixtures_protocol() {
+    // (mutation, group, index of the damaged report, what the refusal must say). Every other report of the run is well formed, so only the damaged one can be the reason.
+    let cases: &[(&'static str, i32, i32, &str)] = &[
+        ("marker_only", 3, 0, "expected '"),
+        ("wrong_family", 3, 0, "expected 'env-wind'"),
+        ("missing_field", 3, 0, "fields"),
+        ("duplicate_field", 3, 0, "duplicate field"),
+        ("bad_word", 3, 0, "8-digit lowercase hex word"),
+        ("short_word", 3, 0, "8-digit lowercase hex word"),
+        ("fp_mismatch", 3, 0, "fingerprint changed"),
+        ("restored_zero", 3, 0, "restored"),
+        ("wrong_index", 3, 0, "for case i=9"),
+        ("wrong_end_index", 3, 0, "end marker is for group"),
+        ("extra_row", 3, 0, "expected '"),
+        ("unknown_field", 3, 0, "fields"),
+        ("truncated", 3, 0, "truncated"),
+        ("empty_line", 3, 0, "empty line"),
+        ("marker_only", 2, 0, "expected '"),
+        ("marker_only", 6, 1, "expected '"),
+        ("marker_only", 7, 0, "expected '"),
+        ("marker_only", 8, 0, "expected '"),
+        ("gust_in_domain_refused", 4, 1, "was refused"),
+        ("gust_out_of_domain_called", 4, 0, "reported as called"),
+        ("census_zero", 0, 0, "outside 1"),
+        ("census_huge", 0, 0, "outside 1"),
+        ("census_enum", 0, 0, "not a value the protocol allows"),
+        ("census_missing_unsupported", 0, 0, "is missing"),
+        ("snapshot_bad_fingerprint", 1, 0, "16-digit"),
+        ("marker_only", 1, 0, "expected '"),
+    ];
+    for (mutation, group, index, says) in cases {
+        let stand_in = EnvStandIn {
+            mutation: *mutation,
+            group: *group,
+            index: *index,
+            ..EnvStandIn::WELL_FORMED
+        };
+        let run = run_env_scenario(&stand_in, &["probes=512"]);
+        let what = format!("{mutation} on group {group} index {index}");
+        assert!(!run.status.success(), "{what} was accepted:\n{}", run.out_text);
+        assert!(
+            run.stderr.contains("did not return the fixture's protocol") || run.stderr.contains("malformed report"),
+            "{what}: {}",
+            run.stderr
+        );
+        assert!(run.stderr.contains(*says), "{what}: the refusal does not say '{says}': {}", run.stderr);
+        assert_eq!(env_rows(&run.rows, "failure").len(), 1, "{what}: {}", run.out_text);
+        assert!(env_rows(&run.rows, "run").is_empty(), "{what}: a refused run reported a run row");
+        assert!(env_rows(&run.rows, "validation").is_empty(), "{what}: a refused run reported validation");
+    }
+}
+
+#[test]
+fn the_environment_driver_bounds_its_periodic_schedule_whatever_the_period_and_the_clock_jump() {
+    // a period of 1e-11 s and a clock that jumps 50 s in a frame: one snapshot per frame and no catch-up loop (the old loop needed about 5e12 steps per frame and never finished)
+    let jump = EnvStandIn {
+        jump: 500.0,
+        ..EnvStandIn::WELL_FORMED
+    };
+    let run = run_env_scenario(
+        &jump,
+        &["probes=0", "snapshot_frames=0", "snapshot_every=0.00000000001", "seconds=1", "frame_ms=100"],
+    );
+    assert!(run.status.success(), "{}\n{}", run.stderr, run.out_text);
+    let periodic: Vec<_> = env_rows(&run.rows, "env-state-fingerprint")
+        .into_iter()
+        .filter(|r| r["scope"].as_str().unwrap_or("").starts_with("snapshot:periodic:"))
+        .collect();
+    assert_eq!(periodic.len(), 10, "{}", run.out_text);
+
+    // the ordinary schedule is unchanged: the clock moves 0.25 s a frame; every 0.5 s gives a snapshot at 0.5, 1.0, 1.5, 2.0, 2.5; every 0.25 s one after every frame; 0 none
+    let steady = EnvStandIn {
+        jump: 2.5,
+        ..EnvStandIn::WELL_FORMED
+    };
+    let scopes = |every: &str| -> Vec<String> {
+        let run = run_env_scenario(&steady, &["probes=0", "snapshot_frames=0", every, "seconds=1", "frame_ms=100"]);
+        assert!(run.status.success(), "{}\n{}", run.stderr, run.out_text);
+        env_rows(&run.rows, "env-state-fingerprint")
+            .into_iter()
+            .filter_map(|r| r["scope"].as_str().map(str::to_string))
+            .filter(|s| s.starts_with("snapshot:periodic:"))
+            .collect()
+    };
+    assert_eq!(
+        scopes("snapshot_every=0.5"),
+        [
+            "snapshot:periodic:0.500",
+            "snapshot:periodic:1.000",
+            "snapshot:periodic:1.500",
+            "snapshot:periodic:2.000",
+            "snapshot:periodic:2.500"
+        ]
+    );
+    assert_eq!(scopes("snapshot_every=0.25").len(), 10);
+    assert!(scopes("snapshot_every=0").is_empty());
 }
