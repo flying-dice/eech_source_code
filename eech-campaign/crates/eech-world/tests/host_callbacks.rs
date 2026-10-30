@@ -2498,7 +2498,7 @@ fn the_environment_driver_bounds_its_periodic_schedule_whatever_the_period_and_t
     };
     let run = run_env_scenario(
         &jump,
-        &["probes=0", "snapshot_frames=0", "snapshot_every=0.00000000001", "seconds=1", "frame_ms=100"],
+        &["probes=0", "snapshot_frames=0", "snapshot_every=.00000000001", "seconds=1", "frame_ms=100"],
     );
     assert!(run.status.success(), "{}\n{}", run.stderr, run.out_text);
     let periodic: Vec<_> = env_rows(&run.rows, "env-state-fingerprint")
