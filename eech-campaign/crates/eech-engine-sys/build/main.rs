@@ -97,6 +97,19 @@ fn main() {
         write_if_changed(&tree.join(file), &patched);
     }
 
+    // 1a. TEST-ONLY (feature model-fixture, EEDCS-50): observation hooks in the staged model loader, on top of the shipping patches above (patches.rs,
+    //     MODEL_FIXTURE_PATCHES). With the feature off the staged files are exactly the shipping ones: step 1 rewrote them from the original and the
+    //     shipping patches this run.
+    if env::var_os("CARGO_FEATURE_MODEL_FIXTURE").is_some() {
+        for file in patches::model_fixture_files() {
+            let staged = tree.join(file);
+            let bytes = fs::read(&staged).unwrap_or_else(|e| panic!("{file}: {e}"));
+            let text: String = bytes.iter().map(|&b| b as char).collect();
+            let patched: Vec<u8> = patches::apply_model_fixture(file, &text).chars().map(|c| c as u32 as u8).collect();
+            write_if_changed(&staged, &patched);
+        }
+    }
+
     // 1b. TEST-ONLY red build (feature dependent-fixture-old-guard): the staged copy of rv_hostmv.c gets the boolean apply guard
     //     EEDCS-40 replaced by a depth counter. The source tree and the shipping build are untouched.
     if env::var_os("CARGO_FEATURE_DEPENDENT_FIXTURE_OLD_GUARD").is_some() {

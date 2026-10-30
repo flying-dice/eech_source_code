@@ -654,6 +654,33 @@ BOOL UnmapViewOfFile (LPCVOID base)
 	return FALSE;
 }
 
+#ifdef EECH_MODEL_FIXTURE
+/* TEST-ONLY (EEDCS-50, feature model-fixture): the length, in bytes, of the live view whose base is EXACTLY `base` (a MapViewOfFile or VirtualAlloc result still
+   recorded above); 0 for NULL, an interior pointer, a released or never-recorded base. A read-only look at the table under its lock: nothing is mapped, unmapped or
+   changed, and no address leaves this process (the caller keeps it private). The length is that of the zero-filled private copy, so every byte below it is readable. */
+int eech_view_extent (const void *base, unsigned long long *size)
+{
+	int found = 0;
+	*size = 0;
+	if (!base)
+	{
+		return 0;
+	}
+	pthread_mutex_lock (&views_lock);
+	for (int i = 0; i < MAX_VIEWS; i++)
+	{
+		if (views[i].base == base)
+		{
+			*size = (unsigned long long) views[i].size;
+			found = 1;
+			break;
+		}
+	}
+	pthread_mutex_unlock (&views_lock);
+	return found;
+}
+#endif
+
 BOOL CloseHandle (HANDLE object)
 {
 	struct object *o = object;

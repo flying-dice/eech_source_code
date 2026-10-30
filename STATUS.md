@@ -1,3 +1,37 @@
+# Current D3 original-memory-safety change — EEDCS-50 original backing observer and decoder-read walk (30 October 2026): SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED
+
+Commit/push checkpoint: both Sonnet implementation processes completed with exit 0 (01:24:46 UTC and 01:33:45 UTC); this is author completion only. Root ran `cargo fmt --all` successfully in the pinned build image and `git diff --check` passed. The 44 prepared verifier expectations have not run. All three fresh private roots passed repository input-manifest checks (exit 0); no native fixture was launched on them. Raw retail data, recordings and build caches remain local.
+
+Base: clean/pushed `3f62ddf3a` (prepared host component tested at `f9c6a1e4c`). This is a DISTINCT original-memory-safety change and needs its OWN independent safety review BEFORE a new fixture executable is run or any new original native accessor call is made. Compilation alone does not execute that fixture.
+It does not treat the new host answers as the oracle: it closes the actual original gap (the `366622e0c` fixture refused 14 custom and 45 mixed-layout models because it inferred array extents from the next
+object's pointer, so it could not see allocations).
+
+Prepared (feature `model-fixture` only; detail and limits in `eech-campaign/docs/m5-model-characterization.md`, "Backing observation and the decoder's actual reads"): (1) loader hooks via strict count-checked
+source patches `M1`..`M11` (`build/patches.rs`, applied by `build/main.rs` only with the feature) record the exact shared face and point-list allocations, every cursor and every `fread` result before any override mutates an
+object, and the exact allocation identity and filled extents of each custom object at `read_object`; (2) `eech_view_extent` (`csrc/eech_win32.c`, feature-only, mutex-protected `views[]`, exact base, read-only) gives the mapped points
+and surface-point lengths; (3) `csrc/eech_model_walk.h` replays the original accessor's integer reads (surface 0 unconditionally, the face loop, the point-list, surface-point and point reads, the next-surface read even after the
+last face, 0 points meaning 256) against that backing with checked integer arithmetic, alignment, allocated-versus-initialised bytes and a step budget, and never computes a triangle; (4) `csrc/eech_model_fixture.c` uses it
+in place of the old inference. `get_object_3d_collision_object_geometry_triangle`, all original numeric bodies, the closed 309 Lua driver / comparator, the host `models.rs` and `model_step.c` are unchanged. Provenance is reported only
+in optional `key=value` fields (`backing`, `walk`, `stop`, `stop_array`, `*_read`, summary `backing=hooked ...`, state `backing=<hash>`); the 15-status vocabulary and all row types are unchanged. The old six positive geometry
+models (208 TRUE, 6 end FALSE, one absence) are intended to be reproduced exactly (`fan_bound`, `end_read_backed`, rows) from the same observation; that is a Root check, not asserted here.
+
+Two fidelity corrections before first compile (same files; SOURCE ONLY, UNBUILT, UNRUN, UNREVIEWED). (1) The custom-record table is now one slot per object index (`MF_OBJECT_MAX` 32768, constant-time, generation-stamped, no
+physical allocation) instead of 512 records: the supported data has 36 hex-named + 811 named = 847 custom loads with ids to 10252 and an object table of 11442 objects plus slot zero. An object that is repeated, not an element of the
+table, stale or past the bound is refused alone; the summary reports `custom_slots`, `custom_recorded`, `custom_ambiguous`, `custom_record_overflow`, `custom_unknown`, `custom_late`. Root will verify recorded 847 and dropped/unknown 0 on the three roots. (2) The
+`MW_DEGENERATE` refusal of faces of 0 or 1 points is removed: the original accessor consumes such a face (it subtracts `points - 2`, so the depth GROWS by 2 or 1), bounded by `number_of_faces`. The walk now derives the exact TRUE-depth
+count P (the running maximum of the signed sum, never below 0, first FALSE at depth P) and each claimed depth's reads from the face counts, checks every read against the backing, and refuses only an unbacked, unobserved, uninitialised, misaligned,
+wrapping or over-budget access. No numeric accessor body, driver, comparator, `models.rs` or `model_step.c` change; the `degenerate_face` status stays in the vocabulary but is no longer produced.
+
+Safe to probe after review and build: the last object of each shared block, the mixed-layout models up to their first unbacked read (including walks into the following objects' loader-initialised data), custom objects with an exact
+record. Still refused / explicit gaps: unobserved backing, uninitialised reads, custom objects with an ambiguous, stale, unknown or missing record or an index past the fixed bound, budget exhaustion, everything beyond the first
+unbacked read (`partial`, never extrapolated). No measured-geometry claim; no Task, production, Tacview or whole-D3 claim (hierarchy, viewpoint, device, muzzle, target-point, entity collision, environment, host time and removal of the native
+physical loaders/solvers from EECH_DC remain required; D4 and D5 not started; Task 47 shipping run untouched).
+
+Changed/added: `csrc/{eech_model_walk.h,eech_model_hooks.h,eech_model_walkcheck.c,eech_model_fixture.c,eech_win32.c}`, `build/{patches.rs,main.rs}`, `Cargo.toml` (`[[test]]` requiring the feature), `tests/model_walk.rs` (isolated control, 44
+expectations, no original code), `docs/m5-model-characterization.md`, this file. Not touched: `eech_engine.c` (and its NUL), any frozen source, raw, retail root, baseline or other worktree. Next (Root): compile (Linux and Windows,
+feature on and off; confirm the patches' counts and that the feature-off staged `3dobjdb.c` is byte-identical to the shipping patched one), run `model_walk`, the independent memory-safety review, then fresh-root native
+catalogue/geometry runs, a state-digest before/after, and the comparison with `366622e0c`'s rows. No Git, build, test or native action was taken in this lane.
+
 # Current D3 correction — EEDCS-50 host model store, last residual P2 of `7a51d13a6` (30 October 2026): SOURCE PREPARED, UNBUILT, UNRUN
 
 Actual `7a51d13a6` validation (valid within its scope, unchanged): Linux format 0, 235 library tests (a Root commentary that said 236 is corrected: the count is 235), 33 integration tests, the old 8 diagnostic guards and all-target

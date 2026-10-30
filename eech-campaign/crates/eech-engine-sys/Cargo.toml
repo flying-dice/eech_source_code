@@ -25,5 +25,11 @@ weapon-fixture = []
 # TEST-ONLY (EEDCS-50): read-only questions to the original collision-model accessors. Never enabled in the shipping build.
 model-fixture = []
 
+# TEST-ONLY (EEDCS-50): the isolated control of the original-model read-safety walk; it needs the feature's C
+[[test]]
+name = "model_walk"
+path = "tests/model_walk.rs"
+required-features = ["model-fixture"]
+
 [build-dependencies]
 cc = { version = "1.2", features = ["parallel"] }

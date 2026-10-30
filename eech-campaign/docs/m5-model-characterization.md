@@ -52,6 +52,7 @@ Files changed or added (all gated; the production build, module and API are unto
 | `crates/eech-engine-sys/csrc/eech_model_fixture.c` | new: summary, catalogue, geometry, state digest, safety verdict |
 | `crates/eech-engine-sys/csrc/eech_engine.c` | 71 lines appended under `#ifdef EECH_MODEL_FIXTURE` (four `ENTER (OPERATION_OBSERVE, NULL)` wrappers); the existing bytes, including the file's one NUL, are a verified prefix |
 | `crates/eech-engine-sys/csrc/eech_engine.h` | declarations under the same gate |
+| `crates/eech-engine-sys/csrc/{eech_model_walk.h,eech_model_hooks.h,eech_model_walkcheck.c}`, `csrc/eech_win32.c` (`eech_view_extent`), `build/{patches.rs,main.rs}`, `tests/model_walk.rs` | the backing observer and decoder-read safety walk described below (source prepared, unbuilt, unrun, unreviewed) |
 | `crates/eech-engine-sys/{Cargo.toml,src/lib.rs,build/main.rs}` | feature `model-fixture`, FFI externs, `EECH_MODEL_FIXTURE` define |
 | `crates/eech-engine/{Cargo.toml,src/lib.rs}`, `crates/eech-dc/{Cargo.toml,src/module.rs}` | feature chain; `model_summary`, `model_catalogue`, `model_geometry`, `model_state` on the Lua engine object; whole-number argument checks before the engine is entered |
 | `crates/eech-world/lua/model-characterization.lua` | the driver |
@@ -72,14 +73,82 @@ Interface (no native pointer ever reaches Lua; all values are text rows):
 
 ### The safety verdict is not an expected answer
 
+(This describes the verdict the `366622e0c` DLL measured. The source now prepared replaces its extent inference and face walk; see the next section. The retained raw output stays the
+evidence for what that DLL measured.)
+
 `status` is computed from the loaded tables only, before any call: `absent`, `no_scene`, `invalid_index`, `null_surfaces`, `surfaces_outside_block`, `custom_object`,
-`face_mismatch` (`number_of_faces` ≠ the sum of surface faces ≠ the sum of polygon-surface faces), `zero_face_surface`, `null_arrays`, `degenerate_face` (< 3 points),
+`face_mismatch` (`number_of_faces` ≠ the sum of surface faces ≠ the sum of polygon-surface faces), `zero_face_surface`, `null_arrays`, `degenerate_face` (< 3 points; no longer produced by the source prepared below),
 `capacity_unobservable` / `capacity_short` (the object's faces, point list or surface points are not shown to cover what the decoder will read; the extent is the distance to the next
 object's array, which the last object of a block does not have), `index_violation`, `empty`, `safe`. `fan_bound` is the sum of (face points - 2) and is a **safety bound for
 how deep to call**, never compared with or substituted for the original's answer; the driver reports where the original actually first returned false. The end probe is made only when the
 one-past surface read is inside the block (`end_read_backed = 1`); otherwise the row says `end_probe_unbacked` and that scene's end is **not** observed (explicit gap, not a pass).
 The verdict's face walk uses the correct surface association, which equals the decoder's only when no surface is empty (those are refused). Refused models are reported with their
 metadata; the retained raw output is the evidence. Nothing is repaired.
+
+### Backing observation and the decoder's actual reads (SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED)
+
+The verdict described above is what the DLL `366622e0c` measured. It inferred an array's extent from the distance to the next object's array and so refused the last object of every
+block, every custom object (14) and every model whose `number_of_faces` differs from its surfaces' face counts (45): 59 models whose original behaviour was therefore not characterised.
+That inference is replaced, in source only, by observation of the real allocations plus an exact replay of the decoder's integer reads. This is a distinct **original-memory-safety change**:
+it must receive its own independent safety review before the new fixture or its native accessors are executed.
+
+What is observed (nothing is guessed from a neighbouring pointer; nothing is read before it is shown backed):
+
+| Backing | Source | Fixture knowledge |
+|---|---|---|
+| shared face block, shared point-list block | feature-only hooks the staged `3dobjdb.c` calls (`csrc/eech_model_hooks.h`; strict count-checked patches `M1`..`M11` in `build/patches.rs`, applied by `build/main.rs` only with `model-fixture`) | the loader's own allocation size, every cursor position at every `fread`, the items each `fread` actually returned (a short read leaves a hole: bytes after it are allocated, not initialised), and the final cursor, reported before any override file mutates an object |
+| file-mapped points, file-mapped surface points | `eech_view_extent` in `csrc/eech_win32.c` (mutex-protected `views[]`, exact base only, read-only look, no address leaves the process) | the live view's exact length; an interior pointer, released or unknown base is unobserved |
+| consolidated surface block | the existing sum of every object's surfaces | exact block; the end read is checked against it |
+| each custom (override) object | hooks inside `read_object`: the `fread` counts and, after `obj->custom = 1`, the counts it allocated by (points, polygon faces, point references, surface-point references) | exact allocation identity and filled extent, matched to the object's **current** pointers; one slot per **object index** (a static table of `MF_OBJECT_MAX` = 32768 slots, found in constant time, valid only in the generation that wrote it). The loader's table is (objects in `3dobjs.bin`) + 2000 + 1 entries, 11442 objects plus slot zero for the supported data (36 hex-named override files + 811 named objects = 847 custom loads, named ids reaching 10252), so every needed record fits with more than twofold margin and none is skipped for arriving late. A repeat read into the same object, an object that is not an element of the table, a changed pointer or an index past the fixed bound is a refusal **of that object alone** (`custom_object` with detail `ambiguous_record`, `unrecorded`, `unknown_object`, `stale_record`, `record_capacity`, `load_unobserved`); counts of each are reported and no other record is affected. Never a guess. The consolidated surface pointer of a custom object is not trusted from the record (consolidation frees and rebinds it); it is the block's |
+
+The hooks only record. They allocate nothing, free nothing, write no model byte, draw no random number, read no clock, change no entity and do no floating-point arithmetic. Every
+`fread` they wrap is evaluated exactly as before and its result handed back unchanged. Each patch adds a call and changes no original statement, argument, order or value. With the feature off
+none of the hooks, patches or tables exists. `get_object_3d_collision_object_geometry_triangle` and every other original numeric body are byte-identical.
+
+The replay (`csrc/eech_model_walk.h`, a pure header with no engine type) follows the accessor's integer path exactly: the unconditional read of `surfaces[0]`; the loop on
+`faces[count].number_of_points - 3 < depth`; refs, surface-point and surface stepping; the number of points 0 meaning 256; the **read of the next surface even after the last face** (the end
+call's); then, for each triangle of a face, the three point-list entries, the three surface-point references and the three points. A walk may leave the object's own extent into the
+following objects' shared arrays (a mixed layout) exactly when those reads are inside the allocation and initialised; otherwise it stops there. Checked integer arithmetic (no wrap), 2-byte
+and 4-byte alignment, `allocated` against `initialised` bytes, and a step budget bound every walk. It computes **no triangle**.
+
+Result per model: the longest run of depths `0 .. safe_depths-1` all of whose reads are backed, whether the end call is backed, and why the walk stopped if it did. It is reported in the
+existing fields: `fan_bound` is the whole fan when the walk is complete and otherwise the safe depth count, `end_read_backed` is 0 when the end call (depth == `fan_bound`) is not backed,
+so the existing gate rows apply unchanged: depth `fan_bound` is `end_probe_unbacked`, deeper is `beyond_safe_bound`. A model with nothing callable is refused with the existing finite
+vocabulary (`null_surfaces`, `surfaces_outside_block`, `null_arrays`, `capacity_unobservable` for an unobserved array or the budget, `capacity_short` for an unbacked, uninitialised,
+misaligned or wrapping read, `custom_object` with a detail as above). `face_mismatch`, `zero_face_surface`, `index_violation` and `degenerate_face` are no longer produced: a mismatch is walked
+(the accessor does walk it), an index is judged by whether the read it causes is backed, not by whether it looks plausible, and a face of few points is not memory-unsafe in itself.
+
+Faces of 0, 1 and 2 points are walked **exactly as the original steps them**, not refused and not given a safer interpretation. The accessor subtracts `number_of_points - 2` from its running
+depth for every face it consumes, so a face of 2 points subtracts 0 and a face of 1 or 0 points ADDS 1 or 2; the loop is bounded by `number_of_faces`. With C_k the running sum of
+(points - 2) before face k, a call at depth D stops at the first face k with D < C_{k+1} (that face always has 3 or more points, and the triangle it reads is D - C_k), or consumes
+every face and returns FALSE. So the depths that return TRUE are exactly 0 .. P-1, P being the running maximum of C (never below 0); a face claims the depths from the maximum so far
+up to its own C_{k+1} - 1 (none when it does not exceed it); and the first FALSE is depth P. The walk computes P and each claimed depth's reads from the face counts alone, with signed 64-bit
+arithmetic, no assumption that an increment is positive, and the same bound by `number_of_faces`, the backing and the step budget; the `fan_bound` it reports is P (or, when a read is
+unbacked, the first depth whose reads are not backed), a non-negative bound for how deep to call that is never compared with the original's answer. The previous refusal of such faces
+was an implementation preference, not a property of the original source, and is removed. Any read these faces lead to is still checked against the backing, and a run of them is bounded
+by what is backed and by the step budget.
+`capacity_*` values now mean elements from the object's own pointer to the end of its observed allocation (-1: unobserved).
+
+Optional fields (the closed driver and comparator tolerate extra `key=value`; no row type is added and the 15-status vocabulary is unchanged): catalogue rows and geometry headers carry
+`backing` (`common`, `custom`, `-`), `walk` (`complete`, `end_unbacked`, `partial`, `refused`, `-`), `stop`, `stop_array`, and the extents the walk read (`faces_read`, `list_read`, `sp_read`,
+`points_read`, in elements, all backed); the summary row carries the hooks' record (generation, phase, the shared blocks' allocated / consumed / initialised bytes, the views' lengths,
+custom slots, records recorded / ambiguous / dropped for index capacity / unknown / late); the state row carries a `backing` digest of those records.
+
+Gaps this makes SAFELY PROBEABLE (after the safety review and a build): the last object of each shared block; the 45 mixed-layout models up to the first unbacked read (including walks into
+following objects' data that the loader initialised); the custom objects with an exact record. Still refused or explicit gaps: a model whose backing the hooks did not observe; a read
+inside an allocation past the filled bytes (uninitialised); a custom object with an ambiguous, stale, unknown or missing record or an index past the fixed bound (Root will verify actual recorded count 847 expected and dropped 0 on the three roots); a walk that exhausts the step budget;
+anything beyond the first unbacked read (reported as `partial`, never extrapolated). A `partial` walk is a bound for how deep to call, not a measurement of the model's whole fan.
+
+Controls prepared (none run): the isolated `eech_model_walkcheck_run` (`csrc/eech_model_walkcheck.c`, 44 expectations over synthetic arrays in its own memory, no original code) driven by
+`crates/eech-engine-sys/tests/model_walk.rs` (`--features model-fixture`) covers missing, short, uninitialised, below-region, misaligned and wrapping backing, the unbacked end read, the
+256-point surface, surface advance and the budget, and faces of 0, 1 and 2 points: a 1-point face after a triangle, 1- and 3-point faces that leave no TRUE depth (no list read, backed end),
+a 1-point face before a quad and a 0-point face before a 5-point face (the depths they claim and the exact list entries read), the unbacked list and face reads those lead to, and a
+2^40-face run of 0-point faces stopped by the backing and by the budget. It proves the verifier's own bounds logic only; every expected value was derived by hand from the accessor's source,
+not from a run.
+
+Limits stated plainly: the number of items `fread` returned is taken as the filled extent (the bytes are not re-read); the 18-byte on-disk surface record's mapping to the 16-byte struct and
+the layout of `face_surface_description` (points byte at offset 3, `number_of_faces` as the u16 at offset 8) are the walk's contract, checked by static size assertions and by the
+retained evidence, not re-proved; the observer assumes the loader and the fixture entries run on the same engine thread; no part of this has been compiled or executed.
 
 ### Pure observer
 
