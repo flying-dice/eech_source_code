@@ -1,0 +1,52 @@
+{
+  "schema": "original-environment-context-guard-validation/v1",
+  "corrected_source": "e1165cad60fc6fe81585ef1c1cdc2eb011129cbe",
+  "original_compiled_source": "99352e331527e8aafb2961949536217eab7a8ecf",
+  "immutable_corrected_source_clean": true,
+  "linux_guard_tests": 8,
+  "windows_native_guard_tests": 8,
+  "format_and_world_strict_all_target_Clippy": 0,
+  "linux_windows_build_and_guard_actual_exits": 0,
+  "actual_driver_original_fixture_compatibility": {
+    "all_controller_native_prepost_exits": 0,
+    "payloads_verified": 43,
+    "old_rows": 704,
+    "new_rows": 705,
+    "all704_original_rows_and_line_endings_raw_byte_exact": true,
+    "only_added_validation_metadata": [
+      {
+        "event": "validation",
+        "protocol": "env-fixture/1",
+        "refused_witnesses": 2,
+        "reports": 169,
+        "witnesses": 164
+      }
+    ]
+  },
+  "unsupported_physical_original_branches": [
+    "natural lightning RNG/entity causality",
+    "sound/terrain scratch effects",
+    "libc reseed state",
+    "save/restore"
+  ],
+  "windows_metadata_typographical_source_fix": {
+    "field": "host_source",
+    "previous_typographical_value": "99352e331527e8aafb2969536217eab7a8ecf",
+    "correct_source_derived_from": "R:\\d3-evidence\\environment-original-source-99352e331\\eech-campaign\\target\\env-fixture\\original-99352e331\\BUILD-INFO.txt",
+    "original_record_preserved": "R:\\d3-evidence\\environment-guards-windows-e1165cad6-execution-metadata-original-20261030.json",
+    "test_and_raw_log_not_rerun_or_changed": true
+  },
+  "evidence_sha256": {
+    "R:\\d3-evidence\\environment-guard-e1165cad6-linux-20261030-completion.json": "bc260126e54f97132e855d3afc4e5cd4d578f321e25867c9c05b9f683d59daf6",
+    "R:\\d3-evidence\\environment-guard-e1165cad6-linux-20261030.log": "0e44b7482ce63f7aa5528c58d8081bae6c03e4fb6e86b4c6c695adf9a5605724",
+    "R:\\d3-evidence\\environment-guard-e1165cad6-windows-20261030-completion.json": "1c08276e3e0ee8f7a5b85243633dc5654997407c8bbcd621f9f5e37e54049200",
+    "R:\\d3-evidence\\environment-guards-windows-e1165cad6-execution-20261030.json": "316631ffa48407bd7c3e0defb963a4283dc1f54827658f8ee1d640ad99fbeca7",
+    "R:\\d3-evidence\\environment-guards-windows-e1165cad6-execution-20261030.log": "29a27e00215c199b4a39b496d2292d29e4b85d73bffbe318d35ddd94edd4478d"
+  },
+  "limits": [
+    "Independent changed-delta review still required; no Task51/physical host handoff/fullshipping/D3 completion.",
+    "Old failed guard/lint/setup records remain unchanged; corrected proof does not relabel original failures.",
+    "Original3retail/1200frame numerical evidence reused at measured99; this is guard validation and one explicit new-Lua/old-DLL compatibility witness.",
+    "No accepted baseline/tolerance/seed/duration/physical kernel changed."
+  ]
+}

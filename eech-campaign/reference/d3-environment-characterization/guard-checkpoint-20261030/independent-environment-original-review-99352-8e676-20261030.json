@@ -1,0 +1,258 @@
+{
+  "schema": "independent-original-environment-review/v1",
+  "reviewed_utc": "2026-10-30T06:08:38.128724+00:00",
+  "base": "6bbaa8197a4843181d03cd355d562af998c75321",
+  "reviewed_head": "8e676a9ae83225d257c2d2a214c1aa12ad531060",
+  "measured_original_source": "99352e331527e8aafb2961949536217eab7a8ecf",
+  "author_repository": "R:\\d3-evidence\\environment-services-20261030",
+  "measured_snapshot": "R:\\d3-evidence\\environment-original-source-99352e331",
+  "exact_clean_heads_before_and_after": true,
+  "scope": "One combined original-environment characterization source, tests, boundary and completed native evidence review. No host extraction or unchanged terrain/model review.",
+  "disposition": "CHANGES_REQUIRED_THREE_P2_DRIVER_AND_TEST_GROUPS",
+  "findings": [
+    {
+      "id": "ENV-REPORT-COMPLETENESS",
+      "priority": "P2",
+      "path": "eech-campaign/crates/eech-world/lua/env-characterization.lua",
+      "line": 249,
+      "related_lines": [
+        133,
+        137,
+        203,
+        213,
+        234,
+        248,
+        255
+      ],
+      "title": "Require actual typed family answers before counting a restored witness",
+      "reason": "Only a final marker with matching group/index and restored=1 is needed to increment measured coverage. No family answer, input/result field schema, fingerprint equality/width, duplicate key/event or exact census contract is enforced. A marker-only response is counted as measured, and the supplied positive stand-in actually emits env-wind for every group. A forged zero census can report complete with no cases. This weakens the characterization validator even though retained native reports contain the genuine C rows.",
+      "correction": "Validate the finite C-emitter protocol before success: supported bounded census/counts, exact family-specific row order/cardinality/types/word widths and input/index identity, explicit refusal forms, required before/result/after rows, and matching restored fingerprints. Reject duplicate/unknown/missing fields or rows. Add coherent positive collaborators plus genuine marker-only/wrong-family/missing-result/changed-fingerprint/census-corruption controls; no numerical expected-answer solver."
+    },
+    {
+      "id": "ENV-PERIODIC-SCHEDULE-BOUND",
+      "priority": "P2",
+      "path": "eech-campaign/crates/eech-world/lua/env-characterization.lua",
+      "line": 276,
+      "related_lines": [
+        86,
+        269,
+        274
+      ],
+      "title": "Bound periodic catch-up independently of frame count",
+      "reason": "snapshot_every accepts .00000000001, but catch-up advances one period per while iteration. A single100ms frame then needs about10 billion iterations even though only one snapshot is emitted. MAX_FRAMES does not bound this loop or practical work.",
+      "correction": "Advance directly to the next due period with finite/progress checks or refuse schedules exceeding an explicit finite bound. Preserve intended periodic snapshot semantics and the unchanged default60s schedule. Exercise the real driver with a controlled clock for tiny positive periods/large jumps without running a huge loop or altering original environment math."
+    },
+    {
+      "id": "ENV-WINDOWS-GUARD-PATHS",
+      "priority": "P2",
+      "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "line": 2035,
+      "related_lines": [
+        2050,
+        2052
+      ],
+      "title": "Make the new real-driver guards portable to cross-built Windows binaries",
+      "reason": "The helper bakes CARGO_MANIFEST_DIR/lua and CARGO_BIN_EXE paths into the Windows test executable. In the documented Linux/Docker cross build those are /src and /target locations inaccessible to native Windows execution. Existing Linux passes do not establish Windows guard execution.",
+      "correction": "Embed the actual driver via include_str and copy it into a per-run temporary directory. Retain ordinary Cargo host selection for Linux and support a strict explicit runtime host override for Windows, refusing a supplied invalid path without fallback/skip. Validate actual native Windows guard execution separately. Do not rebuild or relabel the unchanged original C fixture just for this test wiring."
+    }
+  ],
+  "source_safety": {
+    "original_C_execution": "No new C memory/numerical/restoration blocker found for the finite already-measured cases; retained native measurements can be revalidated after driver/test-only fixes. This is not blanket approval for unsupported lightning/libc-reseed/save paths.",
+    "feature_off": "Appended original C wrappers and engine entry are entirely feature-guarded; new fixture is wholly guarded, Rust/API feature chain is consistent. Original C bytes independently checked as exact prefixes, including engine NUL1. No independent strict-preprocess run by reviewer is claimed.",
+    "prefix_records": [
+      {
+        "path": "aphavoc/source/entity/special/session/session.c",
+        "base_sha256": "8a0485e02b1b668c6c26729062b70f2233d638f0b16d65ad9cc8f3b07d8a5115",
+        "measured_sha256": "b80c05df13754c83ddb5e56f0735328df9e30f809073fefa2a4252049cd411f8",
+        "base_bytes_exact_prefix": true,
+        "NUL_count": 0
+      },
+      {
+        "path": "aphavoc/source/entity/special/session/ss_updt.c",
+        "base_sha256": "bc315856e3f74323c612fe38b8e61027a834850a19f4a3feb451da86364e18b3",
+        "measured_sha256": "179d6352aab7bfe5350a5b96b768aa2257899389d49425391b1a04ec68bcae3c",
+        "base_bytes_exact_prefix": true,
+        "NUL_count": 0
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+        "base_sha256": "095e591088331a31dd71838217e698acd580b30daf2467864b5e063f6298df67",
+        "measured_sha256": "d0901fd4fa9a709a4c0abc28685a75450af297ec636a7d6f9ce6ef3236793fc6",
+        "base_bytes_exact_prefix": true,
+        "NUL_count": 1
+      }
+    ],
+    "ABI": "Only c_int group/index/capacity and caller-owned bounded text pointer cross private C/Rust FFI. Rust allocates32KiB, C checks engine state and pointer/capacity. No native pointers or session layout exported to Lua.",
+    "bounds": "Finite private tables hold55/21/33/22 entries within96/48/48/48 capacities; init7/time-update10/weather-update16 indices checked. Bounded snprintf checks every report segment. Returning output-error paths reach restore before refusal.",
+    "restoration": "Whole session copied/restored along with map season, shared random seed word and system_delta_time. Original called routines mutate only this saved state on selected cases. Camera is read, not modified; cockpit/no-camera/nonserver update and initialization preconditions are refused. Lightning timer is held high in controlled weather updates, preventing external strike/sound creation. Libc reseeding is never called.",
+    "original_fidelity": "Wrappers call the actual original static functions once at each requested operation; weather/wind query helpers call original functions and report input/output bit words without reimplementing result arithmetic. Time/range helpers used for diagnostics are read-only. Update order, RNG use and casts remain original. Return-state checks are rendered-state fingerprints, not an assertion that every global has been exhaustively observed.",
+    "FPU": "Calls inherit accepted6b engine entry/RZ behavior. No new full outer MXCSR preservation claim or borrowing of separately repaired model-source evidence. Generated boundary inputs and IEEE words are recorded under that actual context.",
+    "clean_code": "Finite family dispatch and state cleanup are localized. Required changes are validation/scheduler/test infrastructure, not physics, campaign policy, ABI redesign or oracle replacement."
+  },
+  "actual_evidence": {
+    "cases": [
+      {
+        "case": "georgia",
+        "rows": 704,
+        "controller_native_pre_post_exits": 0,
+        "manifest_input_files": 1174,
+        "manifest_input_digest": "d373bc4262464da87532b8128d396358f0003bc2e9e51e8fa92cf0a6e2b50de2",
+        "raw_sha256": "c4d4dc6493663764be119151bdbac1117126a6afbad57546cd370fbaa38ba42c",
+        "frames": 0,
+        "actual_elapsed_seconds": 0,
+        "witness_count": 164,
+        "all_emitted_family_answers_present": true
+      },
+      {
+        "case": "lebanon",
+        "rows": 704,
+        "controller_native_pre_post_exits": 0,
+        "manifest_input_files": 1179,
+        "manifest_input_digest": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+        "raw_sha256": "95fbf3f003bbd2483de7f591511dcd66ba0103f22ad4ed750b2595bcf053a0f8",
+        "frames": 0,
+        "actual_elapsed_seconds": 0,
+        "witness_count": 164,
+        "all_emitted_family_answers_present": true
+      },
+      {
+        "case": "lebanon-repeat",
+        "rows": 704,
+        "controller_native_pre_post_exits": 0,
+        "manifest_input_files": 1179,
+        "manifest_input_digest": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+        "raw_sha256": "95fbf3f003bbd2483de7f591511dcd66ba0103f22ad4ed750b2595bcf053a0f8",
+        "frames": 0,
+        "actual_elapsed_seconds": 0,
+        "witness_count": 164,
+        "all_emitted_family_answers_present": true
+      },
+      {
+        "case": "lebanon-120-probe",
+        "rows": 11513,
+        "controller_native_pre_post_exits": 0,
+        "manifest_input_files": 1179,
+        "manifest_input_digest": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+        "raw_sha256": "af638e8f6980078687aead46879527d6a6e0d4d64f4bb823931ec42ecda12f55",
+        "frames": 1200,
+        "actual_elapsed_seconds": 119.99835968017578,
+        "witness_count": 164,
+        "all_emitted_family_answers_present": true
+      },
+      {
+        "case": "lebanon-120-control",
+        "rows": 10849,
+        "controller_native_pre_post_exits": 0,
+        "manifest_input_files": 1179,
+        "manifest_input_digest": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+        "raw_sha256": "aeadff94a52953950c8736545e66756ed7c58b17028746c6a74449f343ae7b2d",
+        "frames": 1200,
+        "actual_elapsed_seconds": 119.99835968017578,
+        "witness_count": 0,
+        "all_emitted_family_answers_present": true
+      }
+    ],
+    "zero_frame_counts": {
+      "2": 55,
+      "3": 21,
+      "4": 33,
+      "5": 22,
+      "6": 7,
+      "7": 10,
+      "8": 16
+    },
+    "total_witnesses_each_probe": 164,
+    "deliberate_gust_domain_refusals_each": 2,
+    "retained_report_validation": "All concrete groups/indices checked against actual C-emitter row sequences, every expected answer/result present, every word/fingerprint syntax valid, every end restored=1 with fp_before==fp_after. No missing native answer detected. Driver weakness does not invalidate these independently inspected original rows.",
+    "Lebanon_zero_frame_whole_report_equals_repeat": true,
+    "moving_control_comparison": {
+      "common_snapshot_rows_exact": 10827,
+      "frame_scopes_each": 1200,
+      "frames_each": 1200,
+      "actual_final_clock": 119.99835968017578,
+      "campaign_end_objects": 1826,
+      "campaign_end_alive": 1825,
+      "campaign_end_digest": "723950766",
+      "immediate_probe_state_and_campaign_fingerprints_equal": true,
+      "limits": "Common snapshot rows and campaign endpoints exact; probe-only witness/before-after rows and explicit control coverage differ as expected. No full Tacview/all-engine-state or long-run lightning/sound/save behavior claim."
+    },
+    "fixture_build": {
+      "actual_exit": 0,
+      "BINF_sha256": "5d7e4c9817a0cabb8d1def0e2f6b3b7ff5c3566e246a362b5e5a2b5cf4fa7ec8",
+      "file_manifest_entries_verified": 43,
+      "runtime_source": "99352e331527e8aafb2961949536217eab7a8ecf",
+      "comment_only_head_not_relabelled": "8e676a9ae83225d257c2d2a214c1aa12ad531060"
+    },
+    "Linux_checks": {
+      "original_actual_exit": 101,
+      "default_and_feature_tests": "Both affected-package test commands passed, including four new real-Lua stand-in driver guards; these protect flow only and do not validate physical environment answers.",
+      "default_Clippy": 0,
+      "first_feature_Clippy": "Actual101 unused_doc_comment; retained as failure.",
+      "comment_only_feature_Clippy_recovery_actual_exit": 0,
+      "recovery_completed_utc": "2026-10-30T06:03:11.135663+00:00",
+      "recovery_changes": "Only /// to // on extern-block comment; declarations, C, Lua, tests and flags unchanged. No Windows/native rebuild or retest needed for this prose-only lint fix.",
+      "Windows_driver_guards": "NOT_EXECUTED; cross-built path finding remains open."
+    }
+  },
+  "source_sha256": {
+    "STATUS.md": "0823635bfc862ce39aeb6e7c3474d5fe1fcce15241cf2d5a0ff2ab8d16d0093c",
+    "aphavoc/source/entity/special/session/session.c": "b80c05df13754c83ddb5e56f0735328df9e30f809073fefa2a4252049cd411f8",
+    "aphavoc/source/entity/special/session/ss_updt.c": "179d6352aab7bfe5350a5b96b768aa2257899389d49425391b1a04ec68bcae3c",
+    "eech-campaign/crates/eech-dc/Cargo.toml": "4287c44025699366c09e7747a78032da833fcd4d0bf6096e22c4478bcce8f5c1",
+    "eech-campaign/crates/eech-dc/src/module.rs": "1987d5898a6840f793f4ef178376a6fc31298fa89b7a0f0b6aeae7a9524911df",
+    "eech-campaign/crates/eech-engine-sys/Cargo.toml": "4e764e58dfe68b53f3832f7e5717e7275249dc5ababf6c5c060b2d97b71dffd0",
+    "eech-campaign/crates/eech-engine-sys/build/main.rs": "0e36d637d016e2d4781f807ee0add17f5eb43beda9f5c04352384b79676f4587",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c": "d0901fd4fa9a709a4c0abc28685a75450af297ec636a7d6f9ce6ef3236793fc6",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h": "3fdb902dc1ef88523a270bfa88c9713438e1565c82bfa9c5bc5b7adadeeb617f",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c": "f12e008e6c95d9ac78b587a99a2952966500ec95b272eb8461f6d0314c8f0767",
+    "eech-campaign/crates/eech-engine-sys/src/lib.rs": "55b49b50c4a2d1fb8c9b7a0d6601f1d6eee8ffd84fb0f9591898da657169b687",
+    "eech-campaign/crates/eech-engine/Cargo.toml": "e15460bf3fad2790562fed98960ed734ae55f602c3298bd8667ac719f047e539",
+    "eech-campaign/crates/eech-engine/src/lib.rs": "4878f4714819c3c9776501cf64e8999e28d974852aa15f1fce0d5fdfc26ffda2",
+    "eech-campaign/crates/eech-world/lua/env-characterization.lua": "b28ae094d7378fff83a4cf7cb19219c0c484358a7c12b0aed327f7e0e7ec718e",
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs": "c0deff60e7dbb1822a9dafc31ec69bb38fe3deee9f4d84bc33a10cb539d3faa6",
+    "eech-campaign/docs/d3-environment-characterization.md": "b86206c5ca5f1ea10511332118f16608b3bccf2d2c9762008aa893e3a37e8e1e",
+    "eech-campaign/tools/build-windows-env-fixture.sh": "97258f1c47a910165b23db17296565bba9af80296a345c3b3dc9b1a1c9bcabf5"
+  },
+  "evidence_sha256": {
+    "R:\\d3-evidence\\environment-original-georgia-99352e331-20261030\\controller.json": "2f44053bcb0ea688aa9d180f1276d2576e9bd316212ad9951c49529f4b548517",
+    "R:\\d3-evidence\\environment-original-georgia-99352e331-20261030\\environment.jsonl": "c4d4dc6493663764be119151bdbac1117126a6afbad57546cd370fbaa38ba42c",
+    "R:\\d3-evidence\\environment-original-georgia-99352e331-20261030\\native.log": "eeac57d2d210f4d1dda4c369d171786b9a5d9f4a6969a533680ca6af58fb2821",
+    "R:\\d3-evidence\\environment-original-georgia-99352e331-20261030\\pre-inputs.json": "8c08435614a8810022336af69dfe86eb32a3da556cd0e0f71093b8111619c058",
+    "R:\\d3-evidence\\environment-original-georgia-99352e331-20261030\\post-inputs.json": "8c08435614a8810022336af69dfe86eb32a3da556cd0e0f71093b8111619c058",
+    "R:\\d3-evidence\\environment-original-lebanon-99352e331-20261030\\controller.json": "b755527a5116d5378900f051ea887d93f6f0de1c243e24c3173d6936047deac8",
+    "R:\\d3-evidence\\environment-original-lebanon-99352e331-20261030\\environment.jsonl": "95fbf3f003bbd2483de7f591511dcd66ba0103f22ad4ed750b2595bcf053a0f8",
+    "R:\\d3-evidence\\environment-original-lebanon-99352e331-20261030\\native.log": "1b76f7cf445a3f29087b98084f00bb7f1638c16e0ea210f488483d96c28a984c",
+    "R:\\d3-evidence\\environment-original-lebanon-99352e331-20261030\\pre-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\environment-original-lebanon-99352e331-20261030\\post-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\environment-original-lebanon-repeat-99352e331-20261030\\controller.json": "053b24224bf2a386f441b8139d262aa49e0163049dfd66afd9b222cc25cedd19",
+    "R:\\d3-evidence\\environment-original-lebanon-repeat-99352e331-20261030\\environment.jsonl": "95fbf3f003bbd2483de7f591511dcd66ba0103f22ad4ed750b2595bcf053a0f8",
+    "R:\\d3-evidence\\environment-original-lebanon-repeat-99352e331-20261030\\native.log": "b12b5a02a2eefb75af8bd66641cf179f388f8443851fe3b5c060ad9fdd2654a1",
+    "R:\\d3-evidence\\environment-original-lebanon-repeat-99352e331-20261030\\pre-inputs.json": "9c14af3fd045192062cdce0dea0028100392ff0b195760eaf03f853e91d0e4c4",
+    "R:\\d3-evidence\\environment-original-lebanon-repeat-99352e331-20261030\\post-inputs.json": "9c14af3fd045192062cdce0dea0028100392ff0b195760eaf03f853e91d0e4c4",
+    "R:\\d3-evidence\\environment-original-lebanon-120-probe-99352e331-20261030\\controller.json": "d9006b711489f888f3a70c5b8817f40a102c8a3abf6cc72c7b1ad95b7a663226",
+    "R:\\d3-evidence\\environment-original-lebanon-120-probe-99352e331-20261030\\environment.jsonl": "af638e8f6980078687aead46879527d6a6e0d4d64f4bb823931ec42ecda12f55",
+    "R:\\d3-evidence\\environment-original-lebanon-120-probe-99352e331-20261030\\native.log": "dcdded525ec454266fb5059e7fb9b93138bed06bd99dc3875edcc8163e044ed4",
+    "R:\\d3-evidence\\environment-original-lebanon-120-probe-99352e331-20261030\\pre-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\environment-original-lebanon-120-probe-99352e331-20261030\\post-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\environment-original-lebanon-120-control-99352e331-20261030\\controller.json": "551e08e4fcb649fec838cda3057bad443e54352ea46001e55a19066990502ce5",
+    "R:\\d3-evidence\\environment-original-lebanon-120-control-99352e331-20261030\\environment.jsonl": "aeadff94a52953950c8736545e66756ed7c58b17028746c6a74449f343ae7b2d",
+    "R:\\d3-evidence\\environment-original-lebanon-120-control-99352e331-20261030\\native.log": "0fbadbff13606a154d455d468556be1d40d2214c9f1fdb3411591e49caba7177",
+    "R:\\d3-evidence\\environment-original-lebanon-120-control-99352e331-20261030\\pre-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\environment-original-lebanon-120-control-99352e331-20261030\\post-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\environment-original-source-preflight-20261030.json": "4cab042e99415ced1104bb98abb48801859a49908420e40346ea1fc45e0fe28b",
+    "R:\\d3-evidence\\environment-original-99352e331-linux-20261030-completion.json": "b2513c2f85572321eb675f52680cf367ac4d3e344021e6d959f42e2db2728284",
+    "R:\\d3-evidence\\environment-original-99352e331-linux-20261030.log": "c1d4a6ba2f6e8c23e3fad4f8e97002166dec63a7733b9b60dc09f3e09943b656",
+    "R:\\d3-evidence\\environment-original-99352e331-windows-20261030-completion.json": "88c98fd88ac65c0d50167c53cf014f08ab66bb23b0d9de551a9d7a8cd3a4292e",
+    "R:\\d3-evidence\\environment-original-99352e331-windows-20261030.log": "2fbb5efb974a27dabbe6667634b5a666475e7a8a5dbd9dfc9bb01e96b3724208",
+    "R:\\d3-evidence\\environment-feature-lint-recovery-8e676a9ae-20261030-completion.json": "b83a7d4e5156a8a7e0905ccf193e5f937e0a7c0e2d2e8d2dfdecda83550989f7",
+    "R:\\d3-evidence\\environment-feature-lint-recovery-8e676a9ae-20261030.log": "4597dc546232ba420872260b8fcd165e7fdf68cc038f01ce7c05daf6524a6e8b",
+    "R:\\d3-evidence\\check-environment-feature-lint-recovery-8e676a9ae-20261030.sh": "c9f7832390ac99d3606799ba5bd3d4d433fe90d1d26f1260c1aad7ec017571a9"
+  },
+  "limits": [
+    "Characterization only; no host authority, physical service cutover, formal GitHub approval, Task51 delivery, ordinary shipping acceptance or whole-D3 completion.",
+    "Retail probes cover current Georgia/Lebanon/seed1 and a120s Lebanon control, while synthetic seasons/cases are labelled synthetic. Shared rendered RNG/clock/camera restoration does not establish unsupported libc reseed, lightning entity/sound effects, resync transmission, client/save/unpack coverage.",
+    "Weather/wind/time host contract, D2 wind-lookup authority reversal, real physical consumers and required environment/terrain/model/entity/hierarchy/viewpoint/device/target-point/solver/loader removal remain D3; campaign scheduling/policy/consequences remain Core.",
+    "No original native rerun required solely for the three validator/scheduling/portable-test fixes if exact C/source/script transport correspondence and retained raw revalidation are recorded. New test/driver code still needs affected execution evidence.",
+    "No reviewer source edits/builds/tests/native/campaign/process/cache/Git/auth/external mutations or nested agents. Only this new private report written; Task47 and closed model code not re-reviewed."
+  ]
+}
