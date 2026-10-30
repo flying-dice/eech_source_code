@@ -1,3 +1,35 @@
+# D3 checkpoint — bounded model authority and byte restoration passed (30 October 2026)
+
+Production source `80fd62ea4`, with test/prose-only recovery `e48808f53`, now passes
+the completed bounded public-model gates. Complete ACMI, observation and metrics
+files match the old `4bee2cc8c` bytes; an independent observer confirms the same
+35 actual frames and final clock 3.49999737739563. All 16 success/refused public
+entries preserve full x87 control/status and MXCSR across all four rounding modes.
+Nine actual authority/refusal controls pass, including poisoned Core arrays,
+host-authored geometry, absent colliders, malformed answers and missing providers.
+Inputs and all 48 payload identities are verified for each native controller.
+
+Affected checks total 428 unique passing tests across the retained completed
+suites and a separately labelled recovery. Formatting and both default and
+feature-enabled strict Clippy pass. The original guard failure (exit 101) and
+wrong-shell recovery attempt (exit 2, no tests started) remain retained failures;
+corrected recovery completed exit 0 at 04:59:54 UTC. No production rebuild or
+unchanged kernel/native repetition was used for the test/prose correction.
+The two final independent evidence reviews have no findings. Safe assertions,
+hashes and review records are in the model branch's
+`eech-campaign/reference/d3-model-characterization/model-bounded-checkpoint-80fd-e488-20261030.json`.
+Earlier sections below describe their checkpoint time and are superseded by this
+entry where results were pending. Ledger v77/Jira comment10872 predate this closure.
+
+Task47's original runner is still live (same tool59652); the original two recorded
+campaign processes remain live and the two unrecorded processes have exited.
+No restart or final pack acceptance is claimed. Full 40 checks/eight complete
+artifacts, final input checks, current CI, formal approval and normal merges are
+still required. Required D3 physical solvers/scans/transforms/loaders, hierarchy,
+devices, route data, environment and host time remain open. Campaign policy,
+geography, route choices, timers and consequences stay in Core. Task50 and D3
+remain In Progress; D4/D5 have not started. Raw retail evidence stays outside Git.
+
 # D3 checkpoint — caller state proved; reference-host profile validating (30 October 2026)
 
 EEDCS-50 / draft PR110 source3833c822d passes both Windows builds/all48payloads
