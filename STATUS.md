@@ -1,3 +1,24 @@
+# D3 checkpoint — public model handoff corrections in progress (30 October 2026)
+
+EEDCS-50 / draft PR110 initial public handoff source de2c5b3c1 is pushed with
+safe validation/review metadata at101169f97. The Windows build and all46 exports
+pass; Linux formatting,408 tests and affected strict Clippy pass for that initial
+source. Combined independent review ba492e1d89ec07a86477ee3f9c5df54a5b35aef3ee74f029c1542b2c06e6c393
+requires six P2 and two P3 corrections. Those edits are currently being written
+by the existing Sonnet5.5 High process22552/controller20288, born03:14:03.073UTC,
+context20f8be8d-68b1-4ff9-947f-73e2362b0071. A user-requested source checkpoint
+at d5c911b5a preserves partial work; its corrections are unbuilt, unrun and unreviewed.
+New public-handoff retail execution and actual synthetic campaign bootstrap are
+held until correction and validation. Do not restart the writer after a timeout.
+
+All828 present retail model comparisons remain closed and reusable. Ledger74,
+Jira comment10869 and PR110 record initial handoff findings, not acceptance.
+The ledger's prior HTML and all five epic reports read back exactly.
+Task47's original shipping run remains separate; exact partial recording prefixes
+are not full-pack completion. Physical scans/transforms/solvers, hierarchy and
+loader dependencies, environment and host time remain D3 work. Task50/D3 remain
+In Progress; D4/D5 have not started. Baselines, tolerances and raw inputs are unchanged.
+
 # D3 checkpoint — all present retail model geometry matches; public handoff active (30 October 2026)
 
 EEDCS-50 / PR110 evidence is pushed at `5bce5c734c8f641f8fc0f7150705e260ab291151`.
