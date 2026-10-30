@@ -1,9 +1,20 @@
 # D3: the host-owned collision-model store (EEDCS-50)
 
-**Status: SOURCE PREPARED, UNBUILT, UNRUN.** Nothing here has been compiled, linted, formatted, run or measured; the Rust, C and Lua were checked by reading only. This is the first
-actual host-owned model component of D3. It is not production (the campaign DLL's tree and collision queries still run the original `initialise_3d_objects` and accessors), not the
-Task's Done and not D3 acceptance. Authority: the live M5 goal (Confluence 11534337) and the migration ledger (14548994); Jira EEDCS-50 under Epic EEDCS-21. Base: branch
-`codex/d3-model-geometry` after the reviewed original characterisation (`366622e0c` fixture, driver `309b3f050`, review closure recorded in `reference/d3-model-characterization/`).
+**Status at 30 October 2026: implemented and tested at `2020436ce`, CHANGES_REQUIRED.**
+Linux format/25 model-store tests/eight retained diagnostic guards/all-target Clippy pass;
+Windows build and25 tests pass, with the explicit missing-host control refused.
+The three verified retail comparisons match all3025 scene records and215 retained
+original calls per root, with no index skips. The independent combined review has
+four open P2s: preallocation bounds, override I/O failure propagation, original-report
+completeness and32-bit scene-ID conversion. See the exact review and validation
+checkpoint in `reference/d3-model-characterization/`; concrete complete retained
+measurements were independently checked, while the reusable comparator needs correction.
+
+This host-private component has no production campaign dispatch. The59 original
+custom/mixed geometry gaps and broader D3 services remain; no full campaign/Tacview,
+Task50 delivery or D3 acceptance is claimed. M5 Confluence11534337 and ledger14548994
+remain authoritative. The preparation-time instructions below describe the component
+and retain their original context; actual results are in the checkpoint above.
 
 ## What it is
 
