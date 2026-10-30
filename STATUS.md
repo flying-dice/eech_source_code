@@ -1,3 +1,39 @@
+# D3 checkpoint — model tests pass; focused review corrections continue (30 October 2026)
+
+EEDCS-50 / PR110 tested8a5dad172 passes actual Linux fmt/235 library tests/30 model
+integration tests/eight retained diagnostic groups/all-target Clippy. Actual Windows
+build0,235 library and30 integration tests pass; strict missing-host refusal passes.
+All six host/test payloads verify unchanged. The61a80 test-helper compile failure
+and ba4 Clippy failure remain retained under their actual identities.
+
+All three healthy retail repository runners and pre/post manifest checks complete0.
+All3025 scene records/IDs and215 retained original calls match. The physical rows
+remain byte exact202; the sole diagnostic-row difference is two validated-envelope
+counts,63 bytes. Whole reports are identical across roots:1278336 bytes, SHA256
+ed3503b12227fec13cadd2d56b62296cdb08e5bd2e5b76f0ac61db776fc59317.
+The same four first corrupt reports now refuse, while healthy originals pass.
+
+The focused independent8a review is CHANGES_REQUIRED: original I/O handling and
+32-bit narrowing findings are resolved, but cumulative nested node allocations
+still reuse a byte budget, and gate/header/write-count report consistency needs
+correction. One P3 concerns exact-match resolver precedence wording/tests. Report
+SHA256:c6bd8075f0dbe69ebea23e694d601e904727c04e1b5b7cdb090043d6b4157d92.
+Two actual forged-gate reports still wrongly pass while omitting24 scene8 calls;
+those failures and healthy controls remain intact. No unsafe giant allocation ran.
+
+The sole Sonnet5.5 High context20f8 is correcting this finite second batch,
+tool87546/PID15588 born00:44:25.155709UTC; new source is unbuilt/unrun. Jira10866
+and ledger14548994v71 record the checkpoint, with prior HTML and all five epic
+reports read back exactly. No original-provenance extension has started yet.
+
+Task47 shipping115 handle59652 and all original six PID/births were verified live
+again; it remains untouched. Prefix equality is partial only: full40/eight complete
+artifacts/post-inputs and normal delivery are pending. Production model loading
+and queries remain in EECH_DC. All59 original custom/mixed geometry gaps, other
+required hierarchy/entity/environment/host-time services and native physical
+solver/loader removal remain D3 work. Campaign policy, geography, routes and
+timers stay core. D3 is In Progress; D4/D5 have not started.
+
 # D3 checkpoint — model review corrections running; report defect reproduced (30 October 2026)
 
 Jira EEDCS-50 comment10865 and migration ledger14548994v70 now record tested
