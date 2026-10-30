@@ -1,0 +1,83 @@
+{
+  "authors": [
+    {
+      "tool": 95426,
+      "pid": 544,
+      "controller_pid": 17156,
+      "started_utc": "2026-10-30T04:27:43.893429+00:00",
+      "session": "20f8be8d-68b1-4ff9-947f-73e2362b0071",
+      "model": "claude-sonnet-5-5",
+      "effort": "high",
+      "state": "terminal",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-30T04:30:45.981328+00:00"
+    },
+    {
+      "tool": 91456,
+      "pid": 6120,
+      "controller_pid": 20620,
+      "started_utc": "2026-10-30T04:33:27.108167+00:00",
+      "session": "20f8be8d-68b1-4ff9-947f-73e2362b0071",
+      "model": "claude-sonnet-5-5",
+      "effort": "high",
+      "state": "terminal",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-30T04:35:32.032499+00:00"
+    }
+  ],
+  "collected": true,
+  "format": [
+    {
+      "stage": "before",
+      "exit": 1
+    },
+    {
+      "stage": "format",
+      "exit": 0
+    },
+    {
+      "stage": "after",
+      "exit": 0
+    }
+  ],
+  "reference_client_count": 31,
+  "reference_clients": [
+    "aim-characterization.lua",
+    "aim-lead-probe.lua",
+    "aim-person-case.lua",
+    "aim-provider.lua",
+    "aircraft-arrivals.lua",
+    "bridge-case.lua",
+    "campaign.lua",
+    "combat-case.lua",
+    "combat-characterization.lua",
+    "convoy-movement.lua",
+    "dependent-carry.lua",
+    "dependent-fixture.lua",
+    "fixed-wing-movement.lua",
+    "helicopter-lifecycle.lua",
+    "helicopter-movement.lua",
+    "host-identities-lifecycle.lua",
+    "host-identities.lua",
+    "lifecycle.lua",
+    "los-characterization.lua",
+    "los-controls.lua",
+    "los-provider.lua",
+    "loss-all-family.lua",
+    "object-report-case.lua",
+    "remaining-arrivals.lua",
+    "sense-provider.lua",
+    "sensor-characterization.lua",
+    "supply-arrivals-lifecycle.lua",
+    "supply-arrivals.lua",
+    "surface-movement.lua",
+    "weapon-case.lua",
+    "weapon-characterization.lua"
+  ],
+  "intentional_diagnostic_exceptions": [
+    "model-characterization.lua",
+    "model-authority.lua"
+  ],
+  "engine_c_nul_count": 1,
+  "state": "Reference-host SSE_RZ postprepare profile SOURCE PREPARED; compile/native/35frame+allrawbyte/fullFPU/delta-review pending; publicDLLrepair unchanged"
+}

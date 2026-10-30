@@ -23,6 +23,7 @@ local hold_seconds = tonumber (args.hold_seconds or "0")
 local subject = args.select
 local dc = require ("eech_dc")
 dc.prepare_installation (root)
+host.use_reference_arithmetic () -- the reference host's arithmetic profile, selected right after the installation is prepared (src/reference_arithmetic.rs)
 
 local config = {
 	install_root = root,

@@ -17,6 +17,7 @@ use eech_world::movement::{
     HelicopterEnd, HelicopterGuide, HelicopterPlan, HelicopterSteer, HelicopterStructure, HelicopterTerrainSample, HelicopterWaypointKind, Kind, Lifecycle,
     LifecycleMode, Movers, NavigationMember, Outcome, PersonBegin, PersonEnd, PersonFace, Pose, Request, ShipMove, Terrain,
 };
+use eech_world::reference_arithmetic;
 use eech_world::sense::{self, Sense};
 use eech_world::tacview::{ObjectInfo, Recorder};
 use mlua::prelude::*;
@@ -1275,6 +1276,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "log",
         lua.create_function(|_, message: String| {
             eprintln!("[campaign] {message}");
+            Ok(())
+        })?,
+    )?;
+    // The reference host's own numerical profile (src/reference_arithmetic.rs): SSE round-toward-zero, selected by the script right after the campaign module's installation
+    // is prepared. A processor without an SSE control word, or a selection that does not take effect, is an error that ends the script.
+    host.set(
+        "use_reference_arithmetic",
+        lua.create_function(|_, ()| {
+            let selection = reference_arithmetic::select_sse_toward_zero().map_err(|e| LuaError::runtime(format!("host.use_reference_arithmetic: {e}")))?;
+            eprintln!(
+                "[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x{:08x} -> 0x{:08x}); the x87 environment is unchanged",
+                selection.before, selection.after
+            );
             Ok(())
         })?,
     )?;

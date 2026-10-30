@@ -35,7 +35,8 @@ end
 
 local dc = require ("eech_dc")
 step ("load", function () assert (type (dc.boot) == "function") end)
-step ("prepare", dc.prepare_installation, root)
+local prepared = step ("prepare", dc.prepare_installation, root)
+if prepared then host.use_reference_arithmetic () end -- the reference host's arithmetic profile, selected right after the installation is prepared (src/reference_arithmetic.rs)
 
 local function frames (engine, n)
 	for _ = 1, n do engine:frame (100) end

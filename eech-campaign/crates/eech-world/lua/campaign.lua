@@ -62,6 +62,9 @@ local dc = require ("eech_dc")
 host.log (dc.name .. " loaded")
 
 dc.prepare_installation (root)
+-- the reference host (EECH_WORLD) owns its historical arithmetic profile, SSE round-toward-zero: selected here, after the installation is prepared and before the boot, the
+-- model callbacks, the frame budget, the recordings and the metrics. The campaign module hands the caller's floating-point state back and does not choose it.
+host.use_reference_arithmetic ()
 
 local engine = dc.boot {
 	install_root = root,

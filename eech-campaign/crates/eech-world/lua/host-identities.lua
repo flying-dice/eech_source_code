@@ -20,6 +20,7 @@ local target_entity = tonumber (args.target_entity or "-1")
 
 local dc = require ("eech_dc")
 dc.prepare_installation (root)
+host.use_reference_arithmetic () -- the reference host's arithmetic profile, selected right after the installation is prepared (src/reference_arithmetic.rs)
 
 local bind_count = 0
 local issued_by_id, issued_by_member = {}, {}

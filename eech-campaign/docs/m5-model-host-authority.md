@@ -69,7 +69,7 @@ is no fallback to the arrays and no always-miss: a host that cannot answer, or a
 * **FPU, RNG, order**: the callback runs inside the engine entry (round-toward-zero set); the host's kernel (kernel-only evidence, unchanged) requires the exception masks, sets and restores the caller's complete
   x87/SSE state around its arithmetic (reviewed, unchanged), and nothing in the exchange draws a random number, reads the clock or reorders the caller's calls (the accessors are
   replaced in place; the caller's `depth++` loops are untouched).
-* **The complete outer floating-point state across the PUBLIC entries: a defect was MEASURED on `4bee2cc8c` and a repair is PREPARED, NOT RUN.** The kernel's complete-state tests cover the
+* **The complete outer floating-point state across the PUBLIC entries: a defect was MEASURED on `4bee2cc8c` and the generic repair was built and MEASURED (reported by Root, `3833c822d`).** The kernel's complete-state tests cover the
   kernel only. The shipped `ENTER`/`LEAVE` macros saved the caller's environment with `fegetenv`, set round-toward-zero and restored with `fesetenv` (on the setjmp fatal path too). The native
   diagnostic (`eech_engine_model_host_fpu`, from the caller's side, every exception masked and nonzero flags set in both units) measured that the x87 control and status words came back, but
   MXCSR came back toward-zero for the nearest, downward and upward callers on BOTH the counters-only entry and the callback/probe entry (only an initial toward-zero caller was unaffected), and an
@@ -77,8 +77,29 @@ is no fallback to the arrays and no always-miss: a host that cannot answer, or a
   give back the SSE word on that toolchain; this was an old wrapper defect, not a model-kernel failure. The prepared repair (`eech_engine.c`, nothing else) reads the COMPLETE MXCSR with `stmxcsr`
   before anything changes and writes it back with `ldmxcsr` AFTER `fesetenv` on both the normal `LEAVE` and the fatal (setjmp) return; the value is assigned once before `setjmp`, so it survives the
   longjmp; early refusals (poisoned, wrong state) return before any state changes and need no restore; where there is no MXCSR (not x86) it is a no-op. Internal engine round-toward-zero, the
-  callback's narrowing and tie policy, the kernel arithmetic and the call order are untouched, and the diagnostic harness is unchanged (it measures the result; no assertion was loosened). Whether the
-  repair works, and whether restoring the caller's SSE word changes any simulation or recording byte, is NOT known: it is for the native diagnostic and the bounded recording comparison to show.
+  callback's narrowing and tie policy, the kernel arithmetic and the call order are untouched, and the diagnostic harness is unchanged (it measures the result; no assertion was loosened). Reported result (Root, not reproduced here): with the repair the
+  actual public diagnostic restored the x87 control and status words and MXCSR exactly, flags included, for all four initial roundings on the counters entry and the callback entry (8 of 8 entries measured) and for each refused rounding in its own process (2 of 2). The effect on the reference host's recordings is the next bullet.
+* **The reference host owns its arithmetic profile (SOURCE PREPARED, NOT RUN).** Root's matched real runs on `4bee2cc8c` and the repaired `3833c822d` (Lebanon, seed 1, 100 ms, 0.001 h) showed that the explicit
+  SSE restoration above is not formatting-only for the reference host: observations stayed byte-exact, but the ACMI differed in two reference-coordinate header lines and the metrics file in its checkpoint
+  count and last time, and a frame-counting proxy around the shipped `campaign.lua` (observational: all artifacts equal the uninstrumented run) counted 35 frames ending at clock 3.49999737739563 s
+  before and 36 frames ending at 3.5999972820281982 s after. The host's own post-prepare frame-budget arithmetic therefore depended on the toward-zero SSE word that `prepare_installation` used to leave in the
+  host's thread. The repair stays generic and in the host: `EECH_WORLD` selects the profile explicitly (`src/reference_arithmetic.rs`, `host.use_reference_arithmetic ()`, called by `lua/campaign.lua`
+  immediately after `dc.prepare_installation (root)` and before the boot, the model callbacks, the frame budget, the recordings and the metrics). Only the two SSE rounding-control bits change (to
+  toward-zero); the x87 environment, the exception masks, the sticky flags and every other MXCSR bit are kept; the call is idempotent, read-back checked, and an architecture without an SSE control word is an
+  error, not a skip. The script's own argument and scenario parsing before it keeps the process's state, as before. The campaign module has no knowledge of the profile and keeps restoring each caller's
+  complete state, so a DCS World host keeps its own. The diagnostic scripts (`model-authority.lua`) do not select it: their callers' rounding modes are the point, and a guard test says so.
+  **Entry paths covered (policy):** every reference-host script that prepares the installation selects the profile at the SAME phase, with the same one-line call immediately after its first successful
+  `dc.prepare_installation` and before its first `dc.boot`, its own argument and constant parsing before it unchanged: the shipped `campaign.lua` (which `reference-windows.ps1`, `regress-windows.ps1`,
+  `regress.sh` and the mutation script run) and the 30 retained reference clients (the lifecycle, host-identity, supply/aircraft/remaining-arrival, convoy/fixed-wing/helicopter/surface/dependent movement, aim,
+  LOS, sense, sensor, weapon, combat, bridge, object-report and loss scripts; 31 in all). `lifecycle.lua` and `host-identities-lifecycle.lua` make their first preparation inside a recorded step, so they
+  select it only if that step succeeded (a failed preparation is already a failed case, and no output line is added); the repeated preparations of their later cases run in the profile already selected and
+  are restored by the module. There is no "if the host has it" skip: a host without the function fails the script. Measured only for `campaign.lua` so far (the 35-to-36 frame counterexample); the other
+  clients are covered because the same host arithmetic runs under them, not because each was shown to differ, and their own re-runs are Root's. **Two bounded diagnostics are deliberately outside it:**
+  `model-authority.lua`, the raw public-DLL boundary diagnostic, stays in the caller's own context to expose the default-nearest and all four explicit native test callers (no legacy reference-run byte claim,
+  and it does not stand in for a normal reference campaign run); and `model-characterization.lua`, the closed original-oracle driver, whose hash and semantics are frozen (the frozen old binaries remain its
+  oracles; no new original sweep is claimed). Neither is evidence that the other clients are unaffected. A guard test over `lua/*.lua` enforces exactly this inventory (31 with the call, these 2 without).
+  This does not remove the remaining physical loaders, solvers, hierarchy, route/device,
+  environment and time services that stay in the Core (D3 stays open), and it is not an equivalence claim for the short run: the full accepted scenario must still be compared with the old bytes.
 
 ## Variants (explicit)
 

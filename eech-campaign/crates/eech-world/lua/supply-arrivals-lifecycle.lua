@@ -8,6 +8,7 @@ local cases = { missing = true, malformed = true, error = true, reentry = true }
 assert (cases[case], "unknown case '" .. tostring (case) .. "': case=missing|malformed|error|reentry")
 local dc = require ("eech_dc")
 dc.prepare_installation (root)
+host.use_reference_arithmetic () -- the reference host's arithmetic profile, selected right after the installation is prepared (src/reference_arithmetic.rs)
 
 local function config (callback)
 	return {
