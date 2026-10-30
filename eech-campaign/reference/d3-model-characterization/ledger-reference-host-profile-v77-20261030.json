@@ -1,0 +1,13 @@
+{
+  "page": "14548994",
+  "before_version": 76,
+  "published_version": 77,
+  "prior_html_prefix_exact": true,
+  "five_epic_reports_exact": true,
+  "new_appendix_exact": true,
+  "tested_source": "3833c822d907e1088c3f34d067acea2dc33257c3",
+  "prepared_source": "80fd62ea48fc75aa9546c785f525be034abd16f8",
+  "full_fpu_measured_exact": 16,
+  "bounded_byte_equality": false,
+  "assessment": "cae3899d6cda85bc7fc2c29db6d3afbbdbe052a6ce407c4cc8d60668ae7fe455"
+}

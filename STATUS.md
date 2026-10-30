@@ -1,3 +1,11 @@
+# D3 test/prose corrections of the `80fd62ea4` review — two P3s: SOURCE PREPARED, NOT RUN (30 October 2026)
+
+Actual earlier RED retained: on Linux `host_callbacks` ran 26 of 27 and failed at `host_callbacks.rs:2089` (`every_reference_script_that_prepares_the_installation_selects_the_profile_right_after_it_and_before_booting_and_the_two_diagnostics_do_not`), because `source[prepared..selected].lines().count() <= 2` counted
+`campaign.lua`'s two explanatory comment lines and rejected a correct placement; Clippy was NOT REACHED. The real-host numeric selection guard and the campaign-specific phase guard passed. (1) Prepared, test only: the inventory guard now ignores blank and comment lines between the first
+`dc.prepare_installation` and the call and still rejects ANY executable statement there, except the `if prepared then` guard of the two recorded-step scripts; the 31 placements, the 31/2 inventory, the exceptions and the immediate-postprepare requirement are unchanged. (2) Prepared, prose only
+(`docs/m5-model-host-authority.md`): the recorded metrics delta is only the seconds of the final checkpoint, 3 to 4 (both files have two checkpoints), beside the independently measured 35 to 36 frame budget and the final clock shift; the earlier "checkpoint count and last time" was wrong. It is not called
+formatting-only or simulation-invisible. No production Rust, Lua, profile, Core or kernel change; nothing built or run; Root recovers the failed and not-reached stages against `80fd62ea4`'s compiled production code and does not repeat the completed unchanged kernel/native runs.
+
 # D3 source correction — reference host owns its arithmetic profile: SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED (30 October 2026)
 
 Authorised by Root's measured evidence on `3833c822d` (the generic Core MXCSR restoration passes the full public FPU diagnostic and is kept untouched): the matched real 0.001 h Lebanon run is no longer byte-equal to `4bee2cc8c`

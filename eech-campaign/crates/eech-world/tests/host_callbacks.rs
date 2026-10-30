@@ -2084,11 +2084,17 @@ fn every_reference_script_that_prepares_the_installation_selects_the_profile_rig
         if let Some(boot) = source[prepared..].find("dc.boot") {
             assert!(selected < prepared + boot, "{name}: the profile must be selected before the first boot");
         }
-        // one selection per script, on the line of the first preparation or the next one
+        // one selection per script, immediately after the preparation: blank and comment lines between them do not count, but no executable
+        // statement may, except the guard of the recorded-step form (`if prepared then`, taken only when that step succeeded)
         assert_eq!(source.matches("host.use_reference_arithmetic").count(), 1, "{name}");
+        let between: Vec<&str> = source[prepared..selected]
+            .lines()
+            .map(str::trim)
+            .filter(|l| !l.is_empty() && !l.starts_with("--"))
+            .collect();
         assert!(
-            source[prepared..selected].lines().count() <= 2,
-            "{name}: the profile is selected right after the installation is prepared"
+            !between.is_empty() && between[1..].iter().all(|l| *l == "if prepared then"),
+            "{name}: an executable statement runs between the preparation and the profile: {between:?}"
         );
         with_profile += 1;
     }

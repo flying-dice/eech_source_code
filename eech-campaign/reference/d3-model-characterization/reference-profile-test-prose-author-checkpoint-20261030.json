@@ -1,0 +1,21 @@
+{
+  "tool": 98586,
+  "author": {
+    "pid": 16616,
+    "controller_pid": 2948,
+    "started_utc": "2026-10-30T04:46:09.066930+00:00",
+    "completed_utc": "2026-10-30T04:46:52.467740+00:00",
+    "session": "20f8be8d-68b1-4ff9-947f-73e2362b0071",
+    "model": "claude-sonnet-5-5",
+    "effort": "high",
+    "actual_exit": 0
+  },
+  "collected": true,
+  "production_code_source": "80fd62ea48fc75aa9546c785f525be034abd16f8",
+  "allowed_changed_test_prose_paths": [
+    "STATUS.md",
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+    "eech-campaign/docs/m5-model-host-authority.md"
+  ],
+  "state": "Test/prose corrections prepared; original101retained; narrow recovered checks pending; production binaries/source80fd unchanged"
+}
