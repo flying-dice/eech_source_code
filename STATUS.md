@@ -1,3 +1,23 @@
+# D3 actual native checkpoint — handoff boots; caller SSE restoration defect measured (30 October 2026)
+
+Frozen4bee2cc8c passes Windows shipping/fixture builds, all48 exports each, Linux
+422 tests/default strict Clippy and feature-enabled Clippy. Actual required model
+handoff campaign boot/3.6s frame runs and pre/post retail manifests pass on all
+three roots; Lebanon/repeat full bounded metrics are byte identical. Actual Core
+prepare_installation-generated models also bootstrap and run with Georgia retail
+map/config support. This proves no nonretail map and no full-pack acceptance.
+The actual full-state native diagnostic is RED: x87 control/status preserve, but
+MXCSR becomes toward-zero for nearest/down/up callers on both counter-only and
+callback entries (8 actual measured entries). RZ preserves. A separate actual
+MinGW-only fegetenv/fesetround/fesetenv control reproduces this without EECH/data.
+The production entry macros are unchanged across this extraction; no repair yet.
+The same author75774/PID16360 completed0/collected: requested-FPU completeness and
+narrowing wording fixes are source-prepared, unbuilt/unrun/unreviewed. Next fix
+and verify the measured outer-entry restoration defect, preserving internal
+engine arithmetic and comparing retained bounded original recordings/observations/
+metrics. Accepted baselines/tolerances stay unchanged. Task50/D3 remain open;
+physical solvers/loaders/hierarchy/environment/time and normal delivery remain.
+
 # D3 source checkpoint — review corrections authored, validation pending (30 October 2026)
 
 The existing Sonnet5.5 High correction process22552/tool10026 completed with
@@ -21,7 +41,20 @@ Both Root checker failures are retained as actual1 after native/input stages0: a
 
 Production model queries/loading remain in EECH_DC. Next is the public host/native model authority/refusal handoff, with required physical collision solvers and hierarchy/viewpoint/device/muzzle/target-point services also leaving the DLL within D3. Any intermediate accessor handoff is not the final campaign boundary. Campaign shape choice, targets, policy and consequences stay core. Task47 shipping115 continues in its original processes; full40/eightcompleteartifacts/current acceptance/normalmerge remain pending. Task50/D3 stay In Progress; D4/D5 have not started. The source-only checkpoints below are historical.
 
-# Current D3 correction — EEDCS-50 follow-up of `ea1953b6c`: test decoder, warning, stage classification, complete outer FPU measurement (30 October 2026): SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED
+# Current D3 correction — EEDCS-50 follow-up of `4bee2cc8c`: requested-FPU completeness and the narrowing wording (30 October 2026): SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED
+
+The one changed-delta review of `4bee2cc8c` (Windows 82840 and Linux 54950 builds live, untouched; no native campaign has run) found a P2 and a P3. P2: in `model-authority.lua` the expected-negative branches returned success with `fpu_rows=0`
+when an earlier genuine provider refusal (boot, frame, requested probe or line-of-sight sweep) prevented a REQUESTED `fpu=1` measurement, and a test blessed `decline ask=fpu fpu_rounding=0,2` though the second rounding (POISONED, unjudged) was never measured.
+Corrected (Lua, tests, docs only; no C, engine or `eech_engine.c` change): (1) a requested measurement is covered only when every ELIGIBLE entry was measured; the summary now separates `fpu_expected_entries` (asked: counters and probe for each rounding), `fpu_rows`
+(rows emitted) and `fpu_measured` (entries whose three words were read and judged), plus `fpu_unreached`; a shortfall, or a primary failure at the boot, frame, probe, los (or fpu) stage that comes first, reports `UNREACHED`, keeps that primary failure's stage and message, and FAILS
+the run even when the refusal itself is the covered one; the boot-stage branch and the final negative verdict no longer bypass it; UNREACHED is never PASS. (2) Because a refused entry stops the engine, a refusing mode measures exactly ONE initial rounding per process: naming none or several,
+or `fpu=1` in a mode that refuses at boot, is refused in preflight before anything is written or booted (a fresh process per rounding); healthy multi-rounding requests stay valid and must measure every entry. (3) The old assertion that accepted two roundings with one unmeasured is replaced.
+New real-script stand-in controls: UNREACHED after a refusal at boot, frame, probe and LOS for `decline` and `refused` (stage and marker kept, no fabricated row), the same refusals without a requested measurement still covered, each refused rounding in a fresh process
+(expected 2, rows 2, measured 2), multi-rounding/none-named/boot-refusing-mode preflight refusals, healthy multi-rounding success, an incomplete healthy measurement (3 of 4) and a DLL that cannot measure. P3: the `MODEL_BRIDGE` comment and the doc no longer say the narrowing's result is independent of the
+rounding mode; they state the supported round-toward-zero boundary and the unchanged tie policy (the cast's guess wins an exact tie; the midpoint 1 + 3 * 2^-24 differs between round-toward-zero and upward); `nearest_f32`, the numeric kernel and the unit-test helper are unchanged (the helper still checks the rounding mode only).
+Files: `eech-world/lua/model-authority.lua`, `eech-world/tests/model_store.rs`, `eech-dc/src/module.rs` (comment only), `docs/m5-model-host-authority.md`, this file. Remaining: nothing here has been compiled or run; the complete caller-state measurement, the synthetic bootstrap and every native control are the Root's and are not claimed.
+
+# Previous: EEDCS-50 follow-up of `ea1953b6c`: test decoder, warning, stage classification, complete outer FPU measurement (30 October 2026): SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED
 
 Actual `ea1953b6c` validation (Root; valid within its scope): Windows shipping and host-fixture builds 0 with all payloads verified; Linux suites 15+2+73+235+19+24+2+8 pass and `model_store` 41 pass / 1 fail, Clippy not reached. The one failure was
 `the_strict_json_writer_keeps_every_byte_and_raises_every_output_failure`: serde_json's DEFAULT decoder (no `float_roundtrip`) read the writer's correct text `9.9999999999999995e-21` as `1.0000000000000001e-20`; an independent parser recovers

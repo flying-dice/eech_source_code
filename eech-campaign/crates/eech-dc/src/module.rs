@@ -2300,10 +2300,13 @@ fn gunship(name: &str) -> LuaResult<Gunship> {
 /// bridge below is a Lua function that reads every field of the answer ONCE (a stateful getter is not asked twice), checks its raw Lua type, and hands Rust text: the number
 /// formatted at 17 significant digits (an exact image of the double, -0 and subnormals included) which `nearest_f32` narrows, or the bit-pattern text. This is the protected
 /// pattern `exact_numbers` uses for the poses: nothing longjmps across Rust. WHAT IS AND IS NOT CLAIMED about floating point: the numbers the bridge hands back are decoded by a
-/// correctly rounded `f64` parse and narrowed by `nearest_f32`, whose RESULT does not depend on the rounding mode (tested under round-toward-zero; only the rounding MODE is checked there,
-/// by `fegetround`). That is all the unit tests show. The provider code (Lua, libc formatting, the parse) may raise exception flags and is not claimed to leave the x87 or MXCSR words
-/// untouched; the caller's COMPLETE state (control and status words, MXCSR) is what the engine entry restores, and that is measured at the public entries by the diagnostic build's
-/// `eech_engine_model_host_fpu`, not asserted here.
+/// correctly rounded `f64` parse and narrowed by `nearest_f32`, which takes the nearest single-precision value of the three candidates around the cast's guess and lets the cast's own
+/// result win an exact tie (so a zero keeps its sign). The supported boundary is the engine's callback, which is ALWAYS entered under round-toward-zero, and the numeric tests run under
+/// round-toward-zero; under that mode an exact midpoint between two singles resolves to the one nearer zero. NO claim is made that the result is the same under another rounding mode:
+/// the cast's guess at an exact tie differs between them (for example the midpoint 1 + 3 * 2^-24 lies between two singles and the guess is the lower under round-toward-zero and the upper
+/// under round-upward), and `nearest_f32` is deliberately unchanged. The unit-test helper checks the ROUNDING MODE only (`fegetround`). The provider code (Lua, libc formatting, the parse)
+/// may raise exception flags and is not claimed to leave the x87 or MXCSR words untouched; the caller's COMPLETE state (control and status words, MXCSR) is what the engine entry
+/// restores, and that is measured at the public entries by the diagnostic build's `eech_engine_model_host_fpu`, not asserted here.
 const MODEL_BRIDGE: &str = r#"
 local provider = ...
 local floor, huge, format, concat, next, type, find = math.floor, math.huge, string.format, table.concat, next, type, string.find

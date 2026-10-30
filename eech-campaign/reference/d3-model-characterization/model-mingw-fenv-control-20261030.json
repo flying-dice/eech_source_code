@@ -1,0 +1,43 @@
+{
+  "utc": "2026-10-30T04:02:42.838683+00:00",
+  "scope": "Actual MinGW toolchain-only reproduction; no EECH code/data/Lua/campaign",
+  "image": "sha256:1fcc03b35cc50f6616b179917cd6ab7701228f0a5dcb36b2e9120acc3de8c612",
+  "compile_args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "docker",
+    "run",
+    "--rm",
+    "-v",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/model-mingw-fenv-control-20261030:/work",
+    "-w",
+    "/work",
+    "sha256:1fcc03b35cc50f6616b179917cd6ab7701228f0a5dcb36b2e9120acc3de8c612",
+    "x86_64-w64-mingw32-gcc-posix",
+    "-std=c11",
+    "-O2",
+    "fenv-control.c",
+    "-o",
+    "fenv-control.exe",
+    "-lm"
+  ],
+  "compile_exit": 0,
+  "native_exit": 0,
+  "rows": [
+    "rounding=0 before_x87_control=0x037f after_x87_control=0x037f before_mxcsr=0x00001fb4 after_mxcsr=0x00007fb4 same_mxcsr=0",
+    "rounding=1 before_x87_control=0x077f after_x87_control=0x077f before_mxcsr=0x00003fb4 after_mxcsr=0x00007fb4 same_mxcsr=0",
+    "rounding=2 before_x87_control=0x0b7f after_x87_control=0x0b7f before_mxcsr=0x00005fb4 after_mxcsr=0x00007fb4 same_mxcsr=0",
+    "rounding=3 before_x87_control=0x0f7f after_x87_control=0x0f7f before_mxcsr=0x00007fb4 after_mxcsr=0x00007fb4 same_mxcsr=1"
+  ],
+  "mxcsr_preserved_by_initial_rc": [
+    0,
+    0,
+    0,
+    1
+  ],
+  "conclusion": "Unchanged fegetenv -> fesetround(toward-zero) -> fesetenv restores x87 rounding but leaves SSE rounding toward zero on this Windows toolchain.",
+  "source_sha256": "238a6ffe0cf3c2e7f4877b7c161fa9c26db7bd792e6babee08c15c75c6a95b3a",
+  "executable_sha256": "59b3f84dc47b860b1067efa66aeb8ceb2aded6a5cdf7d6cfe1a40fa5600e8967"
+}

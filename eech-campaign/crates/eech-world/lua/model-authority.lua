@@ -58,9 +58,16 @@
 -- fpu=1 (model-host-fixture DLL): the COMPLETE outer floating-point state (x87 control word, x87 status word, MXCSR) around REAL public engine entries, measured from the caller's side
 -- (eech_engine_model_host_fpu): for each fpu_rounding the caller state is set (that rounding mode in both units, every exception masked, NONZERO exception flags in both) and the
 -- entry is called, the counters entry (ENTER/LEAVE alone, no callback) and then the probe entry (the accessors, the host callback, the Lua provider and bridge across the native
--- campaign), and the three words are compared before and after. In a mode that makes the host refuse, the first probe entry takes the entry's fatal path and that is the refused
--- entry measured (the entries after it return POISONED and are reported, not judged); run it once per initial rounding with fpu_rounding=N. A word that differs is a measured
--- failure of the shipped entry's restore and fails the run; nothing is repaired here. The registers are the harness's, not fegetround's: a rounding mode alone proves nothing else.
+-- campaign), and the three words are compared before and after. A word that differs is a measured failure of the shipped entry's restore and fails the run; nothing is repaired
+-- here. The registers are the harness's, not fegetround's: a rounding mode alone proves nothing else.
+--
+-- COMPLETENESS. A requested measurement is covered only when EVERY eligible requested entry was measured: two entries (counters, probe) for each requested rounding. An emitted row is
+-- not a measured entry (`fpu_rows` counts rows, `fpu_measured` counts the entries whose three words were read and judged, `fpu_expected_entries` what was asked). In a mode that makes
+-- the host refuse, the first probe entry takes the entry's fatal path and that is the refused entry measured; the engine is then stopped (every later entry is POISONED, not
+-- eligible), so a refusing mode measures exactly ONE initial rounding per process (fpu_rounding names one; run a fresh process per rounding) and a multi-rounding request is refused
+-- before anything is written or booted. fpu=1 is refused in the modes that refuse at boot (nothing can be measured). If the host's refusal comes first, at boot or in a frame, a
+-- requested probe, or the line-of-sight sweep, the measurement is never made: the run reports UNREACHED, preserving that primary failure (its stage and message), and fails. A
+-- covered refusal never excuses an unmade measurement.
 
 io.stdout:setvbuf ("no")
 
@@ -141,6 +148,19 @@ local fpu_requested = whole (args.fpu or "0", "fpu", 0, 1) == 1
 local fpu_roundings = whole_list (args.fpu_rounding or "0,1,2,3", "fpu_rounding", 0, 3, 4, true)
 local fpu_scene = whole (args.fpu_scene or "1", "fpu_scene", 1, 2147483646)
 local fpu_depth = whole (args.fpu_depth or "0", "fpu_depth", 0, 2147483646)
+-- a refusing mode stops the engine at the refused entry, so only one initial rounding can be measured in it: decided now, before anything is written or booted
+local healthy_modes = { reference = true, vanish = true, inflate = true, bounds_zero = true, absent_all = true }
+local boot_only_modes = { missing = true, bad_nil = true, bad_catalogue = true, bad_name = true, bad_scene_nan = true, bad_collider_unloaded = true, bad_scene0_loaded = true }
+if fpu_requested and not healthy_modes [mode] then
+	if boot_only_modes [mode] then
+		fail_args ("fpu=1 cannot be measured in mode " .. mode .. ": the host is refused at boot, before any public entry exists to measure")
+	end
+	if #fpu_roundings ~= 1 or args.fpu_rounding == nil then
+		fail_args ("fpu=1 in the refusing mode " .. mode .. " measures ONE initial rounding per process (the refused entry stops the engine): name it with fpu_rounding=N and run a fresh process for each")
+	end
+end
+-- the entries a requested measurement must make: the counters entry and the probe entry for each rounding
+local fpu_expected_entries = fpu_requested and 2 * #fpu_roundings or 0
 
 local out = json.open (assert (args.out, "out=<JSON Lines path>"))
 local emit = out.emit
@@ -325,13 +345,17 @@ local ok, engine = pcall (dc.boot, config)
 if not ok then
 	local message = first_line (engine)
 	record_primary ("boot", message)
-	emit { event = "boot_failed", mode = mode, stage = "boot", error = message, expected_marker = expected_marker or "", matched = matches (message), tripped = tripped }
+	emit { event = "boot_failed", mode = mode, stage = "boot", error = message, expected_marker = expected_marker or "", matched = matches (message), tripped = tripped, fpu_requested = fpu_requested, fpu_expected_entries = fpu_expected_entries, fpu_measured = 0, fpu_unreached = fpu_requested }
 	out.close ()
 	io.stderr:write ("model-authority: boot failed: " .. message .. "\n")
 	-- the boot failure is the expected result of a negative mode ONLY if that mode's answer was given (`missing` gives none) and the engine stopped on that answer's marker
 	if not expected_marker then error ("boot failed in a mode that expects a healthy boot: " .. message, 0) end
 	if mode ~= "missing" and not tripped then error ("UNREACHED: " .. mode .. " failed before its answer was given (" .. message .. "); the control is unavailable, not covered", 0) end
 	if not matches (message) then error ("boot stopped for another reason than " .. expected_marker .. ": " .. message, 0) end
+	-- the refusal is covered, but a requested floating-point measurement was never made: UNREACHED, with the primary failure kept, never success
+	if fpu_requested then
+		error (string.format ("UNREACHED: the requested floating-point measurement of %d public entries was not made: the host was refused at the boot stage first (%s); the control is unavailable, not covered", fpu_expected_entries, message), 0)
+	end
 	return
 end
 assert (mode ~= "missing", "boot succeeded without a model provider")
@@ -439,9 +463,17 @@ end
 -- the complete outer floating-point state around the real public entries (fpu=1)
 
 local fpu_problem
-local fpu_rows = 0
-if fpu_requested and not primary then
+local fpu_rows = 0      -- rows emitted by a harness call that returned
+local fpu_measured = 0  -- ENTRIES whose three words were read and judged (the entry was eligible: the engine had not already stopped)
+local fpu_unreached = false
+if fpu_requested and primary then
+	-- the host was refused (or anything else stopped the run) before the measurement could be made: the primary failure is kept, and the requested observation is UNREACHED
+	fpu_unreached = true
+	fpu_problem = string.format ("UNREACHED: the requested floating-point measurement of %d public entries was not made: the run's primary failure at the %s stage came first (%s); the control is unavailable, not covered",
+		fpu_expected_entries, primary.stage, primary.message)
+elseif fpu_requested then
 	if type (engine.model_host_fpu) ~= "function" then
+		fpu_unreached = true
 		fpu_problem = "fpu=1 needs a DLL built with the model-host-fixture feature: unavailable, not covered"
 	else
 		local ENGINE_OK, ENGINE_FATAL = 0, 1
@@ -463,6 +495,7 @@ if fpu_requested and not primary then
 					emit { event = "fpu", kind = kind, rounding = rounding, scene = fpu_scene, depth = fpu_depth, ok = true, result = result or -1, judged = judged,
 						same_x87_control = x87c or -1, same_x87_status = x87s or -1, same_mxcsr = mx or -1, fatal = fatal or "", report = report }
 					if judged then
+						fpu_measured = fpu_measured + 1
 						if result == ENGINE_FATAL then
 							engine_stopped = true
 							record_primary ("fpu", fatal or "the entry took its fatal path without a message")
@@ -480,7 +513,12 @@ if fpu_requested and not primary then
 				end
 			end
 		end
-		if fpu_rows == 0 and not fpu_problem then fpu_problem = "no floating-point measurement was made" end
+		-- every requested entry must have been MEASURED, not merely reported: an entry after the engine stopped is a row, not a measurement
+		if fpu_measured ~= fpu_expected_entries then
+			fpu_unreached = true
+			fpu_problem = (fpu_problem and (fpu_problem .. "; ") or "") .. string.format ("UNREACHED: only %d of the %d requested public entries were measured (%d rows emitted); the others were not eligible or not made, which is unavailable, not covered",
+				fpu_measured, fpu_expected_entries, fpu_rows)
+		end
 	end
 end
 
@@ -500,7 +538,8 @@ emit { event = "summary", mode = mode, frames = frames, frames_run = ran, failur
 	replied_absent = replied.absent, replied_refused = replied.refused, replied_other = replied.other,
 	los_requested = los_requested, los_hash = los and los.hash or "", los_lookup_hash = los and los.lookup_hash or "", los_visible = los and los.visible or -1,
 	probes_requested = probes_requested, probes_ok = probes_ok, probes_failed = probes_failed,
-	progress_problem = progress_problem or "", los_problem = los_problem or "", probe_problem = probe_problem or "", fpu_requested = fpu_requested, fpu_rows = fpu_rows, fpu_problem = fpu_problem or "" }
+	progress_problem = progress_problem or "", los_problem = los_problem or "", probe_problem = probe_problem or "", fpu_requested = fpu_requested, fpu_expected_entries = fpu_expected_entries, fpu_rows = fpu_rows, fpu_measured = fpu_measured, fpu_unreached = fpu_unreached,
+	fpu_problem = fpu_problem or "" }
 out.close ()
 io.stderr:write (string.format ("model-authority: mode=%s frames=%d/%d reference triangle=%d found=%d ended=%d absent=%d; replied found=%d ended=%d absent=%d; primary=%s\n", mode, ran, frames,
 	reference_counts.triangle, reference_counts.found, reference_counts.ended, reference_counts.absent, replied.found, replied.ended, replied.absent,
@@ -519,12 +558,19 @@ if expected_marker then
 	if not matches (primary.message) then
 		error (string.format("mode %s: the run stopped at the %s stage for another reason than %s: %s", mode, primary.stage, expected_marker, primary.message), 0)
 	end
-	-- the refusal is covered; a measured change of the caller's floating-point state across the refused entry still fails the run
-	if fpu_problem then error (fpu_problem, 0) end
+	-- the refusal is covered; but a requested floating-point measurement must ALSO be complete (an unmade one is UNREACHED, with the primary failure kept in the message) and a
+	-- measured change of the caller's floating-point state across the refused entry fails the run. The covered refusal never excuses an unmade or incomplete measurement.
+	if fpu_requested and (fpu_unreached or fpu_measured ~= fpu_expected_entries) then
+		fpu_problem = fpu_problem or string.format ("UNREACHED: only %d of the %d requested public entries were measured", fpu_measured, fpu_expected_entries)
+	end
+	if fpu_problem then
+		if fpu_unreached then io.stderr:write ("model-authority: UNREACHED: " .. fpu_problem .. "\n") end
+		error (fpu_problem, 0)
+	end
 	return
 end
 if primary then
-	error (string.format ("the %s stage failed: %s%s", primary.stage, primary.message, probe_problem and ("; " .. probe_problem) or ""), 0)
+	error (string.format ("the %s stage failed: %s%s%s", primary.stage, primary.message, probe_problem and ("; " .. probe_problem) or "", fpu_problem and ("; " .. fpu_problem) or ""), 0)
 end
 if progress_problem then error (progress_problem, 0) end
 if los_problem then error (los_problem, 0) end

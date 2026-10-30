@@ -58,8 +58,10 @@ is no fallback to the arrays and no always-miss: a host that cannot answer, or a
   `collider` are booleans, and the name is text of at most 127 bytes without a NUL. A list of six or nine is a table holding exactly the numbers 1..N (a number at every index, nothing at
   N+1, no key outside 1..N) or a text of exactly `11 * N - 1` bytes of N bit patterns; the length is tested before anything is parsed and the N slots are filled one token at a time, so no
   input can make the engine allocate more than N floats. This is the protected pattern `exact_numbers` uses for poses: nothing longjmps across Rust. What is NOT claimed: that the
-  provider code leaves the x87 or MXCSR words untouched (Lua and libc formatting may raise exception flags); the narrowing's RESULT does not depend on the rounding mode, which is all the
-  unit tests show, and they check only the rounding mode (`fegetround`). The reference host's requests are checked the same way (`STRICT_REQUEST` in `model_host.rs`): a scene
+  provider code leaves the x87 or MXCSR words untouched (Lua and libc formatting may raise exception flags). The narrowing is `nearest_f32` (unchanged): the nearest of the three singles
+  around the cast's guess, the cast's own result winning an exact tie. The supported boundary, the engine's callback, is always entered under round-toward-zero and the numeric tests run
+  under it; there an exact midpoint resolves to the single nearer zero. No claim is made that the result is the same under another rounding mode (the guess at an exact tie differs: the
+  midpoint 1 + 3 * 2^-24 gives the lower single under round-toward-zero and the upper under round-upward). The unit tests check only the rounding mode (`fegetround`). The reference host's requests are checked the same way (`STRICT_REQUEST` in `model_host.rs`): a scene
   or depth must be exactly a whole number.
 * **The reference host** (`host.model`) is the f9 `ModelStore` (immutable, exact, with its reviewed numeric kernel; no new math), loaded from `host.args.root` when the campaign first
   asks (at boot); a root with no model assets refuses the boot as `NOT RUN: model assets absent`, never an empty database. Every campaign script of the repository passes
@@ -144,10 +146,17 @@ switch in this change.
 * **The complete outer floating-point state (`fpu=1`, diagnostic DLL).** For each `fpu_rounding` (0 nearest, 1 down, 2 up, 3 toward zero) the caller state is set (rounding in both units,
   every exception masked, divide-by-zero, underflow and inexact flags raised in the x87 status word and MXCSR) and the counters entry (ENTER/LEAVE alone) and the probe entry
   (accessors, model callback, Lua provider and bridge) are called; x87 control word, x87 status word and MXCSR are compared before and after, and the process's own environment is
-  restored afterwards. In a mode that makes the host refuse, the first probe entry takes the fatal path: that is the refused entry measured (run once per rounding; the entries
-  after it are POISONED and not judged). A changed word fails the run and nothing is repaired. The stand-in controls test only the script's asking and judging (every rounding on
-  both entries, each word, the refused entry as the primary failure at its own stage, the unjudged entries after it, a changed word, a DLL that cannot measure, out-of-range arguments).
-  The native measurement is the Root's.
+  restored afterwards. In a mode that makes the host refuse, the first probe entry takes the fatal path: that is the refused entry measured, and the engine is then stopped (every later
+  entry is POISONED, not eligible to be measured).
+  **Completeness.** A requested measurement is covered only when every ELIGIBLE requested entry was measured: two entries (counters, probe) for each requested rounding. An emitted row
+  is not a measured entry (`fpu_rows` counts rows, `fpu_measured` the entries whose three words were read and judged, `fpu_expected_entries` what was asked). Therefore a refusing mode
+  measures exactly ONE initial rounding per process (`fpu_rounding=N`, a fresh process for each; naming none or several is refused before anything is written or booted, and the modes that
+  refuse at boot refuse `fpu=1` outright), and a healthy multi-rounding request must measure every entry. If the host's refusal comes first (at boot, in a frame, in a requested probe or in
+  the requested line-of-sight sweep) the measurement is never made: the run reports `UNREACHED`, keeps that primary failure with its stage and message, and fails, although the refusal
+  itself is the covered one; a covered refusal never excuses an unmade or incomplete measurement. A changed word fails the run and nothing is repaired. The stand-in controls test only
+  the script's asking, counting and judging (every rounding on both entries, each word, the refused entry as the primary failure at its own stage, one rounding per refusing process, the
+  multi-rounding and boot-refusing-mode preflight refusals, the UNREACHED cases for a refusal at boot, frame, probe and line-of-sight before the measurement, an incomplete healthy
+  measurement, a changed word, a DLL that cannot measure, out-of-range arguments). The native measurement is the Root's.
 * **Counters, named for what they are.** `reference_*` count what the reference host answered, before a mode rewrote it; `replied_*` count what the provider function handed to the
   campaign; `native_counters` (diagnostic build) are what the native code ACCEPTED (and the questions asked, the table reads and the presence diagnostic). None of them is authority
   proof on its own; with the poison and the LOS fold they are.

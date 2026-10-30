@@ -2565,7 +2565,14 @@ package.preload["eech_dc"] = function ()
 			if standin ~= "stuck" then now = now + ms / 1000 end
 		end
 		function engine:clock () return { elapsed_seconds = now } end
-		function engine:objects () return {} end
+		-- `ask=los` plays a DLL with the line-of-sight fixture and a live opposed pair, whose sweep reaches the guarded triangle question
+		function engine:objects ()
+			if ask ~= "los" then return {} end
+			return { { id = 1, kind = "ground_vehicle", side = "blue", alive = true }, { id = 2, kind = "ground_vehicle", side = "red", alive = true } }
+		end
+		if ask == "los" then
+			function engine:los_probe () native_triangle (config) return { hash = "0", calls = 1, visible = 0, skipped = 0, lookup_hash = "0", lookups = 0 } end
+		end
 		function engine:model_host_poison () end
 		function engine:model_host_counters () return "model-host catalogue=1 scene=3026\n" end
 		function engine:model_host_probe (scene, depth)
@@ -2805,7 +2812,11 @@ fn the_script_judges_the_complete_outer_floating_point_words_across_healthy_and_
         .all(|r| r["judged"] == true && r["same_x87_control"] == 1 && r["same_x87_status"] == 1 && r["same_mxcsr"] == 1 && r["result"] == 0));
     let kinds: Vec<(i64, i64)> = rows.iter().map(|r| (r["kind"].as_i64().unwrap(), r["rounding"].as_i64().unwrap())).collect();
     assert_eq!(kinds, [(1, 0), (1, 1), (1, 2), (1, 3), (0, 0), (0, 1), (0, 2), (0, 3)]);
-    assert_eq!(run.row("summary")["fpu_rows"].as_i64(), Some(8));
+    let summary = run.row("summary");
+    assert_eq!(
+        (summary["fpu_expected_entries"].as_i64(), summary["fpu_rows"].as_i64(), summary["fpu_measured"].as_i64()),
+        (Some(8), Some(8), Some(8))
+    );
 
     // a word that changed across an entry is a measured failure, named, with the evidence kept
     let run = stand_in_run(&["fpu=1", "fpu_rounding=3"], "fpu_diff");
@@ -2829,16 +2840,54 @@ fn the_script_judges_the_complete_outer_floating_point_words_across_healthy_and_
             ),
             (Some("fpu"), Some(true), Some(true))
         );
-        assert_eq!(summary["fpu_rows"].as_i64(), Some(2));
+        // the counters entry and the refused probe entry were both MEASURED (rows are not the measure); nothing is unreached
+        assert_eq!(
+            (
+                summary["fpu_expected_entries"].as_i64(),
+                summary["fpu_rows"].as_i64(),
+                summary["fpu_measured"].as_i64(),
+                summary["fpu_unreached"].as_bool()
+            ),
+            (Some(2), Some(2), Some(2), Some(false)),
+            "rounding {rounding}"
+        );
     }
-    let run = stand_in_run(&["mode=decline", "ask=fpu", "fpu=1", "fpu_rounding=0,2"], "healthy");
+    // ... and exactly ONE initial rounding is measured in it: the refused entry stops the engine, so a second rounding could never be measured in the same process. A multi-rounding
+    // request (or none named) is refused BEFORE anything is written or booted; it is never blessed with a poisoned, unjudged row standing in for the unmeasured rounding.
+    for rounding in ["fpu_rounding=0,2", "fpu_rounding=0,1,2,3"] {
+        let run = stand_in_run(&["mode=decline", "ask=fpu", "fpu=1", rounding], "healthy");
+        assert!(
+            !run.status.success() && run.stderr.contains("ONE initial rounding") && !run.stderr.contains("stand-in booted") && !run.out.exists(),
+            "{rounding}: {}",
+            run.stderr
+        );
+    }
+    let run = stand_in_run(&["mode=decline", "ask=fpu", "fpu=1"], "healthy");
+    assert!(!run.status.success() && run.stderr.contains("ONE initial rounding") && !run.out.exists(), "{}", run.stderr);
+    let run = stand_in_run(&["mode=refused", "ask=fpu", "fpu=1", "fpu_rounding=0,1"], "healthy");
+    assert!(!run.status.success() && run.stderr.contains("ONE initial rounding"), "{}", run.stderr);
+    // the modes that are refused at boot have nothing to measure at all
+    for mode in ["missing", "bad_nil", "bad_catalogue", "bad_name", "bad_scene_nan", "bad_collider_unloaded", "bad_scene0_loaded"] {
+        let run = stand_in_run(&[&format!("mode={mode}"), "fpu=1", "fpu_rounding=1"], "healthy");
+        assert!(
+            !run.status.success() && run.stderr.contains("cannot be measured") && !run.stderr.contains("stand-in booted") && !run.out.exists(),
+            "{mode}: {}",
+            run.stderr
+        );
+    }
+    // a healthy mode may ask any number of roundings, each on both entries, each entry measured
+    let run = stand_in_run(&["mode=absent_all", "fpu=1", "fpu_rounding=2,1"], "healthy");
     assert!(run.status.success(), "{}", run.stderr);
-    let rows: Vec<Value> = run.rows().into_iter().filter(|r| r["event"] == "fpu").collect();
-    // kind 1 at 0 and 2 (judged), kind 0 at 0 (the refused entry, judged), kind 0 at 2 (POISONED, not judged)
-    assert_eq!(rows.len(), 4);
-    assert_eq!((rows[2]["result"].as_i64(), rows[2]["judged"].as_bool()), (Some(1), Some(true)));
-    assert!(rows[2]["fatal"].as_str().unwrap().contains("[model-provider:triangle.callback]"));
-    assert_eq!((rows[3]["result"].as_i64(), rows[3]["judged"].as_bool()), (Some(2), Some(false)));
+    let summary = run.row("summary");
+    assert_eq!(
+        (
+            summary["fpu_expected_entries"].as_i64(),
+            summary["fpu_rows"].as_i64(),
+            summary["fpu_measured"].as_i64(),
+            summary["fpu_unreached"].as_bool()
+        ),
+        (Some(4), Some(4), Some(4), Some(false))
+    );
     // a refused entry that ALSO left a word changed still fails the run, though its refusal is the covered one
     let run = stand_in_run(&["mode=decline", "ask=fpu", "fpu=1", "fpu_rounding=1"], "fpu_diff");
     assert!(
@@ -2869,4 +2918,88 @@ fn the_script_judges_the_complete_outer_floating_point_words_across_healthy_and_
         );
         assert!(!run.status.success() && !run.out.exists(), "{bad}: {}", run.stderr);
     }
+}
+
+// A requested floating-point measurement is covered only when every eligible requested entry was MEASURED. A genuine provider refusal that comes first (at boot, in a frame, in a
+// requested probe or in the requested line-of-sight sweep) prevents it: the run reports UNREACHED, keeps the refusal as the primary failure with its stage, and fails, though the
+// refusal itself is the covered one. A covered refusal never excuses an unmade measurement; a row is not a measured entry.
+#[test]
+fn a_requested_floating_point_measurement_is_never_called_covered_when_the_refusal_came_first_or_an_entry_was_not_measured() {
+    for mode in ["decline", "refused"] {
+        let marker = if mode == "decline" { "[model-provider:triangle.callback]" } else { "[model-provider:triangle.refused]" };
+        let cases: [(&str, &[&str]); 4] = [
+            ("boot", &[]),
+            ("frame", &[]),
+            ("probe", &["probe_scenes=1", "probe_depths=0"]),
+            ("los", &["los=1"]),
+        ];
+        for (stage, extra) in cases {
+            let mut args = vec![format!("mode={mode}"), format!("ask={stage}"), "fpu=1".to_string(), "fpu_rounding=1".to_string()];
+            args.extend(extra.iter().map(|a| a.to_string()));
+            let args: Vec<&str> = args.iter().map(String::as_str).collect();
+            let run = stand_in_run(&args, "healthy");
+            assert!(!run.status.success(), "{mode} refused at {stage}: a requested, unmade measurement was called covered\n{}", run.stderr);
+            assert!(
+                run.stderr.contains("UNREACHED") && run.stderr.contains(&format!("{stage} stage")) && run.stderr.contains(marker),
+                "{mode} {stage}: the primary stage and reason are not kept\n{}",
+                run.stderr
+            );
+            // the refusal is still the recorded, matching primary failure; no measurement row was made or invented
+            let (primary_stage, matched, problem) = if stage == "boot" {
+                let row = run.row("boot_failed");
+                assert_eq!((row["fpu_requested"].as_bool(), row["fpu_unreached"].as_bool()), (Some(true), Some(true)));
+                (row["stage"].as_str().unwrap().to_string(), row["matched"].as_bool().unwrap(), String::new())
+            } else {
+                let summary = run.row("summary");
+                assert_eq!(
+                    (
+                        summary["fpu_expected_entries"].as_i64(),
+                        summary["fpu_rows"].as_i64(),
+                        summary["fpu_measured"].as_i64(),
+                        summary["fpu_unreached"].as_bool()
+                    ),
+                    (Some(2), Some(0), Some(0), Some(true)),
+                    "{mode} {stage}"
+                );
+                (
+                    summary["primary_stage"].as_str().unwrap().to_string(),
+                    summary["primary_matched"].as_bool().unwrap(),
+                    summary["fpu_problem"].as_str().unwrap().to_string(),
+                )
+            };
+            assert_eq!((primary_stage.as_str(), matched), (stage, true), "{mode} {stage}");
+            if stage != "boot" {
+                assert!(problem.contains("UNREACHED") && problem.contains(&format!("{stage} stage")), "{problem}");
+            }
+            assert!(!run.rows().iter().any(|r| r["event"] == "fpu"), "{mode} {stage}: a floating-point row was emitted though no entry was measured");
+        }
+    }
+    // an expected-negative mode WITHOUT a requested measurement is still covered by the same refusals (the completeness guard applies only to what was requested)
+    for stage in ["boot", "frame", "probe", "los"] {
+        let mut args = vec!["mode=decline".to_string(), format!("ask={stage}")];
+        if stage == "probe" {
+            args.extend(["probe_scenes=1".to_string(), "probe_depths=0".to_string()]);
+        }
+        if stage == "los" {
+            args.push("los=1".to_string());
+        }
+        let args: Vec<&str> = args.iter().map(String::as_str).collect();
+        let run = stand_in_run(&args, "healthy");
+        assert!(run.status.success(), "decline refused at {stage} with no measurement requested: {}", run.stderr);
+    }
+
+    // a healthy run whose probe entry takes the fatal path at the first rounding cannot measure the later roundings: the entries that were not measured are named, never
+    // blessed by their poisoned rows
+    let run = stand_in_run(&["mode=reference", "fpu=1", "fpu_rounding=0,1"], "fpu_fatal");
+    assert!(!run.status.success(), "{}", run.stderr);
+    assert!(run.stderr.contains("the fpu stage failed") && run.stderr.contains("only 3 of the 4 requested public entries were measured"), "{}", run.stderr);
+    let summary = run.row("summary");
+    assert_eq!(
+        (summary["fpu_expected_entries"].as_i64(), summary["fpu_rows"].as_i64(), summary["fpu_measured"].as_i64(), summary["fpu_unreached"].as_bool()),
+        (Some(4), Some(4), Some(3), Some(true))
+    );
+    // a DLL that cannot measure is unreached too
+    let run = stand_in_run(&["fpu=1"], "nofpu");
+    assert!(!run.status.success(), "{}", run.stderr);
+    assert_eq!(run.row("summary")["fpu_unreached"].as_bool(), Some(true));
 }
