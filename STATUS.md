@@ -1,3 +1,31 @@
+# D3 terrain — full shipping40 and eight complete artifacts passed (30 October 2026)
+
+EEDCS-47 / PR107, measured production `1156c8fbbdb80783164a95f54f1f782cea328307`.
+The original tool59652 completed0; runner24412 completed0 at05:43:23UTC and
+launcher/postchecks completed0 at05:43:36UTC. The exact accepted40-check set passes.
+All8 COMPLETE baseline/candidate files are byte identical: two regression metrics
+and both recordings' ACMI, observations and metrics. All3 external post-input
+manifests pass, the internal Lebanon-copy inputs were independently checked,
+all45 payload manifest entries rehash exactly, and the frozen source remains clean.
+
+The final independent new-evidence review has no findings, disposition
+FINAL_SHIPPING_EVIDENCE_PASS_WITH_RECORDED_LIMITS, SHA256
+7a962a210411fe8b04691def68e3d65724298fe1a7edf0136b21618639f76f93.
+It reuses the closed coordinate/source reviews and independently checks every
+complete file, input/build/source identity and all9 successful CI checks at7b51.
+Safe full report, comparison, review and receipts are retained under
+`eech-campaign/reference/d3-terrain-characterization/final-shipping-1156c8fbb/`.
+Original raw recordings, inputs, failures and superseded06 evidence stay private
+and unchanged. Complete byte comparison is not visual Tacview inspection.
+
+Formal GitHub approval and normal merge remain delivery gates; Task47/D3 are
+not closed. This metadata-only publication needs its current CI. Point/fast/map
+queries use the host; remaining required physical loaders/derived queries,
+ground/object/model/environment/time services remain D3 work. Campaign geography,
+routes, timers, scheduling, decisions and consequences stay Core. D4/D5 have not
+started. No baseline, tolerance, duration, seed or accepted expectation changed.
+Earlier checkpoints below are retained history, superseded where they say RUNNING.
+
 # D3 terrain — coordinate regression corrected, final shipping gate pending
 
 EEDCS-47 / PR107, branch codex/d3-terrain-services. Point, fast-elevation and

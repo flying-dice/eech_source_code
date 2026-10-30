@@ -1,0 +1,200 @@
+{
+  "schema": "d3-terrain-final-shipping-validation/v1",
+  "verified_utc": "2026-10-30T05:46:15.911353+00:00",
+  "production_source": "1156c8fbbdb80783164a95f54f1f782cea328307",
+  "delivery_head_at_validation": "7b51efedbf62ac69c7670a11a01ea721c1fd0aba",
+  "immutable_source_clean": true,
+  "delivery_worktree_clean": true,
+  "production_to_delivery_delta_is_only_metadata": [
+    "STATUS.md",
+    "eech-campaign/reference/d3-ground-characterization/independent-coordinate-fidelity-review-febbb7cc5.json",
+    "eech-campaign/reference/d3-ground-characterization/superseded-06-post-inputs-and-exit.json"
+  ],
+  "original_tool_session": 59652,
+  "original_tool_actual_exit": 0,
+  "original_runner_actual_exit": 0,
+  "launcher_actual_exit": 0,
+  "completed_utc": "2026-10-30T05:43:36.524618+00:00",
+  "accepted_checks": 40,
+  "exact_accepted_check_set_all_pass": true,
+  "complete_artifact_comparison": {
+    "scope": "Complete artifact comparison only; actual exits and post-input manifests must be verified separately",
+    "partial_prefix_only": false,
+    "accepted_checks_each": 40,
+    "results": [
+      {
+        "file": "reference/run1/recording.acmi",
+        "baseline": {
+          "bytes": 117690861,
+          "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+        },
+        "candidate": {
+          "bytes": 117690861,
+          "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+        },
+        "matches": true
+      },
+      {
+        "file": "reference/run1/observations.jsonl",
+        "baseline": {
+          "bytes": 85716447,
+          "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+        },
+        "candidate": {
+          "bytes": 85716447,
+          "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+        },
+        "matches": true
+      },
+      {
+        "file": "reference/run1/metrics.json",
+        "baseline": {
+          "bytes": 35942,
+          "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+        },
+        "candidate": {
+          "bytes": 35942,
+          "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+        },
+        "matches": true
+      },
+      {
+        "file": "reference/run2/recording.acmi",
+        "baseline": {
+          "bytes": 117690861,
+          "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+        },
+        "candidate": {
+          "bytes": 117690861,
+          "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+        },
+        "matches": true
+      },
+      {
+        "file": "reference/run2/observations.jsonl",
+        "baseline": {
+          "bytes": 85716447,
+          "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+        },
+        "candidate": {
+          "bytes": 85716447,
+          "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+        },
+        "matches": true
+      },
+      {
+        "file": "reference/run2/metrics.json",
+        "baseline": {
+          "bytes": 35942,
+          "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+        },
+        "candidate": {
+          "bytes": 35942,
+          "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+        },
+        "matches": true
+      },
+      {
+        "file": "regress/georgia_retail.json",
+        "baseline": {
+          "bytes": 22427,
+          "sha256": "7427660511cf60c503d393f94021b51fef03723a629d6bc6987d497d93c9148d"
+        },
+        "candidate": {
+          "bytes": 22427,
+          "sha256": "7427660511cf60c503d393f94021b51fef03723a629d6bc6987d497d93c9148d"
+        },
+        "matches": true
+      },
+      {
+        "file": "regress/lebanon_retail.json",
+        "baseline": {
+          "bytes": 35942,
+          "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+        },
+        "candidate": {
+          "bytes": 35942,
+          "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+        },
+        "matches": true
+      }
+    ],
+    "passed": true
+  },
+  "post_inputs_all_three": {
+    "georgia": {
+      "exit_code": 0,
+      "log": "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack\\post-inputs-georgia.log"
+    },
+    "lebanon": {
+      "exit_code": 0,
+      "log": "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack\\post-inputs-lebanon.log"
+    },
+    "lebanon_repeat": {
+      "exit_code": 0,
+      "log": "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack\\post-inputs-lebanon_repeat.log"
+    }
+  },
+  "all_payload_manifest_entries_rehashed": 45,
+  "BUILD_INFO_sha256": "b53068001949b6a2f881e63f3a66ad3e2583247f78fd7658adca41766813e9ba",
+  "identity": {
+    "pack_revision": "1156c8fbbdb80783164a95f54f1f782cea328307",
+    "when": "2026-10-30T05:43:23",
+    "command": "R:\\d3-evidence\\terrain-coordinate-final-source-20261029\\eech-campaign\\tools\\regression-pack.py --georgia R:\\d3-evidence\\terrain-coordinate-shipping-roots-20261029\\georgia --lebanon R:\\d3-evidence\\terrain-coordinate-shipping-roots-20261029\\lebanon --lebanon-repeat R:\\d3-evidence\\terrain-coordinate-shipping-roots-20261029\\lebanon-repeat --bin R:\\d3-evidence\\terrain-coordinate-final-source-20261029\\eech-campaign\\target\\windows-terrain-coordinate-1156c8fbb --out R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack",
+    "build": {
+      "path": "R:\\d3-evidence\\terrain-coordinate-final-source-20261029\\eech-campaign\\target\\windows-terrain-coordinate-1156c8fbb",
+      "files": {
+        "eech_dc.dll": "1cc192a720e6401a81daaea9cb3fcac023da6e540fca9d2abaa3fa6c02789fc3",
+        "eech-world.exe": "be869c9ec4b784cf6e070e53e15484aa1c53572fbf76cdbc7527f88277c5fbb1",
+        "lua.dll": "7b2ec3f3fd174f6b65a2159ee46dc8e9102624a350d978e16ddf4396d7c2be0b",
+        "lua/campaign.lua": "7e5766f50e33d03c7958ed5d9ed163eb521fa2d28c02bbb6052663d9979a695e",
+        "lua/lifecycle.lua": "66ae1ec1a0e0aefd8fa1c23bfddd830eb2776f1648433c2163651b97e4068d26",
+        "lua/metrics.lua": "dd28274e374e2698a84c0725e1e5ab3d5a564f13ecc0457bfce765df634d3053",
+        "lua/observations.lua": "68527ae645ad156de3b2887b8cb905156f7ad470da7735e2db96489fef6bd701"
+      },
+      "differs_from_accepted": [
+        "eech_dc.dll",
+        "eech-world.exe",
+        "lua.dll",
+        "lua/campaign.lua",
+        "lua/lifecycle.lua"
+      ],
+      "build_info": [
+        "commit: 1156c8fbbdb80783164a95f54f1f782cea328307",
+        "uncommitted changes in the build inputs: 0 files",
+        "image: sha256:dd75a54cf382e9cace6e627aae8094810c8951f50aa199be92f476e7078f6ee6"
+      ]
+    },
+    "roots": {
+      "georgia": "R:\\d3-evidence\\terrain-coordinate-shipping-roots-20261029\\georgia",
+      "lebanon": "R:\\d3-evidence\\terrain-coordinate-shipping-roots-20261029\\lebanon",
+      "lebanon_repeat": "R:\\d3-evidence\\terrain-coordinate-shipping-roots-20261029\\lebanon-repeat"
+    },
+    "baseline": {
+      "lineage": "windows-retail",
+      "version": "v1",
+      "files": {
+        "georgia_retail.json": "675960e731eec6726ecaadb9540853e3f24769b25c97ecf2c3e9c386617a7d12",
+        "lebanon_retail.json": "fc93a1ee491bb23386d3e607eb59ca6e99f9b6b49ebebc9de0996bf6bf971271"
+      }
+    },
+    "tiers_run": [
+      "retained",
+      "runtime"
+    ],
+    "verdict": "PASS"
+  },
+  "evidence_sha256": {
+    "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack\\report.json": "d76670ab594d3ee24929e47b5d1f0f050048c305bbcc3f2f597ed07a86ed66ff",
+    "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack\\report.md": "9d18ffafd80eb797076d12379366eeda3f91cc148a278b1a7ff9799a9155b2b3",
+    "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack\\completion.json": "55222f8752ba0a3dff9fda9420a84401a523d696ec6a53e510927b8f62f7f380",
+    "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack\\run.json": "e6087c365be34a40f3c3f9c03755556302f9a04645aa085de3f5df84627b50c0",
+    "R:\\d3-evidence\\terrain-coordinate-1156c8fbb-eight-complete-artifacts-20261030.json": "cdeec9fe8b0bebc30e8df06ce36f683ffc1815259c1a86cb8e3c52a100e991ad"
+  },
+  "limits": [
+    "Complete byte comparison is not a visual Tacview inspection.",
+    "Independent final new-evidence review, current CI and formal approval/normal merge remain separate delivery gates.",
+    "Task47 passing does not complete required ground/object/model/environment/time work or the D3 epic.",
+    "No baseline, tolerance, duration, seed, artifact or accepted expectation changed."
+  ]
+}
