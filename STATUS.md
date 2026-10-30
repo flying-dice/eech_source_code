@@ -1,24 +1,30 @@
-# D3 checkpoint — review corrections committed; validation pending (30 October 2026)
+# D3 checkpoint — corrected builds pass; finite validation batch active (30 October 2026)
 
-EEDCS-50 / draft PR110 source corrections are committed and pushed at1812cc70b
-on codex/d3-model-geometry, following the partial checkpoint d5c911b5a. The existing
-Sonnet5.5 High writer22552/tool10026 completed with actual exit0 at03:31:13UTC
-and was collected. Proposed corrections cover the six P2 and two P3 findings;
-prepared controls and current handover are preserved. The corrected source is
-unbuilt, unrun and has no independent delta review. It is not acceptance.
-Initial public handoff de2c5b3c1 alone has the Windows build/46 exports and Linux
-formatting/408 tests/strict affected Clippy passes. New public-handoff retail
-execution and actual Core-generated synthetic campaign bootstrap remain pending.
-Next: format/build the final changed source, run actual public-path controls and
-synthetic bootstrap, then one independent changed-source review before acceptance.
+EEDCS-50 / draft PR110 source ea1953b6c is frozen after user-requested source
+checkpoints1812cc70b and formatting. Shipping Windows and model-host/LOS fixture
+builds both complete0; all48 payloads in each independently verify. Linux affected
+tests complete101:419 pass, one strict-JSON tiny-number decoder assertion fails;
+Clippy is not reached. The actual shipped Lua writer emits the correct decimal,
+and an independent JSON parser recovers the exact original double. Red retained.
+Combined review0c94b2efa9df651b7648e6ecabe7d0ed56e5bff1ca509a3a8598318b7a5ae188
+closes the original six P2/two P3 substantive fixes; one P2 (refusal-stage controls)
+and three P3 (full outer-entry FPU evidence/wording, precise test decoder, extern
+doc warning) remain. The same Sonnet5.5 High context20f8 now fixes that finite
+batch: tool52528/PID22296/controller10536, born03:41:46.975357UTC, actual init/CIM
+verified. Current edits are unbuilt/unrun/unreviewed; no new native campaign yet.
 
-All828 present retail model comparisons remain closed and reusable. Ledger74,
-Jira comment10869 and PR110 preserve the initial handoff findings. The ledger's
-prior HTML and all five epic reports read back exactly. Task47's original shipping
-run is retained; partial recording prefixes are not full-pack completion. Physical
-scans/transforms/solvers, hierarchy and loader dependencies, environment and host
-time remain D3 work. Task50/D3 remain In Progress; D4/D5 have not started.
-Baselines, tolerances, raw recordings and private retail data remain unchanged.
+Safe validation/review/build/tracker metadata is pushed atf05a3347c. Ledger75,
+Jira10870 and PR110 record the limits; prior HTML and all five epic reports read
+back exactly. Public retail authority and actual Core-generated-model campaign
+bootstrap remain held/pending. The prepared synthetic-model root retains Georgia
+map/config support; it proves no nonretail map. All828 model conformance evidence
+and unchanged kernel remain reusable. Task47 retains its original six processes;
+at03:34:50UTC all four nonempty prefixes match (~102MB ACMI/73.6MB observations
+each). Full40/eight complete artifacts, final metrics, post-input acceptance and
+normal delivery remain pending. Required physical solvers/scans/transforms,
+hierarchy/devices/route-data and loader dependencies, environment and host time
+remain D3. Campaign policy, geography, routes, timers and consequences stay core.
+Task50/D3 remain In Progress; D4/D5 have not started. Baselines are unchanged.
 
 # D3 checkpoint — all present retail model geometry matches; public handoff active (30 October 2026)
 
