@@ -9048,7 +9048,10 @@ mod tests {
             bounding_box: [0.0; 6],
             bounding_box_without_lines: [0.0; 6],
         };
-        let (code, reply, _) = model_crossing(Some(Box::new(move |_| Ok(ModelAnswer::Scene(scene.clone())))), model_request(sys::EECH_MODEL_SCENE, 3, 0));
+        let (code, reply, _) = model_crossing(
+            Some(Box::new(move |_| Ok(ModelAnswer::Scene(scene.clone())))),
+            model_request(sys::EECH_MODEL_SCENE, 3, 0),
+        );
         assert_eq!(code, 0);
         assert_eq!(reply.name.iter().take_while(|byte| **byte != 0).count(), sys::EECH_MODEL_NAME_MAX);
     }

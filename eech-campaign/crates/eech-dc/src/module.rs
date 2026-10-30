@@ -2431,17 +2431,31 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
         ModelQuery::Scene { scene } => ("scene", Some(scene), None),
         ModelQuery::Triangle { scene, depth } => ("triangle", Some(scene), Some(depth)),
     };
-    type Reply = (Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>);
+    type Reply = (
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+        Option<String>,
+    );
     let (tag, a, b, c, d, e, f): Reply = bridge
         .call((operation, scene, depth))
         .map_err(|error| format!("[model-provider:{operation}.callback] {error}"))?;
     let Some(tag) = tag else {
-        return Err(format!("[model-provider:{operation}.answer] {}", a.unwrap_or_else(|| "the provider's answer is malformed".to_string())));
+        return Err(format!(
+            "[model-provider:{operation}.answer] {}",
+            a.unwrap_or_else(|| "the provider's answer is malformed".to_string())
+        ));
     };
     let missing = || format!("[model-provider:{operation}.answer] the bridge returned an incomplete answer");
     match (query, tag.as_str()) {
         (ModelQuery::Catalogue, "catalogue") => {
-            let scenes = a.ok_or_else(missing)?.parse::<i32>().map_err(|_| format!("[model-provider:{operation}.answer] scenes is out of range"))?;
+            let scenes = a
+                .ok_or_else(missing)?
+                .parse::<i32>()
+                .map_err(|_| format!("[model-provider:{operation}.answer] scenes is out of range"))?;
             Ok(ModelAnswer::Catalogue { scenes })
         }
         (ModelQuery::Scene { .. }, "scene") => Ok(ModelAnswer::Scene(ModelScene {
@@ -2463,7 +2477,9 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
             "[model-provider:triangle.refused] the host cannot answer for scene {scene} depth {depth}: {}",
             a.unwrap_or_default()
         )),
-        (_, other) => Err(format!("[model-provider:{operation}.answer] the bridge answered a {operation} question with {other:?}")),
+        (_, other) => Err(format!(
+            "[model-provider:{operation}.answer] the bridge answered a {operation} question with {other:?}"
+        )),
     }
 }
 
@@ -3200,7 +3216,6 @@ mod tests {
         Ok(())
     }
 
-
     /// the nine floats 1.0 to 9.0 as bit patterns
     const ONE_TO_NINE: &str = "0x3f800000,0x40000000,0x40400000,0x40800000,0x40a00000,0x40c00000,0x40e00000,0x41000000,0x41100000";
 
@@ -3385,19 +3400,31 @@ mod tests {
         assert_eq!(ask(&mut provider, query)?, ModelAnswer::Triangle(ModelTriangle::End));
         assert_eq!(ask(&mut provider, query)?, ModelAnswer::Triangle(ModelTriangle::Absent));
         let refused = ask(&mut provider, query).err().ok_or("accepted")?;
-        assert!(refused.contains("[model-provider:triangle.refused]") && refused.contains("scene 7 depth 3") && refused.contains("no such model"), "{refused}");
+        assert!(
+            refused.contains("[model-provider:triangle.refused]") && refused.contains("scene 7 depth 3") && refused.contains("no such model"),
+            "{refused}"
+        );
         for _ in 0..3 {
             let error = ask(&mut provider, query).err().ok_or("accepted")?;
             assert!(error.contains("[model-provider:triangle.answer]"), "{error}");
         }
         for _ in 0..2 {
             let error = ask(&mut provider, query).err().ok_or("accepted")?;
-            assert!(error.contains("[model-provider:triangle.answer]") && error.contains("instead of a table"), "{error}");
+            assert!(
+                error.contains("[model-provider:triangle.answer]") && error.contains("instead of a table"),
+                "{error}"
+            );
         }
         let error = ask(&mut provider, query).err().ok_or("accepted")?;
-        assert!(error.contains("[model-provider:triangle.callback]") && error.contains("the host fell over"), "{error}");
+        assert!(
+            error.contains("[model-provider:triangle.callback]") && error.contains("the host fell over"),
+            "{error}"
+        );
         let error = ask(&mut provider, query).err().ok_or("accepted")?;
-        assert!(error.contains("[model-provider:triangle.answer]") && error.contains("instead of a table"), "{error}");
+        assert!(
+            error.contains("[model-provider:triangle.answer]") && error.contains("instead of a table"),
+            "{error}"
+        );
         Ok(())
     }
 }

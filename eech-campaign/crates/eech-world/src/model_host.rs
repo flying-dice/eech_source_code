@@ -281,19 +281,19 @@ pub fn register(lua: &Lua, host: &LuaTable) -> LuaResult<()> {
     let args: LuaTable = host.get("args")?;
     let shared: Rc<RefCell<Option<Arc<ModelStore>>>> = Rc::new(RefCell::new(None));
     let lazy = lua.create_function(move |lua, (operation, scene, depth): (String, Option<LuaValue>, Option<LuaValue>)| {
-            let store = {
-                let mut slot = shared.borrow_mut();
-                if slot.is_none() {
-                    let root: String = args
-                        .get::<Option<String>>("root")?
-                        .ok_or_else(|| LuaError::runtime("[model-provider:load] host.model needs root=<installation root> in the host arguments"))?;
-                    *slot = Some(load_store(&root)?);
-                }
-                slot.clone().ok_or_else(|| LuaError::runtime("[model-provider:load] no store"))?
-            };
-            let scene = provider_number(scene, "scene", &operation)?;
-            let depth = provider_number(depth, "depth", &operation)?;
-            model_answer(lua, &store, &operation, scene, depth)
+        let store = {
+            let mut slot = shared.borrow_mut();
+            if slot.is_none() {
+                let root: String = args
+                    .get::<Option<String>>("root")?
+                    .ok_or_else(|| LuaError::runtime("[model-provider:load] host.model needs root=<installation root> in the host arguments"))?;
+                *slot = Some(load_store(&root)?);
+            }
+            slot.clone().ok_or_else(|| LuaError::runtime("[model-provider:load] no store"))?
+        };
+        let scene = provider_number(scene, "scene", &operation)?;
+        let depth = provider_number(depth, "depth", &operation)?;
+        model_answer(lua, &store, &operation, scene, depth)
     })?;
     host.set("model", strict(lua, lazy)?)?;
     // host.model_provider (store): the same provider over a store the script already loaded with host.model_store (shared, immutable), for a script that wraps or

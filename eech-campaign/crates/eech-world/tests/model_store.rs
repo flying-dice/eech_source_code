@@ -2391,7 +2391,11 @@ fn run_lua(files: &[(&str, &str)], main: &str, args: &[String]) -> ScriptRun {
 
 #[test]
 fn the_strict_json_writer_keeps_every_byte_and_raises_every_output_failure() {
-    let run = run_lua(&[("json-lines.lua", JSON_LINES), ("json-lines-check.lua", JSON_LINES_CHECK)], "json-lines-check.lua", &[]);
+    let run = run_lua(
+        &[("json-lines.lua", JSON_LINES), ("json-lines-check.lua", JSON_LINES_CHECK)],
+        "json-lines-check.lua",
+        &[],
+    );
     assert!(run.status.success(), "{}", run.stderr);
     let controls = run.row("controls");
     // every control byte, 0..31 and 127, survives a real JSON parser; so do the quote, the backslash, a multi-line native-style report and UTF-8
@@ -2406,7 +2410,12 @@ fn the_strict_json_writer_keeps_every_byte_and_raises_every_output_failure() {
     assert_eq!(controls["utf8"].as_str(), Some("caf\u{e9} \u{2713} \u{1f600}"));
     let numbers = run.row("numbers");
     assert_eq!(
-        (numbers["zero"].as_i64(), numbers["negative"].as_i64(), numbers["fraction"].as_f64(), numbers["big"].as_i64()),
+        (
+            numbers["zero"].as_i64(),
+            numbers["negative"].as_i64(),
+            numbers["fraction"].as_f64(),
+            numbers["big"].as_i64()
+        ),
         (Some(0), Some(-3), Some(1.5), Some(1_099_511_627_776))
     );
     assert_eq!(numbers["tiny"].as_f64(), Some(1e-20));
@@ -2464,7 +2473,10 @@ fn the_authority_script_refuses_every_malformed_argument_before_it_writes_or_boo
             (vec![format!("probe_scenes={long_scenes}")], "more than 64"),
             (vec!["probe_scenes=1".into(), "probe_depths=-1".into()], "probe_depths"),
             (vec!["probe_scenes=1".into(), "probe_depths=1,x".into()], "probe_depths"),
-            (vec![format!("probe_scenes={wide_scenes}"), format!("probe_depths={wide_depths}")], "more than 1024"),
+            (
+                vec![format!("probe_scenes={wide_scenes}"), format!("probe_depths={wide_depths}")],
+                "more than 1024",
+            ),
             one("probe_depths=1", "without probe_scenes"),
             one("mode=nonsense", "mode"),
             one("scenario=mars", "scenario"),
@@ -2473,9 +2485,17 @@ fn the_authority_script_refuses_every_malformed_argument_before_it_writes_or_boo
     for (args, fragment) in cases {
         let mut all = vec![format!("root={}", slashes(&root.dir))];
         all.extend(args.iter().cloned());
-        let run = run_lua(&[("json-lines.lua", JSON_LINES), ("model-authority.lua", MODEL_AUTHORITY)], "model-authority.lua", &all);
+        let run = run_lua(
+            &[("json-lines.lua", JSON_LINES), ("model-authority.lua", MODEL_AUTHORITY)],
+            "model-authority.lua",
+            &all,
+        );
         assert!(!run.status.success(), "{args:?} was accepted\n{}", run.stderr);
-        assert!(run.stderr.contains(fragment), "{args:?}: the refusal does not name {fragment:?}\n{}", run.stderr);
+        assert!(
+            run.stderr.contains(fragment),
+            "{args:?}: the refusal does not name {fragment:?}\n{}",
+            run.stderr
+        );
         assert!(!run.out.exists(), "{args:?}: an output was created before the arguments were checked");
         assert!(!run.stderr.contains("stand-in booted"), "{args:?}");
     }
@@ -2525,7 +2545,11 @@ fn stand_in_run(extra: &[&str], standin: &str) -> ScriptRun {
     ];
     args.extend(extra.iter().map(|a| a.to_string()));
     run_lua(
-        &[("json-lines.lua", JSON_LINES), ("model-authority.lua", MODEL_AUTHORITY), ("stand-in.lua", STAND_IN)],
+        &[
+            ("json-lines.lua", JSON_LINES),
+            ("model-authority.lua", MODEL_AUTHORITY),
+            ("stand-in.lua", STAND_IN),
+        ],
         "stand-in.lua",
         &args,
     )
@@ -2544,7 +2568,10 @@ fn a_healthy_authority_run_reports_every_requested_probe_in_strict_json() {
         assert_eq!(probe["ok"], true);
         // the native-style report keeps its newlines through the JSON
         let report = probe["report"].as_str().unwrap();
-        assert!(report.starts_with("model-host-scene scene=") && report.contains("\nmodel-host-tri scene=") && report.ends_with('\n'), "{report:?}");
+        assert!(
+            report.starts_with("model-host-scene scene=") && report.contains("\nmodel-host-tri scene=") && report.ends_with('\n'),
+            "{report:?}"
+        );
     }
     let summary = run.row("summary");
     assert_eq!(
@@ -2570,7 +2597,11 @@ fn a_healthy_authority_run_reports_every_requested_probe_in_strict_json() {
 fn a_requested_probe_that_fails_or_reports_another_scene_fails_the_run_and_keeps_the_evidence() {
     for standin in ["refuse", "other"] {
         let run = stand_in_run(&["probe_scenes=1,2", "probe_depths=0,1"], standin);
-        assert!(!run.status.success(), "{standin}: a run whose requested probes all failed was accepted\n{}", run.stderr);
+        assert!(
+            !run.status.success(),
+            "{standin}: a run whose requested probes all failed was accepted\n{}",
+            run.stderr
+        );
         assert!(run.stderr.contains("requested probes failed"), "{standin}: {}", run.stderr);
         // the evidence is whole and parseable: four failed probe rows and a summary that says so
         let rows = run.rows();
@@ -2578,7 +2609,11 @@ fn a_requested_probe_that_fails_or_reports_another_scene_fails_the_run_and_keeps
         assert_eq!(probes.len(), 4, "{standin}");
         assert!(probes.iter().all(|p| p["ok"] == false), "{standin}");
         let summary = run.row("summary");
-        assert_eq!((summary["probes_failed"].as_i64(), summary["probes_ok"].as_i64()), (Some(4), Some(0)), "{standin}");
+        assert_eq!(
+            (summary["probes_failed"].as_i64(), summary["probes_ok"].as_i64()),
+            (Some(4), Some(0)),
+            "{standin}"
+        );
         assert!(!summary["probe_problem"].as_str().unwrap().is_empty());
     }
     // a refusal's message is first-lined, so the row stays one line of strict JSON
@@ -2616,6 +2651,10 @@ fn a_stuck_clock_a_missing_sweep_and_a_lost_output_are_failures_not_coverage() {
             "out={dir}/existing.jsonl".to_string(),
         ],
     );
-    assert!(!run.status.success() && run.stderr.contains("already exists") && !run.stderr.contains("stand-in booted"), "{}", run.stderr);
+    assert!(
+        !run.status.success() && run.stderr.contains("already exists") && !run.stderr.contains("stand-in booted"),
+        "{}",
+        run.stderr
+    );
     assert_eq!(std::fs::read_to_string(run.dir.join("existing.jsonl")).unwrap(), "do not overwrite\n");
 }
