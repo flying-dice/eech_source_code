@@ -1,3 +1,30 @@
+# D3 commit/push checkpoint — environment initializer guard correction (30 October 2026)
+
+Task51 / draft PR111 source `9f82ba6f9` is committed and pushed. The sole
+Sonnet5.5 High author completed exit0 at 2026-10-30T07:16:22.507550+00:00.
+No active implementation writer remains. The correction permits initializer
+wind-unavailable rows when the inherited gust is outside its valid domain;
+the existing contextual guard still rejects a false absence. A coherent positive
+and a false-unavailability negative were added. C and physical values are unchanged.
+Formatting and formatting check pass. Tests and independent review of this latest
+small delta remain PENDING; prior e1165cad6 results do not validate the new delta.
+
+At e1165cad6, Linux and actual Windows each passed8 guards, strict Clippy passed,
+and the new-driver/original-DLL compatibility run preserved all704 original raw
+rows including line endings, adding only one validation metadata row. Independent
+review closed scheduler/Windows wiring and the main contextual checks, identifying
+the one initializer-template issue addressed by this checkpoint. Reports and their
+hashes are retained on the environment branch under
+`eech-campaign/reference/d3-environment-characterization/guard-checkpoint-20261030/`.
+Original three-root/1200-frame numerical evidence is reused; environment physics,
+natural lightning/shared-RNG causality and remaining required host services stay open.
+
+Task47 PR107 remains ready at697ff11a3:40/40 checks, all8 COMPLETE default files
+byte identical, final independent review clear,9 hosted checks successful at that
+head. Formal approval/normal merge remains pending the explicitly asked workflow
+exception; commit/push is not approval or acceptance. All five ledger reports and
+accepted baselines remain unchanged. D3 remains active; D4/D5 have not started.
+
 # D3 checkpoint — terrain full shipping passed; environment review corrections active (30 October 2026)
 
 Task47 / ready PR107, current `697ff11a3`: original59652 completed0. The exact40
