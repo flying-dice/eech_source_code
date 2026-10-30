@@ -1,0 +1,147 @@
+{
+  "source": "8a5dad17208550831c796f37fbe9dde7f36caec5",
+  "scope": "Actual corrected host component and guards; focused independent review remains CHANGES_REQUIRED, no delivery acceptance",
+  "linux": {
+    "fmt": 0,
+    "library_passed": 235,
+    "new_io_unit_controls_passed": 5,
+    "model_store_passed": 30,
+    "model_characterization_passed": 8,
+    "all_target_clippy_exit": 0
+  },
+  "windows": {
+    "build_exit": 0,
+    "library_passed": 235,
+    "model_store_passed": 30,
+    "invalid_override_native_exit": 101,
+    "invalid_override_expected_refusal": true,
+    "six_payloads_unchanged": true,
+    "build_info_sha256": "2fd4918df4988469d810f821c62028454ba4d84b9a80f0e78e34988fbab08916",
+    "test_controller_exit": 0
+  },
+  "retail": {
+    "controller_exit": 0,
+    "all_pre_post_and_runner_exits": [
+      [
+        "georgia",
+        0,
+        0,
+        0
+      ],
+      [
+        "lebanon",
+        0,
+        0,
+        0
+      ],
+      [
+        "lebanon-repeat",
+        0,
+        0,
+        0
+      ]
+    ],
+    "scene_records_compared_each": 3025,
+    "original_calls_compared_each": 215,
+    "mismatches": 0,
+    "raw_rows_each": 3357,
+    "raw_bytes_each": 1278336,
+    "raw_sha256_each": "ed3503b12227fec13cadd2d56b62296cdb08e5bd2e5b76f0ac61db776fc59317",
+    "payloads_unchanged": true,
+    "original_reports_unchanged": true
+  },
+  "report_controls": {
+    "controller_exit": 0,
+    "pre_inputs": 0,
+    "post_inputs": 0,
+    "original_unchanged": true,
+    "payloads_unchanged": true,
+    "mutations_unchanged": true,
+    "cases": [
+      {
+        "case": "healthy",
+        "input_sha256": "b421e74ea483433ed9437b3143c68a12b76fb6d4a6f95b04c9371985dc3f0db7",
+        "actual_native_runner_exit": 0,
+        "native_exit_recorded": true,
+        "done": [
+          {
+            "event": "done",
+            "failures": 0
+          }
+        ],
+        "comparison_refused": false,
+        "expected_outcome_observed": true
+      },
+      {
+        "case": "truncated-first-scene",
+        "input_sha256": "18c2ec4fc2c5a77ce50c4d48602c60d674be55b5ec01d698f996aa725b45c7f9",
+        "actual_native_runner_exit": 1,
+        "native_exit_recorded": true,
+        "done": [],
+        "comparison_refused": true,
+        "expected_outcome_observed": true
+      },
+      {
+        "case": "duplicate-scene",
+        "input_sha256": "8e44b3608b2cd648051caa864404521ff36d96d9dbc4a522482126ebb4152d6d",
+        "actual_native_runner_exit": 1,
+        "native_exit_recorded": true,
+        "done": [],
+        "comparison_refused": true,
+        "expected_outcome_observed": true
+      },
+      {
+        "case": "missing-geometry-terminal",
+        "input_sha256": "51b518d74ae20491d3a670c89090f524c48014d669f95371fccb024e8c4eff02",
+        "actual_native_runner_exit": 1,
+        "native_exit_recorded": true,
+        "done": [],
+        "comparison_refused": true,
+        "expected_outcome_observed": true
+      },
+      {
+        "case": "failed-original-done",
+        "input_sha256": "96d2cfc5ffe14d9e3bb029f484eea7f026ece41740857da5fd704ba4f4259e56",
+        "actual_native_runner_exit": 1,
+        "native_exit_recorded": true,
+        "done": [],
+        "comparison_refused": true,
+        "expected_outcome_observed": true
+      }
+    ]
+  },
+  "byte_audit": "host-model-ba4f5d42a-vs-2020436ce-report-byte-audit-20261030.json",
+  "byte_audit_conclusion": "Every physical scene/triangle row and every other row byte exact202 except compare diagnostic adds two validated envelope counts,63bytes. Reports retained unmodified.",
+  "retained_61a80_failure": "First source235Linux library pass, integration compilation8E0308 errors in helper; Windows compile same8. Fixed test-only in ba4. No61a80 integration/Clippy/Windows/retail pass claimed.",
+  "remaining": "Focused8a review CHANGES_REQUIRED:2P2groups cumulative allocation budget and gate/header/write-count report consistency,1P3 exactmatchprecedence claim. I/O propagation and32bit original P2s resolved. Second Sonnet correction87546 live.59originalgeometrygaps/production/wholeD3 remain.",
+  "review": {
+    "report": "independent-host-model-review-closure-8a5dad172-20261030.json",
+    "sha256": "c6bd8075f0dbe69ebea23e694d601e904727c04e1b5b7cdb090043d6b4157d92",
+    "disposition": "CHANGES_REQUIRED"
+  },
+  "all3_reports_byte_exact_ba4": true,
+  "new_forged_gate_red": {
+    "scope": "Actual false green, not approved outcome",
+    "native_exits": [
+      0,
+      0,
+      0
+    ],
+    "calls_compared": [
+      215,
+      191,
+      191
+    ],
+    "pre_inputs": 0,
+    "post_inputs": 0,
+    "original_unchanged": true,
+    "payloads_unchanged": true,
+    "mutations_unchanged": true
+  },
+  "evidence_controllers": {
+    "linux": "model-host-8a5dad172-linux-20261030-completion.json",
+    "windows": "model-host-8a5dad172-windows-tests-20261030/controller.json",
+    "retail": "model-host-8a5dad172-retail-20261030/controller.json",
+    "first_corruption_controls": "host-model-report-controls-8a5dad172-green-20261030/controller.json"
+  }
+}

@@ -115,8 +115,8 @@ not repeated: this section is the next source, which has not been formatted, com
    without the 111 GB the old code would have asked for; a record of exactly the minimum size still loads.
 2. **MODEL-OVERRIDE-IO.** Directory enumeration and name resolution go through a small `Fs` boundary (`list`, `kind`) whose production implementation is the real filesystem. A
    genuinely absent optional `OBJECTS` is still a valid no-override installation. Every other outcome is an error naming the affected path: a directory that cannot be listed, an entry
-   that cannot be read, a path whose type cannot be determined, an entry that vanished during the listing, a name that exists but as the wrong kind (`OBJECTS` as a file), and two names
-   that differ only in case. The successful order is unchanged (upper-case name, then the exact name). The three resolver functions run in unit tests against a fake filesystem that causes
+   that cannot be read, a path whose type cannot be determined, an entry that vanished during the listing, a name that exists but as the wrong kind (`OBJECTS` as a file), and an ambiguous case-only fallback (an exact spelling always wins; only when it is absent are
+   two names that differ only in case ambiguous). The successful order is unchanged (upper-case name, then the exact name). The three resolver functions run in unit tests against a fake filesystem that causes
    the failures a test cannot portably cause; a real-filesystem test covers `OBJECTS` present as a file and found under another case.
 3. **MODEL-COMPARISON-COMPLETENESS.** `compare_original` parses every line, then validates the report as a WHOLE, coherent run of the closed original driver
    (`src/original_report.rs`) before it compares a row, and refuses it (the driver records `compare-refused`, writes no `done`, exits non-zero) otherwise. Required: the fixed
@@ -136,6 +136,34 @@ not repeated: this section is the next source, which has not been formatted, com
 
 The 25 tests of `2020436ce` are not relabelled as running these controls. The controls that need no allocation of a dangerous size are runnable against the old `2020436ce` host through
 `EECH_WORLD_BIN` (the comparator ones, as a red); the Root does not run the old unguarded allocation.
+
+## Corrections for the second review (source prepared, UNBUILT, UNRUN)
+
+The focused review of `8a5dad172` (`independent-host-model-review-closure-8a5dad172-20261030.json`) found the I/O propagation and the 32-bit scene conversion RESOLVED and left two P2s and one P3. The checked `8a5dad172`
+runtime evidence stands (Linux format, 235 library, 30 integration, 8 old guards and all-target Clippy; Windows build and tests; the three retail comparisons) and is NOT relabelled as proof of these corrections.
+
+* **MODEL-NODE-CUMULATIVE-BUDGET (P2).** The per-list bound reused the same remaining bytes at every nested list. Now one shared budget: a sub-object list of `n` is refused unless `(pending + n) * minimum record`
+  fits the bytes that remain, where `pending` is every node already reserved and not yet started (the siblings of every parent, each still to be read after the node now being read). The node being read leaves
+  `pending` when its record starts; its children join it when their list is reserved. This is a necessary condition for any real file, so the nodes held at any moment never exceed what the unread bytes could contain
+  (about `file bytes / 96` nodes of 52 bytes, whatever the depth or the scene header's declared total). Minimums unchanged (96 binary, 93 named, 105 named from version -3); traversal, order and layout unchanged; the
+  refusal says how many siblings were pending. Controls: `reserved_siblings_are_charged_against_the_same_bytes_as_every_later_list` (a padding-reuse chain refused at the reservation, not later as a malformed record; a
+  chain whose nodes each declare 100 children over a 160-record tail) and `genuine_dense_and_nested_minimum_records_still_load_in_order` (a five-record tree whose reservations fit their bytes exactly, a ten-deep chain,
+  and the same tree one byte short refused). Nothing here allocates a large amount.
+* **MODEL-REPORT-GATE-CONSISTENCY (P2).** The validator now keeps each geometry page header's identity and safety facts (name, collision, status, detail, `fan_bound`, `end_read_backed`) as the closed driver does
+  (`validate_geometry_page`): absent exactly when the collision index is -1, a callable model with a collision object, `fan_bound` non-negative, `end_read_backed` 0 or 1, and all of them unchanged from page to page
+  of one scene. The fixture's gate ends must agree with them: `end_probe_unbacked` only for an unbacked model at `fan_bound` and at the depth reached; `beyond_safe_bound` only past the deepest depth the bound allows
+  (`fan_bound` when backed, one less when not) and not at `fan_bound`. A triangle row's `writes` must equal the number of its nine words that differ from the sentinel `0x7fc0a5a5`. No geometry is derived and no
+  physical success is required: genuine unbacked, capped, absent, refused, catalogue-off and partial-write observations still pass. The synthetic positive collaborators now carry coherent headers (an unbacked end
+  at its bound with `end_read_backed` 0; absent with collision -1; a partial write of exactly two changed words). New controls through the real comparator: an invented `end_probe_unbacked` and an invented
+  `beyond_safe_bound` on a backed model (the two forgeries the Root reproduced against `8a5dad172`: all of scene 8's calls removed, native 0 and done 0), an unbacked end off its bound, `beyond_safe_bound` at the
+  probe's own depth, header contradictions (absent with a collision object, callable without one, negative `fan_bound`, `end_read_backed` 2, no name), three write-count mismatches, and
+  `a_scenes_header_that_changes_between_pages_is_refused` (six fields). The existing damage cases are all kept.
+* **MODEL-RESOLVER-AMBIGUITY-CONTRACT (P3).** The code is kept and the claim is qualified: an EXACT spelling wins (as on a case-sensitive file system and in the original's exact lookup) even beside a case-only duplicate;
+  only when the exact spelling is absent is the case-insensitive fallback ambiguous when it matches twice. `find_named`'s documentation and the resolver unit tests now say and check both: `A.EEO` and `a.eeo` queried as
+  either exact spelling succeed; queried as `a.EEO` they are ambiguous; the directory resolver behaves the same.
+
+Not changed: the C numeric kernel and floating-point guard, the closed original diagnostic driver and fixture, the original reports, any baseline, tolerance, MSRV or physical rule. No new original-provenance
+instrumentation: the 59 custom and mixed-layout original geometry gaps remain open.
 
 ## Commands for the Root (not run)
 

@@ -1,0 +1,12 @@
+{
+  "content_id": "14548994",
+  "version": 71,
+  "prior_html_exact": true,
+  "five_epic_reports_exact": true,
+  "appendix_exact_except_generated_local_ids": true,
+  "jira_comment": "10866",
+  "tested_source": "8a5dad17208550831c796f37fbe9dde7f36caec5",
+  "review_disposition": "CHANGES_REQUIRED;2P2groups+1P3",
+  "review_sha256": "c6bd8075f0dbe69ebea23e694d601e904727c04e1b5b7cdb090043d6b4157d92",
+  "scope": "Prepared component/runtime guard evidence, not production/Tacview/Task50/D3 acceptance"
+}

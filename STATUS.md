@@ -1,3 +1,28 @@
+# Current D3 correction — EEDCS-50 host model store, second review of `8a5dad172` (30 October 2026): SOURCE PREPARED, UNBUILT, UNRUN
+
+The one focused combined review of `8a5dad172` (`independent-host-model-review-closure-8a5dad172-20261030.json`) is CHANGES_REQUIRED, not acceptance: the I/O propagation and the 32-bit scene conversion are RESOLVED; two P2s and one
+P3 remain. The checked `8a5dad172` runtime evidence is valid within its scope and unchanged (Linux format, 235 library, 30 integration, 8 old guards and all-target Clippy 0; Windows build 0 with six payloads, 235 library and 30
+integration tests and the expected missing-host refusal; the three healthy retail comparisons with all 3025 scene records and 215 original calls matching, whole reports 1,278,336 bytes SHA-256 `ed3503b1…9317`, every other row
+byte-identical to `2020436ce`; the four first corruption controls rejected). It is NOT proof that these new holes are fixed. The initial `0b5750f7a` and `61a80` compile failures and the `ba4f` Clippy failure remain retained history.
+
+The Root reproduced the P2 report-gate hole against the immutable `8a5dad172` host with exact forged originals (`host-model-forged-gate-inputs-20261030`): all of scene 8's calls replaced by an invented `end_probe_unbacked` and by an
+invented `beyond_safe_bound` at depth 0, each native 0 / done 0 with compared original calls 215 to 191; the healthy original 0. The node-budget hole is a static counterexample (no unsafe allocation was or will be run).
+
+Corrections (details and exact contracts: `eech-campaign/docs/m5-model-host-store.md`, "Corrections for the second review"; all UNBUILT and UNRUN):
+1. MODEL-NODE-CUMULATIVE-BUDGET: a sub-object list is refused unless `(pending + n) * minimum record` fits the bytes that remain, `pending` being every reserved sibling not yet started, so one stretch of padding cannot justify
+   a reservation at each level; minimums (96 / 93 / 105), traversal and order unchanged; controls for padding reuse, and for genuine dense, deep and exactly-full minimum trees that must still load.
+2. MODEL-REPORT-GATE-CONSISTENCY: the original-report contract keeps each geometry header's identity and safety facts (name, collision, status, detail, `fan_bound`, `end_read_backed`) stable across a scene's pages and
+   consistent (absent iff collision -1), requires `end_probe_unbacked` / `beyond_safe_bound` to agree with them as the closed driver does, and requires a triangle row's `writes` to equal its words that differ from the
+   sentinel. Coherent positive collaborators (an unbacked end at its bound with end_read_backed 0; a partial write of exactly two changed words); new forged-gate, header and write-count controls through the real comparator
+   and driver; all earlier damage cases kept. Genuine unbacked, capped, absent, refused, catalogue-off and partial-write modes still pass; no physical outcome is required.
+3. MODEL-RESOLVER-AMBIGUITY-CONTRACT (P3): exact-spelling precedence is kept and documented; the resolver tests now check both the exact and the ambiguous-fallback cases.
+
+Changed: `src/models.rs` (budget, resolver documentation and fake-filesystem tests), `src/original_report.rs`, `tests/model_store.rs`, `docs/m5-model-host-store.md`, this file. Not changed: the C numeric kernel and FP guard, the closed
+original fixture and driver, the original reports and raws, any baseline, tolerance, MSRV or physical rule; no original-provenance instrumentation. Next (Root): format and freeze, Linux library / integration / old guards /
+Clippy, Windows build and tests, the same four corruption inputs and the two forged-gate inputs against the corrected binary, the healthy retail reports, then one new-delta review. Still open and unchanged: the 59 original custom
+and mixed geometry gaps, the production loader and native physical-service removal, hierarchy, viewpoint, device, muzzle, target-point, entity-collision, environment and host-time services. No task, production or Tacview
+claim; the original Task 47 shipping run was not touched; D4 and D5 have not started. No Git, build, test or native action was taken in this lane.
+
 # Current D3 lint correction — EEDCS-50 host model store at `ba4f5d42a` (30 October 2026): SOURCE ONLY, UNBUILT, UNRUN
 
 Actual validation of `ba4f5d42a` (retained, not changed by this note): Linux format 0; the eech-world library tests (235, including the five `fs_tests`), all 30 `model_store` integration tests and the old

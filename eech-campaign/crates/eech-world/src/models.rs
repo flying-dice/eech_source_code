@@ -349,9 +349,10 @@ fn typed_entries(fs: &dyn Fs, dir: &Path, want: Kind) -> Result<Vec<(String, Pat
     Ok(out)
 }
 
-/// `name` in `dir` as a path of kind `want`, found exactly or by upper-case comparison (a Windows file system is case-insensitive and the original's names are not
-/// consistently cased). Ok(None) only when nothing of that name exists, or `dir` itself does not; a name that exists as another kind, two names that differ only in case, and
-/// every I/O failure are errors naming the path.
+/// `name` in `dir` as a path of kind `want`. An EXACT spelling wins, as it does on a case-sensitive file system and as the original's exact lookup does: if `dir` holds `name`
+/// itself it is returned, whatever else differs from it only in case. Only when the exact spelling is absent is the directory searched by upper-case comparison (a Windows file
+/// system is case-insensitive and the original's names are not consistently cased), and then two or more matches are ambiguous and an error. Ok(None) only when nothing of that
+/// name exists, or `dir` itself does not; a name that exists as another kind, an ambiguous fallback, and every I/O failure are errors naming the path.
 fn find_named(fs: &dyn Fs, dir: &Path, name: &str, want: Kind) -> Result<Option<PathBuf>, ModelError> {
     let noun = if want == Kind::Directory { "directory" } else { "file" };
     let exact = dir.join(name);
@@ -637,6 +638,8 @@ struct Tree {
     nodes: Vec<Node>,
     node_budget: usize,
     index_budget: usize,
+    /// nodes reserved (their room taken) whose records have not been started: each still has to be read, from the bytes that remain, after the one being read now
+    pending: u64,
 }
 
 /// What a named (`.EES`) scene needs to resolve names the way the original does.
@@ -1092,16 +1095,23 @@ impl Loader {
         if depth >= MAX_TREE_DEPTH {
             return fail(ErrorKind::Limit, r.file, format!("a sub-object tree deeper than {MAX_TREE_DEPTH}"));
         }
-        // Before anything is sized from the file's count: the bytes that remain must be able to hold that many records, whatever the scene header declared (a tiny file
-        // that says INT_MAX nodes is refused, not allocated 100 GB for)
+        // Before anything is sized from the file's count: the bytes that remain must be able to hold that many records AND every record already reserved and not yet read
+        // (the siblings of this list's parents, each still to come after the one being read), whatever the scene header declared. One shared byte budget: the same padding
+        // cannot justify a reservation at every level, so the nodes held at any moment never exceed the minimum records the unread bytes could contain (a tiny file that
+        // says INT_MAX nodes is refused, and so is a deep chain that reuses one stretch of padding for each level's siblings).
         let least = min_sub_object_bytes(named);
-        match (n as u64).checked_mul(least) {
+        let outstanding = tree.pending + n as u64;
+        match outstanding.checked_mul(least) {
             Some(bytes) if bytes <= r.remaining() => {}
             _ => {
                 return fail(
                     ErrorKind::Truncated,
                     r.file,
-                    format!("{n} sub-objects of at least {least} bytes each, {} bytes remain", r.remaining()),
+                    format!(
+                        "{n} sub-objects of at least {least} bytes each ({} reserved siblings still pending), {} bytes remain",
+                        tree.pending,
+                        r.remaining()
+                    ),
                 )
             }
         }
@@ -1128,6 +1138,7 @@ impl Loader {
             return fail(ErrorKind::Limit, r.file, format!("cannot reserve room for {n} sub-object nodes"));
         }
         tree.node_budget -= n;
+        tree.pending += n as u64;
         tree.nodes.resize(total, Node::default());
         for k in 0..n {
             self.sub_object(r, named, tree, first + k, depth)?;
@@ -1137,6 +1148,8 @@ impl Loader {
 
     /// `initialise_3d_sub_object`
     fn sub_object(&mut self, r: &mut Reader, named: Option<&Named>, tree: &mut Tree, at: usize, depth: usize) -> Result<(), ModelError> {
+        // this node's record starts now: it is no longer waiting, and its bytes are being consumed
+        tree.pending = tree.pending.saturating_sub(1);
         let index = match named {
             Some(named) => {
                 Self::skip_schem(r, Some(named))?;
@@ -1326,6 +1339,7 @@ impl Loader {
             nodes: Vec::new(),
             node_budget: scene_sub_objects,
             index_budget: scene_named_indices,
+            pending: 0,
         };
         Self::indices(r, named_ref, &mut tree)?;
         let (top_first, top_count) = self.sub_objects(r, named_ref, &mut tree, 0)?;
@@ -1992,13 +2006,24 @@ mod fs_tests {
         // cannot determine the type
         let fs = fake(vec![("3dobjs.bin", Node::Unknowable(denied()))]);
         assert_eq!(find_file(&fs, &data(), "3dobjs.bin").unwrap_err().kind, ErrorKind::Unreadable);
-        // two files that differ only in case
+        // two files that differ only in case: neither is the spelling asked for, so the fallback is ambiguous
         let fs = fake(vec![
             ("", Node::Dir(vec![Ok("A.EEO"), Ok("a.eeo")])),
             ("A.EEO", Node::File),
             ("a.eeo", Node::File),
         ]);
         assert_eq!(find_file(&fs, &data(), "a.EEO").unwrap_err().kind, ErrorKind::Inconsistent);
+        // ... but an exact spelling wins over the case-only duplicate, whichever spelling is asked for (the contract find_named documents)
+        assert_eq!(find_file(&fs, &data(), "A.EEO").unwrap(), Some(data().join("A.EEO")));
+        assert_eq!(find_file(&fs, &data(), "a.eeo").unwrap(), Some(data().join("a.eeo")));
+        // the directory resolver has the same precedence
+        let fs = fake(vec![
+            ("", Node::Dir(vec![Ok("Objects"), Ok("OBJECTS")])),
+            ("Objects", Node::Dir(vec![])),
+            ("OBJECTS", Node::Dir(vec![])),
+        ]);
+        assert_eq!(find_named(&fs, &data(), "OBJECTS", Kind::Directory).unwrap(), Some(data().join("OBJECTS")));
+        assert_eq!(find_named(&fs, &data(), "objects", Kind::Directory).unwrap_err().kind, ErrorKind::Inconsistent);
     }
 
     #[test]

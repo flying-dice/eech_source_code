@@ -918,6 +918,9 @@ use std::collections::BTreeMap;
 /// one triangle row: depth, return, writes, the nine words when anything was written
 type Tri = (i64, i64, i64, Option<String>);
 
+/// a page header's safety facts: `fan_bound` and `end_read_backed` (1: the end read past the object is backed, 0: it is not)
+type Gate = (i64, i64);
+
 struct Spec {
     catalogue: bool,
     asked: i64,
@@ -934,10 +937,11 @@ fn check_row(name: &str) -> Value {
 }
 
 /// a geometry page: its header, the triangle rows, and the terminal the original writes for it (`end`: reason and depth of a model-end and its closing row; None: a full page, closed)
-fn page(scene: i64, status: &str, first: i64, count: i64, tris: &[Tri], end: Option<(&str, i64)>) -> Vec<Value> {
+fn page(scene: i64, status: &str, first: i64, count: i64, tris: &[Tri], end: Option<(&str, i64)>, gate: Gate) -> Vec<Value> {
+    let collision: i64 = if status == "absent" { -1 } else { 1 };
+    let (fan_bound, backed) = gate;
     let mut rows = vec![
-        json!({"event": "model-geometry", "scene": scene, "name": "NAME", "collision": 1, "status": status, "detail": "-", "first": first, "count": count,
-        "fan_bound": 0, "end_read_backed": 1}),
+        json!({"event": "model-geometry", "scene": scene, "name": "NAME", "collision": collision, "status": status, "detail": "-", "first": first, "count": count, "fan_bound": fan_bound, "end_read_backed": backed}),
     ];
     for (depth, returned, writes, p) in tris {
         let mut row = json!({"event": "model-tri", "depth": depth, "return": returned, "writes": writes});
@@ -960,15 +964,15 @@ fn page(scene: i64, status: &str, first: i64, count: i64, tris: &[Tri], end: Opt
 }
 
 /// a whole group of one callable scene on a single page of `page_triangles`: the true rows, the original's false, its end
-fn group(scene: i64, tris: &[Tri], end: Option<(&str, i64)>, count: i64) -> Vec<Value> {
-    page(scene, "safe", 0, count, tris, end)
+fn group(scene: i64, tris: &[Tri], end: Option<(&str, i64)>, count: i64, gate: Gate) -> Vec<Value> {
+    page(scene, "safe", 0, count, tris, end, gate)
 }
 
 /// the host's triangle rows for `scene` as the original's rows: a true per triangle, the false and its end where the host ends, a lone false for an absence
 fn host_group(first: &Driven, scene: i64, count: i64) -> Vec<Value> {
     let results: Vec<&Value> = rows_of(first, "host-model-tri").into_iter().filter(|r| r["scene"] == scene).collect();
     if results[0]["result"] == "absent" {
-        return page(scene, "absent", 0, count, &[(0, 0, 0, None)], None);
+        return page(scene, "absent", 0, count, &[(0, 0, 0, None)], None, (0, 0));
     }
     let mut tris: Vec<Tri> = Vec::new();
     let mut end = None;
@@ -982,7 +986,8 @@ fn host_group(first: &Driven, scene: i64, count: i64) -> Vec<Value> {
             }
         }
     }
-    group(scene, &tris, end, count)
+    let fan = tris.iter().filter(|t| t.1 == 1).count() as i64;
+    group(scene, &tris, end, count, (fan, 1))
 }
 
 /// the catalogue as the closed driver writes it: pages of 96 each followed by its check, then the tallies
@@ -1124,6 +1129,22 @@ fn words(seed: u32) -> String {
     (0..9).map(|k| format!("0x{:08x}", 0x3f00_0000 + seed * 16 + k)).collect::<Vec<_>>().join(",")
 }
 
+/// nine words of which exactly two were written: what an original call that wrote only part of its buffer reports (the other seven are still the fixture's sentinel)
+fn partial_words() -> String {
+    [
+        "0x3f000001",
+        "0x3f000002",
+        "0x7fc0a5a5",
+        "0x7fc0a5a5",
+        "0x7fc0a5a5",
+        "0x7fc0a5a5",
+        "0x7fc0a5a5",
+        "0x7fc0a5a5",
+        "0x7fc0a5a5",
+    ]
+    .join(",")
+}
+
 #[test]
 fn the_driver_lists_the_store_and_the_comparison_matches_what_is_identical() {
     let root = standard();
@@ -1173,7 +1194,7 @@ fn the_comparison_finds_counts_and_fails_on_every_kind_of_alteration() {
         (
             "the original ends where the host has a triangle",
             "triangle_mismatches",
-            alter(|r| replace_group(r, 1, group(1, &[(0, 0, 0, None)], Some(("original_false", 0)), 256))),
+            alter(|r| replace_group(r, 1, group(1, &[(0, 0, 0, None)], Some(("original_false", 0)), 256, (2, 1)))),
         ),
         (
             "the original has a triangle where the host ends",
@@ -1191,7 +1212,7 @@ fn the_comparison_finds_counts_and_fails_on_every_kind_of_alteration() {
                     (2, 1, 9, Some(words(7))),
                     (3, 0, 0, None),
                 ];
-                replace_group(r, 1, group(1, &tris, Some(("original_false", 3)), 256));
+                replace_group(r, 1, group(1, &tris, Some(("original_false", 3)), 256, (2, 1)));
             }),
         ),
         (
@@ -1433,6 +1454,99 @@ fn an_incomplete_failed_or_incoherent_original_report_is_refused_before_anything
             }),
             "original_false without an original call",
         ),
+        // the fixture's own gate ends must agree with the header (the forgeries the Root reproduced against the 8a host: a backed scene whose calls are all replaced by an invented end)
+        (
+            "an invented end_probe_unbacked for a model whose end read is backed",
+            alter(|r| replace_group(r, 1, page(1, "safe", 0, 256, &[], Some(("end_probe_unbacked", 0)), (2, 1)))),
+            "end_probe_unbacked at depth 0 contradicts the header",
+        ),
+        (
+            "an invented beyond_safe_bound inside the bound",
+            alter(|r| replace_group(r, 1, page(1, "safe", 0, 256, &[], Some(("beyond_safe_bound", 0)), (2, 1)))),
+            "beyond_safe_bound at depth 0 contradicts the header",
+        ),
+        (
+            "an unbacked end that is not at the bound",
+            alter(|r| {
+                let tris = [(0, 1, 9, Some(words(1))), (1, 1, 9, Some(words(2)))];
+                replace_group(r, 1, page(1, "safe", 0, 256, &tris, Some(("end_probe_unbacked", 2)), (5, 0)));
+            }),
+            "end_probe_unbacked at depth 2 contradicts the header",
+        ),
+        (
+            "beyond_safe_bound at the unbacked end probe's own depth",
+            alter(|r| {
+                let tris = [(0, 1, 9, Some(words(1))), (1, 1, 9, Some(words(2)))];
+                replace_group(r, 1, page(1, "safe", 0, 256, &tris, Some(("beyond_safe_bound", 2)), (2, 0)));
+            }),
+            "beyond_safe_bound at depth 2 contradicts the header",
+        ),
+        // the header's own facts
+        (
+            "an absent model with a collision object",
+            alter(|r| {
+                let at = group_range(r, 2).start;
+                r[at]["collision"] = 5.into();
+            }),
+            "contradict each other",
+        ),
+        (
+            "a callable model with no collision object",
+            alter(|r| {
+                let at = group_range(r, 1).start;
+                r[at]["collision"] = (-1).into();
+            }),
+            "contradict each other",
+        ),
+        (
+            "a negative fan_bound",
+            alter(|r| {
+                let at = group_range(r, 1).start;
+                r[at]["fan_bound"] = (-1).into();
+            }),
+            "fan_bound",
+        ),
+        (
+            "an end_read_backed that is neither 0 nor 1",
+            alter(|r| {
+                let at = group_range(r, 1).start;
+                r[at]["end_read_backed"] = 2.into();
+            }),
+            "end_read_backed",
+        ),
+        (
+            "a header without a name",
+            alter(|r| {
+                let at = group_range(r, 1).start;
+                r[at]["name"] = "".into();
+            }),
+            "without a name",
+        ),
+        // the write count
+        (
+            "writes that is not the number of changed words",
+            alter(|r| {
+                let at = r.iter().position(|x| x["event"] == "model-tri" && x["p"].is_string()).unwrap();
+                r[at]["writes"] = 8.into();
+            }),
+            "differ from the sentinel",
+        ),
+        (
+            "a false that claims two writes with all nine words changed",
+            alter(|r| {
+                let tris = [(0, 1, 9, Some(words(1))), (1, 1, 9, Some(words(2))), (2, 0, 2, Some(words(3)))];
+                replace_group(r, 1, group(1, &tris, Some(("original_false", 2)), 256, (2, 1)));
+            }),
+            "writes count 2 is not the 9 words",
+        ),
+        (
+            "nine writes claimed with two words changed",
+            alter(|r| {
+                let tris = [(0, 1, 9, Some(partial_words())), (1, 1, 9, Some(words(2)))];
+                replace_group(r, 1, group(1, &tris, None, 256, (2, 1)));
+            }),
+            "writes count 9 is not the 2 words",
+        ),
         // what the report is about
         (
             "another scene count than this host's",
@@ -1516,7 +1630,7 @@ fn the_legitimate_original_modes_are_accepted_and_compared_as_they_are() {
         ..SPEC
     };
     let mut refused = host_group(&first, 1, spec.page_triangles);
-    refused.extend(page(5, "custom_object", 0, 256, &[], None));
+    refused.extend(page(5, "custom_object", 0, 256, &[], None, (0, 0)));
     accepted("a refused model", envelope(&spec, Vec::new(), refused), &|c| {
         assert_eq!(c["original_refused_scenes"], 1);
         assert!(c["triangles_compared"].as_i64().unwrap() > 0);
@@ -1529,7 +1643,7 @@ fn the_legitimate_original_modes_are_accepted_and_compared_as_they_are() {
         max_triangles: 2,
         ..SPEC
     };
-    let mut capped = group(1, &[tri(0, &p0), tri(1, &p1)], None, 2);
+    let mut capped = group(1, &[tri(0, &p0), tri(1, &p1)], None, 2, (2, 1));
     capped.push(json!({"event": "model-capped", "scene": 1, "calls": 2, "max_triangles": 2}));
     accepted("a capped walk", envelope(&spec, Vec::new(), capped), &|c| {
         assert_eq!(c["triangles_compared"], 2)
@@ -1541,13 +1655,19 @@ fn the_legitimate_original_modes_are_accepted_and_compared_as_they_are() {
         asked: 1,
         ..SPEC
     };
-    let unbacked = group(1, &[tri(0, &p0), tri(1, &p1)], Some(("end_probe_unbacked", 2)), 256);
+    let unbacked = group(1, &[tri(0, &p0), tri(1, &p1)], Some(("end_probe_unbacked", 2)), 256, (2, 0));
     accepted("an unbacked end", envelope(&spec, Vec::new(), unbacked), &|c| {
         assert_eq!(c["triangles_compared"], 2)
     });
 
     // a false return that nevertheless wrote part of its buffer is an observation of the original, not a malformed report
-    let partial = group(1, &[tri(0, &p0), tri(1, &p1), (2, 0, 2, Some(words(3)))], Some(("original_false", 2)), 256);
+    let partial = group(
+        1,
+        &[tri(0, &p0), tri(1, &p1), (2, 0, 2, Some(partial_words()))],
+        Some(("original_false", 2)),
+        256,
+        (2, 1),
+    );
     accepted("a false that wrote", envelope(&spec, Vec::new(), partial), &|c| {
         assert_eq!(c["triangles_compared"], 3)
     });
@@ -1559,9 +1679,9 @@ fn the_legitimate_original_modes_are_accepted_and_compared_as_they_are() {
         page_triangles: 1,
         ..SPEC
     };
-    let mut paged = page(1, "safe", 0, 1, &[tri(0, &p0)], None);
-    paged.extend(page(1, "safe", 1, 1, &[tri(1, &p1)], None));
-    paged.extend(page(1, "safe", 2, 1, &[(2, 0, 0, None)], Some(("original_false", 2))));
+    let mut paged = page(1, "safe", 0, 1, &[tri(0, &p0)], None, (2, 1));
+    paged.extend(page(1, "safe", 1, 1, &[tri(1, &p1)], None, (2, 1)));
+    paged.extend(page(1, "safe", 2, 1, &[(2, 0, 0, None)], Some(("original_false", 2)), (2, 1)));
     accepted("three pages", envelope(&spec, Vec::new(), paged), &|c| {
         assert_eq!((c["triangles_compared"].as_i64(), c["geometry_headers"].as_i64()), (Some(3), Some(3)))
     });
@@ -1795,4 +1915,123 @@ fn an_override_directory_that_exists_but_is_not_a_directory_is_an_error_and_an_a
     let root = standard();
     root.write("Objects/0001.EEO", &eeo(1, &identity_quad()));
     assert_eq!(root.load().unwrap().summary().eeo_hex_applied, 1);
+}
+
+#[test]
+fn reserved_siblings_are_charged_against_the_same_bytes_as_every_later_list() {
+    // The first correction checked each list's count against the bytes that remained, and charged nothing for the siblings already reserved and still to be read, so one stretch of
+    // padding could justify a reservation at every level of a deep chain. Here the top list holds 4 nodes (384 bytes) in a tail of 768 bytes; the first node's 4 children also fit
+    // (3 siblings pending + 4 children = 672 bytes of the 672 left: exactly full); the first child's 4 children do not (6 pending + 4 = 960 of 576), and are refused AT THE
+    // RESERVATION, as unaccounted padding, not later as a malformed record. Nothing is allocated for them.
+    let mut tail = minimal_node(1, 4);
+    tail.extend_from_slice(&minimal_node(1, 4));
+    tail.extend_from_slice(&[0u8; 576]);
+    assert_eq!(tail.len(), 8 * 96);
+    let scene = binary_scene_with_nodes(1, 1, 1, i32::MAX, 4, &tail);
+    let error = table_root(&[scene]).load().err().unwrap();
+    assert_eq!(error.kind, ErrorKind::Truncated, "{error}");
+    assert!(error.detail.contains("(6 reserved siblings still pending)"), "{error}");
+
+    // the same holds down a chain: nodes that each declare a long child list (100) over a tail that holds only 160 records are refused at the first child list the remaining bytes, with the
+    // siblings already pending, cannot hold
+    let mut chain = Vec::new();
+    for _ in 0..40 {
+        chain.extend_from_slice(&minimal_node(1, 100));
+    }
+    chain.extend_from_slice(&[0u8; 96 * 120]);
+    let scene = binary_scene_with_nodes(1, 1, 1, i32::MAX, 100, &chain);
+    let error = table_root(&[scene]).load().err().unwrap();
+    assert_eq!(error.kind, ErrorKind::Truncated, "{error}");
+    assert!(error.detail.contains("reserved siblings still pending"), "{error}");
+}
+
+#[test]
+fn genuine_dense_and_nested_minimum_records_still_load_in_order() {
+    // five minimum records in the parser's depth-first order: A (2 children), A1 (1 child), A11, A2, then the top list's second node B. Every reservation fits its bytes EXACTLY
+    // (the third list is 3 nodes' worth over 3 nodes' worth of bytes), so a budget that charged even one byte too much would refuse this.
+    let mut tail = minimal_node(1, 2);
+    for children in [1, 0, 0, 0] {
+        tail.extend_from_slice(&minimal_node(1, children));
+    }
+    let scene = binary_scene_with_nodes(1, 1, 1, 5, 2, &tail);
+    assert!(table_root(&[scene]).load().unwrap().scene(1).unwrap().loaded);
+
+    // a chain ten deep, one child each, no padding
+    let mut chain = Vec::new();
+    for _ in 0..9 {
+        chain.extend_from_slice(&minimal_node(1, 1));
+    }
+    chain.extend_from_slice(&minimal_node(1, 0));
+    let scene = binary_scene_with_nodes(1, 1, 1, 10, 1, &chain);
+    assert!(table_root(&[scene]).load().unwrap().scene(1).unwrap().loaded);
+
+    // one byte short of the dense tree is refused (the last record is cut), never accepted as a smaller tree
+    let mut short = minimal_node(1, 2);
+    for children in [1, 0, 0, 0] {
+        short.extend_from_slice(&minimal_node(1, children));
+    }
+    short.pop();
+    let scene = binary_scene_with_nodes(1, 1, 1, 5, 2, &short);
+    assert_eq!(table_root(&[scene]).load().err().unwrap().kind, ErrorKind::Truncated);
+}
+
+#[test]
+fn a_scenes_header_that_changes_between_pages_is_refused() {
+    let root = standard();
+    let first = drive(&root.dir, &["scenes=1".to_string()], false);
+    assert!(first.status.success(), "{}", first.stderr);
+    let word = |depth: i64| -> String {
+        rows_of(&first, "host-model-tri")
+            .into_iter()
+            .find(|r| r["scene"] == 1 && r["depth"] == depth)
+            .and_then(|r| r["p"].as_str().map(str::to_string))
+            .unwrap()
+    };
+    let (p0, p1) = (word(0), word(1));
+    let spec = Spec {
+        catalogue: false,
+        asked: 1,
+        page_triangles: 1,
+        ..SPEC
+    };
+    let paged = || {
+        let mut rows = page(1, "safe", 0, 1, &[(0, 1, 9, Some(p0.clone()))], None, (2, 1));
+        rows.extend(page(1, "safe", 1, 1, &[(1, 1, 9, Some(p1.clone()))], None, (2, 1)));
+        rows.extend(page(1, "safe", 2, 1, &[(2, 0, 0, None)], Some(("original_false", 2)), (2, 1)));
+        envelope(&spec, Vec::new(), rows)
+    };
+    // the unchanged three pages are accepted
+    let (dir, path) = write_report(&paged());
+    let run = drive(&root.dir, &compare_args(&path), false);
+    let _ = std::fs::remove_dir_all(dir);
+    assert!(run.status.success(), "{}", run.stderr);
+
+    // the second page's header says something else about the same model
+    let changes: Vec<(&str, &str, Value)> = vec![
+        ("fan_bound", "fan_bound", 3.into()),
+        ("end_read_backed", "end_read_backed", 0.into()),
+        ("name", "name", "OTHER".into()),
+        ("detail", "detail", "faces".into()),
+        ("status", "status", "empty".into()),
+        ("collision", "collision", 7.into()),
+    ];
+    for (label, field, value) in changes {
+        let mut report = paged();
+        let second = report
+            .iter()
+            .enumerate()
+            .filter(|(_, x)| x["event"] == "model-geometry")
+            .map(|(at, _)| at)
+            .nth(1)
+            .unwrap();
+        report[second][field] = value;
+        let (dir, path) = write_report(&report);
+        let run = drive(&root.dir, &compare_args(&path), false);
+        let _ = std::fs::remove_dir_all(dir);
+        assert!(!run.status.success(), "{label}: accepted\n{}", run.stderr);
+        let refused = rows_of(&run, "compare-refused");
+        assert_eq!(refused.len(), 1, "{label}: {}", run.stderr);
+        let message = refused[0]["message"].as_str().unwrap();
+        assert!(message.contains("changed between pages"), "{label}: refused as {message:?}");
+    }
 }

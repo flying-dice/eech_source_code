@@ -10,7 +10,10 @@
 //! * for every geometry scene the driver was asked for (`boot.scenes` of them, each exactly once): pages that start at depth 0 and are contiguous, of the size the driver pages
 //!   by, whose triangle rows run on from the page's first depth, and a terminal the rows support: an absent model is one false, writeless call; a refused model is one
 //!   `model-refused` row; a callable model ends in a `model-end` (an `original_false` straight after an original call that returned false at that depth, or the unbacked
-//!   end probe or the safe bound at the depth reached) and a closing row whose call count is the page's, or is `model-capped` at exactly the cap.
+//!   end probe or the safe bound at the depth reached) and a closing row whose call count is the page's, or is `model-capped` at exactly the cap;
+//! * each geometry page's header carries the model's identity and safety facts (name, collision, status, detail, `fan_bound`, `end_read_backed`), as the closed driver requires: absent exactly when
+//!   the collision index is -1, unchanged from one page of a scene to the next, and the fixture's own gate ends agreeing with them (`end_probe_unbacked` only for an unbacked model at its
+//!   `fan_bound`, `beyond_safe_bound` only past the deepest depth the bound allows); and a triangle row's `writes` is the number of its nine words that differ from the pre-fill sentinel.
 //!
 //! What it deliberately does NOT require: any particular physical outcome. An absent, refused, unbacked or capped model, a catalogue left off, and an original call that
 //! returned false after writing part of its buffer are all legitimate observations and pass; this checks that the report is whole, not what it says.
@@ -24,6 +27,9 @@ pub struct Contract {
     pub catalogue_scenes: usize,
     pub geometry_scenes: usize,
 }
+
+/// the word the fixture pre-fills each triangle buffer with (eech_model_fixture.c): a word still equal to it was not written
+const SENTINEL: &str = "0x7fc0a5a5";
 
 fn int(row: &Value, key: &str) -> Option<i64> {
     row.get(key).and_then(Value::as_i64)
@@ -64,9 +70,24 @@ struct Page {
     false_depth: Option<i64>,
     ended: bool,
     closed: bool,
+    /// the header's safety facts: the bound the fixture computed, and whether the end read past the object is backed
+    fan_bound: i64,
+    backed: i64,
+}
+
+/// What the closed driver requires to stay the same from one page of a scene to the next: the model's identity and its safety facts.
+#[derive(PartialEq, Eq)]
+struct Identity {
+    name: String,
+    collision: i64,
+    status: String,
+    detail: String,
+    fan_bound: i64,
+    backed: i64,
 }
 
 struct SceneRun {
+    ident: Identity,
     scene: i64,
     /// the first depth the next page must start at
     next_first: i64,
@@ -233,10 +254,47 @@ pub fn validate(rows: &[(usize, Value)], scene_last: usize) -> Result<Contract, 
                 if scene < 1 || scene >= scene_last as i64 {
                     return Err(bad(i, format!("geometry for scene {scene}, outside 1 to {}", scene_last - 1)));
                 }
+                let kind = match status.as_str() {
+                    "absent" => Kind::Absent,
+                    "safe" | "empty" => Kind::Callable,
+                    _ => Kind::Refusing,
+                };
+                // the header's identity and safety facts, checked as the closed driver checks them (lua/model-characterization.lua, validate_geometry_page)
+                let name = text(row, "name")
+                    .filter(|s| !s.is_empty())
+                    .ok_or_else(|| bad(i, "a geometry header without a name".to_string()))?
+                    .to_string();
+                let detail = text(row, "detail")
+                    .ok_or_else(|| bad(i, "a geometry header without a detail".to_string()))?
+                    .to_string();
+                let collision = int(row, "collision").ok_or_else(|| bad(i, "a geometry header without a collision index".to_string()))?;
+                let fan_bound = int(row, "fan_bound")
+                    .filter(|v| *v >= 0)
+                    .ok_or_else(|| bad(i, "a geometry header whose fan_bound is missing or negative".to_string()))?;
+                let backed = int(row, "end_read_backed")
+                    .filter(|v| *v == 0 || *v == 1)
+                    .ok_or_else(|| bad(i, "a geometry header whose end_read_backed is not 0 or 1".to_string()))?;
+                if (kind == Kind::Absent) != (collision == -1) {
+                    return Err(bad(i, "a geometry header whose status and collision index contradict each other".to_string()));
+                }
+                if kind == Kind::Callable && collision < 1 {
+                    return Err(bad(i, "a callable geometry header without a collision object".to_string()));
+                }
+                let ident = Identity {
+                    name,
+                    collision,
+                    status: status.clone(),
+                    detail,
+                    fan_bound,
+                    backed,
+                };
                 if let Some(run) = current.as_ref().filter(|r| r.scene == scene) {
-                    // the same scene's next page
+                    // the same scene's next page: the same model
                     if run.finished {
                         return Err(bad(i, format!("scene {scene} continues after its terminal")));
+                    }
+                    if run.ident != ident {
+                        return Err(bad(i, format!("scene {scene}: the model's header changed between pages")));
                     }
                     if first != run.next_first {
                         return Err(bad(i, format!("scene {scene} page starts at depth {first}, not {}", run.next_first)));
@@ -255,6 +313,7 @@ pub fn validate(rows: &[(usize, Value)], scene_last: usize) -> Result<Contract, 
                         return Err(bad(i, format!("scene {scene} begins at depth {first}, not 0")));
                     }
                     current = Some(SceneRun {
+                        ident,
                         scene,
                         next_first: 0,
                         tris: 0,
@@ -268,11 +327,6 @@ pub fn validate(rows: &[(usize, Value)], scene_last: usize) -> Result<Contract, 
                         format!("scene {scene} page asks for {count} depths from {first}, the driver asks {expected}"),
                     ));
                 }
-                let kind = match status.as_str() {
-                    "absent" => Kind::Absent,
-                    "safe" | "empty" => Kind::Callable,
-                    _ => Kind::Refusing,
-                };
                 page = Some(Page {
                     scene,
                     first,
@@ -283,6 +337,8 @@ pub fn validate(rows: &[(usize, Value)], scene_last: usize) -> Result<Contract, 
                     false_depth: None,
                     ended: false,
                     closed: false,
+                    fan_bound,
+                    backed,
                 });
             }
             "model-tri" => {
@@ -304,6 +360,17 @@ pub fn validate(rows: &[(usize, Value)], scene_last: usize) -> Result<Contract, 
                     .ok_or_else(|| bad(i, "a triangle writes count outside 0 to 9".to_string()))?;
                 if (writes > 0) != row.get("p").is_some() || text(row, "p").is_some_and(|s| !nine_words(s)) || row.get("p").is_some_and(|v| !v.is_string()) {
                     return Err(bad(i, "a triangle row whose coordinates disagree with its writes count".to_string()));
+                }
+                // `writes` is the number of the nine words that differ from the sentinel the fixture pre-fills the buffer with, exactly as the closed driver checks it (a partial
+                // write is a genuine observation of the original; a count that is not the changed words is not)
+                if let Some(p_text) = text(row, "p") {
+                    let changed = p_text.split(',').filter(|word| *word != SENTINEL).count() as i64;
+                    if changed != writes {
+                        return Err(bad(
+                            i,
+                            format!("a triangle row whose writes count {writes} is not the {changed} words that differ from the sentinel"),
+                        ));
+                    }
                 }
                 if depth != p.first + p.tris || p.tris >= p.count {
                     return Err(bad(i, format!("triangle depth {depth} where {} is due, or beyond the page", p.first + p.tris)));
@@ -341,9 +408,29 @@ pub fn validate(rows: &[(usize, Value)], scene_last: usize) -> Result<Contract, 
                             return Err(bad(i, "original_false without an original call that returned false at that depth".to_string()));
                         }
                     }
-                    Some("end_probe_unbacked") | Some("beyond_safe_bound") => {
-                        if p.false_depth.is_some() || depth != p.first + p.tris {
-                            return Err(bad(i, "a fixture end that follows a false return or is not at the depth reached".to_string()));
+                    Some("end_probe_unbacked") => {
+                        // the fixture ends an unbacked model's walk at its safe bound (eech_model_fixture.c: depth == fan_triangles with the end read unbacked)
+                        if p.false_depth.is_some() || depth != p.first + p.tris || p.backed != 0 || depth != p.fan_bound {
+                            return Err(bad(
+                                i,
+                                format!(
+                                    "end_probe_unbacked at depth {depth} contradicts the header (end_read_backed {}, fan_bound {}) or the depth reached",
+                                    p.backed, p.fan_bound
+                                ),
+                            ));
+                        }
+                    }
+                    Some("beyond_safe_bound") => {
+                        // past the deepest depth the fixture allows (the bound itself when the end read is backed, one less when it is not), and not the unbacked end probe's depth
+                        let deepest = if p.backed == 1 { p.fan_bound } else { p.fan_bound - 1 };
+                        if p.false_depth.is_some() || depth != p.first + p.tris || depth <= deepest || depth == p.fan_bound {
+                            return Err(bad(
+                                i,
+                                format!(
+                                    "beyond_safe_bound at depth {depth} contradicts the header (end_read_backed {}, fan_bound {}) or the depth reached",
+                                    p.backed, p.fan_bound
+                                ),
+                            ));
                         }
                     }
                     other => return Err(bad(i, format!("unknown end reason {other:?}"))),
