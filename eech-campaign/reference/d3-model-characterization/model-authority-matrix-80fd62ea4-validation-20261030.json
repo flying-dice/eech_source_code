@@ -1,0 +1,41 @@
+{
+  "production_source": "80fd62ea48fc75aa9546c785f525be034abd16f8",
+  "scope": "Nine actual public Lua/native data authority/refusal controls, not full shipping acceptance",
+  "all_native_controller_prepost_exits": 0,
+  "all_payload_checks_each": 48,
+  "poisoned_vs_healthy_all_six_probe_reports_byte_exact": true,
+  "host_numeric_triangle_exact_BIG_words_consumed": true,
+  "host_absence_returns_false_without_buffer_writes": true,
+  "refusal_probe_cases": {
+    "bad_found_declared_absent": {
+      "primary_stage": "probe",
+      "primary_message": "runtime error: eech: EECH fatal error: host model: [model-provider:triangle.answer] the host gave a triangle for scene 8, which it declared has no collider",
+      "primary_matched": true,
+      "tripped": true
+    },
+    "bad_count": {
+      "primary_stage": "probe",
+      "primary_message": "runtime error: eech: EECH fatal error: host model: [model-provider:triangle.answer] p element 9 is not a finite number",
+      "primary_matched": true,
+      "tripped": true
+    }
+  },
+  "boot_refusals": {
+    "bad_name": "runtime error: eech: EECH fatal error: host model: [model-provider:catalogue.identity] scene 1 is named \"AH64D_APACHE_LONGBOW_WRONG\" by the host but \"AH64D_APACHE_LONGBOW\" by the campaign",
+    "missing": "runtime error: eech: [model-provider:missing] boot was given no model provider; the host supplies the physical models (catalogue, scenes, collision triangles)"
+  },
+  "raw_report_sha256": {
+    "reference": "664d83b6ca09bf085c127a5f0c403adde599c2983d00dd37956c00cc2a4af1a5",
+    "poison": "3594785d021aa6596c97b67c977a168740f72ef99690a82049ca8fc034b76f1b",
+    "inflate": "47d694fb166b9194dea4135c7dd40ec1b5620d77333501a1ed2cabdf902d9abe",
+    "bounds_zero": "1fabc419ae04d9290f1d6b191fdbb7af0d9a9e81c2186fbf4d78fc87bf50d9d0",
+    "absent_all": "761581d93d0d098460ae764036d16fbd5fb7d42ebd9a619cd34b835acc048699",
+    "bad_found_declared_absent": "2d86b3aec755d32685dc1fc07aa884c915157aa88033cef26ce3e022d0282206",
+    "bad_count": "e1e964f7d22e6dd1cf325104b73ae493e9029058cd7f1144e064a9a5ace628d2",
+    "bad_name": "dda580c27e3c7a35bd4edf6bd3b565e6e1572dc7a8c343dfbda2efcd76b05c8c",
+    "missing": "d6429f16641f47c3478fb7006b35e3fce091f5fd1ea290fdfd19cd38d2c89e21"
+  },
+  "limits": "No private geometry/hash acceptance constraint, healthy/poison reports exact; source read establishes contradiction guard before caller writes, no post-fatal buffer measurement claimed. Required physical scan/solver/loader work and full40/delivery remain open.",
+  "host_zero_bbox_and_bbox_without_lines_consumed": true,
+  "host_bbox_pointer_stable": true
+}
