@@ -1,21 +1,38 @@
-# D3 commit/push checkpoint — original backing source preserved (30 October 2026)
+# D3 checkpoint — all present retail model geometry matches; public handoff active (30 October 2026)
 
-EEDCS-50 / PR110 source checkpoint `874aa5ae6` on `codex/d3-model-geometry`
-contains feature-only original loader backing observation and a bounded integer
-read verifier, including the pre-build capacity and 0/1-point stepping corrections.
-Both Sonnet author processes finished with exit 0. Formatting and diff checks
-passed; the new source remains unbuilt, unrun and independently unreviewed.
-The 44 prepared verifier expectations have not executed. All three fresh private
-roots passed repository input-manifest checks with exit 0; no new native probe
-has used them. Independent safety review remains a gate before newly enabled
-original fixture/accessor execution. Original numeric accessor bodies, accepted
-baselines and tolerances are unchanged. No new Tacview or production claim.
+EEDCS-50 / PR110 evidence is pushed at `5bce5c734c8f641f8fc0f7150705e260ab291151`.
+Reviewed original fixture `debf965cb` and unchanged host component `f9c6a1e4c`
+match every one of the 828 present models in verified retail inputs: 30,609 TRUE
+triangles plus 828 original end FALSE calls per root; the retained absence adds
+one FALSE. All 3,025 metadata records match. The 65 earlier models are reused;
+763 additional models, including 178 currently used, pass twelve bounded batches
+on all three case roots. Every native/input stage passes, with no cap, mismatch
+or state drift. Original triangle rows and complete host reports are byte exact
+across roots within each selected set/batch. Raw files and baselines are unchanged.
 
-The prepared host-model component review at `f9c6a1e4c` remains closed with its
-previous evidence. Physical model loading/queries remain in EECH_DC. Task50 and
-D3 remain In Progress; the existing Task47 shipping run was not restarted or
-interrupted by this checkpoint. Retail data, recordings and build caches remain
-local. D4/D5 have not started.
+Windows fixture compilation and Linux formatting/one Rust control test/69 synthetic
+expectations pass. The surface-provenance P2 is closed. Both Root aggregation
+failures remain controller1 after native/input0; separately reviewed read-only
+recoveries pass without native reruns. Final expanded evidence review SHA256:
+b8712c4bc6c0630e74eecea25bcec5bcdfd31a48d228f09483b46d4701037821.
+Ledger14548994v73 and Jira10868 record this; prior HTML and all five epic reports
+read back exactly. Finite current-input evidence is not generic/DCS support.
+
+The same Sonnet5.5 High session20f8 now implements required public model-query
+authority/refusal on the draft branch: tool13444/PID6768, born02:33:33.362640UTC.
+New handoff source remains unbuilt/unrun/unreviewed; no production claim. Required
+physical collision scans/transforms/solvers, hierarchy/viewpoints/devices/muzzles/
+target points and physical loader removal also remain D3 work, alongside environment
+and host time. Campaign shape choices, targets, policy, consequences, geography,
+routes, timers and scheduling stay core. An intermediate accessor handoff is not
+the final boundary. Task50/D3 remain In Progress; D4/D5 have not started.
+
+Task47 shipping115 remains in its original six processes and was not restarted.
+At02:35UTC all four nonempty recorded prefixes match accepted bytes (about94MB
+Tacview and67.5MB observations per recorded run). Full runner completion, all40
+checks, eight complete artifacts, post-input acceptance and normal delivery remain
+pending. Current PR107 head7b51efedb has nine successful CI checks; integration
+remains6bbaa8197. Retail data, raw recordings and useful tested caches stay local.
 
 # D3 checkpoint — prepared model component review closed; backing instrumentation active (30 October 2026)
 
