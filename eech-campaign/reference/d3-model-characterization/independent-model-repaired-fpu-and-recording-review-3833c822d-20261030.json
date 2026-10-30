@@ -1,0 +1,152 @@
+{
+  "schema": "independent-runtime-classification/v1",
+  "reviewed_utc": "2026-10-30T04:23:11.837598+00:00",
+  "scope": "NEW measured3833 FPU/runtime/artifacts only, plus read-only frozen reference-host phase correspondence; no unchanged model/source review.",
+  "verdict": "FULL_FPU_REPAIR_CONFIRMED_BOUNDED_BYTE_EQUALITY_FAILED",
+  "repaired_FPU": [
+    {
+      "case": "reference",
+      "controller_sha256": "e3358fe2e0fa46315a62fef19dc5bef9c6e29f006121fdedef041117d1e0ce1e",
+      "raw_sha256": "55e4457fd09c3cb5230dbbf64971494d55d54e2201ee3d31bfa439930042fd0d",
+      "rows": 15,
+      "measured_entries": 8,
+      "actual_native_controller": 0,
+      "post_inputs": 0,
+      "all_full_words_equal": true,
+      "successful_entries": 8,
+      "refused_entries": 0
+    },
+    {
+      "case": "decline-0",
+      "controller_sha256": "35c31db50d49530d6c747c215fac63b2cc8542534a0b31aecd4d0302b81b3edc",
+      "raw_sha256": "7cfee02cf416629821025a0f43fd73752a87a0bca7f9a845a0a9dd39d5a9dffa",
+      "rows": 4,
+      "measured_entries": 2,
+      "actual_native_controller": 0,
+      "post_inputs": 0,
+      "all_full_words_equal": true,
+      "successful_entries": 1,
+      "refused_entries": 1
+    },
+    {
+      "case": "decline-1",
+      "controller_sha256": "392be2d8cb333a021ceb02b8af2be965abe99b9cd0771930846db6376f5ef858",
+      "raw_sha256": "ff98427acb5716066dce9c2942c8d79992920613f3155ca4cce159d6a0a4486f",
+      "rows": 4,
+      "measured_entries": 2,
+      "actual_native_controller": 0,
+      "post_inputs": 0,
+      "all_full_words_equal": true,
+      "successful_entries": 1,
+      "refused_entries": 1
+    },
+    {
+      "case": "decline-2",
+      "controller_sha256": "cb6beb24ad9775562c52369f5f5f99daecc90bba2e0a884d7e93c8a38b5dbff7",
+      "raw_sha256": "09fb6d480df3700e08f139fab428c9044b9355e7ddceb067e814fe39c3c54af9",
+      "rows": 4,
+      "measured_entries": 2,
+      "actual_native_controller": 0,
+      "post_inputs": 0,
+      "all_full_words_equal": true,
+      "successful_entries": 1,
+      "refused_entries": 1
+    },
+    {
+      "case": "decline-3",
+      "controller_sha256": "0ae7c0c3f5c4b5a34bea76604c9513744f73e7ba01bf645a693e19753448e579",
+      "raw_sha256": "d1a72aaef22657c9dd1e22b64e524576d3c1cc6950be62fd319f1c291428e3eb",
+      "rows": 4,
+      "measured_entries": 2,
+      "actual_native_controller": 0,
+      "post_inputs": 0,
+      "all_full_words_equal": true,
+      "successful_entries": 1,
+      "refused_entries": 1
+    }
+  ],
+  "recording_artifacts": [
+    {
+      "source": "4bee2cc8c95309e85b7503a87606b92e0d2594fe",
+      "controller_sha256": "5aaa91ccbf1c1c86496e0ab0b80220b5abf57f4883d88c7d5a1a79be8b081e15",
+      "files": {
+        "recording.acmi": {
+          "bytes": 230871,
+          "sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d"
+        },
+        "observations.jsonl": {
+          "bytes": 1553674,
+          "sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc"
+        },
+        "metrics.json": {
+          "bytes": 7477,
+          "sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4"
+        }
+      }
+    },
+    {
+      "source": "3833c822d907e1088c3f34d067acea2dc33257c3",
+      "controller_sha256": "3969c38ce8c7f3b45fdba24e05cf99ec16591f49229dea0c57632e1c8aa4672b",
+      "files": {
+        "recording.acmi": {
+          "bytes": 230870,
+          "sha256": "4e73ecc0627d64170a92208b2c35f1ab1f8b3bbaf7c0bff21c17a4af13364a75"
+        },
+        "observations.jsonl": {
+          "bytes": 1553674,
+          "sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc"
+        },
+        "metrics.json": {
+          "bytes": 7477,
+          "sha256": "b1ea178d1c5360234246b94925e75795a3b80f7299a0bb5a1b85d022ef71b1a8"
+        }
+      }
+    }
+  ],
+  "acmi_raw_line_changes": [
+    {
+      "line": 4,
+      "old": "0,ReferenceLatitude=32.64110855599749",
+      "new": "0,ReferenceLatitude=32.6411085559975"
+    },
+    {
+      "line": 5,
+      "old": "0,ReferenceLongitude=35.07261828115903",
+      "new": "0,ReferenceLongitude=35.07261828115904"
+    }
+  ],
+  "metrics_changes": [
+    {
+      "path": "/checkpoints/1/seconds",
+      "old": 3,
+      "new": 4
+    }
+  ],
+  "observations_complete_byte_equal": true,
+  "root_differences_proof_sha256": "29ddcdb9741b739fd30a7bf737eac73091532dfb564a2ae0c9b892a053ebb451",
+  "classification": [
+    "All8reference requestedentries and2per freshdeclineRC0..3 are measured/judged, with exact x87control/status+MXCSR, initial RCs inbothunits, allmasks and nonzeroflags. Eachdeclinehas actual publiccounter success0 then provider-refused callbackentryfatal1; script/native/controller0 means the expected-refusal check passed, not that the innerentryreturnedhealthy0.",
+    "The measured actual public-entry restoration defect is fixed on these tested success/fatal paths. Old4bee failure stays retained. No new kernel arithmetic defect inferred.",
+    "Bounded recordings are NOT byteidentical: fullOBS1553674bytes isexact; ACMI3165lines differs only rawlines4/5; metrics differs only/checkpoints/1/seconds3to4. No normalization, baseline or tolerancechange used.",
+    "These differences expose a host-side numerical-context dependency after repaired Core correctly returns the callerSSEstate. Do not classify as simulation-invisible or merely cosmetic: hostderivedframebudget andcheckpoint arithmetic executeafter preparation too. Exact sampledbody/OBSthrough3s doesnot prove identicalunsampledfinalstate/framecount. Actualframecount/finalclock are not explicitly retained inthese controller/metrics records and must not be invented."
+  ],
+  "minimal_clean_boundary_advice": [
+    "Keep corrected publicDLL fullcallerstate restoration and closed model_step kernel unchanged. Independent/DCS callers must not inherit reference arithmetic via a Core leak.",
+    "Make reference-host arithmetic profile explicit, referencehostowned and lifecycle-scoped: reproduce former SSEround-toward-zero execution context for subsequentreference orchestration/calculations, preserving x87 state andallotherCSRbits. This is a reference-model behavior contract, not a universalhostrequirement or patchperoutputfield.",
+    "Match the phase: campaign.lua parses args/hours andloadsmetrics/observations/scenario before dc.prepare_installation(root) at64; boot at66, recorderprojection at81 and framebudget at143 arelater. The historical firstsuccessfulCoreprepare leakedSSE_RZ whilex87wasrestored. Enter reference profile immediatelyafter thatfirstsuccessfulprepare boundary, so earlier parsing/data generation phase remainsuntouched. Do not apply atprocessstartup/hostregistration oronlyduringrecordformatting.",
+    "Prefer one clear host-owned preparation/profile operation used consistently byreferenceclients, withsaved/restoredhostenvironment over itsintendedLuaexecution lifetime and errorpaths; genericpublicDLL and thirdpartyproviders remainunmodified. Do not require replicatedprivateobjectlayout or physicalpolicy.",
+    "Verify actualhostprofile words/phase, corrected Corepreservation fromnonRZcallers, sameboundold4bee/repairedfreshroot ACMI/OBS/metricscompletebytes and actualframecount/finalclock. Then retainaccepted40/full8/postinputs/currentCI/normalmergegates. No inventednewbaseline, outputroundingedits, tolerance/RZshim hidingpublicFPgate, or acceptedfullpackrerun merely todiagnose thissmallseam."
+  ],
+  "source_phase_references": [
+    "eech-campaign/crates/eech-world/lua/campaign.lua:14",
+    "eech-campaign/crates/eech-world/lua/campaign.lua:64",
+    "eech-campaign/crates/eech-world/lua/campaign.lua:81",
+    "eech-campaign/crates/eech-world/lua/campaign.lua:143",
+    "eech-campaign/crates/eech-world/lua/metrics.lua:125",
+    "eech-campaign/crates/eech-world/src/main.rs:2637"
+  ],
+  "limits": [
+    "Not formalGitHub/Task50/production/fullshipping/Tacview/wholeD3acceptance. FiniteD3 physicalsolvers/loaders/hierarchy/environment/time stillopen.",
+    "No reviewer builds/tests/native/campaign/process/auth/cache/Gitmutations/nestedagents or liveauthor reads. Only retainedfiles/frozenphase reads andthisreport. Task47shippinguntouched."
+  ]
+}
