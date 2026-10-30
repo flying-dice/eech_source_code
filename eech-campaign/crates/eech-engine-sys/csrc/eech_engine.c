@@ -1539,3 +1539,27 @@ int eech_engine_wpn_case_launch (const char *launcher_id, const char *target_id,
 }
 
 #endif
+
+#ifdef EECH_ENV_FIXTURE
+/* TEST-ONLY (feature env-fixture, EEDCS-51): the ORIGINAL session environment, see eech_env_fixture.c. Group 0 census and 1 retail snapshot are read-only; groups 2.. are controlled witnesses
+   that restore everything they touch before they return. No host is given: the cases ask no physical question of a host. */
+extern int eech_env_case_run (int group, int index, char *text, int capacity);
+
+int eech_engine_env_case (int group, int index, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_env_case_run (group, index, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+#endif

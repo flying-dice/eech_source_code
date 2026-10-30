@@ -56,7 +56,7 @@ fn check(code: c_int) -> Result<(), EngineError> {
 /// TEST-ONLY (feature `weapon-fixture`, EEDCS-46): the report text of a controlled combat case when the engine rejected its arguments. The case driver writes its reason
 /// (`cmb-case-error reason=... detail=...`) into the report buffer before it returns the argument error, and `check` turns every argument error into "rejected by the engine";
 /// this keeps the reason instead of discarding it. Any other failure, and a rejection that wrote nothing, is unchanged.
-#[cfg(feature = "weapon-fixture")]
+#[cfg(any(feature = "weapon-fixture", feature = "env-fixture"))]
 fn keep_case_reason(status: Result<(), EngineError>, text: &[std::os::raw::c_char]) -> Result<String, EngineError> {
     // SAFETY: the buffer was zero-filled and the engine NUL-terminates anything it writes within it.
     let report = unsafe { CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned();
@@ -963,6 +963,10 @@ const AIM_REPORT_CAPACITY: usize = 96 * 1024;
 /// TEST-ONLY (feature `weapon-fixture`): room for one weapon-execution report or one chunk of the event log; a report that does not fit is refused, never cut short.
 #[cfg(feature = "weapon-fixture")]
 const WPN_REPORT_CAPACITY: usize = 160 * 1024;
+
+/// TEST-ONLY (feature `env-fixture`): room for one case of the session environment characterisation; a report that does not fit is refused by the engine, never cut short.
+#[cfg(feature = "env-fixture")]
+const ENV_REPORT_CAPACITY: usize = 32 * 1024;
 
 /// the booted engine (one per process)
 pub struct Engine {
@@ -4660,6 +4664,17 @@ impl Engine {
     pub fn aim_trace_reset(&self) -> Result<(), EngineError> {
         // SAFETY: no pointers cross.
         check(unsafe { sys::eech_engine_aim_trace_reset() })
+    }
+
+    /// TEST-ONLY (feature `env-fixture`, EEDCS-51): one case of the ORIGINAL session environment (weather, wind, clock), as `key=value` text lines: group 0 the census, 1 the unmodified session with
+    /// its original queries (both read-only), 2 to 8 the controlled witnesses (weather, wind, gust, clock, initialisers, time-of-day update, weather and wind update), each of which restores every
+    /// state it touched before it returns and says so. Asks no host anything. An unknown group or index, or a report that does not fit, is an error carrying the reason.
+    #[cfg(feature = "env-fixture")]
+    pub fn env_case(&self, group: i32, index: i32) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; ENV_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        let status = check(unsafe { sys::eech_engine_env_case(group, index, text.as_mut_ptr(), text.len() as i32) });
+        keep_case_reason(status, &text)
     }
 
     /// TEST-ONLY (feature `weapon-fixture`, EEDCS-46): the run-wide report of the physical combat-resolution code (damage capability, collisions, blasts, repair writes) since

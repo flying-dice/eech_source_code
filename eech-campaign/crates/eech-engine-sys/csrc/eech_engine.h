@@ -370,4 +370,14 @@ int eech_engine_cmb_case_bridge (int op, int ordinal, int index, int criterion, 
 int eech_engine_cmb_events (char *text, int capacity, int *more);
 #endif
 
+#ifdef EECH_ENV_FIXTURE
+/*
+ * TEST-ONLY (feature env-fixture, EEDCS-51): see eech_env_fixture.c. Not part of the shipping module.
+ * One call is one case, as `key=value` text lines. group 0 the census (case counts, enum values, constants, unsupported items), 1 the unmodified session environment with its original
+ * queries (read-only); 2 weather, 3 wind, 4 gust, 5 clock, 6 initialisers, 7 time-of-day update, 8 weather/wind update: controlled witnesses that restore everything they touch.
+ * Fails (bad argument, the reason in the text) for an unknown group or index or a report that does not fit `capacity`.
+ */
+int eech_engine_env_case (int group, int index, char *text, int capacity);
+#endif
+
 #endif

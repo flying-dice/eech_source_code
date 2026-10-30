@@ -1986,3 +1986,203 @@ fn the_object_witness_says_so_when_there_is_no_such_structure_and_refuses_a_malf
         "{stderr}"
     );
 }
+
+// The environment characterisation driver (EEDCS-51, lua/env-characterization.lua) run as the host binary runs it, against a stand-in engine: the checks protect its CONTRACT (arguments refused
+// before anything runs, a genuine refusal without the fixture, a control run that asks for no witness, strings that stay strings, a witness that did not restore failing the run). The stand-in
+// answers canned reports; nothing here says anything about the original code's weather, wind or clock.
+const ENV_DRIVER_SCRIPT: &str = r#"
+local time = 0
+local function note(text)
+  local f = io.open('@TRACE@', 'a')
+  f:write(text, '\n')
+  f:close()
+end
+local engine = {}
+function engine:clock() return { elapsed_seconds = time } end
+function engine:frame(ms)
+  if time > 100 then error('stand-in cap: the clock ran past 100 seconds') end
+  note('frame ' .. ms)
+  time = time + ms / 1000
+end
+function engine:objects() return { { id = 1, kind = 'helicopter', sub_type = 2, side = 'blue', alive = true, position = { 1.5, 2.5, 3.5 }, heading = 0.5, pitch = 0, roll = 0, ammo = 0, fuel = 0 } } end
+@ENV_METHOD@
+package.loaded['eech_dc'] = {
+  prepare_installation = function() note('prepare') end,
+  boot = function() note('boot') return engine end,
+}
+dofile('@LUA_DIR@/env-characterization.lua')
+"#;
+
+const ENV_METHOD: &str = r#"
+function engine:env_case(group, index)
+  note('case ' .. group .. ':' .. index)
+  if group == 0 then return 'env-census version=1 session_bytes=1 weather_cases=3 wind_cases=2 gust_cases=1 time_cases=1 init_cases=1 update_time_cases=1 update_weather_cases=1\nenv-unsupported item=x reason=y\n' end
+  if group == 1 then return 'env-state-time tag=retail start_time_w=00000000 day=1\nenv-state-fingerprint tag=retail fp=0123456789012345\n' end
+  return 'env-wind kind=witness i=' .. index .. ' speed_w=00000000 vx_w=80000000 rng=-5\nenv-witness-end group=' .. group .. ' index=' .. index .. ' restored=@RESTORED@ fp_before=0000000000000001 fp_after=0000000000000001\n'
+end
+"#;
+
+struct EnvRun {
+    status: std::process::ExitStatus,
+    stderr: String,
+    trace: String,
+    out_exists: bool,
+    out_text: String,
+    rows: Vec<serde_json::Value>,
+}
+
+fn run_env_driver(method: &str, restored: i32, args: &[&str]) -> EnvRun {
+    let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("lua")
+        .display()
+        .to_string()
+        .replace('\u{5c}', "/");
+    static COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+    let tag = format!("{}-{}", std::process::id(), COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst));
+    let script = std::env::temp_dir().join(format!("eech-world-env-driver-{tag}.lua"));
+    let out = std::env::temp_dir().join(format!("eech-world-env-driver-{tag}.jsonl"));
+    let trace = std::env::temp_dir().join(format!("eech-world-env-driver-{tag}.trace"));
+    let _ = std::fs::remove_file(&out);
+    let _ = std::fs::remove_file(&trace);
+    let text = ENV_DRIVER_SCRIPT
+        .replace("@ENV_METHOD@", &method.replace("@RESTORED@", &restored.to_string()))
+        .replace("@TRACE@", &trace.display().to_string().replace('\u{5c}', "/"))
+        .replace("@LUA_DIR@", &lua_dir);
+    std::fs::write(&script, text).unwrap();
+    let mut command = Command::new(env!("CARGO_BIN_EXE_eech-world"));
+    command
+        .arg(&script)
+        .arg("root=none")
+        .arg(format!("out={}", out.display().to_string().replace('\u{5c}', "/")));
+    // an argument given by the test replaces the same-named one of the defaults
+    let key = |arg: &str| arg.split('=').next().unwrap_or_default().to_string();
+    let defaults = ["seconds=1", "frame_ms=100", "snapshot_frames=2", "snapshot_every=0"];
+    let overridden: Vec<String> = args.iter().map(|a| key(a)).collect();
+    for arg in defaults.iter().filter(|a| !overridden.contains(&key(a))).chain(args.iter()) {
+        command.arg(arg);
+    }
+    let run = command.output().unwrap();
+    std::fs::remove_file(&script).unwrap();
+    let out_exists = out.exists();
+    let out_text = if out_exists { std::fs::read_to_string(&out).unwrap() } else { String::new() };
+    // every line must parse: a malformed row is a failure here, never silently dropped
+    let rows = out_text
+        .lines()
+        .map(|l| serde_json::from_str(l).unwrap_or_else(|e| panic!("malformed output row {l:?}: {e}")))
+        .collect();
+    let trace_text = std::fs::read_to_string(&trace).unwrap_or_default();
+    let _ = std::fs::remove_file(&out);
+    let _ = std::fs::remove_file(&trace);
+    EnvRun {
+        status: run.status,
+        stderr: String::from_utf8_lossy(&run.stderr).to_string(),
+        trace: trace_text,
+        out_exists,
+        out_text,
+        rows,
+    }
+}
+
+fn env_rows<'a>(rows: &'a [serde_json::Value], event: &str) -> Vec<&'a serde_json::Value> {
+    rows.iter().filter(|r| r["event"] == event).collect()
+}
+
+fn env_witness_calls(trace: &str) -> usize {
+    trace
+        .lines()
+        .filter(|l| l.starts_with("case ") && !l.starts_with("case 0:") && !l.starts_with("case 1:"))
+        .count()
+}
+
+#[test]
+fn the_environment_driver_refuses_a_malformed_argument_before_anything_is_prepared_booted_or_run() {
+    let cases: &[(&[&str], &str)] = &[
+        (&["frame_ms=0"], "frame_ms"),
+        (&["frame_ms=1001"], "frame_ms"),
+        (&["frame_ms=10.5"], "frame_ms"),
+        (&["seconds=-1"], "seconds"),
+        (&["seconds=1e3"], "seconds"),
+        (&["seconds=21601"], "seconds"),
+        (&["seconds=nan"], "seconds"),
+        (&["seed=0"], "seed"),
+        (&["seed=2147483648"], "seed"),
+        (&["seed=abc"], "seed"),
+        (&["probes=1025"], "probes"),
+        (&["probes=-1"], "probes"),
+        (&["probes="], "probes"),
+        (&["probe_at=2", "seconds=1"], "probe_at"),
+        (&["probe_at=x"], "probe_at"),
+        (&["snapshot_frames=2001"], "snapshot_frames"),
+        (&["snapshot_every=3601"], "snapshot_every"),
+        (&["snapshot_every=abc"], "snapshot_every"),
+        (&["scenario=mars"], "scenario"),
+        (&["frame_ms=1", "seconds=200"], "frames"),
+    ];
+    for (args, name) in cases {
+        let run = run_env_driver(ENV_METHOD, 1, args);
+        assert!(!run.status.success(), "{args:?} was accepted");
+        assert!(
+            run.stderr.contains("env-characterization:") && run.stderr.contains(name),
+            "{args:?}: the refusal does not name {name}: {}",
+            run.stderr
+        );
+        assert!(run.trace.is_empty(), "{args:?}: something ran before the refusal: {}", run.trace);
+        assert!(!run.out_exists, "{args:?}: the output file was created");
+    }
+}
+
+#[test]
+fn the_environment_driver_refuses_a_module_without_the_fixture_and_runs_no_frame() {
+    let run = run_env_driver("", 1, &["probes=3"]);
+    assert!(
+        !run.status.success(),
+        "a module without the fixture was reported as measured:\n{}",
+        run.out_text
+    );
+    assert!(run.stderr.contains("env_case"), "{}", run.stderr);
+    assert_eq!(env_rows(&run.rows, "refusal").len(), 1, "{}", run.out_text);
+    assert!(env_rows(&run.rows, "run").is_empty(), "a refused run wrote a run row");
+    assert!(!run.trace.contains("frame"), "a frame ran without the fixture: {}", run.trace);
+}
+
+#[test]
+fn the_environment_driver_control_asks_for_no_witness_and_the_probe_run_keeps_words_as_strings_and_reports_its_coverage() {
+    let control = run_env_driver(ENV_METHOD, 1, &["probes=0"]);
+    assert!(control.status.success(), "{}\n{}", control.stderr, control.out_text);
+    assert_eq!(env_witness_calls(&control.trace), 0, "the control asked for a witness: {}", control.trace);
+    assert_eq!(env_rows(&control.rows, "boot")[0]["mode"], "control");
+
+    // 10 witness cases exist in the stand-in's census; the cap of 4 truncates, and the coverage row says so
+    let probe = run_env_driver(ENV_METHOD, 1, &["probes=4"]);
+    assert!(probe.status.success(), "{}\n{}", probe.stderr, probe.out_text);
+    assert_eq!(env_witness_calls(&probe.trace), 4, "{}", probe.trace);
+    let winds = env_rows(&probe.rows, "env-wind");
+    assert_eq!(winds.len(), 4);
+    // a float word that is all decimal digits, and a signed-zero word, stay strings; a plain integer is a number
+    assert_eq!(winds[0]["speed_w"], "00000000");
+    assert_eq!(winds[0]["vx_w"], "80000000");
+    assert_eq!(winds[0]["rng"], -5);
+    let snapshots = env_rows(&probe.rows, "env-state-fingerprint");
+    assert!(snapshots.iter().all(|r| r["fp"] == "0123456789012345"), "{snapshots:?}");
+    let noninterference = env_rows(&probe.rows, "probe_noninterference");
+    assert_eq!(noninterference.len(), 1);
+    assert_eq!(noninterference[0]["retail_equal"], true);
+    let run = env_rows(&probe.rows, "run");
+    assert_eq!(run.len(), 1);
+    assert_eq!(run[0]["probes_run"], 4);
+    assert_eq!(run[0]["cases_available"], 10);
+    assert_eq!(run[0]["complete"], false);
+    let coverage = env_rows(&probe.rows, "coverage");
+    assert_eq!(coverage.len(), 7);
+    assert!(coverage.iter().any(|c| c["truncated"] == true));
+    assert!(probe.out_text.ends_with('\n'));
+}
+
+#[test]
+fn the_environment_driver_fails_the_run_when_a_witness_did_not_restore_what_it_touched() {
+    let run = run_env_driver(ENV_METHOD, 0, &["probes=2"]);
+    assert!(!run.status.success(), "a witness that did not restore passed:\n{}", run.out_text);
+    assert!(run.stderr.contains("restored"), "{}", run.stderr);
+    assert_eq!(env_rows(&run.rows, "failure").len(), 1, "{}", run.out_text);
+    assert!(env_rows(&run.rows, "run").is_empty());
+}

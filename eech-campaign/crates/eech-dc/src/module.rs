@@ -1840,6 +1840,11 @@ impl LuaUserData for LuaEngine {
         // TEST-ONLY (feature `aim-fixture`, EEDCS-44): clears that trace; not part of the shipping module.
         #[cfg(feature = "aim-fixture")]
         methods.add_method("aim_trace_reset", |_, this, ()| this.engine.aim_trace_reset().map_err(lua_error));
+        // TEST-ONLY (feature `env-fixture`, EEDCS-51): one case of the original session environment characterisation (group, index); not part of the shipping module.
+        #[cfg(feature = "env-fixture")]
+        methods.add_method("env_case", |_, this, (group, index): (i32, i32)| {
+            this.engine.env_case(group, index).map_err(lua_error)
+        });
         // TEST-ONLY (feature `weapon-fixture`, EEDCS-46): the run-wide report of the physical combat-resolution code; not part of the shipping module.
         #[cfg(feature = "weapon-fixture")]
         methods.add_method("cmb_trace", |_, this, ()| this.engine.cmb_trace().map_err(lua_error));

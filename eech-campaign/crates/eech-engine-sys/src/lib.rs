@@ -1323,6 +1323,12 @@ extern "C" {
         -> c_int;
 }
 
+/// TEST-ONLY (feature env-fixture, EEDCS-51): one case of the original session environment characterisation; see csrc/eech_env_fixture.c.
+#[cfg(feature = "env-fixture")]
+extern "C" {
+    pub fn eech_engine_env_case(group: c_int, index: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+}
+
 #[cfg(feature = "sensor-fixture")]
 extern "C" {
     pub fn eech_engine_sensor_trace(text: *mut c_char, capacity: c_int) -> c_int;

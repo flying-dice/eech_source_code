@@ -1,3 +1,22 @@
+# D3 environment original characterization — source prepared (30 October 2026)
+
+EEDCS-51, parent EEDCS-21, branch `codex/d3-environment-services`, freshly fetched
+integration base `6bbaa8197a4843181d03cd355d562af998c75321`.
+The sole Sonnet5.5 High CLI author completed0 (tool90536, sessionf3982761).
+The original weather/wind/clock fixture, public Lua/native driver, finite164-case
+table, control protocol, four driver-contract checks and Windows fixture build
+wrapper are prepared. Formatting passes. Original C bytes are preserved exactly
+before appended feature-only wrappers; the engine file retains its one NUL.
+No C build, native runtime, independent review or physical cutover is claimed.
+See `eech-campaign/docs/d3-environment-characterization.md` for coverage and gaps.
+
+The separate original Task47 tool59652 has now completed0: exact40 accepted checks,
+all8 COMPLETE default artifacts byte identical, all3 post-input manifests0 and
+all45 payload hashes verified. Final independent new-evidence review is running;
+formal approval and normal merge remain open. Other D3 physical services remain
+required. Campaign geography/routes/timers/scheduling/policy/consequences stay
+Core. D3 is active; D4/D5 have not started. No accepted baseline/tolerance changed.
+
 # D2 combat and perception — implementation delivery record
 
 29 October 2026. The physical D2 increment is delivered on integration through
