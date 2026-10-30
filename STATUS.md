@@ -1,30 +1,31 @@
-# D3 checkpoint — corrected builds pass; finite validation batch active (30 October 2026)
+# D3 checkpoint — actual handoff boots; MXCSR repair under validation (30 October 2026)
 
-EEDCS-50 / draft PR110 source ea1953b6c is frozen after user-requested source
-checkpoints1812cc70b and formatting. Shipping Windows and model-host/LOS fixture
-builds both complete0; all48 payloads in each independently verify. Linux affected
-tests complete101:419 pass, one strict-JSON tiny-number decoder assertion fails;
-Clippy is not reached. The actual shipped Lua writer emits the correct decimal,
-and an independent JSON parser recovers the exact original double. Red retained.
-Combined review0c94b2efa9df651b7648e6ecabe7d0ed56e5bff1ca509a3a8598318b7a5ae188
-closes the original six P2/two P3 substantive fixes; one P2 (refusal-stage controls)
-and three P3 (full outer-entry FPU evidence/wording, precise test decoder, extern
-doc warning) remain. The same Sonnet5.5 High context20f8 now fixes that finite
-batch: tool52528/PID22296/controller10536, born03:41:46.975357UTC, actual init/CIM
-verified. Current edits are unbuilt/unrun/unreviewed; no new native campaign yet.
+EEDCS-50 / PR110 frozen4bee2cc8c passes Windows shipping/fixture builds (48exports
+each),422 affected tests/default strict Clippy and feature-enabled Clippy. Actual
+required public host-Lua/native campaign boot/3.6s checks and pre/post manifests
+pass all3retail roots; Lebanon/repeat complete bounded metrics byte-match7477B.
+Actual Core-generated models bootstrap/run0 with Georgia retail map/config support;
+this is no nonretail-map or full-pack claim. All828 closed geometry evidence reused.
 
-Safe validation/review/build/tracker metadata is pushed atf05a3347c. Ledger75,
-Jira10870 and PR110 record the limits; prior HTML and all five epic reports read
-back exactly. Public retail authority and actual Core-generated-model campaign
-bootstrap remain held/pending. The prepared synthetic-model root retains Georgia
-map/config support; it proves no nonretail map. All828 model conformance evidence
-and unchanged kernel remain reusable. Task47 retains its original six processes;
-at03:34:50UTC all four nonempty prefixes match (~102MB ACMI/73.6MB observations
-each). Full40/eight complete artifacts, final metrics, post-input acceptance and
-normal delivery remain pending. Required physical solvers/scans/transforms,
-hierarchy/devices/route-data and loader dependencies, environment and host time
-remain D3. Campaign policy, geography, routes, timers and consequences stay core.
-Task50/D3 remain In Progress; D4/D5 have not started. Baselines are unchanged.
+The actual complete native FPU diagnostic is RED: all8 entries measured, x87
+control/status exact but MXCSR nearest/down/up becomesRZ for counter-only and
+callback entries (6failures). A separate actual same-MinGW control reproduces it
+without EECH/Lua/data. Independent assessmentbe9dfe914ef0c624686256547f8b93db9922c0244f572b3b992c0db919255527
+confirms the unchanged outer entry defect. Pre-repair bounded Tacview/observations/
+metrics are retained for exact comparison; no baseline/tolerance/shim change.
+
+Minimal repair3833c822d is pushed/frozen: complete MXCSR save/restore afterfesetenv
+on normal/fatal exits, internalRZ/math unchanged; requested-FPU completeness and
+narrowing wording fixes included. Author3076/PID22028 terminal0/collected; no writer
+active. Windows44214/PID18760 and Linux66447/PID7716 builds live; fixture/features
+prepared only. One changed-delta review uses the same independent reviewer.
+Actual repaired full-state success/refusal-perRC and byte comparisons remain next.
+Ledger76/Jira10871/PR110 preserve current evidence and all5epicreports exactly.
+Task47 original shipping run is retained; full40/eight complete artifacts/final
+metrics/post-input acceptance/normaldelivery remain pending. Required physical
+solvers/scans/transforms/loaders/hierarchy/device/route-data/environment/time remain
+D3; campaign policy/geography/routes/timers/consequences stay core. Task50/D3 open;
+D4/D5 not started. No acceptance claim from prepared code or bounded checks.
 
 # D3 checkpoint — all present retail model geometry matches; public handoff active (30 October 2026)
 
