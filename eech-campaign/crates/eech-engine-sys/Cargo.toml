@@ -24,6 +24,9 @@ aim-fixture = []
 weapon-fixture = []
 # TEST-ONLY (EEDCS-50): read-only questions to the original collision-model accessors. Never enabled in the shipping build.
 model-fixture = []
+# TEST-ONLY (EEDCS-50, D3): the shipping host-owned model data PLUS a diagnostic that counts the host's answers and overwrites the campaign's own model arrays that the
+# original accessors read (so any read of them would show). Excludes model-fixture, which keeps the original accessors on purpose. Never enabled in the shipping build.
+model-host-fixture = []
 
 # TEST-ONLY (EEDCS-50): the isolated control of the original-model read-safety walk; it needs the feature's C
 [[test]]

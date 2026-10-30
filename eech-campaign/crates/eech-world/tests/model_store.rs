@@ -2167,3 +2167,153 @@ fn every_status_the_original_driver_writes_is_accepted_in_a_catalogue_and_as_a_r
         }
     }
 }
+
+// ---------------------------------------------------------------------------------------------------------------------------------
+// The reference host's model provider (EEDCS-50, D3): `host.model` and `host.model_provider`, what a script passes to `eech_dc.boot` as `model`. The campaign asks the host
+// for the catalogue, every scene's radius and bounds, and every step of a collision-triangle cursor; the provider answers from the same immutable store the comparison
+// tests above exercise, as exact bit patterns. These tests drive the real host binary on the synthetic installation; they need no DLL and say nothing about any retail model.
+
+const PROVIDER_CHECK: &str = include_str!("../lua/model-provider-check.lua");
+
+fn provider_rows(root: &Path) -> Vec<Value> {
+    let dir = temp_dir("provider");
+    let script = dir.join("model-provider-check.lua");
+    std::fs::write(&script, PROVIDER_CHECK).unwrap();
+    let out = dir.join("provider.jsonl");
+    let run = std::process::Command::new(host_binary())
+        .arg(&script)
+        .arg(format!("root={}", slashes(root)))
+        .arg(format!("out={}", slashes(&out)))
+        .output()
+        .unwrap();
+    assert!(run.status.success(), "the provider check failed\n{}", String::from_utf8_lossy(&run.stderr));
+    let rows = std::fs::read_to_string(&out)
+        .unwrap()
+        .lines()
+        .map(|l| serde_json::from_str(l).unwrap_or_else(|e| panic!("malformed output row {l:?}: {e}")))
+        .collect();
+    let _ = std::fs::remove_dir_all(&dir);
+    rows
+}
+
+#[test]
+fn the_reference_provider_answers_exactly_what_the_store_answers_by_both_routes() {
+    let root = standard();
+    let store = root.load().unwrap();
+    let rows = provider_rows(&root.dir);
+    for via in ["lazy", "store"] {
+        let of = |event: &str| -> Vec<&Value> { rows.iter().filter(|r| r["event"] == event && r["via"] == via).collect() };
+
+        let catalogue = of("catalogue");
+        assert_eq!(catalogue.len(), 1, "{via}");
+        assert_eq!(
+            (catalogue[0]["ok"] == true, catalogue[0]["scenes"].as_u64()),
+            (true, Some(scene_last() as u64)),
+            "{via}: {}",
+            catalogue[0]["error"]
+        );
+
+        for row in of("scene") {
+            let scene = row["scene"].as_i64().unwrap();
+            assert_eq!(row["ok"], true, "{via} scene {scene}: {}", row["error"]);
+            if scene == 0 {
+                // the null scene: the zeroed entry the original kept for the invalid object index, authored by the host
+                assert_eq!(
+                    (row["main"].as_i64(), row["collision"].as_i64(), row["radius"].as_str()),
+                    (Some(0), Some(0), Some("0x00000000")),
+                    "{via}"
+                );
+                assert_eq!(
+                    (row["bb"].as_str(), row["bb2"].as_str()),
+                    (
+                        Some("0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000"),
+                        Some("0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000")
+                    ),
+                    "{via}"
+                );
+                continue;
+            }
+            let view = store.scene(scene).unwrap();
+            assert_eq!(row["main"].as_i64(), Some(i64::from(view.main)), "{via} scene {scene}");
+            assert_eq!(row["collision"].as_i64(), Some(i64::from(view.collision)), "{via} scene {scene}");
+            assert_eq!(row["radius"].as_str(), Some(format!("0x{:08x}", view.radius).as_str()), "{via} scene {scene}");
+            assert_eq!(
+                row["bb"].as_str(),
+                Some(eech_world::models::hex_list(&view.bounding_box).as_str()),
+                "{via} scene {scene}"
+            );
+            assert_eq!(
+                row["bb2"].as_str(),
+                Some(eech_world::models::hex_list(&view.bounding_box2).as_str()),
+                "{via} scene {scene}"
+            );
+        }
+
+        let mut kinds = BTreeMap::new();
+        for row in of("triangle") {
+            let (scene, depth) = (row["scene"].as_i64().unwrap(), row["depth"].as_i64().unwrap());
+            if scene == 0 {
+                // scene 0 has no collision triangles to ask for: the campaign never asks, and a host asked anyway refuses
+                assert_eq!(row["ok"], false, "{via}");
+                continue;
+            }
+            assert_eq!(row["ok"], true, "{via} scene {scene} depth {depth}: {}", row["error"]);
+            let (kind, expected_points, expected_reason) = match store.triangle(scene, depth).unwrap() {
+                Triangle::Found(bits) => ("triangle", Some(eech_world::models::hex_list(&bits)), None),
+                Triangle::End => ("end", None, None),
+                Triangle::Absent => ("absent", None, None),
+                Triangle::Refused(reason) => ("refused", None, Some(reason)),
+            };
+            assert_eq!(row["result"].as_str(), Some(kind), "{via} scene {scene} depth {depth}");
+            assert_eq!(
+                row["p"].as_str().filter(|p| !p.is_empty()),
+                expected_points.as_deref(),
+                "{via} scene {scene} depth {depth}"
+            );
+            assert_eq!(
+                row["reason"].as_str().filter(|p| !p.is_empty()),
+                expected_reason,
+                "{via} scene {scene} depth {depth}"
+            );
+            *kinds.entry(kind).or_insert(0usize) += 1;
+        }
+        // the synthetic installation has all four kinds of answer: a triangle, the end of a list, the absence of a collider and a refusal (a null collision object); a
+        // legitimate absence is a different answer from a refusal
+        for kind in ["triangle", "end", "absent", "refused"] {
+            assert!(kinds.get(kind).copied().unwrap_or(0) > 0, "{via}: no {kind} answer in {kinds:?}");
+        }
+    }
+}
+
+#[test]
+fn the_reference_provider_refuses_every_malformed_request_by_name_before_the_store_is_asked() {
+    let root = standard();
+    let rows = provider_rows(&root.dir);
+    let bad: Vec<&Value> = rows.iter().filter(|r| r["event"] == "bad_request").collect();
+    // fifteen requests through each of the two routes
+    assert_eq!(bad.len(), 30, "{bad:?}");
+    for row in bad {
+        assert_eq!(row["ok"], false, "{row}");
+        let error = row["error"].as_str().unwrap();
+        assert!(error.contains("[model-provider:"), "an unnamed refusal: {row}");
+    }
+}
+
+#[test]
+fn a_root_without_model_assets_refuses_the_provider_as_not_run_never_as_an_empty_database() {
+    let dir = temp_dir("provider-missing");
+    let run = {
+        let script = dir.join("model-provider-check.lua");
+        std::fs::write(&script, PROVIDER_CHECK).unwrap();
+        std::process::Command::new(host_binary())
+            .arg(&script)
+            .arg(format!("root={}", slashes(&dir.join("no-such-installation"))))
+            .arg(format!("out={}", slashes(&dir.join("out.jsonl"))))
+            .output()
+            .unwrap()
+    };
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(!run.status.success(), "a root with no model assets was accepted\n{stderr}");
+    assert!(stderr.contains("NOT RUN") || stderr.contains("model store refused"), "{stderr}");
+    let _ = std::fs::remove_dir_all(&dir);
+}

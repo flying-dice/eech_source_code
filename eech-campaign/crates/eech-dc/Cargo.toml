@@ -38,6 +38,8 @@ aim-fixture = ["eech-engine/aim-fixture"]
 weapon-fixture = ["eech-engine/weapon-fixture"]
 # TEST-ONLY (EEDCS-50): read-only questions to the original collision-model accessors. Never enabled in the shipping build.
 model-fixture = ["eech-engine/model-fixture"]
+# TEST-ONLY (EEDCS-50 D3): the shipping host-owned model data plus a diagnostic that counts the host's answers and overwrites the campaign's own model arrays. Never enabled in the shipping build.
+model-host-fixture = ["eech-engine/model-host-fixture"]
 
 # Code that runs inside a host's process: a panic in this DLL takes the host
 # down. The reference crate's restriction lints, denied here.

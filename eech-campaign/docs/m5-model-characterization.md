@@ -258,3 +258,5 @@ and the physical solver/loader removal from EECH_DC. Campaign policy, geography,
 original C model code; this probe does not remove that coupling.
 
 The first host-owned model component that follows this characterisation (source prepared, unbuilt, unrun) is described in [`m5-model-host-store.md`](m5-model-host-store.md).
+
+The host-owned model data handoff that follows both (the campaign DLL's four model accessors now ask the host; source prepared, unbuilt, unrun) is described in [`m5-model-host-authority.md`](m5-model-host-authority.md). The `model-fixture` build described above keeps the ORIGINAL accessors on purpose and is unchanged in purpose.

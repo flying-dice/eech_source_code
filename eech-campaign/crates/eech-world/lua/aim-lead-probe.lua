@@ -94,7 +94,7 @@ dc.prepare_installation (root)
 local engine = dc.boot {
 	install_root = root, map = scenario.map, campaign_directory = "camp01", campaign = scenario.campaign, gunship = "apache",
 	seed = 1, bind_mobile = bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss,
-	supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, sense = host.sense, aim = aim,
+	supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, model = host.model, sense = host.sense, aim = aim,
 }
 emit { event = "boot", scenario = args.scenario or "lebanon_retail", mode = mode, warmup = warmup, weapon = weapon, sentinel = SENTINEL }
 for _ = 1, math.floor (warmup * 1000 / frame_ms) do engine:frame (frame_ms) end

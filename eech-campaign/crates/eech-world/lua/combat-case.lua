@@ -57,7 +57,7 @@ dc.prepare_installation (root)
 engine = dc.boot {
 	install_root = root, map = "..\\common\\maps\\map5", campaign_directory = "camp01", campaign = "LEBANON.CHC", gunship = "apache",
 	seed = seed, bind_mobile = bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss,
-	supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, sense = host.sense, aim = host.aim,
+	supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, model = host.model, sense = host.sense, aim = host.aim,
 }
 emit { event = "boot", scenario = "lebanon_retail", case = "controlled_combat", warmup = warmup, frame_ms = frame_ms, timed_seconds = timed_seconds, seed = seed }
 

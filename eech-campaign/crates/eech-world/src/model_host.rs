@@ -12,7 +12,9 @@ use crate::models::{hex_list, scene_last, ErrorKind, ModelStore, ObjectSource, S
 use crate::original_report;
 use mlua::prelude::*;
 use serde_json::Value;
+use std::cell::RefCell;
 use std::path::Path;
+use std::rc::Rc;
 use std::sync::Arc;
 
 /// the longest original report the comparison will read
@@ -172,13 +174,108 @@ impl LuaUserData for StoreHandle {
     }
 }
 
+/// Loads the store of the retail installation at `root`: a missing asset is `NOT RUN`, any other refusal names the file and why.
+fn load_store(root: &str) -> LuaResult<Arc<ModelStore>> {
+    match ModelStore::load(Path::new(root)) {
+        Ok(store) => Ok(Arc::new(store)),
+        Err(e) if e.kind == ErrorKind::Missing => Err(LuaError::runtime(format!("NOT RUN: model assets absent: {e}"))),
+        Err(e) => Err(LuaError::runtime(format!("model store refused: {e}"))),
+    }
+}
+
+/// An optional scene or depth of a provider question: absent (nil) or a whole number within `i32`, anything else refused before the store is asked.
+fn provider_number(value: Option<LuaValue>, name: &str, operation: &str) -> LuaResult<Option<i64>> {
+    match value {
+        None | Some(LuaValue::Nil) => Ok(None),
+        Some(other) => whole(&other, name, i64::from(i32::MIN), i64::from(i32::MAX))
+            .map(Some)
+            .map_err(|e| LuaError::runtime(format!("[model-provider:{operation}.request] {e}"))),
+    }
+}
+
+/// The reference host's answer to one model question of the campaign (aphavoc/.../mb_hostmodel.h; the Lua contract is `call_model` in eech-dc/src/module.rs): the host's own
+/// store, answered with the original accessors' numbers as exact bit patterns. Scene 0 is the null scene (the invalid object index): the zeroed entry the original kept for
+/// it, which the campaign asks for like any other.
+fn model_answer(lua: &Lua, store: &ModelStore, operation: &str, scene: Option<i64>, depth: Option<i64>) -> LuaResult<LuaTable> {
+    let fail = |message: String| LuaError::runtime(format!("[model-provider:{operation}.request] {message}"));
+    let table = lua.create_table()?;
+    match operation {
+        "catalogue" => {
+            if scene.is_some() || depth.is_some() {
+                return Err(fail("a catalogue question has no scene or depth".into()));
+            }
+            table.set("scenes", scene_last())?;
+        }
+        "scene" => {
+            let scene = scene.ok_or_else(|| fail("a scene question needs a scene".into()))?;
+            if depth.is_some() {
+                return Err(fail("a scene question has no depth".into()));
+            }
+            if scene == 0 {
+                table.set("main", 0)?;
+                table.set("collision", 0)?;
+                table.set("radius", "0x00000000")?;
+                table.set("bb", hex_list(&[0; 6]))?;
+                table.set("bb2", hex_list(&[0; 6]))?;
+            } else {
+                let view = store.scene(scene).map_err(|e| fail(e.to_string()))?;
+                table.set("main", view.main)?;
+                table.set("collision", view.collision)?;
+                table.set("radius", format!("0x{:08x}", view.radius))?;
+                table.set("bb", hex_list(&view.bounding_box))?;
+                table.set("bb2", hex_list(&view.bounding_box2))?;
+            }
+        }
+        "triangle" => {
+            let scene = scene.ok_or_else(|| fail("a triangle question needs a scene".into()))?;
+            let depth = depth.ok_or_else(|| fail("a triangle question needs a depth".into()))?;
+            return triangle_table(lua, &store.triangle(scene, depth).map_err(|e| fail(e.to_string()))?);
+        }
+        other => return Err(fail(format!("unknown question {other:?}"))),
+    }
+    Ok(table)
+}
+
 pub fn register(lua: &Lua, host: &LuaTable) -> LuaResult<()> {
     host.set(
         "model_store",
-        lua.create_function(|lua, root: String| match ModelStore::load(Path::new(&root)) {
-            Ok(store) => lua.create_userdata(StoreHandle(Arc::new(store))),
-            Err(e) if e.kind == ErrorKind::Missing => Err(LuaError::runtime(format!("NOT RUN: model assets absent: {e}"))),
-            Err(e) => Err(LuaError::runtime(format!("model store refused: {e}"))),
+        lua.create_function(|lua, root: String| lua.create_userdata(StoreHandle(load_store(&root)?)))?,
+    )?;
+    // host.model (op, scene, depth): the reference host's model provider, which a script passes to `eech_dc.boot` as `model`. The store is the host's own, loaded from the
+    // installation root the script gave (`root=`, the same `host.args.root` the campaign scripts boot with) when the campaign first asks, which is at boot; a root with no
+    // model assets refuses the boot with `NOT RUN: model assets absent`, never an empty database.
+    let args: LuaTable = host.get("args")?;
+    let shared: Rc<RefCell<Option<Arc<ModelStore>>>> = Rc::new(RefCell::new(None));
+    host.set(
+        "model",
+        lua.create_function(move |lua, (operation, scene, depth): (String, Option<LuaValue>, Option<LuaValue>)| {
+            let store = {
+                let mut slot = shared.borrow_mut();
+                if slot.is_none() {
+                    let root: String = args
+                        .get::<Option<String>>("root")?
+                        .ok_or_else(|| LuaError::runtime("[model-provider:load] host.model needs root=<installation root> in the host arguments"))?;
+                    *slot = Some(load_store(&root)?);
+                }
+                slot.clone().ok_or_else(|| LuaError::runtime("[model-provider:load] no store"))?
+            };
+            let scene = provider_number(scene, "scene", &operation)?;
+            let depth = provider_number(depth, "depth", &operation)?;
+            model_answer(lua, &store, &operation, scene, depth)
+        })?,
+    )?;
+    // host.model_provider (store): the same provider over a store the script already loaded with host.model_store (shared, immutable), for a script that wraps or
+    // replaces the reference host's answers.
+    host.set(
+        "model_provider",
+        lua.create_function(|lua, store: LuaAnyUserData| {
+            let handle = store.borrow::<StoreHandle>()?;
+            let store = handle.0.clone();
+            lua.create_function(move |lua, (operation, scene, depth): (String, Option<LuaValue>, Option<LuaValue>)| {
+                let scene = provider_number(scene, "scene", &operation)?;
+                let depth = provider_number(depth, "depth", &operation)?;
+                model_answer(lua, &store, &operation, scene, depth)
+            })
         })?,
     )
 }

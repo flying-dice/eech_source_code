@@ -79,6 +79,11 @@ static enum engine_operation operation;
 	sense_host.user = entry_host ? entry_host->user : NULL; \
 	aim_host.aim = entry_host ? entry_host->aim : NULL; \
 	aim_host.user = entry_host ? entry_host->user : NULL; \
+	campaign_model_host model_host; \
+	model_host.model = entry_host ? entry_host->model : NULL; \
+	model_host.user = entry_host ? entry_host->user : NULL; \
+	/* the model host is installed by the first entry that carries one and kept for the process: LEAVE does not clear it (mb_hostmodel.h) */ \
+	campaign_model_set_host (&model_host); \
 	campaign_roster_set_host (entry_host ? &roster_host : NULL); \
 	campaign_supply_arrival_set_host (entry_host ? &arrival_host : NULL); \
 	campaign_movement_set_host (entry_host ? &movement_host : NULL); \
@@ -275,7 +280,7 @@ int eech_engine_boot (const struct eech_engine_config *config, const struct eech
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!config || !config->install_root || !config->map_path || !config->campaign_directory || !config->campaign_filename || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
+	if (!config || !config->install_root || !config->map_path || !config->campaign_directory || !config->campaign_filename || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim || EECH_ENGINE_MODEL_MISSING (host))
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -1603,6 +1608,61 @@ int eech_engine_model_state (char *text, int capacity)
 		LEAVE (EECH_ENGINE_STATE);
 	}
 	if (!text || (capacity <= 0) || eech_model_state_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+
+/*
+ * TEST-ONLY (EEDCS-50, D3; feature model-host-fixture): diagnostics of the host-owned model data (eech_model_host_fixture.c). They run inside the engine entry, so they see
+ * EECH's round-toward-zero mode as the campaign's own calls do, and a fatal error in the host's answer unwinds to the entry. They pass no host: the model host installed at
+ * boot answers. None draws a random number, advances time or touches an entity.
+ */
+extern int eech_model_host_counters_run (char *text, int capacity);
+extern int eech_model_host_poison_run (void);
+extern int eech_model_host_probe_run (int scene, int depth, char *text, int capacity);
+
+int eech_engine_model_host_counters (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_model_host_counters_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_model_host_poison (void)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (eech_model_host_poison_run () != 0)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_model_host_probe (int scene, int depth, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_model_host_probe_run (scene, depth, text, capacity) != 0)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}

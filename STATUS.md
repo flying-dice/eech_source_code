@@ -10,6 +10,36 @@ Both Root checker failures are retained as actual1 after native/input stages0: a
 
 Production model queries/loading remain in EECH_DC. Next is the public host/native model authority/refusal handoff, with required physical collision solvers and hierarchy/viewpoint/device/muzzle/target-point services also leaving the DLL within D3. Any intermediate accessor handoff is not the final campaign boundary. Campaign shape choice, targets, policy and consequences stay core. Task47 shipping115 continues in its original processes; full40/eightcompleteartifacts/current acceptance/normalmerge remain pending. Task50/D3 stay In Progress; D4/D5 have not started. The source-only checkpoints below are historical.
 
+# Current D3 handoff — EEDCS-50 host authority over the collision-model queries (30 October 2026): SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED
+
+Base `5bce5c734`; Task 50 / PR 110 continues (no duplicate PR, nothing from unaccepted Task 47 cherry-picked or merged; its terrain callback is used as a pattern only). Closed and not redone: the
+original provenance source `debf965cb`, all 828 current retail models characterised and matching the host `f9` (30609 TRUE + 828 end FALSE per root + the retained absence; 3025 metadata matches), the host store, numeric
+kernel and the closed 309 driver. Full contract, audit, controls and validation: `eech-campaign/docs/m5-model-host-authority.md`.
+
+**Done in source.** The four accessors that answered from the DLL's own arrays (`get_object_3d_collision_object_geometry_triangle`, `get_object_3d_bounding_box`, `_without_lines`,
+`get_object_3d_radius`) now ask the host through one public, install-once, required-at-boot callback (`mb_hostmodel.h/.c`, `eech_engine_host.model`, `eech_engine.h`; Rust `ModelProvider`, Lua
+`boot { model = function (op, scene, depth) }`). Strict count-checked patches (`MODEL_HOST_PATCHES` D1a, D1b, D2, D3a-c) replace the bodies (the original triangle body only inside `#if 0`); boot asks the
+catalogue and every scene (a different catalogue size, a non-finite number or a changed shape identity refuses the boot; physical values are never compared with the arrays), fills immutable host-authored bounds/radius tables
+(stable pointers, no rotating cache) and every triangle is asked live. `END` and `ABSENT` are the original FALSE and leave the caller's buffer untouched, distinct from any refusal; a missing, declining, malformed or
+contradicting host stops the engine with `[model-provider:...]`; there is no array fallback and no always-miss. The reference host's `host.model` (and `host.model_provider (store)`) wrap the f9 `ModelStore`; all 31 repository
+campaign scripts pass `model = host.model`. `eech_engine.c` took two byte-safe hunks (the ENTER install; the boot requirement) plus an appended diagnostic block; the one NUL and every other byte are unchanged
+(prefix/middle/tail compared with `cmp`; count 1 each). The original-characterisation build (`model-fixture`) keeps the original accessors, applies no host patch and needs no host; the two model features exclude each other.
+
+**Audit (read, not run; headless is not taken as dormant).** No direct COLLISION bounds/radius/triangle bypass outside `modules/3d` (`en_cllsn.c` and ~40 other callers use the accessors; `modules/physics/body.c` is not
+compiled). Residual direct readers, classified **D3-open** (hierarchy, route-network, scene-existence, avionics/UI/terrain-draw data): `routegen.c:219` (route networks, from `popread.c`), `popread.c:1344-1447/2728/2748/3959`
+(scene links), `damage.c:715` (`succeeded`), `hi_hud.c`, `main_sc.c`, `textuser.c:2171`, the outcode/visibility and MFD poly-line readers.
+
+**Controls PREPARED, NOT RUN.** Rust callback-crossing tests (bit-exact triangle, END/ABSENT write nothing, missing/declining/wrong-kind/unknown-operation/panicking provider refused by name with no reply written);
+`model_store.rs` tests with `model-provider-check.lua` (both provider routes equal the store's own answers incl. all four answer kinds, 30 malformed requests refused by name, missing assets `NOT RUN`); `model-authority.lua`
+(reference, host-authored geometry `vanish`/`inflate` and bounds `bounds_zero` changes against an LOS sweep fold, `missing`, `decline`, `refused`, 10 `bad_*` modes, `UNREACHED` reported not covered); the
+`model-host-fixture` build (counters + poison of the campaign's own arrays + the real-accessor probe with buffer/rounding/pointer-stability rows; `tools/build-windows-model-host-fixture.sh`).
+
+**Remaining coupling and uncertainties.** The sector scan, transform and line-triangle decision in `en_cllsn.c` are still campaign code (an intermediate boundary; they move to the host under Task 49 / G3 within D3);
+the DLL still loads the files for hierarchy, viewpoints, mounts, devices, muzzles, target points and the readers above, so D3 stays open (no D4/D5 work). Not established: that `ModelStore::load` accepts the synthetic
+installation `prepare_installation` writes (scripts booting one fail with `NOT RUN`/a refusal rather than get an empty database); the per-query cost of the Lua provider in an LOS sweep. **Required validation** (the Root's): build
+all variants and confirm the patch counts, run the Rust tests and clippy, then natively the reference boot against the frozen baselines and M4 pack, every refusal mode, the changed modes against the reference with `los-fixture`, the
+poisoned run against the unpoisoned one, the probe rows against the retained original rows, and the cost. No Git, build, test or native action was taken in this lane.
+
 # Current D3 correction — EEDCS-50 original surface provenance, the one P2 of `874aa5ae6` (30 October 2026): SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED
 
 Author process3360 completed0 at01:56:08UTC; Root formatting and diff checks pass. The 69 controls remain prepared, not executed at this checkpoint. Prior review report SHA2560185df9b0748b448e0221e8721eadd82ff6ddcc36c2094052966407d7b1863a6 is retained with the874 build identity. A later bounded minimal sanitizer program containing no EECH code reproduced the same signal spam (child153); the frozen874 verifier separately passed44/0 with its default handler. This narrows the diagnostic to a runtime/environment factor without proving its exact cause or granting a blanket sanitizer pass.

@@ -204,6 +204,83 @@ pub const PATCHES: &[Patch] = &[
     },
 ];
 
+/// The host-owned model data patches (EEDCS-50, D3; aphavoc/source/entity/mobile/mb_hostmodel.h): the four public accessors of the 3d module that read the campaign
+/// DLL's own model arrays ask the host instead, and the host's scenes are installed (and cross-checked against the scene database the campaign just loaded) at the end of
+/// initialise_3d_objects. They are part of the SHIPPING build and of the test variants that run the campaign; main.rs does NOT apply them for the `model-fixture`
+/// feature, whose purpose is to ask the ORIGINAL accessors what they answer (that build has no host and says so). Same strict count check as PATCHES; the original
+/// accessor body is kept in the staged text only inside `#if 0`, so the patch can be audited against the source and nothing of it is compiled.
+pub const MODEL_HOST_PATCHES: &[Patch] = &[
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "D1a-model-triangle-from-host",
+        why: "get_object_3d_collision_object_geometry_triangle decoded the collision triangles from the DLL's own object arrays. The host owns the models: the accessor asks the host for one step of the triangle cursor (FOUND writes the caller's buffer; END and ABSENT are the original's FALSE and leave it untouched; anything else stops the engine). The original body follows inside #if 0.",
+        original: "int get_object_3d_collision_object_geometry_triangle ( object_3d_index_numbers index, vec3d *return_points, int depth )\n{\n",
+        replacement: "extern int campaign_model_triangle ( int scene, vec3d *points, int depth ); /* EECH headless (D1) */\n\nint get_object_3d_collision_object_geometry_triangle ( object_3d_index_numbers index, vec3d *return_points, int depth )\n{\n\treturn ( campaign_model_triangle ( (int) index, return_points, depth ) );\n}\n\n#if 0 /* EECH headless (D1): the original, array-reading body is not compiled; see mb_hostmodel.h */\nint get_object_3d_collision_object_geometry_triangle ( object_3d_index_numbers index, vec3d *return_points, int depth )\n{\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "D1b-model-triangle-original-ends",
+        why: "closes the #if 0 opened by D1a at the end of the original accessor (this text occurs once, at the end of that function)",
+        original: "\t\t\treturn ( FALSE );\n\t\t}\n\t}\n\telse\n\t{\n\n\t\treturn ( FALSE );\n\t}\n}\n\n#ifndef OGRE_EE\n",
+        replacement: "\t\t\treturn ( FALSE );\n\t\t}\n\t}\n\telse\n\t{\n\n\t\treturn ( FALSE );\n\t}\n}\n#endif /* EECH headless (D1) */\n\n#ifndef OGRE_EE\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "D2-model-scenes-installed",
+        why: "the scene database is loaded and consolidated: ask the host for its catalogue and every scene, cross-check the shape identity, fill the immutable tables of the host's bounds and radius. A missing provider, a catalogue that disagrees or a malformed scene stops the boot.",
+        original: "\tinitialised_3d_objects = TRUE;\n",
+        replacement: "\tinitialised_3d_objects = TRUE;\n\n\t{\n\t\textern void campaign_model_install_scenes ( void ); /* EECH headless (D2) */\n\t\tcampaign_model_install_scenes ();\n\t}\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjvis.c",
+        id: "D3a-model-bounding-box-from-host",
+        why: "get_object_3d_bounding_box returned a pointer into the DLL's own scene entry. It returns a pointer into the host-authored table filled at boot (callers keep it across loops, so it is stable for the life of the process).",
+        original: "\treturn ( &objects_3d_scene_database[object].bounding_box );\n",
+        replacement: "\t{\n\t\textern struct OBJECT_3D_BOUNDS *campaign_model_bounding_box ( int scene ); /* EECH headless (D3) */\n\t\treturn ( campaign_model_bounding_box ( (int) object ) );\n\t}\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjvis.c",
+        id: "D3b-model-bounding-box-without-lines-from-host",
+        why: "as D3a, for the bounds the collision tests use",
+        original: "\treturn ( &objects_3d_scene_database[object].bounding_box2 );\n",
+        replacement: "\t{\n\t\textern struct OBJECT_3D_BOUNDS *campaign_model_bounding_box_without_lines ( int scene ); /* EECH headless (D3) */\n\t\treturn ( campaign_model_bounding_box_without_lines ( (int) object ) );\n\t}\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjvis.c",
+        id: "D3c-model-radius-from-host",
+        why: "as D3a, for the radius",
+        original: "\treturn ( objects_3d_scene_database[object].radius );\n",
+        replacement: "\t{\n\t\textern float campaign_model_radius ( int scene ); /* EECH headless (D3) */\n\t\treturn ( campaign_model_radius ( (int) object ) );\n\t}\n",
+        count: 1,
+    },
+];
+
+pub fn apply_model_host(file: &str, text: &str) -> String {
+    let mut out = text.to_string();
+    for p in MODEL_HOST_PATCHES.iter().filter(|p| p.file == file) {
+        let found = out.matches(p.original).count();
+        assert_eq!(
+            found, p.count,
+            "model-host patch {} expects {} occurrence(s) of its original text in {}, found {}",
+            p.id, p.count, file, found
+        );
+        out = out.replace(p.original, p.replacement);
+    }
+    out
+}
+
+pub fn model_host_files() -> Vec<&'static str> {
+    let mut files: Vec<&str> = MODEL_HOST_PATCHES.iter().map(|p| p.file).collect();
+    files.sort_unstable();
+    files.dedup();
+    files
+}
+
 /// TEST-ONLY patches of the `model-fixture` feature (EEDCS-50): observation hooks in the real model loader, applied by main.rs ONLY when that feature is on,
 /// to the staged copy that the shipping patches (C1) already produced. They record what the loader allocated, filled and consumed (csrc/eech_model_hooks.h);
 /// each ADDS a call and changes no original statement, argument, order or value (a wrapped `fread` is evaluated exactly as before and its result handed back

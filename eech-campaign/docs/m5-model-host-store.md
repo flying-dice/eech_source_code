@@ -199,3 +199,5 @@ probe above. Anything in the production path: the campaign DLL's `initialise_3d_
 whole-D3 scope: model hierarchy, viewpoint, device, muzzle and target-point services; entity collision; terrain, spatial, environment and host-time services; the removal of the physical
 solvers and loaders from EECH_DC. Campaign policy, geography, routes, timers and consequences stay in EECH_DC. The textures, animations, cameras and lights the loaders also read are not physical
 and are walked or skipped, not stored.
+
+The campaign DLL no longer answers the four collision-model queries from its own arrays: see [`m5-model-host-authority.md`](m5-model-host-authority.md) (source prepared, unbuilt, unrun). This store is the reference host's provider for them (`host.model`).

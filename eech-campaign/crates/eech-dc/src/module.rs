@@ -2,8 +2,9 @@
 
 use eech_engine::{
     AimEvent, AimReply, AimRequest, AimStepKind, AimTarget, AimWeapon, AimWorld, ArrivalAnswer, Engine, EngineConfig, EngineError, Gunship,
-    HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor, MemberDescriptor, MovementMode, MovementResult,
-    MovementStep, ObjectReport, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side, SupplyReachDescriptor, VehiclePose, WeaponFigures,
+    HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor, MemberDescriptor, ModelAnswer, ModelProvider, ModelQuery,
+    ModelScene, ModelTriangle, MovementMode, MovementResult, MovementStep, ObjectReport, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side,
+    SupplyReachDescriptor, VehiclePose, WeaponFigures,
 };
 use mlua::prelude::*;
 use std::path::PathBuf;
@@ -1859,6 +1860,19 @@ impl LuaUserData for LuaEngine {
         });
         #[cfg(feature = "model-fixture")]
         methods.add_method("model_state", |_, this, ()| this.engine.model_state().map_err(lua_error));
+        // TEST-ONLY (feature `model-host-fixture`, EEDCS-50 D3): the host's model answers counted, and the campaign's own model arrays overwritten so that any read of them
+        // would show; not part of the shipping module.
+        #[cfg(feature = "model-host-fixture")]
+        methods.add_method("model_host_counters", |_, this, ()| this.engine.model_host_counters().map_err(lua_error));
+        #[cfg(feature = "model-host-fixture")]
+        methods.add_method("model_host_poison", |_, this, ()| this.engine.model_host_poison().map_err(lua_error));
+        // the scene and depth are whole numbers in range, checked before the engine is entered (the same helper as the original-accessor fixture's)
+        #[cfg(feature = "model-host-fixture")]
+        methods.add_method("model_host_probe", |_, this, (scene, depth): (LuaValue, LuaValue)| {
+            let scene = model_int(&scene, "scene", 1, i32::MAX - 1)?;
+            let depth = model_int(&depth, "depth", 0, i32::MAX - 1)?;
+            this.engine.model_host_probe(scene, depth).map_err(lua_error)
+        });
         // TEST-ONLY (feature `weapon-fixture`, EEDCS-46): the run-wide report of the physical combat-resolution code; not part of the shipping module.
         #[cfg(feature = "weapon-fixture")]
         methods.add_method("cmb_trace", |_, this, ()| this.engine.cmb_trace().map_err(lua_error));
@@ -2219,7 +2233,7 @@ impl LuaUserData for LuaEngine {
 
 /// TEST-ONLY (feature `model-fixture`, EEDCS-50): a Lua number that must be a whole number within `min..=max`. A missing, non-numeric, non-finite, fractional or
 /// out-of-range value is refused here, before the engine is entered.
-#[cfg(feature = "model-fixture")]
+#[cfg(any(feature = "model-fixture", feature = "model-host-fixture"))]
 fn model_int(value: &LuaValue, name: &str, min: i32, max: i32) -> LuaResult<i32> {
     let number = match value {
         LuaValue::Integer(i) => *i as f64,
@@ -2247,6 +2261,168 @@ fn gunship(name: &str) -> LuaResult<Gunship> {
         "hokum" => Ok(Gunship::Hokum),
         other => Err(LuaError::runtime(format!("eech: bad argument: unknown gunship {other:?}"))),
     }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------
+// the host's model provider (EEDCS-50, D3; aphavoc/.../mb_hostmodel.h)
+
+/// The host's model provider as the campaign calls it: `model (op, scene, depth)`, with `op` one of
+///
+///   "catalogue"   no scene, no depth.  Returns `{ scenes = N }`: how many scene indices the host's models cover.
+///   "scene"       a scene index.  Returns `{ main = i, collision = i, radius = f, bb = {six}, bb2 = {six} }`: the main and collision object indices (-1: none), the radius,
+///                 the bounds `xmin xmax ymin ymax zmin zmax` and the bounds without lines (the ones the collision tests use).
+///   "triangle"    a scene index and a depth (never negative).  Returns `{ result = "triangle", p = {nine} }` (point 0 x y z, point 1, point 2), `{ result = "end" }` (a collision
+///                 object is present and the list is over at this depth), `{ result = "absent" }` (the scene has no collision object) or `{ result = "refused", reason = text }`
+///                 (the host cannot answer for this scene or depth).
+///
+/// A float is the exact bit pattern as text (`"0x3f800000"`) or a finite Lua number (rounded to the nearest single-precision value); a list of six or nine floats is a
+/// table of them or a comma-separated string of bit patterns, exactly that long. "end" and "absent" are the original accessor's FALSE and are not errors; a "refused"
+/// answer, an error raised by the provider, a malformed answer, a non-finite number and an answer of the wrong kind stop the engine with the provider's marker
+/// `[model-provider:<marker>]` in the message. The provider is called synchronously, outside nothing of the campaign's state, and its answers are never cached here.
+fn model_hex(text: &str, what: &str, operation: &str) -> Result<f32, String> {
+    let malformed = |why: &str| format!("[model-provider:{operation}.answer] {what}: {why}");
+    let digits = text
+        .strip_prefix("0x")
+        .filter(|digits| digits.len() == 8 && digits.bytes().all(|byte| byte.is_ascii_hexdigit()))
+        .ok_or_else(|| malformed("a bit pattern is 0x and eight hexadecimal digits"))?;
+    let bits = u32::from_str_radix(digits, 16).map_err(|_| malformed("not a bit pattern"))?;
+    let number = f32::from_bits(bits);
+    if number.is_finite() {
+        Ok(number)
+    } else {
+        Err(malformed("not finite"))
+    }
+}
+
+fn model_f32(value: &LuaValue, what: &str, operation: &str) -> Result<f32, String> {
+    let malformed = |why: &str| format!("[model-provider:{operation}.answer] {what}: {why}");
+    match value {
+        LuaValue::String(text) => model_hex(&text.to_str().map_err(|_| malformed("not UTF-8"))?, what, operation),
+        LuaValue::Integer(number) => nearest_f32(*number as f64).ok_or_else(|| malformed("beyond the single-precision range")),
+        LuaValue::Number(number) => nearest_f32(*number).ok_or_else(|| malformed("not finite or beyond the single-precision range")),
+        other => Err(malformed(&format!("a number was expected, got {}", other.type_name()))),
+    }
+}
+
+/// exactly N floats from `table[field]`: a table of N numbers or a comma-separated string of N bit patterns
+fn model_floats<const N: usize>(table: &LuaTable, field: &str, operation: &str) -> Result<[f32; N], String> {
+    let value = table
+        .get::<LuaValue>(field)
+        .map_err(|e| format!("[model-provider:{operation}.answer] {field}: {e}"))?;
+    let floats: Vec<f32> = match value {
+        LuaValue::String(text) => text
+            .to_str()
+            .map_err(|_| format!("[model-provider:{operation}.answer] {field} is not UTF-8"))?
+            .split(',')
+            .map(|part| model_hex(part.trim(), field, operation))
+            .collect::<Result<_, String>>()?,
+        LuaValue::Table(list) => {
+            let mut floats = Vec::new();
+            // one past N, to see that the list is not longer
+            for index in 1..=N + 1 {
+                match list
+                    .get::<LuaValue>(index)
+                    .map_err(|e| format!("[model-provider:{operation}.answer] {field}: {e}"))?
+                {
+                    LuaValue::Nil => break,
+                    item => floats.push(model_f32(&item, field, operation)?),
+                }
+            }
+            floats
+        }
+        LuaValue::Nil => return Err(format!("[model-provider:{operation}.answer] the answer has no {field}")),
+        other => {
+            return Err(format!(
+                "[model-provider:{operation}.answer] {field} is {}, not a table or a text of bit patterns",
+                other.type_name()
+            ))
+        }
+    };
+    <[f32; N]>::try_from(floats.as_slice()).map_err(|_| format!("[model-provider:{operation}.answer] {field} has {} numbers, not {N}", floats.len()))
+}
+
+fn model_i32(table: &LuaTable, field: &str, operation: &str) -> Result<i32, String> {
+    match table
+        .get::<LuaValue>(field)
+        .map_err(|e| format!("[model-provider:{operation}.answer] {field}: {e}"))?
+    {
+        LuaValue::Integer(number) => i32::try_from(number).map_err(|_| format!("[model-provider:{operation}.answer] {field} is out of range")),
+        LuaValue::Number(number) if number.is_finite() && number.fract() == 0.0 && number.abs() <= f64::from(i32::MAX) => Ok(number as i32),
+        LuaValue::Nil => Err(format!("[model-provider:{operation}.answer] the answer has no {field}")),
+        other => Err(format!(
+            "[model-provider:{operation}.answer] {field} must be a whole number, got {}",
+            other.type_name()
+        )),
+    }
+}
+
+fn call_model(function: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, String> {
+    let (operation, scene, depth) = match query {
+        ModelQuery::Catalogue => ("catalogue", None, None),
+        ModelQuery::Scene { scene } => ("scene", Some(scene), None),
+        ModelQuery::Triangle { scene, depth } => ("triangle", Some(scene), Some(depth)),
+    };
+    let result: LuaValue = function
+        .call((operation, scene, depth))
+        .map_err(|error| format!("[model-provider:{operation}.callback] {error}"))?;
+    let LuaValue::Table(answer) = result else {
+        return Err(format!(
+            "[model-provider:{operation}.answer] the provider returned {} instead of a table",
+            result.type_name()
+        ));
+    };
+    match query {
+        ModelQuery::Catalogue => Ok(ModelAnswer::Catalogue {
+            scenes: model_i32(&answer, "scenes", operation)?,
+        }),
+        ModelQuery::Scene { .. } => {
+            let radius = answer
+                .get::<LuaValue>("radius")
+                .map_err(|e| format!("[model-provider:scene.answer] radius: {e}"))?;
+            Ok(ModelAnswer::Scene(ModelScene {
+                main_object: model_i32(&answer, "main", operation)?,
+                collision_object: model_i32(&answer, "collision", operation)?,
+                radius: model_f32(&radius, "radius", operation)?,
+                bounding_box: model_floats::<6>(&answer, "bb", operation)?,
+                bounding_box_without_lines: model_floats::<6>(&answer, "bb2", operation)?,
+            }))
+        }
+        ModelQuery::Triangle { .. } => {
+            let kind = match answer
+                .get::<LuaValue>("result")
+                .map_err(|e| format!("[model-provider:triangle.answer] result: {e}"))?
+            {
+                LuaValue::String(text) => text
+                    .to_str()
+                    .map(|text| (*text).to_string())
+                    .map_err(|_| "[model-provider:triangle.answer] result is not UTF-8".to_string())?,
+                other => return Err(format!("[model-provider:triangle.answer] result must be text, got {}", other.type_name())),
+            };
+            match kind.as_str() {
+                "triangle" => Ok(ModelAnswer::Triangle(ModelTriangle::Found(model_floats::<9>(&answer, "p", operation)?))),
+                "end" => Ok(ModelAnswer::Triangle(ModelTriangle::End)),
+                "absent" => Ok(ModelAnswer::Triangle(ModelTriangle::Absent)),
+                "refused" => {
+                    let reason = match answer.get::<LuaValue>("reason") {
+                        Ok(LuaValue::String(text)) => text.to_str().map(|text| (*text).to_string()).unwrap_or_default(),
+                        _ => String::new(),
+                    };
+                    Err(format!(
+                        "[model-provider:triangle.refused] the host cannot answer for scene {} depth {}: {reason}",
+                        scene.unwrap_or(-1),
+                        depth.unwrap_or(-1)
+                    ))
+                }
+                other => Err(format!(
+                    "[model-provider:triangle.answer] result {other:?} is not triangle, end, absent or refused"
+                )),
+            }
+        }
+    }
+}
+
+fn model_provider(function: LuaFunction) -> ModelProvider {
+    Box::new(move |query| call_model(&function, query))
 }
 
 fn boot(lua: &Lua, config: LuaTable) -> LuaResult<LuaEngine> {
@@ -2285,6 +2461,22 @@ fn boot(lua: &Lua, config: LuaTable) -> LuaResult<LuaEngine> {
         LuaValue::Nil => return Err(LuaError::runtime("eech: missing host aim callback")),
         value => return Err(LuaError::runtime(format!("eech: aim must be a function, got {}", value.type_name()))),
     };
+    // EEDCS-50 (D3): the host owns the physical models and the campaign has no model arrays of its own to fall back to, so the provider is required, and a boot without
+    // one is refused here by name. (The original-characterisation build, feature model-fixture, keeps the original accessors on purpose, asks no host and installs none.)
+    let model = match config.get::<LuaValue>("model")? {
+        LuaValue::Function(function) => Some(model_provider(function)),
+        LuaValue::Nil if cfg!(feature = "model-fixture") => None,
+        LuaValue::Nil => return Err(LuaError::runtime(
+            "eech: [model-provider:missing] boot was given no model provider; the host supplies the physical models (catalogue, scenes, collision triangles)",
+        )),
+        value => {
+            return Err(LuaError::runtime(format!(
+                "eech: [model-provider:missing] model must be a function, got {}",
+                value.type_name()
+            )))
+        }
+    };
+    let model = if cfg!(feature = "model-fixture") { None } else { model };
     let arguments: Vec<String> = config.get::<Option<Vec<String>>>("arguments")?.unwrap_or_default();
     let config = EngineConfig {
         install_root: PathBuf::from(config.get::<String>("install_root")?),
@@ -2311,6 +2503,7 @@ fn boot(lua: &Lua, config: LuaTable) -> LuaResult<LuaEngine> {
         &mut sighter,
         &mut sensor,
         &mut aimer,
+        model,
     )
     .map_err(lua_error)?;
     Ok(LuaEngine {

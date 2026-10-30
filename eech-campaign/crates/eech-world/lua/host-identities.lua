@@ -50,7 +50,7 @@ local engine = dc.boot {
 	move_vehicle = host.move_vehicle,
 	observe_loss = host.observe_loss,
 	supply_reached = host.supply_reached,
-	line_of_sight = host.line_of_sight,
+	line_of_sight = host.line_of_sight, model = host.model,
 	sense = host.sense, aim = host.aim,
 }
 
