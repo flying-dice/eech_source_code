@@ -358,8 +358,18 @@ local function shapes (group, index)
 	return {}
 end
 
--- accept a parsed report only if it has one of the protocol's shapes for (group, index); returns { shape, refused } or nil and the reasons
-local function validate_report (group, index, lines)
+-- the rows of one event, in order
+local function rows_of (lines, event)
+	local found = {}
+	for _, line in ipairs (lines) do
+		if line.event == event then found [#found + 1] = line end
+	end
+	return found
+end
+
+-- accept a parsed report only if it has one of the protocol's shapes for (group, index); returns { shape, refused } or nil and the reasons. `context` carries what an earlier validated report fixed:
+-- the census' comms_server value, by which the initialisers' and the weather update's own guards (printed by the emitter in the refusal and in the state rows) are judged.
+local function validate_report (group, index, lines, context)
 	local why = {}
 	for _, shape in ipairs (shapes (group, index)) do
 		local problem = template_error (lines, shape [2])
@@ -385,7 +395,49 @@ local function validate_report (group, index, lines)
 				if tonumber (last.group) ~= group or tonumber (last.index) ~= index then return nil, "the end marker is for group " .. last.group .. " index " .. last.index end
 				if last.fp_before ~= last.fp_after then return nil, "the state fingerprint changed across the witness: " .. last.fp_before .. " then " .. last.fp_after end
 			end
+			if group == 0 then verdict.comms_server = tonumber (lines [2].map.comms_server) end
 			if group == 3 and not verdict.refused and not gust_word_in_domain (lines [1].map.gust_w) then return nil, "a supported wind row has a gust outside [0,1)" end
+			-- the emitter defines null_same as the equality of its own two printed words; the speeds themselves are never compared with an expected value
+			if group == 3 and not verdict.refused then
+				local w = lines [1].map
+				if w.null_same ~= ((w.speed_w == w.null_speed_w) and "1" or "0") then
+					return nil, "null_same=" .. w.null_same .. " contradicts speed_w=" .. w.speed_w .. " and null_speed_w=" .. w.null_speed_w
+				end
+			end
+			-- a query's wind answer exists exactly when the gust of the SAME report's state is inside [0,1) (the emitter's own branch); other state rows may show any gust word (a phase of 1.0 before it wraps)
+			local state = (group == 1 or group == 6) and rows_of (lines, group == 1 and "env-state-wind" or "env-init-state-wind") [1] or nil
+			if state ~= nil then
+				local inside = gust_word_in_domain (state.map.gusting_value_w)
+				for _, line in ipairs (lines) do
+					if line.map.wind_speed_w ~= nil and not inside then return nil, "row " .. line.event .. " has a wind answer although the report's gusting_value_w=" .. state.map.gusting_value_w .. " is outside [0,1)" end
+					if line.map.wind ~= nil and inside then return nil, "row " .. line.event .. " says wind unavailable although the report's gusting_value_w=" .. state.map.gusting_value_w .. " is inside [0,1)" end
+				end
+			end
+			-- the printed guards of the initialisers (refused unless the server comms model) and of the weather update (refused if in_cockpit, no camera, or not the server): a refusal needs a guard that holds, a run its complement
+			if group == 6 or group == 8 then
+				local server = context.comms_server
+				if server == nil then return nil, "there is no validated census comms_server to judge the guard by" end
+				if group == 6 and verdict.refused and tonumber (lines [1].map.comms_model) == server then return nil, "the initialiser was refused although comms_model equals the census comms_server" end
+				if group == 6 and not verdict.refused then
+					for _, g in ipairs (rows_of (lines, "env-init-state-globals")) do
+						if tonumber (g.map.comms_model) ~= server then return nil, "the initialiser ran although comms_model=" .. g.map.comms_model .. " is not the census comms_server" end
+					end
+				end
+				if group == 8 and verdict.refused then
+					local m = lines [1].map
+					if tonumber (m.in_cockpit) == 0 and tonumber (m.camera) == 1 and tonumber (m.comms_model) == server then
+						return nil, "the weather update was refused although in_cockpit=0, camera=1 and the model is the census comms_server"
+					end
+				end
+				if group == 8 and not verdict.refused then
+					for _, g in ipairs (rows_of (lines, "env-update-weather-state-globals")) do
+						local m = g.map
+						if tonumber (m.in_cockpit) ~= 0 or tonumber (m.camera) ~= 1 or tonumber (m.comms_model) ~= server then
+							return nil, "the weather update ran although in_cockpit=" .. m.in_cockpit .. ", camera=" .. m.camera .. ", comms_model=" .. m.comms_model .. " holds a guard"
+						end
+					end
+				end
+			end
 			if group == 4 then
 				local inside = gust_word_in_domain (lines [1].map.gust_w)
 				if verdict.refused and inside then return nil, "a gust inside [0,1) was refused" end
@@ -423,6 +475,7 @@ local function run ()
 
 	-- one call: the report is parsed, written out as it came, and accepted only with the protocol's shape for this group and index (a rejected report is on the file before the run fails)
 	local reports_validated = 0
+	local context = {}
 	local function case (group, index, scope)
 		local name = "env_case(" .. group .. ", " .. index .. ")"
 		local ok, report = pcall (engine.env_case, engine, group, index)
@@ -430,8 +483,9 @@ local function run ()
 		local lines, why = parse_report (report)
 		if lines == nil then refuse (name .. " returned a malformed report: " .. why) end
 		local rows = emit_lines (scope, lines)
-		local verdict, reason = validate_report (group, index, lines)
+		local verdict, reason = validate_report (group, index, lines, context)
 		if verdict == nil then refuse (name .. " did not return the fixture's protocol: " .. reason) end
+		if group == 0 then context.comms_server = verdict.comms_server end
 		reports_validated = reports_validated + 1
 		return rows, verdict
 	end

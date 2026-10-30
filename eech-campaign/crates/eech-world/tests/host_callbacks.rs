@@ -2097,7 +2097,7 @@ local function state(prefix, tag)
   return prefix .. '-time tag=' .. tag .. ' ' .. ws('start_time_w', 'elapsed_time_w', 'time_of_day_w') .. ' day=1 day_segment_type=1 ' .. ws('time_of_day_acceleration_w') .. ' skip_night_time=0 ' .. ws('time_of_day_resync_w') .. '\n'
     .. prefix .. '-weather tag=' .. tag .. ' local_weather_model=1 weather_increasing=1 ' .. ws('weather_radius_w') .. ' weather_mode=1 target_weather_mode=1 '
     .. ws('transitional_status_w', 'transitional_period_w', 'lightning_timer_w', 'weather_pos_x_w', 'weather_pos_y_w', 'weather_pos_z_w', 'weather_vel_x_w', 'weather_vel_y_w', 'weather_vel_z_w') .. '\n'
-    .. prefix .. '-wind tag=' .. tag .. ' wind_increasing=0 ' .. ws('wind_effect_radius_w', 'gusting_value_w', 'minimum_speed_w', 'maximum_speed_w', 'direction_x_w', 'direction_y_w', 'direction_z_w',
+    .. prefix .. '-wind tag=' .. tag .. ' wind_increasing=0 ' .. ws('wind_effect_radius_w', 'gusting_value_w:3f000000', 'minimum_speed_w', 'maximum_speed_w', 'direction_x_w', 'direction_y_w', 'direction_z_w',
       'effect_pos_x_w', 'effect_pos_y_w', 'effect_pos_z_w', 'effect_vel_x_w', 'effect_vel_y_w', 'effect_vel_z_w') .. '\n'
     .. prefix .. '-globals tag=' .. tag .. ' season=2 rng=-5 ' .. ws('rng_w', 'delta_time_w') .. ' comms_model=1 in_cockpit=0 camera=1 ' .. ws('camera_x_w', 'camera_y_w', 'camera_z_w') .. '\n'
 end
@@ -2131,7 +2131,7 @@ local function report(group, index)
   end
   if group == 3 then
     return 'env-wind kind=witness i=' .. index .. ' ' .. ws('radius_w', 'centre_x_w', 'centre_z_w', 'minimum_w', 'maximum_w', 'gust_w:3f000000', 'dir_x_w', 'dir_z_w', 'x_w', 'z_w', 'range_w', 'modulation_w',
-      'speed_w:00000000', 'vx_w', 'vy_w', 'vz_w', 'null_speed_w') .. ' null_same=1\n' .. finish(group, index)
+      'speed_w:00000000', 'vx_w', 'vy_w', 'vz_w', 'null_speed_w:00000000') .. ' null_same=1\n' .. finish(group, index)
   end
   if group == 4 then
     if index == 1 then return 'env-gust kind=witness i=1 gust_w=3f800000 refused=original_asserts_outside_0_1\n' .. finish(group, index) end
@@ -2184,6 +2184,23 @@ local mutations = {
   census_enum = function(t) return (t:gsub('dry=1', 'dry=9')) end,
   census_missing_unsupported = function(t) return (t:gsub('env%-unsupported item=session[^\n]*\n', '')) end,
   snapshot_bad_fingerprint = function(t) return (t:gsub('fp=%x+', 'fp=abc')) end,
+  -- guard-context contradictions: each claims a branch the state printed in the same report cannot have taken
+  init_false_refusal = function() return 'env-init kind=witness i=1 refused=the_original_initialisers_assert_the_server_comms_model comms_model=1\n' .. finish(6, 1) end,
+  init_false_run = function(t) return (t:gsub('comms_model=1', 'comms_model=2')) end,
+  update_false_refusal = function(t) return (t:gsub('in_cockpit=1', 'in_cockpit=0')) end,
+  update_false_run = function(t) return (t:gsub('in_cockpit=0', 'in_cockpit=1')) end,
+  snapshot_false_unavailable = function(t) return (t:gsub('wind_speed_w=%x+ wind_x_w=%x+ wind_y_w=%x+ wind_z_w=%x+', 'wind=unavailable_gust_outside_0_1')) end,
+  snapshot_gust_outside_with_wind = function(t) return (t:gsub('gusting_value_w=%x+', 'gusting_value_w=3f800000')) end,
+  wind_flag_says_unequal = function(t) return (t:gsub('null_same=1', 'null_same=0')) end,
+  wind_flag_says_equal = function(t) return (t:gsub('null_speed_w=%x+', 'null_speed_w=3f800000')) end,
+  -- coherent ALTERNATIVE forms the emitter can print (accepted): unequal words with flag 0; a snapshot whose gust is outside [0,1) and so has no wind answers; refusals by each other guard;
+  -- a controlled update whose state shows a gust phase of 1.0 before it wraps (not a query context, so not judged)
+  wind_words_unequal_flag_zero = function(t) return ((t:gsub('null_speed_w=%x+', 'null_speed_w=3f800000'):gsub('null_same=1', 'null_same=0'))) end,
+  snapshot_gust_outside_no_wind = function(t) return ((t:gsub('gusting_value_w=%x+', 'gusting_value_w=3f800000'):gsub('wind_speed_w=%x+ wind_x_w=%x+ wind_y_w=%x+ wind_z_w=%x+', 'wind=unavailable_gust_outside_0_1'))) end,
+  init_refused_nonserver = function() return 'env-init kind=witness i=1 refused=the_original_initialisers_assert_the_server_comms_model comms_model=2\n' .. finish(6, 1) end,
+  update_refused_no_camera = function() return 'env-update-weather kind=witness i=0 refused=unavailable_in_cockpit_or_no_camera_or_not_server in_cockpit=0 camera=0 comms_model=1\n' .. finish(8, 0) end,
+  update_refused_nonserver = function() return 'env-update-weather kind=witness i=0 refused=unavailable_in_cockpit_or_no_camera_or_not_server in_cockpit=0 camera=1 comms_model=2\n' .. finish(8, 0) end,
+  update_state_gust_phase_one = function(t) return (t:gsub('gusting_value_w=%x+', 'gusting_value_w=3f800000')) end,
 }
 function engine:env_case(group, index)
   note('case ' .. group .. ':' .. index)
@@ -2466,6 +2483,15 @@ fn the_environment_driver_refuses_every_report_that_is_not_the_fixtures_protocol
         ("census_missing_unsupported", 0, 0, "is missing"),
         ("snapshot_bad_fingerprint", 1, 0, "16-digit"),
         ("marker_only", 1, 0, "expected '"),
+        // the printed guards: an impossible refusal hides the state rows, and an unavailable wind hides the answers, so each is judged by the context of the same report
+        ("init_false_refusal", 6, 1, "refused although comms_model equals"),
+        ("init_false_run", 6, 0, "ran although comms_model"),
+        ("update_false_refusal", 8, 1, "refused although in_cockpit=0, camera=1"),
+        ("update_false_run", 8, 0, "ran although in_cockpit"),
+        ("snapshot_false_unavailable", 1, 0, "says wind unavailable although"),
+        ("snapshot_gust_outside_with_wind", 1, 0, "has a wind answer although"),
+        ("wind_flag_says_unequal", 3, 0, "null_same=0 contradicts"),
+        ("wind_flag_says_equal", 3, 0, "null_same=1 contradicts"),
     ];
     for (mutation, group, index, says) in cases {
         let stand_in = EnvStandIn {
@@ -2533,4 +2559,38 @@ fn the_environment_driver_bounds_its_periodic_schedule_whatever_the_period_and_t
     );
     assert_eq!(scopes("snapshot_every=0.25").len(), 10);
     assert!(scopes("snapshot_every=0").is_empty());
+}
+
+#[test]
+fn the_environment_driver_accepts_the_coherent_alternative_forms_the_emitter_can_print() {
+    // (mutation, group, index, refused witnesses the run must then count). The well-formed stand-in refuses two witnesses (the gust and the update-weather case 1).
+    let cases: &[(&'static str, i32, i32, u64)] = &[
+        ("none", -1, -1, 2),
+        // the emitter's null_same is the equality of its own two words: unequal words with flag 0 are as coherent as equal words with flag 1
+        ("wind_words_unequal_flag_zero", 3, 0, 2),
+        // a snapshot whose gust is outside [0,1) has no wind answers (the emitter's own branch)
+        ("snapshot_gust_outside_no_wind", 1, 0, 2),
+        // the initialiser and the weather update are refused by each guard that can hold
+        ("init_refused_nonserver", 6, 1, 3),
+        ("update_refused_no_camera", 8, 0, 3),
+        ("update_refused_nonserver", 8, 0, 3),
+        // a state record is not a query context: a gust phase of 1.0 before the wrap is accepted there
+        ("update_state_gust_phase_one", 8, 0, 2),
+    ];
+    for (mutation, group, index, refused) in cases {
+        let stand_in = EnvStandIn {
+            mutation,
+            group: *group,
+            index: *index,
+            ..EnvStandIn::WELL_FORMED
+        };
+        let run = run_env_scenario(&stand_in, &["probes=512"]);
+        let what = format!("{mutation} on group {group} index {index}");
+        assert!(run.status.success(), "{what} was refused: {}\n{}", run.stderr, run.out_text);
+        assert!(env_rows(&run.rows, "failure").is_empty(), "{what}: {}", run.out_text);
+        let validation = &env_rows(&run.rows, "validation")[0];
+        assert_eq!(validation["witnesses"], 14, "{what}");
+        assert_eq!(validation["refused_witnesses"], *refused, "{what}");
+        assert_eq!(env_rows(&run.rows, "run")[0]["complete"], true, "{what}");
+    }
 }
