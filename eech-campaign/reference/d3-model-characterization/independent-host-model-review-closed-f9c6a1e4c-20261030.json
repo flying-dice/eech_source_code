@@ -1,0 +1,197 @@
+{
+  "schema": "independent-review/v1",
+  "task": "EEDCS-50 residual finite-status/refusal-detail closure",
+  "reviewed_head": "f9c6a1e4c7cb16d664ee097a667df1aca2597e0a",
+  "reviewed_base": "7a51d13a6a2ecc88d79673efa09cc33dc2bda4f8",
+  "frozen_source": "R:/d3-evidence/model-review-source-f9c6a1e4c",
+  "clean_exact_head_before_and_after": true,
+  "reviewed_source_bytes_match_pinned_git": true,
+  "disposition": "RESOLVED_NO_NEW_FINDINGS",
+  "findings": [],
+  "scope": "One narrow combined correctness, clean-code and boundary/evidence closure on the finite-status/refusal-detail correction and affected guards. Earlier cumulative budget/gate/header/write-count/P3/I/O/width and C numeric/FP/original366/309 reviews remain closed and reused, not re-reviewed.",
+  "closed_finding": {
+    "id": "MODEL-REPORT-FINITE-STATUS",
+    "previous_priority": "P2",
+    "status": "RESOLVED",
+    "path": "eech-campaign/crates/eech-world/src/original_report.rs",
+    "source_locations": [
+      "STATUSES/known_status",
+      "catalogue scene status validation",
+      "geometry status validation",
+      "Page.detail and model-refused echo validation"
+    ],
+    "assessment": "The exact15-entry vocabulary was independently compared with the closed original309 Lua statuses block and matches. Unknown catalogue/geometry statuses now refuse before comparison or Refusing classification. Refusal rows must echo scene/status/detail, including missing or non-string detail rejection. Known refusals remain valid and explicitly unmeasured; no geometry/count oracle or changed physical policy was added."
+  },
+  "new_test_assessment": [
+    "Six new negative cases use the actual report comparator: unknown catalogue with coherent adjusted tally, unknown geometry with echoed ghost refusal, mismatched/missing/non-text refusal detail, and wrong refusal status. They check compare-refused behavior with reason-specific expectations.",
+    "The positive guard covers every one of15 catalogue statuses and all12 refusal statuses. Catalogue cases test absence of contract refusal while allowing physical comparison mismatch for a deliberately relabelled scene; refusal cases require successful actual comparison plus an original-refused-scene count. These are protocol controls, not new physical model proofs.",
+    "No remaining actionable correctness, clean-code or boundary defect was established in this finite new delta. No new FFI/native physical algorithms changed."
+  ],
+  "actual_evidence": {
+    "linux": {
+      "actual_completion_exit": 0,
+      "fmt": 0,
+      "library_passed": 235,
+      "model_store_integration_passed": 34,
+      "old_model_characterization_passed": 8,
+      "all_target_clippy": 0
+    },
+    "windows": {
+      "build_actual_exit": 0,
+      "controller_actual_exit": 0,
+      "library_passed": 235,
+      "model_store_integration_passed": 34,
+      "invalid_host_native_exit": 101,
+      "invalid_control": "Expected strict explicit missing-host refusal/no fallback:0 passed/1 failed, controller0.",
+      "six_payloads_independently_rehashed": true,
+      "build_info_sha256": "9eda3f192cfa244b066bdc23c1a2e222341174a248ef6f8557b80a8a7039eede",
+      "payloads_unchanged": true
+    },
+    "new_real_red_green": {
+      "modes": [
+        "unknown-geometry-status",
+        "unknown-catalogue-status",
+        "mismatched-refusal-detail"
+      ],
+      "same_immutable_input_files": true,
+      "old7a_native_exits": [
+        0,
+        0,
+        0
+      ],
+      "old_result": "done failures0, retained as defect reproduction rather than valid acceptance",
+      "newf9_native_exits": [
+        1,
+        1,
+        1
+      ],
+      "new_result": "Specific compare-refused terminal, no done",
+      "healthy_native_exit_both": 0,
+      "current_and_old_aggregate_assessments": 0,
+      "all_pre_post_input_exits": 0,
+      "originals_payloads_mutations_unchanged": true
+    },
+    "prior_real_control_retention": {
+      "four_original_completeness_controls_native_exits": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "two_forged_gate_controls_native_exits": [
+        1,
+        1
+      ],
+      "two_write_count_controls_native_exits": [
+        1,
+        1
+      ],
+      "healthy_control_each": 0,
+      "all_current_aggregate_exits": 0,
+      "raw_verification": "Independently parsed current failure raw JSONL, checked recorded SHA and compare-refused/noDone; successful healthy controls end done failures0."
+    },
+    "retail": {
+      "cases": [
+        "georgia",
+        "lebanon",
+        "lebanon-repeat"
+      ],
+      "actual_repo_powershell_and_native_exits": [
+        0,
+        0,
+        0
+      ],
+      "pre_post_manifest_exits": 0,
+      "strict_rows_each": 3357,
+      "whole_bytes_each": 1278336,
+      "all_three_full_reports_exact_prior7a": true,
+      "sha256": "ed3503b12227fec13cadd2d56b62296cdb08e5bd2e5b76f0ac61db776fc59317",
+      "scope": "All3025 scene metadata/IDs and215 original calls (208TRUE,6endFALSE,1absence), no named-ID skips, surface52517. Prior independent metadata/bit audit is reused via exact whole-file equality; originals and six payloads unchanged."
+    },
+    "verification_method": "Read-only pinned source/Git/hash, actual controller/log and strict raw JSON inspection; independent6-entry build hash check, exact15-status set check and three full retail comparisons. No supplied scripts, tests, builds or native processes were executed by this reviewer."
+  },
+  "limits": [
+    "This closes the remaining reviewed host-component boundary findings only. No formal GitHub approval, Task50 delivery, production dispatch/authority, Tacview/shipping or whole-D3 acceptance is implied.",
+    "59 original custom/mixed geometry cases remain without original triangle oracles; other safe models have metadata but not exhaustive triangle coverage. Host answers for originally refused models are informational, not matches.",
+    "Production model loader/query dispatch is still in the campaign DLL. Required D3 hierarchy/model/entity/environment/time/spatial services and physical solver/loader removal remain.",
+    "Actual current native is Windows x64; no32-bit execution, unsafe allocation RED or new campaign/original physical probe is claimed. Live Task47 shipping processes/cache/evidence are outside this pass and untouched.",
+    "Current PR CI/delivery gates are not established by these local results. All prior failures and review reports remain preserved under their actual identities.",
+    "No source/Git/auth/external writes, process/cache actions, nested agents or build/test/native execution; only this new canonical UTF8-LF report was written."
+  ],
+  "source_identities": [
+    {
+      "path": "eech-campaign/crates/eech-world/src/original_report.rs",
+      "sha256": "2a19b8e5b04df748bebb6e4f7c22d22d88f509c8a87e2f9334ac92ef6b58845d"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/model_store.rs",
+      "sha256": "e2076d2d2b56f0b41860f5bcb235c846fd780755ffde37a98ac087820e86ec4f"
+    },
+    {
+      "path": "eech-campaign/docs/m5-model-host-store.md",
+      "sha256": "01924ab9bafb601720cc343c5b961cd41fb5b4b80d767b54551247e6ea360958"
+    }
+  ],
+  "evidence_identities": [
+    {
+      "path": "R:/d3-evidence/independent-host-model-review-final-7a51d13a6-20261030.json",
+      "sha256": "bf7116646316b8f78475ce244969bfb30e149438d0cf8c55bd195bc316dad9dc"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-f9c6a1e4c-linux-20261030-completion.json",
+      "sha256": "c19d1f0d3b084a527b15f027f94c4e45d32fe2a3e377b4f49b6d8651480ca81d"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-f9c6a1e4c-linux-20261030.log",
+      "sha256": "95c4ca677d10150454246e10bfcc6062be294f210497343316b995ff4be79f58"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-f9c6a1e4c-windows-20261030-completion.json",
+      "sha256": "93378bbda606c44ec1780616398e5072dbdc81608a056404df51a57ea476c0c1"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-f9c6a1e4c-windows-tests-20261030/controller.json",
+      "sha256": "20486ea75ebc7c5c67a53c8bed645087e4da3ae2be4c209b63e5513d5b8a218b"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-f9c6a1e4c-windows-tests-20261030/unit.log",
+      "sha256": "61348e9b951b7a1b0a4658f7f38f85b35b7cd057603fe6b8d984cc92de594e5a"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-f9c6a1e4c-windows-tests-20261030/integration.log",
+      "sha256": "9c4d8e40bdb47593c8d6fb2f802c2d2c17aac36f8d09f873958f6eb1f0d63967"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-f9c6a1e4c-windows-tests-20261030/invalid-host.log",
+      "sha256": "f5ba51f60df2e888a14e95f3f00606aa859c12537b3d226ab8541b757af374a8"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-f9c6a1e4c-retail-20261030/controller.json",
+      "sha256": "5067aaf6021d4d82611c4fa93eb689d3d309a3896dec0d8705bac3d92b9d5d61"
+    },
+    {
+      "path": "R:/d3-evidence/host-model-status-detail-7a51d13a6-red-20261030/controller.json",
+      "sha256": "769c2f6f5351149c15e53389ee9f81e73cc51056680b3fc791b6d9b16952dc24"
+    },
+    {
+      "path": "R:/d3-evidence/host-model-status-detail-f9c6a1e4c-green-20261030/controller.json",
+      "sha256": "3d62d8bfb31772e451e14ceb32c525f233698fd5dc9de4589940211c89b61f18"
+    },
+    {
+      "path": "R:/d3-evidence/host-model-report-controls-f9c6a1e4c-green-20261030/controller.json",
+      "sha256": "b08ae35f0530e25f1352b9f04b9c73d6024ef0ef0e90ca4c8309ecd73759a481"
+    },
+    {
+      "path": "R:/d3-evidence/host-model-forged-gate-f9c6a1e4c-green-20261030/controller.json",
+      "sha256": "37ca6c3d368bef74a6600a66ecf5687196646256b0b0642e3ebc5c66158d3444"
+    },
+    {
+      "path": "R:/d3-evidence/host-model-write-count-f9c6a1e4c-green-20261030/controller.json",
+      "sha256": "f9c9a8f6834f19b5679dbbaa79c87f432c8cd5cba94c7380bf8b7e604f99c195"
+    }
+  ],
+  "previous_report": {
+    "path": "R:/d3-evidence/independent-host-model-review-final-7a51d13a6-20261030.json",
+    "sha256": "bf7116646316b8f78475ce244969bfb30e149438d0cf8c55bd195bc316dad9dc"
+  }
+}
