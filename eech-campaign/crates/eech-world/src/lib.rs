@@ -7,5 +7,6 @@ pub mod los;
 pub mod model_host;
 pub mod models;
 pub mod movement;
+pub mod original_report;
 pub mod sense;
 pub mod tacview;

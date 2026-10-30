@@ -1,3 +1,33 @@
+# Current D3 correction — EEDCS-50 host model store, four review findings (30 October 2026): SOURCE PREPARED, UNBUILT, UNRUN
+
+Review of the tested `2020436ce` (`independent-host-model-component-review-2020436ce-20261030.json`, SHA-256 `4f387a639e452c9942e89d693d4de0b7a2e7a914a34bf6c68dcd38626f48c613`): CHANGES_REQUIRED,
+exactly four P2s. This entry is the next source after publication `393539141`; it has not been formatted, compiled or run, and the tested `2020436ce` evidence (Linux format, 25 new and 8 old tests,
+all-target Clippy; Windows build, 25 tests and the expected missing-host refusal; the three complete retail host reports, identical at 1,278,273 bytes SHA-256 `34e4b684…3e86`, with all 3025 scenes'
+metadata and object numbers and 215 original calls matching and surface block 52,517; inputs, originals and the five host payloads unchanged) is retained as it was and is NOT relabelled as running
+these corrections. The initial `0b5750f7a` failures and the skipped-number defect remain part of the history.
+
+**Corrected (details and exact contracts: `eech-campaign/docs/m5-model-host-store.md`, "Corrections for the four review findings"):**
+1. MODEL-NODE-PREALLOCATION: a sub-object count is checked against the bytes that remain, at the smallest record the format allows (derived from `initialise_3d_sub_object`: 96 bytes binary, 93 named,
+   105 for version -3 and below), before anything is reserved or resized; the node total must fit the kernel's 32-bit counts; the reservation is checked. Traversal, order and layout unchanged.
+2. MODEL-OVERRIDE-IO: enumeration and name resolution go through a small `Fs` boundary; only a genuinely absent optional `OBJECTS` is absent, every listing, entry, type, vanished-entry, wrong-kind
+   and case-ambiguity failure is an error naming the path. Successful order unchanged. Unit tests drive the actual resolver against a fake filesystem; a real-filesystem test covers `OBJECTS` as a file.
+3. MODEL-COMPARISON-COMPLETENESS: `compare_original` validates the report as a whole, coherent run of the closed original driver (new `src/original_report.rs`) before comparing a row: the envelope,
+   the complete catalogue when declared, and every geometry group's pages, depths, terminal and call counts. Legitimate absent, refused, unbacked, capped, catalogue-off and partial-write observations pass;
+   no physical outcome is required. Test collaborators are complete report envelopes built from the host's run; controls (cut off after the first scene, repeated scene, missing terminal, failed original
+   done, and others) run through the real comparator and host-Lua driver and are runnable against the old `2020436ce` host through `EECH_WORLD_BIN`.
+4. MODEL-SCENE-WIDTH: the signed scene is compared with the scene count before it is narrowed (`usize::try_from`); wide positive scenes that wrap on a 32-bit target are in the guard.
+
+Changed: `src/models.rs`, `src/model_host.rs`, new `src/original_report.rs`, `src/lib.rs`, `tests/model_store.rs`, `docs/m5-model-host-store.md`, this file. Not changed: the C numeric kernel and floating-point
+guard (no finding), the closed original diagnostic driver and fixture, any baseline, tolerance, MSRV or physical rule. No new original-provenance instrumentation in this batch.
+
+**Next (Root):** format and freeze; Linux `model_store` (including the new unit and integration controls), the old `model_characterization` guards and all-target Clippy; Windows `model_store` with `EECH_WORLD_BIN` and
+the invalid-override control; the old `2020436ce` host against the new comparator controls as the safe red where applicable (never the old unguarded allocation); the retail comparison again only if the Root judges the
+loader change affects it (the physical path is unchanged, the report contract is new, so the three retained concrete reports should be re-checked against the new comparator); then the focused review of these changes.
+Still open and unchanged: the 59 original custom and mixed-layout geometry gaps need actual original allocation and backing provenance (the host's counts for them are not an oracle); other safe models have metadata but not
+exhaustive triangle proof; the production model loader and native physical service removal, hierarchy, viewpoint, device, muzzle and target-point services, entity collision, environment and host-time services remain required whole-D3
+work (not deferred to D5); campaign policy, geography, routes, timers and consequences stay in EECH_DC. The original six Task 47 shipping processes were verified live and untouched at 00:15 UTC; the full 40-check /
+eight-artifact acceptance and normal delivery are pending. D4 and D5 have not started. No task acceptance, production or Tacview claim. No Git, build, test or native action was taken in this lane.
+
 # D3 checkpoint — host model component tested; four review corrections open (30 October 2026)
 
 EEDCS-50 / draft PR110: source `2020436ce160ac3762f00f7ee8290f4e6247bce3`

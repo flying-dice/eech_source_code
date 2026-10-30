@@ -8,7 +8,8 @@
 //!
 //! No pointer, offset or legacy layout reaches Lua; the store is immutable and shared (`Arc`), so a value a script keeps never refers into it. Arguments are whole
 //! numbers within range or the call is refused before the store is touched. A missing asset is reported as `NOT RUN`, never as a pass.
-use crate::models::{hex_list, ErrorKind, ModelStore, ObjectSource, SceneSource, Triangle};
+use crate::models::{hex_list, scene_last, ErrorKind, ModelStore, ObjectSource, SceneSource, Triangle};
+use crate::original_report;
 use mlua::prelude::*;
 use serde_json::Value;
 use std::path::Path;
@@ -159,6 +160,8 @@ impl LuaUserData for StoreHandle {
                 ("triangle_mismatches", report.triangle_mismatches),
                 ("absences_confirmed", report.absences_confirmed),
                 ("original_refused_scenes", report.refused_scenes.len()),
+                ("original_catalogue_scenes", report.original_catalogue_scenes),
+                ("original_geometry_scenes", report.original_geometry_scenes),
             ] {
                 t.set(name, value)?;
             }
@@ -195,6 +198,8 @@ struct Report {
     triangles_compared: usize,
     triangle_mismatches: usize,
     absences_confirmed: usize,
+    original_catalogue_scenes: usize,
+    original_geometry_scenes: usize,
     refused_scenes: Vec<String>,
     listed: Vec<String>,
 }
@@ -236,17 +241,30 @@ fn compare_original(store: &ModelStore, path: &Path) -> Result<Report, String> {
         return Err(format!("{} is {} bytes, over the {MAX_REPORT}-byte limit", path.display(), meta.len()));
     }
     let content = std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
-    let mut report = Report::default();
-    // the geometry group in progress: (scene, the original's status for it)
-    let mut group: Option<(i64, String)> = None;
-    let mut saw_rows = 0usize;
-
-    for (number, line) in content.lines().enumerate() {
+    // Every line must be JSON (a report cut off in the middle of a row stops here), and the report must be a WHOLE, coherent run of the original driver before any row of it is
+    // compared: a truncated, repeated or failed original must not compare clean row by row (see original_report.rs).
+    let mut rows: Vec<(usize, Value)> = Vec::new();
+    for (index, line) in content.lines().enumerate() {
         if line.trim().is_empty() {
             continue;
         }
-        let row: Value = serde_json::from_str(line).map_err(|e| format!("line {}: not JSON: {e}", number + 1))?;
-        saw_rows += 1;
+        let row: Value = serde_json::from_str(line).map_err(|e| format!("line {}: not JSON: {e}", index + 1))?;
+        rows.push((index + 1, row));
+    }
+    if rows.is_empty() {
+        return Err(format!("{} holds no rows", path.display()));
+    }
+    let contract = original_report::validate(&rows, scene_last()).map_err(|e| format!("not a complete original model report: {e}"))?;
+    let mut report = Report {
+        original_catalogue_scenes: contract.catalogue_scenes,
+        original_geometry_scenes: contract.geometry_scenes,
+        ..Report::default()
+    };
+    // the geometry group in progress: (scene, the original's status for it)
+    let mut group: Option<(i64, String)> = None;
+
+    for (line_number, row) in &rows {
+        let number = line_number - 1;
         match text(&row, "event").unwrap_or_default() {
             "model-scene" => {
                 report.scene_rows += 1;
@@ -397,9 +415,6 @@ fn compare_original(store: &ModelStore, path: &Path) -> Result<Report, String> {
             }
             _ => {}
         }
-    }
-    if saw_rows == 0 {
-        return Err(format!("{} holds no rows", path.display()));
     }
     Ok(report)
 }

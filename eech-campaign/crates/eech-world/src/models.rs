@@ -186,6 +186,11 @@ impl<'a> Reader<'a> {
         }
     }
 
+    /// the bytes not yet read
+    fn remaining(&self) -> u64 {
+        (self.data.len() - self.pos) as u64
+    }
+
     fn skip(&mut self, bytes: u64) -> Result<(), ModelError> {
         let remaining = (self.data.len() - self.pos) as u64;
         if bytes > remaining {
@@ -275,26 +280,119 @@ fn points_of(raw: &[u8]) -> Vec<[i16; 3]> {
     (0..raw.len() / 6).map(|i| [at(i, 0), at(i, 1), at(i, 2)]).collect()
 }
 
-fn find_file(dir: &Path, name: &str) -> Result<Option<PathBuf>, ModelError> {
-    let exact = dir.join(name);
-    if exact.is_file() {
-        return Ok(Some(exact));
+/// What a path is, following links.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Kind {
+    Directory,
+    File,
+    Other,
+}
+
+/// The two filesystem questions the resolver and the enumerator ask, as a small boundary so that the failures a test cannot portably cause (an unreadable directory, an entry
+/// that cannot be read, a path whose type cannot be determined) can be put in front of the actual resolver code. Production uses `RealFs`.
+trait Fs {
+    /// the names in `dir`: Err if it cannot be listed (a directory that does not exist is `NotFound`); each entry is its name or the error reading it
+    fn list(&self, dir: &Path) -> std::io::Result<Vec<std::io::Result<String>>>;
+    /// what `path` is, following links; Ok(None) when it does not exist
+    fn kind(&self, path: &Path) -> std::io::Result<Option<Kind>>;
+}
+
+struct RealFs;
+
+impl Fs for RealFs {
+    fn list(&self, dir: &Path) -> std::io::Result<Vec<std::io::Result<String>>> {
+        Ok(std::fs::read_dir(dir)?
+            .map(|entry| entry.map(|e| e.file_name().to_string_lossy().to_string()))
+            .collect())
     }
-    let entries = match std::fs::read_dir(dir) {
-        Ok(entries) => entries,
-        Err(_) => return Ok(None),
-    };
-    let mut found: Option<PathBuf> = None;
-    for entry in entries.flatten() {
-        let entry_name = entry.file_name().to_string_lossy().to_string();
-        if entry_name.eq_ignore_ascii_case(name) && entry.path().is_file() {
-            if found.is_some() {
-                return fail(ErrorKind::Inconsistent, name, format!("two files in {} differ only in case", dir.display()));
-            }
-            found = Some(entry.path());
+
+    fn kind(&self, path: &Path) -> std::io::Result<Option<Kind>> {
+        match std::fs::metadata(path) {
+            Ok(meta) if meta.is_dir() => Ok(Some(Kind::Directory)),
+            Ok(meta) if meta.is_file() => Ok(Some(Kind::File)),
+            Ok(_) => Ok(Some(Kind::Other)),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
+            Err(e) => Err(e),
         }
     }
+}
+
+fn io_failure(path: &Path, what: &str, error: &std::io::Error) -> ModelError {
+    ModelError {
+        kind: ErrorKind::Unreadable,
+        file: path.display().to_string(),
+        detail: format!("{what}: {error}"),
+    }
+}
+
+/// The entries of `dir` that are `want`, with their paths. A directory that cannot be listed, an entry that cannot be read, a path whose type cannot be determined, or an
+/// entry that vanished while it was being listed is an error naming the path: nothing is silently left out. (An entry of another kind is not an error: the original's search
+/// skips directories when it wants files and files when it wants directories.)
+fn typed_entries(fs: &dyn Fs, dir: &Path, want: Kind) -> Result<Vec<(String, PathBuf)>, ModelError> {
+    let listing = fs.list(dir).map_err(|e| io_failure(dir, "cannot list the directory", &e))?;
+    let mut out = Vec::new();
+    for item in listing {
+        let name = item.map_err(|e| io_failure(dir, "cannot read a directory entry", &e))?;
+        let path = dir.join(&name);
+        match fs.kind(&path).map_err(|e| io_failure(&path, "cannot determine what the entry is", &e))? {
+            Some(kind) if kind == want => out.push((name, path)),
+            Some(_) => {}
+            None => {
+                return fail(
+                    ErrorKind::Inconsistent,
+                    &path.display().to_string(),
+                    "the entry vanished while the directory was being listed",
+                )
+            }
+        }
+    }
+    Ok(out)
+}
+
+/// `name` in `dir` as a path of kind `want`, found exactly or by upper-case comparison (a Windows file system is case-insensitive and the original's names are not
+/// consistently cased). Ok(None) only when nothing of that name exists, or `dir` itself does not; a name that exists as another kind, two names that differ only in case, and
+/// every I/O failure are errors naming the path.
+fn find_named(fs: &dyn Fs, dir: &Path, name: &str, want: Kind) -> Result<Option<PathBuf>, ModelError> {
+    let noun = if want == Kind::Directory { "directory" } else { "file" };
+    let exact = dir.join(name);
+    match fs.kind(&exact).map_err(|e| io_failure(&exact, "cannot determine what the path is", &e))? {
+        Some(kind) if kind == want => return Ok(Some(exact)),
+        Some(_) => return fail(ErrorKind::Inconsistent, &exact.display().to_string(), format!("exists but is not a {noun}")),
+        None => {}
+    }
+    let listing = match fs.list(dir) {
+        Ok(listing) => listing,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+        Err(e) => return Err(io_failure(dir, "cannot list the directory", &e)),
+    };
+    let mut found: Option<PathBuf> = None;
+    for item in listing {
+        let entry_name = item.map_err(|e| io_failure(dir, "cannot read a directory entry", &e))?;
+        if !entry_name.eq_ignore_ascii_case(name) {
+            continue;
+        }
+        let path = dir.join(&entry_name);
+        match fs.kind(&path).map_err(|e| io_failure(&path, "cannot determine what the entry is", &e))? {
+            Some(kind) if kind == want => {}
+            Some(_) => return fail(ErrorKind::Inconsistent, &path.display().to_string(), format!("exists but is not a {noun}")),
+            None => {
+                return fail(
+                    ErrorKind::Inconsistent,
+                    &path.display().to_string(),
+                    "the entry vanished while the directory was being listed",
+                )
+            }
+        }
+        if found.is_some() {
+            return fail(ErrorKind::Inconsistent, name, format!("two {noun}s in {} differ only in case", dir.display()));
+        }
+        found = Some(path);
+    }
     Ok(found)
+}
+
+fn find_file(fs: &dyn Fs, dir: &Path, name: &str) -> Result<Option<PathBuf>, ModelError> {
+    find_named(fs, dir, name, Kind::File)
 }
 
 fn read_file(path: &Path, label: &str) -> Result<Vec<u8>, ModelError> {
@@ -313,28 +411,19 @@ fn read_file(path: &Path, label: &str) -> Result<Vec<u8>, ModelError> {
     })
 }
 
-fn required(dir: &Path, name: &str) -> Result<Vec<u8>, ModelError> {
-    match find_file(dir, name)? {
+fn required(fs: &dyn Fs, dir: &Path, name: &str) -> Result<Vec<u8>, ModelError> {
+    match find_file(fs, dir, name)? {
         Some(path) => read_file(&path, name),
         None => fail(ErrorKind::Missing, name, format!("not found under {}", dir.display())),
     }
 }
 
 /// the sub-directories (or files) of `dir`, sorted by upper-case name: the order the Windows directory search returns them in, which the original's numbering of custom
-/// objects and its last-definition-wins rule depend on
-fn sorted_entries(dir: &Path, directories: bool) -> Vec<(String, PathBuf)> {
-    let mut out = Vec::new();
-    if let Ok(entries) = std::fs::read_dir(dir) {
-        for entry in entries.flatten() {
-            let path = entry.path();
-            let is_dir = path.is_dir();
-            if is_dir == directories {
-                out.push((entry.file_name().to_string_lossy().to_string(), path));
-            }
-        }
-    }
+/// objects and its last-definition-wins rule depend on. Any failure to enumerate is an error (see `typed_entries`).
+fn sorted_entries(fs: &dyn Fs, dir: &Path, directories: bool) -> Result<Vec<(String, PathBuf)>, ModelError> {
+    let mut out = typed_entries(fs, dir, if directories { Kind::Directory } else { Kind::File })?;
     out.sort_by(|a, b| a.0.to_ascii_uppercase().cmp(&b.0.to_ascii_uppercase()).then(a.0.cmp(&b.0)));
-    out
+    Ok(out)
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------------
@@ -528,6 +617,19 @@ struct Loader {
     room: i64,
     history: Vec<(Vec<u8>, usize)>,
     summary: LoadSummary,
+}
+
+/// The fewest bytes one serialized sub-object occupies, from `initialise_3d_sub_object` in the original's order: the object (a binary int, or for a named scene
+/// `skip_schem`, 12 bytes from version -3, and a NUL-terminated name, at least the NUL), four ints (contributes to collisions, the two approximation levels, the flag with
+/// its limits absent), the keyframes (a count, and at least one 56-byte keyframe: the original asserts one), the dissolve float, and three counts (value keyframes, named
+/// indices, sub-objects). Derived from the reads, not chosen: a real record is never smaller, so a count the remaining bytes cannot hold at this size is not a scene.
+fn min_sub_object_bytes(named: Option<&Named>) -> u64 {
+    let object = match named {
+        None => 4,
+        Some(named) if named.version <= -3 => 12 + 1,
+        Some(_) => 1,
+    };
+    object + 4 * 4 + (4 + 56) + 4 + 3 * 4
 }
 
 /// The sub-object nodes of one scene and the room its header declares for them (the original allocates exactly that and overruns it if the records say more).
@@ -902,7 +1004,7 @@ impl Loader {
         }
         let stem_text = String::from_utf8_lossy(&stem).to_string();
         let label = format!("{stem_text}.EEO");
-        let path = match find_file(named.prefix, &label)? {
+        let path = match find_file(&RealFs, named.prefix, &label)? {
             Some(path) => path,
             None => {
                 return fail(
@@ -990,6 +1092,19 @@ impl Loader {
         if depth >= MAX_TREE_DEPTH {
             return fail(ErrorKind::Limit, r.file, format!("a sub-object tree deeper than {MAX_TREE_DEPTH}"));
         }
+        // Before anything is sized from the file's count: the bytes that remain must be able to hold that many records, whatever the scene header declared (a tiny file
+        // that says INT_MAX nodes is refused, not allocated 100 GB for)
+        let least = min_sub_object_bytes(named);
+        match (n as u64).checked_mul(least) {
+            Some(bytes) if bytes <= r.remaining() => {}
+            _ => {
+                return fail(
+                    ErrorKind::Truncated,
+                    r.file,
+                    format!("{n} sub-objects of at least {least} bytes each, {} bytes remain", r.remaining()),
+                )
+            }
+        }
         if n > tree.node_budget {
             return fail(
                 ErrorKind::Inconsistent,
@@ -997,9 +1112,23 @@ impl Loader {
                 format!("{n} sub-objects exceed the {} the scene declares", tree.node_budget),
             );
         }
-        tree.node_budget -= n;
         let first = tree.nodes.len();
-        tree.nodes.resize(first + n, Node::default());
+        // the kernel takes 32-bit counts and indices
+        let total = match first.checked_add(n) {
+            Some(total) if total <= i32::MAX as usize => total,
+            _ => {
+                return fail(
+                    ErrorKind::Limit,
+                    r.file,
+                    format!("{first} + {n} sub-object nodes are more than a scene can hold"),
+                )
+            }
+        };
+        if tree.nodes.try_reserve(n).is_err() {
+            return fail(ErrorKind::Limit, r.file, format!("cannot reserve room for {n} sub-object nodes"));
+        }
+        tree.node_budget -= n;
+        tree.nodes.resize(total, Node::default());
         for k in 0..n {
             self.sub_object(r, named, tree, first + k, depth)?;
         }
@@ -1252,14 +1381,15 @@ impl Loader {
 
     fn load(root: &Path) -> Result<ModelStore, ModelError> {
         let data = root.join("cohokum").join("3ddata");
-        if !data.is_dir() {
-            return fail(ErrorKind::Missing, "3ddata", format!("{} is not a directory", data.display()));
+        match RealFs.kind(&data).map_err(|e| io_failure(&data, "cannot determine what the path is", &e))? {
+            Some(Kind::Directory) => {}
+            _ => return fail(ErrorKind::Missing, "3ddata", format!("{} is not a directory", data.display())),
         }
-        let bininfo = required(&data, "bininfo.bin")?;
-        let bin = required(&data, "3dobjs.bin")?;
-        let pts = required(&data, "3dobjs.pts")?;
-        let sp = required(&data, "3dobjs.sp")?;
-        let db = required(&data, "3dobjdb.bin")?;
+        let bininfo = required(&RealFs, &data, "bininfo.bin")?;
+        let bin = required(&RealFs, &data, "3dobjs.bin")?;
+        let pts = required(&RealFs, &data, "3dobjs.pts")?;
+        let sp = required(&RealFs, &data, "3dobjs.sp")?;
+        let db = required(&RealFs, &data, "3dobjdb.bin")?;
 
         let mut loader = Loader {
             objects: Vec::new(),
@@ -1318,10 +1448,10 @@ impl Loader {
         loader.read_table(&bin, &pts, &sp)?;
 
         // binary-hex object overrides
-        let objects_dir = find_dir(&data, "OBJECTS");
+        let objects_dir = find_named(&RealFs, &data, "OBJECTS", Kind::Directory)?;
         if let Some(objects_dir) = &objects_dir {
             let mut seen: BTreeMap<usize, String> = BTreeMap::new();
-            for (name, path) in sorted_entries(objects_dir, false) {
+            for (name, path) in sorted_entries(&RealFs, objects_dir, false)? {
                 let upper = name.to_ascii_uppercase();
                 let b = upper.as_bytes();
                 if b.len() != 8 || !b[..4].iter().all(|c| c.is_ascii_hexdigit()) || &b[4..] != b".EEO" {
@@ -1368,12 +1498,12 @@ impl Loader {
         // named scenes
         if let Some(objects_dir) = &objects_dir {
             let mut defined: BTreeMap<usize, String> = BTreeMap::new();
-            for (dir_name, dir_path) in sorted_entries(objects_dir, true) {
+            for (dir_name, dir_path) in sorted_entries(&RealFs, objects_dir, true)? {
                 if dir_name == "." || dir_name == ".." {
                     continue;
                 }
                 loader.history.clear();
-                for (file_name, file_path) in sorted_entries(&dir_path, false) {
+                for (file_name, file_path) in sorted_entries(&RealFs, &dir_path, false)? {
                     let upper = file_name.to_ascii_uppercase();
                     let Some(stem) = upper.strip_suffix(".EES") else { continue };
                     let Some(scene) = scene_by_name(stem.as_bytes()) else {
@@ -1438,17 +1568,6 @@ impl Loader {
             summary: self.summary,
         })
     }
-}
-
-fn find_dir(dir: &Path, name: &str) -> Option<PathBuf> {
-    let exact = dir.join(name);
-    if exact.is_dir() {
-        return Some(exact);
-    }
-    sorted_entries(dir, true)
-        .into_iter()
-        .find(|(entry, _)| entry.eq_ignore_ascii_case(name))
-        .map(|(_, path)| path)
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------------
@@ -1546,10 +1665,11 @@ impl ModelStore {
     }
 
     fn check_scene(&self, scene: i64) -> Result<usize, QueryError> {
-        if scene < 1 || scene as usize >= self.scenes.len() {
+        // the signed 64-bit value is compared with the scene count BEFORE it is narrowed: `4294967297 as usize` is 1 on a 32-bit target
+        if scene < 1 || scene >= self.scenes.len() as i64 {
             return Err(QueryError::BadScene(scene));
         }
-        Ok(scene as usize)
+        usize::try_from(scene).map_err(|_| QueryError::BadScene(scene))
     }
 
     pub fn scene(&self, scene: i64) -> Result<SceneView, QueryError> {
@@ -1746,4 +1866,188 @@ impl ModelStore {
 /// `0x%08x,...` as the original's reports write float bit patterns.
 pub fn hex_list(bits: &[u32]) -> String {
     bits.iter().map(|b| format!("0x{b:08x}")).collect::<Vec<_>>().join(",")
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------
+// the resolver and the enumerator against failures a test cannot portably cause (an unreadable directory, an entry that cannot be read, a path whose type cannot be
+// determined). The actual `find_named`, `typed_entries` and `sorted_entries` run; only the two filesystem questions are answered by the fake.
+
+#[cfg(test)]
+mod fs_tests {
+    use super::*;
+    use std::collections::HashMap;
+    use std::io::{Error, ErrorKind as IoKind};
+
+    enum Node {
+        /// a directory whose listing is these entries, each its name or the error reading it
+        Dir(Vec<Result<&'static str, IoKind>>),
+        /// a directory that cannot be listed
+        Unlistable(IoKind),
+        File,
+        /// a path whose type cannot be determined
+        Unknowable(IoKind),
+    }
+
+    struct FakeFs(HashMap<PathBuf, Node>);
+
+    impl Fs for FakeFs {
+        fn list(&self, dir: &Path) -> std::io::Result<Vec<std::io::Result<String>>> {
+            match self.0.get(dir) {
+                Some(Node::Dir(items)) => Ok(items
+                    .iter()
+                    .map(|item| match item {
+                        Ok(name) => Ok(name.to_string()),
+                        Err(kind) => Err(Error::new(*kind, "entry unreadable")),
+                    })
+                    .collect()),
+                Some(Node::Unlistable(kind)) => Err(Error::new(*kind, "listing refused")),
+                Some(_) => Err(Error::new(IoKind::Other, "not a directory")),
+                None => Err(Error::new(IoKind::NotFound, "no such directory")),
+            }
+        }
+
+        fn kind(&self, path: &Path) -> std::io::Result<Option<Kind>> {
+            match self.0.get(path) {
+                Some(Node::Dir(_)) | Some(Node::Unlistable(_)) => Ok(Some(Kind::Directory)),
+                Some(Node::File) => Ok(Some(Kind::File)),
+                Some(Node::Unknowable(kind)) => Err(Error::new(*kind, "type unknown")),
+                None => Ok(None),
+            }
+        }
+    }
+
+    fn data() -> PathBuf {
+        PathBuf::from("/install/cohokum/3ddata")
+    }
+
+    fn fake(nodes: Vec<(&str, Node)>) -> FakeFs {
+        FakeFs(
+            nodes
+                .into_iter()
+                .map(|(name, node)| (if name.is_empty() { data() } else { data().join(name) }, node))
+                .collect(),
+        )
+    }
+
+    fn denied() -> IoKind {
+        IoKind::PermissionDenied
+    }
+
+    #[test]
+    fn a_genuinely_absent_optional_directory_is_none_and_a_present_one_is_found_exactly_or_by_case() {
+        let fs = fake(vec![("", Node::Dir(vec![Ok("bininfo.bin")])), ("bininfo.bin", Node::File)]);
+        assert_eq!(find_named(&fs, &data(), "OBJECTS", Kind::Directory).unwrap(), None);
+        // the parent itself being absent is absent too
+        assert_eq!(find_named(&FakeFs(HashMap::new()), &data(), "OBJECTS", Kind::Directory).unwrap(), None);
+        let fs = fake(vec![("OBJECTS", Node::Dir(vec![]))]);
+        assert_eq!(find_named(&fs, &data(), "OBJECTS", Kind::Directory).unwrap(), Some(data().join("OBJECTS")));
+        let fs = fake(vec![("", Node::Dir(vec![Ok("Objects")])), ("Objects", Node::Dir(vec![]))]);
+        assert_eq!(find_named(&fs, &data(), "OBJECTS", Kind::Directory).unwrap(), Some(data().join("Objects")));
+    }
+
+    #[test]
+    fn an_existing_path_that_cannot_be_examined_listed_or_is_the_wrong_kind_is_an_error_naming_it() {
+        // present but a file
+        let fs = fake(vec![("OBJECTS", Node::File)]);
+        let error = find_named(&fs, &data(), "OBJECTS", Kind::Directory).unwrap_err();
+        assert!(error.detail.contains("not a directory") && error.file.contains("OBJECTS"), "{error}");
+        // present with another case, but a file
+        let fs = fake(vec![("", Node::Dir(vec![Ok("objects")])), ("objects", Node::File)]);
+        assert!(find_named(&fs, &data(), "OBJECTS", Kind::Directory).unwrap_err().file.contains("objects"));
+        // its type cannot be determined
+        let fs = fake(vec![("OBJECTS", Node::Unknowable(denied()))]);
+        let error = find_named(&fs, &data(), "OBJECTS", Kind::Directory).unwrap_err();
+        assert_eq!((error.kind, error.file.contains("OBJECTS")), (ErrorKind::Unreadable, true), "{error}");
+        // the parent cannot be listed to look for another case
+        let fs = fake(vec![("", Node::Unlistable(denied()))]);
+        let error = find_named(&fs, &data(), "OBJECTS", Kind::Directory).unwrap_err();
+        assert_eq!(error.kind, ErrorKind::Unreadable);
+        assert!(error.file.contains("3ddata"), "{error}");
+        // one entry of the parent cannot be read
+        let fs = fake(vec![("", Node::Dir(vec![Ok("bininfo.bin"), Err(denied())])), ("bininfo.bin", Node::File)]);
+        assert_eq!(find_named(&fs, &data(), "OBJECTS", Kind::Directory).unwrap_err().kind, ErrorKind::Unreadable);
+        // two directories that differ only in case
+        let fs = fake(vec![
+            ("", Node::Dir(vec![Ok("Objects"), Ok("OBJECTs")])),
+            ("Objects", Node::Dir(vec![])),
+            ("OBJECTs", Node::Dir(vec![])),
+        ]);
+        assert_eq!(find_named(&fs, &data(), "OBJECTS", Kind::Directory).unwrap_err().kind, ErrorKind::Inconsistent);
+        // an entry of that name that vanished between the listing and the question
+        let fs = fake(vec![("", Node::Dir(vec![Ok("objects")]))]);
+        assert_eq!(find_named(&fs, &data(), "OBJECTS", Kind::Directory).unwrap_err().kind, ErrorKind::Inconsistent);
+    }
+
+    #[test]
+    fn files_resolve_exactly_or_by_case_and_every_failure_is_an_error_not_an_absent_file() {
+        let fs = fake(vec![("", Node::Dir(vec![Ok("3DOBJS.BIN")])), ("3DOBJS.BIN", Node::File)]);
+        assert_eq!(find_file(&fs, &data(), "3dobjs.bin").unwrap(), Some(data().join("3DOBJS.BIN")));
+        assert_eq!(find_file(&fs, &data(), "3dobjdb.bin").unwrap(), None);
+        // a directory where a file is wanted
+        let fs = fake(vec![("3dobjs.bin", Node::Dir(vec![]))]);
+        assert!(find_file(&fs, &data(), "3dobjs.bin").unwrap_err().detail.contains("not a file"));
+        // cannot list to look for another case
+        let fs = fake(vec![("", Node::Unlistable(denied()))]);
+        assert_eq!(find_file(&fs, &data(), "3dobjs.bin").unwrap_err().kind, ErrorKind::Unreadable);
+        // cannot determine the type
+        let fs = fake(vec![("3dobjs.bin", Node::Unknowable(denied()))]);
+        assert_eq!(find_file(&fs, &data(), "3dobjs.bin").unwrap_err().kind, ErrorKind::Unreadable);
+        // two files that differ only in case
+        let fs = fake(vec![
+            ("", Node::Dir(vec![Ok("A.EEO"), Ok("a.eeo")])),
+            ("A.EEO", Node::File),
+            ("a.eeo", Node::File),
+        ]);
+        assert_eq!(find_file(&fs, &data(), "a.EEO").unwrap_err().kind, ErrorKind::Inconsistent);
+    }
+
+    #[test]
+    fn enumeration_keeps_the_originals_order_and_kind_filter_when_it_succeeds() {
+        let fs = fake(vec![
+            ("", Node::Dir(vec![Ok("b.EES"), Ok("A.ees"), Ok("sub"), Ok("c.txt"), Ok("a.ees")])),
+            ("b.EES", Node::File),
+            ("A.ees", Node::File),
+            ("a.ees", Node::File),
+            ("c.txt", Node::File),
+            ("sub", Node::Dir(vec![])),
+        ]);
+        let files: Vec<String> = sorted_entries(&fs, &data(), false).unwrap().into_iter().map(|(name, _)| name).collect();
+        // by upper-case name, ties by the exact name; the directory is not a file
+        assert_eq!(files, vec!["A.ees", "a.ees", "b.EES", "c.txt"]);
+        let directories: Vec<String> = sorted_entries(&fs, &data(), true).unwrap().into_iter().map(|(name, _)| name).collect();
+        assert_eq!(directories, vec!["sub"]);
+        // an empty directory is an empty list, not an error
+        let empty = fake(vec![("", Node::Dir(vec![]))]);
+        assert!(sorted_entries(&empty, &data(), true).unwrap().is_empty());
+    }
+
+    #[test]
+    fn a_failed_enumeration_is_an_error_naming_the_path_never_an_empty_or_shorter_list() {
+        // the directory cannot be listed
+        let fs = fake(vec![("", Node::Unlistable(denied()))]);
+        let error = sorted_entries(&fs, &data(), true).unwrap_err();
+        assert_eq!(error.kind, ErrorKind::Unreadable);
+        assert!(error.file.contains("3ddata") && error.detail.contains("cannot list"), "{error}");
+        // a missing directory is also an error for the enumerator (the caller found it first)
+        assert_eq!(sorted_entries(&FakeFs(HashMap::new()), &data(), true).unwrap_err().kind, ErrorKind::Unreadable);
+        // one entry cannot be read, after others that can
+        let fs = fake(vec![
+            ("", Node::Dir(vec![Ok("a.ees"), Err(denied()), Ok("b.ees")])),
+            ("a.ees", Node::File),
+            ("b.ees", Node::File),
+        ]);
+        let error = sorted_entries(&fs, &data(), false).unwrap_err();
+        assert!(error.detail.contains("cannot read a directory entry"), "{error}");
+        // one entry's type cannot be determined
+        let fs = fake(vec![
+            ("", Node::Dir(vec![Ok("a.ees"), Ok("b.ees")])),
+            ("a.ees", Node::File),
+            ("b.ees", Node::Unknowable(denied())),
+        ]);
+        let error = sorted_entries(&fs, &data(), false).unwrap_err();
+        assert!(error.file.contains("b.ees") && error.detail.contains("cannot determine"), "{error}");
+        // an entry that vanished during the listing
+        let fs = fake(vec![("", Node::Dir(vec![Ok("a.ees")]))]);
+        assert_eq!(sorted_entries(&fs, &data(), false).unwrap_err().kind, ErrorKind::Inconsistent);
+    }
 }

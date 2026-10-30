@@ -1,0 +1,15 @@
+{
+  "content_id": "14548994",
+  "version": 70,
+  "snapshot": "v:70",
+  "prior_html_exact": true,
+  "five_epic_reports_exact": true,
+  "appended_content_exact_except_generated_local_ids": true,
+  "prior_characters": 127453,
+  "readback_characters": 131318,
+  "jira_comment": "10865",
+  "tested_source": "2020436ce160ac3762f00f7ee8290f4e6247bce3",
+  "checkpoint_source": "3935391417a1b15e27b8535a7f6abea09b52dcf8",
+  "review_report_sha256": "4f387a639e452c9942e89d693d4de0b7a2e7a914a34bf6c68dcd38626f48c613",
+  "scope": "Host component tested; four review corrections active; no production/Task50/D3 acceptance"
+}

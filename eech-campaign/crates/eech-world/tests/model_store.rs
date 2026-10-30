@@ -421,7 +421,22 @@ fn arguments_outside_the_scenes_and_depths_are_refused_before_the_data_is_touche
     let root = standard();
     let store = root.load().unwrap();
     let last = scene_last() as i64;
-    for scene in [0, -1, last, last + 1, i64::MAX, i64::MIN] {
+    // the wide positive values wrap to a valid scene (1, last - 1, 7) if they are narrowed to a 32-bit usize before the bound is checked: they must be refused as what they are
+    let wide = 1i64 << 32;
+    for scene in [
+        0,
+        -1,
+        last,
+        last + 1,
+        i64::MAX,
+        i64::MIN,
+        wide + 1,
+        wide + last - 1,
+        wide + 7,
+        wide * 3 + 1,
+        i64::from(u32::MAX) + 2,
+        i64::from(u32::MAX) + 1 + last,
+    ] {
         assert_eq!(store.triangle(scene, 0), Err(QueryError::BadScene(scene)), "scene {scene}");
         assert_eq!(store.scene(scene), Err(QueryError::BadScene(scene)));
     }
@@ -892,36 +907,168 @@ fn rows_of<'a>(run: &'a Driven, event: &str) -> Vec<&'a serde_json::Value> {
     run.rows.iter().filter(|r| r["event"] == event).collect()
 }
 
-/// the host's rows as the original model driver would have written them (scene rows, then a geometry group per scene)
-fn original_report(first: &Driven, scenes: &[i64]) -> Vec<serde_json::Value> {
-    let mut report = Vec::new();
-    for row in rows_of(first, "host-model-scene") {
-        let mut row = row.clone();
-        let status = match (row["loaded"].as_bool(), row["collision"].as_i64()) {
-            (Some(false), _) => "no_scene",
-            (_, Some(-1)) => "absent",
-            _ => "safe",
-        };
-        row["event"] = "model-scene".into();
-        row["status"] = status.into();
-        report.push(row);
+// A coherent original model-driver report, as the closed driver (lua/model-characterization.lua) writes one: its envelope (provenance, boot, the model state before, the
+// summary, ..., the model state after, its two final checks and a done), then the catalogue pages with their checks and tallies when the catalogue is on, then a geometry
+// group per scene asked for. It is built from the HOST'S OWN first run, so it proves the comparator's plumbing and contract, never what any model contains; the retail
+// comparison is the Root's, against the retained original reports.
+
+use serde_json::{json, Value};
+use std::collections::BTreeMap;
+
+/// one triangle row: depth, return, writes, the nine words when anything was written
+type Tri = (i64, i64, i64, Option<String>);
+
+struct Spec {
+    catalogue: bool,
+    asked: i64,
+    max_triangles: i64,
+    page_triangles: i64,
+}
+
+fn state_row(phase: &str) -> Value {
+    json!({"event": "model-state", "phase": phase, "tables": "0123456789abcdef", "pointers": "fedcba9876543210", "content": "00ff00ff00ff00ff", "content_objects": 3})
+}
+
+fn check_row(name: &str) -> Value {
+    json!({"event": "check", "name": name, "pass": "true", "detail": ""})
+}
+
+/// a geometry page: its header, the triangle rows, and the terminal the original writes for it (`end`: reason and depth of a model-end and its closing row; None: a full page, closed)
+fn page(scene: i64, status: &str, first: i64, count: i64, tris: &[Tri], end: Option<(&str, i64)>) -> Vec<Value> {
+    let mut rows = vec![
+        json!({"event": "model-geometry", "scene": scene, "name": "NAME", "collision": 1, "status": status, "detail": "-", "first": first, "count": count,
+        "fan_bound": 0, "end_read_backed": 1}),
+    ];
+    for (depth, returned, writes, p) in tris {
+        let mut row = json!({"event": "model-tri", "depth": depth, "return": returned, "writes": writes});
+        if let Some(p) = p {
+            row["p"] = p.clone().into();
+        }
+        rows.push(row);
     }
-    for scene in scenes {
-        let tris: Vec<&serde_json::Value> = rows_of(first, "host-model-tri").into_iter().filter(|r| r["scene"] == *scene).collect();
-        let absent = tris.first().is_some_and(|t| t["result"] == "absent");
-        let status = if absent { "absent" } else { "safe" };
-        report.push(serde_json::json!({"event": "model-geometry", "scene": scene, "status": status}));
-        for t in tris {
-            match t["result"].as_str().unwrap() {
-                "triangle" => report.push(serde_json::json!({"event": "model-tri", "depth": t["depth"], "return": 1, "writes": 9, "p": t["p"]})),
-                _ => report.push(serde_json::json!({"event": "model-tri", "depth": t["depth"], "return": 0, "writes": 0})),
+    match status {
+        "absent" => {}
+        "safe" | "empty" => {
+            if let Some((reason, depth)) = end {
+                rows.push(json!({"event": "model-end", "scene": scene, "depth": depth, "reason": reason}));
+            }
+            rows.push(json!({"event": "model-geometry-end", "scene": scene, "calls": tris.len()}));
+        }
+        _ => rows.push(json!({"event": "model-refused", "scene": scene, "status": status, "detail": "-"})),
+    }
+    rows
+}
+
+/// a whole group of one callable scene on a single page of `page_triangles`: the true rows, the original's false, its end
+fn group(scene: i64, tris: &[Tri], end: Option<(&str, i64)>, count: i64) -> Vec<Value> {
+    page(scene, "safe", 0, count, tris, end)
+}
+
+/// the host's triangle rows for `scene` as the original's rows: a true per triangle, the false and its end where the host ends, a lone false for an absence
+fn host_group(first: &Driven, scene: i64, count: i64) -> Vec<Value> {
+    let results: Vec<&Value> = rows_of(first, "host-model-tri").into_iter().filter(|r| r["scene"] == scene).collect();
+    if results[0]["result"] == "absent" {
+        return page(scene, "absent", 0, count, &[(0, 0, 0, None)], None);
+    }
+    let mut tris: Vec<Tri> = Vec::new();
+    let mut end = None;
+    for r in results {
+        let depth = r["depth"].as_i64().unwrap();
+        match r["result"].as_str().unwrap() {
+            "triangle" => tris.push((depth, 1, 9, Some(r["p"].as_str().unwrap().to_string()))),
+            _ => {
+                tris.push((depth, 0, 0, None));
+                end = Some(("original_false", depth));
             }
         }
     }
-    report
+    group(scene, &tris, end, count)
 }
 
-fn write_report(rows: &[serde_json::Value]) -> (PathBuf, String) {
+/// the catalogue as the closed driver writes it: pages of 96 each followed by its check, then the tallies
+fn catalogue_rows(first: &Driven) -> Vec<Value> {
+    let scenes: Vec<Value> = rows_of(first, "host-model-scene")
+        .into_iter()
+        .map(|row| {
+            let mut row = row.clone();
+            let status = match (row["loaded"].as_bool(), row["collision"].as_i64()) {
+                (Some(false), _) => "no_scene",
+                (_, Some(-1)) => "absent",
+                _ => "safe",
+            };
+            row["event"] = "model-scene".into();
+            row["status"] = status.into();
+            row
+        })
+        .collect();
+    let mut out = Vec::new();
+    let mut tally: BTreeMap<String, i64> = BTreeMap::new();
+    let mut at = 0usize;
+    while at < scenes.len() {
+        let count = 96.min(scenes.len() - at);
+        out.push(
+            json!({"event": "model-page", "first": at + 1, "count": count, "scene_last": scenes.len() + 1, "entities_scanned": 0, "entities_with_shape": 0}),
+        );
+        for scene in &scenes[at..at + count] {
+            *tally.entry(scene["status"].as_str().unwrap().to_string()).or_insert(0) += 1;
+            out.push(scene.clone());
+        }
+        out.push(
+            json!({"event": "check", "name": format!("catalogue page {} has {count} scenes", at + 1), "pass": "true", "detail": format!("found {count}")}),
+        );
+        at += count;
+    }
+    for (status, scenes) in tally {
+        out.push(json!({"event": "catalogue-status", "status": status, "scenes": scenes}));
+    }
+    out
+}
+
+fn envelope(spec: &Spec, catalogue: Vec<Value>, geometry: Vec<Value>) -> Vec<Value> {
+    let mut rows = vec![
+        json!({"event": "provenance", "database": "retail"}),
+        json!({"event": "boot", "catalogue": i32::from(spec.catalogue), "scenario": "georgia_retail", "scenes": spec.asked, "max_triangles": spec.max_triangles}),
+        state_row("before"),
+        json!({"event": "model-summary", "scene_last": scene_last(), "page_scenes": 96, "page_triangles": spec.page_triangles}),
+    ];
+    rows.extend(catalogue);
+    rows.extend(geometry);
+    rows.push(state_row("after"));
+    rows.push(check_row("model tables unchanged"));
+    rows.push(check_row("clock unchanged"));
+    rows.push(json!({"event": "done", "failures": 0}));
+    rows
+}
+
+const SPEC: Spec = Spec {
+    catalogue: true,
+    asked: 0,
+    max_triangles: 4096,
+    page_triangles: 256,
+};
+
+/// the host's first run (a catalogue and `scenes`' triangles) as a whole original report with the catalogue on
+fn original_report(first: &Driven, scenes: &[i64]) -> Vec<Value> {
+    let spec = Spec {
+        asked: scenes.len() as i64,
+        ..SPEC
+    };
+    let geometry = scenes.iter().flat_map(|s| host_group(first, *s, spec.page_triangles)).collect();
+    envelope(&spec, catalogue_rows(first), geometry)
+}
+
+/// the same with the catalogue left off, as a selected-geometry run of the closed driver writes it
+fn original_geometry_report(first: &Driven, scenes: &[i64]) -> Vec<Value> {
+    let spec = Spec {
+        catalogue: false,
+        asked: scenes.len() as i64,
+        ..SPEC
+    };
+    let geometry = scenes.iter().flat_map(|s| host_group(first, *s, spec.page_triangles)).collect();
+    envelope(&spec, Vec::new(), geometry)
+}
+
+fn write_report(rows: &[Value]) -> (PathBuf, String) {
     let dir = temp_dir("report");
     let path = dir.join("original.jsonl");
     let text: String = rows.iter().map(|r| format!("{r}\n")).collect();
@@ -933,14 +1080,48 @@ fn compare_args(path: &str) -> Vec<String> {
     vec!["catalogue=0".to_string(), format!("original={path}")]
 }
 
-type Alter = Box<dyn Fn(&mut [serde_json::Value])>;
+type Alter = Box<dyn Fn(&mut Vec<Value>)>;
 
-fn alter(f: impl Fn(&mut [serde_json::Value]) + 'static) -> Alter {
+fn alter(f: impl Fn(&mut Vec<Value>) + 'static) -> Alter {
     Box::new(f)
 }
 
-fn scene_row(rows: &mut [serde_json::Value], scene: i64) -> &mut serde_json::Value {
+fn scene_row(rows: &mut [Value], scene: i64) -> &mut Value {
     rows.iter_mut().find(|x| x["event"] == "model-scene" && x["scene"] == scene).unwrap()
+}
+
+/// the index range of the geometry rows of `scene`: its header up to, not including, the next header or the model state after
+fn group_range(rows: &[Value], scene: i64) -> std::ops::Range<usize> {
+    let start = rows.iter().position(|x| x["event"] == "model-geometry" && x["scene"] == scene).unwrap();
+    let mut end = start + 1;
+    while end < rows.len()
+        && matches!(
+            rows[end]["event"].as_str(),
+            Some("model-tri" | "model-end" | "model-geometry-end" | "model-refused" | "model-capped")
+        )
+    {
+        end += 1;
+    }
+    start..end
+}
+
+fn replace_group(rows: &mut Vec<Value>, scene: i64, with: Vec<Value>) {
+    let range = group_range(rows, scene);
+    rows.splice(range, with);
+}
+
+fn remove_event_of_group(rows: &mut Vec<Value>, scene: i64, event: &str) {
+    let range = group_range(rows, scene);
+    let at = rows[range].iter().position(|x| x["event"] == event).unwrap() + group_range(rows, scene).start;
+    rows.remove(at);
+}
+
+fn first_index(rows: &[Value], event: &str) -> usize {
+    rows.iter().position(|x| x["event"] == event).unwrap()
+}
+
+fn words(seed: u32) -> String {
+    (0..9).map(|k| format!("0x{:08x}", 0x3f00_0000 + seed * 16 + k)).collect::<Vec<_>>().join(",")
 }
 
 #[test]
@@ -977,6 +1158,7 @@ fn the_comparison_finds_counts_and_fails_on_every_kind_of_alteration() {
     assert!(first.status.success(), "{}", first.stderr);
     let report = original_report(&first, &[1, 2, 3]);
 
+    // each alteration is a COHERENT report that says something different from the host: the contract passes it and the comparison names it
     let alterations: Vec<(&str, &str, Alter)> = vec![
         (
             "a flipped bit in one triangle word",
@@ -991,18 +1173,25 @@ fn the_comparison_finds_counts_and_fails_on_every_kind_of_alteration() {
         (
             "the original ends where the host has a triangle",
             "triangle_mismatches",
-            alter(|r| {
-                let tri = r.iter_mut().find(|x| x["event"] == "model-tri" && x["return"] == 1).unwrap();
-                tri["return"] = 0.into();
-            }),
+            alter(|r| replace_group(r, 1, group(1, &[(0, 0, 0, None)], Some(("original_false", 0)), 256))),
         ),
         (
             "the original has a triangle where the host ends",
             "triangle_mismatches",
             alter(|r| {
-                let tri = r.iter_mut().find(|x| x["event"] == "model-tri" && x["return"] == 0 && x["depth"] == 2).unwrap();
-                tri["return"] = 1.into();
-                tri["p"] = "0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000".into();
+                let range = group_range(r, 1);
+                let ps: Vec<String> = r[range]
+                    .iter()
+                    .filter(|x| x["event"] == "model-tri" && x["p"].is_string())
+                    .map(|x| x["p"].as_str().unwrap().to_string())
+                    .collect();
+                let tris = [
+                    (0, 1, 9, Some(ps[0].clone())),
+                    (1, 1, 9, Some(ps[1].clone())),
+                    (2, 1, 9, Some(words(7))),
+                    (3, 0, 0, None),
+                ];
+                replace_group(r, 1, group(1, &tris, Some(("original_false", 3)), 256));
             }),
         ),
         (
@@ -1038,7 +1227,10 @@ fn the_comparison_finds_counts_and_fails_on_every_kind_of_alteration() {
         (
             "the original has no scene where the host loaded one",
             "scene_mismatches",
-            alter(|r| scene_row(r, 3)["status"] = "no_scene".into()),
+            alter(|r| {
+                scene_row(r, 3)["status"] = "no_scene".into();
+                retally(r, "safe", "no_scene");
+            }),
         ),
         (
             "the original is absent where the host has a model",
@@ -1048,16 +1240,330 @@ fn the_comparison_finds_counts_and_fails_on_every_kind_of_alteration() {
     ];
     for (label, field, change) in alterations {
         let mut altered = report.clone();
-        change(&mut altered[..]);
+        change(&mut altered);
         let (dir, path) = write_report(&altered);
         let run = drive(&root.dir, &compare_args(&path), false);
         let _ = std::fs::remove_dir_all(dir);
         assert!(!run.status.success(), "{label}: accepted\n{}", run.stderr);
+        assert!(
+            rows_of(&run, "compare-refused").is_empty(),
+            "{label}: the contract refused a coherent report: {:?}",
+            rows_of(&run, "compare-refused")
+        );
         let compare = rows_of(&run, "compare")[0];
         assert!(compare[field].as_i64().unwrap() >= 1, "{label}: {compare}");
         assert!(!rows_of(&run, "compare-mismatch").is_empty(), "{label}: nothing was listed");
         assert!(rows_of(&run, "done")[0]["failures"].as_i64().unwrap() >= 1, "{label}");
     }
+}
+
+/// moves one scene from a status to another in the catalogue-status rows, as the original's tally would have it
+fn retally(rows: &mut [Value], from: &str, to: &str) {
+    for row in rows.iter_mut().filter(|x| x["event"] == "catalogue-status") {
+        let delta = if row["status"] == from {
+            -1
+        } else if row["status"] == to {
+            1
+        } else {
+            0
+        };
+        row["scenes"] = (row["scenes"].as_i64().unwrap() + delta).into();
+    }
+}
+
+#[test]
+fn an_incomplete_failed_or_incoherent_original_report_is_refused_before_anything_is_compared() {
+    let root = standard();
+    let first = drive(&root.dir, &["scenes=1,2,3".to_string()], false);
+    assert!(first.status.success(), "{}", first.stderr);
+    let report = original_report(&first, &[1, 2, 3]);
+
+    // (label, how the coherent report is damaged, a fragment of the refusal)
+    let damages: Vec<(&str, Alter, &str)> = vec![
+        // the Root-named controls: cut off after the first scene, a repeated scene, a missing geometry terminal, a failed original done
+        (
+            "cut off after the first scene row",
+            alter(|r| {
+                let at = first_index(r, "model-scene");
+                r.truncate(at + 1);
+            }),
+            "cut off",
+        ),
+        (
+            "a scene row repeated (the count is right, the scenes are not)",
+            alter(|r| {
+                let at = first_index(r, "model-scene");
+                let copy = r[at].clone();
+                r.insert(at + 1, copy);
+            }),
+            "repeated, missing or out-of-order",
+        ),
+        (
+            "a scene row missing from its page",
+            alter(|r| {
+                let at = first_index(r, "model-scene");
+                r.remove(at + 1);
+            }),
+            "repeated, missing or out-of-order",
+        ),
+        (
+            "two scene rows out of order",
+            alter(|r| {
+                let at = first_index(r, "model-scene");
+                r.swap(at, at + 1);
+            }),
+            "repeated, missing or out-of-order",
+        ),
+        (
+            "no geometry terminal: neither the end nor the closing row",
+            alter(|r| {
+                remove_event_of_group(r, 1, "model-end");
+                remove_event_of_group(r, 1, "model-geometry-end");
+            }),
+            "before the previous page was closed",
+        ),
+        (
+            "no closing row",
+            alter(|r| remove_event_of_group(r, 1, "model-geometry-end")),
+            "before the previous page was closed",
+        ),
+        (
+            "no end row after a false return",
+            alter(|r| remove_event_of_group(r, 1, "model-end")),
+            "with no end row",
+        ),
+        (
+            "the original's own done reports failures",
+            alter(|r| {
+                let last = r.len() - 1;
+                r[last]["failures"] = 1.into();
+            }),
+            "no failures",
+        ),
+        (
+            "an original check that did not pass",
+            alter(|r| {
+                let at = r.iter().rposition(|x| x["event"] == "check").unwrap();
+                r[at]["pass"] = "false".into();
+            }),
+            "did not pass",
+        ),
+        (
+            "no done row",
+            alter(|r| {
+                r.pop();
+            }),
+            "cut off",
+        ),
+        // the catalogue
+        (
+            "a catalogue page without its check",
+            alter(|r| {
+                let at = first_index(r, "check");
+                r.remove(at);
+            }),
+            "is missing or did not pass",
+        ),
+        (
+            "the catalogue declared but absent",
+            alter(|r| {
+                r.retain(|x| {
+                    !matches!(x["event"].as_str(), Some("model-page" | "model-scene" | "catalogue-status"))
+                        && !(x["event"] == "check" && x["name"].as_str().unwrap().starts_with("catalogue"))
+                })
+            }),
+            "is missing",
+        ),
+        (
+            "the catalogue declared off but present",
+            alter(|r| {
+                let at = first_index(r, "boot");
+                r[at]["catalogue"] = 0.into();
+            }),
+            "unexpected",
+        ),
+        (
+            "status tallies that are not the rows'",
+            alter(|r| {
+                let at = first_index(r, "catalogue-status");
+                r[at]["scenes"] = (r[at]["scenes"].as_i64().unwrap() + 1).into();
+            }),
+            "status tallies",
+        ),
+        // the geometry
+        (
+            "a depth skipped",
+            alter(|r| {
+                let at = group_range(r, 1).start + 2;
+                r[at]["depth"] = 5.into();
+            }),
+            "is due",
+        ),
+        (
+            "a geometry group repeated",
+            alter(|r| {
+                let range = group_range(r, 1);
+                let copy: Vec<Value> = r[range.clone()].to_vec();
+                r.splice(range.end..range.end, copy);
+            }),
+            "continues after its terminal",
+        ),
+        (
+            "fewer geometry groups than the report asked for",
+            alter(|r| {
+                let range = group_range(r, 3);
+                r.drain(range);
+            }),
+            "asked for 3 geometry scenes",
+        ),
+        (
+            "a closing row whose call count is not the page's",
+            alter(|r| {
+                let at = group_range(r, 1).end - 1;
+                r[at]["calls"] = 99.into();
+            }),
+            "call count",
+        ),
+        (
+            "an original_false with no false call before it",
+            alter(|r| {
+                let range = group_range(r, 1);
+                let end = r[range.clone()].iter().position(|x| x["event"] == "model-end").unwrap() + range.start;
+                r[end]["depth"] = 0.into();
+            }),
+            "original_false without an original call",
+        ),
+        // what the report is about
+        (
+            "another scene count than this host's",
+            alter(|r| {
+                let at = first_index(r, "model-summary");
+                r[at]["scene_last"] = 3000.into();
+            }),
+            "not this host's",
+        ),
+        ("a synthetic database", alter(|r| r[0]["database"] = "synthetic".into()), "retail database"),
+        (
+            "a model state after that is not the one before",
+            alter(|r| {
+                let at = r.iter().rposition(|x| x["event"] == "model-state").unwrap();
+                r[at]["tables"] = "ffffffffffffffff".into();
+            }),
+            "after is not the one before",
+        ),
+    ];
+    for (label, change, fragment) in damages {
+        let mut damaged = report.clone();
+        change(&mut damaged);
+        let (dir, path) = write_report(&damaged);
+        let run = drive(&root.dir, &compare_args(&path), false);
+        let _ = std::fs::remove_dir_all(dir);
+        assert!(!run.status.success(), "{label}: accepted\n{}", run.stderr);
+        assert!(rows_of(&run, "done").is_empty(), "{label}: a done row after the refusal");
+        let refused = rows_of(&run, "compare-refused");
+        assert_eq!(refused.len(), 1, "{label}: expected the report to be refused\n{}", run.stderr);
+        let message = refused[0]["message"].as_str().unwrap();
+        assert!(message.contains(fragment), "{label}: refused as {message:?}, not for {fragment:?}");
+        assert!(rows_of(&run, "compare").is_empty(), "{label}: a comparison was made of a refused report");
+    }
+}
+
+#[test]
+fn the_legitimate_original_modes_are_accepted_and_compared_as_they_are() {
+    let root = standard();
+    let first = drive(&root.dir, &["scenes=1,2,3".to_string()], false);
+    assert!(first.status.success(), "{}", first.stderr);
+    let p = |scene: i64, depth: i64| -> Option<String> {
+        rows_of(&first, "host-model-tri")
+            .into_iter()
+            .find(|r| r["scene"] == scene && r["depth"] == depth)
+            .and_then(|r| r["p"].as_str().map(str::to_string))
+    };
+    let (p0, p1) = (p(1, 0).unwrap(), p(1, 1).unwrap());
+    let tri = |depth: i64, s: &Option<String>| (depth, 1, 9, s.clone());
+    let accepted = |label: &str, report: Vec<Value>, expect: &dyn Fn(&Value)| {
+        let (dir, path) = write_report(&report);
+        let run = drive(&root.dir, &compare_args(&path), false);
+        let _ = std::fs::remove_dir_all(dir);
+        assert!(run.status.success(), "{label}: refused\n{}", run.stderr);
+        let compare = rows_of(&run, "compare")[0];
+        assert_eq!(
+            (compare["scene_mismatches"].as_i64(), compare["triangle_mismatches"].as_i64()),
+            (Some(0), Some(0)),
+            "{label}: {compare}"
+        );
+        expect(compare);
+    };
+
+    // the catalogue left off: a selected-geometry run, as the closed driver writes it
+    accepted("catalogue off", original_geometry_report(&first, &[1, 2, 3]), &|c| {
+        assert_eq!(
+            (
+                c["scene_rows"].as_i64(),
+                c["original_geometry_scenes"].as_i64(),
+                c["original_catalogue_scenes"].as_i64()
+            ),
+            (Some(0), Some(3), Some(0))
+        );
+        assert!(c["triangles_compared"].as_i64().unwrap() > 0);
+    });
+
+    // an explicit refusal by the original, beside a group that is compared: the refused model has no triangles to compare, and the host's answer for it is listed, not counted as a match
+    let spec = Spec {
+        catalogue: false,
+        asked: 2,
+        ..SPEC
+    };
+    let mut refused = host_group(&first, 1, spec.page_triangles);
+    refused.extend(page(5, "custom_object", 0, 256, &[], None));
+    accepted("a refused model", envelope(&spec, Vec::new(), refused), &|c| {
+        assert_eq!(c["original_refused_scenes"], 1);
+        assert!(c["triangles_compared"].as_i64().unwrap() > 0);
+    });
+
+    // a walk that reached the cap exactly: a full page and the capped row
+    let spec = Spec {
+        catalogue: false,
+        asked: 1,
+        max_triangles: 2,
+        ..SPEC
+    };
+    let mut capped = group(1, &[tri(0, &p0), tri(1, &p1)], None, 2);
+    capped.push(json!({"event": "model-capped", "scene": 1, "calls": 2, "max_triangles": 2}));
+    accepted("a capped walk", envelope(&spec, Vec::new(), capped), &|c| {
+        assert_eq!(c["triangles_compared"], 2)
+    });
+
+    // the unbacked end probe: the end the fixture reports at the depth reached, with no false call
+    let spec = Spec {
+        catalogue: false,
+        asked: 1,
+        ..SPEC
+    };
+    let unbacked = group(1, &[tri(0, &p0), tri(1, &p1)], Some(("end_probe_unbacked", 2)), 256);
+    accepted("an unbacked end", envelope(&spec, Vec::new(), unbacked), &|c| {
+        assert_eq!(c["triangles_compared"], 2)
+    });
+
+    // a false return that nevertheless wrote part of its buffer is an observation of the original, not a malformed report
+    let partial = group(1, &[tri(0, &p0), tri(1, &p1), (2, 0, 2, Some(words(3)))], Some(("original_false", 2)), 256);
+    accepted("a false that wrote", envelope(&spec, Vec::new(), partial), &|c| {
+        assert_eq!(c["triangles_compared"], 3)
+    });
+
+    // a scene walked in several pages (the driver pages by page_triangles)
+    let spec = Spec {
+        catalogue: false,
+        asked: 1,
+        page_triangles: 1,
+        ..SPEC
+    };
+    let mut paged = page(1, "safe", 0, 1, &[tri(0, &p0)], None);
+    paged.extend(page(1, "safe", 1, 1, &[tri(1, &p1)], None));
+    paged.extend(page(1, "safe", 2, 1, &[(2, 0, 0, None)], Some(("original_false", 2))));
+    accepted("three pages", envelope(&spec, Vec::new(), paged), &|c| {
+        assert_eq!((c["triangles_compared"].as_i64(), c["geometry_headers"].as_i64()), (Some(3), Some(3)))
+    });
 }
 
 #[test]
@@ -1173,4 +1679,119 @@ fn the_comparison_reports_a_shifted_named_object_number_it_does_not_skip_named_o
         .collect();
     assert!(listed.iter().any(|t| t.contains("main object original 5 host 4")), "{listed:?}");
     assert!(listed.iter().any(|t| t.contains("collision object original 5 host 4")), "{listed:?}");
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------
+// sub-object counts the bytes cannot hold, and override directories that cannot be enumerated
+
+/// a binary scene record whose header declares `declared` sub-objects and whose top-level sub-object count is `count`, followed by `tail`
+fn binary_scene_with_nodes(scene: i32, main: i32, collision: i32, declared: i32, count: i32, tail: &[u8]) -> Vec<u8> {
+    let mut w = W::default();
+    for _ in 0..16 {
+        w.i32(-1);
+    }
+    w.i32(scene).i32(0);
+    w.i32(0).i32(0).i32(0).i32(0);
+    w.i32(declared).i32(0).i32(0); // sub-objects, named sub-objects, texture animations
+    w.i32(0).i32(main);
+    w.i32(0).i32(0).floats(&[1.0, 1.0, 1.0]);
+    w.i32(collision);
+    w.i32(1);
+    keyframe(&mut w);
+    w.f32(1.0).i32(0);
+    w.i32(0).i32(0);
+    w.i32(0).i32(count); // named sub-object indices, sub-objects
+    w.bytes(tail);
+    w.0
+}
+
+/// one serialized sub-object of the smallest size the format allows (binary: 96 bytes; keyframe 0 at the origin, no children), with `children` as its child count
+fn minimal_node(object: i32, children: i32) -> Vec<u8> {
+    let mut w = W::default();
+    w.i32(object).i32(1).i32(0).i32(0).i32(0); // object, contributes to collisions, the two approximation levels, no limits
+    w.i32(1);
+    keyframe(&mut w);
+    w.f32(1.0).i32(0); // dissolve, its keyframes
+    w.i32(0).i32(children); // named indices, sub-objects
+    w.0
+}
+
+fn table_root(scenes: &[Vec<u8>]) -> Root {
+    Root::new(&build_table(&[Entry::Mesh(identity_quad())], None), scenes)
+}
+
+#[test]
+fn a_sub_object_count_the_remaining_bytes_cannot_hold_is_refused_before_any_node_is_allocated() {
+    // Each of these files is a few hundred bytes. The first version resized its node vector to the file's count (52 bytes a node: about 111 GB for INT_MAX) before it looked at what
+    // remained to read; now the count is checked against the smallest record the format allows first, and nothing is sized from it.
+    let huge = binary_scene_with_nodes(1, 1, 1, i32::MAX, i32::MAX, &[]);
+    assert!(huge.len() < 1024);
+    let error = table_root(&[huge]).load().err().unwrap();
+    assert_eq!(error.kind, ErrorKind::Truncated, "{error}");
+    assert!(error.detail.contains("of at least 96 bytes"), "{error}");
+
+    // a count that merely exceeds what the tail holds
+    let two = binary_scene_with_nodes(1, 1, 1, 2, 2, &minimal_node(1, 0));
+    let error = table_root(&[two]).load().err().unwrap();
+    assert_eq!(error.kind, ErrorKind::Truncated, "{error}");
+
+    // the header declares plenty and the count is huge but only one record follows
+    let lie = binary_scene_with_nodes(1, 1, 1, i32::MAX, i32::MAX, &minimal_node(1, 0));
+    assert_eq!(table_root(&[lie]).load().err().unwrap().kind, ErrorKind::Truncated);
+
+    // a child count that cannot be held, inside a node that can: refused at the child level
+    let nested = binary_scene_with_nodes(1, 1, 1, i32::MAX, 1, &minimal_node(1, i32::MAX));
+    let error = table_root(&[nested]).load().err().unwrap();
+    assert_eq!(error.kind, ErrorKind::Truncated, "{error}");
+
+    // the same for a named scene: its smallest record is smaller (an empty name is one byte), so the bound is 93 for version -1
+    let mut named = ees("Chassis");
+    let at = named.len() - 8; // the named sub-object indices count and the sub-object count
+    named[at + 4..at + 8].copy_from_slice(&i32::MAX.to_le_bytes());
+    named[16..20].copy_from_slice(&i32::MAX.to_le_bytes()); // the header's sub-object total (after the version and three counts)
+    let root = standard();
+    root.write(&format!("OBJECTS/MODDIR/{}.ees", compiled_scene_name(1).unwrap()), &named);
+    root.write("OBJECTS/MODDIR/chassis.eeo", &eeo(1, &identity_quad()));
+    let error = root.load().err().unwrap();
+    assert_eq!(error.kind, ErrorKind::Truncated, "{error}");
+    assert!(error.detail.contains("of at least 93 bytes"), "{error}");
+}
+
+#[test]
+fn a_sub_object_of_exactly_the_smallest_record_still_loads_and_keeps_its_place() {
+    // the bound is derived from the format, not chosen: a real record of the minimum size is accepted, in order, with its children after it
+    let one = binary_scene_with_nodes(1, 1, 1, 1, 1, &minimal_node(1, 0));
+    let store = table_root(&[one]).load().unwrap();
+    let scene = store.scene(1).unwrap();
+    assert!(scene.loaded);
+    // a node at the origin with no rotation and a scale of 1 adds the object's own box again: the scene's box is unchanged
+    assert_eq!(scene.bounding_box.map(f32::from_bits), [0.0, 32767.0, 0.0, 32767.0, 0.0, 32767.0]);
+
+    // a parent and one child, 96 bytes each, with the header's total exactly the two
+    let mut tail = minimal_node(1, 1);
+    tail.extend_from_slice(&minimal_node(1, 0));
+    let two = binary_scene_with_nodes(1, 1, 1, 2, 1, &tail);
+    assert!(table_root(&[two]).load().unwrap().scene(1).unwrap().loaded);
+
+    // the header declaring fewer nodes than the records say is still the original's overrun: refused as inconsistent, after the bytes were shown to be there
+    let mut tail = minimal_node(1, 1);
+    tail.extend_from_slice(&minimal_node(1, 0));
+    let short = binary_scene_with_nodes(1, 1, 1, 1, 1, &tail);
+    assert_eq!(table_root(&[short]).load().err().unwrap().kind, ErrorKind::Inconsistent);
+}
+
+#[test]
+fn an_override_directory_that_exists_but_is_not_a_directory_is_an_error_and_an_absent_one_is_not() {
+    // genuinely absent: a valid installation without OBJECTS (the standard fixture has none)
+    assert!(standard().load().is_ok());
+    // present as a plain file: the install cannot be trusted to have no overrides
+    let root = standard();
+    root.write("OBJECTS", b"not a directory");
+    let error = root.load().err().unwrap();
+    assert_eq!(error.kind, ErrorKind::Inconsistent, "{error}");
+    assert!(error.file.contains("OBJECTS") && error.detail.contains("not a directory"), "{error}");
+    // present under another case and read through the resolver: still found and applied
+    let root = standard();
+    root.write("Objects/0001.EEO", &eeo(1, &identity_quad()));
+    assert_eq!(root.load().unwrap().summary().eeo_hex_applied, 1);
 }

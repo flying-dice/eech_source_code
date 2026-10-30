@@ -10,6 +10,9 @@ completeness and32-bit scene-ID conversion. See the exact review and validation
 checkpoint in `reference/d3-model-characterization/`; concrete complete retained
 measurements were independently checked, while the reusable comparator needs correction.
 
+**Source prepared after that review (UNBUILT, UNRUN):** corrections for all four findings are described in "Corrections for the four review findings" below; nothing in them has been
+formatted, compiled or run, and the tested `2020436ce` results above are retained unchanged.
+
 This host-private component has no production campaign dispatch. The59 original
 custom/mixed geometry gaps and broader D3 services remain; no full campaign/Tacview,
 Task50 delivery or D3 acceptance is claimed. M5 Confluence11534337 and ledger14548994
@@ -38,6 +41,7 @@ A missing asset is `NOT RUN` (never a pass); a truncated, incompatible or incons
 | `crates/eech-world/src/models.rs` | the store: bounds-checked reader, loader (table, scenes, overrides), the decoder's integer walk, the query API |
 | `crates/eech-world/csrc/model_step.c` | the original's numeric code, expression for expression, under its round-toward-zero guard: the object-bounding-box scaling of a triangle, and 3dsubobj.c's scene bounds and radius |
 | `crates/eech-world/src/model_host.rs` | the Lua face and the comparison with a retained original report |
+| `crates/eech-world/src/original_report.rs` | the contract a retained original report must meet (a whole, coherent run of the closed driver) before it is compared |
 | `crates/eech-world/data/scene-names.txt` | the 3025 compiled scene names (line n = scene n), derived from `modules/3d/3dmodels.h` (SHA-256 `cdacdb32…caed9`) by `sed -n 's/^[[:space:]]*OBJECT_3D_INDEX(\([A-Za-z0-9_]*\)).*$/\1/p'` over its enum; a test regenerates the list from the header when the header is present |
 | `crates/eech-world/lua/model-host-compare.lua`, `tools/model-host-compare-windows.ps1` | the driver and its runner: host process alone, no campaign DLL, no boot |
 | `crates/eech-world/tests/model_store.rs` | loader/store/driver guards on minimal format fixtures |
@@ -97,6 +101,41 @@ selected real models MI24 8, KRIVAK 2643, Ka-50 2543, pipe 1213, Lebanon buildin
 expectation. **Not covered by any original triangle**: the 14 custom-object scenes and 45 mixed-layout scenes (the original refused them: it could not show their allocations backed). The store
 decodes them; `compare_original` lists the host's answer for each as `compare-original-refused`, which is NOT a match. Resolving it needs a minimal feature-only original probe that calls the original
 accessor for exactly the scene/depth ranges the store reports backed (the Root measures before any equivalence is claimed); no such instrumentation is added here.
+
+## Corrections for the four review findings (source prepared, UNBUILT, UNRUN)
+
+The review of `2020436ce` (`independent-host-model-component-review-2020436ce-20261030.json`, SHA-256 `4f387a63…c613`) found four P2s. The tested `2020436ce` measurements stand and are
+not repeated: this section is the next source, which has not been formatted, compiled or run. The C kernel and the floating-point guard had no finding and are unchanged.
+
+1. **MODEL-NODE-PREALLOCATION.** `sub_objects` now checks, before it reserves or resizes anything from the file's count, that the bytes that remain can hold that many records at the
+   smallest size the format allows, derived from `initialise_3d_sub_object`: the object (binary: an int, 4 bytes; named: `skip_schem`, 12 bytes from version -3, and a NUL-terminated
+   name, at least 1), four ints, the keyframes (a count and at least one 56-byte keyframe: the original asserts one), the dissolve float and three counts. That is **96 bytes binary,
+   93 named (105 for version -3 and below)**. The header's declared total is still enforced, after, as before. The node total must fit the kernel's 32-bit counts, the reservation is a
+   `try_reserve` (a failure is a `Limit` error), and the traversal, order and layout are unchanged. A file of a few hundred bytes that says INT_MAX nodes is refused as `Truncated`
+   without the 111 GB the old code would have asked for; a record of exactly the minimum size still loads.
+2. **MODEL-OVERRIDE-IO.** Directory enumeration and name resolution go through a small `Fs` boundary (`list`, `kind`) whose production implementation is the real filesystem. A
+   genuinely absent optional `OBJECTS` is still a valid no-override installation. Every other outcome is an error naming the affected path: a directory that cannot be listed, an entry
+   that cannot be read, a path whose type cannot be determined, an entry that vanished during the listing, a name that exists but as the wrong kind (`OBJECTS` as a file), and two names
+   that differ only in case. The successful order is unchanged (upper-case name, then the exact name). The three resolver functions run in unit tests against a fake filesystem that causes
+   the failures a test cannot portably cause; a real-filesystem test covers `OBJECTS` present as a file and found under another case.
+3. **MODEL-COMPARISON-COMPLETENESS.** `compare_original` parses every line, then validates the report as a WHOLE, coherent run of the closed original driver
+   (`src/original_report.rs`) before it compares a row, and refuses it (the driver records `compare-refused`, writes no `done`, exits non-zero) otherwise. Required: the fixed
+   envelope (a retail `provenance`, `boot`, the `model-state` before, a `model-summary` whose `scene_last` is this host's, and at the end the `model-state` after with the same hashes, the
+   two final checks passed and a `done` with no failures); with `boot.catalogue` = 1 the whole catalogue (pages of the summary's size covering scenes 1 up to the last once each in order,
+   each followed by its passing check, and status tallies equal to the rows'), with 0 none of it; and for the `boot.scenes` geometry scenes, each once, pages that start at depth 0, are
+   contiguous and are the size the driver pages by, triangle rows running on from the page's first depth with a shape-valid return, writes and coordinates, and a terminal the rows support
+   (an absent model is one false writeless call; a refused model one `model-refused`; otherwise an `original_false` end straight after a false call at that depth or the fixture's unbacked / bound
+   end at the depth reached, with a closing row whose call count is the page's, or `model-capped` at exactly the cap). Not required: any physical outcome. An absent, refused, unbacked or
+   capped model, a catalogue left off and a false return that wrote part of its buffer all pass and are compared as they are. The test collaborators are now complete report envelopes built
+   from the host's own run; the controls are a report cut off after its first scene, a repeated, missing and swapped scene, a missing end or closing row or both, an original `done` with failures,
+   an original check that failed, a missing done, a catalogue declared but absent or present while declared off, tallies that disagree, a depth gap, a repeated group, fewer groups than asked,
+   a wrong call count, an `original_false` with no false call, another scene count, a synthetic database and a changed state: each through the real comparator and the real host Lua driver.
+4. **MODEL-SCENE-WIDTH.** `check_scene` compares the signed 64-bit scene with the scene count before it narrows, then converts with `usize::try_from`: `4294967297` is refused on a
+   32-bit target instead of wrapping to scene 1. Valid scenes and float bits are unchanged. Scene values of `2^32 + 1`, `2^32 + last - 1`, `2^32 + 7`, `3 * 2^32 + 1` and `u32::MAX + 1 + last`
+   are in the argument guard.
+
+The 25 tests of `2020436ce` are not relabelled as running these controls. The controls that need no allocation of a dangerous size are runnable against the old `2020436ce` host through
+`EECH_WORLD_BIN` (the comparator ones, as a red); the Root does not run the old unguarded allocation.
 
 ## Commands for the Root (not run)
 
