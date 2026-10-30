@@ -1,3 +1,49 @@
+# D3 checkpoint — host model component tested; four review corrections open (30 October 2026)
+
+EEDCS-50 / draft PR110: source `2020436ce160ac3762f00f7ee8290f4e6247bce3`
+implements host-owned disk loading and model queries independently of the campaign
+DLL. Actual Linux formatting, 25 model-store tests, eight retained diagnostic
+guards and all-target Clippy pass. The Windows build and all25 model-store tests
+pass; the explicit missing-host override fails with native101 as required.
+
+Actual repository runners complete0 on Georgia, Lebanon and Lebanon-repeat.
+All3025 scene records/IDs and215 retained original accessor calls per root match,
+with no named-ID skips and surface block52517. All three complete host comparison
+reports have1278273 bytes and SHA256
+34e4b68478a2b998411edc46f5e5ad565e8a2fc304decabdb2cb3b8747b03e86.
+Pre/post inputs, original reports and five host build payloads are unchanged.
+These are model-component comparisons, not campaign/Tacview shipping runs.
+Initial0b JSON/Clippy failures and the separately discovered named-index error
+remain retained; no baseline or tolerance changed.
+
+The single independent combined review is CHANGES_REQUIRED, exactly four P2s:
+bound node allocation before resizing; propagate override-directory I/O errors;
+refuse incomplete/failed/duplicate original comparison reports; check wide scene
+IDs before narrowing to usize. Report SHA256:
+4f387a639e452c9942e89d693d4de0b7a2e7a914a34bf6c68dcd38626f48c613.
+The review independently confirms the concrete complete retail measurements;
+it does not approve the reusable comparator or current component for delivery.
+Safe report and validation metadata are in PR110's
+`eech-campaign/reference/d3-model-characterization/`.
+
+Both Sonnet implementation invocations and their builds are terminal/collected;
+no implementation writer is currently live. Next: one finite four-finding
+correction batch in the relevant Sonnet5.5 High context, affected validation and
+one review of the new changes. Then characterize the59 original custom/mixed
+geometry gaps using actual original allocation/backing provenance before new
+unsafe accessor calls. Other models have metadata coverage, not exhaustive
+triangle coverage. Production model loading/queries remain in EECH_DC.
+
+Task47 shipping115's original six process identities were verified live again
+at this checkpoint; it was neither stopped nor restarted. Previously checked
+Tacview/observation prefixes match only. Full40/eight complete files/post-inputs,
+normal delivery and subsequent production handoffs remain pending. Model
+hierarchy/viewpoint/device/muzzle/target points, entity collision, environment,
+host-time and required physical solver/loader removal remain D3 work. Campaign
+policy, geography, routes, timers and consequences stay in EECH_DC. D3 remains
+In Progress; D4/D5 have not started. Jira10864/ledger69 are the last external
+records and predate this component checkpoint.
+
 # D3 checkpoint — original retail model characterization reviewed; host loader next
 
 Task50 original-model preparation is independently closed with no open findings.
