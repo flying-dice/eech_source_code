@@ -57,7 +57,7 @@ Compiled only with `--features eech-dc/ground-fixture` (`EECH_GROUND_FIXTURE`); 
 | File | Role |
 |---|---|
 | `crates/eech-engine-sys/csrc/eech_ground_fixture.c` | the probe: case generation, the three original calls, the shared-record observation, the report |
-| `crates/eech-engine-sys/csrc/eech_engine.[ch]` | one entry, `eech_engine_ground_probe (seed, points, impacts, text, capacity)`, inside the engine's `ENTER`/`LEAVE` (round-toward-zero as the campaign sees it); needs no host |
+| `crates/eech-engine-sys/csrc/eech_engine.[ch]` | one entry, `eech_engine_ground_probe (seed, points, impacts, text, capacity)`, inside the engine's `ENTER`/`LEAVE` (round-toward-zero as the campaign sees it); takes no host argument (in the G1 module its terrain reads go to the provider boot installed) |
 | `crates/eech-engine-sys/{Cargo.toml,build/main.rs,src/lib.rs}`, `crates/eech-engine`, `crates/eech-dc` | the feature, its `-D`, the binding, `Engine::ground_probe`, the Lua method `engine:ground_probe (seed, points, impacts)` |
 | `crates/eech-world/lua/ground-characterization.lua` | the one driver |
 | `tools/build-windows-ground-fixture.sh` | the unchanged `build-windows.sh` with the one cargo argument added (the same two-line adaptation check as the LOS wrapper) |
@@ -383,3 +383,96 @@ merge occurs. Original c119 physical folds/cases and raw oracles remain unchange
 legacy bookkeeping stays original-only and semantic cache diagnostics will be
 separate. This necessary comparison preparation progresses while Task47's frozen
 full shipping pack runs. It is unbuilt/unreviewed until actual gates complete.
+
+## 10. Composition with G1 (Task47): the host-semantic profile (test-only; unbuilt, unrun)
+
+**Scope.** This section belongs to an isolated composition checkout (G1 head `f03a680c9`, Task48 head `d44a19612`; G1 is not accepted or delivered). It adapts the original ground fixture so the SAME original
+queries, case generator, seed and draw order and the same `ground-physical` fold can run against the G1 module, whose point queries are questions to the host's terrain provider. It is not the G2 production
+cutover: the sector-maximum getter and the physical terrain sector grid are still the campaign's own, no service moves, no host API is added, and the original query expressions (`en_world.h`,
+`en_cllsn.c`, `terrdata.c`) are byte-identical to the base. The "needs no host" wording of the original sections (the entry-point table in 2) means the dialogue callbacks; in the G1 module its terrain reads are answered by the provider
+that boot installs for the whole process.
+
+**What changed in the fixture (feature-only, `EECH_CAMPAIGN_HOST_TERRAIN`).** The shared record has two layouts. The original is unchanged in every line and in every report row (`#else` branches), so the
+retained oracles stay the oracle of the original profile. The G1 record holds `last_elevation`, `terrain_type`, `face_normal`, `face_stored` and `hint[128]` and no sector, triangle or pointer fields, so:
+
+- the sentinel is a zeroed record (no face stored, empty hint) with the same unused elevation word; the record is located and anchor-checked privately through the same accessors; it is snapshotted before the
+  first case and restored **in full** (`memcpy`, hint bytes included); "touched" is `memcmp` of the whole record with the sentinel. The hint is host-private: the probe copies, compares and restores it as bytes,
+  reports only whether it is empty, never decodes it, and an empty hint is valid (no reference hint is required, in this contract or in a generic or DCS host's);
+- the diagnostic words are the semantic value words plus `face_stored` and hint-empty, folded by `fold_view`; they have **different names**: `ground-profile record=host_semantic legacy_diagnostics=none`,
+  `ground-semantic-record` and `ground-semantic-hash`. The legacy `ground-record` and `ground-hash` are not written, zeroed or substituted: they would claim a sector index the record does not have, and a
+  hash of different words must not look equal to the original's;
+- the physical fold, its inputs and their order, the case construction (including the physical-grid boundary counts), the private generator and its draw order, the counters and the samples are the same code.
+
+**Profiles in the driver.** `original` (no `ground-profile` row; `ground-record`, `ground-hash`) and `host_semantic` (the rows above). The host implies the profile: a host with `host.terrain_provider` boots the module with
+`terrain = host.terrain_provider (root, map)`, exactly as `lua/campaign.lua` does, and must get the host-semantic report; a host without one boots without it and must get the original report. A report that names no
+profile on a provider host, the semantic shape on a plain host, a row of the other profile beside its own, a missing row of its own, or a malformed `ground-profile` is refused by name (`report_invalid`, no success
+row). Every other guard (exact schema, counts, the two folds, samples, quotas, repeat identity, strict JSON) applies in both profiles under the profile's own row names; the retained original raw files still satisfy the
+original profile unchanged.
+
+**What may be compared with the retained original oracles (c119a7370), and what may not.**
+
+| Compared exactly | Compared separately, with limits | Not comparable |
+|---|---|---|
+| `ground-physical` (all four folds), the physical counters (`true`, `false`, `complement`, `a_corrected`, `b_corrected`, `xz_changed`, `alias_equal`, classes, types, asserts), the samples' physical words (`x y z`, `a0 .. rb`, `class_*`, `above`, `below`, `inside`) | `record_touched`, `true_record_untouched`, `*_record_touched`, `warm_same`, `warm_start_intact`, `touched`, restoration (`restored`, `words_before == words_after`). A G1 query writes the record whenever the provider is asked, a hint may change a warm answer, and a provider may keep no hint: observed differences are preserved and classified, not normalized | `ground-hash` against `ground-semantic-hash`, `words_before/after`, and the `elev`/`type` words of the samples as record diagnostics: different words under different names |
+
+No retained original value is regenerated, no tolerance changed, and no baseline touched.
+
+**Limits and pending.** The stand-in tests stub only the provider factory so no retail root is loaded and fake no physical answer; they test the driver's profile logic, not the ground queries. Nothing in this
+section has been built, parsed or run: Root's format and Lua parse, driver tests, clean fixture build and the 20,000-point / 5,000-impact / two-repeat probes on fresh verified roots through the real G1 module and
+provider are pending, as is the comparison with the oracles. Until they exist, no claim is made that the G1 module reproduces the original answers.
+
+### Composition source/driver checks — 29 October 2026
+
+Root resolved the two-parent composition from G1f03 and original-characterization
+d44 in a separate checkout. All40 actual Linux host_callbacks guards pass,
+including original and host-semantic profiles; these are host-callback tests, NOT
+the40-check shipping regression. Affected Clippy with warnings denied, formatting/
+check, both Lua5.1 syntax parses and diffcheck pass0. Exact tested source hashes
+are retained. Selecting the four non-host conditional branches yields the exact
+original fixture C token stream after comments/whitespace are ignored; original
+query/extent source files are also unchanged. This source comparison is not a
+runtime equivalence claim; the new host diagnostic branches require review and
+actual native measurements. Native composition build/probes and full physical
+comparisons remain pending. G1 remains unaccepted and the long shipping pack is
+untouched. No G2productioncutover, baseline or tolerance change is made.
+
+## Native composition checkpoint — physical comparison RED
+
+The earlier unbuilt/unrun and pending-native notes above describe the preparation
+stage. Clean measured composition3ad209417 has now built0/all46 manifest entries,
+and three native20k/5k/two-repeat runs completed0 with119 strict rows each, repeat/
+restoration checks and post-input checks passing. The physical above/below/combined
+folds DO NOT match originalc119, despite equal impact folds, emitted physical
+samples/counters and common cache fields. This is an unresolved failure, not an
+accepted extraction. The legacy and semantic diagnostic folds remain separate.
+
+Unchanged-binary prefix bisection completed0 with equal14/unequal15, identifying
+case index14 as the first observed divergence. A separate actual library test
+executes one test and fails101 on Lua request-coordinate signed-zero/tiny-value
+fidelity; causality for the physical mismatch remains unproven. Production code
+and numerical expressions are unchanged. The newly committed test is intentionally
+RED. The footer-label correction only names diagnostic hashes by their profile.
+
+See reference/d3-ground-characterization/composition-physical-red-checkpoint.json
+for exact source/test identities and limits. Native raw evidence and both original
+and composed frozen binaries remain private and immutable. No baseline/tolerance
+change, G1 acceptance, G2 cutover or full shipping-pack pass is claimed.
+
+## Fixed coordinate reader — bounded native physical GREEN
+
+The earlier RED checkpoint remains preserved. A single numeric request reader
+fix at4b2043500 prevents LuaValue integer coercion from erasing signed zero/tiny
+f32 values. Original native case14 tracing showed why directed rounding makes
+that loss physical. No solver, arithmetic, case, hash, baseline or tolerance changed.
+
+Clean compositionfebbb7cc5 built0/all46 files; all three original20k/5k/two-repeat
+native probes completed0 with119 strict rows each and all pre/post-input checks0.
+Every physical fold/counter/emitted sample and common cache observation matches
+originalc119 through the unchanged comparator (three exits0). The two complete
+Lebanon raw files match byte for byte. Legacy/semantic diagnostic hashes remain
+separate. Linux terrain library6/6, callback40/40 and affected lint/fmt pass0.
+
+Safe evidence: reference/d3-ground-characterization/coordinate-native-conformance-febbb7cc5.json.
+The40 callbacks are not the shipping40; final-source ordinary shipping evidence,
+independent completed-evidence review, CI and normal delivery remain pending.
+No G2 extraction or whole-D3 acceptance is claimed.

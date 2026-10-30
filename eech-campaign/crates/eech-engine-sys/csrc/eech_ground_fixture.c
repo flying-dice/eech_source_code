@@ -204,23 +204,94 @@ static float unit (uint32_t *state)
 }
 
 /* ---------------------------------------------------------------------------------------------------------------------------- */
-/* the shared terrain point record (terrelev.c system_point_data), reached through the public accessor that returns the address of its
-   face normal; the record's own layout is public in terrdata.h, so the start of the record is that address less the member's offset */
+/* the shared terrain point record (terrelev.c system_point_data in the original build, mb_hostterrain.c in the G1 build), reached through the public
+   accessor that returns the address of its face normal; the record's own layout is declared in terrdata.h, so the start of the record is that address
+   less the member's offset. This is private to the engine: no address or layout leaves it. */
 
 static terrain_3d_point_data *shared_record (void)
 {
 	return (terrain_3d_point_data *) ((char *) get_3d_terrain_point_data_normal (NULL) - offsetof (terrain_3d_point_data, face_normal));
 }
 
+/*
+ * The shared record has TWO layouts, chosen by the build (terrdata.h):
+ *   - the ORIGINAL record (no EECH_CAMPAIGN_HOST_TERRAIN): sector and triangle indices and sector/face pointers. Its diagnostics are the LEGACY profile
+ *     ("original"): the code below in the #else branches, unchanged since the original oracles were produced. Report rows: ground-record, ground-hash.
+ *   - the G1 record (EECH_CAMPAIGN_HOST_TERRAIN, mb_hostterrain.c): only semantic values the host's last answer stored (last_elevation, terrain_type,
+ *     face_normal), `face_stored` by value, and `hint`, the host's opaque bounded string (empty when the host keeps none). No index, no pointer. Its
+ *     diagnostics are the HOST-SEMANTIC profile: the same measurements over those fields, under rows of their own (ground-profile, ground-semantic-record,
+ *     ground-semantic-hash), never under the legacy names. The legacy sector/triangle/held-pointer words do not exist here and are not invented, zeroed or
+ *     substituted: the two diagnostic hashes are NOT comparable and are never reported as if they were. Only `ground-physical`, the counters and the
+ *     samples' physical words are common to both.
+ * The hint is private to the host. The probe copies, compares and restores it as bytes (the whole record, exactly) and reports only whether it is empty;
+ * it never decodes it and no reference hint is required.
+ */
 static void make_sentinel (terrain_3d_point_data *sentinel)
 {
+#ifdef EECH_CAMPAIGN_HOST_TERRAIN
+	/* a fresh record: zero (no face stored, an empty hint), with an elevation word no query writes */
+	memset (sentinel, 0, sizeof (*sentinel));
+	sentinel->last_elevation = bits_float (SENTINEL_ELEVATION_BITS);
+	sentinel->terrain_type = TERRAIN_TYPE_INVALID;
+#else
 	memset (sentinel, 0, sizeof (*sentinel));
 	sentinel->x_sector = SENTINEL_SECTOR;
 	sentinel->z_sector = SENTINEL_SECTOR;
 	sentinel->last_elevation = bits_float (SENTINEL_ELEVATION_BITS);
 	sentinel->terrain_triangle_offset = SENTINEL_SECTOR;
 	sentinel->terrain_type = TERRAIN_TYPE_INVALID;
+#endif
 }
+
+#ifdef EECH_CAMPAIGN_HOST_TERRAIN
+
+/* what a G1 record holds, as value words: `face_stored` by value, and whether the hint is empty (never its content) */
+struct record_view
+{
+	int touched;
+	uint32_t elevation_bits, normal_bits[3];
+	int type, face_stored, hint_present;
+};
+
+static void view_record (const terrain_3d_point_data *record, const terrain_3d_point_data *sentinel, struct record_view *view)
+{
+	view->touched = memcmp (record, sentinel, sizeof (*record)) != 0;
+	view->elevation_bits = float_bits (record->last_elevation);
+	view->normal_bits[0] = float_bits (record->face_normal.x);
+	view->normal_bits[1] = float_bits (record->face_normal.y);
+	view->normal_bits[2] = float_bits (record->face_normal.z);
+	view->type = (int) record->terrain_type;
+	view->face_stored = record->face_stored != 0;
+	view->hint_present = record->hint[0] != '\0';
+}
+
+static void fold_view (struct hashes *h, int kind, const struct record_view *view)
+{
+	fold (h, kind, (uint32_t) view->touched);
+	fold (h, kind, view->elevation_bits);
+	fold (h, kind, view->normal_bits[0]);
+	fold (h, kind, view->normal_bits[1]);
+	fold (h, kind, view->normal_bits[2]);
+	fold (h, kind, (uint32_t) view->type);
+	fold (h, kind, (uint32_t) (view->face_stored | (view->hint_present << 1)));
+}
+
+/* the value words of a G1 record, folded: the same fold before and after the probe shows that the probe left the record as it found it */
+static uint64_t record_words_hash (const terrain_3d_point_data *record)
+{
+	struct record_view view;
+	uint64_t hash = FNV_OFFSET;
+	view_record (record, record, &view);
+	hash = fold64 (hash, view.elevation_bits);
+	hash = fold64 (hash, view.normal_bits[0]);
+	hash = fold64 (hash, view.normal_bits[1]);
+	hash = fold64 (hash, view.normal_bits[2]);
+	hash = fold64 (hash, (uint32_t) view.type);
+	hash = fold64 (hash, (uint32_t) (view.face_stored | (view.hint_present << 1)));
+	return hash;
+}
+
+#else
 
 /* what a record holds, as value words: never an address. `held` is whether a sector and a face are referenced. */
 struct record_view
@@ -276,6 +347,8 @@ static uint64_t record_words_hash (const terrain_3d_point_data *record)
 	hash = fold64 (hash, (uint32_t) (view.sector_held | (view.face_held << 1)));
 	return hash;
 }
+
+#endif
 
 /* ---------------------------------------------------------------------------------------------------------------------------- */
 /* terrain facts used to PLACE points; they come from a private record, never the shared one */
@@ -923,8 +996,15 @@ int eech_ground_probe_run (uint32_t seed, int points, int impacts, char *text, i
 		POINT_SAMPLES_PER_TAG, IMPACT_SAMPLES_PER_TYPE);
 	emit (&out, "ground-map world_sectors_x=%d world_sectors_z=%d world_sector_side=%d terrain_sectors_x=%d terrain_sectors_z=%d terrain_sector_side=%d\n", p->world_sectors_x,
 		p->world_sectors_z, p->world_side, p->sectors_x, p->sectors_z, (int) TERRAIN_3D_SECTOR_SIDE_LENGTH);
+#ifdef EECH_CAMPAIGN_HOST_TERRAIN
+	/* the host-semantic profile: its own rows and names (ground-profile, ground-semantic-record, ground-semantic-hash); the legacy ground-record and ground-hash do not exist here */
+	emit (&out, "ground-profile record=host_semantic legacy_diagnostics=none\n");
+	emit (&out, "ground-semantic-record anchored=1 restored=%d words_before=%016llx words_after=%016llx\n", restored, (unsigned long long) record_hash_before,
+		(unsigned long long) record_hash_after);
+#else
 	emit (&out, "ground-record anchored=1 restored=%d words_before=%016llx words_after=%016llx\n", restored, (unsigned long long) record_hash_before,
 		(unsigned long long) record_hash_after);
+#endif
 	emit (&out, "ground-points cases=%d in_map=%d off_map=%d input_mutated=%d\n", t->points, t->above_cases, t->off_map_cases, t->input_mutated);
 	emit (&out, "ground-above cases=%d true=%d false=%d record_touched=%d true_record_untouched=%d warm_same=%d warm_start_intact=%d\n", t->above_cases, t->above_true,
 		t->above_cases - t->above_true, t->above_touched, t->above_true_untouched, t->above_warm_same, t->above_warm_intact);
@@ -943,8 +1023,13 @@ int eech_ground_probe_run (uint32_t seed, int points, int impacts, char *text, i
 	emit (&out, "ground-impact-types t0=%d t1=%d t2=%d t3=%d t4=%d t5=%d t6=%d t7=%d\n", t->by_type[0], t->by_type[1], t->by_type[2], t->by_type[3], t->by_type[4],
 		t->by_type[5], t->by_type[6], t->by_type[7]);
 	emit (&out, "ground-asserts original_below_endpoint_still_above=%d extra_above_endpoint_not_above=%d\n", t->assert_below_violations, t->post_above_not_above);
+#ifdef EECH_CAMPAIGN_HOST_TERRAIN
+	emit (&out, "ground-semantic-hash combined=%016llx above=%016llx below=%016llx impact=%016llx\n", (unsigned long long) p->hashes.combined,
+		(unsigned long long) p->hashes.above, (unsigned long long) p->hashes.below, (unsigned long long) p->hashes.impact);
+#else
 	emit (&out, "ground-hash combined=%016llx above=%016llx below=%016llx impact=%016llx\n", (unsigned long long) p->hashes.combined,
 		(unsigned long long) p->hashes.above, (unsigned long long) p->hashes.below, (unsigned long long) p->hashes.impact);
+#endif
 	emit (&out, "ground-physical combined=%016llx above=%016llx below=%016llx impact=%016llx\n", (unsigned long long) p->hashes.phys_combined,
 		(unsigned long long) p->hashes.phys_above, (unsigned long long) p->hashes.phys_below, (unsigned long long) p->hashes.phys_impact);
 

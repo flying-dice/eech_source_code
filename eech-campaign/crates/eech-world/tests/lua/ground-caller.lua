@@ -1,14 +1,33 @@
 -- Stand-in for the engine in the tests of lua/ground-characterization.lua (EEDCS-48). The real driver runs against it; only the driver's own flow and its
 -- checks of what a probe returns are exercised. The stand-in writes a COMPLETE, well-formed report for the request it is given (every row of the fixture's
 -- schema, counts that add up, hex words of the right width) and, in a negative mode, ONE defect in it. It measures nothing about the ground queries.
--- Placeholders are filled in by the test: @MODE@, @TRACE@ and @LUA_DIR@.
-local mode = '@MODE@'
-
+-- Placeholders are filled in by the test: @MODE@, @PROFILE@, @TRACE@ and @LUA_DIR@.
 local function note(text)
   local f = io.open('@TRACE@', 'a')
   f:write(text, '\n')
   f:close()
 end
+
+local mode = '@MODE@'
+
+-- The two report profiles of the driver. 'legacy' is the ORIGINAL host and module: the host has no terrain provider and the report has the legacy record rows. 'semantic' is the
+-- G1 host and module: the host has a terrain provider (a stub that answers nothing: it exists so the driver's boot path is exercised without loading a retail root, and it fakes
+-- no physical answer) and the report has the host-semantic rows. The real eech-world host in these tests has the real provider factory; it is replaced here either way.
+-- 'legacy' / 'semantic' are the two consistent pairs. The two 'swap' profiles give the host one profile and write the report of the other, to show the driver refuses the disagreement.
+local profile = '@PROFILE@'
+local semantic = profile == 'semantic' or profile == 'swap_legacy_host' -- the REPORT is the host-semantic profile
+local host_has_provider = profile == 'semantic' or profile == 'swap_semantic_host'
+host.terrain_provider = nil
+if host_has_provider then
+  host.terrain_provider = function(root, map)
+    note('terrain-provider ' .. tostring(map))
+    return { stand_in_provider = true }
+  end
+end
+-- the names a mode uses for the record and hash rows, in the profile's own spelling
+local ALIAS = semantic and { ['ground-record'] = 'ground-semantic-record', ['ground-hash'] = 'ground-semantic-hash' } or {}
+local function canon(name) return ALIAS[name] or name end
+
 
 local time = 0
 local probes = 0
@@ -90,10 +109,16 @@ local function build(seed, points, impacts)
     taken[kind] = (taken[kind] or 0) + 1
     if taken[kind] <= 4 then rows[#rows + 1] = impact_sample(i, kind) end
   end
+  if semantic then
+    -- the host-semantic profile: the same measurements under rows of its own, and a row that names the profile; no legacy row exists
+    for _, r in ipairs(rows) do r[1] = ALIAS[r[1]] or r[1] end
+    table.insert(rows, 3, { 'ground-profile', { { 'record', 'host_semantic' }, { 'legacy_diagnostics', 'none' } } })
+  end
   return rows
 end
 
 local function row(rows, name, kind)
+  name = canon(name)
   for _, r in ipairs(rows) do
     if r[1] == name then
       if name ~= 'ground-sample' or r[2][1][2] == kind then return r end
@@ -116,6 +141,7 @@ local function drop(rows, name, key, kind)
 end
 
 local function drop_row(rows, name, kind)
+  name = canon(name)
   for i, r in ipairs(rows) do
     if r[1] == name and (name ~= 'ground-sample' or r[2][1][2] == kind) then table.remove(rows, i) return end
   end
@@ -261,6 +287,31 @@ local modes = {
   -- legitimate omissions, accepted: once a tag holds its 2 samples, later cases may belong to it
   points_same_tag_saturated = function(r) replace_points(r, { { 0, 0 }, { 1, 0 } }) end,
   points_saturated_then_other_tags = function(r) replace_points(r, { { 0, 0 }, { 1, 0 }, { 3, 1 }, { 4, 2 } }) end,
+  -- THE PROFILES. In the semantic profile the record/hash rows have their own names (the helpers above translate 'ground-record' and 'ground-hash'); these are the defects
+  -- that are about the profile itself
+  profile_row_missing = function(r) drop_row(r, 'ground-profile') end,
+  profile_names_legacy = function(r) set(r, 'ground-profile', 'record', 'legacy') end,
+  profile_claims_diagnostics = function(r) set(r, 'ground-profile', 'legacy_diagnostics', 'zeroed') end,
+  profile_key_missing = function(r) drop(r, 'ground-profile', 'legacy_diagnostics') end,
+  profile_word_malformed = function(r) set(r, 'ground-profile', 'record', 'host-semantic') end,
+  -- a legacy row beside the semantic ones (a fake zeroed or copied legacy hash, or a legacy record): the profiles are never mixed
+  mixed_legacy_hash = function(r)
+    local copy = {}
+    for _, f in ipairs(row(r, 'ground-hash')[2]) do copy[#copy + 1] = { f[1], f[2] } end
+    r[#r + 1] = { 'ground-hash', copy }
+  end,
+  mixed_legacy_record = function(r)
+    local copy = {}
+    for _, f in ipairs(row(r, 'ground-record')[2]) do copy[#copy + 1] = { f[1], f[2] } end
+    r[#r + 1] = { 'ground-record', copy }
+  end,
+  -- on the ORIGINAL host (legacy profile): a semantic row without the profile row, and the profile row itself, are each refused
+  legacy_with_semantic_record = function(r)
+    local copy = {}
+    for _, f in ipairs(row(r, 'ground-record')[2]) do copy[#copy + 1] = { f[1], f[2] } end
+    r[#r + 1] = { 'ground-semantic-record', copy }
+  end,
+  legacy_with_profile_row = function(r) r[#r + 1] = { 'ground-profile', { { 'record', 'host_semantic' }, { 'legacy_diagnostics', 'none' } } } end,
   -- sample values against the counters they are counted in
   sample_off_map_with_above = function(r) set(r, 'ground-sample', 'inside', 0, 'point') end,
   sample_off_map_counter = function(r) set(r, 'ground-sample', 'inside', 0, 'point') set(r, 'ground-sample', 'above', -1, 'point') end,
@@ -305,7 +356,7 @@ end
 
 package.loaded['eech_dc'] = {
   prepare_installation = function() note('prepare') end,
-  boot = function() note('boot') return engine end,
+  boot = function(config) note('boot terrain=' .. tostring(config ~= nil and config.terrain ~= nil)) return engine end,
 }
 dofile('@LUA_DIR@/ground-characterization.lua')
 print('GROUND_CALLER_DONE')

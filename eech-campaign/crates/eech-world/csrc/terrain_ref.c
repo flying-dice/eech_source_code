@@ -4032,3 +4032,1140 @@ int host_terrain_conformance_sweep (const host_terrain *map, uint32_t seed, int 
 
 	return rc ? -1 : 0;
 }
+
+/* ======================================================================================================================== */
+/* GROUND CONTACT (EEDCS-48, D3 G2 host side; PREPARATION: not bound to the campaign yet)                                    */
+/* ======================================================================================================================== */
+
+/*
+ * en_world.h point_above_ground / point_below_ground and en_cllsn.c get_ground_impact_point, expression for expression, statement for statement, in the same order, with
+ * the same float and double literals, over this map. What differs from the original, and only this:
+ *   - the shared terrain record of the original (NULL point data) is `ctx->record`, one record carried through the whole sequence, seeded from the caller's hint on its
+ *     first use exactly as host_terrain_query seeds a query (no hint: a freshly cleared record);
+ *   - get_terrain_3d_point_sector_max_elevation reads this map's sectors (the original: terrain_sectors[z][x].maximum_height), and where the original stops the engine in
+ *     debug_fatal (a read off the terrain) this refuses the request;
+ *   - the world-map extents of point_inside_map_area are the caller's (host_ground_world);
+ *   - the original's ASSERTs are inert in the characterised build (write_debug_log) but their conditions are still EVALUATED, and one of them,
+ *     ASSERT (!point_above_ground (below_ground)), reads the terrain and so moves the shared record between the corrections and the bisection: it is evaluated here, in
+ *     the same place, and its failure is counted, never fatal;
+ *   - the terrain class lookup is not here: the surface type the last query left in the record is returned (the campaign keeps the vocabulary).
+ */
+struct ground_ctx
+{
+	const host_terrain *map;
+	const host_ground_world *world;
+	const host_terrain_hint *hint; /* the caller's hint: validated and used when the terrain is first read */
+	terrain_3d_point_data record;  /* the shared record of the original */
+	float returned;                /* the value the last query returned */
+	int seeded, queried, failed, own_assert_failures;
+	int note_fast_attempted, note_fast_hit, note_found, note_clamped, note_cuba, note_nan; /* what the last query did */
+	char *error;
+	size_t error_size;
+};
+
+static void ground_begin (struct ground_ctx *ctx, const host_terrain *map, const host_ground_world *world, const host_terrain_hint *hint, char *error, size_t error_size,
+	fenv_t *saved)
+{
+	memset (ctx, 0, sizeof (*ctx));
+	ctx->map = map;
+	ctx->world = world;
+	ctx->hint = hint;
+	ctx->error = error;
+	ctx->error_size = error_size;
+
+	fegetenv (saved);
+	fesetround (FE_TOWARDZERO);
+
+	host_terrain_enter (map);
+}
+
+/* get_3d_terrain_elevation (X, Z): a point query on the shared record */
+static float ground_elevation (struct ground_ctx *ctx, float x, float z)
+{
+	if (ctx->failed)
+	{
+		return 0.0f;
+	}
+
+	if (!ctx->seeded)
+	{
+		if (record_from_hint (ctx->map, ctx->hint, &ctx->record, ctx->error, ctx->error_size))
+		{
+			ctx->failed = TRUE;
+			return 0.0f;
+		}
+
+		ctx->seeded = TRUE;
+	}
+
+	host_note_clamped = FALSE;
+	host_note_nan = FALSE;
+	host_note_fast_attempted = FALSE;
+	host_note_fast_hit = FALSE;
+	host_note_found = FALSE;
+	host_note_cuba = FALSE;
+
+	ctx->returned = host_get_3d_terrain_point_data (x, z, &ctx->record);
+	ctx->queried = TRUE;
+
+	ctx->note_fast_attempted = host_note_fast_attempted;
+	ctx->note_fast_hit = host_note_fast_hit;
+	ctx->note_found = host_note_cuba ? TRUE : host_note_found;
+	ctx->note_clamped = host_note_clamped;
+	ctx->note_cuba = host_note_cuba;
+	ctx->note_nan = host_note_nan;
+
+	return ctx->returned;
+}
+
+/* terrdata.c get_terrain_3d_point_sector_max_elevation: (float) terrain_sectors[sector_z][sector_x].maximum_height; the original's debug_fatal off the map is a refusal */
+static float ground_sector_max (struct ground_ctx *ctx, float x, float z)
+{
+	int sector_x, sector_z;
+
+	if (ctx->failed)
+	{
+		return 0.0f;
+	}
+
+	if ((x != x) || (z != z) || (x < terrain_3d_min_map_x) || (x > terrain_3d_max_map_x) || (z < terrain_3d_min_map_z) || (z > terrain_3d_max_map_z))
+	{
+		ctx->failed = TRUE;
+		fail (ctx->error, ctx->error_size, "terrain ground: the sector maximum is read off the terrain (the original stops the engine there)");
+		return 0.0f;
+	}
+
+	get_terrain_3d_sector (x, z, &sector_x, &sector_z);
+
+	if (sector_x < 0 || sector_x >= ctx->map->facts.sector_x_max || sector_z < 0 || sector_z >= ctx->map->facts.sector_z_max)
+	{
+		ctx->failed = TRUE;
+		fail (ctx->error, ctx->error_size, "terrain ground: the position is in a sector the map does not have");
+		return 0.0f;
+	}
+
+	return (float) ctx->map->rows[sector_z][sector_x].maximum_height;
+}
+
+/* en_world.h point_inside_map_area, over the caller's world area */
+static int ground_inside_world (const host_ground_world *world, const vec3d *position)
+{
+	return (
+		(position->x >= world->min_x) &&
+		(position->x <= world->max_x) &&
+		(position->z >= world->min_z) &&
+		(position->z <= world->max_z)
+	);
+}
+
+/* en_world.h point_above_ground */
+static int ground_above (struct ground_ctx *ctx, const vec3d *position)
+{
+	return (
+		(position->y >= ground_sector_max (ctx, position->x, position->z)) ||
+		(position->y >= ground_elevation (ctx, position->x, position->z))
+	);
+}
+
+/* en_world.h point_below_ground */
+static int ground_below (struct ground_ctx *ctx, const vec3d *position)
+{
+	return (
+		(ground_inside_world (ctx->world, position) == FALSE) ||
+		(position->y < ground_sector_max (ctx, position->x, position->z)) &&
+		(position->y < ground_elevation (ctx, position->x, position->z))
+	);
+}
+
+/* maths/range.c get_sqr_3d_range */
+static float ground_sqr_range (const vec3d *v1, const vec3d *v2)
+{
+	float
+		dx,
+		dy,
+		dz,
+		range;
+
+	dx = v1->x - v2->x;
+	dy = v1->y - v2->y;
+	dz = v1->z - v2->z;
+
+	range = (dx * dx) + (dy * dy) + (dz * dz);
+
+	return (range);
+}
+
+/* the record the sequence left, by value (what a point query returns); only meaningful once the terrain has been read */
+static void ground_record_out (const struct ground_ctx *ctx, host_terrain_answer *out)
+{
+	memset (out, 0, sizeof (*out));
+
+	out->elevation = ctx->returned;
+	out->last_elevation = ctx->record.last_elevation;
+	out->normal[0] = ctx->record.face_normal.x;
+	out->normal[1] = ctx->record.face_normal.y;
+	out->normal[2] = ctx->record.face_normal.z;
+	out->type = ctx->record.terrain_type;
+	out->fast_attempted = ctx->note_fast_attempted;
+	out->fast_hit = ctx->note_fast_hit;
+	out->found = ctx->note_found;
+	out->clamped = ctx->note_clamped;
+	out->cuba = ctx->note_cuba;
+	out->nan_position = ctx->note_nan;
+	out->stored = ctx->record.terrain_face != NULL;
+
+	hint_from_record (ctx->map, &ctx->record, out);
+}
+
+static int ground_finite (float value)
+{
+	return value == value && value - value == 0.0f;
+}
+
+static int ground_world_valid (const host_ground_world *world)
+{
+	return world && ground_finite (world->min_x) && ground_finite (world->min_z) && ground_finite (world->max_x) && ground_finite (world->max_z);
+}
+
+int host_terrain_ground_below (const host_terrain *map, const host_ground_world *world, float x, float y, float z, const host_terrain_hint *hint,
+	host_ground_below_answer *out, char *error, size_t error_size)
+{
+	struct ground_ctx ctx;
+	vec3d position;
+	fenv_t saved;
+	int below;
+
+	memset (out, 0, sizeof (*out));
+
+	if (!ground_world_valid (world))
+	{
+		return fail (error, error_size, "terrain ground: the world area is missing or not finite");
+	}
+
+	if (!ground_finite (x) || !ground_finite (y) || !ground_finite (z))
+	{
+		return fail (error, error_size, "terrain ground: a coordinate is not finite");
+	}
+
+	position.x = x;
+	position.y = y;
+	position.z = z;
+
+	ground_begin (&ctx, map, world, hint, error, error_size, &saved);
+
+	below = ground_below (&ctx, &position);
+
+	fesetenv (&saved);
+
+	if (ctx.failed)
+	{
+		return -1;
+	}
+
+	out->below = below ? 1 : 0;
+	out->queried = ctx.queried;
+
+	if (ctx.queried)
+	{
+		ground_record_out (&ctx, &out->record);
+	}
+
+	return 0;
+}
+
+/* en_cllsn.c get_ground_impact_point; `above_ground`, `below_ground` and `ground_impact_point` are the caller's values (the aliasing of the impact with the below endpoint is the caller's) */
+static int ground_impact (struct ground_ctx *ctx, vec3d *above_ground, vec3d *below_ground, vec3d *ground_impact_point)
+{
+	float
+		length;
+
+	vec3d
+		point_a,
+		point_b,
+		point_c;
+
+	if (!ground_above (ctx, above_ground))
+	{
+		if (!ground_inside_world (ctx->world, above_ground))
+		{
+			ctx->own_assert_failures++;
+		}
+		above_ground->y = ground_elevation (ctx, above_ground->x, above_ground->z) + 0.001;
+	}
+	if (ground_above (ctx, below_ground))
+	{
+		if (!ground_inside_world (ctx->world, below_ground))
+		{
+			ctx->own_assert_failures++;
+		}
+		below_ground->y = ground_elevation (ctx, below_ground->x, below_ground->z) - 0.001;
+	}
+
+	/* ASSERT (point_inside_map_area (above_ground)); ASSERT (!point_above_ground (below_ground)); ASSERT (point_inside_map_area (below_ground)); each condition is evaluated (the
+	   second reads the terrain) and a false one is counted */
+	if (!ground_inside_world (ctx->world, above_ground))
+	{
+		ctx->own_assert_failures++;
+	}
+	if (!(!ground_above (ctx, below_ground)))
+	{
+		ctx->own_assert_failures++;
+	}
+	if (!ground_inside_world (ctx->world, below_ground))
+	{
+		ctx->own_assert_failures++;
+	}
+
+	point_a = *above_ground;
+
+	point_b = *below_ground;
+
+	length = 100.0;
+
+	while (length > 1.0 && !ctx->failed)
+	{
+		point_c.x = (point_a.x + point_b.x) * 0.5;
+		point_c.y = (point_a.y + point_b.y) * 0.5;
+		point_c.z = (point_a.z + point_b.z) * 0.5;
+
+		if (ground_above (ctx, &point_c))
+		{
+			point_a = point_c;
+		}
+		else
+		{
+			point_b = point_c;
+		}
+
+		length = ground_sqr_range (&point_a, &point_b);
+	}
+
+	if (!ground_inside_world (ctx->world, &point_b))
+	{
+		ctx->own_assert_failures++;
+	}
+
+	point_b.y = ground_elevation (ctx, point_b.x, point_b.z);
+
+	*ground_impact_point = point_b;
+
+	return ctx->record.terrain_type;
+}
+
+int host_terrain_ground_impact (const host_terrain *map, const host_ground_world *world, const float above[3], const float below[3], const host_terrain_hint *hint,
+	host_ground_impact_answer *out, char *error, size_t error_size)
+{
+	struct ground_ctx ctx;
+	vec3d above_ground, below_ground, impact;
+	fenv_t saved;
+	int type, i;
+
+	memset (out, 0, sizeof (*out));
+
+	if (!ground_world_valid (world))
+	{
+		return fail (error, error_size, "terrain ground: the world area is missing or not finite");
+	}
+
+	for (i = 0; i < 3; i++)
+	{
+		if (!ground_finite (above[i]) || !ground_finite (below[i]))
+		{
+			return fail (error, error_size, "terrain ground: a coordinate is not finite");
+		}
+	}
+
+	above_ground.x = above[0];
+	above_ground.y = above[1];
+	above_ground.z = above[2];
+	below_ground.x = below[0];
+	below_ground.y = below[1];
+	below_ground.z = below[2];
+	memset (&impact, 0, sizeof (impact));
+
+	ground_begin (&ctx, map, world, hint, error, error_size, &saved);
+
+	type = ground_impact (&ctx, &above_ground, &below_ground, &impact);
+
+	fesetenv (&saved);
+
+	if (ctx.failed)
+	{
+		return -1;
+	}
+
+	out->above[0] = above_ground.x;
+	out->above[1] = above_ground.y;
+	out->above[2] = above_ground.z;
+	out->below[0] = below_ground.x;
+	out->below[1] = below_ground.y;
+	out->below[2] = below_ground.z;
+	out->impact[0] = impact.x;
+	out->impact[1] = impact.y;
+	out->impact[2] = impact.z;
+	out->type = type;
+	out->own_assert_failures = ctx.own_assert_failures;
+
+	ground_record_out (&ctx, &out->record);
+
+	return 0;
+}
+
+/* ======================================================================================================================== */
+/* CONFORMANCE ONLY: the ground probe of eech_ground_fixture.c, driven against the two operations above                       */
+/* ======================================================================================================================== */
+
+#define GROUND_SENTINEL_ELEVATION_BITS 0x5a5a5a5au
+#define GROUND_FNV_OFFSET 14695981039346656037ull
+#define GROUND_FNV_PRIME 1099511628211ull
+#define GROUND_POINT_TAGS 6
+#define GROUND_IMPACT_TYPES 8
+#define GROUND_POINT_SAMPLES_PER_TAG 2
+#define GROUND_IMPACT_SAMPLES_PER_TYPE 4
+/* en_world.c set_entity_world_map_size: world_map.min_map_y and max_map_y, the fixture's MIN_MAP_Y and MAX_MAP_Y (point_height choices 14 and 15) */
+#define GROUND_MIN_MAP_Y (-8000.0)
+#define GROUND_MAX_MAP_Y 65535.0
+
+enum { GROUND_KIND_ABOVE, GROUND_KIND_BELOW, GROUND_KIND_IMPACT };
+
+struct ground_probe
+{
+	host_ground_sweep *out;
+	const host_terrain *map;
+	host_ground_world world;
+	const int32_t *class_of_type;
+	size_t class_count;
+	float max_x, max_z;
+	int sectors_x, sectors_z;
+	uint32_t rng;
+	int point_by_tag[GROUND_POINT_TAGS], impact_by_type[GROUND_IMPACT_TYPES];
+	char *error;
+	size_t error_size;
+	int failed;
+};
+
+/* the caller's record, as the fixture sees it: the sentinel until a call has read the terrain, then what that call left */
+struct ground_caller
+{
+	int queried;
+	host_terrain_answer record;
+};
+
+static void ground_pfold (struct ground_probe *p, int kind, uint32_t word)
+{
+	int byte;
+	uint64_t *own = kind == GROUND_KIND_ABOVE ? &p->out->physical_above : (kind == GROUND_KIND_BELOW ? &p->out->physical_below : &p->out->physical_impact);
+
+	for (byte = 0; byte < 4; byte++)
+	{
+		p->out->physical_combined ^= (uint64_t) ((word >> (8 * byte)) & 0xffu);
+		p->out->physical_combined *= GROUND_FNV_PRIME;
+		*own ^= (uint64_t) ((word >> (8 * byte)) & 0xffu);
+		*own *= GROUND_FNV_PRIME;
+	}
+}
+
+static void ground_pfold_vec (struct ground_probe *p, int kind, const vec3d *v)
+{
+	ground_pfold (p, kind, sweep_bits (v->x));
+	ground_pfold (p, kind, sweep_bits (v->y));
+	ground_pfold (p, kind, sweep_bits (v->z));
+}
+
+static int ground_bits3 (const vec3d *a, const vec3d *b)
+{
+	return sweep_bits (a->x) == sweep_bits (b->x) && sweep_bits (a->y) == sweep_bits (b->y) && sweep_bits (a->z) == sweep_bits (b->z);
+}
+
+static float ground_next_down (float v)
+{
+	return nextafterf (v, -INFINITY);
+}
+
+static float ground_next_up (float v)
+{
+	return nextafterf (v, INFINITY);
+}
+
+/* the fixture's terrain_height: a fresh private record, the point query's elevation */
+static float ground_terrain_height (struct ground_probe *p, float x, float z)
+{
+	host_terrain_answer answer;
+
+	if (p->failed)
+	{
+		return 0.0f;
+	}
+
+	if (host_terrain_query (p->map, x, z, NULL, &answer, p->error, p->error_size))
+	{
+		p->failed = TRUE;
+		return 0.0f;
+	}
+
+	return answer.elevation;
+}
+
+/* get_terrain_3d_point_sector_max_elevation for placing a point: the same read as the operations make */
+static float ground_placement_sector_max (struct ground_probe *p, float x, float z)
+{
+	struct ground_ctx ctx;
+	fenv_t saved;
+	float value;
+
+	if (p->failed)
+	{
+		return 0.0f;
+	}
+
+	ground_begin (&ctx, p->map, &p->world, NULL, p->error, p->error_size, &saved);
+	value = ground_sector_max (&ctx, x, z);
+	fesetenv (&saved);
+
+	if (ctx.failed)
+	{
+		p->failed = TRUE;
+		return 0.0f;
+	}
+
+	return value;
+}
+
+/* one point question on a record: `cold` is the sentinel (no hint); the caller's record afterwards is what the call left, or untouched */
+static void ground_ask_point (struct ground_probe *p, int is_below, const vec3d *pos, const struct ground_caller *from, int *answer, struct ground_caller *to)
+{
+	struct ground_ctx ctx;
+	fenv_t saved;
+	const host_terrain_hint *hint = (from && from->queried && from->record.has_hint) ? &from->record.hint : NULL;
+
+	*answer = 0;
+	to->queried = 0;
+	memset (&to->record, 0, sizeof (to->record));
+
+	if (p->failed)
+	{
+		return;
+	}
+
+	ground_begin (&ctx, p->map, &p->world, hint, p->error, p->error_size, &saved);
+	*answer = is_below ? ground_below (&ctx, pos) : ground_above (&ctx, pos);
+	fesetenv (&saved);
+
+	if (ctx.failed)
+	{
+		p->failed = TRUE;
+		return;
+	}
+
+	*answer = *answer ? 1 : 0;
+	to->queried = ctx.queried;
+
+	if (ctx.queried)
+	{
+		ground_record_out (&ctx, &to->record);
+	}
+}
+
+static uint32_t ground_view_elevation (const struct ground_caller *record)
+{
+	return record->queried ? sweep_bits (record->record.last_elevation) : GROUND_SENTINEL_ELEVATION_BITS;
+}
+
+static int ground_view_type (const struct ground_caller *record)
+{
+	return record->queried ? record->record.type : 0;
+}
+
+static void ground_point_case (struct ground_probe *p, int n, int tag, vec3d point)
+{
+	host_ground_sweep *t = p->out;
+	vec3d before = point;
+	struct ground_caller cold_above, warm_above, cold_below, warm_below;
+	int inside = ground_inside_world (&p->world, &point) ? 1 : 0;
+	int above = -1, below = 0, above_again = -1, below_again = 0;
+
+	memset (&cold_above, 0, sizeof (cold_above));
+	memset (&warm_above, 0, sizeof (warm_above));
+
+	t->points++;
+
+	if (inside)
+	{
+		ground_ask_point (p, FALSE, &point, NULL, &above, &cold_above);
+		ground_ask_point (p, FALSE, &point, &cold_above, &above_again, &warm_above);
+		t->above_cases++;
+		t->above_true += above;
+		t->above_queried += cold_above.queried;
+		if (above && !cold_above.queried)
+		{
+			t->above_true_unqueried++;
+		}
+		if (above_again == above)
+		{
+			t->above_warm_same++;
+		}
+		/* physical: the input as given, the cold answer, the input after the call */
+		ground_pfold_vec (p, GROUND_KIND_ABOVE, &before);
+		ground_pfold (p, GROUND_KIND_ABOVE, (uint32_t) above);
+		ground_pfold_vec (p, GROUND_KIND_ABOVE, &point);
+	}
+	else
+	{
+		t->off_map++;
+		ground_pfold_vec (p, GROUND_KIND_ABOVE, &before);
+		ground_pfold (p, GROUND_KIND_ABOVE, 0xffffffffu);
+	}
+
+	ground_ask_point (p, TRUE, &point, NULL, &below, &cold_below);
+	ground_ask_point (p, TRUE, &point, &cold_below, &below_again, &warm_below);
+	t->below_cases++;
+	t->below_true += below;
+	t->below_queried += cold_below.queried;
+	if (below && !cold_below.queried)
+	{
+		t->below_true_unqueried++;
+	}
+	if (below_again == below)
+	{
+		t->below_warm_same++;
+	}
+	if (!inside)
+	{
+		t->below_off_map_true += below;
+		t->below_off_map_queried += cold_below.queried;
+	}
+	ground_pfold_vec (p, GROUND_KIND_BELOW, &before);
+	ground_pfold (p, GROUND_KIND_BELOW, (uint32_t) below);
+	ground_pfold_vec (p, GROUND_KIND_BELOW, &point);
+
+	if (inside)
+	{
+		t->in_map++;
+		t->in_map_both++;
+		if (above && below)
+		{
+			t->both_true++;
+		}
+		if (!above && !below)
+		{
+			t->both_false++;
+		}
+		if (above == !below)
+		{
+			t->complement++;
+		}
+		else
+		{
+			t->not_complement++;
+		}
+	}
+	if (!ground_bits3 (&before, &point))
+	{
+		t->input_mutated++;
+	}
+
+	if (tag >= 0 && tag < GROUND_POINT_TAGS && p->point_by_tag[tag] < GROUND_POINT_SAMPLES_PER_TAG)
+	{
+		host_ground_point_sample *s = &t->point_samples[t->point_sample_count++];
+
+		p->point_by_tag[tag]++;
+		s->n = n;
+		s->tag = tag;
+		s->x = sweep_bits (point.x);
+		s->y = sweep_bits (point.y);
+		s->z = sweep_bits (point.z);
+		s->inside = inside;
+		s->above = above;
+		s->above_queried = cold_above.queried;
+		s->below = below;
+		s->below_queried = cold_below.queried;
+		s->above_elevation = inside ? ground_view_elevation (&cold_above) : 0u;
+		s->above_type = inside ? ground_view_type (&cold_above) : 0;
+		s->below_elevation = ground_view_elevation (&cold_below);
+		s->below_type = ground_view_type (&cold_below);
+	}
+}
+
+/* the fixture's per-call impact: the three calls (aliased, separate, warm) reduce to host_terrain_ground_impact answers */
+static void ground_call_impact (struct ground_probe *p, const vec3d *a0, const vec3d *b0, const host_terrain_hint *hint, host_ground_impact_answer *answer)
+{
+	float above[3], below[3];
+
+	memset (answer, 0, sizeof (*answer));
+
+	if (p->failed)
+	{
+		return;
+	}
+
+	above[0] = a0->x;
+	above[1] = a0->y;
+	above[2] = a0->z;
+	below[0] = b0->x;
+	below[1] = b0->y;
+	below[2] = b0->z;
+
+	if (host_terrain_ground_impact (p->map, &p->world, above, below, hint, answer, p->error, p->error_size))
+	{
+		p->failed = TRUE;
+	}
+}
+
+static void ground_impact_case (struct ground_probe *p, int n, int type, vec3d a0, vec3d b0)
+{
+	host_ground_sweep *t = p->out;
+	host_ground_impact_answer alias_answer, separate_answer, warm_answer;
+	vec3d pa, qa, pb, qb, rb, pw, qw, rw;
+	struct ground_ctx extra;
+	fenv_t saved;
+	int class_alias, class_separate, class_warm;
+	int equal, warm, a_changed, b_changed, xz_changed;
+
+	t->impacts++;
+	t->by_type[type]++;
+
+	/* the aliased call: cold, and the caller writes the impact over the corrected below endpoint */
+	ground_call_impact (p, &a0, &b0, NULL, &alias_answer);
+	/* the separate call: cold again (the fixture re-arms the record) */
+	ground_call_impact (p, &a0, &b0, NULL, &separate_answer);
+	/* the warm call: the very next question, on the record the separate call left */
+	ground_call_impact (p, &a0, &b0, separate_answer.record.has_hint ? &separate_answer.record.hint : NULL, &warm_answer);
+
+	if (p->failed)
+	{
+		return;
+	}
+
+	if (alias_answer.type < 0 || alias_answer.type >= (int) p->class_count || separate_answer.type < 0 || separate_answer.type >= (int) p->class_count
+		|| warm_answer.type < 0 || warm_answer.type >= (int) p->class_count)
+	{
+		p->failed = TRUE;
+		fail (p->error, p->error_size, "terrain ground sweep: an impact left a surface type outside the class table");
+		return;
+	}
+
+	class_alias = p->class_of_type[alias_answer.type];
+	class_separate = p->class_of_type[separate_answer.type];
+	class_warm = p->class_of_type[warm_answer.type];
+
+	pa.x = alias_answer.above[0];
+	pa.y = alias_answer.above[1];
+	pa.z = alias_answer.above[2];
+	qa.x = alias_answer.impact[0];
+	qa.y = alias_answer.impact[1];
+	qa.z = alias_answer.impact[2];
+	pb.x = separate_answer.above[0];
+	pb.y = separate_answer.above[1];
+	pb.z = separate_answer.above[2];
+	qb.x = separate_answer.below[0];
+	qb.y = separate_answer.below[1];
+	qb.z = separate_answer.below[2];
+	rb.x = separate_answer.impact[0];
+	rb.y = separate_answer.impact[1];
+	rb.z = separate_answer.impact[2];
+	pw.x = warm_answer.above[0];
+	pw.y = warm_answer.above[1];
+	pw.z = warm_answer.above[2];
+	qw.x = warm_answer.below[0];
+	qw.y = warm_answer.below[1];
+	qw.z = warm_answer.below[2];
+	rw.x = warm_answer.impact[0];
+	rw.y = warm_answer.impact[1];
+	rw.z = warm_answer.impact[2];
+
+	t->own_assert_failures += alias_answer.own_assert_failures + separate_answer.own_assert_failures + warm_answer.own_assert_failures;
+
+	/* the fixture's two extra diagnostic questions about the corrected endpoints, asked after every call being characterised (cold: the answers do not depend on the record) */
+	ground_begin (&extra, p->map, &p->world, NULL, p->error, p->error_size, &saved);
+	if (!ground_above (&extra, &pb))
+	{
+		t->extra_above_endpoint_not_above++;
+	}
+	if (ground_above (&extra, &qb))
+	{
+		t->original_below_endpoint_still_above++;
+	}
+	fesetenv (&saved);
+	if (extra.failed)
+	{
+		p->failed = TRUE;
+		return;
+	}
+
+	a_changed = !ground_bits3 (&pb, &a0);
+	b_changed = !ground_bits3 (&qb, &b0);
+	xz_changed = (sweep_bits (pb.x) != sweep_bits (a0.x)) || (sweep_bits (pb.z) != sweep_bits (a0.z)) || (sweep_bits (qb.x) != sweep_bits (b0.x))
+		|| (sweep_bits (qb.z) != sweep_bits (b0.z));
+	equal = (class_alias == class_separate) && ground_bits3 (&pa, &pb) && ground_bits3 (&qa, &rb);
+	warm = (class_warm == class_separate) && ground_bits3 (&rw, &rb) && ground_bits3 (&pw, &pb) && ground_bits3 (&qw, &qb);
+
+	t->a_corrected += a_changed;
+	t->b_corrected += b_changed;
+	t->xz_changed += xz_changed;
+	t->alias_equal += equal;
+	t->alias_unequal += !equal;
+	t->warm_same += warm;
+	t->warm_different += !warm;
+	t->impact_queried += 1;
+	if (ground_bits3 (&rb, &qb))
+	{
+		t->impact_equals_corrected_below++;
+	}
+	if (class_separate >= 0 && class_separate < 4)
+	{
+		t->class_count[class_separate]++;
+	}
+	else
+	{
+		t->class_other++;
+	}
+
+	/* physical */
+	ground_pfold_vec (p, GROUND_KIND_IMPACT, &a0);
+	ground_pfold_vec (p, GROUND_KIND_IMPACT, &b0);
+	ground_pfold (p, GROUND_KIND_IMPACT, (uint32_t) class_alias);
+	ground_pfold_vec (p, GROUND_KIND_IMPACT, &pa);
+	ground_pfold_vec (p, GROUND_KIND_IMPACT, &qa);
+	ground_pfold (p, GROUND_KIND_IMPACT, (uint32_t) class_separate);
+	ground_pfold_vec (p, GROUND_KIND_IMPACT, &pb);
+	ground_pfold_vec (p, GROUND_KIND_IMPACT, &qb);
+	ground_pfold_vec (p, GROUND_KIND_IMPACT, &rb);
+
+	if (p->impact_by_type[type] < GROUND_IMPACT_SAMPLES_PER_TYPE)
+	{
+		host_ground_impact_sample *s = &t->impact_samples[t->impact_sample_count++];
+
+		p->impact_by_type[type]++;
+		s->n = n;
+		s->type = type;
+		s->a0[0] = sweep_bits (a0.x);
+		s->a0[1] = sweep_bits (a0.y);
+		s->a0[2] = sweep_bits (a0.z);
+		s->b0[0] = sweep_bits (b0.x);
+		s->b0[1] = sweep_bits (b0.y);
+		s->b0[2] = sweep_bits (b0.z);
+		s->class_alias = class_alias;
+		s->pa[0] = sweep_bits (pa.x);
+		s->pa[1] = sweep_bits (pa.y);
+		s->pa[2] = sweep_bits (pa.z);
+		s->qa[0] = sweep_bits (qa.x);
+		s->qa[1] = sweep_bits (qa.y);
+		s->qa[2] = sweep_bits (qa.z);
+		s->class_separate = class_separate;
+		s->pb[0] = sweep_bits (pb.x);
+		s->pb[1] = sweep_bits (pb.y);
+		s->pb[2] = sweep_bits (pb.z);
+		s->qb[0] = sweep_bits (qb.x);
+		s->qb[1] = sweep_bits (qb.y);
+		s->qb[2] = sweep_bits (qb.z);
+		s->rb[0] = sweep_bits (rb.x);
+		s->rb[1] = sweep_bits (rb.y);
+		s->rb[2] = sweep_bits (rb.z);
+		s->alias_equal = equal;
+		s->warm_same = warm;
+		s->queried = 1;
+		s->elevation = sweep_bits (separate_answer.record.last_elevation);
+		s->type_word = separate_answer.record.type;
+	}
+}
+
+/* ---- the fixture's case generator, verbatim in draw order and arithmetic (eech_ground_fixture.c, interior_coord .. make_impact) ---- */
+
+static float ground_interior_coord (struct ground_probe *p, float maximum)
+{
+	return sweep_unit (&p->rng) * maximum;
+}
+
+static float ground_edge_coord (struct ground_probe *p, float maximum)
+{
+	switch (sweep_next_random (&p->rng) % 8)
+	{
+	case 0:
+		return 0.0f;
+	case 1:
+		return -0.0f;
+	case 2:
+		return ground_next_up (0.0f);
+	case 3:
+		return 1.0f;
+	case 4:
+		return maximum;
+	case 5:
+		return ground_next_down (maximum);
+	case 6:
+		return maximum - 1.0f;
+	default:
+		return maximum < 2048.0f ? maximum : 2048.0f;
+	}
+}
+
+static float ground_boundary_coord (struct ground_probe *p, float maximum, int sectors)
+{
+	float v = (float) (sweep_next_random (&p->rng) % (uint32_t) (sectors + 1)) * (float) TERRAIN_3D_SECTOR_SIDE_LENGTH;
+	if (v > maximum)
+	{
+		v = maximum;
+	}
+	switch (sweep_next_random (&p->rng) % 3)
+	{
+	case 0:
+		return v;
+	case 1:
+		return v > 0.0f ? ground_next_down (v) : v;
+	default:
+		return v < maximum ? ground_next_up (v) : v;
+	}
+}
+
+static float ground_off_map_coord (struct ground_probe *p, float maximum)
+{
+	switch (sweep_next_random (&p->rng) % 7)
+	{
+	case 0:
+		return -1.0f;
+	case 1:
+		return ground_next_down (0.0f);
+	case 2:
+		return ground_next_up (maximum);
+	case 3:
+		return maximum + 1.0f;
+	case 4:
+		return maximum * 2.0f;
+	case 5:
+		return -1.0e9f;
+	default:
+		return 1.0e9f;
+	}
+}
+
+static float ground_point_height (struct ground_probe *p, float x, float z, int choice)
+{
+	float e = ground_terrain_height (p, x, z);
+	float m = ground_placement_sector_max (p, x, z);
+	switch (choice)
+	{
+	case 0:
+		return e - 500.0f;
+	case 1:
+		return e - 1.0f;
+	case 2:
+		return e - 0.001f;
+	case 3:
+		return ground_next_down (e);
+	case 4:
+		return e;
+	case 5:
+		return ground_next_up (e);
+	case 6:
+		return e + 0.001f;
+	case 7:
+		return e + 1.0f;
+	case 8:
+		return e + 500.0f;
+	case 9:
+		return ground_next_down (m);
+	case 10:
+		return m;
+	case 11:
+		return ground_next_up (m);
+	case 12:
+		return m - 1.0f;
+	case 13:
+		return m + 1.0f;
+	case 14:
+		return GROUND_MIN_MAP_Y;
+	default:
+		return GROUND_MAX_MAP_Y;
+	}
+}
+
+static void ground_make_point (struct ground_probe *p, int n)
+{
+	static const float off_map_heights[] = { -100.0f, 0.0f, 100.0f, 5000.0f };
+	vec3d v;
+	int tag = (int) (sweep_next_random (&p->rng) % 6);
+	int choice = (int) (sweep_next_random (&p->rng) % 16);
+	switch (tag)
+	{
+	case 0:
+	case 1:
+		v.x = ground_interior_coord (p, p->max_x);
+		v.z = ground_interior_coord (p, p->max_z);
+		break;
+	case 2:
+		v.x = ground_boundary_coord (p, p->max_x, p->sectors_x);
+		v.z = (sweep_next_random (&p->rng) & 1) ? ground_boundary_coord (p, p->max_z, p->sectors_z) : ground_interior_coord (p, p->max_z);
+		break;
+	case 3:
+		v.x = ground_edge_coord (p, p->max_x);
+		v.z = (sweep_next_random (&p->rng) & 1) ? ground_edge_coord (p, p->max_z) : ground_interior_coord (p, p->max_z);
+		break;
+	case 4:
+		v.x = ground_interior_coord (p, p->max_x);
+		v.z = ground_edge_coord (p, p->max_z);
+		break;
+	default:
+		if (sweep_next_random (&p->rng) & 1)
+		{
+			v.x = ground_off_map_coord (p, p->max_x);
+			v.z = ground_interior_coord (p, p->max_z);
+		}
+		else
+		{
+			v.x = ground_interior_coord (p, p->max_x);
+			v.z = ground_off_map_coord (p, p->max_z);
+		}
+		v.y = off_map_heights[sweep_next_random (&p->rng) % 4];
+		ground_point_case (p, n, tag, v);
+		return;
+	}
+	if (!ground_inside_world (&p->world, &v))
+	{
+		v.y = 0.0f;
+		ground_point_case (p, n, tag, v);
+		return;
+	}
+	v.y = ground_point_height (p, v.x, v.z, choice);
+	if (p->failed)
+	{
+		return;
+	}
+	ground_point_case (p, n, tag, v);
+}
+
+static float ground_clamp_to (float v, float maximum)
+{
+	if (v < 0.0f)
+	{
+		return 0.0f;
+	}
+	return v > maximum ? maximum : v;
+}
+
+static void ground_make_impact (struct ground_probe *p, int n)
+{
+	static const float ranges[] = { 0.25f, 0.9f, 1.0f, 1.1f, 2.0f, 10.0f, 100.0f, 1000.0f, 10000.0f };
+	static const float above_heights[] = { 0.5f, 1.0f, 5.0f, 50.0f, 500.0f, 3000.0f };
+	static const float below_depths[] = { 0.5f, 1.0f, 5.0f, 50.0f, 500.0f };
+	int type = (int) (sweep_next_random (&p->rng) % GROUND_IMPACT_TYPES);
+	float range = ranges[sweep_next_random (&p->rng) % (sizeof (ranges) / sizeof (ranges[0]))];
+	float h = above_heights[sweep_next_random (&p->rng) % (sizeof (above_heights) / sizeof (above_heights[0]))];
+	float d = below_depths[sweep_next_random (&p->rng) % (sizeof (below_depths) / sizeof (below_depths[0]))];
+	vec3d a, b;
+	float ea, eb;
+
+	a.x = ground_interior_coord (p, p->max_x);
+	a.z = ground_interior_coord (p, p->max_z);
+	b.x = ground_clamp_to (a.x + (sweep_unit (&p->rng) - 0.5f) * 2.0f * range, p->max_x);
+	b.z = ground_clamp_to (a.z + (sweep_unit (&p->rng) - 0.5f) * 2.0f * range, p->max_z);
+	if (type == 4)
+	{
+		b.x = a.x;
+		b.z = a.z;
+	}
+	else if (type == 7 && p->sectors_x >= 2)
+	{
+		float boundary = (float) (1 + sweep_next_random (&p->rng) % (uint32_t) (p->sectors_x - 1)) * (float) TERRAIN_3D_SECTOR_SIDE_LENGTH;
+		a.x = ground_next_down (boundary);
+		b.x = boundary;
+	}
+	ea = ground_terrain_height (p, a.x, a.z);
+	eb = ground_terrain_height (p, b.x, b.z);
+	a.y = ea + h;
+	b.y = eb - d;
+	switch (type)
+	{
+	case 1:
+		a.y = ea - d;
+		break;
+	case 2:
+		b.y = eb + h;
+		break;
+	case 3:
+		a.y = ea - d;
+		b.y = eb + h;
+		break;
+	case 5:
+		a.y = ea;
+		b.y = eb;
+		break;
+	case 6:
+		a.y = ground_placement_sector_max (p, a.x, a.z);
+		break;
+	default:
+		break;
+	}
+	if (p->failed)
+	{
+		return;
+	}
+	ground_impact_case (p, n, type, a, b);
+}
+
+int host_terrain_ground_conformance (const host_terrain *map, uint32_t seed, int points, int impacts, const int32_t *class_of_type, size_t class_count, host_ground_sweep *out,
+	char *error, size_t error_size)
+{
+	struct ground_probe probe;
+	fenv_t saved;
+	int i;
+
+	if (!out || points < 0 || points > 100000 || impacts < 0 || impacts > 100000 || points + impacts <= 0)
+	{
+		return fail (error, error_size, "terrain ground sweep: points %d or impacts %d is out of range", points, impacts);
+	}
+
+	if (!class_of_type || class_count != (size_t) TERRAIN_TYPE_LAST)
+	{
+		return fail (error, error_size, "terrain ground sweep: the class table must have %d entries", (int) TERRAIN_TYPE_LAST);
+	}
+
+	for (i = 0; i < TERRAIN_TYPE_LAST; i++)
+	{
+		if (class_of_type[i] < 0 || class_of_type[i] > 3)
+		{
+			return fail (error, error_size, "terrain ground sweep: the class of type %d is outside 0..3", i);
+		}
+	}
+
+	if (!(map->facts.max_x > 0.0f) || !(map->facts.max_z > 0.0f) || map->facts.sector_x_max < 1 || map->facts.sector_z_max < 1)
+	{
+		return fail (error, error_size, "terrain ground sweep: the map has no extent");
+	}
+
+	memset (out, 0, sizeof (*out));
+	memset (&probe, 0, sizeof (probe));
+	out->physical_combined = out->physical_above = out->physical_below = out->physical_impact = GROUND_FNV_OFFSET;
+
+	probe.out = out;
+	probe.map = map;
+	probe.class_of_type = class_of_type;
+	probe.class_count = class_count;
+	probe.error = error;
+	probe.error_size = error_size;
+	/* the world area is the map's own extents: the fixture refuses a probe whose world and terrain extents differ, and the retail roots it ran on are equal */
+	probe.world.min_x = map->facts.min_x;
+	probe.world.min_z = map->facts.min_z;
+	probe.world.max_x = map->facts.max_x;
+	probe.world.max_z = map->facts.max_z;
+	probe.max_x = map->facts.max_x;
+	probe.max_z = map->facts.max_z;
+	probe.sectors_x = map->facts.sector_x_max;
+	probe.sectors_z = map->facts.sector_z_max;
+	probe.rng = seed ? seed : 1u;
+
+	fegetenv (&saved);
+	fesetround (FE_TOWARDZERO);
+
+	for (i = 0; i < points && !probe.failed; i++)
+	{
+		ground_make_point (&probe, i);
+	}
+	for (i = 0; i < impacts && !probe.failed; i++)
+	{
+		ground_make_impact (&probe, i);
+	}
+
+	fesetenv (&saved);
+
+	return probe.failed ? -1 : 0;
+}

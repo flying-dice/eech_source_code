@@ -1995,7 +1995,14 @@ fn the_object_witness_says_so_when_there_is_no_such_structure_and_refuses_a_malf
 // `ground-fixture` feature.
 const GROUND_CASE_CALLER_SCRIPT: &str = include_str!("lua/ground-caller.lua");
 
+// The ORIGINAL host and module: no terrain provider, the legacy record rows. Every ground test written for the original fixture runs in this profile, unchanged.
 fn run_ground_case(mode: &str, extra: &[&str]) -> (std::process::ExitStatus, String, String, String, Vec<serde_json::Value>) {
+    run_ground_case_as("legacy", mode, extra)
+}
+
+// `profile` is "legacy" (the original host, which has no terrain provider) or "semantic" (the G1 host, which has one: the stand-in replaces the real factory with a stub so that no
+// retail root is loaded, and the stub answers nothing). The stand-in writes the report of that profile.
+fn run_ground_case_as(profile: &str, mode: &str, extra: &[&str]) -> (std::process::ExitStatus, String, String, String, Vec<serde_json::Value>) {
     let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("lua")
         .display()
@@ -2010,6 +2017,7 @@ fn run_ground_case(mode: &str, extra: &[&str]) -> (std::process::ExitStatus, Str
     let _ = std::fs::remove_file(&trace);
     let text = GROUND_CASE_CALLER_SCRIPT
         .replace("@MODE@", mode)
+        .replace("@PROFILE@", profile)
         .replace("@TRACE@", &trace.display().to_string().replace('\u{5c}', "/"))
         .replace("@LUA_DIR@", &lua_dir);
     std::fs::write(&script, text).unwrap();
@@ -2399,11 +2407,15 @@ fn the_ground_driver_names_the_one_defect_in_a_report_and_writes_no_success_row(
 // One report with one defect, through the real driver: the run fails with exactly the named reason, records it once as `report_invalid`, writes no row of the rejected
 // report and no success row (`repeat_identical`, `state_digest`), and stops at the first probe.
 fn assert_ground_defect(mode: &str, args: &[&str], reason: &str) {
+    assert_ground_defect_as("legacy", mode, args, reason);
+}
+
+fn assert_ground_defect_as(profile: &str, mode: &str, args: &[&str], reason: &str) {
     let expected = ground_refusal(reason);
-    let (status, stdout, stderr, trace, rows) = run_ground_case(mode, args);
+    let (status, stdout, stderr, trace, rows) = run_ground_case_as(profile, mode, args);
     assert!(
         !status.success() && !stdout.contains("GROUND_CALLER_DONE"),
-        "{mode}: accepted\n{stdout}\n{stderr}"
+        "{profile}/{mode}: accepted\n{stdout}\n{stderr}"
     );
     assert!(stderr.contains(&expected), "{mode}: expected {expected:?}, got {stderr}");
     let invalid: Vec<_> = rows.iter().filter(|r| r["event"] == "report_invalid").collect();
@@ -2497,4 +2509,166 @@ fn the_ground_driver_accepts_the_omissions_the_emitter_makes_once_a_class_is_ful
     let (status, stdout, stderr, _, rows) = run_ground_case("points_saturated_then_other_tags", &["points=5", "impacts=5", "repeats=1"]);
     assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
     assert_eq!(ground_samples(&rows, "point"), 4);
+}
+
+// THE TWO REPORT PROFILES (EEDCS-48 composed with G1). The original fixture reports the shared record's diagnostics in the legacy shape (ground-record, ground-hash: sector and triangle
+// indices, held pointers). Against the G1 module, whose record has none of those, it reports the host-semantic shape (ground-profile, ground-semantic-record, ground-semantic-hash) and
+// the driver boots the module with the host's terrain provider. The original profile stays supported exactly as the retained oracles were written; the two are never mixed. These tests
+// run the real driver against a stand-in that writes a report of the named profile; the provider factory is a stub (no retail root is loaded) and no physical answer is faked.
+fn trace_lines(trace: &str) -> Vec<&str> {
+    trace.lines().collect()
+}
+
+#[test]
+fn the_ground_driver_boots_the_g1_module_with_the_terrain_provider_and_accepts_the_host_semantic_report() {
+    let (status, stdout, stderr, trace, rows) = run_ground_case_as("semantic", "ok", &["points=5", "impacts=5", "repeats=1"]);
+    assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    // the provider factory is called once, with the map, and its result is what boot receives, as lua/campaign.lua does
+    let lines = trace_lines(&trace);
+    assert_eq!(lines.iter().filter(|l| l.starts_with("terrain-provider ")).count(), 1, "{trace}");
+    assert!(lines.contains(&"boot terrain=true"), "{trace}");
+    let at = |needle: &str| {
+        lines
+            .iter()
+            .position(|l| l.starts_with(needle))
+            .unwrap_or_else(|| panic!("no {needle} in {trace}"))
+    };
+    assert!(at("terrain-provider ") < at("boot terrain="), "the provider is made before boot: {trace}");
+    // the host-semantic rows, and none of the legacy ones
+    let event = |name: &str| rows.iter().filter(|r| r["event"] == name).count();
+    assert_eq!(
+        (
+            event("ground-profile"),
+            event("ground-semantic-record"),
+            event("ground-semantic-hash"),
+            event("ground-physical")
+        ),
+        (1, 1, 1, 1)
+    );
+    assert_eq!(
+        (event("ground-record"), event("ground-hash")),
+        (0, 0),
+        "a legacy row is never written beside the semantic ones"
+    );
+    let profile = rows.iter().find(|r| r["event"] == "ground-profile").unwrap();
+    assert_eq!(
+        (profile["record"].as_str(), profile["legacy_diagnostics"].as_str()),
+        (Some("host_semantic"), Some("none")),
+        "{profile}"
+    );
+    let record = rows.iter().find(|r| r["event"] == "ground-semantic-record").unwrap();
+    assert_eq!((record["restored"].as_i64(), record["anchored"].as_i64()), (Some(1), Some(1)), "{record}");
+    assert!(rows.iter().any(|r| r["event"] == "state_digest"));
+    // sample completeness is still enforced, in this profile too
+    assert_eq!((ground_samples(&rows, "point"), ground_samples(&rows, "impact")), (5, 5));
+}
+
+#[test]
+fn the_ground_driver_original_profile_is_still_supported_and_boots_without_a_terrain_provider() {
+    let (status, stdout, stderr, trace, rows) = run_ground_case_as("legacy", "ok", &["points=5", "impacts=5", "repeats=1"]);
+    assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert!(!trace.contains("terrain-provider"), "the original host has no provider: {trace}");
+    assert!(trace.lines().any(|l| l == "boot terrain=false"), "{trace}");
+    let event = |name: &str| rows.iter().filter(|r| r["event"] == name).count();
+    assert_eq!((event("ground-record"), event("ground-hash"), event("ground-physical")), (1, 1, 1));
+    assert_eq!(
+        (event("ground-profile"), event("ground-semantic-record"), event("ground-semantic-hash")),
+        (0, 0, 0),
+        "the original profile has no semantic row"
+    );
+}
+
+#[test]
+fn the_ground_driver_host_semantic_profile_supports_empty_families_and_small_runs() {
+    for args in [["points=0", "impacts=5"], ["points=5", "impacts=0"], ["points=1", "impacts=1"]] {
+        let (status, stdout, stderr, _, rows) = run_ground_case_as("semantic", "ok", &args);
+        assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{args:?}: {stdout}\n{stderr}");
+        assert!(rows.iter().any(|r| r["event"] == "state_digest"), "{args:?}");
+    }
+    // the physical fold is required with its empty value for an empty family in this profile too
+    let (status, _, _, _, rows) = run_ground_case_as("semantic", "ok", &["points=0", "impacts=5", "repeats=1"]);
+    assert!(status.success());
+    for fold in ["ground-semantic-hash", "ground-physical"] {
+        let row = rows.iter().find(|r| r["event"] == fold).unwrap_or_else(|| panic!("no {fold} row"));
+        assert_eq!(row["above"].as_str(), Some("cbf29ce484222325"), "{row}");
+    }
+}
+
+// The profile controls: each report below has ONE defect and must be refused by its exact reason, with `report_invalid`, no success row and no digest. A missing or ambiguous profile is never
+// accepted as success, a legacy row is never accepted beside the semantic ones (a fake zeroed or copied ground-hash would make two different diagnostics look equal), and the report must be
+// the profile the host implies.
+#[test]
+fn the_ground_driver_refuses_a_missing_mixed_or_disagreeing_report_profile() {
+    let counts: &[&str] = &["points=5", "impacts=5"];
+    let original_on_provider_host =
+        "the report is the original profile, but this host has a terrain provider (the host-terrain module) and expects the host_semantic profile";
+    let semantic_on_plain_host =
+        "the report is the host_semantic profile, but this host has no terrain provider (the original module) and expects the original profile";
+    for (profile, mode, reason) in [
+        // a host with a provider whose report names no profile (the original shape), and a host without one whose report is the semantic shape
+        ("semantic", "profile_row_missing", original_on_provider_host),
+        ("swap_semantic_host", "ok", original_on_provider_host),
+        ("swap_legacy_host", "ok", semantic_on_plain_host),
+        ("legacy", "legacy_with_profile_row", semantic_on_plain_host),
+        // the profile row itself
+        ("semantic", "profile_names_legacy", "ground-profile: record must be host_semantic, got legacy"),
+        (
+            "semantic",
+            "profile_claims_diagnostics",
+            "ground-profile: legacy_diagnostics must be none, got zeroed",
+        ),
+        ("semantic", "profile_key_missing", "ground-profile: legacy_diagnostics is missing"),
+        (
+            "semantic",
+            "profile_word_malformed",
+            "ground-profile: record must be a word, got 'host-semantic'",
+        ),
+        // a row of the other profile beside the profile's own
+        (
+            "semantic",
+            "mixed_legacy_hash",
+            "the report mixes profiles: ground-hash belongs to the original profile, but the report is the host_semantic profile",
+        ),
+        (
+            "semantic",
+            "mixed_legacy_record",
+            "the report mixes profiles: ground-record belongs to the original profile, but the report is the host_semantic profile",
+        ),
+        (
+            "legacy",
+            "legacy_with_semantic_record",
+            "the report mixes profiles: ground-semantic-record belongs to the host_semantic profile, but the report is the original profile",
+        ),
+    ] {
+        assert_ground_defect_as(profile, mode, counts, reason);
+    }
+}
+
+// The measurements keep their guards in the host-semantic profile, under the profile's own row names. The same defects in the original profile are in the table above.
+#[test]
+fn the_ground_driver_keeps_its_record_hash_and_sample_guards_in_the_host_semantic_profile() {
+    let counts: &[&str] = &["points=5", "impacts=5"];
+    let restore = "the probe did not restore the shared terrain record: restored=";
+    for (mode, reason) in [
+        ("record_words_absent", "ground-semantic-record: words_before is missing".to_string()),
+        (
+            "record_word_short",
+            "ground-semantic-record: words_after must be 16 lowercase hex digits, got 'abcd'".to_string(),
+        ),
+        ("not_anchored", "ground-semantic-record: anchored is 0, expected 1".to_string()),
+        ("unrestored", format!("{restore}0 words 0123456789abcdef -> 0123456789abcdef")),
+        ("words_differ", format!("{restore}1 words 0123456789abcdef -> ffffffffffffffff")),
+        ("hash_bare", "ground-semantic-hash: combined is missing".to_string()),
+        ("hash_short", "ground-semantic-hash: below must be 16 lowercase hex digits, got '1'".to_string()),
+        ("hash_row_missing", "the report has no ground-semantic-hash row".to_string()),
+        ("physical_missing_row", "the report has no ground-physical row".to_string()),
+        ("empty_fold", "ground-semantic-hash: above is cbf29ce484222325 for 5 cases".to_string()),
+        (
+            "sample_point_gap_n1",
+            "ground-sample: point case 1 is not sampled, but no tag has reached 2 samples (the gap is cases 1 to 1)".to_string(),
+        ),
+        ("sample_type_omitted", "ground-sample: impact samples of type 2 is 0, expected 1".to_string()),
+    ] {
+        assert_ground_defect_as("semantic", mode, counts, &reason);
+    }
 }

@@ -89,4 +89,101 @@ typedef struct host_terrain_sweep
 int host_terrain_conformance_sweep (const host_terrain *map, uint32_t seed, int count, int emit, host_terrain_sweep *out, host_terrain_sweep_sample *samples,
 	char *error, size_t error_size);
 
+/*
+ * GROUND CONTACT (EEDCS-48, the host side of D3 group G2; PREPARATION: no production binding exists yet, the campaign DLL still computes these itself).
+ *
+ * The two physical expressions the campaign's weapon flight asks about the ground, kept expression for expression from the original (en_world.h point_above_ground and
+ * point_below_ground, en_cllsn.c get_ground_impact_point), over this map's own terrain: the sector maximum is read from the sectors the host already holds, and every
+ * elevation is the point query above, with the find-fast record carried through the whole sequence exactly as the original's one shared record is. Nothing here exposes an
+ * index, a pointer or a layout: the record a sequence leaves crosses as the host_terrain_answer a point query already returns (values, `stored`, and the opaque hint).
+ *
+ * The CAMPAIGN keeps the terrain-class vocabulary (the impact returns the surface TYPE the last query left in the record, not a class) and its geography: the world-map
+ * extents the below-ground test compares against are supplied by the caller (they are campaign data, and are not assumed equal to the terrain's), and so is the aliasing of
+ * the impact output with the below endpoint (the caller composes it from the corrected endpoints and the impact point).
+ *
+ * Unsupported, refused with a message and nothing computed: a coordinate that is not finite; a position off the terrain's own extents for any read of the sector maximum
+ * (the original stops the engine in debug_fatal there); a hint the map did not issue (refused when it is first USED, so an answer that never reads the terrain never
+ * looks at it).
+ */
+typedef struct host_ground_world
+{
+	float min_x, min_z, max_x, max_z; /* the campaign's world-map area (en_world.h point_inside_map_area): x and z only */
+} host_ground_world;
+
+typedef struct host_ground_below_answer
+{
+	int32_t below; /* what point_below_ground answers */
+	/* 1 when the answer read the terrain (the sector maximum did not decide it, and the point is inside the world area). 0: no terrain read happened, the caller's record
+	   is to be left exactly as it is, and `record` is zeroed. When 1, `record` is the record the last read left (the complete value state and the optional hint). */
+	int32_t queried;
+	host_terrain_answer record;
+} host_ground_below_answer;
+
+typedef struct host_ground_impact_answer
+{
+	float above[3];  /* the above endpoint after the original's correction (unchanged when it already was above the ground) */
+	float below[3];  /* the below endpoint after the original's correction */
+	float impact[3]; /* the impact point: x and z of the final below endpoint of the bisection, y the terrain elevation there */
+	int32_t type;    /* the EECH terrain_types id the final query left in the record: the campaign maps it to a class */
+	int32_t own_assert_failures; /* how many of the original function's ASSERT conditions were false (they are inert in the characterised build: counted, never fatal) */
+	host_terrain_answer record;  /* the record the sequence left (there is always at least one read) */
+} host_ground_impact_answer;
+
+int host_terrain_ground_below (const host_terrain *map, const host_ground_world *world, float x, float y, float z, const host_terrain_hint *hint,
+	host_ground_below_answer *out, char *error, size_t error_size);
+int host_terrain_ground_impact (const host_terrain *map, const host_ground_world *world, const float above[3], const float below[3], const host_terrain_hint *hint,
+	host_ground_impact_answer *out, char *error, size_t error_size);
+
+/*
+ * CONFORMANCE ONLY. The deterministic ground probe of eech-engine-sys/csrc/eech_ground_fixture.c (the one the ORIGINAL queries were characterised with, c119a7370), driven against
+ * these two operations instead of the DLL: the same private generator, the same cases in the same draw order, the same cold and warm calls, the same physical fold over the same
+ * words, the same counters and the same samples. Its float arithmetic runs under round-toward-zero as the engine's does. The campaign's data it needs are given, not invented:
+ * the world area is the map's own extents (the fixture refuses a map whose world and terrain extents differ, and the three retail roots it ran on are equal), and the
+ * terrain-type -> class table (the campaign's vocabulary, aphavoc/source/misc/terr_db.c) is the caller's. The "record touched" facts of the fixture are `queried` here.
+ */
+#define HOST_GROUND_POINT_SAMPLES 12  /* 2 per point tag, 6 tags */
+#define HOST_GROUND_IMPACT_SAMPLES 32 /* 4 per impact type, 8 types */
+
+typedef struct host_ground_point_sample
+{
+	int32_t n, tag;
+	uint32_t x, y, z; /* bit patterns */
+	int32_t inside, above, above_queried, below, below_queried; /* above is -1 when it was not asked (outside the world area) */
+	uint32_t above_elevation, below_elevation;                   /* last_elevation of the record the call left; the fixture's sentinel word 0x5a5a5a5a when it was not touched, 0 for an unasked above */
+	int32_t above_type, below_type;
+} host_ground_point_sample;
+
+typedef struct host_ground_impact_sample
+{
+	int32_t n, type;
+	uint32_t a0[3], b0[3];
+	int32_t class_alias;
+	uint32_t pa[3], qa[3];
+	int32_t class_separate;
+	uint32_t pb[3], qb[3], rb[3];
+	int32_t alias_equal, warm_same, queried;
+	uint32_t elevation;
+	int32_t type_word;
+} host_ground_impact_sample;
+
+typedef struct host_ground_sweep
+{
+	uint64_t physical_combined, physical_above, physical_below, physical_impact;
+	int32_t points, in_map, off_map, input_mutated;
+	int32_t above_cases, above_true, above_queried, above_true_unqueried, above_warm_same;
+	int32_t below_cases, below_true, below_queried, below_true_unqueried, below_warm_same, below_off_map_true, below_off_map_queried;
+	int32_t in_map_both, complement, not_complement, both_true, both_false;
+	int32_t impacts, a_corrected, b_corrected, xz_changed, alias_equal, alias_unequal, warm_same, warm_different, impact_queried, impact_unqueried, impact_equals_corrected_below;
+	int32_t class_count[4], class_other;
+	int32_t by_type[8];
+	int32_t original_below_endpoint_still_above, extra_above_endpoint_not_above, own_assert_failures;
+	int32_t point_sample_count, impact_sample_count;
+	host_ground_point_sample point_samples[HOST_GROUND_POINT_SAMPLES];
+	host_ground_impact_sample impact_samples[HOST_GROUND_IMPACT_SAMPLES];
+} host_ground_sweep;
+
+/* `points` and `impacts` are 0..100000 and not both 0; `class_of_type` has TERRAIN_TYPE_LAST (62) entries, each a terrain class id 0..3 */
+int host_terrain_ground_conformance (const host_terrain *map, uint32_t seed, int points, int impacts, const int32_t *class_of_type, size_t class_count, host_ground_sweep *out,
+	char *error, size_t error_size);
+
 #endif

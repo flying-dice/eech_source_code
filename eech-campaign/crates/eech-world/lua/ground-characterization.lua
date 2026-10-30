@@ -15,6 +15,12 @@
 -- fixed-width lowercase hex), counts that agree with the request and with each other, and both folds present. `ground-hash` is the LEGACY fold
 -- (it includes the original record's private bookkeeping); `ground-physical` is the PHYSICAL fold (inputs, answers and written vectors only). A
 -- malformed or incomplete report records `report_invalid` and fails the run; no repeat_identical or state_digest row follows it.
+--
+-- TWO PROFILES (see PROFILE_OF_ROW). A host with no terrain provider is the original host: the original module is booted without one and the report is the
+-- `original` profile (ground-record, ground-hash; no ground-profile row), exactly as the retained original oracles were written. A host that has one
+-- (host.terrain_provider, as the G1 campaign boots with) boots the module with terrain = host.terrain_provider (root, map) and its report must be the `host_semantic`
+-- profile (ground-profile, ground-semantic-record, ground-semantic-hash; no legacy row, since the G1 record has no sector, triangle or pointer fields to report).
+-- A missing profile, a row of the other profile, or a profile the host does not imply is refused; ground-physical, the counters and the samples are common.
 -- `probe=no` is the control: the same frames, no probe call, and the same state digest at the end, so a probe run and a control run can be
 -- compared offline. The digest is the object list's identity, kind, side and alive flag in id order after the frames: a coarse witness
 -- that the probe did not disturb the campaign, not a proof (see docs/m5-ground-characterization.md).
@@ -135,7 +141,7 @@ local function typed_value (kind, text)
 	elseif kind == "sflag" then
 		if text == "-1" or text == "0" or text == "1" then return tonumber (text) end
 	elseif kind == "word" then
-		if string.match (text, "^%a+$") then return text end
+		if string.match (text, "^[%a_]+$") then return text end
 	elseif kind == "hex16" then
 		if string.match (text, "^[0-9a-f]+$") and #text == 16 then return text end
 	elseif kind == "hex8" then
@@ -153,6 +159,9 @@ local SCHEMA = {
 	["ground-map"] = { { "world_sectors_x", "count" }, { "world_sectors_z", "count" }, { "world_sector_side", "count" }, { "terrain_sectors_x", "count" },
 		{ "terrain_sectors_z", "count" }, { "terrain_sector_side", "count" } },
 	["ground-record"] = { { "anchored", "flag" }, { "restored", "flag" }, { "words_before", "hex16" }, { "words_after", "hex16" } },
+	-- the HOST-SEMANTIC profile (the G1 module, whose shared record has no sector, triangle or pointer fields): its own rows and names, never the legacy ones
+	["ground-profile"] = { { "record", "word" }, { "legacy_diagnostics", "word" } },
+	["ground-semantic-record"] = { { "anchored", "flag" }, { "restored", "flag" }, { "words_before", "hex16" }, { "words_after", "hex16" } },
 	["ground-points"] = { { "cases", "count" }, { "in_map", "count" }, { "off_map", "count" }, { "input_mutated", "count" } },
 	["ground-above"] = { { "cases", "count" }, { "true", "count" }, { "false", "count" }, { "record_touched", "count" },
 		{ "true_record_untouched", "count" }, { "warm_same", "count" }, { "warm_start_intact", "count" } },
@@ -171,6 +180,7 @@ local SCHEMA = {
 	["ground-asserts"] = { { "original_below_endpoint_still_above", "count" }, { "extra_above_endpoint_not_above", "count" } },
 	-- the LEGACY fold (it includes the original record's private bookkeeping) and the PHYSICAL fold (inputs, answers, written vectors only)
 	["ground-hash"] = { { "combined", "hex16" }, { "above", "hex16" }, { "below", "hex16" }, { "impact", "hex16" } },
+	["ground-semantic-hash"] = { { "combined", "hex16" }, { "above", "hex16" }, { "below", "hex16" }, { "impact", "hex16" } },
 	["ground-physical"] = { { "combined", "hex16" }, { "above", "hex16" }, { "below", "hex16" }, { "impact", "hex16" } },
 }
 
@@ -190,6 +200,21 @@ local FOLD_EMPTY = "cbf29ce484222325"
 -- header of every report. The completeness checks below are only as strong as the quota they assume, so a header that names any other quota is refused
 -- rather than believed: a changed quota would redefine which sample rows are required or permitted.
 local EMITTER_POINT_QUOTA, EMITTER_IMPACT_QUOTA = 2, 4
+
+-- THE TWO REPORT PROFILES. The fixture reports the shared terrain record's diagnostics in the shape of the record it has:
+--   original       the original module's record (sector and triangle indices, sector/face pointers): rows ground-record and ground-hash, and NO ground-profile row.
+--                  This is the shape of the retained original oracles, and it stays supported exactly as it was.
+--   host_semantic  the G1 module's record (semantic values, a face-stored flag, an opaque host hint): a ground-profile row naming it, and rows ground-semantic-record
+--                  and ground-semantic-hash. It has no legacy diagnostic and never reports one: a zeroed or copied ground-hash would pretend two different
+--                  diagnostics are equal.
+-- Everything else (ground-physical, the counters, the samples) has one shape in both. A report is exactly one profile: a row of the other profile, a missing row of
+-- its own, or a profile that is not the one the host implies is refused. The host implies it: a host that has a terrain provider (host.terrain_provider, as the G1
+-- campaign boots with) runs the G1 module, one that has none runs the original module.
+local PROFILE_OF_ROW = { ["ground-record"] = "original", ["ground-hash"] = "original", ["ground-profile"] = "host_semantic",
+	["ground-semantic-record"] = "host_semantic", ["ground-semantic-hash"] = "host_semantic" }
+local EXPECTED_PROFILE = host.terrain_provider ~= nil and "host_semantic" or "original"
+local RECORD_ROW = { original = "ground-record", host_semantic = "ground-semantic-record" }
+local HASH_ROW = { original = "ground-hash", host_semantic = "ground-semantic-hash" }
 
 -- one row's words after the event, as raw `key=value` text: a word that is not key=value, or a key that appears twice, is refused
 local function row_fields (event, words)
@@ -265,8 +290,26 @@ local function read_report (report, repeat_index)
 			events [#events + 1] = t
 		end
 	end
+	-- the profile: named by a ground-profile row, otherwise the original one; it must be the profile the host implies, and no row of the other may be present
+	local profile = rows ["ground-profile"] and "host_semantic" or "original"
+	if profile ~= EXPECTED_PROFILE then
+		refuse ("the report is the " .. profile .. " profile, but this host " .. (EXPECTED_PROFILE == "host_semantic" and "has a terrain provider (the host-terrain module)"
+			or "has no terrain provider (the original module)") .. " and expects the " .. EXPECTED_PROFILE .. " profile")
+	end
+	for _, name in ipairs { "ground-record", "ground-hash", "ground-profile", "ground-semantic-record", "ground-semantic-hash" } do
+		if rows [name] ~= nil and PROFILE_OF_ROW [name] ~= profile then
+			refuse ("the report mixes profiles: " .. name .. " belongs to the " .. PROFILE_OF_ROW [name] .. " profile, but the report is the " .. profile .. " profile")
+		end
+	end
+	if profile == "host_semantic" then
+		local named = rows ["ground-profile"]
+		if named.record ~= "host_semantic" then refuse ("ground-profile: record must be host_semantic, got " .. named.record) end
+		if named.legacy_diagnostics ~= "none" then refuse ("ground-profile: legacy_diagnostics must be none, got " .. named.legacy_diagnostics) end
+	end
 	for name in pairs (SCHEMA) do
-		if rows [name] == nil then refuse ("the report has no " .. name .. " row") end
+		if (PROFILE_OF_ROW [name] == nil or PROFILE_OF_ROW [name] == profile) and rows [name] == nil then
+			refuse ("the report has no " .. name .. " row")
+		end
 	end
 
 	-- the report is for the request made
@@ -290,8 +333,9 @@ local function read_report (report, repeat_index)
 		map.terrain_sectors_z * map.terrain_sector_side)
 
 	-- the shared terrain record is left exactly as it was found
-	local record = rows ["ground-record"]
-	need_equal ("ground-record", "anchored", record.anchored, 1)
+	local record_row = RECORD_ROW [profile]
+	local record = rows [record_row]
+	need_equal (record_row, "anchored", record.anchored, 1)
 	if record.restored ~= 1 or record.words_before ~= record.words_after then
 		refuse ("the probe did not restore the shared terrain record: restored=" .. tostring (record.restored) .. " words " .. tostring (record.words_before) ..
 			" -> " .. tostring (record.words_after))
@@ -337,7 +381,7 @@ local function read_report (report, repeat_index)
 	need_at_most ("ground-asserts", "extra_above_endpoint_not_above", asserts.extra_above_endpoint_not_above, impacts)
 
 	-- both folds: a family that ran no case folded nothing, and a family that ran folded something (the above and below folds take every point)
-	for _, name in ipairs { "ground-hash", "ground-physical" } do
+	for _, name in ipairs { HASH_ROW [profile], "ground-physical" } do
 		local row = rows [name]
 		for _, family in ipairs { { "above", points }, { "below", points }, { "impact", impacts } } do
 			local key, ran = family [1], family [2]
@@ -442,13 +486,19 @@ end
 
 local dc = require ("eech_dc")
 dc.prepare_installation (root)
-local engine = dc.boot {
+local boot_config = {
 	install_root = root, map = scenario.map, campaign_directory = "camp01", campaign = scenario.campaign, gunship = "apache",
 	seed = 1, bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss,
 	supply_reached = host.supply_reached,
 	line_of_sight = host.line_of_sight,
 	sense = host.sense, aim = host.aim,
 }
+-- The G1 (host-terrain) module is booted with the host's terrain provider exactly as lua/campaign.lua does: host.terrain_provider (root, map). A host without one is the
+-- original host, and the original module is booted without it, as the retained oracles were. Nothing else differs.
+if host.terrain_provider ~= nil then
+	boot_config.terrain = host.terrain_provider (root, scenario.map)
+end
+local engine = dc.boot (boot_config)
 emit { event = "boot", scenario = scenario_name, campaign_seed = 1, seed = seed, points = points, impacts = impacts, repeats = repeats, seconds = seconds, after = after,
 	frame_ms = frame_ms, probe = probe }
 
@@ -505,7 +555,14 @@ local clock = engine:clock ()
 emit { event = "state_digest", objects = #objects, alive = alive, digest = string.format ("%08x", digest), elapsed = clock.elapsed_seconds,
 	frames = frames_before + frames_after, probed = probe == "yes" }
 out:close ()
-local legacy = last_rows and last_rows ["ground-hash"].combined or "none"
+-- The footer names the diagnostic hash by the profile that wrote it (the raw JSON rows already do): the ORIGINAL profile's ground-hash is the legacy hash, the host-semantic
+-- profile's ground-semantic-hash is a semantic hash, and the two are different diagnostics. With no probe (the control) there is none.
+local diagnostic_label, diagnostic_hash = "diagnostic hash", "none"
+if last_rows and last_rows ["ground-semantic-hash"] then
+	diagnostic_label, diagnostic_hash = "semantic hash (host_semantic profile)", last_rows ["ground-semantic-hash"].combined
+elseif last_rows and last_rows ["ground-hash"] then
+	diagnostic_label, diagnostic_hash = "legacy hash (original profile)", last_rows ["ground-hash"].combined
+end
 local physical = last_rows and last_rows ["ground-physical"].combined or "none"
-io.stderr:write (string.format ("ground-characterization: probe %s, %d repeats, legacy hash %s, physical hash %s, state digest %08x over %d objects\n", probe,
-	probe == "yes" and repeats or 0, tostring (legacy), tostring (physical), digest, #objects))
+io.stderr:write (string.format ("ground-characterization: probe %s, %d repeats, %s %s, physical hash %s, state digest %08x over %d objects\n", probe,
+	probe == "yes" and repeats or 0, diagnostic_label, tostring (diagnostic_hash), tostring (physical), digest, #objects))

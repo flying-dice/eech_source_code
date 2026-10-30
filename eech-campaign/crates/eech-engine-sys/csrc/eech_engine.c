@@ -1638,7 +1638,7 @@ int eech_engine_wpn_case_launch (const char *launcher_id, const char *target_id,
 /*
  * TEST-ONLY ground-contact characterisation (EEDCS-48): one read-only probe of the original point_above_ground, point_below_ground and
  * get_ground_impact_point against the loaded terrain (eech_ground_fixture.c). It runs inside the engine entry, so it sees EECH's
- * round-toward-zero mode as the campaign's own queries do, and it needs no host: none of the three asks one. It snapshots the shared
+ * round-toward-zero mode as the campaign's own queries do, and it takes no host argument: none of the three asks a dialogue host. (In the host-terrain module their terrain reads go to the terrain provider that boot installed for the process.) It snapshots the shared
  * terrain point record and writes it back byte for byte. The report is text, `key=value` lines; no pointer, address or entity index is in it.
  * A request the probe refuses (a precondition) or whose report does not fit writes `ground-refused reason=...` and is a bad argument.
  */
