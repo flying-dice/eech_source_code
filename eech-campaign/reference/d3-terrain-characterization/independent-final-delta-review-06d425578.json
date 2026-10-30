@@ -1,0 +1,120 @@
+{
+  "kind": "Independent combined final terrain delta and bounded new a9 runtime evidence review",
+  "created_utc": "2026-10-29T13:01:12.101065+00:00",
+  "base": "a9d9e838ad84b81d67606ca200ab2e3022576567",
+  "head": "06d42557843aba5728ffafae937451413115fb6c",
+  "repository": "R:\\d2-sensor-detections",
+  "clean_head_before_after": true,
+  "disposition": "No actionable findings in this new delta. Prior FALSE_SEASON_OVERRIDE_WORDING P3 closed. Source corrections and new a9 focused validation accepted within the recorded scope; final shipping/full-D3 acceptance is not granted.",
+  "findings": [],
+  "new_source": [
+    "OpenMapKey/OpenMaps aliases name exactly the existing tuple/HashMap/Rc types. Cache key identity, ownership, lifetime, lookup behavior and map hint identity are unchanged.",
+    "Grid comparison retains header/total-byte equality, compares the same ordered four-byte posts, and now refuses trailing partial posts explicitly. Fixed-size arrays replace manual indexed reconstruction; no baseline, tolerance or sample change.",
+    "Fixture comments now distinguish original DLL solver versus hosted client, physical/fast samples versus fast-hit-dependent primed/run folds, and true Winter override versus false Summer assertion. No executable Lua changed.",
+    "No shipping C kernel, numerical algorithm, RNG, ABI or provider policy changed in this delta. Prior closed source reviews reused."
+  ],
+  "new_evidence": {
+    "actual_runtime_source": "a9d9e838ad84b81d67606ca200ab2e3022576567",
+    "focused_Windows_tests": {
+      "terrain_backend": "17/17 actual0",
+      "terrain_provider_harness": "7/7 actual0",
+      "terrain_has_face_harness": "5/5 actual0",
+      "terrain_boot_contract": "1/1 actual0 against real shipping DLL"
+    },
+    "focused_test_limits": "Records/logs inspected, not re-executed. Earlier c4 16/17 and 0/1 failures remain historical failures, not relabelled green. Collaborator driver tests do not replace DLL witnesses.",
+    "Clippy": "First retained world all-targets lint attempt failed101 on constant chunks_exact usage; retry1 completion/log actual0 after the aliases/chunk correction, fmt0. No allow/suppression added. Current-head CI still separate.",
+    "build_identity": "Both a9 ordinary shipping and terrain-fixture manifests rehashed: 45 file-manifest entries each, zero mismatches. Actual a9 runtime identities retained; not relabelled 06.",
+    "public_fast": [
+      {
+        "map": "lebanon",
+        "original_trace_sha256": "54fd31ee7dc05a033f4647c633c1b1928645d6ddb1e9392d05f614330d2136dc",
+        "hosted_trace_sha256": "4729d05c764af54a98098ed425e05849578f94eccfd633ef8b49a5ade28f2188",
+        "emitted_point_samples_equal": 256,
+        "emitted_fast_samples_equal": 256,
+        "fast_call_count": 20006,
+        "fast_fold": "dd2dcac1fe13b7c1",
+        "native_and_controller_exit": 0
+      },
+      {
+        "map": "georgia",
+        "original_trace_sha256": "d172ea76cb4d2a7f2e8bf3cd771c113e4d80aaa6296a80532cc4181f5e668209",
+        "hosted_trace_sha256": "1cbcf8ba3b3ad3e0bf370032f287b9d506acba632355a28135ce619d688b980b",
+        "emitted_point_samples_equal": 256,
+        "emitted_fast_samples_equal": 256,
+        "fast_call_count": 20006,
+        "fast_fold": "aa1179597dceabc4",
+        "native_and_controller_exit": 0
+      }
+    ],
+    "fast_audit": "Read private comparator source; independently parsed both original/hosted traces, compared every emitted physical field in order, enforced 256+256 samples and single 20006-call fast-fold row per map. Whole traces/primed/run diagnostic folds are NOT asserted byte-identical. Existing compiled client ownership/callback-only source review accompanies this evidence.",
+    "face_predicate": "All six actual run records/logs show controller/native0, expected private/shared fresh0, queried1, again1, cleared0. Reference hint_after_query1, generic reference-backed nohint0. Omitted/true/false arguments retained. True uses original default-pair fallback because retail has no winter pair; this is not native distinct-winter-geometry proof.",
+    "nohint": "Ordinary shipping actual controller/native0, one 100ms frame: point79152/map1/fast0, placement1444/sum759892.264, LOS1164/sum232000.902. Reference-backed compatible geography with optional metadata omitted, not data-free analytic-world proof.",
+    "input_integrity": "All nine new witness pre/post logs inspected and end inputs IDENTICAL; completion checker exits0. Both 45-entry build manifests independently rehashed unchanged. No reviewer native/checker rerun or input mutation.",
+    "prior_evidence_reuse": "c4 complete generated-grid bytes/conformance and engine9/world18 remain separately source-labelled closed evidence. Failed analytic all-land USS TARAWA run remains failed and outside these positive claims."
+  },
+  "publication_correspondence": [
+    {
+      "public": "public-green-a9d9e838a.json",
+      "private": "root-public-terrain-a9d9e838a-green.json",
+      "git_sha256": "b816ef5d1552b228a589d29b8ed9585525381e19fdcbafeb7a2222c5c19316b2",
+      "private_sha256": "3202c698304dec2a16838e47c7c5161a90abad02e7f71a60eb42e0dcc899cdd3",
+      "byte_identical": false,
+      "parsed_JSON_identical": true,
+      "difference": "CRLF/LF only; no exact private/Git byte-copy claim"
+    },
+    {
+      "public": "public-fast-comparison-a9d9e838a.json",
+      "private": "public-fast-a9-comparison.json",
+      "git_sha256": "6989e939ca770876fb6d7282b88d40e36a577e47ee6ca32ea7a0628a7ecc9074",
+      "private_sha256": "3c85f9c7dd7a626409ff4e92acdfffdaaaaeea3d86106ece0bbdae8ae949f413",
+      "byte_identical": false,
+      "parsed_JSON_identical": true,
+      "difference": "CRLF/LF only; no exact private/Git byte-copy claim"
+    },
+    {
+      "public": "independent-residual-review-a9d9e838a.json",
+      "private": "independent-terrain-residual-review-a9d9e838a.json",
+      "git_sha256": "7c14059afce487ff12183b679d44924ca50571aee2106d142f62c5909d8408cc",
+      "private_sha256": "7c14059afce487ff12183b679d44924ca50571aee2106d142f62c5909d8408cc",
+      "byte_identical": true,
+      "parsed_JSON_identical": true,
+      "difference": "none"
+    }
+  ],
+  "limits": [
+    "No reviewer builds/tests/compiler/Lua/native runs, agents/delegation, source edits or external writes; read-only source/artifact/hash/byte inspection plus this authorized private report only.",
+    "New frozen 06 shipping build/full40/eight complete recordings-observations-metrics comparisons/post-input checks/current CI/normal merge remain pending.",
+    "No visual Tacview, DCS budget, Task47 delivery or whole-D3 closure. DLL2D loader/grid and G2/G3/model/environment/time responsibilities remain in scope; no unchanged whole-D3 source audit repeated."
+  ],
+  "changed_path_sha256": {
+    "STATUS.md": "11da9c21c9aea0ce2b35ea4b2696d244d7d69269d41304ad41bdc76b43d4af20",
+    "eech-campaign/crates/eech-world/lua/terrain-characterization.lua": "9168dbf16d4c3f2f20163a8f4d29ac8e0e969fe0c2addd8d9f8292d1df2e55d0",
+    "eech-campaign/crates/eech-world/lua/terrain-has-face.lua": "e322faf11d79522452f4e8733a70706d521d3a446121d0aee0e0c3e6fd58a1d7",
+    "eech-campaign/crates/eech-world/src/terrain.rs": "e77596d0696f262e6ebf39ace6cb0cbb292fa9b37593b68e438e81a82cc542ed",
+    "eech-campaign/crates/eech-world/tests/terrain_conformance.rs": "6f3179b5fd4c1dc65bc596b03dd7023d377555f8aef84512510a3c9f5419f9b2",
+    "eech-campaign/reference/d3-terrain-characterization/independent-residual-review-a9d9e838a.json": "7c14059afce487ff12183b679d44924ca50571aee2106d142f62c5909d8408cc",
+    "eech-campaign/reference/d3-terrain-characterization/public-fast-comparison-a9d9e838a.json": "6989e939ca770876fb6d7282b88d40e36a577e47ee6ca32ea7a0628a7ecc9074",
+    "eech-campaign/reference/d3-terrain-characterization/public-green-a9d9e838a.json": "b816ef5d1552b228a589d29b8ed9585525381e19fdcbafeb7a2222c5c19316b2"
+  },
+  "evidence_sha256": {
+    "root-public-terrain-a9d9e838a-green.json": "3202c698304dec2a16838e47c7c5161a90abad02e7f71a60eb42e0dcc899cdd3",
+    "public-fast-a9-comparison.json": "3c85f9c7dd7a626409ff4e92acdfffdaaaaeea3d86106ece0bbdae8ae949f413",
+    "compare-public-terrain-probes-a9.py": "95db679c26c75ca04acd299337d537ca8ed2441d3197c65188c1bd9645eb27a5",
+    "public-fast-a9-completion.json": "23dc785186c2ca710e20739a61404508ae5e1d36b936e18551944663da4b24f2",
+    "public-face-a9-completion.json": "13dee5816b558c10629a7caa1440b39d6a3d34d077ee81416b5411b05cc71ded",
+    "public-nohint-a9-completion.json": "817808b841db6ddef6c47cf631866886cf2ce3b93fc2f0c99b66c5a9b44b8bb9",
+    "shipping-terrain-a9d9e838a-build-manifest.json": "cc864feef0ee632a4147c9fb726e6f96f90d8f5b44913bd787d0abe30122a321",
+    "fixture-terrain-a9d9e838a-build-manifest.json": "f160890cdd51697314b8756e360a3c00bc6a5ca3fc5cc90c7e319ffc12ab5fb0",
+    "terrain-cache-alias-clippy.log": "7822aa21648cb0ca58f9afdd537a9130a8da67d970ff372f4ffa6c7bf3f2fd5d",
+    "terrain-cache-alias-clippy-retry1.log": "828245716a66351f0efaacee8b83b74d6d6a4d8313b53f4d6e0b8ffaebaf7442",
+    "terrain-cache-alias-clippy-retry1-completion.json": "6fe2baec772f206a7aba309fbf94693f8a6721670091cac4560494974ae30472",
+    "terrain_backend-a9d9e838a.log": "3e5b5b047da0978417072321410baa078ef8d1517380c834e5eb9039252e8a90",
+    "terrain_backend-a9d9e838a-completion.json": "83c0e9a1c89380d22b4733921e95bc3c3e784833522ba14bdb0fc56cf75fd3ad",
+    "terrain_provider_harness-a9d9e838a.log": "e3ef5dec876529ac7c046633eb51c0e4ec310373012592b5508f4264cc53ea6c",
+    "terrain_provider_harness-a9d9e838a-completion.json": "2228f58ab59f044a5e00f4b043b7ae2f9ac7ab0bacb08356e86fce8cc787fbb3",
+    "terrain_has_face_harness-a9d9e838a.log": "86a1a6fbd477ee53c0bb237717ef30f6409e6e87524074e86f46e09f92b0643c",
+    "terrain_has_face_harness-a9d9e838a-completion.json": "6b5bcb9a44480bbdef6464da15ee7caec124c4116fc35a49d604206f44015d43",
+    "terrain_boot_contract-a9d9e838a.log": "0a1e120c9f4784e13cd60ab074ed077b760147ed0f1a0f9e6bb11035d63fd93c",
+    "terrain_boot_contract-a9d9e838a-completion.json": "50478ecd32ad86b5e790cdf36cf2f142404cc27c201544b1d294f90e6e4106a0"
+  }
+}

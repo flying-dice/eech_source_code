@@ -197,6 +197,7 @@ aphavoc/source/entity/mobile/mb_hostlos.c
 aphavoc/source/entity/mobile/mb_hostsense.c
 aphavoc/source/entity/mobile/mb_hostaim.c
 aphavoc/source/entity/mobile/mb_hostobj.c
+aphavoc/source/entity/mobile/mb_hostterrain.c
 aphavoc/source/entity/mobile/mb_int.c
 aphavoc/source/entity/mobile/mb_list.c
 aphavoc/source/entity/mobile/mb_move.c

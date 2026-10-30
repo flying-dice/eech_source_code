@@ -150,6 +150,7 @@ fn main() {
         .define("EECH_CAMPAIGN_HOST_ARRIVALS", None)
         .define("EECH_CAMPAIGN_HOST_MOVEMENT", None)
         .define("EECH_CAMPAIGN_HOST_LOS", None)
+        .define("EECH_CAMPAIGN_HOST_TERRAIN", None)
         .opt_level_str(&opt)
         .debug(true)
         .pic(true)
@@ -177,6 +178,9 @@ fn main() {
     }
     if env::var_os("CARGO_FEATURE_SENSOR_FIXTURE").is_some() {
         build.define("EECH_SENSOR_FIXTURE", None);
+    }
+    if env::var_os("CARGO_FEATURE_TERRAIN_FIXTURE").is_some() {
+        build.define("EECH_TERRAIN_FIXTURE", None);
     }
     if env::var_os("CARGO_FEATURE_AIM_FIXTURE").is_some() {
         build.define("EECH_AIM_FIXTURE", None);

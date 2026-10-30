@@ -14,10 +14,13 @@
 //! local engine = dc.boot { install_root = root, map = "..\\common\\maps\\map16",
 //!                          campaign_directory = "camp01", campaign = "georgia.chc",
 //!                          gunship = "apache", seed = 1,
+//!                          -- winter = true,       -- optional: the session is in winter; the terrain provider is asked for the map of that season
 //!                          bind_mobile = function () next_id = next_id + 1; return "host:" .. next_id end,
 //!                          supply_reached = observe_supply_reach,
 //!                          move_vehicle = host.move_vehicle,    -- the host's physical record of each routed vehicle
-//!                          observe_loss = function () return "forward" end }
+//!                          observe_loss = function () return "forward" end,
+//!                          -- the host owns the physical terrain; boot is refused without it (see the README of reference/d3-terrain-characterization)
+//!                          terrain = host.terrain_provider (root, "..\\common\\maps\\map16") }
 //! while true do
 //!     engine:frame (100)                -- milliseconds of simulated time
 //!     for _, o in ipairs (engine:objects ()) do ... end

@@ -1,0 +1,112 @@
+{
+  "review": "Independent focused terrain-production correction review",
+  "created_utc": "2026-10-29T12:36:44.120332+00:00",
+  "base": "251bfe15b4f1a21c3cdd987db9dbf416be508287",
+  "head": "c4a56d9a4238dcb6c489d0a0fe09037ba4024f3b",
+  "repository": "R:/d2-sensor-detections",
+  "clean_head_before_and_after": true,
+  "scope": "Only the 23-path correction delta; prior production, original-runtime and backend source reviews reused. Combined correctness, clean-code, boundary and test-meaningfulness review.",
+  "disposition": "Four prior shipping P2 findings resolved by source inspection. Grouped P3 partially resolved; one new fixture P2 and a residual/new documentation P3 need bounded correction. No new shipping arithmetic, memory, ABI, lifetime or authority defect established. Candidate runtime acceptance pending.",
+  "findings": [
+    {
+      "id": "FACE_PROBE_SEASON",
+      "priority": "P2",
+      "file": "R:/d2-sensor-detections/eech-campaign/crates/eech-world/lua/terrain-has-face.lua",
+      "line": 63,
+      "title": "Reuse the actual loaded season for the face probe",
+      "mechanism": "Boot has already invoked the shared lazy reference provider with the actual native loaded-map season. The later explicit winter=false map request contradicts a valid winter session, causing seasonal_provider to refuse at terrain.rs:580-583 before terrain_face_probe runs. This is a test-driver defect, not a shipping season-transport defect.",
+      "bounded_correction": "Capture the actual request season/map facts through the boot provider wrapper, then use those facts for the centre; do not force Summer or weaken the one-season provider guard.",
+      "validation": "A real-script control with a winter first request should reach the face-probe call; reference and generic no-hint modes remain required. No reviewer execution performed."
+    },
+    {
+      "id": "HEADLESS_2D_GRID_WORDING",
+      "priority": "P3",
+      "file": "R:/d2-sensor-detections/eech-campaign/crates/eech-engine-sys/csrc/eech_terrain_fixture.c",
+      "line": 44,
+      "related": [
+        {
+          "file": "R:/d2-sensor-detections/eech-campaign/reference/d3-terrain-characterization/README.md",
+          "line": 463
+        }
+      ],
+      "title": "Retain the actual DLL 2D loader/grid coupling in the diagnostic description",
+      "mechanism": "New text says headless boot never calls load_2d_terrain and does not load the DLL grid. Actual eech_engine.c:250 calls load_3d_terrain_game_data, and aphavoc/source/ui_menu/czone/zone_sc.c:245 calls load_2d_terrain(session->data_path). Original missing-grid generation is also retained evidence of that path. The new wording obscures remaining G2 coupling and can misclassify available= diagnostics.",
+      "bounded_correction": "Restore the explicit transitional DLL 2D load/generation description. Keep the correct distinction between the client cache and the excluded original numerical solver, and between physical tuples and fast-hit-dependent fold hashes. No raw evidence or oracle change is needed."
+    }
+  ],
+  "prior_findings": [
+    {
+      "id": "GRID_POSTPROCESSING",
+      "status": "source-resolved; native byte GREEN pending",
+      "evidence": "Original coastline neighbour order and in-place reads retained, copied line intersection arithmetic matches vector.c after removing debug assertions/comments, coastal path iteration and final remaining -5000 to -2 normalization present. River files are host-read with checked lengths/node references; borrowed buffers expire only after generation. All-map lock covers open/generation. Snapshot writes checked owned bytes. New synthetic coastline/malformed-file tests and full terrain.sim comparison target the original deficiency."
+    },
+    {
+      "id": "REPLY_OPERATION",
+      "status": "source-resolved",
+      "evidence": "Real terrain_callback matches operation and TerrainAnswer variant before writing reply_out. New tests call that production callback for all six wrong pairings with sentinels, all three correct variants and season/refusal transport."
+    },
+    {
+      "id": "REFERENCE_SEASON",
+      "status": "shipping source-resolved; new fixture issue separately recorded",
+      "evidence": "Native session/map-info selection precedes terrain loading. winter=true is an optional override; false preserves native selection. First C terrain request captures that season and all requests carry it; lazy provider holds the map season across later CHC tags. Winter files require both default-W.sec/default-W.rgb; otherwise default pair. Actual factory tests exercise both seasons, pair fallback and wrong/later season refusal."
+    },
+    {
+      "id": "NOHINT_VALIDITY",
+      "status": "source-resolved; real fixture runtime pending",
+      "evidence": "stored bool is distinct from optional hint throughout C/Rust/Lua. Nil Lua stored defaults true; wrong types refuse. Reference derives original record face state, client retains sticky true until clear, including subsequent no-face/Cuba behavior; generic no-hint answers can preserve fixed-wing face predicate. C fixture invokes real client queries and restores shared state on healthy completion."
+    },
+    {
+      "id": "DIAGNOSTIC_SCOPE",
+      "status": "partially-resolved",
+      "evidence": "Fast-hit word makes primed/run folds incomparable and symbol ownership no longer requires blanket absence of system_point_data. The new incorrect no-2D-load assertion remains as HEADLESS_2D_GRID_WORDING."
+    }
+  ],
+  "boundary_and_safety": [
+    "C/Rust repr(C) request winter, reply stored, host RawAnswer stored and engine config winter field order/type agree by inspection, including normal C alignment on 32-bit; no new private pointer or identity crosses the provider boundary.",
+    "River node/path slices remain live for the C open call, parsed storage is private and freed after generation; generated grid stays map-owned. Supplied grid remains Rust-owned and live with Terrain. Snapshot bounds derive from checked grid dimensions.",
+    "Coastal generation and query run under serialized global solver context. Postprocessing introduces no campaign RNG and keeps original float expressions/order. No missing-provider or old-solver fallback was introduced.",
+    "Policy, routing, suitability, consequences and accepted D2 behavior remain outside this delta. DLL 2D terrain data/generation and remaining G2/G3/environment/time are still D3 work; no whole-D3 completion inferred."
+  ],
+  "checks_and_limits": {
+    "reviewer_actions": "Pinned Git source/diff reads, read-only normalized arithmetic comparison and source hashing only. No builds, compiler/preprocessor/tests, Lua execution, campaign/native launch, delegation, source edits or remote writes.",
+    "root_reported_not_reexecuted": [
+      "Sole Sonnet completion 0",
+      "fmt/check 0",
+      "standalone host C syntax 0",
+      "42 Lua parses 0",
+      "diffcheck 0"
+    ],
+    "pending": [
+      "Corrected missing-grid full terrain.sim bytes against both immutable original oracles",
+      "Corrected public point/fast/season/no-hint fixture runtime and malformed/refusal controls",
+      "Shipping full regression/Tacview-complete file equality/input and build identities/current CI/normal delivery",
+      "Remaining whole-D3 spatial/model/environment/time responsibilities"
+    ],
+    "prior_evidence": "Original missing-grid native oracles and 251 fast-hash RED remain unchanged and reused; no new native or byte GREEN claimed in this report."
+  },
+  "changed_path_sha256": {
+    "STATUS.md": "780f613b1986f1801335c82adb13ba7621837b4f286a7ef61d950b51a963494e",
+    "aphavoc/source/entity/mobile/mb_hostterrain.c": "381d08bb2d19e7c7581c796b94c6a72f8bacdcaaddaae6c733cb4d1a1622dd33",
+    "aphavoc/source/entity/mobile/mb_hostterrain.h": "5d114c86eaadd1eec02c4f949e150c5d69117cd77d5e743585176981fb4d9abb",
+    "docs/handover/D3-SCOPE-AUDIT.md": "40e7b60aa3f613205a3f1772503a9f0ede4586719fd066504f5db3830773180e",
+    "eech-campaign/crates/eech-dc/src/lib.rs": "e47461d52130d0f06d6c4cf4bd6ffe30e5b23983a0971a3747a228fb01d35780",
+    "eech-campaign/crates/eech-dc/src/module.rs": "1308ec2ced07483107c82b0b2e59fa63457093b42800d24cffedef65ff35362a",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c": "020ce66cea082734fc6af159a86b2e2c9ee4cbb65a688fe0225b36cfcc4f16c5",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h": "ce8db4a7d0b9ee7b51f6ae2fa26ea54c37f50df4510155dd7d7abff24ea02840",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_terrain_fixture.c": "d20a3be2e80c13d4848cbd5873bfe146411b300fb839cbb0e6b9b86f203e6682",
+    "eech-campaign/crates/eech-engine-sys/src/lib.rs": "eafc415cce533fa752b10c13e0ee6f41ec11c8e2cb19170eb3669c368801529f",
+    "eech-campaign/crates/eech-engine/src/lib.rs": "b6d760b3ddaf256ae4455846d619e687eeacc5c01528b402755096db1d85f9f1",
+    "eech-campaign/crates/eech-world/csrc/terrain_ref.c": "1b581408fb7735671273ec88a7efb286839268ca465388f4b281175cd8a379e2",
+    "eech-campaign/crates/eech-world/csrc/terrain_ref.h": "b457ebfcc94cc7522e911a9bed3a5b0b93a53a349ea5d57b601e6876df310fc5",
+    "eech-campaign/crates/eech-world/lua/terrain-has-face.lua": "bed707c55643db076d0178a60e4cdd6b832966be1cb04486d7fdd84544367960",
+    "eech-campaign/crates/eech-world/src/terrain.rs": "d75842e9fc642f171c5872a46230e9b1460d7e5f910c8ab46d4ad24617836246",
+    "eech-campaign/crates/eech-world/tests/terrain_backend.rs": "ee1d01746279166d9b4ddeb53fb8563b53fe60e7060e10e159ab220f8e3460e8",
+    "eech-campaign/crates/eech-world/tests/terrain_conformance.rs": "b89e74c31ea3d10ff1af8f9753ce539639a7ee66def5a1d5039682c52565661b",
+    "eech-campaign/reference/d3-terrain-characterization/README.md": "21c47d644a4c3ce24e486815c2b9c8dc9e7f42421fe1767f072137ded04f27f5",
+    "eech-campaign/reference/d3-terrain-characterization/independent-production-review-251bfe15b.json": "bbf217437f8facf79a09bdf9c2c2736c612cd13324b4ded558aa8260487fb86b",
+    "eech-campaign/reference/d3-terrain-characterization/provided-grid-point-smoke-251bfe15b.json": "62e85839f1a9994fc174965e3db2b1acd705701a7aab0bee09a750afa2bdfeec",
+    "eech-campaign/reference/d3-terrain-characterization/symbol-ownership-251bfe15b.json": "d33f64beca021d1a5fa6b9f30af4adb33c9b9b01a6fbdcc1ac4178041e9aaeda",
+    "modules/3d/terrain/terrdata.h": "e5382a192174eb8c500e1178e8d1beb10683d52d155f54857f8c1007a9ed4df8",
+    "modules/3d/terrain/terrelev.h": "06b81543ddcec03dded1bed5f807dd9e1e28eb91b4cc9161cb69aedba5bdfcf7"
+  }
+}

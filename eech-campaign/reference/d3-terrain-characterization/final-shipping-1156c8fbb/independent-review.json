@@ -1,0 +1,388 @@
+{
+  "schema": "independent-terrain-final-shipping-review/v1",
+  "reviewed_utc": "2026-10-30T05:49:19.929773+00:00",
+  "measured_production_source": "1156c8fbbdb80783164a95f54f1f782cea328307",
+  "reviewed_delivery_head": "7b51efedbf62ac69c7670a11a01ea721c1fd0aba",
+  "frozen_source": "R:\\d3-evidence\\terrain-coordinate-final-source-20261029",
+  "delivery_path": "R:\\d2-sensor-detections",
+  "frozen_and_delivery_clean_before_after": true,
+  "scope": "New completed Task47 ordinary shipping evidence and metadata composition only. Closed terrain/component source, coordinate repair and focused runtime reviews reused; no unchanged solver/kernel review or execution.",
+  "disposition": "FINAL_SHIPPING_EVIDENCE_PASS_WITH_RECORDED_LIMITS",
+  "findings": [],
+  "actual_completion": {
+    "original_tool": 59652,
+    "original_tool_exit": {
+      "value": 0,
+      "basis": "Parent collected the same original tool terminal zero; independently corroborated by retained launcher/controller footer and runner records, not a newly executed run."
+    },
+    "runner_pid": 24412,
+    "runner_exit": 0,
+    "runner_completed_utc": "2026-10-30T05:43:23.810265+00:00",
+    "launcher_exit": 0,
+    "launcher_completed_utc": "2026-10-30T05:43:36.5413125Z",
+    "assessment": "Actual completed original runner and launcher, exact40 set, raw complete files and post-input gates agree. No restart, report-only exit substitution or checker-only relabel was used."
+  },
+  "checks": {
+    "count": 40,
+    "ids": [
+      "blindspot.georgia_resupply",
+      "evidence.artifacts",
+      "evidence.checkers",
+      "evidence.manifests",
+      "evidence.reproduce.chains",
+      "evidence.reproduce.loss",
+      "evidence.reproduce.m2_check",
+      "evidence.reproduce.m3_check",
+      "governance.fixture",
+      "governance.lineage",
+      "inputs.georgia",
+      "inputs.lebanon",
+      "inputs.lebanon_repeat",
+      "lifecycle.bad_arguments",
+      "lifecycle.boot_twice",
+      "lifecycle.missing_campaign",
+      "lifecycle.missing_map",
+      "lifecycle.missing_root",
+      "lifecycle.no_reuse",
+      "reference.baseline",
+      "reference.loss_chain",
+      "reference.observation_check",
+      "reference.observed_equals_unobserved",
+      "reference.repeatable",
+      "reference.supply_chains",
+      "regress.georgia.exact",
+      "regress.georgia.expectations",
+      "regress.lebanon.exact",
+      "regress.lebanon.expectations.mechanics",
+      "regress.lebanon.expectations.resupply",
+      "retained.chains_report",
+      "retained.check_report",
+      "retained.loss_report",
+      "retained.observations",
+      "retained.recording",
+      "sensitivity.loss_chain_check",
+      "sensitivity.observation_check",
+      "sensitivity.s3_exact",
+      "sensitivity.s3_lebanon_expectation",
+      "sensitivity.supply_chain_check"
+    ],
+    "exact_set_matches_accepted_report_runner_and_retained_baseline": true,
+    "all_status_PASS": true,
+    "claim_counts_preserved": {
+      "PASS - directly protected": 17,
+      "PASS - baseline-sensitive": 12,
+      "NOT COVERED": 8,
+      "EVIDENCE ONLY - not automatically checked": 8
+    },
+    "assessment": "40 checks passing does not convert eight evidence-only and eight not-covered historical claims into coverage. Missing-map lifecycle remains KNOWN DEFECT (unchanged); no claim every lifecycle child exited zero."
+  },
+  "configuration": {
+    "type": "ordinary shipping x86_64-pc-windows-gnu release",
+    "hours": 3,
+    "seed": 1,
+    "frame_ms": 100,
+    "campaigns": "Georgia and isolated Lebanon regression plus Lebanon reference on two separate roots",
+    "input_root_isolation": "Regression runner copies Lebanon into its own output root; all four current sets independently hashed.",
+    "reference_record_every": 10,
+    "reference_observe_every": 60,
+    "reference_observe_supply": 1,
+    "run_command": "R:\\d3-evidence\\terrain-coordinate-final-source-20261029\\eech-campaign\\tools\\regression-pack.py --georgia R:\\d3-evidence\\terrain-coordinate-shipping-roots-20261029\\georgia --lebanon R:\\d3-evidence\\terrain-coordinate-shipping-roots-20261029\\lebanon --lebanon-repeat R:\\d3-evidence\\terrain-coordinate-shipping-roots-20261029\\lebanon-repeat --bin R:\\d3-evidence\\terrain-coordinate-final-source-20261029\\eech-campaign\\target\\windows-terrain-coordinate-1156c8fbb --out R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack",
+    "preflight_utc": "2026-10-29T16:12:44.954395+00:00",
+    "python_version": [
+      3,
+      12,
+      14
+    ],
+    "runner_sha256": "4dc08480b72722a7dfdae5dea319f61acc6414c4bdb29351982e1579393d66db",
+    "metrics_run_configs": [
+      {
+        "conclusion": "none",
+        "frame_ms": 100,
+        "hours": 3,
+        "sample_every": 10,
+        "scenario": "georgia_retail",
+        "seed": 1
+      },
+      {
+        "conclusion": "none",
+        "frame_ms": 100,
+        "hours": 3,
+        "sample_every": 10,
+        "scenario": "lebanon_retail",
+        "seed": 1
+      }
+    ]
+  },
+  "complete_artifacts": {
+    "method": "Reviewer independently opened each baseline/candidate pair and compared every byte in 1MiB chunks through EOF, also recomputing length/SHA256 and checking the retained complete-comparator record. No prefixes, normalization or tolerance.",
+    "baseline_path": "R:\\d2-evidence\\baseline-host-20261026-shortpath",
+    "baseline_report_source": "a42f1cfad39e5b29ce18bfd2d4ff6cf0f5e0cf12",
+    "accepted_report_source": "694447d2406fbfceeb4312b9b42b5f3ff30f5952",
+    "rows": [
+      {
+        "file": "reference/run1/recording.acmi",
+        "baseline": {
+          "bytes": 117690861,
+          "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+        },
+        "candidate": {
+          "bytes": 117690861,
+          "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+        },
+        "matches": true
+      },
+      {
+        "file": "reference/run1/observations.jsonl",
+        "baseline": {
+          "bytes": 85716447,
+          "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+        },
+        "candidate": {
+          "bytes": 85716447,
+          "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+        },
+        "matches": true
+      },
+      {
+        "file": "reference/run1/metrics.json",
+        "baseline": {
+          "bytes": 35942,
+          "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+        },
+        "candidate": {
+          "bytes": 35942,
+          "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+        },
+        "matches": true
+      },
+      {
+        "file": "reference/run2/recording.acmi",
+        "baseline": {
+          "bytes": 117690861,
+          "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+        },
+        "candidate": {
+          "bytes": 117690861,
+          "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+        },
+        "matches": true
+      },
+      {
+        "file": "reference/run2/observations.jsonl",
+        "baseline": {
+          "bytes": 85716447,
+          "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+        },
+        "candidate": {
+          "bytes": 85716447,
+          "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+        },
+        "matches": true
+      },
+      {
+        "file": "reference/run2/metrics.json",
+        "baseline": {
+          "bytes": 35942,
+          "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+        },
+        "candidate": {
+          "bytes": 35942,
+          "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+        },
+        "matches": true
+      },
+      {
+        "file": "regress/georgia_retail.json",
+        "baseline": {
+          "bytes": 22427,
+          "sha256": "7427660511cf60c503d393f94021b51fef03723a629d6bc6987d497d93c9148d"
+        },
+        "candidate": {
+          "bytes": 22427,
+          "sha256": "7427660511cf60c503d393f94021b51fef03723a629d6bc6987d497d93c9148d"
+        },
+        "matches": true
+      },
+      {
+        "file": "regress/lebanon_retail.json",
+        "baseline": {
+          "bytes": 35942,
+          "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+        },
+        "candidate": {
+          "bytes": 35942,
+          "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+        },
+        "matches": true
+      }
+    ],
+    "all_eight_equal": true,
+    "baseline_limits": "Supplied retained accepted baseline reused with its recorded history; baseline campaigns were not rerun or original input-root provenance reinvented. Full bytes are private and not copied into this report."
+  },
+  "inputs": {
+    "external_post_checks": 3,
+    "all_recorded_exit_zero": true,
+    "current_independent_verification": "Read and SHA256-checked every manifest-listed input file and size on the three actual roots and internal Lebanon copy. All matched original references. Engine-written config is separately tracked by the unchanged manifest policy, not silently substituted as a retail input.",
+    "rows": [
+      {
+        "root": "georgia",
+        "files": 1174,
+        "bytes": 142522166,
+        "combined_sha256": "d373bc4262464da87532b8128d396358f0003bc2e9e51e8fa92cf0a6e2b50de2"
+      },
+      {
+        "root": "lebanon",
+        "files": 1179,
+        "bytes": 102239559,
+        "combined_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09"
+      },
+      {
+        "root": "lebanon_repeat",
+        "files": 1179,
+        "bytes": 102239559,
+        "combined_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09"
+      },
+      {
+        "root": "runner internal Lebanon copy",
+        "files": 1179,
+        "bytes": 102239559,
+        "combined_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09"
+      }
+    ]
+  },
+  "build_identity": {
+    "source": "1156c8fbbdb80783164a95f54f1f782cea328307",
+    "build_completed_utc": "2026-10-29T16:10:26.4783709Z",
+    "clean_before_build_record": {
+      "source": "1156c8fbbdb80783164a95f54f1f782cea328307",
+      "clean": true,
+      "no_alternates": true,
+      "terrain_source_matches_linux_and_native_fixture": true,
+      "when_utc": "2026-10-29T16:08:05.7183080Z"
+    },
+    "image": "sha256:dd75a54cf382e9cace6e627aae8094810c8951f50aa199be92f476e7078f6ee6",
+    "toolchain": "Rust/Cargo 1.99.1, MinGW12-posix, Lua5.1.5",
+    "file_manifest_entries_rehashed": 45,
+    "BINF_sha256": "b53068001949b6a2f881e63f3a66ad3e2583247f78fd7658adca41766813e9ba",
+    "interpretation": "45 is the file-manifest entry count, not a DLL-export-symbol count. All files match the build-time/preflight identity and current BINF. This is the actual1156 build, not relabelled7b."
+  },
+  "source_composition": {
+    "only_metadata_delta": [
+      "STATUS.md",
+      "eech-campaign/reference/d3-ground-characterization/independent-coordinate-fidelity-review-febbb7cc5.json",
+      "eech-campaign/reference/d3-ground-characterization/superseded-06-post-inputs-and-exit.json"
+    ],
+    "equal_frontier_git_identities": {
+      "aphavoc/source": "8271b282339d32c72e5914f91fffe19fd5c8c4ab",
+      "modules": "801b56442df7ae195fc6d3374fef8512cf8ef915",
+      "eech-campaign/crates": "0be7d19f1fee2c9197e76b0768477aa92d87de74",
+      "eech-campaign/Cargo.toml": "6651665cec5e20632f00e9c2682042b4fa9f2db5",
+      "eech-campaign/Cargo.lock": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3",
+      "eech-campaign/tools": "2d83a292f8520a55c4fc75cb54b381b3224ec6da",
+      "eech-campaign/regression": "090bd08a26859a8d1ce0907473e049142342aa75",
+      "eech-campaign/patches": "bb1f960af85a6b3e62aeed3c6d29d38c9bd9a244"
+    },
+    "exact_tested_coordinate_reader_sha256": "763316a9e3d192114cf8de6d00227d905b4c378975f923d1060ec9abf32bc1bd",
+    "closed_source_reports": {
+      "coordinate_fidelity": "5b704bde1060ee5b1cc8a6e8ee6403d9ae7e5d7057ee669c56cbc749a0d00292",
+      "terrain_final_delta": "1af6c3e080666655f0a4932ce4e56a317f878b3622c44090915973e64a9cd7eb"
+    },
+    "assessment": "Delivery adds STATUS and two evidence copies only. Production compilation inputs, Lua clients, regression definition and checkers remain identical to tested1156; substantive numeric reader repair is exactly the closed tested bytes, not claimed erased by aliases."
+  },
+  "current_ci": {
+    "evidence_head": "7b51efedbf62ac69c7670a11a01ea721c1fd0aba",
+    "before_and_after_heads_exact": true,
+    "all_nine_SUCCESS": true,
+    "checks": [
+      {
+        "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40910088412/job/123575389929",
+        "name": "test (x86_64-unknown-linux-gnu)",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40910088412/job/123575389752",
+        "name": "test (i686-unknown-linux-gnu)",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40910088412/job/123575389434",
+        "name": "test (i686-unknown-linux-gnu, EECH_ORIGINAL_STACK_ATTRIBUTES=1)",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40910088412/job/123575389786",
+        "name": "test (x86_64-unknown-linux-gnu, EECH_C_OPT=2)",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40910088412/job/123575389453",
+        "name": "evidence-selftest",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40910088324/job/123575388359",
+        "name": "verify",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40910088428/job/123575387328",
+        "name": "Slice 1a historical equivalence",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40910088412/job/123575389465",
+        "name": "dcs-probe-tools",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40910088412/job/123575389229",
+        "name": "windows-cross",
+        "state": "SUCCESS"
+      }
+    ],
+    "formal_reviews": [],
+    "draft": true,
+    "assessment": "Read retained fresh GH CLI record with exact before/after head and named linked SUCCESS checks. This is CI evidence, not a formal technical-lead approval or merge."
+  },
+  "evidence_sha256": {
+    "R:\\d3-evidence\\terrain-coordinate-1156c8fbb-final-shipping-validation-20261030.json": "9543f3e0e757c3580022fd5e82e4a64f9b1b6226a5efb0a995ec573da8810c9f",
+    "R:\\d3-evidence\\terrain-coordinate-1156c8fbb-eight-complete-artifacts-20261030.json": "cdeec9fe8b0bebc30e8df06ce36f683ffc1815259c1a86cb8e3c52a100e991ad",
+    "R:\\d3-evidence\\terrain-final-current-ci-7b51efedb-20261030.json": "102e81d69573bb82bac94aee54d2ec1c6ecf2a8a55165c551f48c962ff990e7c",
+    "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack-completion.json": "80e4e85614689a24ce94e2709e1bbddd9a9ce3c562c979adc1b27f0a8933f03a",
+    "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack-controller.log": "d8c995f08f16922b252f58416d5aba1cdbae87c7732b6633d385fbd48ee406ac",
+    "R:\\d3-evidence\\build-shipping-terrain-coordinate-1156c8fbb-completion.json": "4405161e150eb49a44f5669eb554e95da62a285f6edf6be0d38693b9605a9d87",
+    "R:\\d3-evidence\\build-shipping-terrain-coordinate-1156c8fbb.log": "14b46900e74ae69739541b7c49a584484aae34bc0b4763a1074befaa7ec96b59",
+    "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-prebuild.json": "90e23276c270007f4ea007db311cba10a2ca106ff72e8887eb06f23319164f76",
+    "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-build-verification.json": "3d261d5e16b23c7d7da542c3ed1a867927dd193903b0d8aeb0e830b5fa862f72",
+    "R:\\d3-evidence\\independent-coordinate-fidelity-review-febbb7cc5.json": "5b704bde1060ee5b1cc8a6e8ee6403d9ae7e5d7057ee669c56cbc749a0d00292",
+    "R:\\d3-evidence\\independent-terrain-final-delta-review-06d425578.json": "1af6c3e080666655f0a4932ce4e56a317f878b3622c44090915973e64a9cd7eb",
+    "R:\\eech_source_code\\eech-campaign\\reference\\m5-all-family-loss\\final-pack\\report.json": "d7e89d6443197f756702631928725aa93ea7160bf06600167d696c2a74c6e99c",
+    "R:\\d2-evidence\\baseline-host-20261026-shortpath\\report.json": "0d6cadc4d1506686d6d6535459498c561bf70b4d2e9fbaff03c4600cffff1a97",
+    "R:\\d3-evidence\\terrain-coordinate-final-source-20261029\\eech-campaign\\target\\windows-terrain-coordinate-1156c8fbb\\BUILD-INFO.txt": "b53068001949b6a2f881e63f3a66ad3e2583247f78fd7658adca41766813e9ba",
+    "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack\\run.json": "e6087c365be34a40f3c3f9c03755556302f9a04645aa085de3f5df84627b50c0",
+    "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack\\completion.json": "55222f8752ba0a3dff9fda9420a84401a523d696ec6a53e510927b8f62f7f380",
+    "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack\\report.json": "d76670ab594d3ee24929e47b5d1f0f050048c305bbcc3f2f597ed07a86ed66ff",
+    "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack\\report.md": "9d18ffafd80eb797076d12379366eeda3f91cc148a278b1a7ff9799a9155b2b3",
+    "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack\\preflight.json": "24f779f21049be3ef8d336a51fbf8c81029373ce697f0b4f75981dbf999bafc1",
+    "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack\\pack-definition.log": "bc9830dec219b011c99b8ab22c009875f7120c7953432091f77a887316e177ac",
+    "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack\\pack.stdout.log": "84b09949d9d34651bb5322beefa6ba554ee7737f85bd9ab9641b6198cda887ca",
+    "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack\\pack.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack\\reference\\summary.txt": "3f2603acbff8e266578c7ed0f12bd54da6efbd898907af72f38a555065f43659",
+    "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack\\logs\\reference.txt": "7b76b0c8359b5291602d33d4b594c3c2d83953ca38f839a7e9186c75e0c56a8a",
+    "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack\\logs\\regress.txt": "fb55061c3e0523a5b0bb81bd62d175a9e4509bd9d561292b62bdd9e485acd44b",
+    "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack\\logs\\lifecycle.txt": "b1808320f98492d7214f4bbe55078cc813e72eb7a5056f384b74994277f76676",
+    "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack\\logs\\inputs.lebanon-copy.txt": "6d24fe43a4b37a5422e779670863b99aed9708c529b3ac5a8bfd99386808f06e",
+    "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack\\post-inputs-georgia.log": "c72d2fd877c69276900d3504910f945a823b07ca7f369aa37a8055a50a1bbd19",
+    "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack\\post-inputs-lebanon.log": "2c10da3402ed8cf333e2f3c3bab4ab9a42a8d866e94522876f202ed86e0594d5",
+    "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack\\post-inputs-lebanon_repeat.log": "6ffae5bff8e9728702885f038fa5a9664a480ae7cd8063d76c3af31fbec5a065"
+  },
+  "limitations": [
+    "Task47 default reference-world conformance gate passes. This review is not formal GitHub approval, a normal merge, Task47 closure, integration acceptance or whole-D3 completion.",
+    "Generated and structurally checked/byte-compared Tacview was not visually inspected. No DCS simulation, DCS budget or broader asset/player/MP geometry coverage is inferred.",
+    "Unchanged accepted three-hour/one-seed sampling, clock/projection/index-reuse/lifecycle and other report blind spots remain; exact old outputs do not make legacy behavior universally correct.",
+    "Terrain authority/refusal/loader and coordinate source correctness rely on the named closed component reviews. Fullpack equality alone does not establish replaceable host ownership.",
+    "Required remaining D3 ground/entity/model/hierarchy/viewpoint/device/target-point/environment/time and physical-solver/loader work remains active; no D4/D5 deferral of required D3 physical work.",
+    "Current STATUS still records historical running gate until publication/delivery metadata is updated; this report records the completed native evidence without rewriting history.",
+    "No builds/tests/native/campaign reruns, source/Git/process/cache/auth/external-tracker mutations or nested agents by reviewer. Concurrent Task51 author worktree was not inspected or touched."
+  ]
+}

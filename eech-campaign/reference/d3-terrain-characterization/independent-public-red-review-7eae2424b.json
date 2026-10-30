@@ -1,0 +1,237 @@
+{
+  "schema": "independent-review-v1",
+  "reviewed_utc": "2026-10-29T11:03:00.305722+00:00",
+  "base": "572b98f15928d7ca4d5677f9db3a9aa9179c8d35",
+  "head": "7eae2424b78570a31719aa7df2a67a1e602ae139",
+  "scope": "One new4+/3- portable real-Lua test-fixture delta plus newly completed Windows local tests and three bounded public old-DLL RED cases. No repeated kernel/retail-conformance/original600/900 source or runtime audits.",
+  "disposition": "No findings. Portable test correction and actual Windows6guard/9backend results accepted within local scope. Three explicit hybrid public-path runs establish meaningful missing-provider-contract RED on the old DLL, not production handoff acceptance.",
+  "findings": [],
+  "source_review": {
+    "path": "R:\\d3-evidence\\terrain-test-source-7eae2424b\\eech-campaign\\crates\\eech-world\\tests\\terrain_provider_harness.rs",
+    "git_blob_sha256": "27b085d5c16ec2bbb2633a74c730e9461bf4c64c4ed508eb919a452714e52726",
+    "basis": "include_str!(../lua/terrain-provider.lua) embeds the actual script at build time, removing dependence on the builder CARGO_MANIFEST_DIR runtime path. The same mlua.load execution, source name, collaborator, assertions and summaries remain. No product C/Rust/Lua or expected result was changed by this delta.",
+    "frozen_head_clean": true,
+    "diff_check_actual_exit": 0,
+    "author_checkout": "Current live production-handoff working tree was not read or treated as reviewed; pinned Git objects and frozen7e snapshot used."
+  },
+  "local_tests": {
+    "retained_572_guard_failure": {
+      "actual_exit": 101,
+      "failed": 6,
+      "classification": "All six failed at script-file read with Windows NotFound. Preserved genuine setup/portability failure; not a guard assertion or missing-provider RED."
+    },
+    "corrected_7e_guards": {
+      "compile_actual_exit": 0,
+      "native_actual_exit": 0,
+      "test_functions": 6,
+      "log_result": "6 passed;0failed",
+      "binary": {
+        "path": "R:\\d3-evidence\\terrain-test-source-7eae2424b\\eech-campaign\\target\\terrain-tests\\7eae2424b\\terrain_provider_harness.exe",
+        "sha256": "ea58c90ba2a9ba7d4fcafa4d0297cadde2d6a73509d829a345e91ba9458a435d",
+        "bytes": 2235632
+      },
+      "lua": {
+        "path": "R:\\d3-evidence\\terrain-test-source-7eae2424b\\eech-campaign\\target\\terrain-tests\\7eae2424b\\lua.dll",
+        "sha256": "7b2ec3f3fd174f6b65a2159ee46dc8e9102624a350d978e16ddf4396d7c2be0b",
+        "bytes": 615397
+      },
+      "limits": "Actual Lua5.1 running embedded real script with controlled collaborators; no campaign, retail map or DLL behavior proof."
+    },
+    "572_backend": {
+      "native_actual_exit": 0,
+      "test_functions": 9,
+      "log_result": "9passed;0failed, including both new u16-reference cases",
+      "limits": "Actual production reader/query/sweep/concurrency synthetic-map contracts. Existing6f retail conformance closed previously and not repeated."
+    },
+    "export_failure": "Initial inline WSL export failed mkdir with an empty argument before native execution; corrected file-based export and actual later guard execution retained separately. Not a product failure or replaced test verdict."
+  },
+  "public_red": {
+    "host_source": "6f13beae1a0b7b1da7bc42c4b1e68e14f19a50d7",
+    "dll_source": "a8effa9f3213c595c4d38f7a00e6a1b845cc1f6d",
+    "script_source": "572b98f15928d7ca4d5677f9db3a9aa9179c8d35",
+    "script": {
+      "path": "R:\\d3-evidence\\terrain-provider-red-hybrid-6f13beae1\\terrain-provider-572b98f15.lua",
+      "sha256": "9627dfbd2c1ca2e30f7a89c2d7771ebe56264c4eb57fe442d80d3d04bb4c33dd",
+      "bytes": 12479
+    },
+    "cases": [
+      {
+        "mode": "reference",
+        "native_exit": 1,
+        "native_pid": 24424,
+        "run": {
+          "path": "R:\\d3-evidence\\provider-red-572b98f15\\reference\\run.json",
+          "sha256": "e8588f5f52de5f25d800f00c0df393596fc9b8fd9be372cbd2640f76cd10c482",
+          "bytes": 849
+        },
+        "summary": {
+          "path": "R:\\d3-evidence\\provider-red-572b98f15\\reference\\summary.jsonl",
+          "sha256": "cd6820274d0e73061afbedcd356ef8144db768e7e4ddcf028afb5aa8c592c098",
+          "bytes": 265
+        },
+        "log": {
+          "path": "R:\\d3-evidence\\provider-red-572b98f15\\reference\\run.log",
+          "sha256": "9cb6df87b8012d70d72db3240fbe93b55cf60e625e639ecd9357bccc248c4663",
+          "bytes": 35014
+        },
+        "summary_values": [
+          {
+            "event": "summary",
+            "failure": "",
+            "fast_calls": 0,
+            "frames_completed": 1,
+            "frames_requested": 1,
+            "los_terrain_count": 1164,
+            "los_terrain_sum": "232000.902",
+            "malformed_sent": false,
+            "map_calls": 0,
+            "mode": "reference",
+            "placed_count": 1444,
+            "placed_sum": "759892.264",
+            "point_calls": 0
+          }
+        ],
+        "reason_evidence": "Healthy one-frame summary followed by audited unconditional provider-unused assertion. Exact primary Rust stderr is not claimed cleanly readable due C/Rust interleaving.",
+        "post_inputs_rehashed": 1179
+      },
+      {
+        "mode": "raised",
+        "native_exit": 1,
+        "native_pid": 22848,
+        "run": {
+          "path": "R:\\d3-evidence\\provider-red-572b98f15\\raised\\run.json",
+          "sha256": "602f8737de5ee35f1b9f95b23c5aac25fbe5163112a29f27ff86fa83f6b51983",
+          "bytes": 837
+        },
+        "summary": {
+          "path": "R:\\d3-evidence\\provider-red-572b98f15\\raised\\summary.jsonl",
+          "sha256": "af835a3ed0c783da6f19d2e180a889b98968897153b25e69218c7e6790957a17",
+          "bytes": 262
+        },
+        "log": {
+          "path": "R:\\d3-evidence\\provider-red-572b98f15\\raised\\run.log",
+          "sha256": "6d895a6897c83a3c881d83a13bf4553c07b57d9ffce027816d0f25143337094e",
+          "bytes": 34288
+        },
+        "summary_values": [
+          {
+            "event": "summary",
+            "failure": "",
+            "fast_calls": 0,
+            "frames_completed": 1,
+            "frames_requested": 1,
+            "los_terrain_count": 1164,
+            "los_terrain_sum": "232000.902",
+            "malformed_sent": false,
+            "map_calls": 0,
+            "mode": "raised",
+            "placed_count": 1444,
+            "placed_sum": "759892.264",
+            "point_calls": 0
+          }
+        ],
+        "reason_evidence": "Healthy one-frame summary followed by audited unconditional provider-unused assertion. Exact primary Rust stderr is not claimed cleanly readable due C/Rust interleaving.",
+        "post_inputs_rehashed": 1179
+      },
+      {
+        "mode": "missing",
+        "native_exit": 1,
+        "native_pid": 4596,
+        "run": {
+          "path": "R:\\d3-evidence\\provider-red-572b98f15\\missing\\run.json",
+          "sha256": "4bc564309277ad070b52ec36fa797f40b873068e79d23ffa27e9cca54792ceec",
+          "bytes": 840
+        },
+        "summary": {
+          "path": "R:\\d3-evidence\\provider-red-572b98f15\\missing\\summary.jsonl",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        "log": {
+          "path": "R:\\d3-evidence\\provider-red-572b98f15\\missing\\run.log",
+          "sha256": "ae0d8bde9b15abb8eefd98444670dbf50ddbff3e06d93192728cc3d04540985c",
+          "bytes": 34392
+        },
+        "summary_values": [],
+        "reason_evidence": "Literal booted-without-terrain-provider assertion present in stderr",
+        "post_inputs_rehashed": 1179
+      }
+    ],
+    "identity": "Rehashed explicit hybrid host/DLL/Lua manifest and script, and each retained run/summary/log against aggregate proof. All three roots independently rehashed1179post-input entries against retained Lebanon manifest. Pre/post checker records show actual0. Script text matches pinned572 source, with exported raw line-ending identity separately hashed; no modified logic inferred.",
+    "meaning": "Reference and raised both boot, finish1/1healthy100msframe, emit no frame failure and count0campaign-provider calls. Their placement observations count1444/sum759892.264 and LOS terrain responses1164/sum232000.902 are equal. The final asserted provider-unused contract produces native1. Missing boots without provider, then the immediate missing-contract assertion produces native1 before any frame/summary. These are expected failing new-contract checks, not healthy0 runs or actual new-provider refusals.",
+    "limitations": [
+      "Explicit6fhost/a8DLL/572script hybrid is not a shipping or single-source bundle.",
+      "Onlyreference/raised/missing and one healthy frame were run; no generic/bad_* native proof claimed.",
+      "No campaign host-terrain authority exists yet; public provider0calls confirms old DLL coupling.",
+      "No Tacview/full campaign/output conformance/performance/fullD3 acceptance claim.",
+      "Controller/native exits are retained Root records inspected by reviewer; reviewer launched/waited no processes."
+    ]
+  },
+  "evidence_pins": [
+    {
+      "path": "R:\\d3-evidence\\root-public-terrain-red-572b98f15.json",
+      "sha256": "e3903ae92705a8cb992081625d47c6499d793045e23d891db22cb92ef95ce731",
+      "bytes": 7367
+    },
+    {
+      "path": "R:\\d3-evidence\\terrain-provider-red-hybrid-6f13beae1-manifest.json",
+      "sha256": "0d82de760f5826ac3220ae4401a0cb9267abbf71c746f22c9df6421d81e6e88a",
+      "bytes": 760
+    },
+    {
+      "path": "R:\\d3-evidence\\provider-red-pre-inputs.json",
+      "sha256": "7b55478fc44c9f60f4b85c2c9f5319962ddf7ecdf4fe16456f3559ed12fbe038",
+      "bytes": 177
+    },
+    {
+      "path": "R:\\d3-evidence\\provider-red-post-inputs.json",
+      "sha256": "7b55478fc44c9f60f4b85c2c9f5319962ddf7ecdf4fe16456f3559ed12fbe038",
+      "bytes": 177
+    },
+    {
+      "path": "R:\\d3-evidence\\portable-harness-build-7eae2424b-completion.json",
+      "sha256": "adfe5dc3c389e8471c10cb0e0e381fbd784c66ad431e0460f14faa5ee6581c39",
+      "bytes": 368
+    },
+    {
+      "path": "R:\\d3-evidence\\terrain-provider-harness-7eae2424b-completion.json",
+      "sha256": "0f88c110ba117ee0da9b99703a259400c10f5b591053a5f7a9accbe145fde820",
+      "bytes": 386
+    },
+    {
+      "path": "R:\\d3-evidence\\terrain-provider-harness-7eae2424b.log",
+      "sha256": "15d6b2b60010f3f1e25341b0ad9b0d6adbf4e3c1afcb01655726c55c1b487d21",
+      "bytes": 7891
+    },
+    {
+      "path": "R:\\d3-evidence\\terrain_backend-572b98f15-completion.json",
+      "sha256": "ad6a6e88c6f5b7a2153e154bd9a1a262162313256aa59549bd3cae5d068c1092",
+      "bytes": 285
+    },
+    {
+      "path": "R:\\d3-evidence\\terrain_backend-572b98f15.log",
+      "sha256": "db969704dcac3d9d8e000c5d937e23d79d98c9db2bee611c06399ac8ac7c5bdc",
+      "bytes": 720
+    },
+    {
+      "path": "R:\\d3-evidence\\terrain_provider_harness-572b98f15-completion.json",
+      "sha256": "be5371d0cfe955ca460e8388bfa71fc97d113432a50d8ac4f9fa4590a7eeb802",
+      "bytes": 296
+    },
+    {
+      "path": "R:\\d3-evidence\\terrain_provider_harness-572b98f15.log",
+      "sha256": "c7ed21ad4db3bbe9667fbf57b66c4d1b50efc5460f591c9c030bfbb2383e9811",
+      "bytes": 2813
+    }
+  ],
+  "prior_reviews_reused": [
+    "independent-host-terrain-corrections-review-6f13beae1.json",
+    "independent-terrain-refusal-word-review-572b98f15.json"
+  ],
+  "reviewer_actions": "Read-only pinned source/evidence checks and hashing. Requested private JSON is the sole write. No source changes, builds, tests, campaigns, process modification, remote writes or delegation.",
+  "pending": [
+    "Production terrain handoff source review when a clean coherent candidate is supplied.",
+    "Actual host influence/generic/refusal/default preservation and relevant conformance/native/shipping gates after handoff.",
+    "Missing-grid generation and remaining finiteD3 services/cost/full-acceptance gates."
+  ]
+}

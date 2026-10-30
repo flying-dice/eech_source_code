@@ -44,6 +44,7 @@ end
 local config = {
 	install_root = root,
 	map = "..\\common\\maps\\map5",
+	terrain = host.terrain_provider (root, "..\\common\\maps\\map5"),
 	campaign_directory = "camp01",
 	campaign = "LEBANON.CHC",
 	gunship = "apache",
