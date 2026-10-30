@@ -1,31 +1,34 @@
-# D3 checkpoint — actual handoff boots; MXCSR repair under validation (30 October 2026)
+# D3 checkpoint — caller state proved; reference-host profile validating (30 October 2026)
 
-EEDCS-50 / PR110 frozen4bee2cc8c passes Windows shipping/fixture builds (48exports
-each),422 affected tests/default strict Clippy and feature-enabled Clippy. Actual
-required public host-Lua/native campaign boot/3.6s checks and pre/post manifests
-pass all3retail roots; Lebanon/repeat complete bounded metrics byte-match7477B.
-Actual Core-generated models bootstrap/run0 with Georgia retail map/config support;
-this is no nonretail-map or full-pack claim. All828 closed geometry evidence reused.
+EEDCS-50 / draft PR110 source3833c822d passes both Windows builds/all48payloads
+each,423 affected tests/default and feature-enabled Clippy. Actual16requested/
+16measured success+refused native entries in all4initialroundings preserve full
+x87control/status and MXCSR. Every controller/native/prepost stage0. The generic
+DLL restoration is repaired; no arithmetic/kernel/baseline/tolerance change.
 
-The actual complete native FPU diagnostic is RED: all8 entries measured, x87
-control/status exact but MXCSR nearest/down/up becomesRZ for counter-only and
-callback entries (6failures). A separate actual same-MinGW control reproduces it
-without EECH/Lua/data. Independent assessmentbe9dfe914ef0c624686256547f8b93db9922c0244f572b3b992c0db919255527
-confirms the unchanged outer entry defect. Pre-repair bounded Tacview/observations/
-metrics are retained for exact comparison; no baseline/tolerance/shim change.
+Bounded byte equality is still RED: OBS1553674B exact; ACMI3165lines only2reference
+headers differ; metrics/checkpoints/1/seconds3to4. A delegating observer of the
+exactshippedcampaign proves old4bee35frames/3.49999737739563s vs383336frames/
+3.5999972820281982s; each observer-run matches its uninstrumented3rawartifacts
+exactly. This is host postprepare arithmetic/timing dependence, not formatting-only.
+Source/evidence review112cbd/cae3899 and safe proof pushed at5595ab039 retain allred.
 
-Minimal repair3833c822d is pushed/frozen: complete MXCSR save/restore afterfesetenv
-on normal/fatal exits, internalRZ/math unchanged; requested-FPU completeness and
-narrowing wording fixes included. Author3076/PID22028 terminal0/collected; no writer
-active. Windows44214/PID18760 and Linux66447/PID7716 builds live; fixture/features
-prepared only. One changed-delta review uses the same independent reviewer.
-Actual repaired full-state success/refusal-perRC and byte comparisons remain next.
-Ledger76/Jira10871/PR110 preserve current evidence and all5epicreports exactly.
-Task47 original shipping run is retained; full40/eight complete artifacts/final
-metrics/post-input acceptance/normaldelivery remain pending. Required physical
-solvers/scans/transforms/loaders/hierarchy/device/route-data/environment/time remain
-D3; campaign policy/geography/routes/timers/consequences stay core. Task50/D3 open;
-D4/D5 not started. No acceptance claim from prepared code or bounded checks.
+Prepared source80fd62ea4 explicitly gives EECH_WORLD its legacy SSE_RZ profile
+immediatelypostprepare on31referenceclients, preserving earlierparsing/x87/other
+CSRbits. Closedoriginaldriver and rawDLLdiagnostic remain deliberate exceptions.
+GenericDLLrepair/modelkernels unchanged. Bothauthors95426/PID544 and91456/PID6120
+terminal0/collected; no writeractive. Source pushed/frozen; Windows37206/PID5908
+andLinux23485/PID10116 live, one independent changed-delta review ongoing. Old35
+frames/finalclock/allcompleteboundedrawbytes plusnewprofilefullFPU still unproved.
+Ledger77/Jira10872/PR110 preserve priorHTML/all5epicreports exactly.
+
+The separate Task47 original6processes remainlive; twentieth four nonempty
+prefixes match (~108.5MBACMI/78.5MBOBS each). Full40/eight complete artifacts/final
+metrics/postinputs/normaldelivery pending. All828closedfinitegeometry reused.
+Required physicalsolvers/scans/transforms/loaders/hierarchy/devices/route-data,
+environment andhosttime remainD3; campaignpolicy/geography/routes/timers/consequences
+staycore. Task50/D3 InProgress; D4/D5 notstarted. Boundedchecks/preparedcode are not
+wholeD3 or fullshipping acceptance.
 
 # D3 checkpoint — all present retail model geometry matches; public handoff active (30 October 2026)
 
