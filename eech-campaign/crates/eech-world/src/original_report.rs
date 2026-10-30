@@ -11,6 +11,7 @@
 //!   by, whose triangle rows run on from the page's first depth, and a terminal the rows support: an absent model is one false, writeless call; a refused model is one
 //!   `model-refused` row; a callable model ends in a `model-end` (an `original_false` straight after an original call that returned false at that depth, or the unbacked
 //!   end probe or the safe bound at the depth reached) and a closing row whose call count is the page's, or is `model-capped` at exactly the cap;
+//! * every status, in the catalogue rows and in the geometry headers, is one of the fifteen the closed driver accepts, and a `model-refused` row echoes its header's scene, status AND detail;
 //! * each geometry page's header carries the model's identity and safety facts (name, collision, status, detail, `fan_bound`, `end_read_backed`), as the closed driver requires: absent exactly when
 //!   the collision index is -1, unchanged from one page of a scene to the next, and the fixture's own gate ends agreeing with them (`end_probe_unbacked` only for an unbacked model at its
 //!   `fan_bound`, `beyond_safe_bound` only past the deepest depth the bound allows); and a triangle row's `writes` is the number of its nine words that differ from the pre-fill sentinel.
@@ -26,6 +27,31 @@ pub struct Contract {
     pub catalogue: bool,
     pub catalogue_scenes: usize,
     pub geometry_scenes: usize,
+}
+
+/// The fifteen verdicts the fixture can write for a scene (eech_model_fixture.c), exactly the set the closed driver accepts (lua/model-characterization.lua, `statuses`): a
+/// catalogue row or a geometry header with any other status is not a report of that driver. Of them `absent` is the absence, `safe` and `empty` are callable, and every other
+/// is a refusal.
+const STATUSES: [&str; 15] = [
+    "absent",
+    "no_scene",
+    "invalid_index",
+    "null_surfaces",
+    "surfaces_outside_block",
+    "custom_object",
+    "face_mismatch",
+    "zero_face_surface",
+    "null_arrays",
+    "degenerate_face",
+    "capacity_unobservable",
+    "capacity_short",
+    "index_violation",
+    "empty",
+    "safe",
+];
+
+fn known_status(status: &str) -> bool {
+    STATUSES.contains(&status)
 }
 
 /// the word the fixture pre-fills each triangle buffer with (eech_model_fixture.c): a word still equal to it was not written
@@ -64,6 +90,7 @@ struct Page {
     first: i64,
     count: i64,
     status: String,
+    detail: String,
     kind: Kind,
     tris: i64,
     /// the depth of a call that returned false, whose `original_false` end must follow at once
@@ -209,6 +236,12 @@ pub fn validate(rows: &[(usize, Value)], scene_last: usize) -> Result<Contract, 
                     ));
                 }
                 let status = text(row, "status").ok_or_else(|| bad(i, "a scene row without a status".to_string()))?;
+                if !known_status(status) {
+                    return Err(bad(
+                        i,
+                        format!("a scene row with the status {status:?}, which the original driver does not write"),
+                    ));
+                }
                 *tally.entry(status.to_string()).or_insert(0) += 1;
                 i += 1;
             }
@@ -254,6 +287,12 @@ pub fn validate(rows: &[(usize, Value)], scene_last: usize) -> Result<Contract, 
                 if scene < 1 || scene >= scene_last as i64 {
                     return Err(bad(i, format!("geometry for scene {scene}, outside 1 to {}", scene_last - 1)));
                 }
+                if !known_status(&status) {
+                    return Err(bad(
+                        i,
+                        format!("a geometry header with the status {status:?}, which the original driver does not write"),
+                    ));
+                }
                 let kind = match status.as_str() {
                     "absent" => Kind::Absent,
                     "safe" | "empty" => Kind::Callable,
@@ -284,7 +323,7 @@ pub fn validate(rows: &[(usize, Value)], scene_last: usize) -> Result<Contract, 
                     name,
                     collision,
                     status: status.clone(),
-                    detail,
+                    detail: detail.clone(),
                     fan_bound,
                     backed,
                 };
@@ -332,6 +371,7 @@ pub fn validate(rows: &[(usize, Value)], scene_last: usize) -> Result<Contract, 
                     first,
                     count,
                     status,
+                    detail,
                     kind,
                     tris: 0,
                     false_depth: None,
@@ -471,8 +511,17 @@ pub fn validate(rows: &[(usize, Value)], scene_last: usize) -> Result<Contract, 
                 let Some(p) = page.as_mut().filter(|p| !p.closed) else {
                     return Err(bad(i, "a model-refused row outside an open geometry page".to_string()));
                 };
-                if p.kind != Kind::Refusing || p.tris != 0 || int(row, "scene") != Some(p.scene) || text(row, "status") != Some(p.status.as_str()) {
-                    return Err(bad(i, "a refusal that does not match its geometry header".to_string()));
+                // the refusal echoes the header's scene, status AND detail, as the closed driver requires (validate_geometry_page)
+                if p.kind != Kind::Refusing
+                    || p.tris != 0
+                    || int(row, "scene") != Some(p.scene)
+                    || text(row, "status") != Some(p.status.as_str())
+                    || text(row, "detail") != Some(p.detail.as_str())
+                {
+                    return Err(bad(
+                        i,
+                        "a refusal that does not match its geometry header (scene, status and detail)".to_string(),
+                    ));
                 }
                 p.closed = true;
                 if let Some(run) = current.as_mut() {

@@ -1,3 +1,26 @@
+# Current D3 correction — EEDCS-50 host model store, last residual P2 of `7a51d13a6` (30 October 2026): SOURCE PREPARED, UNBUILT, UNRUN
+
+Actual `7a51d13a6` validation (valid within its scope, unchanged): Linux format 0, 235 library tests (a Root commentary that said 236 is corrected: the count is 235), 33 integration tests, the old 8 diagnostic guards and all-target
+Clippy 0; Windows build 0 with six verified payloads, 235 library and 33 integration tests and the expected strict invalid-override refusal 101; the eight earlier specific malformed-report controls now refused and the healthy controls
+accepted; the three healthy retail comparisons native / repository 0 with pre/post inputs 0, all 3025 scene records and 215 original calls matching, whole reports 3357 rows / 1,278,336 bytes SHA-256 `ed3503b1…9317`, identical to `8a5dad172`
+and `ba4f5d42a`, physical rows byte-exact to `2020436ce` apart from the two known diagnostic counts (+63 bytes). The one focused review of the new delta (`independent-host-model-review-final-7a51d13a6-20261030.json`, SHA-256
+`bf711664…9dc`) CLOSED the cumulative allocation, the gate / header / write-count consistency and the exact-match resolver finding, and left ONE residual P2. The review disposition stays CHANGES_REQUIRED until this last group is closed;
+nothing here relabels the new source as run.
+
+The residual P2 (status and detail) was ACTUALLY reproduced by the Root on the immutable `7a51d13a6` host with unchanged retail inputs (`host-model-status-detail-inputs-20261030`): an unknown geometry status with a ghost refusal that
+omits scene 8's 24 calls, an unknown catalogue status with an adjusted matching tally, and a refusal whose detail differs from its header's, each native 0 / done 0; the healthy original 0.
+
+Corrected (source only, UNBUILT, UNRUN; `eech-campaign/docs/m5-model-host-store.md`, "Correction for the last residual P2"): `original_report.rs` reuses the closed driver's exact fifteen statuses for BOTH catalogue rows and
+geometry headers and refuses any other; a `model-refused` row must echo its header's scene, status AND detail (missing, non-text or different refused). Classification unchanged (absent / callable `safe` and `empty` / every other
+of the fifteen a refusal); no status invented, no physical success required, no geometry derived; partial-write, unbacked, capped, refused and catalogue-off modes kept. Controls through the real comparator and driver, none of the earlier
+cases dropped: unknown catalogue status with an adjusted tally, unknown geometry header with an echoing refusal, refusal detail different / missing / not text, refusal status different, and all fifteen statuses accepted as catalogue
+statuses and the twelve refusal-class ones as geometry refusals.
+
+Changed: `src/original_report.rs`, `tests/model_store.rs`, `docs/m5-model-host-store.md`, this file. Not changed: the C numeric kernel and FP guard, the closed original fixture and driver, the originals, any baseline, tolerance, MSRV
+or physical rule. Next (Root): format and freeze, the affected Linux and Windows checks, the same first eight malformed controls plus the new three against the corrected binary, the healthy retail reports, then one focused changed-source
+closure check. Open and unchanged: the 59 original custom and mixed geometry gaps, the production hand-off, hierarchy, viewpoint, device, muzzle, target-point, entity-collision, environment and host-time services and the removal of the
+native physical loader. No task, production or Tacview claim; the original Task 47 shipping run was not touched. No Git, build, test or native action was taken in this lane.
+
 # Current D3 correction — EEDCS-50 host model store, second review of `8a5dad172` (30 October 2026): SOURCE PREPARED, UNBUILT, UNRUN
 
 The one focused combined review of `8a5dad172` (`independent-host-model-review-closure-8a5dad172-20261030.json`) is CHANGES_REQUIRED, not acceptance: the I/O propagation and the 32-bit scene conversion are RESOLVED; two P2s and one

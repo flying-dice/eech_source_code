@@ -1,0 +1,218 @@
+{
+  "schema": "independent-review/v1",
+  "task": "EEDCS-50 finite host-model correction follow-up",
+  "reviewed_head": "7a51d13a6a2ecc88d79673efa09cc33dc2bda4f8",
+  "reviewed_base": "8a5dad17208550831c796f37fbe9dde7f36caec5",
+  "frozen_source": "R:/d3-evidence/model-review-source-7a51d13a6",
+  "clean_exact_head_before_and_after": true,
+  "primary_source_bytes_match_pinned_git": true,
+  "disposition": "CHANGES_REQUIRED",
+  "findings_count": {
+    "P2": 1
+  },
+  "scope": "One focused combined correctness, clean-code, boundary-safety and actual-evidence pass on the remaining cumulative allocation, report consistency and exact-match precedence corrections. Prior I/O/width/C numeric/FPU/original366/309 reviews reused; no unchanged fleet or source sweep.",
+  "prior_dispositions": [
+    {
+      "id": "MODEL-NODE-CUMULATIVE-BUDGET",
+      "status": "RESOLVED",
+      "path": "eech-campaign/crates/eech-world/src/models.rs:1095",
+      "assessment": "Tree.pending accounts all reserved unread siblings, adds each new list to the shared outstanding minimum-byte requirement before allocation, and decrements when a record starts. The bytes of already started nodes have been consumed before child reservations, so the same tail cannot justify another layer of pending siblings. Existing checked length/try_reserve and valid minimum-size records remain. Small padding-reuse, dense/nested exact-minimum and short-file controls are meaningful without unsafe old allocation execution."
+    },
+    {
+      "id": "MODEL-REPORT-GATE-CONSISTENCY",
+      "status": "SPECIFIC_COUNTEREXAMPLES_RESOLVED_WITH_RESIDUAL_CONTRACT_GAP",
+      "assessment": "Gate depth/backing/fan facts now correlate; page identity is stable across pages; sentinel changed-word count equals writes. The formerly incoherent unbacked and partial-write positives now carry coherent gate/word facts. Current actual original4+gate2+write2 malformed cohorts refuse specifically. One omitted finite-status/refusal-detail check below still prevents full report-contract closure."
+    },
+    {
+      "id": "MODEL-RESOLVER-AMBIGUITY-CONTRACT",
+      "status": "RESOLVED",
+      "path": "eech-campaign/crates/eech-world/src/models.rs:349",
+      "assessment": "Exact-spelling precedence is retained intentionally and now accurately documented/tested for files and directories; only ambiguous case-insensitive fallback is refused. No numerical or retail enumeration behavior changed."
+    }
+  ],
+  "findings": [
+    {
+      "id": "MODEL-REPORT-FINITE-STATUS",
+      "priority": "P2",
+      "path": "eech-campaign/crates/eech-world/src/original_report.rs",
+      "line": 257,
+      "related_lines": [
+        211,
+        225,
+        260,
+        470,
+        474
+      ],
+      "title": "Reject statuses the supported original driver cannot emit and correlate refusal detail",
+      "reason": "The new contract still maps every unknown geometry status to Kind::Refusing, and catalogue statuses need only be strings. The closed309 original driver accepts a finite status vocabulary. Replacing scene8 safe geometry with header status ghost and a model-refused row also status ghost, leaving catalogue/envelope/other groups intact, is structurally accepted, removes24 original calls and is listed as an original refusal instead of rejecting an impossible original report. The model-refused row also checks status/scene but not detail against its retained header, although the supported closed driver requires that equality.",
+      "bounded_correction": "Use the closed original driver finite vocabulary for catalogue/geometry (and consistent tally) status fields, reject unknown statuses before classifying Refusing, and require refusal-row detail to equal the header. Add real-comparator unknown catalogue/geometry status and mismatched refusal-detail controls; retain a coherent known refusal positive. No geometry/count oracle or physical outcome requirement is needed.",
+      "evidence": "Static source/control-flow counterexample; reviewer did not execute native. Existing measured healthy reports use only known coherent statuses and remain valid. This is the remaining finite metadata-contract item from the prior bounded correction, not a new loader/kernel design task."
+    }
+  ],
+  "source_assessment": [
+    "Pending-node arithmetic stays within the existing signed-header and checked aggregate node limits; min record sizes remain format/version-specific. Existing physical node ordering and query/scene math are unchanged.",
+    "Gate validation matches the supported original driver relations without equating fan_bound to the actual false-return depth. Genuine early false, partial writes, explicit supported refusal, catalogue-off, capped and unbacked observations remain allowed.",
+    "The new positive partial-word fixture changes exactly two of nine sentinel words; unbacked positive uses fan_bound2/backed0 at depth2. Changed-header cases cover the six retained identity facts. No mirrored numerical solver was added.",
+    "No further concrete new correctness, clean-code, memory/lifetime or FFI defect was established in this focused delta. Prior I/O/32-bit and C numerical/FP closures stand."
+  ],
+  "actual_evidence_assessment": {
+    "linux": {
+      "actual_exit": 0,
+      "fmt": 0,
+      "library_tests_passed": 235,
+      "model_store_tests_passed": 33,
+      "old_model_characterization_tests_passed": 8,
+      "all_target_clippy": 0,
+      "counts_limit": "235 is the actual whole-library count, not236 and not235 new model tests."
+    },
+    "windows": {
+      "build_actual_exit": 0,
+      "controller_actual_exit": 0,
+      "library_tests_passed": 235,
+      "integration_tests_passed": 33,
+      "invalid_explicit_host_native_exit": 101,
+      "invalid_control": "Expected strict no-fallback control:0 passed/1 failed, controller0.",
+      "six_payloads_independently_rehashed": true,
+      "build_info_sha256": "1e1f680ebf34e90bc8d267bb7e0ec902954ddd144f831525290c5963df05b165",
+      "payloads_unchanged": true
+    },
+    "retail": {
+      "actual_all_three_repo_native_exits": 0,
+      "all_pre_post_manifest_exits": 0,
+      "strict_rows_each": 3357,
+      "bytes_each": 1278336,
+      "whole_report_sha256": "ed3503b12227fec13cadd2d56b62296cdb08e5bd2e5b76f0ac61db776fc59317",
+      "all_three_whole_host_files_exact8a": true,
+      "same_validated_measurement_scope": "All3025 metadata/IDs and215 original calls (208TRUE+6endFALSE+1absence), no named-ID skips, surface52517. Prior independently audited8a/ba4 evidence applies by full byte equality. Versus202 only the two validated-envelope diagnostic fields/+63bytes differ as previously audited; physical rows remain exact.",
+      "original_reports_and_six_payloads_unchanged": true
+    },
+    "malformed_control_cohorts": {
+      "original_report_four": {
+        "modes": [
+          "truncated-first-scene",
+          "duplicate-scene",
+          "missing-geometry-terminal",
+          "failed-original-done"
+        ],
+        "native_exits": [
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      "forged_gate_two": {
+        "modes": [
+          "forged-end_probe_unbacked",
+          "forged-beyond_safe_bound"
+        ],
+        "native_exits": [
+          1,
+          1
+        ]
+      },
+      "write_count_two": {
+        "modes": [
+          "incoherent-true-write-count",
+          "incoherent-false-write-count"
+        ],
+        "old8a_native_exits": [
+          0,
+          0
+        ],
+        "new7a_native_exits": [
+          1,
+          1
+        ]
+      },
+      "healthy_control_native_exit_each": 0,
+      "current_aggregate_exits": 0,
+      "raw_failure_contract": "Independently parsed every retained current control raw, checked its SHA and terminal compare-refused/no done. These specific real controls are sound successes despite the residual unknown-status hole.",
+      "all_input_original_payload_and_mutation_preservation_checks": true
+    },
+    "verification_method": "Read-only pinned Git/source/hash and strict JSON/control/log inspection. Independently checked all3 complete retail byte identities to8a,6build entries, current Windows235/33 and controller exits, specific refusal raw hashes/noDone and preserved actual8a write-count RED. No supplied script/test/build/native process executed by reviewer."
+  },
+  "limits": [
+    "Finite correction closure remains pending only the residual supported-status/refusal-detail contract item; no reason to repeat the unchanged numerical kernel or accepted original measurements.",
+    "59 original custom/mixed geometry cases remain unmeasured; other safe models have metadata but not exhaustive original triangles. Host answers for originally refused cases remain informational.",
+    "Production model loader/query dispatch still resides in the campaign DLL. No host cutover/authority, Task50 delivery, formal GitHub approval, Tacview/shipping or whole-D3 acceptance is established.",
+    "Whole-D3 hierarchy/model/entity/environment/time/spatial services and physical solver/loader removal remain required. Live Task47 shipping evidence/process/cache is outside and untouched.",
+    "No unsafe old allocation,32-bit runtime, native rerun, build/test/source/Git/auth/external mutation or nested agents. Only this new canonical UTF8-LF report was written. Parent correction work may start after this source sweep; no moving source was inspected."
+  ],
+  "source_identities": [
+    {
+      "path": "eech-campaign/crates/eech-world/src/models.rs",
+      "sha256": "0b5aa16901f723ba9dee28138c70ffbcc4e7632cf1da0104de0c0c6b7bc9c785"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/original_report.rs",
+      "sha256": "4c03ffaa119785bfa365cb894118bc69ebf6b65af196cffcf03246c490446b92"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/model_store.rs",
+      "sha256": "af03358df6b00baf0b141e870d46e50cf670f4e24add7af7f81089eba298827e"
+    },
+    {
+      "path": "eech-campaign/docs/m5-model-host-store.md",
+      "sha256": "6bed8723ef959954ec52220534e49dd90d8bc345c3dead8e5d429bd9d8375dfd"
+    }
+  ],
+  "evidence_identities": [
+    {
+      "path": "R:/d3-evidence/independent-host-model-review-closure-8a5dad172-20261030.json",
+      "sha256": "c6bd8075f0dbe69ebea23e694d601e904727c04e1b5b7cdb090043d6b4157d92"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-7a51d13a6-linux-20261030-completion.json",
+      "sha256": "674beecaeead1774808879659e275af6722bccb47547f08eed6adbe07458c0b6"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-7a51d13a6-linux-20261030.log",
+      "sha256": "d364d289714ad752b12a96ce41c2bd95301a601ae4b36778df6440d0e8b13d44"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-7a51d13a6-windows-20261030-completion.json",
+      "sha256": "c64226e3414feae2e5d924bd443dcc115787784789a97b499e65a823e043f01a"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-7a51d13a6-windows-tests-20261030/controller.json",
+      "sha256": "5d0fc01cb9acd2039cbe98146e8e6cdeb88829aa20b0ef3f96b80b131b60f0f8"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-7a51d13a6-windows-tests-20261030/unit.log",
+      "sha256": "8c587478ef9da6e2c6b8d6c24f9bd19b45ddcdd70679ffee74456049951e98d4"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-7a51d13a6-windows-tests-20261030/integration.log",
+      "sha256": "c7a8853e4e08cb89972287fc8ef39e708e438136ebac596268947736bde8551b"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-7a51d13a6-windows-tests-20261030/invalid-host.log",
+      "sha256": "4ec6d78c79a8f061135746258d134fc1fb6a212f353cc73659f00750eca71e08"
+    },
+    {
+      "path": "R:/d3-evidence/model-host-7a51d13a6-retail-20261030/controller.json",
+      "sha256": "fea9a569cfacae51bc80587c344864b3099435c963bc6ee3d74c54740c95e672"
+    },
+    {
+      "path": "R:/d3-evidence/host-model-report-controls-7a51d13a6-green-20261030/controller.json",
+      "sha256": "4337dd5997607566a3021a0b2b6e20d79cedff6da21e6ec088517ab4298bfb23"
+    },
+    {
+      "path": "R:/d3-evidence/host-model-forged-gate-7a51d13a6-green-20261030/controller.json",
+      "sha256": "8a61d1f0d6f89d40295fac8ba610f21dba53b9eda4c650ddd0df3db48779ace3"
+    },
+    {
+      "path": "R:/d3-evidence/host-model-write-count-7a51d13a6-green-20261030/controller.json",
+      "sha256": "460751ac166773a0d218e9f1c28a4d8024a01b90dde3ace2f4ebd1871a64feaa"
+    },
+    {
+      "path": "R:/d3-evidence/host-model-write-count-8a5dad172-red-20261030/controller.json",
+      "sha256": "a986ee26613dfc3ed8a647040fd9499bf7fa5a8102ee4ac523546c5d8cabeb35"
+    }
+  ],
+  "previous_report": {
+    "path": "R:/d3-evidence/independent-host-model-review-closure-8a5dad172-20261030.json",
+    "sha256": "c6bd8075f0dbe69ebea23e694d601e904727c04e1b5b7cdb090043d6b4157d92"
+  }
+}

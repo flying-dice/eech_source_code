@@ -1547,6 +1547,54 @@ fn an_incomplete_failed_or_incoherent_original_report_is_refused_before_anything
             }),
             "writes count 9 is not the 2 words",
         ),
+        // the finite status set and the refusal's echo, as the closed driver requires (the three the Root reproduced against the 7a host: a ghost catalogue status with a matching tally,
+        // a ghost geometry header with a ghost refusal that omitted a scene's calls, and a refusal whose detail differs from its header's)
+        (
+            "an unknown catalogue status with a tally that agrees with it",
+            alter(|r| restatus(r, 1, "ghost")),
+            "which the original driver does not write",
+        ),
+        (
+            "an unknown geometry status with a refusal that echoes it",
+            alter(|r| replace_group(r, 1, page(1, "ghost", 0, 256, &[], None, (0, 0)))),
+            "which the original driver does not write",
+        ),
+        (
+            "a refusal whose detail differs from its header's",
+            alter(|r| {
+                replace_group(r, 1, page(1, "custom_object", 0, 256, &[], None, (0, 0)));
+                let at = r.iter().position(|x| x["event"] == "model-refused").unwrap();
+                r[at]["detail"] = "faces".into();
+            }),
+            "(scene, status and detail)",
+        ),
+        (
+            "a refusal without its detail",
+            alter(|r| {
+                replace_group(r, 1, page(1, "custom_object", 0, 256, &[], None, (0, 0)));
+                let at = r.iter().position(|x| x["event"] == "model-refused").unwrap();
+                r[at].as_object_mut().unwrap().remove("detail");
+            }),
+            "(scene, status and detail)",
+        ),
+        (
+            "a refusal whose detail is not text",
+            alter(|r| {
+                replace_group(r, 1, page(1, "custom_object", 0, 256, &[], None, (0, 0)));
+                let at = r.iter().position(|x| x["event"] == "model-refused").unwrap();
+                r[at]["detail"] = 5.into();
+            }),
+            "(scene, status and detail)",
+        ),
+        (
+            "a refusal that names another status than its header",
+            alter(|r| {
+                replace_group(r, 1, page(1, "custom_object", 0, 256, &[], None, (0, 0)));
+                let at = r.iter().position(|x| x["event"] == "model-refused").unwrap();
+                r[at]["status"] = "face_mismatch".into();
+            }),
+            "(scene, status and detail)",
+        ),
         // what the report is about
         (
             "another scene count than this host's",
@@ -2033,5 +2081,89 @@ fn a_scenes_header_that_changes_between_pages_is_refused() {
         assert_eq!(refused.len(), 1, "{label}: {}", run.stderr);
         let message = refused[0]["message"].as_str().unwrap();
         assert!(message.contains("changed between pages"), "{label}: refused as {message:?}");
+    }
+}
+
+/// moves one scene to another status in the catalogue and in the status tallies, so that the tallies agree with the scene rows (a tally of none is dropped, a first of a kind added)
+fn restatus(rows: &mut Vec<Value>, scene: i64, to: &str) {
+    let from = scene_row(rows, scene)["status"].as_str().unwrap().to_string();
+    scene_row(rows, scene)["status"] = to.into();
+    if from == to {
+        return;
+    }
+    let at_from = rows
+        .iter()
+        .position(|x| x["event"] == "catalogue-status" && x["status"] == from.as_str())
+        .unwrap();
+    let n = rows[at_from]["scenes"].as_i64().unwrap();
+    if n == 1 {
+        rows.remove(at_from);
+    } else {
+        rows[at_from]["scenes"] = (n - 1).into();
+    }
+    match rows.iter().position(|x| x["event"] == "catalogue-status" && x["status"] == to) {
+        Some(at) => rows[at]["scenes"] = (rows[at]["scenes"].as_i64().unwrap() + 1).into(),
+        None => {
+            let last = rows.iter().rposition(|x| x["event"] == "catalogue-status").unwrap();
+            rows.insert(last + 1, json!({"event": "catalogue-status", "status": to, "scenes": 1}));
+        }
+    }
+}
+
+/// the fifteen verdicts the closed driver (lua/model-characterization.lua, `statuses`) accepts
+const DRIVER_STATUSES: [&str; 15] = [
+    "absent",
+    "no_scene",
+    "invalid_index",
+    "null_surfaces",
+    "surfaces_outside_block",
+    "custom_object",
+    "face_mismatch",
+    "zero_face_surface",
+    "null_arrays",
+    "degenerate_face",
+    "capacity_unobservable",
+    "capacity_short",
+    "index_violation",
+    "empty",
+    "safe",
+];
+
+#[test]
+fn every_status_the_original_driver_writes_is_accepted_in_a_catalogue_and_as_a_refusal() {
+    let root = standard();
+    let first = drive(&root.dir, &["scenes=1".to_string()], false);
+    assert!(first.status.success(), "{}", first.stderr);
+    let healthy = original_report(&first, &[1]);
+
+    for status in DRIVER_STATUSES {
+        // as a catalogue status (with the tallies agreeing): the contract accepts it; whether the host agrees with the scene is the comparison's business, so a mismatch is allowed here
+        let mut report = healthy.clone();
+        restatus(&mut report, 3, status);
+        let (dir, path) = write_report(&report);
+        let run = drive(&root.dir, &compare_args(&path), false);
+        let _ = std::fs::remove_dir_all(dir);
+        assert!(
+            rows_of(&run, "compare-refused").is_empty(),
+            "{status} as a catalogue status was refused: {:?}\n{}",
+            rows_of(&run, "compare-refused"),
+            run.stderr
+        );
+
+        // as a geometry refusal beside a compared group: every status that is not the absence or a callable model is a refusal, with its detail echoed
+        if status != "absent" && status != "safe" && status != "empty" {
+            let spec = Spec {
+                catalogue: false,
+                asked: 2,
+                ..SPEC
+            };
+            let mut geometry = host_group(&first, 1, spec.page_triangles);
+            geometry.extend(page(5, status, 0, 256, &[], None, (0, 0)));
+            let (dir, path) = write_report(&envelope(&spec, Vec::new(), geometry));
+            let run = drive(&root.dir, &compare_args(&path), false);
+            let _ = std::fs::remove_dir_all(dir);
+            assert!(run.status.success(), "{status} as a refusal was not accepted\n{}", run.stderr);
+            assert_eq!(rows_of(&run, "compare")[0]["original_refused_scenes"], 1, "{status}");
+        }
     }
 }

@@ -165,6 +165,21 @@ runtime evidence stands (Linux format, 235 library, 30 integration, 8 old guards
 Not changed: the C numeric kernel and floating-point guard, the closed original diagnostic driver and fixture, the original reports, any baseline, tolerance, MSRV or physical rule. No new original-provenance
 instrumentation: the 59 custom and mixed-layout original geometry gaps remain open.
 
+## Correction for the last residual P2 of the `7a51d13a6` review (source prepared, UNBUILT, UNRUN)
+
+The focused review of `7a51d13a6` (`independent-host-model-review-final-7a51d13a6-20261030.json`, SHA-256 `bf711664…9dc`) closed the cumulative node budget, the gate / header / write-count consistency and the resolver
+precedence, and left ONE residual P2: the report contract treated every unknown geometry status as a refusal, accepted unknown catalogue statuses, and compared a `model-refused` row's status but not its detail. Corrected:
+
+* the **finite status set** of the closed driver (`lua/model-characterization.lua`, `statuses`: `absent`, `no_scene`, `invalid_index`, `null_surfaces`, `surfaces_outside_block`, `custom_object`, `face_mismatch`,
+  `zero_face_surface`, `null_arrays`, `degenerate_face`, `capacity_unobservable`, `capacity_short`, `index_violation`, `empty`, `safe`) is reused exactly: a catalogue scene row or a geometry header with any other status is
+  refused, as the closed driver refuses it. The classification is unchanged: `absent` is the absence, `safe` and `empty` are callable, every other of the fifteen is a refusal;
+* a `model-refused` row must echo its retained header's scene, status AND detail (missing, not text, or different is refused), as `validate_geometry_page` requires.
+
+No status is invented, no physical success required, no geometry derived; partial-write, unbacked, capped, refused and catalogue-off modes are unchanged. Controls through the real comparator and host-Lua driver (all earlier
+cases kept): an unknown catalogue status with a tally adjusted to match, an unknown geometry header with a refusal that echoes it, a refusal with a different, missing or non-text detail or a different status, and
+`every_status_the_original_driver_writes_is_accepted_in_a_catalogue_and_as_a_refusal` (all fifteen as catalogue statuses; the twelve refusal-class statuses, all but `absent`, `safe` and `empty`, as geometry refusals). The
+Root reproduced the three defects on the immutable `7a51d13a6` host with unchanged retail inputs (native 0 / done 0 for each, the ghost geometry header omitting scene 8's 24 calls).
+
 ## Commands for the Root (not run)
 
 ```
