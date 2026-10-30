@@ -16,6 +16,7 @@
 
 #define _GNU_SOURCE
 #include <fenv.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <sys/stat.h>
 
@@ -46,8 +47,37 @@ static enum engine_operation operation;
 /* ---------------------------------------------------------------------------------------------------------------------------- */
 /* entry discipline: FPU environment and fatal-error unwinding */
 
+/* The x87 environment is saved and restored with fegetenv/fesetenv, but that pair does NOT carry the caller's SSE control/status word on every supported toolchain (the MinGW
+ * sequence fegetenv, fesetround (FE_TOWARDZERO), fesetenv was measured returning an MXCSR whose rounding mode had become toward-zero). The complete MXCSR is therefore saved
+ * explicitly before anything changes and written back AFTER fesetenv on every exit that changed the state: the normal leave and the fatal (setjmp) return. Where there is no
+ * MXCSR to save (not x86) the pair is a no-op. The value is assigned once before setjmp and never changed afterwards, so it survives the longjmp. */
+#if defined(__x86_64__) || defined(__i386__)
+static inline uint32_t engine_read_mxcsr (void)
+{
+	uint32_t value = 0;
+	__asm__ __volatile__ ("stmxcsr %0" : "=m" (value));
+	return value;
+}
+
+static inline void engine_write_mxcsr (uint32_t value)
+{
+	__asm__ __volatile__ ("ldmxcsr %0" : : "m" (value));
+}
+#else
+static inline uint32_t engine_read_mxcsr (void)
+{
+	return 0;
+}
+
+static inline void engine_write_mxcsr (uint32_t value)
+{
+	(void) value;
+}
+#endif
+
 #define ENTER(OPERATION,HOST) \
 	fenv_t caller_fenv; \
+	uint32_t caller_mxcsr; \
 	jmp_buf fatal_jmp; \
 	jmp_buf *saved_target = eech_fatal_target; \
 	const struct eech_engine_host *entry_host = (HOST); \
@@ -90,6 +120,7 @@ static enum engine_operation operation;
 	campaign_los_set_host (entry_host ? &los_host : NULL); \
 	campaign_sense_set_host (entry_host ? &sense_host : NULL); \
 	campaign_aim_set_host (entry_host ? &aim_host : NULL); \
+	caller_mxcsr = engine_read_mxcsr (); \
 	fegetenv (&caller_fenv); \
 	fesetround (FE_TOWARDZERO); \
 	eech_fatal_target = &fatal_jmp; \
@@ -104,6 +135,7 @@ static enum engine_operation operation;
 		operation = OPERATION_NONE; \
 		eech_fatal_target = saved_target; \
 		fesetenv (&caller_fenv); \
+		engine_write_mxcsr (caller_mxcsr); \
 		return EECH_ENGINE_FATAL; \
 	}
 
@@ -117,6 +149,7 @@ static enum engine_operation operation;
 	operation = OPERATION_NONE; \
 	eech_fatal_target = saved_target; \
 	fesetenv (&caller_fenv); \
+	engine_write_mxcsr (caller_mxcsr); \
 	return (RESULT)
 
 const char *eech_engine_fatal_message (void)

@@ -1,0 +1,33 @@
+{
+  "author": {
+    "pid": 22028,
+    "controller_pid": 12516,
+    "started_utc": "2026-10-30T04:06:01.427581+00:00",
+    "completed_utc": "2026-10-30T04:08:18.068161+00:00",
+    "model": "claude-sonnet-5-5",
+    "effort": "high",
+    "session": "20f8be8d-68b1-4ff9-947f-73e2362b0071",
+    "actual_exit": 0
+  },
+  "tool_session": 3076,
+  "collected": true,
+  "format": [
+    {
+      "stage": "before",
+      "exit": 1
+    },
+    {
+      "stage": "format",
+      "exit": 0
+    },
+    {
+      "stage": "after",
+      "exit": 0
+    }
+  ],
+  "engine_c_nul_count": 1,
+  "state": "Minimal production MXCSR restoration SOURCE PREPARED; tests/native/byte comparison/delta-review pending",
+  "jira_comment": "10871",
+  "ledger_version": 76,
+  "previous_native_fpu": "RED preserved4bee; complete callback+counter measured, standalone toolchain reproduction; no weakened assertion"
+}

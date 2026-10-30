@@ -1,3 +1,17 @@
+# D3 source correction — caller MXCSR restored by the public-entry discipline: SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED (30 October 2026)
+
+Authorised by the actual measured defect below: on frozen `4bee2cc8c` the unchanged `ENTER`/`LEAVE` macros in `eech_engine.c` gave back the x87 control and status words but returned MXCSR toward-zero for nearest/down/up callers on both the
+counters-only and the callback entry (8 entries measured; only an initial toward-zero caller was preserved); the independent toolchain-only MinGW control reproduces it for `fegetenv`, `fesetround (FE_TOWARDZERO)`, `fesetenv`.
+Prepared repair, `eech-engine-sys/csrc/eech_engine.c` only: `ENTER` reads the COMPLETE MXCSR (`stmxcsr`, x86/x64 via `__x86_64__ || __i386__`, a no-op elsewhere) before `fegetenv`/`fesetround`; `LEAVE` and the setjmp fatal return write it back
+(`ldmxcsr`) AFTER `fesetenv`. The value is assigned once before `setjmp` and is not modified, so it survives the longjmp. The poisoned/wrong-state early returns come before any state change and need no restore. Internal round-toward-zero, callback
+narrowing and tie policy, kernel arithmetic, call order and the diagnostic harness are untouched; no assertion was loosened. The file was patched by byte-safe perl splice, still exactly ONE NUL; the diff is additions only (`#include <stdint.h>`, the two helpers, the `caller_mxcsr` declaration, one save and two restores).
+Doc `eech-campaign/docs/m5-model-host-authority.md` now records the measured defect and the pending repair (it no longer says the state is merely unmeasured).
+Prepared controls (Root's, none run): rebuild the diagnostic and shipping DLLs; the native `eech_engine_model_host_fpu` over all four initial roundings on both entries and a refused entry (expected: x87 control/status and MXCSR identical, now including nearest/down/up); the toolchain control
+for comparison; then the bounded Leb recording (`model-mxcsr-original-recording-4bee2cc8c-20261030`, Leb seed1, hours0.001, record_every10, observe_every1, observe_supply1) against the repaired candidate, byte for byte.
+Risks: (1) restoring the caller's SSE word could change recorded bytes if the host or Lua code between entries depended on the old toward-zero MXCSR; not known, no reference shim, timing, rounding of output or tolerance was added, and any difference is Root's to investigate before a further bounded action. (2)
+`eech_kernel.c` (`eech-sys`, a separate kernel entry with its own `fegetenv`/`fesetenv` pair) was NOT changed and its MXCSR behaviour on MinGW was not measured by this evidence. (3) `__i386__` builds execute `stmxcsr` unconditionally, as the harness does; a CPU without SSE is not supported.
+(4) The requested-FPU Lua/control guard corrections at `39520f238` are still unvalidated and need their own changed-delta review. D3 physical solvers/loaders/hierarchy/environment/time remain; no D4/D5 or completion claim; Task47's live run and all caches untouched.
+
 # D3 actual native checkpoint — handoff boots; caller SSE restoration defect measured (30 October 2026)
 
 Frozen4bee2cc8c passes Windows shipping/fixture builds, all48 exports each, Linux

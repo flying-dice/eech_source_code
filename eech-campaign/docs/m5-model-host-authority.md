@@ -69,12 +69,16 @@ is no fallback to the arrays and no always-miss: a host that cannot answer, or a
 * **FPU, RNG, order**: the callback runs inside the engine entry (round-toward-zero set); the host's kernel (kernel-only evidence, unchanged) requires the exception masks, sets and restores the caller's complete
   x87/SSE state around its arithmetic (reviewed, unchanged), and nothing in the exchange draws a random number, reads the clock or reorders the caller's calls (the accessors are
   replaced in place; the caller's `depth++` loops are untouched).
-* **The complete outer floating-point state across the PUBLIC entries is NOT yet evidenced for this boundary, and is measured, not assumed.** The kernel's complete-state tests cover the
-  kernel only. The shipped `ENTER`/`LEAVE` macros save the caller's environment with `fegetenv`, set round-toward-zero and restore with `fesetenv` (on the setjmp fatal path too);
-  whether that gives back the x87 control and status words and the SSE word (MXCSR, flags included) on each toolchain, with the Lua model callback and its parser in between, is what the
-  diagnostic build's `eech_engine_model_host_fpu` measures from the caller's side, on a successful entry and on a provider-refused one, at each initial rounding mode with every exception
-  masked and nonzero exception flags set in both units. Nothing about the macros is repaired or assumed here; a difference is a finding to characterise.
-
+* **The complete outer floating-point state across the PUBLIC entries: a defect was MEASURED on `4bee2cc8c` and a repair is PREPARED, NOT RUN.** The kernel's complete-state tests cover the
+  kernel only. The shipped `ENTER`/`LEAVE` macros saved the caller's environment with `fegetenv`, set round-toward-zero and restored with `fesetenv` (on the setjmp fatal path too). The native
+  diagnostic (`eech_engine_model_host_fpu`, from the caller's side, every exception masked and nonzero flags set in both units) measured that the x87 control and status words came back, but
+  MXCSR came back toward-zero for the nearest, downward and upward callers on BOTH the counters-only entry and the callback/probe entry (only an initial toward-zero caller was unaffected), and an
+  independent toolchain-only MinGW control (no EECH, data, Lua or campaign) reproduces it for the exact `fegetenv`, `fesetround (FE_TOWARDZERO)`, `fesetenv` sequence. So `fesetenv` alone does not
+  give back the SSE word on that toolchain; this was an old wrapper defect, not a model-kernel failure. The prepared repair (`eech_engine.c`, nothing else) reads the COMPLETE MXCSR with `stmxcsr`
+  before anything changes and writes it back with `ldmxcsr` AFTER `fesetenv` on both the normal `LEAVE` and the fatal (setjmp) return; the value is assigned once before `setjmp`, so it survives the
+  longjmp; early refusals (poisoned, wrong state) return before any state changes and need no restore; where there is no MXCSR (not x86) it is a no-op. Internal engine round-toward-zero, the
+  callback's narrowing and tie policy, the kernel arithmetic and the call order are untouched, and the diagnostic harness is unchanged (it measures the result; no assertion was loosened). Whether the
+  repair works, and whether restoring the caller's SSE word changes any simulation or recording byte, is NOT known: it is for the native diagnostic and the bounded recording comparison to show.
 
 ## Variants (explicit)
 

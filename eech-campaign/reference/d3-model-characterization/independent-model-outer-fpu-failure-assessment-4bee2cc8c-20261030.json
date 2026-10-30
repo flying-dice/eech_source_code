@@ -1,0 +1,130 @@
+{
+  "schema": "independent-new-runtime-assessment/v1",
+  "reviewed_utc": "2026-10-30T04:05:20.105714+00:00",
+  "measured_head": "4bee2cc8c95309e85b7503a87606b92e0d2594fe",
+  "scope": "New retained boot/FPU/toolchain measurements only; unchanged source/kernel and live author edits not reviewed.",
+  "verdict": "REAL_OUTER_ENTRY_FPU_FAILURE_CONFIRMED",
+  "findings": [
+    {
+      "priority": "P2",
+      "id": "MODEL-OUTER-MXCSR-RESTORE",
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+      "line": 93,
+      "related_lines": [
+        106,
+        119
+      ],
+      "reason": "Actual public C entries preserve x87control/status but leave SSE RC toward-zero instead of restoring callerMXCSR for initial0/1/2. Counter-only entry fails as well as model-callback entry; source macros unchanged across handoff. Independent MinGW-only fenv sequence reproduces the same failure without EECH/Lua/data. This is an exposed existing public-entry restoration defect, not a newly demonstrated model kernel arithmetic defect.",
+      "minimal_correction": "Save complete callerMXCSR explicitly before changing rounding, and restore that complete word AFTER fesetenv on BOTH ordinaryLEAVE and setjmp/fatal return paths. Preserve masks/status/FTZ/DAZ, not justRC; factor consistent private helper if appropriate. Keep internalround-toward-zero and closed model_step kernel unchanged. Respect setjmp automatic-local rules (saved word initialized before setjmp and not changed afterwards). Early paths before FP mutation need no invented restore.",
+      "validation": "Same actual public successful AND provider-refused entry controls, nonzero flags, eachinitialRC/fresh process for refusal; require exactx87control/status+MXCSR equality. Toolchain-only paired control useful but not a substitute for public-entry measurements. Then compare identical bounded old4bee and repaired fresh-root recordings/observations/metrics before final ordinaryshipping accepted-baseline gates. No numeric tolerance/golden rewrite, RZcaller workaround or weakerproof."
+    }
+  ],
+  "native_fpu": {
+    "controller_sha256": "1e92419211ec88743861243b3b58372a34f7b01ee9e68a0a9d543e4d3b292a3c",
+    "raw_sha256": "4d36f29f1354dd2218c81435cb8a6ccbdb75f1642f4c20d673aac877154848cf",
+    "strict_rows": 15,
+    "actual_native_and_controller_exit": 1,
+    "pre_post_inputs_exit": 0,
+    "successful_probes": 4,
+    "measured_judged_entries": 8,
+    "x87_control_status_preserved_all": true,
+    "mxcsr_rounding_failed_entries": 6,
+    "mxcsr_other_bits_unchanged": true,
+    "per_kind_initial_RC_MXCSR_preservation": {
+      "counter_only": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "callback_probe": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    "provider_refused_fullstate_entry": "NOT YET MEASURED in this retained reference run"
+  },
+  "toolchain_control": {
+    "diagnostic_sha256": "ef118cf15b851c56bd902ea28d426d70ae761b7384ae3a4101b2b01f9f174dc1",
+    "source_sha256": "238a6ffe0cf3c2e7f4877b7c161fa9c26db7bd792e6babee08c15c75c6a95b3a",
+    "executable_sha256": "59b3f84dc47b860b1067efa66aeb8ceb2aded6a5cdf7d6cfe1a40fa5600e8967",
+    "native_log_sha256": "9a23c11679b5ed447b150aef3a80deab6311061cee78af55f1103d7c58bb60fe",
+    "compile_native_exit": 0,
+    "no_EECH_or_Lua": true,
+    "initial_RC_preservation": [
+      0,
+      0,
+      0,
+      1
+    ]
+  },
+  "bounded_boots": [
+    {
+      "controller": "R:\\d3-evidence\\model-public-handoff-4bee2cc8c-georgia-20261030\\controller.json",
+      "controller_sha256": "04fc4933f4d1db40097b96c904d2fd59274979c06c0f9d07714dc8396ac4aa75",
+      "actual_native_exit": 0,
+      "metrics_sha256": "3944fab18592a6deb5b83cd1d9b592aea04a9475a7e375ef6599cd77689dd202",
+      "metrics_bytes": 3155,
+      "run_limit": "hours=0.001/record=0",
+      "scope": "retail bounded default campaign boot/frames/prepost0"
+    },
+    {
+      "controller": "R:\\d3-evidence\\model-public-handoff-4bee2cc8c-lebanon-20261030\\controller.json",
+      "controller_sha256": "134f7daabb26b2f7edbd91c5a5d45ad05d937cb98463965cbbf2f2d8f1603aa0",
+      "actual_native_exit": 0,
+      "metrics_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+      "metrics_bytes": 7477,
+      "run_limit": "hours=0.001/record=0",
+      "scope": "retail bounded default campaign boot/frames/prepost0"
+    },
+    {
+      "controller": "R:\\d3-evidence\\model-public-handoff-4bee2cc8c-lebanon-repeat-20261030\\controller.json",
+      "controller_sha256": "34d896c2a4bcbae9f134998774fefe85241c09809e0df7642e8c4f7383f17229",
+      "actual_native_exit": 0,
+      "metrics_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+      "metrics_bytes": 7477,
+      "run_limit": "hours=0.001/record=0",
+      "scope": "retail bounded default campaign boot/frames/prepost0"
+    },
+    {
+      "controller": "R:\\d3-evidence\\model-core-generated-bootstrap-4bee2cc8c-20261030\\controller.json",
+      "controller_sha256": "e0461f785c952cf29fab70672ff974f3ce4ff98b2dc4fb023dc3c35cf4e083e8",
+      "actual_native_exit": 0,
+      "metrics_sha256": "66fcf68ceafd94995281b4cca5cc76b0f0e859f277597077b17c40be8bda8df1",
+      "metrics_bytes": 3153,
+      "run_limit": "hours=0.001/record=0",
+      "scope": "Core-generated bootstrap with Georgia map support"
+    }
+  ],
+  "current_checks": {
+    "linux": {
+      "actual_exit": 0,
+      "completion_sha256": "b58c266f9e27e447c7684143f4c51cedd269bd119cf0c5909358185cbf17a3d7"
+    },
+    "windows": {
+      "actual_exit": 0,
+      "completion_sha256": "2e0eb4c839fffee33411a294a0f9809f15555bb1e61e77e51e9b677656802c53"
+    },
+    "hostfixture": {
+      "actual_exit": 0,
+      "completion_sha256": "00a9d6592dd3b991efbee37810c966770123b0d6677fc2f9983412bda441d059"
+    },
+    "feature-clippy": {
+      "actual_exit": 0,
+      "completion_sha256": "e213bcfce0f63d04484721ea1484005d4059688d435c55e7f29126b538ef2105"
+    }
+  },
+  "classification": [
+    "Successful bounded3.6s retail boots and actual Core-generated-model bootstrap establish those specific new paths work; no longer merely model_store synthetic inference. They do not clear the separate outerFPU invariant.",
+    "Lebanon/repeat complete bounded metrics bytes identical7477/SHA30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4. No Tacview/observations recorded by those hours0.001/record0 controls.",
+    "All422 default affected tests and strictClippy, shipping+fixturecompile and featureenabledClippy actual0. These do not negate actual FPU native1.",
+    "Source-equivalent oldmacro plus counter-only/toolchain control localizes defect to public-entry environment restoration. No claim that a previously accepted oldbinary had this newlymeasured gate run; no source/runtime relabeling.",
+    "Repair can change the outer host Lua arithmetic environment between calls; simulation invisibility cannot be assumed. Preserve current failing run and old4bee bounded recording as diagnostic comparator, and retain accepted byte-exact baseline/fullpack requirement. The bounded oldrecord is not a new acceptance baseline."
+  ],
+  "limits": [
+    "No reviewer executable/native/build/test/process/cache/auth/Git mutations or nestedagents. Only retained-source/control/evidence reads and this JSONwrite. Live author edits not inspected.",
+    "FPU gate FAILED, Task50/production/Tacview/fullshipping/normalmerge/wholeD3 not accepted. Task47 shipping untouched."
+  ]
+}
