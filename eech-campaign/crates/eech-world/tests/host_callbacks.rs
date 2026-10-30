@@ -2197,6 +2197,9 @@ local mutations = {
   -- a controlled update whose state shows a gust phase of 1.0 before it wraps (not a query context, so not judged)
   wind_words_unequal_flag_zero = function(t) return ((t:gsub('null_speed_w=%x+', 'null_speed_w=3f800000'):gsub('null_same=1', 'null_same=0'))) end,
   snapshot_gust_outside_no_wind = function(t) return ((t:gsub('gusting_value_w=%x+', 'gusting_value_w=3f800000'):gsub('wind_speed_w=%x+ wind_x_w=%x+ wind_y_w=%x+ wind_z_w=%x+', 'wind=unavailable_gust_outside_0_1'))) end,
+  -- the initialiser leaves the gust phase untouched, so its queries have no wind answers exactly when that phase is outside [0,1) (accepted), and the absence is refused when it is inside
+  init_gust_outside_no_wind = function(t) return ((t:gsub('gusting_value_w=%x+', 'gusting_value_w=3f800000'):gsub('wind_speed_w=%x+ wind_x_w=%x+ wind_y_w=%x+ wind_z_w=%x+', 'wind=unavailable_gust_outside_0_1'))) end,
+  init_false_unavailable = function(t) return (t:gsub('wind_speed_w=%x+ wind_x_w=%x+ wind_y_w=%x+ wind_z_w=%x+', 'wind=unavailable_gust_outside_0_1')) end,
   init_refused_nonserver = function() return 'env-init kind=witness i=1 refused=the_original_initialisers_assert_the_server_comms_model comms_model=2\n' .. finish(6, 1) end,
   update_refused_no_camera = function() return 'env-update-weather kind=witness i=0 refused=unavailable_in_cockpit_or_no_camera_or_not_server in_cockpit=0 camera=0 comms_model=1\n' .. finish(8, 0) end,
   update_refused_nonserver = function() return 'env-update-weather kind=witness i=0 refused=unavailable_in_cockpit_or_no_camera_or_not_server in_cockpit=0 camera=1 comms_model=2\n' .. finish(8, 0) end,
@@ -2489,6 +2492,7 @@ fn the_environment_driver_refuses_every_report_that_is_not_the_fixtures_protocol
         ("update_false_refusal", 8, 1, "refused although in_cockpit=0, camera=1"),
         ("update_false_run", 8, 0, "ran although in_cockpit"),
         ("snapshot_false_unavailable", 1, 0, "says wind unavailable although"),
+        ("init_false_unavailable", 6, 0, "says wind unavailable although"),
         ("snapshot_gust_outside_with_wind", 1, 0, "has a wind answer although"),
         ("wind_flag_says_unequal", 3, 0, "null_same=0 contradicts"),
         ("wind_flag_says_equal", 3, 0, "null_same=1 contradicts"),
@@ -2570,6 +2574,7 @@ fn the_environment_driver_accepts_the_coherent_alternative_forms_the_emitter_can
         ("wind_words_unequal_flag_zero", 3, 0, 2),
         // a snapshot whose gust is outside [0,1) has no wind answers (the emitter's own branch)
         ("snapshot_gust_outside_no_wind", 1, 0, 2),
+        ("init_gust_outside_no_wind", 6, 0, 2),
         // the initialiser and the weather update are refused by each guard that can hold
         ("init_refused_nonserver", 6, 1, 3),
         ("update_refused_no_camera", 8, 0, 3),

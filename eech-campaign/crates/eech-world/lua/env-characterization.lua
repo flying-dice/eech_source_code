@@ -250,7 +250,7 @@ local function state_rows (prefix, tag, camera)
 	}
 end
 
--- one original query at one point: the weather answer and either the wind answer or (only where the state can leave the gust domain, the retail snapshot) the stated absence of it
+-- one original query at one point: the weather answer and either the wind answer or (where the printed state can leave the gust domain: the retail snapshot and the initialisers, which leave the gust phase untouched; the context guard in validate_report judges which one is right) the stated absence of it
 local function query_row (event, tag, point, allow_unavailable)
 	local base = "tag=" .. tag .. " point=" .. point .. " x_w:w y_w:w z_w:w cwm:u twm:u ts_w:w simple:u"
 	if allow_unavailable then return row (event, base .. " wind_speed_w:w wind_x_w:w wind_y_w:w wind_z_w:w", base .. " wind=unavailable_gust_outside_0_1") end
@@ -336,7 +336,7 @@ local function shapes (group, index)
 		}
 	end
 	if group == 6 then
-		local function tail () return { state_rows ("env-init-state", witness), { query_row ("env-init-query", witness, "origin", false), query_row ("env-init-query", witness, "map_centre", false) } } end
+		local function tail () return { state_rows ("env-init-state", witness), { query_row ("env-init-query", witness, "origin", true), query_row ("env-init-query", witness, "map_centre", true) } } end
 		local t1, t2 = tail (), tail ()
 		return {
 			{ "init_fixed", concat ({ row ("env-init", who .. " what=fixed mode=1|2|3|4 rng:i") }, t1 [1], t1 [2], { end_row () }), false },
