@@ -26,6 +26,8 @@ weapon-fixture = ["eech-engine-sys/weapon-fixture"]
 model-fixture = ["eech-engine-sys/model-fixture"]
 # TEST-ONLY (EEDCS-50 D3): see eech-engine-sys.
 model-host-fixture = ["eech-engine-sys/model-host-fixture"]
+# TEST SUPPORT (EEDCS-50, D3): see eech-engine-sys.
+fpu-test-support = ["eech-engine-sys/fpu-test-support"]
 
 [lints.rust]
 unsafe_op_in_unsafe_fn = "deny"

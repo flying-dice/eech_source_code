@@ -1117,6 +1117,7 @@ pub type eech_aim_callback =
 
 /// Host-owned collision-model data (aphavoc/.../mb_hostmodel.h): the operations, the triangle results and the largest error text.
 pub const EECH_MODEL_ERROR_MAX: usize = 512;
+pub const EECH_MODEL_NAME_MAX: usize = 127;
 pub const EECH_MODEL_CATALOGUE: c_int = 1;
 pub const EECH_MODEL_SCENE: c_int = 2;
 pub const EECH_MODEL_TRIANGLE: c_int = 3;
@@ -1136,11 +1137,15 @@ pub struct eech_model_request {
 #[repr(C)]
 pub struct eech_model_reply {
     pub scene_count: c_int,
-    pub main_object: c_int,
-    pub collision_object: c_int,
+    /// 0 or 1: the host has a model for the scene
+    pub loaded: c_int,
+    /// 0 or 1: that model has a collider (only a loaded scene has one)
+    pub collider: c_int,
     pub radius: f32,
     pub bounding_box: [f32; 6],
     pub bounding_box_without_lines: [f32; 6],
+    /// the scene's compiled name (NUL-terminated; empty for the invalid index 0): the public scene identity echo
+    pub name: [c_char; EECH_MODEL_NAME_MAX + 1],
     pub result: c_int,
     pub points: [f32; 9],
 }
@@ -1435,6 +1440,13 @@ extern "C" {
         capacity: c_int,
         host: *const eech_engine_host,
     ) -> c_int;
+}
+
+/// TEST SUPPORT (feature fpu-test-support): see csrc/eech_fpu_test.c.
+#[cfg(feature = "fpu-test-support")]
+extern "C" {
+    pub fn eech_test_enter_toward_zero() -> c_int;
+    pub fn eech_test_leave_toward_zero() -> c_int;
 }
 
 /// TEST-ONLY (feature model-host-fixture, EEDCS-50 D3): the host-model counters and the overwrite of the campaign's own model arrays; see csrc/eech_model_host_fixture.c.

@@ -979,6 +979,18 @@ pub struct Engine {
     _not_send: std::marker::PhantomData<*const ()>,
 }
 
+/// TEST SUPPORT (feature `fpu-test-support`, EEDCS-50 D3): runs `f` under round-toward-zero, the mode the engine entry sets around every host callback, and returns whether `f`
+/// left that mode as it found it. The thread's complete floating-point environment is handed back bit for bit afterwards. It calls no engine code.
+#[cfg(feature = "fpu-test-support")]
+pub fn under_round_toward_zero<R>(f: impl FnOnce() -> R) -> (R, bool) {
+    // SAFETY: the two C functions only read and write this thread's floating-point environment.
+    unsafe { sys::eech_test_enter_toward_zero() };
+    let result = f();
+    // SAFETY: as above.
+    let kept = unsafe { sys::eech_test_leave_toward_zero() } == 1;
+    (result, kept)
+}
+
 /// One question the campaign asks of the host's physical models (aphavoc/.../mb_hostmodel.h). No EECH pointer, offset or layout is in it: a scene is the EECH scene index,
 /// a plain integer that the host and the campaign both derive from the same data, and a depth is the caller's running triangle index.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -991,12 +1003,15 @@ pub enum ModelQuery {
     Triangle { scene: i32, depth: i32 },
 }
 
-/// One scene as the host answers it: the main and collision object indices (only to cross-check the shape identity with the campaign's scene database; -1 is "none"), the
-/// radius and the two bounds `xmin xmax ymin ymax zmin zmax` (`bounding_box_without_lines` is the one the collision tests use). Floats are exact `f32` values.
-#[derive(Clone, Copy, Debug, PartialEq)]
+/// One scene as the host answers it, in public terms only: the scene's compiled `name` (the echo that host and campaign mean the same scene by the same index; empty for the
+/// invalid index 0), whether the host has a model for it (`loaded`), whether that model has a collider (`collider`; only a loaded scene has one), the radius and the two bounds
+/// `xmin xmax ymin ymax zmin zmax` (`bounding_box_without_lines` is the one the collision tests use). Floats are exact `f32` values. Nothing of the legacy loader's private
+/// object numbering is part of it.
+#[derive(Clone, Debug, PartialEq)]
 pub struct ModelScene {
-    pub main_object: i32,
-    pub collision_object: i32,
+    pub name: String,
+    pub loaded: bool,
+    pub collider: bool,
     pub radius: f32,
     pub bounding_box: [f32; 6],
     pub bounding_box_without_lines: [f32; 6],
@@ -1008,13 +1023,13 @@ pub struct ModelScene {
 pub enum ModelTriangle {
     /// point 0 x y z, point 1, point 2
     Found([f32; 9]),
-    /// a collision object is present and the list is over at this depth
+    /// the scene has a collider and the list is over at this depth
     End,
-    /// the scene has no collision object
+    /// the scene is loaded and has no collider
     Absent,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum ModelAnswer {
     Catalogue { scenes: i32 },
     Scene(ModelScene),
@@ -1073,8 +1088,20 @@ unsafe extern "C" fn model_callback(
         match (operation, answer) {
             ("catalogue", ModelAnswer::Catalogue { scenes }) => reply.scene_count = scenes,
             ("scene", ModelAnswer::Scene(scene)) => {
-                reply.main_object = scene.main_object;
-                reply.collision_object = scene.collision_object;
+                // the name is copied with its terminator; one that does not fit, or holds a NUL, is not a scene name
+                let bytes = scene.name.as_bytes();
+                if bytes.len() > sys::EECH_MODEL_NAME_MAX || bytes.contains(&0) {
+                    return Err(format!(
+                        "[model-provider:scene.answer] the scene name is 0 to {} bytes without a NUL, got {}",
+                        sys::EECH_MODEL_NAME_MAX,
+                        bytes.len()
+                    ));
+                }
+                for (slot, byte) in reply.name.iter_mut().zip(bytes) {
+                    *slot = *byte as c_char;
+                }
+                reply.loaded = c_int::from(scene.loaded);
+                reply.collider = c_int::from(scene.collider);
                 reply.radius = scene.radius;
                 reply.bounding_box = scene.bounding_box;
                 reply.bounding_box_without_lines = scene.bounding_box_without_lines;
@@ -8916,7 +8943,7 @@ mod tests {
         // SAFETY: every field of the reply is plain data, and zero is a valid value for each
         let mut reply: sys::eech_model_reply = unsafe { std::mem::zeroed() };
         reply.scene_count = MODEL_SENTINEL;
-        reply.main_object = MODEL_SENTINEL;
+        reply.loaded = MODEL_SENTINEL;
         reply.result = MODEL_SENTINEL;
         let mut error = vec![0 as c_char; sys::EECH_MODEL_ERROR_MAX + 1];
         // SAFETY: the request, the reply and the error buffer are valid for the call; the user pointer is unused.
@@ -8934,21 +8961,25 @@ mod tests {
     #[test]
     fn the_model_callback_carries_every_answer_exactly() {
         let scene = ModelScene {
-            main_object: 12,
-            collision_object: -1,
+            name: "UH60_BLACKHAWK".to_string(),
+            loaded: true,
+            collider: false,
             radius: 1.5,
             bounding_box: [-1.0, 2.0, -3.0, 4.0, -5.0, 6.0],
             bounding_box_without_lines: [-0.5, 0.25, -0.125, 0.0625, -2.0, 8.0],
         };
+        let given = scene.clone();
         let (code, reply, _) = model_crossing(
             Some(Box::new(move |query| match query {
-                ModelQuery::Scene { scene: 7 } => Ok(ModelAnswer::Scene(scene)),
+                ModelQuery::Scene { scene: 7 } => Ok(ModelAnswer::Scene(given.clone())),
                 other => Err(format!("unexpected {other:?}")),
             })),
             model_request(sys::EECH_MODEL_SCENE, 7, 0),
         );
         assert_eq!(code, 0);
-        assert_eq!((reply.main_object, reply.collision_object, reply.radius), (12, -1, 1.5));
+        assert_eq!((reply.loaded, reply.collider, reply.radius), (1, 0, 1.5));
+        // SAFETY: the callback NUL-terminated the name within its array, which began zeroed.
+        assert_eq!(unsafe { std::ffi::CStr::from_ptr(reply.name.as_ptr()) }.to_str(), Ok("UH60_BLACKHAWK"));
         assert_eq!(reply.bounding_box, scene.bounding_box);
         assert_eq!(reply.bounding_box_without_lines, scene.bounding_box_without_lines);
 
@@ -8991,13 +9022,45 @@ mod tests {
     }
 
     #[test]
+    fn a_scene_name_that_cannot_be_an_echo_is_refused_and_writes_no_reply() {
+        for name in ["N".repeat(sys::EECH_MODEL_NAME_MAX + 1), "A\0B".to_string()] {
+            let scene = ModelScene {
+                name,
+                loaded: true,
+                collider: true,
+                radius: 1.0,
+                bounding_box: [0.0; 6],
+                bounding_box_without_lines: [0.0; 6],
+            };
+            let (code, reply, error) = model_crossing(
+                Some(Box::new(move |_| Ok(ModelAnswer::Scene(scene.clone())))),
+                model_request(sys::EECH_MODEL_SCENE, 3, 0),
+            );
+            assert!(code != 0 && error.contains("[model-provider:scene.answer]"), "{error}");
+            assert_eq!((reply.loaded, reply.result), (MODEL_SENTINEL, MODEL_SENTINEL));
+        }
+        // the longest name that fits is carried whole
+        let scene = ModelScene {
+            name: "N".repeat(sys::EECH_MODEL_NAME_MAX),
+            loaded: false,
+            collider: false,
+            radius: 0.0,
+            bounding_box: [0.0; 6],
+            bounding_box_without_lines: [0.0; 6],
+        };
+        let (code, reply, _) = model_crossing(Some(Box::new(move |_| Ok(ModelAnswer::Scene(scene.clone())))), model_request(sys::EECH_MODEL_SCENE, 3, 0));
+        assert_eq!(code, 0);
+        assert_eq!(reply.name.iter().take_while(|byte| **byte != 0).count(), sys::EECH_MODEL_NAME_MAX);
+    }
+
+    #[test]
     fn a_missing_declining_or_malformed_provider_is_refused_by_name_and_writes_no_reply() {
         let triangle = model_request(sys::EECH_MODEL_TRIANGLE, 5, 2);
         // no provider installed
         let (code, reply, error) = model_crossing(None, triangle_copy(&triangle));
         assert!(code != 0 && error.contains("[model-provider:missing]"), "{error}");
         assert_eq!(
-            (reply.scene_count, reply.main_object, reply.result),
+            (reply.scene_count, reply.loaded, reply.result),
             (MODEL_SENTINEL, MODEL_SENTINEL, MODEL_SENTINEL)
         );
         // the host declines

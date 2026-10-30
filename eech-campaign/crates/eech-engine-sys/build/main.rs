@@ -223,6 +223,9 @@ fn main() {
     if env::var_os("CARGO_FEATURE_MODEL_HOST_FIXTURE").is_some() {
         build.define("EECH_MODEL_HOST_FIXTURE", None);
     }
+    if env::var_os("CARGO_FEATURE_FPU_TEST_SUPPORT").is_some() {
+        build.define("EECH_FPU_TEST_SUPPORT", None);
+    }
     if windows {
         build.flag("-include").flag(manifest.join("csrc/eech_win32_names.h").to_str().unwrap());
     }

@@ -2174,11 +2174,15 @@ fn every_status_the_original_driver_writes_is_accepted_in_a_catalogue_and_as_a_r
 // tests above exercise, as exact bit patterns. These tests drive the real host binary on the synthetic installation; they need no DLL and say nothing about any retail model.
 
 const PROVIDER_CHECK: &str = include_str!("../lua/model-provider-check.lua");
+const JSON_LINES: &str = include_str!("../lua/json-lines.lua");
+const JSON_LINES_CHECK: &str = include_str!("../lua/json-lines-check.lua");
+const MODEL_AUTHORITY: &str = include_str!("../lua/model-authority.lua");
 
 fn provider_rows(root: &Path) -> Vec<Value> {
     let dir = temp_dir("provider");
     let script = dir.join("model-provider-check.lua");
     std::fs::write(&script, PROVIDER_CHECK).unwrap();
+    std::fs::write(dir.join("json-lines.lua"), JSON_LINES).unwrap();
     let out = dir.join("provider.jsonl");
     let run = std::process::Command::new(host_binary())
         .arg(&script)
@@ -2219,8 +2223,8 @@ fn the_reference_provider_answers_exactly_what_the_store_answers_by_both_routes(
             if scene == 0 {
                 // the null scene: the zeroed entry the original kept for the invalid object index, authored by the host
                 assert_eq!(
-                    (row["main"].as_i64(), row["collision"].as_i64(), row["radius"].as_str()),
-                    (Some(0), Some(0), Some("0x00000000")),
+                    (row["name"].as_str(), row["loaded"].as_bool(), row["collider"].as_bool(), row["radius"].as_str()),
+                    (Some(""), Some(false), Some(false), Some("0x00000000")),
                     "{via}"
                 );
                 assert_eq!(
@@ -2234,8 +2238,13 @@ fn the_reference_provider_answers_exactly_what_the_store_answers_by_both_routes(
                 continue;
             }
             let view = store.scene(scene).unwrap();
-            assert_eq!(row["main"].as_i64(), Some(i64::from(view.main)), "{via} scene {scene}");
-            assert_eq!(row["collision"].as_i64(), Some(i64::from(view.collision)), "{via} scene {scene}");
+            // the public declaration: the compiled name, whether the host has a model, whether it has a collider; the store's own private numbering is only a reference
+            // diagnostic beside them
+            assert_eq!(row["name"].as_str(), Some(view.name), "{via} scene {scene}");
+            assert_eq!(row["loaded"].as_bool(), Some(view.loaded), "{via} scene {scene}");
+            assert_eq!(row["collider"].as_bool(), Some(view.loaded && view.collision != -1), "{via} scene {scene}");
+            assert_eq!(row["reference_main"].as_i64(), Some(i64::from(view.main)), "{via} scene {scene}");
+            assert_eq!(row["reference_collision"].as_i64(), Some(i64::from(view.collision)), "{via} scene {scene}");
             assert_eq!(row["radius"].as_str(), Some(format!("0x{:08x}", view.radius).as_str()), "{via} scene {scene}");
             assert_eq!(
                 row["bb"].as_str(),
@@ -2290,8 +2299,8 @@ fn the_reference_provider_refuses_every_malformed_request_by_name_before_the_sto
     let root = standard();
     let rows = provider_rows(&root.dir);
     let bad: Vec<&Value> = rows.iter().filter(|r| r["event"] == "bad_request").collect();
-    // fifteen requests through each of the two routes
-    assert_eq!(bad.len(), 30, "{bad:?}");
+    // twenty-two requests through each of the two routes
+    assert_eq!(bad.len(), 44, "{bad:?}");
     for row in bad {
         assert_eq!(row["ok"], false, "{row}");
         let error = row["error"].as_str().unwrap();
@@ -2305,6 +2314,7 @@ fn a_root_without_model_assets_refuses_the_provider_as_not_run_never_as_an_empty
     let run = {
         let script = dir.join("model-provider-check.lua");
         std::fs::write(&script, PROVIDER_CHECK).unwrap();
+        std::fs::write(dir.join("json-lines.lua"), JSON_LINES).unwrap();
         std::process::Command::new(host_binary())
             .arg(&script)
             .arg(format!("root={}", slashes(&dir.join("no-such-installation"))))
@@ -2316,4 +2326,296 @@ fn a_root_without_model_assets_refuses_the_provider_as_not_run_never_as_an_empty
     assert!(!run.status.success(), "a root with no model assets was accepted\n{stderr}");
     assert!(stderr.contains("NOT RUN") || stderr.contains("model store refused"), "{stderr}");
     let _ = std::fs::remove_dir_all(&dir);
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------
+// The witness scripts of the host-owned model data (EEDCS-50, D3): the strict JSON Lines writer, the finite and bounded arguments of model-authority.lua, and the propagation of a
+// failed requested probe, a stuck clock and a lost output. They run the REAL scripts under the real host binary. The authority script needs the campaign DLL only to boot; here
+// a stand-in `eech_dc` (package.preload) plays the engine, asks the real provider the questions the engine asks at boot, and answers the fixture methods, so what is tested
+// is the script's own validation, bookkeeping, output and verdict. It says nothing about what the campaign does with a model; that is the native run's.
+
+struct ScriptRun {
+    status: std::process::ExitStatus,
+    stderr: String,
+    out: PathBuf,
+    dir: PathBuf,
+}
+
+impl ScriptRun {
+    fn rows(&self) -> Vec<Value> {
+        std::fs::read_to_string(&self.out)
+            .unwrap()
+            .lines()
+            .map(|l| serde_json::from_str(l).unwrap_or_else(|e| panic!("malformed output row {l:?}: {e}")))
+            .collect()
+    }
+
+    fn row(&self, event: &str) -> Value {
+        self.rows()
+            .into_iter()
+            .find(|r| r["event"] == event)
+            .unwrap_or_else(|| panic!("no {event} row in the output\n{}", self.stderr))
+    }
+}
+
+impl Drop for ScriptRun {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.dir);
+    }
+}
+
+/// Writes `files` into a fresh directory and runs the host binary on `main` with `args`. `{dir}` in an argument is that directory; the output is `{dir}/out.jsonl` unless an
+/// `out=` argument names another.
+fn run_lua(files: &[(&str, &str)], main: &str, args: &[String]) -> ScriptRun {
+    let dir = temp_dir("witness");
+    for (name, text) in files {
+        std::fs::write(dir.join(name), text).unwrap();
+    }
+    let out = dir.join("out.jsonl");
+    let mut command = std::process::Command::new(host_binary());
+    command.arg(dir.join(main));
+    if !args.iter().any(|a| a.starts_with("out=")) {
+        command.arg(format!("out={}", slashes(&out)));
+    }
+    for arg in args {
+        command.arg(arg.replace("{dir}", &slashes(&dir)));
+    }
+    let run = command.output().unwrap();
+    ScriptRun {
+        status: run.status,
+        stderr: String::from_utf8_lossy(&run.stderr).to_string(),
+        out,
+        dir,
+    }
+}
+
+#[test]
+fn the_strict_json_writer_keeps_every_byte_and_raises_every_output_failure() {
+    let run = run_lua(&[("json-lines.lua", JSON_LINES), ("json-lines-check.lua", JSON_LINES_CHECK)], "json-lines-check.lua", &[]);
+    assert!(run.status.success(), "{}", run.stderr);
+    let controls = run.row("controls");
+    // every control byte, 0..31 and 127, survives a real JSON parser; so do the quote, the backslash, a multi-line native-style report and UTF-8
+    let mut expected: String = (0u8..=31).map(char::from).collect();
+    expected.push('\u{7f}');
+    assert_eq!(controls["text"].as_str(), Some(expected.as_str()));
+    assert_eq!(controls["quote_backslash"].as_str(), Some("a\"b\\c"));
+    assert_eq!(
+        controls["report"].as_str(),
+        Some("model-host-scene scene=1 radius=0x3f800000\nmodel-host-tri scene=1 depth=0 return=1\n")
+    );
+    assert_eq!(controls["utf8"].as_str(), Some("caf\u{e9} \u{2713} \u{1f600}"));
+    let numbers = run.row("numbers");
+    assert_eq!(
+        (numbers["zero"].as_i64(), numbers["negative"].as_i64(), numbers["fraction"].as_f64(), numbers["big"].as_i64()),
+        (Some(0), Some(-3), Some(1.5), Some(1_099_511_627_776))
+    );
+    assert_eq!(numbers["tiny"].as_f64(), Some(1e-20));
+    assert_eq!((numbers["yes"].as_bool(), numbers["no"].as_bool()), (Some(true), Some(false)));
+    // a non-finite number, a value that is not text, number or boolean, a failed write, a failed flush, a failed close, an existing output and a closed writer all RAISE
+    assert_eq!(run.row("nonfinite")["refused"].as_bool(), Some(true));
+    assert_eq!(run.row("unwritable_value")["refused"].as_bool(), Some(true));
+    let failures = run.row("output_failures");
+    assert!(failures["write"].as_str().unwrap().contains("disk full"), "{failures}");
+    assert!(failures["flush"].as_str().unwrap().contains("flush failed"), "{failures}");
+    assert!(failures["close"].as_str().unwrap().contains("close failed"), "{failures}");
+    assert!(run.row("existing")["refused"].as_str().unwrap().contains("already exists"));
+    assert!(!run.row("closed")["refused"].as_str().unwrap().is_empty());
+}
+
+#[test]
+fn the_authority_script_refuses_every_malformed_argument_before_it_writes_or_boots() {
+    let root = standard();
+    let cases: Vec<(Vec<String>, &str)> = {
+        let one = |arg: &str, fragment: &'static str| (vec![arg.to_string()], fragment);
+        let long_scenes = (1..=65).map(|n| n.to_string()).collect::<Vec<_>>().join(",");
+        let wide_scenes = (1..=33).map(|n| n.to_string()).collect::<Vec<_>>().join(",");
+        let wide_depths = (0..=32).map(|n| n.to_string()).collect::<Vec<_>>().join(",");
+        vec![
+            one("frame_ms=0", "frame_ms"),
+            one("frame_ms=-5", "frame_ms"),
+            one("frame_ms=abc", "frame_ms"),
+            one("frame_ms=1.5", "frame_ms"),
+            one("frame_ms=10001", "frame_ms"),
+            one("frame_ms=", "frame_ms"),
+            one("seconds=0", "seconds"),
+            one("seconds=0.0", "seconds"),
+            one("seconds=inf", "seconds"),
+            one("seconds=nan", "seconds"),
+            one("seconds=1e9", "seconds"),
+            one("seconds=86401", "seconds"),
+            one("seconds=-1", "seconds"),
+            one("seconds=0x10", "seconds"),
+            one("seconds=1.2.3", "seconds"),
+            (vec!["seconds=86400".into(), "frame_ms=1".into()], "frames"),
+            one("sweeps=0", "sweeps"),
+            one("sweeps=10001", "sweeps"),
+            one("sweeps=1.5", "sweeps"),
+            one("seed=-1", "seed"),
+            one("seed=2147483648", "seed"),
+            one("poison=2", "poison"),
+            one("los=yes", "los"),
+            one("probe_scenes=1,,2", "probe_scenes"),
+            one("probe_scenes=0", "probe_scenes"),
+            one("probe_scenes=a", "probe_scenes"),
+            one("probe_scenes=1,1", "twice"),
+            one("probe_scenes=,1", "probe_scenes"),
+            one("probe_scenes=1,", "probe_scenes"),
+            one("probe_scenes=2147483647", "probe_scenes"),
+            (vec![format!("probe_scenes={long_scenes}")], "more than 64"),
+            (vec!["probe_scenes=1".into(), "probe_depths=-1".into()], "probe_depths"),
+            (vec!["probe_scenes=1".into(), "probe_depths=1,x".into()], "probe_depths"),
+            (vec![format!("probe_scenes={wide_scenes}"), format!("probe_depths={wide_depths}")], "more than 1024"),
+            one("probe_depths=1", "without probe_scenes"),
+            one("mode=nonsense", "mode"),
+            one("scenario=mars", "scenario"),
+        ]
+    };
+    for (args, fragment) in cases {
+        let mut all = vec![format!("root={}", slashes(&root.dir))];
+        all.extend(args.iter().cloned());
+        let run = run_lua(&[("json-lines.lua", JSON_LINES), ("model-authority.lua", MODEL_AUTHORITY)], "model-authority.lua", &all);
+        assert!(!run.status.success(), "{args:?} was accepted\n{}", run.stderr);
+        assert!(run.stderr.contains(fragment), "{args:?}: the refusal does not name {fragment:?}\n{}", run.stderr);
+        assert!(!run.out.exists(), "{args:?}: an output was created before the arguments were checked");
+        assert!(!run.stderr.contains("stand-in booted"), "{args:?}");
+    }
+}
+
+/// The engine as the authority script sees it, played by Lua: the real provider is asked what the engine asks at boot (the catalogue, scenes, a few triangle steps) and the
+/// fixture methods answer as `standin=` says: healthy, refuse (every probe raises, with a two-line message), other (the report is for another scene), stuck (the clock never
+/// advances) or noprobe (the DLL has no probe method).
+const STAND_IN: &str = r#"
+local standin = host.args.standin or "healthy"
+package.preload["eech_dc"] = function ()
+	local dc = { name = "stand-in" }
+	function dc.prepare_installation () end
+	function dc.boot (config)
+		io.stderr:write ("stand-in booted\n")
+		assert (config.model ("catalogue").scenes > 0)
+		for scene = 0, 5 do config.model ("scene", scene) end
+		for depth = 0, 2 do config.model ("triangle", 1, depth) end
+		local now = 0
+		local engine = {}
+		function engine:frame (ms) if standin ~= "stuck" then now = now + ms / 1000 end end
+		function engine:clock () return { elapsed_seconds = now } end
+		function engine:objects () return {} end
+		function engine:model_host_poison () end
+		function engine:model_host_counters () return "model-host catalogue=1 scene=3026\n" end
+		function engine:model_host_probe (scene, depth)
+			if standin == "refuse" then error ("the probe was refused\nby the stand-in") end
+			if standin == "other" then return string.format ("model-host-scene scene=%d radius=0x00000000\nmodel-host-tri scene=%d depth=%d return=0\n", scene + 1, scene, depth) end
+			return string.format ("model-host-scene scene=%d radius=0x00000000 bb2=0 bb=0 stable=1\nmodel-host-tri scene=%d depth=%d return=0 writes=0 round_before=3072 round_after=3072\n", scene, scene, depth)
+		end
+		if standin == "noprobe" then engine.model_host_probe = nil end
+		return engine
+	end
+	return dc
+end
+dofile (host.args.script)
+"#;
+
+fn stand_in_run(extra: &[&str], standin: &str) -> ScriptRun {
+    let root = standard();
+    let mut args = vec![
+        format!("root={}", slashes(&root.dir)),
+        "script={dir}/model-authority.lua".to_string(),
+        format!("standin={standin}"),
+        "seconds=1".to_string(),
+        "frame_ms=100".to_string(),
+    ];
+    args.extend(extra.iter().map(|a| a.to_string()));
+    run_lua(
+        &[("json-lines.lua", JSON_LINES), ("model-authority.lua", MODEL_AUTHORITY), ("stand-in.lua", STAND_IN)],
+        "stand-in.lua",
+        &args,
+    )
+}
+
+#[test]
+fn a_healthy_authority_run_reports_every_requested_probe_in_strict_json() {
+    let run = stand_in_run(&["probe_scenes=1,2", "probe_depths=0,1", "poison=1"], "healthy");
+    assert!(run.status.success(), "{}", run.stderr);
+    let rows = run.rows();
+    let booted = run.row("booted");
+    assert_eq!((booted["catalogue_asked"].as_i64(), booted["scenes_asked"].as_i64()), (Some(1), Some(6)));
+    let probes: Vec<&Value> = rows.iter().filter(|r| r["event"] == "probe").collect();
+    assert_eq!(probes.len(), 4);
+    for probe in &probes {
+        assert_eq!(probe["ok"], true);
+        // the native-style report keeps its newlines through the JSON
+        let report = probe["report"].as_str().unwrap();
+        assert!(report.starts_with("model-host-scene scene=") && report.contains("\nmodel-host-tri scene=") && report.ends_with('\n'), "{report:?}");
+    }
+    let summary = run.row("summary");
+    assert_eq!(
+        (summary["frames_run"].as_i64(), summary["probes_ok"].as_i64(), summary["probes_failed"].as_i64()),
+        (Some(10), Some(4), Some(0))
+    );
+    assert_eq!(summary["failure"].as_str(), Some(""));
+    // what the REFERENCE host answered and what the provider function handed back are counted apart (here the same, in the unmodified mode)
+    assert_eq!(
+        (
+            summary["reference_scene"].as_i64(),
+            summary["replied_scene"].as_i64(),
+            summary["reference_triangle"].as_i64(),
+            summary["replied_triangle"].as_i64()
+        ),
+        (Some(6), Some(6), Some(3), Some(3))
+    );
+    assert_eq!(summary["replied_found"].as_i64().unwrap() + summary["replied_ended"].as_i64().unwrap(), 3);
+    assert!(run.row("native_counters")["report"].as_str().unwrap().contains("catalogue=1"));
+}
+
+#[test]
+fn a_requested_probe_that_fails_or_reports_another_scene_fails_the_run_and_keeps_the_evidence() {
+    for standin in ["refuse", "other"] {
+        let run = stand_in_run(&["probe_scenes=1,2", "probe_depths=0,1"], standin);
+        assert!(!run.status.success(), "{standin}: a run whose requested probes all failed was accepted\n{}", run.stderr);
+        assert!(run.stderr.contains("requested probes failed"), "{standin}: {}", run.stderr);
+        // the evidence is whole and parseable: four failed probe rows and a summary that says so
+        let rows = run.rows();
+        let probes: Vec<&Value> = rows.iter().filter(|r| r["event"] == "probe").collect();
+        assert_eq!(probes.len(), 4, "{standin}");
+        assert!(probes.iter().all(|p| p["ok"] == false), "{standin}");
+        let summary = run.row("summary");
+        assert_eq!((summary["probes_failed"].as_i64(), summary["probes_ok"].as_i64()), (Some(4), Some(0)), "{standin}");
+        assert!(!summary["probe_problem"].as_str().unwrap().is_empty());
+    }
+    // a refusal's message is first-lined, so the row stays one line of strict JSON
+    let run = stand_in_run(&["probe_scenes=1", "probe_depths=0"], "refuse");
+    let probe = run.row("probe");
+    assert!(probe["report"].as_str().unwrap().contains("the probe was refused") && !probe["report"].as_str().unwrap().contains('\n'));
+    // probes asked of a DLL without the probe method are unavailable, not covered
+    let run = stand_in_run(&["probe_scenes=1"], "noprobe");
+    assert!(!run.status.success() && run.stderr.contains("model-host-fixture"), "{}", run.stderr);
+}
+
+#[test]
+fn a_stuck_clock_a_missing_sweep_and_a_lost_output_are_failures_not_coverage() {
+    let run = stand_in_run(&[], "stuck");
+    assert!(!run.status.success() && run.stderr.contains("no progress"), "{}", run.stderr);
+    assert_eq!(run.row("summary")["frames_run"].as_i64(), Some(0));
+    // a requested line-of-sight sweep with no fixture to make it
+    let run = stand_in_run(&["los=1"], "healthy");
+    assert!(!run.status.success() && run.stderr.contains("los-fixture"), "{}", run.stderr);
+    // an output that cannot be created stops the run before anything boots; an existing one is never overwritten
+    let run = stand_in_run(&["out={dir}/no-such-directory/out.jsonl"], "healthy");
+    assert!(!run.status.success() && !run.stderr.contains("stand-in booted"), "{}", run.stderr);
+    let root = standard();
+    let run = run_lua(
+        &[
+            ("json-lines.lua", JSON_LINES),
+            ("model-authority.lua", MODEL_AUTHORITY),
+            ("stand-in.lua", STAND_IN),
+            ("existing.jsonl", "do not overwrite\n"),
+        ],
+        "stand-in.lua",
+        &[
+            format!("root={}", slashes(&root.dir)),
+            "script={dir}/model-authority.lua".to_string(),
+            "out={dir}/existing.jsonl".to_string(),
+        ],
+    );
+    assert!(!run.status.success() && run.stderr.contains("already exists") && !run.stderr.contains("stand-in booted"), "{}", run.stderr);
+    assert_eq!(std::fs::read_to_string(run.dir.join("existing.jsonl")).unwrap(), "do not overwrite\n");
 }

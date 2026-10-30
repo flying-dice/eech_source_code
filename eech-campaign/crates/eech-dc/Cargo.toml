@@ -58,3 +58,7 @@ indexing_slicing = "deny"
 
 [lints.rust]
 unsafe_code = "forbid"
+
+# The Lua provider's number parsing is tested under round-toward-zero, as the engine entry runs a callback (EEDCS-50, D3).
+[dev-dependencies]
+eech-engine = { path = "../eech-engine", features = ["fpu-test-support"] }

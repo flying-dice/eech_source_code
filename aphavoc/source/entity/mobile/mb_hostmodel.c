@@ -19,9 +19,12 @@ static int host_installed;
 
 void campaign_model_set_host (const campaign_model_host *host)
 {
+	// every entry that carries a callback refreshes it; an entry without one leaves it. The entry's `user` names that entry's own host context, which ends with the
+	// entry, so it is never kept: the callback is always called with a NULL user (mb_hostmodel.h, "Lifecycle")
 	if (host && host->model)
 	{
-		current_host = *host;
+		current_host.model = host->model;
+		current_host.user = NULL;
 		host_installed = TRUE;
 	}
 }
@@ -36,9 +39,11 @@ static struct OBJECT_3D_BOUNDS
 static float
 	host_radius [OBJECT_3D_LAST];
 
-// the host's own collision index of each scene, to check that an ABSENT answer agrees with the catalogue the host itself gave
-static int
-	host_collision_object [OBJECT_3D_LAST];
+// what the host declared about each scene (public, semantic): whether it has a model for it, and whether that model has a collider. A triangle answer is checked
+// against these declarations, never against the campaign's own arrays.
+static unsigned char
+	host_loaded [OBJECT_3D_LAST],
+	host_collider [OBJECT_3D_LAST];
 
 static int tables_installed;
 
@@ -46,7 +51,12 @@ static int tables_installed;
 // TEST-ONLY: how many questions of each kind were asked of the host, and what it answered
 struct campaign_model_counters
 {
+	/* catalogue, scene, triangle: questions ASKED of the host. found, end, absent: triangle replies the native code ACCEPTED (a reply it refused stops the engine and is
+	   not counted). bounds_reads, bounds_without_lines_reads, radius_reads: reads of the host-authored tables by the campaign. */
 	long catalogue, scene, triangle, found, end, absent, bounds_reads, bounds_without_lines_reads, radius_reads;
+	/* REFERENCE-ADAPTER DIAGNOSTIC, never an acceptance rule: scenes whose host-declared presence (loaded, collider) differs from what the campaign's own loaded arrays imply
+	   (a scene has a main object; it has a collision object other than -1), and how many were compared. Taken at boot, before anything can poison the arrays. */
+	long presence_checked, presence_mismatches;
 };
 
 struct campaign_model_counters campaign_model_counts;
@@ -136,22 +146,47 @@ void campaign_model_install_scenes (void)
 		campaign_model_counts.scene++;
 #endif
 
-		if (!isfinite (reply.radius) || !all_finite (reply.bounding_box, 6) || !all_finite (reply.bounding_box_without_lines, 6) || (reply.collision_object < -1))
+		if (!isfinite (reply.radius) || !all_finite (reply.bounding_box, 6) || !all_finite (reply.bounding_box_without_lines, 6) ||
+			((reply.loaded != FALSE) && (reply.loaded != TRUE)) || ((reply.collider != FALSE) && (reply.collider != TRUE)) || (reply.collider && !reply.loaded) ||
+			(memchr (reply.name, '\0', sizeof (reply.name)) == NULL))
 		{
 			debug_fatal ("host model: [model-provider:scene.answer] the host's answer for scene %d is malformed", scene);
 		}
 
-		// the shape identity the campaign and the host share: the same scene index must mean the same model. Only the identity is compared; the physical
-		// values (radius, bounds, triangles) are the host's own and are never checked against the campaign's arrays.
-		if ((reply.main_object != objects_3d_scene_database[scene].index) || (reply.collision_object != objects_3d_scene_database[scene].collision_object_index))
+		// The public scene identity: the host and the campaign mean the same scene by the same index when the compiled scene name agrees (the invalid index 0 has none).
+		// The legacy loader's own object numbering is private and is neither asked for nor compared; the physical values are the host's own and are never checked
+		// against the campaign's arrays.
 		{
-			debug_fatal ("host model: [model-provider:catalogue.identity] scene %d is main object %d, collision object %d for the host but %d, %d for the campaign", scene, reply.main_object, reply.collision_object, objects_3d_scene_database[scene].index, objects_3d_scene_database[scene].collision_object_index);
+			const char
+				*expected = (object_3d_scene_names[scene]) ? object_3d_scene_names[scene] : "";
+
+			if (strcmp (reply.name, expected) != 0)
+			{
+				debug_fatal ("host model: [model-provider:catalogue.identity] scene %d is named \"%.60s\" by the host but \"%.60s\" by the campaign", scene, reply.name, expected);
+			}
+		}
+
+		// the null scene (the invalid index) is not a scene any host has: it is declared as the original's zeroed entry
+		if ((scene == 0) && (reply.loaded || reply.collider))
+		{
+			debug_fatal ("host model: [model-provider:scene.answer] the host declared the invalid scene index 0 loaded");
 		}
 
 		host_radius[scene] = reply.radius;
 		bounds_from (&host_bounding_box[scene], reply.bounding_box);
 		bounds_from (&host_bounding_box_without_lines[scene], reply.bounding_box_without_lines);
-		host_collision_object[scene] = reply.collision_object;
+		host_loaded[scene] = (unsigned char) reply.loaded;
+		host_collider[scene] = (unsigned char) reply.collider;
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+		// reference-adapter diagnostic only: does the host's declared presence agree with what the campaign's own loaded arrays imply? Counted, never enforced.
+		campaign_model_counts.presence_checked++;
+
+		if ((reply.loaded != (objects_3d_scene_database[scene].index != 0)) || (reply.collider != (reply.loaded && (objects_3d_scene_database[scene].collision_object_index != -1))))
+		{
+			campaign_model_counts.presence_mismatches++;
+		}
+#endif
 	}
 
 	tables_installed = TRUE;
@@ -236,10 +271,22 @@ int campaign_model_triangle (int scene, vec3d *points, int depth)
 	campaign_model_counts.triangle++;
 #endif
 
+	// The answer must agree with what the host itself declared about the scene at boot, BEFORE any word of the caller's buffer is written: a scene declared not loaded
+	// has nothing to answer (the original would have dereferenced a NULL surface list), FOUND and END need a collider, ABSENT needs a loaded scene without one.
+	if (!host_loaded[scene])
+	{
+		debug_fatal ("host model: [model-provider:triangle.answer] the host answered a triangle question for scene %d, which it declared not loaded", scene);
+	}
+
 	switch (reply.result)
 	{
 		case CAMPAIGN_MODEL_TRIANGLE_FOUND:
 		{
+			if (!host_collider[scene])
+			{
+				debug_fatal ("host model: [model-provider:triangle.answer] the host gave a triangle for scene %d, which it declared has no collider", scene);
+			}
+
 			if (!all_finite (reply.points, 9))
 			{
 				debug_fatal ("host model: [model-provider:triangle.answer] the host's triangle for scene %d depth %d is not finite", scene, depth);
@@ -264,10 +311,10 @@ int campaign_model_triangle (int scene, vec3d *points, int depth)
 		}
 		case CAMPAIGN_MODEL_TRIANGLE_END:
 		{
-			// a collision object is present and the list is over: the original's FALSE, the buffer untouched
-			if (host_collision_object[scene] == -1)
+			// a collider is present and the list is over: the original's FALSE, the buffer untouched
+			if (!host_collider[scene])
 			{
-				debug_fatal ("host model: [model-provider:triangle.answer] the host ended the triangles of scene %d, which its own catalogue says has no collision object", scene);
+				debug_fatal ("host model: [model-provider:triangle.answer] the host ended the triangles of scene %d, which it declared has no collider", scene);
 			}
 
 #ifdef EECH_MODEL_HOST_FIXTURE
@@ -278,10 +325,10 @@ int campaign_model_triangle (int scene, vec3d *points, int depth)
 		}
 		case CAMPAIGN_MODEL_TRIANGLE_ABSENT:
 		{
-			// the scene has no collision object: the original's FALSE without reading anything, the buffer untouched
-			if (host_collision_object[scene] != -1)
+			// the scene has no collider: the original's FALSE without reading anything, the buffer untouched
+			if (host_collider[scene])
 			{
-				debug_fatal ("host model: [model-provider:triangle.answer] the host answered that scene %d has no collision object, but its own catalogue gives it object %d", scene, host_collision_object[scene]);
+				debug_fatal ("host model: [model-provider:triangle.answer] the host answered that scene %d has no collider, but it declared one", scene);
 			}
 
 #ifdef EECH_MODEL_HOST_FIXTURE
@@ -302,8 +349,8 @@ int campaign_model_triangle (int scene, vec3d *points, int depth)
 #ifdef EECH_MODEL_HOST_FIXTURE
 // TEST-ONLY (feature model-host-fixture): overwrites every campaign-side array the four ORIGINAL accessors read, so that a read of any of them gives a visibly wrong
 // answer (NaN bounds and radius; a collision object index that is outside the object table). The campaign then runs on host answers alone: if an accessor, or code
-// that bypasses them, still read the arrays, its result would change. The shape identity the boot cross-check used (index, the scene links, the sub-object trees)
-// is left alone; it is hierarchy data, not an answer of the four accessors.
+// that bypasses them, still read the arrays, its result would change. The main object index, the scene links and the sub-object trees are left alone; they are
+// hierarchy data, not an answer of the four accessors.
 void campaign_model_poison_arrays (void)
 {
 	int

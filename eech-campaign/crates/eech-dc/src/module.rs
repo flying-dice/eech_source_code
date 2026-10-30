@@ -2263,22 +2263,115 @@ fn gunship(name: &str) -> LuaResult<Gunship> {
     }
 }
 
-// ---------------------------------------------------------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------------------------------------------
 // the host's model provider (EEDCS-50, D3; aphavoc/.../mb_hostmodel.h)
 
 /// The host's model provider as the campaign calls it: `model (op, scene, depth)`, with `op` one of
 ///
 ///   "catalogue"   no scene, no depth.  Returns `{ scenes = N }`: how many scene indices the host's models cover.
-///   "scene"       a scene index.  Returns `{ main = i, collision = i, radius = f, bb = {six}, bb2 = {six} }`: the main and collision object indices (-1: none), the radius,
-///                 the bounds `xmin xmax ymin ymax zmin zmax` and the bounds without lines (the ones the collision tests use).
-///   "triangle"    a scene index and a depth (never negative).  Returns `{ result = "triangle", p = {nine} }` (point 0 x y z, point 1, point 2), `{ result = "end" }` (a collision
-///                 object is present and the list is over at this depth), `{ result = "absent" }` (the scene has no collision object) or `{ result = "refused", reason = text }`
-///                 (the host cannot answer for this scene or depth).
+///   "scene"       a scene index.  Returns `{ name = text, loaded = bool, collider = bool, radius = f, bb = {six}, bb2 = {six} }`: the scene's compiled name (an echo that
+///                 host and campaign mean the same scene by the same index; empty for the invalid index 0), whether the host has a model for it, whether that model has a
+///                 collider (only a loaded scene has one), the radius, the bounds `xmin xmax ymin ymax zmin zmax` and the bounds without lines (the ones the collision
+///                 tests use).  Nothing of the legacy loader's private object numbering is part of it.
+///   "triangle"    a scene index and a depth (never negative).  Returns `{ result = "triangle", p = {nine} }` (point 0 x y z, point 1, point 2), `{ result = "end" }` (the
+///                 scene has a collider and the list is over at this depth), `{ result = "absent" }` (the scene is loaded and has no collider) or
+///                 `{ result = "refused", reason = text }` (the host cannot answer for this scene or depth).
 ///
-/// A float is the exact bit pattern as text (`"0x3f800000"`) or a finite Lua number (rounded to the nearest single-precision value); a list of six or nine floats is a
-/// table of them or a comma-separated string of bit patterns, exactly that long. "end" and "absent" are the original accessor's FALSE and are not errors; a "refused"
-/// answer, an error raised by the provider, a malformed answer, a non-finite number and an answer of the wrong kind stop the engine with the provider's marker
-/// `[model-provider:<marker>]` in the message. The provider is called synchronously, outside nothing of the campaign's state, and its answers are never cached here.
+/// A float is a finite Lua number (rounded to the nearest single-precision value) or the exact bit pattern as text (`"0x3f800000"`, ten bytes). A list of six or nine floats is
+/// EITHER a table holding exactly the numbers 1..N (a number at every index, nothing at N+1 and no key outside 1..N) OR a text of exactly N bit patterns separated by single
+/// commas (`11 * N - 1` bytes); anything else is refused before any of it is parsed or allocated. "end" and "absent" are the original accessor's FALSE and are not errors; a
+/// "refused" answer, an error raised by the provider, a malformed answer, a non-finite number and an answer of the wrong kind stop the engine with the provider's marker
+/// `[model-provider:<marker>]` in the message. The provider is called synchronously and its answers are never cached here.
+///
+/// EXACT NUMBERS. mlua turns any Lua number within `f64::EPSILON` of an integer into an integer (the patched Lua 5.1 `lua_isinteger`), so a tiny or subnormal value read as a
+/// `LuaValue` would arrive as 0 and a negative zero would lose its sign. No physical number, and no whole number the campaign checks, is therefore read as a `LuaValue`: the
+/// bridge below is a Lua function that reads every field of the answer ONCE (a stateful getter is not asked twice), checks its raw Lua type, and hands Rust text: the number
+/// formatted at 17 significant digits (an exact image of the double, -0 and subnormals included) which `nearest_f32` narrows, or the bit-pattern text. This is the protected
+/// pattern `exact_numbers` uses for the poses: nothing longjmps across Rust, and the caller's floating-point state is not touched (parsing and narrowing are integer and
+/// `nearest_f32` arithmetic that does not depend on the rounding mode).
+const MODEL_BRIDGE: &str = r#"
+local provider = ...
+local floor, huge, format, concat, next, type, find = math.floor, math.huge, string.format, table.concat, next, type, string.find
+
+local function finite(x) return type(x) == 'number' and x == x and x ~= huge and x ~= -huge end
+
+-- one scalar: a finite number, or exactly one bit pattern
+local function scalar(v)
+	if type(v) == 'number' then
+		if not finite(v) then return nil, 'is not finite' end
+		return 'n:' .. format('%.17g', v)
+	elseif type(v) == 'string' then
+		if #v ~= 10 then return nil, 'text must be one bit pattern, 0x and eight hexadecimal digits' end
+		return 's:' .. v
+	end
+	return nil, 'must be a number or a bit pattern, got ' .. type(v)
+end
+
+-- exactly n floats: a table of the numbers 1..n and nothing else, or n bit patterns separated by single commas
+local function list(v, n)
+	local kind = type(v)
+	if kind == 'string' then
+		if #v ~= 11 * n - 1 then return nil, 'text must be exactly ' .. n .. ' bit patterns separated by commas' end
+		return 's:' .. v
+	elseif kind == 'table' then
+		local out = {}
+		for i = 1, n do
+			local x = v[i]
+			if not finite(x) then return nil, 'element ' .. i .. ' is not a finite number' end
+			out[i] = format('%.17g', x)
+		end
+		if v[n + 1] ~= nil then return nil, 'has more than ' .. n .. ' numbers' end
+		local seen = 0
+		for k in next, v do
+			seen = seen + 1
+			if seen > n or type(k) ~= 'number' or k < 1 or k > n or k ~= floor(k) then return nil, 'has a key outside 1..' .. n end
+		end
+		return 'n:' .. concat(out, ' ')
+	end
+	return nil, 'must be a table of ' .. n .. ' numbers or a text of ' .. n .. ' bit patterns, got ' .. kind
+end
+
+local function whole(v)
+	if not finite(v) or v ~= floor(v) or v < 0 or v > 2147483647 then return nil end
+	return format('%d', v)
+end
+
+return function(op, scene, depth)
+	local a = provider(op, scene, depth)
+	if type(a) ~= 'table' then return nil, 'the provider returned ' .. type(a) .. ' instead of a table' end
+	if op == 'catalogue' then
+		local scenes = whole(a.scenes)
+		if not scenes then return nil, 'scenes must be a whole number within 0..2147483647' end
+		return 'catalogue', scenes
+	elseif op == 'scene' then
+		local name, loaded, collider, radius, bb, bb2 = a.name, a.loaded, a.collider, a.radius, a.bb, a.bb2
+		if type(name) ~= 'string' or #name > 127 or find(name, '\0', 1, true) then return nil, 'name must be text of at most 127 bytes without a NUL' end
+		if type(loaded) ~= 'boolean' then return nil, 'loaded must be a boolean' end
+		if type(collider) ~= 'boolean' then return nil, 'collider must be a boolean' end
+		local r, why = scalar(radius)
+		if not r then return nil, 'radius ' .. why end
+		local b, why1 = list(bb, 6)
+		if not b then return nil, 'bb ' .. why1 end
+		local b2, why2 = list(bb2, 6)
+		if not b2 then return nil, 'bb2 ' .. why2 end
+		return 'scene', name, loaded and '1' or '0', collider and '1' or '0', r, b, b2
+	end
+	local result = a.result
+	if result == 'triangle' then
+		local p, why = list(a.p, 9)
+		if not p then return nil, 'p ' .. why end
+		return 'triangle', p
+	elseif result == 'end' or result == 'absent' then
+		return result
+	elseif result == 'refused' then
+		local reason = a.reason
+		return 'refused', type(reason) == 'string' and reason:sub(1, 200) or ''
+	end
+	return nil, 'result must be triangle, end, absent or refused'
+end
+"#;
+
+/// One bit pattern (`0x` and eight hexadecimal digits) as the finite float it names.
 fn model_hex(text: &str, what: &str, operation: &str) -> Result<f32, String> {
     let malformed = |why: &str| format!("[model-provider:{operation}.answer] {what}: {why}");
     let digits = text
@@ -2294,135 +2387,91 @@ fn model_hex(text: &str, what: &str, operation: &str) -> Result<f32, String> {
     }
 }
 
-fn model_f32(value: &LuaValue, what: &str, operation: &str) -> Result<f32, String> {
+/// Exactly N floats from the bridge's text for a list: `n:` and N numbers at 17 digits separated by spaces, or `s:` and N bit patterns separated by commas. Nothing is
+/// collected: the N slots are filled one token at a time and a further token is an error, so no input can make this allocate more than N floats.
+fn bridged_floats<const N: usize>(pair: &str, what: &str, operation: &str) -> Result<[f32; N], String> {
     let malformed = |why: &str| format!("[model-provider:{operation}.answer] {what}: {why}");
-    match value {
-        LuaValue::String(text) => model_hex(&text.to_str().map_err(|_| malformed("not UTF-8"))?, what, operation),
-        LuaValue::Integer(number) => nearest_f32(*number as f64).ok_or_else(|| malformed("beyond the single-precision range")),
-        LuaValue::Number(number) => nearest_f32(*number).ok_or_else(|| malformed("not finite or beyond the single-precision range")),
-        other => Err(malformed(&format!("a number was expected, got {}", other.type_name()))),
-    }
-}
-
-/// exactly N floats from `table[field]`: a table of N numbers or a comma-separated string of N bit patterns
-fn model_floats<const N: usize>(table: &LuaTable, field: &str, operation: &str) -> Result<[f32; N], String> {
-    let value = table
-        .get::<LuaValue>(field)
-        .map_err(|e| format!("[model-provider:{operation}.answer] {field}: {e}"))?;
-    let floats: Vec<f32> = match value {
-        LuaValue::String(text) => text
-            .to_str()
-            .map_err(|_| format!("[model-provider:{operation}.answer] {field} is not UTF-8"))?
-            .split(',')
-            .map(|part| model_hex(part.trim(), field, operation))
-            .collect::<Result<_, String>>()?,
-        LuaValue::Table(list) => {
-            let mut floats = Vec::new();
-            // one past N, to see that the list is not longer
-            for index in 1..=N + 1 {
-                match list
-                    .get::<LuaValue>(index)
-                    .map_err(|e| format!("[model-provider:{operation}.answer] {field}: {e}"))?
-                {
-                    LuaValue::Nil => break,
-                    item => floats.push(model_f32(&item, field, operation)?),
-                }
+    let mut out = [0.0_f32; N];
+    match pair.split_once(':') {
+        Some(("n", numbers)) => {
+            let mut tokens = numbers.split(' ');
+            for slot in out.iter_mut() {
+                let value = tokens
+                    .next()
+                    .and_then(|token| token.parse::<f64>().ok())
+                    .ok_or_else(|| malformed("the bridge's numbers are malformed"))?;
+                *slot = nearest_f32(value).ok_or_else(|| malformed("a number is beyond the single-precision range"))?;
             }
-            floats
+            if tokens.next().is_some() {
+                return Err(malformed("more numbers than expected"));
+            }
         }
-        LuaValue::Nil => return Err(format!("[model-provider:{operation}.answer] the answer has no {field}")),
-        other => {
-            return Err(format!(
-                "[model-provider:{operation}.answer] {field} is {}, not a table or a text of bit patterns",
-                other.type_name()
-            ))
+        Some(("s", patterns)) => {
+            let mut parts = patterns.split(',');
+            for slot in out.iter_mut() {
+                *slot = model_hex(parts.next().ok_or_else(|| malformed("too few bit patterns"))?, what, operation)?;
+            }
+            if parts.next().is_some() {
+                return Err(malformed("more bit patterns than expected"));
+            }
         }
-    };
-    <[f32; N]>::try_from(floats.as_slice()).map_err(|_| format!("[model-provider:{operation}.answer] {field} has {} numbers, not {N}", floats.len()))
-}
-
-fn model_i32(table: &LuaTable, field: &str, operation: &str) -> Result<i32, String> {
-    match table
-        .get::<LuaValue>(field)
-        .map_err(|e| format!("[model-provider:{operation}.answer] {field}: {e}"))?
-    {
-        LuaValue::Integer(number) => i32::try_from(number).map_err(|_| format!("[model-provider:{operation}.answer] {field} is out of range")),
-        LuaValue::Number(number) if number.is_finite() && number.fract() == 0.0 && number.abs() <= f64::from(i32::MAX) => Ok(number as i32),
-        LuaValue::Nil => Err(format!("[model-provider:{operation}.answer] the answer has no {field}")),
-        other => Err(format!(
-            "[model-provider:{operation}.answer] {field} must be a whole number, got {}",
-            other.type_name()
-        )),
+        _ => return Err(malformed("the bridge's list is malformed")),
     }
+    Ok(out)
 }
 
-fn call_model(function: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, String> {
+/// One float from the bridge's text for a scalar (a list of one).
+fn bridged_float(pair: &str, what: &str, operation: &str) -> Result<f32, String> {
+    bridged_floats::<1>(pair, what, operation).map(|[value]| value)
+}
+
+fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, String> {
     let (operation, scene, depth) = match query {
         ModelQuery::Catalogue => ("catalogue", None, None),
         ModelQuery::Scene { scene } => ("scene", Some(scene), None),
         ModelQuery::Triangle { scene, depth } => ("triangle", Some(scene), Some(depth)),
     };
-    let result: LuaValue = function
+    type Reply = (Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>, Option<String>);
+    let (tag, a, b, c, d, e, f): Reply = bridge
         .call((operation, scene, depth))
         .map_err(|error| format!("[model-provider:{operation}.callback] {error}"))?;
-    let LuaValue::Table(answer) = result else {
-        return Err(format!(
-            "[model-provider:{operation}.answer] the provider returned {} instead of a table",
-            result.type_name()
-        ));
+    let Some(tag) = tag else {
+        return Err(format!("[model-provider:{operation}.answer] {}", a.unwrap_or_else(|| "the provider's answer is malformed".to_string())));
     };
-    match query {
-        ModelQuery::Catalogue => Ok(ModelAnswer::Catalogue {
-            scenes: model_i32(&answer, "scenes", operation)?,
-        }),
-        ModelQuery::Scene { .. } => {
-            let radius = answer
-                .get::<LuaValue>("radius")
-                .map_err(|e| format!("[model-provider:scene.answer] radius: {e}"))?;
-            Ok(ModelAnswer::Scene(ModelScene {
-                main_object: model_i32(&answer, "main", operation)?,
-                collision_object: model_i32(&answer, "collision", operation)?,
-                radius: model_f32(&radius, "radius", operation)?,
-                bounding_box: model_floats::<6>(&answer, "bb", operation)?,
-                bounding_box_without_lines: model_floats::<6>(&answer, "bb2", operation)?,
-            }))
+    let missing = || format!("[model-provider:{operation}.answer] the bridge returned an incomplete answer");
+    match (query, tag.as_str()) {
+        (ModelQuery::Catalogue, "catalogue") => {
+            let scenes = a.ok_or_else(missing)?.parse::<i32>().map_err(|_| format!("[model-provider:{operation}.answer] scenes is out of range"))?;
+            Ok(ModelAnswer::Catalogue { scenes })
         }
-        ModelQuery::Triangle { .. } => {
-            let kind = match answer
-                .get::<LuaValue>("result")
-                .map_err(|e| format!("[model-provider:triangle.answer] result: {e}"))?
-            {
-                LuaValue::String(text) => text
-                    .to_str()
-                    .map(|text| (*text).to_string())
-                    .map_err(|_| "[model-provider:triangle.answer] result is not UTF-8".to_string())?,
-                other => return Err(format!("[model-provider:triangle.answer] result must be text, got {}", other.type_name())),
-            };
-            match kind.as_str() {
-                "triangle" => Ok(ModelAnswer::Triangle(ModelTriangle::Found(model_floats::<9>(&answer, "p", operation)?))),
-                "end" => Ok(ModelAnswer::Triangle(ModelTriangle::End)),
-                "absent" => Ok(ModelAnswer::Triangle(ModelTriangle::Absent)),
-                "refused" => {
-                    let reason = match answer.get::<LuaValue>("reason") {
-                        Ok(LuaValue::String(text)) => text.to_str().map(|text| (*text).to_string()).unwrap_or_default(),
-                        _ => String::new(),
-                    };
-                    Err(format!(
-                        "[model-provider:triangle.refused] the host cannot answer for scene {} depth {}: {reason}",
-                        scene.unwrap_or(-1),
-                        depth.unwrap_or(-1)
-                    ))
-                }
-                other => Err(format!(
-                    "[model-provider:triangle.answer] result {other:?} is not triangle, end, absent or refused"
-                )),
-            }
-        }
+        (ModelQuery::Scene { .. }, "scene") => Ok(ModelAnswer::Scene(ModelScene {
+            name: a.ok_or_else(missing)?,
+            loaded: b.ok_or_else(missing)? == "1",
+            collider: c.ok_or_else(missing)? == "1",
+            radius: bridged_float(&d.ok_or_else(missing)?, "radius", operation)?,
+            bounding_box: bridged_floats::<6>(&e.ok_or_else(missing)?, "bb", operation)?,
+            bounding_box_without_lines: bridged_floats::<6>(&f.ok_or_else(missing)?, "bb2", operation)?,
+        })),
+        (ModelQuery::Triangle { .. }, "triangle") => Ok(ModelAnswer::Triangle(ModelTriangle::Found(bridged_floats::<9>(
+            &a.ok_or_else(missing)?,
+            "p",
+            operation,
+        )?))),
+        (ModelQuery::Triangle { .. }, "end") => Ok(ModelAnswer::Triangle(ModelTriangle::End)),
+        (ModelQuery::Triangle { .. }, "absent") => Ok(ModelAnswer::Triangle(ModelTriangle::Absent)),
+        (ModelQuery::Triangle { scene, depth }, "refused") => Err(format!(
+            "[model-provider:triangle.refused] the host cannot answer for scene {scene} depth {depth}: {}",
+            a.unwrap_or_default()
+        )),
+        (_, other) => Err(format!("[model-provider:{operation}.answer] the bridge answered a {operation} question with {other:?}")),
     }
 }
 
-fn model_provider(function: LuaFunction) -> ModelProvider {
-    Box::new(move |query| call_model(&function, query))
+/// The provider as the engine keeps it: the Lua bridge around the host's function, built once at boot (so nothing needs a Lua handle afterwards).
+fn model_provider(lua: &Lua, function: LuaFunction) -> LuaResult<ModelProvider> {
+    let build: LuaFunction = lua.load(MODEL_BRIDGE).set_name("eech model bridge").into_function()?;
+    let bridge: LuaFunction = build.call(function)?;
+    Ok(Box::new(move |query| call_model(&bridge, query)))
 }
 
 fn boot(lua: &Lua, config: LuaTable) -> LuaResult<LuaEngine> {
@@ -2464,7 +2513,7 @@ fn boot(lua: &Lua, config: LuaTable) -> LuaResult<LuaEngine> {
     // EEDCS-50 (D3): the host owns the physical models and the campaign has no model arrays of its own to fall back to, so the provider is required, and a boot without
     // one is refused here by name. (The original-characterisation build, feature model-fixture, keeps the original accessors on purpose, asks no host and installs none.)
     let model = match config.get::<LuaValue>("model")? {
-        LuaValue::Function(function) => Some(model_provider(function)),
+        LuaValue::Function(function) => Some(model_provider(lua, function)?),
         LuaValue::Nil if cfg!(feature = "model-fixture") => None,
         LuaValue::Nil => return Err(LuaError::runtime(
             "eech: [model-provider:missing] boot was given no model provider; the host supplies the physical models (catalogue, scenes, collision triangles)",
@@ -3073,6 +3122,282 @@ mod tests {
         // a mode that carries no bits still reads an absent answer as 0
         let table = answer(&lua, "motion_vector = {0, 0, 0}")?;
         assert_eq!(read_move_result(&lua, MovementMode::GvImpact, &table)?.flags, 0);
+        Ok(())
+    }
+
+    // ---- the host's model provider (EEDCS-50, D3): the REAL Lua bridge, with numbers, text and stateful getters, under the engine's round-toward-zero ----
+
+    type Test = Result<(), Box<dyn std::error::Error>>;
+
+    /// the provider the engine keeps for a host function written in Lua: `source` evaluates to the function `model (op, scene, depth)`
+    fn model_under_test(lua: &Lua, source: &str) -> Result<ModelProvider, Box<dyn std::error::Error>> {
+        let function: LuaFunction = lua.load(source).eval()?;
+        Ok(model_provider(lua, function)?)
+    }
+
+    /// one question, asked under round-toward-zero as the engine's callback runs it; the code under test must leave the mode as it found it
+    fn ask(provider: &mut ModelProvider, query: ModelQuery) -> Result<ModelAnswer, String> {
+        let (answer, kept) = eech_engine::under_round_toward_zero(|| provider(query));
+        assert!(kept, "the provider changed the rounding mode");
+        answer
+    }
+
+    fn bits<const N: usize>(values: [f32; N]) -> [u32; N] {
+        values.map(f32::to_bits)
+    }
+
+    const SIX_ZEROS: &str = "0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000";
+    const NINE_ZEROS: &str = "0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000";
+
+    #[test]
+    fn a_scene_answer_keeps_tiny_subnormal_and_negative_zero_numbers_exactly() -> Test {
+        let lua = Lua::new();
+        // 1e-20 is within f64::EPSILON of 0, so a LuaValue read would call it the integer 0; 1e-45 and 5e-324 are subnormal; -zero is negative zero
+        let mut provider = model_under_test(
+            &lua,
+            "local zero = 0
+             return function (op, scene, depth)
+               return { name = 'AH64D_APACHE_LONGBOW', loaded = true, collider = false, radius = -zero,
+                        bb = { 1e-20, -1e-20, 1e-45, -1e-45, 5e-324, -5e-324 }, bb2 = { -zero, zero, 0.1, -0.1, 3.0e38, -3.0e38 } }
+             end",
+        )?;
+        let ModelAnswer::Scene(scene) = ask(&mut provider, ModelQuery::Scene { scene: 1 })? else {
+            return Err("not a scene".into());
+        };
+        assert_eq!(scene.name, "AH64D_APACHE_LONGBOW");
+        assert!(scene.loaded && !scene.collider);
+        assert_eq!(scene.radius.to_bits(), (-0.0_f32).to_bits(), "negative zero kept its sign");
+        assert_eq!(bits(scene.bounding_box), bits([1.0e-20_f32, -1.0e-20, 1.0e-45, -1.0e-45, 0.0, -0.0]));
+        assert_eq!(bits(scene.bounding_box_without_lines), bits([-0.0_f32, 0.0, 0.1, -0.1, 3.0e38, -3.0e38]));
+        Ok(())
+    }
+
+    #[test]
+    fn bit_patterns_are_exact_and_a_non_finite_number_or_pattern_is_refused() -> Test {
+        let lua = Lua::new();
+        let mut provider = model_under_test(
+            &lua,
+            &format!(
+                "return function (op, scene, depth)
+                   if op == 'catalogue' then return {{ scenes = 3026 }} end
+                   if op == 'scene' then
+                     local radius = ({{ [1] = '0x80000001', [2] = '0x7fc00000', [3] = 0/0, [4] = 1/0, [5] = '0X3f800000' }})[scene]
+                     return {{ name = '', loaded = false, collider = false, radius = radius, bb = '{SIX_ZEROS}', bb2 = '{SIX_ZEROS}' }}
+                   end
+                 end"
+            ),
+        )?;
+        let ModelAnswer::Scene(scene) = ask(&mut provider, ModelQuery::Scene { scene: 1 })? else {
+            return Err("not a scene".into());
+        };
+        assert_eq!(scene.radius.to_bits(), 0x8000_0001, "a subnormal bit pattern is exact");
+        assert_eq!(bits(scene.bounding_box), [0; 6]);
+        for scene in 2..=5 {
+            let error = ask(&mut provider, ModelQuery::Scene { scene }).err().ok_or("accepted")?;
+            assert!(error.contains("[model-provider:scene.answer] radius"), "scene {scene}: {error}");
+        }
+        assert_eq!(ask(&mut provider, ModelQuery::Catalogue)?, ModelAnswer::Catalogue { scenes: 3026 });
+        Ok(())
+    }
+
+
+    /// the nine floats 1.0 to 9.0 as bit patterns
+    const ONE_TO_NINE: &str = "0x3f800000,0x40000000,0x40400000,0x40800000,0x40a00000,0x40c00000,0x40e00000,0x41000000,0x41100000";
+
+    #[test]
+    fn a_triangle_is_a_table_or_a_text_of_exactly_nine_and_nothing_longer_or_sparser() -> Test {
+        let lua = Lua::new();
+        // (accepted, name), in the order of the Lua table below; the depth the bridge passes through picks the case
+        let expect: [(bool, &str); 20] = [
+            (true, "exact table"),
+            (true, "exact text"),
+            (false, "one extra at 10"),
+            (false, "extra at 11 after a hole at 10"),
+            (false, "extra at 1000"),
+            (false, "a string key"),
+            (false, "a key 0"),
+            (false, "eight numbers"),
+            (false, "a hole at 6"),
+            (false, "ten patterns of text"),
+            (false, "six patterns of text"),
+            (false, "patterns separated by comma and space"),
+            (false, "a hundred thousand patterns of text"),
+            (false, "a NaN element"),
+            (false, "a bit pattern inside a table"),
+            (false, "a boolean"),
+            (false, "no p"),
+            (false, "the right length with semicolons"),
+            (true, "upper-case digits"),
+            (false, "an infinity pattern"),
+        ];
+        let mut provider = model_under_test(
+            &lua,
+            &format!(
+                "local cases = {{
+                   {{ result = 'triangle', p = {{ 1, 2, 3, 4, 5, 6, 7, 8, 9 }} }},
+                   {{ result = 'triangle', p = '{ONE_TO_NINE}' }},
+                   {{ result = 'triangle', p = {{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }} }},
+                   {{ result = 'triangle', p = {{ 1, 2, 3, 4, 5, 6, 7, 8, 9, [11] = 11 }} }},
+                   {{ result = 'triangle', p = {{ 1, 2, 3, 4, 5, 6, 7, 8, 9, [1000] = 1 }} }},
+                   {{ result = 'triangle', p = {{ 1, 2, 3, 4, 5, 6, 7, 8, 9, extra = 1 }} }},
+                   {{ result = 'triangle', p = {{ 1, 2, 3, 4, 5, 6, 7, 8, 9, [0] = 1 }} }},
+                   {{ result = 'triangle', p = {{ 1, 2, 3, 4, 5, 6, 7, 8 }} }},
+                   {{ result = 'triangle', p = {{ 1, 2, 3, 4, 5, nil, 7, 8, 9 }} }},
+                   {{ result = 'triangle', p = '{ONE_TO_NINE},0x41200000' }},
+                   {{ result = 'triangle', p = '{SIX_ZEROS}' }},
+                   {{ result = 'triangle', p = string.gsub('{ONE_TO_NINE}', ',', ', ') }},
+                   {{ result = 'triangle', p = string.rep('0x00000000,', 100000) }},
+                   {{ result = 'triangle', p = {{ 1, 2, 3, 4, 5, 6, 7, 8, 0/0 }} }},
+                   {{ result = 'triangle', p = {{ 1, 2, 3, 4, 5, 6, 7, 8, '0x3f800000' }} }},
+                   {{ result = 'triangle', p = true }},
+                   {{ result = 'triangle' }},
+                   {{ result = 'triangle', p = string.gsub('{ONE_TO_NINE}', ',', ';') }},
+                   {{ result = 'triangle', p = '0x3F800000,0x40000000,0x40400000,0x40800000,0x40A00000,0x40C00000,0x40E00000,0x41000000,0x41100000' }},
+                   {{ result = 'triangle', p = '0x7f800000,0x40000000,0x40400000,0x40800000,0x40a00000,0x40c00000,0x40e00000,0x41000000,0x41100000' }},
+                 }}
+                 return function (op, scene, depth) return (cases[depth + 1]) end"
+            ),
+        )?;
+        let mut first_two = Vec::new();
+        for (depth, (accepted, name)) in expect.iter().enumerate() {
+            let answer = ask(&mut provider, ModelQuery::Triangle { scene: 1, depth: depth as i32 });
+            match (accepted, answer) {
+                (true, Ok(ModelAnswer::Triangle(ModelTriangle::Found(points)))) => {
+                    assert_eq!(bits(points), bits([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]), "{name}");
+                    first_two.push(points);
+                }
+                (false, Err(error)) => assert!(error.contains("[model-provider:triangle.answer]"), "{name}: {error}"),
+                (accepted, other) => return Err(format!("{name}: accepted={accepted} but the bridge gave {other:?}").into()),
+            }
+        }
+        assert_eq!(first_two.len(), 3, "the table, the text and the upper-case text");
+        Ok(())
+    }
+
+    #[test]
+    fn every_field_of_an_answer_is_read_from_a_stateful_getter_exactly_once() -> Test {
+        let lua = Lua::new();
+        let mut provider = model_under_test(
+            &lua,
+            &format!(
+                "READS = {{}}
+                 local function counted (t, tag)
+                   return setmetatable({{}}, {{ __index = function (_, k) local key = tag .. tostring (k); READS[key] = (READS[key] or 0) + 1; return t[k] end }})
+                 end
+                 return function (op, scene, depth)
+                   READS = {{}}
+                   if op == 'triangle' then
+                     return counted ({{ result = 'triangle', p = counted ({{ 1, 2, 3, 4, 5, 6, 7, 8, 9 }}, 'p') }}, 'a.')
+                   end
+                   return counted ({{ name = 'X', loaded = true, collider = true, radius = 2.5, bb = counted ({{ 1, 2, 3, 4, 5, 6 }}, 'bb'), bb2 = '{SIX_ZEROS}' }}, 'a.')
+                 end"
+            ),
+        )?;
+        let reads = |lua: &Lua| -> Result<Vec<(String, i64)>, Box<dyn std::error::Error>> {
+            let table: LuaTable = lua.globals().get("READS")?;
+            let mut all = Vec::new();
+            for pair in table.pairs::<String, i64>() {
+                all.push(pair?);
+            }
+            all.sort();
+            Ok(all)
+        };
+        ask(&mut provider, ModelQuery::Triangle { scene: 1, depth: 0 })?;
+        let triangle = reads(&lua)?;
+        // result, p, and p[1..9] plus p[10] (the bound on the list): each read once, nothing else read
+        let names: Vec<&str> = triangle.iter().map(|(k, _)| k.as_str()).collect();
+        assert_eq!(triangle.len(), 12, "{triangle:?}");
+        assert!(triangle.iter().all(|(_, n)| *n == 1), "{triangle:?}");
+        assert!(names.contains(&"a.result") && names.contains(&"a.p") && names.contains(&"p10"), "{names:?}");
+        ask(&mut provider, ModelQuery::Scene { scene: 1 })?;
+        let scene = reads(&lua)?;
+        assert!(scene.iter().all(|(_, n)| *n == 1), "{scene:?}");
+        for field in ["a.name", "a.loaded", "a.collider", "a.radius", "a.bb", "a.bb2", "bb7"] {
+            assert!(scene.iter().any(|(k, _)| k == field), "{field} was not read: {scene:?}");
+        }
+        assert_eq!(scene.len(), 6 + 6 + 1, "{scene:?}");
+        Ok(())
+    }
+
+    #[test]
+    fn the_whole_numbers_and_the_declarations_of_an_answer_reject_what_is_not_exactly_what_they_name() -> Test {
+        let lua = Lua::new();
+        // the catalogue count: a whole number only (1e-20 is within EPSILON of 0 and must not become the integer 0)
+        let mut provider = model_under_test(
+            &lua,
+            "local cases = { { scenes = 3026 }, { scenes = 1e-20 }, { scenes = 3026.5 }, { scenes = -1 }, { scenes = 2^31 }, { scenes = '3026' }, { scenes = 0/0 }, {}, { scenes = 0 } }
+             local i = 0
+             return function () i = i + 1; return cases[i] end",
+        )?;
+        let accepted = [true, false, false, false, false, false, false, false, true];
+        for (index, accepted) in accepted.iter().enumerate() {
+            let answer = ask(&mut provider, ModelQuery::Catalogue);
+            match (accepted, answer) {
+                (true, Ok(ModelAnswer::Catalogue { .. })) => {}
+                (false, Err(error)) => assert!(error.contains("[model-provider:catalogue.answer]"), "case {index}: {error}"),
+                (accepted, other) => return Err(format!("case {index}: accepted={accepted} but the bridge gave {other:?}").into()),
+            }
+        }
+        // the scene declarations
+        let mut provider = model_under_test(
+            &lua,
+            &format!(
+                "local function scene (over)
+                   local t = {{ name = 'X', loaded = true, collider = false, radius = 1, bb = '{SIX_ZEROS}', bb2 = '{SIX_ZEROS}' }}
+                   for k, v in pairs (over) do t[k] = v end
+                   if over.drop then t[over.drop] = nil end
+                   return t
+                 end
+                 local cases = {{ scene {{}}, scene {{ name = string.rep ('N', 127) }}, scene {{ name = string.rep ('N', 128) }}, scene {{ name = 'A\\0B' }}, scene {{ name = 1 }},
+                   scene {{ loaded = 1 }}, scene {{ collider = 'yes' }}, scene {{ drop = 'loaded' }}, scene {{ radius = {{}} }}, scene {{ radius = '0x1' }}, scene {{ drop = 'bb' }},
+                   scene {{ bb2 = '{NINE_ZEROS}' }}, scene {{ bb = {{ 1, 2, 3, 4, 5 }} }} }}
+                 local i = 0
+                 return function () i = i + 1; return cases[i] end"
+            ),
+        )?;
+        let accepted = [true, true, false, false, false, false, false, false, false, false, false, false, false];
+        for (index, accepted) in accepted.iter().enumerate() {
+            let answer = ask(&mut provider, ModelQuery::Scene { scene: 1 });
+            match (accepted, answer) {
+                (true, Ok(ModelAnswer::Scene(_))) => {}
+                (false, Err(error)) => assert!(error.contains("[model-provider:scene.answer]"), "case {index}: {error}"),
+                (accepted, other) => return Err(format!("case {index}: accepted={accepted} but the bridge gave {other:?}").into()),
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn the_kinds_of_triangle_answer_and_the_failures_of_the_provider_are_each_named() -> Test {
+        let lua = Lua::new();
+        let mut provider = model_under_test(
+            &lua,
+            "local cases = { { result = 'end' }, { result = 'absent' }, { result = 'refused', reason = 'no such model' }, { result = 'maybe' }, {}, { result = 7 }, 'nothing', 42 }
+             local i = 0
+             return function (op, scene, depth)
+               i = i + 1
+               if i == 9 then error ('the host fell over') end
+               if i == 10 then return nil end
+               return cases[i]
+             end",
+        )?;
+        let query = ModelQuery::Triangle { scene: 7, depth: 3 };
+        assert_eq!(ask(&mut provider, query)?, ModelAnswer::Triangle(ModelTriangle::End));
+        assert_eq!(ask(&mut provider, query)?, ModelAnswer::Triangle(ModelTriangle::Absent));
+        let refused = ask(&mut provider, query).err().ok_or("accepted")?;
+        assert!(refused.contains("[model-provider:triangle.refused]") && refused.contains("scene 7 depth 3") && refused.contains("no such model"), "{refused}");
+        for _ in 0..3 {
+            let error = ask(&mut provider, query).err().ok_or("accepted")?;
+            assert!(error.contains("[model-provider:triangle.answer]"), "{error}");
+        }
+        for _ in 0..2 {
+            let error = ask(&mut provider, query).err().ok_or("accepted")?;
+            assert!(error.contains("[model-provider:triangle.answer]") && error.contains("instead of a table"), "{error}");
+        }
+        let error = ask(&mut provider, query).err().ok_or("accepted")?;
+        assert!(error.contains("[model-provider:triangle.callback]") && error.contains("the host fell over"), "{error}");
+        let error = ask(&mut provider, query).err().ok_or("accepted")?;
+        assert!(error.contains("[model-provider:triangle.answer]") && error.contains("instead of a table"), "{error}");
         Ok(())
     }
 }

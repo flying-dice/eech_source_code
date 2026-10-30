@@ -211,19 +211,30 @@ fn model_answer(lua: &Lua, store: &ModelStore, operation: &str, scene: Option<i6
             if depth.is_some() {
                 return Err(fail("a scene question has no depth".into()));
             }
+            // The public answer is the scene's compiled name, whether the host has a model for it, whether that model has a collider, and the physical numbers; nothing of the
+            // legacy loader's private object numbering is part of the contract (the campaign neither asks for it nor compares it). The reference adapter adds the store's own
+            // main and collision object numbers as `reference_main` and `reference_collision` for its diagnostics and for scripts that want to cross-check this store
+            // against the campaign; the module ignores them.
             if scene == 0 {
-                table.set("main", 0)?;
-                table.set("collision", 0)?;
+                table.set("name", "")?;
+                table.set("loaded", false)?;
+                table.set("collider", false)?;
                 table.set("radius", "0x00000000")?;
                 table.set("bb", hex_list(&[0; 6]))?;
                 table.set("bb2", hex_list(&[0; 6]))?;
+                table.set("reference_main", 0)?;
+                table.set("reference_collision", 0)?;
             } else {
                 let view = store.scene(scene).map_err(|e| fail(e.to_string()))?;
-                table.set("main", view.main)?;
-                table.set("collision", view.collision)?;
+                table.set("name", view.name)?;
+                table.set("loaded", view.loaded)?;
+                // a loaded scene has a collider unless the store knows it as the original's -1 (the null collision object is a collider the host cannot answer for)
+                table.set("collider", view.loaded && view.collision != -1)?;
                 table.set("radius", format!("0x{:08x}", view.radius))?;
                 table.set("bb", hex_list(&view.bounding_box))?;
                 table.set("bb2", hex_list(&view.bounding_box2))?;
+                table.set("reference_main", view.main)?;
+                table.set("reference_collision", view.collision)?;
             }
         }
         "triangle" => {
@@ -236,6 +247,29 @@ fn model_answer(lua: &Lua, store: &ModelStore, operation: &str, scene: Option<i6
     Ok(table)
 }
 
+/// The requests of the provider, checked as Lua holds them. mlua turns a Lua number within `f64::EPSILON` of an integer into that integer (the patched Lua 5.1
+/// `lua_isinteger`), so a request of `1e-20` would reach `provider_number` as the integer 0. A scene or depth must be exactly a whole number, and this Lua wrapper, which sees the
+/// raw value once, refuses anything else by name before the Rust function is called. The engine's own requests are always genuine integers.
+const STRICT_REQUEST: &str = r#"
+local inner = ...
+local floor, huge = math.floor, math.huge
+local function whole(v, name, op)
+	if v ~= nil and (type(v) ~= 'number' or v ~= v or v == huge or v == -huge or v ~= floor(v)) then
+		error('[model-provider:' .. tostring(op) .. '.request] ' .. name .. ' must be a whole number', 0)
+	end
+end
+return function(op, scene, depth)
+	whole(scene, 'scene', op)
+	whole(depth, 'depth', op)
+	return inner(op, scene, depth)
+end
+"#;
+
+fn strict(lua: &Lua, inner: LuaFunction) -> LuaResult<LuaFunction> {
+    let build: LuaFunction = lua.load(STRICT_REQUEST).set_name("eech model request check").into_function()?;
+    build.call(inner)
+}
+
 pub fn register(lua: &Lua, host: &LuaTable) -> LuaResult<()> {
     host.set(
         "model_store",
@@ -246,9 +280,7 @@ pub fn register(lua: &Lua, host: &LuaTable) -> LuaResult<()> {
     // model assets refuses the boot with `NOT RUN: model assets absent`, never an empty database.
     let args: LuaTable = host.get("args")?;
     let shared: Rc<RefCell<Option<Arc<ModelStore>>>> = Rc::new(RefCell::new(None));
-    host.set(
-        "model",
-        lua.create_function(move |lua, (operation, scene, depth): (String, Option<LuaValue>, Option<LuaValue>)| {
+    let lazy = lua.create_function(move |lua, (operation, scene, depth): (String, Option<LuaValue>, Option<LuaValue>)| {
             let store = {
                 let mut slot = shared.borrow_mut();
                 if slot.is_none() {
@@ -262,8 +294,8 @@ pub fn register(lua: &Lua, host: &LuaTable) -> LuaResult<()> {
             let scene = provider_number(scene, "scene", &operation)?;
             let depth = provider_number(depth, "depth", &operation)?;
             model_answer(lua, &store, &operation, scene, depth)
-        })?,
-    )?;
+    })?;
+    host.set("model", strict(lua, lazy)?)?;
     // host.model_provider (store): the same provider over a store the script already loaded with host.model_store (shared, immutable), for a script that wraps or
     // replaces the reference host's answers.
     host.set(
@@ -271,11 +303,12 @@ pub fn register(lua: &Lua, host: &LuaTable) -> LuaResult<()> {
         lua.create_function(|lua, store: LuaAnyUserData| {
             let handle = store.borrow::<StoreHandle>()?;
             let store = handle.0.clone();
-            lua.create_function(move |lua, (operation, scene, depth): (String, Option<LuaValue>, Option<LuaValue>)| {
+            let inner = lua.create_function(move |lua, (operation, scene, depth): (String, Option<LuaValue>, Option<LuaValue>)| {
                 let scene = provider_number(scene, "scene", &operation)?;
                 let depth = provider_number(depth, "depth", &operation)?;
                 model_answer(lua, &store, &operation, scene, depth)
-            })
+            })?;
+            strict(lua, inner)
         })?,
     )
 }

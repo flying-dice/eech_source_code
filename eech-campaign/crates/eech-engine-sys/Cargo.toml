@@ -27,6 +27,8 @@ model-fixture = []
 # TEST-ONLY (EEDCS-50, D3): the shipping host-owned model data PLUS a diagnostic that counts the host's answers and overwrites the campaign's own model arrays that the
 # original accessors read (so any read of them would show). Excludes model-fixture, which keeps the original accessors on purpose. Never enabled in the shipping build.
 model-host-fixture = []
+# TEST SUPPORT (EEDCS-50, D3): runs a unit test under round-toward-zero as the engine entry does, and reports whether the code under test kept it. Never enabled in the shipping build.
+fpu-test-support = []
 
 # TEST-ONLY (EEDCS-50): the isolated control of the original-model read-safety walk; it needs the feature's C
 [[test]]
