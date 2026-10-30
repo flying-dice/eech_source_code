@@ -1,0 +1,228 @@
+{
+  "schema": "independent-reference-profile-closeout/v1",
+  "reviewed_utc": "2026-10-30T04:57:26.377230+00:00",
+  "reviewed_head": "e48808f53a44260e78183fc0322b09cdd0ceb3f0",
+  "base": "80fd62ea48fc75aa9546c785f525be034abd16f8",
+  "measured_runtime_source": "80fd62ea48fc75aa9546c785f525be034abd16f8",
+  "frozen_path": "R:\\d3-evidence\\model-handoff-source-e48808f53",
+  "clean_before_and_after": true,
+  "scope": "Only two P3 corrections, new bounded restoration and FPU evidence, and recovery provenance. Prior production profile/Core/kernel/all828 reviews reused.",
+  "disposition": "TWO_P3_SOURCE_CORRECTIONS_CLOSED_BOUNDED_RUNTIME_GATES_PASSED_RECOVERY_PENDING",
+  "findings": [],
+  "prior_findings": [
+    {
+      "id": "REFERENCE-PROFILE-INVENTORY-GUARD",
+      "status": "CLOSED_SOURCE",
+      "assessment": "Blank/comment-only lines are ignored; after the preparation line, only the exact recorded-success guard if prepared then is permitted. Other executable lines are rejected. The once-per-script and before-boot checks remain. This repairs the observed comment-induced failure without changing runtime profile or loosening the executable phase."
+    },
+    {
+      "id": "REFERENCE-PROFILE-EVIDENCE-WORDING",
+      "status": "CLOSED",
+      "assessment": "Current documentation correctly says final checkpoint seconds 3 to 4, with two checkpoints in each file, and separately states the observed frame count/final clocks."
+    }
+  ],
+  "production_identity": {
+    "unchanged": true,
+    "changed_paths": [
+      "STATUS.md",
+      "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "eech-campaign/docs/m5-model-host-authority.md",
+      "eech-campaign/reference/d3-model-characterization/independent-reference-host-arithmetic-review-80fd62ea4-20261030.json",
+      "eech-campaign/reference/d3-model-characterization/ledger-reference-host-profile-v77-20261030.json",
+      "eech-campaign/reference/d3-model-characterization/model-reference-profile-80fd62ea4-bounded-restoration-20261030.json",
+      "eech-campaign/reference/d3-model-characterization/reference-profile-80fd62ea4-production-validation-20261030.json",
+      "eech-campaign/reference/d3-model-characterization/reference-profile-test-prose-author-checkpoint-20261030.json",
+      "eech-campaign/reference/d3-model-characterization/reference-profile-tracker-checkpoint-20261030.json"
+    ],
+    "basis": "Exact Git diff whitelist contains only integration-test guard, prose, STATUS and reference evidence. No production code, Lua client, C entry, ABI or numeric kernel changed; native evidence remains labelled 80fd, not e488."
+  },
+  "bounded_recording": {
+    "matched_arguments": "Lebanon retail, seed 1, 100 ms, hours=0.001, record_every=10, observe_every=1, observe_supply=1",
+    "artifacts": [
+      {
+        "file": "recording.acmi",
+        "bytes": 230871,
+        "sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+        "old_4bee_equals_new_80fd_equals_observed_audit": true
+      },
+      {
+        "file": "observations.jsonl",
+        "bytes": 1553674,
+        "sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+        "old_4bee_equals_new_80fd_equals_observed_audit": true
+      },
+      {
+        "file": "metrics.json",
+        "bytes": 7477,
+        "sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+        "old_4bee_equals_new_80fd_equals_observed_audit": true
+      }
+    ],
+    "actual_frame_audit": {
+      "actual_frame_calls": 35,
+      "final_elapsed_seconds": 3.49999737739563
+    },
+    "assessment": "Complete raw equality and actual frame-budget restoration to old4bee, with observer noninvasiveness independently rechecked by full-file equality. No normalization, output-field correction, tolerance or baseline rewrite."
+  },
+  "full_fpu": {
+    "actual_measured_entries": 16,
+    "reference": 8,
+    "refusal_each_fresh_process": 2,
+    "all_four_rounding_controls": true,
+    "full_x87_control_status_and_MXCSR_exact": true,
+    "nonzero_seeded_status": true,
+    "assessment": "Healthy diagnostic performs counter and callback entries under all four RCs. Each refusal process performs a healthy counter then actual provider-fatal callback; exact primary marker and requested/measured counts verified. Harness/native/controller success means expected fatal result 1 was correctly observed, not that refusal was a healthy entry. The raw diagnostic does not select the reference profile."
+  },
+  "runs": [
+    {
+      "case": "recording",
+      "controller_exit": 0,
+      "native_exit": 0,
+      "pre_post_input_files": 1179,
+      "input_digest": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+      "BINF_sha256": "78b578c7cf102ba1b62b4a1dd45fdfd0ae91400167f1f572ae5e7002e74ae3cb"
+    },
+    {
+      "case": "audit",
+      "controller_exit": 0,
+      "native_exit": 0,
+      "pre_post_input_files": 1179,
+      "input_digest": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+      "BINF_sha256": "78b578c7cf102ba1b62b4a1dd45fdfd0ae91400167f1f572ae5e7002e74ae3cb"
+    },
+    {
+      "case": "fpu-reference",
+      "controller_exit": 0,
+      "native_exit": 0,
+      "pre_post_input_files": 1179,
+      "input_digest": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+      "BINF_sha256": "54ff5c7cb4fe6dda3b7404367aa5a6a46a18e23d999e670302632b8fb6d78f58",
+      "measured_entries": 8,
+      "full_words_exact": true
+    },
+    {
+      "case": "fpu-decline-0",
+      "controller_exit": 0,
+      "native_exit": 0,
+      "pre_post_input_files": 1179,
+      "input_digest": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+      "BINF_sha256": "54ff5c7cb4fe6dda3b7404367aa5a6a46a18e23d999e670302632b8fb6d78f58",
+      "measured_entries": 2,
+      "full_words_exact": true
+    },
+    {
+      "case": "fpu-decline-1",
+      "controller_exit": 0,
+      "native_exit": 0,
+      "pre_post_input_files": 1179,
+      "input_digest": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+      "BINF_sha256": "54ff5c7cb4fe6dda3b7404367aa5a6a46a18e23d999e670302632b8fb6d78f58",
+      "measured_entries": 2,
+      "full_words_exact": true
+    },
+    {
+      "case": "fpu-decline-2",
+      "controller_exit": 0,
+      "native_exit": 0,
+      "pre_post_input_files": 1179,
+      "input_digest": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+      "BINF_sha256": "54ff5c7cb4fe6dda3b7404367aa5a6a46a18e23d999e670302632b8fb6d78f58",
+      "measured_entries": 2,
+      "full_words_exact": true
+    },
+    {
+      "case": "fpu-decline-3",
+      "controller_exit": 0,
+      "native_exit": 0,
+      "pre_post_input_files": 1179,
+      "input_digest": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+      "BINF_sha256": "54ff5c7cb4fe6dda3b7404367aa5a6a46a18e23d999e670302632b8fb6d78f58",
+      "measured_entries": 2,
+      "full_words_exact": true
+    }
+  ],
+  "payloads": [
+    {
+      "directory": "R:\\d3-evidence\\model-handoff-source-80fd62ea4\\eech-campaign\\target\\windows-model-handoff-80fd62ea4",
+      "verified_entries": 48,
+      "BINF_sha256": "78b578c7cf102ba1b62b4a1dd45fdfd0ae91400167f1f572ae5e7002e74ae3cb"
+    },
+    {
+      "directory": "R:\\d3-evidence\\model-handoff-source-80fd62ea4\\eech-campaign\\target\\model-host-fixture\\handoff-80fd62ea4",
+      "verified_entries": 48,
+      "BINF_sha256": "54ff5c7cb4fe6dda3b7404367aa5a6a46a18e23d999e670302632b8fb6d78f58"
+    }
+  ],
+  "recovery": {
+    "first_attempt_actual_exit": 2,
+    "first_attempt_assessment": "Wrong build-... shell filename: no tests started; original controller/log retained. Not rewritten as success.",
+    "v2_record_at_review": {
+      "source": "e48808f53a44260e78183fc0322b09cdd0ceb3f0",
+      "args": [
+        "wsl",
+        "-d",
+        "EECH-D2-Build",
+        "--",
+        "sh",
+        "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/check-reference-profile-recovery-e48808f53-20261030.sh"
+      ],
+      "pid": 25208,
+      "controller_pid": 22236,
+      "state": "running",
+      "started_utc": "2026-10-30T04:56:05.180493+00:00",
+      "scope": "Recover failed/unreached test and Clippy stages only; production code identical80fd, original101retained; no native or Windows rebuild"
+    },
+    "actual_tests_or_clippy_pass_claimed": false,
+    "assessment": "Inspected corrected check-... path and shell commands. It selects only failed/unreached host_callbacks, load_dc, model_characterization, model_store, formatting and default/feature Clippy. A running or quiet log is not completion; original 80fd Linux101 remains preserved."
+  },
+  "evidence_sha256": {
+    "R:\\d3-evidence\\model-reference-profile-recording-80fd62ea4-20261030\\controller.json": "8a83ef5b1a4e06e11cdece9c0a47ee7746f7ccc97a2125aee280e706af7e73c5",
+    "R:\\d3-evidence\\model-reference-profile-recording-80fd62ea4-20261030\\pre-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-reference-profile-recording-80fd62ea4-20261030\\post-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-reference-profile-recording-80fd62ea4-20261030\\native.log": "810a578720c631c08870856e07c8d8e652ac0d8a4a7c4c7889cb10197c617e9b",
+    "R:\\d3-evidence\\model-reference-profile-audit-80fd62ea4-20261030\\controller.json": "11c5c66a9e5fe888e236f8411a6b8884b2dc4979979ffa99ad27b07dd3c7140c",
+    "R:\\d3-evidence\\model-reference-profile-audit-80fd62ea4-20261030\\pre-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-reference-profile-audit-80fd62ea4-20261030\\post-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-reference-profile-audit-80fd62ea4-20261030\\native.log": "14625651b61df594276340c0afed8de15be10221e9352c47c8cf9c8de824592a",
+    "R:\\d3-evidence\\model-reference-profile-fpu-reference-80fd62ea4-20261030\\controller.json": "d5a0c0ca6ef7957d565243027beeaf8d2756a8d0dffb1eca2a06188c96af7413",
+    "R:\\d3-evidence\\model-reference-profile-fpu-reference-80fd62ea4-20261030\\pre-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-reference-profile-fpu-reference-80fd62ea4-20261030\\post-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-reference-profile-fpu-reference-80fd62ea4-20261030\\native.log": "2ff63704e920d70b00acb560b70f2f3b3b523d5e28bde8006a155c591acc3500",
+    "R:\\d3-evidence\\model-reference-profile-fpu-reference-80fd62ea4-20261030\\model.jsonl": "55e4457fd09c3cb5230dbbf64971494d55d54e2201ee3d31bfa439930042fd0d",
+    "R:\\d3-evidence\\model-reference-profile-fpu-decline-0-80fd62ea4-20261030\\controller.json": "e671d856a6d4fa2c7cd4a33fa631e38e7142a94fb236b495a6fff5cbd6b308fb",
+    "R:\\d3-evidence\\model-reference-profile-fpu-decline-0-80fd62ea4-20261030\\pre-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-reference-profile-fpu-decline-0-80fd62ea4-20261030\\post-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-reference-profile-fpu-decline-0-80fd62ea4-20261030\\native.log": "7a80be1373e92e89de5941a95417e05f119eafd7fe698fd94ec219610bae0bdb",
+    "R:\\d3-evidence\\model-reference-profile-fpu-decline-0-80fd62ea4-20261030\\model.jsonl": "60bdd3006cf753659996e14960159b5050f27f360efca75e6a8f91f8d9acb0cb",
+    "R:\\d3-evidence\\model-reference-profile-fpu-decline-1-80fd62ea4-20261030\\controller.json": "1b57e1ff363f6e97bc6d12a620115622eafff0d0905e885285df139912792fa5",
+    "R:\\d3-evidence\\model-reference-profile-fpu-decline-1-80fd62ea4-20261030\\pre-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-reference-profile-fpu-decline-1-80fd62ea4-20261030\\post-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-reference-profile-fpu-decline-1-80fd62ea4-20261030\\native.log": "dee8831380ccacef4eb0fb5f184c51f97c4cdb84296bee08741f1529ec9a5197",
+    "R:\\d3-evidence\\model-reference-profile-fpu-decline-1-80fd62ea4-20261030\\model.jsonl": "7cce61c0199a70015f53ce5dab34c25dd3c6e6b204b7a02cd839e42f03f833a9",
+    "R:\\d3-evidence\\model-reference-profile-fpu-decline-2-80fd62ea4-20261030\\controller.json": "89ae35df9345d5fd2ef2a62e9d1355f20a803168af631d8d94f34034aaf6acea",
+    "R:\\d3-evidence\\model-reference-profile-fpu-decline-2-80fd62ea4-20261030\\pre-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-reference-profile-fpu-decline-2-80fd62ea4-20261030\\post-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-reference-profile-fpu-decline-2-80fd62ea4-20261030\\native.log": "7ecc9676c2ac587cb7ca0ff6ed47d27f5f2309344498012fe4c1b313afdd1f3f",
+    "R:\\d3-evidence\\model-reference-profile-fpu-decline-2-80fd62ea4-20261030\\model.jsonl": "e407a02ab1d7c9db703bd893f07fd5425a480e6b06344eeb8d007df7aea6096a",
+    "R:\\d3-evidence\\model-reference-profile-fpu-decline-3-80fd62ea4-20261030\\controller.json": "6a21d0dd156dc01e82a1432b8f377570c21bd8c70d30692b0adf8bcbdb700bec",
+    "R:\\d3-evidence\\model-reference-profile-fpu-decline-3-80fd62ea4-20261030\\pre-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-reference-profile-fpu-decline-3-80fd62ea4-20261030\\post-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\model-reference-profile-fpu-decline-3-80fd62ea4-20261030\\native.log": "18cb7a00c313e746e2beca9a8d4e6b9e23f0a9158de81893303556c89e8c956a",
+    "R:\\d3-evidence\\model-reference-profile-fpu-decline-3-80fd62ea4-20261030\\model.jsonl": "d52973ddc2afdf4a317915ac44c141e67e5e906b95d59acde3e09b283e0e18aa",
+    "R:\\d3-evidence\\independent-reference-host-arithmetic-review-80fd62ea4-20261030.json": "a41c60671469b043bffca9e0c737ad0d1d9348830ec4bb0fd3686b17a1c170bc",
+    "R:\\d3-evidence\\model-reference-profile-80fd62ea4-bounded-restoration-20261030.json": "ca1db2f5034cfecf4bb2b2cd6b8d32a41b0869f2c0120939eb90d8bc500e7e7c",
+    "R:\\d3-evidence\\reference-profile-recovery-current-20261030.json": "19c75ab43e861d52957cd2b8cbd2cce49a158c42d08efb021717b18e5979a13d",
+    "R:\\d3-evidence\\reference-profile-80fd62ea4-production-validation-20261030.json": "4e8a408912ae1cdb220d2cf041b1a4f76cf57c661b47099cb1fec4dc89eafd60",
+    "R:\\d3-evidence\\reference-profile-recovery-e48808f53-20261030-completion.json": "23987835e13658ff9035bbd444b0420da871638039aae2289dcae53adb96472a",
+    "R:\\d3-evidence\\reference-profile-recovery-e48808f53-20261030.log": "03914fb804574091d9d1ca41c3486a5f0f3c19dd57ace5d2841f5f8e25fd3fb9",
+    "R:\\d3-evidence\\reference-profile-recovery-e48808f53-v2-20261030-process.json": "5b522a9bbbd2dba2a6c6340745d383029da866895aa03668df71190a790a5762",
+    "R:\\d3-evidence\\run-reference-profile-recovery-e48808f53-v2-20261030.py": "b85ec866faf4696a26d3192d7ae442406374d110611b77281c66c1360fd76c3d",
+    "R:\\d3-evidence\\check-reference-profile-recovery-e48808f53-20261030.sh": "25fd12080da6d99d1fc4acb3eced25390769ec14dba5c26cc702bf6fe143618d"
+  },
+  "limits": [
+    "No formal GitHub approval, Task50 delivery, production/fullshipping/Tacview visual or whole-D3 acceptance.",
+    "Full accepted40/eight-artifact/post-input gates, complete altered/poison model-authority matrix, CI, reviews and normal delivery remain separate.",
+    "Required D3 physical scans/transforms/solvers/loaders/hierarchy/model/entity/device/target-point/environment/time work remains open.",
+    "No reviewer source edits, builds/tests/native/campaign executions, process/cache/auth/Git mutations, external writes or nested agents. Task47 shipping untouched."
+  ]
+}

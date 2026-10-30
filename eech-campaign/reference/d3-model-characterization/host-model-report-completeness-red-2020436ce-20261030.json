@@ -1,0 +1,177 @@
+{
+  "scope": "Actual immutable202 old-comparator RED versus finite corrected-source refusal controls; host only, unchanged original retail report; no campaign DLL or new original geometry",
+  "source": "2020436ce160ac3762f00f7ee8290f4e6247bce3",
+  "expected_rejection": false,
+  "build_info_sha256": "b40f93fa756491eee3734f313fcee90330a64b4275a192ec70534e8bdca10022",
+  "results": [
+    {
+      "case": "healthy",
+      "input_sha256": "b421e74ea483433ed9437b3143c68a12b76fb6d4a6f95b04c9371985dc3f0db7",
+      "actual_native_runner_exit": 0,
+      "native_exit_recorded": true,
+      "done": [
+        {
+          "event": "done",
+          "failures": 0
+        }
+      ],
+      "comparison_refused": false,
+      "comparison_counters": [
+        {
+          "absences_confirmed": 1,
+          "event": "compare",
+          "geometry_headers": 11,
+          "original_absent": 2009,
+          "original_no_scene": 188,
+          "original_refused_rows": 59,
+          "original_refused_scenes": 4,
+          "scene_mismatches": 0,
+          "scene_rows": 3025,
+          "scene_rows_compared": 3025,
+          "triangle_mismatches": 0,
+          "triangles_compared": 215
+        }
+      ],
+      "strict_json_rows": 8,
+      "raw_sha256": "c6952c91343b363cf1e1d39a30547a3d4ce9689d6f33bc2e6fdf877bbcc905d1",
+      "expected_outcome_observed": true
+    },
+    {
+      "case": "truncated-first-scene",
+      "input_sha256": "18c2ec4fc2c5a77ce50c4d48602c60d674be55b5ec01d698f996aa725b45c7f9",
+      "actual_native_runner_exit": 0,
+      "native_exit_recorded": true,
+      "done": [
+        {
+          "event": "done",
+          "failures": 0
+        }
+      ],
+      "comparison_refused": false,
+      "comparison_counters": [
+        {
+          "absences_confirmed": 0,
+          "event": "compare",
+          "geometry_headers": 0,
+          "original_absent": 0,
+          "original_no_scene": 0,
+          "original_refused_rows": 1,
+          "original_refused_scenes": 0,
+          "scene_mismatches": 0,
+          "scene_rows": 1,
+          "scene_rows_compared": 1,
+          "triangle_mismatches": 0,
+          "triangles_compared": 0
+        }
+      ],
+      "strict_json_rows": 4,
+      "raw_sha256": "e428b017ed50003c90bc8807c052722ebb3cdd5b94188d75a6a8aa5e3aa99755",
+      "expected_outcome_observed": true
+    },
+    {
+      "case": "duplicate-scene",
+      "input_sha256": "8e44b3608b2cd648051caa864404521ff36d96d9dbc4a522482126ebb4152d6d",
+      "actual_native_runner_exit": 0,
+      "native_exit_recorded": true,
+      "done": [
+        {
+          "event": "done",
+          "failures": 0
+        }
+      ],
+      "comparison_refused": false,
+      "comparison_counters": [
+        {
+          "absences_confirmed": 1,
+          "event": "compare",
+          "geometry_headers": 11,
+          "original_absent": 2009,
+          "original_no_scene": 188,
+          "original_refused_rows": 60,
+          "original_refused_scenes": 4,
+          "scene_mismatches": 0,
+          "scene_rows": 3026,
+          "scene_rows_compared": 3026,
+          "triangle_mismatches": 0,
+          "triangles_compared": 215
+        }
+      ],
+      "strict_json_rows": 8,
+      "raw_sha256": "74a152fff0281797685e937c47e241e6dbd5bbeca5b638e41a070e628d233927",
+      "expected_outcome_observed": true
+    },
+    {
+      "case": "missing-geometry-terminal",
+      "input_sha256": "51b518d74ae20491d3a670c89090f524c48014d669f95371fccb024e8c4eff02",
+      "actual_native_runner_exit": 0,
+      "native_exit_recorded": true,
+      "done": [
+        {
+          "event": "done",
+          "failures": 0
+        }
+      ],
+      "comparison_refused": false,
+      "comparison_counters": [
+        {
+          "absences_confirmed": 1,
+          "event": "compare",
+          "geometry_headers": 11,
+          "original_absent": 2009,
+          "original_no_scene": 188,
+          "original_refused_rows": 59,
+          "original_refused_scenes": 4,
+          "scene_mismatches": 0,
+          "scene_rows": 3025,
+          "scene_rows_compared": 3025,
+          "triangle_mismatches": 0,
+          "triangles_compared": 215
+        }
+      ],
+      "strict_json_rows": 8,
+      "raw_sha256": "c6952c91343b363cf1e1d39a30547a3d4ce9689d6f33bc2e6fdf877bbcc905d1",
+      "expected_outcome_observed": true
+    },
+    {
+      "case": "failed-original-done",
+      "input_sha256": "96d2cfc5ffe14d9e3bb029f484eea7f026ece41740857da5fd704ba4f4259e56",
+      "actual_native_runner_exit": 0,
+      "native_exit_recorded": true,
+      "done": [
+        {
+          "event": "done",
+          "failures": 0
+        }
+      ],
+      "comparison_refused": false,
+      "comparison_counters": [
+        {
+          "absences_confirmed": 1,
+          "event": "compare",
+          "geometry_headers": 11,
+          "original_absent": 2009,
+          "original_no_scene": 188,
+          "original_refused_rows": 59,
+          "original_refused_scenes": 4,
+          "scene_mismatches": 0,
+          "scene_rows": 3025,
+          "scene_rows_compared": 3025,
+          "triangle_mismatches": 0,
+          "triangles_compared": 215
+        }
+      ],
+      "strict_json_rows": 8,
+      "raw_sha256": "c6952c91343b363cf1e1d39a30547a3d4ce9689d6f33bc2e6fdf877bbcc905d1",
+      "expected_outcome_observed": true
+    }
+  ],
+  "started_utc": "2026-10-30T00:21:26.442761+00:00",
+  "pre_inputs": 0,
+  "post_inputs": 0,
+  "original_unchanged": true,
+  "payloads_unchanged": true,
+  "mutations_unchanged": true,
+  "actual_exit": 0,
+  "completed_utc": "2026-10-30T00:21:32.379191+00:00",
+  "interpretation": "Actual original202 falsely accepts each corrupted report; aggregate0 means the RED defect was reproduced, not that malformed inputs are approved."
+}

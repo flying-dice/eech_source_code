@@ -1,0 +1,152 @@
+{
+  "schema": "d3-host-model-checkpoint/v1",
+  "source": "2020436ce160ac3762f00f7ee8290f4e6247bce3",
+  "original_native_source": "366622e0c08b2caaa5a5317f5197c0ee3d7050e9",
+  "diagnostic_driver_sha256": "ffba01750612790d6268e8626e83bbd48179194f51a62138ef3f9ecd42051db9",
+  "linux": {
+    "actual_exit": 0,
+    "format_exit": 0,
+    "model_store_passed": 25,
+    "model_characterization_passed": 8,
+    "all_target_clippy_exit": 0
+  },
+  "windows": {
+    "source": "2020436ce160ac3762f00f7ee8290f4e6247bce3",
+    "verified_payloads": 5,
+    "build_info_sha256": "b40f93fa756491eee3734f313fcee90330a64b4275a192ec70534e8bdca10022",
+    "commands": [
+      {
+        "name": "valid-host",
+        "args": [
+          "R:\\d3-evidence\\model-host-numbered-source-2020436ce\\eech-campaign\\target\\model-host\\2020436ce\\model_store.exe",
+          "--nocapture"
+        ],
+        "EECH_WORLD_BIN": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d3-evidence\\model-host-numbered-source-2020436ce\\eech-campaign\\target\\model-host\\2020436ce\\eech-world.exe",
+        "pid": 24908,
+        "actual_exit": 0,
+        "started_utc": "2026-10-30T00:08:14.451605+00:00",
+        "completed_utc": "2026-10-30T00:08:15.949609+00:00",
+        "log_sha256": "e32bc64c77fbb5178247416e16f700b1e26788d90846233e873e62c1fa60887a",
+        "passed": 25,
+        "failed": 0
+      },
+      {
+        "name": "invalid-host",
+        "args": [
+          "R:\\d3-evidence\\model-host-numbered-source-2020436ce\\eech-campaign\\target\\model-host\\2020436ce\\model_store.exe",
+          "the_driver_lists_the_store_and_the_comparison_matches_what_is_identical",
+          "--exact",
+          "--nocapture"
+        ],
+        "EECH_WORLD_BIN": "R:\\d3-evidence\\model-host-2020436ce-windows-tests-20261030\\missing-host.exe",
+        "pid": 24560,
+        "actual_exit": 101,
+        "started_utc": "2026-10-30T00:08:15.949609+00:00",
+        "completed_utc": "2026-10-30T00:08:16.002474+00:00",
+        "log_sha256": "5a66bbe741fdbbd49e1f103d856181f75c4de202dd5beb49332b1ea8a1e0b1c1",
+        "passed": 0,
+        "failed": 1
+      }
+    ],
+    "all_tests_pass": true,
+    "invalid_override_refused": true,
+    "payloads_unchanged": true,
+    "actual_exit": 0
+  },
+  "retail": {
+    "actual_exit": 0,
+    "payloads_unchanged": true,
+    "build_info_sha256": "b40f93fa756491eee3734f313fcee90330a64b4275a192ec70534e8bdca10022",
+    "cases": [
+      {
+        "case": "georgia",
+        "pre_inputs": 0,
+        "post_inputs": 0,
+        "actual_repository_runner_exit": 0,
+        "native_exit_recorded": true,
+        "not_run": false,
+        "raw_sha256": "34e4b68478a2b998411edc46f5e5ad565e8a2fc304decabdb2cb3b8747b03e86",
+        "raw_bytes": 1278273,
+        "strict_json": true,
+        "rows": 3357,
+        "original_report_sha256": "b421e74ea483433ed9437b3143c68a12b76fb6d4a6f95b04c9371985dc3f0db7",
+        "original_report_unchanged": true
+      },
+      {
+        "case": "lebanon",
+        "pre_inputs": 0,
+        "post_inputs": 0,
+        "actual_repository_runner_exit": 0,
+        "native_exit_recorded": true,
+        "not_run": false,
+        "raw_sha256": "34e4b68478a2b998411edc46f5e5ad565e8a2fc304decabdb2cb3b8747b03e86",
+        "raw_bytes": 1278273,
+        "strict_json": true,
+        "rows": 3357,
+        "original_report_sha256": "77e52746321b9fad2be176297ebcff2a07fe6c19fd3ad14d5a7caf32db13f0f2",
+        "original_report_unchanged": true
+      },
+      {
+        "case": "lebanon-repeat",
+        "pre_inputs": 0,
+        "post_inputs": 0,
+        "actual_repository_runner_exit": 0,
+        "native_exit_recorded": true,
+        "not_run": false,
+        "raw_sha256": "34e4b68478a2b998411edc46f5e5ad565e8a2fc304decabdb2cb3b8747b03e86",
+        "raw_bytes": 1278273,
+        "strict_json": true,
+        "rows": 3357,
+        "original_report_sha256": "a2785ce74e9ab07c6d794d20edd7fd9cab09a4bc7827fb26b62cc1faba3bedb8",
+        "original_report_unchanged": true
+      }
+    ],
+    "scene_metadata_and_ids_compared_each": 3025,
+    "original_calls_compared_each": 215,
+    "true_original_calls_each": 208,
+    "end_false_calls_each": 6,
+    "absence_false_calls_each": 1,
+    "mismatches": 0,
+    "surface_block": 52517,
+    "named_index_skips": 0
+  },
+  "review": {
+    "file": "independent-host-model-component-review-2020436ce-20261030.json",
+    "sha256": "4f387a639e452c9942e89d693d4de0b7a2e7a914a34bf6c68dcd38626f48c613",
+    "disposition": "CHANGES_REQUIRED",
+    "findings": [
+      {
+        "id": "MODEL-NODE-PREALLOCATION",
+        "priority": "P2",
+        "title": "Bound serialized sub-object counts before allocating nodes"
+      },
+      {
+        "id": "MODEL-OVERRIDE-IO",
+        "priority": "P2",
+        "title": "Propagate override-directory and entry read errors"
+      },
+      {
+        "id": "MODEL-COMPARISON-COMPLETENESS",
+        "priority": "P2",
+        "title": "Refuse incomplete or failed original reports before declaring comparison success"
+      },
+      {
+        "id": "MODEL-SCENE-WIDTH",
+        "priority": "P2",
+        "title": "Check scene bounds before narrowing i64 to usize"
+      }
+    ]
+  },
+  "retained_first_failures": {
+    "source": "0b5750f7a2d12e3eee48d1f4a0f6e1cb429ec0aa",
+    "linux_and_windows_tests": "21 of 23 passed; two JSON error-path failures",
+    "clippy": "six findings; actual101",
+    "initial_retail_limit": "Old comparator skipped61 named-ID fields; Root audit found all shifted+1 and surface52518 versus52517. Those initial exits0 were not identity proof."
+  },
+  "limits": [
+    "Prepared host-private component; production native loader/query dispatch remains in EECH_DC.",
+    "59 custom/mixed original geometry cases remain unmeasured; other safe models have metadata, not exhaustive triangle coverage.",
+    "No new full campaign/Tacview, Task50 delivery or whole-D3 acceptance.",
+    "Correct four review findings in one batch, validate affected boundaries, then review only new changes."
+  ]
+}

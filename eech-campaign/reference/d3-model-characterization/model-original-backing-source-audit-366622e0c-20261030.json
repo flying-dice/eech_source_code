@@ -1,0 +1,64 @@
+{
+  "when_utc": "2026-10-30T00:20:27.652148+00:00",
+  "source": "366622e0c08b2caaa5a5317f5197c0ee3d7050e9",
+  "scope": "Read-only original loader/backing source audit for the next existing Task50 characterization; no new instrumentation, build, native calls or physical geometry proof. Current four-finding correction remains sole implementation lane.",
+  "files": [
+    {
+      "path": "modules/3d/3dobjdb.c",
+      "sha256": "fc3e86ba9cffd570a9827bae817e425b6cad1c9df098b2090bbe3e3628ea2b19"
+    },
+    {
+      "path": "modules/system/files.c",
+      "sha256": "6ce97112a14975c8077f4e9294e4b576780902574cce99132ab3434259a916a6"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_win32.c",
+      "sha256": "018eb52de818c39c639116e83d2d7f7458ef38e1bf9a275e57d34bc71af004bc"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_model_fixture.c",
+      "sha256": "d8e99c783769508a808ccbda90e561a16b9bf57066d56fe1661ffc3754b809c5"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/build/patches.rs",
+      "sha256": "19f25782b7426ff0d27e186f82ff239e311f09adf6b41b6e36594702f8960e99"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+      "sha256": "35045ff66715d7a142295d6d682a556a3b7f97cba3cd868e8b5238864b6d99a1"
+    }
+  ],
+  "findings": [
+    {
+      "file": "modules/3d/3dobjdb.c",
+      "lines": "1557-1730",
+      "fact": "read_object allocates custom points from effective obj->number_of_points, faces from local number_of_polygoned_faces, point-list from local number_of_point_references, and surface-point references from local number_of_surface_point_references. Loaded object metadata alone does not expose all allocation counts. obj->custom is set at1679 after these allocations, before later validation. Record actual pointer identities and actual effective allocated extents rather than file-header-only inference."
+    },
+    {
+      "file": "modules/3d/3dobjdb.c",
+      "lines": "1866-1910",
+      "fact": "Original header locals expose exact allocated common face and point-list totals. Allocations at1886 and1904 remain live after overrides. Current nearest-next-object inference loses this whole backing and can falsely refuse mixed-layout walks."
+    },
+    {
+      "file": "eech-campaign/crates/eech-engine-sys/csrc/eech_win32.c",
+      "lines": "603-653",
+      "fact": "Actual MapViewOfFile compatibility path records exact returned base and length in mutex-protected views[]. A feature-only exact-base read accessor can observe real mapped points/surface-point backing without reopening files or guessing allocation size. This would be new code requiring review, not existing exposed capability."
+    },
+    {
+      "file": "modules/3d/3dobjdb.c",
+      "lines": "2227-2245",
+      "fact": "Surface consolidation includes1 through current object counter, copies surfaces, frees per-custom surfaces and old common block, rebinds every nonempty object surface pointer. Custom preconsolidation surface pointers cannot prove final query backing. The final global surface block is independently countable."
+    },
+    {
+      "file": "modules/3d/3dobjdb.c",
+      "lines": "3178-3311",
+      "fact": "Original accessor unconditionally reads surface0 and can read a next surface even after the last face. Integer walk advances refs and surface refs according to actual face bytes, including line-associated/degenerate values; object-local polygon/surface association is not sufficient safety proof. Before any newly enabled original call, safety must verify actual reads against observed shared/custom allocations while leaving original float arithmetic and output untouched."
+    },
+    {
+      "file": "eech-campaign/crates/eech-engine-sys/csrc/eech_model_fixture.c",
+      "lines": "292-313,324-434",
+      "fact": "Current observer explicitly refuses custom objects and any total-face versus polygon-face mismatch before helper calls. These59 catalogue gaps are conservative observer limits. Existing six positive original model reports remain valid and immutable."
+    }
+  ],
+  "next_gate": "After the current four corrections and affected review, implement minimal feature-only allocation provenance and exact integer-read safety in sole Sonnet lane; independently review changed memory safety before executing newly allowed original calls. Recompare old measured original rows and retain explicit genuinely unbacked refusals. No Task50/D3 acceptance inferred."
+}

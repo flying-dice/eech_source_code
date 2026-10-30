@@ -41,6 +41,7 @@ local selected = args.select
 assert (mode ~= "hold" or selected, "select=<host id>")
 local dc = require ("eech_dc")
 dc.prepare_installation (root)
+host.use_reference_arithmetic () -- the reference host's arithmetic profile, selected right after the installation is prepared (src/reference_arithmetic.rs)
 
 local lifecycle_modes = {
 	rotor_set = true, rotor_alive = true, rotor_down = true, fall = true, contact = true, settle = true,
@@ -169,7 +170,7 @@ local config = {
 	move_vehicle = move_vehicle,
 	observe_loss = observe_loss,
 	supply_reached = reference_reached,
-	line_of_sight = host.line_of_sight,
+	line_of_sight = host.line_of_sight, model = host.model,
 	sense = host.sense, aim = host.aim,
 }
 local engine = dc.boot (config)

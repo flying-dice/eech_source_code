@@ -8,11 +8,12 @@ local cases = { missing = true, malformed = true, error = true, reentry = true }
 assert (cases[case], "unknown case '" .. tostring (case) .. "': case=missing|malformed|error|reentry")
 local dc = require ("eech_dc")
 dc.prepare_installation (root)
+host.use_reference_arithmetic () -- the reference host's arithmetic profile, selected right after the installation is prepared (src/reference_arithmetic.rs)
 
 local function config (callback)
 	return {
 		install_root = root, map = "..\\common\\maps\\map5", campaign_directory = "camp01", campaign = "LEBANON.CHC",
-		gunship = "apache", seed = 1, bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss, supply_reached = callback, line_of_sight = host.line_of_sight, sense = host.sense, aim = host.aim,
+		gunship = "apache", seed = 1, bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss, supply_reached = callback, line_of_sight = host.line_of_sight, model = host.model, sense = host.sense, aim = host.aim,
 	}
 end
 

@@ -1115,6 +1115,44 @@ extern "C" {
 pub type eech_aim_callback =
     unsafe extern "C" fn(step: *const eech_aim_step, result: *mut eech_aim_result, error: *mut c_char, error_size: usize, user: *mut c_void) -> c_int;
 
+/// Host-owned collision-model data (aphavoc/.../mb_hostmodel.h): the operations, the triangle results and the largest error text.
+pub const EECH_MODEL_ERROR_MAX: usize = 512;
+pub const EECH_MODEL_NAME_MAX: usize = 127;
+pub const EECH_MODEL_CATALOGUE: c_int = 1;
+pub const EECH_MODEL_SCENE: c_int = 2;
+pub const EECH_MODEL_TRIANGLE: c_int = 3;
+pub const EECH_MODEL_TRIANGLE_FOUND: c_int = 1;
+pub const EECH_MODEL_TRIANGLE_END: c_int = 2;
+pub const EECH_MODEL_TRIANGLE_ABSENT: c_int = 3;
+
+/// One question about the host's models (campaign_model_request).
+#[repr(C)]
+pub struct eech_model_request {
+    pub op: c_int,
+    pub scene: c_int,
+    pub depth: c_int,
+}
+
+/// The host's answer (campaign_model_reply); only the fields of the asked operation are meaningful.
+#[repr(C)]
+pub struct eech_model_reply {
+    pub scene_count: c_int,
+    /// 0 or 1: the host has a model for the scene
+    pub loaded: c_int,
+    /// 0 or 1: that model has a collider (only a loaded scene has one)
+    pub collider: c_int,
+    pub radius: f32,
+    pub bounding_box: [f32; 6],
+    pub bounding_box_without_lines: [f32; 6],
+    /// the scene's compiled name (NUL-terminated; empty for the invalid index 0): the public scene identity echo
+    pub name: [c_char; EECH_MODEL_NAME_MAX + 1],
+    pub result: c_int,
+    pub points: [f32; 9],
+}
+
+pub type eech_model_callback =
+    unsafe extern "C" fn(request: *const eech_model_request, reply: *mut eech_model_reply, error: *mut c_char, error_size: usize, user: *mut c_void) -> c_int;
+
 #[repr(C)]
 pub struct eech_engine_host {
     pub bind_mobile: Option<eech_bind_mobile_callback>,
@@ -1124,6 +1162,7 @@ pub struct eech_engine_host {
     pub line_of_sight: Option<eech_line_of_sight_callback>,
     pub sense: Option<eech_sense_callback>,
     pub aim: Option<eech_aim_callback>,
+    pub model: Option<eech_model_callback>,
     pub user: *mut c_void,
 }
 
@@ -1401,6 +1440,31 @@ extern "C" {
         capacity: c_int,
         host: *const eech_engine_host,
     ) -> c_int;
+}
+
+// TEST SUPPORT (feature fpu-test-support): see csrc/eech_fpu_test.c.
+#[cfg(feature = "fpu-test-support")]
+extern "C" {
+    pub fn eech_test_enter_toward_zero() -> c_int;
+    pub fn eech_test_leave_toward_zero() -> c_int;
+}
+
+// TEST-ONLY (feature model-host-fixture, EEDCS-50 D3): the host-model counters and the overwrite of the campaign's own model arrays; see csrc/eech_model_host_fixture.c.
+#[cfg(feature = "model-host-fixture")]
+extern "C" {
+    pub fn eech_engine_model_host_counters(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_host_poison() -> c_int;
+    pub fn eech_engine_model_host_probe(scene: c_int, depth: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_host_fpu(kind: c_int, scene: c_int, depth: c_int, rounding: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+}
+
+// TEST-ONLY (feature model-fixture, EEDCS-50): read-only questions to the original model accessors; see csrc/eech_model_fixture.c.
+#[cfg(feature = "model-fixture")]
+extern "C" {
+    pub fn eech_engine_model_summary(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_catalogue(first: c_int, count: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_geometry(scene: c_int, first_depth: c_int, count: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_state(text: *mut c_char, capacity: c_int) -> c_int;
 }
 
 // The tumble draws are the only doubles in the step. They stay its last field, so the double's alignment (4 or 8 by

@@ -97,6 +97,36 @@ fn main() {
         write_if_changed(&tree.join(file), &patched);
     }
 
+    // 1a0. EEDCS-50 (D3): the host-owned model data. The four model accessors of the 3d module ask the host (patches.rs, MODEL_HOST_PATCHES). The ONE build that keeps
+    //      the original accessors is feature model-fixture, whose purpose is to ask them what they answer; it has no host, and the two model features exclude each other.
+    let model_fixture = env::var_os("CARGO_FEATURE_MODEL_FIXTURE").is_some();
+    assert!(
+        !(model_fixture && env::var_os("CARGO_FEATURE_MODEL_HOST_FIXTURE").is_some()),
+        "features model-fixture (the original accessors) and model-host-fixture (the host's) exclude each other"
+    );
+    if !model_fixture {
+        for file in patches::model_host_files() {
+            let staged = tree.join(file);
+            let bytes = fs::read(&staged).unwrap_or_else(|e| panic!("{file}: {e}"));
+            let text: String = bytes.iter().map(|&b| b as char).collect();
+            let patched: Vec<u8> = patches::apply_model_host(file, &text).chars().map(|c| c as u32 as u8).collect();
+            write_if_changed(&staged, &patched);
+        }
+    }
+
+    // 1a. TEST-ONLY (feature model-fixture, EEDCS-50): observation hooks in the staged model loader, on top of the shipping patches above (patches.rs,
+    //     MODEL_FIXTURE_PATCHES). With the feature off the staged files are exactly the shipping ones: step 1 rewrote them from the original and the
+    //     shipping patches this run.
+    if env::var_os("CARGO_FEATURE_MODEL_FIXTURE").is_some() {
+        for file in patches::model_fixture_files() {
+            let staged = tree.join(file);
+            let bytes = fs::read(&staged).unwrap_or_else(|e| panic!("{file}: {e}"));
+            let text: String = bytes.iter().map(|&b| b as char).collect();
+            let patched: Vec<u8> = patches::apply_model_fixture(file, &text).chars().map(|c| c as u32 as u8).collect();
+            write_if_changed(&staged, &patched);
+        }
+    }
+
     // 1b. TEST-ONLY red build (feature dependent-fixture-old-guard): the staged copy of rv_hostmv.c gets the boolean apply guard
     //     EEDCS-40 replaced by a depth counter. The source tree and the shipping build are untouched.
     if env::var_os("CARGO_FEATURE_DEPENDENT_FIXTURE_OLD_GUARD").is_some() {
@@ -183,6 +213,18 @@ fn main() {
     }
     if env::var_os("CARGO_FEATURE_WEAPON_FIXTURE").is_some() {
         build.define("EECH_WEAPON_FIXTURE", None);
+    }
+    if env::var_os("CARGO_FEATURE_MODEL_FIXTURE").is_some() {
+        build.define("EECH_MODEL_FIXTURE", None);
+    } else {
+        // EEDCS-50 (D3): the campaign asks the host for model data (mb_hostmodel.h)
+        build.define("EECH_CAMPAIGN_HOST_MODEL", None);
+    }
+    if env::var_os("CARGO_FEATURE_MODEL_HOST_FIXTURE").is_some() {
+        build.define("EECH_MODEL_HOST_FIXTURE", None);
+    }
+    if env::var_os("CARGO_FEATURE_FPU_TEST_SUPPORT").is_some() {
+        build.define("EECH_FPU_TEST_SUPPORT", None);
     }
     if windows {
         build.flag("-include").flag(manifest.join("csrc/eech_win32_names.h").to_str().unwrap());

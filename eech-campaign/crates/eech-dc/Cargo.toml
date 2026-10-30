@@ -36,6 +36,10 @@ sensor-fixture = ["eech-engine/sensor-fixture"]
 aim-fixture = ["eech-engine/aim-fixture"]
 # TEST-ONLY (EEDCS-45): the physical weapon-execution characterisation trace, event log and controlled launch case. Never enabled in the shipping build.
 weapon-fixture = ["eech-engine/weapon-fixture"]
+# TEST-ONLY (EEDCS-50): read-only questions to the original collision-model accessors. Never enabled in the shipping build.
+model-fixture = ["eech-engine/model-fixture"]
+# TEST-ONLY (EEDCS-50 D3): the shipping host-owned model data plus a diagnostic that counts the host's answers and overwrites the campaign's own model arrays. Never enabled in the shipping build.
+model-host-fixture = ["eech-engine/model-host-fixture"]
 
 # Code that runs inside a host's process: a panic in this DLL takes the host
 # down. The reference crate's restriction lints, denied here.
@@ -54,3 +58,7 @@ indexing_slicing = "deny"
 
 [lints.rust]
 unsafe_code = "forbid"
+
+# The Lua provider's number parsing is tested under round-toward-zero, as the engine entry runs a callback (EEDCS-50, D3).
+[dev-dependencies]
+eech-engine = { path = "../eech-engine", features = ["fpu-test-support"] }

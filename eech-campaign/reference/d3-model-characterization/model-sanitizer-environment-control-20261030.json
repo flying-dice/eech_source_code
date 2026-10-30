@@ -1,0 +1,23 @@
+{
+  "scope": "Bounded isolated diagnostic only; no original loader, model accessor, retail data or campaign execution",
+  "image": "sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51",
+  "script": "diagnose-model-sanitizer-smoke-20261030.sh",
+  "options": "abort_on_error=1:detect_leaks=1; timeout3s and output ulimit64 blocks per child",
+  "minimal_no_eech_control": {
+    "source": "model-sanitizer-smoke-20261030.c",
+    "actual_child_exit": 153,
+    "log": "model-sanitizer-smoke-20261030-default-bounded.log",
+    "observed": "Repeated AddressSanitizer:DEADLYSIGNAL; reached-main message absent from captured output"
+  },
+  "same_frozen_874_verifier": {
+    "binary": "model-walk-sanitized-874aa5ae6",
+    "actual_child_exit": 0,
+    "log": "model-walk-sanitized-874aa5ae6-default-bounded.log",
+    "stdout": "isolated verifier checks=44 failures=0"
+  },
+  "wrapper_exit": 0,
+  "wrapper_exit_limit": "Wrapper returns last child's exit; minimal smoke failed despite wrapper0. Child results above remain separate.",
+  "classification": "Same symptom reproduced without any EECH code; runtime/environment factor exists, exact cause unresolved. No blanket sanitizer or retail memory-safety pass.",
+  "initial_failure": "Earlier default-handler verifier attempt emitted runaway repeated DEADLYSIGNAL without a stack; only its exact diagnostic container822918fd58a8 was intentionally stopped. Builds and campaign processes were untouched.",
+  "independent_surface_finding": "Unchanged; original accessor execution held until surface initialized/current consolidated backing and pre-read alignment gate is corrected and independently reviewed"
+}

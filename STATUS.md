@@ -1,3 +1,593 @@
+# D3 checkpoint — bounded model authority and byte restoration passed (30 October 2026)
+
+Production source `80fd62ea4`, with test/prose-only recovery `e48808f53`, now passes
+the completed bounded public-model gates. Complete ACMI, observation and metrics
+files match the old `4bee2cc8c` bytes; an independent observer confirms the same
+35 actual frames and final clock 3.49999737739563. All 16 success/refused public
+entries preserve full x87 control/status and MXCSR across all four rounding modes.
+Nine actual authority/refusal controls pass, including poisoned Core arrays,
+host-authored geometry, absent colliders, malformed answers and missing providers.
+Inputs and all 48 payload identities are verified for each native controller.
+
+Affected checks total 428 unique passing tests across the retained completed
+suites and a separately labelled recovery. Formatting and both default and
+feature-enabled strict Clippy pass. The original guard failure (exit 101) and
+wrong-shell recovery attempt (exit 2, no tests started) remain retained failures;
+corrected recovery completed exit 0 at 04:59:54 UTC. No production rebuild or
+unchanged kernel/native repetition was used for the test/prose correction.
+The two final independent evidence reviews have no findings. Safe assertions,
+hashes and review records are in the model branch's
+`eech-campaign/reference/d3-model-characterization/model-bounded-checkpoint-80fd-e488-20261030.json`.
+Earlier sections below describe their checkpoint time and are superseded by this
+entry where results were pending. Ledger v77/Jira comment10872 predate this closure.
+
+Task47's original runner is still live (same tool59652); the original two recorded
+campaign processes remain live and the two unrecorded processes have exited.
+No restart or final pack acceptance is claimed. Full 40 checks/eight complete
+artifacts, final input checks, current CI, formal approval and normal merges are
+still required. Required D3 physical solvers/scans/transforms/loaders, hierarchy,
+devices, route data, environment and host time remain open. Campaign policy,
+geography, route choices, timers and consequences stay in Core. Task50 and D3
+remain In Progress; D4/D5 have not started. Raw retail evidence stays outside Git.
+
+# D3 test/prose corrections of the `80fd62ea4` review — two P3s: SOURCE PREPARED, NOT RUN (30 October 2026)
+
+Actual earlier RED retained: on Linux `host_callbacks` ran 26 of 27 and failed at `host_callbacks.rs:2089` (`every_reference_script_that_prepares_the_installation_selects_the_profile_right_after_it_and_before_booting_and_the_two_diagnostics_do_not`), because `source[prepared..selected].lines().count() <= 2` counted
+`campaign.lua`'s two explanatory comment lines and rejected a correct placement; Clippy was NOT REACHED. The real-host numeric selection guard and the campaign-specific phase guard passed. (1) Prepared, test only: the inventory guard now ignores blank and comment lines between the first
+`dc.prepare_installation` and the call and still rejects ANY executable statement there, except the `if prepared then` guard of the two recorded-step scripts; the 31 placements, the 31/2 inventory, the exceptions and the immediate-postprepare requirement are unchanged. (2) Prepared, prose only
+(`docs/m5-model-host-authority.md`): the recorded metrics delta is only the seconds of the final checkpoint, 3 to 4 (both files have two checkpoints), beside the independently measured 35 to 36 frame budget and the final clock shift; the earlier "checkpoint count and last time" was wrong. It is not called
+formatting-only or simulation-invisible. No production Rust, Lua, profile, Core or kernel change; nothing built or run; Root recovers the failed and not-reached stages against `80fd62ea4`'s compiled production code and does not repeat the completed unchanged kernel/native runs.
+
+# D3 source correction — reference host owns its arithmetic profile: SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED (30 October 2026)
+
+Authorised by Root's measured evidence on `3833c822d` (the generic Core MXCSR restoration passes the full public FPU diagnostic and is kept untouched): the matched real 0.001 h Lebanon run is no longer byte-equal to `4bee2cc8c`
+because the shipped campaign's post-prepare frame budget depended on the toward-zero SSE word that `prepare_installation` used to leave in the host's thread (35 frames ending 3.49999737739563 s before; 36 ending 3.5999972820281982 s after).
+Prepared, reference host only: `eech-world/src/reference_arithmetic.rs` (new; MXCSR rounding-control bits 13 and 14 to toward-zero, every other MXCSR bit and the whole x87 environment kept, idempotent, read-back checked, an error on a
+non-x86 architecture), the Lua-callable `host.use_reference_arithmetic ()` in `eech-world/src/main.rs`, and ONE call in `eech-world/lua/campaign.lua` immediately after `dc.prepare_installation (root)` and before the boot, model
+callbacks, frame budget, recordings and metrics (the script's argument and constant parsing before it is unchanged; nothing is selected at process start or only while printing). `eech_engine.c`, the Core DLL, model store/kernel,
+`nearest_f32`, the closed 309 driver, the FPU harness and every baseline, tolerance, seed, duration and artifact are untouched; no per-field rounding, normaliser or frame-count override. `model-authority.lua` (the public FPU diagnostic) does not
+select it, and a guard test says so, so the profile cannot mask the Core's restoration requirement.
+Prepared guards (`tests/host_callbacks.rs`, unrun): the real host binary starts in the default rounding, selects toward-zero only when asked (twice, idempotently) and logs the MXCSR words; the shipped `campaign.lua` calls it exactly once,
+after its argument parsing, immediately after the installation is prepared and before the boot; `model-authority.lua` does not call it. Unit tests in `reference_arithmetic.rs` cover the bit mask and the flag-keeping selection.
+Root's validation, unrun: rebuild; the exact matched 0.001 h/seed 1/100 ms/record 10/observe 1/supply 1 run with the frame-counting audit must show 35 frames, the old final clock and the original complete ACMI/OBS/metrics bytes, then the full
+accepted scenario later (no equivalence from the short run); repeat the public all-four-rounding FPU success and refusal runs to show the host profile does not hide the Core's restoration.
+Path policy (second batch, same phase everywhere): ALL 31 required reference clients now select the profile with the same one-line `host.use_reference_arithmetic ()` immediately after their first successful `dc.prepare_installation` and before their first `dc.boot`, with their own
+argument and constant parsing before it unchanged: `campaign.lua` plus the 30 retained lifecycle, host-identity, supply/aircraft/remaining-arrival, convoy/fixed-wing/helicopter/surface/dependent-movement, aim, LOS, sense, sensor, weapon, combat, bridge, object-report and loss scripts (28 plain insertions; `lifecycle.lua` and
+`host-identities-lifecycle.lua` do it only if their recorded prepare step succeeded, adding no output line). No optional-if-host-has-it skip. Two documented exceptions stay in the caller's own context: `model-authority.lua` (raw public-DLL boundary diagnostic: default nearest and the four explicit native callers; no legacy
+reference-run byte claim; it does not stand in for a normal reference run) and `model-characterization.lua` (closed 309 original-oracle driver; hash/semantics frozen; no new original sweep claimed). Neither is evidence the other clients are unaffected: only `campaign.lua` has a measured counterexample (35 to 36 frames) and the other clients are covered because the same host arithmetic
+runs under them, not because each was shown to differ. A guard test (`tests/host_callbacks.rs`) enforces the inventory over `lua/*.lua` (31 with the call after the preparation and before the first boot, these 2 without). The stand-ins that run these scripts under the real host binary (combat, bridge, object-report) get the function from the host; `supply-arrivals-tools-selftest.py` stops at its stub
+preparation before it, unchanged. Risks: (1) the 30 added clients are unrun and their own outputs may differ from their retained ones either way; Root's re-runs decide, not me. (2) The profile is thread-wide for the process once selected; the module's entries preserve it by the repaired restoration. (3) The MXCSR value logged to stderr (a provenance line, not an
+artifact) is new output. (4) `__i386__`-style x87-only doubles would not be affected by an SSE change; the profile is defined for the shipped x86_64 host. D3 solvers, loaders, hierarchy, routes, devices, environment and time remain in the Core; no D4/D5 or
+completion claim; Task47's live run and all caches untouched.
+
+# D3 source correction — caller MXCSR restored by the public-entry discipline: SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED (30 October 2026)
+
+Authorised by the actual measured defect below: on frozen `4bee2cc8c` the unchanged `ENTER`/`LEAVE` macros in `eech_engine.c` gave back the x87 control and status words but returned MXCSR toward-zero for nearest/down/up callers on both the
+counters-only and the callback entry (8 entries measured; only an initial toward-zero caller was preserved); the independent toolchain-only MinGW control reproduces it for `fegetenv`, `fesetround (FE_TOWARDZERO)`, `fesetenv`.
+Prepared repair, `eech-engine-sys/csrc/eech_engine.c` only: `ENTER` reads the COMPLETE MXCSR (`stmxcsr`, x86/x64 via `__x86_64__ || __i386__`, a no-op elsewhere) before `fegetenv`/`fesetround`; `LEAVE` and the setjmp fatal return write it back
+(`ldmxcsr`) AFTER `fesetenv`. The value is assigned once before `setjmp` and is not modified, so it survives the longjmp. The poisoned/wrong-state early returns come before any state change and need no restore. Internal round-toward-zero, callback
+narrowing and tie policy, kernel arithmetic, call order and the diagnostic harness are untouched; no assertion was loosened. The file was patched by byte-safe perl splice, still exactly ONE NUL; the diff is additions only (`#include <stdint.h>`, the two helpers, the `caller_mxcsr` declaration, one save and two restores).
+Doc `eech-campaign/docs/m5-model-host-authority.md` now records the measured defect and the pending repair (it no longer says the state is merely unmeasured).
+Prepared controls (Root's, none run): rebuild the diagnostic and shipping DLLs; the native `eech_engine_model_host_fpu` over all four initial roundings on both entries and a refused entry (expected: x87 control/status and MXCSR identical, now including nearest/down/up); the toolchain control
+for comparison; then the bounded Leb recording (`model-mxcsr-original-recording-4bee2cc8c-20261030`, Leb seed1, hours0.001, record_every10, observe_every1, observe_supply1) against the repaired candidate, byte for byte.
+Risks: (1) restoring the caller's SSE word could change recorded bytes if the host or Lua code between entries depended on the old toward-zero MXCSR; not known, no reference shim, timing, rounding of output or tolerance was added, and any difference is Root's to investigate before a further bounded action. (2)
+`eech_kernel.c` (`eech-sys`, a separate kernel entry with its own `fegetenv`/`fesetenv` pair) was NOT changed and its MXCSR behaviour on MinGW was not measured by this evidence. (3) `__i386__` builds execute `stmxcsr` unconditionally, as the harness does; a CPU without SSE is not supported.
+(4) The requested-FPU Lua/control guard corrections at `39520f238` are still unvalidated and need their own changed-delta review. D3 physical solvers/loaders/hierarchy/environment/time remain; no D4/D5 or completion claim; Task47's live run and all caches untouched.
+
+# D3 actual native checkpoint — handoff boots; caller SSE restoration defect measured (30 October 2026)
+
+Frozen4bee2cc8c passes Windows shipping/fixture builds, all48 exports each, Linux
+422 tests/default strict Clippy and feature-enabled Clippy. Actual required model
+handoff campaign boot/3.6s frame runs and pre/post retail manifests pass on all
+three roots; Lebanon/repeat full bounded metrics are byte identical. Actual Core
+prepare_installation-generated models also bootstrap and run with Georgia retail
+map/config support. This proves no nonretail map and no full-pack acceptance.
+The actual full-state native diagnostic is RED: x87 control/status preserve, but
+MXCSR becomes toward-zero for nearest/down/up callers on both counter-only and
+callback entries (8 actual measured entries). RZ preserves. A separate actual
+MinGW-only fegetenv/fesetround/fesetenv control reproduces this without EECH/data.
+The production entry macros are unchanged across this extraction; no repair yet.
+The same author75774/PID16360 completed0/collected: requested-FPU completeness and
+narrowing wording fixes are source-prepared, unbuilt/unrun/unreviewed. Next fix
+and verify the measured outer-entry restoration defect, preserving internal
+engine arithmetic and comparing retained bounded original recordings/observations/
+metrics. Accepted baselines/tolerances stay unchanged. Task50/D3 remain open;
+physical solvers/loaders/hierarchy/environment/time and normal delivery remain.
+
+# D3 source checkpoint — review corrections authored, validation pending (30 October 2026)
+
+The existing Sonnet5.5 High correction process22552/tool10026 completed with
+actual exit0 at03:31:13UTC and has been collected. Six P2 and two P3 have proposed
+source corrections and prepared controls. Nothing in this correction batch has
+been built, run or independently reviewed. User-requested Git checkpoints preserve
+partial work and final edits; they are not acceptance. Retain the existing Task47
+shipping run, closed model conformance evidence, inputs and baseline tolerances.
+Next: validate the final changed source and actual public path, then one independent
+delta review. Task50/D3 remain In Progress; physical dependencies remain below.
+
+# D3 model conformance — all 828 present retail models match; production handoff remains open (30 October 2026)
+
+Tested original fixture `debf965cbff9346a2ada3e2cfb6691b572dba059` closes the surface-provenance P2 (source review SHA256873b66785ea6111ed97bf0f38ffb3dade62ef32b1bc2c64b7142d90fb6451740). Windows build0/dirty0/image941a6d410417487598118a998645b731523a058ac27b34e645464562e9c27208; Linux fmt/actual Rust model_walk1PASS and69 synthetic expectations pass. Original numeric bodies, hostf9 kernel and closed309 driver are unchanged.
+
+All three roots observe52517 initialized surfaces and847custom records, with no dropped/ambiguous/partial records. All3025 physical scene metadata fields remain exact; all215 retained original calls remain byte exact. The59 previously refused custom/mixed models are now measured:1662TRUE+59originalFALSE per root, and unchanged hostf9 matches all1721calls. Complete4753row/1519512byte hostreports equal across roots (SHA256044a8463e45b25f6b5a9df66db5a9d21174ae128b0155226889bf825a8e6a164). Independent new-evidence/recovery review SHA256fb13f88df0def92db9eddd3704f1bb7a910780f56da50188d27a8bed7d2e9d40 closes this stage.
+
+Twelve bounded batches additionally measure the remaining763 present models (178 currently used), excluding the65 already checked. All36original and36host runs complete0; all108input checks complete0. Every batch compares all3025scene records and all returned bits with0mismatches, no cap/refusal/state drift. New calls per root:28739TRUE+763actualFALSE=29502. Original triangle rows and whole hostreports are byte exact across the three roots within each batch. Source/bin identities remain unchanged (44original/6host exports). Independent new-evidence review SHA256b8712c4bc6c0630e74eecea25bcec5bcdfd31a48d228f09483b46d4701037821 closes the finite current-input coverage:828present models,30609TRUE+828endFALSE per root; retained absence adds oneFALSE. No raw file was normalized or merged into an invented run.
+
+Both Root checker failures are retained as actual1 after native/input stages0: absent rows omit collision fields, and model-tri scene context comes from its header. Separate read-only recoveries0 were independently reviewed; no natives repeated. The default-handler sanitizer anomaly was reproduced by a minimal program containing no EECH code; exact runtime cause remains unresolved, no blanket sanitizer pass.
+
+Production model queries/loading remain in EECH_DC. Next is the public host/native model authority/refusal handoff, with required physical collision solvers and hierarchy/viewpoint/device/muzzle/target-point services also leaving the DLL within D3. Any intermediate accessor handoff is not the final campaign boundary. Campaign shape choice, targets, policy and consequences stay core. Task47 shipping115 continues in its original processes; full40/eightcompleteartifacts/current acceptance/normalmerge remain pending. Task50/D3 stay In Progress; D4/D5 have not started. The source-only checkpoints below are historical.
+
+# Current D3 correction — EEDCS-50 follow-up of `4bee2cc8c`: requested-FPU completeness and the narrowing wording (30 October 2026): SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED
+
+The one changed-delta review of `4bee2cc8c` (Windows 82840 and Linux 54950 builds live, untouched; no native campaign has run) found a P2 and a P3. P2: in `model-authority.lua` the expected-negative branches returned success with `fpu_rows=0`
+when an earlier genuine provider refusal (boot, frame, requested probe or line-of-sight sweep) prevented a REQUESTED `fpu=1` measurement, and a test blessed `decline ask=fpu fpu_rounding=0,2` though the second rounding (POISONED, unjudged) was never measured.
+Corrected (Lua, tests, docs only; no C, engine or `eech_engine.c` change): (1) a requested measurement is covered only when every ELIGIBLE entry was measured; the summary now separates `fpu_expected_entries` (asked: counters and probe for each rounding), `fpu_rows`
+(rows emitted) and `fpu_measured` (entries whose three words were read and judged), plus `fpu_unreached`; a shortfall, or a primary failure at the boot, frame, probe, los (or fpu) stage that comes first, reports `UNREACHED`, keeps that primary failure's stage and message, and FAILS
+the run even when the refusal itself is the covered one; the boot-stage branch and the final negative verdict no longer bypass it; UNREACHED is never PASS. (2) Because a refused entry stops the engine, a refusing mode measures exactly ONE initial rounding per process: naming none or several,
+or `fpu=1` in a mode that refuses at boot, is refused in preflight before anything is written or booted (a fresh process per rounding); healthy multi-rounding requests stay valid and must measure every entry. (3) The old assertion that accepted two roundings with one unmeasured is replaced.
+New real-script stand-in controls: UNREACHED after a refusal at boot, frame, probe and LOS for `decline` and `refused` (stage and marker kept, no fabricated row), the same refusals without a requested measurement still covered, each refused rounding in a fresh process
+(expected 2, rows 2, measured 2), multi-rounding/none-named/boot-refusing-mode preflight refusals, healthy multi-rounding success, an incomplete healthy measurement (3 of 4) and a DLL that cannot measure. P3: the `MODEL_BRIDGE` comment and the doc no longer say the narrowing's result is independent of the
+rounding mode; they state the supported round-toward-zero boundary and the unchanged tie policy (the cast's guess wins an exact tie; the midpoint 1 + 3 * 2^-24 differs between round-toward-zero and upward); `nearest_f32`, the numeric kernel and the unit-test helper are unchanged (the helper still checks the rounding mode only).
+Files: `eech-world/lua/model-authority.lua`, `eech-world/tests/model_store.rs`, `eech-dc/src/module.rs` (comment only), `docs/m5-model-host-authority.md`, this file. Remaining: nothing here has been compiled or run; the complete caller-state measurement, the synthetic bootstrap and every native control are the Root's and are not claimed.
+
+# Previous: EEDCS-50 follow-up of `ea1953b6c`: test decoder, warning, stage classification, complete outer FPU measurement (30 October 2026): SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED
+
+Actual `ea1953b6c` validation (Root; valid within its scope): Windows shipping and host-fixture builds 0 with all payloads verified; Linux suites 15+2+73+235+19+24+2+8 pass and `model_store` 41 pass / 1 fail, Clippy not reached. The one failure was
+`the_strict_json_writer_keeps_every_byte_and_raises_every_output_failure`: serde_json's DEFAULT decoder (no `float_roundtrip`) read the writer's correct text `9.9999999999999995e-21` as `1.0000000000000001e-20`; an independent parser recovers
+exactly `1e-20`. The writer is unchanged. Corrected in the TEST only: the number is decoded from the row's own text with Rust's correctly rounded `str::parse` (`ScriptRun::raw_number`) and compared for equality with the unrounded literal; no tolerance, no
+dependency feature. The warning at `eech-engine-sys/src/lib.rs:1445` (unused doc comment on an `extern` block) is fixed by turning the three doc comments on test-feature extern blocks into plain comments; no lint is suppressed.
+
+Stage classification (`model-authority.lua`): the first failure of a run is the PRIMARY one with its stage (boot, frame, probe, los, fpu) and message; a negative mode is covered only if its answer was given and the primary failure, at any stage, is the engine's stop on that mode's provider marker. A guard raised by a requested probe on
+healthy frames, a triangle refusal at boot and a frame refusal are each recognised; a later or unrelated failure, an accepted answer and a never-given answer (`UNREACHED`) are not coverage; healthy probe-failure propagation is kept. New stand-in controls: boot-first, frame-first and probe-first refusals for `decline` and
+`refused`, never-asked, swallowed-then-unrelated, swallowed-and-accepted, `missing`.
+
+Complete OUTER public-entry floating-point evidence (new, NOT RUN): `eech_engine_model_host_fpu` (diagnostic build; `Engine::model_host_fpu`; Lua `engine:model_host_fpu`; `model-authority.lua fpu=1`) is an outer harness that is the CALLER: for each initial rounding mode it sets the rounding in both units, every exception masked and
+nonzero divide-by-zero/underflow/inexact flags in the x87 status word and MXCSR, calls the REAL counters entry (ENTER/LEAVE alone) and the REAL probe entry (accessors, model callback, Lua provider and bridge; a refusing host takes the fatal setjmp path), reads the x87 control word, x87 status word and MXCSR back at once, reports before/after and
+whether each is identical, and restores the process's own environment. It repairs nothing. The earlier claims are qualified: `eech_fpu_test.c`/`under_round_toward_zero` and the `fegetround` rows of the probe check only the rounding mode and are not evidence of the complete state; `MODEL_BRIDGE`'s comment no longer says the caller's floating-point state is not touched.
+Whether the shipped `ENTER`/`LEAVE` (`fegetenv`/`fesetenv`) restore the SSE word on each toolchain is unmeasured and is now measured by the Root's native run; no change was made to `eech_engine.c` for this (its only edit is the earlier comment hunk; one NUL). Files: `csrc/{eech_model_host_fixture.c,eech_engine.h,eech_fpu_test.c}`, `eech-engine-sys/src/lib.rs`,
+`eech-engine/src/lib.rs`, `eech-dc/src/module.rs`, `eech-world/lua/model-authority.lua`, `eech-world/tests/model_store.rs`, the doc and this file. Not touched: the core accessor semantics, f9 store/parser/kernel, `model_step.c`, the closed 309 driver, the Core-generated root. Nothing here has been compiled or run; the Core-generated synthetic bootstrap remains untested.
+
+# Previous: EEDCS-50 public model handoff, the six P2 groups and two P3 of `de2c5b3c1` (30 October 2026): SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED
+
+Frozen `de2c5b3c1` actual validation (valid within its scope, not discharging the findings): Windows shipping compile 0 (all 46 exports rehashed), Linux fmt and strict affected Clippy 0, 408 tests pass. The one combined review
+(`independent-model-public-handoff-review-de2c5b3c1-20261030.json`) is CHANGES_REQUIRED: six P2 groups, two P3. New retail handoff / authority / native-C-fixture runs and the C-generated synthetic campaign boot remain NOT RUN / HELD. The `model_store`
+synthetic provider tests are not evidence that Core `prepare_installation` and bootstrap work with the host store.
+
+Corrected in source (details: `docs/m5-model-host-authority.md`): (1) **public identity**: the SCENE reply is `name` (the compiled-name echo), `loaded`, `collider`, radius and bounds; the legacy loader's main/collision object numbers are no longer sent, asked for or compared by
+the campaign (the reference adapter adds them as `reference_main/collision`, ignored; the diagnostic build only COUNTS presence differences); `ABSENT`/`END`/no-scene/zeroed-null-scene stay distinct. (2) **exact Lua numbers**: the provider's answer is read by a Lua bridge, never as `LuaValue`s, one read per field, raw
+type checked, 17-digit text (tiny, subnormal, -0 exact) narrowed by `nearest_f32`; whole numbers and requests are checked in Lua too (`1e-20` is not 0). (3) **native contradiction**: `FOUND` for a scene declared without a collider (or not loaded) stops the engine before any caller word is written, like `END`/`ABSENT`;
+control `bad_found_declared_absent`. (4) **bounded exact lists**: a table holds exactly 1..N and nothing else (nothing at N+1, no other key), a text is exactly `11N-1` bytes, filled token by token, nothing collected. (5) **finite witness**: `model-authority.lua` validates every argument strictly (frame_ms 1..10000, decimal
+seconds up to 86400, at most 1000000 frames, bounded sweeps/seed/probe lists) before output or boot, checks clock progress, and fails on any requested probe that is refused, missing or for another scene or on a requested sweep that cannot be made; `UNREACHED` kept. (6) **strict JSON**: `json-lines.lua`
+(same encoder as `model-host-compare.lua`, every write/flush/close checked, existing outputs refused) is used by both new scripts. P3: the lifecycle is documented and enforced as it is (refresh on every non-NULL entry, `user` never retained, called with NULL; `eech_engine.c` comment reworded byte-safely); the
+authority counters are named `reference_*` (before a rewrite), `replied_*` (what the provider returned) and `native_counters` (accepted by C).
+
+Controls PREPARED, NOT RUN: the eech-dc bridge unit tests (numbers, text, extras, holes, stateful getters read once, under round-toward-zero via the new `fpu-test-support` test feature), the eech-engine crossing tests (names), the `model_store.rs` provider and witness-script tests (strict JSON round trip, 37 malformed
+arguments, healthy / refused / mismatched probes, stuck clock, lost output) with a stand-in engine, and the native `model-authority.lua` modes. Files: `aphavoc/.../mb_hostmodel.{h,c}`, `csrc/{eech_engine.h,eech_engine.c (one comment hunk), eech_model_host_fixture.c, eech_fpu_test.c}`, `build/main.rs`, `src/lib.rs` and `Cargo.toml` of
+engine-sys / engine / dc, `eech-dc/src/module.rs`, `eech-world/src/model_host.rs`, `eech-world/lua/{json-lines,json-lines-check,model-authority,model-provider-check}.lua`, `eech-world/tests/model_store.rs`, the doc and this file. Unchanged: the f9 store, parser and `model_step.c`, the numeric kernel, the closed 309 driver.
+Remaining actual uncertainty: nothing here has been compiled; whether the stand-in tests' Lua details (Lua 5.1 only: no `\x` escapes, `%z`) behave as read; whether the synthetic installation `prepare_installation` writes is accepted by `ModelStore::load`; the Lua provider's cost in a sweep; whether scene names agree for every scene index on the three roots (the boot check is strict: a
+disagreement is a genuine dependency to fix, not to suppress). Physical solvers, hierarchy, route data, viewpoints, devices, muzzles and target points still leave Core within D3, not D5. No Git, build, test or native action was taken.
+
+# Current D3 handoff — EEDCS-50 host authority over the collision-model queries (30 October 2026): SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED
+
+Base `5bce5c734`; Task 50 / PR 110 continues (no duplicate PR, nothing from unaccepted Task 47 cherry-picked or merged; its terrain callback is used as a pattern only). Closed and not redone: the
+original provenance source `debf965cb`, all 828 current retail models characterised and matching the host `f9` (30609 TRUE + 828 end FALSE per root + the retained absence; 3025 metadata matches), the host store, numeric
+kernel and the closed 309 driver. Full contract, audit, controls and validation: `eech-campaign/docs/m5-model-host-authority.md`.
+
+**Done in source.** The four accessors that answered from the DLL's own arrays (`get_object_3d_collision_object_geometry_triangle`, `get_object_3d_bounding_box`, `_without_lines`,
+`get_object_3d_radius`) now ask the host through one public, install-once, required-at-boot callback (`mb_hostmodel.h/.c`, `eech_engine_host.model`, `eech_engine.h`; Rust `ModelProvider`, Lua
+`boot { model = function (op, scene, depth) }`). Strict count-checked patches (`MODEL_HOST_PATCHES` D1a, D1b, D2, D3a-c) replace the bodies (the original triangle body only inside `#if 0`); boot asks the
+catalogue and every scene (a different catalogue size, a non-finite number or a changed shape identity refuses the boot; physical values are never compared with the arrays), fills immutable host-authored bounds/radius tables
+(stable pointers, no rotating cache) and every triangle is asked live. `END` and `ABSENT` are the original FALSE and leave the caller's buffer untouched, distinct from any refusal; a missing, declining, malformed or
+contradicting host stops the engine with `[model-provider:...]`; there is no array fallback and no always-miss. The reference host's `host.model` (and `host.model_provider (store)`) wrap the f9 `ModelStore`; all 31 repository
+campaign scripts pass `model = host.model`. `eech_engine.c` took two byte-safe hunks (the ENTER install; the boot requirement) plus an appended diagnostic block; the one NUL and every other byte are unchanged
+(prefix/middle/tail compared with `cmp`; count 1 each). The original-characterisation build (`model-fixture`) keeps the original accessors, applies no host patch and needs no host; the two model features exclude each other.
+
+**Audit (read, not run; headless is not taken as dormant).** No direct COLLISION bounds/radius/triangle bypass outside `modules/3d` (`en_cllsn.c` and ~40 other callers use the accessors; `modules/physics/body.c` is not
+compiled). Residual direct readers, classified **D3-open** (hierarchy, route-network, scene-existence, avionics/UI/terrain-draw data): `routegen.c:219` (route networks, from `popread.c`), `popread.c:1344-1447/2728/2748/3959`
+(scene links), `damage.c:715` (`succeeded`), `hi_hud.c`, `main_sc.c`, `textuser.c:2171`, the outcode/visibility and MFD poly-line readers.
+
+**Controls PREPARED, NOT RUN.** Rust callback-crossing tests (bit-exact triangle, END/ABSENT write nothing, missing/declining/wrong-kind/unknown-operation/panicking provider refused by name with no reply written);
+`model_store.rs` tests with `model-provider-check.lua` (both provider routes equal the store's own answers incl. all four answer kinds, 30 malformed requests refused by name, missing assets `NOT RUN`); `model-authority.lua`
+(reference, host-authored geometry `vanish`/`inflate` and bounds `bounds_zero` changes against an LOS sweep fold, `missing`, `decline`, `refused`, 10 `bad_*` modes, `UNREACHED` reported not covered); the
+`model-host-fixture` build (counters + poison of the campaign's own arrays + the real-accessor probe with buffer/rounding/pointer-stability rows; `tools/build-windows-model-host-fixture.sh`).
+
+**Remaining coupling and uncertainties.** The sector scan, transform and line-triangle decision in `en_cllsn.c` are still campaign code (an intermediate boundary; they move to the host under Task 49 / G3 within D3);
+the DLL still loads the files for hierarchy, viewpoints, mounts, devices, muzzles, target points and the readers above, so D3 stays open (no D4/D5 work). Not established: that `ModelStore::load` accepts the synthetic
+installation `prepare_installation` writes (scripts booting one fail with `NOT RUN`/a refusal rather than get an empty database); the per-query cost of the Lua provider in an LOS sweep. **Required validation** (the Root's): build
+all variants and confirm the patch counts, run the Rust tests and clippy, then natively the reference boot against the frozen baselines and M4 pack, every refusal mode, the changed modes against the reference with `los-fixture`, the
+poisoned run against the unpoisoned one, the probe rows against the retained original rows, and the cost. No Git, build, test or native action was taken in this lane.
+
+# Current D3 correction — EEDCS-50 original surface provenance, the one P2 of `874aa5ae6` (30 October 2026): SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED
+
+Author process3360 completed0 at01:56:08UTC; Root formatting and diff checks pass. The 69 controls remain prepared, not executed at this checkpoint. Prior review report SHA2560185df9b0748b448e0221e8721eadd82ff6ddcc36c2094052966407d7b1863a6 is retained with the874 build identity. A later bounded minimal sanitizer program containing no EECH code reproduced the same signal spam (child153); the frozen874 verifier separately passed44/0 with its default handler. This narrows the diagnostic to a runtime/environment factor without proving its exact cause or granting a blanket sanitizer pass.
+
+Frozen `874aa5ae6` actual validation (not a surface-safety proof): Windows fixture build 0, Linux `model_walk` compile and test 0, standalone ASan+UBSan run 44 checks / 0 failures (a default-handler repeat gave an unexplained
+runaway `DEADLYSIGNAL`, stopped; no blanket sanitizer pass). The single combined review found ONE P2: surfaces were trusted as readable and initialised from the recomputed surface-count sum; no filled-extent provenance for the common
+per-field or custom 16-byte surface `fread`s, nor for the consolidation's `malloc`/`memcpy`/rebind; the typed metadata reads and the state digest preceded any alignment or initialisation check.
+
+Corrected (source only; details in `docs/m5-model-characterization.md`, "Surface provenance"): feature-only strict patches `M12`..`M22` (and `M5`, `M10` extended) capture the seven common per-field `fread` results, the custom surface `fread`
+result, and the consolidation's block, per-object copy and binding. The fixture keeps per-object leading initialised-record counts (field byte masks, so the `int` read that spills over two bytes is exact), carries them through the copy into a
+bitmap of the final block (`MF_SURFACE_MAX` 262144 records, 5x the supported 52,517; larger is an explicit `surface_capacity` refusal for every object), and every surface read (walk, metadata statistics, state digest) passes `mw_surface_gate`
+first: observed block, this object's pointer and count where the consolidation put them, inside the block, on a record boundary, 4-byte aligned, record initialised. Anything unmatched, stale, rebound, partial, missing or over capacity refuses
+safely and says why (`surfaces=` and the summary's `surface_*` fields); there is no fallback to the recomputed sum, which is only reported. Per-object distinctions and genuinely initialised cross-object walks are kept; the closed 309 row/driver contract,
+the 15 statuses, the 44 prior walk controls and the signed 0/1/2-point stepping are unchanged. Controls prepared (not run): 25 more isolated expectations (69 total, no original code) exercising the gate with a poisoned unreadable pointer and poisoned bytes,
+the fread-result bookkeeping and a simulated consolidation into a cross-object walk. Changed: `csrc/{eech_model_walk.h,eech_model_hooks.h,eech_model_fixture.c,eech_model_walkcheck.c}`, `build/patches.rs`, `tests/model_walk.rs`, the doc and this file.
+Not touched: host `models.rs`, `model_step.c`, the closed Lua driver, `eech_engine.c`, any original numeric body, frozen snapshots or private evidence. Remaining gaps: the `fread` item count is taken as the filled extent (bytes not re-read, and
+a partially written item that `fread` did not count is treated as uninitialised, conservatively); later writers of surface bytes (texture overrides) are not tracked, they only write already-initialised bytes; the observer assumes loader and
+fixture share the engine thread. Next (Root): compile, run `model_walk`, ONE new full memory-safety pass of this delta, then fresh-root native runs; expect `surface_records` = `surface_block` = 52517, `surface_partial_objects` 0, `custom_recorded` 847.
+
+# Current D3 original-memory-safety change — EEDCS-50 original backing observer and decoder-read walk (30 October 2026): SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED
+
+Commit/push checkpoint: both Sonnet implementation processes completed with exit 0 (01:24:46 UTC and 01:33:45 UTC); this is author completion only. Root ran `cargo fmt --all` successfully in the pinned build image and `git diff --check` passed. The 44 prepared verifier expectations have not run. All three fresh private roots passed repository input-manifest checks (exit 0); no native fixture was launched on them. Raw retail data, recordings and build caches remain local.
+
+Base: clean/pushed `3f62ddf3a` (prepared host component tested at `f9c6a1e4c`). This is a DISTINCT original-memory-safety change and needs its OWN independent safety review BEFORE a new fixture executable is run or any new original native accessor call is made. Compilation alone does not execute that fixture.
+It does not treat the new host answers as the oracle: it closes the actual original gap (the `366622e0c` fixture refused 14 custom and 45 mixed-layout models because it inferred array extents from the next
+object's pointer, so it could not see allocations).
+
+Prepared (feature `model-fixture` only; detail and limits in `eech-campaign/docs/m5-model-characterization.md`, "Backing observation and the decoder's actual reads"): (1) loader hooks via strict count-checked
+source patches `M1`..`M22` (`build/patches.rs`, applied by `build/main.rs` only with the feature) record the exact shared face and point-list allocations, every cursor and every `fread` result before any override mutates an
+object, and the exact allocation identity and filled extents of each custom object at `read_object`; (2) `eech_view_extent` (`csrc/eech_win32.c`, feature-only, mutex-protected `views[]`, exact base, read-only) gives the mapped points
+and surface-point lengths; (3) `csrc/eech_model_walk.h` replays the original accessor's integer reads (surface 0 unconditionally, the face loop, the point-list, surface-point and point reads, the next-surface read even after the
+last face, 0 points meaning 256) against that backing with checked integer arithmetic, alignment, allocated-versus-initialised bytes and a step budget, and never computes a triangle; (4) `csrc/eech_model_fixture.c` uses it
+in place of the old inference. `get_object_3d_collision_object_geometry_triangle`, all original numeric bodies, the closed 309 Lua driver / comparator, the host `models.rs` and `model_step.c` are unchanged. Provenance is reported only
+in optional `key=value` fields (`backing`, `walk`, `stop`, `stop_array`, `*_read`, summary `backing=hooked ...`, state `backing=<hash>`); the 15-status vocabulary and all row types are unchanged. The old six positive geometry
+models (208 TRUE, 6 end FALSE, one absence) are intended to be reproduced exactly (`fan_bound`, `end_read_backed`, rows) from the same observation; that is a Root check, not asserted here.
+
+Two fidelity corrections before first compile (same files; SOURCE ONLY, UNBUILT, UNRUN, UNREVIEWED). (1) The custom-record table is now one slot per object index (`MF_OBJECT_MAX` 32768, constant-time, generation-stamped, no
+physical allocation) instead of 512 records: the supported data has 36 hex-named + 811 named = 847 custom loads with ids to 10252 and an object table of 11442 objects plus slot zero. An object that is repeated, not an element of the
+table, stale or past the bound is refused alone; the summary reports `custom_slots`, `custom_recorded`, `custom_ambiguous`, `custom_record_overflow`, `custom_unknown`, `custom_late`. Root will verify recorded 847 and dropped/unknown 0 on the three roots. (2) The
+`MW_DEGENERATE` refusal of faces of 0 or 1 points is removed: the original accessor consumes such a face (it subtracts `points - 2`, so the depth GROWS by 2 or 1), bounded by `number_of_faces`. The walk now derives the exact TRUE-depth
+count P (the running maximum of the signed sum, never below 0, first FALSE at depth P) and each claimed depth's reads from the face counts, checks every read against the backing, and refuses only an unbacked, unobserved, uninitialised, misaligned,
+wrapping or over-budget access. No numeric accessor body, driver, comparator, `models.rs` or `model_step.c` change; the `degenerate_face` status stays in the vocabulary but is no longer produced.
+
+Safe to probe after review and build: the last object of each shared block, the mixed-layout models up to their first unbacked read (including walks into the following objects' loader-initialised data), custom objects with an exact
+record. Still refused / explicit gaps: unobserved backing, uninitialised reads, custom objects with an ambiguous, stale, unknown or missing record or an index past the fixed bound, budget exhaustion, everything beyond the first
+unbacked read (`partial`, never extrapolated). No measured-geometry claim; no Task, production, Tacview or whole-D3 claim (hierarchy, viewpoint, device, muzzle, target-point, entity collision, environment, host time and removal of the native
+physical loaders/solvers from EECH_DC remain required; D4 and D5 not started; Task 47 shipping run untouched).
+
+Changed/added: `csrc/{eech_model_walk.h,eech_model_hooks.h,eech_model_walkcheck.c,eech_model_fixture.c,eech_win32.c}`, `build/{patches.rs,main.rs}`, `Cargo.toml` (`[[test]]` requiring the feature), `tests/model_walk.rs` (isolated control, 44
+expectations, no original code), `docs/m5-model-characterization.md`, this file. Not touched: `eech_engine.c` (and its NUL), any frozen source, raw, retail root, baseline or other worktree. Next (Root): compile (Linux and Windows,
+feature on and off; confirm the patches' counts and that the feature-off staged `3dobjdb.c` is byte-identical to the shipping patched one), run `model_walk`, the independent memory-safety review, then fresh-root native
+catalogue/geometry runs, a state-digest before/after, and the comparison with `366622e0c`'s rows. No Git, build, test or native action was taken in this lane.
+
+# Current D3 correction — EEDCS-50 host model store, last residual P2 of `7a51d13a6` (30 October 2026): SOURCE PREPARED, UNBUILT, UNRUN
+
+Actual `7a51d13a6` validation (valid within its scope, unchanged): Linux format 0, 235 library tests (a Root commentary that said 236 is corrected: the count is 235), 33 integration tests, the old 8 diagnostic guards and all-target
+Clippy 0; Windows build 0 with six verified payloads, 235 library and 33 integration tests and the expected strict invalid-override refusal 101; the eight earlier specific malformed-report controls now refused and the healthy controls
+accepted; the three healthy retail comparisons native / repository 0 with pre/post inputs 0, all 3025 scene records and 215 original calls matching, whole reports 3357 rows / 1,278,336 bytes SHA-256 `ed3503b1…9317`, identical to `8a5dad172`
+and `ba4f5d42a`, physical rows byte-exact to `2020436ce` apart from the two known diagnostic counts (+63 bytes). The one focused review of the new delta (`independent-host-model-review-final-7a51d13a6-20261030.json`, SHA-256
+`bf711664…9dc`) CLOSED the cumulative allocation, the gate / header / write-count consistency and the exact-match resolver finding, and left ONE residual P2. The review disposition stays CHANGES_REQUIRED until this last group is closed;
+nothing here relabels the new source as run.
+
+The residual P2 (status and detail) was ACTUALLY reproduced by the Root on the immutable `7a51d13a6` host with unchanged retail inputs (`host-model-status-detail-inputs-20261030`): an unknown geometry status with a ghost refusal that
+omits scene 8's 24 calls, an unknown catalogue status with an adjusted matching tally, and a refusal whose detail differs from its header's, each native 0 / done 0; the healthy original 0.
+
+Corrected (source only, UNBUILT, UNRUN; `eech-campaign/docs/m5-model-host-store.md`, "Correction for the last residual P2"): `original_report.rs` reuses the closed driver's exact fifteen statuses for BOTH catalogue rows and
+geometry headers and refuses any other; a `model-refused` row must echo its header's scene, status AND detail (missing, non-text or different refused). Classification unchanged (absent / callable `safe` and `empty` / every other
+of the fifteen a refusal); no status invented, no physical success required, no geometry derived; partial-write, unbacked, capped, refused and catalogue-off modes kept. Controls through the real comparator and driver, none of the earlier
+cases dropped: unknown catalogue status with an adjusted tally, unknown geometry header with an echoing refusal, refusal detail different / missing / not text, refusal status different, and all fifteen statuses accepted as catalogue
+statuses and the twelve refusal-class ones as geometry refusals.
+
+Changed: `src/original_report.rs`, `tests/model_store.rs`, `docs/m5-model-host-store.md`, this file. Not changed: the C numeric kernel and FP guard, the closed original fixture and driver, the originals, any baseline, tolerance, MSRV
+or physical rule. Next (Root): format and freeze, the affected Linux and Windows checks, the same first eight malformed controls plus the new three against the corrected binary, the healthy retail reports, then one focused changed-source
+closure check. Open and unchanged: the 59 original custom and mixed geometry gaps, the production hand-off, hierarchy, viewpoint, device, muzzle, target-point, entity-collision, environment and host-time services and the removal of the
+native physical loader. No task, production or Tacview claim; the original Task 47 shipping run was not touched. No Git, build, test or native action was taken in this lane.
+
+# Current D3 correction — EEDCS-50 host model store, second review of `8a5dad172` (30 October 2026): SOURCE PREPARED, UNBUILT, UNRUN
+
+The one focused combined review of `8a5dad172` (`independent-host-model-review-closure-8a5dad172-20261030.json`) is CHANGES_REQUIRED, not acceptance: the I/O propagation and the 32-bit scene conversion are RESOLVED; two P2s and one
+P3 remain. The checked `8a5dad172` runtime evidence is valid within its scope and unchanged (Linux format, 235 library, 30 integration, 8 old guards and all-target Clippy 0; Windows build 0 with six payloads, 235 library and 30
+integration tests and the expected missing-host refusal; the three healthy retail comparisons with all 3025 scene records and 215 original calls matching, whole reports 1,278,336 bytes SHA-256 `ed3503b1…9317`, every other row
+byte-identical to `2020436ce`; the four first corruption controls rejected). It is NOT proof that these new holes are fixed. The initial `0b5750f7a` and `61a80` compile failures and the `ba4f` Clippy failure remain retained history.
+
+The Root reproduced the P2 report-gate hole against the immutable `8a5dad172` host with exact forged originals (`host-model-forged-gate-inputs-20261030`): all of scene 8's calls replaced by an invented `end_probe_unbacked` and by an
+invented `beyond_safe_bound` at depth 0, each native 0 / done 0 with compared original calls 215 to 191; the healthy original 0. The node-budget hole is a static counterexample (no unsafe allocation was or will be run).
+
+Corrections (details and exact contracts: `eech-campaign/docs/m5-model-host-store.md`, "Corrections for the second review"; all UNBUILT and UNRUN):
+1. MODEL-NODE-CUMULATIVE-BUDGET: a sub-object list is refused unless `(pending + n) * minimum record` fits the bytes that remain, `pending` being every reserved sibling not yet started, so one stretch of padding cannot justify
+   a reservation at each level; minimums (96 / 93 / 105), traversal and order unchanged; controls for padding reuse, and for genuine dense, deep and exactly-full minimum trees that must still load.
+2. MODEL-REPORT-GATE-CONSISTENCY: the original-report contract keeps each geometry header's identity and safety facts (name, collision, status, detail, `fan_bound`, `end_read_backed`) stable across a scene's pages and
+   consistent (absent iff collision -1), requires `end_probe_unbacked` / `beyond_safe_bound` to agree with them as the closed driver does, and requires a triangle row's `writes` to equal its words that differ from the
+   sentinel. Coherent positive collaborators (an unbacked end at its bound with end_read_backed 0; a partial write of exactly two changed words); new forged-gate, header and write-count controls through the real comparator
+   and driver; all earlier damage cases kept. Genuine unbacked, capped, absent, refused, catalogue-off and partial-write modes still pass; no physical outcome is required.
+3. MODEL-RESOLVER-AMBIGUITY-CONTRACT (P3): exact-spelling precedence is kept and documented; the resolver tests now check both the exact and the ambiguous-fallback cases.
+
+Changed: `src/models.rs` (budget, resolver documentation and fake-filesystem tests), `src/original_report.rs`, `tests/model_store.rs`, `docs/m5-model-host-store.md`, this file. Not changed: the C numeric kernel and FP guard, the closed
+original fixture and driver, the original reports and raws, any baseline, tolerance, MSRV or physical rule; no original-provenance instrumentation. Next (Root): format and freeze, Linux library / integration / old guards /
+Clippy, Windows build and tests, the same four corruption inputs and the two forged-gate inputs against the corrected binary, the healthy retail reports, then one new-delta review. Still open and unchanged: the 59 original custom
+and mixed geometry gaps, the production loader and native physical-service removal, hierarchy, viewpoint, device, muzzle, target-point, entity-collision, environment and host-time services. No task, production or Tacview
+claim; the original Task 47 shipping run was not touched; D4 and D5 have not started. No Git, build, test or native action was taken in this lane.
+
+# Current D3 lint correction — EEDCS-50 host model store at `ba4f5d42a` (30 October 2026): SOURCE ONLY, UNBUILT, UNRUN
+
+Actual validation of `ba4f5d42a` (retained, not changed by this note): Linux format 0; the eech-world library tests (235, including the five `fs_tests`), all 30 `model_store` integration tests and the old
+8 `model_characterization` guards pass. Windows build 0 with six verified payloads; Windows 235 library and 30 integration tests pass; the explicit missing-host control is the expected native 101 refusal. The three
+healthy retail comparisons are native and repository 0 with pre/post manifests 0; the originals and six payloads are unchanged; all 3025 scene records (IDs included) and 215 original calls match. The four retained
+corrupt reports the `2020436ce` host accepted are now each native 1 / `compare-refused` / no `done`, and the healthy original is accepted. The new full host reports are identical across the three roots (1,278,336
+bytes, SHA-256 `ed3503b1…9317`); the Root's byte audit shows every physical and other row byte-identical to the `2020436ce` reports, the one difference being the `compare` row's two added envelope counts
+(`original_catalogue_scenes` 3025, `original_geometry_scenes` 11; 63 bytes). **The last Linux gate, all-target Clippy, FAILED (exit 101) on 27 style diagnostics** (log `model-host-ba4f5d42a-linux-20261030.log`); that
+failure is retained, and `ba4f5d42a` is not a clean Clippy result.
+
+Correction (lint only, UNBUILT, UNRUN): (1) in `compare_original`'s loop over the borrowed, already-validated rows (`for (line_number, row) in &rows`), `row` is a `&Value`, so the 26 `text(&row, ..)` / `int(&row, ..)`
+calls made a needless `&&Value`; they are now `text(row, ..)` / `int(row, ..)`, in that loop only (the `&rows` borrows and every owned value elsewhere are untouched); (2) the `fs_tests` fake's `Error::new(IoKind::Other,
+"not a directory")` is now `Error::other("not a directory")` (stable since Rust 1.74; the workspace `rust-version` is 1.80, which is not changed). No validation, count, geometry, comparison, physical or test expectation
+changed, no `allow`, and no C, FP, `original_report` or closed-fixture/driver source changed. Not a task, production, Tacview or whole-D3 acceptance; the 59 original custom and mixed geometry gaps, the production
+hand-off and the remaining D3 scope are unchanged; the follow-up review of the four-finding delta has not been requested; the original Task 47 shipping processes were not touched.
+
+# Current D3 test-helper correction — EEDCS-50 host model store at `61a80ee1a` (30 October 2026): SOURCE ONLY, UNBUILT, UNRUN
+
+Actual first validation of the four-finding correction frozen at `61a80ee1a`: Linux format 0 and the eech-world LIBRARY tests pass, 235 of 235, including the five new `fs_tests` that drive the actual
+resolver and enumerator against a fake filesystem (log `model-host-61a80ee1a-linux-20261030.log`). The integration test `tests/model_store.rs` did NOT compile: eight E0308 errors, all one cause. The test helper
+`tri` in `the_legitimate_original_modes_are_accepted_and_compared_as_they_are` took `&Option<String>` while its callers pass `p0` and `p1`, which the lookup closure returns as owned `String`s (lines 1531, 1543,
+1549, 1561, 1562). The old eight diagnostic guards and Clippy were therefore NOT RUN, and Windows had the same eight errors (build wrapper 1; no export, no Windows tests, no retail comparison). Neither the
+235 library passes nor `61a80ee1a` is integration, Windows or acceptance evidence; the frozen source and the failed logs stay immutable.
+
+Correction (test helper only, UNBUILT, UNRUN): `tri` now takes the nine words as `&str` and builds the `Some(owned string)` the report tuple schema requires, so all eight call sites type-check unchanged; no value, report
+collaborator, negative case or assertion was changed, and the other new helpers (`host_group`, the alteration builders) already pass `Some(String)`. No product source (`models.rs`, `model_host.rs`,
+`original_report.rs`, C) changed. The Root separately reproduced all four comparator defects against the immutable `2020436ce` host with exact corrupted retained reports (cut off after the first scene, a duplicated
+scene, a missing geometry terminal, an original `done` with failures 1: each wrongly native 0 / done 0; healthy control 0); those inputs remain private for the corrected-binary green. Whole D3, the 59 original
+custom and mixed geometry gaps and the production physical-loader removal are unchanged; no task, production or Tacview claim; the original Task 47 shipping run is live and untouched.
+
+# Current D3 correction — EEDCS-50 host model store, four review findings (30 October 2026): SOURCE PREPARED, UNBUILT, UNRUN
+
+Review of the tested `2020436ce` (`independent-host-model-component-review-2020436ce-20261030.json`, SHA-256 `4f387a639e452c9942e89d693d4de0b7a2e7a914a34bf6c68dcd38626f48c613`): CHANGES_REQUIRED,
+exactly four P2s. This entry is the next source after publication `393539141`; it has not been formatted, compiled or run, and the tested `2020436ce` evidence (Linux format, 25 new and 8 old tests,
+all-target Clippy; Windows build, 25 tests and the expected missing-host refusal; the three complete retail host reports, identical at 1,278,273 bytes SHA-256 `34e4b684…3e86`, with all 3025 scenes'
+metadata and object numbers and 215 original calls matching and surface block 52,517; inputs, originals and the five host payloads unchanged) is retained as it was and is NOT relabelled as running
+these corrections. The initial `0b5750f7a` failures and the skipped-number defect remain part of the history.
+
+**Corrected (details and exact contracts: `eech-campaign/docs/m5-model-host-store.md`, "Corrections for the four review findings"):**
+1. MODEL-NODE-PREALLOCATION: a sub-object count is checked against the bytes that remain, at the smallest record the format allows (derived from `initialise_3d_sub_object`: 96 bytes binary, 93 named,
+   105 for version -3 and below), before anything is reserved or resized; the node total must fit the kernel's 32-bit counts; the reservation is checked. Traversal, order and layout unchanged.
+2. MODEL-OVERRIDE-IO: enumeration and name resolution go through a small `Fs` boundary; only a genuinely absent optional `OBJECTS` is absent, every listing, entry, type, vanished-entry, wrong-kind
+   and case-ambiguity failure is an error naming the path. Successful order unchanged. Unit tests drive the actual resolver against a fake filesystem; a real-filesystem test covers `OBJECTS` as a file.
+3. MODEL-COMPARISON-COMPLETENESS: `compare_original` validates the report as a whole, coherent run of the closed original driver (new `src/original_report.rs`) before comparing a row: the envelope,
+   the complete catalogue when declared, and every geometry group's pages, depths, terminal and call counts. Legitimate absent, refused, unbacked, capped, catalogue-off and partial-write observations pass;
+   no physical outcome is required. Test collaborators are complete report envelopes built from the host's run; controls (cut off after the first scene, repeated scene, missing terminal, failed original
+   done, and others) run through the real comparator and host-Lua driver and are runnable against the old `2020436ce` host through `EECH_WORLD_BIN`.
+4. MODEL-SCENE-WIDTH: the signed scene is compared with the scene count before it is narrowed (`usize::try_from`); wide positive scenes that wrap on a 32-bit target are in the guard.
+
+Changed: `src/models.rs`, `src/model_host.rs`, new `src/original_report.rs`, `src/lib.rs`, `tests/model_store.rs`, `docs/m5-model-host-store.md`, this file. Not changed: the C numeric kernel and floating-point
+guard (no finding), the closed original diagnostic driver and fixture, any baseline, tolerance, MSRV or physical rule. No new original-provenance instrumentation in this batch.
+
+**Next (Root):** format and freeze; Linux `model_store` (including the new unit and integration controls), the old `model_characterization` guards and all-target Clippy; Windows `model_store` with `EECH_WORLD_BIN` and
+the invalid-override control; the old `2020436ce` host against the new comparator controls as the safe red where applicable (never the old unguarded allocation); the retail comparison again only if the Root judges the
+loader change affects it (the physical path is unchanged, the report contract is new, so the three retained concrete reports should be re-checked against the new comparator); then the focused review of these changes.
+Still open and unchanged: the 59 original custom and mixed-layout geometry gaps need actual original allocation and backing provenance (the host's counts for them are not an oracle); other safe models have metadata but not
+exhaustive triangle proof; the production model loader and native physical service removal, hierarchy, viewpoint, device, muzzle and target-point services, entity collision, environment and host-time services remain required whole-D3
+work (not deferred to D5); campaign policy, geography, routes, timers and consequences stay in EECH_DC. The original six Task 47 shipping processes were verified live and untouched at 00:15 UTC; the full 40-check /
+eight-artifact acceptance and normal delivery are pending. D4 and D5 have not started. No task acceptance, production or Tacview claim. No Git, build, test or native action was taken in this lane.
+
+# D3 checkpoint — host model component tested; four review corrections open (30 October 2026)
+
+EEDCS-50 / draft PR110: source `2020436ce160ac3762f00f7ee8290f4e6247bce3`
+implements host-owned disk loading and model queries independently of the campaign
+DLL. Actual Linux formatting, 25 model-store tests, eight retained diagnostic
+guards and all-target Clippy pass. The Windows build and all25 model-store tests
+pass; the explicit missing-host override fails with native101 as required.
+
+Actual repository runners complete0 on Georgia, Lebanon and Lebanon-repeat.
+All3025 scene records/IDs and215 retained original accessor calls per root match,
+with no named-ID skips and surface block52517. All three complete host comparison
+reports have1278273 bytes and SHA256
+34e4b68478a2b998411edc46f5e5ad565e8a2fc304decabdb2cb3b8747b03e86.
+Pre/post inputs, original reports and five host build payloads are unchanged.
+These are model-component comparisons, not campaign/Tacview shipping runs.
+Initial0b JSON/Clippy failures and the separately discovered named-index error
+remain retained; no baseline or tolerance changed.
+
+The single independent combined review is CHANGES_REQUIRED, exactly four P2s:
+bound node allocation before resizing; propagate override-directory I/O errors;
+refuse incomplete/failed/duplicate original comparison reports; check wide scene
+IDs before narrowing to usize. Report SHA256:
+4f387a639e452c9942e89d693d4de0b7a2e7a914a34bf6c68dcd38626f48c613.
+The review independently confirms the concrete complete retail measurements;
+it does not approve the reusable comparator or current component for delivery.
+Safe report and validation metadata are in PR110's
+`eech-campaign/reference/d3-model-characterization/`.
+
+Both Sonnet implementation invocations and their builds are terminal/collected;
+no implementation writer is currently live. Next: one finite four-finding
+correction batch in the relevant Sonnet5.5 High context, affected validation and
+one review of the new changes. Then characterize the59 original custom/mixed
+geometry gaps using actual original allocation/backing provenance before new
+unsafe accessor calls. Other models have metadata coverage, not exhaustive
+triangle coverage. Production model loading/queries remain in EECH_DC.
+
+Task47 shipping115's original six process identities were verified live again
+at this checkpoint; it was neither stopped nor restarted. Previously checked
+Tacview/observation prefixes match only. Full40/eight complete files/post-inputs,
+normal delivery and subsequent production handoffs remain pending. Model
+hierarchy/viewpoint/device/muzzle/target points, entity collision, environment,
+host-time and required physical solver/loader removal remain D3 work. Campaign
+policy, geography, routes, timers and consequences stay in EECH_DC. D3 remains
+In Progress; D4/D5 have not started. Jira10864/ledger69 are the last external
+records and predate this component checkpoint.
+
+# Current D3 correction — EEDCS-50 host model store, first-validation batch (29 October 2026): SOURCE ONLY, UNBUILT, UNRUN
+
+Published source `0b5750f7a` (frozen by the Root as `model-host-source-0b5750f7a`) is the actual first host-owned model component; this entry corrects it after its first ACTUAL results and does not
+claim the component accepted: it has had no independent review, and it is not Task Done, not whole-D3, not production. Authority and scope are unchanged (M5 goal Confluence 11534337, ledger
+14548994, Epic EEDCS-21, Task EEDCS-50; D4 and D5 not started; the six-process Task 47 shipping run 115 and its full 40-check / eight-artifact acceptance still pending; the original
+characterization closure `ab48e507…` for `366622e0c`/`309b3f050` is valid and unchanged).
+
+**Actual first results at `0b5750f7a` (Root-run, not assumed):** formatting 0; Linux and Windows `model_store` 23 tests, 21 PASS and 2 FAIL (both in `lua/model-host-compare.lua`'s error paths: Lua `%q`
+wrote a raw escaped newline, so a multi-line Rust/Lua error was not JSON and the strict reader refused the line); the separate all-target Clippy on the exact frozen source failed with six findings
+(`models.rs`: two over-indented doc-list lines, four `chunks_exact` with a constant size). The first retail host-only comparisons completed 0 on all three verified roots: 3357 strict JSON rows and
+1,278,301 bytes each, identical across Georgia, Lebanon and the repeat; 3025 scene rows compared with no evaluated scene or triangle mismatch and 215 original calls compared (208 TRUE, 6 end FALSE, 1
+absence); no campaign DLL loaded and no engine booted; inputs, the original reports and the five host payloads unchanged. The load summary was 36 binary EEO, 144 EES and 811 named objects, with no
+unsupported, unresolved or duplicate file. The host reports four original-REFUSED models as UNMEASURED (its own triangle counts for scenes 188, 1, 1412 and 1165): that is not equivalence evidence, and
+all 59 custom and mixed-layout gaps remain required work.
+
+**The core loader defect found by the Root's separate source and identity audit (`model-host-0b5750f7a-first-retail-identity-audit`):** `get_next_object_id` is `return total_number_of_objects++` and the
+counter starts at the table's object COUNT N, so the FIRST named custom object is number N and REPLACES the last table object; the loader started at N + 1. Every one of the 61 retail named main and
+collision numbers was therefore one too high and the consolidated surface block 52,518 against the original's 52,517. The comparator hid it: it skipped every named object number
+(`ids_not_compared` 61). Corrected here from the original source, not to fit the output: the counter starts at N; the consolidation runs from 1 up to and INCLUDING the counter's final value (with no named
+object that is the last table object; with M named objects the counter N + M is an unused zero slot that is in the loop and adds nothing); a scene's bounds are still computed when it is read, from the objects as they
+then stand, and are not recomputed when a later named object overwrites one (query order as the original). `compare_original` no longer skips or normalises anything: main and collision object numbers are
+compared as they are, the original's numbers for named custom objects included (a same-input reference comparison; DCS is not required to use EECH's private indices).
+
+**Other corrections:** `lua/model-host-compare.lua` now writes dynamic strings and keys with real JSON escaping (quote, backslash, every control byte 0 to 31 and 127; UTF-8 kept), keeping the error and
+detail text, the strict JSON, the checked writes, the no-overwrite and the non-zero exits; only the new driver changes. The six Clippy findings are fixed idiomatically (list items without over-indented
+continuations; `chunks_exact(6)` and `(2)` replaced by index-based element reads, no `as_chunks`, no MSRV change, no `allow`). No C numeric kernel, FP guard, physical rule or tolerance changed.
+
+**Guards added or corrected (written, not run):** the named-scene numbering test now expects the first named object to be number 4 for the four-object table (with source provenance), the second 5, the
+overwritten table object read through the table scene that still names it, that scene's bounds NOT recomputed, objects_total 6 and a surface block of 4; a new test keeps the last table object consolidated
+when nothing is named (total 4, block 4); the comparator now has main and collision number alterations in its list and a named-number-shift control (host 4/4 against a report that says 5/5 is reported and fails).
+The retail 61-number and 52,517/52,518 differences are the RED proof; no expected triangle or number is computed by the new code.
+
+**Next (Root):** format and freeze, rerun Linux `model_store` and the old `model_characterization` guards with all-target Clippy, Windows `model_store` with `EECH_WORLD_BIN` plus the invalid-override control,
+then the three retail comparisons (expect all 3025 scene fields, 215 original calls, no skipped number, surface block 52,517), and inspect every difference without adding tolerance, normalisation or skips;
+then ONE initial combined independent review of the new component. Later: resolve the 14 custom and 45 mixed-layout gaps through minimal original backing/provenance instrumentation, not by treating the host's new numbers
+as the oracle; the production hand-off; and the whole remaining D3 scope (model hierarchy, viewpoint, device, muzzle and target-point services, entity collision, terrain, spatial, environment and host-time services, removal of the
+physical solvers and loaders from EECH_DC). Campaign policy, geography, routes, timers and consequences stay in EECH_DC. No Git, build, test or native action was taken in this lane.
+
+# Current D3 component — EEDCS-50 host-owned collision-model store (29 October 2026): SOURCE PREPARED, UNBUILT, UNRUN
+
+Base: branch `codex/d3-model-geometry` at the reviewed original characterization (`366622e0c` fixture and measurements; driver `309b3f050`, independent closure with no open findings),
+integration ancestry `6bbaa8197`. Live authority: the M5 goal (Confluence 11534337) and the migration ledger (14548994); Epic EEDCS-21 (D3) and Task EEDCS-50 In Progress. D4 and D5 have not
+started. The six-process Task 47 shipping run (115) is still live elsewhere (59 MB Tacview / 41 MB OBS prefixes equal only; no complete 40-check / eight-artifact acceptance); production G2/G3
+still wait for validated preceding delivery. This entry makes no claim about any of that, and it is not Task Done, not whole-D3, not production.
+
+**What is new (actual implementation, not another fixture):** the first host-owned model component. `eech_world::models::ModelStore` loads the collision-model data from the retail DISK assets by
+the host, independently of the campaign DLL: `bininfo.bin` names (checked against the compiled list), `3dobjs.bin/.pts/.sp` objects, every `3dobjdb.bin` scene record (walked by its own counts),
+binary-hex `OBJECTS/????.EEO` overrides and named `OBJECTS/<dir>/*.EES` scenes (versions -1 to -3, per-directory `.EEO` resolution). Private legacy layout; Lua sees only semantic values
+(`host.model_store`, `scene`, `triangle`, `summary`, `compare_original`). The original's numeric code (object-bounding-box triangle scaling; 3dsubobj.c scene bounds and radius) is reused in
+`csrc/model_step.c` under a round-toward-zero guard that restores the caller's complete x87/SSE state on every path. The decoder's integer walk is the original's, translated exactly, over
+bounds-checked arrays: a read is allowed as far as the BACKED array extends (not the object's own counts), so the 45 mixed-layout and 14 custom-object models are decoded where backed and
+refused (`unbacked_*`) where not, with the legacy semantics reproduced, not repaired. Missing assets are NOT RUN; truncated or inconsistent files are refusals; no synthetic fallback.
+Files and formats: `eech-campaign/docs/m5-model-host-store.md`. Changed: `src/models.rs`, `src/model_host.rs`, `csrc/model_step.c`, `data/scene-names.txt` (derived from `modules/3d/3dmodels.h`),
+`build.rs`, `src/lib.rs`, `src/main.rs` (one registration line), `lua/model-host-compare.lua`, `tools/model-host-compare-windows.ps1`, `tests/model_store.rs`, the docs. The existing model driver,
+its tests and the fixture are unchanged. No production dispatch moved; the campaign DLL still runs the original loader and queries.
+
+**Original measurements reused (not repeated):** `compare_original` reads the retained original report (3025 scenes per root; 769 safe, 2009 absent, 14 custom, 45 face-mismatch, 188 no-scene; the
+selected MI24, KRIVAK, Ka-50, pipe, building and pylon rows) as the oracle. Nothing is derived from the store as an expectation. The 14 custom and 45 mixed-layout scenes have NO original triangles
+(the original refused them); the host's answers for them are listed as such, not as matches, and a minimal feature-only original probe over the ranges the store reports backed is the next
+characterisation if the Root wants them equivalence-measured. Raw assets and triangle coordinates stay private.
+
+**Guards written (not run):** loader refusals at every truncation, bad counts and magic, scene and object indices, header totals, missing assets, name disagreement; the C1 mapping; overrides
+(applied, ignored version, invalid, truncated, ambiguous); named scenes (object numbering, missing object, unsupported version, unresolved name); the mixed-layout backing refusal; arguments and
+depths; caller floating-point control and status restored bit for bit and the answer independent of the caller's rounding mode, and an unmasked caller refused; the store is `Send + Sync`
+immutable data; the driver and comparator on a fixture installation (match, nine kinds of alteration found and counted, unreadable or empty reports refused, NOT RUN, no overwrite). The
+fixture installations are written by the tests in the original's formats; the only numeric expectations are identities (scale exactly 1.0; caller-independence), not a physical oracle.
+
+**Next (Root):** format, build, run the guards (Linux and Windows, with `EECH_WORLD_BIN` for the physical host), fix what the compiler and Clippy find; then the retail comparison with
+`tools/model-host-compare-windows.ps1` on fresh verified Georgia, Lebanon and a repeat root against the retained original report, with input post-checks; investigate every mismatch (a
+mismatch is a finding, never a tolerance); then one combined independent review. After that: the custom and mixed-layout original probe, the production hand-off of the model data to the object and
+tree queries, and the remaining whole-D3 scope: model hierarchy, viewpoint, device, muzzle and target-point services, entity collision, the terrain, spatial, environment and host-time services,
+and the removal of the physical solvers and loaders from EECH_DC. Campaign policy, geography, routes, timers and consequences stay in EECH_DC. No Git, build, test or native action was taken in
+this lane.
+
+# D3 checkpoint — original retail model characterization reviewed; host loader next
+
+Task50 original-model preparation is independently closed with no open findings.
+Original native measurements remain366622e0c; the corrected diagnostic driver and
+portable guards are reviewed at309b3f050. Closure report SHA256:
+ab48e5079bcc07f119236d31555f70c082f733ae5a979956071bd6d6b8a62bce.
+Linux format/all8 guard groups/all-target Clippy pass. Windows host/test build0,
+all8 guard groups pass; an explicit invalid-host override is correctly refused.
+All3 new-driver native catalogue/selected-geometry runs complete0 and preserve
+exact original catalogue and geometry row bytes, including line endings. State,
+clock, input and original43 payload checks remain unchanged. Native366 is not
+relabeled as a new DLL build. C441 Clippy and Windows harness failures, and Root's
+aggregate log-label error with reviewed read-only recovery, remain retained.
+
+No physical responsibility has moved in this preparation. Collision-model
+loading/queries remain in the DLL. Next is the actual host-owned collision model
+loader/query component within EEDCS-50, preserving original fan/depth/scaling and
+required binary/EEO/EES input semantics. The active custom/mixed-layout gaps must
+be investigated; no always-absent substitute is accepted. Model hierarchy,
+viewpoint/device/muzzle/target-point, entity collision, environment, host-time and
+required physical solver/loader removal remain whole-D3 work. Campaign decisions,
+consequences, geography, routes and timers stay in EECH_DC. Task47 original
+shipping115 continues; full40/eight complete files/post-input and normal delivery
+remain pending. D3 stays In Progress; D4/D5 have not started.
+
+# Current D3 test-harness fix — EEDCS-50 model driver guards (29 October 2026): SOURCE ONLY, UNBUILT, UNRUN
+
+Driver source `c44173556` (frozen) passed the Linux guards (8/8), formatting and the Root's actual-native checks of the corrected driver with the original `366622e0c` DLL; Linux all-target Clippy
+failed on the unused `Run.stdout`, and the Windows guards failed before launching the host (OS error 3) because the test used the container-baked Cargo binary and manifest paths. That is a test
+set-up failure, not a production red, and no expectation was relaxed. This change touches only `crates/eech-world/tests/model_characterization.rs` (and a factual doc note): an explicit
+`EECH_WORLD_BIN` selects the host (a missing or non-file value is an error, never a fallback; unset uses Cargo's binary; the environment is only read), the reviewed driver is compiled into the
+test with `include_str!` and written unchanged into each run's temporary directory, and `Run.stdout` now appears in the failure diagnostics. Guard cases, stand-in protocol, driver, C, Rust
+product, FFI and API are unchanged; no new DLL. Not formatted, built or run in this lane. Next (Root): Linux 8/Clippy, Windows 8 with the physical same-source host plus the invalid-override
+control, then the focused changed-source review of the driver closure. Whole-D3 scope, the custom / mixed-layout gaps, production coupling and the live Task 47 run 115 are unchanged; the host
+loader/geometry move follows review.
+
+# Current D3 correction — EEDCS-50 diagnostic-driver response validation (29 October 2026): SOURCE ONLY, UNBUILT, UNRUN
+
+Measured (Root, fixture `366622e0c08b2caaa5a5317f5197c0ee3d7050e9`, original DLL): three retail catalogues of 3,025 scenes each and eleven selected scenes per root run through the
+real host Lua → public `eech_dc` → original accessors, with the first-measurement results in the checkpoint below and in `eech-campaign/reference/d3-model-characterization/`. The sole
+independent reviewer confirmed one P2 on the diagnostic Lua driver and no other defect in the C, FFI or observer on the verified loaded-table contract. That P2 was reproduced against the actual
+original DLL by corrupting only the report text (a `safe` header with an invented zero-call `original_false` end; a count-correct catalogue page with a repeated scene id): both were accepted with
+`done failures=0`.
+
+This correction (new, not measured, not reviewed): `lua/model-characterization.lua` now validates every reply as a report (shape, identity, order, cardinality, completion; never geometry
+mathematics) and refuses, with a `report-refused` row and an error before any `done`, what it cannot support; genuine absent / refused / unbacked / capped / partial-write outcomes are kept as
+what they are. New portable guards `crates/eech-world/tests/model_characterization.rs` run the real driver under the real host Lua against a response stand-in (healthy multi-page, absent,
+refused, empty, unbacked, capped and anomaly cases accepted; the two measured controls and about 60 other malformed replies refused; argument / synthetic-database / existing-output refusals
+before boot). They are response-contract tests, not physics and not loader proof. Changed in this correction: the driver, the new test file, `docs/m5-model-characterization.md` and this record.
+No C, Rust product, FFI, feature API, parser or host-loader source changed; `eech_engine.c` (one NUL) is untouched. Nothing was compiled, linted or run in this lane, and the new Lua and Rust
+are checked only by reading.
+
+Source identity: the driver and test are not native build inputs, so the `366622e0c` DLL is reusable only if the Root verifies the exact C/Rust native-source identity first; it must not be relabelled
+as a new build. Next (Root): Linux and Windows guards; the same two corruption controls red → green against the corrected driver; the three retail measurements rerun and compared with the first;
+a focused review of the changed source. No independent closure of this correction exists yet. Original Task 47 shipping run 115 remains live and unaccepted. Remaining whole-D3 requirements are
+unchanged: custom-object and mixed-layout original characterisation (14 custom and 45 layout-mismatch scenes were refused, not decoded), the host-owned read-only model data and loader/geometry
+move (next, not dropped), model hierarchy / viewpoint / device / muzzle / target-point services, entity collision, environment and host-time services, and removal of the physical solvers and
+loaders from EECH_DC. Campaign policy, geography, routes, timers and consequences stay in EECH_DC. D4 and D5 have not started. The earlier source-preparation paragraphs below are historical.
+
+# D3 checkpoint — model fixture built; three retail catalogues measured
+
+EEDCS-50 / draft PR110, measured source `366622e0c08b2caaa5a5317f5197c0ee3d7050e9`.
+The Windows model-fixture build completed with actual exit 0 and 43 verified
+exports. The repository PowerShell runner completed with actual exit 0 on
+Georgia, Lebanon and Lebanon-repeat; all three pre/post input checks pass,
+all payloads remain unchanged, and each before/after native state digest matches.
+Each catalogue enumerates 3,025 scenes: 769 safe-to-probe, 2,009 absent,
+14 custom-object refusals, 45 face-layout mismatches and 188 missing scenes.
+These are catalogue results, not measured retail triangle equivalence. The full
+raw catalogue hashes differ and are retained; no cross-process byte equality
+is claimed. Safe metadata and exact build identity are recorded in
+`eech-campaign/reference/d3-model-characterization/`.
+
+The sole Sonnet High invocation completed with exit 0; no model implementation
+writer is running. Next: select campaign-used safe models with backed end reads,
+measure original triangles and refusal/absence/end behavior, then independent
+review before host loader extraction. No host loader or production dispatch has
+moved. Task50 and D3 remain In Progress; D4/D5 have not started. The original
+Task47 shipping processes remain running, untouched by this commit/push request;
+full-pack acceptance remains pending.
+
+# Current D3 checkpoint — EEDCS-50 (29 October 2026): original collision-model probe PREPARED, UNBUILT, UNRUN
+
+Live authority: the M5 goal (Confluence 11534337) and the migration ledger (Confluence 14548994), read by the Root; Epic [EEDCS-21](https://flying-dice.atlassian.net/browse/EEDCS-21)
+(D3) In Progress; Task [EEDCS-50](https://flying-dice.atlassian.net/browse/EEDCS-50) "M5 D3: Host collision-model loading and geometry" In Progress. Branch `codex/d3-model-geometry`,
+base accepted integration `6bbaa8197a4843181d03cd355d562af998c75321`. The Task 49 object/tree-query files and features are NOT in this base. D4 and D5 have not started.
+This is preparation: it is not production, not the Task's Done, and not D3 acceptance. The six-process Task 47 ordinary shipping run (115) is still live elsewhere; this
+worktree makes no claim about it (its latest Tacview/OBS prefixes are exact prefixes only; no complete 40-check / eight-artifact acceptance exists).
+
+Scope of D3 (unchanged): the physical terrain, spatial, model and environment services and the native loaders and solvers they need leave EECH_DC. Campaign geography, routes, timers,
+scheduling, selection, decisions and consequences stay native in EECH_DC. EECH_WORLD may reuse the original C physics; no language rewrite, renderer, DCS clone or second campaign.
+Required DCS calls, or named bounded data workarounds, and the model loader / mapping definitions are D3, not deferred to D5 or M6 (only live DCS execution is M6).
+
+Evidence reused, not redone: Task 49 forest-geometry witness (original native `47a4af0d1`, stricter driver `b44d2c96f`; one combined review and one focused correction, closure
+`4a97eb54…` CLOSED, no open findings). Its six triangles came from the real original accessor on a controlled, scoped-down mesh: a decoder witness, **not** proof of a disk loader
+or of any retail model. Its raw reports and the source blobs are retained and untouched.
+
+This step (see [`eech-campaign/docs/m5-model-characterization.md`](eech-campaign/docs/m5-model-characterization.md)): a test-only, feature-gated (`model-fixture`) probe that asks the
+ORIGINAL compiled model accessors a finite catalogue and selected geometry queries through host Lua → public `eech_dc` → original C, plus a read-only safety verdict (the decoder reads
+one surface past the object on its last step, trusts every index and crashes on a NULL surface list, so it is called only where the loaded tables show the memory backed) and a
+before/after table-state digest. It implements no loader, parser or geometry algorithm and removes no production dispatch. Changed: `eech_model_fixture.c` (new), `eech_engine.{c,h}`
+(gated tail / declarations; the existing bytes and the file's single NUL are an unchanged prefix), the `eech-engine-sys`, `eech-engine` and `eech-dc` feature chains and Lua methods,
+`lua/model-characterization.lua`, `tools/build-windows-model-fixture.sh`, `tools/model-characterization-windows.ps1`, and this record. Nothing was compiled, linted, run or
+measured in this lane (no toolchain was invoked); the C and Rust are unreviewed by a compiler.
+
+Next unmet measurements (Root): clean fixture build with BUILD-INFO / payload / flag checks; the catalogue on fresh verified Georgia and Lebanon roots (retail database required;
+a synthetic one is refused); selection of real campaign-used vehicle and building models from the catalogue; full original triangle runs for them, repeated; then the host-owned
+read-only model data and loader, reusing the same scenarios. Remaining D3 gates: model hierarchy, viewpoint, device, muzzle and target-point services, and all terrain / spatial /
+environment / host-time services; the whole-engine DLL coupling is still present. The older checkpoints below describe D2 and are unchanged.
+
 # D2 combat and perception — implementation delivery record
 
 29 October 2026. The physical D2 increment is delivered on integration through

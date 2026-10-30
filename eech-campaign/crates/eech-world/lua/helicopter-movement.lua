@@ -34,6 +34,7 @@ local hold_seconds = tonumber (args.hold_seconds or "0")
 local subject = args.select
 local dc = require ("eech_dc")
 dc.prepare_installation (root)
+host.use_reference_arithmetic () -- the reference host's arithmetic profile, selected right after the installation is prepared (src/reference_arithmetic.rs)
 
 local kind_names = { [1] = "routed", [2] = "ship", [3] = "person", [4] = "fixed_wing", [5] = "helicopter" }
 
@@ -60,7 +61,7 @@ local config = {
 	bind_mobile = bind_mobile,
 	observe_loss = reference_loss,
 	supply_reached = reference_reached,
-	line_of_sight = host.line_of_sight,
+	line_of_sight = host.line_of_sight, model = host.model,
 	sense = host.sense, aim = host.aim,
 }
 

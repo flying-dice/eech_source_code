@@ -24,6 +24,7 @@ local frames = math.floor (tonumber (args.hours or "1") * 3600000 / frame_ms + 0
 local delay_seconds = tonumber (args.delay_seconds or "10")
 local dc = require ("eech_dc")
 dc.prepare_installation (root)
+host.use_reference_arithmetic () -- the reference host's arithmetic profile, selected right after the installation is prepared (src/reference_arithmetic.rs)
 
 local reference = host.supply_reached
 local elapsed = 0
@@ -170,7 +171,7 @@ local engine = dc.boot {
 	bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle,
 	observe_loss = watch_loss,
 	supply_reached = supply_reached,
-	line_of_sight = host.line_of_sight,
+	line_of_sight = host.line_of_sight, model = host.model,
 	sense = host.sense, aim = host.aim,
 }
 

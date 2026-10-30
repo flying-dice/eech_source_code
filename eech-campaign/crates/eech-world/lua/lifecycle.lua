@@ -18,7 +18,7 @@ local scenarios = {
 local scenario = assert (scenarios[args.scenario or "lebanon_retail"], "scenario=lebanon_retail|georgia_retail")
 
 local function config (overrides)
-	local c = { install_root = root, map = scenario.map, campaign_directory = "camp01", campaign = scenario.campaign, gunship = "apache", seed = 1, bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss, supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, sense = host.sense, aim = host.aim }
+	local c = { install_root = root, map = scenario.map, campaign_directory = "camp01", campaign = scenario.campaign, gunship = "apache", seed = 1, bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss, supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, model = host.model, sense = host.sense, aim = host.aim }
 	for k, v in pairs (overrides or {}) do
 		if v == false then c[k] = nil else c[k] = v end
 	end
@@ -35,7 +35,8 @@ end
 
 local dc = require ("eech_dc")
 step ("load", function () assert (type (dc.boot) == "function") end)
-step ("prepare", dc.prepare_installation, root)
+local prepared = step ("prepare", dc.prepare_installation, root)
+if prepared then host.use_reference_arithmetic () end -- the reference host's arithmetic profile, selected right after the installation is prepared (src/reference_arithmetic.rs)
 
 local function frames (engine, n)
 	for _ = 1, n do engine:frame (100) end

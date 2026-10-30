@@ -118,10 +118,11 @@ end
 
 local dc = require ("eech_dc")
 dc.prepare_installation (root)
+host.use_reference_arithmetic () -- the reference host's arithmetic profile, selected right after the installation is prepared (src/reference_arithmetic.rs)
 engine = dc.boot {
 	install_root = root, map = "..\\common\\maps\\map5", campaign_directory = "camp01", campaign = "LEBANON.CHC", gunship = "apache",
 	seed = seed, bind_mobile = bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss,
-	supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, sense = host.sense, aim = aim,
+	supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, model = host.model, sense = host.sense, aim = aim,
 }
 emit { event = "boot", scenario = "lebanon_retail", case = "controlled_launch", warmup = warmup, settle = settle, frame_ms = frame_ms, seed = seed }
 emit_report ("boot", 0, engine:wpn_trace ())

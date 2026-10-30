@@ -1986,3 +1986,118 @@ fn the_object_witness_says_so_when_there_is_no_such_structure_and_refuses_a_malf
         "{stderr}"
     );
 }
+
+// ---------------------------------------------------------------------------------------------------------------------------------
+// the reference host's own arithmetic profile (src/reference_arithmetic.rs)
+
+// 1 + 0.75 ulp: the nearest double is 1 + ulp, round-toward-zero gives 1. The operands come from strings so that nothing is folded when the chunk is compiled.
+#[cfg(target_arch = "x86_64")]
+const REFERENCE_ARITHMETIC_SCRIPT: &str = "local one, part = tonumber('1'), tonumber('1.6653345369377348e-16')
+local function toward_zero() return one + part == one end
+print('BEFORE=' .. tostring(toward_zero()))
+host.use_reference_arithmetic()
+print('AFTER=' .. tostring(toward_zero()))
+host.use_reference_arithmetic()
+print('AGAIN=' .. tostring(toward_zero()))
+";
+
+#[cfg(target_arch = "x86_64")]
+#[test]
+fn the_reference_host_selects_sse_round_toward_zero_when_asked_and_not_before() {
+    let script = std::env::temp_dir().join(format!("eech-world-reference-arithmetic-{}.lua", std::process::id()));
+    std::fs::write(&script, REFERENCE_ARITHMETIC_SCRIPT).unwrap();
+    let run = Command::new(env!("CARGO_BIN_EXE_eech-world")).arg(&script).output();
+    std::fs::remove_file(&script).unwrap();
+    let run = run.unwrap();
+    let stdout = String::from_utf8_lossy(&run.stdout);
+    let stderr = String::from_utf8_lossy(&run.stderr);
+    assert!(run.status.success(), "{}\n{stdout}\n{stderr}", run.status);
+    // the process starts in the processor's default (nearest): the host does not select the profile at start-up or while the script is parsed
+    assert!(stdout.contains("BEFORE=false"), "{stdout}\n{stderr}");
+    assert!(stdout.contains("AFTER=true"), "{stdout}\n{stderr}");
+    assert!(stdout.contains("AGAIN=true"), "{stdout}\n{stderr}");
+    assert!(
+        stderr.contains("[campaign] reference arithmetic: SSE rounding toward zero (MXCSR 0x"),
+        "{stderr}"
+    );
+}
+
+#[test]
+fn the_shipped_campaign_script_selects_the_profile_once_between_preparing_the_installation_and_booting() {
+    let source = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/lua/campaign.lua")).unwrap();
+    let at = |needle: &str| source.find(needle).unwrap_or_else(|| panic!("campaign.lua has no {needle:?}"));
+    assert_eq!(
+        source.matches("host.use_reference_arithmetic").count(),
+        1,
+        "the profile is selected exactly once"
+    );
+    let parsed = at("local frame_ms = tonumber (args.frame_ms");
+    let prepared = at("dc.prepare_installation (root)");
+    let selected = at("host.use_reference_arithmetic ()");
+    let booted = at("dc.boot {");
+    // the script's own argument parsing keeps the process state it always had; the profile comes right after the installation is prepared and before everything that follows
+    assert!(
+        parsed < prepared && prepared < selected && selected < booted,
+        "{parsed} {prepared} {selected} {booted}"
+    );
+    assert!(
+        source[prepared..selected]
+            .lines()
+            .filter(|l| !l.trim().is_empty() && !l.trim_start().starts_with("--"))
+            .count()
+            == 1,
+        "nothing but the preparation runs before the selection"
+    );
+}
+
+// The two bounded diagnostics that deliberately stay in the caller's own context: model-authority.lua exposes the module's default-nearest and explicit four-rounding callers on the RAW public
+// boundary (selecting toward-zero for them would hide exactly the restoration it proves), and model-characterization.lua is the closed original-oracle driver (its hash and semantics are frozen).
+const WITHOUT_REFERENCE_PROFILE: [&str; 2] = ["model-authority.lua", "model-characterization.lua"];
+
+#[test]
+fn every_reference_script_that_prepares_the_installation_selects_the_profile_right_after_it_and_before_booting_and_the_two_diagnostics_do_not() {
+    let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("lua");
+    let (mut with_profile, mut without_profile) = (0, 0);
+    for entry in std::fs::read_dir(&directory).unwrap() {
+        let path = entry.unwrap().path();
+        if path.extension().and_then(|e| e.to_str()) != Some("lua") {
+            continue;
+        }
+        let name = path.file_name().unwrap().to_str().unwrap().to_string();
+        let source = std::fs::read_to_string(&path).unwrap();
+        let selects = source.contains("host.use_reference_arithmetic");
+        if WITHOUT_REFERENCE_PROFILE.contains(&name.as_str()) {
+            assert!(!selects, "{name} must stay in the caller's own floating-point context");
+            without_profile += 1;
+            continue;
+        }
+        let Some(prepared) = source.find("dc.prepare_installation") else {
+            // a library or helper the clients load: it prepares and boots nothing, so it selects nothing
+            assert!(!selects, "{name} does not prepare an installation and must not select the profile");
+            continue;
+        };
+        // the first preparation is the phase boundary; every script's own argument and constant parsing is before it and keeps the process state it always had
+        let selected = source[prepared..]
+            .find("host.use_reference_arithmetic ()")
+            .unwrap_or_else(|| panic!("{name}: no reference arithmetic profile after the installation is prepared"))
+            + prepared;
+        if let Some(boot) = source[prepared..].find("dc.boot") {
+            assert!(selected < prepared + boot, "{name}: the profile must be selected before the first boot");
+        }
+        // one selection per script, immediately after the preparation: blank and comment lines between them do not count, but no executable
+        // statement may, except the guard of the recorded-step form (`if prepared then`, taken only when that step succeeded)
+        assert_eq!(source.matches("host.use_reference_arithmetic").count(), 1, "{name}");
+        let between: Vec<&str> = source[prepared..selected]
+            .lines()
+            .map(str::trim)
+            .filter(|l| !l.is_empty() && !l.starts_with("--"))
+            .collect();
+        assert!(
+            !between.is_empty() && between[1..].iter().all(|l| *l == "if prepared then"),
+            "{name}: an executable statement runs between the preparation and the profile: {between:?}"
+        );
+        with_profile += 1;
+    }
+    // the 30 retained reference clients plus the shipped campaign.lua, and the two diagnostics left out on purpose
+    assert_eq!((with_profile, without_profile), (31, 2));
+}

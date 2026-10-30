@@ -77,6 +77,7 @@ local group_limit = tonumber (args.group_limit or "0") -- mode=shape: print the 
 for name in string.gmatch (args.release or "", "[^,]+") do release_families [name] = true end
 local dc = require ("eech_dc")
 dc.prepare_installation (root)
+host.use_reference_arithmetic () -- the reference host's arithmetic profile, selected right after the installation is prepared (src/reference_arithmetic.rs)
 
 local ENTITY = { fixed_wing = 10, routed = 23, anti_air = 1, person = 19, ship = 28 }
 local HAS_PRIMARY_TASK_LOSSES = { fixed_wing = true, routed = true, ship = true }
@@ -154,7 +155,7 @@ local engine = dc.boot ({
 	move_vehicle = host.move_vehicle,
 	observe_loss = observe_loss,
 	supply_reached = host.supply_reached,
-	line_of_sight = host.line_of_sight,
+	line_of_sight = host.line_of_sight, model = host.model,
 	sense = host.sense, aim = host.aim,
 })
 for _ = 1, warmup do engine:frame (warmup_ms) end

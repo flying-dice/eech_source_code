@@ -1,0 +1,39 @@
+{
+  "source": "366622e0c08b2caaa5a5317f5197c0ee3d7050e9",
+  "actual_exit": 0,
+  "kind": "Read-only strict audit of original retained native measurements, not a rerun or a new model implementation",
+  "when_utc": "2026-10-29T22:56:11.565696+00:00",
+  "results": [
+    {
+      "case": "georgia",
+      "catalogue_scenes": 3025,
+      "selected_scenes": 11,
+      "original_true": 208,
+      "original_false": 7,
+      "refused_without_call": 4,
+      "catalogue_raw_sha256": "34bef5c6730d33a3d337055d1df8cd805b5f41c61833ff2a1beac55c8ac8a9fd",
+      "geometry_raw_sha256": "8328df66199c682fa9d89253fc7c22b9191e60301e1371490c77532bb9c1e081"
+    },
+    {
+      "case": "lebanon",
+      "catalogue_scenes": 3025,
+      "selected_scenes": 11,
+      "original_true": 208,
+      "original_false": 7,
+      "refused_without_call": 4,
+      "catalogue_raw_sha256": "f878c8e0231b8f757040a90f92f30f37b5927bb4c4cfb31cc01b127dd2200f00",
+      "geometry_raw_sha256": "e1d9cd97a0e698c469c88546e035ab37d37b7b1aa281e5af88476b24d0b7bab2"
+    },
+    {
+      "case": "lebanon-repeat",
+      "catalogue_scenes": 3025,
+      "selected_scenes": 11,
+      "original_true": 208,
+      "original_false": 7,
+      "refused_without_call": 4,
+      "catalogue_raw_sha256": "27003430767e7001075a48425150b8d1f36d8537f93b908faff11f1b7df6076d",
+      "geometry_raw_sha256": "772cd1859c1aef4c7d085da7f8bb0ac458a2a70166b77e45b55482eef21fef8b"
+    }
+  ],
+  "checks": "Exact catalogue page/order/identity and bit syntax; selected header/status/scene/start/count, contiguous calls, return/write/bit shape, correlated original_false/end count, absence and explicit refusal, no trailing geometry events, immutable state and passing checks. No expected geometry arithmetic or triangle count is derived from a proposed host loader."
+}

@@ -1,0 +1,88 @@
+{
+  "task": "EEDCS-50",
+  "original_native_source": "366622e0c08b2caaa5a5317f5197c0ee3d7050e9",
+  "reviewed_diagnostic_source": "309b3f0505ba33e50a65fe8ad59d95443eb9806b",
+  "driver_sha256": "ffba01750612790d6268e8626e83bbd48179194f51a62138ef3f9ecd42051db9",
+  "review_disposition": "RESOLVED_NO_NEW_FINDINGS",
+  "review_sha256": "ab48e5079bcc07f119236d31555f70c082f733ae5a979956071bd6d6b8a62bce",
+  "actual_linux": {
+    "source": "309b3f0505ba33e50a65fe8ad59d95443eb9806b",
+    "kind": "linux",
+    "pid": 8416,
+    "controller_pid": 748,
+    "args": [
+      "wsl",
+      "-d",
+      "EECH-D2-Build",
+      "--",
+      "sh",
+      "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/test-model-driver-309b3f050-linux-20261029.sh"
+    ],
+    "state": "terminal",
+    "started_utc": "2026-10-29T23:12:34.395076+00:00",
+    "actual_exit": 0,
+    "completed_utc": "2026-10-29T23:13:38.167444+00:00"
+  },
+  "actual_windows_host_guard_build": {
+    "source": "309b3f0505ba33e50a65fe8ad59d95443eb9806b",
+    "kind": "windows",
+    "pid": 19328,
+    "controller_pid": 16592,
+    "args": [
+      "wsl",
+      "-d",
+      "EECH-D2-Build",
+      "--",
+      "sh",
+      "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/test-model-driver-309b3f050-windows-20261029.sh"
+    ],
+    "state": "terminal",
+    "started_utc": "2026-10-29T23:12:34.421406+00:00",
+    "actual_exit": 0,
+    "completed_utc": "2026-10-29T23:13:34.384330+00:00"
+  },
+  "actual_windows_guards": {
+    "source": "309b3f0505ba33e50a65fe8ad59d95443eb9806b",
+    "build_info_sha256": "a68781aca3767c26c00c1153dc690f96d12a08827856e1ebdf8daa033fdf2a6a",
+    "verified_payloads": 4,
+    "commands": [
+      {
+        "name": "valid-host",
+        "args": [
+          "R:\\d3-evidence\\model-driver-portable-source-309b3f050\\eech-campaign\\target\\model-driver-tests\\309b3f050\\model_characterization.exe",
+          "--nocapture"
+        ],
+        "EECH_WORLD_BIN": "C:\\Users\\starscream\\Documents\\ChatGPT\\Enemy Engaged DCS\\d3-evidence\\model-driver-portable-source-309b3f050\\eech-campaign\\target\\model-driver-tests\\309b3f050\\eech-world.exe",
+        "pid": 20596,
+        "actual_exit": 0,
+        "started_utc": "2026-10-29T23:13:53.646501+00:00",
+        "completed_utc": "2026-10-29T23:13:55.393507+00:00",
+        "log_sha256": "334e0bc828032a8a0f8bd65b4e1e7e9476d73e0392335d26796256dec5ad3570"
+      },
+      {
+        "name": "invalid-host",
+        "args": [
+          "R:\\d3-evidence\\model-driver-portable-source-309b3f050\\eech-campaign\\target\\model-driver-tests\\309b3f050\\model_characterization.exe",
+          "a_healthy_catalogue_and_geometry_run_is_accepted_and_keeps_every_explicit_outcome",
+          "--exact",
+          "--nocapture"
+        ],
+        "EECH_WORLD_BIN": "R:\\d3-evidence\\model-driver-309b3f050-windows-guards-20261029\\missing-host.exe",
+        "pid": 9180,
+        "actual_exit": 101,
+        "started_utc": "2026-10-29T23:13:55.394098+00:00",
+        "completed_utc": "2026-10-29T23:13:55.430180+00:00",
+        "log_sha256": "f926ad30e80088b3119d9acf2aa2321cf744da9acc346860e7be22a56073c881"
+      }
+    ],
+    "all8_pass": true,
+    "invalid_override_refused": true,
+    "payloads_unchanged": true,
+    "actual_exit": 0
+  },
+  "linux_log_sha256": "efe30857847833caec065ac84b6589b5ad1e00dde8bf1f35de57e6be7d9c23ab",
+  "healthy_native": "All3 exact new-driver runs complete0; exact original bytes preserved for catalogue page/scene and geometry rows; model state, clock, pre/post inputs and43 original payloads unchanged. Whole-file pointer/state/check differences are retained.",
+  "actual_two_corruption_controls": "Same real original-DLL collaborator: old driver native0/done0; new driver native1/report-refused/no done. Root original aggregate1 log-phrase mistake preserved; separate read-only assessment0 independently verified.",
+  "scope": "Original model probe/response-validator preparation closed only; no host model loader or production geometry dispatch moved, no Task50/wholeD3/shipping acceptance.",
+  "remaining": "Active custom/mixed-layout model gaps; host collision loading/geometry extraction next; all broader required model/entity/environment/host-time/physical solver-loader D3 responsibilities retained."
+}

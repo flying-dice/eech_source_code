@@ -16,6 +16,7 @@
 
 #define _GNU_SOURCE
 #include <fenv.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <sys/stat.h>
 
@@ -46,8 +47,37 @@ static enum engine_operation operation;
 /* ---------------------------------------------------------------------------------------------------------------------------- */
 /* entry discipline: FPU environment and fatal-error unwinding */
 
+/* The x87 environment is saved and restored with fegetenv/fesetenv, but that pair does NOT carry the caller's SSE control/status word on every supported toolchain (the MinGW
+ * sequence fegetenv, fesetround (FE_TOWARDZERO), fesetenv was measured returning an MXCSR whose rounding mode had become toward-zero). The complete MXCSR is therefore saved
+ * explicitly before anything changes and written back AFTER fesetenv on every exit that changed the state: the normal leave and the fatal (setjmp) return. Where there is no
+ * MXCSR to save (not x86) the pair is a no-op. The value is assigned once before setjmp and never changed afterwards, so it survives the longjmp. */
+#if defined(__x86_64__) || defined(__i386__)
+static inline uint32_t engine_read_mxcsr (void)
+{
+	uint32_t value = 0;
+	__asm__ __volatile__ ("stmxcsr %0" : "=m" (value));
+	return value;
+}
+
+static inline void engine_write_mxcsr (uint32_t value)
+{
+	__asm__ __volatile__ ("ldmxcsr %0" : : "m" (value));
+}
+#else
+static inline uint32_t engine_read_mxcsr (void)
+{
+	return 0;
+}
+
+static inline void engine_write_mxcsr (uint32_t value)
+{
+	(void) value;
+}
+#endif
+
 #define ENTER(OPERATION,HOST) \
 	fenv_t caller_fenv; \
+	uint32_t caller_mxcsr; \
 	jmp_buf fatal_jmp; \
 	jmp_buf *saved_target = eech_fatal_target; \
 	const struct eech_engine_host *entry_host = (HOST); \
@@ -79,12 +109,18 @@ static enum engine_operation operation;
 	sense_host.user = entry_host ? entry_host->user : NULL; \
 	aim_host.aim = entry_host ? entry_host->aim : NULL; \
 	aim_host.user = entry_host ? entry_host->user : NULL; \
+	campaign_model_host model_host; \
+	model_host.model = entry_host ? entry_host->model : NULL; \
+	model_host.user = entry_host ? entry_host->user : NULL; \
+	/* the model callback is refreshed by every entry that carries one and kept for the process (a NULL entry leaves it); the entry's user pointer is never retained: LEAVE does not clear it (mb_hostmodel.h) */ \
+	campaign_model_set_host (&model_host); \
 	campaign_roster_set_host (entry_host ? &roster_host : NULL); \
 	campaign_supply_arrival_set_host (entry_host ? &arrival_host : NULL); \
 	campaign_movement_set_host (entry_host ? &movement_host : NULL); \
 	campaign_los_set_host (entry_host ? &los_host : NULL); \
 	campaign_sense_set_host (entry_host ? &sense_host : NULL); \
 	campaign_aim_set_host (entry_host ? &aim_host : NULL); \
+	caller_mxcsr = engine_read_mxcsr (); \
 	fegetenv (&caller_fenv); \
 	fesetround (FE_TOWARDZERO); \
 	eech_fatal_target = &fatal_jmp; \
@@ -99,6 +135,7 @@ static enum engine_operation operation;
 		operation = OPERATION_NONE; \
 		eech_fatal_target = saved_target; \
 		fesetenv (&caller_fenv); \
+		engine_write_mxcsr (caller_mxcsr); \
 		return EECH_ENGINE_FATAL; \
 	}
 
@@ -112,6 +149,7 @@ static enum engine_operation operation;
 	operation = OPERATION_NONE; \
 	eech_fatal_target = saved_target; \
 	fesetenv (&caller_fenv); \
+	engine_write_mxcsr (caller_mxcsr); \
 	return (RESULT)
 
 const char *eech_engine_fatal_message (void)
@@ -275,7 +313,7 @@ int eech_engine_boot (const struct eech_engine_config *config, const struct eech
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!config || !config->install_root || !config->map_path || !config->campaign_directory || !config->campaign_filename || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
+	if (!config || !config->install_root || !config->map_path || !config->campaign_directory || !config->campaign_filename || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim || EECH_ENGINE_MODEL_MISSING (host))
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -1532,6 +1570,132 @@ int eech_engine_wpn_case_launch (const char *launcher_id, const char *target_id,
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
 	if (eech_wpn_case_launch_run (launcher_id, target_id, weapon, salvo_count, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif
+
+#ifdef EECH_MODEL_FIXTURE
+
+/*
+ * TEST-ONLY original collision-model characterisation (EEDCS-50): read-only questions to the original model accessors about the models the
+ * retail data loaded (eech_model_fixture.c). They run inside the engine entry, so they see EECH's round-toward-zero mode as the game's own
+ * calls do. None of them constructs an entity, replaces a table or draws a random number. The reports are text, `key=value` lines; nothing in
+ * them is an address, and floats are bit patterns. A report that does not fit `capacity` is refused, never cut short.
+ */
+extern int eech_model_summary_run (char *text, int capacity);
+extern int eech_model_catalogue_run (int first, int count, char *text, int capacity);
+extern int eech_model_geometry_run (int scene, int first_depth, int count, char *text, int capacity);
+extern int eech_model_state_run (char *text, int capacity);
+
+int eech_engine_model_summary (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_model_summary_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_model_catalogue (int first, int count, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_model_catalogue_run (first, count, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_model_geometry (int scene, int first_depth, int count, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_model_geometry_run (scene, first_depth, count, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_model_state (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_model_state_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+
+/*
+ * TEST-ONLY (EEDCS-50, D3; feature model-host-fixture): diagnostics of the host-owned model data (eech_model_host_fixture.c). They run inside the engine entry, so they see
+ * EECH's round-toward-zero mode as the campaign's own calls do, and a fatal error in the host's answer unwinds to the entry. They pass no host: the model host installed at
+ * boot answers. None draws a random number, advances time or touches an entity.
+ */
+extern int eech_model_host_counters_run (char *text, int capacity);
+extern int eech_model_host_poison_run (void);
+extern int eech_model_host_probe_run (int scene, int depth, char *text, int capacity);
+
+int eech_engine_model_host_counters (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_model_host_counters_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_model_host_poison (void)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (eech_model_host_poison_run () != 0)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_model_host_probe (int scene, int depth, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_model_host_probe_run (scene, depth, text, capacity) != 0)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}

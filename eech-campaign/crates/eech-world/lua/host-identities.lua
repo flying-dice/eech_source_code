@@ -20,6 +20,7 @@ local target_entity = tonumber (args.target_entity or "-1")
 
 local dc = require ("eech_dc")
 dc.prepare_installation (root)
+host.use_reference_arithmetic () -- the reference host's arithmetic profile, selected right after the installation is prepared (src/reference_arithmetic.rs)
 
 local bind_count = 0
 local issued_by_id, issued_by_member = {}, {}
@@ -50,7 +51,7 @@ local engine = dc.boot {
 	move_vehicle = host.move_vehicle,
 	observe_loss = host.observe_loss,
 	supply_reached = host.supply_reached,
-	line_of_sight = host.line_of_sight,
+	line_of_sight = host.line_of_sight, model = host.model,
 	sense = host.sense, aim = host.aim,
 }
 

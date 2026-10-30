@@ -1,0 +1,18 @@
+{
+  "source": "ea1953b6cf8218020e05eda3d2ae498d976a09bf",
+  "actual_exit": 0,
+  "payloads_verified": 48,
+  "build_info": [
+    "commit: ea1953b6cf8218020e05eda3d2ae498d976a09bf",
+    "uncommitted changes in the build inputs: 0 files",
+    "image: sha256:6e10d7b23734163ed3549d94e6c102a8eb649580c06d00265790351c0249f2cc",
+    "rustc: rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "cargo: cargo 1.99.1 (5f94df478 2026-08-27)",
+    "mingw: gcc 12-posix, gcc-mingw-w64-x86-64-posix 12.2.0-14+deb12u1+25.2+b1",
+    "lua.dll: Lua 5.1.5 (lua-5.1.5.tar.gz, SHA-256 checked in tools/Dockerfile)",
+    "target: x86_64-pc-windows-gnu, release, FIXTURE BUILD (eech-dc/model-host-fixture,eech-dc/los-fixture): test-only, not a shipping artifact",
+    "sha256:"
+  ],
+  "build_info_sha256": "246e1ffb1419bad25fdcb3fc30d88a4a980d8a3769b77f19ebad6725c659f3e5",
+  "scope": "Compile/identity only; no native campaign yet"
+}

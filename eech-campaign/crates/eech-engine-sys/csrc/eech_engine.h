@@ -20,6 +20,7 @@
 #include "entity/mobile/mb_hostsense.h"
 #include "entity/mobile/mb_hostaim.h"
 #include "entity/mobile/mb_hostobj.h"
+#include "entity/mobile/mb_hostmodel.h"
 
 #define EECH_ENGINE_OK 0
 #define EECH_ENGINE_FATAL 1
@@ -69,6 +70,7 @@ typedef campaign_move_vehicle_fn eech_move_vehicle_callback;
 typedef campaign_los_fn eech_line_of_sight_callback;
 typedef campaign_sense_fn eech_sense_callback;
 typedef campaign_aim_fn eech_aim_callback;
+typedef campaign_model_fn eech_model_callback;
 
 struct eech_engine_host
 {
@@ -86,8 +88,17 @@ struct eech_engine_host
 	eech_sense_callback sense;
 	/* Called synchronously for each host-owned physical aiming or weapon-system-readiness exchange (mb_hostaim.h): the host owns where a launcher's weapon-system devices point and whether they are ready, and the lead and ballistic predictions they are aimed with (the reference host: EECH's own arithmetic and the ballistic tables it is given at boot; another host: its own model); the device viewpoint, the target point, the entity positions and speeds and the weapon figures sent with it are transitional mirrors. */
 	eech_aim_callback aim;
+	/* Called synchronously for every physical model question (mb_hostmodel.h): the catalogue and each scene's radius and bounds at boot, and each step of a collision-triangle cursor. Unlike the dialogue callbacks above it is kept for the rest of the process: every entry that carries one refreshes it, an entry without one leaves it, and the entry's `user` pointer (which names that entry's own context) is NEVER retained, so the callback is always called with a NULL `user` and must not depend on it (boot requires the callback, except in the original-characterisation build model-fixture, which keeps the original accessors and has no host), because the campaign asks about models from every entry. The host owns the physical models; there is no campaign fallback. */
+	eech_model_callback model;
 	void *user;
 };
+
+/* whether a hosted entry is missing the model callback that this build requires (see above) */
+#ifdef EECH_CAMPAIGN_HOST_MODEL
+#define EECH_ENGINE_MODEL_MISSING(HOST) (!(HOST)->model)
+#else
+#define EECH_ENGINE_MODEL_MISSING(HOST) 0
+#endif
 
 int eech_engine_boot (const struct eech_engine_config *config, const struct eech_engine_host *host);
 
@@ -339,6 +350,47 @@ int eech_engine_aim_person_case (const char *person_id, const char *target_id, c
 /* The campaign's own lead-and-ballistic function asked once for two host-identified entities with the caller's time-of-flight variable set to `sentinel`; the report says
    whether the variable still holds it. The host answers through the callbacks given. */
 int eech_engine_aim_lead_probe (const char *source_id, const char *target_id, int weapon, float sentinel, char *text, int capacity, const struct eech_engine_host *host);
+#endif
+
+#ifdef EECH_MODEL_FIXTURE
+/*
+ * TEST-ONLY (feature model-fixture, EEDCS-50): see eech_model_fixture.c. Not part of the shipping module.
+ * Read-only questions to the ORIGINAL model accessors. The reports are `key=value` text lines; floats are 0x%08x bit patterns; no address
+ * appears. Each fails (bad argument) on an out-of-range argument or when the report does not fit `capacity`. None needs a host.
+ */
+/* The table sizes the other entries are bounded by. */
+int eech_engine_model_summary (char *text, int capacity);
+/* One page of the scene catalogue: scenes first .. first+count-1 (count <= the summary's page_scenes), each with the original scene accessors' answers,
+   the collision-object metadata, the safety verdict of the original decoder and the number of loaded entities that use the scene. */
+int eech_engine_model_catalogue (int first, int count, char *text, int capacity);
+/* One page of the original collision-triangle accessor for one scene: depths first_depth .. first_depth+count-1 (count <= the summary's page_triangles),
+   one original call per depth, ascending, stopping at the first false. A scene the safety verdict refuses is reported refused and the original is not called. */
+int eech_engine_model_geometry (int scene, int first_depth, int count, char *text, int capacity);
+/* Hashes of every table these entries read (the scene table, the object table, the surface block, the addresses, the arrays the decoder reads). */
+int eech_engine_model_state (char *text, int capacity);
+#endif
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+/*
+ * TEST-ONLY (feature model-host-fixture, EEDCS-50 D3): see eech_model_host_fixture.c. Not part of the shipping module. They run inside the engine entry (round-toward-zero,
+ * a fatal error unwinding to the entry) and pass no host: the model host installed at boot is the one that answers.
+ */
+/* `key=value` text: how many catalogue, scene and triangle questions were asked of the host, how they were answered (found, end, absent) and how often the host's
+   bounds, bounds-without-lines and radius tables were read since boot. Fails (bad argument) when the report does not fit `capacity`. */
+int eech_engine_model_host_counters (char *text, int capacity);
+/* Overwrites every array the ORIGINAL accessors read (the scene database's radius, bounds and collision object index) with values that make any read visible. */
+int eech_engine_model_host_poison (void);
+/* One scene's radius and bounds (asked twice: same address and bits) and one step of its collision-triangle cursor through the REAL public accessors, in the format of the
+   original fixture's rows (float bit patterns, the return, the number of the nine buffer words written, the rounding mode before and after). Fails (bad argument) for a scene
+   outside 1 .. OBJECT_3D_LAST - 1, a negative depth, or a report that does not fit `capacity`. A host that cannot answer stops the engine with its reason. */
+int eech_engine_model_host_probe (int scene, int depth, char *text, int capacity);
+/* The COMPLETE outer floating-point state (x87 control and status words, MXCSR) around a real public entry, from the caller's side. NOT an engine entry: it is the caller. It sets
+   the requested rounding mode (0 nearest, 1 down, 2 up, 3 toward zero) in both units with every exception masked and nonzero exception flags in both, calls kind 0
+   (eech_engine_model_host_probe: the entry, the accessors, the host callback, the Lua provider and bridge; a host that cannot answer takes the entry's fatal path) or kind 1
+   (eech_engine_model_host_counters: the entry alone), reads the words back at once, reports before and after and whether each is identical, then restores the process's own
+   environment. It decides nothing and repairs nothing. Returns OK when it ran (the entry's own status is `result=` in the report); bad argument for an argument out of range, a
+   report that does not fit, or a target without these registers. */
+int eech_engine_model_host_fpu (int kind, int scene, int depth, int rounding, char *text, int capacity);
 #endif
 
 #ifdef EECH_WEAPON_FIXTURE

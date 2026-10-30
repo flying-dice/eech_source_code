@@ -1,0 +1,291 @@
+{
+  "schema": "d3-host-model-reviewed-component/v1",
+  "source": "f9c6a1e4c7cb16d664ee097a667df1aca2597e0a",
+  "scope": "Prepared host component source findings CLOSED; production and wholeD3 remain incomplete",
+  "linux": {
+    "actual_exit": 0,
+    "fmt": 0,
+    "library_passed": 235,
+    "model_integration_passed": 34,
+    "retained_original_diagnostic_passed": 8,
+    "all_target_clippy_exit": 0
+  },
+  "windows": {
+    "actual_build_exit": 0,
+    "actual_controller_exit": 0,
+    "library_passed": 235,
+    "model_integration_passed": 34,
+    "explicit_invalid_host_native_exit": 101,
+    "invalid_override_expected_refusal": true,
+    "verified_payloads": 6,
+    "payloads_unchanged": true,
+    "build_info_sha256": "9eda3f192cfa244b066bdc23c1a2e222341174a248ef6f8557b80a8a7039eede"
+  },
+  "retail": {
+    "actual_controller_exit": 0,
+    "cases": [
+      {
+        "case": "georgia",
+        "pre_inputs": 0,
+        "actual_repository_runner_exit": 0,
+        "native_exit_recorded": true,
+        "post_inputs": 0,
+        "original_report_sha256": "b421e74ea483433ed9437b3143c68a12b76fb6d4a6f95b04c9371985dc3f0db7",
+        "original_report_unchanged": true,
+        "strict_json": true,
+        "rows": 3357,
+        "raw_bytes": 1278336,
+        "raw_sha256": "ed3503b12227fec13cadd2d56b62296cdb08e5bd2e5b76f0ac61db776fc59317"
+      },
+      {
+        "case": "lebanon",
+        "pre_inputs": 0,
+        "actual_repository_runner_exit": 0,
+        "native_exit_recorded": true,
+        "post_inputs": 0,
+        "original_report_sha256": "77e52746321b9fad2be176297ebcff2a07fe6c19fd3ad14d5a7caf32db13f0f2",
+        "original_report_unchanged": true,
+        "strict_json": true,
+        "rows": 3357,
+        "raw_bytes": 1278336,
+        "raw_sha256": "ed3503b12227fec13cadd2d56b62296cdb08e5bd2e5b76f0ac61db776fc59317"
+      },
+      {
+        "case": "lebanon-repeat",
+        "pre_inputs": 0,
+        "actual_repository_runner_exit": 0,
+        "native_exit_recorded": true,
+        "post_inputs": 0,
+        "original_report_sha256": "a2785ce74e9ab07c6d794d20edd7fd9cab09a4bc7827fb26b62cc1faba3bedb8",
+        "original_report_unchanged": true,
+        "strict_json": true,
+        "rows": 3357,
+        "raw_bytes": 1278336,
+        "raw_sha256": "ed3503b12227fec13cadd2d56b62296cdb08e5bd2e5b76f0ac61db776fc59317"
+      }
+    ],
+    "six_payloads_unchanged": true,
+    "scene_metadata_and_ids_compared_each": 3025,
+    "original_calls_compared_each": 215,
+    "original_true_triangles_each": 208,
+    "original_end_false_calls_each": 6,
+    "original_absence_false_calls_each": 1,
+    "mismatches": 0,
+    "full_reports_byte_equal_7a_8a_ba4": true,
+    "difference_from202": "Only one compare diagnostic row adds two validated-envelope counts,63bytes;3356other raw lines/physical rows byte exact. No report rewritten/normalized."
+  },
+  "report_controls": [
+    {
+      "cohort": "host-model-report-controls",
+      "actual_controller_exit": 0,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "original_unchanged": true,
+      "payloads_unchanged": true,
+      "mutations_unchanged": true,
+      "cases": [
+        {
+          "case": "healthy",
+          "input_sha256": "b421e74ea483433ed9437b3143c68a12b76fb6d4a6f95b04c9371985dc3f0db7",
+          "actual_native_runner_exit": 0,
+          "native_exit_recorded": true,
+          "comparison_refused": false,
+          "done": [
+            {
+              "event": "done",
+              "failures": 0
+            }
+          ],
+          "expected_outcome_observed": true
+        },
+        {
+          "case": "truncated-first-scene",
+          "input_sha256": "18c2ec4fc2c5a77ce50c4d48602c60d674be55b5ec01d698f996aa725b45c7f9",
+          "actual_native_runner_exit": 1,
+          "native_exit_recorded": true,
+          "comparison_refused": true,
+          "done": [],
+          "expected_outcome_observed": true
+        },
+        {
+          "case": "duplicate-scene",
+          "input_sha256": "8e44b3608b2cd648051caa864404521ff36d96d9dbc4a522482126ebb4152d6d",
+          "actual_native_runner_exit": 1,
+          "native_exit_recorded": true,
+          "comparison_refused": true,
+          "done": [],
+          "expected_outcome_observed": true
+        },
+        {
+          "case": "missing-geometry-terminal",
+          "input_sha256": "51b518d74ae20491d3a670c89090f524c48014d669f95371fccb024e8c4eff02",
+          "actual_native_runner_exit": 1,
+          "native_exit_recorded": true,
+          "comparison_refused": true,
+          "done": [],
+          "expected_outcome_observed": true
+        },
+        {
+          "case": "failed-original-done",
+          "input_sha256": "96d2cfc5ffe14d9e3bb029f484eea7f026ece41740857da5fd704ba4f4259e56",
+          "actual_native_runner_exit": 1,
+          "native_exit_recorded": true,
+          "comparison_refused": true,
+          "done": [],
+          "expected_outcome_observed": true
+        }
+      ]
+    },
+    {
+      "cohort": "host-model-forged-gate",
+      "actual_controller_exit": 0,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "original_unchanged": true,
+      "payloads_unchanged": true,
+      "mutations_unchanged": true,
+      "cases": [
+        {
+          "case": "healthy",
+          "input_sha256": "b421e74ea483433ed9437b3143c68a12b76fb6d4a6f95b04c9371985dc3f0db7",
+          "actual_native_runner_exit": 0,
+          "native_exit_recorded": true,
+          "comparison_refused": false,
+          "done": [
+            {
+              "event": "done",
+              "failures": 0
+            }
+          ],
+          "expected_outcome_observed": true
+        },
+        {
+          "case": "forged-end_probe_unbacked",
+          "input_sha256": "4aa2eea2cdff8b47427da020eab74461ff9b71776916bba5d38c612c586a5abb",
+          "actual_native_runner_exit": 1,
+          "native_exit_recorded": true,
+          "comparison_refused": true,
+          "done": [],
+          "expected_outcome_observed": true
+        },
+        {
+          "case": "forged-beyond_safe_bound",
+          "input_sha256": "d1d84231fd3d975602783bb0cd3c81623dd29945d1e78298f233425099ca9185",
+          "actual_native_runner_exit": 1,
+          "native_exit_recorded": true,
+          "comparison_refused": true,
+          "done": [],
+          "expected_outcome_observed": true
+        }
+      ]
+    },
+    {
+      "cohort": "host-model-write-count",
+      "actual_controller_exit": 0,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "original_unchanged": true,
+      "payloads_unchanged": true,
+      "mutations_unchanged": true,
+      "cases": [
+        {
+          "case": "healthy",
+          "input_sha256": "b421e74ea483433ed9437b3143c68a12b76fb6d4a6f95b04c9371985dc3f0db7",
+          "actual_native_runner_exit": 0,
+          "native_exit_recorded": true,
+          "comparison_refused": false,
+          "done": [
+            {
+              "event": "done",
+              "failures": 0
+            }
+          ],
+          "expected_outcome_observed": true
+        },
+        {
+          "case": "incoherent-true-write-count",
+          "input_sha256": "283b4f388500c430971059ff75e7891b2a97730235caedc7af447166fb4d5025",
+          "actual_native_runner_exit": 1,
+          "native_exit_recorded": true,
+          "comparison_refused": true,
+          "done": [],
+          "expected_outcome_observed": true
+        },
+        {
+          "case": "incoherent-false-write-count",
+          "input_sha256": "61581fa4d2197d3415faeb1a4a3ec79e5d465cebb5e5cd0a059ef53350a477e1",
+          "actual_native_runner_exit": 1,
+          "native_exit_recorded": true,
+          "comparison_refused": true,
+          "done": [],
+          "expected_outcome_observed": true
+        }
+      ]
+    },
+    {
+      "cohort": "host-model-status-detail",
+      "actual_controller_exit": 0,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "original_unchanged": true,
+      "payloads_unchanged": true,
+      "mutations_unchanged": true,
+      "cases": [
+        {
+          "case": "healthy",
+          "input_sha256": "b421e74ea483433ed9437b3143c68a12b76fb6d4a6f95b04c9371985dc3f0db7",
+          "actual_native_runner_exit": 0,
+          "native_exit_recorded": true,
+          "comparison_refused": false,
+          "done": [
+            {
+              "event": "done",
+              "failures": 0
+            }
+          ],
+          "expected_outcome_observed": true
+        },
+        {
+          "case": "unknown-geometry-status",
+          "input_sha256": "9ba76ac4b938e4b622f3145832aa37ddec68ec05319439e41b871beddbcae71e",
+          "actual_native_runner_exit": 1,
+          "native_exit_recorded": true,
+          "comparison_refused": true,
+          "done": [],
+          "expected_outcome_observed": true
+        },
+        {
+          "case": "mismatched-refusal-detail",
+          "input_sha256": "1f87230241ef4976c3c765960587405708f7632325041e29bc24a09bcddffac2",
+          "actual_native_runner_exit": 1,
+          "native_exit_recorded": true,
+          "comparison_refused": true,
+          "done": [],
+          "expected_outcome_observed": true
+        },
+        {
+          "case": "unknown-catalogue-status",
+          "input_sha256": "ce2f5e487655494409410e58ee65917ae859650174aa12eadb9780096873dace",
+          "actual_native_runner_exit": 1,
+          "native_exit_recorded": true,
+          "comparison_refused": true,
+          "done": [],
+          "expected_outcome_observed": true
+        }
+      ]
+    }
+  ],
+  "independent_closure": {
+    "file": "independent-host-model-review-closed-f9c6a1e4c-20261030.json",
+    "sha256": "e172b913493b2bbcc1b9ed91b9746698f2e2be3c8226925bdb1b362b05925787",
+    "disposition": "No open source finding within prepared-component scope"
+  },
+  "limits": [
+    "59original custom/mixed geometry cases remain unmeasured; other safe models have metadata coverage rather than exhaustive triangles.",
+    "Production model loader/query dispatch remains in EECH_DC; public native host authority/refusal integration not delivered.",
+    "No full campaign/Tacview/Task50/D3 acceptance; Task47 shipping original run still pending.",
+    "New original backing/provenance implementation68620 is separate, unbuilt/unrun/unreviewed; source safety review before new original calls.",
+    "Broader hierarchy/entity/environment/time and required native physical solver/loader removal remain D3."
+  ],
+  "retained_failures": "0b initialJSON/Clippy and shiftednamedIDs;61testhelpercompilefailure;ba4Clippy101;8aforgedgate/writecount and7aunknownstatus/detail falsegreens retained unchanged."
+}
