@@ -1,3 +1,22 @@
+# D3 checkpoint — environment characterization started; bounded model gates closed (30 October 2026)
+
+EEDCS-51 now owns the remaining weather/wind/environment and host-time-input
+extraction. Its original-behavior characterization is being implemented on
+`codex/d3-environment-services` from freshly fetched integration `6bbaa8197`.
+The sole Sonnet5.5 High CLI author is PID4296, born05:27:50.394156UTC,
+tool90536/sessionf3982761-70f5-4de8-a709-9d7c0655fbe7. No environment behavior
+has moved or passed a build/runtime/review gate yet. Campaign time/timer and
+scheduling semantics remain Core. Existing independent reviewer is reserved
+for the new delta; closed unchanged components are reused.
+
+Ledger14548994v78/Jira50comment10873/PR110 now record final bounded model
+authority, full caller-state and byte/frame restoration plus labelled test
+recovery. Published ledger HTML and all five epic report divs read back exactly.
+Current PR107 and PR110 each have9 successful hosted checks; both remain draft,
+with formal approval/normal delivery and the whole D3 scope open. The original
+Task47 pack59652 is still running; latest four recorded prefixes match about
+115.3MBACMI/83.6MBOBS, not complete acceptance. Do not restart that run.
+
 # D3 checkpoint — bounded model authority and byte restoration passed (30 October 2026)
 
 Production source `80fd62ea4`, with test/prose-only recovery `e48808f53`, now passes
