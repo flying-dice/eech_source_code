@@ -1,23 +1,24 @@
-# D3 checkpoint — public model handoff corrections in progress (30 October 2026)
+# D3 checkpoint — review corrections committed; validation pending (30 October 2026)
 
-EEDCS-50 / draft PR110 initial public handoff source de2c5b3c1 is pushed with
-safe validation/review metadata at101169f97. The Windows build and all46 exports
-pass; Linux formatting,408 tests and affected strict Clippy pass for that initial
-source. Combined independent review ba492e1d89ec07a86477ee3f9c5df54a5b35aef3ee74f029c1542b2c06e6c393
-requires six P2 and two P3 corrections. Those edits are currently being written
-by the existing Sonnet5.5 High process22552/controller20288, born03:14:03.073UTC,
-context20f8be8d-68b1-4ff9-947f-73e2362b0071. A user-requested source checkpoint
-at d5c911b5a preserves partial work; its corrections are unbuilt, unrun and unreviewed.
-New public-handoff retail execution and actual synthetic campaign bootstrap are
-held until correction and validation. Do not restart the writer after a timeout.
+EEDCS-50 / draft PR110 source corrections are committed and pushed at1812cc70b
+on codex/d3-model-geometry, following the partial checkpoint d5c911b5a. The existing
+Sonnet5.5 High writer22552/tool10026 completed with actual exit0 at03:31:13UTC
+and was collected. Proposed corrections cover the six P2 and two P3 findings;
+prepared controls and current handover are preserved. The corrected source is
+unbuilt, unrun and has no independent delta review. It is not acceptance.
+Initial public handoff de2c5b3c1 alone has the Windows build/46 exports and Linux
+formatting/408 tests/strict affected Clippy passes. New public-handoff retail
+execution and actual Core-generated synthetic campaign bootstrap remain pending.
+Next: format/build the final changed source, run actual public-path controls and
+synthetic bootstrap, then one independent changed-source review before acceptance.
 
 All828 present retail model comparisons remain closed and reusable. Ledger74,
-Jira comment10869 and PR110 record initial handoff findings, not acceptance.
-The ledger's prior HTML and all five epic reports read back exactly.
-Task47's original shipping run remains separate; exact partial recording prefixes
-are not full-pack completion. Physical scans/transforms/solvers, hierarchy and
-loader dependencies, environment and host time remain D3 work. Task50/D3 remain
-In Progress; D4/D5 have not started. Baselines, tolerances and raw inputs are unchanged.
+Jira comment10869 and PR110 preserve the initial handoff findings. The ledger's
+prior HTML and all five epic reports read back exactly. Task47's original shipping
+run is retained; partial recording prefixes are not full-pack completion. Physical
+scans/transforms/solvers, hierarchy and loader dependencies, environment and host
+time remain D3 work. Task50/D3 remain In Progress; D4/D5 have not started.
+Baselines, tolerances, raw recordings and private retail data remain unchanged.
 
 # D3 checkpoint — all present retail model geometry matches; public handoff active (30 October 2026)
 
