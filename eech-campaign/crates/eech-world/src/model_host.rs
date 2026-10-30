@@ -265,11 +265,11 @@ fn compare_original(store: &ModelStore, path: &Path) -> Result<Report, String> {
 
     for (line_number, row) in &rows {
         let number = line_number - 1;
-        match text(&row, "event").unwrap_or_default() {
+        match text(row, "event").unwrap_or_default() {
             "model-scene" => {
                 report.scene_rows += 1;
-                let scene = int(&row, "scene").ok_or_else(|| format!("line {}: model-scene without a scene", number + 1))?;
-                let status = text(&row, "status").unwrap_or_default().to_string();
+                let scene = int(row, "scene").ok_or_else(|| format!("line {}: model-scene without a scene", number + 1))?;
+                let status = text(row, "status").unwrap_or_default().to_string();
                 let view = match store.scene(scene) {
                     Ok(view) => view,
                     Err(e) => {
@@ -290,8 +290,8 @@ fn compare_original(store: &ModelStore, path: &Path) -> Result<Report, String> {
                     report.mismatch(false, format!("scene {scene}: the original has a scene ({status}), the host did not load one"));
                     continue;
                 }
-                if text(&row, "name") != Some(view.name) {
-                    report.mismatch(false, format!("scene {scene}: name original {:?} host {:?}", text(&row, "name"), view.name));
+                if text(row, "name") != Some(view.name) {
+                    report.mismatch(false, format!("scene {scene}: name original {:?} host {:?}", text(row, "name"), view.name));
                 }
                 let host_radius = format!("0x{:08x}", view.radius);
                 for (field, host) in [
@@ -299,13 +299,13 @@ fn compare_original(store: &ModelStore, path: &Path) -> Result<Report, String> {
                     ("bb2", hex_list(&view.bounding_box2)),
                     ("bb", hex_list(&view.bounding_box)),
                 ] {
-                    if text(&row, field) != Some(host.as_str()) {
-                        report.mismatch(false, format!("scene {scene}: {field} original {:?} host {host}", text(&row, field)));
+                    if text(row, field) != Some(host.as_str()) {
+                        report.mismatch(false, format!("scene {scene}: {field} original {:?} host {host}", text(row, field)));
                     }
                 }
                 // object indices: this is a same-input REFERENCE comparison, so the original's own object numbers are compared as they are, the numbers the original gave
                 // to named custom objects included (their order and the overwrite of the table's last object are part of the contract). Nothing is skipped or normalised.
-                let (original_main, original_collision) = (int(&row, "main"), int(&row, "collision"));
+                let (original_main, original_collision) = (int(row, "main"), int(row, "collision"));
                 match original_main {
                     Some(main) => {
                         if main != view.main as i64 {
@@ -331,30 +331,30 @@ fn compare_original(store: &ModelStore, path: &Path) -> Result<Report, String> {
                     }
                     None => report.mismatch(false, format!("scene {scene}: the original row has no collision field")),
                 }
-                if let (Some(points), Some(object)) = (int(&row, "c_points"), &view.collision_object) {
+                if let (Some(points), Some(object)) = (int(row, "c_points"), &view.collision_object) {
                     let host_custom = if object.source == ObjectSource::Table { 0 } else { 1 };
                     let host_radius = format!("0x{:08x}", object.radius);
                     let host_bb = hex_list(&object.bounding_box);
                     for (field, original, host) in [
                         ("c_points", Some(points), object.points as i64),
-                        ("c_faces", int(&row, "c_faces"), object.faces as i64),
-                        ("c_surfaces", int(&row, "c_surfaces"), object.surfaces as i64),
-                        ("c_custom", int(&row, "c_custom"), host_custom),
+                        ("c_faces", int(row, "c_faces"), object.faces as i64),
+                        ("c_surfaces", int(row, "c_surfaces"), object.surfaces as i64),
+                        ("c_custom", int(row, "c_custom"), host_custom),
                     ] {
                         if original != Some(host) {
                             report.mismatch(false, format!("scene {scene}: {field} original {original:?} host {host}"));
                         }
                     }
-                    if text(&row, "c_radius") != Some(host_radius.as_str()) {
+                    if text(row, "c_radius") != Some(host_radius.as_str()) {
                         report.mismatch(
                             false,
-                            format!("scene {scene}: c_radius original {:?} host {host_radius}", text(&row, "c_radius")),
+                            format!("scene {scene}: c_radius original {:?} host {host_radius}", text(row, "c_radius")),
                         );
                     }
-                    if text(&row, "c_bb") != Some(host_bb.as_str()) {
-                        report.mismatch(false, format!("scene {scene}: c_bb original {:?} host {host_bb}", text(&row, "c_bb")));
+                    if text(row, "c_bb") != Some(host_bb.as_str()) {
+                        report.mismatch(false, format!("scene {scene}: c_bb original {:?} host {host_bb}", text(row, "c_bb")));
                     }
-                } else if int(&row, "c_points").is_some() {
+                } else if int(row, "c_points").is_some() {
                     report.mismatch(false, format!("scene {scene}: the original describes a collision object, the host has none"));
                 }
                 if status != "safe" && status != "absent" && status != "empty" {
@@ -363,12 +363,12 @@ fn compare_original(store: &ModelStore, path: &Path) -> Result<Report, String> {
             }
             "model-geometry" => {
                 report.geometry_headers += 1;
-                let scene = int(&row, "scene").ok_or_else(|| format!("line {}: model-geometry without a scene", number + 1))?;
-                group = Some((scene, text(&row, "status").unwrap_or_default().to_string()));
+                let scene = int(row, "scene").ok_or_else(|| format!("line {}: model-geometry without a scene", number + 1))?;
+                group = Some((scene, text(row, "status").unwrap_or_default().to_string()));
             }
             "model-refused" => {
-                let scene = int(&row, "scene").ok_or_else(|| format!("line {}: model-refused without a scene", number + 1))?;
-                let status = text(&row, "status").unwrap_or_default();
+                let scene = int(row, "scene").ok_or_else(|| format!("line {}: model-refused without a scene", number + 1))?;
+                let status = text(row, "status").unwrap_or_default();
                 let label = format!("scene {scene} ({status}): {}", host_walk(store, scene));
                 if !report.refused_scenes.contains(&label) {
                     report.refused_scenes.push(label);
@@ -378,8 +378,8 @@ fn compare_original(store: &ModelStore, path: &Path) -> Result<Report, String> {
                 let Some((scene, status)) = group.clone() else {
                     return Err(format!("line {}: a model-tri row before any model-geometry header", number + 1));
                 };
-                let depth = int(&row, "depth").ok_or_else(|| format!("line {}: model-tri without a depth", number + 1))?;
-                let returned = int(&row, "return").ok_or_else(|| format!("line {}: model-tri without a return", number + 1))?;
+                let depth = int(row, "depth").ok_or_else(|| format!("line {}: model-tri without a depth", number + 1))?;
+                let returned = int(row, "return").ok_or_else(|| format!("line {}: model-tri without a return", number + 1))?;
                 let answer = match store.triangle(scene, depth) {
                     Ok(answer) => answer,
                     Err(e) => {
@@ -399,11 +399,11 @@ fn compare_original(store: &ModelStore, path: &Path) -> Result<Report, String> {
                 match (returned, &answer) {
                     (0, Triangle::End) => {}
                     (1, Triangle::Found(bits)) => {
-                        let original = text(&row, "p").and_then(parse_bits);
+                        let original = text(row, "p").and_then(parse_bits);
                         if original.as_deref() != Some(&bits[..]) {
                             report.mismatch(
                                 true,
-                                format!("scene {scene} depth {depth}: original {:?} host {}", text(&row, "p"), hex_list(bits)),
+                                format!("scene {scene} depth {depth}: original {:?} host {}", text(row, "p"), hex_list(bits)),
                             );
                         }
                     }

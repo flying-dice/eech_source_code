@@ -1,3 +1,19 @@
+# Current D3 lint correction — EEDCS-50 host model store at `ba4f5d42a` (30 October 2026): SOURCE ONLY, UNBUILT, UNRUN
+
+Actual validation of `ba4f5d42a` (retained, not changed by this note): Linux format 0; the eech-world library tests (235, including the five `fs_tests`), all 30 `model_store` integration tests and the old
+8 `model_characterization` guards pass. Windows build 0 with six verified payloads; Windows 235 library and 30 integration tests pass; the explicit missing-host control is the expected native 101 refusal. The three
+healthy retail comparisons are native and repository 0 with pre/post manifests 0; the originals and six payloads are unchanged; all 3025 scene records (IDs included) and 215 original calls match. The four retained
+corrupt reports the `2020436ce` host accepted are now each native 1 / `compare-refused` / no `done`, and the healthy original is accepted. The new full host reports are identical across the three roots (1,278,336
+bytes, SHA-256 `ed3503b1…9317`); the Root's byte audit shows every physical and other row byte-identical to the `2020436ce` reports, the one difference being the `compare` row's two added envelope counts
+(`original_catalogue_scenes` 3025, `original_geometry_scenes` 11; 63 bytes). **The last Linux gate, all-target Clippy, FAILED (exit 101) on 27 style diagnostics** (log `model-host-ba4f5d42a-linux-20261030.log`); that
+failure is retained, and `ba4f5d42a` is not a clean Clippy result.
+
+Correction (lint only, UNBUILT, UNRUN): (1) in `compare_original`'s loop over the borrowed, already-validated rows (`for (line_number, row) in &rows`), `row` is a `&Value`, so the 26 `text(&row, ..)` / `int(&row, ..)`
+calls made a needless `&&Value`; they are now `text(row, ..)` / `int(row, ..)`, in that loop only (the `&rows` borrows and every owned value elsewhere are untouched); (2) the `fs_tests` fake's `Error::new(IoKind::Other,
+"not a directory")` is now `Error::other("not a directory")` (stable since Rust 1.74; the workspace `rust-version` is 1.80, which is not changed). No validation, count, geometry, comparison, physical or test expectation
+changed, no `allow`, and no C, FP, `original_report` or closed-fixture/driver source changed. Not a task, production, Tacview or whole-D3 acceptance; the 59 original custom and mixed geometry gaps, the production
+hand-off and the remaining D3 scope are unchanged; the follow-up review of the four-finding delta has not been requested; the original Task 47 shipping processes were not touched.
+
 # Current D3 test-helper correction — EEDCS-50 host model store at `61a80ee1a` (30 October 2026): SOURCE ONLY, UNBUILT, UNRUN
 
 Actual first validation of the four-finding correction frozen at `61a80ee1a`: Linux format 0 and the eech-world LIBRARY tests pass, 235 of 235, including the five new `fs_tests` that drive the actual

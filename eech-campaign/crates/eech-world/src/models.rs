@@ -1901,7 +1901,7 @@ mod fs_tests {
                     })
                     .collect()),
                 Some(Node::Unlistable(kind)) => Err(Error::new(*kind, "listing refused")),
-                Some(_) => Err(Error::new(IoKind::Other, "not a directory")),
+                Some(_) => Err(Error::other("not a directory")),
                 None => Err(Error::new(IoKind::NotFound, "no such directory")),
             }
         }
