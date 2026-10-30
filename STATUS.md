@@ -1,3 +1,17 @@
+# Current D3 test-helper correction — EEDCS-50 host model store at `61a80ee1a` (30 October 2026): SOURCE ONLY, UNBUILT, UNRUN
+
+Actual first validation of the four-finding correction frozen at `61a80ee1a`: Linux format 0 and the eech-world LIBRARY tests pass, 235 of 235, including the five new `fs_tests` that drive the actual
+resolver and enumerator against a fake filesystem (log `model-host-61a80ee1a-linux-20261030.log`). The integration test `tests/model_store.rs` did NOT compile: eight E0308 errors, all one cause. The test helper
+`tri` in `the_legitimate_original_modes_are_accepted_and_compared_as_they_are` took `&Option<String>` while its callers pass `p0` and `p1`, which the lookup closure returns as owned `String`s (lines 1531, 1543,
+1549, 1561, 1562). The old eight diagnostic guards and Clippy were therefore NOT RUN, and Windows had the same eight errors (build wrapper 1; no export, no Windows tests, no retail comparison). Neither the
+235 library passes nor `61a80ee1a` is integration, Windows or acceptance evidence; the frozen source and the failed logs stay immutable.
+
+Correction (test helper only, UNBUILT, UNRUN): `tri` now takes the nine words as `&str` and builds the `Some(owned string)` the report tuple schema requires, so all eight call sites type-check unchanged; no value, report
+collaborator, negative case or assertion was changed, and the other new helpers (`host_group`, the alteration builders) already pass `Some(String)`. No product source (`models.rs`, `model_host.rs`,
+`original_report.rs`, C) changed. The Root separately reproduced all four comparator defects against the immutable `2020436ce` host with exact corrupted retained reports (cut off after the first scene, a duplicated
+scene, a missing geometry terminal, an original `done` with failures 1: each wrongly native 0 / done 0; healthy control 0); those inputs remain private for the corrected-binary green. Whole D3, the 59 original
+custom and mixed geometry gaps and the production physical-loader removal are unchanged; no task, production or Tacview claim; the original Task 47 shipping run is live and untouched.
+
 # Current D3 correction — EEDCS-50 host model store, four review findings (30 October 2026): SOURCE PREPARED, UNBUILT, UNRUN
 
 Review of the tested `2020436ce` (`independent-host-model-component-review-2020436ce-20261030.json`, SHA-256 `4f387a639e452c9942e89d693d4de0b7a2e7a914a34bf6c68dcd38626f48c613`): CHANGES_REQUIRED,

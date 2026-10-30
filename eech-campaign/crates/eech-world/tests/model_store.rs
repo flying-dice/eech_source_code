@@ -1480,7 +1480,8 @@ fn the_legitimate_original_modes_are_accepted_and_compared_as_they_are() {
             .and_then(|r| r["p"].as_str().map(str::to_string))
     };
     let (p0, p1) = (p(1, 0).unwrap(), p(1, 1).unwrap());
-    let tri = |depth: i64, s: &Option<String>| (depth, 1, 9, s.clone());
+    // a true triangle row of the nine words in `text` (the lookups above give owned strings)
+    let tri = |depth: i64, text: &str| (depth, 1, 9, Some(text.to_string()));
     let accepted = |label: &str, report: Vec<Value>, expect: &dyn Fn(&Value)| {
         let (dir, path) = write_report(&report);
         let run = drive(&root.dir, &compare_args(&path), false);
