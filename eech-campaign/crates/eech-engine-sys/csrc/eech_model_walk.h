@@ -14,7 +14,8 @@
  *     backing was not observed is `MW_UNOBSERVED`;
  *   - the object's own array pointers (the walk reads from them, not from the region start: a mixed-layout walk may leave the object's own extent and stay inside the
  *     shared region, which is correct and permitted, or leave the region, which is refused);
- *   - the consolidated surface block.
+ *   - the consolidated surface block: its observed base and extent, one initialised bit per 16-byte record, and whether it was observed at all. Every surface read goes through
+ *     `mw_surface_gate` first (inside the block, on a record boundary, 4-byte aligned, initialised); the caller uses the same gate for its own metadata reads.
  *
  * The result is the longest run of depths 0 .. safe_depths-1 whose reads are all backed, why the walk stops if it does, and the extents it read. All address arithmetic
  * is on `uintptr_t` with explicit overflow checks and alignment checks; no pointer is compared with a pointer of another allocation, no read is made before the check,
@@ -41,8 +42,11 @@ struct mw_region
 struct mw_input
 {
 	uintptr_t surfaces_ptr; /* the object's first surface (obj->surfaces) */
-	uintptr_t surfaces_lo;  /* the consolidated surface block */
-	uintptr_t surfaces_hi;  /* one past its last byte */
+	uintptr_t surfaces_lo;  /* the consolidated surface block, as the loader allocated it */
+	uintptr_t surfaces_hi;  /* one past its last record */
+	int surfaces_known;     /* the block's identity, extent and filled records were OBSERVED (and the object's pointer is the one the loader bound); 0: every surface read is MW_UNOBSERVED */
+	const unsigned char *surfaces_init; /* one bit per 16-byte record from surfaces_lo (bit r of byte r/8): 1 = that record's 16 bytes were all initialised by the loader */
+	uint64_t surfaces_init_records;     /* the records the bitmap describes */
 	uintptr_t faces_ptr;    /* obj->faces */
 	struct mw_region faces;
 	uintptr_t list_ptr;     /* obj->object_faces_point_plain_list */
@@ -87,6 +91,61 @@ struct mw_result
 #define MW_SURFACE_BYTES 16u
 #define MW_SURFACE_POINTS_AT 3u
 #define MW_SURFACE_FACES_AT 8u
+
+/* Which record bytes the loader's own freads filled (pure bookkeeping over the fread RESULTS; nothing is read from memory).
+   The object loop fills a common surface record with seven separate freads whose destination bytes overlap (an int read into the 16-bit number_of_faces member spills over
+   reflectivity and specularity). A field counts only when its fread returned 1. A record is fully initialised when the byte masks of the fields that succeeded cover all 16
+   bytes; `prefix` is the number of leading records that are, counted in order, so a hole (a failed record followed by a complete one) never extends it. */
+#define MW_FILL_FIELDS 7
+static const uint16_t mw_fill_mask[MW_FILL_FIELDS] = { 0x000F, 0x0030, 0x00C0, 0x0F00, 0xF000, 0x0400, 0x0800 };
+
+struct mw_fill
+{
+	uint32_t prefix;   /* leading fully initialised records */
+	int32_t current;   /* the record being read + 1 (0: none) */
+	uint16_t mask;     /* bytes of that record filled so far */
+	uint16_t seen;     /* fields of that record already reported */
+	int bad;           /* a field out of range, or one reported twice for the same record */
+};
+
+static void mw_fill_field (struct mw_fill *f, int surface, int field, size_t returned)
+{
+	if (field < 0 || field >= MW_FILL_FIELDS || surface < 0 || surface == 0x7fffffff)
+	{
+		f->bad = 1;
+		return;
+	}
+	if (f->current != surface + 1)
+	{
+		f->current = surface + 1;
+		f->mask = 0;
+		f->seen = 0;
+	}
+	if (f->seen & (uint16_t) (1u << field))
+	{
+		f->bad = 1;
+	}
+	f->seen = (uint16_t) (f->seen | (1u << field));
+	if (returned == 1)
+	{
+		f->mask = (uint16_t) (f->mask | mw_fill_mask[field]);
+	}
+	if (f->mask == 0xFFFFu && (uint32_t) surface == f->prefix)
+	{
+		f->prefix++;
+	}
+}
+
+/* sets bits first .. first + count - 1 of a bitmap (the caller guarantees the bitmap holds them) */
+static void mw_mark_records (unsigned char *bits, uint64_t first, uint64_t count)
+{
+	uint64_t r;
+	for (r = 0; r < count; r++)
+	{
+		uint64_t record = first + r;
+		bits[record >> 3] = (unsigned char) (bits[record >> 3] | (1u << (record & 7u)));
+	}
+}
 
 /* 0: [addr, addr+size) is readable data in `r`; otherwise the reason */
 static int mw_check (const struct mw_region *r, uintptr_t addr, uint64_t size, uint64_t align)
@@ -161,23 +220,61 @@ static int mw_read (struct mw_result *out, int64_t depth, uintptr_t ptr, const s
 	return 1;
 }
 
-/* a surface record, k surfaces from the object's first, inside the consolidated block */
-static int mw_surface (const struct mw_input *in, uint64_t k, uint64_t *points, int64_t *faces)
+/* The gate every read of a surface record passes BEFORE it is dereferenced (by the walk and by the caller's own metadata reads): k surfaces from the object's first. 0: the
+   whole 16-byte record is inside the observed block, on a record boundary of it, 4-byte aligned, and was initialised by the loader; *at is its address. Otherwise the reason. */
+static int mw_surface_gate (const struct mw_input *in, uint64_t k, uintptr_t *at_out)
 {
 	int wrapped = 0;
-	uintptr_t at = mw_address (in->surfaces_ptr, k, MW_SURFACE_BYTES, &wrapped);
+	uintptr_t at;
+	uint64_t record;
+
+	if (!in->surfaces_known)
+	{
+		return MW_UNOBSERVED;
+	}
+	at = mw_address (in->surfaces_ptr, k, MW_SURFACE_BYTES, &wrapped);
+	if (wrapped)
+	{
+		return MW_OVERFLOW;
+	}
+	if (at < in->surfaces_lo || at >= in->surfaces_hi || (uint64_t) (in->surfaces_hi - at) < MW_SURFACE_BYTES)
+	{
+		return MW_SURFACES_OUTSIDE;
+	}
+	if ((in->surfaces_lo % 4u) != 0 || (at % 4u) != 0 || ((uint64_t) (at - in->surfaces_lo)) % MW_SURFACE_BYTES != 0)
+	{
+		return MW_MISALIGNED;
+	}
+	record = ((uint64_t) (at - in->surfaces_lo)) / MW_SURFACE_BYTES;
+	if (!in->surfaces_init || record >= in->surfaces_init_records)
+	{
+		return MW_UNOBSERVED;
+	}
+	if (!((in->surfaces_init[record >> 3] >> (record & 7u)) & 1u))
+	{
+		return MW_UNINITIALISED;
+	}
+	*at_out = at;
+	return 0;
+}
+
+/* a surface record's walk metadata (after the gate): 0, or the gate's reason */
+static int mw_surface (const struct mw_input *in, uint64_t k, uint64_t *points, int64_t *faces)
+{
+	uintptr_t at = 0;
 	const unsigned char *p;
 	uint16_t number_of_faces;
+	int why = mw_surface_gate (in, k, &at);
 
-	if (wrapped || at < in->surfaces_lo || at >= in->surfaces_hi || (uint64_t) (in->surfaces_hi - at) < MW_SURFACE_BYTES || (at % 4u) != 0)
+	if (why)
 	{
-		return 0;
+		return why;
 	}
 	p = (const unsigned char *) at;
 	memcpy (&number_of_faces, p + MW_SURFACE_FACES_AT, sizeof (number_of_faces));
 	*points = p[MW_SURFACE_POINTS_AT] ? p[MW_SURFACE_POINTS_AT] : 256u;
 	*faces = (int64_t) number_of_faces;
-	return 1;
+	return 0;
 }
 
 static void mw_walk (const struct mw_input *in, struct mw_result *out)
@@ -190,6 +287,7 @@ static void mw_walk (const struct mw_input *in, struct mw_result *out)
 	   0 .. P-1 with P = the running maximum of C (never below 0), face k claims exactly the depths P_{k-1} .. C_{k+1} - 1 (none when C_{k+1} <= P_{k-1}), and the first FALSE
 	   is depth P. `c` is C_k and `p` is P_{k-1}; neither assumes every increment is positive. */
 	int64_t c = 0, p = 0;
+	int why;
 
 	memset (out, 0, sizeof (*out));
 	out->array = "-";
@@ -202,9 +300,10 @@ static void mw_walk (const struct mw_input *in, struct mw_result *out)
 		mw_stop (out, MW_NULL_SURFACES, "surfaces", 0);
 		return;
 	}
-	if (!mw_surface (in, 0, &nsp, &nsf))
+	why = mw_surface (in, 0, &nsp, &nsf);
+	if (why)
 	{
-		mw_stop (out, MW_SURFACES_OUTSIDE, "surfaces", 0);
+		mw_stop (out, why, "surfaces", 0);
 		return;
 	}
 	if (in->number_of_faces == 0)
@@ -310,7 +409,8 @@ static void mw_walk (const struct mw_input *in, struct mw_result *out)
 			/* the next surface, read here even after the last face (the end call reads it too); every depth >= p passes this face and so makes the read */
 			spb += nsp;
 			surface++;
-			if (!mw_surface (in, surface, &nsp, &nsf))
+			why = mw_surface (in, surface, &nsp, &nsf);
+			if (why)
 			{
 				out->triangles = p;
 				if (count + 1 == in->number_of_faces)
@@ -319,7 +419,7 @@ static void mw_walk (const struct mw_input *in, struct mw_result *out)
 					out->complete = 1;
 					out->end_backed = 0;
 				}
-				mw_stop (out, MW_SURFACES_OUTSIDE, "surfaces", p);
+				mw_stop (out, why, "surfaces", p);
 				return;
 			}
 		}

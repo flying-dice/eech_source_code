@@ -64,6 +64,9 @@
    with named ids reaching 10252, so the table is a little over twelve thousand entries. 32768 is a fixed bound with better than twofold margin over that (the slots are static,
    not a model allocation). An object whose index does not fit is refused on its own (`record_capacity`, counted); no other record is affected. */
 #define MF_OBJECT_MAX 32768
+/* The consolidated surface block holds one record per surface of every object: 52517 in the supported data. The initialised-record bitmap is static (one bit per record); 262144
+   records is a fixed bound five times that. A block observed larger than this is refused for EVERY object as `surface_capacity` (explicit, reported), never partly trusted. */
+#define MF_SURFACE_MAX 262144u
 /* the most elementary steps one verdict may take */
 #define MF_STEP_BUDGET 4000000ull
 
@@ -163,25 +166,59 @@ struct mf_custom
 	unsigned generation; /* the load this record belongs to; a record of any other generation does not exist */
 	const void *object;
 	int state;
-	uintptr_t points, faces, list, sp;                           /* the pointers read_object stored */
-	uint64_t points_allocated, faces_allocated, list_allocated, sp_allocated; /* bytes allocated */
-	uint64_t points_initialised, faces_initialised, list_initialised, sp_initialised; /* bytes fread filled */
+	uintptr_t points, faces, list, sp, surfaces;                 /* the pointers read_object stored (surfaces: until the consolidation rebinds it) */
+	uint64_t points_allocated, faces_allocated, list_allocated, sp_allocated, surfaces_allocated; /* bytes allocated */
+	uint64_t points_initialised, faces_initialised, list_initialised, sp_initialised, surfaces_initialised; /* bytes fread filled */
 };
 
 /* indexed by object index (slot 0 is the null object and is never used) */
 static struct mf_custom mf_custom_table[MF_OBJECT_MAX];
 /* this load's records: usable, ambiguous (repeat or inconsistent), refused for index capacity, not an element of the object table, and read outside the observed window */
 static int mf_custom_recorded, mf_custom_ambiguous, mf_custom_dropped, mf_custom_unknown, mf_custom_late;
-static uint64_t mf_pending[4];
-static int mf_pending_valid[4];
+/* read_object's fread results, by array: 0 points, 1 faces, 2 point list, 3 surface points, 4 surfaces */
+static uint64_t mf_pending[5];
+static int mf_pending_valid[5];
+
+/* The surfaces. A surface record is 16 bytes; the object loop fills a COMMON record with seven separate freads (bytes 0-3 flags, 4-5 texture index, 6-7 luminosity texture index,
+   8-11 number of faces (an int read into a 16-bit member, so it spills over the next two bytes), 10 reflectivity, 11 specularity, 12-15 colour), a CUSTOM object's with one fread of
+   16 bytes per surface, and the final consolidation copies every object's records into one newly allocated block and rebinds them. Only the loader's own fread results say which
+   record bytes hold data, so they are tracked per object (a leading run of fully initialised records) and carried through the consolidation into a bitmap of the final block. */
+struct mf_surf_object
+{
+	struct mw_fill fill;          /* the common records the object loop filled (eech_model_walk.h): leading fully initialised records, in order */
+	uint32_t start, count, initialised; /* consolidated: first record in the block, records, leading records initialised */
+	uintptr_t common_ptr;         /* the object's surfaces as the object loop bound them */
+	uint8_t bad, consolidated;    /* bad: the object's surfaces pointer changed between its fields */
+};
+
+struct mf_surfaces
+{
+	int bad;                       /* the first inconsistency (MF_BAD_*) in what the hooks reported about the surfaces */
+	int common_done;
+	uintptr_t common_lo;           /* the common surface block's base, and records allocated / advanced through by the object loop */
+	uint64_t common_records, common_consumed;
+	int phase;                     /* 0 nothing, 1 the consolidation block is allocated and being filled, 2 it is bound */
+	uintptr_t lo;                  /* the consolidated block and the records it was allocated for */
+	uint64_t records, running;     /* running: records assigned to objects so far */
+	int last_object, capacity;     /* capacity: the block exceeds MF_SURFACE_MAX records */
+	uint64_t initialised;          /* records marked initialised in the bitmap */
+	int dropped, partial;          /* objects whose index did not fit MF_OBJECT_MAX; objects with fewer initialised records than surfaces */
+};
+
+static struct mf_surf_object mf_surf_object[MF_OBJECT_MAX];
+static struct mf_surfaces mf_surf;
+static unsigned char mf_surf_init[MF_SURFACE_MAX / 8u];
 
 void eech_mf_reset (void)
 {
 	memset (&mf_common, 0, sizeof (mf_common));
+	memset (&mf_surf, 0, sizeof (mf_surf));
+	memset (mf_surf_object, 0, sizeof (mf_surf_object));
+	memset (mf_surf_init, 0, sizeof (mf_surf_init));
 	memset (mf_pending, 0, sizeof (mf_pending));
 	memset (mf_pending_valid, 0, sizeof (mf_pending_valid));
 	mf_custom_recorded = mf_custom_ambiguous = mf_custom_dropped = mf_custom_unknown = mf_custom_late = 0;
-	/* the table is not cleared: a record is only believed in the generation that made it */
+	/* the custom table is not cleared: a record is only believed in the generation that made it */
 	mf_generation++;
 }
 
@@ -286,12 +323,91 @@ static int mf_block_check (uintptr_t seen, const void *base, const void *cursor,
 	return MF_BAD_NONE;
 }
 
+/* the common surface block, as the object loop left it: its base, the records allocated, and the cursor it advanced to */
+static void mf_surfaces_common (const void *surfaces, long long allocated, const void *cursor)
+{
+	uintptr_t b = (uintptr_t) surfaces, c = (uintptr_t) cursor;
+
+	if (mf_surf.common_done)
+	{
+		mf_surf.bad = MF_BAD_ORDER;
+		return;
+	}
+	mf_surf.common_done = 1;
+	if (allocated < 0)
+	{
+		mf_surf.bad = MF_BAD_RANGE;
+		return;
+	}
+	if (!b)
+	{
+		if (allocated != 0 || c)
+		{
+			mf_surf.bad = MF_BAD_BASE;
+		}
+		return;
+	}
+	if (c < b || ((uint64_t) (c - b)) % sizeof (face_surface_description) || ((uint64_t) (c - b)) / sizeof (face_surface_description) > (uint64_t) allocated)
+	{
+		mf_surf.bad = MF_BAD_CURSOR;
+		return;
+	}
+	mf_surf.common_lo = b;
+	mf_surf.common_records = (uint64_t) allocated;
+	mf_surf.common_consumed = ((uint64_t) (c - b)) / sizeof (face_surface_description);
+}
+
+size_t eech_mf_surface_field (int object, int surface, int field, size_t returned)
+{
+	struct mf_surf_object *o;
+	uintptr_t record;
+
+	if (mf_surf.bad || mf_common.phase == 2 || mf_surf.common_done)
+	{
+		/* a field read after the object loop was reported over: the loop's bookkeeping is not what the hooks were told */
+		if (!mf_surf.bad)
+		{
+			mf_surf.bad = MF_BAD_ORDER;
+		}
+		return returned;
+	}
+	if (object < 1 || (long long) object > (long long) total_number_of_raw_3d_objects || surface < 0 || field < 0 || field > 6)
+	{
+		mf_surf.bad = MF_BAD_RANGE;
+		return returned;
+	}
+	if (object >= MF_OBJECT_MAX)
+	{
+		mf_surf.dropped++;
+		return returned;
+	}
+	o = &mf_surf_object[object];
+	record = (uintptr_t) objects_3d_data[object].surfaces;
+	if (!record)
+	{
+		o->bad = 1;
+		return returned;
+	}
+	if (!o->common_ptr)
+	{
+		o->common_ptr = record;
+	}
+	else if (o->common_ptr != record)
+	{
+		o->bad = 1;
+	}
+	mw_fill_field (&o->fill, surface, field, returned);
+	return returned;
+}
+
 void eech_mf_common_done (const void *faces, long long faces_allocated, const void *faces_cursor, const void *list, long long list_allocated,
-	const void *list_cursor, const void *points, const void *points_cursor, const void *surface_points, const void *surface_points_cursor)
+	const void *list_cursor, const void *points, const void *points_cursor, const void *surface_points, const void *surface_points_cursor, const void *surfaces,
+	long long surfaces_allocated, const void *surfaces_cursor)
 {
 	struct mf_common *m = &mf_common;
 	int why;
 
+	mf_surfaces_common (surfaces, surfaces_allocated, surfaces_cursor);
 	if (m->phase == 2)
 	{
 		m->bad = MF_BAD_ORDER;
@@ -328,7 +444,7 @@ void eech_mf_common_done (const void *faces, long long faces_allocated, const vo
 
 size_t eech_mf_filled (int which, size_t returned)
 {
-	if (which >= 0 && which < 4)
+	if (which >= 0 && which < 5)
 	{
 		mf_pending[which] = (uint64_t) returned;
 		mf_pending_valid[which] = 1;
@@ -379,10 +495,10 @@ void eech_mf_custom (const void *object, long long polygoned_faces, long long po
 {
 	const object_3d *obj = (const object_3d *) object;
 	struct mf_custom *r;
-	long long counts[4];
-	uint64_t sizes[4];
-	const void *pointers[4];
-	uint64_t *allocated[4], *initialised[4];
+	long long counts[5];
+	uint64_t sizes[5];
+	const void *pointers[5];
+	uint64_t *allocated[5], *initialised[5];
 	int i, ok = 1, why;
 
 	if (mf_common.phase != 2)
@@ -428,28 +544,34 @@ void eech_mf_custom (const void *object, long long polygoned_faces, long long po
 	counts[1] = polygoned_faces;
 	counts[2] = point_references;
 	counts[3] = surface_point_references;
+	counts[4] = obj->number_of_surfaces;
 	sizes[0] = sizeof (object_short_3d_point);
 	sizes[1] = sizeof (object_3d_face);
 	sizes[2] = sizeof (point_3d_short_reference);
 	sizes[3] = sizeof (point_3d_plain_reference);
+	sizes[4] = sizeof (face_surface_description);
 	pointers[0] = obj->points;
 	pointers[1] = obj->faces;
 	pointers[2] = obj->object_faces_point_plain_list;
 	pointers[3] = obj->surface_points;
+	pointers[4] = obj->surfaces;
 	allocated[0] = &r->points_allocated;
 	allocated[1] = &r->faces_allocated;
 	allocated[2] = &r->list_allocated;
 	allocated[3] = &r->sp_allocated;
+	allocated[4] = &r->surfaces_allocated;
 	initialised[0] = &r->points_initialised;
 	initialised[1] = &r->faces_initialised;
 	initialised[2] = &r->list_initialised;
 	initialised[3] = &r->sp_initialised;
+	initialised[4] = &r->surfaces_initialised;
 	r->points = (uintptr_t) pointers[0];
 	r->faces = (uintptr_t) pointers[1];
 	r->list = (uintptr_t) pointers[2];
 	r->sp = (uintptr_t) pointers[3];
+	r->surfaces = (uintptr_t) pointers[4];
 
-	for (i = 0; i < 4; i++)
+	for (i = 0; i < 5; i++)
 	{
 		if (counts[i] < 0)
 		{
@@ -483,6 +605,153 @@ void eech_mf_custom (const void *object, long long polygoned_faces, long long po
 		mf_custom_recorded++;
 	}
 	memset (mf_pending_valid, 0, sizeof (mf_pending_valid));
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* the surface consolidation: which records of the final block hold data */
+
+void eech_mf_consolidate_begin (const void *block, long long records)
+{
+	if (mf_surf.bad)
+	{
+		return;
+	}
+	if (!mf_surf.common_done || mf_surf.phase != 0 || mf_common.phase != 2)
+	{
+		mf_surf.bad = MF_BAD_ORDER;
+		return;
+	}
+	if (records < 0 || (!block && records != 0))
+	{
+		mf_surf.bad = records < 0 ? MF_BAD_RANGE : MF_BAD_BASE;
+		return;
+	}
+	mf_surf.phase = 1;
+	mf_surf.lo = (uintptr_t) block;
+	mf_surf.records = (uint64_t) records;
+	mf_surf.running = 0;
+	mf_surf.last_object = 0;
+	mf_surf.capacity = mf_surf.records > MF_SURFACE_MAX;
+}
+
+/* How many leading records of this object's CURRENT surfaces hold data, from the loader's own results; 0 when the source cannot be matched to an observation. */
+static uint64_t mf_surface_source (int index, const object_3d *obj, uintptr_t source, uint64_t n)
+{
+	if (obj->custom)
+	{
+		/* the object's own read_object allocation, matched to the record made when it was read */
+		const struct mf_custom *r = mf_custom_find (obj);
+		if (!r || r->state != MF_RECORD_OK || r->surfaces != source || r->surfaces_allocated != n * sizeof (face_surface_description))
+		{
+			return 0;
+		}
+		return r->surfaces_initialised / sizeof (face_surface_description);
+	}
+	else
+	{
+		const struct mf_surf_object *o;
+		uint64_t first;
+		if (index >= MF_OBJECT_MAX)
+		{
+			return 0;
+		}
+		o = &mf_surf_object[index];
+		if (o->bad || o->fill.bad || !mf_surf.common_lo || o->common_ptr != source || source < mf_surf.common_lo || ((uint64_t) (source - mf_surf.common_lo)) % sizeof (face_surface_description))
+		{
+			return 0;
+		}
+		/* the object's records must lie inside the common block the loader allocated */
+		first = ((uint64_t) (source - mf_surf.common_lo)) / sizeof (face_surface_description);
+		if (first > mf_surf.common_records || n > mf_surf.common_records - first)
+		{
+			return 0;
+		}
+		return o->fill.prefix < n ? o->fill.prefix : n;
+	}
+}
+
+void eech_mf_consolidate_copy (int index, const void *object, const void *destination)
+{
+	const object_3d *obj = (const object_3d *) object;
+	uint64_t n, initialised;
+
+	if (mf_surf.bad || mf_surf.phase != 1)
+	{
+		return;
+	}
+	if (index < 1 || (long long) index > (long long) total_number_of_raw_3d_objects || (uintptr_t) obj != (uintptr_t) objects_3d_data + (uintptr_t) index * sizeof (object_3d))
+	{
+		mf_surf.bad = MF_BAD_RANGE;
+		return;
+	}
+	if (index <= mf_surf.last_object)
+	{
+		mf_surf.bad = MF_BAD_ORDER;
+		return;
+	}
+	mf_surf.last_object = index;
+	if (obj->number_of_surfaces < 1)
+	{
+		mf_surf.bad = MF_BAD_RANGE;
+		return;
+	}
+	n = (uint64_t) obj->number_of_surfaces;
+	if ((uintptr_t) destination != mf_surf.lo + (uintptr_t) mf_surf.running * sizeof (face_surface_description))
+	{
+		mf_surf.bad = MF_BAD_CURSOR;
+		return;
+	}
+	if (n > mf_surf.records - mf_surf.running || mf_surf.running > 0xFFFFFFFFull)
+	{
+		mf_surf.bad = MF_BAD_RANGE;
+		return;
+	}
+	initialised = mf_surface_source (index, obj, (uintptr_t) obj->surfaces, n);
+	if (initialised > n)
+	{
+		initialised = n;
+	}
+	if (initialised < n)
+	{
+		mf_surf.partial++;
+	}
+	if (index < MF_OBJECT_MAX)
+	{
+		struct mf_surf_object *o = &mf_surf_object[index];
+		o->consolidated = 1;
+		o->start = (uint32_t) mf_surf.running;
+		o->count = (uint32_t) n;
+		o->initialised = (uint32_t) initialised;
+	}
+	else
+	{
+		mf_surf.dropped++;
+	}
+	if (!mf_surf.capacity)
+	{
+		mw_mark_records (mf_surf_init, mf_surf.running, initialised);
+		mf_surf.initialised += initialised;
+	}
+	mf_surf.running += n;
+}
+
+void eech_mf_consolidate_end (const void *block, long long records)
+{
+	if (mf_surf.bad)
+	{
+		return;
+	}
+	if (mf_surf.phase != 1)
+	{
+		mf_surf.bad = MF_BAD_ORDER;
+		return;
+	}
+	if ((uintptr_t) block != mf_surf.lo || records < 0 || (uint64_t) records != mf_surf.records || mf_surf.running != mf_surf.records)
+	{
+		mf_surf.bad = MF_BAD_CURSOR;
+		return;
+	}
+	mf_surf.phase = 2;
 }
 
 /* ---------------------------------------------------------------------------------------------------------------------------- */
@@ -602,6 +871,47 @@ static long cap_elements (const struct mw_region *r, uintptr_t ptr, uint64_t ele
 	return (long) ((r->allocated - (uint64_t) (ptr - r->lo)) / element);
 }
 
+/* Fills the surface part of the walk's input from the OBSERVED consolidation and returns "observed", or why it cannot: the object's index is past the per-object bound, the
+   hooks found the surface bookkeeping inconsistent, the block was never bound, it is larger than the bitmap, the block was freed or rebound since, or this object's surfaces are
+   not where the consolidation put them. Nothing is read from the surfaces here, and with anything but "observed" `surfaces_known` stays 0 so no surface read is ever made. */
+static const char *surface_provenance (const object_3d *obj, int index, struct mw_input *in)
+{
+	const struct mf_surf_object *o;
+
+	in->surfaces_known = 0;
+	if (index < 1 || index >= MF_OBJECT_MAX)
+	{
+		return "object_capacity";
+	}
+	if (mf_surf.bad)
+	{
+		return "inconsistent";
+	}
+	if (mf_surf.phase != 2)
+	{
+		return "not_consolidated";
+	}
+	if (mf_surf.capacity)
+	{
+		return "surface_capacity";
+	}
+	if ((uintptr_t) object_database_surfaces != mf_surf.lo)
+	{
+		return "block_rebound";
+	}
+	o = &mf_surf_object[index];
+	if (!o->consolidated || (int64_t) o->count != (int64_t) obj->number_of_surfaces || (uintptr_t) obj->surfaces != mf_surf.lo + (uintptr_t) o->start * sizeof (face_surface_description))
+	{
+		return "object_rebound";
+	}
+	in->surfaces_lo = mf_surf.lo;
+	in->surfaces_hi = mf_surf.lo + (uintptr_t) mf_surf.records * sizeof (face_surface_description);
+	in->surfaces_init = mf_surf_init;
+	in->surfaces_init_records = mf_surf.records;
+	in->surfaces_known = 1;
+	return "observed";
+}
+
 struct analysis
 {
 	const char *status; /* safe, empty, or the refusal / absence class */
@@ -615,6 +925,7 @@ struct analysis
 	int end_read_backed;
 	int callable;
 	const char *backing; /* common, custom, or - */
+	const char *surfaces; /* observed, or why the surface block / the object's binding to it was not (see surface_provenance) */
 	const char *walk;    /* complete, end_unbacked, partial, refused, or - */
 	const char *stop;    /* why the walk stopped, or - */
 	const char *stop_array;
@@ -675,8 +986,7 @@ static void analyse (struct analysis *a, int scene)
 	struct mw_result w;
 	const struct mf_custom *rec = NULL;
 	const char *why = "-";
-	long block_length;
-	uintptr_t block_lo, block_hi, surfaces;
+	uintptr_t surfaces;
 	int s;
 	int c = objects_3d_scene_database[scene].collision_object_index;
 
@@ -687,6 +997,7 @@ static void analyse (struct analysis *a, int scene)
 	a->face_points_min = -1;
 	a->cap_faces = a->cap_point_list = a->cap_surface_points = -3;
 	a->backing = "-";
+	a->surfaces = "-";
 	a->walk = "-";
 	a->stop = "-";
 	a->stop_array = "-";
@@ -714,24 +1025,29 @@ static void analyse (struct analysis *a, int scene)
 	a->custom = obj->custom;
 
 	/* the surfaces: the decoder reads surfaces[0] unconditionally, from the consolidated block */
-	block_length = surface_block_length ();
 	if (!object_database_surfaces || obj->number_of_surfaces < 1 || !obj->surfaces)
 	{
 		a->status = "null_surfaces";
 		return;
 	}
-	block_lo = (uintptr_t) object_database_surfaces;
-	block_hi = block_lo + (uintptr_t) block_length * sizeof (face_surface_description);
 	surfaces = (uintptr_t) obj->surfaces;
-	if (surfaces < block_lo || surfaces >= block_hi || (uint64_t) (block_hi - surfaces) < (uint64_t) obj->number_of_surfaces * sizeof (face_surface_description))
-	{
-		a->status = "surfaces_outside_block";
-		return;
-	}
+
+	/* The surface block's identity, extent, filled records and the object's binding to it are established FIRST. Every surface byte this function reads afterwards (the
+	   metadata below, the walk, the state digest) goes through the same gate: inside the observed block, on a record boundary, 4-byte aligned, initialised. */
+	memset (&in, 0, sizeof (in));
+	in.surfaces_ptr = surfaces;
+	a->surfaces = surface_provenance (obj, c, &in);
 
 	for (s = 0; s < obj->number_of_surfaces; s++)
 	{
-		const face_surface_description *surface = &obj->surfaces[s];
+		uintptr_t at = 0;
+		const face_surface_description *surface;
+		if (mw_surface_gate (&in, (uint64_t) s, &at))
+		{
+			/* the metadata covers the surfaces the gate allows; the walk reports what stops it */
+			break;
+		}
+		surface = (const face_surface_description *) at;
 		a->surface_faces += surface->number_of_faces;
 		if (surface->polygons)
 		{
@@ -749,10 +1065,6 @@ static void analyse (struct analysis *a, int scene)
 	}
 
 	/* the backing of the four arrays the decoder walks */
-	memset (&in, 0, sizeof (in));
-	in.surfaces_ptr = surfaces;
-	in.surfaces_lo = block_lo;
-	in.surfaces_hi = block_hi;
 	in.faces_ptr = (uintptr_t) obj->faces;
 	in.list_ptr = (uintptr_t) obj->object_faces_point_plain_list;
 	in.sp_ptr = (uintptr_t) obj->surface_points;
@@ -846,12 +1158,16 @@ int eech_model_summary_run (char *text, int capacity)
 	/* the backing the loader hooks reported (optional fields; the closed driver tolerates them) */
 	emit (&out,
 		" backing=hooked generation=%u common_phase=%d common_bad=%s faces_allocated=%llu faces_consumed=%llu faces_initialised=%llu list_allocated=%llu list_consumed=%llu"
-		" list_initialised=%llu points_view=%llu points_consumed=%llu sp_view=%llu sp_consumed=%llu custom_slots=%d custom_recorded=%d custom_ambiguous=%d custom_record_overflow=%d custom_unknown=%d custom_late=%d\n",
+		" list_initialised=%llu points_view=%llu points_consumed=%llu sp_view=%llu sp_consumed=%llu custom_slots=%d custom_recorded=%d custom_ambiguous=%d custom_record_overflow=%d custom_unknown=%d custom_late=%d"
+		" surface_phase=%d surface_bad=%s surface_records=%llu surface_initialised=%llu surface_capacity=%u surface_common_records=%llu surface_common_consumed=%llu"
+		" surface_dropped=%d surface_partial_objects=%d\n",
 		mf_generation, mf_common.phase, mf_bad_names[mf_common.bad], (unsigned long long) mf_common.faces_allocated,
 		(unsigned long long) (mf_common.faces_requested * sizeof (object_3d_face)), (unsigned long long) mf_common.faces_initialised,
 		(unsigned long long) mf_common.list_allocated, (unsigned long long) (mf_common.list_requested * sizeof (point_3d_short_reference)),
 		(unsigned long long) mf_common.list_initialised, points_view, (unsigned long long) mf_common.points_consumed, sp_view,
-		(unsigned long long) mf_common.sp_consumed, MF_OBJECT_MAX, mf_custom_recorded, mf_custom_ambiguous, mf_custom_dropped, mf_custom_unknown, mf_custom_late);
+		(unsigned long long) mf_common.sp_consumed, MF_OBJECT_MAX, mf_custom_recorded, mf_custom_ambiguous, mf_custom_dropped, mf_custom_unknown, mf_custom_late,
+		mf_surf.phase, mf_bad_names[mf_surf.bad], (unsigned long long) mf_surf.records, (unsigned long long) mf_surf.initialised, MF_SURFACE_MAX,
+		(unsigned long long) mf_surf.common_records, (unsigned long long) mf_surf.common_consumed, mf_surf.dropped, mf_surf.partial);
 	return out.overflow ? 1 : 0;
 }
 
@@ -969,8 +1285,8 @@ int eech_model_catalogue_run (int first, int count, char *text, int capacity)
 				a.number_of_points, a.number_of_faces, a.number_of_surfaces, a.custom, float_bits (obj->radius), cbb, a.surface_faces, a.polygon_surface_faces,
 				a.nonpolygon_surfaces, a.zero_face_surfaces, a.surface_points_sum, a.face_points_sum, a.face_points_min, a.face_points_max, a.fan_triangles,
 				a.end_read_backed, a.cap_faces, a.cap_point_list, a.cap_surface_points, analysis_probeable (&a) ? analysis_max_depth (&a) : -1L);
-			emit (&out, " backing=%s walk=%s stop=%s stop_array=%s faces_read=%ld list_read=%ld sp_read=%ld points_read=%ld", a.backing, a.walk, a.stop, a.stop_array,
-				a.faces_read, a.list_read, a.sp_read, a.points_read);
+			emit (&out, " backing=%s surfaces=%s walk=%s stop=%s stop_array=%s faces_read=%ld list_read=%ld sp_read=%ld points_read=%ld", a.backing, a.surfaces, a.walk, a.stop,
+				a.stop_array, a.faces_read, a.list_read, a.sp_read, a.points_read);
 		}
 		emit (&out, "\n");
 	}
@@ -994,8 +1310,9 @@ int eech_model_geometry_run (int scene, int first_depth, int count, char *text, 
 		return 1;
 	}
 	analyse (&a, scene);
-	emit (&out, "model-geometry scene=%d name=%s collision=%d status=%s detail=%s first=%d count=%d fan_bound=%ld end_read_backed=%d backing=%s walk=%s stop=%s stop_array=%s\n",
-		scene, scene_name (scene), a.collision_index, a.status, a.detail, first_depth, count, a.fan_triangles, a.end_read_backed, a.backing, a.walk, a.stop, a.stop_array);
+	emit (&out, "model-geometry scene=%d name=%s collision=%d status=%s detail=%s first=%d count=%d fan_bound=%ld end_read_backed=%d backing=%s surfaces=%s walk=%s stop=%s stop_array=%s\n",
+		scene, scene_name (scene), a.collision_index, a.status, a.detail, first_depth, count, a.fan_triangles, a.end_read_backed, a.backing, a.surfaces, a.walk, a.stop,
+		a.stop_array);
 
 	if (!strcmp (a.status, "absent"))
 	{
@@ -1097,10 +1414,21 @@ int eech_model_state_run (char *text, int capacity)
 	{
 		return 1;
 	}
-	/* the scene table and the object table, every byte; the surface block, every byte */
+	/* the scene table and the object table, every byte (both were zeroed when allocated); the surface block, only the records the loader initialised, and only when the
+	   block is the observed one (the recomputed length is never trusted to size a read) */
 	hash_bytes (&tables, objects_3d_scene_database, sizeof (struct OBJECT_3D_SCENE_DATABASE_ENTRY) * (size_t) OBJECT_3D_LAST);
 	hash_bytes (&tables, objects_3d_data, sizeof (object_3d) * (size_t) (total_number_of_raw_3d_objects + 1));
-	hash_bytes (&tables, object_database_surfaces, sizeof (face_surface_description) * (size_t) surface_block_length ());
+	if (mf_surf.phase == 2 && !mf_surf.bad && !mf_surf.capacity && (uintptr_t) object_database_surfaces == mf_surf.lo)
+	{
+		uint64_t record;
+		for (record = 0; record < mf_surf.records; record++)
+		{
+			if ((mf_surf_init[record >> 3] >> (record & 7u)) & 1u)
+			{
+				hash_bytes (&tables, (const void *) (mf_surf.lo + (uintptr_t) record * sizeof (face_surface_description)), sizeof (face_surface_description));
+			}
+		}
+	}
 	/* the table and block addresses, and the bounds */
 	{
 		uintptr_t addresses[3];
@@ -1185,6 +1513,40 @@ int eech_model_state_run (char *text, int capacity)
 		hash_u64 (&backing, r->faces_initialised);
 		hash_u64 (&backing, r->list_initialised);
 		hash_u64 (&backing, r->sp_initialised);
+		hash_u64 (&backing, (uint64_t) r->surfaces);
+		hash_u64 (&backing, r->surfaces_allocated);
+		hash_u64 (&backing, r->surfaces_initialised);
+	}
+	/* the surface observation, member by member: the block, the counts, the bitmap, and each object's source prefix and place in the block */
+	hash_u64 (&backing, (uint64_t) mf_surf.bad);
+	hash_u64 (&backing, (uint64_t) mf_surf.phase);
+	hash_u64 (&backing, (uint64_t) mf_surf.common_lo);
+	hash_u64 (&backing, mf_surf.common_records);
+	hash_u64 (&backing, mf_surf.common_consumed);
+	hash_u64 (&backing, (uint64_t) mf_surf.lo);
+	hash_u64 (&backing, mf_surf.records);
+	hash_u64 (&backing, mf_surf.running);
+	hash_u64 (&backing, (uint64_t) mf_surf.capacity);
+	hash_u64 (&backing, mf_surf.initialised);
+	hash_u64 (&backing, (uint64_t) mf_surf.dropped);
+	hash_u64 (&backing, (uint64_t) mf_surf.partial);
+	hash_bytes (&backing, mf_surf_init, sizeof (mf_surf_init));
+	for (i = 1; i <= total_number_of_raw_3d_objects && i < MF_OBJECT_MAX; i++)
+	{
+		const struct mf_surf_object *o = &mf_surf_object[i];
+		if (!o->consolidated && !o->common_ptr)
+		{
+			continue;
+		}
+		hash_u64 (&backing, (uint64_t) i);
+		hash_u64 (&backing, o->fill.prefix);
+		hash_u64 (&backing, (uint64_t) o->fill.bad);
+		hash_u64 (&backing, o->start);
+		hash_u64 (&backing, o->count);
+		hash_u64 (&backing, o->initialised);
+		hash_u64 (&backing, (uint64_t) o->common_ptr);
+		hash_u64 (&backing, (uint64_t) o->bad);
+		hash_u64 (&backing, (uint64_t) o->consolidated);
 	}
 	emit (&out, "model-state tables=%016llx pointers=%016llx content=%016llx content_objects=%ld backing=0x%016llx\n", (unsigned long long) tables,
 		(unsigned long long) pointers, (unsigned long long) content, callable_objects, (unsigned long long) backing);

@@ -1,3 +1,22 @@
+# Current D3 correction — EEDCS-50 original surface provenance, the one P2 of `874aa5ae6` (30 October 2026): SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED
+
+Author process3360 completed0 at01:56:08UTC; Root formatting and diff checks pass. The 69 controls remain prepared, not executed at this checkpoint. Prior review report SHA2560185df9b0748b448e0221e8721eadd82ff6ddcc36c2094052966407d7b1863a6 is retained with the874 build identity. A later bounded minimal sanitizer program containing no EECH code reproduced the same signal spam (child153); the frozen874 verifier separately passed44/0 with its default handler. This narrows the diagnostic to a runtime/environment factor without proving its exact cause or granting a blanket sanitizer pass.
+
+Frozen `874aa5ae6` actual validation (not a surface-safety proof): Windows fixture build 0, Linux `model_walk` compile and test 0, standalone ASan+UBSan run 44 checks / 0 failures (a default-handler repeat gave an unexplained
+runaway `DEADLYSIGNAL`, stopped; no blanket sanitizer pass). The single combined review found ONE P2: surfaces were trusted as readable and initialised from the recomputed surface-count sum; no filled-extent provenance for the common
+per-field or custom 16-byte surface `fread`s, nor for the consolidation's `malloc`/`memcpy`/rebind; the typed metadata reads and the state digest preceded any alignment or initialisation check.
+
+Corrected (source only; details in `docs/m5-model-characterization.md`, "Surface provenance"): feature-only strict patches `M12`..`M22` (and `M5`, `M10` extended) capture the seven common per-field `fread` results, the custom surface `fread`
+result, and the consolidation's block, per-object copy and binding. The fixture keeps per-object leading initialised-record counts (field byte masks, so the `int` read that spills over two bytes is exact), carries them through the copy into a
+bitmap of the final block (`MF_SURFACE_MAX` 262144 records, 5x the supported 52,517; larger is an explicit `surface_capacity` refusal for every object), and every surface read (walk, metadata statistics, state digest) passes `mw_surface_gate`
+first: observed block, this object's pointer and count where the consolidation put them, inside the block, on a record boundary, 4-byte aligned, record initialised. Anything unmatched, stale, rebound, partial, missing or over capacity refuses
+safely and says why (`surfaces=` and the summary's `surface_*` fields); there is no fallback to the recomputed sum, which is only reported. Per-object distinctions and genuinely initialised cross-object walks are kept; the closed 309 row/driver contract,
+the 15 statuses, the 44 prior walk controls and the signed 0/1/2-point stepping are unchanged. Controls prepared (not run): 25 more isolated expectations (69 total, no original code) exercising the gate with a poisoned unreadable pointer and poisoned bytes,
+the fread-result bookkeeping and a simulated consolidation into a cross-object walk. Changed: `csrc/{eech_model_walk.h,eech_model_hooks.h,eech_model_fixture.c,eech_model_walkcheck.c}`, `build/patches.rs`, `tests/model_walk.rs`, the doc and this file.
+Not touched: host `models.rs`, `model_step.c`, the closed Lua driver, `eech_engine.c`, any original numeric body, frozen snapshots or private evidence. Remaining gaps: the `fread` item count is taken as the filled extent (bytes not re-read, and
+a partially written item that `fread` did not count is treated as uninitialised, conservatively); later writers of surface bytes (texture overrides) are not tracked, they only write already-initialised bytes; the observer assumes loader and
+fixture share the engine thread. Next (Root): compile, run `model_walk`, ONE new full memory-safety pass of this delta, then fresh-root native runs; expect `surface_records` = `surface_block` = 52517, `surface_partial_objects` 0, `custom_recorded` 847.
+
 # Current D3 original-memory-safety change — EEDCS-50 original backing observer and decoder-read walk (30 October 2026): SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED
 
 Commit/push checkpoint: both Sonnet implementation processes completed with exit 0 (01:24:46 UTC and 01:33:45 UTC); this is author completion only. Root ran `cargo fmt --all` successfully in the pinned build image and `git diff --check` passed. The 44 prepared verifier expectations have not run. All three fresh private roots passed repository input-manifest checks (exit 0); no native fixture was launched on them. Raw retail data, recordings and build caches remain local.
@@ -7,7 +26,7 @@ It does not treat the new host answers as the oracle: it closes the actual origi
 object's pointer, so it could not see allocations).
 
 Prepared (feature `model-fixture` only; detail and limits in `eech-campaign/docs/m5-model-characterization.md`, "Backing observation and the decoder's actual reads"): (1) loader hooks via strict count-checked
-source patches `M1`..`M11` (`build/patches.rs`, applied by `build/main.rs` only with the feature) record the exact shared face and point-list allocations, every cursor and every `fread` result before any override mutates an
+source patches `M1`..`M22` (`build/patches.rs`, applied by `build/main.rs` only with the feature) record the exact shared face and point-list allocations, every cursor and every `fread` result before any override mutates an
 object, and the exact allocation identity and filled extents of each custom object at `read_object`; (2) `eech_view_extent` (`csrc/eech_win32.c`, feature-only, mutex-protected `views[]`, exact base, read-only) gives the mapped points
 and surface-point lengths; (3) `csrc/eech_model_walk.h` replays the original accessor's integer reads (surface 0 unconditionally, the face loop, the point-list, surface-point and point reads, the next-surface read even after the
 last face, 0 points meaning 256) against that backing with checked integer arithmetic, alignment, allocated-versus-initialised bytes and a step budget, and never computes a triangle; (4) `csrc/eech_model_fixture.c` uses it

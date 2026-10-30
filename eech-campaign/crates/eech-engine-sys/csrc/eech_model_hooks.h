@@ -20,15 +20,29 @@ extern void eech_mf_reset (void);
 extern void eech_mf_common_read (int which, const void *base, const void *cursor, long long requested, long long returned);
 
 /* the object loop is over, before any override mutates an object: the exact common allocations (item counts as allocated) and every cursor the loader advanced
-   (one past the last item it consumed), and the bases of the two file-mapped arrays */
+   (one past the last item it consumed), the bases of the two file-mapped arrays, and the common surface block (records as allocated, cursor) */
 extern void eech_mf_common_done (const void *faces, long long faces_allocated, const void *faces_cursor, const void *list, long long list_allocated,
-	const void *list_cursor, const void *points, const void *points_cursor, const void *surface_points, const void *surface_points_cursor);
+	const void *list_cursor, const void *points, const void *points_cursor, const void *surface_points, const void *surface_points_cursor, const void *surfaces,
+	long long surfaces_allocated, const void *surfaces_cursor);
 
-/* read_object: how many items fread returned for array `which` (0 points, 1 faces, 2 point list, 3 surface-point references); returns it unchanged */
+/* one fread of one field of one common surface record in the object loop (object index, surface index, field 0..6 in the loader's order: flags, texture index, luminosity
+   texture index, number of faces, colour, reflectivity, specularity); returns what fread returned, unchanged. A field counts only when fread returned 1 */
+extern size_t eech_mf_surface_field (int object, int surface, int field, size_t returned);
+
+/* read_object: how many items fread returned for array `which` (0 points, 1 faces, 2 point list, 3 surface-point references, 4 surfaces); returns it unchanged */
 extern size_t eech_mf_filled (int which, size_t returned);
 
 /* read_object has just made `object` custom: the local counts it allocated by (polygon faces, point references, surface-point references) are the extents; the
-   pointers and the effective point count are read from the object itself */
+   pointers, the point count and the surface count are read from the object itself */
 extern void eech_mf_custom (const void *object, long long polygoned_faces, long long point_references, long long surface_point_references);
+
+/* the final surface consolidation (modules/3d/3dobjdb.c, after initialise_custom_scenes): the new block and the number of records it was allocated for, before any copy */
+extern void eech_mf_consolidate_begin (const void *block, long long records);
+
+/* immediately BEFORE the memcpy of object `index`'s surfaces (its current pointer and count are the copy's source) into `destination` */
+extern void eech_mf_consolidate_copy (int index, const void *object, const void *destination);
+
+/* after the new block has been bound: the block and the record count the loader stored */
+extern void eech_mf_consolidate_end (const void *block, long long records);
 
 #endif

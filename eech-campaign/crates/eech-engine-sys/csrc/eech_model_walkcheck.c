@@ -41,11 +41,12 @@ static void wc_expect (struct wc *w, int condition, const char *label, int line)
 #define EXPECT(w, condition) wc_expect ((w), (condition), #condition, __LINE__)
 
 /* the synthetic memory: a block of sixteen-byte surface records, and the four arrays, each 4-byte aligned by its type */
-static uint32_t wc_surfaces[4 * 4];     /* four records */
+static uint32_t wc_surfaces[4 * 8];     /* eight records */
 static unsigned char wc_faces[16];
 static unsigned char wc_list[32];
 static uint16_t wc_sp[300];
 static uint16_t wc_points[3 * 8];       /* eight points of three shorts */
+static unsigned char wc_init[8];        /* the initialised-record bitmap of the surface block (one bit per record) */
 
 static void set_surface (int index, unsigned points_byte, unsigned faces)
 {
@@ -71,6 +72,11 @@ static void base_input (struct mw_input *in, int block_records, uint64_t number_
 	in->surfaces_ptr = (uintptr_t) wc_surfaces;
 	in->surfaces_lo = (uintptr_t) wc_surfaces;
 	in->surfaces_hi = (uintptr_t) wc_surfaces + 16u * (unsigned) block_records;
+	in->surfaces_known = 1;
+	memset (wc_init, 0, sizeof (wc_init));
+	mw_mark_records (wc_init, 0, (uint64_t) block_records);
+	in->surfaces_init = wc_init;
+	in->surfaces_init_records = (uint64_t) block_records;
 	in->faces_ptr = (uintptr_t) wc_faces;
 	region (&in->faces, wc_faces, sizeof (wc_faces), sizeof (wc_faces));
 	in->list_ptr = (uintptr_t) wc_list;
@@ -255,7 +261,7 @@ int eech_model_walkcheck_run (char *text, int capacity, int *checks)
 	base_input (&in, 2, 1);
 	in.surfaces_ptr = (uintptr_t) wc_surfaces + 2u;
 	mw_walk (&in, &r);
-	EXPECT (&w, r.reason == MW_SURFACES_OUTSIDE && r.safe_depths == 0);
+	EXPECT (&w, r.reason == MW_MISALIGNED && r.safe_depths == 0 && !strcmp (r.array, "surfaces"));
 	base_input (&in, 2, 1);
 	in.surfaces_ptr = (uintptr_t) wc_surfaces + 8u; /* the record straddles the end of the block */
 	in.surfaces_hi = (uintptr_t) wc_surfaces + 16u;
@@ -431,6 +437,169 @@ int eech_model_walkcheck_run (char *text, int capacity, int *checks)
 	in.step_budget = 3;
 	mw_walk (&in, &r);
 	EXPECT (&w, r.reason == MW_BUDGET && !r.end_backed && r.safe_depths == 0);
+
+	/* ---- the surface provenance gate: nothing about a surface record is read before it is shown observed, inside the block, on a record boundary, aligned and filled.
+	   The pointers below are chosen so that a dereference before the gate would fault (0x10, an unmapped-looking address) or would change the answer (poisoned bytes). ---- */
+	reset_memory ();
+	set_surface (0, 3, 1);
+	set_surface (1, 3, 0);
+	wc_faces[0] = 3;
+	wc_list[1] = 1;
+	wc_list[2] = 2;
+	for (i = 0; i < 3; i++)
+	{
+		wc_sp[i] = (uint16_t) i;
+	}
+	/* a block whose provenance was not observed: refused at once, the (non-NULL, unreadable) pointer never touched */
+	base_input (&in, 2, 1);
+	in.surfaces_known = 0;
+	in.surfaces_ptr = 0x10;
+	mw_walk (&in, &r);
+	EXPECT (&w, r.reason == MW_UNOBSERVED && r.safe_depths == 0 && !r.end_backed && !strcmp (r.array, "surfaces"));
+	/* an object whose surfaces are not in the block */
+	base_input (&in, 2, 1);
+	in.surfaces_ptr = 0x10;
+	mw_walk (&in, &r);
+	EXPECT (&w, r.reason == MW_SURFACES_OUTSIDE && r.safe_depths == 0);
+	base_input (&in, 2, 1);
+	in.surfaces_ptr = UINTPTR_MAX - 7u;
+	mw_walk (&in, &r);
+	EXPECT (&w, r.reason == MW_SURFACES_OUTSIDE && r.safe_depths == 0);
+	/* 4-byte aligned but not on a record boundary of the block, and a block whose own base is misaligned */
+	base_input (&in, 2, 1);
+	in.surfaces_ptr = (uintptr_t) wc_surfaces + 4u;
+	mw_walk (&in, &r);
+	EXPECT (&w, r.reason == MW_MISALIGNED && r.safe_depths == 0);
+	base_input (&in, 2, 1);
+	in.surfaces_lo = (uintptr_t) wc_surfaces + 2u;
+	in.surfaces_ptr = (uintptr_t) wc_surfaces + 2u;
+	mw_walk (&in, &r);
+	EXPECT (&w, r.reason == MW_MISALIGNED && r.safe_depths == 0);
+	/* the bitmap missing, or shorter than the block */
+	base_input (&in, 2, 1);
+	in.surfaces_init = NULL;
+	mw_walk (&in, &r);
+	EXPECT (&w, r.reason == MW_UNOBSERVED && r.safe_depths == 0);
+	base_input (&in, 2, 1);
+	in.surfaces_init_records = 1;
+	mw_walk (&in, &r);
+	EXPECT (&w, r.reason == MW_UNOBSERVED && r.complete && !r.end_backed && r.safe_depths == 1 && r.triangles == 1);
+	/* the object's own first record not initialised (a short read): refused before its poisoned bytes (number of faces 0xFFFF) can be believed */
+	base_input (&in, 2, 1);
+	wc_init[0] = 0x02;
+	{
+		unsigned char *record = (unsigned char *) wc_surfaces;
+		record[8] = 0xFF;
+		record[9] = 0xFF;
+	}
+	mw_walk (&in, &r);
+	EXPECT (&w, r.reason == MW_UNINITIALISED && r.safe_depths == 0 && !r.complete && !strcmp (r.array, "surfaces"));
+	set_surface (0, 3, 1);
+	/* the record after the last face (the end call's read) not initialised: every depth is safe, the end call is not */
+	base_input (&in, 2, 1);
+	wc_init[0] = 0x01;
+	mw_walk (&in, &r);
+	EXPECT (&w, r.reason == MW_UNINITIALISED && r.complete && !r.end_backed && r.safe_depths == 1 && r.triangles == 1);
+	/* and the healthy case on the same memory */
+	base_input (&in, 2, 1);
+	mw_walk (&in, &r);
+	EXPECT (&w, r.reason == MW_OK && r.complete && r.end_backed && r.safe_depths == 1);
+	/* the gate itself: it reports without touching its output on a refusal, and for a wrapping index */
+	{
+		uintptr_t at = 0;
+		base_input (&in, 2, 1);
+		EXPECT (&w, mw_surface_gate (&in, 0, &at) == 0 && at == (uintptr_t) wc_surfaces);
+		at = 0;
+		EXPECT (&w, mw_surface_gate (&in, 1, &at) == 0 && at == (uintptr_t) wc_surfaces + 16u);
+		at = 0;
+		EXPECT (&w, mw_surface_gate (&in, 2, &at) == MW_SURFACES_OUTSIDE && at == 0);
+		EXPECT (&w, mw_surface_gate (&in, UINT64_MAX, &at) == MW_OVERFLOW && at == 0);
+		wc_init[0] = 0x01;
+		EXPECT (&w, mw_surface_gate (&in, 1, &at) == MW_UNINITIALISED && at == 0);
+	}
+
+	/* ---- which records the loader filled: the bookkeeping over fread results, then carried through a consolidation into the block's bitmap ---- */
+	{
+		struct mw_fill a, b, c, d;
+		unsigned char bits[8];
+		int k;
+
+		memset (&a, 0, sizeof (a));
+		memset (&b, 0, sizeof (b));
+		memset (&c, 0, sizeof (c));
+		memset (&d, 0, sizeof (d));
+		/* object A: three records, every field read in full */
+		for (i = 0; i < 3; i++)
+		{
+			for (k = 0; k < MW_FILL_FIELDS; k++)
+			{
+				mw_fill_field (&a, i, k, 1);
+			}
+		}
+		EXPECT (&w, a.prefix == 3 && !a.bad);
+		/* object B: record 0 whole; in record 1 the number-of-faces fread fails (bytes 8 and 9 are covered by nothing else), so it is not initialised; record 2 is whole but
+		   follows a hole, so it does not extend the run */
+		for (k = 0; k < MW_FILL_FIELDS; k++)
+		{
+			mw_fill_field (&b, 0, k, 1);
+		}
+		for (k = 0; k < MW_FILL_FIELDS; k++)
+		{
+			mw_fill_field (&b, 1, k, k == 3 ? 0 : 1);
+		}
+		EXPECT (&w, b.prefix == 1);
+		for (k = 0; k < MW_FILL_FIELDS; k++)
+		{
+			mw_fill_field (&b, 2, k, 1);
+		}
+		EXPECT (&w, b.prefix == 1 && !b.bad);
+		/* the int read of number_of_faces spills over reflectivity and specularity, so those two failing leaves every byte covered; the colour failing does not */
+		for (k = 0; k < MW_FILL_FIELDS; k++)
+		{
+			mw_fill_field (&c, 0, k, (k == 5 || k == 6) ? 0 : 1);
+		}
+		EXPECT (&w, c.prefix == 1);
+		for (k = 0; k < MW_FILL_FIELDS; k++)
+		{
+			mw_fill_field (&c, 1, k, k == 4 ? 0 : 1);
+		}
+		EXPECT (&w, c.prefix == 1 && !c.bad);
+		/* a field reported twice for one record, and one that does not exist, are inconsistencies, never filled bytes */
+		mw_fill_field (&d, 0, 0, 1);
+		mw_fill_field (&d, 0, 0, 1);
+		EXPECT (&w, d.bad);
+		memset (&d, 0, sizeof (d));
+		mw_fill_field (&d, 0, MW_FILL_FIELDS, 1);
+		EXPECT (&w, d.bad && d.prefix == 0);
+
+		/* the consolidation: A's three records are the block's records 0..2, B's records 3..4 of which only B's first is initialised */
+		memset (bits, 0, sizeof (bits));
+		mw_mark_records (bits, 0, a.prefix);
+		mw_mark_records (bits, 3, b.prefix);
+		EXPECT (&w, bits[0] == 0x0F);
+		/* a mixed walk from A's last record (3 points, 1 face) through B's first (1 face) to B's second, which is not initialised */
+		reset_memory ();
+		set_surface (2, 3, 1);
+		set_surface (3, 3, 1);
+		set_surface (4, 3, 0);
+		wc_faces[0] = 3;
+		wc_faces[1] = 3;
+		for (i = 0; i < 6; i++)
+		{
+			wc_list[i] = (unsigned char) (i % 3);
+			wc_sp[i] = (uint16_t) (i % 3);
+		}
+		base_input (&in, 5, 2);
+		in.surfaces_ptr = (uintptr_t) wc_surfaces + 2u * 16u;
+		in.surfaces_init = bits;
+		in.surfaces_init_records = 5;
+		mw_walk (&in, &r);
+		EXPECT (&w, r.reason == MW_UNINITIALISED && r.complete && !r.end_backed && r.safe_depths == 2 && r.triangles == 2 && !strcmp (r.array, "surfaces"));
+		/* the same with B's second record initialised: the walk crosses from one object's records into the next's and its end read is backed */
+		mw_mark_records (bits, 4, 1);
+		mw_walk (&in, &r);
+		EXPECT (&w, r.reason == MW_OK && r.complete && r.end_backed && r.safe_depths == 2);
+	}
 
 	if (checks)
 	{

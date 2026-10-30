@@ -1,0 +1,156 @@
+{
+  "schema": "independent-review/v1",
+  "task": "EEDCS-50 original-model backing observer and read-safety verifier",
+  "reviewed_head": "874aa5ae683df489c5df7ef09948528ea2e2306d",
+  "reviewed_base": "3f62ddf3a9c17ea3d873e698f804149d589eebc8",
+  "frozen_source": "R:/d3-evidence/model-backing-source-874aa5ae6",
+  "clean_exact_head_before_after": true,
+  "reviewed_source_bytes_match_pinned_git": true,
+  "disposition": "CHANGES_REQUIRED",
+  "new_original_accessor_execution": "HOLD_UNTIL_SURFACE_PROVENANCE_GATE_CORRECTED",
+  "findings_count": {
+    "P2": 1
+  },
+  "scope": "One combined correctness, clean-code, boundary/memory/lifetime/FPU/query-order and evidence review of the NEW feature-only backing hooks, integer safety walk, fixture integration and isolated controls. Closed f9 host component, original366/309 and tree reviews reused; no unchanged kernel sweep.",
+  "findings": [
+    {
+      "id": "ORIGINAL-SURFACE-PROVENANCE",
+      "priority": "P2",
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_model_fixture.c",
+      "line": 503,
+      "related_lines": [
+        507,
+        509,
+        717,
+        724,
+        726,
+        732,
+        748,
+        1103
+      ],
+      "title": "Establish current initialized consolidated surface backing before metadata, walk or hash reads",
+      "reason": "The shared/custom four-array provenance is now observed, but surfaces are trusted from a sum of current object counts. M1..M11 do not observe the common per-field surface fread results, the custom16-byte surface fread result, or the actual consolidation allocation/fill identity and extent. A short surface read leaves uninitialized data that the fixture still reads and describes as fully initialized backing. Recomputing the allocation size from mutable current counts also is not the allocation observation claimed by the new gate. analyse reads typed surface metadata before mw_surface can reject alignment; state_run hashes the recomputed whole block without that provenance.",
+      "original_source_correspondence": "Original3dobjdb.c1645–1646 allocates/reads custom surface records;2013–2019 reads common surface fields with ignored return counts;2227–2245 allocates/consolidates/frees the surface block. The new hooks observe none of those initialized extents or consolidation identity.",
+      "bounded_correction": "Add bounded feature-only surface allocation/fill/consolidation provenance, retaining per-object/common initialized ranges and the current consolidated allocation identity/extent/generation, or refuse surface cases whose initialized backing is not established. Validate integer overflow/range/alignment BEFORE any typed metadata/hash/walk read. Preserve original reads/returns/order/numerics; no zero-fill or safer physical interpretation. Exercise production observer/region checks with small synthetic short-read, current/stale consolidation and misalignment controls before any new original retail accessor call.",
+      "impact_and_gate": "This is a source safety/provenance gap, not an observed retail crash or claim that valid retained366 geometry is wrong. It blocks newly enabled original accessor execution at this source; compile-only and isolated synthetic verifier execution remain diagnostic and do not discharge it."
+    }
+  ],
+  "positive_source_assessment": [
+    "M1..M11 are gated by model-fixture, apply to staged3dobjdb.c only after shipping patches, and enforce exact anchor counts. Feature-off restaging rewrites the shipping source before the optional hook phase, and new C bodies/extent API are excluded without the feature. Original source bodies are not edited; wrapped fread calls occur once and their returned counts are handed through unchanged.",
+    "Common faces/list hooks record allocation counts, exact bases/cursor progress and a conservative initialized prefix up to the first short read. Custom records are indexed by checked current object-table integer indices, generation-tagged, matched to current array pointers and conservatively refuse repeated/ambiguous/unrecorded/capacity/stale records. No native pointer is exported to Lua.",
+    "The mapped-view lookup is read-only under views_lock and requires an exact live base, returning the recorded view length. It is feature-only and does not map/unmap/allocate memory. Engine-thread-only lifetime is an explicit assumption; no callback during the safety analysis was found.",
+    "The pure integer walk checks addresses against described regions before reading faces/list/surface-point/points, distinguishes allocated versus initialized prefix, checks arithmetic/alignment, includes the unconditional first surface and the one-past surface end read, and enforces a finite step budget. Its actual object face count is u16, so the signed64 cumulative stepping remains representable for the supported original interface.",
+    "The running-sum/running-maximum derivation for face0/1/2 signed stepping was checked against the original while-condition and fan indices: it does not blanket-refuse those values or invent safer triangles. Prefix failures exclude the first unsafe depth, including partially checked triangles; only the backed end permits the original false probe. No numerical triangle computation or alternate solver was added.",
+    "The caller runs the original accessor only at permitted depths, with fresh sentinel buffers and original return/write observations. The immutable host-model kernel and driver are unchanged. Existing ABI/data-size assertions agree with the inspected current original types; field byte offsets3/8 and supported little-endian compiler layout remain explicit assumptions, not a newly executed real-layout proof."
+  ],
+  "actual_evidence": {
+    "windows_fixture_compile": {
+      "actual_exit": 0,
+      "source": "874aa5ae683df489c5df7ef09948528ea2e2306d",
+      "dirty_build_inputs": 0,
+      "image": "sha256:94bc846977120a3a0ce930199caf44e1fd4643b66c813f91a10648a8f4c3b458",
+      "rust_cargo": "1.99.1",
+      "mingw": "12-posix",
+      "build_info_sha256": "62796458229d24f0837276513132a272e22e7c3d80a6d332eae0d55e140e38ae",
+      "manifest_file_entries_independently_rehashed": 44,
+      "scope": "Compilation/artifact identity only; no original fixture/retail/accessor execution."
+    },
+    "linux_isolated_walk": {
+      "actual_completion_exit": 0,
+      "rust_test_passed": 1,
+      "rust_test_failed": 0,
+      "scope": "Real model_walk test calls isolated production header verifier on static synthetic arrays; no model loader, original accessor or campaign is run. The test requires at least44 expectations; bounded standalone log reports44/0.",
+      "warning": "Build log retains unused_doc_comments warning on a preexisting feature-gated extern block; no strictClippy result is claimed."
+    },
+    "sanitizer_diagnostics": {
+      "initial_attempt": "Root reports repeated AddressSanitizer DEADLYSIGNAL with no stack and stopped its own exact runaway diagnostic container. Failure is retained/unexplained; no blanket sanitizer pass or proven startup cause is claimed.",
+      "bounded_followup": "Retained bounded log prints isolated verifier checks=44 failures=0. Root reports exit0 with ASAN_OPTIONS=abort_on_error=1:handle_segv=0:detect_leaks=0. This scoped diagnostic is not a retail safety or all-sanitizer closure proof.",
+      "reviewer_actions": "Read logs/source only, no sanitizer/native execution or process control."
+    },
+    "prepared_controls_limit": "The synthetic arrays describe surfaces as already initialized and use hard-coded byte layouts. They test verifier bounds/stepping, not actual loader-hook fill/consolidation provenance, and therefore cannot close the surface finding.",
+    "native_measurements": "No new original retail/triangle execution occurred for874. Prior original366 six positive models208TRUE+6endFALSE+1absence remain their actual source evidence; new59 custom/mixed cases remain unmeasured. Future corrected instrumentation must compare retained physical values without changing oracle/tolerances."
+  },
+  "safe_next_steps": [
+    "Retain874 compiled artifacts/source and diagnostics as unaccepted. Correct the single surface provenance/pre-read gate in one bounded feature-only batch, then obtain a new source/build identity and affected small controls.",
+    "Only after the source safety closure should Root run the original retail fixture and verify observed backing/fill/current identities, record counts, unchanged input/build/state and exact old selected physical answers before claiming newly measured custom/mixed geometry.",
+    "Do not fix production fread/loader/decoder behavior, mask unsafe data with zero-fill, skip original integer steps, or manufacture an unsupported miss/false answer."
+  ],
+  "limits": [
+    "No formal GitHub approval, Task50 Done, host-model production handoff, Tacview/shipping or whole-D3 acceptance. Required model hierarchy/device/viewpoints/entity/environment/time and physical loader/solver removal remain.",
+    "Original loader itself remains unsafe on malformed input before observer hooks can intervene; this fixture review concerns gating later accessor reads, not hardening or authorizing malicious/truncated original loader execution.",
+    "The observer assumes loader/query execution on the same engine thread and stable model allocations between the safety check and original call. Arbitrary concurrent mutation/free is not claimed safe.",
+    "No source edits, builds/tests/native runs, original accessor/campaign execution, process/cache/auth/Git/external mutation or nested agents by reviewer; only this new report was written. Live shipping processes stayed outside and untouched."
+  ],
+  "source_identities": [
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/build/patches.rs",
+      "sha256": "5ed23fabb262bd2d91db1f9dd7862c0fd94f50cd508426e5edc0345b6fa4d610"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+      "sha256": "52c88d37a5e96d7ecfd4e50d242ebb9c2a5b4ba55a7e29d8e309fe1bbf99dadc"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_model_hooks.h",
+      "sha256": "db039403e8c4753b90fe16e4f263b4fc37d6b52a32d31abec1b8d4210ff75250"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_model_fixture.c",
+      "sha256": "64a85ea1b100d3580733e751abb709f292152828d7186064552fe5f42c6fa5f1"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_model_walk.h",
+      "sha256": "65263a156b34d54885eceedbb24c3da6a58c4e726d3b0dc17fc13722efd024eb"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_model_walkcheck.c",
+      "sha256": "2269e293d8f3a1d9fe7f04a2a1cfc470eb62d22fc3fa9b4cb973a070ca0274eb"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_win32.c",
+      "sha256": "eb5b11d3064a5099457e758d48538c9f53b5f4727c607b51f0ca7a3f82d0e762"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/tests/model_walk.rs",
+      "sha256": "79ab97b9ecde500aed5278d43b3917af3439d9776aa6133a1bf7cc55e70772ef"
+    },
+    {
+      "path": "eech-campaign/docs/m5-model-characterization.md",
+      "sha256": "593cebbeb7e995f143c0a852247e514acb4479056f5e5bfebf0f961cdf2fadb1"
+    }
+  ],
+  "evidence_identities": [
+    {
+      "path": "R:/d3-evidence/model-original-backing-source-audit-366622e0c-20261030.json",
+      "sha256": "97ca16cd4a7bc7573e0e44381d528783a3b2d2c3c7b435f0c8cb71824f432886"
+    },
+    {
+      "path": "R:/d3-evidence/model-backing-original-windows-874aa5ae6-20261030-completion.json",
+      "sha256": "543d30b5c67221cf1ae8fc036dd9d19eda1a9050378540ebc0ef94aee37a9e1f"
+    },
+    {
+      "path": "R:/d3-evidence/model-backing-original-windows-874aa5ae6-20261030.log",
+      "sha256": "47ef27a0adaa97166182f8338087a30baf643a1728aac6204fcb4fd4a2cc6f5b"
+    },
+    {
+      "path": "R:/d3-evidence/model-backing-874aa5ae6-linux-20261030-completion.json",
+      "sha256": "779bcca1566f163d050a593661c13991cd8059800fbd4a90e9bd610cb8b9252c"
+    },
+    {
+      "path": "R:/d3-evidence/model-backing-874aa5ae6-linux-20261030.log",
+      "sha256": "024d304f60e4ed5752a1018e37ccc3ecea288381ca96236e8028f0542e13e0ac"
+    },
+    {
+      "path": "R:/d3-evidence/model-walk-874aa5ae6-bounded-sanitizer.log",
+      "sha256": "b7ffd96e5ce1718b4df362c0b897078a6dddd0b42480e549762c814637396496"
+    },
+    {
+      "path": "R:/d3-evidence/diagnose-model-walk-874aa5ae6.sh",
+      "sha256": "a6e9a22b1a87347d8bddec0d6188b557f2ab2074314426abfcfe076a189c843d"
+    },
+    {
+      "path": "R:/d3-evidence/model-walk-harness-874aa5ae6.c",
+      "sha256": "a7d0aba7c693fda1519c4b0e7de9abff044266eeada3db13651d4bb6f001eb93"
+    }
+  ]
+}
