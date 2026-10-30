@@ -1,3 +1,40 @@
+# D3 checkpoint — prepared model component review closed; backing instrumentation active (30 October 2026)
+
+EEDCS-50 / PR110 prepared host-model component sourcef9c6a1e4c has no open
+independent source finding. Final closure report SHA256:
+e172b913493b2bbcc1b9ed91b9746698f2e2be3c8226925bdb1b362b05925787.
+Safe closure/build/validation/ledger proof is committed and pushed at3f62ddf3a.
+Actual Linux fmt/235 library tests/34 model integration tests/eight retained
+original diagnostic groups/all-target Clippy pass. Actual Windows build0,
+235 library and34 integration tests pass, including strict missing-host refusal.
+All six host/test payloads verify unchanged. All11 retained malformed reports
+refuse before success; healthy controls pass. Earlier failed stages remain intact.
+
+All three healthy retail repository runners/pre-post input checks complete0.
+All3025 scene records/IDs and215 retained original calls match per root. Complete
+host component reports remain byte identical to preceding corrected sources:
+1278336 bytes, SHA256
+ed3503b12227fec13cadd2d56b62296cdb08e5bd2e5b76f0ac61db776fc59317.
+Physical rows remain exact202; only two earlier diagnostic counts differ (+63bytes).
+Original reports, inputs, baselines and tolerances remain unchanged. This closes
+prepared-component source findings, not production, Task50 or D3 acceptance.
+
+The sole Sonnet5.5 High context20f8 now implements feature-only original allocation/
+backing provenance and memory-read safety for59 custom/mixed geometry gaps,
+tool68620/PID2940 born01:05:15.407328UTC. New source is unbuilt/unrun/unreviewed;
+an independent memory-safety review must precede newly enabled original calls.
+Original accessor arithmetic stays unchanged; host output is not the oracle.
+Jira10867 and ledger14548994v72 record closure and the next characterization,
+with all prior HTML and all five epic reports read back exactly.
+
+Task47 shipping115 remains live/untouched; matching prefixes are partial only,
+with full40/eight complete artifacts/post-inputs and normal delivery pending.
+Production model loading/queries remain in EECH_DC. Geometry gap measurement,
+public campaign authority/refusal integration, production loader/solver removal,
+hierarchy/viewpoint/device/muzzle/target points, entity collision, environment
+and host-time remain D3 work. Campaign geography, routes, timers, policy and
+consequences stay core. D3 remains In Progress; D4/D5 have not started.
+
 # D3 checkpoint — model tests pass; focused review corrections continue (30 October 2026)
 
 EEDCS-50 / PR110 tested8a5dad172 passes actual Linux fmt/235 library tests/30 model
