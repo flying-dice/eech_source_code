@@ -1,0 +1,47 @@
+{
+  "scope": "Safe metadata text publication only; private source receipt hash and staged Git text hash recorded separately. Raw model geometry, recordings and inputs stay private and unchanged.",
+  "files": [
+    {
+      "published_path": "eech-campaign/reference/d3-model-characterization/independent-model-all-present-evidence-review-debf965cb-20261030.json",
+      "private_source": "R:\\d3-evidence\\independent-model-all-present-evidence-review-debf965cb-20261030.json",
+      "private_file_sha256": "b8712c4bc6c0630e74eecea25bcec5bcdfd31a48d228f09483b46d4701037821",
+      "git_blob_content_sha256": "b8712c4bc6c0630e74eecea25bcec5bcdfd31a48d228f09483b46d4701037821"
+    },
+    {
+      "published_path": "eech-campaign/reference/d3-model-characterization/independent-original-model-gap-evidence-review-debf965cb-20261030.json",
+      "private_source": "R:\\d3-evidence\\independent-original-model-gap-evidence-review-debf965cb-20261030.json",
+      "private_file_sha256": "fb13f88df0def92db9eddd3704f1bb7a910780f56da50188d27a8bed7d2e9d40",
+      "git_blob_content_sha256": "fb13f88df0def92db9eddd3704f1bb7a910780f56da50188d27a8bed7d2e9d40"
+    },
+    {
+      "published_path": "eech-campaign/reference/d3-model-characterization/independent-original-model-surface-review-debf965cb-20261030.json",
+      "private_source": "R:\\d3-evidence\\independent-original-model-surface-review-debf965cb-20261030.json",
+      "private_file_sha256": "873b66785ea6111ed97bf0f38ffb3dade62ef32b1bc2c64b7142d90fb6451740",
+      "git_blob_content_sha256": "873b66785ea6111ed97bf0f38ffb3dade62ef32b1bc2c64b7142d90fb6451740"
+    },
+    {
+      "published_path": "eech-campaign/reference/d3-model-characterization/model-all-present-geometry-debf965cb-validation-20261030.json",
+      "private_source": "R:\\d3-evidence\\model-all-present-geometry-debf965cb-validation-20261030.json",
+      "private_file_sha256": "7f572d8970732618ba15281625e1ff0253b81c37e3f34f1632ed2e1d155eeb7c",
+      "git_blob_content_sha256": "05c08c35491ca0f605be629bca341a4dd219fd6c3c4d34b2a0908c17eb677430"
+    },
+    {
+      "published_path": "eech-campaign/reference/d3-model-characterization/model-backing-debf965cb-BUILD-INFO.txt",
+      "private_source": "R:\\d3-evidence\\model-backing-source-debf965cb\\eech-campaign\\target\\model-fixture\\model-backing-debf965cb\\BUILD-INFO.txt",
+      "private_file_sha256": "67dcb1d659153a8777383251b429047ed56450d76b1f95cb732e391e3d1a37b7",
+      "git_blob_content_sha256": "67dcb1d659153a8777383251b429047ed56450d76b1f95cb732e391e3d1a37b7"
+    },
+    {
+      "published_path": "eech-campaign/reference/d3-model-characterization/model-backing-debf965cb-gap-comparison-recovery-20261030.json",
+      "private_source": "R:\\d3-evidence\\model-backing-debf965cb-gap-comparison-recovery-20261030\\comparison.json",
+      "private_file_sha256": "94ceecf8efdb4b22067ca38b4a678361210b37ee0f8782582f5cc8b62cc3e4c0",
+      "git_blob_content_sha256": "41412f13d1556fd035ffd6565c4c9940137d09e4f89ab1330cee771553892efa"
+    },
+    {
+      "published_path": "eech-campaign/reference/d3-model-characterization/model-backing-debf965cb-positive-comparison-recovery-20261030.json",
+      "private_source": "R:\\d3-evidence\\model-backing-debf965cb-positive-comparison-recovery-20261030\\comparison.json",
+      "private_file_sha256": "eeb16a5c1ddd139a19a9d86b8a4a7a3be7ce06e71af2cc7df9314e3536ca0c76",
+      "git_blob_content_sha256": "d99ec6508ef2b09abe2813bf8be663574090f587210b67656545e49cbb464477"
+    }
+  ]
+}

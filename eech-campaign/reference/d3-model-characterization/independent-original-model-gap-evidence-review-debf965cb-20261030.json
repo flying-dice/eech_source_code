@@ -1,0 +1,147 @@
+{
+  "schema": "independent-evidence-review/v1",
+  "reviewed_utc": "2026-10-30T02:12:31.585486+00:00",
+  "scope": "NEW original model measurements, two read-only Root checker recoveries, and unchanged host f9 comparison only. No source/kernel re-review or executable run.",
+  "verdict": "CLOSED_WITH_RECORDED_LIMITS",
+  "findings": [],
+  "sources": [
+    {
+      "path": "R:\\d3-evidence\\model-backing-source-debf965cb",
+      "head": "debf965cbff9346a2ada3e2cfb6691b572dba059",
+      "tracked_clean_before_and_after": true,
+      "source_review_reused_not_repeated": true
+    },
+    {
+      "path": "R:\\d3-evidence\\model-review-source-f9c6a1e4c",
+      "head": "f9c6a1e4c7cb16d664ee097a667df1aca2597e0a",
+      "tracked_clean_before_and_after": true,
+      "source_review_reused_not_repeated": true
+    }
+  ],
+  "builds": [
+    {
+      "build_info": "R:\\d3-evidence\\model-backing-source-debf965cb\\eech-campaign\\target\\model-fixture\\model-backing-debf965cb\\BUILD-INFO.txt",
+      "sha256": "67dcb1d659153a8777383251b429047ed56450d76b1f95cb732e391e3d1a37b7",
+      "verified_file_manifest_entries": 44,
+      "all_payloads_match": true
+    },
+    {
+      "build_info": "R:\\d3-evidence\\model-review-source-f9c6a1e4c\\eech-campaign\\target\\model-host\\f9c6a1e4c\\BUILD-INFO.txt",
+      "sha256": "9eda3f192cfa244b066bdc23c1a2e222341174a248ef6f8557b80a8a7039eede",
+      "verified_file_manifest_entries": 6,
+      "all_payloads_match": true
+    }
+  ],
+  "identities_sha256": {
+    "recover-model-backing-debf965cb-positive-comparison-20261030.py": "07a51c2f647bab3c2401f953434c5f35e4009415df4128c2ae16050b9bd04ab8",
+    "recover-model-backing-debf965cb-gap-comparison-20261030.py": "928af01fb1b5ef196237f73a1ece8dee77e87688c0ef1ac0919e460cfb176444",
+    "model-backing-debf965cb-positive-comparison-recovery-20261030/comparison.json": "eeb16a5c1ddd139a19a9d86b8a4a7a3be7ce06e71af2cc7df9314e3536ca0c76",
+    "model-backing-debf965cb-gap-comparison-recovery-20261030/comparison.json": "94ceecf8efdb4b22067ca38b4a678361210b37ee0f8782582f5cc8b62cc3e4c0",
+    "model-backing-gap-inputs-debf965cb-20261030/preparation.json": "6479aa967da416518c58bc05d60c184650392194e0bd566fc2d3301acb4fe248",
+    "independent-original-model-surface-review-debf965cb-20261030.json": "873b66785ea6111ed97bf0f38ffb3dade62ef32b1bc2c64b7142d90fb6451740",
+    "independent-host-model-review-closed-f9c6a1e4c-20261030.json": "e172b913493b2bbcc1b9ed91b9746698f2e2be3c8226925bdb1b362b05925787"
+  },
+  "controllers": [
+    {
+      "path": "R:\\d3-evidence\\model-backing-debf965cb-catalogues-positive-20261030\\controller.json",
+      "sha256": "05154109ec425b20644a12c510818136a8f56dc027c6afc17d9fc9d0cb05c6b8",
+      "actual_exit": 1,
+      "all_nine_command_exits": 0,
+      "native_runner_footer_exit": 0,
+      "retained_root_aggregation_failure": true
+    },
+    {
+      "path": "R:\\d3-evidence\\model-backing-debf965cb-gap-geometry-20261030\\controller.json",
+      "sha256": "e5e3fd6e30c2458f58a778032391ed7b46aab0f218463bd55947976683bbe7ff",
+      "actual_exit": 1,
+      "all_nine_command_exits": 0,
+      "native_runner_footer_exit": 0,
+      "retained_root_aggregation_failure": true
+    },
+    {
+      "path": "R:\\d3-evidence\\model-host-f9c6a1e4c-gap-debf965cb-20261030\\controller.json",
+      "sha256": "3ecdcb5e8872b751306b045f413fb10f25bf0b1ef2e771c29ab099b140c3942c",
+      "actual_exit": 0,
+      "all_nine_command_exits": 0,
+      "native_runner_footer_exit": 0,
+      "retained_root_aggregation_failure": false
+    }
+  ],
+  "raw_reports": [
+    {
+      "path": "R:\\d3-evidence\\model-backing-debf965cb-catalogues-positive-20261030\\georgia\\model.jsonl",
+      "bytes": 1613488,
+      "sha256": "2b993e28fff46919ffba5d1caadc486fe12cec6f13cde71064723e8099c30a02",
+      "rows": 3334
+    },
+    {
+      "path": "R:\\d3-evidence\\model-backing-debf965cb-catalogues-positive-20261030\\lebanon\\model.jsonl",
+      "bytes": 1616668,
+      "sha256": "a8e13ab560f4959813c974ba9d0b2a473a1e941cafdc17fd87669786704a385d",
+      "rows": 3334
+    },
+    {
+      "path": "R:\\d3-evidence\\model-backing-debf965cb-catalogues-positive-20261030\\lebanon-repeat\\model.jsonl",
+      "bytes": 1616668,
+      "sha256": "d3da766ef3ab2eb2844b507b18d676b9e91fd8e7dc330aebb6806890f12f1e0a",
+      "rows": 3334
+    },
+    {
+      "path": "R:\\d3-evidence\\model-backing-debf965cb-gap-geometry-20261030\\georgia\\model.jsonl",
+      "bytes": 1871136,
+      "sha256": "7fc2c3b9fb2695cd7982ae16413a362bd6781516c621f55472221e819f143dd2",
+      "rows": 4998
+    },
+    {
+      "path": "R:\\d3-evidence\\model-backing-debf965cb-gap-geometry-20261030\\lebanon\\model.jsonl",
+      "bytes": 1874316,
+      "sha256": "61e207237620932c4f71fddfabf01ef1340dfee2866a4d3a8045350cacd07434",
+      "rows": 4998
+    },
+    {
+      "path": "R:\\d3-evidence\\model-backing-debf965cb-gap-geometry-20261030\\lebanon-repeat\\model.jsonl",
+      "bytes": 1874316,
+      "sha256": "15dcca30f59924fc5118c8dbed32c57da38f07777bd43e86ada2879dbb8a9b31",
+      "rows": 4998
+    },
+    {
+      "path": "R:\\d3-evidence\\model-host-f9c6a1e4c-gap-debf965cb-20261030\\georgia\\host-model.jsonl",
+      "bytes": 1519512,
+      "sha256": "044a8463e45b25f6b5a9df66db5a9d21174ae128b0155226889bf825a8e6a164",
+      "rows": 4753
+    },
+    {
+      "path": "R:\\d3-evidence\\model-host-f9c6a1e4c-gap-debf965cb-20261030\\lebanon\\host-model.jsonl",
+      "bytes": 1519512,
+      "sha256": "044a8463e45b25f6b5a9df66db5a9d21174ae128b0155226889bf825a8e6a164",
+      "rows": 4753
+    },
+    {
+      "path": "R:\\d3-evidence\\model-host-f9c6a1e4c-gap-debf965cb-20261030\\lebanon-repeat\\host-model.jsonl",
+      "bytes": 1519512,
+      "sha256": "044a8463e45b25f6b5a9df66db5a9d21174ae128b0155226889bf825a8e6a164",
+      "rows": 4753
+    }
+  ],
+  "independent_checks": {
+    "strict_JSON": "Every retained raw line parsed; duplicate keys and nonfinite JSON constants rejected.",
+    "positive_preservation": "All3025 physical catalogue projections preserve field presence exactly against original366, including absent models. All215 raw model-tri lines are byte-identical to old7 selected measurements per root (208TRUE+6endFALSE+1absence). Header fan bounds/end gates and original endings match.",
+    "backing_observed": "All52517 surfaces initialized;847 custom records; zero dropped/partial/unknown/ambiguous/late/overflow diagnostics. This reuses prior gated-source safety review, not a new source proof.",
+    "new59": "Exact old custom/mixed scene set59 in catalogue order; each group starts depth0, progresses contiguously, closes with actual originalFALSE then matching model-end depth/reason and geometry-end calls.1662TRUE+59FALSE=1721calls per root; no caps/refusals; nine-word bit format and changed-sentinel write counts checked. No fanbound substituted for observed answer.",
+    "state": "Before/after state hashes equal excluding phase; all checks true; done failures0; no frame stepped. Hashes include process addresses, so no complete original cross-process raw equality claim.",
+    "cross_root_original_triangles": "All1721 raw model-tri lines byte-identical across three roots; SHA256 b521f722fbb03c4d09d1a7599723484fa571f04352d0e5d7a2b995b774fb96a2.",
+    "host": "Each of3025 catalogue physical metadata/ID rows matches; each scene-contextual1721 original call matches host result and exact coordinate bits/field presence; comparator validated59 headers/geometry groups and0 mismatches. Provenance says campaignDLL not loaded.",
+    "cross_root_host": "All three complete host reports byte-identical:4753rows/1519512bytes/SHA256044a8463e45b25f6b5a9df66db5a9d21174ae128b0155226889bf825a8e6a164.",
+    "inputs": "Every retained pre/post input command exit0, hashed command logs agree and say IDENTICAL; Georgia1174 entries, each Lebanon1179. Fresh gap-root preparation0 for all3.",
+    "recovery_safety": "Both recovery scripts inspected: parse/hash existing inputs, no subprocess/native launch, no raw rewrite. Positive recovery compares only fields present in each row without default substitution; gap recovery explicitly tracks scene from preceding header. Failed controller1 records preserved and current hashes match. Independent raw validation additionally checks group closure/depth/count and exact host correspondence.",
+    "execution_provenance": "Actual per-case argv invokes repository PowerShell runner with pinned Bin/Root/Original/scenes; nine command logs per cohort hash to controller and runner footers record exit0. Separate recovery actual0 never relabels either original aggregation as0."
+  },
+  "historical_labels": "Positive recovery prior59_geometry_unmeasured and gap recovery host_comparison_NOT_YET_RUN are accurate at-time records, superseded by later measured gap and host evidence; not rewritten.",
+  "review_setup": "One read-only inventory attempt initially looked for model.jsonl in host output; corrected to actual host-model.jsonl. No native/source/evidence failure or mutation.",
+  "limits": [
+    "Characterization and prepared host-component evidence only; no formal GitHub approval, Task50 delivery, production handoff, full Tacview/shipping or wholeD3 acceptance.",
+    "These59 previously refused models now have actual original geometry measurements on this verified asset set. Other safe model geometry remains nonexhaustive; arbitrary assets/malformed original loaders are not covered.",
+    "Production model loaders/query dispatch remain in campaignDLL. Hierarchy/entity/environment/time and remaining required D3 physical solver/loader removal remain.",
+    "Closed debf safety and f9 component reviews are reused; no campaigns/accessors/tests/builds/process controls/cache/Git mutations or external writes performed. Task47 shipping untouched."
+  ]
+}
