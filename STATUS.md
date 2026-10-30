@@ -1,3 +1,29 @@
+# D3 checkpoint — model review corrections running; report defect reproduced (30 October 2026)
+
+Jira EEDCS-50 comment10865 and migration ledger14548994v70 now record tested
+model202 and its four open review findings. Readback proves all prior HTML and
+all five epic reports exact. The sole Sonnet5.5 High correction lane is live at
+tool63952/PID22348, born00:17:27.030629UTC, relevant local context20f8. New source
+is unbuilt/unrun. No second implementation lane or new review is running.
+
+Actual immutable202 host controls reproduce all four report-completeness false
+greens: truncate after the first matching scene, duplicate a scene, omit a geometry
+terminal, and set original done failures1. Every corrupt input is wrongly accepted
+with native0/done failures0; the healthy original control also passes. The exact
+mutated report files are private and retained for the corrected-binary comparison;
+original report SHA, pre/post retail inputs and five host payloads stay unchanged.
+This is safe checker RED evidence, not altered physical expectations. The dangerous
+old exaggerated-allocation path was not executed merely to manufacture RED.
+
+Task47 shipping115 remains live under the same handle59652 and process identities.
+The fifteenth prefix check sees about73MB ACMI and51MB observations per run, all
+nonempty and byte equal to baseline prefixes. Full40/eight complete artifacts,
+post-input acceptance and delivery remain pending. No new production responsibility
+has moved; remaining model geometry/provenance, physical loader/solver removal,
+hierarchy/entity/environment/host-time scope is unchanged. D3 remains In Progress;
+D4/D5 have not started. Next: collect actual correction completion, validate the
+changed contracts and review only new changes before continuing the extraction.
+
 # D3 checkpoint — host model component tested; four review corrections open (30 October 2026)
 
 EEDCS-50 / draft PR110: source `2020436ce160ac3762f00f7ee8290f4e6247bce3`
