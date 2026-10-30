@@ -1,3 +1,37 @@
+# D3 checkpoint — terrain full shipping passed; environment review corrections active (30 October 2026)
+
+Task47 / ready PR107, current `697ff11a3`: original59652 completed0. The exact40
+accepted checks pass and all8 COMPLETE default files are byte identical. All3
+external post-inputs, independently verified internal Lebanon-copy inputs, all45
+payload hashes, frozen1156 source identity and9 current hosted checks pass.
+Final independent review has no findings, SHA256
+7a962a210411fe8b04691def68e3d65724298fe1a7edf0136b21618639f76f93.
+The normal merge is pending an owner workflow exception: required formal reviewer
+fd-starscream-bot is also the logged-in author chosen by the user, so self-approval
+is unavailable. An explicit async question is pending; elapsed time is no approval.
+Do not fabricate GitHub approval or merge until that constraint is resolved.
+
+Task51 / draft PR111: measured original `99352e331` builds Windows0/all43 payloads.
+Three retail probes complete0 with164 cases each (two gust-domain refusals), all
+restoration markers and immediate campaign/session equality. Whole Lebanon reports
+repeat byte exactly. Both120s/all1200frame probe/control runs complete0;10,827common
+snapshot rows and campaign endpoints match. Default/feature tests and default
+Clippy pass; original featureClippy101 is retained, comment-only8e676a9ae recovery0.
+The combined independent review finds three P2 tooling groups: typed family/report
+completeness, bounded periodic scheduling, and Windows test paths. It finds no C
+numerical/FFI/memory/restoration blocker and permits reuse of unchanged originals.
+Review SHA2567bb4c638d218216f1e55e43bd5535423e2730f9c81abf0eda616cd64aa8935d4.
+
+The same sole Sonnet5.5 High context is correcting that batch: tool57176/PID21948,
+born06:09:04.790391UTC, sessionf3982761-70f5-4de8-a709-9d7c0655fbe7. Do not stage
+its active writer or restart on a quiet console. Changed guards/actual Windows
+execution and one changed-delta review remain required; environment physics has
+not moved. Ledger79/Jira47comment10874 preserve priorHTML/all5reports exactly.
+After actual Task47 delivery, verify integration before earliest Task48 production
+handoff. Required ground/object/model/loader/hierarchy/device/route-data/environment/
+time services remain D3; campaign geography/routes/timers/scheduling/consequences
+stay Core. D3 stays active; D4/D5 not started. No baseline/tolerance changed.
+
 # D3 checkpoint — environment characterization started; bounded model gates closed (30 October 2026)
 
 EEDCS-51 now owns the remaining weather/wind/environment and host-time-input
