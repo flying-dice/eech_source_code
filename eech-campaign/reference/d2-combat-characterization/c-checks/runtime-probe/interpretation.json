@@ -1,0 +1,22 @@
+{
+  "empty_program_ELF_types": {
+    "default": 3,
+    "no-pie": 2
+  },
+  "default": "4of8normal0;4errorflood/logcap153",
+  "nonPIE": "8of8normal0",
+  "scope": "Test-onlyruntimeprobe; no global/shippingflags changed; doesnotprove firstguardidenticalcause",
+  "private_full_bounded_logs": "R:\\d2-evidence\\combat-characterization-20261028\\asan-runtime-probe",
+  "first_guard_retention": "Only4096Bhead; fullsource-reported7.6GBflood discarded before fullhash; rootlive size7121021503 was not final",
+  "nonPIE_real_guard": {
+    "actual_outer_exit": 0,
+    "checks": 24,
+    "failures": 0,
+    "probe_compile": 0,
+    "probe_run": 0,
+    "guard_compile": 0,
+    "guard_run": 0,
+    "Docker": 0
+  },
+  "raw_guard_sha256": "fff2845701123d50a0c892da69523df5bcbfefd7e35efb6baf5c89a45f860db0"
+}

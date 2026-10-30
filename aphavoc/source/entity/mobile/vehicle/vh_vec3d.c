@@ -99,6 +99,8 @@ static void set_local_raw_vec3d (entity *en, vec3d_types type, vec3d *v)
       {
          raw->mob.position = *v;
 
+         campaign_movement_place (en);
+
          break;
       }
       ////////////////////////////////////////
@@ -226,6 +228,8 @@ static void set_local_vec3d (entity *en, vec3d_types type, vec3d *v)
 
 				special_effect = get_local_entity_child_succ (special_effect, LIST_TYPE_SPECIAL_EFFECT);
 			}
+
+         campaign_movement_place (en);
 
          break;
       }

@@ -1,0 +1,13 @@
+aphavoc/source/entity/mobile/weapon/damage.c: strict feature-off equivalence PASS (1277781 bytes preprocessed)
+aphavoc/source/entity/system/en_msgs/en_msgs.c: strict feature-off equivalence PASS (1266682 bytes preprocessed)
+aphavoc/source/entity/mobile/mb_msgs.c: strict feature-off equivalence PASS (1354631 bytes preprocessed)
+aphavoc/source/entity/special/effect/explosn/explosn.c: strict feature-off equivalence PASS (1294181 bytes preprocessed)
+aphavoc/source/entity/system/en_main/en_heap.c: strict feature-off equivalence PASS (1267744 bytes preprocessed)
+aphavoc/source/entity/fixed/fixed.c: strict feature-off equivalence PASS (1264890 bytes preprocessed)
+aphavoc/source/entity/mobile/aircraft/helicop/hc_updt.c: strict feature-off equivalence PASS (1284913 bytes preprocessed)
+aphavoc/source/entity/mobile/aircraft/fixwing/fw_updt.c: strict feature-off equivalence PASS (1268509 bytes preprocessed)
+aphavoc/source/entity/mobile/vehicle/person/ps_updt.c: strict feature-off equivalence PASS (1264892 bytes preprocessed)
+aphavoc/source/entity/mobile/vehicle/anti_air/aa_updt.c: strict feature-off equivalence PASS (1265803 bytes preprocessed)
+aphavoc/source/entity/mobile/vehicle/routed/rv_updt.c: strict feature-off equivalence PASS (1267323 bytes preprocessed)
+aphavoc/source/entity/mobile/vehicle/ship/sh_updt.c: strict feature-off equivalence PASS (1265084 bytes preprocessed)
+STRICT_EXIT=0

@@ -1,0 +1,6 @@
+19:36:22 copy fresh root R:\d2-evidence\aim-extraction-20261026\roots\lp-all
+19:36:34 start lead probe lp-all mode=all bin=R:\eech_source_code\eech-campaign\target\aim-fixture\c21852b09
+19:36:34 arguments: R:/eech_source_code/eech-campaign/target/aim-fixture/c21852b09/lua/aim-lead-probe.lua root=R:/d2-evidence/aim-extraction-20261026/roots/lp-all scenario=lebanon_retail mode=all out=R:/d2-evidence/aim-extraction-20261026/out/lp-all/trace.jsonl
+19:36:52 end lp-all: native exit=1 after 18 s
+19:36:52 eech: debug_fatal: Invalid list type (entity type = ENTITY_TYPE_SITE, index = 15159, list type = LIST_TYPE_TARGET, file = /target/x86_64-pc-windows-gnu/release/build/eech-engine-sys-3f5bb0ae52b26cd5/out/tree/aphavoc/source/entity/system/en_funcs/en_list.c, line = 334)
+19:36:53 DONE lp-all exit=1

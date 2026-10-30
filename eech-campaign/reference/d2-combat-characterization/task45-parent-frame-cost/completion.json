@@ -1,0 +1,189 @@
+{
+  "when_utc": "2026-10-28T12:06:08.060506+00:00",
+  "role": "Accepted Task45 parent native cost characterization, not changed baseline or final D2 acceptance",
+  "actual_source": "a137fc3ec1963d88de5f0b8562145b358b50e111",
+  "source_clean": true,
+  "original_driver_exec": 7184,
+  "actual_original_driver_exit": 0,
+  "run": {
+    "status": "completed",
+    "when_utc": "2026-10-28T11:32:31.2458685Z",
+    "binary": "R:\\d2-evidence\\shipping-source-d2-weapon-a137fc3ec\\eech-campaign\\target\\windows-d2-weapon-final\\eech-world.exe",
+    "arguments": "R:/d2-evidence/combat-characterization-20261028/frame-cost-task45-lua/campaign-frame-cost.lua root=R:/d2-evidence/combat-characterization-20261028/roots/frame-cost-task45-900-01 scenario=lebanon_retail hours=0.25 frame_ms=100 record_every=10 checkpoint_every=3600 observe_every=60 acmi=R:/d2-evidence/combat-characterization-20261028/out/frame-cost-task45-900-01/recording.acmi observe=R:/d2-evidence/combat-characterization-20261028/out/frame-cost-task45-900-01/observations.jsonl metrics=R:/d2-evidence/combat-characterization-20261028/out/frame-cost-task45-900-01/metrics.json observe_supply=0 frame_cost=R:/d2-evidence/combat-characterization-20261028/out/frame-cost-task45-900-01/frame-cost.jsonl",
+    "root": "R:/d2-evidence/combat-characterization-20261028/roots/frame-cost-task45-900-01",
+    "out": "R:/d2-evidence/combat-characterization-20261028/out/frame-cost-task45-900-01",
+    "script": "R:/d2-evidence/combat-characterization-20261028/frame-cost-task45-lua/campaign-frame-cost.lua",
+    "script_sha256": "8bdc9cd8927265017af0a2548382475b4247fc07761aefc65ace659375e92046",
+    "build_info_sha256": "5e0fe29daecc6d128911e40f0ef0c17633870726f5d5b36c5e058398981cdc95",
+    "kind": "R4 observational shipping-script copy: timing ONLY engine:frame; no DCS scheduling/budget or final pack acceptance",
+    "resource_context": "Background process list captured separately; raw distributions do not prove causal benchmark attribution",
+    "actual_native_exit": 0,
+    "native_pid": 23428,
+    "created_utc": "2026-10-28T11:32:31.5000056Z",
+    "completed_utc": "2026-10-28T12:04:02.5104843Z"
+  },
+  "complete_artifact_comparison": {
+    "baseline": "R:/d2-evidence/los-characterization-baseline-20261026/out/ab-base",
+    "candidate": "R:/d2-evidence/combat-characterization-20261028/out/frame-cost-task45-900-01",
+    "scope": "Complete artifact bytes only; native exits and configuration require separate verification",
+    "results": [
+      {
+        "file": "recording.acmi",
+        "baseline_bytes": 11363845,
+        "candidate_bytes": 11363845,
+        "baseline_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+        "candidate_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+        "matches": true
+      },
+      {
+        "file": "observations.jsonl",
+        "baseline_bytes": 6629273,
+        "candidate_bytes": 6629273,
+        "baseline_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+        "candidate_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+        "matches": true
+      },
+      {
+        "file": "metrics.json",
+        "baseline_bytes": 11777,
+        "candidate_bytes": 11777,
+        "baseline_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+        "candidate_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+        "matches": true
+      }
+    ],
+    "passed": true
+  },
+  "post_input_manifest_exit": 0,
+  "post_build_manifest_exit": 0,
+  "post_build_manifest_entries_verified": 35,
+  "script_and_companions_unchanged": true,
+  "timer_calibration": "root-frame-cost-task45-clock-calibration.json: retained DLL clock advances during idle; no CPU-only inference",
+  "frame_statistics": {
+    "kind": "complete",
+    "frames": 9000,
+    "mean_ms": 207.120222,
+    "max_ms": 554,
+    "p50_ms": 194,
+    "p95_ms": 334,
+    "p99_ms": 424,
+    "quantiles": "nearest rank; timer quantized"
+  },
+  "windows": [
+    {
+      "kind": "window",
+      "through_frame": 600,
+      "frames": 600,
+      "mean_ms": 104.128333,
+      "max_ms": 237
+    },
+    {
+      "kind": "window",
+      "through_frame": 1200,
+      "frames": 600,
+      "mean_ms": 261.325,
+      "max_ms": 481
+    },
+    {
+      "kind": "window",
+      "through_frame": 1800,
+      "frames": 600,
+      "mean_ms": 202.928333,
+      "max_ms": 471
+    },
+    {
+      "kind": "window",
+      "through_frame": 2400,
+      "frames": 600,
+      "mean_ms": 165.926667,
+      "max_ms": 227
+    },
+    {
+      "kind": "window",
+      "through_frame": 3000,
+      "frames": 600,
+      "mean_ms": 162.138333,
+      "max_ms": 257
+    },
+    {
+      "kind": "window",
+      "through_frame": 3600,
+      "frames": 600,
+      "mean_ms": 187.77,
+      "max_ms": 332
+    },
+    {
+      "kind": "window",
+      "through_frame": 4200,
+      "frames": 600,
+      "mean_ms": 193.146667,
+      "max_ms": 281
+    },
+    {
+      "kind": "window",
+      "through_frame": 4800,
+      "frames": 600,
+      "mean_ms": 164.3,
+      "max_ms": 226
+    },
+    {
+      "kind": "window",
+      "through_frame": 5400,
+      "frames": 600,
+      "mean_ms": 183.515,
+      "max_ms": 253
+    },
+    {
+      "kind": "window",
+      "through_frame": 6000,
+      "frames": 600,
+      "mean_ms": 241.111667,
+      "max_ms": 391
+    },
+    {
+      "kind": "window",
+      "through_frame": 6600,
+      "frames": 600,
+      "mean_ms": 251.69,
+      "max_ms": 384
+    },
+    {
+      "kind": "window",
+      "through_frame": 7200,
+      "frames": 600,
+      "mean_ms": 281.31,
+      "max_ms": 493
+    },
+    {
+      "kind": "window",
+      "through_frame": 7800,
+      "frames": 600,
+      "mean_ms": 200.47,
+      "max_ms": 325
+    },
+    {
+      "kind": "window",
+      "through_frame": 8400,
+      "frames": 600,
+      "mean_ms": 208.325,
+      "max_ms": 292
+    },
+    {
+      "kind": "window",
+      "through_frame": 9000,
+      "frames": 600,
+      "mean_ms": 298.718333,
+      "max_ms": 554
+    }
+  ],
+  "statistics_audit": "15 contiguous 600-frame windows/9000 total; weighted mean and maximum coherent. Quantiles computed by the hashed source script. Raw per-frame samples were not exported: no independent quantile recomputation claimed.",
+  "root_auditor_correction": "Initial stdin helper expected MATCH in input tool output; actual successful tool says IDENTICAL. Checker assertion failed; no native/data/build rerun or modification. Current helper checks actual format.",
+  "scope_limits": [
+    "Only engine:frame plus nested host callbacks timed; objects/recording/metrics/outer-loop and DCS scheduling excluded",
+    "Background Claude/Cargo/WSL activity: no matched benchmark or causal attribution",
+    "Native 15 simulated minutes; not DCS N4 30min/x4 or a DCS frame budget",
+    "Byte comparison not visual inspection; retained ab-base input provenance remains inferred",
+    "Final ordinary shipping D2 measurement and whole-D2 acceptance pending"
+  ],
+  "independent_review": "PENDING NEW review with R5 source/helper/runtime group; not yet closed"
+}

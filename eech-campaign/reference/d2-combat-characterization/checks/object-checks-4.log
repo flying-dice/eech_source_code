@@ -1,0 +1,64 @@
+TEST_LINK_FLAGS=-fno-pie -no-pie
+SANITIZERS=-fsanitize=address,undefined -fno-sanitize-recover=undefined
+SANITIZER_PROBE_COMPILE_EXIT=0
+SANITIZER_PROBE_RUN_EXIT=0
+COMPILE_EXIT=0
+ok   a structure is identified by asking the host
+ok   the facts cross by value, with the campaign's own count and no heap index
+ok   and once: the identity is kept, the host is not asked again
+ok   the identity is readable without calling the host
+ok   a weapon has no identity and the host is not asked
+ok   a bridge has none either (its segments do)
+ok   a rostered mobile keeps the identity of the roster: it is not bound twice
+ok   an unrostered mobile has none
+ok   an identity the host issued before is refused and binds nothing
+ok   so is the identity of a rostered member
+ok   and one a roster member had once
+ok   an empty identity is refused
+ok   one that does not end inside its 128 bytes is refused
+ok   one with a control character is refused
+ok   a sample asked for in answer to an identify question is refused
+ok   after the refusals the next structure is identified normally
+ok   a released structure has no identity
+ok   a report with the identity of an ended incarnation is refused and applies nothing
+ok   and so is one whose entity slot now holds another object: that object is untouched
+ok   the new incarnation is issued a new identity
+ok   which does name it
+ok   a destruction kills the structure and leaves its stored damage level as it was (a dead segment keeps 500)
+ok   the fact is applied once: a second report of it is refused
+ok   a damage level above zero is set and the structure lives
+ok   a report cannot raise a damage level
+ok   or lower it below zero
+ok   a damage level of zero is set and then the structure is killed, in that order
+ok   and it is destroyed once
+ok   an identity nobody issued is refused
+ok   a report without an identity is refused
+ok   a report that says nothing is refused
+ok   and one with a level but no statement of it
+ok   a rostered mobile is reported by the identity of the roster, through the same steps
+ok   a rostered member that ended is refused
+ok   a client applies nothing
+ok   the structures are listed, in entity-list order, each identified by the host once
+ok   and listed again without asking the host
+ok   a member bound later cannot take the identity of a live structure, and nothing is committed
+ok   and a report by that identity still reaches the structure, never the refused member
+ok   nor the identity of a structure that ended (no identity is ever reused)
+ok   so the ended identity still reads as ended, not as the member's
+ok   the structure that now lives in the slot is issued another identity
+ok   a member cannot take the old identity even in the slot its structure had
+ok   nor the live identity of the structure now in that slot
+ok   a fresh identity binds the member
+ok   a structure cannot take the identity of a live member
+ok   nor that of a member that ended
+ok   a member cannot take a member's identity (live)
+ok   or an ended member's
+ok   an empty identity is refused
+ok   and one that is not UTF-8
+ok   while a UTF-8 identity is accepted
+ok   a rostered launcher keeps the roster's identity and a structure target is identified (asked of the host once, at its first physical need)
+ok   and carried again without asking the host
+ok   a weapon has no identity and no subject is none, and neither asks the host
+ok   an object that took the released slot is a new incarnation with a new identity, never the old one
+56 checks, 0 failures
+RUN_EXIT=0
+DOCKER_EXIT=0

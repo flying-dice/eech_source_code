@@ -1,0 +1,35 @@
+{
+  "baseline_dir": "R:/d2-evidence/los-characterization-baseline-20261026/out/ab-base",
+  "candidate_dir": "R:/d2-evidence/aim-characterization-20261026/out/r-ab-hooks",
+  "artifacts": [
+    {
+      "file": "recording.acmi",
+      "expected_bytes": 11363845,
+      "baseline_bytes": 11363845,
+      "baseline_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+      "candidate_bytes": 11363845,
+      "candidate_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+      "matches": true
+    },
+    {
+      "file": "observations.jsonl",
+      "expected_bytes": 6629273,
+      "baseline_bytes": 6629273,
+      "baseline_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+      "candidate_bytes": 6629273,
+      "candidate_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+      "matches": true
+    },
+    {
+      "file": "metrics.json",
+      "expected_bytes": 11777,
+      "baseline_bytes": 11777,
+      "baseline_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+      "candidate_bytes": 11777,
+      "candidate_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+      "matches": true
+    }
+  ],
+  "note": "complete actual files, not normalised copies; baseline side NOT re-run",
+  "passed": true
+}

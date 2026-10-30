@@ -1,0 +1,20 @@
+{
+ "checker": "compare-person.py revision 2",
+ "candidate": "out/p-c/trace.jsonl",
+ "original": "../aim-characterization-20261026/out/person-control/trace.jsonl",
+ "equal_under_the_mapping": true,
+ "problems": [],
+ "candidate_sha256": "2ad4b8a2241424fb328b372c5a962ff01a90e37de34ddd878c87b1538ac3ea87",
+ "original_sha256": "f7d614bf35631c2749b77eb0c4f24e0b1f4f8cc06e6117e56e76dd4f6e87dc12",
+ "events": [
+  194,
+  194
+ ],
+ "case": "control",
+ "mapped": {
+  "frames_mapped": 20,
+  "checks_mapped": 0,
+  "verdict_mapped": 1,
+  "events_exactly_equal": 173
+ }
+}

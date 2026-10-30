@@ -1,0 +1,42 @@
+{
+  "copied_utc": "2026-10-28T08:00:40.687109+00:00",
+  "scope": "Source/helper review and comment-only cleanup records; NO timed native acceptance",
+  "copies": [
+    {
+      "file": "independent-timed-critical-source-review-d6c878c7d-20261028.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\independent-timed-critical-source-review-d6c878c7d-20261028.json",
+      "bytes": 24295,
+      "sha256": "e5193bcb2ad742a0608e33e6184a6501e82f9035ecf3b7bcc3b1d7bba8295cf4"
+    },
+    {
+      "file": "independent-timed-critical-correction-review-1c943ffb5-20261028.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\independent-timed-critical-correction-review-1c943ffb5-20261028.json",
+      "bytes": 16655,
+      "sha256": "756bb015ec7abf0dfa42e0dd06bcddb57669eb110c8d6df6ac2c36cd2fae9732"
+    },
+    {
+      "file": "independent-timed-provider-corrected-plan-review-20261028.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\independent-timed-provider-corrected-plan-review-20261028.json",
+      "bytes": 3252,
+      "sha256": "3f51d4d2b85aec3b46968b974bd64fb841e8c3a364fe07d845aefacaf0d9a5ac"
+    },
+    {
+      "file": "root-timed-residual-comment-cleanup.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-residual-comment-cleanup.json",
+      "bytes": 2247,
+      "sha256": "67d0934098876786391e96a710ed07da25fda610666d86348133534274da6c7f"
+    },
+    {
+      "file": "root-timed-provider-corrected-driver-plan.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-provider-corrected-driver-plan.json",
+      "bytes": 2924,
+      "sha256": "692906ff5082712727fe7e6aac8ac5ded4e961c4d7b497c9307627faf3bfb7f7"
+    },
+    {
+      "file": "root-timed-critical-correction-cli.json",
+      "private_source": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-critical-correction-cli.json",
+      "bytes": 649,
+      "sha256": "75d0d1d5b7ea3cd253706170e65ad0fdf1d2e18f3617c95f6b6d9155537a6042"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "status": "completed",
+  "when_utc": "2026-10-28T12:52:15.8051945Z",
+  "binary": "R:\\d2-evidence\\combat-bridge-corrected-source-636ef798a\\eech-campaign\\target\\weapon-fixture\\combat-bridge-corrected-636ef798a\\eech-world.exe",
+  "arguments": "R:/d2-evidence/combat-bridge-corrected-source-636ef798a/eech-campaign/target/weapon-fixture/combat-bridge-corrected-636ef798a/lua/bridge-case.lua root=R:/d2-evidence/combat-characterization-20261028/roots/bridge-host-lebanon-01 scenario=lebanon_retail out=R:/d2-evidence/combat-characterization-20261028/out/bridge-host-lebanon-01/trace.jsonl warmup=5 frame_ms=100 window_seconds=12 criterion=0",
+  "root": "R:/d2-evidence/combat-characterization-20261028/roots/bridge-host-lebanon-01",
+  "out": "R:/d2-evidence/combat-characterization-20261028/out/bridge-host-lebanon-01",
+  "scenario": "lebanon_retail",
+  "kind": "R5 host bridge candidate: same original direct structural failure/5s warmup/100ms/12s window/criterion0. Default complete original/repeat equality, actual guards/postinputs/build and independent review required; not shipping/fullD2 acceptance.",
+  "bridge_script_sha256": "a92b0152a8606de635b829c8b92c9525e8476dd4bd9ef57140fead5ff8603eaf",
+  "build_info_sha256": "9fc034ccd849dd0583ebd10d912af698318dbf0c937d88ae11d0932f1729a68f",
+  "actual_native_exit": 0,
+  "native_pid": 21760,
+  "created_utc": "2026-10-28T12:52:15.9494817Z",
+  "completed_utc": "2026-10-28T12:52:37.9654890Z"
+}

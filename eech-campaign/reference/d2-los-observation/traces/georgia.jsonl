@@ -1,0 +1,12 @@
+{"count":500,"event":"boot","frame_ms":100,"scenario":"georgia_retail","seconds":600,"seed":20261025}
+{"at":30,"event":"probe_pairs","found":3,"requested":3}
+{"at":30,"by_criteria":"0=67/67 1=44/67 2=48/60 4=50/57 7=48/66 8=77/77 16=62/62 31=41/60","calls":516,"event":"probe","frame":301,"hash":"8a2ce35751b8bd64","pair":"ground_vehicle->ground_vehicle","skipped":0,"source":51314,"source_kind":"ground_vehicle","target":54739,"target_kind":"ground_vehicle","visible":437}
+{"at":30,"by_criteria":"0=67/67 1=47/62 2=61/65 4=67/75 7=50/63 8=63/63 16=62/62 31=47/59","calls":516,"event":"probe","frame":301,"hash":"08450b9edead900d","pair":"helicopter->ground_vehicle","skipped":0,"source":52490,"source_kind":"helicopter","target":54739,"target_kind":"ground_vehicle","visible":464}
+{"at":30,"by_criteria":"0=74/74 1=56/63 2=65/68 4=54/57 7=44/48 8=62/70 16=60/67 31=56/69","calls":516,"event":"probe","frame":301,"hash":"e068e8b8b526c804","pair":"air_defence->helicopter","skipped":0,"source":22980,"source_kind":"air_defence","target":55856,"target_kind":"helicopter","visible":471}
+{"event":"run_fold_untouched_by_probe","ok":true}
+{"at":300,"event":"probe_pairs","found":3,"requested":3}
+{"at":300,"by_criteria":"0=67/67 1=44/67 2=48/60 4=50/57 7=48/66 8=77/77 16=62/62 31=41/60","calls":516,"event":"probe","frame":3001,"hash":"8a2ce35751b8bd64","pair":"ground_vehicle->ground_vehicle","skipped":0,"source":51314,"source_kind":"ground_vehicle","target":54739,"target_kind":"ground_vehicle","visible":437}
+{"at":300,"by_criteria":"0=67/67 1=47/62 2=61/65 4=67/75 7=50/63 8=63/63 16=62/62 31=47/59","calls":516,"event":"probe","frame":3001,"hash":"08450b9edead900d","pair":"helicopter->ground_vehicle","skipped":0,"source":52490,"source_kind":"helicopter","target":54739,"target_kind":"ground_vehicle","visible":464}
+{"at":300,"by_criteria":"0=74/74 1=56/63 2=65/68 4=54/57 7=44/48 8=62/70 16=60/67 31=56/69","calls":516,"event":"probe","frame":3001,"hash":"e068e8b8b526c804","pair":"air_defence->helicopter","skipped":0,"source":22980,"source_kind":"air_defence","target":55856,"target_kind":"helicopter","visible":471}
+{"event":"run_fold_untouched_by_probe","ok":true}
+{"by_criteria":"1=912/20166 31=734/938","calls":21104,"elapsed":599.90252685547,"event":"run_trace","frames":6000,"hash":"7fdc5ab0b8b5db5d","probes":6,"skipped":0,"visible":1646}

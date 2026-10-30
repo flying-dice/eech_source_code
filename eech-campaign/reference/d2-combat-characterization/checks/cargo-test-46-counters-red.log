@@ -1,0 +1,29 @@
+info: downloading 2 components
+RUSTUP_ADD_EXIT=0
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.18s
+     Running tests/host_callbacks.rs (/target/debug/deps/host_callbacks-01e380bfce0df75c)
+
+running 1 test
+test the_case_deltas_keep_every_indexed_report_row_apart ... FAILED
+
+failures:
+
+---- the_case_deltas_keep_every_indexed_report_row_apart stdout ----
+
+thread 'the_case_deltas_keep_every_indexed_report_row_apart' (150) panicked at crates/eech-world/tests/host_callbacks.rs:779:5:
+exit status: 1
+
+Error: RuntimeError("[string \"/tmp/eech-world-combat-counters-149.lua\"]:23: both kill-code rows keep their own value\nstack traceback:\n\t[C]: in ?\n\t[C]: in function 'assert'\n\t[string \"/tmp/eech-world-combat-counters-149.lua\"]:23: in main chunk")
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    the_case_deltas_keep_every_indexed_report_row_apart
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p eech-world --test host_callbacks`
+CARGO_EXIT=101
+DOCKER_EXIT=101

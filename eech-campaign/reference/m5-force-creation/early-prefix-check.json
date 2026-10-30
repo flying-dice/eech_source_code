@@ -1,0 +1,38 @@
+{
+  "checked_at": "2026-10-22T20:40:54.336890+00:00",
+  "complete_files": false,
+  "results": [
+    {
+      "run": "run1",
+      "file": "recording.acmi",
+      "current_bytes": 8967544,
+      "compared_prefix_bytes": 1048576,
+      "matches": true,
+      "prefix_sha256": "a6a332e91999f501836c415148c7216463f7558d51e94df89a851b79b9e39d6f"
+    },
+    {
+      "run": "run1",
+      "file": "observations.jsonl",
+      "current_bytes": 5488640,
+      "compared_prefix_bytes": 1048576,
+      "matches": false,
+      "prefix_sha256": "7a2e87d356c06b67463b4c924bf3ed0817f029687613fcccb39d1f43fced60e5"
+    },
+    {
+      "run": "run2",
+      "file": "recording.acmi",
+      "current_bytes": 9049454,
+      "compared_prefix_bytes": 1048576,
+      "matches": true,
+      "prefix_sha256": "a6a332e91999f501836c415148c7216463f7558d51e94df89a851b79b9e39d6f"
+    },
+    {
+      "run": "run2",
+      "file": "observations.jsonl",
+      "current_bytes": 5492736,
+      "compared_prefix_bytes": 1048576,
+      "matches": false,
+      "prefix_sha256": "7a2e87d356c06b67463b4c924bf3ed0817f029687613fcccb39d1f43fced60e5"
+    }
+  ]
+}

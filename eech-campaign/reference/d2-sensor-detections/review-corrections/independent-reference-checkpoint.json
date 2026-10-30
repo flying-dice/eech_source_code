@@ -1,0 +1,17 @@
+{
+  "scope": "Completed short final-fixture reference run: ONLY the83events at original30s probe and run-at-probe checkpoint; not a new600s or fullpack",
+  "source": "a2a041fecf52e18cbc16b33f3dc75a9c9b245c9d",
+  "both_traces_terminal_complete": true,
+  "original_trace_unchanged": true,
+  "selected_events_each": 83,
+  "selected_raw_bytes_each": 15544,
+  "selected_raw_sha256": "4466c77606ae6bba49fe8307e94b637a174ef8700741af316933730a2c9fc71f",
+  "exact_byte_match": true,
+  "paths": {
+    "original": "R:\\d2-evidence\\sensor-characterization-baseline-20261026\\out\\composed-lebanon-probe\\trace.jsonl",
+    "new_reference": "R:\\d2-evidence\\sensor-characterization-baseline-20261026\\out\\p2fix-reference\\trace.jsonl"
+  },
+  "native_exit": 0,
+  "wrapper_exit": 0,
+  "native_exit_record": "R:\\d2-evidence\\sensor-characterization-baseline-20261026\\logs\\p2fix-fixture-runs.log"
+}

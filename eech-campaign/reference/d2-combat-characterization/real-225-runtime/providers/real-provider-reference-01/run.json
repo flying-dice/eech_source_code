@@ -1,0 +1,14 @@
+{
+  "status": "completed",
+  "when_utc": "2026-10-28T07:26:13.2764797Z",
+  "binary": "R:\\d2-evidence\\combat-real-source-225ff4abd\\eech-campaign\\target\\weapon-fixture\\combat-real-225ff4abd\\eech-world.exe",
+  "arguments": "R:/d2-evidence/combat-real-source-225ff4abd/eech-campaign/target/weapon-fixture/combat-real-225ff4abd/lua/aim-provider.lua root=R:/d2-evidence/combat-characterization-20261028/roots/real-provider-reference-01 scenario=lebanon_retail seconds=180 frame_ms=100 mode=reference out=R:/d2-evidence/combat-characterization-20261028/out/real-provider-reference-01/summary.jsonl",
+  "root": "R:/d2-evidence/combat-characterization-20261028/roots/real-provider-reference-01",
+  "out": "R:/d2-evidence/combat-characterization-20261028/out/real-provider-reference-01",
+  "mode": "reference",
+  "kind": "Real-damage candidate public-path provider; positive authority or expected refusal must be judged from actual summary, not native exit alone",
+  "actual_native_exit": 0,
+  "native_pid": 22784,
+  "created_utc": "2026-10-28T07:26:13.2911275Z",
+  "completed_utc": "2026-10-28T07:32:47.6063807Z"
+}

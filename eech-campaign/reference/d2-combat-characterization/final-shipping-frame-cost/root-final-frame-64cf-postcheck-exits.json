@@ -1,0 +1,26 @@
+[
+  {
+    "check": 0,
+    "command": "& C:/Users/starscream/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe -B -X utf8 R:/d2-evidence/combat-characterization-20261028/audit-final-frame-samples.py R:/d2-evidence/combat-characterization-20261028/out/frame-cost-final-d2-900-01/frame-cost.jsonl --expected-frames 9000 --out R:/d2-evidence/combat-characterization-20261028/root-final-frame-64cf-raw-samples-audit.json",
+    "actual_exit": 0,
+    "chunk_id": "eb4212"
+  },
+  {
+    "check": 1,
+    "command": "& R:/d2-evidence/compare-campaign-artifacts.ps1 -Baseline R:/d2-evidence/los-characterization-baseline-20261026/out/ab-base -Candidate R:/d2-evidence/combat-characterization-20261028/out/frame-cost-final-d2-900-01 -Out R:/d2-evidence/combat-characterization-20261028/root-final-frame-64cf-complete-artifacts.json",
+    "actual_exit": 0,
+    "chunk_id": "4283ea"
+  },
+  {
+    "check": 2,
+    "command": "& C:/Users/starscream/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe -B -X utf8 R:/d2-evidence/combat-reports-guarded-source-64cf0f1c5/eech-campaign/tools/input-manifest.py R:/d2-evidence/combat-characterization-20261028/roots/frame-cost-final-d2-900-01 --compare R:/d2-evidence/combat-reports-guarded-source-64cf0f1c5/eech-campaign/reference/lebanon-3h/inputs.json > R:/d2-evidence/combat-characterization-20261028/root-final-frame-64cf-post-inputs.log\n$frameInputCode=$LASTEXITCODE\nGet-Content R:/d2-evidence/combat-characterization-20261028/root-final-frame-64cf-post-inputs.log -Tail 4\nexit $frameInputCode",
+    "actual_exit": 0,
+    "chunk_id": "30b0e7"
+  },
+  {
+    "check": 3,
+    "command": "& R:/d2-evidence/verify-build-manifest.ps1 -Bin R:/d2-evidence/combat-reports-guarded-source-64cf0f1c5/eech-campaign/target/windows-d2-combat-final-64cf0f1c5 -Out R:/d2-evidence/combat-characterization-20261028/root-final-frame-64cf-post-build.json",
+    "actual_exit": 0,
+    "chunk_id": "4e8e62"
+  }
+]

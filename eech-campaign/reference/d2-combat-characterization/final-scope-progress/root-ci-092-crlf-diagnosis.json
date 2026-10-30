@@ -1,0 +1,21 @@
+{
+  "run_id": 40723326838,
+  "job_id": 122939836511,
+  "job_url": "https://github.com/flying-dice/eech_source_code/actions/runs/40723326838/job/122939836511",
+  "head": "09253829b2822fe83dafd4031569410ed2edf6a7",
+  "raw_job_log": "R:\\d2-evidence\\combat-characterization-20261028\\ci-092-windows-cross-job-122939836511-attempt2.log",
+  "raw_job_log_sha256": "47f0fad40a11eaba9a3fe97fccab18710dde5ad486dbe82c04a1756cb35513b4",
+  "gh_completed_job_log_fetch_actual_exit": 0,
+  "host_callbacks_result": {
+    "passed": 22,
+    "failed": 2,
+    "job_exit": 101
+  },
+  "failed_tests": [
+    "the_bridge_witness_says_so_and_does_nothing_when_no_bridge_meets_the_first_collapse_criterion",
+    "the_object_witness_reports_a_destruction_by_identity_once_and_reads_the_state_afterwards"
+  ],
+  "diagnosis": "Two exact LF-only Rust assertions reject Windows CRLF, despite expected actualCALLS and finalstructures rows.63ea changes only semantic line assertions; raw files/readers/baselines untouched.",
+  "new_local_check": "24host_callbacks pass andfmt0 onLinux; newWindowsCIstillrequired",
+  "limits": "CI test portability only, not an observed nativecampaign regression; do not promote localLinuxcheck toWindowscoverage."
+}

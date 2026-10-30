@@ -1,0 +1,2 @@
+E:/eech-runs/m2/lebanon-m1-copy: 1179 input files, 102,239,559 bytes, combined SHA-256 121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09
+inputs IDENTICAL to E:\eech_source_code\.claude\worktrees\agent-a9904988ee5ea2a0f\eech-campaign\reference/lebanon-3h/inputs.json

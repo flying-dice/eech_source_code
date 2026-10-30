@@ -1,0 +1,204 @@
+{
+  "schema": "independent-bounded-runtime-helper-plan-review-v1",
+  "preserved_utc": "2026-10-28T07:25:30.631863+00:00",
+  "reviewer": "/root/d2_los_review",
+  "scope": "NEW completed native centred-solid pair and NEW real-provider driver/plan only; no unchanged source review, tests, builds, native launch, agents or moving timed-author checkout access. Private evidence JSON is the only write.",
+  "disposition": "No actionable findings. Bounded centred-solid native roundtrip supported; real-provider derivative and sequential plan suitable subject to stated gates/measurement limits. Remaining real-hit runtime/delivery gates pending.",
+  "centred_pair": {
+    "original_source": "35c3d677758d7c0e7b664267c25508220412e4a5",
+    "candidate_source": "225ff4abd886f188e63e83d5d3c3b688f26d1a86",
+    "both_frozen_heads_independently_verified_clean": true,
+    "original_controller": 22583,
+    "candidate_controller": 39621,
+    "actual_original_controller_exits_recorded": [
+      0,
+      0
+    ],
+    "native_pids": [
+      10076,
+      5800
+    ],
+    "actual_native_exits_recorded": [
+      0,
+      0
+    ],
+    "process_limit": "Completed run records and trusted root actual original controller exits inspected, not live executions launched/observed by reviewer.",
+    "raw_bytes_each": 94973,
+    "raw_sha256_each": "b2c6c63beb6e6726f4e30dd26bb2cac5c9a7c83b511f63231486a56ad6fcd155",
+    "independent_complete_raw_byte_equality": true,
+    "raw_json_rows_each": 503,
+    "cases_each": 9,
+    "all_cases_done_ok_without_refusal": true,
+    "trusted_reports_each": 19,
+    "all_trusted": true,
+    "ordered_events_each": 14,
+    "sequence_exact_1_through14": true,
+    "completion_cases_target_event_delta_run_records_match_raw": true,
+    "actual_target_collision": {
+      "alive0": 1,
+      "alive1": 1,
+      "applied": 0,
+      "at": 60.099273681641,
+      "capability": 0,
+      "depth": 0,
+      "destroyed": 0,
+      "event": "cmb-ev",
+      "invulnerable": 0,
+      "kind": "collision",
+      "level0": 600,
+      "level1": 600,
+      "modifier": 0,
+      "receiver": "ENTITY_TYPE_ROUTED_VEHICLE",
+      "scope": "case:explosion_HIT_TARGET_ROUTED_VEHICLE:log",
+      "sender": "weapon",
+      "seq": 11,
+      "sub": 76
+    },
+    "actual_target_delta": {
+      "cmb-blast-kill.code=5.calls": 1,
+      "cmb-blast.calls": 1,
+      "cmb-blast.zero_radius": 1,
+      "cmb-capability.calls": 1,
+      "cmb-capability.draws": 1,
+      "cmb-capability.none": 1,
+      "cmb-capability.real": 1,
+      "cmb-damage.entries": 1,
+      "cmb-damage.exit_done": 1,
+      "cmb-explosion.invocations": 1,
+      "cmb-install.observed_deliveries": 1,
+      "cmb-integrity.releases": 1,
+      "cmb-kind.type=ENTITY_TYPE_ROUTED_VEHICLE.collisions": 1,
+      "cmb-kind.type=ENTITY_TYPE_ROUTED_VEHICLE.direct": 1,
+      "cmb-kind.type=ENTITY_TYPE_ROUTED_VEHICLE.from_weapon": 1,
+      "cmb-kind.type=ENTITY_TYPE_ROUTED_VEHICLE.no_damage": 1,
+      "cmb-log.events": 4,
+      "cmb-log.stored": 4,
+      "cmb-warhead.type=1.real": 1,
+      "done": true,
+      "event": "case_delta",
+      "name": "explosion_HIT_TARGET_ROUTED_VEHICLE"
+    },
+    "meaning": "Actual solid76 HIT_TARGET direct collision, capability0/no health write, health600->600, one capability draw. Exact full trace includes six matching cumulative hashes and observer accounting; closes prior bounded native centred diagnostic gate.",
+    "geometry": "Source-defined helper copies receiver position and adds only X offset0 before setting weapon position, with no Y offset. HIT_TARGET directly notifies linked receiver before area exclusion.",
+    "limits": [
+      "Trace carries hashed diagnostic intermediates, not a directly printed NaN bit pattern. Prior source/kernel/decoder checks plus native exact measured equality support the roundtrip; no direct raw-payload observation claimed.",
+      "Solid76 has zero area-blast radius: no positive area-blast damage claimed.",
+      "Nine done rows alone are preconditions; actual event/delta establishes the edge.",
+      "AA setter and PERSON predicate still execute; no timed frames/draws added.",
+      "This does not establish full real-hit natural600/900 or shipping acceptance."
+    ]
+  },
+  "preservation": {
+    "each_root_inputs_independently_rehashed": 1179,
+    "input_mismatches_both_roots": 0,
+    "each_binary_export_files_independently_rehashed": 40,
+    "export_mismatches_both": 0,
+    "initial_post_expected_export_maps_equal_both": true,
+    "build_info_hashes_independently_verified": {
+      "original": "5cfa0a40a456bf7e914874233c2d902ca6af02f7338fa60fd7cf6b952295ec13",
+      "candidate": "ca4525cdf197bfe166b3ee9f7d6b0151f3328c054e5bc75890028300e56c3599"
+    },
+    "build_info_commits_match_and_dirty_inputs0_both": true,
+    "private_harness_provenance_driver_and_three_helpers_still_match_prior_review_hashes": true,
+    "all_post_input_and_export_actual_exits_recorded0": true
+  },
+  "real_provider_driver": {
+    "path": "R:\\d2-evidence\\combat-characterization-20261028\\run-real-provider.ps1",
+    "sha256": "62975b6a3adbf86331d24f49f58b556ffd4c2f68633d6e8ed70bdb4851c41e2e",
+    "comparison": "Against previously reviewed forecast driver, only mode whitelist, descriptive/output labels and an empty final line differ. Held process handle, Hidden launch, fresh-output refusal, path validation, actual native exit recording/propagation unchanged.",
+    "whitelist": [
+      "reference",
+      "damage_none",
+      "bad_damage_level",
+      "bad_damage_draw_twice",
+      "bad_damage_exit",
+      "bad_damage_class",
+      "bad_damage_unwritten",
+      "bad_damage_missing"
+    ],
+    "AST_parse0": "Root-reported; not rerun by reviewer."
+  },
+  "provider_plan": {
+    "approval": "Suitable to proceed after every fresh root has actual input verification0 and the sequential sites queue frees the seventh native slot. Frozen225 build/manifest identities must be retained.",
+    "order": "Matched reference180 and damage_none180, then six existing malformed DAMAGE modes, each on a separate fresh verified root; one sequential provider slot.",
+    "model_variation": "damage_none substitutes own.damage with damage_capability0 and asks for no shared random sample. Treat as a physical-model AND RNG-policy variation; do not claim isolated health-value causality. Other operation implementations/forecast formula delegate to reference, but subsequent request counts/inputs/results can diverge as model and random stream diverge.",
+    "positive_evidence": "Require complete matched frames/config, positive accepted DAMAGE activity, host reply sample/write/fatal/class counters, and resulting sampled world outcomes. Do not equate a mode selection or native0 with authority proof.",
+    "negative_evidence": "Require actual mode-specific DAMAGE refusal reason and trigger. Zero counters/untriggered mode/native0 alone are not a passed refusal. Preserve incomplete/failed cases.",
+    "measurement_limits": [
+      "Provider damage_written and damage_fatal/critical are reply counters, not independently recorded campaign kill/credit totals.",
+      "The existing summary does not log a per-hit health-level trace; do not claim directly observed individual before/after levels without separate records.",
+      "Existing weapon_births/losses remain every10-frame sampled appearances and alive transitions of four mobile classes; not all campaign totals.",
+      "damage_none may still have sampled losses from remaining timed/other physical activity; no requirement for zero all-world losses."
+    ],
+    "runtime_status": "No provider case result reviewed/accepted in this pass. Roots preparation and slot availability remain lead-controlled prelaunch gates."
+  },
+  "findings": [],
+  "remaining_gates": [
+    "Real candidate natural600/900 and sites/other applicable controlled equivalence remain active or separately pending.",
+    "Eight-case real-provider authority/refusal runtime proof remains pending.",
+    "Timed phase and remaining R1/R2/blast/bridge/report responsibilities remain separate new-source/runtime work.",
+    "Full40/all8/post3/currentCI/Task45 predecessor delivery/normal merge remain delivery gates; no whole Task46/D2 acceptance."
+  ],
+  "artifact_pins": [
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-centred-solid-complete-comparison.json",
+      "sha256": "f00c0fd922606165c7aa96c7e87a998a3b4e49b30fce1e1b2af71e3e701005d3",
+      "bytes": 30027
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-centred-solid-original-prelaunch-build.json",
+      "sha256": "6642930dac841b4b219ce2dcbb75a6f992849671de5f892874f66b3f67a32260",
+      "bytes": 10923
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-centred-solid-original-01-post-build.json",
+      "sha256": "87bee789c2c02e2966ed8d71b378d435611d8f8099d13581ec5a13119fe1faae",
+      "bytes": 10923
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-centred-solid-candidate-01-post-build.json",
+      "sha256": "08ad96c3d4afdb50597599dbffdc5baf8dac0672f338a9c2b881548d04219b04",
+      "bytes": 10911
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-clean-real-225ff-fixture-manifest.json",
+      "sha256": "7d6df4b003459a32373e2f68d8ae929244adb3de71019253dce86d2295b2cad8",
+      "bytes": 10911
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-centred-solid-original-01-post-inputs.log",
+      "sha256": "60e0eab90bb8929c15ea80de7cfe7b794d5d0b4877ad48dfa9c587ba1558dafe",
+      "bytes": 319
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-centred-solid-candidate-01-post-inputs.log",
+      "sha256": "757e42d67c5a65908572a0265e1b2a9dedb09d1a3d4b3c7e1ed826709ba78f1b",
+      "bytes": 314
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\run-real-provider.ps1",
+      "sha256": "62975b6a3adbf86331d24f49f58b556ffd4c2f68633d6e8ed70bdb4851c41e2e",
+      "bytes": 2160
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\centred-solid-original-01\\trace.jsonl",
+      "sha256": "b2c6c63beb6e6726f4e30dd26bb2cac5c9a7c83b511f63231486a56ad6fcd155",
+      "bytes": 94973
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\centred-solid-original-01\\run.json",
+      "sha256": "01cf46dc05e7037f450525cca339f9bc3baed9c1cd63c70407bdfd69e2ee7217",
+      "bytes": 1124
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\centred-solid-candidate-01\\trace.jsonl",
+      "sha256": "b2c6c63beb6e6726f4e30dd26bb2cac5c9a7c83b511f63231486a56ad6fcd155",
+      "bytes": 94973
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\centred-solid-candidate-01\\run.json",
+      "sha256": "9b44833798d7d9945874fd78087b1f45fde90dabc81f53eab6bc952f851c3a76",
+      "bytes": 1115
+    }
+  ]
+}

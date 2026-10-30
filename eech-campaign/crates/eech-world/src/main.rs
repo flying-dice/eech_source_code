@@ -1,0 +1,3498 @@
+//! eech-world: the host process. It embeds a Lua 5.1 state, lets it load the
+//! EECH dynamic campaign DLL with `require ("eech_dc")`, and runs a campaign
+//! script. The script drives the engine and hands what it observes to the
+//! host (`host.record`), which writes a Tacview (ACMI 2.2) recording.
+//!
+//! usage: eech-world <script.lua> [key=value ...]
+//!   the key=value pairs are passed to the script as the table `host.args`
+
+mod crash;
+
+use eech_world::aim::{self, Aim};
+use eech_world::cmb;
+use eech_world::flight;
+use eech_world::los::{Los, LosRequest};
+use eech_world::movement::{
+    Advance, CarryShape, Creation, DependentCarry, FixedWingMove, FixedWingNavigation, FixedWingPhase, FixedWingTerrain, HelicopterAnswer, HelicopterBegin,
+    HelicopterEnd, HelicopterGuide, HelicopterPlan, HelicopterSteer, HelicopterStructure, HelicopterTerrainSample, HelicopterWaypointKind, Kind, Lifecycle,
+    LifecycleMode, Movers, NavigationMember, Outcome, PersonBegin, PersonEnd, PersonFace, Pose, Request, ShipMove, Terrain,
+};
+use eech_world::sense::{self, Sense};
+use eech_world::tacview::{ObjectInfo, Recorder};
+use eech_world::terrain;
+use mlua::prelude::*;
+use std::cell::{Cell, RefCell};
+use std::collections::HashMap;
+use std::io::BufWriter;
+use std::rc::Rc;
+
+/// what the recorder knows about an EECH object
+struct Tracked {
+    acmi: u64,
+    kind: String,
+    sub_type: i64,
+    alive: bool,
+    seen: u64,
+    /// the last written position and heading (writes are skipped until it changes)
+    last: Option<[f64; 4]>,
+}
+
+struct Recording {
+    out: Recorder<BufWriter<std::fs::File>>,
+    tracked: HashMap<i64, Tracked>,
+    next_id: u64,
+    pass: u64,
+    stats: HashMap<&'static str, u64>,
+}
+
+fn tacview_type(kind: &str, type_name: &str) -> &'static str {
+    match kind {
+        "helicopter" => "Air+Rotorcraft",
+        "fixed_wing" => "Air+FixedWing",
+        "ground_vehicle" => "Ground+Vehicle",
+        "air_defence" => "Ground+AntiAircraft",
+        "ship" => "Sea+Watercraft",
+        "infantry" => "Ground+Light+Human+Infantry",
+        "weapon" => {
+            let t = type_name.to_ascii_lowercase();
+            if t.contains("rocket") || t.contains("s-8") || t.contains("s-13") || t.contains("hydra") {
+                "Weapon+Rocket"
+            } else if t.contains("bomb") || t.contains("mk-8") || t.contains("fab") {
+                "Weapon+Bomb"
+            } else {
+                "Weapon+Missile"
+            }
+        }
+        _ => "Ground+Static+Aerodrome",
+    }
+}
+
+fn vector3(table: &LuaTable, name: &str) -> LuaResult<[f32; 3]> {
+    let values: Vec<f32> = table.get(name)?;
+    values
+        .try_into()
+        .map_err(|values: Vec<f32>| LuaError::runtime(format!("host.supply_reached: {name} has {} components", values.len())))
+}
+
+fn number(lua: &Lua, table: &LuaTable, name: &str) -> LuaResult<f32> {
+    let [value] = exact_numbers::<1>(lua, table, name).map_err(|e| LuaError::runtime(format!("host.move_vehicle: {e}")))?;
+    Ok(value)
+}
+
+fn numbers<const N: usize>(lua: &Lua, table: &LuaTable, name: &str) -> LuaResult<[f32; N]> {
+    exact_numbers(lua, table, name).map_err(|e| LuaError::runtime(format!("host.move_vehicle: {e}")))
+}
+
+/// The `N` numbers a table field holds (a number for `N == 1`, else an array), exactly as Lua
+/// holds them. mlua's own number reads turn any value within `f64::EPSILON` of an integer into
+/// that integer, so a physical value such as -6.7e-17 would arrive as 0 and the two sides'
+/// copies of a pose would differ. Lua looks the field up and formats the numbers at 17 significant digits instead,
+/// and `nearest_f32` narrows them.
+fn exact_numbers<const N: usize>(lua: &Lua, table: &LuaTable, field: &str) -> Result<[f32; N], String> {
+    let values = exact_f64s::<N>(lua, table, field)?;
+    let mut numbers = [0.0f32; N];
+    for (slot, value) in numbers.iter_mut().zip(values) {
+        *slot = nearest_f32(value).ok_or_else(|| shape(field, N))?;
+    }
+    Ok(numbers)
+}
+
+/// An integer field of a request table (an integral number within `i32`).
+fn lua_i32(table: &LuaTable, field: &str) -> Result<i32, String> {
+    match table.get::<LuaValue>(field).map_err(|e| e.to_string())? {
+        LuaValue::Integer(value) => i32::try_from(value).map_err(|_| format!("{field} {value} is out of range")),
+        LuaValue::Number(value) if value.fract() == 0.0 && value.abs() < 2_147_483_648.0 => Ok(value as i32),
+        other => Err(format!("{field} must be an integer, got {}", other.type_name())),
+    }
+}
+
+/// A weapon step's lookup answers from a request: a list of tables `{ kind, a, b, c, d, f = { 12 numbers } }`.
+fn step_events(lua: &Lua, table: &LuaTable, field: &str) -> Result<Vec<flight::StepEvent>, String> {
+    let list = match table.get::<LuaValue>(field).map_err(|e| e.to_string())? {
+        LuaValue::Table(list) => list,
+        other => return Err(format!("{field} must be a list, got {}", other.type_name())),
+    };
+    let mut events = Vec::new();
+    for value in list.sequence_values::<LuaValue>() {
+        let LuaValue::Table(row) = value.map_err(|e| e.to_string())? else {
+            return Err(format!("{field} holds a value that is not an event table"));
+        };
+        events.push(flight::StepEvent {
+            kind: lua_i32(&row, "kind")?,
+            a: lua_i32(&row, "a")?,
+            b: lua_i32(&row, "b")?,
+            c: lua_i32(&row, "c")?,
+            d: lua_i32(&row, "d")?,
+            f: exact_numbers::<12>(lua, &row, "f")?,
+        });
+    }
+    Ok(events)
+}
+
+/// The physical figures a `table`, `range` or `figures` request carries (EEDCS-45), exactly as the campaign mirrored them from its weapon database.
+fn weapon_figures(lua: &Lua, request: &LuaTable) -> Result<flight::Figures, String> {
+    let facts: LuaTable = match request.get::<LuaValue>("figures").map_err(|e| e.to_string())? {
+        LuaValue::Table(facts) => facts,
+        other => return Err(format!("figures must be a table, got {}", other.type_name())),
+    };
+    let name: String = match facts.get::<LuaValue>("name").map_err(|e| e.to_string())? {
+        LuaValue::String(name) => name.to_str().map_err(|e| e.to_string())?.to_owned(),
+        other => return Err(format!("figures name must be a string, got {}", other.type_name())),
+    };
+    let [start_weight, final_weight, max_range, muzzle_velocity, cruise_velocity, g_max, boost_time, cruise_time, inhibit_time, drag_coefficient, flightpath_deviation, boost_power, sustain_power, sustain_time, diameter, max_altitude] =
+        exact_fields::<16>(
+            lua,
+            &facts,
+            "start_weight,final_weight,max_range,muzzle_velocity,cruise_velocity,g_max,boost_time,cruise_time,inhibit_time,drag_coefficient,flightpath_deviation,boost_power,sustain_power,sustain_time,diameter,max_altitude",
+        )?;
+    let [cruise_time_max_error, detonation_radius, max_seeker_limit, max_launch_angle_error] =
+        exact_fields::<4>(lua, &facts, "cruise_time_max_error,detonation_radius,max_seeker_limit,max_launch_angle_error")?;
+    let [muzzle_velocity_max_error, circular_error_probable, rate_of_fire, inverse_rate_of_fire] = exact_fields::<4>(
+        lua,
+        &facts,
+        "muzzle_velocity_max_error,circular_error_probable,rate_of_fire,inverse_rate_of_fire",
+    )?;
+    let flag = |field: &str| -> Result<bool, String> {
+        match facts.get::<LuaValue>(field).map_err(|e| e.to_string())? {
+            LuaValue::Boolean(value) => Ok(value),
+            other => Err(format!("figures {field} must be a boolean, got {}", other.type_name())),
+        }
+    };
+    let integer = |field: &str| -> Result<i64, String> {
+        match facts.get::<LuaValue>(field).map_err(|e| e.to_string())? {
+            // Lua's integer is i32 on the 32-bit targets and i64 elsewhere; the conversion is the identity on the latter.
+            #[allow(clippy::useless_conversion)]
+            LuaValue::Integer(value) => Ok(i64::from(value)),
+            LuaValue::Number(value) if value.fract() == 0.0 && value.abs() < 4.0e9 => Ok(value as i64),
+            other => Err(format!("figures {field} must be an integer, got {other:?}")),
+        }
+    };
+    // SAFETY: plain data; all-zero is a valid value of every field.
+    let mut figures: flight::Figures = unsafe { std::mem::zeroed() };
+    figures.set_name(&name)?;
+    figures.start_weight = start_weight;
+    figures.final_weight = final_weight;
+    figures.max_range = max_range;
+    figures.muzzle_velocity = muzzle_velocity;
+    figures.cruise_velocity = cruise_velocity;
+    figures.g_max = g_max;
+    figures.boost_time = boost_time;
+    figures.cruise_time = cruise_time;
+    figures.inhibit_time = inhibit_time;
+    figures.drag_coefficient = drag_coefficient;
+    figures.flightpath_deviation = flightpath_deviation;
+    figures.boost_power = boost_power;
+    figures.sustain_power = sustain_power;
+    figures.sustain_time = sustain_time;
+    figures.diameter = diameter;
+    figures.max_altitude = max_altitude;
+    figures.ignore_gravity = i32::from(flag("ignore_gravity")?);
+    figures.flight_profile_or_self_destr = i32::try_from(integer("flight_profile_or_self_destr")?).map_err(|e| e.to_string())?;
+    figures.parachute_type = i32::try_from(integer("parachute_type")?).map_err(|e| e.to_string())?;
+    figures.weapon_class = u32::try_from(integer("weapon_class")?).map_err(|e| e.to_string())?;
+    figures.cruise_time_max_error = cruise_time_max_error;
+    figures.detonation_radius = detonation_radius;
+    figures.max_seeker_limit = max_seeker_limit;
+    figures.max_launch_angle_error = max_launch_angle_error;
+    figures.survive_ground_impact = i32::try_from(integer("survive_ground_impact")?).map_err(|e| e.to_string())?;
+    figures.in_flight_collision_check = i32::try_from(integer("in_flight_collision_check")?).map_err(|e| e.to_string())?;
+    figures.guidance_type = i32::try_from(integer("guidance_type")?).map_err(|e| e.to_string())?;
+    figures.aiming_type = i32::try_from(integer("aiming_type")?).map_err(|e| e.to_string())?;
+    figures.decoy_type = i32::try_from(integer("decoy_type")?).map_err(|e| e.to_string())?;
+    figures.warhead_type = i32::try_from(integer("warhead_type")?).map_err(|e| e.to_string())?;
+    figures.hellfire_ii = i32::try_from(integer("hellfire_ii")?).map_err(|e| e.to_string())?;
+    figures.smoke_grenade = i32::try_from(integer("smoke_grenade")?).map_err(|e| e.to_string())?;
+    figures.submunition_count = i32::try_from(integer("submunition_count")?).map_err(|e| e.to_string())?;
+    figures.submunition_velocity_factor = i32::try_from(integer("submunition_velocity_factor")?).map_err(|e| e.to_string())?;
+    figures.muzzle_velocity_max_error = muzzle_velocity_max_error;
+    figures.circular_error_probable = circular_error_probable;
+    figures.rate_of_fire = rate_of_fire;
+    figures.inverse_rate_of_fire = inverse_rate_of_fire;
+    figures.acquire_forward = i32::try_from(integer("acquire_forward")?).map_err(|e| e.to_string())?;
+    Ok(figures)
+}
+
+/// The scalars `names` (comma-separated field names of `table`, `N` of them) exactly as Lua holds them, in one call: the formatting of
+/// `exact_f64s` for several scalar fields at once, which the aiming exchange (a request per entity per update) makes worth having. The Lua function
+/// for a name list is built once and kept in the registry.
+fn exact_fields<const N: usize>(lua: &Lua, table: &LuaTable, names: &'static str) -> Result<[f32; N], String> {
+    let key = format!("eech_exact_fields:{names}");
+    let format: LuaFunction = match lua.named_registry_value(&key) {
+        Ok(function) => function,
+        Err(_) => {
+            let fields: Vec<&str> = names.split(',').collect();
+            assert_eq!(fields.len(), N, "exact_fields: {names} is not {N} names");
+            let mut code = String::from("return function(t)\n");
+            for (index, field) in fields.iter().enumerate() {
+                code += &format!(
+                    "local v{index} = t.{field}\nif type(v{index}) ~= 'number' or v{index} ~= v{index} or v{index} == math.huge or v{index} == -math.huge then return nil, '{field}' end\n"
+                );
+            }
+            let vars: Vec<String> = (0..N).map(|index| format!("v{index}")).collect();
+            code += &format!("return string.format('{}', {})\nend", "%.17g ".repeat(N), vars.join(", "));
+            let function: LuaFunction = lua.load(code).eval().map_err(|e| e.to_string())?;
+            lua.set_named_registry_value(&key, function.clone()).map_err(|e| e.to_string())?;
+            function
+        }
+    };
+    let (text, bad): (Option<String>, Option<String>) = format.call(table).map_err(|e| e.to_string())?;
+    let Some(text) = text else {
+        return Err(shape(&bad.unwrap_or_default(), 1));
+    };
+    let mut parts = text.split_whitespace();
+    let mut numbers = [0.0f32; N];
+    for (slot, field) in numbers.iter_mut().zip(names.split(',')) {
+        *slot = parts
+            .next()
+            .and_then(|part| part.parse::<f64>().ok())
+            .and_then(nearest_f32)
+            .ok_or_else(|| shape(field, 1))?;
+    }
+    Ok(numbers)
+}
+
+fn shape(field: &str, n: usize) -> String {
+    format!(
+        "{field} must be {}",
+        if n == 1 {
+            "a finite number".to_owned()
+        } else {
+            format!("{n} finite numbers")
+        }
+    )
+}
+
+/// A finite double exactly as Lua holds it, whatever the FPU rounding mode. `exact_f64s` formats at 17 significant digits, and the engine
+/// runs a callback under round-toward-zero, where the C library's formatting truncates instead of rounding: the parsed double can then be one
+/// ulp low. This reads the double in exact steps instead (`math.frexp`, a multiplication by a power of two, a floor, a subtraction: all exact in
+/// any mode) as three integers and rebuilds it with exact scalings.
+fn exact_f64_bits(lua: &Lua, table: &LuaTable, field: &str) -> Result<f64, String> {
+    const KEY: &str = "eech_exact_f64_bits";
+    let split: LuaFunction = match lua.named_registry_value(KEY) {
+        Ok(function) => function,
+        Err(_) => {
+            let function: LuaFunction = lua
+                .load(
+                    "return function(t, f)
+                       local v = t[f]
+                       if type(v) ~= 'number' or v ~= v or v == math.huge or v == -math.huge then return nil end
+                       local m, e = math.frexp(v)
+                       local mi = m * 9007199254740992
+                       local hi = math.floor(mi / 67108864)
+                       local lo = mi - hi * 67108864
+                       return string.format('%d %d %d', hi, lo, e)
+                     end",
+                )
+                .eval()
+                .map_err(|e| e.to_string())?;
+            lua.set_named_registry_value(KEY, function.clone()).map_err(|e| e.to_string())?;
+            function
+        }
+    };
+    let text: Option<String> = split.call((table, field)).map_err(|e| e.to_string())?;
+    let shape = || format!("{field} must be a finite number");
+    let text = text.ok_or_else(shape)?;
+    let mut parts = text.split_whitespace().map(|part| part.parse::<i64>().ok());
+    let (Some(Some(hi)), Some(Some(lo)), Some(Some(exponent))) = (parts.next(), parts.next(), parts.next()) else {
+        return Err(shape());
+    };
+    // the 53-bit significand is exact in an f64; the scaling is split so that a subnormal result is not rounded twice
+    let significand = (hi * 67_108_864 + lo) as f64;
+    let exponent = exponent - 53;
+    let (first, second) = if exponent < -1000 { (-1000, exponent + 1000) } else { (exponent, 0) };
+    Ok(significand * 2f64.powi(first as i32) * 2f64.powi(second as i32))
+}
+
+/// The `N` finite numbers of `exact_numbers`, kept as the `f64` Lua holds, for a value the campaign
+/// itself holds in double (the `frand1 ()` draws), where a narrowing to `f32` would change the result.
+fn exact_f64s<const N: usize>(lua: &Lua, table: &LuaTable, field: &str) -> Result<[f64; N], String> {
+    const KEY: &str = "eech_exact_numbers";
+    let format: LuaFunction = match lua.named_registry_value(KEY) {
+        Ok(function) => function,
+        Err(_) => {
+            let function: LuaFunction = lua
+                .load(
+                    "return function(t, f, n)
+                       local v = t[f]
+                       if n == 1 and type(v) == 'number' then v = { v }
+                       elseif type(v) ~= 'table' or #v ~= n then return nil end
+                       for i = 1, n do
+                         local x = v[i]
+                         if type(x) ~= 'number' or x ~= x or x == math.huge or x == -math.huge then return nil end
+                       end
+                       return string.format(string.rep('%.17g ', n), unpack(v))
+                     end",
+                )
+                .eval()
+                .map_err(|e| e.to_string())?;
+            lua.set_named_registry_value(KEY, function.clone()).map_err(|e| e.to_string())?;
+            function
+        }
+    };
+    let text: Option<String> = format.call((table, field, N)).map_err(|e| e.to_string())?;
+    let text = text.ok_or_else(|| shape(field, N))?;
+    let mut parts = text.split_whitespace();
+    let mut numbers = [0.0f64; N];
+    for slot in &mut numbers {
+        *slot = parts
+            .next()
+            .and_then(|part| part.parse::<f64>().ok())
+            .filter(|value| value.is_finite())
+            .ok_or_else(|| shape(field, N))?;
+    }
+    Ok(numbers)
+}
+
+/// The `f32` nearest `value`, or `None` beyond the `f32` range. A plain `as f32` follows the
+/// FPU rounding mode, and the engine runs a callback under round-toward-zero, where a value a
+/// hair under an `f32` narrows to its neighbour. The cast only picks the neighbourhood; the
+/// nearest of it and the two adjacent `f32`s is taken, the cast's own result winning a tie so a
+/// zero keeps its sign.
+fn nearest_f32(value: f64) -> Option<f32> {
+    if !value.is_finite() || value.abs() > f64::from(f32::MAX) {
+        return None;
+    }
+    let guess = value as f32;
+    [guess, guess.next_down(), guess.next_up()]
+        .into_iter()
+        .filter(|candidate| candidate.is_finite())
+        .min_by(|a, b| (f64::from(*a) - value).abs().total_cmp(&(f64::from(*b) - value).abs()))
+}
+
+fn pose_from(lua: &Lua, table: &LuaTable) -> LuaResult<Pose> {
+    Ok(Pose {
+        position: numbers(lua, table, "position")?,
+        velocity: number(lua, table, "velocity")?,
+        attitude: numbers(lua, table, "attitude")?,
+    })
+}
+
+/// A number a table field may omit (the engine leaves an absent optional out of the step table).
+fn optional_number(lua: &Lua, table: &LuaTable, name: &str) -> LuaResult<Option<f32>> {
+    if table.contains_key(name)? {
+        Ok(Some(number(lua, table, name)?))
+    } else {
+        Ok(None)
+    }
+}
+
+/// The waypoint-kind group a helicopter step names (`EECH_HC_WP_*`). Anything else is refused, not mapped to a neighbour.
+fn helicopter_waypoint_kind(value: i32) -> LuaResult<HelicopterWaypointKind> {
+    match value {
+        0 => Ok(HelicopterWaypointKind::Other),
+        1 => Ok(HelicopterWaypointKind::Route),
+        2 => Ok(HelicopterWaypointKind::Holding),
+        3 => Ok(HelicopterWaypointKind::Landed),
+        4 => Ok(HelicopterWaypointKind::Insertion),
+        other => Err(LuaError::runtime(format!("host.move_vehicle: unknown helicopter waypoint kind {other}"))),
+    }
+}
+
+/// The list a step field holds, in order and uncapped (absent: empty).
+fn list_of_tables(step: &LuaTable, name: &str) -> LuaResult<Vec<LuaTable>> {
+    match step.get::<Option<LuaTable>>(name)? {
+        Some(list) => list.sequence_values::<LuaTable>().collect(),
+        None => Ok(Vec::new()),
+    }
+}
+
+/// The campaign's guidance intent for a hosted helicopter step. Each group member is a table holding its host id (nil
+/// when the roster lacks it).
+fn helicopter_plan_from(lua: &Lua, step: &LuaTable) -> LuaResult<HelicopterPlan> {
+    let mut members = Vec::new();
+    for member in list_of_tables(step, "hc_plan_members")? {
+        members.push(member.get::<Option<String>>("host_id")?);
+    }
+    Ok(HelicopterPlan {
+        group_leader: step.get("hc_group_leader")?,
+        task_leader: step.get("hc_task_leader")?,
+        task_leader_is_self: step.get("hc_task_leader_is_self")?,
+        position_hold: step.get("hc_position_hold")?,
+        terrain_follow: step.get("terrain_follow")?,
+        terrain_follow_attack_altitude: step.get("hc_terrain_follow_attack_altitude")?,
+        waypoint_kind: helicopter_waypoint_kind(step.get("hc_waypoint_kind")?)?,
+        guide_radius: optional_number(lua, step, "hc_guide_radius")?,
+        guide_altitude_valid: step.get("hc_guide_altitude_valid")?,
+        waypoint: numbers(lua, step, "waypoint")?,
+        waypoint_velocity: numbers(lua, step, "hc_waypoint_velocity")?,
+        distance: number(lua, step, "hc_distance")?,
+        terrain_elevation: number(lua, step, "elevation")?,
+        fuel_supply_level: number(lua, step, "hc_fuel_supply_level")?,
+        cruise_velocity: number(lua, step, "hc_cruise_velocity")?,
+        power_output: number(lua, step, "power_output")?,
+        cruise_altitude: number(lua, step, "hc_cruise_altitude")?,
+        attack_altitude: number(lua, step, "hc_attack_altitude")?,
+        leader_radar_altitude: number(lua, step, "hc_leader_radar_altitude")?,
+        map_min: numbers(lua, step, "map_min")?,
+        map_max: numbers(lua, step, "map_max")?,
+        delta_seconds: number(lua, step, "delta_seconds")?,
+        members,
+        motion_vector: numbers(lua, step, "motion_vector_in")?,
+    })
+}
+
+/// The answers to the lookups the host planned: the aircraft's own sector's structures in order and the getter returns of
+/// each terrain sample in call order.
+fn helicopter_guide_from(lua: &Lua, step: &LuaTable) -> LuaResult<HelicopterGuide> {
+    let mut structures = Vec::new();
+    for structure in list_of_tables(step, "hc_structures")? {
+        structures.push(HelicopterStructure {
+            position: numbers(lua, &structure, "position")?,
+            avoidance_radius: number(lua, &structure, "avoidance_radius")?,
+            height: number(lua, &structure, "height")?,
+        });
+    }
+    let mut terrain_samples = Vec::new();
+    for sample in list_of_tables(step, "hc_terrain_samples")? {
+        terrain_samples.push(HelicopterTerrainSample {
+            first: number(lua, &sample, "first")?,
+            second: optional_number(lua, &sample, "second")?,
+        });
+    }
+    Ok(HelicopterGuide {
+        structures,
+        terrain_samples,
+        motion_vector: numbers(lua, step, "motion_vector_in")?,
+    })
+}
+
+/// The steering intent of a hosted helicopter step's second phase: facts, no desired steering.
+fn helicopter_steer_from(lua: &Lua, step: &LuaTable) -> LuaResult<HelicopterSteer> {
+    Ok(HelicopterSteer {
+        delta_seconds: number(lua, step, "delta_seconds")?,
+        max_turn_rate: number(lua, step, "max_turn_rate")?,
+        elevation: number(lua, step, "elevation")?,
+        cg_to_ground: number(lua, step, "cg_to_ground")?,
+        terrain_follow: step.get("terrain_follow")?,
+        map_min: numbers(lua, step, "map_min")?,
+        map_max: numbers(lua, step, "map_max")?,
+        waypoint_kind: helicopter_waypoint_kind(step.get("hc_waypoint_kind")?)?,
+        task_leader_is_self: step.get("hc_task_leader_is_self")?,
+        guide_radius: optional_number(lua, step, "hc_guide_radius")?,
+        required_heading: optional_number(lua, step, "hc_required_heading")?,
+        leader: step.get::<Option<String>>("hc_leader_host_id")?,
+        targeting_active: step.get("hc_targeting_active")?,
+        weapon_vector: numbers(lua, step, "hc_weapon_vector")?,
+        weapon_to_intercept_vector: numbers(lua, step, "hc_weapon_to_intercept_vector")?,
+        g_max: number(lua, step, "g_max")?,
+        main_rotor_shaft_angle: number(lua, step, "hc_main_rotor_shaft_angle")?,
+        motion_vector: numbers(lua, step, "motion_vector_in")?,
+    })
+}
+
+/// The navigation intent a flight step carries: the flags, the parameters, the task leader's identity (nil when the
+/// aircraft leads its task, or its roster lacks it) and the group's other members in list order, each with its
+/// avoidance radius and its identity (nil when the roster lacks it). Whether an unresolved identity matters is the
+/// host's decision, taken only on a path that reads it.
+fn navigation_from(lua: &Lua, step: &LuaTable) -> LuaResult<FixedWingNavigation> {
+    let mut members = Vec::new();
+    for member in step.get::<LuaTable>("members")?.sequence_values::<LuaTable>() {
+        let member = member?;
+        members.push(NavigationMember {
+            host_id: member.get::<Option<String>>("host_id")?,
+            avoidance_radius: number(lua, &member, "avoidance_radius")?,
+        });
+    }
+    Ok(FixedWingNavigation {
+        group_leader: step.get("group_leader")?,
+        task_leader: step.get("task_leader")?,
+        max_vertical_turn_allowance: number(lua, step, "max_vertical_turn_allowance")?,
+        avoidance_radius: number(lua, step, "avoidance_radius")?,
+        leader: step.get::<Option<String>>("leader_host_id")?,
+        members,
+    })
+}
+
+/// The terrain observation a terrain-following fixed-wing step carries (nil when the guide does not follow terrain):
+/// the campaign's `min_height` and selected guide position, the point it sampled and the elevation its terrain service
+/// answered there, and the formation addends applied after the host shapes the height.
+fn fixed_wing_terrain_from(lua: &Lua, step: &LuaTable) -> LuaResult<Option<FixedWingTerrain>> {
+    let Some(terrain) = step.get::<Option<LuaTable>>("fixed_wing_terrain")? else {
+        return Ok(None);
+    };
+    Ok(Some(FixedWingTerrain {
+        min_height: number(lua, &terrain, "min_height")?,
+        guide_position: numbers(lua, &terrain, "guide_position")?,
+        sample_point: numbers(lua, &terrain, "sample_point")?,
+        sample_elevation: number(lua, &terrain, "sample_elevation")?,
+        site_y: number(lua, &terrain, "site_y")?,
+        cg: number(lua, &terrain, "cg")?,
+    }))
+}
+
+/// The fixed-wing phase a step names. The number must be exactly one of the phases: a fraction or
+/// a value out of range is refused, not truncated to a neighbour.
+fn fixed_wing_phase(value: f32) -> LuaResult<FixedWingPhase> {
+    match value {
+        0.0 => Ok(FixedWingPhase::Taxi),
+        1.0 => Ok(FixedWingPhase::Flight),
+        2.0 => Ok(FixedWingPhase::Land),
+        3.0 => Ok(FixedWingPhase::Absolute),
+        other => Err(LuaError::runtime(format!("host.move_vehicle: unknown fixed-wing phase {other}"))),
+    }
+}
+
+/// The helicopter lifecycle step a table carries: every mode reads the campaign's mirror of the host's rotor state and
+/// motion vector, and each reads only the inputs its mode owns.
+fn lifecycle_from(lua: &Lua, step: &LuaTable, mode: LifecycleMode) -> LuaResult<Request> {
+    let mut lifecycle = Lifecycle {
+        mode,
+        rotor: numbers(lua, step, "rotor")?,
+        motion_vector: numbers(lua, step, "motion_vector_in")?,
+        delta_seconds: 0.0,
+        lift: 0.0,
+        power_output: 0.0,
+        flag: false,
+        gravity: 0.0,
+        terrain_class: 0,
+        bury_limit: 0.0,
+        elevation: 0.0,
+        cg_to_ground: 0.0,
+        draws: [0.0; 2],
+        pitch_offset: 0.0,
+        bank_offset: 0.0,
+        signed_speed: 0.0,
+        forest: false,
+        face_normal: [0.0; 3],
+        map_min: [0.0; 3],
+        map_max: [0.0; 3],
+        old_elevation: 0.0,
+        bbox_diagonal: 0.0,
+        wide: false,
+        water: false,
+        waypoint: [0.0; 3],
+        death_timer: 0.0,
+        death_range: 0.0,
+        death_policy: 0,
+    };
+    match mode {
+        LifecycleMode::RotorSet => {}
+        LifecycleMode::RotorAlive => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+            lifecycle.lift = number(lua, step, "lift")?;
+            lifecycle.power_output = number(lua, step, "power_output")?;
+            lifecycle.flag = step.get("flag")?;
+        }
+        LifecycleMode::RotorDown | LifecycleMode::RotorIdle => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+        }
+        LifecycleMode::Fall => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+            lifecycle.map_min = numbers(lua, step, "map_min")?;
+            lifecycle.map_max = numbers(lua, step, "map_max")?;
+        }
+        LifecycleMode::FallGravity => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+            lifecycle.gravity = number(lua, step, "gravity")?;
+        }
+        LifecycleMode::Contact => {
+            lifecycle.flag = step.get("flag")?;
+            lifecycle.elevation = number(lua, step, "elevation")?;
+            lifecycle.cg_to_ground = number(lua, step, "cg_to_ground")?;
+        }
+        LifecycleMode::Settle => {
+            lifecycle.terrain_class = step.get("terrain_class")?;
+            lifecycle.elevation = number(lua, step, "elevation")?;
+            lifecycle.cg_to_ground = number(lua, step, "cg_to_ground")?;
+            lifecycle.bury_limit = number(lua, step, "bury_limit")?;
+        }
+        LifecycleMode::Tumble => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+            lifecycle.draws = exact_f64s(lua, step, "draws").map_err(|e| LuaError::runtime(format!("host.move_vehicle: {e}")))?;
+        }
+        LifecycleMode::CrashBegin => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+            lifecycle.face_normal = numbers(lua, step, "face_normal")?;
+            lifecycle.pitch_offset = number(lua, step, "pitch_offset")?;
+            lifecycle.bank_offset = number(lua, step, "bank_offset")?;
+            lifecycle.map_min = numbers(lua, step, "map_min")?;
+            lifecycle.map_max = numbers(lua, step, "map_max")?;
+        }
+        LifecycleMode::CrashEnd => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+            lifecycle.face_normal = numbers(lua, step, "face_normal")?;
+            lifecycle.forest = step.get("forest")?;
+            lifecycle.elevation = number(lua, step, "elevation")?;
+            lifecycle.cg_to_ground = number(lua, step, "cg_to_ground")?;
+        }
+        LifecycleMode::Impact | LifecycleMode::GvImpact => {
+            lifecycle.signed_speed = number(lua, step, "signed_speed")?;
+        }
+        LifecycleMode::GvDeathCandidate | LifecycleMode::GvFallCandidate => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+        }
+        LifecycleMode::GvDeathDecay => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+            lifecycle.waypoint = numbers(lua, step, "waypoint")?;
+            lifecycle.elevation = number(lua, step, "elevation")?;
+            lifecycle.cg_to_ground = number(lua, step, "cg_to_ground")?;
+            lifecycle.wide = step.get("wide")?;
+        }
+        LifecycleMode::GvFallGravity => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+            lifecycle.gravity = number(lua, step, "gravity")?;
+        }
+        LifecycleMode::GvFallSettle => {
+            lifecycle.waypoint = numbers(lua, step, "waypoint")?;
+            lifecycle.water = step.get("water")?;
+            lifecycle.old_elevation = number(lua, step, "old_elevation")?;
+            lifecycle.elevation = number(lua, step, "elevation")?;
+            lifecycle.cg_to_ground = number(lua, step, "cg_to_ground")?;
+            lifecycle.bbox_diagonal = number(lua, step, "bbox_diagonal")?;
+        }
+        LifecycleMode::ShipSink => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+        }
+        LifecycleMode::Expire => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+            lifecycle.death_timer = number(lua, step, "death_timer")?;
+            lifecycle.death_range = number(lua, step, "death_range")?;
+            lifecycle.death_policy = step.get("death_policy")?;
+            lifecycle.bbox_diagonal = number(lua, step, "bbox_diagonal")?;
+        }
+        LifecycleMode::VehicleVectorSeed | LifecycleMode::GvFallVector | LifecycleMode::GvFallCommit => {}
+        LifecycleMode::FwSettle => {
+            lifecycle.terrain_class = step.get("terrain_class")?;
+            lifecycle.elevation = number(lua, step, "elevation")?;
+            lifecycle.cg_to_ground = number(lua, step, "cg_to_ground")?;
+            lifecycle.bury_limit = number(lua, step, "bury_limit")?;
+        }
+        LifecycleMode::FwDeathAttitude => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+            lifecycle.elevation = number(lua, step, "elevation")?;
+            lifecycle.signed_speed = number(lua, step, "signed_speed")?;
+            lifecycle.flag = step.get("flag")?;
+            lifecycle.draws = exact_f64s(lua, step, "draws").map_err(|e| LuaError::runtime(format!("host.move_vehicle: {e}")))?;
+        }
+        LifecycleMode::FwCrashCandidate => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+            lifecycle.map_min = numbers(lua, step, "map_min")?;
+            lifecycle.map_max = numbers(lua, step, "map_max")?;
+        }
+        LifecycleMode::FwCrashVelocity => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+            lifecycle.face_normal = numbers(lua, step, "face_normal")?;
+            lifecycle.forest = step.get("forest")?;
+            lifecycle.elevation = number(lua, step, "elevation")?;
+            lifecycle.cg_to_ground = number(lua, step, "cg_to_ground")?;
+        }
+        LifecycleMode::FwCrashAttitude => {
+            lifecycle.delta_seconds = number(lua, step, "delta_seconds")?;
+            lifecycle.face_normal = numbers(lua, step, "face_normal")?;
+            lifecycle.pitch_offset = number(lua, step, "pitch_offset")?;
+            lifecycle.bank_offset = number(lua, step, "bank_offset")?;
+        }
+    }
+    Ok(Request::Lifecycle(lifecycle))
+}
+
+/// The movement request a step table carries, with the campaign's copy of the pose.
+fn movement_from(lua: &Lua, step: &LuaTable) -> LuaResult<(String, Pose, Request)> {
+    let host_id: String = step.get("host_id")?;
+    let pose = pose_from(lua, &step.get::<LuaTable>("pose")?)?;
+    let mode: String = step.get("mode")?;
+    let request = match mode.as_str() {
+        "stop" => Request::Stop,
+        "place" => Request::Place {
+            motion_vector: numbers(lua, step, "motion_vector_in")?,
+        },
+        "create_place" => Request::Create(Creation {
+            position: pose.position,
+            cg_to_ground: number(lua, step, "cg_to_ground")?,
+            heading: number(lua, step, "desired_heading")?,
+            fuselage_angle: number(lua, step, "fuselage_angle")?,
+            face_normal: numbers(lua, step, "face_normal")?,
+            motion_vector: numbers(lua, step, "motion_vector_in")?,
+        }),
+        "ship_move" => Request::ShipMove(ShipMove {
+            delta_seconds: number(lua, step, "delta_seconds")?,
+            frame_delta: number(lua, step, "frame_delta")?,
+            guide_velocity: number(lua, step, "desired_velocity")?,
+            max_acceleration: number(lua, step, "max_acceleration")?,
+            g_max: number(lua, step, "g_max")?,
+            waypoint: numbers(lua, step, "waypoint")?,
+            map_min: numbers(lua, step, "map_min")?,
+            map_max: numbers(lua, step, "map_max")?,
+        }),
+        "person_begin" => Request::PersonBegin(PersonBegin {
+            delta_seconds: number(lua, step, "delta_seconds")?,
+            ps_vel: number(lua, step, "ps_vel")?,
+            waypoint: numbers(lua, step, "waypoint")?,
+            terrain_follow: step.get("terrain_follow")?,
+        }),
+        "fixed_wing_move" => {
+            let phase = fixed_wing_phase(number(lua, step, "phase")?)?;
+            Request::FixedWingMove(FixedWingMove {
+                phase,
+                delta_seconds: number(lua, step, "delta_seconds")?,
+                frame_delta: number(lua, step, "frame_delta")?,
+                wp_vel: number(lua, step, "desired_velocity")?,
+                cruise_velocity: number(lua, step, "cruise_velocity")?,
+                g_max: number(lua, step, "g_max")?,
+                fuselage_angle: number(lua, step, "fuselage_angle")?,
+                cg_to_ground: number(lua, step, "cg_to_ground")?,
+                max_roll: number(lua, step, "max_roll")?,
+                waypoint: numbers(lua, step, "waypoint")?,
+                aiming_cannon: step.get("aiming_cannon")?,
+                elapsed_time: number(lua, step, "elapsed_time")?,
+                navigation: match phase {
+                    FixedWingPhase::Flight | FixedWingPhase::Land => Some(navigation_from(lua, step)?),
+                    _ => None,
+                },
+                terrain: fixed_wing_terrain_from(lua, step)?,
+                motion_vector: numbers(lua, step, "motion_vector_in")?,
+                navigating: step.get("navigating")?,
+                elevation: number(lua, step, "elevation")?,
+                tacview_logging: step.get("tacview_logging")?,
+                map_min: numbers(lua, step, "map_min")?,
+                map_max: numbers(lua, step, "map_max")?,
+            })
+        }
+        "helicopter_begin" => Request::HelicopterBegin(HelicopterBegin {
+            delta_seconds: number(lua, step, "delta_seconds")?,
+            acceleration_x: number(lua, step, "acceleration_x")?,
+            acceleration_z: number(lua, step, "acceleration_z")?,
+            wp_vec_y: number(lua, step, "wp_vec_y")?,
+            motion_vector: numbers(lua, step, "motion_vector_in")?,
+        }),
+        "helicopter_end" => Request::HelicopterEnd(HelicopterEnd {
+            delta_seconds: number(lua, step, "delta_seconds")?,
+            desired_heading: number(lua, step, "desired_heading")?,
+            max_turn_rate: number(lua, step, "max_turn_rate")?,
+            desired_pitch: number(lua, step, "desired_pitch")?,
+            desired_roll: number(lua, step, "desired_roll")?,
+            elevation: number(lua, step, "elevation")?,
+            cg_to_ground: number(lua, step, "cg_to_ground")?,
+            terrain_follow: step.get("terrain_follow")?,
+            motion_vector: numbers(lua, step, "motion_vector_in")?,
+            map_min: numbers(lua, step, "map_min")?,
+            map_max: numbers(lua, step, "map_max")?,
+        }),
+        "helicopter_plan" => Request::HelicopterPlan(Box::new(helicopter_plan_from(lua, step)?)),
+        "helicopter_guide" => Request::HelicopterGuide(helicopter_guide_from(lua, step)?),
+        "helicopter_guided_begin" => Request::HelicopterGuidedBegin {
+            motion_vector: numbers(lua, step, "motion_vector_in")?,
+        },
+        "helicopter_guided_end" => Request::HelicopterGuidedEnd(helicopter_steer_from(lua, step)?),
+        "helicopter_abandon" => Request::HelicopterAbandon,
+        "fixed_wing_lookahead" => Request::FixedWingLookahead,
+        "dependent_carry" => Request::DependentCarry(DependentCarry {
+            parent: step.get("dc_parent")?,
+            shape: if step.get("dc_helicopter")? {
+                CarryShape::Helicopter
+            } else {
+                CarryShape::Position
+            },
+            parent_old: numbers(lua, step, "dc_parent_old")?,
+            parent_new: numbers(lua, step, "dc_parent_new")?,
+            heading: number(lua, step, "dc_heading")?,
+            velocity: number(lua, step, "dc_velocity")?,
+        }),
+        "person_face" => Request::PersonFace(PersonFace {
+            target: numbers(lua, step, "pf_target")?,
+        }),
+        "person_end" => Request::PersonEnd(PersonEnd {
+            elevation: number(lua, step, "elevation")?,
+        }),
+        "move" => Request::Advance(Advance {
+            delta_seconds: number(lua, step, "delta_seconds")?,
+            desired_velocity: number(lua, step, "desired_velocity")?,
+            max_acceleration: number(lua, step, "max_acceleration")?,
+            waypoint: numbers(lua, step, "waypoint")?,
+            tacview_logging: step.get("tacview_logging")?,
+            terrain: match step.get::<Option<LuaTable>>("terrain")? {
+                Some(terrain) => Some(Terrain {
+                    elevation: number(lua, &terrain, "elevation")?,
+                    forest: terrain.get("forest")?,
+                    face_normal: numbers(lua, &terrain, "face_normal")?,
+                }),
+                None => None,
+            },
+            map_min: numbers(lua, step, "map_min")?,
+            map_max: numbers(lua, step, "map_max")?,
+        }),
+        "rotor_set" => lifecycle_from(lua, step, LifecycleMode::RotorSet)?,
+        "rotor_alive" => lifecycle_from(lua, step, LifecycleMode::RotorAlive)?,
+        "rotor_down" => lifecycle_from(lua, step, LifecycleMode::RotorDown)?,
+        "rotor_idle" => lifecycle_from(lua, step, LifecycleMode::RotorIdle)?,
+        "fall" => lifecycle_from(lua, step, LifecycleMode::Fall)?,
+        "fall_gravity" => lifecycle_from(lua, step, LifecycleMode::FallGravity)?,
+        "contact" => lifecycle_from(lua, step, LifecycleMode::Contact)?,
+        "settle" => lifecycle_from(lua, step, LifecycleMode::Settle)?,
+        "tumble" => lifecycle_from(lua, step, LifecycleMode::Tumble)?,
+        "crash_begin" => lifecycle_from(lua, step, LifecycleMode::CrashBegin)?,
+        "crash_end" => lifecycle_from(lua, step, LifecycleMode::CrashEnd)?,
+        "impact" => lifecycle_from(lua, step, LifecycleMode::Impact)?,
+        "gv_death_candidate" => lifecycle_from(lua, step, LifecycleMode::GvDeathCandidate)?,
+        "gv_death_decay" => lifecycle_from(lua, step, LifecycleMode::GvDeathDecay)?,
+        "gv_fall_candidate" => lifecycle_from(lua, step, LifecycleMode::GvFallCandidate)?,
+        "gv_fall_gravity" => lifecycle_from(lua, step, LifecycleMode::GvFallGravity)?,
+        "gv_fall_settle" => lifecycle_from(lua, step, LifecycleMode::GvFallSettle)?,
+        "gv_impact" => lifecycle_from(lua, step, LifecycleMode::GvImpact)?,
+        "ship_sink" => lifecycle_from(lua, step, LifecycleMode::ShipSink)?,
+        "vehicle_vector_seed" => lifecycle_from(lua, step, LifecycleMode::VehicleVectorSeed)?,
+        "fw_death_attitude" => lifecycle_from(lua, step, LifecycleMode::FwDeathAttitude)?,
+        "fw_crash_candidate" => lifecycle_from(lua, step, LifecycleMode::FwCrashCandidate)?,
+        "fw_crash_velocity" => lifecycle_from(lua, step, LifecycleMode::FwCrashVelocity)?,
+        "gv_fall_vector" => lifecycle_from(lua, step, LifecycleMode::GvFallVector)?,
+        "gv_fall_commit" => lifecycle_from(lua, step, LifecycleMode::GvFallCommit)?,
+        "fw_settle" => lifecycle_from(lua, step, LifecycleMode::FwSettle)?,
+        "fw_crash_attitude" => lifecycle_from(lua, step, LifecycleMode::FwCrashAttitude)?,
+        "expire" => lifecycle_from(lua, step, LifecycleMode::Expire)?,
+        other => return Err(LuaError::runtime(format!("host.move_vehicle: unknown mode {other}"))),
+    };
+    Ok((host_id, pose, request))
+}
+
+fn segment_perpendicular_distance(a: [f32; 3], b: [f32; 3], c: [f32; 3]) -> f32 {
+    let mut ab = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+    // The legacy helper calls the C double-precision maths functions and
+    // stores each result back into a float. Preserve those conversion points.
+    let mag_ab = f64::from(ab[0] * ab[0] + ab[1] * ab[1] + ab[2] * ab[2]).sqrt() as f32;
+    if mag_ab == 0.0 {
+        return f32::MAX;
+    }
+    let inverse_ab = 1.0 / mag_ab;
+    for value in &mut ab {
+        *value *= inverse_ab;
+    }
+    let mut ac = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
+    let mag_ac = f64::from(ac[0] * ac[0] + ac[1] * ac[1] + ac[2] * ac[2]).sqrt() as f32;
+    if mag_ac == 0.0 {
+        return f32::MAX;
+    }
+    let inverse_ac = 1.0 / mag_ac;
+    for value in &mut ac {
+        *value *= inverse_ac;
+    }
+    let cosine = ab[0] * ac[0] + ab[1] * ac[1] + ab[2] * ac[2];
+    if cosine < 0.0 || mag_ac * cosine > mag_ab {
+        return f32::MAX;
+    }
+    let theta = f64::from(cosine).acos() as f32;
+    (f64::from(mag_ac) * f64::from(theta).sin()) as f32
+}
+
+/// What the reference host answers: the physical gates and, where the
+/// campaign's weapon-vector tolerance applies, the launch angle error. The
+/// campaign keeps the random tolerance and the weapon limit.
+#[derive(Debug, PartialEq)]
+struct Answer {
+    gates_passed: bool,
+    launch_angle_error: Option<f32>,
+    /// The HEADING gate was reached on a TARGET waypoint whose task or target is absent.
+    heading_target_missing: bool,
+}
+
+impl Answer {
+    fn denied() -> Self {
+        Self {
+            gates_passed: false,
+            launch_angle_error: None,
+            heading_target_missing: false,
+        }
+    }
+
+    fn passed(launch_angle_error: Option<f32>) -> Self {
+        Self {
+            gates_passed: true,
+            launch_angle_error,
+            heading_target_missing: false,
+        }
+    }
+
+    fn target_missing() -> Self {
+        Self {
+            gates_passed: false,
+            launch_angle_error: None,
+            heading_target_missing: true,
+        }
+    }
+}
+
+/// The heading the guide requires, derived from the copied facts as the original
+/// get_guide_required_heading did. None: a TARGET waypoint has no task-dependent target.
+fn required_heading(descriptor: &LuaTable) -> LuaResult<Option<f32>> {
+    let source: String = descriptor
+        .get::<Option<String>>("heading_source")?
+        .ok_or_else(|| LuaError::runtime("host.supply_reached: the heading source is unavailable"))?;
+    let waypoint: f32 = descriptor.get("waypoint_heading")?;
+    match source.as_str() {
+        "zero" => Ok(Some(0.0)),
+        "waypoint" => Ok(Some(waypoint)),
+        "target" => {
+            if !descriptor.get::<bool>("heading_target_present")? {
+                return Ok(None);
+            }
+            // Without both positions the original falls back to the waypoint heading.
+            let Some(target) = descriptor.get::<Option<LuaTable>>("heading_target_position")? else {
+                return Ok(Some(waypoint));
+            };
+            let position = vector3(descriptor, "position")?;
+            let (x, z): (f32, f32) = (target.get(1)?, target.get(3)?);
+            Ok(Some(f64::atan2(f64::from(x - position[0]), f64::from(z - position[2])) as f32))
+        }
+        other => Err(LuaError::runtime(format!("host.supply_reached: unknown heading source {other}"))),
+    }
+}
+
+/// The original `bound (x, -1, 1)`: an unordered value passes through.
+fn bound_unit(value: f32) -> f32 {
+    value.clamp(-1.0, 1.0)
+}
+
+/// The angle EECH computes between the weapon and intercept vectors. The
+/// C double-precision `acos` result is stored back into a float.
+fn launch_angle_error(descriptor: &LuaTable) -> LuaResult<f32> {
+    let weapon = vector3(descriptor, "weapon_vector")?;
+    let intercept = vector3(descriptor, "intercept_vector")?;
+    let dot = bound_unit(weapon[0] * intercept[0] + weapon[1] * intercept[1] + weapon[2] * intercept[2]);
+    Ok(f64::from(dot).acos() as f32)
+}
+
+/// The weapon-vector angle is reported when the rule applies and both vectors are present.
+fn weapon_angle(descriptor: &LuaTable) -> LuaResult<Option<f32>> {
+    if descriptor.get::<bool>("weapon_gate")? && descriptor.get::<bool>("vectors_valid")? {
+        return Ok(Some(launch_angle_error(descriptor)?));
+    }
+    Ok(None)
+}
+
+fn require(descriptor: &LuaTable, flag: &str, what: &str) -> LuaResult<()> {
+    if descriptor.get::<bool>(flag)? {
+        return Ok(());
+    }
+    Err(LuaError::runtime(format!("host.supply_reached: {what} criterion is missing")))
+}
+
+/// Original fixed-wing predicate: landed, then the radius early-out and
+/// pass-through, then the weapon vector (ALTITUDE and HEADING are not used).
+#[allow(clippy::neg_cmp_op_on_partial_ord)] // Legacy predicates reject only greater values, so unordered values pass.
+fn fixed_wing_reached(descriptor: &LuaTable) -> LuaResult<Answer> {
+    if descriptor.get::<bool>("landed")? {
+        return Ok(Answer::denied());
+    }
+    if descriptor.get::<bool>("radius_valid")? {
+        let radius: f32 = descriptor.get("radius")?;
+        let distance: f32 = descriptor.get("distance")?;
+        let velocity: f32 = descriptor.get("velocity")?;
+        if distance - velocity > radius {
+            return Ok(Answer::denied());
+        }
+        if !(distance <= radius) {
+            let position = vector3(descriptor, "position")?;
+            let motion = vector3(descriptor, "motion")?;
+            let guide = vector3(descriptor, "guide_position")?;
+            let delta: f32 = descriptor.get("delta_seconds")?;
+            let direction = if descriptor.get::<bool>("updated")? { -1.0 } else { 1.0 };
+            let other = [
+                position[0] + direction * motion[0] * delta,
+                position[1] + direction * motion[1] * delta,
+                position[2] + direction * motion[2] * delta,
+            ];
+            // The original accepts an unordered (NaN) distance because its
+            // only rejecting comparison is `range > radius`.
+            if segment_perpendicular_distance(position, other, guide) > radius {
+                return Ok(Answer::denied());
+            }
+        }
+    }
+    Ok(Answer::passed(weapon_angle(descriptor)?))
+}
+
+/// Original helicopter predicate, branch for branch: player skip, AI landed,
+/// rotor spin-up, then the leader's radius/altitude/heading/weapon-vector
+/// gates or a follower's last-to-reach cohesion.
+#[allow(clippy::neg_cmp_op_on_partial_ord)] // Legacy predicates reject only greater values, so unordered values pass.
+fn helicopter_reached(descriptor: &LuaTable) -> LuaResult<Answer> {
+    let is_ai: bool = descriptor.get("is_ai")?;
+    if !is_ai {
+        if descriptor.get::<bool>("player_skip_waypoint")? {
+            return Ok(Answer::passed(None));
+        }
+    } else if descriptor.get::<bool>("landed")? {
+        return Ok(Answer::denied());
+    }
+    if descriptor.get::<f32>("rotor_spin_up_seconds")? > 0.0 && is_ai {
+        return Ok(Answer::denied());
+    }
+
+    if !descriptor.get::<bool>("is_task_leader")? {
+        require(descriptor, "last_to_reach_valid", "last-to-reach")?;
+        if descriptor.get::<bool>("leader_is_ai")? {
+            let position = vector3(descriptor, "position")?;
+            let leader = vector3(descriptor, "leader_position")?;
+            let dx = position[0] - leader[0];
+            let dz = position[2] - leader[2];
+            if dx * dx + dz * dz > 750.0 * 750.0 {
+                return Ok(Answer::denied());
+            }
+        }
+        return Ok(Answer::passed(None));
+    }
+
+    if descriptor.get::<bool>("radius_valid")? && descriptor.get::<f32>("distance")? > descriptor.get::<f32>("radius")? {
+        return Ok(Answer::denied());
+    }
+    if descriptor.get::<bool>("altitude_valid")? {
+        if !is_ai && descriptor.get::<bool>("landing_waypoint")? && !descriptor.get::<bool>("auto_pilot")? {
+            // An unassisted human must be on the ground at a landing or troop-insert waypoint.
+            if descriptor.get::<bool>("airborne")? {
+                return Ok(Answer::denied());
+            }
+        } else {
+            let mut error: f32 = descriptor.get("altitude")?;
+            error -= descriptor.get::<f32>("centre_of_gravity_to_ground")?;
+            error -= descriptor.get::<f32>("guide_altitude")?;
+            if error.abs() > descriptor.get::<f32>("altitude_criterion")? {
+                return Ok(Answer::denied());
+            }
+        }
+    }
+    if is_ai && descriptor.get::<bool>("heading_valid")? {
+        let Some(required) = required_heading(descriptor)? else {
+            return Ok(Answer::target_missing());
+        };
+        let mut delta = required - descriptor.get::<f32>("heading")?;
+        let pi = std::f32::consts::PI;
+        if delta < -pi {
+            delta += pi * 2.0;
+        } else if delta > pi {
+            delta -= pi * 2.0;
+        }
+        if delta.abs() > descriptor.get::<f32>("heading_criterion")? {
+            return Ok(Answer::denied());
+        }
+    }
+    Ok(Answer::passed(weapon_angle(descriptor)?))
+}
+
+/// Original vehicle, ship, anti-aircraft and person predicate: landed, radius,
+/// then altitude against the guide height (no centre-of-gravity term).
+#[allow(clippy::neg_cmp_op_on_partial_ord)] // Legacy predicates reject only greater values, so unordered values pass.
+fn vehicle_reached(descriptor: &LuaTable) -> LuaResult<Answer> {
+    if descriptor.get::<bool>("landed")? {
+        return Ok(Answer::denied());
+    }
+    if descriptor.get::<bool>("radius_valid")? && descriptor.get::<f32>("distance")? > descriptor.get::<f32>("radius")? {
+        return Ok(Answer::denied());
+    }
+    if descriptor.get::<bool>("altitude_valid")? {
+        let error = descriptor.get::<f32>("altitude")? - descriptor.get::<f32>("guide_altitude")?;
+        if error.abs() > descriptor.get::<f32>("altitude_criterion")? {
+            return Ok(Answer::denied());
+        }
+    }
+    Ok(Answer::passed(None))
+}
+
+/// Reference-host implementation of EECH's original physical arrival and
+/// proximity predicates: each mobile kind's reached-waypoint criteria, the
+/// waypoint action radius and the helicopter recon radius. The DLL supplies
+/// raw facts; this host computes the physical verdict.
+#[allow(clippy::neg_cmp_op_on_partial_ord)] // Legacy predicates reject only greater values, so unordered values pass.
+fn supply_reached(descriptor: LuaTable) -> LuaResult<Answer> {
+    let _: u64 = descriptor.get("member_key")?;
+    let _: u64 = descriptor.get("task_key")?;
+    let _: u64 = descriptor.get("waypoint_key")?;
+    let _: String = descriptor.get("host_id")?;
+    let waypoint: String = descriptor.get("waypoint")?;
+    if !matches!(
+        waypoint.as_str(),
+        "pick_up" | "prepare_for_drop_off" | "drop_off" | "finish_drop_off" | "radius_arrival"
+    ) {
+        return Err(LuaError::runtime(format!("host.supply_reached: unsupported waypoint {waypoint:?}")));
+    }
+    let query: String = descriptor.get("query")?;
+    let mobile: String = descriptor.get("mobile")?;
+    match (query.as_str(), mobile.as_str()) {
+        ("reached", "fixed_wing") => fixed_wing_reached(&descriptor),
+        ("reached", "helicopter") => helicopter_reached(&descriptor),
+        ("reached", "routed_vehicle" | "ship_vehicle" | "anti_aircraft" | "person") => vehicle_reached(&descriptor),
+        ("action", _) => {
+            // The leader is inside the action radius unless it is farther away.
+            let inside = !(descriptor.get::<f32>("distance")? > descriptor.get::<f32>("action_radius")?);
+            Ok(if inside { Answer::passed(None) } else { Answer::denied() })
+        }
+        ("recon", "helicopter") => {
+            // Strictly inside the squared 2D range, so a helicopter exactly on the radius is outside.
+            let position = vector3(&descriptor, "position")?;
+            let waypoint = vector3(&descriptor, "waypoint_position")?;
+            let radius: f32 = descriptor.get("action_radius")?;
+            let dx = position[0] - waypoint[0];
+            let dz = position[2] - waypoint[2];
+            Ok(if dx * dx + dz * dz < radius * radius {
+                Answer::passed(None)
+            } else {
+                Answer::denied()
+            })
+        }
+        _ => Err(LuaError::runtime(format!(
+            "host.supply_reached: unsupported {query:?} query for mobile {mobile:?}"
+        ))),
+    }
+}
+
+impl Recording {
+    fn record(&mut self, time: f64, objects: LuaTable) -> LuaResult<()> {
+        self.pass += 1;
+        let pass = self.pass;
+        self.out.frame(time).map_err(LuaError::external)?;
+        for o in objects.sequence_values::<LuaTable>() {
+            let o = o?;
+            let id: i64 = o.get("id")?;
+            let kind: String = o.get("kind")?;
+            let sub_type: i64 = o.get("sub_type")?;
+            let alive: bool = o.get("alive")?;
+            let side: String = o.get("side")?;
+            let type_name: String = o.get("type_name")?;
+            let name: Option<String> = o.get("name")?;
+            let position: Vec<f64> = o.get("position")?;
+            let (heading, pitch, roll): (f64, f64, f64) = (o.get("heading")?, o.get("pitch")?, o.get("roll")?);
+            // a new object, or an entity index reused by a different object
+            let fresh = match self.tracked.get(&id) {
+                Some(t) => t.kind != kind || t.sub_type != sub_type || (!t.alive && alive),
+                None => true,
+            };
+            if fresh {
+                if let Some(old) = self.tracked.remove(&id) {
+                    self.out.remove(old.acmi).map_err(LuaError::external)?;
+                }
+                if !alive {
+                    continue;
+                }
+                let acmi = self.next_id;
+                self.next_id += 1;
+                let (coalition, color) = match side.as_str() {
+                    "blue" => ("United States", "Blue"),
+                    "red" => ("Russia", "Red"),
+                    _ => ("Neutral", "Grey"),
+                };
+                let display = if kind == "keysite" {
+                    name.clone().unwrap_or_else(|| type_name.clone())
+                } else {
+                    type_name.clone()
+                };
+                let group = if kind == "keysite" { None } else { name.as_deref() };
+                self.out
+                    .declare(
+                        acmi,
+                        &ObjectInfo {
+                            kind: tacview_type(&kind, &type_name),
+                            name: &display,
+                            coalition,
+                            color,
+                            group,
+                            callsign: group,
+                        },
+                    )
+                    .map_err(LuaError::external)?;
+                *self.stats.entry(if kind == "weapon" { "weapons launched" } else { "objects" }).or_default() += 1;
+                self.tracked.insert(
+                    id,
+                    Tracked {
+                        acmi,
+                        kind: kind.clone(),
+                        sub_type,
+                        alive,
+                        seen: pass,
+                        last: None,
+                    },
+                );
+            }
+            let Some(t) = self.tracked.get_mut(&id) else { continue };
+            t.seen = pass;
+            let (x, y, z) = (
+                position.first().copied().unwrap_or(0.0),
+                position.get(1).copied().unwrap_or(0.0),
+                position.get(2).copied().unwrap_or(0.0),
+            );
+            if kind == "keysite" {
+                if fresh {
+                    self.out.update(t.acmi, x, y, z, None).map_err(LuaError::external)?;
+                }
+                continue;
+            }
+            // EECH: heading from atan2 of the forward vector's (x, z): 0 north, clockwise
+            let h = heading.to_degrees().rem_euclid(360.0);
+            let moved = match t.last {
+                Some([lx, ly, lz, lh]) => {
+                    (lx - x).abs() > 0.5 || (ly - y).abs() > 0.5 || (lz - z).abs() > 0.5 || ((lh - h + 540.0).rem_euclid(360.0) - 180.0).abs() > 1.0
+                }
+                None => true,
+            };
+            if moved || t.alive != alive {
+                self.out
+                    .update_attitude(t.acmi, x, y, z, -roll.to_degrees(), pitch.to_degrees(), h)
+                    .map_err(LuaError::external)?;
+                t.last = Some([x, y, z, h]);
+            }
+            if t.alive && !alive {
+                t.alive = false;
+                self.out
+                    .event("Destroyed", &[t.acmi], &format!("{type_name} destroyed"))
+                    .map_err(LuaError::external)?;
+                *self.stats.entry("destroyed").or_default() += 1;
+            }
+        }
+        // objects no longer reported: weapons that hit or expired, entities removed
+        // (sorted: the map's iteration order differs between processes)
+        let mut gone: Vec<i64> = self.tracked.iter().filter(|(_, t)| t.seen != pass).map(|(id, _)| *id).collect();
+        gone.sort_unstable();
+        for id in gone {
+            if let Some(t) = self.tracked.remove(&id) {
+                self.out.remove(t.acmi).map_err(LuaError::external)?;
+            }
+        }
+        Ok(())
+    }
+}
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let argv: Vec<String> = std::env::args().collect();
+    crash::install();
+    let Some(script) = argv.get(1) else {
+        return Err("usage: eech-world <script.lua> [key=value ...]".into());
+    };
+    // the DC DLL sits next to this executable (cargo's target directory)
+    let exe_dir = std::env::current_exe()?.parent().map(|p| p.to_path_buf()).unwrap_or_default();
+
+    // a host that allows C modules, as a simulator host does (mlua's safe mode refuses them)
+    let lua = unsafe { Lua::unsafe_new() };
+    // '/' separators: a Windows path's '\' would be escapes in the Lua string
+    let dir = exe_dir.to_string_lossy().replace('\\', "/");
+    lua.load(format!("package.cpath = '{dir}/?.dll;{dir}/lib?.so;{dir}/?.so;' .. package.cpath"))
+        .exec()?;
+
+    let host = lua.create_table()?;
+    let args = lua.create_table()?;
+    for a in argv.iter().skip(2) {
+        if let Some((k, v)) = a.split_once('=') {
+            args.set(k, v)?;
+        }
+    }
+    host.set("args", args)?;
+    // the host's own terrain (EEDCS-47): host.terrain_open { terrain_dir = ... } loads a map and returns the provider for it
+    terrain::install(&lua, &host)?;
+    host.set(
+        "log",
+        lua.create_function(|_, message: String| {
+            eprintln!("[campaign] {message}");
+            Ok(())
+        })?,
+    )?;
+
+    // The reference host issues opaque identities outside the campaign DLL.
+    // Physical creation is still transitional and DLL-resident; this callback
+    // makes the selected host participate without deriving identity from EECH's
+    // reused entity index.
+    let next_host_id = Rc::new(Cell::new(1_u64));
+    // The host's physical record of each alive ground vehicle, ship and infantryman, keyed by the identity issued below.
+    let movers = Rc::new(RefCell::new(Movers::default()));
+    {
+        let next_host_id = next_host_id.clone();
+        let movers = movers.clone();
+        host.set(
+            "bind_mobile",
+            lua.create_function(move |lua, descriptor: LuaTable| {
+                // Reading the semantic descriptor also rejects a mismatched adapter contract.
+                let _: u64 = descriptor.get("member_key")?;
+                let _: u64 = descriptor.get("group_key")?;
+                let _: i64 = descriptor.get("entity_id")?;
+                let _: i64 = descriptor.get("entity_type")?;
+                let _: i64 = descriptor.get("sub_type")?;
+                let _: String = descriptor.get("side")?;
+                let id = next_host_id.get();
+                let Some(next) = id.checked_add(1) else {
+                    return Err(LuaError::runtime("host.bind_mobile: identity counter exhausted"));
+                };
+                next_host_id.set(next);
+                let host_id = format!("eech-world:{id}");
+                // a mobile the host moves arrives with the pose that starts its record
+                if let Some(pose) = descriptor.get::<Option<LuaTable>>("pose")? {
+                    let kind = match descriptor.get::<i64>("movement_kind")? {
+                        1 => Kind::Routed,
+                        2 => Kind::Ship,
+                        3 => Kind::Person,
+                        4 => Kind::FixedWing,
+                        5 => Kind::Helicopter,
+                        other => return Err(LuaError::runtime(format!("host.bind_mobile: unknown movement_kind {other}"))),
+                    };
+                    // an aircraft's motion vector is physical state the host retains: the seed is explicit
+                    let motion_vector = match descriptor.get::<Option<LuaTable>>("motion_vector")? {
+                        Some(_) => Some(numbers(lua, &descriptor, "motion_vector")?),
+                        None => None,
+                    };
+                    // so is a helicopter's rotor state (rpm, tail rpm, spin-up timer)
+                    let rotor = match descriptor.get::<Option<LuaTable>>("rotor")? {
+                        Some(_) => Some(numbers(lua, &descriptor, "rotor")?),
+                        None => None,
+                    };
+                    movers
+                        .borrow_mut()
+                        .bind(&host_id, kind, pose_from(lua, &pose)?, motion_vector, rotor)
+                        .map_err(LuaError::runtime)?;
+                } else {
+                    // a link without a creation request still owns an identity the host must retire
+                    movers.borrow_mut().issue(&host_id).map_err(LuaError::runtime)?;
+                }
+                Ok(host_id)
+            })?,
+        )?;
+    }
+    {
+        let movers = movers.clone();
+        host.set(
+            "move_vehicle",
+            lua.create_function(move |lua, step: LuaTable| {
+                // the physical incarnation ended: the host retires the identity; nothing is stepped or answered
+                let outcome = if step.get::<String>("mode")? == "retire" {
+                    let host_id: String = step.get("host_id")?;
+                    let mut movers = movers.borrow_mut();
+                    movers.retire(&host_id).map_err(LuaError::runtime)?;
+                    Outcome::retired()
+                } else {
+                    let (host_id, campaign, request) = movement_from(lua, &step)?;
+                    movers.borrow_mut().step(&host_id, campaign, request).map_err(LuaError::runtime)?
+                };
+                let answer = movers.borrow_mut().take_answer();
+                let result = lua.create_table()?;
+                match answer {
+                    Some(HelicopterAnswer::Query(query)) => {
+                        let table = lua.create_table()?;
+                        table.set("structure_scan", query.structure_scan)?;
+                        table.set("structure_position", query.structure_position.to_vec())?;
+                        table.set("terrain_sample_count", query.terrain_sample_count)?;
+                        let [[x0, z0], [x1, z1]] = query.terrain_sample;
+                        table.set("terrain_sample", vec![x0, z0, x1, z1])?;
+                        result.set("query", table)?;
+                    }
+                    Some(HelicopterAnswer::Guidance(guidance)) => {
+                        let table = lua.create_table()?;
+                        table.set("lift", guidance.lift)?;
+                        table.set("waypoint", guidance.waypoint.to_vec())?;
+                        table.set("required_height", guidance.required_height)?;
+                        table.set("world_acceleration", guidance.world_acceleration.to_vec())?;
+                        table.set("wp_vec", guidance.wp_vec.to_vec())?;
+                        result.set("guidance", table)?;
+                    }
+                    None => {}
+                }
+                result.set("position", outcome.pose.position.to_vec())?;
+                result.set("velocity", outcome.pose.velocity)?;
+                result.set("attitude", outcome.pose.attitude.to_vec())?;
+                result.set("rotated", outcome.rotated)?;
+                result.set("motion_vector", outcome.motion_vector.to_vec())?;
+                result.set("pending", outcome.pending)?;
+                result.set("moved", outcome.moved)?;
+                result.set("rotor", outcome.rotor.to_vec())?;
+                result.set("altitude", outcome.altitude)?;
+                result.set("flags", outcome.flags)?;
+                result.set("angles", outcome.angles.to_vec())?;
+                result.set("death_timer", outcome.death_timer)?;
+                Ok(result)
+            })?,
+        )?;
+    }
+    {
+        let los = Rc::new(RefCell::new(Los::new()));
+        host.set(
+            "line_of_sight",
+            lua.create_function(move |lua, step: LuaTable| {
+                let fail = |message: String| LuaError::runtime(format!("host.line_of_sight: {message}"));
+                let mode: String = step.get("mode")?;
+                let request = match mode.as_str() {
+                    "begin" => {
+                        let source = exact_numbers::<3>(lua, &step, "source_position").map_err(fail)?;
+                        let target = exact_numbers::<3>(lua, &step, "target_position").map_err(fail)?;
+                        let criteria = match step.get::<LuaValue>("criteria")? {
+                            LuaValue::Integer(value) => i32::try_from(value).map_err(|_| fail(format!("criteria {value} is out of range")))?,
+                            other => return Err(fail(format!("criteria must be an integer, got {}", other.type_name()))),
+                        };
+                        let flag = |name: &str| -> LuaResult<bool> {
+                            match step.get::<LuaValue>(name)? {
+                                LuaValue::Boolean(value) => Ok(value),
+                                other => Err(fail(format!("{name} must be a boolean, got {}", other.type_name()))),
+                            }
+                        };
+                        let (source_eye, target_eye) = (flag("source_eye")?, flag("target_eye")?);
+                        // the identities are the host's own, passed through for the campaign's collision exclusion later; they are
+                        // checked for shape only, never used to find a pose (a ray's end points are what the campaign supplied)
+                        for name in ["source_host_id", "target_host_id"] {
+                            match step.get::<LuaValue>(name)? {
+                                LuaValue::Nil => {}
+                                LuaValue::String(id) => {
+                                    let id = id.to_str()?;
+                                    if id.is_empty() || id.len() > 128 {
+                                        return Err(fail(format!("{name} must be 1 to 128 bytes")));
+                                    }
+                                }
+                                other => return Err(fail(format!("{name} must be a string, got {}", other.type_name()))),
+                            }
+                        }
+                        let _ = flag("entity_form")?;
+                        los.borrow_mut().begin(source, target, criteria, source_eye, target_eye)
+                    }
+                    "terrain" => {
+                        let [elevation] = exact_numbers::<1>(lua, &step, "elevation").map_err(fail)?;
+                        los.borrow_mut().terrain(elevation)
+                    }
+                    "objects" => {
+                        let hit = match step.get::<LuaValue>("hit")? {
+                            LuaValue::Boolean(value) => value,
+                            other => return Err(fail(format!("hit must be a boolean, got {}", other.type_name()))),
+                        };
+                        let point = match step.get::<LuaValue>("collision_point")? {
+                            LuaValue::Nil => None,
+                            _ => Some(exact_numbers::<3>(lua, &step, "collision_point").map_err(fail)?),
+                        };
+                        los.borrow_mut().objects(hit, point)
+                    }
+                    other => return Err(fail(format!("unknown mode {other:?}"))),
+                }
+                .map_err(fail)?;
+                let result = lua.create_table()?;
+                match request {
+                    LosRequest::NeedTerrain { phase, point } => {
+                        result.set("state", "need_terrain")?;
+                        result.set("phase", phase)?;
+                        result.set("point", point.to_vec())?;
+                    }
+                    LosRequest::NeedObjects { phase, start, end } => {
+                        result.set("state", "need_objects")?;
+                        result.set("phase", phase)?;
+                        result.set("from", start.to_vec())?;
+                        result.set("to", end.to_vec())?;
+                    }
+                    LosRequest::Done { visible } => {
+                        result.set("state", "done")?;
+                        result.set("visible", visible)?;
+                    }
+                }
+                Ok(result)
+            })?,
+        )?;
+    }
+    {
+        let sense = Rc::new(RefCell::new(Sense::new()));
+        host.set(
+            "sense",
+            lua.create_function(move |lua, step: LuaTable| {
+                let fail = |message: String| LuaError::runtime(format!("host.sense: {message}"));
+                let mode: String = step.get("mode")?;
+                let kind_of = |name: &str| -> LuaResult<i32> {
+                    match step.get::<LuaValue>("scan")? {
+                        LuaValue::String(scan) => match &*scan.to_str()? {
+                            "air_to_air" => Ok(sense::SCAN_AIR_TO_AIR),
+                            "air_to_surface" => Ok(sense::SCAN_AIR_TO_SURFACE),
+                            "surface_to_air" => Ok(sense::SCAN_SURFACE_TO_AIR),
+                            "surface_to_surface" => Ok(sense::SCAN_SURFACE_TO_SURFACE),
+                            other => Err(fail(format!("unknown scan {other:?} in a {name} message"))),
+                        },
+                        other => Err(fail(format!("scan must be a string, got {}", other.type_name()))),
+                    }
+                };
+                let flag = |table: &LuaTable, name: &str| -> LuaResult<bool> {
+                    match table.get::<LuaValue>(name)? {
+                        LuaValue::Boolean(value) => Ok(value),
+                        other => Err(fail(format!("{name} must be a boolean, got {}", other.type_name()))),
+                    }
+                };
+                // the identities are the host's own, passed through; they are checked for shape only (a host that owns the world uses them to find its units)
+                let check_id = |name: &str| -> LuaResult<()> {
+                    match step.get::<LuaValue>(name)? {
+                        LuaValue::Nil => Ok(()),
+                        LuaValue::String(id) => {
+                            let id = id.to_str()?;
+                            if id.is_empty() || id.len() > 128 {
+                                return Err(fail(format!("{name} must be 1 to 128 bytes")));
+                            }
+                            Ok(())
+                        }
+                        other => Err(fail(format!("{name} must be a string, got {}", other.type_name()))),
+                    }
+                };
+                let answer = match mode.as_str() {
+                    "begin" => {
+                        let kind = kind_of("begin")?;
+                        check_id("source_host_id")?;
+                        let source = exact_numbers::<3>(lua, &step, "source_position").map_err(fail)?;
+                        let [scan_range] = exact_numbers::<1>(lua, &step, "scan_range").map_err(fail)?;
+                        let (ceiling, floor) = if kind == sense::SCAN_SURFACE_TO_AIR {
+                            (
+                                exact_numbers::<1>(lua, &step, "scan_ceiling").map_err(fail)?[0],
+                                exact_numbers::<1>(lua, &step, "scan_floor").map_err(fail)?[0],
+                            )
+                        } else {
+                            (0.0, 0.0)
+                        };
+                        sense.borrow_mut().begin(kind, source, scan_range, ceiling, floor)
+                    }
+                    "candidate" => {
+                        let kind = kind_of("candidate")?;
+                        check_id("target_host_id")?;
+                        let target = exact_numbers::<3>(lua, &step, "target_position").map_err(fail)?;
+                        let player = flag(&step, "target_player")?;
+                        let difficulty = match step.get::<LuaValue>("difficulty_factor")? {
+                            LuaValue::Nil => None,
+                            _ => Some(exact_numbers::<1>(lua, &step, "difficulty_factor").map_err(fail)?[0]),
+                        };
+                        if kind == sense::SCAN_SURFACE_TO_AIR && player != difficulty.is_some() {
+                            return Err(fail("a human-flown target carries a difficulty factor, and only it".into()));
+                        }
+                        let radar_altitude = if kind == sense::SCAN_SURFACE_TO_AIR {
+                            exact_numbers::<1>(lua, &step, "radar_altitude").map_err(fail)?[0]
+                        } else {
+                            0.0
+                        };
+                        sense.borrow_mut().candidate(kind, target, difficulty, radar_altitude)
+                    }
+                    "draw" => {
+                        let draw = exact_f64_bits(lua, &step, "draw").map_err(fail)?;
+                        sense.borrow_mut().draw(draw)
+                    }
+                    "signature" => {
+                        let emitters = match step.get::<LuaValue>("emitters")? {
+                            LuaValue::Nil => None,
+                            LuaValue::Table(table) => Some((
+                                flag(&table, "radar_on")?,
+                                flag(&table, "radar_jammer_on")?,
+                                flag(&table, "infra_red_jammer_on")?,
+                            )),
+                            other => return Err(fail(format!("emitters must be a table, got {}", other.type_name()))),
+                        };
+                        let helicopter = match step.get::<LuaValue>("helicopter")? {
+                            LuaValue::Nil => None,
+                            LuaValue::Table(table) => Some((
+                                flag(&table, "weapon_bay_closed")?,
+                                flag(&table, "stub_wings_attached")?,
+                                flag(&table, "undercarriage_up")?,
+                            )),
+                            other => return Err(fail(format!("helicopter must be a table, got {}", other.type_name()))),
+                        };
+                        sense.borrow_mut().signature(emitters, helicopter)
+                    }
+                    "end" => sense.borrow_mut().end(),
+                    other => return Err(fail(format!("unknown mode {other:?}"))),
+                }
+                .map_err(fail)?;
+                let result = lua.create_table()?;
+                let state = match answer.state {
+                    sense::State::Open => "open",
+                    sense::State::Accept => "accept",
+                    sense::State::Reject(reason) => {
+                        result.set(
+                            "reason",
+                            match reason {
+                                sense::Reason::Range => "range",
+                                sense::Reason::RangeAdjusted => "range_adjusted",
+                                sense::Reason::Altitude => "altitude",
+                                sense::Reason::Tolerance => "tolerance",
+                            },
+                        )?;
+                        "reject"
+                    }
+                    sense::State::NeedDraw => "need_draw",
+                    sense::State::NeedSignature => "need_signature",
+                    sense::State::Closed => "closed",
+                };
+                result.set("state", state)?;
+                if let Some(range) = answer.target_range {
+                    result.set("target_range", range)?;
+                }
+                if let Some(echo) = answer.echo {
+                    // the reference host's intermediate values, for the campaign build that records a trace; a campaign without that feature ignores them
+                    let table = lua.create_table()?;
+                    table.set("ceiling", echo.ceiling)?;
+                    table.set("floor", echo.floor)?;
+                    table.set("adjusted_range", echo.adjusted_range)?;
+                    table.set("stealth_factor", echo.stealth_factor)?;
+                    table.set("stealth_limit", echo.stealth_limit)?;
+                    table.set("tolerance_limit", echo.tolerance_limit)?;
+                    result.set("echo", table)?;
+                }
+                Ok(result)
+            })?,
+        )?;
+    }
+    {
+        let aim = Rc::new(RefCell::new(Aim::new()));
+        // the opaque identities this host issues for structures (CAMPAIGN_AIM_IDENTIFY): its own monotonic count, not derived from anything the campaign sends
+        let next_object_id = Cell::new(1_u64);
+        host.set(
+            "aim",
+            lua.create_function(move |lua, step: LuaTable| {
+                let fail = |message: String| LuaError::runtime(format!("host.aim: {message}"));
+                let mode: String = step.get("mode")?;
+                let one = |table: &LuaTable, name: &str| -> LuaResult<f32> { Ok(exact_numbers::<1>(lua, table, name).map_err(fail)?[0]) };
+                let flag = |table: &LuaTable, name: &str| -> LuaResult<bool> {
+                    match table.get::<LuaValue>(name)? {
+                        LuaValue::Boolean(value) => Ok(value),
+                        other => Err(fail(format!("{name} must be a boolean, got {}", other.type_name()))),
+                    }
+                };
+                // the identities are the host's own, passed through; they are checked for shape only (a host that owns the world uses them to find its units)
+                let check_id = |name: &str| -> LuaResult<()> {
+                    match step.get::<LuaValue>(name)? {
+                        LuaValue::Nil => Ok(()),
+                        LuaValue::String(id) => {
+                            let id = id.to_str()?;
+                            if id.is_empty() || id.len() > 128 {
+                                return Err(fail(format!("{name} must be 1 to 128 bytes")));
+                            }
+                            Ok(())
+                        }
+                        other => Err(fail(format!("{name} must be a string, got {}", other.type_name()))),
+                    }
+                };
+                let nested = |name: &str| -> LuaResult<LuaTable> {
+                    match step.get::<LuaValue>(name)? {
+                        LuaValue::Table(table) => Ok(table),
+                        other => Err(fail(format!("{name} must be a table, got {}", other.type_name()))),
+                    }
+                };
+                let weapon_of = || -> LuaResult<aim::Weapon> {
+                    let facts = nested("weapon")?;
+                    let aiming_type = match facts.get::<LuaValue>("aiming_type")? {
+                        LuaValue::String(name) => match &*name.to_str()? {
+                            "none" => 0,
+                            "intercept_point" => 1,
+                            "angle_of_projection" => 2,
+                            "lead_and_ballistic" => 3,
+                            other => return Err(fail(format!("unknown aiming type {other:?}"))),
+                        },
+                        other => return Err(fail(format!("aiming_type must be a string, got {}", other.type_name()))),
+                    };
+                    Ok(aim::Weapon {
+                        weapon: facts.get("weapon")?,
+                        present: flag(&facts, "present")?,
+                        aiming_type,
+                        cruise_velocity: one(&facts, "cruise_velocity")?,
+                        acquire_forward: flag(&facts, "acquire_parent_forward_velocity")?,
+                        source_velocity: one(&facts, "source_velocity")?,
+                    })
+                };
+                let target_of = || -> LuaResult<aim::Target> {
+                    let facts = nested("target")?;
+                    Ok(aim::Target {
+                        position: exact_numbers::<3>(lua, &facts, "position").map_err(fail)?,
+                        point: exact_numbers::<3>(lua, &facts, "point").map_err(fail)?,
+                        motion_vector: exact_numbers::<3>(lua, &facts, "motion_vector").map_err(fail)?,
+                        mobile: flag(&facts, "mobile")?,
+                    })
+                };
+                let world_of = || -> LuaResult<aim::World> {
+                    Ok(aim::World {
+                        map_min: exact_numbers::<3>(lua, &step, "map_min").map_err(fail)?,
+                        map_max: exact_numbers::<3>(lua, &step, "map_max").map_err(fail)?,
+                        comms_weapon_lag: one(&step, "comms_weapon_lag")?,
+                    })
+                };
+                let draw_of = || -> LuaResult<aim::Draw> {
+                    match step.get::<LuaValue>("draw")? {
+                        LuaValue::Nil => Ok(None),
+                        LuaValue::Integer(value) if (0..=32767).contains(&value) => Ok(Some(value as i32)),
+                        LuaValue::Number(value) if value.fract() == 0.0 && (0.0..=32767.0).contains(&value) => Ok(Some(value as i32)),
+                        other => Err(fail(format!("draw must be an integer in [0, 32767], got {other:?}"))),
+                    }
+                };
+                let echo_of = || flag(&step, "echo");
+                let result = lua.create_table()?;
+                let echo_into = |events: &Option<Vec<aim::Event>>| -> LuaResult<()> {
+                    if let Some(events) = events {
+                        // the model's intermediate values, for the campaign build that records a trace; a campaign without that feature refuses an echo it did not ask for
+                        let list = lua.create_table()?;
+                        for (index, event) in events.iter().enumerate() {
+                            let row = lua.create_table()?;
+                            row.set(
+                                "kind",
+                                match event.kind {
+                                    1 => "intercept",
+                                    2 => "lead_path",
+                                    3 => "lead_range",
+                                    4 => "lead_iteration",
+                                    5 => "ballistic",
+                                    6 => "lead_result",
+                                    7 => "table_flight",
+                                    8 => "range_result",
+                                    9 => "forecast",
+                                    10 => "damage",
+                                    11 => "blast",
+                                    20 => "step_path",
+                                    21 => "step_submunitions",
+                                    22 => "step_tracking",
+                                    23 => "step_guidance",
+                                    24 => "step_guidance_source",
+                                    25 => "step_tgt_branch",
+                                    26 => "step_tgt_end",
+                                    27 => "step_intercept",
+                                    28 => "step_guided",
+                                    29 => "step_precision",
+                                    30 => "step_ground",
+                                    31 => "step_impact",
+                                    32 => "step_contact_any",
+                                    33 => "step_contact_trees",
+                                    34 => "step_birth_fuze_begin",
+                                    35 => "step_birth_fuze_solved",
+                                    36 => "step_birth_dispersion",
+                                    other => return Err(fail(format!("the model produced an unknown echo kind {other}"))),
+                                },
+                            )?;
+                            row.set("a", event.a)?;
+                            row.set("b", event.b)?;
+                            row.set("c", event.c)?;
+                            row.set("d", event.d)?;
+                            row.set("f", event.f.to_vec())?;
+                            list.set(index + 1, row)?;
+                        }
+                        result.set("echo", list)?;
+                    }
+                    Ok(())
+                };
+                match mode.as_str() {
+                    "table" => {
+                        // the host's table is its own: it simulates the weapon from the figures and keeps what results; only the test fixture build asks for it back
+                        let weapon: i32 = step.get("weapon")?;
+                        let figures = weapon_figures(lua, &step).map_err(fail)?;
+                        let echo = flag(&step, "echo")?;
+                        let flights = aim
+                            .borrow_mut()
+                            .generate_table(weapon, &figures, flag(&step, "first")?, flag(&step, "last")?)
+                            .map_err(fail)?;
+                        if echo {
+                            let events = flights
+                                .iter()
+                                .map(|flight| {
+                                    let mut f = [0.0f32; 12];
+                                    f[0] = flight.end_time;
+                                    f[1] = flight.range_values as f32;
+                                    aim::Event {
+                                        kind: 7,
+                                        a: flight.velocity_test,
+                                        b: flight.pitch_index,
+                                        c: flight.range_mark,
+                                        d: flight.steps,
+                                        f,
+                                    }
+                                })
+                                .collect::<Vec<_>>();
+                            echo_into(&Some(events))?;
+                            let aim = aim.borrow();
+                            let cells = aim.table_cells(weapon).ok_or_else(|| fail(format!("no table was kept for weapon {weapon}")))?;
+                            let mut bytes = Vec::with_capacity(cells.len() * 4);
+                            for cell in cells {
+                                bytes.extend_from_slice(&cell.to_le_bytes());
+                            }
+                            result.set("echo_cells", lua.create_string(&bytes)?)?;
+                        }
+                        result.set("state", "done")?;
+                    }
+                    "range" => {
+                        let figures = weapon_figures(lua, &step).map_err(fail)?;
+                        let echo = flag(&step, "echo")?;
+                        let (runs, file_open) = aim
+                            .borrow_mut()
+                            .generate_range(&figures, flag(&step, "first")?, flag(&step, "last")?)
+                            .map_err(fail)?;
+                        if echo {
+                            let events = runs
+                                .iter()
+                                .map(|run| {
+                                    let mut f = [0.0f32; 12];
+                                    f[..4].copy_from_slice(&[run.end_z, run.end_y, run.end_velocity, run.end_lifetime]);
+                                    aim::Event {
+                                        kind: 8,
+                                        a: run.zero_pitch,
+                                        b: run.ran,
+                                        c: i32::from(file_open),
+                                        d: 0,
+                                        f,
+                                    }
+                                })
+                                .collect::<Vec<_>>();
+                            echo_into(&Some(events))?;
+                        }
+                        result.set("state", "done")?;
+                    }
+                    "figures" => {
+                        // every weapon's figures, kept by the weapon's number: the host flies a weapon by them
+                        let weapon: i32 = step.get("weapon")?;
+                        let figures = weapon_figures(lua, &step).map_err(fail)?;
+                        aim.borrow_mut().set_figures(weapon, &figures).map_err(fail)?;
+                        result.set("state", "done")?;
+                    }
+                    "weapon_step" | "weapon_birth" | "weapon_decoy" | "weapon_seduce" | "weapon_reacquire" => {
+                        // one frame of one weapon's flight, or its birth: the weapon in, the lookups it still needs or the ordered actions it leaves out (flight.rs weapon_step,
+                        // weapon_birth)
+                        let (birth, decoy, seduce, reacquire) = (
+                            mode == "weapon_birth",
+                            mode == "weapon_decoy",
+                            mode == "weapon_seduce",
+                            mode == "weapon_reacquire",
+                        );
+                        let weapon = lua_i32(&step, "weapon").map_err(fail)?;
+                        let echo = echo_of()?;
+                        let [delta_time, velocity, weapon_lifetime, decoy_timer] =
+                            exact_fields::<4>(lua, &step, "delta_time,velocity,weapon_lifetime,decoy_timer").map_err(fail)?;
+                        let entity_samples: [i32; 4] = step
+                            .get::<Vec<i32>>("entity_samples")?
+                            .try_into()
+                            .map_err(|_| fail("entity_samples must be 4 integers".into()))?;
+                        let input = flight::StepInput {
+                            delta_time,
+                            system_time: step.get::<u32>("system_time")?,
+                            position: exact_numbers::<3>(lua, &step, "position").map_err(fail)?,
+                            attitude: exact_numbers::<9>(lua, &step, "attitude").map_err(fail)?,
+                            motion_vector: exact_numbers::<3>(lua, &step, "motion_vector").map_err(fail)?,
+                            velocity,
+                            weapon_lifetime,
+                            decoy_timer,
+                            missile_phase: lua_i32(&step, "missile_phase").map_err(fail)?,
+                            loal_mode: flag(&step, "loal_mode")?,
+                            weapon_on_ground: flag(&step, "weapon_on_ground")?,
+                            parachute_status: lua_i32(&step, "parachute_status").map_err(fail)?,
+                            kill_code: lua_i32(&step, "kill_code").map_err(fail)?,
+                            entity_samples,
+                            has_launcher: flag(&step, "has_launcher")?,
+                            has_target: flag(&step, "has_target")?,
+                            server: flag(&step, "server")?,
+                            submunition: birth && flag(&step, "submunition")?,
+                            coefficient: if seduce { one(&step, "coefficient")? } else { 0.0 },
+                            effectiveness: if seduce {
+                                exact_numbers::<3>(lua, &step, "effectiveness").map_err(fail)?
+                            } else {
+                                [0.0; 3]
+                            },
+                            map_min: exact_numbers::<3>(lua, &step, "map_min").map_err(fail)?,
+                            map_max: exact_numbers::<3>(lua, &step, "map_max").map_err(fail)?,
+                            echo,
+                        };
+                        let answers = step_events(lua, &step, "answers").map_err(fail)?;
+                        let draws = step.get::<Vec<i32>>("draws")?;
+                        let outcome = if birth {
+                            aim.borrow().weapon_birth(weapon, &input, &answers, &draws)
+                        } else if decoy {
+                            aim.borrow().weapon_decoy(weapon, &input, &answers, &draws)
+                        } else if seduce {
+                            let decoy_weapon = lua_i32(&step, "other_weapon").map_err(fail)?;
+                            aim.borrow().weapon_seduce(weapon, decoy_weapon, &input, &answers, &draws)
+                        } else if reacquire {
+                            let decoy_weapon = lua_i32(&step, "other_weapon").map_err(fail)?;
+                            aim.borrow().weapon_reacquire(weapon, decoy_weapon, &input, &answers, &draws)
+                        } else {
+                            aim.borrow().weapon_step(weapon, &input, &answers, &draws)
+                        }
+                        .map_err(fail)?;
+                        let events = |events: &[flight::StepEvent]| -> LuaResult<LuaTable> {
+                            let list = lua.create_table()?;
+                            for (index, event) in events.iter().enumerate() {
+                                let row = lua.create_table()?;
+                                row.set("kind", event.kind)?;
+                                row.set("a", event.a)?;
+                                row.set("b", event.b)?;
+                                row.set("c", event.c)?;
+                                row.set("d", event.d)?;
+                                row.set("f", event.f.to_vec())?;
+                                list.set(index + 1, row)?;
+                            }
+                            Ok(list)
+                        };
+                        match outcome.state {
+                            flight::StepState::NeedDraw => result.set("state", "need_draw")?,
+                            flight::StepState::NeedLookup => {
+                                result.set("state", "need_lookup")?;
+                                result.set("lookups", events(&outcome.lookups)?)?;
+                            }
+                            flight::StepState::Done => {
+                                result.set("state", "done")?;
+                                result.set("actions", events(&outcome.actions)?)?;
+                                if echo {
+                                    let echoed = outcome
+                                        .echo
+                                        .iter()
+                                        .map(|event| aim::Event {
+                                            kind: event.kind,
+                                            a: event.a,
+                                            b: event.b,
+                                            c: event.c,
+                                            d: event.d,
+                                            f: event.f,
+                                        })
+                                        .collect::<Vec<_>>();
+                                    echo_into(&Some(echoed))?;
+                                }
+                            }
+                        }
+                    }
+                    "animate" => {
+                        // one frame of a falling weapon's parachute (flight.rs animate)
+                        let weapon = lua_i32(&step, "weapon").map_err(fail)?;
+                        let outcome = aim
+                            .borrow()
+                            .animate(
+                                weapon,
+                                &flight::AnimateInput {
+                                    parachute_status: lua_i32(&step, "parachute_status").map_err(fail)?,
+                                    weapon_on_ground: flag(&step, "weapon_on_ground")?,
+                                    weapon_lifetime: one(&step, "weapon_lifetime")?,
+                                    motion_vector_y: one(&step, "motion_vector_y")?,
+                                },
+                            )
+                            .map_err(fail)?;
+                        result.set("state", "done")?;
+                        result.set("parachute_status", outcome.parachute_status)?;
+                        if let Some(lifetime) = outcome.weapon_lifetime {
+                            result.set("weapon_lifetime", lifetime)?;
+                        }
+                    }
+                    "release" => {
+                        // the rate-of-fire gate of a launcher releasing a weapon: how many rounds it lets go, or none (flight.rs release)
+                        let weapon = lua_i32(&step, "weapon").map_err(fail)?;
+                        let outcome = aim
+                            .borrow()
+                            .release(
+                                weapon,
+                                &flight::ReleaseInput {
+                                    delta_time: one(&step, "delta_time")?,
+                                    current_time: step.get::<u32>("current_time")?,
+                                    last_shot: step.get::<Option<u32>>("last_shot")?,
+                                    not_ai: flag(&step, "not_ai")?,
+                                },
+                            )
+                            .map_err(fail)?;
+                        result.set("state", "done")?;
+                        result.set("refuse", outcome.refuse)?;
+                        result.set("burst_size", outcome.burst_size)?;
+                        if let Some(last_shot) = outcome.last_shot {
+                            result.set("last_shot", last_shot)?;
+                        }
+                    }
+                    "forecast" => {
+                        // the damage a weapon is capable of against a target, with no weapon in flight (cmb.rs forecast): a pure question that takes no draw.  The weapon's damage
+                        // figures, the target's armour level and the player's setting arrive with the question; this host keeps nothing for it
+                        let weapon = lua_i32(&step, "weapon").map_err(fail)?;
+                        if weapon <= 0 {
+                            return Err(fail(format!("a forecast of weapon {weapon}, which is not a weapon")));
+                        }
+                        let [burst_duration, player_modifier, damage_modifier, velocity] =
+                            exact_fields::<4>(lua, &step, "burst_duration,player_modifier,damage_modifier,velocity").map_err(fail)?;
+                        let outcome = cmb::forecast(&cmb::ForecastInput {
+                            weapon_warhead: lua_i32(&step, "weapon_warhead").map_err(fail)?,
+                            warhead: lua_i32(&step, "warhead").map_err(fail)?,
+                            damage_capability: lua_i32(&step, "damage_capability").map_err(fail)?,
+                            armor_penetration_capability: lua_i32(&step, "armor_penetration_capability").map_err(fail)?,
+                            burst_duration,
+                            armour_level: lua_i32(&step, "armour_level").map_err(fail)?,
+                            not_ai: flag(&step, "target_not_ai")?,
+                            player_modifier,
+                            damage_modifier,
+                            velocity,
+                        })
+                        .map_err(|error| fail(format!("weapon {weapon}: {error}")))?;
+                        result.set("state", "done")?;
+                        result.set("capability", outcome.capability)?;
+                        if flag(&step, "echo")? {
+                            // the original's observer hooks of the forecast, in one event, for the campaign build that records a trace
+                            let mut f = [0.0f32; 12];
+                            f[..4].copy_from_slice(&[outcome.damage_modifier, outcome.penetration, outcome.armour, outcome.random_modifier]);
+                            echo_into(&Some(vec![aim::Event {
+                                kind: 9,
+                                a: outcome.path,
+                                b: outcome.raw,
+                                c: outcome.warhead,
+                                d: outcome.capability,
+                                f,
+                            }]))?;
+                        }
+                    }
+                    "damage" => {
+                        // the object that is hit, if it has an identity: the host's own, checked for shape only
+                        check_id("target_host_id")?;
+                        // one hit that reached a damage handler (cmb.rs damage): everything by value, the campaign's one random sample asked for as a draw.  The answer is the whole of what
+                        // the hit does: whether the invulnerability stopped it, the capability, whether and to what level the health is written, and the critical classes
+                        let weapon = lua_i32(&step, "weapon").map_err(fail)?;
+                        if weapon <= 0 {
+                            return Err(fail(format!("a damage question about weapon {weapon}, which is not a weapon")));
+                        }
+                        let [burst_duration, weapon_speed, weapon_cruise_velocity, damage_modifier, armour_front, armour_rear, armour_side] =
+                            exact_fields::<7>(
+                                lua,
+                                &step,
+                                "burst_duration,weapon_speed,weapon_cruise_velocity,damage_modifier,armour_front,armour_rear,armour_side",
+                            )
+                            .map_err(fail)?;
+                        let player_modifier = match step.get::<LuaValue>("player_modifier")? {
+                            LuaValue::Nil => None,
+                            _ => Some(one(&step, "player_modifier")?),
+                        };
+                        let input = cmb::DamageInput {
+                            weapon_warhead: lua_i32(&step, "weapon_warhead").map_err(fail)?,
+                            warhead: lua_i32(&step, "warhead").map_err(fail)?,
+                            damage_capability: lua_i32(&step, "damage_capability").map_err(fail)?,
+                            armor_penetration_capability: lua_i32(&step, "armor_penetration_capability").map_err(fail)?,
+                            burst_duration,
+                            weapon_speed,
+                            weapon_cruise_velocity,
+                            damage_modifier,
+                            armour_level: lua_i32(&step, "armour_level").map_err(fail)?,
+                            armour_easy: flag(&step, "armour_easy")?,
+                            armour_model: lua_i32(&step, "armour_model").map_err(fail)?,
+                            armour_front,
+                            armour_rear,
+                            armour_side,
+                            weapon_position: exact_numbers::<3>(lua, &step, "weapon_position").map_err(fail)?,
+                            target_position: exact_numbers::<3>(lua, &step, "target_position").map_err(fail)?,
+                            target_attitude: exact_numbers::<9>(lua, &step, "target_attitude").map_err(fail)?,
+                            not_ai: flag(&step, "target_not_ai")?,
+                            player_modifier,
+                            has_launcher: flag(&step, "has_launcher")?,
+                            multiplier: lua_i32(&step, "multiplier").map_err(fail)?,
+                            invulnerable: flag(&step, "invulnerable")?,
+                            cheat_guard: flag(&step, "cheat_guard")?,
+                            damage_level: lua_i32(&step, "damage_level").map_err(fail)?,
+                            initial_damage_level: lua_i32(&step, "initial_damage_level").map_err(fail)?,
+                            critical_model: lua_i32(&step, "critical_model").map_err(fail)?,
+                        };
+                        let echo = flag(&step, "echo")?;
+                        match cmb::damage(&input, draw_of()?).map_err(|error| fail(format!("weapon {weapon}: {error}")))? {
+                            cmb::DamageStep::NeedDraw => result.set("state", "need_draw")?,
+                            cmb::DamageStep::Done(outcome) => {
+                                result.set("state", "done")?;
+                                result.set("exited", outcome.exited)?;
+                                result.set("capability", outcome.capability)?;
+                                result.set("written", outcome.written)?;
+                                result.set("new_level", outcome.new_level)?;
+                                result.set("critical_before", outcome.critical_before)?;
+                                result.set("critical_after", outcome.critical_after)?;
+                                result.set("bad_modifier", outcome.bad_modifier)?;
+                                if echo && !outcome.exited && !outcome.bad_modifier {
+                                    // the original's observer hooks of the capability, in one event, for the campaign build that records a trace; the four intermediate floats travel as
+                                    // raw bits (cmb.rs damage_echo_floats), because one of them can legitimately be a NaN
+                                    echo_into(&Some(vec![aim::Event {
+                                        kind: 10,
+                                        a: outcome.path,
+                                        b: outcome.raw,
+                                        c: outcome.warhead,
+                                        d: outcome.capability,
+                                        f: cmb::damage_echo_floats(&outcome),
+                                    }]))?;
+                                }
+                            }
+                        }
+                    }
+                    "health" => {
+                        // the object whose health it is, if it has an identity: the host's own, checked for shape only
+                        check_id("target_host_id")?;
+                        // a health fact that is not a hit (cmb.rs health): the critical class, what a change of health crosses, the frame's timed roll (its one random sample asked for
+                        // as a draw, only by an eligible target) and the helicopter's refusal of its own hit
+                        let op = match step.get::<LuaValue>("op")? {
+                            LuaValue::String(name) => match &*name.to_str()? {
+                                "classify" => cmb::HEALTH_CLASSIFY,
+                                "assess" => cmb::HEALTH_ASSESS,
+                                "timed" => cmb::HEALTH_TIMED,
+                                "hit_eligible" => cmb::HEALTH_HIT_ELIGIBLE,
+                                other => return Err(fail(format!("unknown health op {other:?}"))),
+                            },
+                            other => return Err(fail(format!("op must be a string, got {}", other.type_name()))),
+                        };
+                        let input = cmb::HealthInput {
+                            op,
+                            critical_model: lua_i32(&step, "critical_model").map_err(fail)?,
+                            damage_level: lua_i32(&step, "damage_level").map_err(fail)?,
+                            initial_damage_level: lua_i32(&step, "initial_damage_level").map_err(fail)?,
+                            old_damage_level: lua_i32(&step, "old_damage_level").map_err(fail)?,
+                            explosive: flag(&step, "explosive")?,
+                            flammable: flag(&step, "flammable")?,
+                            delta_time: one(&step, "delta_time")?,
+                            aircraft_class: lua_i32(&step, "aircraft_class").map_err(fail)?,
+                            self_hit: flag(&step, "self_hit")?,
+                            target_not_ai: flag(&step, "target_not_ai")?,
+                        };
+                        match cmb::health(&input, draw_of()?).map_err(|error| fail(format!("health: {error}")))? {
+                            cmb::HealthStep::NeedDraw => result.set("state", "need_draw")?,
+                            cmb::HealthStep::Done(outcome) => {
+                                result.set("state", "done")?;
+                                result.set("critical_class", outcome.critical_class)?;
+                                result.set("crossed", outcome.crossed)?;
+                                result.set("recovered", outcome.recovered)?;
+                                result.set("eject", outcome.eject)?;
+                                result.set("eligible", outcome.eligible)?;
+                                result.set("rolled", outcome.rolled)?;
+                                result.set("hit", outcome.hit)?;
+                                result.set("new_level", outcome.new_level)?;
+                                result.set("fatal", outcome.fatal)?;
+                            }
+                        }
+                    }
+                    "impact" => {
+                        // the weapon's target, if it has an identity, is the host's own: checked for shape only
+                        check_id("target_host_id")?;
+                        // what a weapon's death does to the world (cmb.rs impact): the plan for its kill code.  A land hit needs the terrain at the impact position, which the campaign reads
+                        // on request; no other code asks for it
+                        let kill_code = lua_i32(&step, "kill_code").map_err(fail)?;
+                        let terrain = match step.get::<LuaValue>("terrain_draws_crater")? {
+                            LuaValue::Nil => None,
+                            LuaValue::Boolean(draws) => Some(draws),
+                            other => return Err(fail(format!("terrain_draws_crater must be a boolean, got {}", other.type_name()))),
+                        };
+                        match cmb::impact(&cmb::ImpactInput {
+                            kill_code,
+                            has_target: flag(&step, "has_target")?,
+                            target_alive: flag(&step, "target_alive")?,
+                            terrain_draws_crater: terrain,
+                        }) {
+                            cmb::ImpactStep::NeedTerrain => {
+                                result.set("state", "need_lookup")?;
+                                result.set("need", "terrain")?;
+                            }
+                            cmb::ImpactStep::Done(plan) => {
+                                result.set("state", "done")?;
+                                result.set("invalid", plan.invalid)?;
+                                result.set("crater", plan.crater)?;
+                                result.set("direct_hit", plan.direct_hit)?;
+                                result.set("blasts", plan.blasts)?;
+                                result.set("exclude_target", plan.exclude_target)?;
+                            }
+                        }
+                    }
+                    "identify" => {
+                        // the identity of a structure the campaign has to name to this host for the first time (mb_hostobj.h): the host issues it from its own count and keeps the facts the campaign sent
+                        // by value to correlate its own world's object with it.  The reference host has no world of structures of its own, so it records nothing
+                        let _entity_type = lua_i32(&step, "entity_type").map_err(fail)?;
+                        let _sub_type = lua_i32(&step, "sub_type").map_err(fail)?;
+                        let _side = lua_i32(&step, "side").map_err(fail)?;
+                        let _alive = flag(&step, "alive")?;
+                        let _position = exact_numbers::<3>(lua, &step, "position").map_err(fail)?;
+                        let _serial = lua_i32(&step, "serial").map_err(fail)?;
+                        let id = next_object_id.get();
+                        let Some(next) = id.checked_add(1) else {
+                            return Err(fail("identity counter exhausted".into()));
+                        };
+                        next_object_id.set(next);
+                        result.set("state", "done")?;
+                        result.set("host_id", format!("eech-world:object:{id}"))?;
+                    }
+                    "blast" => {
+                        // one area blast (cmb.rs blast): the radius, the sector rectangle and the walk are this host's; the campaign supplies the windows of the sectors' lists the walk asks
+                        // for and acts on the object the host reaches before the walk goes on.  No draw is taken
+                        // the identities the campaign offered the objects of the window under (a rostered mobile's or a structure's): the host repeats the one of the object it reaches
+                        let mut offered_ids: Vec<(i32, String)> = Vec::new();
+                        let window = match step.get::<LuaValue>("window")? {
+                            LuaValue::Nil => None,
+                            LuaValue::Table(window) => {
+                                let objects: LuaTable = window.get("objects")?;
+                                let mut entries = Vec::new();
+                                for value in objects.sequence_values::<LuaTable>() {
+                                    let object = value?;
+                                    if let Some(id) = object.get::<Option<String>>("host_id")? {
+                                        offered_ids.push((lua_i32(&object, "handle").map_err(fail)?, id));
+                                    }
+                                    entries.push(cmb::BlastEntry {
+                                        handle: lua_i32(&object, "handle").map_err(fail)?,
+                                        entity_type: lua_i32(&object, "entity_type").map_err(fail)?,
+                                        readable: flag(&object, "readable")?,
+                                        alive: flag(&object, "alive")?,
+                                        has_position: flag(&object, "has_position")?,
+                                        rocket: flag(&object, "rocket")?,
+                                        excluded: flag(&object, "excluded")?,
+                                        position: exact_numbers::<3>(lua, &object, "position").map_err(fail)?,
+                                    });
+                                }
+                                Some(cmb::BlastWindow {
+                                    sx: lua_i32(&window, "sx").map_err(fail)?,
+                                    sz: lua_i32(&window, "sz").map_err(fail)?,
+                                    after: lua_i32(&window, "after").map_err(fail)?,
+                                    end: flag(&window, "list_ends")?,
+                                    entries,
+                                })
+                            }
+                            other => return Err(fail(format!("window must be a table, got {}", other.type_name()))),
+                        };
+                        let outcome = cmb::blast(&cmb::BlastInput {
+                            position: exact_numbers::<3>(lua, &step, "position").map_err(fail)?,
+                            damage_capability: lua_i32(&step, "damage_capability").map_err(fail)?,
+                            warhead_type: lua_i32(&step, "warhead_type").map_err(fail)?,
+                            has_target: flag(&step, "has_target")?,
+                            sector_side_length: lua_i32(&step, "sector_side_length").map_err(fail)?,
+                            min_x_sector: lua_i32(&step, "min_x_sector").map_err(fail)?,
+                            max_x_sector: lua_i32(&step, "max_x_sector").map_err(fail)?,
+                            min_z_sector: lua_i32(&step, "min_z_sector").map_err(fail)?,
+                            max_z_sector: lua_i32(&step, "max_z_sector").map_err(fail)?,
+                            window,
+                        })
+                        .map_err(|error| fail(format!("blast: {error}")))?;
+                        result.set("radius", outcome.radius)?;
+                        match outcome.step {
+                            cmb::BlastStep::NeedWindow { sx, sz, after } => {
+                                let need = lua.create_table()?;
+                                need.set("sx", sx)?;
+                                need.set("sz", sz)?;
+                                need.set("after", after)?;
+                                result.set("state", "need_lookup")?;
+                                result.set("need", need)?;
+                            }
+                            cmb::BlastStep::Over => {
+                                result.set("state", "done")?;
+                                result.set("action", "none")?;
+                            }
+                            cmb::BlastStep::Collision { handle, modifier } => {
+                                result.set("state", "done")?;
+                                result.set("action", "collision")?;
+                                result.set("handle", handle)?;
+                                if let Some((_, id)) = offered_ids.iter().find(|(offered, _)| *offered == handle) {
+                                    result.set("host_id", id.as_str())?;
+                                }
+                                result.set("modifier", modifier)?;
+                            }
+                            cmb::BlastStep::Intercept { handle, modifier } => {
+                                result.set("state", "done")?;
+                                result.set("action", "intercept")?;
+                                result.set("handle", handle)?;
+                                if let Some((_, id)) = offered_ids.iter().find(|(offered, _)| *offered == handle) {
+                                    result.set("host_id", id.as_str())?;
+                                }
+                                result.set("modifier", modifier)?;
+                            }
+                        }
+                        if flag(&step, "echo")? {
+                            // the candidates the walk examined in the window it was given, in the order examined, for the campaign build that records a trace
+                            let events = outcome
+                                .examined
+                                .iter()
+                                .map(|e| {
+                                    let mut f = [0.0f32; 12];
+                                    f[..3].copy_from_slice(&[e.range, e.radius, e.modifier]);
+                                    aim::Event {
+                                        kind: 11,
+                                        a: e.index,
+                                        b: i32::from(e.in_range) | (i32::from(e.intercepted) << 1),
+                                        c: 0,
+                                        d: 0,
+                                        f,
+                                    }
+                                })
+                                .collect();
+                            echo_into(&Some(events))?;
+                        }
+                    }
+                    "bridge" => {
+                        // the physical collapse of a bridge segment (cmb.rs bridge): whether an unsupported span collapses, the damaged shape, which neighbours are told, the fall (the terrain under the segment asked
+                        // for, as a lookup, when the fall needs it) and the vehicles a killed segment kills (walked through windows of the sector's list).  None takes a draw
+                        let mut offered_ids: Vec<(i32, String)> = Vec::new();
+                        let op = match step.get::<LuaValue>("op")? {
+                            LuaValue::String(name) => match &*name.to_str()? {
+                                "kill" => cmb::BRIDGE_KILL,
+                                "shape" => cmb::BRIDGE_SHAPE,
+                                "neighbour" => cmb::BRIDGE_NEIGHBOUR,
+                                "fall" => cmb::BRIDGE_FALL,
+                                "vehicles" => cmb::BRIDGE_VEHICLES,
+                                "rest" => cmb::BRIDGE_REST,
+                                other => return Err(fail(format!("unknown bridge op {other:?}"))),
+                            },
+                            other => return Err(fail(format!("op must be a string, got {}", other.type_name()))),
+                        };
+                        let terrain = match step.get::<LuaValue>("terrain")? {
+                            LuaValue::Nil => None,
+                            LuaValue::Table(terrain) => Some((one(&terrain, "height")?, flag(&terrain, "water")?)),
+                            other => return Err(fail(format!("terrain must be a table, got {}", other.type_name()))),
+                        };
+                        let window = match step.get::<LuaValue>("window")? {
+                            LuaValue::Nil => None,
+                            LuaValue::Table(window) => {
+                                let objects: LuaTable = window.get("objects")?;
+                                let mut entries = Vec::new();
+                                for value in objects.sequence_values::<LuaTable>() {
+                                    let object = value?;
+                                    if let Some(id) = object.get::<Option<String>>("host_id")? {
+                                        offered_ids.push((lua_i32(&object, "handle").map_err(fail)?, id));
+                                    }
+                                    entries.push(cmb::BlastEntry {
+                                        handle: lua_i32(&object, "handle").map_err(fail)?,
+                                        entity_type: lua_i32(&object, "entity_type").map_err(fail)?,
+                                        readable: flag(&object, "readable")?,
+                                        alive: flag(&object, "alive")?,
+                                        has_position: flag(&object, "has_position")?,
+                                        rocket: flag(&object, "rocket")?,
+                                        excluded: flag(&object, "excluded")?,
+                                        position: exact_numbers::<3>(lua, &object, "position").map_err(fail)?,
+                                    });
+                                }
+                                Some(cmb::BlastWindow {
+                                    sx: lua_i32(&window, "sx").map_err(fail)?,
+                                    sz: lua_i32(&window, "sz").map_err(fail)?,
+                                    after: lua_i32(&window, "after").map_err(fail)?,
+                                    end: flag(&window, "list_ends")?,
+                                    entries,
+                                })
+                            }
+                            other => return Err(fail(format!("window must be a table, got {}", other.type_name()))),
+                        };
+                        let input = cmb::BridgeInput {
+                            op,
+                            segment_kind: lua_i32(&step, "segment_kind").map_err(fail)?,
+                            alive: flag(&step, "alive")?,
+                            server: flag(&step, "server")?,
+                            pred_present: flag(&step, "pred_present")?,
+                            pred_alive: flag(&step, "pred_alive")?,
+                            succ_present: flag(&step, "succ_present")?,
+                            succ_alive: flag(&step, "succ_alive")?,
+                            which: lua_i32(&step, "which").map_err(fail)?,
+                            neighbour_present: flag(&step, "neighbour_present")?,
+                            neighbour_kind: lua_i32(&step, "neighbour_kind").map_err(fail)?,
+                            neighbour_alive: flag(&step, "neighbour_alive")?,
+                            position: exact_numbers::<3>(lua, &step, "position").map_err(fail)?,
+                            delta_time: one(&step, "delta_time")?,
+                            terrain,
+                            segment_length: one(&step, "segment_length")?,
+                            sector_side_length: lua_i32(&step, "sector_side_length").map_err(fail)?,
+                            min_x_sector: lua_i32(&step, "min_x_sector").map_err(fail)?,
+                            max_x_sector: lua_i32(&step, "max_x_sector").map_err(fail)?,
+                            min_z_sector: lua_i32(&step, "min_z_sector").map_err(fail)?,
+                            max_z_sector: lua_i32(&step, "max_z_sector").map_err(fail)?,
+                            window,
+                        };
+                        match cmb::bridge(&input).map_err(|error| fail(format!("bridge: {error}")))? {
+                            cmb::BridgeStep::Kill(kill) => {
+                                result.set("state", "done")?;
+                                result.set("kill", kill)?;
+                            }
+                            cmb::BridgeStep::Variant(variant) => {
+                                result.set("state", "done")?;
+                                result.set("variant", variant)?;
+                            }
+                            cmb::BridgeStep::Notify(notify) => {
+                                result.set("state", "done")?;
+                                result.set("notify", notify)?;
+                            }
+                            cmb::BridgeStep::NeedTerrain => {
+                                result.set("state", "need_lookup")?;
+                                result.set("need", "terrain")?;
+                            }
+                            cmb::BridgeStep::Fall {
+                                fell,
+                                dropped_y,
+                                floor_height,
+                                landed,
+                                landed_y,
+                                remove,
+                            } => {
+                                result.set("state", "done")?;
+                                result.set("fell", fell)?;
+                                result.set("landed", landed)?;
+                                result.set("remove", remove)?;
+                                if fell {
+                                    result.set("dropped_y", dropped_y)?;
+                                    result.set("floor_height", floor_height)?;
+                                }
+                                if landed {
+                                    result.set("landed_y", landed_y)?;
+                                }
+                            }
+                            cmb::BridgeStep::Rest { landed, landed_y } => {
+                                result.set("state", "done")?;
+                                result.set("landed", landed)?;
+                                if landed {
+                                    result.set("landed_y", landed_y)?;
+                                }
+                            }
+                            cmb::BridgeStep::NeedWindow { sx, sz, after } => {
+                                let need = lua.create_table()?;
+                                need.set("sx", sx)?;
+                                need.set("sz", sz)?;
+                                need.set("after", after)?;
+                                result.set("state", "need_lookup")?;
+                                result.set("need", need)?;
+                            }
+                            cmb::BridgeStep::Over => {
+                                result.set("state", "done")?;
+                                result.set("action", "none")?;
+                            }
+                            cmb::BridgeStep::Act { handle } => {
+                                result.set("state", "done")?;
+                                result.set("action", "act")?;
+                                result.set("handle", handle)?;
+                                if let Some((_, id)) = offered_ids.iter().find(|(offered, _)| *offered == handle) {
+                                    result.set("host_id", id.as_str())?;
+                                }
+                            }
+                        }
+                    }
+                    "ready_update" => {
+                        check_id("source_host_id")?;
+                        let [state, rate, delta_time] = exact_fields::<3>(lua, &step, "state,rate,delta_time").map_err(fail)?;
+                        let (state, phase) = aim.borrow().ready_update(state, rate, delta_time).map_err(fail)?;
+                        result.set("state", "done")?;
+                        result.set("ready_state", state)?;
+                        result.set("phase", phase)?;
+                    }
+                    "ready_command" => {
+                        check_id("source_host_id")?;
+                        let state = aim.borrow().ready_command(one(&step, "state")?, flag(&step, "open")?).map_err(fail)?;
+                        result.set("state", "done")?;
+                        result.set("ready_state", state)?;
+                    }
+                    "required" => {
+                        check_id("source_host_id")?;
+                        let tracking = match step.get::<LuaValue>("tracking")? {
+                            LuaValue::Nil => None,
+                            LuaValue::Table(facts) => Some(aim::Track {
+                                device_position: exact_numbers::<3>(lua, &facts, "device_position").map_err(fail)?,
+                                point: exact_numbers::<3>(lua, &facts, "point").map_err(fail)?,
+                                pitch: one(&facts, "pitch")?,
+                            }),
+                            other => return Err(fail(format!("tracking must be a table, got {}", other.type_name()))),
+                        };
+                        let unbounded = match step.get::<LuaValue>("unbounded")? {
+                            LuaValue::Nil => false,
+                            LuaValue::Boolean(unbounded) => unbounded,
+                            other => return Err(fail(format!("unbounded must be a boolean, got {}", other.type_name()))),
+                        };
+                        let limits = if unbounded {
+                            None
+                        } else {
+                            Some(aim::Limits {
+                                heading: [one(&step, "heading_min")?, one(&step, "heading_max")?],
+                                pitch: [one(&step, "pitch_min")?, one(&step, "pitch_max")?],
+                                climb: flag(&step, "climb")?,
+                            })
+                        };
+                        let intercept_vector = if tracking.is_some() {
+                            [0.0; 3]
+                        } else {
+                            exact_numbers::<3>(lua, &step, "intercept_vector").map_err(fail)?
+                        };
+                        let (heading, pitch) = aim
+                            .borrow()
+                            .required(
+                                exact_numbers::<9>(lua, &step, "device_attitude").map_err(fail)?,
+                                intercept_vector,
+                                limits,
+                                tracking,
+                            )
+                            .map_err(fail)?;
+                        result.set("state", "done")?;
+                        result.set("required_heading", heading)?;
+                        result.set("required_pitch", pitch)?;
+                    }
+                    "step" => {
+                        check_id("source_host_id")?;
+                        let [current_heading, current_pitch, required_heading, required_pitch, heading_min, heading_max, heading_rate, pitch_rate, delta_time] =
+                            exact_fields::<9>(
+                                lua,
+                                &step,
+                                "current_heading,current_pitch,required_heading,required_pitch,heading_min,heading_max,heading_rate,pitch_rate,delta_time",
+                            )
+                            .map_err(fail)?;
+                        let out = aim
+                            .borrow()
+                            .step(
+                                [current_heading, current_pitch],
+                                [required_heading, required_pitch],
+                                [heading_min, heading_max],
+                                [heading_rate, pitch_rate],
+                                delta_time,
+                            )
+                            .map_err(fail)?;
+                        result.set("state", "done")?;
+                        result.set("delta_heading", out[0])?;
+                        result.set("delta_pitch", out[1])?;
+                        result.set("new_heading", out[2])?;
+                        result.set("new_pitch", out[3])?;
+                    }
+                    "vectors" => {
+                        check_id("source_host_id")?;
+                        check_id("target_host_id")?;
+                        let tracking = match step.get::<LuaValue>("tracking_point")? {
+                            LuaValue::Nil => None,
+                            _ => Some(exact_numbers::<3>(lua, &step, "tracking_point").map_err(fail)?),
+                        };
+                        let (weapon, target) = if tracking.is_none() {
+                            (Some(weapon_of()?), Some(target_of()?))
+                        } else {
+                            (None, None)
+                        };
+                        let outcome = aim
+                            .borrow()
+                            .vectors(
+                                exact_numbers::<3>(lua, &step, "device_position").map_err(fail)?,
+                                exact_numbers::<9>(lua, &step, "device_attitude").map_err(fail)?,
+                                tracking,
+                                weapon.as_ref(),
+                                target.as_ref(),
+                                &world_of()?,
+                                flag(&step, "source_gunship")?,
+                                draw_of()?,
+                                echo_of()?,
+                            )
+                            .map_err(fail)?;
+                        match outcome {
+                            aim::Outcome::NeedDraw => result.set("state", "need_draw")?,
+                            aim::Outcome::Done(vectors) => {
+                                result.set("state", "done")?;
+                                result.set("valid", vectors.valid)?;
+                                result.set("weapon_vector", vectors.weapon_vector.to_vec())?;
+                                result.set("target_vector", vectors.target_vector.to_vec())?;
+                                result.set("intercept_vector", vectors.intercept_vector.to_vec())?;
+                                result.set("intercept_range", vectors.intercept_range)?;
+                                echo_into(&vectors.echo)?;
+                            }
+                        }
+                    }
+                    "lead" => {
+                        check_id("source_host_id")?;
+                        check_id("target_host_id")?;
+                        let outcome = aim
+                            .borrow()
+                            .lead(
+                                step.get("weapon")?,
+                                exact_numbers::<3>(lua, &step, "device_position").map_err(fail)?,
+                                one(&step, "parent_velocity")?,
+                                &target_of()?,
+                                &world_of()?,
+                                flag(&step, "source_gunship")?,
+                                draw_of()?,
+                                echo_of()?,
+                            )
+                            .map_err(fail)?;
+                        match outcome {
+                            aim::Outcome::NeedDraw => result.set("state", "need_draw")?,
+                            aim::Outcome::Done(lead) => {
+                                result.set("state", "done")?;
+                                result.set("ok", lead.ok)?;
+                                result.set("intercept_point", lead.intercept_point.to_vec())?;
+                                result.set("angle", lead.angle)?;
+                                // a partial output: sent only when the prediction produced one (the off-map and tiny-range paths produce none and the model invents none)
+                                if let Some(time_of_flight) = lead.time_of_flight {
+                                    result.set("time_of_flight", time_of_flight)?;
+                                }
+                                echo_into(&lead.echo)?;
+                            }
+                        }
+                    }
+                    "ballistic" => {
+                        let ballistic = aim
+                            .borrow()
+                            .ballistic(
+                                step.get("weapon")?,
+                                one(&step, "range")?,
+                                one(&step, "height_diff_or_pitch")?,
+                                flag(&step, "simplified")?,
+                                flag(&step, "fixed_pitch")?,
+                                one(&step, "parent_velocity")?,
+                            )
+                            .map_err(fail)?;
+                        result.set("state", "done")?;
+                        result.set("ok", ballistic.ok)?;
+                        if ballistic.ok {
+                            result.set("angle", ballistic.angle)?;
+                            result.set("time_of_flight", ballistic.time_of_flight)?;
+                        }
+                    }
+                    "intercept" => {
+                        check_id("source_host_id")?;
+                        check_id("target_host_id")?;
+                        let intercept = aim
+                            .borrow()
+                            .intercept(
+                                exact_numbers::<3>(lua, &step, "device_position").map_err(fail)?,
+                                &weapon_of()?,
+                                &target_of()?,
+                                echo_of()?,
+                            )
+                            .map_err(fail)?;
+                        result.set("state", "done")?;
+                        result.set("intercept_point", intercept.intercept_point.to_vec())?;
+                        echo_into(&intercept.echo)?;
+                    }
+                    other => return Err(fail(format!("unknown mode {other:?}"))),
+                }
+                Ok(result)
+            })?,
+        )?;
+    }
+    host.set(
+        "observe_loss",
+        lua.create_function(|_, descriptor: LuaTable| {
+            // Read the stable identity and event so the reference host rejects a mismatched contract.
+            let _: String = descriptor.get("host_id")?;
+            let _: String = descriptor.get("event")?;
+            Ok("forward")
+        })?,
+    )?;
+    host.set(
+        "supply_reached",
+        lua.create_function(|lua, descriptor: LuaTable| {
+            let answer = supply_reached(descriptor)?;
+            let result = lua.create_table()?;
+            result.set("gates_passed", answer.gates_passed)?;
+            result.set("launch_angle_error", answer.launch_angle_error)?;
+            if answer.heading_target_missing {
+                result.set("heading_target_missing", true)?;
+            }
+            Ok(result)
+        })?,
+    )?;
+
+    let recording: Rc<RefCell<Option<Recording>>> = Rc::new(RefCell::new(None));
+    {
+        let recording = recording.clone();
+        host.set(
+            "open_recording",
+            lua.create_function(move |_, spec: LuaTable| {
+                let path: String = spec.get("path")?;
+                let file = std::fs::File::create(&path).map_err(LuaError::external)?;
+                let (title, time) = (spec.get::<String>("title")?, spec.get::<String>("reference_time")?);
+                // affine = { m = {a, b, c, d}, t = {tx, tz}, latitude, longitude }: a fitted map projection
+                let out = match spec.get::<Option<LuaTable>>("affine")? {
+                    Some(a) => {
+                        let m: Vec<f64> = a.get("m")?;
+                        let t: Vec<f64> = a.get("t")?;
+                        if m.len() != 4 || t.len() != 2 {
+                            return Err(LuaError::runtime("affine: m has 4 numbers, t 2"));
+                        }
+                        let affine = eech_world::tacview::Affine {
+                            m: [[m[0], m[1]], [m[2], m[3]]],
+                            t: [t[0], t[1]],
+                            latitude: a.get("latitude")?,
+                            longitude: a.get("longitude")?,
+                        };
+                        Recorder::with_affine(BufWriter::new(file), &title, &time, affine)
+                    }
+                    None => Recorder::new(BufWriter::new(file), &title, &time, spec.get("latitude")?, spec.get("longitude")?),
+                }
+                .map_err(LuaError::external)?;
+                *recording.borrow_mut() = Some(Recording {
+                    out,
+                    tracked: HashMap::new(),
+                    next_id: 0x100,
+                    pass: 0,
+                    stats: HashMap::new(),
+                });
+                Ok(())
+            })?,
+        )?;
+    }
+    {
+        let recording = recording.clone();
+        host.set(
+            "record",
+            lua.create_function(move |_, (time, objects): (f64, LuaTable)| match recording.borrow_mut().as_mut() {
+                Some(r) => r.record(time, objects),
+                None => Err(LuaError::runtime("host.record: no recording open")),
+            })?,
+        )?;
+    }
+    {
+        let recording = recording.clone();
+        host.set(
+            "event",
+            lua.create_function(move |_, (time, kind, text): (f64, String, String)| match recording.borrow_mut().as_mut() {
+                Some(r) => {
+                    r.out.frame(time).map_err(LuaError::external)?;
+                    r.out.event(&kind, &[], &text).map_err(LuaError::external)
+                }
+                None => Ok(()),
+            })?,
+        )?;
+    }
+    lua.globals().set("host", host)?;
+
+    let source = std::fs::read_to_string(script)?;
+    let result = lua.load(&source).set_name(script.as_str()).exec();
+    if let Some(mut r) = recording.borrow_mut().take() {
+        r.out.flush()?;
+        let mut stats: Vec<_> = r.stats.into_iter().collect();
+        stats.sort();
+        eprintln!("recording: {stats:?}");
+    }
+    result?;
+    Ok(())
+}
+
+#[cfg(test)]
+mod supply_reached_tests {
+    use super::*;
+
+    fn descriptor(lua: &Lua, mobile: &str) -> LuaResult<LuaTable> {
+        let value = lua.create_table()?;
+        value.set("member_key", 1_u64)?;
+        value.set("task_key", 2_u64)?;
+        value.set("waypoint_key", 3_u64)?;
+        value.set("host_id", "member-1")?;
+        value.set("waypoint", "pick_up")?;
+        value.set("waypoint_sub_type", 7_i32)?;
+        value.set("player_skip_waypoint", false)?;
+        value.set("mobile", mobile)?;
+        value.set("is_ai", true)?;
+        value.set("landed", false)?;
+        value.set("radius", 50.0_f32)?;
+        value.set("distance", 40.0_f32)?;
+        value.set("velocity", 10.0_f32)?;
+        value.set("position", vec![0.0_f32, 0.0, 0.0])?;
+        value.set("motion", vec![10.0_f32, 0.0, 0.0])?;
+        value.set("guide_position", vec![5.0_f32, 0.0, 1.0])?;
+        value.set("delta_seconds", 1.0_f32)?;
+        value.set("updated", false)?;
+        value.set("rotor_spin_up_seconds", 0.0_f32)?;
+        value.set("is_task_leader", true)?;
+        value.set("leader_is_ai", true)?;
+        value.set("leader_position", vec![0.0_f32, 0.0, 0.0])?;
+        value.set("query", "reached")?;
+        value.set("landing_waypoint", false)?;
+        value.set("radius_valid", true)?;
+        value.set("altitude_valid", false)?;
+        value.set("heading_valid", false)?;
+        value.set("last_to_reach_valid", true)?;
+        value.set("weapon_gate", false)?;
+        value.set("vectors_valid", false)?;
+        value.set("airborne", false)?;
+        value.set("auto_pilot", false)?;
+        for name in [
+            "altitude_criterion",
+            "heading_criterion",
+            "altitude",
+            "heading",
+            "centre_of_gravity_to_ground",
+            "guide_altitude",
+            "action_radius",
+        ] {
+            value.set(name, 0.0_f32)?;
+        }
+        for name in ["weapon_vector", "intercept_vector", "waypoint_position"] {
+            value.set(name, vec![0.0_f32, 0.0, 0.0])?;
+        }
+        Ok(value)
+    }
+
+    fn passes(descriptor: LuaTable) -> LuaResult<bool> {
+        Ok(supply_reached(descriptor)?.gates_passed)
+    }
+
+    #[test]
+    fn fixed_wing_physical_boundaries() -> LuaResult<()> {
+        let lua = Lua::new();
+
+        for waypoint in ["pick_up", "prepare_for_drop_off", "drop_off", "finish_drop_off", "radius_arrival"] {
+            let value = descriptor(&lua, "fixed_wing")?;
+            value.set("waypoint", waypoint)?;
+            assert!(passes(value)?);
+        }
+
+        let landed = descriptor(&lua, "fixed_wing")?;
+        landed.set("landed", true)?;
+        assert!(!passes(landed)?);
+
+        let too_early = descriptor(&lua, "fixed_wing")?;
+        too_early.set("distance", 61.0_f32)?;
+        assert!(!passes(too_early)?);
+
+        let at_radius = descriptor(&lua, "fixed_wing")?;
+        at_radius.set("distance", 50.0_f32)?;
+        at_radius.set("velocity", 0.0_f32)?;
+        assert!(passes(at_radius)?);
+
+        let forward_segment = descriptor(&lua, "fixed_wing")?;
+        forward_segment.set("radius", 2.0_f32)?;
+        forward_segment.set("distance", 60.0_f32)?;
+        forward_segment.set("velocity", 60.0_f32)?;
+        assert!(passes(forward_segment)?);
+
+        let reverse_segment = descriptor(&lua, "fixed_wing")?;
+        reverse_segment.set("radius", 2.0_f32)?;
+        reverse_segment.set("distance", 60.0_f32)?;
+        reverse_segment.set("velocity", 60.0_f32)?;
+        reverse_segment.set("updated", true)?;
+        assert!(!passes(reverse_segment)?);
+
+        let degenerate_segment = descriptor(&lua, "fixed_wing")?;
+        degenerate_segment.set("radius", 2.0_f32)?;
+        degenerate_segment.set("distance", 3.0_f32)?;
+        degenerate_segment.set("velocity", 3.0_f32)?;
+        degenerate_segment.set("motion", vec![0.0_f32, 0.0, 0.0])?;
+        assert!(!passes(degenerate_segment)?);
+        Ok(())
+    }
+
+    #[test]
+    fn radius_arrival_keeps_the_same_physical_boundaries() -> LuaResult<()> {
+        let lua = Lua::new();
+
+        let fixed_wing_outside = descriptor(&lua, "fixed_wing")?;
+        fixed_wing_outside.set("waypoint", "radius_arrival")?;
+        fixed_wing_outside.set("distance", 61.0_f32)?;
+        assert!(!passes(fixed_wing_outside)?);
+
+        // a human helicopter member skips a waypoint whose database entry says so, even landed
+        let skipped = descriptor(&lua, "helicopter")?;
+        skipped.set("waypoint", "radius_arrival")?;
+        skipped.set("is_ai", false)?;
+        skipped.set("landed", true)?;
+        skipped.set("distance", 5_000.0_f32)?;
+        skipped.set("player_skip_waypoint", true)?;
+        assert!(passes(skipped)?);
+
+        // ... but an AI member never does, and a human member only where the database says so
+        let ai_not_skipped = descriptor(&lua, "helicopter")?;
+        ai_not_skipped.set("waypoint", "radius_arrival")?;
+        ai_not_skipped.set("distance", 5_000.0_f32)?;
+        ai_not_skipped.set("player_skip_waypoint", true)?;
+        assert!(!passes(ai_not_skipped)?);
+
+        let human_not_skipped = descriptor(&lua, "helicopter")?;
+        human_not_skipped.set("waypoint", "radius_arrival")?;
+        human_not_skipped.set("is_ai", false)?;
+        human_not_skipped.set("distance", 5_000.0_f32)?;
+        assert!(!passes(human_not_skipped)?);
+
+        let wingman_outside_cohesion = descriptor(&lua, "helicopter")?;
+        wingman_outside_cohesion.set("waypoint", "radius_arrival")?;
+        wingman_outside_cohesion.set("is_task_leader", false)?;
+        wingman_outside_cohesion.set("leader_position", vec![750.1_f32, 0.0, 0.0])?;
+        assert!(!passes(wingman_outside_cohesion)?);
+
+        let unknown = descriptor(&lua, "helicopter")?;
+        unknown.set("waypoint", "something_else")?;
+        assert!(passes(unknown).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn helicopter_physical_boundaries() -> LuaResult<()> {
+        let lua = Lua::new();
+
+        let ai_landed = descriptor(&lua, "helicopter")?;
+        ai_landed.set("landed", true)?;
+        assert!(!passes(ai_landed)?);
+
+        let ai_spinning_up = descriptor(&lua, "helicopter")?;
+        ai_spinning_up.set("rotor_spin_up_seconds", 0.1_f32)?;
+        assert!(!passes(ai_spinning_up)?);
+
+        let leader_at_radius = descriptor(&lua, "helicopter")?;
+        leader_at_radius.set("distance", 50.0_f32)?;
+        assert!(passes(leader_at_radius)?);
+
+        let leader_outside_radius = descriptor(&lua, "helicopter")?;
+        leader_outside_radius.set("distance", 50.1_f32)?;
+        assert!(!passes(leader_outside_radius)?);
+
+        let leader_unordered_radius = descriptor(&lua, "helicopter")?;
+        leader_unordered_radius.set("distance", f32::NAN)?;
+        assert!(passes(leader_unordered_radius)?);
+
+        let wingman_at_cohesion_boundary = descriptor(&lua, "helicopter")?;
+        wingman_at_cohesion_boundary.set("is_task_leader", false)?;
+        wingman_at_cohesion_boundary.set("leader_position", vec![750.0_f32, 100.0, 0.0])?;
+        assert!(passes(wingman_at_cohesion_boundary)?);
+
+        let wingman_outside_cohesion = descriptor(&lua, "helicopter")?;
+        wingman_outside_cohesion.set("is_task_leader", false)?;
+        wingman_outside_cohesion.set("leader_position", vec![750.1_f32, 0.0, 0.0])?;
+        assert!(!passes(wingman_outside_cohesion)?);
+
+        let wingman_unordered_cohesion = descriptor(&lua, "helicopter")?;
+        wingman_unordered_cohesion.set("is_task_leader", false)?;
+        wingman_unordered_cohesion.set("position", vec![f32::NAN, 0.0, 0.0])?;
+        assert!(passes(wingman_unordered_cohesion)?);
+
+        let human_led_wingman = descriptor(&lua, "helicopter")?;
+        human_led_wingman.set("is_task_leader", false)?;
+        human_led_wingman.set("leader_is_ai", false)?;
+        human_led_wingman.set("leader_position", vec![10_000.0_f32, 0.0, 0.0])?;
+        assert!(passes(human_led_wingman)?);
+
+        let human_leader = descriptor(&lua, "helicopter")?;
+        human_leader.set("is_ai", false)?;
+        human_leader.set("landed", true)?;
+        human_leader.set("rotor_spin_up_seconds", 1.0_f32)?;
+        human_leader.set("distance", 50.0_f32)?;
+        assert!(passes(human_leader)?);
+
+        let human_leader_outside_radius = descriptor(&lua, "helicopter")?;
+        human_leader_outside_radius.set("is_ai", false)?;
+        human_leader_outside_radius.set("landed", true)?;
+        human_leader_outside_radius.set("rotor_spin_up_seconds", 1.0_f32)?;
+        human_leader_outside_radius.set("distance", 50.1_f32)?;
+        assert!(!passes(human_leader_outside_radius)?);
+
+        Ok(())
+    }
+
+    #[test]
+    fn helicopter_leader_altitude_and_heading_gates() -> LuaResult<()> {
+        let lua = Lua::new();
+        let gated = |lua: &Lua| -> LuaResult<LuaTable> {
+            let value = descriptor(lua, "helicopter")?;
+            value.set("altitude_valid", true)?;
+            value.set("altitude_criterion", 10.0_f32)?;
+            value.set("altitude", 130.0_f32)?;
+            value.set("centre_of_gravity_to_ground", 2.0_f32)?;
+            value.set("guide_altitude", 120.0_f32)?;
+            Ok(value)
+        };
+
+        assert!(passes(gated(&lua)?)?);
+        let high = gated(&lua)?;
+        high.set("altitude", 132.1_f32)?;
+        assert!(!passes(high)?);
+        let low = gated(&lua)?;
+        low.set("altitude", 107.9_f32)?;
+        assert!(!passes(low)?);
+
+        // an unassisted human at a landing waypoint is judged by being on the ground, not by height
+        let airborne = gated(&lua)?;
+        airborne.set("is_ai", false)?;
+        airborne.set("landing_waypoint", true)?;
+        airborne.set("airborne", true)?;
+        assert!(!passes(airborne)?);
+        let grounded = gated(&lua)?;
+        grounded.set("is_ai", false)?;
+        grounded.set("landing_waypoint", true)?;
+        grounded.set("altitude", 5_000.0_f32)?;
+        assert!(passes(grounded)?);
+        let assisted = gated(&lua)?;
+        assisted.set("is_ai", false)?;
+        assisted.set("landing_waypoint", true)?;
+        assisted.set("auto_pilot", true)?;
+        assisted.set("airborne", true)?;
+        assisted.set("altitude", 5_000.0_f32)?;
+        assert!(!passes(assisted)?);
+
+        let heading = |lua: &Lua, required: f32, current: f32| -> LuaResult<LuaTable> {
+            let value = descriptor(lua, "helicopter")?;
+            value.set("heading_valid", true)?;
+            value.set("heading_criterion", 0.5_f32)?;
+            value.set("heading_source", "waypoint")?;
+            value.set("waypoint_heading", required)?;
+            value.set("heading", current)?;
+            Ok(value)
+        };
+        assert!(passes(heading(&lua, 1.0, 1.4)?)?);
+        assert!(!passes(heading(&lua, 1.0, 1.6)?)?);
+        // the delta wraps around a full turn: 3.0 to -3.0 is 0.28 radians, not 6.0
+        assert!(passes(heading(&lua, 3.0, -3.0)?)?);
+        assert!(passes(heading(&lua, -3.0, 3.0)?)?);
+        assert!(!passes(heading(&lua, 2.0, -2.0)?)?);
+        // a human member is not held to the heading
+        let human = heading(&lua, 1.0, 3.0)?;
+        human.set("is_ai", false)?;
+        assert!(passes(human)?);
+        // a heading gate with no heading source is a boundary failure, not a pass
+        let missing = heading(&lua, 1.0, 1.0)?;
+        missing.set("heading_source", mlua::Value::Nil)?;
+        assert!(supply_reached(missing).is_err());
+        let unknown = heading(&lua, 1.0, 1.0)?;
+        unknown.set("heading_source", "sideways")?;
+        assert!(supply_reached(unknown).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn helicopter_required_heading_follows_the_original_source_rules() -> LuaResult<()> {
+        let lua = Lua::new();
+        let heading = |lua: &Lua, source: &str, current: f32| -> LuaResult<LuaTable> {
+            let value = descriptor(lua, "helicopter")?;
+            value.set("heading_valid", true)?;
+            value.set("heading_criterion", 0.1_f32)?;
+            value.set("heading_source", source)?;
+            value.set("waypoint_heading", 2.0_f32)?;
+            value.set("heading", current)?;
+            Ok(value)
+        };
+        // prepare-for-insertion and troop-insert hold a zero heading, whatever the waypoint says
+        assert!(passes(heading(&lua, "zero", 0.05)?)?);
+        assert!(!passes(heading(&lua, "zero", 2.0)?)?);
+
+        // a TARGET waypoint points from the member to the task-dependent target: x east, z north
+        let toward = |lua: &Lua, target: [f32; 3], current: f32| -> LuaResult<LuaTable> {
+            let value = heading(lua, "target", current)?;
+            value.set("position", vec![100.0_f32, 0.0, 200.0])?;
+            value.set("heading_target_present", true)?;
+            value.set("heading_target_position", target.to_vec())?;
+            Ok(value)
+        };
+        // due east of the member is pi/2, due north is 0, due south is pi
+        assert!(passes(toward(&lua, [300.0, 0.0, 200.0], std::f32::consts::FRAC_PI_2)?)?);
+        assert!(!passes(toward(&lua, [300.0, 0.0, 200.0], 0.0)?)?);
+        assert!(passes(toward(&lua, [100.0, 0.0, 900.0], 0.0)?)?);
+        assert!(passes(toward(&lua, [100.0, 0.0, -900.0], 3.1)?)?);
+        // the waypoint heading (2.0) is ignored once the target direction is known
+        assert!(!passes(toward(&lua, [100.0, 0.0, 900.0], 2.0)?)?);
+
+        // a target without a readable position falls back to the waypoint heading
+        let fallback = heading(&lua, "target", 2.0)?;
+        fallback.set("heading_target_present", true)?;
+        assert!(passes(fallback)?);
+        let fallback_off = heading(&lua, "target", 0.0)?;
+        fallback_off.set("heading_target_present", true)?;
+        assert!(!passes(fallback_off)?);
+        Ok(())
+    }
+
+    #[test]
+    fn helicopter_missing_target_is_reported_only_where_the_original_asserts() -> LuaResult<()> {
+        let lua = Lua::new();
+        let target_without_task = |lua: &Lua| -> LuaResult<LuaTable> {
+            let value = descriptor(lua, "helicopter")?;
+            value.set("heading_valid", true)?;
+            value.set("heading_criterion", 0.1_f32)?;
+            value.set("heading_source", "target")?;
+            value.set("waypoint_heading", 0.0_f32)?;
+            value.set("heading_target_present", false)?;
+            Ok(value)
+        };
+        // the heading gate is reached with no task or target: the original asserted here
+        assert_eq!(supply_reached(target_without_task(&lua)?)?, Answer::target_missing());
+
+        // every earlier gate keeps its own early-out and never reports the missing target
+        let outside = target_without_task(&lua)?;
+        outside.set("distance", 5_000.0_f32)?;
+        assert_eq!(supply_reached(outside)?, Answer::denied());
+        let landed = target_without_task(&lua)?;
+        landed.set("landed", true)?;
+        assert_eq!(supply_reached(landed)?, Answer::denied());
+        let spinning = target_without_task(&lua)?;
+        spinning.set("rotor_spin_up_seconds", 3.0_f32)?;
+        assert_eq!(supply_reached(spinning)?, Answer::denied());
+        let off_altitude = target_without_task(&lua)?;
+        off_altitude.set("altitude_valid", true)?;
+        off_altitude.set("altitude_criterion", 10.0_f32)?;
+        off_altitude.set("altitude", 500.0_f32)?;
+        assert_eq!(supply_reached(off_altitude)?, Answer::denied());
+        // a follower never evaluates the heading, and neither does a human member
+        let follower = target_without_task(&lua)?;
+        follower.set("is_task_leader", false)?;
+        assert_eq!(supply_reached(follower)?, Answer::passed(None));
+        let human = target_without_task(&lua)?;
+        human.set("is_ai", false)?;
+        assert_eq!(supply_reached(human)?, Answer::passed(None));
+        Ok(())
+    }
+
+    #[test]
+    fn weapon_angle_is_reported_only_when_the_rule_applies() -> LuaResult<()> {
+        let lua = Lua::new();
+        for mobile in ["fixed_wing", "helicopter"] {
+            let vectors = |lua: &Lua| -> LuaResult<LuaTable> {
+                let value = descriptor(lua, mobile)?;
+                value.set("weapon_gate", true)?;
+                value.set("vectors_valid", true)?;
+                value.set("weapon_vector", vec![1.0_f32, 0.0, 0.0])?;
+                value.set("intercept_vector", vec![0.0_f32, 1.0, 0.0])?;
+                Ok(value)
+            };
+            let right_angle = supply_reached(vectors(&lua)?)?;
+            assert!(right_angle.gates_passed);
+            assert_eq!(right_angle.launch_angle_error, Some(std::f64::consts::FRAC_PI_2 as f32));
+
+            let parallel = vectors(&lua)?;
+            parallel.set("intercept_vector", vec![1.0_f32, 0.0, 0.0])?;
+            assert_eq!(supply_reached(parallel)?.launch_angle_error, Some(0.0));
+
+            // a dot product just beyond one is clamped, as in the original
+            let beyond = vectors(&lua)?;
+            beyond.set("weapon_vector", vec![1.0001_f32, 0.0, 0.0])?;
+            beyond.set("intercept_vector", vec![1.0_f32, 0.0, 0.0])?;
+            assert_eq!(supply_reached(beyond)?.launch_angle_error, Some(0.0));
+
+            let no_vectors = vectors(&lua)?;
+            no_vectors.set("vectors_valid", false)?;
+            assert_eq!(supply_reached(no_vectors)?, Answer::passed(None));
+            let no_rule = vectors(&lua)?;
+            no_rule.set("weapon_gate", false)?;
+            assert_eq!(supply_reached(no_rule)?, Answer::passed(None));
+
+            // a physical denial never reports an angle
+            let denied = vectors(&lua)?;
+            denied.set("distance", 5_000.0_f32)?;
+            denied.set("velocity", 0.0_f32)?;
+            assert_eq!(supply_reached(denied)?, Answer::denied());
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn vehicle_kinds_share_landed_radius_and_altitude_without_a_cog_term() -> LuaResult<()> {
+        let lua = Lua::new();
+        for mobile in ["routed_vehicle", "ship_vehicle", "anti_aircraft", "person"] {
+            let vehicle = |lua: &Lua| -> LuaResult<LuaTable> {
+                let value = descriptor(lua, mobile)?;
+                value.set("altitude_valid", true)?;
+                value.set("altitude_criterion", 5.0_f32)?;
+                value.set("altitude", 103.0_f32)?;
+                value.set("guide_altitude", 100.0_f32)?;
+                value.set("centre_of_gravity_to_ground", 50.0_f32)?;
+                Ok(value)
+            };
+            assert_eq!(supply_reached(vehicle(&lua)?)?, Answer::passed(None));
+            let landed = vehicle(&lua)?;
+            landed.set("landed", true)?;
+            assert!(!passes(landed)?);
+            let far = vehicle(&lua)?;
+            far.set("distance", 50.1_f32)?;
+            assert!(!passes(far)?);
+            let high = vehicle(&lua)?;
+            high.set("altitude", 105.1_f32)?;
+            assert!(!passes(high)?);
+            let no_altitude_rule = vehicle(&lua)?;
+            no_altitude_rule.set("altitude_valid", false)?;
+            no_altitude_rule.set("altitude", 9_999.0_f32)?;
+            assert!(passes(no_altitude_rule)?);
+            // heading and weapon vectors are not part of a vehicle's arrival
+            let ignored = vehicle(&lua)?;
+            ignored.set("heading_valid", true)?;
+            ignored.set("weapon_gate", true)?;
+            assert_eq!(supply_reached(ignored)?, Answer::passed(None));
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn fixed_wing_ignores_helicopter_altitude_and_heading() -> LuaResult<()> {
+        let lua = Lua::new();
+        let value = descriptor(&lua, "fixed_wing")?;
+        value.set("altitude_valid", true)?;
+        value.set("altitude", 9_999.0_f32)?;
+        value.set("heading_valid", true)?;
+        assert!(passes(value)?);
+        Ok(())
+    }
+
+    #[test]
+    fn follower_requires_the_last_to_reach_criterion() -> LuaResult<()> {
+        let lua = Lua::new();
+        let follower = descriptor(&lua, "helicopter")?;
+        follower.set("is_task_leader", false)?;
+        follower.set("last_to_reach_valid", false)?;
+        assert!(supply_reached(follower).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn action_and_recon_queries() -> LuaResult<()> {
+        let lua = Lua::new();
+        for mobile in ["fixed_wing", "helicopter", "person"] {
+            let action = descriptor(&lua, mobile)?;
+            action.set("query", "action")?;
+            action.set("action_radius", 100.0_f32)?;
+            action.set("distance", 100.0_f32)?;
+            assert!(passes(action)?);
+            let outside = descriptor(&lua, mobile)?;
+            outside.set("query", "action")?;
+            outside.set("action_radius", 100.0_f32)?;
+            outside.set("distance", 100.1_f32)?;
+            assert!(!passes(outside)?);
+        }
+
+        let recon = |lua: &Lua, x: f32| -> LuaResult<LuaTable> {
+            let value = descriptor(lua, "helicopter")?;
+            value.set("query", "recon")?;
+            value.set("action_radius", 100.0_f32)?;
+            value.set("position", vec![x, 500.0, 0.0])?;
+            value.set("waypoint_position", vec![0.0_f32, 0.0, 0.0])?;
+            Ok(value)
+        };
+        assert!(passes(recon(&lua, 99.9)?)?);
+        // exactly on the radius is outside, and height is ignored
+        assert!(!passes(recon(&lua, 100.0)?)?);
+        assert!(!passes(recon(&lua, 100.1)?)?);
+
+        let fixed_wing_recon = descriptor(&lua, "fixed_wing")?;
+        fixed_wing_recon.set("query", "recon")?;
+        assert!(supply_reached(fixed_wing_recon).is_err());
+        let unknown_query = descriptor(&lua, "helicopter")?;
+        unknown_query.set("query", "teleport")?;
+        assert!(supply_reached(unknown_query).is_err());
+        Ok(())
+    }
+
+    /// The previous `bound_unit` spelling (the legacy literal text is parsed in the
+    /// test), kept to prove the standard-library forms map every input to the same bits.
+    fn legacy_bound_unit(value: f32) -> f32 {
+        // `partial_cmp` is `None` for NaN, which falls through unchanged like `<` and `>`.
+        match (value.partial_cmp(&-1.0), value.partial_cmp(&1.0)) {
+            (Some(std::cmp::Ordering::Less), _) => -1.0,
+            (_, Some(std::cmp::Ordering::Greater)) => 1.0,
+            _ => value,
+        }
+    }
+
+    #[test]
+    fn standard_forms_match_the_legacy_expressions_bit_for_bit() {
+        let legacy_pi: f32 = "3.1415927".parse().expect("legacy literal text");
+        assert_eq!(legacy_pi.to_bits(), std::f32::consts::PI.to_bits());
+        assert_eq!(std::f32::consts::PI.to_bits(), 0x4049_0fdb);
+        let negative_nan = f32::from_bits(f32::NAN.to_bits() | 0x8000_0000);
+        let payload_nan = f32::from_bits(0x7fc0_1234);
+        let samples = [
+            f32::NAN,
+            negative_nan,
+            payload_nan,
+            0.0,
+            -0.0,
+            f32::INFINITY,
+            f32::NEG_INFINITY,
+            1.0,
+            -1.0,
+            f32::from_bits(1.0_f32.to_bits() + 1),
+            f32::from_bits(1.0_f32.to_bits() - 1),
+            f32::from_bits((-1.0_f32).to_bits() + 1),
+            f32::from_bits((-1.0_f32).to_bits() - 1),
+            0.5,
+            -0.5,
+            2.0,
+            -2.0,
+            f32::MAX,
+            f32::MIN,
+            f32::MIN_POSITIVE,
+            f32::from_bits(1),
+            -f32::from_bits(1),
+        ];
+        for value in samples {
+            assert_eq!(
+                bound_unit(value).to_bits(),
+                legacy_bound_unit(value).to_bits(),
+                "bound_unit differs for bits {:#010x}",
+                value.to_bits()
+            );
+        }
+        // Explicit expectations: bounds saturate, NaN and signed zero pass through.
+        assert_eq!(bound_unit(f32::INFINITY), 1.0);
+        assert_eq!(bound_unit(f32::NEG_INFINITY), -1.0);
+        assert!(bound_unit(f32::NAN).is_nan());
+        assert!(bound_unit(-0.0).is_sign_negative());
+        assert!(bound_unit(0.0).is_sign_positive());
+        // A coarse sweep across and beyond the bounds.
+        for step in -4000..=4000 {
+            let value = step as f32 * 0.001;
+            assert_eq!(bound_unit(value).to_bits(), legacy_bound_unit(value).to_bits());
+        }
+    }
+}
+
+#[cfg(all(test, target_arch = "x86_64"))]
+mod exact_number_tests {
+    use super::*;
+
+    extern "C" {
+        fn fesetround(mode: i32) -> i32;
+    }
+    const FE_TONEAREST: i32 = 0;
+    const FE_TOWARDZERO: i32 = 0xc00;
+
+    /// Runs `body` under the rounding mode the engine's callbacks run in, then restores it.
+    fn under(mode: i32, body: impl FnOnce()) {
+        unsafe { fesetround(mode) };
+        body();
+        unsafe { fesetround(FE_TONEAREST) };
+    }
+
+    fn table_of(lua: &Lua, values: &[f32]) -> LuaTable {
+        let table = lua.create_table().expect("table");
+        table.set("v", values.iter().map(|value| f64::from(*value)).collect::<Vec<_>>()).expect("array");
+        table
+    }
+
+    fn scalar_of(lua: &Lua, value: f32) -> LuaTable {
+        let table = lua.create_table().expect("table");
+        table.set("v", f64::from(value)).expect("scalar");
+        table
+    }
+
+    /// Edge values first (signed zeros, a value mlua would read as an integer, the smallest and
+    /// largest finite `f32`), then a deterministic spread of bit patterns.
+    fn samples() -> Vec<f32> {
+        let mut values = vec![
+            -0.0,
+            0.0,
+            -6.710_065e-17,
+            6.710_065e-17,
+            -0.646_527,
+            f32::from_bits(1),
+            -f32::from_bits(1),
+            f32::MIN_POSITIVE,
+            f32::MAX,
+            f32::MIN,
+            1.0,
+            -1.0,
+        ];
+        let mut state = 0x2545_f491_u32;
+        while values.len() < 20_000 {
+            state ^= state << 13;
+            state ^= state >> 17;
+            state ^= state << 5;
+            let value = f32::from_bits(state);
+            if value.is_finite() {
+                values.push(value);
+            }
+        }
+        values
+    }
+
+    #[test]
+    fn a_scalar_and_an_array_keep_every_bit_under_either_rounding_mode() {
+        let lua = Lua::new();
+        for mode in [FE_TONEAREST, FE_TOWARDZERO] {
+            under(mode, || {
+                for value in samples() {
+                    let [one] = exact_numbers::<1>(&lua, &scalar_of(&lua, value), "v").expect("scalar");
+                    assert_eq!(one.to_bits(), value.to_bits(), "scalar {value:e} under mode {mode:#x}");
+                }
+                for chunk in samples().chunks(3).filter(|chunk| chunk.len() == 3) {
+                    let read = exact_numbers::<3>(&lua, &table_of(&lua, chunk), "v").expect("array");
+                    for (got, want) in read.iter().zip(chunk) {
+                        assert_eq!(got.to_bits(), want.to_bits(), "array {want:e} under mode {mode:#x}");
+                    }
+                }
+            });
+        }
+    }
+
+    #[test]
+    fn a_double_read_keeps_every_bit_a_float_read_would_narrow() {
+        let lua = Lua::new();
+        // frand1 () draws: k / 32767 is never a float, and the old transport narrowed it
+        for k in (0..=32767u32).step_by(7) {
+            let draw = f64::from(k) * (1.0 / 32767.0);
+            let table = lua.create_table().expect("table");
+            table.set("v", vec![draw, -draw]).expect("array");
+            let read = exact_f64s::<2>(&lua, &table, "v").expect("exact read");
+            assert_eq!([read[0].to_bits(), read[1].to_bits()], [draw.to_bits(), (-draw).to_bits()]);
+        }
+        let table = lua.create_table().expect("table");
+        table.set("v", vec![f64::MIN_POSITIVE, f64::MAX]).expect("array");
+        assert_eq!(exact_f64s::<2>(&lua, &table, "v").expect("extremes"), [f64::MIN_POSITIVE, f64::MAX]);
+        for bad in [vec![f64::NAN, 0.0], vec![0.0, f64::INFINITY], vec![0.0, f64::NEG_INFINITY], vec![0.5]] {
+            table.set("v", bad.clone()).expect("array");
+            assert!(
+                exact_f64s::<2>(&lua, &table, "v")
+                    .expect_err("refused")
+                    .starts_with("v must be 2 finite numbers"),
+                "{bad:?}"
+            );
+        }
+    }
+
+    /// Doubles that matter to the sensing dialogue (EEDCS-43): the campaign's random draws (`k / 32767`), a tolerance limit, edge values and a
+    /// deterministic spread of bit patterns.
+    fn double_samples() -> Vec<f64> {
+        let mut values: Vec<f64> = (0..=32767u32).map(|k| f64::from(k) * (1.0 / 32767.0)).collect();
+        values.extend([
+            13.346_791_876_629_54, // a tolerance limit the 17-digit read below returned one ulp low
+            f64::MIN_POSITIVE,
+            f64::from_bits(1), // the smallest subnormal
+            f64::from_bits(0x000f_ffff_ffff_ffff),
+            f64::MAX,
+            1.0 - f64::EPSILON / 2.0, // the double below 1, which mlua reads as the integer 1
+            1.0 + f64::EPSILON,
+            9.0,
+            0.0,
+            6.7e-17,
+        ]);
+        let mut state = 0x9e37_79b9_7f4a_7c15_u64;
+        while values.len() < 60_000 {
+            state ^= state << 13;
+            state ^= state >> 7;
+            state ^= state << 17;
+            let value = f64::from_bits(state);
+            if value.is_finite() {
+                values.push(value);
+            }
+        }
+        values
+    }
+
+    #[test]
+    fn a_double_keeps_every_bit_under_round_toward_zero_when_it_is_read_in_exact_steps() {
+        let lua = Lua::new();
+        let mut seventeen_digit_misreads = 0;
+        let mut draw_misreads = 0;
+        under(FE_TOWARDZERO, || {
+            for (index, value) in double_samples().into_iter().enumerate() {
+                let table = lua.create_table().expect("table");
+                table.set("v", value).expect("scalar");
+                assert_eq!(exact_f64_bits(&lua, &table, "v").expect("exact steps").to_bits(), value.to_bits(), "{value:e}");
+                // the 17-significant-digit read that `exact_numbers` uses is exact for a float (its neighbours are tried) but, in
+                // this mode, the C library truncates the digits, and a double can come back one ulp low: why the sensing dialogue does not use it
+                if exact_f64s::<1>(&lua, &table, "v").map_or(true, |read| read[0].to_bits() != value.to_bits()) {
+                    seventeen_digit_misreads += 1;
+                    if index <= 32767 {
+                        draw_misreads += 1;
+                    }
+                }
+            }
+        });
+        under(FE_TONEAREST, || {
+            for value in double_samples() {
+                let table = lua.create_table().expect("table");
+                table.set("v", value).expect("scalar");
+                assert_eq!(exact_f64_bits(&lua, &table, "v").expect("exact steps").to_bits(), value.to_bits(), "{value:e}");
+            }
+        });
+        eprintln!("17-digit double reads that differ from the double under round-toward-zero: {seventeen_digit_misreads} of {} (of the 32768 draws k / 32767: {draw_misreads})", double_samples().len());
+        assert!(seventeen_digit_misreads > 0, "the 17-digit read was expected to lose bits in this mode");
+        let table = lua.create_table().expect("table");
+        for bad in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+            table.set("v", bad).expect("scalar");
+            assert!(exact_f64_bits(&lua, &table, "v").is_err(), "{bad}");
+        }
+        table.set("v", "x").expect("text");
+        assert!(exact_f64_bits(&lua, &table, "v").is_err());
+    }
+
+    #[test]
+    fn the_value_read_loses_what_the_exact_read_keeps() {
+        // The reason `exact_numbers` exists: mlua's value reads (a `Value`, a `Vec<f32>`) return
+        // any number within `f64::EPSILON` of an integer as that integer.
+        let lua = Lua::new();
+        for value in [-0.0_f32, -6.710_065e-17] {
+            let table = scalar_of(&lua, value);
+            assert!(matches!(table.get::<LuaValue>("v").expect("value read"), LuaValue::Integer(0)), "{value:e}");
+            let [exact] = exact_numbers::<1>(&lua, &table, "v").expect("exact read");
+            assert_eq!(exact.to_bits(), value.to_bits());
+        }
+    }
+
+    #[test]
+    fn a_missing_wrong_shaped_or_non_finite_field_is_refused_by_name() {
+        let lua = Lua::new();
+        let table = lua.create_table().expect("table");
+        table.set("short", vec![1.0_f64, 2.0]).expect("short");
+        table.set("text", "1").expect("text");
+        table.set("infinite", f64::INFINITY).expect("infinite");
+        table.set("nan", vec![f64::NAN, 0.0, 0.0]).expect("nan");
+        table.set("huge", 1.0e300_f64).expect("huge");
+        for field in ["absent", "short", "text", "infinite", "huge"] {
+            let error = exact_numbers::<1>(&lua, &table, field).expect_err(field);
+            assert!(error.starts_with(field), "{error}");
+        }
+        assert!(exact_numbers::<3>(&lua, &table, "short").expect_err("short").starts_with("short must be 3"));
+        assert!(exact_numbers::<3>(&lua, &table, "nan").expect_err("nan").starts_with("nan"));
+    }
+
+    #[test]
+    fn narrowing_picks_the_nearest_f32_at_the_edges() {
+        under(FE_TOWARDZERO, || {
+            let below = f64::from(1.0_f32) - f64::EPSILON;
+            assert_eq!(nearest_f32(below).map(f32::to_bits), Some(1.0_f32.to_bits()));
+            assert_eq!(nearest_f32(-0.0).map(f32::to_bits), Some((-0.0_f32).to_bits()));
+            assert_eq!(nearest_f32(-1.0e-50).map(f32::to_bits), Some((-0.0_f32).to_bits()));
+            assert_eq!(nearest_f32(f64::from(f32::from_bits(1))).map(f32::to_bits), Some(1));
+            assert_eq!(nearest_f32(f64::from(f32::MAX)), Some(f32::MAX));
+        });
+        assert_eq!(nearest_f32(f64::from(f32::MAX) * 2.0), None);
+        assert_eq!(nearest_f32(f64::NAN), None);
+        assert_eq!(nearest_f32(f64::NEG_INFINITY), None);
+    }
+
+    #[test]
+    fn a_fixed_wing_phase_must_be_exactly_one_of_the_four_integers() {
+        assert!(matches!(fixed_wing_phase(0.0), Ok(FixedWingPhase::Taxi)));
+        assert!(matches!(fixed_wing_phase(1.0), Ok(FixedWingPhase::Flight)));
+        assert!(matches!(fixed_wing_phase(2.0), Ok(FixedWingPhase::Land)));
+        assert!(matches!(fixed_wing_phase(3.0), Ok(FixedWingPhase::Absolute)));
+        for bad in [1.5, 0.999_999, -1.0, 4.0, 256.0, f32::NAN, f32::INFINITY] {
+            assert!(fixed_wing_phase(bad).is_err(), "phase {bad} must be refused");
+        }
+    }
+}

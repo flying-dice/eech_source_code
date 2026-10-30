@@ -1,0 +1,118 @@
+{
+  "kind": "Independent focused residual-source and new c4 runtime-evidence review",
+  "created_utc": "2026-10-29T12:49:45.514127+00:00",
+  "repository": "R:\\d2-sensor-detections",
+  "base": "c4a56d9a4238dcb6c489d0a0fe09037ba4024f3b",
+  "head": "a9d9e838ad84b81d67606ca200ab2e3022576567",
+  "clean_pinned_head_before_after": true,
+  "disposition": "Prior residual fixture-season P2 and loader-wording P3 source-resolved. No new shipping correctness, clean-code or boundary defect found in this delta. One minor fixture-comment P3 remains. Bounded c4 runtime evidence verified; no a9 native, Task47 delivery or whole-D3 acceptance inferred.",
+  "findings": [
+    {
+      "id": "FALSE_SEASON_OVERRIDE_WORDING",
+      "priority": "P3",
+      "file": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\terrain-has-face.lua",
+      "line": 14,
+      "related_line": 40,
+      "title": "Describe explicit false as a Summer assertion, not an override",
+      "mechanism": "Comments say true or false boots an explicit season. Unchanged production boot overrides only when config.winter is true; false preserves native session/MapInfo selection. The new script correctly captures the actual season and refuses a disagreeing explicit false assertion. This is wording, not a shipping behavior defect.",
+      "bounded_correction": "Describe omitted as no override/assertion, true as Winter override plus assertion, false as assertion that the native-selected season is Summer. Keep local collaborator tests scoped as driver guards."
+    }
+  ],
+  "closed_findings": {
+    "FACE_PROBE_SEASON": "Wrapper captures actual request.winter and boot map facts. Probe centre comes from those facts without post-boot Summer requery. Optional omitted season neither asserts nor forces. Wrong explicit assertion fails visibly. Real-script guards cover both modes/seasons, missing facts, wrong season and hint-dependent predicates; native fixture proof remains pending.",
+    "HEADLESS_2D_GRID_WORDING": "C fixture and README accurately retain headless load_3d_terrain_game_data -> load_2d_terrain and separate DLL 2D grid load/generation versus host numerical ownership."
+  },
+  "new_source_assessment": [
+    "Lua owner fix retains the state while returned table is consumed. tostring converts the actual Lua error userdata before Rust String decoding; the refusal assertion remains.",
+    "The legacy and host TERRAIN_3D_POINT_DATA branch bodies are identical after whitespace removal. Only conditional/branch ordering changes for existing text extractors; no compiled field order/type/body drift.",
+    "nohint removes optional hint/stored only from reference point replies; map/fast delegate unchanged. It is explicitly reference-backed. Actual-script controls assert fields and a negative reference control fails. Healthy-mode failures remain failures.",
+    "All-land generic remains actual native/controller1 at missing USS TARAWA. It is not swallowed as a provider refusal or converted into a passing generic result. WATER/TARAWA explanation is source-grounded interpretation, not whole-world compatibility evidence.",
+    "No new unsafe FFI, pointer or buffer boundary in this residual delta. Closed shipping numeric/ownership/lifetime reviews reused."
+  ],
+  "c4_runtime_evidence": {
+    "actual_source": "c4a56d9a4238dcb6c489d0a0fe09037ba4024f3b",
+    "shipping_manifest_entries_independently_rehashed": 45,
+    "build_mismatches": 0,
+    "full_grid_cases": [
+      {
+        "map": "lebanon",
+        "bytes": 4202516,
+        "sha256": "d3a707e8d21964b3f8df8d28f8d2a5afd88c0aa52e648fc3495a25aa6a26aa42",
+        "all_host_and_original_bytes_equal": true
+      },
+      {
+        "map": "georgia",
+        "bytes": 8400916,
+        "sha256": "83ac8c715274a117cbbef80e4665065746a6b0bf77c1b50b8b1aa1dd45d9700c",
+        "all_host_and_original_bytes_equal": true
+      }
+    ],
+    "conformance": "Each map has actual0 completion/logs: full-grid1/1, generated original-probe1/1, supplied-grid3/3, no SKIP. Entire host/original files read and compared; original provenance reused. No retail baseline replacement.",
+    "public_records": "All ten run records and summaries inspected. Reference/raised/missing/six bad modes native0; generic native1. Missing and each malformed mode has the exact expected primary marker; all bad modes malformed_sent=true. Caught-refusal process0 does not imply healthy campaign completion.",
+    "reference": {
+      "frames_completed": 1,
+      "point_calls": 79152,
+      "map_calls": 1,
+      "fast_calls": 0,
+      "placed_count": 1444,
+      "placed_sum": "759892.264",
+      "los_count": 1164,
+      "los_sum": "232000.902"
+    },
+    "raised": {
+      "frames_completed": 1,
+      "point_calls": 79152,
+      "map_calls": 1,
+      "fast_calls": 0,
+      "placed_sum": "10659892.1",
+      "los_sum": "11872000.8"
+    },
+    "generic": "Actual boot_failed parser cannot locate required USS TARAWA; actual native/controller1 preserved.",
+    "post_inputs": "All ten post-input logs end IDENTICAL to the frozen Lebanon manifest; completion records retain pre/post checker0. Reviewer did not rerun checkers or mutate inputs.",
+    "actual_tests": "engine terrain9/9 exit0; world terrain18/18 exit0; provider driver6/6 exit0; backend16/17 exit101 (error userdata->String), boot0/1 exit101 (destroyed Lua owner). Failed logs retained, not relabelled green; repaired re-execution pending."
+  },
+  "publication_correspondence": {
+    "prior_review_copy": "Private/worktree/pinned Git exact SHA4956521b58f9cf0fc5ce0d56f4e2fef082f517e770491cc9c099b293b4bb622b",
+    "validation_copy": {
+      "git_bytes": 6240,
+      "git_sha256": "514b97c20c774ec28b1020d6f1639186944f747dee24e8cb65e581369ec839f1",
+      "private_bytes": 6414,
+      "private_sha256": "21ab67f294e5329971e7bc53e5069617d595774dc0c67a791a13a86db0c2ac58",
+      "byte_identical": false,
+      "only_CRLF_vs_LF_difference": true,
+      "parsed_JSON_equal": true,
+      "limit": "Semantic/line-ending correspondence only; no exact private/Git byte-copy claim. No raw baseline or native output normalized by reviewer."
+    }
+  },
+  "limits": [
+    "Only pinned source/file reads, read-only hashes/byte comparisons and this authorized private report write. No reviewer build/compiler/test/Lua/native execution, delegation, source edit, process mutation or external publication.",
+    "New a9 face-script/nohint native results, repaired harness reruns and current CI pending; local collaborators do not establish actual DLL season selection or record-predicate behavior.",
+    "Public fast_calls0 remains no public fast-dispatch runtime proof. Kernel generated/supplied fast conformance is a separate completed scope.",
+    "No final shipping40/eight-complete-file regression/Tacview, Task47 delivery, DCS backend or whole-D3 completion. Remaining G2/G3/environment/time responsibilities remain explicit."
+  ],
+  "reviewer_setup_note": "An initial report-assembly exact-copy assertion correctly stopped before any report write because the derived validation JSON differs in line endings. It was replaced with explicit semantic/line-ending comparison and exact hashes above, not silently called byte-exact.",
+  "changed_path_sha256": {
+    "STATUS.md": "0f2f93464eb48bbe92cd82d0c8c3f264a39316865926e343162f448200e29e1f",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_terrain_fixture.c": "15b0ac57cca4c6fd3dfa688de2bd1d4da8cbbda6af2754b515ed3c974ea7c4d4",
+    "eech-campaign/crates/eech-world/lua/terrain-has-face.lua": "c199016af6722a5602e45e2fcb7849cdc16e0082996ed2ae1fa58fca19893350",
+    "eech-campaign/crates/eech-world/lua/terrain-provider.lua": "daada19d1c14598a073f944f94fb89c0a033e04021f2f9d7f6c47c877c1f9b24",
+    "eech-campaign/crates/eech-world/tests/terrain_backend.rs": "2fa4aa21231ddfb13ab10b292f9a62ef3abc30e760d9818f37ac0d514959c9ac",
+    "eech-campaign/crates/eech-world/tests/terrain_boot_contract.rs": "226c442bb37f0515c0b7cb208cba441b0dbc19ad026d424215f202cd141c67c2",
+    "eech-campaign/crates/eech-world/tests/terrain_has_face_harness.rs": "bcd365cdf90e605d8347e2ffb80efa5d1e01bda0d68c051425b837e30a1c3c9c",
+    "eech-campaign/crates/eech-world/tests/terrain_provider_harness.rs": "ae97a99b5cda3fd89d01500e5a699fa27814cb1a0973c0faa22b268805798388",
+    "eech-campaign/reference/d3-terrain-characterization/README.md": "f95dd97c904bcab7985d7313128d5a7c12e5de3d7975794755388ba8fa0c4158",
+    "eech-campaign/reference/d3-terrain-characterization/independent-production-corrections-review-c4a56d9a4.json": "4956521b58f9cf0fc5ce0d56f4e2fef082f517e770491cc9c099b293b4bb622b",
+    "eech-campaign/reference/d3-terrain-characterization/production-validation-c4a56d9a4.json": "514b97c20c774ec28b1020d6f1639186944f747dee24e8cb65e581369ec839f1",
+    "modules/3d/terrain/terrdata.h": "a4b5164eba12619f704f31b6c3fa51455992dae60a491b610058175a95b4c872"
+  },
+  "evidence_sha256": {
+    "root-terrain-c4a56d9a4-validation.json": "21ab67f294e5329971e7bc53e5069617d595774dc0c67a791a13a86db0c2ac58",
+    "public-green-c4-completion.json": "b4c6352a9dbee3178ebbc6039a75f780ff4de60480ecee1def3c1d35117851ae",
+    "shipping-terrain-c4a56d9a4-post-public-build-manifest.json": "b2cbd40e1518bda19b528ae28b92713c829dd63b34f7f80fb2bd665d7a06213f",
+    "terrain_backend-c4a56d9a4.log": "ae21ad31ce6547288e6f1934ec28c33b7de1e0380cbb067aee273632c4800705",
+    "terrain_boot_contract-c4a56d9a4.log": "6d6f0b90884cddd0b5d69d2a846af8b6de6c44230ace51a77564bcbcf5210ef0",
+    "terrain_provider_harness-c4a56d9a4.log": "5165c41329709c92d2ed3a9285883f98e32237e3fe887b43fb42072a84af0b5b",
+    "terrain-units-eech_engine-c4a56d9a4.log": "d59a8f4f2232c27b6363a7688b866c883dc1814ce35171a94511bcc8ad8ced11",
+    "terrain-units-eech_world-c4a56d9a4.log": "69105aeab68fbe42cbefd1001d297b14e5bbded67d8b38231cb0f8a45542e02e"
+  }
+}

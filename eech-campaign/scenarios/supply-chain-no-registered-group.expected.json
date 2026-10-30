@@ -1,0 +1,353 @@
+{
+  "events_before_failure": [],
+  "frames": [
+    {
+      "events": [
+        {
+          "event": "low-on-supplies",
+          "requester": "farp",
+          "side": "blue",
+          "supply": "ammo"
+        }
+      ],
+      "frame": 0,
+      "time": 0.5
+    },
+    {
+      "events": [
+        {
+          "event": "low-on-supplies",
+          "requester": "farp",
+          "side": "blue",
+          "supply": "ammo"
+        },
+        {
+          "cargo": "#36.1",
+          "event": "supply-mission-requested",
+          "requester": "farp",
+          "supplier": "factory"
+        },
+        {
+          "event": "mission-created",
+          "task": "#64.1"
+        }
+      ],
+      "frame": 120,
+      "time": 60.5
+    },
+    {
+      "events": [
+        {
+          "event": "low-on-supplies",
+          "requester": "farp",
+          "side": "blue",
+          "supply": "ammo"
+        }
+      ],
+      "frame": 240,
+      "time": 120.5
+    },
+    {
+      "events": [
+        {
+          "event": "low-on-supplies",
+          "requester": "farp",
+          "side": "blue",
+          "supply": "ammo"
+        }
+      ],
+      "frame": 360,
+      "time": 180.5
+    },
+    {
+      "events": [
+        {
+          "event": "low-on-supplies",
+          "requester": "farp",
+          "side": "blue",
+          "supply": "ammo"
+        }
+      ],
+      "frame": 480,
+      "time": 240.5
+    },
+    {
+      "events": [
+        {
+          "event": "low-on-supplies",
+          "requester": "farp",
+          "side": "blue",
+          "supply": "ammo"
+        }
+      ],
+      "frame": 600,
+      "time": 300.5
+    },
+    {
+      "events": [
+        {
+          "event": "low-on-supplies",
+          "requester": "farp",
+          "side": "blue",
+          "supply": "ammo"
+        }
+      ],
+      "frame": 720,
+      "time": 360.5
+    },
+    {
+      "events": [
+        {
+          "event": "low-on-supplies",
+          "requester": "farp",
+          "side": "blue",
+          "supply": "ammo"
+        }
+      ],
+      "frame": 840,
+      "time": 420.5
+    },
+    {
+      "events": [
+        {
+          "event": "low-on-supplies",
+          "requester": "farp",
+          "side": "blue",
+          "supply": "ammo"
+        }
+      ],
+      "frame": 960,
+      "time": 480.5
+    },
+    {
+      "events": [
+        {
+          "event": "low-on-supplies",
+          "requester": "farp",
+          "side": "blue",
+          "supply": "ammo"
+        }
+      ],
+      "frame": 1080,
+      "time": 540.5
+    },
+    {
+      "events": [
+        {
+          "event": "low-on-supplies",
+          "requester": "farp",
+          "side": "blue",
+          "supply": "ammo"
+        }
+      ],
+      "frame": 1200,
+      "time": 600.5
+    },
+    {
+      "events": [
+        {
+          "event": "low-on-supplies",
+          "requester": "farp",
+          "side": "blue",
+          "supply": "ammo"
+        }
+      ],
+      "frame": 1320,
+      "time": 660.5
+    },
+    {
+      "events": [
+        {
+          "event": "low-on-supplies",
+          "requester": "farp",
+          "side": "blue",
+          "supply": "ammo"
+        }
+      ],
+      "frame": 1440,
+      "time": 720.5
+    },
+    {
+      "events": [
+        {
+          "event": "low-on-supplies",
+          "requester": "farp",
+          "side": "blue",
+          "supply": "ammo"
+        }
+      ],
+      "frame": 1560,
+      "time": 780.5
+    },
+    {
+      "events": [
+        {
+          "event": "low-on-supplies",
+          "requester": "farp",
+          "side": "blue",
+          "supply": "ammo"
+        }
+      ],
+      "frame": 1680,
+      "time": 840.5
+    },
+    {
+      "events": [
+        {
+          "event": "low-on-supplies",
+          "requester": "farp",
+          "side": "blue",
+          "supply": "ammo"
+        }
+      ],
+      "frame": 1800,
+      "time": 900.5
+    },
+    {
+      "events": [
+        {
+          "event": "low-on-supplies",
+          "requester": "farp",
+          "side": "blue",
+          "supply": "ammo"
+        }
+      ],
+      "frame": 1920,
+      "time": 960.5
+    },
+    {
+      "events": [
+        {
+          "event": "low-on-supplies",
+          "requester": "farp",
+          "side": "blue",
+          "supply": "ammo"
+        }
+      ],
+      "frame": 2040,
+      "time": 1020.5
+    },
+    {
+      "events": [
+        {
+          "event": "low-on-supplies",
+          "requester": "farp",
+          "side": "blue",
+          "supply": "ammo"
+        }
+      ],
+      "frame": 2160,
+      "time": 1080.5
+    },
+    {
+      "events": [
+        {
+          "event": "low-on-supplies",
+          "requester": "farp",
+          "side": "blue",
+          "supply": "ammo"
+        }
+      ],
+      "frame": 2280,
+      "time": 1140.5
+    },
+    {
+      "events": [
+        {
+          "event": "low-on-supplies",
+          "requester": "farp",
+          "side": "blue",
+          "supply": "ammo"
+        }
+      ],
+      "frame": 2400,
+      "time": 1200.5
+    }
+  ],
+  "outcome": {
+    "error": "unported campaign behaviour reached: message_responses not supplied (message_responses [ENTITY_TYPE_TASK] [ENTITY_MESSAGE_TASK_TERMINATED])",
+    "frame": 2520,
+    "kind": "unported",
+    "result": "failed"
+  },
+  "snapshot": {
+    "elapsed": 1260.0,
+    "forces": [
+      {
+        "id": "#18.1",
+        "side": "blue",
+        "supply_missions_created": 1
+      }
+    ],
+    "groups": [
+      {
+        "id": "lift",
+        "kind": "MEDIUM_LIFT_TRANSPORT_HELICOPTER",
+        "members": 2,
+        "name": "lift",
+        "side": "blue",
+        "supplies": {
+          "ammo": 100.0,
+          "fuel": 100.0
+        }
+      }
+    ],
+    "keysites": [
+      {
+        "ammo_crates": 0,
+        "fuel_crates": 9,
+        "id": "farp",
+        "kind": "FARP",
+        "name": "farp",
+        "side": "blue",
+        "supplies": {
+          "ammo": 10.0,
+          "fuel": 99.36986541748047
+        },
+        "unassigned_missions": 0
+      },
+      {
+        "ammo_crates": 5,
+        "fuel_crates": 9,
+        "id": "factory",
+        "kind": "FACTORY",
+        "name": "factory",
+        "side": "blue",
+        "supplies": {
+          "ammo": 56.0,
+          "fuel": 100.0
+        },
+        "unassigned_missions": 0
+      },
+      {
+        "ammo_crates": 9,
+        "fuel_crates": 9,
+        "id": "airbase",
+        "kind": "AIRBASE",
+        "name": "airbase",
+        "side": "blue",
+        "supplies": {
+          "ammo": 95.7999038696289,
+          "fuel": 91.59996795654297
+        },
+        "unassigned_missions": 1
+      }
+    ],
+    "tasks": [
+      {
+        "expires_in": 0.0,
+        "id": "#64.1",
+        "keysite": "airbase",
+        "kind": "SUPPLY",
+        "objective": "farp",
+        "priority": 4.0,
+        "route_length": 4,
+        "side": "blue",
+        "status": "unassigned"
+      }
+    ]
+  },
+  "world_queries": {
+    "object-bounds answered": 126
+  }
+}

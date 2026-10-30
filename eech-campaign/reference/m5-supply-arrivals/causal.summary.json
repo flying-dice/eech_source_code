@@ -1,0 +1,39 @@
+{
+  "kind": "author public Lua causal run",
+  "executable_source": "1578435b3557570635cccbcc416cf5fcb15d2076",
+  "causal_test_source": "13846570326de9b0a536db60cc40d143c9f7a75f",
+  "integration_head": "4028c5a96510d7ef72d2e09c3fe36f3e7038ae88",
+  "eech_dc_sha256": "62d5ca194852dd8dcbab41ba782388adf6a3095decf4e5be0078d51495c24a8e",
+  "eech_world_sha256": "5a8be8a9affa5ab356f5fbc194b00b3441562bf00d748a73c199f47818708d5a",
+  "script_sha256": "137f2269dba5de20b08e06fd217f75ced9d464c098395e1d1cfceabcdbdbefec",
+  "timeout_seconds": 1800,
+  "cases": [
+    {
+      "case": "reference",
+      "exit": "0x00000000",
+      "timedOut": false,
+      "pass": true,
+      "retained_output": "causal-reference.out",
+      "output_sha256": "79842966b00385fe3ca4e4a1873bd9e8cc6c7f9b48c866285577536655c4f489",
+      "host_log_sha256": "6d7fa78e711389f4b8dad5f62224e01e7bb67a80824ed7a0ce46ea9b38811b01"
+    },
+    {
+      "case": "withhold_pick_up",
+      "exit": "0x00000000",
+      "timedOut": false,
+      "pass": true,
+      "retained_output": "causal-withhold-pick-up.out",
+      "output_sha256": "e0f5476162a26bc3147ebea1d536c841538d6bccd9b16181cc2c504d0782bec0",
+      "host_log_sha256": "6d7fa78e711389f4b8dad5f62224e01e7bb67a80824ed7a0ce46ea9b38811b01"
+    },
+    {
+      "case": "delay_drop_off",
+      "exit": "0x00000000",
+      "timedOut": false,
+      "pass": true,
+      "retained_output": "causal-delay-drop-off.out",
+      "output_sha256": "35f24bea06de2fcb591607296355f95e06b1355b30305ac3413c512901a4488b",
+      "host_log_sha256": "6d7fa78e711389f4b8dad5f62224e01e7bb67a80824ed7a0ce46ea9b38811b01"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+old checker exit=0 : equal empty traces
+old checker exit=0 : identical prefix traces
+old checker exit=0 : identical failed verdicts
+old checker exit=0 : an unexpected check renamed (both ok)
+old checker exit=0 : a mapped check's detail altered

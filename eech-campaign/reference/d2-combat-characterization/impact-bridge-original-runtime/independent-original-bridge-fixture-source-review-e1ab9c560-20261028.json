@@ -1,0 +1,239 @@
+{
+  "reviewed_utc": "2026-10-28T10:22:16.871359+00:00",
+  "reviewer": "same independent Codex reviewer",
+  "scope": "ONE new ORIGINAL bridge/segment test-only source review, combined correctness/clean-code/boundary; no physical extraction approval or unchanged impact/timed review",
+  "base": "e0a42825bcfad8280aa861879fdd9a0e561cdda3",
+  "reviewed_sha_before": "e1ab9c560a88381aeb086eb1cb26c032a043a8c5",
+  "reviewed_sha_after": "e1ab9c560a88381aeb086eb1cb26c032a043a8c5",
+  "status_before": "clean",
+  "status_after": "clean",
+  "findings": [
+    {
+      "id": "BRIDGE-ARGUMENTS",
+      "priority": "P2",
+      "file": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\bridge-case.lua",
+      "lines": [
+        33,
+        36,
+        69,
+        99,
+        112,
+        113
+      ],
+      "title": "Validate the bounded witness arguments before boot or mutation",
+      "mechanism": "tonumber outputs are not checked for finite/range/integer constraints. frame_ms=0 is accepted by Engine::frame and never advances elapsed_seconds, so positive warmup at69 loops indefinitely; an infinite/very large window yields an unbounded/excessive numeric frame loop. At99 explicit segment=abc becomes nil then falls back to-1, silently selecting and killing the first qualifying segment instead of rejecting the requested invalid index.",
+      "correction": "Before boot/output/mutation validate finite nonnegative warmup/window_seconds, strictly positive integer frame_ms within the engine range, a finite maximum total frame budget, supported criterion0, and explicit bridge/segment integer ranges. Distinguish absent selectors from invalid numeric strings; invalid explicit segment must not become auto. Add caller-level invalid-argument controls which assert no boot/fail operation occurred.",
+      "planned_fixed_arguments": "Root5s/100ms/12s/criterion0 are valid; this is fixture input/safety behavior, not bridge physics."
+    },
+    {
+      "id": "BRIDGE-PRECONDITION-WORDING",
+      "priority": "P3",
+      "file": "R:\\d2-sensor-detections\\eech-campaign\\docs\\m5-bridge-characterization.md",
+      "lines": [
+        48,
+        52,
+        54
+      ],
+      "related_source": {
+        "file": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-engine-sys\\csrc\\eech_cmb_case.c",
+        "lines": [
+          724,
+          725
+        ]
+      },
+      "title": "Qualify the claimed first-kill/unsupported-neighbour preconditions",
+      "mechanism": "Criterion0 requires the selected non-U segment alive, but tests only the adjacent segment subtype U, not its alive flag; survey/script also do not require parent bridge alive. An already-dead unsupported neighbour will not enter br_msgs unsupported-kill again, and a bridge already dead will not increment link breaks/create first repair task again. These are not guaranteed by first_candidate>=0, despite the definite statement at48 and one-run coverage list.",
+      "correction": "Either select an alive bridge and living adjacent unsupported segment for the intended first-collapse case, or emit/check those facts and explicitly qualify span-kill/link-break/repair coverage as reached only when the corresponding original branch/events occur. A bounded window also does not guarantee landing at an unknown initial height. No need to invent or force unsupported retail geometry."
+    }
+  ],
+  "disposition": "One fixture argument-safety P2 and one bounded precondition/coverage P3; original physical formulas unchanged. Planned native remains unrun and is not accepted by this source review.",
+  "verified_source_facts": [
+    "All23 changed file bytes canonicalize to pinned Git blobs.",
+    "New C/Rust/Lua entry feature gated consistently and carries complete seven callbacks through with_host/ENTER/LEAVE; buffer160KiB with c_int capacity and keep_case_reason. No new pointer/private heap index/layout/seed crosses; bridge ordinal and segment-list index are fixture selectors.",
+    "nth_bridge includes all bridge entities, not only living ones. Original bridge ALIVE setter only updates raw flag and segment kill keeps entity and segment links, so the observed kill/death does not itself retarget ordinal/index. No freed-after-kill getter found on this path.",
+    "Read-only hooks add no va_arg extraction, RNG draw, setter, notification or physical expression; sg_updt and br_msgs original order retained. Full armed event body uses known bridge/segment getters. Supported/unsupported kinds use actual segment getters.",
+    "bridge_segments records at most256 pointers and rejects excess before fail; append checks report capacity; no private physical formula stand-in added.",
+    "Bridge event body returns unarmed before its own getter/log/sequence accesses. Macro arguments that contain getters are still evaluated at call sites in fixture-on builds; feature-off removes them. No natural event/hash alteration is claimed from bridge log while unarmed.",
+    "Fixture collects state per-frame and ordered raw event log; stand-in tests check caller flow only and deliberately do not prove native behavior, identity or real event counts/order. Native evidence must check actual bridge identities, contiguous sequences, trusted/overflow flags, state cardinality and actual reached paths; done only means direct failure precondition.",
+    "Physical bridge/span/fall/shape and vehicles-on-segment responsibilities remain D2; database geometry/shapes are data, link break/route stop/repair task/credit consequences remain core. Persistent structure identity/report correlation R3 and factual reports remain nextD2, not D5 deferral."
+  ],
+  "existing_evidence": {
+    "cargo-test-bridge.log": {
+      "sha256": "fb74ba68bd09d38cb23872525476e11e1c1498d335259315f3594045847e9bcd",
+      "verified_markers": [
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0",
+        "the_bridge_witness_records_a_declared_failure_and_a_bounded_window_of_frames_in_order ... ok",
+        "the_bridge_witness_says_so_and_does_nothing_when_no_bridge_has_a_segment_next_to_an_unsupported_span ... ok"
+      ]
+    },
+    "clippy-bridge-default.log": {
+      "sha256": "f0d8eb48636a8e880bac4f050144ad53a2d40698f3c7e5983f5e50de948ee970",
+      "verified_markers": [
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "clippy-bridge-fixture.log": {
+      "sha256": "3670cb7c1474d06f564c5a05b10e5559ecbfbcda061c2d5a770c71624899d35d",
+      "verified_markers": [
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "fmt-bridge.log": {
+      "sha256": "561bba9495eb6bea32aa213162f0125c94eb103993b05b1ba926a15da50d2196",
+      "verified_markers": [
+        "FMT_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "strict-preprocess-bridge-1.log": {
+      "sha256": "9efec38449dffacb29caea0c8f93fc9bbe2f2350e589bbb5ada6a4141b414eb5",
+      "verified_markers": [
+        "br_msgs.c: strict feature-off equivalence PASS",
+        "sg_updt.c: strict feature-off equivalence PASS",
+        "sg_dstry.c: strict feature-off equivalence PASS",
+        "STRICT_EXIT=0"
+      ]
+    },
+    "syntax-bridge-1.log": {
+      "sha256": "3e40a1a99dd1741f4d6070f9a2475561c54c0bcc03078be662142f77ed2d5850",
+      "verified_markers": [
+        "SYNTAX_EXIT=0"
+      ]
+    }
+  },
+  "evidence_limits": [
+    "No test/native/build executed by reviewer; syntax/preprocess/Cargo/Clippy/fmt logs read only.",
+    "Strict feature-off equality covers exactly br_msgs/sg_updt/sg_dstry(control), not an invented whole-engine proof.",
+    "Earlier failed format-layout log retained.",
+    "No actual retail bridge survey, selected preconditions, unsupported-span propagation, fall/landing, repeat trace or weapon-hit/client/player/MP coverage yet.",
+    "Window12s at100ms is a collection interval, not proof every possible tall span landed.",
+    "Root fixed private driver held-handle/Hidden/actual exit/out guard inspected; pre/post root/build identity and actual process/trace audit remain runtime gates."
+  ],
+  "file_pins": [
+    {
+      "path": "STATUS.md",
+      "git_blob": "a7802ec3c48b02dd0521ac427d07d292aed20fa4",
+      "raw_sha256": "8dc6b610eaeb1240ade43994c50e0205ecc61fa0e9339b763d95189d6404169b"
+    },
+    {
+      "path": "aphavoc/source/entity/fixed/segment/sg_updt.c",
+      "git_blob": "4d1719977b381105e74696f795fdf2588eacc702",
+      "raw_sha256": "0281b34fce422e8c3cc8f2f3fc1eef01a39a1b50ef892dd1b24dc015208a72ac"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_cmbfx.h",
+      "git_blob": "29d9e74f7837c32e3f2b878ea988a6a812dadc8d",
+      "raw_sha256": "269c4e6a6b8f43c879ff0346405da07eb1e822cb2af54d3937dcb1c592bcd080"
+    },
+    {
+      "path": "aphavoc/source/entity/special/bridge/br_msgs.c",
+      "git_blob": "e4405d8e206867977b1a43e697c52270327d473c",
+      "raw_sha256": "36505b58ca05c249adc7ba185fdb11f69233111e8caeb22cd38b2cfffd847b35"
+    },
+    {
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "git_blob": "c5cf8bbf10318139e3cdc3104b3a53d1ea9fb06b",
+      "raw_sha256": "df8b04f2721abc9c303f20b5218559a7116f2cb85f73dae751a53fdb4d134974"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_cmb_case.c",
+      "git_blob": "0646e0cb36feac0755a8def77a3a8a825498027a",
+      "raw_sha256": "84302b054879d7de4f12d8689dbbbeadc8f02ae42874e100816633e3a0140476"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_cmb_fixture.c",
+      "git_blob": "72ee9743262344cc4e43e72b207fc9e116535677",
+      "raw_sha256": "ccb3b8d979cf85a65a561c2202f61e89b7d6c9fb79699a119d2653c69096e8ad"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+      "git_blob": "63f9278bea196ef5d786b7c813df86108948add3",
+      "raw_sha256": "ef7e6dec4e8fe63357bdb801b81746b18384fd21da1f7bd7a62861682eca1ae4"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h",
+      "git_blob": "f045494d3d3ebd5057c17fbfc92fed3bd2696ac9",
+      "raw_sha256": "f0433371f3a34f4e65fdcb1a550ce16b00323608bfa2dd64ad26c25fbb93849d"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "git_blob": "34a161503c397490ad30645b11279120ca195853",
+      "raw_sha256": "265806d2a11cc6900c60cc947bf4371af1603c45635e6a1e76b589812dc56129"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "git_blob": "f828525816b367efc37c55ff7ac3e57793e2eb5c",
+      "raw_sha256": "a01d13f7ae41f0c50a601c606cd843c8143433cf11bfa086ff6ae97963537d14"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/bridge-case.lua",
+      "git_blob": "10e6002f65d2f90ebd1351000bb980d1ca0e13d1",
+      "raw_sha256": "b379655bbfa431d7cc3efcc6eef459e796ef19e29039fd429999ef0cf8304032"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "git_blob": "48a51dd476879363a742c947e83d511e06e87453",
+      "raw_sha256": "a64b499a58651170df3673a4dcf6cceddf65dc719e27f26ad0498ea5c8f68bc3"
+    },
+    {
+      "path": "eech-campaign/docs/m5-bridge-characterization.md",
+      "git_blob": "fa18ef910c4827d437d1f357037e467576749389",
+      "raw_sha256": "b6d676950c605eebca3b5c5f95f5236450a792107ee735efe1358973845a4d9d"
+    },
+    {
+      "path": "eech-campaign/docs/m5-combat-extraction.md",
+      "git_blob": "64b59b9aff067daf1cd9cb808e60ceac194e810f",
+      "raw_sha256": "4d79410a3d4098dc389c44337ef9eb7149f18682f83b2891eacef15f00831113"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/README.md",
+      "git_blob": "72439bf0284e9f05e23480c8e578e0bc0b7c4487",
+      "raw_sha256": "c95c92a4306854020d94cbb7d2ecac9cfe1961f860619a3f46afdae6af7be2b7"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/cargo-test-bridge.log",
+      "git_blob": "aab22a4bb622899542bada3b968c2c63710b2969",
+      "raw_sha256": "fb74ba68bd09d38cb23872525476e11e1c1498d335259315f3594045847e9bcd"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-bridge-default.log",
+      "git_blob": "1a80f04255486a8cfd0bd4054e548eac0e6539cc",
+      "raw_sha256": "f0d8eb48636a8e880bac4f050144ad53a2d40698f3c7e5983f5e50de948ee970"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-bridge-fixture.log",
+      "git_blob": "b21fdcf8bff65a18dee535b276e47323a4a863f0",
+      "raw_sha256": "3670cb7c1474d06f564c5a05b10e5559ecbfbcda061c2d5a770c71624899d35d"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/fmt-bridge-failed-layout.log",
+      "git_blob": "132dbb40e5843933b8777aeb77a5a38f5e5bc2d3",
+      "raw_sha256": "12b5f50ce2cbf119e866a49bd25fd51fa1a318542522cc8dc048e5b7b844e591"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/fmt-bridge.log",
+      "git_blob": "fb443baa65a38fe198b61549de69630e8a4fb6fb",
+      "raw_sha256": "561bba9495eb6bea32aa213162f0125c94eb103993b05b1ba926a15da50d2196"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/strict-preprocess-bridge-1.log",
+      "git_blob": "69d9d828250bd566d871a46c628ce40a3d492d4c",
+      "raw_sha256": "9efec38449dffacb29caea0c8f93fc9bbe2f2350e589bbb5ada6a4141b414eb5"
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/syntax-bridge-1.log",
+      "git_blob": "9c735fdf7dcb078f40655191520431e1bafa8a49",
+      "raw_sha256": "3e40a1a99dd1741f4d6070f9a2475561c54c0bcc03078be662142f77ed2d5850"
+    }
+  ],
+  "private_reply_sha256": "e5f1af6ca3291ce04ec18b65fd07913de048e18213401265267d4b01b054f0a6",
+  "root_driver_sha256": "773b4006449ab1e8a115009a11c315ac33041b0e1f91b762492c90012dfbaa5f",
+  "remaining": [
+    "Resolve/explicitly disposition new fixture findings before relying on original witness.",
+    "Freeze/build exact corrected identity, fresh input+export identity, actual original native/controller exits, audit real per-bridge state/events and deterministic repeat on reached map.",
+    "Accept original bridge behavior before physical bridge extraction; Task46/fullD2 acceptance remains separate."
+  ]
+}

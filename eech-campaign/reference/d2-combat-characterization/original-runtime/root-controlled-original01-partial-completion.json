@@ -1,0 +1,134 @@
+{
+  "when_utc": "2026-10-28T04:46:35.469274+00:00",
+  "source": "9d7cd106a2d5b0b23424c5e5bb5db2492d95f928",
+  "scope": "PARTIALoriginalcontrolledcharacterization;39cases with13rejectedcalls, NOTacceptedwholewitness/extraction",
+  "actual_original_controller33996_exit": 0,
+  "actual_native_exit": 0,
+  "run_record": {
+    "status": "completed",
+    "when_utc": "2026-10-28T04:41:29.5814904Z",
+    "binary": "R:\\d2-evidence\\combat-controlled-source-9d7cd106a\\eech-campaign\\target\\weapon-fixture\\combat-controlled-9d7cd106a\\eech-world.exe",
+    "arguments": "R:/d2-evidence/combat-controlled-source-9d7cd106a/eech-campaign/target/weapon-fixture/combat-controlled-9d7cd106a/lua/combat-case.lua root=R:/d2-evidence/combat-characterization-20261028/roots/controlled-original-01 out=R:/d2-evidence/combat-characterization-20261028/out/controlled-original-01/trace.jsonl warmup=60 frame_ms=100 timed_seconds=20",
+    "root": "R:/d2-evidence/combat-characterization-20261028/roots/controlled-original-01",
+    "out": "R:/d2-evidence/combat-characterization-20261028/out/controlled-original-01",
+    "kind": "Controlled ORIGINAL combat witness; precondition done is not physical-path coverage; not extraction/fullpack acceptance",
+    "actual_native_exit": 0,
+    "native_pid": 19768,
+    "created_utc": "2026-10-28T04:41:29.6967870Z",
+    "completed_utc": "2026-10-28T04:43:48.1405837Z"
+  },
+  "trace_bytes": 465189,
+  "trace_sha256": "1db8957d2f61a551b907b69a1da70f0fc2742ae50faa6f3691867f35008d699c",
+  "case_count": 39,
+  "preconditions_ok": 26,
+  "rejected_cases": [
+    {
+      "done": false,
+      "event": "case",
+      "name": "direct_SITE_he_dual_purpose",
+      "ok": false,
+      "text": "runtime error: eech: bad argument: rejected by the engine stack traceback: \t[C]: in function 'cmb_case_act' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:176: in function <[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:175> \t(tail call): in function <(tail call):-1> \t[C]: in function 'pcall' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:109: in function 'run_case' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:211: in main chunk "
+    },
+    {
+      "done": false,
+      "event": "case",
+      "name": "blast_modifier_SITE_he_dual_purpose",
+      "ok": false,
+      "text": "runtime error: eech: bad argument: rejected by the engine stack traceback: \t[C]: in function 'cmb_case_act' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:176: in function <[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:175> \t(tail call): in function <(tail call):-1> \t[C]: in function 'pcall' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:109: in function 'run_case' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:212: in main chunk "
+    },
+    {
+      "done": false,
+      "event": "case",
+      "name": "direct_SITE_UPDATABLE_he_dual_purpose",
+      "ok": false,
+      "text": "runtime error: eech: bad argument: rejected by the engine stack traceback: \t[C]: in function 'cmb_case_act' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:176: in function <[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:175> \t(tail call): in function <(tail call):-1> \t[C]: in function 'pcall' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:109: in function 'run_case' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:211: in main chunk "
+    },
+    {
+      "done": false,
+      "event": "case",
+      "name": "blast_modifier_SITE_UPDATABLE_he_dual_purpose",
+      "ok": false,
+      "text": "runtime error: eech: bad argument: rejected by the engine stack traceback: \t[C]: in function 'cmb_case_act' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:176: in function <[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:175> \t(tail call): in function <(tail call):-1> \t[C]: in function 'pcall' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:109: in function 'run_case' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:212: in main chunk "
+    },
+    {
+      "done": false,
+      "event": "case",
+      "name": "direct_ROUTED_VEHICLE_he_dual_purpose",
+      "ok": false,
+      "text": "runtime error: eech: bad argument: rejected by the engine stack traceback: \t[C]: in function 'cmb_case_act' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:176: in function <[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:175> \t(tail call): in function <(tail call):-1> \t[C]: in function 'pcall' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:109: in function 'run_case' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:211: in main chunk "
+    },
+    {
+      "done": false,
+      "event": "case",
+      "name": "blast_modifier_ROUTED_VEHICLE_he_dual_purpose",
+      "ok": false,
+      "text": "runtime error: eech: bad argument: rejected by the engine stack traceback: \t[C]: in function 'cmb_case_act' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:176: in function <[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:175> \t(tail call): in function <(tail call):-1> \t[C]: in function 'pcall' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:109: in function 'run_case' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:212: in main chunk "
+    },
+    {
+      "done": false,
+      "event": "case",
+      "name": "explosion_HIT_LAND_PERSON",
+      "ok": false,
+      "text": "runtime error: eech: bad argument: rejected by the engine stack traceback: \t[C]: in function 'cmb_case_act' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:179: in function <[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:178> \t(tail call): in function <(tail call):-1> \t[C]: in function 'pcall' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:109: in function 'run_case' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:231: in main chunk "
+    },
+    {
+      "done": false,
+      "event": "case",
+      "name": "explosion_HIT_LAND_PYLON",
+      "ok": false,
+      "text": "runtime error: eech: bad argument: rejected by the engine stack traceback: \t[C]: in function 'cmb_case_act' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:179: in function <[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:178> \t(tail call): in function <(tail call):-1> \t[C]: in function 'pcall' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:109: in function 'run_case' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:231: in main chunk "
+    },
+    {
+      "done": false,
+      "event": "case",
+      "name": "explosion_HIT_LAND_SCENIC",
+      "ok": false,
+      "text": "runtime error: eech: bad argument: rejected by the engine stack traceback: \t[C]: in function 'cmb_case_act' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:179: in function <[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:178> \t(tail call): in function <(tail call):-1> \t[C]: in function 'pcall' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:109: in function 'run_case' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:231: in main chunk "
+    },
+    {
+      "done": false,
+      "event": "case",
+      "name": "explosion_HIT_LAND_SITE",
+      "ok": false,
+      "text": "runtime error: eech: bad argument: rejected by the engine stack traceback: \t[C]: in function 'cmb_case_act' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:179: in function <[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:178> \t(tail call): in function <(tail call):-1> \t[C]: in function 'pcall' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:109: in function 'run_case' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:231: in main chunk "
+    },
+    {
+      "done": false,
+      "event": "case",
+      "name": "explosion_HIT_LAND_SITE_UPDATABLE",
+      "ok": false,
+      "text": "runtime error: eech: bad argument: rejected by the engine stack traceback: \t[C]: in function 'cmb_case_act' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:179: in function <[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:178> \t(tail call): in function <(tail call):-1> \t[C]: in function 'pcall' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:109: in function 'run_case' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:231: in main chunk "
+    },
+    {
+      "done": false,
+      "event": "case",
+      "name": "explosion_HIT_LAND_ROUTED_VEHICLE",
+      "ok": false,
+      "text": "runtime error: eech: bad argument: rejected by the engine stack traceback: \t[C]: in function 'cmb_case_act' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:179: in function <[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:178> \t(tail call): in function <(tail call):-1> \t[C]: in function 'pcall' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:109: in function 'run_case' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:231: in main chunk "
+    },
+    {
+      "done": false,
+      "event": "case",
+      "name": "explosion_HIT_TARGET_PERSON",
+      "ok": false,
+      "text": "runtime error: eech: bad argument: rejected by the engine stack traceback: \t[C]: in function 'cmb_case_act' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:179: in function <[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:178> \t(tail call): in function <(tail call):-1> \t[C]: in function 'pcall' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:109: in function 'run_case' \t[string \"R:/d2-evidence/combat-controlled-source-9d7...\"]:237: in main chunk "
+    }
+  ],
+  "all79_integrity_reports_trusted": true,
+  "timed_activity": [
+    {
+      "attempts": 138489,
+      "draws": 201,
+      "event": "timed_activity",
+      "fatal": 0,
+      "fired": true,
+      "hits": 46,
+      "ordinal": 0,
+      "path": "anti_aircraft_fire",
+      "rolled": true
+    }
+  ],
+  "post1179_input_actual_exit": 0,
+  "all39_exports_and_BUILD_INFO_manifest_unchanged": true,
+  "remaining": "Diagnose13rejections/deltaactivity+coverage andfocusedfix/disposition; preservefrozen9d7/raws; no physicaldamageportyet"
+}

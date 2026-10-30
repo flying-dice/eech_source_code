@@ -1,0 +1,49 @@
+{
+  "when_utc": "2026-10-28T11:08:06.550178+00:00",
+  "scope": "Genuine auditor defect RED; original native traces/runrecords unchanged; mutations are NOTnative executions",
+  "before_helper": "R:\\d2-evidence\\combat-characterization-20261028\\audit-original-bridge-before-phase-fix.py",
+  "before_sha256": "754f9c835e3e2742551686e941f556c8eb26b7ef9c9704408aefcaae4ad02346",
+  "controls": [
+    {
+      "name": "moved_disarm",
+      "before_actual_exit": 0,
+      "before_wrongly_accepts_corrupt_artifact": true,
+      "trace": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\moved_disarm.jsonl",
+      "before_summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\moved_disarm-red.json",
+      "before_log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\moved_disarm-red.log"
+    },
+    {
+      "name": "relabeled_frame_logs",
+      "before_actual_exit": 0,
+      "before_wrongly_accepts_corrupt_artifact": true,
+      "trace": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\relabeled_frame_logs.jsonl",
+      "before_summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\relabeled_frame_logs-red.json",
+      "before_log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\relabeled_frame_logs-red.log"
+    },
+    {
+      "name": "wrong_frame_time",
+      "before_actual_exit": 0,
+      "before_wrongly_accepts_corrupt_artifact": true,
+      "trace": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\wrong_frame_time.jsonl",
+      "before_summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\wrong_frame_time-red.json",
+      "before_log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\wrong_frame_time-red.log"
+    },
+    {
+      "name": "misplaced_before_report",
+      "before_actual_exit": 0,
+      "before_wrongly_accepts_corrupt_artifact": true,
+      "trace": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\misplaced_before_report.jsonl",
+      "before_summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\misplaced_before_report-red.json",
+      "before_log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\misplaced_before_report-red.log"
+    },
+    {
+      "name": "premature_case_marker",
+      "before_actual_exit": 0,
+      "before_wrongly_accepts_corrupt_artifact": true,
+      "trace": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\premature_case_marker.jsonl",
+      "before_summary": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\premature_case_marker-red.json",
+      "before_log": "R:\\d2-evidence\\combat-characterization-20261028\\bridge-auditor-phase-controls\\premature_case_marker-red.log"
+    }
+  ],
+  "remaining": "Apply phase/time guard then all5mustreject; preservebefore results"
+}

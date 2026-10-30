@@ -1,0 +1,17 @@
+{
+  "status": "completed",
+  "when_utc": "2026-10-28T11:32:31.2458685Z",
+  "binary": "R:\\d2-evidence\\shipping-source-d2-weapon-a137fc3ec\\eech-campaign\\target\\windows-d2-weapon-final\\eech-world.exe",
+  "arguments": "R:/d2-evidence/combat-characterization-20261028/frame-cost-task45-lua/campaign-frame-cost.lua root=R:/d2-evidence/combat-characterization-20261028/roots/frame-cost-task45-900-01 scenario=lebanon_retail hours=0.25 frame_ms=100 record_every=10 checkpoint_every=3600 observe_every=60 acmi=R:/d2-evidence/combat-characterization-20261028/out/frame-cost-task45-900-01/recording.acmi observe=R:/d2-evidence/combat-characterization-20261028/out/frame-cost-task45-900-01/observations.jsonl metrics=R:/d2-evidence/combat-characterization-20261028/out/frame-cost-task45-900-01/metrics.json observe_supply=0 frame_cost=R:/d2-evidence/combat-characterization-20261028/out/frame-cost-task45-900-01/frame-cost.jsonl",
+  "root": "R:/d2-evidence/combat-characterization-20261028/roots/frame-cost-task45-900-01",
+  "out": "R:/d2-evidence/combat-characterization-20261028/out/frame-cost-task45-900-01",
+  "script": "R:/d2-evidence/combat-characterization-20261028/frame-cost-task45-lua/campaign-frame-cost.lua",
+  "script_sha256": "8bdc9cd8927265017af0a2548382475b4247fc07761aefc65ace659375e92046",
+  "build_info_sha256": "5e0fe29daecc6d128911e40f0ef0c17633870726f5d5b36c5e058398981cdc95",
+  "kind": "R4 observational shipping-script copy: timing ONLY engine:frame; no DCS scheduling/budget or final pack acceptance",
+  "resource_context": "Background process list captured separately; raw distributions do not prove causal benchmark attribution",
+  "actual_native_exit": 0,
+  "native_pid": 23428,
+  "created_utc": "2026-10-28T11:32:31.5000056Z",
+  "completed_utc": "2026-10-28T12:04:02.5104843Z"
+}

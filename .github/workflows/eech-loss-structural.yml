@@ -1,0 +1,72 @@
+name: eech-loss-structural
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - ".github/workflows/eech-loss-structural.yml"
+      - "EECH-MSVC.vcproj"
+      - "aphavoc/source/entity/mobile/aircraft/fixwing/fw_dstry.c"
+      - "aphavoc/source/entity/mobile/aircraft/helicop/hc_dstry.c"
+      - "aphavoc/source/entity/mobile/vehicle/anti_air/aa_dstry.c"
+      - "aphavoc/source/entity/mobile/vehicle/person/ps_dstry.c"
+      - "aphavoc/source/entity/mobile/vehicle/routed/rv_dstry.c"
+      - "aphavoc/source/entity/mobile/vehicle/ship/sh_dstry.c"
+      - "aphavoc/source/entity/special/group/gp_loss.c"
+      - "aphavoc/source/entity/special/group/gp_loss.h"
+      - "aphavoc/source/entity/special/group/group.h"
+      - "aphavoc/source/entity/special/group/Makefile.am"
+      - "eech-campaign/README.md"
+      - "eech-campaign/crates/eech-engine-sys/sources.txt"
+      - "eech-campaign/docs/m5-host-boundary.md"
+      - "eech-campaign/docs/m5-loss-structural.md"
+      - "eech-campaign/reference/m5-loss-structural/**"
+  pull_request:
+    paths:
+      - ".github/workflows/eech-loss-structural.yml"
+      - "EECH-MSVC.vcproj"
+      - "aphavoc/source/entity/mobile/aircraft/fixwing/fw_dstry.c"
+      - "aphavoc/source/entity/mobile/aircraft/helicop/hc_dstry.c"
+      - "aphavoc/source/entity/mobile/vehicle/anti_air/aa_dstry.c"
+      - "aphavoc/source/entity/mobile/vehicle/person/ps_dstry.c"
+      - "aphavoc/source/entity/mobile/vehicle/routed/rv_dstry.c"
+      - "aphavoc/source/entity/mobile/vehicle/ship/sh_dstry.c"
+      - "aphavoc/source/entity/special/group/gp_loss.c"
+      - "aphavoc/source/entity/special/group/gp_loss.h"
+      - "aphavoc/source/entity/special/group/group.h"
+      - "aphavoc/source/entity/special/group/Makefile.am"
+      - "eech-campaign/README.md"
+      - "eech-campaign/crates/eech-engine-sys/sources.txt"
+      - "eech-campaign/docs/m5-host-boundary.md"
+      - "eech-campaign/docs/m5-loss-structural.md"
+      - "eech-campaign/reference/m5-loss-structural/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  equivalence:
+    name: Slice 1a historical equivalence
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 1
+      # The equivalence claim is slice 1a's: the extraction commit against the pre-extraction base.
+      # Later reviewed semantic cuts change these files on purpose (docs/m5-loss-structural.md,
+      # "Revision boundary"), so the claim is checked at the pinned revision, not at the PR head.
+      - name: Fetch the reviewed base and the slice 1a extraction
+        run: |
+          git fetch --no-tags --depth=1 origin 163e9158ffc5d979617e66d6c5af4def780c8227
+          git fetch --no-tags --depth=1 origin 78dc796b2481dcd77ca87b24b9de33dbf72b59cf
+      - name: Check structural equivalence at the slice 1a extraction
+        run: |
+          test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
+          git cat-file -e '163e9158ffc5d979617e66d6c5af4def780c8227^{commit}'
+          git cat-file -e '78dc796b2481dcd77ca87b24b9de33dbf72b59cf^{commit}'
+          python3 -I eech-campaign/reference/m5-loss-structural/expand-check.py 163e9158ffc5d979617e66d6c5af4def780c8227 78dc796b2481dcd77ca87b24b9de33dbf72b59cf
+      - name: Check equivalence sensitivity in isolated copies
+        run: python3 -I eech-campaign/reference/m5-loss-structural/expand-check-selftest.py 78dc796b2481dcd77ca87b24b9de33dbf72b59cf

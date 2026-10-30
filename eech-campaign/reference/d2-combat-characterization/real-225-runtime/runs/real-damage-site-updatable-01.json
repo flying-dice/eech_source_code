@@ -1,0 +1,13 @@
+{
+  "status": "completed",
+  "when_utc": "2026-10-28T07:21:12.6612741Z",
+  "binary": "R:\\d2-evidence\\combat-real-source-225ff4abd\\eech-campaign\\target\\weapon-fixture\\combat-real-225ff4abd\\eech-world.exe",
+  "arguments": "R:/d2-evidence/combat-real-source-225ff4abd/eech-campaign/target/weapon-fixture/combat-real-225ff4abd/lua/combat-case.lua root=R:/d2-evidence/combat-characterization-20261028/roots/real-damage-site-updatable-01 out=R:/d2-evidence/combat-characterization-20261028/out/real-damage-site-updatable-01/trace.jsonl warmup=60 frame_ms=100 timed_seconds=0 kinds=SITE_UPDATABLE control=OBJECT",
+  "root": "R:/d2-evidence/combat-characterization-20261028/roots/real-damage-site-updatable-01",
+  "out": "R:/d2-evidence/combat-characterization-20261028/out/real-damage-site-updatable-01",
+  "kind": "Real-damage candidate controlled combat witness; precondition done is not physical-path coverage; not extraction/fullpack acceptance",
+  "actual_native_exit": 0,
+  "native_pid": 20844,
+  "created_utc": "2026-10-28T07:21:12.6642587Z",
+  "completed_utc": "2026-10-28T07:22:55.1272056Z"
+}

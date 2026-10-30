@@ -1,0 +1,72 @@
+{
+  "captured": "2026-10-21T00:49:27.5059897+01:00",
+  "head": "f7a3b756c1c6130023d41d7946ee90b64f393c18",
+  "sourceAssociation": "Author build command retained in session transcript; source mtimes precede build. Preliminary dirty build, not final commit provenance.",
+  "files": [
+    {
+      "path": "aphavoc/source/entity/mobile/aircraft/fixwing/fw_dstry.c",
+      "modified": "2026-10-21T00:26:36.4060804+01:00",
+      "sha256": "75722089cc14200386c40f3ed0bb71e74beb0ac537706fb6aa713cdb28d0fbb5"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/aircraft/helicop/hc_dstry.c",
+      "modified": "2026-10-21T00:26:36.4060804+01:00",
+      "sha256": "56186409cb8b25b4d753f817a3149a8637a55bd1a94e9f1f172ba28817805d63"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/vehicle/anti_air/aa_dstry.c",
+      "modified": "2026-10-21T00:26:36.4070781+01:00",
+      "sha256": "a1f11913eea904b19cf5003081e91a3c0ae32dba57d46c4e2023143b78f1c79a"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/vehicle/person/ps_dstry.c",
+      "modified": "2026-10-21T00:29:46.6331170+01:00",
+      "sha256": "79799982825774ed8b0b775ad98ebf70611363ef9472291d9945abd535cd590e"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/vehicle/routed/rv_dstry.c",
+      "modified": "2026-10-21T00:26:36.4060804+01:00",
+      "sha256": "b1c399d577546c6fac42d2ef8aba8813c9c72b5beee2577cb213f6ffa042a26f"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/vehicle/ship/sh_dstry.c",
+      "modified": "2026-10-21T00:26:36.4070781+01:00",
+      "sha256": "61e67ffddbcabb3fbdfb2328a5f5fb8414cddd6caabe7210e32291a36598a44b"
+    },
+    {
+      "path": "aphavoc/source/entity/special/group/Makefile.am",
+      "modified": "2026-10-21T00:25:24.5866097+01:00",
+      "sha256": "807595bc0b55d86a3ed3e5468dd22bb49be2eadd0fb32a878491bc6526c9b7e0"
+    },
+    {
+      "path": "aphavoc/source/entity/special/group/group.h",
+      "modified": "2026-10-21T00:25:24.5261337+01:00",
+      "sha256": "bbd0f41645971e8b8a151460b034dfd1632651db20d7ed1df9fb9b54205b3b87"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/sources.txt",
+      "modified": "2026-10-21T00:25:24.6555988+01:00",
+      "sha256": "8c919b5324c5fe624637b08322f25456cec629be0d01b9c16da5c3f70de637e4"
+    },
+    {
+      "path": "eech-campaign/docs/m5-host-boundary.md",
+      "modified": "2026-10-21T00:28:16.0654093+01:00",
+      "sha256": "3738137625db3076f601155c7421f98f665a3bd80ebff64148d395290014e5af"
+    },
+    {
+      "path": "eech-campaign/reference/m5-host-boundary/README.md",
+      "modified": "2026-10-21T00:28:16.0654093+01:00",
+      "sha256": "d71d37daa11799b7ec586944236fc37f4094182b25c21a83f072a03fd63590dc"
+    },
+    {
+      "path": "aphavoc/source/entity/special/group/gp_loss.c",
+      "modified": "2026-10-21T00:25:24.4499065+01:00",
+      "sha256": "777bc09042cbd085cd25011cf623c5d116ca1aa0e13ebcc55c0e1dff24843527"
+    },
+    {
+      "path": "aphavoc/source/entity/special/group/gp_loss.h",
+      "modified": "2026-10-21T00:25:02.0541481+01:00",
+      "sha256": "1ee3d8cb57349694de4c615d77ed4bab07fe5097f80f35a3799f3edde789ed67"
+    }
+  ]
+}

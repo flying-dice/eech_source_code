@@ -1,0 +1,1 @@
+sense-provider: mode=far begin=16334 candidate=81876 draw=551 signature=2726 end=16334 accept=4303 reject=77573 weapon_births=208 losses=10 failure=none

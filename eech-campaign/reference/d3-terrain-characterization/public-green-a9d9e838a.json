@@ -1,0 +1,171 @@
+{
+  "source": "a9d9e838ad84b81d67606ca200ab2e3022576567",
+  "created_utc": "2026-10-29T12:58:41.3089166Z",
+  "task": "EEDCS-47",
+  "kind": "Public terrain host boundary GREEN; no fullpack/epic acceptance",
+  "shipping": {
+    "verified_entries": 45,
+    "host_sha256": "6734da5b005c1dece389dad352eab7a7d82632a1b74dc5649c974fdf5acfd04a",
+    "image": "sha256:6b9b6803ab5527dfc5706cf22d01f37fd8480f06edfabc379b65b47b95111d9d",
+    "actual_build_exit": 0,
+    "build_info_sha256": "08da0fc1bca060fe5dbe8a9fe2b4be6539e9aa52d8323b0d9b6d64fef2967a55",
+    "dll_sha256": "d2988689a220ace2769d4e944cfabbc4123932d442eb1afa1aedc343ef00c170",
+    "profile": "ordinary shipping"
+  },
+  "fixture": {
+    "verified_entries": 45,
+    "host_sha256": "bddaf9070ee2932c68a16f0ff4e9c959f2287a09ae3e01786e9c13dae9ee683d",
+    "image": "sha256:556afd3f7804aba63a56f193e2197a214e5b87042c8a5dd0e16524158d51c871",
+    "actual_build_exit": 0,
+    "build_info_sha256": "aaa897070a5461db6f9041e3e264e7815259f322108c3d657f980e954422481a",
+    "dll_sha256": "f2f4f710882ce83e594b29d3c803b750bad6afa2974dc16dcb9ac2e18553a3b5",
+    "profile": "terrain-fixture only"
+  },
+  "actual_container_images_match_build_info": true,
+  "focused_tests": [
+    {
+      "test": "terrain_backend",
+      "actual_exit": 0,
+      "source": "a9d9e838ad84b81d67606ca200ab2e3022576567",
+      "exe_sha256": "e8d1673366f0e164a56d9b269a953ba8a46dd334ec8ae313b9fde064da58a42b",
+      "dll_sha256": null,
+      "completed_utc": "2026-10-29T12:49:59.2135136Z"
+    },
+    {
+      "test": "terrain_provider_harness",
+      "actual_exit": 0,
+      "source": "a9d9e838ad84b81d67606ca200ab2e3022576567",
+      "exe_sha256": "76ad73eb6903ec8fb6b813edff9e1e0d24ffe44ca4ccc5013e7afb89f4a1c4a2",
+      "dll_sha256": null,
+      "completed_utc": "2026-10-29T12:49:59.5749239Z"
+    },
+    {
+      "test": "terrain_has_face_harness",
+      "actual_exit": 0,
+      "source": "a9d9e838ad84b81d67606ca200ab2e3022576567",
+      "exe_sha256": "6148e1db187e296ec0d56a5664a91c11e2044b3d87eeda5da8bcd42f730cd069",
+      "dll_sha256": null,
+      "completed_utc": "2026-10-29T12:49:59.7095196Z"
+    },
+    {
+      "test": "terrain_boot_contract",
+      "actual_exit": 0,
+      "source": "a9d9e838ad84b81d67606ca200ab2e3022576567",
+      "exe_sha256": "00363c47ec2aea674f6ba22622b73e0ca5e249a58887a4bb26e2f11f16299352",
+      "dll_sha256": "d2988689a220ace2769d4e944cfabbc4123932d442eb1afa1aedc343ef00c170",
+      "completed_utc": "2026-10-29T12:53:28.6954784Z"
+    }
+  ],
+  "nohint": {
+    "native_exit": 0,
+    "pre_input_exit": 0,
+    "controller_exit": 0,
+    "scope": "Reference-backed compatible terrain with optional hint/stored fields omitted; not data-free independent geography",
+    "post_input_exit": 0,
+    "observations": {
+      "event": "summary",
+      "failure": "",
+      "fast_calls": 0,
+      "frames_completed": 1,
+      "frames_requested": 1,
+      "los_terrain_count": 1164,
+      "los_terrain_sum": "232000.902",
+      "malformed_sent": false,
+      "map_calls": 1,
+      "mode": "nohint",
+      "placed_count": 1444,
+      "placed_sum": "759892.264",
+      "point_calls": 79152
+    }
+  },
+  "fast_cases": [
+    {
+      "map": "lebanon",
+      "controller_exit": 0,
+      "native_exit": 0,
+      "pre_input_exit": 0,
+      "post_input_exit": 0,
+      "completed_utc": "2026-10-29T12:54:54.2734899Z"
+    },
+    {
+      "map": "georgia",
+      "controller_exit": 0,
+      "native_exit": 0,
+      "pre_input_exit": 0,
+      "post_input_exit": 0,
+      "completed_utc": "2026-10-29T12:55:07.5851724Z"
+    }
+  ],
+  "face_cases": [
+    {
+      "case": "reference-native",
+      "controller_exit": 0,
+      "native_exit": 0,
+      "pre_input_exit": 0,
+      "post_input_exit": 0,
+      "completed_utc": "2026-10-29T12:55:56.7083522Z",
+      "winter_file_scope": "Retail has no winter pair: true exercises native Winter with original default-pair fallback; distinct seasonal geometry covered by synthetic17/17"
+    },
+    {
+      "case": "reference-true",
+      "controller_exit": 0,
+      "native_exit": 0,
+      "pre_input_exit": 0,
+      "post_input_exit": 0,
+      "completed_utc": "2026-10-29T12:56:07.4377701Z",
+      "winter_file_scope": "Retail has no winter pair: true exercises native Winter with original default-pair fallback; distinct seasonal geometry covered by synthetic17/17"
+    },
+    {
+      "case": "reference-false",
+      "controller_exit": 0,
+      "native_exit": 0,
+      "pre_input_exit": 0,
+      "post_input_exit": 0,
+      "completed_utc": "2026-10-29T12:56:17.6815265Z",
+      "winter_file_scope": "Retail has no winter pair: true exercises native Winter with original default-pair fallback; distinct seasonal geometry covered by synthetic17/17"
+    },
+    {
+      "case": "generic-native",
+      "controller_exit": 0,
+      "native_exit": 0,
+      "pre_input_exit": 0,
+      "post_input_exit": 0,
+      "completed_utc": "2026-10-29T12:56:27.3503691Z",
+      "winter_file_scope": "Retail has no winter pair: true exercises native Winter with original default-pair fallback; distinct seasonal geometry covered by synthetic17/17"
+    },
+    {
+      "case": "generic-true",
+      "controller_exit": 0,
+      "native_exit": 0,
+      "pre_input_exit": 0,
+      "post_input_exit": 0,
+      "completed_utc": "2026-10-29T12:56:37.0689013Z",
+      "winter_file_scope": "Retail has no winter pair: true exercises native Winter with original default-pair fallback; distinct seasonal geometry covered by synthetic17/17"
+    },
+    {
+      "case": "generic-false",
+      "controller_exit": 0,
+      "native_exit": 0,
+      "pre_input_exit": 0,
+      "post_input_exit": 0,
+      "completed_utc": "2026-10-29T12:56:46.6654167Z",
+      "winter_file_scope": "Retail has no winter pair: true exercises native Winter with original default-pair fallback; distinct seasonal geometry covered by synthetic17/17"
+    }
+  ],
+  "fast_comparison": "public-fast-comparison-a9d9e838a.json",
+  "face_scope": "Real client private/shared stored-surface predicate and clear semantics; both modes, native season, explicit Summer assertion and Winter override. Retail has no winter pair: original default-pair fallback; distinct seasonal data tested separately17/17.",
+  "reused_numeric_evidence": "c4 complete original-generated grids and20k point/primed/fast conformance BOTHmaps; a9 production solver unchanged",
+  "preflight": {
+    "expected_check_count": 40,
+    "actual_exit": 0,
+    "child_python": "3.12.14",
+    "campaign_started": false
+  },
+  "review": "Independent a9 combined review no new shipping defect; P3 false-season wording corrected in subsequent source-only comment",
+  "remaining": [
+    "Final exact source lint correction/review, ordinary shipping full40/eight complete artifact equality/post-input and applicable CI/normal merge",
+    "DLL2D loader/grid generation and remaining whole-D3 geometry/model/environment/time services"
+  ],
+  "tacview": "No candidate fullpack or complete Tacview equality yet claimed",
+  "baseline_changes": false
+}

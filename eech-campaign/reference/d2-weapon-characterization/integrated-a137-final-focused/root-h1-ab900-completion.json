@@ -1,0 +1,46 @@
+{
+  "when_utc": "2026-10-28T03:15:40.305885+00:00",
+  "source": "a137fc3ec1963d88de5f0b8562145b358b50e111",
+  "build": "a137fc3ec-clean fixture dirty0",
+  "actual_native_exit": 0,
+  "root_controller_exec74298_actual_exit": 0,
+  "completed_utc": "2026-10-28T03:14:05Z",
+  "wall_seconds": 2443,
+  "complete_artifact_comparator_actual_exit": 0,
+  "comparison": {
+    "baseline": "R:/d2-evidence/los-characterization-baseline-20261026/out/ab-base",
+    "candidate": "R:/d2-evidence/weapon-characterization-20261027/out/h1-ab900",
+    "scope": "Complete artifact bytes only; native exits and configuration require separate verification",
+    "results": [
+      {
+        "file": "recording.acmi",
+        "baseline_bytes": 11363845,
+        "candidate_bytes": 11363845,
+        "baseline_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+        "candidate_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+        "matches": true
+      },
+      {
+        "file": "observations.jsonl",
+        "baseline_bytes": 6629273,
+        "candidate_bytes": 6629273,
+        "baseline_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+        "candidate_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+        "matches": true
+      },
+      {
+        "file": "metrics.json",
+        "baseline_bytes": 11777,
+        "candidate_bytes": 11777,
+        "baseline_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+        "candidate_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+        "matches": true
+      }
+    ],
+    "passed": true
+  },
+  "post1179_input_manifest_actual_exit": 0,
+  "all35_exports_and_BUILD_INFO_unchanged": true,
+  "baseline_root_provenance": "Original ab-base input provenance inferred, not independently verified; retained historical limitation",
+  "remaining": "Bproviderrefusals/ordinary40/all8/post3/finalnewproof/currentCI/normaldelivery45"
+}

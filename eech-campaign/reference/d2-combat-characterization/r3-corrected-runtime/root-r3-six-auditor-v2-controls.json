@@ -1,0 +1,84 @@
+{
+  "passed": true,
+  "positives": 6,
+  "negative_controls": 10,
+  "results": [
+    {
+      "control": "valid:object-report-site-none-02",
+      "accepted": true
+    },
+    {
+      "control": "valid:object-report-site-damage-raise-02",
+      "accepted": true
+    },
+    {
+      "control": "valid:object-report-site-destroy-duplicate-02",
+      "accepted": true
+    },
+    {
+      "control": "valid:object-report-site-own-destroy-unknown-02",
+      "accepted": true
+    },
+    {
+      "control": "valid:object-report-segment-none-02",
+      "accepted": true
+    },
+    {
+      "control": "valid:object-report-segment-destroy-02",
+      "accepted": true
+    },
+    {
+      "control": "control-before-boot",
+      "rejected": true,
+      "reason": "Exact ordered event sequence required"
+    },
+    {
+      "control": "after-before-receipt",
+      "rejected": true,
+      "reason": "Exact ordered event sequence required"
+    },
+    {
+      "control": "missing-own-case",
+      "rejected": true,
+      "reason": "Exactly six driver records required"
+    },
+    {
+      "control": "duplicate-case-hides-one-case",
+      "rejected": true,
+      "reason": "Exact expected case set required"
+    },
+    {
+      "control": "receipt-wrong-identity",
+      "rejected": true,
+      "reason": "Receipt identity mismatch"
+    },
+    {
+      "control": "receipt-wrong-before",
+      "rejected": true,
+      "reason": "Receipt before-state mismatch"
+    },
+    {
+      "control": "receipt-wrong-after",
+      "rejected": true,
+      "reason": "Receipt after-state mismatch"
+    },
+    {
+      "control": "summary-wrong-state",
+      "rejected": true,
+      "reason": ""
+    },
+    {
+      "control": "boot-wrong-mode",
+      "rejected": true,
+      "reason": "Boot/run/expected configuration mismatch"
+    },
+    {
+      "control": "run-wrong-mode",
+      "rejected": true,
+      "reason": "Boot/run/expected configuration mismatch"
+    }
+  ],
+  "helper_sha256": "6ffd3c0d6886ba474655408f15a309124208bc26d4a9d43d45ff85804950a016",
+  "actual_traces_unchanged": true,
+  "limits": "Synthetic in-memory evidence mutations only; no campaign run, new native coverage or acceptance baseline change."
+}

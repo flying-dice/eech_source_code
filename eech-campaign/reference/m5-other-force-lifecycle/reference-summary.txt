@@ -1,0 +1,17 @@
+EEDCS-37 other force lifecycle: what each file here is, and what it does and does not show
+
+BUILD-INFO.txt                   build provenance of the tested binaries (commit 1a8080c3, 0 dirty inputs, hashes)
+identities.txt                   revisions, hashes, input manifests, toolchains, reference-run hashes
+pack-report.json / .md           the single regression pack run at 1a8080c3: PASS, 40 of 40 checks, exit 0
+independent-reference-hashes.json the parent's complete hashing of both reference runs (Tacview, observations, metrics)
+early-prefix-comparison-partial.json  a PARTIAL early check (17:24) of the first 222,625 Tacview and 30,672 observation lines of the still-running reference; superseded by the full file above, kept only as history
+linux-fmt.log                    `cargo fmt --all -- --check`, exit 0, empty output (run at e55fbe1e)
+linux-clippy.log                 `cargo clippy --locked --all-targets -p eech-engine-sys -p eech-engine -p eech-world -p eech-dc -- -D warnings`, exit 0 (run at e55fbe1e)
+linux-test-final.log             `cargo test --locked -p eech-engine -p eech-world -p eech-dc`, exit 0 (run at e55fbe1e): eech-dc 3 + 2, eech-engine 6, eech-world lib 68, bin 18, host_callbacks 2, load_dc 2; 0 failed
+linux-test-crash-speed-mutation-EXPECTED-FAIL.log   intentional mutation of the fixed-wing crash speed; exit 101 is the EXPECTED red: a_wing_crash_slide_keeps_its_post_slope_speed_through_the_clear_and_commits_the_staged_candidate fails at movement.rs:3438 ("a 0.5 m/s slide is not at rest, whatever the cleared scalar says"). Not a valid final check. The production file was restored afterwards (the final run above is green).
+linux-test-after-merge-E0428-FAILED.log   FAILED run (exit 101) after merging PR95 (11dcf588): two PR95 tumble tests duplicated the hand-ported copies (E0428, compile error, no test ran). Corrected in 1a8080c3 by removing the merged-in duplicates; production source is byte-identical to e55fbe1e. No Linux run followed 1a8080c3.
+
+Formatting disclosure: linux-test-final.log had one extra trailing blank line in the original; it is removed in this copy (the content is otherwise unchanged). The other logs are verbatim. Originals are retained outside the repository.
+
+Not here, by design: the Tacview recording, observations.jsonl and metrics.json (retail-derived and large; identified by hash); the raw pack traces; the mutated source file.
+Not claimed: that the Linux checks were repeated at 1a8080c3; that the metrics file is raw-byte equal to the baseline file; that the Tacview was visually reviewed; any live DCS behaviour (M6).

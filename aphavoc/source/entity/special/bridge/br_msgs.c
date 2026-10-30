@@ -69,6 +69,10 @@
 #include "ai/taskgen/taskgen.h"
 #include "ai/ai_misc/ai_route.h"
 
+#include "entity/mobile/mb_cmbfx.h"
+
+#include "entity/mobile/mb_hostaim.h"
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -102,6 +106,8 @@ static int response_to_child_killed (entity_messages message, entity *receiver, 
 
 	#endif
 
+	CMB_FX_BRIDGE (EECH_CMB_BRIDGE_CHILD_KILLED, receiver, sender, get_local_entity_int_value (receiver, INT_TYPE_ALIVE), 0, 0.0f)
+
 	start_node = get_local_entity_int_value (receiver, INT_TYPE_START_NODE);
 
 	end_node = get_local_entity_int_value (receiver, INT_TYPE_END_NODE);
@@ -134,6 +140,8 @@ static int response_to_child_killed (entity_messages message, entity *receiver, 
 
 			set_road_link_breaks (start_node, end_node, count);
 
+			CMB_FX_BRIDGE (EECH_CMB_BRIDGE_LINK_BROKEN, receiver, sender, count, 0, 0.0f)
+
 			debug_log ("BR_MSGS: Breaking bridge and route between %d and %d... broken bridge count = %d", count);
 	
 			//
@@ -155,10 +163,14 @@ static int response_to_child_killed (entity_messages message, entity *receiver, 
 			if (!create_repair_task ((entity_sides) get_local_entity_int_value (sec, INT_TYPE_SIDE), position, receiver, task_database [ENTITY_SUB_TYPE_TASK_REPAIR].task_priority, NULL, NULL))
 			{
 				debug_log ("BR_MSGS: can't create repair mission");
+
+				CMB_FX_BRIDGE (EECH_CMB_BRIDGE_REPAIR_TASK, receiver, sender, 0, 0, 0.0f)
 			}
 			else
 			{
 				debug_log ("BR_MSGS: created repair mission to [%f, %f, %f]", position->x, position->y, position->z);
+
+				CMB_FX_BRIDGE (EECH_CMB_BRIDGE_REPAIR_TASK, receiver, sender, 1, 0, 0.0f)
 			}
 		}
 	}
@@ -168,6 +180,8 @@ static int response_to_child_killed (entity_messages message, entity *receiver, 
 	//
 
 	insert_local_entity_into_parents_child_list (sender, LIST_TYPE_UPDATE, get_update_entity (), NULL);
+
+	CMB_FX_BRIDGE (EECH_CMB_BRIDGE_UPDATE_INSERTED, receiver, sender, 0, 0, 0.0f)
 
 	return (TRUE);
 }
@@ -195,21 +209,20 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 
 	sub_type = get_local_entity_int_value (sender, INT_TYPE_ENTITY_SUB_TYPE);
 
-	if (sub_type == ENTITY_SUB_TYPE_FIXED_BRIDGE_UNSUPPORTED_MID_SECTION)
-	{
-		if (get_local_entity_int_value (sender, INT_TYPE_ALIVE))
-		{
-			//
-			// Bridge section has nothing to support it, so kill it
-			//
-		
-			if (get_comms_model() == COMMS_MODEL_SERVER)
-			{
-				kill_client_server_entity (sender);
+	CMB_FX_BRIDGE (EECH_CMB_BRIDGE_COLLISION, receiver, sender, sub_type, get_local_entity_int_value (sender, INT_TYPE_ALIVE), 0.0f)
 
-				create_client_server_object_killed_explosion_effect (sender);
-			}
-		}
+	//
+	// Whether the segment collapses NOW is the host's physical decision (EEDCS-46, R5, mb_hostaim.h BRIDGE, KILL): the segment's sub type, whether it is alive and whether this is a server are sent as they
+	// are.  The reference host's answer is the original's: a living unsupported mid section of a server has nothing to support it, so it is killed.  The kill and its effects are the campaign's.
+	//
+
+	if (campaign_aim_bridge_kill (sub_type, get_local_entity_int_value (sender, INT_TYPE_ALIVE), get_comms_model() == COMMS_MODEL_SERVER))
+	{
+		CMB_FX_BRIDGE (EECH_CMB_BRIDGE_UNSUPPORTED_KILL, receiver, sender, 0, 0, 0.0f)
+
+		kill_client_server_entity (sender);
+
+		create_client_server_object_killed_explosion_effect (sender);
 	}
 
 	//
@@ -221,6 +234,8 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 	succ = get_local_entity_child_succ (sender, LIST_TYPE_SEGMENT);
 
 	set_local_entity_int_value (sender, INT_TYPE_OBJECT_3D_SHAPE, get_bridge_segment_damaged_object (sender, pred, succ));
+
+	CMB_FX_BRIDGE (EECH_CMB_BRIDGE_SHAPE, receiver, sender, get_local_entity_int_value (sender, INT_TYPE_OBJECT_3D_SHAPE), 2 * ((pred == NULL) || get_local_entity_int_value (pred, INT_TYPE_ALIVE)) + ((succ == NULL) || get_local_entity_int_value (succ, INT_TYPE_ALIVE)), 0.0f)
 
 	return (TRUE);
 }

@@ -1,0 +1,15 @@
+{
+  "status": "completed",
+  "when_utc": "2026-10-28T07:09:31.2320660Z",
+  "binary": "R:\\d2-evidence\\combat-real-source-225ff4abd\\eech-campaign\\target\\weapon-fixture\\combat-real-225ff4abd\\eech-world.exe",
+  "arguments": "R:/d2-evidence/combat-real-source-225ff4abd/eech-campaign/target/weapon-fixture/combat-real-225ff4abd/lua/campaign.lua root=R:/d2-evidence/combat-characterization-20261028/roots/real-damage-control-01 scenario=lebanon_retail hours=0.25 record_every=10 checkpoint_every=3600 observe_every=60 acmi=R:/d2-evidence/combat-characterization-20261028/out/real-damage-control-01/recording.acmi observe=R:/d2-evidence/combat-characterization-20261028/out/real-damage-control-01/observations.jsonl metrics=R:/d2-evidence/combat-characterization-20261028/out/real-damage-control-01/metrics.json observe_supply=0",
+  "root": "R:/d2-evidence/combat-characterization-20261028/roots/real-damage-control-01",
+  "out": "R:/d2-evidence/combat-characterization-20261028/out/real-damage-control-01",
+  "kind": "Real-damage candidate physical-output control; comparison with retained original required, not combat census or fullpack acceptance",
+  "reference_provenance": "Retained ab-base root provenance inferred; no independent original input verification invented",
+  "capacity": "Lead permits seven native processes on eight physical cores, separated roots; one implementation lane",
+  "actual_native_exit": 0,
+  "native_pid": 22704,
+  "created_utc": "2026-10-28T07:09:31.2464526Z",
+  "completed_utc": "2026-10-28T07:45:56.5360832Z"
+}

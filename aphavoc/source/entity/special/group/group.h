@@ -278,6 +278,30 @@ typedef struct GROUP group;
 
 #include "gp_list.h"
 
+#include "gp_loss.h"
+
+#ifdef EECH_CAMPAIGN_HOST_IDENTITIES
+#include "gp_roster.h"
+#include "entity/mobile/mb_hostobj.h"
+#else
+#define CAMPAIGN_LOSS_FORWARD 1
+#define CAMPAIGN_LOSS_WITHHOLD 2
+#define campaign_roster_link_member(GROUP,MEMBER) ((void) 0)
+#define campaign_roster_unlink_member(GROUP,MEMBER) ((void) 0)
+#define campaign_roster_release_entity(ENTITY) ((void) 0)
+#define campaign_object_release_entity(ENTITY) ((void) 0)
+#define campaign_roster_observe_credit(MEMBER) (1)
+/* Without host identities there is no report: the ticket only carries the entities and every phase applies at once. */
+typedef struct campaign_loss_ticket
+{
+	entity *member;
+	entity *group;
+} campaign_loss_ticket;
+#define campaign_roster_accept_physical_loss(MEMBER,GROUP,TICKET) ((TICKET)->member = (MEMBER), (TICKET)->group = (GROUP))
+#define campaign_roster_loss_step(TICKET,PHASE) apply_member_loss_phase ((TICKET)->member, (TICKET)->group, (PHASE))
+#define campaign_roster_group_member_count(GROUP) get_local_entity_int_value ((GROUP), INT_TYPE_MEMBER_COUNT)
+#endif
+
 #include "gp_msgs.h"
 
 #include "gp_pack.h"

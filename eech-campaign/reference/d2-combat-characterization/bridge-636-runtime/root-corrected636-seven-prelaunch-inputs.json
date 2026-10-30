@@ -1,0 +1,119 @@
+{
+  "when_utc": "2026-10-28T12:51:25.667904+00:00",
+  "scope": "All seven untouched fresh roots reverified against corrected636 repository inputs before any native launch",
+  "source": "636ef798a9368dfb3c55fe5c77d144009e7f3491",
+  "rows": [
+    {
+      "name": "bridge-host-lebanon-01",
+      "root": "R:\\d2-evidence\\combat-characterization-20261028\\roots\\bridge-host-lebanon-01",
+      "actual_manifest_exit": 0,
+      "command": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d2-evidence\\combat-bridge-corrected-source-636ef798a\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d2-evidence\\combat-characterization-20261028\\roots\\bridge-host-lebanon-01",
+        "--compare",
+        "R:\\d2-evidence\\combat-bridge-corrected-source-636ef798a\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "native": "UNRUN"
+    },
+    {
+      "name": "bridge-host-lebanon-repeat-01",
+      "root": "R:\\d2-evidence\\combat-characterization-20261028\\roots\\bridge-host-lebanon-repeat-01",
+      "actual_manifest_exit": 0,
+      "command": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d2-evidence\\combat-bridge-corrected-source-636ef798a\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d2-evidence\\combat-characterization-20261028\\roots\\bridge-host-lebanon-repeat-01",
+        "--compare",
+        "R:\\d2-evidence\\combat-bridge-corrected-source-636ef798a\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "native": "UNRUN"
+    },
+    {
+      "name": "bridge-provider-own-01",
+      "root": "R:\\d2-evidence\\combat-characterization-20261028\\roots\\bridge-provider-own-01",
+      "actual_manifest_exit": 0,
+      "command": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d2-evidence\\combat-bridge-corrected-source-636ef798a\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d2-evidence\\combat-characterization-20261028\\roots\\bridge-provider-own-01",
+        "--compare",
+        "R:\\d2-evidence\\combat-bridge-corrected-source-636ef798a\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "native": "UNRUN"
+    },
+    {
+      "name": "bridge-provider-own-fall-01",
+      "root": "R:\\d2-evidence\\combat-characterization-20261028\\roots\\bridge-provider-own-fall-01",
+      "actual_manifest_exit": 0,
+      "command": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d2-evidence\\combat-bridge-corrected-source-636ef798a\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d2-evidence\\combat-characterization-20261028\\roots\\bridge-provider-own-fall-01",
+        "--compare",
+        "R:\\d2-evidence\\combat-bridge-corrected-source-636ef798a\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "native": "UNRUN"
+    },
+    {
+      "name": "bridge-provider-missing-01",
+      "root": "R:\\d2-evidence\\combat-characterization-20261028\\roots\\bridge-provider-missing-01",
+      "actual_manifest_exit": 0,
+      "command": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d2-evidence\\combat-bridge-corrected-source-636ef798a\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d2-evidence\\combat-characterization-20261028\\roots\\bridge-provider-missing-01",
+        "--compare",
+        "R:\\d2-evidence\\combat-bridge-corrected-source-636ef798a\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "native": "UNRUN"
+    },
+    {
+      "name": "bridge-provider-bad-shape-01",
+      "root": "R:\\d2-evidence\\combat-characterization-20261028\\roots\\bridge-provider-bad-shape-01",
+      "actual_manifest_exit": 0,
+      "command": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d2-evidence\\combat-bridge-corrected-source-636ef798a\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d2-evidence\\combat-characterization-20261028\\roots\\bridge-provider-bad-shape-01",
+        "--compare",
+        "R:\\d2-evidence\\combat-bridge-corrected-source-636ef798a\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "native": "UNRUN"
+    },
+    {
+      "name": "bridge-control-01",
+      "root": "R:\\d2-evidence\\combat-characterization-20261028\\roots\\bridge-control-01",
+      "actual_manifest_exit": 0,
+      "command": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d2-evidence\\combat-bridge-corrected-source-636ef798a\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d2-evidence\\combat-characterization-20261028\\roots\\bridge-control-01",
+        "--compare",
+        "R:\\d2-evidence\\combat-bridge-corrected-source-636ef798a\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "native": "UNRUN"
+    }
+  ]
+}

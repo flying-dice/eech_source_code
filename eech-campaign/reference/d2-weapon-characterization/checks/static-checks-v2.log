@@ -1,0 +1,28 @@
+RUSTUP_ADD_EXIT=0
+FMT_EXIT=1
+Diff in /src/eech-campaign/crates/eech-dc/src/module.rs:1254:
+         });
+         // TEST-ONLY (feature `weapon-fixture`, EEDCS-45): the entity kind of a roster host id; not part of the shipping module.
+         #[cfg(feature = "weapon-fixture")]
+-        methods.add_method("wpn_case_kind", |_, this, host_id: String| this.engine.wpn_case_kind(&host_id).map_err(lua_error));
++        methods.add_method("wpn_case_kind", |_, this, host_id: String| {
++            this.engine.wpn_case_kind(&host_id).map_err(lua_error)
++        });
+         // TEST-ONLY (feature `weapon-fixture`, EEDCS-45): one physical launch attempt through the campaign's own launch call, given the same complete host callbacks as a frame; not
+         // part of the shipping module.
+         #[cfg(feature = "weapon-fixture")]
+CLIPPY_DEFAULT_EXIT=0
+   Compiling protobuf-parse v3.7.2
+   Compiling protobuf-codegen v3.7.2
+   Compiling osmpbf v0.3.8
+    Checking eech-map v0.1.0 (/src/eech-campaign/crates/eech-map)
+    Checking eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Checking eech-campaign v0.1.0 (/src/eech-campaign/crates/eech-campaign)
+    Checking eech-harness v0.1.0 (/src/eech-campaign/crates/eech-harness)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 6m 39s
+CLIPPY_WEAPON_EXIT=0
+   Compiling eech-engine-sys v0.1.0 (/src/eech-campaign/crates/eech-engine-sys)
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+    Checking eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 06s
+DOCKER_EXIT=0

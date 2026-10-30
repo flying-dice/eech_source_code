@@ -1,0 +1,212 @@
+{
+  "scope": "Empty-main program, ASAN+UBSAN; test-only defaultPIE/noPIE; no campaign/repo/globalflags changed; firstguard failure cause not asserted",
+  "rows": [
+    {
+      "variant": "default",
+      "run": 1,
+      "exit": 153
+    },
+    {
+      "variant": "default",
+      "run": 2,
+      "exit": 153
+    },
+    {
+      "variant": "default",
+      "run": 3,
+      "exit": 0
+    },
+    {
+      "variant": "default",
+      "run": 4,
+      "exit": 0
+    },
+    {
+      "variant": "default",
+      "run": 5,
+      "exit": 0
+    },
+    {
+      "variant": "default",
+      "run": 6,
+      "exit": 0
+    },
+    {
+      "variant": "default",
+      "run": 7,
+      "exit": 153
+    },
+    {
+      "variant": "default",
+      "run": 8,
+      "exit": 153
+    },
+    {
+      "variant": "no-pie",
+      "run": 1,
+      "exit": 0
+    },
+    {
+      "variant": "no-pie",
+      "run": 2,
+      "exit": 0
+    },
+    {
+      "variant": "no-pie",
+      "run": 3,
+      "exit": 0
+    },
+    {
+      "variant": "no-pie",
+      "run": 4,
+      "exit": 0
+    },
+    {
+      "variant": "no-pie",
+      "run": 5,
+      "exit": 0
+    },
+    {
+      "variant": "no-pie",
+      "run": 6,
+      "exit": 0
+    },
+    {
+      "variant": "no-pie",
+      "run": 7,
+      "exit": 0
+    },
+    {
+      "variant": "no-pie",
+      "run": 8,
+      "exit": 0
+    }
+  ],
+  "files": [
+    {
+      "file": "compile-default.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "compile-no-pie.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "compiler.txt",
+      "bytes": 240,
+      "sha256": "8c59c3b7b9051484db9a6b6576edf12a3aca7381a06a174a2d4dbfd6ce08681f"
+    },
+    {
+      "file": "default-1.log",
+      "bytes": 65536,
+      "sha256": "8e23356bb3c8d3a9486ae2ac253ddfed7c736d8c2e8ceaa3897f9feeb9c8c2e5"
+    },
+    {
+      "file": "default-2.log",
+      "bytes": 65536,
+      "sha256": "8e23356bb3c8d3a9486ae2ac253ddfed7c736d8c2e8ceaa3897f9feeb9c8c2e5"
+    },
+    {
+      "file": "default-3.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "default-4.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "default-5.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "default-6.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "default-7.log",
+      "bytes": 65536,
+      "sha256": "8e23356bb3c8d3a9486ae2ac253ddfed7c736d8c2e8ceaa3897f9feeb9c8c2e5"
+    },
+    {
+      "file": "default-8.log",
+      "bytes": 65536,
+      "sha256": "8e23356bb3c8d3a9486ae2ac253ddfed7c736d8c2e8ceaa3897f9feeb9c8c2e5"
+    },
+    {
+      "file": "docker-driver.log",
+      "bytes": 156,
+      "sha256": "efc7da0814ad26bd74b7cc75ccef0be3b9f404af50ca6047c81b9347b27a607b"
+    },
+    {
+      "file": "empty-default",
+      "bytes": 24776,
+      "sha256": "008823bed06d284f04caa2ba8ff0f472803647968adbb0356c1171c621246af4"
+    },
+    {
+      "file": "empty-no-pie",
+      "bytes": 24608,
+      "sha256": "f91e33b55846dfb73da8703408b6e031ad49927065d5025f31ccca29d5968493"
+    },
+    {
+      "file": "empty.c",
+      "bytes": 29,
+      "sha256": "2ad75d95660563887d8d3f1d0ae1dcf18c2379cbd83a5c72f5ab276351ee6949"
+    },
+    {
+      "file": "image-id.txt",
+      "bytes": 72,
+      "sha256": "9badf9111baa04e47f1f22ab5b32f5ad02ba967b3c61202612a298de6cb381b5"
+    },
+    {
+      "file": "no-pie-1.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "no-pie-2.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "no-pie-3.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "no-pie-4.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "no-pie-5.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "no-pie-6.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "no-pie-7.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "no-pie-8.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "status.log",
+      "bytes": 514,
+      "sha256": "6f5c7517e0dc629a00bebb30cfa305d3d81b7fed6e2125c1f157f24db05308e3"
+    }
+  ]
+}

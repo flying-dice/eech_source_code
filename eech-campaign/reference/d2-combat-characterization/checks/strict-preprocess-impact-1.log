@@ -1,0 +1,188 @@
+aphavoc/source/entity/mobile/weapon/damage.c: DIFFERS FROM THE BASELINE BY DESIGN (the forecast and the damage of a hit moved to the host; unchanged by the health step); the number of changed lines: 859
+aphavoc/source/entity/system/en_msgs/en_msgs.c: strict feature-off equivalence PASS (1266987 bytes preprocessed)
+aphavoc/source/entity/mobile/mb_msgs.c: strict feature-off equivalence PASS (1354936 bytes preprocessed)
+aphavoc/source/entity/special/effect/explosn/explosn.c: DIFFERS FROM THE BASELINE BY DESIGN (the impact dispatch and the blast walk moved to the host); changed lines: 803; fixture hooks in the feature-off view: 0
+aphavoc/source/entity/system/en_main/en_heap.c: strict feature-off equivalence PASS (1268049 bytes preprocessed)
+aphavoc/source/entity/fixed/fixed.c: strict feature-off equivalence PASS (1265195 bytes preprocessed)
+aphavoc/source/entity/mobile/aircraft/helicop/hc_updt.c: DIFFERS FROM THE BASELINE BY DESIGN (the timed roll moved to the host); the difference of update_server only:
+--- /tmp/base.fn	2026-10-28 09:03:39.382869148 +0000
++++ /tmp/off.fn	2026-10-28 09:03:39.386869148 +0000
+@@ -57,15 +57,18 @@
+      update_entity_weapon_system_weapon_and_target_vectors (en);
+      update_aircraft_weapon_fire (en);
+      update_aircraft_decoy_release (en);
+-     if (damage_type > AIRCRAFT_DAMAGE_NONE)
+-      if ((((double) (((random_number_seed = ((random_number_seed * 1103515245) + 12345)) >> 16) & 0x7FFF)) * (1.0 / 32767.0)) < pow((float)damage_type, 4) * (system_delta_time))
++     {
++      campaign_health_result
++       timed;
++      aircraft_timed_health (en, damage_type, &timed);
++      if (timed.hit)
+       {
+-       int damage_level = (((0) > ((fn_get_local_entity_int_value[(((en))->type)][(((INT_TYPE_DAMAGE_LEVEL)))] ((en), (int_types)(INT_TYPE_DAMAGE_LEVEL))) - 1)) ? (0) : ((fn_get_local_entity_int_value[(((en))->type)][(((INT_TYPE_DAMAGE_LEVEL)))] ((en), (int_types)(INT_TYPE_DAMAGE_LEVEL))) - 1));
+-       (fn_set_client_server_entity_int_value[(((en))->type)][(((INT_TYPE_DAMAGE_LEVEL)))][(system_comms_model)] ((en), (INT_TYPE_DAMAGE_LEVEL), (damage_level)));
+-       if (damage_level <= 0)
++       (fn_set_client_server_entity_int_value[(((en))->type)][(((INT_TYPE_DAMAGE_LEVEL)))][(system_comms_model)] ((en), (INT_TYPE_DAMAGE_LEVEL), (timed.new_level)));
++       if (timed.fatal)
+         (fn_kill_client_server_entity[(((en))->type)][(system_comms_model)] ((en)));
+        return;
+       }
++     }
+     }
+     break;
+    }
+aphavoc/source/entity/mobile/aircraft/fixwing/fw_updt.c: DIFFERS FROM THE BASELINE BY DESIGN (the timed roll moved to the host); the difference of update_server only:
+--- /tmp/base.fn	2026-10-28 09:03:40.218869149 +0000
++++ /tmp/off.fn	2026-10-28 09:03:40.222869149 +0000
+@@ -43,15 +43,18 @@
+    if (moved || rotated || command_line_tacview_logging < 3)
+     write_tacview_unit_update(en, moved, rotated, 0);
+   }
+-  if (damage_type > AIRCRAFT_DAMAGE_NONE)
+-   if ((((double) (((random_number_seed = ((random_number_seed * 1103515245) + 12345)) >> 16) & 0x7FFF)) * (1.0 / 32767.0)) < pow((float)damage_type, 4) * (system_delta_time))
++  {
++   campaign_health_result
++    timed;
++   aircraft_timed_health (en, damage_type, &timed);
++   if (timed.hit)
+    {
+-    int damage_level = (((0) > ((fn_get_local_entity_int_value[(((en))->type)][(((INT_TYPE_DAMAGE_LEVEL)))] ((en), (int_types)(INT_TYPE_DAMAGE_LEVEL))) - 1)) ? (0) : ((fn_get_local_entity_int_value[(((en))->type)][(((INT_TYPE_DAMAGE_LEVEL)))] ((en), (int_types)(INT_TYPE_DAMAGE_LEVEL))) - 1));
+-    (fn_set_client_server_entity_int_value[(((en))->type)][(((INT_TYPE_DAMAGE_LEVEL)))][(system_comms_model)] ((en), (INT_TYPE_DAMAGE_LEVEL), (damage_level)));
+-    if (damage_level <= 0)
++    (fn_set_client_server_entity_int_value[(((en))->type)][(((INT_TYPE_DAMAGE_LEVEL)))][(system_comms_model)] ((en), (INT_TYPE_DAMAGE_LEVEL), (timed.new_level)));
++    if (timed.fatal)
+      (fn_kill_client_server_entity[(((en))->type)][(system_comms_model)] ((en)));
+     return;
+    }
++  }
+  }
+  else
+  {
+aphavoc/source/entity/mobile/vehicle/person/ps_updt.c: DIFFERS FROM THE BASELINE BY DESIGN (the timed roll moved to the host); the difference of update_server only:
+--- /tmp/base.fn	2026-10-28 09:03:41.046869152 +0000
++++ /tmp/off.fn	2026-10-28 09:03:41.050869152 +0000
+@@ -1,5 +1,7 @@
+ static void update_server (entity *en)
+ {
++ campaign_health_result
++  timed;
+  person
+   *raw;
+  int
+@@ -9,14 +11,14 @@
+  update_local_entity_view_interest_level (en);
+  raw->vh.sleep -= (system_delta_time);
+  raw->vh.sleep = (((raw->vh.sleep) > (0.0f)) ? (raw->vh.sleep) : (0.0f));
+- if (damage_level && vehicle_critically_damaged(en) && (((double) (((random_number_seed = ((random_number_seed * 1103515245) + 12345)) >> 16) & 0x7FFF)) * (1.0 / 32767.0)) < 2 * (system_delta_time))
++ vehicle_timed_health (en, damage_level, 0, &timed);
++ if (timed.hit)
+  {
+-  damage_level--;
+-  (fn_set_client_server_entity_int_value[(((en))->type)][(((INT_TYPE_DAMAGE_LEVEL)))][(system_comms_model)] ((en), (INT_TYPE_DAMAGE_LEVEL), ((((0) > (damage_level)) ? (0) : (damage_level)))));
+-  if (damage_level <= 0)
++  (fn_set_client_server_entity_int_value[(((en))->type)][(((INT_TYPE_DAMAGE_LEVEL)))][(system_comms_model)] ((en), (INT_TYPE_DAMAGE_LEVEL), (timed.new_level)));
++  if (timed.fatal)
+    (fn_kill_client_server_entity[(((en))->type)][(system_comms_model)] ((en)));
+  }
+- if (raw->vh.mob.alive && !vehicle_critically_damaged(en))
++ if (raw->vh.mob.alive && !timed.critical_class)
+  {
+   for (loop = 0; loop < (1); loop ++)
+   {
+aphavoc/source/entity/mobile/vehicle/anti_air/aa_updt.c: DIFFERS FROM THE BASELINE BY DESIGN (the timed roll moved to the host); the difference of update_server only:
+--- /tmp/base.fn	2026-10-28 09:03:41.858869164 +0000
++++ /tmp/off.fn	2026-10-28 09:03:41.862869164 +0000
+@@ -1,5 +1,7 @@
+ static void update_server (entity *en)
+ {
++ campaign_health_result
++  timed;
+  anti_aircraft
+   *raw;
+  int
+@@ -9,15 +11,14 @@
+  update_local_entity_view_interest_level (en);
+  raw->vh.sleep -= (system_delta_time);
+  raw->vh.sleep = (((raw->vh.sleep) > (0.0f)) ? (raw->vh.sleep) : (0.0f));
+- if (damage_level && (explosive_quality & 2 || explosive_quality & 4) &&
+-   vehicle_critically_damaged(en) && (((double) (((random_number_seed = ((random_number_seed * 1103515245) + 12345)) >> 16) & 0x7FFF)) * (1.0 / 32767.0)) < 2 * (system_delta_time))
++ vehicle_timed_health (en, damage_level, explosive_quality, &timed);
++ if (timed.hit)
+  {
+-  damage_level--;
+-  (fn_set_client_server_entity_int_value[(((en))->type)][(((INT_TYPE_DAMAGE_LEVEL)))][(system_comms_model)] ((en), (INT_TYPE_DAMAGE_LEVEL), ((((0) > (damage_level)) ? (0) : (damage_level)))));
+-  if (damage_level <= 0)
++  (fn_set_client_server_entity_int_value[(((en))->type)][(((INT_TYPE_DAMAGE_LEVEL)))][(system_comms_model)] ((en), (INT_TYPE_DAMAGE_LEVEL), (timed.new_level)));
++  if (timed.fatal)
+    (fn_kill_client_server_entity[(((en))->type)][(system_comms_model)] ((en)));
+  }
+- if (raw->vh.mob.alive && !vehicle_critically_damaged(en))
++ if (raw->vh.mob.alive && !timed.critical_class)
+  {
+   update_vehicle_loading_doors (en);
+   update_vehicle_radar (en);
+aphavoc/source/entity/mobile/vehicle/routed/rv_updt.c: DIFFERS FROM THE BASELINE BY DESIGN (the timed roll moved to the host); the difference of update_server only:
+--- /tmp/base.fn	2026-10-28 09:03:42.678869176 +0000
++++ /tmp/off.fn	2026-10-28 09:03:42.682869176 +0000
+@@ -1,5 +1,7 @@
+ static void update_server (entity *en)
+ {
++ campaign_health_result
++  timed;
+  routed_vehicle
+   *raw;
+  int
+@@ -10,15 +12,14 @@
+  update_local_entity_view_interest_level (en);
+  raw->vh.sleep -= (system_delta_time);
+  raw->vh.sleep = (((raw->vh.sleep) > (0.0f)) ? (raw->vh.sleep) : (0.0f));
+- if (damage_level && (explosive_quality & 2 || explosive_quality & 4) &&
+-   vehicle_critically_damaged(en) && (((double) (((random_number_seed = ((random_number_seed * 1103515245) + 12345)) >> 16) & 0x7FFF)) * (1.0 / 32767.0)) < 2 * (system_delta_time))
++ vehicle_timed_health (en, damage_level, explosive_quality, &timed);
++ if (timed.hit)
+  {
+-  damage_level--;
+-  (fn_set_client_server_entity_int_value[(((en))->type)][(((INT_TYPE_DAMAGE_LEVEL)))][(system_comms_model)] ((en), (INT_TYPE_DAMAGE_LEVEL), ((((0) > (damage_level)) ? (0) : (damage_level)))));
+-  if (damage_level <= 0)
++  (fn_set_client_server_entity_int_value[(((en))->type)][(((INT_TYPE_DAMAGE_LEVEL)))][(system_comms_model)] ((en), (INT_TYPE_DAMAGE_LEVEL), (timed.new_level)));
++  if (timed.fatal)
+    (fn_kill_client_server_entity[(((en))->type)][(system_comms_model)] ((en)));
+  }
+- if (raw->vh.mob.alive && !vehicle_critically_damaged(en))
++ if (raw->vh.mob.alive && !timed.critical_class)
+  {
+   for (loop = 0; loop < (1); loop ++)
+   {
+aphavoc/source/entity/mobile/vehicle/ship/sh_updt.c: DIFFERS FROM THE BASELINE BY DESIGN (the timed roll moved to the host); the difference of update_server only:
+--- /tmp/base.fn	2026-10-28 09:03:43.498869189 +0000
++++ /tmp/off.fn	2026-10-28 09:03:43.506869189 +0000
+@@ -1,5 +1,7 @@
+ static void update_server (entity *en)
+ {
++ campaign_health_result
++  timed;
+  ship_vehicle
+   *raw;
+  int
+@@ -10,15 +12,14 @@
+  update_local_entity_view_interest_level (en);
+  raw->vh.sleep -= (system_delta_time);
+  raw->vh.sleep = (((raw->vh.sleep) > (0.0f)) ? (raw->vh.sleep) : (0.0f));
+- if (damage_level && (explosive_quality & 2 || explosive_quality & 4) &&
+-   vehicle_critically_damaged(en) && (((double) (((random_number_seed = ((random_number_seed * 1103515245) + 12345)) >> 16) & 0x7FFF)) * (1.0 / 32767.0)) < 2 * (system_delta_time))
++ vehicle_timed_health (en, damage_level, explosive_quality, &timed);
++ if (timed.hit)
+  {
+-  damage_level--;
+-  (fn_set_client_server_entity_int_value[(((en))->type)][(((INT_TYPE_DAMAGE_LEVEL)))][(system_comms_model)] ((en), (INT_TYPE_DAMAGE_LEVEL), ((((0) > (damage_level)) ? (0) : (damage_level)))));
+-  if (damage_level <= 0)
++  (fn_set_client_server_entity_int_value[(((en))->type)][(((INT_TYPE_DAMAGE_LEVEL)))][(system_comms_model)] ((en), (INT_TYPE_DAMAGE_LEVEL), (timed.new_level)));
++  if (timed.fatal)
+    (fn_kill_client_server_entity[(((en))->type)][(system_comms_model)] ((en)));
+  }
+- if (raw->vh.mob.alive && !vehicle_critically_damaged(en))
++ if (raw->vh.mob.alive && !timed.critical_class)
+  {
+   for (loop = 0; loop < (1); loop ++)
+   {
+STRICT_EXIT=0

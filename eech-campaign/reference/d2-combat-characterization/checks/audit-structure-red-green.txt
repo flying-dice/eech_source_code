@@ -1,0 +1,8 @@
+OLD 450 audit on structure_all_damage_rows_removed: exit=0 0 FAIL lines, STATUS=PASS
+NEW audit on structure_all_damage_rows_removed: exit=1 STATUS=FAIL
+OLD 450 audit on structure_all_checkpoint_integrity_rows_removed: exit=0 0 FAIL lines, STATUS=PASS
+NEW audit on structure_all_checkpoint_integrity_rows_removed: exit=1 STATUS=FAIL
+OLD 450 audit on structure_a_whole_checkpoint_report_removed_marker_kept: exit=0 0 FAIL lines, STATUS=PASS
+NEW audit on structure_a_whole_checkpoint_report_removed_marker_kept: exit=1 STATUS=FAIL
+OLD 450 audit on structure_singleton_duplicated: exit=0 0 FAIL lines, STATUS=PASS
+NEW audit on structure_singleton_duplicated: exit=1 STATUS=FAIL

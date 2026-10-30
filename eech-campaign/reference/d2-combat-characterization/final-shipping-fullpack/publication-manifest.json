@@ -1,0 +1,122 @@
+{
+  "created_utc": "2026-10-28T23:59:37.811679+00:00",
+  "runtime_source": "64cf0f1c5551a2e59309a92917c32e6189d8ae60",
+  "author_head_before_metadata": "daf3960d845def1b59d29c7fa1a07480f5936390",
+  "copies": [
+    {
+      "file": "root-final-fullpack-64cf-completion.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-fullpack-64cf-completion.json",
+      "bytes": 10315,
+      "sha256": "3ff5eae9c3b1891f965e89fb9d12012425054ede88f522721bed5693bbd8d37c"
+    },
+    {
+      "file": "complete-eight-files.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-fullpack-64cf-complete-eight-files.json",
+      "bytes": 3221,
+      "sha256": "cdeec9fe8b0bebc30e8df06ce36f683ffc1815259c1a86cb8e3c52a100e991ad"
+    },
+    {
+      "file": "post-build.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-fullpack-64cf-post-build.json",
+      "bytes": 11450,
+      "sha256": "8a1dc6145066a5bf04858015a286ae00628ae9e6ec1fe9aa5ae443491ed5bd16"
+    },
+    {
+      "file": "internal-lebanon-post-inputs.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-fullpack-64cf-internal-lebanon-post-inputs.json",
+      "bytes": 1117,
+      "sha256": "9d451d1a3e10f0bf91b26b5f5451ff3fe5bdf1f0363da1b798dc04a7a820568a"
+    },
+    {
+      "file": "internal-lebanon-post-inputs.log",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-fullpack-64cf-internal-lebanon-post-inputs.log",
+      "bytes": 322,
+      "sha256": "90c7fa45c381fa1a55f352239ebb5b86ecb3e83660ca587f98c07258e2fde9ea"
+    },
+    {
+      "file": "clean-source-identities.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-fullpack-64cf-clean-source-identities.json",
+      "bytes": 423,
+      "sha256": "0e38e36c7ad7e7ca1f3ffd62331466283351499f85e624d7aad978ba797780aa"
+    },
+    {
+      "file": "source-equivalence-at-daf.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-final-fullpack-source-equivalence-at-daf.json",
+      "bytes": 1885,
+      "sha256": "671a719393de51353b85d283e13be59e706a9ce99ca354716ab24cadbef6c85a"
+    },
+    {
+      "file": "pack-run.json",
+      "original": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\run.json",
+      "bytes": 815,
+      "sha256": "09e5cc55be2fc3a16a7503a8c42cb44d38c22515029db52767db719132c3ee44"
+    },
+    {
+      "file": "launcher-completion.json",
+      "original": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\completion.json",
+      "bytes": 781,
+      "sha256": "b57603f92a40f06481bfd2ebae5dedbf1b69db9da51449a027b5e30473d021fc"
+    },
+    {
+      "file": "pack-report.json",
+      "original": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\report.json",
+      "bytes": 39140,
+      "sha256": "4f47a1b4271c206a6fd40a8ced9af3e13ce9a8aeb298b2c927b4eec853ef69ec"
+    },
+    {
+      "file": "reference-summary.txt",
+      "original": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\reference\\summary.txt",
+      "bytes": 1366,
+      "sha256": "37c79ed5027a0bf3b69c32a77ab47ed947ce182365af894cdd5013c7bd67ebb8"
+    },
+    {
+      "file": "regress.txt",
+      "original": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\logs\\regress.txt",
+      "bytes": 3209,
+      "sha256": "f77700c20a79ee0bfffed423a3f6775fb865814cb402fc2c7823be2337294da6"
+    },
+    {
+      "file": "post-inputs-georgia.log",
+      "original": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\post-inputs-georgia.log",
+      "bytes": 311,
+      "sha256": "ce102f0fa06def8a1afbc9c4b0f64c2052b65beda718f8b30960fc89a9dcd82d"
+    },
+    {
+      "file": "post-inputs-lebanon.log",
+      "original": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\post-inputs-lebanon.log",
+      "bytes": 299,
+      "sha256": "c3df3a214c52124cadd3358f9104369da5a7f134d03e3630b48138b415c64f35"
+    },
+    {
+      "file": "post-inputs-lebanon_repeat.log",
+      "original": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\post-inputs-lebanon_repeat.log",
+      "bytes": 306,
+      "sha256": "24d212fd889b19eab3f343f2d3bceab10b8fcd3cf671b74800d65250c359e675"
+    },
+    {
+      "file": "preflight.json",
+      "original": "R:\\d2-evidence\\candidate-pack-d2-combat-final-64cf0f1c5\\preflight.json",
+      "bytes": 9585,
+      "sha256": "c9240da946a3d80ce4da66bda998ed743e15e7ff4e0f50d587f28a750046c995"
+    },
+    {
+      "file": "BUILD-INFO.txt",
+      "original": "R:\\d2-evidence\\combat-reports-guarded-source-64cf0f1c5\\eech-campaign\\target\\windows-d2-combat-final-64cf0f1c5\\BUILD-INFO.txt",
+      "bytes": 4298,
+      "sha256": "3410ac4174a259e0ee211e4bb05361a819e1c1da54a300abe93968eff08e169d"
+    },
+    {
+      "file": "compare_complete_packs.py",
+      "original": "C:\\Users\\starscream\\.codex\\skills\\eech-regression\\scripts\\compare_complete_packs.py",
+      "bytes": 2670,
+      "sha256": "c7bb3ed6d21a532f888da01943e69228124c54999ecf81966b6fb28b29979ea6"
+    },
+    {
+      "file": "ci-at-daf-all-nine.json",
+      "original": "R:\\d2-evidence\\combat-characterization-20261028\\root-ci-daf-all-nine.json",
+      "bytes": 2687,
+      "sha256": "a424bb3264ebf26fa663848acd95ea199df2a65bf9b29665a061bda5847e2f26"
+    }
+  ],
+  "limits": "Exact original metadata/helper copies only. Complete recordings, observations, metrics raw files, retail assets, roots and binaries stay private. At-time pending delivery labels in immutable originals are preserved."
+}

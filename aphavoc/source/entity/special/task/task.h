@@ -207,6 +207,8 @@ extern task_completed_types assess_task_completeness (entity *en, task_terminate
 
 extern int award_points_for_task_completion (entity *en);
 
+extern int complete_non_primary_task_for_lost_objective (entity *task_en);
+
 extern list_types get_local_task_list_type (entity *task_en);
 
 extern entity *get_local_entity_current_task (entity *member);

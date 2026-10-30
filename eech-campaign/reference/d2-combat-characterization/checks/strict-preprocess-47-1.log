@@ -1,0 +1,414 @@
+aphavoc/source/entity/mobile/weapon/damage.c: DIFFERS FROM THE BASELINE BY DESIGN (the forecast moved to the host); the whole difference, bounded to 400 lines:
+--- /tmp/base.pp	2026-10-28 05:41:12.634868942 +0000
++++ /tmp/off.pp	2026-10-28 05:41:12.646868942 +0000
+@@ -32104,6 +32104,339 @@
+ extern char
+  comanche_hokum_installation_path[];
+ extern void set_registry_language_settings ( void );
++enum campaign_aim_mode
++{
++ CAMPAIGN_AIM_TABLE = 1,
++ CAMPAIGN_AIM_READY_UPDATE,
++ CAMPAIGN_AIM_READY_COMMAND,
++ CAMPAIGN_AIM_REQUIRED,
++ CAMPAIGN_AIM_STEP,
++ CAMPAIGN_AIM_VECTORS,
++ CAMPAIGN_AIM_LEAD,
++ CAMPAIGN_AIM_BALLISTIC,
++ CAMPAIGN_AIM_INTERCEPT,
++ CAMPAIGN_AIM_RANGE,
++ CAMPAIGN_AIM_FIGURES,
++ CAMPAIGN_AIM_WEAPON_STEP,
++ CAMPAIGN_AIM_WEAPON_BIRTH,
++ CAMPAIGN_AIM_RELEASE,
++ CAMPAIGN_AIM_ANIMATE,
++ CAMPAIGN_AIM_WEAPON_DECOY,
++ CAMPAIGN_AIM_WEAPON_SEDUCE,
++ CAMPAIGN_AIM_WEAPON_REACQUIRE,
++ CAMPAIGN_AIM_FORECAST
++};
++enum campaign_aim_state
++{
++ CAMPAIGN_AIM_DONE = 1,
++ CAMPAIGN_AIM_NEED_DRAW,
++ CAMPAIGN_AIM_NEED_LOOKUP
++};
++enum campaign_aim_event_kind
++{
++ CAMPAIGN_AIM_EVENT_INTERCEPT = 1,
++ CAMPAIGN_AIM_EVENT_LEAD_PATH,
++ CAMPAIGN_AIM_EVENT_LEAD_RANGE,
++ CAMPAIGN_AIM_EVENT_LEAD_ITERATION,
++ CAMPAIGN_AIM_EVENT_BALLISTIC,
++ CAMPAIGN_AIM_EVENT_LEAD_RESULT,
++ CAMPAIGN_AIM_EVENT_TABLE_FLIGHT,
++ CAMPAIGN_AIM_EVENT_RANGE_RESULT,
++ CAMPAIGN_AIM_EVENT_FORECAST,
++ CAMPAIGN_AIM_EVENT_STEP_PATH = 20,
++ CAMPAIGN_AIM_EVENT_STEP_SUBMUNITIONS,
++ CAMPAIGN_AIM_EVENT_STEP_TRACKING,
++ CAMPAIGN_AIM_EVENT_STEP_GUIDANCE,
++ CAMPAIGN_AIM_EVENT_STEP_GUIDANCE_SOURCE,
++ CAMPAIGN_AIM_EVENT_STEP_TGT_BRANCH,
++ CAMPAIGN_AIM_EVENT_STEP_TGT_END,
++ CAMPAIGN_AIM_EVENT_STEP_INTERCEPT,
++ CAMPAIGN_AIM_EVENT_STEP_GUIDED,
++ CAMPAIGN_AIM_EVENT_STEP_PRECISION,
++ CAMPAIGN_AIM_EVENT_STEP_GROUND,
++ CAMPAIGN_AIM_EVENT_STEP_IMPACT,
++ CAMPAIGN_AIM_EVENT_STEP_CONTACT_ANY,
++ CAMPAIGN_AIM_EVENT_STEP_CONTACT_TREES,
++ CAMPAIGN_AIM_EVENT_STEP_BIRTH_FUZE_BEGIN,
++ CAMPAIGN_AIM_EVENT_STEP_BIRTH_FUZE_SOLVED,
++ CAMPAIGN_AIM_EVENT_STEP_BIRTH_DISPERSION
++};
++enum campaign_step_lookup
++{
++ CAMPAIGN_STEP_LOOKUP_VIEW_WEAPON = 1,
++ CAMPAIGN_STEP_LOOKUP_LAUNCHER_EO,
++ CAMPAIGN_STEP_LOOKUP_LAUNCHER_INT,
++ CAMPAIGN_STEP_LOOKUP_LAUNCHER_TARGET,
++ CAMPAIGN_STEP_LOOKUP_TARGET_INT,
++ CAMPAIGN_STEP_LOOKUP_TARGET_VEC,
++ CAMPAIGN_STEP_LOOKUP_WIND,
++ CAMPAIGN_STEP_LOOKUP_GROUND_PROBE,
++ CAMPAIGN_STEP_LOOKUP_GROUND_IMPACT,
++ CAMPAIGN_STEP_LOOKUP_FACE_NORMAL,
++ CAMPAIGN_STEP_LOOKUP_ELEVATION,
++ CAMPAIGN_STEP_LOOKUP_COLLISION,
++ CAMPAIGN_STEP_LOOKUP_TREES,
++ CAMPAIGN_STEP_LOOKUP_PARENT_VELOCITY,
++ CAMPAIGN_STEP_LOOKUP_FUZE_SOLVE,
++ CAMPAIGN_STEP_LOOKUPS
++};
++enum campaign_step_action
++{
++ CAMPAIGN_STEP_ACTION_STATE = 1,
++ CAMPAIGN_STEP_ACTION_ATTITUDE,
++ CAMPAIGN_STEP_ACTION_SPAWN,
++ CAMPAIGN_STEP_ACTION_TACVIEW,
++ CAMPAIGN_STEP_ACTION_POSITION,
++ CAMPAIGN_STEP_ACTION_TARGET_LINK,
++ CAMPAIGN_STEP_ACTION_SMOKE_EFFECT,
++ CAMPAIGN_STEP_ACTION_BIRTH,
++ CAMPAIGN_STEP_ACTION_DECOY,
++ CAMPAIGN_STEP_ACTION_SEDUCE,
++ CAMPAIGN_STEP_ACTION_REACQUIRE,
++ CAMPAIGN_STEP_ACTIONS
++};
++enum campaign_aim_lead_path
++{
++ CAMPAIGN_AIM_LEAD_PATH_TINY_RANGE = 1,
++ CAMPAIGN_AIM_LEAD_PATH_OFF_MAP,
++ CAMPAIGN_AIM_LEAD_PATH_STATIONARY,
++ CAMPAIGN_AIM_LEAD_PATH_MOVING
++};
++typedef struct campaign_aim_event
++{
++ int kind;
++ int a;
++ int b;
++ int c;
++ int d;
++ float f[12];
++} campaign_aim_event;
++typedef struct campaign_weapon_figures
++{
++ char name[63 + 1];
++ float start_weight;
++ float final_weight;
++ float max_range;
++ float muzzle_velocity;
++ float cruise_velocity;
++ float g_max;
++ float boost_time;
++ float cruise_time;
++ float inhibit_time;
++ float drag_coefficient;
++ float flightpath_deviation;
++ float boost_power;
++ float sustain_power;
++ float sustain_time;
++ float diameter;
++ float max_altitude;
++ int ignore_gravity;
++ int flight_profile_or_self_destr;
++ int parachute_type;
++ unsigned int weapon_class;
++ float cruise_time_max_error;
++ float detonation_radius;
++ float max_seeker_limit;
++ float max_launch_angle_error;
++ int survive_ground_impact;
++ int in_flight_collision_check;
++ int guidance_type;
++ int aiming_type;
++ int decoy_type;
++ int warhead_type;
++ int hellfire_ii;
++ int smoke_grenade;
++ int submunition_count;
++ int submunition_velocity_factor;
++ float muzzle_velocity_max_error;
++ float circular_error_probable;
++ float rate_of_fire;
++ float inverse_rate_of_fire;
++ int acquire_forward;
++} campaign_weapon_figures;
++typedef struct campaign_damage_figures
++{
++ int weapon_warhead;
++ int warhead;
++ int damage_capability;
++ int armor_penetration_capability;
++ float burst_duration;
++} campaign_damage_figures;
++typedef struct campaign_weapon_state
++{
++ float position[3];
++ float attitude[9];
++ float motion_vector[3];
++ float velocity;
++ float weapon_lifetime;
++ float decoy_timer;
++ int missile_phase;
++ int loal_mode;
++ int weapon_on_ground;
++ int parachute_status;
++ int kill_code;
++ int entity_samples[4];
++ int has_launcher;
++ int has_target;
++ int server;
++ int submunition;
++ int other_weapon;
++ float coefficient;
++ float effectiveness[3];
++} campaign_weapon_state;
++typedef struct campaign_aim_step
++{
++ int mode;
++ int echo;
++ campaign_aim_event *echo_out;
++ int echo_capacity;
++ char source_host_id[128 + 1];
++ char target_host_id[128 + 1];
++ int weapon;
++ campaign_weapon_figures figures;
++ int pass_first;
++ int pass_last;
++ float *echo_cells;
++ size_t echo_cell_capacity;
++ float ready_state;
++ float ready_rate;
++ float delta_time;
++ int ready_open;
++ float device_attitude[9];
++ float intercept_vector[3];
++ float heading_min;
++ float heading_max;
++ float pitch_min;
++ float pitch_max;
++ float heading_rate;
++ float pitch_rate;
++ int climb;
++ float current_heading;
++ float current_pitch;
++ float required_heading;
++ float required_pitch;
++ int unbounded;
++ float track_pitch;
++ int aiming_type;
++ float cruise_velocity;
++ int acquire_forward;
++ float source_velocity;
++ float parent_velocity;
++ float device_position[3];
++ float target_position[3];
++ float target_point[3];
++ float target_motion_vector[3];
++ int target_mobile;
++ int has_tracking;
++ float tracking_point[3];
++ float map_min[3];
++ float map_max[3];
++ float comms_weapon_lag;
++ int source_gunship;
++ int has_weapon;
++ int has_draw;
++ int draw_sample;
++ float range;
++ float height_diff_or_pitch;
++ int simplified;
++ int fixed_pitch;
++ unsigned int system_time;
++ campaign_weapon_state weapon_state;
++ int answer_count;
++ campaign_aim_event answers[128];
++ int draw_count;
++ int draws[8];
++ int release_has_timer;
++ unsigned int release_last_shot;
++ int release_not_ai;
++ int animate_status;
++ int animate_on_ground;
++ float animate_lifetime;
++ float animate_motion_y;
++ campaign_damage_figures forecast_figures;
++ int forecast_armour_level;
++ int forecast_target_not_ai;
++ float forecast_player_modifier;
++ float forecast_damage_modifier;
++ float forecast_velocity;
++} campaign_aim_step;
++typedef struct campaign_aim_result
++{
++ int state;
++ int result;
++ float ready_state;
++ int phase;
++ float required_heading;
++ float required_pitch;
++ float delta_heading;
++ float delta_pitch;
++ float new_heading;
++ float new_pitch;
++ float weapon_vector[3];
++ float target_vector[3];
++ float intercept_vector[3];
++ float intercept_range;
++ float intercept_point[3];
++ float angle;
++ float time_of_flight;
++ int has_time_of_flight;
++ int has_echo;
++ int echo_count;
++ const campaign_aim_event *echo;
++ size_t echo_cell_count;
++ int lookup_count;
++ campaign_aim_event lookups[16];
++ int action_count;
++ campaign_aim_event actions[32];
++ int release_refuse;
++ int release_burst_size;
++ int release_write_last_shot;
++ unsigned int release_last_shot;
++ int animate_status;
++ int animate_write_lifetime;
++ float animate_lifetime;
++ int forecast_capability;
++} campaign_aim_result;
++typedef int (*campaign_aim_fn)
++(
++ const campaign_aim_step *step,
++ campaign_aim_result *result,
++ char *error,
++ size_t error_size,
++ void *user
++);
++typedef struct campaign_aim_host
++{
++ campaign_aim_fn aim;
++ void *user;
++} campaign_aim_host;
++struct ENTITY;
++struct VEC3D;
++typedef struct campaign_step_hit
++{
++ int which;
++ float segment[6];
++ struct ENTITY *entity;
++} campaign_step_hit;
++typedef struct campaign_step_hits
++{
++ int count;
++ campaign_step_hit hit[16];
++} campaign_step_hits;
++void campaign_step_hits_clear (campaign_step_hits *hits);
++void campaign_step_hits_add (campaign_step_hits *hits, int which, const float *segment, struct ENTITY *entity);
++int campaign_step_hits_find (const campaign_step_hits *hits, int which, const float *segment, struct ENTITY **entity);
++void campaign_aim_set_host (const campaign_aim_host *host);
++int campaign_aim_available (void);
++void campaign_aim_identify (campaign_aim_step *step, struct ENTITY *source, struct ENTITY *target);
++campaign_aim_result campaign_aim_ask (campaign_aim_step *step, int allow_draw);
++campaign_aim_result campaign_aim_generate (int mode, int weapon, const campaign_weapon_figures *figures, int pass_first, int pass_last, float *echo_cells, size_t echo_cell_capacity);
++void campaign_aim_supply_figures (int weapon, const campaign_weapon_figures *figures);
++typedef void (*campaign_step_answer_fn) (const campaign_aim_event *lookup, campaign_aim_event *answer, void *context);
++campaign_aim_result campaign_aim_release (int weapon, int has_timer, unsigned int last_shot, int not_ai);
++campaign_aim_result campaign_aim_forecast (int weapon, const campaign_damage_figures *figures, int armour_level, int target_not_ai, float player_modifier, float damage_modifier, float velocity, int echo);
++campaign_aim_result campaign_aim_animate (int weapon, int status, int on_ground, float lifetime, float motion_y);
++campaign_aim_result campaign_aim_weapon_step (campaign_aim_step *step, campaign_step_answer_fn answer, void *context);
+ extern void create_patrol_task(entity *group, entity *keysite, entity_sides side);
+ extern void initialise_high_level_ai (void);
+ extern void deinitialise_high_level_ai (void);
+@@ -32304,6 +32637,41 @@
+  do { } while(0);;
+  do { } while(0);;
+ }
++static int weapon_damage_forecast (entity *target, float damage_modifier, entity_sub_types weapon_type, float velocity)
++{
++ campaign_damage_figures
++  figures;
++ campaign_aim_result
++  result;
++ const weapon_data
++  *row;
++ int
++  not_ai;
++ float
++  player_modifier = 1.0;
++ if (!(target)) (write_debug_log ("target", "aphavoc/source/entity/mobile/weapon/damage.c", SOURCE_LINE));
++ row = &weapon_database[weapon_type];
++ figures.weapon_warhead = row->warhead_type;
++ if (row->warhead_type == WEAPON_WARHEAD_TYPE_CONVENTIONAL_MUNITIONS)
++ {
++  if ((weapon_type + 1) >= NUM_ENTITY_SUB_TYPE_WEAPONS)
++  {
++   debug_fatal ("DAMAGE: conventional munitions weapon %d has no munition entry after it in the database", weapon_type);
++  }
++  row = &weapon_database[weapon_type + 1];
++ }
++ figures.warhead = row->warhead_type;
++ figures.damage_capability = row->damage_capability;
++ figures.armor_penetration_capability = row->armor_penetration_capability;
++ figures.burst_duration = row->burst_duration;
++ not_ai = ((fn_get_local_entity_int_value[(((target))->type)][(((INT_TYPE_PLAYER)))] ((target), (int_types)(INT_TYPE_PLAYER))) != ENTITY_PLAYER_AI);
++ if (not_ai)
++ {
++  player_modifier = get_player_damage_modifier (target);
++ }
++ result = campaign_aim_forecast (weapon_type, &figures, (fn_get_local_entity_int_value[(((target))->type)][(((INT_TYPE_ARMOR_LEVEL)))] ((target), (int_types)(INT_TYPE_ARMOR_LEVEL))), not_ai, player_modifier, damage_modifier, velocity, 0);
++ return result.forecast_capability;
++}
+ int weapon_damage_capability (entity *wpn, entity *target, float damage_modifier, entity_sub_types weapon_type, float velocity)
+ {
+  int
+@@ -32322,6 +32690,10 @@
+  weapon
+   *raw;
+  if (!(target)) (write_debug_log ("target", "aphavoc/source/entity/mobile/weapon/damage.c", SOURCE_LINE));
++ if (!wpn)
++ {
++  return weapon_damage_forecast (target, damage_modifier, weapon_type, velocity);
++ }
+  switch (weapon_database[weapon_type].warhead_type)
+  {
+   case WEAPON_WARHEAD_TYPE_CONVENTIONAL_MUNITIONS:
+@@ -32352,16 +32724,6 @@
+    random_modifier = 0.75 + 0.5 * random_modifier;
+   }
+  }
+- else
+aphavoc/source/entity/system/en_msgs/en_msgs.c: strict feature-off equivalence PASS (1266682 bytes preprocessed)
+aphavoc/source/entity/mobile/mb_msgs.c: strict feature-off equivalence PASS (1354631 bytes preprocessed)
+aphavoc/source/entity/special/effect/explosn/explosn.c: strict feature-off equivalence PASS (1294181 bytes preprocessed)
+aphavoc/source/entity/system/en_main/en_heap.c: strict feature-off equivalence PASS (1267744 bytes preprocessed)
+aphavoc/source/entity/fixed/fixed.c: strict feature-off equivalence PASS (1264890 bytes preprocessed)
+aphavoc/source/entity/mobile/aircraft/helicop/hc_updt.c: strict feature-off equivalence PASS (1284913 bytes preprocessed)
+aphavoc/source/entity/mobile/aircraft/fixwing/fw_updt.c: strict feature-off equivalence PASS (1268509 bytes preprocessed)
+aphavoc/source/entity/mobile/vehicle/person/ps_updt.c: strict feature-off equivalence PASS (1264892 bytes preprocessed)
+aphavoc/source/entity/mobile/vehicle/anti_air/aa_updt.c: strict feature-off equivalence PASS (1265803 bytes preprocessed)
+aphavoc/source/entity/mobile/vehicle/routed/rv_updt.c: strict feature-off equivalence PASS (1267323 bytes preprocessed)
+aphavoc/source/entity/mobile/vehicle/ship/sh_updt.c: strict feature-off equivalence PASS (1265084 bytes preprocessed)
+STRICT_EXIT=0
+OUTER=0

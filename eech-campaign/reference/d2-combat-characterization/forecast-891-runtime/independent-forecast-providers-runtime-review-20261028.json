@@ -1,0 +1,336 @@
+{
+  "schema": "independent-bounded-runtime-review-v1",
+  "preserved_utc": "2026-10-28T06:19:00.074404+00:00",
+  "reviewer": "/root/d2_los_review",
+  "scope": "NEW completed five-case forecast public-Lua provider cohort only. No unchanged source review, optional tests, build, native launch or agents. Moving real-damage author checkout not inspected.",
+  "frozen_source": {
+    "path": "R:\\d2-evidence\\combat-forecast-source-891c36d72",
+    "metadata_sha": "891c36d72c274361af11600b85e51b2aab1542cd",
+    "reviewed_runtime_sha": "91bc07e075ad4d58061d0304f3d90389997ee6bc",
+    "clean_after": true,
+    "metadata_diff_has_no_paths_outside_STATUS_and_reference": true
+  },
+  "disposition": "No actionable evidence findings. Bounded host forecast authority and three genuine forecast-specific refusal cases supported; no default600/900/fullpack acceptance.",
+  "process_evidence": {
+    "original_queue_session": 81260,
+    "actual_original_queue_exit_recorded": 0,
+    "queue_completed": true,
+    "actual_queue_exit_in_record": 0,
+    "five_actual_driver_and_native_exit_records_all_zero": true,
+    "sequential_case_timestamps_checked": true,
+    "limit": "Native/controller executions were not launched or observed live by this reviewer; completed run/queue records and trusted root actual process result were inspected."
+  },
+  "preservation": {
+    "each_of_five_roots_input_files_independently_rehashed": 1179,
+    "mismatches_all_five": 0,
+    "all_five_post_input_logs_match_accepted_manifest": true,
+    "export_files_independently_rehashed": 40,
+    "export_mismatches": 0,
+    "initial_post_expected_export_maps_equal": true,
+    "build_info_independently_rehashed": true,
+    "build_info_sha256": "b22f01109b5fbcd00377bfd65780cda005d3fd812b3aa740f04be8b7770c1807",
+    "build_info_matches_initial_and_post_records": true,
+    "build_info_commit": "891c36d72c274361af11600b85e51b2aab1542cd",
+    "build_info_dirty_inputs": 0,
+    "all_five_raw_summaries_and_run_records_match_root_completion_record": true
+  },
+  "authority": {
+    "same_requested_seconds": 180,
+    "same_successful_frames": 1801,
+    "same_frame_ms": 100,
+    "same_seed": 1,
+    "same_binary_and_reviewed_provider": true,
+    "fresh_equivalent_roots": true,
+    "controlled_change": "Only forecast answers replaced with zero in forecast_zero mode; other modes delegate to reference. The altered callback path was source-reviewed previously.",
+    "reference_forecasts": 136209,
+    "reference_sum": 96065259,
+    "zero_forecasts": 47278,
+    "zero_sum": 0,
+    "zero_all_forecasts_zero": true,
+    "host_birth_actions": [
+      332,
+      0
+    ],
+    "host_release_rounds": [
+      332,
+      0
+    ],
+    "sampled_weapon_appearances": [
+      176,
+      0
+    ],
+    "sampled_mobile_loss_transitions": [
+      5,
+      0
+    ],
+    "meaning": "Campaign selection/execution observably uses the host forecast answer; zero is accepted without requiring reference diagnostic echo. Different subsequent request counts are an effect of the changed physical answer.",
+    "limit": "This is a bounded substituted-answer control, not standalone DCS integration or a separate reference-free numerical-model native proof."
+  },
+  "refusals": {
+    "negative": "Forecast request rejected with negative capability -1.",
+    "draw": "Forecast request rejected because need_draw cannot answer that request.",
+    "fraction": "Forecast request rejected because capability is not an integer.",
+    "all_three_successful_frames": 0,
+    "all_three_counted_forecasts": 0,
+    "counter_limit": "The malformed provider returns before counted(); a zero forecast counter is not absence of a trigger. Exact forecast-request failure in summary and native debug_fatal establishes each trigger.",
+    "native_exit_limit": "Native0 is normal because the provider catches the expected engine refusal; no blanket success inferred from exit0."
+  },
+  "measurement_scope": {
+    "sample_interval_frames": 10,
+    "weapon_births_field": "Weapon appearances in engine.objects samples; not total/unique physical births. Short-lived weapons can be missed; reappearance between samples is an appearance.",
+    "losses_field": "Sampled alive-to-dead transitions only for ground_vehicle, air_defence, helicopter and fixed_wing; not all campaign losses, ships, persons or fixed structures.",
+    "births_done_field": "Accepted host birth actions (action kind8) from weapon_birth replies.",
+    "release_rounds_field": "Sum of burst_size in accepted non-refused host release replies.",
+    "frozen_provider_context_lines": "lua/aim-provider.lua:116-144,289-301; examined only for evidence measurement interpretation, not a repeated unchanged-source pass."
+  },
+  "records": [
+    {
+      "name": "forecast-provider-reference-01",
+      "actual_native_exit_recorded": 0,
+      "native_pid": 6736,
+      "actual_driver_exit_recorded": 0,
+      "completed_utc": "2026-10-28T06:11:02.3956608Z",
+      "completed_frames": 1801,
+      "forecasts_counted_after_accepted_callback": 136209,
+      "forecast_sum": 96065259,
+      "zero_forecasts": 45440,
+      "host_birth_actions": 332,
+      "host_release_rounds": 332,
+      "sampled_weapon_appearances": 176,
+      "sampled_mobile_loss_transitions": 5,
+      "failure": "",
+      "forecast_specific_failure_in_native_log": false
+    },
+    {
+      "name": "forecast-provider-zero-01",
+      "actual_native_exit_recorded": 0,
+      "native_pid": 11748,
+      "actual_driver_exit_recorded": 0,
+      "completed_utc": "2026-10-28T06:14:06.1440366Z",
+      "completed_frames": 1801,
+      "forecasts_counted_after_accepted_callback": 47278,
+      "forecast_sum": 0,
+      "zero_forecasts": 47278,
+      "host_birth_actions": 0,
+      "host_release_rounds": 0,
+      "sampled_weapon_appearances": 0,
+      "sampled_mobile_loss_transitions": 0,
+      "failure": "",
+      "forecast_specific_failure_in_native_log": false
+    },
+    {
+      "name": "forecast-provider-negative-01",
+      "actual_native_exit_recorded": 0,
+      "native_pid": 916,
+      "actual_driver_exit_recorded": 0,
+      "completed_utc": "2026-10-28T06:14:12.1694543Z",
+      "completed_frames": 0,
+      "forecasts_counted_after_accepted_callback": 0,
+      "forecast_sum": 0,
+      "zero_forecasts": 0,
+      "host_birth_actions": 0,
+      "host_release_rounds": 0,
+      "sampled_weapon_appearances": 0,
+      "sampled_mobile_loss_transitions": 0,
+      "failure": "runtime error: eech: EECH fatal error: host aim: host aim failed for a forecast request: aim answered a forecast with a negative capability -1",
+      "forecast_specific_failure_in_native_log": true
+    },
+    {
+      "name": "forecast-provider-draw-01",
+      "actual_native_exit_recorded": 0,
+      "native_pid": 17388,
+      "actual_driver_exit_recorded": 0,
+      "completed_utc": "2026-10-28T06:14:17.8973617Z",
+      "completed_frames": 0,
+      "forecasts_counted_after_accepted_callback": 0,
+      "forecast_sum": 0,
+      "zero_forecasts": 0,
+      "host_birth_actions": 0,
+      "host_release_rounds": 0,
+      "sampled_weapon_appearances": 0,
+      "sampled_mobile_loss_transitions": 0,
+      "failure": "runtime error: eech: EECH fatal error: host aim: host aim failed for a forecast request: aim result need_draw answers a request that cannot take a draw",
+      "forecast_specific_failure_in_native_log": true
+    },
+    {
+      "name": "forecast-provider-fraction-01",
+      "actual_native_exit_recorded": 0,
+      "native_pid": 12788,
+      "actual_driver_exit_recorded": 0,
+      "completed_utc": "2026-10-28T06:14:23.6486647Z",
+      "completed_frames": 0,
+      "forecasts_counted_after_accepted_callback": 0,
+      "forecast_sum": 0,
+      "zero_forecasts": 0,
+      "host_birth_actions": 0,
+      "host_release_rounds": 0,
+      "sampled_weapon_appearances": 0,
+      "sampled_mobile_loss_transitions": 0,
+      "failure": "runtime error: eech: EECH fatal error: host aim: host aim failed for a forecast request: aim result capability must be an integer, got number",
+      "forecast_specific_failure_in_native_log": true
+    }
+  ],
+  "findings": [],
+  "pending_gates": [
+    "Default candidate600 six hashes/counters/ordered-event equivalence and900 complete physical-output control remain active/unaccepted by this review.",
+    "Shipping full40/all8/post3/currentCI/normal delivery remain separate pending gates.",
+    "No acceptance of later moving real-damage source or whole Task46/D2."
+  ],
+  "artifact_pins": [
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-reference-01\\summary.jsonl",
+      "bytes": 942,
+      "sha256": "2381abc0fe44ea2d1fa6f18f20a35b871c959aea88a440b24dbd36963b33c5b8"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-reference-01\\run.json",
+      "bytes": 1155,
+      "sha256": "80005f1a2978ef8b5f396c56cc85fa148ff2eef621975d72ff53bab73d621641"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-reference-01\\run.log",
+      "bytes": 44692,
+      "sha256": "93d2db9cefd4aa13be035a28b731b4cc25d2218c917cdaa04dca16f3bbd93aff"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-reference-01\\run.out",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-provider-reference-01-post-inputs.log",
+      "bytes": 322,
+      "sha256": "f6fa078293ef4e760dd5a163bb4f1fc4790367fcfbe9db82c2249270cbd3f77f"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-zero-01\\summary.jsonl",
+      "bytes": 883,
+      "sha256": "b2bff0e7cfa3789545c9508b3fce748072b8abf27163ed3f09d8eef58cb4c11d"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-zero-01\\run.json",
+      "bytes": 1144,
+      "sha256": "4b26bc915552a86a17f133a7376b8c94f0862928a3e0c821d74857002ff0810b"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-zero-01\\run.log",
+      "bytes": 43470,
+      "sha256": "19b42adaf126dfff290078ee8edc1124b73b0e1e2338684841f0af511bf36c5f"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-zero-01\\run.out",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-provider-zero-01-post-inputs.log",
+      "bytes": 317,
+      "sha256": "e8019dcc8c2222a0095beab7f35c612b08eadc51142e7f23b4d1688d57f2adf1"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-negative-01\\summary.jsonl",
+      "bytes": 1012,
+      "sha256": "b85b588a1ed8fd3d9f6330a08ed0bcdcd464e387122f716cb90933c193db334f"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-negative-01\\run.json",
+      "bytes": 1174,
+      "sha256": "29beb7c5e44b6bf90f4877e9d1a5eecd53dfdd9a3424aa27e42e73ca23d5a409"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-negative-01\\run.log",
+      "bytes": 44694,
+      "sha256": "c944237598d11715d9fe9f46e700d285b7c82a2c45d2871781213587dd7b0d2e"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-negative-01\\run.out",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-provider-negative-01-post-inputs.log",
+      "bytes": 321,
+      "sha256": "df2537cc5d091a80f985c8703374bb62378a0f984690791edf37074876f1e215"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-draw-01\\summary.jsonl",
+      "bytes": 1017,
+      "sha256": "9418317cfdd96e1828bd23d23d58e4bf8884c6c2907776ddecd8b9fe5518d7b3"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-draw-01\\run.json",
+      "bytes": 1152,
+      "sha256": "3412e55c04b1a75208339b970585dd5833ae04d0ab108f5631c326c60e3d4034"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-draw-01\\run.log",
+      "bytes": 43744,
+      "sha256": "43e57636d5138feb466b038ce300f4338ab5451df4802f0e0e090f15f9073ef5"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-draw-01\\run.out",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-provider-draw-01-post-inputs.log",
+      "bytes": 317,
+      "sha256": "bda00bf3d9b778d14af301d95a8ee7fb987aa7fd4ffcc7ba4889927ca286b9a2"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-fraction-01\\summary.jsonl",
+      "bytes": 1011,
+      "sha256": "74b8f7d8f642da0c6882e07ca77d48993935a349c27f8b2c5b3f993808e21cac"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-fraction-01\\run.json",
+      "bytes": 1176,
+      "sha256": "15f6cded52436aa0247203ee0a8731ae5ebdab4f4e613ff7139c5b65d20347c8"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-fraction-01\\run.log",
+      "bytes": 44692,
+      "sha256": "bbdf8d5ed45052ea0e6a9d5a1d306bc4cacdb1599472f7e50d9021bba377a811"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-provider-fraction-01\\run.out",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-provider-fraction-01-post-inputs.log",
+      "bytes": 321,
+      "sha256": "68c76aff92eb7f89a2e618118c1e7987368c78b67ea791c34a82c36dbf979f5e"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-providers-completion.json",
+      "bytes": 18015,
+      "sha256": "281cc8474e345660bb05d3b3fda43f789c282e4e90572185d79a194be8608278"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\forecast-provider-queue.json",
+      "bytes": 887,
+      "sha256": "815a5ed2d5619b502c3162fa54fb74706849e644335a4cb0568d30694116c72d"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-providers-post-build.json",
+      "bytes": 10919,
+      "sha256": "42a84deb6bd15e30761a96ea0d4b2da5700da09f0ba9ff2b2f2994417024b6c4"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-clean-forecast-891c36-fixture-manifest.json",
+      "bytes": 10919,
+      "sha256": "7fdb6bf267e36f8ed3c2b18d9deb959230a9ba39eef3f2441cf1b2ffd8af71fb"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\run-forecast-provider-queue.ps1",
+      "bytes": 1962,
+      "sha256": "2a784d0132be9dfaf22bdb3199f666c721c0e9c304ef52d1a9b4efc16c0d7f0e"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\run-forecast-provider.ps1",
+      "bytes": 2109,
+      "sha256": "7ddf7608ad72bf5fe342ba5da2a5342641c5fc3bd17bc0bf42163c3b8c0dd505"
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+== control (unmutated copy)
+81 checks, 0 failures
+CONTROL compile=0 run=0 class=PASSED
+== mutant: identity_ends_with_the_entity
+81 checks, 4 failures
+MUTANT identity_ends_with_the_entity: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: slot_forgets_the_identity
+81 checks, 10 failures
+MUTANT slot_forgets_the_identity: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: no_duplicate_identity
+81 checks, 8 failures
+MUTANT no_duplicate_identity: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: no_roster_collision
+81 checks, 9 failures
+MUTANT no_roster_collision: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: no_control_characters
+81 checks, 3 failures
+MUTANT no_control_characters: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: fact_applied_once
+81 checks, 2 failures
+MUTANT fact_applied_once: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: no_repair_by_report
+81 checks, 1 failures
+MUTANT no_repair_by_report: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: no_negative_level
+81 checks, 2 failures
+MUTANT no_negative_level: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: server_only
+81 checks, 1 failures
+MUTANT server_only: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: zero_level_kills
+81 checks, 2 failures
+MUTANT zero_level_kills: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: destruction_leaves_level
+81 checks, 2 failures
+MUTANT destruction_leaves_level: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: stale_roster_identity
+81 checks, 1 failures
+MUTANT stale_roster_identity: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: identity_issued_once
+81 checks, 14 failures
+MUTANT identity_issued_once: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: empty_report
+81 checks, 1 failures
+MUTANT empty_report: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: identity_needs_a_body
+81 checks, 5 failures
+MUTANT identity_needs_a_body: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: member_cannot_take_a_structure_identity
+81 checks, 5 failures
+MUTANT member_cannot_take_a_structure_identity: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: member_cannot_take_a_member_identity
+81 checks, 2 failures
+MUTANT member_cannot_take_a_member_identity: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: member_identity_is_utf8
+81 checks, 1 failures
+MUTANT member_identity_is_utf8: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: ever_issued_forgets_ended
+81 checks, 3 failures
+MUTANT ever_issued_forgets_ended: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: envelope_ignores_structures
+81 checks, 4 failures
+MUTANT envelope_ignores_structures: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: listing_walks_to_the_ceiling
+81 checks, 15 failures
+MUTANT listing_walks_to_the_ceiling: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: capacity_is_the_ceiling
+81 checks, 17 failures
+MUTANT capacity_is_the_ceiling: CAUGHT class=CAUGHT_ASSERTION compile=0 run=1
+== mutant: heap_resize_unnoticed
+81 checks, 0 failures
+MUTANT heap_resize_unnoticed: FAILURE class=PASSED compile=0 run=0 (not a catch)
+== mutant: map_forgets_its_capacity_on_reset
+/tmp/m/mb_hostobj.c:61:24: error: initializer element is not constant
+   61 |         map_capacity = map_capacity;
+      |                        ^~~~~~~~~~~~
+MUTANT map_forgets_its_capacity_on_reset: FAILURE class=BUILD_FAILURE compile=1 run=- (not a catch)
+== setup control: cannot_compile
+/tmp/m/mb_hostobj.c:33:2: error: #error a copy that cannot compile
+   33 | #error a copy that cannot compile
+      |  ^~~~~
+SETUP CONTROL cannot_compile: class=BUILD_FAILURE as expected (compile=1 run=-), not a catch
+== setup control: never_ends
+SETUP CONTROL never_ends: class=TIMEOUT as expected (compile=0 run=124), not a catch
+CAUGHT=22 FAILED=2 SETUP_CONTROLS_AS_EXPECTED=2 SETUP_CONTROLS_WRONG=0 CONTROL_OK=1
+DOCKER_EXIT=1

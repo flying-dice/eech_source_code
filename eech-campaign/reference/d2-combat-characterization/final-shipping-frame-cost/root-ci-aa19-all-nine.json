@@ -1,0 +1,73 @@
+{
+  "when_utc": "2026-10-28T16:33:29.940139+00:00",
+  "head": "aa19f0e085c9635e964142e134e80bf96c6bc253",
+  "pull_request": {
+    "baseRefOid": "3b91ca34730a88e944700af1d0b7d777e071c73e",
+    "headRefOid": "aa19f0e085c9635e964142e134e80bf96c6bc253",
+    "isDraft": true,
+    "mergeable": "MERGEABLE",
+    "reviewDecision": ""
+  },
+  "actual_gh_view_exit": 0,
+  "actual_gh_checks_exit": 0,
+  "checks": [
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40725598960/job/122948353877",
+      "name": "test (x86_64-unknown-linux-gnu)",
+      "state": "SUCCESS",
+      "workflow": "eech-campaign"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40725598960/job/122948353885",
+      "name": "test (i686-unknown-linux-gnu, EECH_ORIGINAL_STACK_ATTRIBUTES=1)",
+      "state": "SUCCESS",
+      "workflow": "eech-campaign"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40725598960/job/122948354242",
+      "name": "test (i686-unknown-linux-gnu)",
+      "state": "SUCCESS",
+      "workflow": "eech-campaign"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40725598960/job/122948353928",
+      "name": "test (x86_64-unknown-linux-gnu, EECH_C_OPT=2)",
+      "state": "SUCCESS",
+      "workflow": "eech-campaign"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40725598960/job/122948353787",
+      "name": "evidence-selftest",
+      "state": "SUCCESS",
+      "workflow": "eech-campaign"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40725598960/job/122948354052",
+      "name": "dcs-probe-tools",
+      "state": "SUCCESS",
+      "workflow": "eech-campaign"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40725598960/job/122948353786",
+      "name": "windows-cross",
+      "state": "SUCCESS",
+      "workflow": "eech-campaign"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40725598924/job/122947873603",
+      "name": "verify",
+      "state": "SUCCESS",
+      "workflow": "eech-core-ts"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40725598992/job/122947872893",
+      "name": "Slice 1a historical equivalence",
+      "state": "SUCCESS",
+      "workflow": "eech-loss-structural"
+    }
+  ],
+  "exact_check_set": true,
+  "all9_success": true,
+  "windows_crlf_confirmation": "R:\\d2-evidence\\combat-characterization-20261028\\root-ci-aa19-windows-crlf-confirmation.json",
+  "limits": "Current aa19 CI only, not completed nativecampaign/cost or merge. Later reviewable final-evidence commits need current-head checks; no fake formal selfapproval."
+}

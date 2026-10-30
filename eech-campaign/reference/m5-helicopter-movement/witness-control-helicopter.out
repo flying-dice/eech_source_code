@@ -1,0 +1,5 @@
+diag_selected	mode=control host=eech-world:2975 selected_at=79.3 hold_seconds=0.0
+diag_steps	held=0 moved=0 released_at=nil ended_at=79.4
+subject	eech-world:2975
+selected_at	79.3
+result	control

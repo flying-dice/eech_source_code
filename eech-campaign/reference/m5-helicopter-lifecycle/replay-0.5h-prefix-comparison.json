@@ -1,0 +1,43 @@
+{
+  "status": "PASS",
+  "candidate_lines": 72971,
+  "last_time": 1799.61,
+  "differences": [],
+  "formerly_failing_records": [
+    {
+      "t": 1559.67,
+      "ev": "snap",
+      "id": 83324,
+      "kind": "helicopter",
+      "sub": 25,
+      "side": "blue",
+      "alive": false,
+      "type": "AH-1T Sea Cobra",
+      "x": 23035.16,
+      "y": -8.11,
+      "z": 93125.06,
+      "h": 0.75041,
+      "p": -0.00759,
+      "r": -0.72196
+    },
+    {
+      "t": 1619.65,
+      "ev": "snap",
+      "id": 87568,
+      "kind": "helicopter",
+      "sub": 9,
+      "side": "red",
+      "alive": false,
+      "type": "Mi-17 Hip",
+      "x": 30086.37,
+      "y": 6.02,
+      "z": 81707.47,
+      "h": -2.01814,
+      "p": 0.12364,
+      "r": -1.33427
+    }
+  ],
+  "candidate_sha256": "49b496d205e73cac326aa1f4091151c8c7b84061505c4d7bffb90d8f9db43494",
+  "scope": "0.5-hour observation prefix only; not full acceptance",
+  "exit": "0"
+}

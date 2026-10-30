@@ -1,0 +1,26 @@
+{
+  "when_utc": "2026-10-28T11:53:50.026692+00:00",
+  "library": "R:\\d2-evidence\\shipping-source-d2-weapon-a137fc3ec\\eech-campaign\\target\\windows-d2-weapon-final\\lua.dll",
+  "library_sha256": "fdd3325eab5f5fa1a1542e9ba82809960bda31a323641955348b6c223d803a05",
+  "scope": "Timer behavior only in a separate Python process/Lua state using actual retained DLL. Not campaign execution, resolution proof, DCS or frame-budget evidence. os.clock semantics are reported from observed idle comparisons; no generic CPU-time assumption.",
+  "idle_samples": [
+    {
+      "requested_idle_seconds": 0.125,
+      "perf_counter_seconds": 0.12523100012913346,
+      "python_process_cpu_seconds": 0.0,
+      "lua_os_clock_seconds": 0.131
+    },
+    {
+      "requested_idle_seconds": 0.25,
+      "perf_counter_seconds": 0.2503408999182284,
+      "python_process_cpu_seconds": 0.0,
+      "lua_os_clock_seconds": 0.25
+    },
+    {
+      "requested_idle_seconds": 0.5,
+      "perf_counter_seconds": 0.5000908998772502,
+      "python_process_cpu_seconds": 0.0,
+      "lua_os_clock_seconds": 0.49999999999999994
+    }
+  ]
+}

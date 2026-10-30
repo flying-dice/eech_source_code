@@ -1,0 +1,139 @@
+{
+  "schema": "independent-bounded-runtime-review-v1",
+  "preserved_utc": "2026-10-28T06:44:03.092514+00:00",
+  "reviewer": "/root/d2_los_review",
+  "scope": "NEW completed forecast-only900 control proof only. Prior forecast source/600/provider/helper closures stand and were not repeated; moving real-hit author checkout not inspected. No tests, builds, native launches or agents.",
+  "disposition": "No actionable evidence findings. Complete900 physical-output control supported by three full-file byte comparisons and completed process/preservation records. Focused forecast cohort complete within prior declared limits; not whole Task46/full40 acceptance.",
+  "frozen_source": {
+    "path": "R:/d2-evidence/combat-forecast-source-891c36d72",
+    "metadata_sha": "891c36d72c274361af11600b85e51b2aab1542cd",
+    "previously_reviewed_runtime_sha": "91bc07e075ad4d58061d0304f3d90389997ee6bc",
+    "head_independently_verified": true,
+    "git_status_porcelain_empty": true,
+    "build_info_commit_matches_metadata": true,
+    "build_info_dirty_inputs": 0
+  },
+  "process": {
+    "original_controller": 21668,
+    "actual_original_controller_exit_recorded": 0,
+    "native_pid": 23936,
+    "actual_native_exit_recorded": 0,
+    "status": "completed",
+    "created_utc": "2026-10-28T06:04:41.0965791Z",
+    "completed_utc": "2026-10-28T06:40:52.2804987Z",
+    "run_record_equals_root_completion_record": true,
+    "limit": "Completed records and trusted root actual controller result inspected; reviewer did not launch or observe the native live. Full-file artifact equality is separate evidence from process exit."
+  },
+  "configuration": {
+    "binary": "R:\\d2-evidence\\combat-forecast-source-891c36d72\\eech-campaign\\target\\weapon-fixture\\combat-forecast-891c36d72\\eech-world.exe",
+    "arguments": "R:/d2-evidence/combat-forecast-source-891c36d72/eech-campaign/target/weapon-fixture/combat-forecast-891c36d72/lua/campaign.lua root=R:/d2-evidence/combat-characterization-20261028/roots/forecast-control-01 scenario=lebanon_retail hours=0.25 record_every=10 checkpoint_every=3600 observe_every=60 acmi=R:/d2-evidence/combat-characterization-20261028/out/forecast-control-01/recording.acmi observe=R:/d2-evidence/combat-characterization-20261028/out/forecast-control-01/observations.jsonl metrics=R:/d2-evidence/combat-characterization-20261028/out/forecast-control-01/metrics.json observe_supply=0",
+    "root": "R:/d2-evidence/combat-characterization-20261028/roots/forecast-control-01",
+    "output": "R:/d2-evidence/combat-characterization-20261028/out/forecast-control-01",
+    "metrics_run": {
+      "conclusion": "none",
+      "frame_ms": 100,
+      "hours": 0.25,
+      "sample_every": 10,
+      "scenario": "lebanon_retail",
+      "seed": 1
+    },
+    "requested_seconds": 900,
+    "record_every": 10,
+    "checkpoint_every": 3600,
+    "observe_every": 60,
+    "observe_supply": 0,
+    "metrics_confirm_scenario_seed_frame_hours": true
+  },
+  "complete_artifact_verification": {
+    "baseline": "R:/d2-evidence/los-characterization-baseline-20261026/out/ab-base",
+    "candidate": "R:/d2-evidence/combat-characterization-20261028/out/forecast-control-01",
+    "independent_full_file_bytes_compared": true,
+    "independent_sha256_and_sizes_match_proof_and_known_retained_values": true,
+    "comparison_equals_nested_completion_record": true,
+    "results": [
+      {
+        "file": "recording.acmi",
+        "baseline_bytes": 11363845,
+        "candidate_bytes": 11363845,
+        "baseline_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+        "candidate_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+        "matches": true
+      },
+      {
+        "file": "observations.jsonl",
+        "baseline_bytes": 6629273,
+        "candidate_bytes": 6629273,
+        "baseline_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+        "candidate_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+        "matches": true
+      },
+      {
+        "file": "metrics.json",
+        "baseline_bytes": 11777,
+        "candidate_bytes": 11777,
+        "baseline_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+        "candidate_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+        "matches": true
+      }
+    ],
+    "actual_comparator_exit_recorded": 0,
+    "raw_files_not_changed": true,
+    "scope": "Complete recording.acmi, observations.jsonl and metrics.json equality. No normalization, tolerance or baseline replacement."
+  },
+  "preservation": {
+    "post_input_actual_exit_recorded": 0,
+    "input_files_independently_rehashed": 1179,
+    "input_mismatches": 0,
+    "input_bytes": 102239559,
+    "input_manifest_combined_sha256": "121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09",
+    "export_files_independently_rehashed": 40,
+    "export_mismatches": 0,
+    "initial_and_post_expected_export_maps_equal": true,
+    "build_info_independently_rehashed": true,
+    "build_info_sha256": "b22f01109b5fbcd00377bfd65780cda005d3fd812b3aa740f04be8b7770c1807",
+    "build_info_matches_initial_and_post_records": true,
+    "post_export_verifier_actual_exit_recorded": 0
+  },
+  "findings": [],
+  "limits": [
+    "Retained ab-base original input-root provenance is INFERRED; no new independent historical input verification claimed.",
+    "Complete-file byte equality is not visual Tacview inspection.",
+    "Canonical campaign control does not drain the combat observer log: no900combat event census/trust/completeness claim.",
+    "This closes only the NEW900 output control; prior separately closed600 physical measurements and provider authority/refusal evidence are not re-reviewed.",
+    "No performance or broader path-coverage acceptance inferred.",
+    "Real-hit source twoP2/P3 corrections and later timed/blast/bridge/report responsibilities remain separate; whole Task46/D2 not accepted.",
+    "Default full40/all8/post3/currentCI/Task45 predecessor delivery/normal merge remain separate delivery gates."
+  ],
+  "artifact_pins": [
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-control-01-completion.json",
+      "bytes": 4044,
+      "sha256": "4d8e313be3c7bc4b042071f9fe90fc0be560179eb29066b763539ae8a077e5db"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-control-01-complete-comparison.json",
+      "bytes": 1313,
+      "sha256": "5c6551268d2cb8abfef0c4213c5f3a6fbe75c2d8ad6b32b10ec78173eb689c56"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-control-01-post-inputs.log",
+      "bytes": 311,
+      "sha256": "e3902b50cd6c703af55ee5466a835732e1183e9e0f09db2332bcb0b922d34134"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-forecast-control-01-post-build.json",
+      "bytes": 10919,
+      "sha256": "767b98c9203baafa9cbafd48d8c25ab3c343708540cd50dd39815313a94719af"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\root-clean-forecast-891c36-fixture-manifest.json",
+      "bytes": 10919,
+      "sha256": "7fdb6bf267e36f8ed3c2b18d9deb959230a9ba39eef3f2441cf1b2ffd8af71fb"
+    },
+    {
+      "path": "R:\\d2-evidence\\combat-characterization-20261028\\out\\forecast-control-01\\run.json",
+      "bytes": 1557,
+      "sha256": "9dca983258ee34ae00f1d8ce16b46bc6d3fe9c88fb2a154d9a744ec02d978c1f"
+    }
+  ]
+}

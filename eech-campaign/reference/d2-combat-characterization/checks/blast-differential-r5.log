@@ -1,0 +1,8 @@
+TEST_LINK_FLAGS=-fno-pie -no-pie
+SANITIZERS=-fsanitize=address,undefined -fno-sanitize-recover=undefined
+SANITIZER_PROBE_COMPILE_EXIT=0
+SANITIZER_PROBE_RUN_EXIT=0
+COMPILE_EXIT=0
+scenarios 6000, events 255003, candidates 94445, collisions 53647, rockets destroyed 1467, weapons in range 11737, effects on the lists 26593, zero radius 424, objects exactly one radius away 1105, failures 0
+RUN_EXIT=0
+DOCKER_EXIT=0

@@ -1,0 +1,261 @@
+{
+  "reviewed_utc": "2026-10-28T11:05:55.870154+00:00",
+  "reviewer": "same independent Codex reviewer",
+  "scope": "ONE NEW originalbridgepair/auditor + impact900 runtime evidence pass; no unchanged source or initial7impact audit repeated",
+  "findings": [
+    {
+      "id": "BRIDGE-AUDITOR-PHASE-ORDER",
+      "priority": "P2",
+      "file": "R:\\d2-evidence\\combat-characterization-20261028\\audit-original-bridge.py",
+      "lines": [
+        39,
+        90,
+        91,
+        104,
+        110
+      ],
+      "title": "Enforce phase and frame/log correspondence, not only filtered state/event ordering",
+      "mechanism": "Only allowed scopes, filtered state-header order, event seq and singleton counts are checked. No predicate locates bridge_case/summary/disarm/report phases relative to state groups or validates log frame scope/at against corresponding state. Moving the unique armed0 disarm row just after boot leaves every predicate unchanged; relabelling all40 events frame:0:log also leaves predicates unchanged. PASS can therefore claim a completed ordered witness from causally misplaced rows.",
+      "bounded_correction": "Add explicit phase/marker ordering and log frame/time correspondence to actual state groups, plus genuine corruption controls moving disarm/summary/case and mislabelling log scopes/time. Preserve originals; no native rerun needed.",
+      "current_raw_disposition": "Actual retained pair manually/independently verified monotone expected phases and per-event matching frame times, so helper gap does not erase genuine current native measurements."
+    }
+  ],
+  "original_bridge": {
+    "source_sha": "bbfea21fcdb808162e246f1fd74c15a705ba2e54",
+    "source_clean_before_after": true,
+    "pair": [
+      {
+        "name": "bridge-original-lebanon-01",
+        "native_pid": 10104,
+        "actual_native_exit": 0,
+        "original_exec": 99734,
+        "recorded_original_controller_exit": 0,
+        "trace_bytes": 320598,
+        "trace_sha256": "d4c198afc3be5d5bb03f6c5b25800351c37700cf2cd0c0f5cbeda802ebafc6c3",
+        "run_record_sha256": "4ed91eabd4b9f83e66b4cc0c1ff645661d357ff3b2451be7ab2e03c6f8b4c82a",
+        "native_log_sha256": "3b613213a2356194e71c985ddf053a481db09f5b7857218e762a21661e328c6b"
+      },
+      {
+        "name": "bridge-original-lebanon-repeat-01",
+        "native_pid": 17440,
+        "actual_native_exit": 0,
+        "original_exec": 81402,
+        "recorded_original_controller_exit": 0,
+        "trace_bytes": 320598,
+        "trace_sha256": "d4c198afc3be5d5bb03f6c5b25800351c37700cf2cd0c0f5cbeda802ebafc6c3",
+        "run_record_sha256": "9cf559d9dde034f2d23cd0ce0bfe5a8888d09753e592672bfcc2e84328c5656a",
+        "native_log_sha256": "c5578dc95153da040507bbca19de9a220305c42bc91aca8d9b283ddf1494634b"
+      }
+    ],
+    "complete_raw_pair_identical": true,
+    "actual_survey_bridges": 118,
+    "selected_bridge": 0,
+    "segments": 8,
+    "state_groups": 122,
+    "contiguous_events": 40,
+    "bridge_event_counts": {
+      "collision": 11,
+      "shape": 11,
+      "child_killed": 2,
+      "link_broken": 1,
+      "repair_task": 1,
+      "update_inserted": 2,
+      "segment_update": 5,
+      "unsupported_kill": 1,
+      "supported_removed": 1,
+      "fall": 4,
+      "landed": 1
+    },
+    "trusted_reports": 3,
+    "repair_tasks": [
+      0,
+      1
+    ],
+    "routed_alive": [
+      454,
+      454
+    ],
+    "summary": {
+      "done": true,
+      "event": "bridge_summary",
+      "first_collapse": true,
+      "frames": 120,
+      "in_update_at_end": 0,
+      "landed_all": true,
+      "n_child_killed": 2,
+      "n_collision": 11,
+      "n_fall": 4,
+      "n_landed": 1,
+      "n_link_broken": 1,
+      "n_repair_task": 1,
+      "n_segment_update": 5,
+      "n_shape": 11,
+      "n_supported_removed": 1,
+      "n_unsupported_kill": 1,
+      "n_update_inserted": 2,
+      "state_valid": true
+    },
+    "actual_phase_order_and_event_frame_times_independently_verified": true,
+    "original_preconditions": "Declared direct kill_client_server_entity, selected living bridge/segment and living unsupported neighbour, not weapon hit",
+    "source_build": "Clone/audit before54075 build actual0/dirty0;41exports/BUILDINFO unchanged; sourcebbclean.",
+    "limits": [
+      "One reached Lebanon bridge/type/height only; no Georgia, player,MP/client,occupiedvehicle killing/stopping or arbitraryheight coverage.",
+      "Original physics characterization, not alternatehostauthority or physical extraction/fullpack acceptance.",
+      "One fall/landing observed; no universal12slanding inference."
+    ]
+  },
+  "auditor": {
+    "sha256": "754f9c835e3e2742551686e941f556c8eb26b7ef9c9704408aefcaae4ad02346",
+    "new_control_results": [
+      {
+        "name": "valid_original",
+        "actual_exit_recorded": 0,
+        "reason": null,
+        "summary_sha256": "ce084f539492145382dcb2c3a4e85da51404ebb13a8de50a085e77c1d926ffd7",
+        "log_sha256": "df0ec16290a73977c0937b80ade9d37ea33638b03c9504daaa28f49671aca850"
+      },
+      {
+        "name": "missing_segment",
+        "actual_exit_recorded": 1,
+        "reason": "missing or extra segment row",
+        "summary_sha256": "7e266f79cebc14a374e3225cdecd602be724300ea5a1766b85c4f64985cb3423",
+        "log_sha256": "8c28417641f01c9dc0a43df2f409480083f17ef2dd151b3fa9079608169ab80f"
+      },
+      {
+        "name": "duplicate_state",
+        "actual_exit_recorded": 1,
+        "reason": "missing, duplicate or reordered state group",
+        "summary_sha256": "fa979f1bd4372388e31d77a35be38c53e8e3992440c6818b641cb7bd05bf1516",
+        "log_sha256": "f4a1bd3b44db5a44a0fe9a6da78b398aa74e1f41d6f8b1a844ae649db4f8b012"
+      },
+      {
+        "name": "wrong_sequence",
+        "actual_exit_recorded": 1,
+        "reason": "event sequence gap/duplicate/reordering",
+        "summary_sha256": "e5ef2b02b72bc9bc5de4ce2ccf63738855b730d79b0fda94244dcc4af4f56f94",
+        "log_sha256": "e58ff23a70589e3e7f786aaca2611849b9e44f88af449ef3fd19aff05ccac548"
+      },
+      {
+        "name": "false_landing",
+        "actual_exit_recorded": 1,
+        "reason": "summary not derived from final actual state",
+        "summary_sha256": "1a8fb24911967e427f1f8822a7584e3540d622a037fd49359ee650b5ea6baf54",
+        "log_sha256": "697955cdc2e5eab5dd7deacaf4a12ef9d1b7c31e9db57442c0e081f4a3f208ca"
+      },
+      {
+        "name": "unknown_event",
+        "actual_exit_recorded": 1,
+        "reason": "unknown or misplaced event: unknown_bridge_row",
+        "summary_sha256": "0c43835d00d973149d822d029e5cd68451b9ed1c210b2c851edc2b98ff10f41f",
+        "log_sha256": "b0aac67cc9ab2b7cc856642c9fc67dc67f0f51c90629d613211d104cd43844b6"
+      },
+      {
+        "name": "unbounded_census",
+        "actual_exit_recorded": 1,
+        "reason": "survey cardinality",
+        "summary_sha256": "cf1ce2343f85e9a118efd8af4ae87ccb78553bfdfe11678e16bdb9c9ea10fe81",
+        "log_sha256": "4f18a448586a47585aaeaafe5189b33ddca4eb0488930c5c6d0bf22f97323f0b"
+      },
+      {
+        "name": "malformed_json",
+        "actual_exit_recorded": 1,
+        "reason": "Expecting value: line 1 column 10 (char 9)",
+        "summary_sha256": "c26796ea15410ebda7ea008e99a546c6817304b4c2858854d525b613c2b865cf",
+        "log_sha256": "f2e26d27d0340fc4d4003a95e3337a971ce34d21d51947c5b6b994827e6f1def"
+      }
+    ],
+    "good_checks": "EveryJSONline parsed, duplicatekeys/nonfinite rejected, allowedrow/scopes, survey/cardinality, state-group counts/order+adjacent8segments, eventseq/counts, summaries/trusted/disarm checked. Seven retained genuine corruptions rejected for specific reasons.",
+    "limits": [
+      "Helper phase-order gap above must be fixed before treating it as sufficient future ordered/completion proof.",
+      "16MiB accepted-size check occurs after read_bytes; it bounds accepted artifacts, not peak reader allocation. Actual artifacts320598bytes; no memory-usage claim or maliciouslarge-input test performed.",
+      "Controls are artifact mutations only; no game/source/baseline or native changes."
+    ]
+  },
+  "impact900": {
+    "source_sha": "e0a42825bcfad8280aa861879fdd9a0e561cdda3",
+    "source_clean_before_after": true,
+    "original_controller": 37911,
+    "recorded_actual_controller_exit": 0,
+    "native_pid": 18976,
+    "actual_native_exit": 0,
+    "completed_utc": "2026-10-28T10:40:54.2640339Z",
+    "run_record_sha256": "14a4551af5b7a340f78a6c7f1f95742fda6f29c829864d90f8112f8358f673d8",
+    "full3_complete_byte_equal": [
+      {
+        "file": "recording.acmi",
+        "baseline_bytes": 11363845,
+        "candidate_bytes": 11363845,
+        "baseline_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+        "candidate_sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+        "matches": true
+      },
+      {
+        "file": "observations.jsonl",
+        "baseline_bytes": 6629273,
+        "candidate_bytes": 6629273,
+        "baseline_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+        "candidate_sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+        "matches": true
+      },
+      {
+        "file": "metrics.json",
+        "baseline_bytes": 11777,
+        "candidate_bytes": 11777,
+        "baseline_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+        "candidate_sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+        "matches": true
+      }
+    ],
+    "limits": [
+      "Retainedab-base input-root provenance INFERRED; not independently invented verification.",
+      "Completebytes/hashes not visualinspection or900combatcensus/fullpack/performance/DCSframebenchmark.",
+      "94737 proof orchestration resumed after transientWSLgitI/O; no native restart/recovery or report-onlyexit substitution."
+    ]
+  },
+  "preservation": {
+    "roots": [
+      {
+        "name": "bridge-original-lebanon-01",
+        "inputs_independently_hashed": 1179,
+        "post_log_sha256": "5674888bc0f3e2c0c75451f1bcd25dce9330f783f265871696e048169ce7cd99"
+      },
+      {
+        "name": "bridge-original-lebanon-repeat-01",
+        "inputs_independently_hashed": 1179,
+        "post_log_sha256": "e24c38117028db4647a42e43f8986bcbbce09fe63ec69427aaa941dbcf668e3e"
+      },
+      {
+        "name": "impact-control-01",
+        "inputs_independently_hashed": 1179,
+        "post_log_sha256": "4f131d52695aa59e243da83cf0ffb2a9d86029380b8ddf06bf0bddfd5cbf7a3f"
+      }
+    ],
+    "builds": [
+      {
+        "initial": "root-clean-original-bridge-bbfea21fc-fixture-manifest.json",
+        "post": "root-original-bridge-pair-post-build.json",
+        "exports_hashed": 41,
+        "BUILDINFO_sha256": "06f741c1be7ab519d19f291bfde338713dfcb3e580017fb5caca86c00cee07f3"
+      },
+      {
+        "initial": "root-clean-impact-e0a42825b-fixture-manifest.json",
+        "post": "root-impact-control-01-post-build.json",
+        "exports_hashed": 40,
+        "BUILDINFO_sha256": "3c3f23119bda091f16fb433c155afc64fa84c462bf0a2c4c485f47e6f00a2821"
+      }
+    ],
+    "proof_hashes": {
+      "root-original-bridge-pair-completion.json": "07ee1af190fbb1a81600c6343d028d654218da726e0163d4655ee7048e564e61",
+      "root-original-bridge-auditor-controls.json": "8ac3bccb635ce21930e466d4a5324b60e4fb062e47163efabb867668e4f807b2",
+      "root-impact-control-01-completion.json": "a62c1682a9fb5ab421e555ecb11ca02ce7b0a8ea4bb80cb3587f4c38cb1c59a6"
+    },
+    "prebuild_audit_sha256": "41f17659da221a5a953ee0b8761fe648d15252a6604a26215a15ae9ba1a3cf72"
+  },
+  "disposition": "Current originalbridgepair native facts/repeat and impact900 proof independently valid; one NEWauditor P2 remains for focused correction. No native rerun required for helper correction.",
+  "remaining": [
+    "Auditor phase/frame-log correction/control evidence before relying on helper verdict alone.",
+    "Remaining impactprovidercohort still separate, no all16pass.",
+    "R5physics/R3persistentstructureidentity/reportcorrelation/physicalreports/finalshipping40all8post3/currentCI/review/merge/wholeD2audit remain.",
+    "No agents/source edits/tests/build/native launches or rawartifact writes during this review."
+  ]
+}

@@ -1,0 +1,17 @@
+{"kind":"header","scope":"native engine:frame only; no DCS scheduling or budget","timer":"os.clock","unit":"ms","window_frames":600}
+{"kind":"window","through_frame":600,"frames":600,"mean_ms":104.128333,"max_ms":237}
+{"kind":"window","through_frame":1200,"frames":600,"mean_ms":261.325,"max_ms":481}
+{"kind":"window","through_frame":1800,"frames":600,"mean_ms":202.928333,"max_ms":471}
+{"kind":"window","through_frame":2400,"frames":600,"mean_ms":165.926667,"max_ms":227}
+{"kind":"window","through_frame":3000,"frames":600,"mean_ms":162.138333,"max_ms":257}
+{"kind":"window","through_frame":3600,"frames":600,"mean_ms":187.77,"max_ms":332}
+{"kind":"window","through_frame":4200,"frames":600,"mean_ms":193.146667,"max_ms":281}
+{"kind":"window","through_frame":4800,"frames":600,"mean_ms":164.3,"max_ms":226}
+{"kind":"window","through_frame":5400,"frames":600,"mean_ms":183.515,"max_ms":253}
+{"kind":"window","through_frame":6000,"frames":600,"mean_ms":241.111667,"max_ms":391}
+{"kind":"window","through_frame":6600,"frames":600,"mean_ms":251.69,"max_ms":384}
+{"kind":"window","through_frame":7200,"frames":600,"mean_ms":281.31,"max_ms":493}
+{"kind":"window","through_frame":7800,"frames":600,"mean_ms":200.47,"max_ms":325}
+{"kind":"window","through_frame":8400,"frames":600,"mean_ms":208.325,"max_ms":292}
+{"kind":"window","through_frame":9000,"frames":600,"mean_ms":298.718333,"max_ms":554}
+{"kind":"complete","frames":9000,"mean_ms":207.120222,"max_ms":554,"p50_ms":194,"p95_ms":334,"p99_ms":424,"quantiles":"nearest rank; timer quantized"}

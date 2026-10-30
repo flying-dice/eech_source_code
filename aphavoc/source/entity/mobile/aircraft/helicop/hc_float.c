@@ -138,6 +138,10 @@ static void set_local_float_value (entity *en, float_types type, float value)
 		{
 			raw->main_rotor_rpm = value;
 
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+			campaign_movement_rotor_set (en);
+#endif
+
 			break;
 		}
 		////////////////////////////////////////
@@ -146,6 +150,10 @@ static void set_local_float_value (entity *en, float_types type, float value)
 		{
 			raw->main_rotor_spin_up_timer = value;
 
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+			campaign_movement_rotor_set (en);
+#endif
+
 			break;
 		}
 		////////////////////////////////////////
@@ -153,6 +161,10 @@ static void set_local_float_value (entity *en, float_types type, float value)
 		////////////////////////////////////////
 		{
 			raw->tail_rotor_rpm = value;
+
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+			campaign_movement_rotor_set (en);
+#endif
 
 			break;
 		}

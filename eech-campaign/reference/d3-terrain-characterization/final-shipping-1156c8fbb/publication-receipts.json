@@ -1,0 +1,69 @@
+{
+  "files": [
+    {
+      "file": "report.json",
+      "retained_original": "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack\\report.json",
+      "retained_raw_sha256": "d76670ab594d3ee24929e47b5d1f0f050048c305bbcc3f2f597ed07a86ed66ff",
+      "published_text_LF_sha256": "d76670ab594d3ee24929e47b5d1f0f050048c305bbcc3f2f597ed07a86ed66ff",
+      "raw_evidence_untouched": true,
+      "normalization_scope": "Git metadata text line endings only; no raw acceptance artifact normalized"
+    },
+    {
+      "file": "report.md",
+      "retained_original": "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack\\report.md",
+      "retained_raw_sha256": "9d18ffafd80eb797076d12379366eeda3f91cc148a278b1a7ff9799a9155b2b3",
+      "published_text_LF_sha256": "9d18ffafd80eb797076d12379366eeda3f91cc148a278b1a7ff9799a9155b2b3",
+      "raw_evidence_untouched": true,
+      "normalization_scope": "Git metadata text line endings only; no raw acceptance artifact normalized"
+    },
+    {
+      "file": "completion.json",
+      "retained_original": "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack\\completion.json",
+      "retained_raw_sha256": "55222f8752ba0a3dff9fda9420a84401a523d696ec6a53e510927b8f62f7f380",
+      "published_text_LF_sha256": "2326b9f9759ce12276382458b6de511b2f5c0f63b634feba9fc846451748ae3b",
+      "raw_evidence_untouched": true,
+      "normalization_scope": "Git metadata text line endings only; no raw acceptance artifact normalized"
+    },
+    {
+      "file": "run.json",
+      "retained_original": "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack\\run.json",
+      "retained_raw_sha256": "e6087c365be34a40f3c3f9c03755556302f9a04645aa085de3f5df84627b50c0",
+      "published_text_LF_sha256": "728c8e089eaff898661d19b71fe833ede76a334f64cf096d6712e3449b99648c",
+      "raw_evidence_untouched": true,
+      "normalization_scope": "Git metadata text line endings only; no raw acceptance artifact normalized"
+    },
+    {
+      "file": "complete-artifact-comparison.json",
+      "retained_original": "R:\\d3-evidence\\terrain-coordinate-1156c8fbb-eight-complete-artifacts-20261030.json",
+      "retained_raw_sha256": "cdeec9fe8b0bebc30e8df06ce36f683ffc1815259c1a86cb8e3c52a100e991ad",
+      "published_text_LF_sha256": "63c18ef22cd579d70c79b3bf56ea61f561259681adf1666925b452ddba659138",
+      "raw_evidence_untouched": true,
+      "normalization_scope": "Git metadata text line endings only; no raw acceptance artifact normalized"
+    },
+    {
+      "file": "validation.json",
+      "retained_original": "R:\\d3-evidence\\terrain-coordinate-1156c8fbb-final-shipping-validation-20261030.json",
+      "retained_raw_sha256": "9543f3e0e757c3580022fd5e82e4a64f9b1b6226a5efb0a995ec573da8810c9f",
+      "published_text_LF_sha256": "a7828d9508e58c506518a8082fd5543d592adcb7e3d3ec0aad72ce55428340a2",
+      "raw_evidence_untouched": true,
+      "normalization_scope": "Git metadata text line endings only; no raw acceptance artifact normalized"
+    },
+    {
+      "file": "independent-review.json",
+      "retained_original": "R:\\d3-evidence\\independent-terrain-final-shipping-review-1156c8fbb-20261030.json",
+      "retained_raw_sha256": "7a962a210411fe8b04691def68e3d65724298fe1a7edf0136b21618639f76f93",
+      "published_text_LF_sha256": "7a962a210411fe8b04691def68e3d65724298fe1a7edf0136b21618639f76f93",
+      "raw_evidence_untouched": true,
+      "normalization_scope": "Git metadata text line endings only; no raw acceptance artifact normalized"
+    },
+    {
+      "file": "ci-7b51efedb.json",
+      "retained_original": "R:\\d3-evidence\\terrain-final-current-ci-7b51efedb-20261030.json",
+      "retained_raw_sha256": "102e81d69573bb82bac94aee54d2ec1c6ecf2a8a55165c551f48c962ff990e7c",
+      "published_text_LF_sha256": "a2a7ea43d629e29b8e7717257d92221b7ad72933f5ee4819bd3f6dea9900644b",
+      "raw_evidence_untouched": true,
+      "normalization_scope": "Git metadata text line endings only; no raw acceptance artifact normalized"
+    }
+  ],
+  "retail_assets_and_raw_recordings_not_published": true
+}

@@ -1,0 +1,553 @@
+{
+ "artifact_complete": true,
+ "bytes": 985242,
+ "checks": [
+  {
+   "detail": "run.json status='completed' actual_native_exit=0",
+   "name": "native process finished with exit 0",
+   "section": "PROCESS",
+   "status": "PASS"
+  },
+  {
+   "detail": "6868 JSON objects, 985242 bytes",
+   "name": "trace readable",
+   "section": "ARTIFACT",
+   "status": "PASS"
+  },
+  {
+   "detail": "{'checkpoint_every': 60, 'event': 'boot', 'frame_ms': 100, 'scenario': 'lebanon_retail', 'seconds': 600, 'seed': 1}",
+   "name": "boot configuration (seconds/frame_ms/checkpoint_every/seed)",
+   "section": "ARTIFACT",
+   "status": "PASS"
+  },
+  {
+   "detail": "10 checkpoints, at=[60, 120, 180, 240, 300, 360, 420, 480, 540, 600]",
+   "name": "checkpoints at exact multiples, in order, frames increasing",
+   "section": "ARTIFACT",
+   "status": "PASS"
+  },
+  {
+   "detail": "{'checkpoints': 10, 'elapsed': 600.00250244141, 'event': 'run', 'expected_frames': 6000, 'frame_ms': 100, 'frames': 6001, 'seconds': 600}",
+   "name": "run event: end point reached, frames, checkpoints and configuration as booted",
+   "section": "ARTIFACT",
+   "status": "PASS"
+  },
+  {
+   "detail": "",
+   "name": "the run event is the last unscoped event and a final `run` report follows it",
+   "section": "ARTIFACT",
+   "status": "PASS"
+  },
+  {
+   "detail": "",
+   "name": "final report (scope run) present",
+   "section": "ARTIFACT",
+   "status": "PASS"
+  },
+  {
+   "detail": "12 groups, 12 complete",
+   "name": "report structure: boot + one complete report per checkpoint marker + final, each with the nine singleton rows, six timed kinds once, optional rows unique",
+   "section": "ARTIFACT",
+   "status": "PASS"
+  },
+  {
+   "detail": "",
+   "name": "emitter order: marker, drained events, report for each checkpoint; the run marker directly before the final report, which ends the trace",
+   "section": "ARTIFACT",
+   "status": "PASS"
+  },
+  {
+   "detail": "12 reports; bad: []",
+   "name": "six hashes (damage collision blast repair timed order) in every report are 16 lowercase hex digits written as strings",
+   "section": "ARTIFACT",
+   "status": "PASS"
+  },
+  {
+   "detail": "non-numbers: []",
+   "name": "every cmb-kind counter is a number, except the declared legacy f41 `blast` decimal string",
+   "section": "ARTIFACT",
+   "status": "PASS"
+  },
+  {
+   "detail": "124 rows carry blast as a JSON string; the corrected parser writes a number; the audit reads it as an integer",
+   "name": "cmb-kind blast counter typing: LEGACY schema (decimal strings), accepted and declared",
+   "section": "ARTIFACT",
+   "status": "PASS"
+  },
+  {
+   "detail": "bad: []",
+   "name": "integrity in every report: trusted, no nesting overflow, unbalanced delivery, unknown identity, outside release or log overflow",
+   "section": "ARTIFACT",
+   "status": "PASS"
+  },
+  {
+   "detail": "bad: []",
+   "name": "damage_client_server_entity entries equal exits in every report",
+   "section": "ARTIFACT",
+   "status": "PASS"
+  },
+  {
+   "detail": "decreases: []",
+   "name": "run-wide counters never decrease from one report to the next",
+   "section": "ARTIFACT",
+   "status": "PASS"
+  },
+  {
+   "detail": "6440 events; first mismatch at None",
+   "name": "event log sequence is contiguous from 1",
+   "section": "ARTIFACT",
+   "status": "PASS"
+  },
+  {
+   "detail": "[]",
+   "name": "every event is of a known kind",
+   "section": "ARTIFACT",
+   "status": "PASS"
+  },
+  {
+   "detail": "",
+   "name": "event drain times never go backwards",
+   "section": "ARTIFACT",
+   "status": "PASS"
+  },
+  {
+   "detail": "open at end: False",
+   "name": "blast begin/end events pair up in order",
+   "section": "ARTIFACT",
+   "status": "PASS"
+  },
+  {
+   "detail": "blasts not yet closed by an explosion event: 0",
+   "name": "each explosion event reports exactly the blasts that ran inside it",
+   "section": "ARTIFACT",
+   "status": "PASS"
+  },
+  {
+   "detail": "events {'blast-begin': 2233, 'blast-end': 2233, 'collision': 234, 'explosion': 1475, 'timed': 260, 'repair': 5}",
+   "name": "collision events == observed deliveries == sum of per-kind collisions (final report)",
+   "section": "ARTIFACT",
+   "status": "PASS"
+  },
+  {
+   "detail": "events {'blast-begin': 2233, 'blast-end': 2233, 'collision': 234, 'explosion': 1475, 'timed': 260, 'repair': 5}",
+   "name": "blast-begin events == blast calls (final report)",
+   "section": "ARTIFACT",
+   "status": "PASS"
+  },
+  {
+   "detail": "events {'blast-begin': 2233, 'blast-end': 2233, 'collision': 234, 'explosion': 1475, 'timed': 260, 'repair': 5}",
+   "name": "blast-end events == blast calls (final report)",
+   "section": "ARTIFACT",
+   "status": "PASS"
+  },
+  {
+   "detail": "events {'blast-begin': 2233, 'blast-end': 2233, 'collision': 234, 'explosion': 1475, 'timed': 260, 'repair': 5}",
+   "name": "explosion events == explosion invocations (final report)",
+   "section": "ARTIFACT",
+   "status": "PASS"
+  },
+  {
+   "detail": "events {'blast-begin': 2233, 'blast-end': 2233, 'collision': 234, 'explosion': 1475, 'timed': 260, 'repair': 5}",
+   "name": "repair events == repair writes (final report)",
+   "section": "ARTIFACT",
+   "status": "PASS"
+  },
+  {
+   "detail": "events {'blast-begin': 2233, 'blast-end': 2233, 'collision': 234, 'explosion': 1475, 'timed': 260, 'repair': 5}",
+   "name": "timed events == timed hits (final report)",
+   "section": "ARTIFACT",
+   "status": "PASS"
+  },
+  {
+   "detail": "events {'blast-begin': 2233, 'blast-end': 2233, 'collision': 234, 'explosion': 1475, 'timed': 260, 'repair': 5}",
+   "name": "cmb-log events == stored == drained == events read, overflow 0 (final report)",
+   "section": "ARTIFACT",
+   "status": "PASS"
+  }
+ ],
+ "coverage": {
+  "kill_codes": {
+   "hit_land": 1964,
+   "hit_target": 104,
+   "overshot_target": 3,
+   "self_destruct": 162
+  },
+  "kinds": {
+   "ANTI_AIRCRAFT": {
+    "already_dead": 0,
+    "applied": 5,
+    "blast": 0,
+    "candidates": 2045,
+    "collisions": 5,
+    "destroyed": 0,
+    "direct": 5,
+    "fatal": 5,
+    "from_other": 0,
+    "from_weapon": 5,
+    "in_range": 0,
+    "invulnerable": 0,
+    "max_damage": 680,
+    "no_damage": 0,
+    "notified": 0,
+    "rocket_kills": 0,
+    "row_present": true
+   },
+   "CITY_BUILDING": {
+    "already_dead": 0,
+    "applied": 69,
+    "blast": 69,
+    "candidates": 105876,
+    "collisions": 70,
+    "destroyed": 0,
+    "direct": 1,
+    "fatal": 45,
+    "from_other": 0,
+    "from_weapon": 70,
+    "in_range": 69,
+    "invulnerable": 0,
+    "max_damage": 500,
+    "no_damage": 1,
+    "notified": 69,
+    "rocket_kills": 0,
+    "row_present": true
+   },
+   "FIXED_WING": {
+    "already_dead": 0,
+    "applied": 17,
+    "blast": 1,
+    "candidates": 1120,
+    "collisions": 17,
+    "destroyed": 0,
+    "direct": 16,
+    "fatal": 0,
+    "from_other": 0,
+    "from_weapon": 17,
+    "in_range": 1,
+    "invulnerable": 0,
+    "max_damage": 471,
+    "no_damage": 0,
+    "notified": 1,
+    "rocket_kills": 0,
+    "row_present": true
+   },
+   "HELICOPTER": {
+    "already_dead": 0,
+    "applied": 48,
+    "blast": 3,
+    "candidates": 5853,
+    "collisions": 48,
+    "destroyed": 0,
+    "direct": 45,
+    "fatal": 13,
+    "from_other": 0,
+    "from_weapon": 48,
+    "in_range": 3,
+    "invulnerable": 0,
+    "max_damage": 1200,
+    "no_damage": 0,
+    "notified": 3,
+    "rocket_kills": 0,
+    "row_present": true
+   },
+   "OBJECT": {
+    "already_dead": 0,
+    "applied": 0,
+    "blast": 0,
+    "candidates": 0,
+    "collisions": 0,
+    "destroyed": 0,
+    "direct": 0,
+    "fatal": 0,
+    "from_other": 0,
+    "from_weapon": 0,
+    "in_range": 0,
+    "invulnerable": 0,
+    "max_damage": 0,
+    "no_damage": 0,
+    "notified": 0,
+    "rocket_kills": 0,
+    "row_present": false
+   },
+   "PERSON": {
+    "already_dead": 0,
+    "applied": 0,
+    "blast": 0,
+    "candidates": 812,
+    "collisions": 0,
+    "destroyed": 0,
+    "direct": 0,
+    "fatal": 0,
+    "from_other": 0,
+    "from_weapon": 0,
+    "in_range": 0,
+    "invulnerable": 0,
+    "max_damage": 0,
+    "no_damage": 0,
+    "notified": 0,
+    "rocket_kills": 0,
+    "row_present": true
+   },
+   "PYLON": {
+    "already_dead": 0,
+    "applied": 0,
+    "blast": 0,
+    "candidates": 3104,
+    "collisions": 0,
+    "destroyed": 0,
+    "direct": 0,
+    "fatal": 0,
+    "from_other": 0,
+    "from_weapon": 0,
+    "in_range": 0,
+    "invulnerable": 0,
+    "max_damage": 0,
+    "no_damage": 0,
+    "notified": 0,
+    "rocket_kills": 0,
+    "row_present": true
+   },
+   "ROUTED_VEHICLE": {
+    "already_dead": 0,
+    "applied": 78,
+    "blast": 61,
+    "candidates": 5603,
+    "collisions": 81,
+    "destroyed": 0,
+    "direct": 20,
+    "fatal": 30,
+    "from_other": 0,
+    "from_weapon": 81,
+    "in_range": 61,
+    "invulnerable": 0,
+    "max_damage": 1600,
+    "no_damage": 3,
+    "notified": 61,
+    "rocket_kills": 0,
+    "row_present": true
+   },
+   "SCENIC": {
+    "already_dead": 0,
+    "applied": 0,
+    "blast": 0,
+    "candidates": 11020,
+    "collisions": 0,
+    "destroyed": 0,
+    "direct": 0,
+    "fatal": 0,
+    "from_other": 0,
+    "from_weapon": 0,
+    "in_range": 0,
+    "invulnerable": 0,
+    "max_damage": 0,
+    "no_damage": 0,
+    "notified": 0,
+    "rocket_kills": 0,
+    "row_present": true
+   },
+   "SEGMENT": {
+    "already_dead": 0,
+    "applied": 8,
+    "blast": 8,
+    "candidates": 1908,
+    "collisions": 8,
+    "destroyed": 0,
+    "direct": 0,
+    "fatal": 3,
+    "from_other": 0,
+    "from_weapon": 8,
+    "in_range": 8,
+    "invulnerable": 0,
+    "max_damage": 500,
+    "no_damage": 0,
+    "notified": 8,
+    "rocket_kills": 0,
+    "row_present": true
+   },
+   "SHIP_VEHICLE": {
+    "already_dead": 0,
+    "applied": 5,
+    "blast": 0,
+    "candidates": 439,
+    "collisions": 5,
+    "destroyed": 0,
+    "direct": 5,
+    "fatal": 0,
+    "from_other": 0,
+    "from_weapon": 5,
+    "in_range": 0,
+    "invulnerable": 0,
+    "max_damage": 8399,
+    "no_damage": 0,
+    "notified": 0,
+    "rocket_kills": 0,
+    "row_present": true
+   },
+   "SITE": {
+    "already_dead": 0,
+    "applied": 0,
+    "blast": 0,
+    "candidates": 4736,
+    "collisions": 0,
+    "destroyed": 0,
+    "direct": 0,
+    "fatal": 0,
+    "from_other": 0,
+    "from_weapon": 0,
+    "in_range": 0,
+    "invulnerable": 0,
+    "max_damage": 0,
+    "no_damage": 0,
+    "notified": 0,
+    "rocket_kills": 0,
+    "row_present": true
+   },
+   "SITE_UPDATABLE": {
+    "already_dead": 0,
+    "applied": 0,
+    "blast": 0,
+    "candidates": 1004,
+    "collisions": 0,
+    "destroyed": 0,
+    "direct": 0,
+    "fatal": 0,
+    "from_other": 0,
+    "from_weapon": 0,
+    "in_range": 0,
+    "invulnerable": 0,
+    "max_damage": 0,
+    "no_damage": 0,
+    "notified": 0,
+    "rocket_kills": 0,
+    "row_present": true
+   }
+  },
+  "repair": {
+   "fixed_restore": 0,
+   "other": 0,
+   "resupply": 5,
+   "zero_to_positive": 0
+  },
+  "report": "run",
+  "special": {
+   "blast_zero_radius": 160,
+   "bridge_cargo_weapon_deliveries_counted_only": 31,
+   "capability_draws": 234,
+   "damage_exit_invulnerable": 0,
+   "damage_exit_no_weapon": 0,
+   "explosion_invocations": 1475,
+   "explosions_with_repeated_blast": 982,
+   "forecast_capability_calls": 574382,
+   "multiplier_moved": 0,
+   "none": 96555,
+   "penetrated": 370983,
+   "player_target": 0,
+   "real_capability_calls": 234,
+   "splash": 107078,
+   "wrapped_collision_handlers_cumulative": 32
+  },
+  "timed": {
+   "anti_aircraft_fire": {
+    "attempts": 4134689,
+    "draws": 0,
+    "fatal": 0,
+    "hits": 0
+   },
+   "fixed_wing_fire": {
+    "attempts": 546036,
+    "draws": 210,
+    "fatal": 1,
+    "hits": 68
+   },
+   "helicopter_fire": {
+    "attempts": 1026989,
+    "draws": 364,
+    "fatal": 0,
+    "hits": 43
+   },
+   "person_bleeding": {
+    "attempts": 833140,
+    "draws": 0,
+    "fatal": 0,
+    "hits": 0
+   },
+   "routed_vehicle_fire": {
+    "attempts": 2740387,
+    "draws": 506,
+    "fatal": 1,
+    "hits": 112
+   },
+   "ship_vehicle_fire": {
+    "attempts": 216036,
+    "draws": 204,
+    "fatal": 0,
+    "hits": 37
+   }
+  },
+  "unreached": [
+   "collision on OBJECT (never a blast candidate: no row in the report)",
+   "collision on PERSON (blast candidates seen, none in range)",
+   "collision on PYLON (blast candidates seen, none in range)",
+   "collision on SCENIC (blast candidates seen, none in range)",
+   "collision on SITE (blast candidates seen, none in range)",
+   "collision on SITE_UPDATABLE (blast candidates seen, none in range)",
+   "timed health loss: person_bleeding (attempts 833140, draws 0, hits 0)",
+   "timed health loss: anti_aircraft_fire (attempts 4134689, draws 0, hits 0)",
+   "a player-controlled target",
+   "a weapon whose multiplayer multiplier moved the damage",
+   "a collision with no weapon (the no-weapon exit)",
+   "an invulnerable target",
+   "a rocket destroyed by a blast",
+   "a fixed-structure restore (D4 coupling)"
+  ],
+  "warheads": {
+   "0": {
+    "forecast": 13910,
+    "penetrated": 0,
+    "real": 0,
+    "splash": 0
+   },
+   "1": {
+    "forecast": 62883,
+    "penetrated": 0,
+    "real": 0,
+    "splash": 0
+   },
+   "3": {
+    "forecast": 65707,
+    "penetrated": 45945,
+    "real": 0,
+    "splash": 0
+   },
+   "4": {
+    "forecast": 81613,
+    "penetrated": 56906,
+    "real": 49,
+    "splash": 24756
+   },
+   "5": {
+    "forecast": 39485,
+    "penetrated": 37506,
+    "real": 88,
+    "splash": 2067
+   },
+   "6": {
+    "forecast": 301306,
+    "penetrated": 228282,
+    "real": 97,
+    "splash": 73121
+   },
+   "7": {
+    "forecast": 9478,
+    "penetrated": 2344,
+    "real": 0,
+    "splash": 7134
+   }
+  }
+ },
+ "process_done": true,
+ "schema": {
+  "cmb_kind_blast_counter": "legacy_string"
+ },
+ "status": "PASS",
+ "trace": "trace.jsonl"
+}

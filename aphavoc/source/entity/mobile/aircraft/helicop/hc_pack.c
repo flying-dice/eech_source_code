@@ -406,6 +406,10 @@ static void unpack_local_data (entity *en, entity_types type, pack_modes mode)
 			
 			raw->tail_rotor_rpm = unpack_float_value (en, FLOAT_TYPE_TAIL_ROTOR_RPM);
 
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+			campaign_movement_rotor_set (en);
+#endif
+
 			/////////////////////////////////////////////////////////////////
 			if (unpack_int_value (en, INT_TYPE_VALID))
 			{
@@ -575,6 +579,10 @@ static void unpack_local_data (entity *en, entity_types type, pack_modes mode)
 			// main_rotor_blade_coning_angle
 
 			raw->tail_rotor_rpm = raw->main_rotor_rpm;
+
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+			campaign_movement_rotor_set (en);
+#endif
 
 			/////////////////////////////////////////////////////////////////
 			if (unpack_int_value (en, INT_TYPE_VALID))

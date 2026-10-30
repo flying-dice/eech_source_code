@@ -1,0 +1,810 @@
+{
+  "reviewed_utc": "2026-10-28T09:58:07.900079+00:00",
+  "reviewer": "same independent Codex reviewer",
+  "scope": "Focused NEW0400af..931 corrections plus safe timed publication/composition at e0; no unchanged physical arithmetic or closed runtime evidence audit repeated",
+  "base_sha": "0400af4465b80f5441a3fa5c1257810f11d74310",
+  "correction_sha": "9318e0465a80f424a715dfe7789cbb4d17f7e141",
+  "reviewed_sha_before": "e0a42825bcfad8280aa861879fdd9a0e561cdda3",
+  "reviewed_sha_after": "e0a42825bcfad8280aa861879fdd9a0e561cdda3",
+  "source_status_before": "clean",
+  "source_status_after": "clean",
+  "findings": [],
+  "disposition": "Three prior P2 and grouped P3 resolved; no new actionable correction/publication findings. Source/publication closure only, no impact native or whole Task46/D2 acceptance.",
+  "resolved": {
+    "BLAST-ORDER": "Core records unique sector starts regardless host order, verifies bounds and current-window continuation, checks visited_count before indexing. Two4096element int arrays32KiB on32bit C; record length bounded4096. Production bridge tests cover reverse and cross-row positive order, adjacent/nonadjacent revisit negatives,4097th-start refusal; row-order reintroduction mutant fails. Reference kernel order unchanged.",
+    "BLAST-RADIUS-PROBE": "Lua mutant updates optional echo f[2] to new radius. Actual shared Lua echo-enabled test verifies it; production C bridge consistent-envelope control reaches changed-radius guard before any application, not malformed-echo guard. No default reference echo alteration.",
+    "BLAST-MUTATION-STATUS": "Both controllers record compile/run separately, skip execution on compile failure, require successful compile and assertion/differential failure or sanitizer diagnostic to count catch. Timeouts/setup/unexpected/pass/pattern-missing fail controller. Docker status propagated. Actual12bridge+10differential mutants compile0/run1; compile1/no-run and compile0/timeout124 setup controls counted separately.",
+    "P3": "Header/docs accurately describe ephemeral window correlation, not persistent host-owned structure state. R3/report/bridge responsibilities explicitly nextD2; no D5-only deferral. Numeric comment now states sample quantization is own-model choice, Lua double precision not prohibited."
+  },
+  "source_file_pins": [
+    {
+      "path": "STATUS.md",
+      "git_blob": "7de584c1abb212aacb6d4f4217bce37143d57c27",
+      "correction_git_blob": "843f54179b52d785f3a0fd6009f271288aefb69c",
+      "raw_sha256": "8762147befea07bb87ccac51a37da764c8db08f1149f8fc0a988b65213981f41",
+      "status_metadata_later_changed": true
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostaim.c",
+      "git_blob": "4d8f1601fd3daeb20b6e98573d6fa410abe05b52",
+      "correction_git_blob": "4d8f1601fd3daeb20b6e98573d6fa410abe05b52",
+      "raw_sha256": "c82302162664c025323feadb7e57d9b3f8b11cc46336e3dd38ab41adc8567194",
+      "status_metadata_later_changed": false
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostaim.h",
+      "git_blob": "0eda0bcf35aa7e91658ec993f42ae323a49362a1",
+      "correction_git_blob": "0eda0bcf35aa7e91658ec993f42ae323a49362a1",
+      "raw_sha256": "1b3c2c3e34ea041c4369104ec9d3c3c1385a1ef69be0920c36b23e13e3ad5e83",
+      "status_metadata_later_changed": false
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/aim-malformed.lua",
+      "git_blob": "cc360703bb68dd4ee1bd22492777eedb195ef569",
+      "correction_git_blob": "cc360703bb68dd4ee1bd22492777eedb195ef569",
+      "raw_sha256": "db9c0c26523cbe718a346c74210d2ada1633a964fd684f7a3e8ed80e19dce949",
+      "status_metadata_later_changed": false
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/aim-provider.lua",
+      "git_blob": "3ee8dafbe81b6b0286681622c2dc3b6194d91030",
+      "correction_git_blob": "3ee8dafbe81b6b0286681622c2dc3b6194d91030",
+      "raw_sha256": "78b095485e35ea0de8ad94bf7fcb76f21dcf6518f6eccbdc05aa08661cba6060",
+      "status_metadata_later_changed": false
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/own-weapon.lua",
+      "git_blob": "8f8e53b16b09f54c42c3a6d5e0a860362ed8a35d",
+      "correction_git_blob": "8f8e53b16b09f54c42c3a6d5e0a860362ed8a35d",
+      "raw_sha256": "7ee0918b0c98aeed4d38b5394063ae8e903ad6014f4392b510417781182beab0",
+      "status_metadata_later_changed": false
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "git_blob": "d16227be88d9334b4642e6130d90a02d08c1bba9",
+      "correction_git_blob": "d16227be88d9334b4642e6130d90a02d08c1bba9",
+      "raw_sha256": "31a03e824e35ed494c606d6e57e8412407e8ff7b3d76d93a233657497b9a0d67",
+      "status_metadata_later_changed": false
+    },
+    {
+      "path": "eech-campaign/docs/m5-combat-extraction.md",
+      "git_blob": "772db7cdd5fb5c4367394a2fecc45f539384dc2d",
+      "correction_git_blob": "772db7cdd5fb5c4367394a2fecc45f539384dc2d",
+      "raw_sha256": "26a2d4c8c57f3877108ee4bf55eded5bf1b6c6d963c572bfaa3087c48192442a",
+      "status_metadata_later_changed": false
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/README.md",
+      "git_blob": "6a5d06d5702fc7e5cba5e0eb14abc673251e3d82",
+      "correction_git_blob": "6a5d06d5702fc7e5cba5e0eb14abc673251e3d82",
+      "raw_sha256": "2c97f37cd85deb336fb9279b52ce8a03c35ee9e92d6c26332fe8c84ca31dd952",
+      "status_metadata_later_changed": false
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/blast_checks.c",
+      "git_blob": "828326b51b89b71c324f73d5d3d85df65c0c1e2a",
+      "correction_git_blob": "828326b51b89b71c324f73d5d3d85df65c0c1e2a",
+      "raw_sha256": "c7e5c17d0c9a4dd2de162ddf976abf1038cd8b2139b2daf64f26bbc6d663109c",
+      "status_metadata_later_changed": false
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/mutate-blast-checks.sh",
+      "git_blob": "0fe1708fdd1d6384a4f6d2ac7f1da108c919e4f8",
+      "correction_git_blob": "0fe1708fdd1d6384a4f6d2ac7f1da108c919e4f8",
+      "raw_sha256": "3de05211ad19289166f2b9ceb7837f420f04398d024918272fd8fc389ac4bd31",
+      "status_metadata_later_changed": false
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/c-checks/mutate-blast-differential.sh",
+      "git_blob": "059acadb2c6bb4ccafd65181e8fb1ba92d6fb548",
+      "correction_git_blob": "059acadb2c6bb4ccafd65181e8fb1ba92d6fb548",
+      "raw_sha256": "ebe107ffc9313b780f9b9759037ba150affa29fa6113b85135162ab9936b33b6",
+      "status_metadata_later_changed": false
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/blast-checks-3.log",
+      "git_blob": "71dc7388c26bc089391f4748c8f54689d1a59c5a",
+      "correction_git_blob": "71dc7388c26bc089391f4748c8f54689d1a59c5a",
+      "raw_sha256": "861d1469450a92357736c4b735b600dbcd76fb5ffc2a67294021611f6fdff036",
+      "status_metadata_later_changed": false
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/blast-differential-3.log",
+      "git_blob": "7954e281cc5275c1d185ed5099eae02fbfc6cb9d",
+      "correction_git_blob": "7954e281cc5275c1d185ed5099eae02fbfc6cb9d",
+      "raw_sha256": "f1f11543da3644cde89e3b6054cf10dcf89ac69bbc46dc9dffa5af103cc7f073",
+      "status_metadata_later_changed": false
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/blast-differential-mutation-3.log",
+      "git_blob": "6f49e388064e79835903a3b01149506accb3cbb4",
+      "correction_git_blob": "6f49e388064e79835903a3b01149506accb3cbb4",
+      "raw_sha256": "c74e046f7618b3f87ad5791420a99f06ba35db2c0b599408b9a4a75833d40d64",
+      "status_metadata_later_changed": false
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/blast-mutation-3-failed-setup-control-delimiter.log",
+      "git_blob": "51245171f8d46f11addda60fb0d4835893167b90",
+      "correction_git_blob": "51245171f8d46f11addda60fb0d4835893167b90",
+      "raw_sha256": "0cf29851566e90e4e7be119a4679c446b690c23956fca721469910417346b9fc",
+      "status_metadata_later_changed": false
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/blast-mutation-4.log",
+      "git_blob": "ccd80822713b87d7c0e11d66d0731365f7c54fbf",
+      "correction_git_blob": "ccd80822713b87d7c0e11d66d0731365f7c54fbf",
+      "raw_sha256": "f9eff3d9abbeb8750580834ad662a6a411218442f99f7238a790608f7031a076",
+      "status_metadata_later_changed": false
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/cargo-test-order.log",
+      "git_blob": "693dc6db2e974e501b4454d4f7cbb67b46529091",
+      "correction_git_blob": "693dc6db2e974e501b4454d4f7cbb67b46529091",
+      "raw_sha256": "4fe3a49f87c6f517fd9eac1ce938300558fcee11623e47f1331c0dc3e2806dde",
+      "status_metadata_later_changed": false
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-order-default.log",
+      "git_blob": "2ad2d3731102054c8e41511f663fa2584e0d588b",
+      "correction_git_blob": "2ad2d3731102054c8e41511f663fa2584e0d588b",
+      "raw_sha256": "a1ebd59597f816f9764845ef7ac07626209c6b4e6d91c628913c2cc6ee587a1f",
+      "status_metadata_later_changed": false
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/clippy-order-fixture.log",
+      "git_blob": "3edcc5d41aaa828f8d521f381f8379a036e3910e",
+      "correction_git_blob": "3edcc5d41aaa828f8d521f381f8379a036e3910e",
+      "raw_sha256": "e7e8b08b2b5d111b67c2fd53d842a27c4c00d6b3683ae52aca8836c253fbc4e1",
+      "status_metadata_later_changed": false
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/damage-checks-order.log",
+      "git_blob": "43eb5a322873e89553a5f8285e171581b8920781",
+      "correction_git_blob": "43eb5a322873e89553a5f8285e171581b8920781",
+      "raw_sha256": "ef72f9f5606668849a9132786d4694da260333307731c46d602bcad6cd3f43c6",
+      "status_metadata_later_changed": false
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/fmt-order.log",
+      "git_blob": "fb443baa65a38fe198b61549de69630e8a4fb6fb",
+      "correction_git_blob": "fb443baa65a38fe198b61549de69630e8a4fb6fb",
+      "raw_sha256": "561bba9495eb6bea32aa213162f0125c94eb103993b05b1ba926a15da50d2196",
+      "status_metadata_later_changed": false
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/forecast-checks-order.log",
+      "git_blob": "8235c61b62330decc40ac7a529c1606736619679",
+      "correction_git_blob": "8235c61b62330decc40ac7a529c1606736619679",
+      "raw_sha256": "4cf35c5a41b1d2c4bca2917c364c6a757f88aa5666b893ad246fdb9320808e2e",
+      "status_metadata_later_changed": false
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/health-checks-order.log",
+      "git_blob": "e2263a4e371b3765b30fb23531f831bb3fe70316",
+      "correction_git_blob": "e2263a4e371b3765b30fb23531f831bb3fe70316",
+      "raw_sha256": "22412c8d0de37d2b8218df86955cefe16ee6af22c448e0d71945b686aec3ef3d",
+      "status_metadata_later_changed": false
+    },
+    {
+      "path": "eech-campaign/reference/d2-combat-characterization/checks/syntax-order.log",
+      "git_blob": "0538d5e1b50ea4ed41be0f7697654e86408d1daa",
+      "correction_git_blob": "0538d5e1b50ea4ed41be0f7697654e86408d1daa",
+      "raw_sha256": "9b065e2933cbd218ef3040804e29764b7cfd62d9830f8b3786401ce57f1421b1",
+      "status_metadata_later_changed": false
+    }
+  ],
+  "existing_check_evidence": {
+    "blast-checks-3.log": {
+      "sha256": "861d1469450a92357736c4b735b600dbcd76fb5ffc2a67294021611f6fdff036",
+      "required_markers": [
+        "60 checks, 0 failures",
+        "RUN_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "blast-differential-3.log": {
+      "sha256": "f1f11543da3644cde89e3b6054cf10dcf89ac69bbc46dc9dffa5af103cc7f073",
+      "required_markers": [
+        "scenarios 6000, events 255003",
+        "failures 0",
+        "RUN_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "blast-mutation-4.log": {
+      "sha256": "f9eff3d9abbeb8750580834ad662a6a411218442f99f7238a790608f7031a076",
+      "required_markers": [
+        "CAUGHT=12 FAILED=0 SETUP_CONTROLS_AS_EXPECTED=2 SETUP_CONTROLS_WRONG=0 CONTROL_OK=1",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "blast-differential-mutation-3.log": {
+      "sha256": "c74e046f7618b3f87ad5791420a99f06ba35db2c0b599408b9a4a75833d40d64",
+      "required_markers": [
+        "CAUGHT=10 FAILED=0 SETUP_CONTROLS_AS_EXPECTED=2 SETUP_CONTROLS_WRONG=0 CONTROL_OK=1",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "forecast-checks-order.log": {
+      "sha256": "4cf35c5a41b1d2c4bca2917c364c6a757f88aa5666b893ad246fdb9320808e2e",
+      "required_markers": [
+        "25 checks, 0 failures",
+        "RUN_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "damage-checks-order.log": {
+      "sha256": "ef72f9f5606668849a9132786d4694da260333307731c46d602bcad6cd3f43c6",
+      "required_markers": [
+        "66 checks, 0 failures",
+        "RUN_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "health-checks-order.log": {
+      "sha256": "22412c8d0de37d2b8218df86955cefe16ee6af22c448e0d71945b686aec3ef3d",
+      "required_markers": [
+        "59 checks, 0 failures",
+        "RUN_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "cargo-test-order.log": {
+      "sha256": "4fe3a49f87c6f517fd9eac1ce938300558fcee11623e47f1331c0dc3e2806dde",
+      "required_markers": [
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "clippy-order-default.log": {
+      "sha256": "a1ebd59597f816f9764845ef7ac07626209c6b4e6d91c628913c2cc6ee587a1f",
+      "required_markers": [
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "clippy-order-fixture.log": {
+      "sha256": "e7e8b08b2b5d111b67c2fd53d842a27c4c00d6b3683ae52aca8836c253fbc4e1",
+      "required_markers": [
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "fmt-order.log": {
+      "sha256": "561bba9495eb6bea32aa213162f0125c94eb103993b05b1ba926a15da50d2196",
+      "required_markers": [
+        "FMT_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "syntax-order.log": {
+      "sha256": "9b065e2933cbd218ef3040804e29764b7cfd62d9830f8b3786401ce57f1421b1",
+      "required_markers": [
+        "SYNTAX_EXIT=0"
+      ]
+    }
+  },
+  "check_limits": [
+    "No tests/builds/natives executed by reviewer.",
+    "C guard/differential use stand-in adapters and transcribed original reference; not full native game or shipping/FPU/runtime acceptance.",
+    "Strict preprocessing was not rerun for this correction; prior original pass evidence retained, not re-labelled fresh.",
+    "Earlier failed mutation setup-delimiter log is preserved, not used as passing evidence."
+  ],
+  "publication": {
+    "directory": "R:\\d2-sensor-detections\\eech-campaign\\reference\\d2-combat-characterization\\timed-366-511-runtime",
+    "copy_count": 64,
+    "total_copy_bytes": 411468,
+    "copy_manifest_sha256": "3b709b5fea6dc28005ad0c7bcb183eeb3eff7cd8430e1b7ebde7f29edffc3c30",
+    "all_private_working_and_committed_blobs_exact": true,
+    "files": [
+      {
+        "file": "root-timed-natural-01-completion.json",
+        "bytes": 15384,
+        "sha256": "a9a447dec6ca354617fae67d470fd85cc1ca7ad125e9fb77d45c5349b2306475",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-natural-01-completion.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "root-timed-natural-01-audit.json",
+        "bytes": 14079,
+        "sha256": "53bfd2868ac528d1b999331735ce413873594156924011793936742d692f4fbd",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-natural-01-audit.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "root-timed-natural-01-audit.log",
+        "bytes": 6313,
+        "sha256": "d6f4c5097c9e6f98594b60a23d8887e4af348e1d73cf09cde00eb7e7b37462c9",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-natural-01-audit.log",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "root-timed-natural-01-post-inputs.log",
+        "bytes": 305,
+        "sha256": "14c2d7d8d3ea813a4b2662b283ce8e5b3eef00f4c57ee1d2c4bd90dc6db7e8b2",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-natural-01-post-inputs.log",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "root-timed-natural-01-post-build.json",
+        "bytes": 10913,
+        "sha256": "d1170596b2c7c6cca25377a13dd52439e90a27dd47c3268540eda736ecf63e1c",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-natural-01-post-build.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "independent-timed-natural600-runtime-review-20261028.json",
+        "bytes": 5393,
+        "sha256": "9026a19b027b281c41fe21116c45e17b3df4b1d10b1326f6d2a6fbd53d4a8db4",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-timed-natural600-runtime-review-20261028.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "root-timed-control-01-completion.json",
+        "bytes": 3202,
+        "sha256": "c5d3a13c092e5c6d6a3d37b4838daf75bceadbfcefc1f047f4727b2f33dd2674",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-control-01-completion.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "root-timed-control-01-complete-comparison.json",
+        "bytes": 1310,
+        "sha256": "656e18ba479a21fa264b75d836b6092b3e8ab60fa1d7706f1aa9efca5584064e",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-control-01-complete-comparison.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "root-timed-control-01-post-inputs.log",
+        "bytes": 305,
+        "sha256": "6b931ff70b287289e64dc5a1c3d294e75c0b8c4f4444e6f9f741786ab6281134",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-control-01-post-inputs.log",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "root-timed-control-01-post-build.json",
+        "bytes": 10913,
+        "sha256": "54674009d738cdb3cfcddb1c9b9d36e14bda0730eebc1fbda7fcdd5d1b4a7fb2",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-control-01-post-build.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "independent-timed-control900-runtime-review-20261028.json",
+        "bytes": 4966,
+        "sha256": "ccb5e4a01ed1c5237568236012dcf9b5e61b237ac23c498b1c0f2606c5a61183",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-timed-control900-runtime-review-20261028.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "root-timed-controlled-01-failure.json",
+        "bytes": 2909,
+        "sha256": "cd8c680efebf7ec485e9a7b8117d6aefd64e8cea176bc6f8c972c54ddad2b941",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-controlled-01-failure.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "root-timed-controlled-02-completion.json",
+        "bytes": 4931,
+        "sha256": "0b3aee4bd901118940eb16a4f2623a9faa9d6d915b0bf8255544b4634ce6d6e8",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-controlled-02-completion.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "root-timed-controlled-02-post-inputs.log",
+        "bytes": 314,
+        "sha256": "69e2fd693a480ae1ab0455670a8616ccc601adf27e1d5bc09fc807dbcfe3a55a",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-controlled-02-post-inputs.log",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "root-timed-controlled-02-post-build.json",
+        "bytes": 10925,
+        "sha256": "2dc00a085ad9637f1bf9a15c0a9b3600be7f740fe871731df166cc7edc9161f8",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-controlled-02-post-build.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "independent-timed-controlled-runtime-review-20261028.json",
+        "bytes": 5323,
+        "sha256": "dda6a5a3d06ebcd14e4e0dda3e46452e4fe3fe2609900ba378189f0573c7f7dd",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-timed-controlled-runtime-review-20261028.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "root-timed-scope-source-equivalence-511156c1c.json",
+        "bytes": 1362,
+        "sha256": "b1ccf857c26b27bcbf684fd19eecb802050d3cc1cec412298641b16a4c3fbff9",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-scope-source-equivalence-511156c1c.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "independent-timed-fixture-scope-review-511156c1c-20261028.json",
+        "bytes": 12014,
+        "sha256": "3aea7596d1236a7c4e3f581ab82f739e5ce6a68d1b65fa7df98ff43415f4eaee",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-timed-fixture-scope-review-511156c1c-20261028.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "root-timed-aa-probe-plan.json",
+        "bytes": 3009,
+        "sha256": "f36b2e2f6686b986d9907293dd42c40cf9f0b36b5d15b727c2a361abb047fb16",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-aa-probe-plan.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "timed-aa-probe.lua",
+        "bytes": 3484,
+        "sha256": "84c87c680eb789ea8339f8439b32e082fe444bd5d19fb4d02fe453bcbba53f6c",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\timed-aa-probe.lua",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "run-timed-aa-probe.ps1",
+        "bytes": 2573,
+        "sha256": "56b5f324e8b18e5ea988f11314e2cb29d043ad83d397119ffb68d0869b6f1993",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\run-timed-aa-probe.ps1",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "root-timed-aa-probes-completion.json",
+        "bytes": 17171,
+        "sha256": "985ab227ed820a044b4c92dea21b3aeca8eda605e9b3e071f7195fef7be52eaa",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-aa-probes-completion.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "root-timed-aa-probes-post-build.json",
+        "bytes": 10925,
+        "sha256": "0233b2db119194ab7b1c40b6a9bbc70f52de5e59e89fb5b853c9cdcafe318df1",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-aa-probes-post-build.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "independent-timed-aa-probe-plan-review-20261028.json",
+        "bytes": 7058,
+        "sha256": "637211b63065bd3b1a395bc8bf8a7beffa0e2ff6d9f2d816a67e94a3f3f4d682",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-timed-aa-probe-plan-review-20261028.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "independent-timed-aa-probes-runtime-review-20261028.json",
+        "bytes": 16206,
+        "sha256": "1be71741d6f3deb56108db81515adf0e3eabc288d5e993fb08941d3f92eab2e7",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-timed-aa-probes-runtime-review-20261028.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "root-timed-generic-person-probe-plan.json",
+        "bytes": 2619,
+        "sha256": "62b88c91d2e2b428264e2dce031e654925477d116b072c18e7d31c7a0d34f977",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-generic-person-probe-plan.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "timed-generic-person-probe.lua",
+        "bytes": 3006,
+        "sha256": "13f15948e3dcac724a0cfcb8c577e307ce49b575e3ab7d29caaecec56ed4a412",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\timed-generic-person-probe.lua",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "run-timed-generic-person-probe.ps1",
+        "bytes": 2559,
+        "sha256": "2159d32cdeb1e7073274abe2af969c02534289c476c89fd95a7cc047ba880ce8",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\run-timed-generic-person-probe.ps1",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "root-timed-generic-person-probe-completion.json",
+        "bytes": 6991,
+        "sha256": "41933debfb493629303823f28c01032c42df4a4d666d73a39e5d9c621c2055ec",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-generic-person-probe-completion.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "independent-timed-generic-person-plan-review-20261028.json",
+        "bytes": 7585,
+        "sha256": "8ed5e93b3bafcf1aa7c3b81657a75b01d8b4c19aa4bee8a1f23fecc356469b45",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-timed-generic-person-plan-review-20261028.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "root-timed-provider-partial-cohort-completion.json",
+        "bytes": 39736,
+        "sha256": "f0e37b8d170f4cb2c8478a2976a086182d75bd4f7cf73d797ab098370ca0a66b",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-provider-partial-cohort-completion.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "root-timed-provider-and-person-post-inputs.json",
+        "bytes": 2323,
+        "sha256": "b9e22cdc60e63b80f72da7f91628efef76c9947d8a4348bf70f297a249f4c8ac",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-provider-and-person-post-inputs.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "root-timed-provider-and-person-post-build.json",
+        "bytes": 10925,
+        "sha256": "f6825f5ff21a9deda4682855bb0da59e927cb903d25b21fd2bb8d924365eddbb",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-provider-and-person-post-build.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "timed-provider-queue.json",
+        "bytes": 1723,
+        "sha256": "d17c0d00d4f32a7b949dcd6f191e4f10e50ea41207b1586092ee9e43475572b4",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\timed-provider-queue.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "run-timed-provider.ps1",
+        "bytes": 2243,
+        "sha256": "3b2c3be196cfb77227b1de039ebaa573463c1cf0cf78efd6a463ef884d5ecfa8",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\run-timed-provider.ps1",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "run-timed-provider-queue.ps1",
+        "bytes": 3570,
+        "sha256": "7a298d1e23a729acef31f654510a786d0d34df1593fac95df9eebaee3fc599e2",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\run-timed-provider-queue.ps1",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "root-timed-provider-corrected-driver-plan.json",
+        "bytes": 2924,
+        "sha256": "692906ff5082712727fe7e6aac8ac5ded4e961c4d7b497c9307627faf3bfb7f7",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-provider-corrected-driver-plan.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "independent-timed-provider-corrected-plan-review-20261028.json",
+        "bytes": 3252,
+        "sha256": "3f51d4d2b85aec3b46968b974bd64fb841e8c3a364fe07d845aefacaf0d9a5ac",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-timed-provider-corrected-plan-review-20261028.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "independent-timed-person-and-partial-provider-runtime-review-20261028.json",
+        "bytes": 13305,
+        "sha256": "5b7d838c82d0057352751d7d56294b6c359b72450e817469174ddaabfacea302",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\independent-timed-person-and-partial-provider-runtime-review-20261028.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "BUILD-INFO-366.txt",
+        "bytes": 4191,
+        "sha256": "953f7c2868de8bed8cb36ba4bceacd2c00c868e895a64709a919508e9fecb4d5",
+        "private_original": "R:\\d2-evidence\\combat-timed-source-366d55914\\eech-campaign\\target\\weapon-fixture\\combat-timed-366d55914\\BUILD-INFO.txt",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "BUILD-INFO-511.txt",
+        "bytes": 4191,
+        "sha256": "0e02acdda5cf7b6c1db53a90541b2bd56df92700d6fb3abb5cf60693794a19ea",
+        "private_original": "R:\\d2-evidence\\combat-timed-scope-source-511156c1c\\eech-campaign\\target\\weapon-fixture\\combat-timed-scope-511156c1c\\BUILD-INFO.txt",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "runs/timed-aa-never-01-run.json",
+        "bytes": 1467,
+        "sha256": "5a08cdb536e63fb26a02aa3c8dcb4236d417090facf4581770ac77b13ff04159",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-aa-never-01\\run.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "summaries/timed-aa-never-01.jsonl",
+        "bytes": 336,
+        "sha256": "86128ff5ab406ad9aa24e225b3ebf47c221f796f210ccf5bc08382b212d874c0",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-aa-never-01\\probe-summary.jsonl",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "runs/timed-aa-rate150-01-run.json",
+        "bytes": 1481,
+        "sha256": "dc78057510249e0fe1b71a801f17cf09c4d6aec18a91736df4c934b929b9323e",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-aa-rate150-01\\run.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "summaries/timed-aa-rate150-01.jsonl",
+        "bytes": 345,
+        "sha256": "655650a2d9aab2f2f79c70c21b80c3437f217e266779267d4235f13c570e7243",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-aa-rate150-01\\probe-summary.jsonl",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "runs/timed-aa-second-draw-01-run.json",
+        "bytes": 1519,
+        "sha256": "0c75de3a9ed3b92a6679aaba11e17f839f20af2e55d1756f3991ca382e27ea5e",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-aa-second-draw-01\\run.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "summaries/timed-aa-second-draw-01.jsonl",
+        "bytes": 913,
+        "sha256": "e062ebb5d3c5d43feda57c19e5afa30d9c11238924b12960a892c2dfe1ff57ae",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-aa-second-draw-01\\probe-summary.jsonl",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "runs/timed-aa-fatal-01-run.json",
+        "bytes": 1477,
+        "sha256": "25ec8cc656844edaa7f6a9308feb01133ea6099c2586e869cbbd4b87742c71d3",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-aa-fatal-01\\run.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "summaries/timed-aa-fatal-01.jsonl",
+        "bytes": 930,
+        "sha256": "eee8454506d84125898816081733e557656837efdba7daa9c7c3dbd72fe8b97b",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-aa-fatal-01\\probe-summary.jsonl",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "runs/timed-generic-person-01-run.json",
+        "bytes": 1540,
+        "sha256": "f276a5eaf615d1c81e849e2e66863658686bbc36feea4d10f92c9592f1f285ac",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-generic-person-01\\run.json",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "summaries/timed-generic-person-01.jsonl",
+        "bytes": 369,
+        "sha256": "654ee7c4f169b012e5fb26f7ffdea8c010b21729564d3abbcc4aae7ebb301b85",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-generic-person-01\\probe-summary.jsonl",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "summaries/timed-provider-reference-01.jsonl",
+        "bytes": 1320,
+        "sha256": "cd472b5faf8f4f3779b1884548c2fc4749540e8d2aa74d1ecb134ccaeff99ed0",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-provider-reference-01\\summary.jsonl",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "summaries/timed-provider-never-01.jsonl",
+        "bytes": 1322,
+        "sha256": "6e0b5c5e69979bdcb4baef117bdeb46c9a7a4ec7b2850af1839d2d7ee2fe5344",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-provider-never-01\\summary.jsonl",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "summaries/timed-provider-fast-01.jsonl",
+        "bytes": 1321,
+        "sha256": "be6bfdbe2c1d8aed683f8a6e599f21028b68f410fd5de96e3c60a3fa971942a0",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-provider-fast-01\\summary.jsonl",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "summaries/timed-provider-late-01.jsonl",
+        "bytes": 1324,
+        "sha256": "777a952872b71c78bd5bcfe29fa05818640cc6cff1be676d49f1ee4b03e7431d",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-provider-late-01\\summary.jsonl",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "summaries/timed-provider-generic-01.jsonl",
+        "bytes": 1324,
+        "sha256": "995903e881d168909fc70bcda6c9949bc47fa1063a6886cf765a8b64624ec6f5",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-provider-generic-01\\summary.jsonl",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "summaries/timed-provider-bad-class-01.jsonl",
+        "bytes": 1373,
+        "sha256": "62c5248149aadd1862c86e93be94089146d7a876e166d3a05c4c261af5f433fa",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-provider-bad-class-01\\summary.jsonl",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "summaries/timed-provider-bad-missing-01.jsonl",
+        "bytes": 1363,
+        "sha256": "67cc4d3ac24250da966bb1eb7511d430245ceac58204a8729c1612bf1dcc5026",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-provider-bad-missing-01\\summary.jsonl",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "summaries/timed-provider-bad-classify-draw-01.jsonl",
+        "bytes": 1366,
+        "sha256": "ec214344ec8e8066c03e78f81ec49c012d2f96c505a1277eb652450b91edf664",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-provider-bad-classify-draw-01\\summary.jsonl",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "summaries/timed-provider-bad-second-draw-01.jsonl",
+        "bytes": 1333,
+        "sha256": "99548561ae9e88ee56d14f8726ffe9a92d515513e57502ddfc7b1341c08cf522",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-provider-bad-second-draw-01\\summary.jsonl",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "failed-and-refusal-logs/timed-provider-bad-second-draw-01.log",
+        "bytes": 45728,
+        "sha256": "1d6f2e763150aba7a62c820f8e9508f09d971cb808c12ec08cd3dc9cf06dc4e1",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-provider-bad-second-draw-01\\run.log",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "summaries/timed-provider-bad-ineligible-01.jsonl",
+        "bytes": 1386,
+        "sha256": "8ad48870d62da5f410445f82d05225bb703d4c74b590e8a11c48e764cf04a5d1",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-provider-bad-ineligible-01\\summary.jsonl",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "failed-and-refusal-logs/timed-provider-bad-ineligible-01.log",
+        "bytes": 45447,
+        "sha256": "7073bcac424d03c29049db0f93b2fe6dbc40d20f64fea6a40bd57c8be30668e2",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\out\\timed-provider-bad-ineligible-01\\run.log",
+        "committed_git_blob_exact": true
+      },
+      {
+        "file": "root-accepted45-composition.json",
+        "bytes": 14054,
+        "sha256": "d0f3709295d2e6622cb9ea8bac209a1a7ef73573827981024158b847e062b88e",
+        "private_original": "R:\\d2-evidence\\combat-characterization-20261028\\root-accepted45-composition.json",
+        "committed_git_blob_exact": true
+      }
+    ],
+    "generated_files_outside_manifest": [
+      "README.md",
+      ".gitattributes",
+      "copy-manifest.json"
+    ],
+    "safety": "Only declared proof/reports/summary/run/log/helper/BUILD-INFO files; no binary exports, retail inputs or complete raw traces/recordings included. Scoped -text preserves original bytes; log whitespace exceptions do not normalize content.",
+    "claims": "README/current STATUS keep366actualruntime versus511fixture equivalence, controlled failure and valid refusals, AA expected native1 partials, combined DAMAGE+stochasticPERSON variation and original84276actualqueue1/untriggered180 cases/fatal180unrun. No all11pass, defaultPERSON or fatalAA/selfhit/player/MP/easy native claim. Originalf41 whole raw false due124declaredquotes; baseline900input provenance inferred; bytes not visual."
+  },
+  "composition": {
+    "record_sha256": "d0f3709295d2e6622cb9ea8bac209a1a7ef73573827981024158b847e062b88e",
+    "accepted_integration": "3b91ca34730a88e944700af1d0b7d777e071c73e",
+    "merge": "9236f1babe3586aa9b52b3c8dfe14dd96a828530",
+    "all_eight_runtime_build_scenario_trees_unchanged": {
+      "aphavoc": {
+        "9318e0465a80f424a715dfe7789cbb4d17f7e141": "8775d8780a9fb7edb92203a45662fb0418f891e1",
+        "9236f1babe3586aa9b52b3c8dfe14dd96a828530": "8775d8780a9fb7edb92203a45662fb0418f891e1",
+        "e0a42825bcfad8280aa861879fdd9a0e561cdda3": "8775d8780a9fb7edb92203a45662fb0418f891e1"
+      },
+      "modules": {
+        "9318e0465a80f424a715dfe7789cbb4d17f7e141": "cb40c4563825739137c59de394ed92ca9bf8ab9c",
+        "9236f1babe3586aa9b52b3c8dfe14dd96a828530": "cb40c4563825739137c59de394ed92ca9bf8ab9c",
+        "e0a42825bcfad8280aa861879fdd9a0e561cdda3": "cb40c4563825739137c59de394ed92ca9bf8ab9c"
+      },
+      "eech-campaign/crates": {
+        "9318e0465a80f424a715dfe7789cbb4d17f7e141": "01f24f6b3869715a322f8b911b8525cdaec0f44a",
+        "9236f1babe3586aa9b52b3c8dfe14dd96a828530": "01f24f6b3869715a322f8b911b8525cdaec0f44a",
+        "e0a42825bcfad8280aa861879fdd9a0e561cdda3": "01f24f6b3869715a322f8b911b8525cdaec0f44a"
+      },
+      "eech-campaign/tools": {
+        "9318e0465a80f424a715dfe7789cbb4d17f7e141": "28c9ac18eceeef0f794b2834f76e5a646d1d4fc1",
+        "9236f1babe3586aa9b52b3c8dfe14dd96a828530": "28c9ac18eceeef0f794b2834f76e5a646d1d4fc1",
+        "e0a42825bcfad8280aa861879fdd9a0e561cdda3": "28c9ac18eceeef0f794b2834f76e5a646d1d4fc1"
+      },
+      "eech-campaign/Cargo.toml": {
+        "9318e0465a80f424a715dfe7789cbb4d17f7e141": "6651665cec5e20632f00e9c2682042b4fa9f2db5",
+        "9236f1babe3586aa9b52b3c8dfe14dd96a828530": "6651665cec5e20632f00e9c2682042b4fa9f2db5",
+        "e0a42825bcfad8280aa861879fdd9a0e561cdda3": "6651665cec5e20632f00e9c2682042b4fa9f2db5"
+      },
+      "eech-campaign/Cargo.lock": {
+        "9318e0465a80f424a715dfe7789cbb4d17f7e141": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3",
+        "9236f1babe3586aa9b52b3c8dfe14dd96a828530": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3",
+        "e0a42825bcfad8280aa861879fdd9a0e561cdda3": "bef9a5e432cbf7fd9fd9dc2121de97c51e8c35f3"
+      },
+      "eech-campaign/scenarios": {
+        "9318e0465a80f424a715dfe7789cbb4d17f7e141": "d9a521c0db9069d557a5d73b0c68f055f79e7baa",
+        "9236f1babe3586aa9b52b3c8dfe14dd96a828530": "d9a521c0db9069d557a5d73b0c68f055f79e7baa",
+        "e0a42825bcfad8280aa861879fdd9a0e561cdda3": "d9a521c0db9069d557a5d73b0c68f055f79e7baa"
+      },
+      "eech-campaign/regression": {
+        "9318e0465a80f424a715dfe7789cbb4d17f7e141": "090bd08a26859a8d1ce0907473e049142342aa75",
+        "9236f1babe3586aa9b52b3c8dfe14dd96a828530": "090bd08a26859a8d1ce0907473e049142342aa75",
+        "e0a42825bcfad8280aa861879fdd9a0e561cdda3": "090bd08a26859a8d1ce0907473e049142342aa75"
+      }
+    },
+    "scope": "Verified Git ancestry/tree composition and local handover claims; no remote CI/Jira/Confluence write or independent re-audit in this pass. Task45 final evidence/source closure stands."
+  },
+  "remaining": [
+    "Fresh clean impact candidate build and default/controlled/authority/refusal native evidence.",
+    "Original bridge characterization before bridge physics; persistent structure identity/state/report correlation R3, physical factual reports and wholeD2 audit.",
+    "Final ordinary shipping40/all8/post3/currentCI/final independent review/normalmerge before Task46 delivery; no wholeD2 acceptance or D3 start."
+  ]
+}

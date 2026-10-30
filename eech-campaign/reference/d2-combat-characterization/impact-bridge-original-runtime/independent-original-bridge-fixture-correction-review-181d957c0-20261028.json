@@ -1,0 +1,186 @@
+{
+  "reviewed_utc": "2026-10-28T10:35:23.552486+00:00",
+  "reviewer": "same independent Codex reviewer",
+  "scope": "Focused e1..181 original-bridge fixture correction only; combined correctness/clean-code/boundary review, no unchanged observer/physics pass",
+  "base_sha": "e1ab9c560a88381aeb086eb1cb26c032a043a8c5",
+  "source_sha_before": "181d957c08210a6684743a6cc41ffe53a5a1b3e3",
+  "source_sha_after": "181d957c08210a6684743a6cc41ffe53a5a1b3e3",
+  "status_before": "clean",
+  "status_after": "clean",
+  "prior_findings": {
+    "BRIDGE-ARGUMENTS": "RESOLVED: validation precedes output/installation/boot; plain finite decimals and integer selectors/ranges, criterion0, total estimated frame budget, clock progression and global hard cap. Invalid explicit segment no longer falls back to auto. Retained old-script controls demonstrate actual zero-frame runaway and wrong auto kill; corrected real Lua caller controls pass.",
+    "BRIDGE-PRECONDITION-WORDING": "RESOLVED: C criterion0 requires living bridge, living selected non-U segment and living unsupported adjacent segment; survey and fail report prekill neighbour/bridge facts. Explicit indexes report first_collapse from actual preconditions. Docs qualify reached branches/landing rather than infer from done; no original physical rule change."
+  },
+  "findings": [
+    {
+      "id": "BRIDGE-ZERO-WINDOW-SUMMARY",
+      "priority": "P2",
+      "file": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\bridge-case.lua",
+      "lines": [
+        169,
+        172,
+        180,
+        183,
+        191,
+        194
+      ],
+      "title": "Use the actual after-state when a valid observation window has no frames",
+      "mechanism": "At169 the immediate after-state is emitted and discarded. last_state starts empty at172 and is assigned only inside window_frames loop. Valid window_seconds=0 skips loop, so in_update_at_end becomes0 and done1 yields landed_all=true. Original child-killed inserts the killed segment in UPDATE before returning; no frame has run, so this is a false completion/landing claim. The new explicit-edge mock already returns in_update=1 at op1 after-state, but its zero-window test asserts only calls/no-frame and ignores summary.",
+      "bounded_correction": "Capture the immediate after-state, emit it and retain it as initial last_state. Require a valid actual state before deriving completion; do not equate absent state with no pending segments. Extend existing zero-window caller test to assert actual pending1/landedfalse and add a truthful completed-state positive. Keep raw state/events and original physical behavior unchanged.",
+      "limits": "Planned root5s/100ms/12s path has frames and does not directly hit this zero-window defect; zero is explicitly a supported argument, so the public summary must remain truthful."
+    }
+  ],
+  "disposition": "Prior P2/P3 closed; one new correction-specific evidence-summary P2 remains. No native bridge acceptance or extraction approval.",
+  "source_checks": {
+    "cargo-test-bridge2.log": {
+      "sha256": "ddc13f1032d859db479e295a7a2133532a14faae68e7776729e034e85298cb7f",
+      "markers_verified": [
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0",
+        "the_bridge_witness_records_a_declared_failure_and_a_bounded_window_of_frames_in_order ... ok",
+        "the_bridge_witness_accepts_an_explicit_valid_selector_and_the_edge_values_and_passes_them_on_exactly ... ok",
+        "the_bridge_witness_refuses_a_malformed_argument_before_anything_is_prepared_booted_run_or_killed ... ok",
+        "the_bridge_witness_never_turns_a_segment_that_is_not_a_number_into_the_automatic_choice ... ok"
+      ]
+    },
+    "fmt-bridge2.log": {
+      "sha256": "561bba9495eb6bea32aa213162f0125c94eb103993b05b1ba926a15da50d2196",
+      "markers_verified": [
+        "FMT_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "clippy-bridge2-default.log": {
+      "sha256": "6875ac45ebefc6b992c52b3bc9ca5188c789a21b04d1f49e4933e04665d87943",
+      "markers_verified": [
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "clippy-bridge2-fixture.log": {
+      "sha256": "59aa34f7a87cb4ace1490947e8a3705fe8cf719ce8d716d538c8ccb64144f7c1",
+      "markers_verified": [
+        "CARGO_EXIT=0",
+        "DOCKER_EXIT=0"
+      ]
+    },
+    "syntax-bridge-2.log": {
+      "sha256": "3e40a1a99dd1741f4d6070f9a2475561c54c0bcc03078be662142f77ed2d5850",
+      "markers_verified": [
+        "SYNTAX_EXIT=0"
+      ]
+    },
+    "strict-preprocess-bridge-2.log": {
+      "sha256": "9efec38449dffacb29caea0c8f93fc9bbe2f2350e589bbb5ada6a4141b414eb5",
+      "markers_verified": [
+        "br_msgs.c: strict feature-off equivalence PASS",
+        "sg_updt.c: strict feature-off equivalence PASS",
+        "sg_dstry.c: strict feature-off equivalence PASS",
+        "STRICT_EXIT=0"
+      ]
+    },
+    "bridge-args-red-1.log": {
+      "sha256": "68ab636a79b2dec277af1b4cebb9e163f5ae40877e1658fcdae0e6c53510bc0b",
+      "markers_verified": [
+        "stand-in cap: more than 3000 frames were run",
+        "CARGO_EXIT=101",
+        "DOCKER_EXIT=101"
+      ]
+    },
+    "bridge-args-red-2.log": {
+      "sha256": "8d5802be12862ab47840993b93d71811a4fd5faca698ab0ac7a5685a5c7a52d7",
+      "markers_verified": [
+        "case 2:1:-1:0",
+        "CARGO_EXIT=101",
+        "DOCKER_EXIT=101"
+      ]
+    }
+  },
+  "source_check_limits": [
+    "Read existing logs only; no tests/builds/native runs executed by reviewer.",
+    "Argument tests run actual shared Lua/main binary with engine stand-in; they prove argument/caller behavior, not real bridge physics or actual landing.",
+    "Syntax has12on/off checks; strict preprocess covers exactly3original bridge/segment files including control.",
+    "Original C criterion helpers are source-inspected plus syntax, not a separately linked real-C behavior guard/native test.",
+    "Earlier red/incomplete-filter logs retained and not represented as green.",
+    "Test raw-output parser uses filter_map on JSON parse errors, so caller tests are not a fail-closed full raw schema/completeness audit; native review must validate all raw lines separately."
+  ],
+  "unchanged_safety": "Only new C criterion/report predicates and Lua/test/docs changed; original formulas/hooks, C/Rust ABI and full callback scope from e1 remain. Prekill facts captured before kill; private pointers remain core. R5physics/R3structureidentity/physicalreports/finalshippingwholeD2 remain explicit work.",
+  "pins": [
+    {
+      "file": "STATUS.md",
+      "git_blob": "47396f241d4c671c1cfb84394eeb08a4b8f89628",
+      "raw_sha256": "588c9f43022f45f30a6161cd07350a47ac76e8efd7ff933db3280804ed0f593d"
+    },
+    {
+      "file": "eech-campaign/crates/eech-engine-sys/csrc/eech_cmb_case.c",
+      "git_blob": "ce9928f587b6263717e941936c100bd6bdbcedec",
+      "raw_sha256": "b6946ba0d7cfea6b87642ad3d3c58c75782ed851b4872077259b5ae874b31d9e"
+    },
+    {
+      "file": "eech-campaign/crates/eech-world/lua/bridge-case.lua",
+      "git_blob": "adf069f1205c5271b130320b98fed104d82ef674",
+      "raw_sha256": "f48f017433bd786f3f256f922b2037ae8b013883b5b8bdb6edbe63758d26e0cb"
+    },
+    {
+      "file": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "git_blob": "37f2d67b2ae6c7455513bf766cb5b388837afe79",
+      "raw_sha256": "3f171923f734f212addb348b22343723283de18a05fbc58847b77f80317e7fb0"
+    },
+    {
+      "file": "eech-campaign/docs/m5-bridge-characterization.md",
+      "git_blob": "300ea6fb756d3eae01759d6b22f019aa562a6b12",
+      "raw_sha256": "fd07e231c50ffd70a8afb531a8ccdbc757a229cd08487883027d91f849bda6e1"
+    },
+    {
+      "file": "eech-campaign/reference/d2-combat-characterization/checks/bridge-args-red-1.log",
+      "git_blob": "9b92a1423f8059cf240b70fd19f7cd548dd47468",
+      "raw_sha256": "68ab636a79b2dec277af1b4cebb9e163f5ae40877e1658fcdae0e6c53510bc0b"
+    },
+    {
+      "file": "eech-campaign/reference/d2-combat-characterization/checks/bridge-args-red-2.log",
+      "git_blob": "710d0b7743ef07c10a089a89f13cc3eef0f3b1de",
+      "raw_sha256": "8d5802be12862ab47840993b93d71811a4fd5faca698ab0ac7a5685a5c7a52d7"
+    },
+    {
+      "file": "eech-campaign/reference/d2-combat-characterization/checks/bridge-args-red-incomplete-filter.log",
+      "git_blob": "bab0bf513c76b833075dedc53995369db1b2b927",
+      "raw_sha256": "088d3b3ce09a25e9d184afce0fa755b6291a731183e8bfbf1c0361f16bfc4b7a"
+    },
+    {
+      "file": "eech-campaign/reference/d2-combat-characterization/checks/cargo-test-bridge2.log",
+      "git_blob": "d8825c557965c5c0d7890900c283d6107bb890aa",
+      "raw_sha256": "ddc13f1032d859db479e295a7a2133532a14faae68e7776729e034e85298cb7f"
+    },
+    {
+      "file": "eech-campaign/reference/d2-combat-characterization/checks/clippy-bridge2-default.log",
+      "git_blob": "8bd7ba32e1e5127a2b737d1f9be6ce64bb83f989",
+      "raw_sha256": "6875ac45ebefc6b992c52b3bc9ca5188c789a21b04d1f49e4933e04665d87943"
+    },
+    {
+      "file": "eech-campaign/reference/d2-combat-characterization/checks/clippy-bridge2-fixture.log",
+      "git_blob": "27a6aa73ba31098ad9b2012636492b60f44ea405",
+      "raw_sha256": "59aa34f7a87cb4ace1490947e8a3705fe8cf719ce8d716d538c8ccb64144f7c1"
+    },
+    {
+      "file": "eech-campaign/reference/d2-combat-characterization/checks/fmt-bridge2.log",
+      "git_blob": "fb443baa65a38fe198b61549de69630e8a4fb6fb",
+      "raw_sha256": "561bba9495eb6bea32aa213162f0125c94eb103993b05b1ba926a15da50d2196"
+    },
+    {
+      "file": "eech-campaign/reference/d2-combat-characterization/checks/strict-preprocess-bridge-2.log",
+      "git_blob": "69d9d828250bd566d871a46c628ce40a3d492d4c",
+      "raw_sha256": "9efec38449dffacb29caea0c8f93fc9bbe2f2350e589bbb5ada6a4141b414eb5"
+    },
+    {
+      "file": "eech-campaign/reference/d2-combat-characterization/checks/syntax-bridge-2.log",
+      "git_blob": "9c735fdf7dcb078f40655191520431e1bafa8a49",
+      "raw_sha256": "3e40a1a99dd1741f4d6070f9a2475561c54c0bcc03078be662142f77ed2d5850"
+    }
+  ],
+  "reply_sha256": "309af3a093fe7db140d8c3c5621205077a8c1a0752f27f72577d253662bcbe88",
+  "remaining": [
+    "Resolve zero-window summary P2 with focused new delta/test proof.",
+    "Fresh exact frozen fixture build and actual native original bridge survey/failure/events/repeat must be reviewed before original characterization acceptance.",
+    "No bridge physics move before accepted original witness; Task46/D2 final gates remain."
+  ]
+}

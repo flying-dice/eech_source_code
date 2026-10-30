@@ -66,6 +66,10 @@
 
 #include "project.h"
 
+#include "entity/mobile/mb_cmbfx.h"
+
+#include "entity/mobile/mb_hostaim.h"
+
 #include "entity/tacview/tacview.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -86,18 +90,25 @@ static void interpolate_entity_position (entity *en);
 
 static void update_rotors (entity *en)
 {
+#ifndef EECH_CAMPAIGN_HOST_MOVEMENT
 	helicopter
 		*raw;
 
 	raw = (helicopter *) get_local_entity_data (en);
+#endif
 
 	if (!get_local_entity_parent (en, LIST_TYPE_FOLLOWER))
 	{
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+		// the idle wind-down is its own physical law (linear, frame delta); the host integrates it
+		campaign_movement_rotor_idle (en, get_delta_time ());
+#else
 		raw->main_rotor_rpm -= 5.0 * get_delta_time ();
 
 		raw->main_rotor_rpm = bound (raw->main_rotor_rpm, 0.0, 100.0);
 
 		raw->tail_rotor_rpm = raw->main_rotor_rpm;
+#endif
 	}
 }
 
@@ -308,18 +319,30 @@ static void update_server (entity *en)
 
 					update_aircraft_decoy_release (en);
 
-					if (damage_type > AIRCRAFT_DAMAGE_NONE)
-						if (frand1() < pow((float)damage_type, 4) * get_delta_time())
-						{
-							int damage_level = max(0, get_local_entity_int_value (en, INT_TYPE_DAMAGE_LEVEL) - 1);
+					CMB_FX_TIMED_BEGIN (EECH_CMB_TIMED_HELICOPTER)
 
-							set_client_server_entity_int_value (en, INT_TYPE_DAMAGE_LEVEL, damage_level);
-							
-							if (damage_level <= 0)
+					// the host owns the eligibility (the reference host degrades an aircraft in a class above none), the sample, the roll, the health a hit leaves and whether it is fatal, and is
+					// asked at this point whatever the class (EEDCS-46)
+					{
+						campaign_health_result
+							timed;
+
+						aircraft_timed_health (en, damage_type, &timed);
+
+						if (timed.hit)
+						{
+							set_client_server_entity_int_value (en, INT_TYPE_DAMAGE_LEVEL, timed.new_level);
+
+							CMB_FX_TIMED_HIT (en, timed.new_level)
+
+							if (timed.fatal)
 								kill_client_server_entity (en);
-							
+
 							return;
 						}
+					}
+
+					CMB_FX_TIMED_END ()
 				}
 
 				//
@@ -549,6 +572,23 @@ static void update_server (entity *en)
 	{
 		if (get_local_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE) == OPERATIONAL_STATE_DEAD)
 		{
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+			//
+			// host-owned lifetime (EEDCS-38): see rv_updt.c.  A helicopter a player still occupies is not destroyed (otherwise
+			// avionics / pilot-entity etc. don't get deinitialised): the host restarts its timer instead
+			//
+
+			campaign_movement_require_hosted (en);
+
+			if (campaign_movement_expire (
+					en,
+					&raw->ac.death_timer,
+					get_delta_time (),
+					(get_local_entity_int_value (en, INT_TYPE_PLAYER) == ENTITY_PLAYER_AI) ? 0 : CAMPAIGN_MOVEMENT_DEATH_OCCUPIED))
+			{
+				destroy_client_server_entity_family (en);
+			}
+#else
 			raw->ac.death_timer += get_delta_time ();
 
 			if (!((int)(raw->ac.death_timer + 1) % 300))
@@ -567,6 +607,7 @@ static void update_server (entity *en)
 						raw->ac.death_timer = 0.0;
 					}
 				}
+#endif
 		}
 		else
 		{

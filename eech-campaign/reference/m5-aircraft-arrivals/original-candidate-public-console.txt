@@ -1,0 +1,15 @@
+reference: PASS
+  fixed_wing	794579
+  helicopter	593649
+  fixed_wing_pass_through	0
+  fixed_wing_landed_reject	78484
+  helicopter_non_leader	322
+  result	ok
+withhold exited 1; see E:\eech-runs\m5-d1\aircraft-arrivals-20261021\candidate-aircraft\withhold.log
+At E:\eech_source_code\.claude\worktrees\m5-aircraft-arrivals\eech-campaign\tools\aircraft-arrivals-windows.ps1:30 
+char:33
++ ... ode -ne 0) { throw "$mode exited $($process.ExitCode); see $stderr" }
++                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (withhold exited...ft\withhold.log:String) [], RuntimeException
+    + FullyQualifiedErrorId : withhold exited 1; see E:\eech-runs\m5-d1\aircraft-arrivals-20261021\candidate-aircraft\ 
+   withhold.log

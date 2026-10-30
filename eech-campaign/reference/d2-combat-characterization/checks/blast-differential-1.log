@@ -1,0 +1,11 @@
+TEST_LINK_FLAGS=-fno-pie -no-pie
+SANITIZERS=-fsanitize=address,undefined -fno-sanitize-recover=undefined
+SANITIZER_PROBE_COMPILE_EXIT=0
+SANITIZER_PROBE_RUN_EXIT=0
+/src/eech-campaign/reference/d2-combat-characterization/c-checks/blast_differential.c:605:109: warning: 'multi_window' defined but not used [-Wunused-variable]
+  605 | static int failures, scenarios, with_candidates, with_collisions, with_rockets, with_effects, total_events, multi_window, zero_radius, in_range_weapons;
+      |                                                                                                             ^~~~~~~~~~~~
+COMPILE_EXIT=0
+scenarios 6000, events 254979, candidates 94341, collisions 53715, rockets destroyed 1464, weapons in range 11757, effects on the lists 26523, zero radius 424, failures 0
+RUN_EXIT=0
+DOCKER_EXIT=0

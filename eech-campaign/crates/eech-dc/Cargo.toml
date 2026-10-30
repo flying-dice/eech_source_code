@@ -1,0 +1,58 @@
+# The EECH dynamic campaign, the whole headless engine, as a Lua 5.1 native
+# module (cdylib): a host loads it with require ("eech_dc") in its Lua state
+# and drives the campaign from Lua. Modelled on the reference Lua module
+# crate, flying-dice/dcs-studio bridge (mlua 0.10, lua51 + module).
+[package]
+name = "eech-dc"
+version = "0.1.0"
+description = "The EECH dynamic campaign (the full headless engine) as a Lua 5.1 native module: require (\"eech_dc\")."
+edition.workspace = true
+publish.workspace = true
+
+# mlua derives `luaopen_eech_dc` from the lib name, and require ("eech_dc")
+# resolves the DLL basename: the two must match.
+[lib]
+name = "eech_dc"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+eech-engine = { path = "../eech-engine" }
+# No `macros`: `#[mlua::lua_module]` comes from `module` (as in the reference crate)
+mlua = { version = "0.10", features = ["lua51", "module", "serialize"] }
+serde.workspace = true
+serde_json.workspace = true
+
+[features]
+# TEST-ONLY (EEDCS-40): the dependent-positioning fixture driver. Never enabled in the shipping build.
+dependent-fixture = ["eech-engine/dependent-fixture"]
+dependent-fixture-old-guard = ["dependent-fixture", "eech-engine/dependent-fixture-old-guard"]
+# TEST-ONLY (EEDCS-41): the all-family loss trigger. Never enabled in the shipping build.
+loss-fixture = ["eech-engine/loss-fixture"]
+# TEST-ONLY (EEDCS-42): the line-of-sight characterisation trace and probe. Never enabled in the shipping build.
+los-fixture = ["eech-engine/los-fixture"]
+# TEST-ONLY (EEDCS-43): the sensor-detection characterisation trace and probe. Never enabled in the shipping build.
+sensor-fixture = ["eech-engine/sensor-fixture"]
+# TEST-ONLY (EEDCS-47): the terrain surface characterisation trace and probe. Never enabled in the shipping build.
+terrain-fixture = ["eech-engine/terrain-fixture"]
+# TEST-ONLY (EEDCS-44): the physical weapon-aiming characterisation trace. Never enabled in the shipping build.
+aim-fixture = ["eech-engine/aim-fixture"]
+# TEST-ONLY (EEDCS-45): the physical weapon-execution characterisation trace, event log and controlled launch case. Never enabled in the shipping build.
+weapon-fixture = ["eech-engine/weapon-fixture"]
+
+# Code that runs inside a host's process: a panic in this DLL takes the host
+# down. The reference crate's restriction lints, denied here.
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+unreachable = "deny"
+todo = "deny"
+unimplemented = "deny"
+dbg_macro = "deny"
+print_stdout = "deny"
+print_stderr = "deny"
+exit = "deny"
+indexing_slicing = "deny"
+
+[lints.rust]
+unsafe_code = "forbid"

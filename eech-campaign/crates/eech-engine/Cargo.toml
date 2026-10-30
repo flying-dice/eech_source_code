@@ -1,0 +1,33 @@
+[package]
+name = "eech-engine"
+version = "0.1.0"
+description = "Safe Rust API over the headless EECH engine: boot a dynamic campaign, run frames, observe the world."
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+eech-engine-sys = { path = "../eech-engine-sys" }
+serde = { workspace = true }
+
+[features]
+# TEST-ONLY (EEDCS-40): see eech-engine-sys.
+dependent-fixture = ["eech-engine-sys/dependent-fixture"]
+dependent-fixture-old-guard = ["eech-engine-sys/dependent-fixture-old-guard"]
+# TEST-ONLY (EEDCS-41): see eech-engine-sys.
+loss-fixture = ["eech-engine-sys/loss-fixture"]
+# TEST-ONLY (EEDCS-42): see eech-engine-sys.
+los-fixture = ["eech-engine-sys/los-fixture"]
+# TEST-ONLY (EEDCS-43): see eech-engine-sys.
+sensor-fixture = ["eech-engine-sys/sensor-fixture"]
+# TEST-ONLY (EEDCS-47): see eech-engine-sys.
+terrain-fixture = ["eech-engine-sys/terrain-fixture"]
+# TEST-ONLY (EEDCS-44): see eech-engine-sys.
+aim-fixture = ["eech-engine-sys/aim-fixture"]
+weapon-fixture = ["eech-engine-sys/weapon-fixture"]
+
+[lints.rust]
+unsafe_op_in_unsafe_fn = "deny"
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"

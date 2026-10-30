@@ -1,0 +1,48 @@
+{
+  "review_utc": "2026-10-28T07:58:07.013378+00:00",
+  "reviewer": "single independent Codex /root/d2_los_review",
+  "scope": "Small NEW corrected private provider driver/queue/plan source review only; nothing executed, parsed, built or launched by reviewer. Supplement to independent-timed-critical-correction-review-1c943ffb5-20261028.json.",
+  "disposition": "No helper/plan findings. Suitable for execution after source/build/input/capacity gates; no runtime acceptance.",
+  "files": [
+    {
+      "file": "R:\\d2-evidence\\combat-characterization-20261028\\root-timed-provider-corrected-driver-plan.json",
+      "bytes": 2924,
+      "sha256": "692906ff5082712727fe7e6aac8ac5ded4e961c4d7b497c9307627faf3bfb7f7"
+    },
+    {
+      "file": "R:\\d2-evidence\\combat-characterization-20261028\\run-real-provider.ps1",
+      "bytes": 2160,
+      "sha256": "62975b6a3adbf86331d24f49f58b556ffd4c2f68633d6e8ed70bdb4851c41e2e"
+    },
+    {
+      "file": "R:\\d2-evidence\\combat-characterization-20261028\\run-timed-provider.ps1",
+      "bytes": 2243,
+      "sha256": "3b2c3be196cfb77227b1de039ebaa573463c1cf0cf78efd6a463ef884d5ecfa8"
+    },
+    {
+      "file": "R:\\d2-evidence\\combat-characterization-20261028\\run-timed-provider-queue.ps1",
+      "bytes": 3570,
+      "sha256": "7a298d1e23a729acef31f654510a786d0d34df1593fac95df9eebaee3fc599e2"
+    },
+    {
+      "file": "R:\\d2-evidence\\combat-characterization-20261028\\driver-history\\run-timed-provider-before-ownership-correction-20261028.ps1",
+      "bytes": 2200,
+      "sha256": "5767b658aa3d12d6bf3b6c59d5fd891c6b7b6497b4643d5d4fd599a548d8bc11"
+    }
+  ],
+  "checks": [
+    "Corrected driver SHA verified and exact source-driver replacements reproduced in memory; only whitelist and labels changed.",
+    "All11 unique planned names/modes present, obsolete person-draw mode absent, no unsupported selfhit native case.",
+    "Queue pins caller-supplied reviewed plan and driver hashes before loading, verifies fresh queue/output refusal and root preparation, rehashes driver before launch.",
+    "Each case prelaunches input-manifest verification against frozen Repo; nonzero throws before native invocation.",
+    "Capacity guard counts Windows eech-world.exe processes and refuses >=7; sequential held-handle driver propagates actual native status. Root still coordinates other launches to preserve capacity.",
+    "Native failure records failed and remaining_not_started; success records execution exits only, explicitly does not label authority/refusal acceptance."
+  ],
+  "limits": [
+    "Frozen Bin/BUILD-INFO/exports and source identity remain lead-owned prerequisite, not guaranteed by driver labels.",
+    "timed_generic requires actual completed own-model counter>0; injured <=half-health PERSON or class-zero aircraft may be absent in180s. Untriggered must stay unproven.",
+    "Second-draw and fatal malformed modes require an eligible sample and actual hit respectively; all malformed modes require specific error proof despite catcher native0.",
+    "critical_late changes DAMAGE critical classes too; changing physical models/sample usage may change subsequent trajectory/counts.",
+    "No current case executed; all planned source-specific native gates remain pending."
+  ]
+}

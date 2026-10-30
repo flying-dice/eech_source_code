@@ -90,6 +90,7 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 
 	int
 		old_damage_state,
+		new_damage_state,
 		total_damage_level;
 
 	float
@@ -127,11 +128,9 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 	// assess damage
 	//
 
-	old_damage_state = vehicle_critically_damaged(receiver);
-			
-	damage_client_server_entity (receiver, sender, damage_modifier);
+	damage_client_server_entity_assess (receiver, sender, damage_modifier, &old_damage_state, &new_damage_state);
 
-	if (old_damage_state < vehicle_critically_damaged(receiver)) // vehicle critically damaged
+	if (old_damage_state < new_damage_state) // vehicle critically damaged
 		credit_client_server_mobile_kill (receiver, aggressor);
 	
 	total_damage_level = get_local_entity_int_value (receiver, INT_TYPE_DAMAGE_LEVEL);
@@ -264,6 +263,16 @@ static int response_to_set_entity_position (entity_messages message, entity *rec
 	heading = (float) va_arg (pargs, double);
 
 	velocity = (float) va_arg (pargs, double);
+
+	#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+	// EEDCS-40: a hosted dependent of a hosted parent is positioned by the host; otherwise the original code below runs
+	if (campaign_movement_dependent_carry (receiver, sender, position, heading, velocity))
+	{
+		return (TRUE);
+	}
+
+	#endif
 
 	//
 	// should this notify children of movement (for mobile landing entities) ?

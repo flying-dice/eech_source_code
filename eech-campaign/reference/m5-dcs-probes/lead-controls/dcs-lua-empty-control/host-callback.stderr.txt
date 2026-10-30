@@ -1,0 +1,2 @@
+eech-world: fatal exception 0xc0000005 at 0x0 (? + 0x0); access [8, 0]
+eech-world: call chain (offsets in ?): 

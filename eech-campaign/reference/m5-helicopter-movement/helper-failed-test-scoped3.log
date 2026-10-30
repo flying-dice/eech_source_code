@@ -1,0 +1,104 @@
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.85s
+   Compiling eech-engine v0.1.0 (/src/eech-campaign/crates/eech-engine)
+   Compiling eech-dc v0.1.0 (/src/eech-campaign/crates/eech-dc)
+error[E0283]: type annotations needed
+    --> crates/eech-engine/src/lib.rs:1492:31
+     |
+1492 | ...nsafe { move_vehicle::<_, _, _, _>(step, &mut result, error.as_mut_ptr(), error.len(), &mut context as *mut _ as *mut c_void) };
+     |            ^^^^^^^^^^^^^^^^^^^^^^^^^^ cannot infer type of the type parameter `F` declared on the function `move_vehicle`
+     |
+     = note: multiple `impl`s satisfying `_: FnMut(MemberDescriptor)` found in the following crates: `alloc`, `core`:
+             - impl<A, F> FnMut<A> for &F
+               where A: std::marker::Tuple, F: Fn<A>, F: ?Sized;
+             - impl<A, F> FnMut<A> for &mut F
+               where A: std::marker::Tuple, F: FnMut<A>, F: ?Sized;
+             - impl<Args, F, A> FnMut<Args> for Box<F, A>
+               where Args: std::marker::Tuple, F: FnMut<Args>, A: Allocator, F: ?Sized;
+             - impl<F, Args> FnMut<Args> for SyncView<F>
+               where F: FnMut<Args>, Args: std::marker::Tuple;
+note: required by a bound in `move_vehicle`
+    --> crates/eech-engine/src/lib.rs:1005:8
+     |
+ 997 | unsafe extern "C" fn move_vehicle<F, G, H, M>(
+     |                      ------------ required by a bound in this function
+...
+1005 |     F: FnMut(MemberDescriptor) -> Result<String, String>,
+     |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `move_vehicle`
+
+error[E0283]: type annotations needed
+    --> crates/eech-engine/src/lib.rs:1492:31
+     |
+1492 | ...nsafe { move_vehicle::<_, _, _, _>(step, &mut result, error.as_mut_ptr(), error.len(), &mut context as *mut _ as *mut c_void) };
+     |            ^^^^^^^^^^^^^^^^^^^^^^^^^^ cannot infer type of the type parameter `G` declared on the function `move_vehicle`
+     |
+     = note: multiple `impl`s satisfying `_: FnMut(LossDescriptor)` found in the following crates: `alloc`, `core`:
+             - impl<A, F> FnMut<A> for &F
+               where A: std::marker::Tuple, F: Fn<A>, F: ?Sized;
+             - impl<A, F> FnMut<A> for &mut F
+               where A: std::marker::Tuple, F: FnMut<A>, F: ?Sized;
+             - impl<Args, F, A> FnMut<Args> for Box<F, A>
+               where Args: std::marker::Tuple, F: FnMut<Args>, A: Allocator, F: ?Sized;
+             - impl<F, Args> FnMut<Args> for SyncView<F>
+               where F: FnMut<Args>, Args: std::marker::Tuple;
+note: required by a bound in `move_vehicle`
+    --> crates/eech-engine/src/lib.rs:1006:8
+     |
+ 997 | unsafe extern "C" fn move_vehicle<F, G, H, M>(
+     |                      ------------ required by a bound in this function
+...
+1006 |     G: FnMut(LossDescriptor) -> Result<LossDecision, String>,
+     |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `move_vehicle`
+
+error[E0283]: type annotations needed
+    --> crates/eech-engine/src/lib.rs:1492:31
+     |
+1492 | ...nsafe { move_vehicle::<_, _, _, _>(step, &mut result, error.as_mut_ptr(), error.len(), &mut context as *mut _ as *mut c_void) };
+     |            ^^^^^^^^^^^^^^^^^^^^^^^^^^ cannot infer type of the type parameter `H` declared on the function `move_vehicle`
+     |
+     = note: multiple `impl`s satisfying `_: FnMut(SupplyReachDescriptor)` found in the following crates: `alloc`, `core`:
+             - impl<A, F> FnMut<A> for &F
+               where A: std::marker::Tuple, F: Fn<A>, F: ?Sized;
+             - impl<A, F> FnMut<A> for &mut F
+               where A: std::marker::Tuple, F: FnMut<A>, F: ?Sized;
+             - impl<Args, F, A> FnMut<Args> for Box<F, A>
+               where Args: std::marker::Tuple, F: FnMut<Args>, A: Allocator, F: ?Sized;
+             - impl<F, Args> FnMut<Args> for SyncView<F>
+               where F: FnMut<Args>, Args: std::marker::Tuple;
+note: required by a bound in `move_vehicle`
+    --> crates/eech-engine/src/lib.rs:1007:8
+     |
+ 997 | unsafe extern "C" fn move_vehicle<F, G, H, M>(
+     |                      ------------ required by a bound in this function
+...
+1007 |     H: FnMut(SupplyReachDescriptor) -> Result<ArrivalAnswer, String>,
+     |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `move_vehicle`
+
+error[E0283]: type annotations needed
+    --> crates/eech-engine/src/lib.rs:1492:31
+     |
+1492 | ...nsafe { move_vehicle::<_, _, _, _>(step, &mut result, error.as_mut_ptr(), error.len(), &mut context as *mut _ as *mut c_void) };
+     |            ^^^^^^^^^^^^^^^^^^^^^^^^^^ cannot infer type of the type parameter `M` declared on the function `move_vehicle`
+     |
+     = note: multiple `impl`s satisfying `_: FnMut(MovementStep)` found in the following crates: `alloc`, `core`:
+             - impl<A, F> FnMut<A> for &F
+               where A: std::marker::Tuple, F: Fn<A>, F: ?Sized;
+             - impl<A, F> FnMut<A> for &mut F
+               where A: std::marker::Tuple, F: FnMut<A>, F: ?Sized;
+             - impl<Args, F, A> FnMut<Args> for Box<F, A>
+               where Args: std::marker::Tuple, F: FnMut<Args>, A: Allocator, F: ?Sized;
+             - impl<F, Args> FnMut<Args> for SyncView<F>
+               where F: FnMut<Args>, Args: std::marker::Tuple;
+note: required by a bound in `move_vehicle`
+    --> crates/eech-engine/src/lib.rs:1008:8
+     |
+ 997 | unsafe extern "C" fn move_vehicle<F, G, H, M>(
+     |                      ------------ required by a bound in this function
+...
+1008 |     M: FnMut(MovementStep) -> Result<MovementResult, String>,
+     |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `move_vehicle`
+
+For more information about this error, try `rustc --explain E0283`.
+error: could not compile `eech-engine` (lib test) due to 4 previous errors
+warning: build failed, waiting for other jobs to finish...

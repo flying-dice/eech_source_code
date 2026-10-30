@@ -132,6 +132,380 @@ static void helicopter_adjust_waypoint_position_with_los (entity *en, vec3d *wp_
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+// hosted movement (EEDCS-39): the host owns the retained guidance, the physical steering and the pose, vector and attitude.
+// The engine keeps the campaign facts (which waypoint, formation slot, hold, target and weapon vectors apply, the required
+// heading) and the transitional terrain and structure lookups, and sends them in the original order: plan, lookups, guide,
+// then (after the rotor, human-wait and landed gates) guided begin and guided end
+
+static int hosted_helicopter_waypoint_kind (entity *wp)
+{
+	if (!wp)
+	{
+		return CAMPAIGN_HC_WP_OTHER;
+	}
+
+	switch (get_local_entity_int_value (wp, INT_TYPE_ENTITY_SUB_TYPE))
+	{
+		case ENTITY_SUB_TYPE_WAYPOINT_NAVIGATION:
+		case ENTITY_SUB_TYPE_WAYPOINT_CAP_LOOP:
+		case ENTITY_SUB_TYPE_WAYPOINT_CAP_START:
+		{
+			return CAMPAIGN_HC_WP_ROUTE;
+		}
+		case ENTITY_SUB_TYPE_WAYPOINT_HOLDING:
+		case ENTITY_SUB_TYPE_WAYPOINT_HOLDING_LOOP:
+		case ENTITY_SUB_TYPE_WAYPOINT_TAXI:
+		{
+			return CAMPAIGN_HC_WP_HOLDING;
+		}
+		case ENTITY_SUB_TYPE_WAYPOINT_LANDED:
+		{
+			return CAMPAIGN_HC_WP_LANDED;
+		}
+		case ENTITY_SUB_TYPE_WAYPOINT_PREPARE_FOR_INSERTION:
+		case ENTITY_SUB_TYPE_WAYPOINT_TROOP_INSERT:
+		{
+			return CAMPAIGN_HC_WP_INSERTION;
+		}
+	}
+
+	return CAMPAIGN_HC_WP_OTHER;
+}
+
+// plan -> the lookups the plan asks for -> guide.  The answer holds the lift, the velocity demand and the world acceleration
+// the gates and the guided steps below use
+
+static void hosted_helicopter_guidance (entity *en, entity *guide, entity *wp, campaign_hc_guidance_answer *answer)
+{
+	helicopter
+		*raw;
+
+	entity
+		*leader,
+		*group,
+		*member,
+		*sector,
+		*structure;
+
+	vec3d
+		wp_pos,
+		wp_vel,
+		scan_pos,
+		*test_pos;
+
+	campaign_hc_plan
+		plan;
+
+	campaign_hc_query
+		query;
+
+	campaign_hc_structure
+		*structures;
+
+	campaign_hc_terrain_sample
+		samples [CAMPAIGN_HC_TERRAIN_SAMPLES];
+
+	const char
+		**member_host_id;
+
+	int
+		loop,
+		count,
+		structure_count,
+		terrain_follow;
+
+	float
+		d,
+		radius,
+		running,
+		first,
+		second;
+
+	raw = (helicopter *) get_local_entity_data (en);
+
+	memset (&plan, 0, sizeof (plan));
+
+	// the campaign's resolution of the fly-to position (hold, guide, formation or task leader offset) and the 2d distance it stores
+	helicopter_movement_get_waypoint_position_and_velocity (en, &wp_pos, &wp_vel);
+
+	leader = (entity *) get_local_entity_ptr_value (guide, PTR_TYPE_TASK_LEADER);
+
+	terrain_follow = get_local_entity_int_value (guide, INT_TYPE_TERRAIN_FOLLOW_MODE);
+
+	plan.group_leader = get_local_entity_int_value (en, INT_TYPE_GROUP_LEADER);
+	plan.task_leader = get_local_entity_int_value (en, INT_TYPE_TASK_LEADER);
+	plan.task_leader_is_self = (leader == en);
+	plan.position_hold = get_local_entity_int_value (en, INT_TYPE_POSITION_HOLD);
+	plan.terrain_follow = (terrain_follow != GUIDE_TERRAIN_FOLLOW_NONE);
+	plan.terrain_follow_attack_altitude = (terrain_follow == GUIDE_TERRAIN_FOLLOW_ATTACK_ALTITUDE);
+	plan.waypoint_kind = hosted_helicopter_waypoint_kind (wp);
+	plan.guide_radius_valid = get_guide_criteria_valid (guide, GUIDE_CRITERIA_RADIUS);
+	plan.guide_radius = plan.guide_radius_valid ? get_guide_criteria_value (guide, GUIDE_CRITERIA_RADIUS) : 0.0f;
+	plan.guide_altitude_valid = get_guide_criteria_valid (guide, GUIDE_CRITERIA_ALTITUDE);
+	plan.waypoint[0] = wp_pos.x;
+	plan.waypoint[1] = wp_pos.y;
+	plan.waypoint[2] = wp_pos.z;
+	plan.waypoint_velocity[0] = wp_vel.x;
+	plan.waypoint_velocity[1] = wp_vel.y;
+	plan.waypoint_velocity[2] = wp_vel.z;
+	plan.distance = get_local_entity_float_value (en, FLOAT_TYPE_DISTANCE);
+	plan.terrain_elevation = get_3d_terrain_point_data_elevation (&raw->ac.terrain_info);
+	plan.fuel_supply_level = raw->fuel_supply_level;
+	plan.cruise_velocity = aircraft_database [raw->ac.mob.sub_type].cruise_velocity;
+	plan.power_output = aircraft_database [raw->ac.mob.sub_type].power_output;
+	plan.cruise_altitude = get_local_entity_float_value (en, FLOAT_TYPE_CRUISE_ALTITUDE);
+	plan.attack_altitude = get_local_entity_float_value (en, FLOAT_TYPE_ATTACK_ALTITUDE);
+	plan.delta_seconds = get_entity_movement_delta_time ();
+
+	// the task leader's radar altitude is read only where the original read it: a follower in terrain follow, not holding and
+	// not at attack altitude (transitional terrain data, not host-owned)
+	if ((terrain_follow != GUIDE_TERRAIN_FOLLOW_NONE) && (terrain_follow != GUIDE_TERRAIN_FOLLOW_ATTACK_ALTITUDE) && (!plan.position_hold) && leader && (leader != en))
+	{
+		plan.leader_radar_altitude = get_local_entity_float_value (leader, FLOAT_TYPE_RADAR_ALTITUDE);
+	}
+
+	// the other members of the group in list order, uncapped (the leader does not avoid wingmen); a roster-less member is NULL
+	member_host_id = NULL;
+
+	if (!plan.group_leader)
+	{
+		group = get_local_entity_parent (en, LIST_TYPE_MEMBER);
+
+		ASSERT (group);
+
+		count = 0;
+
+		member = get_local_entity_first_child (group, LIST_TYPE_MEMBER);
+
+		while (member)
+		{
+			if (member != en)
+			{
+				count++;
+			}
+
+			member = get_local_entity_child_succ (member, LIST_TYPE_MEMBER);
+		}
+
+		if (count > 0)
+		{
+			member_host_id = (const char **) safe_malloc (count * sizeof (const char *));
+
+			count = 0;
+
+			member = get_local_entity_first_child (group, LIST_TYPE_MEMBER);
+
+			while (member)
+			{
+				if (member != en)
+				{
+					member_host_id [count++] = campaign_roster_host_id (member);
+				}
+
+				member = get_local_entity_child_succ (member, LIST_TYPE_MEMBER);
+			}
+
+			plan.member_count = count;
+			plan.member_host_id = member_host_id;
+		}
+	}
+
+	campaign_movement_helicopter_plan (en, &plan, &query);
+
+	if (member_host_id)
+	{
+		safe_free (member_host_id);
+	}
+
+	//
+	// transitional lookups the plan asked for
+	//
+
+	// the structures of the aircraft's OWN sector (not the look-ahead point's), in list order, uncapped.  The host selects the
+	// obstacles; a structure without an avoidance radius cannot be one, and the height is read only where the original read it
+	// (inside the radius of the look-ahead point), as other entity types in the sector do not have one
+	structures = NULL;
+
+	structure_count = 0;
+
+	if (query.structure_scan)
+	{
+		sector = get_local_entity_parent (en, LIST_TYPE_SECTOR);
+
+		ASSERT (sector);
+
+		scan_pos.x = query.structure_position [0];
+		scan_pos.y = query.structure_position [1];
+		scan_pos.z = query.structure_position [2];
+
+		count = 0;
+
+		structure = get_local_entity_first_child (sector, LIST_TYPE_SECTOR);
+
+		while (structure)
+		{
+			if (get_local_entity_float_value (structure, FLOAT_TYPE_AVOIDANCE_RADIUS) > 0.0)
+			{
+				count++;
+			}
+
+			structure = get_local_entity_child_succ (structure, LIST_TYPE_SECTOR);
+		}
+
+		if (count > 0)
+		{
+			structures = (campaign_hc_structure *) safe_malloc (count * sizeof (campaign_hc_structure));
+
+			structure = get_local_entity_first_child (sector, LIST_TYPE_SECTOR);
+
+			while (structure)
+			{
+				radius = get_local_entity_float_value (structure, FLOAT_TYPE_AVOIDANCE_RADIUS);
+
+				if (radius > 0.0)
+				{
+					test_pos = get_local_entity_vec3d_ptr (structure, VEC3D_TYPE_POSITION);
+
+					structures [structure_count].position [0] = test_pos->x;
+					structures [structure_count].position [1] = test_pos->y;
+					structures [structure_count].position [2] = test_pos->z;
+					structures [structure_count].avoidance_radius = radius;
+
+					d = get_sqr_2d_range (&scan_pos, test_pos);
+
+					structures [structure_count].height = (d < (radius * radius)) ? get_local_entity_float_value (structure, FLOAT_TYPE_FIXED_STRUCTURE_HEIGHT) : 0.0f;
+
+					structure_count++;
+				}
+
+				structure = get_local_entity_child_succ (structure, LIST_TYPE_SECTOR);
+			}
+		}
+	}
+
+	// the terrain samples, far to near, each exactly as the original statement
+	// terrain_elevation = max (terrain_elevation, get_3d_terrain_point_data (x, z, &terrain_info)) ran: the getter is called once
+	// and, unless the running value (starting at zero) is above its return, a second time whose return is then selected.  Every
+	// call writes the cached terrain_info (the last is at the aircraft), which the guided end reads
+	running = 0.0;
+
+	for (loop = 0; loop < query.terrain_sample_count; loop ++)
+	{
+		first = get_3d_terrain_point_data (query.terrain_sample [loop][0], query.terrain_sample [loop][1], &raw->ac.terrain_info);
+
+		samples [loop].first = first;
+		samples [loop].second = 0.0f;
+		samples [loop].second_present = FALSE;
+
+		if (!(running > first))
+		{
+			second = get_3d_terrain_point_data (query.terrain_sample [loop][0], query.terrain_sample [loop][1], &raw->ac.terrain_info);
+
+			samples [loop].second = second;
+			samples [loop].second_present = TRUE;
+
+			running = second;
+		}
+	}
+
+	campaign_movement_helicopter_guide (en, structure_count, structures, query.terrain_sample_count, samples, answer);
+
+	if (structures)
+	{
+		safe_free (structures);
+	}
+}
+
+// the steering facts the host needs after the begin: the campaign's heading intent, leader identity and weapon aim.  The
+// terrain sample is the one the altitude follow cached; there is no new terrain query between the begin and the end
+
+static void hosted_helicopter_guided_end (entity *en, entity *guide)
+{
+	helicopter
+		*raw;
+
+	entity
+		*leader,
+		*target;
+
+	campaign_hc_steer
+		steer;
+
+	vec3d
+		*weapon_vector,
+		*weapon_to_intercept_point_vector;
+
+	float
+		heading,
+		angles [3];
+
+	raw = (helicopter *) get_local_entity_data (en);
+
+	memset (&steer, 0, sizeof (steer));
+
+	leader = (entity *) get_local_entity_ptr_value (guide, PTR_TYPE_TASK_LEADER);
+
+	steer.delta_seconds = get_entity_movement_delta_time ();
+	steer.max_turn_rate = get_local_entity_float_value (en, FLOAT_TYPE_MAX_TURN_RATE);
+	steer.elevation = get_3d_terrain_point_data_elevation (&raw->ac.terrain_info);
+	steer.cg_to_ground = get_local_entity_float_value (en, FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE);
+	steer.g_max = aircraft_database [get_local_entity_int_value (en, INT_TYPE_ENTITY_SUB_TYPE)].g_max;
+	steer.terrain_follow = (get_local_entity_int_value (guide, INT_TYPE_TERRAIN_FOLLOW_MODE) != GUIDE_TERRAIN_FOLLOW_NONE);
+	steer.waypoint_kind = hosted_helicopter_waypoint_kind (get_local_entity_current_waypoint (en));
+	steer.task_leader_is_self = (leader == en);
+	steer.guide_radius_valid = get_guide_criteria_valid (guide, GUIDE_CRITERIA_RADIUS);
+	steer.main_rotor_shaft_angle = get_local_entity_float_value (en, FLOAT_TYPE_MAIN_ROTOR_SHAFT_ANGLE);
+
+	if (steer.guide_radius_valid)
+	{
+		steer.guide_radius = get_guide_criteria_value (guide, GUIDE_CRITERIA_RADIUS);
+
+		// a pure read; the host uses it only when it holds the heading within the radius
+		if (get_local_entity_float_value (en, FLOAT_TYPE_DISTANCE) < steer.guide_radius)
+		{
+			if (get_guide_required_heading (guide, en, &heading))
+			{
+				steer.required_heading_valid = TRUE;
+				steer.required_heading = heading;
+			}
+		}
+	}
+
+	// the host resolves the leader's attitude by identity on every guided end; the DLL's copy of its heading is never used
+	if (leader && (leader != en))
+	{
+		steer.leader_host_id = campaign_roster_host_id (leader);
+	}
+
+	target = get_local_entity_parent (en, LIST_TYPE_TARGET);
+
+	if (target && (get_guide_criteria_valid (guide, GUIDE_CRITERIA_WEAPON_VECTOR) ||
+			get_local_entity_float_value (en, FLOAT_TYPE_WEAPON_LAUNCH_DELAY) ||
+			get_local_entity_float_value (en, FLOAT_TYPE_WEAPON_BURST_TIMER)))
+	{
+		weapon_vector = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_WEAPON_VECTOR);
+		weapon_to_intercept_point_vector = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_WEAPON_TO_INTERCEPT_POINT_VECTOR);
+
+		ASSERT (weapon_vector);
+		ASSERT (weapon_to_intercept_point_vector);
+
+		steer.targeting_active = TRUE;
+		steer.weapon_vector [0] = weapon_vector->x;
+		steer.weapon_vector [1] = weapon_vector->y;
+		steer.weapon_vector [2] = weapon_vector->z;
+		steer.weapon_to_intercept_vector [0] = weapon_to_intercept_point_vector->x;
+		steer.weapon_to_intercept_vector [1] = weapon_to_intercept_point_vector->y;
+		steer.weapon_to_intercept_vector [2] = weapon_to_intercept_point_vector->z;
+	}
+
+	// the returned heading, pitch and roll are the host's own demands, already applied to the attitude
+	campaign_movement_helicopter_guided_end (en, &steer, angles);
+}
+
+#endif
+
 void helicopter_movement (entity *en)
 {
 	entity
@@ -139,6 +513,13 @@ void helicopter_movement (entity *en)
 		*guide,
 		*group,
 		*member;
+
+	#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+	campaign_hc_guidance_answer
+		guidance;
+
+	#endif
 
 	float
 		maxx,
@@ -202,6 +583,16 @@ void helicopter_movement (entity *en)
 	}
 
 	wp = get_local_entity_parent (guide, LIST_TYPE_CURRENT_WAYPOINT);
+
+	#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+	// plan -> lookups -> guide: the host does the LOS adjustment, altitude follow, velocity shaping and lift from the campaign's
+	// facts and the transitional lookups.  The gates below keep their original order
+	hosted_helicopter_guidance (en, guide, wp, &guidance);
+
+	lift = guidance.lift;
+
+	#else
 
 	//
 	//
@@ -317,6 +708,26 @@ void helicopter_movement (entity *en)
 	// bodge for rotor rpm
 	lift = (0.7 * aircraft_database [raw->ac.mob.sub_type].power_output) + (fabs (world_acceleration_vector.y) + fabs (world_acceleration_vector.z));
 
+	#endif
+
+	#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+	// the host integrates the rotor and runs the spin-up timer; the DLL decides the gate (who is flown by the AI) and returns when it held
+	if (campaign_movement_rotor_alive
+		(
+			en,
+			lift,
+			aircraft_database [raw->ac.mob.sub_type].power_output,
+			get_entity_movement_delta_time (),
+			((get_local_entity_int_value (en, INT_TYPE_PLAYER) == ENTITY_PLAYER_AI) ||
+			 (get_local_entity_int_value (en, INT_TYPE_AUTO_PILOT)))
+		))
+	{
+		return;
+	}
+
+	#else
+
 	helicopter_movement_calculate_rotor_rpm (en, lift);
 
 	if ((raw->main_rotor_spin_up_timer > 0.0 || raw->main_rotor_rpm < 50) &&
@@ -330,6 +741,8 @@ void helicopter_movement (entity *en)
 
 		return;
 	}
+
+	#endif
 
 	//
 	// Make AI helicopters wait until all human helicopters in the group have taken off
@@ -353,6 +766,12 @@ void helicopter_movement (entity *en)
 					{
 						if (!get_local_entity_int_value (member, INT_TYPE_AIRBORNE_AIRCRAFT))
 						{
+							#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+							campaign_movement_helicopter_abandon (en);
+
+							#endif
+
 							return;
 						}
 					}
@@ -367,12 +786,29 @@ void helicopter_movement (entity *en)
 
 	if (get_local_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE) == OPERATIONAL_STATE_LANDED)
 	{
+		#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+		campaign_movement_helicopter_abandon (en);
+
+		#endif
+
 		return;
 	}
 
 	//
 	// calculate the motion vector, in world coords
 	//
+
+	#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+
+	// the host applies the acceleration to the retained vector and sets the speed, then the heading, pitch and roll demands,
+	// the attitude and the position in the guided end.  No terrain query lies between the two (the end consumes the cached
+	// altitude-follow sample)
+	campaign_movement_helicopter_guided_begin (en);
+
+	hosted_helicopter_guided_end (en, guide);
+
+	#else
 
 	raw->ac.mob.motion_vector.x += world_acceleration_vector.x * get_entity_movement_delta_time ();
 		raw->ac.mob.motion_vector.y = wp_vec.y;
@@ -383,6 +819,10 @@ void helicopter_movement (entity *en)
 	set_local_entity_float_value (en, FLOAT_TYPE_VELOCITY, speed);
 	if (fabs(speed) > 0.1)
 		set_local_entity_int_value(en, INT_TYPE_MOVED, TRUE);
+
+	#endif
+
+	#ifndef EECH_CAMPAIGN_HOST_MOVEMENT
 
 	current_heading = get_heading_from_attitude_matrix (raw->ac.mob.attitude);
 	current_pitch = get_pitch_from_attitude_matrix (raw->ac.mob.attitude);
@@ -425,6 +865,8 @@ void helicopter_movement (entity *en)
 	get_3d_transformation_matrix (raw->ac.mob.attitude, new_heading, new_pitch, new_roll);
 
 	helicopter_movement_calculate_new_position (en, guide, &wp_pos);
+
+	#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -432,6 +874,296 @@ void helicopter_movement (entity *en)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void helicopter_death_movement (entity *en)
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+{
+	// The host owns the rotor wind-down and the fall: the position, the motion vector and the contact tests.  Everything
+	// the campaign decides stays here at its original point: the terrain sample and its cache, the effects, sounds, the
+	// kill, the lifecycle (DEAD, smoke) and the random draws.
+
+	helicopter
+		*raw;
+
+	double
+		hd,
+		rd;
+
+	float
+		altitude,
+		terrain_elevation,
+		old_terrain_elevation,
+		cg_to_ground;
+
+	vec3d
+		*pos,
+		*velocity,
+		new_pos;
+
+	terrain_classes
+		terrain_class;
+
+	raw = (helicopter *) get_local_entity_data (en);
+
+	campaign_movement_require_hosted (en);
+
+	//
+	// wind down rotors
+	//
+
+	campaign_movement_rotor_down (en, get_entity_movement_delta_time ());
+
+	//
+	// get current position and velocity
+	//
+
+	pos = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
+
+	old_terrain_elevation = get_3d_terrain_point_data_elevation (&raw->ac.terrain_info);
+
+	velocity = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_MOTION_VECTOR);
+
+	cg_to_ground = get_local_entity_float_value (en, FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE);
+
+	if (get_terrain_type_class (get_3d_terrain_point_data_type (&raw->ac.terrain_info)) == TERRAIN_CLASS_LAND)
+	{
+		if (campaign_movement_contact (en, FALSE, old_terrain_elevation, cg_to_ground, &altitude))
+		{
+			//
+			// stop any engine noise
+			//
+
+			if (get_comms_model() == COMMS_MODEL_SERVER)
+			{
+				kill_helicopter_rotor_sound_effects (en);
+			}
+
+			//
+			// if aircraft is already on the ground, but not on water, call different movement function
+			//
+
+			if (helicopter_crash_movement (en))
+			{
+				if (raw->main_rotor_rpm == 0.0)
+				{
+					if (!raw->ac.mob.alive)
+					{
+						set_local_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE, OPERATIONAL_STATE_DEAD);
+
+						clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_LIGHT_DAMAGE_MOVING);
+						clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_HEAVY_DAMAGE_MOVING);
+						clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_LIGHT_DAMAGE_STATIC);
+						clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_HEAVY_DAMAGE_STATIC);
+					}
+				}
+			}
+
+			return;
+		}
+	}
+
+	//
+	// the fall, in the original order: the host's candidate position, the DLL samples the terrain under it, then the host
+	// applies gravity to the vector and speed
+	//
+
+	campaign_movement_fall (en, get_entity_movement_delta_time (), &new_pos);
+
+	get_3d_terrain_point_data (new_pos.x, new_pos.z, &raw->ac.terrain_info);
+
+	campaign_movement_fall_gravity (en, G, get_entity_movement_delta_time ());
+
+	//
+	// check if aircraft has hit the floor
+	//
+
+	terrain_elevation = get_3d_terrain_point_data_elevation (&raw->ac.terrain_info);
+
+	terrain_class = get_terrain_type_class (get_3d_terrain_point_data_type (&raw->ac.terrain_info));
+
+	if (campaign_movement_contact (en, TRUE, terrain_elevation, cg_to_ground, &altitude))
+	{
+		int
+			host_class,
+			buried;
+
+		float
+			bury_limit,
+			fresh_cg;
+
+		if (get_comms_model() == COMMS_MODEL_SERVER)
+		{
+			//
+			// ensure that the aircraft is actually dead
+			//
+
+			if (get_local_entity_int_value (en, INT_TYPE_ALIVE))
+			{
+				kill_client_server_entity (en);
+			}
+
+			if (pos->y > old_terrain_elevation)
+			{
+				//
+				// aircraft has hit the terrain this frame - create a "splash"
+				//
+
+				vec3d
+					temp_pos;
+				int
+					power;
+				float
+					total_velocity = fabs(velocity->x) + fabs(velocity->y) + fabs(velocity->z);
+
+				temp_pos.x = new_pos.x;
+				temp_pos.y = terrain_elevation;
+				temp_pos.z = new_pos.z;
+
+				set_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &temp_pos);
+
+				switch (get_terrain_type_class(get_3d_terrain_point_data_type (&raw->ac.terrain_info)))
+				{
+					case TERRAIN_CLASS_WATER:
+					{
+						power = (int) (bound(total_velocity / 5, 0, 1));
+						create_client_server_collision_effect (&temp_pos, DYNAMICS_COLLISION_SURFACE_WATER, power);
+						break;
+					}
+					case TERRAIN_CLASS_LAND:
+					case TERRAIN_CLASS_FOREST:
+					{
+						power = (int) (bound(total_velocity / 5, 0, 4));
+						create_client_server_collision_effect (&temp_pos, DYNAMICS_COLLISION_SURFACE_GROUND, power);
+						if (power > 1)
+							create_client_server_crater ((crater_types)(CRATER_TYPE_SMALL_EXPLOSION + (power - 2)), pos);
+
+						break;
+					}
+				}
+
+				//
+				// stop any engine noise
+				//
+
+				if (get_comms_model() == COMMS_MODEL_SERVER)
+				{
+					kill_helicopter_rotor_sound_effects (en);
+				}
+			}
+		}
+
+		//
+		// the host settles the candidate by the terrain class: 0 solid, 1 sea, 2 river or lake, 3 forest.  The sea and the
+		// forest are buried past half the bounding box; the host zeroes the rotor and the vector when buried and the
+		// campaign clears the speed with the lifecycle below.
+		//
+
+		bury_limit = 0.0;
+
+		if (terrain_class == TERRAIN_CLASS_WATER)
+		{
+			host_class = (get_3d_terrain_point_data_type (&raw->ac.terrain_info) == TERRAIN_TYPE_SEA) ? 1 : 2;
+		}
+		else if (terrain_class == TERRAIN_CLASS_FOREST)
+		{
+			host_class = 3;
+		}
+		else
+		{
+			host_class = 0;
+		}
+
+		if ((host_class == 1) || (host_class == 3))
+		{
+			struct OBJECT_3D_BOUNDS
+				*bounding_box;
+
+			vec3d
+				d;
+
+			bounding_box = get_object_3d_bounding_box (get_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE));
+
+			d.x = bounding_box->xmax - bounding_box->xmin;
+			d.y = bounding_box->ymax - bounding_box->ymin;
+			d.z = bounding_box->zmax - bounding_box->zmin;
+
+			bury_limit = -(get_3d_vector_magnitude (&d) * 0.5);
+		}
+
+		if (terrain_class == TERRAIN_CLASS_WATER)
+		{
+			//
+			// kill any fires that may be burning (before the host settles the rotor and the vector, as in the original)
+			//
+
+			clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_FIRE);
+			clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_EXPLOSION_TRAIL);
+		}
+
+		//
+		// the final heights use the centre of gravity asked afresh after the kill (the destroyed one); the bury tests use
+		// the altitude the host retained from the contact, measured with the live one above
+		//
+
+		fresh_cg = get_local_entity_float_value (en, FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE);
+
+		buried = campaign_movement_settle (en, host_class, terrain_elevation, fresh_cg, bury_limit, &new_pos);
+
+		if ((terrain_class != TERRAIN_CLASS_WATER) && (terrain_class != TERRAIN_CLASS_FOREST) && (get_comms_model () == COMMS_MODEL_SERVER))
+		{
+			//
+			// aircraft has hit solid ground: crash sound effect
+			//
+
+			sound_sample_indices
+				sound_sample_index;
+
+			sound_sample_index = SOUND_SAMPLE_INDEX_HELICOPTER_CRASH;
+
+			create_client_server_sound_effect_entity
+			(
+				en,
+				ENTITY_SIDE_NEUTRAL,
+				ENTITY_SUB_TYPE_EFFECT_SOUND_MISC,
+				SOUND_CHANNEL_SOUND_EFFECT,
+				SOUND_LOCALITY_ALL,
+				NULL,												// position
+				1.0,												// amplification
+				1.0,												// Werewolf pitch
+				TRUE,												// valid sound effect
+				FALSE,											// looping
+				1,													// sample count
+				&sound_sample_index							// sample index list
+			);
+		}
+
+		if (buried)
+		{
+			//
+			// aircraft is no longer visible (the host has stopped the rotor and zeroed the vector)
+			//
+
+			clear_helicopter_velocity (en);
+
+			set_local_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE, OPERATIONAL_STATE_DEAD);
+
+			clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_LIGHT_DAMAGE_MOVING);
+			clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_HEAVY_DAMAGE_MOVING);
+			clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_LIGHT_DAMAGE_STATIC);
+			clear_smoke_list_generator_lifetime (en, ENTITY_SUB_TYPE_EFFECT_SMOKE_LIST_HEAVY_DAMAGE_STATIC);
+		}
+	}
+
+	//
+	// update attitude: the draws are the DLL's (the effects above may have advanced the generator), heading's first; the
+	// host applies the tumble and sets the final position
+	//
+
+	hd = frand1();
+
+	rd = frand1();
+
+	campaign_movement_tumble (en, hd, rd);
+}
+#else
 {
 
 	helicopter
@@ -821,12 +1553,70 @@ void helicopter_death_movement (entity *en)
 
 	set_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &new_pos);
 }
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 int helicopter_crash_movement (entity *en)
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+{
+	// Phase one eases the attitude towards the terrain normal as it was BEFORE the new sample; the DLL then samples the
+	// terrain at the candidate and phase two takes the NEW normal for the slope.  The vector is cleared after the
+	// position setter, as the original does.
+
+	helicopter
+		*raw;
+
+	float
+		terrain_elevation;
+
+	vec3d
+		old_normal,
+		new_pos;
+
+	raw = (helicopter *) get_local_entity_data (en);
+
+	campaign_movement_require_hosted (en);
+
+	old_normal = *get_3d_terrain_point_data_normal (&raw->ac.terrain_info);
+
+	campaign_movement_crash_begin
+	(
+		en,
+		&old_normal,
+		aircraft_database [raw->ac.mob.sub_type].destroyed_pitch_offset,
+		aircraft_database [raw->ac.mob.sub_type].destroyed_bank_offset,
+		get_entity_movement_delta_time (),
+		&new_pos
+	);
+
+	get_3d_terrain_point_data (new_pos.x, new_pos.z, &raw->ac.terrain_info);
+
+	terrain_elevation = get_3d_terrain_point_data_elevation (&raw->ac.terrain_info);
+
+	if
+	(
+		campaign_movement_crash_end
+		(
+			en,
+			get_3d_terrain_point_data_normal (&raw->ac.terrain_info),
+			get_terrain_type_class (get_3d_terrain_point_data_type (&raw->ac.terrain_info)) == TERRAIN_CLASS_FOREST,
+			terrain_elevation,
+			get_local_entity_float_value (en, FLOAT_TYPE_CENTRE_OF_GRAVITY_TO_GROUND_DISTANCE),
+			get_entity_movement_delta_time ()
+		)
+	)
+	{
+		clear_helicopter_velocity (en);
+
+		return TRUE;
+	}
+
+	return FALSE;
+}
+#else
 {
 
 	helicopter
@@ -992,12 +1782,37 @@ int helicopter_crash_movement (entity *en)
 		return FALSE;
 	}
 }
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void helicopter_impact_movement (entity *en)
+#ifdef EECH_CAMPAIGN_HOST_MOVEMENT
+{
+	// the random draw is the campaign's; the host shoves its vector along the attitude x axis
+
+	float
+		speed;
+
+	int
+		seed;
+
+	campaign_movement_require_hosted (en);
+
+	seed = get_client_server_entity_random_number_seed(en);
+
+	speed = 2.0 * frand1x (&seed);
+
+	if (seed & 1)
+	{
+		speed = -speed;
+	}
+
+	campaign_movement_impact (en, speed);
+}
+#else
 {
 
 	helicopter
@@ -1029,6 +1844,7 @@ void helicopter_impact_movement (entity *en)
 
 	velocity->z += (speed * raw->ac.mob.xv.z);
 }
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

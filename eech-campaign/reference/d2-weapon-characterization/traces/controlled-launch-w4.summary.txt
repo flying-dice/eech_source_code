@@ -1,0 +1,239 @@
+scope run  at 572.40924072266  table 77ed8877e2d2f252  launch f056643e797f5eeb  flight 2378371d75aae365  terminal 3a33f939620410f3  decision 2a4bfd602631f635
+  table_steps                          5065448
+  table_flights                        9047
+  table_flights_full                   6473
+  table_flights_short                  2574
+  table_tail_cells                     561800
+  table_supplies                       41
+  table_cells                          12427000
+  table_cells_nonfinite                0
+  range_types                          32
+  range_types_no_file                  0
+  range_flights                        61
+  range_flights_zero_pitch             32
+  range_flights_aimed                  29
+  salvo_calls                          1670
+  salvo_ai                             1670
+  salvo_not_ai                         0
+  salvo_pods_over_one                  255
+  launch_calls                         1769
+  launch_no_ammo                       1
+  launch_gated                         481
+  launch_created                       1287
+  launch_create_failed                 0
+  launch_fired_at                      1016
+  launch_attempts                      1287
+  launch_with_target                   1107
+  launch_decoy_cargo_debris            179
+  launch_ammo_now_empty                22
+  birth_calls                          1287
+  birth_submunition                    0
+  birth_fuze_entered                   92
+  birth_fuze_solved                    92
+  birth_dispersion                     1144
+  birth_draws_0                        131
+  birth_draws_1                        12
+  birth_draws_more                     1144
+  birth_track_overflow                 0
+  move_calls                           320398
+  move_unregistered                    0
+  move_draws_0                         319163
+  move_draws_1                         0
+  move_draws_more                      1235
+  move_target_position_valid           14106
+  move_target_position_invalid         1264
+  tracking_point_valid                 0
+  precision_high                       474
+  precision_normal                     312584
+  ground_tests                         313058
+  ground_hits                          905
+  impact_water                         27
+  impact_land                          845
+  impact_other                         33
+  impact_survive                       16
+  submunition_spawns                   0
+  guidance_source_calls                13471
+  guidance_source_no_launcher          0
+  guidance_source_target_changes       0
+  guidance_source_target_dropped       0
+  tgt_valid                            14106
+  tgt_invalid                          1264
+  tgt_tracking_point                   0
+  tgt_mobile_intercept                 11596
+  tgt_jammer_chaff                     0
+  tgt_jammer_ir                        0
+  tgt_smoke_distract                   915
+  tgt_decoy_intercept                  1595
+  intercept_calls                      13191
+  intercept_iterated                   8929
+  intercept_weapon_not_moving          0
+  intercept_target_not_moving          4123
+  intercept_target_not_slower          139
+  guided_too_close                     0
+  guided_overshot                      3
+  guided_target_lost_true              3891
+  guided_target_lost_false             10212
+  guided_turned                        10212
+  contact_any_tests                    4134
+  contact_any_hits                     60
+  contact_trees_tests                  402
+  contact_trees_hits                   0
+  decoy_updates                        16238
+  decoy_restarts                       2186
+  update_stage_1                       320398
+  update_stage_2                       320398
+  update_stage_3                       16238
+  update_stage_4                       1235
+  update_stage_5                       1235
+  update_order_violations              0
+  terminal_calls                       1235
+  terminal_unregistered                0
+  terminal_with_target                 1003
+  terminal_without_target              232
+  destroy_calls                        1235
+  destroy_without_terminal             0
+  destroy_unregistered                 0
+  log_events                           5147
+  draws_total                          2483
+  live_weapons                         52
+  next_ordinal                         1287
+  range birth_velocity               n=1287 min=0 max=1100.96106
+  range birth_lifetime               n=1287 min=0 max=34
+  range birth_decoy_timer            n=1287 min=0 max=5.06077719
+  range birth_dispersion_heading     n=1144 min=-0.286772788 max=0.300306261
+  range birth_dispersion_pitch       n=1144 min=-0.294244796 max=0.28932482
+  range move_velocity                n=320398 min=0 max=1067.26978
+  range move_lifetime                n=320398 min=-511.024261 max=33.8999977
+  range move_step_distance           n=320398 min=0 max=106.743477
+  range guided_turn_demand           n=10212 min=0 max=1.53373504
+  range guided_turn_rate             n=10212 min=0 max=1.17349219
+  range guided_length                n=14106 min=2.14726996 max=39786.125
+  range intercept_velocity_ratio     n=8929 min=0.000508939091 max=0.998962283
+  range terminal_steps               n=1235 min=1 max=5111
+  range terminal_velocity            n=1235 min=0 max=1035.65393
+  range terminal_distance            n=1235 min=0 max=37917.6333
+  range table_drop_angle             n=6213500 min=0 max=0.645700157
+  range table_flight_time            n=6213500 min=0 max=83.7499466
+  range range_end_z                  n=61 min=3754.02417 max=80002.8828
+  range fuze_decoy_timer             n=92 min=0.0891394764 max=5.06077719
+  range contact_segment              n=4134 min=0.337787414 max=96.9651697
+  path     fuze_timer               91
+  path     exhausted                192
+  path     on_ground                7054
+  path     guided                   14106
+  path     unguided                 298955
+  path     loal_climb_dive          0
+  path     killed_by_guidance       3
+  path     contact_target           60
+  path     contact_trees            0
+  path     out_of_map_area          0
+  path     above_ceiling            0
+  path     ground_water             27
+  path     ground_survived          16
+  path     ground_smoke_grenade     16
+  path     ground_land              862
+  kill     ok                       0
+  kill     exhausted                93
+  kill     out_of_bounds            0
+  kill     hit_land                 862
+  kill     hit_water                27
+  kill     hit_target               60
+  kill     overshot_target          3
+  kill     self_destruct            190
+  outcome  created                  1287
+  outcome  no_ammo                  1
+  outcome  gated                    481
+  outcome  create_failed            0
+  guidance none                 valid 0 invalid 297691
+  guidance passive_infra_red    valid 1880 invalid 19
+  guidance semi_active_radar    valid 3773 invalid 334
+  guidance active_radar         valid 0 invalid 0
+  guidance semi_active_laser    valid 4315 invalid 332
+  guidance beam_riding          valid 1476 invalid 0
+  guidance active_laser         valid 0 invalid 0
+  guidance radio_command        valid 2662 invalid 579
+  guidance wire_guided          valid 0 invalid 0
+  launcher ENTITY_TYPE_ANTI_AIRCRAFT births 99 terminals 64
+  launcher ENTITY_TYPE_FIXED_WING births 28 terminals 24
+  launcher ENTITY_TYPE_HELICOPTER births 230 terminals 229
+  launcher ENTITY_TYPE_ROUTED_VEHICLE births 810 terminals 805
+  launcher ENTITY_TYPE_SHIP_VEHICLE births 120 terminals 113
+  weapon    4 M61A1_M56A3_HEI_20mm               births 1 moves 7 guided 0 unguided 7 loal 0 {'hit_land': 1}
+  weapon    5 M61A1_CIWS_M56A3_HEI_20mm          births 92 moves 594 guided 0 unguided 503 loal 0 {'hit_water': 1, 'self_destruct': 91}
+  weapon    8 M242_M792_HEI-T_25mm               births 122 moves 13576 guided 0 unguided 13572 loal 0 {'exhausted': 4, 'hit_land': 104, 'hit_water': 7}
+  weapon   10 M230_M789_HEDP_30mm                births 28 moves 251 guided 0 unguided 251 loal 0 {'hit_land': 7, 'hit_target': 21}
+  weapon   11 OTO_Melara_L/62_HE__76mm           births 1 moves 359 guided 0 unguided 359 loal 0 {'hit_land': 1}
+  weapon   13 M284_M795_HE_155mm                 births 36 moves 20746 guided 0 unguided 20746 loal 0 {'hit_land': 36}
+  weapon   14 M26A1_M85_DPICM_227mm_Rocket       births 96 moves 56164 guided 0 unguided 56164 loal 0 {'hit_land': 95, 'hit_water': 1}
+  weapon   22 2A38M_OFZT-30-Gsh_HE_30mm          births 133 moves 26814 guided 0 unguided 26814 loal 0 {'hit_land': 100}
+  weapon   23 2A42_3UOF8_HE_30mm                 births 116 moves 13117 guided 0 unguided 13077 loal 0 {'hit_land': 76, 'self_destruct': 40}
+  weapon   24 2A42_3UOF8_HE_30mm                 births 2 moves 24 guided 0 unguided 24 loal 0 {'hit_land': 2}
+  weapon   26 2A72_3UOF8_HE_30mm                 births 123 moves 14839 guided 0 unguided 14787 loal 0 {'hit_land': 71, 'self_destruct': 52}
+  weapon   32 BM-21_9N51_HE_122mm_Rocket         births 80 moves 53089 guided 0 unguided 53089 loal 0 {'hit_land': 80}
+  weapon   34 2A65_3VOF96_HE_152mm               births 162 moves 83765 guided 0 unguided 83765 loal 0 {'hit_land': 159, 'hit_water': 3}
+  weapon   42 AIM-92A_Stinger                    births 10 moves 295 guided 294 unguided 0 loal 0 {'hit_land': 9, 'self_destruct': 1}
+  weapon   53 AGM-114R_Hellfire_II               births 38 moves 4345 guided 4013 unguided 332 loal 0 {'hit_land': 20, 'hit_target': 17}
+  weapon   55 AGM-65F_Maverick                   births 2 moves 569 guided 550 unguided 19 loal 0 {'hit_land': 1, 'hit_target': 1}
+  weapon   56 9M120_Ataka-V                      births 1 moves 113 guided 113 unguided 0 loal 0 {'hit_target': 1}
+  weapon   57 9A4172_Vikhr                       births 11 moves 1363 guided 1363 unguided 0 loal 0 {'hit_land': 2, 'hit_target': 8, 'overshot_target': 1}
+  weapon   60 Kh-29L                             births 3 moves 302 guided 302 unguided 0 loal 0 {'hit_target': 3}
+  weapon   61 MIM-72G_Chaparral                  births 9 moves 686 guided 686 unguided 0 loal 0 {'hit_land': 8}
+  weapon   62 FIM-92A_Stinger                    births 5 moves 343 guided 343 unguided 0 loal 0 {'hit_land': 4, 'hit_target': 1}
+  weapon   63 RIM-66B_Standard                   births 1 moves 11 guided 0 unguided 11 loal 0 {'hit_water': 1}
+  weapon   64 RIM-7M_Sea_Sparrow                 births 8 moves 4100 guided 3773 unguided 323 loal 0 {'hit_target': 1, 'hit_water': 2, 'overshot_target': 1, 'self_destruct': 4}
+  weapon   65 9K34_Strela-3                      births 1 moves 7 guided 7 unguided 0 loal 0 {'hit_land': 1}
+  weapon   67 9M311                              births 27 moves 3243 guided 2662 unguided 579 loal 0 {'hit_land': 3, 'hit_target': 7, 'hit_water': 12, 'overshot_target': 1, 'self_destruct': 2}
+  weapon   74 CHAFF                              births 80 moves 6977 guided 0 unguided 6901 loal 0 {'exhausted': 76}
+  weapon   75 FLARE                              births 72 moves 1984 guided 0 unguided 1984 loal 0 {'hit_land': 72}
+  weapon   76 SMOKE_GRENADE                      births 16 moves 7277 guided 0 unguided 211 loal 0 {'exhausted': 12}
+  weapon   77 CRATE                              births 1 moves 5111 guided 0 unguided 5110 loal 0 {'exhausted': 1}
+  weapon   78 Rotor_Blade                        births 6 moves 135 guided 0 unguided 135 loal 0 {'hit_land': 6}
+  weapon   79 Ejected_Pilot                      births 1 moves 63 guided 0 unguided 63 loal 0 {'hit_land': 1}
+  weapon   80 Ejected_Co-pilot                   births 1 moves 81 guided 0 unguided 81 loal 0 {'hit_land': 1}
+  weapon   81 Crew_Door                          births 1 moves 23 guided 0 unguided 23 loal 0 {'hit_land': 1}
+  weapon   82 Crew_Door                          births 1 moves 25 guided 0 unguided 25 loal 0 {'hit_land': 1}
+  table    1 M16A2_M995_AP_5.56_mm              cells 48450 hash 80c5aacadf998a0a flights 83 full 67 short 16
+  table    2 M60E4_M60_AP_7.62mm                cells 56950 hash 39c725452bf70539 flights 83 full 68 short 15
+  table    3 M2HB_M20_API_12.7mm                cells 86700 hash 7812ef9b0b2a1b76 flights 83 full 68 short 15
+  table    4 M61A1_M56A3_HEI_20mm               cells 86700 hash f6d34a4c4fbe5cd3 flights 83 full 66 short 17
+  table    5 M61A1_CIWS_M56A3_HEI_20mm          cells 86700 hash 98b6a7173e4ae057 flights 83 full 66 short 17
+  table    6 M197_M56A3_HEI_20mm                cells 86700 hash b594f7db99337c6d flights 415 full 334 short 81
+  table    7 GAU-12/U_PGU-32/U_SAPHEI_25mm      cells 157250 hash af21dd241db92dfe flights 415 full 323 short 92
+  table    8 M242_M792_HEI-T_25mm               cells 290700 hash 7a25ea1cd6e1a44c flights 83 full 21 short 62
+  table    9 GAU-8/A_PGU-14/B_AP_30mm           cells 86700 hash 2af13a491db2d5d2 flights 415 full 349 short 66
+  table   10 M230_M789_HEDP_30mm                cells 129200 hash bf146af2c8192488 flights 415 full 316 short 99
+  table   11 OTO_Melara_L/62_HE__76mm           cells 681700 hash 4a12347519b46e40 flights 83 full 0 short 83
+  table   12 M256_M830A1_HEAT-MP-T_120mm        cells 341700 hash 35a513575cd94bee flights 83 full 61 short 22
+  table   13 M284_M795_HE_155mm                 cells 957950 hash b150c5933d184fba flights 83 full 0 short 83
+  table   14 M26A1_M85_DPICM_227mm_Rocket       cells 1914200 hash 9a3dcb4d0eb0dc8c flights 83 full 0 short 83
+  table   15 AK-47_7N23_AP_7.62mm               cells 48450 hash 02bdb1697e88b5e0 flights 83 full 67 short 16
+  table   16 PKM_AP_7.62mm                      cells 56950 hash f4de5c0fc2ea24ad flights 83 full 68 short 15
+  table   17 NSVT_BS_HEAT_12.7mm                cells 86700 hash 57ae219335bca891 flights 83 full 69 short 14
+  table   18 Yak-B_12.7mm                       cells 86700 hash 3dab5ad08efa47a6 flights 415 full 340 short 75
+  table   19 KPVT_BS_HEAT_14.5mm                cells 129200 hash c508eaf6a1b9a5a4 flights 83 full 65 short 18
+  table   20 Gsh-23L_BZT-23-AM-Gsh_HEAT_23mm    cells 86700 hash baeae67508e867c9 flights 415 full 345 short 70
+  table   21 GSh-30-1_OFZT-30-Gsh_HE_30mm       cells 129200 hash 893ecb5ba73a4ec3 flights 415 full 334 short 81
+  table   22 2A38M_OFZT-30-Gsh_HE_30mm          cells 171700 hash 5e6a6c27d8f2653d flights 83 full 65 short 18
+  table   23 2A42_3UOF8_HE_30mm                 cells 171700 hash ef7e84426bb279b7 flights 83 full 63 short 20
+  table   24 2A42_3UOF8_HE_30mm                 cells 171700 hash f5ea9d05925544df flights 415 full 321 short 94
+  table   25 2A42_3UBR8_AP_30mm                 cells 171700 hash d898a35452b242aa flights 415 full 332 short 83
+  table   26 2A72_3UOF8_HE_30mm                 cells 171700 hash ef7e84426bb279b7 flights 83 full 63 short 20
+  table   27 Gsh-2-30_OFZT-30-Gsh_HE_30mm       cells 129200 hash 07503e985e0a22da flights 415 full 334 short 81
+  table   28 AK-630_OF-84_HE_30mm               cells 214200 hash 30a4454d73e40e8b flights 83 full 60 short 23
+  table   29 AK-726_OF-62_HE_76mm               cells 702950 hash c7660e0258e61651 flights 83 full 0 short 83
+  table   30 A-190_HE_100mm                     cells 894200 hash aa52ade6807f13ab flights 83 full 0 short 83
+  table   31 2A70_3OF70_HE_100mm                cells 277950 hash bf058f0b88fc66f3 flights 83 full 33 short 50
+  table   32 BM-21_9N51_HE_122mm_Rocket         cells 868700 hash d72d8c33d97881f5 flights 83 full 0 short 83
+  table   33 2A46M1_3BK31_HEAT_125mm            cells 520200 hash 80bb10177cfb5e5a flights 83 full 53 short 30
+  table   34 2A65_3VOF96_HE_152mm               cells 1038700 hash 8353bbdc9fab36e6 flights 83 full 0 short 83
+  table   35 Hydra_70_M255_HE                   cells 299200 hash 13f766b337cd6a04 flights 415 full 299 short 116
+  table   36 Hydra_70_M261_MPSM                 cells 299200 hash b3194af8f484bfc1 flights 415 full 290 short 125
+  table   37 M73_HE_submunition                 cells 1700 hash f68742bb2f3350b5 flights 415 full 205 short 210
+  table   38 Mk_40_FFAR_M247_HEDP               cells 256700 hash 5dca7e2160f1cfc1 flights 415 full 294 short 121
+  table   39 S-5KO_HEDP                         cells 86700 hash e4c85e1fb194accb flights 415 full 349 short 66
+  table   40 S-8KOM_HEAT                        cells 171700 hash f2d96b7c10dbd4da flights 415 full 340 short 75
+  table   41 S-13OF_HE                          cells 171700 hash 6fe877b74aa098b8 flights 415 full 345 short 70
+  wpn-tables {'overflow': 0, 'rows': 41}
+  wpn-samples {'count': 82, 'overflow': 0}
+  wpn-log {'drained': 5147, 'events': 5147, 'overflow': 0, 'stored': 5147}
+  ordered log kinds: {'table': 41, 'range': 61, 'birth': 1287, 'launch': 1288, 'terminal': 1235, 'destroy': 1235}

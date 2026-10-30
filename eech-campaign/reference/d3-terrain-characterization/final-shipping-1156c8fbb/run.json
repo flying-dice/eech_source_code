@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "pid": 24412,
+  "when_utc": "2026-10-30T05:43:23.810265+00:00",
+  "native_cwd": "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack",
+  "runner": "R:\\d3-evidence\\terrain-coordinate-final-source-20261029\\eech-campaign\\tools\\regression-pack.py",
+  "arguments": [
+    "--georgia",
+    "R:\\d3-evidence\\terrain-coordinate-shipping-roots-20261029\\georgia",
+    "--lebanon",
+    "R:\\d3-evidence\\terrain-coordinate-shipping-roots-20261029\\lebanon",
+    "--lebanon-repeat",
+    "R:\\d3-evidence\\terrain-coordinate-shipping-roots-20261029\\lebanon-repeat",
+    "--bin",
+    "R:\\d3-evidence\\terrain-coordinate-final-source-20261029\\eech-campaign\\target\\windows-terrain-coordinate-1156c8fbb",
+    "--out",
+    "R:\\d3-evidence\\shipping-terrain-coordinate-1156c8fbb-final-pack"
+  ],
+  "exit_code": 0
+}

@@ -1,0 +1,22 @@
+{
+  "when_utc": "2026-10-28T09:21:33.622934+00:00",
+  "original_pack_exit": 0,
+  "expected_check_set_all_pass": true,
+  "post_inputs": {
+    "georgia": {
+      "exit_code": 0,
+      "log": "R:\\d2-evidence\\candidate-pack-weapon-a137fc3ec\\post-inputs-georgia.log"
+    },
+    "lebanon": {
+      "exit_code": 0,
+      "log": "R:\\d2-evidence\\candidate-pack-weapon-a137fc3ec\\post-inputs-lebanon.log"
+    },
+    "lebanon_repeat": {
+      "exit_code": 0,
+      "log": "R:\\d2-evidence\\candidate-pack-weapon-a137fc3ec\\post-inputs-lebanon_repeat.log"
+    }
+  },
+  "source_build_accepted_identity_unchanged": true,
+  "launcher_gate_passed": true,
+  "remaining": "Complete artifact comparison, review and delivery are separate gates"
+}

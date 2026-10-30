@@ -1,0 +1,9 @@
+{
+  "when_utc": "2026-10-28T03:45:49.422212+00:00",
+  "reviewer": "/root/d2_los_review, SAME independent reviewer",
+  "scope": "Focused NEW f41 parser/guard and f543 helper corrections, not repeated unchanged physics",
+  "head": "f5430bf1e0f2fc15505e71afac1c1944ec22ac9a",
+  "f41": "P2 six hashes transported losslessly by actual shared Lua parser, real red/green test; P3 meaningful timed asserts and samekind/sameslot/data generation witness. Closed by same reviewer. C/Rust product unchanged.",
+  "f543": "Helper P2 CLOSED no new findings: compile failure skipsrun; exact Docker status propagated. Normalmutant compile0/exact2fails/runDockerouter1; forcedcompilerfalse compile1/norun/Dockerouter1. Retained hashes verified.",
+  "remaining": "Immutable fixture verified37entries actual0; native characterization/control currently active. No measured fullcoverage or physical extraction acceptance yet."
+}

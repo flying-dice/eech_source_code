@@ -1,0 +1,54 @@
+{
+  "when_utc": "2026-10-28T08:58:35.133525+00:00",
+  "source": "366d5591430025173dbbae30c0378c1cf6b08894",
+  "actual_original_controller59291_exit": 0,
+  "actual_native_exit": 0,
+  "run_record": {
+    "status": "completed",
+    "when_utc": "2026-10-28T08:08:32.4456604Z",
+    "binary": "R:\\d2-evidence\\combat-timed-source-366d55914\\eech-campaign\\target\\weapon-fixture\\combat-timed-366d55914\\eech-world.exe",
+    "arguments": "R:/d2-evidence/combat-timed-source-366d55914/eech-campaign/target/weapon-fixture/combat-timed-366d55914/lua/campaign.lua root=R:/d2-evidence/combat-characterization-20261028/roots/timed-control-01 scenario=lebanon_retail hours=0.25 record_every=10 checkpoint_every=3600 observe_every=60 acmi=R:/d2-evidence/combat-characterization-20261028/out/timed-control-01/recording.acmi observe=R:/d2-evidence/combat-characterization-20261028/out/timed-control-01/observations.jsonl metrics=R:/d2-evidence/combat-characterization-20261028/out/timed-control-01/metrics.json observe_supply=0",
+    "root": "R:/d2-evidence/combat-characterization-20261028/roots/timed-control-01",
+    "out": "R:/d2-evidence/combat-characterization-20261028/out/timed-control-01",
+    "kind": "Timed/critical candidate physical-output control; comparison with retained original required, not combat census or fullpack acceptance",
+    "reference_provenance": "Retained ab-base root provenance inferred; no independent original input verification invented",
+    "capacity": "Lead permits seven native processes on eight physical cores, separated roots; one implementation lane",
+    "actual_native_exit": 0,
+    "native_pid": 22140,
+    "created_utc": "2026-10-28T08:08:32.4589938Z",
+    "completed_utc": "2026-10-28T08:49:34.9975092Z"
+  },
+  "complete_comparator_actual_exit": 0,
+  "files": [
+    {
+      "file": "recording.acmi",
+      "bytes": 11363845,
+      "sha256": "45b26516e485090dc27f17202fb94787f14fd34e6ce6afae5a75a1228e4c348f",
+      "complete_bytes_equal_to_retained_ab_base": true
+    },
+    {
+      "file": "observations.jsonl",
+      "bytes": 6629273,
+      "sha256": "430db8f287e22f1e9c659f86be491b8064bb1d2c4dcb47bc1c7a44a3293eef9b",
+      "complete_bytes_equal_to_retained_ab_base": true
+    },
+    {
+      "file": "metrics.json",
+      "bytes": 11777,
+      "sha256": "ffc743d3f69e0f07074cb07b0c98daffe93cd2401a76c0f35bd8d551970e3474",
+      "complete_bytes_equal_to_retained_ab_base": true
+    }
+  ],
+  "post1179_input_actual_exit": 0,
+  "post40_export_verifier_actual_exit": 0,
+  "all40_exports_BUILD_INFO_unchanged": true,
+  "source_clean": true,
+  "elapsed_wall_seconds": 2462.538516,
+  "scope": "Complete900 timed/critical default physical-output control, focused fixture not fullpack",
+  "limits": [
+    "Actualsource366retained;511fixture-onlysourceequivalence supportsreuse, not relabelledruntime/objectidentity",
+    "Retainedab-base input-root provenance inferred, no originalverificationinvented",
+    "Fullbytes notvisualTacviewinspection or900combatcensus",
+    "No matchedDCSframe benchmark orwhole46/D2 acceptance; provideractualtriggers/impactblast/bridge/factualreports/finalshipping40all8post3remain"
+  ]
+}

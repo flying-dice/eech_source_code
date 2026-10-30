@@ -248,14 +248,31 @@ void add_to_force_info (entity *force_en, entity *new_en)
 
 void remove_from_force_info (entity *force_en, entity *new_en)
 {
+	entity
+		*group;
 
+	group = get_local_entity_parent (new_en, LIST_TYPE_MEMBER);
+	ASSERT (group);
+	remove_from_force_info_values
+	(
+		force_en,
+		(entity_sub_types) get_local_entity_int_value (group, INT_TYPE_ENTITY_SUB_TYPE),
+		get_local_entity_int_value (new_en, INT_TYPE_FORCE_INFO_CATAGORY)
+	);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void remove_from_force_info_values (entity *force_en, entity_sub_types group_type, int force_info_category)
+{
 	force
 		*raw;
 
-	int
-		index;
-
-	add_mobile_to_force_losses_stats (force_en, new_en);
+	ASSERT (force_en);
+	raw = (force *) get_local_entity_data (force_en);
+	raw->losses [group_type] ++;
 
 	if (get_comms_model () == COMMS_MODEL_CLIENT)
 	{
@@ -263,11 +280,7 @@ void remove_from_force_info (entity *force_en, entity *new_en)
 		return;
 	}
 		
-	raw = (force *) get_local_entity_data (force_en);
-
-	index = get_local_entity_int_value (new_en, INT_TYPE_FORCE_INFO_CATAGORY);
-
-	raw->force_info_current_hardware [index] --;
+	raw->force_info_current_hardware [force_info_category] --;
 }
 
 

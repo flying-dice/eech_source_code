@@ -1,0 +1,16 @@
+{
+  "status": "completed",
+  "when_utc": "2026-10-28T08:57:40.2325816Z",
+  "binary": "R:\\d2-evidence\\combat-timed-scope-source-511156c1c\\eech-campaign\\target\\weapon-fixture\\combat-timed-scope-511156c1c\\eech-world.exe",
+  "arguments": "R:/d2-evidence/combat-characterization-20261028/timed-aa-probe.lua root=R:/d2-evidence/combat-characterization-20261028/roots/timed-aa-rate150-01 out=R:/d2-evidence/combat-characterization-20261028/out/timed-aa-rate150-01/trace.jsonl warmup=60 frame_ms=100 timed_seconds=20 timed_probe_mode=timed_rate150 case_script=R:/d2-evidence/combat-timed-scope-source-511156c1c/eech-campaign/target/weapon-fixture/combat-timed-scope-511156c1c/lua/combat-case.lua probe_summary=R:/d2-evidence/combat-characterization-20261028/out/timed-aa-rate150-01/probe-summary.jsonl",
+  "root": "R:/d2-evidence/combat-characterization-20261028/roots/timed-aa-rate150-01",
+  "out": "R:/d2-evidence/combat-characterization-20261028/out/timed-aa-rate150-01",
+  "mode": "timed_rate150",
+  "kind": "Focused changed-host AA authority/refusal around unchanged controlled scenario; expected error must match actual reason",
+  "wrapper_sha256": "84c87c680eb789ea8339f8439b32e082fe444bd5d19fb4d02fe453bcbba53f6c",
+  "case_script_sha256": "3de3505a64ed1f994edc21f825d38e9c568acb2310391d9642d2d3ecfeb9e264",
+  "actual_native_exit": 0,
+  "native_pid": 12504,
+  "created_utc": "2026-10-28T08:57:40.2456740Z",
+  "completed_utc": "2026-10-28T09:01:07.8541646Z"
+}

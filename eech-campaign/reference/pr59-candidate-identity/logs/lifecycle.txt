@@ -1,0 +1,7 @@
+boot_twice: PASS
+bad_arguments: PASS
+missing_root: PASS
+missing_campaign: PASS
+no_reuse: PASS
+missing_map: KNOWN DEFECT (unchanged)
+outputs: E:\eech_source_code\.claude\worktrees\agent-a9904988ee5ea2a0f\eech-campaign\target\regression-pack\pr59-candidate\lifecycle

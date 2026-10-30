@@ -1,0 +1,32 @@
+info: downloading 2 components
+RUSTUP_ADD_EXIT=0
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.49s
+     Running tests/host_callbacks.rs (/target/debug/deps/host_callbacks-01e380bfce0df75c)
+
+running 20 tests
+test move_vehicle_refuses_an_unknown_id_a_foreign_pose_and_an_unknown_mode ... ok
+test line_of_sight_round_trips_through_lua_and_refuses_what_it_was_not_asked ... ok
+test a_dependent_carry_round_trips_through_lua_and_refuses_what_the_host_did_not_move ... ok
+test sense_round_trips_through_lua_and_refuses_what_it_was_not_asked ... ok
+test a_failing_host_callback_returns_its_error_to_pcall ... ok
+test the_hosted_helicopter_plan_guide_and_abandon_round_trip_through_lua ... ok
+test the_case_carrier_is_one_that_can_afford_the_plan ... ok
+test the_case_deltas_keep_every_indexed_report_row_apart ... ok
+test the_bridge_witness_never_turns_a_segment_that_is_not_a_number_into_the_automatic_choice ... ok
+test the_bridge_witness_records_a_declared_failure_and_a_bounded_window_of_frames_in_order ... ok
+test the_combat_report_keeps_every_hash_a_string_and_the_script_finds_its_report_module_beside_it ... ok
+test the_case_caller_takes_the_affordable_alternate_class_of_its_role ... ok
+test the_case_caller_follows_the_live_ammunition_when_a_launch_spends_several_rounds ... ok
+test the_bridge_witness_says_so_and_does_nothing_when_no_bridge_meets_the_first_collapse_criterion ... ok
+test aim_round_trips_through_lua_and_refuses_what_it_was_not_asked ... ok
+test the_provider_and_the_controlled_witness_find_the_model_files_beside_them_when_the_binary_runs_them_as_the_main_script ... ok
+test the_bridge_witness_accepts_an_explicit_valid_selector_and_the_edge_values_and_passes_them_on_exactly ... ok
+test the_bridge_summary_counts_a_segment_as_finished_only_from_a_state_that_really_says_so ... ok
+test every_shipped_lua_script_parses_under_the_hosts_lua ... ok
+test the_bridge_witness_refuses_a_malformed_argument_before_anything_is_prepared_booted_run_or_killed ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+CARGO_EXIT=0
+DOCKER_EXIT=0

@@ -1,0 +1,41 @@
+== control (unmutated copies)
+scenarios 6000, events 254979, candidates 94341, collisions 53715, rockets destroyed 1464, weapons in range 11757, effects on the lists 26523, zero radius 424, failures 0
+CONTROL_EXIT=0
+== mutant: in_range_is_inclusive
+scenarios 6000, events 254979, candidates 94341, collisions 53715, rockets destroyed 1464, weapons in range 11757, effects on the lists 26523, zero radius 424, failures 0
+MUTANT in_range_is_inclusive: MISSED
+== mutant: zero_range_counts
+     first difference at event 24: original (2, 5, 430fe56e) new (3, 10, 00000000)
+MUTANT zero_range_counts: CAUGHT (exit 1)
+== mutant: rocket_threshold
+     first difference at event 110: original (2, 81, 4315c40d) new (4, 74, 3ed79217)
+MUTANT rocket_threshold: CAUGHT (exit 1)
+== mutant: rocket_needs_no_flag
+scenarios 5567, events 203230, candidates 78013, collisions 41825, rockets destroyed 469, weapons in range 8954, effects on the lists 20541, zero radius 424, failures 433
+MUTANT rocket_needs_no_flag: CAUGHT (exit 1)
+== mutant: target_not_skipped
+File size limit exceeded (core dumped)
+     first difference at event 47: original (2, 60, 4371779a) new (2, 57, 437a1384)
+MUTANT target_not_skipped: CAUGHT (exit 153)
+== mutant: dead_objects_are_candidates
+File size limit exceeded (core dumped)
+     first difference at event 14: original (2, 28, 4370ec82) new (2, 15, 4360c1da)
+MUTANT dead_objects_are_candidates: CAUGHT (exit 153)
+== mutant: sector_rows_wrong_order
+File size limit exceeded (core dumped)
+     first difference at event 53: original (2, 13, 42a7e5c0) new (2, 42, 42ffc812)
+MUTANT sector_rows_wrong_order: CAUGHT (exit 153)
+== mutant: sector_rect_not_bounded
+File size limit exceeded (core dumped)
+FAIL run 2111: the new path stopped: host aim: host aim asked a blast request for a malformed window (sector -3, 0 after 0)
+MUTANT sector_rect_not_bounded: CAUGHT (exit 153)
+== mutant: weapon_sent_collision
+File size limit exceeded (core dumped)
+FAIL run 953: the paths differ (original 87 events, new 90), capability 40000 warhead 2
+MUTANT weapon_sent_collision: CAUGHT (exit 153)
+== mutant: successor_after_stale_window
+File size limit exceeded (core dumped)
+FAIL run 844: the paths differ (original 199 events, new 37), capability 160000 warhead 9
+MUTANT successor_after_stale_window: CAUGHT (exit 153)
+CAUGHT=9 MISSED=1
+DOCKER_EXIT=1

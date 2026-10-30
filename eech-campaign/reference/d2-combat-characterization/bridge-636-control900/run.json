@@ -1,0 +1,15 @@
+{
+  "status": "completed",
+  "when_utc": "2026-10-28T12:53:50.3442289Z",
+  "binary": "R:\\d2-evidence\\combat-bridge-corrected-source-636ef798a\\eech-campaign\\target\\weapon-fixture\\combat-bridge-corrected-636ef798a\\eech-world.exe",
+  "arguments": "R:/d2-evidence/combat-bridge-corrected-source-636ef798a/eech-campaign/target/weapon-fixture/combat-bridge-corrected-636ef798a/lua/campaign.lua root=R:/d2-evidence/combat-characterization-20261028/roots/bridge-control-01 scenario=lebanon_retail hours=0.25 record_every=10 checkpoint_every=3600 observe_every=60 acmi=R:/d2-evidence/combat-characterization-20261028/out/bridge-control-01/recording.acmi observe=R:/d2-evidence/combat-characterization-20261028/out/bridge-control-01/observations.jsonl metrics=R:/d2-evidence/combat-characterization-20261028/out/bridge-control-01/metrics.json observe_supply=0",
+  "root": "R:/d2-evidence/combat-characterization-20261028/roots/bridge-control-01",
+  "out": "R:/d2-evidence/combat-characterization-20261028/out/bridge-control-01",
+  "kind": "R5 bridge candidate default900 physical-output control; complete retained artifact comparison required, not a combat census or fullpack acceptance",
+  "reference_provenance": "Retained ab-base root provenance inferred; no independent original input verification invented",
+  "capacity": "Lead permits seven native processes on eight physical cores, separated roots; one implementation lane",
+  "actual_native_exit": 0,
+  "native_pid": 24704,
+  "created_utc": "2026-10-28T12:53:50.3583723Z",
+  "completed_utc": "2026-10-28T13:29:53.0555996Z"
+}

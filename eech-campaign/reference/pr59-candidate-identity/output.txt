@@ -1,0 +1,49 @@
+retained tier: artifacts, checkers, reproduction and sensitivity (no retail data) ...
+running the regression (Georgia, Lebanon) and the reference (Lebanon twice) for 3 simulated hours each ...
+PASS - directly protected                     M1.georgia.mechanics
+PASS - baseline-sensitive                     M1.georgia.war
+PASS - directly protected                     M1.lebanon.mechanics
+PASS - directly protected                     M1.lebanon.resupply
+PASS - baseline-sensitive                     M1.lebanon.war
+PASS - directly protected                     M1.lifecycle.one_boot
+PASS - directly protected                     M1.lifecycle.bad_arguments
+PASS - directly protected                     M1.lifecycle.rejected_root
+PASS - directly protected                     M1.lifecycle.fatal_error
+PASS - directly protected                     M1.lifecycle.no_reuse
+PASS - directly protected                     M1.lifecycle.missing_map_crash
+NOT COVERED                                   M1.lifecycle.unverified
+PASS - directly protected                     M1.corrections.S3
+PASS - baseline-sensitive                     M1.corrections.S2_removed
+PASS - baseline-sensitive                     M1.corrections.S1
+PASS - baseline-sensitive                     M1.corrections.portability
+PASS - baseline-sensitive                     M1.corrections.load_time_data
+EVIDENCE ONLY - not automatically checked     M1.corrections.W1
+NOT COVERED                                   M1.corrections.N3
+NOT COVERED                                   M1.corrections.N1_N2
+EVIDENCE ONLY - not automatically checked     M1.corrections.H1
+NOT COVERED                                   M1.corrections.U1
+EVIDENCE ONLY - not automatically checked     M1.corrections.F1
+EVIDENCE ONLY - not automatically checked     M1.corrections.compile_only
+EVIDENCE ONLY - not automatically checked     M1.rebuild
+EVIDENCE ONLY - not automatically checked     M1.kernel
+NOT COVERED                                   M1.longer_runs
+PASS - directly protected                     M2.inputs
+PASS - directly protected                     M2.repeatable
+PASS - directly protected                     M2.tacview_observations
+PASS - directly protected                     M2.unperturbed
+PASS - baseline-sensitive                     M2.reference_reproduced
+PASS - baseline-sensitive                     M2.fidelity_characterised
+EVIDENCE ONLY - not automatically checked     M2.plain_observations
+NOT COVERED                                   M2.captures
+NOT COVERED                                   M2.tacview_visual
+PASS - directly protected                     M3.resupply_loop
+PASS - baseline-sensitive                     M3.resupply_reproduced
+PASS - baseline-sensitive                     M3.feedback
+PASS - baseline-sensitive                     M3.duplicate_crate
+PASS - directly protected                     M3.supply_loss
+PASS - baseline-sensitive                     M3.supply_loss_reproduced
+NOT COVERED                                   M3.adaptive_compensation
+EVIDENCE ONLY - not automatically checked     M3.chdir
+PASS - directly protected                     M4.s3_detected
+EVIDENCE ONLY - not automatically checked: 8; NOT COVERED: 8; PASS - baseline-sensitive: 12; PASS - directly protected: 17
+REGRESSION PACK: PASS (report: target\regression-pack\pr59-candidate\report.md)

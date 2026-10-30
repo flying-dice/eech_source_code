@@ -1,0 +1,201 @@
+{
+  "comparator": "tools/sensor-trace-compare.py",
+  "comparator_sha256": "d5027336248fab28c588483105cbb478c8b555dc0bdf9c411628001de5a21165",
+  "repository_head_when_run": "44a20ab17b1e849d0231a4019295f82d8ea394f3",
+  "python": "3.12.14",
+  "cases": [
+    {
+      "case": "RED control 1: empty files, scope run",
+      "command": [
+        "python",
+        "tools/sensor-trace-compare.py",
+        "empty-a.jsonl",
+        "empty-b.jsonl",
+        "--scope",
+        "run"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: eech-campaign/reference/d2-sensor-detections/controls/comparator-inputs\\empty-a.jsonl: empty, not a trace\n",
+      "ok": true
+    },
+    {
+      "case": "RED control 2: probe snapshots without the final run report, scope probe",
+      "command": [
+        "python",
+        "tools/sensor-trace-compare.py",
+        "incomplete-probe-a.jsonl",
+        "incomplete-probe-b.jsonl",
+        "--scope",
+        "probe"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: eech-campaign/reference/d2-sensor-detections/controls/comparator-inputs\\incomplete-probe-a.jsonl: incomplete, the last event (line 44) is not the terminal run report (event sensor-samples, scope run); a truncated run or probe snapshots alone do not qualify\n",
+      "ok": true
+    },
+    {
+      "case": "incomplete probe snapshots, --skip-samples does not weaken completion",
+      "command": [
+        "python",
+        "tools/sensor-trace-compare.py",
+        "incomplete-probe-a.jsonl",
+        "incomplete-probe-b.jsonl",
+        "--scope",
+        "probe",
+        "--skip-samples"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: eech-campaign/reference/d2-sensor-detections/controls/comparator-inputs\\incomplete-probe-a.jsonl: incomplete, the last event (line 44) is not the terminal run report (event sensor-samples, scope run); a truncated run or probe snapshots alone do not qualify\n",
+      "ok": true
+    },
+    {
+      "case": "complete probe vs no-probe trace, scope run",
+      "command": [
+        "python",
+        "tools/sensor-trace-compare.py",
+        "lebanon-probe.jsonl",
+        "lebanon-noprobe.jsonl",
+        "--scope",
+        "run"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "stdout": "75 events in a, 75 in b, scopes ['run']: 0 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "complete probe trace against itself, scope probe",
+      "command": [
+        "python",
+        "tools/sensor-trace-compare.py",
+        "lebanon-probe.jsonl",
+        "lebanon-probe.jsonl",
+        "--scope",
+        "probe"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "stdout": "182 events in a, 182 in b, scopes ['probe']: 0 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "complete probe trace against itself, default scopes",
+      "command": [
+        "python",
+        "tools/sensor-trace-compare.py",
+        "lebanon-probe.jsonl",
+        "lebanon-probe.jsonl"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "stdout": "257 events in a, 257 in b, scopes ['probe', 'run']: 0 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "complete probe trace against itself, scope probe --skip-samples",
+      "command": [
+        "python",
+        "tools/sensor-trace-compare.py",
+        "lebanon-probe.jsonl",
+        "lebanon-probe.jsonl",
+        "--scope",
+        "probe",
+        "--skip-samples"
+      ],
+      "expected_exit": 0,
+      "actual_exit": 0,
+      "stdout": "110 events in a, 110 in b, scopes ['probe']: 0 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "changed value in a copy (one surface_to_air candidates count + 1), scope run",
+      "command": [
+        "python",
+        "tools/sensor-trace-compare.py",
+        "lebanon-probe.jsonl",
+        "changed-value-run.jsonl",
+        "--scope",
+        "run"
+      ],
+      "expected_exit": 1,
+      "actual_exit": 1,
+      "stdout": "difference at event 11:\n  a: {\"at\": 599.90252685547, \"calls\": 19363, \"candidates\": 2444, \"count_positive_null_group\": 44, \"event\": \"sensor-fn\", \"name\": \"surface_to_air\", \"nonnull\": 93, \"replaced\": 98, \"scanned\": 19363, \"scope\": \"run\", \"target_count_sum\": 220}\n  b: {\"at\": 599.90252685547, \"calls\": 19363, \"candidates\": 2445, \"count_positive_null_group\": 44, \"event\": \"sensor-fn\", \"name\": \"surface_to_air\", \"nonnull\": 93, \"replaced\": 98, \"scanned\": 19363, \"scope\": \"run\", \"target_count_sum\": 220}\n75 events in a, 75 in b, scopes ['run']: 1 differences\n",
+      "stderr": "",
+      "ok": true
+    },
+    {
+      "case": "truncated copy without the terminal event, scope run",
+      "command": [
+        "python",
+        "tools/sensor-trace-compare.py",
+        "lebanon-probe.jsonl",
+        "truncated-no-terminal.jsonl",
+        "--scope",
+        "run"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: eech-campaign/reference/d2-sensor-detections/controls/comparator-inputs/derived\\truncated-no-terminal.jsonl: incomplete, the last event (line 450) is not the terminal run report (event sensor-samples, scope run); a truncated run or probe snapshots alone do not qualify\n",
+      "ok": true
+    },
+    {
+      "case": "malformed line in a copy",
+      "command": [
+        "python",
+        "tools/sensor-trace-compare.py",
+        "lebanon-probe.jsonl",
+        "malformed.jsonl",
+        "--scope",
+        "run"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: eech-campaign/reference/d2-sensor-detections/controls/comparator-inputs/derived\\malformed.jsonl: line 6 is not JSON (Expecting property name enclosed in double quotes: line 1 column 2 (char 1))\n",
+      "ok": true
+    },
+    {
+      "case": "missing file",
+      "command": [
+        "python",
+        "tools/sensor-trace-compare.py",
+        "lebanon-probe.jsonl",
+        "eech-campaign/reference/d2-sensor-detections/controls/comparator-inputs/derived\\does-not-exist.jsonl",
+        "--scope",
+        "run"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: eech-campaign/reference/d2-sensor-detections/controls/comparator-inputs/derived\\does-not-exist.jsonl: cannot read (No such file or directory)\n",
+      "ok": true
+    },
+    {
+      "case": "scope with no selected event (no-probe trace has no probe report)",
+      "command": [
+        "python",
+        "tools/sensor-trace-compare.py",
+        "lebanon-noprobe.jsonl",
+        "lebanon-noprobe.jsonl",
+        "--scope",
+        "probe"
+      ],
+      "expected_exit": 2,
+      "actual_exit": 2,
+      "stdout": "",
+      "stderr": "invalid input: scopes ['probe'] select no events (0 in a, 0 in b); nothing was compared\n",
+      "ok": true
+    }
+  ],
+  "all_ok": true
+}

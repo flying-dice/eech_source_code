@@ -1,0 +1,25 @@
+EEDCS-38 host-owned force creation, initial placement and removal: identities of the final evidence
+accepted base: 8ddce83d (PR96 merge, EEDCS-37 other force lifecycle)
+runtime/production commit: 4cf0bd99266b95ba3acce8d71babb099d507f75a (the runtime source is frozen here; later commits are documentation and evidence only)
+built and tested native head: 5aa6ca5492aec719c228ffdb21bf624f929b5e4e, tree ca67460c5288e203f27f2897ce8bc1a815316d86, 0 dirty build inputs (BUILD-INFO.txt, build.head, build.tree)
+build: one pinned MinGW build, exit 0 (39.83 s), image sha256:bb10e44a20e9c6304b3a318902bcf0f8ec8175c162862240ce25c34bd7e562be, rustc 1.98.1, cargo 1.98.1, gcc 12-posix, Lua 5.1.5, x86_64-pc-windows-gnu release, fresh cache volume
+binaries (BUILD-INFO.txt, pack-report.json):
+  e334e949ff3a683e07998d5d8535fdf5b0e5de6de4e8fea11b2eca3be79184a8  eech_dc.dll
+  e85396e741093282e5450dab5de3c1efa73ee2aaaf59e074cd42daa30e706556  eech-world.exe
+  b224cb2eacdea06fcb7fe273979e660fbef0c1a9c65be53c7be9fc0a4571daca  lua.dll
+  e5c04cc4aeb17d03fd680e95678aa02ac45c58464a8f27425d0923f8b04952b4  lua/campaign.lua
+  16c7fb1b68d8e40f48149195502dee6518d6f66403dde9aefece57630411654a  lua/lifecycle.lua
+  dd28274e374e2698a84c0725e1e5ab3d5a564f13ecc0457bfce765df634d3053  lua/metrics.lua
+  68527ae645ad156de3b2887b8cb905156f7ad470da7735e2db96489fef6bd701  lua/observations.lua
+  pack-report.json lists differs_from_accepted: eech_dc.dll, eech-world.exe, lua.dll, lua/campaign.lua, lua/lifecycle.lua
+reference artifacts (the parent-prepared verify-complete-reference.py, run once and unmodified after the pack; independent-reference-hashes.json; checked 2026-10-22T22:39:39; run 1 == run 2):
+  recording.acmi       117,690,861 bytes  3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b  (equals the retained decompressed bytes of reference/lebanon-3h)
+  observations.jsonl    85,716,447 bytes  da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf  (equals the accepted supply-detail reference/m3-resupply-loop)
+  metrics.json              35,942 bytes  fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587  (JSON values equal the regression baseline; bytes equal after CRLF normalisation; raw bytes are NOT equal, the baseline uses CRLF)
+Lebanon inputs: 1179 files, combined SHA-256 121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09 in both roots (pack-report.md)
+Georgia inputs: 1174 files, combined SHA-256 d373bc4262464da87532b8128d396358f0003bc2e9e51e8fa92cf0a6e2b50de2 (pack-report.md)
+accepted baseline: windows-retail v1 (georgia_retail.json 675960e7..., lebanon_retail.json fc93a1ee...), unchanged
+pack: one run, report written 2026-10-22T23:39:21 (report `when`), exit 0 (pack.exit), 40 of 40 checks PASS; stderr log empty
+pack command: python -I tools\regression-pack.py --georgia E:/eech-runs/roots/georgia --lebanon E:/eech-runs/m2/lebanon-root --lebanon-repeat E:/eech-runs/m2/lebanon-m1-copy --bin <worktree>\eech-campaign\target\force-creation --out <external>\native\pack
+Linux checks (container rust:trixie, liblua5.1-0-dev): clippy 0.1.99 (58cf8f9c35 2026-10-13), rustc/cargo 1.99.1; the clippy component was installed only in a throwaway container. They ran on the runtime source of 4cf0bd99; the later commit 5aa6ca54 changed documentation only.
+Not here, by design: the Tacview recording and observations.jsonl (retail-derived, 117 MB and 86 MB; identified by hash), raw pack traces, the full witness stderr (artwork-substitution notices only).

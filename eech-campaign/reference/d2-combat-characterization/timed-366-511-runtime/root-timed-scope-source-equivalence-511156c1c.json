@@ -1,0 +1,33 @@
+{
+  "when_utc": "2026-10-28T08:32:54.677405+00:00",
+  "before": "366d5591430025173dbbae30c0378c1cf6b08894",
+  "after": "511156c1c9a0cffa37f4364646cb7d9a1d222a3e",
+  "identical_trees": {
+    "aphavoc": {
+      "before": "e0b0a0a6b7350eb22c4e6f075741d225ca1e386a",
+      "after": "e0b0a0a6b7350eb22c4e6f075741d225ca1e386a",
+      "identical": true
+    },
+    "modules": {
+      "before": "cb40c4563825739137c59de394ed92ca9bf8ab9c",
+      "after": "cb40c4563825739137c59de394ed92ca9bf8ab9c",
+      "identical": true
+    },
+    "eech-campaign/crates/eech-world": {
+      "before": "3c7c018589c74e8f7d8dd34c1f43861e75087e2a",
+      "after": "3c7c018589c74e8f7d8dd34c1f43861e75087e2a",
+      "identical": true
+    },
+    "eech-campaign/tools": {
+      "before": "28c9ac18eceeef0f794b2834f76e5a646d1d4fc1",
+      "after": "28c9ac18eceeef0f794b2834f76e5a646d1d4fc1",
+      "identical": true
+    }
+  },
+  "manual_source_scope_review": "independent-timed-fixture-scope-review-511156c1c-20261028.json",
+  "limits": [
+    "All changed executable entrypoint lines are gated fixture code per independent source review; no object identity claimed",
+    "In-flight366natural600/control900 never call cmb_case_state; keep their actual source/run identities, do not relabel511",
+    "Corrected511controlled native acceptance still separate"
+  ]
+}

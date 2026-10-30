@@ -1,0 +1,425 @@
+{
+  "reviewed_utc": "2026-10-28T11:20:11.424937+00:00",
+  "reviewer": "same independent Codex reviewer",
+  "scope": "ONE NEW remaining4healthy+10malformed impacte0 provider evidence and coherent all16 preservation review; reference/none/default/900/bridge/source audits reused, not repeated",
+  "source_before": {
+    "sha": "e0a42825bcfad8280aa861879fdd9a0e561cdda3",
+    "status": "clean"
+  },
+  "source_after": {
+    "sha": "e0a42825bcfad8280aa861879fdd9a0e561cdda3",
+    "status": "clean"
+  },
+  "findings": [],
+  "disposition": "Remaining named models/ten genuine refusals and coherent16case process/preservation evidence closed within explicit fixture scope; not wholeTask46D2/finalshipping acceptance",
+  "queue": {
+    "original_exec": 45583,
+    "recorded_actual_original_outer_exit": 0,
+    "queue_actual_exit": 0,
+    "cases": 16,
+    "all_recorded_driver_native_exits": 0,
+    "one_sequential_native_at_a_time_verified_timestamps": true,
+    "plan_sha256": "a6b23e3123b75458e2dd5652e10065efc98e695b3815e75afd8b05834e4dab31",
+    "queue_sha256": "f5d5d2204179dc50dccc71c1a62f22b76df953c50c110863c01045158bc4d625",
+    "driver_sha256": "cc53095a41422ce6d35963ed25b95ed4b9c1f2f8ff368dec0d422973d9dce38e",
+    "queue_helper_sha256": "ac68b9421d89e72bbe118cbe54dd71737c8457342abcc3dc905749fe03f0be57",
+    "helper_behavior": "Held nativehandle/Hidden/actualexit retained. Plan pins driver and immutablebin; distinct freshoutputs; prelaunch manifest0 each; stops on input/drivernonzero. Scope requires semantic counters/errors, not native0 alone."
+  },
+  "records": [
+    {
+      "name": "impact-provider-reference-01",
+      "mode": "reference",
+      "actual_native_exit": 0,
+      "run_record_sha256": "df9dff2ba5e588ce92ae727b6bbc47fd51c55d5f631895eb2173ea1c043579ec",
+      "summary_sha256": "b89b4c1d957e744ecd13a27d9816fd2d9c7e132469ce6dc02e2093da1a968cd3",
+      "log_sha256": "3cd9faa04093060c754663f05f71a3f8fff7983f8a67c95563d521f46a7cd6b4",
+      "frames": 1801,
+      "earlier_health_writes": 61,
+      "earlier_fatal_answers": 40,
+      "review_disposition": "previously CLOSED reference/impact_none; hash/identity preservation only, semantic audit reused"
+    },
+    {
+      "name": "impact-provider-none-01",
+      "mode": "impact_none",
+      "actual_native_exit": 0,
+      "run_record_sha256": "bbc393471fbb7b20df206b05f694a066bfb8512a2e98571015eb3b786de73d6b",
+      "summary_sha256": "d53e257fdf9a8b15d72a2e0d47d3e747375feed3c9465c7fb573c3fcaa6a7f35",
+      "log_sha256": "2b285c3422d03670139f822648a222f49d1767563a75dba9e26d38365c6595e0",
+      "frames": 1801,
+      "earlier_health_writes": 0,
+      "earlier_fatal_answers": 0,
+      "review_disposition": "previously CLOSED reference/impact_none; hash/identity preservation only, semantic audit reused"
+    },
+    {
+      "name": "impact-provider-own-01",
+      "mode": "impact_own",
+      "actual_native_exit": 0,
+      "run_record_sha256": "295f623d287cf7398867fac037921d44d24ecd9488c7e0c92aa5bbd763318855",
+      "summary_sha256": "d17ea75d5996a66afc757f108ef0c5d32e33237bf7d899914476ea8adcc15c43",
+      "log_sha256": "2325099ddcc8c3047bfd8a56bf9b30215af15c3857e3f55bcb346858cb4c0a1f",
+      "frames": 1801,
+      "earlier_health_writes": 52,
+      "earlier_fatal_answers": 35,
+      "review_disposition": "NEW positive named model activity and changed native effects",
+      "model_counter": {
+        "impact_own_land": 271
+      }
+    },
+    {
+      "name": "impact-provider-blast-small-01",
+      "mode": "blast_small",
+      "actual_native_exit": 0,
+      "run_record_sha256": "666bc912a88ff56934db1aa83cbf5864cd2ce7b6fc4997677ad59b29739cbae0",
+      "summary_sha256": "4d76f8131eb641262434cbe4740c6aa3a116cd77d498c7a962703565abd8b23e",
+      "log_sha256": "e983e74c7ce2f8bb4a04024081b2c2fcbeb4ea874d4f523d2a8144e6cbc7f6e6",
+      "frames": 1801,
+      "earlier_health_writes": 25,
+      "earlier_fatal_answers": 14,
+      "review_disposition": "NEW positive named model activity and changed native effects",
+      "model_counter": {
+        "blast_shrunk": 534
+      }
+    },
+    {
+      "name": "impact-provider-blast-none-01",
+      "mode": "blast_none",
+      "actual_native_exit": 0,
+      "run_record_sha256": "0bc92d0c3de4568fdb67c14f18ee8c7e9eceb5e71ecb35a55af3fa3e5b0443f9",
+      "summary_sha256": "707398bae63c0996558b97b14a68ee6f4f389db362722cd038280e40fa3c0786",
+      "log_sha256": "11afacae41796dddb44f42f1939b24ff45e82c92a8447e45ec8ab123be3ba66f",
+      "frames": 1801,
+      "earlier_health_writes": 0,
+      "earlier_fatal_answers": 0,
+      "review_disposition": "NEW positive named model activity and changed native effects",
+      "model_counter": {
+        "blast_denied": 532
+      }
+    },
+    {
+      "name": "impact-provider-blast-own-01",
+      "mode": "blast_own",
+      "actual_native_exit": 0,
+      "run_record_sha256": "460910db69ebbff44fb563465ae3eaee8b106871e8b140923699f139fb880e43",
+      "summary_sha256": "ac88c9eb69b63b58fac6a20298d0ca2bd88a68a393e0e683827a39528e03989b",
+      "log_sha256": "351c23b499a3164f08a0dade323c6de0fec2ad26087514bb1f6242adad24c1b2",
+      "frames": 1801,
+      "earlier_health_writes": 19,
+      "earlier_fatal_answers": 12,
+      "review_disposition": "NEW positive named model activity and changed native effects",
+      "model_counter": {
+        "blast_own": 530
+      }
+    },
+    {
+      "name": "impact-provider-bad-impact-crater-01",
+      "mode": "bad_impact_crater",
+      "actual_native_exit": 0,
+      "run_record_sha256": "ae740508f1c6aaf34eff4cb08165548e01407a22ef69b1bfb417f0a0d71a5180",
+      "summary_sha256": "8b22b27e810e1aea8fc28dd0cef4b4455737804d5b66bf782b64271f3221ecaa",
+      "log_sha256": "37c03c3f756a260edc84fa36d9c1ae97451c2f274b8b07fe705fcffae95ece43",
+      "frames": 665,
+      "earlier_health_writes": 0,
+      "earlier_fatal_answers": 0,
+      "review_disposition": "NEW genuine primary refusal caught by original provider harness; native0 not healthy completion",
+      "primary_refusal": "runtime error: eech: EECH fatal error: host aim: host aim answered an impact request (kill code 3) with an inconsistent plan: invalid 0, crater 1, direct hit 0, 1 blasts, exclusion 0"
+    },
+    {
+      "name": "impact-provider-bad-impact-draw-01",
+      "mode": "bad_impact_draw",
+      "actual_native_exit": 0,
+      "run_record_sha256": "920fbd668d0aecc52b35ea695bb913f91e79e4f4008afd4b8fadab7cd81d7fad",
+      "summary_sha256": "45c5fd2c182bbfa426ce1465a9c71415caea53e9acb8343b19a53a34e6a4793e",
+      "log_sha256": "6febaa3f2d86fddfd9be396427f298cbf281748aaeef38a0ae8c25cb32355867",
+      "frames": 665,
+      "earlier_health_writes": 0,
+      "earlier_fatal_answers": 0,
+      "review_disposition": "NEW genuine primary refusal caught by original provider harness; native0 not healthy completion",
+      "primary_refusal": "runtime error: eech: EECH fatal error: host aim: host aim failed for a impact request: aim result need_draw answers a request that cannot take a draw"
+    },
+    {
+      "name": "impact-provider-bad-impact-blasts-01",
+      "mode": "bad_impact_blasts",
+      "actual_native_exit": 0,
+      "run_record_sha256": "08f2a44440340b0466dafbcb34cd3bf1947eb47c25c56e681d4b23e9124082b3",
+      "summary_sha256": "9f1bbca9662d353639bd931e40205fce6c3a0fbb6188e7f0b20d5b84f9136d0b",
+      "log_sha256": "f71a8432be4cfa4712447c7fc94410ff09dc9bc8e526072206f1d35153a37a7d",
+      "frames": 665,
+      "earlier_health_writes": 0,
+      "earlier_fatal_answers": 0,
+      "review_disposition": "NEW genuine primary refusal caught by original provider harness; native0 not healthy completion",
+      "primary_refusal": "runtime error: eech: EECH fatal error: host aim: host aim answered an impact request (kill code 3) with an inconsistent plan: invalid 0, crater 1, direct hit 0, 3 blasts, exclusion 0"
+    },
+    {
+      "name": "impact-provider-bad-blast-draw-01",
+      "mode": "bad_blast_draw",
+      "actual_native_exit": 0,
+      "run_record_sha256": "8fd25b6d66223615c005c418445dfdd8fd6c2e5f7027ccec98b197ecd8a92e52",
+      "summary_sha256": "7635a5256773dd02250890630f5a62a5ceb35b6294e2ce1ac6539591c0234409",
+      "log_sha256": "0eecd85bc505dec9500f0b5bf7f9e58c3de9f6f707f70e461e39c785a5f80aa2",
+      "frames": 665,
+      "earlier_health_writes": 0,
+      "earlier_fatal_answers": 0,
+      "review_disposition": "NEW genuine primary refusal caught by original provider harness; native0 not healthy completion",
+      "primary_refusal": "runtime error: eech: EECH fatal error: host aim: host aim failed for a blast request: aim result need_draw answers a request that cannot take a draw"
+    },
+    {
+      "name": "impact-provider-bad-blast-sector-01",
+      "mode": "bad_blast_sector",
+      "actual_native_exit": 0,
+      "run_record_sha256": "e59c1ca8864c09aef3042793fdba6205127941fd1eb108f00884a72003381cbd",
+      "summary_sha256": "3b4cfd4e51cf2bdca2489520f68d7f5fee83227493691b770dabd434ae42d211",
+      "log_sha256": "029670c4ef254f52c3f19c092c3e6643cfc0dc41bc3e5acae00f2ceef97084d9",
+      "frames": 665,
+      "earlier_health_writes": 0,
+      "earlier_fatal_answers": 0,
+      "review_disposition": "NEW genuine primary refusal caught by original provider harness; native0 not healthy completion",
+      "primary_refusal": "runtime error: eech: EECH fatal error: host aim: host aim asked a blast request for a malformed window (sector 38, 46 after 0)"
+    },
+    {
+      "name": "impact-provider-bad-blast-radius-01",
+      "mode": "bad_blast_radius",
+      "actual_native_exit": 0,
+      "run_record_sha256": "031d74dc835e9adbdcb3ca90528d28121698ead8ec3b174596771fbe62aaa5df",
+      "summary_sha256": "295703d50b10a6923e7a4b53884e5a27c186fdfc8bac610d1d5e3dab3c1b5ec0",
+      "log_sha256": "a322913555fb7f7f801c758d347c9f0eaf5e6166bc60c8c64703328e968d2532",
+      "frames": 665,
+      "earlier_health_writes": 0,
+      "earlier_fatal_answers": 0,
+      "review_disposition": "NEW genuine primary refusal caught by original provider harness; native0 not healthy completion",
+      "primary_refusal": "runtime error: eech: EECH fatal error: host aim: host aim changed the damage radius of a blast from 39.3446 to 40.3446"
+    },
+    {
+      "name": "impact-provider-bad-blast-repeat-01",
+      "mode": "bad_blast_repeat",
+      "actual_native_exit": 0,
+      "run_record_sha256": "35b968d9fd7458b19a7cdc6c41017dbf672c69b274c7c97bf8e1ebbee59b509d",
+      "summary_sha256": "37ae8fcf01ef4f3c73f88e719fae35b24c8077fcb9f454fe84e3e3fedc6701d0",
+      "log_sha256": "bb6cb66bfd3035bf321a1750cb48ba704d2deb77761bd664426e5c15a2c070c8",
+      "frames": 872,
+      "earlier_health_writes": 10,
+      "earlier_fatal_answers": 1,
+      "review_disposition": "NEW genuine primary refusal caught by original provider harness; native0 not healthy completion",
+      "primary_refusal": "runtime error: eech: EECH fatal error: host aim: host aim asked a blast request for the start of sector 2, 12 again"
+    },
+    {
+      "name": "impact-provider-bad-blast-handle-01",
+      "mode": "bad_blast_handle",
+      "actual_native_exit": 0,
+      "run_record_sha256": "3e42b0d61012524031a8c96d4bd76d2682d96b7a962c095907ff850648cfb57d",
+      "summary_sha256": "42f7a8626211e7844af6006b796eecd1cc831521475397714140045e9ffba020",
+      "log_sha256": "5ad6d6ec74966b36fface75ad8f4674039402143a0d2e59d860cfba7884ede2d",
+      "frames": 817,
+      "earlier_health_writes": 0,
+      "earlier_fatal_answers": 0,
+      "review_disposition": "NEW genuine primary refusal caught by original provider harness; native0 not healthy completion",
+      "primary_refusal": "runtime error: eech: EECH fatal error: host aim: host aim reached object 99999, which is not in the window it was given"
+    },
+    {
+      "name": "impact-provider-bad-blast-modifier-01",
+      "mode": "bad_blast_modifier",
+      "actual_native_exit": 0,
+      "run_record_sha256": "0eef15c1d33c6f9499e1d8938332eed2e7e95995ece29a565a96f442c71e7de5",
+      "summary_sha256": "3aae28bfc477ced4338bb24b7a0210a45ac5893b57d0b69ff2cda18c924596b5",
+      "log_sha256": "cced0d2c108a9f2ac5e68f5f294107adc3318603515e81ad2828f8f7aa8fd01f",
+      "frames": 817,
+      "earlier_health_writes": 0,
+      "earlier_fatal_answers": 0,
+      "review_disposition": "NEW genuine primary refusal caught by original provider harness; native0 not healthy completion",
+      "primary_refusal": "runtime error: eech: EECH fatal error: host aim: host aim answered a blast request with action 1, object 115 and modifier 2"
+    },
+    {
+      "name": "impact-provider-bad-blast-rocket-01",
+      "mode": "bad_blast_rocket",
+      "actual_native_exit": 0,
+      "run_record_sha256": "3db07d99dbe88e031bbfdf17a235b65eeaa3fa4afe84b6d0b8a2bcef5f9e3607",
+      "summary_sha256": "3918c3a508be95b4399ab3fb00f3b16b0da32a3d076c8ecbf2a10883162ea8e0",
+      "log_sha256": "28277f72193b0b5e33a4e882bbd03ffc41c7046a38a091955d7d2c150a6af7ec",
+      "frames": 817,
+      "earlier_health_writes": 0,
+      "earlier_fatal_answers": 0,
+      "review_disposition": "NEW genuine primary refusal caught by original provider harness; native0 not healthy completion",
+      "primary_refusal": "runtime error: eech: EECH fatal error: host aim: host aim destroyed object 115 as a rocket, which the campaign does not know as one"
+    }
+  ],
+  "NEW_model_profiles": {
+    "impact_own": {
+      "impact_own_land": 271,
+      "blast_begun": 271,
+      "blast_collisions": 53,
+      "damage_written": 52,
+      "damage_fatal": 35,
+      "losses": 4
+    },
+    "blast_small": {
+      "blast_shrunk": 534,
+      "blast_begun": 534,
+      "blast_collisions": 25,
+      "damage_written": 25,
+      "damage_fatal": 14,
+      "losses": 2
+    },
+    "blast_none": {
+      "blast_denied": 532,
+      "blast_begun": 532,
+      "blast_collisions": 0,
+      "damage_written": 0,
+      "damage_fatal": 0,
+      "losses": 0
+    },
+    "blast_own": {
+      "blast_own": 530,
+      "blast_begun": 530,
+      "blast_collisions": 19,
+      "damage_written": 19,
+      "damage_fatal": 12,
+      "losses": 4
+    }
+  },
+  "prior_reference_none_review_sha256": "33dff4e8bfb9b90b2a6950cb0c3dc7c0f043c06471afd88f16d32f3f9a5f502f",
+  "counter_scope": "Actual model counters positive and core health actions/outcomes change. impact_own271ownland uses272totalIMPACTqueries and53blastcollisions/52writes; these counts must not be conflated. Model changes also alter subsequent sharedsample consumption/worldfeedback. losses is sampled fourmobilekindloss, not campaign total. No fixedRNG/defaultbyte equality claim.",
+  "refusal_scope": "Ten specificprimaryhostaimerrors present in structuredfailure AND native debug_fatal output, not poison-only/untriggered. Frames665/817/872 early by design; original catcher returnsnative0 for expectederror. bad_blast_repeat records10earlierhealthywrites/fatal1 before repeated-start refusal. Radius probe reaches changed-radius guard, not malformedecho. No validrocketinterception coverage inferred from nonrocketnegative.",
+  "preservation": {
+    "roots": [
+      {
+        "name": "impact-provider-reference-01",
+        "independently_rehashed_postinputs": 1179,
+        "prelaunch_recorded_exit": 0,
+        "post_recorded_exit": 0,
+        "prelaunch_log_sha256": "d121d7ea943417f17adcb634f4d2db4b70ac423b95442e2af2b4007802ef8965",
+        "post_log_sha256": "9f0563fda0dd685e4fa3afc6ca68ecc27d58ef017fb7239ff068c1344bea4f8a"
+      },
+      {
+        "name": "impact-provider-none-01",
+        "independently_rehashed_postinputs": 1179,
+        "prelaunch_recorded_exit": 0,
+        "post_recorded_exit": 0,
+        "prelaunch_log_sha256": "962e0c4625019223cc667b992f8448d0483544c46cd5a9dcbb784ce615a60a8c",
+        "post_log_sha256": "78d76f2c68422c208ad2fd4c09a069c8d01500be1248e97de01ac0691e0c698c"
+      },
+      {
+        "name": "impact-provider-own-01",
+        "independently_rehashed_postinputs": 1179,
+        "prelaunch_recorded_exit": 0,
+        "post_recorded_exit": 0,
+        "prelaunch_log_sha256": "140467c687b1d1afa165d091e05b9790b30527db91d209991af0d1d0266a32b2",
+        "post_log_sha256": "6f6eeae5160e211d0f8aeeab6f51774578431cd11044c1afb3103c1dc082deeb"
+      },
+      {
+        "name": "impact-provider-blast-small-01",
+        "independently_rehashed_postinputs": 1179,
+        "prelaunch_recorded_exit": 0,
+        "post_recorded_exit": 0,
+        "prelaunch_log_sha256": "4e3f5e94b2bda34f7dd98b399b5db469aaf011098aa4df87cba22b8eb4314216",
+        "post_log_sha256": "ad0e07736f1bcfd77b85204f8fd37e0236f70f37c25cf7d1bbec9e9fab286ad7"
+      },
+      {
+        "name": "impact-provider-blast-none-01",
+        "independently_rehashed_postinputs": 1179,
+        "prelaunch_recorded_exit": 0,
+        "post_recorded_exit": 0,
+        "prelaunch_log_sha256": "cf2d3a64395b97fadf5b26cb43e2bdc2ac6deafd2d79a08819e6eff82ec8f6a5",
+        "post_log_sha256": "ef62944ed9c6cc46f7aea7225fabdba63b2e6336163c6a64a1c7a575cef791f2"
+      },
+      {
+        "name": "impact-provider-blast-own-01",
+        "independently_rehashed_postinputs": 1179,
+        "prelaunch_recorded_exit": 0,
+        "post_recorded_exit": 0,
+        "prelaunch_log_sha256": "c197648e778c72f0f961b7da34c99e14c758b454a2192976dcf2170b32c0d473",
+        "post_log_sha256": "103b6a3ce0bc115b166711c878430705a665dae7c5f3f39821a5e0256fcb5ab6"
+      },
+      {
+        "name": "impact-provider-bad-impact-crater-01",
+        "independently_rehashed_postinputs": 1179,
+        "prelaunch_recorded_exit": 0,
+        "post_recorded_exit": 0,
+        "prelaunch_log_sha256": "197a415e5edc5165d00fe3925795b773ebf74fe6bfa23d64290ec5666f27aeab",
+        "post_log_sha256": "0408bb29b45a9a2fa4f9639b425e370d9935f4e7e9774811de5b8ba63fa8eade"
+      },
+      {
+        "name": "impact-provider-bad-impact-draw-01",
+        "independently_rehashed_postinputs": 1179,
+        "prelaunch_recorded_exit": 0,
+        "post_recorded_exit": 0,
+        "prelaunch_log_sha256": "e859562926be6ab9c3b76c1f4a7c97345da3927f33e2746bbcc2db1444bf5d8d",
+        "post_log_sha256": "5fb1500e53cd7894e8a0595b2932231c77b1b0e7f5361fd481db6c0ca162dba0"
+      },
+      {
+        "name": "impact-provider-bad-impact-blasts-01",
+        "independently_rehashed_postinputs": 1179,
+        "prelaunch_recorded_exit": 0,
+        "post_recorded_exit": 0,
+        "prelaunch_log_sha256": "af67aa0b4fca54dff9648e317fc90435ef2b53a1c7394e085c5bfaada5ab2ef9",
+        "post_log_sha256": "faa3630e9b3129483cfe3d96f3f48a8572cb54ae9ba9822f8a6877636c2df315"
+      },
+      {
+        "name": "impact-provider-bad-blast-draw-01",
+        "independently_rehashed_postinputs": 1179,
+        "prelaunch_recorded_exit": 0,
+        "post_recorded_exit": 0,
+        "prelaunch_log_sha256": "15ef56a2e5fb4911a2b5f49f2cb55604cb9bed917fc5049131f864cab5ed2068",
+        "post_log_sha256": "248f446d16000bdd6adf387632b99a11f7cebd83d925c05c8d37a4147dd0396e"
+      },
+      {
+        "name": "impact-provider-bad-blast-sector-01",
+        "independently_rehashed_postinputs": 1179,
+        "prelaunch_recorded_exit": 0,
+        "post_recorded_exit": 0,
+        "prelaunch_log_sha256": "4c1a6dbd54e305c54775da2037cc43184409809f5f725ee496178d1f323139da",
+        "post_log_sha256": "b11cc5ac9b3ace5a06b2d8af0187760ea3ab7330d695300dd7ceb33aa55d804f"
+      },
+      {
+        "name": "impact-provider-bad-blast-radius-01",
+        "independently_rehashed_postinputs": 1179,
+        "prelaunch_recorded_exit": 0,
+        "post_recorded_exit": 0,
+        "prelaunch_log_sha256": "b40924fd31f814446cbb172a5282f96d98585261cfa830a93eed348aa4845d5f",
+        "post_log_sha256": "655f90c13a23c03a15321ed0f862f9c71d28826f242dd1e2c50eb4b7a929458f"
+      },
+      {
+        "name": "impact-provider-bad-blast-repeat-01",
+        "independently_rehashed_postinputs": 1179,
+        "prelaunch_recorded_exit": 0,
+        "post_recorded_exit": 0,
+        "prelaunch_log_sha256": "9fa5b20b76d281cd470cc4d5e430148879cb7fb2411c8089741d2f1abb37eade",
+        "post_log_sha256": "8cda77b5a63111d31dd149a66722422d501a6d524491e48ca476b4ceb347dca0"
+      },
+      {
+        "name": "impact-provider-bad-blast-handle-01",
+        "independently_rehashed_postinputs": 1179,
+        "prelaunch_recorded_exit": 0,
+        "post_recorded_exit": 0,
+        "prelaunch_log_sha256": "296a14746477c4159fd238453a6077d776f9ba7d3fa639478db08a3064628e00",
+        "post_log_sha256": "ab5c8101e14d383dea9a7eb6c14f4ad5b2791f8445549e1f0da910e4cae39be1"
+      },
+      {
+        "name": "impact-provider-bad-blast-modifier-01",
+        "independently_rehashed_postinputs": 1179,
+        "prelaunch_recorded_exit": 0,
+        "post_recorded_exit": 0,
+        "prelaunch_log_sha256": "f6545c0f6b9ac4ddb4644f7046da682ad131e5453f4e3739be703c8220365cb8",
+        "post_log_sha256": "64965cb4c0fe73f474e2b915622bf158b8325ce5be6829b0f1326e8289a7e655"
+      },
+      {
+        "name": "impact-provider-bad-blast-rocket-01",
+        "independently_rehashed_postinputs": 1179,
+        "prelaunch_recorded_exit": 0,
+        "post_recorded_exit": 0,
+        "prelaunch_log_sha256": "dbbfa39ede8268df8a97a6a9e2987e0095ea424e9b008fdad34115b211b299f7",
+        "post_log_sha256": "9391c16b39264b997542575f477b278abcc35736c6be0887266b26b605adbb71"
+      }
+    ],
+    "exports_independently_hashed": 40,
+    "BUILDINFO_sha256": "3c3f23119bda091f16fb433c155afc64fa84c462bf0a2c4c485f47e6f00a2821",
+    "postinputproof_sha256": "29815ef8f87dc7577246e930f9d2f142eae5d7ba0b5461af0c598f61b9145a67",
+    "postbuildproof_sha256": "6f172d20332d28eee21955a10eec8f047f1d6df301976122aa5c69055e391268",
+    "completionproof_sha256": "625a951817cf26d00c8ac51ad9d4dd5552cfc3f79050d299e5e0b3abd4ee4301"
+  },
+  "limits": [
+    "No unchanged source or previously closed native scopes re-reviewed; no agents/edits/builds/tests/native launches.",
+    "Native0 in malformed cases is expectederrorcatcher completion, not1801healthyframes; genuine primaryerrors required and verified.",
+    "No player/MP/client/all13family/validrocketinterception/wholeD2 inference.",
+    "Fixturecohort cannot replace final ordinaryshipping40/all8/post3/currentCI/review/normalmerge.",
+    "R5implementation/R3persistentstructureidentity/reportcorrelation/physicalreports/wholeD2scope audit remain."
+  ]
+}
