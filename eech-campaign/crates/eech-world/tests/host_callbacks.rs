@@ -2469,7 +2469,7 @@ fn the_environment_driver_refuses_every_report_that_is_not_the_fixtures_protocol
     ];
     for (mutation, group, index, says) in cases {
         let stand_in = EnvStandIn {
-            mutation: *mutation,
+            mutation,
             group: *group,
             index: *index,
             ..EnvStandIn::WELL_FORMED
