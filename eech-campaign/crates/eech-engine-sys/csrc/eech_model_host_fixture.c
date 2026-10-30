@@ -33,6 +33,7 @@
 struct campaign_model_counters
 {
 	long catalogue, scene, triangle, found, end, absent, bounds_reads, bounds_without_lines_reads, radius_reads;
+	long presence_checked, presence_mismatches;
 };
 
 extern struct campaign_model_counters campaign_model_counts;
@@ -54,9 +55,11 @@ static void bounds_text (char *buffer, size_t capacity, const struct OBJECT_3D_B
 int eech_model_host_counters_run (char *text, int capacity)
 {
 	int n = snprintf (text, (size_t) capacity,
-		"model-host catalogue=%ld scene=%ld triangle=%ld found=%ld end=%ld absent=%ld bounds_reads=%ld bounds_without_lines_reads=%ld radius_reads=%ld\n",
+		"model-host catalogue=%ld scene=%ld triangle=%ld found=%ld end=%ld absent=%ld bounds_reads=%ld bounds_without_lines_reads=%ld radius_reads=%ld"
+		" presence_checked=%ld presence_mismatches=%ld\n",
 		campaign_model_counts.catalogue, campaign_model_counts.scene, campaign_model_counts.triangle, campaign_model_counts.found, campaign_model_counts.end,
-		campaign_model_counts.absent, campaign_model_counts.bounds_reads, campaign_model_counts.bounds_without_lines_reads, campaign_model_counts.radius_reads);
+		campaign_model_counts.absent, campaign_model_counts.bounds_reads, campaign_model_counts.bounds_without_lines_reads, campaign_model_counts.radius_reads,
+		campaign_model_counts.presence_checked, campaign_model_counts.presence_mismatches);
 
 	return ((n < 0) || (n >= capacity)) ? 1 : 0;
 }

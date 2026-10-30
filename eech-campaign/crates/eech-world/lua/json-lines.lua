@@ -24,7 +24,7 @@ local function value (v)
 		return tostring (v)
 	elseif kind == "number" then
 		if v ~= v or v == math.huge or v == -math.huge then error ("json-lines: a non-finite number cannot be written", 0) end
-		if v == math.floor (v) and math.abs (v) < 2 ^ 53 then return string.format ("%d", v) end
+		if v == math.floor (v) and math.abs (v) < 2 ^ 53 then return string.format ("%.0f", v) end
 		return string.format ("%.17g", v)
 	end
 	error ("json-lines: a " .. kind .. " cannot be written", 0)

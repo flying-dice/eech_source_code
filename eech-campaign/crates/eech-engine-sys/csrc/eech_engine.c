@@ -82,7 +82,7 @@ static enum engine_operation operation;
 	campaign_model_host model_host; \
 	model_host.model = entry_host ? entry_host->model : NULL; \
 	model_host.user = entry_host ? entry_host->user : NULL; \
-	/* the model host is installed by the first entry that carries one and kept for the process: LEAVE does not clear it (mb_hostmodel.h) */ \
+	/* the model callback is refreshed by every entry that carries one and kept for the process (a NULL entry leaves it); the entry's user pointer is never retained: LEAVE does not clear it (mb_hostmodel.h) */ \
 	campaign_model_set_host (&model_host); \
 	campaign_roster_set_host (entry_host ? &roster_host : NULL); \
 	campaign_supply_arrival_set_host (entry_host ? &arrival_host : NULL); \

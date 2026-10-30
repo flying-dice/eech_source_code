@@ -1,3 +1,14 @@
+# D3 source checkpoint — review corrections authored, validation pending (30 October 2026)
+
+The existing Sonnet5.5 High correction process22552/tool10026 completed with
+actual exit0 at03:31:13UTC and has been collected. Six P2 and two P3 have proposed
+source corrections and prepared controls. Nothing in this correction batch has
+been built, run or independently reviewed. User-requested Git checkpoints preserve
+partial work and final edits; they are not acceptance. Retain the existing Task47
+shipping run, closed model conformance evidence, inputs and baseline tolerances.
+Next: validate the final changed source and actual public path, then one independent
+delta review. Task50/D3 remain In Progress; physical dependencies remain below.
+
 # D3 model conformance — all 828 present retail models match; production handoff remains open (30 October 2026)
 
 Tested original fixture `debf965cbff9346a2ada3e2cfb6691b572dba059` closes the surface-provenance P2 (source review SHA256873b66785ea6111ed97bf0f38ffb3dade62ef32b1bc2c64b7142d90fb6451740). Windows build0/dirty0/image941a6d410417487598118a998645b731523a058ac27b34e645464562e9c27208; Linux fmt/actual Rust model_walk1PASS and69 synthetic expectations pass. Original numeric bodies, hostf9 kernel and closed309 driver are unchanged.
@@ -9,6 +20,26 @@ Twelve bounded batches additionally measure the remaining763 present models (178
 Both Root checker failures are retained as actual1 after native/input stages0: absent rows omit collision fields, and model-tri scene context comes from its header. Separate read-only recoveries0 were independently reviewed; no natives repeated. The default-handler sanitizer anomaly was reproduced by a minimal program containing no EECH code; exact runtime cause remains unresolved, no blanket sanitizer pass.
 
 Production model queries/loading remain in EECH_DC. Next is the public host/native model authority/refusal handoff, with required physical collision solvers and hierarchy/viewpoint/device/muzzle/target-point services also leaving the DLL within D3. Any intermediate accessor handoff is not the final campaign boundary. Campaign shape choice, targets, policy and consequences stay core. Task47 shipping115 continues in its original processes; full40/eightcompleteartifacts/current acceptance/normalmerge remain pending. Task50/D3 stay In Progress; D4/D5 have not started. The source-only checkpoints below are historical.
+
+# Current D3 correction — EEDCS-50 public model handoff, the six P2 groups and two P3 of `de2c5b3c1` (30 October 2026): SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED
+
+Frozen `de2c5b3c1` actual validation (valid within its scope, not discharging the findings): Windows shipping compile 0 (all 46 exports rehashed), Linux fmt and strict affected Clippy 0, 408 tests pass. The one combined review
+(`independent-model-public-handoff-review-de2c5b3c1-20261030.json`) is CHANGES_REQUIRED: six P2 groups, two P3. New retail handoff / authority / native-C-fixture runs and the C-generated synthetic campaign boot remain NOT RUN / HELD. The `model_store`
+synthetic provider tests are not evidence that Core `prepare_installation` and bootstrap work with the host store.
+
+Corrected in source (details: `docs/m5-model-host-authority.md`): (1) **public identity**: the SCENE reply is `name` (the compiled-name echo), `loaded`, `collider`, radius and bounds; the legacy loader's main/collision object numbers are no longer sent, asked for or compared by
+the campaign (the reference adapter adds them as `reference_main/collision`, ignored; the diagnostic build only COUNTS presence differences); `ABSENT`/`END`/no-scene/zeroed-null-scene stay distinct. (2) **exact Lua numbers**: the provider's answer is read by a Lua bridge, never as `LuaValue`s, one read per field, raw
+type checked, 17-digit text (tiny, subnormal, -0 exact) narrowed by `nearest_f32`; whole numbers and requests are checked in Lua too (`1e-20` is not 0). (3) **native contradiction**: `FOUND` for a scene declared without a collider (or not loaded) stops the engine before any caller word is written, like `END`/`ABSENT`;
+control `bad_found_declared_absent`. (4) **bounded exact lists**: a table holds exactly 1..N and nothing else (nothing at N+1, no other key), a text is exactly `11N-1` bytes, filled token by token, nothing collected. (5) **finite witness**: `model-authority.lua` validates every argument strictly (frame_ms 1..10000, decimal
+seconds up to 86400, at most 1000000 frames, bounded sweeps/seed/probe lists) before output or boot, checks clock progress, and fails on any requested probe that is refused, missing or for another scene or on a requested sweep that cannot be made; `UNREACHED` kept. (6) **strict JSON**: `json-lines.lua`
+(same encoder as `model-host-compare.lua`, every write/flush/close checked, existing outputs refused) is used by both new scripts. P3: the lifecycle is documented and enforced as it is (refresh on every non-NULL entry, `user` never retained, called with NULL; `eech_engine.c` comment reworded byte-safely); the
+authority counters are named `reference_*` (before a rewrite), `replied_*` (what the provider returned) and `native_counters` (accepted by C).
+
+Controls PREPARED, NOT RUN: the eech-dc bridge unit tests (numbers, text, extras, holes, stateful getters read once, under round-toward-zero via the new `fpu-test-support` test feature), the eech-engine crossing tests (names), the `model_store.rs` provider and witness-script tests (strict JSON round trip, 37 malformed
+arguments, healthy / refused / mismatched probes, stuck clock, lost output) with a stand-in engine, and the native `model-authority.lua` modes. Files: `aphavoc/.../mb_hostmodel.{h,c}`, `csrc/{eech_engine.h,eech_engine.c (one comment hunk), eech_model_host_fixture.c, eech_fpu_test.c}`, `build/main.rs`, `src/lib.rs` and `Cargo.toml` of
+engine-sys / engine / dc, `eech-dc/src/module.rs`, `eech-world/src/model_host.rs`, `eech-world/lua/{json-lines,json-lines-check,model-authority,model-provider-check}.lua`, `eech-world/tests/model_store.rs`, the doc and this file. Unchanged: the f9 store, parser and `model_step.c`, the numeric kernel, the closed 309 driver.
+Remaining actual uncertainty: nothing here has been compiled; whether the stand-in tests' Lua details (Lua 5.1 only: no `\x` escapes, `%z`) behave as read; whether the synthetic installation `prepare_installation` writes is accepted by `ModelStore::load`; the Lua provider's cost in a sweep; whether scene names agree for every scene index on the three roots (the boot check is strict: a
+disagreement is a genuine dependency to fix, not to suppress). Physical solvers, hierarchy, route data, viewpoints, devices, muzzles and target points still leave Core within D3, not D5. No Git, build, test or native action was taken.
 
 # Current D3 handoff — EEDCS-50 host authority over the collision-model queries (30 October 2026): SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED
 
