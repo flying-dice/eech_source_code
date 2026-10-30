@@ -1,3 +1,22 @@
+# D3 commit/push checkpoint — original backing source preserved (30 October 2026)
+
+EEDCS-50 / PR110 source checkpoint `874aa5ae6` on `codex/d3-model-geometry`
+contains feature-only original loader backing observation and a bounded integer
+read verifier, including the pre-build capacity and 0/1-point stepping corrections.
+Both Sonnet author processes finished with exit 0. Formatting and diff checks
+passed; the new source remains unbuilt, unrun and independently unreviewed.
+The 44 prepared verifier expectations have not executed. All three fresh private
+roots passed repository input-manifest checks with exit 0; no new native probe
+has used them. Independent safety review remains a gate before newly enabled
+original fixture/accessor execution. Original numeric accessor bodies, accepted
+baselines and tolerances are unchanged. No new Tacview or production claim.
+
+The prepared host-model component review at `f9c6a1e4c` remains closed with its
+previous evidence. Physical model loading/queries remain in EECH_DC. Task50 and
+D3 remain In Progress; the existing Task47 shipping run was not restarted or
+interrupted by this checkpoint. Retail data, recordings and build caches remain
+local. D4/D5 have not started.
+
 # D3 checkpoint — prepared model component review closed; backing instrumentation active (30 October 2026)
 
 EEDCS-50 / PR110 prepared host-model component sourcef9c6a1e4c has no open
