@@ -142,6 +142,11 @@ static void set_local_vec3d (entity *en, vec3d_types type, vec3d *v)
 			break;
 		}
 	}
+#ifdef EECH_CAMPAIGN_HOST_ENV
+	// the physical fields of the record are a read-only MIRROR of the host's field (ss_hostenv.h): a write through this setter (the pack, the debug events, a test) is pushed to the host
+	campaign_env_import ((struct SESSION *) raw);
+#endif
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

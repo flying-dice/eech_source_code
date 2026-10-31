@@ -151,6 +151,7 @@ fn main() {
         .define("EECH_CAMPAIGN_HOST_MOVEMENT", None)
         .define("EECH_CAMPAIGN_HOST_LOS", None)
         .define("EECH_CAMPAIGN_HOST_TERRAIN", None)
+        .define("EECH_CAMPAIGN_HOST_ENV", None)
         .opt_level_str(&opt)
         .debug(true)
         .pic(true)
@@ -187,6 +188,12 @@ fn main() {
     }
     if env::var_os("CARGO_FEATURE_WEAPON_FIXTURE").is_some() {
         build.define("EECH_WEAPON_FIXTURE", None);
+    }
+    if env::var_os("CARGO_FEATURE_ENV_FIXTURE").is_some() {
+        build.define("EECH_ENV_FIXTURE", None);
+    }
+    if env::var_os("CARGO_FEATURE_ENV_OBSERVER").is_some() {
+        build.define("EECH_ENV_OBSERVER", None);
     }
     if windows {
         build.flag("-include").flag(manifest.join("csrc/eech_win32_names.h").to_str().unwrap());

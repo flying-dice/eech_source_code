@@ -1166,6 +1166,95 @@ pub type eech_terrain_callback = unsafe extern "C" fn(
     user: *mut c_void,
 ) -> c_int;
 
+/// Host-owned weather and wind field (aphavoc/.../ss_hostenv.h): the counts of the field's floats and integers, the error buffer, the draws of an initialisation and the operations.
+pub const EECH_ENV_FLOATS: usize = 23;
+pub const EECH_ENV_INTS: usize = 5;
+pub const EECH_ENV_DRAWS: usize = 10;
+pub const EECH_ENV_ERROR_MAX: usize = 512;
+pub const EECH_ENV_IMPORT: c_int = 1;
+pub const EECH_ENV_EXPORT: c_int = 2;
+pub const EECH_ENV_INIT_RANDOM: c_int = 3;
+pub const EECH_ENV_INIT_FIXED: c_int = 4;
+pub const EECH_ENV_WEATHER: c_int = 5;
+pub const EECH_ENV_WIND: c_int = 6;
+pub const EECH_ENV_GUST: c_int = 7;
+pub const EECH_ENV_STEP: c_int = 8;
+/// The number of EECH weather modes (`WEATHERMODE_LAST`): a mode is in `0..EECH_ENV_MODE_COUNT`.
+pub const EECH_ENV_MODE_COUNT: c_int = 5;
+
+/// The physical field, field for field as campaign_env_state (the order of the floats and of the integers is the enums of ss_hostenv.h).
+#[repr(C)]
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct eech_env_state {
+    pub f: [f32; EECH_ENV_FLOATS],
+    pub n: [c_int; EECH_ENV_INTS],
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct eech_env_request {
+    pub op: c_int,
+    /// the season is winter (the global season the original reads at each weather question)
+    pub winter: c_int,
+    pub state: eech_env_state,
+    pub draw: [f64; EECH_ENV_DRAWS],
+    pub init_config: [f32; 6],
+    pub map: [f32; 6],
+    pub fixed_mode: c_int,
+    pub x: f32,
+    pub z: f32,
+    pub want_vector: c_int,
+    pub phase: f32,
+    pub delta: f32,
+    pub server: c_int,
+    pub in_cockpit: c_int,
+    pub have_camera: c_int,
+    pub camera: [f32; 3],
+    pub have_draw: c_int,
+    pub lightning_draw: f64,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct eech_env_reply {
+    pub state: eech_env_state,
+    pub current_mode: c_int,
+    pub target_mode: c_int,
+    pub simple_mode: c_int,
+    pub transitional_state: f32,
+    pub speed: f32,
+    pub vector: [f32; 3],
+    pub modulation: f32,
+    pub need_draw: c_int,
+    pub expired: c_int,
+    pub strike: [f32; 3],
+    pub new_timer: f32,
+}
+
+impl Default for eech_env_state {
+    fn default() -> Self {
+        // SAFETY: plain numbers; zero is a valid value of every field
+        unsafe { std::mem::zeroed() }
+    }
+}
+
+impl Default for eech_env_request {
+    fn default() -> Self {
+        // SAFETY: plain numbers; zero is a valid value of every field
+        unsafe { std::mem::zeroed() }
+    }
+}
+
+impl Default for eech_env_reply {
+    fn default() -> Self {
+        // SAFETY: plain numbers; zero is a valid value of every field
+        unsafe { std::mem::zeroed() }
+    }
+}
+
+pub type eech_environment_callback =
+    unsafe extern "C" fn(request: *const eech_env_request, reply: *mut eech_env_reply, error: *mut c_char, error_size: usize, user: *mut c_void) -> c_int;
+
 #[repr(C)]
 pub struct eech_engine_host {
     pub bind_mobile: Option<eech_bind_mobile_callback>,
@@ -1176,6 +1265,7 @@ pub struct eech_engine_host {
     pub sense: Option<eech_sense_callback>,
     pub aim: Option<eech_aim_callback>,
     pub terrain: Option<eech_terrain_callback>,
+    pub environment: Option<eech_environment_callback>,
     pub user: *mut c_void,
 }
 
@@ -1373,6 +1463,20 @@ extern "C" {
     pub fn eech_engine_los_trace_reset() -> c_int;
     pub fn eech_engine_los_probe(source_id: c_int, target_id: c_int, seed: u32, count: c_int, out: *mut eech_los_trace, host: *const eech_engine_host)
         -> c_int;
+}
+
+// TEST-ONLY (feature env-fixture, EEDCS-51): one case of the original session environment characterisation; see csrc/eech_env_fixture.c.
+#[cfg(feature = "env-fixture")]
+extern "C" {
+    pub fn eech_engine_env_case(group: c_int, index: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+}
+
+// TEST-ONLY (feature env-observer, EEDCS-51): the read-only observer of the original environment; see csrc/eech_env_observer.c.
+#[cfg(feature = "env-observer")]
+extern "C" {
+    pub fn eech_engine_env_observer_arm(on: c_int) -> c_int;
+    pub fn eech_engine_env_observer_report(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_env_observer_events(text: *mut c_char, capacity: c_int, more: *mut c_int) -> c_int;
 }
 
 #[cfg(feature = "sensor-fixture")]

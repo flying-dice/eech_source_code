@@ -24,6 +24,10 @@ terrain-fixture = []
 aim-fixture = []
 # TEST-ONLY (EEDCS-45): the physical weapon-execution characterisation trace, event log and controlled launch case. Never enabled in the shipping build.
 weapon-fixture = []
+# TEST-ONLY (EEDCS-51): the original session environment (weather, wind, clock) characterisation. Never enabled in the shipping build.
+env-fixture = []
+# TEST-ONLY (EEDCS-51): the read-only observer of the original environment initialisation, shared-entropy order, lightning/sound effects and frame time phase. Never enabled in the shipping build.
+env-observer = ["env-fixture"]
 
 [build-dependencies]
 cc = { version = "1.2", features = ["parallel"] }

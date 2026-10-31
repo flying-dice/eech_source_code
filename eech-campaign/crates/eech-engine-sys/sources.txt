@@ -536,6 +536,7 @@ aphavoc/source/entity/special/session/ss_creat.c
 aphavoc/source/entity/special/session/ss_dstry.c
 aphavoc/source/entity/special/session/ss_float.c
 aphavoc/source/entity/special/session/ss_funcs.c
+aphavoc/source/entity/special/session/ss_hostenv.c
 aphavoc/source/entity/special/session/ss_int.c
 aphavoc/source/entity/special/session/ss_list.c
 aphavoc/source/entity/special/session/ss_msgs.c

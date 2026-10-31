@@ -1,0 +1,51 @@
+{
+  "source": "2afd1b4c1e6e694dace4182ec072f9661fa7da70",
+  "started_utc": "2026-10-31T10:46:50.352421+00:00",
+  "scope": "ACTUAL Windows x64 unit processes. Asset-dependent skipped tests are not retail campaign/authority/shipping proof.",
+  "cases": [
+    {
+      "name": "eech_engine",
+      "pid": 5836,
+      "args": [
+        "R:\\d3-evidence\\environment-physical-source-2afd1b4c1\\eech-campaign\\target\\windows-env-tests-2afd1b4c1\\eech_engine.exe",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "actual_exit": 0,
+      "sha256": "dd61746faef85b40aa31203602e96d079e1bc3d945d9ecd6f7ff5104a57ccd04",
+      "summaries": [
+        "test result: ok. 76 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+      ]
+    },
+    {
+      "name": "eech_dc",
+      "pid": 21932,
+      "args": [
+        "R:\\d3-evidence\\environment-physical-source-2afd1b4c1\\eech-campaign\\target\\windows-env-tests-2afd1b4c1\\eech_dc.exe",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "actual_exit": 0,
+      "sha256": "29e3da07eaa224ce042af667f98d54d3a66429ddc2563e0f7de44c7a933759bf",
+      "summaries": [
+        "test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s"
+      ]
+    },
+    {
+      "name": "eech_world",
+      "pid": 11464,
+      "args": [
+        "R:\\d3-evidence\\environment-physical-source-2afd1b4c1\\eech-campaign\\target\\windows-env-tests-2afd1b4c1\\eech_world.exe",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "actual_exit": 101,
+      "sha256": "bc3bb7ad349e5acf9e21c0a285605e5f11157e176593be5ff7d3720783bf4529",
+      "summaries": [
+        "test result: FAILED. 247 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s"
+      ]
+    }
+  ],
+  "all_46_fixture_payloads_still_match": true,
+  "completed_utc": "2026-10-31T10:46:51.372472+00:00"
+}

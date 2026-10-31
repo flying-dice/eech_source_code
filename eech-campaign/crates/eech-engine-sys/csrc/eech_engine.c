@@ -29,6 +29,10 @@
 #include "eech_headless.h"
 #include "eech_synth3d.h"
 
+#ifdef EECH_ENV_OBSERVER
+#include "entity/special/session/ss_envfx.h"
+#endif
+
 extern void eech_run_exit_functions (void);
 
 /* project.c: set from the registry's "Installation Path" in the game */
@@ -58,6 +62,7 @@ static enum engine_operation operation;
 	campaign_sense_host sense_host; \
 	campaign_aim_host aim_host; \
 	campaign_terrain_host terrain_host; \
+	campaign_env_host env_host; \
 	if (eech_engine_poisoned) \
 	{ \
 		return EECH_ENGINE_POISONED; \
@@ -82,6 +87,8 @@ static enum engine_operation operation;
 	aim_host.user = entry_host ? entry_host->user : NULL; \
 	terrain_host.terrain = entry_host ? entry_host->terrain : NULL; \
 	terrain_host.user = entry_host ? entry_host->user : NULL; \
+	env_host.environment = entry_host ? entry_host->environment : NULL; \
+	env_host.user = entry_host ? entry_host->user : NULL; \
 	campaign_roster_set_host (entry_host ? &roster_host : NULL); \
 	campaign_supply_arrival_set_host (entry_host ? &arrival_host : NULL); \
 	campaign_movement_set_host (entry_host ? &movement_host : NULL); \
@@ -90,6 +97,8 @@ static enum engine_operation operation;
 	campaign_aim_set_host (entry_host ? &aim_host : NULL); \
 	/* the terrain host is installed by the first entry that carries one and kept for the process: LEAVE does not clear it */ \
 	campaign_terrain_set_host (&terrain_host); \
+	/* the environment host is installed by the first entry that carries one and kept for the process, like the terrain host: the field is asked about from every entry */ \
+	campaign_env_set_host (&env_host); \
 	fegetenv (&caller_fenv); \
 	fesetround (FE_TOWARDZERO); \
 	eech_fatal_target = &fatal_jmp; \
@@ -287,7 +296,7 @@ int eech_engine_boot (const struct eech_engine_config *config, const struct eech
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!config || !config->install_root || !config->map_path || !config->campaign_directory || !config->campaign_filename || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim || !host->terrain)
+	if (!config || !config->install_root || !config->map_path || !config->campaign_directory || !config->campaign_filename || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim || !host->terrain || !host->environment)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -306,8 +315,14 @@ int eech_engine_boot (const struct eech_engine_config *config, const struct eech
 	 * wall clock.
 	 */
 	eech_headless_set_time_ms (((config->random_seed - 1u) % 1000000u) * 1000u);
+#ifdef EECH_ENV_OBSERVER
+	ENV_FX (ENV_FX_BOOT_BEGIN, (int) config->random_seed, 0, eech_headless_time_ms (), 0, 0, 0, 0, 0)
+#endif
 	boot (config);
 	state = ENGINE_RUNNING;
+#ifdef EECH_ENV_OBSERVER
+	ENV_FX (ENV_FX_BOOT_END, 0, 0, eech_headless_time_ms (), 0, 0, 0, 0, 0)
+#endif
 	LEAVE (EECH_ENGINE_OK);
 }
 
@@ -315,6 +330,10 @@ int eech_engine_boot (const struct eech_engine_config *config, const struct eech
 static void frame (uint32_t milliseconds)
 {
 	int count = get_time_acceleration ();
+
+#ifdef EECH_ENV_OBSERVER
+	ENV_FX (ENV_FX_FRAME_BEGIN, (int) milliseconds, count, eech_headless_time_ms (), ENV_FXF (system_delta_time), 0, 0, 0, 0)
+#endif
 
 	if (count == 0)
 	{
@@ -344,6 +363,9 @@ static void frame (uint32_t milliseconds)
 	/* limit_frame_rate / set_delta_time: the host's clock */
 	eech_headless_advance_time_ms (milliseconds);
 	set_delta_time ();
+#ifdef EECH_ENV_OBSERVER
+	ENV_FX (ENV_FX_FRAME_END, 0, 0, eech_headless_time_ms (), ENV_FXF (system_delta_time), ENV_FXF (system_one_over_delta_time), 0, 0, 0)
+#endif
 	process_events ();
 }
 
@@ -1631,4 +1653,79 @@ int eech_engine_wpn_case_launch (const char *launcher_id, const char *target_id,
 	LEAVE (EECH_ENGINE_OK);
 }
 
+#endif
+
+#ifdef EECH_ENV_FIXTURE
+/* TEST-ONLY (feature env-fixture, EEDCS-51): the ORIGINAL session environment, see eech_env_fixture.c. Group 0 census and 1 retail snapshot are read-only; groups 2.. are controlled witnesses
+   that restore everything they touch before they return. No host is given: the cases ask no physical question of a host. */
+extern int eech_env_case_run (int group, int index, char *text, int capacity);
+
+int eech_engine_env_case (int group, int index, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_env_case_run (group, index, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+#endif
+
+#ifdef EECH_ENV_OBSERVER
+/* TEST-ONLY (feature env-observer, EEDCS-51): the read-only observer of csrc/eech_env_observer.c. Arming is valid only BEFORE boot (arming after it would give incomplete evidence); turning it off is
+   always valid. The report and the events are read like the other test-only logs. */
+extern void eech_envobs_arm (int on);
+extern int eech_envobs_report (char *text, int capacity);
+extern int eech_envobs_events (char *text, int capacity, int *more);
+
+int eech_engine_env_observer_arm (int on)
+{
+	if (eech_engine_poisoned)
+	{
+		return EECH_ENGINE_POISONED;
+	}
+	if (on && (state != ENGINE_NEW))
+	{
+		return EECH_ENGINE_STATE;
+	}
+	eech_envobs_arm (on);
+	return EECH_ENGINE_OK;
+}
+
+int eech_engine_env_observer_report (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || (eech_envobs_report (text, capacity) != 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+/* returns EECH_ENGINE_OK with `more` set to 1 while unread events remain */
+int eech_engine_env_observer_events (char *text, int capacity, int *more)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || !more || (eech_envobs_events (text, capacity, more) != 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
 #endif

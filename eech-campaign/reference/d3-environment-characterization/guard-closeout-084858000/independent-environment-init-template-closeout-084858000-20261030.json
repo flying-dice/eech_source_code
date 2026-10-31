@@ -1,0 +1,79 @@
+{
+  "schema": "independent-environment-init-template-closeout/v1",
+  "reviewed_utc": "2026-10-30T07:27:51.780656+00:00",
+  "base": "e1165cad60fc6fe81585ef1c1cdc2eb011129cbe",
+  "reviewed_head": "084858000b8a7190f9e89304be7a8ab849b64c40",
+  "code_commit": "9f82ba6f9",
+  "snapshot": "R:\\d3-evidence\\environment-guard-source-084858000",
+  "exact_clean_head_before_after": true,
+  "disposition": "ENV_INIT_WIND_UNAVAILABLE_SHAPE_CLOSED",
+  "findings": [],
+  "closed_finding": {
+    "id": "ENV-INIT-WIND-UNAVAILABLE-SHAPE",
+    "path": "eech-campaign/crates/eech-world/lua/env-characterization.lua",
+    "line": 339,
+    "assessment": "Both initializer query templates now admit the unavailable alternative. The unchanged group6 context check still requires wind values iff its own state gust lies in[0,1), so this is a superset grammar correction for a genuine C-emitter form, not relaxation of the predicate. Out-of-domain initializer/no-wind positive and in-domain initializer/false-unavailability negative execute through the actual embedded driver. Existing family/identity/field/fingerprint/server checks remain intact."
+  },
+  "correctness_clean_code_boundary": [
+    "Only two allow_unavailable flags, matching explanatory comment, targeted test controls and docs/reference metadata change. No new query, C/FFI pointer, numeric operation, RNG draw, state mutation, physical answer expectation or scenario change.",
+    "Both fixed/random initializer alternatives use the corrected shared tail; both origin/map-centre queries retain their exact typed field order and corresponding query point identity.",
+    "Existing contextual gust, server and camera/cockpit predicates, null_same word relation, bounded periodic scheduler and portable host selection remain reused and unchanged.",
+    "Metadata084 preserves previous reports with their historical findings; it does not relabel measured original99 binaries as this guard source."
+  ],
+  "actual_checks": {
+    "Linux": {
+      "source": "084858000b8a7190f9e89304be7a8ab849b64c40",
+      "actual_exit": 0,
+      "guards_passed": 8,
+      "failed": 0,
+      "format_check": 0,
+      "world_all_target_strict_Clippy": 0,
+      "completed_utc": "2026-10-30T07:26:15.107408+00:00"
+    },
+    "Windows": {
+      "build_export_actual_exit": 0,
+      "native_execution_actual_exit": 0,
+      "guards_passed": 8,
+      "failed": 0,
+      "test_executable_sha256": "389ebfff94b66afc2d83a2d69f05fe10db8f5a9ddb432e8ee036d1c3cc35d405",
+      "explicit_reference_host_source": "99352e331527e8aafb2961949536217eab7a8ecf",
+      "execution_completed_utc": "2026-10-30T07:26:34.392562+00:00",
+      "assessment": "Compile/export receipt and actual native execution/log are separate and both inspected. Stand-in/real-Lua guard execution is not original environment numerical execution."
+    }
+  },
+  "source_sha256": {
+    "eech-campaign/crates/eech-world/lua/env-characterization.lua": "7db159515f7e29a2af03d0313e9e9d49e669246770d705bcc522db89ac55c99d",
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs": "ec64dfaa328d28be539c523c3889cb56ab69b1a4169ec4d17f0c1ca3a5139fd4",
+    "eech-campaign/docs/d3-environment-characterization.md": "233a2ffe6f10e2f294202f8b0fe630b68958864a05c52dcb9b5509158029d755"
+  },
+  "evidence_sha256": {
+    "R:\\d3-evidence\\independent-environment-context-closeout-e1165cad6-20261030.json": "3ca0e4354b2fe58fe69297c822b3effe9f15fac5917759cb41f402a078898c9b",
+    "R:\\d3-evidence\\environment-guard-source-084858000\\eech-campaign\\target\\windows-env-guards-084858000\\host_callbacks.exe": "389ebfff94b66afc2d83a2d69f05fe10db8f5a9ddb432e8ee036d1c3cc35d405",
+    "R:\\d3-evidence\\environment-guard-source-084858000\\eech-campaign\\target\\windows-env-guards-084858000\\build-receipt.json": "389c51cf4cdc9a6bceba30ac654094d40083d309fdeb73676b622299044814b1",
+    "R:\\d3-evidence\\build-environment-guard-084858000-linux-20261030.sh": "36d6f41381361eb266411e8eb7fa36817a364d4fb052339201ee08fc57341814",
+    "R:\\d3-evidence\\environment-guard-084858000-linux-20261030-completion.json": "83be4fd39ed8f8aa5677312980bb5bf72c68e7e0b85b49e5376b4318ad3d771b",
+    "R:\\d3-evidence\\environment-guard-084858000-linux-20261030.log": "7cdede7f4b1b47275d3ec949cbb1020c776d6a7b04baf4fc200c92191274c15b",
+    "R:\\d3-evidence\\environment-guard-084858000-windows-20261030-completion.json": "a2f36c40eabc021d3e352482db3924f9a13ff91b3acf607bdd9d91097d77478d",
+    "R:\\d3-evidence\\environment-guard-084858000-windows-20261030.log": "c0db255f7569aa3abc4f3f6a9099e53500768f2c23d7992766eb9c5403111f7f",
+    "R:\\d3-evidence\\environment-guards-windows-084858000-execution-20261030.json": "e2c10c0e6f99b6abe926f3b4f5facc9d95e8cd656a2ebe1c7c4534c0b330eaff",
+    "R:\\d3-evidence\\environment-guards-windows-084858000-execution-20261030.log": "a1a09df85f8ec3530aaa9331a757d73c903c6e02625848aa4d0040aea0c19739"
+  },
+  "reused_evidence_sha256": {
+    "independent-environment-original-review-99352-8e676-20261030.json": "7bb4c638d218216f1e55e43bd5535423e2730f9c81abf0eda616cd64aa8935d4",
+    "independent-environment-guard-closeout-aeccdcb29-20261030.json": "2acc5eef2b35644194a3e12852d77832917e918a05cfa8b6d4ecec53e51bb97e",
+    "environment-context-e1165cad6-validation-20261030.json": "804d03e4c2764a232001437fa360907fe691694c9728192c7bc1df602214b8b1"
+  },
+  "compatibility_reuse": {
+    "compiled_original_source": "99352e331527e8aafb2961949536217eab7a8ecf",
+    "last_measured_runtime_driver_source": "e1165cad60fc6fe81585ef1c1cdc2eb011129cbe",
+    "all704_original_raw_lines_and_line_endings_exact_in_prior_witness": true,
+    "new_original_numerical_or_compatibility_execution_claimed": false,
+    "basis": "The reviewed change only permits an extra valid report alternative while retaining all previously accepted paths and unchanged emit_lines/context. Prior explicit e116-driver/original99 fixture705-row compatibility and original3-root/120s results remain correctly labelled and reused; no new physical oracle is fabricated."
+  },
+  "limits": [
+    "This closes only the final fixture response-validator preparation finding. No formal GitHub approval, Task51 delivery, host environment authority/cutover, ordinary shipping or D3 completion.",
+    "Original lightning/entity causality, sound/terrain scratch, libc reseed, save/client evidence and required remaining D3 physical/environment/time services remain open.",
+    "PR107 delivery FYI and live ground production author are outside this review and were not inspected.",
+    "No reviewer source edits/builds/tests/native/campaign/process/cache/Git/auth/external actions or nested agents. Only this private canonical-LF report written."
+  ]
+}

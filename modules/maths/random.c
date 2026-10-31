@@ -77,12 +77,21 @@ int
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef EECH_ENV_OBSERVER
+extern void eech_envobs_seed_set (int seed, int before);
+extern void eech_envobs_seed_source (int source);
+#endif
+
 void initialise_random_number_generator (void)
 {
 	int
 		seed;
 
 	seed = get_system_time ();
+
+#ifdef EECH_ENV_OBSERVER
+	eech_envobs_seed_source (seed);
+#endif
 
 	if (seed == 0)
 	{
@@ -98,6 +107,10 @@ void initialise_random_number_generator (void)
 
 void set_random_number_seed (int seed)
 {
+#ifdef EECH_ENV_OBSERVER
+	eech_envobs_seed_set (seed, random_number_seed);
+#endif
+
 	random_number_seed = seed;
 
 	//

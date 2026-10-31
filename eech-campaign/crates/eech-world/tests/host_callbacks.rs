@@ -1986,3 +1986,1152 @@ fn the_object_witness_says_so_when_there_is_no_such_structure_and_refuses_a_malf
         "{stderr}"
     );
 }
+
+// The environment characterisation driver (EEDCS-51, lua/env-characterization.lua) run as the host binary runs it, against a stand-in engine. The checks protect its CONTRACT: arguments refused before
+// anything runs, a genuine refusal without the fixture, a control run that asks for no witness, strings that stay strings, the emitted protocol checked for EVERY family (a marker-only, wrong-family,
+// incomplete, duplicated, mistyped, mis-identified or fingerprint-inconsistent report is refused), a bounded periodic schedule, and the portable wiring below. The stand-in answers well-formed
+// canned reports; nothing here says anything about the original code's weather, wind or clock. No retail input is used.
+//
+// PORTABILITY. The driver under test is embedded in this executable (include_str) and written to a per-run temporary directory, so a test executable cross-built in a container needs no source
+// tree beside it. The host binary is the ordinary Cargo one (CARGO_BIN_EXE_eech-world) unless EECH_WORLD_TEST_HOST names another: a native Windows run of a cross-built test sets it to the verified
+// host executable. A supplied value that is empty, relative, missing or not a file is REFUSED (the test panics naming it); it never falls back to the Cargo path, and a Cargo path that does not exist
+// here is refused with the same instruction rather than skipped.
+const ENV_DRIVER_LUA: &str = include_str!("../lua/env-characterization.lua");
+const ENV_HOST_OVERRIDE: &str = "EECH_WORLD_TEST_HOST";
+
+fn resolve_env_host(supplied: Option<std::ffi::OsString>, cargo_default: &str) -> Result<std::path::PathBuf, String> {
+    match supplied {
+        Some(value) => {
+            if value.to_string_lossy().trim().is_empty() {
+                return Err(format!("{ENV_HOST_OVERRIDE} is set but empty"));
+            }
+            let path = std::path::PathBuf::from(&value);
+            if !path.is_absolute() {
+                return Err(format!("{ENV_HOST_OVERRIDE}={} is not an absolute path", path.display()));
+            }
+            if !path.is_file() {
+                return Err(format!("{ENV_HOST_OVERRIDE}={} is not an existing file", path.display()));
+            }
+            Ok(path)
+        }
+        None => {
+            let path = std::path::PathBuf::from(cargo_default);
+            if path.is_file() {
+                Ok(path)
+            } else {
+                Err(format!(
+                    "the Cargo-built host {} does not exist here (a cross-built test executable?): set {ENV_HOST_OVERRIDE} to the verified eech-world executable",
+                    path.display()
+                ))
+            }
+        }
+    }
+}
+
+fn env_host() -> std::path::PathBuf {
+    resolve_env_host(std::env::var_os(ENV_HOST_OVERRIDE), env!("CARGO_BIN_EXE_eech-world")).unwrap_or_else(|why| panic!("{why}"))
+}
+
+#[test]
+fn the_environment_host_override_is_strict_and_never_falls_back() {
+    let real = std::env::current_exe().unwrap();
+    let real_text = real.display().to_string();
+    // no override: the Cargo path, if it is here
+    assert_eq!(resolve_env_host(None, &real_text).unwrap(), real);
+    assert!(resolve_env_host(None, "/no/such/eech-world").unwrap_err().contains(ENV_HOST_OVERRIDE));
+    // a valid override wins over any default
+    assert_eq!(resolve_env_host(Some(real.clone().into_os_string()), "/no/such/eech-world").unwrap(), real);
+    // an invalid override is refused even when the Cargo default is perfectly good
+    let temp = std::env::temp_dir();
+    let missing = temp.join("eech-world-no-such-host-executable");
+    for bad in [
+        std::ffi::OsString::new(),
+        std::ffi::OsString::from("   "),
+        std::ffi::OsString::from("eech-world"),
+        std::ffi::OsString::from("./eech-world"),
+        missing.clone().into_os_string(),
+        temp.clone().into_os_string(),
+    ] {
+        let why = resolve_env_host(Some(bad.clone()), &real_text).unwrap_err();
+        assert!(why.contains(ENV_HOST_OVERRIDE), "{bad:?}: {why}");
+    }
+}
+
+// the stand-in engine, in three parts: the clock and frames, the fixture's per-family reports, and the wiring. The mutations damage ONE report after it is made, so every other report stays well formed.
+const ENV_STAND_IN_BASE: &str = r#"
+local time = 0
+local JUMP = @JUMP@
+local frames = 0
+local obs_boot, obs_frame
+local function note(text)
+  local f = io.open('@TRACE@', 'a')
+  f:write(text, '\n')
+  f:close()
+end
+local engine = {}
+function engine:clock() return { elapsed_seconds = time } end
+function engine:frame(ms)
+  frames = frames + 1
+  if frames > 400 then error('stand-in cap: more than 400 frames') end
+  note('frame ' .. ms)
+  if obs_frame then obs_frame(ms) end
+  time = time + ms * JUMP / 1000
+end
+function engine:objects() return { { id = 1, kind = 'helicopter', sub_type = 2, side = 'blue', alive = true, position = { 1.5, 2.5, 3.5 }, heading = 0.5, pitch = 0, roll = 0, ammo = 0, fuel = 0 } } end
+"#;
+
+const ENV_STAND_IN_FIXTURE: &str = r#"
+local MUTATION = '@MUTATION@'
+local TARGET_GROUP = @TARGET_GROUP@
+local TARGET_INDEX = @TARGET_INDEX@
+local O = '3f800000'
+local FP = '0123456789abcdef'
+-- ' key=word ...' for the names given; 'name:word' picks the word
+local function ws(...)
+  local parts = {}
+  for _, k in ipairs({ ... }) do
+    local name, word = k:match('^(.-):(%x+)$')
+    parts[#parts + 1] = (name or k) .. '=' .. (word or O)
+  end
+  return table.concat(parts, ' ')
+end
+local function state(prefix, tag)
+  return prefix .. '-time tag=' .. tag .. ' ' .. ws('start_time_w', 'elapsed_time_w', 'time_of_day_w') .. ' day=1 day_segment_type=1 ' .. ws('time_of_day_acceleration_w') .. ' skip_night_time=0 ' .. ws('time_of_day_resync_w') .. '\n'
+    .. prefix .. '-weather tag=' .. tag .. ' local_weather_model=1 weather_increasing=1 ' .. ws('weather_radius_w') .. ' weather_mode=1 target_weather_mode=1 '
+    .. ws('transitional_status_w', 'transitional_period_w', 'lightning_timer_w', 'weather_pos_x_w', 'weather_pos_y_w', 'weather_pos_z_w', 'weather_vel_x_w', 'weather_vel_y_w', 'weather_vel_z_w') .. '\n'
+    .. prefix .. '-wind tag=' .. tag .. ' wind_increasing=0 ' .. ws('wind_effect_radius_w', 'gusting_value_w:3f000000', 'minimum_speed_w', 'maximum_speed_w', 'direction_x_w', 'direction_y_w', 'direction_z_w',
+      'effect_pos_x_w', 'effect_pos_y_w', 'effect_pos_z_w', 'effect_vel_x_w', 'effect_vel_y_w', 'effect_vel_z_w') .. '\n'
+    .. prefix .. '-globals tag=' .. tag .. ' season=2 rng=-5 ' .. ws('rng_w', 'delta_time_w') .. ' comms_model=1 in_cockpit=0 camera=1 ' .. ws('camera_x_w', 'camera_y_w', 'camera_z_w') .. '\n'
+end
+local function query(event, tag, point)
+  return event .. ' tag=' .. tag .. ' point=' .. point .. ' ' .. ws('x_w', 'y_w', 'z_w') .. ' cwm=1 twm=1 ' .. ws('ts_w') .. ' simple=1 ' .. ws('wind_speed_w', 'wind_x_w', 'wind_y_w', 'wind_z_w') .. '\n'
+end
+local function finish(group, index)
+  return 'env-witness-end group=' .. group .. ' index=' .. index .. ' restored=1 fp_before=' .. FP .. ' fp_after=' .. FP .. '\n'
+end
+local function report(group, index)
+  if group == 0 then
+    return 'env-census version=1 session_bytes=1024 weather_cases=2 wind_cases=2 gust_cases=2 time_cases=3 init_cases=2 update_time_cases=1 update_weather_cases=2\n'
+      .. 'env-census-enums dry=1 light_rain=2 heavy_rain=3 snow=4 season_summer=2 season_winter=3 season_desert=4 segment_dawn=0 segment_day=1 segment_dusk=2 segment_night=3 comms_server=1\n'
+      .. 'env-census-constants ' .. ws('min_weather_radius_w', 'max_weather_radius_w', 'weather_expansion_rate_w', 'min_wind_radius_w', 'max_wind_radius_w', 'wind_expansion_rate_w', 'wind_gust_frequency_w',
+        'session_resync_frequency_w', 'default_min_wind_speed_w', 'default_max_wind_speed_w', 'one_hour_w', 'one_day_w') .. '\n'
+      .. 'env-census-configured ' .. ws('weather_rain_radius_min_w', 'weather_rain_radius_max_w', 'weather_rain_speed_w', 'weather_wind_radius_min_w', 'weather_wind_radius_max_w', 'weather_wind_speed_w') .. '\n'
+      .. 'env-census-map ' .. ws('min_map_x_w', 'max_map_x_w', 'min_map_z_w', 'max_map_z_w', 'mid_map_x_w', 'mid_map_z_w') .. '\n'
+      .. 'env-unsupported item=get_session_random_start_time_of_day reason=a_reason\n'
+      .. 'env-unsupported item=update_lightning_effect reason=a_reason\n'
+      .. 'env-unsupported item=update_session_sound_effects reason=a_reason\n'
+      .. 'env-unsupported item=update_time_of_day_resync reason=a_reason\n'
+      .. 'env-unsupported item=wind_gust_outside_0_1 reason=a_reason\n'
+      .. 'env-unsupported item=session_state_loading_and_serialisation reason=a_reason\n'
+  end
+  if group == 1 then
+    return state('env-state', 'retail') .. 'env-state-fingerprint tag=retail fp=' .. FP .. '\n' .. query('env-query', 'retail', 'camera') .. query('env-query', 'retail', 'map_centre')
+      .. query('env-query', 'retail', 'weather_centre') .. query('env-query', 'retail', 'wind_centre')
+  end
+  if group == 2 then
+    return 'env-weather kind=witness i=' .. index .. ' model=local season=2 ' .. ws('radius_w') .. ' in_cwm=1 in_twm=1 ' .. ws('in_ts_w', 'range_w') .. '\n' .. query('env-weather-answer', 'witness', 'case') .. finish(group, index)
+  end
+  if group == 3 then
+    return 'env-wind kind=witness i=' .. index .. ' ' .. ws('radius_w', 'centre_x_w', 'centre_z_w', 'minimum_w', 'maximum_w', 'gust_w:3f000000', 'dir_x_w', 'dir_z_w', 'x_w', 'z_w', 'range_w', 'modulation_w',
+      'speed_w:00000000', 'vx_w', 'vy_w', 'vz_w', 'null_speed_w:00000000') .. ' null_same=1\n' .. finish(group, index)
+  end
+  if group == 4 then
+    if index == 1 then return 'env-gust kind=witness i=1 gust_w=3f800000 refused=original_asserts_outside_0_1\n' .. finish(group, index) end
+    return 'env-gust kind=witness i=' .. index .. ' ' .. ws('gust_w:3f000000', 'modulation_w', 'calm_speed_w', 'calm_vx_w') .. '\n' .. finish(group, index)
+  end
+  if group == 5 then
+    if index == 1 then return 'env-time kind=witness i=1 what=segment ' .. ws('tod_w') .. ' segment=1\n' .. finish(group, index) end
+    if index == 2 then
+      return 'env-time kind=witness i=2 what=constants ' .. ws('segment_time_dawn_w', 'segment_time_day_w', 'segment_time_dusk_w', 'segment_time_night_w', 'preset_dawn_w', 'preset_midday_w', 'preset_afternoon_w',
+        'preset_dusk_w', 'preset_midnight_w') .. '\n' .. finish(group, index)
+    end
+    return 'env-time kind=witness i=0 what=calculate ' .. ws('start_w', 'elapsed_w', 'tod_w') .. ' rolled_days=0 ' .. ws('accessor_tod_w') .. ' accessor_day=1 segment=1\n' .. finish(group, index)
+  end
+  if group == 6 then
+    local head = index == 0 and ('env-init kind=witness i=0 what=fixed mode=1 rng=-5\n') or ('env-init kind=witness i=1 what=random seed_in=1 rng=-5 rng_w=fffffffb\n')
+    return head .. state('env-init-state', 'witness') .. query('env-init-query', 'witness', 'origin') .. query('env-init-query', 'witness', 'map_centre') .. finish(group, index)
+  end
+  if group == 7 then
+    return 'env-update-time kind=witness i=0 label=midday_real_time ' .. ws('delta_w', 'accel_w') .. ' skip_night=0 ' .. ws('tod_before_w') .. ' day_before=1\n' .. state('env-update-time-state', 'before_0')
+      .. 'env-update-time-result kind=witness i=0 ' .. ws('tod_after_w') .. ' day_after=1\n' .. state('env-update-time-state', 'after_0') .. finish(group, index)
+  end
+  if group == 8 then
+    if index == 1 then
+      return 'env-update-weather kind=witness i=1 refused=unavailable_in_cockpit_or_no_camera_or_not_server in_cockpit=1 camera=1 comms_model=1\n' .. finish(group, index)
+    end
+    return 'env-update-weather kind=witness i=0 label=local_interior ' .. ws('delta_w') .. ' camera_dependent_fields=weather_mode,target_weather_mode,transitional_status_when_local_and_radius_nonzero camera=1\n'
+      .. state('env-update-weather-state', 'before_0') .. state('env-update-weather-state', 'after_0') .. finish(group, index)
+  end
+  if group == 9 then
+    if index == 0 then
+      return 'env-controlled kind=controlled i=0 what=lightning_due local_before=1 radius_before_w=47000000 timer_before_w=42700000 local_after=1 radius_after_w=47000000 timer_after_w=3f000000\n'
+        .. 'env-controlled-end group=9 index=0 changed=1 process_isolated=required\n'
+    end
+    return 'env-controlled kind=controlled i=1 what=local_weather_on local_before=0 radius_before_w=00000000 timer_before_w=42700000 local_after=1 radius_after_w=471c4000 timer_after_w=3f000000\n'
+      .. 'env-controlled-end group=9 index=1 changed=1 process_isolated=required\n'
+  end
+  error('stand-in: no such group ' .. group)
+end
+local mutations = {
+  marker_only = function(t) return t:match('[^\n]*\n$') end,
+  wrong_family = function() return (report(2, 0):gsub('group=2', 'group=3')) end,
+  missing_field = function(t) return (t:gsub(' vz_w=%x+', '', 1)) end,
+  duplicate_field = function(t) return (t:gsub('gust_w=(%x+)', 'gust_w=%1 gust_w=00000000', 1)) end,
+  bad_word = function(t) return (t:gsub('speed_w=%x+', 'speed_w=3F80ABCD', 1)) end,
+  short_word = function(t) return (t:gsub('speed_w=%x+', 'speed_w=3f80', 1)) end,
+  fp_mismatch = function(t) return (t:gsub('fp_after=%x+', 'fp_after=fedcba9876543210')) end,
+  restored_zero = function(t) return (t:gsub('restored=1', 'restored=0')) end,
+  wrong_index = function(t) return (t:gsub('(env%-wind kind=witness i=)%d+', '%19')) end,
+  wrong_end_index = function(t) return (t:gsub('index=%d+', 'index=7')) end,
+  extra_row = function(t) return t:match('^[^\n]*\n') .. t end,
+  unknown_field = function(t) return (t:gsub('(env%-wind [^\n]*)\n', '%1 extra=1\n', 1)) end,
+  truncated = function(t) return t:sub(1, -2) end,
+  empty_line = function(t) return (t:gsub('\n', '\n\n', 1)) end,
+  gust_in_domain_refused = function(t) return (t:gsub('gust_w=%x+', 'gust_w=3f000000', 1)) end,
+  gust_out_of_domain_called = function(t) return (t:gsub('gust_w=%x+', 'gust_w=3f800000', 1)) end,
+  census_zero = function(t) return (t:gsub('weather_cases=%d+', 'weather_cases=0')) end,
+  census_huge = function(t) return (t:gsub('weather_cases=%d+', 'weather_cases=100000')) end,
+  census_enum = function(t) return (t:gsub('dry=1', 'dry=9')) end,
+  census_missing_unsupported = function(t) return (t:gsub('env%-unsupported item=session[^\n]*\n', '')) end,
+  snapshot_bad_fingerprint = function(t) return (t:gsub('fp=%x+', 'fp=abc')) end,
+  -- guard-context contradictions: each claims a branch the state printed in the same report cannot have taken
+  init_false_refusal = function() return 'env-init kind=witness i=1 refused=the_original_initialisers_assert_the_server_comms_model comms_model=1\n' .. finish(6, 1) end,
+  init_false_run = function(t) return (t:gsub('comms_model=1', 'comms_model=2')) end,
+  update_false_refusal = function(t) return (t:gsub('in_cockpit=1', 'in_cockpit=0')) end,
+  update_false_run = function(t) return (t:gsub('in_cockpit=0', 'in_cockpit=1')) end,
+  snapshot_false_unavailable = function(t) return (t:gsub('wind_speed_w=%x+ wind_x_w=%x+ wind_y_w=%x+ wind_z_w=%x+', 'wind=unavailable_gust_outside_0_1')) end,
+  snapshot_gust_outside_with_wind = function(t) return (t:gsub('gusting_value_w=%x+', 'gusting_value_w=3f800000')) end,
+  wind_flag_says_unequal = function(t) return (t:gsub('null_same=1', 'null_same=0')) end,
+  wind_flag_says_equal = function(t) return (t:gsub('null_speed_w=%x+', 'null_speed_w=3f800000')) end,
+  -- coherent ALTERNATIVE forms the emitter can print (accepted): unequal words with flag 0; a snapshot whose gust is outside [0,1) and so has no wind answers; refusals by each other guard;
+  -- a controlled update whose state shows a gust phase of 1.0 before it wraps (not a query context, so not judged)
+  wind_words_unequal_flag_zero = function(t) return ((t:gsub('null_speed_w=%x+', 'null_speed_w=3f800000'):gsub('null_same=1', 'null_same=0'))) end,
+  snapshot_gust_outside_no_wind = function(t) return ((t:gsub('gusting_value_w=%x+', 'gusting_value_w=3f800000'):gsub('wind_speed_w=%x+ wind_x_w=%x+ wind_y_w=%x+ wind_z_w=%x+', 'wind=unavailable_gust_outside_0_1'))) end,
+  -- the initialiser leaves the gust phase untouched, so its queries have no wind answers exactly when that phase is outside [0,1) (accepted), and the absence is refused when it is inside
+  init_gust_outside_no_wind = function(t) return ((t:gsub('gusting_value_w=%x+', 'gusting_value_w=3f800000'):gsub('wind_speed_w=%x+ wind_x_w=%x+ wind_y_w=%x+ wind_z_w=%x+', 'wind=unavailable_gust_outside_0_1'))) end,
+  init_false_unavailable = function(t) return (t:gsub('wind_speed_w=%x+ wind_x_w=%x+ wind_y_w=%x+ wind_z_w=%x+', 'wind=unavailable_gust_outside_0_1')) end,
+  init_refused_nonserver = function() return 'env-init kind=witness i=1 refused=the_original_initialisers_assert_the_server_comms_model comms_model=2\n' .. finish(6, 1) end,
+  update_refused_no_camera = function() return 'env-update-weather kind=witness i=0 refused=unavailable_in_cockpit_or_no_camera_or_not_server in_cockpit=0 camera=0 comms_model=1\n' .. finish(8, 0) end,
+  update_refused_nonserver = function() return 'env-update-weather kind=witness i=0 refused=unavailable_in_cockpit_or_no_camera_or_not_server in_cockpit=0 camera=1 comms_model=2\n' .. finish(8, 0) end,
+  update_state_gust_phase_one = function(t) return (t:gsub('gusting_value_w=%x+', 'gusting_value_w=3f800000')) end,
+  -- the controlled group: damaged forms (refused) and the other declared refusals (accepted)
+  ctl_refused_weather_but_local = function() return 'env-controlled kind=controlled i=0 what=lightning_due refused=weather_not_local_or_radius_zero local_weather_model=1 weather_radius_w=47000000\n' .. 'env-controlled-end group=9 index=0 changed=0 process_isolated=required\n' end,
+  ctl_refused_server_but_server = function() return 'env-controlled kind=controlled i=0 what=lightning_due refused=not_the_server comms_model=1\n' .. 'env-controlled-end group=9 index=0 changed=0 process_isolated=required\n' end,
+  ctl_wrong_timer = function(t) return (t:gsub('timer_after_w=%x+', 'timer_after_w=3f800000')) end,
+  ctl_wrong_what = function(t) return (t:gsub('what=lightning_due', 'what=local_weather_on')) end,
+  ctl_wrong_radius = function(t) return (t:gsub('radius_after_w=%x+', 'radius_after_w=3f800000')) end,
+  ctl_changed_says_zero = function(t) return (t:gsub('changed=1', 'changed=0')) end,
+  ctl_refused_nonlocal = function() return 'env-controlled kind=controlled i=0 what=lightning_due refused=weather_not_local_or_radius_zero local_weather_model=0 weather_radius_w=47000000\n' .. 'env-controlled-end group=9 index=0 changed=0 process_isolated=required\n' end,
+  ctl_refused_radius_zero = function() return 'env-controlled kind=controlled i=0 what=lightning_due refused=weather_not_local_or_radius_zero local_weather_model=1 weather_radius_w=80000000\n' .. 'env-controlled-end group=9 index=0 changed=0 process_isolated=required\n' end,
+  ctl_refused_nonserver = function() return 'env-controlled kind=controlled i=0 what=lightning_due refused=not_the_server comms_model=2\n' .. 'env-controlled-end group=9 index=0 changed=0 process_isolated=required\n' end,
+}
+function engine:env_case(group, index)
+  note('case ' .. group .. ':' .. index)
+  local text = report(group, index)
+  if MUTATION ~= 'none' and group == TARGET_GROUP and (TARGET_INDEX < 0 or index == TARGET_INDEX) then text = mutations[MUTATION](text) end
+  return text
+end
+"#;
+
+// the observer of the stand-in, in the form of the real boot (RECORDED natively at source 2804ca4f: 44 boot events with two weather episodes and two start-time episodes, then per frame frame_begin,
+// tod_begin, tod_end, two sound_facts rows, frame_end): the numbers are canned, the ORDER and the context are the real ones; the mutations damage the record in one way each
+const ENV_STAND_IN_OBSERVER: &str = r#"
+local OBS_MUTATION = '@OBS_MUTATION@'
+local pending, seq, updates, frame_no, clock = {}, 0, 0, 0, 0
+local delta = '3dcccccd'
+local Z = '00000000'
+local function h(n) return string.format('%08x', n % 4294967296) end
+local function ev(kind, a, b, rng, w0, w1, w2, w3, w4, w5)
+  if OBS_MUTATION == 'skip_seq' and seq == 2 then seq = seq + 1 end
+  rng = rng or 1
+  local rng_w = rng % 4294967296
+  if OBS_MUTATION == 'rng_mismatch' and seq == 3 then rng_w = rng_w + 1 end
+  pending[#pending + 1] = string.format('env-obs seq=%d kind=%d a=%d b=%d rng=%d rng_w=%08x w0=%s w1=%s w2=%s w3=%s w4=%s w5=%s\n', seq, kind, a or 0, b or 0, rng, rng_w,
+    w0 or Z, w1 or Z, w2 or Z, w3 or Z, w4 or Z, w5 or Z)
+  seq = seq + 1
+end
+-- initialise_random_number_generator: the clock value, then the seed set from it (zero becomes one); the event's rng is the word BEFORE the assignment
+local function reseed(before)
+  ev(4, 0, 0, before)
+  ev(3, OBS_MUTATION == 'boot_seed_mismatch' and 7 or 1, 0, before, h(before))
+end
+local function start_episode(before)
+  reseed(before)
+  ev(5, 0, 0, 1)
+  ev(6, 2, 0, 1103527590)
+  ev(7, 0, 0, -1770082073, h(0x46f89000))
+  ev(8, 0, 0, -1770082073, h(0x46f89000))
+end
+local function weather_episode(rng0)
+  ev(14, 0, 0, rng0)
+  for k = 1, 10 do
+    if not (OBS_MUTATION == 'boot_weather_short' and k == 10) then
+      local ordinal = (OBS_MUTATION == 'boot_weather_misordered' and k == 2) and 3 or k
+      ev(15, ordinal, (k == 2 or k == 7) and 1 or 0, 1000 + k, h(0x47000000 + k))
+    end
+  end
+  ev(16, 0, 0, 1010)
+end
+-- the boot as the real one runs it: the engine's reseed and boot seed, the loader's session (start time, session, weather), then the session setup options' weather and start time again
+obs_boot = function()
+  clock = 0
+  ev(OBS_MUTATION == 'not_armed' and 3 or 1, 1, 0, 1, h(clock))
+  reseed(1)
+  ev(3, OBS_MUTATION == 'boot_seed_wrong' and 9 or 1, 0, 1, h(1))
+  ev(10, 0, 0, 1)
+  if OBS_MUTATION ~= 'boot_no_start' then start_episode(1) end
+  ev(9, 1, 1, -1770082073, OBS_MUTATION == 'boot_session_start_mismatch' and h(0x46f89001) or h(0x46f89000), h(0x42700000), h(0x471c4000), h(0x471c4000), h(0x3f800000))
+  if OBS_MUTATION == 'boot_tag_in_session' then ev(12, 1, 0, 1010) end
+  if OBS_MUTATION ~= 'boot_no_weather' then weather_episode(-1770082073) end
+  if OBS_MUTATION == 'boot_tag_before_parser_end' then ev(12, 1, 0, 1010) end
+  ev(11, 0, 0, 1010)
+  -- the file's later tags (parsgen.c): rain tag 0 calls fixed weather DRY (mode 1), any other value calls nothing; the wind tag is only logged
+  if OBS_MUTATION == 'boot_with_tags' then
+    ev(12, 0, 0, 1010)
+    ev(17, 1, 0, 1010)
+    ev(13, 0, 0, 1010, h(0x3f800000))
+  end
+  if OBS_MUTATION == 'boot_rain1' then
+    ev(12, 1, 0, 1010)
+    ev(13, 0, 0, 1010, h(0x3f800000))
+  end
+  if OBS_MUTATION == 'boot_rain1_fixed' then
+    ev(12, 1, 0, 1010)
+    ev(17, 1, 0, 1010)
+  end
+  if OBS_MUTATION == 'boot_rain0_no_fixed' then ev(12, 0, 0, 1010) end
+  if OBS_MUTATION == 'boot_rain0_wrong_mode' then
+    ev(12, 0, 0, 1010)
+    ev(17, 2, 0, 1010)
+  end
+  if OBS_MUTATION ~= 'boot_single_group' then
+    weather_episode(836760821)
+    if OBS_MUTATION == 'boot_three_groups' then
+      weather_episode(7)
+      start_episode(1010)
+    end
+    start_episode(1010)
+  end
+  if OBS_MUTATION ~= 'boot_end_late' then ev(2, 0, 0, 1010, h(clock)) end
+end
+-- the twelve events of a lightning expiry; the last four are the server's sound entities
+local function lightning(with_sound)
+  ev(22, 1, 0, 2000, h(0xbd000000), delta)
+  if OBS_MUTATION == 'lightning_interrupted' then return end
+  if OBS_MUTATION == 'lightning_misordered' then
+    ev(24, 0, 0, 2001, h(0x42f00000))
+    return
+  end
+  ev(23, 0, 0, 2001, h(0x42f00000))
+  ev(24, 0, 0, 2001, OBS_MUTATION == 'lightning_timer_mismatch' and h(0x42f00001) or h(0x42f00000))
+  ev(25, 1, 0, 2001)
+  ev(26, 1, 0, 2001, h(0x47000000), h(0x47000001))
+  ev(27, 1, 0, 2002)
+  ev(26, 2, 0, 2002, OBS_MUTATION == 'lightning_strike_position' and h(0x47000009) or h(0x47000000), h(0x47000001))
+  ev(27, 2, 0, 2003)
+  if with_sound then
+    ev(28, 1, 0, 2003, h(10), h(20))
+    ev(29, 1, 0, 2004, h(11), h(21))
+    ev(28, 2, 0, 2004, h(11), h(21))
+    ev(29, 2, 0, 2005, h(12), h(22))
+  end
+end
+obs_frame = function(ms)
+  local m = OBS_MUTATION
+  local second = frame_no == 1
+  if m == 'tod_outside_frame' and second then
+    ev(20, 0, 0, 1010, Z, delta, h(0x3f800000))
+    ev(21, 0, 1, 1010)
+  end
+  ev(18, (m == 'frame_ms_mismatch' and second) and ms + 1 or ms, (m == 'two_updates_in_frame' and second) and 2 or 1, 1010, h((m == 'clock_gap' and second) and clock + 1 or clock), (m == 'delta_phase' and second) and '3dcccccd' or delta)
+  if m == 'unpaired_frame' and second then ev(18, ms, 1, 1010, h(clock), delta) end
+  if m == 'lightning_before_tod' and second then lightning(true) end
+  if m == 'facts_before_tod' and second then
+    ev(30, 0, 123, 1010, h(1), h(2), h(3), h(4), h(5), h(6))
+    ev(30, -1, 2, 1010, h(1), h(3))
+  end
+  ev(20, 0, 0, 1010, Z, (m == 'tod_delta' and second) and '3dcccccd' or delta, h(0x3f800000))
+  if m == 'lightning_inside_tod' and second then lightning(true) end
+  if not (m == 'tod_unpaired' and second) then ev(21, 0, 1, 1010, h(0x3dcccccd), h(0x46f89033)) end
+  if second and (m == 'lightning_episode' or m == 'lightning_timer_mismatch' or m == 'lightning_strike_position' or m == 'lightning_misordered' or m == 'lightning_interrupted') then
+    lightning(true)
+  end
+  if second and m == 'lightning_client_form' then lightning(false) end
+  ev(30, 0, 123, 1010, h(1), h(2), h(3), h(4), h(5), h(6))
+  if not (m == 'facts_unpaired' and second) then ev(30, -1, 2, 1010, h(1), h(3)) end
+  if m == 'lightning_after_facts' and second then lightning(true) end
+  -- a frame may run the session update more than once (time acceleration): the next update's time of day begins again
+  if m == 'two_updates_in_frame' and second then
+    ev(20, 0, 0, 1010, Z, delta, h(0x3f800000))
+    ev(21, 0, 1, 1010, h(0x3dcccccd), h(0x46f89033))
+    ev(30, 0, 123, 1010, h(1), h(2), h(3), h(4), h(5), h(6))
+    ev(30, -1, 2, 1010, h(1), h(3))
+    updates = updates + 1
+  end
+  clock = clock + ms
+  delta = '3dcccccc'
+  ev(19, 0, 0, 1010, h((m == 'frame_end_clock' and second) and clock + 1 or clock), delta, h(0x41200000))
+  updates = updates + 1
+  frame_no = frame_no + 1
+end
+local first_read = true
+function engine:env_observer_events()
+  local text = table.concat(pending)
+  pending = {}
+  if first_read and #text > 0 then
+    first_read = false
+    -- beyond the driver's bound: a stream longer than 16384 events of 170 bytes; a row wider than 170 bytes; more than 16384 rows
+    if OBS_MUTATION == 'oversized_stream' then text = text .. string.rep('x', 3000000) end
+    if OBS_MUTATION == 'too_long_row' then text = (text:gsub('\n', string.rep(' ', 200) .. '\n', 1)) end
+    if OBS_MUTATION == 'too_many_events' then text = text .. string.rep(text:match('^[^\n]*\n'), 16384) end
+  end
+  if OBS_MUTATION == 'bad_row' and #text > 0 then text = text:gsub('\n', ' extra=1\n', 1) end
+  return text
+end
+function engine:env_observer_report()
+  local m = OBS_MUTATION
+  local dropped = m == 'dropped' and 3 or 0
+  return string.format('env-obs-report armed=1 capacity=%d stored=%d read=%d dropped=%d overflow=%d next_seq=%d update_server=%d lightning_calls=%d sound_calls=%d resync_calls=0 weather_calls=%d sound_records=%d\n',
+    m == 'capacity_low' and 1 or 16384, seq, seq, dropped, dropped > 0 and 1 or 0, seq, updates + (m == 'count_mismatch' and 1 or 0), updates, updates,
+    updates + (m == 'weather_calls_mismatch' and 1 or 0), updates + (m == 'sound_records_mismatch' and 1 or 0))
+end
+"#;
+
+const ENV_STAND_IN_WIRING: &str = r#"
+package.loaded['eech_dc'] = {
+  prepare_installation = function() note('prepare') end,
+@ARM@  boot = function() note('boot') if obs_boot then obs_boot() end return engine end,
+}
+dofile('@DRIVER@')
+"#;
+
+struct EnvStandIn {
+    fixture: bool,
+    jump: f64,
+    mutation: &'static str,
+    group: i32,
+    index: i32,
+    // the module has the observer's arm function and the engine its readout (a build with the env-observer feature); the observer's own damage, if any
+    observer_module: bool,
+    observer_mutation: &'static str,
+}
+
+impl EnvStandIn {
+    const WELL_FORMED: EnvStandIn = EnvStandIn {
+        fixture: true,
+        jump: 1.0,
+        mutation: "none",
+        group: -1,
+        index: -1,
+        observer_module: false,
+        observer_mutation: "none",
+    };
+}
+
+struct EnvRun {
+    status: std::process::ExitStatus,
+    stderr: String,
+    trace: String,
+    out_exists: bool,
+    out_text: String,
+    rows: Vec<serde_json::Value>,
+}
+
+// a per-run temporary directory, removed when the run is over, however it ends
+struct EnvTempDir(std::path::PathBuf);
+
+impl Drop for EnvTempDir {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.0);
+    }
+}
+
+fn forward(path: &std::path::Path) -> String {
+    path.display().to_string().replace('\u{5c}', "/")
+}
+
+// the host runs for at most this long; a driver that does not finish is killed and the test fails (a loop that does not end is a failure, not a hang)
+const ENV_DRIVER_DEADLINE: std::time::Duration = std::time::Duration::from_secs(90);
+
+fn run_env_scenario(stand_in: &EnvStandIn, args: &[&str]) -> EnvRun {
+    static COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+    let tag = format!("{}-{}", std::process::id(), COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst));
+    let dir = EnvTempDir(std::env::temp_dir().join(format!("eech-world-env-driver-{tag}")));
+    std::fs::create_dir_all(&dir.0).unwrap();
+    let driver = dir.0.join("env-characterization.lua");
+    let script = dir.0.join("stand-in.lua");
+    let out = dir.0.join("out.jsonl");
+    let trace = dir.0.join("trace.txt");
+    std::fs::write(&driver, ENV_DRIVER_LUA).unwrap();
+    let mut text = String::from(ENV_STAND_IN_BASE);
+    if stand_in.fixture {
+        text.push_str(ENV_STAND_IN_FIXTURE);
+    }
+    if stand_in.observer_module {
+        text.push_str(ENV_STAND_IN_OBSERVER);
+    }
+    text.push_str(ENV_STAND_IN_WIRING);
+    let arm = if stand_in.observer_module {
+        "  env_observer_arm = function(on) note('arm ' .. tostring(on)) end,\n"
+    } else {
+        ""
+    };
+    let text = text
+        .replace("@ARM@", arm)
+        .replace("@OBS_MUTATION@", stand_in.observer_mutation)
+        .replace("@JUMP@", &format!("{}", stand_in.jump))
+        .replace("@MUTATION@", stand_in.mutation)
+        .replace("@TARGET_GROUP@", &stand_in.group.to_string())
+        .replace("@TARGET_INDEX@", &stand_in.index.to_string())
+        .replace("@TRACE@", &forward(&trace))
+        .replace("@DRIVER@", &forward(&driver));
+    std::fs::write(&script, text).unwrap();
+
+    let mut command = Command::new(env_host());
+    command.arg(&script).arg("root=none").arg(format!("out={}", forward(&out)));
+    // an argument given by the test replaces the same-named one of the defaults
+    let key = |arg: &str| arg.split('=').next().unwrap_or_default().to_string();
+    let defaults = ["seconds=1", "frame_ms=100", "snapshot_frames=2", "snapshot_every=0"];
+    let overridden: Vec<String> = args.iter().map(|a| key(a)).collect();
+    for arg in defaults
+        .iter()
+        .filter(|a| !overridden.contains(&key(a)) && !(key(a) == "frame_ms" && overridden.iter().any(|k| k == "frame_schedule")))
+        .chain(args.iter())
+    {
+        command.arg(arg);
+    }
+    command.stdout(std::process::Stdio::piped()).stderr(std::process::Stdio::piped());
+    let mut child = command.spawn().unwrap();
+    let started = std::time::Instant::now();
+    let status = loop {
+        if let Some(status) = child.try_wait().unwrap() {
+            break status;
+        }
+        if started.elapsed() > ENV_DRIVER_DEADLINE {
+            let _ = child.kill();
+            let _ = child.wait();
+            panic!("the environment driver did not finish within {ENV_DRIVER_DEADLINE:?} and was killed");
+        }
+        std::thread::sleep(std::time::Duration::from_millis(20));
+    };
+    let output = child.wait_with_output().unwrap();
+    let out_exists = out.exists();
+    let out_text = if out_exists { std::fs::read_to_string(&out).unwrap() } else { String::new() };
+    // every line must parse: a malformed row is a failure here, never silently dropped
+    let rows = out_text
+        .lines()
+        .map(|l| serde_json::from_str(l).unwrap_or_else(|e| panic!("malformed output row {l:?}: {e}")))
+        .collect();
+    let trace_text = std::fs::read_to_string(&trace).unwrap_or_default();
+    EnvRun {
+        status,
+        stderr: String::from_utf8_lossy(&output.stderr).to_string(),
+        trace: trace_text,
+        out_exists,
+        out_text,
+        rows,
+    }
+}
+
+fn run_env_driver(args: &[&str]) -> EnvRun {
+    run_env_scenario(&EnvStandIn::WELL_FORMED, args)
+}
+
+fn env_rows<'a>(rows: &'a [serde_json::Value], event: &str) -> Vec<&'a serde_json::Value> {
+    rows.iter().filter(|r| r["event"] == event).collect()
+}
+
+fn env_witness_calls(trace: &str) -> usize {
+    trace
+        .lines()
+        .filter(|l| l.starts_with("case ") && !l.starts_with("case 0:") && !l.starts_with("case 1:"))
+        .count()
+}
+
+#[test]
+fn the_environment_driver_refuses_a_malformed_argument_before_anything_is_prepared_booted_or_run() {
+    let cases: &[(&[&str], &str)] = &[
+        (&["frame_ms=0"], "frame_ms"),
+        (&["frame_ms=1001"], "frame_ms"),
+        (&["frame_ms=10.5"], "frame_ms"),
+        (&["seconds=-1"], "seconds"),
+        (&["seconds=1e3"], "seconds"),
+        (&["seconds=21601"], "seconds"),
+        (&["seconds=nan"], "seconds"),
+        (&["seed=0"], "seed"),
+        (&["seed=2147483648"], "seed"),
+        (&["seed=abc"], "seed"),
+        (&["probes=1025"], "probes"),
+        (&["probes=-1"], "probes"),
+        (&["probes="], "probes"),
+        (&["probe_at=2", "seconds=1"], "probe_at"),
+        (&["probe_at=x"], "probe_at"),
+        (&["snapshot_frames=2001"], "snapshot_frames"),
+        (&["snapshot_every=3601"], "snapshot_every"),
+        (&["snapshot_every=abc"], "snapshot_every"),
+        (&["scenario=mars"], "scenario"),
+        (&["frame_ms=1", "seconds=200"], "frames"),
+    ];
+    for (args, name) in cases {
+        let run = run_env_driver(args);
+        assert!(!run.status.success(), "{args:?} was accepted");
+        assert!(
+            run.stderr.contains("env-characterization:") && run.stderr.contains(name),
+            "{args:?}: the refusal does not name {name}: {}",
+            run.stderr
+        );
+        assert!(run.trace.is_empty(), "{args:?}: something ran before the refusal: {}", run.trace);
+        assert!(!run.out_exists, "{args:?}: the output file was created");
+    }
+}
+
+#[test]
+fn the_environment_driver_refuses_a_module_without_the_fixture_and_runs_no_frame() {
+    let run = run_env_scenario(
+        &EnvStandIn {
+            fixture: false,
+            ..EnvStandIn::WELL_FORMED
+        },
+        &["probes=3"],
+    );
+    assert!(
+        !run.status.success(),
+        "a module without the fixture was reported as measured:\n{}",
+        run.out_text
+    );
+    assert!(run.stderr.contains("env_case"), "{}", run.stderr);
+    assert_eq!(env_rows(&run.rows, "refusal").len(), 1, "{}", run.out_text);
+    assert!(env_rows(&run.rows, "run").is_empty(), "a refused run wrote a run row");
+    assert!(!run.trace.contains("frame"), "a frame ran without the fixture: {}", run.trace);
+}
+
+#[test]
+fn the_environment_driver_control_asks_for_no_witness_and_the_probe_run_keeps_words_as_strings_and_reports_its_coverage() {
+    let control = run_env_driver(&["probes=0"]);
+    assert!(control.status.success(), "{}\n{}", control.stderr, control.out_text);
+    assert_eq!(env_witness_calls(&control.trace), 0, "the control asked for a witness: {}", control.trace);
+    assert_eq!(env_rows(&control.rows, "boot")[0]["mode"], "control");
+
+    // 14 witness cases exist in the stand-in's census; the cap of 4 truncates, and the coverage row says so
+    let probe = run_env_driver(&["probes=4"]);
+    assert!(probe.status.success(), "{}\n{}", probe.stderr, probe.out_text);
+    assert_eq!(env_witness_calls(&probe.trace), 4, "{}", probe.trace);
+    let winds = env_rows(&probe.rows, "env-wind");
+    assert_eq!(winds.len(), 2);
+    // a float word that is all decimal digits, and the all-zero word, stay strings; a plain integer is a number
+    assert_eq!(winds[0]["speed_w"], "00000000");
+    assert_eq!(winds[0]["vx_w"], "3f800000");
+    let states = env_rows(&probe.rows, "env-state-globals");
+    assert!(
+        !states.is_empty() && states.iter().all(|r| r["rng"] == -5 && r["rng_w"] == "3f800000"),
+        "{states:?}"
+    );
+    let snapshots = env_rows(&probe.rows, "env-state-fingerprint");
+    assert!(snapshots.iter().all(|r| r["fp"] == "0123456789abcdef"), "{snapshots:?}");
+    let noninterference = env_rows(&probe.rows, "probe_noninterference");
+    assert_eq!(noninterference.len(), 1);
+    assert_eq!(noninterference[0]["retail_equal"], true);
+    let run = env_rows(&probe.rows, "run");
+    assert_eq!(run.len(), 1);
+    assert_eq!(run[0]["probes_run"], 4);
+    assert_eq!(run[0]["cases_available"], 14);
+    assert_eq!(run[0]["complete"], false);
+    let coverage = env_rows(&probe.rows, "coverage");
+    assert_eq!(coverage.len(), 7);
+    assert!(coverage.iter().any(|c| c["truncated"] == true));
+    assert!(probe.out_text.ends_with('\n'));
+}
+
+#[test]
+fn the_environment_driver_accepts_every_family_in_its_declared_form_including_the_genuine_refusals_and_counts_them() {
+    let run = run_env_driver(&["probes=512"]);
+    assert!(run.status.success(), "{}\n{}", run.stderr, run.out_text);
+    assert_eq!(env_witness_calls(&run.trace), 14, "{}", run.trace);
+    let summary = &env_rows(&run.rows, "run")[0];
+    assert_eq!(summary["complete"], true);
+    assert_eq!(summary["probes_run"], 14);
+    // the stand-in's gust case 1 and update-weather case 1 are refused in their declared forms: the report is accepted as such, and counted
+    let validation = &env_rows(&run.rows, "validation")[0];
+    assert_eq!(validation["witnesses"], 14);
+    assert_eq!(validation["refused_witnesses"], 2);
+    assert_eq!(env_rows(&run.rows, "env-gust").len(), 2);
+    assert_eq!(env_rows(&run.rows, "env-gust").iter().filter(|r| r.get("refused").is_some()).count(), 1);
+    assert_eq!(env_rows(&run.rows, "env-witness-end").iter().filter(|r| r["restored"] == 1).count(), 14);
+}
+
+#[test]
+fn the_environment_driver_refuses_every_report_that_is_not_the_fixtures_protocol() {
+    // (mutation, group, index of the damaged report, what the refusal must say). Every other report of the run is well formed, so only the damaged one can be the reason.
+    let cases: &[(&'static str, i32, i32, &str)] = &[
+        ("marker_only", 3, 0, "expected '"),
+        ("wrong_family", 3, 0, "expected 'env-wind'"),
+        ("missing_field", 3, 0, "fields"),
+        ("duplicate_field", 3, 0, "duplicate field"),
+        ("bad_word", 3, 0, "8-digit lowercase hex word"),
+        ("short_word", 3, 0, "8-digit lowercase hex word"),
+        ("fp_mismatch", 3, 0, "fingerprint changed"),
+        ("restored_zero", 3, 0, "restored"),
+        ("wrong_index", 3, 0, "for case i=9"),
+        ("wrong_end_index", 3, 0, "end marker is for group"),
+        ("extra_row", 3, 0, "expected '"),
+        ("unknown_field", 3, 0, "fields"),
+        ("truncated", 3, 0, "truncated"),
+        ("empty_line", 3, 0, "empty line"),
+        ("marker_only", 2, 0, "expected '"),
+        ("marker_only", 6, 1, "expected '"),
+        ("marker_only", 7, 0, "expected '"),
+        ("marker_only", 8, 0, "expected '"),
+        ("gust_in_domain_refused", 4, 1, "was refused"),
+        ("gust_out_of_domain_called", 4, 0, "reported as called"),
+        ("census_zero", 0, 0, "outside 1"),
+        ("census_huge", 0, 0, "outside 1"),
+        ("census_enum", 0, 0, "not a value the protocol allows"),
+        ("census_missing_unsupported", 0, 0, "is missing"),
+        ("snapshot_bad_fingerprint", 1, 0, "16-digit"),
+        ("marker_only", 1, 0, "expected '"),
+        // the printed guards: an impossible refusal hides the state rows, and an unavailable wind hides the answers, so each is judged by the context of the same report
+        ("init_false_refusal", 6, 1, "refused although comms_model equals"),
+        ("init_false_run", 6, 0, "ran although comms_model"),
+        ("update_false_refusal", 8, 1, "refused although in_cockpit=0, camera=1"),
+        ("update_false_run", 8, 0, "ran although in_cockpit"),
+        ("snapshot_false_unavailable", 1, 0, "says wind unavailable although"),
+        ("init_false_unavailable", 6, 0, "says wind unavailable although"),
+        ("snapshot_gust_outside_with_wind", 1, 0, "has a wind answer although"),
+        ("wind_flag_says_unequal", 3, 0, "null_same=0 contradicts"),
+        ("wind_flag_says_equal", 3, 0, "null_same=1 contradicts"),
+    ];
+    for (mutation, group, index, says) in cases {
+        let stand_in = EnvStandIn {
+            mutation,
+            group: *group,
+            index: *index,
+            ..EnvStandIn::WELL_FORMED
+        };
+        let run = run_env_scenario(&stand_in, &["probes=512"]);
+        let what = format!("{mutation} on group {group} index {index}");
+        assert!(!run.status.success(), "{what} was accepted:\n{}", run.out_text);
+        assert!(
+            run.stderr.contains("did not return the fixture's protocol") || run.stderr.contains("malformed report"),
+            "{what}: {}",
+            run.stderr
+        );
+        assert!(run.stderr.contains(*says), "{what}: the refusal does not say '{says}': {}", run.stderr);
+        assert_eq!(env_rows(&run.rows, "failure").len(), 1, "{what}: {}", run.out_text);
+        assert!(env_rows(&run.rows, "run").is_empty(), "{what}: a refused run reported a run row");
+        assert!(env_rows(&run.rows, "validation").is_empty(), "{what}: a refused run reported validation");
+    }
+}
+
+#[test]
+fn the_environment_driver_bounds_its_periodic_schedule_whatever_the_period_and_the_clock_jump() {
+    // a period of 1e-11 s and a clock that jumps 50 s in a frame: one snapshot per frame and no catch-up loop (the old loop needed about 5e12 steps per frame and never finished)
+    let jump = EnvStandIn {
+        jump: 500.0,
+        ..EnvStandIn::WELL_FORMED
+    };
+    let run = run_env_scenario(
+        &jump,
+        &["probes=0", "snapshot_frames=0", "snapshot_every=.00000000001", "seconds=1", "frame_ms=100"],
+    );
+    assert!(run.status.success(), "{}\n{}", run.stderr, run.out_text);
+    let periodic: Vec<_> = env_rows(&run.rows, "env-state-fingerprint")
+        .into_iter()
+        .filter(|r| r["scope"].as_str().unwrap_or("").starts_with("snapshot:periodic:"))
+        .collect();
+    assert_eq!(periodic.len(), 10, "{}", run.out_text);
+
+    // the ordinary schedule is unchanged: the clock moves 0.25 s a frame; every 0.5 s gives a snapshot at 0.5, 1.0, 1.5, 2.0, 2.5; every 0.25 s one after every frame; 0 none
+    let steady = EnvStandIn {
+        jump: 2.5,
+        ..EnvStandIn::WELL_FORMED
+    };
+    let scopes = |every: &str| -> Vec<String> {
+        let run = run_env_scenario(&steady, &["probes=0", "snapshot_frames=0", every, "seconds=1", "frame_ms=100"]);
+        assert!(run.status.success(), "{}\n{}", run.stderr, run.out_text);
+        env_rows(&run.rows, "env-state-fingerprint")
+            .into_iter()
+            .filter_map(|r| r["scope"].as_str().map(str::to_string))
+            .filter(|s| s.starts_with("snapshot:periodic:"))
+            .collect()
+    };
+    assert_eq!(
+        scopes("snapshot_every=0.5"),
+        [
+            "snapshot:periodic:0.500",
+            "snapshot:periodic:1.000",
+            "snapshot:periodic:1.500",
+            "snapshot:periodic:2.000",
+            "snapshot:periodic:2.500"
+        ]
+    );
+    assert_eq!(scopes("snapshot_every=0.25").len(), 10);
+    assert!(scopes("snapshot_every=0").is_empty());
+}
+
+#[test]
+fn the_environment_driver_accepts_the_coherent_alternative_forms_the_emitter_can_print() {
+    // (mutation, group, index, refused witnesses the run must then count). The well-formed stand-in refuses two witnesses (the gust and the update-weather case 1).
+    let cases: &[(&'static str, i32, i32, u64)] = &[
+        ("none", -1, -1, 2),
+        // the emitter's null_same is the equality of its own two words: unequal words with flag 0 are as coherent as equal words with flag 1
+        ("wind_words_unequal_flag_zero", 3, 0, 2),
+        // a snapshot whose gust is outside [0,1) has no wind answers (the emitter's own branch)
+        ("snapshot_gust_outside_no_wind", 1, 0, 2),
+        ("init_gust_outside_no_wind", 6, 0, 2),
+        // the initialiser and the weather update are refused by each guard that can hold
+        ("init_refused_nonserver", 6, 1, 3),
+        ("update_refused_no_camera", 8, 0, 3),
+        ("update_refused_nonserver", 8, 0, 3),
+        // a state record is not a query context: a gust phase of 1.0 before the wrap is accepted there
+        ("update_state_gust_phase_one", 8, 0, 2),
+    ];
+    for (mutation, group, index, refused) in cases {
+        let stand_in = EnvStandIn {
+            mutation,
+            group: *group,
+            index: *index,
+            ..EnvStandIn::WELL_FORMED
+        };
+        let run = run_env_scenario(&stand_in, &["probes=512"]);
+        let what = format!("{mutation} on group {group} index {index}");
+        assert!(run.status.success(), "{what} was refused: {}\n{}", run.stderr, run.out_text);
+        assert!(env_rows(&run.rows, "failure").is_empty(), "{what}: {}", run.out_text);
+        let validation = &env_rows(&run.rows, "validation")[0];
+        assert_eq!(validation["witnesses"], 14, "{what}");
+        assert_eq!(validation["refused_witnesses"], *refused, "{what}");
+        assert_eq!(env_rows(&run.rows, "run")[0]["complete"], true, "{what}");
+    }
+}
+
+// ---- the observer, the frame-time schedule and the controlled-weather case (EEDCS-51, second increment). The stand-in answers well-formed canned reports; these checks say nothing about the original
+// code's initialisation, entropy order, lightning or time phase. They protect the driver's contract with the observer: armed BEFORE boot, a record that is complete and in order, an OFF run that
+// differs only by the observer's own rows, and a refusal for every record that is incomplete, unpaired, mis-numbered or inconsistent.
+
+fn env_observer_args(extra: &[&'static str]) -> Vec<&'static str> {
+    let mut args = vec!["probes=0", "observer=on", "seconds=1", "frame_ms=100", "snapshot_frames=2"];
+    args.extend_from_slice(extra);
+    args
+}
+
+fn env_trace_lines(trace: &str) -> Vec<&str> {
+    trace.lines().collect()
+}
+
+#[test]
+fn the_environment_observer_is_armed_before_boot_recorded_in_order_and_the_off_run_differs_only_by_its_rows() {
+    let module = EnvStandIn {
+        observer_module: true,
+        ..EnvStandIn::WELL_FORMED
+    };
+    let on = run_env_scenario(&module, &env_observer_args(&[]));
+    assert!(on.status.success(), "{}\n{}", on.stderr, on.out_text);
+    let lines = env_trace_lines(&on.trace);
+    let arm = lines.iter().position(|l| *l == "arm true").expect("the observer was never armed");
+    let boot = lines.iter().position(|l| *l == "boot").expect("the engine was never booted");
+    assert!(arm < boot, "the observer was armed after boot: {lines:?}");
+    // 44 boot events and six events a frame, numbered without a gap from 0; the words of an event stay strings (a digits-only hex word is not a decimal number)
+    let events = env_rows(&on.rows, "env-obs");
+    assert_eq!(events.len(), 44 + 10 * 6, "{}", on.out_text);
+    for (n, event) in events.iter().enumerate() {
+        assert_eq!(event["seq"], n as u64);
+        assert!((0..6).all(|k| event[format!("w{k}")].is_string()), "{event}");
+    }
+    assert_eq!(events[0]["kind_name"], "boot_begin");
+    assert_eq!(events[43]["kind_name"], "boot_end");
+    let summary = &env_rows(&on.rows, "observer_summary")[0];
+    assert_eq!(summary["events"], 104);
+    assert_eq!(summary["n_weather_draw"], 20);
+    assert_eq!(summary["n_start_reseed"], 2);
+    assert_eq!(summary["n_frame_begin"], 10);
+    assert_eq!(summary["n_tod_begin"], 10);
+    assert_eq!(summary["update_server"], 10);
+
+    // the same program with the observer off: not armed, no observer rows, and every other row (the initial, per-frame and final snapshots, the campaign rows and the clock) the same
+    let off = run_env_scenario(&module, &["probes=0", "observer=off", "seconds=1", "frame_ms=100", "snapshot_frames=2"]);
+    assert!(off.status.success(), "{}\n{}", off.stderr, off.out_text);
+    assert!(!env_trace_lines(&off.trace).iter().any(|l| l.starts_with("arm")), "{}", off.trace);
+    let strip = |rows: &[serde_json::Value]| -> Vec<serde_json::Value> {
+        rows.iter()
+            .filter(|r| !["env-obs", "env-obs-report", "observer_summary"].contains(&r["event"].as_str().unwrap_or("")))
+            .cloned()
+            .map(|mut r| {
+                if r["event"] == "boot" {
+                    r.as_object_mut().unwrap().remove("observer");
+                }
+                r
+            })
+            .collect()
+    };
+    assert_eq!(strip(&on.rows), strip(&off.rows));
+    assert!(env_rows(&off.rows, "env-obs").is_empty() && env_rows(&off.rows, "observer_summary").is_empty());
+}
+
+#[test]
+fn the_environment_observer_refuses_a_module_without_it_before_boot_and_every_incomplete_or_inconsistent_record() {
+    // a module built without the feature: refused BEFORE the engine is booted, with the genuine refusal row
+    let run = run_env_scenario(&EnvStandIn::WELL_FORMED, &env_observer_args(&[]));
+    assert!(!run.status.success(), "{}", run.out_text);
+    assert!(run.stderr.contains("env_observer_arm"), "{}", run.stderr);
+    assert_eq!(env_rows(&run.rows, "refusal").len(), 1, "{}", run.out_text);
+    assert!(!run.trace.contains("boot"), "the engine was booted without the observer: {}", run.trace);
+
+    let cases: &[(&'static str, &str)] = &[
+        ("skip_seq", "missing or repeated"),
+        ("not_armed", "was not armed before boot"),
+        ("dropped", "dropped 3 events"),
+        ("rng_mismatch", "are not one word"),
+        ("unpaired_frame", "began inside a frame"),
+        ("count_mismatch", "session updates"),
+        ("bad_row", "fields"),
+        // the boot: every mandatory episode and its order, the context between them
+        ("boot_no_weather", "expected weather_begin"),
+        ("boot_weather_misordered", "weather draw 3 where draw 2 was expected"),
+        ("boot_weather_short", "expected weather_draw, found weather_end"),
+        ("boot_no_start", "expected seed_source"),
+        ("boot_session_start_mismatch", "session_created carries the start time"),
+        ("boot_seed_mismatch", "does not follow the seed_source"),
+        ("boot_seed_wrong", "not the boot seed"),
+        ("boot_end_late", "frame event before boot_end"),
+        // the frames: the requested ms, the clock, the previous-delta phase, the update inside its frame
+        ("frame_ms_mismatch", "asks"),
+        ("clock_gap", "began at clock"),
+        ("frame_end_clock", "clock advanced to"),
+        ("delta_phase", "previous delta"),
+        ("tod_outside_frame", "outside a frame"),
+        ("tod_delta", "read the delta word"),
+        ("tod_unpaired", "outside a frame's sound update"),
+        ("facts_unpaired", "sound-fact pair was not completed"),
+        // the lightning episode, and the report's counts
+        ("lightning_interrupted", "interrupts the lightning episode after its step 1"),
+        ("lightning_misordered", "expected lightning_new_timer at step 2"),
+        ("lightning_timer_mismatch", "not the timer drawn"),
+        ("lightning_strike_position", "first strike's position"),
+        ("lightning_inside_tod", "outside the frame's weather update"),
+        // a server expiry makes both sound entities: the eight-event form is not a client's (which would not emit the first three server events) but an impossible server history
+        ("lightning_client_form", "interrupts the lightning episode after its step 8"),
+        ("lightning_before_tod", "before the update's time of day"),
+        ("lightning_after_facts", "after the update's sound facts"),
+        ("facts_before_tod", "sound facts before the update's time of day"),
+        // the tags are the file's later tags: not inside the session block, and rain tag 0 alone calls fixed weather DRY
+        ("boot_tag_in_session", "expected weather_begin, found rain_tag"),
+        ("boot_tag_before_parser_end", "expected parser_session_end, found rain_tag"),
+        ("boot_rain1_fixed", "is followed by a fixed weather"),
+        ("boot_rain0_no_fixed", "rain tag 0 must be followed"),
+        ("boot_rain0_wrong_mode", "rain tag 0 must be followed"),
+        ("capacity_low", "capacity"),
+        ("weather_calls_mismatch", "weather and"),
+        ("sound_records_mismatch", "sound records"),
+        // the observer stream's own bounds (the native capacity and line width), refused clearly and never truncated
+        ("oversized_stream", "exceeds the bound"),
+        ("too_long_row", "observer row of"),
+        ("too_many_events", "more than the observer's capacity"),
+    ];
+    for (mutation, says) in cases {
+        let stand_in = EnvStandIn {
+            observer_module: true,
+            observer_mutation: mutation,
+            ..EnvStandIn::WELL_FORMED
+        };
+        let run = run_env_scenario(&stand_in, &env_observer_args(&[]));
+        assert!(!run.status.success(), "{mutation} was accepted:\n{}", run.out_text);
+        assert!(run.stderr.contains(*says), "{mutation}: the refusal does not say '{says}': {}", run.stderr);
+        assert_eq!(env_rows(&run.rows, "failure").len(), 1, "{mutation}: {}", run.out_text);
+        assert!(env_rows(&run.rows, "run").is_empty(), "{mutation}: a refused run reported a run row");
+        assert!(
+            env_rows(&run.rows, "observer_summary").is_empty(),
+            "{mutation}: a refused run reported a summary"
+        );
+    }
+}
+
+#[test]
+fn the_environment_driver_runs_a_variable_frame_schedule_and_refuses_a_malformed_new_argument_before_anything_runs() {
+    // 100, 250 and 50 ms frames, cycled until a second has passed: 100 350 400 500 750 800 900 1150
+    let module = EnvStandIn {
+        observer_module: true,
+        ..EnvStandIn::WELL_FORMED
+    };
+    let run = run_env_scenario(
+        &module,
+        &["probes=0", "observer=on", "frame_schedule=100,250,50", "seconds=1", "snapshot_frames=0"],
+    );
+    assert!(run.status.success(), "{}\n{}", run.stderr, run.out_text);
+    let frames: Vec<&str> = run.trace.lines().filter(|l| l.starts_with("frame ")).collect();
+    assert_eq!(
+        frames,
+        [
+            "frame 100",
+            "frame 250",
+            "frame 50",
+            "frame 100",
+            "frame 250",
+            "frame 50",
+            "frame 100",
+            "frame 250"
+        ]
+    );
+    assert_eq!(env_rows(&run.rows, "boot")[0]["frame_schedule"], "100,250,50");
+    // the observer's frame_begin events carry the host's milliseconds, in the schedule's order
+    let begins: Vec<u64> = env_rows(&run.rows, "env-obs")
+        .iter()
+        .filter(|r| r["kind_name"] == "frame_begin")
+        .map(|r| r["a"].as_u64().unwrap())
+        .collect();
+    assert_eq!(begins, [100, 250, 50, 100, 250, 50, 100, 250]);
+
+    let cases: &[(&[&str], &str)] = &[
+        (&["observer=maybe"], "observer"),
+        (&["observer=on"], "probes"),
+        (&["controlled=thunder", "probes=0"], "controlled"),
+        (&["controlled=lightning_due"], "probes"),
+        (&["frame_schedule=100,,50"], "frame_schedule"),
+        (&["frame_schedule=0"], "frame_schedule"),
+        (&["frame_schedule=1001"], "frame_schedule"),
+        (&["frame_schedule=1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1"], "frame_schedule"),
+        (&["frame_schedule=100,250", "frame_ms=50"], "frame_schedule"),
+        (&["frame_schedule=1", "seconds=200"], "frames"),
+    ];
+    for (args, name) in cases {
+        let run = run_env_scenario(&module, args);
+        assert!(!run.status.success(), "{args:?} was accepted");
+        assert!(
+            run.stderr.contains("env-characterization:") && run.stderr.contains(name),
+            "{args:?}: the refusal does not name {name}: {}",
+            run.stderr
+        );
+        assert!(run.trace.is_empty(), "{args:?}: something ran before the refusal: {}", run.trace);
+        assert!(!run.out_exists, "{args:?}: the output file was created");
+    }
+}
+
+#[test]
+fn the_environment_driver_runs_one_labelled_controlled_case_before_the_frames_and_judges_it_by_what_it_prints() {
+    for (name, index, radius) in [("lightning_due", 0, "47000000"), ("local_weather_on", 1, "471c4000")] {
+        let run = run_env_driver(&["probes=0", &format!("controlled={name}"), "seconds=1", "snapshot_frames=0"]);
+        assert!(run.status.success(), "{name}: {}\n{}", run.stderr, run.out_text);
+        let lines = env_trace_lines(&run.trace);
+        let initial = lines.iter().position(|l| *l == "case 1:0").unwrap();
+        let controlled = lines
+            .iter()
+            .position(|l| *l == format!("case 9:{index}"))
+            .expect("the controlled case was not asked");
+        let first_frame = lines.iter().position(|l| l.starts_with("frame ")).unwrap();
+        assert!(initial < controlled && controlled < first_frame, "{name}: {lines:?}");
+        assert_eq!(env_rows(&run.rows, "boot")[0]["controlled"], name);
+        let rows = env_rows(&run.rows, "env-controlled");
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0]["scope"], format!("controlled:{name}"));
+        assert_eq!(rows[0]["radius_after_w"], radius);
+        assert_eq!(rows[0]["timer_after_w"], "3f000000");
+        assert!(env_rows(&run.rows, "env-controlled-end")
+            .iter()
+            .all(|r| r["changed"] == 1 && r["process_isolated"] == "required"));
+        assert!(
+            run.rows.iter().any(|r| r["scope"] == "snapshot:controlled"),
+            "{name}: no snapshot after the controlled case"
+        );
+        assert_eq!(env_rows(&run.rows, "run").len(), 1);
+    }
+
+    // the other declared refusals are accepted when the printed context agrees with them
+    for mutation in ["ctl_refused_nonlocal", "ctl_refused_radius_zero", "ctl_refused_nonserver"] {
+        let stand_in = EnvStandIn {
+            mutation,
+            group: 9,
+            index: 0,
+            ..EnvStandIn::WELL_FORMED
+        };
+        let run = run_env_scenario(&stand_in, &["probes=0", "controlled=lightning_due", "seconds=1"]);
+        assert!(run.status.success(), "{mutation}: {}\n{}", run.stderr, run.out_text);
+    }
+
+    // and refused when it does not, or when the echo of the input is wrong
+    let cases: &[(&'static str, &str, i32, &str)] = &[
+        ("ctl_refused_weather_but_local", "lightning_due", 0, "printed weather is local"),
+        ("ctl_refused_server_but_server", "lightning_due", 0, "although comms_model equals"),
+        ("ctl_wrong_timer", "lightning_due", 0, "0.5 s input"),
+        ("ctl_wrong_what", "lightning_due", 0, "controlled row is for what"),
+        ("ctl_wrong_radius", "local_weather_on", 1, "40 km input radius"),
+        ("ctl_changed_says_zero", "lightning_due", 0, "protocol"),
+    ];
+    for (mutation, name, index, says) in cases {
+        let stand_in = EnvStandIn {
+            mutation,
+            group: 9,
+            index: *index,
+            ..EnvStandIn::WELL_FORMED
+        };
+        let run = run_env_scenario(&stand_in, &["probes=0", &format!("controlled={name}"), "seconds=1"]);
+        assert!(!run.status.success(), "{mutation} was accepted:\n{}", run.out_text);
+        assert!(run.stderr.contains(*says), "{mutation}: the refusal does not say '{says}': {}", run.stderr);
+        assert_eq!(env_rows(&run.rows, "failure").len(), 1, "{mutation}: {}", run.out_text);
+        assert!(env_rows(&run.rows, "run").is_empty(), "{mutation}: a refused run reported a run row");
+    }
+}
+
+#[test]
+fn the_environment_observer_accepts_the_coherent_forms_of_the_real_transcript_and_not_only_one_weather_group() {
+    // the real boot runs two weather episodes and two start-time episodes; one episode of each, a third pair and the optional tag and fixed-weather events are as coherent, and a lightning expiry
+    // with or without the server's sound entities is a complete episode. (Each form is a canned order, not a physical result.)
+    for mutation in [
+        "none",
+        "boot_single_group",
+        "boot_three_groups",
+        "boot_with_tags",
+        "boot_rain1",
+        "lightning_episode",
+        "two_updates_in_frame",
+    ] {
+        let stand_in = EnvStandIn {
+            observer_module: true,
+            observer_mutation: mutation,
+            ..EnvStandIn::WELL_FORMED
+        };
+        let run = run_env_scenario(&stand_in, &env_observer_args(&[]));
+        assert!(run.status.success(), "{mutation}: {}\n{}", run.stderr, run.out_text);
+        let summary = &env_rows(&run.rows, "observer_summary")[0];
+        assert_eq!(summary["n_frame_begin"], 10, "{mutation}");
+        let weather = match mutation {
+            "boot_single_group" => 10,
+            "boot_three_groups" => 30,
+            _ => 20,
+        };
+        assert_eq!(summary["n_weather_draw"], weather, "{mutation}");
+        let expiries = if mutation.starts_with("lightning") { 1 } else { 0 };
+        if mutation == "two_updates_in_frame" {
+            // the frame that runs two updates records the acceleration count 2, the others 1
+            let counts: Vec<u64> = env_rows(&run.rows, "env-obs")
+                .iter()
+                .filter(|r| r["kind_name"] == "frame_begin")
+                .map(|r| r["b"].as_u64().unwrap())
+                .collect();
+            assert_eq!(counts, [1, 2, 1, 1, 1, 1, 1, 1, 1, 1], "{mutation}");
+            assert_eq!(summary["n_tod_begin"], 11, "{mutation}");
+            assert_eq!(summary["update_server"], 11, "{mutation}");
+        }
+        assert_eq!(summary["n_lightning_expired"].as_u64().unwrap_or(0), expiries, "{mutation}");
+    }
+}
+
+#[test]
+fn the_environment_observer_accepts_a_stream_larger_than_one_fixture_buffer() {
+    // 200 frames: the drain at frame 200 returns 1,200 events, far more than one native 32 KiB chunk (the engine method concatenates the chunks). The first correction's bug was that this legitimate
+    // stream was held to the single-buffer limit of an ordinary fixture report.
+    let module = EnvStandIn {
+        observer_module: true,
+        ..EnvStandIn::WELL_FORMED
+    };
+    let run = run_env_scenario(&module, &["probes=0", "observer=on", "seconds=20", "frame_ms=100", "snapshot_frames=0"]);
+    assert!(run.status.success(), "{}\n{}", run.stderr, run.out_text);
+    let batch = run
+        .rows
+        .iter()
+        .filter(|r| r["event"] == "env-obs" && r["scope"] == "observer:frame:200")
+        .count();
+    assert_eq!(batch, 1200);
+    // every row is at least 100 bytes of native text, so the batch is more than 32,768 bytes
+    assert!(batch * 100 > 32 * 1024);
+    let summary = &env_rows(&run.rows, "observer_summary")[0];
+    assert_eq!(summary["events"], 44 + 200 * 6);
+    assert_eq!(summary["n_frame_begin"], 200);
+}

@@ -1,0 +1,62 @@
+{
+  "when_utc": "2026-10-31T10:55:20.583008+00:00",
+  "scope": "Safe actual2afd successes AND failures; NOacceptance. Private raw retail inputs/sourcebins/coordinates/recordings remain outsideGit.",
+  "files": [
+    {
+      "file": "review.json",
+      "raw_sha256": "70bdcdd0c4903ffcc73955ba788c1e824992e2e743d13c495fd3830b7d75ba20",
+      "raw_bytes": 11350,
+      "git_lf_sha256": "c9c1bf1188206f1209d214e15c381513c2947bfbcdf86823f64fb8bf47bb6a79",
+      "git_lf_bytes": 11254,
+      "normalization": "Explicit CRLF->LF for text publication only; original raw kept unchanged"
+    },
+    {
+      "file": "numeric-comparison.json",
+      "raw_sha256": "e75c34af680d054f98d1d6e604fa04b74c07898d5e32289372579a2dc7984656",
+      "raw_bytes": 1480,
+      "git_lf_sha256": "3bef03cf5cf156b3b8455c78e842531ab2cdd9a24f712876bda9676dfedaa69f",
+      "git_lf_bytes": 1447,
+      "normalization": "Explicit CRLF->LF for text publication only; original raw kept unchanged"
+    },
+    {
+      "file": "linux-completion.json",
+      "raw_sha256": "f8b81dc0e8671f5295c9196841608690e8b565dff3a9afd91108a312123ca8cb",
+      "raw_bytes": 650,
+      "git_lf_sha256": "50ce05182ad2af07c96bf46a5abedf3556694ec212d4f4743f96dcf6f506cd19",
+      "git_lf_bytes": 632,
+      "normalization": "Explicit CRLF->LF for text publication only; original raw kept unchanged"
+    },
+    {
+      "file": "windows-build-completion.json",
+      "raw_sha256": "0f1de9d5b474da8637961ac7d4c90750772f710d2ef30eef93737a52cf9d9562",
+      "raw_bytes": 652,
+      "git_lf_sha256": "f12138c8cc676d0202a935172e121f1d44a86ebb098e59772a15940691ef5238",
+      "git_lf_bytes": 634,
+      "normalization": "Explicit CRLF->LF for text publication only; original raw kept unchanged"
+    },
+    {
+      "file": "windows-export-completion.json",
+      "raw_sha256": "7928cc4128beee2510b9bcafd43e7de5aae297d3e62d1e8282f6f57db3118849",
+      "raw_bytes": 658,
+      "git_lf_sha256": "4c11c66a485fc441270cf25f278510934daca52a05d9161ea5dfecc4b79792ed",
+      "git_lf_bytes": 640,
+      "normalization": "Explicit CRLF->LF for text publication only; original raw kept unchanged"
+    },
+    {
+      "file": "actual-windows-tests.json",
+      "raw_sha256": "01c8efc7b1800b73880d4eac7a4ca2cf889346e6993e8a901eeff2824eae2311",
+      "raw_bytes": 1949,
+      "git_lf_sha256": "086aeca77d592bbaa5716b62c0fceb802f920eeff4817d1067b7d601cd89a52f",
+      "git_lf_bytes": 1898,
+      "normalization": "Explicit CRLF->LF for text publication only; original raw kept unchanged"
+    },
+    {
+      "file": "ledger87-preservation.json",
+      "raw_sha256": "7fada0676a15289d51467dc6f377783633ab195f20b1c1d64de40948ce133e6e",
+      "raw_bytes": 110,
+      "git_lf_sha256": "7fada0676a15289d51467dc6f377783633ab195f20b1c1d64de40948ce133e6e",
+      "git_lf_bytes": 110,
+      "normalization": "Explicit CRLF->LF for text publication only; original raw kept unchanged"
+    }
+  ]
+}

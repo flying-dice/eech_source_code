@@ -66,6 +66,8 @@
 
 #include "project.h"
 
+#include "entity/special/session/ss_envfx.h"
+
 #include <errno.h>
 
 #include "parsgen.h"
@@ -1195,6 +1197,8 @@ int parser_campaign_file (const char *filename, int *offset)
 					entity
 						*en;
 
+					ENV_FX (ENV_FX_PARSER_SESSION_BEGIN, 0, 0, 0, 0, 0, 0, 0, 0)
+
 					en = create_local_entity
 					(
 						ENTITY_TYPE_SESSION,
@@ -1203,6 +1207,8 @@ int parser_campaign_file (const char *filename, int *offset)
 					);
 
 					set_session_random_weather_mode (en);
+
+					ENV_FX (ENV_FX_PARSER_SESSION_END, 0, 0, 0, 0, 0, 0, 0, 0)
 				}
 
 				//
@@ -1301,6 +1307,8 @@ int parser_campaign_file (const char *filename, int *offset)
 				ASSERT (get_session_entity ());
 
 				rain_effect = get_next_file_int (file_ptr);
+
+				ENV_FX (ENV_FX_RAIN_TAG, rain_effect, 0, 0, 0, 0, 0, 0, 0)
 				//if (get_global_season() == SESSION_SEASON_WINTER)
 					//rain_effect = 1;
 
@@ -1322,6 +1330,8 @@ int parser_campaign_file (const char *filename, int *offset)
 					wind_effect;
 
 				wind_effect = get_next_file_float (file_ptr);
+
+				ENV_FX (ENV_FX_WIND_TAG, 0, 0, ENV_FXF (wind_effect), 0, 0, 0, 0, 0)
 
 				debug_log ("PARSGEN: Wind effect %f", wind_effect);
 

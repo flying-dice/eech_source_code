@@ -66,6 +66,8 @@
 
 #include "project.h"
 
+#include "entity/special/session/ss_envfx.h"
+
 #include "ai/highlevl/highlevl.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -190,6 +192,8 @@ static entity *create_local (entity_types type, int index, char *pargs)
 
 		raw->fog_of_war_maximum_value = command_line_fog_of_war_maximum_value;
 
+		ENV_FX (ENV_FX_SESSION_CREATED, raw->local_weather_model, raw->day_segment_type, ENV_FXF (raw->start_time), ENV_FXF (raw->lightning_timer), ENV_FXF (raw->weather_radius), ENV_FXF (raw->wind_effect_radius), ENV_FXF (raw->time_of_day_acceleration), 0)
+
 		////////////////////////////////////////
 		//
 		// OVERWRITE DEFAULT VALUES WITH GIVEN ATTRIBUTES
@@ -211,6 +215,11 @@ static entity *create_local (entity_types type, int index, char *pargs)
 		////////////////////////////////////////
 
 		raw->fog_of_war_maximum_value = bound (raw->fog_of_war_maximum_value, (8.0 * FOG_OF_WAR_DECAY_RATE), (8.0 * ONE_HOUR));
+
+#ifdef EECH_CAMPAIGN_HOST_ENV
+		// the session's defaults and attributes are the host's physical field from here on (ss_hostenv.h): the record keeps a read-only mirror
+		campaign_env_import ((struct SESSION *) raw);
+#endif
 
 		////////////////////////////////////////
 		//

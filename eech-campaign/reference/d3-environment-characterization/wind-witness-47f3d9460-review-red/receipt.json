@@ -1,0 +1,48 @@
+{
+  "when_utc": "2026-10-31T12:05:05.417203+00:00",
+  "scope": "ACTUALwindwitnessbookkeepingguards0 andREALcontroltest101, noauthorityacceptance. No private rawretailcoords/trace/binaries uploaded; rawkeptprivate. ExplicitLFtextnormalizationonly.",
+  "copies": [
+    {
+      "file": "source-review.json",
+      "raw_sha256": "adb71b22f4df6aa013067c9bb806c639136face06fa0f36c4a7363d75b97de0b",
+      "git_lf_sha256": "2654d60805cb5396a5333d47bfa56918ecfe3fed5f7f46ed1711797a3f7ba79c",
+      "raw_bytes": 9158,
+      "git_lf_bytes": 9093
+    },
+    {
+      "file": "linux-completion.json",
+      "raw_sha256": "77585f0ebf42b0983dff813c04a654a5a5ec6dbd8b48456448a7446e90a65478",
+      "git_lf_sha256": "e2206633995e0e2eb23a2944bb88e8a66b7e76cd6f77633004cc7b8202241e4f",
+      "raw_bytes": 617,
+      "git_lf_bytes": 599
+    },
+    {
+      "file": "windows-build-export-completion.json",
+      "raw_sha256": "a671d20559dac0930b42b4467a694291b44a7d1672dd52affcaee36b5df77d01",
+      "git_lf_sha256": "1aff4f6e546e616b47087ce7c4897bee0cabe6b93a0d8c6f434057a3db79ce69",
+      "raw_bytes": 621,
+      "git_lf_bytes": 603
+    },
+    {
+      "file": "actual-windows-guards-and-real-control-red.json",
+      "raw_sha256": "c5a1131fc959140e2ee36b307d490c11d20fccd77fc14fd39a197126d95c1690",
+      "git_lf_sha256": "ebb19d66ce7abc708088494b1c674d18bf65c8b42670d6b7637c3beceeaaa561",
+      "raw_bytes": 3511,
+      "git_lf_bytes": 3428
+    },
+    {
+      "file": "dd120-control-comparison.json",
+      "raw_sha256": "f99d48b121ec311fd3b4bb84e1f1473f1aaadd6b9d6b8dc6934399bbfb13a8f1",
+      "git_lf_sha256": "4b8a8bdda07d96913a7ed9269f03e976f1b0fc8796dafce81023396d25bcc909",
+      "raw_bytes": 580,
+      "git_lf_bytes": 568
+    },
+    {
+      "file": "ledger88-preservation.json",
+      "raw_sha256": "60fec1ed813c48aad30d204e80e387d3d13c5c9db8824289633c7106d00d4a22",
+      "git_lf_sha256": "60fec1ed813c48aad30d204e80e387d3d13c5c9db8824289633c7106d00d4a22",
+      "raw_bytes": 107,
+      "git_lf_bytes": 107
+    }
+  ]
+}

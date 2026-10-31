@@ -2,6 +2,7 @@
 //! campaign script observes.
 pub mod aim;
 pub mod cmb;
+pub mod env;
 pub mod flight;
 pub mod los;
 pub mod movement;

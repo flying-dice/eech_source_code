@@ -1,0 +1,122 @@
+{
+  "source": "34c7c28bfbd0dd960380de6dc1a479a569c26e97",
+  "native_source": "47f3d9460fcca0acc341a105b4193321ceca14fa",
+  "judge_sha256": "428f0de7e513acf529198b69c4f9216eecb1ac7180bfff229d8bc04a294acc52",
+  "driver_sha256": "23cc7082275306209d2776a7a0c5cc15e5353e067e428dca9905ce43b5407e55",
+  "scope": "Finite public Lua/native matched projectile wind authority/refusal witness, global vector traffic. No isolated policy/RNG/otherfamilies claim; not shipping/Task51/D3 acceptance.",
+  "production_inputs_equivalent": true,
+  "actual_public_test_exit": 0,
+  "actual_windows_21_functions_exit": 0,
+  "public_function_in_guards": "SKIPPED without EECH runtime; not authority evidence",
+  "all_ten_pre_post_inputs_exit": 0,
+  "immutable_native_payloads": 47,
+  "all_payloads_still_match": true,
+  "copied_driver_exact_source": true,
+  "source_review": "e92bd329d4231b586845177664534fdbdbabce1157ed8d518f9b6179656663bf at585;34 rustfmt-only",
+  "modes": [
+    {
+      "mode": "control",
+      "raw_rows": 13,
+      "private_raw_sha256": "56d5ea61b5cfb90d1e054dcfced62ed93478f9d3cc9ca146d1feca10d75775a3",
+      "completed": true,
+      "failure": "",
+      "cohort_size": 1,
+      "case_weapons_ended": 1,
+      "case_weapons_pending": 0,
+      "wind_vector_after": 1754,
+      "altered_wind": 0,
+      "final_trace_checked": true,
+      "log_overflow": 0,
+      "track_overflow": 0,
+      "terminals_unregistered": 0,
+      "terminal_kinds": [
+        "hit_land"
+      ],
+      "terminal_steps": [
+        "7"
+      ],
+      "limitation": "Healthy complete case cohort; not a full campaign pack."
+    },
+    {
+      "mode": "changed_wind",
+      "raw_rows": 17,
+      "private_raw_sha256": "4400e300331569f6d6f278f44929527f08c0d0a28eef1818e38386cbb02fba43",
+      "completed": true,
+      "failure": "",
+      "cohort_size": 1,
+      "case_weapons_ended": 1,
+      "case_weapons_pending": 0,
+      "wind_vector_after": 1754,
+      "altered_wind": 1754,
+      "final_trace_checked": true,
+      "log_overflow": 0,
+      "track_overflow": 0,
+      "terminals_unregistered": 0,
+      "terminal_kinds": [
+        "hit_land"
+      ],
+      "terminal_steps": [
+        "7"
+      ],
+      "limitation": "Healthy complete case cohort; not a full campaign pack."
+    },
+    {
+      "mode": "withheld_wind",
+      "raw_rows": 9,
+      "private_raw_sha256": "b8d2a2b8a1ee46ca5f643f9ed21ff1497e684cd29d5119d16ad751fc999f7d01",
+      "completed": false,
+      "failure": "runtime error: eech: EECH fatal error: host environment: [env-provider:wind.callback] the host withholds its wind answer",
+      "cohort_size": 1,
+      "case_weapons_ended": 0,
+      "case_weapons_pending": 1,
+      "wind_vector_after": 1,
+      "altered_wind": 1,
+      "final_trace_checked": false,
+      "log_overflow": 0,
+      "track_overflow": 0,
+      "terminals_unregistered": 0,
+      "terminal_kinds": [],
+      "terminal_steps": [],
+      "limitation": "Refusal modes stop the engine after an armed alteration, so no final trace is available; counters report latest checked launch snapshot."
+    },
+    {
+      "mode": "malformed_wind_speed",
+      "raw_rows": 9,
+      "private_raw_sha256": "1f02d89180575e6ce56970ee7f74eedb925683fd3134421ac5ab402786cdfaca",
+      "completed": false,
+      "failure": "runtime error: eech: EECH fatal error: host environment: [env-provider:wind.answer] speed must be a finite number",
+      "cohort_size": 1,
+      "case_weapons_ended": 0,
+      "case_weapons_pending": 1,
+      "wind_vector_after": 1,
+      "altered_wind": 1,
+      "final_trace_checked": false,
+      "log_overflow": 0,
+      "track_overflow": 0,
+      "terminals_unregistered": 0,
+      "terminal_kinds": [],
+      "terminal_steps": [],
+      "limitation": "Refusal modes stop the engine after an armed alteration, so no final trace is available; counters report latest checked launch snapshot."
+    },
+    {
+      "mode": "malformed_wind_vector",
+      "raw_rows": 9,
+      "private_raw_sha256": "18d1dd28ee9fedc763a67c4aa14e4521fa1920018eb6a09fef3d01ddb6138f98",
+      "completed": false,
+      "failure": "runtime error: eech: EECH fatal error: host environment: [env-provider:wind.answer] vector must be three finite numbers",
+      "cohort_size": 1,
+      "case_weapons_ended": 0,
+      "case_weapons_pending": 1,
+      "wind_vector_after": 1,
+      "altered_wind": 1,
+      "final_trace_checked": false,
+      "log_overflow": 0,
+      "track_overflow": 0,
+      "terminals_unregistered": 0,
+      "terminal_kinds": [],
+      "terminal_steps": [],
+      "limitation": "Refusal modes stop the engine after an armed alteration, so no final trace is available; counters report latest checked launch snapshot."
+    }
+  ],
+  "created_utc": "2026-10-31T12:24:44.968713+00:00"
+}

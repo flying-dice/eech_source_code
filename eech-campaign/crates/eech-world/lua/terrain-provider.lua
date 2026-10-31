@@ -159,7 +159,7 @@ local config = {
 	install_root = root, map = scenario.map, campaign_directory = "camp01", campaign = scenario.campaign, gunship = "apache",
 	seed = 1, bind_mobile = bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss,
 	supply_reached = host.supply_reached, line_of_sight = line_of_sight, sense = host.sense, aim = host.aim,
-	terrain = provider,
+	terrain = provider, environment = host.env_provider (),
 }
 -- THE CONTRACT MARKERS. The campaign's refusals of a missing or malformed terrain provider carry a stable bracketed marker, so that this driver can tell the
 -- contract's refusal from any other failure that merely mentions "terrain" (a missing terrain.ffp, an unrelated boot or frame error). The DLL client that

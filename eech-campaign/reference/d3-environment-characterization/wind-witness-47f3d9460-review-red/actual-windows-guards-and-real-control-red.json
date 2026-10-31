@@ -1,0 +1,83 @@
+{
+  "source": "47f3d9460fcca0acc341a105b4193321ceca14fa",
+  "started_utc": "2026-10-31T11:52:44.555948+00:00",
+  "controller_pid": 18060,
+  "state": "terminal",
+  "stages": [
+    {
+      "stage": "actual-windows-guards",
+      "pid": 10868,
+      "args": [
+        "R:\\d3-evidence\\environment-wind-source-47f3d9460\\eech-campaign\\target\\windows-env-wind-tests-47f3d9460\\env_wind_authority.exe",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T11:52:44.677693+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T11:52:47.801984+00:00"
+    },
+    {
+      "stage": "pre-inputs",
+      "pid": 17608,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-wind-source-47f3d9460\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-wind-authority-roots-20261031\\control",
+        "--compare",
+        "R:\\d3-evidence\\environment-wind-source-47f3d9460\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-wind-control-red-controller-47f3d9460-20261031\\pre-inputs.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T11:52:47.811784+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T11:52:52.483603+00:00"
+    },
+    {
+      "stage": "actual-public-control-test",
+      "pid": 15528,
+      "args": [
+        "R:\\d3-evidence\\environment-wind-source-47f3d9460\\eech-campaign\\target\\windows-env-wind-tests-47f3d9460\\env_wind_authority.exe",
+        "--exact",
+        "the_host_decides_the_wind_a_real_weapon_flies_in_and_a_wrong_host_stops_the_campaign_at_the_wind_boundary",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T11:52:52.491955+00:00",
+      "actual_exit": 101,
+      "completed_utc": "2026-10-31T11:54:00.426686+00:00"
+    },
+    {
+      "stage": "post-inputs",
+      "pid": 19392,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-wind-source-47f3d9460\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-wind-authority-roots-20261031\\control",
+        "--compare",
+        "R:\\d3-evidence\\environment-wind-source-47f3d9460\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-wind-control-red-controller-47f3d9460-20261031\\post-inputs.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T11:54:00.436293+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T11:54:01.452535+00:00"
+    }
+  ],
+  "verified_payloads": 47,
+  "scope": "First actual Windows guards and ONE real control. Known source judge prefix/completeness findings stay open. NO authority/shipping acceptance. Fresh control root consumed; all other four roots remain unused.",
+  "actual_test_exit": 101,
+  "completed_utc": "2026-10-31T11:54:01.546183+00:00",
+  "all_payloads_still_match": true,
+  "public_work": "R:\\d3-evidence\\environment-wind-control-red-47f3d9460-20261031",
+  "expected_red_not_accepted": true
+}

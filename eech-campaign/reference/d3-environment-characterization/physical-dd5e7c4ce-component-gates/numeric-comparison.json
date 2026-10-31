@@ -1,0 +1,32 @@
+{
+  "source": "dd5e7c4ce46339ebd5bd2ba0e3b0c09653955735",
+  "original_proof": "environment-physical-original-comparison-05b8caf82-20261031.json",
+  "when_utc": "2026-10-31T11:37:04.144111+00:00",
+  "rows": [
+    {
+      "case": "georgia",
+      "all_native_prepost0": true,
+      "payloads": 46,
+      "complete705rawlines_including_endings_exact05b": true,
+      "all704originalrawlines_including_endings_exact": true,
+      "sha256": "5165602d132abefb8a975f24cf909dcfbf7790a9a3e710edb90e62f179dca56f"
+    },
+    {
+      "case": "lebanon",
+      "all_native_prepost0": true,
+      "payloads": 46,
+      "complete705rawlines_including_endings_exact05b": true,
+      "all704originalrawlines_including_endings_exact": true,
+      "sha256": "a25f409d468403911b31c7e5827b21264d2b77886016b4794b5655b13461d4a7"
+    },
+    {
+      "case": "lebanon-repeat",
+      "all_native_prepost0": true,
+      "payloads": 46,
+      "complete705rawlines_including_endings_exact05b": true,
+      "all704originalrawlines_including_endings_exact": true,
+      "sha256": "a25f409d468403911b31c7e5827b21264d2b77886016b4794b5655b13461d4a7"
+    }
+  ],
+  "scope": "All3finite numericreports completebyteequality; original704rows plusoneexplicitvalidationmetadata. Notauthority/fullshipping."
+}

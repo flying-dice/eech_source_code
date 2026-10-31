@@ -1,0 +1,18 @@
+{
+  "source": "47f3d9460fcca0acc341a105b4193321ceca14fa",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-wind-47f3d9460-windows-20261031.sh"
+  ],
+  "pid": 17444,
+  "controller_pid": 20216,
+  "state": "terminal",
+  "started_utc": "2026-10-31T11:44:10.918270+00:00",
+  "scope": "New wind witness windows compile/guards only; public runtime without retail inputs SKIPPED, not authority/shipping acceptance",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T11:46:30.469039+00:00"
+}

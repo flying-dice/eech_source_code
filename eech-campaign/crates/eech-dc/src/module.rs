@@ -1,10 +1,11 @@
 //! The Lua surface of the module.
 
 use eech_engine::{
-    AimEvent, AimReply, AimRequest, AimStepKind, AimTarget, AimWeapon, AimWorld, ArrivalAnswer, Engine, EngineConfig, EngineError, Gunship,
-    HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor, MemberDescriptor, MovementMode, MovementResult,
-    MovementStep, ObjectReport, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side, SupplyReachDescriptor, TerrainAnswer, TerrainMapFacts,
-    TerrainProvider, TerrainQuery, VehiclePose, WeaponFigures,
+    AimEvent, AimReply, AimRequest, AimStepKind, AimTarget, AimWeapon, AimWorld, ArrivalAnswer, Engine, EngineConfig, EngineError, EnvProvider, EnvReply,
+    EnvRequest, EnvState, Gunship, HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor, MemberDescriptor,
+    MovementMode, MovementResult, MovementStep, ObjectReport, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side, SupplyReachDescriptor,
+    TerrainAnswer, TerrainMapFacts, TerrainProvider, TerrainQuery, VehiclePose, WeaponFigures, EECH_ENV_EXPORT, EECH_ENV_FLOATS, EECH_ENV_GUST,
+    EECH_ENV_IMPORT, EECH_ENV_INIT_FIXED, EECH_ENV_INIT_RANDOM, EECH_ENV_INTS, EECH_ENV_MODE_COUNT, EECH_ENV_STEP, EECH_ENV_WEATHER, EECH_ENV_WIND,
 };
 use mlua::prelude::*;
 use std::path::PathBuf;
@@ -514,6 +515,357 @@ fn call_terrain(bridge: &LuaFunction, query: TerrainQuery) -> Result<TerrainAnsw
             })
         }
     }
+}
+
+/// The host's environment provider as the campaign calls it (EEDCS-51, D3): the physical weather and wind field and its update. The campaign hands the provider a request table
+/// `{ op = "import" | "export" | "init_random" | "init_fixed" | "weather" | "wind" | "gust" | "step", winter, ... }` and reads a table back (the fields of each operation are in
+/// aphavoc/.../ss_hostenv.h and docs/d3-environment-provider.md). Everything about the shape of the answer is checked here, in Lua, where the values are, and reaches Rust as plain
+/// text: the numbers are formatted exactly (`%.17g`) and parsed with `nearest_f32`, as every number the engine takes from a host callback (the engine calls a callback under
+/// round-toward-zero). The request's numbers are handed to the provider as Lua numbers, unchanged: a negative zero, a subnormal and a draw reach it bit for bit.
+///
+/// Markers (the first line of the error the engine stops with carries `[env-provider:<marker>]`):
+///   <op>.callback   the provider raised an error (its text follows)
+///   <op>.answer     the answer is not a table, or a number of it is missing, not finite, or out of its domain (a mode, a flag)
+///   <op>.state      the field in the answer is missing a number, not finite, a mode outside 0 to 4, or a flag that is not a boolean
+const ENV_BRIDGE: &str = r#"
+local provider, floats, ints = ...
+local huge = math.huge
+local function finite (v) return type (v) == 'number' and v == v and v ~= huge and v ~= -huge end
+local function integer (v) return finite (v) and v == math.floor (v) end
+local function fmt (v) return string.format ('%.17g', v) end
+local function state_text (state, op)
+	if type (state) ~= 'table' then return nil, op .. '.state', 'the field must be a table, got ' .. type (state) end
+	local out = {}
+	for _, name in ipairs (floats) do
+		if not finite (state [name]) then return nil, op .. '.state', name .. ' must be a finite number' end
+		out [#out + 1] = fmt (state [name])
+	end
+	for i, name in ipairs (ints) do
+		local v = state [name]
+		if i <= 2 then
+			if not integer (v) or v < 0 or v > 4 then return nil, op .. '.state', name .. ' must be an integer from 0 to 4' end
+		else
+			if type (v) ~= 'boolean' then return nil, op .. '.state', name .. ' must be a boolean' end
+			v = v and 1 or 0
+		end
+		out [#out + 1] = string.format ('%d', v)
+	end
+	return table.concat (out, ' ')
+end
+local function mode (v) return integer (v) and v >= 0 and v <= 4 end
+local function vector3 (v) return type (v) == 'table' and finite (v [1]) and finite (v [2]) and finite (v [3]) end
+return function (request)
+	-- THE CONTRACT IS CAPTURED HERE, BEFORE the provider is called: the provider is handed the request table and may change it, so every decision below that depends on what the campaign
+	-- asked (the operation, whether a wind vector was wanted, whether this is a server, whether the lightning draw was already made) is made from these values, never from the table
+	local op = request.op
+	local want_vector = request.want_vector == true
+	local server = request.server == true
+	local has_draw = request.lightning_draw ~= nil
+	local ok, answer = pcall (provider, request)
+	if not ok then return op .. '.callback', tostring (answer) end
+	if type (answer) ~= 'table' then return op .. '.answer', 'the ' .. op .. ' answer must be a table, got ' .. type (answer) end
+	if op == 'import' then
+		return nil, 'ok'
+	elseif op == 'export' or op == 'init_random' or op == 'init_fixed' then
+		local text, marker, message = state_text (answer.state, op)
+		if not text then return marker, message end
+		return nil, text
+	elseif op == 'weather' then
+		if not (mode (answer.current_mode) and mode (answer.target_mode) and mode (answer.simple_mode)) then return 'weather.answer', 'the modes must be integers from 0 to 4' end
+		if not finite (answer.transitional_state) then return 'weather.answer', 'transitional_state must be a finite number' end
+		return nil, string.format ('%d %d %s %d', answer.current_mode, answer.target_mode, fmt (answer.transitional_state), answer.simple_mode)
+	elseif op == 'wind' then
+		if not finite (answer.speed) then return 'wind.answer', 'speed must be a finite number' end
+		local v = answer.vector
+		if want_vector then
+			if not vector3 (v) then return 'wind.answer', 'vector must be three finite numbers' end
+		else
+			v = { 0, 0, 0 }
+		end
+		return nil, string.format ('%s %s %s %s', fmt (answer.speed), fmt (v [1]), fmt (v [2]), fmt (v [3]))
+	elseif op == 'gust' then
+		if not finite (answer.modulation) then return 'gust.answer', 'modulation must be a finite number' end
+		return nil, fmt (answer.modulation)
+	end
+	-- step
+	if answer.need_draw == true then
+		-- only a SERVER's FIRST question, before the draw, may be answered with a request for the draw: a client never draws, and a draw already made is not asked for again
+		if not server then return 'step.answer', 'the provider asked for the lightning draw of a client, which never draws' end
+		if has_draw then return 'step.answer', 'the provider asked for the lightning draw it was given' end
+		if not finite (answer.timer) then return 'step.answer', 'timer must be a finite number' end
+		return nil, '1 ' .. fmt (answer.timer)
+	end
+	if answer.need_draw ~= nil and answer.need_draw ~= false then return 'step.answer', 'need_draw must be a boolean or nil' end
+	-- a completed step says whether the timer expired, explicitly (a missing field is not 'false')
+	local expired = answer.expired
+	if type (expired) ~= 'boolean' then return 'step.answer', 'expired must be a boolean, got ' .. type (expired) end
+	-- the draw was made because the first answer reported an expiry: the final answer must complete and still report it
+	if has_draw and not expired then return 'step.answer', 'the lightning draw was made for an expiry the final answer does not report' end
+	local strike, new_timer = { 0, 0, 0 }, 0
+	if expired then
+		-- a server's expiry is negotiated: it is reported only with the draw its new timer needs (a client's new timer is set by the server, and is not read)
+		if server and not has_draw then return 'step.answer', 'the lightning timer expired without the draw the new timer needs' end
+		strike = answer.strike
+		if not vector3 (strike) then return 'step.answer', 'strike must be three finite numbers' end
+		if server then
+			new_timer = answer.new_timer
+			if not finite (new_timer) then return 'step.answer', 'new_timer must be a finite number' end
+		end
+	end
+	local text, marker, message = state_text (answer.state, 'step')
+	if not text then return marker, message end
+	return nil, string.format ('0 %d %s %s %s %s %s', expired and 1 or 0, fmt (strike [1]), fmt (strike [2]), fmt (strike [3]), fmt (new_timer), text)
+end
+"#;
+
+/// The names of the field's floats and integers in the tables of the provider's protocol, in the order of the arrays of the engine's state (the enums of ss_hostenv.h). The last
+/// three integers are booleans in the tables.
+const ENV_FLOAT_NAMES: [&str; EECH_ENV_FLOATS] = [
+    "weather_radius",
+    "weather_mode_transitional_period",
+    "weather_mode_transitional_status",
+    "weather_position_x",
+    "weather_position_y",
+    "weather_position_z",
+    "weather_velocity_x",
+    "weather_velocity_y",
+    "weather_velocity_z",
+    "wind_effect_radius",
+    "wind_gusting_value",
+    "wind_minimum_speed",
+    "wind_maximum_speed",
+    "wind_direction_x",
+    "wind_direction_y",
+    "wind_direction_z",
+    "wind_effect_position_x",
+    "wind_effect_position_y",
+    "wind_effect_position_z",
+    "wind_effect_velocity_x",
+    "wind_effect_velocity_y",
+    "wind_effect_velocity_z",
+    "lightning_timer",
+];
+
+const ENV_INT_NAMES: [&str; EECH_ENV_INTS] = [
+    "weather_mode",
+    "target_weather_mode",
+    "local_weather_model",
+    "weather_increasing",
+    "wind_increasing",
+];
+
+/// Builds the provider the engine keeps from the host's Lua function.
+fn environment_provider(lua: &Lua, function: LuaFunction) -> LuaResult<EnvProvider> {
+    let build: LuaFunction = lua.load(ENV_BRIDGE).set_name("eech environment bridge").into_function()?;
+    let bridge: LuaFunction = build.call((function, ENV_FLOAT_NAMES.to_vec(), ENV_INT_NAMES.to_vec()))?;
+    let lua = lua.clone();
+    Ok(Box::new(move |request| call_environment(&lua, &bridge, request)))
+}
+
+fn env_state_table(lua: &Lua, state: &EnvState) -> LuaResult<LuaTable> {
+    let table = lua.create_table()?;
+    for (name, value) in ENV_FLOAT_NAMES.iter().zip(state.f.iter()) {
+        table.set(*name, f64::from(*value))?;
+    }
+    for (index, (name, value)) in ENV_INT_NAMES.iter().zip(state.n.iter()).enumerate() {
+        if index < 2 {
+            table.set(*name, *value)?;
+        } else {
+            table.set(*name, *value != 0)?;
+        }
+    }
+    Ok(table)
+}
+
+fn env_named_floats(lua: &Lua, names: &[&str], values: &[f32]) -> LuaResult<LuaTable> {
+    let table = lua.create_table()?;
+    for (name, value) in names.iter().zip(values.iter()) {
+        table.set(*name, f64::from(*value))?;
+    }
+    Ok(table)
+}
+
+fn env_op_name(op: i32) -> &'static str {
+    match op {
+        EECH_ENV_IMPORT => "import",
+        EECH_ENV_EXPORT => "export",
+        EECH_ENV_INIT_RANDOM => "init_random",
+        EECH_ENV_INIT_FIXED => "init_fixed",
+        EECH_ENV_WEATHER => "weather",
+        EECH_ENV_WIND => "wind",
+        EECH_ENV_GUST => "gust",
+        EECH_ENV_STEP => "step",
+        _ => "unknown",
+    }
+}
+
+/// The request as the provider's table: the numbers are Lua numbers, unchanged (a negative zero and a draw arrive bit for bit).
+fn env_request_table(lua: &Lua, request: &EnvRequest) -> LuaResult<LuaTable> {
+    let table = lua.create_table()?;
+    table.set("op", env_op_name(request.op))?;
+    table.set("winter", request.winter != 0)?;
+    let map_names = ["min_x", "max_x", "min_z", "max_z", "mid_x", "mid_z"];
+    match request.op {
+        EECH_ENV_IMPORT => table.set("state", env_state_table(lua, &request.state)?)?,
+        EECH_ENV_EXPORT => {}
+        EECH_ENV_INIT_RANDOM => {
+            let draws = lua.create_table()?;
+            for (index, draw) in request.draw.iter().enumerate() {
+                draws.set(index + 1, *draw)?;
+            }
+            table.set("draws", draws)?;
+            let config_names = [
+                "rain_radius_minimum",
+                "rain_radius_maximum",
+                "rain_speed",
+                "wind_radius_minimum",
+                "wind_radius_maximum",
+                "wind_speed",
+            ];
+            table.set("config", env_named_floats(lua, &config_names, &request.init_config)?)?;
+            table.set("map", env_named_floats(lua, &map_names, &request.map)?)?;
+        }
+        EECH_ENV_INIT_FIXED => table.set("mode", request.fixed_mode)?,
+        EECH_ENV_WEATHER => {
+            table.set("x", f64::from(request.x))?;
+            table.set("z", f64::from(request.z))?;
+        }
+        EECH_ENV_WIND => {
+            table.set("x", f64::from(request.x))?;
+            table.set("z", f64::from(request.z))?;
+            table.set("want_vector", request.want_vector != 0)?;
+        }
+        EECH_ENV_GUST => table.set("phase", f64::from(request.phase))?,
+        EECH_ENV_STEP => {
+            table.set("delta", f64::from(request.delta))?;
+            table.set("server", request.server != 0)?;
+            table.set("in_cockpit", request.in_cockpit != 0)?;
+            if request.have_camera != 0 {
+                table.set("camera", env_named_floats(lua, &["x", "y", "z"], &request.camera)?)?;
+            }
+            if request.have_draw != 0 {
+                table.set("lightning_draw", request.lightning_draw)?;
+            }
+            table.set("map", env_named_floats(lua, &map_names, &request.map)?)?;
+        }
+        other => return Err(LuaError::runtime(format!("unknown environment operation {other}"))),
+    }
+    Ok(table)
+}
+
+/// The numbers of an answer's text; a count that is not `count`, or a number that is not finite, is a refusal under `marker`.
+fn env_numbers<const N: usize>(text: &str, marker: &str) -> Result<[f64; N], String> {
+    let mut numbers = [0.0f64; N];
+    let mut parts = text.split_whitespace();
+    for slot in &mut numbers {
+        *slot = parts
+            .next()
+            .and_then(|part| part.parse::<f64>().ok())
+            .filter(|value| value.is_finite())
+            .ok_or_else(|| format!("[env-provider:{marker}] the answer's numbers are malformed or too few"))?;
+    }
+    if parts.next().is_some() {
+        return Err(format!("[env-provider:{marker}] the answer has more numbers than the {N} expected"));
+    }
+    Ok(numbers)
+}
+
+/// The numbers of a field (the floats, then the integers) and of a step answer (its six leading numbers, then the field).
+const ENV_STATE_NUMBERS: usize = EECH_ENV_FLOATS + EECH_ENV_INTS;
+const ENV_STEP_NUMBERS: usize = 6 + ENV_STATE_NUMBERS;
+
+fn env_f32(value: f64, marker: &str) -> Result<f32, String> {
+    nearest_f32(value).ok_or_else(|| format!("[env-provider:{marker}] a number is beyond the single-precision range"))
+}
+
+fn env_i32(value: f64, marker: &str) -> Result<i32, String> {
+    if value.fract() == 0.0 && value.abs() <= f64::from(i32::MAX) {
+        Ok(value as i32)
+    } else {
+        Err(format!("[env-provider:{marker}] an integer is out of range"))
+    }
+}
+
+/// The field from the front of an answer's numbers: the floats, then the integers (the modes, then the flags as 0 or 1).
+fn env_state_from<'a>(numbers: &mut impl Iterator<Item = &'a f64>, marker: &str) -> Result<EnvState, String> {
+    let mut state = EnvState::default();
+    for slot in state.f.iter_mut() {
+        let value = numbers.next().ok_or_else(|| format!("[env-provider:{marker}] the field is short"))?;
+        *slot = env_f32(*value, marker)?;
+    }
+    for slot in state.n.iter_mut() {
+        let value = numbers.next().ok_or_else(|| format!("[env-provider:{marker}] the field is short"))?;
+        *slot = env_i32(*value, marker)?;
+    }
+    Ok(state)
+}
+
+fn env_mode(value: f64, marker: &str) -> Result<i32, String> {
+    let mode = env_i32(value, marker)?;
+    if (0..EECH_ENV_MODE_COUNT).contains(&mode) {
+        Ok(mode)
+    } else {
+        Err(format!("[env-provider:{marker}] the mode {mode} is not one of the modes"))
+    }
+}
+
+/// What the Lua environment bridge returns: the refusal marker and the text of the answer's numbers (or the refusal's message).
+type EnvBridgeAnswer = (Option<String>, Option<String>);
+
+fn call_environment(lua: &Lua, bridge: &LuaFunction, request: &EnvRequest) -> Result<EnvReply, String> {
+    let op = env_op_name(request.op);
+    let table = env_request_table(lua, request).map_err(|error| format!("[env-provider:{op}.callback] {error}"))?;
+    let (marker, text): EnvBridgeAnswer = bridge.call(table).map_err(|error| format!("[env-provider:{op}.callback] {error}"))?;
+    if let Some(marker) = marker {
+        return Err(format!("[env-provider:{marker}] {}", text.unwrap_or_default()));
+    }
+    let text = text.ok_or_else(|| format!("[env-provider:{op}.answer] the environment bridge returned nothing"))?;
+    let answer = format!("{op}.answer");
+    let state = format!("{op}.state");
+    let mut reply = EnvReply::default();
+    match request.op {
+        EECH_ENV_IMPORT => {}
+        EECH_ENV_EXPORT | EECH_ENV_INIT_RANDOM | EECH_ENV_INIT_FIXED => {
+            let numbers = env_numbers::<ENV_STATE_NUMBERS>(&text, &state)?;
+            reply.state = env_state_from(&mut numbers.iter(), &state)?;
+        }
+        EECH_ENV_WEATHER => {
+            let n = env_numbers::<4>(&text, &answer)?;
+            reply.current_mode = env_mode(n[0], &answer)?;
+            reply.target_mode = env_mode(n[1], &answer)?;
+            reply.transitional_state = env_f32(n[2], &answer)?;
+            reply.simple_mode = env_mode(n[3], &answer)?;
+        }
+        EECH_ENV_WIND => {
+            let n = env_numbers::<4>(&text, &answer)?;
+            reply.speed = env_f32(n[0], &answer)?;
+            reply.vector = [env_f32(n[1], &answer)?, env_f32(n[2], &answer)?, env_f32(n[3], &answer)?];
+        }
+        EECH_ENV_GUST => {
+            let n = env_numbers::<1>(&text, &answer)?;
+            reply.modulation = env_f32(n[0], &answer)?;
+        }
+        _ => {
+            // step: "1 <timer>" when the host needs the draw, else "0 <expired> <strike x y z> <new timer> <the field>"
+            let first = text.split_whitespace().next().unwrap_or_default();
+            if first == "1" {
+                let n = env_numbers::<2>(&text, &answer)?;
+                reply.need_draw = 1;
+                reply.new_timer = env_f32(n[1], &answer)?;
+            } else {
+                let n = env_numbers::<ENV_STEP_NUMBERS>(&text, &answer)?;
+                let expired = env_i32(n[1], &answer)?;
+                if expired != 0 && expired != 1 {
+                    return Err(format!("[env-provider:{answer}] expired is neither 0 nor 1"));
+                }
+                reply.expired = expired;
+                reply.strike = [env_f32(n[2], &answer)?, env_f32(n[3], &answer)?, env_f32(n[4], &answer)?];
+                reply.new_timer = env_f32(n[5], &answer)?;
+                reply.state = env_state_from(&mut n.iter().skip(6), &state)?;
+            }
+        }
+    }
+    Ok(reply)
 }
 
 fn aiming_type_name(value: i32) -> Result<&'static str, String> {
@@ -2004,6 +2356,16 @@ impl LuaUserData for LuaEngine {
         // TEST-ONLY (feature `aim-fixture`, EEDCS-44): clears that trace; not part of the shipping module.
         #[cfg(feature = "aim-fixture")]
         methods.add_method("aim_trace_reset", |_, this, ()| this.engine.aim_trace_reset().map_err(lua_error));
+        // TEST-ONLY (feature `env-observer`, EEDCS-51): the read-only observer's report and unread events; not part of the shipping module.
+        #[cfg(feature = "env-observer")]
+        methods.add_method("env_observer_report", |_, this, ()| this.engine.env_observer_report().map_err(lua_error));
+        #[cfg(feature = "env-observer")]
+        methods.add_method("env_observer_events", |_, this, ()| this.engine.env_observer_events().map_err(lua_error));
+        // TEST-ONLY (feature `env-fixture`, EEDCS-51): one case of the original session environment characterisation (group, index); not part of the shipping module.
+        #[cfg(feature = "env-fixture")]
+        methods.add_method("env_case", |_, this, (group, index): (i32, i32)| {
+            this.engine.env_case(group, index).map_err(lua_error)
+        });
         // TEST-ONLY (feature `weapon-fixture`, EEDCS-46): the run-wide report of the physical combat-resolution code; not part of the shipping module.
         #[cfg(feature = "weapon-fixture")]
         methods.add_method("cmb_trace", |_, this, ()| this.engine.cmb_trace().map_err(lua_error));
@@ -2441,6 +2803,22 @@ fn boot(lua: &Lua, config: LuaTable) -> LuaResult<LuaEngine> {
             )))
         }
     };
+    // EEDCS-51 (D3): the host owns the physical weather and wind field and the campaign has no solver of its own to fall back to, so this provider is required too, and is refused
+    // here, before anything boots, with the stable marker a driver can tell from any other failure
+    let environment = match config.get::<LuaValue>("environment")? {
+        LuaValue::Function(function) => function,
+        LuaValue::Nil => {
+            return Err(LuaError::runtime(
+                "eech: [env-provider:missing] boot was given no environment provider; the host supplies the physical weather and wind field (its queries, its initialisation, its evolution and the lightning timer)",
+            ))
+        }
+        value => {
+            return Err(LuaError::runtime(format!(
+                "eech: [env-provider:missing] the environment provider must be a function, got {}",
+                value.type_name()
+            )))
+        }
+    };
     let arguments: Vec<String> = config.get::<Option<Vec<String>>>("arguments")?.unwrap_or_default();
     let config = EngineConfig {
         install_root: PathBuf::from(config.get::<String>("install_root")?),
@@ -2469,6 +2847,7 @@ fn boot(lua: &Lua, config: LuaTable) -> LuaResult<LuaEngine> {
         &mut sensor,
         &mut aimer,
         terrain_provider(lua, terrain)?,
+        environment_provider(lua, environment)?,
     )
     .map_err(lua_error)?;
     Ok(LuaEngine {
@@ -2491,6 +2870,12 @@ pub fn eech_dc(lua: &Lua) -> LuaResult<LuaTable> {
     exports.set(
         "prepare_installation",
         lua.create_function(|_, root: String| eech_engine::prepare_installation(std::path::Path::new(&root)).map_err(lua_error))?,
+    )?;
+    // TEST-ONLY (feature `env-observer`, EEDCS-51): arms (true) or disarms (false) the read-only observer; arming is valid only before boot
+    #[cfg(feature = "env-observer")]
+    exports.set(
+        "env_observer_arm",
+        lua.create_function(|_, on: bool| eech_engine::env_observer_arm(on).map_err(lua_error))?,
     )?;
     Ok(exports)
 }
@@ -3293,6 +3678,321 @@ mod tests {
         refused(&mut no_map, TerrainQuery::Map { winter: false }, "map.answer");
         let mut raising = terrain_of(&lua, "error ('no map')")?;
         refused(&mut raising, TerrainQuery::Map { winter: false }, "map.callback");
+        Ok(())
+    }
+
+    // ---- the host environment provider as the campaign calls it (EEDCS-51, D3): the real bridge and the real answer parsing, with Lua providers of the test's choosing ----
+
+    fn env_of(lua: &Lua, source: &str) -> Result<EnvProvider, Box<dyn std::error::Error>> {
+        let state = format!(
+            "local function state () local s = {{}} for _, n in ipairs {{ {} }} do s [n] = 0 end s.weather_mode = 1 s.target_weather_mode = 1 s.local_weather_model = false s.weather_increasing = false s.wind_increasing = false return s end",
+            ENV_FLOAT_NAMES.iter().map(|name| format!("'{name}'")).collect::<Vec<_>>().join(", ")
+        );
+        let function: LuaFunction = lua.load(format!("{state} return function (r) {source} end")).eval()?;
+        Ok(environment_provider(lua, function)?)
+    }
+
+    fn env_request(op: i32) -> EnvRequest {
+        EnvRequest { op, ..EnvRequest::default() }
+    }
+
+    fn env_refusal(provider: &mut EnvProvider, request: &EnvRequest, marker: &str) {
+        let result = provider(request);
+        assert!(result.is_err(), "{marker}: the call must be refused, got {result:?}");
+        let message = result.err().unwrap_or_default();
+        assert!(message.contains(&format!("[env-provider:{marker}]")), "{marker}: {message}");
+    }
+
+    #[test]
+    fn an_environment_weather_answer_reaches_the_campaign_exactly_and_the_request_reaches_the_provider_by_value() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let mut provider = env_of(
+            &lua,
+            "assert (r.op == 'weather' and r.x == 1.5 and r.z == -2.5 and r.winter == true)
+             return { current_mode = 2, target_mode = 3, transitional_state = 2 ^ -130, simple_mode = 3 }",
+        )?;
+        let request = EnvRequest {
+            x: 1.5,
+            z: -2.5,
+            winter: 1,
+            ..env_request(EECH_ENV_WEATHER)
+        };
+        let reply = provider(&request)?;
+        assert_eq!((reply.current_mode, reply.target_mode, reply.simple_mode), (2, 3, 3));
+        assert_eq!(reply.transitional_state.to_bits(), 0x0008_0000, "a subnormal is kept exactly");
+        Ok(())
+    }
+
+    #[test]
+    fn an_environment_step_reaches_the_provider_with_its_signed_zero_camera_and_draw_and_its_answer_is_read_whole() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        // a negative-zero delta, the camera and the draw arrive as Lua numbers, unchanged; the map extents are named
+        let mut provider = env_of(
+            &lua,
+            "assert (r.op == 'step' and 1 / r.delta == -math.huge and r.server == true and r.in_cockpit == false)
+             assert (r.camera.x == 1 and r.camera.y == 2 and r.camera.z == 3 and r.lightning_draw == 0.25 and r.map.mid_z == 7)
+             local s = state () s.lightning_timer = 31.5
+             return { expired = true, strike = { 10, 0, -20 }, new_timer = 31.5, state = s }",
+        )?;
+        let request = EnvRequest {
+            delta: -0.0,
+            server: 1,
+            have_camera: 1,
+            camera: [1.0, 2.0, 3.0],
+            have_draw: 1,
+            lightning_draw: 0.25,
+            map: [0.0, 1.0, 2.0, 3.0, 4.0, 7.0],
+            ..env_request(EECH_ENV_STEP)
+        };
+        let reply = provider(&request)?;
+        assert_eq!(
+            (reply.need_draw, reply.expired, reply.strike, reply.new_timer),
+            (0, 1, [10.0, 0.0, -20.0], 31.5)
+        );
+        assert_eq!(reply.state.f.get(EECH_ENV_FLOATS - 1).copied(), Some(31.5));
+        assert_eq!(reply.state.n, [1, 1, 0, 0, 0]);
+        Ok(())
+    }
+
+    #[test]
+    fn an_environment_step_that_needs_the_draw_is_answered_once_and_a_second_ask_for_it_is_refused() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let mut asking = env_of(&lua, "return { need_draw = true, timer = -0.5 }")?;
+        let reply = asking(&EnvRequest {
+            server: 1,
+            ..env_request(EECH_ENV_STEP)
+        })?;
+        assert_eq!((reply.need_draw, reply.new_timer), (1, -0.5));
+        // asked again WITH the draw it already has, the same answer is a refusal
+        env_refusal(
+            &mut asking,
+            &EnvRequest {
+                server: 1,
+                have_draw: 1,
+                lightning_draw: 0.5,
+                ..env_request(EECH_ENV_STEP)
+            },
+            "step.answer",
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_server_expiry_without_the_draw_is_refused_and_a_client_expiry_needs_none() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let mut expiring = env_of(&lua, "return { expired = true, strike = { 0, 0, 0 }, new_timer = 0, state = state () }")?;
+        env_refusal(
+            &mut expiring,
+            &EnvRequest {
+                server: 1,
+                ..env_request(EECH_ENV_STEP)
+            },
+            "step.answer",
+        );
+        let reply = expiring(&EnvRequest {
+            server: 0,
+            ..env_request(EECH_ENV_STEP)
+        })?;
+        assert_eq!((reply.expired, reply.new_timer), (1, 0.0));
+        Ok(())
+    }
+
+    #[test]
+    fn an_environment_state_that_is_not_a_field_is_refused_with_the_state_marker() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        for (what, mutation) in [
+            ("nan", "s.weather_radius = 0 / 0"),
+            ("infinity", "s.wind_gusting_value = 1 / 0"),
+            ("missing_float", "s.lightning_timer = nil"),
+            ("string_float", "s.lightning_timer = '1'"),
+            ("mode_out_of_range", "s.weather_mode = 5"),
+            ("mode_fraction", "s.target_weather_mode = 1.5"),
+            ("numeric_flag", "s.local_weather_model = 1"),
+            ("missing_flag", "s.wind_increasing = nil"),
+        ] {
+            let mut provider = env_of(&lua, &format!("local s = state () {mutation} return {{ state = s }}"))?;
+            for op in [EECH_ENV_EXPORT, EECH_ENV_INIT_FIXED, EECH_ENV_INIT_RANDOM] {
+                let marker = format!("{}.state", env_op_name(op));
+                let result = provider(&env_request(op));
+                assert!(result.is_err(), "{what}/{marker}: accepted");
+                assert!(
+                    result.err().unwrap_or_default().contains(&format!("[env-provider:{marker}]")),
+                    "{what}/{marker}"
+                );
+            }
+        }
+        // a valid field round-trips, with its flags as 0 or 1
+        let mut provider = env_of(&lua, "local s = state () s.weather_increasing = true return { state = s }")?;
+        let reply = provider(&env_request(EECH_ENV_EXPORT))?;
+        assert_eq!(reply.state.n, [1, 1, 0, 1, 0]);
+        Ok(())
+    }
+
+    #[test]
+    fn a_malformed_environment_answer_is_refused_by_operation_and_nothing_falls_back() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let mut nothing = env_of(&lua, "return 'nothing'")?;
+        let mut raising = env_of(&lua, "error ('no field')")?;
+        for op in [
+            EECH_ENV_IMPORT,
+            EECH_ENV_EXPORT,
+            EECH_ENV_INIT_RANDOM,
+            EECH_ENV_INIT_FIXED,
+            EECH_ENV_WEATHER,
+            EECH_ENV_WIND,
+            EECH_ENV_GUST,
+            EECH_ENV_STEP,
+        ] {
+            let name = env_op_name(op);
+            env_refusal(&mut nothing, &env_request(op), &format!("{name}.answer"));
+            env_refusal(&mut raising, &env_request(op), &format!("{name}.callback"));
+        }
+        let mut modes = env_of(&lua, "return { current_mode = 9, target_mode = 1, transitional_state = 0, simple_mode = 1 }")?;
+        env_refusal(&mut modes, &env_request(EECH_ENV_WEATHER), "weather.answer");
+        let mut speed = env_of(&lua, "return { speed = 0 / 0, vector = { 0, 0, 0 } }")?;
+        env_refusal(
+            &mut speed,
+            &EnvRequest {
+                want_vector: 1,
+                ..env_request(EECH_ENV_WIND)
+            },
+            "wind.answer",
+        );
+        let mut no_vector = env_of(&lua, "return { speed = 3 }")?;
+        env_refusal(
+            &mut no_vector,
+            &EnvRequest {
+                want_vector: 1,
+                ..env_request(EECH_ENV_WIND)
+            },
+            "wind.answer",
+        );
+        assert_eq!(no_vector(&env_request(EECH_ENV_WIND))?.speed, 3.0, "a vector nobody asked for is not required");
+        let mut gust = env_of(&lua, "return { modulation = 1 / 0 }")?;
+        env_refusal(&mut gust, &env_request(EECH_ENV_GUST), "gust.answer");
+        Ok(())
+    }
+
+    // ---- the request contract is captured BEFORE the provider is called (EEDCS-51, review ENV-PHYSICAL-2): a provider that edits the request it is handed gains nothing ----
+
+    #[test]
+    fn a_provider_that_edits_the_request_cannot_change_what_the_campaign_asked() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        // a wind vector was asked for; the provider clears the flag in the table and answers with a speed only: refused, not a silent zero vector
+        let mut wind = env_of(&lua, "r.want_vector = false return { speed = 3 }")?;
+        env_refusal(
+            &mut wind,
+            &EnvRequest {
+                want_vector: 1,
+                ..env_request(EECH_ENV_WIND)
+            },
+            "wind.answer",
+        );
+        // and with the flag as asked, the vector it sent is the one that arrives
+        let mut vector = env_of(&lua, "return { speed = 3, vector = { 1, 0, -2 } }")?;
+        let reply = vector(&EnvRequest {
+            want_vector: 1,
+            ..env_request(EECH_ENV_WIND)
+        })?;
+        assert_eq!((reply.speed, reply.vector), (3.0, [1.0, 0.0, -2.0]));
+        // the draw was made; the provider erases it from the table and asks for it again: refused
+        let mut again = env_of(&lua, "r.lightning_draw = nil return { need_draw = true, timer = 0 }")?;
+        env_refusal(
+            &mut again,
+            &EnvRequest {
+                server: 1,
+                have_draw: 1,
+                lightning_draw: 0.5,
+                ..env_request(EECH_ENV_STEP)
+            },
+            "step.answer",
+        );
+        // a client; the provider says it is a server and asks for the draw (which would advance the shared random word): refused
+        let mut client = env_of(&lua, "r.server = true return { need_draw = true, timer = 0 }")?;
+        env_refusal(
+            &mut client,
+            &EnvRequest {
+                server: 0,
+                ..env_request(EECH_ENV_STEP)
+            },
+            "step.answer",
+        );
+        // a server's expiry the provider reports as complete by claiming the draw was made
+        let mut claimed = env_of(
+            &lua,
+            "r.lightning_draw = 0.5 return { expired = true, strike = { 0, 0, 0 }, new_timer = 5, state = state () }",
+        )?;
+        env_refusal(
+            &mut claimed,
+            &EnvRequest {
+                server: 1,
+                ..env_request(EECH_ENV_STEP)
+            },
+            "step.answer",
+        );
+        // the operation itself is read once: a provider that renames it cannot turn one answer into another
+        let mut renamed = env_of(&lua, "r.op = 'gust' return { modulation = 0.25 }")?;
+        env_refusal(&mut renamed, &env_request(EECH_ENV_WIND), "wind.answer");
+        Ok(())
+    }
+
+    #[test]
+    fn a_completed_step_must_say_explicitly_whether_it_expired_and_a_draw_needs_an_expiry() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        for (what, source) in [
+            ("missing", "return { state = state () }"),
+            ("nil", "return { expired = nil, state = state () }"),
+            ("number", "return { expired = 0, state = state () }"),
+            ("string", "return { expired = 'false', state = state () }"),
+        ] {
+            let mut provider = env_of(&lua, source)?;
+            let message = provider(&env_request(EECH_ENV_STEP)).err().unwrap_or_default();
+            assert!(
+                message.contains("[env-provider:step.answer]") && message.contains("expired"),
+                "{what}: {message}"
+            );
+        }
+        // an explicit false is a completed step with no expiry, for a server and for a client
+        let mut calm = env_of(&lua, "return { expired = false, state = state () }")?;
+        for server in [0, 1] {
+            let reply = calm(&EnvRequest {
+                server,
+                ..env_request(EECH_ENV_STEP)
+            })?;
+            assert_eq!((reply.need_draw, reply.expired), (0, 0));
+        }
+        // after the draw the final answer must complete AND still report the expiry
+        env_refusal(
+            &mut calm,
+            &EnvRequest {
+                server: 1,
+                have_draw: 1,
+                lightning_draw: 0.5,
+                ..env_request(EECH_ENV_STEP)
+            },
+            "step.answer",
+        );
+        // a client that is asked nothing and expires is accepted without any draw
+        let mut expiring = env_of(&lua, "return { expired = true, strike = { 3, 0, 4 }, state = state () }")?;
+        let reply = expiring(&EnvRequest {
+            server: 0,
+            ..env_request(EECH_ENV_STEP)
+        })?;
+        assert_eq!((reply.expired, reply.strike, reply.new_timer), (1, [3.0, 0.0, 4.0], 0.0));
+        // the server's normal order: the question asks for the draw once, the second answer reports the expiry
+        let mut server = env_of(&lua, "if r.lightning_draw == nil then return { need_draw = true, timer = -1 } end return { expired = true, strike = { 0, 0, 0 }, new_timer = 60, state = state () }")?;
+        let first = server(&EnvRequest {
+            server: 1,
+            ..env_request(EECH_ENV_STEP)
+        })?;
+        assert_eq!((first.need_draw, first.new_timer), (1, -1.0));
+        let second = server(&EnvRequest {
+            server: 1,
+            have_draw: 1,
+            lightning_draw: 0.5,
+            ..env_request(EECH_ENV_STEP)
+        })?;
+        assert_eq!((second.need_draw, second.expired, second.new_timer), (0, 1, 60.0));
         Ok(())
     }
 }

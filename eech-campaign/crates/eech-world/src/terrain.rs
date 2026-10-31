@@ -533,12 +533,12 @@ return {
 "#;
 
 /// The coordinate reader of a Lua state: made once, kept in the registry.
-struct CoordinateReader {
-    read: LuaFunction,
-    slot: LuaTable,
+pub(crate) struct CoordinateReader {
+    pub(crate) read: LuaFunction,
+    pub(crate) slot: LuaTable,
 }
 
-fn coordinate_reader(lua: &Lua) -> LuaResult<CoordinateReader> {
+pub(crate) fn coordinate_reader(lua: &Lua) -> LuaResult<CoordinateReader> {
     let reader = match lua.named_registry_value::<LuaValue>(COORDINATE_READER_KEY)? {
         LuaValue::Table(reader) => reader,
         _ => {

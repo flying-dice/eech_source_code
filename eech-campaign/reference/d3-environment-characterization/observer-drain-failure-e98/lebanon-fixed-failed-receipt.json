@@ -1,0 +1,32 @@
+{
+  "source": "76533dd3ae836674c27704040d6ce1b6ed84f80d",
+  "script_override_source": "e98ea3881b6bb76504e0e83ba9bfce947cab218e",
+  "script_override_sha256": "389a38fb500f46e6505605c6bf3c1a50356bb5aed5eee5f17e12b5f9e87205f4",
+  "state": "terminal",
+  "actual_exit": 1,
+  "actual_native_exit": 1,
+  "verified_payloads": 46,
+  "build_info_sha256": "7b1f100ce7626fb8c89b093dc31fd3729fcecf14a5bfda05e288eb1da47e0311",
+  "json_rows": 1858,
+  "json_sha256": "42905573787fa18d3e7d9ad7578b23ba6f3437f7b878ae0c48b58f5aad744c3e",
+  "started_utc": "2026-10-31T02:27:09.382219+00:00",
+  "completed_utc": "2026-10-31T02:27:50.728494+00:00",
+  "stage_actual_exits": [
+    {
+      "stage": "pre-inputs",
+      "actual_exit": 0
+    },
+    {
+      "stage": "native",
+      "actual_exit": 1
+    },
+    {
+      "stage": "post-inputs",
+      "actual_exit": 0
+    }
+  ],
+  "failure": [
+    "env-characterization: engine:env_observer_events returned a malformed report: a report of 146776 bytes does not fit the fixture's 32768-byte buffer"
+  ],
+  "scope": "FAILED original observer diagnostic atfirst200frame drain; raw/private roots retained, no physics acceptance."
+}

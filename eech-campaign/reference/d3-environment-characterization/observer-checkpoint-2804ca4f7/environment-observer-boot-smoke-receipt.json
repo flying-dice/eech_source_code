@@ -1,0 +1,27 @@
+{
+  "source": "2804ca4f7a323493e5bb8f3ba5452958aef9a160",
+  "scope": "Original environment characterization only; not host extraction or shipping acceptance",
+  "state": "terminal",
+  "actual_exit": 0,
+  "actual_native_exit": 0,
+  "started_utc": "2026-10-31T02:07:32.989388+00:00",
+  "completed_utc": "2026-10-31T02:07:47.163287+00:00",
+  "verified_payloads": 46,
+  "build_info_sha256": "2a7c1a6c7a6dfb85825646b78797f49fb774bb8661c7adc5c211da451bdc1767",
+  "json_rows": 387,
+  "json_sha256": "683579f502494347c496fbcb4020d7f8a8ed20ee7b0d683e65f4eb9082acfaec",
+  "stage_actual_exits": [
+    {
+      "stage": "pre-inputs",
+      "actual_exit": 0
+    },
+    {
+      "stage": "native",
+      "actual_exit": 0
+    },
+    {
+      "stage": "post-inputs",
+      "actual_exit": 0
+    }
+  ]
+}

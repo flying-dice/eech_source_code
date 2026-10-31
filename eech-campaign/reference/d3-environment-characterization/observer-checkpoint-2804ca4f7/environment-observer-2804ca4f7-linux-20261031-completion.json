@@ -1,0 +1,18 @@
+{
+  "source": "2804ca4f7a323493e5bb8f3ba5452958aef9a160",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-observer-2804ca4f7-linux-20261031.sh"
+  ],
+  "pid": 10104,
+  "controller_pid": 2712,
+  "state": "terminal",
+  "started_utc": "2026-10-31T02:03:08.054437+00:00",
+  "scope": "Original environment observer linux build/checks only; no retail campaign acceptance",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T02:07:40.158631+00:00"
+}

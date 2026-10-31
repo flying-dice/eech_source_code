@@ -1,0 +1,17 @@
+{
+  "source": "084858000b8a7190f9e89304be7a8ab849b64c40",
+  "host_source": "99352e331527e8aafb2961949536217eab7a8ecf",
+  "actual_exit": 0,
+  "args": [
+    "R:\\d3-evidence\\environment-guard-source-084858000\\eech-campaign\\target\\windows-env-guards-084858000\\host_callbacks.exe",
+    "the_environment_",
+    "--nocapture",
+    "--test-threads=1"
+  ],
+  "started_utc": "2026-10-30T07:26:31.571100+00:00",
+  "completed_utc": "2026-10-30T07:26:34.392562+00:00",
+  "test_exe_sha256": "389ebfff94b66afc2d83a2d69f05fe10db8f5a9ddb432e8ee036d1c3cc35d405",
+  "passed": 8,
+  "failed": 0,
+  "scope": "Actual Windows stand-in/real-Lua driver guards, no numerical original campaign run"
+}

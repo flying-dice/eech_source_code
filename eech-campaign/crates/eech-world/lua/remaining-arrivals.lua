@@ -163,7 +163,7 @@ end
 local engine = dc.boot {
 	install_root = root,
 	map = "..\\common\\maps\\map5",
-	terrain = host.terrain_provider (root, "..\\common\\maps\\map5"),
+	terrain = host.terrain_provider (root, "..\\common\\maps\\map5"), environment = host.env_provider (),
 	campaign_directory = "camp01",
 	campaign = "LEBANON.CHC",
 	gunship = "apache",

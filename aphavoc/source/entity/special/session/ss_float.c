@@ -230,6 +230,30 @@ static void set_local_float_value (entity *en, float_types type, float value)
 			break;
 		}
 	}
+#ifdef EECH_CAMPAIGN_HOST_ENV
+	// the physical fields of the record are a read-only MIRROR of the host's field (ss_hostenv.h): a write through this setter (the pack, the debug events, a test) is pushed to the host
+	switch (type)
+	{
+		case FLOAT_TYPE_LIGHTNING_TIMER:
+		case FLOAT_TYPE_WEATHER_MODE_TRANSITIONAL_PERIOD:
+		case FLOAT_TYPE_WEATHER_MODE_TRANSITIONAL_STATUS:
+		case FLOAT_TYPE_WEATHER_RADIUS:
+		case FLOAT_TYPE_WIND_EFFECT_RADIUS:
+		case FLOAT_TYPE_WIND_GUSTING_VALUE:
+		case FLOAT_TYPE_WIND_MAXIMUM_SPEED:
+		case FLOAT_TYPE_WIND_MINIMUM_SPEED:
+		{
+			campaign_env_import ((struct SESSION *) raw);
+
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+#endif
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

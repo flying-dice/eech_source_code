@@ -21,6 +21,7 @@
 #include "entity/mobile/mb_hostaim.h"
 #include "entity/mobile/mb_hostobj.h"
 #include "entity/mobile/mb_hostterrain.h"
+#include "entity/special/session/ss_hostenv.h"
 
 #define EECH_ENGINE_OK 0
 #define EECH_ENGINE_FATAL 1
@@ -71,6 +72,7 @@ typedef campaign_movement_result eech_movement_result;
 typedef campaign_move_vehicle_fn eech_move_vehicle_callback;
 typedef campaign_los_fn eech_line_of_sight_callback;
 typedef campaign_terrain_fn eech_terrain_callback;
+typedef campaign_env_fn eech_environment_callback;
 typedef campaign_sense_fn eech_sense_callback;
 typedef campaign_aim_fn eech_aim_callback;
 
@@ -92,6 +94,8 @@ struct eech_engine_host
 	eech_aim_callback aim;
 	/* Called synchronously for every physical terrain question (mb_hostterrain.h): the map facts, the surface at a point (elevation, normal, type, and the record's opaque hint) and the fast gridpost elevation. Unlike the dialogue callbacks above it is installed for the rest of the process by the first entry that carries it (boot requires it), because the campaign asks about terrain from every entry. The host owns the physical terrain; there is no campaign fallback. */
 	eech_terrain_callback terrain;
+	/* Called synchronously for every physical weather and wind question and for the physical update of the field (ss_hostenv.h): the host owns the weather and wind zones, their evolution, the gusts and the lightning timer; the campaign keeps the clock, the draws of the shared random word, the entity effects of a strike and every consequence. Installed for the rest of the process by the first entry that carries it (boot requires it); there is no campaign fallback. */
+	eech_environment_callback environment;
 	void *user;
 };
 
@@ -396,6 +400,26 @@ int eech_engine_cmb_case_act (int op, const char *kind, int ordinal, const char 
 /* The controlled bridge case of the ORIGINAL collapse (EEDCS-46, R5, see eech_cmb_case.c): op 0 survey of every bridge, op 1 state of the bridge at ordinal, op 2 the declared structural failure of one\n   segment of it (index, or -1 for the first by criterion), op 3 disarm the observer.  Given the same complete host as a frame. */
 int eech_engine_cmb_case_bridge (int op, int ordinal, int index, int criterion, char *text, int capacity, const struct eech_engine_host *host);
 int eech_engine_cmb_events (char *text, int capacity, int *more);
+#endif
+
+#ifdef EECH_ENV_FIXTURE
+/*
+ * TEST-ONLY (feature env-fixture, EEDCS-51): see eech_env_fixture.c. Not part of the shipping module.
+ * One call is one case, as `key=value` text lines. group 0 the census (case counts, enum values, constants, unsupported items), 1 the unmodified session environment with its original
+ * queries (read-only); 2 weather, 3 wind, 4 gust, 5 clock, 6 initialisers, 7 time-of-day update, 8 weather/wind update: controlled witnesses that restore everything they touch.
+ * Fails (bad argument, the reason in the text) for an unknown group or index or a report that does not fit `capacity`.
+ */
+int eech_engine_env_case (int group, int index, char *text, int capacity);
+#endif
+
+#ifdef EECH_ENV_OBSERVER
+/*
+ * TEST-ONLY (feature env-observer, EEDCS-51): see eech_env_observer.c. arm is valid only before boot (on) or at any time (off); the report and the events are read after boot.
+ * The events are drained incrementally: more is set to 1 while unread events remain. Not part of the shipping module.
+ */
+int eech_engine_env_observer_arm (int on);
+int eech_engine_env_observer_report (char *text, int capacity);
+int eech_engine_env_observer_events (char *text, int capacity, int *more);
 #endif
 
 #endif

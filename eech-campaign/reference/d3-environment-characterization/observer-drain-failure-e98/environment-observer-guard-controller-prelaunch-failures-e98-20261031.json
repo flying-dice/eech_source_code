@@ -1,0 +1,9 @@
+{
+  "scope": "Infrastructure failure BEFORE any WSL/Docker/test process launch. Existing model log protected by exclusivecreate; no old artifacts changed.",
+  "actual_prelaunch_controller_exits": [
+    1,
+    1
+  ],
+  "reason": "Generator date replacement left old modelcontrollerstem untouched",
+  "recovery": "Newv2controllers from known actualenvironmentcontrollertemplate; same unmodified named build scripts"
+}
