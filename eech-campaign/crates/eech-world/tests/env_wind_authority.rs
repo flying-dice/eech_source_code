@@ -144,6 +144,42 @@ fn hex(value: &str, length: Option<usize>, what: &str) -> Result<(), String> {
     }
 }
 
+/// A positive whole number as text (the fixture's weapon ordinals start at 1; `w=-1` is its unregistered sentinel).
+fn positive_integer(value: &str, what: &str) -> Result<u64, String> {
+    if value.chars().all(|c| c.is_ascii_digit()) {
+        if let Some(n) = value.parse::<u64>().ok().filter(|n| *n >= 1) {
+            return Ok(n);
+        }
+    }
+    Err(format!("{what} {value:?} is not a positive whole number"))
+}
+
+/// The REAL birth-event grammar (eech_wpn_fixture.c `log_event`): `wpn-ev seq=<N> kind=birth w=<ordinal> ...`, the sequence a positive whole number equal to the row's `seq`, the weapon
+/// identity the cohort member's. The full raw line is kept elsewhere for the comparison of equivalent launches.
+fn birth_line(raw: &str, member: &str, row_seq: u64) -> Result<(), String> {
+    let mut tokens = raw.split_whitespace();
+    let prefix = tokens.next();
+    let seq = tokens.next().and_then(|t| t.strip_prefix("seq="));
+    let kind = tokens.next();
+    let identity = tokens.find_map(|t| t.strip_prefix("w="));
+    let bad = |why: &str| Err(format!("the birth row of member {member} is not that weapon's birth line ({why}): {raw:?}"));
+    if prefix != Some("wpn-ev") {
+        return bad("it does not begin with the fixture's `wpn-ev` prefix");
+    }
+    match seq.map(|s| positive_integer(s, "the sequence")) {
+        Some(Ok(n)) if n == row_seq => {}
+        Some(Ok(_)) => return bad("its sequence is not the row's"),
+        _ => return bad("it has no positive `seq=<n>`"),
+    }
+    if kind != Some("kind=birth") {
+        return bad("it is not `kind=birth`");
+    }
+    if identity != Some(member) {
+        return bad("its `w=` is not the cohort member");
+    }
+    Ok(())
+}
+
 fn terminal_of(row: &Value) -> Result<Terminal, String> {
     let terminal = Terminal {
         kind: text(row, "type")?,
@@ -158,16 +194,30 @@ fn terminal_of(row: &Value) -> Result<Terminal, String> {
         track: text(row, "track")?,
     };
     numeric_list(&terminal.pos, 3, "the terminal position")?;
-    for (value, what) in [
-        (&terminal.steps, "the terminal step count"),
-        (&terminal.distance, "the terminal distance"),
-        (&terminal.velocity, "the terminal velocity"),
-        (&terminal.lifetime, "the terminal lifetime"),
-        (&terminal.max_velocity, "the terminal maximum velocity"),
-    ] {
+    for (value, what) in [(&terminal.velocity, "the terminal velocity"), (&terminal.lifetime, "the terminal lifetime")] {
         numeric_list(value, 1, what)?;
     }
+    // The fixture's sentinels for a weapon it holds no track for are steps -1, distance -1, maximum velocity -1 and a zero track hash: none of them is physical evidence. A registered weapon has a
+    // whole, non-negative step count and non-negative distance and maximum velocity.
+    let steps = numeric_list(&terminal.steps, 1, "the terminal step count")?;
+    if steps.first().is_none_or(|s| *s < 0.0 || s.fract() != 0.0) {
+        return Err(format!(
+            "the terminal step count {:?} is not a whole, non-negative number (-1 is the unregistered sentinel)",
+            terminal.steps
+        ));
+    }
+    for (value, what) in [
+        (&terminal.distance, "the terminal distance"),
+        (&terminal.max_velocity, "the terminal maximum velocity"),
+    ] {
+        if numeric_list(value, 1, what)?.first().is_none_or(|v| *v < 0.0) {
+            return Err(format!("{what} {value:?} is negative (-1 is the unregistered sentinel)"));
+        }
+    }
     hex(&terminal.track, Some(16), "the terminal track")?;
+    if terminal.track.chars().all(|c| c == '0') {
+        return Err("the terminal track hash is zero: the fixture's mark of a weapon it held no track for".into());
+    }
     hex(&terminal.paths, None, "the terminal path set")?;
     Ok(terminal)
 }
@@ -222,11 +272,27 @@ impl Facts {
                 cohort.len()
             ));
         }
+        for member in &cohort {
+            positive_integer(member, "a cohort member")?;
+        }
         let mut distinct = cohort.clone();
         distinct.sort();
         distinct.dedup();
         if distinct.len() != cohort.len() {
             return Err(format!("the cohort lists a member twice: {cohort:?}"));
+        }
+        // The launch REPORT is the fixture's own count (`wpn-case-launch ... births=<N> creates=<M>`), independent of the rows the driver read: the frozen cohort must be exactly that many
+        // births and creates, and the driver must have checked the fixture's own loss counters before arming.
+        let (report_births, report_creates) = (int(launch, "report_births"), int(launch, "report_creates"));
+        let expected_count = i64::try_from(cohort.len()).ok();
+        if report_births.as_ref().ok().copied() != expected_count || report_creates.as_ref().ok().copied() != expected_count {
+            return Err(format!(
+                "the launch report says births={report_births:?} creates={report_creates:?} but the frozen cohort has {} members: the cohort is not the whole launch",
+                cohort.len()
+            ));
+        }
+        if launch["launch_trace_checked"] != true {
+            return Err("the fixture's loss counters (log overflow, births without a track) were not checked before the arm".into());
         }
         // the initial births: one row per member, in cohort order, each the fixture's own birth line of that weapon
         let birth_rows = of(&rows, "birth");
@@ -239,9 +305,8 @@ impl Facts {
                 return Err(format!("a birth row is not for cohort member {member} in cohort order"));
             }
             let raw = text(row, "raw")?;
-            if !raw.starts_with("kind=birth") || !raw.contains(&format!(" w={member} ")) {
-                return Err(format!("the birth row of member {member} is not that weapon's birth line: {raw:?}"));
-            }
+            let row_seq = u64::try_from(int(row, "seq")?).map_err(|_| format!("the birth row of member {member} has a negative seq"))?;
+            birth_line(&raw, member, row_seq)?;
             births_raw.push(raw);
         }
         // the arm: after the launch, with no frame between (the frames run so far are the launch's)
@@ -319,6 +384,19 @@ impl Facts {
         if authority["completed"].as_bool().is_none() {
             return Err("the authority row does not say whether the run completed".into());
         }
+        // what the fixture itself reports it lost: events dropped from its finite log, births that found no track, terminals of weapons it holds no track for; none may have been lost, and a
+        // completed run must have been asked once more at its end (a run the engine stopped cannot be asked)
+        for field in ["log_overflow", "track_overflow", "terminals_unregistered"] {
+            if int(&authority, field)? != 0 {
+                return Err(format!(
+                    "the fixture reports {field} = {}: evidence was dropped, truncated or untracked",
+                    authority[field]
+                ));
+            }
+        }
+        if authority["completed"] == true && authority["final_trace_checked"] != true {
+            return Err("a completed run was not checked at its end for dropped or untracked events".into());
+        }
         Ok(Facts {
             mode,
             configuration,
@@ -351,6 +429,12 @@ impl Facts {
             return Err(format!(
                 "{pending} of the {} case weapons never ended (a run that merely did not raise is not a run that finished)",
                 self.cohort.len()
+            ));
+        }
+        // a weapon that ended without a single flown step is not flight evidence
+        if let Some((member, _)) = self.terminals.iter().find(|(_, t)| t.steps.parse::<f64>().is_ok_and(|steps| steps < 1.0)) {
+            return Err(format!(
+                "case weapon {member} ended with no flown step: its terminal fact is not flight evidence"
             ));
         }
         Ok(())
@@ -503,6 +587,9 @@ struct Synthetic {
     birth_pos: &'static str,
     armed_frames: u32,
     launch_frames: u32,
+    report_births: Option<usize>,
+    report_creates: Option<usize>,
+    trace_checked: bool,
 }
 
 fn terminal_row(w: &str, code: &str, steps: &str, pos: &str, track: &str) -> String {
@@ -534,6 +621,9 @@ impl Synthetic {
             birth_pos: "1,2,3",
             armed_frames: 300,
             launch_frames: 300,
+            report_births: None,
+            report_creates: None,
+            trace_checked: true,
         }
     }
     /// A run altered in `mode`: twenty vector questions altered, the first eight recorded.
@@ -558,17 +648,22 @@ impl Synthetic {
                 self.selected
             ),
             format!(
-                "{{\"event\":\"case_launch\",\"ok\":true,\"launcher\":\"{}\",\"target\":\"eech-world:2\",\"weapon\":7,\"text\":\"{}\",\"births\":{},\"frames\":{}}}",
+                "{{\"event\":\"case_launch\",\"ok\":true,\"launcher\":\"{}\",\"target\":\"eech-world:2\",\"weapon\":7,\"text\":\"{}\",\"births\":{},\"frames\":{},\"report_births\":{},\"report_creates\":{},\"launch_trace_checked\":{}}}",
                 self.selected,
                 self.launch_text,
                 self.cohort.len(),
-                self.launch_frames
+                self.launch_frames,
+                self.report_births.unwrap_or(self.cohort.len()),
+                self.report_creates.unwrap_or(self.cohort.len()),
+                self.trace_checked
             ),
             format!("{{\"event\":\"cohort\",\"size\":{},\"members\":\"{members}\"}}", self.cohort.len()),
         ];
-        for member in &self.cohort {
+        for (index, member) in self.cohort.iter().enumerate() {
+            // the REAL serializer's line: `wpn-ev seq=<N> ` and then the event's own `kind=birth w=<ordinal> ...` (eech_wpn_fixture.c log_event)
+            let seq = 100 + index;
             rows.push(format!(
-                "{{\"event\":\"birth\",\"w\":\"{member}\",\"raw\":\"kind=birth w={member} type=gun launcher=helicopter pos={}\"}}",
+                "{{\"event\":\"birth\",\"w\":\"{member}\",\"seq\":{seq},\"raw\":\"wpn-ev seq={seq} kind=birth w={member} type=gun launcher=helicopter pos={}\"}}",
                 self.birth_pos
             ));
         }
@@ -604,6 +699,10 @@ impl Synthetic {
         fields.insert("wind_after", "50".into());
         fields.insert("wind_vector_after", "20".into());
         fields.insert("altered_wind", "0".into());
+        fields.insert("log_overflow", "0".into());
+        fields.insert("track_overflow", "0".into());
+        fields.insert("terminals_unregistered", "0".into());
+        fields.insert("final_trace_checked", "true".into());
         for (field, value) in &self.authority {
             fields.insert(field, value.clone());
         }
@@ -740,11 +839,6 @@ fn evidence_that_is_not_complete_and_consistent_has_no_facts() {
     let mut incoherent = Synthetic::new();
     incoherent.authority.push(("wind_vector_after", "99".into()));
     refused(incoherent, "incoherent");
-    // the initial births: a row for another weapon, one that is not a birth line
-    let text = Synthetic::new()
-        .text()
-        .replace("\"raw\":\"kind=birth w=5 type", "\"raw\":\"kind=birth w=6 type");
-    assert!(Facts::parse(&text).unwrap_err().contains("not that weapon's birth line"));
     // the launch is not the selected launch, no launch at all, a witness failure, an unwritten authority row, a boot of another mode
     let text = Synthetic::new().text().replace(
         "\"event\":\"case_launch\",\"ok\":true,\"launcher\":\"eech-world:1\"",
@@ -996,12 +1090,34 @@ package.preload.eech_dc = function ()
 				if scenario.launch_asks_wind then ask ("wind", true) end
 				local births = scenario.births or { "kind=birth w=5 type=gun launcher=helicopter pos=1,2,3" }
 				for _, line in ipairs (births) do queue [#queue + 1] = line end
-				return "creates=1 births=" .. #births
+				-- the fixture's own launch report (eech_wpn_fixture.c wpn-case-launch), its births and creates counted independently of the events
+				return string.format ("wpn-case-launch launcher=helicopter weapon=7 target_link_before=0 target_link=1 count_before=3 count_after=2 births=%d creates=%d restored=1",
+					scenario.report_births or #births, scenario.report_creates or #births)
 			end
+			-- the fixture's own event serializer: every stored line is `wpn-ev seq=<N> ` and then the event; the sequence is consecutive over the stored events
+			local seq = 0
 			function engine:wpn_events ()
-				local text = table.concat (queue, "\n")
+				local lines = {}
+				for _, line in ipairs (queue) do
+					if scenario.unstamped then
+						lines [#lines + 1] = line
+					else
+						seq = seq + 1
+						if scenario.seq_gap_at == seq then seq = seq + 1 end
+						lines [#lines + 1] = "wpn-ev seq=" .. seq .. " " .. line
+					end
+				end
 				queue = {}
-				return text
+				return table.concat (lines, "\n")
+			end
+			-- the fixture's own trace report, reduced to the three lines the driver reads (eech_wpn_fixture.c: wpn-counter, wpn-log)
+			function engine:wpn_trace ()
+				if scenario.trace_error then error ("the trace report did not fit", 0) end
+				local overflow = launched and (scenario.overflow_after_launch or 0) or 0
+				local track = launched and (scenario.track_overflow_after_launch or 0) or 0
+				local unregistered = (launched and since_launch >= 1) and (scenario.unregistered_after or 0) or 0
+				return "wpn-counter name=birth_track_overflow value=" .. track .. "\nwpn-counter name=terminal_unregistered value=" .. unregistered ..
+					"\nwpn-log events=" .. seq .. " stored=" .. seq .. " drained=" .. seq .. " overflow=" .. overflow .. "\n"
 			end
 			return engine
 		end,
@@ -1266,7 +1382,7 @@ fn the_driver_never_invents_a_missing_or_empty_terminal_field_or_a_second_termin
     assert!(anonymous
         .result
         .unwrap_err()
-        .contains("env-wind-authority: a terminal fact with no weapon identity"));
+        .contains("env-wind-authority: an event with no registered weapon identity"));
 }
 
 #[test]
@@ -1332,6 +1448,192 @@ fn the_driver_fails_on_every_output_write_flush_and_close_that_fails_even_after_
         &[("mode", "withheld_wind")],
     );
     assert!(refusal_mode.result.unwrap_err().contains("OUTPUT FAILURE: closing"));
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// review ENV-WIND-WITNESS-1 / ENV-WIND-WITNESS-2: the REAL event grammar, and the evidence of a COMPLETE cohort (bookkeeping guards: no physics, no DLL)
+
+#[test]
+fn the_judge_parses_the_real_prefixed_birth_grammar_and_refuses_a_line_that_is_not_it() {
+    // the synthetic rows carry the fixture's real serializer line: `wpn-ev seq=<N> kind=birth w=<ordinal> ...`
+    let good = Synthetic::new().text();
+    assert!(good.contains("wpn-ev seq=100 kind=birth w=5 "), "{good}");
+    Facts::parse(&good).expect("the real grammar is accepted, and its full raw line is kept");
+    let refused = |from: &str, to: &str, fragment: &str| {
+        let text = good.replace(from, to);
+        assert_ne!(text, good, "the guard changed nothing: {from}");
+        let error = Facts::parse(&text).unwrap_err();
+        assert!(error.contains(fragment), "{from} -> {to}: {error}");
+    };
+    // no prefix at all (the old, wrong grammar), a different prefix word, a sequence that is zero, not a number or not the row's, another kind, another weapon
+    refused("wpn-ev seq=100 kind=birth", "kind=birth", "`wpn-ev` prefix");
+    refused("wpn-ev seq=100 kind=birth", "wpn-xx seq=100 kind=birth", "`wpn-ev` prefix");
+    refused("\"raw\":\"wpn-ev seq=100 kind=birth", "\"raw\":\"wpn-ev seq=0 kind=birth", "positive `seq=<n>`");
+    refused(
+        "\"raw\":\"wpn-ev seq=100 kind=birth",
+        "\"raw\":\"wpn-ev seq=ten kind=birth",
+        "positive `seq=<n>`",
+    );
+    refused(
+        "\"raw\":\"wpn-ev seq=100 kind=birth",
+        "\"raw\":\"wpn-ev seq=101 kind=birth",
+        "sequence is not the row's",
+    );
+    refused("wpn-ev seq=100 kind=birth", "wpn-ev seq=100 kind=terminal", "not `kind=birth`");
+    refused("kind=birth w=5 type", "kind=birth w=6 type", "`w=` is not the cohort member");
+    refused("kind=birth w=5 type", "kind=birth type", "`w=` is not the cohort member");
+    // an identity that is not a registered ordinal: zero, the unregistered sentinel -1, a fraction
+    for bad in ["-1", "0", "5.5", "five"] {
+        let mut sentinel = Synthetic::new();
+        sentinel.cohort = vec![Box::leak(bad.to_string().into_boxed_str())];
+        sentinel.terminals.clear();
+        let error = sentinel.facts().unwrap_err();
+        assert!(error.contains("positive whole number"), "{bad}: {error}");
+    }
+}
+
+#[test]
+fn the_frozen_cohort_must_equal_the_fixtures_own_launch_report_and_nothing_may_have_been_lost() {
+    let refused = |synthetic: Synthetic, fragment: &str| {
+        let error = synthetic.facts().unwrap_err();
+        assert!(error.contains(fragment), "expected {fragment:?} in {error:?}");
+    };
+    // the launch report (births and creates, counted by the fixture independently of the events) against the frozen cohort: a cohort smaller or larger than the launch, none counted
+    let mut fewer = Synthetic::new();
+    fewer.report_births = Some(2);
+    refused(fewer, "the cohort is not the whole launch");
+    let mut creates = Synthetic::new();
+    creates.report_creates = Some(2);
+    refused(creates, "the cohort is not the whole launch");
+    let mut none = Synthetic::new();
+    none.report_births = Some(0);
+    refused(none, "the cohort is not the whole launch");
+    let text = Synthetic::new().text().replace(",\"report_births\":1", "");
+    assert!(Facts::parse(&text).unwrap_err().contains("the cohort is not the whole launch"));
+    // the fixture's loss counters were not read before the arm
+    let mut unchecked = Synthetic::new();
+    unchecked.trace_checked = false;
+    refused(unchecked, "were not checked before the arm");
+    // what the fixture reports it lost: events dropped from its finite log, births without a track, terminals of weapons it holds no track for
+    for field in ["log_overflow", "track_overflow", "terminals_unregistered"] {
+        let mut lost = Synthetic::new();
+        lost.authority.push((field, "1".into()));
+        let error = lost.facts().unwrap_err();
+        assert!(
+            error.contains(&format!("{field} = 1")) && error.contains("dropped, truncated or untracked"),
+            "{field}: {error}"
+        );
+    }
+    // a completed run must have been asked at its end; a run the engine stopped cannot be, and says so
+    let mut unasked = Synthetic::new();
+    unasked.authority.push(("final_trace_checked", "false".into()));
+    refused(unasked, "was not checked at its end");
+    let stopped = stopped_run_unchecked("withheld_wind");
+    judge_refusal("withheld_wind", &Synthetic::new().facts().unwrap(), &stopped)
+        .expect("a stopped run's end cannot be checked, and a refusal does not need it");
+}
+
+fn stopped_run_unchecked(mode: &'static str) -> Facts {
+    let mut run = Synthetic::altered(mode, ("", ""));
+    run.terminals.clear();
+    run.authority = vec![
+        ("completed", "false".into()),
+        ("failure", "\"host: [env-provider:wind.callback] detail\"".into()),
+        ("final_trace_checked", "false".into()),
+        ("altered_wind", "1".into()),
+        ("wind_vector_after", "1".into()),
+    ];
+    run.sent.truncate(1);
+    run.facts().unwrap()
+}
+
+#[test]
+fn a_terminal_that_carries_the_unregistered_sentinel_or_no_flown_step_is_not_flight_evidence() {
+    let refused = |row: String, fragment: &str| {
+        let mut synthetic = Synthetic::new();
+        synthetic.terminals = vec![row];
+        let error = synthetic.facts().unwrap_err();
+        assert!(error.contains(fragment), "expected {fragment:?} in {error:?}");
+    };
+    // the fixture's sentinels for a weapon it holds no track for: steps -1, distance -1, maximum velocity -1, a zero track hash; and a fractional step count
+    refused(terminal_row("5", "ground", "-1", "10,2,3", TRACK), "unregistered sentinel");
+    refused(terminal_row("5", "ground", "1.5", "10,2,3", TRACK), "whole, non-negative");
+    refused(terminal_row("5", "ground", "40", "10,2,3", "0000000000000000"), "track hash is zero");
+    refused(
+        terminal_row("5", "ground", "40", "10,2,3", TRACK).replace("\"distance\":\"10\"", "\"distance\":\"-1\""),
+        "distance",
+    );
+    refused(
+        terminal_row("5", "ground", "40", "10,2,3", TRACK).replace("\"max_velocity\":\"3\"", "\"max_velocity\":\"-1\""),
+        "maximum velocity",
+    );
+    // a registered terminal with zero steps parses, but a control or a changed run does not count it as flight
+    let mut grounded = Synthetic::new();
+    grounded.terminals = vec![terminal_row("5", "ground", "0", "10,2,3", TRACK)];
+    let error = judge_control(&grounded.facts().unwrap()).unwrap_err();
+    assert!(error.contains("ended with no flown step"), "{error}");
+}
+
+#[test]
+fn the_driver_fails_on_dropped_truncated_malformed_untracked_or_unmatched_launch_evidence_with_a_named_reason() {
+    // each scenario is a failure of the witness's EVIDENCE: the error carries the driver's prefix, a witness_failure row is written, and no run has facts
+    let failing = |scenario: &str, args: &[(&str, &str)], fragment: &str, armed: bool| {
+        let driven = drive(scenario, args);
+        let error = driven.result.unwrap_err();
+        assert!(
+            error.contains("env-wind-authority:") && error.contains(fragment),
+            "{scenario}: expected {fragment:?} in {error:?}"
+        );
+        assert!(driven.rows.contains("\"event\":\"witness_failure\""), "{scenario}: {}", driven.rows);
+        assert_eq!(
+            driven.rows.contains("\"event\":\"armed\""),
+            armed,
+            "{scenario}: armed or not armed as the stage of the refusal says: {}",
+            driven.rows
+        );
+        assert!(Facts::parse(&driven.rows).unwrap_err().contains("the witness itself failed"), "{scenario}");
+    };
+    // the launch report against the frozen cohort: a report of more births than were read, of more creates, of none
+    failing("report_births = 2", &[], "COHORT INCOMPLETE", false);
+    failing("report_creates = 2", &[], "COHORT INCOMPLETE", false);
+    failing("report_births = 0, report_creates = 0", &[], "COHORT INCOMPLETE", false);
+    // the fixture's own loss counters, read before the arm, whatever the mode
+    failing("overflow_after_launch = 1", &[], "EVENT LOG OVERFLOW", false);
+    failing("overflow_after_launch = 1", &[("mode", "withheld_wind")], "EVENT LOG OVERFLOW", false);
+    failing("track_overflow_after_launch = 1", &[], "BIRTH TRACK OVERFLOW", false);
+    failing("trace_error = true", &[], "TRACE UNREADABLE", false);
+    // an event line that is not the real grammar, a sequence with a hole in it, a truncated event
+    failing("unstamped = true", &[], "MALFORMED EVENT", false);
+    failing(&format!("seq_gap_at = 2, {}", healthy(CASE_TERMINAL)), &[], "EVENT SEQUENCE", true);
+    failing("after = { [1] = { 'kind=truncated' } }", &[], "EVENT TRUNCATED", true);
+    // identities that are not registered ordinals: the sentinel -1 and zero, in a birth, a later birth and a terminal
+    failing(
+        "births = { 'kind=birth w=-1 type=gun launcher=helicopter pos=1,2,3' }",
+        &[],
+        "no registered weapon identity",
+        false,
+    );
+    failing(
+        "births = { 'kind=birth w=0 type=gun launcher=helicopter pos=1,2,3' }",
+        &[],
+        "no registered weapon identity",
+        false,
+    );
+    failing("after = { [1] = { 'kind=birth w=-1 type=later' } }", &[], "no registered weapon identity", true);
+    failing("after = { [1] = { 'kind=terminal w=-1 type=gun code=ground steps=-1 distance=-1 pos=1,2,3 velocity=1 lifetime=1 max_velocity=-1 paths=0 track=0000000000000000' } }", &[], "no registered weapon identity", true);
+    // a terminal the fixture counted as unregistered, noticed at the end of a completed run
+    failing(
+        &format!("unregistered_after = 1, {}", healthy(CASE_TERMINAL)),
+        &[],
+        "UNREGISTERED TERMINAL",
+        true,
+    );
+    // and a healthy run is untouched by all of it: the report, the grammar and the counters are recorded as checked
+    let driven = drive(&healthy(CASE_TERMINAL), &[]);
+    driven.result.expect("a healthy run");
+    let facts = Facts::parse(&driven.rows).expect("complete evidence");
+    assert_eq!(facts.authority["final_trace_checked"], true);
+    judge_control(&facts).expect("a healthy control");
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------

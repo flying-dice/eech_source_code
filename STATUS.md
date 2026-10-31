@@ -1,3 +1,17 @@
+# D3 checkpoint — wind witness review of 47f3d9460: real event grammar and a complete cohort (31 October 2026)
+
+EEDCS-51 / PR111 from clean pushed `47f3d9460`. ONE combined independent witness review (SHA-256 `adb71b22...de0b`, CHANGES_REQUIRED): P1 ENV-WIND-WITNESS-1 the judge required `raw.starts_with("kind=birth")` while the
+fixture prefixes every event `wpn-ev seq=<N> ` (so every real birth was refused; the fixtures omitted the prefix); P2 ENV-WIND-WITNESS-2 the cohort count came from the rows read and was compared with itself.
+Actual (Root's): Linux 17 test functions 0 and strict Clippy 0; Windows weapon-fixture build/export 0 (47 payloads); Windows 17 functions 0 with the public path SKIPPED (not authority); the first REAL control on
+the frozen binaries and a fresh root (controller receipt `environment-wind-control-red-controller-47f3d9460-20261031/receipt.json`) exited 101 after 67.91 s with exactly the prefix failure ("not that weapon's birth
+line" for `wpn-ev seq=103 kind=birth w=1 type=M61A1_M56A3_HEI_20mm ...`), guards and pre/post inputs 0, an expected red, NOT an acceptance; its rows (one 20 mm round, terminal `hit_land` in 7 steps,
+1754 wind vector questions in 11 frames, all global) are read only as the reproduction of the real format. NEW TEST SOURCE: UNBUILT, UNRUN, UNREVIEWED (test Lua, Rust judge/guards, docs, STATUS only; production C/Rust/ABI/
+providers/flags/manifests unchanged from dd): the judge tokenises the real grammar (prefix, positive seq equal to the row's, kind=birth, matching positive ordinal) and keeps the full raw line; the driver checks the
+fixture's own launch report (births and creates) against the frozen cohort BEFORE arming, reads its loss counters (event-log overflow, births without a track, unregistered terminals) before the launch, after it and at
+the end of a completed run, and fails on a malformed/gapped/truncated event or a non-positive identity; terminals with the unregistered sentinels or no flown step are not flight evidence; bookkeeping guards cover
+each (no physics). Clock/late-arm/output-error failures and the global-vector-traffic scoping are unchanged. Whole Task 51/D3 remains required (physical effects, time, terrain-scratch, spatial, model); campaign policy
+stays Core; D4/D5 not started; no acceptance claimed.
+
 # D3 checkpoint — field component gates green; wind-authority witness source ready (31 October 2026)
 
 Production field source dd5e7c4ce is frozen. Actual Linux default/fixture package

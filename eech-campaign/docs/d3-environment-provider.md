@@ -289,6 +289,37 @@ or anything about the product; that is the public witness, which prints SKIPPED 
 the weapon from the campaign's policy, its random draws or other weapon families; the cohort's recorded terminal facts are the only claim. **Pending exact gates (Root):** pin/format/build; run the new unit
 file; run the public witness with the weapon-fixture DLL and one fresh verified root per mode (control first, `EECH_WIND_MODES` optional); one independent review of this delta; the final Task 51 gates remain.
 
+## Review `47f3d9460` of the wind-authority witness: the real event grammar and a complete cohort (test source, UNBUILT, UNRUN, UNREVIEWED)
+
+Reported by Root (not re-run here): on the frozen `47f3d9460` the Linux unit file passes all 17 test functions and strict Clippy is 0; the Windows weapon-fixture build/export is 0 (47 payloads including the new
+Lua); the Windows unit file passes the same 17 test functions with the public path SKIPPED (the `EECH_*` environment unset), which is not authority. The first REAL control then ran through the existing public
+test on the frozen binaries and a fresh control root (controller `environment-wind-control-red-controller-47f3d9460-20261031/receipt.json`, test work `environment-wind-control-red-47f3d9460-20261031`):
+the guards 0, the pre/post input manifests 0, and the public test exited 101 after 67.91 s -- the expected red, not an acceptance. The independent review of `47f3d9460`
+(`independent-environment-wind-authority-source-review-47f3d9460-20261031.json`, SHA-256 `adb71b22...de0b`) returned CHANGES_REQUIRED with two findings, closed in test source by this batch:
+
+* **ENV-WIND-WITNESS-1 (P1), the real birth grammar.** The judge required `raw.starts_with("kind=birth")`; the fixture's `log_event` prefixes EVERY line `wpn-ev seq=<N> `, so every real birth was refused (the
+  real control's rows show exactly this: `wpn-ev seq=103 kind=birth w=1 type=M61A1_M56A3_HEI_20mm ...`, and the judge's message was "not that weapon's birth line"). The judge now tokenises the real grammar: the `wpn-ev`
+  prefix, a positive whole `seq=<N>` equal to the sequence the driver recorded in the birth row, `kind=birth`, and a `w=<ordinal>` equal to the cohort member; the full raw line is kept for the comparison of
+  equivalent launches. The synthetic rows and the scripted engine now speak the real prefix (the scripted engine stamps and numbers its lines like the fixture), and a missing prefix, another prefix word, a
+  zero or non-numeric sequence, a sequence other than the row's, another kind and another or missing weapon identity are each refused. The earlier fixtures omitted the prefix, which is why 17 passing
+  functions did not show the incompatibility. No golden or production change.
+* **ENV-WIND-WITNESS-2 (P2), a complete and registered cohort.** The cohort count was derived from the rows the driver happened to read and then compared with itself. Now: the driver parses the fixture's own
+  launch report (`wpn-case-launch ... births=<N> creates=<M> ...`, read from the existing `eech_wpn_fixture.c` text, nothing invented) and refuses to arm unless BOTH counts equal the frozen cohort's
+  cardinality; the judge repeats the check on the recorded `report_births` / `report_creates`. The driver reads the fixture's existing loss report (`engine:wpn_trace ()`: `wpn-log ... overflow=`, the counters
+  `birth_track_overflow` and `terminal_unregistered`) before the launch, right after it (before the arm) and again at the end of a run the engine did not stop, and fails if any moved; a run the engine stopped cannot be
+  asked and its authority row says `final_trace_checked = false`, which only a refusal may carry. The event stream is checked as it is drained: a line of another form, a sequence that does not follow its predecessor
+  (an event missing from the log) and `kind=truncated` are failures, none is skipped. A weapon identity must be a positive whole ordinal (`w=-1`, the unregistered sentinel, and zero are refused in a birth, a
+  later birth and a terminal), and a terminal is flight evidence only with a whole non-negative step count, non-negative distance and maximum velocity and a non-zero track hash (the sentinels -1, -1, -1 and 0 are
+  refused); a control or changed run additionally counts a weapon that ended with no flown step as no evidence. The bookkeeping controls add the real-prefix rejections, the report/cohort mismatches, the loss
+  counters, the sentinels and the dropped/truncated/gapped/untracked/unmatched driver cases; they are bookkeeping, not physics.
+
+**Read from the actual control (scope: its rows only, no claim).** The real control launched one 20 mm round (`M61A1_M56A3_HEI_20mm`, launcher `ENTITY_TYPE_ANTI_AIRCRAFT`, one birth, one create), its single terminal
+(`hit_land`, 7 steps) arrived within 11 frames of the arm, and the campaign asked 1754 wind VECTOR questions in those 11 frames -- the cohort's flight is NOT the only asker (the questions are global to the campaign),
+so a changed wind is judged only by the cohort's recorded flight facts, never by counting questions. These rows are from the pre-fix driver and cannot satisfy the new judge (they carry no launch report); they are
+retained, unedited, as the reproduction of the real format. Provider traffic remains a bounded alternate-host-world input. Pending (Root): pin/build the corrected test source (the production inputs of `47f3d9460`
+may be reused only with the new script's SHA stated; the public Rust test already writes the embedded script into its private work directory), re-run the unit file, then a fresh control, then the four altered modes with
+fresh roots; one independent review of this delta. Task 51/D3 stays open.
+
 ## Remaining coupling and open gates (finite)
 
 * The lightning strike and sound entity creation, the sound/terrain-scratch bridge and the time-of-day input stay in Core (explicitly open within Task 51/D3).

@@ -32,6 +32,12 @@
 -- row and never a case weapon; a terminal of a weapon outside the cohort is a `foreign_terminal` row. A member has exactly one terminal (a second is a `duplicate_terminal` row).
 -- The tests/env_wind_authority.rs judge requires every field of every case terminal and the birth identities of the cohort to be the same across the compared runs.
 --
+-- EVIDENCE COMPLETENESS (review of 47f3d9460). The events are the fixture's own `wpn-ev seq=<N> kind=<kind> ...` lines (eech_wpn_fixture.c log_event): a line of another form, a sequence with a hole in it
+-- (an event missing from the log), a `kind=truncated` event, and a weapon identity that is not a positive ordinal (w=-1 is the fixture's unregistered sentinel) are failures of the witness, never skipped.
+-- The frozen cohort must equal the fixture's own launch report (`wpn-case-launch ... births=<N> creates=<M>`), and the fixture's own loss counters (`engine:wpn_trace ()`: the events dropped from its
+-- finite log, the births that found no track, the terminals of unregistered weapons) must not have moved since before the launch -- checked right after the launch, BEFORE the arm, and again at the end
+-- of a run the engine did not stop (a stopped engine cannot be asked; the authority row says so). The full raw birth line is kept for the comparison of equivalent launches.
+--
 -- A failure of the ENGINE is only ever at an armed wind question: the script exits successfully with its evidence whenever the boot and the launch were healthy. A failure of the
 -- WITNESS itself is never an expected refusal: a clock that does not advance, a frame budget that runs out, a write, flush or close of the evidence that fails, an event with no
 -- weapon identity or a constant that is not an exact single all raise an error that begins `env-wind-authority:` (after a best-effort `witness_failure` row), so the process fails.
@@ -228,14 +234,43 @@ local function state (id, weapon)
 	s.position = numbers (s.position or "")
 	return s
 end
+-- The REAL event grammar (eech_wpn_fixture.c log_event): every line the fixture returns is `wpn-ev seq=<N> ` followed by the event's own `kind=<kind> ...`. The sequence is
+-- consecutive over the stored events; an event that does not fit the finite log is counted as overflow and a line that does not fit its buffer is stored as `kind=truncated`. A line
+-- of any other form, a sequence that does not follow its predecessor (an event missing in between) and a truncated event are failures of the witness's EVIDENCE, never skipped.
+local last_seq
 local function events ()
 	local list = {}
 	for line in string.gmatch (engine:wpn_events (), "[^\n]+") do
+		local seq, kind = string.match (line, "^wpn%-ev seq=(%d+) kind=([%w_]+)")
+		if not seq then hard ("MALFORMED EVENT: not a `wpn-ev seq=<n> kind=<kind>` line: " .. line) end
+		seq = tonumber (seq)
+		if seq < 1 or (last_seq and seq ~= last_seq + 1) then
+			hard ("EVENT SEQUENCE: event " .. seq .. " follows " .. tostring (last_seq) .. ": an event is missing from the log or is out of order: " .. line)
+		end
+		last_seq = seq
+		if kind == "truncated" then hard ("EVENT TRUNCATED: the fixture marked event " .. seq .. " as not fitting its log buffer: " .. line) end
 		local f = fields (line)
-		f.raw = line
+		f.raw, f.seq, f.kind = line, seq, kind
 		list [#list + 1] = f
 	end
 	return list
+end
+-- a registered weapon identity: a positive integer (the fixture's ordinals start at 1; w=-1 is its unregistered sentinel)
+local function weapon_identity (e)
+	if e.w == nil or not string.match (e.w, "^%d+$") or tonumber (e.w) < 1 then
+		hard ("an event with no registered weapon identity (w=" .. tostring (e.w) .. ", -1 is the fixture's unregistered sentinel): " .. e.raw)
+	end
+	return e.w
+end
+-- the fixture's own report of what its finite log and its tracks have lost so far (`engine:wpn_trace ()`): the log overflow, the births that found no track, the terminals of unregistered weapons
+local function trace_counts ()
+	local ok, text = pcall (engine.wpn_trace, engine)
+	if not ok then hard ("TRACE UNREADABLE: " .. first_line (text)) end
+	local overflow = string.match (text, "wpn%-log events=%d+ stored=%d+ drained=%d+ overflow=(%d+)")
+	local track_overflow = string.match (text, "wpn%-counter name=birth_track_overflow value=(%d+)")
+	local unregistered = string.match (text, "wpn%-counter name=terminal_unregistered value=(%d+)")
+	if not (overflow and track_overflow and unregistered) then hard ("TRACE GRAMMAR: the trace report lacks the log, birth_track_overflow or terminal_unregistered line") end
+	return { overflow = tonumber (overflow), track_overflow = tonumber (track_overflow), unregistered = tonumber (unregistered) }
 end
 
 local ordered = {}
@@ -274,6 +309,8 @@ emit { event = "case_selected", launcher = launcher or "none", target = target o
 if not launcher then hard ("SETUP FAILURE: no launcher with an unguided ballistic weapon and an enemy was found") end
 
 events () -- everything the natural war logged before the launch is taken first, so what is read after is the launch's own
+-- what the fixture has already lost (log overflow, births without a track, unregistered terminals): the launch and the run after it must lose nothing more
+local trace_before = trace_counts ()
 -- NOT armed: the launch, and the read of its births, are healthy and unaltered, whatever the mode
 local launched, launch_text = pcall (engine.wpn_case_launch, engine, launcher, target, weapon, 0)
 if not launched and string.find (tostring (launch_text), "env-wind-authority:", 1, true) then error (tostring (launch_text), 0) end
@@ -285,21 +322,36 @@ local cohort, members, births = {}, {}, {}
 if launched then
 	for _, e in ipairs (events ()) do
 		if e.kind == "birth" then
-			if e.w == nil or tonumber (e.w) == nil then hard ("an event with no weapon identity: " .. e.raw) end
+			weapon_identity (e)
 			if cohort [e.w] then hard ("a weapon born twice in one launch: " .. e.w) end
 			cohort [e.w] = true
 			members [#members + 1] = e.w
-			births [e.w] = e.raw
+			births [e.w] = e
 		end
 	end
 	table.sort (members, function (a, b) return tonumber (a) < tonumber (b) end)
 end
+-- The launch REPORT is the fixture's own count, independent of the rows read: `wpn-case-launch ... births=<N> creates=<M> ...` (eech_wpn_fixture.c). The frozen cohort must be exactly that many
+-- births, and the fixture must not have dropped, truncated or left untracked any event of the launch, BEFORE anything is armed.
+local report_births, report_creates, launch_trace
+if launched then
+	local report = fields (tostring (launch_text))
+	if not string.find (tostring (launch_text), "^wpn%-case%-launch ") then hard ("LAUNCH REPORT: not a `wpn-case-launch` line: " .. first_line (launch_text)) end
+	report_births, report_creates = tonumber (report.births), tonumber (report.creates)
+	if not report_births or not report_creates or report_births ~= math.floor (report_births) or report_creates ~= math.floor (report_creates) then hard ("LAUNCH REPORT: no whole births and creates counts in: " .. first_line (launch_text)) end
+	if report_births < 1 or report_births ~= #members or report_creates ~= #members then
+		hard ("COHORT INCOMPLETE: the launch report says births=" .. report_births .. " creates=" .. report_creates .. " but " .. #members .. " births were read")
+	end
+	launch_trace = trace_counts ()
+	if launch_trace.overflow ~= trace_before.overflow then hard ("EVENT LOG OVERFLOW: the fixture dropped " .. (launch_trace.overflow - trace_before.overflow) .. " event(s) by the end of the launch: the cohort's evidence may be incomplete") end
+	if launch_trace.track_overflow ~= trace_before.track_overflow then hard ("BIRTH TRACK OVERFLOW: a birth of the launch found no track: the cohort's evidence is incomplete") end
+end
 emit {
 	event = "case_launch", ok = launched and true or false, launcher = launcher, target = target, weapon = weapon, text = first_line (launch_text), births = #members,
-	frames = frames_at_launch,
+	frames = frames_at_launch, report_births = report_births, report_creates = report_creates, launch_trace_checked = launched and true or false,
 }
 emit { event = "cohort", size = #members, members = table.concat (members, ",") }
-for _, w in ipairs (members) do emit { event = "birth", w = w, raw = births [w] } end
+for _, w in ipairs (members) do emit { event = "birth", w = w, seq = births [w].seq, raw = births [w].raw } end
 -- ARMED: only now, after a successful launch and the frozen cohort, and before any frame
 if launched then
 	armed = true
@@ -311,10 +363,9 @@ local terminal_of, terminals, foreign, duplicates, later_births = {}, {}, {}, {}
 local function take ()
 	for _, e in ipairs (events ()) do
 		if e.kind == "birth" then
-			later_births [#later_births + 1] = e.w or "?"
+			later_births [#later_births + 1] = weapon_identity (e)
 		elseif e.kind == "terminal" then
-			local w = e.w
-			if w == nil then hard ("a terminal fact with no weapon identity: " .. e.raw) end
+			local w = weapon_identity (e)
 			if not cohort [w] then foreign [#foreign + 1] = w
 			elseif terminal_of [w] then duplicates [#duplicates + 1] = w
 			else terminal_of [w] = e terminals [#terminals + 1] = e end
@@ -333,6 +384,14 @@ while not failure and pending () > 0 and clock.elapsed_seconds < deadline do
 	take ()
 end
 if not failure then take () end
+-- a completed run is checked once more for what the fixture lost on the way (a run the engine stopped cannot be asked: its trace is not read, and the row says so)
+local final_trace
+if not failure then
+	final_trace = trace_counts ()
+	if final_trace.overflow ~= trace_before.overflow then hard ("EVENT LOG OVERFLOW: the fixture dropped " .. (final_trace.overflow - trace_before.overflow) .. " event(s) during the run: terminal facts may be missing") end
+	if final_trace.track_overflow ~= trace_before.track_overflow then hard ("BIRTH TRACK OVERFLOW: a birth found no track during the run") end
+	if final_trace.unregistered ~= trace_before.unregistered then hard ("UNREGISTERED TERMINAL: " .. (final_trace.unregistered - trace_before.unregistered) .. " terminal fact(s) were for a weapon the fixture had no track for") end
+end
 
 for _, w in ipairs (members) do
 	local e = terminal_of [w]
@@ -355,6 +414,9 @@ emit {
 	wind_before = wind_before.total, wind_vector_before = wind_before.vector, wind_after = wind_after.total, wind_vector_after = wind_after.vector,
 	altered_wind = altered, wind_sent_rows = #sent, wind_real_rows = #samples,
 	step_after = after.step, weather_after = after.weather, step_before = before.step, weather_before = before.weather,
+	final_trace_checked = final_trace ~= nil, log_overflow = (final_trace or launch_trace or trace_before).overflow - trace_before.overflow,
+	track_overflow = (final_trace or launch_trace or trace_before).track_overflow - trace_before.track_overflow,
+	terminals_unregistered = (final_trace or trace_before).unregistered - trace_before.unregistered,
 }
 -- the last thing the witness does is close its evidence, and a close that fails is a failure after the success row as much as before it
 local closed, close_error = out:close ()
