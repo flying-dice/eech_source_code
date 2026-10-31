@@ -345,6 +345,9 @@ if launched then
 	launch_trace = trace_counts ()
 	if launch_trace.overflow ~= trace_before.overflow then hard ("EVENT LOG OVERFLOW: the fixture dropped " .. (launch_trace.overflow - trace_before.overflow) .. " event(s) by the end of the launch: the cohort's evidence may be incomplete") end
 	if launch_trace.track_overflow ~= trace_before.track_overflow then hard ("BIRTH TRACK OVERFLOW: a birth of the launch found no track: the cohort's evidence is incomplete") end
+	if launch_trace.unregistered ~= trace_before.unregistered then
+		hard ("UNREGISTERED TERMINAL: " .. (launch_trace.unregistered - trace_before.unregistered) .. " terminal fact(s) were for a weapon the fixture had no track for by the end of the launch, before the arm")
+	end
 end
 emit {
 	event = "case_launch", ok = launched and true or false, launcher = launcher, target = target, weapon = weapon, text = first_line (launch_text), births = #members,
@@ -416,7 +419,7 @@ emit {
 	step_after = after.step, weather_after = after.weather, step_before = before.step, weather_before = before.weather,
 	final_trace_checked = final_trace ~= nil, log_overflow = (final_trace or launch_trace or trace_before).overflow - trace_before.overflow,
 	track_overflow = (final_trace or launch_trace or trace_before).track_overflow - trace_before.track_overflow,
-	terminals_unregistered = (final_trace or trace_before).unregistered - trace_before.unregistered,
+	terminals_unregistered = (final_trace or launch_trace or trace_before).unregistered - trace_before.unregistered,
 }
 -- the last thing the witness does is close its evidence, and a close that fails is a failure after the success row as much as before it
 local closed, close_error = out:close ()

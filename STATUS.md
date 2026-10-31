@@ -1,3 +1,16 @@
+# D3 checkpoint — wind witness correction review of 53d9ddcf3: launch-time unregistered count (31 October 2026)
+
+EEDCS-51 / PR111 from clean pushed `53d9ddcf3`. ONE independent correction-delta review (SHA-256 `c8c62281...2d21c`): the 47 real-grammar and cohort-completeness findings are closed in inspected source, with ONE finite P2
+residual (ENV-WIND-CORRECTION-1): after the launch the driver checked the fixture's `overflow` and `birth_track_overflow` but not `terminals unregistered`, and the authority row's stopped-run fallback used
+`(final_trace or trace_before)` for that counter, discarding the known launch snapshot (an altered mode could then be accepted as a refusal after a launch whose trace already reported unregistered terminal evidence,
+and the count reported as zero). Actual source53 (Root's): Linux tests and strict Clippy 0; the Windows compile succeeded, but the export CONTROLLER exited 1 because `out.mkdir` lacked parents when the target
+directory was absent -- not a compiler or product failure; Root fixes its private export setup on the next build. No new real five-mode runtime yet; native47 stays frozen and reusable as a mixed-provenance native (production equivalent
+to dd); all real47 red receipts and review findings are preserved. NEW TEST SOURCE: UNBUILT, UNRUN, UNREVIEWED (test Lua, Rust guards, docs, STATUS only; production C/Rust/ABI/providers/flags/manifests, physics, goldens and baselines
+unchanged): the driver now rejects a launch-time change of the unregistered-terminal counter BEFORE arming (alongside the log overflow and the births without a track) and the authority fallback is
+`(final_trace or launch_trace or trace_before)` for all three counters, with `final_trace_checked = false` still disclosing that no end-of-run trace was obtained. One bookkeeping scenario (an unregistered count standing
+at the end of the launch, in a control and in two refusal modes) shows the witness failure before the arm with the honest count and nothing sent; the refusal-mode controls assert the stopped row's flag and launch-snapshot
+counters. The public grammar, count, track and sentinel guards and all earlier fixes are kept. Whole Task 51/D3 remains open (physical effects, time, terrain-scratch, spatial, model); campaign policy stays Core; D4/D5 not started; no acceptance claimed.
+
 # D3 checkpoint — wind witness review of 47f3d9460: real event grammar and a complete cohort (31 October 2026)
 
 EEDCS-51 / PR111 from clean pushed `47f3d9460`. ONE combined independent witness review (SHA-256 `adb71b22...de0b`, CHANGES_REQUIRED): P1 ENV-WIND-WITNESS-1 the judge required `raw.starts_with("kind=birth")` while the

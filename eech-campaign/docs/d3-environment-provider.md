@@ -320,6 +320,14 @@ retained, unedited, as the reproduction of the real format. Provider traffic rem
 may be reused only with the new script's SHA stated; the public Rust test already writes the embedded script into its private work directory), re-run the unit file, then a fresh control, then the four altered modes with
 fresh roots; one independent review of this delta. Task 51/D3 stays open.
 
+**Correction review of `53d9ddcf3` (ENV-WIND-CORRECTION-1, P2; test source, UNBUILT, UNRUN, UNREVIEWED).** The one independent correction-delta review (`independent-environment-wind-authority-correction-review-53d9ddcf3-20261031.json`,
+SHA-256 `c8c62281...2d21c`) closed the real-grammar and cohort-completeness findings in inspected source and found one residual: the driver checked the fixture's launch-time `overflow` and `birth_track_overflow` before arming but
+not the `terminal_unregistered` counter, and the authority row's stopped-run fallback for that counter ignored the launch snapshot. Corrected: the driver fails before the arm if any of the three counters moved during the launch,
+and every counter of the authority row falls back to the launch snapshot when no end-of-run trace exists (`final_trace_checked = false` still says so). A bookkeeping scenario with an unregistered count standing at the end of the launch,
+followed by a refusal mode, shows the failure before the arm with the honest count and no alteration sent. Reported by Root (not re-run here): source53 Linux tests and strict Clippy 0; the Windows compile succeeded and its export
+controller exited 1 only because the private `out.mkdir` lacked parents when the target directory was absent (not a compiler or product failure; Root fixes its export setup). No new real five-mode runtime exists yet; native47 stays
+frozen and reusable as a mixed-provenance native, production-equivalent to dd; the real 47 red receipts are preserved.
+
 ## Remaining coupling and open gates (finite)
 
 * The lightning strike and sound entity creation, the sound/terrain-scratch bridge and the time-of-day input stay in Core (explicitly open within Task 51/D3).

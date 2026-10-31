@@ -1115,7 +1115,9 @@ package.preload.eech_dc = function ()
 				if scenario.trace_error then error ("the trace report did not fit", 0) end
 				local overflow = launched and (scenario.overflow_after_launch or 0) or 0
 				local track = launched and (scenario.track_overflow_after_launch or 0) or 0
-				local unregistered = (launched and since_launch >= 1) and (scenario.unregistered_after or 0) or 0
+				-- terminals of unregistered weapons: a count already standing at the end of the launch call, and (if the scenario says) the count at the end of the run
+				local unregistered = launched and (scenario.unregistered_at_launch or 0) or 0
+				if launched and since_launch >= 1 and scenario.unregistered_after then unregistered = scenario.unregistered_after end
 				return "wpn-counter name=birth_track_overflow value=" .. track .. "\nwpn-counter name=terminal_unregistered value=" .. unregistered ..
 					"\nwpn-log events=" .. seq .. " stored=" .. seq .. " drained=" .. seq .. " overflow=" .. overflow .. "\n"
 			end
@@ -1289,6 +1291,9 @@ fn the_driver_stops_each_refusal_mode_at_its_named_marker_after_a_healthy_matche
             "{mode}: {}",
             facts.failure()
         );
+        // a stopped engine cannot be asked for its trace at the end: the row says so, and its loss counters are the LAUNCH snapshot's (checked, zero), never an unchecked zero
+        assert_eq!(facts.authority["final_trace_checked"], false, "{mode}");
+        assert_eq!(facts.number("terminals_unregistered").unwrap(), 0, "{mode}");
         assert!(
             facts.number("case_weapons_pending").unwrap() >= 1 || facts.terminals.is_empty(),
             "{mode}: the cohort is unfinished"
@@ -1621,6 +1626,12 @@ fn the_driver_fails_on_dropped_truncated_malformed_untracked_or_unmatched_launch
     );
     failing("after = { [1] = { 'kind=birth w=-1 type=later' } }", &[], "no registered weapon identity", true);
     failing("after = { [1] = { 'kind=terminal w=-1 type=gun code=ground steps=-1 distance=-1 pos=1,2,3 velocity=1 lifetime=1 max_velocity=-1 paths=0 track=0000000000000000' } }", &[], "no registered weapon identity", true);
+    // an unregistered terminal already standing at the end of the LAUNCH call fails before the arm, whatever the mode: an expected refusal that follows must not be able to report it as zero
+    failing("unregistered_at_launch = 1", &[], "UNREGISTERED TERMINAL", false);
+    failing(&format!("unregistered_at_launch = 2, {}", healthy(CASE_TERMINAL)), &[("mode", "withheld_wind")], "UNREGISTERED TERMINAL", false);
+    let counted = drive(&format!("unregistered_at_launch = 2, {}", healthy(CASE_TERMINAL)), &[("mode", "malformed_wind_speed")]);
+    assert!(counted.rows.contains("2 terminal fact(s)") && counted.rows.contains("before the arm"), "the honest count is in the witness failure: {}", counted.rows);
+    assert!(!counted.rows.contains("\"event\":\"wind_sent\""), "nothing was sent: the run never armed: {}", counted.rows);
     // a terminal the fixture counted as unregistered, noticed at the end of a completed run
     failing(
         &format!("unregistered_after = 1, {}", healthy(CASE_TERMINAL)),
