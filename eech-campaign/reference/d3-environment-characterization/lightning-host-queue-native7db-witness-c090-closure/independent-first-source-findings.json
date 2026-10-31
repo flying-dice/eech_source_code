@@ -1,0 +1,162 @@
+{
+  "review_id": "ENV-HOST-LIGHTNING-QUEUE-SOURCE-92E-20261031",
+  "reviewed_utc": "2026-10-31T18:35:55.5545804Z",
+  "reviewer": "Sole independent Codex reviewer; no nested agents",
+  "scope": "One finite combined correctness, clean-code, boundary, numerics, ownership/lifecycle, compiled-caller and evidence review of the NEW physical queue extraction fc725..92e. No old field/FP/ambient/original source fleet, builds/runs/process/Docker/source/public/auth actions by reviewer. Same-pass candidate actual review held for corrected source and genuine gates.",
+  "source": {
+    "repository": "R:/d3-evidence/environment-host-lightning-queue-source-92e4da9fe",
+    "base": "fc725e44d664451297fa155c3b1a03aaf8225244",
+    "head": "92e4da9fe58528143f5ce08d136d73d2682baf95",
+    "tree": "9cf59273241d3c9225609c86d48c038a7dd80e9e",
+    "clean": true,
+    "changed_files": [
+      {
+        "path": "STATUS.md",
+        "blob": "5f3e89f4febb677fad4047a36d62610af638add9",
+        "sha256": "b2017c8ce07a24c1b13bfd1e8eb4e5b9101a2e3f581bc8bd2e4c57e11c6b993c"
+      },
+      {
+        "path": "aphavoc/source/entity/special/session/ss_hostenv.c",
+        "blob": "788fb8c014488e3305aafa1cf3e5c983a8eebdfc",
+        "sha256": "6091bf4e12dfa44ec0d516084657791a7a9b4e67714ead14eb82a61cb8179884"
+      },
+      {
+        "path": "aphavoc/source/entity/special/session/ss_hostenv.h",
+        "blob": "60cbac080e4155931a0d9093775edef702e13eb4",
+        "sha256": "551634682386e93b9bad419d361f1ee1fc0bf6dfb4295a5e85c468b3adcb57cc"
+      },
+      {
+        "path": "eech-campaign/crates/eech-dc/src/module.rs",
+        "blob": "486f826a67c0f7f8e00333514df7a9e287453dc5",
+        "sha256": "5adb6ffc5fd717b0c1413c130ad7883867ff997191d47aa90f79a54b36fca08f"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c",
+        "blob": "a6fe5e578a4499a867068c3870a4e89b50e98021",
+        "sha256": "05e8d29fbac4cbbb1212dbae321f03104facd01f0696337b7d9cdee2e5d03b68"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+        "blob": "d12b05b0a267462ffe5cd9f902096e7cec144115",
+        "sha256": "7e83158b06604dc3302c6bb4d8b70ffbbea8b33023595a3d6b98cf0f40886c3e"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+        "blob": "02145580bf00321c48b3c6842dc8aefc138ac940",
+        "sha256": "6cdfa01c05ab8ee3386f643e13fb52a4bdfb4c97285f32934bea505f33e0a974"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/csrc/env_ref.c",
+        "blob": "f62177348766cc8b65af426db93b2cb940e63c61",
+        "sha256": "f1a3add8084d48795013ee4d3dd14ce6acdb6f63d47385cd5fa9c89adc585439"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/csrc/env_ref.h",
+        "blob": "61fff9e03656b7765df499af0d5568dbcfd44b6f",
+        "sha256": "1eeeb48c72106f87bee462e7ccd83fda79034ae128f8f3421cac441b988f9f54"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-lightning-host-witness.lua",
+        "blob": "d29454ed22358c6ddff54ecba46e0252801dd59e",
+        "sha256": "3309d0399b0650ba1e8d6e4c244068fc398bc3b541090bfbc040fe81180b93a3"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/env.rs",
+        "blob": "89c09c614ed68f447d9d15acb985a571995b0617",
+        "sha256": "33c79b0190fe22b4ebf5c3a53172de1f7d3528fca389c50788b7b31c15bd3ce3"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_lightning_queue.rs",
+        "blob": "a67d16891c3c2f0f46765138dc595600cb4a1f3d",
+        "sha256": "022aadc46f8a54b7ebbac7b986dc93d67d172d967f4719fa7522b11c8176807f"
+      },
+      {
+        "path": "eech-campaign/docs/d3-environment-provider.md",
+        "blob": "3e6395a3ceac7f4799954b756a1ec27ba85ab3be",
+        "sha256": "3ff9407189e782e0e2207c69382a78cede8d83bc82c9d8af3f6d6bec5b805a0b"
+      },
+      {
+        "path": "eech-campaign/docs/d3-lightning-queue.md",
+        "blob": "a616e924518c71605dc2877ea70a2730cd74a1c9",
+        "sha256": "ec5daf711071dac2af156c7cf1dc45e1dd0becde6f5e3829fad29383cffb9b5a"
+      },
+      {
+        "path": "modules/3d/3dstrike.c",
+        "blob": "977eb8b4b05a813fa9ac6d49b406e8ff0e101fad",
+        "sha256": "b85cf741eb3b86b93b61dba6967c6a50a633159fc4ec9827bf16f888b8c3c77f"
+      }
+    ]
+  },
+  "reused_original_characterization": {
+    "path": "R:/d3-evidence/independent-environment-lightning-queue-original-actual-review-nativea27-driver60e5ee0bd-20261031.json",
+    "sha256": "aff8bd0709e04b1d33072cc60967c9a6ff714ff837fce3c21738d3c38930bf32",
+    "scope": "Closed finite original queue/currenthost transparency and primitive facts, not this host extraction. Capability RED on retained native and unchanged original/oracle/FP/ambient/observer evidence reused as task context without reruns."
+  },
+  "findings": [
+    {
+      "id": "ENV-HOST-LIGHTNING-QUEUE-1",
+      "priority": "P1",
+      "title": "New safe host entry can reach undefined float-to-int frame conversion",
+      "locations": [
+        "eech-campaign/crates/eech-world/csrc/env_ref.c:1665",
+        "eech-campaign/crates/eech-world/csrc/env_ref.c:1689",
+        "eech-campaign/crates/eech-world/src/env.rs:405",
+        "eech-campaign/crates/eech-world/src/env.rs:422"
+      ],
+      "evidence": "lightning_update_impl assigns t*10 or t*frames directly to int. The newly public safe Rust methods accept any f32 input, and the Lua reader accepts arbitrary finite exact-f32 values. A cloud with start_time=f32(1e30),length1 followed by current_time0 survives the single-day wrap and yields t about -1e30; casting the resulting frame to int is outside the representable range and undefined C behavior. Nonfinite intermediate products can similarly reach the cast. Existing tests cover ordinary, midnight, subnormal and unknown-type cases but do not make these new safe entry paths defined.",
+      "requested_change": "Before each int conversion, reject nonfinite or out-of-int-range products under the existing FP guard, clear/refuse with a named error and commit no queue change. Preserve the original defined expression order and numerical result; do not clamp, add arbitrary input preconditions or introduce a float narrowing merely to check. Add finite safe-API/atomic-refusal controls for these unsafe casts and retain all existing seeds/matrices/oracles."
+    },
+    {
+      "id": "ENV-HOST-LIGHTNING-QUEUE-2",
+      "priority": "P1",
+      "title": "Frame handshake and update replies can expose invalid model/renderer accesses",
+      "locations": [
+        "aphavoc/source/entity/special/session/ss_hostenv.c:660",
+        "aphavoc/source/entity/special/session/ss_hostenv.c:669",
+        "aphavoc/source/entity/special/session/ss_hostenv.c:695",
+        "modules/3d/3dstrike.c:294",
+        "modules/3d/3dstrike.c:514",
+        "eech-campaign/crates/eech-engine/src/lib.rs:1438"
+      ],
+      "evidence": [
+        "NeedFrames is accepted for any first update and immediately calls frames_of without checking the mirror contains a live forked dependency. A replacement provider can request frames with an empty or cloud-only queue. The Core helper then dereferences texture_animations[lightning_strike_animation] without availability/index checks; texture_animations is initialized NULL in3dobjid.c86 and its count initially0. The documented uninitialized headless model dependency becomes a crash before a named refusal.",
+        "Completed update validation checks integer shape, finite float fields and retained strike attributes, but allows any current_frame_number for a live forked strike. A provider can return frame-1 orINT_MAX, pass validation and commit the mirror. The genuine compiled draw_3d_lightning_strike indexes texture_indices[current_frame_number] directly at3dstrike.c514; this is an out-of-bounds consumer, not hypothetical headless dormancy."
+      ],
+      "requested_change": "Validate NeedFrames against an existing live forked mirror dependency before model lookup. Make the remaining animation-frame lookup check actual texture-table/index/count availability and refuse safely under a provider/model marker; do not reproduce host expiry math in Core. Validate live forked reply frame indices against a usable model-frame domain before mirror commit, including a provider bypassing NeedFrames, while preserving atomic refusal and defined original outcomes. Add finite direct malformed-provider/lookup controls using the actual C consumer; no generic DLL/model framework or D5 deferral."
+    },
+    {
+      "id": "ENV-HOST-LIGHTNING-QUEUE-3",
+      "priority": "P2",
+      "title": "New refusal witness labels a stop without verifying engine_failure and absent result rows",
+      "locations": [
+        "eech-campaign/crates/eech-world/lua/env-lightning-host-witness.lua:124",
+        "eech-campaign/crates/eech-world/lua/env-lightning-host-witness.lua:127",
+        "eech-campaign/crates/eech-world/lua/env-lightning-host-witness.lua:140"
+      ],
+      "evidence": "In withheld/malformed modes, ran=false unconditionally makes result_row=false and the delegate output is never read. requests>0 plus substring occurrence of the expected marker anywhere in the caught error is enough to emit stopped_at_boundary. Thus the promised engine_failure/no-result facts are asserted rather than checked. A delegate/output error after a result, whose diagnostic/path contains the marker, can be misclassified as the intended engine stop; existing scripted tests exercise only the expected clean stop.",
+      "requested_change": "Check the actual delegate record even when pcall fails: require its case2 engine_failure at the matching boundary and no result row. Reject delegate/output/witness failures as such, preserving ordinary outer mlua traceback. Add bounded contradictory-result/own-output-error controls. Reuse the existing finite delegate protocol; no new trace or physics framework."
+    }
+  ],
+  "inspected_facts": [
+    "Native build/main.rs154 unconditionally defines EECH_CAMPAIGN_HOST_ENV, so shipping selects the new host add/update wrappers; the original solver is under#else. Independent source extraction compared complete classic add/update definitions to fc725 and found them byte-identical. Probe-only observer-OFF original-token equality is correctly not used as a physical-move gate.",
+    "The host env_ref allocation is calloc-zeroed and owns32slots independent of field import/export. Adds use first-free, stamp/height/frame initialization and full/drop behavior; updates copy work, preserve original one-day timed-event expressions and stage queue until full FP restore succeeds. NeedFrames discards work. Queue view is pointer-based memcpy.",
+    "New C kernels take float arrays by pointer, save full existing FP state, enter the closed canonical environment before arithmetic, settle staged work and restore before output/commit. Their source follows the earlier guard pattern; whole caller/runtime/target invariance is not inferred from author WIP exits.",
+    "C/Rust private request/reply operation IDs and strike field order align across header/sys/Engine/Lua. Core validates the complete supplied queue before copying the local view back to the actual global mirror; there is no hosted physical fallback. Add slot checks permit the valid alternative drop answer used by the changed witness.",
+    "Provider state is captured by the existing owning Lua/Rust closure; the engine explicitly permits one boot per process. Host-created zero queue matches the initial static mirror. The genuine renderer startup initializer in3d_init.c170 still initializes model labels and clears mirror flags once during application startup; no separately demonstrated reinitialization blocker was found within that supported lifecycle. Its compiled path is not declared dead because headless runs omit it.",
+    "Actual queue readers include draw_3d_lightning_strikes/helpers and observer accessor. Scene update remains behind application_3d_rain_active; forked texture metadata and active-environment time observations remain explicit D3 couplings. Original shared RNG, hosted expiry/strike-position decision, main-environment switch and sound/entity ordering are unchanged in this delta.",
+    "Healthy/changed witness modes require the real primitive result to show one queued strike versus a dropped add, rather than relying only on request count. New scripted controls cover changed answer ignored, missing capability and basic guard stops; they are bookkeeping, not physical proof. The refusal-record gap above remains.",
+    "Docs appropriately distinguish current hosted baseline originals, classic preservation, remaining model/time dependencies and unexercised renderer/speaker/player/network/Tacview. The stronger whole-mirror wording should remain bounded to validated semantic fields, including startup initialization."
+  ],
+  "validation_context": {
+    "source": "git diff --checkfc725..92e0; clean frozen source. No reviewer compiler or native experiments.",
+    "author_wip": "Reported world259/newFP,14Lua,affected filters,Engine/DCboundary checks and fmt/clippy are private author checks only, not independent or canonical acceptance. Adhoc C syntax attempt was rejected as evidence.",
+    "root_actual": "At latest task status, ordinary Windowsobserver native and Linuxfullaffecteddefault/observer tests/bothstrict launched18:28:50; no terminal success supplied to this review. Root retains builds but does not launch known-unsafe retail candidates until finite corrections. No candidate/raw/witness acceptance inferred.",
+    "required_next": "Correct this finite batch, preserve matrices/original expectations, then canonical native/tests/strict/currentCI plus genuine fresh candidate original-raw comparison and four public witness modes in the same ongoing review."
+  },
+  "limitations": [
+    "Finite source-only finding batch. Existing characterization originals and all failed/setup evidence remain immutable; no golden/tolerance/masking changes requested.",
+    "No raw retail coordinates, time or queue payload records reproduced. No new generic test fleet, trace framework or old unchanged helper re-review.",
+    "Whole Task51/D3 remains open including effects/sound execution,time,remaining terrain/spatial/model,fullshipping40/all8,review/currentCI/normalmerges; D4/D5 unstarted. No host queue acceptance before actual gates."
+  ],
+  "verdict": "Three actionable groups: safe frame conversion; checked frame handshake/model/renderer boundary; refusal evidence reconciliation. Correct before accepting host queue source/runtime cutover."
+}

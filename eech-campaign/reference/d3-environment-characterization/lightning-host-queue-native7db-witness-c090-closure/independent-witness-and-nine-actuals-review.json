@@ -1,0 +1,150 @@
+{
+  "review_id": "ENV-HOST-LIGHTNING-REPLY-FRAME-065-20261031",
+  "reviewed_utc": "2026-10-31T19:17:08.3529949Z",
+  "reviewer": "Sole independent Codex reviewer; no nested agents",
+  "scope": "ONE combined new7db..065 Lua/frame-mode/comment/docs source pass plus completed NEW7db nine-run evidence. No repeat production/kernel/FP/old experiment fleet, no reviewer edits/builds/runs/process/Docker/public actions.",
+  "source": {
+    "repository": "R:/d3-evidence/environment-services-20261030",
+    "base": "7db2c6a91b4cd0a1fae2d8e20bfa169584618d24",
+    "head": "065e8e2dfd237054c52bb359f36a39b27b38d876",
+    "tree": "1403b7f3eedf08db19e54093cb32e694f9cdc5de",
+    "clean": true,
+    "changed_files": [
+      {
+        "path": "STATUS.md",
+        "blob": "ee13ac27facbf69cb945f9abb516e929c2cd775a",
+        "sha256": "e6830269b6e6a8618c2036c767ac649c6784717390c1f8b9fd0e5c886faf0d4f"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c",
+        "blob": "235f64c48947e47d604ad60379051980a949c849",
+        "sha256": "898d5495a0c66ed1304965e33462fddfc68291faf66e841adbf4d0bc26fafd5f"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-lightning-host-witness.lua",
+        "blob": "9f57108c9b20674ab196bc726a9f914c8ca4d5b7",
+        "sha256": "9563e7429fc44e4a3edfef2b92df58558da271c12601fcb80ecaa6793e1b4a38"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-lightning-queue.lua",
+        "blob": "4c832cd0b2aba69f4c88ea6b3a9228f20784d069",
+        "sha256": "487060e4a9f73fd138e4f05cff6d9ff0a40be6e31a71828f7c985d9c738c7eae"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_lightning_queue.rs",
+        "blob": "5009716307146967d77bc8bcf6ac4bb58c87054b",
+        "sha256": "478a74adf51a13d7c6221b99df66f4d459c6533c29c23a624ffac320d9f04f36"
+      },
+      {
+        "path": "eech-campaign/docs/d3-lightning-queue.md",
+        "blob": "8d81e1e19f34a0c61c4a16a65fab386733964b2d",
+        "sha256": "15f3fb69caeaab6a11fad58db856326440be73267616afb0fb6257858cb887ab"
+      },
+      {
+        "path": "modules/3d/3dstrike.c",
+        "blob": "ec90c7a455cdaf029151d2f8ce8311263da4af06",
+        "sha256": "482bfa76871b8511b97589d29e1443e99baf890922cd23b3fa282f09f39fae4f"
+      }
+    ]
+  },
+  "source_review_no_blocking_findings": false,
+  "source_gate_reason": "New frame-mode executable code has no blocking finding; correct the single concrete new metadata statement before final doc-head source clearance. New two real frame controls remain pending.",
+  "findings": [
+    {
+      "id": "ENV-HOST-LIGHTNING-065-1",
+      "priority": "P2",
+      "kind": "documentation factual error",
+      "location": "eech-campaign/docs/d3-lightning-queue.md, CURRENT CORRECTION / What this corrects paragraph",
+      "evidence": "It says index0 USA_COPTER_DIGIT__00 has110frames. The actual independently parsed bininfo and retained audit give index0 USA_COPTER_DIGIT__001 with10frames. The LIGHTNING index96/3frames statement is correct.",
+      "requested_change": "Correct only that name and count to the exact audited values. No production, Lua, test, native or physical change is needed; the existing test results can be reused under explicit documentation-only identity proof."
+    }
+  ],
+  "source_facts": [
+    "New frame_negative/frame_high modes use existing case5, forward other operations and base NeedFrames handshake unchanged, and alter only the first live forked reply frame once to-1/2147483647. Host field data is not manufactured, and queue_table returns an independent reply table.",
+    "The witness requires an actual altered frame, selected-case engine_failure, no result row, correct marker and outside-domain reason. A schema error under the same marker, no live strike, completed delegate, contradictory result and own-output failure cannot produce the intended verdict. The authority record includes altered_frame.",
+    "Two new scripted functions test both modes/handshake count2, wrong-reason/nothing-altered/never-asked/wrong-case/stale-result rejection. They test bookkeeping, not the new actual C guards. Existing sixteen functions remain.",
+    "Production edits are C comments only; Root equivalence proves lexical tokens unchanged and all other production files identical. Primitive Lua header changes preserve executable text, and actual delegate remains pinned7db. New witness override must be separately pinned/hashes checked.",
+    "The false universal headless model-absence claim is corrected in current comments/docs. Missing-model guard remains source-only and unexercised; candidate-only case5 completion is not old/new original forked equivalence or rendering coverage."
+  ],
+  "reused_reviews": [
+    {
+      "path": "R:/d3-evidence/independent-environment-host-lightning-queue-source-review-7db2c6a91-20261031.json",
+      "sha256": "454e0840b91c776e90fd4873e2e0964a5c753c5300a29de4dc31cc725dfa39e7"
+    },
+    {
+      "path": "R:/d3-evidence/independent-environment-lightning-case5-model-origin-audit-7db2c6a91-20261031.json",
+      "sha256": "88e3a658dc797bc049885c977a18f76dd5374499d023c0c14455fd1f1e54a863"
+    }
+  ],
+  "actual7db": {
+    "receipts": [
+      {
+        "path": "R:/d3-evidence/environment-host-lightning-queue-controls-7db2c6a91-20261031/controller.json",
+        "sha256": "6dbe49993daa4738075115512626c85a7b48aa0bde190a691c0880fd35a3147b"
+      },
+      {
+        "path": "R:/d3-evidence/environment-host-lightning-queue-controls-7db2c6a91-20261031/comparison.json",
+        "sha256": "807f88cd0877b8467f0ba94303cf1c14aac99599a77fb7207701c599045c7276"
+      },
+      {
+        "path": "R:/d3-evidence/queue-host-7db2-catalogue-extension-classification-v2-20261031.json",
+        "sha256": "e09600638d20d2ba5bdb8c06b59887236d322195f8122b7fb68bbcc74b37fc2f"
+      },
+      {
+        "path": "R:/d3-evidence/queue-native7db-driver-065e8e2df-equivalence-20261031.json",
+        "sha256": "7d575e3d91017afe07129d07082854ab56601df7c1c64d0f2a1910641bf2393e"
+      },
+      {
+        "path": "R:/d3-evidence/current-CI-7db2c6a91-20261031.json",
+        "sha256": "248b4f8cd861794ee624b41565637fb99d7f42ec5a737f7092d3669954ae0835"
+      }
+    ],
+    "source": "7db2c6a91b4cd0a1fae2d8e20bfa169584618d24",
+    "native_controllers_zero": 9,
+    "input_checks_zero": 18,
+    "unchanged_payloads_each": 54,
+    "outer_controller_actual_exit": 1,
+    "outer_cause": "Strict whole-RAW comparison only; every one of the nine native/case controllers and pre/native/post stages independently checked0. Preserve comparison1 and complete raw files.",
+    "raw_comparison": {
+      "strict_whole_raw_equal": false,
+      "exact_catalogue_classification_accepted": true,
+      "reviewer_check": "Independently compared all five pairs of complete raw files to retained a27 originals. Exactly one env-lightning-plan row differs per file, typed cases4-to5 and its raw-literal token only when present. Replacing only those exact typed tokens reproduces the candidate plan bytes including ending; every other byte/row/ending exact. This is explicit metadata classification, not normalization or baseline/tolerance edit.",
+      "row_counts": {
+        "natural": 17257,
+        "primitive-3": 42,
+        "primitive-4": 12,
+        "primitive-1": 8,
+        "primitive-2": 10
+      },
+      "natural_other_raw_rows_exact": 17256,
+      "other_rows_each_primitive": [
+        7,
+        9,
+        41,
+        11
+      ],
+      "stale_classifier": "First receipt with stale missing-model label retained; v2 accurately scopes new forked-age catalogue, no original forked conformance claimed."
+    },
+    "public_authority": "Healthy requests1 and realcase2queues1/firstslot; changedrequests1 and realcase2queues0/emptymask. Withheld/malformed eachrequests1, exactcase2engine_failure at callback/answer, no result, completedfalse/stopped_at_boundary; independent delegate/authority records agree.",
+    "scope": "Default physical case1..4 and natural evidence plus add ownership/refusals only; no newframe-mode outcome inferred.",
+    "validation": "Root actual188fullaffecteddefault+observer/bothstrict0 with explicit production-unchanged188-to7db reuse; new7dbguards3+1/strict/fmt0 and Windows0. Read CI7db receipt:9jobs actualsuccess. These are not065guard/currentCI results."
+  },
+  "new_frame_gate": {
+    "tested_native_to_reuse": "7db2c6a91b4cd0a1fae2d8e20bfa169584618d24",
+    "witness_source": "065e8e2dfd237054c52bb359f36a39b27b38d876",
+    "witness_sha256": "9563e7429fc44e4a3edfef2b92df58558da271c12601fcb80ecaa6793e1b4a38",
+    "provenance": "Read native7db-driver065 equivalence receipt. Source-token/primitive executable equivalence does not claim newly rebuilt binaries. New override and copied-script identity require actual measurement.",
+    "status": "Canonical065 fmt,all18witnessfunctions andworldalltargetstrict actual0 at19:16:07.522810 UTC; completion/log read. Two new actual frame controls remain unlaunched pending the narrow documentation correction/source-head clearance.",
+    "validation_receipt": {
+      "path": "R:/d3-evidence/queue-reply-frame-065e8e2df-linux-20261031-completion.json",
+      "sha256": "89e189f3fd16347b6937f607bcac15727b04e2f6b43dd198835396e7e6cbcd38"
+    }
+  },
+  "limitations": [
+    "Only new actionable issue is the incorrect index0 documentation value; no new production or witness-executable blocker identified in this finite pass.",
+    "Frame/model-domain actual rejection still pending; loaded retail metadata origin is separately audited. No artificial missing-model fixture or production forcing justified.",
+    "Raw catalogue comparison remains FALSE; accepted originals/red expectation controller and historical765comparison are retained. No raw retail coordinates/time/slot words reproduced.",
+    "Whole Task51/D3 remains open including effects/sound/time/terrain/spatial/model,fullshipping40/all8,currentCI/finalreview/normalmerges; D4/D5 unstarted."
+  ],
+  "verdict": "New frame-mode executable source clear and completed7db default/add-authority evidence verified within stated scope. One documentation value correction required for final source-head clearance; two new actual frame controls pending."
+}

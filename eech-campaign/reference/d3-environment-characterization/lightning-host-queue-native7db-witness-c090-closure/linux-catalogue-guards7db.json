@@ -1,0 +1,18 @@
+{
+  "source": "7db2c6a91b4cd0a1fae2d8e20bfa169584618d24",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-host-lightning-queue-7db2c6a91-linux-20261031.sh"
+  ],
+  "pid": 20712,
+  "controller_pid": 10880,
+  "state": "terminal",
+  "started_utc": "2026-10-31T19:03:53.835622+00:00",
+  "scope": "7db Lua/test-only delta: currentfmt/naturalqueueguards/world all-target strict; full affected default+observer checks and both strict profiles reused ONLYfrom actual188Linux0 with explicit queue-188-to-7db-validation-equivalence-20261031.json. No shipping acceptance",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T19:04:13.055715+00:00"
+}

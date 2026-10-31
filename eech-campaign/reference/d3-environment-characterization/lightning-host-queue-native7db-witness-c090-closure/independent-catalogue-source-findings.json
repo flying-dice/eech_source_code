@@ -1,0 +1,135 @@
+{
+  "review_id": "ENV-HOST-LIGHTNING-QUEUE-CORRECTION-188-20261031",
+  "reviewed_utc": "2026-10-31T18:56:35.4091357Z",
+  "reviewer": "Sole independent Codex reviewer; no nested agents",
+  "scope": "One finite new92e..188 correction-delta correctness/clean-code/boundary/numerics/evidence pass. Prior full extraction/source and original/FP/ambient reviews reused. No reviewer source edits, builds, runs, processes, Docker, public/auth actions or repeated old experiments.",
+  "source": {
+    "repository": "R:/d3-evidence/environment-services-20261030",
+    "base": "92e4da9fe58528143f5ce08d136d73d2682baf95",
+    "head": "188ac8c494ea0c550850c5ec37500f43d4cc93f9",
+    "tree": "67bf92f29767e7a69810cb472b39054cbaec06d2",
+    "clean": true,
+    "changed_files": [
+      {
+        "path": "STATUS.md",
+        "blob": "fc086dae512d55ef047925caf98f0c3f10d888a6",
+        "sha256": "5489b21ad5670320299167fa60e481b6bdcfb6862054ae10b2a290419680f363"
+      },
+      {
+        "path": "aphavoc/source/entity/special/session/ss_hostenv.c",
+        "blob": "bb630f7288c9de1ea84690ef55b59ae9ad9e1c46",
+        "sha256": "0fc544121858e9e704e8a8cfb781f18d4f6347f15a3aa0c52391b6a45622a75a"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c",
+        "blob": "28ca4863b1d83ae129e1ff60125e05d2ec687ff0",
+        "sha256": "2f43f0b24c78026226642af6579e1383dd784c745d8d33c02c0650f357c5e821"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/csrc/env_ref.c",
+        "blob": "fda91b9dc5c1e6ef09f19e98e5029914ce945d47",
+        "sha256": "96e7cbc957fd41b02a572c80ada7dac938b17c70e55ac6337e2f242ba5dea03b"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-lightning-host-witness.lua",
+        "blob": "d11ecb0a8e535958f51cb920cc5ca098df397056",
+        "sha256": "ead2515de49bc34bef1a06527543da5f203318cc06e4c23f06640243f5fced67"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-lightning-queue.lua",
+        "blob": "507b8d7c17ac110a01e9cf7b02bdc22d126523dc",
+        "sha256": "57521c4bacba5b2ac448e84709fbc49c96751f227b2693a96b9b6468496e3edf"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/env.rs",
+        "blob": "29aff36f1497d124c0e63369f8f55f859d1f0012",
+        "sha256": "249aa4024825d76ea3e7d385da9c2fa63b4207a7828c2d13270112fd174b386d"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_lightning_queue.rs",
+        "blob": "0d5a88c3514aee9fa7ce63e964a07633287f9a59",
+        "sha256": "58fc7526f017aaa84a7ec77ba30bc556dd1f2f4223ea7493b68dc1b3795b3040"
+      },
+      {
+        "path": "eech-campaign/docs/d3-lightning-queue.md",
+        "blob": "763daad665dd3922bbdde1aabe50ac06aaae2967",
+        "sha256": "09f5ba311236e5f1f1cf8a2011a3411b147e414f4790ad4ffd7eaf8d3360f465"
+      },
+      {
+        "path": "modules/3d/3dstrike.c",
+        "blob": "e52b1fffa5e1c45b671ddddefa590d97d1b72c6d",
+        "sha256": "3b6b0664974706a899be1eea2d81d0c7a330749f108a899065706c4cacd31cda"
+      }
+    ],
+    "unchanged_new_caller_dependencies_inspected": [
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-characterization.lua",
+        "blob": "a7ff36fe6db038d76eabb28b693673401f8262fb",
+        "sha256": "1d6fffebd3425c0e96c5a9c7143d6bdf6e3b1da067c3f76c09117668fae4b637"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+        "blob": "a9899b026e22c900dfcda74824969145f08fb2c2",
+        "sha256": "e84e16427e45c06380fce0a0a359b8acb47bf43c6a691c197e12df98421b76ae"
+      }
+    ]
+  },
+  "source_review_no_blocking_findings": false,
+  "prior_review": {
+    "path": "R:/d3-evidence/independent-environment-host-lightning-queue-source-review-92e4da9fe-20261031.json",
+    "sha256": "d06d71536590ac42f0452e24c9cc036ed29783bd34a51cdb016e5c8c027019b0"
+  },
+  "prior_group_dispositions": [
+    {
+      "id": "ENV-HOST-LIGHTNING-QUEUE-1",
+      "disposition": "Corrected in source; canonical target/numeric/FPU execution separate.",
+      "facts": "LIGHTNING_FRAME_FITS checks the original product expression strictly within(-2147483649,2147483648), the interval whose truncated result fits the supported32-bit int. NaN/infinities fail comparisons; no clamp or intervening stored-float narrowing is introduced. Original assignment follows unchanged under the same guard; a refusal discards staged work. Added unsafe finite/nonfinite, later-slot atomic refusal, defined large frame and FP questions retain old seeds/matrix cases."
+    },
+    {
+      "id": "ENV-HOST-LIGHTNING-QUEUE-2",
+      "disposition": "Corrected in source; loaded-renderer frame-domain runtime not demonstrated.",
+      "facts": "NeedFrames requires an in-use forked mirror dependency before lookup. The actual Core lookup safely checks table availability, animation index/count, texture-index pointer and positive frame count and produces named model refusals. Every live forked reply frame is checked in[0,frames) before mirror commit even if provider bypassed NeedFrames. No Core expiry solver is added. Model lookup is deferred until a forked dependency/live reply exists; cloud/empty queues do not touch it. New frames_without_fork witness and case5 exercise real missing-model refusal paths when run, not loaded-renderer proof."
+    },
+    {
+      "id": "ENV-HOST-LIGHTNING-QUEUE-3",
+      "disposition": "Corrected in source.",
+      "facts": "Refusal modes now read delegate output on failure, reject any result row, require the selected-case engine_failure row and expected marker, and require the actual delegate-error prefix to be its engine-stop report. Own output/delegate/witness failures and unreadable records cannot become stopped_at_boundary merely through a marker substring. New contradictory stale-result and own-output-path controls cover the prior concrete bypasses; healthy/changed behavior remains."
+    }
+  ],
+  "findings": [
+    {
+      "id": "ENV-HOST-LIGHTNING-QUEUE-188-1",
+      "priority": "P1",
+      "title": "New five-case catalogue is rejected by the unchanged natural queue driver",
+      "locations": [
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c:2301",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c:2380",
+        "eech-campaign/crates/eech-world/lua/env-characterization.lua:1009",
+        "eech-campaign/crates/eech-world/tests/host_callbacks.rs:2157"
+      ],
+      "evidence": "ENV_LQ_CASES is now5 and the real index0 plan emits cases5. Natural queue_probe still explicitly requires plan.cases==4 and otherwise refuses with the four-controls message. The unchanged host_callbacks stand-in also emits cases4, so its reported WIP healthy passes cannot expose the real mismatch. Every real queue=on natural candidate will fail before its raw output can be accepted/classified.",
+      "requested_change": "Update the finite natural-driver catalogue expectation and its healthy stand-in to5, retaining wrong-catalogue refusal coverage. Run the affected exact natural and broader existing guards. Preserve the strict original raw comparison as red if its sole measured difference is the catalogue row, and classify that exact metadata difference separately; do not normalize physical/observer rows or alter accepted baselines/tolerances."
+    }
+  ],
+  "catalogue_classification": {
+    "concept_acceptable": true,
+    "source_facts": "Case5 is a new explicit diagnostic fixture; its addition changes the shared plan catalogue4-to5. Cases1..3 bodies are unchanged; existing case4 still selects CLOUD_BURST with unchanged inputs/order. Case5 selects FORKED_1 and in a headless context is expected to reach the named missing-model refusal, not a physical aging success. No shipping kernel/oracle/tolerance is edited by that catalogue addition.",
+    "requirements": "The actual strict whole-RAW comparison must remain FALSE and immutable. A separate classifier may accept only changed-key cases, exact4-to5, on the designated env-lightning-plan row with every other field/row/ending accounted for and unchanged; all physical/observer/slot/derived outcomes must still match the retained originals. Before actual data, this is classification policy only, not an equality or runtime pass."
+  },
+  "nonblocking_test_limit": "The new NaN atomic-refusal assertion compares Debug-rendered queues; this is not bitwise NaN-payload evidence. The C work-copy/commit structure establishes source atomicity and the FP matrix has word-based answer comparisons. No NaN-payload runtime proof is claimed from the Debug assertion.",
+  "inspected_limits": [
+    "Renderer/model lookup and frame-domain corrections are source-reviewed. Missing-model headless refusal can be measured; loaded texture/renderer domain cannot be claimed exercised by headless controls. Compiled readers remain required D3 work, not inferred dead or deferred to D5.",
+    "Fixture and witness now expose five primitive controls and frames_without_fork; the new case changes catalogue only for old1..4 comparison scope. The natural-driver impact above is the sole new blocker found in this finite pass.",
+    "Old classic/shipping-macro/lifecycle verdicts are reused unchanged from92e; no additional generic API/model framework or source fleet requested."
+  ],
+  "execution_context": {
+    "author_wip": "Attempta1 retained two test failures:NaN equality and absent scripted case5. Attea2 reportedWorld260,primitive16,hostfilters3/15,Engine3/DC6,strict/fmt0. These are private author execution reports, not canonical or retail acceptance.",
+    "root_gates": "Root starting immutable188 ordinary Windows/Linux builds. Results must be retained as actual; no compiler/native success inferred here. No188retail candidates launched while this source blocker remains."
+  },
+  "limitations": [
+    "source_review_no_blocking_findings=false: candidate-run gate remains blocked by the natural catalogue mismatch. Three prior source groups are corrected, but that is not extraction acceptance.",
+    "Actual original-raw comparison, explicit catalogue-only classifier, public modes, canonical native/packages/strict/currentCI remain Root gates. No raw retail coordinates/time/slot payload records reproduced.",
+    "Whole Task51/D3 remains open including remaining effects/sound/time/terrain/spatial/model,fullshipping40/all8,review/currentCI/normalmerges; D4/D5 unstarted."
+  ],
+  "verdict": "Three prior source groups corrected; one new blocking natural-driver catalogue mismatch. Separate exact catalogue classification is acceptable in principle, preserving raw red and all physical expectations."
+}

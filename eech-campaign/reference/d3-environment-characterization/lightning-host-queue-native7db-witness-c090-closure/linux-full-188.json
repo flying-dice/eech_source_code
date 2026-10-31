@@ -1,0 +1,18 @@
+{
+  "source": "188ac8c494ea0c550850c5ec37500f43d4cc93f9",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-host-lightning-queue-188ac8c49-linux-20261031.sh"
+  ],
+  "pid": 2448,
+  "controller_pid": 13540,
+  "state": "terminal",
+  "started_utc": "2026-10-31T18:54:00.988450+00:00",
+  "scope": "Host physical lightningqueue candidate linux ordinarybuild/affected-packagechecks; realretailconformance/authority/shipping acceptance separate",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T19:03:53.020393+00:00"
+}
