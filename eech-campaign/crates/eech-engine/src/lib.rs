@@ -9838,6 +9838,36 @@ mod tests {
     }
 
     #[test]
+    fn an_ambient_terrain_question_of_exactly_the_transport_limit_is_carried_whole_and_in_order() {
+        // the transport bound (EECH_TERRAIN_AMBIENT_MAX children per question) is an implementation detail of ONE crossing, not a limit of the session: a question of exactly that many
+        // children is carried whole, each with its own class and previous amplification, in order, and answered one amplitude each. (Longer lists are the campaign client's to carry in
+        // several questions; one crossing of more than the bound is refused, see the test above.)
+        let count = sys::EECH_TERRAIN_AMBIENT_MAX;
+        let classes: Vec<c_int> = (0..count).map(|index| (index % 6) as c_int).collect();
+        let (code, reply, error) = ambient_crossing(count as c_int, 0, &classes, move |query| {
+            let TerrainQuery::Ambient { children, .. } = query else {
+                return Err("not an ambient question".to_string());
+            };
+            assert_eq!(children.len(), count);
+            for (index, child) in children.iter().enumerate() {
+                assert_eq!(
+                    (child.class, child.previous),
+                    ((index % 6) as i32, 0.125 * (index as f32 + 1.0)),
+                    "child {index}"
+                );
+            }
+            Ok(TerrainAnswer::Ambient {
+                amplitudes: (0..count).map(|index| index as f32).collect(),
+            })
+        });
+        assert_eq!(code, 0, "{error}");
+        assert_eq!(
+            reply.ambient_amplitude.iter().map(|value| *value as usize).collect::<Vec<_>>(),
+            (0..count).collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
     fn the_ambient_sound_answer_of_a_direct_environment_provider_is_four_finite_levels_and_the_wind_levels_stay_within_zero_and_one() {
         let ask = || EnvRequest {
             op: sys::EECH_ENV_AMBIENT,

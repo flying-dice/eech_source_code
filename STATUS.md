@@ -1,3 +1,25 @@
+# D3 wide-list witness corrected to a NON-identity setup (31 October 2026, test/fixture/driver only, UNBUILT, UNRUN)
+
+On a39a7a2ec plus the red-control prep. The new wide child-list control (fixture group 12 + `env-sound-wide-children.lua`) used delta 0 at radar altitude 0, an IDENTITY setup: a child the routine skipped keeps its previous word exactly as a processed one does, so it could catch the 17-child
+stop but could not substantiate that ALL children were processed. Corrected: the REAL camera is now at radar altitude 140 outdoors (height 140 over its cached elevation 0; the echo must read back as `430c0000`), delta 0, previous amplitudes j/128 inside [0, 0.3]; the original's
+altitude factor `1 - 140 / 280` is exactly 0.5, so every terrain child must hold HALF its own previous word, j/256, and a skipped child keeps j/128 and fails the witness. All ids, order, duplicate classes and the 16/17/20 targets, the isolation/not-restored disclosures
+and the group 11 / 46-case driver are unchanged; a harness guard leaves one child's after word unchanged and requires a witness failure. This is a setup-derived dyadic property, not a shadow oracle. No production change: the new ambient kernels, their guards and the
+Core 16-item cap are exactly a39, so Root can still reproduce the env FP red, the wide-list red and the terrain FP red. The env FP strengthening and the documented saturation classification (retained original `3e941d42` => the constant 0.3 is converted at compile time to
+`0.3f32`; the first synthetic `0x3e999999` was wrong) are kept. Whole Task 51/D3 stays OPEN; D4/D5 unstarted; no acceptance claimed.
+
+# D3 ambient host move — review of a39a7a2ec and the red controls (31 October 2026, test/fixture/driver only, UNBUILT, UNRUN)
+
+Clean pushed `a39a7a2ec`. Independent source review (SHA-256 `8cced1aa...a9304c`): CHANGES_REQUIRED, two grouped findings (the NaN-reader suspicion was withdrawn). **P1:** the new ambient arithmetic inherits the caller's FTZ/DAZ because the reused
+guards change only the rounding control; actual (Root): terrain ambient FP matrix 5376 questions / 192 changed answers (subnormal altitude 0.14999998 vs 0.14999999 under FTZ/DAZ), and the env ambient matrix had no FTZ/DAZ or precision variants.
+**P2:** the hosted routine aborts at the 17th terrain child (16-item transport cap) where the original walked the whole child list and nothing in the game limits terrain children. Actual a39: Linux pipeline 101 before the broader
+packages; Windows engine 80 / module 24 / world 254 all 0; `terrain_sector` 2 PASS / 2 FAIL; first candidate Lebanon comparison byte-exact to the originals (numeric only). **This step (production UNCHANGED, expected reds UNRUN):** the env
+ambient FP test now seeds FTZ/DAZ and two x87 precision controls and has subnormal-sensitive questions (a subnormal transitional state attenuated outdoors, subnormal wind limits), comparing answers as bit patterns with the full
+CW/SW/TW/MXCSR checks; a tiny explicit fixture group 12 + driver `env-sound-wide-children.lua` create 16/17/20 terrain ambient children with the REAL constructor (duplicates of every class, distinct previous amplitudes) and call the REAL routine
+(process-isolated; heap not restored; no player/render/speaker claim); transport-limit tests added. The fresh saturation expectation (`0x3e999999`) was WRONG: the retained original case 28 (`3e941d42`) is reproduced by `0.3f32` (the compiler converts
+the constant to the nearest float), not by the run-time round-toward-zero value (`3e941d41`); corrected as an unaccepted synthetic expectation, with no baseline, raw-file, tolerance or implementation change. Commands, names and
+prerequisites: `docs/d3-environment-sound-routine.md`. Next, after Root runs the reds: one bounded batch fixing both groups. Whole Task 51/D3 stays OPEN (lightning effects, time, remaining terrain, spatial/object, model, compiled
+player/render consumers, full 40 / all 8 identity, review, current CI, merges); D4/D5 unstarted; no acceptance claimed.
+
 # D3 physical extraction — the ambient sound amplitude is the host's (31 October 2026, production source UNBUILT, UNRUN, UNREVIEWED)
 
 Clean pushed `4779d6434`. The original behaviour is measured and independently reviewed (21ba driver on the unchanged c0b native: 3 roots, 46 distinct cases, 44 answered + 2 explicit missing-gunship refusals, 47 routine calls, 0 anomalies;

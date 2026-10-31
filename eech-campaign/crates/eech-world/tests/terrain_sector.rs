@@ -435,8 +435,10 @@ fn the_host_decides_the_terrain_ambient_amplitude_from_its_own_sector_surfaces_w
     }
     let terrain = map(&[false, true, false, true, true], &[9, 7, 9, 3]);
     let ask = |alt: f32, delta: f32, cockpit: bool, children: &[AmbientChild]| terrain.ambient(1.0, 1.0, cockpit, alt, delta, children);
-    // the upper bound of the smoothing is the double 0.3 stored as a float under round-toward-zero, the engine's rounding mode (0x3e999999, one float below the nearest, 0.3f32), the lower 0
-    let upper = f32::from_bits(0x3e99_9999);
+    // the upper bound of the smoothing is the constant 0.3 of the original's `bound (value, 0.0, 0.3)`, which the compiler converts to a float AT COMPILE TIME, to the nearest (0x3e99999a = 0.3f32), not at run
+    // time under round-toward-zero (that would be 0x3e999999). The first synthetic expectation here was the run-time one and was WRONG: the retained original case 28 (sea saturating at the upper bound, altitude 10,
+    // word 3e941d42) is reproduced by 0.3f32 times the altitude factor (3e941d42 either way of rounding the product) and NOT by 0x3e999999 (which gives 3e941d41); the lower bound is 0
+    let upper = 0.3f32;
     assert_eq!(ask(0.0, 0.25, false, &[child(0, 0.25), child(1, 0.0)]).unwrap(), vec![upper, 0.0]);
     // the altitude factor 1 - alt / 280 (0.5 at 140 m) multiplies the bounded value, and the cockpit factor 0.75 follows it
     assert_eq!(ask(140.0, 0.25, false, &[child(0, 0.125)]).unwrap(), vec![0.125f32]);

@@ -44,7 +44,10 @@
  *
  * GROUP 11 (explicit only, never in the default run, the census or the 164-case oracle): the ORIGINAL ambient sound routine update_session_sound_effects (ss_updt.c, unchanged) on the real session,
  * camera, terrain and the ten real ambient sound-effect children; per case it sets the controlled inputs, calls the routine, prints every child's amplification as IEEE words and restores
- * everything. See the comment before env_sound_case. The only change to the default behaviour of this file is the group range check (the last group is now 11).
+ * everything. See the comment before env_sound_case. The only change to the default behaviour of this file is the group range check (the last group is now 12).
+ *
+ * GROUP 12 (explicit only, PROCESS-ISOLATED like group 9): a WIDE session child list -- additional terrain ambient sound children created with the real constructor, the real routine called on them. See
+ * the comment before env_wide_case.
  */
 
 #ifdef EECH_ENV_FIXTURE
@@ -80,7 +83,8 @@ enum
 	ENV_GROUP_CONTROLLED = 9,
 	ENV_GROUP_SECTOR = 10,
 	ENV_GROUP_SOUND = 11,
-	ENV_GROUP_LAST = 11
+	ENV_GROUP_WIDE = 12,
+	ENV_GROUP_LAST = 12
 };
 
 #define ENV_WEATHER_MAX 96
@@ -1927,6 +1931,273 @@ static int env_sound_case (int index, char *text, int capacity, int *used)
 	return 0;
 }
 
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* group 12 (EEDCS-51, D3; EXPLICIT ONLY, never part of the default run, the census, the 164-case oracle or group 11): a WIDE session child list.
+
+   update_session_sound_effects walks the session's WHOLE special-effect child list. The campaign attaches ten ambient sound children at boot, but nothing in the game limits how many terrain
+   ambient sound children a session may hold: create_local_sound_effect_entity attaches the supplied subtype to the supplied parent with no count check, and the compiled comms receiver
+   (se_msgs.c) creates a received child through the same path. This group makes that real: it creates ADDITIONAL terrain ambient sound children with the REAL production constructor, exactly as
+   attach_session_sound_effects does (the same arguments, the same sample indices), cycling the six terrain classes so that duplicates of every class exist, gives every terrain child its own DISTINCT
+   previous amplitude (j + 1) / 128 in list order, and calls the REAL unchanged routine once with the camera at radar altitude 140 (real camera height 140 over its cached elevation 0: the altitude factor 1 - 140 / 280 is EXACTLY 0.5) outdoors and a frame delta of 0, so that a PROCESSED child holds exactly half its previous amplitude and a skipped one does not.
+
+   Case i creates children until the session holds the case's number of terrain ambient children (16, 17 and 20 -- the boundary of a transport bound a host protocol may have, one past it, and well
+   past it; the natural six count), so the cases are to be run IN ORDER in ONE fresh process. It prints the child list (position in the list, entity index, subtype, class, amplification word) before and
+   after the call. It computes and judges nothing: the driver compares what came back with what went in.
+
+   NOT A WITNESS, NOT RESTORED: creating entities changes the entity heap and the session's child list, and they cannot be put back from here (like group 9, the process is the isolation boundary: the report says
+   `changed=1 process_isolated=required heap_restored=0`). What IS put back: the session record and the host field, the season, the shared seed, the frame delta, the camera position and cached elevation, the
+   cloud base, in_cockpit and the scratch. The children's amplifications are NOT restored. A routine that stops the engine (a fatal error) leaves nothing restored and poisons the process: the case then
+   reports no rows at all, the engine's error is the result. Speaker, network delivery, the player and the renderer are not exercised and not claimed. */
+
+#define ENV_WIDE_CASES 3
+
+static const int env_wide_targets[ENV_WIDE_CASES] = { 16, 17, 20 };
+
+/* the six terrain classes of group 11 (sea, jungle, amb1 to amb4): their entity sub types and sample indices, as attach_session_sound_effects uses them */
+static const int env_wide_sub_types[6] = { ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_SEA, ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_JUNGLE, ENTITY_SUB_TYPE_EFFECT_SOUND_AMB1, ENTITY_SUB_TYPE_EFFECT_SOUND_AMB2,
+	ENTITY_SUB_TYPE_EFFECT_SOUND_AMB3, ENTITY_SUB_TYPE_EFFECT_SOUND_AMB4 };
+
+static const int env_wide_samples[6] = { SOUND_SAMPLE_INDEX_AMBIENT_SEA, SOUND_SAMPLE_INDEX_AMBIENT_JUNGLE, SOUND_SAMPLE_INDEX_AMB1, SOUND_SAMPLE_INDEX_AMB2, SOUND_SAMPLE_INDEX_AMB3,
+	SOUND_SAMPLE_INDEX_AMB4 };
+
+static int env_wide_terrain_count (const struct env_sound_child *kids, int n)
+{
+	int i, count = 0;
+
+	for (i = 0; i < n; i++)
+	{
+		if (kids[i].klass >= 5)
+		{
+			count++;
+		}
+	}
+
+	return count;
+}
+
+/* each of the ten ambient classes at least once (a wide list holds duplicates) */
+static int env_wide_natural_present (const struct env_sound_child *kids, int n)
+{
+	int seen[ENV_SOUND_CLASSES + 1], i;
+
+	memset (seen, 0, sizeof (seen));
+
+	for (i = 0; i < n; i++)
+	{
+		seen[kids[i].klass]++;
+	}
+
+	for (i = 1; i <= ENV_SOUND_CLASSES; i++)
+	{
+		if (seen[i] < 1)
+		{
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+static int env_wide_print (char *text, int capacity, int *used, const char *key, const struct env_sound_child *kids, int n)
+{
+	int i;
+
+	ENV_EMIT (" %s=", key);
+
+	for (i = 0; i < n; i++)
+	{
+		ENV_EMIT ("%s%d:%d:%d:%s:%08x", i ? "," : "", i, (int) get_local_entity_index (kids[i].en), kids[i].sub_type, env_sound_class_name (kids[i].klass), ENV_WORD (kids[i].amp));
+	}
+
+	return 0;
+}
+
+/* the mutation and the report of one case; the caller restores what it can whatever this returns */
+static int env_wide_body (int index, int target, struct env_sound_child *kids, int n, char *text, int capacity, int *used)
+{
+	struct CAMERA *craw = (struct CAMERA *) get_local_entity_data (get_camera_entity ());
+	vec3d *cp = env_camera_position ();
+	char ids[ENV_SOUND_CHILDREN * 8];
+	int created = 0, ids_used = 0, terrain, terrain_before, terrain_index, i, rng_before;
+
+	ids[0] = '\0';
+
+	terrain = env_wide_terrain_count (kids, n);
+	terrain_before = terrain;
+
+	/* the REAL constructor, as attach_session_sound_effects calls it: the session as parent, neutral side, the sound channel, all localities, no position, amplification 0, pitch 1, valid, looping, one sample */
+	while (terrain < target)
+	{
+		int klass = created % 6;
+		sound_sample_indices sample = (sound_sample_indices) env_wide_samples[klass];
+		entity *en = create_local_sound_effect_entity (ENTITY_INDEX_DONT_CARE, get_session_entity (), ENTITY_SIDE_NEUTRAL, (entity_sub_types) env_wide_sub_types[klass], SOUND_CHANNEL_SOUND_EFFECT,
+			SOUND_LOCALITY_ALL, NULL, 0.0, 1.0, TRUE, TRUE, 1, &sample);
+
+		if (!en)
+		{
+			ENV_EMIT ("env-wide kind=control i=%d refused=the_constructor_returned_no_entity created=%d\n", index, created);
+
+			return 0;
+		}
+
+		if (ids_used + 8 < (int) sizeof (ids))
+		{
+			ids_used += snprintf (ids + ids_used, sizeof (ids) - (size_t) ids_used, "%s%d", created ? "," : "", (int) get_local_entity_index (en));
+		}
+
+		created++;
+		terrain++;
+	}
+
+	n = env_sound_children (kids, ENV_SOUND_CHILDREN);
+
+	if (n < 0 || env_wide_terrain_count (kids, n) != target)
+	{
+		ENV_EMIT ("env-wide kind=control i=%d refused=the_list_does_not_hold_the_target_after_creating_the_children children=%d created=%d\n", index, n, created);
+
+		return 0;
+	}
+
+	/* every terrain child its own previous amplification, in list order; the rain and wind children the sentinel */
+	terrain_index = 0;
+
+	for (i = 0; i < n; i++)
+	{
+		if (kids[i].klass >= 5)
+		{
+			set_local_entity_float_value (kids[i].en, FLOAT_TYPE_AMPLIFICATION, (float) (terrain_index + 1) / 128.0f);
+			terrain_index++;
+		}
+		else if (kids[i].is_sound)
+		{
+			set_local_entity_float_value (kids[i].en, FLOAT_TYPE_AMPLIFICATION, ENV_SOUND_SENTINEL);
+		}
+	}
+
+	/* the controlled inputs: the camera at height 140 over its cached elevation 0, i.e. radar altitude 140 (read back and printed, 430c0000), outdoors, a frame delta of 0 */
+	set_global_season (SESSION_SEASON_SUMMER);
+	in_cockpit = 0;
+	cp->y = 140.0f;
+	craw->terrain_info.last_elevation = 0.0f;
+	cloud_3d_base_height = ENV_SOUND_CLOUD_BASE;
+	system_delta_time = 0.0f;
+
+	if (env_sound_children (kids, ENV_SOUND_CHILDREN) != n)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-wide kind=control i=%d target_terrain=%d terrain_before=%d created=%d children=%d terrain=%d created_ids=%s delta_w=%08x alt_w=%08x cockpit=0", index, target, terrain_before, created, n,
+		env_wide_terrain_count (kids, n), created ? ids : "none", ENV_WORD (get_delta_time ()), ENV_WORD (get_local_entity_float_value (get_camera_entity (), FLOAT_TYPE_RADAR_ALTITUDE)));
+
+	if (env_wide_print (text, capacity, used, "before", kids, n) != 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("\n");
+
+	rng_before = random_number_seed;
+
+	update_session_sound_effects (get_session_entity ());
+
+	if (env_sound_children (kids, ENV_SOUND_CHILDREN) != n)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-wide-after i=%d rng_unchanged=%d", index, random_number_seed == rng_before);
+
+	if (env_wide_print (text, capacity, used, "children", kids, n) != 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("\n");
+
+	return 0;
+}
+
+static int env_wide_case (int index, char *text, int capacity, int *used)
+{
+	struct env_saved_state saved;
+	struct env_sound_child kids[ENV_SOUND_CHILDREN];
+	struct CAMERA *craw;
+	int scratch_saved[TERRAIN_TYPE_LAST];
+	vec3d camera_saved;
+	float elevation_saved, cloud_saved;
+	int cockpit_saved, n, terrain, rc, i, target;
+
+	n = get_camera_entity () ? env_sound_children (kids, ENV_SOUND_CHILDREN) : -2;
+
+	if (index == 0)
+	{
+		ENV_EMIT ("env-wide-plan version=1 cases=%d camera=%d children=%d natural_present=%d terrain_children=%d targets=", ENV_WIDE_CASES, get_camera_entity () ? 1 : 0, n, (n >= 0) ? env_wide_natural_present (kids, n) : 0,
+			(n >= 0) ? env_wide_terrain_count (kids, n) : -1);
+
+		for (i = 0; i < ENV_WIDE_CASES; i++)
+		{
+			ENV_EMIT ("%s%d", i ? "," : "", env_wide_targets[i]);
+		}
+
+		ENV_EMIT (" process_isolated=required\n");
+		ENV_EMIT ("env-wide-unsupported item=speaker_network_delivery_player_and_renderer reason=not_exercised_headless_not_claimed\n");
+
+		return 0;
+	}
+
+	if (index < 1 || index > ENV_WIDE_CASES)
+	{
+		return -1;
+	}
+
+	target = env_wide_targets[index - 1];
+
+	if (n < 0 || !env_wide_natural_present (kids, n))
+	{
+		ENV_EMIT ("env-wide kind=control i=%d refused=%s children=%d\n", index, n == -2 ? "no_camera_entity" : "the_session_does_not_hold_the_ambient_children_or_more_than_the_fixture_table_holds", n);
+		ENV_EMIT ("env-wide-end i=%d changed=0 process_isolated=required heap_restored=1 created=0\n", index);
+
+		return 0;
+	}
+
+	terrain = env_wide_terrain_count (kids, n);
+
+	if (terrain > target)
+	{
+		ENV_EMIT ("env-wide kind=control i=%d refused=the_session_already_holds_more_terrain_children_than_the_target_and_none_can_be_removed terrain=%d target=%d\n", index, terrain, target);
+		ENV_EMIT ("env-wide-end i=%d changed=0 process_isolated=required heap_restored=1 created=0\n", index);
+
+		return 0;
+	}
+
+	craw = (struct CAMERA *) get_local_entity_data (get_camera_entity ());
+	env_save_state (&saved);
+	memcpy (scratch_saved, terrain_types_in_sector, sizeof (scratch_saved));
+	camera_saved = *env_camera_position ();
+	elevation_saved = craw->terrain_info.last_elevation;
+	cloud_saved = cloud_3d_base_height;
+	cockpit_saved = in_cockpit;
+
+	rc = env_wide_body (index, target, kids, n, text, capacity, used);
+
+	memcpy (terrain_types_in_sector, scratch_saved, sizeof (scratch_saved));
+	*env_camera_position () = camera_saved;
+	craw->terrain_info.last_elevation = elevation_saved;
+	cloud_3d_base_height = cloud_saved;
+	in_cockpit = cockpit_saved;
+	env_restore_state (&saved);
+
+	if (rc != 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-wide-end i=%d changed=1 process_isolated=required heap_restored=0 amplitudes_restored=0 session_camera_cloud_cockpit_scratch_restored=1\n", index);
+
+	return 0;
+}
+
 static int env_case_count (int group)
 {
 	switch (group)
@@ -2016,6 +2287,21 @@ int eech_env_case_run (int group, int index, char *text, int capacity)
 			text[0] = 0;
 			used_value = 0;
 			append (text, capacity, used, "env-case-error reason=sound_case_refused_or_report_did_not_fit group=11 index=%d\n", index);
+
+			return -1;
+		}
+
+		return 0;
+	}
+
+	if (group == ENV_GROUP_WIDE)
+	{
+		/* explicit only; PROCESS-ISOLATED like group 9: it creates entities, which cannot be put back (see env_wide_case) */
+		if (env_wide_case (index, text, capacity, used) != 0)
+		{
+			text[0] = 0;
+			used_value = 0;
+			append (text, capacity, used, "env-case-error reason=wide_case_refused_or_report_did_not_fit group=12 index=%d\n", index);
 
 			return -1;
 		}

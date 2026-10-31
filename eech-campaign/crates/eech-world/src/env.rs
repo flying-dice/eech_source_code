@@ -777,6 +777,34 @@ mod tests {
             set_x87_image(&image);
             set_mxcsr(0x1f80 | (sse_rounding << 13) | sticky);
         }
+
+        #[repr(align(16))]
+        struct Image512([u8; 512]);
+
+        /// The MXCSR bits this processor accepts (MXCSR_MASK of fxsave; zero means the architectural default 0xffbf, which has no DAZ).
+        pub fn mxcsr_mask() -> u32 {
+            let mut image = Image512([0u8; 512]);
+            // SAFETY: stores the 512-byte FXSAVE image to a 16-byte aligned local; fxsave changes no register state.
+            unsafe { asm!("fxsave [{}]", in(reg) image.0.as_mut_ptr(), options(nostack)) };
+            let mask = u32::from_le_bytes([image.0[28], image.0[29], image.0[30], image.0[31]]);
+            if mask == 0 {
+                0xffbf
+            } else {
+                mask
+            }
+        }
+
+        /// As `seed`, and also the x87 PRECISION control (0 = 24 bit, 2 = 53 bit, 3 = 64 bit) and the MXCSR FTZ / DAZ mode bits (0x8000, 0x0040; dropped where the processor lacks them), all other
+        /// MXCSR exceptions masked so that a seeded state never traps.
+        pub fn seed_modes(x87_rounding: u16, x87_precision: u16, status: u16, sse_rounding: u32, sticky: u32, modes: u32) {
+            let mut image = x87_image();
+            let control = (u16::from_le_bytes([image[0], image[1]]) & !0x0f00) | (x87_rounding << 10) | (x87_precision << 8);
+            image[0..2].copy_from_slice(&control.to_le_bytes());
+            image[4..6].copy_from_slice(&status.to_le_bytes());
+            image[8..10].copy_from_slice(&0xffffu16.to_le_bytes());
+            set_x87_image(&image);
+            set_mxcsr((0x1f80 | (sse_rounding << 13) | sticky | modes) & mxcsr_mask());
+        }
     }
 
     /// Puts the thread's COMPLETE floating-point environment back whatever a test did to it, even when an assertion fails.
@@ -1012,17 +1040,26 @@ mod tests {
         );
     }
 
-    /// The caller's COMPLETE floating-point state around the ambient sound levels, in the manner of the field's guard test above (the same seeded states, no mask): accepted questions (outdoor, equal
-    /// modes, the cockpit, above the cloud base, a wind zone), a subnormal altitude and a refusal, and the answers are the same whatever the state. Only the entry's own effect is claimed.
+    /// The caller's COMPLETE floating-point state around the ambient sound levels, in the manner of the field's guard test above and of the terrain ambient test (the same seeded states, no mask), now
+    /// over the arithmetic environments these entries can be sensitive to: every pair of x87 and SSE rounding controls, two x87 precision controls, MXCSR sticky flags clear and set, FTZ and DAZ clear
+    /// and set (as far as the processor has them), and three x87 status words. The questions include SUBNORMAL inputs whose arithmetic a denormal mode CHANGES -- a subnormal transitional state attenuated
+    /// outdoors (the product of a subnormal and the altitude factor), and subnormal wind limits (a speed that is the subnormal maximum) -- so a kernel that merely inherits the caller's FTZ/DAZ answers
+    /// differently there. The answers are compared as BIT PATTERNS (a float equality would hide a signed zero and could not compare a NaN), and must be the same whatever the caller's state. Mismatches are
+    /// COLLECTED, not stopped at the first. Only the entry's own effect is claimed.
     #[test]
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     fn the_callers_complete_floating_point_state_survives_every_ambient_sound_question_in_every_mode() {
-        let _restore = RestoreFp {
+        use std::collections::BTreeMap;
+
+        let restore = RestoreFp {
             image: fp::x87_image(),
             mxcsr: fp::mxcsr(),
         };
         let rainy = ambient_field(2, 3, 0.3, 40000.0, 1234.5, 1.0, 9.7);
         let equal = ambient_field(2, 2, 0.5, 50000.0, 0.0, 1.0, 4.0);
+        // a subnormal transitional state (3 * 2^-149): the heavy level is it, attenuated by the altitude factor 0.5 outdoors; a subnormal maximum wind speed (4 * 2^-149), reached at the zone's centre
+        let subnormal_rain = ambient_field(2, 3, f32::from_bits(3), 0.0, 0.0, 0.0, 8.0);
+        let subnormal_wind = ambient_field(1, 1, 0.5, 100.0, 0.0, 0.0, f32::from_bits(4));
         let stateless = Field::new().unwrap();
         let subnormal = f32::from_bits(1);
         type Question<'a> = (&'a str, &'a Field, [f32; 5], bool, bool);
@@ -1045,41 +1082,102 @@ mod tests {
                 false,
                 false,
             ),
+            (
+                "subnormal transitional state outdoors",
+                &subnormal_rain,
+                [0.0, 0.0, 10.0, 90.0, 6000.0],
+                false,
+                false,
+            ),
+            (
+                "subnormal transitional state in the cockpit",
+                &subnormal_rain,
+                [0.0, 0.0, 10.0, 90.0, 6000.0],
+                true,
+                false,
+            ),
+            (
+                "subnormal wind limits at the zone's centre",
+                &subnormal_wind,
+                [0.0, 0.0, 10.0, 0.0, 6000.0],
+                false,
+                false,
+            ),
             ("refused: no state", &stateless, [0.0, 0.0, 10.0, 10.0, 6000.0], false, false),
         ];
-        type Round = Vec<Result<AmbientLevels, String>>;
-        let mut answers: Vec<Round> = Vec::new();
+        // the answer as the four level bit patterns, or the refusal text
+        type Answer = Result<[u32; 4], String>;
+        let bits = |answer: Result<AmbientLevels, String>| -> Answer {
+            answer.map(|levels| {
+                [
+                    levels.rain_light.to_bits(),
+                    levels.rain_heavy.to_bits(),
+                    levels.wind_light.to_bits(),
+                    levels.wind_heavy.to_bits(),
+                ]
+            })
+        };
+
+        let mask = fp::mxcsr_mask();
+        let mode_sets: Vec<u32> = if mask & 0x8040 == 0x8040 { vec![0, 0x8040] } else { vec![0, mask & 0x8000] };
+        let mut reference: Vec<Option<Answer>> = vec![None; questions.len()];
+        let mut leaks: BTreeMap<String, (usize, String)> = BTreeMap::new();
+        let mut answer_changes: Vec<String> = Vec::new();
+        let mut checked = 0usize;
         for x87_rounding in 0u16..4 {
-            for sse_rounding in 0u32..4 {
-                for sticky in [0u32, 0x3f] {
-                    for status in [0x0000u16, 0x403f, 0x2700] {
-                        let mut round = Vec::new();
-                        for (what, field, f, in_cockpit, winter) in &questions {
-                            fp::seed(x87_rounding, status, sse_rounding, sticky);
-                            let expected = fp::now();
-                            let answer = field.ambient(&AmbientInput {
-                                f: *f,
-                                winter: *winter,
-                                in_cockpit: *in_cockpit,
-                            });
-                            assert_eq!(
-                                fp::now(),
-                                expected,
-                                "{what}: x87 rounding {x87_rounding}, SSE rounding {sse_rounding}, MXCSR sticky {sticky:#x}, x87 status {status:#06x}"
-                            );
-                            round.push(answer);
+            for x87_precision in [0u16, 3] {
+                for sse_rounding in 0u32..4 {
+                    for sticky in [0u32, 0x3f] {
+                        for &modes in &mode_sets {
+                            for status in [0x0000u16, 0x403f, 0x2700] {
+                                let state = format!("x87 rounding {x87_rounding}, precision {x87_precision}, SSE rounding {sse_rounding}, MXCSR sticky {sticky:#x}, modes {modes:#x}, x87 status {status:#06x}");
+                                for (index, (what, field, f, in_cockpit, winter)) in questions.iter().enumerate() {
+                                    fp::seed_modes(x87_rounding, x87_precision, status, sse_rounding, sticky, modes);
+                                    let expected = fp::now();
+                                    let answer = bits(field.ambient(&AmbientInput {
+                                        f: *f,
+                                        winter: *winter,
+                                        in_cockpit: *in_cockpit,
+                                    }));
+                                    let actual = fp::now();
+                                    checked += 1;
+                                    if actual != expected {
+                                        leaks.entry(format!("{what}: {expected:x?} -> {actual:x?}")).or_insert((0, state.clone())).0 += 1;
+                                    }
+                                    if reference[index].is_none() {
+                                        reference[index] = Some(answer);
+                                    } else if reference[index].as_ref() != Some(&answer) {
+                                        answer_changes.push(format!("{what} under {state}: {:x?} -> {answer:x?}", reference[index]));
+                                    }
+                                }
+                            }
                         }
-                        answers.push(round);
                     }
                 }
             }
         }
-        for round in answers.iter().skip(1) {
-            assert_eq!(round, &answers[0], "the caller's state reached the kernel");
-        }
-        for ((what, ..), answer) in questions.iter().zip(&answers[0]) {
+        drop(restore);
+
+        for ((what, ..), answer) in questions.iter().zip(&reference) {
+            let answer = answer.as_ref().expect("every question ran");
             assert_eq!(answer.is_err(), what.starts_with("refused"), "{what}: {answer:?}");
         }
+        assert!(
+            answer_changes.is_empty(),
+            "the caller's state reached the kernel's answers ({} of {checked} calls):\n{}",
+            answer_changes.len(),
+            answer_changes.join("\n")
+        );
+        assert!(
+            leaks.is_empty(),
+            "the ambient question changed the caller's floating-point state in {} kinds of call ({checked} calls checked, no mask):\n{}",
+            leaks.len(),
+            leaks
+                .iter()
+                .map(|(key, (times, first))| format!("  {key}  x{times}, first under {first}"))
+                .collect::<Vec<_>>()
+                .join("\n")
+        );
     }
 
     #[test]

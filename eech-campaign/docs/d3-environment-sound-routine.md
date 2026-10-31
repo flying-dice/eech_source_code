@@ -163,3 +163,53 @@ The generic witness provider `terrain-provider.lua` answers `ambient` (a land wo
 
 **Remaining couplings (open):** lightning strike/sound entity creation and execution and the lightning timer's campaign side; the physical time inputs and the campaign calendar/timers/scheduling (Core by decision); the
 rest of terrain (trees, loaders, the per-type triangle functions); spatial/object and model services; the compiled player/render/sound-system consumers; full shipping, identity, review, CI and merges. D4/D5 are not started.
+
+## Independent source review of a39a7a2ec and the red controls (test/fixture/driver only; UNBUILT, UNRUN)
+
+Review `ENV-AMBIENT-HOST-A39` (SHA-256 `8cced1aa...a9304c`, CHANGES_REQUIRED, source review only): the delegation, the guards' ingress and the C/Rust ABI check out, and the reviewer's NaN-reader suspicion was withdrawn (not a finding).
+Two grouped findings; production is NOT changed in this step, so Root can reproduce both.
+
+**Actuals Root has reported on a39a7a2ec (not mine):** Linux pipeline exit 101 at 14:48:21 before the broader packages; Windows observer native + three libs + `terrain_sector` exports 0, Windows engine 80 / module 24 / world 254 all 0;
+the new terrain ambient tests: 2 PASS, 2 FAIL -- the terrain ambient FP matrix (5376 questions, 192 changed answers for the subnormal altitude: `0.14999998` in the normal mode, `0.14999999` under caller FTZ/DAZ) and the basic
+saturation expectation; the env ambient tests (3) PASS but their matrix had no FTZ/DAZ or precision variants. The first retail candidate comparison (Lebanon, same 21ba driver, 108 rows) is byte-exact to the originals and is
+numeric only (not FP, authority or acceptance evidence).
+
+**P1 control (strengthened, `eech-world/src/env.rs`):** `the_callers_complete_floating_point_state_survives_every_ambient_sound_question_in_every_mode` now seeds every x87 and SSE rounding pair, TWO x87 precision controls, MXCSR sticky
+flags clear/set, FTZ and DAZ clear/set (as far as `MXCSR_MASK` has them) and three x87 status words (new helpers `fp::mxcsr_mask`, `fp::seed_modes`; the old `fp::seed` and the old field test are untouched), over ten questions
+that now include SUBNORMAL inputs whose arithmetic a denormal mode changes: a subnormal transitional state attenuated outdoors (3 * 2^-149 times the altitude factor) and in the cockpit, and subnormal wind limits (a speed that is the subnormal
+maximum). The answers are compared as BIT PATTERNS (never float equality), the full CW/SW/TW/MXCSR words are checked as before, and mismatches are collected. The kernels (`env_ref_ambient`, `host_terrain_ambient`)
+and their guards are UNCHANGED, so the new env cases are expected to fail on a39 on an SSE target (a kernel that inherits the caller's FTZ/DAZ answers differently); that is an expectation until Root runs it. The terrain
+FP test (5376 questions) is retained unchanged: its red is already valid.
+
+**Saturation classification (from the retained originals and the compiled arithmetic; resolved, no baseline change).** The original sea-saturating case (retained original case 28, altitude 10) has the word `3e941d42`. The original
+statement is `value = bound (value, 0.0, 0.3)` with the ternary macro of `miscmath.h:67`, then `value *= bound (1.0 - (alt / 280.0), 0.0, 1.0)`. The two candidate stored bounds give: `0.3f32` (nearest, `0x3e99999a`) times the
+altitude factor `0.9642857...` is `3e941d42` (as the nearest or the round-toward-zero product); the run-time-directed `0x3e999999` gives `3e941d41`. Only the first reproduces the retained word, and the candidate's
+numeric comparison is exact to it: the constant `0.3` of the ternary is converted to a float by the COMPILER, to the nearest, not at run time under round-toward-zero. The first synthetic expectation in `terrain_sector.rs` (`0x3e999999`)
+was the run-time one and was WRONG; it is an unaccepted new test expectation, so it is corrected to `0.3f32` with the evidence in its comment. No retail baseline, original raw file or tolerance changes; no implementation changes.
+
+**P2 control (the wide child list):** the same real path, a tiny new explicit fixture group 12 (`eech_env_fixture.c`, process-isolated like group 9; groups 0-11, the census and the 46-case oracle print exactly as before;
+the only default-path edit is the group range check, last group 12) and a short driver `lua/env-sound-wide-children.lua`. Group 12 creates ADDITIONAL terrain ambient sound children with the REAL constructor
+`create_local_sound_effect_entity`, exactly as `attach_session_sound_effects` calls it (cycling the six classes, so duplicates of every class exist), until the session holds 16, then 17, then 20 terrain ambient children,
+gives each its own DISTINCT previous amplitude (j + 1) / 128 in list order, and calls the REAL unchanged routine with the REAL camera at radar altitude 140 outdoors (height 140 over its cached elevation 0; the echo is read back and must be `430c0000`) with a frame delta of 0. Nothing is mocked and no kernel is called privately.
+The driver prints the created count and entity ids, the list (position, entity, subtype, class, word) before and after, and checks only the harness plus one property of the original that this setup makes unambiguous: with
+delta 0, every previous amplitude j/128 inside [0, 0.3] and the altitude factor 1 - 140 / 280 EXACTLY 0.5 (the factor of the original's half-altitude cases) a child that was PROCESSED holds exactly HALF its own previous word, j/256, while a
+child the routine skipped keeps j/128 and fails the witness: ALL children, in list order, each with its own previous value, none dropped, reordered or re-valued. (An earlier version of this control used delta 0 at altitude 0, an
+IDENTITY setup in which a skipped child keeps its previous word exactly as a processed one does; it could catch the 17-child stop but could not substantiate that all children were processed, and is replaced. The harness guard that leaves
+one child's after word unchanged and requires the witness to fail is `the_driver_refuses_a_wide_list_that_dropped_reordered_or_revalued_a_child_and_a_control_that_did_not_run`.) No shadow oracle: the half is a setup-derived dyadic fact, not a
+recomputation of the routine. Expected healthy: all three cases. Expected on a39: the 16-child case runs; the 17-child case stops in the engine with `[terrain-provider:ambient.request] ... more than 16 ...` (the Core client's cap), reported as
+`engine_failure` naming the case and ending the run with `env-sound-wide: CASE 2 (17 terrain ambient children) FAILED in the engine: ...` -- an expectation, not a result, until Root runs it. The control is
+process-isolated: creating entities changes the entity heap and the session child list and the report says `changed=1 process_isolated=required heap_restored=0 amplitudes_restored=0`; it restores the session record and host field,
+season, shared seed, delta, camera, cloud base, cockpit flag and scratch only. Speaker, network delivery, the player and the renderer are not exercised and not claimed. The boundaries: 0 children at the transport (the existing
+engine test), exactly the transport bound (new `an_ambient_terrain_question_of_exactly_the_transport_limit_is_carried_whole_and_in_order`) and one past it (refused by the existing engine test) are the TRANSPORT's;
+16, 17 and 20 children of one SESSION are the client's, here. The transport bound stays an implementation detail of one crossing; a host backend may still reject an oversized individual request.
+
+**Commands for Root (nothing here was built or run):**
+1. P1 control: `cargo test -p eech-world --lib the_callers_complete_floating_point_state_survives_every_ambient_sound_question_in_every_mode` (and, retained, `--test terrain_sector the_callers_complete_floating_point_state_survives_every_terrain_ambient_question_in_every_mode`);
+   with the corrected saturation expectation `cargo test -p eech-world --test terrain_sector the_host_decides_the_terrain_ambient_amplitude_from_its_own_sector_surfaces_with_the_originals_smoothing` should pass on a39.
+2. Harness guards: `cargo test -p eech-world --test env_sound_wide_children` and `cargo test -p eech-engine an_ambient_terrain_question`; `cargo fmt --check`; `cargo clippy --all-targets -- -D warnings`.
+3. The real wide-list control: build the env-fixture module from this source (the C fixture changed) into a NEW directory, then ONE fresh verified root and ONE fresh process:
+   `eech-world lua/env-sound-wide-children.lua root=<fresh root> out=<private env-sound-wide-<scenario>.jsonl> scenario=lebanon_retail|georgia_retail`.
+   Prerequisites: a fresh root (the remaining candidate Georgia / repeat roots are unused); the process ends with the control (it cannot be reused for any other measurement).
+
+Then, in the same context, ONE bounded batch fixes both groups: the new ambient arithmetic isolated from the caller's denormal modes and x87 precision inside the guard (restoring every caller bit), and the Core
+16-item transport bound replaced by bounded batches that keep every child, the list/application order and each child's previous value. The 46-case original driver, group 11 and all accepted raw originals stay unchanged.
