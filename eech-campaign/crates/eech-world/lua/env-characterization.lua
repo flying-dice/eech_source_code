@@ -691,7 +691,7 @@ local function run ()
 	-- seed_set from it, 0 becoming 1), the boot seed set, the campaign loader's session (parser_session_begin ... parser_session_end: a start-time episode, session_created carrying that start time, a
 	-- weather episode of draws 1 to 10), then ANY number of further weather and start-time episodes (the session setup options run them again; the real boot has two of each) and the optional tag and
 	-- fixed-weather events. FRAMES (each boot_end-ordered, none before it): frame_begin asks the scheduled ms at the clock the previous frame (or boot) ended on and the delta word the previous
-	-- frame_end set (the previous-delta phase, recorded not corrected); tod_begin/tod_end pairs and the sound-fact pairs sit inside the frame; a lightning episode is its twelve events in order; frame_end
+	-- frame_end set (the previous-delta phase, recorded not corrected); tod_begin/tod_end pairs and the sound-fact pairs sit inside the frame; a lightning episode is all twelve events in order, after that update's time of day and before its sound facts; frame_end
 	-- is begin + ms on the clock. Anything else, anywhere else, is refused.
 	local function obs_fail (e, message) refuse ("observer transcript, event " .. e.seq .. " (" .. e.kind .. "): " .. message) end
 
@@ -704,10 +704,20 @@ local function run ()
 			i = i + 1
 			return e
 		end
-		local function skip_free ()
-			while ev [i] ~= nil and (ev [i].kind == "rain_tag" or ev [i].kind == "wind_tag" or ev [i].kind == "fixed_weather") do
-				if ev [i].kind == "fixed_weather" and (ev [i].a < 1 or ev [i].a > 4) then fail ("fixed weather mode " .. ev [i].a .. " is not one of the four") end
-				i = i + 1
+		-- the file's later tags and the session setup options (parsgen.c: the tags are cases of the file loop, AFTER the session block returns; rain tag 0 alone calls fixed weather DRY, any other
+		-- value calls nothing; sparm_sc.c may call a fixed weather of its own). A fixed weather straight after a non-zero rain tag cannot be told from the tag's own call by the events, so it is refused:
+		-- the real runtime has no rain tag at all.
+		local function tag_event ()
+			local e = ev [i]
+			i = i + 1
+			if e.kind == "rain_tag" then
+				local after = ev [i]
+				local fixed = after ~= nil and after.kind == "fixed_weather"
+				if e.a == 0 and not (fixed and after.a == 1) then obs_fail (e, "rain tag 0 must be followed by the fixed weather DRY it calls") end
+				if e.a ~= 0 and fixed then obs_fail (after, "rain tag " .. e.a .. " is followed by a fixed weather, which only rain tag 0 calls") end
+				if fixed then i = i + 1 end
+			elseif e.kind == "fixed_weather" and (e.a < 1 or e.a > 4) then
+				obs_fail (e, "fixed weather mode " .. e.a .. " is not one of the four")
 			end
 		end
 		-- initialise_random_number_generator: the clock value it seeded from, then the seed set from it (zero becomes one)
@@ -752,17 +762,15 @@ local function run ()
 		local created = take ("session_created")
 		if created.w [0] ~= start.w [0] then fail ("session_created carries the start time " .. string.format ("%08x", created.w [0]) .. ", not the start_result " .. string.format ("%08x", start.w [0])) end
 		if created.a < 0 or created.a > 1 or created.b < 0 or created.b > 3 then fail ("session_created carries the weather model " .. created.a .. " and the day segment " .. created.b) end
-		skip_free ()
 		weather_episode ()
-		skip_free ()
 		take ("parser_session_end")
 		while ev [i] ~= nil and ev [i].kind ~= "boot_end" do
-			skip_free ()
-			if ev [i] == nil or ev [i].kind == "boot_end" then break end
 			if ev [i].kind == "weather_begin" then
 				weather_episode ()
 			elseif ev [i].kind == "seed_source" then
 				start_episode ()
+			elseif ev [i].kind == "rain_tag" or ev [i].kind == "wind_tag" or ev [i].kind == "fixed_weather" then
+				tag_event ()
 			else
 				fail ("the boot has " .. ev [i].kind .. " after the session was created")
 			end
@@ -778,14 +786,20 @@ local function run ()
 
 	local function frame_event (e)
 		local kind = e.kind
-		-- a lightning episode is its events in the source's order; without the server's sound entities it ends after the second strike
+		-- a lightning episode is all twelve events in the source's order (the server expiry makes both sound entities unconditionally; a client's shape is not characterized and not accepted)
 		if obs.lightning ~= nil and not LIGHTNING_KIND [kind] then
-			if obs.lightning ~= 8 then obs_fail (e, "interrupts the lightning episode after its step " .. obs.lightning) end
-			obs.lightning = nil
+			obs_fail (e, "interrupts the lightning episode after its step " .. obs.lightning)
 		end
 		if LIGHTNING_KIND [kind] then
 			if obs.frame == nil or obs.tod_open or obs.facts_pending then obs_fail (e, "a lightning event outside the frame's weather update") end
 			local step = (obs.lightning or 0) + 1
+			-- the update's order is time of day, weather/lightning, sound: an episode before the update's time of day, after its sound facts, or a second one in the update is out of place
+			if step == 1 then
+				if obs.upd == nil or not obs.upd.tod then obs_fail (e, "a lightning episode before the update's time of day") end
+				if obs.upd.facts then obs_fail (e, "a lightning episode after the update's sound facts") end
+				if obs.upd.lightning then obs_fail (e, "a second lightning episode in one update") end
+				obs.upd.lightning = true
+			end
 			local want = LIGHTNING_ORDER [step]
 			if want == nil or kind ~= want [1] or (want [2] ~= nil and e.a ~= want [2]) then obs_fail (e, "the lightning episode expected " .. (want and want [1] or "nothing more") .. " at step " .. step) end
 			if step == 1 then
@@ -816,23 +830,28 @@ local function run ()
 			if obs.frame == nil then obs_fail (e, "a frame ended that had not begun") end
 			if obs.tod_open then obs_fail (e, "the frame ended inside a time-of-day update") end
 			if e.w [0] ~= (obs.frame.clock + obs.frame.ms) % 4294967296 then obs_fail (e, "the clock advanced to " .. e.w [0] .. " ms, not " .. obs.frame.clock .. " + " .. obs.frame.ms) end
-			obs.clock, obs.last_delta, obs.frame = e.w [0], e.w [1], nil
+			obs.clock, obs.last_delta, obs.frame, obs.upd = e.w [0], e.w [1], nil, nil
 			obs.frames_seen = obs.frames_seen + 1
 		elseif kind == "tod_begin" then
 			if obs.frame == nil then obs_fail (e, "a time-of-day update outside a frame") end
 			if obs.tod_open then obs_fail (e, "a time-of-day update began inside a time-of-day update") end
 			if e.w [1] ~= obs.frame.delta then obs_fail (e, "the update read the delta word " .. string.format ("%08x", e.w [1]) .. ", not the frame's " .. string.format ("%08x", obs.frame.delta)) end
 			obs.tod_open = true
+			obs.upd = { tod = false, lightning = false, facts = false }
 		elseif kind == "tod_end" then
 			if not obs.tod_open then obs_fail (e, "a time-of-day update ended that had not begun") end
 			obs.tod_open = false
+			obs.upd.tod = true
 		elseif kind == "sound_facts" then
 			if obs.frame == nil or obs.tod_open then obs_fail (e, "sound facts outside a frame's sound update") end
 			if e.a == -1 then
 				if not obs.facts_pending then obs_fail (e, "the second sound-fact row has no first row") end
 				obs.facts_pending = false
+				obs.upd.facts = true
 			else
 				if e.a < 0 or e.a > 1 then obs_fail (e, "in_cockpit is " .. e.a) end
+				if obs.upd == nil or not obs.upd.tod then obs_fail (e, "sound facts before the update's time of day") end
+				if obs.upd.facts then obs_fail (e, "a second sound-fact pair in one update") end
 				obs.facts_pending = true
 			end
 		else
@@ -884,7 +903,7 @@ local function run ()
 			refuse ("the observer stored " .. r.stored .. ", read " .. r.read .. " and numbered " .. r.next_seq .. " events, but the driver received " .. obs.next_seq)
 		end
 		if obs.phase ~= "frames" or (c.boot_begin or 0) ~= 1 or (c.boot_end or 0) ~= 1 then refuse ("the observer record does not hold exactly one complete boot") end
-		if obs.frame ~= nil or obs.tod_open or obs.facts_pending or (obs.lightning ~= nil and obs.lightning ~= 8) then refuse ("the observer record ends inside a frame, an update or an episode") end
+		if obs.frame ~= nil or obs.tod_open or obs.facts_pending or obs.lightning ~= nil then refuse ("the observer record ends inside a frame, an update or an episode") end
 		if obs.frames_seen ~= frames_run or (c.frame_begin or 0) ~= frames_run or (c.frame_end or 0) ~= frames_run then
 			refuse ("the observer saw " .. (c.frame_begin or 0) .. " frame_begin and " .. (c.frame_end or 0) .. " frame_end events for " .. frames_run .. " frames the driver ran")
 		end

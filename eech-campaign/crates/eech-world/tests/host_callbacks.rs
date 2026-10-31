@@ -2281,12 +2281,29 @@ obs_boot = function()
   ev(10, 0, 0, 1)
   if OBS_MUTATION ~= 'boot_no_start' then start_episode(1) end
   ev(9, 1, 1, -1770082073, OBS_MUTATION == 'boot_session_start_mismatch' and h(0x46f89001) or h(0x46f89000), h(0x42700000), h(0x471c4000), h(0x471c4000), h(0x3f800000))
+  if OBS_MUTATION == 'boot_tag_in_session' then ev(12, 1, 0, 1010) end
   if OBS_MUTATION ~= 'boot_no_weather' then weather_episode(-1770082073) end
+  if OBS_MUTATION == 'boot_tag_before_parser_end' then ev(12, 1, 0, 1010) end
+  ev(11, 0, 0, 1010)
+  -- the file's later tags (parsgen.c): rain tag 0 calls fixed weather DRY (mode 1), any other value calls nothing; the wind tag is only logged
   if OBS_MUTATION == 'boot_with_tags' then
+    ev(12, 0, 0, 1010)
+    ev(17, 1, 0, 1010)
+    ev(13, 0, 0, 1010, h(0x3f800000))
+  end
+  if OBS_MUTATION == 'boot_rain1' then
+    ev(12, 1, 0, 1010)
+    ev(13, 0, 0, 1010, h(0x3f800000))
+  end
+  if OBS_MUTATION == 'boot_rain1_fixed' then
     ev(12, 1, 0, 1010)
     ev(17, 1, 0, 1010)
   end
-  ev(11, 0, 0, 1010)
+  if OBS_MUTATION == 'boot_rain0_no_fixed' then ev(12, 0, 0, 1010) end
+  if OBS_MUTATION == 'boot_rain0_wrong_mode' then
+    ev(12, 0, 0, 1010)
+    ev(17, 2, 0, 1010)
+  end
   if OBS_MUTATION ~= 'boot_single_group' then
     weather_episode(836760821)
     if OBS_MUTATION == 'boot_three_groups' then
@@ -2328,6 +2345,11 @@ obs_frame = function(ms)
   end
   ev(18, (m == 'frame_ms_mismatch' and second) and ms + 1 or ms, 1, 1010, h((m == 'clock_gap' and second) and clock + 1 or clock), (m == 'delta_phase' and second) and '3dcccccd' or delta)
   if m == 'unpaired_frame' and second then ev(18, ms, 1, 1010, h(clock), delta) end
+  if m == 'lightning_before_tod' and second then lightning(true) end
+  if m == 'facts_before_tod' and second then
+    ev(30, 0, 123, 1010, h(1), h(2), h(3), h(4), h(5), h(6))
+    ev(30, -1, 2, 1010, h(1), h(3))
+  end
   ev(20, 0, 0, 1010, Z, (m == 'tod_delta' and second) and '3dcccccd' or delta, h(0x3f800000))
   if m == 'lightning_inside_tod' and second then lightning(true) end
   if not (m == 'tod_unpaired' and second) then ev(21, 0, 1, 1010, h(0x3dcccccd), h(0x46f89033)) end
@@ -2337,6 +2359,15 @@ obs_frame = function(ms)
   if second and m == 'lightning_client_form' then lightning(false) end
   ev(30, 0, 123, 1010, h(1), h(2), h(3), h(4), h(5), h(6))
   if not (m == 'facts_unpaired' and second) then ev(30, -1, 2, 1010, h(1), h(3)) end
+  if m == 'lightning_after_facts' and second then lightning(true) end
+  -- a frame may run the session update more than once (time acceleration): the next update's time of day begins again
+  if m == 'two_updates_in_frame' and second then
+    ev(20, 0, 0, 1010, Z, delta, h(0x3f800000))
+    ev(21, 0, 1, 1010, h(0x3dcccccd), h(0x46f89033))
+    ev(30, 0, 123, 1010, h(1), h(2), h(3), h(4), h(5), h(6))
+    ev(30, -1, 2, 1010, h(1), h(3))
+    updates = updates + 1
+  end
   clock = clock + ms
   delta = '3dcccccc'
   ev(19, 0, 0, 1010, h((m == 'frame_end_clock' and second) and clock + 1 or clock), delta, h(0x41200000))
@@ -2868,6 +2899,17 @@ fn the_environment_observer_refuses_a_module_without_it_before_boot_and_every_in
         ("lightning_timer_mismatch", "not the timer drawn"),
         ("lightning_strike_position", "first strike's position"),
         ("lightning_inside_tod", "outside the frame's weather update"),
+        // a server expiry makes both sound entities: the eight-event form is not a client's (which would not emit the first three server events) but an impossible server history
+        ("lightning_client_form", "interrupts the lightning episode after its step 8"),
+        ("lightning_before_tod", "before the update's time of day"),
+        ("lightning_after_facts", "after the update's sound facts"),
+        ("facts_before_tod", "sound facts before the update's time of day"),
+        // the tags are the file's later tags: not inside the session block, and rain tag 0 alone calls fixed weather DRY
+        ("boot_tag_in_session", "expected weather_begin, found rain_tag"),
+        ("boot_tag_before_parser_end", "expected parser_session_end, found rain_tag"),
+        ("boot_rain1_fixed", "is followed by a fixed weather"),
+        ("boot_rain0_no_fixed", "rain tag 0 must be followed"),
+        ("boot_rain0_wrong_mode", "rain tag 0 must be followed"),
         ("capacity_low", "capacity"),
         ("weather_calls_mismatch", "weather and"),
         ("sound_records_mismatch", "sound records"),
@@ -3024,8 +3066,9 @@ fn the_environment_observer_accepts_the_coherent_forms_of_the_real_transcript_an
         "boot_single_group",
         "boot_three_groups",
         "boot_with_tags",
+        "boot_rain1",
         "lightning_episode",
-        "lightning_client_form",
+        "two_updates_in_frame",
     ] {
         let stand_in = EnvStandIn {
             observer_module: true,
@@ -3043,6 +3086,10 @@ fn the_environment_observer_accepts_the_coherent_forms_of_the_real_transcript_an
         };
         assert_eq!(summary["n_weather_draw"], weather, "{mutation}");
         let expiries = if mutation.starts_with("lightning") { 1 } else { 0 };
+        if mutation == "two_updates_in_frame" {
+            assert_eq!(summary["n_tod_begin"], 11, "{mutation}");
+            assert_eq!(summary["update_server"], 11, "{mutation}");
+        }
         assert_eq!(summary["n_lightning_expired"].as_u64().unwrap_or(0), expiries, "{mutation}");
     }
 }

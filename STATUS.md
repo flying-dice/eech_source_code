@@ -1,3 +1,18 @@
+# D3 checkpoint — observer grammar: server lightning, update phase and tag placement corrected (31 October 2026)
+
+EEDCS-51 / PR111 from clean pushed `76533dd3`. The same sole Sonnet5.5High lane closed the
+one residual trace-coherence P2 of the narrow review, in the driver, stand-in tests and
+`eech-campaign/docs/d3-environment-observer.md` only: the eight-event lightning form is now
+refused (a server expiry always makes both sound entities; the client branch stays
+uncharacterized, not covered), each session update is tracked (time of day, then at most one
+lightning episode, then sound facts), and the rain/wind/fixed-weather tags are accepted only
+after the session block, rain tag 0 alone followed by fixed weather DRY. NEW SOURCE: UNBUILT,
+UNRUN, UNREVIEWED. No physical code, kernel, math, RNG, state, effect or ABI changed; the
+single NUL of `eech_engine.c` is untouched. Inherited, reported by Root and not re-run:
+`76533dd3` formatting 0 and 13 guards 0; unhooked 2804 controls complete 0, fixed original99
+comparison exact on the 10,830 selected lines. Observer-ON noninterference is NOT yet accepted.
+The physical cutover plan is advisory and not implemented. Ground shipping is untouched.
+
 # D3 checkpoint — original observer corrections ready for validation (31 October 2026)
 
 The same Sonnet5.5High context completed0 at02:15UTC; Root collected tool35034.
