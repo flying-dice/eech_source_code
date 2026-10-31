@@ -250,6 +250,45 @@ every other buffer is readable at its size) passes an unreadable NON-NULL addres
 `have_draw` with NULL refused with cleared outputs and nothing committed; a wrongful read would fault and end the test process loudly (no child-process framework). Nothing else changes: the
 draw ABI, the step arithmetic, the shared random sites, the unmasked 96-condition matrix, baselines and tolerances.
 
+## The host-owned wind authority witness (test source, UNBUILT, UNRUN, UNREVIEWED)
+
+`lua/env-wind-authority.lua` (the restored partial driver, byte-exact SHA-256 `5cb5bb9f...`, finished here without change) and `tests/env_wind_authority.rs` (the judge, its guards, the driver controls and
+the public witness) are TEST-ONLY. No production C, Rust, provider, boot, ABI, build flag or manifest was edited. Provenance: the finite shape (one bounded fresh war per process, a real launch
+through the campaign's own call, the cohort frozen from the births of that call, one complete terminal per member, a clock that must advance, a frame budget, checked output) and the judge/driver-control
+patterns are those of the closed ground witness (`ground-production-source-aafb21775`, `ground-authority.lua` / `ground_authority.rs`), read as bookkeeping reference only; none of that component's
+unaccepted production changes is taken, and this branch keeps its own `host.terrain_provider` and `host.env_provider ()`.
+
+**Path under test.** Host-owned Lua -> the public native module (`dc.boot { environment = <wrapper of host.env_provider ()> }`, a DLL built with `weapon-fixture`) -> a REAL weapon launched by the
+campaign's own launch call (`wpn_case_launch`; the ground witness's deterministic first launcher / nearest enemy / first unguided ballistic weapon, default warm-up 30 s at 100 ms) -> the weapon's
+hosted flight asks the campaign for the wind (`wn_move.c CAMPAIGN_STEP_LOOKUP_WIND` -> `get_session_wind_velocity_at_point`) -> the campaign asks the host's environment provider. The wrapper counts
+all traffic; until the launch has finished healthy AND its births have been read and frozen as the cohort, before any frame, it delegates everything unchanged. Only then is it ARMED, and from then on
+a wind question that asked for a VECTOR (`want_vector` true) is answered by the mode; a question that asked for no vector, and every other operation, is delegated unchanged. The wrapper never changes
+the request it is handed, and never calls the host for an altered wind answer.
+
+| mode | armed vector answer | must |
+|---|---|---|
+| `control` | the host's own | complete healthy: whole cohort ended, at least one vector question asked after the arm, real vector answers sampled |
+| `changed_wind` | `{ speed = 64, vector = { 64, 0, 0 } }` (finite, exact singles; recorded) | complete healthy; every armed vector question altered; the cohort's recorded flight facts differ from the control's, no member ending further along -x and at least one further along +x |
+| `withheld_wind` | the provider raises | the engine stops at `[env-provider:wind.callback]` |
+| `malformed_wind_speed` | a string speed with a valid vector | stops at `[env-provider:wind.answer]` |
+| `malformed_wind_vector` | a valid speed and NO vector | stops at `[env-provider:wind.answer]` |
+
+**The judge refuses** (each with its reason): missing/duplicate/foreign/incomplete terminals (all ten reported fields, `track` a 16-digit hexadecimal hash of the path), a later birth in the cohort, unmatched
+configuration / selection / launch text and frame / cohort / INITIAL birth lines across the compared runs, an arm that is missing or came after a frame, an alteration sent before the arm or of another kind,
+incoherent counters, a stopped, stalled or budget-exhausted or output-failed run (a caught engine guard is never a healthy completed campaign; the witness's own failures carry the prefix
+`env-wind-authority:` and are never an expected refusal), a control or altered mode in which the campaign asked NO wind vector question after the launch (the reason is printed; Root investigates, and no
+scenario, weapon or wind-enabled flag is changed to force one), and a changed wind that left every flight fact unchanged ("the wind was not used by this cohort").
+
+**What the synthetic-row guards and the real-driver controls prove, exactly:** the judge accepts and refuses what is listed above; the REAL driver, run against scripted collaborators, arms only after the
+launch and the frozen cohort, alters only armed vector questions (not the one inside the launch call, not a no-vector question), never changes a request, records what it sent, stops each refusal mode at
+the marker it names, keeps later births and foreign/duplicate terminals out of the cohort, reports a campaign that never asks for wind, and fails distinctly on a stalled clock, an exhausted frame budget and
+every write, flush and close failure. The collaborators invent no physics and say nothing about the DLL. **What they do NOT prove:** that the real cohort asks for wind at all, that the changed wind moves it,
+or anything about the product; that is the public witness, which prints SKIPPED without `EECH_WORLD_BIN` and `EECH_WIND_ROOTS` (a skip is never a proof).
+
+**Disclosure.** After the arm the provider's traffic is global: EVERY vector question of the campaign is answered by the mode, whoever asks. This is a bounded alternate-host-world input, NOT an isolation of
+the weapon from the campaign's policy, its random draws or other weapon families; the cohort's recorded terminal facts are the only claim. **Pending exact gates (Root):** pin/format/build; run the new unit
+file; run the public witness with the weapon-fixture DLL and one fresh verified root per mode (control first, `EECH_WIND_MODES` optional); one independent review of this delta; the final Task 51 gates remain.
+
 ## Remaining coupling and open gates (finite)
 
 * The lightning strike and sound entity creation, the sound/terrain-scratch bridge and the time-of-day input stay in Core (explicitly open within Task 51/D3).

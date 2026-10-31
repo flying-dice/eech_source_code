@@ -1,0 +1,55 @@
+{
+  "when_utc": "2026-10-31T11:42:34.029221+00:00",
+  "scope": "Closed bounded physicalfield COMPONENT gates atdd, NOTTask51/D3/authority/fullshippingacceptance. ExplicitLFtextnormalization; rawprivateassets/binaries/recordings keptoutsideGit.",
+  "copies": [
+    {
+      "file": "source-review.json",
+      "raw_sha256": "7a501a70ba6b16b4ef9f0e4aa34a8a76af705b7dcd68b5fbc3e8dd3143a6f2ab",
+      "git_lf_sha256": "2475ae04b7be1b02b87c0a333707ba70d8d8b23693231e6adfac9c61e739dd4d",
+      "raw_bytes": 5616,
+      "git_lf_bytes": 5573
+    },
+    {
+      "file": "linux-completion.json",
+      "raw_sha256": "9d6db53ea875caad960a309d867bdf79e6817a779878e20e668cbb332a024354",
+      "git_lf_sha256": "ff16e411fb50cd323c9671e7870ef5cc2892c4438e803038f9b40cd231593e45",
+      "raw_bytes": 647,
+      "git_lf_bytes": 629
+    },
+    {
+      "file": "actual-windows-tests.json",
+      "raw_sha256": "709cffbf3a1bbc14adb0e6efab45df86a2ce75fa2320968dcc376fd859b3f8a3",
+      "git_lf_sha256": "ba2dc20cc13c54bf227cf2e2a02819d9a07785a08ad721cb47efbcc39b4f9c06",
+      "raw_bytes": 2075,
+      "git_lf_bytes": 2018
+    },
+    {
+      "file": "numeric-comparison.json",
+      "raw_sha256": "ec7d440335a74595341b9a2acf692140cb664200d50674e1bcea49aa8c77d60a",
+      "git_lf_sha256": "3fea282d72a08d81bfee86bb2bc46f69123d97132685dd727168c9221976bcb5",
+      "raw_bytes": 1298,
+      "git_lf_bytes": 1266
+    },
+    {
+      "file": "current-ci.json",
+      "raw_sha256": "e54674218cdd0895e1ccf6f7145cd2e398f209fe2fdb558a46cc577964932467",
+      "git_lf_sha256": "e54674218cdd0895e1ccf6f7145cd2e398f209fe2fdb558a46cc577964932467",
+      "raw_bytes": 1485,
+      "git_lf_bytes": 1485
+    },
+    {
+      "file": "c-abi-isolation.json",
+      "raw_sha256": "626e8edec930fe519c822f01ccdca4dc00adb0cda9a933a5332595f2abc5d9b6",
+      "git_lf_sha256": "e69cdfbcf389d02390158cfa004c077d9ab10b7ee47f707b154fc15a5dce2dd5",
+      "raw_bytes": 1680,
+      "git_lf_bytes": 1634
+    },
+    {
+      "file": "ground-live-prefixes.json",
+      "raw_sha256": "808b417909b961ac3a5f65bb297df9cfdb50e79434823b54200e9d40b63ed2db",
+      "git_lf_sha256": "021d3d1077622a971476768b75ca3031c12a1dedfec6e9060935be6debbc74c8",
+      "raw_bytes": 2048,
+      "git_lf_bytes": 2001
+    }
+  ]
+}

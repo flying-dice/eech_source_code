@@ -1,0 +1,48 @@
+{
+  "when_utc": "2026-10-31T11:29:30.112080+00:00",
+  "runtime_source": "aafb21775f5d3523a30f148d23fbce588902025a",
+  "scope": "LIVE PREFIX ONLY; not complete output, native completion or pack acceptance",
+  "length_source": "open-file-handle seek-end snapshot (avoid stale Windows directory sizes)",
+  "rows": [
+    {
+      "file": "reference\\run1\\recording.acmi",
+      "observed_bytes": 14814929,
+      "baseline_bytes": 117690861,
+      "equal_prefix": true,
+      "empty_prefix": false,
+      "candidate_prefix_sha256": "30ef4bfcab836e865c799e6af7ff2a6fcf6e88b184f9ea4c0c4f303b10e86969",
+      "baseline_prefix_sha256": "30ef4bfcab836e865c799e6af7ff2a6fcf6e88b184f9ea4c0c4f303b10e86969",
+      "first_difference": null
+    },
+    {
+      "file": "reference\\run1\\observations.jsonl",
+      "observed_bytes": 8945664,
+      "baseline_bytes": 85716447,
+      "equal_prefix": true,
+      "empty_prefix": false,
+      "candidate_prefix_sha256": "ec9be62ae9974862dd95ab74d9ae062baac47d6214c5cbe4440bcc28cafc98de",
+      "baseline_prefix_sha256": "ec9be62ae9974862dd95ab74d9ae062baac47d6214c5cbe4440bcc28cafc98de",
+      "first_difference": null
+    },
+    {
+      "file": "reference\\run2\\recording.acmi",
+      "observed_bytes": 14847688,
+      "baseline_bytes": 117690861,
+      "equal_prefix": true,
+      "empty_prefix": false,
+      "candidate_prefix_sha256": "8d11e4178f86ed067b0a75b30618474f011a703d13567871ca0afc620fc48401",
+      "baseline_prefix_sha256": "8d11e4178f86ed067b0a75b30618474f011a703d13567871ca0afc620fc48401",
+      "first_difference": null
+    },
+    {
+      "file": "reference\\run2\\observations.jsonl",
+      "observed_bytes": 8949760,
+      "baseline_bytes": 85716447,
+      "equal_prefix": true,
+      "empty_prefix": false,
+      "candidate_prefix_sha256": "d5700ebda0679e83c1ac86e6a11b6cef4f996983c3ed4b5a312938724380d7d9",
+      "baseline_prefix_sha256": "d5700ebda0679e83c1ac86e6a11b6cef4f996983c3ed4b5a312938724380d7d9",
+      "first_difference": null
+    }
+  ]
+}

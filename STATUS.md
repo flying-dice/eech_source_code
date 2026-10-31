@@ -1,3 +1,45 @@
+# D3 checkpoint — field component gates green; wind-authority witness source ready (31 October 2026)
+
+Production field source dd5e7c4ce is frozen. Actual Linux default/fixture package
+tests and BOTH strict Clippy phases complete0; Windows fixture/export0, actual
+Windows engine77/77, module21/21 and world251/251 exit0, including full FP and the
+unused-address C-entry regression. ALL9hosted jobs atdd succeed, bothi686 included.
+The sole independent changed-delta review closes without findings (SHA256
+7a501a70ba6b16b4ef9f0e4aa34a8a76af705b7dcd68b5fbc3e8dd3143a6f2ab).
+Same finite C probe passes24cases per32/64architecture; oldactual C1 failure is
+retained, no status masks/skip/tolerance changes. All3retail164case probes0/6inputs0/
+46payloads preserve complete705rawlines inclendings EXACT05b/all704original993lines.
+Safe component receipts: reference/d3-environment-characterization/physical-dd5e7c4ce-component-gates/.
+
+The same available Sonnet5.5High context completes the NEW TEST-ONLY wind-authority
+witness source at11:37:06UTC. Lua restored from preservedpartial is unchanged;
+new Rust judge/realLua-driver controls/public5mode harness plusdocs are UNBUILT,
+UNRUN/UNREVIEWED. ProductionC/Rust/provider/ABI/boot/flags/manifests unchanged fromdd.
+Five fresh Lebanon roots verify0. Next: pin/build weapon-fixture/currentjudge,
+actualchanged/withheld/malformedhostwind onmatchedhealthyprojectilecohort, independent
+new-delta review, then remaining required physical effects/time/terrain/spatial/model
+coupling and final shipping40/all8COMPLETE/currentCI/normaldelivery. Componentgreen
+is not hostauthority, Task51 or wholeD3 acceptance. Campaignpolicy/scheduling Core;
+D4/D5notstarted. No originaloracle/baseline/tolerance changes.
+
+Ground fullshipping9948/19032/fournativePIDs remainlive atoriginalbirthidentities.
+Latest4prefixes still equal accepted bytes (~14.8MBACMI/8.9MBOBS), PARTIALONLY.
+Actualcompletion/full40/all8COMPLETE/input+sourcebin/review/currentCI/normalmerge
+remain. KeepR: andalllive roots/bin/raw untouched. D3-ACTIVE.json isprivateactivecheckpoint.
+
+# D3 checkpoint — wind authority witness finished (test source only) on dd5e7c4ce (31 October 2026)
+
+EEDCS-51 / PR111 from clean pushed `dd5e7c4ce` plus the restored partial driver (`lua/env-wind-authority.lua`, SHA-256 `5cb5bb9f...`, byte-exact, finished without change) and the new
+`tests/env_wind_authority.rs`: a TEST-ONLY public host-owned Lua -> native environment wind authority/refusal witness on a REAL launched weapon (modes control, changed_wind, withheld_wind,
+malformed_wind_speed, malformed_wind_vector; armed only after the matched healthy launch and the frozen cohort; at least one actual armed wind VECTOR question required or the witness fails with its
+reason; changed wind 64 / {64,0,0} must change the cohort's recorded flight along +x; refusals must hit `[env-provider:wind.callback]` / `[env-provider:wind.answer]` with a sent alteration). NEW TEST SOURCE:
+UNBUILT, UNRUN, UNREVIEWED; no production C/Rust/ABI/provider/boot/build/manifest change. The synthetic-row judge guards and the real-driver controls (scripted collaborators) prove only bookkeeping and the
+driver's arming/alteration/failure behaviour, not the DLL, not that the cohort asks for wind; the public witness prints SKIPPED without a DLL and roots. Provider traffic after the arm is global (a bounded
+alternate-host-world input, not an isolation of policy/RNG/other families). Actual state recorded by Root and unchanged here: d4/87 Windows 77/21/250 and Linux default/fixture/strict 0, retail 164 and
+120 s raw oracles exact (one validation line extra), the corrected draw-by-address ABI with the private probe v2 exact, the dd source review closed with no finding (SHA-256 `7a501a70...f2ab`); the dd normal
+Linux/Windows/CI and new C-entry test runs are pending, no pass claimed. Whole Task 51/D3 remains required (physical effects, sound/terrain-scratch, time, loaders, spatial, model); campaign policy stays Core;
+D4/D5 not started.
+
 # D3 checkpoint — 87e7e0627: draw address read only when have_draw (31 October 2026)
 
 EEDCS-51 / PR111 from clean pushed `87e7e0627` (the draw passed by address). Actual (Root's): the private C probe v2 passes all 24 cases on both architectures with full CW/SW/TW/MXCSR, the 32-bit
