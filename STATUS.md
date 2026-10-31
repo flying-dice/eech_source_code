@@ -1,11 +1,12 @@
-# D3 checkpoint — field component closed; wind witness running (31 October 2026, 12:21 UTC)
+# D3 checkpoint — wind authority closed; original sound-sector fixture correction (31 October 2026, 12:31 UTC)
 
 The current objective remains COMPLETE D3 (EEDCS-21), with D4/D5 unstarted.
 Task47 is delivered at integration b6575594c. Tasks48/49/50/51 remain open.
 
 Ground Task48/PR108 ordinary shipping source aafb21775 continues in the original
 fresh recovery processes 9948/19032 and four native children. All focused gates
-are closed and current b7a3dd63f CI is green. Latest complete flushed prefixes of
+are closed and prior b7a3dd63f CI is green; newer STATUS-only publication checks
+remain separate from runtime source aafb. Latest complete flushed prefixes of
 both Tacview recordings (~20.1 MB) and observations (~12.7 MB) match accepted
 bytes. This is PARTIAL: actual full exit, all40 checks, all8 complete artifacts,
 post-input/payload checks, new completed-evidence review and normal merge remain.
@@ -19,13 +20,24 @@ retained with its reviews. New test-only34c7c28bf includes actual event grammar,
 independent launch counts and complete loss-counter checks; source review closes
 at585 with no findings,34 is rustfmt only. Linux fmt/21functions/strict0 and
 Windows judge export/actual21functions0. The public runtime in those21 was
-explicitly SKIPPED. Actual five-mode retail witness is now LIVE25232/23776:
-all5 pre-inputs0; real control/changed rows produced, final judgements pending.
-It uses verified immutable47 native plus new34 judge/embedded Lua; production
-inputs are equivalent, all47 native payloads verify. No shipping acceptance.
+explicitly SKIPPED. The separate REAL five-mode test exits0 after336.39s:
+changed wind changes the matched projectile's terminal flight toward+x;
+withheld/malformed replies stop at wind.callback/answer after one alteration.
+All10 pre/post input checks pass; all47 immutable native payloads and copied
+script SHA match. This uses immutable47 native plus new34 judge/embedded Lua
+with verified production equivalence. All9 CI jobs at34 pass; independent
+actual-evidence review closes without findings (SHA843ec6af...d527). Safe
+receipts/review are pushed at4649b75d4 on PR111. Provider traffic is global,
+not policy/RNG/family isolation. No shipping/Task51/D3 acceptance.
 
 ONE Sonnet5.5 High lane now characterizes the original sound routine's sector
-surface query/scratch before its host cutover; fresh3 roots verify0. Existing
+surface query/scratch before its host cutover; fresh3 roots verify0. Test-only
+a78 driver guards4/4 pass; native Linux compile101 and Windows fixturebuild1
+both reproduce one review-found unescaped C string newline. The sole author is
+correcting that syntax only before original retail measurement; no sector
+cutover yet. Failed source/logs are preserved. Jira51comment10889 and ledger89
+record the closed wind witness and remaining work; all5 epic reports preserved.
+Existing
 original observer/effects/RNG/time evidence is reused. Sound/lightning effects,
 physical time inputs, remaining terrain/loaders, spatial/object/tree scans and
 model hierarchy/viewpoint/physical-route data stay required within D3. Campaign
