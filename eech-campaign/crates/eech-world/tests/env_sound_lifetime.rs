@@ -436,21 +436,23 @@ fn state_row(ent: usize, e: &Ent, tag: u32, c: Option<Cap>) -> String {
     }
 }
 
-fn probe_row(seq: usize, point: u32, tracked: usize, e: &Ent, upd: u32, c: Option<Cap>) -> String {
+fn probe_row(seq: usize, point: u32, tracked: usize, e: &Ent, upd: u32, c: Option<Cap>, meta: (u32, u32, u32)) -> String {
     let (etype, sub, valid, looping, member, life, vlife) = match c {
         Some(c) => (32, e.sub, c.valid, c.looping, c.member, c.life, c.vlife),
         None => (0, 0, 0, 0, 0, "00000000", "00000000"),
     };
+    // the constructor metadata the probe reads: the first sample, its controlled rate and size, the observed original rate and the sequence count; a killed entity's record reads only its slot
+    let (sample, rate, size, orate, seqcount) = if c.is_some() { (12, meta.0, meta.1, 22050, meta.2) } else { (-1, 0, 0, 0, 0) };
     format!(
-        "env-snd seq={seq} point={point} n=0 tracked={tracked} frame=0 upd={upd} entity={} etype={etype} sub={sub} channel=1 locality=0 valid={valid} looping={looping} panning=0 seqcount=1 handle=0 session_parent=1 \
-update_member={member} sample=12 rate=22050 size=88200 orate=22050 life_w={life} vlife_w={vlife} amp_w=3f800000 pitch_w=3f800000 px_w=00000000 py_w=00000000 pz_w=00000000 delta_w=3dcccccd\\n",
+        "env-snd seq={seq} point={point} n=0 tracked={tracked} frame=0 upd={upd} entity={} etype={etype} sub={sub} channel=1 locality=0 valid={valid} looping={looping} panning=0 seqcount={seqcount} handle=0 session_parent=1 \
+update_member={member} sample={sample} rate={rate} size={size} orate={orate} life_w={life} vlife_w={vlife} amp_w=3f800000 pitch_w=3f800000 px_w=00000000 py_w=00000000 pz_w=00000000 delta_w=3dcccccd\\n",
         e.slot
     )
 }
 
-fn add(rows: &mut Vec<String>, point: u32, tracked: usize, e: &Ent, upd: u32, c: Option<Cap>) {
+fn add(rows: &mut Vec<String>, point: u32, tracked: usize, e: &Ent, upd: u32, c: Option<Cap>, meta: (u32, u32, u32)) {
     let seq = rows.len();
-    rows.push(probe_row(seq, point, tracked, e, upd, c));
+    rows.push(probe_row(seq, point, tracked, e, upd, c, meta));
 }
 
 /// The canned report of a controlled-data case: `variant` "" is the ordinary form, "early" a server kill at the first call (case 4), "unlink_early" an unlink at the second call (case 9), "short" a control short of
@@ -517,7 +519,7 @@ fn data_report_variant(case: u32, variant: &str) -> String {
                     server: true,
                     created: looped,
                     paused: None,
-                    posts: vec![Some(looped); 3],
+                    posts: vec![Some(looped); if variant == "overcall" { 4 } else { 3 }],
                 },
                 Ent {
                     slot: 21,
@@ -525,7 +527,11 @@ fn data_report_variant(case: u32, variant: &str) -> String {
                     server: false,
                     created: looped,
                     paused: None,
-                    posts: vec![Some(looped); 3],
+                    posts: if variant == "overcall" {
+                        vec![Some(looped), Some(Cap { member: 0, ..looped })]
+                    } else {
+                        vec![Some(looped); 3]
+                    },
                 },
             ]
         }
@@ -587,8 +593,14 @@ fn data_report_variant(case: u32, variant: &str) -> String {
     }
     // the probe records, in time order: every creation, then each entity's calls
     let mut rows: Vec<String> = Vec::new();
+    // the constructor input of the case: the first sample's controlled rate and size, and the sequence count (case 6 builds a two-sample sequence)
+    let meta = match case {
+        6 => (4, 6, 2),
+        7 => (1, 400, 1),
+        _ => (4, 20, 1),
+    };
     for (i, e) in ents.iter().enumerate() {
-        add(&mut rows, 0, i, e, 0, Some(e.created));
+        add(&mut rows, 0, i, e, 0, Some(e.created), meta);
     }
     let (mut calls, mut kills) = (0, 0);
     for (i, e) in ents.iter().enumerate() {
@@ -597,15 +609,15 @@ fn data_report_variant(case: u32, variant: &str) -> String {
             let pre = if k == 0 { e.paused.unwrap_or(e.created) } else { e.posts[k - 1].unwrap() };
             calls += 1;
             if e.server {
-                add(&mut rows, 1, i, e, upd, Some(pre));
+                add(&mut rows, 1, i, e, upd, Some(pre), meta);
                 if post.is_none() {
-                    add(&mut rows, 2, i, e, upd, Some(Cap { life: "bf800000", ..pre }));
-                    add(&mut rows, 5, i, e, upd, None);
+                    add(&mut rows, 2, i, e, upd, Some(Cap { life: "bf800000", ..pre }), meta);
+                    add(&mut rows, 5, i, e, upd, None, meta);
                     kills += 1;
                 }
             } else {
-                add(&mut rows, 6, i, e, upd, Some(pre));
-                add(&mut rows, 7, i, e, upd, *post);
+                add(&mut rows, 6, i, e, upd, Some(pre), meta);
+                add(&mut rows, 7, i, e, upd, *post, meta);
             }
         }
     }
@@ -789,6 +801,10 @@ fn a_controlled_data_report_that_is_incomplete_unrestored_or_at_odds_with_its_ca
         ),
         ("8", "a second entity that changes slot", edit("if index == 8 then return (text:gsub('ent=1 slot=21 tag=0', 'ent=1 slot=20 tag=0', 1)) end"), "change slot"),
         ("7", "an ordinary and a music sound with the same sub type", edit("if index == 7 then return (text:gsub('ent=1 slot=21 tag=0 etype=32 data=1 sub=2', 'ent=1 slot=21 tag=0 etype=32 data=1 sub=1', 1)) end"), "same sub type"),
+        // the residual group of the review of 116ffd5fb: the CREATED metadata is the declared constructor input, and a cohort never makes more calls than the case plans for it
+        ("4", "a CREATED record whose sample metadata is not the declared descriptor", edit("if index == 4 then return (text:gsub(' rate=4 size=20 orate', ' rate=22050 size=88200 orate', 1)) end"), "where the declared constructor input is sample 12 rate 4"),
+        ("6", "a CREATED record whose sequence count is not the two samples the case builds", edit("if index == 6 then return (text:gsub('seqcount=2', 'seqcount=1', 1)) end"), "sequence count 2"),
+        ("8", "a coherent 4+2 report whose overcall cancels another cohort's skip in the totals", format!("report = {{ [8] = '{}' }}", data_report_variant(8, "overcall")), "plans at most 3 for each"),
     ];
     for (case, name, scenario, says) in &damaged {
         let driven = drive(scenario, &[("case", *case)]);

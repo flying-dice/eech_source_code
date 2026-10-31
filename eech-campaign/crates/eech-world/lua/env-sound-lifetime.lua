@@ -214,7 +214,7 @@ end
 local DATA = {
 	[4] = { L = { 4, 20 }, entities = 1, calls = 3, routines = { "server" }, delta = "40000000", looping = "0" },
 	[5] = { L = { 4, 20 }, entities = 1, calls = 3, routines = { "client" }, delta = "40000000", looping = "0" },
-	[6] = { L = { 4, 6 }, T = { 2, 5 }, entities = 1, calls = 0, routines = {}, delta = "00000000", looping = "0" },
+	[6] = { L = { 4, 6 }, T = { 2, 5 }, entities = 1, seqcount = 2, calls = 0, routines = {}, delta = "00000000", looping = "0" },
 	[7] = { L = { 1, 400 }, entities = 2, calls = 0, routines = {}, delta = "00000000", looping = "0", distinct_sub = true },
 	[8] = { L = { 4, 20 }, entities = 2, calls = 3, routines = { "server", "client" }, delta = "40000000", looping = "1" },
 	[9] = { L = { 4, 20 }, entities = 1, calls = 3, routines = { "server" }, delta = "3f800000", looping = "0", pause = "3fc00000" },
@@ -292,6 +292,7 @@ elseif case >= 4 then
 		local at = 6
 		-- the declared input domain: the controlled descriptor of the lightning sample, the thunder sample (controlled for case 6, otherwise the retail value left alone), the planned calls and the delta
 		local seen_samples = {}
+		local first_descriptor
 		for k = 1, 2 do
 			local row = rows [at]
 			if row == nil or row.event ~= "env-sound-data-input" then hard ("the controlled-data case does not give descriptor row " .. k) end
@@ -303,6 +304,7 @@ elseif case >= 4 then
 			end
 			if seen_samples [row.map.sample] then hard ("the two descriptor rows are of the same sample: " .. row.raw) end
 			seen_samples [row.map.sample] = true
+			if k == 1 then first_descriptor = row.map end
 			at = at + 1
 		end
 		if rows [at] == nil or rows [at].event ~= "env-sound-data-input" then hard ("the controlled-data case does not give its deltas row") end
@@ -354,6 +356,9 @@ elseif case >= 4 then
 		local total, planned_total = 0, spec.entities * spec.calls
 		for ent = 0, entities - 1 do
 			if states [ent] == nil then hard ("entity " .. ent .. " has no state rows") end
+			-- no cohort makes more calls than the case plans for it (the helper stops at the plan, and the probe stores at most three entries): checked BEFORE any aggregate accounting, so an overcall in one
+			-- cohort can never cancel a legitimate skip in another in the planned/made/skipped totals
+			if (made [ent] or 0) > spec.calls then hard ("entity " .. ent .. " made " .. made [ent] .. " calls where case " .. case .. " plans at most " .. spec.calls .. " for each") end
 			total = total + (made [ent] or 0)
 			-- the cohort identity: distinct slots; case 7 builds an ordinary and a music sound, so two sub types
 			for other = 0, ent - 1 do
@@ -420,6 +425,16 @@ elseif case >= 4 then
 			if w.kills > 1 then hard ("tracked entity " .. ent .. " is killed more than once") end
 			-- the constructor's state is the CREATED record; each state before a call is that call's ENTER record (after the real pause, the state straight after it); a client state after a call is that call's EXIT record
 			same (st [0], group [1], "CREATED record", ent)
+			-- the constructor metadata of every record that reads the entity is the declared first descriptor and the case's sequence count: the sample, the controlled rate and size, the observed original rate and
+			-- the count of samples (nothing is computed from them; a killed entity's record reads only its slot and carries none)
+			for _, r in ipairs (group) do
+				if tonumber (r.map.point) ~= 5 then
+					local m = r.map
+					if m.sample ~= first_descriptor.sample or m.rate ~= first_descriptor.controlled_rate or m.size ~= first_descriptor.controlled_size or m.orate ~= first_descriptor.original_rate or tonumber (m.seqcount) ~= (spec.seqcount or 1) then
+						hard ("the probe record " .. m.seq .. " of entity " .. ent .. " carries sample " .. m.sample .. " rate " .. m.rate .. " size " .. m.size .. " original rate " .. m.orate .. " sequence count " .. m.seqcount .. " where the declared constructor input is sample " .. first_descriptor.sample .. " rate " .. first_descriptor.controlled_rate .. " size " .. first_descriptor.controlled_size .. " original rate " .. first_descriptor.original_rate .. " sequence count " .. (spec.seqcount or 1))
+					end
+				end
+			end
 			local k_enter, k_exit = 0, 0
 			for _, r in ipairs (group) do
 				local point = tonumber (r.map.point)
