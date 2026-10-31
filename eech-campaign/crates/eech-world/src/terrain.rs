@@ -13,6 +13,10 @@
 //!   `stored = true`, or leaves `stored` out, which means true). A host that keeps no such state returns no
 //!   hint and ignores one it is given.
 //! - `{ op = "fast", x, z }`: the fast grid's elevation.
+//! - `{ op = "sector", x, z }` (EEDCS-51): the surface enumeration of the sector that holds the position -- the original's `get_terrain_3d_types_in_sector` over the sectors this host
+//!   loaded. The answer is `{ returned, flags }`: `returned` is the original's return value (1 PLUS THE NUMBER OF SURFACE CHANGES of the sector, not the number of surfaces) and `flags` a string
+//!   of one `0` or `1` for each of the 62 terrain types (`1` for the sector's first surface and the surface of every polygon that changes surface). A position whose sector is not in the map
+//!   (or that is not finite) is an error, where the original indexed outside its table.
 //!
 //! A malformed request, a hint this host did not issue and any missing data are errors with a message; nothing falls back to another solver.
 //!
@@ -159,6 +163,16 @@ extern "C" {
     fn host_terrain_get_facts(map: *const c_void, out: *mut Facts);
     fn host_terrain_query(map: *const c_void, x: f32, z: f32, hint: *const Hint, out: *mut RawAnswer, error: *mut c_char, error_size: usize) -> i32;
     fn host_terrain_fast_elevation(map: *const c_void, x: f32, z: f32, out: *mut f32, error: *mut c_char, error_size: usize) -> i32;
+    fn host_terrain_types_in_sector(
+        map: *const c_void,
+        x: f32,
+        z: f32,
+        returned: *mut i32,
+        flags: *mut u8,
+        flags_capacity: usize,
+        error: *mut c_char,
+        error_size: usize,
+    ) -> i32;
     fn host_terrain_conformance_sweep(
         map: *const c_void,
         seed: u32,
@@ -456,7 +470,24 @@ impl Terrain {
         }
         Ok(value)
     }
+
+    /// The surface enumeration of the sector that holds a position (`host_terrain_types_in_sector`): the original's return value (1 + the surface changes of the sector) and one flag for each
+    /// terrain type. An error when the position is not finite or its sector is not in the map.
+    pub fn types_in_sector(&self, x: f32, z: f32) -> Result<(i32, Vec<bool>), String> {
+        let mut returned = 0i32;
+        let mut flags = [0u8; SECTOR_TYPES];
+        let mut error = [0 as c_char; 256];
+        // SAFETY: the map is live, `flags` has the room the kernel is told and the out pointers are valid.
+        let status = unsafe { host_terrain_types_in_sector(self.map, x, z, &mut returned, flags.as_mut_ptr(), flags.len(), error.as_mut_ptr(), error.len()) };
+        if status != 0 {
+            return Err(message(&error));
+        }
+        Ok((returned, flags.iter().map(|flag| *flag != 0).collect()))
+    }
 }
+
+/// The number of EECH terrain types: the width of a sector's flags (`HOST_TERRAIN_TYPE_COUNT`, checked against the kernel's own enumeration when it is compiled).
+pub const SECTOR_TYPES: usize = 62;
 
 const HINT_PREFIX: &str = "e2";
 const HINT_BYTES: usize = 44;
@@ -694,6 +725,15 @@ fn respond(lua: &Lua, terrain: &Terrain, request: &LuaTable) -> LuaResult<LuaTab
                 let elevation = terrain.fast_elevation(x, z).map_err(|e| LuaError::runtime(format!("host.terrain: {e}")))?;
                 let table = lua.create_table()?;
                 table.set("elevation", f64::from(elevation))?;
+                Ok(table)
+            }
+            "sector" => {
+                let reader = coordinate_reader(lua)?;
+                let (x, z) = (coordinate(&reader, request, "x")?, coordinate(&reader, request, "z")?);
+                let (returned, flags) = terrain.types_in_sector(x, z).map_err(|e| LuaError::runtime(format!("host.terrain: {e}")))?;
+                let table = lua.create_table()?;
+                table.set("returned", returned)?;
+                table.set("flags", flags.iter().map(|flag| if *flag { '1' } else { '0' }).collect::<String>())?;
                 Ok(table)
             }
             other => Err(LuaError::runtime(format!("host.terrain: unknown op {other:?}"))),

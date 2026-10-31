@@ -999,6 +999,8 @@ pub enum TerrainQuery {
     Point { x: f32, z: f32, hint: Option<String>, winter: bool },
     /// the fast gridpost elevation at a point
     Fast { x: f32, z: f32, winter: bool },
+    /// the surface enumeration of the sector that holds a point (EEDCS-51): the original's `get_terrain_3d_types_in_sector`, asked by the session sound routine every update
+    Sector { x: f32, z: f32, winter: bool },
 }
 
 /// The facts about the map the host owns (`TerrainQuery::Map`). `fast_width`/`fast_height` are 0 when the host has no fast grid.
@@ -1034,6 +1036,13 @@ pub enum TerrainAnswer {
     },
     Fast {
         elevation: f32,
+    },
+    /// The sector enumeration: `returned` is the original's return value (1 PLUS THE NUMBER OF SURFACE TRANSITIONS of the sector -- not the number of distinct surfaces) and `flags` the
+    /// complete scratch by value, one entry per terrain type (`EECH_TERRAIN_TYPE_COUNT` of them), true where the type is a surface of the sector. The first surface is always flagged, so
+    /// at least one is, and `returned` is never below the number flagged.
+    Sector {
+        returned: i32,
+        flags: Vec<bool>,
     },
 }
 
@@ -1113,6 +1122,14 @@ unsafe extern "C" fn terrain_callback(
                     winter,
                 },
             ),
+            sys::EECH_TERRAIN_SECTOR => (
+                "sector",
+                TerrainQuery::Sector {
+                    x: source.x,
+                    z: source.z,
+                    winter,
+                },
+            ),
             other => return Err(format!("[terrain-provider:point.callback] terrain received unknown operation {other}")),
         };
         let answer = TERRAIN.with(|slot| -> Result<TerrainAnswer, String> {
@@ -1161,11 +1178,33 @@ unsafe extern "C" fn terrain_callback(
                 terrain_hint_into(&mut reply.hint, hint.as_deref())?;
             }
             ("fast", TerrainAnswer::Fast { elevation }) => reply.elevation = elevation,
+            ("sector", TerrainAnswer::Sector { returned, flags }) => {
+                // checked here as well as by the campaign, so that a direct Rust provider cannot hand the C side an enumeration that is not one: the flags are one entry for each terrain type, the
+                // sector's first surface is always flagged, and the return value (1 + the transitions) is never below the number of surfaces flagged
+                if flags.len() != sys::EECH_TERRAIN_TYPE_COUNT as usize {
+                    return Err(format!(
+                        "[terrain-provider:sector.flags] the provider answered {} sector flags, not one for each of the {} terrain types",
+                        flags.len(),
+                        sys::EECH_TERRAIN_TYPE_COUNT
+                    ));
+                }
+                let distinct = flags.iter().filter(|flag| **flag).count();
+                if distinct == 0 || i64::from(returned) < i64::try_from(distinct).unwrap_or(i64::MAX) {
+                    return Err(format!(
+                        "[terrain-provider:sector.returned] the sector return value {returned} does not fit its {distinct} flagged surfaces (at least one, and never more than the return value)"
+                    ));
+                }
+                reply.sector_returned = returned;
+                for (slot, flag) in reply.sector_flags.iter_mut().zip(&flags) {
+                    *slot = if *flag { b'1' as c_char } else { b'0' as c_char };
+                }
+            }
             (operation, answer) => {
                 let given = match answer {
                     TerrainAnswer::Map(_) => "map facts",
                     TerrainAnswer::Point { .. } => "a point answer",
                     TerrainAnswer::Fast { .. } => "a fast elevation",
+                    TerrainAnswer::Sector { .. } => "a sector answer",
                 };
                 return Err(format!(
                     "[terrain-provider:{operation}.answer] the provider answered a {operation} question with {given}"
@@ -9583,5 +9622,104 @@ mod tests {
         assert_eq!(speed, 3.0);
         assert_eq!(WIND_SEEN_WANT_VECTOR.load(std::sync::atomic::Ordering::SeqCst), 0);
         WIND_REPLY_NAN_VECTOR.store(false, Ordering::SeqCst);
+    }
+
+    // ---- the sector surface enumeration (EEDCS-51): the SECTOR operation of the terrain callback ----
+
+    /// The flags of a sector answer: one entry for each terrain type, set at the listed type ids.
+    fn sector_flags(set: &[usize]) -> Vec<bool> {
+        (0..sys::EECH_TERRAIN_TYPE_COUNT as usize).map(|id| set.contains(&id)).collect()
+    }
+
+    #[test]
+    fn a_sector_answer_reaches_the_campaign_by_value_and_a_malformed_one_is_refused_before_anything_is_written() {
+        // the request is the position and the season; the answer is the original's return value (1 + the transitions: 7 here, with two surfaces) and the complete scratch
+        let (code, reply, error) = terrain_crossing(sys::EECH_TERRAIN_SECTOR, 1, "", |query| {
+            assert_eq!(
+                query,
+                TerrainQuery::Sector {
+                    x: 10.0,
+                    z: 20.0,
+                    winter: true
+                }
+            );
+            Ok(TerrainAnswer::Sector {
+                returned: 7,
+                flags: sector_flags(&[9, 46]),
+            })
+        });
+        assert_eq!(code, 0, "{error}");
+        assert_eq!(reply.sector_returned, 7, "the return value is carried, not the number of surfaces flagged (2)");
+        for (id, flag) in reply.sector_flags.iter().enumerate() {
+            let expected = if id == 9 || id == 46 { b'1' } else { b'0' };
+            let expected = if id >= sys::EECH_TERRAIN_TYPE_COUNT as usize { 0 } else { expected };
+            assert_eq!(*flag as u8, expected, "flag {id}");
+        }
+        // a provider's answer that is not an enumeration is refused with its marker, and nothing of it reaches the reply (it is still the sentinel the crossing started with)
+        let refused = |answer: TerrainAnswer, marker: &str| {
+            let (code, reply, error) = terrain_crossing(sys::EECH_TERRAIN_SECTOR, 0, "", move |_| Ok(answer.clone()));
+            assert_ne!(code, 0, "{marker}: accepted");
+            assert!(error.starts_with(&format!("[terrain-provider:{marker}]")), "{marker}: {error}");
+            assert_eq!(
+                (reply.sector_returned, reply.sector_x_max, reply.sector_flags[9]),
+                (0, 7, 0),
+                "{marker}: wrote into the reply"
+            );
+        };
+        // the wrong number of flags (61), none set (the first surface is always flagged), a return value below the number flagged, a return value of zero, a flag count of zero
+        refused(
+            TerrainAnswer::Sector {
+                returned: 3,
+                flags: sector_flags(&[9])[..61].to_vec(),
+            },
+            "sector.flags",
+        );
+        refused(
+            TerrainAnswer::Sector {
+                returned: 3,
+                flags: Vec::new(),
+            },
+            "sector.flags",
+        );
+        refused(
+            TerrainAnswer::Sector {
+                returned: 3,
+                flags: sector_flags(&[]),
+            },
+            "sector.returned",
+        );
+        refused(
+            TerrainAnswer::Sector {
+                returned: 1,
+                flags: sector_flags(&[9, 46]),
+            },
+            "sector.returned",
+        );
+        refused(
+            TerrainAnswer::Sector {
+                returned: 0,
+                flags: sector_flags(&[9]),
+            },
+            "sector.returned",
+        );
+        // an answer of another kind to a sector question is the wrong answer, and the other operations' answers are refused the same way
+        refused(TerrainAnswer::Fast { elevation: 2.0 }, "sector.answer");
+        refused(TerrainAnswer::Map(terrain_facts()), "sector.answer");
+        // the other way round: a sector answer to a point question
+        let (code, _, error) = terrain_crossing(sys::EECH_TERRAIN_POINT, 0, "", |_| {
+            Ok(TerrainAnswer::Sector {
+                returned: 1,
+                flags: sector_flags(&[9]),
+            })
+        });
+        assert_ne!(code, 0);
+        assert!(
+            error.starts_with("[terrain-provider:point.answer]") && error.contains("a sector answer"),
+            "{error}"
+        );
+        // a withheld answer and a missing provider keep their markers
+        let (code, _, error) = terrain_crossing(sys::EECH_TERRAIN_SECTOR, 0, "", |_| Err("[terrain-provider:sector.callback] withheld".into()));
+        assert_ne!(code, 0);
+        assert_eq!(error, "[terrain-provider:sector.callback] withheld");
     }
 }

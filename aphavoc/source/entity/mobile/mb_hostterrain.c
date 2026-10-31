@@ -339,4 +339,70 @@ float get_3d_terrain_fast_elevation ( float x, float z )
 	return ( reply.elevation );
 }
 
+////////////////////////////////////////
+//
+// the sector surface enumeration (EEDCS-51, D3)
+//
+////////////////////////////////////////
+
+// get_terrain_3d_types_in_sector (modules/3d/terrain/terrdata.c) in the headless campaign module.  The host selects the sector, enumerates its surfaces and answers the original's return
+// value and the whole scratch by value; this function checks the answer in full and only then writes the legacy scratch terrain_types_in_sector (the array the sound routine reads after
+// the call), entry for entry, exactly as the original's memset and its flags did.  It computes nothing and reads none of the campaign's own sectors.
+int campaign_terrain_types_in_sector (float x, float z)
+{
+	campaign_terrain_request
+		request;
+
+	campaign_terrain_reply
+		reply;
+
+	int
+		i,
+		distinct;
+
+	memset (&request, 0, sizeof (request));
+
+	request.op = CAMPAIGN_TERRAIN_SECTOR;
+	request.x = x;
+	request.z = z;
+
+	ask (&request, &reply, "sector");
+
+	// the answer: the flags are exactly one '0' or '1' for each terrain type and then the terminator
+	if (reply.sector_flags[TERRAIN_TYPE_LAST] != '\0')
+	{
+		debug_fatal ("host terrain: [terrain-provider:sector.flags] the host's sector flags are not exactly %d characters", (int) TERRAIN_TYPE_LAST);
+	}
+
+	distinct = 0;
+
+	for (i = 0; i < TERRAIN_TYPE_LAST; i++)
+	{
+		if ((reply.sector_flags[i] != '0') && (reply.sector_flags[i] != '1'))
+		{
+			debug_fatal ("host terrain: [terrain-provider:sector.flags] the host's sector flag of terrain type %d is neither '0' nor '1'", i);
+		}
+
+		if (reply.sector_flags[i] == '1')
+		{
+			distinct++;
+		}
+	}
+
+	// the sector's first surface is always flagged, and every flagged surface was met at least once: the return value (1 + the number of surface transitions) is never below the number of
+	// distinct flags -- it is NOT that number, and the campaign does not substitute one for the other
+	if ((distinct < 1) || (reply.sector_returned < distinct))
+	{
+		debug_fatal ("host terrain: [terrain-provider:sector.returned] the host's sector return value %d does not fit its %d flagged surfaces", reply.sector_returned, distinct);
+	}
+
+	// only now is the legacy scratch written: every entry, as the original's memset and its flags left it
+	for (i = 0; i < TERRAIN_TYPE_LAST; i++)
+	{
+		terrain_types_in_sector[i] = (reply.sector_flags[i] == '1') ? TRUE : FALSE;
+	}
+
+	return ( reply.sector_returned );
+}
+
 #endif // EECH_CAMPAIGN_HOST_TERRAIN

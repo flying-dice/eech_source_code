@@ -1,3 +1,18 @@
+# D3 checkpoint — the sound routine's terrain-sector surface enumeration moves to the host's terrain (31 October 2026)
+
+EEDCS-51 / PR111 from clean pushed `e3439025a` (integration still `b6575594c`). The original characterization is CLOSED and not repeated (Root's actuals: unchanged `get_terrain_3d_types_in_sector` on the hosted-field
+native `b2e55b18b`; three retail roots each 0 with six input manifests 0; each 95-row file 92 samples, 88 answered / 4 rejected, full 62 flags, 0 anomalies, `sound_clamp_maximum` answered; Lebanon and repeat raw
+files identical; no sampled retail count differs from its distinct flags; independent review closed, SHA-256 `1408817f...6200`). **This batch (UNBUILT, UNRUN, UNREVIEWED):** the enumeration is now the HOST's. Host
+(`terrain_ref.c host_terrain_types_in_sector`, `terrain.rs`): the original's truncating sector choice, a domain check where the original indexed unchecked, the walk of the first surface and EVERY polygon's surface
+change over the host's own loaded sectors, the complete 62-flag reset, return value 1 + the changes (not the distinct count), a surface id outside the types refused. Campaign (`mb_hostterrain.c`,
+`terrdata.c` under `EECH_CAMPAIGN_HOST_TERRAIN`): a SECTOR request, the answer checked in full before the legacy scratch `terrain_types_in_sector` (kept as a by-value mirror) is written, no fallback to its own sectors, any
+refusal fatal with `[terrain-provider:sector.*]`; the same checks at the Lua bridge and the engine callback; the other terrain operations, hints, season selection and closed FP/boundary contracts unchanged. Unmoved and named:
+the per-type triangle functions of the guide cover code (they also write the scratch), the rest of terrain (trees, loaders), the dormant renderer reader. New tests: host kernel/provider (`terrain_sector.rs`), engine
+and bridge units, and a public Lua/native authority witness (`lua/env-sector-authority.lua`, `tests/env_sector_authority.rs`, needs `env-observer`) whose changed answer must reach the scratch the real sound routine read, with
+withheld/malformed refusals at the named markers, kept apart from the default three-root comparison; the sound amplitudes, the renderer and a player are NOT shown. The generic mode of `lua/terrain-provider.lua` now answers the
+operation. Commands and the like-for-like three-root comparison protocol: `docs/d3-environment-sector-surface.md`. Production flags/Docker/auth, frozen evidence and live processes untouched; the engine C NUL is
+untouched. Whole Task 51/D3 remains open (lightning effects, physical time inputs, remaining terrain, spatial/object, model); campaign policy and time stay Core; D4/D5 not started; no acceptance claimed.
+
 # D3 measured original sector gate (31 October 2026, 12:38 UTC)
 
 Actual b2e native fixture builds on Linux/Windows succeed. Linux first strict101

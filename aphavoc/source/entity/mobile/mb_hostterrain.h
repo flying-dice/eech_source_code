@@ -5,7 +5,7 @@
  * get_3d_terrain_elevation, get_3d_terrain_fast_elevation and the record getters) are implemented in mb_hostterrain.c as requests to the host; the
  * original solver (3d/terrain/terrelev.c, terrsel.c) is not compiled into the headless campaign module.
  *
- * The exchange is one synchronous host callback with three operations, each a single request and a single reply:
+ * The exchange is one synchronous host callback with four operations, each a single request and a single reply:
  *
  *   Every request carries the season the terrain was loaded in (`winter`), captured before the first question: the host serves the map of that season.
  *
@@ -17,6 +17,14 @@
  *          record's next hint, and (`stored`, by value) whether the record holds a surface afterwards: the legacy "a face is stored" test of the fixed-wing movement
  *          asks that, never the hint, so a host that returns no hint still answers it.
  *   FAST   the fast gridpost elevation at a position.
+ *   SECTOR the surface enumeration of the sector that holds a position (EEDCS-51, D3): get_terrain_3d_types_in_sector, which the session sound routine calls every update.  The request is
+ *          the position (x, z; the sound routine passes the camera clamped to the map).  The reply is `sector_returned`, the original's return value (1 PLUS THE NUMBER OF SURFACE
+ *          TRANSITIONS of the sector, not the number of distinct surfaces), and `sector_flags`, the COMPLETE scratch by value: one character per terrain type, '1' where the type is a surface
+ *          of the sector (its first surface and the surface of every polygon that changes surface), '0' elsewhere.  The campaign keeps the legacy global scratch
+ *          terrain_types_in_sector as a by-value MIRROR of the last reply, written only after the reply has been checked, so its readers (the sound routine, the renderer) are unchanged;
+ *          it computes nothing for this operation and has no fallback to its own loaded sectors.  The sector choice, its domain (a position whose sector is not in the map is refused,
+ *          where the original indexed outside its table) and the reset of the scratch are the host's.  The other sector readers (the per-type triangle counts and lists of the guide
+ *          cover code) are not part of this operation and remain the campaign's own.
  *
  * The HINT is the host's opaque state for one find-fast record (the original kept pointers into its own terrain geometry there).  The campaign stores
  * it in the record and returns it with the next query on that record, exactly as the records are used (a shared record for queries that pass no record
@@ -37,11 +45,15 @@
 #define CAMPAIGN_TERRAIN_HINT_MAX 127
 #endif
 
+/* the room of a SECTOR reply's flags: at least TERRAIN_TYPE_LAST (62) characters and a terminator; the reply carries exactly TERRAIN_TYPE_LAST of them */
+#define CAMPAIGN_TERRAIN_FLAGS_MAX 64
+
 enum campaign_terrain_op
 {
 	CAMPAIGN_TERRAIN_MAP = 1,
 	CAMPAIGN_TERRAIN_POINT,
-	CAMPAIGN_TERRAIN_FAST
+	CAMPAIGN_TERRAIN_FAST,
+	CAMPAIGN_TERRAIN_SECTOR
 };
 
 typedef struct campaign_terrain_request
@@ -71,6 +83,9 @@ typedef struct campaign_terrain_reply
 	/* POINT: nonzero when the record holds a surface after this reply (the legacy "a face is stored"); independent of the hint, which a host may never return */
 	int stored;
 	char hint[CAMPAIGN_TERRAIN_HINT_MAX + 1];
+	/* SECTOR: the original's return value (1 + the surface transitions) and the complete scratch, one '0' or '1' per terrain type, NUL-terminated after TERRAIN_TYPE_LAST characters */
+	int sector_returned;
+	char sector_flags[CAMPAIGN_TERRAIN_FLAGS_MAX];
 } campaign_terrain_reply;
 
 typedef int (*campaign_terrain_fn)
@@ -95,5 +110,10 @@ void campaign_terrain_set_host (const campaign_terrain_host *host);
 /* Asks the host for the map facts, checks them against the terrain the campaign loaded for the sector-level users that are still its own (the sector
    counts must agree) and takes the extents and heights from the host.  Called once, straight after the terrain is loaded and before anything reads it. */
 void campaign_terrain_install_map_facts (void);
+
+/* The SECTOR operation, called by get_terrain_3d_types_in_sector (modules/3d/terrain/terrdata.c) in the headless campaign module: the host's answer is checked in full, then written into
+   terrain_types_in_sector by value, and the original's return value is returned.  A missing provider, a refusal, a malformed answer or a position the host cannot answer stops the engine
+   with an error that names the terrain provider; nothing is solved from the campaign's own sectors. */
+int campaign_terrain_types_in_sector (float x, float z);
 
 #endif

@@ -64,6 +64,19 @@ int host_terrain_copy_grid (const host_terrain *map, uint8_t *out, size_t capaci
 int host_terrain_query (const host_terrain *map, float x, float z, const host_terrain_hint *hint, host_terrain_answer *out, char *error, size_t error_size);
 int host_terrain_fast_elevation (const host_terrain *map, float x, float z, float *out, char *error, size_t error_size);
 
+/* The number of EECH terrain types (TERRAIN_TYPE_LAST): the width of a sector's flags. */
+#define HOST_TERRAIN_TYPE_COUNT 62
+
+/*
+ * The surface enumeration of the sector that holds (x, z) (EEDCS-51): the original's get_terrain_3d_types_in_sector (terrdata.c) over the sectors this map owns. The sector is chosen as
+ * the original chose it (x / 2048 and z / 2048, truncated toward zero) and must lie in the map; the original indexed its table without checking, and a position outside it is refused here
+ * with a message (as is one that is not finite). `flags` (at least HOST_TERRAIN_TYPE_COUNT bytes) is the complete scratch: 1 for the sector's first surface and for the surface of EVERY
+ * polygon that changes surface, 0 elsewhere; `*returned` is the original's return value, 1 PLUS THE NUMBER OF SURFACE CHANGES met, which is not the number of flags set (a surface met
+ * twice is flagged once and counted twice). A surface id outside the terrain types, which the original would use to index outside its scratch, is refused. On a refusal the flags are
+ * all zero and *returned is 0. 0 on success. The floating-point environment is not touched: the choice of sector is an exact scaling and a truncation.
+ */
+int host_terrain_types_in_sector (const host_terrain *map, float x, float z, int32_t *returned, uint8_t *flags, size_t flags_capacity, char *error, size_t error_size);
+
 /*
  * CONFORMANCE ONLY. The deterministic sweep of eech-engine-sys/csrc/eech_terrain_fixture.c (the probe the original solver was characterised
  * with), driven against this kernel instead of the DLL, with the same point generator, the same hints carried between queries and the same

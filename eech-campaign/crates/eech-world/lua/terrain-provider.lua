@@ -92,6 +92,8 @@ elseif mode == "raised" then
 elseif mode == "generic" then
 	provider = counted (function (request)
 		if request.op == "map" then return facts end
+		-- the sound routine asks for the sector's surface enumeration every update (EEDCS-51); a host with no EECH data is one land world: the first surface (land, type 9) alone, and the return value 1
+		if request.op == "sector" then return { returned = 1, flags = string.rep ("0", 9) .. "1" .. string.rep ("0", 52) } end
 		local x, z = request.x, request.z
 		local elevation = 200 + 80 * math.sin (x / 5000) * math.cos (z / 7000)
 		if request.op == "fast" then return { elevation = elevation } end

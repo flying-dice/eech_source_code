@@ -1123,6 +1123,10 @@ pub const EECH_TERRAIN_ERROR_MAX: usize = 512;
 pub const EECH_TERRAIN_MAP: c_int = 1;
 pub const EECH_TERRAIN_POINT: c_int = 2;
 pub const EECH_TERRAIN_FAST: c_int = 3;
+/// The SECTOR operation (EEDCS-51): the surface enumeration of the sector that holds a position, with the original's return value and the complete scratch by value.
+pub const EECH_TERRAIN_SECTOR: c_int = 4;
+/// The room of a SECTOR reply's flags (`CAMPAIGN_TERRAIN_FLAGS_MAX`): `EECH_TERRAIN_TYPE_COUNT` characters `0` or `1` and a terminator, zero-padded.
+pub const EECH_TERRAIN_FLAGS_MAX: usize = 64;
 /// The number of EECH terrain types (`TERRAIN_TYPE_LAST` in modules/3d/terrain/terrtype.h): a surface type answer is in `0..EECH_TERRAIN_TYPE_COUNT`.
 pub const EECH_TERRAIN_TYPE_COUNT: c_int = 62;
 
@@ -1156,6 +1160,10 @@ pub struct eech_terrain_reply {
     /// POINT: nonzero when the record holds a surface after this reply (independent of the hint)
     pub stored: c_int,
     pub hint: [c_char; EECH_TERRAIN_HINT_MAX + 1],
+    /// SECTOR: the original's return value (1 + the surface transitions)
+    pub sector_returned: c_int,
+    /// SECTOR: one `0` or `1` per terrain type, then the terminator
+    pub sector_flags: [c_char; EECH_TERRAIN_FLAGS_MAX],
 }
 
 pub type eech_terrain_callback = unsafe extern "C" fn(

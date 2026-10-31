@@ -30,7 +30,9 @@
  * GROUP 10 (explicit only, never in the default run, the census or the 164-case oracle): the ORIGINAL terrain-sector surface enumeration get_terrain_3d_types_in_sector, which the sound routine
  * calls every frame and which writes the shared scratch terrain_types_in_sector. It reports the original's return value (1 + the number of surface transitions, NOT the distinct flags), the complete
  * scratch flags, the sector the original selected, the reset between calls and the interleave behaviour, over a finite sweep of real sector centres and boundary samples, and restores the scratch. A
- * sample the original cannot be asked is rejected with its reason. See the comment before env_sector_case.
+ * sample the original cannot be asked is rejected with its reason. See the comment before env_sector_case. AFTER THE HOST CUTOVER OF THIS QUERY (EEDCS-51; build define EECH_CAMPAIGN_HOST_TERRAIN) the
+ * function this group calls is the campaign's client of the HOST's sector enumeration (terrdata.c delegates to mb_hostterrain.c), so the same group, command and rows are the like-for-like comparison of the
+ * host's answers with the three-root original collection; the sample domain below still reads the campaign's own loaded sectors, only to reject what the original could not be asked.
  *
  * NOT witnessed here, and why (printed in the census as `env-unsupported`):
  *   get_session_random_start_time_of_day  reseeds the shared AND the libc generators from the clock; the libc state cannot be saved or restored from here.

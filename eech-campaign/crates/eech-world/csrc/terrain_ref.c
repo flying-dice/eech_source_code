@@ -3631,6 +3631,93 @@ int host_terrain_query (const host_terrain *map, float x, float z, const host_te
 	return 0;
 }
 
+/* terrdata.c get_terrain_3d_types_in_sector (EEDCS-51), over the sectors this map owns. Nothing is solved differently: the first surface, then the surface of every polygon with surface_change
+   set, each flagged; the count is 1 plus the number of surface changes met. The loader copied exactly (changes + 1) surface entries for each sector and bounds-checked the spans, so the
+   walk below never leaves the table; the surface id of an entry no polygon of the sector uses for its type (the first, when the first polygon itself changes surface) is the one thing the loader
+   did not check, so every id is checked here against the scratch it would index. */
+typedef char host_terrain_type_count_matches[(HOST_TERRAIN_TYPE_COUNT == TERRAIN_TYPE_LAST) ? 1 : -1];
+
+int host_terrain_types_in_sector (const host_terrain *map, float x, float z, int32_t *returned, uint8_t *flags, size_t flags_capacity, char *error, size_t error_size)
+{
+	const terrain_3d_sector *sector;
+	const terrain_3d_surface *surface;
+	const terrain_3d_face *polygon;
+	float scaled_x, scaled_z;
+	int32_t number_of_types;
+	int x_sec, z_sec, count;
+
+	*returned = 0;
+
+	if (!flags || flags_capacity < HOST_TERRAIN_TYPE_COUNT)
+	{
+		return fail (error, error_size, "terrain: the sector flags need room for %d terrain types", HOST_TERRAIN_TYPE_COUNT);
+	}
+
+	memset (flags, 0, flags_capacity);
+
+	if (!isfinite (x) || !isfinite (z))
+	{
+		return fail (error, error_size, "terrain: a sector position must be finite");
+	}
+
+	/* the original's choice (terrdata.c get_terrain_3d_sector): the position over the sector side, truncated toward zero. The division by a power of two is exact, and a truncation does not depend
+	   on the rounding mode, so no floating-point environment is changed here. A quotient that does not fit an int is outside any map. */
+	scaled_x = x / (float) TERRAIN_3D_SECTOR_SIDE_LENGTH;
+	scaled_z = z / (float) TERRAIN_3D_SECTOR_SIDE_LENGTH;
+
+	if (!(fabsf (scaled_x) < 1.0e9f) || !(fabsf (scaled_z) < 1.0e9f))
+	{
+		return fail (error, error_size, "terrain: the position is outside the map's sectors");
+	}
+
+	x_sec = (int) scaled_x;
+	z_sec = (int) scaled_z;
+
+	if (x_sec < 0 || z_sec < 0 || x_sec >= map->facts.sector_x_max || z_sec >= map->facts.sector_z_max)
+	{
+		return fail (error, error_size, "terrain: the sector %d,%d of the position is outside the map's %d by %d sectors (the original indexed its table without a check)", x_sec, z_sec,
+			(int) map->facts.sector_x_max, (int) map->facts.sector_z_max);
+	}
+
+	sector = &map->rows[z_sec][x_sec];
+	surface = sector->surface_changes;
+	polygon = sector->polygons;
+
+	if ((int) surface->surface_id >= HOST_TERRAIN_TYPE_COUNT)
+	{
+		return fail (error, error_size, "terrain: sector %d,%d has a first surface of type %u", x_sec, z_sec, (unsigned) surface->surface_id);
+	}
+
+	flags[surface->surface_id] = 1;
+
+	number_of_types = 1;
+
+	for (count = (int) sector->number_of_polygons; count > 0; count--)
+	{
+		if (polygon->surface_change)
+		{
+			surface++;
+
+			if ((int) surface->surface_id >= HOST_TERRAIN_TYPE_COUNT)
+			{
+				memset (flags, 0, flags_capacity);
+
+				return fail (error, error_size, "terrain: sector %d,%d has a surface of type %u", x_sec, z_sec, (unsigned) surface->surface_id);
+			}
+
+			flags[surface->surface_id] = 1;
+
+			number_of_types++;
+		}
+
+		polygon++;
+	}
+
+	*returned = number_of_types;
+
+	return 0;
+}
+
 /* terrsel.c get_3d_terrain_fast_elevation, over the grid of terrain.sim, expression for expression */
 int host_terrain_fast_elevation (const host_terrain *map, float x, float z, float *out, char *error, size_t error_size)
 {

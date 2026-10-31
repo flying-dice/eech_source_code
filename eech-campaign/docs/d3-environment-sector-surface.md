@@ -71,3 +71,69 @@ unbalanced string and none was found. The semantics, cases, driver and protocol 
 **Strict-Clippy lint at `b2e55b18b` (UNBUILT, UNRUN, UNREVIEWED).** The narrow syntax-correction review (SHA-256 `9e702f33...e824`) closed the string finding. Actual (Root's): Windows env-fixture build/export 0 (48 payloads), Linux env-fixture native
 compile 0, then the first affected strict Clippy 101 on `useless_vec` only at `env_sector_characterization.rs:147`; fixed by a fixed-size array, no suppression and no other change. The three actual original sector runs on fresh verified retail roots are
 LIVE with the frozen `b2e55b18b` native; no result is claimed.
+
+
+## The cutover of the sector surface enumeration to the host's terrain (production/client/provider batch; UNBUILT, UNRUN, UNREVIEWED)
+
+**Baseline (Root's, closed, not repeated):** the unchanged original `get_terrain_3d_types_in_sector` on the hosted-field native `b2e55b18b` (Windows fixture build 0, 48 payloads; Linux native compile 0): three
+retail runs (Georgia, Lebanon, Lebanon repeat) each native/controller 0 with six pre/post input manifests 0; each 95-row file has 92 samples (88 answered, 4 rejected as outside the grid), full 62-entry flags, every
+restore/repeat/sentinel/interleave equal, 0 anomalies, `sound_clamp_maximum` answered; the Lebanon and repeat raw files byte-identical; no sampled retail sector returns a count that differs from its distinct
+flags (independent source semantics stay: 1 + the surface changes, not the number of distinct flags; the 5-versus-3 row is bookkeeping only, not retail duplicate geometry). Scope: the original helper on the
+hosted-field baseline, not the unhooked whole original DLL. The independent actual-evidence/new-guard review closed with no findings (SHA-256 `1408817f...6200`).
+
+### Callers and writers, inspected (all of them)
+
+| code | role | now |
+|---|---|---|
+| `get_terrain_3d_types_in_sector` (`modules/3d/terrain/terrdata.c`) | clears the scratch, flags the first surface and every polygon's surface, returns 1 + the changes | **host** (below) |
+| `ss_updt.c update_session_sound_effects` | the only caller of the headless campaign: clamps the camera to the map, calls it once per update (even with no sound children), reads `terrain_types_in_sector[SEA, FOREST_TOP, RIVER, RESERVOIR, ALTERED_LAND1, ALTERED_LAND2]` to set the sound children's amplitudes | **campaign** (unchanged order, clamp and readers), now fed by the host's answer |
+| `3drain.c` | reads `terrain_types_in_sector[ALTERED_LAND3]` | dormant in the headless campaign; reads the same mirror; **not inferred from any headless run** |
+| `terrain_types_in_sector` (global `int[62]`) | the scratch | a by-value **mirror** of the last host reply, written entry for entry only after the reply was checked; no pointer or layout is exposed |
+| `get_terrain_3d_number_of_type_triangles_in_sector`, `get_terrain_3d_type_triangles_in_sector` (the guide cover code, `gd_cover.c`) | per-type triangle count and list; the count function also writes TRUE into the same scratch (without clearing) | **unmoved campaign code** (named remaining terrain coupling); their scratch writes are the original's and keep their order |
+| `eech_env_observer.c`, `eech_env_fixture.c` group 10 | read/hash the scratch; the fixture calls the function and restores the scratch | unchanged; reused as the like-for-like comparison (the fixture's rejection domain still reads the campaign's own loaded sectors only to reject what the original could not be asked) |
+
+### Original versus host ownership
+
+* **Host** (`eech-world/csrc/terrain_ref.c host_terrain_types_in_sector`, `src/terrain.rs`): the sector choice (the original's `x / 2048`, `z / 2048` truncated toward zero; an exact scaling and a truncation, so no floating-point
+  environment is touched), its **domain** (a sector outside the map, a position that is not finite and a quotient that does not fit an int are refused with a message, where the original indexed its table unchecked), the
+  walk of the sector's polygons over the host's own loaded, bounds-checked copy of the geometry (first surface, then the surface of EVERY polygon with `surface_change`), the reset (all 62 flags are rewritten), and the
+  return value 1 + the changes met. A surface id outside the 62 terrain types, which the original would use to index outside its scratch, is refused.
+* **Campaign** (`aphavoc/.../mb_hostterrain.c campaign_terrain_types_in_sector`, `terrdata.c` under `EECH_CAMPAIGN_HOST_TERRAIN`): builds the request (`op = SECTOR`, position, the season captured before the first question), asks the
+  host, checks the answer in full (flags exactly 62 characters `0`/`1` and the terminator; at least one set; the return value not below the number set) BEFORE the mirror is touched, then writes the mirror and returns the return
+  value. It computes and solves nothing, has no fallback to its own sectors, and any refusal, withheld or malformed answer is a fatal `host terrain: [terrain-provider:sector.*]` error. The original body stays in the `#else`
+  for the original game's build.
+* **Operation** (`mb_hostterrain.h`, `eech-engine-sys` mirror, `TerrainQuery::Sector` / `TerrainAnswer::Sector`, the Lua bridge): request `{ op = "sector", x, z, winter }`; reply `{ returned, flags }` with `flags` a string of one `0`
+  or `1` per terrain type. The same checks run at three layers (the Lua bridge with markers `sector.flags` and `sector.returned`, the engine callback for a direct Rust provider, the C client), so a provider cannot hand the
+  campaign an enumeration that is not one. The other operations (map facts, point with its opaque hints, fast), the season selection and the existing floating-point and boundary contracts are unchanged; the reply struct only
+  gains a return value and a 64-byte flags field at its end (both sides updated together).
+* **Untouched, named:** the campaign still loads its own sectors for the other sector readers above and for the rest of terrain (trees, object placement, loaders: remaining D3), and the per-type triangle functions are unmoved.
+
+### What the new tests and controls can show, and what they cannot
+
+* `terrain_sector.rs` (host kernel and provider, one-sector synthetic maps built from bytes, bookkeeping of a LOCAL contract): the return value is 1 + the changes and not the number of flags (a surface met twice is flagged once
+  and counted twice), the first entry is flagged even when no face is typed by it, an empty sector gives 1, the sector is chosen by truncation toward zero (a small negative position is sector 0), outside positions and non-finite
+  numbers are refused, a surface id outside the types is refused, and the Lua provider answers `{ returned, flags }`. It is not conformance with a real map.
+* the engine and bridge unit tests (`eech-engine`, `eech-dc`): the answer travels by value and every malformed shape is refused under its marker before anything is written.
+* `lua/env-sector-authority.lua` with `tests/env_sector_authority.rs` (needs an `eech-dc` built with `env-observer`): through the public path, **control** records the host's own answer to every sound update and requires exactly one
+  request per update (the observer's sound-update count) and the real routine's scratch (hash of all 62 entries, number set, the clamped position) to be that answer; **changed_sector** sends a valid alternative enumeration for
+  every request and requires the scratch the real routine read to be exactly what was sent, and different from the host's own (so the host's answer reaches the real consumer); **withheld_sector**,
+  **malformed_sector_flags** and **malformed_sector_returned** must stop the engine at `[terrain-provider:sector.callback]`, `...sector.flags`, `...sector.returned` with the alteration recorded as sent. The altered evidence is kept
+  apart from the default three-root 95-row original/host comparison. The judge's guards and the driver controls (a scripted engine) prove only bookkeeping and the driver's behaviour, not the DLL.
+* **Not shown:** the sound amplitudes the routine then sets on the session's sound children are not observed (an extra accessor would be needed and is not added); the dormant renderer reader is not exercised and not inferred;
+  the equivalence of the unaltered host enumeration with the original is the separate three-root comparison below; the other sector readers are unmoved and unobserved; nothing is claimed for a campaign with a player.
+  After the arm the provider is the campaign's whole terrain world for the sector query: this is a bounded alternate-host-world input, not an isolation of every consumer.
+
+### Commands for Root (nothing here was built or run)
+
+1. Source checks: `cargo fmt --check`; `cargo test -p eech-engine`; `cargo test -p eech-dc`; `cargo test -p eech-world --test terrain_sector --test env_sector_authority --test env_sector_characterization --test terrain_backend`
+   (and the whole `cargo test`); `cargo clippy --all-targets -- -D warnings`, with and without `--features eech-dc/env-fixture` and `--features eech-dc/env-observer`.
+2. Builds: the shipping Windows module `tools/build-windows.sh target/<dir>`; the observer/fixture module (group 10 and the authority witness) `tools/build-windows-env-observer.sh target/env-observer/<dir>`.
+3. The like-for-like comparison with the closed original, on the three fresh candidate roots (Georgia, Lebanon, Lebanon repeat), one run each with the observer/fixture build:
+   `eech-world lua/env-sector-characterization.lua root=<fresh candidate root> out=<private jsonl> scenario=georgia_retail|lebanon_retail`; compare the `sample` rows with the `b2e55b18b` raw originals (every field except `raw` is
+   an integer or an IEEE word; the `raw` line repeats the fixture line): they must be identical sample for sample, the four rejected ones included. Classify any difference (regression, approved correction, intentional change,
+   input variation) and keep the old evidence.
+4. The authority witness: `EECH_WORLD_BIN=<eech-world> EECH_SECTOR_ROOTS=<one fresh verified root per mode, `;` on Windows> [EECH_SECTOR_MODES=control,changed_sector,...] [EECH_SECTOR_SCENARIO=georgia_retail]
+   [EECH_SECTOR_DIR=<private dir>] cargo test -p eech-world --test env_sector_authority -- --nocapture` (five modes need five fresh roots, the control first; the three candidate roots are for step 3).
+5. The EEDCS-47 witness `lua/terrain-provider.lua` in its `generic` mode now answers the `sector` operation (a one-surface land world); re-run it where it is part of the gate.
+Remaining Task 51/D3 after this batch: lightning effects and the strike/sound entities, physical time inputs, the rest of terrain (trees, loaders, the triangle functions), spatial/object and model services. Campaign
+geography, route planning, decisions, scheduling and time/calendar policy stay in the campaign.

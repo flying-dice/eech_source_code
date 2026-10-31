@@ -335,6 +335,10 @@ the point/fast/map-facts subset of the host's terrain). Its ORIGINAL semantics a
 driver, the commands and the compare-after-cutover protocol), `csrc/eech_env_fixture.c` group 10, `lua/env-sector-characterization.lua`, `tests/env_sector_characterization.rs`. The wind witness state in this document is
 unchanged: its final source review closed and Root is running the actual Windows guards and the five public modes on the new judge and the immutable 47 native; there is no output and no pass yet.
 
+## Sector surface enumeration (host-owned, unbuilt)
+
+The sound routine's `get_terrain_3d_types_in_sector` is now answered by the host's terrain through a `sector` terrain operation (reply: return value and a 62-character flags string); the legacy scratch is only a by-value mirror written after the reply is checked, with no Core fallback. Protocol, ownership, controls and Root commands: [d3-environment-sector-surface.md](d3-environment-sector-surface.md). UNBUILT, UNRUN, UNREVIEWED.
+
 ## Remaining coupling and open gates (finite)
 
 * The lightning strike and sound entity creation, the sound/terrain-scratch bridge and the time-of-day input stay in Core (explicitly open within Task 51/D3).

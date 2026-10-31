@@ -1744,6 +1744,24 @@ int
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef EECH_CAMPAIGN_HOST_TERRAIN
+
+//
+// EEDCS-51 (D3): in the headless campaign module the surface enumeration of the sector (its choice, its domain, the reset of the scratch, the flags and the return value) is the host's:
+// aphavoc/source/entity/mobile/mb_hostterrain.c asks the host and writes terrain_types_in_sector by value from the checked answer.  The original, which solved it from the sectors this
+// module loaded, follows for the original game's build only.  The other sector readers below (the per-type triangle counts and lists) are unchanged.
+//
+
+extern int campaign_terrain_types_in_sector ( float x, float z );
+
+int get_terrain_3d_types_in_sector ( float x, float z )
+{
+
+	return ( campaign_terrain_types_in_sector ( x, z ) );
+}
+
+#else
+
 int get_terrain_3d_types_in_sector ( float x, float z )
 {
 
@@ -1794,6 +1812,8 @@ int get_terrain_3d_types_in_sector ( float x, float z )
 
 	return ( number_of_types );
 }
+
+#endif // EECH_CAMPAIGN_HOST_TERRAIN
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

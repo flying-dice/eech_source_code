@@ -370,6 +370,9 @@ fn call_line_of_sight(lua: &Lua, function: &LuaFunction, message: LosMessage) ->
 ///   point.hint                                    `hint` is neither nil nor a string of 1 to the limit of printable ASCII bytes
 ///   point.stored                                  `stored` is neither nil nor a boolean (nil means true: a provider that returns a surface for the point has stored one)
 ///   fast.elevation                                `elevation` is missing or not a finite number
+///   sector.callback, sector.answer                the provider raised an error, or the answer is not a table
+///   sector.flags                                  `flags` is not a string of exactly one `0` or `1` for each terrain type
+///   sector.returned                               no flag is set (the sector's first surface is always flagged), or `returned` is not an integer of at least the number of flags set
 const TERRAIN_BRIDGE: &str = r#"
 local provider, types, hint_max = ...
 local huge = math.huge
@@ -402,6 +405,18 @@ return function (op, x, z, hint, winter)
 	elseif op == 'fast' then
 		if not finite (answer.elevation) then return 'fast.elevation', 'elevation must be a finite number' end
 		return nil, string.format ('%.17g', answer.elevation)
+	elseif op == 'sector' then
+		-- the surface enumeration of a sector (EEDCS-51): the original's return value (1 + the surface transitions, NOT the number of distinct surfaces) and the whole scratch, one 0 or 1 per type
+		local flags, returned = answer.flags, answer.returned
+		if type (flags) ~= 'string' or #flags ~= types or string.find (flags, '[^01]') ~= nil then
+			return 'sector.flags', 'flags must be a string of exactly ' .. types .. ' characters, each 0 or 1'
+		end
+		local _, distinct = string.gsub (flags, '1', '')
+		if distinct < 1 then return 'sector.returned', 'the first surface of a sector is always flagged: at least one flag must be 1' end
+		if not integer (returned) or returned < distinct or returned > 2147483647 then
+			return 'sector.returned', 'returned must be an integer of at least the ' .. distinct .. ' surfaces flagged'
+		end
+		return nil, flags, returned
 	end
 	for _, field in ipairs { 'sector_x_max', 'sector_z_max' } do
 		if not integer (answer [field]) or answer [field] < 1 then return 'map.facts', field .. ' must be an integer of at least 1' end
@@ -466,6 +481,7 @@ fn call_terrain(bridge: &LuaFunction, query: TerrainQuery) -> Result<TerrainAnsw
         TerrainQuery::Map { winter } => ("map", None, None, None, *winter),
         TerrainQuery::Point { x, z, hint, winter } => ("point", Some(f64::from(*x)), Some(f64::from(*z)), hint.clone(), *winter),
         TerrainQuery::Fast { x, z, winter } => ("fast", Some(f64::from(*x)), Some(f64::from(*z)), None, *winter),
+        TerrainQuery::Sector { x, z, winter } => ("sector", Some(f64::from(*x)), Some(f64::from(*z)), None, *winter),
     };
     let (marker, text, kind, hint_out, stored): BridgeAnswer = bridge
         .call((op, x, z, hint, winter))
@@ -506,6 +522,15 @@ fn call_terrain(bridge: &LuaFunction, query: TerrainQuery) -> Result<TerrainAnsw
                 kind,
                 hint: hint_out,
                 stored: stored.ok_or_else(|| "[terrain-provider:point.stored] the terrain bridge returned no stored flag".to_string())?,
+            })
+        }
+        "sector" => {
+            // the bridge returns the flags as the text and the return value in the type slot
+            let returned = kind.ok_or_else(|| "[terrain-provider:sector.returned] the terrain bridge returned no return value".to_string())?;
+            let returned = i32::try_from(returned).map_err(|_| "[terrain-provider:sector.returned] the return value is out of range".to_string())?;
+            Ok(TerrainAnswer::Sector {
+                returned,
+                flags: text.chars().map(|flag| flag == '1').collect(),
             })
         }
         _ => {
@@ -3993,6 +4018,89 @@ mod tests {
             ..env_request(EECH_ENV_STEP)
         })?;
         assert_eq!((second.need_draw, second.expired, second.new_timer), (0, 1, 60.0));
+        Ok(())
+    }
+
+    // ---- the sector surface enumeration through the Lua bridge (EEDCS-51): the request by value, the answer checked in full ----
+
+    #[test]
+    fn a_sector_answer_keeps_the_original_return_value_apart_from_the_flags_and_a_malformed_one_is_refused_by_marker() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let lua = Lua::new();
+        let flags = |set: &[usize]| -> String { (0..62).map(|id| if set.contains(&id) { '1' } else { '0' }).collect() };
+        let query = || TerrainQuery::Sector { x: 1.5, z: -2.5, winter: true };
+        // the request reaches the provider as op, position and season; the return value (7: 1 + six transitions) is NOT the number of flagged surfaces (2), and both arrive
+        let mut provider = terrain_of(
+            &lua,
+            &format!(
+                "assert (r.op == 'sector' and r.x == 1.5 and r.z == -2.5 and r.winter == true and r.hint == nil) return {{ returned = 7, flags = '{}' }}",
+                flags(&[9, 46])
+            ),
+        )?;
+        let TerrainAnswer::Sector { returned, flags: read } = provider(query())? else {
+            return Err("not a sector answer".into());
+        };
+        assert_eq!(returned, 7);
+        assert_eq!((read.len(), read.iter().filter(|flag| **flag).count()), (62, 2));
+        assert_eq!(
+            [9usize, 46, 0, 61].map(|id| read.get(id).copied()),
+            [Some(true), Some(true), Some(false), Some(false)]
+        );
+        // a return value equal to the number of flags is the smallest valid one
+        let mut single = terrain_of(&lua, &format!("return {{ returned = 1, flags = '{}' }}", flags(&[9])))?;
+        assert!(matches!(single(query())?, TerrainAnswer::Sector { returned: 1, .. }));
+        // each malformed answer is refused under its own marker
+        for (what, source, marker) in [
+            (
+                "flags too short",
+                format!("return {{ returned = 3, flags = '{}' }}", flags(&[9]).chars().take(61).collect::<String>()),
+                "sector.flags",
+            ),
+            (
+                "flags too long",
+                format!("return {{ returned = 3, flags = '{}0' }}", flags(&[9])),
+                "sector.flags",
+            ),
+            (
+                "flags not binary",
+                format!("return {{ returned = 3, flags = '{}' }}", flags(&[9]).replacen('0', '2', 1)),
+                "sector.flags",
+            ),
+            ("flags a table", "return { returned = 3, flags = {} }".to_string(), "sector.flags"),
+            ("no flags", "return { returned = 3 }".to_string(), "sector.flags"),
+            (
+                "no surface flagged",
+                format!("return {{ returned = 3, flags = '{}' }}", flags(&[])),
+                "sector.returned",
+            ),
+            (
+                "return value below the flags",
+                format!("return {{ returned = 1, flags = '{}' }}", flags(&[9, 46])),
+                "sector.returned",
+            ),
+            (
+                "return value zero",
+                format!("return {{ returned = 0, flags = '{}' }}", flags(&[9])),
+                "sector.returned",
+            ),
+            (
+                "return value fractional",
+                format!("return {{ returned = 2.5, flags = '{}' }}", flags(&[9])),
+                "sector.returned",
+            ),
+            ("return value missing", format!("return {{ flags = '{}' }}", flags(&[9])), "sector.returned"),
+            (
+                "return value not finite",
+                format!("return {{ returned = 1 / 0, flags = '{}' }}", flags(&[9])),
+                "sector.returned",
+            ),
+            ("not a table", "return 'nothing'".to_string(), "sector.answer"),
+            ("withheld", "error ('withheld')".to_string(), "sector.callback"),
+        ] {
+            let mut bad = terrain_of(&lua, &source)?;
+            let error = refusal_of(bad(query()), what);
+            assert!(error.starts_with(&format!("[terrain-provider:{marker}]")), "{what}: {error}");
+        }
         Ok(())
     }
 }
