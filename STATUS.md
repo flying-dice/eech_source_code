@@ -13,7 +13,7 @@ new9c47 corrects those without changing behavior. Linux new15judge functions pas
 both strict phases and current9c47CI remain pending. Old FP/guard/CI failures retained.
 
 New test-only9c47 judge + unchanged14192 native/embeddedLua has ACTUAL Windows
-15functions PASS in2.04s and separate real five-mode public test0 in32.87s.
+15functions PASS in2.14s and separate real five-mode public test0 in32.87s.
 Control and changed modes each complete30frames/30sector requests/30sound updates;
 changed host flags reach the sound scratch. Observer224events reconcile without
 drops; only first4scratch records are emitted. Three withholding/malformed modes
