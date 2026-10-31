@@ -1,0 +1,62 @@
+{
+  "when_utc": "2026-10-31T17:52:43.889790+00:00",
+  "scope": "Meaningful public-host missing capability RED, not original physical regression or setup failure. Real originalcase2completed/queued1, exact unchanged delegate raw, but physicalhost add neverrequested; witness intentionallyfails. No hostqueue implementation or shipping acceptance.",
+  "actual_native_exit": 1,
+  "actual_controller_exit": 1,
+  "native_source": "a27f6ead2150fd4047c87a8eb7c5583f6a6d6c01",
+  "witness_source": "d220a11163dbac4d1f6a5267a9a4e2bc12e8e457",
+  "witness_sha256": "7beabf86975b3efea441d68715fae659ff4427d51babf107c1a122ab5ba4bdcb",
+  "delegate_source": "60e5ee0bd60b6197d09705e7d388311885fd83ea",
+  "delegate_sha256": "4378af4c393664abe0b856e4fe6e9f6a0054e9b46ad8b36c0c8e474dfe6d26e8",
+  "all_two_pre_post_inputs0": true,
+  "verified_payloads": 53,
+  "authority": {
+    "case": 2,
+    "completed": true,
+    "delegate_ran": true,
+    "forwarded_other_requests": 3,
+    "op": "lightning_add",
+    "requests": 0,
+    "source": "host.env_provider wrapper on the public path, forwarded unchanged",
+    "verdict": "queue_host_capability_missing"
+  },
+  "case_result": {
+    "case": 2,
+    "changed": "1",
+    "event": "result",
+    "label": "add_with_the_main_environment",
+    "mask_after_w": "00000001",
+    "mask_before_w": "00000000",
+    "occupancy_after": "1",
+    "occupancy_before": "0",
+    "refusal": "",
+    "refused": false,
+    "update_calls_after": "0",
+    "update_calls_before": "0"
+  },
+  "complete_delegate_raw_equal_original_case2": true,
+  "delegate_raw_bytes": 3181,
+  "delegate_raw_sha256": "929d0f151e8a9bf9615fdd75e2cfa50e877fed86c1a2d43b0797470409b744ff",
+  "native_stage": {
+    "stage": "native",
+    "args": [
+      "R:\\d3-evidence\\environment-lightning-queue-original-source-a27f6ead2\\eech-campaign\\target\\env-observer\\lightning-queue-original-a27f6ead2\\eech-world.exe",
+      "R:\\d3-evidence\\environment-queue-host-witness-source-d220a1116\\eech-campaign\\crates\\eech-world\\lua\\env-lightning-host-witness.lua",
+      "root=R:/d3-evidence/environment-queue-host-capability-red-root-20261031",
+      "scenario=lebanon_retail",
+      "out=R:/d3-evidence/environment-queue-host-capability-red-nativea27-witnessd220-20261031/environment.jsonl",
+      "metrics=R:/d3-evidence/environment-queue-host-capability-red-nativea27-witnessd220-20261031/metrics.json",
+      "delegate=R:/d3-evidence/environment-lightning-queue-original-source-60e5ee0bd/eech-campaign/crates/eech-world/lua/env-lightning-queue.lua",
+      "case=2"
+    ],
+    "pid": 20332,
+    "started_utc": "2026-10-31T17:50:29.454715+00:00",
+    "state": "terminal",
+    "actual_exit": 1,
+    "completed_utc": "2026-10-31T17:50:33.409099+00:00"
+  },
+  "old_native_queue_owned_in_Core": true,
+  "physicalhost_boundary_missing": true,
+  "standin_d220_setup_failure": "Separate7PASS3FAIL101: Lua5.1 mockload(source) misuse, not this realnative RED. CorrectedWIPmockloadstring gives10guards/targetstrict0; newpin checksseparate.",
+  "independent_review_of_future_handoff_pending": true
+}

@@ -94,7 +94,8 @@ function file:close ()
 end
 function file:read () return table.concat (WRITTEN) end
 function dofile (path)
-	local chunk, err = load (DELEGATE_SOURCE, '@' .. tostring (path))
+	-- this stand-in runs on Lua 5.1, whose `load` takes a reader function: a source STRING is `loadstring`'s (later Lua versions take the string in `load`)
+	local chunk, err = (loadstring or load) (DELEGATE_SOURCE, '@' .. tostring (path))
 	if not chunk then error (err, 0) end
 	return chunk ()
 end

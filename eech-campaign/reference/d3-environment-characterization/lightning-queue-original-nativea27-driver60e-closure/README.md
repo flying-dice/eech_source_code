@@ -1,0 +1,7 @@
+# Original lightning queue observations
+
+Native a27 observer build plus explicit corrected60e primitive Lua; natural Lua unchangeda27. This closes only the bounded original queue characterization after source/protocol corrections, not a physical host queue move or Task51/D3 delivery. Every non-queue raw row and ending is compared with retained765native/235driver fixed120s control. New queue values remain observations. Read the safe summary, source/actual review, source-equivalence scope and retained failures. Complete raw measurements and retail inputs stay private.
+
+No audio, network, drawing, forked-update, shipping Tacview or full campaign acceptance is implied. Full shipping40/all8complete bytes/current final checks/review/normal merges and whole remainingD3 are still required. D4/D5 unstarted. No accepted baseline/tolerance changed.
+
+The historical765 whole observer comparison remains FAILED on16 preexisting boot weather_draw.w0 diagnostic values: hosted initialization logs raw draws, legacy initialization derived fields. RNG/sequence/all other17214rows and all10830 selected state/campaign/run rows match. A genuinely missing current-host PREQUEUE control uses retainedd559 native/naturalLua (code-equivalent12ca) on a fresh root. ALL17230 complete current-host non-queue raw rows and endings equal the new probe exactly, SHAe3b660d265b8d231d94a87e087e4d7967837767244e491edc9be2d15dda52f65. No raw row is normalized or suppressed to pass a comparison; these are separate explicitly sourced results.
