@@ -1,3 +1,40 @@
+# D3 checkpoint — actual observer drain failures retained; bounded recovery prepared (31 October 2026)
+
+All three native765/driver e98 observer120s attempts actually exited1 at the first
+200-frame drain (fixedLebanon146776B; variableLebanon/Georgia128323B text). All6
+pre/post retail checks0 and46payloads match. Partial/raw failures and used roots
+remain private and preserved; safe receipts and both independent source reviews
+are under reference/d3-environment-characterization/observer-drain-failure-e98/.
+The actual e98 Windows13driverguards, Linux13/fmt/worldstrict checks pass0; canned
+short reports missed this real multichunk failure. No physics or shipping pass
+is claimed. Ledger83 and Jira10882 record actual failures; all5epicreports exact.
+
+The same Sonnet5.5High context completed12784 exit0; Root collected the handle.
+Only Lua/tests/docs change: ordinary fixture32768 limit stays, observer events
+have native16384 capacity and170Brow bounds, a realistic200-frame multichunk
+positive and3oversized negatives, and corrected synthetic accelerationb=2.
+Formatting0; NEW SOURCE UNBUILT/UNRUN/UNREVIEWED. All productionC/Rust remains765,
+engineNUL1. Root will validate newguards/actualWindows and reuse the measured
+native with an explicitly identified corrected script on NEW verified roots.
+No environment service has moved. Original ground72359 and4native processes
+remain live/untouched; all4latest checked prefixes exact (~10MBACMI/6.31MBOBS),
+PARTIALONLY. Task47 delivered; wholeD3 open, D4/D5 notstarted, baselines unchanged.
+
+# D3 checkpoint — observer stream size bound corrected after an actual failed gate (31 October 2026)
+
+EEDCS-51 / PR111 from clean pushed `e98ea388`. ACTUAL FAILED GATE, retained unchanged: with the
+measured native 765 build and the `e98ea388` driver, the Lebanon fixed-100 ms and variable-schedule
+120 s observer runs exited 1 at the first observer drain ("a report of 146776 / 128323 bytes does
+not fit the fixture's 32768-byte buffer"); the Georgia run was still running. The cause is in the
+Lua driver: the observer stream (several concatenated native 32 KiB chunks) was held to the
+single fixture-report limit. The same sole Sonnet5.5High lane gave the stream its own bounds from
+the native source (16,384 events, at most 170 bytes a row; oversize refused, never truncated)
+and made the synthetic two-update frame record the acceleration count 2, in Lua, tests and
+docs only. NEW SOURCE: UNBUILT, UNRUN, UNREVIEWED; no C, Rust production, physical, baseline or
+tolerance change; the single NUL of `eech_engine.c` is untouched. No pass is claimed: the
+controls wait for the pinned driver and fresh roots. Unhooked 2804 controls (3, exit 0) and the
+fixed original99 comparison stay closed; ground shipping and the cutover plan are untouched.
+
 # D3 checkpoint — observer grammar: server lightning, update phase and tag placement corrected (31 October 2026)
 
 EEDCS-51 / PR111 from clean pushed `76533dd3`. The same sole Sonnet5.5High lane closed the

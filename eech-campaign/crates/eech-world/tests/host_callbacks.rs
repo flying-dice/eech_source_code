@@ -2072,7 +2072,7 @@ local engine = {}
 function engine:clock() return { elapsed_seconds = time } end
 function engine:frame(ms)
   frames = frames + 1
-  if frames > 60 then error('stand-in cap: more than 60 frames') end
+  if frames > 400 then error('stand-in cap: more than 400 frames') end
   note('frame ' .. ms)
   if obs_frame then obs_frame(ms) end
   time = time + ms * JUMP / 1000
@@ -2343,7 +2343,7 @@ obs_frame = function(ms)
     ev(20, 0, 0, 1010, Z, delta, h(0x3f800000))
     ev(21, 0, 1, 1010)
   end
-  ev(18, (m == 'frame_ms_mismatch' and second) and ms + 1 or ms, 1, 1010, h((m == 'clock_gap' and second) and clock + 1 or clock), (m == 'delta_phase' and second) and '3dcccccd' or delta)
+  ev(18, (m == 'frame_ms_mismatch' and second) and ms + 1 or ms, (m == 'two_updates_in_frame' and second) and 2 or 1, 1010, h((m == 'clock_gap' and second) and clock + 1 or clock), (m == 'delta_phase' and second) and '3dcccccd' or delta)
   if m == 'unpaired_frame' and second then ev(18, ms, 1, 1010, h(clock), delta) end
   if m == 'lightning_before_tod' and second then lightning(true) end
   if m == 'facts_before_tod' and second then
@@ -2374,9 +2374,17 @@ obs_frame = function(ms)
   updates = updates + 1
   frame_no = frame_no + 1
 end
+local first_read = true
 function engine:env_observer_events()
   local text = table.concat(pending)
   pending = {}
+  if first_read and #text > 0 then
+    first_read = false
+    -- beyond the driver's bound: a stream longer than 16384 events of 170 bytes; a row wider than 170 bytes; more than 16384 rows
+    if OBS_MUTATION == 'oversized_stream' then text = text .. string.rep('x', 3000000) end
+    if OBS_MUTATION == 'too_long_row' then text = (text:gsub('\n', string.rep(' ', 200) .. '\n', 1)) end
+    if OBS_MUTATION == 'too_many_events' then text = text .. string.rep(text:match('^[^\n]*\n'), 16384) end
+  end
   if OBS_MUTATION == 'bad_row' and #text > 0 then text = text:gsub('\n', ' extra=1\n', 1) end
   return text
 end
@@ -2913,6 +2921,10 @@ fn the_environment_observer_refuses_a_module_without_it_before_boot_and_every_in
         ("capacity_low", "capacity"),
         ("weather_calls_mismatch", "weather and"),
         ("sound_records_mismatch", "sound records"),
+        // the observer stream's own bounds (the native capacity and line width), refused clearly and never truncated
+        ("oversized_stream", "exceeds the bound"),
+        ("too_long_row", "observer row of"),
+        ("too_many_events", "more than the observer's capacity"),
     ];
     for (mutation, says) in cases {
         let stand_in = EnvStandIn {
@@ -3087,9 +3099,39 @@ fn the_environment_observer_accepts_the_coherent_forms_of_the_real_transcript_an
         assert_eq!(summary["n_weather_draw"], weather, "{mutation}");
         let expiries = if mutation.starts_with("lightning") { 1 } else { 0 };
         if mutation == "two_updates_in_frame" {
+            // the frame that runs two updates records the acceleration count 2, the others 1
+            let counts: Vec<u64> = env_rows(&run.rows, "env-obs")
+                .iter()
+                .filter(|r| r["kind_name"] == "frame_begin")
+                .map(|r| r["b"].as_u64().unwrap())
+                .collect();
+            assert_eq!(counts, [1, 2, 1, 1, 1, 1, 1, 1, 1, 1], "{mutation}");
             assert_eq!(summary["n_tod_begin"], 11, "{mutation}");
             assert_eq!(summary["update_server"], 11, "{mutation}");
         }
         assert_eq!(summary["n_lightning_expired"].as_u64().unwrap_or(0), expiries, "{mutation}");
     }
+}
+
+#[test]
+fn the_environment_observer_accepts_a_stream_larger_than_one_fixture_buffer() {
+    // 200 frames: the drain at frame 200 returns 1,200 events, far more than one native 32 KiB chunk (the engine method concatenates the chunks). The first correction's bug was that this legitimate
+    // stream was held to the single-buffer limit of an ordinary fixture report.
+    let module = EnvStandIn {
+        observer_module: true,
+        ..EnvStandIn::WELL_FORMED
+    };
+    let run = run_env_scenario(&module, &["probes=0", "observer=on", "seconds=20", "frame_ms=100", "snapshot_frames=0"]);
+    assert!(run.status.success(), "{}\n{}", run.stderr, run.out_text);
+    let batch = run
+        .rows
+        .iter()
+        .filter(|r| r["event"] == "env-obs" && r["scope"] == "observer:frame:200")
+        .count();
+    assert_eq!(batch, 1200);
+    // every row is at least 100 bytes of native text, so the batch is more than 32,768 bytes
+    assert!(batch * 100 > 32 * 1024);
+    let summary = &env_rows(&run.rows, "observer_summary")[0];
+    assert_eq!(summary["events"], 44 + 200 * 6);
+    assert_eq!(summary["n_frame_begin"], 200);
 }

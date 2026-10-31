@@ -170,15 +170,26 @@ end
 -- every value of its kind (an 8-digit lowercase hex word, a 16-digit fingerprint, an integer, a flag), the case identity, the declared supported or refused form, and for a witness the end marker
 -- with restored=1 and a fingerprint after that equals the fingerprint before. The shape is checked, never the physical answer: no value is computed or compared with an expected number here.
 local REPORT_LIMIT = 32 * 1024 -- the fixture's buffer (Engine::env_case); a report must be shorter than it
+-- THE OBSERVER STREAM is not one fixture report: Engine::env_observer_events concatenates as many native 32 KiB chunks as the unread events need. Its bound comes from the native source: the array
+-- holds ENVOBS_CAPACITY events in all (csrc/eech_env_observer.c), and the widest event line (every integer at its widest: `env-obs seq=4294967295 kind=30 a=-2147483648 b=-2147483648
+-- rng=-2147483648 rng_w=ffffffff w0=ffffffff ... w5=ffffffff`) is 161 bytes, so 170 per line is the bound used. Longer rows, more rows, or a longer stream than that are refused, never truncated.
+local OBS_CAPACITY = 16384
+local OBS_MAX_LINE = 170
+local OBS_STREAM_LIMIT = OBS_CAPACITY * (OBS_MAX_LINE + 1) + 1
 local clock
 
-local function parse_report (report)
+local function parse_report (report, limit, max_line)
 	if type (report) ~= "string" or report == "" then return nil, "no report" end
-	if #report >= REPORT_LIMIT then return nil, "a report of " .. #report .. " bytes does not fit the fixture's " .. REPORT_LIMIT .. "-byte buffer" end
+	if limit ~= nil then
+		if #report >= limit then return nil, "an observer stream of " .. #report .. " bytes exceeds the bound of " .. limit .. " bytes (" .. OBS_CAPACITY .. " events of at most " .. OBS_MAX_LINE .. " bytes)" end
+	elseif #report >= REPORT_LIMIT then
+		return nil, "a report of " .. #report .. " bytes does not fit the fixture's " .. REPORT_LIMIT .. "-byte buffer"
+	end
 	if report:sub (-1) ~= "\n" then return nil, "the report is truncated: it does not end with a newline" end
 	local lines = {}
 	for line in report:gmatch ("([^\n]*)\n") do
 		if line == "" then return nil, "the report has an empty line" end
+		if max_line ~= nil and #line > max_line then return nil, "an observer row of " .. #line .. " bytes exceeds the " .. max_line .. "-byte bound" end
 		if line:find ("[^\32-\126]") then return nil, "the report has a byte that is not printable ASCII" end
 		local event, rest = line:match ("^([%a][%w%-_]*)(.*)$")
 		if event == nil or (rest ~= "" and rest:sub (1, 1) ~= " ") then return nil, "a report line has no event name: " .. line:sub (1, 60) end
@@ -672,12 +683,14 @@ local function run ()
 	local OBS_EVENT = compile ("seq:u kind:u a:i b:i rng:i rng_w:w w0:w w1:w w2:w w3:w w4:w w5:w")
 	local OBS_REPORT = compile ("armed:b capacity:u stored:u read:u dropped:u overflow:b next_seq:u update_server:n lightning_calls:n sound_calls:n resync_calls:n weather_calls:n sound_records:u")
 
-	local function observer_call (method, scope, event, spec, decorate)
+	local function observer_call (method, scope, event, spec, decorate, stream)
 		local ok, text = pcall (function () return engine [method] (engine) end)
 		if not ok then refuse ("engine:" .. method .. " failed: " .. tostring (text)) end
 		if text == "" then return {} end
-		local lines, why = parse_report (text)
+		-- the event stream is bounded by the native capacity and line width; the report row by the fixture's buffer
+		local lines, why = parse_report (text, stream and OBS_STREAM_LIMIT or nil, stream and OBS_MAX_LINE or nil)
 		if lines == nil then refuse ("engine:" .. method .. " returned a malformed report: " .. why) end
+		if stream and #lines > OBS_CAPACITY then refuse ("engine:" .. method .. " returned " .. #lines .. " events, more than the observer's capacity of " .. OBS_CAPACITY) end
 		emit_lines (scope, lines, decorate)
 		for _, line in ipairs (lines) do
 			if line.event ~= event then refuse ("engine:" .. method .. " returned the row '" .. line.event .. "' where '" .. event .. "' was expected") end
@@ -863,10 +876,11 @@ local function run ()
 		parser_session_begin = true, parser_session_end = true, rain_tag = true, wind_tag = true, weather_begin = true, weather_draw = true, weather_end = true, fixed_weather = true }
 
 	local function observer_drain (scope)
-		local lines = observer_call ("env_observer_events", scope, "env-obs", OBS_EVENT, function (line, t) t.kind_name = OBS_KINDS [tonumber (line.map.kind) or 0] or "unknown" end)
+		local lines = observer_call ("env_observer_events", scope, "env-obs", OBS_EVENT, function (line, t) t.kind_name = OBS_KINDS [tonumber (line.map.kind) or 0] or "unknown" end, true)
 		for _, line in ipairs (lines) do
 			local m = line.map
 			local seq, kind = tonumber (m.seq), tonumber (m.kind)
+			if seq >= OBS_CAPACITY then refuse ("observer event " .. m.seq .. " is beyond the native capacity of " .. OBS_CAPACITY .. " events") end
 			if seq ~= obs.next_seq then refuse ("observer event " .. m.seq .. " follows " .. (obs.next_seq - 1) .. ": an event is missing or repeated") end
 			if kind < 1 or kind > #OBS_KINDS then refuse ("observer event " .. m.seq .. " has kind " .. m.kind .. ", which is not one of the " .. #OBS_KINDS .. " kinds") end
 			if (tonumber (m.rng) % 4294967296) ~= tonumber (m.rng_w, 16) then refuse ("observer event " .. m.seq .. ": rng " .. m.rng .. " and rng_w " .. m.rng_w .. " are not one word") end
@@ -898,6 +912,7 @@ local function run ()
 		local function n (key) return tonumber (r [key]) end
 		if r.armed ~= "1" then refuse ("the observer report says it is not armed") end
 		if r.dropped ~= "0" or r.overflow ~= "0" then refuse ("the observer dropped " .. r.dropped .. " events (capacity " .. r.capacity .. "): the record is incomplete") end
+		if n ("capacity") > OBS_CAPACITY then refuse ("the observer report has capacity " .. r.capacity .. ", beyond the " .. OBS_CAPACITY .. " the driver's stream bound is derived from") end
 		if n ("capacity") < 1 or n ("capacity") < n ("stored") then refuse ("the observer report has capacity " .. r.capacity .. " for " .. r.stored .. " stored events") end
 		if n ("stored") ~= obs.next_seq or n ("read") ~= obs.next_seq or n ("next_seq") ~= obs.next_seq then
 			refuse ("the observer stored " .. r.stored .. ", read " .. r.read .. " and numbered " .. r.next_seq .. " events, but the driver received " .. obs.next_seq)

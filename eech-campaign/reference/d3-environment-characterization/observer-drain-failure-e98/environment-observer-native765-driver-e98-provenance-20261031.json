@@ -1,0 +1,15 @@
+{
+  "scope": "Explicit hybrid ORIGINAL observer characterization: nativeC/Rust765 unchanged by new Lua/test/doc correctione98; no modulebuiltate98 or shippingacceptance claimed.",
+  "native_source": "76533dd3ae836674c27704040d6ce1b6ed84f80d",
+  "script_source": "e98ea3881b6bb76504e0e83ba9bfce947cab218e",
+  "changed_paths": [
+    "STATUS.md",
+    "eech-campaign/crates/eech-world/lua/env-characterization.lua",
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+    "eech-campaign/docs/d3-environment-observer.md"
+  ],
+  "all_C_and_Rust_production_identical": true,
+  "script_sha256_raw": "389a38fb500f46e6505605c6bf3c1a50356bb5aed5eee5f17e12b5f9e87205f4",
+  "script_sha256_git_lf": "389a38fb500f46e6505605c6bf3c1a50356bb5aed5eee5f17e12b5f9e87205f4",
+  "script_snapshot_clean": true
+}
