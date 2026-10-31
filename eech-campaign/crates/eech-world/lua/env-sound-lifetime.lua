@@ -241,10 +241,13 @@ else
 		elseif point == 7 then
 			exits = exits + 1
 			if upd ~= lastupd then hard ("the probe record " .. r.map.seq .. " leaves update " .. upd .. " that began as update " .. lastupd) end
-		elseif point >= 2 and upd < lastupd then
-			hard ("the probe record " .. r.map.seq .. " shows the update count going down from " .. lastupd .. " to " .. upd)
+		elseif point >= 2 then
+			-- an expiry or a kill belongs to the update that is running: the control calls at most twice and stores every entry, so it carries the CURRENT entry count (not merely one that has not gone down), and a kill
+			-- carries the update of the expiry straight before it
+			if enters < 1 then hard ("the probe record " .. r.map.seq .. " ends an update that no record began") end
+			if point == 5 and upd ~= lastupd then hard ("the probe record " .. r.map.seq .. " is a kill in update " .. upd .. " but the expiry straight before it is in update " .. lastupd) end
+			if upd ~= enters then hard ("the probe record " .. r.map.seq .. " is in update " .. upd .. " where the running update is the " .. enters .. "th entry") end
 		end
-		if point >= 2 and point <= 5 and upd < 1 then hard ("the probe record " .. r.map.seq .. " ends an update that no record began") end
 		lastupd = upd
 		if point == 5 then kills = kills + 1 end
 		if point >= 2 and point <= 4 then expiry = ({ [2] = "no_handle", [3] = "idle_handle", [4] = "playing_handle" }) [point] end

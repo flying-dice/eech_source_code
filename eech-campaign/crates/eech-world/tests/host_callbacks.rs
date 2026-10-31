@@ -2178,6 +2178,9 @@ local function sound_report(episodes, shape)
   if shape == 'long' then
     steps = { { 0, 0, 2 }, { 1, 1, 3 }, { 1, 2, 4 }, { 1, 3, 5 }, { 2, 7, 9 }, { 5, 7, 9 } }
     per_entity = 7
+  elseif shape == 'playing' then
+    steps = { { 0, 0, 2 }, { 1, 1, 3 }, { 1, 2, 4 }, { 1, 3, 5 }, { 4, 3, 5 }, { 4, 7, 9 }, { 4, 9, 10 } }
+    per_entity, kills = 10, 0
   elseif shape == 'alive' then
     steps = { { 0, 0, 2 }, { 1, 1, 3 }, { 1, 2, 4 }, { 1, 3, 5 } }
     per_entity, kills = 5, 0
@@ -2328,6 +2331,11 @@ local mutations = {
   sound_unsupported_missing = function(t) return (t:gsub('env%-snd%-unsupported [^\n]*\n', '', 1)) end,
   -- the cohort and terminal-pair forms: a coherent early kill is the `ok` shape itself, a coherent tracking loss is `lost`; the damaged forms below are what the first grammar still accepted
   sound_lost = function() return sound_report(LIGHTNING_EPISODES or 0, 'lost') end,
+  -- the residual counter forms (an expiry and a kill belong to the running update): an early kill whose records jump to update 4 with the total raised to match, a kill in another update than its expiry, and a handle that
+  -- keeps playing across the sampling gap (coherent, accepted)
+  sound_playing = function() return sound_report(LIGHTNING_EPISODES or 0, 'playing') end,
+  sound_early_jump = function(t) t = (t:gsub('frame=4 upd=1', 'frame=4 upd=4')); return (t:gsub('updates=2', 'updates=8', 1)) end,
+  sound_kill_other_update = function() local t = sound_report(LIGHTNING_EPISODES or 0, 'long'); t = (t:gsub('point=5 n=1 tracked=0 frame=9 upd=7', 'point=5 n=1 tracked=0 frame=9 upd=9', 1)); return (t:gsub('updates=14', 'updates=16', 1)) end,
   sound_stranded_kill = function(t) t = (t:gsub('env%-snd seq=%d+ point=5 [^\n]*\n', '')); t = (t:gsub('stored=8', 'stored=6', 1)); return (t:gsub('kills=2', 'kills=0', 1)) end,
   sound_counter_jump = function() return (sound_report(LIGHTNING_EPISODES or 0, 'long'):gsub('frame=3 upd=1 ', 'frame=3 upd=99 ', 1)) end,
   sound_n_cohort = function(t) return (t:gsub('seq=1 point=0 n=2', 'seq=1 point=0 n=1', 1)) end,
@@ -3556,6 +3564,15 @@ fn the_sound_entity_probe_counts_the_updates_it_does_not_store_and_reports_an_en
     assert_eq!(summary["expired"], 0);
     assert_eq!(summary["untracked_creations"], 0);
     assert_eq!(summary["lifetimes_complete"], true);
+    // a handle that keeps playing across the sampling gap: repeated playing-handle expiries at later updates, never killed, the count a lower bound
+    let playing = run_env_scenario(&sound_stand_in("lightning_episode", "sound_playing"), &sound_args());
+    assert!(playing.status.success(), "{}{}", playing.stderr, playing.out_text);
+    for entity in env_rows(&playing.rows, "sound_entity") {
+        assert_eq!(entity["updates_at_last_record"], 9);
+        assert_eq!(entity["updates_exact"], false);
+        assert_eq!(entity["expiry"], "playing_handle");
+        assert_eq!(entity["killed"], false);
+    }
     // a creation the probe could not track is a creation, counted and classified: the run is NOT reported as a complete record of lifetimes
     let lost = run_env_scenario(&sound_stand_in("lightning_episode", "sound_lost"), &sound_args());
     assert!(lost.status.success(), "{}{}", lost.stderr, lost.out_text);
@@ -3594,6 +3611,9 @@ fn a_sound_entity_report_that_is_incomplete_out_of_order_or_at_odds_with_the_obs
         ("lightning_episode", "sound_creation_frame", "but the observer's pair is in frame"),
         ("lightning_episode", "sound_creation_entity", "the observer saw entity"),
         ("lightning_episode", "sound_untracked_hidden", "lost track of 0 creations"),
+        // the residual counter forms: an early kill may not jump past the entries that are mandatory, and a kill is in the update of its expiry
+        ("lightning_episode", "sound_early_jump", "mandatory entries have been stored"),
+        ("lightning_episode", "sound_kill_other_update", "expiry straight before it"),
         // the probe holds creations the observer's stream does not, and the reverse
         ("lightning_episode", "sound_events_mismatch", "observer stream holds"),
         ("none", "sound_phantom", "observer stream holds"),

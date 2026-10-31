@@ -1206,8 +1206,12 @@ local function run ()
 				elseif point == 7 then
 					if upd ~= chain.upd then refuse ("sound probe record " .. r.seq .. " leaves update " .. upd .. " that began as update " .. chain.upd .. " for tracked entity " .. tracked) end
 				else
+					-- an expiry or a kill belongs to the update that is running. Until all ENTERS_STORED entries have been stored no update has been left out, so it carries the CURRENT stored entry count (the count may run ahead only
+					-- after the last mandatory entry, where the later updates are only counted); a kill carries the update of the expiry straight before it. This is bookkeeping coherence, not an expected lifetime.
+					if chain.enters < 1 then refuse ("sound probe record " .. r.seq .. " ends an update that no record began for tracked entity " .. tracked) end
+					if point == 5 and upd ~= chain.upd then refuse ("sound probe record " .. r.seq .. " is a kill in update " .. upd .. " but the expiry straight before it is in update " .. chain.upd .. " for tracked entity " .. tracked) end
 					if upd < chain.upd then refuse ("sound probe record " .. r.seq .. " shows the update count going down from " .. chain.upd .. " to " .. upd .. " for tracked entity " .. tracked) end
-					if upd < 1 then refuse ("sound probe record " .. r.seq .. " ends an update that no record began for tracked entity " .. tracked) end
+					if chain.enters < ENTERS_STORED and upd ~= chain.enters then refuse ("sound probe record " .. r.seq .. " is in update " .. upd .. " but only " .. chain.enters .. " of the " .. ENTERS_STORED .. " mandatory entries have been stored for tracked entity " .. tracked .. ": the running update is the " .. chain.enters .. "th") end
 				end
 				chain.upd = upd
 				chain.last = point
