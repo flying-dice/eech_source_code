@@ -15,6 +15,9 @@
 --
 -- host.args: root, out (JSON Lines path), scenario (lebanon_retail default | georgia_retail)
 -- Exit: 0 when the plan is complete and every answered case was restored as the fixture says; an error beginning `env-sound:` otherwise (a witness failure, never an expected result).
+-- Record grammar (a malformed record is a witness failure whatever it might be read as): every amplitude word is eight lowercase hex digits (`na` only for a declared non-sound child), the two
+-- restoration fingerprints are sixteen, each answered case has exactly ONE session row of its own index, and the original's boolean facts (rng_unchanged, session_unchanged_by_the_routine) are 0 or 1;
+-- a genuine 0 is an anomaly of the original, counted and reported. The fingerprints are bookkeeping of the fixture's rendered state, NOT a proof of the CPU floating-point state.
 
 io.stdout:setvbuf ("no")
 
@@ -93,16 +96,28 @@ local function ask (index)
 	local lines = lines_of (text)
 	return table.concat (lines, "\n"), lines
 end
--- `idx:sub_type:name:word,...` (or `none`); a non-sound child has `na` for its word
+-- the fixture's serializer prints every IEEE word with %08x and every state fingerprint with %016llx: lowercase hex, an exact number of digits. A shorter, longer or otherwise different
+-- token is a malformed witness record, whatever the number it might be read as.
+local function hex_exact (value, digits)
+	return type (value) == "string" and #value == digits and string.find (value, "^[0-9a-f]+$") ~= nil
+end
+-- a boolean fact the fixture reports about the original (`0` or `1`, nothing else): the value is the original's, the grammar is the witness's
+local function bool_fact (value)
+	return value == "0" or value == "1"
+end
+-- `idx:sub_type:name:word,...` (or `none`): the word is eight hex digits; `na` only for a child the fixture declares NOT a sound child (its class name is `other`)
 local function children_of (value, what)
 	local list = {}
 	if value == nil then hard (what .. " has no children field") end
 	if value == "none" then return list end
 	for entry in string.gmatch (value, "[^,]+") do
 		local idx, sub, name, word = string.match (entry, "^(%d+):(%d+):([%w_]+):(%x+)$")
-		if not idx then
+		if idx then
+			if not hex_exact (word, 8) then hard (what .. " has a child amplitude word that is not eight lowercase hex digits in '" .. entry .. "'") end
+		else
 			idx, sub, name = string.match (entry, "^(%d+):(%d+):([%w_]+):na$")
 			word = "na"
+			if idx and name ~= "other" then hard (what .. " has no amplitude word for the sound child in '" .. entry .. "': na is only for a declared non-sound child") end
 		end
 		if not idx then hard (what .. " has a malformed child entry '" .. entry .. "'") end
 		list [#list + 1] = { idx = tonumber (idx), sub = tonumber (sub), name = name, word = word }
@@ -176,24 +191,31 @@ for index = 1, cases do
 		end
 		local ncalls = tonumber (f.calls)
 		if not ncalls or ncalls < 1 or ncalls > 8 then hard ("case " .. index .. " has no finite number of calls: " .. head) end
-		local call_rows, session_row = {}, nil
+		local call_rows, session_rows = {}, {}
 		for i = 2, #lines - 1 do
 			if string.find (lines [i], "^env%-sound%-call ") then call_rows [#call_rows + 1] = lines [i]
-			elseif string.find (lines [i], "^env%-sound%-session ") then session_row = lines [i]
+			elseif string.find (lines [i], "^env%-sound%-session ") then session_rows [#session_rows + 1] = lines [i]
 			else hard ("case " .. index .. " has an unexpected row: " .. lines [i]) end
 		end
-		if #call_rows ~= ncalls or not session_row then hard ("case " .. index .. " has " .. #call_rows .. " call rows for " .. ncalls .. " calls: " .. text) end
+		if #call_rows ~= ncalls or #session_rows ~= 1 then hard ("case " .. index .. " has " .. #call_rows .. " call rows for " .. ncalls .. " calls and " .. #session_rows .. " session rows, not one: " .. text) end
+		-- the session row and the restoration record are checked BEFORE any row of the case is written: exactly one session row, of THIS case, with a 0/1 fact of the original; two exact 16-digit fingerprints
+		local session_row = session_rows [1]
+		local s = fields (session_row)
+		if not string.find (s.i or "", "^%d+$") or tonumber (s.i) ~= index then hard ("case " .. index .. " has a session row of another case or without its index: " .. session_row) end
+		if not bool_fact (s.session_unchanged_by_the_routine) then hard ("case " .. index .. " has a session row without a 0 or 1 fact: " .. session_row) end
+		if not hex_exact (e.fp_before, 16) or not hex_exact (e.fp_after, 16) then hard ("case " .. index .. " has a restoration record without two exact 16-digit state fingerprints: " .. last) end
 		for n, row in ipairs (call_rows) do
 			local r = fields (row)
 			local kids = children_of (r.children, "case " .. index .. " call " .. n)
 			if tonumber (r.i) ~= index or tonumber (r.call) ~= n or not same_order (kids, order) or not r.scratch_flags or #r.scratch_flags ~= tonumber (plan.terrain_types) or string.find (r.scratch_flags, "[^01?]") then
 				hard ("case " .. index .. " call " .. n .. " is not a call row of that case in the plan's child order with the complete scratch flags: " .. row)
 			end
+			if not bool_fact (r.rng_unchanged) then hard ("case " .. index .. " call " .. n .. " has no 0 or 1 rng_unchanged fact: " .. row) end
 			if r.rng_unchanged ~= "1" then anomalies = anomalies + 1 end
 			calls_seen = calls_seen + 1
 			emit { event = "call", i = index, call = n, children = r.children, scratch_flags = r.scratch_flags, rng = tonumber (r.rng), rng_unchanged = r.rng_unchanged }
 		end
-		local s = fields (session_row)
+		-- a changed session record (0) is a genuine fact about the original: counted, reported, never repaired
 		if s.session_unchanged_by_the_routine ~= "1" then anomalies = anomalies + 1 end
 		-- a state that was not put back is a defect of THIS FIXTURE, never a result of the original
 		for _, name in ipairs { "restored", "children_restored", "scratch_restored", "camera_restored", "cloud_restored", "in_cockpit_restored" } do

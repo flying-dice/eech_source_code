@@ -12,7 +12,7 @@ Called from `update_server` after the time-of-day, resync and weather updates (a
 
 1. **Point and altitude.** `in_cockpit`: the gunship entity's position and `FLOAT_TYPE_RADAR_ALTITUDE`; otherwise the camera entity's (the camera's radar altitude is `max (y - cached terrain elevation, 0)`).
 2. **Rain.** `rain_sound_levels[WEATHERMODE_LAST]` zeroed. If `camera.y < get_cloud_3d_base_height ()` and not (`!in_cockpit && alt >= 180`): `get_session_weather_at_point` gives the current mode,
-   target mode and transitional state `trans`; equal modes: that level 1.0; otherwise target `trans`, current `1 - trans`; outdoors both are multiplied by `1 - alt / 180`.
+   target mode and transitional state `trans`; equal modes: that level 1.0; otherwise target `trans`, current `1 - trans`; outdoors the target entry and then the current entry are multiplied SEPARATELY by `1 - alt / 180`: when the modes are equal both names alias one array entry, so the original applies the altitude factor TWICE (the `combined_heavy_rain_wind_sea_two_calls` case exercises it). This is the original's behaviour and is not changed, corrected or shadowed by any oracle.
 3. **Wind.** `speed = get_session_wind_velocity_at_point`; `r = 0` if `speed <= minimum`, `1` if `speed >= maximum`, else `(speed - min) / (max - min)`; then `r == 0`: both levels 0; `r < 0.5`:
    light `2r`, heavy 0; else light `1 - 2(r - 0.5)`, heavy `2(r - 0.5)`.
 4. **Terrain.** The camera/gunship position bounded to the map, `get_terrain_3d_types_in_sector` (host-owned since 14192), the shared scratch `terrain_types_in_sector`; `ENV_FXS` (observer) records.
@@ -24,7 +24,7 @@ Called from `update_server` after the time-of-day, resync and weather updates (a
 Data sources, inspected: the ten children are attached at boot by `attach_session_sound_effects` (`create_campaign` / the parser), looping `ENTITY_TYPE_SOUND_EFFECT`s whose update
 (`se_updt.c`) does not touch the amplification (`se_float.c` is the only other writer); the amplification is consumed by `se_snd.c` when the sound system plays them (none in the headless build).
 `cloud_3d_base_height` is a plain global the full game sets to 6000 at render start-up (`3d_init.c`); the headless run has no renderer, so the value there is whatever the process holds (printed in
-the plan). The only render reader of the scratch beyond this routine is `3drain.c` (ALTERED_LAND3, dormant here, not inferred).
+the plan). The only render reader of the scratch beyond this routine is `3drain.c` (ALTERED_LAND3; not exercised headless; the compiled reader/player/render disposition remains required D3 scope, and nothing is inferred from its absence here).
 
 ## The characterization (fixture group 11, `csrc/eech_env_fixture.c`, feature `env-fixture`; explicit only)
 
@@ -90,3 +90,26 @@ It is prepared, NOT claimed red: Root runs it on the unchanged c0b6c3386 driver 
 and the single grouped driver correction follows. Preserved for the later physical move, and NOT to be corrected or shadowed by any oracle: outdoors the original multiplies `rain_sound_levels[target]` and then
 `rain_sound_levels[current]` separately, so for EQUAL modes the two assignments alias one entry and the altitude factor is applied TWICE; the `combined_heavy_rain_wind_sea_two_calls` case exercises it and
 the measured words stay authoritative.
+
+## ENV-SOUND-ORIGINAL-1: actual red and the one grouped driver correction (Lua only; UNBUILT, UNRUN)
+
+**Actual red (Root's, on frozen `93bc520d1`, Lua/C/native exactly c0b):** the focused guard above compiled and ran one test and failed (exit 101, 14:16:09 UTC; receipt
+`environment-sound-driver-93bc520d1-red-linux-20261031-completion.json`, same-stem log, preserved): the driver ACCEPTED 13 of the 23 damaged records -- both fingerprints missing and the equal short pair, the
+duplicate and the foreign session rows, the missing / `2` / `x` session facts, the missing / `2` `rng_unchanged` facts, the short, long and `na` sound words, and the short plan word. The healthy case and the
+genuine-anomaly controls held. The original retail ambient measurement has NOT been run (the three fresh roots are unused).
+
+**Correction (`lua/env-sound-characterization.lua` only; the 23 guard cases and the original four tests are unchanged):**
+
+* both state fingerprints must be exactly 16 lowercase hex digits BEFORE they are compared (`nil == nil` can no longer pass); the existing "changed fingerprint" refusal is unchanged;
+* each answered case must have exactly ONE `env-sound-session` row, whose `i` is the current case, with a `session_unchanged_by_the_routine` fact of `0` or `1`; the check runs before any row of the case is
+  written, so a damaged case publishes no partial rows;
+* each call row's `rng_unchanged` is `0` or `1`;
+* every amplitude word `children_of` parses (the plan order, the case's `children_before`, every post-call list) is exactly 8 lowercase hex digits; `na` is accepted only for a child the fixture declares NOT a
+  sound child (class name `other`), never for one of the ten ambient children.
+* a genuine `0` stays what it was: counted as an anomaly of the original, reported, never repaired or refused. Valid native rows keep identical JSON and raw values and their output order.
+
+The state fingerprint is bookkeeping of the fixture's rendered environment state (session fields, season, shared seed, delta, camera): it is NOT evidence of the CPU floating-point state. Equal outdoor rain
+modes alias one array entry and are attenuated TWICE in the original; that behaviour is unchanged and must stay measured, not corrected. The renderer reader of the scratch is not exercised headless; its compiled
+reader/player/render disposition remains required D3 scope. Pending: Root proves c0b native + the new driver provenance, runs ONLY the new guards and the affected strict checks, then the first retail ambient
+measurement and its review; the physical host amplitude solver is the NEXT step after that and is not started. Task 51/D3 (effects, time, remaining terrain, spatial/object, model, full shipping, identity,
+review, current CI, normal merges) stays open; D4/D5 are not started.

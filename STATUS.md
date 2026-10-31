@@ -1,3 +1,14 @@
+# D3 sound-routine characterization — actual red and the one grouped driver correction (31 October 2026, Lua only, UNBUILT, UNRUN)
+
+Clean pushed `93bc520d1`. ACTUAL (Root): the focused red guard ran on the frozen 93bc snapshot (Lua/C/native exactly c0b) and failed meaningfully, exit 101 at 14:16:09 UTC: the driver ACCEPTED 13 of 23 damaged records
+(missing/equal-short fingerprints, duplicate/foreign session rows, missing/2/x session facts, missing/2 rng facts, short/long/`na` sound words, a short plan word); healthy and genuine-anomaly controls held; snapshot, log
+and receipt preserved. **Correction (Lua only, UNBUILT, UNRUN):** both fingerprints exactly 16 lowercase hex before comparison; exactly one session row of the current case with a 0/1 fact (checked before any row of the case
+is written); `rng_unchanged` 0/1; every amplitude word exactly 8 lowercase hex, `na` only for a declared non-sound child; genuine `0` facts stay reported anomalies; the 23 guard cases and the original 4 tests unchanged; valid
+rows keep identical JSON/raw/order. C fixture, production, ABI, providers and default scripts untouched (engine C: one NUL). The fingerprint is NOT CPU floating-point-state proof. Equal outdoor rain modes alias one array entry and
+are attenuated twice in the original (unchanged, to be measured not corrected). Renderer reader: not exercised headless; compiled reader/player/render disposition remains required D3. Pending: Root proves c0b-native/new-driver
+provenance, runs only the new guards + affected strict, then the first retail ambient measurement and its review; the physical host amplitude solver comes after and is not started. Whole Task 51/D3 stays OPEN; D4/D5 unstarted; no
+acceptance claimed. Details: `docs/d3-environment-sound-routine.md`.
+
 # D3 sound-routine characterization — review of c0b6c3386 and the red witness guard (31 October 2026, test-only, UNBUILT, UNRUN)
 
 Clean pushed `c0b6c3386`. Independent source review (SHA-256 `b618371b...af63`): fixture cleanup and the unchanged-routine call are sound in the inspected path; ONE grouped P2 witness-record integrity in
@@ -107,7 +118,7 @@ files identical; no sampled retail count differs from its distinct flags; indepe
 change over the host's own loaded sectors, the complete 62-flag reset, return value 1 + the changes (not the distinct count), a surface id outside the types refused. Campaign (`mb_hostterrain.c`,
 `terrdata.c` under `EECH_CAMPAIGN_HOST_TERRAIN`): a SECTOR request, the answer checked in full before the legacy scratch `terrain_types_in_sector` (kept as a by-value mirror) is written, no fallback to its own sectors, any
 refusal fatal with `[terrain-provider:sector.*]`; the same checks at the Lua bridge and the engine callback; the other terrain operations, hints, season selection and closed FP/boundary contracts unchanged. Unmoved and named:
-the per-type triangle functions of the guide cover code (they also write the scratch), the rest of terrain (trees, loaders), the dormant renderer reader. New tests: host kernel/provider (`terrain_sector.rs`), engine
+the per-type triangle functions of the guide cover code (they also write the scratch), the rest of terrain (trees, loaders), the renderer reader (not exercised headless; the compiled reader/player/render disposition remains required D3 scope). New tests: host kernel/provider (`terrain_sector.rs`), engine
 and bridge units, and a public Lua/native authority witness (`lua/env-sector-authority.lua`, `tests/env_sector_authority.rs`, needs `env-observer`) whose changed answer must reach the scratch the real sound routine read, with
 withheld/malformed refusals at the named markers, kept apart from the default three-root comparison; the sound amplitudes, the renderer and a player are NOT shown. The generic mode of `lua/terrain-provider.lua` now answers the
 operation. Commands and the like-for-like three-root comparison protocol: `docs/d3-environment-sector-surface.md`. Production flags/Docker/auth, frozen evidence and live processes untouched; the engine C NUL is
