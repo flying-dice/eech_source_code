@@ -1,3 +1,19 @@
+# D3 checkpoint — original-sector characterization a78b6ab3c: one C syntax error fixed (31 October 2026)
+
+EEDCS-51 / PR111 from clean pushed `4649b75d4` (Root added only the wind evidence metadata over `a78b6ab3c`). ONE independent combined review of the original-sector characterization (SHA-256 `f23a1f53...27797`)
+found ONE P1, ENV-SECTOR-ORIGINAL-1, and is otherwise finite and conformant with no other finding: in `eech_env_fixture.c` the new group-10 error string spanned a literal newline after `index=%d` (lines 1308-1309), so
+it was not a valid C string. The cause was my edit script: its `\n` inside a shell here-document reached Perl as a real newline. **Actual at the frozen `a78b6ab3c`** (Root's, preserved): the four new Linux driver guards 0;
+then the Linux env-fixture compile exited 101 at exactly this syntax (strict Clippy not reached) and the Windows env-fixture build exited 1 with the same missing terminating quote; both controllers terminal (18176 and
+7060) with the failed logs and source preserved. No retail sector query has run; the three fresh roots `environment-terrain-scratch-roots-20261031` are all manifest-0 and UNUSED. **Correction (UNBUILT, UNRUN,
+UNREVIEWED):** the literal newline is replaced by the escaped `\n` in ONE valid string, same wording, group, index and refusal behaviour; the file was then scanned for any other line with an unbalanced string and
+none was found. Nothing else changed (no production move, no new test, algorithm or framework; `eech_env_fixture.c` has no NUL, `eech_engine.c` its one). Root pins and rebuilds the affected C/native/probes; no 164-case,
+observer, kernel, FP or model rerun is needed or done.
+
+**Wind witness (Root's, unchanged here):** all five public modes ran at the actual frozen inputs: exit 0 in 336.39 s, ten input manifests 0, 47 payloads and the script exact; all nine CI jobs at `34c7c28bf` green; the
+independent actual review (SHA-256 `843ec6af...e1d527`) CLOSED with no findings; the safe closure receipts are committed in `4649b75d4`; Jira 51 comment 10889 and the Confluence ledger 14548994 v89 preserve all five
+reports. That is bounded alternate-host-world input evidence for the cohort's recorded flight, not an isolation of campaign policy or RNG. Whole Task 51/D3 remains OPEN (lightning effects, physical time, terrain-scratch
+cutover, spatial, model, full shipping); campaign policy and time/scheduling stay Core; D4/D5 not started; no acceptance claimed.
+
 # D3 checkpoint — next extraction: the sound routine's terrain-sector surface query, characterisation only (31 October 2026)
 
 EEDCS-51 / PR111 from clean pushed `34c7c28bf`. **Wind witness (Root's, unchanged here):** the final wind source review closed (SHA-256 `e92bd329...663bf`); Root formatted only four Rust test expressions (the 585 fmt gate-1

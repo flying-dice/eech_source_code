@@ -61,3 +61,9 @@ DRIVER does with the lines it is given (it computes no surface and mirrors no pa
   they must be identical, sample for sample, including the rejected ones. A difference is classified as a regression, an approved defect correction, an intentional semantic change or an input variation, and the old
   evidence is kept.
 * No production move is made until Root has recorded the actual original results. Remaining Task 51/D3 work (lightning effects, physical time, the rest of terrain, spatial, model) stays in D3; no claim of completion.
+## Review `a78b6ab3c` of the original-sector characterization: one syntax correction (UNBUILT, UNRUN, UNREVIEWED)
+
+The independent review (SHA-256 `f23a1f53...27797`) found one P1: the group-10 error string in `eech_env_fixture.c` (lines 1308-1309) spanned a literal newline, so the file did not compile. Actual results at the frozen
+`a78b6ab3c` (Root's, preserved): the four new Linux driver guards passed, the Linux env-fixture compile exited 101 and the Windows env-fixture build exited 1, both at exactly that missing terminating quote; strict Clippy was
+not reached; no retail sector query has run and the three fresh roots are unused. The string now ends `index=%d\n"` on one line (same wording, group, index and refusal behaviour); the whole file was scanned for another
+unbalanced string and none was found. The semantics, cases, driver and protocol of this document are unchanged; the original facts are still to be collected by Root with the rebuilt fixture DLL.

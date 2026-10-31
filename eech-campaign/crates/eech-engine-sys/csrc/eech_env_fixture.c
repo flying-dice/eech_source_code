@@ -1305,8 +1305,7 @@ int eech_env_case_run (int group, int index, char *text, int capacity)
 		{
 			text[0] = 0;
 			used_value = 0;
-			append (text, capacity, used, "env-case-error reason=sector_case_refused group=10 index=%d
-", index);
+			append (text, capacity, used, "env-case-error reason=sector_case_refused group=10 index=%d\n", index);
 
 			return -1;
 		}
