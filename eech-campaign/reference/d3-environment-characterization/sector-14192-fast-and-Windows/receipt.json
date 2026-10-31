@@ -1,0 +1,17 @@
+{
+  "native_and_FP_source": "14192c6e292864e573acc8fd8eed94e94f12ce03",
+  "Linux_fast_actual": "5sector tests includingunchanged6144-callregression PASS;13authorityfunctionsPASS/publicSKIPPED",
+  "Linux_full_pipeline": "STILL_RUNNING at checkpoint, no finalexitclaim",
+  "Windows_native_observer_build_and_test_export_exit": 0,
+  "Windows_actual_libs": {
+    "engine": 78,
+    "module": 22,
+    "world": 251
+  },
+  "Windows_actual_kernel_tests": 5,
+  "Windows_actual_characterization_guards": 4,
+  "all_actual_Windows_process_exits": 0,
+  "FP_test_unchanged_from_actual_e05_red": true,
+  "known_residual": "ReviewP2boot.framesmustmatchauthority.frames_wanted; currenttest-onlyfixunbuilt. P1sourcecorrected andLinux+Windowsx64actual6144-calltestPASS. i686CI/currentfull/runtimegatespending.",
+  "scope": "Partial correctedcomponent gates only, no actualnewfive-modeauthority or shipping/Task51/D3acceptance."
+}

@@ -1,0 +1,57 @@
+{
+  "source": "14192c6e292864e573acc8fd8eed94e94f12ce03",
+  "started_utc": "2026-10-31T13:33:58.204117+00:00",
+  "scope": "ACTUAL Windows unit processes. Asset-dependent skips are not retail/authority/shipping proof.",
+  "cases": [
+    {
+      "name": "eech_engine",
+      "pid": 10772,
+      "args": [
+        "R:\\d3-evidence\\environment-sector-source-14192c6e2\\eech-campaign\\target\\windows-sector-libs-14192c6e2\\eech_engine.exe",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "sha256": "59aa5c00da7811eb6b9b652c4b7807a92d4c86df5cbf5403c292d67f6293152c",
+      "state": "terminal",
+      "actual_exit": 0,
+      "summaries": [
+        "test result: ok. 78 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s"
+      ]
+    },
+    {
+      "name": "eech_dc",
+      "pid": 464,
+      "args": [
+        "R:\\d3-evidence\\environment-sector-source-14192c6e2\\eech-campaign\\target\\windows-sector-libs-14192c6e2\\eech_dc.exe",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "sha256": "caa0d6277fa02abad92f7593eb851ef31d5115bf16b309a9189caa2e4ec5a1c6",
+      "state": "terminal",
+      "actual_exit": 0,
+      "summaries": [
+        "test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s"
+      ]
+    },
+    {
+      "name": "eech_world",
+      "pid": 23188,
+      "args": [
+        "R:\\d3-evidence\\environment-sector-source-14192c6e2\\eech-campaign\\target\\windows-sector-libs-14192c6e2\\eech_world.exe",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "sha256": "3ef2f4ed4ddbbef257834940af04ed1d42f08ea1bbeaed1ed463d90d61cf1773",
+      "state": "terminal",
+      "actual_exit": 0,
+      "summaries": [
+        "test result: ok. 251 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s"
+      ]
+    }
+  ],
+  "state": "terminal",
+  "controller_pid": 10452,
+  "verified_payloads": 49,
+  "completed_utc": "2026-10-31T13:34:00.220457+00:00",
+  "all_actual_unit_exits_zero": true
+}

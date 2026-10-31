@@ -1,3 +1,15 @@
+# D3 residual P2 — the configured frame count in the sector-authority judge (31 October 2026, test judge only, UNBUILT)
+
+EEDCS-51 / PR111 from clean pushed `14192c6e2`. Independent correction review (SHA-256 `000b5f69...95`): P1 (sector-kernel caller-FP design) closes in source; the observer fixes hold; the two fixture fixes weakened nothing; ONE
+residual P2: `Facts::parse` never read `boot.frames`, so a completed run could be judged against a rewritten count. **Fixed in the Rust test judge only (UNBUILT, UNRUN):** `boot.frames` is required as a whole positive number equal
+to `authority.frames_wanted` (healthy and stopped runs), the completed-frames equality then protects all configured frames; new guard `the_configured_boot_frame_count_must_be_present_valid_and_the_same_as_the_authority_rows_count`
+(forged 20-of-20 against boot 30, boot rewritten up/down, missing/string/fractional/null/negative, both rows 0, stopped run, and a positive control). No production source, ABI, provider or embedded Lua changed; the pinned 14192
+native can be used with explicit provenance. One doc sentence corrected (every finite SUBNORMAL is admitted and truncates to sector 0; finite out-of-grid and huge coordinates are still refused). **Actual, as reported by Root on
+14192:** Linux fast stage 5/5 `terrain_sector` tests PASS including the unchanged 6144-call full CW/SW/TW/MXCSR regression, 13/13 `env_sector_authority` functions PASS (public path SKIPPED: not authority evidence); the old actual red
+(76 kinds, 6144 calls) is retained. The full Linux default+observer pipeline and the Windows observer native/test exports were still running: no final exit, no native or public-path claim. First 6711 numeric 95-row files are the
+originals and are not FP evidence (6711 kernel unaccepted). Fresh fixed (3) and authority (5) roots verified and UNUSED. Whole Task 51/D3 stays open (effects, time, remaining terrain, spatial/object, model, full shipping, current
+CI, review, normal merges); D4/D5 unstarted; no acceptance claimed.
+
 # D3 correction batch — the sector kernel's complete caller-FP guard and the two actual observer-guard failures (31 October 2026, UNBUILT)
 
 EEDCS-51 / PR111 from clean pushed `e05bf775f` (production-equivalent to `6711d5f11`). ACTUAL red (Root): the public sector-query FP regression ran on Linux x86-64 against the unchanged 6711 kernel and failed,

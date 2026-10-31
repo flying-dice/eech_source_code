@@ -196,7 +196,7 @@ where the kernel put it):
 * The position crosses the C boundary as the BITS of the two floats (`uint32_t x_bits, z_bits`, passed by the Rust wrapper as `to_bits()`), not as `float` parameters: a 32-bit callee may home a float
   through the x87 stack in its prologue, before any guard could run. The finite test is made on the bits (all-ones exponent), the bits become floats inside the guard, and they go through an empty
   `asm` after the guard is entered so that no arithmetic that depends on them can be scheduled before it. No legacy pointer or layout is exposed; the ABI is private to this library and its wrapper.
-* UNCHANGED: the sector selection (division by 2048, truncation toward zero), the domain (every finite value and every subnormal is still admitted and truncates to sector 0; the refusals are the same
+* UNCHANGED: the sector selection (division by 2048, truncation toward zero), the domain (every finite SUBNORMAL is still admitted and truncates to sector 0, like any finite position whose truncated sector is in the map; finite coordinates outside the grid and huge ones whose quotient does not fit an integer are still refused; the refusals are the same
   ones with the same messages), the enumeration (first surface, then every polygon's surface change), the return value 1 + the changes, the zeroed flags and return value on a refusal. The
   false comment that the scaling and truncation cannot touch the floating-point environment is replaced in the kernel and in the header.
 * NOT done: no change to the point, fast or env kernels, to the Core client, the Lua provider's own conversions (the Lua number to `f32` happens in the caller's state, before this entry), or any
@@ -220,3 +220,25 @@ Commands for Root:
 2. `cargo test -p eech-world --test env_sector_authority` (13 functions) and `cargo test -p eech-dc`; `cargo fmt --check`; `cargo clippy --all-targets -- -D warnings`; the complete `cargo test`.
 3. Rebuild the native observer/fixture module from the corrected source into a NEW directory (the frozen 6711 native is not overwritten), then the three default 95-row comparisons on the fresh FIXED roots
    against the `b2e` originals and the five authority modes on the fresh authority roots (`EECH_SECTOR_ROOTS`), exactly as in the commands above; then a new independent review.
+
+## Residual P2 of the correction review on 14192c6e2: the configured frame count (test judge only; UNBUILT, UNRUN)
+
+Independent correction review `ENV-SECTOR-HOST-14192-CORRECTION` (SHA-256 `000b5f69...95`): P1 (the kernel's caller-FP design) closes in source; the observer stream/gap/counter fixes hold, and the two
+fixture fixes weakened nothing. ONE residual P2 remains, in the Rust judge only: `Facts::parse` never read the boot row's `frames`, so a completed run could be judged against a rewritten count (the terminal row
+saying `frames = frames_wanted = 20` with 30 sound calls, against `boot.frames = 30`; or the boot count edited or removed). Fixed in `tests/env_sector_authority.rs`: `Facts::parse` now requires `boot.frames` as a
+whole positive number equal to `authority.frames_wanted`, for healthy and stopped runs, before any `Facts` exist; the existing completed-frames equality (`frames == frames_wanted`, control and changed) then protects
+every configured frame. New guard: `the_configured_boot_frame_count_must_be_present_valid_and_the_same_as_the_authority_rows_count` (the 20-of-20 against boot 30 forgery; the boot count rewritten to 40 or 20; missing,
+string, fractional, null and negative boot counts; both rows agreeing on 0; the same for a stopped run; a positive control that a run configured for 20 and completing 20 is still a healthy control). The embedded
+`env-sector-authority.lua` already writes the right `boot.frames` and is unchanged, and so is all production source (C, Rust, ABI, provider, default Lua): this is a test-judge change, so the pinned 14192 native and the
+embedded Lua can be used with explicit provenance and the native need not be rebuilt for it.
+
+Wording corrected (no numerical change): the correction batch said the domain admits "every finite value and every subnormal ... truncates to sector 0". The intent, and the behaviour, is: every finite SUBNORMAL is
+admitted and truncates to sector 0; finite coordinates outside the grid, and huge ones whose quotient does not fit an integer, are still refused.
+
+**Actual results Root has reported on 14192 (not mine; status of each stated as given):** the Linux fast stage passes all 5 `terrain_sector` tests, including the UNCHANGED 6144-call full CW/SW/TW/MXCSR regression, and all 13
+`env_sector_authority` functions pass (the public path printed SKIPPED without its environment: not authority evidence). The earlier actual red (6144 calls, 76 kinds of MXCSR leak on Linux x86-64) is retained. The
+Linux full default+observer package/strict pipeline and the Windows observer native + test exports were still running; there is no final exit and no native/public claim yet. The first 6711 numeric 95-row files are
+exactly the originals, and say nothing about the 6711 kernel's FP state, which is unaccepted. The fresh fixed (3) and authority (5) roots are verified and UNUSED.
+
+Commands for Root: `cargo test -p eech-world --test env_sector_authority` (14 functions now), then `cargo fmt --check` and `cargo clippy --all-targets -- -D warnings`; the fast and full stages already running cover
+the rest. Nothing else changes: no original, field, model or kernel experiment and no FP regression rerun is needed because of this change.

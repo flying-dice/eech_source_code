@@ -263,6 +263,14 @@ impl Facts {
                 "incoherent counters: altered {altered} of {sector_requests}, frames {frames} of {frames_wanted}"
             ));
         }
+        // the frames the run was CONFIGURED for are the boot row's (the driver's own argument, written before anything ran); the authority row's `frames_wanted` is the terminal row's copy and may not be
+        // the only evidence of it, or a completed run could be judged against a rewritten count. Required, a whole positive number, and the same in both rows, for healthy and stopped runs alike.
+        let boot_frames = int(boot, "frames")?;
+        if boot_frames < 1 || boot_frames != frames_wanted {
+            return Err(format!(
+                "the boot row configured {boot_frames} frames but the authority row says {frames_wanted} were wanted: the configured frame count is not one whole positive number in both rows"
+            ));
+        }
         let completed = authority["completed"]
             .as_bool()
             .ok_or("the authority row does not say whether the run completed")?;
@@ -699,6 +707,68 @@ fn observer_evidence_that_is_lossy_gapped_unreconciled_or_missing_has_no_facts()
     refused(stopped.replace("\"observer_stored\":-1", "\"observer_stored\":4"), "could not be read");
     refused(stopped.replace("\"sound_records\":-1", "\"sound_records\":1"), "could not be read");
     refused(stopped.replace("\"observer_armed\":-1,", ""), "no whole number observer_armed");
+}
+
+#[test]
+fn the_configured_boot_frame_count_must_be_present_valid_and_the_same_as_the_authority_rows_count() {
+    let control = Synthetic::control().text();
+    let refused = |text: String, fragment: &str| {
+        let error = Facts::parse(&text).unwrap_err();
+        assert!(error.contains(fragment), "expected {fragment:?} in {error:?}");
+    };
+    const BOOT: &str = "\"frames\":30,\"frame_ms\"";
+    const AUTHORITY: &str = "\"frames\":30,\"frames_wanted\":30";
+    assert!(
+        control.contains(BOOT) && control.contains(AUTHORITY),
+        "the synthetic rows are not the shape this test rewrites"
+    );
+    // the forged completed run: the authority row says 20 of 20 frames (its 30 sound calls and requests satisfy that), the run was configured for 30 at boot
+    refused(
+        control.replace(AUTHORITY, "\"frames\":20,\"frames_wanted\":20"),
+        "configured 30 frames but the authority row says 20",
+    );
+    // the boot count rewritten alone, in either direction, or removed, or not a whole count
+    refused(
+        control.replace(BOOT, "\"frames\":40,\"frame_ms\""),
+        "configured 40 frames but the authority row says 30",
+    );
+    refused(
+        control.replace(BOOT, "\"frames\":20,\"frame_ms\""),
+        "configured 20 frames but the authority row says 30",
+    );
+    refused(control.replace(BOOT, "\"frame_ms\""), "`boot` has no whole number frames");
+    refused(control.replace(BOOT, "\"frames\":\"30\",\"frame_ms\""), "`boot` has no whole number frames");
+    refused(control.replace(BOOT, "\"frames\":30.5,\"frame_ms\""), "`boot` has no whole number frames");
+    refused(control.replace(BOOT, "\"frames\":null,\"frame_ms\""), "`boot` has no whole number frames");
+    refused(control.replace(BOOT, "\"frames\":-30,\"frame_ms\""), "configured -30 frames");
+    // both rows agreeing on a count that is not a positive one is not a configuration either
+    refused(
+        control
+            .replace(BOOT, "\"frames\":0,\"frame_ms\"")
+            .replace(AUTHORITY, "\"frames\":0,\"frames_wanted\":0"),
+        "configured 0 frames",
+    );
+    // a run the engine stopped is held to the same: its terminal row's count is not the only evidence of the configuration
+    let stopped = Synthetic::refused("withheld_sector", "sector.callback", "withheld", "withheld".into()).text();
+    Facts::parse(&stopped).expect("a stopped run with the configured count in both rows");
+    refused(
+        stopped.replace("\"frames_wanted\":30", "\"frames_wanted\":20"),
+        "configured 30 frames but the authority row says 20",
+    );
+    refused(stopped.replace(BOOT, "\"frame_ms\""), "`boot` has no whole number frames");
+    // and the honest case is not over-refused: a run configured for 20 frames, in both rows, with its 20 sound calls and requests, is a healthy control
+    judge_control(
+        &Synthetic {
+            frames: 20,
+            ..Synthetic::control()
+        }
+        .facts(),
+    )
+    .expect("a control configured for 20 frames and completing 20");
+    // the completed-frames equality still protects ALL the configured frames once the configuration is trusted
+    let mut short = Synthetic::control();
+    short.authority.push(("frames", "20".into()));
+    assert!(judge_control(&short.facts()).unwrap_err().contains("did not run its frames"));
 }
 
 #[test]
