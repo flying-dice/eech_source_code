@@ -25,7 +25,7 @@ only a labelled read-only **mirror** of the field in the session record.
 The kernels keep the original types and expression order (a float field times a double constant, a double expression stored in a float field, the single-precision `PI`), and run under
 round-toward-zero as the engine does. Nothing was re-formulated.
 
-**The caller's complete floating-point state (corrected after the review of `05b8caf82`, finding ENV-PHYSICAL-1).** `fegetenv`/`fesetround`/`fesetenv` alone are not enough: on the shipping
+**The caller's complete floating-point state (corrected after the review of `05b8caf82`, finding ENV-PHYSICAL-1; its extent and its proof were corrected again for `2afd1b4c1`: see "Actual results at `2afd1b4c1`" below -- the restore is now the LAST floating-point act, the read-back compares the complete words, and the matrix seeds a complete state).** `fegetenv`/`fesetround`/`fesetenv` alone are not enough: on the shipping
 toolchain (MinGW-w64 12 posix) `fesetenv` restores the x87 environment but leaves the SSE rounding control and the rest of MXCSR where the kernel put it (the retained actual control
 `reference/d3-model-characterization/model-mingw-fenv-control-20261030.json`: MXCSR `0x1fb4`/`0x3fb4`/`0x5fb4` come back as `0x7fb4`). Every public entry of `env_ref.c` therefore saves,
 before its first statement, the x87 environment (`fnstenv`: control, status and tag words and the exception pointers, reloaded straight away so the caller's masks stand) and the whole of
@@ -171,6 +171,43 @@ The ONE combined independent source review of `05b8caf82` (`independent-environm
 CHANGES_REQUIRED with three findings, closed in source by this batch (UNBUILT, UNRUN, UNREVIEWED): ENV-PHYSICAL-1 (complete x87/MXCSR guard, above), ENV-PHYSICAL-2 (request contract and
 lightning protocol, above), ENV-PHYSICAL-3 (branch-specific reads and the gust wrap, above). The `weather_draw.w0` change (the draw value, not the computed field) is a documented diagnostic
 change of a private feature; the old raw records are immutable and are not altered; it is not claimed byte-unchanged for that record.
+
+## Actual results at `2afd1b4c1` and the second correction batch (UNBUILT, UNRUN, UNREVIEWED)
+
+Reported by Root (not re-run here). **Successes:** the Windows environment-fixture build exited 0; three real retail 164-case probes (Georgia, Lebanon, fresh Lebanon repeat) each exited 0
+at native and controller with six pre/post inputs 0 and 46 payloads; the complete 705-line outputs, line endings included, are exact against `05b8caf82`, so all 704 original raw lines
+remain exact plus the one validation-metadata row (Georgia SHA-256 `5165602d...ca56f`; both Lebanon `a25f409d...5d4a7`). Cross-compiled Windows export of three packages 0, then on real
+Windows: engine 76/76 exit 0, dc 21/21 exit 0. **Failures:** Linux default tests exit 101 (world 247 passed, 2 failed at `env.rs:891` and `:761`; the fixture and strict phases were not
+reached), and the same two on real Windows (world 247 passed, 2 failed, exit 101). Author exit 0, a build exit 0 and numeric exactness imply no floating-point, authority or shipping
+acceptance. The independent review of `2afd1b4c1` (`independent-environment-physical-correction-review-2afd1b4c1-20261031.json`, SHA-256 `70bdcdd0...ba20`) returned CHANGES_REQUIRED
+with four findings, closed in source by this batch:
+
+* **ENV-CORRECTION-1 (P1), the extent of the guard.** In 2afd the guard restored the caller's state and only then compared (`ts < 0.5`) and stored float results (weather, wind, gust,
+  the float initialisers and the output clearing of the step); on a supported x87 target those can change condition/status bits even when the value is exact. Now **all** floating-point
+  work -- the original's arithmetic, the simple-mode comparison, the staging of every result, the zero-initialisation of every float -- happens between `fp_save` and `fp_leave`; a result
+  is staged in a local object that `ENV_FP_SETTLE` makes a stored object before the restore, and after the restore only integer tests and bitwise copies (`memcpy`) remain, the field
+  commit included. No float is initialised before `fp_save`. The read-back of the restore compares the COMPLETE x87 control, status and tag words and the whole of MXCSR (the mask of
+  2afd, which left the stack-fault and summary bits and the exception flags out of one comparison, is gone). The numeric expressions, types and evaluation order are unchanged. The Rust
+  matrix now seeds a complete caller state itself -- every pair of the four x87 and four SSE rounding controls (so the mixed pairs), MXCSR sticky flags clear and set, and three
+  deliberately arranged x87 status words (clear; C3 with every exception flag; stack top 4 with C0, C1 and C2) with an all-empty tag word -- compares the complete words, no mask, after
+  each call, restores the test thread's complete environment even when an assertion fails, and covers `init_random` (accepted and refused), the first `NeedDraw` answer and the final `Done`
+  after the draw, the simple-mode weather answer, the wind with and without a vector, and every kind of refusal. It assumes no ambient mode. Limit, stated: the Rust code around each
+  call is the test's own; on an x87-only target it can itself touch the status word, and a difference reported there must be attributed to the guard or to the test's glue. A leak here is
+  source-inferred, not a measured failure, until Root's actual execution; the unchanged MinGW fenv control is closed evidence and is not repeated.
+* **ENV-CORRECTION-2 (P2), the unrequested wind vector in C.** `campaign_env_wind_at` required a finite vector even when none was requested, while the Rust boundary (which does not read
+  it) accepted such a reply and the Lua bridge hid the difference by synthesising zeros. Now C requires the speed always and the vector only when the campaign passed a vector; a requested
+  vector remains mandatory. A real-C-consumer test (`eech-engine` tests, `the_c_wind_consumer_reads_a_requested_vector_and_does_not_read_one_nobody_asked_for`) calls the real
+  `campaign_env_wind_at` with a C host installed and shows: a requested valid vector arrives, an unrequested vector is not read even when it is not finite, and the request carries the
+  right `want_vector`. No boot, map or asset is needed. The requested-and-malformed half ends in `debug_fatal`, which needs an engine entry to unwind to, so it is not a unit test; it is
+  the engine-level mode `malformed_wind_vector` of the wind-authority witness (a later, separately authorised test), and until that runs it is source-read only. Through the Lua path the C
+  consumer can never see an unrequested bad vector (the bridge normalises it), so this unit is the only real witness of that half.
+* **ENV-CORRECTION-3 (P2), the early `NeedDraw` success.** With the blanket delta check gone, an infinite delta made a server's timer -infinity and the kernel returned `need_draw` with
+  it before the final check of the field. The timer is now validated at that return and refused without a commit (`an_infinite_delta_that_would_ask_for_a_draw_is_...` keeps the
+  refusal assertion, and the matrix keeps its infinite-delta refusal). No blanket input check was restored. The Lua bridge and the engine boundary already refused a non-finite timer
+  before the shared random word was drawn from, so no shipping consumption of a draw for this value is claimed.
+* **ENV-CORRECTION-4 (P2), the radius-zero test sequence.** The first step of a calm zero-radius zone expands the radius to the original's minimum (`0 - 100` is below it), after which a
+  camera IS needed, so the second, camera-less step legitimately refused. The test now asserts that evolved refusal (and that it changes nothing), then re-imports the calm state before the
+  independent absent-camera step. The radius arithmetic and the required-camera error are unchanged.
 
 ## Remaining coupling and open gates (finite)
 

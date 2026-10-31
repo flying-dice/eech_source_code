@@ -1,3 +1,40 @@
+# D3 checkpoint — combined review of 2afd1b4c1: four residuals fixed in source (31 October 2026)
+
+EEDCS-51 / PR111 from clean pushed `2afd1b4c1`. The same sole Sonnet5.5High lane, redirected
+deliberately (not a timeout) from the wind-authority driver, fixed the ONE combined correction
+review (`independent-environment-physical-correction-review-2afd1b4c1-20261031.json`, SHA-256
+`70bdcdd0...ba20`, CHANGES_REQUIRED). The earlier partial driver is preserved byte-exact at
+`R:/d3-evidence/env-wind-authority-partial-before-fp-correction-20261031.lua` (SHA `5cb5bb9f...`) and is
+NOT in this tree; Root reauthorises that test lane after these gates. **NEW SOURCE: UNBUILT, UNRUN,
+UNREVIEWED**; no pass, FP, authority, Tacview or shipping acceptance; Task 51/D3 stays open
+(physical effects, terrain-scratch bridge, time inputs, loaders, spatial and model work remain D3;
+campaign policy and scheduling stay Core; D4/D5 not started).
+
+Actual at `2afd1b4c1` (Root's, not re-run): Windows fixture build 0; three retail 164-case probes each
+native/controller 0, six pre/post inputs 0, 46 payloads; the complete 705-line outputs are exact
+against `05b8caf82` (all 704 original raw lines plus the validation-metadata row; Georgia
+`5165602d...`, Lebanon `a25f409d...`). Cross-compiled Windows export 0, real Windows engine 76/76 and
+dc 21/21 exit 0. FAILURES: Linux default tests exit 101 (world 247 passed, 2 failed at `env.rs:891`
+and `:761`; fixture and strict phases not reached) and the same two on real Windows (exit 101).
+Build 0, author 0 and numeric exactness imply no FP/authority/shipping acceptance.
+
+Fixed in source: ENV-CORRECTION-1 (P1) all floating-point work, results staging, the simple-mode
+comparison and float initialisation now sit inside the `env_ref.c` guard, with the restore the last FP
+act (only integer tests and bitwise `memcpy` after it, field commit included) and its read-back
+comparing the COMPLETE x87 control/status/tag words and MXCSR; the matrix seeds a full caller state
+(4x4 rounding pairs, MXCSR sticky flags, three arranged x87 status words), compares unmasked,
+restores the test thread's complete environment on failure and now covers `init_random`, the first
+`NeedDraw` and the final `Done`; a leak stays source-inferred until Root's execution, the old MinGW
+control is not repeated. ENV-CORRECTION-2 (P2) `campaign_env_wind_at` requires the vector only when
+requested; a real-C-consumer test in `eech-engine` calls it directly (the requested-malformed half
+needs an engine entry and is left to the later wind-authority mode, source-read only until then).
+ENV-CORRECTION-3 (P2) the kernel validates the `need_draw` timer before its early success (infinite
+delta refused, no commit, assertion kept, no blanket check restored). ENV-CORRECTION-4 (P2) the
+radius-zero test re-imports the calm state before the independent absent-camera step and asserts the
+evolved state's legitimate camera refusal. `weather_draw.w0` remains a declared diagnostic difference.
+Immutable originals, goldens, baselines and tolerances untouched; the engine C NUL (1) preserved.
+Protected: ground launcher/runner/natives, all roots/binaries/frozen `2afd`/`05b` sources and raw outputs.
+
 # D3 checkpoint — combined independent source review of 05b8caf82: three findings and one lint fixed in source (31 October 2026)
 
 EEDCS-51 / PR111 from clean pushed `05b8caf82`. The same sole Sonnet5.5High lane fixed the ONE

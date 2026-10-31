@@ -9515,4 +9515,73 @@ mod tests {
             "[env-provider:export.state]",
         );
     }
+
+    // ---- the REAL C consumer of the environment wind answer (EEDCS-51, review ENV-CORRECTION-2): ss_hostenv.c campaign_env_wind_at, called directly, with a C host installed ----
+    //
+    // The callback-only tests above cover the Rust boundary; this drives the C function the campaign's own wind consumers (get_session_wind_velocity_at_point) call. It needs no boot, no
+    // map and no asset: campaign_env_wind_at only builds the request, asks the installed host and checks the answer. What it proves: the C consumer does not READ a vector nobody asked for
+    // (a speed with a not-finite vector is accepted when the campaign passed no vector, as at the Rust boundary) and returns a requested vector. The REQUESTED-and-malformed half ends in
+    // debug_fatal, which needs an engine entry to unwind to; that half is witnessed with the real engine by lua/env-wind-authority.lua (mode malformed_wind_vector), not here.
+
+    #[repr(C)]
+    struct CampaignEnvHost {
+        environment: Option<unsafe extern "C" fn(*const sys::eech_env_request, *mut sys::eech_env_reply, *mut c_char, usize, *mut c_void) -> c_int>,
+        user: *mut c_void,
+    }
+
+    extern "C" {
+        fn campaign_env_set_host(host: *const CampaignEnvHost);
+        fn campaign_env_wind_at(x: f32, z: f32, vector: *mut f32) -> f32;
+    }
+
+    static WIND_SEEN_WANT_VECTOR: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(-1);
+    static WIND_REPLY_NAN_VECTOR: AtomicBool = AtomicBool::new(false);
+
+    unsafe extern "C" fn wind_c_host(
+        request: *const sys::eech_env_request,
+        reply: *mut sys::eech_env_reply,
+        _error: *mut c_char,
+        _size: usize,
+        _user: *mut c_void,
+    ) -> c_int {
+        // SAFETY: the C side passes a readable request and a writable reply for the call.
+        let (request, reply) = unsafe { (&*request, &mut *reply) };
+        WIND_SEEN_WANT_VECTOR.store(request.want_vector, std::sync::atomic::Ordering::SeqCst);
+        reply.speed = 3.0;
+        reply.vector = if WIND_REPLY_NAN_VECTOR.load(Ordering::SeqCst) {
+            [f32::NAN, 0.0, f32::INFINITY]
+        } else {
+            [1.0, 0.0, -2.0]
+        };
+        0
+    }
+
+    #[test]
+    fn the_c_wind_consumer_reads_a_requested_vector_and_does_not_read_one_nobody_asked_for() {
+        let host = CampaignEnvHost {
+            environment: Some(wind_c_host),
+            user: std::ptr::null_mut(),
+        };
+        // SAFETY: the host outlives the calls; the C function copies it.
+        unsafe { campaign_env_set_host(&host) };
+        // a requested vector, valid: the speed and the vector arrive, and the request said a vector was wanted
+        WIND_REPLY_NAN_VECTOR.store(false, Ordering::SeqCst);
+        let mut vector = [9.0f32; 3];
+        // SAFETY: `vector` has the three floats the function writes.
+        let speed = unsafe { campaign_env_wind_at(1.5, -2.5, vector.as_mut_ptr()) };
+        assert_eq!((speed, vector), (3.0, [1.0, 0.0, -2.0]));
+        assert_eq!(WIND_SEEN_WANT_VECTOR.load(std::sync::atomic::Ordering::SeqCst), 1);
+        // a vector nobody asked for (no vector passed), valid: the speed arrives and the request said none was wanted
+        // SAFETY: a null vector is the "no vector" form.
+        let speed = unsafe { campaign_env_wind_at(1.5, -2.5, std::ptr::null_mut()) };
+        assert_eq!(speed, 3.0);
+        assert_eq!(WIND_SEEN_WANT_VECTOR.load(std::sync::atomic::Ordering::SeqCst), 0);
+        // a vector nobody asked for, and a host that put not-finite numbers in it: not read, so not refused (the corrected contract; the old C refused it and fatalled)
+        WIND_REPLY_NAN_VECTOR.store(true, Ordering::SeqCst);
+        // SAFETY: as above.
+        let speed = unsafe { campaign_env_wind_at(1.5, -2.5, std::ptr::null_mut()) };
+        assert_eq!(speed, 3.0);
+        assert_eq!(WIND_SEEN_WANT_VECTOR.load(std::sync::atomic::Ordering::SeqCst), 0);
+        WIND_REPLY_NAN_VECTOR.store(false, Ordering::SeqCst);
+    }
 }

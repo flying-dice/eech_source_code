@@ -645,11 +645,20 @@ mod tests {
         assert_eq!(field.export().unwrap(), before);
     }
 
-    /// The processor's floating-point state of this thread, read and written directly (the x87 control and status words and MXCSR), so that the guard around every kernel is
-    /// checked against the REAL registers rather than against one quotient. Only where those registers exist.
+    /// The processor's floating-point state of this thread, read and written directly -- the x87 control, status AND tag words and the whole of MXCSR -- so that the guard around every
+    /// kernel is checked against the REAL registers, in full, rather than against one quotient or a masked part of a word. Only where those registers exist.
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     mod fp {
         use std::arch::asm;
+
+        /// The complete state the guard promises to give back (the x87 words are the full words, no mask).
+        #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+        pub struct Env {
+            pub mxcsr: u32,
+            pub control: u16,
+            pub status: u16,
+            pub tag: u16,
+        }
 
         pub fn mxcsr() -> u32 {
             let mut value = 0u32;
@@ -659,114 +668,179 @@ mod tests {
         }
 
         pub fn set_mxcsr(value: u32) {
-            // SAFETY: loads MXCSR from a local; the values written are valid control/status settings read from or built on a prior read.
+            // SAFETY: loads MXCSR from a local; the values written are built on a prior read with valid fields.
             unsafe { asm!("ldmxcsr dword ptr [{}]", in(reg) &value as *const u32, options(nostack, readonly)) };
         }
 
-        pub fn control() -> u16 {
-            let mut value = 0u16;
-            // SAFETY: stores the x87 control word to a local.
-            unsafe { asm!("fnstcw word ptr [{}]", in(reg) &mut value as *mut u16, options(nostack, preserves_flags)) };
-            value
+        /// The x87 environment image (fnstenv: control, status and tag words, the exception pointers). fnstenv masks every exception, so the image is loaded straight back.
+        pub fn x87_image() -> [u8; 28] {
+            let mut image = [0u8; 28];
+            // SAFETY: stores the 28-byte environment to a local and loads the same image back.
+            unsafe {
+                asm!("fnstenv [{}]", in(reg) image.as_mut_ptr(), options(nostack));
+                asm!("fldenv [{}]", in(reg) image.as_ptr(), options(nostack, readonly));
+            }
+            image
         }
 
-        pub fn set_control(value: u16) {
-            // SAFETY: loads the x87 control word from a local.
-            unsafe { asm!("fldcw word ptr [{}]", in(reg) &value as *const u16, options(nostack, readonly)) };
+        pub fn set_x87_image(image: &[u8; 28]) {
+            // SAFETY: loads an environment image built from a prior read with valid words.
+            unsafe { asm!("fldenv [{}]", in(reg) image.as_ptr(), options(nostack, readonly)) };
         }
 
-        pub fn status() -> u16 {
-            let mut value = 0u16;
-            // SAFETY: stores the x87 status word to a local.
-            unsafe { asm!("fnstsw word ptr [{}]", in(reg) &mut value as *mut u16, options(nostack, preserves_flags)) };
-            value
+        pub fn now() -> Env {
+            let image = x87_image();
+            Env {
+                mxcsr: mxcsr(),
+                control: u16::from_le_bytes([image[0], image[1]]),
+                status: u16::from_le_bytes([image[4], image[5]]),
+                tag: u16::from_le_bytes([image[8], image[9]]),
+            }
+        }
+
+        /// Arranges a caller state deliberately: the x87 rounding control, a full status word and an all-empty tag word, and MXCSR with its own rounding control and sticky flags.
+        pub fn seed(x87_rounding: u16, status: u16, sse_rounding: u32, sticky: u32) {
+            let mut image = x87_image();
+            let control = (u16::from_le_bytes([image[0], image[1]]) & !0x0c00) | (x87_rounding << 10);
+            image[0..2].copy_from_slice(&control.to_le_bytes());
+            image[4..6].copy_from_slice(&status.to_le_bytes());
+            image[8..10].copy_from_slice(&0xffffu16.to_le_bytes());
+            set_x87_image(&image);
+            set_mxcsr(0x1f80 | (sse_rounding << 13) | sticky);
         }
     }
 
-    /// Puts the thread's floating-point control back whatever a test did to it, even when an assertion fails.
+    /// Puts the thread's COMPLETE floating-point environment back whatever a test did to it, even when an assertion fails.
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     struct RestoreFp {
+        image: [u8; 28],
         mxcsr: u32,
-        control: u16,
     }
 
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     impl Drop for RestoreFp {
         fn drop(&mut self) {
+            fp::set_x87_image(&self.image);
             fp::set_mxcsr(self.mxcsr);
-            fp::set_control(self.control);
         }
     }
 
-    /// Every operation, accepted and refused, under each of the four rounding modes and with the sticky flags of MXCSR both clear and set: the caller's x87 control and status words and
-    /// MXCSR are exactly what they were. And whatever the caller's mode, the kernels' answers are the same bits (they run in their own mode, round toward zero).
+    /// Every operation, accepted and refused, under every pair of rounding controls (the four of the x87 unit against the four of the SSE unit, so the mixed pairs too), with MXCSR's sticky
+    /// flags clear and set and with three deliberately arranged x87 status words (clear; the condition code C3 and every exception flag; the stack top 4 and the codes C0, C1 and C2):
+    /// the caller's complete x87 control, status and tag words and complete MXCSR are exactly what the test seeded -- no mask -- after each call. The operations include
+    /// `init_random`, the first `NeedDraw` answer and the final `Done` after the draw, the simple-mode weather answer and the wind with and without a vector, and a refusal of each kind.
+    /// And whatever the caller's state, the kernels' answers are the same bits (they run in their own mode, round toward zero).
+    ///
+    /// What this does not cover: the Rust code around the call (building arguments, comparing results) is the test's own and runs in the seeded state too; on an x87-only target
+    /// it can itself touch the status word, which this test would then report. Source only: Root runs it on the actual targets.
     #[test]
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
     fn the_callers_complete_floating_point_state_survives_every_operation_in_every_mode() {
         let _restore = RestoreFp {
+            image: fp::x87_image(),
             mxcsr: fp::mxcsr(),
-            control: fp::control(),
         };
-        let original_control = fp::control();
         let mut local = defaults();
         local.n[2] = 1;
         local.f[0] = 20000.0;
         local.f[3] = 123.456;
         local.f[6] = 7.77;
         local.f[22] = 100.0;
-        let mut answers: Vec<(State, Weather, Wind)> = Vec::new();
-        for rounding in 0u32..4 {
-            for sticky in [0u32, 0x3f] {
-                // masks all set (0x1f80), the rounding control, and the six sticky exception flags clear or set
-                fp::set_mxcsr(0x1f80 | (rounding << 13) | sticky);
-                fp::set_control((original_control & !0x0c00) | ((rounding as u16) << 10));
-                let expected = (fp::mxcsr(), fp::control(), fp::status() & 0x3f);
-                let check = |what: &str| {
-                    assert_eq!(
-                        (fp::mxcsr(), fp::control(), fp::status() & 0x3f),
-                        expected,
-                        "{what}: rounding {rounding}, sticky {sticky:#x}"
-                    );
-                };
-                let mut field = Field::new().unwrap();
-                field.import(&local).unwrap();
-                check("import");
-                let weather = field.weather(9000.0, -3000.0, false).unwrap();
-                check("weather");
-                let wind = field.wind(1.0, 2.0, true).unwrap();
-                check("wind");
-                Field::gust(0.5).unwrap();
-                check("gust");
-                field.export().unwrap();
-                check("export");
-                field.step(&input(0.1)).unwrap();
-                check("step");
-                let state = field.export().unwrap();
-                field.init_fixed(2).unwrap();
-                check("init_fixed");
-                // the early refusals, each of which runs part of the validation under the guard
-                assert!(field.init_fixed(9).is_err());
-                check("init_fixed refused");
-                let mut nan = local;
-                nan.f[3] = f32::NAN;
-                assert!(field.import(&nan).is_err());
-                check("import refused");
-                assert!(Field::gust(2.0).is_err());
-                check("gust refused");
-                let mut blind = input(1.0);
-                blind.have_camera = false;
-                field.import(&local).unwrap();
-                assert!(field.step(&blind).is_err());
-                check("step refused (no camera)");
-                assert!(field.step(&input(f32::INFINITY)).is_err());
-                check("step refused (infinite delta)");
-                assert!(Field::new().unwrap().export().is_err());
-                check("export refused (no state)");
-                answers.push((state, weather, wind));
+        let mut expiring = local;
+        expiring.f[22] = 1.0;
+        let mut bad_gust = local;
+        bad_gust.f[10] = 2.0;
+        let mut nan = local;
+        nan.f[3] = f32::NAN;
+        let draws: [f64; DRAWS] = [0.5, 1.0, 0.25, 0.75, 0.5, 0.5, 0.0, 0.25, 0.75, -0.5];
+        let mut out_of_range = draws;
+        out_of_range[0] = 2.0;
+        let config: [f32; 6] = [20000.0, 60000.0, 10.0, 8000.0, 40000.0, 5.0];
+        let map_extents = map();
+        let mut with_draw = input(2.0);
+        with_draw.draw = Some(0.5);
+        let mut bad_draw = with_draw;
+        bad_draw.draw = Some(f64::NAN);
+        let mut blind = input(1.0);
+        blind.have_camera = false;
+
+        type Answers = (State, Weather, Wind, f32, State, StepOutcome, StepOutcome);
+        let mut answers: Vec<Answers> = Vec::new();
+        for x87_rounding in 0u16..4 {
+            for sse_rounding in 0u32..4 {
+                for sticky in [0u32, 0x3f] {
+                    for status in [0x0000u16, 0x403f, 0x2700] {
+                        fp::seed(x87_rounding, status, sse_rounding, sticky);
+                        let expected = fp::now();
+                        let check = |what: &str| {
+                            assert_eq!(
+                                fp::now(),
+                                expected,
+                                "{what}: x87 rounding {x87_rounding}, SSE rounding {sse_rounding}, MXCSR sticky {sticky:#x}, x87 status {status:#06x}"
+                            );
+                        };
+                        let mut field = Field::new().unwrap();
+                        field.import(&local).unwrap();
+                        check("import");
+                        field.export().unwrap();
+                        check("export");
+                        let weather = field.weather(9000.0, -3000.0, false).unwrap();
+                        check("weather (with the simple-mode choice)");
+                        let wind = field.wind(1.0, 2.0, true).unwrap();
+                        check("wind with a vector");
+                        field.wind(1.0, 2.0, false).unwrap();
+                        check("wind without a vector");
+                        let gust = Field::gust(0.5).unwrap();
+                        check("gust");
+                        // the first answer of an expiring server timer, and the final one after the draw
+                        field.import(&expiring).unwrap();
+                        let need = field.step(&input(2.0)).unwrap();
+                        check("step: the first question (need_draw)");
+                        assert!(matches!(need, StepOutcome::NeedDraw { .. }), "{need:?}");
+                        let done = field.step(&with_draw).unwrap();
+                        check("step: the final answer after the draw");
+                        assert!(matches!(done, StepOutcome::Done { expired: true, .. }), "{done:?}");
+                        field.import(&local).unwrap();
+                        field.step(&input(0.1)).unwrap();
+                        check("step: no expiry");
+                        let stepped = field.export().unwrap();
+                        // init_random: accepted, and refused (a draw the original's macro cannot give)
+                        field.init_random(&draws, &config, &map_extents).unwrap();
+                        check("init_random");
+                        let initialised = field.export().unwrap();
+                        assert!(field.init_random(&out_of_range, &config, &map_extents).is_err());
+                        check("init_random refused");
+                        field.init_fixed(2).unwrap();
+                        check("init_fixed");
+                        // the refusals, each of which runs part of the validation under the guard
+                        assert!(field.init_fixed(9).is_err());
+                        check("init_fixed refused");
+                        assert!(field.import(&nan).is_err());
+                        check("import refused");
+                        assert!(Field::gust(2.0).is_err());
+                        check("gust refused");
+                        field.import(&bad_gust).unwrap();
+                        assert!(field.wind(1.0, 2.0, true).is_err());
+                        check("wind refused (the gust phase is outside the original's domain)");
+                        field.import(&local).unwrap();
+                        assert!(field.step(&blind).is_err());
+                        check("step refused (no camera)");
+                        assert!(field.step(&input(f32::INFINITY)).is_err());
+                        check("step refused (infinite delta)");
+                        field.import(&expiring).unwrap();
+                        assert!(field.step(&bad_draw).is_err());
+                        check("step refused (a draw the original's macro cannot give)");
+                        assert!(Field::new().unwrap().export().is_err());
+                        check("export refused (no state)");
+                        let again = field.step(&with_draw).unwrap();
+                        check("step: the final answer again");
+                        answers.push((stepped, weather, wind, gust, initialised, need, again));
+                    }
+                }
             }
         }
         for answer in answers.iter().skip(1) {
-            assert_eq!(answer, &answers[0], "the caller's rounding mode reached the kernels");
+            assert_eq!(answer, &answers[0], "the caller's state reached the kernels");
         }
     }
 
@@ -888,6 +962,16 @@ mod tests {
             let mut step = nan_camera(false);
             field.step(&step).unwrap();
             step.have_camera = false;
+            if local_without_zone {
+                // the first step evolved the zero-radius zone by the original's own arithmetic (0 - 100 is below the minimum, so the radius is the minimum and grows from there); a zone with a radius
+                // DOES need the camera, so the same step without one is now, legitimately, refused -- and changes nothing
+                let evolved = field.export().unwrap();
+                assert_eq!((evolved.f[0], evolved.n[3]), (5000.0, 1), "the original's radius clamp");
+                assert!(field.step(&step).unwrap_err().contains("camera"));
+                assert_eq!(field.export().unwrap(), evolved);
+            }
+            // the independent assertion: the calm state again, and a step with NO camera at all completes (no zone, or the global model: the original reads none)
+            field.import(&calm).unwrap();
             field.step(&step).unwrap();
         }
     }
@@ -925,6 +1009,27 @@ mod tests {
         field.import(&state).unwrap();
         field.step(&input(-1.0)).unwrap();
         assert_eq!(field.export().unwrap().f[16], 8.0);
+    }
+
+    #[test]
+    fn an_infinite_delta_that_would_ask_for_a_draw_is_refused_before_the_early_success_and_commits_nothing() {
+        // a server's zone whose timer an infinite delta makes -infinity: the early need_draw success used to bypass the final check of the field and report the infinite timer as the
+        // protocol's number
+        let mut zone = defaults();
+        zone.n[2] = 1;
+        zone.f[0] = 20000.0;
+        zone.f[22] = 1.0;
+        let mut field = Field::new().unwrap();
+        field.import(&zone).unwrap();
+        let before = field.export().unwrap();
+        let error = field.step(&input(f32::INFINITY)).unwrap_err();
+        assert!(error.contains("not finite"), "{error}");
+        assert_eq!(field.export().unwrap(), before);
+        // a finite delta of the same zone still asks for the draw, with a finite timer
+        match field.step(&input(2.0)).unwrap() {
+            StepOutcome::NeedDraw { timer } => assert_eq!(timer, -1.0),
+            other => panic!("{other:?}"),
+        }
     }
 
     #[test]

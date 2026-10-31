@@ -700,6 +700,13 @@ static int step_impl (env_ref *field, const float *in_f, const int *in_i, double
 
 					if (!have_draw)
 					{
+						/* The timer is the protocol's number and must be a finite one: an infinite delta makes it infinite, and this early success would otherwise bypass the final check
+						   of the field.  Nothing is committed on a refusal (the wrapper commits only a success). */
+						if (!isfinite (s.f[F_LIGHTNING_TIMER]))
+						{
+							return fail (error, error_size, "the lightning timer after the decrement is not finite: the host cannot ask for a draw for it");
+						}
+
 						/* the next timer needs the one draw of the shared random word: nothing has been changed */
 						out_i[0] = TRUE;
 						out_f[3] = s.f[F_LIGHTNING_TIMER];
@@ -938,8 +945,6 @@ typedef struct env_fp_state
 
 #define ENV_MXCSR_ROUNDING_MASK 0x6000u
 #define ENV_MXCSR_ROUND_TOWARD_ZERO 0x6000u
-/* of the status word: the exception flags and the condition codes and stack top (not the derived stack-fault and summary bits) */
-#define ENV_X87_STATUS_COMPARED 0x7f3fu
 
 #if ENV_FP_X86
 static unsigned int fp_read_mxcsr (void)
@@ -956,22 +961,17 @@ static void fp_write_mxcsr (unsigned int mxcsr)
 	__asm__ __volatile__ ("ldmxcsr %0" : : "m" (mxcsr) : "memory");
 }
 
-static unsigned int fp_read_x87_control (void)
+/* the x87 control, status AND tag words as they stand (fnstenv masks every exception, so the image is loaded straight back) */
+static void fp_read_x87_words (unsigned int *control, unsigned int *status, unsigned int *tag)
 {
-	unsigned short control = 0;
+	unsigned char image[28];
 
-	__asm__ __volatile__ ("fnstcw %0" : "=m" (control) : : "memory");
+	__asm__ __volatile__ ("fnstenv %0" : "=m" (image) : : "memory");
+	__asm__ __volatile__ ("fldenv %0" : : "m" (image) : "memory");
 
-	return control;
-}
-
-static unsigned int fp_read_x87_status (void)
-{
-	unsigned short status = 0;
-
-	__asm__ __volatile__ ("fnstsw %0" : "=m" (status) : : "memory");
-
-	return status;
+	*control = (unsigned int) image[0] | ((unsigned int) image[1] << 8);
+	*status = (unsigned int) image[4] | ((unsigned int) image[5] << 8);
+	*tag = (unsigned int) image[8] | ((unsigned int) image[9] << 8);
 }
 #endif
 
@@ -1018,11 +1018,16 @@ static int fp_restore (const env_fp_state *state)
 #if ENV_FP_X86
 	unsigned int saved_control = (unsigned int) state->x87[0] | ((unsigned int) state->x87[1] << 8);
 	unsigned int saved_status = (unsigned int) state->x87[4] | ((unsigned int) state->x87[5] << 8);
+	unsigned int saved_tag = (unsigned int) state->x87[8] | ((unsigned int) state->x87[9] << 8);
+	unsigned int control, status, tag;
 
 	__asm__ __volatile__ ("fldenv %0" : : "m" (state->x87) : "memory");
 	fp_write_mxcsr (state->mxcsr);
 
-	if (fp_read_mxcsr () != state->mxcsr || fp_read_x87_control () != saved_control || (fp_read_x87_status () & ENV_X87_STATUS_COMPARED) != (saved_status & ENV_X87_STATUS_COMPARED))
+	/* the COMPLETE control, status and tag words, and the whole of MXCSR, must read back as saved (no mask: the condition codes and the stack top are part of the state) */
+	fp_read_x87_words (&control, &status, &tag);
+
+	if (fp_read_mxcsr () != state->mxcsr || control != saved_control || status != saved_status || tag != saved_tag)
 	{
 		return -1;
 	}
@@ -1044,14 +1049,23 @@ static int fp_leave (const env_fp_state *saved, int result, char *error, size_t 
 	return result;
 }
 
+
 ////////////////////////////////////////
 //
 // the exported operations: each under the complete floating-point state of the caller, restored on every exit
 //
-// An operation that changes the field works on a COPY of it and commits that copy only after the caller's state has been restored and has read back, so a refusal of any kind (a
-// domain, a non-finite result, the environment itself) changes nothing.
+// ALL floating-point work of an operation -- the original's arithmetic, the comparisons that follow it (the simple-mode choice), the staging of every result and every float
+// output -- happens between fp_save and fp_leave.  A result is staged in a local object, ENV_FP_SETTLE makes it a stored object (not a value kept in an x87 register) before the
+// restore, and after the restore only integer tests and bitwise copies (memcpy) remain: no float is loaded, compared or stored after the caller's state is back.  Floats are
+// never initialised before fp_save either (a `float x = 0.0` is an x87 load on a 32-bit build).
+//
+// An operation that changes the field works on a COPY of it and commits that copy (bitwise) only after the caller's state has been restored and has read back, so a refusal of any
+// kind (a domain, a non-finite result, the environment itself) changes nothing.
 //
 ////////////////////////////////////////
+
+/* the object's stores have been made, and its address has escaped, before the next asm statement (the restore): the compiler may not move them after it */
+#define ENV_FP_SETTLE(object) __asm__ __volatile__ ("" : : "r" (&(object)) : "memory")
 
 int env_ref_import (env_ref *field, const float *f, const int *n, char *error, size_t error_size)
 {
@@ -1061,20 +1075,22 @@ int env_ref_import (env_ref *field, const float *f, const int *n, char *error, s
 
 	fp_save (&saved);
 
-	work = *field;
-
 	if (fp_enter (error, error_size) != 0)
 	{
 		return fp_leave (&saved, -1, error, error_size);
 	}
 
+	memcpy (&work, field, sizeof (work));
+
 	result = import_impl (&work, f, n, error, error_size);
+
+	ENV_FP_SETTLE (work);
 
 	result = fp_leave (&saved, result, error, error_size);
 
 	if (result == 0)
 	{
-		*field = work;
+		memcpy (field, &work, sizeof (work));
 	}
 
 	return result;
@@ -1083,6 +1099,7 @@ int env_ref_import (env_ref *field, const float *f, const int *n, char *error, s
 int env_ref_export (const env_ref *field, float *f, int *n, char *error, size_t error_size)
 {
 	env_fp_state saved;
+	env_state staged;
 	int result = 0;
 
 	fp_save (&saved);
@@ -1098,11 +1115,20 @@ int env_ref_export (const env_ref *field, float *f, int *n, char *error, size_t 
 	}
 	else
 	{
-		memcpy (f, field->state.f, sizeof (field->state.f));
-		memcpy (n, field->state.n, sizeof (field->state.n));
+		memcpy (&staged, &field->state, sizeof (staged));
 	}
 
-	return fp_leave (&saved, result, error, error_size);
+	ENV_FP_SETTLE (staged);
+
+	result = fp_leave (&saved, result, error, error_size);
+
+	if (result == 0)
+	{
+		memcpy (f, staged.f, sizeof (staged.f));
+		memcpy (n, staged.n, sizeof (staged.n));
+	}
+
+	return result;
 }
 
 int env_ref_init_random (env_ref *field, const double *draw, const float *config, const float *map, char *error, size_t error_size)
@@ -1113,20 +1139,22 @@ int env_ref_init_random (env_ref *field, const double *draw, const float *config
 
 	fp_save (&saved);
 
-	work = *field;
-
 	if (fp_enter (error, error_size) != 0)
 	{
 		return fp_leave (&saved, -1, error, error_size);
 	}
 
+	memcpy (&work, field, sizeof (work));
+
 	result = init_random_impl (&work, draw, config, map, error, error_size);
+
+	ENV_FP_SETTLE (work);
 
 	result = fp_leave (&saved, result, error, error_size);
 
 	if (result == 0)
 	{
-		*field = work;
+		memcpy (field, &work, sizeof (work));
 	}
 
 	return result;
@@ -1140,20 +1168,22 @@ int env_ref_init_fixed (env_ref *field, int mode, char *error, size_t error_size
 
 	fp_save (&saved);
 
-	work = *field;
-
 	if (fp_enter (error, error_size) != 0)
 	{
 		return fp_leave (&saved, -1, error, error_size);
 	}
 
+	memcpy (&work, field, sizeof (work));
+
 	result = init_fixed_impl (&work, mode, error, error_size);
+
+	ENV_FP_SETTLE (work);
 
 	result = fp_leave (&saved, result, error, error_size);
 
 	if (result == 0)
 	{
-		*field = work;
+		memcpy (field, &work, sizeof (work));
 	}
 
 	return result;
@@ -1163,8 +1193,8 @@ int env_ref_weather (const env_ref *field, float x, float z, int winter, int *mo
 {
 	env_fp_state saved;
 	int result = 0;
-	int cwm = 0, twm = 0;
-	float ts = 0.0;
+	int cwm, twm, simple;
+	float ts;
 
 	fp_save (&saved);
 
@@ -1173,6 +1203,11 @@ int env_ref_weather (const env_ref *field, float x, float z, int winter, int *mo
 		return fp_leave (&saved, -1, error, error_size);
 	}
 
+	cwm = 0;
+	twm = 0;
+	simple = 0;
+	ts = 0.0;
+
 	if (require_state (field, error, error_size) != 0)
 	{
 		result = -1;
@@ -1180,7 +1215,12 @@ int env_ref_weather (const env_ref *field, float x, float z, int winter, int *mo
 	else
 	{
 		weather_at (&field->state, x, z, winter, &cwm, &twm, &ts);
+
+		/* get_simple_session_weather_at_point: the comparison is made HERE, under the guard */
+		simple = (ts < 0.5) ? cwm : twm;
 	}
+
+	ENV_FP_SETTLE (ts);
 
 	result = fp_leave (&saved, result, error, error_size);
 
@@ -1188,11 +1228,9 @@ int env_ref_weather (const env_ref *field, float x, float z, int winter, int *mo
 	{
 		modes[0] = cwm;
 		modes[1] = twm;
+		modes[2] = simple;
 
-		/* get_simple_session_weather_at_point (the comparison is made under the caller's state restored, on a stored float: exact in any mode) */
-		modes[2] = (ts < 0.5) ? cwm : twm;
-
-		*transitional_state = ts;
+		memcpy (transitional_state, &ts, sizeof (ts));
 	}
 
 	return result;
@@ -1202,7 +1240,7 @@ int env_ref_wind (const env_ref *field, float x, float z, int want_vector, float
 {
 	env_fp_state saved;
 	int result = 0;
-	float answer_speed = 0.0, answer_vector[3] = { 0.0, 0.0, 0.0 };
+	float answer_speed, answer_vector[3];
 
 	fp_save (&saved);
 
@@ -1210,6 +1248,11 @@ int env_ref_wind (const env_ref *field, float x, float z, int want_vector, float
 	{
 		return fp_leave (&saved, -1, error, error_size);
 	}
+
+	answer_speed = 0.0;
+	answer_vector[0] = 0.0;
+	answer_vector[1] = 0.0;
+	answer_vector[2] = 0.0;
 
 	if (require_state (field, error, error_size) != 0)
 	{
@@ -1220,17 +1263,18 @@ int env_ref_wind (const env_ref *field, float x, float z, int want_vector, float
 		result = wind_at (&field->state, x, z, &answer_speed, want_vector ? answer_vector : NULL, error, error_size);
 	}
 
+	ENV_FP_SETTLE (answer_speed);
+	ENV_FP_SETTLE (answer_vector);
+
 	result = fp_leave (&saved, result, error, error_size);
 
 	if (result == 0)
 	{
-		*speed = answer_speed;
+		memcpy (speed, &answer_speed, sizeof (answer_speed));
 
 		if (want_vector)
 		{
-			vector[0] = answer_vector[0];
-			vector[1] = answer_vector[1];
-			vector[2] = answer_vector[2];
+			memcpy (vector, answer_vector, sizeof (answer_vector));
 		}
 	}
 
@@ -1240,7 +1284,7 @@ int env_ref_wind (const env_ref *field, float x, float z, int want_vector, float
 int env_ref_gust (float phase, float *modulation, char *error, size_t error_size)
 {
 	env_fp_state saved;
-	float answer = 0.0;
+	float answer;
 	int result;
 
 	fp_save (&saved);
@@ -1250,13 +1294,17 @@ int env_ref_gust (float phase, float *modulation, char *error, size_t error_size
 		return fp_leave (&saved, -1, error, error_size);
 	}
 
+	answer = 0.0;
+
 	result = get_wind_gusting_modulation_value (phase, &answer, error, error_size);
+
+	ENV_FP_SETTLE (answer);
 
 	result = fp_leave (&saved, result, error, error_size);
 
 	if (result == 0)
 	{
-		*modulation = answer;
+		memcpy (modulation, &answer, sizeof (answer));
 	}
 
 	return result;
@@ -1266,35 +1314,44 @@ int env_ref_step (env_ref *field, const float *in_f, const int *in_i, double dra
 {
 	env_fp_state saved;
 	env_ref work;
+	int staged_i[2];
+	float staged_f[4];
 	int result;
-
-	out_i[0] = FALSE;
-	out_i[1] = FALSE;
-	out_f[0] = out_f[1] = out_f[2] = out_f[3] = 0.0;
 
 	fp_save (&saved);
 
-	work = *field;
-
 	if (fp_enter (error, error_size) != 0)
 	{
+		memset (out_i, 0, sizeof (staged_i));
+		memset (out_f, 0, sizeof (staged_f));
+
 		return fp_leave (&saved, -1, error, error_size);
 	}
 
-	result = step_impl (&work, in_f, in_i, draw, out_i, out_f, error, error_size);
+	memcpy (&work, field, sizeof (work));
+
+	/* step_impl zeroes the staged results itself, first thing */
+	result = step_impl (&work, in_f, in_i, draw, staged_i, staged_f, error, error_size);
+
+	ENV_FP_SETTLE (work);
+	ENV_FP_SETTLE (staged_i);
+	ENV_FP_SETTLE (staged_f);
 
 	result = fp_leave (&saved, result, error, error_size);
 
 	if (result != 0)
 	{
-		out_i[0] = FALSE;
-		out_i[1] = FALSE;
-		out_f[0] = out_f[1] = out_f[2] = out_f[3] = 0.0;
+		/* all-bits-zero is 0 for the integers and +0.0 for the floats: the cleared outputs of a refusal */
+		memset (out_i, 0, sizeof (staged_i));
+		memset (out_f, 0, sizeof (staged_f));
 	}
 	else
 	{
+		memcpy (out_i, staged_i, sizeof (staged_i));
+		memcpy (out_f, staged_f, sizeof (staged_f));
+
 		/* a need_draw answer leaves the field as it was (the copy is unchanged), so committing the copy is the same */
-		*field = work;
+		memcpy (field, &work, sizeof (work));
 	}
 
 	return result;

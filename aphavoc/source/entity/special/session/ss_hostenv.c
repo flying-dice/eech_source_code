@@ -330,7 +330,8 @@ float campaign_env_wind_at (float x, float z, float *vector)
 
 	ask (&request, &reply, "wind");
 
-	if (!isfinite (reply.speed) || !all_finite (reply.vector, 3))
+	// the speed is always required; the vector only when the campaign asked for it (an unrequested vector is not read, as at the Rust boundary, which does not read it either)
+	if (!isfinite (reply.speed) || (request.want_vector && !all_finite (reply.vector, 3)))
 	{
 		debug_fatal ("host environment: [env-provider:wind.answer] the host's wind answer is malformed");
 	}
