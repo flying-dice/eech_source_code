@@ -2585,7 +2585,7 @@ static int env_snd_unsupported (char *text, int capacity, int *used)
 
 struct env_snd_snap
 {
-	int ent, tag, etype, data, sub, valid, looping, member, handle;
+	int ent, slot, tag, etype, data, sub, valid, looping, member, handle;
 	uint32_t life, vlife;
 };
 
@@ -2597,6 +2597,7 @@ static void env_snd_snap_take (struct env_snd_snap *s, int ent, int tag, entity 
 
 	s->ent = ent;
 	s->tag = tag;
+	s->slot = get_local_entity_index (en);
 	s->etype = (int) get_local_entity_type (en);
 	s->data = get_local_entity_data (en) != NULL;
 
@@ -2616,8 +2617,27 @@ static void env_snd_snap_take (struct env_snd_snap *s, int ent, int tag, entity 
 	}
 }
 
+/* the free list of entity slots: the constructor takes the first free slot and dereferences the result, so every constructor call needs a slot that actually exists. Reads the list only. */
+static int env_snd_slots_free (int need)
+{
+	const entity *slot;
+	int count = 0;
+
+	for (slot = first_free_entity; slot && count < need; slot = slot->succ)
+	{
+		count++;
+	}
+
+	return count >= need;
+}
+
 static entity *env_snd_data_make (entity_sub_types sub, int looping, int count, sound_sample_indices *samples)
 {
+	if (!env_snd_slots_free (1))
+	{
+		return NULL;
+	}
+
 	return create_local_sound_effect_entity (ENTITY_INDEX_DONT_CARE, get_session_entity (), ENTITY_SIDE_NEUTRAL, sub, SOUND_CHANNEL_SOUND_EFFECT, SOUND_LOCALITY_ALL, NULL, 1.0f, 1.0f, TRUE, looping, count, samples);
 }
 
@@ -2657,7 +2677,7 @@ static int env_snd_data_case (int index, char *text, int capacity, int *used)
 	struct env_snd_snap snaps[ENV_SND_SNAPS];
 	entity *a = NULL, *b = NULL, *parent;
 	int saved_rate[2], saved_size[2], retail_rate[2], retail_size[2];
-	int n = 0, calls = 0, entities = 0, skipped = 0, paused = -1, children_sound = -1, children_type = -1, i;
+	int n = 0, calls = 0, entities = 0, skipped = 0, paused = -1, children_sound = -1, children_type = -1, i, planned_entities = (index == 7 || index == 8) ? 2 : 1, short_of_slots;
 	int ctl_calls = 0, server = 1, descriptor_restored, delta_restored, planned, ctl_rate[2], ctl_size[2];
 	float saved_delta = system_delta_time, delta = 0.0f, delay = 0.0f;
 	entity_sub_types pause_sub = ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING1;
@@ -2681,7 +2701,7 @@ static int env_snd_data_case (int index, char *text, int capacity, int *used)
 	{
 		refusal = "there_is_no_session_entity_to_parent_the_sound_effect";
 	}
-	else if (get_next_free_entity_index () == ENTITY_INDEX_DONT_CARE)
+	else if (!env_snd_slots_free (planned_entities))
 	{
 		refusal = "there_is_no_free_entity_slot_for_the_real_constructor";
 	}
@@ -2749,74 +2769,113 @@ static int env_snd_data_case (int index, char *text, int capacity, int *used)
 
 	eech_envobs_sound_track (1);
 
+	/* EVERY constructor call needs a slot that actually exists (the constructor takes the first free slot and dereferences the result): env_snd_data_make returns NULL, without calling the constructor, when
+	   none is left. The order of the allocations is the ordinary one. A control that is short of a slot stops where it is and the end row says so (planned_entities, short_of_slots). */
 	switch (index)
 	{
 		case 4:
 		case 5:
 		{
 			a = env_snd_data_make (ENTITY_SUB_TYPE_EFFECT_SOUND_MISC, FALSE, 1, &one);
-			env_snd_snap_take (&snaps[n++], 0, 0, a);
-			calls += env_snd_data_calls (snaps, &n, 0, a, server, delta, ctl_calls);
-			entities = 1;
+
+			if (a)
+			{
+				env_snd_snap_take (&snaps[n++], 0, 0, a);
+				entities = 1;
+				calls += env_snd_data_calls (snaps, &n, 0, a, server, delta, ctl_calls);
+			}
 			break;
 		}
 		case 6:
 		{
 			a = env_snd_data_make (ENTITY_SUB_TYPE_EFFECT_SOUND_MISC, FALSE, 2, two);
-			env_snd_snap_take (&snaps[n++], 0, 0, a);
-			entities = 1;
+
+			if (a)
+			{
+				env_snd_snap_take (&snaps[n++], 0, 0, a);
+				entities = 1;
+			}
 			break;
 		}
 		case 7:
 		{
 			a = env_snd_data_make (ENTITY_SUB_TYPE_EFFECT_SOUND_MISC, FALSE, 1, &one);
-			b = env_snd_data_make (ENTITY_SUB_TYPE_EFFECT_SOUND_MUSIC, FALSE, 1, &one);
-			env_snd_snap_take (&snaps[n++], 0, 0, a);
-			env_snd_snap_take (&snaps[n++], 1, 0, b);
-			entities = 2;
+
+			if (a)
+			{
+				env_snd_snap_take (&snaps[n++], 0, 0, a);
+				entities = 1;
+				b = env_snd_data_make (ENTITY_SUB_TYPE_EFFECT_SOUND_MUSIC, FALSE, 1, &one);
+
+				if (b)
+				{
+					env_snd_snap_take (&snaps[n++], 1, 0, b);
+					entities = 2;
+				}
+			}
 			break;
 		}
 		case 8:
 		{
 			a = env_snd_data_make (ENTITY_SUB_TYPE_EFFECT_SOUND_MISC, TRUE, 1, &one);
-			b = env_snd_data_make (ENTITY_SUB_TYPE_EFFECT_SOUND_MISC, TRUE, 1, &one);
-			env_snd_snap_take (&snaps[n++], 0, 0, a);
-			env_snd_snap_take (&snaps[n++], 1, 0, b);
-			calls += env_snd_data_calls (snaps, &n, 0, a, 1, delta, ctl_calls);
-			calls += env_snd_data_calls (snaps, &n, 1, b, 0, delta, ctl_calls);
-			entities = 2;
+
+			if (a)
+			{
+				env_snd_snap_take (&snaps[n++], 0, 0, a);
+				entities = 1;
+				b = env_snd_data_make (ENTITY_SUB_TYPE_EFFECT_SOUND_MISC, TRUE, 1, &one);
+
+				if (b)
+				{
+					env_snd_snap_take (&snaps[n++], 1, 0, b);
+					entities = 2;
+				}
+
+				calls += env_snd_data_calls (snaps, &n, 0, a, 1, delta, ctl_calls);
+
+				if (b)
+				{
+					calls += env_snd_data_calls (snaps, &n, 1, b, 0, delta, ctl_calls);
+				}
+			}
 			break;
 		}
 		default:
 		{
 			a = env_snd_data_make (pause_sub, FALSE, 1, &one);
-			env_snd_snap_take (&snaps[n++], 0, 0, a);
 
-			/* the real pause function walks the session's special-effect children; what it can touch is counted first */
-			children_sound = 0;
-			children_type = 0;
-			for (child = get_local_entity_first_child (parent, LIST_TYPE_SPECIAL_EFFECT); child; child = get_local_entity_child_succ (child, LIST_TYPE_SPECIAL_EFFECT))
+			if (a)
 			{
-				if (get_local_entity_type (child) == ENTITY_TYPE_SOUND_EFFECT)
-				{
-					children_sound++;
+				entities = 1;
+				env_snd_snap_take (&snaps[n++], 0, 0, a);
 
-					if (((sound_effect *) get_local_entity_data (child))->eff.sub_type == pause_sub)
+				/* the real pause function walks the session's special-effect children; what it can touch is counted first */
+				children_sound = 0;
+				children_type = 0;
+				for (child = get_local_entity_first_child (parent, LIST_TYPE_SPECIAL_EFFECT); child; child = get_local_entity_child_succ (child, LIST_TYPE_SPECIAL_EFFECT))
+				{
+					if (get_local_entity_type (child) == ENTITY_TYPE_SOUND_EFFECT)
 					{
-						children_type++;
+						children_sound++;
+
+						if (((sound_effect *) get_local_entity_data (child))->eff.sub_type == pause_sub)
+						{
+							children_type++;
+						}
 					}
 				}
-			}
 
-			paused = pause_local_entity_sound_type (parent, pause_sub, delay);
-			env_snd_snap_take (&snaps[n++], 0, 99, a);
-			calls += env_snd_data_calls (snaps, &n, 0, a, server, delta, ctl_calls);
-			entities = 1;
+				paused = pause_local_entity_sound_type (parent, pause_sub, delay);
+				env_snd_snap_take (&snaps[n++], 0, 99, a);
+				calls += env_snd_data_calls (snaps, &n, 0, a, server, delta, ctl_calls);
+			}
 			break;
 		}
 	}
 
-	planned = (index == 8 ? 2 : 1) * ctl_calls;
+	short_of_slots = entities < planned_entities;
+
+	planned = planned_entities * ctl_calls;
 	skipped = planned - calls;
 	ctl_rate[0] = lightning->rate;
 	ctl_size[0] = lightning->size;
@@ -2853,7 +2912,7 @@ static int env_snd_data_case (int index, char *text, int capacity, int *used)
 	{
 		const struct env_snd_snap *s = &snaps[i];
 
-		ENV_EMIT ("env-sound-state ent=%d tag=%d etype=%d data=%d sub=%d valid=%d looping=%d member=%d handle=%d life_w=%08x vlife_w=%08x\n", s->ent, s->tag, s->etype, s->data, s->sub, s->valid, s->looping, s->member,
+		ENV_EMIT ("env-sound-state ent=%d slot=%d tag=%d etype=%d data=%d sub=%d valid=%d looping=%d member=%d handle=%d life_w=%08x vlife_w=%08x\n", s->ent, s->slot, s->tag, s->etype, s->data, s->sub, s->valid, s->looping, s->member,
 			s->handle, s->life, s->vlife);
 	}
 
@@ -2862,7 +2921,7 @@ static int env_snd_data_case (int index, char *text, int capacity, int *used)
 		return -1;
 	}
 
-	ENV_EMIT ("env-sound-end i=%d changed=1 entities=%d calls=%d skipped=%d descriptor_restored=%d delta_restored=%d process_isolated=required\n", index, entities, calls, skipped, descriptor_restored, delta_restored);
+	ENV_EMIT ("env-sound-end i=%d changed=1 entities=%d planned_entities=%d short_of_slots=%d calls=%d skipped=%d descriptor_restored=%d delta_restored=%d process_isolated=required\n", index, entities, planned_entities, short_of_slots, calls, skipped, descriptor_restored, delta_restored);
 
 	return 0;
 }
