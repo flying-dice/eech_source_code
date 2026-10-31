@@ -1,3 +1,32 @@
+# D3 checkpoint — public ambient authority closed; original queue probe begins (31 October 2026, 16:36 UTC)
+
+Task51/PR111 closure pushed12ca0f15f: exact b7judge/newLua +unchanged d559native
+passes REAL7modecase27 test0/30.84s, exactly14input checks0,51payloads/copiedLua
+exact. Three completed reference/changed modes map actual replywords to child
+ordinal/subtype/class slots; four named refusals stop with no completed case.
+Actual Linux/Windows11functions include all28negativechecks; BOTHstrict0,
+all9measuredb7CI SUCCESS. Sole independent source/actual review6fc68291...88d9f
+has no findings. F6numeric3complete108-row files remain byte-identical originals;
+FP/packages/Windows and d55916/17/20 gates reused. Failed8d0/084 evidence retained.
+No baseline/tolerance change; no frame/audio/player/render/Tacview/fullshipping
+or wholeTask51/D3 acceptance. Safe closure is in the environment branch under
+reference/d3-environment-characterization/ambient-native-d559-judge-b7-closure/.
+
+Ledger93 readback preserves allpriorHTML/five reports, Jira51comment10897,
+PR111body current. Sequential READONLY Opus5.5Medium planning completed0 with
+actual modelUsage verified. SAME sole Sonnet5.5High now prepares ORIGINAL
+lightning-queue observability only (controller11792/Claude25380, started16:32:21).
+Unbuilt/unrun/unreviewed, no queue behavior moved. Reuse closed originalobserver
+calls; new occupancy/outcome/time/update data comes before physical handoff.
+Existing soundcreation/lifetime/physicaltime and requiredterrain/spatial/model,
+fullshipping40/all8COMPLETEbyteidentity/currentCI/review/normalmerges remain.
+Campaign policy/calendar/timers/scheduling stayCore; D4/D5unstarted.
+
+Groundaafb original six processes verifiedLIVE in the16:07prefixcheck; allfour
+growingprefixes EXACT~52.3/52.5MBACMI/~35.6MBOBS, PARTIALONLY. No restart.
+D3-ACTIVE.json and D3-REQUIREMENTS.json preserve actual paths/processes/all10
+wholeepic requirements; do not narrow the goal to this component.
+
 # D3 checkpoint — real wide-list correction accepted, public amplitude witness started (31 October 2026, 15:52 UTC)
 
 Task51/PR111 pushed `d559c3859` changes G12 fixture/driver/tests only; production
