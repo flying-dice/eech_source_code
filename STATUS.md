@@ -1,4 +1,4 @@
-# D3 checkpoint — original sector facts closed; host cutover active (31 October 2026, 12:48 UTC)
+# D3 checkpoint — first host-sector numeric match; FP correction active (31 October 2026, 13:21 UTC)
 
 The current objective remains COMPLETE D3 (EEDCS-21), with D4/D5 unstarted.
 Task47 is delivered at integration b6575594c. Tasks48/49/50/51 remain open.
@@ -38,11 +38,22 @@ is answered. Both COMPLETE Lebanon raw files are byte-identical. The newa100
 guards pass fmt/4functions/strict0; independent actual review1408817f...6200
 has no findings. The earlier syntax/Clippy failures remain preserved.
 
-ONE Sonnet5.5 High lane is NOW implementing the physical sector-surface query
-in the host from clean e3439025a. Integration was freshly fetched and remains
-acceptedb6575594c. New dispatch/mirror plumbing is WIP/unbuilt/unrun/unreviewed;
-no sector acceptance yet. Fresh3 candidate roots verify0 and remain unused.
-Jira51/ledger89 record the reviewed wind gate; all5 epic reports are preserved.
+The host sector query candidate6711d5f11 is pushed. All3 first native/controller
+probes0/all6inputs0/49payloads unchanged preserve every95 original raw line and
+ending EXACTLY. This is numeric-only, not FP/authority/shipping acceptance.
+Independent source review06419e7b requires complete callerFP preservation and
+strict observer-stream/completed-frame evidence. A test-only libtest type error
+also blocked both pipelines101, after the Windows native observer build succeeded.
+
+Test-only e05 preserves6711 production inputs and establishes actual FP RED:
+6144 calls,76 reported mismatch categories including MXCSR precision/underflow,
+focusedtest101. Observer guards11/13 pass,2fail synthetic-data/prefix assertions;
+the public path is explicitly SKIPPED in that guard run, not authority evidence.
+ONE Sonnet5.5 High author21992/controller18596 is NOW correcting full FP ingress/
+guard/output handling and the finite guard failures. No acceptance yet; failures
+are retained. Fresh fixed3 roots and authority5 roots allverify0 and are UNUSED.
+Jira51comment10891 records these measured gates; ledger89 records closed wind;
+all5 epic reports remain preserved. Integration was re-fetched and staysb6575594c.
 Existing
 original observer/effects/RNG/time evidence is reused. Sound/lightning effects,
 physical time inputs, remaining terrain/loaders, spatial/object/tree scans and
