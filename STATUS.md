@@ -1,3 +1,35 @@
+# D3 checkpoint — environment original evidence closed; field extraction underway (31 October 2026)
+
+Task51 / draft PR111 has closed bounded original observation. Native76533dd3a with
+explicit driver235290e0d completed four 120-second cases with exit0: fixed Lebanon,
+variable Lebanon/Georgia and instrumented observer-OFF Lebanon. All eight pre/post
+input checks and46 payloads match. Complete selected raw lines including endings
+match uninstrumented controls:10830fixed and8139per variable case. This compares
+observed session state/campaign digests, not all campaign state or Tacview output.
+The natural traces preserve the two boot weather groups/20draws, reseeds, previous
+frame delta and complete server lightning/sound-call order. No visual/audio claim.
+
+Linux and actual Windows each pass14driver checks; formatting/strict affected
+Clippy and all8hosted jobs at235 pass. Independent actual evidence review closes
+without findings, SHA256390d2c417f5666649531b6523dfb98ae06a6d521601455b5a5451299d98364aa.
+Safe records are pushed on Task51 at b8874cd6c. Earlier real32KB drain failures
+remain retained. Ledger84 readback preserves all prior HTML/five epic reports;
+Jira10883 and PR111 describe the current bounded results and remaining work.
+
+The single Sonnet5.5High lane now implements the physical weather/wind field,
+queries and evolution/lightning-timer decision on the existing Task51 branch.
+Tool19393/PID10268 born02:43:51UTC, available contextf3982761. New implementation
+is unbuilt/unrun/unreviewed. No environment extraction or Task51 delivery is
+claimed. Campaign timers/scheduling/decisions stay Core; required physical sound,
+terrain-scratch, time, loaders and spatial/model work remain in D3.
+
+Ground Task48 remains frozen at productionaafb21775. Original fullshipping72359,
+runner20800 and four native campaigns are still live and untouched; latest four
+checked prefixes match accepted bytes (~10MBACMI/6.31MBOBS), partial only. Full40,
+eight COMPLETE default files, post-inputs, final review/currentCI and normal merge
+remain gates. Accepted integration remains b6575594c. WholeD3 is open; D4/D5 have
+not started. Baselines, tolerances, useful failures and private raw data remain intact.
+
 # D3 checkpoint — ground shipping live; original environment controls exact (31 October 2026)
 
 Ground Task48 / PR108 retains productionaafb21775 and focused test recoverye107.
