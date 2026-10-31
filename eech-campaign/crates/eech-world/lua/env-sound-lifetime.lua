@@ -165,7 +165,7 @@ local function write (scope, rows)
 end
 
 -- ---------------------------------------------------------------------------------------------------------------- THE PER-ENTITY CHAIN RULES
--- Shared by the primitive controls (cases 1 and 2) and the controlled-data cases (4 to 10): both call the update routines at most three times, so EVERY entry is stored and the strict form of the rules applies. `recs` are the
+-- Shared by the primitive controls (cases 1 and 2) and the controlled-data cases (4 to 10): both call the update routines at most three times, so EVERY entry is stored and the strict form of the rules applies (case 12 of the pause and resume cases makes four calls: the probe keeps the first three ENTER records of an entity, so the chain it shows is still within these rules and its totals are reconciled by the caller; an expiry or kill in a fourth update is not part of that case and is not allowed for here). `recs` are the
 -- probe records of ONE tracked entity in time order; `opts.tracked` is its tracked index as text; `opts.routine` is "server", "client" or nil (either), `opts.wrong_server` / `opts.wrong_client` the messages for a point of the other
 -- routine. The points a branch can show: the server routine 1..5, the client routine 6 and 7; each record may follow the one before it. After a handle that is still playing the later updates that are only counted leave expiry
 -- records that repeat; a handle that stops playing is then idle. Nothing here computes or expects a lifetime.
@@ -227,6 +227,9 @@ local DATA = {
 	[9] = { L = { 4, 20 }, entities = 1, calls = 3, routines = { "server" }, delta = "3f800000", looping = "0", pause = "3fc00000" },
 	[10] = { L = { 4, 20 }, entities = 1, calls = 3, routines = { "client" }, delta = "3f800000", looping = "0", pause = "3fc00000" },
 }
+
+-- how many ENTER records of one entity the probe stores whole (csrc/eech_env_observer.c ENVE_ENTERS_STORED): the later updates are counted in the report's update count and on the later records, never stored
+local ENTERS_STORED = 3
 
 -- THE DECLARED COHORT of each pause and resume case (csrc/eech_env_fixture.c env_snd_pause_case): the labels of the effects it builds (one label is one sub type, different labels are different sub types; the label V is a sub type
 -- nobody holds), and its steps in order: op 1 = the real pause with the delay word, op 2 = the real resume, op 3 = one server update of the first effect (made only while it is live and in the update list). These are the inputs of
@@ -414,6 +417,26 @@ elseif case >= 11 then
 				-- the scans: nothing but the validity counts of the sub type moved, and by the returned count
 				if tonumber (b.of_type) ~= matching then hard ("step " .. n .. ": the session holds " .. b.of_type .. " sound children of the sub type where the cohort holds " .. matching .. ": the count cannot be attributed to the cohort") end
 				if b.total ~= a.total or b.of_type ~= a.of_type then hard ("step " .. n .. ": the scans disagree about the children that exist") end
+					-- each scan on its own: the counts bound and split the children coherently, and (the of_type match above attributes the sub type's children to the cohort) its valid, invalid and linked
+					-- counts are the cohort's own captured states beside it: the states before the call for the before scan, after it for the after scan
+					for _, when in ipairs ({ "before", "after" }) do
+						local scan, tag = got [when], (when == "before") and before_tag or after_tag
+						local total, of_type, valid, invalid, linked = tonumber (scan.total), tonumber (scan.of_type), tonumber (scan.valid_of_type), tonumber (scan.invalid_of_type), tonumber (scan.linked_of_type)
+						if total < of_type then hard ("step " .. n .. ": the " .. when .. " scan counts more sound children of the sub type than sound children (" .. of_type .. " of " .. total .. ")") end
+						if valid + invalid ~= of_type then hard ("step " .. n .. ": the " .. when .. " scan's valid " .. valid .. " and invalid " .. invalid .. " do not add up to the sound children of the sub type (" .. of_type .. ")") end
+						if linked > of_type then hard ("step " .. n .. ": the " .. when .. " scan counts more linked sound children of the sub type than sound children of it (" .. linked .. " of " .. of_type .. ")") end
+						local held_valid, held_invalid, held_linked = 0, 0, 0
+						for ent = 0, entities - 1 do
+							if spec.subs [ent + 1] == want.target then
+								local held = states [ent] [tag].map
+								if held.valid == "1" then held_valid = held_valid + 1 else held_invalid = held_invalid + 1 end
+								if held.member == "1" then held_linked = held_linked + 1 end
+							end
+						end
+						if valid ~= held_valid or invalid ~= held_invalid or linked ~= held_linked then
+							hard ("step " .. n .. ": the " .. when .. " scan (valid " .. valid .. ", invalid " .. invalid .. ", linked " .. linked .. ") does not join the cohort's states of tag " .. tag .. " (valid " .. held_valid .. ", invalid " .. held_invalid .. ", linked " .. held_linked .. ")")
+						end
+					end
 				local dv = want.op == 1 and -returned or returned
 				if tonumber (a.valid_of_type) ~= tonumber (b.valid_of_type) + dv or tonumber (a.invalid_of_type) ~= tonumber (b.invalid_of_type) - dv then
 					hard ("step " .. n .. ": the returned count " .. returned .. " does not join the scans (valid " .. b.valid_of_type .. " to " .. a.valid_of_type .. ", invalid " .. b.invalid_of_type .. " to " .. a.invalid_of_type .. ")")
@@ -488,7 +511,10 @@ elseif case >= 11 then
 					end
 				end
 			end
-			if ent == 0 and w.enters ~= calls then hard ("entity 0 has " .. calls .. " update calls but " .. w.enters .. " stored entries") end
+			-- the probe stores the FIRST ENTERS_STORED entries of an entity and only counts the later ones (the report's update count, the steps made and the end row's calls carry all of them), so a fourth call leaves
+				-- no fourth entry: exactly the first min(calls, ENTERS_STORED) are stored, and each is joined above to the state before its own update
+				local stored = math.min (calls, ENTERS_STORED)
+				if ent == 0 and w.enters ~= stored then hard ("entity 0 has " .. calls .. " update calls, so the probe stores exactly its first " .. stored .. " entries (it keeps the first " .. ENTERS_STORED .. " of an entity and counts the rest), but " .. w.enters .. " are stored") end
 			if ent > 0 and w.enters ~= 0 then hard ("entity " .. ent .. " was never updated but has " .. w.enters .. " stored entries") end
 		end
 		if kills_total ~= tonumber (report.map.kills) then hard ("the probe counted " .. report.map.kills .. " kills but its records show " .. kills_total) end

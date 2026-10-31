@@ -1081,7 +1081,15 @@ fn update_step() -> PauseStep {
 
 const PAUSE_LIVE: Cap = cap("40a00000", "00000000", 1, 0, 1);
 
+/// The probe stores the first three ENTER records of each entity and only counts the rest (`ENVE_ENTERS_STORED`).
+const STORED_ENTERS: u32 = 3;
+
 fn pause_report(case: u32) -> String {
+    pause_report_storing(case, STORED_ENTERS)
+}
+
+/// `stored_enters` is how many ENTER records per entity the canned probe keeps; the real probe keeps `STORED_ENTERS`, a larger number is the invented form the driver must refuse.
+fn pause_report_storing(case: u32, stored_enters: u32) -> String {
     let s = 23;
     let ent = |slot: u32, sub: i32| Ent {
         slot,
@@ -1190,7 +1198,9 @@ fn pause_report(case: u32) -> String {
     for (index, step) in steps.iter().enumerate() {
         if step.made == 1 {
             calls += 1;
-            add(&mut rows, 1, 0, &ents[0], calls, Some(caps[0][index]), (4, 20, 1));
+            if calls <= stored_enters {
+                add(&mut rows, 1, 0, &ents[0], calls, Some(caps[0][index]), (4, 20, 1));
+            }
         }
     }
     text += &format!(
@@ -1277,12 +1287,12 @@ fn a_pause_and_resume_report_that_does_not_join_its_own_observations_is_a_failur
         ("11", "a step that is not the declared operation", edit("if index == 11 then return (text:gsub('env%-sound%-step n=2 op=2', 'env-sound-step n=2 op=1', 1)) end"), "is not the declared step"),
         ("11", "a delay that is not the declared one", edit("if index == 11 then return (text:gsub('delay_w=3fc00000', 'delay_w=40000000', 1)) end"), "does not declare the delay word"),
         ("11", "a scan that counts children of the sub type the cohort does not hold", edit("if index == 11 then return (text:gsub('when=before total=11 of_type=1', 'when=before total=11 of_type=2', 1)) end"), "cannot be attributed to the cohort"),
-        ("13", "a no-op resume that the cohort's states say flipped an effect", edit("if index == 13 then return (text:gsub('tag=1 etype=32 data=1 sub=23 valid=1', 'tag=1 etype=32 data=1 sub=23 valid=0', 1)) end"), "against the direction of the call"),
+        ("13", "a no-op resume that the cohort's states say flipped an effect", edit("if index == 13 then return (text:gsub('tag=1 etype=32 data=1 sub=23 valid=1', 'tag=1 etype=32 data=1 sub=23 valid=0', 1)) end"), "does not join the cohort's states"),
         ("14", "a pause that changed an effect of another sub type", edit("if index == 14 then return (text:gsub('ent=2 slot=22 tag=2 etype=32 data=1 sub=24 valid=1', 'ent=2 slot=22 tag=2 etype=32 data=1 sub=24 valid=0', 1)) end"), "of another sub type"),
         ("14", "a step that names a sub type the cohort holds as the absent one", edit("if index == 14 then return (text:gsub('op=1 sub=99', 'op=1 sub=23', 1)) end"), "a sub type nobody holds"),
         ("12", "an update said to be made on an unlinked effect", edit("if index == 12 then return (text:gsub('env%-sound%-step n=6 op=3 sub=0 delay_w=00000000 returned=0 made=1', 'env-sound-step n=6 op=3 sub=0 delay_w=00000000 returned=0 made=0', 1)) end"), "says made"),
         ("12", "an update count the probe did not count", edit("if index == 12 then return (text:gsub('updates=4', 'updates=3', 1)) end"), "probe counted 3 updates"),
-        ("12", "an ENTER record that is not the state before its update", edit("if index == 12 then return (text:gsub('seq=4 point=1 n=0 tracked=0 frame=0 upd=4 entity=20 etype=32 sub=23 channel=1 locality=0 valid=1', 'seq=4 point=1 n=0 tracked=0 frame=0 upd=4 entity=20 etype=32 sub=23 channel=1 locality=0 valid=0', 1)) end"), "ENTER record of update 4"),
+        ("12", "an ENTER record that is not the state before its update", edit("if index == 12 then return (text:gsub('seq=3 point=1 n=0 tracked=0 frame=0 upd=3 entity=20 etype=32 sub=23 channel=1 locality=0 valid=0', 'seq=3 point=1 n=0 tracked=0 frame=0 upd=3 entity=20 etype=32 sub=23 channel=1 locality=0 valid=1', 1)) end"), "ENTER record of update 3"),
         ("12", "a descriptor that was not put back", edit("if index == 12 then return (text:gsub('descriptor_restored=1', 'descriptor_restored=0', 1)) end"), "descriptor was not put back"),
         ("12", "an effect that is no longer a live sound effect", edit("if index == 12 then return (text:gsub('tag=3 etype=32 data=1', 'tag=3 etype=0 data=0', 1)) end"), "not a live sound effect"),
         ("13", "a state row that skips a tag", edit("if index == 13 then return (text:gsub('ent=0 slot=20 tag=3', 'ent=0 slot=20 tag=4', 1)) end"), "go to tag"),
@@ -1300,4 +1310,188 @@ fn a_pause_and_resume_report_that_does_not_join_its_own_observations_is_a_failur
         assert!(!of(&driven, "witness_failure").is_empty(), "{name}: no witness_failure row");
         assert!(of(&driven, "result").is_empty(), "{name}: a result row was written for a damaged report");
     }
+}
+
+/// Case 12 really makes four update calls; the unchanged probe stores the first three ENTER records of the entity and counts all four. The correct report holds three, and the driver reconciles the fourth call through the
+/// steps, the states and the probe's own update count, never through a stored record that the probe does not make.
+#[test]
+fn case_twelve_reconciles_four_update_calls_with_the_three_enter_records_the_probe_stores_and_invents_no_fourth() {
+    let report = pause_report(12);
+    assert_eq!(
+        report.matches(" point=1 ").count(),
+        3,
+        "the canned form is the real probe's: three stored ENTER records"
+    );
+    assert!(report.contains("updates=4"), "all four calls are counted by the probe");
+    let driven = drive("", &case_args("12"));
+    driven
+        .result
+        .clone()
+        .unwrap_or_else(|e| panic!("the real probe's form of case 12 was refused: {e}"));
+    assert_eq!(of(&driven, "result")[0]["calls"], serde_json::json!(4));
+}
+
+/// Every form in `forms` (case, name, scenario, the words the refusal must contain) must be a failure of the witness; the forms that were not are returned together, so one run shows all of them.
+fn forms_not_refused(forms: &[(&str, &str, String, &str)]) -> Vec<String> {
+    let mut missed = Vec::new();
+    for (case, name, scenario, says) in forms {
+        let driven = drive(scenario, &[("case", *case)]);
+        match &driven.result {
+            Ok(_) => missed.push(format!("{name}: ACCEPTED")),
+            Err(error) if !(error.contains("env-sound-lifetime:") && error.contains(*says)) => {
+                missed.push(format!("{name}: refused as {error:?}, expected {says:?}"))
+            }
+            Err(_) if !of(&driven, "witness_failure").is_empty() && of(&driven, "result").is_empty() => {}
+            Err(_) => missed.push(format!("{name}: no witness_failure row, or a result row for a damaged report")),
+        }
+    }
+    missed
+}
+
+#[test]
+fn case_twelve_refuses_a_fourth_stored_enter_a_missing_stored_enter_and_totals_that_disagree() {
+    let fabricated = pause_report_storing(12, 4);
+    let damaged: Vec<(&str, &str, String, &str)> = vec![
+        (
+            "12",
+            "a fourth ENTER record the probe never stores",
+            format!("report = {{ [12] = '{fabricated}' }}"),
+            "stores exactly its first 3 entries",
+        ),
+        (
+            "12",
+            "the first stored ENTER missing",
+            edit(&format!("{DROP_LUA} if index == 12 then return drop (text, 1) end")),
+            "where it is the 1th stored entry",
+        ),
+        (
+            "12",
+            "the second stored ENTER missing",
+            edit(&format!("{DROP_LUA} if index == 12 then return drop (text, 2) end")),
+            "where it is the 2th stored entry",
+        ),
+        (
+            "12",
+            "the third stored ENTER missing",
+            edit(&format!("{DROP_LUA} if index == 12 then return drop (text, 3) end")),
+            "stores exactly its first 3 entries",
+        ),
+        (
+            "12",
+            "a probe update count that is not the calls made",
+            edit("if index == 12 then return (text:gsub('updates=4', 'updates=5', 1)) end"),
+            "probe counted 5 updates",
+        ),
+        (
+            "12",
+            "an end row whose calls are not the steps made",
+            edit("if index == 12 then return (text:gsub('calls=4 descriptor_restored', 'calls=5 descriptor_restored', 1)) end"),
+            "says 5 update calls but its steps show 4",
+        ),
+    ];
+    let missed = forms_not_refused(&damaged);
+    assert!(missed.is_empty(), "{missed:#?}");
+}
+
+/// Lua that rewrites the start of one scan row (from `total=` on): `from` is matched as a prefix and replaced by `to`.
+fn scan_swap(n: u32, when: &str, from: &str, to: &str) -> String {
+    format!("text = text:gsub('env%-sound%-scan n={n} when={when} {from}', 'env-sound-scan n={n} when={when} {to}', 1)")
+}
+
+#[test]
+fn a_pause_and_resume_scan_must_agree_with_the_cohort_states_beside_it_and_not_only_in_its_difference() {
+    // the other sound children of the session are of other sub types: more of them in both scans is coherent and stays accepted
+    let more_unrelated = edit(&format!(
+        "if index == 11 then {} {} end",
+        scan_swap(1, "before", "total=11 of_type=1", "total=14 of_type=1"),
+        scan_swap(1, "after", "total=11 of_type=1", "total=14 of_type=1")
+    ));
+    drive(&more_unrelated, &case_args("11"))
+        .result
+        .unwrap_or_else(|e| panic!("coherent unrelated children of other sub types were refused: {e}"));
+
+    let live = "valid_of_type=0 invalid_of_type=1 linked_of_type=1";
+    let wrongly_valid = "valid_of_type=1 invalid_of_type=0 linked_of_type=1";
+    let damaged: Vec<(&str, &str, String, &str)> = vec![
+        (
+            "11",
+            "a linked count of 0 where the captured effect was a member of the update list",
+            edit(&format!(
+                "if index == 11 then {} end",
+                scan_swap(
+                    1,
+                    "before",
+                    "total=11 of_type=1 valid_of_type=1 invalid_of_type=0 linked_of_type=1",
+                    "total=11 of_type=1 valid_of_type=1 invalid_of_type=0 linked_of_type=0"
+                )
+            )),
+            "does not join the cohort's states",
+        ),
+        (
+            "13",
+            "an equal offset of the valid count before and after that keeps the delta and contradicts the captured validity",
+            edit(&format!(
+                "if index == 13 then {} {} end",
+                scan_swap(
+                    3,
+                    "before",
+                    &format!("total=11 of_type=1 {live}"),
+                    &format!("total=11 of_type=1 {wrongly_valid}")
+                ),
+                scan_swap(
+                    3,
+                    "after",
+                    &format!("total=11 of_type=1 {live}"),
+                    &format!("total=11 of_type=1 {wrongly_valid}")
+                )
+            )),
+            "does not join the cohort's states",
+        ),
+        (
+            "11",
+            "fewer sound children in total than of the sub type",
+            edit(&format!(
+                "if index == 11 then {} {} end",
+                scan_swap(1, "before", "total=11 of_type=1", "total=0 of_type=1"),
+                scan_swap(1, "after", "total=11 of_type=1", "total=0 of_type=1")
+            )),
+            "more sound children of the sub type than sound children",
+        ),
+        (
+            "11",
+            "a valid and invalid split that does not add up to the sub type's children, with the difference kept",
+            edit(&format!(
+                "if index == 11 then {} {} end",
+                scan_swap(
+                    1,
+                    "before",
+                    "total=11 of_type=1 valid_of_type=1 invalid_of_type=0",
+                    "total=11 of_type=1 valid_of_type=1 invalid_of_type=1"
+                ),
+                scan_swap(
+                    1,
+                    "after",
+                    "total=11 of_type=1 valid_of_type=0 invalid_of_type=1",
+                    "total=11 of_type=1 valid_of_type=0 invalid_of_type=2"
+                )
+            )),
+            "do not add up to the sound children of the sub type",
+        ),
+        (
+            "11",
+            "more linked effects than effects of the sub type",
+            edit(&format!(
+                "if index == 11 then {} end",
+                scan_swap(
+                    1,
+                    "after",
+                    "total=11 of_type=1 valid_of_type=0 invalid_of_type=1 linked_of_type=1",
+                    "total=11 of_type=1 valid_of_type=0 invalid_of_type=1 linked_of_type=2"
+                )
+            )),
+            "more linked sound children of the sub type than sound children of it",
+        ),
+    ];
+    let missed = forms_not_refused(&damaged);
+    assert!(missed.is_empty(), "{missed:#?}");
 }

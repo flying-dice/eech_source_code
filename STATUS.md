@@ -1,3 +1,64 @@
+# D3 original sound pause/resume — two driver P2s from the 33c0155 source review fixed (31 October 2026; Lua/tests/docs only; UNRUN on retail, new source review pending)
+
+Root: the immutable33c Windows build completed0 at23:38:18Z and affected Linux
+new-driver/module/default+observer C checks/both strict completed0 at23:42:14Z.
+The four new retail roots all passed their input manifests and remain unused.
+This correction changes no C or production Rust/build input; a separately pinned
+Lua driver will use the33c binary only after explicit identity and source checks.
+
+Review `independent-environment-original-sound-pause-resume-source-review-33c015557-20261031.json`
+(SHA256 `abafea02e3fd461287f775059665f9a15ceb5d077f9b99e451a263f9770a1d55`): exactly two P2
+driver-contract findings, no other fixture-memory/source finding. Both were
+reproduced against the exact 33c0155 Lua first, then fixed in
+`env-sound-lifetime.lua`, `env_sound_lifetime.rs` and the docs. The fixture C
+(`eech_env_fixture.c`), `eech_env_observer.c`, `eech_engine.c` (exactly 1 NUL), the
+production pause/resume routines, the host-lifetime kernels and protocol, assets,
+backend and every baseline are byte-unchanged, so Root may reuse the immutable 33
+native with a NEW Lua source identity (verify production/build/all-C byte identity,
+freeze the new driver, run the new driver guards); new C would need a new native.
+
+* ENV-SOUND-PAUSE-1: case 12 makes four real calls; the probe stores only the first
+  three ENTERs and counts all four. The driver now requires exactly
+  `min(calls, 3)` stored ENTERs joined to their before states and reconciles the four
+  calls through steps, states, the probe update count and the end row. The canned
+  positive is the real 4-call/3-ENTER shape; an invented fourth ENTER, a missing
+  first/second/third and incoherent totals are refused. No fourth record is
+  fabricated and no probe sampling, call or tolerance changed. Limit: an
+  expiry/kill record in the fourth update is outside case 12 and not allowed for.
+* ENV-SOUND-PAUSE-2: both before and after scan counts are bounded and split
+  (`total >= of_type`, `valid + invalid == of_type`, `linked <= of_type`) and
+  joined to the cohort state tag beside them (valid, invalid, linked). Refused
+  forms: linked 0 against a captured member, an equal valid offset that keeps the
+  delta, impossible total/of_type, impossible split, more linked than effects;
+  coherent extra unrelated children stay accepted. The scan is the session's
+  special-effect child list bounded by `number_of_entities`, not the whole entity
+  table (wording corrected here, in the previous entry and in the doc).
+
+WIP (my own; offline Linux container, no network, a Root container was already up
+and its caches were not touched; exclusive-new logs, real exit tags from a steps
+FILE; filenames carry the date 20261031, actual execution 31 October UTC):
+red `sound-pause-WIP-20261031-red1.log` and `-red2.log`, SOUND_DRIVER_EXIT 101,
+on the exact 33c0155 Lua (copy `sound-pause-33c0155-env-sound-lifetime.lua.orig-20261031`,
+SHA256 `26487fc2...9fb7`; red test source `sound-pause-red-env_sound_lifetime.rs-20261031`):
+red1 showed the correct case 12 positive refused ("4 update calls but 3 stored entries");
+red2 split the tests and listed every form: the invented fourth ENTER and all five
+contradicting scans ACCEPTED (the missing-first/second and total forms were
+already refused by the old Lua, the missing third with its old message). Green `sound-pause-WIP-20261031-green2.log`:
+FMT_EXIT 0, `env_sound_lifetime` 20 passed (17 earlier + 3 new), `eech-world` lib 264
+passed, clippy `-D warnings` 0. `green1` (retained) failed on rustfmt in my new
+test lines and on one older damaged form whose message changed (now refused by the
+stronger join); both fixed. The runner script was recreated from the transcript
+after I had deleted the earlier one (same image, offline container, steps from a
+file). Disclosures unchanged: the old d2/d3 per-command exit tags remain untrusted
+(numeric unknown, not a pass); the first `d1` raw log remains unavailable.
+Nothing ran natively or on retail; the four fresh roots stay unused.
+
+Root next: verify the production/build/all-C byte identity against the immutable 33
+native, freeze the new driver, run the new driver guards, then measure the four
+cases once in isolated processes with the new Lua source identity and compare; an
+independent actual review before moving pause/resume into the host. Whole
+Task51/D3 remains open; D4/D5 unstarted.
+
 # D3 original sound pause/resume — characterization source prepared (31 October 2026; characterization only; UNBUILT natively, UNRUN, UNREVIEWED)
 
 Uncommitted source batch on top of the closed e502 host-lifetime slice. It adds
@@ -15,7 +76,7 @@ Cases: 11 pause then resume while still linked; 12 resume after the unlink and
 updates after; 13 repeated and no-op pause/resume counts; 14 sub type isolation
 and every match. The session parent's resume play call is the default no-op, so
 validity and update-list relink are measurable without a device or handle. Each
-case preflights its allocations, scans the entity table within `number_of_entities`
+case preflights its allocations, walks the session's special-effect child list (not the whole entity table) within `number_of_entities`
 (a `complete` flag, never truncated), and makes no call through a freed entity.
 The driver joins observations (return counts, scans before/after, cohort flips,
 update steps, the probe's CREATED/ENTER records) and computes no physical value.
