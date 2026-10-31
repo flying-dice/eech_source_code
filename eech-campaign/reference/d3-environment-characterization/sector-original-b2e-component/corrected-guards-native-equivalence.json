@@ -1,0 +1,17 @@
+{
+  "native_source": "b2e55b18b556d04bc1512a1553a8e1b859347c36",
+  "new_guard_source": "a1002fb8d1381cace7fa76bf404b78335ac85486",
+  "native_C_Rust_ABI_providers_Lua_build_inputs_exact": true,
+  "changed_files": [
+    "STATUS.md",
+    "eech-campaign/crates/eech-world/tests/env_sector_characterization.rs",
+    "eech-campaign/docs/d3-environment-sector-surface.md",
+    "eech-campaign/reference/d3-environment-characterization/sector-original-b2e-component/guard-reuse.json",
+    "eech-campaign/reference/d3-environment-characterization/sector-original-b2e-component/linux-native-build-and-first-strict-failure.json",
+    "eech-campaign/reference/d3-environment-characterization/sector-original-b2e-component/receipt.json",
+    "eech-campaign/reference/d3-environment-characterization/sector-original-b2e-component/source-syntax-review.json",
+    "eech-campaign/reference/d3-environment-characterization/sector-original-b2e-component/summary.json",
+    "eech-campaign/reference/d3-environment-characterization/sector-original-b2e-component/windows-build-completion.json"
+  ],
+  "scope": "New4guard/strict run only; reuse actualb2e native/three-root original facts. No Windows/native rebuild for test-only arraylint correction."
+}

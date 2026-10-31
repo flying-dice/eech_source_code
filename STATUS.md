@@ -1,7 +1,7 @@
 # D3 measured original sector gate (31 October 2026, 12:38 UTC)
 
 Actual b2e native fixture builds on Linux/Windows succeed. Linux first strict101
-is one test-only useless_vec; the new array correction is unbuilt. Three actual
+is one test-only useless_vec; the corrected a100 array guards pass4/4, fmt/strict0. Three actual
 Windows retail original-sector runs finish native/controller0, all6 input checks0
 and48 payloads each unchanged. Each95-row file contains92 samples:88 answered,
 4 out-of-grid refused, all scratch/repeat/sentinel/interleave checks pass and
@@ -9,8 +9,8 @@ and48 payloads each unchanged. Each95-row file contains92 samples:88 answered,
 are identical. No sampled retail returned count differs from distinct flags; the
 source preserves that semantic distinction, not a claim of observed duplicates.
 Raw flags/coords remain private; safe receipts are under sector-original-b2e-component.
-No sector cutover or Tacview/shipping/Task51/D3 acceptance. New guard checks and
-independent original-evidence closure precede the focused host sector move.
+No sector cutover or Tacview/shipping/Task51/D3 acceptance. Independent original-evidence review closes without findings (SHA1408817f...6200).
+The focused host sector move is next; no production cutover yet.
 
 # D3 checkpoint — original-sector characterization b2e55b18b: one strict-Clippy lint fixed (31 October 2026)
 
