@@ -92,6 +92,12 @@ function file:close ()
 	if fail and fail.op == 'close' then return nil, 'close failed' end
 	return true
 end
+function file:read () return table.concat (WRITTEN) end
+function dofile (path)
+	local chunk, err = load (DELEGATE_SOURCE, '@' .. tostring (path))
+	if not chunk then error (err, 0) end
+	return chunk ()
+end
 io.open = function () return file end
 
 local PLAN = '{plan}'
@@ -105,11 +111,15 @@ host = {{
 package.preload.eech_dc = function ()
 	return {{
 		prepare_installation = function () end,
-		boot = function ()
+		boot = function (config)
 			local engine = {{}}
 			if SCENARIO.no_env_case then return engine end
 			function engine:env_case (group, index)
 				if group ~= 13 then error ('SCRIPTED: unexpected group ' .. tostring (group), 0) end
+				if index ~= 0 and config and config.environment then
+					config.environment ({{ op = 'weather' }})
+					for _ = 1, SCENARIO.host_adds or 0 do config.environment ({{ op = 'lightning_add' }}) end
+				end
 				if SCENARIO.engine_error and SCENARIO.engine_error == index then error ('engine fatal: an ASSERT fired in the original', 0) end
 				local text = index == 0 and PLAN or (SCENARIO.report and SCENARIO.report [index]) or REPORTS [index]
 				if SCENARIO.edit then text = SCENARIO.edit (index, text) end
@@ -135,6 +145,10 @@ struct Driven {
 }
 
 fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
+    drive_script("env-lightning-queue.lua", SCRIPT, scenario, args)
+}
+
+fn drive_script(name: &str, script: &str, scenario: &str, args: &[(&str, &str)]) -> Driven {
     let lua = Lua::new();
     let mut table = String::from("{ root = 'unused-root', out = 'unused-out'");
     for (key, value) in args {
@@ -144,11 +158,12 @@ fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
     lua.load(format!("ARGS = {table}\nSCENARIO = {{ {scenario} }}"))
         .exec()
         .expect("the scenario is valid Lua");
+    lua.globals().set("DELEGATE_SOURCE", SCRIPT).expect("the delegate source");
     lua.load(collaborators())
         .set_name("scripted collaborators")
         .exec()
         .expect("the collaborators load");
-    let result = lua.load(SCRIPT).set_name("env-lightning-queue.lua").exec().map_err(|e| e.to_string());
+    let result = lua.load(script).set_name(name).exec().map_err(|e| e.to_string());
     let written: Vec<String> = lua.globals().get("WRITTEN").expect("the collected output");
     let text = written.concat();
     let rows = text
@@ -432,4 +447,95 @@ env-lightning-step i=3 add=33 mask_w=00000000 occupancy=0\\n"
         );
     }
     assert!(driven.rows.iter().all(|row| row["tag"] != "after"));
+}
+
+// ---- the PUBLIC-HOST capability witness (lua/env-lightning-host-witness.lua): a script that wraps the host's env_provider factory, runs the EXISTING primitive driver for the real case 2 through `dofile`, and counts
+// the `lightning_add` requests the campaign made. The scripted engine below asks the host the way the campaign would once the add is a physical operation (`host_adds = n`); with 0 it is the pre-extraction
+// native, which queues the strike itself. These checks protect the witness's own contract (what it forwards, counts, records and how it fails); they say nothing about any native or about the original queue.
+
+const WITNESS: &str = include_str!("../lua/env-lightning-host-witness.lua");
+
+/// The delegate is the existing primitive driver. The scripted `dofile` of the collaborators loads its source (`DELEGATE_SOURCE`) whatever the path argument, so the argument is only a name here; the real host's
+/// `dofile` reads the file Root names.
+fn delegate_path() -> String {
+    "/delegate/env-lightning-queue.lua".to_string()
+}
+
+fn witness(scenario: &str, extra: &[(&str, &str)]) -> Driven {
+    let delegate = delegate_path();
+    let mut args: Vec<(&str, &str)> = vec![("delegate", delegate.as_str())];
+    args.extend_from_slice(extra);
+    drive_script("env-lightning-host-witness.lua", WITNESS, scenario, &args)
+}
+
+fn authority(driven: &Driven) -> &serde_json::Value {
+    driven
+        .rows
+        .iter()
+        .find(|row| row.get("verdict").is_some())
+        .expect("the witness's authority record")
+}
+
+#[test]
+fn the_host_witness_names_the_missing_capability_when_case_2_completes_without_the_host_being_asked() {
+    let driven = witness("", &case_args("2"));
+    let error = driven
+        .result
+        .clone()
+        .expect_err("a native that queues without asking the host must fail the witness");
+    assert!(error.contains("env-lightning-host-witness: queue-host-capability-missing"), "{error}");
+    // the delegate really completed case 2 (its own rows and result are on the file, unchanged), so this is the capability verdict and not a setup failure
+    let result = &of(&driven, "result")[0];
+    assert_eq!((result["case"].as_i64(), result["refused"].as_bool()), (Some(2), Some(false)));
+    let record = authority(&driven);
+    assert_eq!(record["verdict"], "queue_host_capability_missing");
+    assert_eq!((record["op"].as_str(), record["requests"].as_i64()), (Some("lightning_add"), Some(0)));
+    assert_eq!(record["completed"], true);
+    assert!(
+        record["forwarded_other_requests"].as_i64().unwrap_or(0) >= 1,
+        "the other requests are forwarded and counted apart: {record}"
+    );
+}
+
+#[test]
+fn the_host_witness_counts_only_lightning_add_requests_and_leaves_the_delegates_rows_untouched() {
+    let driven = witness("host_adds = 2", &case_args("2"));
+    driven
+        .result
+        .clone()
+        .unwrap_or_else(|e| panic!("a native that asks the host for the add was rejected: {e}\n{}", driven.text));
+    let record = authority(&driven);
+    assert_eq!(record["verdict"], "host_asked");
+    assert_eq!(record["requests"], 2);
+    // the delegate's rows are exactly what the primitive driver alone writes for the same report
+    let alone = drive("", &case_args("2"));
+    let delegate_rows: Vec<&serde_json::Value> = driven.rows.iter().filter(|row| row.get("verdict").is_none()).collect();
+    assert_eq!(delegate_rows, alone.rows.iter().collect::<Vec<_>>());
+}
+
+#[test]
+fn the_host_witness_is_a_setup_failure_and_not_a_capability_verdict_when_case_2_was_not_exercised() {
+    // the fixture refuses case 2 (no main environment): the add never ran, so the count says nothing
+    let scenario = format!(
+        "edit = function (index, text) if index == 0 then return (text:gsub('main_present=1', 'main_present=0', 1)) end if index == 2 then return '{}' end return text end",
+        refused_report(2, "add_with_the_main_environment").replace("main_present=1", "main_present=0")
+    );
+    let refused = witness(&scenario, &case_args("2"));
+    let error = refused.result.clone().expect_err("a refused case 2 cannot give a verdict");
+    assert!(error.contains("SETUP FAILURE") && !error.contains("queue-host-capability-missing"), "{error}");
+    assert_eq!(authority(&refused)["verdict"], "setup_failure_case_2_did_not_complete");
+    // the delegate itself failing is passed on as the delegate's own error
+    let failed = witness("", &[("case", "2"), ("scenario", "mars_retail")]);
+    let error = failed.result.clone().expect_err("a failing delegate fails the witness");
+    assert!(error.contains("env-lightning-queue:"), "{error}");
+    assert_eq!(authority(&failed)["verdict"], "setup_failure_delegate_failed");
+}
+
+#[test]
+fn the_host_witness_refuses_a_missing_delegate_and_any_case_but_2_before_anything_runs() {
+    for args in [vec![("case", "2")], vec![("delegate", "x.lua"), ("case", "3")]] {
+        let driven = drive_script("env-lightning-host-witness.lua", WITNESS, "", &args);
+        assert!(driven.result.clone().unwrap_err().contains("env-lightning-host-witness:"), "{args:?}");
+        assert!(driven.rows.is_empty(), "{args:?}: nothing was written");
+    }
 }
