@@ -617,38 +617,33 @@ type GroundBridgeAnswer = (
     Option<bool>,
 );
 
-fn ground_record(numbers: &[f64], op: &str, kind: Option<i64>, hint: Option<String>, stored: Option<bool>) -> Result<TerrainRecord, String> {
+fn ground_record(numbers: [f64; 4], op: &str, kind: Option<i64>, hint: Option<String>, stored: Option<bool>) -> Result<TerrainRecord, String> {
     let marker = format!("{op}.record");
+    let [last_elevation, nx, ny, nz] = numbers;
     let kind = kind.ok_or_else(|| format!("[terrain-provider:{op}.type] the ground bridge returned no type"))?;
     Ok(TerrainRecord {
-        last_elevation: terrain_f32(numbers[0], &marker)?,
-        normal: [
-            terrain_f32(numbers[1], &marker)?,
-            terrain_f32(numbers[2], &marker)?,
-            terrain_f32(numbers[3], &marker)?,
-        ],
+        last_elevation: terrain_f32(last_elevation, &marker)?,
+        normal: [terrain_f32(nx, &marker)?, terrain_f32(ny, &marker)?, terrain_f32(nz, &marker)?],
         kind: i32::try_from(kind).map_err(|_| format!("[terrain-provider:{op}.type] the type is out of range"))?,
         hint,
         stored: stored.ok_or_else(|| format!("[terrain-provider:{marker}] the ground bridge returned no stored flag"))?,
     })
 }
 
-fn ground_triple(numbers: &[f64], marker: &str) -> Result<[f32; 3], String> {
-    Ok([
-        terrain_f32(numbers[0], marker)?,
-        terrain_f32(numbers[1], marker)?,
-        terrain_f32(numbers[2], marker)?,
-    ])
+fn ground_triple(numbers: [f64; 3], marker: &str) -> Result<[f32; 3], String> {
+    let [x, y, z] = numbers;
+    Ok([terrain_f32(x, marker)?, terrain_f32(y, marker)?, terrain_f32(z, marker)?])
 }
 
 /// The ground-contact questions (EEDCS-48, D3 G2) through `GROUND_BRIDGE`: the request fields cross as exact numbers and the answer's shape is checked in Lua, where the values are.
 fn call_ground(bridge: &LuaFunction, query: TerrainQuery) -> Result<TerrainAnswer, String> {
-    fn widen(values: &[f32]) -> Vec<f64> {
-        values.iter().map(|value| f64::from(*value)).collect()
+    fn widen(values: &[f32; 3]) -> [f64; 3] {
+        let [x, y, z] = *values;
+        [f64::from(x), f64::from(y), f64::from(z)]
     }
     let (op, winter, hint, world, first, second) = match &query {
-        TerrainQuery::GroundAbove { position, world, hint, winter } => ("ground_above", *winter, hint.clone(), *world, widen(position), vec![0.0; 3]),
-        TerrainQuery::GroundBelow { position, world, hint, winter } => ("ground_below", *winter, hint.clone(), *world, widen(position), vec![0.0; 3]),
+        TerrainQuery::GroundAbove { position, world, hint, winter } => ("ground_above", *winter, hint.clone(), *world, widen(position), [0.0; 3]),
+        TerrainQuery::GroundBelow { position, world, hint, winter } => ("ground_below", *winter, hint.clone(), *world, widen(position), [0.0; 3]),
         TerrainQuery::GroundImpact {
             above,
             below,
@@ -658,21 +653,24 @@ fn call_ground(bridge: &LuaFunction, query: TerrainQuery) -> Result<TerrainAnswe
         } => ("ground_impact", *winter, hint.clone(), *world, widen(above), widen(below)),
         _ => return Err("[terrain-provider:point.callback] a non-ground question reached the ground bridge".to_string()),
     };
+    let [world_min_x, world_min_z, world_max_x, world_max_z] = world;
+    let [x, y, z] = first;
+    let [below_x, below_y, below_z] = second;
     let (marker, text, kind, hint_out, stored, value, queried): GroundBridgeAnswer = bridge
         .call((
             op,
             winter,
             hint,
-            f64::from(world[0]),
-            f64::from(world[1]),
-            f64::from(world[2]),
-            f64::from(world[3]),
-            first[0],
-            first[1],
-            first[2],
-            second[0],
-            second[1],
-            second[2],
+            f64::from(world_min_x),
+            f64::from(world_min_z),
+            f64::from(world_max_x),
+            f64::from(world_max_z),
+            x,
+            y,
+            z,
+            below_x,
+            below_y,
+            below_z,
         ))
         .map_err(|error| format!("[terrain-provider:{op}.callback] {error}"))?;
     if let Some(marker) = marker {
@@ -680,12 +678,12 @@ fn call_ground(bridge: &LuaFunction, query: TerrainQuery) -> Result<TerrainAnswe
     }
     let text = text.ok_or_else(|| format!("[terrain-provider:{op}.answer] the ground bridge returned nothing"))?;
     if op == "ground_impact" {
-        let n = terrain_numbers::<13>(&text, "ground_impact.answer")?;
+        let [ax, ay, az, bx, by, bz, ix, iy, iz, last, nx, ny, nz] = terrain_numbers::<13>(&text, "ground_impact.answer")?;
         return Ok(TerrainAnswer::GroundImpact {
-            above: ground_triple(&n[0..3], "ground_impact.position")?,
-            below: ground_triple(&n[3..6], "ground_impact.position")?,
-            impact: ground_triple(&n[6..9], "ground_impact.position")?,
-            record: ground_record(&n[9..13], op, kind, hint_out, stored)?,
+            above: ground_triple([ax, ay, az], "ground_impact.position")?,
+            below: ground_triple([bx, by, bz], "ground_impact.position")?,
+            impact: ground_triple([ix, iy, iz], "ground_impact.position")?,
+            record: ground_record([last, nx, ny, nz], op, kind, hint_out, stored)?,
         });
     }
     let value = value.ok_or_else(|| format!("[terrain-provider:{op}.answer] the ground bridge returned no predicate"))?;
@@ -694,7 +692,7 @@ fn call_ground(bridge: &LuaFunction, query: TerrainQuery) -> Result<TerrainAnswe
             let n = terrain_numbers::<4>(&text, &format!("{op}.record"))?;
             Ok(TerrainAnswer::GroundPredicate {
                 value,
-                record: Some(ground_record(&n, op, kind, hint_out, stored)?),
+                record: Some(ground_record(n, op, kind, hint_out, stored)?),
             })
         }
         Some(false) => Ok(TerrainAnswer::GroundPredicate { value, record: None }),

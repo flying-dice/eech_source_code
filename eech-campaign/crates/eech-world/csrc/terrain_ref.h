@@ -101,6 +101,9 @@ int host_terrain_conformance_sweep (const host_terrain *map, uint32_t seed, int 
  * extents the below-ground test compares against are supplied by the caller (they are campaign data, and are not assumed equal to the terrain's), and so is the aliasing of
  * the impact output with the below endpoint (the caller composes it from the corrected endpoints and the impact point).
  *
+ * Floating point: each public ground entry saves the caller's COMPLETE state (x87 environment and MXCSR) before its first statement and restores it on every return path, refusals
+ * included; the kernels' own round-toward-zero arithmetic is unchanged (terrain_ref.c, struct host_fp_state).
+ *
  * Unsupported, refused with a message and nothing computed: a coordinate that is not finite; a position off the terrain's own extents for any read of the sector maximum
  * (the original stops the engine in debug_fatal there); a hint the map did not issue (refused when it is first USED, so an answer that never reads the terrain never
  * looks at it).

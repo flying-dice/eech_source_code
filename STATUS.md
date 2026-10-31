@@ -1,3 +1,39 @@
+# D3 checkpoint — measured ground candidate; five review corrections prepared (31 October 2026)
+
+Measured02ccf06cc is preserved in an immutable snapshot and safe records under
+reference/d3-ground-characterization/production-checkpoint-02ccf06cc/. Three
+Windows builds complete0/all50payloads verified each; original parent125 is only
+export setup, separately recovered0 with the actual final image. Linux441 passing
+functions precede strictClippy101 on13indexing errors; asset no-env returns are
+not physical evidence. All3 real retail ground comparisons complete0:20kpoints/
+5kimpacts times2,113common decoded rows exactc119, physical/semantic/cache facts
+and restoration agree; both COMPLETE Lebanon reports match. Windows transport
+passes60/60checks per map/no skips. Moved public handoff is healthy/pass with
+416above/400below/150impact host requests. Inputs and all50payloads reverify.
+No shipping/full Tacview or launched-weapon authority acceptance is claimed.
+
+Independent combined review76f52b1bd8b33d15bf07d10a9c8ce8d64625b701c1b023e25bfa551fcb3ab730
+requests five finite P2 groups. The sole Sonnet5.5High correction author20536
+completed exit0 at2026-10-31T01:05:14.505544Z; SAME41896 collectedterminal0,
+no restart. New source freezes the launched cohort and strictly judges identities,
+uses exact-single changed replies, checks witness progress/frame/wall budgets and
+all I/O results, saves full caller FP state around all three ground entries including
+early refusals, and replaces indexed vectors with fixed arrays. New real-driver
+failure controls and asset-free synthetic-map/all4RC FP controls are prepared.
+Formatting/check pass; corrected compilation/tests/actualWindowsFP/weapon authority
+and source review are UNRUN. Original numerical kernels stay unchanged; changed
+FP wrappers warrant the directed finite comparisons on the corrected build.
+
+Next: freeze corrected source, affected Linux/strictClippy, actual Windows controls
+and launched-weapon authority/refusal, full shipping40/eight COMPLETE default file
+comparisons, one changed-delta independent review/currentCI/normal delivery.
+Task47 remains Done/normal mergeb657 with exact validatedtree697ff and unchanged
+full pack. Task48/D3 remain In Progress. Ledger81/Jira48comment10878 preserve the
+prior HTML and all5reports. Environment guard closure remainsb8e8b6153; environment
+physics and the rest of required spatial/model/hierarchy/device/route-data/loaders/
+sharedRNG/time remain D3 work. Campaign geography/routes/timers/policy/consequences
+stay Core. D4/D5 have not started; no baseline/tolerance/seed/duration changed.
+
 # D3 checkpoint — terrain delivered; production ground handoff prepared (31 October 2026)
 
 Task47 is Done: PR107 normally mergedb6575594c114cf38c0206af24920e40f0e250b77,

@@ -4217,6 +4217,52 @@ static void ground_record_out (const struct ground_ctx *ctx, host_terrain_answer
 	hint_from_record (ctx->map, &ctx->record, out);
 }
 
+/*
+ * The caller's COMPLETE floating-point state around a public ground entry (EEDCS-48 corrections). The kernels below run under round-toward-zero and put the caller's
+ * environment back with fegetenv/fesetenv, which on the shipping toolchain (MinGW-w64 12 posix) restores the x87 environment but leaves the SSE rounding control in MXCSR
+ * where the kernel put it (the retained fenv-only control, model-mingw-fenv-control-20261030). Every ground entry therefore saves, before its FIRST statement (the finite
+ * validation can itself raise flags), the x87 environment (control, status and tag words and the exception pointers) and MXCSR (rounding control, masks and sticky flags),
+ * and restores both on EVERY return path, refusals included. The kernels' own rounding and arithmetic are unchanged: this only returns the caller's state. Where there is
+ * no x87/SSE (another architecture) the C library's fegetenv/fesetenv is the whole state and is used.
+ */
+#if defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__))
+#define HOST_FP_X86 1
+#else
+#define HOST_FP_X86 0
+#endif
+
+struct host_fp_state
+{
+#if HOST_FP_X86
+	unsigned char x87[28]; /* the fnstenv image */
+	unsigned int mxcsr;
+#else
+	fenv_t env;
+#endif
+};
+
+static void fp_state_save (struct host_fp_state *state)
+{
+#if HOST_FP_X86
+	__asm__ __volatile__ ("fnstenv %0" : "=m" (state->x87) : : "memory");
+	/* fnstenv masks every x87 exception: reload the image so the caller's masks stand while the kernel runs */
+	__asm__ __volatile__ ("fldenv %0" : : "m" (state->x87) : "memory");
+	__asm__ __volatile__ ("stmxcsr %0" : "=m" (state->mxcsr) : : "memory");
+#else
+	fegetenv (&state->env);
+#endif
+}
+
+static void fp_state_restore (const struct host_fp_state *state)
+{
+#if HOST_FP_X86
+	__asm__ __volatile__ ("fldenv %0" : : "m" (state->x87) : "memory");
+	__asm__ __volatile__ ("ldmxcsr %0" : : "m" (state->mxcsr) : "memory");
+#else
+	fesetenv (&state->env);
+#endif
+}
+
 static int ground_finite (float value)
 {
 	return value == value && value - value == 0.0f;
@@ -4227,7 +4273,7 @@ static int ground_world_valid (const host_ground_world *world)
 	return world && ground_finite (world->min_x) && ground_finite (world->min_z) && ground_finite (world->max_x) && ground_finite (world->max_z);
 }
 
-int host_terrain_ground_below (const host_terrain *map, const host_ground_world *world, float x, float y, float z, const host_terrain_hint *hint,
+static int ground_below_entry (const host_terrain *map, const host_ground_world *world, float x, float y, float z, const host_terrain_hint *hint,
 	host_ground_below_answer *out, char *error, size_t error_size)
 {
 	struct ground_ctx ctx;
@@ -4273,7 +4319,7 @@ int host_terrain_ground_below (const host_terrain *map, const host_ground_world 
 	return 0;
 }
 
-int host_terrain_ground_above (const host_terrain *map, const host_ground_world *world, float x, float y, float z, const host_terrain_hint *hint,
+static int ground_above_entry (const host_terrain *map, const host_ground_world *world, float x, float y, float z, const host_terrain_hint *hint,
 	host_ground_above_answer *out, char *error, size_t error_size)
 {
 	struct ground_ctx ctx;
@@ -4398,7 +4444,7 @@ static int ground_impact (struct ground_ctx *ctx, vec3d *above_ground, vec3d *be
 	return ctx->record.terrain_type;
 }
 
-int host_terrain_ground_impact (const host_terrain *map, const host_ground_world *world, const float above[3], const float below[3], const host_terrain_hint *hint,
+static int ground_impact_entry (const host_terrain *map, const host_ground_world *world, const float above[3], const float below[3], const host_terrain_hint *hint,
 	host_ground_impact_answer *out, char *error, size_t error_size)
 {
 	struct ground_ctx ctx;
@@ -4455,6 +4501,46 @@ int host_terrain_ground_impact (const host_terrain *map, const host_ground_world
 	ground_record_out (&ctx, &out->record);
 
 	return 0;
+}
+
+/* the public ground entries: the complete caller floating-point state is saved first and restored on every path (see host_fp_state) */
+int host_terrain_ground_below (const host_terrain *map, const host_ground_world *world, float x, float y, float z, const host_terrain_hint *hint,
+	host_ground_below_answer *out, char *error, size_t error_size)
+{
+	struct host_fp_state state;
+	int status;
+
+	fp_state_save (&state);
+	status = ground_below_entry (map, world, x, y, z, hint, out, error, error_size);
+	fp_state_restore (&state);
+
+	return status;
+}
+
+int host_terrain_ground_above (const host_terrain *map, const host_ground_world *world, float x, float y, float z, const host_terrain_hint *hint,
+	host_ground_above_answer *out, char *error, size_t error_size)
+{
+	struct host_fp_state state;
+	int status;
+
+	fp_state_save (&state);
+	status = ground_above_entry (map, world, x, y, z, hint, out, error, error_size);
+	fp_state_restore (&state);
+
+	return status;
+}
+
+int host_terrain_ground_impact (const host_terrain *map, const host_ground_world *world, const float above[3], const float below[3], const host_terrain_hint *hint,
+	host_ground_impact_answer *out, char *error, size_t error_size)
+{
+	struct host_fp_state state;
+	int status;
+
+	fp_state_save (&state);
+	status = ground_impact_entry (map, world, above, below, hint, out, error, error_size);
+	fp_state_restore (&state);
+
+	return status;
 }
 
 /* ======================================================================================================================== */

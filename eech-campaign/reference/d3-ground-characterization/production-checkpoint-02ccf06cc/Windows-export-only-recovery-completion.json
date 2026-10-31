@@ -1,0 +1,18 @@
+{
+  "source": "02ccf06cc0afcd8632fb5924a2117b1ebbbdd3b1",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-ground-production-02ccf06cc-export-recovery-20261031.sh"
+  ],
+  "pid": 22412,
+  "controller_pid": 17648,
+  "state": "terminal",
+  "started_utc": "2026-10-31T00:46:29.398408+00:00",
+  "scope": "Only recover cross-test compilation/export using actual last weapon-build image; three completed native builds are not repeated; no native campaign execution",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T00:47:28.437406+00:00"
+}

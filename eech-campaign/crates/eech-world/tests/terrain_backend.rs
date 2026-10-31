@@ -864,3 +864,227 @@ fn the_provider_factory_opens_the_map_for_the_season_the_engine_reports() {
         "{outcome:?}"
     );
 }
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// The caller's COMPLETE floating-point state around the public ground entries (EEDCS-48 corrections). The kernels run under round-toward-zero; a caller in any of the four
+// rounding modes, with the x87 and SSE status flags already raised, must find its x87 control and status words and its MXCSR exactly as it left them after a success, a
+// decided answer, an early refusal (the finite validation itself raises flags) and a refusal after the terrain was read. The map is the synthetic one above: no asset.
+//
+// The state is set and read with the instructions themselves (fnstenv/fldenv, stmxcsr/ldmxcsr); nothing here knows what the kernel does, and the expectation is not a constant:
+// it is the state read back immediately before the call. The control and status words and MXCSR are the observation; the x87 tag word and exception pointers are not compared.
+
+#[cfg(any(target_arch = "x86_64", target_arch = "x86"))]
+mod caller_floating_point {
+    use super::{map, Shape, X, Z};
+    use eech_world::terrain::{GroundWorld, Terrain};
+    use std::arch::asm;
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub struct State {
+        pub x87_control: u16,
+        pub x87_status: u16,
+        pub mxcsr: u32,
+    }
+
+    fn envelope() -> [u8; 28] {
+        let mut env = [0u8; 28];
+        let pointer: *mut u8 = env.as_mut_ptr();
+        // SAFETY: fnstenv writes the 28-byte protected-mode image to the buffer, which is that long; fldenv reloads the same image so reading it changes nothing (fnstenv alone would mask
+        // every x87 exception).
+        unsafe {
+            asm!("fnstenv [{p}]", "fldenv [{p}]", p = in(reg) pointer, options(nostack));
+        }
+        env
+    }
+
+    pub fn read() -> State {
+        let env = envelope();
+        let mut mxcsr = 0u32;
+        let pointer: *mut u32 = &mut mxcsr;
+        // SAFETY: stmxcsr writes four bytes to the variable.
+        unsafe {
+            asm!("stmxcsr [{p}]", p = in(reg) pointer, options(nostack));
+        }
+        let [c0, c1, _, _, s0, s1, ..] = env;
+        State {
+            x87_control: u16::from_le_bytes([c0, c1]),
+            x87_status: u16::from_le_bytes([s0, s1]),
+            mxcsr,
+        }
+    }
+
+    /// Loads a state: the x87 control and status words into the current environment image, and MXCSR.
+    fn load(control: u16, status: u16, mxcsr: u32) {
+        let mut env = envelope();
+        let [c0, c1] = control.to_le_bytes();
+        let [s0, s1] = status.to_le_bytes();
+        env[0] = c0;
+        env[1] = c1;
+        env[4] = s0;
+        env[5] = s1;
+        let pointer: *const u8 = env.as_ptr();
+        let csr: *const u32 = &mxcsr;
+        // SAFETY: fldenv reads the 28-byte image just built (the current image with its control and status words replaced); ldmxcsr reads four bytes of the caller's MXCSR value.
+        unsafe {
+            asm!("fldenv [{p}]", "ldmxcsr [{c}]", p = in(reg) pointer, c = in(reg) csr, options(nostack));
+        }
+    }
+
+    /// The caller state under test: rounding mode `mode` (0 nearest, 1 down, 2 up, 3 toward zero) in BOTH the x87 control word and MXCSR, every exception masked, and every x87 and
+    /// SSE exception FLAG and the x87 condition codes raised.
+    pub fn set(mode: u16) {
+        let current = read();
+        let control = (current.x87_control & !0x0C00) | (mode << 10);
+        let status = current.x87_status | 0x3F | 0x0100 | 0x0400 | 0x4000;
+        load(control, status, 0x1F80 | (u32::from(mode) << 13) | 0x3F);
+    }
+
+    /// Puts a state back exactly (the state a test started from).
+    pub fn restore(state: State) {
+        load(state.x87_control, state.x87_status, state.mxcsr);
+    }
+
+    fn world() -> GroundWorld {
+        GroundWorld {
+            min_x: -1000.0,
+            min_z: -1000.0,
+            max_x: 3000.0,
+            max_z: 3000.0,
+        }
+    }
+
+    /// One call of one public ground entry, as text: every answer or refusal, so that two callers in different rounding modes can be compared as well.
+    type Entry = Box<dyn Fn(&Terrain) -> String>;
+
+    fn entry(call: impl Fn(&Terrain) -> String + 'static) -> Entry {
+        Box::new(call)
+    }
+
+    fn entries() -> Vec<(&'static str, Entry)> {
+        let w = world();
+        let mut list: Vec<(&'static str, Entry)> = Vec::new();
+        // success: the terrain is read
+        list.push(("above, read", entry(move |t: &Terrain| format!("{:?}", t.ground_above(&w, X, 900.0, Z, None)))));
+        list.push(("below, read", entry(move |t: &Terrain| format!("{:?}", t.ground_below(&w, X, 900.0, Z, None)))));
+        list.push((
+            "impact",
+            entry(move |t: &Terrain| format!("{:?}", t.ground_impact(&w, [X, 2000.0, Z], [X, 500.0, Z], None))),
+        ));
+        // decided by the sector maximum, no terrain read
+        list.push((
+            "above, decided",
+            entry(move |t: &Terrain| format!("{:?}", t.ground_above(&w, X, 40000.0, Z, None))),
+        ));
+        // early refusals: the finite validation raises flags itself (infinity minus infinity), before any snapshot a kernel might take
+        list.push((
+            "above, infinite coordinate",
+            entry(move |t: &Terrain| format!("{:?}", t.ground_above(&w, f32::INFINITY, 900.0, Z, None))),
+        ));
+        list.push((
+            "below, infinite coordinate",
+            entry(move |t: &Terrain| format!("{:?}", t.ground_below(&w, X, f32::NEG_INFINITY, Z, None))),
+        ));
+        list.push((
+            "impact, infinite coordinate",
+            entry(move |t: &Terrain| format!("{:?}", t.ground_impact(&w, [X, 2000.0, Z], [X, 500.0, f32::INFINITY], None))),
+        ));
+        list.push((
+            "above, infinite world",
+            entry(move |t: &Terrain| {
+                let wide = GroundWorld { max_x: f32::INFINITY, ..w };
+                format!("{:?}", t.ground_above(&wide, X, 900.0, Z, None))
+            }),
+        ));
+        // a refusal after the kernel began: a read off the terrain
+        list.push((
+            "above, off the terrain",
+            entry(move |t: &Terrain| format!("{:?}", t.ground_above(&w, 5000.0, -100.0, Z, None))),
+        ));
+        list.push((
+            "below, off the terrain",
+            entry(move |t: &Terrain| format!("{:?}", t.ground_below(&w, 5000.0, -100.0, Z, None))),
+        ));
+        list.push((
+            "impact, off the terrain",
+            entry(move |t: &Terrain| format!("{:?}", t.ground_impact(&w, [5000.0, 2000.0, Z], [X, 500.0, Z], None))),
+        ));
+        list
+    }
+
+    #[test]
+    fn the_state_reader_sees_the_modes_and_flags_it_sets_and_a_change_of_either() {
+        let original = read();
+        for mode in 0..4u16 {
+            set(mode);
+            let state = read();
+            assert_eq!((state.x87_control >> 10) & 3, mode, "{state:?}");
+            assert_eq!((state.mxcsr >> 13) & 3, u32::from(mode), "{state:?}");
+            assert_eq!(state.x87_status & 0x3F, 0x3F, "{state:?}");
+            assert_eq!(state.mxcsr & 0x3F, 0x3F, "{state:?}");
+            assert_eq!(read(), state, "reading the state does not change it");
+        }
+        // a different caller mode is a different state, in both registers
+        set(0);
+        let nearest = read();
+        set(3);
+        let zero = read();
+        assert_ne!(nearest.x87_control, zero.x87_control);
+        assert_ne!(nearest.mxcsr, zero.mxcsr);
+        restore(original);
+        assert_eq!(read(), original, "a state read can be put back exactly");
+    }
+
+    #[test]
+    fn every_public_ground_entry_returns_the_callers_complete_floating_point_state_in_every_rounding_mode() {
+        let terrain = map(Shape::default());
+        let original = read();
+        for (name, entry) in entries() {
+            let mut answers: Vec<String> = Vec::new();
+            for mode in 0..4u16 {
+                set(mode);
+                let before = read();
+                let answer = entry(&terrain);
+                let after = read();
+                restore(original);
+                assert_eq!((before.x87_control >> 10) & 3, mode, "{name}: the caller state was not set");
+                assert_eq!(
+                    after, before,
+                    "{name}, caller rounding mode {mode}: the caller's x87 control/status words and MXCSR (rounding control, masks, sticky flags) were not restored"
+                );
+                answers.push(answer);
+            }
+            // the kernels run under their own rounding: the caller's mode does not change what they answer
+            assert!(
+                answers.windows(2).all(|pair| pair.first() == pair.get(1)),
+                "{name}: the answer depends on the caller's rounding mode: {answers:?}"
+            );
+        }
+        assert_eq!(read(), original);
+    }
+
+    #[test]
+    fn the_exercised_entries_really_answer_and_really_refuse_so_the_state_check_covers_both() {
+        let terrain = map(Shape::default());
+        let w = world();
+        let read_answer = terrain.ground_above(&w, X, 900.0, Z, None).expect("a read answer");
+        assert!(read_answer.queried && read_answer.record.is_some());
+        let decided = terrain.ground_above(&w, X, 40000.0, Z, None).expect("a decided answer");
+        assert!(!decided.queried && decided.record.is_none() && decided.above);
+        assert!(terrain.ground_above(&w, f32::INFINITY, 900.0, Z, None).unwrap_err().contains("not finite"));
+        assert!(terrain.ground_below(&w, X, f32::NEG_INFINITY, Z, None).unwrap_err().contains("not finite"));
+        assert!(terrain
+            .ground_impact(&w, [X, 2000.0, Z], [X, 500.0, f32::INFINITY], None)
+            .unwrap_err()
+            .contains("not finite"));
+        let infinite_world = GroundWorld { max_x: f32::INFINITY, ..w };
+        assert!(terrain.ground_above(&infinite_world, X, 900.0, Z, None).unwrap_err().contains("world area"));
+        for refusal in [
+            terrain.ground_above(&w, 5000.0, -100.0, Z, None).map(|_| ()),
+            terrain.ground_below(&w, 5000.0, -100.0, Z, None).map(|_| ()),
+            terrain.ground_impact(&w, [5000.0, 2000.0, Z], [X, 500.0, Z], None).map(|_| ()),
+        ] {
+            assert!(refusal.unwrap_err().contains("terrain ground:"), "a refusal after the kernel began");
+        }
+        assert!(terrain.ground_impact(&w, [X, 2000.0, Z], [X, 500.0, Z], None).is_ok());
+    }
+}

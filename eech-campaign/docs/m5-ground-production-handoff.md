@@ -1,7 +1,9 @@
 # D3 G2: ground contact, production host handoff (EEDCS-48)
 
-**Status: implemented in source, UNBUILT and UNRUN by the implementing lane.** This note describes what the change does, the contracts it fixes, the witnesses that were written for it and the
-focused commands the Root needs to produce evidence. It reports no result: nothing here has been compiled, built or executed by the author. No pass, G2 cutover or D3 completion is claimed.
+**Status: implemented in source; the first source (`02ccf06cc`) was built and measured by the Root and independently reviewed (CHANGES_REQUIRED, five P2 groups); the corrections below are written
+in source and UNBUILT and UNRUN by the implementing lane.** This note describes what the change does, the contracts it fixes, the witnesses that were written for it, the corrections of the review and
+the focused commands the Root needs to produce evidence. It reports no result of its own: nothing in the corrections has been compiled, built or executed by the author. No pass, G2 cutover or D3
+completion is claimed. The Root's measured results for `02ccf06cc` (three-map finite production comparisons exact, public handoff healthy, direct provider checks) are recorded by the Root, not here.
 It builds on the reviewed kernels and Lua transport of `m5-ground-host-preparation.md` and measures against the original characterisation of `m5-ground-characterization.md` (retained c119
 raws), neither of which is changed.
 
@@ -70,30 +72,82 @@ record's `type`, `stored` a boolean (nil means true, as for a point answer). The
 | Callback unit tests | every request field reaches the provider; reply fields exact; a wrong kind of answer, or an unrepresentable hint, writes nothing | `eech-engine/src/lib.rs` (tests `a_ground_question_reaches…`, extended `a_terrain_answer_of_the_wrong_kind…`) |
 | Host transport | `ground_above` over the real retail map: decided/queried, record, warm/cold hints, refusals | `lua/ground-provider-transport.lua`, `tests/ground_provider.rs` (env: `EECH_TERRAIN_DIR`) |
 | Public handoff | the moved DLL sends above, below AND impact questions to the provider after a healthy driver run (`required` is green); the unmoved DLL keeps its preserved RED (`GROUND-HANDOFF-RED`); a partial boundary is `GROUND-HANDOFF-INCOMPLETE` | `lua/ground-handoff*.lua`, `tests/ground_handoff.rs` (env, `EECH_GROUND_DLL=unmoved|moved`) |
-| Authority/refusal | a REAL weapon launched through the campaign's own launch call: a changed valid predicate/impact reply changes the weapon's real result (terminal fact, terminal position = the replied point); withheld/malformed replies stop the engine at the named ground marker after a healthy launch; the same-DLL control is the unaltered provider | `lua/ground-authority.lua`, `tests/ground_authority.rs` (env) |
+| Authority/refusal | a REAL weapon launched through the campaign's own launch call: a changed valid predicate/impact reply changes the real result of the launch's frozen cohort (terminal fact; terminal position = the exact replied single); withheld/malformed replies stop the engine at the named ground marker after a healthy MATCHED launch; the same-DLL control is the unaltered provider. See the corrections below | `lua/ground-authority.lua`, `tests/ground_authority.rs` (env) |
 | Physical characterisation | the established finite ground fixture, unchanged physical cases and folds, now measures the moved boundary (host-semantic profile; the original-only cache-index hashes are not relabelled comparable) | `lua/ground-characterization.lua`, `eech_ground_fixture.c` (comment only) |
 
 The `ground_probe` seam exercises the ground queries, not `wn_move.c`'s launch glue; the weapon-authority witness is the launch-through-glue run. Neither the unit tests nor the guards of the harnesses
 prove the DLL; only the environment-driven runs on a fresh production build do.
 
+## Corrections after the independent source review of `02ccf06cc` (five P2 groups; source only, unbuilt, unrun)
+
+The review (`independent-ground-production-source-review-02ccf06cc-20261031.json`) found no physical-kernel, copy, ABI, pointer or fallback defect and no physical mismatch; the Root's three-map finite
+comparisons and public handoff stand and are not reopened. It required five things. Tests passing do not close them; these are the corrections and what each is judged by.
+
+1. **GROUND-AUTHORITY-COHORT.** The case cohort is the births of the launch call itself, read before any frame runs and FROZEN (`cohort` row). A weapon the natural war creates later is a `later_birth`
+   row, a terminal of a weapon outside the cohort is a `foreign_terminal` row, a second terminal of a member a `duplicate_terminal` row; none is ever a case result. The judge refuses a run with no
+   complete evidence: every terminal field (`type code steps pos velocity lifetime`) present and non-empty with the numbers numeric, one terminal per member, no terminal row outside the cohort,
+   the authority counters equal to the rows, a launch equal to the selected launcher/target/weapon. A control or a valid change must have ALL its cohort ended (`case_weapons_pending` 0), not merely not
+   have raised at the settle deadline; a refusal may stop with an unfinished cohort but only after a launch MATCHED to the control (configuration, selected launch, launch text, cohort identities) and with
+   its alteration actually sent at the named marker. The terminal of a changed run is compared per member, never the first terminal that arrives.
+2. **GROUND-AUTHORITY-SINGLE-RECEIPT.** The provider's double is not the consumed single unless it is an exact single, and `+ 37.5` is not always one (`255.99998474121094 + 37.5` lies between two
+   singles). The shift now moves the impact y to a multiple of 1/16 m (about 37.5 m up): such a number below 2^20 needs at most 24 bits, and the driver checks with its own exactness test that both
+   the original and the moved y are exact singles (otherwise a witness failure, never a receipt). Every recorded impact reply carries `exact` (all three coordinates exact singles) and `altered`; the
+   judge refuses any inexact replied point and requires a cohort weapon to end exactly at an ALTERED replied point that differs from the predicate-only run's. No tolerance, no rounding of artifacts.
+3. **GROUND-ABOVE-CALLER-FP.** The three public ground entries (`host_terrain_ground_above`, `_below`, `_impact`) are now thin wrappers that save the caller's COMPLETE floating-point state (the x87
+   environment by `fnstenv`/`fldenv`, and MXCSR by `stmxcsr`) before their first statement, run the unchanged entry body, and restore both on EVERY return path, including the early refusals whose finite
+   validation raises flags (`infinity - infinity`). The internal round-toward-zero arithmetic, the original algorithms, the conformance probes' own use of the kernels and the generic campaign DLL
+   rounding are unchanged: this only returns the caller's state. The previously retained actual MinGW-w64 12 posix control (fenv-only restores x87 and leaves the SSE rounding control where the kernel put
+   it, sha256 `ef118cf1...`) is the reason and is reused, not rerun. Effect on validation scope: no change to any numerical result is expected; the finite three-map comparisons were measured on the code
+   before this guard, so the Root must re-run them (or classify a guard-only change) before relying on them for the guarded code. Controls (`tests/terrain_backend.rs`, module `caller_floating_point`, x86 only,
+   synthetic map, no asset): the state is set and read with the instructions themselves in each of the four caller rounding modes (both registers) with every x87/SSE exception flag and the x87 condition
+   codes raised, and the x87 control and status words and MXCSR read back after a read answer, a decided answer, infinite-coordinate and infinite-world refusals (early) and off-terrain refusals (after the
+   kernel began), for all three entries, must equal what was read immediately before the call; the answer must not depend on the caller's mode. Another architecture has no such test (the guard falls back
+   to `fegetenv`/`fesetenv` there).
+4. **GROUND-AUTHORITY-FINITE-IO.** The driver checks `warmup`, `settle` and `frame_ms` are finite and in range, requires the simulated clock to be a finite number that moves forward on EVERY frame
+   (`STALLED CLOCK`), and bounds the frames by four times what warm-up and settle ask for plus a margin (`FRAME BUDGET`). Every `write`, `flush` and the final `close` of the evidence is checked
+   (`OUTPUT FAILURE`), including a close that fails after the success row. A failure of the witness itself raises an error beginning `ground-authority:` after a best-effort `witness_failure` row; the
+   engine-failure handlers re-raise it (also when the engine has wrapped it in its own marker text), so it is never recorded as an expected provider refusal and the process fails. The Rust parent now waits
+   for each mode's child with a wall limit (default 3600 s: a retail boot, warm-up and settle cap fit with a wide margin; `EECH_AUTHORITY_WALL_SECONDS`, finite, 1 to 14400), drains both pipes while it
+   runs, keeps the last 64 KiB of each, and on expiry kills the child and reports how long it ran and what it had said. Ordinary healthy query and update order is unchanged.
+5. **GROUND-STRICT-LINT.** The thirteen indexed numeric-vector accesses in `eech-dc/src/module.rs` (`ground_record`, `ground_triple`, `call_ground`) are replaced by fixed arrays and destructuring. All
+   finite/single, boolean/schema and single-field-read validation and every marker is as it was; no `allow`, no panic, no unchecked unwrap.
+
+Controls for 1, 2 and 4 execute the REAL `lua/ground-authority.lua` in a real Lua state (`tests/ground_authority.rs`) against scripted collaborators (a scripted `eech_dc` engine whose events, clock and
+provider traffic the test chooses, and a scripted output file). They are fixtures for the driver's bookkeeping: they invent no physics and say nothing about the DLL. They cover a later birth and a foreign
+terminal that arrive before the case terminal, a missing and an empty terminal field, a duplicate terminal, an incomplete cohort (refused for a control, legitimate for a refusal after a matched launch), a
+stalled clock before and after the launch, an exhausted frame budget, a write/flush/close failure (including a refusal mode and a close failing after the success row), the shift at 255.99998474121094 and a
+point that cannot be an exact single. The bounded wait is exercised with real children (this test executable re-run): a hung child killed at the wall limit, a failing child and a chatty child that fills both pipes.
+The judge itself is exercised on synthetic rows for every refusal above and for mismatched launches.
+
 ## Proposed Root verification (nothing below has been run)
 
 Build identity to record: the head SHA of the PR, the feature set of each DLL, and the `eech-world` executable beside it.
 
-1. Unit and guard tests, no assets: `cargo test -p eech-dc -p eech-engine --lib` (bridge and callback tests), `cargo test -p eech-world --test ground_handoff --test ground_authority --test ground_provider`
-   (the guards run everywhere; the environment-driven parts print SKIPPED without their variables).
+1. Unit, guard and driver-control tests, no assets: `cargo test -p eech-dc -p eech-engine --lib` (bridge and callback tests), `cargo test -p eech-world --test ground_handoff --test ground_authority --test ground_provider --test terrain_backend`
+   (the guards, the real-driver controls with scripted collaborators, the bounded-wait child controls and the caller floating-point controls run everywhere x86; the environment-driven parts print SKIPPED without
+   their variables), then the strict gate that failed: `cargo clippy --locked --all-targets -- -D warnings` (the CI command), which must not be satisfied by an `allow`.
+   The caller floating-point controls need the native kernel: run them where `eech-world` builds with its C sources (Linux and the actual Windows MinGW build).
 2. Host transport: the same `ground_provider` test with `EECH_TERRAIN_DIR` set to a verified retail `map<N>/terrain` directory.
 3. Public handoff GREEN on the production DLL built with `--features ground-fixture` (the driver's probe needs it): `EECH_GROUND_DLL=moved EECH_WORLD_BIN=<exe> EECH_GROUND_ROOT_REQUIRED=<fresh root>
    EECH_GROUND_ROOT_CONTROL=<any value>` with `cargo test -p eech-world --test ground_handoff`. The preserved RED is re-run with `EECH_GROUND_DLL=unmoved` against the frozen DLL, unchanged.
 4. Authority/refusal on the production DLL built with `--features weapon-fixture`: `EECH_WORLD_BIN=<exe> EECH_AUTHORITY_ROOTS=<nine fresh roots>` with
-   `cargo test -p eech-world --test ground_authority` (the modes can be restricted with `EECH_AUTHORITY_MODES`).
-5. Regression and conformance: the M4 regression pack and the retained physical ground comparison (`ground-physical` fold, counters, `state_digest`) against the c119 raws, with any difference handled by
+   `cargo test -p eech-world --test ground_authority` (the modes can be restricted with `EECH_AUTHORITY_MODES`; `EECH_AUTHORITY_WALL_SECONDS` sets the per-process wall limit, default 3600). Judge the
+   run by its printed `judged (cohort ..., N terminal(s), M impact repl(ies))` lines and by the retained `<mode>.jsonl` rows; a SKIPPED line proves nothing. The first retail run is also the first time the
+   cohort, the exact-single shift and the settle cap meet the real weapon: a setup finding (no ground question after launch, a cohort that does not end, a terminal position that is not a replied point) is
+   a result to report, not a reason to loosen a check.
+5. Because the FP guard is in the kernel entry, repeat what the first source's evidence rested on, on the corrected source: the three-map finite production comparison (`ground-physical` fold, counters,
+   restoration, byte identity of the repeat) and the public handoff (`EECH_GROUND_DLL=moved`), plus the direct provider checks (`EECH_TERRAIN_DIR`); classify any difference under `REVIEW.md`.
+6. Regression and conformance: the M4 regression pack and the retained physical ground comparison (`ground-physical` fold, counters, `state_digest`) against the c119 raws, with any difference handled by
    `REVIEW.md` baseline governance; Tacview evidence if the war's weapon activity is affected. The host-semantic cache rows (`ground-profile`, `ground-semantic-record`, `ground-semantic-hash`) are never
    compared with the original `ground-record`/`ground-hash` rows.
 
 ## Limitations and unknowns
 
-- Not built, not run, not reviewed: expect compile-level surprises in the new C and Rust (written against the reviewed sources without a compiler).
+- The corrections are not built, not run, not reviewed: expect compile-level surprises in the new C inline assembly, Rust inline assembly and Lua/Rust driver controls (written without a compiler). The
+  inline assembly is x86/x86-64 GCC syntax (the shipping MinGW-w64 and the Linux CI); no other compiler or architecture is covered.
+- The caller floating-point controls observe the x87 control and status words and MXCSR; they do not compare the x87 tag word or exception pointers, and they cannot observe a leak inside the Rust glue
+  after the call returns (all sticky flags are raised beforehand on purpose, so a flag cannot change). The other native entries of `terrain_ref.c` (point query, sweep, conformance) still restore with
+  `fegetenv`/`fesetenv` only, as before: the finding and the guard concern the three ground entries.
 - The authority witness depends on the case weapon actually asking the ground after the launch and on its terminal position being the replied impact point; when it does not, the run reports a setup
   finding (it never passes). Which unguided weapon and launcher it picks follows the war's roster at the chosen warm-up and is a precondition, not a claim about campaign choice.
 - Particle and avionics ground callers are covered by the contract and the characterisation fixture, not by a dedicated war scenario; whether a given reference war reaches them is evidence to be read from the

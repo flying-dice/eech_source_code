@@ -1,0 +1,10 @@
+{
+  "ledger": "14548994",
+  "version": "v:81",
+  "old_html_exact_prefix": true,
+  "five_reports_exact": true,
+  "append_exact_except_generated_local_ids": true,
+  "candidate": "02ccf06cc0afcd8632fb5924a2117b1ebbbdd3b1",
+  "Task48": "Finite physical conformance and moved public handoff passed; five source-review corrections active; not delivered",
+  "whole_D3_complete": false
+}
