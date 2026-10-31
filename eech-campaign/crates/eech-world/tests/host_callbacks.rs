@@ -2164,30 +2164,34 @@ local function queue_report(events, shape)
   end
   return text
 end
--- ---- group 14, index 0: the sound entity probe's report (csrc/eech_env_fixture.c env_snd_case, csrc/eech_env_observer.c eech_envobs_sound_report). Two sound entities for each lightning episode the stand-in observer
--- wrote (LIGHTNING_EPISODES); the shape says how far the stand-in followed each: ok (created, one update, expired, killed), long (three updates stored, the rest only counted by `upd`, then expired and killed)
--- or alive (three updates stored, five counted, never expired). The numbers are canned; the ORDER, the grammar and the reconciliation with the observer's events are the real ones.
+-- ---- group 14, index 0: the sound entity probe's report (csrc/eech_env_fixture.c env_snd_case, csrc/eech_env_observer.c eech_envobs_sound_report). Two sound entities for the ONE lightning episode the stand-in observer
+-- writes (LIGHTNING_EPISODES, in the second frame, creations matched to its ordered sound_begin / sound_end events: entities 10 and 11, frame 2); the shape says how far the stand-in followed each: ok (created, one
+-- update, expired, killed: an early kill), long (three updates stored, the rest only counted by `upd`, then expired and killed), alive (three updates stored, five counted, never expired) or lost (only the first
+-- entity is tracked, the second creation is recorded and counted as untracked). The numbers are canned; the ORDER, the grammar and the reconciliation with the observer's events are the real ones.
 local SND_FACTS = 'comms=1 application_sound_system_enabled=0 sound_system_initialised=0 sound_system_paused=0 samples=300 lightning_rate=22050 lightning_size=88200 lightning_original_rate=22050 thunder_rate=22050 thunder_size=176400 thunder_original_rate=22050'
 local function snd_record(seq, point, n, tracked, frame, upd)
-  return string.format('env-snd seq=%d point=%d n=%d tracked=%d frame=%d upd=%d entity=%d etype=25 sub=1 channel=1 locality=0 valid=1 looping=0 panning=0 seqcount=1 handle=0 session_parent=1 update_member=1 sample=12 rate=22050 size=88200 orate=22050 life_w=3fc00000 vlife_w=00000000 amp_w=3f800000 pitch_w=3f800000 px_w=00000000 py_w=00000000 pz_w=00000000 delta_w=3dcccccd\n', seq, point, n, tracked, frame, upd, 100 + tracked)
+  return string.format('env-snd seq=%d point=%d n=%d tracked=%d frame=%d upd=%d entity=%d etype=25 sub=1 channel=1 locality=0 valid=1 looping=0 panning=0 seqcount=1 handle=0 session_parent=1 update_member=1 sample=12 rate=22050 size=88200 orate=22050 life_w=3fc00000 vlife_w=00000000 amp_w=3f800000 pitch_w=3f800000 px_w=00000000 py_w=00000000 pz_w=00000000 delta_w=3dcccccd\n', seq, point, n, tracked, frame, upd, 9 + n)
 end
 local function sound_report(episodes, shape)
-  local steps = { { 0, 0, 1 }, { 1, 1, 2 }, { 2, 1, 3 }, { 5, 1, 3 } }
+  local steps = { { 0, 0, 2 }, { 1, 1, 3 }, { 2, 1, 4 }, { 5, 1, 4 } }
   local per_entity, kills = 1, 1
   if shape == 'long' then
-    steps = { { 0, 0, 1 }, { 1, 1, 2 }, { 1, 2, 3 }, { 1, 3, 4 }, { 2, 7, 9 }, { 5, 7, 9 } }
+    steps = { { 0, 0, 2 }, { 1, 1, 3 }, { 1, 2, 4 }, { 1, 3, 5 }, { 2, 7, 9 }, { 5, 7, 9 } }
     per_entity = 7
   elseif shape == 'alive' then
-    steps = { { 0, 0, 1 }, { 1, 1, 2 }, { 1, 2, 3 }, { 1, 3, 4 } }
+    steps = { { 0, 0, 2 }, { 1, 1, 3 }, { 1, 2, 4 }, { 1, 3, 5 } }
     per_entity, kills = 5, 0
   end
   local creations = episodes * 2
+  local followed = shape == 'lost' and episodes or creations
   local records, seq = {}, 0
   for e = 0, episodes - 1 do
     for _, step in ipairs(steps) do
       for n = 1, 2 do
-        records[#records + 1] = snd_record(seq, step[1], n, 2 * e + n - 1, 10 * e + step[3], step[2])
-        seq = seq + 1
+        if not (shape == 'lost' and n == 2 and step[1] ~= 0) then
+          records[#records + 1] = snd_record(seq, step[1], n, (shape == 'lost' and n == 2) and -1 or (2 * e + n - 1), step[3], step[2])
+          seq = seq + 1
+        end
       end
     end
   end
@@ -2195,7 +2199,7 @@ local function sound_report(episodes, shape)
     .. 'env-snd-facts tag=plan ' .. SND_FACTS .. '\n'
     .. 'env-snd-unsupported item=playback_handle_branches reason=a_reason\n'
     .. 'env-snd-unsupported item=audible_network_player_delivery reason=another_reason\n'
-    .. string.format('env-snd-report armed=1 capacity=80 stored=%d dropped=0 overflow=0 creations=%d updates=%d kills=%d frames=%d tracked=%d open=0 track_all=0\n', #records, creations, creations * per_entity, creations * kills, 10 * episodes, creations)
+    .. string.format('env-snd-report armed=1 capacity=80 stored=%d dropped=0 overflow=0 creations=%d updates=%d kills=%d frames=%d tracked=%d open=0 track_all=0 untracked=%d\n', #records, creations, followed * per_entity, followed * kills, 10 * episodes, followed, creations - followed)
     .. table.concat(records)
 end
 local function report(group, index)
@@ -2309,19 +2313,28 @@ local mutations = {
   sound_record_missing = function(t) return (t:gsub('env%-snd seq=7 [^\n]*\n', '', 1)) end,
   sound_seq_gap = function(t) return (t:gsub('env%-snd seq=3 ', 'env-snd seq=9 ', 1)) end,
   sound_point_impossible = function(t) return (t:gsub('point=2 ', 'point=4 ', 1)) end,
-  sound_entity_changes = function(t) return (t:gsub('upd=1 entity=100', 'upd=1 entity=101', 1)) end,
+  sound_entity_changes = function(t) return (t:gsub('upd=1 entity=10 ', 'upd=1 entity=12 ', 1)) end,
   sound_untracked_follower = function(t) return (t:gsub('point=1 n=1 tracked=0', 'point=1 n=1 tracked=-1', 1)) end,
-  sound_creation_twice = function(t) return (t:gsub('seq=2 point=1 ', 'seq=2 point=0 ', 1)) end,
+  sound_creation_twice = function(t) return (t:gsub('seq=2 point=1 n=1 tracked=0 frame=3 upd=1', 'seq=2 point=0 n=1 tracked=0 frame=3 upd=0', 1)) end,
   sound_creation_outside_lightning = function(t) return (t:gsub('seq=0 point=0 n=1', 'seq=0 point=0 n=3', 1)) end,
   sound_events_mismatch = function(t) return (t:gsub('creations=2', 'creations=4', 1)) end,
   sound_phantom = function() return sound_report(1, 'ok') end,
   sound_updates_fewer = function(t) return (t:gsub('updates=2', 'updates=1', 1)) end,
   sound_kills_fewer = function(t) return (t:gsub('kills=2', 'kills=1', 1)) end,
-  sound_update_goes_down = function() return (sound_report(LIGHTNING_EPISODES or 0, 'long'):gsub('frame=4 upd=3', 'frame=4 upd=1', 1)) end,
-  sound_frame_back = function(t) return (t:gsub('seq=7 point=5 n=2 tracked=1 frame=3', 'seq=7 point=5 n=2 tracked=1 frame=0', 1)) end,
+  sound_update_goes_down = function() return (sound_report(LIGHTNING_EPISODES or 0, 'long'):gsub('point=2 n=1 tracked=0 frame=9 upd=7', 'point=2 n=1 tracked=0 frame=9 upd=2', 1)) end,
+  sound_frame_back = function(t) return (t:gsub('seq=7 point=5 n=2 tracked=1 frame=4', 'seq=7 point=5 n=2 tracked=1 frame=0', 1)) end,
   sound_unexpected_row = function(t) return t .. 'env-snd-extra x=1\n' end,
   sound_out_of_order = function(t) return t .. 'env-snd-facts tag=plan ' .. SND_FACTS .. '\n' end,
   sound_unsupported_missing = function(t) return (t:gsub('env%-snd%-unsupported [^\n]*\n', '', 1)) end,
+  -- the cohort and terminal-pair forms: a coherent early kill is the `ok` shape itself, a coherent tracking loss is `lost`; the damaged forms below are what the first grammar still accepted
+  sound_lost = function() return sound_report(LIGHTNING_EPISODES or 0, 'lost') end,
+  sound_stranded_kill = function(t) t = (t:gsub('env%-snd seq=%d+ point=5 [^\n]*\n', '')); t = (t:gsub('stored=8', 'stored=6', 1)); return (t:gsub('kills=2', 'kills=0', 1)) end,
+  sound_counter_jump = function() return (sound_report(LIGHTNING_EPISODES or 0, 'long'):gsub('frame=3 upd=1 ', 'frame=3 upd=99 ', 1)) end,
+  sound_n_cohort = function(t) return (t:gsub('seq=1 point=0 n=2', 'seq=1 point=0 n=1', 1)) end,
+  sound_follower_n = function(t) return (t:gsub('seq=2 point=1 n=1', 'seq=2 point=1 n=2', 1)) end,
+  sound_creation_frame = function(t) return (t:gsub('seq=0 point=0 n=1 tracked=0 frame=2', 'seq=0 point=0 n=1 tracked=0 frame=1', 1)) end,
+  sound_creation_entity = function(t) return (t:gsub('seq=1 point=0 n=2 tracked=1 frame=2 upd=0 entity=11', 'seq=1 point=0 n=2 tracked=1 frame=2 upd=0 entity=40', 1)) end,
+  sound_untracked_hidden = function() return (sound_report(LIGHTNING_EPISODES or 0, 'lost'):gsub('untracked=1', 'untracked=0', 1)) end,
   marker_only = function(t) return t:match('[^\n]*\n$') end,
   wrong_family = function() return (report(2, 0):gsub('group=2', 'group=3')) end,
   missing_field = function(t) return (t:gsub(' vz_w=%x+', '', 1)) end,
@@ -3520,6 +3533,7 @@ fn the_sound_entity_probe_counts_the_updates_it_does_not_store_and_reports_an_en
     assert!(long.status.success(), "{}\n{}", long.stderr, long.out_text);
     for entity in env_rows(&long.rows, "sound_entity") {
         assert_eq!(entity["updates_at_last_record"], 7);
+        assert_eq!(entity["updates_exact"], true, "a killed entity's count is its whole count");
         assert_eq!(entity["expiry"], "no_handle");
         assert_eq!(entity["killed"], true);
     }
@@ -3529,6 +3543,10 @@ fn the_sound_entity_probe_counts_the_updates_it_does_not_store_and_reports_an_en
     assert!(alive.status.success(), "{}\n{}", alive.stderr, alive.out_text);
     for entity in env_rows(&alive.rows, "sound_entity") {
         assert_eq!(entity["updates_at_last_record"], 3);
+        assert_eq!(
+            entity["updates_exact"], false,
+            "three stored updates is a lower bound: a fourth would not be stored"
+        );
         assert_eq!(entity["expiry"], "none");
         assert_eq!(entity["killed"], false);
     }
@@ -3536,6 +3554,17 @@ fn the_sound_entity_probe_counts_the_updates_it_does_not_store_and_reports_an_en
     assert_eq!(summary["updates"], 10);
     assert_eq!(summary["kills"], 0);
     assert_eq!(summary["expired"], 0);
+    assert_eq!(summary["untracked_creations"], 0);
+    assert_eq!(summary["lifetimes_complete"], true);
+    // a creation the probe could not track is a creation, counted and classified: the run is NOT reported as a complete record of lifetimes
+    let lost = run_env_scenario(&sound_stand_in("lightning_episode", "sound_lost"), &sound_args());
+    assert!(lost.status.success(), "{}{}", lost.stderr, lost.out_text);
+    assert_eq!(env_rows(&lost.rows, "sound_entity").len(), 1);
+    assert_eq!(env_rows(&lost.rows, "sound_untracked")[0]["creations"], 1);
+    let summary = &env_rows(&lost.rows, "sound_summary")[0];
+    assert_eq!(summary["creations"], 2);
+    assert_eq!(summary["untracked_creations"], 1);
+    assert_eq!(summary["lifetimes_complete"], false);
 }
 
 #[test]
@@ -3557,6 +3586,14 @@ fn a_sound_entity_report_that_is_incomplete_out_of_order_or_at_odds_with_the_obs
         ("lightning_episode", "sound_unexpected_row", "unexpected row"),
         ("lightning_episode", "sound_out_of_order", "out of order"),
         ("lightning_episode", "sound_unsupported_missing", "exactly one plan"),
+        // the cohort and terminal-pair forms
+        ("lightning_episode", "sound_stranded_kill", "no kill record after it"),
+        ("lightning_episode", "sound_counter_jump", "th stored entry of an update"),
+        ("lightning_episode", "sound_n_cohort", "the observer's pair is sound"),
+        ("lightning_episode", "sound_follower_n", "where its creation has"),
+        ("lightning_episode", "sound_creation_frame", "but the observer's pair is in frame"),
+        ("lightning_episode", "sound_creation_entity", "the observer saw entity"),
+        ("lightning_episode", "sound_untracked_hidden", "lost track of 0 creations"),
         // the probe holds creations the observer's stream does not, and the reverse
         ("lightning_episode", "sound_events_mismatch", "observer stream holds"),
         ("none", "sound_phantom", "observer stream holds"),

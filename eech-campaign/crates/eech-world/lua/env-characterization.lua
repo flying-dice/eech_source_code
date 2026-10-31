@@ -840,6 +840,11 @@ local function run ()
 			elseif kind == "strike_begin" then
 				if e.a == 1 then obs.strike = { e.w [0], e.w [1] } elseif e.w [0] ~= obs.strike [1] or e.w [1] ~= obs.strike [2] then obs_fail (e, "the second strike is not at the first strike's position") end
 			end
+			if kind == "sound_begin" or kind == "sound_end" then
+				-- the ordered pairs the sound probe's creations are matched to (the probe counts a frame at each frame_begin, which is frames_seen + 1 while the frame is open)
+				obs.sound_events = obs.sound_events or {}
+				obs.sound_events [#obs.sound_events + 1] = { kind = kind, n = e.a, frame = obs.frames_seen + 1, entity = e.w [0] }
+			end
 			if kind == "lightning_new_timer" then obs.lightning_timer = e.w [0] end
 			obs.lightning = step
 			if step == #LIGHTNING_ORDER then obs.lightning = nil end
@@ -1125,12 +1130,12 @@ local function run ()
 		["env-snd-plan"] = compile ("version=1 cases:u process_isolated=required"),
 		["env-snd-facts"] = compile ("tag=plan comms:i application_sound_system_enabled:i sound_system_initialised:i sound_system_paused:i samples:i lightning_rate:i lightning_size:i lightning_original_rate:i thunder_rate:i thunder_size:i thunder_original_rate:i"),
 		["env-snd-unsupported"] = compile ("item:s reason:s"),
-		["env-snd-report"] = compile ("armed:b capacity:u stored:u dropped:u overflow:b creations:u updates:u kills:u frames:u tracked:i open:u track_all:b"),
+		["env-snd-report"] = compile ("armed:b capacity:u stored:u dropped:u overflow:b creations:u updates:u kills:u frames:u tracked:i open:u track_all:b untracked:u"),
 		["env-snd"] = compile ("seq:u point:u n:u tracked:i frame:u upd:u entity:i etype:i sub:i channel:i locality:i valid:i looping:i panning:i seqcount:i handle:i session_parent:b update_member:b sample:i rate:i size:i orate:i life_w:w vlife_w:w amp_w:w pitch_w:w px_w:w py_w:w pz_w:w delta_w:w"),
 	}
 	local SND_RANK = { ["env-snd-plan"] = 1, ["env-snd-facts"] = 2, ["env-snd-unsupported"] = 3, ["env-snd-report"] = 4, ["env-snd"] = 5 }
 	-- the next points a tracked entity may show after a point: 0 created; 1 server enter; 2 / 3 / 4 expired (no handle / idle handle / playing handle); 5 killed; 6 client enter; 7 client exit
-	local SND_NEXT = { [0] = { [1] = true, [6] = true }, [1] = { [1] = true, [2] = true, [3] = true, [4] = true }, [2] = { [5] = true }, [3] = { [5] = true }, [4] = { [1] = true }, [5] = {}, [6] = { [7] = true }, [7] = { [6] = true } }
+	local SND_NEXT = { [0] = { [1] = true, [6] = true }, [1] = { [1] = true, [2] = true, [3] = true, [4] = true }, [2] = { [5] = true }, [3] = { [5] = true }, [4] = { [1] = true, [3] = true, [4] = true }, [5] = {}, [6] = { [7] = true }, [7] = { [6] = true } }
 	local function sound_probe ()
 		local ok, report = pcall (engine.env_case, engine, 14, 0)
 		if not ok then refuse ("env_case(14, 0) failed: " .. tostring (report)) end
@@ -1158,27 +1163,54 @@ local function run ()
 		if (obs.counts.sound_begin or 0) ~= creations or (obs.counts.sound_end or 0) ~= creations then
 			refuse ("the probe holds " .. creations .. " sound creations but the observer stream holds " .. (obs.counts.sound_begin or 0) .. " sound_begin and " .. (obs.counts.sound_end or 0) .. " sound_end events")
 		end
-		local created, chains = 0, {}
+		-- the declared sampling of the native probe (csrc/eech_env_observer.c ENVE_ENTERS_STORED): the first three updates of an entity are stored whole, later ones are only counted by `upd`
+		local ENTERS_STORED = 3
+		local untracked = tonumber (rep.untracked)
+		local events = obs.sound_events or {}
+		local created, chains, untracked_seen = 0, {}, 0
 		for n, r in ipairs (records) do
 			if tonumber (r.seq) ~= n - 1 then refuse ("sound probe record " .. n - 1 .. " has seq " .. r.seq) end
-			local point, tracked = tonumber (r.point), tonumber (r.tracked)
+			local point, tracked, upd = tonumber (r.point), tonumber (r.tracked), tonumber (r.upd)
 			if point > 7 then refuse ("sound probe record " .. r.seq .. " has the point " .. r.point) end
 			if n > 1 and tonumber (r.frame) < tonumber (records [n - 1].frame) then refuse ("sound probe record " .. r.seq .. " goes back in frames") end
 			if point == 0 then
 				created = created + 1
+				if upd ~= 0 then refuse ("sound probe creation record " .. r.seq .. " has the update count " .. r.upd) end
+				if tracked >= 0 and chains [tracked] ~= nil then refuse ("sound probe record " .. r.seq .. " creates the tracked entity " .. tracked .. " twice") end
 				if tonumber (r.n) < 1 or tonumber (r.n) > 2 then refuse ("sound probe record " .. r.seq .. " is a creation outside the lightning routine's two sound entities (n " .. r.n .. ")") end
+				-- the creation is the one the observer's own ordered stream brackets: the created-th sound_begin / sound_end pair, with the same ordinal in the routine, in the same frame, and (the constructor takes the
+				-- first free entity slot, se_creat.c get_free_entity with ENTITY_INDEX_DONT_CARE, which is what get_next_free_entity_index () read before it) the entity that was next to be given. The helper
+				-- create_client_server_sound_effect_entity has no branch that skips the constructor, so each pair holds exactly one creation record.
+				local begin_event, end_event = events [2 * created - 1], events [2 * created]
+				if begin_event == nil or end_event == nil or begin_event.kind ~= "sound_begin" or end_event.kind ~= "sound_end" then
+					refuse ("sound probe creation " .. created .. " (record " .. r.seq .. ") has no sound_begin / sound_end pair in the observer's stream")
+				end
+				if begin_event.n ~= tonumber (r.n) or end_event.n ~= begin_event.n then refuse ("sound probe creation " .. created .. " is the lightning routine's sound " .. r.n .. " but the observer's pair is sound " .. begin_event.n .. " / " .. end_event.n) end
+				if begin_event.frame ~= tonumber (r.frame) or end_event.frame ~= begin_event.frame then refuse ("sound probe creation " .. created .. " is in frame " .. r.frame .. " but the observer's pair is in frame " .. begin_event.frame .. " / " .. end_event.frame) end
+				if begin_event.entity ~= tonumber (r.entity) then refuse ("sound probe creation " .. created .. " is entity " .. r.entity .. " but the observer saw entity " .. begin_event.entity .. " next to be given") end
 				if tracked >= 0 then
-					if chains [tracked] ~= nil then refuse ("sound probe record " .. r.seq .. " creates the tracked entity " .. tracked .. " twice") end
-					chains [tracked] = { entity = r.entity, last = 0, n = tonumber (r.n), created_frame = tonumber (r.frame), first_life_w = r.life_w, last_life_w = r.life_w, updates = 0, expiry = "none", killed = false, handle_ever = r.handle ~= "0" }
+					chains [tracked] = { entity = r.entity, last = 0, n = tonumber (r.n), n_text = r.n, created_frame = tonumber (r.frame), first_life_w = r.life_w, last_life_w = r.life_w, enters = 0, upd = 0, expiry = "none", killed = false, handle_ever = r.handle ~= "0" }
+				else
+					untracked_seen = untracked_seen + 1
 				end
 			else
 				local chain = chains [tracked]
 				if tracked < 0 or chain == nil then refuse ("sound probe record " .. r.seq .. " (point " .. point .. ") follows no tracked creation") end
 				if chain.entity ~= r.entity then refuse ("sound probe record " .. r.seq .. " is of entity " .. r.entity .. " but tracked entity " .. tracked .. " is " .. chain.entity) end
+				if r.n ~= chain.n_text then refuse ("sound probe record " .. r.seq .. " has n " .. r.n .. " where its creation has " .. chain.n_text) end
 				if not SND_NEXT [chain.last] [point] then refuse ("sound probe record " .. r.seq .. ": point " .. point .. " cannot follow point " .. chain.last .. " of tracked entity " .. tracked) end
+				-- the update counter: the j-th stored entry into an update is update j (only the first ENTERS_STORED are stored); an exit carries its update's count; an expiry and a kill carry the count of the update they end
+				if point == 1 or point == 6 then
+					chain.enters = chain.enters + 1
+					if chain.enters > ENTERS_STORED or upd ~= chain.enters then refuse ("sound probe record " .. r.seq .. " is update " .. upd .. " where it is the " .. chain.enters .. "th stored entry of an update of tracked entity " .. tracked .. " (only the first " .. ENTERS_STORED .. " are stored)") end
+				elseif point == 7 then
+					if upd ~= chain.upd then refuse ("sound probe record " .. r.seq .. " leaves update " .. upd .. " that began as update " .. chain.upd .. " for tracked entity " .. tracked) end
+				else
+					if upd < chain.upd then refuse ("sound probe record " .. r.seq .. " shows the update count going down from " .. chain.upd .. " to " .. upd .. " for tracked entity " .. tracked) end
+					if upd < 1 then refuse ("sound probe record " .. r.seq .. " ends an update that no record began for tracked entity " .. tracked) end
+				end
+				chain.upd = upd
 				chain.last = point
-				if tonumber (r.upd) < chain.updates then refuse ("sound probe record " .. r.seq .. " shows the update count going down for tracked entity " .. tracked) end
-				chain.updates = tonumber (r.upd)
 				if point == 2 or point == 3 or point == 4 then chain.expiry = ({ [2] = "no_handle", [3] = "idle_handle", [4] = "playing_handle" }) [point] end
 				if point == 5 then chain.killed = true end
 				if point ~= 5 then chain.last_life_w = r.life_w end
@@ -1186,20 +1218,32 @@ local function run ()
 			end
 		end
 		if created ~= creations then refuse ("the probe says " .. creations .. " creations but holds " .. created .. " creation records") end
-		local entities, killed, expired, chain_updates = 0, 0, 0, 0
+		if untracked_seen ~= untracked then refuse ("the probe says it lost track of " .. untracked .. " creations but holds " .. untracked_seen .. " creation records without a tracked entity") end
+		if tonumber (rep.tracked) + untracked ~= creations then refuse ("the probe tracked " .. rep.tracked .. " entities and lost " .. untracked .. " of " .. creations .. " creations") end
+		local entities, killed, expired, sum_last, inexact = 0, 0, 0, 0, 0
 		for tracked = 0, tonumber (rep.tracked) - 1 do
 			local chain = chains [tracked]
 			if chain == nil then refuse ("tracked entity " .. tracked .. " has no creation record") end
+			-- an operation that began is finished: an expiry with no or an idle handle is followed by its kill, and an entry into the client routine by its exit
+			if chain.last == 2 or chain.last == 3 then refuse ("tracked entity " .. tracked .. " ends at an expiry (point " .. chain.last .. ") with no kill record after it") end
+			if chain.last == 6 then refuse ("tracked entity " .. tracked .. " ends inside the client routine: its exit record is missing") end
 			entities = entities + 1
 			if chain.killed then killed = killed + 1 end
-			chain_updates = chain_updates + chain.updates
+			sum_last = sum_last + chain.upd
+			-- the count at the last record is the entity's whole count if it was killed, or if fewer updates than are stored have run (a further one would have been stored); otherwise it is a lower bound
+			local exact = chain.killed or chain.upd < ENTERS_STORED
+			if not exact then inexact = inexact + 1 end
 			if chain.expiry ~= "none" then expired = expired + 1 end
-			emit { event = "sound_entity", tracked = tracked, n = chain.n, entity = tonumber (chain.entity), created_frame = chain.created_frame, updates_at_last_record = chain.updates, expiry = chain.expiry, killed = chain.killed, handle_ever = chain.handle_ever,
+			emit { event = "sound_entity", tracked = tracked, n = chain.n, entity = tonumber (chain.entity), created_frame = chain.created_frame, updates_at_last_record = chain.upd, updates_exact = exact, expiry = chain.expiry, killed = chain.killed, handle_ever = chain.handle_ever,
 				first_life_w = chain.first_life_w, last_life_w = chain.last_life_w }
 		end
-		if chain_updates > updates then refuse ("the tracked entities show " .. chain_updates .. " updates at their last records but the probe counted only " .. updates) end
+		if sum_last > updates then refuse ("the tracked entities show " .. sum_last .. " updates at their last records but the probe counted only " .. updates) end
+		if inexact == 0 and sum_last ~= updates then refuse ("every tracked entity's update count is exact, they sum to " .. sum_last .. " but the probe counted " .. updates) end
 		if killed ~= kills then refuse ("the probe counted " .. kills .. " kills but the records show " .. killed) end
-		emit { event = "sound_summary", creations = creations, updates = updates, kills = kills, entities = entities, expired = expired, records = #records, frames = tonumber (rep.frames) }
+		if untracked > 0 then
+			emit { event = "sound_untracked", creations = untracked, reason = "the probe's tracking table was full: these creations are recorded as creations, but their updates, expiry and kills are not followed, so their lifetimes are NOT characterised" }
+		end
+		emit { event = "sound_summary", creations = creations, updates = updates, kills = kills, entities = entities, expired = expired, records = #records, frames = tonumber (rep.frames), untracked_creations = untracked, lifetimes_complete = untracked == 0 }
 	end
 
 

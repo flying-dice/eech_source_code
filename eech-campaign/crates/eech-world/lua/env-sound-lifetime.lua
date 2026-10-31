@@ -11,6 +11,8 @@
 --
 -- No playback handle is ever created or faked: the branches that need one (a handle that is playing, or is not) are reported as UNSUPPORTED, never as a pass. A process that is not the server, or has no session, REFUSES
 -- cases 1 and 2 (the fixture says why) and that refusal is reported here as a refusal. No audible, network or player-side delivery is exercised or claimed.
+-- The lifetime is whatever the loaded sample data gives and is never lengthened for the fixture: the server routine may kill the entity at its FIRST call, and then the fixture skips the second call (it would read freed
+-- data) and says so with calls=1 second_skipped=1. That one-update early kill is as legitimate a report as the two-update one.
 --
 -- THIS DRIVER JUDGES NOTHING PHYSICAL. It checks the SHAPE of the fixture's report (the rows in order, the keys in order, every value of its kind, the identity of the case, the end row, a record chain whose points
 -- can follow one another) and writes every row as it came, with every value kept as text (a hex word is never turned into a number). What the original did is what the rows say. A report of another shape is a
@@ -128,7 +130,7 @@ local function check (row, spec, what)
 end
 local FACTS = "tag:s comms:i application_sound_system_enabled:i sound_system_initialised:i sound_system_paused:i samples:i lightning_rate:i lightning_size:i lightning_original_rate:i thunder_rate:i thunder_size:i thunder_original_rate:i"
 local RECORD = "seq:n point:n n:n tracked:i frame:n upd:n entity:i etype:i sub:i channel:i locality:i valid:i looping:i panning:i seqcount:i handle:i session_parent:b update_member:b sample:i rate:i size:i orate:i life_w:w vlife_w:w amp_w:w pitch_w:w px_w:w py_w:w pz_w:w delta_w:w"
-local REPORT = "armed:b capacity:n stored:n dropped:n overflow:b creations:n updates:n kills:n frames:n tracked:i open:n track_all:b"
+local REPORT = "armed:b capacity:n stored:n dropped:n overflow:b creations:n updates:n kills:n frames:n tracked:i open:n track_all:b untracked:n"
 local function ask (index)
 	local ok, text = pcall (engine.env_case, engine, 14, index)
 	if not ok then
@@ -161,7 +163,7 @@ check (plan [3], "item:s reason:s", "the plan")
 check (plan [4], "item:s reason:s", "the plan")
 check (plan [5], REPORT, "the plan")
 if plan [5].map.armed ~= "1" then hard ("the sound entity probe says it is not armed: " .. plan [5].raw) end
-if plan [5].map.stored ~= "0" or plan [5].map.creations ~= "0" or plan [5].map.dropped ~= "0" or plan [5].map.track_all ~= "0" then
+if plan [5].map.stored ~= "0" or plan [5].map.creations ~= "0" or plan [5].map.dropped ~= "0" or plan [5].map.track_all ~= "0" or plan [5].map.untracked ~= "0" then
 	hard ("the plan's report holds probe records in a process that has run no frame: " .. plan [5].raw)
 end
 
@@ -190,11 +192,11 @@ elseif refused then
 	check (last, "i:n refused:s changed=0 process_isolated=required", "the control")
 	if #rows ~= 3 then hard ("a refused control has rows besides its head, its facts and its end: " .. #rows) end
 	local reason = last.map.refused
-	if reason ~= "the_process_is_not_the_server_so_the_server_kill_cannot_be_observed" and reason ~= "there_is_no_session_entity_to_parent_the_sound_effect" then
+	if reason ~= "the_process_is_not_the_server_so_the_server_kill_cannot_be_observed" and reason ~= "there_is_no_session_entity_to_parent_the_sound_effect" and reason ~= "there_is_no_free_entity_slot_for_the_real_constructor" then
 		hard ("the control is refused for a reason the fixture does not give: " .. reason)
 	end
 else
-	check (last, "i:n changed=1 etype_after:i data_after:b delta_restored:b process_isolated=required", "the control")
+	check (last, "i:n changed=1 calls:n second_skipped:b etype_after:i data_after:b delta_restored:b process_isolated=required", "the control")
 	if last.map.delta_restored ~= "1" then hard ("FIXTURE DEFECT: the frame delta was not put back after the control: " .. last.raw) end
 	local input, report = rows [3], rows [4]
 	if input == nil or input.event ~= "env-sound-input" or report == nil or report.event ~= "env-snd-report" then hard ("the control does not give its input row and then the probe's report") end
@@ -205,6 +207,7 @@ else
 	if report.map.creations ~= "1" or report.map.tracked ~= "1" or report.map.open ~= "0" or report.map.track_all ~= "0" then
 		hard ("the control built one entity and switched tracking off again, but the probe says otherwise: " .. report.raw)
 	end
+	if report.map.untracked ~= "0" then hard ("the probe lost track of " .. report.map.untracked .. " creations: the control's one entity is not followed") end
 	local records = {}
 	for at = 5, #rows - 1 do
 		if rows [at].event ~= "env-snd" then hard ("the control has a row between its report and its end that is not a probe record: " .. rows [at].raw) end
@@ -212,31 +215,61 @@ else
 		records [#records + 1] = rows [at]
 	end
 	if tonumber (report.map.stored) ~= #records then hard ("the probe stored " .. report.map.stored .. " records but the control holds " .. #records) end
-	-- the points a branch can show: the server routine 1..5, the client routine 6 and 7; each record is of the one tracked entity and may follow the one before it
-	local NEXT = { [0] = { [1] = true, [6] = true }, [1] = { [1] = true, [2] = true, [3] = true, [4] = true }, [2] = { [5] = true }, [3] = { [5] = true }, [4] = { [1] = true }, [5] = {}, [6] = { [7] = true }, [7] = { [6] = true } }
-	local lastpoint, entity, updates, kills, expiry = nil, nil, 0, 0, "none"
+	-- the points a branch can show: the server routine 1..5, the client routine 6 and 7; each record is of the one tracked entity and may follow the one before it. After a handle that is still playing the
+	-- later updates that are only counted leave expiry records that repeat; a handle that stops playing is then idle
+	local NEXT = { [0] = { [1] = true, [6] = true }, [1] = { [1] = true, [2] = true, [3] = true, [4] = true }, [2] = { [5] = true }, [3] = { [5] = true }, [4] = { [1] = true, [3] = true, [4] = true }, [5] = {}, [6] = { [7] = true }, [7] = { [6] = true } }
+	local lastpoint, lastupd, entity, kills, enters, exits, expiry, creation_n = nil, 0, nil, 0, 0, 0, "none", nil
 	for n, r in ipairs (records) do
-		local point = tonumber (r.map.point)
+		local point, upd = tonumber (r.map.point), tonumber (r.map.upd)
 		if tonumber (r.map.seq) ~= n - 1 then hard ("the probe record " .. (n - 1) .. " has seq " .. r.map.seq) end
 		if r.map.tracked ~= "0" or point > 7 then hard ("the probe record " .. r.map.seq .. " is of an untracked entity or an unknown point: " .. r.raw) end
 		if n == 1 then
 			if point ~= 0 then hard ("the first probe record is not the creation: " .. r.raw) end
-			entity = r.map.entity
+			entity, creation_n = r.map.entity, r.map.n
 		else
 			if r.map.entity ~= entity then hard ("the probe record " .. r.map.seq .. " is of another entity: " .. r.raw) end
+			if r.map.n ~= creation_n then hard ("the probe record " .. r.map.seq .. " has n " .. r.map.n .. " where its creation has " .. creation_n) end
 			if not NEXT [lastpoint] [point] then hard ("the probe record " .. r.map.seq .. ": point " .. point .. " cannot follow point " .. lastpoint) end
 		end
 		if case == 1 and (point == 6 or point == 7) then hard ("the server control shows a client point: " .. r.raw) end
 		if case == 2 and point >= 1 and point <= 5 then hard ("the client control shows a server point: " .. r.raw) end
-		if point == 1 or point == 6 then updates = tonumber (r.map.upd) end
+		-- the update counter: a creation has run none; the n-th stored entry of an update is its n-th (the control calls at most twice, so none is left out); an exit, an expiry and a kill carry their update's count
+		if point == 0 and upd ~= 0 then hard ("the creation record " .. r.map.seq .. " has the update count " .. upd) end
+		if point == 1 or point == 6 then
+			enters = enters + 1
+			if upd ~= enters then hard ("the probe record " .. r.map.seq .. " is update " .. upd .. " where it is the " .. enters .. "th stored entry of an update") end
+		elseif point == 7 then
+			exits = exits + 1
+			if upd ~= lastupd then hard ("the probe record " .. r.map.seq .. " leaves update " .. upd .. " that began as update " .. lastupd) end
+		elseif point >= 2 and upd < lastupd then
+			hard ("the probe record " .. r.map.seq .. " shows the update count going down from " .. lastupd .. " to " .. upd)
+		end
+		if point >= 2 and point <= 5 and upd < 1 then hard ("the probe record " .. r.map.seq .. " ends an update that no record began") end
+		lastupd = upd
 		if point == 5 then kills = kills + 1 end
 		if point >= 2 and point <= 4 then expiry = ({ [2] = "no_handle", [3] = "idle_handle", [4] = "playing_handle" }) [point] end
 		lastpoint = point
 	end
 	if #records < 1 then hard ("the control stored no probe record at all") end
-	if updates ~= tonumber (report.map.updates) then hard ("the probe counted " .. report.map.updates .. " updates but its records show " .. updates) end
+	-- an operation that began is finished: a lifetime below zero with no or an idle handle is followed by the kill, and an entry into the client routine by its exit
+	if lastpoint == 2 or lastpoint == 3 then hard ("the chain ends at an expiry (point " .. lastpoint .. ") with no kill after it: the kill record is missing") end
+	if lastpoint == 6 then hard ("the chain ends inside the client routine: its exit record is missing") end
+	if enters ~= exits and case == 2 then hard ("the client control shows " .. enters .. " entries and " .. exits .. " exits") end
+	-- the end row agrees with the records and with the calls the fixture says it made: the update count is the calls; the second call is skipped only because the first one ended the entity
+	local calls = tonumber (last.map.calls)
+	if calls < 1 or calls > 2 then hard ("the control says it made " .. last.map.calls .. " update calls, not one or two: " .. last.raw) end
+	if enters ~= calls then hard ("the control made " .. calls .. " update calls but the records show " .. enters .. " entries") end
+	if tonumber (report.map.updates) ~= calls then hard ("the probe counted " .. report.map.updates .. " updates but the control made " .. calls .. " calls") end
 	if kills ~= tonumber (report.map.kills) then hard ("the probe counted " .. report.map.kills .. " kills but its records show " .. kills) end
-	chain_summary = { records = #records, updates = updates, kills = kills, expiry = expiry }
+	if last.map.second_skipped ~= (calls == 1 and "1" or "0") then hard ("the control says second_skipped=" .. last.map.second_skipped .. " after " .. calls .. " calls: " .. last.raw) end
+	if lastpoint == 5 then
+		if last.map.etype_after ~= "0" or last.map.data_after ~= "0" then hard ("the chain ends in a kill but the entity slot is not free in the end row: " .. last.raw) end
+	else
+		if calls == 1 then hard ("the second call was skipped but the chain shows no kill that ended the entity: " .. last.raw) end
+		local live = records [#records].map.etype
+		if last.map.etype_after ~= live or last.map.etype_after == "0" or last.map.data_after ~= "1" then hard ("the chain has no kill but the entity slot is not the live sound entity in the end row: " .. last.raw) end
+	end
+	chain_summary = { records = #records, updates = calls, kills = kills, expiry = expiry, calls = calls }
 end
 
 local result = { event = "result", case = case, label = LABELS [case], refused = refused, refusal = last.map.refused or "", changed = last.map.changed or "0", comms = head.map.comms }
@@ -245,6 +278,8 @@ if chain_summary ~= nil then
 	result.updates = chain_summary.updates
 	result.kills = chain_summary.kills
 	result.expiry = chain_summary.expiry
+	result.calls = chain_summary.calls
+	result.second_skipped = last.map.second_skipped
 	result.etype_after = last.map.etype_after
 	result.data_after = last.map.data_after
 end

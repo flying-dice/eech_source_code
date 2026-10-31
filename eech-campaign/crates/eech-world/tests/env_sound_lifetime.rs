@@ -30,7 +30,7 @@ fn plan() -> String {
     "env-snd-plan version=1 cases=3 process_isolated=required\\n".to_string()
         + &facts("plan")
         + UNSUPPORTED
-        + "env-snd-report armed=1 capacity=80 stored=0 dropped=0 overflow=0 creations=0 updates=0 kills=0 frames=0 tracked=0 open=0 track_all=0\\n"
+        + "env-snd-report armed=1 capacity=80 stored=0 dropped=0 overflow=0 creations=0 updates=0 kills=0 frames=0 tracked=0 open=0 track_all=0 untracked=0\\n"
 }
 
 fn head(case: u32, label: &str) -> String {
@@ -44,24 +44,37 @@ sample=12 rate=22050 size=88200 orate=22050 life_w=3fc00000 vlife_w=00000000 amp
     )
 }
 
-fn controlled(case: u32, label: &str, points: &[(u32, u32)], updates: u32, kills: u32) -> String {
+/// What the end row says about the entity slot after the calls: `(calls, etype_after, data_after)`.
+type Ending = (u32, u32, u32);
+
+fn controlled(case: u32, label: &str, points: &[(u32, u32)], updates: u32, kills: u32, ending: Ending) -> String {
     let mut text = head(case, label)
         + "env-sound-input tag=deltas first_w=3dcccccd second_w=49742400\\n"
         + &format!(
-            "env-snd-report armed=1 capacity=80 stored={} dropped=0 overflow=0 creations=1 updates={updates} kills={kills} frames=0 tracked=1 open=0 track_all=0\\n",
+            "env-snd-report armed=1 capacity=80 stored={} dropped=0 overflow=0 creations=1 updates={updates} kills={kills} frames=0 tracked=1 open=0 track_all=0 untracked=0\\n",
             points.len()
         );
     for (seq, (point, upd)) in points.iter().enumerate() {
         text += &record(seq as u32, *point, *upd);
     }
-    text + &format!("env-sound-end i={case} changed=1 etype_after=0 data_after=0 delta_restored=1 process_isolated=required\\n")
+    let (calls, etype, data) = ending;
+    text + &format!(
+        "env-sound-end i={case} changed=1 calls={calls} second_skipped={} etype_after={etype} data_after={data} delta_restored=1 process_isolated=required\\n",
+        u32::from(calls == 1)
+    )
 }
 
-/// The scripted report of case `case`. (What the REAL original does is not known here: case 1 is one possible chain, a no-handle expiry and a kill; case 2 the client's two updates.)
+/// A one-update early kill: the real kill ended the entity at the FIRST call (the lifetime the sample data gave was short), the fixture skipped the second call and the entity slot is free.
+fn early_kill_report() -> String {
+    controlled(1, "server_branch_ages_then_expires", &[(0, 0), (1, 1), (2, 1), (5, 1)], 1, 1, (1, 0, 0))
+}
+
+/// The scripted report of case `case`. (What the REAL original does is not known here: case 1 is one possible chain, a no-handle expiry and a kill at the second call; case 2 the client's two updates, which
+/// leave the entity a live sound effect because the client routine never kills.)
 fn report(case: u32) -> String {
     match case {
-        1 => controlled(1, "server_branch_ages_then_expires", &[(0, 0), (1, 1), (1, 2), (2, 2), (5, 2)], 2, 1),
-        2 => controlled(2, "client_branch_ages_and_clamps", &[(0, 0), (6, 1), (7, 1), (6, 2), (7, 2)], 2, 0),
+        1 => controlled(1, "server_branch_ages_then_expires", &[(0, 0), (1, 1), (1, 2), (2, 2), (5, 2)], 2, 1, (2, 0, 0)),
+        2 => controlled(2, "client_branch_ages_and_clamps", &[(0, 0), (6, 1), (7, 1), (6, 2), (7, 2)], 2, 0, (2, 25, 1)),
         _ => head(3, "playback_prerequisites") + UNSUPPORTED + "env-sound-end i=3 changed=0 process_isolated=required\\n",
     }
 }
@@ -224,10 +237,38 @@ fn each_control_is_written_as_the_fixture_reported_it_whatever_it_shows() {
 }
 
 #[test]
+fn a_one_update_early_kill_is_as_acceptable_as_the_two_update_form_and_the_client_chain_leaves_a_live_entity() {
+    // the real kill ended the entity at the first call: the second call was skipped, the slot is free, one update and one kill
+    let scenario = format!("report = {{ [1] = '{}' }}", early_kill_report());
+    let early = drive(&scenario, &case_args("1"));
+    early.result.clone().unwrap_or_else(|e| panic!("{e}"));
+    let result = &of(&early, "result")[0];
+    assert_eq!(
+        (result["calls"].clone(), result["second_skipped"].clone()),
+        (serde_json::json!(1), serde_json::json!("1"))
+    );
+    assert_eq!(result["updates"], 1);
+    assert_eq!(result["kills"], 1);
+    assert_eq!(result["etype_after"], "0");
+    // the two-update form: both calls made, the kill at the second
+    let two = drive("", &case_args("1"));
+    let late = &of(&two, "result")[0];
+    assert_eq!(
+        (late["calls"].clone(), late["second_skipped"].clone()),
+        (serde_json::json!(2), serde_json::json!("0"))
+    );
+    // the client routine never kills: the slot is still the live sound effect
+    let client = drive("", &case_args("2"));
+    assert_eq!(of(&client, "result")[0]["etype_after"], "25");
+    assert_eq!(of(&client, "result")[0]["data_after"], "1");
+}
+
+#[test]
 fn a_control_the_fixture_refused_is_reported_as_refused_and_not_as_a_pass() {
     for reason in [
         "the_process_is_not_the_server_so_the_server_kill_cannot_be_observed",
         "there_is_no_session_entity_to_parent_the_sound_effect",
+        "there_is_no_free_entity_slot_for_the_real_constructor",
     ] {
         let scenario = format!("report = {{ [1] = '{}' }}", refused_report(1, "server_branch_ages_then_expires", reason));
         let driven = drive(&scenario, &case_args("1"));
@@ -268,6 +309,15 @@ fn a_report_of_another_shape_is_a_failure_of_the_witness_and_never_a_result() {
         ("3", "an extra row in the control that creates nothing", edit("if index == 3 then return (text:gsub('env%-sound%-end', 'env-snd-report armed=1\\nenv-sound-end', 1)) end"), "case 3 is not"),
         ("1", "a refusal for a reason the fixture does not give", format!("report = {{ [1] = '{}' }}", refused_report(1, "server_branch_ages_then_expires", "a_reason")), "does not give"),
         ("1", "a refused control with rows besides its head and end", edit("if index == 1 then return (text:gsub('env%-sound%-end [^\\n]*\\n', 'env-sound-end i=1 refused=the_process_is_not_the_server_so_the_server_kill_cannot_be_observed changed=0 process_isolated=required\\n', 1)) end"), "besides its head"),
+        ("1", "a chain stranded at an expiry with its kill removed and the counts reduced to match", edit("if index == 1 then return (text:gsub('env%-snd seq=4 [^\\n]*\\n', '', 1)):gsub('stored=5', 'stored=4', 1):gsub('kills=1', 'kills=0', 1) end"), "no kill after it"),
+        ("1", "an update count that goes back", edit("if index == 1 then return (text:gsub('seq=2 point=1 n=0 tracked=0 frame=0 upd=2', 'seq=2 point=1 n=0 tracked=0 frame=0 upd=1', 1)) end"), "th stored entry of an update"),
+        ("1", "a follower record whose n is not its creation's", edit("if index == 1 then return (text:gsub('seq=3 point=2 n=0', 'seq=3 point=2 n=1', 1)) end"), "where its creation has"),
+        ("1", "a count of calls that the records do not show", edit("if index == 1 then return (text:gsub('calls=2', 'calls=1', 1)) end"), "update calls but the records show"),
+        ("1", "a skipped second call that the end row does not agree with", edit("if index == 1 then return (text:gsub('second_skipped=0', 'second_skipped=1', 1)) end"), "second_skipped=1 after 2 calls"),
+        ("1", "a chain that ends in a kill but whose slot is still live", edit("if index == 1 then return (text:gsub('etype_after=0 data_after=0', 'etype_after=25 data_after=1', 1)) end"), "not free in the end row"),
+        ("2", "a client chain with no kill whose slot is free", edit("if index == 2 then return (text:gsub('etype_after=25 data_after=1', 'etype_after=0 data_after=0', 1)) end"), "not the live sound entity"),
+        ("2", "a client entry with no exit", edit("if index == 2 then return (text:gsub('env%-snd seq=4 [^\\n]*\\n', '', 1)):gsub('stored=5', 'stored=4', 1) end"), "exit record is missing"),
+        ("1", "a probe that lost track of the control's entity", edit("if index == 1 then return (text:gsub('untracked=0', 'untracked=1', 1)) end"), "lost track of 1"),
         ("1", "a plan with another number of cases", edit("if index == 0 then return (text:gsub('cases=3', 'cases=4', 1)) end"), "cases"),
         ("1", "a plan that holds a record before any frame ran", edit("if index == 0 then return (text:gsub('stored=0 dropped=0 overflow=0 creations=0', 'stored=1 dropped=0 overflow=0 creations=1', 1)) end"), "holds probe records"),
         ("1", "a plan with one unsupported row", edit("if index == 0 then return (text:gsub('env%-snd%-unsupported [^\\n]*\\n', '', 1)) end"), "is not one plan row"),

@@ -22,7 +22,14 @@ not a measurement; every "not known" stays unknown until Root has built and run 
   assume it does not (the earlier texture-model assumption was wrong in exactly this way).
 * The wind, rain and terrain ambient children that consume sound are the ambient routine already characterised (groups 11 and 12); this probe does not touch them.
 
-## What is added (all feature-gated; with the feature off no token of any original body changes)
+## What is added (test-only; the scope of "feature off" is stated exactly)
+
+**Scope of the feature-off claim.** Only the two PRODUCTION hook bodies, `soundeff.c create_local_sound_effect_entity` and `se_updt.c update_server` / `update_client`, keep their executable tokens when
+`ENV_FXE` is off (the macro expands to nothing, no argument is evaluated; the added `#include` and the macro definitions are not body tokens and the hook lines shift `__LINE__`). That is a source reading, not an
+object-file, numeric, runtime or shipping equivalence, and it says nothing about the other files. `eech_env_fixture.c` is a TEST fixture entry point and changes even when the observer is off: the group catalogue
+bound `ENV_GROUP_LAST` moves from 13 to 14, and group 14 is dispatched to a diagnostic refusal (`sound_lifetime_probe_needs_the_env_observer_build`) in that build. `eech_env_observer.c` is test-only code compiled
+into the env-observer build. The Lua entry point `env-characterization.lua` has new optional code (`sound=on`); that is not C preprocessor identity and is judged by the driver's own guards. The C changes of this
+checkpoint (the fixture's skip of a second update after an early kill, the probe's untracked-creation counter, the report and end-row fields below) require a NEW native build: no earlier binary is reused for them.
 
 1. **A separate probe store, not the event stream** (`ENV_FXE`, `ss_envfx.h`; the observer's kinds, sequence numbers and transcript grammar are untouched). Eight points: `CREATED` (end of the real
    constructor), `SERVER_ENTER`, `SERVER_EXPIRED_NO_HANDLE` / `_IDLE` / `_PLAYING` (the three branches below zero), `SERVER_KILLED` (straight after `kill_client_server_entity`; only the entity slot is read, the sound
@@ -32,12 +39,17 @@ not a measurement; every "not known" stays unknown until Root has built and run 
    tracking on, and follows at most eight entities. It READS: the stored fields are copied **as bits** with `memcpy` (no float is loaded by value, so no x87 narrowing), the handle is a present/absent flag, the list
    links are present/absent flags, and the sample table's `rate`, `size`, `original_rate` for the first sample are read. It draws nothing, allocates nothing, formats nothing at the point and writes no game
    variable. At most 80 records are stored; each entity's first three updates are stored whole and the rest are only COUNTED (`upd` on every later record says how many ran). Records beyond the capacity are counted
-   as dropped and the report says so; the driver refuses a report that dropped anything.
+   as dropped and the report says so; the driver refuses a report that dropped anything. A creation after the eighth tracked entity is still recorded as a creation (`tracked=-1`) and COUNTED (`untracked=` in the
+   report); its updates, expiry and kill are not followed, so its lifetime is NOT characterised. The cap is not raised to hide this.
 3. **`csrc/eech_env_fixture.c` group 14** (explicit only, observer build only). Index 0: the plan, the facts of the sound database and the sound system, two UNSUPPORTED rows and the probe's report and records. Indices 1 to 3
    are PROCESS-ISOLATED controls (an entity cannot be put back): the real constructor builds one entity with the lightning routine's arguments, tracking is switched on, and the real compiled update routine is
-   called through the entity function table with `system_delta_time` set to a value the control names (the delta is restored): **1** the server routine at 0.1 s then at a delta far beyond the lifetime;
-   **2** the client routine at the large delta, then at 0.1 s (clamp, no kill); **3** nothing is created: the facts and the explicit statement that the playback-handle branches are not exercised. A process that is not the
-   server, or has no session, REFUSES cases 1 and 2 and says why.
+   called through the entity function table with `system_delta_time` set to a value the control names (the delta is restored): **1** the server routine at 0.1 s then, if the entity is still a sound effect, at a
+   delta far beyond the lifetime; **2** the client routine at the large delta, then at 0.1 s (clamp, no kill); **3** nothing is created: the facts and the explicit statement that the playback-handle branches are not
+   exercised. The lifetime is whatever the loaded sample data gives and is never lengthened for the fixture. The real server kill frees the sound data and clears the slot's type and data, and the sample may be short,
+   empty or missing, so the FIRST call can end the entity: after each real call only the stable entity-slot type and data are read, a terminal entity is not updated again, and the end row says `calls=` (1 or 2),
+   `second_skipped=` and the slot's `etype_after` / `data_after`. A genuine early kill is therefore a legitimate one-update report, not an error and not a preferred two-update oracle. All rows that can fail to fit
+   are written before the entity exists and before the delta or the tracking is touched, so no return path leaves either changed. A process that is not the server, has no session, or has no free entity slot for
+   the constructor (`get_free_entity` would return NULL and the constructor would dereference it) REFUSES cases 1 and 2 and says why.
 4. **Drivers.** `lua/env-characterization.lua` gains an optional `sound=on` (needs `observer=on`; default off). It only APPENDS rows after the queue rows. `lua/env-sound-lifetime.lua` (new, one control per fresh process,
    `case=1..3`) arms the observer before boot, writes the fixture's rows verbatim with every value kept as text and judges **nothing physical**: it checks the report's shape and that each tracked entity's chain of points
    can occur, so any lifetime, any expiry branch and any kill outcome is equally accepted.
@@ -46,13 +58,19 @@ not a measurement; every "not known" stays unknown until Root has built and run 
 
 Raw (scope `sound:report`): `env-snd-plan`, `env-snd-facts`, `env-snd-unsupported`, `env-snd-report`, `env-snd` (one per point; words as text). Derived by the driver from those rows, never assumed:
 `sound_entity` per tracked entity (`n` 1 lightning / 2 thunder, `created_frame`, `updates_at_last_record`, `expiry` = `none` / `no_handle` / `idle_handle` / `playing_handle`, `killed`, `handle_ever`, first and last
-lifetime words) and `sound_summary`. A report is refused, never truncated or repaired, if it is out of order, dropped records, has a record sequence with a gap, a chain whose points cannot follow one another, a
-record of an entity other than the one tracked, update counts that go down or exceed the probe's own count, kills that the records do not show, or a number of creations that differs from the observer's own
-`sound_begin` / `sound_end` events.
+lifetime words), `sound_summary` and, only when a creation was not tracked, `sound_untracked`. A report is refused, never truncated or repaired, if it is out of order, dropped records, has a record sequence with a
+gap, a chain whose points cannot follow one another, an operation that began and did not finish (an expiry with no or an idle handle without its kill record; an entry into the client routine without its exit), a
+record of another entity or of another `n` than its creation, an update counter that is not what the declared sampling allows (the j-th stored entry of an update is update j and only the first three are stored; an
+exit or an expiry or a kill never goes below the update it ends), a per-entity count above the probe's total, or a total that differs from the entities' counts when every one of them is exact (a killed entity's count
+is its whole count; a count below three is whole because a further update would have been stored; otherwise it is a lower bound). Each creation is matched to the observer's own ordered `sound_begin` /
+`sound_end` pair, not only counted: the same ordinal of the routine (1 lightning, 2 thunder), the same frame, and the entity index the observer saw next to be given (the constructor takes the first free slot,
+`se_creat.c get_free_entity`). The creator `create_client_server_sound_effect_entity` has no branch that skips the constructor (only assertions and the message that follows it), so each pair holds exactly one
+creation; heap exhaustion would fault, not skip. Tracking loss is classified, never hidden: `sound_summary` carries `untracked_creations` and `lifetimes_complete`, and a `sound_untracked` row says that those
+lifetimes are not characterised.
 
 ## Entry-point changes, stated
 
-Source entry points changed (Root's feature-off token check must include them): `aphavoc/source/entity/special/session/ss_envfx.h`, `.../effect/soundeff/soundeff.c`, `.../effect/soundeff/se_updt.c`,
+Source entry points changed (Root's feature-off check applies to the two production hook bodies only, as scoped above; the fixture and observer are test code): `aphavoc/source/entity/special/session/ss_envfx.h`, `.../effect/soundeff/soundeff.c`, `.../effect/soundeff/se_updt.c`,
 `eech-campaign/crates/eech-engine-sys/csrc/eech_env_observer.c`, `.../csrc/eech_env_fixture.c`, `eech-campaign/crates/eech-world/lua/env-characterization.lua` (one optional argument and an appended block), plus the new
 `lua/env-sound-lifetime.lua` and the guards in `tests/env_sound_lifetime.rs` and `tests/host_callbacks.rs`. `eech_engine.c` (one NUL byte) is **not** touched. The raw natural reports are unchanged when `sound=off`; the
 retained observer and queue reports stay comparable (the new records are in a separate store, and no event, kind or sequence number was added to the stream). A new engine build is needed.
@@ -60,7 +78,7 @@ retained observer and queue reports stay comparable (the new records are in a se
 ## Commands for Root (nothing here was built or run)
 
 `cargo fmt --check`; `cargo test -p eech-world --test env_sound_lifetime`; `cargo test -p eech-world --test host_callbacks sound` and `... environment` (each filter must report a NON-ZERO count: a filter that
-selects nothing proves nothing); `cargo test -p eech-world --test env_lightning_queue`; clippy; build `eech-dc` with `env-observer`; the feature-off token check for the files above (the default-feature
+selects nothing proves nothing); `cargo test -p eech-world --test env_lightning_queue`; clippy; build `eech-dc` with `env-observer`; the feature-off token check for the two production hook bodies (the default-feature
 `cargo check` of `eech-engine`/`eech-dc` compiled the hooks away in the WIP check, which is not that check); then **one** natural fixed-Lebanon 120 s run with exactly the arguments of the retained fixed-Lebanon
 observer control plus `queue=on sound=on` (the retained controls are not rerun), compared on every non-sound row with the retained summary (a difference is classified, never normalised); then the three controls, each in its
 own fresh process and root. Private coordinates and raw outputs stay outside Git.

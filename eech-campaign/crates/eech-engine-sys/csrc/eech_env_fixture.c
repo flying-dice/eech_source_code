@@ -2523,7 +2523,8 @@ static int env_lightning_case (int index, char *text, int capacity, int *used)
  *   index 1..3  PROCESS-ISOLATED controls (one per process; the entity heap cannot be put back): they build ONE sound effect entity with the REAL constructor (create_local_sound_effect_entity, the one the
  *               lightning routine passes through) with the lightning sample and the lightning's arguments, switch the probe's tracking on, and call the REAL compiled update routine through the entity
  *               function table with the frame delta set to a value the control names (the delta is restored):
- *                 1 server_branch_ages_then_expires   the server routine at a small delta and then at a delta far beyond the lifetime
+ *                 1 server_branch_ages_then_expires   the server routine at a small delta and then, if the entity is still a sound effect, at a delta far beyond the lifetime (the lifetime is the sample data's and is never lengthened: the
+ *                                                     first call may already kill the entity, and then the second call is skipped and the report says calls=1 second_skipped=1)
  *                 2 client_branch_ages_and_clamps     the client routine at a delta far beyond the lifetime, then at a small one: the lifetime is clamped, the entity is not killed
  *                 3 playback_prerequisites            nothing is created: the facts of the sound database and the sound system, and the explicit statement that the branches that need a playback
  *                                                     handle (a handle that is playing or is not) are NOT exercised
@@ -2564,6 +2565,7 @@ static int env_snd_case (int index, char *text, int capacity, int *used)
 	void (*update) (entity *en);
 	entity *en;
 	float saved_delta = system_delta_time;
+	int calls = 0;
 	float first = 0.1f, second = 1.0e6f;
 	const char *refusal = NULL;
 
@@ -2611,6 +2613,11 @@ static int env_snd_case (int index, char *text, int capacity, int *used)
 	{
 		refusal = "there_is_no_session_entity_to_parent_the_sound_effect";
 	}
+	else if (get_next_free_entity_index () == ENTITY_INDEX_DONT_CARE)
+	{
+		/* the constructor takes the first free entity slot and dereferences the result: with none it would fault, so the control is refused rather than run */
+		refusal = "there_is_no_free_entity_slot_for_the_real_constructor";
+	}
 
 	if (refusal)
 	{
@@ -2619,30 +2626,29 @@ static int env_snd_case (int index, char *text, int capacity, int *used)
 		return 0;
 	}
 
+	/* every row that can fail to fit is written BEFORE the entity exists and the delta or the tracking is touched, so no return leaves either changed */
+	ENV_EMIT ("env-sound-input tag=deltas first_w=%08x second_w=%08x\n", ENV_WORD (first), ENV_WORD (second));
+
 	/* the REAL constructor, with the lightning routine's arguments (a valid, non-looping, single-sample, neutral sound effect of the lightning sample, at the parent's position) */
 	eech_envobs_sound_track (1);
 
 	en = create_local_sound_effect_entity (ENTITY_INDEX_DONT_CARE, get_session_entity (), ENTITY_SIDE_NEUTRAL, ENTITY_SUB_TYPE_EFFECT_SOUND_MISC, SOUND_CHANNEL_SOUND_EFFECT, SOUND_LOCALITY_ALL, NULL, 1.0f, 1.0f, TRUE,
 		FALSE, 1, &sample);
 
-	ENV_EMIT ("env-sound-input tag=deltas first_w=%08x second_w=%08x\n", ENV_WORD (first), ENV_WORD (second));
-
-	/* the REAL update routine of the branch, through the entity function table, at each delta (the frame delta is restored) */
+	/* the REAL update routine of the branch, through the entity function table, at each delta. The entity's own sample data sets its lifetime and nothing here lengthens it: the server routine may kill it at the FIRST
+	   call (a short or empty sample), and the kill frees the sound data and clears the slot's type and data. Only that stable slot is read to know whether the entity is still a sound effect; if it is not, the second
+	   call is not made (it would read the freed data) and the report says so. */
 	update = (index == 1) ? fn_update_client_server_entity[ENTITY_TYPE_SOUND_EFFECT][COMMS_MODEL_SERVER] : fn_update_client_server_entity[ENTITY_TYPE_SOUND_EFFECT][COMMS_MODEL_CLIENT];
 
-	if (index == 1)
+	system_delta_time = (index == 1) ? first : second;
+	update (en);
+	calls = 1;
+
+	if (get_local_entity_type (en) == ENTITY_TYPE_SOUND_EFFECT && get_local_entity_data (en) != NULL)
 	{
-		system_delta_time = first;
+		system_delta_time = (index == 1) ? second : first;
 		update (en);
-		system_delta_time = second;
-		update (en);
-	}
-	else
-	{
-		system_delta_time = second;
-		update (en);
-		system_delta_time = first;
-		update (en);
+		calls = 2;
 	}
 
 	system_delta_time = saved_delta;
@@ -2654,8 +2660,9 @@ static int env_snd_case (int index, char *text, int capacity, int *used)
 		return -1;
 	}
 
-	/* the entity slot after the calls: its type and whether it still holds data (the server's kill releases it) */
-	ENV_EMIT ("env-sound-end i=%d changed=1 etype_after=%d data_after=%d delta_restored=%d process_isolated=required\n", index, (int) get_local_entity_type (en), get_local_entity_data (en) != NULL, system_delta_time == saved_delta);
+	/* the entity slot after the calls: its type and whether it still holds data (the server's kill releases it), and how many calls were made */
+	ENV_EMIT ("env-sound-end i=%d changed=1 calls=%d second_skipped=%d etype_after=%d data_after=%d delta_restored=%d process_isolated=required\n", index, calls, calls == 1, (int) get_local_entity_type (en),
+		get_local_entity_data (en) != NULL, system_delta_time == saved_delta);
 
 	return 0;
 }

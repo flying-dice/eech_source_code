@@ -427,7 +427,7 @@ int eech_envobs_queue_report (char *text, int capacity, int *used)
    THE SOUND ENTITY PROBE (ss_envfx.h ENV_FXE). A separate finite store of what the ORIGINAL sound effect entities of the lightning routine look like when the real constructor has built them and
    how the real update routines (se_updt.c, the server's and the client's) treat them. Everything is READ: stored fields are copied as bits (never loaded by value as floats), the playback handle is
    a present/absent flag, lists are read as present/absent and whether the parent is the session. A creation is recorded only while a lightning sound creation is open (the observer's own
-   ENV_FX_SOUND_BEGIN ... ENV_FX_SOUND_END) or while a fixture control has switched tracking on, and the entity is then followed through its updates (at most ENVE_TRACKED entities). Records beyond the
+   ENV_FX_SOUND_BEGIN ... ENV_FX_SOUND_END) or while a fixture control has switched tracking on, and the entity is then followed through its updates (at most ENVE_TRACKED entities; a creation beyond them is recorded and COUNTED as untracked, never followed). Records beyond the
    capacity are counted, never stored, and the report says so. */
 
 extern int sound_system_initialised;
@@ -450,6 +450,7 @@ static int enve_tracked_n[ENVE_TRACKED], enve_tracked_dead[ENVE_TRACKED];
 static uint32_t enve_tracked_updates[ENVE_TRACKED];
 static int enve_tracked_count, enve_open, enve_track_all;
 static uint32_t enve_stored, enve_dropped, enve_next_seq, enve_frames, enve_creations, enve_updates, enve_kills;
+static uint32_t enve_untracked;	/* creations seen after the tracking table was full: recorded as creations, never followed */
 
 static void enve_reset (void)
 {
@@ -460,6 +461,7 @@ static void enve_reset (void)
 	memset (enve_tracked_updates, 0, sizeof (enve_tracked_updates));
 	enve_tracked_count = enve_open = enve_track_all = 0;
 	enve_stored = enve_dropped = enve_next_seq = enve_frames = enve_creations = enve_updates = enve_kills = 0;
+	enve_untracked = 0;
 }
 
 /* a fixture control switches tracking on: the entities it creates are then followed like the lightning routine's */
@@ -503,6 +505,10 @@ void eech_envobs_sound (int point, const void *p)
 			tracked = enve_tracked_count++;
 			enve_tracked[tracked] = p;
 			enve_tracked_n[tracked] = enve_open;
+		}
+		else
+		{
+			enve_untracked++;
 		}
 	}
 	else
@@ -603,8 +609,8 @@ int eech_envobs_sound_report (char *text, int capacity, int *used)
 {
 	uint32_t n;
 
-	if (append (text, capacity, used, "env-snd-report armed=%d capacity=%d stored=%u dropped=%u overflow=%d creations=%u updates=%u kills=%u frames=%u tracked=%d open=%d track_all=%d\n", envobs_armed, ENVE_CAPACITY,
-		enve_stored, enve_dropped, enve_dropped ? 1 : 0, enve_creations, enve_updates, enve_kills, enve_frames, enve_tracked_count, enve_open, enve_track_all) != 0)
+	if (append (text, capacity, used, "env-snd-report armed=%d capacity=%d stored=%u dropped=%u overflow=%d creations=%u updates=%u kills=%u frames=%u tracked=%d open=%d track_all=%d untracked=%u\n", envobs_armed, ENVE_CAPACITY,
+		enve_stored, enve_dropped, enve_dropped ? 1 : 0, enve_creations, enve_updates, enve_kills, enve_frames, enve_tracked_count, enve_open, enve_track_all, enve_untracked) != 0)
 	{
 		return -1;
 	}
