@@ -404,3 +404,32 @@ fn the_primitive_queue_report_requires_complete_input_and_slot_cohorts() {
     }
     assert!(problems.is_empty(), "{}", problems.join("\n"));
 }
+
+/// A COMPLETE observation in which the second add's step shows a slot LOST since the first (step 32: mask 1, occupancy 1; step 33: mask 0, occupancy 0; final mask 0, occupancy 0; no after-slot rows) is preserved,
+/// not rejected: what the masks show between the two adds is what the original primitives did, and this driver prefers no outcome. (The natural parser keeps such a loss as `unexplained`.) Its typed rows,
+/// case and add ordinals, occupancies and final mask are all coherent, so the report is complete.
+#[test]
+fn a_complete_case_3_observation_in_which_a_slot_is_lost_is_preserved_and_not_rejected() {
+    let text = head(3, "fill_the_queue_and_drop_the_next", "00000000", 0)
+        + "env-lightning-step i=3 add=32 mask_w=00000001 occupancy=1\\n\
+env-lightning-step i=3 add=33 mask_w=00000000 occupancy=0\\n"
+        + &end(3, "00000000", 0, 0);
+    let scenario = format!("edit = function (index, text) if index == 3 then return '{text}' end return text end");
+    let driven = drive(&scenario, &case_args("3"));
+    driven
+        .result
+        .clone()
+        .unwrap_or_else(|e| panic!("a complete observation was rejected: {e}\n{}", driven.text));
+    let result = &of(&driven, "result")[0];
+    assert_eq!(result["refused"], false);
+    assert_eq!(result["mask_after_w"], "00000000");
+    assert_eq!(result["occupancy_after"], "0");
+    // every row of the observation is on the file as it came, and there is no after-slot row
+    for line in text.replace("\\n", "\n").lines() {
+        assert!(
+            driven.rows.iter().any(|row| row["scope"] == "case" && row["raw"] == line),
+            "the row {line:?} is not on the file"
+        );
+    }
+    assert!(driven.rows.iter().all(|row| row["tag"] != "after"));
+}
