@@ -9,12 +9,13 @@
 --   2 add_with_the_main_environment         the active environment is set to the main one by plain assignment, add_3d_lightning_strike is called
 --   3 fill_the_queue_and_drop_the_next      one add more than the queue has slots for
 --   4 age_a_cloud_burst_by_the_time_of_day  a CLOUD_BURST is added at a time of day and aged by update_3d_lightning_strikes at two later times
---   5 age_a_forked_strike_by_the_time_of_day  the same with a FORKED_1 strike: aging it needs the strike animation frame count, which only the texture animation table holds; where it is not loaded (a headless
---                                             process) the ENGINE STOPS with the named refusal [env-provider:lightning_update.model] (an engine_failure row and this driver's error, never a result), and where it is loaded
---                                             the rows are those of case 4
+--   5 age_a_forked_strike_by_the_time_of_day  the same with a FORKED_1 strike: aging it needs the strike animation frame count, which only the texture animation table holds; where it is not loaded the ENGINE
+--                                             STOPS with the named refusal [env-provider:lightning_update.model] (an engine_failure row and this driver's error, never a result); a full retail boot loads it
+--                                             (the actual candidate-only run completed), and then the rows are those of case 4
 --
--- These are controls of the two ORIGINAL PRIMITIVES, not of the lightning routine, not a missing-host proof, and they do not exercise the routine's own switch to the main environment. The forked strike
--- types read texture animations the headless build may not initialise and are NOT exercised (the report says so). A prerequisite that is absent (no main environment, a queue that is not empty) is REFUSED by
+-- Cases 1..4 characterize the two original primitives and can compare the candidate; case 5 was added after the move and is candidate-only, with no original forked conformance claimed. These are not
+-- controls of the lightning routine or its switch to the main environment, and not a missing-host proof. The plan's unsupported forked note describes the original four-case scope, not case 5's outcome.
+-- Forked aging needs loaded texture metadata; a full retail boot supplies it. A prerequisite that is absent (no main environment, a queue that is not empty) is REFUSED by
 -- the fixture and reported here as a refusal, never as a pass and never worked around.
 --
 -- THIS DRIVER JUDGES NOTHING PHYSICAL. It checks the SHAPE of the fixture's report (the rows in order, the keys in order, every value of its kind, the identity of the case, the end row, an occupancy that agrees

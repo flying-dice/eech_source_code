@@ -20,6 +20,10 @@
 --   malformed  the host answers a slot that does not exist. REQUIRED: the campaign stops at `[env-provider:lightning_add.answer]`, likewise.
 --   frames_without_fork   (case 4, the primitive control that ages a CLOUD BURST) the host answers the first `lightning_update` with a request for the strike animation's frame count although the queue holds no
 --              forked strike. REQUIRED: the campaign refuses it at `[env-provider:lightning_update.answer]` BEFORE it touches the texture model (the actual C consumer), same stop evidence as withheld.
+--   frame_negative, frame_high   (case 5, the primitive control that ages a FORKED strike) the host is the base host in every respect -- the NeedFrames handshake and every other field are forwarded -- except that
+--              when it answers an update with a queue, the frame of the FIRST live forked strike is written as -1 or as 2147483647. REQUIRED: the campaign refuses the answer at
+--              `[env-provider:lightning_update.answer]` with a reason that names the frame being OUTSIDE THE STRIKE ANIMATION'S FRAMES (the domain guard, not a schema error), and the record carries the altered
+--              frame. A stop for another reason at the same marker is `wrong-reason`; an update answer with no live forked strike to alter is a setup failure. Nothing about the model is invented or forced.
 -- THE STOP EVIDENCE is the delegate's OWN record, read back when the delegate fails: the case's `engine_failure` row at the expected marker and NO result row, and the delegate's error must be its report of
 -- the engine's stop. A delegate, output or witness failure whose message happens to carry the marker (a path, a diagnostic) is rejected as that failure, and a stale or contradictory result row is
 -- `contradictory-result`; the record is `completed=false` and never a physical pass.
@@ -34,9 +38,9 @@
 -- lifetime. It says nothing of the other physical responsibilities of D3.
 --
 -- ARGUMENTS (host.args, as the host executable passes them; the witness is the SCRIPT the host runs and the delegate is loaded from a path):
---   eech-world <this script> root=<installation root> out=<delegate JSON Lines path> delegate=<ABSOLUTE path of lua/env-lightning-queue.lua> [mode=healthy|changed|withheld|malformed|frames_without_fork] [case=2 (4 for frames_without_fork)]
+--   eech-world <this script> root=<installation root> out=<delegate JSON Lines path> delegate=<ABSOLUTE path of lua/env-lightning-queue.lua> [mode=healthy|changed|withheld|malformed|frames_without_fork|frame_negative|frame_high] [case=2 (4 for frames_without_fork, 5 for the frame modes)]
 --                                                                                  [scenario=lebanon_retail|georgia_retail] [authority_out=<this witness's record path; default <out>.authority.jsonl>]
---   `root`, `out`, `scenario` are the delegate's own arguments and are passed through unchanged (the delegate reads the same `host.args`); `case` must be 2 (default 2). One fresh process and root per run.
+--   `root`, `out`, `scenario` are the delegate's own arguments and are passed through unchanged (the delegate reads the same `host.args`); `case` is selected by the mode (2, 4 or 5). One fresh process and root per run.
 
 io.stdout:setvbuf ("no")
 
@@ -56,10 +60,13 @@ local MODES = {
 	withheld = { op = "lightning_add", case = 2, marker = "[env-provider:lightning_add.callback]" },
 	malformed = { op = "lightning_add", case = 2, marker = "[env-provider:lightning_add.answer]" },
 	frames_without_fork = { op = "lightning_update", case = 4, marker = "[env-provider:lightning_update.answer]" },
+	frame_negative = { op = "lightning_update", case = 5, marker = "[env-provider:lightning_update.answer]", reason = "outside the strike animation", frame = -1 },
+	frame_high = { op = "lightning_update", case = 5, marker = "[env-provider:lightning_update.answer]", reason = "outside the strike animation", frame = 2147483647 },
 }
 local plan = MODES [mode]
-if plan == nil then refuse ("mode must be healthy, changed, withheld, malformed or frames_without_fork, got '" .. tostring (mode) .. "'") end
+if plan == nil then refuse ("mode must be healthy, changed, withheld, malformed, frames_without_fork, frame_negative or frame_high, got '" .. tostring (mode) .. "'") end
 local OP, CASE, MARKER = plan.op, plan.case, plan.marker
+local altered_frame = nil -- the frame a frame mode wrote into the first live forked strike of an update answer
 if args.case ~= nil and tostring (args.case) ~= tostring (CASE) then refuse ("case must be " .. CASE .. " for mode " .. mode .. ", got '" .. tostring (args.case) .. "'") end
 args.case = tostring (CASE)
 local authority_path = args.authority_out
@@ -89,6 +96,21 @@ local wrapped = function (...)
 			if mode == "malformed" then return { slot = 40, queue = {} } end
 			-- an update answered with a request for the strike animation's frame count, whatever the queue holds (the queue of the primitive control holds a cloud burst only)
 			if mode == "frames_without_fork" then return { need_frames = true } end
+			-- the frame modes forward EVERYTHING to the base host (the NeedFrames handshake included) and change one thing only: when the base answers with a queue, the frame of the FIRST live
+			-- forked strike becomes the one the mode names; every other field, slot, type and answer is the base host's. Nothing about the model is invented.
+			if plan.frame ~= nil then
+				local answer = base (request, ...)
+				if type (answer) == "table" and type (answer.queue) == "table" and altered_frame == nil then
+					for _, strike in ipairs (answer.queue) do
+						if type (strike) == "table" and strike.in_use == true and type (strike.type) == "number" and strike.type >= 2 and strike.type <= 5 then
+							strike.frame = plan.frame
+							altered_frame = plan.frame
+							break
+						end
+					end
+				end
+				return answer
+			end
 		else
 			forwarded = forwarded + 1
 		end
@@ -180,11 +202,22 @@ if MARKER then
 		write_record (false, "wrong_boundary")
 		refuse ("wrong-boundary: the engine stopped in case " .. CASE .. ", but not at " .. MARKER .. ": " .. failure_row)
 	end
+	-- a frame mode must have ALTERED a live forked strike's frame, and the refusal must name the frame domain: a stop for another reason at the same marker (a schema error, say) is not the guard
+	if plan.frame ~= nil then
+		if altered_frame == nil then
+			write_record (false, "setup_failure_no_live_forked_strike_to_alter")
+			refuse ("SETUP FAILURE: no update answer of the base host held a live forked strike, so no frame was altered and the stop is not the frame guard's: " .. failure_row)
+		end
+		if not has (failure_row, plan.reason) then
+			write_record (false, "wrong_reason", string.format ('"altered_frame":%d,', altered_frame))
+			refuse ("wrong-reason: the engine stopped at " .. MARKER .. " after the frame " .. altered_frame .. " was written, but not for the frame being " .. plan.reason .. ": " .. failure_row)
+		end
+	end
 	if not string.find (delegate_error, "^env%-lightning%-queue: env_case%(13, " .. CASE .. "%) FAILED in the engine") then
 		write_record (false, "setup_failure_delegate_error_is_not_the_engine_stop")
 		refuse ("SETUP FAILURE: the delegate's error is not its report of the engine's stop in case " .. CASE .. ": " .. delegate_error)
 	end
-	write_record (false, "stopped_at_boundary", string.format ('"marker":"%s","stopped":true,', MARKER))
+	write_record (false, "stopped_at_boundary", string.format ('"marker":"%s","stopped":true,%s', MARKER, altered_frame ~= nil and string.format ('"altered_frame":%d,', altered_frame) or ""))
 	io.stderr:write (string.format ("%s: mode=%s stopped at %s after %d host request(s) for '%s'\n", NAME, mode, MARKER, requests, OP))
 	return
 end

@@ -109,7 +109,20 @@ local REPORTS = {{ '{r1}', '{r2}', '{r3}', '{r4}', '{r5}' }}
 host = {{
 	args = ARGS,
 	terrain_provider = function () return function () return {{}} end end,
-	env_provider = function () return function () return {{}} end end,
+	-- the base host: it answers nothing, except that a scenario with `forked_base` makes it answer an update as the reference host does with a forked strike live in the queue: a request for the frame
+	-- count first, then the queue (one live FORKED_1 strike at frame 0, or none with `no_fork_in_base`)
+	env_provider = function ()
+		return function (request)
+			if SCENARIO.forked_base and request.op == 'lightning_update' then
+				if request.frames == nil then return {{ need_frames = true }} end
+				local queue = {{}}
+				for i = 1, 32 do queue [i] = {{ in_use = false, type = 0, x = 0, y = 0, z = 0, time_started = 0, time_length = 0, frame = 0 }} end
+				if not SCENARIO.no_fork_in_base then queue [1] = {{ in_use = true, type = 2, x = 1500, y = 6000, z = 2500, time_started = 100, time_length = 0.3, frame = 0 }} end
+				return {{ queue = queue }}
+			end
+			return {{}}
+		end
+	end,
 	bind_mobile = function () end,
 }}
 package.preload.eech_dc = function ()
@@ -127,6 +140,23 @@ package.preload.eech_dc = function ()
 						local ok, answer = pcall (config.environment, {{ op = 'lightning_add' }})
 						if not ok then error ('host environment: [env-provider:lightning_add.callback] ' .. tostring (answer), 0) end
 						if type (answer) == 'table' and type (answer.slot) == 'number' and (answer.slot < -1 or answer.slot > 31) then error ('host environment: [env-provider:lightning_add.answer] slot ' .. answer.slot, 0) end
+					end
+					-- an update of a forked strike as the campaign makes it (the frame handshake, then the domain check of a live forked strike's frame against the model's 3 frames)
+					if SCENARIO.forked_update and index == 5 then
+						local ok, answer = pcall (config.environment, {{ op = 'lightning_update', time_of_day = 100.1 }})
+						if not ok then error ('host environment: [env-provider:lightning_update.callback] ' .. tostring (answer), 0) end
+						if type (answer) == 'table' and answer.need_frames == true then
+							ok, answer = pcall (config.environment, {{ op = 'lightning_update', time_of_day = 100.1, frames = 3 }})
+							if not ok then error ('host environment: [env-provider:lightning_update.callback] ' .. tostring (answer), 0) end
+						end
+						if SCENARIO.wrong_reason then error ('host environment: [env-provider:lightning_update.answer] the update answer is malformed (a scripted schema error)', 0) end
+						if type (answer) == 'table' and type (answer.queue) == 'table' then
+							for i, strike in ipairs (answer.queue) do
+								if strike.in_use and strike.type >= 2 and strike.type <= 5 and (strike.frame < 0 or strike.frame >= 3) then
+									error ('host environment: [env-provider:lightning_update.answer] the frame ' .. strike.frame .. ' of the forked strike in slot ' .. (i - 1) .. ' is outside the strike animation frames', 0)
+								end
+							end
+						end
 					end
 					-- an update the host answers with a request for the strike animation's frame count: the campaign refuses it when the queue holds no forked strike (the scripted queue never does)
 					for _ = 1, SCENARIO.host_updates or 0 do
@@ -688,4 +718,73 @@ fn the_host_witness_proves_a_stop_from_the_delegates_own_record_and_rejects_a_ma
     assert!(error.contains("SETUP FAILURE") && error.contains("OUTPUT FAILURE"), "{error}");
     assert_eq!(authority(&output)["verdict"], "setup_failure_no_engine_failure");
     assert!(of(&output, "engine_failure").is_empty());
+}
+
+#[test]
+fn the_host_witness_stops_a_live_forked_strikes_frame_outside_the_models_frames_with_the_base_handshake_forwarded() {
+    for (mode, altered) in [("frame_negative", -1i64), ("frame_high", 2_147_483_647i64)] {
+        let scenario = "forked_update = true, forked_base = true";
+        let driven = witness(scenario, &[("case", "5"), ("mode", mode)]);
+        driven
+            .result
+            .clone()
+            .unwrap_or_else(|e| panic!("{mode}: a stop at the frame guard is the evidence: {e}\n{}", driven.text));
+        let record = authority(&driven);
+        assert_eq!(record["verdict"], "stopped_at_boundary", "{mode}");
+        assert_eq!(record["marker"], "[env-provider:lightning_update.answer]", "{mode}");
+        assert_eq!(
+            (record["op"].as_str(), record["case"].as_i64(), record["altered_frame"].as_i64()),
+            (Some("lightning_update"), Some(5), Some(altered)),
+            "{mode}"
+        );
+        // both requests of the handshake were made and counted (the frame-count request, then the update with the count): nothing was invented for the model
+        assert_eq!(record["requests"], 2, "{mode}");
+        // the stop is the delegate's own engine_failure of case 5 naming the frame domain, and no result row exists
+        let failures = of(&driven, "engine_failure");
+        assert_eq!(failures.len(), 1, "{mode}");
+        assert!(
+            failures[0]["reason"].as_str().unwrap_or_default().contains("outside the strike animation"),
+            "{mode}: {}",
+            failures[0]
+        );
+        assert!(of(&driven, "result").is_empty(), "{mode}");
+        // a contradictory result row already on the file is not hidden by the stop (the delegate-failure truth guard applies to these modes too)
+        let stale = witness(
+            "forked_update = true, forked_base = true, stale_result = true",
+            &[("case", "5"), ("mode", mode)],
+        );
+        assert!(stale.result.clone().unwrap_err().contains("contradictory-result"), "{mode}");
+    }
+    // the case belongs to the mode
+    let wrong_case = witness("forked_update = true, forked_base = true", &[("case", "4"), ("mode", "frame_negative")]);
+    assert!(wrong_case.result.clone().unwrap_err().contains("case must be 5"));
+    assert!(wrong_case.rows.is_empty());
+}
+
+#[test]
+fn the_host_witness_rejects_a_frame_mode_whose_stop_is_not_the_frame_guard_or_that_altered_nothing() {
+    // the engine stopped at the same marker, but for another reason (a schema error): wrong reason, not the domain guard
+    let other = witness(
+        "forked_update = true, forked_base = true, wrong_reason = true",
+        &[("case", "5"), ("mode", "frame_negative")],
+    );
+    let error = other
+        .result
+        .clone()
+        .expect_err("a stop for another reason must not be accepted as the frame guard");
+    assert!(error.contains("wrong-reason"), "{error}");
+    let record = authority(&other);
+    assert_eq!(
+        (record["verdict"].as_str(), record["completed"].as_bool(), record["altered_frame"].as_i64()),
+        (Some("wrong_reason"), Some(false), Some(-1))
+    );
+    // the base host's answer holds no live forked strike: nothing is altered, the scripted campaign completes, and that is an error, not a pass
+    let nothing = witness(
+        "forked_update = true, forked_base = true, no_fork_in_base = true",
+        &[("case", "5"), ("mode", "frame_high")],
+    );
+    assert!(nothing.result.clone().unwrap_err().contains("not-stopped"));
+    // a campaign that never asked the host at all
+    let never = witness("", &[("case", "5"), ("mode", "frame_high")]);
+    assert!(never.result.clone().unwrap_err().contains("not-stopped"));
 }

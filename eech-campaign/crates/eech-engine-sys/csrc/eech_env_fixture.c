@@ -2287,7 +2287,8 @@ static int env_wide_case (int index, char *text, int capacity, int *used)
  *                 3 fill_the_queue_and_drop_the_next    one add more than the queue has slots for: what the last add does
  *                 4 age_a_cloud_burst_by_the_time_of_day a CLOUD_BURST aged by update_3d_lightning_strikes at three times of day (the forked types read texture animations the headless build may not
  *                 5 age_a_forked_strike_by_the_time_of_day the same with a FORKED_1 strike: aging it needs the strike animation's frame count, which only the texture animation table holds. Where the table is not loaded
- *                                                       (a headless process) the engine STOPS with the named refusal [env-provider:lightning_update.model]; nothing is invented. Where it is loaded the rows are those of 4
+ *                                                       the engine STOPS with the named refusal [env-provider:lightning_update.model]; nothing is invented. A full retail boot loads it (the actual run of this
+ *                                                       candidate-only control completed: frame 0 inside the length, then the expiry); where it is loaded the rows are those of 4
  *                                                       initialise and are NOT exercised, said below)
  * A prerequisite that is absent (no main environment, a queue that is not empty) is REFUSED and printed; nothing is forced.
  * In the hosted build (EECH_CAMPAIGN_HOST_ENV) the two primitives are the campaign's requests to the HOST's queue (ss_hostenv.h LIGHTNING_ADD / LIGHTNING_UPDATE) and the queue the rows show is the campaign's read-only MIRROR
