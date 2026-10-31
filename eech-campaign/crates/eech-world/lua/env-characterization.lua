@@ -1006,7 +1006,7 @@ local function run ()
 			if slot <= previous_slot then refuse ("occupied slot row " .. s.slot .. " repeats or precedes slot " .. previous_slot .. ": the rows are the occupied slots once each, in ascending order") end
 			previous_slot = slot
 		end
-		if tonumber (plan.cases) ~= 4 or tonumber (plan.active) > 2 then refuse ("the plan has " .. plan.cases .. " cases and the active environment category " .. plan.active .. ": the fixture has four controls and three categories") end
+		if tonumber (plan.cases) ~= 5 or tonumber (plan.active) > 2 then refuse ("the plan has " .. plan.cases .. " cases and the active environment category " .. plan.active .. ": the fixture has five controls (the four original cases and the forked-age control 5) and three categories") end
 		if (obs.counts.lightning_env or 0) ~= events or (obs.counts.strike_begin or 0) ~= 2 * events or (obs.counts.strike_end or 0) ~= 2 * events then
 			refuse ("the probe holds " .. events .. " lightning events but the observer stream holds " .. (obs.counts.lightning_env or 0) .. " environment switches and " .. (obs.counts.strike_begin or 0) .. " strike calls")
 		end

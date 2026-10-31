@@ -2154,7 +2154,7 @@ local function queue_report(events, shape)
     end
     record(ev, 5, active, mask, -1, LQ_ZERO)
   end
-  local text = string.format('env-lightning-plan version=1 cases=4 main_present=1 active=%d queue_capacity=32 mask_w=%08x update_calls=0 process_isolated=required\n', (events > 0 and shape ~= 'no_environment') and 1 or 0, mask)
+  local text = string.format('env-lightning-plan version=1 cases=5 main_present=1 active=%d queue_capacity=32 mask_w=%08x update_calls=0 process_isolated=required\n', (events > 0 and shape ~= 'no_environment') and 1 or 0, mask)
     .. 'env-lightning-unsupported item=forked_strike_update reason=update_3d_lightning_strikes_reads_texture_animations_not_exercised\n'
     .. 'env-lightning-unsupported item=drawing_and_the_application_scene_update reason=not_exercised_headless_not_claimed\n'
     .. string.format('env-lq-report armed=1 capacity=96 stored=%d dropped=0 overflow=0 lightning_events=%d update_calls=0 queue_capacity=32 final_mask_w=%08x final_occupancy=%d\n', #records, events, mask, lq_pop(mask))
@@ -2247,6 +2247,8 @@ local mutations = {
   end,
   queue_events_mismatch = function(t) return (t:gsub('lightning_events=1', 'lightning_events=2', 1)) end,
   queue_wrong_plan = function(t) return (t:gsub('mask_w=00000003 update', 'mask_w=00000001 update', 1)) end,
+  queue_old_catalogue = function(t) return (t:gsub('cases=5', 'cases=4', 1)) end,
+  queue_future_catalogue = function(t) return (t:gsub('cases=5', 'cases=6', 1)) end,
   queue_unsupported_missing = function(t) return (t:gsub('env%-lightning%-unsupported [^\n]*\n', '', 1)) end,
   queue_phantom_event = function() return queue_report(1, 'ok') end,
   queue_missing_event = function() return queue_report(0, 'ok') end,
@@ -3350,6 +3352,8 @@ fn a_lightning_queue_report_that_is_incomplete_out_of_order_or_at_odds_with_the_
         ("lightning_episode", "queue_unexpected_row", "unexpected row"),
         ("lightning_episode", "queue_out_of_order", "out of order"),
         ("lightning_episode", "queue_wrong_plan", "different queues"),
+        ("lightning_episode", "queue_old_catalogue", "the plan has 4 cases"),
+        ("lightning_episode", "queue_future_catalogue", "the plan has 6 cases"),
         ("lightning_episode", "queue_unsupported_missing", "exactly one plan"),
         // the probe holds an event the observer's stream does not, and the reverse
         ("none", "queue_phantom_event", "observer stream holds"),
