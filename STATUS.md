@@ -1,3 +1,12 @@
+# D3 public host-authority witness for the ambient sound amplitude — prepared (31 October 2026, Lua/Rust test and docs only, UNBUILT, UNRUN, UNREVIEWED)
+
+Clean pushed `d559c3859`. ACTUAL (Root): the corrected group 12 passes the real 16/17/20 control (native/controller 0, pre/post inputs 0, 51 payloads, each terrain child half its own previous word, list identity continuity, topology), the same sole review closed it with no findings (SHA-256 `4cbd6867...36c6`), all production and group 11 are exactly f6, a reusable d559 native
+with 51 verified payloads exists, and seven fresh Lebanon roots are prepared (unused, not consumed by me). Byte-identical numeric equality is not ownership proof. **Prepared now (new files only; no production, kernel, ABI, group 11, original characterization, oracle, baseline or tolerance change):** `lua/env-ambient-authority.lua` and `tests/env_ambient_authority.rs`: through the
+public path (host-owned Lua -> `eech_dc` -> the real session routine -> the real children), both reference providers are wrapped, only `op = "ambient"` is altered while the UNCHANGED group 11 case 27 runs, and seven modes show -- control (children hold exactly the reference's answers), changed environment answer (rain/wind children hold the sent dyadics), changed terrain answer (each real terrain child,
+in the order asked, holds its own distinct sent amplitude), and withheld/malformed answers for EACH provider that stop the engine at `[env-provider:ambient.callback|answer]` / `[terrain-provider:ambient.callback|amplitudes]` with no fallback and no fabricated completion. The judge reconciles counts, children, classes and words so missing or truncated evidence cannot pass; scripted-engine guards prove only bookkeeping; the child-process
+wall control reuses the repaired single-owned-child pattern. The new embedded Lua/judge can run on the unchanged frozen d559 native (explicitly mixed provenance, Root records it). Nothing is audio, network, player, render, Tacview, shipping or a real frame/`update_server`; physical sound/lightning execution, time inputs, remaining terrain, spatial/object, model, compiled consumers and full shipping 40 / all 8 byte identity stay
+open; D4/D5 unstarted; no acceptance claimed. Commands and scope: `docs/d3-environment-sound-routine.md`.
+
 # D3 ambient validation checkpoint (31 October 2026, 15:43 UTC)
 
 Production f6 numeric conformance is complete: three whole108-row raw files,

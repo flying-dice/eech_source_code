@@ -274,3 +274,39 @@ not grounds for changing production, and the production routines, kernels, guard
 `eech-world lua/env-sound-wide-children.lua root=<fresh wide root> out=<private jsonl> scenario=lebanon_retail|georgia_retail` (cases 16, 17 and 20 should all run); then the same sole independent review. The authority witness for the amplitude answers
 (changed / withheld / malformed host answers reaching the real consumer) is NOT started. Still coupled and open: the sound-effect update and speaker, the renderer and player consumers, lightning effect execution, the physical time inputs, the rest of terrain,
 spatial/object and model services, full shipping 40 / all 8 complete byte identity, review, CI, merges. The canonical extended x87 precision of the two new kernels is an explicit, unmeasured REFERENCE ASSUMPTION, not a measurement of the engine's startup control word.
+
+## The public host-authority witness for the ambient amplitude (Lua/Rust test and docs only; UNBUILT, UNRUN, UNREVIEWED)
+
+**Context (Root's actuals, not mine):** d559c3859 -- the corrected group 12 passes the real 16/17/20 control on a fresh root (native/controller 0, pre/post inputs 0, 51 payloads; each terrain child half its own previous word, list identity continuity, topology), the same sole independent
+review closed it with no findings (`independent-environment-G12-correction-review-d559c3859-20261031.json`, SHA-256 `4cbd6867...36c6`), and all production and group 11 are proved exactly f6. Prior numeric equality (three roots, byte-identical) is NOT ownership proof; this witness is.
+
+**What it is.** `lua/env-ambient-authority.lua` + `tests/env_ambient_authority.rs`, new files only; no production, kernel, ABI, group 11, original-characterization, oracle, baseline or tolerance changed, and no native rebuild is needed (the reusable d559 native with its 51 payloads can run the NEW embedded Lua and
+judge: an explicitly MIXED provenance Root records). The driver boots through the public path (host-owned Lua -> `require ("eech_dc")` -> the real campaign/session routine -> the real sound children) with BOTH reference providers wrapped, arms the wrappers just before the selected group 11 case and runs it
+UNCHANGED (`env_case (11, 27)`, `terrain_sea_rising_from_zero`, one call of the routine, all ten ambient children; or 6). Only `op = "ambient"` is altered; every other operation of both providers (the fixture's weather and wind echoes, the sector question, the map facts) is delegated to the reference unchanged, and the
+reference is not asked an altered ambient question. Seven modes, one fresh root and one process each:
+
+| mode | what the host sends | expected |
+|---|---|---|
+| `control` | both providers delegated; every ambient question and the reference's reply recorded | the ten children hold exactly the words the reference answered |
+| `changed_env_ambient` | `{ rain_light = 0.375, rain_heavy = 0.1875, wind_light = 0.625, wind_heavy = 0.3125 }` (valid, finite, distinct dyadics) | light/heavy rain and wind children hold those words; terrain delegated |
+| `changed_terrain_ambient` | amplitude `(4 i + 1) / 256` for the i-th child asked about | each real terrain child, in the order asked, holds ITS amplitude (the mapping by class and order, not a count) |
+| `withheld_env_ambient` | the provider raises | engine stops at `[env-provider:ambient.callback]` |
+| `malformed_env_ambient` | wind level 1.5 | engine stops at `[env-provider:ambient.answer]` |
+| `withheld_terrain_ambient` | the provider raises | engine stops at `[terrain-provider:ambient.callback]` |
+| `malformed_terrain_ambient` | one amplitude fewer than children asked | engine stops at `[terrain-provider:ambient.amplitudes]` |
+
+The markers are the existing bridge markers (the Lua bridges' `ambient.callback`, `ambient.answer`, `ambient.amplitudes`), read from the bridges' code, not guessed. A refusal run is honest about what it is: the ENGINE stopped, the fixture never returned, no case row exists, the request counts say how far it got (the
+environment question comes first; for a terrain refusal the environment question was answered by the reference and the terrain question was altered); it is not turned into a native success and there is no fallback to a campaign solver.
+
+**The judge** (`tests/env_ambient_authority.rs`, strict about its evidence): a completed run needs the case row (label, calls), exactly one environment and one terrain ambient question per call of the routine, the ten children in order, the terrain question's classes equal to the terrain children the session lists (the mapping), and
+every child's word equal to the answer the provider gave -- the reference's in the control (so the children are shown to hold the HOST's answers even unaltered), the sent value in a changed mode, which must also differ from the control's reference answer (non-vacuous) and be distinct per child. Counts, children, rows and counters must
+reconcile, so missing, truncated or dropped evidence cannot pass; a witness failure row, a stopped run with a case row, an alteration in the control and the wrong marker are refused. Guards on the rows the REAL driver wrote against a SCRIPTED engine (it asks the installed providers as the campaign does and validates their answers
+as the real bridges do; it invents no physics) prove only the bookkeeping, and they are NOT the actual run. The public test prints SKIPPED without its environment. The child-process wall control is the sector witness's repaired one (the test executable re-run as ONE owned child, kill and wait shown; no shell, no `ping`).
+
+**Commands for Root** (nothing here was built or run): `cargo fmt --check`; `cargo test -p eech-world --test env_ambient_authority`; clippy; then, with the reusable d559 native beside `eech-world`, and the seven fresh Lebanon roots prepared for this witness (not run or consumed by me):
+`EECH_WORLD_BIN=<eech-world> EECH_AMBIENT_ROOTS=<seven fresh verified roots, ';' on Windows> [EECH_AMBIENT_MODES=control,changed_env_ambient,...] [EECH_AMBIENT_SCENARIO=lebanon_retail] [EECH_AMBIENT_DIR=<private dir>] cargo test -p eech-world --test env_ambient_authority -- --nocapture`
+(one root per mode, the control first). Private coordinates and raw outputs stay outside Git. Root records the mixed provenance (new embedded Lua and judge, unchanged frozen d559 native).
+
+**Scope and limits.** This is a focused fixture control of the ambient amplitude of ONE group 11 case. It is not a real frame or `update_server` run, and it observes nothing of the sound-effect update, any speaker, network delivery, the player, the renderer, Tacview or the shipping module; no audible, network or general
+DCS capability is inferred. The 16-child transport bound, the wide-list control and the numeric comparisons are separate evidence. Still coupled and open in D3: the physical sound execution and the speaker, lightning effect execution, the physical time inputs, the rest of terrain, spatial/object and model services, the compiled
+player/render consumers, full shipping 40 / all 8 complete byte identity, review, current CI and merges. D4/D5 are unstarted.
