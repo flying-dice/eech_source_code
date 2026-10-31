@@ -20,6 +20,7 @@
 #include "entity/mobile/mb_hostsense.h"
 #include "entity/mobile/mb_hostaim.h"
 #include "entity/mobile/mb_hostobj.h"
+#include "entity/mobile/mb_hostterrain.h"
 
 #define EECH_ENGINE_OK 0
 #define EECH_ENGINE_FATAL 1
@@ -38,6 +39,8 @@ struct eech_engine_config
 	/* GUNSHIP_TYPE_* of the (server) player; its side is the player's side */
 	int gunship_type;
 	uint32_t random_seed;
+	/* nonzero: the session is in winter (the global season the original reads when it picks the terrain files; set before the terrain loads) */
+	int winter;
 	/* extra EECH.INI-style command line arguments, NULL-terminated (may be NULL) */
 	const char *const *arguments;
 };
@@ -67,6 +70,7 @@ typedef campaign_movement_step eech_movement_step;
 typedef campaign_movement_result eech_movement_result;
 typedef campaign_move_vehicle_fn eech_move_vehicle_callback;
 typedef campaign_los_fn eech_line_of_sight_callback;
+typedef campaign_terrain_fn eech_terrain_callback;
 typedef campaign_sense_fn eech_sense_callback;
 typedef campaign_aim_fn eech_aim_callback;
 
@@ -86,6 +90,8 @@ struct eech_engine_host
 	eech_sense_callback sense;
 	/* Called synchronously for each host-owned physical aiming or weapon-system-readiness exchange (mb_hostaim.h): the host owns where a launcher's weapon-system devices point and whether they are ready, and the lead and ballistic predictions they are aimed with (the reference host: EECH's own arithmetic and the ballistic tables it is given at boot; another host: its own model); the device viewpoint, the target point, the entity positions and speeds and the weapon figures sent with it are transitional mirrors. */
 	eech_aim_callback aim;
+	/* Called synchronously for every physical terrain question (mb_hostterrain.h): the map facts, the surface at a point (elevation, normal, type, and the record's opaque hint) and the fast gridpost elevation. Unlike the dialogue callbacks above it is installed for the rest of the process by the first entry that carries it (boot requires it), because the campaign asks about terrain from every entry. The host owns the physical terrain; there is no campaign fallback. */
+	eech_terrain_callback terrain;
 	void *user;
 };
 
@@ -322,6 +328,28 @@ int eech_engine_sensor_trace_reset (void);
 /* Runs the scan group functions for every eligible live source, read-only, and reports a trace of just that sweep; the run-wide trace is not changed.
  * The surface-to-air scan asks the host for line of sight, so `host` must carry every callback, as for a frame. */
 int eech_engine_sensor_probe (char *text, int capacity, const struct eech_engine_host *host);
+#endif
+
+#ifdef EECH_TERRAIN_FIXTURE
+/*
+ * TEST-ONLY (feature terrain-fixture, EEDCS-47): see eech_terrain_fixture.c. Not part of the shipping module.
+ * The report is `key=value` text lines: an order-dependent hash over every terrain query, the call counts (shared or private find-fast
+ * record, hint tried and hit, sector scans, no face found, clamped, Cuba flaw area), a surface-type histogram and a per-call-site table.
+ * Fails (bad argument) when the report does not fit `capacity`.
+ */
+/* The run-wide trace of every terrain query the campaign has made since boot or the last reset. */
+int eech_engine_terrain_trace (char *text, int capacity);
+int eech_engine_terrain_trace_reset (void);
+/*
+ * Runs the deterministic probe sweep over the loaded map (six fixed points, then `count` from the private generator seeded with `seed`),
+ * emitting the first `emit` samples (at most 256) in full; the run-wide trace and the shared find-fast record are left as found.
+ */
+int eech_engine_terrain_probe (uint32_t seed, int count, int emit, char *text, int capacity);
+/*
+ * The campaign's record predicate (get_3d_terrain_point_data_has_face, which the fixed-wing movement asks) through the real client queries at (x, z), on a private
+ * and on the shared record: fresh, after a query, after a second one, after clear. Only the host-terrain build has the predicate; elsewhere it fails (bad argument).
+ */
+int eech_engine_terrain_face_probe (float x, float z, char *text, int capacity);
 #endif
 
 #ifdef EECH_AIM_FIXTURE

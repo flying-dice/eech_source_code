@@ -23,6 +23,8 @@ fn main() {
         "aim_step.c",
         "wn_flight.c",
         "cmb_step.c",
+        "terrain_ref.c",
+        "terrain_ref.h",
     ] {
         println!("cargo::rerun-if-changed=csrc/{file}");
     }
@@ -42,6 +44,7 @@ fn main() {
         .file("csrc/aim_step.c")
         .file("csrc/wn_flight.c")
         .file("csrc/cmb_step.c")
+        .file("csrc/terrain_ref.c")
         .opt_level_str(&opt)
         .debug(true)
         .pic(true)

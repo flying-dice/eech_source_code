@@ -3,7 +3,8 @@
 use eech_engine::{
     AimEvent, AimReply, AimRequest, AimStepKind, AimTarget, AimWeapon, AimWorld, ArrivalAnswer, Engine, EngineConfig, EngineError, Gunship,
     HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor, MemberDescriptor, MovementMode, MovementResult,
-    MovementStep, ObjectReport, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side, SupplyReachDescriptor, VehiclePose, WeaponFigures,
+    MovementStep, ObjectReport, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side, SupplyReachDescriptor, TerrainAnswer, TerrainMapFacts,
+    TerrainProvider, TerrainQuery, VehiclePose, WeaponFigures,
 };
 use mlua::prelude::*;
 use std::path::PathBuf;
@@ -349,6 +350,169 @@ fn call_line_of_sight(lua: &Lua, function: &LuaFunction, message: LosMessage) ->
             other => Err(format!("line_of_sight result visible must be a boolean, got {}", other.type_name())),
         },
         other => Err(format!("line_of_sight result state {other:?} is not need_terrain, need_objects or done")),
+    }
+}
+
+/// The host's terrain provider as the campaign calls it (EEDCS-47). The campaign hands the provider a request table
+/// `{ op = "map" | "point" | "fast", x, z, hint }` and reads a table back. Everything about the shape of the answer is checked here, in Lua, where the
+/// values are, and reaches Rust as plain text and integers: the numbers are formatted exactly (`%.17g`) and parsed with `nearest_f32`, as every other
+/// number the engine takes from a host callback (the engine calls a callback under round-toward-zero, so a plain read could be one ulp off). A refusal is
+/// returned as a stable marker and a message; the provider function's own error is returned with its original text.
+///
+/// Markers (the first line of the error the engine stops with carries `[terrain-provider:<marker>]`):
+///   map.callback, point.callback, fast.callback   the provider raised an error (its text follows)
+///   map.answer, point.answer, fast.answer         the answer is not a table
+///   map.facts                                     a map fact is missing, not finite, or not an integer where one is required
+///   point.elevation                               `elevation` or `last_elevation` is missing or not a finite number
+///   point.normal                                  `normal` is not three finite numbers
+///   point.type                                    `type` is not an integer in the EECH terrain-type range
+///   point.hint                                    `hint` is neither nil nor a string of 1 to the limit of printable ASCII bytes
+///   point.stored                                  `stored` is neither nil nor a boolean (nil means true: a provider that returns a surface for the point has stored one)
+///   fast.elevation                                `elevation` is missing or not a finite number
+const TERRAIN_BRIDGE: &str = r#"
+local provider, types, hint_max = ...
+local huge = math.huge
+local function finite (v) return type (v) == 'number' and v == v and v ~= huge and v ~= -huge end
+local function integer (v) return finite (v) and v == math.floor (v) end
+local map_floats = { 'min_x', 'min_z', 'max_x', 'max_z', 'min_height', 'max_height', 'scaled_height_difference' }
+return function (op, x, z, hint, winter)
+	local ok, answer = pcall (provider, { op = op, x = x, z = z, hint = hint, winter = winter })
+	if not ok then return op .. '.callback', tostring (answer) end
+	if type (answer) ~= 'table' then return op .. '.answer', 'the ' .. op .. ' answer must be a table, got ' .. type (answer) end
+	if op == 'point' then
+		if not finite (answer.elevation) then return 'point.elevation', 'elevation must be a finite number' end
+		if not finite (answer.last_elevation) then return 'point.elevation', 'last_elevation must be a finite number' end
+		local n = answer.normal
+		if type (n) ~= 'table' or #n ~= 3 or not (finite (n [1]) and finite (n [2]) and finite (n [3])) then
+			return 'point.normal', 'normal must be three finite numbers'
+		end
+		local kind = answer.type
+		if not integer (kind) or kind < 0 or kind >= types then
+			return 'point.type', 'type must be an integer from 0 to ' .. (types - 1)
+		end
+		local h = answer.hint
+		if h ~= nil and (type (h) ~= 'string' or #h < 1 or #h > hint_max or string.find (h, '[^\32-\126]') ~= nil) then
+			return 'point.hint', 'hint must be nil or a string of 1 to ' .. hint_max .. ' printable ASCII bytes'
+		end
+		local stored = answer.stored
+		if stored == nil then stored = true end
+		if type (stored) ~= 'boolean' then return 'point.stored', 'stored must be a boolean or nil' end
+		return nil, string.format ('%.17g %.17g %.17g %.17g %.17g', answer.elevation, answer.last_elevation, n [1], n [2], n [3]), kind, h, stored
+	elseif op == 'fast' then
+		if not finite (answer.elevation) then return 'fast.elevation', 'elevation must be a finite number' end
+		return nil, string.format ('%.17g', answer.elevation)
+	end
+	for _, field in ipairs { 'sector_x_max', 'sector_z_max' } do
+		if not integer (answer [field]) or answer [field] < 1 then return 'map.facts', field .. ' must be an integer of at least 1' end
+	end
+	for _, field in ipairs { 'fast_width', 'fast_height' } do
+		if not integer (answer [field]) or answer [field] < 0 then return 'map.facts', field .. ' must be an integer of at least 0' end
+	end
+	for _, field in ipairs (map_floats) do
+		if not finite (answer [field]) then return 'map.facts', field .. ' must be a finite number' end
+	end
+	return nil, string.format ('%.17g %.17g %.17g %.17g %.17g %.17g %.17g %.17g %.17g %.17g %.17g', answer.sector_x_max, answer.sector_z_max, answer.fast_width,
+		answer.fast_height, answer.min_x, answer.min_z, answer.max_x, answer.max_z, answer.min_height, answer.max_height, answer.scaled_height_difference)
+end
+"#;
+
+/// The number of EECH terrain types the provider's `type` is checked against (`TERRAIN_TYPE_LAST`), and the longest hint, mirrored from the C side.
+const TERRAIN_TYPE_COUNT: i64 = 62;
+const TERRAIN_HINT_MAX: i64 = 127;
+
+/// Builds the provider the engine keeps from the host's Lua function.
+fn terrain_provider(lua: &Lua, function: LuaFunction) -> LuaResult<TerrainProvider> {
+    let build: LuaFunction = lua.load(TERRAIN_BRIDGE).set_name("eech terrain bridge").into_function()?;
+    let bridge: LuaFunction = build.call((function, TERRAIN_TYPE_COUNT, TERRAIN_HINT_MAX))?;
+    Ok(Box::new(move |query| call_terrain(&bridge, query)))
+}
+
+/// The `N` numbers of an answer's text as the nearest `f32`s; a malformed text is a refusal under `marker`.
+fn terrain_numbers<const N: usize>(text: &str, marker: &str) -> Result<[f64; N], String> {
+    let mut numbers = [0.0f64; N];
+    let mut parts = text.split_whitespace();
+    for slot in &mut numbers {
+        *slot = parts
+            .next()
+            .and_then(|part| part.parse::<f64>().ok())
+            .filter(|value| value.is_finite())
+            .ok_or_else(|| format!("[terrain-provider:{marker}] the answer's numbers are malformed"))?;
+    }
+    if parts.next().is_some() {
+        return Err(format!("[terrain-provider:{marker}] the answer has more numbers than expected"));
+    }
+    Ok(numbers)
+}
+
+fn terrain_f32(value: f64, marker: &str) -> Result<f32, String> {
+    nearest_f32(value).ok_or_else(|| format!("[terrain-provider:{marker}] a number is beyond the single-precision range"))
+}
+
+fn terrain_i32(value: f64, marker: &str) -> Result<i32, String> {
+    if value.fract() == 0.0 && value.abs() <= f64::from(i32::MAX) {
+        Ok(value as i32)
+    } else {
+        Err(format!("[terrain-provider:{marker}] an integer fact is out of range"))
+    }
+}
+
+/// What the Lua terrain bridge returns, in order: the refusal marker, the text of the answer's numbers, the surface type, the record's hint and whether a
+/// surface is stored (each absent when the answer does not carry it).
+type BridgeAnswer = (Option<String>, Option<String>, Option<i64>, Option<String>, Option<bool>);
+
+fn call_terrain(bridge: &LuaFunction, query: TerrainQuery) -> Result<TerrainAnswer, String> {
+    let (op, x, z, hint, winter) = match &query {
+        TerrainQuery::Map { winter } => ("map", None, None, None, *winter),
+        TerrainQuery::Point { x, z, hint, winter } => ("point", Some(f64::from(*x)), Some(f64::from(*z)), hint.clone(), *winter),
+        TerrainQuery::Fast { x, z, winter } => ("fast", Some(f64::from(*x)), Some(f64::from(*z)), None, *winter),
+    };
+    let (marker, text, kind, hint_out, stored): BridgeAnswer = bridge
+        .call((op, x, z, hint, winter))
+        .map_err(|error| format!("[terrain-provider:{op}.callback] {error}"))?;
+    if let Some(marker) = marker {
+        return Err(format!("[terrain-provider:{marker}] {}", text.unwrap_or_default()));
+    }
+    let text = text.ok_or_else(|| format!("[terrain-provider:{op}.answer] the terrain bridge returned nothing"))?;
+    match op {
+        "map" => {
+            let n = terrain_numbers::<11>(&text, "map.facts")?;
+            Ok(TerrainAnswer::Map(TerrainMapFacts {
+                sector_x_max: terrain_i32(n[0], "map.facts")?,
+                sector_z_max: terrain_i32(n[1], "map.facts")?,
+                fast_width: terrain_i32(n[2], "map.facts")?,
+                fast_height: terrain_i32(n[3], "map.facts")?,
+                min_x: terrain_f32(n[4], "map.facts")?,
+                min_z: terrain_f32(n[5], "map.facts")?,
+                max_x: terrain_f32(n[6], "map.facts")?,
+                max_z: terrain_f32(n[7], "map.facts")?,
+                min_height: terrain_f32(n[8], "map.facts")?,
+                max_height: terrain_f32(n[9], "map.facts")?,
+                scaled_height_difference: terrain_f32(n[10], "map.facts")?,
+            }))
+        }
+        "point" => {
+            let n = terrain_numbers::<5>(&text, "point.elevation")?;
+            let kind = kind.ok_or_else(|| "[terrain-provider:point.type] the terrain bridge returned no type".to_string())?;
+            let kind = i32::try_from(kind).map_err(|_| "[terrain-provider:point.type] the type is out of range".to_string())?;
+            Ok(TerrainAnswer::Point {
+                elevation: terrain_f32(n[0], "point.elevation")?,
+                last_elevation: terrain_f32(n[1], "point.elevation")?,
+                normal: [
+                    terrain_f32(n[2], "point.normal")?,
+                    terrain_f32(n[3], "point.normal")?,
+                    terrain_f32(n[4], "point.normal")?,
+                ],
+                kind,
+                hint: hint_out,
+                stored: stored.ok_or_else(|| "[terrain-provider:point.stored] the terrain bridge returned no stored flag".to_string())?,
+            })
+        }
+        _ => {
+            let n = terrain_numbers::<1>(&text, "fast.elevation")?;
+            Ok(TerrainAnswer::Fast {
+                elevation: terrain_f32(n[0], "fast.elevation")?,
+            })
+        }
     }
 }
 
@@ -2040,6 +2204,23 @@ impl LuaUserData for LuaEngine {
                 .sensor_probe(&mut binder, &mut observer, &mut reach, &mut mover, &mut sighter, &mut sensor, &mut aimer)
                 .map_err(lua_error)
         });
+        // TEST-ONLY (feature `terrain-fixture`, EEDCS-47): the run-wide report of the terrain queries; not part of the shipping module.
+        #[cfg(feature = "terrain-fixture")]
+        methods.add_method("terrain_trace", |_, this, ()| this.engine.terrain_trace().map_err(lua_error));
+        // TEST-ONLY (feature `terrain-fixture`, EEDCS-47): clears that trace; not part of the shipping module.
+        #[cfg(feature = "terrain-fixture")]
+        methods.add_method("terrain_trace_reset", |_, this, ()| this.engine.terrain_trace_reset().map_err(lua_error));
+        // TEST-ONLY (feature `terrain-fixture`, EEDCS-47): the read-only deterministic terrain sweep; not part of the shipping module. In the unmoved module it asks
+        // nothing of the host; in the host-terrain module its queries are questions to the terrain provider.
+        #[cfg(feature = "terrain-fixture")]
+        methods.add_method("terrain_probe", |_, this, (seed, count, emit): (u32, i32, i32)| {
+            this.engine.terrain_probe(seed, count, emit).map_err(lua_error)
+        });
+        // TEST-ONLY (feature `terrain-fixture`, EEDCS-47): the campaign's record predicate through the real client queries; not part of the shipping module.
+        #[cfg(feature = "terrain-fixture")]
+        methods.add_method("terrain_face_probe", |_, this, (x, z): (f32, f32)| {
+            this.engine.terrain_face_probe(x, z).map_err(lua_error)
+        });
         // TEST-ONLY (feature `dependent-fixture`, EEDCS-40): not part of the shipping module.
         #[cfg(feature = "dependent-fixture")]
         methods.add_method(
@@ -2249,6 +2430,22 @@ fn boot(lua: &Lua, config: LuaTable) -> LuaResult<LuaEngine> {
         LuaValue::Nil => return Err(LuaError::runtime("eech: missing host aim callback")),
         value => return Err(LuaError::runtime(format!("eech: aim must be a function, got {}", value.type_name()))),
     };
+    // EEDCS-47: the host owns the physical terrain and the campaign has no solver of its own to fall back to, so the provider is required, and is
+    // refused here, before anything boots, with the stable marker a driver can tell from any other failure
+    let terrain = match config.get::<LuaValue>("terrain")? {
+        LuaValue::Function(function) => function,
+        LuaValue::Nil => {
+            return Err(LuaError::runtime(
+                "eech: [terrain-provider:missing] boot was given no terrain provider; the host supplies the physical terrain (map facts, point surface, fast elevation)",
+            ))
+        }
+        value => {
+            return Err(LuaError::runtime(format!(
+                "eech: [terrain-provider:missing] the terrain provider must be a function, got {}",
+                value.type_name()
+            )))
+        }
+    };
     let arguments: Vec<String> = config.get::<Option<Vec<String>>>("arguments")?.unwrap_or_default();
     let config = EngineConfig {
         install_root: PathBuf::from(config.get::<String>("install_root")?),
@@ -2257,6 +2454,7 @@ fn boot(lua: &Lua, config: LuaTable) -> LuaResult<LuaEngine> {
         campaign_filename: config.get("campaign")?,
         gunship: gunship(&config.get::<Option<String>>("gunship")?.unwrap_or_else(|| "apache".into()))?,
         random_seed: config.get::<Option<u32>>("seed")?.unwrap_or(1),
+        winter: config.get::<Option<bool>>("winter")?.unwrap_or(false),
         arguments,
     };
     let mut binder = |descriptor| call_bind_mobile(lua, &bind_mobile, descriptor);
@@ -2275,6 +2473,7 @@ fn boot(lua: &Lua, config: LuaTable) -> LuaResult<LuaEngine> {
         &mut sighter,
         &mut sensor,
         &mut aimer,
+        terrain_provider(lua, terrain)?,
     )
     .map_err(lua_error)?;
     Ok(LuaEngine {
@@ -2844,6 +3043,261 @@ mod tests {
         // a mode that carries no bits still reads an absent answer as 0
         let table = answer(&lua, "motion_vector = {0, 0, 0}")?;
         assert_eq!(read_move_result(&lua, MovementMode::GvImpact, &table)?.flags, 0);
+        Ok(())
+    }
+
+    // ---- the host terrain provider as the campaign calls it (EEDCS-47): the real bridge and the real answer parsing, with Lua providers of the test's choosing ----
+
+    fn terrain_of(lua: &Lua, source: &str) -> Result<TerrainProvider, Box<dyn std::error::Error>> {
+        let function: LuaFunction = lua.load(format!("return function (r) {source} end")).eval()?;
+        Ok(terrain_provider(lua, function)?)
+    }
+
+    fn point(x: f32, z: f32, hint: Option<&str>) -> TerrainQuery {
+        TerrainQuery::Point {
+            x,
+            z,
+            hint: hint.map(str::to_owned),
+            winter: false,
+        }
+    }
+
+    /// The error of a provider call that must be refused (`expect_err` is denied in this crate): a call that is accepted fails the test with the answer.
+    fn refusal_of(result: Result<TerrainAnswer, String>, what: &str) -> String {
+        assert!(result.is_err(), "{what}: the call must be refused, got {result:?}");
+        result.err().unwrap_or_default()
+    }
+
+    fn refused(provider: &mut TerrainProvider, query: TerrainQuery, marker: &str) {
+        let error = refusal_of(provider(query), marker);
+        assert!(error.starts_with(&format!("[terrain-provider:{marker}]")), "{marker}: {error}");
+        assert!(
+            !error.contains('\n') || error.lines().next().is_some_and(|line| line.contains(marker)),
+            "{error}"
+        );
+    }
+
+    #[test]
+    fn a_terrain_point_answer_reaches_the_campaign_exactly_and_the_request_reaches_the_provider_by_value() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        // the request carries op, x, z and the record's hint; the answer's tiny and negative-zero figures survive the round trip bit for bit
+        let mut provider = terrain_of(
+            &lua,
+            "assert (r.op == 'point' and r.x == 1.5 and r.z == -2.5 and r.hint == 'previous' and r.winter == false)
+             return { elevation = 123.5, last_elevation = 125.25, normal = { 2 ^ -130, 1, -1 / (1 / 0) }, type = 9, hint = 'next' }",
+        )?;
+        let answer = provider(point(1.5, -2.5, Some("previous")))?;
+        let TerrainAnswer::Point {
+            elevation,
+            last_elevation,
+            normal,
+            kind,
+            hint,
+            stored,
+        } = answer
+        else {
+            return Err("not a point answer".into());
+        };
+        assert_eq!((elevation, last_elevation, kind, hint.as_deref()), (123.5, 125.25, 9, Some("next")));
+        assert!(stored, "an answer that does not say otherwise returned a surface, so it stored one");
+        assert_eq!(
+            normal.map(f32::to_bits),
+            [0x0008_0000, 1.0f32.to_bits(), 0x8000_0000],
+            "a subnormal and a negative zero are kept exactly"
+        );
+        // no hint in the request is nil to the provider, and no hint in the answer is None
+        let mut provider = terrain_of(
+            &lua,
+            "assert (r.hint == nil and r.x ~= r.x) return { elevation = 0, last_elevation = 0, normal = { 0, 1, 0 }, type = 0 }",
+        )?;
+        let TerrainAnswer::Point { hint, .. } = provider(point(f32::NAN, 1.0, None))? else {
+            return Err("not a point answer".into());
+        };
+        assert_eq!(hint, None, "a not-a-number position is passed on as it is, for the host to answer");
+        Ok(())
+    }
+
+    #[test]
+    fn whether_a_surface_is_stored_is_the_providers_word_by_value_and_not_its_hint() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let good = "elevation = 1, last_elevation = 1, normal = { 0, 1, 0 }, type = 9";
+        let stored_of = |extra: &str| -> Result<(Option<String>, bool), Box<dyn std::error::Error>> {
+            let mut provider = terrain_of(&lua, &format!("return {{ {good}{extra} }}"))?;
+            match provider(point(1.0, 2.0, None))? {
+                TerrainAnswer::Point { hint, stored, .. } => Ok((hint, stored)),
+                other => Err(format!("not a point answer: {other:?}").into()),
+            }
+        };
+        // a generic host returns a valid answer and no hint: a surface is stored
+        assert_eq!(stored_of("")?, (None, true));
+        // the reference host's no-face answer says it explicitly, with or without a hint
+        assert_eq!(stored_of(", stored = false")?, (None, false));
+        assert_eq!(stored_of(", stored = true, hint = 'h'")?, (Some("h".to_string()), true));
+        assert_eq!(stored_of(", stored = false, hint = 'h'")?, (Some("h".to_string()), false));
+        for bad in [", stored = 1", ", stored = 'true'", ", stored = {}"] {
+            let mut provider = terrain_of(&lua, &format!("return {{ {good}{bad} }}"))?;
+            refused(&mut provider, point(1.0, 2.0, None), "point.stored");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn a_malformed_point_answer_is_refused_with_the_marker_of_what_is_wrong() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let good = "elevation = 1, last_elevation = 1, normal = { 0, 1, 0 }, type = 9";
+        let cases: Vec<(String, String, &str)> = vec![
+            ("return nil".to_string(), "nothing".into(), "point.answer"),
+            ("return 5".to_string(), "a number".into(), "point.answer"),
+            (
+                "return { last_elevation = 1, normal = { 0, 1, 0 }, type = 9 }".to_string(),
+                "no elevation".into(),
+                "point.elevation",
+            ),
+            (
+                "return { elevation = 0 / 0, last_elevation = 1, normal = { 0, 1, 0 }, type = 9 }".to_string(),
+                "a NaN elevation".into(),
+                "point.elevation",
+            ),
+            (
+                "return { elevation = 1, normal = { 0, 1, 0 }, type = 9 }".to_string(),
+                "no stored elevation".into(),
+                "point.elevation",
+            ),
+            (
+                "return { elevation = 1, last_elevation = 1 / 0, normal = { 0, 1, 0 }, type = 9 }".to_string(),
+                "an infinite stored elevation".into(),
+                "point.elevation",
+            ),
+            (
+                "return { elevation = '1', last_elevation = 1, normal = { 0, 1, 0 }, type = 9 }".to_string(),
+                "a text elevation".into(),
+                "point.elevation",
+            ),
+            (
+                "return { elevation = 1, last_elevation = 1, normal = { 0, 1 }, type = 9 }".to_string(),
+                "two normal components".into(),
+                "point.normal",
+            ),
+            (
+                "return { elevation = 1, last_elevation = 1, normal = { 0, 1, 0 / 0 }, type = 9 }".to_string(),
+                "a NaN normal".into(),
+                "point.normal",
+            ),
+            (
+                "return { elevation = 1, last_elevation = 1, type = 9 }".to_string(),
+                "no normal".into(),
+                "point.normal",
+            ),
+            (
+                "return { elevation = 1, last_elevation = 1, normal = { 0, 1, 0 }, type = -1 }".to_string(),
+                "a negative type".into(),
+                "point.type",
+            ),
+            (
+                "return { elevation = 1, last_elevation = 1, normal = { 0, 1, 0 }, type = 62 }".to_string(),
+                "a type beyond the table".into(),
+                "point.type",
+            ),
+            (
+                "return { elevation = 1, last_elevation = 1, normal = { 0, 1, 0 }, type = 9.5 }".to_string(),
+                "a fractional type".into(),
+                "point.type",
+            ),
+            (
+                "return { elevation = 1, last_elevation = 1, normal = { 0, 1, 0 }, type = '9' }".to_string(),
+                "a text type".into(),
+                "point.type",
+            ),
+            (
+                "return { elevation = 1, last_elevation = 1, normal = { 0, 1, 0 } }".to_string(),
+                "no type".into(),
+                "point.type",
+            ),
+            (format!("return {{ {good}, hint = 12345 }}"), "a number hint".into(), "point.hint"),
+            (format!("return {{ {good}, hint = '' }}"), "an empty hint".into(), "point.hint"),
+            (
+                format!("return {{ {good}, hint = string.rep ('a', 128) }}"),
+                "a hint over the limit".into(),
+                "point.hint",
+            ),
+            (format!("return {{ {good}, hint = 'bad\\0nul' }}"), "a hint with a NUL".into(), "point.hint"),
+            (
+                format!("return {{ {good}, hint = 'caf\\233' }}"),
+                "a hint outside printable ASCII".into(),
+                "point.hint",
+            ),
+            (
+                format!("return {{ {good}, hint = 'with space\\9tab' }}"),
+                "a hint with a control character".into(),
+                "point.hint",
+            ),
+        ];
+        for (source, name, marker) in cases {
+            let mut provider = terrain_of(&lua, &source)?;
+            let error = refusal_of(provider(point(1.0, 2.0, None)), &name);
+            assert!(error.starts_with(&format!("[terrain-provider:{marker}]")), "{name}: {error}");
+        }
+        // the limit itself, and a provider's own error with its original text
+        let mut at_the_limit = terrain_of(&lua, &format!("return {{ {good}, hint = string.rep ('a', 127) }}"))?;
+        assert!(matches!(at_the_limit(point(1.0, 2.0, None))?, TerrainAnswer::Point { hint: Some(h), .. } if h.len() == 127));
+        let mut failing = terrain_of(&lua, "error ('provider failed on purpose')")?;
+        let error = refusal_of(failing(point(1.0, 2.0, None)), "a raising provider");
+        assert!(
+            error.starts_with("[terrain-provider:point.callback]") && error.contains("provider failed on purpose"),
+            "{error}"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn the_fast_and_map_operations_are_read_and_refused_the_same_way() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let mut fast = terrain_of(
+            &lua,
+            "assert (r.op == 'fast' and r.x == 10 and r.z == 20 and r.hint == nil and r.winter == true) return { elevation = 77.75 }",
+        )?;
+        assert_eq!(
+            fast(TerrainQuery::Fast {
+                x: 10.0,
+                z: 20.0,
+                winter: true
+            })?,
+            TerrainAnswer::Fast { elevation: 77.75 }
+        );
+        let mut bad = terrain_of(&lua, "return { elevation = 0 / 0 }")?;
+        refused(&mut bad, TerrainQuery::Fast { x: 1.0, z: 1.0, winter: false }, "fast.elevation");
+        let mut none = terrain_of(&lua, "return nil")?;
+        refused(&mut none, TerrainQuery::Fast { x: 1.0, z: 1.0, winter: false }, "fast.answer");
+        let mut raising = terrain_of(&lua, "error ('no grid')")?;
+        refused(&mut raising, TerrainQuery::Fast { x: 1.0, z: 1.0, winter: false }, "fast.callback");
+
+        let facts = "sector_x_max = 76, sector_z_max = 92, fast_width = 513, fast_height = 513, min_x = 0, min_z = 0, max_x = 155647, max_z = 188415,
+                     min_height = -1, max_height = 3069, scaled_height_difference = 0.09366";
+        let mut map = terrain_of(&lua, &format!("assert (r.op == 'map' and r.winter == true) return {{ {facts} }}"))?;
+        let TerrainAnswer::Map(read) = map(TerrainQuery::Map { winter: true })? else {
+            return Err("not a map answer".into());
+        };
+        assert_eq!((read.sector_x_max, read.sector_z_max, read.fast_width, read.fast_height), (76, 92, 513, 513));
+        assert_eq!(
+            (read.min_x, read.max_x, read.max_z, read.min_height, read.max_height),
+            (0.0, 155647.0, 188415.0, -1.0, 3069.0)
+        );
+        assert_eq!(read.scaled_height_difference.to_bits(), 0.09366f32.to_bits());
+        for (name, source) in [
+            ("a fractional sector count", facts.replace("sector_x_max = 76", "sector_x_max = 76.5")),
+            ("a zero sector count", facts.replace("sector_z_max = 92", "sector_z_max = 0")),
+            ("a negative grid size", facts.replace("fast_width = 513", "fast_width = -1")),
+            ("a NaN extent", facts.replace("max_x = 155647", "max_x = 0 / 0")),
+            ("a missing height", facts.replace("max_height = 3069,", "")),
+        ] {
+            let mut provider = terrain_of(&lua, &format!("return {{ {source} }}"))?;
+            let error = refusal_of(provider(TerrainQuery::Map { winter: false }), name);
+            assert!(error.starts_with("[terrain-provider:map.facts]"), "{name}: {error}");
+        }
+        let mut no_map = terrain_of(&lua, "return 'nothing'")?;
+        refused(&mut no_map, TerrainQuery::Map { winter: false }, "map.answer");
+        let mut raising = terrain_of(&lua, "error ('no map')")?;
+        refused(&mut raising, TerrainQuery::Map { winter: false }, "map.callback");
         Ok(())
     }
 }

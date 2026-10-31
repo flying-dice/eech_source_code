@@ -1,0 +1,72 @@
+{
+  "verified_utc": "2026-10-30T05:47:53.779472+00:00",
+  "repository": "flying-dice/eech_source_code",
+  "pr": 107,
+  "head": "7b51efedbf62ac69c7670a11a01ea721c1fd0aba",
+  "snapshot_before": {
+    "author": {
+      "id": "U_kgDOEFbTwQ",
+      "is_bot": false,
+      "login": "fd-starscream-bot",
+      "name": "Starscream"
+    },
+    "baseRefOid": "6bbaa8197a4843181d03cd355d562af998c75321",
+    "headRefOid": "7b51efedbf62ac69c7670a11a01ea721c1fd0aba",
+    "isDraft": true,
+    "mergeStateStatus": "CLEAN",
+    "reviews": []
+  },
+  "checks": [
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40910088412/job/123575389929",
+      "name": "test (x86_64-unknown-linux-gnu)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40910088412/job/123575389752",
+      "name": "test (i686-unknown-linux-gnu)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40910088412/job/123575389434",
+      "name": "test (i686-unknown-linux-gnu, EECH_ORIGINAL_STACK_ATTRIBUTES=1)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40910088412/job/123575389786",
+      "name": "test (x86_64-unknown-linux-gnu, EECH_C_OPT=2)",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40910088412/job/123575389453",
+      "name": "evidence-selftest",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40910088324/job/123575388359",
+      "name": "verify",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40910088428/job/123575387328",
+      "name": "Slice 1a historical equivalence",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40910088412/job/123575389465",
+      "name": "dcs-probe-tools",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/flying-dice/eech_source_code/actions/runs/40910088412/job/123575389229",
+      "name": "windows-cross",
+      "state": "SUCCESS"
+    }
+  ],
+  "snapshot_after": {
+    "baseRefOid": "6bbaa8197a4843181d03cd355d562af998c75321",
+    "headRefOid": "7b51efedbf62ac69c7670a11a01ea721c1fd0aba"
+  },
+  "all_nine_current_checks_success": true,
+  "formal_approval_claimed": false
+}

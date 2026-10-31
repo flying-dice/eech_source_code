@@ -1,0 +1,47 @@
+{
+  "source": "a9d9e838ad84b81d67606ca200ab2e3022576567",
+  "created_utc": "2026-10-29T12:56:49.988488+00:00",
+  "kind": "Public Lua -> fixture -> real hosted client probes on provided retail grids",
+  "maps": [
+    {
+      "map": "lebanon",
+      "original_trace_sha256": "54fd31ee7dc05a033f4647c633c1b1928645d6ddb1e9392d05f614330d2136dc",
+      "candidate_trace_sha256": "4729d05c764af54a98098ed425e05849578f94eccfd633ef8b49a5ade28f2188",
+      "terrain-sample": {
+        "count": 256,
+        "physical_words_equal": true
+      },
+      "terrain-fast-sample": {
+        "count": 256,
+        "physical_words_equal": true
+      },
+      "fast": {
+        "count": 20006,
+        "original": "dd2dcac1fe13b7c1",
+        "hosted_client": "dd2dcac1fe13b7c1",
+        "equal": true
+      }
+    },
+    {
+      "map": "georgia",
+      "original_trace_sha256": "d172ea76cb4d2a7f2e8bf3cd771c113e4d80aaa6296a80532cc4181f5e668209",
+      "candidate_trace_sha256": "1cbcf8ba3b3ad3e0bf370032f287b9d506acba632355a28135ce619d688b980b",
+      "terrain-sample": {
+        "count": 256,
+        "physical_words_equal": true
+      },
+      "terrain-fast-sample": {
+        "count": 256,
+        "physical_words_equal": true
+      },
+      "fast": {
+        "count": 20006,
+        "original": "aa1179597dceabc4",
+        "hosted_client": "aa1179597dceabc4",
+        "equal": true
+      }
+    }
+  ],
+  "comparison_scope": "All256 emitted physical point/fast samples and complete20006 fast-call hash per map. No normalization or rewrite of original reports.",
+  "limits": "Primed/run folds contain solver-private fast-hit diagnostics and are not compared as physical hashes. This fixture is not shipping full-pack acceptance. Compiled getter ownership and callback-only body must accompany fast-hash evidence."
+}

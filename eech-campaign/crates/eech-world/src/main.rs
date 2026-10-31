@@ -19,6 +19,7 @@ use eech_world::movement::{
 };
 use eech_world::sense::{self, Sense};
 use eech_world::tacview::{ObjectInfo, Recorder};
+use eech_world::terrain;
 use mlua::prelude::*;
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
@@ -1271,6 +1272,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
     host.set("args", args)?;
+    // the host's own terrain (EEDCS-47): host.terrain_open { terrain_dir = ... } loads a map and returns the provider for it
+    terrain::install(&lua, &host)?;
     host.set(
         "log",
         lua.create_function(|_, message: String| {

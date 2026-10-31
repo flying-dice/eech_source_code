@@ -57,6 +57,7 @@ static enum engine_operation operation;
 	campaign_los_host los_host; \
 	campaign_sense_host sense_host; \
 	campaign_aim_host aim_host; \
+	campaign_terrain_host terrain_host; \
 	if (eech_engine_poisoned) \
 	{ \
 		return EECH_ENGINE_POISONED; \
@@ -79,12 +80,16 @@ static enum engine_operation operation;
 	sense_host.user = entry_host ? entry_host->user : NULL; \
 	aim_host.aim = entry_host ? entry_host->aim : NULL; \
 	aim_host.user = entry_host ? entry_host->user : NULL; \
+	terrain_host.terrain = entry_host ? entry_host->terrain : NULL; \
+	terrain_host.user = entry_host ? entry_host->user : NULL; \
 	campaign_roster_set_host (entry_host ? &roster_host : NULL); \
 	campaign_supply_arrival_set_host (entry_host ? &arrival_host : NULL); \
 	campaign_movement_set_host (entry_host ? &movement_host : NULL); \
 	campaign_los_set_host (entry_host ? &los_host : NULL); \
 	campaign_sense_set_host (entry_host ? &sense_host : NULL); \
 	campaign_aim_set_host (entry_host ? &aim_host : NULL); \
+	/* the terrain host is installed by the first entry that carries one and kept for the process: LEAVE does not clear it */ \
+	campaign_terrain_set_host (&terrain_host); \
 	fegetenv (&caller_fenv); \
 	fesetround (FE_TOWARDZERO); \
 	eech_fatal_target = &fatal_jmp; \
@@ -237,7 +242,14 @@ static void boot (const struct eech_engine_config *config)
 	session_cloud_puffs = command_line_cloud_puffs;
 	session_comms_packet_data_size = command_line_comms_packet_data_size;
 	set_valid_combat_zone (TRUE);
+	/* the season is read by load_3d_terrain_game_data when it picks the terrain files (terrdata.c); native sets it earlier (sparm_sc.c notify_session_parameters) */
+	if (config->winter)
+	{
+		set_global_season (SESSION_SEASON_WINTER);
+	}
 	load_3d_terrain_game_data ();
+	/* EEDCS-47: the extents and heights the core reads are the host's, before anything reads them */
+	campaign_terrain_install_map_facts ();
 	initialise_population_name_database ();
 	reinitialise_entity_system ();
 	campaign_roster_reset ();
@@ -275,7 +287,7 @@ int eech_engine_boot (const struct eech_engine_config *config, const struct eech
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!config || !config->install_root || !config->map_path || !config->campaign_directory || !config->campaign_filename || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
+	if (!config || !config->install_root || !config->map_path || !config->campaign_directory || !config->campaign_filename || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim || !host->terrain)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -342,7 +354,7 @@ int eech_engine_frame (uint32_t milliseconds, const struct eech_engine_host *hos
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
+	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim || !host->terrain)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -382,7 +394,7 @@ int eech_engine_report_object (const struct eech_object_report *report, struct e
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!report || !receipt || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
+	if (!report || !receipt || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim || !host->terrain)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -438,7 +450,7 @@ int eech_engine_structures (eech_structure_callback callback, void *user, int *c
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!callback || !count || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
+	if (!callback || !count || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim || !host->terrain)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -780,7 +792,7 @@ int eech_engine_dependent_fixture (int op, int parent_id, int child_id, const do
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
+	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim || !host->terrain)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -849,7 +861,7 @@ int eech_engine_loss_fixture (int entity_id, const struct eech_engine_host *host
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
+	if (!host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim || !host->terrain)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -883,7 +895,7 @@ int eech_engine_loss_release (int entity_id, int *released, const struct eech_en
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!released || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
+	if (!released || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim || !host->terrain)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
@@ -1219,11 +1231,92 @@ int eech_engine_sensor_probe (char *text, int capacity, const struct eech_engine
 		LEAVE (EECH_ENGINE_STATE);
 	}
 	/* the surface-to-air scan reaches the host-owned line of sight (EEDCS-42), so the probe needs the same complete host as a frame */
-	if (!text || (capacity <= 0) || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim)
+	if (!text || (capacity <= 0) || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim || !host->terrain)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
 	if (eech_sensor_probe_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif
+
+#ifdef EECH_TERRAIN_FIXTURE
+
+/*
+ * TEST-ONLY terrain surface characterisation (EEDCS-47): the run-wide trace of every terrain query the campaign's own update loop makes,
+ * and a read-only, deterministic probe sweep over the loaded map (eech_terrain_fixture.c). Both run inside the engine entry, so they see
+ * EECH's round-toward-zero mode as the campaign's own queries do. None of them constructs an entity or replaces a handler, and the probe
+ * restores the shared find-fast record. The report is text, `key=value` lines; nothing in it is an entity index or an address.
+ */
+extern int eech_terrain_trace_get (char *text, int capacity);
+extern void eech_terrain_trace_clear (void);
+extern int eech_terrain_probe_run (uint32_t seed, int count, int emit, char *text, int capacity);
+
+int eech_engine_terrain_trace (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_terrain_trace_get (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_terrain_trace_reset (void)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	eech_terrain_trace_clear ();
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_terrain_probe (uint32_t seed, int count, int emit, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || (count < 0) || (count > 200000) || (emit < 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_terrain_probe_run (seed, count, emit, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+extern int eech_terrain_face_probe_run (float x, float z, char *text, int capacity);
+
+int eech_engine_terrain_face_probe (float x, float z, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_terrain_face_probe_run (x, z, text, capacity) != 0)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
