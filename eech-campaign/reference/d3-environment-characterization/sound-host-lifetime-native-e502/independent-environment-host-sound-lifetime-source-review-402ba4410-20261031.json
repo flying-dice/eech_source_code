@@ -1,0 +1,41 @@
+{
+  "schema": "independent-source-review-v1",
+  "source": {
+    "head": "402ba441003e362486d3591c2d078f4a9b1d3bbf",
+    "base": "a53e71b365911d49a4df4b51982ef6952296b5e3",
+    "tree": "cd57c291304cad4aa710445399280e3189114f5c",
+    "repo": "R:/d3-evidence/environment-services-20261030",
+    "frozen": "R:/d3-evidence/environment-host-sound-lifetime-source-402ba4410",
+    "note": "Initially clean pinned source inspected; Root later changed STATUS metadata only. No reviewer source edits."
+  },
+  "scope": "One full fifteen-file new-delta correctness/clean-code/boundary/FPU/caller/witness pass. Closed originals/kernels reused without reruns.",
+  "source_review_no_blocking_findings": false,
+  "findings": [
+    {
+      "id": "ENV-HOST-SOUND-1",
+      "priority": "P1",
+      "location": "eech-campaign/crates/eech-world/csrc/env_ref.c: env_ref_sound_init and env_ref_sound_update",
+      "title": "Keep all new kernel FP work inside the saved canonical scope",
+      "evidence": "Update copies input floats to outputs before fp_save. Both functions restore via fp_leave before isfinite checks; init also compares work.life<0 after restore, and both publish float assignments afterward. Float loads/comparisons/stores can alter caller x87/MXCSR state or trap on denormal/signalling-NaN paths and occur under caller modes. This contradicts the full-state boundary; no measured failure on every platform is asserted.",
+      "required_change": "Use integer-bit ingress/egress; perform float loading, math and validation inside the canonical guard; settle results before restore/readback and publish by integer memcpy only. Preserve full-state matrix masks/seeds/oracles across normal, refusal, NeedPlaying and subnormal cases."
+    },
+    {
+      "id": "ENV-HOST-SOUND-2",
+      "priority": "P2",
+      "location": "eech-campaign/crates/eech-world/lua/env-sound-host-witness.lua: wrapped factory, changed_init, MARKER branch, changed verdict; env-sound-lifetime.lua: dc.boot; session.c:897",
+      "title": "Witness init modes must account for boot calls and prove the claimed answer",
+      "evidence": "Wrapper interception is armed before boot, which constructs looping ambient sounds and calls sound_lifetime_init. changed_init returns0.25 for them, rejected by Core loop+0 validation before case6. withheld_init stops inside dc.boot, before the delegate env_case catch can emit case6 engine_failure; the witness nevertheless requires that row and reports setup failure. Scripted boot omits these calls. Changed-update additionally checks only3calls/0kills, not the actual per-call lifetime words it returned, so it proves at most a kill-decision change.",
+      "required_change": "Forward boot unchanged and arm selected init alteration/refusal after healthy boot, or support honest boot-phase stop evidence with limited attribution. Model boot init in finite guards; never fake case6 failure for boot. Reconcile actual cohort lifetime words with sent answers when claiming aging authority, or explicitly narrow the verdict. Preserve delegated grammar/output checks, exact stop markers and genuine old-native capability red; no trace framework."
+    }
+  ],
+  "inspected_facts": [
+    "Hosted ctor/server/client dispatch uses HOST_ENV with classic#else retained; no hosted arithmetic fallback found. C/Rust layout order/types and synchronous stack buffer lifetimes match; no entity/list/handle pointer crosses.",
+    "Capacity16 covers traced speech<15, unsigned4-bit wire counts and fixed small constructors. No separate capacity finding.",
+    "Reference expression order/types retained; stateless NeedPlaying retry recomputes from the original input and commits once, without double-aging. Core checks the completed reply before mirror writes/consequences; actual device paths remain unmeasured.",
+    "All fifteen files, bindings/provider/bridge, tests/witness and docs inspected. Metadata/asset lookup, persistent records, pause/resume, destroy/network, pitch/amplitude and playback/heap/list couplings remain explicitly required D3.",
+    "Ancillary date prose: actual31October UTC, WIP filenames20261101 retained; new sound-doc heading1November needs prose correction."
+  ],
+  "execution_limits": "No reviewer builds/tests/native runs/Docker/process/source/auth/public changes or agents. Windows402 actual build0 reported22:30:50.934773Z; Linux canonical pipeline last live. No candidate/default/authority engines launched;18roots unused. a4 strict error with misleading exit0 is failed/untrusted numeric-exit evidence; later a5 is separate.",
+  "prior_original_domain_review_sha256": "89c26171dc9ec62080647db6a9b1b88b627837cb2bf32de694ce3bd902caa3d2",
+  "limitations": "Source gate false on these two groups. New numeric/raw conformance, capability red and actual public-host modes pending. No physical/runtime/ownership/shipping/Task51/D3/current-finalCI/normal-merge acceptance. Whole required sound/time/terrain/spatial/model/full40/all8 delivery remains open; D4/D5 unstarted. Prior unavailable d1 raw gap/failures retained."
+}

@@ -1,3 +1,48 @@
+# D3 host sound lifetime — measured conformance and ownership pass (31 October 2026, 23:09 UTC; finite measured slice reviewed)
+
+Physical native/source `e5020587153e1922acdc412598c4920501988a9a` completes
+all eleven default controls0. Every complete original diagnostic byte and ending
+matches, including5,191,384 bytes/17,283 natural rows. All22 input checks0 and56
+payload hashes pass. Seven ownership controls and14 input checks pass: old-safe116
+with accepted d4 delegate completes exact-original case4 but requests0 (intentional
+missing-capability witness exit1); new healthy requests3, changed replies hold5
+through all three updates/no kill, changed init forwards4,764 boot requests and
+sets the real fixture lifetime0.25. Withheld/malformed update and withheld init
+stop at the actual named boundary, no result. Wrapper/delegate/old55/new56
+payload identities are distinct and unchanged. Combined audit0:18 controls and
+36 input checks, not shipping or full sound coverage.
+
+Both fresh builds0, full Linux affected default/observer and both strict0, all9
+exact-e502 CI jobs pass; prior402 i686 failures remain. The following controller
+25520 failed1 on a transient live-JSON read/write race before any child/native
+ownership run; its receipt/traceback stay intact. Separately named bounded-retry
+recovery8124 completes0 at23:06:46Z; no successful campaign control was repeated.
+Safe metadata is under `reference/d3-environment-characterization/sound-host-lifetime-native-e502`.
+The same independent combined new-actual/audit/safe-publication review has no findings, private-original SHA256 `274444e811399bba8985b6b915b2a7bb540bd285b4999c8d079d2f5e51d72289`. It closes ONLY this finite characterized host duration/lifetime slice; whole Task51/D3 and shipping remain open. No current-final CI or normal Task51 delivery is claimed. Metadata/backend/resume/destroy/network,
+per-vehicle pitch/amplitude, physical time, required terrain/spatial/model,
+full40/all8complete recording checks and whole-D3 acceptance remain. D4/D5
+unstarted. All original/failed evidence and the unavailable firstd1 raw limitation
+remain preserved. Earlier checkpoints below are history.
+
+# D3 host sound lifetime — first candidate campaign running (31 October 2026, 22:58 UTC)
+
+Physical candidate `e5020587153e1922acdc412598c4920501988a9a` is cleanly
+pinned/pushed. The same independent correction review has no findings
+(`0c30b9a6...0b6264`); both fresh native builds completed0, including Linux full
+affected default/observer packages and both strict profiles. All nine current CI
+jobs passed, including both previously failing i686 variants; their old402
+failures and new passing decoded logs remain separate and retained.
+
+The eleven-control controller8708 is now running. First natural native17900
+started22:57:33Z with56 verified payloads and pre-inputs0; natural root is consumed.
+No completed candidate conformance or ownership verdict yet. Parent25520 waits
+for all eleven complete raw comparisons to pass before running the seven public
+controls and read-only audit. Do not duplicate or restart these controllers.
+Ground's latest four recording prefixes remain exact but partial; full40/all8
+complete shipping acceptance is still pending. Task51 and D3 remain open, with
+all previously named physical couplings still required. D4/D5 unstarted. The
+earlier checkpoints below are retained history.
+
 # D3 sound correction checkpoint — 31 October 2026, 22:48 UTC
 
 The same author completed the six-file correction batch with actual exit0 at

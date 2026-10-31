@@ -1,5 +1,31 @@
 # D3: original sound entity and lifetime characterization
 
+## Host duration/lifetime measured candidate — 31 October 2026
+
+Native/source `e5020587153e1922acdc412598c4920501988a9a` now completes the
+same natural120s and ten controls with every complete original byte/ending equal,
+22input checks0 and56payloads unchanged. Seven public ownership controls add
+14input checks0: old-safe116+d4 delegate completes original case4 with0new
+requests (intentional capability-red exit1), new healthy requests3, altered
+updates keep the actual lifetime5 on each call/no kill, altered init sets0.25
+after forwarding4,764boot calls, and withheld/malformed answers produce the
+actual named engine stop/no result. Total18controls/36input checks pass the
+read-only audit. See [safe candidate evidence](../reference/d3-environment-characterization/sound-host-lifetime-native-e502).
+
+Both new builds0, affected Linux default/observer packages/both strict0 and all9
+exact-e502 CI jobs pass; both old402 i686 FP failures101 remain separate. Source
+corrections close at review0c30b9a6...0b6264. A following controller's live-JSON
+read/write race failed1 before any ownership child/native run; its separately
+named bounded-retry recovery completes0, without repeating successful controls.
+The same independent combined new-actual/audit/safe-publication review has no findings, private-original SHA256 `274444e811399bba8985b6b915b2a7bb540bd285b4999c8d079d2f5e51d72289`. It closes ONLY this finite characterized host duration/lifetime slice; whole Task51/D3 and shipping remain open.
+
+This establishes only the characterized duration/lifetime host boundary. It
+does not close metadata/asset lookup, pause/resume, playback/device, independent
+destroy/network, pitch/amplitude, physical time or whole Task51/D3. Canonical
+PC64/RZ remains an unmeasured startup assumption. Shipping40/all8complete
+Tacview/observations/metrics/current-final CI/normal merges remain required;
+D4/D5 are unstarted. The old unavailable firstd1 raw gap remains explicit.
+
 ## Controlled-data actuals — 31 October 2026
 
 Seven cases4..10 now complete on original native116ffd5fb, with separately pinned Lua2a for4..8 and d4 for9/10. All seven successful native/controllers0,14successful pre/post inputs0,55payloads and driver post-hashes unchanged. Initial9fails witness/native/controller1 on a false total-child isolation guard; the retained C report/restoration is complete. Corrected d4 checks matching subtype1/returned1/subtype identity while permitting unrelated ambient children. Only replacement9 and previously unrun10 then execute; the five earlier successes are reused. Every old9 preterminal C raw row AND ending equals fresh9 exactly. Whole raw remains unequal at witness_failure versus result. Eight actual controls including failure have16pre/post inputs0; old failure is not a success.
