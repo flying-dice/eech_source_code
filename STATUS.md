@@ -1,3 +1,30 @@
+# D3 checkpoint — real wide-list correction accepted, public amplitude witness started (31 October 2026, 15:52 UTC)
+
+Task51/PR111 pushed `d559c3859` changes G12 fixture/driver/tests only; production
+and G11 remain exactf6. Actual Windows build0; four new driver guards and BOTH
+strict phases0. Fresh real16/17/20-child control native/controller0, inputs0,
+51payloads unchanged: every own-half amplitude, retained/new IDs and order,
+post-cleanup list topology PASS. Prior counts6/16/17, creations10/1/3. The SAME
+independent review closes the fixture finding with no new issues, SHA256
+4cbd6867393c961cf79f93da596dd55cc7d69d577bb68ba91d4c7b269cf236c6.
+Raw7rowSHA51ff68cff933a996e62854c76cd4c8b08c4b63ba8903fae485662fdde7f5ee11.
+
+Production f6's three COMPLETE108-row raw files remain byte-identical to original
+c0b/21; actual Windows/strongFP/fullLinux/bothstrict/all9hosted checks pass.
+No originals, baselines or tolerances changed. Current d559CI8pass/1running
+at15:49UTC. Public changed/withheld/malformed amplitude authority is next:
+SAME one Sonnet5.5High test-only laneLIVE (controller3276/Claude24280, started
+15:48:20), seven fresh retail roots allmanifest0 UNUSED. Reuse immutable d559
+native only after exact newLua/test-only provenance proof; no native rebuild
+for a witness-only addition. Newwitness remains unbuilt/unrun/unreviewed.
+
+Ledger92 readback preserves ALL previous HTML and five epic reports; PR111
+current body records gates and remaining scope. Ground original six processes
+and fullshipping remain protectedLIVE, last fullidentitycheck15:37 and exact
+four growing prefixes15:39 (partial only). WholeD3 effects/time/terrain/spatial/
+model/fullshipping40/all8COMPLETEbyteidentity/currentCI/review/normalmerges
+remain open. Campaign policy/calendar/timers/scheduling stayCore; D4/D5unstarted.
+
 # D3 checkpoint — ambient numeric and FP gates pass; fixture correction underway (31 October 2026, 15:43 UTC)
 
 Task51/PR111 production `f6d812c7c` moves rain/wind levels and terrain-child
