@@ -1,3 +1,35 @@
+# D3 checkpoint — ambient numeric and FP gates pass; fixture correction underway (31 October 2026, 15:43 UTC)
+
+Task51/PR111 production `f6d812c7c` moves rain/wind levels and terrain-child
+ambient smoothing to host services. All three actual retail characterizations
+finish native/controller0; six input checks pass and51payloads remain exact.
+All COMPLETE108-row files, including endings, equal retained originalc0b/21
+bytes. Actual Windows engine81/module24/world254 and terrainambient4 pass.
+Linux fast guards, full default/observer affected packages and BOTH strict
+phases complete0. All nine hosted checks pass at f6; decoded Wine and both
+i686 logs explicitly pass both new complete-FP ambient tests. Canonical x87
+extended precision remains an unmeasured reference assumption, not a measured
+startup control word. Earlier meaningful reds are preserved.
+
+The sole combined review `6da71305...a0c6` closes the two production source
+findings and identifies one NEW G12 fixture cleanup defect: whole SESSION
+restoration rewinds the child-list root after allocation. The real diagnostic
+fails as a witness, with pre/postinputs0; no healthy16/17/20 acceptance claimed.
+The SAME one Sonnet5.5High lane corrects fixture topology/continuity only;
+production/G11/oracles stay unchanged. Fresh recoveryroot manifest0. Source
+review, fresh real wide control and public amplitude authority remain next.
+
+Ground frozenaafb pack remains LIVE in its original six processes (verified
+15:37UTC). Four growing recording prefixes match accepted bytes at15:39UTC
+(~48MB Tacview/~32.6MB observations), PARTIAL ONLY. Current main2b15 CI all
+8 jobs pass. No restart, final40-check or complete-pack acceptance inferred.
+
+WholeD3/EEDCS-21 stays open: sound/lightning execution, physical time, remaining
+terrain/spatial/model services, fullshipping40/all8COMPLETEbyteidentity,
+currentCI/independentreview/normalmerges. Campaign decisions, calendar, timers
+and scheduling stayCore. D4/D5unstarted; no baseline or tolerance changes.
+Jira51comment10895 and external D3-ACTIVE.json retain identities and receipts.
+
 # D3 checkpoint — first host-amplitude default match; two corrections open (31 October 2026, 15:04 UTC)
 
 Task51/PR111 host-amplitude sourcea39a7a2ec is pushed/frozen. Normal Windows
