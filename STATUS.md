@@ -1,3 +1,41 @@
+# D3 checkpoint — sector authority passes; ambient characterization starts (31 October 2026, 13:56 UTC)
+
+Whole D3 (EEDCS-21) remains the objective. Task47 is delivered; Tasks48–51 remain
+open. D4/D5 are unstarted. No accepted baseline or tolerance changed.
+
+Task51/PR111 production14192 corrects the independently found full-FP sector
+boundary defect. All three complete 95-row default files (including endings)
+match originalb2e, all6 inputs pass and49payloads remain unchanged. Actual Windows
+engine78/module22/world251 and sector5/characterization4 pass, including the6144-call
+FP matrix; both hosted i686 variants pass that same test. Linux default and
+observer package tests pass. Its first strict phase fails only two test lints;
+new9c47 corrects those without changing behavior. Linux new15judge functions pass;
+both strict phases and current9c47CI remain pending. Old FP/guard/CI failures retained.
+
+New test-only9c47 judge + unchanged14192 native/embeddedLua has ACTUAL Windows
+15functions PASS in2.04s and separate real five-mode public test0 in32.87s.
+Control and changed modes each complete30frames/30sector requests/30sound updates;
+changed host flags reach the sound scratch. Observer224events reconcile without
+drops; only first4scratch records are emitted. Three withholding/malformed modes
+stop at their named sector guards after one alteration; these are stopped campaigns.
+Exactly5PRE+5POST manifests pass0, all49payloads unchanged, copiedLua exact.
+The prior05b13/14CMD/PING timeout failure and invalid private vacuous-ten boolean
+are retained with an audit; no original campaign started there. One independent
+source review of9c47 closes without findings (41a1cfaf...fae); actual evidence
+review is now pending. This is sector authority, not amplitude/Tacview/fullshipping
+or Task51 acceptance. Next ONE Sonnet5.5High lane is preparing original physical
+ambient amplification characterization, TESTONLY/UNBUILT/UNRUN, before moving it.
+
+Task48/PR108 ordinary frozenaafb fullshipping remains LIVE in original launcher9948,
+runner19032 and four native children. Latest all4 growing Tacview/observation
+prefixes equal accepted bytes (~33.3MB/~21.5MB per recording), PARTIAL ONLY.
+All8hosted jobs at currentfb2 publication pass; exact40/all8 COMPLETE byte comparisons,
+post-input/source/bin/script checks, new evidence review and normal merge remain.
+Required remaining terrain/loaders, spatial/object/tree scans/transforms/solvers,
+model hierarchy/viewpoints/devices/muzzles/targetpoints/physical route-data,
+lightning/sound execution and physical time stay D3; campaign scheduling/policy
+stay Core. Existing original/field/wind/model/kernel evidence is reused.
+
 # D3 checkpoint — first host-sector numeric match; FP correction active (31 October 2026, 13:21 UTC)
 
 The current objective remains COMPLETE D3 (EEDCS-21), with D4/D5 unstarted.
