@@ -67,3 +67,7 @@ The independent review (SHA-256 `f23a1f53...27797`) found one P1: the group-10 e
 `a78b6ab3c` (Root's, preserved): the four new Linux driver guards passed, the Linux env-fixture compile exited 101 and the Windows env-fixture build exited 1, both at exactly that missing terminating quote; strict Clippy was
 not reached; no retail sector query has run and the three fresh roots are unused. The string now ends `index=%d\n"` on one line (same wording, group, index and refusal behaviour); the whole file was scanned for another
 unbalanced string and none was found. The semantics, cases, driver and protocol of this document are unchanged; the original facts are still to be collected by Root with the rebuilt fixture DLL.
+
+**Strict-Clippy lint at `b2e55b18b` (UNBUILT, UNRUN, UNREVIEWED).** The narrow syntax-correction review (SHA-256 `9e702f33...e824`) closed the string finding. Actual (Root's): Windows env-fixture build/export 0 (48 payloads), Linux env-fixture native
+compile 0, then the first affected strict Clippy 101 on `useless_vec` only at `env_sector_characterization.rs:147`; fixed by a fixed-size array, no suppression and no other change. The three actual original sector runs on fresh verified retail roots are
+LIVE with the frozen `b2e55b18b` native; no result is claimed.

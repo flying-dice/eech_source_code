@@ -1,3 +1,26 @@
+# D3 measured original sector gate (31 October 2026, 12:38 UTC)
+
+Actual b2e native fixture builds on Linux/Windows succeed. Linux first strict101
+is one test-only useless_vec; the new array correction is unbuilt. Three actual
+Windows retail original-sector runs finish native/controller0, all6 input checks0
+and48 payloads each unchanged. Each95-row file contains92 samples:88 answered,
+4 out-of-grid refused, all scratch/repeat/sentinel/interleave checks pass and
+0 anomalies. Sound clamp maximum is answered. Lebanon/repeat COMPLETE raw bytes
+are identical. No sampled retail returned count differs from distinct flags; the
+source preserves that semantic distinction, not a claim of observed duplicates.
+Raw flags/coords remain private; safe receipts are under sector-original-b2e-component.
+No sector cutover or Tacview/shipping/Task51/D3 acceptance. New guard checks and
+independent original-evidence closure precede the focused host sector move.
+
+# D3 checkpoint — original-sector characterization b2e55b18b: one strict-Clippy lint fixed (31 October 2026)
+
+EEDCS-51 / PR111 from clean pushed `b2e55b18b`. The independent narrow syntax-correction review (SHA-256 `9e702f33...e824`) closed the string-literal finding with no new one. **Actual at `b2e55b18b`** (Root's): the Windows env-fixture
+build/export 0 (48 payloads); the Linux env-fixture native compile 0; then the FIRST affected strict Clippy exited 101 on ONE lint only, `useless_vec` at `env_sector_characterization.rs:147` (a `vec![...]` of four owned lines that is
+only indexed and iterated). The four driver guards had already passed at `a78b6ab3c` with the same Rust and Lua. **Correction (UNBUILT, UNRUN, UNREVIEWED):** that `vec!` is a fixed-size array `[String; 4]`; no `allow`, no suppression, no other
+semantics changed (production C and Lua unchanged, so Root reuses the verified `b2e55b18b` native; no 164-case, observer, FP or model rerun). Root has launched the three actual ORIGINAL sector cases on fresh verified retail
+roots (`environment-terrain-scratch-roots-20261031`) with the frozen `b2e55b18b` Windows native and script: those runs are LIVE and their outcomes PENDING; no runtime pass or original result is claimed, and no host move of the sector query is
+made until Root records the actual original results. Whole Task 51/D3 remains open (lightning effects, physical time, terrain-scratch cutover, spatial, model, full shipping); campaign policy and time stay Core; D4/D5 not started.
+
 # D3 checkpoint — original-sector characterization a78b6ab3c: one C syntax error fixed (31 October 2026)
 
 EEDCS-51 / PR111 from clean pushed `4649b75d4` (Root added only the wind evidence metadata over `a78b6ab3c`). ONE independent combined review of the original-sector characterization (SHA-256 `f23a1f53...27797`)

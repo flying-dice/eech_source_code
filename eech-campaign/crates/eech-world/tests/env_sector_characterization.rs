@@ -144,7 +144,7 @@ fn the_driver_reports_a_repeat_or_a_sentinel_that_differs_as_an_anomaly_of_the_o
 #[test]
 fn the_driver_refuses_a_line_that_is_not_a_complete_consistent_sample() {
     let refused = |bad: String, position: usize, fragment: &str| {
-        let mut lines = vec![PLAN.to_string(), ANSWERED.to_string(), REFUSED.to_string(), ANSWERED_NA.to_string()];
+        let mut lines = [PLAN.to_string(), ANSWERED.to_string(), REFUSED.to_string(), ANSWERED_NA.to_string()];
         lines[position] = bad;
         let borrowed: Vec<&str> = lines.iter().map(String::as_str).collect();
         let driven = drive(&borrowed, "", &[]);
