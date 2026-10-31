@@ -1,0 +1,35 @@
+{
+  "scope": "Safe metadata only. Raw retail inputs, JSONL coordinates, binaries and recordings remain private. Original raw file hashes and expected Git LF text hashes are distinguished. No shipping or physical cutover acceptance.",
+  "copied_files": [
+    {
+      "file": "independent-environment-observer-source-review-2804ca4f7-20261031.json",
+      "private_raw_sha256": "db7e7d5cb5d8157103a20d85d77878b677a80c10ae0fe907913556b85602fb16",
+      "expected_git_lf_text_sha256": "db7e7d5cb5d8157103a20d85d77878b677a80c10ae0fe907913556b85602fb16"
+    },
+    {
+      "file": "environment-observer-2804ca4f7-linux-20261031-completion.json",
+      "private_raw_sha256": "52324cc707b80070942ea694c91213d7154c818537f00e8154b2c48db2831005",
+      "expected_git_lf_text_sha256": "0768df58b33586eeb47aab16c37275d2350494678f794e297e314f1eb38ebab1"
+    },
+    {
+      "file": "environment-observer-2804ca4f7-windows-20261031-completion.json",
+      "private_raw_sha256": "62f6757080bed160726dd6b678a0a67366b1d148d88dffdcd243b88eff3177da",
+      "expected_git_lf_text_sha256": "323f82902a4069e89e62762366308d98e20d13ef552790c29cda5baa915218de"
+    },
+    {
+      "file": "environment-observer-feature-off-2804ca4f7-windows-20261031-completion.json",
+      "private_raw_sha256": "5e1660a25d273e51dc8b7de8bd621b6ac043b7eb1c66526c8fec6f068768069f",
+      "expected_git_lf_text_sha256": "cfdd5cff25580e46cb2f4109dce182210785c81afa2e88d315b4c9a4a2676b10"
+    },
+    {
+      "file": "environment-unhooked-old99-comparison-2804ca4f7-20261031.json",
+      "private_raw_sha256": "f791f19f59e3456b21ee951a9cbbdc49d4fbb3a6a5976eb4d3ffe492f39d1bfd",
+      "expected_git_lf_text_sha256": "fa1845710d16466c8849204be2e2879b52c52c1acbbe250591e685cba00a7602"
+    },
+    {
+      "file": "classified-source-differences.json",
+      "private_raw_sha256": "68138366c00ad850248f9e6a3e3fa6ef881336d335714a31ef3de7aeba35ff43",
+      "expected_git_lf_text_sha256": "7ca7ad4c54b401185222d048422aab352f326fcb7f3dd5769d80e303752c7403"
+    }
+  ]
+}

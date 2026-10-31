@@ -9,24 +9,29 @@
 //
 // TEST-ONLY session environment observer hooks (EEDCS-51).
 //
-// Without EECH_ENV_OBSERVER every macro below expands to nothing, so the sources that carry them preprocess to the original text and no hook argument is evaluated.
+// Without EECH_ENV_OBSERVER every macro below expands to nothing and no hook argument is evaluated, and the kind and counter enumerations are not declared, so the executable bodies of
+// the sources that carry the hooks have the original tokens. Their preprocessed text is NOT literally identical to the original: the added hook lines shift __LINE__ (and the
+// diagnostics, such as ASSERT messages, that print it) and the hook macros are defined; the feature-off check classifies exactly those and compares the body tokens, it does not claim whole-file equality.
 // With it (cargo feature `env-observer`, never shipping) each hook only READS values the original has already computed or globals it already holds (the shared seed word
 // `random_number_seed`, the entity heap's next free index, the headless clock) and appends them as integers or IEEE bit patterns to a bounded buffer in
 // csrc/eech_env_observer.c. No hook draws a random number, calls the engine, allocates an entity, writes a game variable or changes the order of anything the original does.
 // The observer records nothing until it is armed (before boot, by the test-only module function), and a full buffer drops events and says so.
 //
-// The word recorded with every event is the shared seed word AT that point: a change between two events with no draw hook between them is a draw (or a reseed) by code
-// that has no hook, and the report says so by what it shows, never by inference from a later snapshot.
+// The word recorded with every event (`rng`) is the shared seed word AT that point: a change between two events with no draw hook between them is a draw (or a reseed) by code
+// that has no hook, and the report says so by what it shows, never by inference from a later snapshot. For ENV_FX_SEED_SET the hook runs BEFORE the original assigns the word, so `rng`
+// (and w0) is the word as it stands and `a` is the seed about to be set; the next event shows the assigned word.
 //
 
 #ifndef SS_ENVFX_H
 #define SS_ENVFX_H
 
+#ifdef EECH_ENV_OBSERVER
+
 enum ENV_FX_KINDS
 {
 	ENV_FX_BOOT_BEGIN = 1,			// eech_engine.c boot: a: the boot seed, w0: the headless clock (ms)
 	ENV_FX_BOOT_END,				// eech_engine.c boot returned: w0: the headless clock (ms)
-	ENV_FX_SEED_SET,				// random.c set_random_number_seed: a: the seed argument, w0: the shared word before (the libc generator is reseeded with the same argument)
+	ENV_FX_SEED_SET,				// random.c set_random_number_seed, BEFORE it assigns: a: the seed argument (the target), rng and w0: the shared word as it stands (the libc generator is then reseeded with the same argument)
 	ENV_FX_SEED_SOURCE,				// random.c initialise_random_number_generator: a: get_system_time () as returned, before the zero test
 	ENV_FX_START_RESEED,			// session.c get_session_random_start_time_of_day: initialise_random_number_generator returned
 	ENV_FX_START_INDEX,				// ... the table index drawn (a)
@@ -66,8 +71,6 @@ enum ENV_FX_COUNTERS
 	ENV_FX_C_WEATHER_CALLS,			// update_transitional_weather calls
 	ENV_FX_C_COUNT
 };
-
-#ifdef EECH_ENV_OBSERVER
 
 extern int random_number_seed;
 

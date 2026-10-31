@@ -2233,24 +2233,115 @@ function engine:env_case(group, index)
 end
 "#;
 
-// the observer of the stand-in: boot_begin, boot_end, then four events a frame (frame_begin, tod_begin, tod_end, frame_end), all with the same seed word; the mutations damage the record in one way each
+// the observer of the stand-in, in the form of the real boot (RECORDED natively at source 2804ca4f: 44 boot events with two weather episodes and two start-time episodes, then per frame frame_begin,
+// tod_begin, tod_end, two sound_facts rows, frame_end): the numbers are canned, the ORDER and the context are the real ones; the mutations damage the record in one way each
 const ENV_STAND_IN_OBSERVER: &str = r#"
 local OBS_MUTATION = '@OBS_MUTATION@'
-local pending, seq, updates = {}, 0, 0
-local function ev(kind, a, b)
+local pending, seq, updates, frame_no, clock = {}, 0, 0, 0, 0
+local delta = '3dcccccd'
+local Z = '00000000'
+local function h(n) return string.format('%08x', n % 4294967296) end
+local function ev(kind, a, b, rng, w0, w1, w2, w3, w4, w5)
   if OBS_MUTATION == 'skip_seq' and seq == 2 then seq = seq + 1 end
-  local rng_w = (OBS_MUTATION == 'rng_mismatch' and seq == 3) and 6 or 5
-  pending[#pending + 1] = string.format('env-obs seq=%d kind=%d a=%d b=%d rng=5 rng_w=%08x w0=00000000 w1=00000000 w2=00000000 w3=00000000 w4=00000000 w5=00000000\n', seq, kind, a or 0, b or 0, rng_w)
+  rng = rng or 1
+  local rng_w = rng % 4294967296
+  if OBS_MUTATION == 'rng_mismatch' and seq == 3 then rng_w = rng_w + 1 end
+  pending[#pending + 1] = string.format('env-obs seq=%d kind=%d a=%d b=%d rng=%d rng_w=%08x w0=%s w1=%s w2=%s w3=%s w4=%s w5=%s\n', seq, kind, a or 0, b or 0, rng, rng_w,
+    w0 or Z, w1 or Z, w2 or Z, w3 or Z, w4 or Z, w5 or Z)
   seq = seq + 1
 end
-obs_boot = function() ev(OBS_MUTATION == 'not_armed' and 3 or 1) ev(2) end
+-- initialise_random_number_generator: the clock value, then the seed set from it (zero becomes one); the event's rng is the word BEFORE the assignment
+local function reseed(before)
+  ev(4, 0, 0, before)
+  ev(3, OBS_MUTATION == 'boot_seed_mismatch' and 7 or 1, 0, before, h(before))
+end
+local function start_episode(before)
+  reseed(before)
+  ev(5, 0, 0, 1)
+  ev(6, 2, 0, 1103527590)
+  ev(7, 0, 0, -1770082073, h(0x46f89000))
+  ev(8, 0, 0, -1770082073, h(0x46f89000))
+end
+local function weather_episode(rng0)
+  ev(14, 0, 0, rng0)
+  for k = 1, 10 do
+    if not (OBS_MUTATION == 'boot_weather_short' and k == 10) then
+      local ordinal = (OBS_MUTATION == 'boot_weather_misordered' and k == 2) and 3 or k
+      ev(15, ordinal, (k == 2 or k == 7) and 1 or 0, 1000 + k, h(0x47000000 + k))
+    end
+  end
+  ev(16, 0, 0, 1010)
+end
+-- the boot as the real one runs it: the engine's reseed and boot seed, the loader's session (start time, session, weather), then the session setup options' weather and start time again
+obs_boot = function()
+  clock = 0
+  ev(OBS_MUTATION == 'not_armed' and 3 or 1, 1, 0, 1, h(clock))
+  reseed(1)
+  ev(3, OBS_MUTATION == 'boot_seed_wrong' and 9 or 1, 0, 1, h(1))
+  ev(10, 0, 0, 1)
+  if OBS_MUTATION ~= 'boot_no_start' then start_episode(1) end
+  ev(9, 1, 1, -1770082073, OBS_MUTATION == 'boot_session_start_mismatch' and h(0x46f89001) or h(0x46f89000), h(0x42700000), h(0x471c4000), h(0x471c4000), h(0x3f800000))
+  if OBS_MUTATION ~= 'boot_no_weather' then weather_episode(-1770082073) end
+  if OBS_MUTATION == 'boot_with_tags' then
+    ev(12, 1, 0, 1010)
+    ev(17, 1, 0, 1010)
+  end
+  ev(11, 0, 0, 1010)
+  if OBS_MUTATION ~= 'boot_single_group' then
+    weather_episode(836760821)
+    if OBS_MUTATION == 'boot_three_groups' then
+      weather_episode(7)
+      start_episode(1010)
+    end
+    start_episode(1010)
+  end
+  if OBS_MUTATION ~= 'boot_end_late' then ev(2, 0, 0, 1010, h(clock)) end
+end
+-- the twelve events of a lightning expiry; the last four are the server's sound entities
+local function lightning(with_sound)
+  ev(22, 1, 0, 2000, h(0xbd000000), delta)
+  if OBS_MUTATION == 'lightning_interrupted' then return end
+  if OBS_MUTATION == 'lightning_misordered' then
+    ev(24, 0, 0, 2001, h(0x42f00000))
+    return
+  end
+  ev(23, 0, 0, 2001, h(0x42f00000))
+  ev(24, 0, 0, 2001, OBS_MUTATION == 'lightning_timer_mismatch' and h(0x42f00001) or h(0x42f00000))
+  ev(25, 1, 0, 2001)
+  ev(26, 1, 0, 2001, h(0x47000000), h(0x47000001))
+  ev(27, 1, 0, 2002)
+  ev(26, 2, 0, 2002, OBS_MUTATION == 'lightning_strike_position' and h(0x47000009) or h(0x47000000), h(0x47000001))
+  ev(27, 2, 0, 2003)
+  if with_sound then
+    ev(28, 1, 0, 2003, h(10), h(20))
+    ev(29, 1, 0, 2004, h(11), h(21))
+    ev(28, 2, 0, 2004, h(11), h(21))
+    ev(29, 2, 0, 2005, h(12), h(22))
+  end
+end
 obs_frame = function(ms)
-  ev(18, ms, 1)
-  if OBS_MUTATION == 'unpaired_frame' and updates == 1 then ev(18, ms, 1) end
-  ev(20)
-  ev(21)
-  ev(19)
+  local m = OBS_MUTATION
+  local second = frame_no == 1
+  if m == 'tod_outside_frame' and second then
+    ev(20, 0, 0, 1010, Z, delta, h(0x3f800000))
+    ev(21, 0, 1, 1010)
+  end
+  ev(18, (m == 'frame_ms_mismatch' and second) and ms + 1 or ms, 1, 1010, h((m == 'clock_gap' and second) and clock + 1 or clock), (m == 'delta_phase' and second) and '3dcccccd' or delta)
+  if m == 'unpaired_frame' and second then ev(18, ms, 1, 1010, h(clock), delta) end
+  ev(20, 0, 0, 1010, Z, (m == 'tod_delta' and second) and '3dcccccd' or delta, h(0x3f800000))
+  if m == 'lightning_inside_tod' and second then lightning(true) end
+  if not (m == 'tod_unpaired' and second) then ev(21, 0, 1, 1010, h(0x3dcccccd), h(0x46f89033)) end
+  if second and (m == 'lightning_episode' or m == 'lightning_timer_mismatch' or m == 'lightning_strike_position' or m == 'lightning_misordered' or m == 'lightning_interrupted') then
+    lightning(true)
+  end
+  if second and m == 'lightning_client_form' then lightning(false) end
+  ev(30, 0, 123, 1010, h(1), h(2), h(3), h(4), h(5), h(6))
+  if not (m == 'facts_unpaired' and second) then ev(30, -1, 2, 1010, h(1), h(3)) end
+  clock = clock + ms
+  delta = '3dcccccc'
+  ev(19, 0, 0, 1010, h((m == 'frame_end_clock' and second) and clock + 1 or clock), delta, h(0x41200000))
   updates = updates + 1
+  frame_no = frame_no + 1
 end
 function engine:env_observer_events()
   local text = table.concat(pending)
@@ -2259,10 +2350,11 @@ function engine:env_observer_events()
   return text
 end
 function engine:env_observer_report()
-  local dropped = OBS_MUTATION == 'dropped' and 3 or 0
-  local counted = updates + (OBS_MUTATION == 'count_mismatch' and 1 or 0)
-  return string.format('env-obs-report armed=1 capacity=16384 stored=%d read=%d dropped=%d overflow=%d next_seq=%d update_server=%d lightning_calls=%d sound_calls=%d resync_calls=0 weather_calls=%d sound_records=1\n',
-    seq, seq, dropped, dropped > 0 and 1 or 0, seq, counted, updates, updates, updates)
+  local m = OBS_MUTATION
+  local dropped = m == 'dropped' and 3 or 0
+  return string.format('env-obs-report armed=1 capacity=%d stored=%d read=%d dropped=%d overflow=%d next_seq=%d update_server=%d lightning_calls=%d sound_calls=%d resync_calls=0 weather_calls=%d sound_records=%d\n',
+    m == 'capacity_low' and 1 or 16384, seq, seq, dropped, dropped > 0 and 1 or 0, seq, updates + (m == 'count_mismatch' and 1 or 0), updates, updates,
+    updates + (m == 'weather_calls_mismatch' and 1 or 0), updates + (m == 'sound_records_mismatch' and 1 or 0))
 end
 "#;
 
@@ -2698,17 +2790,19 @@ fn the_environment_observer_is_armed_before_boot_recorded_in_order_and_the_off_r
     let arm = lines.iter().position(|l| *l == "arm true").expect("the observer was never armed");
     let boot = lines.iter().position(|l| *l == "boot").expect("the engine was never booted");
     assert!(arm < boot, "the observer was armed after boot: {lines:?}");
-    // two boot events and four events a frame, numbered without a gap from 0
+    // 44 boot events and six events a frame, numbered without a gap from 0; the words of an event stay strings (a digits-only hex word is not a decimal number)
     let events = env_rows(&on.rows, "env-obs");
-    assert_eq!(events.len(), 2 + 10 * 4, "{}", on.out_text);
+    assert_eq!(events.len(), 44 + 10 * 6, "{}", on.out_text);
     for (n, event) in events.iter().enumerate() {
         assert_eq!(event["seq"], n as u64);
-        assert_eq!(event["rng_w"], "00000005");
+        assert!((0..6).all(|k| event[format!("w{k}")].is_string()), "{event}");
     }
     assert_eq!(events[0]["kind_name"], "boot_begin");
-    assert_eq!(events[1]["kind_name"], "boot_end");
+    assert_eq!(events[43]["kind_name"], "boot_end");
     let summary = &env_rows(&on.rows, "observer_summary")[0];
-    assert_eq!(summary["events"], 42);
+    assert_eq!(summary["events"], 104);
+    assert_eq!(summary["n_weather_draw"], 20);
+    assert_eq!(summary["n_start_reseed"], 2);
     assert_eq!(summary["n_frame_begin"], 10);
     assert_eq!(summary["n_tod_begin"], 10);
     assert_eq!(summary["update_server"], 10);
@@ -2750,6 +2844,33 @@ fn the_environment_observer_refuses_a_module_without_it_before_boot_and_every_in
         ("unpaired_frame", "began inside a frame"),
         ("count_mismatch", "session updates"),
         ("bad_row", "fields"),
+        // the boot: every mandatory episode and its order, the context between them
+        ("boot_no_weather", "expected weather_begin"),
+        ("boot_weather_misordered", "weather draw 3 where draw 2 was expected"),
+        ("boot_weather_short", "expected weather_draw, found weather_end"),
+        ("boot_no_start", "expected seed_source"),
+        ("boot_session_start_mismatch", "session_created carries the start time"),
+        ("boot_seed_mismatch", "does not follow the seed_source"),
+        ("boot_seed_wrong", "not the boot seed"),
+        ("boot_end_late", "frame event before boot_end"),
+        // the frames: the requested ms, the clock, the previous-delta phase, the update inside its frame
+        ("frame_ms_mismatch", "asks"),
+        ("clock_gap", "began at clock"),
+        ("frame_end_clock", "clock advanced to"),
+        ("delta_phase", "previous delta"),
+        ("tod_outside_frame", "outside a frame"),
+        ("tod_delta", "read the delta word"),
+        ("tod_unpaired", "outside a frame's sound update"),
+        ("facts_unpaired", "sound-fact pair was not completed"),
+        // the lightning episode, and the report's counts
+        ("lightning_interrupted", "interrupts the lightning episode after its step 1"),
+        ("lightning_misordered", "expected lightning_new_timer at step 2"),
+        ("lightning_timer_mismatch", "not the timer drawn"),
+        ("lightning_strike_position", "first strike's position"),
+        ("lightning_inside_tod", "outside the frame's weather update"),
+        ("capacity_low", "capacity"),
+        ("weather_calls_mismatch", "weather and"),
+        ("sound_records_mismatch", "sound records"),
     ];
     for (mutation, says) in cases {
         let stand_in = EnvStandIn {
@@ -2891,5 +3012,37 @@ fn the_environment_driver_runs_one_labelled_controlled_case_before_the_frames_an
         assert!(run.stderr.contains(*says), "{mutation}: the refusal does not say '{says}': {}", run.stderr);
         assert_eq!(env_rows(&run.rows, "failure").len(), 1, "{mutation}: {}", run.out_text);
         assert!(env_rows(&run.rows, "run").is_empty(), "{mutation}: a refused run reported a run row");
+    }
+}
+
+#[test]
+fn the_environment_observer_accepts_the_coherent_forms_of_the_real_transcript_and_not_only_one_weather_group() {
+    // the real boot runs two weather episodes and two start-time episodes; one episode of each, a third pair and the optional tag and fixed-weather events are as coherent, and a lightning expiry
+    // with or without the server's sound entities is a complete episode. (Each form is a canned order, not a physical result.)
+    for mutation in [
+        "none",
+        "boot_single_group",
+        "boot_three_groups",
+        "boot_with_tags",
+        "lightning_episode",
+        "lightning_client_form",
+    ] {
+        let stand_in = EnvStandIn {
+            observer_module: true,
+            observer_mutation: mutation,
+            ..EnvStandIn::WELL_FORMED
+        };
+        let run = run_env_scenario(&stand_in, &env_observer_args(&[]));
+        assert!(run.status.success(), "{mutation}: {}\n{}", run.stderr, run.out_text);
+        let summary = &env_rows(&run.rows, "observer_summary")[0];
+        assert_eq!(summary["n_frame_begin"], 10, "{mutation}");
+        let weather = match mutation {
+            "boot_single_group" => 10,
+            "boot_three_groups" => 30,
+            _ => 20,
+        };
+        assert_eq!(summary["n_weather_draw"], weather, "{mutation}");
+        let expiries = if mutation.starts_with("lightning") { 1 } else { 0 };
+        assert_eq!(summary["n_lightning_expired"].as_u64().unwrap_or(0), expiries, "{mutation}");
     }
 }

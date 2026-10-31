@@ -1,3 +1,66 @@
+# D3 checkpoint — original observer corrections ready for validation (31 October 2026)
+
+The same Sonnet5.5High context completed0 at02:15UTC; Root collected tool35034.
+The finite observer review corrections are prepared, formatting passes0 and the
+engine C file retains its single NUL. New source still needs compilation, actual
+strict trace validation, same-source noninterference and independent delta review.
+No environment physical service has moved. Safe measured2804 evidence is retained
+in reference/d3-environment-characterization/observer-checkpoint-2804ca4f7/.
+
+At measured2804, observer and unhooked Windows fixture builds complete0, each46
+payloads verified. Linux12driverchecks, formatting and default/observer strict
+all-target Clippy complete0. Actual2s20-frame observer boot smoke completes0,
+387rows/44boot events, with all pre/post manifests0. Review requires one P2 trace
+completeness/phase correction and two P3 wording/timing corrections, SHA256
+ db7e7d5cb5d8157103a20d85d77878b677a80c10ae0fe907913556b85602fb16.
+
+All three unhooked120s controls complete0: fixed100ms Lebanon and variable100,250,50
+Lebanon/Georgia. All post-input manifests0. The complete fixed control preserves
+all10827retained original99 snapshot rows plus campaign endpoints and final run row:
+10830selected raw lines INCLUDING ENDINGS byte identical; no numerical normalization.
+Boot/census/coverage/validation metadata differ and are explicitly outside that
+physical-state comparison. This is focused original evidence, with no Tacview
+recording generated and no shipping acceptance. New observer ON/OFF controls remain.
+
+The original ground fullshipping72359/runner20800 and four native processes are
+untouched and live; latest4nonempty prefixes match accepted bytes, PARTIALONLY.
+Task47 remains delivered atb657; Task48/51 and wholeD3 remain open. Required remaining
+spatial/model/physical loaders/environment/time work staysD3; campaign geography,
+routes,timers,scheduling and consequences stayCore. D4/D5 not started; baselines,
+tolerances and all earlier failures are preserved.
+
+# D3 checkpoint — observer transcript validator, seed-event timing and off-wording corrected (31 October 2026)
+
+EEDCS-51 / PR111, parent EEDCS-21, branch `codex/d3-environment-services`, from clean pushed
+`2804ca4f`. The same sole Sonnet5.5High lane corrected the three findings of the independent
+source review of `2804ca4f` (one P2, two P3) in the driver, observer, header, tests and
+`eech-campaign/docs/d3-environment-observer.md`. NEW SOURCE: UNBUILT, UNRUN, UNREVIEWED; the
+author has no compiler, Lua or cargo; nothing is committed. No physical state, solver, RNG
+order, time semantic, public ABI or crate changed; the variable-frame previous-delta phase is
+recorded, not fixed.
+
+Changed: `lua/env-characterization.lua` (the observer record is now checked as the source's
+whole grammar: boot episodes in order with any number of further weather/start-time episodes,
+no frame event before `boot_end`, requested ms / clock / previous-delta phase, updates inside
+their frame, complete lightning episodes, capacity and counter conservation; event words
+`w0`..`w5` are strings), `ss_envfx.h` (kind and counter enumerations only under the feature),
+`eech_env_observer.c` (the seed-set event now records the word BEFORE the assignment as `rng`;
+`a` is the target), `host_callbacks.rs` (a stand-in in the form of the REAL 44-event boot,
+a coherent-forms test and 24 new refusals), and the observer document.
+
+Inherited, at their SHAs and reported by Root (not re-run): `2804ca4f` observer Windows build 0;
+Linux fmt 0, 12 environment-driver guards and default + observer all-target strict Clippy 0;
+feature-off preprocess audit V2: all 12 preprocess, `random.c` and `eech_engine.c` literally
+identical, four files differ only by the then-unused enumerations and diagnostic `__LINE__`
+literals/whitespace with equal body tokens (NOT whole-file preprocessor equality; the
+`__LINE__` shift remains and is documented); a real native boot smoke (2 s, 20 frames, native 0,
+387 rows, 44 boot events with TWO weather episodes and TWO start-time episodes, no rain tag).
+The measured original99 three-root/1200-frame controls and the closed guards are unchanged.
+
+Required next, all Root's: format, build, the same-base feature-OFF original against observer
+OFF and ON (the retained fixed 100 ms 120 s comparison and the 100,250,50 ms pairs on Lebanon
+and Georgia), review. Ground shipping processes and their roots are untouched.
+
 # D3 checkpoint — original environment observer prepared; ground shipping live (31 October 2026)
 
 Task51 / PR111 normally composes accepted terrain integrationb657 at setup merge

@@ -1,0 +1,62 @@
+{
+  "source": "2804ca4f7a323493e5bb8f3ba5452958aef9a160",
+  "base": "9e7f7fd64",
+  "actual_preprocessors_all_exit0": true,
+  "declared_comparison": "Analysis only: remove ONLY exact new ENV_FX enum declarations and replace ONLY __FILE__-mapped diagnostic source-line numeric arguments. Raw .i/.diff untouched; NOT literal preprocessing equality, runtime noninterference or campaign acceptance.",
+  "rows": [
+    {
+      "path": "aphavoc/source/entity/special/session/session.c",
+      "new_unused_enum_declarations_removed": 2,
+      "before_diagnostic_lines": 12,
+      "after_diagnostic_lines": 12,
+      "remaining_whitespace_tokens_equal": true,
+      "raw_before_sha256": "5bcc7694bd11001baf077e48ff2e6c0c392fdf2a21df091596bb3972a6d858a7",
+      "raw_after_sha256": "f761c575596bd5a617ae1d67b12d5e642f913db671f4da41af3abf1e771d4c9a"
+    },
+    {
+      "path": "aphavoc/source/entity/special/session/ss_creat.c",
+      "new_unused_enum_declarations_removed": 2,
+      "before_diagnostic_lines": 8,
+      "after_diagnostic_lines": 8,
+      "remaining_whitespace_tokens_equal": true,
+      "raw_before_sha256": "8b7936ccd8ea21511e64cb40aa23a56201c45dec7ee47e96179097e7d1013ce6",
+      "raw_after_sha256": "7fd962b6585f289d6716a337038a81441f4c9c547ccf50da8e94f598d91601be"
+    },
+    {
+      "path": "aphavoc/source/entity/special/session/ss_updt.c",
+      "new_unused_enum_declarations_removed": 2,
+      "before_diagnostic_lines": 6,
+      "after_diagnostic_lines": 6,
+      "remaining_whitespace_tokens_equal": true,
+      "raw_before_sha256": "5904f750cef6a859dc9839591078d4bc6cdbe5d4cf43c6700d406224456fc43e",
+      "raw_after_sha256": "1de84c3f143218e78bb42e5ae769ca079d80eddebbb6d7e190b908c836becd49"
+    },
+    {
+      "path": "aphavoc/source/ai/parser/parsgen.c",
+      "new_unused_enum_declarations_removed": 2,
+      "before_diagnostic_lines": 77,
+      "after_diagnostic_lines": 77,
+      "remaining_whitespace_tokens_equal": true,
+      "raw_before_sha256": "299b05808bc2b67729bc6c4364da65600395441fedbe4fdc0b51dc4d10e340df",
+      "raw_after_sha256": "1b2196201453e7a1cdcda3f620df79491b998f648dd1ef50f3dc8f87afef672e"
+    },
+    {
+      "path": "modules/maths/random.c",
+      "new_unused_enum_declarations_removed": 0,
+      "before_diagnostic_lines": 0,
+      "after_diagnostic_lines": 0,
+      "remaining_whitespace_tokens_equal": true,
+      "raw_before_sha256": "b405ecb6eafd101ccf3eee83847be922311f2822c26cd156b6f6e4e0aca12339",
+      "raw_after_sha256": "b405ecb6eafd101ccf3eee83847be922311f2822c26cd156b6f6e4e0aca12339"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+      "new_unused_enum_declarations_removed": 0,
+      "before_diagnostic_lines": 0,
+      "after_diagnostic_lines": 0,
+      "remaining_whitespace_tokens_equal": true,
+      "raw_before_sha256": "1f31d9ad1d366d5d8f0c43fa40d03f8a7a5d956da41838e944b1bc4b392f9e3a",
+      "raw_after_sha256": "1f31d9ad1d366d5d8f0c43fa40d03f8a7a5d956da41838e944b1bc4b392f9e3a"
+    }
+  ]
+}

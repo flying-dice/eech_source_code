@@ -149,10 +149,11 @@ void eech_envobs_sound_facts (int in_cockpit, float x, float y, float z, float a
 	eech_envobs_event (ENV_FX_SOUND_FACTS, -1, nonzero, eech_envobs_bits (sector_x), eech_envobs_bits (sector_z), 0, 0, 0, 0, rng);
 }
 
-/* random.c: every reseed of the shared generator (the libc generator is reseeded with the same argument by the original in the same call) */
+/* random.c: every reseed of the shared generator (the libc generator is reseeded with the same argument by the original in the same call). The hook runs BEFORE the original assigns the word,
+   so the event's rng and w0 are the word as it stands (`before`) and `a` is the target; the next event's rng shows the assigned word. */
 void eech_envobs_seed_set (int seed, int before)
 {
-	eech_envobs_event (ENV_FX_SEED_SET, seed, 0, (uint32_t) before, 0, 0, 0, 0, 0, seed);
+	eech_envobs_event (ENV_FX_SEED_SET, seed, 0, (uint32_t) before, 0, 0, 0, 0, 0, before);
 }
 
 void eech_envobs_seed_source (int source)
