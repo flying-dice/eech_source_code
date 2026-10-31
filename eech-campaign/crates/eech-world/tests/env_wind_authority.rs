@@ -1628,10 +1628,26 @@ fn the_driver_fails_on_dropped_truncated_malformed_untracked_or_unmatched_launch
     failing("after = { [1] = { 'kind=terminal w=-1 type=gun code=ground steps=-1 distance=-1 pos=1,2,3 velocity=1 lifetime=1 max_velocity=-1 paths=0 track=0000000000000000' } }", &[], "no registered weapon identity", true);
     // an unregistered terminal already standing at the end of the LAUNCH call fails before the arm, whatever the mode: an expected refusal that follows must not be able to report it as zero
     failing("unregistered_at_launch = 1", &[], "UNREGISTERED TERMINAL", false);
-    failing(&format!("unregistered_at_launch = 2, {}", healthy(CASE_TERMINAL)), &[("mode", "withheld_wind")], "UNREGISTERED TERMINAL", false);
-    let counted = drive(&format!("unregistered_at_launch = 2, {}", healthy(CASE_TERMINAL)), &[("mode", "malformed_wind_speed")]);
-    assert!(counted.rows.contains("2 terminal fact(s)") && counted.rows.contains("before the arm"), "the honest count is in the witness failure: {}", counted.rows);
-    assert!(!counted.rows.contains("\"event\":\"wind_sent\""), "nothing was sent: the run never armed: {}", counted.rows);
+    failing(
+        &format!("unregistered_at_launch = 2, {}", healthy(CASE_TERMINAL)),
+        &[("mode", "withheld_wind")],
+        "UNREGISTERED TERMINAL",
+        false,
+    );
+    let counted = drive(
+        &format!("unregistered_at_launch = 2, {}", healthy(CASE_TERMINAL)),
+        &[("mode", "malformed_wind_speed")],
+    );
+    assert!(
+        counted.rows.contains("2 terminal fact(s)") && counted.rows.contains("before the arm"),
+        "the honest count is in the witness failure: {}",
+        counted.rows
+    );
+    assert!(
+        !counted.rows.contains("\"event\":\"wind_sent\""),
+        "nothing was sent: the run never armed: {}",
+        counted.rows
+    );
     // a terminal the fixture counted as unregistered, noticed at the end of a completed run
     failing(
         &format!("unregistered_after = 1, {}", healthy(CASE_TERMINAL)),
