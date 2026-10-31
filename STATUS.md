@@ -1,3 +1,42 @@
+# D3 checkpoint — focused ground gates closed; full shipping live (31 October 2026)
+
+Production aafb21775 and test-only recovery e1076ece3 have closed focused gates.
+All three real-map comparisons remain exact to c119/02cc; both Lebanon complete
+bounded reports match. Linux and actual Windows each pass21 synthetic backend
+checks, including104 caller-state calls across13cases/fourrounding modes/twoflag
+patterns. x87 control/status and MXCSR are exact. Strict all-target Clippy passes0.
+FP actual recovery review has no findings, SHA256
+2d60696be528582f00962c0681080a2ad6dc919ac2eef40b992ccf5b4ae2e672.
+
+Actual Windows weapon suite completed16/16 with9real modes and18pre/post manifests0.
+One anti-aircraft-launched20mm projectile cohort is matched: changed below answer
+changes7steps to1; exact shifted impact is consumed; all6specific withheld/malformed
+replies stop at the named guard after launch. This is bounded host-world authority,
+not all-family coverage or isolated campaign-policy/RNG causality. Independent
+actual authority review is clear, SHA256
+ac99a17707fdbcbc56c1c3e3f520c9a995a003b8456c368acd8d15c2c01b1d4e.
+All8 CI checks passed at e107. Safe proofs are under
+reference/d3-ground-characterization/focused-closure-aafb-e107/; raw data stays private.
+
+The ORIGINAL ordinary shipping pack is LIVE, SAME72359/runner20800 born01:31:27UTC.
+Four original campaign processes17448/8964/18980/24868 were verified with their
+creation identities and separate roots. Source/bin at immutable aafb; output
+R:/d3-evidence/shipping-ground-aafb21775-final-pack-20261031. At01:39UTC all4
+nonempty ACMI/observation prefixes match accepted bytes (about1.75MBACMI/1.40MBOBS
+per recording). These are PARTIAL, not40/40/eight-complete acceptance. Do not restart
+on quiet output/timeouts. Actual runner0, exact40PASS, complete8file comparison,
+post-inputs/source/bin rechecks/final review/currentCI/normalmerge remain required.
+
+The single Sonnet5.5High lane now characterizes original environment initialization,
+sharedRNG/lightning/effects and real variable-frame time phases on Task51 branch.
+SAME69432/PID17412 born01:39:24UTC, available environment contextf3982761...;
+accepted integrationb657 composed locally. Observer edits are unbuilt/unrun; no
+physical environment extraction yet. Existing original99/guard evidence is reused.
+Task47 remains Done/normal mergeb657; Task48 and wholeD3 stay open. Required other
+spatial/model/hierarchy/device/physical route-data/loaders/environment/time services
+remain D3, campaign geography/routes/timers/scheduling/consequences stay Core.
+D4/D5 not started; all earlier failures/baselines/tolerances remain unchanged.
+
 # D3 checkpoint — guarded product measured; test-only FP coverage recovery (31 October 2026)
 
 Production sourceaafb21775 is frozen/pushed. All three Windows builds and test

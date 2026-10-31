@@ -1,0 +1,12 @@
+{
+  "test_source": "e1076ece31565a3b4f73a7e2adbe8e2698d9c023",
+  "unchanged_production_source": "aafb21775f5d3523a30f148d23fbce588902025a",
+  "actual_exit": 0,
+  "passed_all21": true,
+  "test_exe_sha256": "ef6e61c72466250408bc45dcb913551d13976ccf0b9a3256a73ff363e3bf2d4c",
+  "image": "sha256:fdd1ee663d60bf8277d454a590002c941ef2259bd8f1ad0bc3c4902a65fd0512",
+  "started_utc": "2026-10-31T01:25:36.027048+00:00",
+  "completed_utc": "2026-10-31T01:25:36.479916+00:00",
+  "log": "R:\\d3-evidence\\ground-fp-Windows-e1076ece3-recovery-20261031.log",
+  "scope": "Actual Windows synthetic terrain tests; all4FP controls,4round modes,2flag patterns,case assertions andhardwareflag raising; no retail/native campaign proof"
+}

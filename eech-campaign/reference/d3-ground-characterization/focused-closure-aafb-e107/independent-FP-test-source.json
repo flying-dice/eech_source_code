@@ -1,0 +1,124 @@
+{
+  "schema": 1,
+  "review_kind": "single narrow test-only changed-delta correctness/clean-code/boundary and evidence-label review",
+  "reviewed_head": "e1076ece31565a3b4f73a7e2adbe8e2698d9c023",
+  "base": "aafb21775f5d3523a30f148d23fbce588902025a",
+  "snapshot": "R:\\d3-evidence\\ground-test-recovery-source-e1076ece3",
+  "frozen_clean_before": true,
+  "frozen_clean_after": true,
+  "prior_report": {
+    "path": "R:\\d3-evidence\\independent-ground-production-corrections-review-aafb21775-20261031.json",
+    "sha256": "befc10c40b854bf1ae6e430efd57409c1732b1621ad8365707697c63163b93c1",
+    "reused_scope": "aafb production wrapper/bridge/authority correction source review; no unchanged kernel/ABI review"
+  },
+  "disposition": "TEST_SOURCE_CLOSED_PENDING_ACTUAL_RECOVERY",
+  "findings": [],
+  "source_sha256": {
+    "eech-campaign/crates/eech-world/tests/terrain_backend.rs": "20994323a4f813fed08166d1d283afde66c30856ee59aa55306e4773384e9942",
+    "eech-campaign/docs/m5-ground-production-handoff.md": "6a60a1c67809914d5e941a5720bd95870c2d7f4a32cb730176fd76d19f4c6725",
+    "STATUS.md": "a12213665ef6917c7ec1dd11df3e53b4775a41bad9247c1ed4a9333ea754e79f"
+  },
+  "production_reuse": {
+    "changed_code_files": [
+      "eech-campaign/crates/eech-world/tests/terrain_backend.rs"
+    ],
+    "production_C_Rust_Lua_exact_base": true,
+    "reason": "The only changed code file is the terrain_backend integration-test target. Source labels remain actual aafb for production binaries; no new production build/runtime is asserted by e107 metadata."
+  },
+  "test_assessment": [
+    {
+      "topic": "sector metadata and old-fixture preservation",
+      "result": "CORRECTED",
+      "detail": "Shape.sector_heights defaults to None, writing radius0, heights0/0/0 and finalword0 exactly as the old five-zero-word sequence. Only ground_map selects min/max/average1000, corresponding to its unchanged default1000 plane. Correct loader field order is used; no physical solver/file-loader behavior changes."
+    },
+    {
+      "topic": "case preconditions and coverage",
+      "result": "CORRECTED",
+      "detail": "900m is below the1000m sector maximum and its actual above/below results must report queried and a record.40000m must be decided without either.2500 lies inside supplied world[-1000,3000] but outside physical[0,2047] and must fail specifically on sector read.5000 is separately the legitimate outside-world/no-read below answer. Preconditions are asserted from map/world facts and every matrix run verifies its declared outcome. Supported impact checks retain plane/type/zero original-assert facts; no original oracle/tolerance is changed."
+    },
+    {
+      "topic": "flag sensitivity and observation order",
+      "result": "IMPROVED",
+      "detail": "Every case runs four rounding modes under both saturated and non-saturated nonzero status. The partial pattern leaves invalid clear while zero-divide/inexact are set; an independent hardware infinity-minus-infinity control checks that raising invalid is observable. The returned outcome and caller state are captured before diagnostic formatting or case verification. Exact x87 control/status and MXCSR comparisons remain; tag/exception pointers, unmasked exceptions and non-x86 execution are not proved."
+    },
+    {
+      "topic": "test meaning and boundaries",
+      "result": "SOUND_WITH_PENDING_EXECUTION",
+      "detail": "These synthetic-map tests exercise the real loader and public kernel entries without retail data, not an alternative ground solver. The coverage classifier no longer calls a correct short circuit a read or an outside-world success a refusal. Existing17 asset-free fixtures retain byte construction with None. No safety blocker to compiling/executing the corrected tests was found."
+    }
+  ],
+  "retained_failures": {
+    "aafb_linux": {
+      "actual_exit": 101,
+      "path": "R:/d3-evidence/ground-production-aafb21775-linux-20261031-completion.json",
+      "meaning": "Coverage assertion failed; original state-reader/matrix passed within their actual wrongly labelled cases; strict Clippy not reached."
+    },
+    "aafb_actual_windows_FP": {
+      "actual_exit": 101,
+      "report_sha256": "ebf852e50e0aaa64c4d34f8c6f84c171dc2714445c7c89166bd024e24e8fa7d0",
+      "log_sha256": "8268dbd264ecce1e20966f19ca9ad0a50deb3a34491abe3096bda47ead822be5",
+      "actual_results": "2 passed /1 coverage failure. No claim that failed coverage or full recovery passed."
+    }
+  },
+  "new_corrected_test_evidence_at_review": [
+    {
+      "kind": "linux",
+      "path": "R:\\d3-evidence\\ground-fp-recovery-e1076ece3-linux-20261031-process.json",
+      "sha256": "3f62ba4ca949f7c12016e2d1c34aa6e5e0c1d10ee1b592bf76c6fb198c0f26ae",
+      "state": "running",
+      "actual_exit": null,
+      "meaning": "A running/null-exit record is pending, not success. Windows compile/export does not alone prove actual native execution."
+    },
+    {
+      "kind": "windows",
+      "path": "R:\\d3-evidence\\ground-fp-recovery-e1076ece3-windows-20261031-completion.json",
+      "sha256": "24925f2f017d9118a1d5d676b303e06a2cb89471ecdf4497914b7cececbe4701",
+      "state": "terminal",
+      "actual_exit": 0,
+      "meaning": "A running/null-exit record is pending, not success. Windows compile/export does not alone prove actual native execution."
+    }
+  ],
+  "bounded_new_production_evidence": {
+    "measured_source": "aafb21775f5d3523a30f148d23fbce588902025a",
+    "controller": "R:/d3-evidence/ground-production-conformance-aafb21775-20261031/controller.json",
+    "controller_sha256": "a1fd02aeb365a54aa39033308f325d41f5f4e6b104ba86036a4d1d7444d5f206",
+    "actual_exit": 0,
+    "cases": [
+      {
+        "case": "lebanon",
+        "bytes": 39581,
+        "sha256": "16e870fb3381b5739f065a7cff4ccdd68ea79a9ed1521d87108a00c2929682e5",
+        "strict_rows": 119,
+        "complete_bytes_exact_closed02cc": true,
+        "native_and_four_companion_exits": 0
+      },
+      {
+        "case": "lebanon-repeat",
+        "bytes": 39581,
+        "sha256": "16e870fb3381b5739f065a7cff4ccdd68ea79a9ed1521d87108a00c2929682e5",
+        "strict_rows": 119,
+        "complete_bytes_exact_closed02cc": true,
+        "native_and_four_companion_exits": 0
+      },
+      {
+        "case": "georgia",
+        "bytes": 39559,
+        "sha256": "0e6a9d7bc787c627922f69afc60cf40eadda24ab91d15710683738588b3861d7",
+        "strict_rows": 119,
+        "complete_bytes_exact_closed02cc": true,
+        "native_and_four_companion_exits": 0
+      }
+    ],
+    "scope": "New guarded production finite query measurements match every whole119-row report byte for byte to the closed02cc dataset. This reuses the prior independently checked c119 common-value comparison, not new kernel review. It does not prove the authority suite or whole shipping."
+  },
+  "readiness": {
+    "corrected_test_execution": "ALLOW_WITH_RECORDED_LIMITS; no source blocker",
+    "FP_acceptance": "PENDING actual corrected Linux and Windows tests including coverage and partial flag pattern",
+    "strict_lint": "PENDING actual corrected completion",
+    "authority": "Separate actual nine-mode suite remains pending; no judgement inferred from live/partial controls",
+    "overall": "No Task48, production-delivery, formal GitHub, Tacview/full-shipping or whole-D3 acceptance."
+  },
+  "remaining_scope": "Required remaining physical/spatial/model/entity/hierarchy/device/environment/time/solver-loader services and final accepted40/eight artifacts/currentCI/normal delivery remain. No active physical responsibility is deferred to D5.",
+  "review_actions": "Read-only source/Git/JSON/log/hash checks and this one private report only; no builds/tests/native/process/cache/auth/Git mutations, source edits, external writes or nested agents.",
+  "created_utc": "2026-10-31T01:25:02.276236+00:00"
+}
