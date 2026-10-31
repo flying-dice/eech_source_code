@@ -1,9 +1,20 @@
-# D3: the lightning sound effect entities and their lifetimes — ORIGINAL-behaviour probe (test-only; source prepared, UNBUILT, UNRUN, UNREVIEWED)
+# D3: original sound entity and lifetime characterization
 
-EEDCS-51 / D3, the physical-environment responsibility chosen next after the lightning queue. **Nothing here moves behaviour, hands anything to a host or claims any result.** It adds the smallest test-only
-measurement of what the ORIGINAL code creates and how it ages it, so that a later extraction has a baseline. The sibling probe for the strike queue is [d3-lightning-queue.md](d3-lightning-queue.md); the
+## Measured checkpoint — 31 October 2026
+
+The corrected original native `9429beefb9a8e143b648e01c390075882e6e6361` with pinned Lua-only driver `e1dc758074fba7fa8a4af99604ceecb85cf20483` has now run all four controls. Native/controller exits are all0, eight pre/post retail manifest checks pass, and all55 native payloads remain unchanged. Source review and the same independent actual/comparator/safe-publication review are clear (private-original review SHA256 `c0119559a4de76b6dde864dc50417dba53a2c90d4114830dabd41c266a044f0d`). Only the measured zero-start valid nonloop/no-handle scope and three named controls are closed; all nine e1dc CI jobs pass. [Safe evidence](../reference/d3-environment-characterization/sound-entity-original-native942-driver-e1dc-closure/README.md) distinguishes native and script identities and reused gates.
+
+The natural 120simsecond/1200frame Lebanon report preserves **all17,257 old host-queue native7db raw lines and endings byte for byte**. The strict whole-file comparison remains FALSE/exit1 because the new report adds26 sound diagnostic lines. There are no other differences; no baseline, tolerance or measured file is rewritten. The three new sound primitives have no equivalent retained old sound reports.
+
+Actual sound facts: enabled0, initialized0, paused0;2069 sample descriptors; lightning and thunder rate/original-rate22050 and size0. Four natural sound entities start at lifetime0 and each expires without a handle and is killed on its first update (four updates/four kills/sixteen records, no drops/untracked creations). Server control1 likewise kills on its first0.1s update, safely skips the second call and restores delta. Direct client control2 runs twice, clamps to0, remains alive and restores delta; it is not a real client/network delivery. Control3 creates nothing and reports prerequisites. These process facts do not establish missing retail audio assets.
+
+The Windows942 build and corrected C/World gate pass. Earlier c9 broad default/observer release and both strict checks are explicitly reused only under the retained source equivalence; its unsafe old fixture/binaries are unused on retail. The e1dc Lua-only production/build-input identity proof binds both script overrides to native942. Current fmt/5sound/45host-callback/World strict pass. Earlier failures remain retained; the first overwritten d1 raw development log remains unavailable, with only a labelled excerpt and three partial user tool-result failures. No recovered raw log is claimed.
+
+Sound behavior remains original and coupled. Playing/idle handles, invalid/looping/unlink paths, nonzero sample data and audible/player/network delivery are uncovered. This checkpoint does not accept Task51/D3, shipping or a host sound extraction. The design and source account below record the original probe; statements about planned commands and unmeasured behavior describe its preparation, superseded only by the scoped actuals above.
+
+EEDCS-51 / D3, the physical-environment responsibility chosen next after the lightning queue. This test-only probe measures what the ORIGINAL code creates and how it ages it, before moving that behavior to the host. The sibling probe for the strike queue is [d3-lightning-queue.md](d3-lightning-queue.md); the
 shape is the same (a separate finite probe store, a fixture group, a natural-run block of the retained driver, a control driver, guards). Every statement under "What the source says" is a reading of the code,
-not a measurement; every "not known" stays unknown until Root has built and run this.
+not a measurement; the measured checkpoint above states exactly which facts are now known.
 
 ## What the source says (read, not measured)
 
@@ -86,7 +97,7 @@ Source entry points changed (Root's feature-off check applies to the two product
 `lua/env-sound-lifetime.lua` and the guards in `tests/env_sound_lifetime.rs` and `tests/host_callbacks.rs`. `eech_engine.c` (one NUL byte) is **not** touched. The raw natural reports are unchanged when `sound=off`; the
 retained observer and queue reports stay comparable (the new records are in a separate store, and no event, kind or sequence number was added to the stream). A new engine build is needed.
 
-## Commands for Root (nothing here was built or run)
+## Original probe recipe (now executed within the measured scope above)
 
 `cargo fmt --check`; `cargo test -p eech-world --test env_sound_lifetime`; `cargo test -p eech-world --test host_callbacks sound` and `... environment` (each filter must report a NON-ZERO count: a filter that
 selects nothing proves nothing); `cargo test -p eech-world --test env_lightning_queue`; clippy; build `eech-dc` with `env-observer`; the feature-off token check for the two production hook bodies (the default-feature
@@ -105,4 +116,4 @@ own fresh process and root. Private coordinates and raw outputs stay outside Git
   state, and the campaign's time inputs. Campaign policy, scheduling and consequences stay in the Core.
 * Remaining whole-D3 work: this characterisation run and comparison; moving the sound responsibility to the host only after it; the remaining time inputs; the required terrain, spatial and model services; the full
   shipping 40 and all 8 complete byte identities; current checks, review and the normal merges. D4 and D5 are unstarted. Choosing sound next does not close Task 51 or narrow D3. The probe, its drivers and its guards
-  are UNBUILT (apart from a WIP compile check), UNRUN and UNREVIEWED. No host API, schema or ABI is proposed.
+  were originally prepared without runtime evidence; the checkpoint above supersedes that preparation status. No host API, schema or ABI is proposed.

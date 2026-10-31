@@ -1,0 +1,302 @@
+{
+  "schema": "independent-actual-evidence-review-v1",
+  "created_utc": "2026-10-31T20:56:34.146172+00:00",
+  "reviewer": "sole independent Codex reviewer /root/d3_environment_review",
+  "source": {
+    "tested_native": "9429beefb9a8e143b648e01c390075882e6e6361",
+    "tested_driver": "e1dc758074fba7fa8a4af99604ceecb85cf20483",
+    "equivalent_legacy_control": "7db2c6a91b4cd0a1fae2d8e20bfa169584618d24",
+    "current_repo_head": "e1dc758074fba7fa8a4af99604ceecb85cf20483",
+    "working_changes": "Only proposed STATUS/docs and safe reference evidence; runtime source stays pinned."
+  },
+  "scope": "One finite new actual-evidence/comparator/safe-publication review. No repeated source/kernel/old experiment review. Current hosted environment/queue/ambient baseline with original sound constructor/update behavior, not a whole unhooked original DLL.",
+  "findings": [],
+  "actual_review_no_blocking_findings": true,
+  "safe_publication_review_no_blocking_findings": true,
+  "original_characterization_closed": true,
+  "closed_measured_scope": "One fixed Lebanon natural run plus three fresh-process primitive controls: valid nonlooping lightning/thunder zero-start lifetimes and no playback handle; direct server early-kill safety, direct client clamp/no-kill and playback prerequisite facts. Finite characterization only.",
+  "native_and_control_receipts": {
+    "aggregate": {
+      "path": "R:\\d3-evidence\\environment-original-sound-entity-controls-e1dc75807-20261031\\controller.json",
+      "sha256": "d04806527fa61660bc2db275f51b3e87757292422d77d5b9cd1c51cce0ccf262",
+      "bytes": 406878
+    },
+    "aggregate_exit": 0,
+    "completed_utc": "2026-10-31T20:50:55.643851+00:00",
+    "runs": [
+      {
+        "case": "natural",
+        "controller": {
+          "path": "R:\\d3-evidence\\environment-original-sound-entity-controls-e1dc75807-20261031\\natural\\controller.json",
+          "sha256": "fb02154b05e9b996c9a80b19dab00a6807945a3f9fb407447849086bb8273843",
+          "bytes": 348738
+        },
+        "raw": {
+          "path": "R:\\d3-evidence\\environment-original-sound-entity-controls-e1dc75807-20261031\\natural\\environment.jsonl",
+          "sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+          "bytes": 5191384
+        },
+        "native_exit": 0,
+        "controller_exit": 0,
+        "input_checks": 2,
+        "retail_files_per_manifest": 1179,
+        "payloads": 55,
+        "script_sha256": "a63f7617cd4030a6c4ab7a90470dbdc867002d22b04bbfd5a47cfa332a7aaed0",
+        "rows": 17283
+      },
+      {
+        "case": "primitive-1",
+        "controller": {
+          "path": "R:\\d3-evidence\\environment-original-sound-entity-controls-e1dc75807-20261031\\primitive-1\\controller.json",
+          "sha256": "12452236c6ad44f310bc123f7ce02b0c2fe6998d7c31b2864722c363da7517bd",
+          "bytes": 4672
+        },
+        "raw": {
+          "path": "R:\\d3-evidence\\environment-original-sound-entity-controls-e1dc75807-20261031\\primitive-1\\environment.jsonl",
+          "sha256": "2ecb2a518367931a02b30d2c88df9bdd22adb3c6e6a2a2993e1c98f445037ee1",
+          "bytes": 7139
+        },
+        "native_exit": 0,
+        "controller_exit": 0,
+        "input_checks": 2,
+        "retail_files_per_manifest": 1179,
+        "payloads": 55,
+        "script_sha256": "f6d1641f7254ec1f4e89b2df25753994e6cceb81a5b86b768e91854d5f23852a",
+        "rows": 16
+      },
+      {
+        "case": "primitive-2",
+        "controller": {
+          "path": "R:\\d3-evidence\\environment-original-sound-entity-controls-e1dc75807-20261031\\primitive-2\\controller.json",
+          "sha256": "932227a2f14ac45cb56e905221cbf7f1f3c85e6a2f749497e62f985df447b0bb",
+          "bytes": 4688
+        },
+        "raw": {
+          "path": "R:\\d3-evidence\\environment-original-sound-entity-controls-e1dc75807-20261031\\primitive-2\\environment.jsonl",
+          "sha256": "b47ae58074dddd78f54aa4c1e93f0c9abb1899966de344e38310a2ea5ed13324",
+          "bytes": 7995
+        },
+        "native_exit": 0,
+        "controller_exit": 0,
+        "input_checks": 2,
+        "retail_files_per_manifest": 1179,
+        "payloads": 55,
+        "script_sha256": "f6d1641f7254ec1f4e89b2df25753994e6cceb81a5b86b768e91854d5f23852a",
+        "rows": 17
+      },
+      {
+        "case": "primitive-3",
+        "controller": {
+          "path": "R:\\d3-evidence\\environment-original-sound-entity-controls-e1dc75807-20261031\\primitive-3\\controller.json",
+          "sha256": "c53416705778825ed7dcdd5db78428cc53a16f360c808815c1a635eb847b8ef7",
+          "bytes": 4617
+        },
+        "raw": {
+          "path": "R:\\d3-evidence\\environment-original-sound-entity-controls-e1dc75807-20261031\\primitive-3\\environment.jsonl",
+          "sha256": "43f8c4fc73617b6c7a26d6410a3e4a175329c5d8f6b3cdf1df87f42a7a27b289",
+          "bytes": 3488
+        },
+        "native_exit": 0,
+        "controller_exit": 0,
+        "input_checks": 2,
+        "retail_files_per_manifest": 1179,
+        "payloads": 55,
+        "script_sha256": "f6d1641f7254ec1f4e89b2df25753994e6cceb81a5b86b768e91854d5f23852a",
+        "rows": 12
+      }
+    ],
+    "all_native_controller_exits_zero": true,
+    "all_eight_pre_post_inputs_zero": true,
+    "all_fifty_five_payload_hashes_verified": true,
+    "build_info": {
+      "path": "R:\\d3-evidence\\environment-sound-entity-original-source-9429beefb\\eech-campaign\\target\\env-observer\\sound-entity-original-9429beefb\\BUILD-INFO.txt",
+      "sha256": "5f89b32e93190b8ef22d8d46675f70dd4ec8567b4ad0dbcffce4e63cdbbd2930",
+      "bytes": 5647
+    }
+  },
+  "measured_facts": [
+    "Natural: four creations, sixteen records, four updates and four no-handle expiry/kills; four [CREATED,SERVER_ENTER,EXPIRED_NO_HANDLE,KILLED] chains at update1, initial lifetime word zero, no dropped/overflow/untracked records. All original raw outputs and endpoints retained.",
+    "Server control1: real first 0.1-second update kills; calls1/second_skipped1, free end slot and delta restored. The dangerous second call was not executed.",
+    "Client control2: two direct real client-routine calls on a server-created entity; lifetime clamps to zero, no kill, live sound slot/data retained and delta restored. This is not a real client, network or player delivery.",
+    "Control3: no entity created, prerequisites and explicit unsupported playback-handle branches reported. No playback handle fabricated.",
+    "Process facts: enabled0/initialized0/paused0; 2069 sample descriptors; lightning/thunder rates and original rates22050, sample sizes0. This does not prove missing retail audio assets or lack of audio on other paths."
+  ],
+  "comparison": {
+    "helper": {
+      "path": "R:\\d3-evidence\\compare-original-sound-controls-20261031.py",
+      "sha256": "f2bd911ee670e19694bfd140f9c48c9a92e443758f6a9ed0dde27257bcad9a3d",
+      "bytes": 3684
+    },
+    "retained_report": {
+      "path": "R:\\d3-evidence\\original-sound-e1dc-vs-queue7db-complete-raw-20261031.json",
+      "sha256": "9da947b7f5d3b0f0b7f63e682406b2a0af5c22fb43183a5ab0f71f220d4b34bd",
+      "bytes": 6824
+    },
+    "strict_whole_raw_equal": false,
+    "strict_comparator_actual_exit": 1,
+    "old_rows": 17257,
+    "new_rows": 17283,
+    "added_rows": 26,
+    "added_event_counts": {
+      "env-snd-plan": 1,
+      "env-snd-facts": 1,
+      "env-snd-unsupported": 2,
+      "env-snd-report": 1,
+      "env-snd": 16,
+      "sound_entity": 4,
+      "sound_summary": 1
+    },
+    "every_retained_legacy_raw_line_and_ending_equal": true,
+    "retained_bytes_sha256": "2ba8df21b36eeca7be70ea303d79c9d8ae932034ac250dba9f30d7675434fcb5",
+    "scope": "Independent byte/ending recomputation confirms only the contiguous explicitly scoped sound diagnostic block was added. The helper validates completed controllers/stages and raw hashes, preserves strict whole equality FALSE/exit1, and separately compares every old raw line without changing either file. No baseline/tolerance/raw normalization; primitives are new original observations, not unrelated queue comparisons."
+  },
+  "provenance_and_gates": {
+    "native_driver_equivalence": {
+      "path": "R:\\d3-evidence\\original-sound-native9429beefb-driver-e1dc75807-equivalence-20261031.json",
+      "sha256": "eacdf38d62ac0b241cf058f10e17b5adf85d7a480d821161b25a6c67c0bab725",
+      "bytes": 1378
+    },
+    "c9_broad_reuse_equivalence": {
+      "path": "R:\\d3-evidence\\original-sound-c9-to-9429beefb-validation-equivalence-20261031.json",
+      "sha256": "45623fc412c77433eb57b63d2f6433af73fc22bce0beda6949deaa2ac986eb9c",
+      "bytes": 1519
+    },
+    "source_review": {
+      "path": "R:\\d3-evidence\\independent-environment-original-sound-source-review-e1dc75807-20261031.json",
+      "sha256": "4e8664c7c34322311d6555de015cf909a981d5d16bebaa3a9a05eede5074374d",
+      "bytes": 6818
+    },
+    "native_gate": {
+      "path": "R:\\d3-evidence\\environment-sound-entity-original-9429beefb-windows-20261031-completion.json",
+      "sha256": "a317b326fa6ff2ca411edb6b69a60cb2eb3b5b82c17714a39278fd633be4e56e",
+      "bytes": 665
+    },
+    "native942_linux_gate": {
+      "path": "R:\\d3-evidence\\environment-sound-entity-original-9429beefb-linux-20261031-completion.json",
+      "sha256": "ec40e96a5615b873170fe5222442ab0377ef6b1baa47a8c49703243b7f6c9a70",
+      "bytes": 798
+    },
+    "c9_broad_gate": {
+      "path": "R:\\d3-evidence\\environment-sound-entity-original-c9c1b0a1b-linux-20261031-completion.json",
+      "sha256": "eaab612b0aa0d8d7cac7d46cced19bb98a7add28319bcccb1746011481556a6c",
+      "bytes": 662
+    },
+    "current_e1dc_gate": {
+      "path": "R:\\d3-evidence\\environment-sound-entity-original-e1dc75807-linux-20261031-completion.json",
+      "sha256": "a7d10e3d3fa3ac6810d42a94a97dcf7fbfe2211e883e90f09e49ce325c960a42",
+      "bytes": 766
+    },
+    "current_e1dc_ci": {
+      "path": "R:\\d3-evidence\\current-CI-e1dc75807-20261031.json",
+      "sha256": "cc9d7ac5c45f2195a9a488b0df22c024a64a7b00f19b2a388e4052b4e7603d40",
+      "bytes": 1759
+    },
+    "scope": "Read completion receipts and actual shell/log scopes: c9 default/observer release packages and both strict profiles0 reused only for unchanged algorithm/hook inputs. Changed fixture/observer C required rebuilt native942, observer C compile and affected guards/strict0. Current e1dc Lua-only fmt/sound5/host45/world all-target strict0; all nine exact-e1dc CI jobs now completed success. Both source overrides rehashed and match receipts; none is relabelled as a new native binary. No runtime source edits or CI queries performed by reviewer."
+  },
+  "safe_publication": {
+    "directory": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-entity-original-native942-driver-e1dc-closure",
+    "receipt_identities": {
+      "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-entity-original-native942-driver-e1dc-closure\\receipt-identities.json",
+      "sha256": "6a3c4455dbf63609f10f647a62b92fa6c11c556151250a5ffe34306f83b3d663",
+      "bytes": 6305
+    },
+    "identity_entries_verified": 13,
+    "public_files": [
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-entity-original-native942-driver-e1dc-closure\\BUILD-INFO.txt",
+        "sha256": "5f89b32e93190b8ef22d8d46675f70dd4ec8567b4ad0dbcffce4e63cdbbd2930",
+        "bytes": 5647
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-entity-original-native942-driver-e1dc-closure\\complete-raw-comparison-safe.json",
+        "sha256": "2d0145f4c865e82a99059e8e90d5985e60cbb4d6673090e8a2ad6e36e9b19477",
+        "bytes": 6597
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-entity-original-native942-driver-e1dc-closure\\environment-sound-entity-original-9429beefb-linux-20261031-completion.json",
+        "sha256": "3dcdda022a0786b69471bcc1012422c70d14b099ee3613fd3c95620df33921a1",
+        "bytes": 780
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-entity-original-native942-driver-e1dc-closure\\environment-sound-entity-original-9429beefb-windows-20261031-completion.json",
+        "sha256": "1b6de17b72def1e9f5165ec22e450f737aff74303e0e1850847bda1363bc598d",
+        "bytes": 647
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-entity-original-native942-driver-e1dc-closure\\environment-sound-entity-original-c9c1b0a1b-linux-20261031-completion.json",
+        "sha256": "2f4e5c1bf4933e7c1229423ff0296dd9c7bf021b1fccaa6b0301d6f9139b4a98",
+        "bytes": 644
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-entity-original-native942-driver-e1dc-closure\\environment-sound-entity-original-e1dc75807-linux-20261031-completion.json",
+        "sha256": "208b68b9713fca9f3064d1a7065a325d1d29ac693d410dd50c3c22bfa302bc1e",
+        "bytes": 748
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-entity-original-native942-driver-e1dc-closure\\independent-environment-original-sound-source-review-e1dc75807-20261031.json",
+        "sha256": "0504e3b9407179b067ce69990787c0f25244dd14e19cd312b3bc54f890f12542",
+        "bytes": 6706
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-entity-original-native942-driver-e1dc-closure\\natural-controller.json",
+        "sha256": "a72a9a3181cdf424c467aa7cb84f4c5c638eefba536411be8a202c5a8ffbf8d7",
+        "bytes": 5420
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-entity-original-native942-driver-e1dc-closure\\original-sound-c9-to-9429beefb-validation-equivalence-20261031.json",
+        "sha256": "37f0a9f6f7ec58bc7ccad917587291ec5fda7d789846c2583a3b923d98fe508e",
+        "bytes": 1496
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-entity-original-native942-driver-e1dc-closure\\original-sound-native9429beefb-driver-e1dc75807-equivalence-20261031.json",
+        "sha256": "7617fe0210ef849b8629c1789d039713adc2b9529aa4fe567ee4ce8fbfb59820",
+        "bytes": 1358
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-entity-original-native942-driver-e1dc-closure\\primitive-1-controller.json",
+        "sha256": "ce50e1befcbd6f5dc45568b06e93d17bd0c14de75742ec26fe9e0f250dca76ee",
+        "bytes": 4613
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-entity-original-native942-driver-e1dc-closure\\primitive-2-controller.json",
+        "sha256": "495f5b05bee70df8b754c4986ea759c71d3d3186d223f7bd2b57061433d591b5",
+        "bytes": 4613
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-entity-original-native942-driver-e1dc-closure\\primitive-3-controller.json",
+        "sha256": "2bdb42faa848fe88cacfab8f3d8795690f79b23f380031e29eb928b9c389edd7",
+        "bytes": 4569
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-entity-original-native942-driver-e1dc-closure\\README.md",
+        "sha256": "eebaede725ae40f89ff246f180902d7e28ef674b2981576b65aa691f742a9096",
+        "bytes": 3628
+      },
+      {
+        "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\reference\\d3-environment-characterization\\sound-entity-original-native942-driver-e1dc-closure\\receipt-identities.json",
+        "sha256": "6a3c4455dbf63609f10f647a62b92fa6c11c556151250a5ffe34306f83b3d663",
+        "bytes": 6305
+      }
+    ],
+    "verified": "Private-original and publication hashes verified. Controllers exactly replace repeated event lists with event counts and an explicit publication note. Comparison omits per-entity allocation/probe indices and adds explicit strict exit/publication metadata; other facts match. Proposed metadata contains no raw coordinate records, retail input arrays or allocation entity IDs. README/STATUS/docs scope and pending-review status are accurate at review; final status may be updated by Root."
+  },
+  "retention_gap": {
+    "first_d1_raw_available": false,
+    "partial_excerpt": {
+      "path": "R:\\d3-evidence\\sound-journal-WIP-20261031-d1-first-run-excerpt.txt",
+      "sha256": "c31d83f1b81e4a1415eb8ef01c10bc723a3a432c85851691a8b64ff428a0da74",
+      "bytes": 1152
+    },
+    "scope": "The first overwritten d1 WIP raw log remains unavailable. Labelled excerpt and retained user tool-result failures are partial, not recovered raw. Safe docs disclose this; subsequent exclusive failures/greens, reds and canonical/native/campaign records remain separate."
+  },
+  "next_material_uncharacterized_responsibility": "Original positive sample-lifetime assignment/aging and the active looping/invalid/unlink branches remain unmeasured before a generic sound-lifetime move. These actuals cover size0, not positive sample data. Next bounded source responsibility is sound lifetime behavior under those real source domains; no new fixture is designed or approved here.",
+  "limitations": [
+    "No host sound extraction, amplitude authority, actual playback/device handle, audible/player/network/render delivery, live-client behavior or positive-sample/looping/invalid/unlink proof. Current process sound flags are observations, not model/headless prerequisite assumptions.",
+    "Byte equality covers every retained diagnostic raw line, not all state, CPU FP state, visual Tacview, full shipping or campaign-duration completion. Natural configured120s/1200frames is the retained focused configuration; run completion/coverage flags are not all-family campaign acceptance.",
+    "Original characterization closed only for the finite measured scope. Whole Task51/D3 remains open, including required sound/time/terrain/spatial/model, full40/all8 complete shipping bytes, current delivery checks/reviews and normal merges. D4/D5 not started."
+  ],
+  "physical_handoff_accepted": false,
+  "shipping_accepted": false,
+  "task51_or_D3_complete": false,
+  "reviewer_actions": "Read-only source/retained-artifact analysis and this private report write only. No native runs, builds, tests, Docker/process changes, source edits, public writes, auth changes or agents. EECH regression evidence-audit guidance applied; no run workflow invoked."
+}
