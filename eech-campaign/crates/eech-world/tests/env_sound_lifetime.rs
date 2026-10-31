@@ -537,7 +537,7 @@ fn data_report_variant(case: u32, variant: &str) -> String {
         }
         _ => vec![Ent {
             slot: 20,
-            sub: 5,
+            sub: 23,
             server: case == 9,
             created: live,
             paused: Some(cap("40a00000", "3fc00000", 0, 0, 1)),
@@ -575,7 +575,8 @@ fn data_report_variant(case: u32, variant: &str) -> String {
     );
     text += &format!("env-sound-data-input tag=deltas calls={planned_calls} delta_w={delta}\\n");
     if case >= 9 {
-        text += "env-sound-pause sub=5 delay_w=3fc00000 children_sound=1 children_of_type=1 returned=1\\n";
+        // the shape of an actual run: the session holds ambient sound children of OTHER sub types, which the real pause leaves alone
+        text += "env-sound-pause sub=23 delay_w=3fc00000 children_sound=11 children_of_type=1 returned=1\\n";
     }
     // the states, in the order the fixture takes them: every constructor state, the state after the pause, then each entity's calls
     for (i, e) in ents.iter().enumerate() {
@@ -717,6 +718,24 @@ fn each_controlled_data_case_is_written_as_the_fixture_reported_it_and_judged_by
 }
 
 #[test]
+fn a_pause_row_with_unrelated_sound_children_is_a_legitimate_positive_and_only_another_target_is_not_isolation() {
+    // the actual run of case 9 held 11 sound children, 1 of the paused sub type, and the real pause changed 1: the other sub types are listed and untouched. The canned row has the observed shape (sub 23, delay 1.5)
+    for (case, total) in [("9", "11"), ("9", "2"), ("10", "11"), ("10", "1")] {
+        let scenario = edit(&format!(
+            "if index == {case} then return (text:gsub('children_sound=11', 'children_sound={total}', 1)) end"
+        ));
+        let driven = drive(&scenario, &[("case", case)]);
+        driven.result.clone().unwrap_or_else(|e| panic!("case {case} with {total} sound children: {e}"));
+        let pause = &of(&driven, "env-sound-pause")[0];
+        assert_eq!(
+            (pause["children_sound"].clone(), pause["children_of_type"].clone(), pause["returned"].clone()),
+            (serde_json::json!(total), serde_json::json!("1"), serde_json::json!("1"))
+        );
+        assert!(of(&driven, "witness_failure").is_empty());
+    }
+}
+
+#[test]
 fn a_controlled_data_case_the_fixture_refused_is_reported_as_refused_and_not_as_a_pass() {
     for (case, reason) in [
         (4, "the_process_is_not_the_server_so_the_server_kill_cannot_be_observed"),
@@ -764,7 +783,10 @@ fn a_controlled_data_report_that_is_incomplete_unrestored_or_at_odds_with_its_ca
             edit("if index == 8 then return (text:gsub('ent=0 slot=20 tag=0 etype=32 data=1 sub=1 valid=1 looping=1', 'ent=0 slot=20 tag=0 etype=32 data=1 sub=1 valid=1 looping=0', 1)) end"),
             "FIXTURE DEFECT: the created entity 0",
         ),
-        ("9", "a pause that could touch other children", edit("if index == 9 then return (text:gsub('children_sound=1', 'children_sound=2', 1)) end"), "children other than the control's own entity"),
+        ("9", "a second target of the paused sub type", edit("if index == 9 then return (text:gsub('children_of_type=1', 'children_of_type=2', 1)) end"), "target other than the control's own entity"),
+        ("9", "a pause that changed another valid child", edit("if index == 9 then return (text:gsub('returned=1', 'returned=2', 1)) end"), "target other than the control's own entity"),
+        ("9", "a pause that changed nothing", edit("if index == 9 then return (text:gsub('returned=1', 'returned=0', 1)) end"), "target other than the control's own entity"),
+        ("9", "a total of sound children smaller than the matching ones", edit("if index == 9 then return (text:gsub('children_sound=11', 'children_sound=0', 1)) end"), "counts contradict each other"),
         // the groups of the review: the coherent constructor mismatch, a missing middle exit, an arbitrary update ordinal, the declared inputs and counts, the kill sum, a skip no dead state explains
         (
             "4",
@@ -796,7 +818,7 @@ fn a_controlled_data_report_that_is_incomplete_unrestored_or_at_odds_with_its_ca
         (
             "9",
             "the state after the real pause that disagrees with the first ENTER record",
-            edit("if index == 9 then return (text:gsub('tag=99 etype=32 data=1 sub=5 valid=0 looping=0 member=1 handle=0 life_w=40a00000 vlife_w=3fc00000', 'tag=99 etype=32 data=1 sub=5 valid=0 looping=0 member=1 handle=0 life_w=40a00000 vlife_w=3fc00001', 1)) end"),
+            edit("if index == 9 then return (text:gsub('tag=99 etype=32 data=1 sub=23 valid=0 looping=0 member=1 handle=0 life_w=40a00000 vlife_w=3fc00000', 'tag=99 etype=32 data=1 sub=23 valid=0 looping=0 member=1 handle=0 life_w=40a00000 vlife_w=3fc00001', 1)) end"),
             "ENTER record of call 1 of entity 0 disagrees with its state row in vlife_w",
         ),
         ("8", "a second entity that changes slot", edit("if index == 8 then return (text:gsub('ent=1 slot=21 tag=0', 'ent=1 slot=20 tag=0', 1)) end"), "change slot"),

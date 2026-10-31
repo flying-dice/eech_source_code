@@ -319,10 +319,14 @@ elseif case >= 4 then
 			if pause == nil or pause.event ~= "env-sound-pause" then hard ("an invalid-effect case does not give the row of the real pause function") end
 			check (pause, "sub:i delay_w:w children_sound:n children_of_type:n returned:i", "the control")
 			if pause.map.delay_w ~= spec.pause then hard ("the pause row does not declare the delay word " .. spec.pause .. " of case " .. case .. ": " .. pause.raw) end
-			-- honest accounting of what the real pause function can touch: in a fresh control process only the control's own entity
-			if pause.map.children_sound ~= "1" or pause.map.children_of_type ~= "1" or pause.map.returned ~= "1" then
-				hard ("the real pause function could touch children other than the control's own entity (sound children " .. pause.map.children_sound .. ", of the paused type " .. pause.map.children_of_type .. ", paused " .. pause.map.returned .. "): the control is not isolated")
+			-- honest accounting of what the real pause function can touch. It walks the session's special-effect children and changes ONLY a sound child of the paused sub type that is valid (soundeff.c
+			-- pause_local_entity_sound_type filters on `eff.sub_type == type`), so sound children of OTHER sub types (the ambient sounds the session already holds: an actual run showed 11 sound children, 1 of the paused
+			-- type) are listed but untouched and are not a lack of isolation. What would be one is a SECOND target of the paused sub type, or a count that contradicts itself.
+			local total, matching, returned = tonumber (pause.map.children_sound), tonumber (pause.map.children_of_type), tonumber (pause.map.returned)
+			if matching ~= 1 or returned ~= 1 then
+				hard ("the real pause function could touch a target other than the control's own entity (sound children " .. pause.map.children_sound .. ", of the paused type " .. pause.map.children_of_type .. ", paused " .. pause.map.returned .. "): the control is not isolated")
 			end
+			if total < matching then hard ("the pause row counts " .. pause.map.children_sound .. " sound children but " .. pause.map.children_of_type .. " of the paused type: the counts contradict each other: " .. pause.raw) end
 			at = at + 1
 		end
 		-- the state rows: by entity, by tag (0 the constructor's, 99 the state straight after the real pause, k after call k)
