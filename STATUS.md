@@ -1,3 +1,12 @@
+# D3 sound-routine characterization — review of c0b6c3386 and the red witness guard (31 October 2026, test-only, UNBUILT, UNRUN)
+
+Clean pushed `c0b6c3386`. Independent source review (SHA-256 `b618371b...af63`): fixture cleanup and the unchanged-routine call are sound in the inspected path; ONE grouped P2 witness-record integrity in
+`lua/env-sound-characterization.lua` (a missing restoration-fingerprint pair compares `nil == nil`; duplicate or foreign session rows are accepted; amplitude words of any hex width). **This step only prepares the
+red guard** `the_driver_refuses_an_answered_case_whose_restoration_session_or_amplitude_records_are_missing_foreign_duplicated_or_malformed` (23 damaged actual-grammar rows through the real driver, each required to
+be refused as a witness failure; healthy and genuine-anomaly controls kept; it lists what the driver still accepts). Driver, C fixture and production are untouched; the guard is NOT claimed red until Root runs it on
+the unchanged c0b driver. For the later physical move: the original attenuates equal outdoor rain modes twice (aliased array entry); nothing is corrected or shadowed. The compiled player/render consumers stay required
+D3 scope. Whole Task 51/D3 stays OPEN; D4/D5 unstarted; no acceptance claimed. See `docs/d3-environment-sound-routine.md`.
+
 # D3 sector component gates closed; original ambient preparation (31 October 2026)
 
 Sector native14192 / test-only judge9c47 has independently closed finite authority

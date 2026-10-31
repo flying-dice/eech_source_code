@@ -347,3 +347,112 @@ fn the_driver_fails_without_the_fixture_and_on_every_output_write_flush_and_clos
         .unwrap_err()
         .contains("scenario must be lebanon_retail or georgia_retail"));
 }
+
+/// A text the real driver must REFUSE as a failure of the witness: an `env-sound:` error, a `witness_failure` row, and no summary row (no success is published). `Err` says how it was NOT refused.
+fn witness_refuses(texts: &[String]) -> Result<(), String> {
+    let driven = drive(texts, "", &[]);
+    match driven.result {
+        Err(error)
+            if error.contains("env-sound:") && driven.rows.contains("\"event\":\"witness_failure\"") && !driven.rows.contains("\"event\":\"summary\"") =>
+        {
+            Ok(())
+        }
+        Err(error) => Err(format!("failed, but not as a witness failure with no summary: {error}")),
+        Ok(()) => Err("ACCEPTED (the run completed and published its summary)".to_string()),
+    }
+}
+
+/// Independent combined source review of c0b6c3386 (SHA-256 `b618371b...af63`), one grouped P2: an answered case accepted incomplete or misassociated witness records. These controls feed the REAL
+/// driver actual-grammar rows (the healthy case of this file with ONE record damaged) and require each to be refused as a failure of the witness. They compute no amplitude and judge no physics: a
+/// record is refused for what it IS (absent, malformed, duplicated, of another case), never for the value it carries. The legitimate facts of the original stay distinct: a shared seed that moved or a
+/// session record that changed (`0`) is a boolean fact about the original, reported as an anomaly and accepted; only `0` and `1` are such facts (anything else is a malformed witness row).
+///
+/// RED GUARD PREPARED BEFORE THE DRIVER'S CORRECTION: against the c0b6c3386 driver this test is expected to FAIL, listing the damaged rows it still accepts (a missing pair of fingerprints compares
+/// `nil == nil`, session rows are last-wins and never checked against the case, child words are `%x+`). That is an expectation, not a result, until Root has run it.
+#[test]
+fn the_driver_refuses_an_answered_case_whose_restoration_session_or_amplitude_records_are_missing_foreign_duplicated_or_malformed() {
+    let base = healthy();
+    let with_case = |case: String| vec![base[0].clone(), case, base[2].clone(), base[3].clone()];
+    let with_plan = |plan: String| vec![plan, base[1].clone(), base[2].clone(), base[3].clone()];
+
+    // the controls that must keep holding: the healthy case is accepted; a moved seed or a changed session record (0) are facts of the original, accepted and counted
+    drive(&base, "", &[]).result.expect("the healthy case");
+    for (from, to) in [
+        ("rng_unchanged=1", "rng_unchanged=0"),
+        ("session_unchanged_by_the_routine=1", "session_unchanged_by_the_routine=0"),
+    ] {
+        let driven = drive(&with_case(base[1].replace(from, to)), "", &[]);
+        driven.result.expect("a genuine fact of the original is evidence, not a malformed row");
+        assert!(driven.rows.contains("\"anomalies\":1"), "{from}: {}", driven.rows);
+    }
+
+    let before = " fp_before=0000000000000001";
+    let after = " fp_after=0000000000000001";
+    let session = "env-sound-session i=1 session_unchanged_by_the_routine=1";
+    let sea = "4:24:sea:3c23d70a";
+    assert!(
+        base[1].contains(before) && base[1].contains(after) && base[1].contains(session) && base[1].contains(sea),
+        "the healthy case is not the shape these controls damage"
+    );
+
+    let cases: Vec<(&str, Vec<String>)> = vec![
+        // the restoration fingerprints: either absent, both absent (nil == nil), shorter or longer than 16 hex digits, not hex
+        ("fp_before missing", with_case(base[1].replace(before, ""))),
+        ("fp_after missing", with_case(base[1].replace(after, ""))),
+        (
+            "both fingerprints missing (nil == nil)",
+            with_case(base[1].replace(before, "").replace(after, "")),
+        ),
+        ("fp_before 15 digits", with_case(base[1].replace(before, " fp_before=000000000000001"))),
+        ("fp_before 17 digits", with_case(base[1].replace(before, " fp_before=00000000000000001"))),
+        ("fp_before not hex", with_case(base[1].replace(before, " fp_before=000000000000000g"))),
+        ("fp_after 15 digits", with_case(base[1].replace(after, " fp_after=000000000000001"))),
+        ("fp_after 17 digits", with_case(base[1].replace(after, " fp_after=00000000000000001"))),
+        ("fp_after not hex", with_case(base[1].replace(after, " fp_after=000000000000000g"))),
+        (
+            "both fingerprints equal but short",
+            with_case(base[1].replace(before, " fp_before=1").replace(after, " fp_after=1")),
+        ),
+        // the session row: duplicated, of another case, without its fact, with a fact that is not 0 or 1
+        ("session row duplicated", with_case(base[1].replace(session, &format!("{session}\n{session}")))),
+        (
+            "session row of another case",
+            with_case(base[1].replace("env-sound-session i=1", "env-sound-session i=2")),
+        ),
+        ("session fact missing", with_case(base[1].replace(session, "env-sound-session i=1"))),
+        (
+            "session fact 2",
+            with_case(base[1].replace("session_unchanged_by_the_routine=1", "session_unchanged_by_the_routine=2")),
+        ),
+        (
+            "session fact not a number",
+            with_case(base[1].replace("session_unchanged_by_the_routine=1", "session_unchanged_by_the_routine=x")),
+        ),
+        // the call row's boolean fact: missing, or not 0 or 1
+        ("rng_unchanged missing", with_case(base[1].replace(" rng_unchanged=1", ""))),
+        ("rng_unchanged 2", with_case(base[1].replace("rng_unchanged=1", "rng_unchanged=2"))),
+        // the amplitude words: the serializer's eight hex digits, or the declared `na` of a NON-sound child only
+        ("post-call word 6 digits", with_case(base[1].replace(sea, "4:24:sea:3c23d7"))),
+        ("post-call word 9 digits", with_case(base[1].replace(sea, "4:24:sea:3c23d70a0"))),
+        ("post-call word not hex", with_case(base[1].replace(sea, "4:24:sea:3c23d7zz"))),
+        ("post-call word na for a sound child", with_case(base[1].replace(sea, "4:24:sea:na"))),
+        (
+            "plan order word 7 digits",
+            with_plan(base[0].replace("0:20:light_rain:00000000", "0:20:light_rain:0000000")),
+        ),
+        // the end row names its case too (already refused today: a control that must keep holding)
+        ("end row of another case", with_case(base[1].replace("env-sound-end i=1", "env-sound-end i=2"))),
+    ];
+
+    let accepted: Vec<String> = cases
+        .iter()
+        .filter_map(|(name, texts)| witness_refuses(texts).err().map(|how| format!("  {name}: {how}")))
+        .collect();
+    assert!(
+        accepted.is_empty(),
+        "{} of {} damaged witness records were not refused as a failure of the witness:\n{}",
+        accepted.len(),
+        cases.len(),
+        accepted.join("\n")
+    );
+}

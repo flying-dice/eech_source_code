@@ -70,3 +70,23 @@ not arm it.
 * After that, the physical extraction (next instruction): the host computes rain/wind/terrain levels from its own weather, wind and terrain and the campaign only writes the amplifications of its
   children (the ordering, smoothing state and which children exist stay campaign state unless the review decides otherwise); no calendar, timer, scheduling or campaign-policy change. Same driver,
   same rows, before and after. D4/D5 are not started; Task 51/D3 remains open.
+
+## Independent source review of c0b6c3386 and the red witness guard (test-only; UNBUILT, UNRUN)
+
+Review `ENV-SOUND-ORIGINAL-C0B` (SHA-256 `b618371b...af63`, CHANGES_REQUIRED, source review only): the fixture's ordinary and error-return cleanup looks sound in the inspected finite path, the routine is
+called unchanged on the real session/camera/children with no amplitude formula in the fixture or judge, and the lack of a headless speaker/renderer/player is not dead-code evidence (the compiled player/
+render consumers stay required D3 scope). ONE grouped P2 (witness-record integrity): an answered case accepted (1) a missing `fp_before`/`fp_after` (both missing compares `nil == nil` and passes as
+restored), (2) duplicate or foreign `env-sound-session` rows (last row wins, the case index is never checked), (3) child amplitude words of any hex width (`%x+`, not the serializer's eight digits).
+
+**This step adds only the red guard**, no driver or fixture fix: `the_driver_refuses_an_answered_case_whose_restoration_session_or_amplitude_records_are_missing_foreign_duplicated_or_malformed`
+(`tests/env_sound_characterization.rs`). It feeds the REAL driver the healthy scripted case with ONE actual-grammar record damaged, 23 times, and requires each to be refused as a failure of the witness (an
+`env-sound:` error, a `witness_failure` row, no summary): either or both fingerprints missing, fingerprints of 15 / 17 digits or not hex, a short equal pair; the session row duplicated, of another case, without
+its fact, or with a fact that is not 0 or 1; `rng_unchanged` missing or 2; a post-call amplitude word of 6 or 9 digits, not hex, or `na` for a sound child; a plan word of 7 digits; and the end row of another case.
+Controls kept: the healthy case is accepted, and a moved seed or a changed session record (`0`) is still a genuine fact of the original (accepted, one anomaly). The mutations that the driver already refuses
+(a fingerprint that differs, a non-hex word, an end row of another case) are in the list as controls that must keep holding. The test collects every damaged row the driver still ACCEPTS and fails listing them, so the
+failure itself is the evidence. No amplitude is computed and none is judged: a record is refused for what it is (absent, malformed, duplicated, of another case), never for its value.
+
+It is prepared, NOT claimed red: Root runs it on the unchanged c0b6c3386 driver (`cargo test -p eech-world --test env_sound_characterization the_driver_refuses_an_answered_case_whose_restoration_session_or_amplitude_records_are_missing_foreign_duplicated_or_malformed`),
+and the single grouped driver correction follows. Preserved for the later physical move, and NOT to be corrected or shadowed by any oracle: outdoors the original multiplies `rain_sound_levels[target]` and then
+`rain_sound_levels[current]` separately, so for EQUAL modes the two assignments alias one entry and the altitude factor is applied TWICE; the `combined_heavy_rain_wind_sea_two_calls` case exercises it and
+the measured words stay authoritative.
