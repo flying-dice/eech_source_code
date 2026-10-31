@@ -506,4 +506,200 @@ int campaign_env_step (struct SESSION *raw_in, int in_cockpit, const float *came
 	return reply.expired;
 }
 
+
+////////////////////////////////////////
+//
+// the physical lightning queue (modules/3d/3dstrike.c, EEDCS-51 D3)
+//
+// The 32 slots, the first-free choice, the drop of a strike when every slot is in use, the time stamp, the aging and the expiry are the HOST's.  The campaign keeps what the original did around
+// them (it switches the 3D environment, it decides when a strike is added and where) and a read-only MIRROR of the queue for the routines that read it (the draw routines and the observer).
+// Every answer is checked whole -- against the request and against the mirror as it stood -- before anything is written to the mirror, so a malformed answer changes nothing and the engine stops
+// with an error that names the environment provider.  The exact bit patterns are compared through their addresses (no float is loaded for the comparison).
+//
+////////////////////////////////////////
+
+static int same_bits (const float *a, const float *b)
+{
+	return memcmp (a, b, sizeof (float)) == 0;
+}
+
+static int strike_finite (const campaign_lightning_strike *s)
+{
+	return isfinite (s->x) && isfinite (s->y) && isfinite (s->z) && isfinite (s->time_started) && isfinite (s->time_length);
+}
+
+// a strike that stays in use keeps everything it was given; only its frame number may change
+static int strike_kept (const campaign_lightning_strike *was, const campaign_lightning_strike *is)
+{
+	return (was->type == is->type) && same_bits (&was->x, &is->x) && same_bits (&was->y, &is->y) && same_bits (&was->z, &is->z) && same_bits (&was->time_started, &is->time_started) &&
+		same_bits (&was->time_length, &is->time_length);
+}
+
+static void check_lightning_queue (const campaign_lightning_strike *queue, const char *what)
+{
+	int
+		i;
+
+	for (i = 0; i < CAMPAIGN_LIGHTNING_SLOTS; i++)
+	{
+		if ((queue[i].in_use != FALSE) && (queue[i].in_use != TRUE))
+		{
+			debug_fatal ("host environment: [env-provider:%s.answer] slot %d of the host's lightning queue has an in_use flag that is neither 0 nor 1", what, i);
+		}
+
+		if (!strike_finite (&queue[i]))
+		{
+			debug_fatal ("host environment: [env-provider:%s.answer] slot %d of the host's lightning queue has a number that is not finite", what, i);
+		}
+
+		if ((queue[i].type < LIGHTNING_TYPE_INVALID) || (queue[i].type > LIGHTNING_TYPE_FORKED_4))
+		{
+			debug_fatal ("host environment: [env-provider:%s.answer] slot %d of the host's lightning queue has the type %d, which is not a lightning type", what, i, queue[i].type);
+		}
+	}
+}
+
+int campaign_lightning_add (int type, float length, float x, float z, int environment_active, float time_of_day, campaign_lightning_strike *mirror)
+{
+	static const float
+		strike_height = 6000.0f;
+
+	campaign_env_request
+		request;
+
+	campaign_env_reply
+		reply;
+
+	int
+		slot,
+		i;
+
+	memset (&request, 0, sizeof (request));
+
+	request.op = CAMPAIGN_ENV_LIGHTNING_ADD;
+
+	request.lightning_type = type;
+	request.lightning_length = length;
+	request.x = x;
+	request.z = z;
+	request.lightning_environment_active = (environment_active != 0);
+
+	// the time of day is what the original read from the active environment; with none there is nothing to read and nothing is given
+	if (environment_active)
+	{
+		request.lightning_time_of_day = time_of_day;
+	}
+
+	ask (&request, &reply, "lightning_add");
+
+	check_lightning_queue (reply.lightning_queue, "lightning_add");
+
+	slot = reply.lightning_slot;
+
+	if (reply.lightning_need_frames || (slot < -1) || (slot >= CAMPAIGN_LIGHTNING_SLOTS))
+	{
+		debug_fatal ("host environment: [env-provider:lightning_add.answer] the host's add answer is malformed (a slot from -1 to %d, and no request for a frame count)", CAMPAIGN_LIGHTNING_SLOTS - 1);
+	}
+
+	if ((slot >= 0) && !environment_active)
+	{
+		debug_fatal ("host environment: [env-provider:lightning_add.answer] the host queued a strike although no active environment was given");
+	}
+
+	for (i = 0; i < CAMPAIGN_LIGHTNING_SLOTS; i++)
+	{
+		if (i == slot)
+		{
+			// the slot the host says it filled was free, and holds exactly what this request gave, the position's height as the original set it, and frame 0
+			if (mirror[i].in_use || !reply.lightning_queue[i].in_use || (reply.lightning_queue[i].type != type) || !same_bits (&reply.lightning_queue[i].x, &request.x) ||
+				!same_bits (&reply.lightning_queue[i].z, &request.z) || !same_bits (&reply.lightning_queue[i].y, &strike_height) ||
+				!same_bits (&reply.lightning_queue[i].time_started, &request.lightning_time_of_day) || !same_bits (&reply.lightning_queue[i].time_length, &request.lightning_length) ||
+				(reply.lightning_queue[i].current_frame_number != 0))
+			{
+				debug_fatal ("host environment: [env-provider:lightning_add.answer] slot %d is not a free slot filled with the strike that was given", i);
+			}
+		}
+		else if (mirror[i].in_use)
+		{
+			// a strike already in the queue is untouched by an add (a frame number included)
+			if (!reply.lightning_queue[i].in_use || !strike_kept (&mirror[i], &reply.lightning_queue[i]) || (mirror[i].current_frame_number != reply.lightning_queue[i].current_frame_number))
+			{
+				debug_fatal ("host environment: [env-provider:lightning_add.answer] the add changed slot %d, which it did not fill", i);
+			}
+		}
+		else if (reply.lightning_queue[i].in_use)
+		{
+			debug_fatal ("host environment: [env-provider:lightning_add.answer] the add filled slot %d but answered slot %d", i, slot);
+		}
+	}
+
+	memcpy (mirror, reply.lightning_queue, sizeof (reply.lightning_queue));
+
+	return slot;
+}
+
+void campaign_lightning_update (float time_of_day, int (*frames_of) (void), campaign_lightning_strike *mirror)
+{
+	campaign_env_request
+		request;
+
+	campaign_env_reply
+		reply;
+
+	int
+		i;
+
+	memset (&request, 0, sizeof (request));
+
+	request.op = CAMPAIGN_ENV_LIGHTNING_UPDATE;
+
+	request.lightning_time_of_day = time_of_day;
+
+	ask (&request, &reply, "lightning_update");
+
+	if (reply.lightning_need_frames)
+	{
+		// a forked strike is to be aged: the frame count of the strike animation is read now, where the original read it, and only because the host needs it; nothing was changed by the host
+		if (reply.lightning_need_frames != TRUE)
+		{
+			debug_fatal ("host environment: [env-provider:lightning_update.answer] the host's request for the frame count is neither 0 nor 1");
+		}
+
+		request.lightning_have_frames = TRUE;
+		request.lightning_frames = frames_of ();
+
+		ask (&request, &reply, "lightning_update");
+
+		if (reply.lightning_need_frames)
+		{
+			debug_fatal ("host environment: [env-provider:lightning_update.answer] the host asked for the frame count a second time");
+		}
+	}
+
+	check_lightning_queue (reply.lightning_queue, "lightning_update");
+
+	if (reply.lightning_slot != -1)
+	{
+		debug_fatal ("host environment: [env-provider:lightning_update.answer] the host's update answer names a slot (an update fills none)");
+	}
+
+	for (i = 0; i < CAMPAIGN_LIGHTNING_SLOTS; i++)
+	{
+		if (!mirror[i].in_use)
+		{
+			if (reply.lightning_queue[i].in_use)
+			{
+				debug_fatal ("host environment: [env-provider:lightning_update.answer] the update filled slot %d, which was free", i);
+			}
+		}
+		else if (reply.lightning_queue[i].in_use && !strike_kept (&mirror[i], &reply.lightning_queue[i]))
+		{
+			// aged: only the frame number may change; finished: freed
+			debug_fatal ("host environment: [env-provider:lightning_update.answer] the update changed more than the frame number of slot %d", i);
+		}
+	}
+
+	memcpy (mirror, reply.lightning_queue, sizeof (reply.lightning_queue));
+}
+
 #endif

@@ -1,27 +1,37 @@
--- TEST-ONLY PUBLIC-HOST CAPABILITY WITNESS of the lightning strike queue add (EEDCS-51, D3). SOURCE PREPARED: UNBUILT, UNRUN, UNREVIEWED. A script only: no C, no ABI, no provider and no host solver is written here.
+-- TEST-ONLY PUBLIC-HOST OWNERSHIP WITNESS of the lightning strike queue add (EEDCS-51, D3). SOURCE PREPARED: UNBUILT, UNRUN, UNREVIEWED. A script only: no C, no ABI, no provider and no host solver is written here.
 --
--- THE QUESTION. The original `add_3d_lightning_strike` writes the campaign's own private queue. If the physical queue is to be the HOST's, the add must reach the host through the public path (host-owned Lua ->
--- `eech_dc` -> the campaign -> the host's provider callback) as a physical operation. This witness asks whether it does, on the native it is run against. The proposed semantic operation is `lightning_add` on the
--- existing `host.env_provider` vocabulary; its request and reply details follow the implementation and are NOT fixed, assumed or asserted here.
+-- THE QUESTION. The original `add_3d_lightning_strike` wrote the campaign's own private queue. The physical queue is now the HOST's: the add reaches the host through the public path (host-owned Lua ->
+-- `eech_dc` -> the campaign -> the host's provider callback) as the physical operation `lightning_add`, and the host answers the slot it filled and the whole queue (docs/d3-lightning-queue.md and
+-- eech-world/src/env.rs have the request and the reply). This witness asks, on the native it is run against, whether the campaign really asks the host and whether the host's ANSWER is what the real queue shows.
 --
--- WHAT IT DOES. It wraps the `host.env_provider` factory BEFORE the delegate boots, forwards every request to the original provider UNCHANGED (the healthy / control path: nothing is altered or invented, so a host
--- that does not know `lightning_add` answers as it always did), and counts ONLY the requests whose `op` is `lightning_add`. It then runs the EXISTING primitive driver `lua/env-lightning-queue.lua` for the real
--- case 2 (the original add with the main environment active; the measured server has the main environment, so no prerequisite is forced) through `dofile`, so the delegate's argument checks, report validation, raw
--- rows and output-failure handling are exactly its own, with no second parser. The delegate's rows stay on `out` untouched; this witness writes ONE compact separate record of its own on `authority_out`.
+-- WHAT IT DOES. It wraps the `host.env_provider` factory BEFORE the delegate boots and counts ONLY the requests whose `op` is `lightning_add`; every other request is forwarded UNCHANGED to the original
+-- provider. What it does with a `lightning_add` depends on the mode. It then runs the EXISTING primitive driver `lua/env-lightning-queue.lua` for the real case 2 (the original add with the main environment active;
+-- the measured server has the main environment, so no prerequisite is forced) through `dofile`, so the delegate's argument checks, report validation, raw rows and output-failure handling are exactly its own,
+-- with no second parser. The delegate's rows stay on `out` untouched; this witness writes ONE compact separate record of its own on `authority_out`.
 --
--- THE VERDICT. After the delegate returned, the witness reads the delegate's own result row and requires that case 2 genuinely COMPLETED (not refused). Only then does the count mean anything:
---   * the delegate failed, or case 2 was refused or has no result:  error `env-lightning-host-witness: SETUP FAILURE ...` -- NOT a capability verdict (the add was never exercised);
---   * case 2 completed and the host was asked 0 times:             error `env-lightning-host-witness: queue-host-capability-missing: ...` -- the campaign queued WITHOUT calling the host;
---   * case 2 completed and the host was asked at least once:       success; the record carries the count.
--- Against the pre-extraction native the original add queues the strike itself (the delegate reports it) and the host is never asked: that is the intended RED of the NEW capability, not a physical regression.
+-- MODES (`mode=`, default healthy):
+--   healthy    the request is forwarded unchanged to the reference host, which queues the strike in its first free slot. REQUIRED: case 2 completed, the host was asked at least once and the real case shows ONE strike
+--              queued (the case's own result row: occupancy 1, mask 00000001). Against the pre-extraction native the campaign queued the strike itself and the host was asked 0 times: the error
+--              `queue-host-capability-missing` (the RED of the capability, not a physical regression).
+--   changed    the host answers the request itself with a valid answer that differs from the reference: no strike is queued (slot -1, an empty queue: what a host does when it drops the add). REQUIRED: the host
+--              was asked, and the REAL case shows NOTHING queued (occupancy 0, mask 00000000): the campaign queued only what the host said. A request count alone proves nothing: a native that asks the host
+--              and still queues itself fails here.
+--   withheld   the host raises an error. REQUIRED: the campaign STOPS at `[env-provider:lightning_add.callback]` (the delegate fails in the engine, no result row), after exactly the host action that was performed.
+--   malformed  the host answers a slot that does not exist. REQUIRED: the campaign stops at `[env-provider:lightning_add.answer]`, likewise.
+-- A stop is the expected evidence of withheld and malformed, not a completed success and not a fallback: the record says `stopped_at_boundary`, how many host requests were made before the stop, and that no
+-- result row exists. A campaign that completes anyway, or stops at another marker, is an error.
 --
--- WHAT IT DOES NOT. It does not alter, withhold or malform any answer, does not pick a reply grammar and does not assert any private type, struct layout or ABI. Changed / withheld / malformed host answers
--- and the host queue's own facts come with the implementation, in this same file. It exercises no renderer, speaker, network, sound entity or lifetime, and says nothing of the other physical responsibilities of D3.
+-- VERDICTS (errors begin `env-lightning-host-witness:`): `SETUP FAILURE` -- the delegate failed (healthy, changed) or case 2 was refused or has no result: NOT a verdict on ownership (the add was not exercised);
+-- `queue-host-capability-missing` -- case 2 completed and the host was asked 0 times; `ownership-not-shown` -- the host was asked but the real case does not show the host's answer; `not-stopped` /
+-- `wrong-boundary` -- a withheld or malformed answer did not stop the campaign at its marker.
+--
+-- WHAT IT DOES NOT. It asserts no private type, struct layout or ABI, picks no physical outcome beyond the reference host's own first-free add, and exercises no renderer, speaker, network, sound entity or
+-- lifetime. It says nothing of the other physical responsibilities of D3.
 --
 -- ARGUMENTS (host.args, as the host executable passes them; the witness is the SCRIPT the host runs and the delegate is loaded from a path):
---   eech-world <this script> root=<installation root> out=<delegate JSON Lines path> delegate=<ABSOLUTE path of lua/env-lightning-queue.lua> [case=2] [scenario=lebanon_retail|georgia_retail]
---                                                                                  [authority_out=<this witness's record path; default <out>.authority.jsonl>]
---   `root`, `out`, `scenario` are the delegate's own arguments and are passed through unchanged (the delegate reads the same `host.args`); `case` must be 2 (default 2): the witness is for the add.
+--   eech-world <this script> root=<installation root> out=<delegate JSON Lines path> delegate=<ABSOLUTE path of lua/env-lightning-queue.lua> [mode=healthy|changed|withheld|malformed] [case=2]
+--                                                                                  [scenario=lebanon_retail|georgia_retail] [authority_out=<this witness's record path; default <out>.authority.jsonl>]
+--   `root`, `out`, `scenario` are the delegate's own arguments and are passed through unchanged (the delegate reads the same `host.args`); `case` must be 2 (default 2). One fresh process and root per run.
 
 io.stdout:setvbuf ("no")
 
@@ -36,20 +46,34 @@ local out_path = args.out
 if type (out_path) ~= "string" or out_path == "" then refuse ("out=<the delegate's JSON Lines path> is required") end
 if args.case ~= nil and tostring (args.case) ~= "2" then refuse ("case must be 2 (the original add with the main environment), got '" .. tostring (args.case) .. "'") end
 args.case = "2"
+local mode = args.mode == nil and "healthy" or args.mode
+local MARKERS = { withheld = "[env-provider:lightning_add.callback]", malformed = "[env-provider:lightning_add.answer]" }
+if mode ~= "healthy" and mode ~= "changed" and mode ~= "withheld" and mode ~= "malformed" then refuse ("mode must be healthy, changed, withheld or malformed, got '" .. tostring (mode) .. "'") end
 local authority_path = args.authority_out
 if authority_path == nil then authority_path = out_path .. ".authority.jsonl" end
 if type (authority_path) ~= "string" or authority_path == "" or authority_path == out_path then refuse ("authority_out must be a path other than out") end
 
--- ---------------------------------------------------------------------------------------------------------------- the wrapper: forward everything, count only the op
+-- ---------------------------------------------------------------------------------------------------------------- the wrapper: forward everything, count only the op, alter only that op's answer
 local requests, forwarded = 0, 0
 local factory = host.env_provider
 if type (factory) ~= "function" then refuse ("this host has no host.env_provider factory") end
+
+-- a valid queue answer holding nothing: 32 slots, none in use
+local function empty_queue ()
+	local queue = {}
+	for i = 1, 32 do queue [i] = { in_use = false, type = 0, x = 0, y = 0, z = 0, time_started = 0, time_length = 0, frame = 0 } end
+	return queue
+end
+
 local wrapped = function (...)
 	local base = factory (...)
 	if type (base) ~= "function" then error (NAME .. ": host.env_provider () did not return a provider function", 0) end
 	return function (request, ...)
 		if type (request) == "table" and request.op == OP then
 			requests = requests + 1
+			if mode == "changed" then return { slot = -1, queue = empty_queue () } end
+			if mode == "withheld" then error ("the host withholds its lightning_add answer", 0) end
+			if mode == "malformed" then return { slot = 40, queue = {} } end
 		else
 			forwarded = forwarded + 1
 		end
@@ -71,11 +95,11 @@ local function read_all (path)
 	return text
 end
 
-local function write_record (completed, verdict)
+local function write_record (completed, verdict, extra)
 	local file, err = io.open (authority_path, "w")
 	if not file then refuse ("OUTPUT FAILURE: opening " .. authority_path .. " failed: " .. tostring (err)) end
-	local line = string.format ('{"case":2,"completed":%s,"delegate_ran":%s,"forwarded_other_requests":%d,"op":"%s","requests":%d,"source":"host.env_provider wrapper on the public path, forwarded unchanged","verdict":"%s"}\n',
-		completed and "true" or "false", ran and "true" or "false", forwarded, OP, requests, verdict)
+	local line = string.format ('{"case":2,"completed":%s,"delegate_ran":%s,"forwarded_other_requests":%d,"mode":"%s","op":"%s","requests":%d,%s"source":"host.env_provider wrapper on the public path","verdict":"%s"}\n',
+		completed and "true" or "false", ran and "true" or "false", forwarded, mode, OP, requests, extra or "", verdict)
 	local ok, werr = file:write (line)
 	if not ok then refuse ("OUTPUT FAILURE: writing " .. authority_path .. " failed: " .. tostring (werr)) end
 	ok, werr = file:flush ()
@@ -84,28 +108,66 @@ local function write_record (completed, verdict)
 	if not ok then refuse ("OUTPUT FAILURE: closing " .. authority_path .. " failed: " .. tostring (werr)) end
 end
 
--- did the delegate itself finish, and did case 2 genuinely complete (its own result row, not refused)?
-local completed = false
-if ran then
+-- the delegate's own result row for case 2, if it wrote one: (completed, occupancy_after, mask_after_w)
+local function case_2_result ()
 	local text = read_all (out_path)
-	if text ~= nil then
-		for line in string.gmatch (text, "[^\n]+") do
-			if string.find (line, '"event":"result"', 1, true) and string.find (line, '"case":2', 1, true) and string.find (line, '"refused":false', 1, true) then completed = true end
+	if text == nil then return false end
+	for line in string.gmatch (text, "[^\n]+") do
+		if string.find (line, '"event":"result"', 1, true) and string.find (line, '"case":2', 1, true) and string.find (line, '"refused":false', 1, true) then
+			return true, string.match (line, '"occupancy_after":"(%d+)"'), string.match (line, '"mask_after_w":"(%x+)"')
 		end
 	end
+	return false
 end
 
+-- ---------------------------------------------------------------------------------------------------------------- withheld and malformed: the campaign must STOP at the named boundary
+if MARKERS [mode] then
+	local marker = MARKERS [mode]
+	local result_row = false
+	if not ran then
+		result_row = false
+	else
+		result_row = case_2_result ()
+	end
+	if ran then
+		write_record (result_row, "not_stopped")
+		refuse ("not-stopped: the host " .. mode .. " its '" .. OP .. "' answer (" .. requests .. " request(s)) and the delegate completed: the campaign did not stop at " .. marker)
+	end
+	if requests == 0 then
+		write_record (false, "setup_failure_the_host_was_never_asked")
+		refuse ("SETUP FAILURE: the delegate stopped but the host was asked 0 times for '" .. OP .. "': the stop is not the " .. mode .. " answer's: " .. tostring (problem))
+	end
+	if not string.find (tostring (problem), marker, 1, true) then
+		write_record (false, "wrong_boundary")
+		refuse ("wrong-boundary: the campaign stopped, but not at " .. marker .. ": " .. tostring (problem))
+	end
+	write_record (false, "stopped_at_boundary", string.format ('"marker":"%s","stopped":true,', marker))
+	io.stderr:write (string.format ("%s: mode=%s stopped at %s after %d host request(s) for '%s'\n", NAME, mode, marker, requests, OP))
+	return
+end
+
+-- ---------------------------------------------------------------------------------------------------------------- healthy and changed: case 2 must have completed, and the real case must show the host's answer
 if not ran then
 	write_record (false, "setup_failure_delegate_failed")
 	error (tostring (problem), 0)
 end
+local completed, occupancy, mask = case_2_result ()
 if not completed then
 	write_record (false, "setup_failure_case_2_did_not_complete")
-	refuse ("SETUP FAILURE: the delegate returned but case 2 did not complete (refused, or no result row on " .. out_path .. "): the add was not exercised, so there is no capability verdict")
+	refuse ("SETUP FAILURE: the delegate returned but case 2 did not complete (refused, or no result row on " .. out_path .. "): the add was not exercised, so there is no ownership verdict")
 end
+local facts = string.format ('"mask_after_w":"%s","occupancy_after":"%s",', tostring (mask), tostring (occupancy))
 if requests == 0 then
-	write_record (true, "queue_host_capability_missing")
+	write_record (true, "queue_host_capability_missing", facts)
 	refuse ("queue-host-capability-missing: case 2 completed on the original add, and the host was asked 0 times for '" .. OP .. "' (" .. forwarded .. " other requests were forwarded unchanged): the campaign queued without calling the host")
 end
-write_record (true, "host_asked")
-io.stderr:write (string.format ("%s: case 2 completed; the host was asked %d time(s) for '%s'; %d other request(s) forwarded unchanged\n", NAME, requests, OP, forwarded))
+if mode == "healthy" and (occupancy ~= "1" or mask ~= "00000001") then
+	write_record (true, "ownership_not_shown", facts)
+	refuse ("ownership-not-shown: the host was asked " .. requests .. " time(s) and queued the strike, but the real case shows occupancy " .. tostring (occupancy) .. " and mask " .. tostring (mask) .. ", not one strike in the first slot")
+end
+if mode == "changed" and (occupancy ~= "0" or mask ~= "00000000") then
+	write_record (true, "ownership_not_shown", facts)
+	refuse ("ownership-not-shown: the host dropped the add (" .. requests .. " request(s)) but the real case shows occupancy " .. tostring (occupancy) .. " and mask " .. tostring (mask) .. ": the campaign queued a strike the host did not")
+end
+write_record (true, mode == "healthy" and "host_asked_and_queued" or "host_changed_the_queue", facts)
+io.stderr:write (string.format ("%s: mode=%s case 2 completed; the host was asked %d time(s) for '%s'; the case shows occupancy %s mask %s; %d other request(s) forwarded unchanged\n", NAME, mode, requests, OP, tostring (occupancy), tostring (mask), forwarded))

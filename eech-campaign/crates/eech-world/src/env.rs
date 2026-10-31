@@ -15,6 +15,12 @@
 //! - `gust { phase }`: `{ modulation }`.
 //! - `ambient { x, z, y, alt, cloud_base, in_cockpit }`: the physical rain and wind levels of the session's ambient sound children at a point (the camera, or the gunship in the cockpit), from this
 //!   field: `{ rain_light, rain_heavy, wind_light, wind_heavy }` (ss_updt.c `update_session_sound_effects`, EEDCS-51). `y`, `alt` and `cloud_base` are the campaign's observations.
+//! - `lightning_add { type, length, x, z, environment_active, time_of_day? }`: the host's PHYSICAL QUEUE of lightning strikes (EEDCS-51, modules/3d/3dstrike.c `add_3d_lightning_strike`): the first free of
+//!   32 slots is filled (the position's height 6000, frame 0, the time stamp the campaign read from its active 3D environment, which it gives only when there is one); nothing is filled with no active
+//!   environment or with every slot in use. `{ slot = -1 .. 31, queue }`, the queue being the 32 slots `{ in_use, type, x, y, z, time_started, time_length, frame }`.
+//! - `lightning_update { time_of_day, frames? }`: `update_3d_lightning_strikes`: every strike in use is aged and the finished ones freed; `{ queue }`. A forked strike's frame number needs the strike
+//!   animation's frame count, which only the campaign's texture table holds: the host answers `{ need_frames = true }` (the queue is NOT changed) and the campaign asks again with `frames`.
+//!   The queue is empty when the provider is created. The campaign keeps only a read-only mirror of it.
 //! - `step { delta, server, in_cockpit, camera?, lightning_draw?, map }`: the physical update of one session update. `{ need_draw = true, timer }` (the field is NOT changed) when the
 //!   server's lightning timer has expired and the next timer needs the one draw of the shared random word, which only the campaign may make; the campaign then asks again with
 //!   `lightning_draw`. Otherwise `{ state, expired, strike?, new_timer? }`.
@@ -104,6 +110,16 @@ extern "C" {
     fn env_ref_wind(field: *const EnvRef, x: f32, z: f32, want_vector: i32, speed: *mut f32, vector: *mut f32, error: *mut c_char, error_size: usize) -> i32;
     fn env_ref_gust(phase: f32, modulation: *mut f32, error: *mut c_char, error_size: usize) -> i32;
     fn env_ref_ambient(field: *const EnvRef, in_f: *const f32, in_i: *const i32, out: *mut f32, error: *mut c_char, error_size: usize) -> i32;
+    fn env_ref_lightning_add(field: *mut EnvRef, in_f: *const f32, in_i: *const i32, out_slot: *mut i32, error: *mut c_char, error_size: usize) -> i32;
+    fn env_ref_lightning_update(
+        field: *mut EnvRef,
+        in_f: *const f32,
+        in_i: *const i32,
+        out_need_frames: *mut i32,
+        error: *mut c_char,
+        error_size: usize,
+    ) -> i32;
+    fn env_ref_lightning_queue(field: *const EnvRef, out: *mut Strike, error: *mut c_char, error_size: usize) -> i32;
     fn env_ref_step(
         field: *mut EnvRef,
         in_f: *const f32,
@@ -142,6 +158,41 @@ pub struct Weather {
 pub struct Wind {
     pub speed: f32,
     pub vector: [f32; 3],
+}
+
+/// The slots of the host's lightning queue (`ENV_REF_STRIKES`).
+pub const STRIKES: usize = 32;
+
+/// One slot of the host's lightning queue, field for field as `env_ref_strike`.
+#[repr(C)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Strike {
+    pub in_use: i32,
+    pub kind: i32,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+    pub time_started: f32,
+    pub time_length: f32,
+    pub current_frame_number: i32,
+}
+
+/// What the campaign hands over with an add: the strike type and length, the position, whether an active 3D environment exists and, if so, its time of day.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct LightningAdd {
+    pub kind: i32,
+    pub length: f32,
+    pub x: f32,
+    pub z: f32,
+    pub environment_active: bool,
+    pub time_of_day: f32,
+}
+
+/// The outcome of an update of the lightning queue: done, or the strike animation's frame count is needed to age a forked strike (the queue is then unchanged).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum LightningUpdate {
+    Done,
+    NeedFrames,
 }
 
 /// The campaign's observations for the ambient sound levels: `f = { x, z, y, alt, cloud base }` (the camera, or the gunship in the cockpit, its radar altitude and the cloud height).
@@ -349,6 +400,50 @@ impl Field {
         }
     }
 
+    /// The physical lightning queue (modules/3d/3dstrike.c `add_3d_lightning_strike`): the first free slot is filled and its number returned; `None` with no active environment or with every slot in use.
+    pub fn lightning_add(&mut self, input: &LightningAdd) -> Result<Option<usize>, String> {
+        let mut error = [0u8; ERROR_SIZE];
+        let in_f = [input.length, input.x, input.z, input.time_of_day];
+        let in_i = [input.kind, i32::from(input.environment_active)];
+        let mut slot = -1i32;
+        // SAFETY: the arrays have the lengths the kernel reads and writes; `error` is writable for its size.
+        let status = unsafe { env_ref_lightning_add(self.raw, in_f.as_ptr(), in_i.as_ptr(), &mut slot, error.as_mut_ptr().cast(), ERROR_SIZE) };
+        if status == 0 {
+            Ok(usize::try_from(slot).ok())
+        } else {
+            Err(message(&error))
+        }
+    }
+
+    /// `update_3d_lightning_strikes`: ages every strike in use and frees the finished ones. A forked strike to be aged needs the strike animation's frame count (`frames`); without it the
+    /// answer is `NeedFrames` and the queue is unchanged. An unknown type is refused and nothing changes.
+    pub fn lightning_update(&mut self, time_of_day: f32, frames: Option<i32>) -> Result<LightningUpdate, String> {
+        let mut error = [0u8; ERROR_SIZE];
+        let in_f = [time_of_day];
+        let in_i = [i32::from(frames.is_some()), frames.unwrap_or(0)];
+        let mut need = 0i32;
+        // SAFETY: the arrays have the lengths the kernel reads and writes; `error` is writable for its size.
+        let status = unsafe { env_ref_lightning_update(self.raw, in_f.as_ptr(), in_i.as_ptr(), &mut need, error.as_mut_ptr().cast(), ERROR_SIZE) };
+        match (status, need) {
+            (0, 0) => Ok(LightningUpdate::Done),
+            (0, _) => Ok(LightningUpdate::NeedFrames),
+            _ => Err(message(&error)),
+        }
+    }
+
+    /// The queue as it stands, slot by slot.
+    pub fn lightning_queue(&self) -> Result<[Strike; STRIKES], String> {
+        let mut error = [0u8; ERROR_SIZE];
+        let mut queue = [Strike::default(); STRIKES];
+        // SAFETY: the array has the length the kernel writes; `error` is writable for its size.
+        let status = unsafe { env_ref_lightning_queue(self.raw, queue.as_mut_ptr(), error.as_mut_ptr().cast(), ERROR_SIZE) };
+        if status == 0 {
+            Ok(queue)
+        } else {
+            Err(message(&error))
+        }
+    }
+
     pub fn step(&mut self, input: &StepInput) -> Result<StepOutcome, String> {
         let mut error = [0u8; ERROR_SIZE];
         let in_i = [
@@ -498,6 +593,25 @@ fn answer_state(lua: &Lua, field: &Field) -> LuaResult<LuaTable> {
     Ok(answer)
 }
 
+/// The host's lightning queue as the provider's answer: a list of the slots, each `{ in_use, type, x, y, z, time_started, time_length, frame }`.
+fn queue_table(lua: &Lua, field: &Field) -> LuaResult<LuaTable> {
+    let queue = field.lightning_queue().map_err(refuse)?;
+    let table = lua.create_table()?;
+    for (index, strike) in queue.iter().enumerate() {
+        let slot = lua.create_table()?;
+        slot.set("in_use", strike.in_use != 0)?;
+        slot.set("type", strike.kind)?;
+        slot.set("x", f64::from(strike.x))?;
+        slot.set("y", f64::from(strike.y))?;
+        slot.set("z", f64::from(strike.z))?;
+        slot.set("time_started", f64::from(strike.time_started))?;
+        slot.set("time_length", f64::from(strike.time_length))?;
+        slot.set("frame", strike.current_frame_number)?;
+        table.set(index + 1, slot)?;
+    }
+    Ok(table)
+}
+
 fn respond(lua: &Lua, field: &RefCell<Field>, request: &LuaTable) -> LuaResult<LuaTable> {
     let op = match request.get::<LuaValue>("op")? {
         LuaValue::String(op) => op.to_str()?.to_string(),
@@ -563,6 +677,36 @@ fn respond(lua: &Lua, field: &RefCell<Field>, request: &LuaTable) -> LuaResult<L
             answer.set("rain_heavy", f64::from(levels.rain_heavy))?;
             answer.set("wind_light", f64::from(levels.wind_light))?;
             answer.set("wind_heavy", f64::from(levels.wind_heavy))?;
+        }
+        "lightning_add" => {
+            let environment_active = boolean(request, "environment_active")?;
+            let input = LightningAdd {
+                kind: integer(&reader, request, "type", "type")?,
+                length: single(&reader, request, "length", "length")?,
+                x: single(&reader, request, "x", "x")?,
+                z: single(&reader, request, "z", "z")?,
+                environment_active,
+                // with no active environment the original read nothing, and nothing is given
+                time_of_day: if environment_active {
+                    single(&reader, request, "time_of_day", "time_of_day")?
+                } else {
+                    0.0
+                },
+            };
+            let slot = field.lightning_add(&input).map_err(refuse)?;
+            answer.set("slot", slot.map_or(-1, |slot| slot as i64))?;
+            answer.set("queue", queue_table(lua, &field)?)?;
+        }
+        "lightning_update" => {
+            let time_of_day = single(&reader, request, "time_of_day", "time_of_day")?;
+            let frames = match request.get::<LuaValue>("frames")? {
+                LuaValue::Nil => None,
+                _ => Some(integer(&reader, request, "frames", "frames")?),
+            };
+            match field.lightning_update(time_of_day, frames).map_err(refuse)? {
+                LightningUpdate::NeedFrames => answer.set("need_frames", true)?,
+                LightningUpdate::Done => answer.set("queue", queue_table(lua, &field)?)?,
+            }
         }
         "gust" => {
             let phase = single(&reader, request, "phase", "phase")?;
@@ -1494,5 +1638,335 @@ mod tests {
         assert!(message(&error).contains("no address"), "{}", message(&error));
         assert_eq!((out_i, out_f), ([0, 0], [0.0; 4]), "a refusal clears the outputs");
         assert_eq!(field.export().unwrap(), before);
+    }
+
+    // ---- the physical lightning queue (EEDCS-51, D3): the host's kernels of add_3d_lightning_strike and update_3d_lightning_strikes ----
+
+    fn add_of(kind: i32, x: f32, environment_active: bool, time_of_day: f32) -> LightningAdd {
+        LightningAdd {
+            kind,
+            length: 0.3,
+            x,
+            z: 2500.0,
+            environment_active,
+            time_of_day,
+        }
+    }
+
+    #[test]
+    fn an_add_fills_the_first_free_slot_with_what_it_was_given_and_drops_what_nothing_can_take() {
+        let mut field = Field::new().unwrap();
+        // no active environment: nothing is queued
+        assert_eq!(field.lightning_add(&add_of(1, 1500.0, false, 0.0)).unwrap(), None);
+        assert!(field.lightning_queue().unwrap().iter().all(|strike| strike.in_use == 0));
+        // the first free slot, in order, with the position's height as the original set it and frame 0
+        assert_eq!(field.lightning_add(&add_of(1, 1500.0, true, 100.25)).unwrap(), Some(0));
+        assert_eq!(field.lightning_add(&add_of(2, 1600.0, true, 100.5)).unwrap(), Some(1));
+        let queue = field.lightning_queue().unwrap();
+        let first = queue[0];
+        assert_eq!((first.in_use, first.kind, first.current_frame_number), (1, 1, 0));
+        assert_eq!(
+            [first.x, first.y, first.z, first.time_started, first.time_length].map(f32::to_bits),
+            [1500.0f32, 6000.0, 2500.0, 100.25, 0.3].map(f32::to_bits)
+        );
+        // filled to capacity: the next add is dropped and changes nothing
+        for slot in 2..STRIKES {
+            assert_eq!(field.lightning_add(&add_of(1, slot as f32, true, 1.0)).unwrap(), Some(slot));
+        }
+        let full = field.lightning_queue().unwrap();
+        assert_eq!(field.lightning_add(&add_of(1, 9999.0, true, 1.0)).unwrap(), None);
+        assert_eq!(field.lightning_queue().unwrap(), full);
+        // a freed slot is the next first-free
+        assert_eq!(field.lightning_update(200.0, None).unwrap(), LightningUpdate::Done);
+        assert_eq!(field.lightning_add(&add_of(1, 7.0, true, 300.0)).unwrap(), Some(0));
+    }
+
+    #[test]
+    fn a_cloud_burst_ages_by_the_time_of_day_is_freed_at_its_end_and_wraps_over_midnight() {
+        let mut field = Field::new().unwrap();
+        field.lightning_add(&add_of(1, 1500.0, true, 100.0)).unwrap();
+        assert_eq!(field.lightning_update(100.1, None).unwrap(), LightningUpdate::Done);
+        let aged = field.lightning_queue().unwrap()[0];
+        // a third of the way through its 0.3 s: frame 3 of 10
+        assert_eq!((aged.in_use, aged.current_frame_number), (1, 3));
+        assert_eq!(field.lightning_update(100.5, None).unwrap(), LightningUpdate::Done);
+        let freed = field.lightning_queue().unwrap()[0];
+        assert_eq!(freed.in_use, 0);
+        // the finished strike keeps the words it had (only the flag is cleared)
+        assert_eq!((freed.x.to_bits(), freed.time_started.to_bits()), (1500.0f32.to_bits(), 100.0f32.to_bits()));
+        // started just before midnight, the time of day wrapped to 0: still inside its length (the original adds a day to the current time)
+        let mut field = Field::new().unwrap();
+        field.lightning_add(&add_of(1, 1.0, true, 86399.9)).unwrap();
+        assert_eq!(field.lightning_update(0.0, None).unwrap(), LightningUpdate::Done);
+        let wrapped = field.lightning_queue().unwrap()[0];
+        assert_eq!(wrapped.in_use, 1);
+        assert!((2..=4).contains(&wrapped.current_frame_number), "{wrapped:?}");
+    }
+
+    #[test]
+    fn a_forked_strike_needs_the_frame_count_only_when_it_is_to_be_aged_and_an_unknown_type_is_refused_whole() {
+        let mut field = Field::new().unwrap();
+        let mut forked = add_of(2, 1.0, true, 10.0);
+        forked.length = 1.0;
+        field.lightning_add(&forked).unwrap();
+        let mut cloud = add_of(1, 2.0, true, 10.0);
+        cloud.length = 1.0;
+        field.lightning_add(&cloud).unwrap();
+        let before = field.lightning_queue().unwrap();
+        // aging the forked strike needs the animation's frame count: the host says so and changes NOTHING (the cloud burst behind it is not aged either)
+        assert_eq!(field.lightning_update(10.5, None).unwrap(), LightningUpdate::NeedFrames);
+        assert_eq!(field.lightning_queue().unwrap(), before);
+        assert_eq!(field.lightning_update(10.5, Some(8)).unwrap(), LightningUpdate::Done);
+        let aged = field.lightning_queue().unwrap();
+        assert_eq!((aged[0].current_frame_number, aged[1].current_frame_number), (4, 5));
+        // a finished forked strike is freed without the count
+        assert_eq!(field.lightning_update(11.5, None).unwrap(), LightningUpdate::Done);
+        assert!(field.lightning_queue().unwrap().iter().all(|strike| strike.in_use == 0));
+        // an unknown type is refused where the original called debug_fatal, and nothing changes
+        let mut field = Field::new().unwrap();
+        field.lightning_add(&add_of(1, 1.0, true, 1.0)).unwrap();
+        field.lightning_add(&add_of(9, 2.0, true, 1.0)).unwrap();
+        let before = field.lightning_queue().unwrap();
+        let error = field.lightning_update(1.1, None).unwrap_err();
+        assert!(error.contains("unknown lightning type 9"), "{error}");
+        assert_eq!(field.lightning_queue().unwrap(), before);
+    }
+
+    #[test]
+    fn the_provider_answers_the_lightning_queue_whole_and_refuses_what_it_cannot_read() {
+        let (lua, provider) = lua_with_provider();
+        let ask = |fields: &[(&str, LuaValue)]| -> LuaResult<LuaTable> {
+            let request = lua.create_table().unwrap();
+            for (key, value) in fields {
+                request.set(*key, value.clone()).unwrap();
+            }
+            provider.call(request)
+        };
+        let number = |value: f64| LuaValue::Number(value);
+        let add = ask(&[
+            ("op", LuaValue::String(lua.create_string("lightning_add").unwrap())),
+            ("type", LuaValue::Integer(1)),
+            ("length", number(0.3f32 as f64)),
+            ("x", number(1500.0)),
+            ("z", number(2500.0)),
+            ("environment_active", LuaValue::Boolean(true)),
+            ("time_of_day", number(100.0)),
+        ])
+        .unwrap();
+        assert_eq!(add.get::<i64>("slot").unwrap(), 0);
+        let queue: LuaTable = add.get("queue").unwrap();
+        assert_eq!(queue.raw_len(), STRIKES);
+        let first: LuaTable = queue.get(1).unwrap();
+        assert_eq!(
+            (
+                first.get::<bool>("in_use").unwrap(),
+                first.get::<i32>("type").unwrap(),
+                first.get::<f64>("y").unwrap()
+            ),
+            (true, 1, 6000.0)
+        );
+        let second: LuaTable = queue.get(2).unwrap();
+        assert!(!second.get::<bool>("in_use").unwrap());
+        // with no active environment nothing is read for the time of day and nothing is queued
+        let none = ask(&[
+            ("op", LuaValue::String(lua.create_string("lightning_add").unwrap())),
+            ("type", LuaValue::Integer(1)),
+            ("length", number(0.3f32 as f64)),
+            ("x", number(1.0)),
+            ("z", number(2.0)),
+            ("environment_active", LuaValue::Boolean(false)),
+        ])
+        .unwrap();
+        assert_eq!(none.get::<i64>("slot").unwrap(), -1);
+        // an active environment without its time of day, and a length a float would round, are refused
+        let missing = ask(&[
+            ("op", LuaValue::String(lua.create_string("lightning_add").unwrap())),
+            ("type", LuaValue::Integer(1)),
+            ("length", number(0.3f32 as f64)),
+            ("x", number(1.0)),
+            ("z", number(2.0)),
+            ("environment_active", LuaValue::Boolean(true)),
+        ])
+        .unwrap_err()
+        .to_string();
+        assert!(missing.contains("time_of_day"), "{missing}");
+        let rounded = ask(&[
+            ("op", LuaValue::String(lua.create_string("lightning_add").unwrap())),
+            ("type", LuaValue::Integer(1)),
+            ("length", number(0.3)),
+            ("x", number(1.0)),
+            ("z", number(2.0)),
+            ("environment_active", LuaValue::Boolean(false)),
+        ])
+        .unwrap_err()
+        .to_string();
+        assert!(rounded.contains("exact single-precision"), "{rounded}");
+        // an update answers the whole queue, and a forked strike's frame count is asked for through need_frames
+        let update = ask(&[
+            ("op", LuaValue::String(lua.create_string("lightning_update").unwrap())),
+            ("time_of_day", number(100.1f32 as f64)),
+        ])
+        .unwrap();
+        assert!(update.get::<LuaValue>("need_frames").unwrap().is_nil());
+        let queue: LuaTable = update.get("queue").unwrap();
+        assert_eq!(queue.get::<LuaTable>(1).unwrap().get::<i32>("frame").unwrap(), 3);
+    }
+
+    /// The caller's complete floating-point state survives every lightning-queue operation, and the kernels' answers do not depend on it. Each question builds a fresh queue and runs its
+    /// operations (an add, the aging of a cloud burst, a forked strike, the wrap over midnight, a refusal) under every pairing of the rounding controls, the x87 precision, the sticky flags,
+    /// the denormal modes and three arranged status words; the caller's x87 control, status and tag words and complete MXCSR are exactly what was seeded after each, and the answers (every
+    /// bit of the queue) are the same bits whatever the state. Only these entries' effect is claimed.
+    #[test]
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    fn the_callers_complete_floating_point_state_survives_every_lightning_queue_operation_in_every_mode() {
+        use std::collections::BTreeMap;
+
+        let restore = RestoreFp {
+            image: fp::x87_image(),
+            mxcsr: fp::mxcsr(),
+        };
+        let subnormal = f32::from_bits(3);
+        type Question = (&'static str, Box<dyn Fn() -> Result<Vec<u32>, String>>);
+        let bits = |field: &Field| -> Vec<u32> {
+            field
+                .lightning_queue()
+                .unwrap()
+                .iter()
+                .flat_map(|s| {
+                    [
+                        s.in_use as u32,
+                        s.kind as u32,
+                        s.x.to_bits(),
+                        s.y.to_bits(),
+                        s.z.to_bits(),
+                        s.time_started.to_bits(),
+                        s.time_length.to_bits(),
+                        s.current_frame_number as u32,
+                    ]
+                })
+                .collect()
+        };
+        let questions: Vec<Question> = vec![
+            (
+                "an add and an add with no environment",
+                Box::new(move || {
+                    let mut field = Field::new()?;
+                    field.lightning_add(&add_of(1, 1500.0, true, 100.25))?;
+                    field.lightning_add(&add_of(2, 1.0, false, 0.0))?;
+                    Ok(bits(&field))
+                }),
+            ),
+            (
+                "a cloud burst aged inside and freed after its length",
+                Box::new(move || {
+                    let mut field = Field::new()?;
+                    field.lightning_add(&add_of(1, 1500.0, true, 100.0))?;
+                    field.lightning_update(100.1, None)?;
+                    let mut out = bits(&field);
+                    field.lightning_update(100.5, None)?;
+                    out.extend(bits(&field));
+                    Ok(out)
+                }),
+            ),
+            (
+                "a forked strike asking for the frame count, then aged with it",
+                Box::new(move || {
+                    let mut field = Field::new()?;
+                    let mut forked = add_of(3, 1.0, true, 10.0);
+                    forked.length = 1.0;
+                    field.lightning_add(&forked)?;
+                    let asked = field.lightning_update(10.5, None)?;
+                    let mut out = vec![u32::from(asked == LightningUpdate::NeedFrames)];
+                    field.lightning_update(10.5, Some(8))?;
+                    out.extend(bits(&field));
+                    Ok(out)
+                }),
+            ),
+            (
+                "the wrap over midnight",
+                Box::new(move || {
+                    let mut field = Field::new()?;
+                    field.lightning_add(&add_of(1, 1.0, true, 86399.9))?;
+                    field.lightning_update(0.0, None)?;
+                    Ok(bits(&field))
+                }),
+            ),
+            (
+                "subnormal start time, length and time of day",
+                Box::new(move || {
+                    let mut field = Field::new()?;
+                    let mut strike = add_of(1, subnormal, true, subnormal);
+                    strike.length = subnormal;
+                    field.lightning_add(&strike)?;
+                    field.lightning_update(subnormal, None)?;
+                    Ok(bits(&field))
+                }),
+            ),
+            (
+                "refused: an unknown type",
+                Box::new(move || {
+                    let mut field = Field::new()?;
+                    field.lightning_add(&add_of(9, 1.0, true, 1.0))?;
+                    field.lightning_update(1.1, None).map(|_| bits(&field))
+                }),
+            ),
+        ];
+
+        let mask = fp::mxcsr_mask();
+        let mode_sets: Vec<u32> = if mask & 0x8040 == 0x8040 { vec![0, 0x8040] } else { vec![0, mask & 0x8000] };
+        let mut reference: Vec<Option<Result<Vec<u32>, String>>> = vec![None; questions.len()];
+        let mut leaks: BTreeMap<String, (usize, String)> = BTreeMap::new();
+        let mut answer_changes: Vec<String> = Vec::new();
+        let mut checked = 0usize;
+        for x87_rounding in 0u16..4 {
+            for x87_precision in [0u16, 3] {
+                for sse_rounding in 0u32..4 {
+                    for sticky in [0u32, 0x3f] {
+                        for &modes in &mode_sets {
+                            for status in [0x0000u16, 0x403f, 0x2700] {
+                                let state = format!("x87 rounding {x87_rounding}, precision {x87_precision}, SSE rounding {sse_rounding}, MXCSR sticky {sticky:#x}, modes {modes:#x}, x87 status {status:#06x}");
+                                for (index, (what, question)) in questions.iter().enumerate() {
+                                    fp::seed_modes(x87_rounding, x87_precision, status, sse_rounding, sticky, modes);
+                                    let expected = fp::now();
+                                    let answer = question();
+                                    let actual = fp::now();
+                                    checked += 1;
+                                    if actual != expected {
+                                        leaks.entry(format!("{what}: {expected:x?} -> {actual:x?}")).or_insert((0, state.clone())).0 += 1;
+                                    }
+                                    if reference[index].is_none() {
+                                        reference[index] = Some(answer);
+                                    } else if reference[index].as_ref() != Some(&answer) {
+                                        answer_changes.push(format!("{what} under {state}"));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        drop(restore);
+
+        for ((what, _), answer) in questions.iter().zip(&reference) {
+            let answer = answer.as_ref().expect("every question ran");
+            assert_eq!(answer.is_err(), what.starts_with("refused"), "{what}: {answer:?}");
+        }
+        assert!(
+            answer_changes.is_empty(),
+            "the caller's state reached the kernels' answers ({} of {checked} calls):\n{}",
+            answer_changes.len(),
+            answer_changes.join("\n")
+        );
+        assert!(
+            leaks.is_empty(),
+            "a lightning queue operation changed the caller's floating-point state in {} kinds of call ({checked} calls checked, no mask):\n{}",
+            leaks.len(),
+            leaks
+                .iter()
+                .map(|(key, (times, first))| format!("  {key}  x{times}, first under {first}"))
+                .collect::<Vec<_>>()
+                .join("\n")
+        );
     }
 }

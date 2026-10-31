@@ -28,6 +28,15 @@
  *                answer is the four levels by value (rain light, rain heavy, wind light, wind heavy), computed by the host from its own weather and wind with the original's expressions
  *                (equal outdoor rain modes alias one entry and are attenuated twice, as in the original).  The campaign writes them into its children and computes nothing.  The terrain
  *                children's levels are the TERRAIN provider's question (mb_hostterrain.h AMBIENT).
+ *   LIGHTNING_ADD / LIGHTNING_UPDATE
+ *                the PHYSICAL QUEUE of lightning strikes (modules/3d/3dstrike.c, EEDCS-51 D3): the host owns the 32 slots, the first-free choice, the drop of a strike when every slot is in use, the
+ *                time stamp, the aging and the expiry.  ADD hands over what the original add_3d_lightning_strike was given and read (the type, the length, the position, whether an active
+ *                environment exists and, when it does, its time of day: the campaign still switches the 3D environment as the original did and still decides WHEN a strike is added); the host answers
+ *                the slot it filled (-1: none, with no active environment or with every slot in use) and the whole queue.  UPDATE hands over the time of day update_3d_lightning_strikes read; the host ages
+ *                every strike in use and frees the finished ones, and answers the whole queue.  A forked strike's frame number needs the frame count of the strike animation, which only the
+ *                campaign's texture table holds: the host answers NEED_FRAMES (nothing changed) and the campaign asks again with the count, read where the original read it and only because a forked
+ *                strike was to be aged.  The campaign keeps a read-only MIRROR of the queue (the renderer's draw routines and the observer read it), refreshed from every answer and never evolved by the
+ *                campaign; the answer is checked against the mirror and the request before anything is written.  No EECH pointer, slot layout or entity index crosses the boundary.
  *   STEP         the physical part of update_transitional_weather for one update: the delta of the frame (the previous frame's, as the original reads it),
  *                the camera position, the comms model, the map extents.  The lightning timer's expiry needs one draw of the shared word for the next
  *                timer: the first request carries none and the host answers NEED_DRAW without changing anything; the campaign then makes that one
@@ -44,6 +53,20 @@
 #include <stddef.h>
 
 #define CAMPAIGN_ENV_ERROR_MAX 512
+
+/* One slot of the physical lightning queue, by value (modules/3d/3dstrike.c: the in_use flag, the type, the position, the start time and the length, the current frame) */
+#define CAMPAIGN_LIGHTNING_SLOTS 32
+
+typedef struct campaign_lightning_strike
+{
+	int in_use;
+	int type;
+	float x, y, z;
+	float time_started;
+	float time_length;
+	int current_frame_number;
+} campaign_lightning_strike;
+
 
 /* the floats and the integers of the physical field, in the order of the arrays of campaign_env_state */
 enum campaign_env_float
@@ -94,7 +117,9 @@ enum campaign_env_op
 	CAMPAIGN_ENV_WIND,
 	CAMPAIGN_ENV_GUST,
 	CAMPAIGN_ENV_STEP,
-	CAMPAIGN_ENV_AMBIENT
+	CAMPAIGN_ENV_AMBIENT,
+	CAMPAIGN_ENV_LIGHTNING_ADD,
+	CAMPAIGN_ENV_LIGHTNING_UPDATE
 };
 
 #define CAMPAIGN_ENV_DRAWS 10
@@ -134,6 +159,14 @@ typedef struct campaign_env_request
 	double lightning_draw;
 	/* AMBIENT (x, z and in_cockpit above): the point's height, its radar altitude and the cloud base height */
 	float ambient_y, ambient_alt, ambient_cloud_base;
+	/* LIGHTNING_ADD (x, z above): the strike type, its length, whether an active 3D environment exists and, if so, its time of day;
+	   LIGHTNING_UPDATE: the time of day, and the strike animation's frame count when the campaign has been asked for it */
+	int lightning_type;
+	float lightning_length;
+	int lightning_environment_active;
+	float lightning_time_of_day;
+	int lightning_have_frames;
+	int lightning_frames;
 } campaign_env_request;
 
 typedef struct campaign_env_reply
@@ -155,6 +188,11 @@ typedef struct campaign_env_reply
 	float new_timer;
 	/* AMBIENT: rain light, rain heavy, wind light, wind heavy */
 	float ambient_levels[4];
+	/* LIGHTNING_ADD: the slot filled (-1: none); LIGHTNING_UPDATE: the host needs the strike animation's frame count (nothing was changed);
+	   both: the whole queue after the operation */
+	int lightning_slot;
+	int lightning_need_frames;
+	campaign_lightning_strike lightning_queue[CAMPAIGN_LIGHTNING_SLOTS];
 } campaign_env_reply;
 
 typedef int (*campaign_env_fn)
@@ -198,5 +236,13 @@ void campaign_env_ambient (int in_cockpit, float x, float y, float z, float alt,
 /* The physical update of one session update.  Returns nonzero when the lightning timer expired, with the position the original struck and the new timer; the mirror holds the field
    after the step.  camera is NULL when the campaign has no camera position to give (the host refuses only if it needs one). */
 int campaign_env_step (struct SESSION *raw, int in_cockpit, const float *camera, float *strike, float *new_timer);
+
+
+/* The physical lightning queue (modules/3d/3dstrike.c hands its add and its update here).  Both write the campaign's mirror of the queue (CAMPAIGN_LIGHTNING_SLOTS slots) from the host's answer,
+   after checking the whole answer against the request and the mirror as it stood; a missing provider, a refusal or a malformed answer stops the engine with an error that names the environment
+   provider, and the mirror is then unchanged.  There is no campaign queue to fall back to.  campaign_lightning_add returns the slot filled or -1.  campaign_lightning_update asks for the frame count
+   of the strike animation through frames_of (called only when the host needs it, where the original read it). */
+int campaign_lightning_add (int type, float length, float x, float z, int environment_active, float time_of_day, campaign_lightning_strike *mirror);
+void campaign_lightning_update (float time_of_day, int (*frames_of) (void), campaign_lightning_strike *mirror);
 
 #endif

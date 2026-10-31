@@ -1313,12 +1313,13 @@ unsafe extern "C" fn terrain_callback(
 
 /// One question the campaign asks of the host's physical weather and wind field, or one update of it, and the host's answer (aphavoc/.../ss_hostenv.h). They are the C structures
 /// of the callback, plain numbers by value: no EECH pointer, entity index or session layout is in them.
-pub use sys::{eech_env_reply as EnvReply, eech_env_request as EnvRequest, eech_env_state as EnvState};
+pub use sys::{eech_env_reply as EnvReply, eech_env_request as EnvRequest, eech_env_state as EnvState, eech_lightning_strike as LightningStrike};
 
 /// The operations of an [`EnvRequest`] and the sizes of the field (the enums of ss_hostenv.h).
 pub use sys::{
     EECH_ENV_AMBIENT, EECH_ENV_DRAWS, EECH_ENV_EXPORT, EECH_ENV_FLOATS, EECH_ENV_GUST, EECH_ENV_IMPORT, EECH_ENV_INIT_FIXED, EECH_ENV_INIT_RANDOM,
-    EECH_ENV_INTS, EECH_ENV_MODE_COUNT, EECH_ENV_STEP, EECH_ENV_WEATHER, EECH_ENV_WIND,
+    EECH_ENV_INTS, EECH_ENV_LIGHTNING_ADD, EECH_ENV_LIGHTNING_UPDATE, EECH_ENV_MODE_COUNT, EECH_ENV_STEP, EECH_ENV_WEATHER, EECH_ENV_WIND,
+    EECH_LIGHTNING_SLOTS,
 };
 
 /// The host's environment provider. It is installed once, at boot, and is the only source of the campaign's physical weather and wind: the campaign has no weather or wind solver
@@ -1341,6 +1342,8 @@ fn env_op_label(op: c_int) -> &'static str {
         sys::EECH_ENV_GUST => "gust",
         sys::EECH_ENV_STEP => "step",
         sys::EECH_ENV_AMBIENT => "ambient",
+        sys::EECH_ENV_LIGHTNING_ADD => "lightning_add",
+        sys::EECH_ENV_LIGHTNING_UPDATE => "lightning_update",
         _ => "unknown",
     }
 }
@@ -1431,6 +1434,51 @@ fn check_env_reply(request: &EnvRequest, reply: &EnvReply) -> Result<(), String>
                 return Err(format!("{answer} the strike or the new timer is not finite"));
             }
             env_state_refusal(&reply.state, op)
+        }
+        sys::EECH_ENV_LIGHTNING_ADD | sys::EECH_ENV_LIGHTNING_UPDATE => {
+            let add = request.op == sys::EECH_ENV_LIGHTNING_ADD;
+            if reply.lightning_need_frames != 0 {
+                // only an update that was not yet given the strike animation's frame count may be answered with a request for it; the queue then stays as it was
+                return if !add && reply.lightning_need_frames == 1 && request.lightning_have_frames == 0 {
+                    Ok(())
+                } else {
+                    Err(format!(
+                        "{answer} the provider asked for the strike animation's frame count where none may be asked for (only an update that was not given it)"
+                    ))
+                };
+            }
+            let slots = i32::try_from(sys::EECH_LIGHTNING_SLOTS).unwrap_or(i32::MAX);
+            let slot_ok = if add {
+                (-1..slots).contains(&reply.lightning_slot)
+            } else {
+                reply.lightning_slot == -1
+            };
+            if !slot_ok {
+                return Err(format!(
+                    "{answer} the slot {} is not {}",
+                    reply.lightning_slot,
+                    if add {
+                        "-1 (none) or one of the queue's slots"
+                    } else {
+                        "-1 (an update fills none)"
+                    }
+                ));
+            }
+            for (index, strike) in reply.lightning_queue.iter().enumerate() {
+                if strike.in_use != 0 && strike.in_use != 1 {
+                    return Err(format!("{answer} slot {index} has an in_use flag that is neither 0 nor 1"));
+                }
+                if ![strike.x, strike.y, strike.z, strike.time_started, strike.time_length]
+                    .iter()
+                    .all(|value| value.is_finite())
+                {
+                    return Err(format!("{answer} slot {index} has a number that is not finite"));
+                }
+                if !(0..=5).contains(&strike.kind) {
+                    return Err(format!("{answer} slot {index} has the type {}, which is not a lightning type", strike.kind));
+                }
+            }
+            Ok(())
         }
         _ => Err(format!("[env-provider:callback] unknown environment operation {}", request.op)),
     }
@@ -9892,6 +9940,90 @@ mod tests {
             assert!(error.contains("[env-provider:ambient.answer]"), "{why}: {error}");
             assert_eq!(written.current_mode, 77, "{why}: a refusal wrote the reply");
         }
+    }
+
+    #[test]
+    fn the_lightning_queue_answer_of_a_direct_environment_provider_is_checked_at_the_boundary_before_anything_is_written() {
+        let ask = |op: c_int| EnvRequest { op, ..EnvRequest::default() };
+        let queued = |slot: i32| {
+            let mut reply = EnvReply {
+                lightning_slot: slot,
+                ..EnvReply::default()
+            };
+            if slot >= 0 {
+                reply.lightning_queue[slot as usize] = LightningStrike {
+                    in_use: 1,
+                    kind: 1,
+                    x: 1.0,
+                    y: 6000.0,
+                    z: 2.0,
+                    time_started: 3.0,
+                    time_length: 0.3,
+                    current_frame_number: 0,
+                };
+            }
+            reply
+        };
+        // an add answers the slot it filled and the whole queue, which reach the campaign whole
+        let (code, written, error) = env_crossing(ask(sys::EECH_ENV_LIGHTNING_ADD), move |_| Ok(queued(5)));
+        assert_eq!((code, written.lightning_slot, written.lightning_queue[5].in_use), (0, 5, 1), "{error}");
+        // no slot (-1) is a valid answer of an add: a strike dropped for want of a free slot or an environment
+        let (code, written, error) = env_crossing(ask(sys::EECH_ENV_LIGHTNING_ADD), move |_| Ok(queued(-1)));
+        assert_eq!((code, written.lightning_slot), (0, -1), "{error}");
+        // a slot beyond the queue, a flag that is neither 0 nor 1, a number that is not finite and a type outside the enum are refused under the add marker, and nothing is written
+        let broken = |edit: fn(&mut EnvReply)| {
+            move |_: &EnvRequest| {
+                let mut reply = queued(0);
+                edit(&mut reply);
+                Ok(reply)
+            }
+        };
+        for (what, edit) in [
+            (
+                "a slot beyond the queue",
+                (|reply: &mut EnvReply| reply.lightning_slot = 32) as fn(&mut EnvReply),
+            ),
+            ("a slot below -1", |reply| reply.lightning_slot = -2),
+            ("an in_use flag of 2", |reply| reply.lightning_queue[3].in_use = 2),
+            ("a number not finite", |reply| reply.lightning_queue[0].x = f32::NAN),
+            ("a type outside the enum", |reply| reply.lightning_queue[0].kind = 6),
+            ("a request for the frame count by an add", |reply| reply.lightning_need_frames = 1),
+        ] {
+            let (code, written, error) = env_crossing(ask(sys::EECH_ENV_LIGHTNING_ADD), broken(edit));
+            assert_ne!(code, 0, "{what}: accepted");
+            assert!(error.contains("[env-provider:lightning_add.answer]"), "{what}: {error}");
+            assert_eq!(written.current_mode, 77, "{what}: a refusal wrote the reply");
+        }
+        // an update fills no slot, may ask for the frame count once (not when it was given), and answers the whole queue
+        let update = EnvRequest {
+            op: sys::EECH_ENV_LIGHTNING_UPDATE,
+            ..EnvRequest::default()
+        };
+        let (code, _, error) = env_crossing(update, |_| {
+            Ok(EnvReply {
+                lightning_need_frames: 1,
+                lightning_slot: -1,
+                ..EnvReply::default()
+            })
+        });
+        assert_eq!(code, 0, "{error}");
+        let given = EnvRequest {
+            lightning_have_frames: 1,
+            lightning_frames: 8,
+            ..update
+        };
+        let (code, _, error) = env_crossing(given, |_| {
+            Ok(EnvReply {
+                lightning_need_frames: 1,
+                lightning_slot: -1,
+                ..EnvReply::default()
+            })
+        });
+        assert_ne!(code, 0, "a second request for the frame count was accepted");
+        assert!(error.contains("[env-provider:lightning_update.answer]"), "{error}");
+        let (code, _, error) = env_crossing(update, move |_| Ok(queued(2)));
+        assert_ne!(code, 0, "an update that named a slot was accepted");
+        assert!(error.contains("[env-provider:lightning_update.answer]"), "{error}");
     }
 
     #[test]

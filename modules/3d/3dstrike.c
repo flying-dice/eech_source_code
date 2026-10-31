@@ -67,6 +67,11 @@
 
 #include	"3d.h"
 
+#ifdef EECH_CAMPAIGN_HOST_ENV
+#include <string.h>
+#include "entity/special/session/ss_hostenv.h"
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -159,6 +164,90 @@ void initialise_3d_lightning ( texture_animation_indices strike_animation, textu
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef EECH_CAMPAIGN_HOST_ENV
+
+//
+// EECH_CAMPAIGN_HOST_ENV (EEDCS-51, D3): the physical queue of lightning strikes is the HOST's (aphavoc/source/entity/special/session/ss_hostenv.h LIGHTNING_ADD and LIGHTNING_UPDATE): the
+// 32 slots, the first-free choice, the drop of a strike when every slot is in use, the time stamp, the aging and the expiry.  `lightning_strikes` below is the campaign's read-only MIRROR of that
+// queue, for the routines that read it (the draw routines, the observer); it is written only from the host's answers and never evolved here.  The original add and update follow, for the original
+// game's build only.  The campaign still switches the 3D environment and decides when a strike is added; what an add reads from the active environment (that one exists, and its time of day) is handed
+// over by value.
+//
+
+typedef char lightning_slots_are_the_hosts [ ( MAX_NUMBER_OF_LIGHTNING_STRIKES == CAMPAIGN_LIGHTNING_SLOTS ) ? 1 : -1 ];
+
+static void read_lightning_queue_mirror ( campaign_lightning_strike *view )
+{
+
+	int
+		count;
+
+	for ( count = 0; count < MAX_NUMBER_OF_LIGHTNING_STRIKES; count++ )
+	{
+
+		view[count].in_use = lightning_strikes[count].in_use;
+		view[count].type = ( int ) lightning_strikes[count].type;
+		view[count].current_frame_number = lightning_strikes[count].current_frame_number;
+
+		// the floats are copied as the bits they hold
+		memcpy ( &view[count].x, &lightning_strikes[count].position.x, sizeof ( float ) );
+		memcpy ( &view[count].y, &lightning_strikes[count].position.y, sizeof ( float ) );
+		memcpy ( &view[count].z, &lightning_strikes[count].position.z, sizeof ( float ) );
+		memcpy ( &view[count].time_started, &lightning_strikes[count].time_started, sizeof ( float ) );
+		memcpy ( &view[count].time_length, &lightning_strikes[count].time_length, sizeof ( float ) );
+	}
+}
+
+static void write_lightning_queue_mirror ( const campaign_lightning_strike *view )
+{
+
+	int
+		count;
+
+	for ( count = 0; count < MAX_NUMBER_OF_LIGHTNING_STRIKES; count++ )
+	{
+
+		lightning_strikes[count].in_use = view[count].in_use;
+		lightning_strikes[count].type = ( enum LIGHTNING_STRIKE_TYPES ) view[count].type;
+		lightning_strikes[count].current_frame_number = view[count].current_frame_number;
+
+		memcpy ( &lightning_strikes[count].position.x, &view[count].x, sizeof ( float ) );
+		memcpy ( &lightning_strikes[count].position.y, &view[count].y, sizeof ( float ) );
+		memcpy ( &lightning_strikes[count].position.z, &view[count].z, sizeof ( float ) );
+		memcpy ( &lightning_strikes[count].time_started, &view[count].time_started, sizeof ( float ) );
+		memcpy ( &lightning_strikes[count].time_length, &view[count].time_length, sizeof ( float ) );
+	}
+}
+
+void add_3d_lightning_strike ( lightning_strike_types type, float time, float x, float z )
+{
+
+	campaign_lightning_strike
+		view[CAMPAIGN_LIGHTNING_SLOTS];
+
+	float
+		time_of_day;
+
+	if ( active_3d_environment )
+	{
+
+		time_of_day = get_3d_time_of_day ( active_3d_environment );
+	}
+	else
+	{
+
+		time_of_day = 0.0;
+	}
+
+	read_lightning_queue_mirror ( view );
+
+	campaign_lightning_add ( type, time, x, z, ( active_3d_environment != NULL ), time_of_day, view );
+
+	write_lightning_queue_mirror ( view );
+}
+
+#else
+
 void add_3d_lightning_strike ( lightning_strike_types type, float time, float x, float z )
 {
 
@@ -196,10 +285,44 @@ void add_3d_lightning_strike ( lightning_strike_types type, float time, float x,
 		}
 	}
 }
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef EECH_CAMPAIGN_HOST_ENV
+
+// the frame count of the strike animation, read where the original read it: only when the host is about to age a forked strike
+static int lightning_strike_animation_frames ( void )
+{
+
+	return ( texture_animations[lightning_strike_animation].number_of_frames );
+}
+
+void update_3d_lightning_strikes ( env_3d *env )
+{
+
+	campaign_lightning_strike
+		view[CAMPAIGN_LIGHTNING_SLOTS];
+
+	float
+		time_of_day;
+
+#ifdef EECH_ENV_OBSERVER
+	eech_lightning_update_calls++;
+#endif
+
+	time_of_day = get_3d_time_of_day ( env );
+
+	read_lightning_queue_mirror ( view );
+
+	campaign_lightning_update ( time_of_day, lightning_strike_animation_frames, view );
+
+	write_lightning_queue_mirror ( view );
+}
+
+#else
 
 void update_3d_lightning_strikes ( env_3d *env )
 {
@@ -292,6 +415,7 @@ void update_3d_lightning_strikes ( env_3d *env )
 		}
 	}
 }
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -891,7 +1015,7 @@ void draw_3d_lightning_cloud_burst ( lightning_strike *strike )
 #include <string.h>
 
 //
-// TEST-ONLY (EEDCS-51, feature env-observer, never shipping): a READ-ONLY view of one slot of the strike queue for the lightning queue probe (csrc/eech_env_observer.c). It returns the number of
+// TEST-ONLY (EEDCS-51, feature env-observer, never shipping): a READ-ONLY view of one slot of the strike queue (in the hosted build the campaign's MIRROR of the host's queue) for the lightning queue probe (csrc/eech_env_observer.c). It returns the number of
 // slots of the queue (MAX_NUMBER_OF_LIGHTNING_STRIKES) and, for a slot in range, copies eight words: the in_use flag as stored, the type as stored, the position x, y and z, the start time and the length
 // as IEEE bit patterns, and the current frame number as stored. It changes nothing; a slot out of range returns -1.
 //

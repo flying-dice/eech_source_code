@@ -67,4 +67,32 @@ int env_ref_ambient (const env_ref *field, const float *in_f, const int *in_i, f
    With need_draw the field is unchanged and out_f[3] is the timer after the decrement. */
 int env_ref_step (env_ref *field, const float *in_f, const int *in_i, const double *draw, int *out_i, float *out_f, char *error, size_t error_size);
 
+
+/* The physical queue of lightning strikes (EEDCS-51, modules/3d/3dstrike.c): the host owns it.  One slot, by value: the in_use flag, the type, the position, the start time and length and the current frame.
+   The queue is empty when the field is created, as the original zeroed it at start-up. */
+#define ENV_REF_STRIKES 32
+
+typedef struct env_ref_strike
+{
+	int in_use;
+	int type;
+	float x, y, z;
+	float time_started;
+	float time_length;
+	int current_frame_number;
+} env_ref_strike;
+
+/* add_3d_lightning_strike: the first free slot is filled, and no slot is filled with no active environment or with every slot in use.
+   in_f = { length, x, z, time of day }, in_i = { type, whether an active 3D environment exists } (the floats are read INSIDE the guard, from memory, never as parameters)
+   out_slot = the slot filled, or -1.  Runs in the CANONICAL arithmetic environment (see env_ref_ambient). */
+int env_ref_lightning_add (env_ref *field, const float *in_f, const int *in_i, int *out_slot, char *error, size_t error_size);
+
+/* update_3d_lightning_strikes: every strike in use is aged by the time of day and the finished ones are freed.
+   in_f = { time of day }, in_i = { have_frames, frames } (the strike animation's frame count, which only the campaign's texture table holds, needed only to age a forked strike)
+   out_need_frames = 1 when a forked strike is to be aged and no count was given: the queue is then unchanged.  An unknown strike type refuses and changes nothing. */
+int env_ref_lightning_update (env_ref *field, const float *in_f, const int *in_i, int *out_need_frames, char *error, size_t error_size);
+
+/* the queue as it stands (ENV_REF_STRIKES slots), as plain bits */
+int env_ref_lightning_queue (const env_ref *field, env_ref_strike *out, char *error, size_t error_size);
+
 #endif

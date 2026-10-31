@@ -88,6 +88,7 @@ struct env_ref
 {
 	env_state state;
 	int has_state;
+	env_ref_strike strikes[ENV_REF_STRIKES];
 };
 
 static int fail (char *error, size_t error_size, const char *format, ...) __attribute__ ((format (printf, 3, 4)));
@@ -1561,4 +1562,241 @@ int env_ref_step (env_ref *field, const float *in_f, const int *in_i, const doub
 	}
 
 	return result;
+}
+
+////////////////////////////////////////
+//
+// the physical lightning queue (EEDCS-51, D3): modules/3d/3dstrike.c add_3d_lightning_strike and update_3d_lightning_strikes, as the HOST's kernels
+//
+// The queue is the host's: the 32 slots, the first-free choice, the silent drop of a strike when no slot is free (or when the campaign says no active environment exists), the time stamp, the
+// aging and the expiry.  The original C is kept with its types and its expression order (timed_event_has_finished is modules/maths/tevent.c's).  Where the original called debug_fatal (an unknown
+// type) the kernel refuses with a message and commits nothing.  Both entries run in the CANONICAL arithmetic environment of the ambient entry (set before any floating-point work, read back),
+// so the aging (a float quotient truncated to a frame number) does not depend on the caller's denormal modes or x87 precision; the caller's complete state is restored on every exit.
+//
+////////////////////////////////////////
+
+/* modules/3d/3dstrike.h LIGHTNING_STRIKE_TYPES */
+#define LIGHTNING_TYPE_INVALID 0
+#define LIGHTNING_TYPE_CLOUD_BURST 1
+#define LIGHTNING_TYPE_FORKED_1 2
+#define LIGHTNING_TYPE_FORKED_2 3
+#define LIGHTNING_TYPE_FORKED_3 4
+#define LIGHTNING_TYPE_FORKED_4 5
+
+/* modules/maths/constant.h */
+#define MINUTES_IN_AN_HOUR (60)
+#define HOURS_IN_A_DAY (24)
+#define ONE_DAY (HOURS_IN_A_DAY * MINUTES_IN_AN_HOUR * SECONDS_IN_A_MINUTE)
+
+/* modules/maths/tevent.c timed_event_has_finished */
+static int timed_event_has_finished (float start_time, float length, float current_time, float *distance)
+{
+	if (start_time > current_time)
+	{
+		current_time += ONE_DAY;
+	}
+
+	if ((start_time + length) <= current_time)
+	{
+		return TRUE;
+	}
+	else
+	{
+		*distance = ((current_time - start_time) / length);
+
+		return FALSE;
+	}
+}
+
+/* modules/3d/3dstrike.c add_3d_lightning_strike: `if (active_3d_environment)` is the campaign's flag, the time of day what it read from that environment */
+static void lightning_add_impl (env_ref_strike *strikes, int type, float length, float x, float z, int environment_active, float time_of_day, int *slot)
+{
+	int count;
+
+	*slot = -1;
+
+	if (environment_active)
+	{
+		for (count = 0; count < ENV_REF_STRIKES; count++)
+		{
+			if (!strikes[count].in_use)
+			{
+				strikes[count].in_use = TRUE;
+
+				strikes[count].x = x;
+				strikes[count].z = z;
+
+				strikes[count].y = 6000;
+
+				strikes[count].type = type;
+
+				strikes[count].current_frame_number = 0;
+
+				strikes[count].time_started = time_of_day;
+
+				strikes[count].time_length = length;
+
+				*slot = count;
+
+				break;
+			}
+		}
+	}
+}
+
+/* modules/3d/3dstrike.c update_3d_lightning_strikes.  With need_frames the aging of a forked strike needs the strike animation's frame count and none was given: the caller discards the work. */
+static int lightning_update_impl (env_ref_strike *strikes, float time_of_day, int have_frames, int frames, int *need_frames, char *error, size_t error_size)
+{
+	int count;
+	float t;
+
+	*need_frames = FALSE;
+
+	for (count = 0; count < ENV_REF_STRIKES; count++)
+	{
+		if (strikes[count].in_use)
+		{
+			switch (strikes[count].type)
+			{
+				case LIGHTNING_TYPE_CLOUD_BURST:
+				{
+					if (!timed_event_has_finished (strikes[count].time_started, strikes[count].time_length, time_of_day, &t))
+					{
+						strikes[count].current_frame_number = t * 10;
+					}
+					else
+					{
+						strikes[count].in_use = FALSE;
+					}
+
+					break;
+				}
+
+				case LIGHTNING_TYPE_FORKED_1:
+				case LIGHTNING_TYPE_FORKED_2:
+				case LIGHTNING_TYPE_FORKED_3:
+				case LIGHTNING_TYPE_FORKED_4:
+				{
+					if (!timed_event_has_finished (strikes[count].time_started, strikes[count].time_length, time_of_day, &t))
+					{
+						if (!have_frames)
+						{
+							*need_frames = TRUE;
+
+							return 0;
+						}
+
+						strikes[count].current_frame_number = t * (frames);
+					}
+					else
+					{
+						strikes[count].in_use = FALSE;
+					}
+
+					break;
+				}
+
+				default:
+				{
+					return fail (error, error_size, "Updating unknown lightning type %d in slot %d", strikes[count].type, count);
+				}
+			}
+		}
+	}
+
+	return 0;
+}
+
+int env_ref_lightning_add (env_ref *field, const float *in_f, const int *in_i, int *out_slot, char *error, size_t error_size)
+{
+	env_fp_state saved;
+	env_ref work;
+	int staged_slot;
+	int result;
+
+	fp_save (&saved);
+
+	if (fp_enter_canonical (error, error_size) != 0)
+	{
+		*out_slot = -1;
+
+		return fp_leave (&saved, -1, error, error_size);
+	}
+
+	memcpy (&work, field, sizeof (work));
+
+	/* the floats are read from memory HERE, inside the guard, never as parameters */
+	lightning_add_impl (work.strikes, in_i[0], in_f[0], in_f[1], in_f[2], in_i[1], in_f[3], &staged_slot);
+
+	ENV_FP_SETTLE (work);
+	ENV_FP_SETTLE (staged_slot);
+
+	result = fp_leave (&saved, 0, error, error_size);
+
+	if (result != 0)
+	{
+		*out_slot = -1;
+	}
+	else
+	{
+		*out_slot = staged_slot;
+
+		memcpy (field, &work, sizeof (work));
+	}
+
+	return result;
+}
+
+int env_ref_lightning_update (env_ref *field, const float *in_f, const int *in_i, int *out_need_frames, char *error, size_t error_size)
+{
+	env_fp_state saved;
+	env_ref work;
+	int staged_need;
+	int result;
+
+	fp_save (&saved);
+
+	if (fp_enter_canonical (error, error_size) != 0)
+	{
+		*out_need_frames = 0;
+
+		return fp_leave (&saved, -1, error, error_size);
+	}
+
+	memcpy (&work, field, sizeof (work));
+
+	result = lightning_update_impl (work.strikes, in_f[0], in_i[0], in_i[1], &staged_need, error, error_size);
+
+	ENV_FP_SETTLE (work);
+	ENV_FP_SETTLE (staged_need);
+
+	result = fp_leave (&saved, result, error, error_size);
+
+	if (result != 0)
+	{
+		*out_need_frames = 0;
+	}
+	else
+	{
+		*out_need_frames = staged_need;
+
+		/* an update that needs the frame count leaves the queue as it was */
+		if (!staged_need)
+		{
+			memcpy (field, &work, sizeof (work));
+		}
+	}
+
+	return result;
+}
+
+/* the queue as it stands: plain bits, no floating-point work */
+int env_ref_lightning_queue (const env_ref *field, env_ref_strike *out, char *error, size_t error_size)
+{
+	(void) error;
+	(void) error_size;
+
+	memcpy (out, field->strikes, sizeof (field->strikes));
+
+	return 0;
 }

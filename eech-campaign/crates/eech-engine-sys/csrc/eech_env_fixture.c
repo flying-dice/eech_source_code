@@ -2288,6 +2288,8 @@ static int env_wide_case (int index, char *text, int capacity, int *used)
  *                 4 age_a_cloud_burst_by_the_time_of_day a CLOUD_BURST aged by update_3d_lightning_strikes at three times of day (the forked types read texture animations the headless build may not
  *                                                       initialise and are NOT exercised, said below)
  * A prerequisite that is absent (no main environment, a queue that is not empty) is REFUSED and printed; nothing is forced.
+ * In the hosted build (EECH_CAMPAIGN_HOST_ENV) the two primitives are the campaign's requests to the HOST's queue (ss_hostenv.h LIGHTNING_ADD / LIGHTNING_UPDATE) and the queue the rows show is the campaign's read-only MIRROR
+ * of the answer; the rows, their order and their grammar are the same as the original's.
  */
 
 extern int eech_lightning_queue_view (int slot, unsigned int *words);

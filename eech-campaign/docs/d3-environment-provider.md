@@ -343,9 +343,14 @@ The sound routine's `get_terrain_3d_types_in_sector` is now answered by the host
 
 The session sound routine's physical amplitude is answered by two new operations, both by value: the ENVIRONMENT provider's `ambient { x, z, y, alt, cloud_base, in_cockpit }` -> `{ rain_light, rain_heavy, wind_light, wind_heavy }`, and the TERRAIN provider's `ambient { x, z, alt, delta, in_cockpit, children = { { class, previous }, ... } }` -> `{ amplitudes }` (one per child). Protocol, ownership, markers and commands: [d3-environment-sound-routine.md](d3-environment-sound-routine.md). UNBUILT, UNRUN, UNREVIEWED.
 
+## Lightning queue operations (host-owned, unbuilt)
+
+The physical queue of lightning strikes (`modules/3d/3dstrike.c`) is the host's, through two more operations of the ENVIRONMENT provider, both by value: `lightning_add { type, length, x, z, environment_active, time_of_day? }` -> `{ slot, queue }` and `lightning_update { time_of_day, frames? }` -> `{ queue }` or `{ need_frames = true }` (the queue is not changed; the campaign asks again with `frames`, the strike animation's frame count, read where the original read it and only because a
+forked strike was to be aged). `queue` is the 32 slots `{ in_use, type, x, y, z, time_started, time_length, frame }`; `slot` is the slot filled (-1: none, with no active environment or with every slot in use). The campaign keeps a read-only MIRROR of the queue for the draw routines and the observer, written only from checked answers; markers `lightning_add.callback|answer`, `lightning_update.callback|answer`. Ownership, the witness modes, the consumers traced and the commands: [d3-lightning-queue.md](d3-lightning-queue.md). UNBUILT, UNRUN on a native, UNREVIEWED.
+
 ## Remaining coupling and open gates (finite)
 
-* The lightning strike and sound entity creation, the sound/terrain-scratch bridge and the time-of-day input stay in Core (explicitly open within Task 51/D3).
+* The lightning strike QUEUE is now the host's (above); the strike and sound ENTITY creation, the sound/terrain-scratch bridge and the time-of-day input stay in Core (explicitly open within Task 51/D3).
 * The mirror is a campaign-side copy of host state used by pack/save/player paths; it is read-only by contract but nothing in C prevents a stray write; the setters and `pack`/`unpack` are the
   reviewed sync points.
 * Not shown: that the build compiles, that the 164-case oracle and the 120 s/variable-frame comparison are byte-identical, that a changed/withheld/malformed host field changes or refuses real

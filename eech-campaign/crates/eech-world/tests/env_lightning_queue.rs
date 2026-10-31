@@ -119,7 +119,12 @@ package.preload.eech_dc = function ()
 				if group ~= 13 then error ('SCRIPTED: unexpected group ' .. tostring (group), 0) end
 				if index ~= 0 and config and config.environment then
 					config.environment ({{ op = 'weather' }})
-					for _ = 1, SCENARIO.host_adds or 0 do config.environment ({{ op = 'lightning_add' }}) end
+					-- the host is asked the way the campaign asks it: a refusal and a malformed slot stop the engine at the bridge's markers (the real bridge's checks, reduced to what these tests use)
+					for _ = 1, SCENARIO.host_adds or 0 do
+						local ok, answer = pcall (config.environment, {{ op = 'lightning_add' }})
+						if not ok then error ('host environment: [env-provider:lightning_add.callback] ' .. tostring (answer), 0) end
+						if type (answer) == 'table' and type (answer.slot) == 'number' and (answer.slot < -1 or answer.slot > 31) then error ('host environment: [env-provider:lightning_add.answer] slot ' .. answer.slot, 0) end
+					end
 				end
 				if SCENARIO.engine_error and SCENARIO.engine_error == index then error ('engine fatal: an ASSERT fired in the original', 0) end
 				local text = index == 0 and PLAN or (SCENARIO.report and SCENARIO.report [index]) or REPORTS [index]
@@ -506,7 +511,7 @@ fn the_host_witness_counts_only_lightning_add_requests_and_leaves_the_delegates_
         .clone()
         .unwrap_or_else(|e| panic!("a native that asks the host for the add was rejected: {e}\n{}", driven.text));
     let record = authority(&driven);
-    assert_eq!(record["verdict"], "host_asked");
+    assert_eq!(record["verdict"], "host_asked_and_queued");
     assert_eq!(record["requests"], 2);
     // the delegate's rows are exactly what the primitive driver alone writes for the same report
     let alone = drive("", &case_args("2"));
@@ -539,4 +544,90 @@ fn the_host_witness_refuses_a_missing_delegate_and_any_case_but_2_before_anythin
         assert!(driven.result.clone().unwrap_err().contains("env-lightning-host-witness:"), "{args:?}");
         assert!(driven.rows.is_empty(), "{args:?}: nothing was written");
     }
+}
+
+/// A case 2 report in which nothing was queued (mask 0, occupancy 0): what the campaign shows when the HOST dropped the add.
+fn dropped_add_report() -> String {
+    head(2, "add_with_the_main_environment", "00000000", 0)
+        + "env-lightning-input tag=add main_time_w=00000000 type=1 length_w=3e99999a x_w=44bb8000 z_w=451c4000\\n"
+        + &end(2, "00000000", 0, 0)
+}
+
+#[test]
+fn the_host_witness_in_changed_mode_needs_the_real_case_to_show_the_hosts_answer_and_not_only_a_request_count() {
+    // the campaign asked the host and queued only what the host said (nothing): the host's changed answer reached the real case output
+    let dropped = format!(
+        "host_adds = 1, edit = function (index, text) if index == 2 then return '{}' end return text end",
+        dropped_add_report()
+    );
+    let driven = witness(&dropped, &[("case", "2"), ("mode", "changed")]);
+    driven
+        .result
+        .clone()
+        .unwrap_or_else(|e| panic!("a changed host answer that reached the case was rejected: {e}\n{}", driven.text));
+    let record = authority(&driven);
+    assert_eq!(
+        (record["verdict"].as_str(), record["requests"].as_i64()),
+        (Some("host_changed_the_queue"), Some(1))
+    );
+    assert_eq!(
+        (record["occupancy_after"].as_str(), record["mask_after_w"].as_str()),
+        (Some("0"), Some("00000000"))
+    );
+    // the campaign asked the host but STILL queued a strike (the default scripted report shows one): a request count alone proves nothing, so the ownership is not shown
+    let still_queued = witness("host_adds = 1", &[("case", "2"), ("mode", "changed")]);
+    let error = still_queued.result.clone().expect_err("a native that asks and still queues itself must fail");
+    assert!(error.contains("ownership-not-shown"), "{error}");
+    assert_eq!(authority(&still_queued)["verdict"], "ownership_not_shown");
+    // the pre-extraction native never asks: the capability is missing in this mode too
+    let never_asked = witness("", &[("case", "2"), ("mode", "changed")]);
+    assert!(never_asked.result.clone().unwrap_err().contains("queue-host-capability-missing"));
+}
+
+#[test]
+fn the_host_witness_in_healthy_mode_needs_the_reference_hosts_strike_in_the_real_case() {
+    // the host was asked but the real case shows nothing queued: the healthy host's answer did not reach the case
+    let dropped = format!(
+        "host_adds = 1, edit = function (index, text) if index == 2 then return '{}' end return text end",
+        dropped_add_report()
+    );
+    let driven = witness(&dropped, &[("case", "2")]);
+    assert!(driven.result.clone().unwrap_err().contains("ownership-not-shown"));
+}
+
+#[test]
+fn the_host_witness_stops_a_withheld_or_malformed_answer_at_its_boundary_and_reports_the_stop_as_the_evidence() {
+    for (mode, marker) in [
+        ("withheld", "[env-provider:lightning_add.callback]"),
+        ("malformed", "[env-provider:lightning_add.answer]"),
+    ] {
+        let driven = witness("host_adds = 1", &[("case", "2"), ("mode", mode)]);
+        driven.result.clone().unwrap_or_else(|e| {
+            panic!(
+                "{mode}: a stop at the boundary is the evidence, not a failure of the witness: {e}\n{}",
+                driven.text
+            )
+        });
+        let record = authority(&driven);
+        assert_eq!(record["verdict"], "stopped_at_boundary", "{mode}");
+        assert_eq!(
+            (record["marker"].as_str(), record["stopped"].as_bool(), record["requests"].as_i64()),
+            (Some(marker), Some(true), Some(1)),
+            "{mode}"
+        );
+        // the engine stopped inside the control: an engine_failure row, and NO result row (no fabricated completion)
+        assert_eq!(of(&driven, "engine_failure").len(), 1, "{mode}");
+        assert!(of(&driven, "result").is_empty(), "{mode}");
+        // a campaign that completes anyway (here: one that never asked) is an error, not a pass
+        let completed = witness("", &[("case", "2"), ("mode", mode)]);
+        assert!(completed.result.clone().unwrap_err().contains("not-stopped"), "{mode}");
+        assert_eq!(authority(&completed)["verdict"], "not_stopped", "{mode}");
+    }
+}
+
+#[test]
+fn the_host_witness_refuses_an_unknown_mode_before_anything_runs() {
+    let driven = witness("", &[("case", "2"), ("mode", "sideways")]);
+    assert!(driven.result.clone().unwrap_err().contains("mode must be"));
+    assert!(driven.rows.is_empty());
 }

@@ -1203,8 +1203,26 @@ pub const EECH_ENV_WIND: c_int = 6;
 pub const EECH_ENV_GUST: c_int = 7;
 pub const EECH_ENV_STEP: c_int = 8;
 pub const EECH_ENV_AMBIENT: c_int = 9;
+pub const EECH_ENV_LIGHTNING_ADD: c_int = 10;
+pub const EECH_ENV_LIGHTNING_UPDATE: c_int = 11;
+/// The slots of the physical lightning queue (`CAMPAIGN_LIGHTNING_SLOTS`).
+pub const EECH_LIGHTNING_SLOTS: usize = 32;
 /// The number of EECH weather modes (`WEATHERMODE_LAST`): a mode is in `0..EECH_ENV_MODE_COUNT`.
 pub const EECH_ENV_MODE_COUNT: c_int = 5;
+
+/// One slot of the physical lightning queue by value, field for field as campaign_lightning_strike.
+#[repr(C)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct eech_lightning_strike {
+    pub in_use: c_int,
+    pub kind: c_int,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+    pub time_started: f32,
+    pub time_length: f32,
+    pub current_frame_number: c_int,
+}
 
 /// The physical field, field for field as campaign_env_state (the order of the floats and of the integers is the enums of ss_hostenv.h).
 #[repr(C)]
@@ -1240,6 +1258,14 @@ pub struct eech_env_request {
     pub ambient_y: f32,
     pub ambient_alt: f32,
     pub ambient_cloud_base: f32,
+    /// LIGHTNING_ADD (with `x`, `z`): the strike type and length, whether an active 3D environment exists and its time of day; LIGHTNING_UPDATE: the time of day and,
+    /// once the host has asked for it, the strike animation frame count
+    pub lightning_type: c_int,
+    pub lightning_length: f32,
+    pub lightning_environment_active: c_int,
+    pub lightning_time_of_day: f32,
+    pub lightning_have_frames: c_int,
+    pub lightning_frames: c_int,
 }
 
 #[repr(C)]
@@ -1259,6 +1285,10 @@ pub struct eech_env_reply {
     pub new_timer: f32,
     /// AMBIENT: rain light, rain heavy, wind light, wind heavy
     pub ambient_levels: [f32; 4],
+    /// LIGHTNING_ADD: the slot filled (-1: none); LIGHTNING_UPDATE: the host needs the frame count; both: the whole queue after the operation
+    pub lightning_slot: c_int,
+    pub lightning_need_frames: c_int,
+    pub lightning_queue: [eech_lightning_strike; EECH_LIGHTNING_SLOTS],
 }
 
 impl Default for eech_env_state {

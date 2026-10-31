@@ -5,8 +5,8 @@ use eech_engine::{
     EnvRequest, EnvState, Gunship, HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor, MemberDescriptor,
     MovementMode, MovementResult, MovementStep, ObjectReport, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side, SupplyReachDescriptor,
     TerrainAnswer, TerrainMapFacts, TerrainProvider, TerrainQuery, VehiclePose, WeaponFigures, EECH_ENV_AMBIENT, EECH_ENV_EXPORT, EECH_ENV_FLOATS,
-    EECH_ENV_GUST, EECH_ENV_IMPORT, EECH_ENV_INIT_FIXED, EECH_ENV_INIT_RANDOM, EECH_ENV_INTS, EECH_ENV_MODE_COUNT, EECH_ENV_STEP, EECH_ENV_WEATHER,
-    EECH_ENV_WIND,
+    EECH_ENV_GUST, EECH_ENV_IMPORT, EECH_ENV_INIT_FIXED, EECH_ENV_INIT_RANDOM, EECH_ENV_INTS, EECH_ENV_LIGHTNING_ADD, EECH_ENV_LIGHTNING_UPDATE,
+    EECH_ENV_MODE_COUNT, EECH_ENV_STEP, EECH_ENV_WEATHER, EECH_ENV_WIND, EECH_LIGHTNING_SLOTS,
 };
 use mlua::prelude::*;
 use std::path::PathBuf;
@@ -651,6 +651,7 @@ return function (request)
 	local want_vector = request.want_vector == true
 	local server = request.server == true
 	local has_draw = request.lightning_draw ~= nil
+	local has_frames = request.frames ~= nil
 	local ok, answer = pcall (provider, request)
 	if not ok then return op .. '.callback', tostring (answer) end
 	if type (answer) ~= 'table' then return op .. '.answer', 'the ' .. op .. ' answer must be a table, got ' .. type (answer) end
@@ -685,6 +686,37 @@ return function (request)
 			if answer [name] < 0 or answer [name] > 1 then return 'ambient.answer', name .. ' must be within 0 to 1' end
 		end
 		return nil, string.format ('%s %s %s %s', fmt (answer.rain_light), fmt (answer.rain_heavy), fmt (answer.wind_light), fmt (answer.wind_heavy))
+	elseif op == 'lightning_add' or op == 'lightning_update' then
+		-- the physical lightning queue (EEDCS-51): an update the host cannot finish without the strike animation's frame count says so and changes nothing, once
+		if answer.need_frames == true then
+			if op ~= 'lightning_update' then return op .. '.answer', 'an add never needs the frame count' end
+			if has_frames then return op .. '.answer', 'the provider asked for the frame count it was given' end
+			return nil, '1'
+		end
+		if answer.need_frames ~= nil and answer.need_frames ~= false then return op .. '.answer', 'need_frames must be a boolean or nil' end
+		local slot = -1
+		if op == 'lightning_add' then
+			slot = answer.slot
+			if not integer (slot) or slot < -1 or slot > 31 then return op .. '.answer', 'slot must be an integer from -1 (none) to 31' end
+		end
+		local queue = answer.queue
+		if type (queue) ~= 'table' or queue [33] ~= nil then return op .. '.answer', 'queue must be a list of exactly 32 strikes' end
+		local out = { '0', string.format ('%d', slot) }
+		for i = 1, 32 do
+			local s = queue [i]
+			if type (s) ~= 'table' then return op .. '.answer', 'queue [' .. i .. '] must be a table' end
+			if type (s.in_use) ~= 'boolean' then return op .. '.answer', 'queue [' .. i .. '].in_use must be a boolean' end
+			if not integer (s.type) or s.type < 0 or s.type > 5 then return op .. '.answer', 'queue [' .. i .. '].type must be an integer from 0 to 5' end
+			if not integer (s.frame) then return op .. '.answer', 'queue [' .. i .. '].frame must be an integer' end
+			out [#out + 1] = s.in_use and '1' or '0'
+			out [#out + 1] = string.format ('%d', s.type)
+			for _, name in ipairs { 'x', 'y', 'z', 'time_started', 'time_length' } do
+				if not finite (s [name]) then return op .. '.answer', 'queue [' .. i .. '].' .. name .. ' must be a finite number' end
+				out [#out + 1] = fmt (s [name])
+			end
+			out [#out + 1] = string.format ('%d', s.frame)
+		end
+		return nil, table.concat (out, ' ')
 	end
 	-- step
 	if answer.need_draw == true then
@@ -795,6 +827,8 @@ fn env_op_name(op: i32) -> &'static str {
         EECH_ENV_GUST => "gust",
         EECH_ENV_STEP => "step",
         EECH_ENV_AMBIENT => "ambient",
+        EECH_ENV_LIGHTNING_ADD => "lightning_add",
+        EECH_ENV_LIGHTNING_UPDATE => "lightning_update",
         _ => "unknown",
     }
 }
@@ -844,6 +878,23 @@ fn env_request_table(lua: &Lua, request: &EnvRequest) -> LuaResult<LuaTable> {
             table.set("cloud_base", f64::from(request.ambient_cloud_base))?;
             table.set("in_cockpit", request.in_cockpit != 0)?;
         }
+        EECH_ENV_LIGHTNING_ADD => {
+            table.set("type", request.lightning_type)?;
+            table.set("length", f64::from(request.lightning_length))?;
+            table.set("x", f64::from(request.x))?;
+            table.set("z", f64::from(request.z))?;
+            table.set("environment_active", request.lightning_environment_active != 0)?;
+            // the time of day is what the original read from the active environment: with none there is nothing to give
+            if request.lightning_environment_active != 0 {
+                table.set("time_of_day", f64::from(request.lightning_time_of_day))?;
+            }
+        }
+        EECH_ENV_LIGHTNING_UPDATE => {
+            table.set("time_of_day", f64::from(request.lightning_time_of_day))?;
+            if request.lightning_have_frames != 0 {
+                table.set("frames", request.lightning_frames)?;
+            }
+        }
         EECH_ENV_STEP => {
             table.set("delta", f64::from(request.delta))?;
             table.set("server", request.server != 0)?;
@@ -881,6 +932,8 @@ fn env_numbers<const N: usize>(text: &str, marker: &str) -> Result<[f64; N], Str
 /// The numbers of a field (the floats, then the integers) and of a step answer (its six leading numbers, then the field).
 const ENV_STATE_NUMBERS: usize = EECH_ENV_FLOATS + EECH_ENV_INTS;
 const ENV_STEP_NUMBERS: usize = 6 + ENV_STATE_NUMBERS;
+/// The numbers of a lightning queue answer: the leading `0`, the slot, and eight numbers for each slot of the queue.
+const ENV_LIGHTNING_NUMBERS: usize = 2 + 8 * EECH_LIGHTNING_SLOTS;
 
 fn env_f32(value: f64, marker: &str) -> Result<f32, String> {
     nearest_f32(value).ok_or_else(|| format!("[env-provider:{marker}] a number is beyond the single-precision range"))
@@ -961,6 +1014,34 @@ fn call_environment(lua: &Lua, bridge: &LuaFunction, request: &EnvRequest) -> Re
                 env_f32(n[2], &answer)?,
                 env_f32(n[3], &answer)?,
             ];
+        }
+        EECH_ENV_LIGHTNING_ADD | EECH_ENV_LIGHTNING_UPDATE => {
+            // "1" when an update needs the strike animation's frame count; else "0 <slot>" and eight numbers for each of the queue's slots (in_use, type, x, y, z, time started, length, frame)
+            if text.trim() == "1" {
+                reply.lightning_need_frames = 1;
+                reply.lightning_slot = -1;
+            } else {
+                let n = env_numbers::<ENV_LIGHTNING_NUMBERS>(&text, &answer)?;
+                // the leading 0 is skipped; the count was checked whole by env_numbers
+                let mut numbers = n.iter().skip(1);
+                let mut next = || -> Result<f64, String> {
+                    numbers
+                        .next()
+                        .copied()
+                        .ok_or_else(|| format!("[env-provider:{answer}] the queue answer is short"))
+                };
+                reply.lightning_slot = env_i32(next()?, &answer)?;
+                for strike in reply.lightning_queue.iter_mut() {
+                    strike.in_use = env_i32(next()?, &answer)?;
+                    strike.kind = env_i32(next()?, &answer)?;
+                    strike.x = env_f32(next()?, &answer)?;
+                    strike.y = env_f32(next()?, &answer)?;
+                    strike.z = env_f32(next()?, &answer)?;
+                    strike.time_started = env_f32(next()?, &answer)?;
+                    strike.time_length = env_f32(next()?, &answer)?;
+                    strike.current_frame_number = env_i32(next()?, &answer)?;
+                }
+            }
         }
         _ => {
             // step: "1 <timer>" when the host needs the draw, else "0 <expired> <strike x y z> <new timer> <the field>"
@@ -4256,6 +4337,150 @@ mod tests {
         ] {
             let mut bad = env_of(&lua, source)?;
             let result = bad(&request);
+            assert!(
+                matches!(&result, Err(message) if message.contains(&format!("[env-provider:{marker}]"))),
+                "{what}: {result:?}"
+            );
+        }
+        Ok(())
+    }
+
+    // ---- the physical lightning queue through the Lua bridge (EEDCS-51): the request by value, the whole queue read exactly, a malformed answer refused by marker ----
+
+    /// A Lua source for a list of 32 strikes where `edit` (Lua) may change the first.
+    fn queue_source(first: &str) -> String {
+        format!(
+            "local q = {{}} for i = 1, 32 do q [i] = {{ in_use = false, type = 0, x = 0, y = 0, z = 0, time_started = 0, time_length = 0, frame = 0 }} end
+             local s = q [1] {first}"
+        )
+    }
+
+    #[test]
+    fn a_lightning_add_reaches_the_provider_by_value_and_the_whole_queue_comes_back_exactly() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let request = EnvRequest {
+            lightning_type: 2,
+            lightning_length: 0.3,
+            x: 1500.0,
+            z: -2500.0,
+            lightning_environment_active: 1,
+            lightning_time_of_day: 100.25,
+            ..env_request(EECH_ENV_LIGHTNING_ADD)
+        };
+        let mut provider = env_of(
+            &lua,
+            &format!(
+                "assert (r.op == 'lightning_add' and r.type == 2 and r.length == 0.30000001192092896 and r.x == 1500 and r.z == -2500 and r.environment_active == true and r.time_of_day == 100.25)
+                 {}
+                 s.in_use = true s.type = 2 s.x = r.x s.y = 6000 s.z = r.z s.time_started = r.time_of_day s.time_length = r.length s.frame = 0
+                 return {{ slot = 0, queue = q }}",
+                queue_source("")
+            ),
+        )?;
+        let reply = provider(&request)?;
+        assert_eq!(reply.lightning_slot, 0);
+        assert_eq!(reply.lightning_need_frames, 0);
+        let first = reply.lightning_queue[0];
+        assert_eq!((first.in_use, first.kind, first.current_frame_number), (1, 2, 0));
+        assert_eq!(
+            [first.x, first.y, first.z, first.time_started, first.time_length].map(f32::to_bits),
+            [1500.0f32, 6000.0, -2500.0, 100.25, 0.3].map(f32::to_bits)
+        );
+        assert!(reply.lightning_queue.iter().skip(1).all(|strike| strike.in_use == 0));
+        // with no active environment nothing is given for the time of day
+        let none = EnvRequest {
+            lightning_environment_active: 0,
+            ..request
+        };
+        let mut absent = env_of(
+            &lua,
+            &format!(
+                "assert (r.environment_active == false and r.time_of_day == nil) {} return {{ slot = -1, queue = q }}",
+                queue_source("")
+            ),
+        )?;
+        assert_eq!(absent(&none)?.lightning_slot, -1);
+        Ok(())
+    }
+
+    #[test]
+    fn a_lightning_update_may_ask_for_the_frame_count_once_and_a_malformed_queue_is_refused_by_marker() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let update = EnvRequest {
+            lightning_time_of_day: 10.5,
+            ..env_request(EECH_ENV_LIGHTNING_UPDATE)
+        };
+        // the host needs the frame count: nothing else is read from the answer
+        let mut asks = env_of(
+            &lua,
+            "assert (r.op == 'lightning_update' and r.time_of_day == 10.5 and r.frames == nil) return { need_frames = true }",
+        )?;
+        let reply = asks(&update)?;
+        assert_eq!((reply.lightning_need_frames, reply.lightning_slot), (1, -1));
+        // given the count the request carries it, and a second request for it is refused
+        let given = EnvRequest {
+            lightning_have_frames: 1,
+            lightning_frames: 8,
+            ..update
+        };
+        let mut again = env_of(&lua, "return { need_frames = true }")?;
+        assert!(matches!(again(&given), Err(message) if message.contains("[env-provider:lightning_update.answer]")));
+        let mut done = env_of(
+            &lua,
+            &format!(
+                "assert (r.frames == 8) {} s.in_use = true s.type = 2 s.frame = 4 return {{ queue = q }}",
+                queue_source("")
+            ),
+        )?;
+        let reply = done(&given)?;
+        assert_eq!(
+            (reply.lightning_need_frames, reply.lightning_slot, reply.lightning_queue[0].current_frame_number),
+            (0, -1, 4)
+        );
+        // an add never asks for a frame count
+        let add = env_request(EECH_ENV_LIGHTNING_ADD);
+        let mut wrong = env_of(&lua, "return { need_frames = true }")?;
+        assert!(matches!(wrong(&add), Err(message) if message.contains("[env-provider:lightning_add.answer]")));
+        // each malformed add answer is refused under the add marker, a withheld one under its callback marker
+        for (what, source, marker) in [
+            ("not a table", "return 'queue'".to_string(), "lightning_add.answer"),
+            (
+                "slot beyond the queue",
+                format!("{} return {{ slot = 32, queue = q }}", queue_source("")),
+                "lightning_add.answer",
+            ),
+            ("slot missing", format!("{} return {{ queue = q }}", queue_source("")), "lightning_add.answer"),
+            ("queue missing", "return { slot = 0 }".to_string(), "lightning_add.answer"),
+            ("a short queue", "return { slot = 0, queue = { {} } }".to_string(), "lightning_add.answer"),
+            (
+                "a long queue",
+                format!("{} q [33] = q [1] return {{ slot = 0, queue = q }}", queue_source("")),
+                "lightning_add.answer",
+            ),
+            (
+                "in_use not a boolean",
+                format!("{} s.in_use = 1 return {{ slot = 0, queue = q }}", queue_source("")),
+                "lightning_add.answer",
+            ),
+            (
+                "a type outside the enum",
+                format!("{} s.type = 6 return {{ slot = 0, queue = q }}", queue_source("")),
+                "lightning_add.answer",
+            ),
+            (
+                "a number not finite",
+                format!("{} s.x = 1 / 0 return {{ slot = 0, queue = q }}", queue_source("")),
+                "lightning_add.answer",
+            ),
+            (
+                "a frame that is not an integer",
+                format!("{} s.frame = 1.5 return {{ slot = 0, queue = q }}", queue_source("")),
+                "lightning_add.answer",
+            ),
+            ("withheld", "error ('withheld')".to_string(), "lightning_add.callback"),
+        ] {
+            let mut bad = env_of(&lua, &source)?;
+            let result = bad(&add);
             assert!(
                 matches!(&result, Err(message) if message.contains(&format!("[env-provider:{marker}]"))),
                 "{what}: {result:?}"
