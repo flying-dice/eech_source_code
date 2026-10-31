@@ -1,3 +1,16 @@
+# D3 correction batch — the sector kernel's complete caller-FP guard and the two actual observer-guard failures (31 October 2026, UNBUILT)
+
+EEDCS-51 / PR111 from clean pushed `e05bf775f` (production-equivalent to `6711d5f11`). ACTUAL red (Root): the public sector-query FP regression ran on Linux x86-64 against the unchanged 6711 kernel and failed,
+`changed the caller's floating-point state in 76 kinds of call (6144 calls checked, no mask)`, MXCSR only (e.g. fractional (1, 1) `0x1f80 -> 0x1fa0`; a subnormal beside a normal `0x1f80 -> 0x1fb2`), answers unchanged;
+no 32-bit/x87 failure or generic DLL defect is claimed. `env_sector_authority` ran 13 functions, 11 passed, 2 failed (test bookkeeping, no product path). The first default 95-row 6711 candidate runs are numeric-only
+unchanged (receipt `environment-sector-first-6711d5f11-comparison-20261031.json`) and are not FP evidence. **This batch (UNBUILT, UNRUN, UNREVIEWED):** `host_terrain_types_in_sector` takes the position as float
+BITS (`uint32_t`, never float parameters), saves the complete x87 (fnstenv) and MXCSR state before any floating-point action including validation and refusals, runs all arithmetic in one non-inlined function under
+round-toward-zero writing a local staged answer, restores and reads back the COMPLETE state (no mask) on every exit, and only then writes the caller's buffers; sector selection, domain, enumeration, return value and
+refusal texts are unchanged; the false "scaling cannot touch FP" claims are corrected. The two test failures are fixed without relaxing the completeness contract (a coherent completed synthetic run; the helper asserts the
+witness classification plus the specific detail). Remaining coupling and everything unproven (32-bit, Core client under the new ABI, later records, sound amplitudes, renderer, player) is in
+`docs/d3-environment-sector-surface.md`. Fresh roots, new native build, three new 95-row comparisons, five authority runs, new independent review, current CI and the rest of D3 (effects, time, remaining terrain,
+spatial/object, model, full shipping, normal merges) remain; D4/D5 unstarted; no acceptance claimed.
+
 # D3 red phase — sector-kernel caller-FP test and observer-completeness guards (31 October 2026, test/driver only)
 
 EEDCS-51 / PR111 on clean pushed `6711d5f11`. Independent source review `ENV-SECTOR-HOST-6711-20261031` (SHA-256 `06419e7b...80b5`) is CHANGES_REQUIRED with two grouped findings plus a Linux test compile error;

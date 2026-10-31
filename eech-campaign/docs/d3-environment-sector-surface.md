@@ -96,7 +96,7 @@ hosted-field baseline, not the unhooked whole original DLL. The independent actu
 
 * **Host** (`eech-world/csrc/terrain_ref.c host_terrain_types_in_sector`, `src/terrain.rs`): the sector choice (the original's `x / 2048`, `z / 2048` truncated toward zero. CORRECTED (independent review ENV-SECTOR-HOST-1): the earlier claim that an exact power-of-two scaling and a truncation cannot touch the floating-point
   environment is false -- the smallest subnormal over 2048 is inexact/underflows, an ordinary fractional quotient sets the precision flag on truncation, x87 loads and conversions change the status word,
-  and the refusal paths are unguarded too -- so the entry owes the caller's COMPLETE x87 and SSE state back on every path; the guard is NOT yet written, see the red-phase section below), its **domain** (a sector outside the map, a position that is not finite and a quotient that does not fit an int are refused with a message, where the original indexed its table unchecked), the
+  and the refusal paths are unguarded too -- so the entry owes the caller's COMPLETE x87 and SSE state back on every path; the guard is written in the correction batch at the end of this document, UNBUILT), its **domain** (a sector outside the map, a position that is not finite and a quotient that does not fit an int are refused with a message, where the original indexed its table unchecked), the
   walk of the sector's polygons over the host's own loaded, bounds-checked copy of the geometry (first surface, then the surface of EVERY polygon with `surface_change`), the reset (all 62 flags are rewritten), and the
   return value 1 + the changes met. A surface id outside the 62 terrain types, which the original would use to index outside its scratch, is refused.
 * **Campaign** (`aphavoc/.../mb_hostterrain.c campaign_terrain_types_in_sector`, `terrdata.c` under `EECH_CAMPAIGN_HOST_TERRAIN`): builds the request (`op = SECTOR`, position, the season captured before the first question), asks the
@@ -174,3 +174,49 @@ Commands for Root (nothing here was built or run; the Core C module need not be 
 2. The observer guards: `cargo test -p eech-world --test env_sector_authority` (the judge guards and the driver controls; the public witness prints SKIPPED without its environment) and
    `cargo test -p eech-dc` (the compile fix); then `cargo fmt --check` and `cargo clippy --all-targets -- -D warnings` (the new tests are written for the 160-column rustfmt, which Root runs).
 3. Fresh roots are needed for any later public run after the production FP fix; a run of the current default 95-row candidate collection against the verified 6711 native is neither acceptance nor FP proof.
+
+## Correction batch on e05bf775f: the sector kernel's complete caller-FP guard and the two actual observer-guard failures (UNBUILT, UNRUN, UNREVIEWED)
+
+**Actual evidence this batch answers (Root's, not mine):** the focused public-call red `the_callers_complete_floating_point_state_survives_every_sector_query_in_every_mode` ran on Linux x86-64 against the
+UNCHANGED 6711d5f11 kernel (e05bf775f is production-equivalent to 6711) and failed with `the sector query changed the caller's floating-point state in 76 kinds of call (6144 calls checked, no mask)`:
+MXCSR leaks only (e.g. fractional (1, 1): `0x1f80 -> 0x1fa0`, the precision flag of an inexact truncation; a subnormal beside a normal: `0x1f80 -> 0x1fb2`, precision + underflow + denormal); the answers
+did not vary. It is a Linux 64-bit observation: no 32-bit/x87 failure and no generic DLL defect is claimed. The retained log is `environment-sector-red-e05bf775f-linux-20261031.log`. The
+`env_sector_authority` guard file ran 13 functions: 11 passed, 2 failed, both in the TESTS' bookkeeping (no product path; the public witness printed SKIPPED).
+The first default 95-row candidate runs against 6711 (numeric only, receipt `environment-sector-first-6711d5f11-comparison-20261031.json`) are unchanged and say nothing about floating-point state.
+
+**P1, the production fix (`eech-world/csrc/terrain_ref.c`, `terrain_ref.h`, `src/terrain.rs`).** `host_terrain_types_in_sector` now owns the caller's COMPLETE state around everything it does, the
+reference host's established guard copied for this one entry (env_ref.c `fp_save/enter/restore`, itself from the closed model and ground components; not the MinGW fenv-only pattern, which leaves MXCSR
+where the kernel put it):
+
+* BEFORE the first floating-point action -- the argument validation and every refusal included -- the x87 environment (control, status and tag words, exception pointers: `fnstenv`, reloaded at once) and
+  the whole of MXCSR (`stmxcsr`) are saved; round-toward-zero is set for both units and read back; all the arithmetic (the division by the sector side, the magnitude test, the truncation, the walk) runs in
+  one non-inlined function between the save and the restore, writing only a LOCAL staged answer (return value, 62 flags, error text); the caller's state is restored (`fldenv`, `ldmxcsr`) on EVERY exit and
+  read back COMPLETE, no mask (condition codes, stack top, tag word, every MXCSR bit); a restore that does not read back withholds the answer; only then are the caller's buffers written, by integer
+  tests and bitwise copies.
+* The position crosses the C boundary as the BITS of the two floats (`uint32_t x_bits, z_bits`, passed by the Rust wrapper as `to_bits()`), not as `float` parameters: a 32-bit callee may home a float
+  through the x87 stack in its prologue, before any guard could run. The finite test is made on the bits (all-ones exponent), the bits become floats inside the guard, and they go through an empty
+  `asm` after the guard is entered so that no arithmetic that depends on them can be scheduled before it. No legacy pointer or layout is exposed; the ABI is private to this library and its wrapper.
+* UNCHANGED: the sector selection (division by 2048, truncation toward zero), the domain (every finite value and every subnormal is still admitted and truncates to sector 0; the refusals are the same
+  ones with the same messages), the enumeration (first surface, then every polygon's surface change), the return value 1 + the changes, the zeroed flags and return value on a refusal. The
+  false comment that the scaling and truncation cannot touch the floating-point environment is replaced in the kernel and in the header.
+* NOT done: no change to the point, fast or env kernels, to the Core client, the Lua provider's own conversions (the Lua number to `f32` happens in the caller's state, before this entry), or any
+  DLL-wide floating-point behaviour; no mask or skipped assertion in the red test.
+
+**P2, the two actual guard failures (test bookkeeping only; the completeness contract is NOT relaxed).**
+
+1. `a_refusal_counts_only_at_the_named_marker_after_a_sent_matching_alteration`: the "engine did not stop" case turned a refused synthetic run into a COMPLETED one but kept the refusal base's lack of a
+   pair row, so the judge rightly rejected `observer counted 1 sound records for 30 calls but the stream holds 0 pairs`. The case now carries the one pair the completed base counts, so it is a coherent
+   completed run; its assertion (`did not stop`) is unchanged. Unknown counters of a stopped run are still -1, never measured zero.
+2. `the_driver_publishes_an_observer_record_only_when_the_whole_stream_and_report_are_complete_and_reconcile`: the helper required the detail directly after `env-sector-authority: `, but the driver's
+   message is `env-sector-authority: OBSERVER SEQUENCE: the first event is kind 2, not boot_begin ...`. The helper now asserts BOTH the witness classification (`env-sector-authority: OBSERVER`, never an
+   engine stop) and the specific detail anywhere in the message; the no-`authority`-row, `witness_failure` and strict-parse-failure assertions are unchanged, and every case still runs.
+
+**Still not shown:** that the guard works (nothing here was compiled or run); that the 32-bit/x87 path is clean; the real Core client or the shipping module under the new ABI; any later published-record
+comparison beyond the first record; the sound amplitudes, the renderer, a player. Fresh roots are needed for every later public run; the 6711 roots/binaries and the first comparison are preserved.
+
+Commands for Root:
+
+1. `cargo test -p eech-world --test terrain_sector` (the SAME 6144-call test must turn green on Linux x86-64 and on the applicable 32-bit/Windows jobs; the other tests of the file are the host-contract ones).
+2. `cargo test -p eech-world --test env_sector_authority` (13 functions) and `cargo test -p eech-dc`; `cargo fmt --check`; `cargo clippy --all-targets -- -D warnings`; the complete `cargo test`.
+3. Rebuild the native observer/fixture module from the corrected source into a NEW directory (the frozen 6711 native is not overwritten), then the three default 95-row comparisons on the fresh FIXED roots
+   against the `b2e` originals and the five authority modes on the fresh authority roots (`EECH_SECTOR_ROOTS`), exactly as in the commands above; then a new independent review.

@@ -165,8 +165,8 @@ extern "C" {
     fn host_terrain_fast_elevation(map: *const c_void, x: f32, z: f32, out: *mut f32, error: *mut c_char, error_size: usize) -> i32;
     fn host_terrain_types_in_sector(
         map: *const c_void,
-        x: f32,
-        z: f32,
+        x_bits: u32,
+        z_bits: u32,
         returned: *mut i32,
         flags: *mut u8,
         flags_capacity: usize,
@@ -472,13 +472,25 @@ impl Terrain {
     }
 
     /// The surface enumeration of the sector that holds a position (`host_terrain_types_in_sector`): the original's return value (1 + the surface changes of the sector) and one flag for each
-    /// terrain type. An error when the position is not finite or its sector is not in the map.
+    /// terrain type. An error when the position is not finite or its sector is not in the map. The caller's complete x87 and SSE floating-point state is given back on every path; the position
+    /// crosses the C boundary as the bits of the two floats (integers), so that no float argument is homed before the kernel's guard is entered.
     pub fn types_in_sector(&self, x: f32, z: f32) -> Result<(i32, Vec<bool>), String> {
         let mut returned = 0i32;
         let mut flags = [0u8; SECTOR_TYPES];
         let mut error = [0 as c_char; 256];
         // SAFETY: the map is live, `flags` has the room the kernel is told and the out pointers are valid.
-        let status = unsafe { host_terrain_types_in_sector(self.map, x, z, &mut returned, flags.as_mut_ptr(), flags.len(), error.as_mut_ptr(), error.len()) };
+        let status = unsafe {
+            host_terrain_types_in_sector(
+                self.map,
+                x.to_bits(),
+                z.to_bits(),
+                &mut returned,
+                flags.as_mut_ptr(),
+                flags.len(),
+                error.as_mut_ptr(),
+                error.len(),
+            )
+        };
         if status != 0 {
             return Err(message(&error));
         }

@@ -73,9 +73,15 @@ int host_terrain_fast_elevation (const host_terrain *map, float x, float z, floa
  * with a message (as is one that is not finite). `flags` (at least HOST_TERRAIN_TYPE_COUNT bytes) is the complete scratch: 1 for the sector's first surface and for the surface of EVERY
  * polygon that changes surface, 0 elsewhere; `*returned` is the original's return value, 1 PLUS THE NUMBER OF SURFACE CHANGES met, which is not the number of flags set (a surface met
  * twice is flagged once and counted twice). A surface id outside the terrain types, which the original would use to index outside its scratch, is refused. On a refusal the flags are
- * all zero and *returned is 0. 0 on success. The floating-point environment is not touched: the choice of sector is an exact scaling and a truncation.
+ * all zero and *returned is 0. 0 on success.
+ *
+ * The caller's COMPLETE floating-point state is preserved on every path (the x87 control, status and tag words, and the whole of MXCSR, restored and read back; the answer is withheld if they do
+ * not read back). An earlier version of this comment said the choice of sector -- an exact scaling and a truncation -- cannot touch the floating-point environment; that was wrong (a subnormal
+ * quotient is inexact and underflows, a fractional truncation raises the precision flag, an x87 conversion changes the status word). The position is therefore passed as the BITS of the two
+ * floats (x_bits, z_bits: the IEEE single-precision words, so a 32-bit callee cannot home a float argument through the x87 stack before the guard is entered) and is turned into floats inside
+ * the guard. Private ABI between this library and its Rust wrapper; no legacy pointer or layout is exposed.
  */
-int host_terrain_types_in_sector (const host_terrain *map, float x, float z, int32_t *returned, uint8_t *flags, size_t flags_capacity, char *error, size_t error_size);
+int host_terrain_types_in_sector (const host_terrain *map, uint32_t x_bits, uint32_t z_bits, int32_t *returned, uint8_t *flags, size_t flags_capacity, char *error, size_t error_size);
 
 /*
  * CONFORMANCE ONLY. The deterministic sweep of eech-engine-sys/csrc/eech_terrain_fixture.c (the probe the original solver was characterised

@@ -792,7 +792,9 @@ fn a_refusal_counts_only_at_the_named_marker_after_a_sent_matching_alteration() 
     let healthy = Synthetic::changed().facts();
     assert!(judge_refusal("changed_sector", &control, &healthy).unwrap_err().contains("not a refusal mode"));
     let mut unstopped = Synthetic::refused("withheld_sector", "sector.callback", "withheld", "withheld".into());
+    // a run that completed is a coherent completed run: the observer was read and holds the one sound record the base control's counters say it counted (the refusal base has no pair row)
     unstopped.completed = true;
+    unstopped.pair = Some((scratch_hash(&host_flags()), 2, "48750", "29651.9766"));
     unstopped.authority = vec![("altered_sector", "30".into())];
     assert!(judge_refusal("withheld_sector", &control, &unstopped.facts())
         .unwrap_err()
@@ -1066,7 +1068,9 @@ fn the_driver_stops_each_refusal_mode_at_its_named_marker_after_the_first_sent_a
 fn refused_observer_record(scenario: &str, fragment: &str) {
     let driven = drive(scenario, &[]);
     let error = driven.result.expect_err("an incomplete observer record must fail the witness");
-    assert!(error.contains(&format!("env-sector-authority: {fragment}")), "expected {fragment:?}: {error}");
+    // the witness's own classification (an `env-sector-authority: OBSERVER ...` failure, never an engine stop) AND the specific detail, which need not follow the prefix directly
+    assert!(error.contains("env-sector-authority: OBSERVER"), "not a witness observer failure: {error}");
+    assert!(error.contains(fragment), "expected {fragment:?}: {error}");
     assert!(driven.rows.contains("witness_failure"), "{}", driven.rows);
     assert!(
         !driven.rows.contains("\"event\":\"authority\""),
