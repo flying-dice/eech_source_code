@@ -130,6 +130,7 @@ for i = 2, #plan do
 end
 
 local terrain_before = tonumber (p.terrain_children)
+local previous_after, previous_ids
 for index = 1, cases do
 	local lines, failure = ask (index)
 	if not lines then
@@ -149,12 +150,41 @@ for index = 1, cases do
 	if e.changed ~= "1" or e.process_isolated ~= "required" or e.heap_restored ~= "0" or e.amplitudes_restored ~= "0" or e.session_camera_cloud_cockpit_scratch_restored ~= "1" then
 		hard ("case " .. index .. " does not state its isolation and what it restored: " .. end_row)
 	end
+	-- the list the routine ran on is intact link by link before and after, and after the cleanup it is that same list: the cleanup keeps the list roots and links the real constructor changed (restoring the
+	-- session record's stale root would detach the new children), and the next case starts from what this one left
+	if a.topology ~= "ok" then hard ("case " .. index .. ": the child list topology after the routine is not intact (" .. tostring (a.topology) .. "): " .. after_row) end
+	if e.list_topology_after_cleanup ~= "ok" or e.list_preserved ~= "1" then
+		hard ("case " .. index .. ": the child list after the cleanup is not the list the routine ran on, intact link by link (topology " .. tostring (e.list_topology_after_cleanup) .. ", preserved " .. tostring (e.list_preserved) .. "): " .. end_row)
+	end
 	local target, created, terrain, children = tonumber (h.target_terrain), tonumber (h.created), tonumber (h.terrain), tonumber (h.children)
+	-- the fixture counted the terrain children it found at the start of this case, from the live list: it must be the count the previous case left
+	if tonumber (h.terrain_before) ~= terrain_before then hard ("case " .. index .. " found " .. tostring (h.terrain_before) .. " terrain children at its start, not the " .. terrain_before .. " the previous case left: " .. head) end
 	-- the real camera height produced the radar altitude the factor 0.5 needs, and the delta is the zero the smoothing needs
 	if h.alt_w ~= "430c0000" or h.delta_w ~= "00000000" then hard ("case " .. index .. " was not run at radar altitude 140 and frame delta 0: " .. head) end
 	if target ~= targets [index] or terrain ~= target or created ~= target - terrain_before or not children then hard ("case " .. index .. " counts do not fit the plan: " .. head) end
 	local before, after = list_of (h.before, "case " .. index .. " before"), list_of (a.children, "case " .. index .. " after")
 	if #before ~= children or #after ~= children then hard ("case " .. index .. " lists " .. #before .. " and " .. #after .. " children for " .. children .. ": " .. head) end
+	-- continuity from the previous case: the children it left (entity, subtype, class, in order) are exactly this case's list WITHOUT the entities this case reports as newly created, and none of the
+	-- created entities was in the list before (they are genuinely new). The amplitudes are deliberately reset by each case and are not compared.
+	local created_set = {}
+	if h.created_ids ~= "none" then
+		for id in string.gmatch (h.created_ids, "%d+") do created_set [tonumber (id)] = true end
+	end
+	if previous_after then
+		local retained = {}
+		for _, entry in ipairs (before) do
+			if created_set [entry.id] then
+				if previous_ids [entry.id] then hard ("case " .. index .. ": entity " .. entry.id .. " is reported as newly created but was in the list the previous case left") end
+			else
+				retained [#retained + 1] = entry
+			end
+		end
+		if #retained ~= #previous_after then hard ("case " .. index .. " retains " .. #retained .. " children of the " .. #previous_after .. " the previous case left") end
+		for k = 1, #retained do
+			local r, q = retained [k], previous_after [k]
+			if r.id ~= q.id or r.sub ~= q.sub or r.name ~= q.name then hard ("case " .. index .. ": retained child " .. k .. " is entity " .. r.id .. " where the previous case left entity " .. q.id .. ": the list was not continued") end
+		end
+	end
 	local ids, terrain_seen, j = {}, 0, 0
 	for k = 1, children do
 		local b, f = before [k], after [k]
@@ -184,6 +214,7 @@ for index = 1, cases do
 	emit { event = "case", i = index, terrain_target = target, terrain_before = terrain_before, created = created, created_ids = h.created_ids, children = children, delta_w = h.delta_w, alt_w = h.alt_w,
 		rng_unchanged = a.rng_unchanged, before = h.before, after = a.children, raw = table.concat (lines, "\n") }
 	terrain_before = target
+	previous_after, previous_ids = after, ids
 end
 
 emit { event = "summary", cases = cases, targets = p.targets }

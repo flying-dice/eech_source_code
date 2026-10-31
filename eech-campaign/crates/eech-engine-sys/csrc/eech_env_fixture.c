@@ -1945,7 +1945,7 @@ static int env_sound_case (int index, char *text, int capacity, int *used)
    after the call. It computes and judges nothing: the driver compares what came back with what went in.
 
    NOT A WITNESS, NOT RESTORED: creating entities changes the entity heap and the session's child list, and they cannot be put back from here (like group 9, the process is the isolation boundary: the report says
-   `changed=1 process_isolated=required heap_restored=0`). What IS put back: the session record and the host field, the season, the shared seed, the frame delta, the camera position and cached elevation, the
+   `changed=1 process_isolated=required heap_restored=0`). What IS put back: the session record and the host field EXCEPT the list roots and links the constructor changed (special_effect_root, force_root, update_link: restoring those would detach the new children and corrupt the lists, so they stay as the creation left them and the end row checks the list link by link and its identity with the list the routine ran on), the season, the shared seed, the frame delta, the camera position and cached elevation, the
    cloud base, in_cockpit and the scratch. The children's amplifications are NOT restored. A routine that stops the engine (a fatal error) leaves nothing restored and poisons the process: the case then
    reports no rows at all, the engine's error is the result. Speaker, network delivery, the player and the renderer are not exercised and not claimed. */
 
@@ -2013,14 +2013,47 @@ static int env_wide_print (char *text, int capacity, int *used, const char *key,
 }
 
 /* the mutation and the report of one case; the caller restores what it can whatever this returns */
-static int env_wide_body (int index, int target, struct env_sound_child *kids, int n, char *text, int capacity, int *used)
+/* The topology of the session's special-effect child list, checked link by link: every child's parent is the session and its predecessor is the child walked before it (the first has none); NULL when it
+   holds, else the reason. The real constructor inserts each new child at the HEAD of the list and re-links the old first child, so this is what a cleanup that restored a stale list root would break. */
+static const char *env_wide_topology (void)
+{
+	entity *session_en = get_session_entity (), *spec = get_local_entity_first_child (session_en, LIST_TYPE_SPECIAL_EFFECT), *previous = NULL;
+	int walked = 0;
+
+	while (spec)
+	{
+		if (get_local_entity_parent (spec, LIST_TYPE_SPECIAL_EFFECT) != session_en)
+		{
+			return "a_child_of_the_list_has_another_parent";
+		}
+
+		if (get_local_entity_child_pred (spec, LIST_TYPE_SPECIAL_EFFECT) != previous)
+		{
+			return "a_child_of_the_list_has_a_predecessor_that_is_not_the_child_walked_before_it";
+		}
+
+		if (++walked > 4096)
+		{
+			return "the_list_does_not_end";
+		}
+
+		previous = spec;
+		spec = get_local_entity_child_succ (spec, LIST_TYPE_SPECIAL_EFFECT);
+	}
+
+	return NULL;
+}
+
+static int env_wide_body (int index, int target, struct env_sound_child *kids, int n, char *text, int capacity, int *used, int *n_post)
 {
 	struct CAMERA *craw = (struct CAMERA *) get_local_entity_data (get_camera_entity ());
 	vec3d *cp = env_camera_position ();
 	char ids[ENV_SOUND_CHILDREN * 8];
+	const char *topology;
 	int created = 0, ids_used = 0, terrain, terrain_before, terrain_index, i, rng_before;
 
 	ids[0] = '\0';
+	*n_post = -1;
 
 	terrain = env_wide_terrain_count (kids, n);
 	terrain_before = terrain;
@@ -2057,6 +2090,17 @@ static int env_wide_body (int index, int target, struct env_sound_child *kids, i
 
 		return 0;
 	}
+
+	topology = env_wide_topology ();
+
+	if (topology)
+	{
+		ENV_EMIT ("env-wide kind=control i=%d refused=the_list_topology_is_inconsistent_after_creating_the_children reason=%s children=%d created=%d\n", index, topology, n, created);
+
+		return 0;
+	}
+
+	*n_post = n;
 
 	/* every terrain child its own previous amplification, in list order; the rain and wind children the sentinel */
 	terrain_index = 0;
@@ -2106,7 +2150,9 @@ static int env_wide_body (int index, int target, struct env_sound_child *kids, i
 		return -1;
 	}
 
-	ENV_EMIT ("env-wide-after i=%d rng_unchanged=%d", index, random_number_seed == rng_before);
+	topology = env_wide_topology ();
+
+	ENV_EMIT ("env-wide-after i=%d rng_unchanged=%d topology=%s", index, random_number_seed == rng_before, topology ? topology : "ok");
 
 	if (env_wide_print (text, capacity, used, "children", kids, n) != 0)
 	{
@@ -2121,12 +2167,15 @@ static int env_wide_body (int index, int target, struct env_sound_child *kids, i
 static int env_wide_case (int index, char *text, int capacity, int *used)
 {
 	struct env_saved_state saved;
-	struct env_sound_child kids[ENV_SOUND_CHILDREN];
+	struct env_sound_child kids[ENV_SOUND_CHILDREN], after[ENV_SOUND_CHILDREN];
 	struct CAMERA *craw;
 	int scratch_saved[TERRAIN_TYPE_LAST];
 	vec3d camera_saved;
+	list_root keep_force, keep_effects;
+	list_link keep_update;
+	const char *topology;
 	float elevation_saved, cloud_saved;
-	int cockpit_saved, n, terrain, rc, i, target;
+	int cockpit_saved, n, n_post = -1, after_n, preserved, terrain, rc, i, target;
 
 	n = get_camera_entity () ? env_sound_children (kids, ENV_SOUND_CHILDREN) : -2;
 
@@ -2179,21 +2228,44 @@ static int env_wide_case (int index, char *text, int capacity, int *used)
 	cloud_saved = cloud_3d_base_height;
 	cockpit_saved = in_cockpit;
 
-	rc = env_wide_body (index, target, kids, n, text, capacity, used);
+	rc = env_wide_body (index, target, kids, n, text, capacity, used, &n_post);
 
 	memcpy (terrain_types_in_sector, scratch_saved, sizeof (scratch_saved));
 	*env_camera_position () = camera_saved;
 	craw->terrain_info.last_elevation = elevation_saved;
 	cloud_3d_base_height = cloud_saved;
 	in_cockpit = cockpit_saved;
+
+	/* env_restore_state puts back the WHOLE session record as it was saved BEFORE the children were created. Most of that record is scalar, field and global state, which is what is to be restored; but the
+	   record also holds the roots and links of the lists the real constructor changed: it inserted each new sound child at the HEAD of the session's special-effect list (special_effect_root) and into the
+	   update list (update_link, and force_root is kept with them as list topology, not state). Restoring those would detach the new children and leave the entity links pointing at a list that no longer
+	   reaches them. They are therefore kept as the creation left them -- the children, the list and the heap are NOT restored, and the report says so -- and everything else is put back. */
+	keep_force = env_session_raw ()->force_root;
+	keep_effects = env_session_raw ()->special_effect_root;
+	keep_update = env_session_raw ()->update_link;
 	env_restore_state (&saved);
+	env_session_raw ()->force_root = keep_force;
+	env_session_raw ()->special_effect_root = keep_effects;
+	env_session_raw ()->update_link = keep_update;
 
 	if (rc != 0)
 	{
 		return -1;
 	}
 
-	ENV_EMIT ("env-wide-end i=%d changed=1 process_isolated=required heap_restored=0 amplitudes_restored=0 session_camera_cloud_cockpit_scratch_restored=1\n", index);
+	/* after the cleanup: the list is the list the routine ran on (the same children, in the same places, checked link by link), so the next case starts from what this one left */
+	after_n = env_sound_children (after, ENV_SOUND_CHILDREN);
+	preserved = (n_post >= 0) && (after_n == n_post);
+
+	for (i = 0; preserved && i < n_post; i++)
+	{
+		preserved = after[i].en == kids[i].en;
+	}
+
+	topology = env_wide_topology ();
+
+	ENV_EMIT ("env-wide-end i=%d changed=1 process_isolated=required heap_restored=0 amplitudes_restored=0 session_camera_cloud_cockpit_scratch_restored=1 list_topology_after_cleanup=%s list_preserved=%d\n", index,
+		topology ? topology : "ok", preserved);
 
 	return 0;
 }

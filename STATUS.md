@@ -1,3 +1,29 @@
+# D3 ambient validation checkpoint (31 October 2026, 15:43 UTC)
+
+Production f6 numeric conformance is complete: three whole108-row raw files,
+including endings, byte-identical to originalc0b/21; actualnative/controller0,
+all6inputs0/51payloads unchanged. Linux full affected default/observer packages
+and BOTHstrict phases actual0 at15:39:20UTC; actualWindows81/24/254+4pass.
+All9f6hostedjobs pass; decoded Wine/bothi686 explicitly pass both newambient
+completeFP tests. No measured startup x87 precision claim.
+
+The following G12-only cleanup correction is source-ready and FORMAT0, but
+UNBUILT/UNRUN/UNREVIEWED. Exact tracked-source proof preserves production,
+G11 and all other fixture dispatch. Reuse f6 numeric/FP evidence; new changed
+fixture still needs rebuilt native/driverguards/fresh real16/17/20 and review.
+Public host amplitude authority and wholeD3 delivery gates remain open.
+
+# D3 group-12 fixture cleanup corrected — ENV-AMBIENT-WIDE-1 (31 October 2026, fixture/driver/harness only, UNBUILT, UNRUN)
+
+Clean pushed `f6d812c7c`. The sole review accepts the production corrections in source (canonical arithmetic environment in the two new ambient kernels; bounded batches over the session's whole child list) and finds ONE new P1 in the FIXTURE: `env_wide_case` restored the whole
+session record, including `special_effect_root`, after the real constructor had inserted new children at the head of the list, detaching them. ACTUAL (Root, f6 real fixture diagnostic, native/controller 1, pre/post inputs 0, 51 payloads): case 1 healthy, case 2 reports
+`terrain_before=6` and stops with a witness failure; preserved. ACTUAL (Root, production at f6): all 3 default 108-row candidate runs byte-identical to the originals (Georgia `06067c5...2270`, both Lebanon `08fce9...8f10e`), native/controller 0, all 6 inputs 0; Windows engine 81 /
+DC 24 / world 254 / terrain ambient 4 all 0; Linux wide 4, Env 3, terrain 4 pass; the full package/strict stage was still finishing. **Correction (fixture/driver/harness only, UNBUILT, UNRUN):** the cleanup keeps the list roots and links (`force_root`, `special_effect_root`, `update_link`) as the
+creation left them and restores the scalar/field/global state; the fixture reports the list topology link by link after creation, after the routine and after the cleanup (and whether the list after the cleanup is the same children in the same places); the driver requires it and ties each case to the last
+(`terrain_before`, retained children in order, genuinely new entities); heap, lists and amplitudes are still NOT restored and the report says so. The real 16/17/20 constructor control, altitude 140 / delta 0, the half-word property and all healthy/missing/duplicate/malformed assertions are kept; the Rust header and test
+name no longer describe the stale altitude-zero setup. Production routines, kernels, guards, group 11, `env-sound-characterization.lua`, oracles, baselines and tolerances are unchanged; engine C one NUL. The authority witness for the amplitude answers is NOT started. Canonical extended x87 precision is an explicit, unmeasured reference assumption.
+Whole Task 51/D3 stays OPEN (sound-effect update/speaker, renderer/player consumers, lightning execution, time inputs, remaining terrain, spatial/object, model, full shipping 40 / all 8 byte identity, review, CI, merges); D4/D5 unstarted; no acceptance claimed. Details: `docs/d3-environment-sound-routine.md`.
+
 # D3 ambient host move — actual reds on bf64653de and the two-group correction (31 October 2026, production source UNBUILT, UNRUN, UNREVIEWED)
 
 Clean pushed `bf64653de`. ACTUAL (Root): the stronger env FP control failed on bit patterns, 768 of 3840 calls (subnormal transitional state outdoors/cockpit, subnormal wind limits) with the exact CW/SW/TW/MXCSR words intact (Linux 101; Windows 101, 2 PASS / 1 FAIL); the a39 terrain FP red is

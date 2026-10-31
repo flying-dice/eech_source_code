@@ -1,10 +1,12 @@
 //! Harness guards of `lua/env-sound-wide-children.lua` (EEDCS-51, D3). SOURCE PREPARED: UNBUILT, UNRUN, UNREVIEWED.
 //!
 //! The driver asks the fixture's group 12 (csrc/eech_env_fixture.c env_wide_case) for the ORIGINAL ambient sound routine called on a WIDE session child list: terrain ambient sound children created with
-//! the real constructor until the session holds 16, 17 and 20 of them, each with its own previous amplitude, delta 0, radar altitude 0. The REAL driver runs here in a real Lua state against a SCRIPTED
-//! engine whose `env_case` returns the text the test chooses. These guards prove only what the DRIVER does with such text: it accepts a list in which every child kept its own previous word in its place,
-//! reports the engine's own stop as `engine_failure` naming the case (the result of a routine that cannot process the list), and refuses a list that dropped, reordered or re-valued a child, a setup
-//! that is not what the fixture says it made, a refused control, and an isolation statement that is missing. They compute no amplitude: the routine is the real DLL's.
+//! the real constructor until the session holds 16, 17 and 20 of them, each with its own previous amplitude j/128, delta 0, the REAL camera at radar altitude 140 (echo `430c0000`, altitude factor exactly 0.5). The REAL driver runs here in a real Lua state against a
+//! SCRIPTED engine whose `env_case` returns the text the test chooses. These guards prove only what the DRIVER does with such text: it accepts a list in which every child holds exactly HALF its own previous
+//! word (j/256) in its place, in which each case continues the list the previous one left (the retained children, in order, plus the genuinely new ones) and whose topology is intact after the routine and
+//! after the cleanup; it reports the engine's own stop as `engine_failure` naming the case (the result of a routine that cannot process the list); and it refuses a list that dropped, reordered or re-valued a
+//! child, a child left at its previous word (a skipped child), a setup that is not what the fixture says it made, a case that does not continue the last, a broken topology, a refused control, and an isolation
+//! statement that is missing. They compute no amplitude: the routine is the real DLL's.
 //!
 //!   eech-world lua/env-sound-wide-children.lua root=<verified retail root> out=<env-sound-wide-<scenario>.jsonl> scenario=lebanon_retail|georgia_retail
 //!
@@ -61,8 +63,8 @@ fn case_text(index: usize, target: usize, before_terrain: usize) -> String {
     let after = list(target, half_word).join(",");
     format!(
         "env-wide kind=control i={index} target_terrain={target} terrain_before={before_terrain} created={created} children={children} terrain={target} created_ids={} delta_w=00000000 alt_w=430c0000 cockpit=0 before={before}\n\
-         env-wide-after i={index} rng_unchanged=1 children={after}\n\
-         env-wide-end i={index} changed=1 process_isolated=required heap_restored=0 amplitudes_restored=0 session_camera_cloud_cockpit_scratch_restored=1",
+         env-wide-after i={index} rng_unchanged=1 topology=ok children={after}\n\
+         env-wide-end i={index} changed=1 process_isolated=required heap_restored=0 amplitudes_restored=0 session_camera_cloud_cockpit_scratch_restored=1 list_topology_after_cleanup=ok list_preserved=1",
         if ids.is_empty() { "none".to_string() } else { ids.join(",") }
     )
 }
@@ -136,7 +138,7 @@ fn drive(texts: &[String], scenario_extra: &str) -> Driven {
 }
 
 #[test]
-fn the_driver_keeps_a_wide_list_in_which_every_child_kept_its_own_previous_amplitude_in_its_place() {
+fn the_driver_keeps_a_wide_list_in_which_every_child_holds_half_its_own_previous_amplitude_in_its_place_and_each_case_continues_the_last() {
     let texts = healthy();
     let driven = drive(&texts, "");
     driven.result.expect("a healthy run");
@@ -214,9 +216,9 @@ fn the_driver_refuses_a_wide_list_that_dropped_reordered_or_revalued_a_child_and
     let after_line = |text: &str| text.lines().nth(1).map(str::to_owned).expect("the after row");
     // a child that was not processed with its own value: it holds another child's word, or its own word changed
     let revalued = case1.replace(
-        &format!("env-wide-after i=1 rng_unchanged=1 children={}", list(16, half_word).join(",")),
+        &format!("env-wide-after i=1 rng_unchanged=1 topology=ok children={}", list(16, half_word).join(",")),
         &format!(
-            "env-wide-after i=1 rng_unchanged=1 children={}",
+            "env-wide-after i=1 rng_unchanged=1 topology=ok children={}",
             list(16, |j| half_word(if j == 16 { 15 } else { j })).join(",")
         ),
     );
@@ -224,9 +226,9 @@ fn the_driver_refuses_a_wide_list_that_dropped_reordered_or_revalued_a_child_and
     // THE GUARD OF THIS SETUP: one child left exactly as it was (its own previous word j/128, not the half j/256 a processed child holds) is a child the routine skipped, and the witness fails; with
     // an identity setup (delta 0 at altitude 0) that child would be indistinguishable from a processed one
     let skipped = case1.replace(
-        &format!("env-wide-after i=1 rng_unchanged=1 children={}", list(16, half_word).join(",")),
+        &format!("env-wide-after i=1 rng_unchanged=1 topology=ok children={}", list(16, half_word).join(",")),
         &format!(
-            "env-wide-after i=1 rng_unchanged=1 children={}",
+            "env-wide-after i=1 rng_unchanged=1 topology=ok children={}",
             list(16, |j| if j == 9 { own_word(9) } else { half_word(j) }).join(",")
         ),
     );
@@ -246,13 +248,19 @@ fn the_driver_refuses_a_wide_list_that_dropped_reordered_or_revalued_a_child_and
     let dropped = {
         let mut kept = list(16, half_word);
         kept.pop();
-        case1.replace(&after_line(&case1), &format!("env-wide-after i=1 rng_unchanged=1 children={}", kept.join(",")))
+        case1.replace(
+            &after_line(&case1),
+            &format!("env-wide-after i=1 rng_unchanged=1 topology=ok children={}", kept.join(",")),
+        )
     };
     failing(1, dropped, "lists 20 and 19 children for 20");
     let reordered = {
         let mut order = list(16, half_word);
         order.swap(5, 6);
-        case1.replace(&after_line(&case1), &format!("env-wide-after i=1 rng_unchanged=1 children={}", order.join(",")))
+        case1.replace(
+            &after_line(&case1),
+            &format!("env-wide-after i=1 rng_unchanged=1 topology=ok children={}", order.join(",")),
+        )
     };
     failing(1, reordered, "not the same child in the same place");
     // a setup that is not what the fixture says it made: a terrain child that started at another word
@@ -262,6 +270,36 @@ fn the_driver_refuses_a_wide_list_that_dropped_reordered_or_revalued_a_child_and
     failing(1, case1.replace("created=10", "created=9"), "counts do not fit the plan");
     failing(1, case1.replace("created_ids=110,", "created_ids="), "reports 10 created children");
     failing(1, case1.replace("heap_restored=0", "heap_restored=1"), "does not state its isolation");
+    // THE LIST: a cleanup that restored a stale list root (the defect of the first group-12 fixture: the next case then found 6 terrain children, not the 16 left) is refused at every point it shows
+    failing(1, case1.replace("list_preserved=1", "list_preserved=0"), "is not the list the routine ran on");
+    failing(
+        1,
+        case1.replace(
+            "list_topology_after_cleanup=ok",
+            "list_topology_after_cleanup=a_child_of_the_list_has_another_parent",
+        ),
+        "is not the list the routine ran on",
+    );
+    failing(
+        1,
+        case1.replace(
+            "rng_unchanged=1 topology=ok",
+            "rng_unchanged=1 topology=a_child_of_the_list_has_a_predecessor_that_is_not_the_child_walked_before_it",
+        ),
+        "topology after the routine is not intact",
+    );
+    failing(2, base[2].replace("terrain_before=16", "terrain_before=6"), "not the 16 the previous case left");
+    // a case that does not continue the last: an entity reported as new that the last case had left, and a retained child that is another entity
+    failing(
+        2,
+        base[2].replace("created_ids=120", "created_ids=119"),
+        "was in the list the previous case left",
+    );
+    failing(
+        2,
+        base[2].replace("5:105:25:jungle", "5:777:25:jungle"),
+        "where the previous case left entity 105",
+    );
     failing(
         1,
         case1.replace("process_isolated=required heap_restored", "heap_restored"),

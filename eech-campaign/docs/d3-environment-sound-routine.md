@@ -248,3 +248,29 @@ The accepted originals, group 11, the 46-case driver and every baseline are unch
 `cargo test -p eech-world --test terrain_sector` (the 5376 matrix and the saturation expectation); `cargo test -p eech-world --test env_sound_wide_children`; `cargo test -p eech-engine -p eech-dc`; clippy as before; the hosted i686 build of the same tests;
 then rebuild the env-fixture and shipping modules into NEW directories, the three fresh numeric 108-row comparisons on the fresh candidate roots, and the real wide-list control on ONE fresh wide root in ONE fresh process
 (`eech-world lua/env-sound-wide-children.lua root=<fresh wide root> out=<private jsonl> scenario=lebanon_retail|georgia_retail`). The consumed a39/bf roots are not reused.
+
+## Group 12 fixture cleanup corrected: ENV-AMBIENT-WIDE-1 (fixture/driver/harness only; UNBUILT, UNRUN, UNREVIEWED)
+
+Review of f6d812c7c (SHA-256 `6da71305...c6`, one new P1): the production corrections (the canonical arithmetic environment of the two new ambient kernels, the bounded batches that carry a session's whole child list) are
+accepted in source; the new finding is in the FIXTURE. `env_wide_case` saved the whole session record before creating children and `env_restore_state` memcpy-restored it afterwards. The record holds `special_effect_root` (and
+`force_root`, `update_link`): the real constructor inserts each new sound child at the head of the session's special-effect list, so restoring the old root detached the new children and left the entity links inconsistent. After a
+successful 16-child case the next case saw 6 terrain children, not 16. **Actual (Root's) f6 real fixture diagnostic** (`environment-sound-wide-f6-fixture-diagnostic-20261031`, native/controller 1, pre/post inputs 0, 51 payloads
+unchanged): case 1 healthy; case 2's head row says `terrain_before=6 created=11` and the driver stops with a witness failure (counts do not fit the plan). That red is preserved; the original output is not rewritten. It is a fixture defect,
+not grounds for changing production, and the production routines, kernels, guards, group 11 (46 cases), `env-sound-characterization.lua` and every baseline are UNCHANGED.
+
+**Correction (fixture `eech_env_fixture.c`, driver `env-sound-wide-children.lua`, harness `env_sound_wide_children.rs`):**
+* The cleanup restores the scalar, field and global session state but keeps the LIST roots and links as the creation left them (`force_root`, `special_effect_root`, `update_link` are saved after the body and written back after
+  `env_restore_state`). The children, the lists, the heap and the amplitudes are NOT restored, and the report still says so (`heap_restored=0 amplitudes_restored=0`).
+* New observations, each by the real accessors: `env_wide_topology` walks the special-effect list link by link (every child's parent is the session, every predecessor is the child walked before it, the list ends); it is reported after creation
+  (a bad list refuses the control), in the after row (`topology=`) and in the end row after the cleanup (`list_topology_after_cleanup=`), where `list_preserved=` also says whether the list after the cleanup is the SAME children in the SAME places as
+  the one the routine ran on.
+* The driver requires all of that, and ties the cases together: the fixture's own live count of terrain children at the start of a case (`terrain_before`) must equal what the previous case left; this case's list WITHOUT the entities it reports as newly
+  created must equal the previous case's after list (entity, subtype, class, in order); the created entities must not have been in that list. Amplitudes are deliberately reset by each case and are not compared.
+* Kept: the real constructor with the 16/17/20 targets, altitude 140 / delta 0 and the requirement that every terrain child holds exactly half its own previous word (a skipped child fails), and every healthy / missing / duplicate / malformed assertion.
+  New guards refuse: `list_preserved=0`, a bad topology after the cleanup or after the routine, a case whose `terrain_before` is not what the last left (the signature of the first fixture), an entity reported as new that the last case had, and a retained child that is
+  another entity. The Rust header and the healthy test's name now describe the altitude-140 half-amplitude setup, not the stale altitude-zero prose.
+
+**Commands for Root:** `cargo fmt --check`; `cargo test -p eech-world --test env_sound_wide_children`; clippy; rebuild the env-fixture module (the C fixture changed) into a NEW directory; ONE fresh wide root and ONE fresh process:
+`eech-world lua/env-sound-wide-children.lua root=<fresh wide root> out=<private jsonl> scenario=lebanon_retail|georgia_retail` (cases 16, 17 and 20 should all run); then the same sole independent review. The authority witness for the amplitude answers
+(changed / withheld / malformed host answers reaching the real consumer) is NOT started. Still coupled and open: the sound-effect update and speaker, the renderer and player consumers, lightning effect execution, the physical time inputs, the rest of terrain,
+spatial/object and model services, full shipping 40 / all 8 complete byte identity, review, CI, merges. The canonical extended x87 precision of the two new kernels is an explicit, unmeasured REFERENCE ASSUMPTION, not a measurement of the engine's startup control word.
