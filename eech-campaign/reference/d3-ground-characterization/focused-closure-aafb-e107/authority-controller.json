@@ -1,0 +1,366 @@
+{
+  "source": "aafb21775f5d3523a30f148d23fbce588902025a",
+  "state": "terminal",
+  "controller_pid": 17252,
+  "started_utc": "2026-10-31T01:18:46.994958+00:00",
+  "scope": "Actual Windows strict launched-weapon authority/refusal, same aafb fixture DLL/control; not shipping acceptance",
+  "commands": [
+    {
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\ground-production-authority-roots-20261031\\control",
+        "--compare",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 12768,
+      "log": "R:\\d3-evidence\\ground-weapon-authority-aafb21775-20261031\\control-pre-inputs.log",
+      "started_utc": "2026-10-31T01:18:47.118121+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T01:18:50.927054+00:00"
+    },
+    {
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\ground-production-authority-roots-20261031\\below_true",
+        "--compare",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 16944,
+      "log": "R:\\d3-evidence\\ground-weapon-authority-aafb21775-20261031\\below_true-pre-inputs.log",
+      "started_utc": "2026-10-31T01:18:50.937225+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T01:18:54.595434+00:00"
+    },
+    {
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\ground-production-authority-roots-20261031\\below_true_impact_shift",
+        "--compare",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 18860,
+      "log": "R:\\d3-evidence\\ground-weapon-authority-aafb21775-20261031\\below_true_impact_shift-pre-inputs.log",
+      "started_utc": "2026-10-31T01:18:54.599798+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T01:18:58.304916+00:00"
+    },
+    {
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\ground-production-authority-roots-20261031\\withheld_below",
+        "--compare",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 22368,
+      "log": "R:\\d3-evidence\\ground-weapon-authority-aafb21775-20261031\\withheld_below-pre-inputs.log",
+      "started_utc": "2026-10-31T01:18:58.314169+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T01:19:02.064054+00:00"
+    },
+    {
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\ground-production-authority-roots-20261031\\bad_below_predicate",
+        "--compare",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 19088,
+      "log": "R:\\d3-evidence\\ground-weapon-authority-aafb21775-20261031\\bad_below_predicate-pre-inputs.log",
+      "started_utc": "2026-10-31T01:19:02.076505+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T01:19:05.786334+00:00"
+    },
+    {
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\ground-production-authority-roots-20261031\\bad_below_record_present",
+        "--compare",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 21864,
+      "log": "R:\\d3-evidence\\ground-weapon-authority-aafb21775-20261031\\bad_below_record_present-pre-inputs.log",
+      "started_utc": "2026-10-31T01:19:05.794432+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T01:19:09.746658+00:00"
+    },
+    {
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\ground-production-authority-roots-20261031\\withheld_impact",
+        "--compare",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 9768,
+      "log": "R:\\d3-evidence\\ground-weapon-authority-aafb21775-20261031\\withheld_impact-pre-inputs.log",
+      "started_utc": "2026-10-31T01:19:09.757592+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T01:19:13.584495+00:00"
+    },
+    {
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\ground-production-authority-roots-20261031\\bad_impact_type",
+        "--compare",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 24140,
+      "log": "R:\\d3-evidence\\ground-weapon-authority-aafb21775-20261031\\bad_impact_type-pre-inputs.log",
+      "started_utc": "2026-10-31T01:19:13.599139+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T01:19:17.357023+00:00"
+    },
+    {
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\ground-production-authority-roots-20261031\\bad_impact_record",
+        "--compare",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 11796,
+      "log": "R:\\d3-evidence\\ground-weapon-authority-aafb21775-20261031\\bad_impact_record-pre-inputs.log",
+      "started_utc": "2026-10-31T01:19:17.366553+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T01:19:21.137791+00:00"
+    },
+    {
+      "args": [
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\target\\windows-ground-tests-aafb21775\\ground_authority.exe",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "pid": 14096,
+      "log": "R:\\d3-evidence\\ground-weapon-authority-aafb21775-20261031\\actual-Windows-authority.log",
+      "started_utc": "2026-10-31T01:19:21.261381+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T01:29:02.455239+00:00"
+    },
+    {
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\ground-production-authority-roots-20261031\\control",
+        "--compare",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 23992,
+      "log": "R:\\d3-evidence\\ground-weapon-authority-aafb21775-20261031\\control-post-inputs.log",
+      "started_utc": "2026-10-31T01:29:02.456753+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T01:29:03.909196+00:00"
+    },
+    {
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\ground-production-authority-roots-20261031\\below_true",
+        "--compare",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 1348,
+      "log": "R:\\d3-evidence\\ground-weapon-authority-aafb21775-20261031\\below_true-post-inputs.log",
+      "started_utc": "2026-10-31T01:29:03.917981+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T01:29:05.340598+00:00"
+    },
+    {
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\ground-production-authority-roots-20261031\\below_true_impact_shift",
+        "--compare",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 25048,
+      "log": "R:\\d3-evidence\\ground-weapon-authority-aafb21775-20261031\\below_true_impact_shift-post-inputs.log",
+      "started_utc": "2026-10-31T01:29:05.340598+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T01:29:06.699178+00:00"
+    },
+    {
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\ground-production-authority-roots-20261031\\withheld_below",
+        "--compare",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 25516,
+      "log": "R:\\d3-evidence\\ground-weapon-authority-aafb21775-20261031\\withheld_below-post-inputs.log",
+      "started_utc": "2026-10-31T01:29:06.699178+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T01:29:07.998061+00:00"
+    },
+    {
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\ground-production-authority-roots-20261031\\bad_below_predicate",
+        "--compare",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 23816,
+      "log": "R:\\d3-evidence\\ground-weapon-authority-aafb21775-20261031\\bad_below_predicate-post-inputs.log",
+      "started_utc": "2026-10-31T01:29:08.006562+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T01:29:09.320759+00:00"
+    },
+    {
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\ground-production-authority-roots-20261031\\bad_below_record_present",
+        "--compare",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 24676,
+      "log": "R:\\d3-evidence\\ground-weapon-authority-aafb21775-20261031\\bad_below_record_present-post-inputs.log",
+      "started_utc": "2026-10-31T01:29:09.329207+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T01:29:10.601927+00:00"
+    },
+    {
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\ground-production-authority-roots-20261031\\withheld_impact",
+        "--compare",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 744,
+      "log": "R:\\d3-evidence\\ground-weapon-authority-aafb21775-20261031\\withheld_impact-post-inputs.log",
+      "started_utc": "2026-10-31T01:29:10.604438+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T01:29:11.853391+00:00"
+    },
+    {
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\ground-production-authority-roots-20261031\\bad_impact_type",
+        "--compare",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 9472,
+      "log": "R:\\d3-evidence\\ground-weapon-authority-aafb21775-20261031\\bad_impact_type-post-inputs.log",
+      "started_utc": "2026-10-31T01:29:11.858974+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T01:29:13.099200+00:00"
+    },
+    {
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\ground-production-authority-roots-20261031\\bad_impact_record",
+        "--compare",
+        "R:\\d3-evidence\\ground-production-source-aafb21775\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+      ],
+      "pid": 12584,
+      "log": "R:\\d3-evidence\\ground-weapon-authority-aafb21775-20261031\\bad_impact_record-post-inputs.log",
+      "started_utc": "2026-10-31T01:29:13.110311+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T01:29:14.185896+00:00"
+    }
+  ],
+  "verified_payloads": 50,
+  "BINF_sha256": "df630aa72b46a44d2daddb37acc83d6d5e2d4d7c222730807c37a253bf6927c3",
+  "test_exe_sha256": "562c9d995e87389d17da8dd38febe96c31c42229e0502dce27736ac849dc2ae7",
+  "modes": [
+    "control",
+    "below_true",
+    "below_true_impact_shift",
+    "withheld_below",
+    "bad_below_predicate",
+    "bad_below_record_present",
+    "withheld_impact",
+    "bad_impact_type",
+    "bad_impact_record"
+  ],
+  "roots": [
+    "R:\\d3-evidence\\ground-production-authority-roots-20261031\\control",
+    "R:\\d3-evidence\\ground-production-authority-roots-20261031\\below_true",
+    "R:\\d3-evidence\\ground-production-authority-roots-20261031\\below_true_impact_shift",
+    "R:\\d3-evidence\\ground-production-authority-roots-20261031\\withheld_below",
+    "R:\\d3-evidence\\ground-production-authority-roots-20261031\\bad_below_predicate",
+    "R:\\d3-evidence\\ground-production-authority-roots-20261031\\bad_below_record_present",
+    "R:\\d3-evidence\\ground-production-authority-roots-20261031\\withheld_impact",
+    "R:\\d3-evidence\\ground-production-authority-roots-20261031\\bad_impact_type",
+    "R:\\d3-evidence\\ground-production-authority-roots-20261031\\bad_impact_record"
+  ],
+  "actual_test_exit": 0,
+  "post_inputs": {
+    "control": 0,
+    "below_true": 0,
+    "below_true_impact_shift": 0,
+    "withheld_below": 0,
+    "bad_below_predicate": 0,
+    "bad_below_record_present": 0,
+    "withheld_impact": 0,
+    "bad_impact_type": 0,
+    "bad_impact_record": 0
+  },
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T01:29:14.279795+00:00"
+}

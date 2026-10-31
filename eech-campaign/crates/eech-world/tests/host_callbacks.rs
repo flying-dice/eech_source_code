@@ -1986,3 +1986,689 @@ fn the_object_witness_says_so_when_there_is_no_such_structure_and_refuses_a_malf
         "{stderr}"
     );
 }
+
+// The ground-contact characterisation driver (EEDCS-48; lua/ground-characterization.lua) against a small stand-in for the engine: only its argument safety, its flow and its own checks of what the probe
+// returns are exercised here (the arguments refused BEFORE the engine is booted, the probe called with the asked seed and counts as often as asked, the control that does not probe, the report parsed into
+// events with hash words kept as text, a refused probe, a repeat that differs, a record not restored, a report that is not the one asked for, and a table of reports with ONE defect each: absent or malformed
+// record words, bare or short hash and physical-fold rows, missing or wrong counts, duplicate or unknown rows). The stand-in (tests/lua/ground-caller.lua, loaded with include_str! so no path is needed) writes a
+// complete well-formed report and measures nothing about the ground queries: whether the original ground queries behave as characterised is the native run's to show, with a DLL built with the
+// `ground-fixture` feature.
+const GROUND_CASE_CALLER_SCRIPT: &str = include_str!("lua/ground-caller.lua");
+
+// The ORIGINAL host and module: no terrain provider, the legacy record rows. Every ground test written for the original fixture runs in this profile, unchanged.
+fn run_ground_case(mode: &str, extra: &[&str]) -> (std::process::ExitStatus, String, String, String, Vec<serde_json::Value>) {
+    run_ground_case_as("legacy", mode, extra)
+}
+
+// `profile` is "legacy" (the original host, which has no terrain provider) or "semantic" (the G1 host, which has one: the stand-in replaces the real factory with a stub so that no
+// retail root is loaded, and the stub answers nothing). The stand-in writes the report of that profile.
+fn run_ground_case_as(profile: &str, mode: &str, extra: &[&str]) -> (std::process::ExitStatus, String, String, String, Vec<serde_json::Value>) {
+    let lua_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("lua")
+        .display()
+        .to_string()
+        .replace('\u{5c}', "/");
+    static COUNTER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+    let tag = format!("{}-{}", std::process::id(), COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst));
+    let script = std::env::temp_dir().join(format!("eech-world-ground-caller-{tag}.lua"));
+    let out = std::env::temp_dir().join(format!("eech-world-ground-caller-{tag}.jsonl"));
+    let trace = std::env::temp_dir().join(format!("eech-world-ground-caller-{tag}.trace"));
+    let _ = std::fs::remove_file(&out);
+    let _ = std::fs::remove_file(&trace);
+    let text = GROUND_CASE_CALLER_SCRIPT
+        .replace("@MODE@", mode)
+        .replace("@PROFILE@", profile)
+        .replace("@TRACE@", &trace.display().to_string().replace('\u{5c}', "/"))
+        .replace("@LUA_DIR@", &lua_dir);
+    std::fs::write(&script, text).unwrap();
+    let mut command = Command::new(env!("CARGO_BIN_EXE_eech-world"));
+    command
+        .arg(&script)
+        .arg("root=none")
+        .arg(format!("out={}", out.display().to_string().replace('\u{5c}', "/")));
+    for arg in extra {
+        command.arg(arg);
+    }
+    let run = command.output().unwrap();
+    std::fs::remove_file(&script).unwrap();
+    let rows = if out.exists() {
+        std::fs::read_to_string(&out)
+            .unwrap()
+            .lines()
+            .map(|l| serde_json::from_str(l).unwrap_or_else(|e| panic!("malformed output row {l:?}: {e}")))
+            .collect()
+    } else {
+        Vec::new()
+    };
+    let trace_text = std::fs::read_to_string(&trace).unwrap_or_default();
+    let _ = std::fs::remove_file(&out);
+    let _ = std::fs::remove_file(&trace);
+    (
+        run.status,
+        String::from_utf8_lossy(&run.stdout).to_string(),
+        String::from_utf8_lossy(&run.stderr).to_string(),
+        trace_text,
+        rows,
+    )
+}
+
+// the digest the driver computes over the object list in id order (a modular polynomial hash), written out here from the stand-in's two objects
+fn ground_expected_digest() -> String {
+    let mut digest: u64 = 5381;
+    for byte in "1:ground_vehicle:red:false;2:helicopter:blue:true;".bytes() {
+        digest = (digest * 31 + u64::from(byte)) % 2_147_483_647;
+    }
+    format!("{digest:08x}")
+}
+
+#[test]
+fn the_ground_driver_probes_with_the_asked_seed_and_counts_as_often_as_asked_and_parses_the_report() {
+    let (status, stdout, stderr, trace, rows) = run_ground_case(
+        "ok",
+        &["points=40", "impacts=10", "seed=77", "repeats=3", "seconds=1", "after=1", "frame_ms=500"],
+    );
+    assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert_eq!(trace.matches("probe 77 40 10").count(), 3, "{trace}");
+    assert_eq!(trace.matches("frame").count(), 4, "{trace}");
+    // two frames, then the probes, then two more frames, then nothing
+    let first_probe = trace.find("probe ").unwrap();
+    let last_probe = trace.rfind("probe ").unwrap();
+    assert_eq!(trace[..first_probe].matches("frame").count(), 2, "{trace}");
+    assert_eq!(trace[last_probe..].matches("frame").count(), 2, "{trace}");
+    assert_eq!(rows.iter().filter(|r| r["event"] == "ground-hash").count(), 3);
+    // a hash word of decimal digits stays text; a counter is a number
+    let hash = rows.iter().find(|r| r["event"] == "ground-hash").unwrap();
+    assert_eq!(hash["combined"].as_str(), Some("1234567890123456"), "{hash}");
+    // the physical fold is a row of its own, separate from the legacy fold, and every repeat records both
+    assert_eq!(rows.iter().filter(|r| r["event"] == "ground-physical").count(), 3);
+    let physical = rows.iter().find(|r| r["event"] == "ground-physical").unwrap();
+    assert_eq!(physical["combined"].as_str(), Some("fedcba9876543210"), "{physical}");
+    let record = rows.iter().find(|r| r["event"] == "ground-record").unwrap();
+    assert_eq!(
+        (record["words_before"].as_str(), record["words_after"].as_str(), record["restored"].as_i64()),
+        (Some("0123456789abcdef"), Some("0123456789abcdef"), Some(1)),
+        "{record}"
+    );
+    let sample = rows.iter().find(|r| r["event"] == "ground-sample").unwrap();
+    assert_eq!((sample["x"].as_str(), sample["y"].as_str()), (Some("40000000"), Some("3f800000")), "{sample}");
+    let above = rows.iter().find(|r| r["event"] == "ground-above").unwrap();
+    assert_eq!(above["cases"].as_i64(), Some(40), "{above}");
+    assert_eq!(rows.iter().filter(|r| r["event"] == "repeat_identical" && r["ok"] == true).count(), 2);
+    let digest = rows.iter().find(|r| r["event"] == "state_digest").unwrap();
+    assert_eq!(
+        (
+            digest["objects"].as_i64(),
+            digest["alive"].as_i64(),
+            digest["probed"].as_bool(),
+            digest["digest"].as_str()
+        ),
+        (Some(2), Some(1), Some(true), Some(ground_expected_digest().as_str())),
+        "{digest}"
+    );
+}
+
+#[test]
+fn the_ground_driver_control_does_not_probe_and_ends_with_the_same_digest() {
+    let (status, _, stderr, trace, rows) = run_ground_case("ok", &["probe=no", "seconds=1", "after=1", "frame_ms=500"]);
+    assert!(status.success(), "{stderr}");
+    assert_eq!(trace.matches("probe ").count(), 0, "the control must not probe: {trace}");
+    assert!(rows.iter().any(|r| r["event"] == "probe_skipped"));
+    assert!(
+        rows.iter().all(|r| !r["event"].as_str().unwrap_or("").starts_with("ground-")),
+        "no probe report in the control"
+    );
+    let digest = rows.iter().find(|r| r["event"] == "state_digest").unwrap();
+    assert_eq!(
+        (digest["probed"].as_bool(), digest["digest"].as_str()),
+        (Some(false), Some(ground_expected_digest().as_str())),
+        "{digest}"
+    );
+}
+
+#[test]
+fn the_ground_driver_refuses_a_malformed_argument_before_booting_or_writing_anything() {
+    for (bad, what) in [
+        (vec!["points=abc"], "points must be a whole number"),
+        (vec!["points=-1"], "points must be a whole number"),
+        (vec!["points=1.5"], "points must be a whole number"),
+        (vec!["points=100001"], "points must be a whole number from 0 to 100000"),
+        (vec!["impacts=1e3"], "impacts must be a whole number"),
+        (vec!["points=0", "impacts=0"], "there is nothing to probe"),
+        (vec!["seed=0"], "seed must be a whole number from 1"),
+        (vec!["seed=4294967296"], "seed must be a whole number from 1"),
+        (vec!["repeats=0"], "repeats must be a whole number from 1 to 5"),
+        (vec!["repeats=6"], "repeats must be a whole number from 1 to 5"),
+        (vec!["seconds=3601"], "seconds must be a whole number from 0 to 3600"),
+        (vec!["frame_ms=0"], "frame_ms must be a whole number from 1 to 1000"),
+        (vec!["frame_ms=1", "seconds=3600", "after=3600"], "the most this driver runs is"),
+        (vec!["scenario=nowhere"], "scenario must be lebanon_retail, georgia_retail or georgia"),
+        (vec!["probe=maybe"], "probe must be one of yes, no"),
+        (vec!["point=5"], "unknown argument 'point'"),
+    ] {
+        let (status, _, stderr, trace, rows) = run_ground_case("ok", &bad);
+        assert!(!status.success(), "{bad:?} was accepted");
+        assert!(stderr.contains(what), "{bad:?}: {stderr}");
+        assert!(trace.is_empty() && rows.is_empty(), "{bad:?}: the engine was booted or a row written: {trace}");
+    }
+}
+
+// REGRESSION: the driver wrote its JSON strings with Lua's %q, which is Lua source syntax: it leaves a tab (and every other control byte) raw and writes a newline as a backslash and a
+// real newline, so a refusal whose text held a traceback's tabs was an invalid JSONL row for a strict parser (a lenient reader accepted it). The stand-in refuses the probe with a text
+// that has a traceback's tabs and newlines, a quote, a backslash, every control byte 0 to 31 in order and UTF-8. `run_ground_case` parses EVERY row of the output with serde_json, which
+// refuses a raw control character inside a string, so reaching the assertions already proves each row is strict JSON; the refusal must also come back byte for byte.
+#[test]
+fn the_ground_driver_records_a_refusal_with_every_control_byte_as_strict_json_and_loses_none_of_it() {
+    let controls: String = (0u8..32).map(char::from).collect();
+    let expected =
+        format!("ground-refused reason=bad \"quoted\" back\\slash\n\tstack traceback:\n\t[C]: in function 'error'\n\tcontrols={controls} end \u{e9}");
+    let (status, stdout, stderr, trace, rows) = run_ground_case("refuse_controls", &["points=5", "impacts=5"]);
+    assert!(!status.success() && !stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert!(stderr.contains("the probe was refused"), "{stderr}");
+    let refused: Vec<_> = rows.iter().filter(|r| r["event"] == "probe_refused").collect();
+    assert_eq!(refused.len(), 1, "{rows:?}");
+    assert_eq!(
+        refused[0]["error"].as_str(),
+        Some(expected.as_str()),
+        "the refusal text must round-trip exactly"
+    );
+    assert_eq!(refused[0]["repeat_index"].as_i64(), Some(1));
+    assert!(rows.iter().any(|r| r["event"] == "boot"), "the boot row is still there and parsed");
+    assert!(rows.iter().all(|r| r["event"] != "state_digest"), "no digest after a refusal");
+    assert_eq!(trace.matches("probe ").count(), 1, "{trace}");
+}
+
+#[test]
+fn the_ground_driver_fails_on_a_refused_probe_and_on_a_repeat_that_differs() {
+    // an engine that refuses the probe: the refusal is recorded and the run fails, never a quiet success
+    let (status, stdout, stderr, trace, rows) = run_ground_case("refuse", &["points=5", "impacts=5"]);
+    assert!(!status.success() && !stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert!(stderr.contains("the probe was refused") && stderr.contains("no_terrain_loaded"), "{stderr}");
+    let refused = rows.iter().find(|r| r["event"] == "probe_refused").expect("the refusal is recorded");
+    assert!(refused["error"].as_str().unwrap().contains("no_terrain_loaded"), "{refused}");
+    assert!(rows.iter().all(|r| r["event"] != "state_digest"), "no digest after a refusal");
+    assert_eq!(trace.matches("probe ").count(), 1, "the run stops at the first refusal: {trace}");
+
+    // two well-formed reports that differ: the second is not the first, so the probe is not a pure function of its request
+    let (status, stdout, stderr, _, rows) = run_ground_case("differs_between_repeats", &["points=5", "impacts=5"]);
+    assert!(!status.success() && !stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    let message = "ground-characterization: repeat 2 differs from repeat 1: the probe is not a pure function of the seed and the loaded map";
+    assert!(stderr.contains(message), "{stderr}");
+    let same = rows.iter().find(|r| r["event"] == "repeat_identical").expect("the comparison is recorded");
+    assert_eq!(same["ok"].as_bool(), Some(false), "{same}");
+    assert!(rows.iter().all(|r| r["event"] != "state_digest"), "no digest after a repeat that differs");
+}
+
+#[test]
+fn the_ground_driver_accepts_a_complete_report_in_which_a_family_has_no_cases() {
+    // a valid report may have zero point cases or zero impact cases: that family folds nothing and reports zeros, and is not an error
+    for (args, empty_family) in [(["points=0", "impacts=5"], "above"), (["points=5", "impacts=0"], "impact")] {
+        let (status, stdout, stderr, _, rows) = run_ground_case("ok", &args);
+        assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{args:?}: {stdout}\n{stderr}");
+        for fold in ["ground-hash", "ground-physical"] {
+            let row = rows.iter().find(|r| r["event"] == fold).unwrap_or_else(|| panic!("{args:?}: no {fold} row"));
+            assert_eq!(row[empty_family].as_str(), Some("cbf29ce484222325"), "{args:?}: {row}");
+        }
+        assert!(rows.iter().any(|r| r["event"] == "state_digest"), "{args:?}");
+    }
+}
+
+// The number of `ground-sample` rows of one kind that the driver recorded.
+fn ground_samples(rows: &[serde_json::Value], kind: &str) -> usize {
+    rows.iter().filter(|r| r["event"] == "ground-sample" && r["kind"] == kind).count()
+}
+
+#[test]
+fn the_ground_driver_accepts_the_complete_sample_set_the_emitter_takes_when_the_caps_bind_and_when_they_do_not() {
+    // The driver records every repeat's report, so a sample count is a count per report only when ONE report is made: these runs ask for repeats=1.
+    // 40 cases of each kind: every point tag and every impact type has more cases than its cap, so the caps bind: 2 samples for each of 6 point tags
+    // and 4 for each of 8 impact types
+    let (status, stdout, stderr, _, rows) = run_ground_case("ok", &["points=40", "impacts=40", "repeats=1"]);
+    assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert_eq!((ground_samples(&rows, "point"), ground_samples(&rows, "impact")), (12, 32));
+    // the same run with the default two repeats records each report once: twice the rows, and each repeat holds exactly the one-report counts
+    let (status, stdout, stderr, _, rows) = run_ground_case("ok", &["points=40", "impacts=40"]);
+    assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert_eq!((ground_samples(&rows, "point"), ground_samples(&rows, "impact")), (24, 64));
+    for repeat in [1, 2] {
+        let in_repeat = |kind: &str| {
+            rows.iter()
+                .filter(|r| r["event"] == "ground-sample" && r["kind"] == kind && r["repeat_index"] == repeat)
+                .count()
+        };
+        assert_eq!((in_repeat("point"), in_repeat("impact")), (12, 32), "repeat {repeat}");
+    }
+    // 5 cases of each kind: no tag or type reaches its cap, so every case is sampled
+    let (status, stdout, stderr, _, rows) = run_ground_case("ok", &["points=5", "impacts=5", "repeats=1"]);
+    assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert_eq!((ground_samples(&rows, "point"), ground_samples(&rows, "impact")), (5, 5));
+    // all 5 impact cases of one type: the sample count is min(5, 4) = 4, not 1 (the short form of this report is refused above)
+    let (status, stdout, stderr, _, rows) = run_ground_case("impact_types_concentrated_complete", &["points=5", "impacts=5", "repeats=1"]);
+    assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert_eq!(ground_samples(&rows, "impact"), 4);
+    assert!(rows.iter().any(|r| r["event"] == "state_digest"));
+}
+
+// The message the driver refuses with: its own prefix and the reason.
+fn ground_refusal(reason: &str) -> String {
+    format!("ground-characterization: {reason}")
+}
+
+// Reports with ONE defect each, from the stand-in (tests/lua/ground-caller.lua), run through the REAL driver. Each must fail the run with exactly the named reason (not any error that happens to contain a
+// similar word), record it as `report_invalid` once, write no row of the rejected report, and write no success row: no `repeat_identical` and no `state_digest`. A measurement that is absent, of the wrong
+// type or width, or inconsistent with the request is never read as zero, as nil equal to nil, or as a pass.
+#[test]
+fn the_ground_driver_names_the_one_defect_in_a_report_and_writes_no_success_row() {
+    let counts: &[&str] = &["points=5", "impacts=5"];
+    let no_impacts: &[&str] = &["points=5", "impacts=0"];
+    let defects: [(&str, &[&str], &str); 65] = [
+        (
+            "unrestored",
+            counts,
+            "the probe did not restore the shared terrain record: restored=0 words 0123456789abcdef -> 0123456789abcdef",
+        ),
+        (
+            "words_differ",
+            counts,
+            "the probe did not restore the shared terrain record: restored=1 words 0123456789abcdef -> ffffffffffffffff",
+        ),
+        ("not_anchored", counts, "ground-record: anchored is 0, expected 1"),
+        (
+            "wrongheader",
+            counts,
+            "the report is for seed 20261029 points 6 impacts 5, not the 20261029 5 5 asked",
+        ),
+        ("record_words_absent", counts, "ground-record: words_before is missing"),
+        ("record_before_absent", counts, "ground-record: words_before is missing"),
+        (
+            "record_word_short",
+            counts,
+            "ground-record: words_after must be 16 lowercase hex digits, got 'abcd'",
+        ),
+        (
+            "record_word_upper",
+            counts,
+            "ground-record: words_before must be 16 lowercase hex digits, got '0123456789ABCDEF'",
+        ),
+        ("hash_bare", counts, "ground-hash: combined is missing"),
+        ("hash_missing_field", counts, "ground-hash: impact is missing"),
+        ("hash_short", counts, "ground-hash: below must be 16 lowercase hex digits, got '1'"),
+        ("hash_row_missing", counts, "the report has no ground-hash row"),
+        ("physical_bare", counts, "ground-physical: combined is missing"),
+        ("physical_missing_field", counts, "ground-physical: combined is missing"),
+        ("physical_missing_row", counts, "the report has no ground-physical row"),
+        ("count_missing", counts, "ground-above: warm_same is missing"),
+        ("count_wrong", counts, "ground-above: cases is 6, expected 5"),
+        ("count_hex", counts, "ground-below: cases must be a decimal count, got '0x5'"),
+        ("count_negative", counts, "ground-impact: cases must be a decimal count, got '-1'"),
+        ("count_float", counts, "ground-impact: a_corrected must be a decimal count, got '1.5'"),
+        ("impact_cases_wrong", counts, "ground-impact: cases is 4, expected 5"),
+        (
+            "classes_sum",
+            counts,
+            "ground-impact-classes: invalid + water + forest + land + other is 4, expected 5",
+        ),
+        ("types_sum", counts, "ground-impact-types: t0 .. t7 is 4, expected 5"),
+        ("family_sum", counts, "ground-below: true + false is 7, expected 5"),
+        ("warm_intact_short", counts, "ground-impact: warm_start_intact is 4, expected 5"),
+        ("warm_intact_point_short", counts, "ground-above: warm_start_intact is 4, expected 5"),
+        ("duplicate_row", counts, "the report has more than one ground-map row"),
+        ("unknown_row", counts, "the report has an unknown row 'ground-extra'"),
+        ("unexpected_key", counts, "ground-asserts: unexpected key bonus"),
+        ("bare_word", counts, "ground-map: 'oops' is not key=value"),
+        ("duplicate_key", counts, "ground-map: world_sectors_x appears twice"),
+        // the campaign grid and the terrain grid are two grids over one extent: every count present and positive, the extents they cover equal
+        ("map_old_schema", counts, "ground-map: world_sectors_x is missing"),
+        ("map_terrain_key_missing", counts, "ground-map: terrain_sectors_z is missing"),
+        ("map_zero_grid", counts, "ground-map: terrain_sector_side is 0, the map has no sectors"),
+        (
+            "map_extent_x_differs",
+            counts,
+            "ground-map: world extent in x (world_sectors_x * world_sector_side) is 12288, expected 14336",
+        ),
+        (
+            "map_extent_z_differs",
+            counts,
+            "ground-map: world extent in z (world_sectors_z * world_sector_side) is 8192, expected 10240",
+        ),
+        ("empty_fold", counts, "ground-hash: above is cbf29ce484222325 for 5 cases"),
+        ("full_fold", no_impacts, "ground-physical: impact is 3333333333333333 for 0 cases"),
+        ("sample_bad_hex", counts, "ground-sample: x must be 8 lowercase hex digits, got '4000'"),
+        ("sample_missing", counts, "ground-sample: 0 point samples for 5 point cases"),
+        ("sample_unknown_kind", counts, "ground-sample: kind must be point or impact, got 'rock'"),
+        ("sample_case_out_of_range", counts, "ground-sample: point sample names case 5 of 5"),
+        (
+            "sample_triple_short",
+            counts,
+            "ground-sample: pa must be three 8-digit lowercase hex words joined by commas, got '3f800000,40000000'",
+        ),
+        ("sample_flag", counts, "ground-sample: inside must be 0 or 1, got '2'"),
+        // case numbers of the samples: distinct, increasing, in range, case 0 always sampled; point samples before impact samples
+        ("sample_n_duplicate_point", counts, "ground-sample: point sample repeats case 0"),
+        ("sample_n_order_point", counts, "ground-sample: point sample case 2 follows case 4"),
+        (
+            "sample_first_not_zero_point",
+            counts,
+            "ground-sample: the first point sample names case 1, not case 0",
+        ),
+        ("sample_n_duplicate_impact", counts, "ground-sample: impact sample repeats case 0"),
+        (
+            "sample_first_not_zero_impact",
+            counts,
+            "ground-sample: the first impact sample names case 1, not case 0",
+        ),
+        ("sample_out_of_range_impact", counts, "ground-sample: impact sample names case 5 of 5"),
+        ("sample_point_after_impact", counts, "ground-sample: a point sample follows an impact sample"),
+        // tag and type domains, per-tag and per-type caps, and the exact count of impact samples per type: min(tally, cap)
+        ("sample_tag_domain", counts, "ground-sample: tag must be 0 to 5, got 6"),
+        ("sample_type_domain", counts, "ground-sample: type must be 0 to 7, got 8"),
+        ("sample_tag_cap", counts, "ground-sample: point samples of tag 0 is 3, more than 2"),
+        ("sample_type_cap", counts, "ground-sample: impact samples of type 0 is 5, more than 4"),
+        ("sample_type_omitted", counts, "ground-sample: impact samples of type 2 is 0, expected 1"),
+        ("sample_type_extra", counts, "ground-sample: impact samples of type 0 is 2, expected 1"),
+        (
+            "impact_types_concentrated_short",
+            counts,
+            "ground-sample: impact samples of type 0 is 1, expected 4",
+        ),
+        // sample values against the counters they are counted in
+        (
+            "sample_off_map_with_above",
+            counts,
+            "ground-sample: point sample at case 0 is off the map area but has above=1 above_touched=0",
+        ),
+        (
+            "sample_off_map_counter",
+            counts,
+            "ground-sample: point samples off the map area is 1, more than 0",
+        ),
+        (
+            "sample_inside_not_asked",
+            counts,
+            "ground-sample: point sample at case 0 is inside the map area but was not asked above",
+        ),
+        ("sample_above_counter", counts, "ground-sample: point samples with above=0 is 1, more than 0"),
+        ("sample_below_counter", counts, "ground-sample: point samples with below=1 is 1, more than 0"),
+        (
+            "sample_alias_counter",
+            counts,
+            "ground-sample: impact samples with alias_equal=0 is 1, more than 0",
+        ),
+        (
+            "sample_warm_counter",
+            counts,
+            "ground-sample: impact samples with warm_same=0 is 1, more than 0",
+        ),
+    ];
+    for (mode, args, reason) in defects {
+        assert_ground_defect(mode, args, reason);
+    }
+}
+
+// One report with one defect, through the real driver: the run fails with exactly the named reason, records it once as `report_invalid`, writes no row of the rejected
+// report and no success row (`repeat_identical`, `state_digest`), and stops at the first probe.
+fn assert_ground_defect(mode: &str, args: &[&str], reason: &str) {
+    assert_ground_defect_as("legacy", mode, args, reason);
+}
+
+fn assert_ground_defect_as(profile: &str, mode: &str, args: &[&str], reason: &str) {
+    let expected = ground_refusal(reason);
+    let (status, stdout, stderr, trace, rows) = run_ground_case_as(profile, mode, args);
+    assert!(
+        !status.success() && !stdout.contains("GROUND_CALLER_DONE"),
+        "{profile}/{mode}: accepted\n{stdout}\n{stderr}"
+    );
+    assert!(stderr.contains(&expected), "{mode}: expected {expected:?}, got {stderr}");
+    let invalid: Vec<_> = rows.iter().filter(|r| r["event"] == "report_invalid").collect();
+    assert_eq!(invalid.len(), 1, "{mode}: {rows:?}");
+    assert_eq!(invalid[0]["error"].as_str(), Some(expected.as_str()), "{mode}");
+    for success in ["repeat_identical", "state_digest"] {
+        assert!(rows.iter().all(|r| r["event"] != success), "{mode}: a {success} row follows a rejected report");
+    }
+    assert!(
+        rows.iter().all(|r| !r["event"].as_str().unwrap_or("").starts_with("ground-")),
+        "{mode}: a row of the rejected report was recorded"
+    );
+    assert_eq!(trace.matches("probe ").count(), 1, "{mode}: the run stops at the rejected report: {trace}");
+}
+
+// REGRESSION: the sample-completeness checks accepted a point or impact sample set with a case missing while no tag or type had reached its quota (the emitter samples every
+// case until a class is full), and trusted whatever quota the header named. Each report below has one such defect; the same driver accepts the legitimate omissions in the next test.
+#[test]
+fn the_ground_driver_refuses_a_skipped_sample_case_before_any_class_is_full_and_a_quota_the_emitter_does_not_take() {
+    let counts: &[&str] = &["points=5", "impacts=5"];
+    for (mode, reason) in [
+        // an interior case is missing (case 1, then case 2): no tag has two samples, so every case up to the last sample must be there
+        (
+            "sample_point_gap_n1",
+            "ground-sample: point case 1 is not sampled, but no tag has reached 2 samples (the gap is cases 1 to 1)",
+        ),
+        (
+            "sample_point_gap_n2",
+            "ground-sample: point case 2 is not sampled, but no tag has reached 2 samples (the gap is cases 2 to 2)",
+        ),
+        // the last case is missing: the samples stop short and no tag is full
+        (
+            "sample_point_tail_n4",
+            "ground-sample: point samples stop at case 3 of 5, but no tag has reached 2 samples (cases 4 to 4 are unsampled)",
+        ),
+        // a gap is not excused by a tag that fills up AFTER it
+        (
+            "points_gap_before_saturation",
+            "ground-sample: point case 1 is not sampled, but no tag has reached 2 samples (the gap is cases 1 to 1)",
+        ),
+        // all five impact cases are of type 0 and four samples are present (the exact per-type count passes), but case 1 is missing
+        (
+            "impact_concentrated_gap",
+            "ground-sample: impact case 1 is not sampled, but no type has reached 4 samples (the gap is cases 1 to 1)",
+        ),
+        // the quotas are the emitter's constants (2 and 4); a header cannot redefine which samples are required or permitted
+        ("header_sample_cap_zero", "ground-probe: samples_per_point_tag is 0, expected 2"),
+        ("header_point_quota_larger", "ground-probe: samples_per_point_tag is 3, expected 2"),
+        ("header_impact_quota_larger", "ground-probe: samples_per_impact_type is 8, expected 4"),
+    ] {
+        assert_ground_defect(mode, counts, reason);
+    }
+}
+
+// REGRESSION: the fixture once required the campaign's sector grid to equal the terrain's and refused every retail map (the campaign's sectors are larger than the
+// terrain's). The two grids are reported apart; only the extents they cover must agree.
+#[test]
+fn the_ground_driver_accepts_a_campaign_grid_that_differs_from_the_terrain_grid_and_the_same_grid() {
+    for (mode, world, terrain) in [("ok", "3x2 of 4096", "6x4 of 2048"), ("map_grids_same", "6x4 of 2048", "6x4 of 2048")] {
+        let (status, stdout, stderr, _, rows) = run_ground_case(mode, &["points=5", "impacts=5", "repeats=1"]);
+        assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{mode}: {stdout}\n{stderr}");
+        let map = rows
+            .iter()
+            .find(|r| r["event"] == "ground-map")
+            .unwrap_or_else(|| panic!("{mode}: no ground-map row"));
+        let grid = |side: &str, x: &str, z: &str| format!("{}x{} of {}", map[x], map[z], map[side]);
+        assert_eq!(grid("world_sector_side", "world_sectors_x", "world_sectors_z"), world, "{mode}: {map}");
+        assert_eq!(grid("terrain_sector_side", "terrain_sectors_x", "terrain_sectors_z"), terrain, "{mode}: {map}");
+        assert!(rows.iter().any(|r| r["event"] == "state_digest"), "{mode}");
+    }
+}
+
+#[test]
+fn the_ground_driver_accepts_the_omissions_the_emitter_makes_once_a_class_is_full_and_complete_small_runs() {
+    // zero and one case of a family, a family with every case sampled, and caps that bind: nothing is missing that the emitter would take
+    for args in [
+        ["points=1", "impacts=0"],
+        ["points=0", "impacts=1"],
+        ["points=1", "impacts=1"],
+        ["points=2", "impacts=3"],
+    ] {
+        let (status, stdout, stderr, _, rows) = run_ground_case("ok", &args);
+        assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{args:?}: {stdout}\n{stderr}");
+        assert!(rows.iter().any(|r| r["event"] == "state_digest"), "{args:?}");
+    }
+    // five point cases all of one tag: cases 0 and 1 are sampled, the tag is then full, so cases 2 to 4 are legitimately unsampled
+    let (status, stdout, stderr, _, rows) = run_ground_case("points_same_tag_saturated", &["points=5", "impacts=5", "repeats=1"]);
+    assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert_eq!(ground_samples(&rows, "point"), 2);
+    // tag 0 fills at case 1, so case 2 may belong to it; cases 3 and 4 then follow without a gap
+    let (status, stdout, stderr, _, rows) = run_ground_case("points_saturated_then_other_tags", &["points=5", "impacts=5", "repeats=1"]);
+    assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert_eq!(ground_samples(&rows, "point"), 4);
+}
+
+// THE TWO REPORT PROFILES (EEDCS-48 composed with G1). The original fixture reports the shared record's diagnostics in the legacy shape (ground-record, ground-hash: sector and triangle
+// indices, held pointers). Against the G1 module, whose record has none of those, it reports the host-semantic shape (ground-profile, ground-semantic-record, ground-semantic-hash) and
+// the driver boots the module with the host's terrain provider. The original profile stays supported exactly as the retained oracles were written; the two are never mixed. These tests
+// run the real driver against a stand-in that writes a report of the named profile; the provider factory is a stub (no retail root is loaded) and no physical answer is faked.
+fn trace_lines(trace: &str) -> Vec<&str> {
+    trace.lines().collect()
+}
+
+#[test]
+fn the_ground_driver_boots_the_g1_module_with_the_terrain_provider_and_accepts_the_host_semantic_report() {
+    let (status, stdout, stderr, trace, rows) = run_ground_case_as("semantic", "ok", &["points=5", "impacts=5", "repeats=1"]);
+    assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    // the provider factory is called once, with the map, and its result is what boot receives, as lua/campaign.lua does
+    let lines = trace_lines(&trace);
+    assert_eq!(lines.iter().filter(|l| l.starts_with("terrain-provider ")).count(), 1, "{trace}");
+    assert!(lines.contains(&"boot terrain=true"), "{trace}");
+    let at = |needle: &str| {
+        lines
+            .iter()
+            .position(|l| l.starts_with(needle))
+            .unwrap_or_else(|| panic!("no {needle} in {trace}"))
+    };
+    assert!(at("terrain-provider ") < at("boot terrain="), "the provider is made before boot: {trace}");
+    // the host-semantic rows, and none of the legacy ones
+    let event = |name: &str| rows.iter().filter(|r| r["event"] == name).count();
+    assert_eq!(
+        (
+            event("ground-profile"),
+            event("ground-semantic-record"),
+            event("ground-semantic-hash"),
+            event("ground-physical")
+        ),
+        (1, 1, 1, 1)
+    );
+    assert_eq!(
+        (event("ground-record"), event("ground-hash")),
+        (0, 0),
+        "a legacy row is never written beside the semantic ones"
+    );
+    let profile = rows.iter().find(|r| r["event"] == "ground-profile").unwrap();
+    assert_eq!(
+        (profile["record"].as_str(), profile["legacy_diagnostics"].as_str()),
+        (Some("host_semantic"), Some("none")),
+        "{profile}"
+    );
+    let record = rows.iter().find(|r| r["event"] == "ground-semantic-record").unwrap();
+    assert_eq!((record["restored"].as_i64(), record["anchored"].as_i64()), (Some(1), Some(1)), "{record}");
+    assert!(rows.iter().any(|r| r["event"] == "state_digest"));
+    // sample completeness is still enforced, in this profile too
+    assert_eq!((ground_samples(&rows, "point"), ground_samples(&rows, "impact")), (5, 5));
+}
+
+#[test]
+fn the_ground_driver_original_profile_is_still_supported_and_boots_without_a_terrain_provider() {
+    let (status, stdout, stderr, trace, rows) = run_ground_case_as("legacy", "ok", &["points=5", "impacts=5", "repeats=1"]);
+    assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{stdout}\n{stderr}");
+    assert!(!trace.contains("terrain-provider"), "the original host has no provider: {trace}");
+    assert!(trace.lines().any(|l| l == "boot terrain=false"), "{trace}");
+    let event = |name: &str| rows.iter().filter(|r| r["event"] == name).count();
+    assert_eq!((event("ground-record"), event("ground-hash"), event("ground-physical")), (1, 1, 1));
+    assert_eq!(
+        (event("ground-profile"), event("ground-semantic-record"), event("ground-semantic-hash")),
+        (0, 0, 0),
+        "the original profile has no semantic row"
+    );
+}
+
+#[test]
+fn the_ground_driver_host_semantic_profile_supports_empty_families_and_small_runs() {
+    for args in [["points=0", "impacts=5"], ["points=5", "impacts=0"], ["points=1", "impacts=1"]] {
+        let (status, stdout, stderr, _, rows) = run_ground_case_as("semantic", "ok", &args);
+        assert!(status.success() && stdout.contains("GROUND_CALLER_DONE"), "{args:?}: {stdout}\n{stderr}");
+        assert!(rows.iter().any(|r| r["event"] == "state_digest"), "{args:?}");
+    }
+    // the physical fold is required with its empty value for an empty family in this profile too
+    let (status, _, _, _, rows) = run_ground_case_as("semantic", "ok", &["points=0", "impacts=5", "repeats=1"]);
+    assert!(status.success());
+    for fold in ["ground-semantic-hash", "ground-physical"] {
+        let row = rows.iter().find(|r| r["event"] == fold).unwrap_or_else(|| panic!("no {fold} row"));
+        assert_eq!(row["above"].as_str(), Some("cbf29ce484222325"), "{row}");
+    }
+}
+
+// The profile controls: each report below has ONE defect and must be refused by its exact reason, with `report_invalid`, no success row and no digest. A missing or ambiguous profile is never
+// accepted as success, a legacy row is never accepted beside the semantic ones (a fake zeroed or copied ground-hash would make two different diagnostics look equal), and the report must be
+// the profile the host implies.
+#[test]
+fn the_ground_driver_refuses_a_missing_mixed_or_disagreeing_report_profile() {
+    let counts: &[&str] = &["points=5", "impacts=5"];
+    let original_on_provider_host =
+        "the report is the original profile, but this host has a terrain provider (the host-terrain module) and expects the host_semantic profile";
+    let semantic_on_plain_host =
+        "the report is the host_semantic profile, but this host has no terrain provider (the original module) and expects the original profile";
+    for (profile, mode, reason) in [
+        // a host with a provider whose report names no profile (the original shape), and a host without one whose report is the semantic shape
+        ("semantic", "profile_row_missing", original_on_provider_host),
+        ("swap_semantic_host", "ok", original_on_provider_host),
+        ("swap_legacy_host", "ok", semantic_on_plain_host),
+        ("legacy", "legacy_with_profile_row", semantic_on_plain_host),
+        // the profile row itself
+        ("semantic", "profile_names_legacy", "ground-profile: record must be host_semantic, got legacy"),
+        (
+            "semantic",
+            "profile_claims_diagnostics",
+            "ground-profile: legacy_diagnostics must be none, got zeroed",
+        ),
+        ("semantic", "profile_key_missing", "ground-profile: legacy_diagnostics is missing"),
+        (
+            "semantic",
+            "profile_word_malformed",
+            "ground-profile: record must be a word, got 'host-semantic'",
+        ),
+        // a row of the other profile beside the profile's own
+        (
+            "semantic",
+            "mixed_legacy_hash",
+            "the report mixes profiles: ground-hash belongs to the original profile, but the report is the host_semantic profile",
+        ),
+        (
+            "semantic",
+            "mixed_legacy_record",
+            "the report mixes profiles: ground-record belongs to the original profile, but the report is the host_semantic profile",
+        ),
+        (
+            "legacy",
+            "legacy_with_semantic_record",
+            "the report mixes profiles: ground-semantic-record belongs to the host_semantic profile, but the report is the original profile",
+        ),
+    ] {
+        assert_ground_defect_as(profile, mode, counts, reason);
+    }
+}
+
+// The measurements keep their guards in the host-semantic profile, under the profile's own row names. The same defects in the original profile are in the table above.
+#[test]
+fn the_ground_driver_keeps_its_record_hash_and_sample_guards_in_the_host_semantic_profile() {
+    let counts: &[&str] = &["points=5", "impacts=5"];
+    let restore = "the probe did not restore the shared terrain record: restored=";
+    for (mode, reason) in [
+        ("record_words_absent", "ground-semantic-record: words_before is missing".to_string()),
+        (
+            "record_word_short",
+            "ground-semantic-record: words_after must be 16 lowercase hex digits, got 'abcd'".to_string(),
+        ),
+        ("not_anchored", "ground-semantic-record: anchored is 0, expected 1".to_string()),
+        ("unrestored", format!("{restore}0 words 0123456789abcdef -> 0123456789abcdef")),
+        ("words_differ", format!("{restore}1 words 0123456789abcdef -> ffffffffffffffff")),
+        ("hash_bare", "ground-semantic-hash: combined is missing".to_string()),
+        ("hash_short", "ground-semantic-hash: below must be 16 lowercase hex digits, got '1'".to_string()),
+        ("hash_row_missing", "the report has no ground-semantic-hash row".to_string()),
+        ("physical_missing_row", "the report has no ground-physical row".to_string()),
+        ("empty_fold", "ground-semantic-hash: above is cbf29ce484222325 for 5 cases".to_string()),
+        (
+            "sample_point_gap_n1",
+            "ground-sample: point case 1 is not sampled, but no tag has reached 2 samples (the gap is cases 1 to 1)".to_string(),
+        ),
+        ("sample_type_omitted", "ground-sample: impact samples of type 2 is 0, expected 1".to_string()),
+    ] {
+        assert_ground_defect_as("semantic", mode, counts, &reason);
+    }
+}

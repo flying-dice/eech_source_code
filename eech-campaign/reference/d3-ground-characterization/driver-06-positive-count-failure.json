@@ -1,0 +1,6 @@
+{
+  "actual_exit": 101,
+  "completed_utc": "2026-10-29T14:27:16.3847553Z",
+  "scope": "Actual Linux host Lua5.1 driver tests, not original C query validation",
+  "source": "06ce4b7bcff6617c35f32e740bcb57c9c1cc1c19"
+}

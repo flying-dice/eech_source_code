@@ -104,6 +104,20 @@ float
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef EECH_CAMPAIGN_HOST_TERRAIN
+
+// EEDCS-48 (D3 G2): in the headless campaign module the segment-against-ground search is the host's (mb_hostterrain.c carries the question and keeps the shared record,
+// the caller's buffers and the type -> class mapping); the original search below is not compiled into it
+
+extern terrain_classes campaign_terrain_ground_impact (vec3d *above_ground, vec3d *below_ground, vec3d *ground_impact_point);
+
+terrain_classes get_ground_impact_point (vec3d *above_ground, vec3d *below_ground, vec3d *ground_impact_point)
+{
+	return (campaign_terrain_ground_impact (above_ground, below_ground, ground_impact_point));
+}
+
+#else
+
 terrain_classes get_ground_impact_point (vec3d *above_ground, vec3d *below_ground, vec3d *ground_impact_point)
 {
 	float
@@ -169,6 +183,8 @@ terrain_classes get_ground_impact_point (vec3d *above_ground, vec3d *below_groun
 
 	return (get_terrain_type_class (get_3d_terrain_point_data_type (NULL)));
 }
+
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

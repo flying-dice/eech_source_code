@@ -1,0 +1,14 @@
+{
+  "incorrect_success_digest": true,
+  "actual_native_exit": 0,
+  "completed_utc": "2026-10-29T14:29:05.7139226Z",
+  "scope": "Defect reproduction: exact old real-Lua driver accepts missing point sample n1; stand-in-only corruption, no original C/physics assertion",
+  "point_sample_ids": [
+    "0",
+    "2",
+    "3",
+    "4"
+  ],
+  "caller_sha256": "c11b34e608f34f8c2492970c364fd8014ca83c94f368ba609688b873b142fd9e",
+  "driver_source": "06ce4b7bcff6617c35f32e740bcb57c9c1cc1c19"
+}

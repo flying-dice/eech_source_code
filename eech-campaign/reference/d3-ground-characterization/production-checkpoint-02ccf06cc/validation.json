@@ -1,0 +1,360 @@
+{
+  "schema": "d3-ground-candidate-validation/v1",
+  "source": "02ccf06cc0afcd8632fb5924a2117b1ebbbdd3b1",
+  "updated_utc": "2026-10-31T00:55:10.819688+00:00",
+  "source_clean": true,
+  "compiled_exports": [
+    {
+      "bin": "R:\\d3-evidence\\ground-production-source-02ccf06cc\\eech-campaign\\target\\windows-ground-production-02ccf06cc",
+      "all50payloads_post_verified": true,
+      "image": "sha256:c5e04ec0832b8f1fad33d7b65bf60946bc30b1aab467d3a64ff7833897395722",
+      "BINF_sha256": "70f8e72d51ba4d80e4a094240285b4a3fa599cc56d90ef73582b6d9051024d71"
+    },
+    {
+      "bin": "R:\\d3-evidence\\ground-production-source-02ccf06cc\\eech-campaign\\target\\ground-fixture\\production-02ccf06cc",
+      "all50payloads_post_verified": true,
+      "image": "sha256:51c69b6c291c65c0ac2cb0e964790c7d1d4918b135425b5ff45602b5b23aabda",
+      "BINF_sha256": "e0be8ce9900a183e8a3a935f3b6db068b1b6a9e6492af181722330748ea149f2"
+    },
+    {
+      "bin": "R:\\d3-evidence\\ground-production-source-02ccf06cc\\eech-campaign\\target\\weapon-fixture\\ground-authority-02ccf06cc",
+      "all50payloads_post_verified": true,
+      "image": "sha256:5a18d06ba604c8576fd68a58c599f5326276e96f7a6f044189c163c9e4a67352",
+      "BINF_sha256": "13f544e739c483cfb6b540e9ea398a00f0fc6df301f4fa06e6972644e2f7f18e"
+    }
+  ],
+  "linux": {
+    "source": "02ccf06cc0afcd8632fb5924a2117b1ebbbdd3b1",
+    "args": [
+      "wsl",
+      "-d",
+      "EECH-D2-Build",
+      "--",
+      "sh",
+      "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-ground-production-02ccf06cc-linux-20261031.sh"
+    ],
+    "pid": 6260,
+    "controller_pid": 24716,
+    "state": "terminal",
+    "started_utc": "2026-10-31T00:37:22.501323+00:00",
+    "scope": "Affected ground package tests/lint; no retail execution",
+    "actual_exit": 101,
+    "completed_utc": "2026-10-31T00:42:37.717146+00:00"
+  },
+  "Windows_original_controller": {
+    "source": "02ccf06cc0afcd8632fb5924a2117b1ebbbdd3b1",
+    "args": [
+      "wsl",
+      "-d",
+      "EECH-D2-Build",
+      "--",
+      "sh",
+      "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-ground-production-02ccf06cc-windows-20261031.sh"
+    ],
+    "pid": 22220,
+    "controller_pid": 23948,
+    "state": "terminal",
+    "started_utc": "2026-10-31T00:37:22.501323+00:00",
+    "scope": "Shipping, ground fixture, weapon fixture builds and cross-test export; no native execution",
+    "actual_exit": 125,
+    "completed_utc": "2026-10-31T00:43:45.096321+00:00"
+  },
+  "export_only_recovery": {
+    "source": "02ccf06cc0afcd8632fb5924a2117b1ebbbdd3b1",
+    "args": [
+      "wsl",
+      "-d",
+      "EECH-D2-Build",
+      "--",
+      "sh",
+      "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-ground-production-02ccf06cc-export-recovery-20261031.sh"
+    ],
+    "pid": 22412,
+    "controller_pid": 17648,
+    "state": "terminal",
+    "started_utc": "2026-10-31T00:46:29.398408+00:00",
+    "scope": "Only recover cross-test compilation/export using actual last weapon-build image; three completed native builds are not repeated; no native campaign execution",
+    "actual_exit": 0,
+    "completed_utc": "2026-10-31T00:47:28.437406+00:00"
+  },
+  "physical_conformance": {
+    "source": "02ccf06cc0afcd8632fb5924a2117b1ebbbdd3b1",
+    "controller_pid": 3264,
+    "started_utc": "2026-10-31T00:42:38.139271+00:00",
+    "state": "terminal",
+    "scope": "Finite production G2 physical conformance to retained c119, not shipping acceptance",
+    "cases": [
+      {
+        "case": "lebanon",
+        "native_controller_exit": 0,
+        "actual_native_exit": 0,
+        "pre_inputs": 0,
+        "post_inputs": 0,
+        "comparison_exit": 0,
+        "physical_equal": true,
+        "cache_and_semantic_samples_equal": true,
+        "differences": [],
+        "raw_sha256": "16e870fb3381b5739f065a7cff4ccdd68ea79a9ed1521d87108a00c2929682e5",
+        "raw_bytes": 39581
+      },
+      {
+        "case": "lebanon-repeat",
+        "native_controller_exit": 0,
+        "actual_native_exit": 0,
+        "pre_inputs": 0,
+        "post_inputs": 0,
+        "comparison_exit": 0,
+        "physical_equal": true,
+        "cache_and_semantic_samples_equal": true,
+        "differences": [],
+        "raw_sha256": "16e870fb3381b5739f065a7cff4ccdd68ea79a9ed1521d87108a00c2929682e5",
+        "raw_bytes": 39581
+      },
+      {
+        "case": "georgia",
+        "native_controller_exit": 0,
+        "actual_native_exit": 0,
+        "pre_inputs": 0,
+        "post_inputs": 0,
+        "comparison_exit": 0,
+        "physical_equal": true,
+        "cache_and_semantic_samples_equal": true,
+        "differences": [],
+        "raw_sha256": "0e6a9d7bc787c627922f69afc60cf40eadda24ab91d15710683738588b3861d7",
+        "raw_bytes": 39559
+      }
+    ],
+    "verified_payloads": 50,
+    "build_info_sha256": "e0be8ce9900a183e8a3a935f3b6db068b1b6a9e6492af181722330748ea149f2",
+    "Lebanon_complete_raw_equal": true,
+    "actual_exit": 0,
+    "completed_utc": "2026-10-31T00:43:00.683220+00:00"
+  },
+  "actual_Windows_public": {
+    "source": "02ccf06cc0afcd8632fb5924a2117b1ebbbdd3b1",
+    "controller_pid": 9616,
+    "state": "terminal",
+    "started_utc": "2026-10-31T00:48:42.101619+00:00",
+    "commands": [
+      {
+        "args": [
+          "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+          "-B",
+          "-X",
+          "utf8",
+          "R:\\d3-evidence\\ground-production-source-02ccf06cc\\eech-campaign\\tools\\input-manifest.py",
+          "R:\\d3-evidence\\ground-production-roots-20261030\\georgia",
+          "--compare",
+          "R:\\d3-evidence\\ground-production-source-02ccf06cc\\eech-campaign\\reference\\m4-s3-mutation\\inputs-georgia.json"
+        ],
+        "pid": 6528,
+        "started_utc": "2026-10-31T00:48:42.274818+00:00",
+        "log": "R:\\d3-evidence\\ground-production-public-02ccf06cc-20261031\\georgia-pre-inputs.log",
+        "actual_exit": 0,
+        "completed_utc": "2026-10-31T00:48:43.596937+00:00"
+      },
+      {
+        "args": [
+          "R:\\d3-evidence\\ground-production-source-02ccf06cc\\eech-campaign\\target\\windows-ground-tests-02ccf06cc\\ground_provider.exe",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "pid": 11004,
+        "started_utc": "2026-10-31T00:48:43.718451+00:00",
+        "log": "R:\\d3-evidence\\ground-production-public-02ccf06cc-20261031\\georgia-transport.log",
+        "actual_exit": 0,
+        "completed_utc": "2026-10-31T00:48:43.808258+00:00"
+      },
+      {
+        "args": [
+          "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+          "-B",
+          "-X",
+          "utf8",
+          "R:\\d3-evidence\\ground-production-source-02ccf06cc\\eech-campaign\\tools\\input-manifest.py",
+          "R:\\d3-evidence\\ground-production-roots-20261030\\georgia",
+          "--compare",
+          "R:\\d3-evidence\\ground-production-source-02ccf06cc\\eech-campaign\\reference\\m4-s3-mutation\\inputs-georgia.json"
+        ],
+        "pid": 18060,
+        "started_utc": "2026-10-31T00:48:43.812890+00:00",
+        "log": "R:\\d3-evidence\\ground-production-public-02ccf06cc-20261031\\georgia-post-inputs.log",
+        "actual_exit": 0,
+        "completed_utc": "2026-10-31T00:48:44.969623+00:00"
+      },
+      {
+        "args": [
+          "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+          "-B",
+          "-X",
+          "utf8",
+          "R:\\d3-evidence\\ground-production-source-02ccf06cc\\eech-campaign\\tools\\input-manifest.py",
+          "R:\\d3-evidence\\ground-production-roots-20261030\\lebanon",
+          "--compare",
+          "R:\\d3-evidence\\ground-production-source-02ccf06cc\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+        ],
+        "pid": 7364,
+        "started_utc": "2026-10-31T00:48:44.985720+00:00",
+        "log": "R:\\d3-evidence\\ground-production-public-02ccf06cc-20261031\\lebanon-pre-inputs.log",
+        "actual_exit": 0,
+        "completed_utc": "2026-10-31T00:48:46.260720+00:00"
+      },
+      {
+        "args": [
+          "R:\\d3-evidence\\ground-production-source-02ccf06cc\\eech-campaign\\target\\windows-ground-tests-02ccf06cc\\ground_provider.exe",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "pid": 24108,
+        "started_utc": "2026-10-31T00:48:46.268412+00:00",
+        "log": "R:\\d3-evidence\\ground-production-public-02ccf06cc-20261031\\lebanon-transport.log",
+        "actual_exit": 0,
+        "completed_utc": "2026-10-31T00:48:46.323594+00:00"
+      },
+      {
+        "args": [
+          "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+          "-B",
+          "-X",
+          "utf8",
+          "R:\\d3-evidence\\ground-production-source-02ccf06cc\\eech-campaign\\tools\\input-manifest.py",
+          "R:\\d3-evidence\\ground-production-roots-20261030\\lebanon",
+          "--compare",
+          "R:\\d3-evidence\\ground-production-source-02ccf06cc\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+        ],
+        "pid": 18312,
+        "started_utc": "2026-10-31T00:48:46.323594+00:00",
+        "log": "R:\\d3-evidence\\ground-production-public-02ccf06cc-20261031\\lebanon-post-inputs.log",
+        "actual_exit": 0,
+        "completed_utc": "2026-10-31T00:48:47.375042+00:00"
+      },
+      {
+        "args": [
+          "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+          "-B",
+          "-X",
+          "utf8",
+          "R:\\d3-evidence\\ground-production-source-02ccf06cc\\eech-campaign\\tools\\input-manifest.py",
+          "R:\\d3-evidence\\ground-production-public-02ccf06cc-20261031\\required-root",
+          "--compare",
+          "R:\\d3-evidence\\ground-production-source-02ccf06cc\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+        ],
+        "pid": 10316,
+        "started_utc": "2026-10-31T00:48:48.388527+00:00",
+        "log": "R:\\d3-evidence\\ground-production-public-02ccf06cc-20261031\\required-pre-inputs.log",
+        "actual_exit": 0,
+        "completed_utc": "2026-10-31T00:48:52.053875+00:00"
+      },
+      {
+        "args": [
+          "R:\\d3-evidence\\ground-production-source-02ccf06cc\\eech-campaign\\target\\windows-ground-tests-02ccf06cc\\ground_handoff.exe",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "pid": 6388,
+        "started_utc": "2026-10-31T00:48:52.154262+00:00",
+        "log": "R:\\d3-evidence\\ground-production-public-02ccf06cc-20261031\\moved-handoff.log",
+        "actual_exit": 0,
+        "completed_utc": "2026-10-31T00:48:59.601004+00:00"
+      },
+      {
+        "args": [
+          "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+          "-B",
+          "-X",
+          "utf8",
+          "R:\\d3-evidence\\ground-production-source-02ccf06cc\\eech-campaign\\tools\\input-manifest.py",
+          "R:\\d3-evidence\\ground-production-public-02ccf06cc-20261031\\required-root",
+          "--compare",
+          "R:\\d3-evidence\\ground-production-source-02ccf06cc\\eech-campaign\\reference\\lebanon-3h\\inputs.json"
+        ],
+        "pid": 1904,
+        "started_utc": "2026-10-31T00:48:59.610735+00:00",
+        "log": "R:\\d3-evidence\\ground-production-public-02ccf06cc-20261031\\required-post-inputs.log",
+        "actual_exit": 0,
+        "completed_utc": "2026-10-31T00:49:00.622342+00:00"
+      }
+    ],
+    "results": [
+      {
+        "case": "georgia",
+        "actual_test_exit": 0,
+        "post_inputs": 0,
+        "skipped": false,
+        "last_row": {
+          "event": "check",
+          "n": 60,
+          "name": "an impact endpoint off the terrain is refused",
+          "ok": true
+        },
+        "rows": 60,
+        "failed_checks": []
+      },
+      {
+        "case": "lebanon",
+        "actual_test_exit": 0,
+        "post_inputs": 0,
+        "skipped": false,
+        "last_row": {
+          "event": "check",
+          "n": 60,
+          "name": "an impact endpoint off the terrain is refused",
+          "ok": true
+        },
+        "rows": 60,
+        "failed_checks": []
+      }
+    ],
+    "scope": "Actual Windows direct ground provider tests and moved public ground handoff; no weapon authority or shipping acceptance",
+    "ground_binary": {
+      "path": "R:\\d3-evidence\\ground-production-source-02ccf06cc\\eech-campaign\\target\\ground-fixture\\production-02ccf06cc",
+      "payloads_verified": 50,
+      "BINF_sha256": "e0be8ce9900a183e8a3a935f3b6db068b1b6a9e6492af181722330748ea149f2",
+      "image": "sha256:51c69b6c291c65c0ac2cb0e964790c7d1d4918b135425b5ff45602b5b23aabda"
+    },
+    "weapon_binary": {
+      "path": "R:\\d3-evidence\\ground-production-source-02ccf06cc\\eech-campaign\\target\\weapon-fixture\\ground-authority-02ccf06cc",
+      "payloads_verified": 50,
+      "BINF_sha256": "13f544e739c483cfb6b540e9ea398a00f0fc6df301f4fa06e6972644e2f7f18e",
+      "image": "sha256:5a18d06ba604c8576fd68a58c599f5326276e96f7a6f044189c163c9e4a67352"
+    },
+    "moved_public_handoff": {
+      "actual_test_exit": 0,
+      "post_inputs": 0,
+      "summary": {
+        "event": "ground_handoff",
+        "handoff": "required",
+        "healthy": true,
+        "passed": true,
+        "point": 86865,
+        "fast": 0,
+        "map": 1,
+        "ground_above": 416,
+        "ground_below": 400,
+        "ground_impact": 150,
+        "other": 0,
+        "message": "ground-handoff: required: 416 ground_above, 400 ground_below and 150 ground_impact request(s) reached the host provider"
+      },
+      "intentional_unmoved_mode_skip": "The old-DLL RED test is not applicable to this moved DLL; old healthy RED evidence is reused, not rerun."
+    },
+    "actual_exit": 0,
+    "completed_utc": "2026-10-31T00:49:00.622342+00:00"
+  },
+  "independent_source_review_sha256": "76f52b1bd8b33d15bf07d10a9c8ce8d64625b701c1b023e25bfa551fcb3ab730",
+  "review_disposition": "CHANGES_REQUIRED_FIVE_P2_GROUPS",
+  "first_preflight": {
+    "actual_exit": 1,
+    "reason": "Windows long path stat false dirty; no native started; canonical core.longpaths status clean; set perclone core.longpaths=true, source unchanged"
+  },
+  "second_preflight": {
+    "actual_exit": 0,
+    "out": "R:\\d3-evidence\\ground-production-shipping-preflight-02ccf06cc-v2-20261031",
+    "scope": "No native started;40 expectedchecks/childPython3.12.14/inputs and sourcebin verified"
+  },
+  "limits": [
+    "441 passing default test functions include asset-dependent no-env returns, not new asset/physical evidence.",
+    "Full shipping/all8complete artifacts and strict launched-weapon authority/FP controls not yet run.",
+    "Earlier failures and measured raw data unchanged; no baseline/tolerance changes.",
+    "New correction edits unbuilt/unrun; Task48/D3 not delivered."
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "source": "05b8caf82fbb37ee4e7e9ecfbd412bbc598a9ebd",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-physical-05b8caf82-windows-20261031.sh"
+  ],
+  "pid": 6168,
+  "controller_pid": 19508,
+  "state": "terminal",
+  "started_utc": "2026-10-31T10:17:03.413368+00:00",
+  "scope": "Physical candidate windows build and affected checks only; asset-dependent test functions without inputs are not retail evidence; no shipping acceptance",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T10:20:22.668933+00:00"
+}

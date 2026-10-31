@@ -1,0 +1,75 @@
+{
+  "status": "completed",
+  "controller_pid": 23608,
+  "source": "14bfd3ed63e906759a7e688068a1f8090bb74db7",
+  "scope": "Actual Windows host-only kernel conformance; not DLL cutover or shipping acceptance",
+  "started_utc": "2026-10-29T16:47:17.012885+00:00",
+  "results": [
+    {
+      "scenario": "lebanon",
+      "actual_native_exit": 0,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "oracle_sha256": "248ca1e81a4c72bad8011d28f77271c28aba916dec16dd4b17602c7c38f00b91",
+      "oracle_unchanged": true,
+      "test_summary": [
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.90s"
+      ],
+      "native_log_sha256": "9d8873e7a93a34367baffd6785b2abb2f9d411ee9961df841740a3ad9b7d5532"
+    },
+    {
+      "scenario": "lebanon-repeat",
+      "actual_native_exit": 0,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "oracle_sha256": "248ca1e81a4c72bad8011d28f77271c28aba916dec16dd4b17602c7c38f00b91",
+      "oracle_unchanged": true,
+      "test_summary": [
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.93s"
+      ],
+      "native_log_sha256": "0e18eb3235b4c5a334f881ae707b978f4a09a8334fdce9b35d65ee65f5eedace"
+    },
+    {
+      "scenario": "georgia",
+      "actual_native_exit": 0,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "oracle_sha256": "5d2d40ed04ad77d485d09fea3e7afef340967edae52a8013dd0b80327092844a",
+      "oracle_unchanged": true,
+      "test_summary": [
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.01s"
+      ],
+      "native_log_sha256": "4fd65118291cb7ad874b9e1c747a513c0d4fafa4d5f713bbec9000830235e8b3"
+    }
+  ],
+  "build_manifest": [
+    {
+      "file": "ground_conformance.exe",
+      "sha256": "6a5a4800744713d7038f6205307790a904c8e5324525323ce29907bc64779df1",
+      "equal": true
+    },
+    {
+      "file": "terrain_backend.exe",
+      "sha256": "0315d86b2d4fb7a21c46364a52e8d84d550c7d244863efa0a5bd7481f9400d56",
+      "equal": true
+    },
+    {
+      "file": "terrain_conformance.exe",
+      "sha256": "5d340ac0276dd4b94508b9a7330d817b6fe2b071723c2fafee4d0bf09d60d6bd",
+      "equal": true
+    },
+    {
+      "file": "lua.dll",
+      "sha256": "7b2ec3f3fd174f6b65a2159ee46dc8e9102624a350d978e16ddf4396d7c2be0b",
+      "equal": true
+    }
+  ],
+  "backend_actual_exit": 0,
+  "actual_exit": 0,
+  "completed_utc": "2026-10-29T16:47:21.135339+00:00",
+  "backend_tests_passed": 17,
+  "ground_tests_per_root": 4,
+  "native_map_tests_skipped": 0,
+  "conformance_scope": "The actual host generates original20k point/5kimpact cases at seed20261029. It compares physical folds/counters/samples/common cache observations with originalc119, then repeats the entire host sweep and asserts equality. This is host-kernel conformance, not public DLL G2 handoff or shipping proof.",
+  "limits": "No production DLL/client/wn_move/public bridge changed. Required G2 authority/refusal and later cutover remain; Task47 final115 shipping stays live. New source/native review is in progress, not accepted yet. Legacy record diagnostics are intentionally not normalized."
+}

@@ -46,6 +46,9 @@ struct Shape {
     corner: u16,
     /// the last reference of the face, when a test wants a particular one (16-bit maps; the byte maps use `reference`)
     word_reference: Option<u16>,
+    /// the sector record's minimum, maximum and average height in metres (the sector loader reads them after the radius); `None` writes the zeros every older fixture has always had.
+    /// The ground predicates read the sector MAXIMUM first, so a map they are to read terrain on needs it at or above the plane.
+    sector_heights: Option<(i16, i16, i16)>,
 }
 
 impl Default for Shape {
@@ -65,6 +68,7 @@ impl Default for Shape {
             extra_points: 0,
             corner: 3,
             word_reference: None,
+            sector_heights: None,
         }
     }
 }
@@ -110,9 +114,13 @@ fn build(shape: Shape) -> Parts {
     le16(&mut sector, shape.points + shape.extra_points);
     le16(&mut sector, 0);
     le16(&mut sector, shape.polygons);
-    for _ in 0..5 {
-        le16(&mut sector, 0);
-    }
+    // the sector record after the polygon count: radius, minimum, maximum and average height, and one more word (terrain_ref.c, the sector loop)
+    let (lowest, highest, average) = shape.sector_heights.unwrap_or((0, 0, 0));
+    le16(&mut sector, 0);
+    le16(&mut sector, lowest as u16);
+    le16(&mut sector, highest as u16);
+    le16(&mut sector, average as u16);
+    le16(&mut sector, 0);
     le32(&mut sector, off_y);
     le32(&mut sector, shape.off_xz.unwrap_or(off_xz));
     le32(&mut sector, shape.off_ref.unwrap_or(off_ref));
@@ -863,4 +871,477 @@ fn the_provider_factory_opens_the_map_for_the_season_the_engine_reports() {
         !outcome.0 && outcome.1.contains("winter = true") && outcome.1.contains("winter = false"),
         "{outcome:?}"
     );
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// The caller's COMPLETE floating-point state around the public ground entries (EEDCS-48 corrections). The kernels run under round-toward-zero; a caller in any of the four
+// rounding modes, with the x87 and SSE status flags already raised, must find its x87 control and status words and its MXCSR exactly as it left them after a read answer, a
+// decided answer, a no-read answer outside the supplied world, an early refusal (the finite validation itself can raise a flag) and a refusal after the kernel began.
+//
+// The state is set and read with the instructions themselves (fnstenv/fldenv, stmxcsr/ldmxcsr); nothing here knows what the kernel does, and the expectation is not a constant: it is
+// the state read back immediately before the call. The control and status words and MXCSR are the observation; the x87 tag word and exception pointers are not compared. Two flag
+// patterns are used, each in all four modes: SATURATED (every exception flag already raised: an extra flag cannot show) and PARTIAL (invalid CLEAR, zero-divide and inexact raised: the
+// invalid flag that `infinity - infinity` raises in the finite validation WOULD show if an entry left it behind).
+//
+// The map is the synthetic one above with the sector's minimum, maximum and average height given (the plane is at 1000 m and the ground predicates read the sector MAXIMUM first: the older
+// fixtures' zero heights would decide every question from the sector and never read terrain). Every case states what it must be (read, decided, no read outside the world, refused early,
+// refused after the kernel began) and the coverage test proves each one is that; no case is labelled for what it merely hoped to be.
+
+#[cfg(any(target_arch = "x86_64", target_arch = "x86"))]
+mod caller_floating_point {
+    use super::{map, Shape, X, Z};
+    use eech_world::terrain::{GroundAbove, GroundBelow, GroundImpact, GroundWorld, Terrain};
+    use std::arch::asm;
+    use std::hint::black_box;
+
+    /// The plane of the map, in metres (`Shape::default().y`), and the sector heights that go with it.
+    const PLANE: f32 = 1000.0;
+
+    fn ground_map() -> Terrain {
+        map(Shape {
+            sector_heights: Some((1000, 1000, 1000)),
+            ..Shape::default()
+        })
+    }
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub struct State {
+        pub x87_control: u16,
+        pub x87_status: u16,
+        pub mxcsr: u32,
+    }
+
+    /// The exception-flag patterns a caller can be in.
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub enum Flags {
+        /// every x87 and SSE exception flag raised, and the x87 condition codes C0, C2 and C3
+        Saturated,
+        /// invalid CLEAR; zero-divide and inexact raised in both registers, and only the condition code C0
+        Partial,
+    }
+
+    impl Flags {
+        fn x87_flags(self) -> u16 {
+            match self {
+                Flags::Saturated => 0x3F,
+                Flags::Partial => 0x04 | 0x20,
+            }
+        }
+        fn x87_codes(self) -> u16 {
+            match self {
+                Flags::Saturated => 0x0100 | 0x0400 | 0x4000,
+                Flags::Partial => 0x0100,
+            }
+        }
+        fn sse_flags(self) -> u32 {
+            u32::from(self.x87_flags())
+        }
+    }
+
+    fn envelope() -> [u8; 28] {
+        let mut env = [0u8; 28];
+        let pointer: *mut u8 = env.as_mut_ptr();
+        // SAFETY: fnstenv writes the 28-byte protected-mode image to the buffer, which is that long; fldenv reloads the same image so reading it changes nothing (fnstenv alone would mask
+        // every x87 exception).
+        unsafe {
+            asm!("fnstenv [{p}]", "fldenv [{p}]", p = in(reg) pointer, options(nostack));
+        }
+        env
+    }
+
+    pub fn read() -> State {
+        let env = envelope();
+        let mut mxcsr = 0u32;
+        let pointer: *mut u32 = &mut mxcsr;
+        // SAFETY: stmxcsr writes four bytes to the variable.
+        unsafe {
+            asm!("stmxcsr [{p}]", p = in(reg) pointer, options(nostack));
+        }
+        let [c0, c1, _, _, s0, s1, ..] = env;
+        State {
+            x87_control: u16::from_le_bytes([c0, c1]),
+            x87_status: u16::from_le_bytes([s0, s1]),
+            mxcsr,
+        }
+    }
+
+    /// Loads a state: the x87 control and status words into the current environment image, and MXCSR.
+    fn load(control: u16, status: u16, mxcsr: u32) {
+        let mut env = envelope();
+        let [c0, c1] = control.to_le_bytes();
+        let [s0, s1] = status.to_le_bytes();
+        env[0] = c0;
+        env[1] = c1;
+        env[4] = s0;
+        env[5] = s1;
+        let pointer: *const u8 = env.as_ptr();
+        let csr: *const u32 = &mxcsr;
+        // SAFETY: fldenv reads the 28-byte image just built (the current image with its control and status words replaced); ldmxcsr reads four bytes of the caller's MXCSR value.
+        unsafe {
+            asm!("fldenv [{p}]", "ldmxcsr [{c}]", p = in(reg) pointer, c = in(reg) csr, options(nostack));
+        }
+    }
+
+    /// The caller state under test: rounding mode `mode` (0 nearest, 1 down, 2 up, 3 toward zero) in BOTH the x87 control word and MXCSR, every exception masked, and the exception
+    /// flags and x87 condition codes of `flags` raised (and every other one cleared).
+    pub fn set(mode: u16, flags: Flags) {
+        let current = read();
+        let control = (current.x87_control & !0x0C00) | (mode << 10);
+        let status = (current.x87_status & !(0x3F | 0x0700 | 0x4000)) | flags.x87_flags() | flags.x87_codes();
+        load(control, status, 0x1F80 | (u32::from(mode) << 13) | flags.sse_flags());
+    }
+
+    /// Puts a state back exactly (the state a test started from).
+    pub fn restore(state: State) {
+        load(state.x87_control, state.x87_status, state.mxcsr);
+    }
+
+    // ---- the cases -----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    /// The supplied world: campaign geography, not the terrain's extent.
+    fn world() -> GroundWorld {
+        GroundWorld {
+            min_x: -1000.0,
+            min_z: -1000.0,
+            max_x: 3000.0,
+            max_z: 3000.0,
+        }
+    }
+
+    /// Inside the supplied world and outside the physical 2048 m map (whose extent is 0 to 2047): a read of the sector maximum there is a refusal after the kernel began.
+    const OFF_MAP_X: f32 = 2500.0;
+    /// Outside the supplied world as well.
+    const OUTSIDE_WORLD_X: f32 = 5000.0;
+
+    #[derive(Debug)]
+    enum Outcome {
+        Above(Result<GroundAbove, String>),
+        Below(Result<GroundBelow, String>),
+        Impact(Result<GroundImpact, String>),
+    }
+
+    /// What a case is: stated up front, and proved by `verify`.
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    enum Expect {
+        /// answered, the terrain was read and the record came with it
+        Read,
+        /// answered by the sector maximum alone: no terrain read, no record
+        Decided,
+        /// answered without any read because the point is outside the supplied world (`point_below_ground`'s first clause)
+        OutsideWorld,
+        /// refused before the kernel began (the finite validation), with this text
+        EarlyRefusal(&'static str),
+        /// refused after the kernel began: a read of the sector maximum off the physical terrain
+        AfterBeginRefusal,
+    }
+
+    struct Case {
+        name: &'static str,
+        expect: Expect,
+        /// the predicate the case must answer, where it answers one
+        value: Option<bool>,
+        run: Box<dyn Fn(&Terrain) -> Outcome>,
+    }
+
+    fn labelled(name: &'static str, expect: Expect, value: Option<bool>, run: impl Fn(&Terrain) -> Outcome + 'static) -> Case {
+        Case {
+            name,
+            expect,
+            value,
+            run: Box::new(run),
+        }
+    }
+
+    fn cases() -> Vec<Case> {
+        let w = world();
+        let infinite_world = GroundWorld { max_x: f32::INFINITY, ..w };
+        vec![
+            // answered by reading the terrain (the plane is at 1000 m and the sector maximum is 1000 m: 900 m is under the sector maximum, so the elevation decides)
+            labelled("above, read (900 m)", Expect::Read, Some(false), move |t| {
+                Outcome::Above(t.ground_above(&w, X, 900.0, Z, None))
+            }),
+            labelled("below, read (900 m)", Expect::Read, Some(true), move |t| {
+                Outcome::Below(t.ground_below(&w, X, 900.0, Z, None))
+            }),
+            labelled("impact, supported", Expect::Read, None, move |t| {
+                Outcome::Impact(t.ground_impact(&w, [X, 2000.0, Z], [X, 500.0, Z], None))
+            }),
+            // decided by the sector maximum alone (40000 m is above it): no terrain read
+            labelled("above, decided (40000 m)", Expect::Decided, Some(true), move |t| {
+                Outcome::Above(t.ground_above(&w, X, 40000.0, Z, None))
+            }),
+            labelled("below, decided (40000 m)", Expect::Decided, Some(false), move |t| {
+                Outcome::Below(t.ground_below(&w, X, 40000.0, Z, None))
+            }),
+            // answered without a read because the point is outside the SUPPLIED world: below ground, whatever the terrain
+            labelled("below, outside the supplied world", Expect::OutsideWorld, Some(true), move |t| {
+                Outcome::Below(t.ground_below(&w, OUTSIDE_WORLD_X, -100.0, Z, None))
+            }),
+            // early refusals: the finite validation raises flags itself (infinity minus infinity), before the kernel begins
+            labelled("above, infinite coordinate", Expect::EarlyRefusal("not finite"), None, move |t| {
+                Outcome::Above(t.ground_above(&w, f32::INFINITY, 900.0, Z, None))
+            }),
+            labelled("below, infinite coordinate", Expect::EarlyRefusal("not finite"), None, move |t| {
+                Outcome::Below(t.ground_below(&w, X, f32::NEG_INFINITY, Z, None))
+            }),
+            labelled("impact, infinite coordinate", Expect::EarlyRefusal("not finite"), None, move |t| {
+                Outcome::Impact(t.ground_impact(&w, [X, 2000.0, Z], [X, 500.0, f32::INFINITY], None))
+            }),
+            labelled("above, infinite world", Expect::EarlyRefusal("world area"), None, move |t| {
+                Outcome::Above(t.ground_above(&infinite_world, X, 900.0, Z, None))
+            }),
+            // refusals after the kernel began: a point INSIDE the supplied world and OUTSIDE the physical map, so the sector maximum is read off the terrain
+            labelled("above, off the physical map", Expect::AfterBeginRefusal, None, move |t| {
+                Outcome::Above(t.ground_above(&w, OFF_MAP_X, 900.0, Z, None))
+            }),
+            labelled("below, off the physical map", Expect::AfterBeginRefusal, None, move |t| {
+                Outcome::Below(t.ground_below(&w, OFF_MAP_X, -100.0, Z, None))
+            }),
+            labelled("impact, off the physical map", Expect::AfterBeginRefusal, None, move |t| {
+                Outcome::Impact(t.ground_impact(&w, [OFF_MAP_X, 2000.0, Z], [X, 500.0, Z], None))
+            }),
+        ]
+    }
+
+    /// What an outcome shows, whichever entry made it.
+    struct Seen {
+        value: Option<bool>,
+        queried: Option<bool>,
+        record: bool,
+        error: Option<String>,
+    }
+
+    fn seen(outcome: &Outcome) -> Seen {
+        match outcome {
+            Outcome::Above(Ok(a)) => Seen {
+                value: Some(a.above),
+                queried: Some(a.queried),
+                record: a.record.is_some(),
+                error: None,
+            },
+            Outcome::Below(Ok(b)) => Seen {
+                value: Some(b.below),
+                queried: Some(b.queried),
+                record: b.record.is_some(),
+                error: None,
+            },
+            // an impact always reads the terrain (the final point query) and always carries its record
+            Outcome::Impact(Ok(_)) => Seen {
+                value: None,
+                queried: Some(true),
+                record: true,
+                error: None,
+            },
+            Outcome::Above(Err(e)) | Outcome::Below(Err(e)) | Outcome::Impact(Err(e)) => Seen {
+                value: None,
+                queried: None,
+                record: false,
+                error: Some(e.clone()),
+            },
+        }
+    }
+
+    /// Is the outcome what the case said it would be?
+    fn verify(case: &Case, outcome: &Outcome) -> Result<(), String> {
+        let shown = seen(outcome);
+        let wrong = |why: &str| Err(format!("{}: {why} ({outcome:?})", case.name));
+        match case.expect {
+            Expect::Read | Expect::Decided | Expect::OutsideWorld => {
+                if let Some(error) = &shown.error {
+                    return wrong(&format!("it was refused: {error}"));
+                }
+                if shown.value != case.value && case.value.is_some() {
+                    return wrong(&format!("it answered {:?}, not {:?}", shown.value, case.value));
+                }
+                let reads = case.expect == Expect::Read;
+                if shown.queried != Some(reads) {
+                    return wrong(if reads { "it did not read the terrain" } else { "it read the terrain" });
+                }
+                if shown.record != reads {
+                    return wrong(if reads {
+                        "it came with no record"
+                    } else {
+                        "it came with a record although it read nothing"
+                    });
+                }
+                Ok(())
+            }
+            Expect::EarlyRefusal(fragment) => match &shown.error {
+                Some(error) if error.contains(fragment) => Ok(()),
+                Some(error) => wrong(&format!("it was refused for another reason: {error}")),
+                None => wrong("it was answered"),
+            },
+            Expect::AfterBeginRefusal => match &shown.error {
+                Some(error) if error.contains("terrain ground:") && error.contains("read off the terrain") => Ok(()),
+                Some(error) => wrong(&format!("it was refused for another reason: {error}")),
+                None => wrong("it was answered"),
+            },
+        }
+    }
+
+    // ---- the controls --------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    #[test]
+    fn the_state_reader_sees_the_modes_and_flags_it_sets_and_a_change_of_either() {
+        let original = read();
+        for flags in [Flags::Saturated, Flags::Partial] {
+            for mode in 0..4u16 {
+                set(mode, flags);
+                let state = read();
+                assert_eq!((state.x87_control >> 10) & 3, mode, "{state:?}");
+                assert_eq!((state.mxcsr >> 13) & 3, u32::from(mode), "{state:?}");
+                assert_eq!(state.x87_status & 0x3F, flags.x87_flags(), "{flags:?} {state:?}");
+                assert_eq!(state.mxcsr & 0x3F, flags.sse_flags(), "{flags:?} {state:?}");
+                assert_eq!(read(), state, "reading the state does not change it");
+            }
+        }
+        // the partial pattern really leaves the invalid flag clear in both registers, and the saturated one really raises it
+        set(0, Flags::Partial);
+        let partial = read();
+        assert_eq!((partial.x87_status & 1, partial.mxcsr & 1), (0, 0), "{partial:?}");
+        set(0, Flags::Saturated);
+        let saturated = read();
+        assert_eq!((saturated.x87_status & 1, saturated.mxcsr & 1), (1, 1), "{saturated:?}");
+        // a different caller mode is a different state, in both registers
+        set(0, Flags::Saturated);
+        let nearest = read();
+        set(3, Flags::Saturated);
+        let zero = read();
+        assert_ne!(nearest.x87_control, zero.x87_control);
+        assert_ne!(nearest.mxcsr, zero.mxcsr);
+        restore(original);
+        assert_eq!(read(), original, "a state read can be put back exactly");
+    }
+
+    /// The hardware control for the early-refusal check: when the invalid flag is clear, the very expression the finite validation evaluates (`infinity - infinity`) raises it, and the
+    /// reader sees that. So a refusal that left the flag behind WOULD show under the partial pattern (under the saturated one it could not).
+    #[test]
+    fn the_state_reader_sees_the_invalid_flag_that_infinity_minus_infinity_raises_when_it_was_clear() {
+        let original = read();
+        for mode in 0..4u16 {
+            set(mode, Flags::Partial);
+            let before = read();
+            assert_eq!((before.x87_status & 1, before.mxcsr & 1), (0, 0), "{before:?}");
+            let infinity = black_box(f32::INFINITY);
+            let difference = black_box(infinity - infinity);
+            let after = read();
+            assert!(difference.is_nan());
+            assert!(
+                after.mxcsr & 1 == 1 || after.x87_status & 1 == 1,
+                "mode {mode}: the invalid flag was not raised: {after:?}"
+            );
+            assert_ne!(after, before, "mode {mode}");
+        }
+        restore(original);
+    }
+
+    #[test]
+    fn every_public_ground_entry_returns_the_callers_complete_floating_point_state_in_every_rounding_mode_and_flag_pattern() {
+        let terrain = ground_map();
+        let original = read();
+        for case in cases() {
+            let mut answers: Vec<String> = Vec::new();
+            for flags in [Flags::Saturated, Flags::Partial] {
+                for mode in 0..4u16 {
+                    set(mode, flags);
+                    let before = read();
+                    let outcome = (case.run)(&terrain);
+                    let after = read();
+                    restore(original);
+                    // the state the case ran from is the one asked for, and no entry changed any of it
+                    assert_eq!((before.x87_control >> 10) & 3, mode, "{}: the caller state was not set", case.name);
+                    assert_eq!(
+                        (before.x87_status & 0x3F, before.mxcsr & 0x3F),
+                        (flags.x87_flags(), flags.sse_flags()),
+                        "{}: the caller's flags were not set",
+                        case.name
+                    );
+                    assert_eq!(
+                        after, before,
+                        "{}, caller rounding mode {mode}, {flags:?} flags: the caller's x87 control/status words and MXCSR (rounding control, masks, sticky flags) were not restored",
+                        case.name
+                    );
+                    // each run is what the case says it is, from every caller state (formatting happens after the state was read)
+                    verify(&case, &outcome).unwrap_or_else(|e| panic!("{e}"));
+                    answers.push(format!("{outcome:?}"));
+                }
+            }
+            // the kernels run under their own rounding: the caller's state does not change what they answer
+            assert!(
+                answers.windows(2).all(|pair| pair.first() == pair.get(1)),
+                "{}: the answer depends on the caller's state: {answers:?}",
+                case.name
+            );
+        }
+        assert_eq!(read(), original);
+    }
+
+    #[test]
+    fn the_exercised_entries_really_answer_and_really_refuse_so_the_state_check_covers_both() {
+        let terrain = ground_map();
+        let w = world();
+        let facts = terrain.facts();
+
+        // the preconditions of the cases, from the map's and the world's own facts
+        assert_eq!((facts.min_x, facts.min_z), (0.0, 0.0));
+        assert_eq!(facts.max_x, 2047.0, "the physical map is one 2048 m sector");
+        assert!(
+            facts.max_z >= Z && X >= facts.min_x && X <= facts.max_x,
+            "the answered cases are inside the map: {facts:?}"
+        );
+        assert!(
+            OFF_MAP_X > facts.max_x && OFF_MAP_X <= w.max_x && OFF_MAP_X >= w.min_x,
+            "the post-begin refusals are inside the supplied world and off the map"
+        );
+        assert!(Z >= w.min_z && Z <= w.max_z && X >= w.min_x && X <= w.max_x);
+        assert!(OUTSIDE_WORLD_X > w.max_x, "the no-read control is outside the supplied world");
+        assert!(
+            w.max_x > facts.max_x,
+            "the supplied world is campaign geography and is not the terrain's extent"
+        );
+
+        // every case is what it says it is
+        let mut seen_expectations = Vec::new();
+        for case in cases() {
+            let outcome = (case.run)(&terrain);
+            verify(&case, &outcome).unwrap_or_else(|e| panic!("{e}"));
+            seen_expectations.push(case.expect);
+        }
+        for expected in [
+            Expect::Read,
+            Expect::Decided,
+            Expect::OutsideWorld,
+            Expect::EarlyRefusal("not finite"),
+            Expect::EarlyRefusal("world area"),
+            Expect::AfterBeginRefusal,
+        ] {
+            assert!(seen_expectations.contains(&expected), "no case is {expected:?}");
+        }
+
+        // both predicates really read the terrain at 900 m and came with a record (the older zero-height sectors decide these from the sector maximum and read nothing)
+        let above = terrain.ground_above(&w, X, 900.0, Z, None).expect("a read answer");
+        assert!(!above.above && above.queried && above.record.is_some(), "{above:?}");
+        let below = terrain.ground_below(&w, X, 900.0, Z, None).expect("a read answer");
+        assert!(below.below && below.queried && below.record.is_some(), "{below:?}");
+        // the very same questions on the older fixture's map are decided by its zero sector maximum without a read: this is why the new map exists
+        let older = map(Shape::default());
+        let decided_by_zero = older.ground_above(&w, X, 900.0, Z, None).expect("a decided answer");
+        assert!(
+            decided_by_zero.above && !decided_by_zero.queried && decided_by_zero.record.is_none(),
+            "{decided_by_zero:?}"
+        );
+        // and above the sector maximum nothing is read
+        let high = terrain.ground_above(&w, X, 40000.0, Z, None).expect("a decided answer");
+        assert!(high.above && !high.queried && high.record.is_none(), "{high:?}");
+        // the impact is supported: the segment from above the plane to under it meets it at the plane, on the land surface, with no assertion of the original function failing
+        let impact = terrain.ground_impact(&w, [X, 2000.0, Z], [X, 500.0, Z], None).expect("a supported impact");
+        assert!((impact.impact[1] - PLANE).abs() < 0.01, "{impact:?}");
+        assert_eq!((impact.impact[0], impact.impact[2]), (X, Z), "{impact:?}");
+        assert_eq!((impact.kind, impact.own_assert_failures), (9, 0), "{impact:?}");
+        // outside the supplied world (and the map) the below predicate answers without a read; inside the world and off the map the same read is refused
+        let outside = terrain.ground_below(&w, OUTSIDE_WORLD_X, -100.0, Z, None).expect("a no-read answer");
+        assert!(outside.below && !outside.queried && outside.record.is_none(), "{outside:?}");
+        let refused = terrain.ground_below(&w, OFF_MAP_X, -100.0, Z, None).unwrap_err();
+        assert!(refused.contains("read off the terrain"), "{refused}");
+    }
 }

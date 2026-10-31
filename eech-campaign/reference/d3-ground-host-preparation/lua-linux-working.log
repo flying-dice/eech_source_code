@@ -1,0 +1,117 @@
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.26
+   Compiling serde_core v1.0.229
+   Compiling find-msvc-tools v0.1.13
+   Compiling shlex v2.0.1
+   Compiling autocfg v1.5.1
+   Compiling libc v0.2.189
+   Compiling typeid v1.0.3
+   Compiling pkg-config v0.3.34
+   Compiling cfg-if v1.0.5
+   Compiling parking_lot_core v0.9.12
+   Compiling serde v1.0.229
+   Compiling zmij v1.0.23
+   Compiling erased-serde v0.4.10
+   Compiling smallvec v1.16.1
+   Compiling scopeguard v1.2.0
+   Compiling rustversion v1.0.23
+   Compiling cc v1.4.7
+   Compiling memchr v2.8.3
+   Compiling lock_api v0.4.14
+   Compiling serde_json v1.0.151
+   Compiling itoa v1.0.18
+   Compiling rustc-hash v2.1.3
+   Compiling either v1.18.0
+   Compiling num-traits v0.2.19
+   Compiling syn v3.0.6
+   Compiling syn v2.0.119
+   Compiling mlua-sys v0.6.8 (/src/eech-campaign/patches/mlua-sys-0.6.8)
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+   Compiling ordered-float v2.10.1
+   Compiling parking_lot v0.12.5
+   Compiling serde_derive v1.0.229
+   Compiling bstr v1.13.1
+   Compiling mlua_derive v0.10.1
+   Compiling serde-value v0.7.0
+   Compiling mlua v0.10.5
+    Finished `release` profile [optimized] target(s) in 13.95s
+     Running unittests src/lib.rs (/target/release/deps/eech_world-d8ee8078308ab64a)
+
+running 6 tests
+test terrain::tests::a_boot_map_path_names_its_terrain_directory ... ok
+test terrain::tests::a_hint_round_trips_and_nothing_else_decodes ... ok
+test terrain::tests::the_map_number_is_the_trailing_digits_above_terrain ... ok
+test terrain::tests::a_request_coordinate_reads_its_field_exactly_once ... ok
+test terrain::tests::a_request_coordinate_keeps_its_exact_single_precision_bits_including_signed_zero_and_tiny_values ... ok
+test terrain::tests::a_request_coordinate_is_numeric_only_exact_single_precision_and_passes_nan_and_infinities_on ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 230 filtered out; finished in 0.00s
+
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Finished `release` profile [optimized] target(s) in 4.59s
+     Running tests/ground_handoff.rs (/target/release/deps/ground_handoff-8cb6defe97d8a6cb)
+
+running 7 tests
+ground_handoff: SKIPPED (EECH_WORLD_BIN, EECH_GROUND_ROOT_CONTROL and EECH_GROUND_ROOT_REQUIRED are not all set): the boundary was NOT exercised
+test the_unmoved_dll_has_no_ground_boundary_after_a_healthy_run ... ok
+ground-handoff: control: zero ground requests with 2 point request(s): the unmoved DLL computes the ground predicates and the impact search itself
+test the_verdict_separates_a_missing_boundary_from_an_unhealthy_run ... ok
+ground-handoff: control: zero ground requests with 2 point request(s): the unmoved DLL computes the ground predicates and the impact search itself
+test the_wrapper_counts_by_operation_and_passes_the_control_on_the_unmoved_boundary ... ok
+test the_wrapper_delegates_answers_and_refusals_to_the_host_provider_unchanged ... ok
+test the_wrapper_fails_a_control_that_saw_ground_requests_and_a_run_that_observed_nothing ... ok
+ground-handoff: required: 1 ground_below and 1 ground_impact request(s) reached the host provider
+test the_wrapper_reports_the_red_only_after_a_healthy_run_and_passes_a_present_boundary ... ok
+test the_wrapper_never_reports_the_red_for_an_unhealthy_driver_or_a_bad_setup ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/ground_provider.rs (/target/release/deps/ground_provider-f8ed640636a8a3dc)
+
+running 3 tests
+ground_provider: SKIPPED (EECH_TERRAIN_DIR is not set): nothing was checked
+test the_provider_transports_the_ground_operations_on_the_real_map ... ok
+test the_transport_check_fails_for_a_missing_map_directory ... ok
+test the_transport_check_refuses_to_run_without_a_map ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.26
+   Compiling serde_core v1.0.229
+   Compiling shlex v2.0.1
+   Compiling find-msvc-tools v0.1.13
+   Compiling autocfg v1.5.1
+   Compiling libc v0.2.189
+   Compiling serde v1.0.229
+   Compiling typeid v1.0.3
+   Compiling parking_lot_core v0.9.12
+   Compiling pkg-config v0.3.34
+   Compiling cfg-if v1.0.5
+   Compiling zmij v1.0.23
+    Checking smallvec v1.16.1
+    Checking memchr v2.8.3
+   Compiling erased-serde v0.4.10
+    Checking scopeguard v1.2.0
+   Compiling cc v1.4.7
+   Compiling rustversion v1.0.23
+    Checking lock_api v0.4.14
+   Compiling serde_json v1.0.151
+    Checking rustc-hash v2.1.3
+    Checking either v1.18.0
+    Checking itoa v1.0.18
+   Compiling num-traits v0.2.19
+   Compiling syn v3.0.6
+   Compiling syn v2.0.119
+    Checking ordered-float v2.10.1
+   Compiling mlua-sys v0.6.8 (/src/eech-campaign/patches/mlua-sys-0.6.8)
+   Compiling eech-world v0.1.0 (/src/eech-campaign/crates/eech-world)
+    Checking parking_lot v0.12.5
+    Checking bstr v1.13.1
+   Compiling serde_derive v1.0.229
+   Compiling mlua_derive v0.10.1
+    Checking serde-value v0.7.0
+    Checking mlua v0.10.5
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 7.81s

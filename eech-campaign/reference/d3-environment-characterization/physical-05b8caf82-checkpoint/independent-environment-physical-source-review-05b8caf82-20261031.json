@@ -1,0 +1,83 @@
+{
+  "review": "ONE combined independent source review; no nested agents",
+  "created_utc": "2026-10-31T10:22:33.6900123Z",
+  "task": "EEDCS-51 / required whole D3",
+  "source": {
+    "path": "R:/d3-evidence/environment-physical-source-05b8caf82",
+    "head": "05b8caf82fbb37ee4e7e9ecfbd412bbc598a9ebd",
+    "tree": "94bc714d401fafa76eadafe7b9bc1999d266b4a6",
+    "base": "b8874cd6c7510deab3ceeb9a5e9d5a3d95ebfb21",
+    "base_tree": "aa6fc2e10fded6bb2ff7acf72ae59cfdc7df6f6a",
+    "working_tree": "git status --porcelain empty at inspection",
+    "hashes_sha256": {
+      "eech-campaign/crates/eech-world/csrc/env_ref.c": "29def9fde78250b22e607c006dad7828741f6e8038a68ab19ca578cbbda954da",
+      "eech-campaign/crates/eech-world/src/env.rs": "7481f50f0b8f35f43fa35c69a8020537cd76dee410d76b03757ba752cbe6e428",
+      "eech-campaign/crates/eech-dc/src/module.rs": "34e558f43dc8d205f1bc2a13e803efea679ad04aa1ee962288687a0d82c2c027",
+      "aphavoc/source/entity/special/session/ss_hostenv.c": "37c473a1ef5d755343b3cd51ba6a60142c9bb748bfd59d3313333785065a738c"
+    }
+  },
+  "authority": {
+    "records": "M5 11534337 v3; ledger 14548994 v85",
+    "verification": "Root reports fresh live read; reviewer read D3-ACTIVE.json, AGENT.md, AGENTS.md, HOST-HANDOVER.md, PROJECT.md, REVIEW.md and d3-environment-provider.md. Historical handover is superseded by active D3 state and Root's current authority/context.",
+    "authorization": "Root conveyed user authorization for existing GitHub identity and normal autonomous review/merge, superseding conflicting historical identity rule; no external write, authentication change, approval or merge performed by reviewer."
+  },
+  "judgement": "CHANGES_REQUIRED on source. No compiler/runtime/authority/shipping acceptance claim; EEDCS-51 and D3 remain incomplete.",
+  "findings": [
+    {
+      "id": "ENV-PHYSICAL-1",
+      "priority": "P1",
+      "title": "Restore MXCSR explicitly; the new fenv guard does not provide its promised Windows isolation",
+      "refs": [
+        "eech-campaign/crates/eech-world/csrc/env_ref.c:93-94, 909-1033",
+        "eech-campaign/crates/eech-world/src/env.rs:643-661",
+        "eech-campaign/crates/eech-world/csrc/env_ref.h:9-11",
+        "eech-campaign/docs/d3-environment-provider.md:30-32"
+      ],
+      "evidence": "Every exported operation uses only fegetenv, fesetround(FE_TOWARDZERO), fesetenv. Retained actual MinGW control evidence at model-handoff-source-e48808f53/eech-campaign/reference/d3-model-characterization/model-mingw-fenv-control-20261030.json exercises this exact sequence: native exit 0, x87 CW restored, MXCSR changes 0x1fb4/0x3fb4/0x5fb4 to 0x7fb4 for RN/RD/RU. Artifact SHA256 5d974842abb337e88b10ae850b37f7d20f91a6721009328fbe3a623489de411b. This is reused toolchain evidence, not a new candidate run.",
+      "impact": "Calling the new host field from a non-RZ host changes subsequent SSE arithmetic, including on a refusal. The advertised complete x87 CW/SW/MXCSR preservation is false. The Rust test checks a quotient only and does not establish complete control/status preservation.",
+      "requested_change": "Use the established explicit complete x87/SSE save/set/restore guard (or equivalent) around all kernel exits, including validation failures; preserve status and control, not just rounding. Align documentation with implementation and validate the corrected boundary under actual Windows control/status modes."
+    },
+    {
+      "id": "ENV-PHYSICAL-2",
+      "priority": "P1",
+      "title": "Validate against an immutable request and enforce the lightning step protocol before consuming RNG",
+      "refs": [
+        "eech-campaign/crates/eech-dc/src/module.rs:553-606",
+        "aphavoc/source/entity/special/session/ss_hostenv.c:410-436"
+      ],
+      "evidence": "ENV_BRIDGE invokes provider(request), then consults that same mutable table's want_vector, server and lightning_draw to decide required reply fields. Example: a wind provider executing r.want_vector=false; return {speed=3} passes the bridge for an original vector request; the bridge synthesizes {0,0,0}, which Core accepts. A step answer {need_draw=true,timer=0} also passes for an original client request, and campaign_env_step unconditionally calls frand1. Missing expired is silently defaulted false, and the post-draw answer need not report an expiry.",
+      "impact": "Malformed providers can silently substitute a zero physical vector, bypass re-ask validation by editing request.lightning_draw, or advance the shared campaign RNG on the client and suppress a lightning event. These are successful accepted replies, not clear refusals.",
+      "requested_change": "Capture the original request contract before the callback and validate against those immutable values. Permit need_draw only for a server's first expiry negotiation; require the done reply's expired boolean explicitly and enforce the final post-draw expiry state. Apply equivalent checks at the C/Rust provider boundary so direct EnvProvider replies cannot bypass them. Reject malformed answers before RNG consumption or mirror writes."
+    },
+    {
+      "id": "ENV-PHYSICAL-3",
+      "priority": "P2",
+      "title": "Preserve the original step's short circuits instead of adding blanket input refusals",
+      "refs": [
+        "eech-campaign/crates/eech-world/csrc/env_ref.c:641-652, 839-844",
+        "aphavoc/source/entity/special/session/ss_updt.c:302-317, 526-558",
+        "aphavoc/source/entity/special/session/ss_float.c:200-206"
+      ],
+      "evidence": "The new step rejects all non-finite camera components before selecting the model. The retained original reads no camera in global mode or local radius-zero mode; its weather query uses x/z only, never camera.y. Thus an unused NaN y, or any unused non-finite camera under global mode, now refuses a step the original completes. The new pre-step gust check also imposes [0,1e6), although the original updates then wraps. For example, an imported/set phase -0.25 with delta 5 reaches phase 0.25 in the original without invalid indexing; the new code refuses before that arithmetic. The original float setter has no such precondition.",
+      "impact": "This structural move changes the accepted domain of existing session/setter/update paths. The 1e6 cutoff is also an arbitrary new boundary, not the original's assertion or wrap condition.",
+      "requested_change": "Validate only inputs needed by the selected operation/branch, preserving the original evaluation order and supported finite cases. Remove or justify/classify any added phase restriction using the actual post-update wrap domain; do not silently introduce a clamp or change the original wrap arithmetic."
+    }
+  ],
+  "inspected_facts": [
+    "Shipping build/main.rs:154 defines EECH_CAMPAIGN_HOST_ENV; original session query/init/evolution bodies remain under the non-host branch. Simple-weather selection is answered by the host, not recomputed in Core.",
+    "State arrays and repr(C) layouts agree across ss_hostenv.h, engine-sys, module.rs and env.rs (23 floats, 5 integers); no legacy pointer/session layout crosses Lua. State replies are checked before raw_from_state; reference kernels use a local copy before committing.",
+    "Field allocation/null handling, unique Drop/free ownership, Rc/RefCell provider lifetime and retained thread-local engine provider were inspected. Environment callback ignores the persisted transient host user pointer and catches Rust panics/re-entry.",
+    "Session defaults/attributes import, physical setters, update-entity client replication setters, full save/client/browse unpack import, and pack export refresh were inspected. No additional production raw field writer outside these sites and the preserved original branches was located by source search.",
+    "Genuine consumers include wn_move.c:400-407 weapon wind lookup; co_wiper.c:627 and ca_brief.c:651/691 weather/wind; co_eo.c weather checks; cockpit wind instruments; 3d_draw.c weather-mode getters. Their paths were not dismissed as dead because headless runs omit them.",
+    "RNG macros remain Core-side in original ten-draw order; host kernels draw nothing. The first reference-host expiry request works on a copy and returns need_draw without committing; previous-frame delta and update-time/resync/weather/sound scheduling remain Core-side.",
+    "Lightning effects are created from the pre-move strike position, although the whole host field step now commits before Core creates them. Strike/sound creation, sound terrain scratch, clock/scheduling and creation-default physical arithmetic remain explicit coupling; this review does not accept whole D3 completion.",
+    "WEATHER_DRAW w0 intentionally changes from computed field to narrowed draw value; ordinals/flags/shared RNG words remain. This needs explicit diagnostic-semantic classification, separate from physical-state equivalence; immutable original RAW/goldens were not changed.",
+    "git diff --check base..HEAD returned 0. No source edits, builds, native experiments, Docker actions, retail runs, live-process changes, or shared-build-volume use occurred."
+  ],
+  "limitations": [
+    "Source-only finite review of this candidate once; original kernel/baseline/observer reviews remain closed and were reused, not rerun.",
+    "Root owns actual candidate Linux/Windows compilation, 164-case conformance, host authority/refusal/projectile evidence and shipping/full-recording gates. Their running builds were not read as pass evidence here.",
+    "The listed numeric/protocol examples are source deductions, not executed candidate reproductions. The MinGW FP control result is identified retained actual evidence from the earlier toolchain control.",
+    "No current CI, normal merge, task closure, full shipping acceptance, DCS operation, D4 or D5 acceptance is supplied by this report. Preserve all partials and old immutable evidence."
+  ]
+}

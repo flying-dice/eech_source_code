@@ -24,6 +24,8 @@ terrain-fixture = ["eech-engine-sys/terrain-fixture"]
 # TEST-ONLY (EEDCS-44): see eech-engine-sys.
 aim-fixture = ["eech-engine-sys/aim-fixture"]
 weapon-fixture = ["eech-engine-sys/weapon-fixture"]
+# TEST-ONLY (EEDCS-48): see eech-engine-sys.
+ground-fixture = ["eech-engine-sys/ground-fixture"]
 
 [lints.rust]
 unsafe_op_in_unsafe_fn = "deny"

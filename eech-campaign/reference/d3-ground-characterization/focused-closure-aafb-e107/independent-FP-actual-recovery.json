@@ -1,0 +1,108 @@
+{
+  "schema": 1,
+  "review_kind": "new actual recovery evidence only; no repeated production/kernel/source review",
+  "reviewed_test_head": "e1076ece31565a3b4f73a7e2adbe8e2698d9c023",
+  "measured_unchanged_production_head": "aafb21775f5d3523a30f148d23fbce588902025a",
+  "snapshot": "R:\\d3-evidence\\ground-test-recovery-source-e1076ece3",
+  "frozen_clean_before": true,
+  "frozen_clean_after": true,
+  "disposition": "FP_TEST_AND_STRICT_LINT_GATES_CLOSED_WITH_LIMITS",
+  "findings": [],
+  "reused_reports": [
+    {
+      "path": "R:\\d3-evidence\\independent-ground-production-corrections-review-aafb21775-20261031.json",
+      "sha256": "befc10c40b854bf1ae6e430efd57409c1732b1621ad8365707697c63163b93c1",
+      "scope": "five aafb source corrections, unchanged production wrapper/kernel review"
+    },
+    {
+      "path": "R:\\d3-evidence\\independent-ground-fp-test-recovery-review-e1076ece3-20261031.json",
+      "sha256": "16dff745651a2cda68183eb2bf2adfa99cee28d7029cdf4a69bfd81016d5452a",
+      "scope": "e107 test-only metadata/precondition/flag controls, exact production identity and new aafb finite comparisons"
+    }
+  ],
+  "new_actual_evidence": {
+    "linux": {
+      "completion": "R:\\d3-evidence\\ground-fp-recovery-e1076ece3-linux-20261031-completion.json",
+      "sha256": "6b01a96bc4cf664e0bac0e2ba61b798d4f68796f5e7cfc59809c880aefcbf9bd",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T01:25:20.038622+00:00",
+      "gates": [
+        "21 terrain_backend tests, including all4 FP controls",
+        "cargo fmt --all --check",
+        "engine/dc/world strict all-target Clippy -D warnings"
+      ],
+      "command_script_sha256": "3626ce43a86ecc5d122be08e9438993825c99d11b97bf0288d4cc8b35cced5f6"
+    },
+    "windows_compile_export": {
+      "completion": "R:\\d3-evidence\\ground-fp-recovery-e1076ece3-windows-20261031-completion.json",
+      "sha256": "24925f2f017d9118a1d5d676b303e06a2cb89471ecdf4497914b7cececbe4701",
+      "actual_exit": 0,
+      "meaning": "Compile/export only; native execution is independently recorded below."
+    },
+    "windows_actual_execution": {
+      "record": "R:\\d3-evidence\\ground-fp-Windows-e1076ece3-recovery-20261031.json",
+      "sha256": "a11465ebfcc171e64e33434e7f21c8f1c62d3958bdf73e343bfb108d95ece29c",
+      "actual_exit": 0,
+      "started_utc": "2026-10-31T01:25:36.027048+00:00",
+      "completed_utc": "2026-10-31T01:25:36.479916+00:00",
+      "test_exe_sha256": "ef6e61c72466250408bc45dcb913551d13976ccf0b9a3256a73ff363e3bf2d4c",
+      "build_receipt_sha256": "5878e4af7d6b895355dcc5282cd6319e6cad44e0addce9dee2c9fc740f1044d6",
+      "test_source": "e1076ece31565a3b4f73a7e2adbe8e2698d9c023",
+      "production_source": "aafb21775f5d3523a30f148d23fbce588902025a"
+    },
+    "raw_test_logs": [
+      {
+        "platform": "Linux",
+        "actual_tests": 21,
+        "failures": 0,
+        "ignored": 0,
+        "filtered": 0,
+        "explicit_skips": false,
+        "FP_controls": [
+          "caller_floating_point::the_state_reader_sees_the_invalid_flag_that_infinity_minus_infinity_raises_when_it_was_clear",
+          "caller_floating_point::the_exercised_entries_really_answer_and_really_refuse_so_the_state_check_covers_both",
+          "caller_floating_point::the_state_reader_sees_the_modes_and_flags_it_sets_and_a_change_of_either",
+          "caller_floating_point::every_public_ground_entry_returns_the_callers_complete_floating_point_state_in_every_rounding_mode_and_flag_pattern"
+        ],
+        "log_sha256": "7225ae02eb50d472141a3e4ded6bbcf18800a6bcd4db799c7301c03427b5d7a0"
+      },
+      {
+        "platform": "Windows",
+        "actual_tests": 21,
+        "failures": 0,
+        "ignored": 0,
+        "filtered": 0,
+        "explicit_skips": false,
+        "FP_controls": [
+          "caller_floating_point::every_public_ground_entry_returns_the_callers_complete_floating_point_state_in_every_rounding_mode_and_flag_pattern",
+          "caller_floating_point::the_exercised_entries_really_answer_and_really_refuse_so_the_state_check_covers_both",
+          "caller_floating_point::the_state_reader_sees_the_invalid_flag_that_infinity_minus_infinity_raises_when_it_was_clear",
+          "caller_floating_point::the_state_reader_sees_the_modes_and_flags_it_sets_and_a_change_of_either"
+        ],
+        "log_sha256": "61cc006f80461a0077e2418cc0b38b8da5b8424fef280a26801c7e75851b7304"
+      }
+    ]
+  },
+  "closure_assessment": {
+    "case_coverage": "Actual corrected coverage test passed on both platforms: real queried predicates/record, sector-only decisions, legitimate outside-world no-read answer, inside-world/off-physical-map refusals, early nonfinite refusals, supported impact and original internal-assert condition. These are the synthetic case meanings already source-reviewed, not substituted retail oracles.",
+    "state_matrix": "Actual exact x87 control/status and MXCSR restoration passed for all13 declared cases under all4 caller rounding modes and2 nonzero flag patterns;104 matrix calls per platform by the reviewed test loops. The actual coverage and both hardware-reader/invalid-raising controls passed as separate functions. Outcome/state capture precedes formatting.",
+    "strict_lint": "Closed by actual Linux terminal0 after strict affected-package all-target command, with no suppression or inferred unrun stage.",
+    "failures_preserved": "Original aafb Linux101 and actualWindows101 coverage failures still exist unchanged. The new e107 results are successful test-only recoveries, never relabelled original success.",
+    "production_mapping": "Only terrain_backend integration-test code differs from aafb; docs/status/reference metadata accompany it. No production rebuild/relabel is inferred. Export receipt and executable hash bind the actual Windows test to e107 test source and aafb production source."
+  },
+  "original_failure_identities": {
+    "linux_completion_sha256": "7582de656a7b3744a31d66f9d52fcfe694d3bdfb28ad7c885f7fcc661fc39a60",
+    "windows_execution_sha256": "ebf852e50e0aaa64c4d34f8c6f84c171dc2714445c7c89166bd024e24e8fa7d0",
+    "linux_actual_exit": 101,
+    "windows_actual_exit": 101
+  },
+  "limits": [
+    "The tests observe x87 control/status and MXCSR, not the x87 tag word/exception pointers; exception masks are kept safe. Non-x86/compiler variants and unmasked exception traps are not exercised.",
+    "Synthetic asset-free matrix/coverage controls prove these caller-state and local API contracts; they do not independently prove retail geometry or weapon launch authority.",
+    "Already closed guarded aafb three-map finite119-row evidence is reused from16dff; no duplicate source/kernel/raw-war audit was performed.",
+    "The actual nine-mode weapon authority suite and shipping preflight were live/pending at the parent checkpoint. No suite, fullshipping40/eight artifacts, currentCI, formal review, normal delivery, Task48 or whole-D3 acceptance is inferred.",
+    "Remaining whole-D3 spatial/model/entity/hierarchy/device/environment/time/physical solver-loader obligations remain open; no deferral of active physical responsibility to D5."
+  ],
+  "review_actions": "Read-only retained source/Git/log/JSON/hash checks only; no builds, tests, native/process/cache/auth/Git mutations, source edits, external writes or nested agents. Only this new canonical-LF report was created.",
+  "created_utc": "2026-10-31T01:27:43.548622+00:00"
+}
