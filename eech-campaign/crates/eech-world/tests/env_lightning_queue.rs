@@ -235,7 +235,7 @@ fn a_report_of_another_shape_is_a_failure_of_the_witness_and_never_a_result() {
         ("2", "an occupancy that does not agree with its mask", edit("if index == 2 then return (text:gsub('occupancy_after=1', 'occupancy_after=3', 1)) end"), "final occupancy"),
         ("2", "a head occupancy that does not agree with its mask", edit("if index == 2 then return (text:gsub('occupancy_before=0', 'occupancy_before=4', 1)) end"), "occupancy does not agree"),
         ("2", "a word that is not eight lowercase hex digits", edit("if index == 2 then return (text:gsub('mask_after_w=00000001', 'mask_after_w=0001', 1)) end"), "mask_after_w"),
-        ("2", "an upper case word", edit("if index == 2 then return (text:gsub('x_w=44bb8000 z_w', 'x_w=44BB8000 z_w', 1)):gsub('w2=44bb8000', 'w2=44BB8000', 1) end"), "w2"),
+        ("2", "an upper case word", edit("if index == 2 then return (text:gsub('x_w=44bb8000 z_w', 'x_w=44BB8000 z_w', 1)):gsub('w2=44bb8000', 'w2=44BB8000', 1) end"), "x_w"),
         ("2", "a repeated field", edit("if index == 2 then return (text:gsub('changed=1', 'changed=1 changed=1', 1)) end"), "repeated field"),
         ("2", "an unexpected row", edit("if index == 2 then return (text:gsub('env%-lightning%-end', 'env-lightning-surprise x=1\\nenv-lightning-end', 1)) end"), "unexpected row"),
         ("2", "a report that is truncated", edit("if index == 2 then return text:sub(1, -2) end"), "truncated"),
