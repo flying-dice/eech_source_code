@@ -2179,13 +2179,13 @@ local function sound_report(episodes, shape)
     steps = { { 0, 0, 2 }, { 1, 1, 3 }, { 1, 2, 4 }, { 1, 3, 5 }, { 2, 7, 9 }, { 5, 7, 9 } }
     per_entity = 7
   elseif shape == 'playing' then
-    -- the native capture rule: from the first playing-handle expiry (update 3, after the third entry) EVERY later update reaches an expiry branch and each is stored, 3 to 9 without a gap; the handle (steps' 4th
+    -- the native capture rule: from the first playing-handle expiry (update 3, after the third entry) EVERY later update reaches an expiry branch and each is stored, 3 to 8 without a gap, the last update (8) in frame 10 of the run's 10 frames; the handle (steps' 4th
     -- element) is there from the update that sees it. The device is not real: this is a canned protocol journal
-    steps = { { 0, 0, 2, 0 }, { 1, 1, 3, 0 }, { 1, 2, 4, 0 }, { 1, 3, 5, 1 }, { 4, 3, 5, 1 }, { 4, 4, 6, 1 }, { 4, 5, 7, 1 }, { 4, 6, 8, 1 }, { 4, 7, 9, 1 }, { 4, 8, 10, 1 }, { 4, 9, 11, 1 } }
-    per_entity, kills = 10, 0
+    steps = { { 0, 0, 2, 0 }, { 1, 1, 3, 0 }, { 1, 2, 4, 0 }, { 1, 3, 5, 1 }, { 4, 3, 5, 1 }, { 4, 4, 6, 1 }, { 4, 5, 7, 1 }, { 4, 6, 8, 1 }, { 4, 7, 9, 1 }, { 4, 8, 10, 1 } }
+    per_entity, kills = 8, 0
   elseif shape == 'playing_gap' then
-    steps = { { 0, 0, 2, 0 }, { 1, 1, 3, 0 }, { 1, 2, 4, 0 }, { 1, 3, 5, 1 }, { 4, 3, 5, 1 }, { 4, 7, 9, 1 }, { 4, 9, 11, 1 } }
-    per_entity, kills = 10, 0
+    steps = { { 0, 0, 2, 0 }, { 1, 1, 3, 0 }, { 1, 2, 4, 0 }, { 1, 3, 5, 1 }, { 4, 3, 5, 1 }, { 4, 7, 9, 1 }, { 4, 8, 10, 1 } }
+    per_entity, kills = 8, 0
   elseif shape == 'playing_skip' then
     steps = { { 0, 0, 2, 0 }, { 1, 1, 3, 1 }, { 4, 1, 3, 1 }, { 1, 2, 4, 1 }, { 1, 3, 5, 1 }, { 4, 3, 5, 1 } }
     per_entity, kills = 3, 0
@@ -2210,7 +2210,7 @@ local function sound_report(episodes, shape)
     .. 'env-snd-facts tag=plan ' .. SND_FACTS .. '\n'
     .. 'env-snd-unsupported item=playback_handle_branches reason=a_reason\n'
     .. 'env-snd-unsupported item=audible_network_player_delivery reason=another_reason\n'
-    .. string.format('env-snd-report armed=1 capacity=80 stored=%d dropped=0 overflow=0 creations=%d updates=%d kills=%d frames=%d tracked=%d open=0 track_all=0 untracked=%d\n', #records, creations, followed * per_entity, followed * kills, 10 * episodes, followed, creations - followed)
+    .. string.format('env-snd-report armed=1 capacity=80 stored=%d dropped=0 overflow=0 creations=%d updates=%d kills=%d frames=%d tracked=%d open=0 track_all=0 untracked=%d\n', #records, creations, followed * per_entity, followed * kills, 10, followed, creations - followed)
     .. table.concat(records)
 end
 local function report(group, index)
@@ -2346,6 +2346,9 @@ local mutations = {
   -- a playing expiry that shows no handle, and an expiry that sees another handle than the entry of its own update
   sound_playing_gap = function() return sound_report(LIGHTNING_EPISODES or 0, 'playing_gap') end,
   sound_playing_skip = function() return sound_report(LIGHTNING_EPISODES or 0, 'playing_skip') end,
+  -- the tail forms of the complete playing journal: a hidden trailing update (the total says 18 where the stored expiry counters are exact at 8 each) and records one frame beyond the run's 10 frames
+  sound_playing_hidden_trailing = function() return (sound_report(LIGHTNING_EPISODES or 0, 'playing'):gsub('updates=16', 'updates=18', 1)) end,
+  sound_playing_frame_beyond = function() return (sound_report(LIGHTNING_EPISODES or 0, 'playing'):gsub('frame=10 upd=8', 'frame=11 upd=8')) end,
   sound_playing_no_handle = function() return (sound_report(LIGHTNING_EPISODES or 0, 'playing'):gsub('(point=4 n=1[^\n]*)handle=1', '%1handle=0', 1)) end,
   sound_expiry_other_handle = function() return (sound_report(LIGHTNING_EPISODES or 0, 'playing'):gsub('(point=1 n=1 tracked=0 frame=5 upd=3 [^\n]*)handle=1', '%1handle=0', 1)) end,
   sound_early_jump = function(t) t = (t:gsub('frame=4 upd=1', 'frame=4 upd=4')); return (t:gsub('updates=2', 'updates=8', 1)) end,
@@ -3578,16 +3581,45 @@ fn the_sound_entity_probe_counts_the_updates_it_does_not_store_and_reports_an_en
     assert_eq!(summary["expired"], 0);
     assert_eq!(summary["untracked_creations"], 0);
     assert_eq!(summary["lifetimes_complete"], true);
-    // a handle that keeps playing: the playing-handle expiry of EVERY update from 3 to 9 is stored (the probe samples only entries and exits), never killed, the count a lower bound
+    // a handle that keeps playing: the playing-handle expiry of EVERY update from 3 to 8 is stored (the probe samples only entries and exits), never killed; after an observed expiry the last counter is EXACT even while alive
     let playing = run_env_scenario(&sound_stand_in("lightning_episode", "sound_playing"), &sound_args());
     assert!(playing.status.success(), "{}{}", playing.stderr, playing.out_text);
     for entity in env_rows(&playing.rows, "sound_entity") {
-        assert_eq!(entity["updates_at_last_record"], 9);
-        assert_eq!(entity["updates_exact"], false);
+        assert_eq!(entity["updates_at_last_record"], 8);
+        assert_eq!(entity["updates_exact"], true);
         assert_eq!(entity["expiry"], "playing_handle");
         assert_eq!(entity["handle_ever"], true);
         assert_eq!(entity["killed"], false);
     }
+    // the scalar audit of this positive form against its records: 20 records (10 steps for each of 2 entities), 3 stored entries and 6 stored playing expiries (updates 3 to 8) each, updates 8 each and 16 in all,
+    // no kill, 10 frames in the run and every record inside them
+    let snd = env_rows(&playing.rows, "env-snd");
+    assert_eq!(snd.len(), 20);
+    for n in [1u64, 2] {
+        let of_n: Vec<_> = snd.iter().filter(|r| r["n"].as_u64() == Some(n)).collect();
+        assert_eq!(of_n.iter().filter(|r| r["point"].as_u64() == Some(1)).count(), 3);
+        let expiries: Vec<u64> = of_n
+            .iter()
+            .filter(|r| r["point"].as_u64() == Some(4))
+            .map(|r| r["upd"].as_u64().unwrap())
+            .collect();
+        assert_eq!(expiries, [3, 4, 5, 6, 7, 8]);
+        assert!(of_n.iter().all(|r| r["point"].as_u64() != Some(5)));
+    }
+    assert!(snd.iter().all(|r| r["frame"].as_u64().unwrap() <= 10));
+    let report = &env_rows(&playing.rows, "env-snd-report")[0];
+    for (key, value) in [
+        ("stored", 20u64),
+        ("creations", 2),
+        ("updates", 16),
+        ("kills", 0),
+        ("frames", 10),
+        ("tracked", 2),
+        ("untracked", 0),
+    ] {
+        assert_eq!(report[key].as_u64(), Some(value), "{key}");
+    }
+    assert_eq!(env_rows(&playing.rows, "sound_summary")[0]["updates"], 16);
     // a creation the probe could not track is a creation, counted and classified: the run is NOT reported as a complete record of lifetimes
     let lost = run_env_scenario(&sound_stand_in("lightning_episode", "sound_lost"), &sound_args());
     assert!(lost.status.success(), "{}{}", lost.stderr, lost.out_text);
@@ -3632,6 +3664,13 @@ fn a_sound_entity_report_that_is_incomplete_out_of_order_or_at_odds_with_the_obs
         // the playing-handle journal must be complete and its handle truthful
         ("lightning_episode", "sound_playing_gap", "the playing-expiry updates have a gap"),
         ("lightning_episode", "sound_playing_skip", "does not give the expiry of update"),
+        // the tail of the complete playing journal: nothing hidden after the last stored expiry, nothing outside the run's frames
+        (
+            "lightning_episode",
+            "sound_playing_hidden_trailing",
+            "every tracked entity's update count is exact",
+        ),
+        ("lightning_episode", "sound_playing_frame_beyond", "beyond the 10 frames"),
         ("lightning_episode", "sound_playing_no_handle", "that shows none"),
         (
             "lightning_episode",

@@ -1166,6 +1166,8 @@ local function run ()
 		-- the declared sampling of the native probe (csrc/eech_env_observer.c ENVE_ENTERS_STORED): the first three updates of an entity are stored whole, later ones are only counted by `upd`
 		local ENTERS_STORED = 3
 		local untracked = tonumber (rep.untracked)
+		-- the frames the probe counted are the frames the observer's own stream saw begin (both count frame_begin events while armed)
+		if tonumber (rep.frames) ~= (obs.counts.frame_begin or 0) then refuse ("the sound probe saw " .. rep.frames .. " frames begin but the observer stream holds " .. (obs.counts.frame_begin or 0) .. " frame_begin events") end
 		local events = obs.sound_events or {}
 		local created, chains, untracked_seen = 0, {}, 0
 		for n, r in ipairs (records) do
@@ -1173,6 +1175,7 @@ local function run ()
 			local point, tracked, upd = tonumber (r.point), tonumber (r.tracked), tonumber (r.upd)
 			if point > 7 then refuse ("sound probe record " .. r.seq .. " has the point " .. r.point) end
 			if n > 1 and tonumber (r.frame) < tonumber (records [n - 1].frame) then refuse ("sound probe record " .. r.seq .. " goes back in frames") end
+			if tonumber (r.frame) > tonumber (rep.frames) then refuse ("sound probe record " .. r.seq .. " is in frame " .. r.frame .. ", beyond the " .. rep.frames .. " frames the probe saw begin") end
 			if point == 0 then
 				created = created + 1
 				if upd ~= 0 then refuse ("sound probe creation record " .. r.seq .. " has the update count " .. r.upd) end
@@ -1261,8 +1264,10 @@ local function run ()
 			entities = entities + 1
 			if chain.killed then killed = killed + 1 end
 			sum_last = sum_last + chain.upd
-			-- the count at the last record is the entity's whole count if it was killed, or if fewer updates than are stored have run (a further one would have been stored); otherwise it is a lower bound
-			local exact = chain.killed or chain.upd < ENTERS_STORED
+			-- the count at the last record is the entity's whole count if it was killed, if fewer updates than are stored have run (a further one would have been stored), or if an expiry has been observed: in the supported
+			-- valid non-looping journal every later update then reaches an expiry branch and the probe stores every expiry point, so a trailing update cannot be hidden by the entry sampling, even while the entity is
+			-- alive. Otherwise (no expiry, three or more updates) it is only a lower bound.
+			local exact = chain.killed or chain.upd < ENTERS_STORED or chain.expiry ~= "none"
 			if not exact then inexact = inexact + 1 end
 			if chain.expiry ~= "none" then expired = expired + 1 end
 			emit { event = "sound_entity", tracked = tracked, n = chain.n, entity = tonumber (chain.entity), created_frame = chain.created_frame, updates_at_last_record = chain.upd, updates_exact = exact, expiry = chain.expiry, killed = chain.killed, handle_ever = chain.handle_ever,

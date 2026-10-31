@@ -64,7 +64,7 @@ record of another entity or of another `n` than its creation, an update counter 
 exit carries the update of its entry; an expiry or a kill belongs to the RUNNING update, so until all three mandatory entries have been stored it carries exactly the current stored-entry count and may not run
 ahead across an unstored entry; only after the third entry may it carry a later, only-counted update, and it never goes below the update before it; a kill carries the update of the expiry straight before it; the
 two-call control stores every entry, so there an expiry and a kill carry exactly the current entry count), a per-entity count above the probe's total, or a total that differs from the entities' counts when every one of them is exact (a killed entity's count
-is its whole count; a count below three is whole because a further update would have been stored; otherwise it is a lower bound). Each creation is matched to the observer's own ordered `sound_begin` /
+is its whole count; a count below three is whole because a further update would have been stored; so is the count at or after an observed expiry, because in the supported journal every later update stores another expiry, alive or not; only a count of three or more with NO expiry is a lower bound). Each creation is matched to the observer's own ordered `sound_begin` /
 `sound_end` pair, not only counted: the same ordinal of the routine (1 lightning, 2 thunder), the same frame, and the entity index the observer saw next to be given (the constructor takes the first free slot,
 `se_creat.c get_free_entity`). The creator `create_client_server_sound_effect_entity` has no branch that skips the constructor (only assertions and the message that follows it), so each pair holds exactly one
 creation; heap exhaustion would fault, not skip. Tracking loss is classified, never hidden: `sound_summary` carries `untracked_creations` and `lifetimes_complete`, and a `sound_untracked` row says that those
@@ -77,7 +77,7 @@ stored. So once an expiry with a playing handle has been observed at update u, t
 expiry is followed by the expiry of its own update; a journal with a playing expiry at update 3 and then at 7 and 9 is NOT coherent and is refused. A gap before the FIRST expiry is legitimate (the lifetime was still
 positive) and stays accepted (`sound_long`), as do alive lower bounds and one-update early kills. The handle is what the branch says: none for an expiry with no handle, a handle for the two others; the real
 constructor leaves none at creation; once a record shows a handle it stays until the kill; an expiry sees the handle of the entry of its own update. The accepted positive form (`sound_playing`) is the complete
-consecutive journal 3 to 9 with the handle from update 3. What the lifetime or the playing time is, and whether the headless process ever gets a handle, is not predicted.
+consecutive journal 3 to 8 with the handle from update 3, in frames inside the run (every record is in a frame the probe saw begin, which must equal the observer stream's frame_begin count); its last counter 8 is EXACT while alive and the totals say 8 per entity and 16 in all, with no unseen update 9. A total above the exact counters (a hidden trailing update) or a record beyond the run's frames is refused. What the lifetime or the playing time is, and whether the headless process ever gets a handle, is not predicted.
 
 ## Entry-point changes, stated
 
