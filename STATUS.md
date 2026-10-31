@@ -1,3 +1,12 @@
+# D3 checkpoint — 87e7e0627: draw address read only when have_draw (31 October 2026)
+
+EEDCS-51 / PR111 from clean pushed `87e7e0627` (the draw passed by address). Actual (Root's): the private C probe v2 passes all 24 cases on both architectures with full CW/SW/TW/MXCSR, the 32-bit
+assembly saving the state before its first x87 load (receipt `environment-i686-c-abi-fp-isolation-87e-20261031/receipt.json`); the normal 87e Linux and Windows builds were live, ordinary
+numeric, Windows and CI gates pending; the d4 Windows 77/21/250, Linux and retail/120 s successes and the hosted i686 failure remain as recorded. ONE narrow review P2 (SHA-256
+`97daf469...e48c3c`): `env_ref_step` read a non-null draw address even with `have_draw` 0, against its own header. NEW SOURCE: UNBUILT, UNRUN, UNREVIEWED: the dereference now follows `have_draw`
+(inside the guard; NULL with `have_draw` still refused), with one small direct test of the actual C entry using an unreadable non-null address. No other ABI, arithmetic, RNG, matrix, baseline or
+tolerance change. No Task 51/D3, authority or shipping claim; the wind-authority partial stays checkpointed; whole D3 remains required, D4/D5 not started.
+
 # D3 checkpoint — d4e5c34d2: C-ABI prologue cause confirmed on i686; draw passed by address (31 October 2026)
 
 EEDCS-51 / PR111 from clean pushed `d4e5c34d2`. The independent review of `d4e5c34d2` closed all four earlier findings with no new source finding (SHA-256 `4ffc19d7...6d506`). Actual at d4 (Root's):

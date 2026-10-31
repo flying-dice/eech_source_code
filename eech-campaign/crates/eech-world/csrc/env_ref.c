@@ -1338,7 +1338,8 @@ int env_ref_step (env_ref *field, const float *in_f, const int *in_i, const doub
 	}
 	else
 	{
-		draw_value = (draw != NULL) ? *draw : 0.0;
+		/* the dereference follows have_draw, not the pointer (an unused non-null address is never read); have_draw with a NULL address was refused above */
+		draw_value = (in_i[4] != 0) ? *draw : 0.0;
 
 		/* step_impl zeroes the staged results itself, first thing */
 		result = step_impl (&work, in_f, in_i, draw_value, staged_i, staged_f, error, error_size);

@@ -1083,4 +1083,83 @@ mod tests {
         assert!(make(&|t| t.set("weather_mode", 1.5).unwrap()).is_err());
         assert!(make(&|_| {}).is_ok());
     }
+
+    /// The private C entry's draw ADDRESS contract (review ENV-DRAW-POINTER-1): the address is read only when `have_draw` is set, and only inside the guard. This calls the actual
+    /// `env_ref_step` directly -- a documented private ABI short circuit, not a public safe Rust API -- with every other buffer readable and the right size (the arrays below), and
+    /// with an address that is NON-NULL AND UNREADABLE where no draw is announced. A read of it would fault and end the whole test process (an access violation or SIGSEGV at
+    /// this call, which is loud and attributable; the test is not isolated in a child process because that would need a process framework this check does not warrant). It supplies
+    /// no draw and forces no physics: the zone's server timer simply expires, so the answer is the first NeedDraw question with the field unchanged.
+    #[test]
+    fn an_unused_draw_address_is_never_read_and_an_announced_draw_without_an_address_is_refused() {
+        let mut zone = defaults();
+        zone.n[2] = 1;
+        zone.f[0] = 20000.0;
+        zone.f[22] = 1.0;
+        let mut field = Field::new().unwrap();
+        field.import(&zone).unwrap();
+        let before = field.export().unwrap();
+        let step = input(2.0);
+        let mut error = [0u8; ERROR_SIZE];
+        // the integers: winter, server, in_cockpit, have_camera, have_draw
+        let no_draw = [0i32, 1, 0, 1, 0];
+        let announced = [0i32, 1, 0, 1, 1];
+        // an address that is not null and cannot be read (the alignment-sized address of NonNull::dangling: the null page on every supported target)
+        let unreadable: *const f64 = std::ptr::NonNull::<f64>::dangling().as_ptr().cast_const();
+        let mut out_i = [0i32; 2];
+        let mut out_f = [0.0f32; 4];
+        // SAFETY: every buffer but the draw address is readable/writable at its size; the draw address is, by the contract under test, not read because have_draw is 0.
+        let status = unsafe {
+            env_ref_step(
+                field.raw,
+                step.f.as_ptr(),
+                no_draw.as_ptr(),
+                unreadable,
+                out_i.as_mut_ptr(),
+                out_f.as_mut_ptr(),
+                error.as_mut_ptr().cast(),
+                ERROR_SIZE,
+            )
+        };
+        assert_eq!(status, 0, "{}", message(&error));
+        assert_eq!((out_i, out_f[3]), ([1, 0], -1.0), "the first NeedDraw question");
+        assert_eq!(field.export().unwrap(), before, "a NeedDraw answer leaves the field as it was");
+        // the same question with no address at all is the same answer (no draw announced, none read)
+        let mut out_i = [0i32; 2];
+        let mut out_f = [0.0f32; 4];
+        // SAFETY: as above, with a null draw address, which the entry accepts when no draw is announced.
+        let status = unsafe {
+            env_ref_step(
+                field.raw,
+                step.f.as_ptr(),
+                no_draw.as_ptr(),
+                std::ptr::null(),
+                out_i.as_mut_ptr(),
+                out_f.as_mut_ptr(),
+                error.as_mut_ptr().cast(),
+                ERROR_SIZE,
+            )
+        };
+        assert_eq!(status, 0, "{}", message(&error));
+        assert_eq!((out_i, out_f[3]), ([1, 0], -1.0));
+        // a draw announced with no address is refused whole: a message, cleared outputs, nothing committed
+        let mut out_i = [7i32; 2];
+        let mut out_f = [7.0f32; 4];
+        // SAFETY: as above; the null address is the case under test and is not read.
+        let status = unsafe {
+            env_ref_step(
+                field.raw,
+                step.f.as_ptr(),
+                announced.as_ptr(),
+                std::ptr::null(),
+                out_i.as_mut_ptr(),
+                out_f.as_mut_ptr(),
+                error.as_mut_ptr().cast(),
+                ERROR_SIZE,
+            )
+        };
+        assert_ne!(status, 0);
+        assert!(message(&error).contains("no address"), "{}", message(&error));
+        assert_eq!((out_i, out_f), ([0, 0], [0.0; 4]), "a refusal clears the outputs");
+        assert_eq!(field.export().unwrap(), before);
+    }
 }

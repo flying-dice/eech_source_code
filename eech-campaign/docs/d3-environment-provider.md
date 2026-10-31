@@ -236,6 +236,20 @@ parameters by value) are not changed: their matrix operations passed this same s
 (`environment-i686-c-abi-fp-probe-v2-20261031.c`, SHA-256 `8b0a5a56...38092`, with build notes) differs from the first only in this ABI, so Root can re-run the same matrix on the corrected
 kernel and retain the assembly: no x87 instruction may precede `fp_save` in `env_ref_step`. No generic DLL floating-point claim; source only until Root's execution.
 
+## Review `87e7e0627`: the draw address is read only when `have_draw` is set (UNBUILT, UNRUN, UNREVIEWED correction)
+
+Reported by Root (not re-run here): the private C probe v2 against the corrected kernel is exact in every one of its 24 cases on both architectures (full control/status/tag words and MXCSR);
+the 32-bit assembly calls `fp_save` before its first x87 load and the 64-bit entry has no x87 float instruction (`environment-i686-c-abi-fp-isolation-87e-20261031/receipt.json`). The normal
+`87e` Linux and Windows builds were live, and the source's ordinary numeric, Windows and CI gates are pending; that probe is finite evidence of the step entry's ABI, not a whole-component or
+product acceptance. The ONE narrow review (`independent-environment-draw-pointer-review-87e7e0627-20261031.json`, SHA-256 `97daf469...e48c3c`) found a P2 contract mismatch: the header and the
+Rust comment promise that the address is read only when `have_draw` is set, but the wrapper evaluated `(draw != NULL) ? *draw : 0.0`, which reads any non-null address (the retained 32-bit
+assembly shows the load) -- an unused unreadable address could fault and an unused signalling-NaN could raise an exception. No ordinary caller regression is claimed (the Rust caller always
+supplies valid storage). **Correction:** the wrapper now reads `(in_i[4] != 0) ? *draw : 0.0` inside the guard; the refusal of `have_draw` with a NULL address is unchanged and
+precedes it. One small direct test of the actual `env_ref_step` entry (`an_unused_draw_address_is_never_read_...` in `env.rs`, documented as the private ABI short circuit, not a public safe API;
+every other buffer is readable at its size) passes an unreadable NON-NULL address and a NULL address with `have_draw` 0 and expects the NeedDraw answer with the field unchanged, and
+`have_draw` with NULL refused with cleared outputs and nothing committed; a wrongful read would fault and end the test process loudly (no child-process framework). Nothing else changes: the
+draw ABI, the step arithmetic, the shared random sites, the unmasked 96-condition matrix, baselines and tolerances.
+
 ## Remaining coupling and open gates (finite)
 
 * The lightning strike and sound entity creation, the sound/terrain-scratch bridge and the time-of-day input stay in Core (explicitly open within Task 51/D3).
