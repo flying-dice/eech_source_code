@@ -1,0 +1,21 @@
+{
+  "schema": "ground-fp-test-only-recovery/v1",
+  "updated_utc": "2026-10-31T01:20:47.964501+00:00",
+  "product_source": "aafb21775f5d3523a30f148d23fbce588902025a",
+  "changed_paths_before_root_metadata": [
+    "eech-campaign/crates/eech-world/tests/terrain_backend.rs",
+    "eech-campaign/docs/m5-ground-production-handoff.md"
+  ],
+  "production_C_Rust_Lua_unchanged": true,
+  "original_Linux_exit": 101,
+  "original_Windows_FP_exit": 101,
+  "reason": "Synthetic sector height metadata0 incorrectly made a labelled900m read a no-read; below5000 was outside suppliedworld3000 and correctly no-read. Tests now use proper sector heights and inside-world/outside-terrain points; non-saturated flag pattern added.",
+  "recovery_state": "Prepared; format0, tests/strictClippy/actualWindowsFP unrun",
+  "no_product_rebuild_required": true,
+  "source_author": {
+    "tool": 4642,
+    "actual_exit": 0,
+    "collected_terminal": true
+  },
+  "remaining": "Actual Windows weapon authority tool22222 is live against unchanged aafb DLL; corrected test controls and fullshipping/eightcomplete/CI/review/normaldelivery remain."
+}

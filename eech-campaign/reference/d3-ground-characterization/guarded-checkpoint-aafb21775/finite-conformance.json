@@ -1,0 +1,53 @@
+{
+  "source": "aafb21775f5d3523a30f148d23fbce588902025a",
+  "controller_pid": 10432,
+  "started_utc": "2026-10-31T01:15:50.225721+00:00",
+  "state": "terminal",
+  "scope": "Finite production G2 physical conformance to retained c119, not shipping acceptance",
+  "cases": [
+    {
+      "case": "lebanon",
+      "native_controller_exit": 0,
+      "actual_native_exit": 0,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "comparison_exit": 0,
+      "physical_equal": true,
+      "cache_and_semantic_samples_equal": true,
+      "differences": [],
+      "raw_sha256": "16e870fb3381b5739f065a7cff4ccdd68ea79a9ed1521d87108a00c2929682e5",
+      "raw_bytes": 39581
+    },
+    {
+      "case": "lebanon-repeat",
+      "native_controller_exit": 0,
+      "actual_native_exit": 0,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "comparison_exit": 0,
+      "physical_equal": true,
+      "cache_and_semantic_samples_equal": true,
+      "differences": [],
+      "raw_sha256": "16e870fb3381b5739f065a7cff4ccdd68ea79a9ed1521d87108a00c2929682e5",
+      "raw_bytes": 39581
+    },
+    {
+      "case": "georgia",
+      "native_controller_exit": 0,
+      "actual_native_exit": 0,
+      "pre_inputs": 0,
+      "post_inputs": 0,
+      "comparison_exit": 0,
+      "physical_equal": true,
+      "cache_and_semantic_samples_equal": true,
+      "differences": [],
+      "raw_sha256": "0e6a9d7bc787c627922f69afc60cf40eadda24ab91d15710683738588b3861d7",
+      "raw_bytes": 39559
+    }
+  ],
+  "verified_payloads": 50,
+  "build_info_sha256": "a640bfd65e2da94f6e332142ab1b7a87230ce27fdab5196b561e8e817a9ee38e",
+  "Lebanon_complete_raw_equal": true,
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T01:16:03.901529+00:00"
+}

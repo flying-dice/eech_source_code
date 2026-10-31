@@ -1,3 +1,37 @@
+# D3 checkpoint — guarded product measured; test-only FP coverage recovery (31 October 2026)
+
+Production sourceaafb21775 is frozen/pushed. All three Windows builds and test
+export complete0. Renewed three-map finite native comparisons complete0 against
+c119 and previous02cc, with exact physical/semantic facts and unchanged complete
+Lebanon raw hash16e870fb3381b5739f065a7cff4ccdd68ea79a9ed1521d87108a00c2929682e5.
+All5source corrections are independently SOURCE_CLOSED_PENDING_VALIDATION, review
+SHA256befc10c40b854bf1ae6e430efd57409c1732b1621ad8365707697c63163b93c1.
+
+A new FP TEST COVERAGE assertion fails on Linux and actual Windows (both101):
+the old tiny point-map builder's sector maxima0 made900m correctly no-read; x5000
+was outside the supplied world3000 and below correctly no-read. FP-state matrix
+and hardware-reader controls pass both OSs, but cannot establish intended path
+coverage until the fixture is valid. New source changes ONLY terrain_backend.rs
+and its doc: valid sector heights for FP cases, inside-world/off-terrain refusals,
+explicit case expectations and a non-saturated status pattern. Producer5588 /
+SAME4642 completed0, collected; formatting0. Production inputs unchanged, so no
+product rebuild: sourceaafb remains the measured DLL/host, test-only recovery is
+separately named. The recovery controls and strictClippy remain UNRUN.
+
+The actual strict launched-weapon authority/refusal suite SAME22222 is live from
+unchanged aafb weapon-fixture DLL on9separate previously unused verified roots;
+no result yet. All16aafb Linux driver/child controls passed; asset no-env functions
+are not native proof. Linux stopped at the fixture assertion, so Clippy is not
+claimed passed. Original failures and all old evidence remain unchanged.
+
+Next: corrected test-only Linux/Windows FP controls and strict gate, collect SAME
+22222 actual result, public/physical source identities and full shipping40/eight
+complete default artifact equality, independent new-evidence/currentCI/normalmerge.
+Task47 is deliveredb657/Done; Task48/D3 remain open; required model/spatial/loaders/
+hierarchy/device/route-data/environment/sharedRNG/time services stay D3. Campaign
+geography, route planning, timers, scheduling and consequences stay Core. No
+accepted baseline, tolerance, seed or duration changed; D4/D5 not started.
+
 # D3 checkpoint — measured ground candidate; five review corrections prepared (31 October 2026)
 
 Measured02ccf06cc is preserved in an immutable snapshot and safe records under

@@ -1,0 +1,9 @@
+{
+  "source": "aafb21775f5d3523a30f148d23fbce588902025a",
+  "actual_exit": 101,
+  "started_utc": "2026-10-31T01:16:44.281890+00:00",
+  "completed_utc": "2026-10-31T01:16:44.417353+00:00",
+  "test_exe_sha256": "2cfef62a6e9477301e750b7c8a2ecfde2e4f8e6b6031052e02617f6275cae2ea",
+  "log": "R:\\d3-evidence\\ground-fp-Windows-aafb21775-20261031.log",
+  "scope": "Actual Windows FP controls on synthetic map; fixture read/refusal coverage is known to fail, not hidden or accepted"
+}

@@ -119,6 +119,30 @@ stalled clock before and after the launch, an exhausted frame budget, a write/fl
 point that cannot be an exact single. The bounded wait is exercised with real children (this test executable re-run): a hung child killed at the wall limit, a failing child and a chatty child that fills both pipes.
 The judge itself is exercised on synthetic rows for every refusal above and for mismatched launches.
 
+### Test-only fix of the caller floating-point controls after the corrected Linux run (`aafb21775`; test source only, unrun)
+
+The corrected Linux run (same17663) passed the complete caller-state matrix and the hardware state reader and then failed one coverage assertion of the new module
+(`the_exercised_entries_really_answer_and_really_refuse_so_the_state_check_covers_both`, `read_answer.queried && record.is_some()`): the new controls were labelled with preconditions the fixture did
+not have. No production C, Rust or Lua, query, guard or arithmetic changed; the measured `02cc` evidence and the recorded failure stand. Only `tests/terrain_backend.rs` changed:
+
+- **The map.** The older point-query builder writes zeros for the sector record's radius, minimum, maximum and average height (the five words after the polygon count, then the sector loop of
+  `terrain_ref.c` reads `radius, minimum_height, maximum_height, average_height`), so a plane at 1000 m has a sector maximum of 0 and every ground question about 900 m is decided by the sector
+  maximum with no terrain read. `Shape` gains `sector_heights: Option<(i16, i16, i16)>`, default `None`, which writes exactly the zeros as before (older fixtures are byte-identical). The FP controls
+  use `Some((1000, 1000, 1000))` (the plane's height; the radius word stays 0, which the ground predicates do not read), so 900 m is under the sector maximum and the elevation decides (a genuine read,
+  with its record) and 40000 m is above it (genuinely no read). The coverage test also asserts that the same 900 m question on the older zero-height map IS decided without a read, which is why the new
+  map exists.
+- **The off-map refusals.** The supplied world is `-1000..3000` (campaign geography) and the physical map is one 2048 m sector (`0..2047`). x = 5000 is outside the WORLD, so `ground_below` correctly
+  answers below-ground without a read and does not refuse: it is now a case of its own, "below, outside the supplied world" (no read, no record). The refusals after the kernel began use x = 2500, inside
+  the supplied world and outside the physical map; the test asserts that precondition from the map's facts and the world, and that the refusal is "the sector maximum is read off the terrain".
+- **Every case states what it is** (`Read`, `Decided`, `OutsideWorld`, `EarlyRefusal`, `AfterBeginRefusal`) and is verified against that on every run of the matrix and in the coverage test, which also
+  asserts that both predicates read and carry a record at 900 m, that the impact is supported (impact point at the plane, land type, no failed internal assertion), and that each expectation occurs at least once.
+- **Non-saturated flags.** Each case now runs in all four modes with two flag patterns: SATURATED (every flag already raised, so an extra one cannot show) and PARTIAL (invalid clear, zero-divide and inexact
+  raised, condition code C0 only). Under PARTIAL an entry that left behind the invalid flag raised by `infinity - infinity` in the early finite validation would change the captured state and fail the exact
+  comparison. A hardware control (`the_state_reader_sees_the_invalid_flag_that_infinity_minus_infinity_raises_when_it_was_clear`) shows the reader does see that flag raised from a clear start. The
+  outcome is captured as a value before any formatting, and the state is read straight after the call, so no formatting runs between the call and the read.
+
+Nothing of this has been compiled or run by the author; the matrix, the coverage test and both hardware controls are the Root's to execute, on Linux and on the actual Windows build.
+
 ## Proposed Root verification (nothing below has been run)
 
 Build identity to record: the head SHA of the PR, the feature set of each DLL, and the `eech-world` executable beside it.
