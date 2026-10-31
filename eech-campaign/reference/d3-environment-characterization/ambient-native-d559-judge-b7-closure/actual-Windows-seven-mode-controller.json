@@ -1,0 +1,375 @@
+{
+  "judge_source": "b7fbb2eab20677a6f2efed0116931f97e3a6b320",
+  "native_source": "d559c38592405afcabc172ec876a4fdfa7f9687b",
+  "driver_sha256": "78f1bb65c63a6e83815dff90c3db85f78838df36063adb9696e58ca2230b7f75",
+  "judge_sha256": "bdd00c2ceb6d7b169e94a9a1307cf5c72e316c9844d66e8780629a563c65c704",
+  "production_inputs_equivalent": true,
+  "changed_paths": [
+    "STATUS.md",
+    "eech-campaign/crates/eech-world/lua/env-ambient-authority.lua",
+    "eech-campaign/crates/eech-world/tests/env_ambient_authority.rs",
+    "eech-campaign/docs/d3-environment-sound-routine.md",
+    "eech-campaign/reference/d3-environment-characterization/ambient-authority-8d0-084-reds/084-targeted-protocol-red-completion.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-authority-8d0-084-reds/8d0-Linux-initial-guard-failure.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-authority-8d0-084-reds/8d0-Windows-guard-before-public-failure.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-authority-8d0-084-reds/8d0-Windows-judge-export.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-authority-8d0-084-reds/8d0-first-real-control-order-red.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-authority-8d0-084-reds/8d0-independent-source-review.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-authority-8d0-084-reds/receipt.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-d559-G12-closure/Linux-guards-both-strict-completion.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-d559-G12-closure/Windows-build-completion.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-d559-G12-closure/current-CI.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-d559-G12-closure/independent-source-and-real-control-review.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-d559-G12-closure/ledger92-preservation.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-d559-G12-closure/real-wide-controller.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-d559-G12-closure/real-wide-summary.json",
+    "eech-campaign/reference/d3-environment-characterization/ambient-d559-G12-closure/receipt.json"
+  ],
+  "controller_pid": 21296,
+  "state": "terminal",
+  "started_utc": "2026-10-31T16:22:07.325260+00:00",
+  "modes": [
+    "control",
+    "changed_env_ambient",
+    "changed_terrain_ambient",
+    "withheld_env_ambient",
+    "malformed_env_ambient",
+    "withheld_terrain_ambient",
+    "malformed_terrain_ambient"
+  ],
+  "roots": [
+    "R:\\d3-evidence\\environment-ambient-authority-roots-20261031\\1-recovery",
+    "R:\\d3-evidence\\environment-ambient-authority-roots-20261031\\2",
+    "R:\\d3-evidence\\environment-ambient-authority-roots-20261031\\3",
+    "R:\\d3-evidence\\environment-ambient-authority-roots-20261031\\4",
+    "R:\\d3-evidence\\environment-ambient-authority-roots-20261031\\5",
+    "R:\\d3-evidence\\environment-ambient-authority-roots-20261031\\6",
+    "R:\\d3-evidence\\environment-ambient-authority-roots-20261031\\7"
+  ],
+  "verified_payloads": 51,
+  "stages": [
+    {
+      "stage": "actual-Windows-judge-guards",
+      "pid": 3080,
+      "args": [
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\target\\windows-ambient-judge-b7fbb2eab\\env_ambient_authority.exe",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T16:22:07.448990+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T16:22:09.571960+00:00"
+    },
+    {
+      "stage": "pre-inputs-control",
+      "pid": 23676,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-ambient-authority-roots-20261031\\1-recovery",
+        "--compare",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-ambient-seven-modes-controller-b7fbb2eab-20261031\\pre-inputs-control.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T16:22:09.582574+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T16:22:17.397954+00:00"
+    },
+    {
+      "stage": "pre-inputs-changed_env_ambient",
+      "pid": 18608,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-ambient-authority-roots-20261031\\2",
+        "--compare",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-ambient-seven-modes-controller-b7fbb2eab-20261031\\pre-inputs-changed_env_ambient.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T16:22:17.413905+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T16:22:24.993762+00:00"
+    },
+    {
+      "stage": "pre-inputs-changed_terrain_ambient",
+      "pid": 21620,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-ambient-authority-roots-20261031\\3",
+        "--compare",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-ambient-seven-modes-controller-b7fbb2eab-20261031\\pre-inputs-changed_terrain_ambient.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T16:22:25.008868+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T16:22:32.367784+00:00"
+    },
+    {
+      "stage": "pre-inputs-withheld_env_ambient",
+      "pid": 21836,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-ambient-authority-roots-20261031\\4",
+        "--compare",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-ambient-seven-modes-controller-b7fbb2eab-20261031\\pre-inputs-withheld_env_ambient.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T16:22:32.381294+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T16:22:39.813688+00:00"
+    },
+    {
+      "stage": "pre-inputs-malformed_env_ambient",
+      "pid": 25520,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-ambient-authority-roots-20261031\\5",
+        "--compare",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-ambient-seven-modes-controller-b7fbb2eab-20261031\\pre-inputs-malformed_env_ambient.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T16:22:39.833818+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T16:22:47.554820+00:00"
+    },
+    {
+      "stage": "pre-inputs-withheld_terrain_ambient",
+      "pid": 5684,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-ambient-authority-roots-20261031\\6",
+        "--compare",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-ambient-seven-modes-controller-b7fbb2eab-20261031\\pre-inputs-withheld_terrain_ambient.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T16:22:47.577950+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T16:22:55.274123+00:00"
+    },
+    {
+      "stage": "pre-inputs-malformed_terrain_ambient",
+      "pid": 10316,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-ambient-authority-roots-20261031\\7",
+        "--compare",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-ambient-seven-modes-controller-b7fbb2eab-20261031\\pre-inputs-malformed_terrain_ambient.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T16:22:55.291607+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T16:23:01.409984+00:00"
+    },
+    {
+      "stage": "actual-public-seven-mode-test",
+      "pid": 25456,
+      "args": [
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\target\\windows-ambient-judge-b7fbb2eab\\env_ambient_authority.exe",
+        "--exact",
+        "the_host_decides_the_ambient_amplitudes_the_sound_children_hold_and_a_wrong_host_stops_the_campaign_at_the_ambient_boundary",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T16:23:01.418983+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T16:23:32.288190+00:00"
+    },
+    {
+      "stage": "post-inputs-control",
+      "pid": 18116,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-ambient-authority-roots-20261031\\1-recovery",
+        "--compare",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-ambient-seven-modes-controller-b7fbb2eab-20261031\\post-inputs-control.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T16:23:32.304813+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T16:23:34.044570+00:00"
+    },
+    {
+      "stage": "post-inputs-changed_env_ambient",
+      "pid": 24236,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-ambient-authority-roots-20261031\\2",
+        "--compare",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-ambient-seven-modes-controller-b7fbb2eab-20261031\\post-inputs-changed_env_ambient.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T16:23:34.058587+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T16:23:35.748521+00:00"
+    },
+    {
+      "stage": "post-inputs-changed_terrain_ambient",
+      "pid": 17240,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-ambient-authority-roots-20261031\\3",
+        "--compare",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-ambient-seven-modes-controller-b7fbb2eab-20261031\\post-inputs-changed_terrain_ambient.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T16:23:35.764641+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T16:23:37.504167+00:00"
+    },
+    {
+      "stage": "post-inputs-withheld_env_ambient",
+      "pid": 22972,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-ambient-authority-roots-20261031\\4",
+        "--compare",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-ambient-seven-modes-controller-b7fbb2eab-20261031\\post-inputs-withheld_env_ambient.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T16:23:37.520411+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T16:23:39.163658+00:00"
+    },
+    {
+      "stage": "post-inputs-malformed_env_ambient",
+      "pid": 24532,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-ambient-authority-roots-20261031\\5",
+        "--compare",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-ambient-seven-modes-controller-b7fbb2eab-20261031\\post-inputs-malformed_env_ambient.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T16:23:39.177852+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T16:23:40.828189+00:00"
+    },
+    {
+      "stage": "post-inputs-withheld_terrain_ambient",
+      "pid": 11100,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-ambient-authority-roots-20261031\\6",
+        "--compare",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-ambient-seven-modes-controller-b7fbb2eab-20261031\\post-inputs-withheld_terrain_ambient.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T16:23:40.845233+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T16:23:42.489182+00:00"
+    },
+    {
+      "stage": "post-inputs-malformed_terrain_ambient",
+      "pid": 18720,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-ambient-authority-roots-20261031\\7",
+        "--compare",
+        "R:\\d3-evidence\\environment-ambient-judge-source-b7fbb2eab\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-ambient-seven-modes-controller-b7fbb2eab-20261031\\post-inputs-malformed_terrain_ambient.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T16:23:42.505419+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T16:23:44.095764+00:00"
+    }
+  ],
+  "scope": "ActualWindowsnewjudge/driver guards (public path SKIPPED there), then REALsevenambient modes with existing d559native and explicitly NEW embeddedLua. Exact14PREPOSTchecks, realperchildamplitude/mapping evidence. Refusalsarestoppedcampaigns; notframe/audio/player/render/Tacview/fullshipping/Task51/D3acceptance.",
+  "actual_public_test_exit": 0,
+  "error": null,
+  "pre_input_checks": 7,
+  "post_input_checks": 7,
+  "all_fourteen_prepost_inputs_zero": true,
+  "all_payloads_still_match": true,
+  "completed_utc": "2026-10-31T16:23:44.176914+00:00",
+  "copied_driver_files": [
+    {
+      "path": "R:\\d3-evidence\\environment-ambient-seven-modes-b7fbb2eab-20261031\\env-ambient-authority.lua",
+      "sha256": "78f1bb65c63a6e83815dff90c3db85f78838df36063adb9696e58ca2230b7f75",
+      "exact_source": true
+    }
+  ]
+}

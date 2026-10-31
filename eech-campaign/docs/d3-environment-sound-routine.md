@@ -1,3 +1,7 @@
+# Current finite ambient authority result — 31 October 2026
+
+Native d559 with new b7 judge/Lua passes the real seven-mode case27 authority/refusal witness (0,30.84s), exactly14input checks and51payload identities; all11functions/all28negativechecks/bothstrict/all9currentCI and sole independent actual review6fc68291…88d9f close. Complete numeric3root files remain exactly original under unchanged production. See `../reference/d3-environment-characterization/ambient-native-d559-judge-b7-closure/`. Earlier paragraphs retain their at-time status. No real-frame/audio/player/render/Tacview/fullshipping/Task51/D3 acceptance; required physical effects/time and other D3 services remain open.
+
 # D3 — the ambient sound routine of the session: original characterization (prep; UNBUILT, UNRUN, UNREVIEWED)
 
 EEDCS-51 / EEDCS-21 (D3). Base: clean pushed `9c47b972a` (production kernel `14192c6e2`, sector enumeration host-owned and reviewed). **This document and its source only prepare the

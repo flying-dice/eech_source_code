@@ -1,3 +1,37 @@
+# D3 ambient amplitude authority closed — actual native d559 / judge b7 (31 October 2026)
+
+Rain/wind levels and terrain-child smoothing now come from the host. The REAL
+public seven-mode case27 witness completes test0/30.84s: reference, changed-env
+and changed-terrain modes map actual host reply words to the proper real sound
+children; four withheld/malformed modes stop at named ambient guards with no
+case completion. Exactly7PRE+7POST inputs0,51nativepayloads exact, copiedLua
+SHA78f1bb65c63a6e83815dff90c3db85f78838df36063adb9696e58ca2230b7f75 exact.
+Explicit mixed provenance: new b7fbb2eab Lua/judge, unchanged d559native/G11.
+
+Actual Linux11functions (including all28 damaged-record checks) and BOTH strict
+phases0; actual Windows11functions0; all9current b7hosted jobs SUCCESS.
+The SAME independent source/actual review has no findings, SHA256
+6fc6829126897dc27d9bf601a52235f84ac940eb292119cac7d7f87b17888d9f.
+Original8d0 order/ancillary reds and084 actual28/28 protocol red remain retained.
+No original, baseline or tolerance changed. Earlier f6 three COMPLETE108-row
+numeric reports equal originals; fullFP/packages/Windows gates and d559real
+16/17/20/review/CI are reused under exact production equivalence.
+
+Finite evidence: reference/d3-environment-characterization/ambient-native-d559-judge-b7-closure/.
+This is a real fixture call, NOT a real frame/update_server, speaker/network/
+player/render/Tacview/fullshipping or Task51/D3 acceptance. Remaining physical
+sound/lightning execution/time and required terrain/spatial/model services,
+fullshipping40/all8COMPLETEbyteidentity/currentchecks/review/normalmerges stay
+open. Campaign policy/calendar/timers/scheduling stayCore; D4/D5unstarted.
+Groundaafb original6processes verified LIVE with four exact growing prefixes
+at16:07 (52.3/52.5MBACMI,35.6MBOBS), PARTIAL ONLY. No restart.
+
+Next: compact READ-ONLY Opus5.5Medium planning for the first physical effects
+extraction, then SAME sole Sonnet5.5High implementation lane. Reuse closed
+originalobserver evidence; next-physical-effects-bounded-source-facts-20261031.json
+records actual original strike/sound-creation call counts and explicit limits.
+No new physical effects source has been changed or accepted.
+
 # D3 ambient authority witness — CORRECTION of the two review groups and the ancillary test (31 October 2026, Lua/Rust test and docs only, UNBUILT, UNRUN, UNREVIEWED)
 
 Clean pushed `084e1de34`. **ACTUAL (Root), the red this correction answers:** the one new test `incomplete_real_case_or_json_witness_records_are_refused`, focused alone on the unchanged source, FAILED (101, 16:07:08.941120 UTC): **28 of 28 genuinely damaged records were ACCEPTED** (8 through the real driver, 18 in the JSON, 2 mode corruptions), no compile or setup failure
