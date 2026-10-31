@@ -38,8 +38,13 @@
  *   get_session_random_start_time_of_day  reseeds the shared AND the libc generators from the clock; the libc state cannot be saved or restored from here.
  *   update_lightning_effect               creates strike and sound entities and draws the shared generator; the controlled update cases keep lightning_timer far from zero so it
  *                                         never fires, and its natural firing is seen only through the real frames' `lightning_timer` and `rng` in the retail snapshots.
- *   update_session_sound_effects          runs in every headless frame (a camera entity exists) and only sets sound amplitudes; it also writes the shared terrain_types_in_sector.
+ *   update_session_sound_effects          runs in every headless frame (a camera entity exists) and only sets sound amplitudes; it also writes the shared terrain_types_in_sector. (The census line
+ *                                         above is the default oracle and stays as it is; GROUP 11, explicit only, now characterises this routine: see env_sound_case.)
  *   update_time_of_day_resync             runs in every headless server frame (comms transmit every minute); observed only as the `time_of_day_resync` counter.
+ *
+ * GROUP 11 (explicit only, never in the default run, the census or the 164-case oracle): the ORIGINAL ambient sound routine update_session_sound_effects (ss_updt.c, unchanged) on the real session,
+ * camera, terrain and the ten real ambient sound-effect children; per case it sets the controlled inputs, calls the routine, prints every child's amplification as IEEE words and restores
+ * everything. See the comment before env_sound_case. The only change to the default behaviour of this file is the group range check (the last group is now 11).
  */
 
 #ifdef EECH_ENV_FIXTURE
@@ -74,7 +79,8 @@ enum
 	ENV_GROUP_UPDATE_WEATHER = 8,
 	ENV_GROUP_CONTROLLED = 9,
 	ENV_GROUP_SECTOR = 10,
-	ENV_GROUP_LAST = 10
+	ENV_GROUP_SOUND = 11,
+	ENV_GROUP_LAST = 11
 };
 
 #define ENV_WEATHER_MAX 96
@@ -1234,6 +1240,693 @@ static int env_sector_case (int index, char *text, int capacity, int *used)
 	return 0;
 }
 
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* group 11 (EEDCS-51, D3, the ORIGINAL ambient sound routine): explicit only, never part of the default run, the census or the 164-case oracle.
+
+   update_session_sound_effects (ss_updt.c, UNCHANGED in this change) runs in every server update. For the camera (or, with in_cockpit, the gunship) it computes
+     rain    the session weather at the point (current mode, target mode, transitional state) as per-mode levels, switched off above the cloud base and, outdoors, above 180 m of radar
+             altitude, attenuated outdoors by 1 - alt / 180;
+     wind    the session wind speed at the point against the session's minimum and maximum speed, as a light level and a heavy level (a piecewise function of r in [0,1]);
+     terrain the shared scratch terrain_types_in_sector of the sector under the camera clamped to the map (get_terrain_3d_types_in_sector, characterised by group 10 and already host-owned);
+   and then walks the session's LIST_TYPE_SPECIAL_EFFECT children and sets FLOAT_TYPE_AMPLIFICATION on the ten ambient sound children the campaign attaches at boot
+   (attach_session_sound_effects): rain and wind from the levels above, and for the six terrain children (sea, jungle = forest top, amb1 = river, amb2 = reservoir, amb3 / amb4 = altered
+   land 1 / 2) a smoothed value: the child's PREVIOUS amplification plus or minus 0.5 * the frame delta (up when its terrain type is flagged in the sector, down when not), bounded to
+   [0, 0.3], times bound (1 - alt / 280, 0, 1), times 0.75 in the cockpit; zero at or above 280 m. The value written is the scaled one and is read back next call, so consecutive calls compound.
+
+   WHAT THIS GROUP IS. The REAL unchanged routine is called on the REAL collaborating state of the booted campaign: the session entity and its ten real ambient sound-effect children, the real
+   camera entity, the real loaded terrain (and, in the host builds, the real host providers). Per case the group sets the controlled inputs the routine reads (named below), prints the original
+   queries the routine consumes at its point as an input echo, calls the routine once or several times and prints what the children hold afterwards, as IEEE words. It recomputes NOTHING:
+   every amplification word is the original's. The inputs it controls:
+     camera       position (x, y, z) -- the camera's cached terrain elevation is forced to 0 so the radar altitude is exactly y -- and the cloud base height (the shared global
+                  cloud_3d_base_height, which the full game sets to 6000 at render start-up: the headless run has no renderer, so it is set here and PRINTED, and put back);
+     session      the weather (global model: current / target mode and transitional state; or the local ring around a point at a fraction of its radius) and the wind (limits, zone radius
+                  and centre, gust phase), pushed to the host field with the campaign's own import in the host builds;
+     the frame    delta time; the children's initial amplification (the terrain children a controlled value, the rain and wind children a sentinel to show they are overwritten);
+     in_cockpit   only when the headless campaign holds a gunship entity (the routine then reads the gunship's live position and radar altitude, which are NOT moved).
+   The sector under the camera is chosen from the real loaded terrain by a bounded probe (at most ENV_SOUND_PROBES sectors, stride over the grid) with the ORIGINAL sector query: the first
+   sector whose scratch has each of the six sound-relevant surfaces set, and the first with none of them set. A surface the probe does not find makes its cases `refused`, with the reason.
+
+   WHAT IT DOES NOT SHOW (printed in the plan as `env-sound-unsupported`): the speaker output or any render of these children (the sound-effect update that plays them, se_snd.c, needs the
+   sound system; the headless build has none), the ALTERED_LAND3 reader of 3drain.c (render, dormant), the routine called through a real update_server (the observer's sound_facts, group 8's
+   frames and the sector driver's observer already establish that call, its place in the update order and the shared-RNG draw count of zero), and any non-ambient special-effect child of the
+   session (none exists at boot: the lightning strike sounds appear only after a strike, which is the lightning effect's area). Untouched children are checked where they exist: the whole child
+   list, in its order, is printed before and after each call.
+
+   Restored before every return: the session record (and the host field), the season, the shared random seed, the frame delta, the camera position and cached elevation, the cloud base,
+   in_cockpit, the terrain scratch and the amplification of every sound child. `env-sound-end` says restored=0|1 for the whole and for each part; 0 would be a defect of this fixture, never a
+   result. Index 0 is the plan. */
+
+extern void update_session_sound_effects (entity *en);
+extern float cloud_3d_base_height;
+
+#define ENV_SOUND_MAX 64
+#define ENV_SOUND_CHILDREN 32
+#define ENV_SOUND_PROBES 1024
+#define ENV_SOUND_CLOUD_BASE 6000.0f
+#define ENV_SOUND_SENTINEL 0.625f
+#define ENV_SOUND_RING_RADIUS 30000.0f
+#define ENV_SOUND_WIND_RADIUS 8192.0f
+#define ENV_SOUND_CLASSES 10
+
+enum
+{
+	ENV_SITE_ABSENT,
+	ENV_SITE_SEA,
+	ENV_SITE_FOREST_TOP,
+	ENV_SITE_RIVER,
+	ENV_SITE_RESERVOIR,
+	ENV_SITE_ALTERED_LAND1,
+	ENV_SITE_ALTERED_LAND2,
+	ENV_SITE_PROBED = 7, /* the number of sites the probe looks for */
+	ENV_SITE_OUTSIDE_HIGH = 7,
+	ENV_SITE_OUTSIDE_LOW = 8,
+	ENV_SITE_GUNSHIP = 9
+};
+
+struct env_sound_site
+{
+	int found, sx, sz;
+	float x, z;
+};
+
+struct env_sound_case
+{
+	const char *label;
+	int site, cloud, model, cwm, twm, cockpit, calls;
+	float alt, ts, ring, zone, gust, wmin, wmax, amp0, dt;
+};
+
+struct env_sound_child
+{
+	entity *en;
+	int sub_type, klass, is_sound;
+	float amp;
+};
+
+static struct env_sound_site env_sound_sites[ENV_SITE_PROBED];
+static struct env_sound_case env_sound_cases[ENV_SOUND_MAX];
+static int env_sound_count, env_sound_built;
+static int env_sound_probed;
+
+/* the ten ambient sound children, in the order of attach_session_sound_effects; 0 for any other child */
+static int env_sound_class (int sub_type)
+{
+	switch (sub_type)
+	{
+		case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_LIGHT_RAIN: return 1;
+		case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_HEAVY_RAIN: return 2;
+		case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_LIGHT_WIND: return 3;
+		case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_HEAVY_WIND: return 4;
+		case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_SEA: return 5;
+		case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_JUNGLE: return 6;
+		case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB1: return 7;
+		case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB2: return 8;
+		case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB3: return 9;
+		case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB4: return 10;
+		default: return 0;
+	}
+}
+
+static const char *env_sound_class_name (int klass)
+{
+	static const char *const names[ENV_SOUND_CLASSES + 1] = { "other", "light_rain", "heavy_rain", "light_wind", "heavy_wind", "sea", "jungle", "amb1", "amb2", "amb3", "amb4" };
+
+	return names[(klass >= 0 && klass <= ENV_SOUND_CLASSES) ? klass : 0];
+}
+
+/* the session's special-effect children in list order; -1 when there are more than the table holds */
+static int env_sound_children (struct env_sound_child *kids, int max)
+{
+	entity *spec = get_local_entity_first_child (get_session_entity (), LIST_TYPE_SPECIAL_EFFECT);
+	int n = 0;
+
+	while (spec)
+	{
+		if (n >= max)
+		{
+			return -1;
+		}
+
+		kids[n].en = spec;
+		kids[n].sub_type = get_local_entity_int_value (spec, INT_TYPE_ENTITY_SUB_TYPE);
+		kids[n].klass = env_sound_class (kids[n].sub_type);
+		kids[n].is_sound = get_local_entity_type (spec) == ENTITY_TYPE_SOUND_EFFECT;
+		kids[n].amp = kids[n].is_sound ? get_local_entity_float_value (spec, FLOAT_TYPE_AMPLIFICATION) : 0.0f;
+		n++;
+
+		spec = get_local_entity_child_succ (spec, LIST_TYPE_SPECIAL_EFFECT);
+	}
+
+	return n;
+}
+
+/* every one of the ten ambient classes exactly once */
+static int env_sound_complete (const struct env_sound_child *kids, int n)
+{
+	int seen[ENV_SOUND_CLASSES + 1], i;
+
+	memset (seen, 0, sizeof (seen));
+
+	for (i = 0; i < n; i++)
+	{
+		seen[kids[i].klass]++;
+	}
+
+	for (i = 1; i <= ENV_SOUND_CLASSES; i++)
+	{
+		if (seen[i] != 1)
+		{
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+static int env_sound_print_children (char *text, int capacity, int *used, const char *key, const struct env_sound_child *kids, int n)
+{
+	int i;
+
+	ENV_EMIT (" %s=", key);
+
+	for (i = 0; i < n; i++)
+	{
+		if (kids[i].is_sound)
+		{
+			ENV_EMIT ("%s%d:%d:%s:%08x", i ? "," : "", i, kids[i].sub_type, env_sound_class_name (kids[i].klass), ENV_WORD (kids[i].amp));
+		}
+		else
+		{
+			ENV_EMIT ("%s%d:%d:%s:na", i ? "," : "", i, kids[i].sub_type, env_sound_class_name (kids[i].klass));
+		}
+	}
+
+	if (n == 0)
+	{
+		ENV_EMIT ("none");
+	}
+
+	return 0;
+}
+
+static int env_sound_flags_set (int terrain_type)
+{
+	return terrain_types_in_sector[terrain_type] != 0;
+}
+
+/* the first sector (over a bounded stride of the loaded grid) whose scratch has each sound-relevant surface set, and the first with none of them: asked of the ORIGINAL sector query at the
+   position the routine itself would pass it (the sector centre bounded to the map), with the scratch put back */
+static void env_sound_probe_sites (void)
+{
+	static const int types[ENV_SITE_PROBED] = { -1, TERRAIN_TYPE_SEA, TERRAIN_TYPE_FOREST_TOP, TERRAIN_TYPE_RIVER, TERRAIN_TYPE_RESERVOIR, TERRAIN_TYPE_ALTERED_LAND1, TERRAIN_TYPE_ALTERED_LAND2 };
+	int saved[TERRAIN_TYPE_LAST];
+	int xmax = terrain_3d_sector_x_max, zmax = terrain_3d_sector_z_max;
+	int total, step, k, i;
+
+	memset (env_sound_sites, 0, sizeof (env_sound_sites));
+	env_sound_probed = 0;
+
+	if (!terrain_sectors || xmax < 1 || zmax < 1)
+	{
+		return;
+	}
+
+	total = xmax * zmax;
+	step = total / ENV_SOUND_PROBES + 1;
+
+	memcpy (saved, terrain_types_in_sector, sizeof (saved));
+
+	for (k = 0; k < total; k += step)
+	{
+		float x = bound (env_sector_centre (k % xmax), MIN_MAP_X, MAX_MAP_X);
+		float z = bound (env_sector_centre (k / xmax), MIN_MAP_Z, MAX_MAP_Z);
+		int sx, sz, polygons, any = 0;
+
+		if (env_sector_domain (x, z, &sx, &sz, &polygons) != NULL)
+		{
+			continue;
+		}
+
+		get_terrain_3d_types_in_sector (x, z);
+		env_sound_probed++;
+
+		for (i = 1; i < ENV_SITE_PROBED; i++)
+		{
+			if (env_sound_flags_set (types[i]))
+			{
+				any = 1;
+
+				if (!env_sound_sites[i].found)
+				{
+					env_sound_sites[i].found = 1;
+					env_sound_sites[i].x = x;
+					env_sound_sites[i].z = z;
+					env_sound_sites[i].sx = sx;
+					env_sound_sites[i].sz = sz;
+				}
+			}
+		}
+
+		if (!any && !env_sound_sites[ENV_SITE_ABSENT].found)
+		{
+			env_sound_sites[ENV_SITE_ABSENT].found = 1;
+			env_sound_sites[ENV_SITE_ABSENT].x = x;
+			env_sound_sites[ENV_SITE_ABSENT].z = z;
+			env_sound_sites[ENV_SITE_ABSENT].sx = sx;
+			env_sound_sites[ENV_SITE_ABSENT].sz = sz;
+		}
+	}
+
+	memcpy (terrain_types_in_sector, saved, sizeof (saved));
+}
+
+/* one case: label, site, camera height, cloud base mode (0 6000, 1 equal to y, 2 just above y, 3 just below y), weather (model 0 global: current, target, transitional state; 1 local ring at
+   `ring` of its radius), wind (zone: fraction of the wind radius the camera is inside; negative: radius zero), gust, wind limits, the terrain children's initial amplification, frame delta,
+   number of calls, in_cockpit */
+static void env_sound_add (const char *label, int site, float alt, int cloud, int model, int cwm, int twm, float ts, float ring, float zone, float gust, float wmin, float wmax, float amp0, float dt,
+	int calls, int cockpit)
+{
+	struct env_sound_case *c;
+
+	if (env_sound_count >= ENV_SOUND_MAX)
+	{
+		return;
+	}
+
+	c = &env_sound_cases[env_sound_count++];
+	c->label = label;
+	c->site = site;
+	c->alt = alt;
+	c->cloud = cloud;
+	c->model = model;
+	c->cwm = cwm;
+	c->twm = twm;
+	c->ts = ts;
+	c->ring = ring;
+	c->zone = zone;
+	c->gust = gust;
+	c->wmin = wmin;
+	c->wmax = wmax;
+	c->amp0 = amp0;
+	c->dt = dt;
+	c->calls = calls;
+	c->cockpit = cockpit;
+}
+
+static void env_sound_build (void)
+{
+	const float below_180 = nextafterf (180.0f, 0.0f), below_280 = nextafterf (280.0f, 0.0f);
+	const float mn = DEFAULT_MIN_WIND_SPEED, mx = DEFAULT_MAX_WIND_SPEED;
+
+	if (env_sound_built)
+	{
+		return;
+	}
+
+	env_sound_built = 1;
+	env_sound_count = 0;
+	env_sound_probe_sites ();
+
+	/* rain: the weather at the point as per-mode levels (global model: the modes and the transitional state are the inputs; the wind is calm, the terrain absent) */
+	env_sound_add ("rain_dry_dry", ENV_SITE_ABSENT, 50.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_light_light_equal_modes", ENV_SITE_ABSENT, 0.0f, 0, 0, WEATHERMODE_LIGHT_RAIN, WEATHERMODE_LIGHT_RAIN, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_light_to_heavy_quarter", ENV_SITE_ABSENT, 0.0f, 0, 0, WEATHERMODE_LIGHT_RAIN, WEATHERMODE_HEAVY_RAIN, 0.25f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_heavy_to_light_three_quarters", ENV_SITE_ABSENT, 0.0f, 0, 0, WEATHERMODE_HEAVY_RAIN, WEATHERMODE_LIGHT_RAIN, 0.75f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_snow_to_light", ENV_SITE_ABSENT, 0.0f, 0, 0, WEATHERMODE_SNOW, WEATHERMODE_LIGHT_RAIN, 0.4f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_outdoor_altitude_90", ENV_SITE_ABSENT, 90.0f, 0, 0, WEATHERMODE_LIGHT_RAIN, WEATHERMODE_HEAVY_RAIN, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_altitude_just_below_180", ENV_SITE_ABSENT, below_180, 0, 0, WEATHERMODE_LIGHT_RAIN, WEATHERMODE_HEAVY_RAIN, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_altitude_exactly_180", ENV_SITE_ABSENT, 180.0f, 0, 0, WEATHERMODE_LIGHT_RAIN, WEATHERMODE_HEAVY_RAIN, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_altitude_250", ENV_SITE_ABSENT, 250.0f, 0, 0, WEATHERMODE_LIGHT_RAIN, WEATHERMODE_HEAVY_RAIN, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_cloud_base_equal_to_y", ENV_SITE_ABSENT, 50.0f, 1, 0, WEATHERMODE_LIGHT_RAIN, WEATHERMODE_HEAVY_RAIN, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_cloud_base_just_above_y", ENV_SITE_ABSENT, 50.0f, 2, 0, WEATHERMODE_LIGHT_RAIN, WEATHERMODE_HEAVY_RAIN, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_cloud_base_just_below_y", ENV_SITE_ABSENT, 50.0f, 3, 0, WEATHERMODE_LIGHT_RAIN, WEATHERMODE_HEAVY_RAIN, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_local_ring_inner", ENV_SITE_ABSENT, 10.0f, 0, 1, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.0f, 0.15f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_local_ring_middle", ENV_SITE_ABSENT, 10.0f, 0, 1, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.0f, 0.5f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_local_ring_outer", ENV_SITE_ABSENT, 10.0f, 0, 1, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.0f, 0.83f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_local_ring_outside", ENV_SITE_ABSENT, 10.0f, 0, 1, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.0f, 2.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("rain_cockpit_gunship", ENV_SITE_GUNSHIP, 0.0f, 0, 0, WEATHERMODE_LIGHT_RAIN, WEATHERMODE_HEAVY_RAIN, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 1);
+
+	/* wind: the speed at the point against the session limits (dry, absent terrain); the camera is `zone` of the way into a wind zone of radius 8192 */
+	env_sound_add ("wind_calm_radius_zero", ENV_SITE_ABSENT, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("wind_at_zone_edge", ENV_SITE_ABSENT, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, 0.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("wind_quarter_into_zone", ENV_SITE_ABSENT, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, 0.25f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("wind_half_into_zone", ENV_SITE_ABSENT, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, 0.5f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("wind_three_quarters_into_zone", ENV_SITE_ABSENT, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, 0.75f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("wind_zone_centre", ENV_SITE_ABSENT, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, 1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("wind_gust_pushes_speed_past_maximum", ENV_SITE_ABSENT, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, 0.75f, 0.125f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("wind_equal_limits", ENV_SITE_ABSENT, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, 1.0f, 0.0f, 10.0f, 10.0f, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("wind_zero_minimum_half_into_zone", ENV_SITE_ABSENT, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, 0.5f, 0.0f, 0.0f, mx, 0.0f, 0.1f, 1, 0);
+
+	/* terrain: the smoothed children (previous value, plus or minus half the frame delta, bound to [0, 0.3], altitude factor, cockpit factor); dry weather, calm wind */
+	env_sound_add ("terrain_sea_rising_from_zero", ENV_SITE_SEA, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 1, 0);
+	env_sound_add ("terrain_sea_saturating_at_the_upper_bound", ENV_SITE_SEA, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.29f, 0.1f, 1, 0);
+	env_sound_add ("terrain_absent_falling", ENV_SITE_ABSENT, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.2f, 0.1f, 1, 0);
+	env_sound_add ("terrain_absent_falling_below_the_lower_bound", ENV_SITE_ABSENT, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.02f, 0.1f, 1, 0);
+	env_sound_add ("terrain_forest_top", ENV_SITE_FOREST_TOP, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.1f, 0.1f, 1, 0);
+	env_sound_add ("terrain_river", ENV_SITE_RIVER, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.1f, 0.1f, 1, 0);
+	env_sound_add ("terrain_reservoir", ENV_SITE_RESERVOIR, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.1f, 0.1f, 1, 0);
+	env_sound_add ("terrain_altered_land1", ENV_SITE_ALTERED_LAND1, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.1f, 0.1f, 1, 0);
+	env_sound_add ("terrain_altered_land2", ENV_SITE_ALTERED_LAND2, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.1f, 0.1f, 1, 0);
+	env_sound_add ("terrain_altitude_just_below_280", ENV_SITE_SEA, below_280, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.1f, 0.1f, 1, 0);
+	env_sound_add ("terrain_altitude_exactly_280", ENV_SITE_SEA, 280.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.1f, 0.1f, 1, 0);
+	env_sound_add ("terrain_altitude_400", ENV_SITE_SEA, 400.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.1f, 0.1f, 1, 0);
+	env_sound_add ("terrain_altitude_140_half_factor", ENV_SITE_SEA, 140.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.2f, 0.1f, 1, 0);
+	env_sound_add ("terrain_three_calls_the_scaled_value_is_fed_back", ENV_SITE_SEA, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.0f, 0.1f, 3, 0);
+	env_sound_add ("terrain_zero_frame_delta", ENV_SITE_SEA, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.2f, 0.0f, 1, 0);
+	env_sound_add ("terrain_one_second_frame_delta", ENV_SITE_SEA, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.1f, 1.0f, 1, 0);
+	env_sound_add ("terrain_cockpit_gunship", ENV_SITE_GUNSHIP, 0.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.2f, 0.1f, 1, 1);
+	env_sound_add ("camera_east_of_the_map_clamped", ENV_SITE_OUTSIDE_HIGH, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.1f, 0.1f, 1, 0);
+	env_sound_add ("camera_west_of_the_map_clamped", ENV_SITE_OUTSIDE_LOW, 10.0f, 0, 0, WEATHERMODE_DRY, WEATHERMODE_DRY, 0.5f, 0.0f, -1.0f, 0.0f, mn, mx, 0.1f, 0.1f, 1, 0);
+
+	/* everything at once: heavy rain, wind half into the zone, the sea, two calls */
+	env_sound_add ("combined_heavy_rain_wind_sea_two_calls", ENV_SITE_SEA, 20.0f, 0, 0, WEATHERMODE_HEAVY_RAIN, WEATHERMODE_HEAVY_RAIN, 0.5f, 0.0f, 0.5f, 0.0f, mn, mx, 0.1f, 0.1f, 2, 0);
+}
+
+/* the original queries the routine consumes at its point, as an input echo (read-only) */
+static int env_sound_echo (char *text, int capacity, int *used, int cockpit, vec3d *pos, entity *source)
+{
+	session *raw = env_session_raw ();
+	weathermodes cwm, twm;
+	float ts, alt = get_local_entity_float_value (source, FLOAT_TYPE_RADAR_ALTITUDE);
+
+	get_session_weather_at_point (pos, &cwm, &twm, &ts);
+
+	ENV_EMIT (" source=%s x_w=%08x y_w=%08x z_w=%08x alt_w=%08x cwm=%d twm=%d ts_w=%08x", cockpit ? "gunship" : "camera", ENV_WORD (pos->x), ENV_WORD (pos->y), ENV_WORD (pos->z), ENV_WORD (alt), (int) cwm, (int) twm,
+		ENV_WORD (ts));
+
+	if (env_gust_in_domain (raw->wind_gusting_value))
+	{
+		float speed = get_session_wind_velocity_at_point (pos, NULL);
+		float range = get_approx_2d_range (pos, &raw->wind_effect_position);
+
+		ENV_EMIT (" wind_speed_w=%08x wind_range_w=%08x", ENV_WORD (speed), ENV_WORD (range));
+	}
+	else
+	{
+		ENV_EMIT (" wind_speed=unavailable_gust_outside_0_1");
+	}
+
+	return 0;
+}
+
+/* the mutation and the report of one case; the caller has saved everything and restores it whatever this returns */
+static int env_sound_body (const struct env_sound_case *c, int index, struct env_sound_child *kids, int n, char *text, int capacity, int *used)
+{
+	struct CAMERA *craw = (struct CAMERA *) get_local_entity_data (get_camera_entity ());
+	session *raw = env_session_raw ();
+	session before_raw;
+	vec3d *cp = env_camera_position ();
+	vec3d *source_pos;
+	entity *source;
+	float y, base;
+	int i, call, rng_first, scratch_flags_before[TERRAIN_TYPE_LAST];
+	char flags[TERRAIN_TYPE_LAST + 1];
+
+	set_global_season (SESSION_SEASON_SUMMER);
+	in_cockpit = c->cockpit;
+
+	if (c->site != ENV_SITE_GUNSHIP)
+	{
+		if (c->site == ENV_SITE_OUTSIDE_HIGH)
+		{
+			cp->x = MAX_MAP_X + 5000.0f;
+			cp->z = MID_MAP_Z;
+		}
+		else if (c->site == ENV_SITE_OUTSIDE_LOW)
+		{
+			cp->x = MIN_MAP_X - 5000.0f;
+			cp->z = MID_MAP_Z;
+		}
+		else
+		{
+			cp->x = env_sound_sites[c->site].x;
+			cp->z = env_sound_sites[c->site].z;
+		}
+
+		y = c->alt;
+		cp->y = y;
+		craw->terrain_info.last_elevation = 0.0f;
+		base = (c->cloud == 0) ? ENV_SOUND_CLOUD_BASE : ((c->cloud == 1) ? y : ((c->cloud == 2) ? nextafterf (y, HUGE_VALF) : nextafterf (y, -HUGE_VALF)));
+		cloud_3d_base_height = base;
+		source = get_camera_entity ();
+		source_pos = cp;
+	}
+	else
+	{
+		cloud_3d_base_height = ENV_SOUND_CLOUD_BASE;
+		source = get_gunship_entity ();
+		source_pos = get_local_entity_vec3d_ptr (source, VEC3D_TYPE_POSITION);
+	}
+
+	/* the session: the weather and the wind this case names */
+	if (c->model == 0)
+	{
+		raw->local_weather_model = 0;
+		raw->weather_radius = 0.0f;
+		env_set_vec (&raw->weather_position, 0.0f, 0.0f, 0.0f);
+	}
+	else
+	{
+		raw->local_weather_model = 1;
+		raw->weather_radius = ENV_SOUND_RING_RADIUS;
+		env_set_vec (&raw->weather_position, source_pos->x + c->ring * ENV_SOUND_RING_RADIUS, 0.0f, source_pos->z);
+	}
+
+	raw->weather_mode = (weathermodes) c->cwm;
+	raw->target_weather_mode = (weathermodes) c->twm;
+	raw->weather_mode_transitional_status = c->ts;
+	raw->wind_minimum_speed = c->wmin;
+	raw->wind_maximum_speed = c->wmax;
+	raw->wind_gusting_value = c->gust;
+	env_set_vec (&raw->wind_direction_vector, 0.0f, 0.0f, 1.0f);
+
+	if (c->zone < 0.0f)
+	{
+		raw->wind_effect_radius = 0.0f;
+		env_set_vec (&raw->wind_effect_position, 0.0f, 0.0f, 0.0f);
+	}
+	else
+	{
+		raw->wind_effect_radius = ENV_SOUND_WIND_RADIUS;
+		env_set_vec (&raw->wind_effect_position, source_pos->x + ENV_SOUND_WIND_RADIUS * (1.0f - c->zone), 0.0f, source_pos->z);
+	}
+
+	system_delta_time = c->dt;
+
+	/* the children: the terrain children start at the case's value, the rain and wind children at a sentinel (to show that they are overwritten); any other child is left alone */
+	for (i = 0; i < n; i++)
+	{
+		if (kids[i].is_sound && kids[i].klass >= 1)
+		{
+			set_local_entity_float_value (kids[i].en, FLOAT_TYPE_AMPLIFICATION, (kids[i].klass >= 5) ? c->amp0 : ENV_SOUND_SENTINEL);
+		}
+	}
+
+	env_push ();
+	memcpy (&before_raw, raw, sizeof (before_raw));
+
+	if (env_sound_children (kids, ENV_SOUND_CHILDREN) != n)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-sound kind=original i=%d label=%s site=%d site_found=%d site_sector_x=%d site_sector_z=%d cockpit=%d calls=%d want_alt_w=%08x want_zone_w=%08x gust_w=%08x min_w=%08x max_w=%08x amp0_w=%08x delta_w=%08x"
+		" cloud_mode=%d cloud_base_w=%08x model=%s ring_w=%08x in_cwm=%d in_twm=%d in_ts_w=%08x rng=%d", index, c->label, c->site, (c->site < ENV_SITE_PROBED) ? env_sound_sites[c->site].found : -1,
+		(c->site < ENV_SITE_PROBED) ? env_sound_sites[c->site].sx : -1, (c->site < ENV_SITE_PROBED) ? env_sound_sites[c->site].sz : -1, c->cockpit, c->calls, ENV_WORD (c->alt), ENV_WORD (c->zone), ENV_WORD (c->gust),
+		ENV_WORD (c->wmin), ENV_WORD (c->wmax), ENV_WORD (c->amp0), ENV_WORD (c->dt), c->cloud, ENV_WORD (cloud_3d_base_height), c->model ? "local" : "global", ENV_WORD (c->ring), c->cwm, c->twm, ENV_WORD (c->ts),
+		random_number_seed);
+
+	if (env_sound_echo (text, capacity, used, c->cockpit, source_pos, source) != 0)
+	{
+		return -1;
+	}
+
+	if (env_sound_print_children (text, capacity, used, "children_before", kids, n) != 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("\n");
+
+	rng_first = random_number_seed;
+
+	for (call = 1; call <= c->calls; call++)
+	{
+		update_session_sound_effects (get_session_entity ());
+
+		memcpy (scratch_flags_before, terrain_types_in_sector, sizeof (scratch_flags_before));
+		env_sector_text (scratch_flags_before, flags);
+
+		if (env_sound_children (kids, ENV_SOUND_CHILDREN) != n)
+		{
+			return -1;
+		}
+
+		ENV_EMIT ("env-sound-call i=%d call=%d rng=%d rng_unchanged=%d scratch_flags=%s", index, call, random_number_seed, random_number_seed == rng_first, flags);
+
+		if (env_sound_print_children (text, capacity, used, "children", kids, n) != 0)
+		{
+			return -1;
+		}
+
+		ENV_EMIT ("\n");
+	}
+
+	env_pull ();
+
+	ENV_EMIT ("env-sound-session i=%d session_unchanged_by_the_routine=%d\n", index, memcmp (&before_raw, raw, sizeof (before_raw)) == 0);
+
+	return 0;
+}
+
+static int env_sound_case (int index, char *text, int capacity, int *used)
+{
+	const struct env_sound_case *c;
+	struct env_saved_state saved;
+	struct env_sound_child kids[ENV_SOUND_CHILDREN], original[ENV_SOUND_CHILDREN], after[ENV_SOUND_CHILDREN];
+	struct CAMERA *craw;
+	int scratch_saved[TERRAIN_TYPE_LAST];
+	vec3d camera_saved;
+	float elevation_saved, cloud_saved;
+	int cockpit_saved, n, m, i, rc, children_restored, scratch_restored, camera_restored, cloud_restored, globals_restored;
+	uint64_t before_fp, after_fp;
+
+	env_sound_build ();
+
+	n = get_camera_entity () ? env_sound_children (original, ENV_SOUND_CHILDREN) : -2;
+
+	if (index == 0)
+	{
+		int s;
+
+		ENV_EMIT ("env-sound-plan version=1 cases=%d camera=%d gunship=%d in_cockpit=%d comms_model=%d children=%d complete=%d cloud_base_w=%08x probes=%d probe_limit=%d terrain_loaded=%d sector_x_max=%d sector_z_max=%d"
+			" map_min_x_w=%08x map_max_x_w=%08x map_min_z_w=%08x map_max_z_w=%08x delta_w=%08x terrain_types=%d rain_zero_altitude=180 terrain_zero_altitude=280\n", env_sound_count, get_camera_entity () ? 1 : 0, get_gunship_entity () ? 1 : 0,
+			(int) in_cockpit, (int) get_comms_model (), n, (n > 0) ? env_sound_complete (original, n) : 0, ENV_WORD (cloud_3d_base_height), env_sound_probed, ENV_SOUND_PROBES, terrain_sectors ? 1 : 0, terrain_3d_sector_x_max,
+			terrain_3d_sector_z_max, ENV_WORD (MIN_MAP_X), ENV_WORD (MAX_MAP_X), ENV_WORD (MIN_MAP_Z), ENV_WORD (MAX_MAP_Z), ENV_WORD (get_delta_time ()), (int) TERRAIN_TYPE_LAST);
+
+		for (s = 0; s < ENV_SITE_PROBED; s++)
+		{
+			ENV_EMIT ("env-sound-site site=%d found=%d x_w=%08x z_w=%08x sector_x=%d sector_z=%d\n", s, env_sound_sites[s].found, ENV_WORD (env_sound_sites[s].x), ENV_WORD (env_sound_sites[s].z), env_sound_sites[s].sx,
+				env_sound_sites[s].sz);
+		}
+
+		ENV_EMIT ("env-sound-children count=%d", n);
+
+		if (n >= 0 && env_sound_print_children (text, capacity, used, "order", original, n) != 0)
+		{
+			return -1;
+		}
+
+		ENV_EMIT ("\n");
+		ENV_EMIT ("env-sound-unsupported item=speaker_output_and_the_sound_effect_update reason=the_headless_build_has_no_sound_system_the_children_amplification_is_the_observable\n");
+		ENV_EMIT ("env-sound-unsupported item=terrain_altered_land3_reader_3drain reason=render_code_dormant_in_the_headless_campaign_not_inferred\n");
+		ENV_EMIT ("env-sound-unsupported item=non_ambient_special_effect_children reason=none_exists_at_boot_lightning_strike_sounds_appear_only_after_a_strike\n");
+		ENV_EMIT ("env-sound-unsupported item=cockpit_branch_without_a_gunship reason=the_routine_reads_the_gunship_entity_when_in_cockpit_and_the_dedicated_server_may_hold_none\n");
+
+		return 0;
+	}
+
+	if (index < 1 || index > env_sound_count)
+	{
+		return -1;
+	}
+
+	c = &env_sound_cases[index - 1];
+
+	if (n < 0 || !get_camera_entity ())
+	{
+		ENV_EMIT ("env-sound kind=original i=%d label=%s refused=%s\n", index, c->label, n == -2 ? "no_camera_entity" : "more_special_effect_children_than_the_fixture_table_holds");
+		ENV_EMIT ("env-sound-end i=%d restored=1 nothing_changed=1\n", index);
+
+		return 0;
+	}
+
+	if (!env_sound_complete (original, n))
+	{
+		ENV_EMIT ("env-sound kind=original i=%d label=%s refused=the_session_does_not_hold_each_of_the_ten_ambient_sound_children_exactly_once children=%d\n", index, c->label, n);
+		ENV_EMIT ("env-sound-end i=%d restored=1 nothing_changed=1\n", index);
+
+		return 0;
+	}
+
+	if (c->site < ENV_SITE_PROBED && !env_sound_sites[c->site].found)
+	{
+		ENV_EMIT ("env-sound kind=original i=%d label=%s site=%d refused=no_sector_with_that_surface_found_by_the_bounded_probe probed=%d\n", index, c->label, c->site, env_sound_probed);
+		ENV_EMIT ("env-sound-end i=%d restored=1 nothing_changed=1\n", index);
+
+		return 0;
+	}
+
+	if (c->cockpit && !get_gunship_entity ())
+	{
+		ENV_EMIT ("env-sound kind=original i=%d label=%s site=%d refused=no_gunship_entity_for_the_cockpit_branch\n", index, c->label, c->site);
+		ENV_EMIT ("env-sound-end i=%d restored=1 nothing_changed=1\n", index);
+
+		return 0;
+	}
+
+	if (!env_gust_in_domain (c->gust))
+	{
+		ENV_EMIT ("env-sound kind=original i=%d label=%s refused=gust_outside_0_1\n", index, c->label);
+		ENV_EMIT ("env-sound-end i=%d restored=1 nothing_changed=1\n", index);
+
+		return 0;
+	}
+
+	/* everything the case may touch is saved here and restored below, whatever the body returns */
+	craw = (struct CAMERA *) get_local_entity_data (get_camera_entity ());
+	before_fp = env_state_fingerprint ();
+	env_save_state (&saved);
+	memcpy (scratch_saved, terrain_types_in_sector, sizeof (scratch_saved));
+	camera_saved = *env_camera_position ();
+	elevation_saved = craw->terrain_info.last_elevation;
+	cloud_saved = cloud_3d_base_height;
+	cockpit_saved = in_cockpit;
+	memcpy (kids, original, sizeof (kids));
+
+	rc = env_sound_body (c, index, kids, n, text, capacity, used);
+
+	for (i = 0; i < n; i++)
+	{
+		if (original[i].is_sound)
+		{
+			set_local_entity_float_value (original[i].en, FLOAT_TYPE_AMPLIFICATION, original[i].amp);
+		}
+	}
+
+	memcpy (terrain_types_in_sector, scratch_saved, sizeof (scratch_saved));
+	*env_camera_position () = camera_saved;
+	craw->terrain_info.last_elevation = elevation_saved;
+	cloud_3d_base_height = cloud_saved;
+	in_cockpit = cockpit_saved;
+	env_restore_state (&saved);
+
+	after_fp = env_state_fingerprint ();
+	m = env_sound_children (after, ENV_SOUND_CHILDREN);
+	children_restored = (m == n);
+
+	for (i = 0; children_restored && i < n; i++)
+	{
+		children_restored = after[i].en == original[i].en && after[i].sub_type == original[i].sub_type && float_bits (after[i].amp) == float_bits (original[i].amp);
+	}
+
+	scratch_restored = memcmp (terrain_types_in_sector, scratch_saved, sizeof (scratch_saved)) == 0;
+	camera_restored = memcmp (env_camera_position (), &camera_saved, sizeof (camera_saved)) == 0 && float_bits (craw->terrain_info.last_elevation) == float_bits (elevation_saved);
+	cloud_restored = float_bits (cloud_3d_base_height) == float_bits (cloud_saved);
+	globals_restored = in_cockpit == cockpit_saved;
+
+	if (rc != 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-sound-end i=%d restored=%d fp_before=%016llx fp_after=%016llx children_restored=%d scratch_restored=%d camera_restored=%d cloud_restored=%d in_cockpit_restored=%d\n", index,
+		before_fp == after_fp && children_restored && scratch_restored && camera_restored && cloud_restored && globals_restored, (unsigned long long) before_fp, (unsigned long long) after_fp, children_restored,
+		scratch_restored, camera_restored, cloud_restored, globals_restored);
+
+	return 0;
+}
+
 static int env_case_count (int group)
 {
 	switch (group)
@@ -1308,6 +2001,21 @@ int eech_env_case_run (int group, int index, char *text, int capacity)
 			text[0] = 0;
 			used_value = 0;
 			append (text, capacity, used, "env-case-error reason=sector_case_refused group=10 index=%d\n", index);
+
+			return -1;
+		}
+
+		return 0;
+	}
+
+	if (group == ENV_GROUP_SOUND)
+	{
+		/* explicit only (never part of the default run, the census or the witness set): the case brackets its own save and restore (env_sound_case), whatever its body returns */
+		if (env_sound_case (index, text, capacity, used) != 0)
+		{
+			text[0] = 0;
+			used_value = 0;
+			append (text, capacity, used, "env-case-error reason=sound_case_refused_or_report_did_not_fit group=11 index=%d\n", index);
 
 			return -1;
 		}

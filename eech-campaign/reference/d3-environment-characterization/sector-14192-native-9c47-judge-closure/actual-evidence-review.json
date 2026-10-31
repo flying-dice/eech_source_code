@@ -1,0 +1,244 @@
+{
+  "review_id": "ENV-SECTOR-ACTUAL-9C47-20261031",
+  "reviewer": "Sole independent Codex reviewer; no nested agents",
+  "reviewed_utc": "2026-10-31T13:57:35.7591385Z",
+  "scope": "One new actual-evidence closure pass on the five public sector modes, corrected default three-root conformance and source/binary/script/input provenance. Closed source reviews and original/field/wind/kernel evidence are reused, not repeated. No Task51/D3 or full shipping acceptance.",
+  "identities": {
+    "judge_source": "9c47b972aae4dc6640a09f6d9cc13d5f2de81db0",
+    "native_source": "14192c6e292864e573acc8fd8eed94e94f12ce03",
+    "judge_sha256": "18004d4907ee0aad38152af52385ef6fd1a083722190311aca168dc819fa566a",
+    "copied_driver_sha256": "2c3456f9267ad121c003fc97520551ddc9ab2ff6c704d083a26cfe8f23e114ad",
+    "native_build_info_sha256": "d7ffbfd6911c5ccf0f66f68ca97865d49394c5ae1298ecfb633534e880ee4da2",
+    "native49_payload_hashes_recomputed": true,
+    "native_info_clean_and_env_observer": true,
+    "provenance": "Explicit mixed new9c47judge with unchanged14192native/embeddedLua; equivalence receipt changed paths confined to tests/docs/reference receipts. Driver2c3456f9267ad121c003fc97520551ddc9ab2ff6c704d083a26cfe8f23e114ad and judge18004d4907ee0aad38152af52385ef6fd1a083722190311aca168dc819fa566a match their receipts."
+  },
+  "artifacts": [
+    {
+      "path": "R:\\d3-evidence\\environment-sector-five-modes-controller-9c47b972a-20261031\\receipt.json",
+      "sha256": "76996fd541b8fc1c98d4c8f4dd9e638c11f25655245e10a2681d0a4e939d4bb0"
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-sector-five-modes-controller-9c47b972a-20261031\\actual-Windows-judge-guards.log",
+      "sha256": "c4f05e9174f533e29d2447dfe113388b665ac9de27b4faf2d52b5b064c9ea3a0"
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-sector-five-modes-controller-9c47b972a-20261031\\actual-public-five-mode-test.log",
+      "sha256": "1b24ca70ce885d62fb12e268593bb613a7ff3d9067490e2096f7c7e9fdd187cc"
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-sector-native14192-judge-9c47b972a-equivalence-20261031.json",
+      "sha256": "73e85bab7b68f5e06b4b5d35e36d8bba13b39218d80e991c53c2602baa6abaed"
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-sector-fixed-14192c6e2-comparison-20261031.json",
+      "sha256": "98fd7d9c1b5fe52c858aae5bdee9d0c4b08dee9e6f63ae241a323f93eae67452"
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-sector-05b-Windows-guard-failure-audit-20261031.json",
+      "sha256": "1baf6b7fbc964c4bc3fc5cabd116db8453000bed689b88fd290481be575e9870"
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-sector-judge-9c47b972a-linux-20261031-completion.json",
+      "sha256": "0e6b698e07eff362d8d19ee03f06721b022f002a929f3a8eb087615f79e30a24"
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-sector-judge-9c47b972a-linux-20261031.log",
+      "sha256": "0fcf0f4e12f753d27f1d9bed5a40514b145971d12a48d713569a39de8c4e3f23"
+    }
+  ],
+  "input_artifacts": [
+    {
+      "name": "post-inputs-changed_sector.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "name": "post-inputs-control.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "name": "post-inputs-malformed_sector_flags.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "name": "post-inputs-malformed_sector_returned.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "name": "post-inputs-withheld_sector.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "name": "pre-inputs-changed_sector.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "name": "pre-inputs-control.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "name": "pre-inputs-malformed_sector_flags.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "name": "pre-inputs-malformed_sector_returned.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "name": "pre-inputs-withheld_sector.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    }
+  ],
+  "actual_execution": {
+    "controller_state": "terminal",
+    "controller_completed_utc": "2026-10-31T13:55:04.783309+00:00",
+    "all12_stages_terminal_zero": true,
+    "windows_guard_suite": "15 test functions passed in2.14s, including the no-op child helper; product test printedSKIPPED in this guard invocation. This is bookkeeping, not real authority.",
+    "real_public_test": "Exact named public test passed1/1 in32.87s,14filtered, exit0; output judges all five named modes and does not skip.",
+    "inputs": "Exactly5PRE and5POST stages terminal0; each retained manifest1179files/102239559bytes/combined121a789003b68f9ec4d312f82afafdbb6c22be4a6c71720d66d4aeeaa4259c09 matches the retained Lebanon reference, and all ten logs say inputsIDENTICAL. Native49payloads remain exact on independent readback.",
+    "linux_update": "Receipt terminal0 at13:56:19.073956UTC and log show15functions pass2.04s and both strict phases finish; Root reports fmt0. This is component execution context, not a rerun by the reviewer. Current9c47 campaign CI was still pending at handoff; no current-all-green claim."
+  },
+  "mode_results": [
+    {
+      "mode": "control",
+      "path": "R:\\d3-evidence\\environment-sector-five-modes-9c47b972a-20261031\\control.jsonl",
+      "sha256": "d836818c63a6302c93170947c7a793bea807dffcda06f8dfbf24126def5f3bea",
+      "strict_json_rows": 10,
+      "completed": true,
+      "frames": 30,
+      "frames_wanted": 30,
+      "sector_requests": 30,
+      "altered_sector": 0,
+      "sound_calls": 30,
+      "sound_records": 30,
+      "pairs": 30,
+      "request_rows": 4,
+      "pair_rows": 4,
+      "observer_checked": true,
+      "observer_events": 224,
+      "observer_stored": 224,
+      "observer_read": 224,
+      "observer_next_seq": 224,
+      "observer_dropped": 0,
+      "observer_overflow": 0,
+      "expected_marker": "",
+      "stopped_at_expected_marker": false
+    },
+    {
+      "mode": "changed_sector",
+      "path": "R:\\d3-evidence\\environment-sector-five-modes-9c47b972a-20261031\\changed_sector.jsonl",
+      "sha256": "160fe494f7df9f39e2e5eb5c7699d8553a3965e9428f54c162386c724159ffa3",
+      "strict_json_rows": 10,
+      "completed": true,
+      "frames": 30,
+      "frames_wanted": 30,
+      "sector_requests": 30,
+      "altered_sector": 30,
+      "sound_calls": 30,
+      "sound_records": 30,
+      "pairs": 30,
+      "request_rows": 4,
+      "pair_rows": 4,
+      "observer_checked": true,
+      "observer_events": 224,
+      "observer_stored": 224,
+      "observer_read": 224,
+      "observer_next_seq": 224,
+      "observer_dropped": 0,
+      "observer_overflow": 0,
+      "expected_marker": "",
+      "stopped_at_expected_marker": false
+    },
+    {
+      "mode": "withheld_sector",
+      "path": "R:\\d3-evidence\\environment-sector-five-modes-9c47b972a-20261031\\withheld_sector.jsonl",
+      "sha256": "1133a46bb0dd436c92e5957397ef4115ac796d93bb5edb9127d4a40e7b09dfbc",
+      "strict_json_rows": 3,
+      "completed": false,
+      "frames": 0,
+      "frames_wanted": 30,
+      "sector_requests": 1,
+      "altered_sector": 1,
+      "sound_calls": -1,
+      "sound_records": -1,
+      "pairs": 0,
+      "request_rows": 1,
+      "pair_rows": 0,
+      "observer_checked": false,
+      "observer_events": -1,
+      "observer_stored": -1,
+      "observer_read": -1,
+      "observer_next_seq": -1,
+      "observer_dropped": -1,
+      "observer_overflow": -1,
+      "expected_marker": "sector.callback",
+      "stopped_at_expected_marker": true
+    },
+    {
+      "mode": "malformed_sector_flags",
+      "path": "R:\\d3-evidence\\environment-sector-five-modes-9c47b972a-20261031\\malformed_sector_flags.jsonl",
+      "sha256": "126473c1e78d7eb706d92abe666fd161072b607c7b4902924a90f2d99610d579",
+      "strict_json_rows": 3,
+      "completed": false,
+      "frames": 0,
+      "frames_wanted": 30,
+      "sector_requests": 1,
+      "altered_sector": 1,
+      "sound_calls": -1,
+      "sound_records": -1,
+      "pairs": 0,
+      "request_rows": 1,
+      "pair_rows": 0,
+      "observer_checked": false,
+      "observer_events": -1,
+      "observer_stored": -1,
+      "observer_read": -1,
+      "observer_next_seq": -1,
+      "observer_dropped": -1,
+      "observer_overflow": -1,
+      "expected_marker": "sector.flags",
+      "stopped_at_expected_marker": true
+    },
+    {
+      "mode": "malformed_sector_returned",
+      "path": "R:\\d3-evidence\\environment-sector-five-modes-9c47b972a-20261031\\malformed_sector_returned.jsonl",
+      "sha256": "5cf7138a29c06d2b1787c53612e1c0dbf995a1e66e36cc3170aeb216d8d50f1d",
+      "strict_json_rows": 3,
+      "completed": false,
+      "frames": 0,
+      "frames_wanted": 30,
+      "sector_requests": 1,
+      "altered_sector": 1,
+      "sound_calls": -1,
+      "sound_records": -1,
+      "pairs": 0,
+      "request_rows": 1,
+      "pair_rows": 0,
+      "observer_checked": false,
+      "observer_events": -1,
+      "observer_stored": -1,
+      "observer_read": -1,
+      "observer_next_seq": -1,
+      "observer_dropped": -1,
+      "observer_overflow": -1,
+      "expected_marker": "sector.returned",
+      "stopped_at_expected_marker": true
+    }
+  ],
+  "independently_checked_actual_facts": [
+    "Both healthy modes use Lebanon_retail,seed1,30frames at100ms, matching first position/season questions; all four published request/pair ordinals are1..4. Each authority row counts30requests,30soundcalls/records/pairs and224stored/read/numbered/events with0dropped/overflow and armed1. Both witness windows complete, not a war or campaign-duration completion.",
+    "All four published pairs in each healthy mode have the FNV scratch hash and nonzero count computed from that mode recorded request flags and the same clamped position. Control samples contain2flags andreturned2, with sent=false; changed samples contain6flags andreturned11, with sent=true; every changed sector request is counted altered and the scratch differs from control. No raw flags, map coordinates or geometry are copied into this report.",
+    "Changed return11 versus6flags is a valid alternate-host answer accepted through the real boundary; the observed consumer effect is the scratch hash/count/position. It is not evidence of retail duplicate-transition geometry or of a downstream consumer using the return value.",
+    "All three refusal modes record one matching alteration/request and zero completed frames, then stop at their specific sector.callback/sector.flags/sector.returned markers. They carry observer_checked=false and unavailable observer counters=-1, with no pair rows. These are stopped campaigns, not healthy completions or measured zero observer losses.",
+    "New corrected native14192 default Georgia/Lebanon/Lebanon-repeat controller/native exits all0, all six pre/post stages0 and49payloads preserved. Each95-line complete candidate file was hashed: Georgia0c349fcdc6b82bb5552cf3875d2652038ee596e2edb4178aa1cd5ca8e93eac61 and both Lebanonac7700d86797bf72be7ad0b38fb8c4ef2b94dc46fcebed5131064e16cc86cec6, equal to the already closed b2e original identity. Original files were not re-reviewed or rerun.",
+    "Old05b guard13/14failure and receipt remain preserved; its public test isnull/not started,0PRE/5POST and vacuous ten-check boolean is explicitly superseded by the retained failure audit. The newV2 receipt has actual5PRE+5POST and does not reuse the old boolean as proof."
+  ],
+  "findings": [],
+  "verdict": "No actionable findings in the new actual evidence. It supports bounded host authority over the real sound routine scratch and the three named refusal boundaries, plus unchanged-input default sector conformance, under the stated mixed provenance.",
+  "limitations": [
+    "Only four request/pair rows are retained per healthy mode; the reviewed driver validated the full drained native observer stream and publishes its224event/30record counts. This pass can independently recompute only the four retained pair hashes/counts/positions, not replay an unretained224event stream. The judge itself compares the first record; later scratch content is not promoted to a new full-record claim.",
+    "No sound amplitude, player, renderer, Tacview, whole campaign state/RNG/policy isolation, physical family coverage or full shipping result is observed here. The provider is the alternate host world for the sector operation.",
+    "No new source review, test/build, native experiment, process/Docker change, authentication change, external call or public write was performed. Only this report written. All old failures, originals, partials and live ground runs preserved.",
+    "Whole Task51/D3 remains open: physical effects/time/remaining terrain/spatial/model, full shipping/currentCI and normal merge gates remain Root-owned. D4/D5 unstarted."
+  ]
+}

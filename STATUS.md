@@ -1,3 +1,32 @@
+# D3 sector component gates closed; original ambient preparation (31 October 2026)
+
+Sector native14192 / test-only judge9c47 has independently closed finite authority
+and default95-row conformance gates. Actual Windows15functions pass2.14s, Linux15
+pass2.04s and both strict phases0; separate actual5-mode public test0/32.87s,
+exact5PRE+5POST inputs0/49payloads/copiedLua unchanged. New-source review41a1cfaf
+and actual-evidence review1fa64aff close with no findings. All9hosted jobs at9c47
+succeed, with explicit Wine/bothi686 full-FP and timeout passes. Safe receipts
+are under reference/d3-environment-characterization/sector-14192-native-9c47-judge-closure/.
+Ledger90 preserves prior HTML/all5epicreports. OldfailedFP/timeout attempts remain
+retained with an audit; accepted baselines/tolerances unchanged.
+
+The following NEW original ambient characterization remains unbuilt/unrun;
+Task51/D3 remains OPEN for sound/lightning/time and other required physical services,
+complete shipping40/all8byte identity, current-head review/CI and normal merges.
+
+# D3 original characterization prep — the session's ambient sound routine (31 October 2026, UNBUILT, UNRUN, UNREVIEWED)
+
+EEDCS-51 / EEDCS-21 (D3) from clean pushed `9c47b972a` (kernel `14192c6e2`; sector enumeration host-owned). **Prep only: no production change and no physical move until Root has run and reviewed the
+original results.** `update_session_sound_effects` (`ss_updt.c`, unchanged) still computes the ambient rain, wind and terrain amplification inside the campaign and writes the amplification of the ten ambient
+sound children the campaign attaches at boot. Added (test/fixture only): fixture group 11 (`csrc/eech_env_fixture.c`, feature `env-fixture`, explicit only; 46 cases) that calls the REAL routine on the real
+session, camera, terrain and children with controlled inputs (camera position/cloud base, session weather and wind, frame delta, initial amplification), prints every child's amplification as IEEE words with an
+input echo, compounding multi-call cases, the scratch, the shared seed and the session record, and restores everything; `lua/env-sound-characterization.lua` (boot only); `tests/env_sound_characterization.rs`
+(harness guards on a scripted engine); `docs/d3-environment-sound-routine.md` (source semantics, cases, restoration, unsupported items, commands, handoff). Declared unsupported, not faked: the speaker/render
+of the children, the `3drain.c` reader, non-ambient children (none at boot), and the cockpit branch when the dedicated server holds no gunship (those cases are `refused`). Default behaviour unchanged: the census
+(including its `update_session_sound_effects` unsupported line), the 164-case oracle and groups 0-10 print as before; the only default-path edit is the group range check (last group 11). Reused, not repeated:
+observer/driver 235, group 10, the closed wind/weather evidence, the closed sector work. Whole Task 51/D3 stays OPEN (this routine, lightning effects, time, remaining terrain, spatial/object, model, full shipping,
+current CI, review, normal merges); D4/D5 unstarted; no acceptance claimed.
+
 # D3 Windows judge-guard fixture failure — the hung-child control's process shape (31 October 2026, test-only, UNBUILT)
 
 EEDCS-51 / PR111 on `05b474e88` plus the two-lint test fixes (kept). ACTUAL (Root): the new 05b judge compiled/exported 0 on Windows with the unchanged 14192 native and embedded Lua, then `env_sector_authority.exe` ran 14

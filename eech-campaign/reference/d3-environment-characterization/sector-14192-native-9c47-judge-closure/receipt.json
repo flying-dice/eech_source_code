@@ -1,0 +1,68 @@
+{
+  "native_source": "14192c6e292864e573acc8fd8eed94e94f12ce03",
+  "judge_source": "9c47b972aae4dc6640a09f6d9cc13d5f2de81db0",
+  "files": [
+    {
+      "file": "actual-evidence-review.json",
+      "sha256": "1fa64affc0167601eb463c8d459df6b8ecf23e157f8b683d1813665976d09b96",
+      "bytes": 13473
+    },
+    {
+      "file": "judge-source-review.json",
+      "sha256": "41a1cfaf8913fa41f17330cc54f0f69b2042ae684138e068859f2bb2142e8fae",
+      "bytes": 6149
+    },
+    {
+      "file": "five-mode-summary.json",
+      "sha256": "b9b1e719b22f5ffc9150b97cf7b9eb3920805c4ed60bc5cf9dcb5a5de2aac12c",
+      "bytes": 7948
+    },
+    {
+      "file": "five-mode-receipt.json",
+      "sha256": "76996fd541b8fc1c98d4c8f4dd9e638c11f25655245e10a2681d0a4e939d4bb0",
+      "bytes": 13195
+    },
+    {
+      "file": "judge-native-equivalence.json",
+      "sha256": "73e85bab7b68f5e06b4b5d35e36d8bba13b39218d80e991c53c2602baa6abaed",
+      "bytes": 1388
+    },
+    {
+      "file": "default-three-root-comparison.json",
+      "sha256": "98fd7d9c1b5fe52c858aae5bdee9d0c4b08dee9e6f63ae241a323f93eae67452",
+      "bytes": 1389
+    },
+    {
+      "file": "Linux-judge-strict-completion.json",
+      "sha256": "0e6b698e07eff362d8d19ee03f06721b022f002a929f3a8eb087615f79e30a24",
+      "bytes": 613
+    },
+    {
+      "file": "Windows-judge-build-completion.json",
+      "sha256": "5102e62dfd8bd0b3b127da8d9054a1a6b07ac6260ccbdfda28966e0b7ee12082",
+      "bytes": 585
+    },
+    {
+      "file": "prior-Windows-timeout-failure-audit.json",
+      "sha256": "1baf6b7fbc964c4bc3fc5cabd116db8453000bed689b88fd290481be575e9870",
+      "bytes": 1043
+    },
+    {
+      "file": "current-CI.json",
+      "sha256": "f2c1ad54bb64258602fdc3f24eb6d5a84053d96e45b5fdd60772960efc4d2b0e",
+      "bytes": 1825
+    },
+    {
+      "file": "hosted-full-FP-and-timeout.json",
+      "sha256": "c51f99ea09d66cb085381e651e03186496a88eb9fad70341730985e62fdf9089",
+      "bytes": 1647
+    },
+    {
+      "file": "ledger-v90-preservation.json",
+      "sha256": "9f78fc0539ee86759218545cc6f07ac50cf9efbf1cc8dc9829fb9c5079c9e978",
+      "bytes": 426
+    }
+  ],
+  "scope": "Curated safe receipts/reviews only. No retailpayloads, rawcoordinates, binaries, recordings or observerstreams. Hostsector enumeration/scratchauthority component gates closed; no amplitude/player/render/fullshipping/Task51/D3 acceptance. Windows15functions2.14s; Linux15functions2.04s; public5mode32.87s. All9currentCIgreen. Earlierfailure retained unchanged, vacuousbooleanexplicitlyaudited.",
+  "remaining": "Ambient physicalamplification/lightning/soundexecution/physicaltime +remainingterrain/spatial/modelservices; full40/all8completebytecomparisons/review/currenthead/normalmerges. D4/D5notstarted."
+}

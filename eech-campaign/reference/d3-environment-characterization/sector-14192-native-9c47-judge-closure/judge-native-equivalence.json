@@ -1,0 +1,18 @@
+{
+  "judge_source": "9c47b972aae4dc6640a09f6d9cc13d5f2de81db0",
+  "native_source": "14192c6e292864e573acc8fd8eed94e94f12ce03",
+  "all_production_C_Rust_ABI_providers_and_Lua_unchanged": true,
+  "embedded_driver_sha256": "2c3456f9267ad121c003fc97520551ddc9ab2ff6c704d083a26cfe8f23e114ad",
+  "changed_files": [
+    "STATUS.md",
+    "eech-campaign/crates/eech-world/tests/env_sector_authority.rs",
+    "eech-campaign/crates/eech-world/tests/terrain_sector.rs",
+    "eech-campaign/docs/d3-environment-sector-surface.md",
+    "eech-campaign/reference/d3-environment-characterization/sector-14192-fast-and-Windows/Windows-build-export-completion.json",
+    "eech-campaign/reference/d3-environment-characterization/sector-14192-fast-and-Windows/actual-Windows-kernel.json",
+    "eech-campaign/reference/d3-environment-characterization/sector-14192-fast-and-Windows/actual-Windows-libs.json",
+    "eech-campaign/reference/d3-environment-characterization/sector-14192-fast-and-Windows/receipt.json",
+    "eech-campaign/reference/d3-environment-characterization/sector-14192-fast-and-Windows/source-correction-review.json"
+  ],
+  "scope": "Explicit mixed provenance: corrected frame-coherence/single-child judge and equivalent test-only lint fixes, unchanged14192 native/embeddedLua; no native rebuild or oldpayload overwrite. ActualnewWindows15functions/public5modes pending."
+}
