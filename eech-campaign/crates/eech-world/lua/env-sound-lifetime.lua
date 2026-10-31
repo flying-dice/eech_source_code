@@ -9,6 +9,12 @@
 --   2 client_branch_ages_and_clamps     the same entity; the real client update routine runs at the large delta and then at the small one: the lifetime is clamped, the entity is not killed
 --   3 playback_prerequisites            nothing is created: the facts of the sound database and the sound system, and the explicit statement that the playback-handle branches are NOT exercised
 --
+--   4 to 10  CONTROLLED-DATA cases (csrc/eech_env_fixture.c env_snd_data_case), distinct from the unchanged retail baseline whose sample sizes measured 0: the sample DESCRIPTOR numbers are set to named controlled values
+--            (restored before any row is printed), the REAL constructor builds the entity, and the REAL update routines of the function table run while it is live and in the update list:
+--            4 data_positive_server_ages_and_expires  5 data_positive_client_clamps  6 data_sequence_accumulates  7 data_caps_nonmusic_and_music
+--            8 data_looping_server_and_client_not_aged  9 data_invalid_server_countdown_and_unlink  10 data_invalid_client_countdown_and_unlink (made invalid by the REAL pause function)
+--            The driver checks shape, restoration, calls, tracked entities and a chain that belongs to the routine; every lifetime, clamp, cap and unlink is OBSERVED, never expected. No handle exists.
+--
 -- No playback handle is ever created or faked: the branches that need one (a handle that is playing, or is not) are reported as UNSUPPORTED, never as a pass. A process that is not the server, or has no session, REFUSES
 -- cases 1 and 2 (the fixture says why) and that refusal is reported here as a refusal. No audible, network or player-side delivery is exercised or claimed.
 -- The lifetime is whatever the loaded sample data gives and is never lengthened for the fixture: the server routine may kill the entity at its FIRST call, and then the fixture skips the second call (it would read freed
@@ -28,9 +34,12 @@ local root = args.root
 if type (root) ~= "string" or root == "" then refuse ("root=<installation root> is required") end
 local out_path = args.out
 if type (out_path) ~= "string" or out_path == "" then refuse ("out=<JSON Lines path> is required") end
-local LABELS = { "server_branch_ages_then_expires", "client_branch_ages_and_clamps", "playback_prerequisites" }
+-- cases 1 to 3 are the primitive controls; 4 to 10 are the CONTROLLED-DATA cases (controlled sample descriptors, the real constructor and the real update routines)
+local PRIMITIVE_CASES = 3
+local LABELS = { "server_branch_ages_then_expires", "client_branch_ages_and_clamps", "playback_prerequisites", "data_positive_server_ages_and_expires", "data_positive_client_clamps", "data_sequence_accumulates",
+	"data_caps_nonmusic_and_music", "data_looping_server_and_client_not_aged", "data_invalid_server_countdown_and_unlink", "data_invalid_client_countdown_and_unlink" }
 local case = tonumber (args.case)
-if not case or case ~= math.floor (case) or LABELS [case] == nil then refuse ("case must be an integer from 1 to 3, got '" .. tostring (args.case) .. "'") end
+if not case or case ~= math.floor (case) or LABELS [case] == nil then refuse ("case must be an integer from 1 to 10, got '" .. tostring (args.case) .. "'") end
 local scenarios = {
 	lebanon_retail = { map = "..\\common\\maps\\map5", campaign = "LEBANON.CHC" },
 	georgia_retail = { map = "..\\common\\maps\\map3", campaign = "GEORGIA.CHC" },
@@ -156,7 +165,7 @@ if #plan ~= 5 or plan [1].event ~= "env-snd-plan" or plan [2].event ~= "env-snd-
 	hard ("the plan is not one plan row, one facts row, two unsupported rows and one report (a process that has run no frame holds no record)")
 end
 check (plan [1], "version=1 cases:n process_isolated=required", "the plan")
-if plan [1].map.cases ~= tostring (#LABELS) then hard ("the plan has " .. plan [1].map.cases .. " cases, not " .. #LABELS) end
+if plan [1].map.cases ~= tostring (PRIMITIVE_CASES) then hard ("the plan has " .. plan [1].map.cases .. " cases, not " .. PRIMITIVE_CASES) end
 check (plan [2], FACTS, "the plan")
 if plan [2].map.tag ~= "plan" then hard ("the plan's facts row is tagged '" .. plan [2].map.tag .. "'") end
 check (plan [3], "item:s reason:s", "the plan")
@@ -188,6 +197,126 @@ if case == 3 then
 	if #rows ~= 5 or rows [3].event ~= "env-snd-unsupported" or rows [4].event ~= "env-snd-unsupported" then hard ("case 3 is not a head, the facts, two unsupported rows and an end row") end
 	check (rows [3], "item:s reason:s", "the control")
 	check (rows [4], "item:s reason:s", "the control")
+elseif case >= 4 then
+	-- THE CONTROLLED-DATA CASES (csrc/eech_env_fixture.c env_snd_data_case): the sample descriptor numbers are set to named controlled values, the REAL constructor builds the entity or entities and the REAL update
+	-- routines of the function table are called while the entity is live and in the update list. The driver checks the SHAPE and only the bookkeeping that makes the evidence complete: the three unsupported rows, the
+	-- restoration flags, the calls the states and the probe both show, the entities the probe tracked and followed, a chain of points that belongs to the routine, a kill that matches a freed slot. It does NOT compute
+	-- or expect any lifetime, countdown, clamp, cap or unlink: those words are what the original did.
+	for at = 3, 5 do
+		if rows [at].event ~= "env-snd-unsupported" then hard ("the controlled-data case does not give its three unsupported rows after the facts: " .. rows [at].raw) end
+		check (rows [at], "item:s reason:s", "the control")
+	end
+	if refused then
+		check (last, "i:n refused:s changed=0 process_isolated=required", "the control")
+		if #rows ~= 6 then hard ("a refused controlled-data case has rows besides its head, its facts, its three unsupported rows and its end: " .. #rows) end
+		local reason = last.map.refused
+		if reason ~= "the_process_is_not_the_server_so_the_server_kill_cannot_be_observed" and reason ~= "there_is_no_session_entity_to_parent_the_sound_effect" and reason ~= "there_is_no_free_entity_slot_for_the_real_constructor" then
+			hard ("the control is refused for a reason the fixture does not give: " .. reason)
+		end
+	else
+		check (last, "i:n changed=1 entities:n calls:n skipped:n descriptor_restored:b delta_restored:b process_isolated=required", "the control")
+		if last.map.descriptor_restored ~= "1" then hard ("FIXTURE DEFECT: the sample descriptors were not put back after the control: " .. last.raw) end
+		if last.map.delta_restored ~= "1" then hard ("FIXTURE DEFECT: the frame delta was not put back after the control: " .. last.raw) end
+		local entities, calls = tonumber (last.map.entities), tonumber (last.map.calls)
+		local at = 6
+		for k = 1, 2 do
+			local row = rows [at]
+			if row == nil or row.event ~= "env-sound-data-input" then hard ("the controlled-data case does not give descriptor row " .. k) end
+			check (row, "tag=descriptor sample:i controlled_rate:i controlled_size:i retail_rate:i retail_size:i original_rate:i", "the control")
+			at = at + 1
+		end
+		if rows [at] == nil or rows [at].event ~= "env-sound-data-input" then hard ("the controlled-data case does not give its deltas row") end
+		check (rows [at], "tag=deltas calls:n delta_w:w", "the control")
+		at = at + 1
+		if case >= 9 then
+			local pause = rows [at]
+			if pause == nil or pause.event ~= "env-sound-pause" then hard ("an invalid-effect case does not give the row of the real pause function") end
+			check (pause, "sub:i delay_w:w children_sound:n children_of_type:n returned:i", "the control")
+			-- honest accounting of what the real pause function can touch: in a fresh control process only the control's own entity
+			if pause.map.children_sound ~= "1" or pause.map.children_of_type ~= "1" or pause.map.returned ~= "1" then
+				hard ("the real pause function could touch children other than the control's own entity (sound children " .. pause.map.children_sound .. ", of the paused type " .. pause.map.children_of_type .. ", paused " .. pause.map.returned .. "): the control is not isolated")
+			end
+			at = at + 1
+		end
+		local states, call_states = {}, {}
+		while rows [at] ~= nil and rows [at].event == "env-sound-state" do
+			local s = rows [at]
+			check (s, "ent:n tag:n etype:i data:b sub:i valid:b looping:b member:b handle:b life_w:w vlife_w:w", "the control")
+			local ent = tonumber (s.map.ent)
+			if ent >= entities then hard ("a state row is of entity " .. ent .. " where the control made " .. entities .. ": " .. s.raw) end
+			states [ent] = states [ent] or {}
+			local list = states [ent]
+			if #list == 0 then
+				if s.map.tag ~= "0" then hard ("the first state row of entity " .. ent .. " is not its creation state: " .. s.raw) end
+				-- the normal constructor flags of the case (inputs, not outcomes)
+				if s.map.valid ~= "1" or s.map.looping ~= (case == 8 and "1" or "0") then hard ("FIXTURE DEFECT: the created entity " .. ent .. " has valid " .. s.map.valid .. " looping " .. s.map.looping .. ": " .. s.raw) end
+			else
+				local prev = list [#list]
+				if prev.map.data == "0" then hard ("a state row follows the free slot of entity " .. ent .. ": " .. s.raw) end
+				local want = (prev.map.tag == "0" and case >= 9) and "99" or tostring (tonumber (prev.map.tag == "99" and 0 or prev.map.tag) + 1)
+				if s.map.tag ~= want then hard ("the state rows of entity " .. ent .. " go from tag " .. prev.map.tag .. " to " .. s.map.tag .. ", not " .. want) end
+				if s.map.tag ~= "99" then call_states [ent] = (call_states [ent] or 0) + 1 end
+			end
+			if s.map.data == "0" and s.map.etype ~= "0" then hard ("a state row has no data but is still entity type " .. s.map.etype .. ": " .. s.raw) end
+			list [#list + 1] = s
+			at = at + 1
+		end
+		local total = 0
+		for ent = 0, entities - 1 do
+			if states [ent] == nil then hard ("entity " .. ent .. " has no state rows") end
+			total = total + (call_states [ent] or 0)
+		end
+		if total ~= calls then hard ("the control says " .. calls .. " calls but its state rows show " .. total) end
+		local report = rows [at]
+		if report == nil or report.event ~= "env-snd-report" then hard ("the controlled-data case does not give the probe's report after its states") end
+		check (report, REPORT, "the control")
+		if report.map.armed ~= "1" then hard ("the sound entity probe says it is not armed: " .. report.raw) end
+		if report.map.dropped ~= "0" or report.map.overflow ~= "0" then hard ("the sound entity probe dropped " .. report.map.dropped .. " records: the record is incomplete") end
+		if report.map.untracked ~= "0" then hard ("the probe lost track of " .. report.map.untracked .. " creations") end
+		if tonumber (report.map.creations) ~= entities or tonumber (report.map.tracked) ~= entities or report.map.open ~= "0" or report.map.track_all ~= "0" then
+			hard ("the control built " .. entities .. " entities and switched tracking off again, but the probe says otherwise: " .. report.raw)
+		end
+		if tonumber (report.map.updates) ~= calls then hard ("the probe counted " .. report.map.updates .. " updates but the control made " .. calls .. " calls") end
+		at = at + 1
+		local chains, records = {}, {}
+		for n = at, #rows - 1 do
+			local r = rows [n]
+			if r.event ~= "env-snd" then hard ("a row between the probe's report and the end row is not a probe record: " .. r.raw) end
+			check (r, RECORD, "the control")
+			local seq, tracked, point = tonumber (r.map.seq), tonumber (r.map.tracked), tonumber (r.map.point)
+			if seq ~= #records then hard ("the probe record " .. #records .. " has seq " .. r.map.seq) end
+			records [#records + 1] = r
+			if tracked < 0 or tracked >= entities or point > 7 then hard ("the probe record " .. r.map.seq .. " is of an untracked entity or an unknown point: " .. r.raw) end
+			local chain = chains [tracked]
+			if chain == nil then
+				if point ~= 0 then hard ("the first probe record of tracked entity " .. tracked .. " is not its creation: " .. r.raw) end
+				chain = { entity = r.map.entity, enters = 0, kills = 0, last = 0 }
+				chains [tracked] = chain
+			else
+				if r.map.entity ~= chain.entity then hard ("the probe record " .. r.map.seq .. " is of another entity than tracked entity " .. tracked .. ": " .. r.raw) end
+				if point == 0 then hard ("the probe record " .. r.map.seq .. " creates tracked entity " .. tracked .. " twice") end
+				-- the routine of the entity: the server's points are 1 to 5 and the client's 6 and 7 (case 8 has one entity under each)
+				local server = (case == 4 or case == 9) or (case == 8 and tracked == 0)
+				if (server and (point == 6 or point == 7)) or (not server and point >= 1 and point <= 5) then hard ("the probe record " .. r.map.seq .. " shows a point of the other routine for tracked entity " .. tracked .. ": " .. r.raw) end
+				if point == 1 or point == 6 then chain.enters = chain.enters + 1 end
+				if point == 5 then chain.kills = chain.kills + 1 end
+				chain.last = point
+			end
+		end
+		if tonumber (report.map.stored) ~= #records then hard ("the probe stored " .. report.map.stored .. " records but the control holds " .. #records) end
+		for ent = 0, entities - 1 do
+			local chain = chains [ent]
+			if chain == nil then hard ("tracked entity " .. ent .. " has no creation record") end
+			-- the calls of the entity the states show are the entries the probe stored (the control calls at most three times, so every entry is stored), and a kill is a freed slot
+			if chain.enters ~= (call_states [ent] or 0) then hard ("entity " .. ent .. " has " .. (call_states [ent] or 0) .. " call states but " .. chain.enters .. " stored entries") end
+			local final = states [ent] [#states [ent]]
+			if (chain.kills == 1) ~= (final.map.data == "0") then hard ("entity " .. ent .. ": the probe's kill record and the final slot state disagree: " .. final.raw) end
+			if chain.last == 2 or chain.last == 3 then hard ("tracked entity " .. ent .. " ends at an expiry with no kill record after it") end
+			if chain.last == 6 then hard ("tracked entity " .. ent .. " ends inside the client routine: its exit record is missing") end
+		end
+		chain_summary = { records = #records, updates = calls, kills = 0, expiry = "", calls = calls, entities = entities, skipped = tonumber (last.map.skipped) }
+		for ent = 0, entities - 1 do chain_summary.kills = chain_summary.kills + chains [ent].kills end
+	end
 elseif refused then
 	check (last, "i:n refused:s changed=0 process_isolated=required", "the control")
 	if #rows ~= 3 then hard ("a refused control has rows besides its head, its facts and its end: " .. #rows) end
@@ -285,6 +414,8 @@ if chain_summary ~= nil then
 	result.kills = chain_summary.kills
 	result.expiry = chain_summary.expiry
 	result.calls = chain_summary.calls
+	result.entities = chain_summary.entities
+	result.skipped = chain_summary.skipped
 	result.second_skipped = last.map.second_skipped
 	result.etype_after = last.map.etype_after
 	result.data_after = last.map.data_after

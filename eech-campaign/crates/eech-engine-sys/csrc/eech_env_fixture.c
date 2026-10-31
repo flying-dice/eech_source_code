@@ -2558,6 +2558,315 @@ static int env_snd_unsupported (char *text, int capacity, int *used)
 	return 0;
 }
 
+
+/*
+ * GROUP 14, indices 4..10: CONTROLLED-DATA cases (explicit only; observer build only; each PROCESS-ISOLATED, one per fresh process). TEST-ONLY, SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED.
+ * They are NOT the retail baseline: the retail descriptors measured size 0 (every natural sound entity started with lifetime 0 and expired with no handle on its first update), which covers none of the
+ * positive, sequence, cap, looping or invalid-effect domains of the ORIGINAL lifetime code. Each case therefore sets the sample DESCRIPTOR numbers (application_sound_effects[].rate and .size, plain ints; no audio
+ * is allocated) to named controlled values, builds the entity or entities with the REAL constructor and its normal flags, and calls the REAL compiled update routine of the entity function table, only while the
+ * entity is a live sound effect that is still a member of the update list (the condition under which the original update loop calls it at all; an invalid entity that has been unlinked is not called again).
+ * The descriptor numbers, the frame delta and the tracking switch are restored before anything is printed, so no return path leaves them changed. Every number printed is read from the stored fields by
+ * memcpy (no float is loaded by value); the end state of each call is read from the entity slot only while the slot is still a sound effect. Nothing here computes a lifetime: the rows are what the original did.
+ *
+ *   4 data_positive_server_ages_and_expires     lightning descriptor rate 4 size 20; server routine, three calls of delta 2.0
+ *   5 data_positive_client_clamps               the same entity data; client routine, three calls of delta 2.0
+ *   6 data_sequence_accumulates                 a two-sample sequence (rate 4 size 6, rate 2 size 5); no update
+ *   7 data_caps_nonmusic_and_music              rate 1 size 400 for an ordinary and for a MUSIC sound; no update (the original cap is 40 s and 300 s)
+ *   8 data_looping_server_and_client_not_aged   two LOOPING entities, one under each routine, three calls of delta 2.0 each
+ *   9 data_invalid_server_countdown_and_unlink  a valid entity made invalid by the REAL pause_local_entity_sound_type (delay 1.5), server routine, three calls of delta 1.0
+ *  10 data_invalid_client_countdown_and_unlink  the same under the client routine
+ * The children the real pause function can touch are counted and printed (the session's sound effects, and those of the paused sub type): in a fresh control process they are exactly the control's own entity.
+ * Nothing creates or fakes a playback handle: the branches that need one stay unsupported, with the follow-up printed.
+ */
+
+#define ENV_SND_DATA_FIRST 4
+#define ENV_SND_DATA_LAST 10
+#define ENV_SND_SNAPS 24
+
+struct env_snd_snap
+{
+	int ent, tag, etype, data, sub, valid, looping, member, handle;
+	uint32_t life, vlife;
+};
+
+static void env_snd_snap_take (struct env_snd_snap *s, int ent, int tag, entity *en)
+{
+	sound_effect *raw;
+
+	memset (s, 0, sizeof (*s));
+
+	s->ent = ent;
+	s->tag = tag;
+	s->etype = (int) get_local_entity_type (en);
+	s->data = get_local_entity_data (en) != NULL;
+
+	/* the slot is read further only while it is still a sound effect with data: a killed entity's data is freed */
+	if (s->etype == ENTITY_TYPE_SOUND_EFFECT && s->data)
+	{
+		raw = (sound_effect *) get_local_entity_data (en);
+
+		s->sub = (int) raw->eff.sub_type;
+		s->valid = (int) raw->valid_sound_effect;
+		s->looping = (int) raw->looping;
+		s->member = raw->eff.update_link.parent != NULL;
+		s->handle = raw->sound_effect_data != NULL;
+
+		memcpy (&s->life, &raw->effect_lifetime, sizeof (s->life));
+		memcpy (&s->vlife, &raw->valid_effect_lifetime, sizeof (s->vlife));
+	}
+}
+
+static entity *env_snd_data_make (entity_sub_types sub, int looping, int count, sound_sample_indices *samples)
+{
+	return create_local_sound_effect_entity (ENTITY_INDEX_DONT_CARE, get_session_entity (), ENTITY_SIDE_NEUTRAL, sub, SOUND_CHANNEL_SOUND_EFFECT, SOUND_LOCALITY_ALL, NULL, 1.0f, 1.0f, TRUE, looping, count, samples);
+}
+
+/* the real routine of the function table, called while the entity is a live sound effect and a member of the update list; returns the calls made. Snapshots go to snaps[*n]. */
+static int env_snd_data_calls (struct env_snd_snap *snaps, int *n, int ent, entity *en, int server, float delta, int calls)
+{
+	void (*update) (entity *en) = fn_update_client_server_entity[ENTITY_TYPE_SOUND_EFFECT][server ? COMMS_MODEL_SERVER : COMMS_MODEL_CLIENT];
+	int k, made = 0;
+
+	for (k = 1; k <= calls; k++)
+	{
+		if (get_local_entity_type (en) != ENTITY_TYPE_SOUND_EFFECT || get_local_entity_data (en) == NULL || ((sound_effect *) get_local_entity_data (en))->eff.update_link.parent == NULL)
+		{
+			break;
+		}
+
+		system_delta_time = delta;
+		update (en);
+		made++;
+
+		env_snd_snap_take (&snaps[(*n)++], ent, k, en);
+	}
+
+	return made;
+}
+
+static int env_snd_data_case (int index, char *text, int capacity, int *used)
+{
+	static const char *const names[ENV_SND_DATA_LAST - ENV_SND_DATA_FIRST + 1] = {
+		"data_positive_server_ages_and_expires", "data_positive_client_clamps", "data_sequence_accumulates", "data_caps_nonmusic_and_music", "data_looping_server_and_client_not_aged",
+		"data_invalid_server_countdown_and_unlink", "data_invalid_client_countdown_and_unlink"
+	};
+	sound_effect_information *lightning = &application_sound_effects[SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING];
+	sound_effect_information *thunder = &application_sound_effects[SOUND_SAMPLE_INDEX_AMBIENT_THUNDER];
+	sound_sample_indices one = SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING;
+	sound_sample_indices two[2] = { SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING, SOUND_SAMPLE_INDEX_AMBIENT_THUNDER };
+	struct env_snd_snap snaps[ENV_SND_SNAPS];
+	entity *a = NULL, *b = NULL, *parent;
+	int saved_rate[2], saved_size[2], retail_rate[2], retail_size[2];
+	int n = 0, calls = 0, entities = 0, skipped = 0, paused = -1, children_sound = -1, children_type = -1, i;
+	int ctl_calls = 0, server = 1, descriptor_restored, delta_restored, planned, ctl_rate[2], ctl_size[2];
+	float saved_delta = system_delta_time, delta = 0.0f, delay = 0.0f;
+	entity_sub_types pause_sub = ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING1;
+	const char *refusal = NULL;
+	entity *child;
+
+	ENV_EMIT ("env-sound kind=control i=%d label=%s comms=%d\n", index, names[index - ENV_SND_DATA_FIRST], (int) get_comms_model ());
+
+	if (env_snd_facts (text, capacity, used, "control") != 0 || env_snd_unsupported (text, capacity, used) != 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-snd-unsupported item=playing_or_idle_handle_after_expiry reason=needs_a_real_sound_system_device_and_the_play_path_no_handle_is_created_or_faked_follow_up_is_a_device_control_with_a_playing_and_an_idle_handle\n");
+
+	if (get_comms_model () != COMMS_MODEL_SERVER)
+	{
+		refusal = "the_process_is_not_the_server_so_the_server_kill_cannot_be_observed";
+	}
+	else if (!get_session_entity ())
+	{
+		refusal = "there_is_no_session_entity_to_parent_the_sound_effect";
+	}
+	else if (get_next_free_entity_index () == ENTITY_INDEX_DONT_CARE)
+	{
+		refusal = "there_is_no_free_entity_slot_for_the_real_constructor";
+	}
+
+	if (refusal)
+	{
+		ENV_EMIT ("env-sound-end i=%d refused=%s changed=0 process_isolated=required\n", index, refusal);
+
+		return 0;
+	}
+
+	parent = get_session_entity ();
+
+	/* the controlled data: the descriptors are restored below, before any row is printed */
+	saved_rate[0] = retail_rate[0] = lightning->rate;
+	saved_size[0] = retail_size[0] = lightning->size;
+	saved_rate[1] = retail_rate[1] = thunder->rate;
+	saved_size[1] = retail_size[1] = thunder->size;
+
+	switch (index)
+	{
+		case 4:
+		case 5:
+		{
+			lightning->rate = 4;
+			lightning->size = 20;
+			server = index == 4;
+			delta = 2.0f;
+			ctl_calls = 3;
+			break;
+		}
+		case 6:
+		{
+			lightning->rate = 4;
+			lightning->size = 6;
+			thunder->rate = 2;
+			thunder->size = 5;
+			break;
+		}
+		case 7:
+		{
+			lightning->rate = 1;
+			lightning->size = 400;
+			break;
+		}
+		case 8:
+		{
+			lightning->rate = 4;
+			lightning->size = 20;
+			delta = 2.0f;
+			ctl_calls = 3;
+			break;
+		}
+		default:
+		{
+			lightning->rate = 4;
+			lightning->size = 20;
+			server = index == 9;
+			delta = 1.0f;
+			delay = 1.5f;
+			ctl_calls = 3;
+			break;
+		}
+	}
+
+	eech_envobs_sound_track (1);
+
+	switch (index)
+	{
+		case 4:
+		case 5:
+		{
+			a = env_snd_data_make (ENTITY_SUB_TYPE_EFFECT_SOUND_MISC, FALSE, 1, &one);
+			env_snd_snap_take (&snaps[n++], 0, 0, a);
+			calls += env_snd_data_calls (snaps, &n, 0, a, server, delta, ctl_calls);
+			entities = 1;
+			break;
+		}
+		case 6:
+		{
+			a = env_snd_data_make (ENTITY_SUB_TYPE_EFFECT_SOUND_MISC, FALSE, 2, two);
+			env_snd_snap_take (&snaps[n++], 0, 0, a);
+			entities = 1;
+			break;
+		}
+		case 7:
+		{
+			a = env_snd_data_make (ENTITY_SUB_TYPE_EFFECT_SOUND_MISC, FALSE, 1, &one);
+			b = env_snd_data_make (ENTITY_SUB_TYPE_EFFECT_SOUND_MUSIC, FALSE, 1, &one);
+			env_snd_snap_take (&snaps[n++], 0, 0, a);
+			env_snd_snap_take (&snaps[n++], 1, 0, b);
+			entities = 2;
+			break;
+		}
+		case 8:
+		{
+			a = env_snd_data_make (ENTITY_SUB_TYPE_EFFECT_SOUND_MISC, TRUE, 1, &one);
+			b = env_snd_data_make (ENTITY_SUB_TYPE_EFFECT_SOUND_MISC, TRUE, 1, &one);
+			env_snd_snap_take (&snaps[n++], 0, 0, a);
+			env_snd_snap_take (&snaps[n++], 1, 0, b);
+			calls += env_snd_data_calls (snaps, &n, 0, a, 1, delta, ctl_calls);
+			calls += env_snd_data_calls (snaps, &n, 1, b, 0, delta, ctl_calls);
+			entities = 2;
+			break;
+		}
+		default:
+		{
+			a = env_snd_data_make (pause_sub, FALSE, 1, &one);
+			env_snd_snap_take (&snaps[n++], 0, 0, a);
+
+			/* the real pause function walks the session's special-effect children; what it can touch is counted first */
+			children_sound = 0;
+			children_type = 0;
+			for (child = get_local_entity_first_child (parent, LIST_TYPE_SPECIAL_EFFECT); child; child = get_local_entity_child_succ (child, LIST_TYPE_SPECIAL_EFFECT))
+			{
+				if (get_local_entity_type (child) == ENTITY_TYPE_SOUND_EFFECT)
+				{
+					children_sound++;
+
+					if (((sound_effect *) get_local_entity_data (child))->eff.sub_type == pause_sub)
+					{
+						children_type++;
+					}
+				}
+			}
+
+			paused = pause_local_entity_sound_type (parent, pause_sub, delay);
+			env_snd_snap_take (&snaps[n++], 0, 99, a);
+			calls += env_snd_data_calls (snaps, &n, 0, a, server, delta, ctl_calls);
+			entities = 1;
+			break;
+		}
+	}
+
+	planned = (index == 8 ? 2 : 1) * ctl_calls;
+	skipped = planned - calls;
+	ctl_rate[0] = lightning->rate;
+	ctl_size[0] = lightning->size;
+	ctl_rate[1] = thunder->rate;
+	ctl_size[1] = thunder->size;
+
+	eech_envobs_sound_track (0);
+
+	system_delta_time = saved_delta;
+	delta_restored = system_delta_time == saved_delta;
+
+	lightning->rate = saved_rate[0];
+	lightning->size = saved_size[0];
+	thunder->rate = saved_rate[1];
+	thunder->size = saved_size[1];
+	descriptor_restored = lightning->rate == retail_rate[0] && lightning->size == retail_size[0] && thunder->rate == retail_rate[1] && thunder->size == retail_size[1];
+
+	/* nothing below changes the process: only rows are written */
+	for (i = 0; i < 2; i++)
+	{
+		sound_effect_information *d = i ? thunder : lightning;
+		ENV_EMIT ("env-sound-data-input tag=descriptor sample=%d controlled_rate=%d controlled_size=%d retail_rate=%d retail_size=%d original_rate=%d\n", i ? (int) SOUND_SAMPLE_INDEX_AMBIENT_THUNDER : (int) SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING,
+			ctl_rate[i], ctl_size[i], retail_rate[i], retail_size[i], d->original_rate);
+	}
+
+	ENV_EMIT ("env-sound-data-input tag=deltas calls=%d delta_w=%08x\n", ctl_calls, ENV_WORD (delta));
+
+	if (index >= 9)
+	{
+		ENV_EMIT ("env-sound-pause sub=%d delay_w=%08x children_sound=%d children_of_type=%d returned=%d\n", (int) pause_sub, ENV_WORD (delay), children_sound, children_type, paused);
+	}
+
+	for (i = 0; i < n; i++)
+	{
+		const struct env_snd_snap *s = &snaps[i];
+
+		ENV_EMIT ("env-sound-state ent=%d tag=%d etype=%d data=%d sub=%d valid=%d looping=%d member=%d handle=%d life_w=%08x vlife_w=%08x\n", s->ent, s->tag, s->etype, s->data, s->sub, s->valid, s->looping, s->member,
+			s->handle, s->life, s->vlife);
+	}
+
+	if (eech_envobs_sound_report (text, capacity, used) != 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-sound-end i=%d changed=1 entities=%d calls=%d skipped=%d descriptor_restored=%d delta_restored=%d process_isolated=required\n", index, entities, calls, skipped, descriptor_restored, delta_restored);
+
+	return 0;
+}
+
 static int env_snd_case (int index, char *text, int capacity, int *used)
 {
 	static const char *const names[ENV_SND_CASES] = { "server_branch_ages_then_expires", "client_branch_ages_and_clamps", "playback_prerequisites" };
@@ -2579,6 +2888,11 @@ static int env_snd_case (int index, char *text, int capacity, int *used)
 		}
 
 		return eech_envobs_sound_report (text, capacity, used);
+	}
+
+	if (index > ENV_SND_CASES && index <= ENV_SND_DATA_LAST)
+	{
+		return env_snd_data_case (index, text, capacity, used);
 	}
 
 	if (index < 1 || index > ENV_SND_CASES)

@@ -90,6 +90,50 @@ positive) and stays accepted (`sound_long`), as do alive lower bounds and one-up
 constructor leaves none at creation; once a record shows a handle it stays until the kill; an expiry sees the handle of the entry of its own update. The accepted positive form (`sound_playing`) is the complete
 consecutive journal 3 to 8 with the handle from update 3, in frames inside the run (every record is in a frame the probe saw begin, which must equal the observer stream's frame_begin count); its last counter 8 is EXACT while alive and the totals say 8 per entity and 16 in all, with no unseen update 9. A total above the exact counters (a hidden trailing update) or a record beyond the run's frames is refused. What the lifetime or the playing time is, and whether the headless process ever gets a handle, is not predicted.
 
+## Controlled-data lifetime domains (source prepared 31 October 2026; UNBUILT natively, UNRUN, UNREVIEWED)
+
+**Why.** The measured checkpoint above covers ONLY what the retail headless descriptors gave: every sample size measured 0, so every natural sound entity started with lifetime 0 and expired with no handle on its first update. That
+says nothing about the positive-lifetime aging, the sequence sum, the 40 s / 300 s cap, looping, or the invalid-effect countdown and unlink of the ORIGINAL code, all of which are active physical branches that a lifetime
+extraction would otherwise have to leave behind silently. Nothing from the zero-size runs is claimed for them, and the existing probe, drivers and the three original controls are not rerun for this.
+
+**What is added (test-only, observer build only; no production sound code, hook body or probe store changed).** `csrc/eech_env_fixture.c` group 14 indices 4 to 10, and the same driver `lua/env-sound-lifetime.lua`
+(`case=4..10`). Index 0 (the plan and the natural report) and cases 1 to 3 are unchanged, so the natural run and the primitive controls stay comparable (the plan still says `cases=3`). Each case is PROCESS-ISOLATED, named as a
+CONTROLLED-DATA case and distinct from the retail baseline. It sets the sample DESCRIPTOR numbers (`application_sound_effects[].rate` and `.size`, plain ints: no audio is allocated and no handle exists) to named
+controlled values, builds the entity with the REAL constructor and its normal flags, and calls the REAL compiled update routine of the entity function table, only while the entity is a live sound effect AND a member of
+the update list (the condition under which the original update loop calls it at all; an unlinked invalid entity is not called again). The descriptors, the frame delta and the tracking switch are restored BEFORE any row is
+printed, so no return path leaves them changed (`descriptor_restored`, `delta_restored` in the end row). Nothing computes a lifetime: every word is read from the stored fields by `memcpy` (no float is loaded by value) and is
+what the original did; the end state after each call is read from the entity slot only while it is still a sound effect with data (a killed entity's data is freed). The existing probe store supplies the creation, entry,
+expiry and kill records; the fixture adds only the missing end-of-call state rows (`env-sound-state`) and, for the invalid cases, the pause accounting row. Constructor sample order, pitch and the shared RNG are untouched.
+
+| index | label | controlled data | what is run |
+|---|---|---|---|
+| 4 | `data_positive_server_ages_and_expires` | lightning rate 4 size 20 | server routine, 3 calls of delta 2.0 |
+| 5 | `data_positive_client_clamps` | the same | client routine, 3 calls of delta 2.0 |
+| 6 | `data_sequence_accumulates` | two samples (rate 4 size 6; rate 2 size 5) | construction only |
+| 7 | `data_caps_nonmusic_and_music` | rate 1 size 400 | an ordinary and a MUSIC sound, construction only |
+| 8 | `data_looping_server_and_client_not_aged` | rate 4 size 20 | two LOOPING entities, one under each routine, 3 calls of delta 2.0 each |
+| 9 | `data_invalid_server_countdown_and_unlink` | rate 4 size 20 | made invalid by the REAL `pause_local_entity_sound_type` (delay 1.5), server routine, 3 calls of delta 1.0 |
+| 10 | `data_invalid_client_countdown_and_unlink` | the same | the same under the client routine |
+
+The zero crossing of the invalid countdown and the unlink on the NEXT update are OBSERVED original results, not changed behavior. The real pause function walks the session's special-effect children: the fixture counts the
+sound children (and those of the paused sub type) before calling it and prints the counts; in a fresh control process they are exactly the control's own entity, and the driver refuses any other number (it would mean the
+pause touched something else). **The driver judges nothing physical.** It checks the three unsupported rows, the restoration flags, the descriptor/delta/pause rows, the state rows (tag order, the case's normal constructor
+flags, a slot that reads as free after a kill), the probe (armed, nothing dropped, nothing untracked, as many tracked entities as built, as many updates as calls, a chain whose points belong to the routine, entries equal to the
+calls of the entity, a kill exactly when the final slot is free), and writes every row as it came. It does NOT expect any lifetime, countdown, clamp, cap or unlink value.
+
+**Source census of the active sound-lifetime callers (read from the compiled sources, not measured).** The domain list a lifetime extraction must account for:
+
+* *Creators* (24 files): `session/ss_updt.c`, `session/session.c` (lightning, measured above); `cdmusic.c` (music, looping or not, with the 300 s cap and pause/resume); `soundeff/speech.c` (speech, with the constructor's RADIO/CPG/WARNING amplitude and panning cases);
+  `mobile/aircraft/` fixed wing and helicopter (`fw_creat`, `fw_dstry`, `fw_move`, `fw_msgs`, `hc_creat`, `hc_dstry`, `hc_move`, `hc_msgs`, `helicop.c`, `ac_msgs`: looping engine/rotor sounds, one-shots); ships and routed vehicles (`sh_creat`, `sh_msgs`, `rv_creat`);
+  weapons and damage (`weapon.c`, `damage.c`); `explosn.c`; `siteupdt/su_msgs.c`; the network creation path (`en_comms/en_comms.c`, `en_sessn.c`).
+* *Writers of the lifetime state*: the constructor (`soundeff.c` sample sum and cap), the two update routines (`se_updt.c`), `pause_local_entity_sound_type` / `resume_local_entity_sound_type` (callers: `cdmusic.c`, `fw_anim.c`, `fw_int.c`, `helicop.c`; the resume sets `valid` again and STARTS playing, so it is device-bound), the destroy path (`se_dstry.c` sets
+  `valid` false and zeroes the valid lifetime), the network pack/unpack of both lifetimes (`se_pack.c`), the per-vehicle sound updaters that set amplitude and pitch (`*_snd.c`), and the playback code that reads `effect_lifetime` (`se_snd.c`).
+* *Covered by a controlled-data case (source prepared, not yet run):* positive lifetime with server aging/expiry and client clamp, sequence accumulation, the 40 s / 300 s cap, looping not aged on either routine, the invalid-effect valid-lifetime countdown, zero crossing and update-list unlink on both routines.
+* *Not covered, with the follow-up:* a playing or idle playback handle after expiry, and `resume` (both need a sound-system device and the play path: a device control with an actual handle); the destroy path as an independent entry (reached here only through the server's kill); the network pack/unpack and transmission of lifetimes (real client/network delivery is not
+  exercised: the client control is a server-created entity under the client routine); the speech amplitude cases; the per-vehicle amplitude/pitch updaters (a different responsibility from lifetime); a `valid=false` entity created that way from the start (it is never in the update list and is never updated).
+
+**Actual WIP scope (my own, Linux container, no network, exclusive-new logs; fixture C compiled with `env-observer`):** see STATUS. The cases themselves have NOT run: the fixture needs a new native build and fresh roots, then the same reviewer on this delta only.
+
 ## Entry-point changes, stated
 
 Source entry points changed (Root's feature-off check applies to the two production hook bodies only, as scoped above; the fixture and observer are test code): `aphavoc/source/entity/special/session/ss_envfx.h`, `.../effect/soundeff/soundeff.c`, `.../effect/soundeff/se_updt.c`,

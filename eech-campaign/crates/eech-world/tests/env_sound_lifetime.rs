@@ -86,7 +86,8 @@ fn refused_report(case: u32, label: &str, reason: &str) -> String {
 /// The scripted collaborators: a stand-in `eech_dc` whose engine answers `env_case (14, index)` from the Rust-side text (after the scenario's `edit` hook, if any), refuses to boot when the observer was not
 /// armed first, and a file that collects what is written.
 fn collaborators() -> String {
-    let reports: Vec<String> = (1..=3).map(report).collect();
+    let reports: Vec<String> = (1..=10).map(|case| if case <= 3 { report(case) } else { data_report(case) }).collect();
+    let reports_lua = reports.iter().map(|text| format!("'{text}'")).collect::<Vec<_>>().join(", ");
     format!(
         r##"
 WRITTEN = {{}}
@@ -112,7 +113,7 @@ function file:read () return table.concat (WRITTEN) end
 io.open = function () return file end
 
 local PLAN = '{plan}'
-local REPORTS = {{ '{r1}', '{r2}', '{r3}' }}
+local REPORTS = {{ {reports_lua} }}
 host = {{
 	args = ARGS,
 	terrain_provider = function () return function () return {{}} end end,
@@ -142,9 +143,7 @@ package.preload.eech_dc = function ()
 end
 "##,
         plan = plan(),
-        r1 = reports[0],
-        r2 = reports[1],
-        r3 = reports[2]
+        reports_lua = reports_lua
     )
 }
 
@@ -368,7 +367,7 @@ fn an_engine_stop_a_missing_observer_or_fixture_a_bad_argument_and_every_output_
     for args in [
         vec![],
         vec![("case", "0")],
-        vec![("case", "4")],
+        vec![("case", "11")],
         vec![("case", "2.5")],
         vec![("case", "nan")],
         vec![("case", "1"), ("scenario", "mars_retail")],
@@ -386,4 +385,259 @@ fn an_engine_stop_a_missing_observer_or_fixture_a_bad_argument_and_every_output_
     let closing = drive("io_fail = { op = 'close' }", &case_args("1"));
     assert!(closing.result.clone().unwrap_err().contains("OUTPUT FAILURE: closing"));
     assert_eq!(of(&closing, "result").len(), 1, "the result row was written before the close failed");
+}
+
+// ---- the CONTROLLED-DATA cases 4 to 10 (csrc/eech_env_fixture.c env_snd_data_case). The rows are canned SHAPE examples: the numbers are not what the original does and the driver expects none of them.
+
+const DATA_UNSUPPORTED: &str = "env-snd-unsupported item=playing_or_idle_handle_after_expiry reason=needs_a_device\\n";
+
+fn data_head(case: u32, label: &str, controlled: (u32, u32, u32, u32), calls: u32, pause: bool) -> String {
+    let (rate0, size0, rate1, size1) = controlled;
+    let mut text = head(case, label) + UNSUPPORTED + DATA_UNSUPPORTED;
+    text += &format!(
+        "env-sound-data-input tag=descriptor sample=12 controlled_rate={rate0} controlled_size={size0} retail_rate=22050 retail_size=0 original_rate=22050\\n"
+    );
+    text += &format!(
+        "env-sound-data-input tag=descriptor sample=13 controlled_rate={rate1} controlled_size={size1} retail_rate=22050 retail_size=0 original_rate=22050\\n"
+    );
+    text += &format!("env-sound-data-input tag=deltas calls={calls} delta_w=40000000\\n");
+    if pause {
+        text += "env-sound-pause sub=5 delay_w=3fc00000 children_sound=1 children_of_type=1 returned=1\\n";
+    }
+    text
+}
+
+/// One state row: entity, tag, whether the slot is still a live sound effect, valid, looping, member of the update list, and the two words.
+fn state(ent: u32, tag: u32, live: bool, flags: (u32, u32, u32), life: &str, vlife: &str) -> String {
+    let (valid, looping, member) = flags;
+    let (etype, data) = if live { (32, 1) } else { (0, 0) };
+    format!("env-sound-state ent={ent} tag={tag} etype={etype} data={data} sub=1 valid={valid} looping={looping} member={member} handle=0 life_w={life} vlife_w={vlife}\\n")
+}
+
+fn drecord(seq: u32, point: u32, tracked: u32, upd: u32) -> String {
+    record(seq, point, upd)
+        .replace("tracked=0", &format!("tracked={tracked}"))
+        .replace("entity=7", &format!("entity={}", 7 + tracked))
+}
+
+fn data_end(case: u32, entities: u32, calls: u32, skipped: u32) -> String {
+    format!("env-sound-end i={case} changed=1 entities={entities} calls={calls} skipped={skipped} descriptor_restored=1 delta_restored=1 process_isolated=required\\n")
+}
+
+fn data_probe(points: &[(u32, u32, u32)], creations: u32, updates: u32, kills: u32) -> String {
+    let mut text = format!(
+        "env-snd-report armed=1 capacity=80 stored={} dropped=0 overflow=0 creations={creations} updates={updates} kills={kills} frames=0 tracked={creations} open=0 track_all=0 untracked=0\\n",
+        points.len()
+    );
+    for (seq, (point, tracked, upd)) in points.iter().enumerate() {
+        text += &drecord(seq as u32, *point, *tracked, *upd);
+    }
+    text
+}
+
+fn data_report(case: u32) -> String {
+    let live = (1, 0, 1);
+    match case {
+        4 => {
+            data_head(4, "data_positive_server_ages_and_expires", (4, 20, 22050, 0), 3, false)
+                + &state(0, 0, true, live, "40a00000", "00000000")
+                + &state(0, 1, true, live, "40400000", "00000000")
+                + &state(0, 2, true, live, "3f800000", "00000000")
+                + &state(0, 3, false, (0, 0, 0), "00000000", "00000000")
+                + &data_probe(&[(0, 0, 0), (1, 0, 1), (1, 0, 2), (1, 0, 3), (2, 0, 3), (5, 0, 3)], 1, 3, 1)
+                + &data_end(4, 1, 3, 0)
+        }
+        5 => {
+            data_head(5, "data_positive_client_clamps", (4, 20, 22050, 0), 3, false)
+                + &state(0, 0, true, live, "40a00000", "00000000")
+                + &state(0, 1, true, live, "40400000", "00000000")
+                + &state(0, 2, true, live, "3f800000", "00000000")
+                + &state(0, 3, true, live, "00000000", "00000000")
+                + &data_probe(&[(0, 0, 0), (6, 0, 1), (7, 0, 1), (6, 0, 2), (7, 0, 2), (6, 0, 3), (7, 0, 3)], 1, 3, 0)
+                + &data_end(5, 1, 3, 0)
+        }
+        6 => {
+            data_head(6, "data_sequence_accumulates", (4, 6, 2, 5), 0, false)
+                + &state(0, 0, true, live, "40800000", "00000000")
+                + &data_probe(&[(0, 0, 0)], 1, 0, 0)
+                + &data_end(6, 1, 0, 0)
+        }
+        7 => {
+            data_head(7, "data_caps_nonmusic_and_music", (1, 400, 22050, 0), 0, false)
+                + &state(0, 0, true, live, "42200000", "00000000")
+                + &state(1, 0, true, live, "43960000", "00000000")
+                + &data_probe(&[(0, 0, 0), (0, 1, 0)], 2, 0, 0)
+                + &data_end(7, 2, 0, 0)
+        }
+        8 => {
+            let looping = (1, 1, 1);
+            data_head(8, "data_looping_server_and_client_not_aged", (4, 20, 22050, 0), 3, false)
+                + &state(0, 0, true, looping, "00000000", "00000000")
+                + &state(0, 1, true, looping, "00000000", "00000000")
+                + &state(0, 2, true, looping, "00000000", "00000000")
+                + &state(0, 3, true, looping, "00000000", "00000000")
+                + &state(1, 0, true, looping, "00000000", "00000000")
+                + &state(1, 1, true, looping, "00000000", "00000000")
+                + &state(1, 2, true, looping, "00000000", "00000000")
+                + &state(1, 3, true, looping, "00000000", "00000000")
+                + &data_probe(
+                    &[
+                        (0, 0, 0),
+                        (0, 1, 0),
+                        (1, 0, 1),
+                        (1, 0, 2),
+                        (1, 0, 3),
+                        (6, 1, 1),
+                        (7, 1, 1),
+                        (6, 1, 2),
+                        (7, 1, 2),
+                        (6, 1, 3),
+                        (7, 1, 3),
+                    ],
+                    2,
+                    6,
+                    0,
+                )
+                + &data_end(8, 2, 6, 0)
+        }
+        _ => {
+            let server = case == 9;
+            let label = if server {
+                "data_invalid_server_countdown_and_unlink"
+            } else {
+                "data_invalid_client_countdown_and_unlink"
+            };
+            let points: Vec<(u32, u32, u32)> = if server {
+                vec![(0, 0, 0), (1, 0, 1), (1, 0, 2), (1, 0, 3)]
+            } else {
+                vec![(0, 0, 0), (6, 0, 1), (7, 0, 1), (6, 0, 2), (7, 0, 2), (6, 0, 3), (7, 0, 3)]
+            };
+            data_head(case, label, (4, 20, 22050, 0), 3, true)
+                + &state(0, 0, true, live, "40a00000", "00000000")
+                + &state(0, 99, true, (0, 0, 1), "40a00000", "3fc00000")
+                + &state(0, 1, true, (0, 0, 1), "40a00000", "3f000000")
+                + &state(0, 2, true, (0, 0, 1), "40a00000", "00000000")
+                + &state(0, 3, true, (0, 0, 0), "40a00000", "00000000")
+                + &data_probe(&points, 1, 3, 0)
+                + &data_end(case, 1, 3, 0)
+        }
+    }
+}
+
+fn data_refused_report(case: u32, label: &str, reason: &str) -> String {
+    head(case, label) + UNSUPPORTED + DATA_UNSUPPORTED + &format!("env-sound-end i={case} refused={reason} changed=0 process_isolated=required\\n")
+}
+
+#[test]
+fn each_controlled_data_case_is_written_as_the_fixture_reported_it_and_judged_by_nothing_physical() {
+    for (case, entities, calls, kills) in [
+        (4, 1, 3, 1),
+        (5, 1, 3, 0),
+        (6, 1, 0, 0),
+        (7, 2, 0, 0),
+        (8, 2, 6, 0),
+        (9, 1, 3, 0),
+        (10, 1, 3, 0),
+    ] {
+        let number = case.to_string();
+        let driven = drive("", &[("case", number.as_str())]);
+        driven.result.clone().unwrap_or_else(|e| panic!("case {case}: {e}"));
+        let result = &of(&driven, "result")[0];
+        assert_eq!(
+            (
+                result["refused"].clone(),
+                result["entities"].clone(),
+                result["calls"].clone(),
+                result["kills"].clone()
+            ),
+            (
+                serde_json::json!(false),
+                serde_json::json!(entities),
+                serde_json::json!(calls),
+                serde_json::json!(kills)
+            ),
+            "case {case}"
+        );
+        // every fixture row of the control is on the file exactly as it came, the words kept as text
+        for line in data_report(case).replace("\\n", "\n").lines() {
+            assert!(
+                driven.rows.iter().any(|row| row["scope"] == "case" && row["raw"] == line),
+                "case {case}: the row {line:?} is not on the file"
+            );
+        }
+        assert!(driven.rows.iter().all(|row| row["event"] != "witness_failure"), "case {case}");
+        assert_eq!(of(&driven, "boot")[0]["group"], 14);
+    }
+    // the primitive plan is unchanged by the data cases: still three cases
+    assert!(drive("", &case_args("4"))
+        .rows
+        .iter()
+        .any(|row| row["scope"] == "plan" && row["event"] == "env-snd-plan" && row["cases"] == "3"));
+}
+
+#[test]
+fn a_controlled_data_case_the_fixture_refused_is_reported_as_refused_and_not_as_a_pass() {
+    for (case, reason) in [
+        (4, "the_process_is_not_the_server_so_the_server_kill_cannot_be_observed"),
+        (9, "there_is_no_session_entity_to_parent_the_sound_effect"),
+        (8, "there_is_no_free_entity_slot_for_the_real_constructor"),
+    ] {
+        let number = case.to_string();
+        let scenario = format!(
+            "report = {{ [{case}] = '{}' }}",
+            data_refused_report(case, LABELS_FOR_TESTS[case as usize - 1], reason)
+        );
+        let driven = drive(&scenario, &[("case", number.as_str())]);
+        driven.result.clone().expect("a refusal is evidence, not a failure of the witness");
+        let result = &of(&driven, "result")[0];
+        assert_eq!(
+            (result["refused"].clone(), result["refusal"].clone()),
+            (serde_json::json!(true), serde_json::json!(reason))
+        );
+        assert!(of(&driven, "env-sound-state").is_empty(), "a refused case holds no state row");
+    }
+}
+
+const LABELS_FOR_TESTS: [&str; 10] = [
+    "server_branch_ages_then_expires",
+    "client_branch_ages_and_clamps",
+    "playback_prerequisites",
+    "data_positive_server_ages_and_expires",
+    "data_positive_client_clamps",
+    "data_sequence_accumulates",
+    "data_caps_nonmusic_and_music",
+    "data_looping_server_and_client_not_aged",
+    "data_invalid_server_countdown_and_unlink",
+    "data_invalid_client_countdown_and_unlink",
+];
+
+#[test]
+fn a_controlled_data_report_that_is_incomplete_unrestored_or_at_odds_with_its_states_is_a_failure_of_the_witness() {
+    let damaged: Vec<(&str, &str, String, &str)> = vec![
+        ("4", "descriptors not put back", edit("if index == 4 then return (text:gsub('descriptor_restored=1', 'descriptor_restored=0', 1)) end"), "descriptors were not put back"),
+        ("4", "a frame delta not put back", edit("if index == 4 then return (text:gsub('delta_restored=1', 'delta_restored=0', 1)) end"), "frame delta was not put back"),
+        ("4", "calls that the states do not show", edit("if index == 4 then return (text:gsub('calls=3 skipped=0', 'calls=2 skipped=0', 1)) end"), "state rows show 3"),
+        ("4", "updates the probe did not count", edit("if index == 4 then return (text:gsub('updates=3', 'updates=2', 1)) end"), "probe counted 2 updates"),
+        ("4", "a missing unsupported row", edit("if index == 4 then return (text:gsub('env%-snd%-unsupported item=playing_or_idle[^\\n]*\\n', '', 1)) end"), "three unsupported rows"),
+        ("4", "a state row that skips a call", edit("if index == 4 then return (text:gsub('ent=0 tag=2', 'ent=0 tag=5', 1)) end"), "go from tag 1 to 5"),
+        ("4", "a final slot that disagrees with the probe's kill", edit("if index == 4 then return (text:gsub('tag=3 etype=0 data=0', 'tag=3 etype=32 data=1', 1)) end"), "kill record and the final slot state disagree"),
+        ("4", "records the probe did not store", edit("if index == 4 then return (text:gsub('stored=6', 'stored=7', 1)) end"), "stored 7 records"),
+        ("4", "a creation the probe lost track of", edit("if index == 4 then return (text:gsub('untracked=0', 'untracked=1', 1)) end"), "lost track of 1"),
+        ("5", "a server point in a client case", edit("if index == 5 then return (text:gsub('point=6 ', 'point=1 ', 1)) end"), "point of the other routine"),
+        ("8", "a looping case whose created entity is not looping", edit("if index == 8 then return (text:gsub('ent=0 tag=0 etype=32 data=1 sub=1 valid=1 looping=1', 'ent=0 tag=0 etype=32 data=1 sub=1 valid=1 looping=0', 1)) end"), "FIXTURE DEFECT: the created entity 0"),
+        ("9", "a pause that could touch other children", edit("if index == 9 then return (text:gsub('children_sound=1', 'children_sound=2', 1)) end"), "children other than the control's own entity"),
+    ];
+    for (case, name, scenario, says) in &damaged {
+        let driven = drive(scenario, &[("case", *case)]);
+        let error = driven
+            .result
+            .clone()
+            .expect_err(&format!("{name}: a damaged report was accepted:\n{}", driven.text));
+        assert!(
+            error.contains("env-sound-lifetime:") && error.contains(*says),
+            "{name}: expected {says:?} in {error:?}"
+        );
+        assert!(!of(&driven, "witness_failure").is_empty(), "{name}: no witness_failure row");
+        assert!(of(&driven, "result").is_empty(), "{name}: a result row was written for a damaged report");
+    }
 }
