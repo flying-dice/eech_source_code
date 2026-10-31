@@ -638,6 +638,27 @@ int campaign_lightning_add (int type, float length, float x, float z, int enviro
 	return slot;
 }
 
+static int forked_type (int type)
+{
+	return (type >= LIGHTNING_TYPE_FORKED_1) && (type <= LIGHTNING_TYPE_FORKED_4);
+}
+
+// the frame count of the strike animation: a positive count, or a refusal that names what is missing (see 3dstrike.c) and stops the engine; the model data is never invented
+static int model_frames (int (*frames_of) (void))
+{
+	int
+		frames;
+
+	frames = frames_of ();
+
+	if (frames < 1)
+	{
+		debug_fatal ("host environment: [env-provider:lightning_update.model] the strike animation's frame count is not available (reason %d: -1 no texture animation table is loaded, -2 the strike animation is not one of its entries, -3 it has no texture index table, -4 it has no frames)", frames);
+	}
+
+	return frames;
+}
+
 void campaign_lightning_update (float time_of_day, int (*frames_of) (void), campaign_lightning_strike *mirror)
 {
 	campaign_env_request
@@ -647,6 +668,9 @@ void campaign_lightning_update (float time_of_day, int (*frames_of) (void), camp
 		reply;
 
 	int
+		frames = 0,
+		have_model = FALSE,
+		live_forked = FALSE,
 		i;
 
 	memset (&request, 0, sizeof (request));
@@ -665,8 +689,26 @@ void campaign_lightning_update (float time_of_day, int (*frames_of) (void), camp
 			debug_fatal ("host environment: [env-provider:lightning_update.answer] the host's request for the frame count is neither 0 nor 1");
 		}
 
+		// the request is honoured only for a forked strike the mirror really holds: with none, nothing in the queue needs a frame count and the model is not touched
+		for (i = 0; i < CAMPAIGN_LIGHTNING_SLOTS; i++)
+		{
+			if (mirror[i].in_use && forked_type (mirror[i].type))
+			{
+				live_forked = TRUE;
+			}
+		}
+
+		if (!live_forked)
+		{
+			debug_fatal ("host environment: [env-provider:lightning_update.answer] the host asked for the strike animation's frame count although the queue holds no forked strike");
+		}
+
+		frames = model_frames (frames_of);
+
+		have_model = TRUE;
+
 		request.lightning_have_frames = TRUE;
-		request.lightning_frames = frames_of ();
+		request.lightning_frames = frames;
 
 		ask (&request, &reply, "lightning_update");
 
@@ -696,6 +738,27 @@ void campaign_lightning_update (float time_of_day, int (*frames_of) (void), camp
 		{
 			// aged: only the frame number may change; finished: freed
 			debug_fatal ("host environment: [env-provider:lightning_update.answer] the update changed more than the frame number of slot %d", i);
+		}
+	}
+
+	// the renderer indexes the strike animation's textures by a live forked strike's frame number (3dstrike.c draw_3d_lightning_strike): that number must lie inside the model's frames BEFORE the mirror
+	// holds it, however the host got there (a host that never asked for the count included). The model is consulted only when a forked strike is live in the answer, and its absence is a named refusal.
+	// No frame is calculated here: the host's number is only checked against the physical domain.
+	for (i = 0; i < CAMPAIGN_LIGHTNING_SLOTS; i++)
+	{
+		if (reply.lightning_queue[i].in_use && forked_type (reply.lightning_queue[i].type))
+		{
+			if (!have_model)
+			{
+				frames = model_frames (frames_of);
+
+				have_model = TRUE;
+			}
+
+			if ((reply.lightning_queue[i].current_frame_number < 0) || (reply.lightning_queue[i].current_frame_number >= frames))
+			{
+				debug_fatal ("host environment: [env-provider:lightning_update.answer] the frame %d of the forked strike in slot %d is outside the strike animation's %d frames", reply.lightning_queue[i].current_frame_number, i, frames);
+			}
 		}
 	}
 

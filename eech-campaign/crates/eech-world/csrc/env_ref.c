@@ -1588,6 +1588,11 @@ int env_ref_step (env_ref *field, const float *in_f, const int *in_i, const doub
 #define HOURS_IN_A_DAY (24)
 #define ONE_DAY (HOURS_IN_A_DAY * MINUTES_IN_AN_HOUR * SECONDS_IN_A_MINUTE)
 
+/* The original assigns a float expression to an int (`current_frame_number = t * 10`). C defines that conversion only when the truncated value fits the int (C99 6.3.1.4); a NaN, an infinity or a
+   value beyond the range is undefined behaviour, which a safe host entry must not reach. The kernel REFUSES it and commits nothing, under the same guard. The check is made on the very expression the
+   original converts (not on a stored float, which could narrow an excess-precision intermediate), and nothing is clamped or defaulted: every defined value keeps the original's word. */
+#define LIGHTNING_FRAME_FITS(EXPRESSION) (((EXPRESSION) > -2147483649.0) && ((EXPRESSION) < 2147483648.0))
+
 /* modules/maths/tevent.c timed_event_has_finished */
 static int timed_event_has_finished (float start_time, float length, float current_time, float *distance)
 {
@@ -1662,6 +1667,11 @@ static int lightning_update_impl (env_ref_strike *strikes, float time_of_day, in
 				{
 					if (!timed_event_has_finished (strikes[count].time_started, strikes[count].time_length, time_of_day, &t))
 					{
+						if (!LIGHTNING_FRAME_FITS (t * 10))
+						{
+							return fail (error, error_size, "the aged frame number of slot %d (t * 10) is not an integer the original's float-to-int conversion defines (not finite, or beyond the int range)", count);
+						}
+
 						strikes[count].current_frame_number = t * 10;
 					}
 					else
@@ -1684,6 +1694,11 @@ static int lightning_update_impl (env_ref_strike *strikes, float time_of_day, in
 							*need_frames = TRUE;
 
 							return 0;
+						}
+
+						if (!LIGHTNING_FRAME_FITS (t * (frames)))
+						{
+							return fail (error, error_size, "the aged frame number of slot %d (t * frames) is not an integer the original's float-to-int conversion defines (not finite, or beyond the int range)", count);
 						}
 
 						strikes[count].current_frame_number = t * (frames);

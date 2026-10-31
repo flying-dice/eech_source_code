@@ -2286,6 +2286,8 @@ static int env_wide_case (int index, char *text, int capacity, int *used)
  *                 2 add_with_the_main_environment       active environment the main one: the slot, the position, the type, the start time (the main environment's time of day) and the length
  *                 3 fill_the_queue_and_drop_the_next    one add more than the queue has slots for: what the last add does
  *                 4 age_a_cloud_burst_by_the_time_of_day a CLOUD_BURST aged by update_3d_lightning_strikes at three times of day (the forked types read texture animations the headless build may not
+ *                 5 age_a_forked_strike_by_the_time_of_day the same with a FORKED_1 strike: aging it needs the strike animation's frame count, which only the texture animation table holds. Where the table is not loaded
+ *                                                       (a headless process) the engine STOPS with the named refusal [env-provider:lightning_update.model]; nothing is invented. Where it is loaded the rows are those of 4
  *                                                       initialise and are NOT exercised, said below)
  * A prerequisite that is absent (no main environment, a queue that is not empty) is REFUSED and printed; nothing is forced.
  * In the hosted build (EECH_CAMPAIGN_HOST_ENV) the two primitives are the campaign's requests to the HOST's queue (ss_hostenv.h LIGHTNING_ADD / LIGHTNING_UPDATE) and the queue the rows show is the campaign's read-only MIRROR
@@ -2296,7 +2298,7 @@ extern int eech_lightning_queue_view (int slot, unsigned int *words);
 extern unsigned int eech_lightning_update_calls;
 extern int eech_envobs_queue_report (char *text, int capacity, int *used);
 
-#define ENV_LQ_CASES 4
+#define ENV_LQ_CASES 5
 
 static int env_lq_mask (unsigned int *mask, unsigned int *occupancy)
 {
@@ -2364,7 +2366,7 @@ static int env_lq_slots_in_use (char *text, int capacity, int *used, const char 
 
 static int env_lightning_case (int index, char *text, int capacity, int *used)
 {
-	static const char *const names[ENV_LQ_CASES] = { "add_without_active_environment", "add_with_the_main_environment", "fill_the_queue_and_drop_the_next", "age_a_cloud_burst_by_the_time_of_day" };
+	static const char *const names[ENV_LQ_CASES] = { "add_without_active_environment", "add_with_the_main_environment", "fill_the_queue_and_drop_the_next", "age_a_cloud_burst_by_the_time_of_day", "age_a_forked_strike_by_the_time_of_day" };
 	unsigned int mask_before, occupancy_before, mask_after, occupancy_after;
 	env_3d *active_saved = active_3d_environment;
 	const char *refusal = NULL;
@@ -2451,7 +2453,7 @@ static int env_lightning_case (int index, char *text, int capacity, int *used)
 			active_3d_environment = main_3d_env;
 
 			set_3d_time_of_day (main_3d_env, 100.0f);
-			add_3d_lightning_strike (LIGHTNING_TYPE_CLOUD_BURST, 0.3f, 1500.0f, 2500.0f);
+			add_3d_lightning_strike ((index == 5) ? LIGHTNING_TYPE_FORKED_1 : LIGHTNING_TYPE_CLOUD_BURST, 0.3f, 1500.0f, 2500.0f);
 			env_lq_mask (&mask_after, &occupancy_after);
 
 			for (i = 0; i < slots; i++)

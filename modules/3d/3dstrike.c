@@ -293,9 +293,36 @@ void add_3d_lightning_strike ( lightning_strike_types type, float time, float x,
 
 #ifdef EECH_CAMPAIGN_HOST_ENV
 
-// the frame count of the strike animation, read where the original read it: only when the host is about to age a forked strike
+// The frame count of the strike animation, read where the original read it (texture_animations[lightning_strike_animation].number_of_frames) and only when the host is about to age a forked strike -- but
+// never dereferenced blindly: the table is NULL until the renderer's start-up loads the object database, so a headless process has no such count. The campaign (ss_hostenv.c) turns each refusal into a
+// named error that stops the engine; nothing is invented. Returns the count (at least 1, with the texture index table present), or a negative reason:
+//   -1 the texture animation table is not loaded   -2 the strike animation is not one of its entries   -3 the entry has no texture index table   -4 the entry has no frames
 static int lightning_strike_animation_frames ( void )
 {
+
+	if ( !texture_animations )
+	{
+
+		return ( -1 );
+	}
+
+	if ( ( ( int ) lightning_strike_animation < 0 ) || ( ( int ) lightning_strike_animation >= number_of_texture_animations ) )
+	{
+
+		return ( -2 );
+	}
+
+	if ( !texture_animations[lightning_strike_animation].texture_indices )
+	{
+
+		return ( -3 );
+	}
+
+	if ( texture_animations[lightning_strike_animation].number_of_frames < 1 )
+	{
+
+		return ( -4 );
+	}
 
 	return ( texture_animations[lightning_strike_animation].number_of_frames );
 }

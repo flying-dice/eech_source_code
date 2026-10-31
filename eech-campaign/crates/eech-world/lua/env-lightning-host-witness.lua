@@ -18,6 +18,11 @@
 --              and still queues itself fails here.
 --   withheld   the host raises an error. REQUIRED: the campaign STOPS at `[env-provider:lightning_add.callback]` (the delegate fails in the engine, no result row), after exactly the host action that was performed.
 --   malformed  the host answers a slot that does not exist. REQUIRED: the campaign stops at `[env-provider:lightning_add.answer]`, likewise.
+--   frames_without_fork   (case 4, the primitive control that ages a CLOUD BURST) the host answers the first `lightning_update` with a request for the strike animation's frame count although the queue holds no
+--              forked strike. REQUIRED: the campaign refuses it at `[env-provider:lightning_update.answer]` BEFORE it touches the texture model (the actual C consumer), same stop evidence as withheld.
+-- THE STOP EVIDENCE is the delegate's OWN record, read back when the delegate fails: the case's `engine_failure` row at the expected marker and NO result row, and the delegate's error must be its report of
+-- the engine's stop. A delegate, output or witness failure whose message happens to carry the marker (a path, a diagnostic) is rejected as that failure, and a stale or contradictory result row is
+-- `contradictory-result`; the record is `completed=false` and never a physical pass.
 -- A stop is the expected evidence of withheld and malformed, not a completed success and not a fallback: the record says `stopped_at_boundary`, how many host requests were made before the stop, and that no
 -- result row exists. A campaign that completes anyway, or stops at another marker, is an error.
 --
@@ -29,14 +34,13 @@
 -- lifetime. It says nothing of the other physical responsibilities of D3.
 --
 -- ARGUMENTS (host.args, as the host executable passes them; the witness is the SCRIPT the host runs and the delegate is loaded from a path):
---   eech-world <this script> root=<installation root> out=<delegate JSON Lines path> delegate=<ABSOLUTE path of lua/env-lightning-queue.lua> [mode=healthy|changed|withheld|malformed] [case=2]
+--   eech-world <this script> root=<installation root> out=<delegate JSON Lines path> delegate=<ABSOLUTE path of lua/env-lightning-queue.lua> [mode=healthy|changed|withheld|malformed|frames_without_fork] [case=2 (4 for frames_without_fork)]
 --                                                                                  [scenario=lebanon_retail|georgia_retail] [authority_out=<this witness's record path; default <out>.authority.jsonl>]
 --   `root`, `out`, `scenario` are the delegate's own arguments and are passed through unchanged (the delegate reads the same `host.args`); `case` must be 2 (default 2). One fresh process and root per run.
 
 io.stdout:setvbuf ("no")
 
 local NAME = "env-lightning-host-witness"
-local OP = "lightning_add"
 local args = host.args
 local function refuse (message) error (NAME .. ": " .. message, 0) end
 
@@ -44,11 +48,20 @@ local delegate_path = args.delegate
 if type (delegate_path) ~= "string" or delegate_path == "" then refuse ("delegate=<absolute path of env-lightning-queue.lua> is required") end
 local out_path = args.out
 if type (out_path) ~= "string" or out_path == "" then refuse ("out=<the delegate's JSON Lines path> is required") end
-if args.case ~= nil and tostring (args.case) ~= "2" then refuse ("case must be 2 (the original add with the main environment), got '" .. tostring (args.case) .. "'") end
-args.case = "2"
 local mode = args.mode == nil and "healthy" or args.mode
-local MARKERS = { withheld = "[env-provider:lightning_add.callback]", malformed = "[env-provider:lightning_add.answer]" }
-if mode ~= "healthy" and mode ~= "changed" and mode ~= "withheld" and mode ~= "malformed" then refuse ("mode must be healthy, changed, withheld or malformed, got '" .. tostring (mode) .. "'") end
+-- the operation the mode is about, the primitive case that exercises it, and, for a mode that must stop the campaign, the boundary it must stop at
+local MODES = {
+	healthy = { op = "lightning_add", case = 2 },
+	changed = { op = "lightning_add", case = 2 },
+	withheld = { op = "lightning_add", case = 2, marker = "[env-provider:lightning_add.callback]" },
+	malformed = { op = "lightning_add", case = 2, marker = "[env-provider:lightning_add.answer]" },
+	frames_without_fork = { op = "lightning_update", case = 4, marker = "[env-provider:lightning_update.answer]" },
+}
+local plan = MODES [mode]
+if plan == nil then refuse ("mode must be healthy, changed, withheld, malformed or frames_without_fork, got '" .. tostring (mode) .. "'") end
+local OP, CASE, MARKER = plan.op, plan.case, plan.marker
+if args.case ~= nil and tostring (args.case) ~= tostring (CASE) then refuse ("case must be " .. CASE .. " for mode " .. mode .. ", got '" .. tostring (args.case) .. "'") end
+args.case = tostring (CASE)
 local authority_path = args.authority_out
 if authority_path == nil then authority_path = out_path .. ".authority.jsonl" end
 if type (authority_path) ~= "string" or authority_path == "" or authority_path == out_path then refuse ("authority_out must be a path other than out") end
@@ -74,6 +87,8 @@ local wrapped = function (...)
 			if mode == "changed" then return { slot = -1, queue = empty_queue () } end
 			if mode == "withheld" then error ("the host withholds its lightning_add answer", 0) end
 			if mode == "malformed" then return { slot = 40, queue = {} } end
+			-- an update answered with a request for the strike animation's frame count, whatever the queue holds (the queue of the primitive control holds a cloud burst only)
+			if mode == "frames_without_fork" then return { need_frames = true } end
 		else
 			forwarded = forwarded + 1
 		end
@@ -98,8 +113,8 @@ end
 local function write_record (completed, verdict, extra)
 	local file, err = io.open (authority_path, "w")
 	if not file then refuse ("OUTPUT FAILURE: opening " .. authority_path .. " failed: " .. tostring (err)) end
-	local line = string.format ('{"case":2,"completed":%s,"delegate_ran":%s,"forwarded_other_requests":%d,"mode":"%s","op":"%s","requests":%d,%s"source":"host.env_provider wrapper on the public path","verdict":"%s"}\n',
-		completed and "true" or "false", ran and "true" or "false", forwarded, mode, OP, requests, extra or "", verdict)
+	local line = string.format ('{"case":%d,"completed":%s,"delegate_ran":%s,"forwarded_other_requests":%d,"mode":"%s","op":"%s","requests":%d,%s"source":"host.env_provider wrapper on the public path","verdict":"%s"}\n',
+		CASE, completed and "true" or "false", ran and "true" or "false", forwarded, mode, OP, requests, extra or "", verdict)
 	local ok, werr = file:write (line)
 	if not ok then refuse ("OUTPUT FAILURE: writing " .. authority_path .. " failed: " .. tostring (werr)) end
 	ok, werr = file:flush ()
@@ -108,41 +123,69 @@ local function write_record (completed, verdict, extra)
 	if not ok then refuse ("OUTPUT FAILURE: closing " .. authority_path .. " failed: " .. tostring (werr)) end
 end
 
--- the delegate's own result row for case 2, if it wrote one: (completed, occupancy_after, mask_after_w)
-local function case_2_result ()
+-- the delegate's OWN record: the rows it wrote on `out`, read back even when the delegate failed (nil when the file cannot be read)
+local function delegate_rows ()
 	local text = read_all (out_path)
-	if text == nil then return false end
-	for line in string.gmatch (text, "[^\n]+") do
-		if string.find (line, '"event":"result"', 1, true) and string.find (line, '"case":2', 1, true) and string.find (line, '"refused":false', 1, true) then
+	if text == nil then return nil end
+	local rows = {}
+	for line in string.gmatch (text, "[^\n]+") do rows [#rows + 1] = line end
+	return rows
+end
+local function has (line, fragment) return string.find (line, fragment, 1, true) ~= nil end
+
+-- the delegate's result row of this mode's case, if it wrote one: (completed, occupancy_after, mask_after_w)
+local function case_result ()
+	local rows = delegate_rows ()
+	if rows == nil then return false end
+	for _, line in ipairs (rows) do
+		if has (line, '"event":"result"') and has (line, '"case":' .. CASE .. ',') and has (line, '"refused":false') then
 			return true, string.match (line, '"occupancy_after":"(%d+)"'), string.match (line, '"mask_after_w":"(%x+)"')
 		end
 	end
 	return false
 end
 
--- ---------------------------------------------------------------------------------------------------------------- withheld and malformed: the campaign must STOP at the named boundary
-if MARKERS [mode] then
-	local marker = MARKERS [mode]
-	local result_row = false
-	if not ran then
-		result_row = false
-	else
-		result_row = case_2_result ()
-	end
+-- ---------------------------------------------------------------------------------------------------------------- withheld, malformed and frames_without_fork: the campaign must STOP at the named boundary
+if MARKER then
 	if ran then
-		write_record (result_row, "not_stopped")
-		refuse ("not-stopped: the host " .. mode .. " its '" .. OP .. "' answer (" .. requests .. " request(s)) and the delegate completed: the campaign did not stop at " .. marker)
+		write_record (case_result (), "not_stopped")
+		refuse ("not-stopped: the host answered its '" .. OP .. "' request wrongly (" .. mode .. ", " .. requests .. " request(s)) and the delegate completed: the campaign did not stop at " .. MARKER)
 	end
+	local delegate_error = tostring (problem)
 	if requests == 0 then
 		write_record (false, "setup_failure_the_host_was_never_asked")
-		refuse ("SETUP FAILURE: the delegate stopped but the host was asked 0 times for '" .. OP .. "': the stop is not the " .. mode .. " answer's: " .. tostring (problem))
+		refuse ("SETUP FAILURE: the delegate stopped but the host was asked 0 times for '" .. OP .. "': the stop is not the " .. mode .. " answer's: " .. delegate_error)
 	end
-	if not string.find (tostring (problem), marker, 1, true) then
+	-- the stop is proved by the delegate's OWN record, not by a substring of the error: its case's engine_failure row at the expected boundary, and no result row. A delegate, output or witness
+	-- failure (whose message may carry the marker, in a path for example) is rejected as what it is.
+	local rows = delegate_rows ()
+	if rows == nil then
+		write_record (false, "setup_failure_no_delegate_record")
+		refuse ("SETUP FAILURE: the delegate failed and left no readable record on " .. out_path .. ": " .. delegate_error)
+	end
+	local failure_row, result_row = nil, nil
+	for _, line in ipairs (rows) do
+		if has (line, '"event":"result"') then result_row = result_row or line end
+		if failure_row == nil and has (line, '"event":"engine_failure"') and has (line, '"i":' .. CASE .. ',') then failure_row = line end
+	end
+	if result_row then
+		write_record (false, "contradictory_result_row")
+		refuse ("contradictory-result: the delegate wrote a result row (" .. result_row .. ") although the campaign is said to have stopped: " .. delegate_error)
+	end
+	if failure_row == nil then
+		write_record (false, "setup_failure_no_engine_failure")
+		refuse ("SETUP FAILURE: the delegate failed but wrote no case " .. CASE .. " engine_failure row, so the failure is a delegate, output or witness failure and not the engine's stop: " .. delegate_error)
+	end
+	if not has (failure_row, MARKER) then
 		write_record (false, "wrong_boundary")
-		refuse ("wrong-boundary: the campaign stopped, but not at " .. marker .. ": " .. tostring (problem))
+		refuse ("wrong-boundary: the engine stopped in case " .. CASE .. ", but not at " .. MARKER .. ": " .. failure_row)
 	end
-	write_record (false, "stopped_at_boundary", string.format ('"marker":"%s","stopped":true,', marker))
-	io.stderr:write (string.format ("%s: mode=%s stopped at %s after %d host request(s) for '%s'\n", NAME, mode, marker, requests, OP))
+	if not string.find (delegate_error, "^env%-lightning%-queue: env_case%(13, " .. CASE .. "%) FAILED in the engine") then
+		write_record (false, "setup_failure_delegate_error_is_not_the_engine_stop")
+		refuse ("SETUP FAILURE: the delegate's error is not its report of the engine's stop in case " .. CASE .. ": " .. delegate_error)
+	end
+	write_record (false, "stopped_at_boundary", string.format ('"marker":"%s","stopped":true,', MARKER))
+	io.stderr:write (string.format ("%s: mode=%s stopped at %s after %d host request(s) for '%s'\n", NAME, mode, MARKER, requests, OP))
 	return
 end
 
@@ -151,7 +194,7 @@ if not ran then
 	write_record (false, "setup_failure_delegate_failed")
 	error (tostring (problem), 0)
 end
-local completed, occupancy, mask = case_2_result ()
+local completed, occupancy, mask = case_result ()
 if not completed then
 	write_record (false, "setup_failure_case_2_did_not_complete")
 	refuse ("SETUP FAILURE: the delegate returned but case 2 did not complete (refused, or no result row on " .. out_path .. "): the add was not exercised, so there is no ownership verdict")

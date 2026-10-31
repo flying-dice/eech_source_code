@@ -1733,6 +1733,53 @@ mod tests {
     }
 
     #[test]
+    fn an_age_whose_frame_the_original_could_not_convert_is_refused_whole_and_every_defined_age_keeps_the_originals_word() {
+        // started at 1e30 and updated at 0: the one-day wrap leaves a distance of about -1e30, and its float-to-int conversion is undefined in C: refused, nothing committed
+        for (what, started, length, at) in [
+            ("a start far beyond the day", 1.0e30f32, 0.3f32, 0.0f32),
+            ("a start of infinity", f32::INFINITY, 0.3, 0.0),
+            ("a length that is not a number", 1.0, f32::NAN, 1.0),
+        ] {
+            let mut field = Field::new().unwrap();
+            let mut strike = add_of(1, 1500.0, true, started);
+            strike.length = length;
+            field.lightning_add(&strike).unwrap();
+            let before = field.lightning_queue().unwrap();
+            let error = field.lightning_update(at, None).unwrap_err();
+            assert!(error.contains("float-to-int"), "{what}: {error}");
+            assert_eq!(
+                format!("{:?}", field.lightning_queue().unwrap()),
+                format!("{:?}", before),
+                "{what}: a refusal changed the queue"
+            );
+        }
+        // the same for a forked strike once the frame count is given, and for a count that makes a defined distance overflow
+        let mut field = Field::new().unwrap();
+        let mut forked = add_of(2, 1.0, true, 1.0e30);
+        forked.length = 1.0;
+        field.lightning_add(&forked).unwrap();
+        let before = field.lightning_queue().unwrap();
+        let error = field.lightning_update(0.0, Some(8)).unwrap_err();
+        assert!(error.contains("float-to-int") && error.contains("t * frames"), "{error}");
+        assert_eq!(field.lightning_queue().unwrap(), before);
+        // a later bad slot leaves NO partial state: the healthy cloud burst in slot 0 is not aged either
+        let mut field = Field::new().unwrap();
+        field.lightning_add(&add_of(1, 1.0, true, 100.0)).unwrap();
+        field.lightning_add(&add_of(1, 2.0, true, 1.0e30)).unwrap();
+        let before = field.lightning_queue().unwrap();
+        assert!(field.lightning_update(100.1, None).is_err());
+        assert_eq!(field.lightning_queue().unwrap(), before);
+        // a defined value is the original's word even at the edge of the int range: 0.99 of a frame count of i32::MAX converts and is kept
+        let mut field = Field::new().unwrap();
+        let mut forked = add_of(2, 1.0, true, 10.0);
+        forked.length = 1.0;
+        field.lightning_add(&forked).unwrap();
+        assert_eq!(field.lightning_update(10.99, Some(i32::MAX)).unwrap(), LightningUpdate::Done);
+        let frame = field.lightning_queue().unwrap()[0].current_frame_number;
+        assert!((2_100_000_000..i32::MAX).contains(&frame), "{frame}");
+    }
+
+    #[test]
     fn the_provider_answers_the_lightning_queue_whole_and_refuses_what_it_cannot_read() {
         let (lua, provider) = lua_with_provider();
         let ask = |fields: &[(&str, LuaValue)]| -> LuaResult<LuaTable> {
@@ -1908,6 +1955,35 @@ mod tests {
                     let mut field = Field::new()?;
                     field.lightning_add(&add_of(9, 1.0, true, 1.0))?;
                     field.lightning_update(1.1, None).map(|_| bits(&field))
+                }),
+            ),
+            (
+                "refused: a frame beyond the int range",
+                Box::new(move || {
+                    let mut field = Field::new()?;
+                    field.lightning_add(&add_of(1, 1.0, true, 1.0e30))?;
+                    field.lightning_update(0.0, None).map(|_| bits(&field))
+                }),
+            ),
+            (
+                "refused: a frame that is not a number",
+                Box::new(move || {
+                    let mut field = Field::new()?;
+                    let mut strike = add_of(1, 1.0, true, 1.0);
+                    strike.length = f32::NAN;
+                    field.lightning_add(&strike)?;
+                    field.lightning_update(1.0, None).map(|_| bits(&field))
+                }),
+            ),
+            (
+                "an aged forked strike at the edge of the int range",
+                Box::new(move || {
+                    let mut field = Field::new()?;
+                    let mut strike = add_of(2, 1.0, true, 10.0);
+                    strike.length = 1.0;
+                    field.lightning_add(&strike)?;
+                    field.lightning_update(10.99, Some(i32::MAX))?;
+                    Ok(bits(&field))
                 }),
             ),
         ];

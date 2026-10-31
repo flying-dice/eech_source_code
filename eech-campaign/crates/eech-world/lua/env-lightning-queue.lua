@@ -9,6 +9,9 @@
 --   2 add_with_the_main_environment         the active environment is set to the main one by plain assignment, add_3d_lightning_strike is called
 --   3 fill_the_queue_and_drop_the_next      one add more than the queue has slots for
 --   4 age_a_cloud_burst_by_the_time_of_day  a CLOUD_BURST is added at a time of day and aged by update_3d_lightning_strikes at two later times
+--   5 age_a_forked_strike_by_the_time_of_day  the same with a FORKED_1 strike: aging it needs the strike animation frame count, which only the texture animation table holds; where it is not loaded (a headless
+--                                             process) the ENGINE STOPS with the named refusal [env-provider:lightning_update.model] (an engine_failure row and this driver's error, never a result), and where it is loaded
+--                                             the rows are those of case 4
 --
 -- These are controls of the two ORIGINAL PRIMITIVES, not of the lightning routine, not a missing-host proof, and they do not exercise the routine's own switch to the main environment. The forked strike
 -- types read texture animations the headless build may not initialise and are NOT exercised (the report says so). A prerequisite that is absent (no main environment, a queue that is not empty) is REFUSED by
@@ -18,7 +21,7 @@
 -- with its mask) and writes every row as it came, with every value kept as text (a hex word is never turned into a number). What the original did is what the rows say. A report of another shape is a failure of
 -- the WITNESS: a `witness_failure` row and an error beginning `env-lightning-queue:`. If the engine stops inside a control, that is `engine_failure` and the same error.
 --
--- host.args: root, out (JSON Lines path), case (1 to 4, required), scenario (lebanon_retail default | georgia_retail)
+-- host.args: root, out (JSON Lines path), case (1 to 5, required), scenario (lebanon_retail default | georgia_retail)
 
 io.stdout:setvbuf ("no")
 
@@ -28,9 +31,9 @@ local root = args.root
 if type (root) ~= "string" or root == "" then refuse ("root=<installation root> is required") end
 local out_path = args.out
 if type (out_path) ~= "string" or out_path == "" then refuse ("out=<JSON Lines path> is required") end
-local LABELS = { "add_without_active_environment", "add_with_the_main_environment", "fill_the_queue_and_drop_the_next", "age_a_cloud_burst_by_the_time_of_day" }
+local LABELS = { "add_without_active_environment", "add_with_the_main_environment", "fill_the_queue_and_drop_the_next", "age_a_cloud_burst_by_the_time_of_day", "age_a_forked_strike_by_the_time_of_day" }
 local case = tonumber (args.case)
-if not case or case ~= math.floor (case) or LABELS [case] == nil then refuse ("case must be an integer from 1 to 4, got '" .. tostring (args.case) .. "'") end
+if not case or case ~= math.floor (case) or LABELS [case] == nil then refuse ("case must be an integer from 1 to 5, got '" .. tostring (args.case) .. "'") end
 local scenarios = {
 	lebanon_retail = { map = "..\\common\\maps\\map5", campaign = "LEBANON.CHC" },
 	georgia_retail = { map = "..\\common\\maps\\map3", campaign = "GEORGIA.CHC" },
@@ -248,7 +251,7 @@ else
 			if popcount (step.map.mask_w) ~= tonumber (step.map.occupancy) then hard ("step row " .. (k + 1) .. " has an occupancy that is not its mask's: " .. step.raw) end
 			if k == 1 and step.map.mask_w ~= last.map.mask_after_w then hard ("the last step's mask is not the control's final mask: " .. step.raw) end
 		end
-	elseif case == 4 then
+	elseif case == 4 or case == 5 then
 		local input = expect ("env-lightning-input", "tag=age added_at_w:w length_w:w inside_w:w after_the_end_w:w first_slot:i", "input")
 		updates = 2
 		local first_slot = tonumber (input.map.first_slot)

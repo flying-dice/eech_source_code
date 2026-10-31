@@ -16,7 +16,7 @@ use mlua::Lua;
 
 const SCRIPT: &str = include_str!("../lua/env-lightning-queue.lua");
 
-const PLAN: &str = "env-lightning-plan version=1 cases=4 main_present=1 active=0 queue_capacity=32 mask_w=00000000 update_calls=0 process_isolated=required\\n\
+const PLAN: &str = "env-lightning-plan version=1 cases=5 main_present=1 active=0 queue_capacity=32 mask_w=00000000 update_calls=0 process_isolated=required\\n\
 env-lightning-unsupported item=forked_strike_update reason=a_reason\\n\
 env-lightning-unsupported item=drawing_and_the_application_scene_update reason=another_reason\\n\
 env-lq-report armed=0 capacity=96 stored=0 dropped=0 overflow=0 lightning_events=0 update_calls=0 queue_capacity=32 final_mask_w=00000000 final_occupancy=0\\n";
@@ -51,6 +51,7 @@ env-lightning-step i=3 add=33 mask_w=ffffffff occupancy=32\\n";
             }
             text + &end(3, "ffffffff", 32, 0)
         }
+        5 => report(4).replace("i=4", "i=5").replace("age_a_cloud_burst_by_the_time_of_day", "age_a_forked_strike_by_the_time_of_day"),
         _ => {
             head(4, "age_a_cloud_burst_by_the_time_of_day", "00000000", 0)
                 + "env-lightning-input tag=age added_at_w=42c80000 length_w=3e99999a inside_w=42c83333 after_the_end_w=42c90000 first_slot=0\\n"
@@ -70,7 +71,7 @@ fn refused_report(case: u32, label: &str) -> String {
 /// The scripted collaborators: a stand-in `eech_dc` whose engine answers `env_case (13, index)` from the Rust-side text (after the scenario's `edit` hook, if any) and a file that collects what is written.
 fn collaborators() -> String {
     let plan = PLAN.to_string();
-    let reports: Vec<String> = (1..=4).map(report).collect();
+    let reports: Vec<String> = (1..=5).map(report).collect();
     format!(
         r##"
 WRITTEN = {{}}
@@ -100,9 +101,11 @@ function dofile (path)
 	return chunk ()
 end
 io.open = function () return file end
+-- a result row of case 2 already on the file before anything ran: the contradiction a stop must not be able to hide
+if SCENARIO.stale_result then WRITTEN [#WRITTEN + 1] = '{{"case":2,"event":"result","refused":false}}\n' end
 
 local PLAN = '{plan}'
-local REPORTS = {{ '{r1}', '{r2}', '{r3}', '{r4}' }}
+local REPORTS = {{ '{r1}', '{r2}', '{r3}', '{r4}', '{r5}' }}
 host = {{
 	args = ARGS,
 	terrain_provider = function () return function () return {{}} end end,
@@ -125,6 +128,12 @@ package.preload.eech_dc = function ()
 						if not ok then error ('host environment: [env-provider:lightning_add.callback] ' .. tostring (answer), 0) end
 						if type (answer) == 'table' and type (answer.slot) == 'number' and (answer.slot < -1 or answer.slot > 31) then error ('host environment: [env-provider:lightning_add.answer] slot ' .. answer.slot, 0) end
 					end
+					-- an update the host answers with a request for the strike animation's frame count: the campaign refuses it when the queue holds no forked strike (the scripted queue never does)
+					for _ = 1, SCENARIO.host_updates or 0 do
+						local ok, answer = pcall (config.environment, {{ op = 'lightning_update', time_of_day = 100.1 }})
+						if not ok then error ('host environment: [env-provider:lightning_update.callback] ' .. tostring (answer), 0) end
+						if type (answer) == 'table' and answer.need_frames == true then error ('host environment: [env-provider:lightning_update.answer] the host asked for the strike animation frame count although the queue holds no forked strike', 0) end
+					end
 				end
 				if SCENARIO.engine_error and SCENARIO.engine_error == index then error ('engine fatal: an ASSERT fired in the original', 0) end
 				local text = index == 0 and PLAN or (SCENARIO.report and SCENARIO.report [index]) or REPORTS [index]
@@ -140,7 +149,8 @@ end
         r1 = reports[0],
         r2 = reports[1],
         r3 = reports[2],
-        r4 = reports[3]
+        r4 = reports[3],
+        r5 = reports[4]
     )
 }
 
@@ -194,6 +204,7 @@ fn each_control_is_written_as_the_fixture_reported_it_whatever_it_shows() {
         ("2", "add_with_the_main_environment"),
         ("3", "fill_the_queue_and_drop_the_next"),
         ("4", "age_a_cloud_burst_by_the_time_of_day"),
+        ("5", "age_a_forked_strike_by_the_time_of_day"),
     ] {
         let driven = drive("", &case_args(case));
         driven.result.clone().unwrap_or_else(|e| panic!("case {case}: {e}"));
@@ -265,7 +276,7 @@ fn a_report_of_another_shape_is_a_failure_of_the_witness_and_never_a_result() {
         ("3", "one step row where two are expected", edit("if index == 3 then return (text:gsub('env%-lightning%-step i=3 add=33[^\\n]*\\n', '', 1)) end"), "step row"),
         ("1", "a step row in a control that has none", edit("if index == 1 then return (text:gsub('env%-lightning%-end', 'env-lightning-step i=1 add=1 mask_w=00000000 occupancy=0\\nenv-lightning-end', 1)) end"), "unexpected row"),
         ("2", "a refused control with rows besides its head and end", edit("if index == 2 then return (text:gsub('env%-lightning%-end[^\\n]*\\n', 'env-lightning-input tag=x\\nenv-lightning-end i=2 refused=a_reason changed=0 process_isolated=required\\n', 1)) end"), "refused control"),
-        ("2", "a plan with another number of cases", edit("if index == 0 then return (text:gsub('cases=4', 'cases=5', 1)) end"), "cases"),
+        ("2", "a plan with another number of cases", edit("if index == 0 then return (text:gsub('cases=5', 'cases=6', 1)) end"), "cases"),
         ("2", "a plan whose accessor does not answer", edit("if index == 0 then return (text:gsub('queue_capacity=32', 'queue_capacity=-1', 1)) end"), "accessor"),
         ("2", "a plan with one unsupported row", edit("if index == 0 then return (text:gsub('env%-lightning%-unsupported [^\\n]*\\n', '', 1)) end"), "unsupported rows"),
         ("2", "a plan with a row that is not the plan's", edit("if index == 0 then return text .. 'env-lq seq=0 point=0\\n' end"), "unexpected row"),
@@ -306,7 +317,7 @@ fn an_engine_stop_a_missing_fixture_a_bad_argument_and_every_output_failure_are_
     for args in [
         vec![],
         vec![("case", "0")],
-        vec![("case", "5")],
+        vec![("case", "6")],
         vec![("case", "2.5")],
         vec![("case", "nan")],
         vec![("case", "1"), ("scenario", "mars_retail")],
@@ -630,4 +641,51 @@ fn the_host_witness_refuses_an_unknown_mode_before_anything_runs() {
     let driven = witness("", &[("case", "2"), ("mode", "sideways")]);
     assert!(driven.result.clone().unwrap_err().contains("mode must be"));
     assert!(driven.rows.is_empty());
+}
+
+#[test]
+fn the_host_witness_stops_an_update_that_asks_for_the_frame_count_of_a_queue_with_no_forked_strike_before_the_model_is_touched() {
+    let driven = witness("host_updates = 1", &[("case", "4"), ("mode", "frames_without_fork")]);
+    driven
+        .result
+        .clone()
+        .unwrap_or_else(|e| panic!("a stop at the boundary is the evidence: {e}\n{}", driven.text));
+    let record = authority(&driven);
+    assert_eq!(record["verdict"], "stopped_at_boundary");
+    assert_eq!(record["marker"], "[env-provider:lightning_update.answer]");
+    assert_eq!(
+        (record["op"].as_str(), record["requests"].as_i64(), record["case"].as_i64()),
+        (Some("lightning_update"), Some(1), Some(4))
+    );
+    assert_eq!(of(&driven, "engine_failure").len(), 1);
+    assert!(of(&driven, "result").is_empty());
+    // a campaign that completes the aging anyway (or never asked) is an error, and the mode belongs to case 4 only
+    let completed = witness("", &[("case", "4"), ("mode", "frames_without_fork")]);
+    assert!(completed.result.clone().unwrap_err().contains("not-stopped"));
+    let wrong_case = witness("", &[("case", "2"), ("mode", "frames_without_fork")]);
+    assert!(wrong_case.result.clone().unwrap_err().contains("case must be 4"));
+    assert!(wrong_case.rows.is_empty());
+}
+
+#[test]
+fn the_host_witness_proves_a_stop_from_the_delegates_own_record_and_rejects_a_marker_that_only_appears_in_a_message() {
+    // a result row already on the file contradicts a stop, whatever the error says
+    let stale = witness("host_adds = 1, stale_result = true", &[("case", "2"), ("mode", "withheld")]);
+    let error = stale.result.clone().expect_err("a stop with a result row must not be accepted");
+    assert!(error.contains("contradictory-result"), "{error}");
+    let record = authority(&stale);
+    assert_eq!(
+        (record["verdict"].as_str(), record["completed"].as_bool()),
+        (Some("contradictory_result_row"), Some(false))
+    );
+    // the delegate's own OUTPUT failure, whose message carries the marker through a path, is not the engine's stop: no engine_failure row exists
+    let path = "[env-provider:lightning_add.callback]";
+    let output = witness(
+        "host_adds = 1, io_fail = { op = 'write', at = 6 }",
+        &[("case", "2"), ("mode", "withheld"), ("out", path)],
+    );
+    let error = output.result.clone().expect_err("an output failure must not be accepted as the stop");
+    assert!(error.contains("SETUP FAILURE") && error.contains("OUTPUT FAILURE"), "{error}");
+    assert_eq!(authority(&output)["verdict"], "setup_failure_no_engine_failure");
+    assert!(of(&output, "engine_failure").is_empty());
 }
