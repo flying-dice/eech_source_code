@@ -1,0 +1,74 @@
+{
+  "native_source": "c0b6c3386dae772eafcd456bc3620f0299bccb4f",
+  "driver_source": "21ba7114339993df5edf190d434f739e12ab2192",
+  "files": [
+    {
+      "file": "summary.json",
+      "private_original_sha256": "ebce7f82fca0bf6004af2cf080ab6035e948518d8fd00ab3534382275b96f1fb",
+      "retained_Git_LF_sha256": "2f1a6ab0d6b2a1c93edcb53efb6cd9f32993e277a032dd542fafdd9b256a5c42"
+    },
+    {
+      "file": "actual-evidence-review.json",
+      "private_original_sha256": "8755577f55861682e4dd55cc93c6fad0b00f4dee51600e5136afa88ef411cd2c",
+      "retained_Git_LF_sha256": "b8173e6e0f38ff138d1df1430c820e81ef40d2cfaaa41a5d93d45dbcce3185f1"
+    },
+    {
+      "file": "initial-source-review.json",
+      "private_original_sha256": "b618371bda7e8dd023dabc8c3bf41973c02599467772fb79eff8bf2fcc61af63",
+      "retained_Git_LF_sha256": "359c9362b9238d574a6a7f28a7967c27a98d6cf1a97c734aae6a92ac78cac154"
+    },
+    {
+      "file": "driver-correction-review.json",
+      "private_original_sha256": "1f0db39866e5f2178c49cd23ec601189d5bdc6c10dcccfc52190988de9da844b",
+      "retained_Git_LF_sha256": "5d605a20d23716093cd42f792c24bd09a7c46df3900f0795bee0509ca13fc4f5"
+    },
+    {
+      "file": "actual-red.json",
+      "private_original_sha256": "36c6a28c4a1cafe05df6b971878ed25d55fdbfed0a47840cb21475228651e367",
+      "retained_Git_LF_sha256": "d4695b2b0c91fd5597027dacf53d0ea27997065ccad92cee59bd4e1fc2e1a1d2"
+    },
+    {
+      "file": "actual-red-completion.json",
+      "private_original_sha256": "2c21c03fbc094f206dd12c6e967fde5b1e74dde4d863f1a5b5e095d28a99ca97",
+      "retained_Git_LF_sha256": "37b038762406640cc5ecdc168f0bb8349dc28eefb00be517bcb317c327e7c743"
+    },
+    {
+      "file": "corrected-guards-strict.json",
+      "private_original_sha256": "31bcb31666afa002c39ff22555c7552852808b43f5f40d3de51ee38ea5257246",
+      "retained_Git_LF_sha256": "fe42d162a0e921a0083e2f063223c218a803f792f5dadf3d7ae94ae40d4ad3ac"
+    },
+    {
+      "file": "driver-native-equivalence.json",
+      "private_original_sha256": "c15fae60bace84213e126b6c1d8818e6de63361e89c474251dff12ac68e1caf4",
+      "retained_Git_LF_sha256": "f2bcfa702cfcd48a885f17ab779c7d98cc58ae3aae3aeff46d6e3558ce074aad"
+    },
+    {
+      "file": "Windows-native-build.json",
+      "private_original_sha256": "d29e2df3a8e165072fef617105c5662c8a92ab567889f569eef0e47ca4590212",
+      "retained_Git_LF_sha256": "376a817057dcc77dfa43d9bf1d0674edbab88ae272a7d42162414aaffea9f67e"
+    },
+    {
+      "file": "Linux-original-guards-native-strict.json",
+      "private_original_sha256": "d9f4e717e62e3066ca1d8629e5e5821311605b8768041e7aeb84fddec9e715f8",
+      "retained_Git_LF_sha256": "e576017db65cdd6ad5f2a15fb5a014c44169f1e312889b12d898dca747c011b9"
+    },
+    {
+      "file": "georgia-controller.json",
+      "private_original_sha256": "f6022ddbf4689feef4669e3d5a80eae2a7621871ae5debd1aaae58256ea85c7d",
+      "retained_Git_LF_sha256": "d372bd26894a1806cdf17ff3460ccd9d00e4ac394f3e23eaa73c367a333c8732"
+    },
+    {
+      "file": "lebanon-controller.json",
+      "private_original_sha256": "18484676e95cb83c95a93ca6258523e38cad7d00da1e1abaa1064caffe084927",
+      "retained_Git_LF_sha256": "1fe41356752248b3430b3c4503fec689eef542a80977aac2f6d308808e8561d0"
+    },
+    {
+      "file": "lebanon-repeat-controller.json",
+      "private_original_sha256": "8ec26f902956ec44367d5e993416d023c2c0c40da86f12d40b31c9a98f28d311",
+      "retained_Git_LF_sha256": "67011c69cbef6f9c688ed69571925a5ed2d7eea59a4c47cc9b07e7c788da013e"
+    }
+  ],
+  "scope": "Safeoriginalambientcharacterization/review/build/input/payloadreceipts ONLY. No rawcoordinates/retailassets/childworddata/binaries/recordings. 44answered+2missinggunshiprefusals/47calls/0anomalies perroot; bothcompleteLebrawexactsame. OriginalUNCHANGEDsolver onhostedfield/sectorbaseline, notwhole-originalDLL. No physicalhostamplification/audible/player/render/frame/CPUFP/Tacview/fullshipping/Task51/D3acceptance.",
+  "actual_review_sha256": "8755577f55861682e4dd55cc93c6fad0b00f4dee51600e5136afa88ef411cd2c",
+  "preserved_failures": "13of23damagedrecordactualred retained93bc. InitialRootselectorassumed44totalcaseevents; V2uses46split44+2, no raw/native/driverchange. Acceptedshippingbaselines/tolerances unchanged."
+}

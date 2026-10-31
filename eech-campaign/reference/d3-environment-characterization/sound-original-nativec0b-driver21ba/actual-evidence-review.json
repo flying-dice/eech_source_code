@@ -1,0 +1,190 @@
+{
+  "review_id": "ENV-AMBIENT-ORIGINAL-ACTUAL-NATIVEC0B-DRIVER21BA-20261031",
+  "reviewer": "Sole independent Codex reviewer, no nested agents",
+  "reviewed_utc": "2026-10-31T14:25:40.7286183Z",
+  "scope": "One NEW actual-evidence pass on the original ambient characterization on three retail roots. No unchanged source/kernel review, production move, replay or new native experiment.",
+  "identities": {
+    "native_source": "c0b6c3386dae772eafcd456bc3620f0299bccb4f",
+    "driver_source": "21ba7114339993df5edf190d434f739e12ab2192",
+    "driver_sha256": "45f3e3ada5eb8ac10e4e1c153f22fa07d63879a87f9d55bb3dbcea29006a2bdb",
+    "native_build_info": "R:/d3-evidence/environment-ambient-original-source-c0b6c3386/eech-campaign/target/env-fixture/ambient-original-c0b6c3386/BUILD-INFO.txt",
+    "native_build_info_sha256": "bef6347dd4e0d83a5d575eb480a4d921a5c4ba5369c2278dd8b34a0e2d67c25e",
+    "native50payloads_rehashed_and_exact": true,
+    "build_info_c0b_clean_envfixture": true,
+    "provenance": "Controllers invoke the unchanged c0b env-fixture native and external corrected21ba driver by exact paths; the runtime driver file independently hashes to the recorded45f3 value. Native package Lua remains immutable, and no payload override is disguised as a native rebuild. The existing equivalence proof identifies unchanged Cfixture/production inputs."
+  },
+  "artifacts": [
+    {
+      "path": "R:\\d3-evidence\\environment-ambient-original-nativec0b-driver21ba-summary-20261031.json",
+      "sha256": "ebce7f82fca0bf6004af2cf080ab6035e948518d8fd00ab3534382275b96f1fb"
+    },
+    {
+      "path": "R:\\d3-evidence\\summarize-ambient-original-v2-20261031.py",
+      "sha256": "acc9ac39d0ed9c145ac34f886b21e31d28b538adee7f3958028f64a5e1f31d4d"
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-sound-driver-21ba71143-equivalence-20261031.json",
+      "sha256": "c15fae60bace84213e126b6c1d8818e6de63361e89c474251dff12ac68e1caf4"
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-sound-driver-21ba71143-fixed-linux-20261031-completion.json",
+      "sha256": "31bcb31666afa002c39ff22555c7552852808b43f5f40d3de51ee38ea5257246"
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-sound-driver-21ba71143-fixed-linux-20261031.log",
+      "sha256": "7126c18f78d05ff4335ca44839a2c197237f19e7c114f2f3165ca89ee4c6d8aa"
+    }
+  ],
+  "results": [
+    {
+      "case": "georgia",
+      "directory": "R:\\d3-evidence\\environment-ambient-original-nativec0b-driver21ba-georgia-20261031",
+      "controller_sha256": "f6022ddbf4689feef4669e3d5a80eae2a7621871ae5debd1aaae58256ea85c7d",
+      "native_log_sha256": "027092ec108b2537ed3df3ec95ce52134eca32bf6d369dda855d5a1c99a4a002",
+      "raw_sha256": "06067c5b0a9522c7545f54a01c8cace2926b1e756d50ff855e64577b90062270",
+      "raw_bytes": 118118,
+      "strict_json_rows": 108,
+      "case_ids": "1..46, every ID once",
+      "answered": 44,
+      "explicit_refused_ids": [
+        17,
+        43
+      ],
+      "refusal_reason": "no_gunship_entity_for_the_cockpit_branch",
+      "calls": 47,
+      "anomalies": 0,
+      "ten_child_order_and_word_records_valid": true,
+      "all_restore_subflags_and_exact_equal_state_fingerprints": true,
+      "all47_shared_seed_records_unchanged": true,
+      "all7_bounded_probe_sites_found": true,
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "pre_input_exit": 0,
+      "post_input_exit": 0,
+      "native_payloads": 50,
+      "payloads_and_driver_unchanged": true,
+      "input_manifests": [
+        {
+          "phase": "pre",
+          "sha256": "8c08435614a8810022336af69dfe86eb32a3da556cd0e0f71093b8111619c058",
+          "log_sha256": "f147a9149f90f579f9d18be64ced9c514554886cc7d7c6afda5f3f8ce150337b",
+          "matches_named_reference": true
+        },
+        {
+          "phase": "post",
+          "sha256": "8c08435614a8810022336af69dfe86eb32a3da556cd0e0f71093b8111619c058",
+          "log_sha256": "f147a9149f90f579f9d18be64ced9c514554886cc7d7c6afda5f3f8ce150337b",
+          "matches_named_reference": true
+        }
+      ]
+    },
+    {
+      "case": "lebanon",
+      "directory": "R:\\d3-evidence\\environment-ambient-original-nativec0b-driver21ba-lebanon-20261031",
+      "controller_sha256": "18484676e95cb83c95a93ca6258523e38cad7d00da1e1abaa1064caffe084927",
+      "native_log_sha256": "1a40022286e8827a5505d5bd9da028392076858478a3838f96157e49610551e6",
+      "raw_sha256": "08fce9b0612179ec096bb71eb872ce0d33dc3be44ca1cbe7b04ca5a45fb8f10e",
+      "raw_bytes": 118120,
+      "strict_json_rows": 108,
+      "case_ids": "1..46, every ID once",
+      "answered": 44,
+      "explicit_refused_ids": [
+        17,
+        43
+      ],
+      "refusal_reason": "no_gunship_entity_for_the_cockpit_branch",
+      "calls": 47,
+      "anomalies": 0,
+      "ten_child_order_and_word_records_valid": true,
+      "all_restore_subflags_and_exact_equal_state_fingerprints": true,
+      "all47_shared_seed_records_unchanged": true,
+      "all7_bounded_probe_sites_found": true,
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "pre_input_exit": 0,
+      "post_input_exit": 0,
+      "native_payloads": 50,
+      "payloads_and_driver_unchanged": true,
+      "input_manifests": [
+        {
+          "phase": "pre",
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+          "log_sha256": "8e8198d6dbcb9e3087e56d38ea2cf91c58cdbcad3bf1729c70415c2b8b7598b4",
+          "matches_named_reference": true
+        },
+        {
+          "phase": "post",
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+          "log_sha256": "8e8198d6dbcb9e3087e56d38ea2cf91c58cdbcad3bf1729c70415c2b8b7598b4",
+          "matches_named_reference": true
+        }
+      ]
+    },
+    {
+      "case": "lebanon-repeat",
+      "directory": "R:\\d3-evidence\\environment-ambient-original-nativec0b-driver21ba-lebanon-repeat-20261031",
+      "controller_sha256": "8ec26f902956ec44367d5e993416d023c2c0c40da86f12d40b31c9a98f28d311",
+      "native_log_sha256": "56dacdb518480f21a291e32ef260e9e2452da0368a94f440cf2c58b1dff83b33",
+      "raw_sha256": "08fce9b0612179ec096bb71eb872ce0d33dc3be44ca1cbe7b04ca5a45fb8f10e",
+      "raw_bytes": 118120,
+      "strict_json_rows": 108,
+      "case_ids": "1..46, every ID once",
+      "answered": 44,
+      "explicit_refused_ids": [
+        17,
+        43
+      ],
+      "refusal_reason": "no_gunship_entity_for_the_cockpit_branch",
+      "calls": 47,
+      "anomalies": 0,
+      "ten_child_order_and_word_records_valid": true,
+      "all_restore_subflags_and_exact_equal_state_fingerprints": true,
+      "all47_shared_seed_records_unchanged": true,
+      "all7_bounded_probe_sites_found": true,
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "pre_input_exit": 0,
+      "post_input_exit": 0,
+      "native_payloads": 50,
+      "payloads_and_driver_unchanged": true,
+      "input_manifests": [
+        {
+          "phase": "pre",
+          "sha256": "9c14af3fd045192062cdce0dea0028100392ff0b195760eaf03f853e91d0e4c4",
+          "log_sha256": "78e9b5d073d89bed38db7d828ff4a608e5253b7a92f4d64244b538afe2f663af",
+          "matches_named_reference": true
+        },
+        {
+          "phase": "post",
+          "sha256": "9c14af3fd045192062cdce0dea0028100392ff0b195760eaf03f853e91d0e4c4",
+          "log_sha256": "78e9b5d073d89bed38db7d828ff4a608e5253b7a92f4d64244b538afe2f663af",
+          "matches_named_reference": true
+        }
+      ]
+    }
+  ],
+  "independent_evidence_checks": [
+    "Parsed all108strict JSON rows in each raw file and verified event cardinalities: boot1,plan1,site7,children_order1,unsupported4,call47,case46,summary1. Exactly44answered and two missing-gunship refusals at17and43; no hidden missing, duplicate or foreign case ID. Summary labels and refusal reason agree with the records.",
+    "For every answered case, checked the raw header/end/current session indices, exactly one session row, all six restoration flags1, both exact16lowercase hex state fingerprints present and equal, and session-unchanged1. The47call records have matching raw and JSON fields, sequential per-case call ordinals, exact62binary scratch flags and rng_unchanged1 with the same shared seed as the case initial record.",
+    "Every before/after list has the same ten actual ambient identities and order as the plan. All amplitude words are exact8lowercase hex and finite; before values match the recorded setup sentinel or amp0. Every retained input word has the8hex grammar, and controlled outdoor actual/wanted/camera altitude words agree. No expected output amplitude formula was computed or substituted.",
+    "The two refused cases contain no call records and state nothing_changed=1/restored=1; no cockpit result is fabricated. All seven probe site rows found a site, establishing only the bounded probe prerequisites, not exhaustive surface/map coverage.",
+    "All three controllers and each pre/native/post stage are terminal0. All six input logs report IDENTICAL; manifest count/bytes/combined hashes match their named Georgia or Lebanon reference. Georgia1174files/142522166bytes, Lebanon1179files/102239559bytes. Recomputed all50native payload hashes against the immutable BUILD-INFO and independently hashed the runtime driver.",
+    "Compared the COMPLETE raw Lebanon and Lebanon-repeat byte arrays, including endings: exact118120bytes, SHA25608fce9b0612179ec096bb71eb872ce0d33dc3be44ca1cbe7b04ca5a45fb8f10e. Georgia118118bytes, SHA25606067c5b0a9522c7545f54a01c8cace2926b1e756d50ff855e64577b90062270. No raw coordinates, surface flags or amplitude values are reproduced here.",
+    "Read the corrected21ba five-function/affected-strict log and terminal0 completion14:20:22.191553UTC. This executes driver bookkeeping, not the physics solver. The measured13of23accepted-record red and priorsourceP2closure remain preserved at their own identities.",
+    "The first interactive selector error expecting44total case events is openly disclosed. V2 correctly requires46distinct IDs split44answers+2refusals. Its safe summary agrees with independent recalculation. No raw result or native/driver bytes changed to satisfy that selection."
+  ],
+  "reused_source_closure": {
+    "report": "independent-environment-sound-driver-correction-review-21ba71143-20261031.json",
+    "sha256": "1f0db39866e5f2178c49cd23ec601189d5bdc6c10dcccfc52190988de9da844b",
+    "scope": "SourceP2closed; no repeated source pass."
+  },
+  "findings": [],
+  "verdict": "No actionable findings. Actual unchanged ambient output words and restoration evidence are now retained for these44answered finite cases per map under explicit c0b-native/21ba-driver provenance. This supports the bounded original characterization prerequisite for a later reviewed physical move, not that move or Task51/D3 acceptance.",
+  "limitations": [
+    "These are direct original routine calls at controlled inputs on the hosted field/sector baseline, not the unhooked whole original DLL and not natural frames. The state fingerprint covers fixture-rendered state, not CPU floating-point registers. Unchanged shared-seed records are not a whole RNG/policy/isolation claim.",
+    "Two cockpit cases remain unmeasured because the dedicated server has no gunship. Speaker/audible output, compiled player/render consumers, nonambient effects, natural frame integration and Tacview/full shipping remain outside this collection. Lack of headless exercise is not dead-code/removal proof.",
+    "No production code or host-amplification solver has moved. Root must retain the same original rows/identity and classify any later candidate differences. Equal-mode outdoor double attenuation/assignment order stays the original behavior; no semantic repair or tolerance change accepted.",
+    "Reviewer performed only read-only data consistency calculations, file hashing and receipt/log inspection; no compiler/build/test execution/native run, process/Docker/auth change, external call, source edit or public write. Only this private report written.",
+    "Whole Task51/D3 remains open, including physical effects/time/remaining terrain/spatial/model/full shipping/currentCI/normal merges. D4/D5 unstarted; all prior failures, originals, partials and live ground runs preserved."
+  ]
+}

@@ -1,0 +1,148 @@
+{
+  "native_source": "c0b6c3386dae772eafcd456bc3620f0299bccb4f",
+  "driver_source": "21ba7114339993df5edf190d434f739e12ab2192",
+  "driver_sha256": "45f3e3ada5eb8ac10e4e1c153f22fa07d63879a87f9d55bb3dbcea29006a2bdb",
+  "all_native_and_C_fixture_inputs_unchanged": true,
+  "results": [
+    {
+      "case": "georgia",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "pre_input_exit": 0,
+      "post_input_exit": 0,
+      "verified_native_payloads": 50,
+      "payloads_unchanged": true,
+      "driver_unchanged": true,
+      "json_rows": 108,
+      "event_counts": {
+        "boot": 1,
+        "plan": 1,
+        "site": 7,
+        "children_order": 1,
+        "unsupported": 4,
+        "call": 47,
+        "case": 46,
+        "summary": 1
+      },
+      "raw_bytes": 118118,
+      "raw_sha256": "06067c5b0a9522c7545f54a01c8cace2926b1e756d50ff855e64577b90062270",
+      "all44_answered_cases_restored": true,
+      "all47_calls_rng_unchanged": true,
+      "summary": {
+        "anomalies": 0,
+        "answered": 44,
+        "calls": 47,
+        "cases": 46,
+        "event": "summary",
+        "refused": 2,
+        "refused_reasons": "no_gunship_entity_for_the_cockpit_branch=2"
+      },
+      "retained_output": "R:\\d3-evidence\\environment-ambient-original-nativec0b-driver21ba-georgia-20261031",
+      "probe_sites": 7,
+      "site_found": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+      ]
+    },
+    {
+      "case": "lebanon",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "pre_input_exit": 0,
+      "post_input_exit": 0,
+      "verified_native_payloads": 50,
+      "payloads_unchanged": true,
+      "driver_unchanged": true,
+      "json_rows": 108,
+      "event_counts": {
+        "boot": 1,
+        "plan": 1,
+        "site": 7,
+        "children_order": 1,
+        "unsupported": 4,
+        "call": 47,
+        "case": 46,
+        "summary": 1
+      },
+      "raw_bytes": 118120,
+      "raw_sha256": "08fce9b0612179ec096bb71eb872ce0d33dc3be44ca1cbe7b04ca5a45fb8f10e",
+      "all44_answered_cases_restored": true,
+      "all47_calls_rng_unchanged": true,
+      "summary": {
+        "anomalies": 0,
+        "answered": 44,
+        "calls": 47,
+        "cases": 46,
+        "event": "summary",
+        "refused": 2,
+        "refused_reasons": "no_gunship_entity_for_the_cockpit_branch=2"
+      },
+      "retained_output": "R:\\d3-evidence\\environment-ambient-original-nativec0b-driver21ba-lebanon-20261031",
+      "probe_sites": 7,
+      "site_found": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+      ]
+    },
+    {
+      "case": "lebanon-repeat",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "pre_input_exit": 0,
+      "post_input_exit": 0,
+      "verified_native_payloads": 50,
+      "payloads_unchanged": true,
+      "driver_unchanged": true,
+      "json_rows": 108,
+      "event_counts": {
+        "boot": 1,
+        "plan": 1,
+        "site": 7,
+        "children_order": 1,
+        "unsupported": 4,
+        "call": 47,
+        "case": 46,
+        "summary": 1
+      },
+      "raw_bytes": 118120,
+      "raw_sha256": "08fce9b0612179ec096bb71eb872ce0d33dc3be44ca1cbe7b04ca5a45fb8f10e",
+      "all44_answered_cases_restored": true,
+      "all47_calls_rng_unchanged": true,
+      "summary": {
+        "anomalies": 0,
+        "answered": 44,
+        "calls": 47,
+        "cases": 46,
+        "event": "summary",
+        "refused": 2,
+        "refused_reasons": "no_gunship_entity_for_the_cockpit_branch=2"
+      },
+      "retained_output": "R:\\d3-evidence\\environment-ambient-original-nativec0b-driver21ba-lebanon-repeat-20261031",
+      "probe_sites": 7,
+      "site_found": [
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1",
+        "1"
+      ]
+    }
+  ],
+  "complete_Lebanon_raw_files_including_endings_exact": true,
+  "scope": "Actual originalUNCHANGEDambientamplificationsolver onhostedfield/sectorbaseline,44answered/2explicitmissinggunshiprefusals,47calls/0anomalies perroot. No frame/audible/render/player/physicalhostsoundcutover/Tacview/fullshipping/Task51/D3acceptance. Actualvalues/rawcoordinatesPRIVATE. Statefingerprint isNOTCPUFPstate.",
+  "independent_actual_review": "PENDING",
+  "selector_correction": "V1 interactive assertion wrongly required44 total case events; bothrefusals also use caseevent. V2 requires46distinctcaseIDs split44answered+2explicitrefused. No rawdata/native/driver/outcome changed.",
+  "created_utc": "2026-10-31T14:23:11.266242+00:00"
+}

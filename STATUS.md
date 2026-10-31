@@ -1,3 +1,29 @@
+# D3 original ambient measurements closed — next physical amplitude extraction (31 October 2026)
+
+Task51/PR111 now has three completed ORIGINAL ambient collections, explicitly
+new21ba driver + unchangedc0b native/Cfixture. All native/controller exits0, all6
+pre/post manifests0,50payloads/driver unchanged. Each108-row file has46distinct
+cases:44answered/47calls/0anomalies, all restoration/session/seed checks pass;
+2cockpit cases explicitly refuse because no dedicated-server gunship exists.
+All7bounded probe sites found; no full-map coverage claim. Both complete Lebanon
+rawfiles including endings are byte-identical (SHA08fce9b0...8f10e).
+
+Independent actual review8755577f...cd2c closes without findings. Driver source
+P2 was meaningfully red at93bc (13of23 damagedrecords accepted), corrected21ba
+and reviewed1f0db398...844b; all5guards/strict pass0. Safe receipts/reviews are at
+reference/d3-environment-characterization/sound-original-nativec0b-driver21ba/.
+This measures the unchanged sound solver on the current hostedfield/sectorbaseline,
+not an unhooked whole-original DLL. No audible/player/render/frame/CPU-FP or shipping
+acceptance is claimed. Previous original/field/wind/sector evidence is reused.
+
+Next is the actual host-owned ambient amplification solver, preserving measured
+words, equal-mode double outdoor rain attenuation, previous-delta phase/RNG/order,
+and finite compiled/player/render disposition. No physical sound move has started
+yet in this checkpoint. Task51/D3 remains OPEN for remaining lightning/sound/time,
+terrain/spatial/model, full40/all8 COMPLETE byte identity/currentCI/review/normal merges.
+D4/D5 unstarted; accepted baselines/tolerances unchanged. Ground fullshipping remains
+LIVE in original6processes; latest4prefixes exact~37.8MBACMI/24.4MBOBS, PARTIALONLY.
+
 # D3 sound-routine characterization — actual red and the one grouped driver correction (31 October 2026, Lua only, UNBUILT, UNRUN)
 
 Clean pushed `93bc520d1`. ACTUAL (Root): the focused red guard ran on the frozen 93bc snapshot (Lua/C/native exactly c0b) and failed meaningfully, exit 101 at 14:16:09 UTC: the driver ACCEPTED 13 of 23 damaged records

@@ -1,0 +1,18 @@
+{
+  "source": "21ba7114339993df5edf190d434f739e12ab2192",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-sound-driver-21ba71143-fixed-linux-20261031.sh"
+  ],
+  "pid": 14444,
+  "controller_pid": 6972,
+  "state": "terminal",
+  "started_utc": "2026-10-31T14:18:44.674981+00:00",
+  "scope": "New focused sound-driver tests only. Red phase keeps c0b Lua byte-exact and must actually fail the new contract assertion; fixed phase requires all new driver guards and affected strict pass. No native build/retail/physicalsound/shipping acceptance.",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T14:20:22.191553+00:00"
+}
