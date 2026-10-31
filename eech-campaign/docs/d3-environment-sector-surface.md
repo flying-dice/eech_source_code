@@ -94,8 +94,9 @@ hosted-field baseline, not the unhooked whole original DLL. The independent actu
 
 ### Original versus host ownership
 
-* **Host** (`eech-world/csrc/terrain_ref.c host_terrain_types_in_sector`, `src/terrain.rs`): the sector choice (the original's `x / 2048`, `z / 2048` truncated toward zero; an exact scaling and a truncation, so no floating-point
-  environment is touched), its **domain** (a sector outside the map, a position that is not finite and a quotient that does not fit an int are refused with a message, where the original indexed its table unchecked), the
+* **Host** (`eech-world/csrc/terrain_ref.c host_terrain_types_in_sector`, `src/terrain.rs`): the sector choice (the original's `x / 2048`, `z / 2048` truncated toward zero. CORRECTED (independent review ENV-SECTOR-HOST-1): the earlier claim that an exact power-of-two scaling and a truncation cannot touch the floating-point
+  environment is false -- the smallest subnormal over 2048 is inexact/underflows, an ordinary fractional quotient sets the precision flag on truncation, x87 loads and conversions change the status word,
+  and the refusal paths are unguarded too -- so the entry owes the caller's COMPLETE x87 and SSE state back on every path; the guard is NOT yet written, see the red-phase section below), its **domain** (a sector outside the map, a position that is not finite and a quotient that does not fit an int are refused with a message, where the original indexed its table unchecked), the
   walk of the sector's polygons over the host's own loaded, bounds-checked copy of the geometry (first surface, then the surface of EVERY polygon with `surface_change`), the reset (all 62 flags are rewritten), and the
   return value 1 + the changes met. A surface id outside the 62 terrain types, which the original would use to index outside its scratch, is refused.
 * **Campaign** (`aphavoc/.../mb_hostterrain.c campaign_terrain_types_in_sector`, `terrdata.c` under `EECH_CAMPAIGN_HOST_TERRAIN`): builds the request (`op = SECTOR`, position, the season captured before the first question), asks the
@@ -137,3 +138,39 @@ hosted-field baseline, not the unhooked whole original DLL. The independent actu
 5. The EEDCS-47 witness `lua/terrain-provider.lua` in its `generic` mode now answers the `sector` operation (a one-surface land world); re-run it where it is part of the gate.
 Remaining Task 51/D3 after this batch: lightning effects and the strike/sound entities, physical time inputs, the rest of terrain (trees, loaders, the triangle functions), spatial/object and model services. Campaign
 geography, route planning, decisions, scheduling and time/calendar policy stay in the campaign.
+
+## Independent source review of 6711d5f11 and the red (test/driver) phase (UNBUILT, UNRUN, UNREVIEWED)
+
+Review `ENV-SECTOR-HOST-6711-20261031` (SHA-256 `06419e7b...80b5`, CHANGES_REQUIRED, source review only): two grouped findings and one compile error from the Linux pipeline. The original-sector
+evidence (three roots, `b2e55b18b`, independent review `1408817f...6200`) stays CLOSED and is reused, not re-run; no wind, field or original experiment is repeated.
+
+* **ENV-SECTOR-HOST-1 (P1), the kernel's caller-FP boundary, is NOT FIXED in this phase.** `host_terrain_types_in_sector` does finite classification, a float division, comparisons and a float-to-int
+  conversion with no save/restore of the caller's x87/SSE state, and its comment and the first version of this document said none was needed. That is wrong (see the corrected sentence above). THIS PHASE
+  adds only the red test: `the_callers_complete_floating_point_state_survives_every_sector_query_in_every_mode` in `crates/eech-world/tests/terrain_sector.rs`. It calls the PUBLIC library entry
+  `Terrain::types_in_sector` (so it survives a later correction of the private C ABI), accepted and refused, under a seeded caller state -- every pair of x87 and SSE rounding controls, two x87 precision
+  controls, MXCSR sticky flags clear and set, FTZ/DAZ clear and set where `MXCSR_MASK` has them, and three x87 status words (clear; C3 and every exception flag; stack top 4 with C0, C1, C2) -- and
+  requires the complete x87 control/status/tag words and the whole of MXCSR to be exactly the seeded values after each call (no mask, C1 included), and the answers to be the same whatever the state. The
+  positions are ordinary fractional coordinates, the smallest, the largest and a negative subnormal, a subnormal beside a normal, the minimum normal, signed zero, a negative fraction, and the refusals
+  (outside the map either side; NaN; infinity; a quotient that does not fit an integer; a surface id outside the types). Mismatches are collected and reported by kind of call, with the first seed they
+  happened under. It reuses the field guard test's technique (`env.rs`, a private module, so the helpers are repeated). EXPECTED RESULT AGAINST 6711d5f11: red (at least the MXCSR sticky precision/underflow
+  flags, with sticky clear, from the inexact truncation and the subnormal quotient; the x87 words on an x87-only target). That is an expectation, not evidence, until Root runs it. What it cannot show: the
+  surrounding Rust runs in the seeded state too; the private C entry's argument loads before a guard are covered only as far as the public call exercises them; the FTZ/DAZ cases cannot detect a leak if the kernel
+  sets no mode, and only protect a later guard from leaving a mode behind; nothing about the Core client or the shipping module.
+* **ENV-SECTOR-HOST-2 (P2), incomplete observer evidence, is fixed in the driver and judge** (test/driver files only). `lua/env-sector-authority.lua` now drains the whole event stream first and then reads the
+  report, as the closed characterization driver does, and refuses (`witness_failure`, no `authority` row) a stream whose numbering has a gap or repeat or does not start at boot_begin, a kind outside the observer's
+  30, a shared seed word that is not one word, a sound-fact first half not immediately followed by its second half, a second half alone, a first half alone at the end (truncated), a count above 62 or an impossible
+  in_cockpit; and a report that is not the one real line, is not armed, dropped events or overflowed, has a capacity beyond the store or below what it stored, whose stored/read/next_seq are not exactly the events
+  received, whose sound calls are not the session updates, or whose sound records are not the pairs found. The `authority` row publishes the observer's own counters (armed, capacity, stored, read, next_seq,
+  dropped, overflow, events received, update_server; -1 for a run the engine stopped, which cannot be asked -- unchanged disclosure). The Rust judge (`tests/env_sector_authority.rs`) requires every counter
+  (the sound records, once bound and never looked at, included), checks the same relations again, and refuses a changed run whose completed frames are not its configured frames. Guards: synthetic-row cases for every
+  relation in the judge, and driver cases against the scripted engine for every stream/report defect above plus two-record positive controls. The scope is unchanged: only the FIRST record is published and judged
+  (hash/count/position); this proves the stream was complete, not that every later scratch was compared, and it proves nothing about the DLL (the scripted engine invents no physics).
+* **Compile error:** `crates/eech-dc/src/module.rs` (test only) passed a `char` where `replacen` takes a `&str`; it now passes `"2"`. No production semantics changed.
+
+Commands for Root (nothing here was built or run; the Core C module need not be rebuilt for this test-only phase):
+
+1. The red FP test against the unchanged 6711d5f11 kernel: `cargo test -p eech-world --test terrain_sector the_callers_complete_floating_point_state_survives_every_sector_query_in_every_mode -- --nocapture`
+   (the other tests of that file are the green host-contract ones). A pass would mean the test cannot see the defect and must be examined before the production fix, not relied on.
+2. The observer guards: `cargo test -p eech-world --test env_sector_authority` (the judge guards and the driver controls; the public witness prints SKIPPED without its environment) and
+   `cargo test -p eech-dc` (the compile fix); then `cargo fmt --check` and `cargo clippy --all-targets -- -D warnings` (the new tests are written for the 160-column rustfmt, which Root runs).
+3. Fresh roots are needed for any later public run after the production FP fix; a run of the current default 95-row candidate collection against the verified 6711 native is neither acceptance nor FP proof.

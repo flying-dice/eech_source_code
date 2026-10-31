@@ -4063,7 +4063,7 @@ mod tests {
             ),
             (
                 "flags not binary",
-                format!("return {{ returned = 3, flags = '{}' }}", flags(&[9]).replacen('0', '2', 1)),
+                format!("return {{ returned = 3, flags = '{}' }}", flags(&[9]).replacen("0", "2", 1)),
                 "sector.flags",
             ),
             ("flags a table", "return { returned = 3, flags = {} }".to_string(), "sector.flags"),

@@ -7,6 +7,9 @@
 //!
 //! 1. The JUDGE, strict about its evidence, and its guards on synthetic rows. They prove only what the judge ACCEPTS and REFUSES (a control that really asked once per sound update and whose first scratch is
 //!    the host's first reply; a changed enumeration whose scratch is exactly what was sent and that differs from the host's; refusals that stop at the named marker after a sent alteration).
+//!    The judge also refuses INCOMPLETE observer evidence (the report's armed/dropped/overflow/stored/read/next_seq against the events the driver received, the sound records against the pairs,
+//!    the sound calls against the session updates, every counter required) and a changed run that did not complete its configured frames; the driver's own stream checks (an unbroken numbering from
+//!    boot_begin, adjacent sound-fact halves, no truncated pair) are exercised in part 2. They judge the first record only, as before: a complete stream is required, not every record compared.
 //! 2. DRIVER CONTROLS (no DLL, map or asset): the REAL driver runs in a real Lua state against a SCRIPTED engine that asks the installed provider every frame and wraps a provider's error or a malformed
 //!    answer in the marker the real bridge puts on it, with a scripted observer and output file. They prove what the DRIVER does (what it alters, records and how it fails); they invent no physics.
 //! 3. The PUBLIC WITNESS against a real DLL, driven by the environment and printing SKIPPED without it (never a proof).
@@ -132,6 +135,65 @@ fn int(row: &Value, field: &str) -> Result<i64, String> {
         .ok_or_else(|| format!("`{}` has no whole number {field}", row["event"].as_str().unwrap_or("?")))
 }
 
+/// The capacity of the observer's finite event store (`ENVOBS_CAPACITY`, eech_env_observer.c).
+const OBSERVER_CAPACITY: i64 = 16384;
+
+/// The observer's own counters as the driver read them from its report, checked again here so that an incomplete stream cannot become facts: a run the engine stopped carries -1 for every one
+/// (it cannot be asked); a completed run must show an armed observer that dropped nothing and had no overflow, whose store, read cursor and numbering are exactly the events the driver received,
+/// whose sound calls are the session updates it counted, and whose sound records are the pairs the driver found. Only the first records are published as rows; this proves the stream was complete,
+/// not that every later scratch was compared.
+fn observer_evidence(authority: &Value, completed: bool, pair_count: i64, sound_calls: i64, sound_records: i64) -> Result<(), String> {
+    let names = [
+        "observer_armed",
+        "observer_capacity",
+        "observer_stored",
+        "observer_read",
+        "observer_next_seq",
+        "observer_dropped",
+        "observer_overflow",
+        "observer_events",
+        "update_server",
+    ];
+    let mut values = Vec::new();
+    for name in names {
+        values.push(int(authority, name)?);
+    }
+    let Ok([armed, capacity, stored, read, next_seq, dropped, overflow, events, update_server]) = <[i64; 9]>::try_from(values.as_slice()) else {
+        return Err("the observer counters are not all present".into());
+    };
+    if !completed {
+        if values.iter().any(|value| *value != -1) || sound_records != -1 {
+            return Err("a run the engine stopped carries observer counters although the observer could not be read".into());
+        }
+        return Ok(());
+    }
+    if armed != 1 {
+        return Err(format!("the observer was not armed (armed {armed})"));
+    }
+    if dropped != 0 || overflow != 0 {
+        return Err(format!(
+            "the observer dropped {dropped} event(s) (overflow {overflow}): the evidence is incomplete"
+        ));
+    }
+    if capacity < 1 || capacity > OBSERVER_CAPACITY || capacity < stored {
+        return Err(format!("the observer reports capacity {capacity} for {stored} stored events"));
+    }
+    if events < 1 || stored != events || read != events || next_seq != events {
+        return Err(format!(
+            "the observer stored {stored}, read {read} and numbered {next_seq} events, but the driver received {events}: the stream is incomplete"
+        ));
+    }
+    if sound_calls != update_server {
+        return Err(format!("the observer counted {sound_calls} sound calls for {update_server} session updates"));
+    }
+    if sound_records != pair_count || sound_records > sound_calls {
+        return Err(format!(
+            "the observer counted {sound_records} sound records for {sound_calls} calls, but the stream holds {pair_count} pairs"
+        ));
+    }
+    Ok(())
+}
+
 impl Facts {
     fn parse(source: &str) -> Result<Facts, String> {
         let rows = rows_of(source)?;
@@ -176,8 +238,9 @@ impl Facts {
             "sound_records",
         ]
         .map(|f| int(&authority, f));
-        let [sector_requests, altered, request_rows, pair_rows, pair_count, frames, frames_wanted, sound_calls, _records] = counters;
-        let (sector_requests, altered, request_rows, pair_rows, pair_count, frames, frames_wanted, sound_calls) = (
+        let [sector_requests, altered, request_rows, pair_rows, pair_count, frames, frames_wanted, sound_calls, sound_records] = counters;
+        // every counter is required: a missing or malformed one (the sound records included) is an error, not a value that is never looked at
+        let (sector_requests, altered, request_rows, pair_rows, pair_count, frames, frames_wanted, sound_calls, sound_records) = (
             sector_requests?,
             altered?,
             request_rows?,
@@ -186,6 +249,7 @@ impl Facts {
             frames?,
             frames_wanted?,
             sound_calls?,
+            sound_records?,
         );
         if usize::try_from(request_rows).ok() != Some(requests.len())
             || usize::try_from(pair_rows).ok() != Some(pairs.len())
@@ -206,6 +270,7 @@ impl Facts {
         if completed != (authority["observer_checked"] == true) || (completed && sound_calls < 0) || (!completed && sound_calls != -1) {
             return Err("the observer was not read exactly when the run completed".into());
         }
+        observer_evidence(&authority, completed, pair_count, sound_calls, sound_records)?;
         Ok(Facts {
             mode,
             scenario: text(boot, "scenario")?,
@@ -324,6 +389,14 @@ fn judge_changed(control: &Facts, run: &Facts) -> Result<(), String> {
     matched(control, run)?;
     if !run.completed() {
         return Err(format!("a valid changed enumeration stopped the engine: {}", run.failure()));
+    }
+    // a changed run is judged only when it ran every frame it was configured for (as the control is): a partial run that completed its counters is not a run
+    if run.number("frames") != run.number("frames_wanted") {
+        return Err(format!(
+            "a changed run completed only {} of its {} frames",
+            run.number("frames"),
+            run.number("frames_wanted")
+        ));
     }
     asked_once_per_update(run)?;
     if run.number("altered_sector") != run.number("sector_requests") || run.number("altered_sector") == 0 {
@@ -459,6 +532,20 @@ impl Synthetic {
         fields.insert("sound_calls", if self.completed { self.frames.to_string() } else { "-1".into() });
         fields.insert("sound_records", if self.completed { "1".into() } else { "-1".into() });
         fields.insert("observer_checked", self.completed.to_string());
+        // the observer's own counters of a healthy run: armed, nothing dropped, 4 events stored, read and numbered (boot_begin, boot_end and one sound pair), one sound call per update
+        for (field, healthy) in [
+            ("observer_armed", "1".to_string()),
+            ("observer_capacity", OBSERVER_CAPACITY.to_string()),
+            ("observer_stored", "4".to_string()),
+            ("observer_read", "4".to_string()),
+            ("observer_next_seq", "4".to_string()),
+            ("observer_dropped", "0".to_string()),
+            ("observer_overflow", "0".to_string()),
+            ("observer_events", "4".to_string()),
+            ("update_server", self.frames.to_string()),
+        ] {
+            fields.insert(field, if self.completed { healthy } else { "-1".into() });
+        }
         for (field, value) in &self.authority {
             fields.insert(field, value.clone());
         }
@@ -480,6 +567,7 @@ fn a_control_is_judged_only_when_the_host_was_asked_once_per_update_and_the_rout
     let mut fewer_updates = Synthetic::control();
     fewer_updates.authority.push(("sound_calls", "29".into()));
     fewer_updates.authority.push(("sector_requests", "29".into()));
+    fewer_updates.authority.push(("update_server", "29".into()));
     assert!(
         judge_control(&fewer_updates.facts()).unwrap_err().contains("not asked exactly once per update"),
         "fewer updates than frames"
@@ -499,6 +587,7 @@ fn a_control_is_judged_only_when_the_host_was_asked_once_per_update_and_the_rout
     let mut unseen = Synthetic::control();
     unseen.pair = None;
     unseen.authority.push(("pairs", "0".into()));
+    unseen.authority.push(("sound_records", "0".into()));
     assert!(judge_control(&unseen.facts()).unwrap_err().contains("scratch was not seen"));
     // an answer that is not an enumeration (a return value below the flags set, no flag, short flags) is not a healthy control either
     for (returned, flags) in [("1", host_flags()), ("7", "0".repeat(TYPES)), ("7", host_flags()[..61].to_string())] {
@@ -546,6 +635,85 @@ fn evidence_that_is_incomplete_or_incoherent_has_no_facts() {
         "the witness itself failed: STALLED CLOCK",
     );
     refused(control.replace("\"hash\":", "\"hash\":-"), "unsigned 32-bit");
+}
+
+#[test]
+fn observer_evidence_that_is_lossy_gapped_unreconciled_or_missing_has_no_facts() {
+    let control = Synthetic::control().text();
+    Facts::parse(&control).expect("the healthy control is complete");
+    let refused = |text: String, fragment: &str| {
+        let error = Facts::parse(&text).unwrap_err();
+        assert!(error.contains(fragment), "expected {fragment:?} in {error:?}");
+    };
+    // the loss and the cursor: dropped or overflowed events, an observer that was not armed, a store/read/numbering that is not the events the driver received
+    refused(control.replace("\"observer_dropped\":0", "\"observer_dropped\":3"), "dropped 3 event(s)");
+    refused(
+        control.replace("\"observer_overflow\":0", "\"observer_overflow\":1"),
+        "the evidence is incomplete",
+    );
+    refused(control.replace("\"observer_armed\":1", "\"observer_armed\":0"), "was not armed");
+    refused(control.replace("\"observer_stored\":4", "\"observer_stored\":5"), "the stream is incomplete");
+    refused(control.replace("\"observer_read\":4", "\"observer_read\":3"), "the stream is incomplete");
+    refused(
+        control.replace("\"observer_next_seq\":4", "\"observer_next_seq\":6"),
+        "the stream is incomplete",
+    );
+    refused(control.replace("\"observer_events\":4", "\"observer_events\":3"), "the stream is incomplete");
+    refused(control.replace("\"observer_events\":4", "\"observer_events\":0"), "the stream is incomplete");
+    refused(control.replace("\"observer_capacity\":16384", "\"observer_capacity\":3"), "reports capacity 3");
+    refused(
+        control.replace("\"observer_capacity\":16384", "\"observer_capacity\":99999"),
+        "reports capacity 99999",
+    );
+    // the reconciliation: records the observer counted against the pairs found, and sound calls against session updates
+    refused(control.replace("\"sound_records\":1", "\"sound_records\":2"), "counted 2 sound records");
+    refused(control.replace("\"sound_records\":1", "\"sound_records\":0"), "counted 0 sound records");
+    refused(
+        control.replace("\"update_server\":30", "\"update_server\":29"),
+        "30 sound calls for 29 session updates",
+    );
+    let mut more_records_than_calls = Synthetic::control();
+    more_records_than_calls.authority = vec![
+        ("sound_calls", "1".into()),
+        ("update_server", "1".into()),
+        ("sound_records", "2".into()),
+        ("pairs", "2".into()),
+    ];
+    assert!(Facts::parse(&more_records_than_calls.text())
+        .unwrap_err()
+        .contains("counted 2 sound records for 1 calls"));
+    // a counter that is missing or malformed is an error, the sound records included (they were once bound and never looked at)
+    refused(control.replace("\"sound_records\":", "\"sound_recordz\":"), "no whole number sound_records");
+    refused(
+        control.replace("\"sound_records\":1", "\"sound_records\":\"1\""),
+        "no whole number sound_records",
+    );
+    refused(control.replace("\"observer_dropped\":0,", ""), "no whole number observer_dropped");
+    refused(
+        control.replace("\"update_server\":30", "\"update_server\":null"),
+        "no whole number update_server",
+    );
+    // a run the engine stopped could not be asked, and must not carry observer counters (nor omit them)
+    let stopped = Synthetic::refused("withheld_sector", "sector.callback", "withheld", "withheld".into()).text();
+    Facts::parse(&stopped).expect("a stopped run says the observer was not read");
+    refused(stopped.replace("\"observer_stored\":-1", "\"observer_stored\":4"), "could not be read");
+    refused(stopped.replace("\"sound_records\":-1", "\"sound_records\":1"), "could not be read");
+    refused(stopped.replace("\"observer_armed\":-1,", ""), "no whole number observer_armed");
+}
+
+#[test]
+fn a_changed_run_that_completed_only_some_of_its_frames_is_not_judged() {
+    let control = Synthetic::control().facts();
+    judge_changed(&control, &Synthetic::changed().facts()).expect("the full changed run");
+    let mut partial = Synthetic::changed();
+    partial.authority.push(("frames", "20".into()));
+    let facts = partial.facts();
+    assert_eq!(facts.number("frames"), 20, "the partial run parses: its counters are coherent");
+    assert!(judge_changed(&control, &facts).unwrap_err().contains("completed only 20 of its 30 frames"));
+    // the control's own check is the same
+    let mut short_control = Synthetic::control();
+    short_control.authority.push(("frames", "20".into()));
+    assert!(judge_control(&short_control.facts()).unwrap_err().contains("did not run its frames"));
 }
 
 #[test]
@@ -726,12 +894,22 @@ package.preload.eech_dc = function ()
 				now = now + (scenario.clock_step or milliseconds / 1000)
 				ask_sector ()
 			end
+			-- the real observer's report: its cursor (`read`) is 0 until the events are drained, and every counter follows the stream the scenario scripts unless `report` overrides it
+			local drained = false
 			function engine:env_observer_report ()
 				if scenario.report_error then error ("the report did not fit", 0) end
-				return "env-obs-report armed=1 capacity=16384 stored=10 read=0 dropped=0 overflow=0 next_seq=10 update_server=" .. #RECEIVED .. " lightning_calls=0 sound_calls=" .. (scenario.sound_calls or #RECEIVED) ..
-					" resync_calls=0 weather_calls=0 sound_records=" .. (scenario.sound_records or 1) .. "\n"
+				if scenario.report_text then return scenario.report_text end
+				local lines = scenario.observer or {}
+				local halves = 0
+				for _, line in ipairs (lines) do if string.find (line, " kind=30 ", 1, true) then halves = halves + 1 end end
+				local r = scenario.report or {}
+				local function v (name, default) if r [name] ~= nil then return r [name] end return default end
+				return string.format ("env-obs-report armed=%d capacity=%d stored=%d read=%d dropped=%d overflow=%d next_seq=%d update_server=%d lightning_calls=0 sound_calls=%d resync_calls=0 weather_calls=0 sound_records=%d\n",
+					v ("armed", 1), v ("capacity", 16384), v ("stored", #lines), v ("read", drained and #lines or 0), v ("dropped", 0), v ("overflow", 0), v ("next_seq", #lines),
+					v ("update_server", #RECEIVED), v ("sound_calls", #RECEIVED), v ("sound_records", math.floor (halves / 2)))
 			end
 			function engine:env_observer_events ()
+				drained = true
 				return table.concat (scenario.observer or {}, "\n")
 			end
 			return engine
@@ -780,22 +958,40 @@ fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
     }
 }
 
-/// The scripted observer's two events for the first sound update, built from the flags the scenario's engine is to have read (hash as a signed int, the count, the clamped sector words).
-fn observer_lines(flags: &str, x_word: &str, z_word: &str) -> String {
-    let hash = scratch_hash(flags) as i32;
-    format!(
-        "'env-obs seq=7 kind=30 a=0 b={hash} rng=1 rng_w=00000001 w0=00000000 w1=00000000 w2=00000000 w3=00000000 w4=00000000 w5=00000000', \
-         'env-obs seq=8 kind=30 a=-1 b={} rng=1 rng_w=00000001 w0={x_word} w1={z_word} w2=00000000 w3=00000000 w4=00000000 w5=00000000'",
-        distinct(flags)
-    )
+/// One observer event line in the real grammar (`eech_env_observer.c`: `env-obs seq=%u kind=%d a=%d b=%d rng=%d rng_w=%08x w0..w5=%08x`); the shared seed word is the one word 1.
+fn event(seq: u32, kind: u32, a: i32, b: i32, w0: &str, w1: &str) -> String {
+    format!("env-obs seq={seq} kind={kind} a={a} b={b} rng=1 rng_w=00000001 w0={w0} w1={w1} w2=00000000 w3=00000000 w4=00000000 w5=00000000")
+}
+
+const ZERO: &str = "00000000";
+
+/// The two events of one sound record: the first holds the hash of the whole scratch (as a signed int), the second the number of entries set and the clamped sector words.
+fn sound_pair(seq: u32, flags: &str) -> [String; 2] {
+    [
+        event(seq, 30, 0, scratch_hash(flags) as i32, ZERO, ZERO),
+        event(seq + 1, 30, -1, distinct(flags) as i32, X_WORD, Z_WORD),
+    ]
+}
+
+/// The scripted stream of a healthy run, as the real observer would number it: boot_begin and boot_end (kinds 1 and 2) and the one sound record of the first update, built from the flags the
+/// scenario's engine is to have read.
+fn healthy_stream(flags: &str) -> Vec<String> {
+    let [first, second] = sound_pair(2, flags);
+    vec![event(0, 1, 0, 0, ZERO, ZERO), event(1, 2, 0, 0, ZERO, ZERO), first, second]
 }
 
 /// the IEEE words of 48750.0 and 29651.5
 const X_WORD: &str = "473e6e00";
 const Z_WORD: &str = "46e7a700";
 
+/// A scenario for the scripted engine: the camera position, optional extra fields (each ending with a comma) and the scripted observer's lines.
+fn scenario_with(lines: &[String], extra: &str) -> String {
+    let quoted: Vec<String> = lines.iter().map(|line| format!("'{line}'")).collect();
+    format!("x = 48750, z = 29651.5, {extra}observer = {{ {} }}", quoted.join(", "))
+}
+
 fn healthy_scenario(flags: &str) -> String {
-    format!("x = 48750, z = 29651.5, observer = {{ {} }}", observer_lines(flags, X_WORD, Z_WORD))
+    scenario_with(&healthy_stream(flags), "")
 }
 
 #[test]
@@ -866,30 +1062,141 @@ fn the_driver_stops_each_refusal_mode_at_its_named_marker_after_the_first_sent_a
     }
 }
 
+/// The driver refuses an observer record that cannot be complete: no judged `authority` row is written, only the witness's own failure, so the judge never sees partial evidence as healthy.
+fn refused_observer_record(scenario: &str, fragment: &str) {
+    let driven = drive(scenario, &[]);
+    let error = driven.result.expect_err("an incomplete observer record must fail the witness");
+    assert!(error.contains(&format!("env-sector-authority: {fragment}")), "expected {fragment:?}: {error}");
+    assert!(driven.rows.contains("witness_failure"), "{}", driven.rows);
+    assert!(
+        !driven.rows.contains("\"event\":\"authority\""),
+        "no authority row is published for incomplete evidence: {}",
+        driven.rows
+    );
+    assert!(Facts::parse(&driven.rows).unwrap_err().contains("the witness itself failed"));
+}
+
+#[test]
+fn the_driver_publishes_an_observer_record_only_when_the_whole_stream_and_report_are_complete_and_reconcile() {
+    // the positive controls: a stream with two records is accepted and both are counted (only the first is judged, and the rows say so)
+    let [third, fourth] = sound_pair(4, &sent_flags());
+    let mut two = healthy_stream(&host_flags());
+    two.extend([third, fourth]);
+    let driven = drive(&scenario_with(&two, ""), &[]);
+    driven.result.expect("a complete stream with two sound records");
+    let facts = Facts::parse(&driven.rows).expect("complete evidence");
+    assert_eq!(
+        (facts.number("pairs"), facts.number("sound_records"), facts.number("observer_events")),
+        (2, 2, 6)
+    );
+    judge_control(&facts).expect("the first record is the host's first answer");
+    // the observer's counters are published as they were read, and the judge checks them again
+    let single = Facts::parse(&drive(&healthy_scenario(&host_flags()), &[]).rows).expect("complete evidence");
+    assert_eq!(
+        [
+            single.number("observer_armed"),
+            single.number("observer_dropped"),
+            single.number("observer_overflow"),
+            single.number("observer_stored"),
+            single.number("observer_read"),
+            single.number("observer_next_seq"),
+            single.number("observer_events"),
+            single.number("update_server"),
+        ],
+        [1, 0, 0, 4, 4, 4, 4, 5]
+    );
+
+    let healthy = healthy_stream(&host_flags());
+    let with = |lines: Vec<String>, extra: &str| scenario_with(&lines, extra);
+    // a gap in the numbering, a repeated number, a first event that is not boot_begin, a kind the observer does not have, a shared seed word that is not one word
+    let mut gap = healthy.clone();
+    gap[2] = gap[2].replace("seq=2", "seq=3");
+    gap[3] = gap[3].replace("seq=3", "seq=4");
+    refused_observer_record(&with(gap, ""), "OBSERVER SEQUENCE: event 3 follows 1");
+    let mut repeated = healthy.clone();
+    repeated[1] = repeated[1].replace("seq=1", "seq=0");
+    refused_observer_record(&with(repeated, ""), "OBSERVER SEQUENCE: event 0 follows 0");
+    refused_observer_record(&with(healthy[1..].to_vec(), ""), "OBSERVER SEQUENCE: event 1 follows -1");
+    let mut unarmed = healthy.clone();
+    unarmed[0] = unarmed[0].replace("kind=1 ", "kind=2 ");
+    refused_observer_record(&with(unarmed, ""), "not boot_begin");
+    let mut kind = healthy.clone();
+    kind[1] = kind[1].replace("kind=2 ", "kind=31 ");
+    refused_observer_record(&with(kind, ""), "OBSERVER KIND");
+    let mut seed = healthy.clone();
+    seed[1] = seed[1].replace("rng=1 ", "rng=2 ");
+    refused_observer_record(&with(seed, ""), "are not one word");
+    refused_observer_record(&with(Vec::new(), ""), "OBSERVER SEQUENCE: no event at all");
+    // a truncated stream, a first half alone, a first half followed by something else or by another first half, a second half alone, an impossible count
+    refused_observer_record(&with(healthy[..3].to_vec(), ""), "the stream ends after the first half of the sound fact 2");
+    let mut interleaved = healthy.clone();
+    interleaved.insert(3, event(3, 20, 0, 0, ZERO, ZERO));
+    interleaved[4] = interleaved[4].replace("seq=3", "seq=4");
+    refused_observer_record(&with(interleaved, ""), "the sound fact 2 is not followed by its second half");
+    let mut doubled = healthy.clone();
+    doubled[3] = event(3, 30, 0, 7, ZERO, ZERO);
+    refused_observer_record(&with(doubled, ""), "the sound fact 2 is not followed by its second half");
+    let mut orphan = healthy[..2].to_vec();
+    orphan.push(event(2, 30, -1, 2, X_WORD, Z_WORD));
+    refused_observer_record(&with(orphan, ""), "has no first half");
+    let mut impossible = healthy.clone();
+    impossible[3] = impossible[3].replace("b=2 ", "b=63 ");
+    refused_observer_record(&with(impossible, ""), "counts 63 scratch entries set, of 62");
+    let mut cockpit = healthy.clone();
+    cockpit[2] = cockpit[2].replace("a=0 ", "a=2 ");
+    refused_observer_record(&with(cockpit, ""), "has in_cockpit 2");
+    // the report: events dropped or overflowed, not armed, a store, cursor or numbering that is not the stream received, an impossible capacity
+    refused_observer_record(
+        &with(healthy.clone(), "report = { dropped = 2 }, "),
+        "OBSERVER LOSS: the observer dropped 2 events",
+    );
+    refused_observer_record(&with(healthy.clone(), "report = { overflow = 1 }, "), "OBSERVER LOSS");
+    refused_observer_record(&with(healthy.clone(), "report = { armed = 0 }, "), "says it is not armed");
+    refused_observer_record(
+        &with(healthy.clone(), "report = { stored = 5 }, "),
+        "OBSERVER CURSOR: the observer stored 5, read 4 and numbered 4 events, but the driver received 4",
+    );
+    refused_observer_record(&with(healthy.clone(), "report = { read = 3 }, "), "OBSERVER CURSOR");
+    refused_observer_record(&with(healthy.clone(), "report = { next_seq = 9 }, "), "OBSERVER CURSOR");
+    refused_observer_record(
+        &with(healthy.clone(), "report = { capacity = 3 }, "),
+        "OBSERVER REPORT: capacity 3 for 4 stored",
+    );
+    refused_observer_record(&with(healthy.clone(), "report = { capacity = 20000 }, "), "OBSERVER REPORT: capacity 20000");
+    // the reconciliation: records counted against pairs found, in both directions, and sound calls against session updates
+    refused_observer_record(
+        &with(healthy.clone(), "report = { sound_records = 2 }, "),
+        "OBSERVER RECONCILE: the report counts 2 sound records",
+    );
+    refused_observer_record(&with(healthy.clone(), "report = { sound_records = 0 }, "), "OBSERVER RECONCILE");
+    refused_observer_record(&with(two.clone(), "report = { sound_records = 1 }, "), "but the stream holds 2 pairs");
+    refused_observer_record(
+        &with(healthy.clone(), "report = { update_server = 3 }, "),
+        "OBSERVER REPORT: 5 sound calls for 3 session updates",
+    );
+    refused_observer_record(
+        &with(healthy.clone(), "report = { sound_calls = 0, update_server = 0 }, "),
+        "OBSERVER RECONCILE: the report counts 1 sound records for 0 calls",
+    );
+    // a report that is not the one line of the real grammar
+    refused_observer_record(&with(healthy.clone(), "report_text = 'env-obs-report armed=1', "), "OBSERVER REPORT GRAMMAR");
+    refused_observer_record(&with(healthy.clone(), "report_text = '', "), "OBSERVER REPORT GRAMMAR");
+}
+
 #[test]
 fn the_driver_fails_distinctly_on_a_missing_observer_a_bad_observer_line_a_stalled_clock_and_every_output_failure() {
     // a DLL without the observer feature: a refusal row and an error, nothing measured
     let missing = drive("no_observer = true", &[]);
     assert!(missing.result.unwrap_err().contains("the module has no env_observer_arm function"));
     assert!(missing.rows.contains("\"event\":\"refusal\""), "{}", missing.rows);
-    // an observer line that is not the real grammar, an odd number of sound-fact events, an unreadable report
+    // an observer line that is not the real grammar, an unreadable report (the incomplete streams and reports are the next test)
     let bad_line = drive("observer = { 'not an observer line' }", &[]);
     assert!(bad_line.result.unwrap_err().contains("env-sector-authority: OBSERVER GRAMMAR"));
     assert!(bad_line.rows.contains("witness_failure") && Facts::parse(&bad_line.rows).unwrap_err().contains("the witness itself failed"));
-    let odd = drive(
-        &format!(
-            "observer = {{ {} }}",
-            observer_lines(&host_flags(), X_WORD, Z_WORD)
-                .split("', '")
-                .next()
-                .unwrap_or_default()
-                .to_string()
-                + "'"
-        ),
-        &[],
-    );
-    assert!(odd.result.unwrap_err().contains("not an even number"));
-    assert!(drive("report_error = true", &[]).result.unwrap_err().contains("OBSERVER REPORT UNREADABLE"));
+    assert!(drive(&format!("report_error = true, {}", healthy_scenario(&host_flags())), &[])
+        .result
+        .unwrap_err()
+        .contains("OBSERVER REPORT UNREADABLE"));
     // a clock that does not advance
     let stalled = drive("clock_step = 0", &[]);
     assert!(stalled.result.unwrap_err().contains("env-sector-authority: STALLED CLOCK"));

@@ -20,8 +20,9 @@
 -- dormant here and is not inferred from this run. Nothing is claimed for a campaign with a player or a renderer.
 --
 -- Rows (JSON Lines): boot, request (the first requests: position, season, the answer sent or received), observer pair (the first scratch records of the routine), authority (the counters). A failure of the
--- ENGINE is an `authority` row with completed = false and the engine's first error line; a failure of the WITNESS (a clock that does not advance, a frame budget, a malformed observer line, an output
--- failure) raises an error beginning `env-sector-authority:` after a best-effort `witness_failure` row.
+-- ENGINE is an `authority` row with completed = false and the engine's first error line; a failure of the WITNESS (a clock that does not advance, a frame budget, an observer that dropped events or
+-- whose stream has a gap, an unpaired or truncated sound record, counts that do not reconcile, a malformed observer line, an output failure) raises an error beginning `env-sector-authority:` after
+-- a best-effort `witness_failure` row. The observer's report is read only for a run the engine did not stop (a stopped run's `authority` row carries -1 for every observer counter).
 --
 -- host.args: root, mode (default control), scenario (lebanon_retail default | georgia_retail), frames (5 to 600, default 30), frame_ms (10 to 1000, default 100), out (JSON Lines path)
 
@@ -165,9 +166,19 @@ while frames < frames_wanted do
 end
 
 -- ---------------------------------------------------------------------------------------------------------------- the observer: what the sound routine's scratch held
--- Only a run the engine did not stop can be asked. Every line of the stream is `env-obs seq=N kind=K a=A b=B rng=R rng_w=H w0=H ... w5=H`; the sound facts (kind 30) come as pairs: the first has the
--- hash of the whole scratch (b, a signed int) and the camera words, the second (a = -1) the number of scratch entries set (b) and the clamped sector x/z words (w0, w1).
-local SOUND_FACTS = 30
+-- Only a run the engine did not stop can be asked. The whole stream is drained FIRST and then the report is read (the order of the closed characterization driver, env-characterization.lua), and nothing
+-- is judged from a stream or a report that is incomplete. Every line is `env-obs seq=N kind=K a=A b=B rng=R rng_w=H w0=H ... w5=H` (eech_env_observer.c); the events are numbered from 0 without a gap
+-- (a dropped event takes no number, so the report's `dropped` is the loss signal), the first is boot_begin (the observer was armed before the boot), and the sound facts (kind 30) come as ADJACENT pairs: the
+-- first (a = in_cockpit, 0 or 1) has the hash of the whole scratch (b, a signed int) and the camera words, the second (a = -1) the number of scratch entries set (b) and the clamped sector x/z words
+-- (w0, w1). The report must say armed, nothing dropped, no overflow, and have stored, read and numbered exactly the events received; the pairs found must be the `sound_records` it counted, and its sound
+-- calls the session updates it counted. Only the FIRST records are published as rows, and the judge reads the first record only: this checks that the whole stream is complete, not that every later
+-- scratch was compared.
+local SOUND_FACTS, BOOT_BEGIN, LAST_KIND, OBSERVER_CAPACITY = 30, 1, 30, 16384
+local WORD = "%x%x%x%x%x%x%x%x"
+local EVENT_PATTERN = "^env%-obs seq=(%d+) kind=(%d+) a=(%-?%d+) b=(%-?%d+) rng=(%-?%d+) rng_w=(" .. WORD .. ") w0=(" .. WORD .. ") w1=(" .. WORD .. ") w2=" .. WORD .. " w3=" .. WORD .. " w4=" .. WORD .. " w5=" .. WORD .. "$"
+local REPORT_FIELDS = { "armed", "capacity", "stored", "read", "dropped", "overflow", "next_seq", "update_server", "lightning_calls", "sound_calls", "resync_calls", "weather_calls", "sound_records" }
+local REPORT_PATTERN = "^env%-obs%-report armed=(%d+) capacity=(%d+) stored=(%d+) read=(%d+) dropped=(%d+) overflow=(%d+) next_seq=(%d+) update_server=(%d+) lightning_calls=(%d+) sound_calls=(%d+)"
+	.. " resync_calls=(%d+) weather_calls=(%d+) sound_records=(%d+)$"
 local function float_of_word (word)
 	local n = tonumber (word, 16)
 	local exponent, mantissa = math.floor (n / 8388608) % 256, n % 8388608
@@ -178,29 +189,61 @@ local function float_of_word (word)
 	else value = (1 + mantissa / 8388608) * 2 ^ (exponent - 127) end
 	return negative and -value or value
 end
-local pairs_seen, sound_calls, sound_records = {}, nil, nil
-if not failure then
+local function read_report ()
 	local ok, report = pcall (engine.env_observer_report, engine)
 	if not ok then hard ("OBSERVER REPORT UNREADABLE: " .. first_line (report)) end
-	sound_calls, sound_records = tonumber (string.match (report, " sound_calls=(%d+)")), tonumber (string.match (report, " sound_records=(%d+)"))
-	if not sound_calls or not sound_records then hard ("OBSERVER REPORT GRAMMAR: no sound_calls or sound_records in: " .. first_line (report)) end
-	local ok2, stream = pcall (engine.env_observer_events, engine)
-	if not ok2 then hard ("OBSERVER EVENTS UNREADABLE: " .. first_line (stream)) end
-	local events = {}
+	local line = string.match (tostring (report), "^([^\r\n]*)\r?\n?$")
+	local captures = { string.match (line or "", REPORT_PATTERN) }
+	if #captures ~= #REPORT_FIELDS then hard ("OBSERVER REPORT GRAMMAR: not the observer's one report line: " .. first_line (report)) end
+	local r = {}
+	for i, name in ipairs (REPORT_FIELDS) do r [name] = tonumber (captures [i]) end
+	return r
+end
+local pairs_seen, observer = {}, nil
+if not failure then
+	local ok, stream = pcall (engine.env_observer_events, engine)
+	if not ok then hard ("OBSERVER EVENTS UNREADABLE: " .. first_line (stream)) end
+	local next_seq, pending = 0, nil
 	for line in string.gmatch (stream, "[^\n]+") do
-		local seq, kind, a, b, w0, w1, w2 = string.match (line, "^env%-obs seq=(%d+) kind=(%d+) a=(%-?%d+) b=(%-?%d+) rng=%-?%d+ rng_w=%x+ w0=(%x+) w1=(%x+) w2=(%x+) w3=%x+ w4=%x+ w5=%x+$")
+		local seq, kind, a, b, rng, rng_w, w0, w1 = string.match (line, EVENT_PATTERN)
 		if not seq then hard ("OBSERVER GRAMMAR: not an observer event line: " .. line) end
-		if tonumber (kind) == SOUND_FACTS then events [#events + 1] = { a = tonumber (a), b = tonumber (b), w0 = w0, w1 = w1, w2 = w2, seq = tonumber (seq) } end
+		seq, kind, a, b = tonumber (seq), tonumber (kind), tonumber (a), tonumber (b)
+		if seq ~= next_seq then hard ("OBSERVER SEQUENCE: event " .. seq .. " follows " .. (next_seq - 1) .. ": an event is missing or repeated") end
+		if kind < 1 or kind > LAST_KIND then hard ("OBSERVER KIND: event " .. seq .. " has kind " .. kind .. ", which is not one of the " .. LAST_KIND .. " kinds") end
+		if tonumber (rng) % 4294967296 ~= tonumber (rng_w, 16) then hard ("OBSERVER GRAMMAR: event " .. seq .. ": rng " .. rng .. " and rng_w " .. rng_w .. " are not one word") end
+		if seq == 0 and kind ~= BOOT_BEGIN then hard ("OBSERVER SEQUENCE: the first event is kind " .. kind .. ", not boot_begin: the observer was not armed before the boot") end
+		next_seq = seq + 1
+		if pending and not (kind == SOUND_FACTS and a == -1) then hard ("OBSERVER PAIRS: the sound fact " .. pending.seq .. " is not followed by its second half") end
+		if kind == SOUND_FACTS then
+			if a == -1 then
+				if not pending then hard ("OBSERVER PAIRS: the second half of a sound fact at " .. seq .. " has no first half") end
+				if b < 0 or b > TYPES then hard ("OBSERVER PAIRS: the sound fact " .. pending.seq .. " counts " .. b .. " scratch entries set, of " .. TYPES) end
+				pairs_seen [#pairs_seen + 1] = {
+					hash = pending.b < 0 and pending.b + 4294967296 or pending.b, nonzero = b, sector_x = string.format ("%.9g", float_of_word (w0)), sector_z = string.format ("%.9g", float_of_word (w1)),
+					in_cockpit = pending.a,
+				}
+				pending = nil
+			else
+				if a < 0 or a > 1 or b < -2147483648 or b > 2147483647 then hard ("OBSERVER PAIRS: the first half of the sound fact at " .. seq .. " has in_cockpit " .. a .. " and hash " .. b) end
+				pending = { seq = seq, a = a, b = b }
+			end
+		end
 	end
-	if #events % 2 ~= 0 then hard ("OBSERVER PAIRS: " .. #events .. " sound-fact events, not an even number") end
-	for i = 1, #events, 2 do
-		local scratch, tail = events [i], events [i + 1]
-		if tail.a ~= -1 then hard ("OBSERVER PAIRS: the event after sound fact " .. scratch.seq .. " is not its second half") end
-		pairs_seen [#pairs_seen + 1] = {
-			hash = scratch.b < 0 and scratch.b + 4294967296 or scratch.b, nonzero = tail.b, sector_x = string.format ("%.9g", float_of_word (tail.w0)), sector_z = string.format ("%.9g", float_of_word (tail.w1)),
-			in_cockpit = scratch.a,
-		}
+	if pending then hard ("OBSERVER PAIRS: the stream ends after the first half of the sound fact " .. pending.seq .. ": the record is truncated") end
+	if next_seq == 0 then hard ("OBSERVER SEQUENCE: no event at all, not even boot_begin: the observer was not armed before the boot") end
+	local r = read_report ()
+	if r.armed ~= 1 then hard ("OBSERVER REPORT: the observer says it is not armed") end
+	if r.dropped ~= 0 or r.overflow ~= 0 then hard ("OBSERVER LOSS: the observer dropped " .. r.dropped .. " events (capacity " .. r.capacity .. ", overflow " .. r.overflow .. "): the record is incomplete") end
+	if r.capacity < 1 or r.capacity > OBSERVER_CAPACITY or r.capacity < r.stored then hard ("OBSERVER REPORT: capacity " .. r.capacity .. " for " .. r.stored .. " stored events") end
+	if r.stored ~= next_seq or r.read ~= next_seq or r.next_seq ~= next_seq then
+		hard ("OBSERVER CURSOR: the observer stored " .. r.stored .. ", read " .. r.read .. " and numbered " .. r.next_seq .. " events, but the driver received " .. next_seq)
 	end
+	if r.sound_calls ~= r.update_server then hard ("OBSERVER REPORT: " .. r.sound_calls .. " sound calls for " .. r.update_server .. " session updates") end
+	if r.sound_records ~= #pairs_seen or r.sound_records > r.sound_calls then
+		hard ("OBSERVER RECONCILE: the report counts " .. r.sound_records .. " sound records for " .. r.sound_calls .. " calls, but the stream holds " .. #pairs_seen .. " pairs")
+	end
+	observer = r
+	observer.events = next_seq
 end
 
 for _, r in ipairs (requests) do
@@ -210,13 +253,17 @@ for i, p in ipairs (pairs_seen) do
 	if i > 4 then break end
 	emit { event = "pair", n = i, hash = p.hash, nonzero = p.nonzero, sector_x = p.sector_x, sector_z = p.sector_z, in_cockpit = p.in_cockpit }
 end
+-- the observer's own counters are published as they were read (-1 for a run the engine stopped, which cannot be asked), for the judge to check again
+local function seen (name) return observer and observer [name] or -1 end
 emit {
 	event = "authority", mode = mode, expected_marker = plan.marker or "", completed = failure == nil, failure = failure or "", frames = frames, frames_wanted = frames_wanted, elapsed = clock.elapsed_seconds,
 	sector_requests = counts.sector, altered_sector = altered, map_requests = counts.map, point_requests = counts.point, fast_requests = counts.fast, request_rows = #requests,
-	observer_checked = failure == nil, sound_calls = sound_calls or -1, sound_records = sound_records or -1, pairs = #pairs_seen, pair_rows = math.min (#pairs_seen, 4),
+	observer_checked = failure == nil, sound_calls = seen ("sound_calls"), sound_records = seen ("sound_records"), pairs = #pairs_seen, pair_rows = math.min (#pairs_seen, 4),
+	observer_armed = seen ("armed"), observer_capacity = seen ("capacity"), observer_stored = seen ("stored"), observer_read = seen ("read"), observer_next_seq = seen ("next_seq"),
+	observer_dropped = seen ("dropped"), observer_overflow = seen ("overflow"), observer_events = seen ("events"), update_server = seen ("update_server"),
 }
 -- the last thing the witness does is close its evidence, and a close that fails is a failure after the success row as much as before it
 local closed, close_error = out:close ()
 if not closed then refuse ("OUTPUT FAILURE: closing " .. out_path .. " failed: " .. tostring (close_error)) end
 io.stderr:write (string.format ("env-sector-authority: mode=%s completed=%s frames=%d sector_requests=%d altered=%d sound_calls=%s failure=%s\n", mode, tostring (failure == nil), frames, counts.sector, altered,
-	tostring (sound_calls), failure or "none"))
+	tostring (seen ("sound_calls")), failure or "none"))

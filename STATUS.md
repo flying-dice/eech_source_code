@@ -1,3 +1,16 @@
+# D3 red phase — sector-kernel caller-FP test and observer-completeness guards (31 October 2026, test/driver only)
+
+EEDCS-51 / PR111 on clean pushed `6711d5f11`. Independent source review `ENV-SECTOR-HOST-6711-20261031` (SHA-256 `06419e7b...80b5`) is CHANGES_REQUIRED with two grouped findings plus a Linux test compile error;
+the closed original-sector evidence (`b2e55b18b` three roots, `1408817f...6200`) is reused, nothing original/wind/field is re-run. **This phase changes tests, a driver and docs only (UNBUILT, UNRUN,
+UNREVIEWED); the production kernel is NOT changed and ENV-SECTOR-HOST-1 is NOT fixed.** (P1) New red test `the_callers_complete_floating_point_state_survives_every_sector_query_in_every_mode`
+(`eech-world/tests/terrain_sector.rs`) drives the public `Terrain::types_in_sector` under seeded complete caller x87 control/status/tag and MXCSR state (all rounding pairs, two precision controls, sticky clear/set,
+FTZ/DAZ where supported, three status words incl. C1), over ordinary fractional coordinates, admitted subnormals, signed zero and the refusals, with no mask; expected to fail against 6711 (an expectation, not
+evidence). The earlier claim that power-of-two scaling and truncation cannot touch the FP environment is corrected as false in the sector-surface doc; the C/header comment is production and remains to be corrected
+with the fix. (P2) `env-sector-authority.lua` and the Rust judge now refuse incomplete observer evidence (dropped/overflow/armed/stored/read/next_seq, gapped or non-boot-first numbering, unpaired or truncated sound
+records, records not reconciled with pairs, sound calls not session updates, every counter required, a changed run that did not complete its frames) with finite driver and judge guards; first-record scope
+and the stopped-run observer-unavailable disclosure are unchanged. Test-only compile fix: `module.rs` `replacen("0", "2", 1)`. Whole Task 51/D3 remains OPEN (effects, time, remaining terrain,
+spatial/object, model, full shipping, current CI, review, normal merges); D4/D5 unstarted; no acceptance claimed. Commands: `docs/d3-environment-sector-surface.md`.
+
 # D3 checkpoint — the sound routine's terrain-sector surface enumeration moves to the host's terrain (31 October 2026)
 
 EEDCS-51 / PR111 from clean pushed `e3439025a` (integration still `b6575594c`). The original characterization is CLOSED and not repeated (Root's actuals: unchanged `get_terrain_3d_types_in_sector` on the hosted-field
