@@ -56,7 +56,7 @@ env-lightning-step i=3 add=33 mask_w=ffffffff occupancy=32\\n";
                 + "env-lightning-input tag=age added_at_w=42c80000 length_w=3e99999a inside_w=42c83333 after_the_end_w=42c90000 first_slot=0\\n"
                 + &format!("env-lightning-slot tag=added slot=0 {SLOT0}\\n")
                 + &format!("env-lightning-slot tag=aged_inside_the_length slot=0 {SLOT0}\\n")
-                + &format!("env-lightning-slot tag=aged_after_the_end slot=0 w0=00000000 w1=00000001 w2=44bb8000 w3=45bb8000 w4=451c4000 w5=42c80000 w6=3e99999a w7=00000003\\n")
+                + "env-lightning-slot tag=aged_after_the_end slot=0 w0=00000000 w1=00000001 w2=44bb8000 w3=45bb8000 w4=451c4000 w5=42c80000 w6=3e99999a w7=00000003\\n"
                 + &end(4, "00000000", 0, 2)
         }
     }
@@ -207,9 +207,10 @@ fn each_control_is_written_as_the_fixture_reported_it_whatever_it_shows() {
 
 #[test]
 fn a_control_the_fixture_refused_is_reported_as_refused_and_not_as_a_pass() {
+    // the fixture refuses case 2 for want of a main environment only when there is none: the plan and the head both say main_present=0 (the head must be the queue the plan described)
     let scenario = format!(
-        "edit = function (index, text) if index == 2 then return '{}' end return text end",
-        refused_report(2, "add_with_the_main_environment")
+        "edit = function (index, text) if index == 0 then return (text:gsub('main_present=1', 'main_present=0', 1)) end if index == 2 then return '{}' end return text end",
+        refused_report(2, "add_with_the_main_environment").replace("main_present=1", "main_present=0")
     );
     let driven = drive(&scenario, &case_args("2"));
     driven.result.clone().expect("a refusal is evidence, not a failure of the witness");
@@ -240,8 +241,8 @@ fn a_report_of_another_shape_is_a_failure_of_the_witness_and_never_a_result() {
         ("2", "a report that is truncated", edit("if index == 2 then return text:sub(1, -2) end"), "truncated"),
         ("2", "an empty report", edit("if index == 2 then return '' end"), "truncated"),
         ("3", "a step row with a word that is not hex", edit("if index == 3 then return (text:gsub('mask_w=ffffffff occupancy=32', 'mask_w=ffffffgf occupancy=32', 1)) end"), "mask_w"),
-        ("3", "one step row where two are expected", edit("if index == 3 then return (text:gsub('env%-lightning%-step i=3 add=33[^\\n]*\\n', '', 1)) end"), "step rows"),
-        ("1", "a step row in a control that has none", edit("if index == 1 then return (text:gsub('env%-lightning%-end', 'env-lightning-step i=1 add=1 mask_w=00000000 occupancy=0\\nenv-lightning-end', 1)) end"), "step rows"),
+        ("3", "one step row where two are expected", edit("if index == 3 then return (text:gsub('env%-lightning%-step i=3 add=33[^\\n]*\\n', '', 1)) end"), "step row"),
+        ("1", "a step row in a control that has none", edit("if index == 1 then return (text:gsub('env%-lightning%-end', 'env-lightning-step i=1 add=1 mask_w=00000000 occupancy=0\\nenv-lightning-end', 1)) end"), "unexpected row"),
         ("2", "a refused control with rows besides its head and end", edit("if index == 2 then return (text:gsub('env%-lightning%-end[^\\n]*\\n', 'env-lightning-input tag=x\\nenv-lightning-end i=2 refused=a_reason changed=0 process_isolated=required\\n', 1)) end"), "refused control"),
         ("2", "a plan with another number of cases", edit("if index == 0 then return (text:gsub('cases=4', 'cases=5', 1)) end"), "cases"),
         ("2", "a plan whose accessor does not answer", edit("if index == 0 then return (text:gsub('queue_capacity=32', 'queue_capacity=-1', 1)) end"), "accessor"),

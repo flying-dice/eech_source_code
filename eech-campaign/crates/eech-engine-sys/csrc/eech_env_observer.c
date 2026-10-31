@@ -350,7 +350,14 @@ void eech_envobs_queue (int point, const void *main_env)
 	r->active = (active == NULL) ? 0 : ((active == main_3d) ? 1 : 2);
 	r->main_present = (main_3d != NULL) ? 1 : 0;
 	r->time_present = (active != NULL) ? 1 : 0;
-	r->time_bits = (active != NULL) ? eech_envobs_bits (active->time_of_day) : 0;
+	/* the stored word, copied as bits straight from the original object: the value is never passed through a floating-point parameter or load. Absent when no environment is active. */
+	r->time_bits = 0;
+
+	if (active != NULL)
+	{
+		memcpy (&r->time_bits, &active->time_of_day, sizeof (r->time_bits));
+	}
+
 	r->mask = mask;
 	r->occupancy = occupancy;
 	r->slot = slot;

@@ -998,13 +998,24 @@ local function run ()
 		if lq_popcount (final_mask) ~= tonumber (rep.final_occupancy) or #slot_rows ~= tonumber (rep.final_occupancy) then
 			refuse ("the final queue has occupancy " .. rep.final_occupancy .. " and mask " .. rep.final_mask_w .. " but " .. #slot_rows .. " occupied slot rows")
 		end
+		-- the occupied slots are the final mask exactly: in range, in use, strictly ascending (so unique), as many as the mask has bits
+		local previous_slot = -1
 		for _, s in ipairs (slot_rows) do
-			if tonumber (s.slot) >= capacity or tonumber (s.w0, 16) == 0 or lq_bit (final_mask, tonumber (s.slot)) ~= 1 then refuse ("occupied slot row " .. s.slot .. " is not an occupied slot of the final mask " .. rep.final_mask_w) end
+			local slot = tonumber (s.slot)
+			if slot >= capacity or tonumber (s.w0, 16) == 0 or lq_bit (final_mask, slot) ~= 1 then refuse ("occupied slot row " .. s.slot .. " is not an occupied slot of the final mask " .. rep.final_mask_w) end
+			if slot <= previous_slot then refuse ("occupied slot row " .. s.slot .. " repeats or precedes slot " .. previous_slot .. ": the rows are the occupied slots once each, in ascending order") end
+			previous_slot = slot
 		end
+		if tonumber (plan.cases) ~= 4 or tonumber (plan.active) > 2 then refuse ("the plan has " .. plan.cases .. " cases and the active environment category " .. plan.active .. ": the fixture has four controls and three categories") end
 		if (obs.counts.lightning_env or 0) ~= events or (obs.counts.strike_begin or 0) ~= 2 * events or (obs.counts.strike_end or 0) ~= 2 * events then
 			refuse ("the probe holds " .. events .. " lightning events but the observer stream holds " .. (obs.counts.lightning_env or 0) .. " environment switches and " .. (obs.counts.strike_begin or 0) .. " strike calls")
 		end
 		local tally = { queued = 0, no_active_environment = 0, queue_full = 0, unexplained = 0 }
+		-- the facts the C records satisfy by construction, checked as the shape of a coherent state view (none of them says what an add does): the active category is 0 (none), 1 (the main one) or 2 (another); the active
+		-- time word exists exactly when an environment is active; the main environment either exists in every record or in none, and exists when it is the active one; the point's slot and words are -1 and zeros
+		-- except after an add that occupied a slot, whose slot is then in use. The masks of points with no add between them are equal (entry and first before; first after and second before; second after and
+		-- restored); a later event can only have lost slots since the previous restore (no other caller adds); the final queue is the last restored mask exactly if the update never ran, and a subset of it otherwise.
+		local main_seen, previous_restored_mask, last_restored_mask
 		for ev = 1, events do
 			local base = (ev - 1) * 6
 			local function rec (point)
@@ -1014,14 +1025,39 @@ local function run ()
 				end
 				local mask = tonumber (r.mask_w, 16)
 				if lq_popcount (mask) ~= tonumber (r.occupancy) then refuse ("probe record " .. r.seq .. " has occupancy " .. r.occupancy .. " for the mask " .. r.mask_w) end
-				if r.time_present == "0" and r.time_w ~= "00000000" then refuse ("probe record " .. r.seq .. " has a time word without an active environment") end
+				local active, main, time_present, slot = tonumber (r.active), tonumber (r.main), tonumber (r.time_present), tonumber (r.slot)
+				if active > 2 then refuse ("probe record " .. r.seq .. " has the active environment category " .. r.active .. ", which is not none, the main one or another") end
+				if time_present ~= (active ~= 0 and 1 or 0) then refuse ("probe record " .. r.seq .. " has time_present " .. r.time_present .. " with the active category " .. r.active) end
+				if time_present == 0 and r.time_w ~= "00000000" then refuse ("probe record " .. r.seq .. " has a time word without an active environment") end
+				if active == 1 and main ~= 1 then refuse ("probe record " .. r.seq .. " has the main environment active but no main environment") end
+				if main_seen ~= nil and main ~= main_seen then refuse ("probe record " .. r.seq .. " disagrees with the others on whether the main environment exists") end
+				main_seen = main
+				local words_zero = true
+				for w = 0, 7 do
+					if tonumber (r ["w" .. w], 16) ~= 0 then words_zero = false end
+				end
+				if point == 2 or point == 4 then
+					if slot >= capacity or slot < -1 then refuse ("probe record " .. r.seq .. " names slot " .. r.slot .. " of a queue of " .. capacity) end
+					if slot >= 0 and tonumber (r.w0, 16) == 0 then refuse ("probe record " .. r.seq .. " reports slot " .. r.slot .. " occupied by the add but its captured slot is not in use (w0 = 0)") end
+					if slot < 0 and not words_zero then refuse ("probe record " .. r.seq .. " names no slot but carries slot words") end
+				elseif slot ~= -1 or not words_zero then
+					refuse ("probe record " .. r.seq .. " is point " .. point .. ", which follows no add, but names a slot or carries slot words")
+				end
 				return r, mask
 			end
 			local entry, entry_mask = rec (0)
+			if previous_restored_mask ~= nil then
+				for i = 0, 31 do
+					if lq_bit (entry_mask, i) == 1 and lq_bit (previous_restored_mask, i) == 0 then refuse ("lightning event " .. ev .. " begins with slot " .. i .. " occupied that the previous event's restored queue did not hold: an add no record shows") end
+				end
+			end
 			local before_1, restored
+			local carried_mask = entry_mask
 			for k = 1, 2 do
 				local before, mask_before = rec (2 * k - 1)
 				local after, mask_after = rec (2 * k)
+				if mask_before ~= carried_mask then refuse ("lightning event " .. ev .. ": the queue before add " .. k .. " (" .. before.mask_w .. ") is not the queue the previous point left (" .. string.format ("%08x", carried_mask) .. "), and no add lies between") end
+				carried_mask = mask_after
 				if k == 1 then before_1 = before end
 				local new_bits, kept, new_slot = 0, true, -1
 				for i = 0, 31 do
@@ -1053,9 +1089,19 @@ local function run ()
 				end
 				emit (row)
 			end
-			restored = rec (5)
+			local restored_mask
+			restored, restored_mask = rec (5)
+			if restored_mask ~= carried_mask then refuse ("lightning event " .. ev .. ": the restored queue (" .. restored.mask_w .. ") is not the queue after the second add (" .. string.format ("%08x", carried_mask) .. "), and no add lies between") end
+			previous_restored_mask, last_restored_mask = restored_mask, restored_mask
 			emit { event = "lightning_queue_environment", lightning = ev, entry_active = tonumber (entry.active), entry_main_present = tonumber (entry.main), before_first_add_active = tonumber (before_1.active),
 				restored_active = tonumber (restored.active), switched_to_main = entry.active ~= "1" and before_1.active == "1", restored_to_entry = restored.active == entry.active, entry_mask_w = entry.mask_w }
+		end
+		if main_seen ~= nil and main_seen ~= tonumber (plan.main_present) then refuse ("the records say the main environment " .. (main_seen == 1 and "exists" or "is absent") .. " but the plan says main_present " .. plan.main_present) end
+		if last_restored_mask ~= nil then
+			for i = 0, 31 do
+				if lq_bit (final_mask, i) == 1 and lq_bit (last_restored_mask, i) == 0 then refuse ("the final queue holds slot " .. i .. " that the last event's restored queue did not: an add no record shows") end
+			end
+			if tonumber (rep.update_calls) == 0 and final_mask ~= last_restored_mask then refuse ("the update never ran, so the final queue (" .. rep.final_mask_w .. ") must be the last event's restored queue (" .. string.format ("%08x", last_restored_mask) .. ")") end
 		end
 		emit { event = "lightning_queue_summary", lightning_events = events, records = #records, queued = tally.queued, no_active_environment = tally.no_active_environment, queue_full = tally.queue_full,
 			unexplained = tally.unexplained, update_calls = tonumber (rep.update_calls), final_occupancy = tonumber (rep.final_occupancy), queue_capacity = capacity, main_present = tonumber (plan.main_present) }
