@@ -1,0 +1,104 @@
+{
+  "schema": 1,
+  "reviewed_head": "235290e0d4b48cb1bfce2cc5556217d14251ec97",
+  "base": "e98ea3881b6bb76504e0e83ba9bfce947cab218e",
+  "snapshot": "R:\\d3-evidence\\environment-observer-source-235290e0d",
+  "review_scope": "One narrow source/guard/boundary closeout of actual observer drain failure and previous test-context P3. No unchanged kernel/source sweep.",
+  "prior_report_sha256": "7fde0c5507a3e1942461948729a45f2be6a24cba0076e30b6e69daa21a498ae1",
+  "frozen_clean_before": true,
+  "frozen_clean_after": true,
+  "disposition": "SOURCE_CLOSED_LINUX_GUARDS_GREEN_PENDING_ACTUAL_WINDOWS_AND_ON_CONTROLS",
+  "findings": [],
+  "source_assessment": {
+    "production_C_Rust_exact765": true,
+    "changed_code_paths": [
+      "eech-campaign/crates/eech-world/lua/env-characterization.lua",
+      "eech-campaign/crates/eech-world/tests/host_callbacks.rs"
+    ],
+    "ordinary_fixture_limit": 32768,
+    "observer_capacity": 16384,
+    "max_observer_row_without_newline": 170,
+    "derived_stream_exclusive_limit": 2801665,
+    "independent_widest_native_format_characters_without_newline": 161,
+    "reason": "The ordinary report path keeps its original32KiB bound. Only observer events pass an explicit stream limit/row limit; report-row decoding stays on the ordinary limit. Total stream, per-row and per-drain event limits are checked before emission, global sequence must remain below native capacity, and advertised report capacity cannot exceed that capacity. No truncation or original physics change.",
+    "long_positive": "The real driver now processes200frames and1200observer events at the frame200drain, demonstrably more than32KiB from the fixed native-format keys/words; summary cardinalities are asserted.",
+    "oversize_negatives": "Separate stream-byte, row-width and row-count corruptions target the new bounds and require failure/no success. Existing schema/phase/sequence/overflow checks remain.",
+    "P3_acceleration_positive": "Canned second frame now emits acceleration b=2 and asserts the exact captured[1,2,1,...]sequence; previous test-only P3 is closed.",
+    "safety": "Finite2,801,664-byte maximum accepted stream and16384rows follow the fixed native total-run storage; parsing does not grant unbounded input acceptance."
+  },
+  "source_sha256": {
+    "eech-campaign/crates/eech-world/lua/env-characterization.lua": "3dfd579c3278f99a4e709a1c95bc1e2e4cf9c0e7cdb081d6a2e738d46b31c3c6",
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs": "e6994cca8bfad5e78cf47d668dac92211af744a13f55f00f6b9a99b47199763d",
+    "eech-campaign/docs/d3-environment-observer.md": "ed0314abd2740f81a3d89418cf3986675525cc481e4914fbc6f36ad4b6c1b9a1",
+    "STATUS.md": "024743db31a6428fca0c990e38000b78a4c38128cf02a15fba58ea7698636004"
+  },
+  "actual_retained_e98_failures": [
+    {
+      "case": "lebanon-fixed",
+      "native_source": "76533dd3ae836674c27704040d6ce1b6ed84f80d",
+      "driver_source": "e98ea3881b6bb76504e0e83ba9bfce947cab218e",
+      "controller_sha256": "735b2d40c9a1e9d7122e0bd089455060b144f0ffd410cf28427c628f41b91cb9",
+      "raw_sha256": "42905573787fa18d3e7d9ad7578b23ba6f3437f7b878ae0c48b58f5aad744c3e",
+      "actual_native_and_controller_exit": 1,
+      "pre_post_exit": 0,
+      "failure": "env-characterization: engine:env_observer_events returned a malformed report: a report of 146776 bytes does not fit the fixture's 32768-byte buffer",
+      "success_rows": 0,
+      "retained_payload_manifest_entries": 46
+    },
+    {
+      "case": "lebanon-variable",
+      "native_source": "76533dd3ae836674c27704040d6ce1b6ed84f80d",
+      "driver_source": "e98ea3881b6bb76504e0e83ba9bfce947cab218e",
+      "controller_sha256": "ea2d619c40224fbdbef6272ae27f4406d82568ad8cdadc3252f5c2498c09613f",
+      "raw_sha256": "e0cbc41353239f89addc06188f73f73dd6aa3adc72adae3ade7f7d12d85876f7",
+      "actual_native_and_controller_exit": 1,
+      "pre_post_exit": 0,
+      "failure": "env-characterization: engine:env_observer_events returned a malformed report: a report of 128323 bytes does not fit the fixture's 32768-byte buffer",
+      "success_rows": 0,
+      "retained_payload_manifest_entries": 46
+    },
+    {
+      "case": "georgia-variable",
+      "native_source": "76533dd3ae836674c27704040d6ce1b6ed84f80d",
+      "driver_source": "e98ea3881b6bb76504e0e83ba9bfce947cab218e",
+      "controller_sha256": "7de4a6155e5b69563db088f8fbf0e409ebf45a98c0490c5edc4dedd3fcc1f4b9",
+      "raw_sha256": "53b669734188abaef284cf0b73d9a797197d9aa7c16f1ff7ba3b828e21af3ee6",
+      "actual_native_and_controller_exit": 1,
+      "pre_post_exit": 0,
+      "failure": "env-characterization: engine:env_observer_events returned a malformed report: a report of 138771 bytes does not fit the fixture's 32768-byte buffer",
+      "success_rows": 0,
+      "retained_payload_manifest_entries": 46
+    }
+  ],
+  "new_guard_results": [
+    {
+      "kind": "linux",
+      "completion_sha256": "a3bc32c398def4522c4b3dfe459c4e33329a9461b8305d7f85336b67e4049216",
+      "log_sha256": "eafcd9fc2eab6ad2de0f5f3613047923d12639b034426f4cded929280094ee00",
+      "actual_exit": 0,
+      "scope": "14 selected real-driver stand-in guards/fmt/world strict Clippy"
+    },
+    {
+      "kind": "windows",
+      "completion_sha256": "0204ef20aedda74cddb802950572557a75faf32d882c761433764b759eb5917f",
+      "log_sha256": "b8f6fd233ba06dec8105f632d109bfac43c8f4ae59c208e0a498f09b780173bb",
+      "actual_exit": 0,
+      "scope": "Windows compile/export only, actual native guard execution not yet supplied"
+    }
+  ],
+  "exported_Windows_test_exe_sha256": "c53f05c00176eb6f8c85e9e8485914a28b2cf0641d9f32d8059a6aecdcf1f444",
+  "readiness": {
+    "bounded_execution": "ALLOW_CONDITIONAL_ON_RECORDED_BUILDS; no new source blocker",
+    "actual_new_Windows_guards": "PENDING; a successful cross compile is not execution",
+    "actual_ON_and_noninterference": "PENDING new corrected Lua against labelled765native on fresh roots; compare with unhooked and OFF controls without normalization",
+    "no_relabel": "All three native765/driver-e98 failures remain exit1. Linux/Windows13old short guards did not cover this legitimate long drain; their success never makes those native failures pass."
+  },
+  "limits": [
+    "New Linux14guard functions are scripted driver/validation tests, not original weather numerical or campaign authority proof.24unselected unrelated tests are explicitly filtered.",
+    "C/Rustproduction remains765, driver235; no new original fixture/module build is inferred or needed merely for this Lua/test repair.",
+    "No Task51/host extraction/fullshipping/Tacview/currentCI/formal approval/normal merge/whole-D3 acceptance. Required environment/time/spatial/model/entity/hierarchy/physical solver-loader work remains.",
+    "Ground campaigns/processes/caches remain untouched."
+  ],
+  "actions": "Read-only source/Git/log/JSON/hash and scalar bound calculation; only this canonical-LF report written. No builds/tests/native/process/cache/auth/Git mutations, source edits, external writes or nested agents.",
+  "created_utc": "2026-10-31T02:35:05.059949+00:00"
+}

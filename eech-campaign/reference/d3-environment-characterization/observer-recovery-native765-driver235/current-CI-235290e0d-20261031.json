@@ -1,0 +1,60 @@
+{
+  "sha": "235290e0d4b48cb1bfce2cc5556217d14251ec97",
+  "workflowRunIds": [
+    41160476263,
+    41160476262
+  ],
+  "jobCount": 8,
+  "allSuccess": true,
+  "jobs": [
+    {
+      "id": 124416705580,
+      "name": "verify",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 124416743924,
+      "name": "evidence-selftest",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 124416743989,
+      "name": "test (i686-unknown-linux-gnu, EECH_ORIGINAL_STACK_ATTRIBUTES=1)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 124416744028,
+      "name": "dcs-probe-tools",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 124416744038,
+      "name": "windows-cross",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 124416744096,
+      "name": "test (x86_64-unknown-linux-gnu)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 124416744097,
+      "name": "test (i686-unknown-linux-gnu)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 124416744106,
+      "name": "test (x86_64-unknown-linux-gnu, EECH_C_OPT=2)",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "scope": "Current hosted job conclusions; no additional campaign runtime implied."
+}

@@ -1,0 +1,596 @@
+{
+  "scope": "COMPLETE focused120s observed session state/campaign digests/run output; explicit original native765 plus corrected driver235 versus unhooked2804 with unchanged original executable bodies. This is not wholecampaign state/Tacview, physical extraction, performance or shipping acceptance.",
+  "when_utc": "2026-10-31T02:41:04.031015+00:00",
+  "original_recovery_controller_actual_exit": 0,
+  "script_sha256": "3dfd579c3278f99a4e709a1c95bc1e2e4cf9c0e7cdb081d6a2e738d46b31c3c6",
+  "native_payloads_rehashed": 46,
+  "all4_complete_selected_raw_equal": true,
+  "rows": [
+    {
+      "case": "lebanon-fixed-on",
+      "native_source": "76533dd3ae836674c27704040d6ce1b6ed84f80d",
+      "script_source": "235290e0d4b48cb1bfce2cc5556217d14251ec97",
+      "control_source": "2804ca4f7a323493e5bb8f3ba5452958aef9a160",
+      "actual_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_actual_exit0": true,
+      "verified_payloads": 46,
+      "complete_selected_raw_lines": [
+        10830,
+        10830
+      ],
+      "complete_selected_raw_lines_including_endings_equal": true,
+      "raw_jsonl_sha256": [
+        "de74b58fccd23c81157fdca361fc501b0acc6292243ad72085b73c7ddabb54c8",
+        "92e64da9360bcc67bbc17fb3d513fdf1c640a670659cc237400474170c527d0b"
+      ],
+      "run": {
+        "cases_available": 164,
+        "complete": false,
+        "elapsed_seconds": 119.99835968017578,
+        "event": "run",
+        "frames": 1200,
+        "probe_state": "not_requested",
+        "probes_requested": 0,
+        "probes_run": 0,
+        "unsupported_items": 6
+      },
+      "observer_summary": [
+        {
+          "event": "observer_summary",
+          "events": 6378,
+          "lightning_calls": 1200,
+          "n_boot_begin": 1,
+          "n_boot_end": 1,
+          "n_frame_begin": 1200,
+          "n_frame_end": 1200,
+          "n_lightning_env": 2,
+          "n_lightning_expired": 2,
+          "n_lightning_new_timer": 2,
+          "n_lightning_timer_set": 2,
+          "n_parser_session_begin": 1,
+          "n_parser_session_end": 1,
+          "n_seed_set": 4,
+          "n_seed_source": 3,
+          "n_session_created": 1,
+          "n_sound_begin": 4,
+          "n_sound_end": 4,
+          "n_sound_facts": 1510,
+          "n_start_index": 2,
+          "n_start_reseed": 2,
+          "n_start_result": 2,
+          "n_start_time": 2,
+          "n_strike_begin": 4,
+          "n_strike_end": 4,
+          "n_tod_begin": 1200,
+          "n_tod_end": 1200,
+          "n_weather_begin": 2,
+          "n_weather_draw": 20,
+          "n_weather_end": 2,
+          "resync_fired": 1,
+          "sound_calls": 1200,
+          "sound_records": 755,
+          "update_server": 1200,
+          "weather_calls": 1200
+        }
+      ],
+      "kind_counts": {
+        "boot_begin": 1,
+        "seed_source": 3,
+        "seed_set": 4,
+        "parser_session_begin": 1,
+        "start_reseed": 2,
+        "start_index": 2,
+        "start_time": 2,
+        "start_result": 2,
+        "session_created": 1,
+        "weather_begin": 2,
+        "weather_draw": 20,
+        "weather_end": 2,
+        "parser_session_end": 1,
+        "boot_end": 1,
+        "frame_begin": 1200,
+        "tod_begin": 1200,
+        "tod_end": 1200,
+        "sound_facts": 1510,
+        "frame_end": 1200,
+        "lightning_expired": 2,
+        "lightning_new_timer": 2,
+        "lightning_timer_set": 2,
+        "lightning_env": 2,
+        "strike_begin": 4,
+        "strike_end": 4,
+        "sound_begin": 4,
+        "sound_end": 4
+      },
+      "first6_frame_inputs": [
+        {
+          "seq": 44,
+          "a": 100,
+          "b": 1,
+          "w0": "00000000",
+          "w1": "3dcccccd"
+        },
+        {
+          "seq": 50,
+          "a": 100,
+          "b": 1,
+          "w0": "00000064",
+          "w1": "3dcccccc"
+        },
+        {
+          "seq": 56,
+          "a": 100,
+          "b": 1,
+          "w0": "000000c8",
+          "w1": "3dcccccc"
+        },
+        {
+          "seq": 62,
+          "a": 100,
+          "b": 1,
+          "w0": "0000012c",
+          "w1": "3dcccccc"
+        },
+        {
+          "seq": 68,
+          "a": 100,
+          "b": 1,
+          "w0": "00000190",
+          "w1": "3dcccccc"
+        },
+        {
+          "seq": 74,
+          "a": 100,
+          "b": 1,
+          "w0": "000001f4",
+          "w1": "3dcccccc"
+        }
+      ],
+      "first6_tod_inputs": [
+        {
+          "seq": 45,
+          "w0": "00000000",
+          "w1": "3dcccccd",
+          "w2": "3f800000"
+        },
+        {
+          "seq": 51,
+          "w0": "3dcccccd",
+          "w1": "3dcccccc",
+          "w2": "3f800000"
+        },
+        {
+          "seq": 57,
+          "w0": "3e4ccccc",
+          "w1": "3dcccccc",
+          "w2": "3f800000"
+        },
+        {
+          "seq": 63,
+          "w0": "3e999999",
+          "w1": "3dcccccc",
+          "w2": "3f800000"
+        },
+        {
+          "seq": 69,
+          "w0": "3ecccccc",
+          "w1": "3dcccccc",
+          "w2": "3f800000"
+        },
+        {
+          "seq": 75,
+          "w0": "3effffff",
+          "w1": "3dcccccc",
+          "w2": "3f800000"
+        }
+      ],
+      "first_difference": null
+    },
+    {
+      "case": "lebanon-variable-on",
+      "native_source": "76533dd3ae836674c27704040d6ce1b6ed84f80d",
+      "script_source": "235290e0d4b48cb1bfce2cc5556217d14251ec97",
+      "control_source": "2804ca4f7a323493e5bb8f3ba5452958aef9a160",
+      "actual_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_actual_exit0": true,
+      "verified_payloads": 46,
+      "complete_selected_raw_lines": [
+        8139,
+        8139
+      ],
+      "complete_selected_raw_lines_including_endings_equal": true,
+      "raw_jsonl_sha256": [
+        "2e898ed821015922c7ede7732028a660927519d38c328ceccd0e47c5eae097e0",
+        "3f0cee3c1dc47c14c65339f34974bbe1fc2503323d1345b2a288c53828e4547e"
+      ],
+      "run": {
+        "cases_available": 164,
+        "complete": false,
+        "elapsed_seconds": 120.04883575439453,
+        "event": "run",
+        "frames": 900,
+        "probe_state": "not_requested",
+        "probes_requested": 0,
+        "probes_run": 0,
+        "unsupported_items": 6
+      },
+      "observer_summary": [
+        {
+          "event": "observer_summary",
+          "events": 4338,
+          "lightning_calls": 900,
+          "n_boot_begin": 1,
+          "n_boot_end": 1,
+          "n_frame_begin": 900,
+          "n_frame_end": 900,
+          "n_lightning_env": 1,
+          "n_lightning_expired": 1,
+          "n_lightning_new_timer": 1,
+          "n_lightning_timer_set": 1,
+          "n_parser_session_begin": 1,
+          "n_parser_session_end": 1,
+          "n_seed_set": 4,
+          "n_seed_source": 3,
+          "n_session_created": 1,
+          "n_sound_begin": 2,
+          "n_sound_end": 2,
+          "n_sound_facts": 682,
+          "n_start_index": 2,
+          "n_start_reseed": 2,
+          "n_start_result": 2,
+          "n_start_time": 2,
+          "n_strike_begin": 2,
+          "n_strike_end": 2,
+          "n_tod_begin": 900,
+          "n_tod_end": 900,
+          "n_weather_begin": 2,
+          "n_weather_draw": 20,
+          "n_weather_end": 2,
+          "resync_fired": 1,
+          "sound_calls": 900,
+          "sound_records": 341,
+          "update_server": 900,
+          "weather_calls": 900
+        }
+      ],
+      "kind_counts": {
+        "boot_begin": 1,
+        "seed_source": 3,
+        "seed_set": 4,
+        "parser_session_begin": 1,
+        "start_reseed": 2,
+        "start_index": 2,
+        "start_time": 2,
+        "start_result": 2,
+        "session_created": 1,
+        "weather_begin": 2,
+        "weather_draw": 20,
+        "weather_end": 2,
+        "parser_session_end": 1,
+        "boot_end": 1,
+        "frame_begin": 900,
+        "tod_begin": 900,
+        "tod_end": 900,
+        "sound_facts": 682,
+        "frame_end": 900,
+        "lightning_expired": 1,
+        "lightning_new_timer": 1,
+        "lightning_timer_set": 1,
+        "lightning_env": 1,
+        "strike_begin": 2,
+        "strike_end": 2,
+        "sound_begin": 2,
+        "sound_end": 2
+      },
+      "first6_frame_inputs": [
+        {
+          "seq": 44,
+          "a": 100,
+          "b": 1,
+          "w0": "00000000",
+          "w1": "3dcccccd"
+        },
+        {
+          "seq": 50,
+          "a": 250,
+          "b": 1,
+          "w0": "00000064",
+          "w1": "3dcccccc"
+        },
+        {
+          "seq": 56,
+          "a": 50,
+          "b": 1,
+          "w0": "0000015e",
+          "w1": "3e800000"
+        },
+        {
+          "seq": 62,
+          "a": 100,
+          "b": 1,
+          "w0": "00000190",
+          "w1": "3d4ccccc"
+        },
+        {
+          "seq": 68,
+          "a": 250,
+          "b": 1,
+          "w0": "000001f4",
+          "w1": "3dcccccc"
+        },
+        {
+          "seq": 74,
+          "a": 50,
+          "b": 1,
+          "w0": "000002ee",
+          "w1": "3e800000"
+        }
+      ],
+      "first6_tod_inputs": [
+        {
+          "seq": 45,
+          "w0": "00000000",
+          "w1": "3dcccccd",
+          "w2": "3f800000"
+        },
+        {
+          "seq": 51,
+          "w0": "3dcccccd",
+          "w1": "3dcccccc",
+          "w2": "3f800000"
+        },
+        {
+          "seq": 57,
+          "w0": "3e4ccccc",
+          "w1": "3e800000",
+          "w2": "3f800000"
+        },
+        {
+          "seq": 63,
+          "w0": "3ee66666",
+          "w1": "3d4ccccc",
+          "w2": "3f800000"
+        },
+        {
+          "seq": 69,
+          "w0": "3effffff",
+          "w1": "3dcccccc",
+          "w2": "3f800000"
+        },
+        {
+          "seq": 75,
+          "w0": "3f199999",
+          "w1": "3e800000",
+          "w2": "3f800000"
+        }
+      ],
+      "first_difference": null
+    },
+    {
+      "case": "georgia-variable-on",
+      "native_source": "76533dd3ae836674c27704040d6ce1b6ed84f80d",
+      "script_source": "235290e0d4b48cb1bfce2cc5556217d14251ec97",
+      "control_source": "2804ca4f7a323493e5bb8f3ba5452958aef9a160",
+      "actual_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_actual_exit0": true,
+      "verified_payloads": 46,
+      "complete_selected_raw_lines": [
+        8139,
+        8139
+      ],
+      "complete_selected_raw_lines_including_endings_equal": true,
+      "raw_jsonl_sha256": [
+        "703db73dcc09c377505869da0795086adf7823803129de58e40d9cf840422506",
+        "bb05cf0bb1c10969b7f2bf84979c72b0ac183cbeeca32a37e26af88ebd01b796"
+      ],
+      "run": {
+        "cases_available": 164,
+        "complete": false,
+        "elapsed_seconds": 120.04883575439453,
+        "event": "run",
+        "frames": 900,
+        "probe_state": "not_requested",
+        "probes_requested": 0,
+        "probes_run": 0,
+        "unsupported_items": 6
+      },
+      "observer_summary": [
+        {
+          "event": "observer_summary",
+          "events": 4836,
+          "lightning_calls": 900,
+          "n_boot_begin": 1,
+          "n_boot_end": 1,
+          "n_frame_begin": 900,
+          "n_frame_end": 900,
+          "n_lightning_env": 1,
+          "n_lightning_expired": 1,
+          "n_lightning_new_timer": 1,
+          "n_lightning_timer_set": 1,
+          "n_parser_session_begin": 1,
+          "n_parser_session_end": 1,
+          "n_seed_set": 4,
+          "n_seed_source": 3,
+          "n_session_created": 1,
+          "n_sound_begin": 2,
+          "n_sound_end": 2,
+          "n_sound_facts": 1180,
+          "n_start_index": 2,
+          "n_start_reseed": 2,
+          "n_start_result": 2,
+          "n_start_time": 2,
+          "n_strike_begin": 2,
+          "n_strike_end": 2,
+          "n_tod_begin": 900,
+          "n_tod_end": 900,
+          "n_weather_begin": 2,
+          "n_weather_draw": 20,
+          "n_weather_end": 2,
+          "resync_fired": 1,
+          "sound_calls": 900,
+          "sound_records": 590,
+          "update_server": 900,
+          "weather_calls": 900
+        }
+      ],
+      "kind_counts": {
+        "boot_begin": 1,
+        "seed_source": 3,
+        "seed_set": 4,
+        "parser_session_begin": 1,
+        "start_reseed": 2,
+        "start_index": 2,
+        "start_time": 2,
+        "start_result": 2,
+        "session_created": 1,
+        "weather_begin": 2,
+        "weather_draw": 20,
+        "weather_end": 2,
+        "parser_session_end": 1,
+        "boot_end": 1,
+        "frame_begin": 900,
+        "tod_begin": 900,
+        "tod_end": 900,
+        "sound_facts": 1180,
+        "frame_end": 900,
+        "lightning_expired": 1,
+        "lightning_new_timer": 1,
+        "lightning_timer_set": 1,
+        "lightning_env": 1,
+        "strike_begin": 2,
+        "strike_end": 2,
+        "sound_begin": 2,
+        "sound_end": 2
+      },
+      "first6_frame_inputs": [
+        {
+          "seq": 44,
+          "a": 100,
+          "b": 1,
+          "w0": "00000000",
+          "w1": "3dcccccd"
+        },
+        {
+          "seq": 50,
+          "a": 250,
+          "b": 1,
+          "w0": "00000064",
+          "w1": "3dcccccc"
+        },
+        {
+          "seq": 56,
+          "a": 50,
+          "b": 1,
+          "w0": "0000015e",
+          "w1": "3e800000"
+        },
+        {
+          "seq": 62,
+          "a": 100,
+          "b": 1,
+          "w0": "00000190",
+          "w1": "3d4ccccc"
+        },
+        {
+          "seq": 68,
+          "a": 250,
+          "b": 1,
+          "w0": "000001f4",
+          "w1": "3dcccccc"
+        },
+        {
+          "seq": 74,
+          "a": 50,
+          "b": 1,
+          "w0": "000002ee",
+          "w1": "3e800000"
+        }
+      ],
+      "first6_tod_inputs": [
+        {
+          "seq": 45,
+          "w0": "00000000",
+          "w1": "3dcccccd",
+          "w2": "3f800000"
+        },
+        {
+          "seq": 51,
+          "w0": "3dcccccd",
+          "w1": "3dcccccc",
+          "w2": "3f800000"
+        },
+        {
+          "seq": 57,
+          "w0": "3e4ccccc",
+          "w1": "3e800000",
+          "w2": "3f800000"
+        },
+        {
+          "seq": 63,
+          "w0": "3ee66666",
+          "w1": "3d4ccccc",
+          "w2": "3f800000"
+        },
+        {
+          "seq": 69,
+          "w0": "3effffff",
+          "w1": "3dcccccc",
+          "w2": "3f800000"
+        },
+        {
+          "seq": 75,
+          "w0": "3f199999",
+          "w1": "3e800000",
+          "w2": "3f800000"
+        }
+      ],
+      "first_difference": null
+    },
+    {
+      "case": "lebanon-variable-instrumented-off",
+      "native_source": "76533dd3ae836674c27704040d6ce1b6ed84f80d",
+      "script_source": "235290e0d4b48cb1bfce2cc5556217d14251ec97",
+      "control_source": "2804ca4f7a323493e5bb8f3ba5452958aef9a160",
+      "actual_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_actual_exit0": true,
+      "verified_payloads": 46,
+      "complete_selected_raw_lines": [
+        8139,
+        8139
+      ],
+      "complete_selected_raw_lines_including_endings_equal": true,
+      "raw_jsonl_sha256": [
+        "2e898ed821015922c7ede7732028a660927519d38c328ceccd0e47c5eae097e0",
+        "2e898ed821015922c7ede7732028a660927519d38c328ceccd0e47c5eae097e0"
+      ],
+      "run": {
+        "cases_available": 164,
+        "complete": false,
+        "elapsed_seconds": 120.04883575439453,
+        "event": "run",
+        "frames": 900,
+        "probe_state": "not_requested",
+        "probes_requested": 0,
+        "probes_run": 0,
+        "unsupported_items": 6
+      },
+      "observer_summary": [],
+      "kind_counts": {},
+      "first6_frame_inputs": [],
+      "first6_tod_inputs": [],
+      "first_difference": null
+    }
+  ]
+}

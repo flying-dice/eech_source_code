@@ -1,0 +1,28 @@
+{
+  "source": "76533dd3ae836674c27704040d6ce1b6ed84f80d",
+  "script_override_source": "235290e0d4b48cb1bfce2cc5556217d14251ec97",
+  "script_override_sha256": "3dfd579c3278f99a4e709a1c95bc1e2e4cf9c0e7cdb081d6a2e738d46b31c3c6",
+  "state": "terminal",
+  "actual_exit": 0,
+  "actual_native_exit": 0,
+  "verified_payloads": 46,
+  "build_info_sha256": "7b1f100ce7626fb8c89b093dc31fd3729fcecf14a5bfda05e288eb1da47e0311",
+  "json_rows": 12499,
+  "json_sha256": "3f0cee3c1dc47c14c65339f34974bbe1fc2503323d1345b2a288c53828e4547e",
+  "started_utc": "2026-10-31T02:34:29.628795+00:00",
+  "completed_utc": "2026-10-31T02:39:20.285741+00:00",
+  "stages": [
+    {
+      "stage": "pre-inputs",
+      "actual_exit": 0
+    },
+    {
+      "stage": "native",
+      "actual_exit": 0
+    },
+    {
+      "stage": "post-inputs",
+      "actual_exit": 0
+    }
+  ]
+}
