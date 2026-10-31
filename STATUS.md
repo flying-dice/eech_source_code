@@ -1,3 +1,11 @@
+# D3 live checkpoint — ground regression and host queue extraction (31 October 2026)
+
+The original frozen aafb21775 ordinary ground pack is still running. All six original process identities were verified live at 17:58 UTC; no restart or duplicate run. The 18:00:40 complete-flushed-prefix comparison finds all four growing files exactly equal to accepted bytes: Tacview70,421,118/70,650,464 bytes, observations49,389,568/49,430,528 bytes. This is PARTIAL only: actual runner completion, exact40PASS, all8COMPLETE artifact comparisons, post-run inputs, final review/current CI/normal merge remain pending. Source/bin/scripts/roots stay frozen; no accepted baseline or tolerance changed. Private process/run/evidence state is retained in D3-ACTIVE.json and ground-recovery-aafb-live-prefixes-thirteenth-20261031-1800.json.
+
+Environment Task51 / draft PR111 has independently closed original lightning queue characterization at nativea27/driver60e. Five actual native/controller exits0,10input checks0/53payloads; natural4queued/update0 and null/main/full/aging primitives measured. A fresh equivalent current-host prequeue d559 control has ALL17230nonqueue raw rows and endings byte-identical to the probe. The older765 observer comparison stays FAILED on16 preexisting boot raw-versus-derived diagnostics, explicitly classified with all other rows/RNG/state unchanged. Safe evidence and final review aff8bd07...0bf32 are published at fc725e44d664451297fa155c3b1a03aaf8225244; ledger v94 preserves every previous HTML byte and all five epic reports.
+
+The REAL new public host-add capability red completes olda27case2/queued1 with identical3181delegate bytes but ZEROhost requests; witness intentionally exits1 after genuine completion, inputs0/payloads53 exact. The same single Sonnet5.5High lane now implements actual host queue ownership; the source is WIP, not built or accepted. This does not close Task51 or whole D3. Sound/time, required terrain/spatial/model services, complete shipping acceptance and normal delivered merges remain required. Campaign decisions/calendar/timers/scheduling remain Core; D4/D5 unstarted.
+
 # D3 checkpoint — public ambient authority closed; original queue probe begins (31 October 2026, 16:36 UTC)
 
 Task51/PR111 closure pushed12ca0f15f: exact b7judge/newLua +unchanged d559native
