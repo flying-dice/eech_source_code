@@ -1,3 +1,30 @@
+# D3 checkpoint — environment conformance and review corrections (31 October 2026, 10:32 UTC)
+
+Task51 / draft PR111 production field/query/evolution candidate05b8caf82 has an
+actual Windows fixture build0 and three actual164-case retail probes0. All six
+pre/post input checks pass and46payloads verify. Every704 original raw line,
+INCLUDING ENDINGS, is exact on all3roots; one new validation metadata row is
+separate. This is finite numeric conformance, not authority/FP/shipping acceptance.
+Linux default/fixture package tests pass; first strictClippy101 is one lint,
+feature strictClippy not reached. Asset-dependent skipped data is not retail proof.
+
+ONE independent combined review requests explicit complete x87/MXCSR restoration,
+immutable reply/lightning-RNG protocol validation, and original branch-dependent
+input domains. Same Sonnet5.5High context is correcting all3groups plus the lint:
+Claude25532/controller5932 born10:28:57UTC, no live exec handle. New corrections
+are unbuilt/unrun/unreviewed. Preserve frozen05b source/bins/results/review.
+No repeat original oracles, baseline/tolerance changes or physical acceptance.
+
+Ground fresh fullshipping9948/runner19032 and24444/18928/24776/20752 remain live.
+All4recording prefixes match (~8MBACMI/5MBOBS per run), PARTIAL ONLY. Output
+R:/d3-evidence/shipping-ground-aafb21775-recovery-pack-20261031-0945. Full40/all8
+COMPLETE files/input+source+binary identities/final review/currentCI/normal merge
+remain. Old interrupted72359/19393 remain preserved, never passed/restarted.
+Required lightning effects/time/spatial/model/terrain services stayD3; campaign
+policy/scheduling stayCore. WholeD3 remains open, D4/D5 unstarted. Jira51comment
+10886 records these actual results. Compact checkpoint R:/d3-evidence/D3-ACTIVE.json.
+Safe05b receipts: reference/d3-environment-characterization/physical-05b8caf82-checkpoint/.
+
 # D3 checkpoint — verified interruption recovery (31 October 2026, 09:49 UTC)
 
 The old ground tool72359/runner20800/four native processes and field-author
