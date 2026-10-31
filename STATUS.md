@@ -1,3 +1,37 @@
+# D3 checkpoint — field component closed; wind witness running (31 October 2026, 12:21 UTC)
+
+The current objective remains COMPLETE D3 (EEDCS-21), with D4/D5 unstarted.
+Task47 is delivered at integration b6575594c. Tasks48/49/50/51 remain open.
+
+Ground Task48/PR108 ordinary shipping source aafb21775 continues in the original
+fresh recovery processes 9948/19032 and four native children. All focused gates
+are closed and current b7a3dd63f CI is green. Latest complete flushed prefixes of
+both Tacview recordings (~20.1 MB) and observations (~12.7 MB) match accepted
+bytes. This is PARTIAL: actual full exit, all40 checks, all8 complete artifacts,
+post-input/payload checks, new completed-evidence review and normal merge remain.
+
+Environment Task51/PR111 field product dd5e7c4ce closes its numeric, full FP,
+protocol, Linux/actual Windows and all9 hosted CI gates; independent source
+review has no findings. Three retail164-case raw oracles and the120s component
+control remain exact. Reuse this evidence; no accepted baseline/tolerance changed.
+The first real47 wind control reproduced a test-judge prefix defect (exit101),
+retained with its reviews. New test-only34c7c28bf includes actual event grammar,
+independent launch counts and complete loss-counter checks; source review closes
+at585 with no findings,34 is rustfmt only. Linux fmt/21functions/strict0 and
+Windows judge export/actual21functions0. The public runtime in those21 was
+explicitly SKIPPED. Actual five-mode retail witness is now LIVE25232/23776:
+all5 pre-inputs0; real control/changed rows produced, final judgements pending.
+It uses verified immutable47 native plus new34 judge/embedded Lua; production
+inputs are equivalent, all47 native payloads verify. No shipping acceptance.
+
+ONE Sonnet5.5 High lane now characterizes the original sound routine's sector
+surface query/scratch before its host cutover; fresh3 roots verify0. Existing
+original observer/effects/RNG/time evidence is reused. Sound/lightning effects,
+physical time inputs, remaining terrain/loaders, spatial/object/tree scans and
+model hierarchy/viewpoint/physical-route data stay required within D3. Campaign
+geography, policy, calendar, timers and scheduling remain in EECH_DC. The compact
+private process/gate checkpoint is R:/d3-evidence/D3-ACTIVE.json.
+
 # D3 checkpoint — environment conformance and review corrections (31 October 2026, 10:32 UTC)
 
 Task51 / draft PR111 production field/query/evolution candidate05b8caf82 has an
