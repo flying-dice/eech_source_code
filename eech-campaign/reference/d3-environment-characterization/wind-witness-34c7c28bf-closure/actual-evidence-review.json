@@ -1,0 +1,50 @@
+{
+  "review": "ONE combined new rustfmt-delta and actual wind-witness evidence closure review; no agents, source edits, builds, native runs, Docker or process changes",
+  "created_utc": "2026-10-31T12:27:03.5316212Z",
+  "source": {
+    "path": "R:/d3-evidence/environment-wind-source-34c7c28bf",
+    "head": "34c7c28bfbd0dd960380de6dc1a479a569c26e97",
+    "tree": "2e69fded9f3ca90720ed5afe1c37c58b00bd730a",
+    "base": "585a53cd08775997f25bc81a8907bf1877f24e4c",
+    "status": "Clean git status; diff --check base..HEAD exit 0",
+    "delta": "Only rustfmt layout of existing test expressions/assertions; no semantic or production change found",
+    "driver_sha256": "23cc7082275306209d2776a7a0c5cc15e5353e067e428dca9905ce43b5407e55",
+    "rust_test_source_sha256": "20b42dc3b3baa6b55a8f170ebb7c8d3c9e92dfc29767614219c6376bcd5d8f5d",
+    "actual_windows_judge_exe_sha256": "428f0de7e513acf529198b69c4f9216eecb1ac7180bfff229d8bc04a294acc52"
+  },
+  "prior_review": {
+    "report_sha256": "e92bd329d4231b586845177664534fdbdbabce1157ed8d518f9b6179656663bf",
+    "reuse": "585 source closure and all earlier field/production/ABI/FP/oracle reviews reused. Only the new formatting and new actual wind evidence reviewed; mutable author's next characterization work untouched."
+  },
+  "judgement": "NO_NEW_FINDINGS. Actual evidence supports the finite matched-projectile alternate-host-world wind effect and three named refusal cases. It does not complete Task 51/D3, remaining world coupling, full shipping acceptance or formal delivery.",
+  "findings": [],
+  "provenance_verified": [
+    "Read environment-wind-native47-driver34c7c28bf-equivalence-20261031.json and controller source. Runtime is explicitly immutable native47 with new34 judge plus its embedded script; allowed changed paths are test/docs/receipts, not production inputs. No old native payload is relabelled as a new34 build.",
+    "Independently rehashed all 47 immutable payloads against native47 BUILD-INFO.txt: 47/47 match, native source commit47 and clean build inputs/weapon-fixture recorded. New judge executable hash matches build-receipt.json and controller receipt. Source script and runtime-copied script independently hash identically to the driver identity above.",
+    "Read actual terminal controller receipt: all 12 stages exit 0, including 21-function Windows guards, ten pre/post input manifests and the direct public five-mode test. Every input log reports IDENTICAL. Public test log confirms one actual public test passed in 336.39 seconds and all five modes were judged. Guard-only public function was explicitly SKIPPED and is not counted as authority evidence.",
+    "Read exact-source Linux and Windows completion receipts: actual exit 0. Linux log reports 21 functions passed and strict Clippy completion; Windows receipt is judge compile/export, distinct from subsequent actual Windows guard/public execution. Root reports all nine current hosted jobs successful; this reviewer did not repeat the live GitHub API audit."
+  ],
+  "raw_evidence_checks": {
+    "private_root": "R:/d3-evidence/environment-wind-five-modes-34c7c28bf-20261031",
+    "safe_summary": "R:/d3-evidence/environment-wind-five-modes-summary-34c7c28bf-20261031.json",
+    "summary_matches": "Independently parsed all five raw JSONL files and rehashed them. Every raw hash/row count matches the safe summary; completed/failure/cohort/ended/pending/vector/altered/final-trace and all three loss-counter fields match. No raw coordinates are included in this report.",
+    "matching": "Across all five modes, selected launcher/target/weapon, launch text/frame and independent births/creates, cohort and full initial raw birth line match the control. Launch trace is checked; arm occurs at the same frame after launch, and sent alterations are at/after arm. No witness_failure row appears.",
+    "control": "One registered cohort member, one complete hit_land terminal, seven flown steps, zero pending. No wind answer altered; actual global vector traffic and real sampled replies recorded. Final loss trace checked with zero deltas.",
+    "changed_wind": "Same one-member cohort completes with a hit_land terminal in seven steps. Independent comparison confirms the actual complete terminal facts differ from control and its terminal x is farther positive, without publishing coordinates. Eight sampled sent replies are exactly speed64/vector64,0,0 and after arm. All 1754 armed global vector queries were altered; the physical-cohort difference is independently checked rather than inferred from that traffic count. Final loss trace checked with zero deltas.",
+    "refusals": "Each of withheld_wind, malformed_wind_speed and malformed_wind_vector records exactly one armed alteration/vector query and stops with the expected wind.callback or wind.answer marker. Same checked healthy launch/cohort; no case terminal, one pending. final_trace_checked=false honestly discloses the stopped engine cannot supply a final trace; zero counters are the latest checked launch snapshot, not a measured end-of-run loss assertion.",
+    "private_raw_sha256": {
+      "control": "56d5ea61b5cfb90d1e054dcfced62ed93478f9d3cc9ca146d1feca10d75775a3",
+      "changed_wind": "4400e300331569f6d6f278f44929527f08c0d0a28eef1818e38386cbb02fba43",
+      "withheld_wind": "b8d2a2b8a1ee46ca5f643f9ed21ff1497e684cd29d5119d16ad751fc999f7d01",
+      "malformed_wind_speed": "1f02d89180575e6ce56970ee7f74eedb925683fd3134421ac5ab402786cdfaca",
+      "malformed_wind_vector": "18d1dd28ee9fedc763a67c4aa14e4521fa1920018eb6a09fef3d01ddb6138f98"
+    }
+  },
+  "scope_and_limits": [
+    "This is one finite reference-world weapon cohort under a global alternate-host wind input. The 1754 queries are global campaign vector traffic, not 1754 requests solely from the selected round. Results do not isolate policy/RNG/other families or prove every weapon family or every wind behavior.",
+    "Full terminal facts and positive-x change are observed trace evidence, not all-state equality, Tacview visual review, a full campaign completion or a shipping regression pack. Refusal modes are stopped campaigns, never healthy campaign passes.",
+    "Prior real47 prefix-red, source53 export-directory controller failure and 585 formatting failure remain retained. They are not overwritten, relabelled as successful product runs or used as authority acceptance. No original numeric/FP/oracle checks were repeated.",
+    "No new tests, builds, executable runs, process operations, source edits, credentials/authentication changes, fake approvals, external publication or merge performed by reviewer. Frozen source clean; mutable next characterization lane and live ground campaign work untouched.",
+    "Whole Task 51/D3 remains OPEN, with required physical effects/time/terrain/spatial/model coupling and full shipping/current-CI/normal-delivery gates. Campaign policy remains Core; D4/D5 unstarted. Existing user-authorized normal merge scope is unchanged."
+  ]
+}
