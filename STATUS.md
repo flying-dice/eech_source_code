@@ -1,3 +1,33 @@
+# D3 checkpoint — verified interruption recovery (31 October 2026, 09:49 UTC)
+
+The old ground tool72359/runner20800/four native processes and field-author
+19393/PID10268 are NOT RUNNING. No completion receipts/pack report exist; actual
+exit codes are unavailable. Both attempts are INTERRUPTED/INCOMPLETE, never
+passed or assigned invented failure codes. Old roots/logs/partials remain intact;
+their final12.6MBACMI/7.91MBOBS prefixes still match accepted bytes. Interruption
+cause is unknown. The only partial source header was preserved byte-exactly.
+
+A separate fresh preflight completes0: exact40checks,50payloads, all3retail input
+manifests and Python3.12.14. SAME immutableaafb21775 binaries, no rebuild or
+baseline rerun. NEW hidden launcher9948 born09:49:05UTC, pack runner19032 born
+09:49:09UTC. Native campaigns24444/18928/24776/20752 born09:51UTC are LIVE with
+separate roots and unchanged seed1/100ms/3hour configuration. Output is
+R:/d3-evidence/shipping-ground-aafb21775-recovery-pack-20261031-0945.
+First4nonempty prefixes match accepted bytes (~0.777MBACMI/0.967MBOBS), PARTIALONLY.
+Monitor actualPID/birth/commands and run.json/completion; there is NOlive72359handle.
+Exact40/all8COMPLETE files, post-inputs/identities/review/currentCI/normalmerge remain.
+
+The same available local Sonnet5.5High contextf3982761 resumed at09:48:28UTC:
+Claude22716/controller22928, hidden background, no live19393toolhandle. Production
+C weather/wind dispatch/field/client wiring is being written, UNBUILT/UNRUN/
+UNREVIEWED. No extraction acceptance. Closed original observer evidence/review
+remains valid and reused at native765/driver235. M5v3/integrationb657 unchanged.
+Ledger85 readback preserves exact priorHTML/all5reports; Jira48comment10884 and
+51comment10885 record recovery. Safe interruption/preflight/prefix receipts are
+under reference/d3-ground-characterization/interruption-recovery-20261031-0945/.
+WholeD3 stays open; required physical services stayD3, campaign policy/timers/
+scheduling stayCore, D4/D5 unstarted. Baselines/tolerances/private data unchanged.
+
 # D3 checkpoint — environment original evidence closed; field extraction underway (31 October 2026)
 
 Task51 / draft PR111 has closed bounded original observation. Native76533dd3a with

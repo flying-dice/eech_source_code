@@ -1,0 +1,7 @@
+{
+  "version": 85,
+  "previousVersion": 84,
+  "oldHtmlExactPrefix": true,
+  "allFiveEpicsExact": true,
+  "newAppendExactAfterOnlyGeneratedLocalIds": true
+}
