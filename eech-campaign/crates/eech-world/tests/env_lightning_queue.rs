@@ -42,11 +42,14 @@ fn report(case: u32) -> String {
                 + &end(2, "00000001", 1, 0)
         }
         3 => {
-            head(3, "fill_the_queue_and_drop_the_next", "00000000", 0)
+            // the fixture prints one `after` row for EVERY occupied slot (env_lq_slots_in_use): a full queue is 32 rows
+            let mut text = head(3, "fill_the_queue_and_drop_the_next", "00000000", 0)
                 + "env-lightning-step i=3 add=32 mask_w=ffffffff occupancy=32\\n\
-env-lightning-step i=3 add=33 mask_w=ffffffff occupancy=32\\n"
-                + &format!("env-lightning-slot tag=after slot=0 {SLOT0}\\n")
-                + &end(3, "ffffffff", 32, 0)
+env-lightning-step i=3 add=33 mask_w=ffffffff occupancy=32\\n";
+            for slot in 0..32 {
+                text += &format!("env-lightning-slot tag=after slot={slot} {SLOT0}\\n");
+            }
+            text + &end(3, "ffffffff", 32, 0)
         }
         _ => {
             head(4, "age_a_cloud_burst_by_the_time_of_day", "00000000", 0)
@@ -299,4 +302,104 @@ fn an_engine_stop_a_missing_fixture_a_bad_argument_and_every_output_failure_are_
     let closing = drive("io_fail = { op = 'close' }", &case_args("1"));
     assert!(closing.result.clone().unwrap_err().contains("OUTPUT FAILURE: closing"));
     assert_eq!(of(&closing, "result").len(), 1, "the result row was written before the close failed");
+}
+
+// ---- RED PREP (independent source review of 7791eea3c, group 2: the primitive parser never checks the slot cohort, the typed input rows, the step rows or the index-0 report). The CURRENT driver is
+// unchanged; this test is new and is expected to FAIL on it. It first requires the repaired healthy reports (all four controls, the full queue with its 32 `after` rows as the fixture prints them) to
+// pass, then feeds finite, parseable, genuinely damaged reports and collects every one the driver still ACCEPTS, and then feeds the one LEGITIMATE report the driver wrongly refuses: a plan of a queue
+// that is not empty followed by the fixture's own explicit refusal. That refusal is a positive outcome (a prerequisite the fixture will not force), not a healthy physical success, and it is reported
+// distinctly. No form asks what the original primitives do (queued, not queued, full and aged are all well-formed).
+
+fn nonempty_plan() -> String {
+    PLAN.replace("mask_w=00000000 update_calls=0 process", "mask_w=00000001 update_calls=0 process")
+        .replace("final_mask_w=00000000 final_occupancy=0", "final_mask_w=00000001 final_occupancy=1")
+        + &format!("env-lq-slot slot=0 {SLOT0}\\n")
+}
+
+#[test]
+fn the_primitive_queue_report_requires_complete_input_and_slot_cohorts() {
+    for case in ["1", "2", "3", "4"] {
+        let healthy = drive("", &case_args(case));
+        assert!(
+            healthy.result.is_ok(),
+            "the healthy canned report of case {case} is not accepted: {:?}",
+            healthy.result
+        );
+    }
+    assert_eq!(
+        report(3).matches("env-lightning-slot tag=after").count(),
+        32,
+        "the healthy full queue must hold all 32 occupied slots"
+    );
+
+    let slot_zero = format!("env-lightning-slot tag=after slot=0 {SLOT0}\\n");
+    let damaged: Vec<(&str, &str, String)> = vec![
+        // case 3, the full queue: the cohort must be every slot of the mask
+        ("3", "a full queue (mask ffffffff, occupancy 32) with ONE after-slot row", edit("if index == 3 then return (text:gsub('env%-lightning%-slot tag=after slot=[1-9]%d? [^\\n]*\\n', '')) end")),
+        ("3", "a full queue with slot 0 twice and slot 1 missing", edit("if index == 3 then return (text:gsub('slot=1 ', 'slot=0 ', 1)) end")),
+        ("3", "a step row of another case", edit("if index == 3 then return (text:gsub('env%-lightning%-step i=3 add=32', 'env-lightning-step i=1 add=32', 1)) end")),
+        ("3", "a step row whose occupancy is not its mask's", edit("if index == 3 then return (text:gsub('mask_w=ffffffff occupancy=32', 'mask_w=ffffffff occupancy=31', 1)) end")),
+        ("3", "step rows that are not the last add that fits and the one that cannot", edit("if index == 3 then return (text:gsub('add=32', 'add=40', 1)) end")),
+        // case 2, one add: its input and the slot it produced
+        ("2", "the input row removed", edit("if index == 2 then return (text:gsub('env%-lightning%-input [^\\n]*\\n', '', 1)) end")),
+        ("2", "the input row with no typed fields", edit("if index == 2 then return (text:gsub('env%-lightning%-input [^\\n]*\\n', 'env-lightning-input tag=add\\n', 1)) end")),
+        ("2", "the input row of another control", edit("if index == 2 then return (text:gsub('tag=add main_time_w', 'tag=age main_time_w', 1)) end")),
+        ("2", "the occupied slot row removed (mask 1, occupancy 1)", edit("if index == 2 then return (text:gsub('env%-lightning%-slot [^\\n]*\\n', '', 1)) end")),
+        ("2", "an after-slot row for a slot the mask does not hold", edit("if index == 2 then return (text:gsub('tag=after slot=0 ', 'tag=after slot=5 ', 1)) end")),
+        ("2", "an after-slot row that is not in use (w0 = 0)", edit("if index == 2 then return (text:gsub('slot=0 w0=00000001', 'slot=0 w0=00000000', 1)) end")),
+        // case 1: nothing may be assumed queued or not, but the rows must agree with the mask
+        ("1", "an after-slot row although the final mask is empty", edit(&format!("if index == 1 then return (text:gsub('env%-lightning%-end', '{slot_zero}env-lightning-end', 1)) end"))),
+        ("1", "a final mask holding a slot with no after-slot row", edit("if index == 1 then return (text:gsub('mask_after_w=00000000 occupancy_after=0', 'mask_after_w=00000001 occupancy_after=1', 1)) end")),
+        // case 4, aging: its input, its tagged rows in their order
+        ("4", "the input row removed", edit("if index == 4 then return (text:gsub('env%-lightning%-input [^\\n]*\\n', '', 1)) end")),
+        ("4", "the aged-after-the-end row removed", edit("if index == 4 then return (text:gsub('env%-lightning%-slot tag=aged_after_the_end [^\\n]*\\n', '', 1)) end")),
+        ("4", "the tagged rows out of order", edit("if index == 4 then return (text:gsub('tag=added', 'tag=aged_after_the_end', 1)) end")),
+        ("4", "a final mask holding a slot with no after-slot row", edit("if index == 4 then return (text:gsub('mask_after_w=00000000 occupancy_after=0', 'mask_after_w=00000001 occupancy_after=1', 1)) end")),
+        // the index-0 report: exactly one, of its schema, agreeing with its slot rows
+        ("2", "the plan without its report", edit("if index == 0 then return (text:gsub('env%-lq%-report [^\\n]*\\n', '', 1)) end")),
+        ("2", "the plan with its report twice", edit("if index == 0 then return text .. text:match('env%-lq%-report [^\\n]*\\n') end")),
+        ("2", "the plan with a report of no schema", edit("if index == 0 then return (text:gsub('env%-lq%-report [^\\n]*\\n', 'env-lq-report junk=1\\n', 1)) end")),
+        (
+            "2",
+            "a plan and report that say a slot is occupied with no slot row",
+            edit("if index == 0 then return (text:gsub('mask_w=00000000 update_calls=0 process', 'mask_w=00000001 update_calls=0 process', 1):gsub('final_mask_w=00000000 final_occupancy=0', 'final_mask_w=00000001 final_occupancy=1', 1)) end"),
+        ),
+    ];
+    let mut accepted: Vec<String> = Vec::new();
+    for (case, what, scenario) in &damaged {
+        let driven = drive(scenario, &[("case", *case)]);
+        if driven.result.is_ok() {
+            accepted.push(format!("case {case}: {what}"));
+        }
+    }
+
+    // the LEGITIMATE report: a queue that is not empty at the plan, then the fixture's explicit refusal of the prerequisite. The driver must reach it and report it as REFUSED
+    let refusal = head(2, "add_with_the_main_environment", "00000001", 1)
+        + "env-lightning-end i=2 refused=the_queue_is_not_empty_a_control_needs_a_process_that_has_not_queued_a_strike changed=0 process_isolated=required\\n";
+    let scenario = format!(
+        "edit = function (index, text) if index == 0 then return '{}' end if index == 2 then return '{refusal}' end return text end",
+        nonempty_plan()
+    );
+    let legitimate = drive(&scenario, &case_args("2"));
+    let wrongly_refused = match &legitimate.result {
+        Err(error) => Some(error.clone()),
+        Ok(()) if of(&legitimate, "result")[0]["refused"] != true => Some("accepted but not reported as refused".to_string()),
+        Ok(()) => None,
+    };
+
+    let mut problems: Vec<String> = Vec::new();
+    if !accepted.is_empty() {
+        problems.push(format!(
+            "{} of {} genuinely damaged primitive reports were ACCEPTED (each should have been refused):\n  {}",
+            accepted.len(),
+            damaged.len(),
+            accepted.join("\n  ")
+        ));
+    }
+    if let Some(error) = wrongly_refused {
+        problems.push(format!(
+            "the LEGITIMATE report of a non-empty queue followed by the fixture's explicit prerequisite refusal was not reported as a refusal: {error}"
+        ));
+    }
+    assert!(problems.is_empty(), "{}", problems.join("\n"));
 }

@@ -2125,6 +2125,12 @@ local function lq_lowest_zero(m)
   end
   return -1
 end
+-- one line of a report (the first that begins with `prefix`) rewritten by f; the rest of the text as it was
+local function lq_edit(t, prefix, f)
+  local start = t:find(prefix, 1, true)
+  local stop = t:find('\n', start, true)
+  return t:sub(1, start - 1) .. f(t:sub(start, stop - 1)) .. t:sub(stop)
+end
 local LQ_ZERO = 'w0=00000000 w1=00000000 w2=00000000 w3=00000000 w4=00000000 w5=00000000 w6=00000000 w7=00000000'
 local LQ_QUEUED = 'w0=00000001 w1=00000001 w2=44bb8000 w3=45bb8000 w4=451c4000 w5=00000000 w6=3e99999a w7=00000000'
 local function queue_report(events, shape)
@@ -2244,6 +2250,20 @@ local mutations = {
   queue_unsupported_missing = function(t) return (t:gsub('env%-lightning%-unsupported [^\n]*\n', '', 1)) end,
   queue_phantom_event = function() return queue_report(1, 'ok') end,
   queue_missing_event = function() return queue_report(0, 'ok') end,
+  -- DAMAGED slot cohorts and point records that are finite, parseable and genuinely incomplete or contradictory (the review of 7791eea3c, group 2); the ONE healthy report is `none`
+  queue_dup_slot = function(t) return (t:gsub('env%-lq%-slot slot=1 ', 'env-lq-slot slot=0 ', 1)) end,
+  queue_zero_queued_word = function(t) return lq_edit(t, 'env-lq seq=2 ', function(l) return (l:gsub('w0=00000001', 'w0=00000000', 1)) end) end,
+  queue_entry_before_gap = function(t) return lq_edit(t, 'env-lq seq=1 ', function(l) return (l:gsub('mask_w=00000000 occupancy=0', 'mask_w=00000004 occupancy=1', 1)) end) end,
+  queue_after1_before2_gap = function(t) return lq_edit(t, 'env-lq seq=3 ', function(l) return (l:gsub('mask_w=00000001 occupancy=1', 'mask_w=00000005 occupancy=2', 1)) end) end,
+  queue_after2_restored_gap = function(t) return lq_edit(t, 'env-lq seq=5 ', function(l) return (l:gsub('mask_w=00000003 occupancy=2', 'mask_w=00000007 occupancy=3', 1)) end) end,
+  queue_final_unrecorded_slot = function(t)
+    t = t:gsub('mask_w=00000003 update', 'mask_w=00000007 update', 1)
+    t = t:gsub('final_mask_w=00000003 final_occupancy=2', 'final_mask_w=00000007 final_occupancy=3', 1)
+    return t .. 'env-lq-slot slot=2 ' .. LQ_QUEUED .. '\n'
+  end,
+  queue_active_main_absent = function(t) return lq_edit(t, 'env-lq seq=1 ', function(l) return (l:gsub(' main=1 ', ' main=0 ', 1)) end) end,
+  queue_time_without_active = function(t) return lq_edit(t, 'env-lq seq=0 ', function(l) return (l:gsub('time_present=0 time_w=00000000', 'time_present=1 time_w=3f800000', 1)) end) end,
+  queue_active_out_of_domain = function(t) return lq_edit(t, 'env-lq seq=0 ', function(l) return (l:gsub(' active=0 ', ' active=3 ', 1)) end) end,
   marker_only = function(t) return t:match('[^\n]*\n$') end,
   wrong_family = function() return (report(2, 0):gsub('group=2', 'group=3')) end,
   missing_field = function(t) return (t:gsub(' vz_w=%x+', '', 1)) end,
@@ -3346,4 +3366,55 @@ fn a_lightning_queue_report_that_is_incomplete_out_of_order_or_at_odds_with_the_
         assert_eq!(env_rows(&run.rows, "failure").len(), 1, "{mutation}: {}", run.out_text);
         assert!(env_rows(&run.rows, "run").is_empty(), "{mutation}: a refused run reported a run row");
     }
+}
+
+// ---- RED PREP (independent source review of 7791eea3c, group 2: the queue report validators accept missing or contradictory slot evidence). The CURRENT driver and parsers are unchanged; this test is new and
+// is expected to FAIL on them, naming every genuinely damaged natural report they still accept. A report is damaged only if it is finite and parseable and its slot cohort or its point records are
+// incomplete or contradict one another; no form asks what the original queue DID (queued, no environment, full and unexplained observations stay facts, see the tests above).
+
+#[test]
+fn the_natural_queue_report_rejects_incomplete_slot_cohorts() {
+    // the healthy report of one lightning event must pass first, or the damaged ones would mean nothing
+    let healthy = run_env_scenario(&queue_stand_in("lightning_episode", "none"), &queue_args());
+    assert!(
+        healthy.status.success(),
+        "the healthy natural report is not accepted:\n{}\n{}",
+        healthy.stderr,
+        healthy.out_text
+    );
+
+    let damaged: [(&'static str, &str); 9] = [
+        ("queue_dup_slot", "the occupied slot rows name slot 0 twice and never slot 1 (the mask is 3)"),
+        ("queue_zero_queued_word", "an add reported as queued whose captured slot is not in use (w0 = 0)"),
+        ("queue_entry_before_gap", "the entry record's mask is not the first add's before mask"),
+        ("queue_after1_before2_gap", "the first add's after mask is not the second add's before mask"),
+        ("queue_after2_restored_gap", "the second add's after mask is not the restored record's mask"),
+        (
+            "queue_final_unrecorded_slot",
+            "a final occupied slot that no recorded add produced (the final mask differs from the last record's)",
+        ),
+        (
+            "queue_active_main_absent",
+            "the active environment is the main one but no main environment exists",
+        ),
+        ("queue_time_without_active", "a time word with no active environment"),
+        (
+            "queue_active_out_of_domain",
+            "an active-environment category that is not absent, the main one or another",
+        ),
+    ];
+    let mut accepted: Vec<String> = Vec::new();
+    for (mutation, what) in damaged {
+        let run = run_env_scenario(&queue_stand_in("lightning_episode", mutation), &queue_args());
+        if run.status.success() {
+            accepted.push(format!("{mutation}: {what}"));
+        }
+    }
+    assert!(
+        accepted.is_empty(),
+        "{} of {} genuinely damaged natural queue reports were ACCEPTED (each should have been refused):\n  {}",
+        accepted.len(),
+        damaged.len(),
+        accepted.join("\n  ")
+    );
 }
