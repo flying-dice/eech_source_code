@@ -328,6 +328,13 @@ followed by a refusal mode, shows the failure before the arm with the honest cou
 controller exited 1 only because the private `out.mkdir` lacked parents when the target directory was absent (not a compiler or product failure; Root fixes its export setup). No new real five-mode runtime exists yet; native47 stays
 frozen and reusable as a mixed-provenance native, production-equivalent to dd; the real 47 red receipts are preserved.
 
+## The sound routine's terrain-sector surface query: original characterisation prepared (test source, UNBUILT, UNRUN, UNREVIEWED)
+
+The next extraction candidate under Task 51 is the surface query and scratch of `update_session_sound_effects` (`get_terrain_3d_types_in_sector`, which still solves the sector's surface enumeration inside EECH_DC; Task 47 delivered only
+the point/fast/map-facts subset of the host's terrain). Its ORIGINAL semantics are characterised first, with no production move: `docs/d3-environment-sector-surface.md` (source facts, the group 10 fixture entry point, the
+driver, the commands and the compare-after-cutover protocol), `csrc/eech_env_fixture.c` group 10, `lua/env-sector-characterization.lua`, `tests/env_sector_characterization.rs`. The wind witness state in this document is
+unchanged: its final source review closed and Root is running the actual Windows guards and the five public modes on the new judge and the immutable 47 native; there is no output and no pass yet.
+
 ## Remaining coupling and open gates (finite)
 
 * The lightning strike and sound entity creation, the sound/terrain-scratch bridge and the time-of-day input stay in Core (explicitly open within Task 51/D3).

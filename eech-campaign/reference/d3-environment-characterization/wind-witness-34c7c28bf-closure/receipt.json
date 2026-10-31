@@ -1,0 +1,13 @@
+{
+  "scope": "Focused wind authority witness CLOSED actualruns; independent actualevidence review pending report at checkpoint, Task51 and D3 OPEN. Newsectorcharacterization separate unbuilt/unrun.",
+  "retained_failures": {
+    "47actualcontrol101": "Actualnativebirthprefixreproduction; see priorwind-witness47review-red",
+    "53export1": "CargoWindowscompile0 then privateexportmissingparentmkdir; originalfailure retained,34exportparents=True0",
+    "585linux1": "Formattingcheckonly; Rootcargo fmt0 then34fmt/21functions/strict0"
+  },
+  "production_source": "dd5e7c4ce46339ebd5bd2ba0e3b0c09653955735 (unchanged47 and34 production inputs)",
+  "native_source": "47f3d9460fcca0acc341a105b4193321ceca14fa",
+  "judge_and_embedded_Lua_source": "34c7c28bfbd0dd960380de6dc1a479a569c26e97",
+  "not_shipping_acceptance": true,
+  "raw_retail_coordinates_assets_binaries_recordings_published": false
+}

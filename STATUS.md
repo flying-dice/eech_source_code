@@ -1,3 +1,21 @@
+# D3 checkpoint — next extraction: the sound routine's terrain-sector surface query, characterisation only (31 October 2026)
+
+EEDCS-51 / PR111 from clean pushed `34c7c28bf`. **Wind witness (Root's, unchanged here):** the final wind source review closed (SHA-256 `e92bd329...663bf`); Root formatted only four Rust test expressions (the 585 fmt gate-1
+failure retained); the `34c7c28bf` Linux fmt, 21 test functions and strict Clippy 0; the Windows judge compile/export 0. Actual Windows21 functions pass0 (public path explicitly SKIPPED in that run), then the separate REAL public five-mode test exits0 after336.39s. All10 pre/post retail manifests pass0; all47 immutable native payloads remain exact and the copied Lua matches SHA23cc7082...7e55. Control/changed each finish the matched one-round cohort; changed host wind changes its terminal flight facts along+x. Three refusals stop at wind.callback/answer after one alteration, not healthy campaigns. Provider traffic is global; no policy/RNG/family isolation claimed. The explicit provenance is new34judge/embeddedLua plus immutable47native with production equivalence to dd. All9 hosted jobs at34 succeed. Independent actual-evidence review is finishing; safe receipts are under reference/d3-environment-characterization/wind-witness-34c7c28bf-closure. Prior47 red,53 export setup1 and585 formatting1 remain retained. No shipping/Task51/D3 acceptance.
+
+**This step (test source only, UNBUILT, UNRUN, UNREVIEWED):** Task 47 delivered only the point, fast and map-facts subset of the host's terrain, so `update_session_sound_effects` still solves the terrain-sector surface
+query inside EECH_DC: `get_terrain_3d_types_in_sector (x, z)` (`modules/3d/terrain/terrdata.c`) selects a sector (truncating toward zero, FPU rounding mode set to zero, NO range check), clears the shared 62-int scratch
+`terrain_types_in_sector`, flags the first surface and EVERY surface_change polygon's surface, and returns 1 + the number of TRANSITIONS (not the number of distinct flags). A finite real cutover candidate, not a new world
+framework. FIRST the original is characterised, with no production move until Root records the actual original results. Added: group 10 of the env fixture (`env_sector_case`, explicit only, not in the default run, the
+census or the 164-case oracle), `lua/env-sector-characterization.lua` and `tests/env_sector_characterization.rs` (harness guards on the driver only; no mirror of the original), `docs/d3-environment-sector-surface.md`. It calls the
+ORIGINAL on real loaded sectors, over the first/last/middle sector centres, a 48-sample sweep, lower/upper edge floats in x and z around three sectors, zero/negative-zero/-0.5/-2048/end-of-terrain and the sound routine's own
+clamp limits; reports the return value, the complete flags, the selected sector, the reset (sentinel) and interleave behaviour, restores the scratch, and REJECTS at the boundary what the original cannot be asked (sector outside the
+grid, missing tables, a surface id outside the terrain types) instead of calling or repairing it. The existing observer evidence (scratch hash, RNG, time, heap order in real frames) is reused. Commands and the next gate are in the
+doc: `tools/build-windows-env-fixture.sh target/env-fixture/<dir>`, then `eech-world lua/env-sector-characterization.lua root=<fresh verified retail root> out=<private jsonl> scenario=lebanon_retail|georgia_retail` on the three retail
+roots, retained privately; the same command compares the rows after any host cutover. Production C/Rust/ABI/providers/flags/manifests, the accepted drivers, baselines and tolerances are unchanged; the engine C NUL is untouched.
+Campaign time/calendar/scheduling policy stays in Core and no physical-time completion is declared from the headless absence of a camera child. Whole Task 51/D3 remains required (lightning effects, physical time, the rest of
+terrain, spatial, model); D4/D5 not started; no acceptance claimed.
+
 # D3 checkpoint — wind witness correction review of 53d9ddcf3: launch-time unregistered count (31 October 2026)
 
 EEDCS-51 / PR111 from clean pushed `53d9ddcf3`. ONE independent correction-delta review (SHA-256 `c8c62281...2d21c`): the 47 real-grammar and cohort-completeness findings are closed in inspected source, with ONE finite P2

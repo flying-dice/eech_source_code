@@ -27,6 +27,11 @@
  * The calls run inside the engine's entry discipline (round-toward-zero), exactly as a frame does; the case inputs derived here (ring thresholds and their neighbours) are computed in
  * that same mode and printed as words, so a later run is compared on the identical input words.
  *
+ * GROUP 10 (explicit only, never in the default run, the census or the 164-case oracle): the ORIGINAL terrain-sector surface enumeration get_terrain_3d_types_in_sector, which the sound routine
+ * calls every frame and which writes the shared scratch terrain_types_in_sector. It reports the original's return value (1 + the number of surface transitions, NOT the distinct flags), the complete
+ * scratch flags, the sector the original selected, the reset between calls and the interleave behaviour, over a finite sweep of real sector centres and boundary samples, and restores the scratch. A
+ * sample the original cannot be asked is rejected with its reason. See the comment before env_sector_case.
+ *
  * NOT witnessed here, and why (printed in the census as `env-unsupported`):
  *   get_session_random_start_time_of_day  reseeds the shared AND the libc generators from the clock; the libc state cannot be saved or restored from here.
  *   update_lightning_effect               creates strike and sound entities and draws the shared generator; the controlled update cases keep lightning_timer far from zero so it
@@ -66,7 +71,8 @@ enum
 	ENV_GROUP_UPDATE_TIME = 7,
 	ENV_GROUP_UPDATE_WEATHER = 8,
 	ENV_GROUP_CONTROLLED = 9,
-	ENV_GROUP_LAST = 9
+	ENV_GROUP_SECTOR = 10,
+	ENV_GROUP_LAST = 10
 };
 
 #define ENV_WEATHER_MAX 96
@@ -928,6 +934,304 @@ static int env_controlled_case (int i, char *text, int capacity, int *used)
 	return 0;
 }
 
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* group 10, READ-ONLY apart from a scratch it restores: the ORIGINAL terrain-sector surface enumeration that the sound routine calls every frame.
+
+   update_session_sound_effects (ss_updt.c) clamps the camera to the map and calls get_terrain_3d_types_in_sector (terrdata.c), which selects a sector, CLEARS the shared int array
+   terrain_types_in_sector, flags the sector's first surface and the surface of EVERY surface_change polygon, and returns 1 plus the NUMBER OF TRANSITIONS (the count of
+   surface_change flags walked) -- not the number of distinct flags. This group calls that original on real loaded sectors and reports what it returned and what it left. The observer's
+   existing hash of the same scratch inside a real frame is REUSED as it is; this group adds only the missing surface-enumeration semantics (the return value against the flags,
+   the reset between calls, the boundary samples).
+
+   Nothing here recomputes an answer: the return value and the flags are the original's. Per case the original is called four times (each after the scratch was filled with a different
+   sentinel, so a flag that survived would show; the second call repeats the first; an interleaved call on the reference sector sits between a call and its repeat) and the scratch is
+   put back byte for byte. A sample the original cannot be asked -- a sector outside the loaded grid (its index would address memory that is not a sector), a sector with no surface
+   table or no polygon table, a surface id that is not a terrain type (the original would index its scratch out of range) -- is REJECTED at the boundary with the reason, not called and not
+   repaired. The sector the original selects is the original's own (get_terrain_3d_sector, which truncates toward zero and sets the FPU rounding mode to zero, the engine's own mode).
+
+   Counts are kept apart on purpose: `returned` is the original's return value, `distinct_flags` is the number of scratch entries left set, `polygons` is the sector's raw polygon count.
+   The cases are a finite sweep of real sector centres, the corners and the middle of the loaded grid, boundary samples (the float below, at and above a sector's lower and upper edge in x
+   and in z) around three sectors, and the clamp limits the sound routine itself uses. Index 0 is the plan. */
+
+#define ENV_SECTOR_MAX 192
+#define ENV_SECTOR_SWEEP 48
+
+struct env_sector_case
+{
+	const char *label;
+	float x, z;
+};
+
+static struct env_sector_case env_sector_cases[ENV_SECTOR_MAX];
+static int env_sector_count;
+
+static void env_sector_add (const char *label, float x, float z)
+{
+	if (env_sector_count < ENV_SECTOR_MAX)
+	{
+		env_sector_cases[env_sector_count].label = label;
+		env_sector_cases[env_sector_count].x = x;
+		env_sector_cases[env_sector_count].z = z;
+		env_sector_count++;
+	}
+}
+
+static float env_sector_centre (int index)
+{
+	return ((float) index + 0.5f) * (float) TERRAIN_3D_SECTOR_SIDE_LENGTH;
+}
+
+static void env_sector_edges (int sx, int sz)
+{
+	float side = (float) TERRAIN_3D_SECTOR_SIDE_LENGTH;
+	float x0 = (float) sx * side, z0 = (float) sz * side;
+	float xc = env_sector_centre (sx), zc = env_sector_centre (sz);
+
+	env_sector_add ("x_below_lower_edge", nextafterf (x0, -HUGE_VALF), zc);
+	env_sector_add ("x_at_lower_edge", x0, zc);
+	env_sector_add ("x_above_lower_edge", nextafterf (x0, HUGE_VALF), zc);
+	env_sector_add ("x_below_upper_edge", nextafterf (x0 + side, -HUGE_VALF), zc);
+	env_sector_add ("x_at_upper_edge", x0 + side, zc);
+	env_sector_add ("z_below_lower_edge", xc, nextafterf (z0, -HUGE_VALF));
+	env_sector_add ("z_at_lower_edge", xc, z0);
+	env_sector_add ("z_above_lower_edge", xc, nextafterf (z0, HUGE_VALF));
+	env_sector_add ("z_below_upper_edge", xc, nextafterf (z0 + side, -HUGE_VALF));
+	env_sector_add ("z_at_upper_edge", xc, z0 + side);
+}
+
+static void env_sector_build (void)
+{
+	int xmax = terrain_3d_sector_x_max, zmax = terrain_3d_sector_z_max;
+	float side = (float) TERRAIN_3D_SECTOR_SIDE_LENGTH;
+	int total, step, k;
+
+	env_sector_count = 0;
+
+	if (!terrain_sectors || xmax < 1 || zmax < 1)
+	{
+		return;
+	}
+
+	total = xmax * zmax;
+	step = total / ENV_SECTOR_SWEEP + 1;
+
+	/* the first case is the interleave reference: the centre of the first sector */
+	env_sector_add ("sector_first", env_sector_centre (0), env_sector_centre (0));
+	env_sector_add ("sector_x_last", env_sector_centre (xmax - 1), env_sector_centre (0));
+	env_sector_add ("sector_z_last", env_sector_centre (0), env_sector_centre (zmax - 1));
+	env_sector_add ("sector_last", env_sector_centre (xmax - 1), env_sector_centre (zmax - 1));
+	env_sector_add ("sector_middle", env_sector_centre (xmax / 2), env_sector_centre (zmax / 2));
+
+	for (k = 0; k < ENV_SECTOR_SWEEP; k++)
+	{
+		int index = (k * step) % total;
+
+		env_sector_add ("sweep", env_sector_centre (index % xmax), env_sector_centre (index / xmax));
+	}
+
+	env_sector_edges (0, 0);
+	env_sector_edges (xmax / 2, zmax / 2);
+	env_sector_edges (xmax - 1, zmax - 1);
+
+	env_sector_add ("zero", 0.0f, 0.0f);
+	env_sector_add ("negative_zero", -0.0f, -0.0f);
+	env_sector_add ("minus_half_metre_truncates_toward_zero", -0.5f, -0.5f);
+	env_sector_add ("minus_one_sector", -side, env_sector_centre (0));
+	env_sector_add ("terrain_end_minus_1mm", (float) xmax * side - 0.001f, (float) zmax * side - 0.001f);
+	env_sector_add ("terrain_end", (float) xmax * side, (float) zmax * side);
+	env_sector_add ("sound_clamp_minimum", MIN_MAP_X, MIN_MAP_Z);
+	env_sector_add ("sound_clamp_middle", MID_MAP_X, MID_MAP_Z);
+	env_sector_add ("sound_clamp_maximum", MAX_MAP_X, MAX_MAP_Z);
+}
+
+/* NULL when the original can be asked about this point, else the reason it cannot (it would address memory that is not a sector, or index its scratch out of range) */
+static const char *env_sector_domain (float x, float z, int *sx, int *sz, int *polygons)
+{
+	const terrain_3d_sector *sector;
+	const terrain_3d_surface *surface;
+	const terrain_3d_face *polygon;
+	int count;
+
+	*sx = -1;
+	*sz = -1;
+	*polygons = -1;
+
+	if (!isfinite (x) || !isfinite (z))
+	{
+		return "not_finite";
+	}
+
+	/* the original's own sector selection (it truncates toward zero) */
+	get_terrain_3d_sector (x, z, sx, sz);
+
+	if (*sx < 0 || *sx >= terrain_3d_sector_x_max || *sz < 0 || *sz >= terrain_3d_sector_z_max)
+	{
+		return "sector_outside_the_loaded_grid";
+	}
+
+	sector = &terrain_sectors[*sz][*sx];
+	*polygons = (int) sector->number_of_polygons;
+
+	if (!sector->surface_changes)
+	{
+		return "no_surface_table";
+	}
+
+	if (sector->number_of_polygons > 0 && !sector->polygons)
+	{
+		return "no_polygon_table";
+	}
+
+	/* the same pointers the original walks, read only for the one thing that would be undefined behaviour in the original: a surface id outside its scratch */
+	surface = sector->surface_changes;
+	polygon = sector->polygons;
+
+	if ((int) surface->surface_id >= TERRAIN_TYPE_LAST)
+	{
+		return "surface_id_outside_the_terrain_types";
+	}
+
+	for (count = (int) sector->number_of_polygons; count > 0; count--)
+	{
+		if (polygon->surface_change)
+		{
+			surface++;
+
+			if ((int) surface->surface_id >= TERRAIN_TYPE_LAST)
+			{
+				return "surface_id_outside_the_terrain_types";
+			}
+		}
+
+		polygon++;
+	}
+
+	return NULL;
+}
+
+static void env_sector_fill (int value)
+{
+	int i;
+
+	for (i = 0; i < TERRAIN_TYPE_LAST; i++)
+	{
+		terrain_types_in_sector[i] = value;
+	}
+}
+
+static int env_sector_nonbinary (const int *flags)
+{
+	int i, n = 0;
+
+	for (i = 0; i < TERRAIN_TYPE_LAST; i++)
+	{
+		if (flags[i] != 0 && flags[i] != 1)
+		{
+			n++;
+		}
+	}
+
+	return n;
+}
+
+static int env_sector_distinct (const int *flags)
+{
+	int i, n = 0;
+
+	for (i = 0; i < TERRAIN_TYPE_LAST; i++)
+	{
+		if (flags[i] != 0)
+		{
+			n++;
+		}
+	}
+
+	return n;
+}
+
+static void env_sector_text (const int *flags, char *out)
+{
+	int i;
+
+	for (i = 0; i < TERRAIN_TYPE_LAST; i++)
+	{
+		out[i] = (flags[i] == 0) ? '0' : ((flags[i] == 1) ? '1' : '?');
+	}
+
+	out[TERRAIN_TYPE_LAST] = 0;
+}
+
+static int env_sector_case (int index, char *text, int capacity, int *used)
+{
+	int saved[TERRAIN_TYPE_LAST], first[TERRAIN_TYPE_LAST], second[TERRAIN_TYPE_LAST], third[TERRAIN_TYPE_LAST];
+	char flags[TERRAIN_TYPE_LAST + 1];
+	const struct env_sector_case *c;
+	const char *refused;
+	int sx, sz, polygons, rsx, rsz, rpolygons;
+	int returned, repeated, other = -1, again = -1, interleave_known;
+
+	env_sector_build ();
+
+	if (index == 0)
+	{
+		ENV_EMIT ("env-sector-plan version=1 terrain_loaded=%d sector_x_max=%d sector_z_max=%d side=%d terrain_types=%d cases=%d scratch_ints=%d map_min_x_w=%08x map_max_x_w=%08x map_min_z_w=%08x map_max_z_w=%08x"
+			" map_mid_x_w=%08x map_mid_z_w=%08x\n", terrain_sectors ? 1 : 0, terrain_3d_sector_x_max, terrain_3d_sector_z_max, (int) TERRAIN_3D_SECTOR_SIDE_LENGTH, (int) TERRAIN_TYPE_LAST, env_sector_count,
+			(int) (sizeof (terrain_types_in_sector) / sizeof (terrain_types_in_sector[0])), ENV_WORD (MIN_MAP_X), ENV_WORD (MAX_MAP_X), ENV_WORD (MIN_MAP_Z), ENV_WORD (MAX_MAP_Z), ENV_WORD (MID_MAP_X),
+			ENV_WORD (MID_MAP_Z));
+
+		return 0;
+	}
+
+	if (index < 1 || index > env_sector_count)
+	{
+		return -1;
+	}
+
+	c = &env_sector_cases[index - 1];
+
+	refused = env_sector_domain (c->x, c->z, &sx, &sz, &polygons);
+
+	if (refused)
+	{
+		ENV_EMIT ("env-sector kind=original i=%d label=%s x_w=%08x z_w=%08x sector_x=%d sector_z=%d polygons=%d refused=%s\n", index, c->label, ENV_WORD (c->x), ENV_WORD (c->z), sx, sz, polygons, refused);
+
+		return 0;
+	}
+
+	memcpy (saved, terrain_types_in_sector, sizeof (saved));
+
+	env_sector_fill (7);
+	returned = get_terrain_3d_types_in_sector (c->x, c->z);
+	memcpy (first, terrain_types_in_sector, sizeof (first));
+
+	env_sector_fill (9);
+	repeated = get_terrain_3d_types_in_sector (c->x, c->z);
+	memcpy (second, terrain_types_in_sector, sizeof (second));
+
+	/* an interleaved call on the first case's sector (when the original can be asked about it) between a call and its repeat */
+	interleave_known = env_sector_domain (env_sector_cases[0].x, env_sector_cases[0].z, &rsx, &rsz, &rpolygons) == NULL;
+
+	if (interleave_known)
+	{
+		other = get_terrain_3d_types_in_sector (env_sector_cases[0].x, env_sector_cases[0].z);
+		again = get_terrain_3d_types_in_sector (c->x, c->z);
+	}
+
+	memcpy (third, terrain_types_in_sector, sizeof (third));
+
+	memcpy (terrain_types_in_sector, saved, sizeof (saved));
+
+	env_sector_text (first, flags);
+
+	ENV_EMIT ("env-sector kind=original i=%d label=%s x_w=%08x z_w=%08x sector_x=%d sector_z=%d polygons=%d returned=%d distinct_flags=%d nonbinary=%d flags=%s repeated=%d repeat_equal=%d"
+		" sentinel_cleared=%d interleave=%s interleave_other_returned=%d interleave_returned=%d interleave_equal=%d restored=%d\n", index, c->label, ENV_WORD (c->x), ENV_WORD (c->z), sx, sz, polygons, returned,
+		env_sector_distinct (first), env_sector_nonbinary (first), flags, repeated, (repeated == returned) && (memcmp (first, second, sizeof (first)) == 0),
+		env_sector_nonbinary (first) == 0 && env_sector_nonbinary (second) == 0, interleave_known ? "done" : "na", other, again,
+		interleave_known ? ((again == returned) && (memcmp (first, third, sizeof (first)) == 0)) : -1, memcmp (terrain_types_in_sector, saved, sizeof (saved)) == 0);
+
+	return 0;
+}
+
 static int env_case_count (int group)
 {
 	switch (group)
@@ -987,6 +1291,22 @@ int eech_env_case_run (int group, int index, char *text, int capacity)
 			text[0] = 0;
 			used_value = 0;
 			append (text, capacity, used, "env-case-error reason=controlled_case_refused group=9 index=%d\n", index);
+
+			return -1;
+		}
+
+		return 0;
+	}
+
+	if (group == ENV_GROUP_SECTOR)
+	{
+		/* explicit only (never part of the default run, the census or the witness set): it reads the loaded sectors and restores the one scratch it writes */
+		if (env_sector_case (index, text, capacity, used) != 0)
+		{
+			text[0] = 0;
+			used_value = 0;
+			append (text, capacity, used, "env-case-error reason=sector_case_refused group=10 index=%d
+", index);
 
 			return -1;
 		}
