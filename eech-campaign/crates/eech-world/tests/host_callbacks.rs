@@ -2164,6 +2164,40 @@ local function queue_report(events, shape)
   end
   return text
 end
+-- ---- group 14, index 0: the sound entity probe's report (csrc/eech_env_fixture.c env_snd_case, csrc/eech_env_observer.c eech_envobs_sound_report). Two sound entities for each lightning episode the stand-in observer
+-- wrote (LIGHTNING_EPISODES); the shape says how far the stand-in followed each: ok (created, one update, expired, killed), long (three updates stored, the rest only counted by `upd`, then expired and killed)
+-- or alive (three updates stored, five counted, never expired). The numbers are canned; the ORDER, the grammar and the reconciliation with the observer's events are the real ones.
+local SND_FACTS = 'comms=1 application_sound_system_enabled=0 sound_system_initialised=0 sound_system_paused=0 samples=300 lightning_rate=22050 lightning_size=88200 lightning_original_rate=22050 thunder_rate=22050 thunder_size=176400 thunder_original_rate=22050'
+local function snd_record(seq, point, n, tracked, frame, upd)
+  return string.format('env-snd seq=%d point=%d n=%d tracked=%d frame=%d upd=%d entity=%d etype=25 sub=1 channel=1 locality=0 valid=1 looping=0 panning=0 seqcount=1 handle=0 session_parent=1 update_member=1 sample=12 rate=22050 size=88200 orate=22050 life_w=3fc00000 vlife_w=00000000 amp_w=3f800000 pitch_w=3f800000 px_w=00000000 py_w=00000000 pz_w=00000000 delta_w=3dcccccd\n', seq, point, n, tracked, frame, upd, 100 + tracked)
+end
+local function sound_report(episodes, shape)
+  local steps = { { 0, 0, 1 }, { 1, 1, 2 }, { 2, 1, 3 }, { 5, 1, 3 } }
+  local per_entity, kills = 1, 1
+  if shape == 'long' then
+    steps = { { 0, 0, 1 }, { 1, 1, 2 }, { 1, 2, 3 }, { 1, 3, 4 }, { 2, 7, 9 }, { 5, 7, 9 } }
+    per_entity = 7
+  elseif shape == 'alive' then
+    steps = { { 0, 0, 1 }, { 1, 1, 2 }, { 1, 2, 3 }, { 1, 3, 4 } }
+    per_entity, kills = 5, 0
+  end
+  local creations = episodes * 2
+  local records, seq = {}, 0
+  for e = 0, episodes - 1 do
+    for _, step in ipairs(steps) do
+      for n = 1, 2 do
+        records[#records + 1] = snd_record(seq, step[1], n, 2 * e + n - 1, 10 * e + step[3], step[2])
+        seq = seq + 1
+      end
+    end
+  end
+  return 'env-snd-plan version=1 cases=3 process_isolated=required\n'
+    .. 'env-snd-facts tag=plan ' .. SND_FACTS .. '\n'
+    .. 'env-snd-unsupported item=playback_handle_branches reason=a_reason\n'
+    .. 'env-snd-unsupported item=audible_network_player_delivery reason=another_reason\n'
+    .. string.format('env-snd-report armed=1 capacity=80 stored=%d dropped=0 overflow=0 creations=%d updates=%d kills=%d frames=%d tracked=%d open=0 track_all=0\n', #records, creations, creations * per_entity, creations * kills, 10 * episodes, creations)
+    .. table.concat(records)
+end
 local function report(group, index)
   if group == 0 then
     return 'env-census version=1 session_bytes=1024 weather_cases=2 wind_cases=2 gust_cases=2 time_cases=3 init_cases=2 update_time_cases=1 update_weather_cases=2\n'
@@ -2226,6 +2260,7 @@ local function report(group, index)
       .. 'env-controlled-end group=9 index=1 changed=1 process_isolated=required\n'
   end
   if group == 13 and index == 0 then return queue_report(LIGHTNING_EPISODES or 0, 'ok') end
+  if group == 14 and index == 0 then return sound_report(LIGHTNING_EPISODES or 0, 'ok') end
   error('stand-in: no such group ' .. group)
 end
 local mutations = {
@@ -2266,6 +2301,27 @@ local mutations = {
   queue_active_main_absent = function(t) return lq_edit(t, 'env-lq seq=1 ', function(l) return (l:gsub(' main=1 ', ' main=0 ', 1)) end) end,
   queue_time_without_active = function(t) return lq_edit(t, 'env-lq seq=0 ', function(l) return (l:gsub('time_present=0 time_w=00000000', 'time_present=1 time_w=3f800000', 1)) end) end,
   queue_active_out_of_domain = function(t) return lq_edit(t, 'env-lq seq=0 ', function(l) return (l:gsub(' active=0 ', ' active=3 ', 1)) end) end,
+  -- the sound entity probe's report (group 14, index 0): coherent alternatives (accepted) and damaged forms (refused)
+  sound_long = function() return sound_report(LIGHTNING_EPISODES or 0, 'long') end,
+  sound_alive = function() return sound_report(LIGHTNING_EPISODES or 0, 'alive') end,
+  sound_not_armed = function(t) return (t:gsub('env%-snd%-report armed=1', 'env-snd-report armed=0', 1)) end,
+  sound_dropped = function(t) return (t:gsub('dropped=0 overflow=0', 'dropped=3 overflow=1', 1)) end,
+  sound_record_missing = function(t) return (t:gsub('env%-snd seq=7 [^\n]*\n', '', 1)) end,
+  sound_seq_gap = function(t) return (t:gsub('env%-snd seq=3 ', 'env-snd seq=9 ', 1)) end,
+  sound_point_impossible = function(t) return (t:gsub('point=2 ', 'point=4 ', 1)) end,
+  sound_entity_changes = function(t) return (t:gsub('upd=1 entity=100', 'upd=1 entity=101', 1)) end,
+  sound_untracked_follower = function(t) return (t:gsub('point=1 n=1 tracked=0', 'point=1 n=1 tracked=-1', 1)) end,
+  sound_creation_twice = function(t) return (t:gsub('seq=2 point=1 ', 'seq=2 point=0 ', 1)) end,
+  sound_creation_outside_lightning = function(t) return (t:gsub('seq=0 point=0 n=1', 'seq=0 point=0 n=3', 1)) end,
+  sound_events_mismatch = function(t) return (t:gsub('creations=2', 'creations=4', 1)) end,
+  sound_phantom = function() return sound_report(1, 'ok') end,
+  sound_updates_fewer = function(t) return (t:gsub('updates=2', 'updates=1', 1)) end,
+  sound_kills_fewer = function(t) return (t:gsub('kills=2', 'kills=1', 1)) end,
+  sound_update_goes_down = function() return (sound_report(LIGHTNING_EPISODES or 0, 'long'):gsub('frame=4 upd=3', 'frame=4 upd=1', 1)) end,
+  sound_frame_back = function(t) return (t:gsub('seq=7 point=5 n=2 tracked=1 frame=3', 'seq=7 point=5 n=2 tracked=1 frame=0', 1)) end,
+  sound_unexpected_row = function(t) return t .. 'env-snd-extra x=1\n' end,
+  sound_out_of_order = function(t) return t .. 'env-snd-facts tag=plan ' .. SND_FACTS .. '\n' end,
+  sound_unsupported_missing = function(t) return (t:gsub('env%-snd%-unsupported [^\n]*\n', '', 1)) end,
   marker_only = function(t) return t:match('[^\n]*\n$') end,
   wrong_family = function() return (report(2, 0):gsub('group=2', 'group=3')) end,
   missing_field = function(t) return (t:gsub(' vz_w=%x+', '', 1)) end,
@@ -3078,6 +3134,8 @@ fn the_environment_driver_runs_a_variable_frame_schedule_and_refuses_a_malformed
         (&["observer=on"], "probes"),
         (&["queue=maybe"], "queue"),
         (&["queue=on"], "observer"),
+        (&["sound=maybe"], "sound"),
+        (&["sound=on"], "observer"),
         (&["controlled=thunder", "probes=0"], "controlled"),
         (&["controlled=lightning_due"], "probes"),
         (&["frame_schedule=100,,50"], "frame_schedule"),
@@ -3361,6 +3419,150 @@ fn a_lightning_queue_report_that_is_incomplete_out_of_order_or_at_odds_with_the_
     ];
     for (observer_mutation, mutation, says) in cases {
         let run = run_env_scenario(&queue_stand_in(observer_mutation, mutation), &queue_args());
+        assert!(!run.status.success(), "{mutation} was accepted:\n{}", run.out_text);
+        assert!(
+            run.stderr.contains("env-characterization:") && run.stderr.contains(*says),
+            "{mutation}: the refusal does not say '{says}': {}",
+            run.stderr
+        );
+        assert_eq!(env_rows(&run.rows, "failure").len(), 1, "{mutation}: {}", run.out_text);
+        assert!(env_rows(&run.rows, "run").is_empty(), "{mutation}: a refused run reported a run row");
+    }
+}
+
+// ---- the sound entity probe (sound=on, EEDCS-51 D3). The stand-in answers canned reports of group 14 index 0 whose ORDER, grammar and reconciliation with the observer's own events are the real ones; the
+// numbers are canned. These checks protect the driver's contract with the probe: its rows are only APPENDED (every other row of the run is as it was), each tracked entity's chain is DERIVED from its
+// records (later updates are counted by `upd`, not stored), and a report that is incomplete, mis-numbered, out of order or at odds with the observer's events is refused. They say nothing about what the
+// original sound entities do.
+
+const SOUND_ROW_EVENTS: [&str; 7] = [
+    "env-snd-plan",
+    "env-snd-facts",
+    "env-snd-unsupported",
+    "env-snd-report",
+    "env-snd",
+    "sound_entity",
+    "sound_summary",
+];
+
+fn sound_stand_in(observer_mutation: &'static str, mutation: &'static str) -> EnvStandIn {
+    EnvStandIn {
+        mutation,
+        group: 14,
+        index: 0,
+        observer_module: true,
+        observer_mutation,
+        ..EnvStandIn::WELL_FORMED
+    }
+}
+
+fn sound_args() -> Vec<&'static str> {
+    env_observer_args(&["sound=on"])
+}
+
+#[test]
+fn the_sound_entity_probe_only_appends_its_rows_and_derives_each_chain_from_the_records() {
+    let off = run_env_scenario(&sound_stand_in("lightning_episode", "none"), &env_observer_args(&[]));
+    assert!(off.status.success(), "{}\n{}", off.stderr, off.out_text);
+    assert!(
+        off.rows.iter().all(|r| !SOUND_ROW_EVENTS.contains(&r["event"].as_str().unwrap_or_default())),
+        "sound=off wrote sound rows"
+    );
+    let on = run_env_scenario(&sound_stand_in("lightning_episode", "none"), &sound_args());
+    assert!(on.status.success(), "{}\n{}", on.stderr, on.out_text);
+    // every row the run wrote without the probe is the row it writes with it, in the same order, and the probe's rows are all that is added
+    let others: Vec<&serde_json::Value> = on
+        .rows
+        .iter()
+        .filter(|r| !SOUND_ROW_EVENTS.contains(&r["event"].as_str().unwrap_or_default()))
+        .collect();
+    let before: Vec<&serde_json::Value> = off.rows.iter().collect();
+    assert_eq!(others, before, "the probe changed a row that was there without it");
+
+    // one lightning event: two sound entities, each created, updated once, expired without a handle and killed; the words stay text
+    assert_eq!(env_rows(&on.rows, "env-snd").len(), 8);
+    assert_eq!(env_rows(&on.rows, "env-snd")[0]["life_w"], "3fc00000");
+    let entities = env_rows(&on.rows, "sound_entity");
+    assert_eq!(entities.len(), 2);
+    for (k, entity) in entities.iter().enumerate() {
+        assert_eq!(entity["tracked"], k as u64);
+        assert_eq!(entity["n"], (k + 1) as u64);
+        assert_eq!(entity["updates_at_last_record"], 1);
+        assert_eq!(entity["expiry"], "no_handle");
+        assert_eq!(entity["killed"], true);
+        assert_eq!(entity["handle_ever"], false);
+    }
+    let summary = &env_rows(&on.rows, "sound_summary")[0];
+    assert_eq!(summary["creations"], 2);
+    assert_eq!(summary["updates"], 2);
+    assert_eq!(summary["kills"], 2);
+    assert_eq!(summary["entities"], 2);
+    assert_eq!(summary["expired"], 2);
+    assert_eq!(summary["records"], 8);
+
+    // the queue probe and the sound probe together: each appends its own rows and neither changes the other's
+    let both = run_env_scenario(&sound_stand_in("lightning_episode", "none"), &env_observer_args(&["queue=on", "sound=on"]));
+    assert!(both.status.success(), "{}\n{}", both.stderr, both.out_text);
+    assert_eq!(env_rows(&both.rows, "lightning_queue_summary").len(), 1);
+    assert_eq!(env_rows(&both.rows, "sound_summary").len(), 1);
+
+    // a run with no lightning event is a complete record of nothing: no records, no entities
+    let quiet = run_env_scenario(&sound_stand_in("none", "none"), &sound_args());
+    assert!(quiet.status.success(), "{}\n{}", quiet.stderr, quiet.out_text);
+    assert!(env_rows(&quiet.rows, "env-snd").is_empty() && env_rows(&quiet.rows, "sound_entity").is_empty());
+    assert_eq!(env_rows(&quiet.rows, "sound_summary")[0]["creations"], 0);
+}
+
+#[test]
+fn the_sound_entity_probe_counts_the_updates_it_does_not_store_and_reports_an_entity_that_never_expired_as_that() {
+    // an entity updated seven times has its first three updates stored, then its expiry and kill at the seventh: the chain says seven
+    let long = run_env_scenario(&sound_stand_in("lightning_episode", "sound_long"), &sound_args());
+    assert!(long.status.success(), "{}\n{}", long.stderr, long.out_text);
+    for entity in env_rows(&long.rows, "sound_entity") {
+        assert_eq!(entity["updates_at_last_record"], 7);
+        assert_eq!(entity["expiry"], "no_handle");
+        assert_eq!(entity["killed"], true);
+    }
+    assert_eq!(env_rows(&long.rows, "sound_summary")[0]["updates"], 14);
+    // an entity that was still alive when the run ended: the last record is its third stored update, the probe counted five, and no expiry or kill is claimed
+    let alive = run_env_scenario(&sound_stand_in("lightning_episode", "sound_alive"), &sound_args());
+    assert!(alive.status.success(), "{}\n{}", alive.stderr, alive.out_text);
+    for entity in env_rows(&alive.rows, "sound_entity") {
+        assert_eq!(entity["updates_at_last_record"], 3);
+        assert_eq!(entity["expiry"], "none");
+        assert_eq!(entity["killed"], false);
+    }
+    let summary = &env_rows(&alive.rows, "sound_summary")[0];
+    assert_eq!(summary["updates"], 10);
+    assert_eq!(summary["kills"], 0);
+    assert_eq!(summary["expired"], 0);
+}
+
+#[test]
+fn a_sound_entity_report_that_is_incomplete_out_of_order_or_at_odds_with_the_observer_is_refused() {
+    let cases: &[(&str, &str, &str)] = &[
+        ("lightning_episode", "sound_not_armed", "not armed"),
+        ("lightning_episode", "sound_dropped", "dropped 3"),
+        ("lightning_episode", "sound_record_missing", "probe stored"),
+        ("lightning_episode", "sound_seq_gap", "has seq 9"),
+        ("lightning_episode", "sound_point_impossible", "cannot follow point 4"),
+        ("lightning_episode", "sound_entity_changes", "but tracked entity 0"),
+        ("lightning_episode", "sound_untracked_follower", "follows no tracked creation"),
+        ("lightning_episode", "sound_creation_twice", "twice"),
+        ("lightning_episode", "sound_creation_outside_lightning", "outside the lightning routine"),
+        ("lightning_episode", "sound_updates_fewer", "counted only 1"),
+        ("lightning_episode", "sound_kills_fewer", "counted 1 kills"),
+        ("lightning_episode", "sound_update_goes_down", "going down"),
+        ("lightning_episode", "sound_frame_back", "goes back in frames"),
+        ("lightning_episode", "sound_unexpected_row", "unexpected row"),
+        ("lightning_episode", "sound_out_of_order", "out of order"),
+        ("lightning_episode", "sound_unsupported_missing", "exactly one plan"),
+        // the probe holds creations the observer's stream does not, and the reverse
+        ("lightning_episode", "sound_events_mismatch", "observer stream holds"),
+        ("none", "sound_phantom", "observer stream holds"),
+    ];
+    for (observer_mutation, mutation, says) in cases {
+        let run = run_env_scenario(&sound_stand_in(observer_mutation, mutation), &sound_args());
         assert!(!run.status.success(), "{mutation} was accepted:\n{}", run.out_text);
         assert!(
             run.stderr.contains("env-characterization:") && run.stderr.contains(*says),

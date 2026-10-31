@@ -30,6 +30,10 @@
 --   queue                    on | off (default off; needs observer=on): after everything else, APPEND the rows of the lightning strike queue probe (csrc group 13 index 0, ss_envfx.h ENV_FXQ; a module built with the
 --                            env-observer feature): what the original lightning routine found and did at each add_3d_lightning_strike. It adds rows after `observer_summary` only (the `lightning_queue_*` events
 --                            and the `env-lightning-*`/`env-lq*` rows of scope `queue:report`); with queue=off the driver is exactly as it was, and with it every earlier row is unchanged
+--   sound                    on | off (default off; needs observer=on): after the queue rows, APPEND the rows of the sound entity probe (csrc group 14 index 0, ss_envfx.h ENV_FXE): the sound effect entities the ORIGINAL
+--                            lightning routine creates (what the real constructor built: sample, lifetime, pitch, position, list membership, playback handle present or absent, the sample table's rate and size) and
+--                            how the real server update routine ages, expires and kills them in the frames, with a per-entity summary derived from the rows. Rows only after the queue rows (`sound_entity`,
+--                            `sound_summary` and the `env-snd*` rows of scope `sound:report`); with sound=off the driver is exactly as it was
 --   frame_schedule           instead of frame_ms: 1 to 16 comma-separated frame lengths in ms (each 1 to 1000), cycled (e.g. 100,250,50), so the previous-delta phase can be seen
 --   controlled               none (default) | lightning_due | local_weather_on: ONE explicitly labelled controlled-weather case of the original setters (csrc group 9), right after the initial snapshots,
 --                            for a fresh process. It changes the live session and restores nothing (the process is the isolation boundary); it needs probes=0 and is not a default run
@@ -99,6 +103,10 @@ local queue_text = args.queue == nil and "off" or args.queue
 if queue_text ~= "on" and queue_text ~= "off" then refuse ("queue must be on or off, got '" .. tostring (queue_text) .. "'") end
 local queue_on = queue_text == "on"
 if queue_on and not observer_on then refuse ("queue=on needs observer=on: the lightning queue probe records only while the observer is armed") end
+local sound_text = args.sound == nil and "off" or args.sound
+if sound_text ~= "on" and sound_text ~= "off" then refuse ("sound must be on or off, got '" .. tostring (sound_text) .. "'") end
+local sound_on = sound_text == "on"
+if sound_on and not observer_on then refuse ("sound=on needs observer=on: the sound entity probe records only while the observer is armed") end
 local controlled_cases = { lightning_due = 0, local_weather_on = 1 }
 local controlled_name = args.controlled
 local controlled_index
@@ -1107,6 +1115,94 @@ local function run ()
 			unexplained = tally.unexplained, update_calls = tonumber (rep.update_calls), final_occupancy = tonumber (rep.final_occupancy), queue_capacity = capacity, main_present = tonumber (plan.main_present) }
 	end
 
+	-- THE SOUND ENTITY PROBE (sound=on, an addition that changes nothing before it: this block only APPENDS rows after the queue rows). The ORIGINAL code stores a record when the real constructor has built
+	-- each sound effect entity of the lightning routine and at each call of the real update routines on it, in a SEPARATE store (ss_envfx.h ENV_FXE, csrc/eech_env_observer.c; not the event stream), and
+	-- csrc/eech_env_fixture.c group 14 index 0 reports them. The report is parsed strictly, written out as it came and accepted only with this shape: the plan, the facts of the sound database and
+	-- the sound system, two unsupported rows, the report, the records; nothing dropped, the sequence unbroken, every tracked entity followed from its creation through its updates to at most one
+	-- expiry branch and one kill, and the creations agreeing with the observer's own stream (one sound_begin and one sound_end for each). What the original DID with the entities is the content of the rows
+	-- and of the per-entity summaries derived from them; no outcome is expected.
+	local SND_SPECS = {
+		["env-snd-plan"] = compile ("version=1 cases:u process_isolated=required"),
+		["env-snd-facts"] = compile ("tag=plan comms:i application_sound_system_enabled:i sound_system_initialised:i sound_system_paused:i samples:i lightning_rate:i lightning_size:i lightning_original_rate:i thunder_rate:i thunder_size:i thunder_original_rate:i"),
+		["env-snd-unsupported"] = compile ("item:s reason:s"),
+		["env-snd-report"] = compile ("armed:b capacity:u stored:u dropped:u overflow:b creations:u updates:u kills:u frames:u tracked:i open:u track_all:b"),
+		["env-snd"] = compile ("seq:u point:u n:u tracked:i frame:u upd:u entity:i etype:i sub:i channel:i locality:i valid:i looping:i panning:i seqcount:i handle:i session_parent:b update_member:b sample:i rate:i size:i orate:i life_w:w vlife_w:w amp_w:w pitch_w:w px_w:w py_w:w pz_w:w delta_w:w"),
+	}
+	local SND_RANK = { ["env-snd-plan"] = 1, ["env-snd-facts"] = 2, ["env-snd-unsupported"] = 3, ["env-snd-report"] = 4, ["env-snd"] = 5 }
+	-- the next points a tracked entity may show after a point: 0 created; 1 server enter; 2 / 3 / 4 expired (no handle / idle handle / playing handle); 5 killed; 6 client enter; 7 client exit
+	local SND_NEXT = { [0] = { [1] = true, [6] = true }, [1] = { [1] = true, [2] = true, [3] = true, [4] = true }, [2] = { [5] = true }, [3] = { [5] = true }, [4] = { [1] = true }, [5] = {}, [6] = { [7] = true }, [7] = { [6] = true } }
+	local function sound_probe ()
+		local ok, report = pcall (engine.env_case, engine, 14, 0)
+		if not ok then refuse ("env_case(14, 0) failed: " .. tostring (report)) end
+		local lines, why = parse_report (report)
+		if lines == nil then refuse ("env_case(14, 0) returned a malformed report: " .. why) end
+		emit_lines ("sound:report", lines)
+		local counts, rank, records, rep = {}, 0, {}, nil
+		for _, line in ipairs (lines) do
+			local spec, r = SND_SPECS [line.event], SND_RANK [line.event]
+			if spec == nil then refuse ("env_case(14, 0) returned the unexpected row '" .. line.event .. "'") end
+			local problem = spec_error (line, spec)
+			if problem ~= nil then refuse ("env_case(14, 0) row " .. line.event .. " " .. problem) end
+			if r < rank then refuse ("env_case(14, 0) row " .. line.event .. " is out of order") end
+			rank = r
+			counts [line.event] = (counts [line.event] or 0) + 1
+			if line.event == "env-snd" then records [#records + 1] = line.map elseif line.event == "env-snd-report" then rep = line.map end
+		end
+		if counts ["env-snd-plan"] ~= 1 or counts ["env-snd-facts"] ~= 1 or counts ["env-snd-unsupported"] ~= 2 or counts ["env-snd-report"] ~= 1 then
+			refuse ("env_case(14, 0) did not return exactly one plan, one facts row, two unsupported rows and one report")
+		end
+		if rep.armed ~= "1" then refuse ("the sound entity probe says it is not armed") end
+		if rep.dropped ~= "0" or rep.overflow ~= "0" then refuse ("the sound entity probe dropped " .. rep.dropped .. " records (capacity " .. rep.capacity .. "): the record is incomplete") end
+		if tonumber (rep.stored) ~= #records then refuse ("the sound entity probe stored " .. rep.stored .. " records but reported " .. #records) end
+		local creations, updates, kills = tonumber (rep.creations), tonumber (rep.updates), tonumber (rep.kills)
+		if (obs.counts.sound_begin or 0) ~= creations or (obs.counts.sound_end or 0) ~= creations then
+			refuse ("the probe holds " .. creations .. " sound creations but the observer stream holds " .. (obs.counts.sound_begin or 0) .. " sound_begin and " .. (obs.counts.sound_end or 0) .. " sound_end events")
+		end
+		local created, chains = 0, {}
+		for n, r in ipairs (records) do
+			if tonumber (r.seq) ~= n - 1 then refuse ("sound probe record " .. n - 1 .. " has seq " .. r.seq) end
+			local point, tracked = tonumber (r.point), tonumber (r.tracked)
+			if point > 7 then refuse ("sound probe record " .. r.seq .. " has the point " .. r.point) end
+			if n > 1 and tonumber (r.frame) < tonumber (records [n - 1].frame) then refuse ("sound probe record " .. r.seq .. " goes back in frames") end
+			if point == 0 then
+				created = created + 1
+				if tonumber (r.n) < 1 or tonumber (r.n) > 2 then refuse ("sound probe record " .. r.seq .. " is a creation outside the lightning routine's two sound entities (n " .. r.n .. ")") end
+				if tracked >= 0 then
+					if chains [tracked] ~= nil then refuse ("sound probe record " .. r.seq .. " creates the tracked entity " .. tracked .. " twice") end
+					chains [tracked] = { entity = r.entity, last = 0, n = tonumber (r.n), created_frame = tonumber (r.frame), first_life_w = r.life_w, last_life_w = r.life_w, updates = 0, expiry = "none", killed = false, handle_ever = r.handle ~= "0" }
+				end
+			else
+				local chain = chains [tracked]
+				if tracked < 0 or chain == nil then refuse ("sound probe record " .. r.seq .. " (point " .. point .. ") follows no tracked creation") end
+				if chain.entity ~= r.entity then refuse ("sound probe record " .. r.seq .. " is of entity " .. r.entity .. " but tracked entity " .. tracked .. " is " .. chain.entity) end
+				if not SND_NEXT [chain.last] [point] then refuse ("sound probe record " .. r.seq .. ": point " .. point .. " cannot follow point " .. chain.last .. " of tracked entity " .. tracked) end
+				chain.last = point
+				if tonumber (r.upd) < chain.updates then refuse ("sound probe record " .. r.seq .. " shows the update count going down for tracked entity " .. tracked) end
+				chain.updates = tonumber (r.upd)
+				if point == 2 or point == 3 or point == 4 then chain.expiry = ({ [2] = "no_handle", [3] = "idle_handle", [4] = "playing_handle" }) [point] end
+				if point == 5 then chain.killed = true end
+				if point ~= 5 then chain.last_life_w = r.life_w end
+				if r.handle ~= "0" then chain.handle_ever = true end
+			end
+		end
+		if created ~= creations then refuse ("the probe says " .. creations .. " creations but holds " .. created .. " creation records") end
+		local entities, killed, expired, chain_updates = 0, 0, 0, 0
+		for tracked = 0, tonumber (rep.tracked) - 1 do
+			local chain = chains [tracked]
+			if chain == nil then refuse ("tracked entity " .. tracked .. " has no creation record") end
+			entities = entities + 1
+			if chain.killed then killed = killed + 1 end
+			chain_updates = chain_updates + chain.updates
+			if chain.expiry ~= "none" then expired = expired + 1 end
+			emit { event = "sound_entity", tracked = tracked, n = chain.n, entity = tonumber (chain.entity), created_frame = chain.created_frame, updates_at_last_record = chain.updates, expiry = chain.expiry, killed = chain.killed, handle_ever = chain.handle_ever,
+				first_life_w = chain.first_life_w, last_life_w = chain.last_life_w }
+		end
+		if chain_updates > updates then refuse ("the tracked entities show " .. chain_updates .. " updates at their last records but the probe counted only " .. updates) end
+		if killed ~= kills then refuse ("the probe counted " .. kills .. " kills but the records show " .. killed) end
+		emit { event = "sound_summary", creations = creations, updates = updates, kills = kills, entities = entities, expired = expired, records = #records, frames = tonumber (rep.frames) }
+	end
+
+
 	if observer_on then
 		for _, method in ipairs ({ "env_observer_events", "env_observer_report" }) do
 			local present, fn = pcall (function () return engine [method] end)
@@ -1142,6 +1238,7 @@ local function run ()
 	campaign_row ("campaign_end")
 	if observer_on then observer_finish () end
 	if queue_on then queue_probe () end
+	if sound_on then sound_probe () end
 
 	for _, g in ipairs (groups) do
 		emit { event = "coverage", group = g [1], name = g [2], available = g.count, ran = g.ran, refused = g.refused, truncated = g.ran < g.count }

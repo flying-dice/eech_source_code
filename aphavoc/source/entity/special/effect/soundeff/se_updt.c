@@ -66,6 +66,8 @@
 
 #include "project.h"
 
+#include "entity/special/session/ss_envfx.h"
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -83,6 +85,8 @@ static void update_server (entity *en)
 		*raw;
 
 	raw = (sound_effect *) get_local_entity_data (en);
+
+	ENV_FXE (ENV_FXE_SERVER_ENTER, en)
 
 	ASSERT (raw->effect_index);
 
@@ -121,10 +125,16 @@ static void update_server (entity *en)
 			{
 				if (!get_system_sound_effect_playing (raw->sound_effect_data))
 				{
+					ENV_FXE (ENV_FXE_SERVER_EXPIRED_IDLE, en)
+
 					kill_client_server_entity (en);
+
+					ENV_FXE (ENV_FXE_SERVER_KILLED, en)
 				}
 				else
 				{
+					ENV_FXE (ENV_FXE_SERVER_EXPIRED_PLAYING, en)
+
 					#if DEBUG_MODULE
 
 					debug_log ("SE_UPDT : Not destroying because it's still playing ( index = %s, pos = %f, %f )", application_sound_effects [raw->effect_index [0]].name, raw->eff.position.x, raw->eff.position.z);
@@ -134,7 +144,11 @@ static void update_server (entity *en)
 			}
 			else
 			{
+				ENV_FXE (ENV_FXE_SERVER_EXPIRED_NO_HANDLE, en)
+
 				kill_client_server_entity (en);
+
+				ENV_FXE (ENV_FXE_SERVER_KILLED, en)
 			}
 		}
 	}
@@ -169,6 +183,8 @@ static void update_client (entity *en)
 
 	raw = (sound_effect *) get_local_entity_data (en);
 
+	ENV_FXE (ENV_FXE_CLIENT_ENTER, en)
+
 	if (raw->valid_sound_effect)
 	{
 		if (!raw->looping)
@@ -199,6 +215,8 @@ static void update_client (entity *en)
 			}
 		}
 	}
+
+	ENV_FXE (ENV_FXE_CLIENT_EXIT, en)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -85,7 +85,8 @@ enum
 	ENV_GROUP_SOUND = 11,
 	ENV_GROUP_WIDE = 12,
 	ENV_GROUP_LIGHTNING = 13,
-	ENV_GROUP_LAST = 13
+	ENV_GROUP_SOUND_LIFETIME = 14,
+	ENV_GROUP_LAST = 14
 };
 
 #define ENV_WEATHER_MAX 96
@@ -2511,6 +2512,156 @@ static int env_lightning_case (int index, char *text, int capacity, int *used)
 
 #endif
 
+#ifdef EECH_ENV_OBSERVER
+
+/*
+ * GROUP 14 (explicit only, never in the default run, the census or the witness set; needs the env-observer build): the ORIGINAL sound effect entities of the lightning routine, observed.
+ * TEST-ONLY, SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED. It moves nothing and decides nothing: every row is an OBSERVATION of what the original code did, not an expectation of what it should do.
+ *
+ *   index 0     the plan and the natural report: the facts of the sound database and of the sound system as this process holds them, and the records of the sound entity probe (ss_envfx.h ENV_FXE,
+ *               csrc/eech_env_observer.c) stored while the lightning routine created its two sound effect entities and the real update routines aged them in the frames. Read-only.
+ *   index 1..3  PROCESS-ISOLATED controls (one per process; the entity heap cannot be put back): they build ONE sound effect entity with the REAL constructor (create_local_sound_effect_entity, the one the
+ *               lightning routine passes through) with the lightning sample and the lightning's arguments, switch the probe's tracking on, and call the REAL compiled update routine through the entity
+ *               function table with the frame delta set to a value the control names (the delta is restored):
+ *                 1 server_branch_ages_then_expires   the server routine at a small delta and then at a delta far beyond the lifetime
+ *                 2 client_branch_ages_and_clamps     the client routine at a delta far beyond the lifetime, then at a small one: the lifetime is clamped, the entity is not killed
+ *                 3 playback_prerequisites            nothing is created: the facts of the sound database and the sound system, and the explicit statement that the branches that need a playback
+ *                                                     handle (a handle that is playing or is not) are NOT exercised
+ * The playback path (create_single_system_sound_effect and the system sound effect it returns) is never called here: whether a device exists is printed as a fact, and no handle is faked.
+ */
+
+extern void eech_envobs_sound_track (int on);
+extern int eech_envobs_sound_report (char *text, int capacity, int *used);
+extern int sound_system_initialised;
+extern int sound_system_paused;
+
+#define ENV_SND_CASES 3
+
+static int env_snd_facts (char *text, int capacity, int *used, const char *tag)
+{
+	const sound_effect_information *lightning = &application_sound_effects[SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING];
+	const sound_effect_information *thunder = &application_sound_effects[SOUND_SAMPLE_INDEX_AMBIENT_THUNDER];
+
+	ENV_EMIT ("env-snd-facts tag=%s comms=%d application_sound_system_enabled=%d sound_system_initialised=%d sound_system_paused=%d samples=%d lightning_rate=%d lightning_size=%d lightning_original_rate=%d"
+		" thunder_rate=%d thunder_size=%d thunder_original_rate=%d\n", tag, (int) get_comms_model (), (int) application_sound_system_enabled, sound_system_initialised, sound_system_paused,
+		number_of_application_sound_samples, lightning->rate, lightning->size, lightning->original_rate, thunder->rate, thunder->size, thunder->original_rate);
+
+	return 0;
+}
+
+static int env_snd_unsupported (char *text, int capacity, int *used)
+{
+	ENV_EMIT ("env-snd-unsupported item=playback_handle_branches reason=a_playing_or_idle_handle_needs_the_sound_system_device_never_called_here_and_never_faked\n");
+	ENV_EMIT ("env-snd-unsupported item=audible_network_player_delivery reason=not_exercised_headless_not_claimed\n");
+
+	return 0;
+}
+
+static int env_snd_case (int index, char *text, int capacity, int *used)
+{
+	static const char *const names[ENV_SND_CASES] = { "server_branch_ages_then_expires", "client_branch_ages_and_clamps", "playback_prerequisites" };
+	sound_sample_indices sample = SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING;
+	void (*update) (entity *en);
+	entity *en;
+	float saved_delta = system_delta_time;
+	float first = 0.1f, second = 1.0e6f;
+	const char *refusal = NULL;
+
+	if (index == 0)
+	{
+		ENV_EMIT ("env-snd-plan version=1 cases=%d process_isolated=required\n", ENV_SND_CASES);
+
+		if (env_snd_facts (text, capacity, used, "plan") != 0 || env_snd_unsupported (text, capacity, used) != 0)
+		{
+			return -1;
+		}
+
+		return eech_envobs_sound_report (text, capacity, used);
+	}
+
+	if (index < 1 || index > ENV_SND_CASES)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-sound kind=control i=%d label=%s comms=%d\n", index, names[index - 1], (int) get_comms_model ());
+
+	if (env_snd_facts (text, capacity, used, "control") != 0)
+	{
+		return -1;
+	}
+
+	if (index == 3)
+	{
+		if (env_snd_unsupported (text, capacity, used) != 0)
+		{
+			return -1;
+		}
+
+		ENV_EMIT ("env-sound-end i=%d changed=0 process_isolated=required\n", index);
+
+		return 0;
+	}
+
+	if (get_comms_model () != COMMS_MODEL_SERVER)
+	{
+		refusal = "the_process_is_not_the_server_so_the_server_kill_cannot_be_observed";
+	}
+	else if (!get_session_entity ())
+	{
+		refusal = "there_is_no_session_entity_to_parent_the_sound_effect";
+	}
+
+	if (refusal)
+	{
+		ENV_EMIT ("env-sound-end i=%d refused=%s changed=0 process_isolated=required\n", index, refusal);
+
+		return 0;
+	}
+
+	/* the REAL constructor, with the lightning routine's arguments (a valid, non-looping, single-sample, neutral sound effect of the lightning sample, at the parent's position) */
+	eech_envobs_sound_track (1);
+
+	en = create_local_sound_effect_entity (ENTITY_INDEX_DONT_CARE, get_session_entity (), ENTITY_SIDE_NEUTRAL, ENTITY_SUB_TYPE_EFFECT_SOUND_MISC, SOUND_CHANNEL_SOUND_EFFECT, SOUND_LOCALITY_ALL, NULL, 1.0f, 1.0f, TRUE,
+		FALSE, 1, &sample);
+
+	ENV_EMIT ("env-sound-input tag=deltas first_w=%08x second_w=%08x\n", ENV_WORD (first), ENV_WORD (second));
+
+	/* the REAL update routine of the branch, through the entity function table, at each delta (the frame delta is restored) */
+	update = (index == 1) ? fn_update_client_server_entity[ENTITY_TYPE_SOUND_EFFECT][COMMS_MODEL_SERVER] : fn_update_client_server_entity[ENTITY_TYPE_SOUND_EFFECT][COMMS_MODEL_CLIENT];
+
+	if (index == 1)
+	{
+		system_delta_time = first;
+		update (en);
+		system_delta_time = second;
+		update (en);
+	}
+	else
+	{
+		system_delta_time = second;
+		update (en);
+		system_delta_time = first;
+		update (en);
+	}
+
+	system_delta_time = saved_delta;
+
+	eech_envobs_sound_track (0);
+
+	if (eech_envobs_sound_report (text, capacity, used) != 0)
+	{
+		return -1;
+	}
+
+	/* the entity slot after the calls: its type and whether it still holds data (the server's kill releases it) */
+	ENV_EMIT ("env-sound-end i=%d changed=1 etype_after=%d data_after=%d delta_restored=%d process_isolated=required\n", index, (int) get_local_entity_type (en), get_local_entity_data (en) != NULL, system_delta_time == saved_delta);
+
+	return 0;
+}
+
+#endif
+
 static int env_case_count (int group)
 {
 	switch (group)
@@ -2638,6 +2789,27 @@ int eech_env_case_run (int group, int index, char *text, int capacity)
 		return 0;
 #else
 		append (text, capacity, used, "env-case-error reason=lightning_queue_needs_the_env_observer_build group=13 index=%d\n", index);
+
+		return -1;
+#endif
+	}
+
+	if (group == ENV_GROUP_SOUND_LIFETIME)
+	{
+		/* explicit only; the cases 1 and 2 are PROCESS-ISOLATED (they create an entity, which cannot be put back, see env_snd_case); needs the env-observer build */
+#ifdef EECH_ENV_OBSERVER
+		if (env_snd_case (index, text, capacity, used) != 0)
+		{
+			text[0] = 0;
+			used_value = 0;
+			append (text, capacity, used, "env-case-error reason=sound_lifetime_case_refused_or_report_did_not_fit group=14 index=%d\n", index);
+
+			return -1;
+		}
+
+		return 0;
+#else
+		append (text, capacity, used, "env-case-error reason=sound_lifetime_probe_needs_the_env_observer_build group=14 index=%d\n", index);
 
 		return -1;
 #endif

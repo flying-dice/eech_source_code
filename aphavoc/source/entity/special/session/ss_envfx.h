@@ -108,6 +108,32 @@ extern void eech_envobs_sound_facts (int in_cockpit, float x, float y, float z, 
 #define ENV_FXC(counter) eech_envobs_count (counter);
 #define ENV_FXS(in_cockpit, x, y, z, alt, light, heavy, sx, sz) eech_envobs_sound_facts (in_cockpit, x, y, z, alt, light, heavy, sx, sz, random_number_seed);
 
+//
+// THE SOUND ENTITY PROBE (ENV_FXE). Another SEPARATE, finite record store (csrc/eech_env_observer.c), not the event stream: it adds no event and changes none. A point READS the sound effect entity the original
+// code has just created or is updating (its stored fields copied as bits -- no float is loaded by value --, its list links, its playback handle as a present/absent flag, the sample table's rate and size for
+// its first sample) and the process's frame counter. It draws nothing, allocates nothing, formats nothing at the point and writes no game variable. The creation point sits at the end of
+// soundeff.c create_local_sound_effect_entity (the real constructor every creator of a sound effect entity passes through, the lightning routine's two included, on the hosted and the legacy path alike); the
+// update points sit in se_updt.c update_server and update_client. The observer records a creation only while a lightning sound creation is open (ENV_FX_SOUND_BEGIN to ENV_FX_SOUND_END) or a fixture
+// control has switched tracking on, and then follows that entity through its updates.
+//
+
+enum ENV_FXE_POINTS
+{
+	ENV_FXE_CREATED = 0,			// create_local_sound_effect_entity: the entity as created, linked and given its lifetime
+	ENV_FXE_SERVER_ENTER,			// se_updt.c update_server: before anything is changed
+	ENV_FXE_SERVER_EXPIRED_NO_HANDLE,	// ... the lifetime is below zero and there is no playback handle: the entity is killed next
+	ENV_FXE_SERVER_EXPIRED_IDLE,		// ... below zero, a handle exists and is not playing: killed next
+	ENV_FXE_SERVER_EXPIRED_PLAYING,		// ... below zero, a handle exists and is still playing: not killed
+	ENV_FXE_SERVER_KILLED,			// ... straight after kill_client_server_entity (only the entity slot is read: the sound data is gone)
+	ENV_FXE_CLIENT_ENTER,			// se_updt.c update_client: before anything is changed
+	ENV_FXE_CLIENT_EXIT,			// ... at the end (the client never kills here)
+	ENV_FXE_POINT_COUNT			// (not a point)
+};
+
+extern void eech_envobs_sound (int point, const void *en);
+
+#define ENV_FXE(point, en) eech_envobs_sound (point, (const void *) (en));
+
 #else
 
 #define ENV_FX(kind, a, b, w0, w1, w2, w3, w4, w5)
@@ -115,6 +141,7 @@ extern void eech_envobs_sound_facts (int in_cockpit, float x, float y, float z, 
 #define ENV_FXC(counter)
 #define ENV_FXS(in_cockpit, x, y, z, alt, light, heavy, sx, sz)
 #define ENV_FXQ(point)
+#define ENV_FXE(point, en)
 
 #endif
 
