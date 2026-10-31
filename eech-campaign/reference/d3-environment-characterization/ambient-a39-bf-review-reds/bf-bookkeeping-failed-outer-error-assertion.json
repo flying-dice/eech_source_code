@@ -1,0 +1,18 @@
+{
+  "source": "bf64653dee245027a5ac46ebe4ad201790639200",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-sound-host-bf64653de-linux-20261031.sh"
+  ],
+  "pid": 12168,
+  "controller_pid": 16668,
+  "state": "terminal",
+  "started_utc": "2026-10-31T15:13:42.582884+00:00",
+  "scope": "Test-only strongerFP andwideharness controls onunchangeda39production: meaningful RED required, fullpackages/strictnotrun",
+  "actual_exit": 101,
+  "completed_utc": "2026-10-31T15:14:48.138488+00:00"
+}

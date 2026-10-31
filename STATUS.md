@@ -1,3 +1,15 @@
+# D3 ambient host move — actual reds on bf64653de and the two-group correction (31 October 2026, production source UNBUILT, UNRUN, UNREVIEWED)
+
+Clean pushed `bf64653de`. ACTUAL (Root): the stronger env FP control failed on bit patterns, 768 of 3840 calls (subnormal transitional state outdoors/cockpit, subnormal wind limits) with the exact CW/SW/TW/MXCSR words intact (Linux 101; Windows 101, 2 PASS / 1 FAIL); the a39 terrain FP red is
+192/5376 Linux and Windows and 576/5376 hosted i686, so x87 precision as well as FTZ/DAZ reaches the answer. The REAL wide child-list control (51 payloads unchanged, raw rows retained, SHA-256 `eccb519f...a80eb`): case 1 (16 children) healthy and
+its non-identity half-word property validated; case 2 (17) stops in the engine at `[terrain-provider:ambient.request] the session has more than 16 ...`; case 3 not reached. One ancillary unaccepted harness assertion (the outer mlua error is not stack-trace-free) is corrected to
+assert the emitted `engine_failure` record. **Correction (UNBUILT, UNRUN):** (1) the two NEW ambient kernels (`env_ref_ambient`, `host_terrain_ambient`) now run in a canonical arithmetic environment set after the complete caller state is saved and before any
+floating-point work, read back whole, and restored with every caller bit on every exit: x87 control 0x0f7f (extended precision -- an ASSUMPTION about the MinGW engine process that the numeric comparison tests --, round toward zero, all masked), MXCSR 0x7f80 (round toward zero,
+all masked, flags clear, FTZ and DAZ off); the closed field and sector kernels are untouched; a default caller sees identical arithmetic. (2) The hosted `ss_updt.c` routine no longer caps the session's child list: the terrain children go to the host in as many bounded
+questions as the list needs, in list order (flushed when 16 are gathered, before a rain or wind write, and at the end), each with its own previous amplitude, none dropped, clamped or deduplicated, each whole reply validated before its children are written; the transport bound of one crossing,
+the private ABI, the scratch mirror, the previous-frame delta and the absence of RNG draws are unchanged. All strong tests, the 46-case driver, group 11, the accepted originals and the saturation classification (retained original `3e941d42` => the constant 0.3 is converted at compile time to
+`0.3f32`) stand. Remaining D3: lightning effects, time inputs, remaining terrain, spatial/object, model, compiled player/render/sound consumers, full shipping/identity, review, CI, merges; D4/D5 unstarted; no acceptance claimed. Details and commands: `docs/d3-environment-sound-routine.md`.
+
 # D3 wide-list witness corrected to a NON-identity setup (31 October 2026, test/fixture/driver only, UNBUILT, UNRUN)
 
 On a39a7a2ec plus the red-control prep. The new wide child-list control (fixture group 12 + `env-sound-wide-children.lua`) used delta 0 at radar altitude 0, an IDENTITY setup: a child the routine skipped keeps its previous word exactly as a processed one does, so it could catch the 17-child

@@ -52,7 +52,9 @@ int env_ref_gust (float phase, float *modulation, char *error, size_t error_size
    in_i = { winter, in_cockpit }
    out  = { rain light, rain heavy, wind light, wind heavy }, written only on success.
    The original's expressions in the original's order: the weather is asked only inside the rain branch; outdoors the target mode's entry and then the current mode's entry are attenuated
-   separately (equal modes alias one entry: the altitude factor is applied TWICE). */
+   separately (equal modes alias one entry: the altitude factor is applied TWICE).
+   Unlike the closed field kernels, this entry runs in the CANONICAL arithmetic environment (x87 extended precision, round toward zero, MXCSR round toward zero with FTZ and DAZ off, every exception
+   masked, set before any floating-point work and read back), so its answer does not depend on the caller's denormal modes or precision; the caller's complete state is restored on every exit. */
 int env_ref_ambient (const env_ref *field, const float *in_f, const int *in_i, float *out, char *error, size_t error_size);
 
 /* The physical update of one session update.

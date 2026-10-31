@@ -3740,6 +3740,47 @@ static int sector_fp_enter (char *error, size_t error_size)
 	return 0;
 }
 
+/*
+ * The CANONICAL arithmetic environment of the NEW terrain ambient entry (EEDCS-51, independent review of a39a7a2ec, ENV-AMBIENT-HOST-1): sector_fp_enter changes only the rounding control, so the smoothing
+ * would inherit the caller's denormal modes and x87 precision (the actual reds: a subnormal altitude gave 0.14999998 in the normal mode and 0.14999999 under caller FTZ/DAZ, and the 32-bit host's
+ * precision variants differed too). The original arithmetic ran in the engine's own environment: round toward zero in both units, the x87 at extended precision (the MinGW runtime's default, which the
+ * measured originals ran under -- an ASSUMPTION about the engine process, which the numeric comparison with the measured originals tests), every exception masked, no flush-to-zero and no denormals-are-zero. This sets exactly that BEFORE any floating-point work and reads it back whole: x87 control 0x0f7f,
+ * MXCSR 0x7f80 (flags clear). sector_fp_save has already taken the caller's COMPLETE state and sector_fp_restore restores and reads back every bit of it on every path. The sector enumeration keeps
+ * sector_fp_enter exactly as it was. Where there is no x87/SSE it is sector_fp_enter.
+ */
+#if SECTOR_FP_X86
+#define SECTOR_X87_CANONICAL_CONTROL 0x0f7fu
+#define SECTOR_MXCSR_CANONICAL 0x7f80u
+
+static int sector_fp_enter_canonical (char *error, size_t error_size)
+{
+	unsigned short control = SECTOR_X87_CANONICAL_CONTROL;
+	unsigned short read_back = 0;
+
+	__asm__ __volatile__ ("fldcw %0" : : "m" (control) : "memory");
+	sector_fp_write_mxcsr (SECTOR_MXCSR_CANONICAL);
+
+	__asm__ __volatile__ ("fnstcw %0" : "=m" (read_back) : : "memory");
+
+	if ((unsigned int) read_back != SECTOR_X87_CANONICAL_CONTROL)
+	{
+		return fail (error, error_size, "the x87 control word could not be set to the canonical arithmetic environment");
+	}
+
+	if (sector_fp_read_mxcsr () != SECTOR_MXCSR_CANONICAL)
+	{
+		return fail (error, error_size, "MXCSR could not be set to the canonical arithmetic environment (round toward zero, every exception masked, flush-to-zero and denormals-are-zero off)");
+	}
+
+	return 0;
+}
+#else
+static int sector_fp_enter_canonical (char *error, size_t error_size)
+{
+	return sector_fp_enter (error, error_size);
+}
+#endif
+
 /* the caller's state back, read back COMPLETE (the condition codes and the stack top are part of the state); 0, or -1 */
 static int sector_fp_restore (const sector_fp_state *state)
 {
@@ -3937,7 +3978,7 @@ int host_terrain_types_in_sector (const host_terrain *map, uint32_t x_bits, uint
  *   otherwise                       value = previous; value +/-= 0.5 * delta (+ when the child's surface is flagged in the sector, - when not);
  *                                   value = bound (value, 0, 0.3); value *= bound (1 - alt / 280, 0, 1); in the cockpit value *= 0.75
  *
- * The caller's COMPLETE floating-point state is preserved on every path by the guard above (the sector enumeration's), with its lessons: the position arrives as the BITS of the two floats, the
+ * The arithmetic runs in the CANONICAL environment (sector_fp_enter_canonical: round toward zero in both units, extended x87 precision, every exception masked, FTZ and DAZ off), so the answer does not depend on the caller's denormal modes or precision, and the caller's COMPLETE floating-point state is preserved on every path by the guard above (the sector enumeration's), with its lessons: the position arrives as the BITS of the two floats, the
  * other floats (the altitude, the delta and the previous amplifications) arrive in a float ARRAY that is read only inside the guard, never as parameters, and the answer is staged and written
  * only after the caller's state has been restored and read back.  A previous amplification is read only where the original read it (below 280 m).
  */
@@ -4034,7 +4075,7 @@ int host_terrain_ambient (const host_terrain *map, uint32_t x_bits, uint32_t z_b
 	memset (&sector, 0, sizeof (sector));
 	memset (&staged, 0, sizeof (staged));
 
-	if (sector_fp_enter (staged.error, sizeof (staged.error)) != 0)
+	if (sector_fp_enter_canonical (staged.error, sizeof (staged.error)) != 0)
 	{
 		result = -1;
 	}

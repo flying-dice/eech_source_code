@@ -147,7 +147,9 @@ void campaign_terrain_install_map_facts (void);
    with an error that names the terrain provider; nothing is solved from the campaign's own sectors. */
 int campaign_terrain_types_in_sector (float x, float z);
 
-/* The AMBIENT operation (called by update_session_sound_effects in the headless campaign module): the host's new amplification of each of `count` terrain ambient sound children, by value.  The
+/* The AMBIENT operation (called by update_session_sound_effects in the headless campaign module): the host's new amplification of each of `count` terrain ambient sound children, by value.  `count` is
+   the bound of ONE question (CAMPAIGN_TERRAIN_AMBIENT_MAX), a property of the transport and NOT of the session: the session may hold any number of such children, and the caller asks about them in as many
+   bounded questions as its child list needs, in list order, dropping, clamping or deduplicating none.  The
    request is validated before it is sent (count within the limit, each class one of the six, nothing else); the answer is checked in full (finite amplitudes) BEFORE anything is written to
    `amplitude`.  A missing provider, a refusal, a malformed answer or a position the host cannot answer stops the engine with an error that names the terrain provider; nothing is solved from the
    campaign's own sectors. */

@@ -158,24 +158,38 @@ fn the_driver_keeps_a_wide_list_in_which_every_child_kept_its_own_previous_ampli
 
 #[test]
 fn an_engine_that_stops_in_the_routine_is_the_result_and_names_its_case() {
-    // the c0b-era hosted routine stops at the 17th terrain child; the driver reports the engine's first line and stops, with the cases before it kept
+    // an engine that stops in the routine (the fatal error of a routine that cannot process the list): the driver records the engine's FIRST line as the `engine_failure` row, names the case in its own
+    // error and stops, with the cases before it kept. The error value mlua hands back is the driver's error plus the normal Lua traceback of an `error()` call, which is not asserted on either way: what
+    // is asserted is the EMITTED record, and that no healthy summary and no witness failure was written.
     let driven = drive(&healthy(), "engine_error_at = 2");
     let error = driven.result.unwrap_err();
     assert!(
         error.contains("env-sound-wide: CASE 2 (17 terrain ambient children) FAILED in the engine:"),
         "{error}"
     );
+    let rows: Vec<serde_json::Value> = driven.rows.lines().map(|line| serde_json::from_str(line).expect("strict JSON")).collect();
+    let failures: Vec<&serde_json::Value> = rows.iter().filter(|row| row["event"] == "engine_failure").collect();
+    assert_eq!(failures.len(), 1, "{}", driven.rows);
+    let reason = failures[0]["reason"].as_str().expect("the failure's reason");
+    assert_eq!(failures[0]["i"], 2);
+    assert_eq!(failures[0]["terrain_target"], 17);
+    assert!(reason.contains("[terrain-provider:ambient.request]"), "{reason}");
     assert!(
-        error.contains("[terrain-provider:ambient.request]") && !error.contains("stack traceback"),
-        "only the engine's first line: {error}"
+        !reason.contains('\n') && !reason.contains("stack traceback"),
+        "the record holds the engine's first line only: {reason}"
     );
-    assert!(
-        driven.rows.contains("\"event\":\"engine_failure\"") && driven.rows.contains("\"i\":1"),
+    // the case before it is kept, and nothing after it ran
+    assert_eq!(
+        rows.iter()
+            .filter(|row| row["event"] == "case")
+            .map(|row| row["i"].as_i64())
+            .collect::<Vec<_>>(),
+        vec![Some(1)],
         "{}",
         driven.rows
     );
     assert!(
-        !driven.rows.contains("\"event\":\"summary\"") && !driven.rows.contains("\"event\":\"witness_failure\""),
+        !rows.iter().any(|row| row["event"] == "summary" || row["event"] == "witness_failure"),
         "{}",
         driven.rows
     );

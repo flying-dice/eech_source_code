@@ -752,19 +752,76 @@ void update_transitional_weather (entity *en)
 
 //
 // EECH_CAMPAIGN_HOST_ENV + EECH_CAMPAIGN_HOST_TERRAIN (EEDCS-51, D3): the PHYSICAL amplitude of the ambient sound children is the host's.  The rain and wind levels (from the weather and the wind at the
-// point) are the environment provider's answer (ss_hostenv.h AMBIENT), and the smoothed amplitude of the six terrain children (from the surfaces of the sector under the point) is the terrain
+// point) are the environment provider's answer (ss_hostenv.h AMBIENT), and the smoothed amplitude of the terrain children (from the surfaces of the sector under the point) is the terrain
 // provider's (mb_hostterrain.h AMBIENT); the original arithmetic is the host's kernels' (env_ref.c ambient_at, terrain_ref.c ambient_impl) and is not compiled into the headless campaign module, which has
 // no fallback.  What the campaign keeps, in the original order: the call and its observer counters; the choice of the point (the camera, or the gunship in the cockpit) and its radar altitude; the
 // clamp of the point to the map; the sector query that fills the legacy scratch mirror terrain_types_in_sector for its other readers (the renderer, the observer's hash); the session's
 // special-effect children, their identities, their order, their previous amplification (the smoothing state: the value stored is the SCALED one and compounds) and the writes of the new amplification
 // into them.  The frame delta is the previous frame's, read where the original read it.  Nothing is drawn from the shared random word.  The original solver follows, for the original game's build only.
 //
+// THE SESSION'S CHILD LIST IS NOT BOUNDED BY THIS CODE.  Nothing in the game limits how many terrain ambient sound children a session holds (create_local_sound_effect_entity attaches any subtype to
+// any parent; the compiled comms receiver creates a received child the same way), and the original walked the whole list.  The host transport carries a bounded number of children in ONE question
+// (CAMPAIGN_TERRAIN_AMBIENT_MAX), so the walk below carries them in as many bounded questions as the list needs, in list order: a question is sent when it is full, when the walk reaches a rain or
+// wind child (whose write must come after the writes of the terrain children before it, as in the original), and at the end of the list.  Every child is asked about, none is dropped, clamped or
+// deduplicated, each is asked with ITS OWN previous amplitude (read when the walk reaches it; no write to any other child can change it), duplicates and interleaved subtypes keep their places, and
+// each question's whole reply is checked by campaign_terrain_ambient before any child of that question is written.
+//
+
+typedef struct ambient_terrain_batch
+{
+	entity
+		*child [CAMPAIGN_TERRAIN_AMBIENT_MAX];
+
+	int
+		klass [CAMPAIGN_TERRAIN_AMBIENT_MAX],
+		count;
+
+	float
+		previous [CAMPAIGN_TERRAIN_AMBIENT_MAX];
+} ambient_terrain_batch;
+
+// asks the host about the children gathered so far (nothing is asked when there are none) and writes each answer into its child, in order
+static void flush_ambient_terrain_batch (ambient_terrain_batch *batch, float xpos, float zpos, float alt)
+{
+	float
+		amplitude [CAMPAIGN_TERRAIN_AMBIENT_MAX];
+
+	int
+		i;
+
+	if (batch->count > 0)
+	{
+		campaign_terrain_ambient (xpos, zpos, in_cockpit, alt, get_delta_time (), batch->count, batch->klass, batch->previous, amplitude);
+
+		for (i = 0; i < batch->count; i++)
+		{
+			set_local_entity_float_value (batch->child [i], FLOAT_TYPE_AMPLIFICATION, amplitude [i]);
+		}
+
+		batch->count = 0;
+	}
+}
+
+static void add_ambient_terrain_child (ambient_terrain_batch *batch, entity *spec, int klass, float xpos, float zpos, float alt)
+{
+	batch->child [batch->count] = spec;
+	batch->klass [batch->count] = klass;
+	batch->previous [batch->count] = get_local_entity_float_value (spec, FLOAT_TYPE_AMPLIFICATION);
+	batch->count++;
+
+	if (batch->count == CAMPAIGN_TERRAIN_AMBIENT_MAX)
+	{
+		flush_ambient_terrain_batch (batch, xpos, zpos, alt);
+	}
+}
 
 void update_session_sound_effects (entity *en)
 {
+	ambient_terrain_batch
+		batch;
+
 	entity
-		*spec,
-		*terrain_child [CAMPAIGN_TERRAIN_AMBIENT_MAX];
+		*spec;
 
 	vec3d
 		*camera_pos;
@@ -776,15 +833,7 @@ void update_session_sound_effects (entity *en)
 		rain_light_sound_level,
 		rain_heavy_sound_level,
 		light_wind_sound_level,
-		heavy_wind_sound_level,
-		terrain_previous [CAMPAIGN_TERRAIN_AMBIENT_MAX],
-		terrain_amplitude [CAMPAIGN_TERRAIN_AMBIENT_MAX];
-
-	int
-		terrain_class [CAMPAIGN_TERRAIN_AMBIENT_MAX],
-		terrain_count,
-		terrain_index,
-		klass;
+		heavy_wind_sound_level;
 
 	ASSERT (en);
 
@@ -823,52 +872,11 @@ void update_session_sound_effects (entity *en)
 	}
 
 	//
-	// the terrain children, in the session's child order, with the amplification each holds now (read for every one: the host uses it only below the zero-volume altitude, as the original did)
+	// set new values: the whole child list, in order.  The terrain children are gathered (each with the amplification it holds now: read for every one, the host uses it only below the zero-volume
+	// altitude, as the original did) and asked about in bounded questions; a rain or wind child is written when the walk reaches it, after the terrain children before it.
 	//
 
-	terrain_count = 0;
-
-	spec = get_local_entity_first_child (en, LIST_TYPE_SPECIAL_EFFECT);
-
-	while (spec)
-	{
-		switch (get_local_entity_int_value (spec, INT_TYPE_ENTITY_SUB_TYPE))
-		{
-			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_SEA: klass = CAMPAIGN_TERRAIN_AMBIENT_SEA; break;
-			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_JUNGLE: klass = CAMPAIGN_TERRAIN_AMBIENT_JUNGLE; break;
-			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB1: klass = CAMPAIGN_TERRAIN_AMBIENT_AMB1; break;
-			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB2: klass = CAMPAIGN_TERRAIN_AMBIENT_AMB2; break;
-			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB3: klass = CAMPAIGN_TERRAIN_AMBIENT_AMB3; break;
-			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB4: klass = CAMPAIGN_TERRAIN_AMBIENT_AMB4; break;
-			default: klass = -1; break;
-		}
-
-		if (klass >= 0)
-		{
-			if (terrain_count >= CAMPAIGN_TERRAIN_AMBIENT_MAX)
-			{
-				debug_fatal ("host terrain: [terrain-provider:ambient.request] the session has more than %d terrain ambient sound children", (int) CAMPAIGN_TERRAIN_AMBIENT_MAX);
-			}
-
-			terrain_child [terrain_count] = spec;
-			terrain_class [terrain_count] = klass;
-			terrain_previous [terrain_count] = get_local_entity_float_value (spec, FLOAT_TYPE_AMPLIFICATION);
-			terrain_count++;
-		}
-
-		spec = get_local_entity_child_succ (spec, LIST_TYPE_SPECIAL_EFFECT);
-	}
-
-	if (terrain_count > 0)
-	{
-		campaign_terrain_ambient (xpos, zpos, in_cockpit, alt, get_delta_time (), terrain_count, terrain_class, terrain_previous, terrain_amplitude);
-	}
-
-	//
-	// set new values
-	//
-
-	terrain_index = 0;
+	batch.count = 0;
 
 	spec = get_local_entity_first_child (en, LIST_TYPE_SPECIAL_EFFECT);
 
@@ -878,41 +886,69 @@ void update_session_sound_effects (entity *en)
 		{
 			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_LIGHT_RAIN:
 			{
+				flush_ambient_terrain_batch (&batch, xpos, zpos, alt);
+
 				set_local_entity_float_value (spec, FLOAT_TYPE_AMPLIFICATION, rain_light_sound_level);
 
 				break;
 			}
 			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_HEAVY_RAIN:
 			{
+				flush_ambient_terrain_batch (&batch, xpos, zpos, alt);
+
 				set_local_entity_float_value (spec, FLOAT_TYPE_AMPLIFICATION, rain_heavy_sound_level);
 
 				break;
 			}
 			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_LIGHT_WIND:
 			{
+				flush_ambient_terrain_batch (&batch, xpos, zpos, alt);
+
 				set_local_entity_float_value (spec, FLOAT_TYPE_AMPLIFICATION, light_wind_sound_level);
 
 				break;
 			}
 			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_HEAVY_WIND:
 			{
+				flush_ambient_terrain_batch (&batch, xpos, zpos, alt);
+
 				set_local_entity_float_value (spec, FLOAT_TYPE_AMPLIFICATION, heavy_wind_sound_level);
 
 				break;
 			}
 			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_SEA:
+			{
+				add_ambient_terrain_child (&batch, spec, CAMPAIGN_TERRAIN_AMBIENT_SEA, xpos, zpos, alt);
+
+				break;
+			}
 			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_JUNGLE:
+			{
+				add_ambient_terrain_child (&batch, spec, CAMPAIGN_TERRAIN_AMBIENT_JUNGLE, xpos, zpos, alt);
+
+				break;
+			}
 			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB1:
+			{
+				add_ambient_terrain_child (&batch, spec, CAMPAIGN_TERRAIN_AMBIENT_AMB1, xpos, zpos, alt);
+
+				break;
+			}
 			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB2:
+			{
+				add_ambient_terrain_child (&batch, spec, CAMPAIGN_TERRAIN_AMBIENT_AMB2, xpos, zpos, alt);
+
+				break;
+			}
 			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB3:
+			{
+				add_ambient_terrain_child (&batch, spec, CAMPAIGN_TERRAIN_AMBIENT_AMB3, xpos, zpos, alt);
+
+				break;
+			}
 			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB4:
 			{
-				// the same child, in the same order, that the first pass found
-				ASSERT (terrain_child [terrain_index] == spec);
-
-				set_local_entity_float_value (spec, FLOAT_TYPE_AMPLIFICATION, terrain_amplitude [terrain_index]);
-
-				terrain_index++;
+				add_ambient_terrain_child (&batch, spec, CAMPAIGN_TERRAIN_AMBIENT_AMB4, xpos, zpos, alt);
 
 				break;
 			}
@@ -920,6 +956,8 @@ void update_session_sound_effects (entity *en)
 
 		spec = get_local_entity_child_succ (spec, LIST_TYPE_SPECIAL_EFFECT);
 	}
+
+	flush_ambient_terrain_batch (&batch, xpos, zpos, alt);
 }
 
 #else

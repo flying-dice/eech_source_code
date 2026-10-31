@@ -93,7 +93,8 @@ int host_terrain_types_in_sector (const host_terrain *map, uint32_t x_bits, uint
  *   in_f = { alt, delta, previous[0 .. count) }   the point's radar altitude, the frame delta and each child's previous amplification
  *   in_i = { in_cockpit, class[0 .. count) }      class: 0 sea, 1 jungle (forest top), 2 amb1 (river), 3 amb2 (reservoir), 4 amb3 (altered land 1), 5 amb4 (altered land 2)
  *   out  = `count` amplitudes, written only on success
- * Both arrays are readable for HOST_TERRAIN_AMBIENT_MAX children whatever `count` is. Like the enumeration it has the caller's COMPLETE floating-point state preserved on every path, takes the
+ * The arithmetic runs in the CANONICAL environment (x87 extended precision, round toward zero, MXCSR round toward zero with FTZ and DAZ off, every exception masked, set before any floating-point work and
+ * read back), so the answer does not depend on the caller's denormal modes or precision. Both arrays are readable for HOST_TERRAIN_AMBIENT_MAX children whatever `count` is. Like the enumeration it has the caller's COMPLETE floating-point state preserved on every path, takes the
  * position as the BITS of the two floats and reads every other float inside its guard, from memory. A position outside the map, a class outside the six or a count above the limit is refused with a
  * message and changes nothing. 0 on success.
  */

@@ -213,3 +213,38 @@ engine test), exactly the transport bound (new `an_ambient_terrain_question_of_e
 
 Then, in the same context, ONE bounded batch fixes both groups: the new ambient arithmetic isolated from the caller's denormal modes and x87 precision inside the guard (restoring every caller bit), and the Core
 16-item transport bound replaced by bounded batches that keep every child, the list/application order and each child's previous value. The 46-case original driver, group 11 and all accepted raw originals stay unchanged.
+
+## The two review groups corrected on bf64653de (production source; UNBUILT, UNRUN, UNREVIEWED)
+
+**Actual reds on bf64653de (Root's, not mine; production was a39a7a2ec's, unchanged, verified):**
+* **P1, the stronger env FP control** -- Linux exit 101 at 15:16:41 (`environment-ambient-mode-red-bf64653de-linux-20261031-completion.json`): the BIT PATTERNS of the answers differed in 768 of 3840 calls (the subnormal transitional state
+  outdoors and in the cockpit, the subnormal wind limits at the zone centre) while the exact CW/SW/TW/MXCSR words, seeds and masks held; Windows, the same filter: 101, 2 PASS / 1 FAIL. The a39 terrain FP red is 192 of 5376 on Linux and Windows
+  and 576 of 5376 on the hosted i686 build, so the x87 PRECISION as well as the SSE denormal modes reach the answer. Restoring the caller's state afterwards does not make the answer independent of it.
+* **P2, the real wide child-list control** -- `environment-sound-wide-bf64653de-real-red-20261031/controller.json` (native/controller 1, pre/post inputs 0, 51 payloads unchanged; five JSON rows retained, SHA-256
+  `eccb519f...a80eb`): case 1 (16 terrain ambient children) is healthy and its NON-identity property holds (every child half its own previous word); case 2 (17) stops in the engine at
+  `[terrain-provider:ambient.request] the session has more than 16 terrain ambient sound children`; case 3 (20) was not reached. This is the real constructor -> session list -> routine -> host boundary, not a setup failure.
+* **Harness assertion (ancillary):** the bf Linux harness run failed one unaccepted new test, `an_engine_that_stops_in_the_routine_is_the_result_and_names_its_case`, which wrongly required mlua's OUTER error string to hold no
+  `stack traceback`; the driver correctly writes only the engine's first line into the JSON `engine_failure.reason` and `error()` then adds the driver's own traceback to the outer error. The test now asserts the EMITTED record (reason's
+  first line and marker, case 2, target 17, only case 1 kept, no summary, no witness failure) and tolerates the ordinary outer trace. No real error is suppressed and no production code changed for a test-format assumption.
+
+**Correction 1 -- the new ambient kernels run in a CANONICAL arithmetic environment** (`env_ref.c env_ref_ambient`, `terrain_ref.c host_terrain_ambient`; the closed field and sector kernels keep their guards exactly). `fp_enter` / `sector_fp_enter` change only the
+rounding control, so the arithmetic inherited the caller's FTZ/DAZ and x87 precision. The two new entries now, after the caller's COMPLETE state is saved and BEFORE any floating-point work, set and read back whole the environment the
+original ran in: x87 control `0x0f7f` (extended precision -- the MinGW runtime's default -- an ASSUMPTION about the engine process, which the numeric comparison with the measured originals tests --, round toward zero, every exception masked) and MXCSR `0x7f80` (round toward zero, every exception masked,
+flags clear, flush-to-zero and denormals-are-zero OFF). The restore and the complete read-back of every caller bit (CW, SW, TW, MXCSR) on every exit are unchanged; the position still arrives as bits, the other floats in arrays read inside the guard,
+the outputs staged; no validation arithmetic precedes the guard. A caller in the default state (MXCSR `0x1f80`, x87 `0x037f`) sees the identical arithmetic as before (round toward zero was already set), so the default numeric results -- the 44 answered
+original cases, the first Lebanon comparison -- are preserved; only a caller in another mode now gets that same answer. The strong env FP control (10 questions, FTZ/DAZ and two precisions, bit patterns, full words) and the 5376-question terrain
+control are UNCHANGED and are the proof Root runs.
+
+**Correction 2 -- the session's child list is not bounded by the campaign** (`ss_updt.c`, hosted routine). The fatal "more than 16" abort is gone. The walk now carries the terrain children to the host in as many bounded questions as the list needs
+(`CAMPAIGN_TERRAIN_AMBIENT_MAX` is the bound of ONE crossing, a transport property): a question is sent when it holds 16 children, when the walk reaches a rain or wind child (so its write follows the writes of the terrain children before it, as in the
+original), and at the end of the list. Every child is asked about with ITS OWN previous amplitude (read when the walk reaches it; no write to another child can change it), none is dropped, clamped or deduplicated, duplicates and interleaved subtypes keep
+their places, and each question's whole reply is validated by `campaign_terrain_ambient` before any of its children is written. No question is sent when there is no terrain child. The private by-value ABI, the 0/16/17 transport checks, the shared scratch
+mirror, the previous-frame delta and the absence of any shared-RNG draw are unchanged. The real constructor control (fixture group 12, 16/17/20 children, altitude 140, delta 0, each child half its previous word, a skipped child fails) is retained.
+
+**Expectations, not results:** the stronger env FP test, the terrain FP matrix on Linux/Windows/hosted i686, and the wide control (cases 2 and 3 now processed) should pass; the first retail comparison and the 46-case original driver must stay byte-exact.
+The accepted originals, group 11, the 46-case driver and every baseline are unchanged.
+
+**Commands for Root:** `cargo fmt --check`; `cargo test -p eech-world --lib the_callers_complete_floating_point_state_survives_every_ambient_sound_question_in_every_mode`;
+`cargo test -p eech-world --test terrain_sector` (the 5376 matrix and the saturation expectation); `cargo test -p eech-world --test env_sound_wide_children`; `cargo test -p eech-engine -p eech-dc`; clippy as before; the hosted i686 build of the same tests;
+then rebuild the env-fixture and shipping modules into NEW directories, the three fresh numeric 108-row comparisons on the fresh candidate roots, and the real wide-list control on ONE fresh wide root in ONE fresh process
+(`eech-world lua/env-sound-wide-children.lua root=<fresh wide root> out=<private jsonl> scenario=lebanon_retail|georgia_retail`). The consumed a39/bf roots are not reused.

@@ -1,0 +1,11 @@
+{
+  "source": "a39a7a2ec07f5ec9e02008c58463003e9107978a",
+  "actual_native_exit": 0,
+  "old_rows": 108,
+  "new_rows": 108,
+  "full_bytes_equal": true,
+  "old_sha256": "08fce9b0612179ec096bb71eb872ce0d33dc3be44ca1cbe7b04ca5a45fb8f10e",
+  "candidate_sha256": "08fce9b0612179ec096bb71eb872ce0d33dc3be44ca1cbe7b04ca5a45fb8f10e",
+  "different_row_ordinals": [],
+  "scope": "First diagnostic candidate exactbytecomparison ONLY, known5376-modeFPanswerfailure and16childboundreviewOPEN. Do notchangebaselines or callFP/authority/shippingaccepted."
+}

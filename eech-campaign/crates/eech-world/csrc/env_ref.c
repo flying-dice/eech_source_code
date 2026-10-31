@@ -1116,6 +1116,48 @@ static int fp_enter (char *error, size_t error_size)
 	return 0;
 }
 
+/*
+ * The CANONICAL arithmetic environment of the NEW ambient sound entry (EEDCS-51, independent review of a39a7a2ec, ENV-AMBIENT-HOST-1).  fp_enter changes only the rounding control, so the arithmetic of a
+ * kernel run under it inherits whatever the caller's denormal modes and x87 precision are: restoring the caller's state afterwards does not make the ANSWER independent of them (the actual reds: a
+ * subnormal transitional state attenuated outdoors, subnormal wind limits, and the x87 precision variants on a 32-bit host).  The original arithmetic ran in the engine's own environment -- round toward
+ * zero in both units, the x87 at extended precision (the MinGW runtime's default -- an ASSUMPTION about the engine process, which the numeric comparison with the measured originals tests), every exception masked, no flush-to-zero and no denormals-are-zero -- and the
+ * entries that compute the ambient levels now set exactly that BEFORE any floating-point work and read it back whole: x87 control 0x0f7f (extended precision, round toward zero, all masked), MXCSR
+ * 0x7f80 (round toward zero, all masked, flags clear, FTZ and DAZ off).  fp_save has already taken the caller's COMPLETE state and fp_leave restores and reads back every bit of it on every path, so
+ * nothing of the canonical environment outlives the call.  The other entries (the closed field kernels) keep fp_enter exactly as it was.  Where there is no x87/SSE it is fp_enter.
+ */
+#if ENV_FP_X86
+#define ENV_X87_CANONICAL_CONTROL 0x0f7fu
+#define ENV_MXCSR_CANONICAL 0x7f80u
+
+static int fp_enter_canonical (char *error, size_t error_size)
+{
+	unsigned short control = ENV_X87_CANONICAL_CONTROL;
+	unsigned short read_back = 0;
+
+	__asm__ __volatile__ ("fldcw %0" : : "m" (control) : "memory");
+	fp_write_mxcsr (ENV_MXCSR_CANONICAL);
+
+	__asm__ __volatile__ ("fnstcw %0" : "=m" (read_back) : : "memory");
+
+	if ((unsigned int) read_back != ENV_X87_CANONICAL_CONTROL)
+	{
+		return fail (error, error_size, "the x87 control word could not be set to the canonical arithmetic environment");
+	}
+
+	if (fp_read_mxcsr () != ENV_MXCSR_CANONICAL)
+	{
+		return fail (error, error_size, "MXCSR could not be set to the canonical arithmetic environment (round toward zero, every exception masked, flush-to-zero and denormals-are-zero off)");
+	}
+
+	return 0;
+}
+#else
+static int fp_enter_canonical (char *error, size_t error_size)
+{
+	return fp_enter (error, error_size);
+}
+#endif
+
 /* the caller's state back, read back; 0, or -1 */
 static int fp_restore (const env_fp_state *state)
 {
@@ -1421,10 +1463,11 @@ int env_ref_ambient (const env_ref *field, const float *in_f, const int *in_i, f
 	float answer[4];
 	float x, z, y, alt, cloud_base;
 
-	/* nothing before fp_save touches a floating-point register: the arguments are pointers, and the floats are read from memory below, inside the guard */
+	/* nothing before fp_save touches a floating-point register: the arguments are pointers, and the floats are read from memory below, inside the guard, which first sets the CANONICAL arithmetic
+	   environment (fp_enter_canonical) so that the answer is independent of the caller's denormal modes and x87 precision */
 	fp_save (&saved);
 
-	if (fp_enter (error, error_size) != 0)
+	if (fp_enter_canonical (error, error_size) != 0)
 	{
 		return fp_leave (&saved, -1, error, error_size);
 	}
