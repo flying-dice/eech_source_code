@@ -87,7 +87,13 @@ fn refused_report(case: u32, label: &str, reason: &str) -> String {
 /// The scripted collaborators: a stand-in `eech_dc` whose engine answers `env_case (14, index)` from the Rust-side text (after the scenario's `edit` hook, if any), refuses to boot when the observer was not
 /// armed first, and a file that collects what is written.
 fn collaborators() -> String {
-    let reports: Vec<String> = (1..=10).map(|case| if case <= 3 { report(case) } else { data_report(case) }).collect();
+    let reports: Vec<String> = (1..=14)
+        .map(|case| match case {
+            1..=3 => report(case),
+            4..=10 => data_report(case),
+            _ => pause_report(case),
+        })
+        .collect();
     let reports_lua = reports.iter().map(|text| format!("'{text}'")).collect::<Vec<_>>().join(", ");
     format!(
         r##"
@@ -407,7 +413,7 @@ fn an_engine_stop_a_missing_observer_or_fixture_a_bad_argument_and_every_output_
     for args in [
         vec![],
         vec![("case", "0")],
-        vec![("case", "11")],
+        vec![("case", "15")],
         vec![("case", "2.5")],
         vec![("case", "nan")],
         vec![("case", "1"), ("scenario", "mars_retail")],
@@ -694,7 +700,7 @@ fn data_refused_report(case: u32, label: &str, reason: &str) -> String {
     head(case, label) + UNSUPPORTED + DATA_UNSUPPORTED + &format!("env-sound-end i={case} refused={reason} changed=0 process_isolated=required\\n")
 }
 
-const LABELS_FOR_TESTS: [&str; 10] = [
+const LABELS_FOR_TESTS: [&str; 14] = [
     "server_branch_ages_then_expires",
     "client_branch_ages_and_clamps",
     "playback_prerequisites",
@@ -705,6 +711,10 @@ const LABELS_FOR_TESTS: [&str; 10] = [
     "data_looping_server_and_client_not_aged",
     "data_invalid_server_countdown_and_unlink",
     "data_invalid_client_countdown_and_unlink",
+    "pause_then_resume_while_still_linked",
+    "resume_after_the_unlink_and_updates_after",
+    "repeated_and_no_op_pause_and_resume_counts",
+    "subtype_isolation_and_every_match",
 ];
 
 /// A Lua helper for the damaged forms: drops the probe record `seq`, renumbers the ones after it and reduces `stored`.
@@ -1030,5 +1040,264 @@ fn the_sound_host_witness_refuses_a_missing_delegate_and_a_case_that_is_not_the_
         let driven = drive_script("env-sound-host-witness.lua", WITNESS, "", &args);
         assert!(driven.result.clone().unwrap_err().contains("env-sound-host-witness:"), "{args:?}");
         assert!(driven.rows.is_empty(), "{args:?}: nothing was written");
+    }
+}
+
+// ---- the PAUSE and RESUME cases 11 to 14 (csrc/eech_env_fixture.c env_snd_pause_case). Canned SHAPE examples built from one description of each case's captures, so the independent rows agree by construction; the
+// numbers are not what the original does and the driver expects none of them (the first 11 sound children are the session's ambient ones, of other sub types).
+
+/// One step of a pause and resume case: the operation (1 pause, 2 resume, 3 server update of the first effect), the sub type, the delay word, the returned count, whether the update was made, and the scans
+/// before and after as `[total, of_type, valid_of_type, invalid_of_type, linked_of_type]`.
+struct PauseStep {
+    op: u32,
+    sub: i32,
+    delay: &'static str,
+    returned: u32,
+    made: u32,
+    scans: Option<([u32; 5], [u32; 5])>,
+}
+
+fn pause_step(op: u32, sub: i32, delay: &'static str, returned: u32, before: [u32; 5], after: [u32; 5]) -> PauseStep {
+    PauseStep {
+        op,
+        sub,
+        delay,
+        returned,
+        made: 0,
+        scans: Some((before, after)),
+    }
+}
+
+fn update_step() -> PauseStep {
+    PauseStep {
+        op: 3,
+        sub: 0,
+        delay: "00000000",
+        returned: 0,
+        made: 1,
+        scans: None,
+    }
+}
+
+const PAUSE_LIVE: Cap = cap("40a00000", "00000000", 1, 0, 1);
+
+fn pause_report(case: u32) -> String {
+    let s = 23;
+    let ent = |slot: u32, sub: i32| Ent {
+        slot,
+        sub: sub as u32,
+        server: true,
+        created: PAUSE_LIVE,
+        paused: None,
+        posts: vec![],
+    };
+    // [state at tag 0, tag 1, ...] for each effect, and the steps
+    let (ents, caps, steps): (Vec<Ent>, Vec<Vec<Cap>>, Vec<PauseStep>) = match case {
+        11 => {
+            let paused = cap("40a00000", "3fc00000", 0, 0, 1);
+            let resumed = cap("40a00000", "3fc00000", 1, 0, 1);
+            (
+                vec![ent(20, s)],
+                vec![vec![PAUSE_LIVE, paused, resumed]],
+                vec![
+                    pause_step(1, s, "3fc00000", 1, [11, 1, 1, 0, 1], [11, 1, 0, 1, 1]),
+                    pause_step(2, s, "00000000", 1, [11, 1, 0, 1, 1], [11, 1, 1, 0, 1]),
+                ],
+            )
+        }
+        12 => {
+            let p15 = cap("40a00000", "3fc00000", 0, 0, 1);
+            let p05 = cap("40a00000", "3f000000", 0, 0, 1);
+            let p00 = cap("40a00000", "00000000", 0, 0, 1);
+            let unlinked = cap("40a00000", "00000000", 0, 0, 0);
+            let resumed = cap("40a00000", "00000000", 1, 0, 1);
+            let aged = cap("40800000", "00000000", 1, 0, 1);
+            (
+                vec![ent(20, s)],
+                vec![vec![PAUSE_LIVE, p15, p05, p00, unlinked, resumed, aged]],
+                vec![
+                    pause_step(1, s, "3fc00000", 1, [11, 1, 1, 0, 1], [11, 1, 0, 1, 1]),
+                    update_step(),
+                    update_step(),
+                    update_step(),
+                    pause_step(2, s, "00000000", 1, [11, 1, 0, 1, 0], [11, 1, 1, 0, 1]),
+                    update_step(),
+                ],
+            )
+        }
+        13 => {
+            let p15 = cap("40a00000", "3fc00000", 0, 0, 1);
+            let resumed = cap("40a00000", "3fc00000", 1, 0, 1);
+            (
+                vec![ent(20, s)],
+                vec![vec![PAUSE_LIVE, PAUSE_LIVE, p15, p15, resumed, resumed]],
+                vec![
+                    pause_step(2, s, "00000000", 0, [11, 1, 1, 0, 1], [11, 1, 1, 0, 1]),
+                    pause_step(1, s, "3fc00000", 1, [11, 1, 1, 0, 1], [11, 1, 0, 1, 1]),
+                    pause_step(1, s, "41100000", 0, [11, 1, 0, 1, 1], [11, 1, 0, 1, 1]),
+                    pause_step(2, s, "00000000", 1, [11, 1, 0, 1, 1], [11, 1, 1, 0, 1]),
+                    pause_step(2, s, "00000000", 0, [11, 1, 1, 0, 1], [11, 1, 1, 0, 1]),
+                ],
+            )
+        }
+        _ => {
+            let paused = cap("40a00000", "40000000", 0, 0, 1);
+            let resumed = cap("40a00000", "40000000", 1, 0, 1);
+            let pair = vec![PAUSE_LIVE, PAUSE_LIVE, paused, paused, resumed];
+            (
+                vec![ent(20, s), ent(21, s), ent(22, 24)],
+                vec![pair.clone(), pair, vec![PAUSE_LIVE; 5]],
+                vec![
+                    pause_step(1, 99, "3f800000", 0, [13, 0, 0, 0, 0], [13, 0, 0, 0, 0]),
+                    pause_step(1, s, "40000000", 2, [13, 2, 2, 0, 2], [13, 2, 0, 2, 2]),
+                    pause_step(2, 24, "00000000", 0, [13, 1, 1, 0, 1], [13, 1, 1, 0, 1]),
+                    pause_step(2, s, "00000000", 2, [13, 2, 0, 2, 2], [13, 2, 2, 0, 2]),
+                ],
+            )
+        }
+    };
+    let label = LABELS_FOR_TESTS[case as usize - 1];
+    let mut text = head(case, label) + UNSUPPORTED + DATA_UNSUPPORTED;
+    text += "env-snd-unsupported item=resume_on_a_parent_other_than_the_session reason=needs_a_device_and_a_parent\\n";
+    text += "env-sound-data-input tag=descriptor sample=12 controlled_rate=4 controlled_size=20 retail_rate=22050 retail_size=0 original_rate=22050\\n";
+    for (index, step) in steps.iter().enumerate() {
+        let n = index + 1;
+        text += &format!(
+            "env-sound-step n={n} op={} sub={} delay_w={} returned={} made={}\\n",
+            step.op, step.sub, step.delay, step.returned, step.made
+        );
+        if let Some((before, after)) = step.scans {
+            for (when, scan) in [("before", before), ("after", after)] {
+                text += &format!(
+                    "env-sound-scan n={n} when={when} total={} of_type={} valid_of_type={} invalid_of_type={} linked_of_type={} complete=1\\n",
+                    scan[0], scan[1], scan[2], scan[3], scan[4]
+                );
+            }
+        }
+    }
+    for tag in 0..=steps.len() {
+        for (index, e) in ents.iter().enumerate() {
+            if let Some(c) = caps[index].get(tag) {
+                text += &state_row(index, e, tag as u32, Some(*c));
+            }
+        }
+    }
+    let mut rows: Vec<String> = Vec::new();
+    for (index, e) in ents.iter().enumerate() {
+        add(&mut rows, 0, index, e, 0, Some(PAUSE_LIVE), (4, 20, 1));
+    }
+    let mut calls = 0;
+    for (index, step) in steps.iter().enumerate() {
+        if step.made == 1 {
+            calls += 1;
+            add(&mut rows, 1, 0, &ents[0], calls, Some(caps[0][index]), (4, 20, 1));
+        }
+    }
+    text += &format!(
+        "env-snd-report armed=1 capacity=80 stored={} dropped=0 overflow=0 creations={} updates={calls} kills=0 frames=0 tracked={} open=0 track_all=0 untracked=0\\n",
+        rows.len(),
+        ents.len(),
+        ents.len()
+    );
+    text += &rows.concat();
+    text + &format!(
+        "env-sound-end i={case} changed=1 entities={} planned_entities={} steps={} calls={calls} descriptor_restored=1 delta_restored=1 entity_state_restored=0 process_isolated=required\\n",
+        ents.len(),
+        ents.len(),
+        steps.len()
+    )
+}
+
+#[test]
+fn each_pause_and_resume_case_is_written_as_the_fixture_reported_it_and_judged_by_nothing_physical() {
+    for (case, entities, steps, calls, returns) in [(11, 1, 2, 0, "1,1"), (12, 1, 6, 4, "1,1"), (13, 1, 5, 0, "0,1,0,1,0"), (14, 3, 4, 0, "0,2,0,2")] {
+        let number = case.to_string();
+        let driven = drive("", &[("case", number.as_str())]);
+        driven.result.clone().unwrap_or_else(|e| panic!("case {case}: {e}"));
+        let result = &of(&driven, "result")[0];
+        assert_eq!(
+            (
+                result["refused"].clone(),
+                result["entities"].clone(),
+                result["steps"].clone(),
+                result["calls"].clone(),
+                result["returns"].clone()
+            ),
+            (
+                serde_json::json!(false),
+                serde_json::json!(entities),
+                serde_json::json!(steps),
+                serde_json::json!(calls),
+                serde_json::json!(returns)
+            ),
+            "case {case}"
+        );
+        // every fixture row is on the file exactly as it came, the words kept as text
+        for line in pause_report(case).replace("\\n", "\n").lines() {
+            assert!(
+                driven.rows.iter().any(|row| row["scope"] == "case" && row["raw"] == line),
+                "case {case}: the row {line:?} is not on the file"
+            );
+        }
+        assert!(driven.rows.iter().all(|row| row["event"] != "witness_failure"), "case {case}");
+    }
+}
+
+#[test]
+fn a_pause_and_resume_case_the_fixture_refused_is_reported_as_refused_and_not_as_a_pass() {
+    for (case, reason) in [
+        (11, "the_process_is_not_the_server_so_the_server_kill_cannot_be_observed"),
+        (14, "there_is_no_free_entity_slot_for_the_real_constructor"),
+    ] {
+        let number = case.to_string();
+        let refused = head(case, LABELS_FOR_TESTS[case as usize - 1])
+            + UNSUPPORTED
+            + DATA_UNSUPPORTED
+            + "env-snd-unsupported item=resume_on_a_parent_other_than_the_session reason=needs_a_device_and_a_parent\\n"
+            + &format!("env-sound-end i={case} refused={reason} changed=0 process_isolated=required\\n");
+        let driven = drive(&format!("report = {{ [{case}] = '{refused}' }}"), &[("case", number.as_str())]);
+        driven.result.clone().expect("a refusal is evidence, not a failure of the witness");
+        let result = &of(&driven, "result")[0];
+        assert_eq!(
+            (result["refused"].clone(), result["refusal"].clone()),
+            (serde_json::json!(true), serde_json::json!(reason))
+        );
+        assert!(
+            of(&driven, "env-sound-step").is_empty() && of(&driven, "env-sound-state").is_empty(),
+            "a refused case holds no step or state row"
+        );
+    }
+}
+
+#[test]
+fn a_pause_and_resume_report_that_does_not_join_its_own_observations_is_a_failure_of_the_witness() {
+    let damaged: Vec<(&str, &str, String, &str)> = vec![
+        ("11", "a pause whose returned count the scans do not show", edit("if index == 11 then return (text:gsub('returned=1 made=0', 'returned=2 made=0', 1)) end"), "does not join the scans"),
+        ("11", "a scan that did not finish", edit("if index == 11 then return (text:gsub('linked_of_type=1 complete=1', 'linked_of_type=1 complete=0', 1)) end"), "did not finish"),
+        ("11", "a step that is not the declared operation", edit("if index == 11 then return (text:gsub('env%-sound%-step n=2 op=2', 'env-sound-step n=2 op=1', 1)) end"), "is not the declared step"),
+        ("11", "a delay that is not the declared one", edit("if index == 11 then return (text:gsub('delay_w=3fc00000', 'delay_w=40000000', 1)) end"), "does not declare the delay word"),
+        ("11", "a scan that counts children of the sub type the cohort does not hold", edit("if index == 11 then return (text:gsub('when=before total=11 of_type=1', 'when=before total=11 of_type=2', 1)) end"), "cannot be attributed to the cohort"),
+        ("13", "a no-op resume that the cohort's states say flipped an effect", edit("if index == 13 then return (text:gsub('tag=1 etype=32 data=1 sub=23 valid=1', 'tag=1 etype=32 data=1 sub=23 valid=0', 1)) end"), "against the direction of the call"),
+        ("14", "a pause that changed an effect of another sub type", edit("if index == 14 then return (text:gsub('ent=2 slot=22 tag=2 etype=32 data=1 sub=24 valid=1', 'ent=2 slot=22 tag=2 etype=32 data=1 sub=24 valid=0', 1)) end"), "of another sub type"),
+        ("14", "a step that names a sub type the cohort holds as the absent one", edit("if index == 14 then return (text:gsub('op=1 sub=99', 'op=1 sub=23', 1)) end"), "a sub type nobody holds"),
+        ("12", "an update said to be made on an unlinked effect", edit("if index == 12 then return (text:gsub('env%-sound%-step n=6 op=3 sub=0 delay_w=00000000 returned=0 made=1', 'env-sound-step n=6 op=3 sub=0 delay_w=00000000 returned=0 made=0', 1)) end"), "says made"),
+        ("12", "an update count the probe did not count", edit("if index == 12 then return (text:gsub('updates=4', 'updates=3', 1)) end"), "probe counted 3 updates"),
+        ("12", "an ENTER record that is not the state before its update", edit("if index == 12 then return (text:gsub('seq=4 point=1 n=0 tracked=0 frame=0 upd=4 entity=20 etype=32 sub=23 channel=1 locality=0 valid=1', 'seq=4 point=1 n=0 tracked=0 frame=0 upd=4 entity=20 etype=32 sub=23 channel=1 locality=0 valid=0', 1)) end"), "ENTER record of update 4"),
+        ("12", "a descriptor that was not put back", edit("if index == 12 then return (text:gsub('descriptor_restored=1', 'descriptor_restored=0', 1)) end"), "descriptor was not put back"),
+        ("12", "an effect that is no longer a live sound effect", edit("if index == 12 then return (text:gsub('tag=3 etype=32 data=1', 'tag=3 etype=0 data=0', 1)) end"), "not a live sound effect"),
+        ("13", "a state row that skips a tag", edit("if index == 13 then return (text:gsub('ent=0 slot=20 tag=3', 'ent=0 slot=20 tag=4', 1)) end"), "go to tag"),
+    ];
+    for (case, name, scenario, says) in &damaged {
+        let driven = drive(scenario, &[("case", *case)]);
+        let error = driven
+            .result
+            .clone()
+            .expect_err(&format!("{name}: a damaged report was accepted:\n{}", driven.text));
+        assert!(
+            error.contains("env-sound-lifetime:") && error.contains(*says),
+            "{name}: expected {says:?} in {error:?}"
+        );
+        assert!(!of(&driven, "witness_failure").is_empty(), "{name}: no witness_failure row");
+        assert!(of(&driven, "result").is_empty(), "{name}: a result row was written for a damaged report");
     }
 }

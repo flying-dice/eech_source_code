@@ -1,3 +1,53 @@
+# D3 original sound pause/resume — characterization source prepared (31 October 2026; characterization only; UNBUILT natively, UNRUN, UNREVIEWED)
+
+Uncommitted source batch on top of the closed e502 host-lifetime slice. It adds
+test-only observer-feature fixture cases 11 to 14 (`eech_env_fixture.c`
+`env_snd_pause_case`), their driver branch (`env-sound-lifetime.lua`) and stand-in
+tests (`env_sound_lifetime.rs`) for the ORIGINAL `pause_local_entity_sound_type`
+(`soundeff.c:97`) and `resume_local_entity_sound_type` (`:145`). Baseline: the
+e502 / current hosted field-and-lifetime state with the original untouched
+pause/resume routines, not a wholly original DLL. Production pause/resume, the
+host-lifetime kernels and protocol, asset metadata, backend, accepted case IDs
+0 to 10 and the old controls are unchanged. The fixture C changed, so Root must
+build a NEW native.
+
+Cases: 11 pause then resume while still linked; 12 resume after the unlink and
+updates after; 13 repeated and no-op pause/resume counts; 14 sub type isolation
+and every match. The session parent's resume play call is the default no-op, so
+validity and update-list relink are measurable without a device or handle. Each
+case preflights its allocations, scans the entity table within `number_of_entities`
+(a `complete` flag, never truncated), and makes no call through a freed entity.
+The driver joins observations (return counts, scans before/after, cohort flips,
+update steps, the probe's CREATED/ENTER records) and computes no physical value.
+Unrelated boot sound children are legitimately in the totals. The end row says
+`entity_state_restored=0 process_isolated=required`: the descriptor, delta and
+tracking are restored, the entity state is NOT (each case needs its own process).
+
+Not covered, printed as unsupported: resume on a non-session parent (range and
+per-family playback), playing/idle handles (need the device), independent
+destroy, network, per-vehicle amplitude/pitch, audible delivery. Nothing here
+moves pause/resume into the host.
+
+My own WIP checks (Linux container, offline, no network, exclusive-new logs
+`sound-pause-WIP-20261101-d4.log` and `-d5.log`; the filenames carry the local
+date, the actual execution date is 31 October UTC): rustfmt 0; default and
+observer-feature C compile 0; `env_sound_lifetime` driver tests 17 passed
+(three new tests, 14 damaged-report forms); `eech-world` lib 264 passed;
+clippy 0; `eech-dc` lib 28, `eech-engine` env 4 and `host_callbacks` 45 passed.
+No Windows fixture executable or retail campaign was run; the native Linux
+unit tests above are WIP checks. Disclosure: the exit
+tags of the earlier argument-passing logs (a4, c2, d2, d3 and similar) are not
+trustworthy because an intermediate shell expanded `$?` early; those were judged
+by their log text. The d4 and d5 runs read their steps from a file, so their
+tags are real. The first `d1` raw log remains unavailable. Failed and earlier
+logs are retained.
+
+Root next: pin the NEW immutable source/build; the same reviewer reviews only
+the new delta; fresh verified retail roots; measure cases 11 to 14 once in
+isolated processes; compare and investigate actual differences; then an
+independent actual review before moving pause/resume into the host. Whole
+Task51/D3 and shipping remain open; D4/D5 unstarted.
+
 # D3 host sound lifetime — measured conformance and ownership pass (31 October 2026, 23:09 UTC; finite measured slice reviewed)
 
 Physical native/source `e5020587153e1922acdc412598c4920501988a9a` completes

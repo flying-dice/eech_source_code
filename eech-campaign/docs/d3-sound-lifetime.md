@@ -264,3 +264,32 @@ caller's complete x87/MXCSR state are the same whatever the seeded state). No ex
 meets the selected case 6 constructor (not a looping boot effect, which the campaign correctly refuses) and `withheld_init` stops at the case 6 `engine_failure` row, never inside boot. The finite guards model the boot init requests. (3) *What `changed` proves.* It now reads the
 entity's own state words: the host answered every update with the lifetime it was given and no expiry, so the constructor's lifetime word must be the word after every one of the three calls and the entity must be killed by nobody; that establishes both the aging and the kill
 decision. `healthy` additionally requires the lifetime word to have aged after the first call. The delegate's grammar, rows and original driver behavior are unchanged.
+
+## Original pause/resume characterization (source prepared 31 October 2026; characterization only; UNBUILT natively, UNRUN, UNREVIEWED)
+
+**Scope and baseline.** The baseline is named exactly: the e502 / current hosted field-and-lifetime state with the ORIGINAL, untouched `pause_local_entity_sound_type` (`soundeff.c:97`) and `resume_local_entity_sound_type` (`soundeff.c:145`). It is not a wholly original
+DLL: the lifetime decisions of the entities these routines act on are the host's (e502), and only the pause and resume routines are the original C. Nothing in production code, the host-lifetime kernels or protocol, the asset metadata or the backend changed, and no accepted case ID
+(0 to 10) or old control was altered. This batch adds test-only observer-feature fixture cases 11 to 14 (`env_snd_pause_case` in `eech_env_fixture.c`) and their driver branch (`env-sound-lifetime.lua`). A new fixture C means a NEW native must be built before anything is measured.
+
+**What the source says (read).** Pause sets `valid` to FALSE and `valid_effect_lifetime` to the delay only for a VALID sound child of the parent whose sub type matches, and returns the count it changed. Resume, for an INVALID matching child, sets `valid` TRUE, calls
+`play_local_entity_sound` on the parent, inserts the child into the update list if it is absent, and returns the count. The session parent's play call is `default_play_entity_sound` (`en_snd.c`), a no-op (the session has no overload), so the validity change and the relink are
+measurable without a device or a handle. Unrelated sound children of the session (the campaign's boot builds ambient ones) are left alone by a different sub type and are legitimately present in the totals.
+
+**The cases (each builds its own small cohort of real sound entities, preflights every allocation, and calls the real routines in a printed order):**
+
+| case | label | what it observes |
+|---|---|---|
+| 11 | `pause_then_resume_while_still_linked` | one effect: pause, then resume before any update has unlinked it: validity, return counts, list membership before and after |
+| 12 | `resume_after_the_unlink_and_updates_after` | one effect: pause, three server updates (the countdown and the unlink), resume after the unlink (the relink), one more update |
+| 13 | `repeated_and_no_op_pause_and_resume_counts` | resume before any pause (no-op), pause twice with different delays, resume twice: the return counts of repeated and no-op calls |
+| 14 | `subtype_isolation_and_every_match` | three effects of two sub types (two of one, one of another): a pause of a sub type nobody holds, a pause of the one held by two, a resume of the other, a resume of the first |
+
+Each step row (`env-sound-step`) records the call, the sub type, the delay word (taken with `memcpy`), the real return count and the number of updates made. Each scan row (`env-sound-scan`, before and after every step) counts, over the whole entity table (bounded by
+`number_of_entities`, with a `complete` flag, never truncated): sound children in total, of the sub type, valid, invalid and linked in the update list. State rows capture the entity words by value. The driver joins these observations to one another (return count to cohort flips,
+membership to the steps, state rows to the probe's CREATED and ENTER records) and computes NO delay, countdown or relink value. A difference is a reported observation, a malformed or self-contradicting report is a witness failure, a fixture refusal is a refusal, and an engine stop is an `engine_failure`.
+
+**Restoration, stated honestly.** The end row restores the sound descriptor (rate and size), the delta and the tracking, and says `entity_state_restored=0 process_isolated=required`: the effects stay as the original routines left them, so each case must run in its own process, and the
+report is not full state restoration. No call is made through a freed entity: the cohort is not freed before the last observation, and a server update is made only while the effect is live, a sound effect and in the update list.
+
+**Not covered (printed as `env-snd-unsupported`, never a pass):** a resume on a parent other than the session (the range calculation and the per-family playback function); the playing and idle handles after expiry (they need the sound system's device); the independent destroy and network paths;
+per-vehicle amplitude and pitch; any audible or player-side delivery. The follow-ups are controls on an aircraft or vehicle parent with a device. These cases do NOT move pause or resume into the host; that waits for the measurement, the comparison and an independent review.

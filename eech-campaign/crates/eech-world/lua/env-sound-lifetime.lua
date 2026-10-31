@@ -15,6 +15,12 @@
 --            8 data_looping_server_and_client_not_aged  9 data_invalid_server_countdown_and_unlink  10 data_invalid_client_countdown_and_unlink (made invalid by the REAL pause function)
 --            The driver checks shape, restoration, calls, tracked entities and a chain that belongs to the routine; every lifetime, clamp, cap and unlink is OBSERVED, never expected. No handle exists.
 --
+--   11 to 14 PAUSE AND RESUME cases (csrc/eech_env_fixture.c env_snd_pause_case), observations of the ORIGINAL pause_local_entity_sound_type and resume_local_entity_sound_type called on the SESSION (the resume's play call
+--            is the session's default no-op, so no device or handle is involved): 11 pause_then_resume_while_still_linked, 12 resume_after_the_unlink_and_updates_after (the countdown and unlink, then the relink, then one
+--            more update), 13 repeated_and_no_op_pause_and_resume_counts, 14 subtype_isolation_and_every_match. The driver joins the observations to each other (scans before and after, the returned count, the cohort's
+--            validity flips, the sub types left alone, the update steps against the update-list membership, the probe's CREATED and ENTER records) and computes nothing. The effects stay as the original left them: the end row
+--            says entity_state_restored=0. A resume on a parent other than the session (range and per-family playback) and the playing and idle handles are NOT exercised and printed as unsupported.
+--
 -- No playback handle is ever created or faked: the branches that need one (a handle that is playing, or is not) are reported as UNSUPPORTED, never as a pass. A process that is not the server, or has no session, REFUSES
 -- cases 1 and 2 (the fixture says why) and that refusal is reported here as a refusal. No audible, network or player-side delivery is exercised or claimed.
 -- The lifetime is whatever the loaded sample data gives and is never lengthened for the fixture: the server routine may kill the entity at its FIRST call, and then the fixture skips the second call (it would read freed
@@ -37,9 +43,10 @@ if type (out_path) ~= "string" or out_path == "" then refuse ("out=<JSON Lines p
 -- cases 1 to 3 are the primitive controls; 4 to 10 are the CONTROLLED-DATA cases (controlled sample descriptors, the real constructor and the real update routines)
 local PRIMITIVE_CASES = 3
 local LABELS = { "server_branch_ages_then_expires", "client_branch_ages_and_clamps", "playback_prerequisites", "data_positive_server_ages_and_expires", "data_positive_client_clamps", "data_sequence_accumulates",
-	"data_caps_nonmusic_and_music", "data_looping_server_and_client_not_aged", "data_invalid_server_countdown_and_unlink", "data_invalid_client_countdown_and_unlink" }
+	"data_caps_nonmusic_and_music", "data_looping_server_and_client_not_aged", "data_invalid_server_countdown_and_unlink", "data_invalid_client_countdown_and_unlink",
+	"pause_then_resume_while_still_linked", "resume_after_the_unlink_and_updates_after", "repeated_and_no_op_pause_and_resume_counts", "subtype_isolation_and_every_match" }
 local case = tonumber (args.case)
-if not case or case ~= math.floor (case) or LABELS [case] == nil then refuse ("case must be an integer from 1 to 10, got '" .. tostring (args.case) .. "'") end
+if not case or case ~= math.floor (case) or LABELS [case] == nil then refuse ("case must be an integer from 1 to 14, got '" .. tostring (args.case) .. "'") end
 local scenarios = {
 	lebanon_retail = { map = "..\\common\\maps\\map5", campaign = "LEBANON.CHC" },
 	georgia_retail = { map = "..\\common\\maps\\map3", campaign = "GEORGIA.CHC" },
@@ -221,6 +228,26 @@ local DATA = {
 	[10] = { L = { 4, 20 }, entities = 1, calls = 3, routines = { "client" }, delta = "3f800000", looping = "0", pause = "3fc00000" },
 }
 
+-- THE DECLARED COHORT of each pause and resume case (csrc/eech_env_fixture.c env_snd_pause_case): the labels of the effects it builds (one label is one sub type, different labels are different sub types; the label V is a sub type
+-- nobody holds), and its steps in order: op 1 = the real pause with the delay word, op 2 = the real resume, op 3 = one server update of the first effect (made only while it is live and in the update list). These are the inputs of
+-- the control, not outcomes.
+local PAUSE = {
+	[11] = { entities = 1, subs = { "S" }, steps = { { op = 1, target = "S", delay = "3fc00000" }, { op = 2, target = "S" } } },
+	[12] = { entities = 1, subs = { "S" }, steps = { { op = 1, target = "S", delay = "3fc00000" }, { op = 3 }, { op = 3 }, { op = 3 }, { op = 2, target = "S" }, { op = 3 } } },
+	[13] = { entities = 1, subs = { "S" }, steps = { { op = 2, target = "S" }, { op = 1, target = "S", delay = "3fc00000" }, { op = 1, target = "S", delay = "41100000" }, { op = 2, target = "S" }, { op = 2, target = "S" } } },
+	[14] = { entities = 3, subs = { "S", "S", "T" }, steps = { { op = 1, target = "V", delay = "3f800000" }, { op = 1, target = "S", delay = "40000000" }, { op = 2, target = "T" }, { op = 2, target = "S" } } },
+}
+
+-- two captures of the same moment of the same entity agree in every field they both hold; nothing writes to the entity in between, and nothing is recomputed
+local function join_state_record (state, record, what, ent)
+	for _, pair in ipairs ({ { "etype", "etype" }, { "sub", "sub" }, { "valid", "valid" }, { "looping", "looping" }, { "member", "update_member" }, { "handle", "handle" }, { "life_w", "life_w" }, { "vlife_w", "vlife_w" }, { "slot", "entity" } }) do
+		if state.map [pair [1]] ~= record.map [pair [2]] then
+			hard ("the " .. what .. " of entity " .. ent .. " disagrees with its state row in " .. pair [1] .. " (" .. state.map [pair [1]] .. " against " .. record.map [pair [2]] .. "): " .. state.raw .. " | " .. record.raw)
+		end
+	end
+end
+
+
 -- ---------------------------------------------------------------------------------------------------------------- the plan, then the one control
 -- THE INDEX-0 REPORT as the C prints it here: the plan, the facts, two unsupported rows, ONE probe report. A process that has run no frame holds no record; the natural run is the other driver's.
 local plan = ask (0)
@@ -261,6 +288,214 @@ if case == 3 then
 	if #rows ~= 5 or rows [3].event ~= "env-snd-unsupported" or rows [4].event ~= "env-snd-unsupported" then hard ("case 3 is not a head, the facts, two unsupported rows and an end row") end
 	check (rows [3], "item:s reason:s", "the control")
 	check (rows [4], "item:s reason:s", "the control")
+elseif case >= 11 then
+	-- THE PAUSE AND RESUME CASES (csrc/eech_env_fixture.c env_snd_pause_case): the real pause_local_entity_sound_type and resume_local_entity_sound_type, called on the SESSION in the order printed, on a small cohort
+	-- of valid effects built by the real constructor. The driver checks SHAPE and JOINS OBSERVATIONS TO EACH OTHER, never to a guessed answer: the declared steps, the scans of the session's children before and
+	-- after each call (complete, nothing else changed), the call's returned count against the scans and against the cohort's own validity flips (the session's other sound children are of other sub types and a
+	-- legitimate part of the totals), a sub type that is not the step's left alone, the update steps against the update-list membership the state rows show, the constructor state against the probe's CREATED record and
+	-- each update's state before it against its ENTER record. It does NOT compute a delay, a countdown, a relink or a count. The effects stay as the original left them: the end row says so.
+	local spec = PAUSE [case]
+	for at = 3, 6 do
+		if rows [at].event ~= "env-snd-unsupported" then hard ("the pause and resume case does not give its four unsupported rows after the facts: " .. rows [at].raw) end
+		check (rows [at], "item:s reason:s", "the control")
+	end
+	if refused then
+		check (last, "i:n refused:s changed=0 process_isolated=required", "the control")
+		if #rows ~= 7 then hard ("a refused pause and resume case has rows besides its head, its facts, its four unsupported rows and its end: " .. #rows) end
+		local reason = last.map.refused
+		if reason ~= "the_process_is_not_the_server_so_the_server_kill_cannot_be_observed" and reason ~= "there_is_no_session_entity_to_parent_the_sound_effect" and reason ~= "there_is_no_free_entity_slot_for_the_real_constructor" then
+			hard ("the control is refused for a reason the fixture does not give: " .. reason)
+		end
+	else
+		check (last, "i:n changed=1 entities:n planned_entities:n steps:n calls:n descriptor_restored:b delta_restored:b entity_state_restored=0 process_isolated=required", "the control")
+		if last.map.descriptor_restored ~= "1" then hard ("FIXTURE DEFECT: the sample descriptor was not put back after the control: " .. last.raw) end
+		if last.map.delta_restored ~= "1" then hard ("FIXTURE DEFECT: the frame delta was not put back after the control: " .. last.raw) end
+		local entities, steps, calls = tonumber (last.map.entities), tonumber (last.map.steps), tonumber (last.map.calls)
+		if tonumber (last.map.planned_entities) ~= spec.entities then hard ("the control declares " .. last.map.planned_entities .. " entities where case " .. case .. " builds " .. spec.entities .. ": " .. last.raw) end
+		-- a control short of a slot stops after the entities it could build and takes no step: reported, not hidden
+		if entities > spec.entities or (entities < spec.entities and steps ~= 0) or (entities == spec.entities and steps ~= #spec.steps) or entities < 1 then
+			hard ("the control built " .. entities .. " of " .. spec.entities .. " entities and took " .. steps .. " of " .. #spec.steps .. " steps: " .. last.raw)
+		end
+		local at = 7
+		local descriptor = rows [at]
+		if descriptor == nil or descriptor.event ~= "env-sound-data-input" then hard ("the pause and resume case does not give its descriptor row") end
+		check (descriptor, "tag=descriptor sample:i controlled_rate=4 controlled_size=20 retail_rate:i retail_size:i original_rate:i", "the control")
+		at = at + 1
+		-- the steps, each with its scans (a pause or a resume), in order
+		local step_rows = {}
+		for n = 1, steps do
+			local s = rows [at]
+			if s == nil or s.event ~= "env-sound-step" then hard ("the pause and resume case does not give step row " .. n) end
+			check (s, "n:n op:n sub:i delay_w:w returned:n made:b", "the control")
+			local want = spec.steps [n]
+			if tonumber (s.map.n) ~= n or tonumber (s.map.op) ~= want.op then hard ("step row " .. n .. " is not the declared step (op " .. want.op .. "): " .. s.raw) end
+			if want.delay ~= nil and s.map.delay_w ~= want.delay then hard ("step " .. n .. " does not declare the delay word " .. want.delay .. ": " .. s.raw) end
+			at = at + 1
+			step_rows [n] = { row = s }
+			if want.op ~= 3 then
+				for _, when in ipairs ({ "before", "after" }) do
+					local scan = rows [at]
+					if scan == nil or scan.event ~= "env-sound-scan" then hard ("step " .. n .. " has no " .. when .. " scan") end
+					check (scan, "n:n when:s total:n of_type:n valid_of_type:n invalid_of_type:n linked_of_type:n complete:b", "the control")
+					if tonumber (scan.map.n) ~= n or scan.map.when ~= when then hard ("the " .. when .. " scan of step " .. n .. " is out of place: " .. scan.raw) end
+					if scan.map.complete ~= "1" then hard ("the " .. when .. " scan of step " .. n .. " did not finish: the session's child list was not walked whole: " .. scan.raw) end
+					step_rows [n] [when] = scan.map
+					at = at + 1
+				end
+			elseif s.map.returned ~= "0" then
+				hard ("an update step returns a count: " .. s.raw)
+			end
+		end
+		-- the states: every cohort effect at every tag 0 (the constructor) to steps
+		local states, next_tag = {}, {}
+		while rows [at] ~= nil and rows [at].event == "env-sound-state" do
+			local s = rows [at]
+			check (s, "ent:n slot:i tag:n etype:i data:b sub:i valid:b looping:b member:b handle:b life_w:w vlife_w:w", "the control")
+			local ent, tag = tonumber (s.map.ent), tonumber (s.map.tag)
+			if ent >= entities then hard ("a state row is of entity " .. ent .. " where the control built " .. entities .. ": " .. s.raw) end
+			states [ent] = states [ent] or {}
+			next_tag [ent] = next_tag [ent] or 0
+			if tag ~= next_tag [ent] then hard ("the state rows of entity " .. ent .. " go to tag " .. tag .. " where tag " .. next_tag [ent] .. " is next: " .. s.raw) end
+			if tag == 0 and (s.map.valid ~= "1" or s.map.looping ~= "0") then hard ("FIXTURE DEFECT: the created entity " .. ent .. " has valid " .. s.map.valid .. " looping " .. s.map.looping .. ": " .. s.raw) end
+			if tag > 0 and s.map.slot ~= states [ent] [0].map.slot then hard ("the state rows of entity " .. ent .. " change slot: " .. s.raw) end
+			if s.map.data ~= "1" or s.map.etype == "0" then hard ("entity " .. ent .. " is not a live sound effect at tag " .. tag .. " (no step of these cases frees an entity): " .. s.raw) end
+			states [ent] [tag] = s
+			next_tag [ent] = tag + 1
+			at = at + 1
+		end
+		for ent = 0, entities - 1 do
+			if states [ent] == nil or next_tag [ent] ~= steps + 1 then hard ("entity " .. ent .. " has " .. (next_tag [ent] or 0) .. " state rows where " .. steps + 1 .. " are expected") end
+		end
+		-- the cohort's sub types: effects of one label share a sub type, different labels differ, and the step's target is its label's sub type (the absent label V is nobody's)
+		local sub_of = {}
+		for ent = 0, entities - 1 do
+			local label = spec.subs [ent + 1]
+			local sub = states [ent] [0].map.sub
+			if sub_of [label] ~= nil and sub_of [label] ~= sub then hard ("entities of the label " .. label .. " have different sub types: " .. states [ent] [0].raw) end
+			for other, other_sub in pairs (sub_of) do
+				if other ~= label and other_sub == sub then hard ("the labels " .. label .. " and " .. other .. " share the sub type " .. sub) end
+			end
+			sub_of [label] = sub
+			for tag = 1, steps do
+				if states [ent] [tag].map.sub ~= sub then hard ("entity " .. ent .. " changes sub type at tag " .. tag) end
+			end
+		end
+		local total_made = 0
+		for n = 1, steps do
+			local want, got = spec.steps [n], step_rows [n]
+			local before_tag, after_tag = n - 1, n
+			if want.op == 3 then
+				-- the update step touches the first effect only, and is made exactly when that effect is live and a member of the update list
+				local made = got.row.map.made
+				local prev = states [0] [before_tag].map
+				if made ~= ((prev.data == "1" and prev.member == "1") and "1" or "0") then hard ("update step " .. n .. " says made " .. made .. " where the effect's state before it has member " .. prev.member .. ": " .. got.row.raw) end
+				if made == "1" then total_made = total_made + 1 end
+				for ent = 1, entities - 1 do
+					for _, field in ipairs ({ "valid", "looping", "member", "handle", "life_w", "vlife_w" }) do
+						if states [ent] [before_tag].map [field] ~= states [ent] [after_tag].map [field] then hard ("update step " .. n .. " changed " .. field .. " of entity " .. ent) end
+					end
+				end
+			else
+				local target_sub = sub_of [want.target]
+				local matching = 0
+				for ent = 0, entities - 1 do
+					if spec.subs [ent + 1] == want.target then matching = matching + 1 end
+				end
+				local returned = tonumber (got.row.map.returned)
+				if got.row.map.made ~= "0" then hard ("a pause or resume step says an update was made: " .. got.row.raw) end
+				if want.target == "V" then
+					for _, label in ipairs (spec.subs) do
+						if sub_of [label] == got.row.map.sub then hard ("step " .. n .. " names the sub type " .. got.row.map.sub .. " that the cohort holds, where the case declares a sub type nobody holds") end
+					end
+				elseif got.row.map.sub ~= target_sub then
+					hard ("step " .. n .. " names the sub type " .. got.row.map.sub .. " where its target label " .. want.target .. " is " .. target_sub)
+				end
+				local b, a = got.before, got.after
+				-- the scans: nothing but the validity counts of the sub type moved, and by the returned count
+				if tonumber (b.of_type) ~= matching then hard ("step " .. n .. ": the session holds " .. b.of_type .. " sound children of the sub type where the cohort holds " .. matching .. ": the count cannot be attributed to the cohort") end
+				if b.total ~= a.total or b.of_type ~= a.of_type then hard ("step " .. n .. ": the scans disagree about the children that exist") end
+				local dv = want.op == 1 and -returned or returned
+				if tonumber (a.valid_of_type) ~= tonumber (b.valid_of_type) + dv or tonumber (a.invalid_of_type) ~= tonumber (b.invalid_of_type) - dv then
+					hard ("step " .. n .. ": the returned count " .. returned .. " does not join the scans (valid " .. b.valid_of_type .. " to " .. a.valid_of_type .. ", invalid " .. b.invalid_of_type .. " to " .. a.invalid_of_type .. ")")
+				end
+				-- the cohort: exactly the returned number of its effects of the target sub type flipped validity, in the direction of the call, and nothing else of an effect of another sub type changed
+				local flips = 0
+				for ent = 0, entities - 1 do
+					local was, now = states [ent] [before_tag].map, states [ent] [after_tag].map
+					if spec.subs [ent + 1] == want.target then
+						if was.valid ~= now.valid then
+							flips = flips + 1
+							if (want.op == 1 and (was.valid ~= "1" or now.valid ~= "0")) or (want.op == 2 and (was.valid ~= "0" or now.valid ~= "1")) then hard ("step " .. n .. " flipped entity " .. ent .. " against the direction of the call") end
+						end
+					else
+						for _, field in ipairs ({ "valid", "looping", "member", "handle", "life_w", "vlife_w" }) do
+							if was [field] ~= now [field] then hard ("step " .. n .. " (sub type " .. got.row.map.sub .. ") changed " .. field .. " of entity " .. ent .. " of another sub type") end
+						end
+					end
+				end
+				if flips ~= returned then hard ("step " .. n .. " returned " .. returned .. " but " .. flips .. " effects of the cohort changed validity") end
+			end
+		end
+		if total_made ~= calls then hard ("the control says " .. calls .. " update calls but its steps show " .. total_made) end
+		local report = rows [at]
+		if report == nil or report.event ~= "env-snd-report" then hard ("the pause and resume case does not give the probe's report after its states") end
+		check (report, REPORT, "the control")
+		if report.map.armed ~= "1" then hard ("the sound entity probe says it is not armed: " .. report.raw) end
+		if report.map.dropped ~= "0" or report.map.overflow ~= "0" then hard ("the sound entity probe dropped " .. report.map.dropped .. " records: the record is incomplete") end
+		if report.map.untracked ~= "0" then hard ("the probe lost track of " .. report.map.untracked .. " creations") end
+		if tonumber (report.map.creations) ~= entities or tonumber (report.map.tracked) ~= entities or report.map.open ~= "0" or report.map.track_all ~= "0" then
+			hard ("the control built " .. entities .. " entities and switched tracking off again, but the probe says otherwise: " .. report.raw)
+		end
+		if tonumber (report.map.updates) ~= calls then hard ("the probe counted " .. report.map.updates .. " updates but the control made " .. calls .. " calls") end
+		at = at + 1
+		local records, groups = {}, {}
+		for n = at, #rows - 1 do
+			local r = rows [n]
+			if r.event ~= "env-snd" then hard ("a row between the probe's report and the end row is not a probe record: " .. r.raw) end
+			check (r, RECORD, "the control")
+			if tonumber (r.map.seq) ~= #records then hard ("the probe record " .. #records .. " has seq " .. r.map.seq) end
+			records [#records + 1] = r
+			local tracked = tonumber (r.map.tracked)
+			if tracked < 0 or tracked >= entities then hard ("the probe record " .. r.map.seq .. " is of an untracked entity: " .. r.raw) end
+			groups [tracked] = groups [tracked] or {}
+			groups [tracked] [#groups [tracked] + 1] = r
+		end
+		if tonumber (report.map.stored) ~= #records then hard ("the probe stored " .. report.map.stored .. " records but the control holds " .. #records) end
+		local kills_total = 0
+		for ent = 0, entities - 1 do
+			local group = groups [ent]
+			if group == nil then hard ("tracked entity " .. ent .. " has no creation record") end
+			local w = walk_chain (group, { tracked = tostring (ent), routine = "server", wrong_server = "the probe shows a client point for tracked entity " .. ent .. ": ", wrong_client = "" })
+			kills_total = kills_total + w.kills
+			if (w.kills == 1) ~= (states [ent] [steps].map.data == "0") then hard ("entity " .. ent .. ": the probe's kill record and the final slot state disagree") end
+			-- the constructor metadata of every record is the declared descriptor (nothing computed), and the captures of one moment agree
+			join_state_record (states [ent] [0], group [1], "CREATED record", ent)
+			local entered = 0
+			for _, r in ipairs (group) do
+				local m = r.map
+				if tonumber (m.point) ~= 5 and (m.sample ~= descriptor.map.sample or m.rate ~= "4" or m.size ~= "20" or m.orate ~= descriptor.map.original_rate or m.seqcount ~= "1") then
+					hard ("the probe record " .. m.seq .. " of entity " .. ent .. " does not carry the declared constructor input (sample " .. descriptor.map.sample .. ", rate 4, size 20): " .. r.raw)
+				end
+				if tonumber (m.point) == 1 then
+					-- the j-th update of this effect is the j-th update step it was made in: its state before is the state after the step before
+					entered = entered + 1
+					local seen = 0
+					for n = 1, steps do
+						if spec.steps [n].op == 3 and step_rows [n].row.map.made == "1" then
+							seen = seen + 1
+							if seen == entered then join_state_record (states [ent] [n - 1], r, "ENTER record of update " .. entered, ent) end
+						end
+					end
+				end
+			end
+			if ent == 0 and w.enters ~= calls then hard ("entity 0 has " .. calls .. " update calls but " .. w.enters .. " stored entries") end
+			if ent > 0 and w.enters ~= 0 then hard ("entity " .. ent .. " was never updated but has " .. w.enters .. " stored entries") end
+		end
+		if kills_total ~= tonumber (report.map.kills) then hard ("the probe counted " .. report.map.kills .. " kills but its records show " .. kills_total) end
+		local returns = {}
+		for n = 1, steps do if spec.steps [n].op ~= 3 then returns [#returns + 1] = step_rows [n].row.map.returned end end
+		chain_summary = { records = #records, updates = calls, kills = kills_total, expiry = "", calls = calls, entities = entities, skipped = 0, partial = entities < spec.entities, steps = steps, returns = table.concat (returns, ",") }
+	end
 elseif case >= 4 then
 	-- THE CONTROLLED-DATA CASES (csrc/eech_env_fixture.c env_snd_data_case): the sample descriptor numbers are set to named controlled values, the REAL constructor builds the entity or entities and the REAL update
 	-- routines of the function table are called while the entity is live and in the update list. The driver checks the SHAPE and the bookkeeping that makes the evidence complete and coherent: the declared input domain of
@@ -403,13 +638,7 @@ elseif case >= 4 then
 		end
 		if tonumber (report.map.stored) ~= #records then hard ("the probe stored " .. report.map.stored .. " records but the control holds " .. #records) end
 		-- two captures of the same moment of the same entity agree in every field they both hold; nothing writes to the entity in between, and nothing is recomputed
-		local function same (state, record, what, ent)
-			for _, pair in ipairs ({ { "etype", "etype" }, { "sub", "sub" }, { "valid", "valid" }, { "looping", "looping" }, { "member", "update_member" }, { "handle", "handle" }, { "life_w", "life_w" }, { "vlife_w", "vlife_w" }, { "slot", "entity" } }) do
-				if state.map [pair [1]] ~= record.map [pair [2]] then
-					hard ("the " .. what .. " of entity " .. ent .. " disagrees with its state row in " .. pair [1] .. " (" .. state.map [pair [1]] .. " against " .. record.map [pair [2]] .. "): " .. state.raw .. " | " .. record.raw)
-				end
-			end
-		end
+		local same = join_state_record
 		local kills_total = 0
 		for ent = 0, entities - 1 do
 			local group = groups [ent]
@@ -515,6 +744,8 @@ if chain_summary ~= nil then
 	result.entities = chain_summary.entities
 	result.skipped = chain_summary.skipped
 	result.partial = chain_summary.partial
+	result.steps = chain_summary.steps
+	result.returns = chain_summary.returns
 	result.second_skipped = last.map.second_skipped
 	result.etype_after = last.map.etype_after
 	result.data_after = last.map.data_after

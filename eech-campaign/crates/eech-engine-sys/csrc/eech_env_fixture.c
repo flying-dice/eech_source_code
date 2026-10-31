@@ -2926,6 +2926,300 @@ static int env_snd_data_case (int index, char *text, int capacity, int *used)
 	return 0;
 }
 
+
+/*
+ * GROUP 14, indices 11..14: the ORIGINAL pause and resume of a sound type (soundeff.c pause_local_entity_sound_type and resume_local_entity_sound_type), observed (explicit only; observer build only; each
+ * PROCESS-ISOLATED, one per fresh process). TEST-ONLY, SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED. The baseline is the hosted field and sound-lifetime state of the current e502 build with these two routines
+ * ORIGINAL AND UNTOUCHED: it is not a wholly original DLL. Every call below is the real routine, called directly with the SESSION as the parent (the local routines, not the client/server variants that
+ * transmit over the network), in the order printed. The resume calls play_local_entity_sound on its parent, and for the session that is the default no-op of en_snd.c (no entity-type function is registered for
+ * the session), so the validity change and the update-list relink are observable WITHOUT a device or a playback handle; a resume on any other parent (the range calculation and the per-family playback) is NOT
+ * exercised here. Entities are built by the real constructor with a controlled descriptor (rate 4, size 20, restored), a valid non-looping lifetime and the sub types named below; the server update steps call
+ * the real update routine of the function table only while the entity is a live sound effect and a member of the update list.
+ *
+ *   11 pause_then_resume_while_still_linked        one effect: pause (delay 1.5), then resume: the validity round trip with the effect never unlinked
+ *   12 resume_after_the_unlink_and_updates_after   one effect: pause (1.5), three updates of delta 1.0 (the countdown and the unlink), the resume (the relink) and one more update
+ *   13 repeated_and_no_op_pause_and_resume_counts  one effect: resume of a valid effect, pause (1.5), a second pause (9.0), resume, a second resume
+ *   14 subtype_isolation_and_every_match           three effects (two of one sub type, one of another): a pause of a sub type nobody has, a pause of the first sub type, a resume of the second, a resume of the first
+ *
+ * Before and after each pause and resume the session's special-effect children are SCANNED (read only, bounded by the number of entities, the scan says whether it finished): how many sound children, how many of
+ * the sub type, how many of those valid, invalid and in the update list. The session already holds other sound children (the ambient sounds); they are of other sub types and a legitimate part of the totals. After
+ * every step every cohort effect is snapshotted (the words copied from the stored fields, nothing loaded as a float). Nothing here computes a result: the rows are what the original did.
+ * The effects stay as the original left them (the process is the isolation boundary): the end row restores and says so only for the descriptor, the delta and the tracking, and states entity_state_restored=0.
+ */
+
+#define ENV_SND_PAUSE_FIRST 11
+#define ENV_SND_PAUSE_LAST 14
+#define ENV_SND_STEPS 8
+#define ENV_SND_PAUSE_ENTITIES 3
+#define ENV_SND_STEP_PAUSE 1
+#define ENV_SND_STEP_RESUME 2
+#define ENV_SND_STEP_UPDATE 3
+
+struct env_snd_scan
+{
+	int total, of_type, valid_of_type, invalid_of_type, linked_of_type, complete;
+};
+
+struct env_snd_step
+{
+	int op, sub, returned, made;
+	float delay;
+	struct env_snd_scan before, after;
+};
+
+/* a read-only scan of the session's special-effect children; bounded by the number of entities (a longer list is a broken list, and the scan says it did not finish) */
+static void env_snd_scan_take (struct env_snd_scan *s, entity *parent, entity_sub_types type)
+{
+	entity *child;
+	int visited = 0;
+
+	memset (s, 0, sizeof (*s));
+
+	s->complete = 1;
+
+	for (child = get_local_entity_first_child (parent, LIST_TYPE_SPECIAL_EFFECT); child; child = get_local_entity_child_succ (child, LIST_TYPE_SPECIAL_EFFECT))
+	{
+		if (++visited > number_of_entities)
+		{
+			s->complete = 0;
+
+			break;
+		}
+
+		if (get_local_entity_type (child) == ENTITY_TYPE_SOUND_EFFECT)
+		{
+			sound_effect *raw = (sound_effect *) get_local_entity_data (child);
+
+			s->total++;
+
+			if (raw->eff.sub_type == type)
+			{
+				s->of_type++;
+
+				if (raw->valid_sound_effect)
+				{
+					s->valid_of_type++;
+				}
+				else
+				{
+					s->invalid_of_type++;
+				}
+
+				if (raw->eff.update_link.parent != NULL)
+				{
+					s->linked_of_type++;
+				}
+			}
+		}
+	}
+}
+
+static int env_snd_pause_case (int index, char *text, int capacity, int *used)
+{
+	static const char *const names[ENV_SND_PAUSE_LAST - ENV_SND_PAUSE_FIRST + 1] = {
+		"pause_then_resume_while_still_linked", "resume_after_the_unlink_and_updates_after", "repeated_and_no_op_pause_and_resume_counts", "subtype_isolation_and_every_match"
+	};
+	sound_effect_information *lightning = &application_sound_effects[SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING];
+	sound_sample_indices one = SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING;
+	const entity_sub_types sub_s = ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING1, sub_t = ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING2, sub_v = ENTITY_SUB_TYPE_EFFECT_SOUND_APU_TURBINE;
+	struct env_snd_snap snaps[ENV_SND_SNAPS];
+	struct env_snd_step steps[ENV_SND_STEPS];
+	entity *ents[ENV_SND_PAUSE_ENTITIES];
+	entity_sub_types ent_sub[ENV_SND_PAUSE_ENTITIES];
+	entity *parent;
+	void (*update) (entity *en) = fn_update_client_server_entity[ENTITY_TYPE_SOUND_EFFECT][COMMS_MODEL_SERVER];
+	int saved_rate, saved_size, n = 0, entities = 0, planned_entities, step_count = 0, calls = 0, i, k, descriptor_restored, delta_restored;
+	float saved_delta = system_delta_time;
+	const char *refusal = NULL;
+
+	memset (steps, 0, sizeof (steps));
+	memset (ents, 0, sizeof (ents));
+
+	switch (index)
+	{
+		case 11:
+		{
+			planned_entities = 1;
+			ent_sub[0] = sub_s;
+			steps[0].op = ENV_SND_STEP_PAUSE; steps[0].sub = sub_s; steps[0].delay = 1.5f;
+			steps[1].op = ENV_SND_STEP_RESUME; steps[1].sub = sub_s;
+			step_count = 2;
+			break;
+		}
+		case 12:
+		{
+			planned_entities = 1;
+			ent_sub[0] = sub_s;
+			steps[0].op = ENV_SND_STEP_PAUSE; steps[0].sub = sub_s; steps[0].delay = 1.5f;
+			steps[1].op = ENV_SND_STEP_UPDATE;
+			steps[2].op = ENV_SND_STEP_UPDATE;
+			steps[3].op = ENV_SND_STEP_UPDATE;
+			steps[4].op = ENV_SND_STEP_RESUME; steps[4].sub = sub_s;
+			steps[5].op = ENV_SND_STEP_UPDATE;
+			step_count = 6;
+			break;
+		}
+		case 13:
+		{
+			planned_entities = 1;
+			ent_sub[0] = sub_s;
+			steps[0].op = ENV_SND_STEP_RESUME; steps[0].sub = sub_s;
+			steps[1].op = ENV_SND_STEP_PAUSE; steps[1].sub = sub_s; steps[1].delay = 1.5f;
+			steps[2].op = ENV_SND_STEP_PAUSE; steps[2].sub = sub_s; steps[2].delay = 9.0f;
+			steps[3].op = ENV_SND_STEP_RESUME; steps[3].sub = sub_s;
+			steps[4].op = ENV_SND_STEP_RESUME; steps[4].sub = sub_s;
+			step_count = 5;
+			break;
+		}
+		default:
+		{
+			planned_entities = 3;
+			ent_sub[0] = sub_s;
+			ent_sub[1] = sub_s;
+			ent_sub[2] = sub_t;
+			steps[0].op = ENV_SND_STEP_PAUSE; steps[0].sub = sub_v; steps[0].delay = 1.0f;
+			steps[1].op = ENV_SND_STEP_PAUSE; steps[1].sub = sub_s; steps[1].delay = 2.0f;
+			steps[2].op = ENV_SND_STEP_RESUME; steps[2].sub = sub_t;
+			steps[3].op = ENV_SND_STEP_RESUME; steps[3].sub = sub_s;
+			step_count = 4;
+			break;
+		}
+	}
+
+	ENV_EMIT ("env-sound kind=control i=%d label=%s comms=%d\n", index, names[index - ENV_SND_PAUSE_FIRST], (int) get_comms_model ());
+
+	if (env_snd_facts (text, capacity, used, "control") != 0 || env_snd_unsupported (text, capacity, used) != 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-snd-unsupported item=playing_or_idle_handle_after_expiry reason=needs_a_real_sound_system_device_and_the_play_path_no_handle_is_created_or_faked_follow_up_is_a_device_control_with_a_playing_and_an_idle_handle\n");
+	ENV_EMIT ("env-snd-unsupported item=resume_on_a_parent_other_than_the_session reason=the_range_calculation_and_the_per_family_playback_function_are_not_exercised_follow_up_is_a_control_on_an_aircraft_or_vehicle_parent_with_a_device\n");
+
+	if (get_comms_model () != COMMS_MODEL_SERVER)
+	{
+		refusal = "the_process_is_not_the_server_so_the_server_kill_cannot_be_observed";
+	}
+	else if (!get_session_entity ())
+	{
+		refusal = "there_is_no_session_entity_to_parent_the_sound_effect";
+	}
+	else if (!env_snd_slots_free (planned_entities))
+	{
+		refusal = "there_is_no_free_entity_slot_for_the_real_constructor";
+	}
+
+	if (refusal)
+	{
+		ENV_EMIT ("env-sound-end i=%d refused=%s changed=0 process_isolated=required\n", index, refusal);
+
+		return 0;
+	}
+
+	parent = get_session_entity ();
+
+	saved_rate = lightning->rate;
+	saved_size = lightning->size;
+
+	lightning->rate = 4;
+	lightning->size = 20;
+
+	eech_envobs_sound_track (1);
+
+	/* every constructor call is preflighted for a free slot; a control short of one stops where it is and says so */
+	for (i = 0; i < planned_entities; i++)
+	{
+		ents[i] = env_snd_data_make (ent_sub[i], FALSE, 1, &one);
+
+		if (!ents[i])
+		{
+			break;
+		}
+
+		env_snd_snap_take (&snaps[n++], i, 0, ents[i]);
+
+		entities++;
+	}
+
+	for (k = 0; (entities == planned_entities) && (k < step_count); k++)
+	{
+		struct env_snd_step *s = &steps[k];
+
+		if (s->op == ENV_SND_STEP_UPDATE)
+		{
+			/* the condition under which the original update loop calls the routine at all */
+			if (get_local_entity_type (ents[0]) == ENTITY_TYPE_SOUND_EFFECT && get_local_entity_data (ents[0]) != NULL && ((sound_effect *) get_local_entity_data (ents[0]))->eff.update_link.parent != NULL)
+			{
+				system_delta_time = 1.0f;
+				update (ents[0]);
+				s->made = 1;
+				calls++;
+			}
+		}
+		else
+		{
+			env_snd_scan_take (&s->before, parent, (entity_sub_types) s->sub);
+
+			s->returned = (s->op == ENV_SND_STEP_PAUSE) ? pause_local_entity_sound_type (parent, (entity_sub_types) s->sub, s->delay) : resume_local_entity_sound_type (parent, (entity_sub_types) s->sub);
+
+			env_snd_scan_take (&s->after, parent, (entity_sub_types) s->sub);
+		}
+
+		for (i = 0; i < entities; i++)
+		{
+			env_snd_snap_take (&snaps[n++], i, k + 1, ents[i]);
+		}
+	}
+
+	eech_envobs_sound_track (0);
+
+	system_delta_time = saved_delta;
+	delta_restored = system_delta_time == saved_delta;
+
+	lightning->rate = saved_rate;
+	lightning->size = saved_size;
+	descriptor_restored = lightning->rate == saved_rate && lightning->size == saved_size;
+
+	ENV_EMIT ("env-sound-data-input tag=descriptor sample=%d controlled_rate=4 controlled_size=20 retail_rate=%d retail_size=%d original_rate=%d\n", (int) SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING, saved_rate, saved_size, lightning->original_rate);
+
+	for (k = 0; (k < step_count) && (entities == planned_entities); k++)
+	{
+		const struct env_snd_step *s = &steps[k];
+
+		uint32_t delay_word;
+
+		memcpy (&delay_word, &s->delay, sizeof (delay_word));
+
+		ENV_EMIT ("env-sound-step n=%d op=%d sub=%d delay_w=%08x returned=%d made=%d\n", k + 1, s->op, s->sub, delay_word, s->returned, s->made);
+
+		if (s->op != ENV_SND_STEP_UPDATE)
+		{
+			ENV_EMIT ("env-sound-scan n=%d when=before total=%d of_type=%d valid_of_type=%d invalid_of_type=%d linked_of_type=%d complete=%d\n", k + 1, s->before.total, s->before.of_type, s->before.valid_of_type,
+				s->before.invalid_of_type, s->before.linked_of_type, s->before.complete);
+			ENV_EMIT ("env-sound-scan n=%d when=after total=%d of_type=%d valid_of_type=%d invalid_of_type=%d linked_of_type=%d complete=%d\n", k + 1, s->after.total, s->after.of_type, s->after.valid_of_type,
+				s->after.invalid_of_type, s->after.linked_of_type, s->after.complete);
+		}
+	}
+
+	for (i = 0; i < n; i++)
+	{
+		const struct env_snd_snap *s = &snaps[i];
+
+		ENV_EMIT ("env-sound-state ent=%d slot=%d tag=%d etype=%d data=%d sub=%d valid=%d looping=%d member=%d handle=%d life_w=%08x vlife_w=%08x\n", s->ent, s->slot, s->tag, s->etype, s->data, s->sub, s->valid,
+			s->looping, s->member, s->handle, s->life, s->vlife);
+	}
+
+	if (eech_envobs_sound_report (text, capacity, used) != 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-sound-end i=%d changed=1 entities=%d planned_entities=%d steps=%d calls=%d descriptor_restored=%d delta_restored=%d entity_state_restored=0 process_isolated=required\n", index, entities, planned_entities,
+		(entities == planned_entities) ? step_count : 0, calls, descriptor_restored, delta_restored);
+
+	return 0;
+}
+
 static int env_snd_case (int index, char *text, int capacity, int *used)
 {
 	static const char *const names[ENV_SND_CASES] = { "server_branch_ages_then_expires", "client_branch_ages_and_clamps", "playback_prerequisites" };
@@ -2947,6 +3241,11 @@ static int env_snd_case (int index, char *text, int capacity, int *used)
 		}
 
 		return eech_envobs_sound_report (text, capacity, used);
+	}
+
+	if (index >= ENV_SND_PAUSE_FIRST && index <= ENV_SND_PAUSE_LAST)
+	{
+		return env_snd_pause_case (index, text, capacity, used);
 	}
 
 	if (index > ENV_SND_CASES && index <= ENV_SND_DATA_LAST)
