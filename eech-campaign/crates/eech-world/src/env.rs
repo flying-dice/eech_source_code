@@ -13,6 +13,8 @@
 //! - `weather { x, z }`: `{ current_mode, target_mode, transitional_state, simple_mode }`.
 //! - `wind { x, z, want_vector }`: `{ speed, vector }`.
 //! - `gust { phase }`: `{ modulation }`.
+//! - `ambient { x, z, y, alt, cloud_base, in_cockpit }`: the physical rain and wind levels of the session's ambient sound children at a point (the camera, or the gunship in the cockpit), from this
+//!   field: `{ rain_light, rain_heavy, wind_light, wind_heavy }` (ss_updt.c `update_session_sound_effects`, EEDCS-51). `y`, `alt` and `cloud_base` are the campaign's observations.
 //! - `step { delta, server, in_cockpit, camera?, lightning_draw?, map }`: the physical update of one session update. `{ need_draw = true, timer }` (the field is NOT changed) when the
 //!   server's lightning timer has expired and the next timer needs the one draw of the shared random word, which only the campaign may make; the campaign then asks again with
 //!   `lightning_draw`. Otherwise `{ state, expired, strike?, new_timer? }`.
@@ -101,6 +103,7 @@ extern "C" {
     ) -> i32;
     fn env_ref_wind(field: *const EnvRef, x: f32, z: f32, want_vector: i32, speed: *mut f32, vector: *mut f32, error: *mut c_char, error_size: usize) -> i32;
     fn env_ref_gust(phase: f32, modulation: *mut f32, error: *mut c_char, error_size: usize) -> i32;
+    fn env_ref_ambient(field: *const EnvRef, in_f: *const f32, in_i: *const i32, out: *mut f32, error: *mut c_char, error_size: usize) -> i32;
     fn env_ref_step(
         field: *mut EnvRef,
         in_f: *const f32,
@@ -139,6 +142,23 @@ pub struct Weather {
 pub struct Wind {
     pub speed: f32,
     pub vector: [f32; 3],
+}
+
+/// The campaign's observations for the ambient sound levels: `f = { x, z, y, alt, cloud base }` (the camera, or the gunship in the cockpit, its radar altitude and the cloud height).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct AmbientInput {
+    pub f: [f32; 5],
+    pub winter: bool,
+    pub in_cockpit: bool,
+}
+
+/// The physical rain and wind levels of the session's ambient sound children, from the host's own field.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct AmbientLevels {
+    pub rain_light: f32,
+    pub rain_heavy: f32,
+    pub wind_light: f32,
+    pub wind_heavy: f32,
 }
 
 /// One physical update's inputs: `f = { delta, camera x, y, z, map min x, max x, min z, max z, mid x, mid z }`.
@@ -296,6 +316,34 @@ impl Field {
         let status = unsafe { env_ref_gust(phase, &mut modulation, error.as_mut_ptr().cast(), ERROR_SIZE) };
         if status == 0 {
             Ok(modulation)
+        } else {
+            Err(message(&error))
+        }
+    }
+
+    /// The ambient sound levels (`env_ref_ambient`): the original's rain and wind expressions over the field. The floats cross as an array read inside the kernel's guard.
+    pub fn ambient(&self, input: &AmbientInput) -> Result<AmbientLevels, String> {
+        let mut error = [0u8; ERROR_SIZE];
+        let in_i = [i32::from(input.winter), i32::from(input.in_cockpit)];
+        let mut out = [0.0f32; 4];
+        // SAFETY: the arrays have the lengths the kernel reads and writes; `error` is writable for its size.
+        let status = unsafe {
+            env_ref_ambient(
+                self.raw,
+                input.f.as_ptr(),
+                in_i.as_ptr(),
+                out.as_mut_ptr(),
+                error.as_mut_ptr().cast(),
+                ERROR_SIZE,
+            )
+        };
+        if status == 0 {
+            Ok(AmbientLevels {
+                rain_light: out[0],
+                rain_heavy: out[1],
+                wind_light: out[2],
+                wind_heavy: out[3],
+            })
         } else {
             Err(message(&error))
         }
@@ -497,6 +545,24 @@ fn respond(lua: &Lua, field: &RefCell<Field>, request: &LuaTable) -> LuaResult<L
             if want_vector {
                 answer.set("vector", vector_table(lua, &wind.vector)?)?;
             }
+        }
+        "ambient" => {
+            let input = AmbientInput {
+                f: [
+                    single(&reader, request, "x", "x")?,
+                    single(&reader, request, "z", "z")?,
+                    single(&reader, request, "y", "y")?,
+                    single(&reader, request, "alt", "alt")?,
+                    single(&reader, request, "cloud_base", "cloud_base")?,
+                ],
+                winter: boolean(request, "winter")?,
+                in_cockpit: boolean(request, "in_cockpit")?,
+            };
+            let levels = field.ambient(&input).map_err(refuse)?;
+            answer.set("rain_light", f64::from(levels.rain_light))?;
+            answer.set("rain_heavy", f64::from(levels.rain_heavy))?;
+            answer.set("wind_light", f64::from(levels.wind_light))?;
+            answer.set("wind_heavy", f64::from(levels.wind_heavy))?;
         }
         "gust" => {
             let phase = single(&reader, request, "phase", "phase")?;
@@ -844,6 +910,175 @@ mod tests {
         }
         for answer in answers.iter().skip(1) {
             assert_eq!(answer, &answers[0], "the caller's state reached the kernels");
+        }
+    }
+
+    /// The ambient sound levels (EEDCS-51): a field whose weather is the global model `current -> target` at transitional state `ts`, and whose wind zone has radius `radius`, its centre `centre_x` along
+    /// x from the origin, and the limits `minimum` and `maximum`, with no gust. The numbers used below are dyadic, so the expected levels are exact.
+    fn ambient_field(current: i32, target: i32, ts: f32, radius: f32, centre_x: f32, minimum: f32, maximum: f32) -> Field {
+        let mut state = defaults();
+        state.n[0] = current;
+        state.n[1] = target;
+        state.n[2] = 0;
+        state.f[2] = ts;
+        state.f[9] = radius;
+        state.f[10] = 0.0;
+        state.f[11] = minimum;
+        state.f[12] = maximum;
+        state.f[16] = centre_x;
+        let mut field = Field::new().unwrap();
+        field.import(&state).unwrap();
+        field
+    }
+
+    fn ambient_at(field: &Field, y: f32, alt: f32, cloud_base: f32, in_cockpit: bool) -> AmbientLevels {
+        field
+            .ambient(&AmbientInput {
+                f: [0.0, 0.0, y, alt, cloud_base],
+                winter: false,
+                in_cockpit,
+            })
+            .unwrap()
+    }
+
+    #[test]
+    fn the_ambient_rain_levels_follow_the_originals_branches_and_equal_outdoor_modes_are_attenuated_twice() {
+        const LIGHT: i32 = 2;
+        const HEAVY: i32 = 3;
+        let calm = |current, target, ts| ambient_field(current, target, ts, 0.0, 0.0, 0.0, 8.0);
+        // unequal modes: the target gets `ts`, the current `1 - ts`; outdoors at altitude 0 the altitude factor is 1
+        let light_to_heavy = calm(LIGHT, HEAVY, 0.25);
+        let levels = ambient_at(&light_to_heavy, 10.0, 0.0, 6000.0, false);
+        assert_eq!((levels.rain_light, levels.rain_heavy), (0.75, 0.25));
+        // outdoors at 90 m the factor 1 - 90 / 180 = 0.5 multiplies the target's entry and then the current's: 0.25 * 0.5 and 0.75 * 0.5
+        let levels = ambient_at(&light_to_heavy, 10.0, 90.0, 6000.0, false);
+        assert_eq!((levels.rain_light, levels.rain_heavy), (0.375, 0.125));
+        // EQUAL modes alias one array entry: 1.0 is set twice and the factor is applied TWICE (0.5 * 0.5), the original's behaviour; in the cockpit there is no attenuation at all
+        let equal = calm(LIGHT, LIGHT, 0.5);
+        assert_eq!(ambient_at(&equal, 10.0, 90.0, 6000.0, false).rain_light, 0.25);
+        assert_eq!(ambient_at(&equal, 10.0, 90.0, 6000.0, true).rain_light, 1.0);
+        assert_eq!(ambient_at(&equal, 10.0, 0.0, 6000.0, false).rain_light, 1.0);
+        // rain only makes a sound below the cloud base, and outdoors only below 180 m of radar altitude; in the cockpit the altitude does not matter
+        assert_eq!(ambient_at(&equal, 6000.0, 0.0, 6000.0, false).rain_light, 0.0, "y equal to the cloud base");
+        assert_eq!(
+            ambient_at(&equal, 6000.0, 0.0, 6000.0, true).rain_light,
+            0.0,
+            "y equal to the cloud base, in the cockpit"
+        );
+        assert_eq!(ambient_at(&equal, f32::from_bits(6000.0f32.to_bits() - 1), 0.0, 6000.0, false).rain_light, 1.0);
+        assert_eq!(ambient_at(&equal, 10.0, 180.0, 6000.0, false).rain_light, 0.0, "exactly 180 m outdoors");
+        assert_eq!(ambient_at(&equal, 10.0, 250.0, 6000.0, true).rain_light, 1.0, "250 m in the cockpit");
+        // dry and snow have no ambient child: their levels are not reported
+        let dry = calm(1, 1, 0.5);
+        let levels = ambient_at(&dry, 10.0, 0.0, 6000.0, false);
+        assert_eq!((levels.rain_light, levels.rain_heavy), (0.0, 0.0));
+        // a field with no state is refused
+        assert!(Field::new()
+            .unwrap()
+            .ambient(&AmbientInput {
+                f: [0.0; 5],
+                winter: false,
+                in_cockpit: false
+            })
+            .unwrap_err()
+            .contains("no state"));
+    }
+
+    #[test]
+    fn the_ambient_wind_levels_are_the_originals_piecewise_function_of_the_speed_between_the_limits() {
+        // limits 0 and 8, a zone of radius 100 centred `d` along x from the camera: the speed is 8 * (100 - d) / 100 (no gust), so the fractions below give the speeds 0, 2, 4, 6 and 8 exactly
+        let zone = |centre_x: f32| ambient_field(1, 1, 0.5, 100.0, centre_x, 0.0, 8.0);
+        let wind = |field: &Field| {
+            let levels = ambient_at(field, 10.0, 0.0, 0.0, false);
+            (levels.wind_light, levels.wind_heavy)
+        };
+        // radius zero: calm everywhere, at the minimum: r = 0, both levels 0
+        assert_eq!(wind(&ambient_field(1, 1, 0.5, 0.0, 0.0, 0.0, 8.0)), (0.0, 0.0));
+        // outside the zone (range at or beyond the radius): the minimum again
+        assert_eq!(wind(&zone(100.0)), (0.0, 0.0));
+        // a quarter in: r = 0.25 below one half: light 2r, heavy 0
+        assert_eq!(wind(&zone(75.0)), (0.5, 0.0));
+        // one half: the original's `else` branch: light 1 - 0 = 1, heavy 0
+        assert_eq!(wind(&zone(50.0)), (1.0, 0.0));
+        // three quarters in: r = 0.75: light 1 - 2 (r - 0.5) = 0.5, heavy 2 (r - 0.5) = 0.5
+        assert_eq!(wind(&zone(25.0)), (0.5, 0.5));
+        // the centre: the speed is the maximum, r = 1: light 0, heavy 1
+        assert_eq!(wind(&zone(0.0)), (0.0, 1.0));
+        // a speed that is not above the minimum is r = 0 whatever the zone says (equal limits, the camera at the centre)
+        assert_eq!(
+            wind(&ambient_field(1, 1, 0.5, 100.0, 0.0, 8.0, 8.0)),
+            (0.0, 0.0),
+            "speed equal to the minimum is r = 0"
+        );
+    }
+
+    /// The caller's COMPLETE floating-point state around the ambient sound levels, in the manner of the field's guard test above (the same seeded states, no mask): accepted questions (outdoor, equal
+    /// modes, the cockpit, above the cloud base, a wind zone), a subnormal altitude and a refusal, and the answers are the same whatever the state. Only the entry's own effect is claimed.
+    #[test]
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    fn the_callers_complete_floating_point_state_survives_every_ambient_sound_question_in_every_mode() {
+        let _restore = RestoreFp {
+            image: fp::x87_image(),
+            mxcsr: fp::mxcsr(),
+        };
+        let rainy = ambient_field(2, 3, 0.3, 40000.0, 1234.5, 1.0, 9.7);
+        let equal = ambient_field(2, 2, 0.5, 50000.0, 0.0, 1.0, 4.0);
+        let stateless = Field::new().unwrap();
+        let subnormal = f32::from_bits(1);
+        type Question<'a> = (&'a str, &'a Field, [f32; 5], bool, bool);
+        let questions: Vec<Question> = vec![
+            (
+                "outdoor unequal modes in a wind zone",
+                &rainy,
+                [100.0, -200.0, 12.3, 45.6, 6000.0],
+                false,
+                false,
+            ),
+            ("outdoor equal modes", &equal, [0.0, 0.0, 50.0, 100.0, 6000.0], false, false),
+            ("cockpit", &rainy, [100.0, 100.0, 300.0, 250.0, 6000.0], true, false),
+            ("above the cloud base", &rainy, [1.0, 1.0, 7000.0, 10.0, 6000.0], false, false),
+            ("at the outdoor zero-volume altitude", &rainy, [1.0, 1.0, 10.0, 180.0, 6000.0], false, true),
+            (
+                "subnormal position and altitude",
+                &equal,
+                [subnormal, subnormal, subnormal, subnormal, 6000.0],
+                false,
+                false,
+            ),
+            ("refused: no state", &stateless, [0.0, 0.0, 10.0, 10.0, 6000.0], false, false),
+        ];
+        type Round = Vec<Result<AmbientLevels, String>>;
+        let mut answers: Vec<Round> = Vec::new();
+        for x87_rounding in 0u16..4 {
+            for sse_rounding in 0u32..4 {
+                for sticky in [0u32, 0x3f] {
+                    for status in [0x0000u16, 0x403f, 0x2700] {
+                        let mut round = Vec::new();
+                        for (what, field, f, in_cockpit, winter) in &questions {
+                            fp::seed(x87_rounding, status, sse_rounding, sticky);
+                            let expected = fp::now();
+                            let answer = field.ambient(&AmbientInput {
+                                f: *f,
+                                winter: *winter,
+                                in_cockpit: *in_cockpit,
+                            });
+                            assert_eq!(
+                                fp::now(),
+                                expected,
+                                "{what}: x87 rounding {x87_rounding}, SSE rounding {sse_rounding}, MXCSR sticky {sticky:#x}, x87 status {status:#06x}"
+                            );
+                            round.push(answer);
+                        }
+                        answers.push(round);
+                    }
+                }
+            }
+        }
+        for round in answers.iter().skip(1) {
+            assert_eq!(round, &answers[0], "the caller's state reached the kernel");
+        }
+        for ((what, ..), answer) in questions.iter().zip(&answers[0]) {
+            assert_eq!(answer.is_err(), what.starts_with("refused"), "{what}: {answer:?}");
         }
     }
 

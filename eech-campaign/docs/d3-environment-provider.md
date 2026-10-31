@@ -339,6 +339,10 @@ unchanged: its final source review closed and Root is running the actual Windows
 
 The sound routine's `get_terrain_3d_types_in_sector` is now answered by the host's terrain through a `sector` terrain operation (reply: return value and a 62-character flags string); the legacy scratch is only a by-value mirror written after the reply is checked, with no Core fallback. Protocol, ownership, controls and Root commands: [d3-environment-sector-surface.md](d3-environment-sector-surface.md). UNBUILT, UNRUN, UNREVIEWED.
 
+## Ambient sound operations (host-owned, unbuilt)
+
+The session sound routine's physical amplitude is answered by two new operations, both by value: the ENVIRONMENT provider's `ambient { x, z, y, alt, cloud_base, in_cockpit }` -> `{ rain_light, rain_heavy, wind_light, wind_heavy }`, and the TERRAIN provider's `ambient { x, z, alt, delta, in_cockpit, children = { { class, previous }, ... } }` -> `{ amplitudes }` (one per child). Protocol, ownership, markers and commands: [d3-environment-sound-routine.md](d3-environment-sound-routine.md). UNBUILT, UNRUN, UNREVIEWED.
+
 ## Remaining coupling and open gates (finite)
 
 * The lightning strike and sound entity creation, the sound/terrain-scratch bridge and the time-of-day input stay in Core (explicitly open within Task 51/D3).

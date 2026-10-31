@@ -4,8 +4,9 @@ use eech_engine::{
     AimEvent, AimReply, AimRequest, AimStepKind, AimTarget, AimWeapon, AimWorld, ArrivalAnswer, Engine, EngineConfig, EngineError, EnvProvider, EnvReply,
     EnvRequest, EnvState, Gunship, HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor, MemberDescriptor,
     MovementMode, MovementResult, MovementStep, ObjectReport, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side, SupplyReachDescriptor,
-    TerrainAnswer, TerrainMapFacts, TerrainProvider, TerrainQuery, VehiclePose, WeaponFigures, EECH_ENV_EXPORT, EECH_ENV_FLOATS, EECH_ENV_GUST,
-    EECH_ENV_IMPORT, EECH_ENV_INIT_FIXED, EECH_ENV_INIT_RANDOM, EECH_ENV_INTS, EECH_ENV_MODE_COUNT, EECH_ENV_STEP, EECH_ENV_WEATHER, EECH_ENV_WIND,
+    TerrainAnswer, TerrainMapFacts, TerrainProvider, TerrainQuery, VehiclePose, WeaponFigures, EECH_ENV_AMBIENT, EECH_ENV_EXPORT, EECH_ENV_FLOATS,
+    EECH_ENV_GUST, EECH_ENV_IMPORT, EECH_ENV_INIT_FIXED, EECH_ENV_INIT_RANDOM, EECH_ENV_INTS, EECH_ENV_MODE_COUNT, EECH_ENV_STEP, EECH_ENV_WEATHER,
+    EECH_ENV_WIND,
 };
 use mlua::prelude::*;
 use std::path::PathBuf;
@@ -372,6 +373,8 @@ fn call_line_of_sight(lua: &Lua, function: &LuaFunction, message: LosMessage) ->
 ///   fast.elevation                                `elevation` is missing or not a finite number
 ///   sector.callback, sector.answer                the provider raised an error, or the answer is not a table
 ///   sector.flags                                  `flags` is not a string of exactly one `0` or `1` for each terrain type
+///   ambient.callback, ambient.answer              the provider raised an error, or the answer is not a table
+///   ambient.amplitudes                            `amplitudes` is not a list of exactly one finite number for each child asked about
 ///   sector.returned                               no flag is set (the sector's first surface is always flagged), or `returned` is not an integer of at least the number of flags set
 const TERRAIN_BRIDGE: &str = r#"
 local provider, types, hint_max = ...
@@ -379,8 +382,14 @@ local huge = math.huge
 local function finite (v) return type (v) == 'number' and v == v and v ~= huge and v ~= -huge end
 local function integer (v) return finite (v) and v == math.floor (v) end
 local map_floats = { 'min_x', 'min_z', 'max_x', 'max_z', 'min_height', 'max_height', 'scaled_height_difference' }
-return function (op, x, z, hint, winter)
-	local ok, answer = pcall (provider, { op = op, x = x, z = z, hint = hint, winter = winter })
+return function (op, x, z, hint, winter, extra)
+	-- THE CONTRACT IS CAPTURED BEFORE the provider is called (it is handed the request table and may change it): for an ambient question, the number of children asked about
+	local children_asked = extra and #extra.children or 0
+	local request = { op = op, x = x, z = z, hint = hint, winter = winter }
+	if extra then
+		request.alt, request.delta, request.in_cockpit, request.children = extra.alt, extra.delta, extra.in_cockpit, extra.children
+	end
+	local ok, answer = pcall (provider, request)
 	if not ok then return op .. '.callback', tostring (answer) end
 	if type (answer) ~= 'table' then return op .. '.answer', 'the ' .. op .. ' answer must be a table, got ' .. type (answer) end
 	if op == 'point' then
@@ -405,6 +414,16 @@ return function (op, x, z, hint, winter)
 	elseif op == 'fast' then
 		if not finite (answer.elevation) then return 'fast.elevation', 'elevation must be a finite number' end
 		return nil, string.format ('%.17g', answer.elevation)
+	elseif op == 'ambient' then
+		-- the new amplification of each terrain ambient sound child asked about (EEDCS-51), in the order asked: exactly that many finite numbers
+		local a = answer.amplitudes
+		if type (a) ~= 'table' or #a ~= children_asked then return 'ambient.amplitudes', 'amplitudes must be a list of exactly ' .. children_asked .. ' numbers, one for each child' end
+		local out = {}
+		for i = 1, children_asked do
+			if not finite (a [i]) then return 'ambient.amplitudes', 'amplitude ' .. i .. ' must be a finite number' end
+			out [#out + 1] = string.format ('%.17g', a [i])
+		end
+		return nil, table.concat (out, ' ')
 	elseif op == 'sector' then
 		-- the surface enumeration of a sector (EEDCS-51): the original's return value (1 + the surface transitions, NOT the number of distinct surfaces) and the whole scratch, one 0 or 1 per type
 		local flags, returned = answer.flags, answer.returned
@@ -440,7 +459,8 @@ const TERRAIN_HINT_MAX: i64 = 127;
 fn terrain_provider(lua: &Lua, function: LuaFunction) -> LuaResult<TerrainProvider> {
     let build: LuaFunction = lua.load(TERRAIN_BRIDGE).set_name("eech terrain bridge").into_function()?;
     let bridge: LuaFunction = build.call((function, TERRAIN_TYPE_COUNT, TERRAIN_HINT_MAX))?;
-    Ok(Box::new(move |query| call_terrain(&bridge, query)))
+    let lua = lua.clone();
+    Ok(Box::new(move |query| call_terrain(&lua, &bridge, query)))
 }
 
 /// The `N` numbers of an answer's text as the nearest `f32`s; a malformed text is a refusal under `marker`.
@@ -476,15 +496,45 @@ fn terrain_i32(value: f64, marker: &str) -> Result<i32, String> {
 /// surface is stored (each absent when the answer does not carry it).
 type BridgeAnswer = (Option<String>, Option<String>, Option<i64>, Option<String>, Option<bool>);
 
-fn call_terrain(bridge: &LuaFunction, query: TerrainQuery) -> Result<TerrainAnswer, String> {
+/// The extra fields of an ambient question as a table for the bridge (`alt`, `delta`, `in_cockpit` and the `children` list of `{ class, previous }`), or nothing for any other question.
+fn terrain_extra(lua: &Lua, query: &TerrainQuery) -> Result<Option<LuaTable>, String> {
+    let e = |error: LuaError| error.to_string();
+    let TerrainQuery::Ambient {
+        in_cockpit,
+        alt,
+        delta,
+        children,
+        ..
+    } = query
+    else {
+        return Ok(None);
+    };
+    let extra = lua.create_table().map_err(e)?;
+    extra.set("alt", f64::from(*alt)).map_err(e)?;
+    extra.set("delta", f64::from(*delta)).map_err(e)?;
+    extra.set("in_cockpit", *in_cockpit).map_err(e)?;
+    let list = lua.create_table().map_err(e)?;
+    for (index, child) in children.iter().enumerate() {
+        let entry = lua.create_table().map_err(e)?;
+        entry.set("class", child.class).map_err(e)?;
+        entry.set("previous", f64::from(child.previous)).map_err(e)?;
+        list.set(index + 1, entry).map_err(e)?;
+    }
+    extra.set("children", list).map_err(e)?;
+    Ok(Some(extra))
+}
+
+fn call_terrain(lua: &Lua, bridge: &LuaFunction, query: TerrainQuery) -> Result<TerrainAnswer, String> {
+    let extra = terrain_extra(lua, &query).map_err(|error| format!("[terrain-provider:ambient.callback] {error}"))?;
     let (op, x, z, hint, winter) = match &query {
         TerrainQuery::Map { winter } => ("map", None, None, None, *winter),
         TerrainQuery::Point { x, z, hint, winter } => ("point", Some(f64::from(*x)), Some(f64::from(*z)), hint.clone(), *winter),
         TerrainQuery::Fast { x, z, winter } => ("fast", Some(f64::from(*x)), Some(f64::from(*z)), None, *winter),
         TerrainQuery::Sector { x, z, winter } => ("sector", Some(f64::from(*x)), Some(f64::from(*z)), None, *winter),
+        TerrainQuery::Ambient { x, z, winter, .. } => ("ambient", Some(f64::from(*x)), Some(f64::from(*z)), None, *winter),
     };
     let (marker, text, kind, hint_out, stored): BridgeAnswer = bridge
-        .call((op, x, z, hint, winter))
+        .call((op, x, z, hint, winter, extra))
         .map_err(|error| format!("[terrain-provider:{op}.callback] {error}"))?;
     if let Some(marker) = marker {
         return Err(format!("[terrain-provider:{marker}] {}", text.unwrap_or_default()));
@@ -524,6 +574,20 @@ fn call_terrain(bridge: &LuaFunction, query: TerrainQuery) -> Result<TerrainAnsw
                 stored: stored.ok_or_else(|| "[terrain-provider:point.stored] the terrain bridge returned no stored flag".to_string())?,
             })
         }
+        "ambient" => {
+            // the bridge returns the amplitudes as the text, exactly as many as the children asked about (the bridge checked the count; the engine boundary checks it again)
+            let amplitudes = text
+                .split_whitespace()
+                .map(|part| {
+                    part.parse::<f64>()
+                        .ok()
+                        .filter(|value| value.is_finite())
+                        .ok_or_else(|| "[terrain-provider:ambient.amplitudes] an amplitude is malformed".to_string())
+                        .and_then(|value| terrain_f32(value, "ambient.amplitudes"))
+                })
+                .collect::<Result<Vec<f32>, String>>()?;
+            Ok(TerrainAnswer::Ambient { amplitudes })
+        }
         "sector" => {
             // the bridge returns the flags as the text and the return value in the type slot
             let returned = kind.ok_or_else(|| "[terrain-provider:sector.returned] the terrain bridge returned no return value".to_string())?;
@@ -543,7 +607,7 @@ fn call_terrain(bridge: &LuaFunction, query: TerrainQuery) -> Result<TerrainAnsw
 }
 
 /// The host's environment provider as the campaign calls it (EEDCS-51, D3): the physical weather and wind field and its update. The campaign hands the provider a request table
-/// `{ op = "import" | "export" | "init_random" | "init_fixed" | "weather" | "wind" | "gust" | "step", winter, ... }` and reads a table back (the fields of each operation are in
+/// `{ op = "import" | "export" | "init_random" | "init_fixed" | "weather" | "wind" | "gust" | "ambient" | "step", winter, ... }` and reads a table back (the fields of each operation are in
 /// aphavoc/.../ss_hostenv.h and docs/d3-environment-provider.md). Everything about the shape of the answer is checked here, in Lua, where the values are, and reaches Rust as plain
 /// text: the numbers are formatted exactly (`%.17g`) and parsed with `nearest_f32`, as every number the engine takes from a host callback (the engine calls a callback under
 /// round-toward-zero). The request's numbers are handed to the provider as Lua numbers, unchanged: a negative zero, a subnormal and a draw reach it bit for bit.
@@ -551,6 +615,7 @@ fn call_terrain(bridge: &LuaFunction, query: TerrainQuery) -> Result<TerrainAnsw
 /// Markers (the first line of the error the engine stops with carries `[env-provider:<marker>]`):
 ///   <op>.callback   the provider raised an error (its text follows)
 ///   <op>.answer     the answer is not a table, or a number of it is missing, not finite, or out of its domain (a mode, a flag)
+///   ambient.answer  one of rain_light, rain_heavy, wind_light, wind_heavy is not a finite number, or a wind level is outside 0 to 1
 ///   <op>.state      the field in the answer is missing a number, not finite, a mode outside 0 to 4, or a flag that is not a boolean
 const ENV_BRIDGE: &str = r#"
 local provider, floats, ints = ...
@@ -611,6 +676,15 @@ return function (request)
 	elseif op == 'gust' then
 		if not finite (answer.modulation) then return 'gust.answer', 'modulation must be a finite number' end
 		return nil, fmt (answer.modulation)
+	elseif op == 'ambient' then
+		-- the four ambient sound levels (EEDCS-51): rain light, rain heavy, wind light, wind heavy; the wind levels are the original's piecewise function of r in [0, 1]
+		for _, name in ipairs { 'rain_light', 'rain_heavy', 'wind_light', 'wind_heavy' } do
+			if not finite (answer [name]) then return 'ambient.answer', name .. ' must be a finite number' end
+		end
+		for _, name in ipairs { 'wind_light', 'wind_heavy' } do
+			if answer [name] < 0 or answer [name] > 1 then return 'ambient.answer', name .. ' must be within 0 to 1' end
+		end
+		return nil, string.format ('%s %s %s %s', fmt (answer.rain_light), fmt (answer.rain_heavy), fmt (answer.wind_light), fmt (answer.wind_heavy))
 	end
 	-- step
 	if answer.need_draw == true then
@@ -720,6 +794,7 @@ fn env_op_name(op: i32) -> &'static str {
         EECH_ENV_WIND => "wind",
         EECH_ENV_GUST => "gust",
         EECH_ENV_STEP => "step",
+        EECH_ENV_AMBIENT => "ambient",
         _ => "unknown",
     }
 }
@@ -761,6 +836,14 @@ fn env_request_table(lua: &Lua, request: &EnvRequest) -> LuaResult<LuaTable> {
             table.set("want_vector", request.want_vector != 0)?;
         }
         EECH_ENV_GUST => table.set("phase", f64::from(request.phase))?,
+        EECH_ENV_AMBIENT => {
+            table.set("x", f64::from(request.x))?;
+            table.set("z", f64::from(request.z))?;
+            table.set("y", f64::from(request.ambient_y))?;
+            table.set("alt", f64::from(request.ambient_alt))?;
+            table.set("cloud_base", f64::from(request.ambient_cloud_base))?;
+            table.set("in_cockpit", request.in_cockpit != 0)?;
+        }
         EECH_ENV_STEP => {
             table.set("delta", f64::from(request.delta))?;
             table.set("server", request.server != 0)?;
@@ -869,6 +952,15 @@ fn call_environment(lua: &Lua, bridge: &LuaFunction, request: &EnvRequest) -> Re
         EECH_ENV_GUST => {
             let n = env_numbers::<1>(&text, &answer)?;
             reply.modulation = env_f32(n[0], &answer)?;
+        }
+        EECH_ENV_AMBIENT => {
+            let n = env_numbers::<4>(&text, &answer)?;
+            reply.ambient_levels = [
+                env_f32(n[0], &answer)?,
+                env_f32(n[1], &answer)?,
+                env_f32(n[2], &answer)?,
+                env_f32(n[3], &answer)?,
+            ];
         }
         _ => {
             // step: "1 <timer>" when the host needs the draw, else "0 <expired> <strike x y z> <new timer> <the field>"
@@ -4099,6 +4191,135 @@ mod tests {
         ] {
             let mut bad = terrain_of(&lua, &source)?;
             let error = refusal_of(bad(query()), what);
+            assert!(error.starts_with(&format!("[terrain-provider:{marker}]")), "{what}: {error}");
+        }
+        Ok(())
+    }
+
+    use eech_engine::TerrainAmbientChild;
+
+    // ---- the ambient sound questions through the Lua bridges (EEDCS-51): the request by value, the answer checked in full under its marker ----
+
+    #[test]
+    fn an_ambient_environment_answer_is_four_levels_read_exactly_and_a_malformed_one_is_refused_by_marker() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let request = EnvRequest {
+            x: 1.5,
+            z: -2.5,
+            ambient_y: 100.0,
+            ambient_alt: 12.5,
+            ambient_cloud_base: 6000.0,
+            in_cockpit: 1,
+            winter: 1,
+            ..env_request(EECH_ENV_AMBIENT)
+        };
+        // the observations reach the provider as numbers and a boolean; the four levels come back exactly (a subnormal rain level is kept)
+        let mut provider = env_of(
+            &lua,
+            "assert (r.op == 'ambient' and r.x == 1.5 and r.z == -2.5 and r.y == 100 and r.alt == 12.5 and r.cloud_base == 6000 and r.in_cockpit == true and r.winter == true)
+             return { rain_light = 2 ^ -130, rain_heavy = 1.5, wind_light = 0.5, wind_heavy = 1 }",
+        )?;
+        let reply = provider(&request)?;
+        assert_eq!(
+            reply.ambient_levels.map(f32::to_bits),
+            [0x0008_0000, 1.5f32.to_bits(), 0.5f32.to_bits(), 1.0f32.to_bits()]
+        );
+        // each malformed answer is refused under the ambient marker: not a table, a level missing, not finite, or a wind level outside 0 to 1; a withheld answer under its callback marker
+        for (what, source, marker) in [
+            ("not a table", "return 'levels'", "ambient.answer"),
+            (
+                "rain level missing",
+                "return { rain_heavy = 0, wind_light = 0, wind_heavy = 0 }",
+                "ambient.answer",
+            ),
+            (
+                "rain level not finite",
+                "return { rain_light = 1 / 0, rain_heavy = 0, wind_light = 0, wind_heavy = 0 }",
+                "ambient.answer",
+            ),
+            (
+                "wind level not a number",
+                "return { rain_light = 0, rain_heavy = 0, wind_light = '0', wind_heavy = 0 }",
+                "ambient.answer",
+            ),
+            (
+                "wind level above 1",
+                "return { rain_light = 0, rain_heavy = 0, wind_light = 1.5, wind_heavy = 0 }",
+                "ambient.answer",
+            ),
+            (
+                "wind level below 0",
+                "return { rain_light = 0, rain_heavy = 0, wind_light = 0, wind_heavy = -0.5 }",
+                "ambient.answer",
+            ),
+            ("withheld", "error ('withheld')", "ambient.callback"),
+        ] {
+            let mut bad = env_of(&lua, source)?;
+            let result = bad(&request);
+            assert!(
+                matches!(&result, Err(message) if message.contains(&format!("[env-provider:{marker}]"))),
+                "{what}: {result:?}"
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn an_ambient_terrain_question_reaches_the_provider_by_value_and_its_amplitudes_are_one_finite_number_per_child() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let lua = Lua::new();
+        let query = |children: Vec<TerrainAmbientChild>| TerrainQuery::Ambient {
+            x: 1.5,
+            z: -2.5,
+            winter: true,
+            in_cockpit: false,
+            alt: 12.5,
+            delta: 0.25,
+            children,
+        };
+        let two = || {
+            vec![
+                TerrainAmbientChild { class: 0, previous: 0.125 },
+                TerrainAmbientChild { class: 5, previous: 0.25 },
+            ]
+        };
+        let mut provider = terrain_of(
+            &lua,
+            "assert (r.op == 'ambient' and r.x == 1.5 and r.z == -2.5 and r.winter == true and r.alt == 12.5 and r.delta == 0.25 and r.in_cockpit == false and #r.children == 2
+                     and r.children [1].class == 0 and r.children [1].previous == 0.125 and r.children [2].class == 5 and r.children [2].previous == 0.25)
+             return { amplitudes = { 0.5, 2 ^ -130 } }",
+        )?;
+        let TerrainAnswer::Ambient { amplitudes } = provider(query(two()))? else {
+            return Err("not an ambient answer".into());
+        };
+        assert_eq!(
+            amplitudes.iter().map(|value| value.to_bits()).collect::<Vec<_>>(),
+            vec![0.5f32.to_bits(), 0x0008_0000]
+        );
+        // no child: an empty list is the answer
+        let mut none = terrain_of(&lua, "return { amplitudes = {} }")?;
+        assert!(matches!(none(query(Vec::new()))?, TerrainAnswer::Ambient { amplitudes } if amplitudes.is_empty()));
+        // the count of the amplitudes is checked against the count of the children CAPTURED before the provider ran (it may change its request), and each must be finite
+        for (what, source, marker) in [
+            ("one amplitude for two children", "return { amplitudes = { 0.5 } }", "ambient.amplitudes"),
+            (
+                "three amplitudes for two children",
+                "return { amplitudes = { 0.5, 0.5, 0.5 } }",
+                "ambient.amplitudes",
+            ),
+            ("not finite", "return { amplitudes = { 0.5, 0 / 0 } }", "ambient.amplitudes"),
+            ("not numbers", "return { amplitudes = { 0.5, '0.5' } }", "ambient.amplitudes"),
+            ("no list", "return {}", "ambient.amplitudes"),
+            ("not a table", "return 'silence'", "ambient.answer"),
+            ("withheld", "error ('withheld')", "ambient.callback"),
+            (
+                "a provider that empties its request still owes two",
+                "r.children = {} return { amplitudes = {} }",
+                "ambient.amplitudes",
+            ),
+        ] {
+            let mut bad = terrain_of(&lua, source)?;
+            let error = refusal_of(bad(query(two())), what);
             assert!(error.starts_with(&format!("[terrain-provider:{marker}]")), "{what}: {error}");
         }
         Ok(())

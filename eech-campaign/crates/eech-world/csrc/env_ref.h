@@ -46,6 +46,15 @@ int env_ref_wind (const env_ref *field, float x, float z, int want_vector, float
 /* the gust modulation at a phase in [0, 1) */
 int env_ref_gust (float phase, float *modulation, char *error, size_t error_size);
 
+/* The physical rain and wind levels of the session's ambient sound children (EEDCS-51, ss_updt.c update_session_sound_effects), from the host's own field.
+   in_f = { x, z, y, alt, cloud base } (the camera, or the gunship in the cockpit, and its radar altitude and the cloud height: the campaign's observations; the floats are read INSIDE the guard,
+           from memory, never as parameters)
+   in_i = { winter, in_cockpit }
+   out  = { rain light, rain heavy, wind light, wind heavy }, written only on success.
+   The original's expressions in the original's order: the weather is asked only inside the rain branch; outdoors the target mode's entry and then the current mode's entry are attenuated
+   separately (equal modes alias one entry: the altitude factor is applied TWICE). */
+int env_ref_ambient (const env_ref *field, const float *in_f, const int *in_i, float *out, char *error, size_t error_size);
+
 /* The physical update of one session update.
    in_f  = { delta, camera x, y, z, map minimum x, maximum x, minimum z, maximum z, middle x, middle z }
    in_i  = { winter, server, in_cockpit, have_camera, have_draw }

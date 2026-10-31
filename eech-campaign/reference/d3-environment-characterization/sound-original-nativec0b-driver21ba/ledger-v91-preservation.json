@@ -1,0 +1,10 @@
+{
+  "content_id": "14548994",
+  "before_version": 90,
+  "after_version": 91,
+  "old_HTML_exact_prefix": true,
+  "all_five_epic_charts_exact": true,
+  "normalized_only_new_localIDs_and_apostrophe_entities": true,
+  "actual_original_review_sha256": "8755577f55861682e4dd55cc93c6fad0b00f4dee51600e5136afa88ef411cd2c",
+  "scope": "Originalambientmeasurementsclosed, newphysicalhostamplificationsourceUNBUILT/UNRUN/UNREVIEWED; wholeTask51/D3open. Allbaselines/tolerancesunchanged."
+}

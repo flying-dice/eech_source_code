@@ -94,6 +94,12 @@ elseif mode == "generic" then
 		if request.op == "map" then return facts end
 		-- the sound routine asks for the sector's surface enumeration every update (EEDCS-51); a host with no EECH data is one land world: the first surface (land, type 9) alone, and the return value 1
 		if request.op == "sector" then return { returned = 1, flags = string.rep ("0", 9) .. "1" .. string.rep ("0", 52) } end
+		-- the sound routine also asks for the amplitude of its terrain ambient sound children (EEDCS-51): this land world has none of the six ambient surfaces, so the host answers silence for each child asked about
+		if request.op == "ambient" then
+			local amplitudes = {}
+			for i = 1, #request.children do amplitudes [i] = 0 end
+			return { amplitudes = amplitudes }
+		end
 		local x, z = request.x, request.z
 		local elevation = 200 + 80 * math.sin (x / 5000) * math.cos (z / 7000)
 		if request.op == "fast" then return { elevation = elevation } end

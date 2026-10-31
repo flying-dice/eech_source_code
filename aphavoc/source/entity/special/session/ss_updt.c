@@ -68,6 +68,8 @@
 
 #include "entity/special/session/ss_envfx.h"
 
+#include "entity/mobile/mb_hostterrain.h"
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -746,6 +748,182 @@ void update_transitional_weather (entity *en)
 #define SESSION_RAIN_SOUND_EFFECT_ZERO_VOLUME_ALTITUDE		180.0
 #define SESSION_TERRAIN_SOUND_EFFECT_ZERO_VOLUME_ALTITUDE	280.0
 
+#if defined(EECH_CAMPAIGN_HOST_ENV) && defined(EECH_CAMPAIGN_HOST_TERRAIN)
+
+//
+// EECH_CAMPAIGN_HOST_ENV + EECH_CAMPAIGN_HOST_TERRAIN (EEDCS-51, D3): the PHYSICAL amplitude of the ambient sound children is the host's.  The rain and wind levels (from the weather and the wind at the
+// point) are the environment provider's answer (ss_hostenv.h AMBIENT), and the smoothed amplitude of the six terrain children (from the surfaces of the sector under the point) is the terrain
+// provider's (mb_hostterrain.h AMBIENT); the original arithmetic is the host's kernels' (env_ref.c ambient_at, terrain_ref.c ambient_impl) and is not compiled into the headless campaign module, which has
+// no fallback.  What the campaign keeps, in the original order: the call and its observer counters; the choice of the point (the camera, or the gunship in the cockpit) and its radar altitude; the
+// clamp of the point to the map; the sector query that fills the legacy scratch mirror terrain_types_in_sector for its other readers (the renderer, the observer's hash); the session's
+// special-effect children, their identities, their order, their previous amplification (the smoothing state: the value stored is the SCALED one and compounds) and the writes of the new amplification
+// into them.  The frame delta is the previous frame's, read where the original read it.  Nothing is drawn from the shared random word.  The original solver follows, for the original game's build only.
+//
+
+void update_session_sound_effects (entity *en)
+{
+	entity
+		*spec,
+		*terrain_child [CAMPAIGN_TERRAIN_AMBIENT_MAX];
+
+	vec3d
+		*camera_pos;
+
+	float
+		alt,
+		xpos,
+		zpos,
+		rain_light_sound_level,
+		rain_heavy_sound_level,
+		light_wind_sound_level,
+		heavy_wind_sound_level,
+		terrain_previous [CAMPAIGN_TERRAIN_AMBIENT_MAX],
+		terrain_amplitude [CAMPAIGN_TERRAIN_AMBIENT_MAX];
+
+	int
+		terrain_class [CAMPAIGN_TERRAIN_AMBIENT_MAX],
+		terrain_count,
+		terrain_index,
+		klass;
+
+	ASSERT (en);
+
+	ENV_FXC (ENV_FX_C_SOUND_CALLS)
+
+	if (in_cockpit)
+	{
+		camera_pos = get_local_entity_vec3d_ptr (get_gunship_entity (), VEC3D_TYPE_POSITION);
+
+		alt = get_local_entity_float_value (get_gunship_entity (), FLOAT_TYPE_RADAR_ALTITUDE);
+	}
+	else
+	{
+		camera_pos = get_local_entity_vec3d_ptr (get_camera_entity (), VEC3D_TYPE_POSITION);
+
+		alt = get_local_entity_float_value (get_camera_entity (), FLOAT_TYPE_RADAR_ALTITUDE);
+	}
+
+	//
+	// rain and wind: the host's levels at the point
+	//
+
+	campaign_env_ambient (in_cockpit, camera_pos->x, camera_pos->y, camera_pos->z, alt, get_cloud_3d_base_height (), &rain_light_sound_level, &rain_heavy_sound_level, &light_wind_sound_level,
+		&heavy_wind_sound_level);
+
+	//
+	// terrain: the sector under the point (clamped to the map), which fills the scratch mirror
+	//
+	{
+		xpos = bound (camera_pos->x, MIN_MAP_X, MAX_MAP_X);
+		zpos = bound (camera_pos->z, MIN_MAP_Z, MAX_MAP_Z);
+
+		get_terrain_3d_types_in_sector (xpos, zpos);
+
+		ENV_FXS (in_cockpit, camera_pos->x, camera_pos->y, camera_pos->z, alt, light_wind_sound_level, heavy_wind_sound_level, xpos, zpos)
+	}
+
+	//
+	// the terrain children, in the session's child order, with the amplification each holds now (read for every one: the host uses it only below the zero-volume altitude, as the original did)
+	//
+
+	terrain_count = 0;
+
+	spec = get_local_entity_first_child (en, LIST_TYPE_SPECIAL_EFFECT);
+
+	while (spec)
+	{
+		switch (get_local_entity_int_value (spec, INT_TYPE_ENTITY_SUB_TYPE))
+		{
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_SEA: klass = CAMPAIGN_TERRAIN_AMBIENT_SEA; break;
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_JUNGLE: klass = CAMPAIGN_TERRAIN_AMBIENT_JUNGLE; break;
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB1: klass = CAMPAIGN_TERRAIN_AMBIENT_AMB1; break;
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB2: klass = CAMPAIGN_TERRAIN_AMBIENT_AMB2; break;
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB3: klass = CAMPAIGN_TERRAIN_AMBIENT_AMB3; break;
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB4: klass = CAMPAIGN_TERRAIN_AMBIENT_AMB4; break;
+			default: klass = -1; break;
+		}
+
+		if (klass >= 0)
+		{
+			if (terrain_count >= CAMPAIGN_TERRAIN_AMBIENT_MAX)
+			{
+				debug_fatal ("host terrain: [terrain-provider:ambient.request] the session has more than %d terrain ambient sound children", (int) CAMPAIGN_TERRAIN_AMBIENT_MAX);
+			}
+
+			terrain_child [terrain_count] = spec;
+			terrain_class [terrain_count] = klass;
+			terrain_previous [terrain_count] = get_local_entity_float_value (spec, FLOAT_TYPE_AMPLIFICATION);
+			terrain_count++;
+		}
+
+		spec = get_local_entity_child_succ (spec, LIST_TYPE_SPECIAL_EFFECT);
+	}
+
+	if (terrain_count > 0)
+	{
+		campaign_terrain_ambient (xpos, zpos, in_cockpit, alt, get_delta_time (), terrain_count, terrain_class, terrain_previous, terrain_amplitude);
+	}
+
+	//
+	// set new values
+	//
+
+	terrain_index = 0;
+
+	spec = get_local_entity_first_child (en, LIST_TYPE_SPECIAL_EFFECT);
+
+	while (spec)
+	{
+		switch (get_local_entity_int_value (spec, INT_TYPE_ENTITY_SUB_TYPE))
+		{
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_LIGHT_RAIN:
+			{
+				set_local_entity_float_value (spec, FLOAT_TYPE_AMPLIFICATION, rain_light_sound_level);
+
+				break;
+			}
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_HEAVY_RAIN:
+			{
+				set_local_entity_float_value (spec, FLOAT_TYPE_AMPLIFICATION, rain_heavy_sound_level);
+
+				break;
+			}
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_LIGHT_WIND:
+			{
+				set_local_entity_float_value (spec, FLOAT_TYPE_AMPLIFICATION, light_wind_sound_level);
+
+				break;
+			}
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_HEAVY_WIND:
+			{
+				set_local_entity_float_value (spec, FLOAT_TYPE_AMPLIFICATION, heavy_wind_sound_level);
+
+				break;
+			}
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_SEA:
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_JUNGLE:
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB1:
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB2:
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB3:
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB4:
+			{
+				// the same child, in the same order, that the first pass found
+				ASSERT (terrain_child [terrain_index] == spec);
+
+				set_local_entity_float_value (spec, FLOAT_TYPE_AMPLIFICATION, terrain_amplitude [terrain_index]);
+
+				terrain_index++;
+
+				break;
+			}
+		}
+
+		spec = get_local_entity_child_succ (spec, LIST_TYPE_SPECIAL_EFFECT);
+	}
+}
+
+#else
+
 void update_session_sound_effects (entity *en)
 {
 	session
@@ -1130,6 +1308,8 @@ void update_session_sound_effects (entity *en)
 		spec = get_local_entity_child_succ (spec, LIST_TYPE_SPECIAL_EFFECT);
 	}
 }
+
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

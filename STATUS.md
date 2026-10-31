@@ -1,3 +1,16 @@
+# D3 physical extraction — the ambient sound amplitude is the host's (31 October 2026, production source UNBUILT, UNRUN, UNREVIEWED)
+
+Clean pushed `4779d6434`. The original behaviour is measured and independently reviewed (21ba driver on the unchanged c0b native: 3 roots, 46 distinct cases, 44 answered + 2 explicit missing-gunship refusals, 47 routine calls, 0 anomalies;
+review no findings; hosted field/sector baseline, no audio/render/player/CPU-FP claim). **This batch moves the physical computation:** in the hosted build `update_session_sound_effects` (`ss_updt.c`) no longer computes the rain,
+wind or terrain-smoothed amplitude. The environment provider answers a new `ambient` op (rain light/heavy, wind light/heavy from the host's weather and wind field; `env_ref_ambient`) and the terrain provider a new `ambient` op (the new
+amplitude of each of the six terrain ambient children from the host's sector surfaces and the child's previous amplitude; `host_terrain_ambient`), both by value, with the original's expressions (equal outdoor rain modes alias one entry and
+are attenuated TWICE; the stored terrain value is the scaled one and compounds; the previous amplitude is used only where the original read it). The campaign keeps the call, the point and its altitude, the clamp, the sector query that still fills the
+scratch mirror, the child list/identities/order, the previous amplitudes and the writes; no Core fallback in the hosted build (the original body stays under `#else`). Observations the campaign supplies are explicit (height, radar altitude, cloud base,
+cockpit, delta, previous amplitudes). Requests validated before sending, replies whole before any write, named markers; full x87/MXCSR guard and no float-argument homing in both kernels. Targeted tests added in `env.rs`, `terrain_sector.rs`,
+`eech-engine` and `eech-dc`; the generic witness provider answers `ambient`. Fixture, driver, rows and baselines unchanged. Remaining D3: lightning effects, time inputs and campaign scheduling (Core), remaining terrain, spatial/object, model,
+compiled player/render/sound consumers (required D3 scope, not dead code, not deferred to D5), full shipping, identity, review, CI, merges. Root builds, compares the same 44-case original driver on fresh roots, then the next finite
+changed/withheld/malformed amplitude witness. D4/D5 unstarted; no acceptance claimed. Details and commands: `docs/d3-environment-sound-routine.md`.
+
 # D3 original ambient measurements closed — next physical amplitude extraction (31 October 2026)
 
 Task51/PR111 now has three completed ORIGINAL ambient collections, explicitly

@@ -26,6 +26,14 @@
  *          where the original indexed outside its table) and the reset of the scratch are the host's.  The other sector readers (the per-type triangle counts and lists of the guide
  *          cover code) are not part of this operation and remain the campaign's own.
  *
+ *   AMBIENT the physical AMPLITUDE of the session's six terrain ambient sound children (EEDCS-51, D3; ss_updt.c update_session_sound_effects): sea, jungle (forest top), amb1 (river), amb2
+ *          (reservoir), amb3 / amb4 (altered land 1 / 2).  The request is the position (x, z: the sound routine's camera clamped to the map, the same the SECTOR question is asked at), the campaign's
+ *          observations (the radar altitude, the previous frame's delta, whether the cockpit is the point) and, for each such child in the session's child order, its ambient class and its
+ *          PREVIOUS amplification (campaign child state: the smoothing compounds, the stored value is the scaled one).  The reply is the new amplification of each child, by value, in the same
+ *          order, computed by the host from ITS sector surfaces with the original's arithmetic (previous plus or minus half the delta by whether the class's surface is in the sector, bound to
+ *          0 to 0.3, times the altitude factor, times 0.75 in the cockpit, and 0 at or above 280 m).  The campaign keeps its child identities and lifecycle and writes the amplitudes; it
+ *          computes none.  This is separate from SECTOR, which still fills the legacy scratch mirror for the renderer and the observer.
+ *
  * The HINT is the host's opaque state for one find-fast record (the original kept pointers into its own terrain geometry there).  The campaign stores
  * it in the record and returns it with the next query on that record, exactly as the records are used (a shared record for queries that pass no record
  * of their own, private ones in entities and locals); it never parses, builds or compares one, and it is a bounded string, never a pointer.  A host that
@@ -53,7 +61,22 @@ enum campaign_terrain_op
 	CAMPAIGN_TERRAIN_MAP = 1,
 	CAMPAIGN_TERRAIN_POINT,
 	CAMPAIGN_TERRAIN_FAST,
-	CAMPAIGN_TERRAIN_SECTOR
+	CAMPAIGN_TERRAIN_SECTOR,
+	CAMPAIGN_TERRAIN_AMBIENT
+};
+
+/* AMBIENT: the most children one question carries, and the classes of the six terrain ambient sound children */
+#define CAMPAIGN_TERRAIN_AMBIENT_MAX 16
+
+enum campaign_terrain_ambient_class
+{
+	CAMPAIGN_TERRAIN_AMBIENT_SEA = 0,
+	CAMPAIGN_TERRAIN_AMBIENT_JUNGLE,
+	CAMPAIGN_TERRAIN_AMBIENT_AMB1,
+	CAMPAIGN_TERRAIN_AMBIENT_AMB2,
+	CAMPAIGN_TERRAIN_AMBIENT_AMB3,
+	CAMPAIGN_TERRAIN_AMBIENT_AMB4,
+	CAMPAIGN_TERRAIN_AMBIENT_CLASSES
 };
 
 typedef struct campaign_terrain_request
@@ -65,6 +88,12 @@ typedef struct campaign_terrain_request
 	float x, z;
 	/* POINT: the record's hint; empty when it has none */
 	char hint[CAMPAIGN_TERRAIN_HINT_MAX + 1];
+	/* AMBIENT (with x, z and winter): whether the cockpit is the point, the number of children (0 to CAMPAIGN_TERRAIN_AMBIENT_MAX), the point's radar altitude, the frame delta, and for each child its
+	   class and previous amplification, in the session's child order */
+	int ambient_in_cockpit, ambient_count;
+	float ambient_alt, ambient_delta;
+	int ambient_class[CAMPAIGN_TERRAIN_AMBIENT_MAX];
+	float ambient_previous[CAMPAIGN_TERRAIN_AMBIENT_MAX];
 } campaign_terrain_request;
 
 typedef struct campaign_terrain_reply
@@ -86,6 +115,8 @@ typedef struct campaign_terrain_reply
 	/* SECTOR: the original's return value (1 + the surface transitions) and the complete scratch, one '0' or '1' per terrain type, NUL-terminated after TERRAIN_TYPE_LAST characters */
 	int sector_returned;
 	char sector_flags[CAMPAIGN_TERRAIN_FLAGS_MAX];
+	/* AMBIENT: the new amplification of each child of the request, in its order */
+	float ambient_amplitude[CAMPAIGN_TERRAIN_AMBIENT_MAX];
 } campaign_terrain_reply;
 
 typedef int (*campaign_terrain_fn)
@@ -115,5 +146,11 @@ void campaign_terrain_install_map_facts (void);
    terrain_types_in_sector by value, and the original's return value is returned.  A missing provider, a refusal, a malformed answer or a position the host cannot answer stops the engine
    with an error that names the terrain provider; nothing is solved from the campaign's own sectors. */
 int campaign_terrain_types_in_sector (float x, float z);
+
+/* The AMBIENT operation (called by update_session_sound_effects in the headless campaign module): the host's new amplification of each of `count` terrain ambient sound children, by value.  The
+   request is validated before it is sent (count within the limit, each class one of the six, nothing else); the answer is checked in full (finite amplitudes) BEFORE anything is written to
+   `amplitude`.  A missing provider, a refusal, a malformed answer or a position the host cannot answer stops the engine with an error that names the terrain provider; nothing is solved from the
+   campaign's own sectors. */
+void campaign_terrain_ambient (float x, float z, int in_cockpit, float alt, float delta, int count, const int *classes, const float *previous, float *amplitude);
 
 #endif

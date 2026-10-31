@@ -1001,6 +1001,25 @@ pub enum TerrainQuery {
     Fast { x: f32, z: f32, winter: bool },
     /// the surface enumeration of the sector that holds a point (EEDCS-51): the original's `get_terrain_3d_types_in_sector`, asked by the session sound routine every update
     Sector { x: f32, z: f32, winter: bool },
+    /// the physical amplification of the session's terrain ambient sound children (EEDCS-51, `update_session_sound_effects`): the point, its radar altitude, the frame delta, whether the cockpit is
+    /// the point, and each child's ambient class and previous amplification in the session's child order
+    Ambient {
+        x: f32,
+        z: f32,
+        winter: bool,
+        in_cockpit: bool,
+        alt: f32,
+        delta: f32,
+        children: Vec<TerrainAmbientChild>,
+    },
+}
+
+/// One terrain ambient sound child of an [`TerrainQuery::Ambient`] question: its class (`0` sea, `1` jungle, `2` amb1, `3` amb2, `4` amb3, `5` amb4: `EECH_TERRAIN_AMBIENT_CLASSES` of them) and the
+/// amplification it held before this update (campaign child state: the smoothing compounds).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct TerrainAmbientChild {
+    pub class: i32,
+    pub previous: f32,
 }
 
 /// The facts about the map the host owns (`TerrainQuery::Map`). `fast_width`/`fast_height` are 0 when the host has no fast grid.
@@ -1043,6 +1062,10 @@ pub enum TerrainAnswer {
     Sector {
         returned: i32,
         flags: Vec<bool>,
+    },
+    /// The new amplification of each child of the question, in its order (one finite number each).
+    Ambient {
+        amplitudes: Vec<f32>,
     },
 }
 
@@ -1130,6 +1153,50 @@ unsafe extern "C" fn terrain_callback(
                     winter,
                 },
             ),
+            sys::EECH_TERRAIN_AMBIENT => {
+                // the request is validated as the campaign built it, before the provider sees it: a bounded count, a class in range, a cockpit flag that is 0 or 1
+                let count = usize::try_from(source.ambient_count)
+                    .ok()
+                    .filter(|count| *count <= sys::EECH_TERRAIN_AMBIENT_MAX)
+                    .ok_or_else(|| {
+                        format!(
+                            "[terrain-provider:ambient.request] {} terrain ambient sound children, not 0 to {}",
+                            source.ambient_count,
+                            sys::EECH_TERRAIN_AMBIENT_MAX
+                        )
+                    })?;
+                if source.ambient_in_cockpit != 0 && source.ambient_in_cockpit != 1 {
+                    return Err(format!(
+                        "[terrain-provider:ambient.request] the cockpit flag is {}, neither 0 nor 1",
+                        source.ambient_in_cockpit
+                    ));
+                }
+                let mut children = Vec::with_capacity(count);
+                for (class, previous) in source.ambient_class.iter().zip(source.ambient_previous.iter()).take(count) {
+                    if !(0..sys::EECH_TERRAIN_AMBIENT_CLASSES).contains(class) {
+                        return Err(format!(
+                            "[terrain-provider:ambient.request] the ambient class {class} is not 0 to {}",
+                            sys::EECH_TERRAIN_AMBIENT_CLASSES - 1
+                        ));
+                    }
+                    children.push(TerrainAmbientChild {
+                        class: *class,
+                        previous: *previous,
+                    });
+                }
+                (
+                    "ambient",
+                    TerrainQuery::Ambient {
+                        x: source.x,
+                        z: source.z,
+                        winter,
+                        in_cockpit: source.ambient_in_cockpit == 1,
+                        alt: source.ambient_alt,
+                        delta: source.ambient_delta,
+                        children,
+                    },
+                )
+            }
             other => return Err(format!("[terrain-provider:point.callback] terrain received unknown operation {other}")),
         };
         let answer = TERRAIN.with(|slot| -> Result<TerrainAnswer, String> {
@@ -1199,12 +1266,26 @@ unsafe extern "C" fn terrain_callback(
                     *slot = if *flag { b'1' as c_char } else { b'0' as c_char };
                 }
             }
+            ("ambient", TerrainAnswer::Ambient { amplitudes }) => {
+                // exactly one finite amplification for each child that was asked about, staged here and written only when all are
+                if amplitudes.len() != usize::try_from(source.ambient_count).unwrap_or(usize::MAX) || !amplitudes.iter().all(|value| value.is_finite()) {
+                    return Err(format!(
+                        "[terrain-provider:ambient.answer] {} amplitudes for {} children (one finite number for each child asked about)",
+                        amplitudes.len(),
+                        source.ambient_count
+                    ));
+                }
+                for (slot, value) in reply.ambient_amplitude.iter_mut().zip(&amplitudes) {
+                    *slot = *value;
+                }
+            }
             (operation, answer) => {
                 let given = match answer {
                     TerrainAnswer::Map(_) => "map facts",
                     TerrainAnswer::Point { .. } => "a point answer",
                     TerrainAnswer::Fast { .. } => "a fast elevation",
                     TerrainAnswer::Sector { .. } => "a sector answer",
+                    TerrainAnswer::Ambient { .. } => "an ambient answer",
                 };
                 return Err(format!(
                     "[terrain-provider:{operation}.answer] the provider answered a {operation} question with {given}"
@@ -1236,8 +1317,8 @@ pub use sys::{eech_env_reply as EnvReply, eech_env_request as EnvRequest, eech_e
 
 /// The operations of an [`EnvRequest`] and the sizes of the field (the enums of ss_hostenv.h).
 pub use sys::{
-    EECH_ENV_DRAWS, EECH_ENV_EXPORT, EECH_ENV_FLOATS, EECH_ENV_GUST, EECH_ENV_IMPORT, EECH_ENV_INIT_FIXED, EECH_ENV_INIT_RANDOM, EECH_ENV_INTS,
-    EECH_ENV_MODE_COUNT, EECH_ENV_STEP, EECH_ENV_WEATHER, EECH_ENV_WIND,
+    EECH_ENV_AMBIENT, EECH_ENV_DRAWS, EECH_ENV_EXPORT, EECH_ENV_FLOATS, EECH_ENV_GUST, EECH_ENV_IMPORT, EECH_ENV_INIT_FIXED, EECH_ENV_INIT_RANDOM,
+    EECH_ENV_INTS, EECH_ENV_MODE_COUNT, EECH_ENV_STEP, EECH_ENV_WEATHER, EECH_ENV_WIND,
 };
 
 /// The host's environment provider. It is installed once, at boot, and is the only source of the campaign's physical weather and wind: the campaign has no weather or wind solver
@@ -1259,6 +1340,7 @@ fn env_op_label(op: c_int) -> &'static str {
         sys::EECH_ENV_WIND => "wind",
         sys::EECH_ENV_GUST => "gust",
         sys::EECH_ENV_STEP => "step",
+        sys::EECH_ENV_AMBIENT => "ambient",
         _ => "unknown",
     }
 }
@@ -1307,6 +1389,17 @@ fn check_env_reply(request: &EnvRequest, reply: &EnvReply) -> Result<(), String>
                 Ok(())
             } else {
                 Err(format!("{answer} the gust answer is malformed"))
+            }
+        }
+        sys::EECH_ENV_AMBIENT => {
+            // four finite levels; the wind levels are the original's piecewise function of r in [0, 1] and never leave it. The rain levels are finite numbers: the original clamps nothing there.
+            let levels = reply.ambient_levels;
+            if levels.iter().all(|level| level.is_finite()) && levels.iter().skip(2).all(|level| (0.0..=1.0).contains(level)) {
+                Ok(())
+            } else {
+                Err(format!(
+                    "{answer} the ambient sound answer is malformed (four finite levels, the wind levels within 0 to 1)"
+                ))
             }
         }
         sys::EECH_ENV_STEP => {
@@ -9629,6 +9722,146 @@ mod tests {
     /// The flags of a sector answer: one entry for each terrain type, set at the listed type ids.
     fn sector_flags(set: &[usize]) -> Vec<bool> {
         (0..sys::EECH_TERRAIN_TYPE_COUNT as usize).map(|id| set.contains(&id)).collect()
+    }
+
+    /// One crossing of the terrain callback for an AMBIENT question, as mb_hostterrain.c builds it: `count` children (the classes given, previous amplifications 0.125, 0.25, ...) at the point
+    /// (10, 20) in winter, the altitude 12.5 and the delta 0.25. The reply starts as a sentinel (a refusal that wrote something shows).
+    fn ambient_crossing(
+        count: c_int,
+        in_cockpit: c_int,
+        classes: &[c_int],
+        provider: impl FnMut(TerrainQuery) -> Result<TerrainAnswer, String> + 'static,
+    ) -> (c_int, sys::eech_terrain_reply, String) {
+        TERRAIN.with(|slot| *slot.borrow_mut() = Some(Box::new(provider)));
+        // SAFETY: the request and reply are plain data; zero is a valid value for every field.
+        let mut request: sys::eech_terrain_request = unsafe { std::mem::zeroed() };
+        request.op = sys::EECH_TERRAIN_AMBIENT;
+        request.winter = 1;
+        request.x = 10.0;
+        request.z = 20.0;
+        request.ambient_in_cockpit = in_cockpit;
+        request.ambient_count = count;
+        request.ambient_alt = 12.5;
+        request.ambient_delta = 0.25;
+        for (index, class) in classes.iter().enumerate() {
+            request.ambient_class[index] = *class;
+            request.ambient_previous[index] = 0.125 * (index as f32 + 1.0);
+        }
+        // SAFETY: as above.
+        let mut reply: sys::eech_terrain_reply = unsafe { std::mem::zeroed() };
+        reply.ambient_amplitude[0] = 9.0;
+        let mut error = [0 as c_char; 256];
+        // SAFETY: the request and reply are valid for the call, and the error buffer is writable for its length.
+        let code = unsafe { terrain_callback(&request, &mut reply, error.as_mut_ptr(), error.len(), std::ptr::null_mut()) };
+        TERRAIN.with(|slot| *slot.borrow_mut() = None);
+        let text: Vec<u8> = error.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect();
+        (code, reply, String::from_utf8_lossy(&text).into_owned())
+    }
+
+    #[test]
+    fn an_ambient_terrain_question_carries_its_observations_by_value_and_a_malformed_question_or_answer_is_refused_before_anything_is_written() {
+        // the question reaches the provider as the campaign built it, and the answer comes back by value, one amplitude per child, in order
+        let (code, reply, error) = ambient_crossing(2, 0, &[0, 5], |query| {
+            assert_eq!(
+                query,
+                TerrainQuery::Ambient {
+                    x: 10.0,
+                    z: 20.0,
+                    winter: true,
+                    in_cockpit: false,
+                    alt: 12.5,
+                    delta: 0.25,
+                    children: vec![
+                        TerrainAmbientChild { class: 0, previous: 0.125 },
+                        TerrainAmbientChild { class: 5, previous: 0.25 }
+                    ],
+                }
+            );
+            Ok(TerrainAnswer::Ambient { amplitudes: vec![0.5, 0.75] })
+        });
+        assert_eq!(code, 0, "{error}");
+        assert_eq!(&reply.ambient_amplitude[..3], &[0.5, 0.75, 0.0]);
+        // the cockpit flag is carried; no child at all is a question with no answers
+        let (code, _, error) = ambient_crossing(0, 1, &[], |query| {
+            assert!(
+                matches!(query, TerrainQuery::Ambient { in_cockpit: true, ref children, .. } if children.is_empty()),
+                "{query:?}"
+            );
+            Ok(TerrainAnswer::Ambient { amplitudes: Vec::new() })
+        });
+        assert_eq!(code, 0, "{error}");
+        // an answer that is not one finite amplitude for each child asked about, or of another kind, is refused with its marker and writes nothing (the sentinel stays)
+        let refused_answer = |answer: TerrainAnswer, marker: &str| {
+            let (code, reply, error) = ambient_crossing(2, 0, &[0, 5], move |_| Ok(answer.clone()));
+            assert_ne!(code, 0, "{marker}: accepted");
+            assert!(error.starts_with(&format!("[terrain-provider:{marker}]")), "{marker}: {error}");
+            assert_eq!(reply.ambient_amplitude[0], 9.0, "{marker}: wrote into the reply");
+        };
+        refused_answer(TerrainAnswer::Ambient { amplitudes: vec![0.5] }, "ambient.answer");
+        refused_answer(
+            TerrainAnswer::Ambient {
+                amplitudes: vec![0.5, 0.75, 1.0],
+            },
+            "ambient.answer",
+        );
+        refused_answer(
+            TerrainAnswer::Ambient {
+                amplitudes: vec![0.5, f32::NAN],
+            },
+            "ambient.answer",
+        );
+        refused_answer(
+            TerrainAnswer::Ambient {
+                amplitudes: vec![f32::INFINITY, 0.5],
+            },
+            "ambient.answer",
+        );
+        refused_answer(TerrainAnswer::Fast { elevation: 2.0 }, "ambient.answer");
+        // a question that is not well formed never reaches the provider: too many children, a class that is not one of the six, a cockpit flag that is neither 0 nor 1
+        let refused_question = |count: c_int, in_cockpit: c_int, classes: &[c_int]| {
+            let reached = std::rc::Rc::new(std::cell::Cell::new(false));
+            let seen = reached.clone();
+            let (code, reply, error) = ambient_crossing(count, in_cockpit, classes, move |_| {
+                seen.set(true);
+                Ok(TerrainAnswer::Ambient { amplitudes: Vec::new() })
+            });
+            assert_ne!(code, 0, "{count}/{in_cockpit}/{classes:?}: accepted");
+            assert!(error.starts_with("[terrain-provider:ambient.request]"), "{error}");
+            assert!(!reached.get(), "the provider was asked a question that is not well formed");
+            assert_eq!(reply.ambient_amplitude[0], 9.0);
+        };
+        refused_question(sys::EECH_TERRAIN_AMBIENT_MAX as c_int + 1, 0, &[]);
+        refused_question(-1, 0, &[]);
+        refused_question(2, 0, &[0, sys::EECH_TERRAIN_AMBIENT_CLASSES]);
+        refused_question(1, 0, &[-1]);
+        refused_question(1, 2, &[0]);
+    }
+
+    #[test]
+    fn the_ambient_sound_answer_of_a_direct_environment_provider_is_four_finite_levels_and_the_wind_levels_stay_within_zero_and_one() {
+        let ask = || EnvRequest {
+            op: sys::EECH_ENV_AMBIENT,
+            ..EnvRequest::default()
+        };
+        let reply = |levels: [f32; 4]| EnvReply {
+            ambient_levels: levels,
+            ..EnvReply::default()
+        };
+        let (code, written, error) = env_crossing(ask(), move |_| Ok(reply([0.25, 1.5, 0.5, 1.0])));
+        assert_eq!((code, written.ambient_levels), (0, [0.25, 1.5, 0.5, 1.0]), "{error}");
+        // a rain level is any finite number (the original clamps nothing there); a wind level is the original's piecewise function of r in [0, 1]
+        for (levels, why) in [
+            ([f32::NAN, 0.0, 0.0, 0.0], "rain light"),
+            ([0.0, f32::INFINITY, 0.0, 0.0], "rain heavy"),
+            ([0.0, 0.0, f32::NAN, 0.0], "wind light"),
+            ([0.0, 0.0, 0.0, -0.5], "wind heavy below 0"),
+            ([0.0, 0.0, 1.5, 0.0], "wind light above 1"),
+        ] {
+            let (code, written, error) = env_crossing(ask(), move |_| Ok(reply(levels)));
+            assert_ne!(code, 0, "{why}: accepted");
+            assert!(error.contains("[env-provider:ambient.answer]"), "{why}: {error}");
+            assert_eq!(written.current_mode, 77, "{why}: a refusal wrote the reply");
+        }
     }
 
     #[test]

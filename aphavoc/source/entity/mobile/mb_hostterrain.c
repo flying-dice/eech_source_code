@@ -405,4 +405,61 @@ int campaign_terrain_types_in_sector (float x, float z)
 	return ( reply.sector_returned );
 }
 
+
+// ss_updt.c update_session_sound_effects: the new amplification of the terrain ambient sound children.  The campaign hands over what it observed -- the point (the camera clamped to the map, as the
+// SECTOR question is asked), its radar altitude, the previous frame's delta, the cockpit flag, and for each such child its class and its PREVIOUS amplification -- and writes back what the host
+// answers.  It computes no level and no smoothing, and has no fallback to its own sectors.  The request is validated before it is sent and the whole answer before anything is written.
+void campaign_terrain_ambient (float x, float z, int in_cockpit, float alt, float delta, int count, const int *classes, const float *previous, float *amplitude)
+{
+	campaign_terrain_request
+		request;
+
+	campaign_terrain_reply
+		reply;
+
+	int
+		i;
+
+	if ((count < 0) || (count > CAMPAIGN_TERRAIN_AMBIENT_MAX))
+	{
+		debug_fatal ("host terrain: [terrain-provider:ambient.request] %d terrain ambient sound children, not 0 to %d", count, (int) CAMPAIGN_TERRAIN_AMBIENT_MAX);
+	}
+
+	memset (&request, 0, sizeof (request));
+
+	request.op = CAMPAIGN_TERRAIN_AMBIENT;
+	request.x = x;
+	request.z = z;
+	request.ambient_in_cockpit = (in_cockpit != 0);
+	request.ambient_count = count;
+	request.ambient_alt = alt;
+	request.ambient_delta = delta;
+
+	for (i = 0; i < count; i++)
+	{
+		if ((classes[i] < 0) || (classes[i] >= CAMPAIGN_TERRAIN_AMBIENT_CLASSES))
+		{
+			debug_fatal ("host terrain: [terrain-provider:ambient.request] child %d has the ambient class %d, not 0 to %d", i, classes[i], (int) CAMPAIGN_TERRAIN_AMBIENT_CLASSES - 1);
+		}
+
+		request.ambient_class[i] = classes[i];
+		request.ambient_previous[i] = previous[i];
+	}
+
+	ask (&request, &reply, "ambient");
+
+	for (i = 0; i < count; i++)
+	{
+		if (!isfinite (reply.ambient_amplitude[i]))
+		{
+			debug_fatal ("host terrain: [terrain-provider:ambient.answer] the host's amplification of child %d is not a finite number", i);
+		}
+	}
+
+	for (i = 0; i < count; i++)
+	{
+		amplitude[i] = reply.ambient_amplitude[i];
+	}
+}
+
 #endif // EECH_CAMPAIGN_HOST_TERRAIN

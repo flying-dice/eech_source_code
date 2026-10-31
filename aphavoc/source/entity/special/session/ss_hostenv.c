@@ -370,6 +370,40 @@ float campaign_env_gust_modulation (float phase)
 	return reply.modulation;
 }
 
+// ss_updt.c update_session_sound_effects: the rain and wind levels of the ambient sound children.  The campaign hands over what it observed (the point, its height, its radar
+// altitude, the cloud base height, whether the cockpit is the point) and takes four levels back; it computes none of them.  The answer is checked whole BEFORE any output is written.
+void campaign_env_ambient (int in_cockpit, float x, float y, float z, float alt, float cloud_base, float *rain_light, float *rain_heavy, float *wind_light, float *wind_heavy)
+{
+	campaign_env_request
+		request;
+
+	campaign_env_reply
+		reply;
+
+	memset (&request, 0, sizeof (request));
+
+	request.op = CAMPAIGN_ENV_AMBIENT;
+
+	request.x = x;
+	request.z = z;
+	request.in_cockpit = (in_cockpit != 0);
+	request.ambient_y = y;
+	request.ambient_alt = alt;
+	request.ambient_cloud_base = cloud_base;
+
+	ask (&request, &reply, "ambient");
+
+	if (!all_finite (reply.ambient_levels, 4) || (reply.ambient_levels[2] < 0.0) || (reply.ambient_levels[2] > 1.0) || (reply.ambient_levels[3] < 0.0) || (reply.ambient_levels[3] > 1.0))
+	{
+		debug_fatal ("host environment: [env-provider:ambient.answer] the host's ambient sound answer is malformed (four finite levels, the wind levels within 0 to 1)");
+	}
+
+	*rain_light = reply.ambient_levels[0];
+	*rain_heavy = reply.ambient_levels[1];
+	*wind_light = reply.ambient_levels[2];
+	*wind_heavy = reply.ambient_levels[3];
+}
+
 ////////////////////////////////////////
 //
 // the physical update

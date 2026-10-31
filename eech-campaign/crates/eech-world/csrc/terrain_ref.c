@@ -3927,6 +3927,177 @@ int host_terrain_types_in_sector (const host_terrain *map, uint32_t x_bits, uint
 	return 0;
 }
 
+/*
+ * The physical AMPLITUDE of the session's six terrain ambient sound children (EEDCS-51, D3): ss_updt.c update_session_sound_effects, the part that reads the shared scratch
+ * terrain_types_in_sector and smooths each child's amplification.  The host decides it from ITS sector surfaces (the enumeration above, the same sector the campaign's SECTOR question
+ * is asked about) and the campaign's observations; the campaign keeps its children and writes the answers.  The arithmetic is the original's, expression for expression and in the same
+ * types (the constants are doubles), including that the value stored is the SCALED one and is read back as the child's previous amplification next time:
+ *
+ *   alt >= 280                      value = 0
+ *   otherwise                       value = previous; value +/-= 0.5 * delta (+ when the child's surface is flagged in the sector, - when not);
+ *                                   value = bound (value, 0, 0.3); value *= bound (1 - alt / 280, 0, 1); in the cockpit value *= 0.75
+ *
+ * The caller's COMPLETE floating-point state is preserved on every path by the guard above (the sector enumeration's), with its lessons: the position arrives as the BITS of the two floats, the
+ * other floats (the altitude, the delta and the previous amplifications) arrive in a float ARRAY that is read only inside the guard, never as parameters, and the answer is staged and written
+ * only after the caller's state has been restored and read back.  A previous amplification is read only where the original read it (below 280 m).
+ */
+#define SESSION_TERRAIN_SOUND_EFFECT_ZERO_VOLUME_ALTITUDE 280.0
+
+/* the six classes of mb_hostterrain.h campaign_terrain_ambient_class (sea, jungle, amb1 to amb4) and the terrain surface each follows */
+static const int ambient_terrain_types[HOST_TERRAIN_AMBIENT_CLASSES] =
+{
+	TERRAIN_TYPE_SEA,
+	TERRAIN_TYPE_FOREST_TOP,
+	TERRAIN_TYPE_RIVER,
+	TERRAIN_TYPE_RESERVOIR,
+	TERRAIN_TYPE_ALTERED_LAND1,
+	TERRAIN_TYPE_ALTERED_LAND2
+};
+
+typedef struct ambient_staged
+{
+	float amplitude[HOST_TERRAIN_AMBIENT_MAX];
+	char error[256];
+} ambient_staged;
+
+/* ALL the floating-point work of the smoothing, between the guard's save and restore, writing only the staged answer */
+static int __attribute__ ((noinline)) ambient_impl (const sector_staged *sector, const float *in_f, const int32_t *in_i, size_t count, ambient_staged *out)
+{
+	float
+		alt,
+		delta,
+		value;
+
+	size_t
+		i;
+
+	alt = in_f[0];
+	delta = in_f[1];
+
+	for (i = 0; i < count; i++)
+	{
+		int
+			klass;
+
+		klass = in_i[1 + i];
+
+		if ((klass < 0) || (klass >= HOST_TERRAIN_AMBIENT_CLASSES))
+		{
+			return fail (out->error, sizeof (out->error), "terrain: child %d has the ambient class %d, not 0 to %d", (int) i, klass, HOST_TERRAIN_AMBIENT_CLASSES - 1);
+		}
+
+		if (alt >= SESSION_TERRAIN_SOUND_EFFECT_ZERO_VOLUME_ALTITUDE)
+		{
+			value = 0.0;
+		}
+		else
+		{
+			value = in_f[2 + i];
+
+			if (sector->flags[ambient_terrain_types[klass]])
+			{
+				value += (0.5 * delta);
+			}
+			else
+			{
+				value -= (0.5 * delta);
+			}
+
+			value = bound (value, 0.0, 0.3);
+
+			value *= bound (1.0 - (alt / SESSION_TERRAIN_SOUND_EFFECT_ZERO_VOLUME_ALTITUDE), 0.0, 1.0);
+
+			if (in_i[0])
+			{
+				value *= 0.75;
+			}
+		}
+
+		out->amplitude[i] = value;
+	}
+
+	return 0;
+}
+
+/* in_f = { alt, delta, previous[0 .. count) }, in_i = { in_cockpit, class[0 .. count) }, out = count amplitudes, written only on success. The arrays are readable for HOST_TERRAIN_AMBIENT_MAX
+   children whatever `count` is (the wrapper's fixed-size arrays). */
+int host_terrain_ambient (const host_terrain *map, uint32_t x_bits, uint32_t z_bits, const float *in_f, const int32_t *in_i, size_t count, float *out, char *error, size_t error_size)
+{
+	sector_fp_state saved;
+	sector_staged sector;
+	ambient_staged staged;
+	int result;
+
+	/* nothing before this line touches a floating-point register: the arguments are integers and pointers */
+	sector_fp_save (&saved);
+
+	memset (&sector, 0, sizeof (sector));
+	memset (&staged, 0, sizeof (staged));
+
+	if (sector_fp_enter (staged.error, sizeof (staged.error)) != 0)
+	{
+		result = -1;
+	}
+	else
+	{
+		/* the arithmetic below depends on these values, which now depend on the guard having been entered */
+		__asm__ __volatile__ ("" : "+r" (x_bits), "+r" (z_bits) : : "memory");
+
+		if (!in_f || !in_i || !out || (count > HOST_TERRAIN_AMBIENT_MAX))
+		{
+			result = fail (staged.error, sizeof (staged.error), "terrain: the ambient question needs its arrays and 0 to %d children", HOST_TERRAIN_AMBIENT_MAX);
+		}
+		else
+		{
+			result = types_in_sector_impl (map, x_bits, z_bits, &sector);
+
+			if (result != 0)
+			{
+				memcpy (staged.error, sector.error, sizeof (staged.error));
+			}
+			else
+			{
+				result = ambient_impl (&sector, in_f, in_i, count, &staged);
+			}
+		}
+	}
+
+	SECTOR_FP_SETTLE (staged);
+
+	/* the caller's state is restored FIRST, and only then may the answer stand: from here on only integer tests and bitwise copies remain */
+	if (sector_fp_restore (&saved) != 0)
+	{
+		result = fail (staged.error, sizeof (staged.error), "the caller's floating-point environment did not read back as saved: the answer is withheld");
+	}
+
+	if (result != 0)
+	{
+		if (error && error_size)
+		{
+			size_t length = 0;
+
+			while (length < sizeof (staged.error) - 1 && staged.error[length] != 0)
+			{
+				length++;
+			}
+
+			if (length > error_size - 1)
+			{
+				length = error_size - 1;
+			}
+
+			memcpy (error, staged.error, length);
+			error[length] = '\0';
+		}
+
+		return -1;
+	}
+
+	memcpy (out, staged.amplitude, count * sizeof (float));
+
+	return 0;
+}
+
 /* terrsel.c get_3d_terrain_fast_elevation, over the grid of terrain.sim, expression for expression */
 int host_terrain_fast_elevation (const host_terrain *map, float x, float z, float *out, char *error, size_t error_size)
 {

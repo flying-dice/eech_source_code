@@ -23,6 +23,11 @@
  *                transitional state and the simple choice.
  *   WIND         get_session_wind_velocity_at_point: the position; answered with the speed and the velocity vector.
  *   GUST         the gust modulation at a phase (a test-only question: the campaign never asks it).
+ *   AMBIENT      the physical RAIN and WIND levels of the session's ambient sound children (ss_updt.c update_session_sound_effects, EEDCS-51): the point the sound is heard at (the camera,
+ *                or the gunship in the cockpit: x, z), the campaign's observations of it (its height, its radar altitude, the cloud base height) and whether the cockpit is the point.  The
+ *                answer is the four levels by value (rain light, rain heavy, wind light, wind heavy), computed by the host from its own weather and wind with the original's expressions
+ *                (equal outdoor rain modes alias one entry and are attenuated twice, as in the original).  The campaign writes them into its children and computes nothing.  The terrain
+ *                children's levels are the TERRAIN provider's question (mb_hostterrain.h AMBIENT).
  *   STEP         the physical part of update_transitional_weather for one update: the delta of the frame (the previous frame's, as the original reads it),
  *                the camera position, the comms model, the map extents.  The lightning timer's expiry needs one draw of the shared word for the next
  *                timer: the first request carries none and the host answers NEED_DRAW without changing anything; the campaign then makes that one
@@ -88,7 +93,8 @@ enum campaign_env_op
 	CAMPAIGN_ENV_WEATHER,
 	CAMPAIGN_ENV_WIND,
 	CAMPAIGN_ENV_GUST,
-	CAMPAIGN_ENV_STEP
+	CAMPAIGN_ENV_STEP,
+	CAMPAIGN_ENV_AMBIENT
 };
 
 #define CAMPAIGN_ENV_DRAWS 10
@@ -126,6 +132,8 @@ typedef struct campaign_env_request
 	float camera[3];
 	int have_draw;
 	double lightning_draw;
+	/* AMBIENT (x, z and in_cockpit above): the point's height, its radar altitude and the cloud base height */
+	float ambient_y, ambient_alt, ambient_cloud_base;
 } campaign_env_request;
 
 typedef struct campaign_env_reply
@@ -145,6 +153,8 @@ typedef struct campaign_env_reply
 	int expired;
 	float strike[3];
 	float new_timer;
+	/* AMBIENT: rain light, rain heavy, wind light, wind heavy */
+	float ambient_levels[4];
 } campaign_env_reply;
 
 typedef int (*campaign_env_fn)
@@ -179,6 +189,11 @@ void campaign_env_init_fixed (struct SESSION *raw, int mode);
 void campaign_env_weather_at (float x, float z, int *current_mode, int *target_mode, float *transitional_state, int *simple_mode);
 float campaign_env_wind_at (float x, float z, float *vector);
 float campaign_env_gust_modulation (float phase);
+
+/* The ambient sound levels (rain light, rain heavy, wind light, wind heavy) at a point, from the host's own weather and wind.  The answer is checked in full before anything is written to the
+   outputs: the four numbers must be finite and the wind levels within [0, 1] (the original's piecewise function never leaves it).  A missing provider, a refusal or a malformed answer stops
+   the engine with an error that names the environment provider; there is no campaign solver to fall back to. */
+void campaign_env_ambient (int in_cockpit, float x, float y, float z, float alt, float cloud_base, float *rain_light, float *rain_heavy, float *wind_light, float *wind_heavy);
 
 /* The physical update of one session update.  Returns nonzero when the lightning timer expired, with the position the original struck and the new timer; the mirror holds the field
    after the step.  camera is NULL when the campaign has no camera position to give (the host refuses only if it needs one). */

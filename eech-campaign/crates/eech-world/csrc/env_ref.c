@@ -434,6 +434,110 @@ static int wind_at (const env_state *s, float px, float pz, float *speed_out, fl
 	return 0;
 }
 
+/* ss_updt.c update_session_sound_effects (EEDCS-51, D3): the physical RAIN and WIND levels of the ambient sound children at the camera (or the gunship in the cockpit), from the host's own
+   field. The expressions, their types and their order are the original's (constants are doubles, as written there): the rain levels of the modes, switched off at or above the cloud base and,
+   outdoors, at or above 180 m of radar altitude, attenuated outdoors by 1 - alt / 180 -- the target mode's entry and then the current mode's entry SEPARATELY, so for equal modes (the same
+   array entry) the factor is applied TWICE, as in the original -- and the light and heavy wind levels from the wind speed against the session's limits.  The weather is asked only inside the rain
+   branch, as the original asked it.  out = { rain light, rain heavy, wind light, wind heavy }.  The camera y, the altitude and the cloud base are the campaign's observations. */
+#define SESSION_RAIN_SOUND_EFFECT_ZERO_VOLUME_ALTITUDE 180.0
+
+static int ambient_at (const env_state *s, float x, float z, float y, float alt, float cloud_base, int winter, int in_cockpit, float *out, char *error, size_t error_size)
+{
+	int
+		current_weather_mode,
+		target_weather_mode;
+
+	float
+		trans,
+		r,
+		wind_speed,
+		light_wind_sound_level,
+		heavy_wind_sound_level,
+		rain_sound_levels [WEATHERMODE_LAST];
+
+	current_weather_mode = WEATHERMODE_DRY;
+	target_weather_mode = WEATHERMODE_DRY;
+
+	memset (rain_sound_levels, 0, sizeof (float) * WEATHERMODE_LAST);
+
+	if (y < cloud_base)
+	{
+		if ((!in_cockpit) && (alt >= SESSION_RAIN_SOUND_EFFECT_ZERO_VOLUME_ALTITUDE))
+		{
+			/* rain should only make a sound when it hits either the cockpit, or the ground */
+		}
+		else
+		{
+			trans = 0.0;
+
+			weather_at (s, x, z, winter, &current_weather_mode, &target_weather_mode, &trans);
+
+			if (target_weather_mode == current_weather_mode)
+			{
+				rain_sound_levels [target_weather_mode] = 1.0;
+				rain_sound_levels [current_weather_mode] = 1.0;
+			}
+			else
+			{
+				rain_sound_levels [target_weather_mode] = trans;
+				rain_sound_levels [current_weather_mode] = (1.0 - trans);
+			}
+
+			if (!in_cockpit)
+			{
+				rain_sound_levels [target_weather_mode] *= (1.0 - (alt / SESSION_RAIN_SOUND_EFFECT_ZERO_VOLUME_ALTITUDE));
+				rain_sound_levels [current_weather_mode] *= (1.0 - (alt / SESSION_RAIN_SOUND_EFFECT_ZERO_VOLUME_ALTITUDE));
+			}
+		}
+	}
+
+	wind_speed = 0.0;
+
+	if (wind_at (s, x, z, &wind_speed, NULL, error, error_size) != 0)
+	{
+		return -1;
+	}
+
+	if (wind_speed <= s->f[F_WIND_MINIMUM_SPEED])
+	{
+		r = 0.0;
+	}
+	else if (wind_speed >= s->f[F_WIND_MAXIMUM_SPEED])
+	{
+		r = 1.0;
+	}
+	else
+	{
+		r = (wind_speed - s->f[F_WIND_MINIMUM_SPEED]) / (s->f[F_WIND_MAXIMUM_SPEED] - s->f[F_WIND_MINIMUM_SPEED]);
+	}
+
+	if (r == 0.0)
+	{
+		light_wind_sound_level = 0.0;
+
+		heavy_wind_sound_level = 0.0;
+	}
+	else if (r < 0.5)
+	{
+		light_wind_sound_level = r * 2.0;
+
+		heavy_wind_sound_level = 0.0;
+	}
+	else
+	{
+		light_wind_sound_level = 1.0 - ((r - 0.5) * 2.0);
+
+		heavy_wind_sound_level = (r - 0.5) * 2.0;
+	}
+
+	out[0] = rain_sound_levels [WEATHERMODE_LIGHT_RAIN];
+	out[1] = rain_sound_levels [WEATHERMODE_HEAVY_RAIN];
+	out[2] = light_wind_sound_level;
+	out[3] = heavy_wind_sound_level;
+
+	return 0;
+}
+
 ////////////////////////////////////////
 //
 // the operations
@@ -1305,6 +1409,53 @@ int env_ref_gust (float phase, float *modulation, char *error, size_t error_size
 	if (result == 0)
 	{
 		memcpy (modulation, &answer, sizeof (answer));
+	}
+
+	return result;
+}
+
+int env_ref_ambient (const env_ref *field, const float *in_f, const int *in_i, float *out, char *error, size_t error_size)
+{
+	env_fp_state saved;
+	int result = 0;
+	float answer[4];
+	float x, z, y, alt, cloud_base;
+
+	/* nothing before fp_save touches a floating-point register: the arguments are pointers, and the floats are read from memory below, inside the guard */
+	fp_save (&saved);
+
+	if (fp_enter (error, error_size) != 0)
+	{
+		return fp_leave (&saved, -1, error, error_size);
+	}
+
+	x = in_f[0];
+	z = in_f[1];
+	y = in_f[2];
+	alt = in_f[3];
+	cloud_base = in_f[4];
+
+	answer[0] = 0.0;
+	answer[1] = 0.0;
+	answer[2] = 0.0;
+	answer[3] = 0.0;
+
+	if (require_state (field, error, error_size) != 0)
+	{
+		result = -1;
+	}
+	else
+	{
+		result = ambient_at (&field->state, x, z, y, alt, cloud_base, in_i[0], in_i[1], answer, error, error_size);
+	}
+
+	ENV_FP_SETTLE (answer);
+
+	result = fp_leave (&saved, result, error, error_size);
+
+	if (result == 0)
+	{
+		memcpy (out, answer, sizeof (answer));
 	}
 
 	return result;

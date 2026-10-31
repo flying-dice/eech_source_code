@@ -9,7 +9,7 @@
 //! The last test is the CALLER'S-FLOATING-POINT-STATE contract of the same public entry (`Terrain::types_in_sector`): the complete x87 and SSE state, seeded and read back with no mask, across
 //! accepted and refused queries. It was written BEFORE the kernel's guard (a red test against the unguarded commit 6711d5f11); see the test for what it covers and what it does not.
 
-use eech_world::terrain::{provider, Terrain};
+use eech_world::terrain::{provider, AmbientChild, Terrain, AMBIENT_MAX};
 use mlua::Lua;
 use std::rc::Rc;
 
@@ -399,6 +399,253 @@ fn the_callers_complete_floating_point_state_survives_every_sector_query_in_ever
     assert!(
         leaks.is_empty(),
         "the sector query changed the caller's floating-point state in {} kinds of call ({checked} calls checked, no mask):\n{}",
+        leaks.len(),
+        leaks
+            .iter()
+            .map(|(key, (times, first))| format!("  {key}  x{times}, first under {first}"))
+            .collect::<Vec<_>>()
+            .join("\n")
+    );
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// the physical amplitude of the terrain ambient sound children (EEDCS-51, D3): the host's own sector surfaces and the original's smoothing
+
+fn child(class: i32, previous: f32) -> AmbientChild {
+    AmbientChild { class, previous }
+}
+
+#[test]
+fn the_host_decides_the_terrain_ambient_amplitude_from_its_own_sector_surfaces_with_the_originals_smoothing() {
+    // the six classes follow sea (7), forest top (46), river (1), reservoir (2), altered land 1 (21) and altered land 2 (22): a child rises by half the delta when its surface is flagged in the
+    // sector and falls by it when not. Previous 0.125 and delta 0.25 are dyadic: the results are exact, at altitude 0 outdoors (the altitude factor is 1).
+    type World = (&'static [bool], &'static [u8], [bool; 6]);
+    let worlds: [World; 4] = [
+        (&[false, true, false, true, true], &[9, 7, 9, 3], [true, false, false, false, false, false]),
+        (&[false, true], &[46, 21], [false, true, false, false, true, false]),
+        (&[false, true], &[1, 2], [false, false, true, true, false, false]),
+        (&[false, true], &[7, 22], [true, false, false, false, false, true]),
+    ];
+    for (faces, surfaces, flagged) in worlds {
+        let terrain = map(faces, surfaces);
+        let children: Vec<AmbientChild> = (0..6).map(|class| child(class, 0.125)).collect();
+        let amplitudes = terrain.ambient(512.0, 1536.0, false, 0.0, 0.25, &children).expect("the sector is in the map");
+        let expected: Vec<f32> = flagged.iter().map(|on| if *on { 0.25 } else { 0.0 }).collect();
+        assert_eq!(amplitudes, expected, "surfaces {surfaces:?}");
+    }
+    let terrain = map(&[false, true, false, true, true], &[9, 7, 9, 3]);
+    let ask = |alt: f32, delta: f32, cockpit: bool, children: &[AmbientChild]| terrain.ambient(1.0, 1.0, cockpit, alt, delta, children);
+    // the upper bound of the smoothing is the double 0.3 stored as a float under round-toward-zero, the engine's rounding mode (0x3e999999, one float below the nearest, 0.3f32), the lower 0
+    let upper = f32::from_bits(0x3e99_9999);
+    assert_eq!(ask(0.0, 0.25, false, &[child(0, 0.25), child(1, 0.0)]).unwrap(), vec![upper, 0.0]);
+    // the altitude factor 1 - alt / 280 (0.5 at 140 m) multiplies the bounded value, and the cockpit factor 0.75 follows it
+    assert_eq!(ask(140.0, 0.25, false, &[child(0, 0.125)]).unwrap(), vec![0.125f32]);
+    assert_eq!(ask(0.0, 0.25, true, &[child(0, 0.125)]).unwrap(), vec![0.1875f32]);
+    // at or above 280 m the amplitude is 0, and the previous amplitude is not used at all (a NaN there is not an error): the branch-dependent input stays unused
+    for alt in [280.0f32, 400.0] {
+        assert_eq!(
+            ask(alt, 0.25, false, &[child(0, f32::NAN), child(5, 0.25)]).unwrap(),
+            vec![0.0f32, 0.0],
+            "alt {alt}"
+        );
+    }
+    // just below 280 m the factor is a hair above zero
+    let tiny = ask(f32::from_bits(280.0f32.to_bits() - 1), 0.25, false, &[child(0, 0.125)]).unwrap();
+    assert!(tiny[0] > 0.0 && tiny[0] < 1.0e-6, "{tiny:?}");
+    // each child is smoothed from ITS OWN previous amplitude, in the order given (two children of one class): 0.125 + 0.125 and 0.25 + 0.125 bounded
+    assert_eq!(ask(0.0, 0.25, false, &[child(0, 0.125), child(0, 0.25)]).unwrap(), vec![0.25f32, upper]);
+    // no child at all is a question with no answers
+    assert_eq!(ask(0.0, 0.25, false, &[]).unwrap(), Vec::<f32>::new());
+}
+
+#[test]
+fn a_terrain_ambient_question_that_the_host_cannot_answer_is_refused_with_a_message() {
+    let terrain = map(&[false, true], &[9, 7]);
+    let refused = |result: Result<Vec<f32>, String>, fragment: &str| {
+        let error = result.unwrap_err();
+        assert!(error.contains(fragment), "{fragment}: {error}");
+    };
+    // the position: outside the map, not finite (the same domain as the sector enumeration the amplitude is read from)
+    refused(terrain.ambient(2048.0, 0.0, false, 0.0, 0.25, &[child(0, 0.0)]), "outside the map");
+    refused(terrain.ambient(f32::NAN, 0.0, false, 0.0, 0.25, &[child(0, 0.0)]), "finite");
+    // a class that is not one of the six, a count above the limit
+    refused(terrain.ambient(1.0, 1.0, false, 0.0, 0.25, &[child(0, 0.0), child(6, 0.0)]), "ambient class 6");
+    refused(terrain.ambient(1.0, 1.0, false, 0.0, 0.25, &[child(-1, 0.0)]), "ambient class -1");
+    let too_many: Vec<AmbientChild> = (0..=AMBIENT_MAX).map(|_| child(0, 0.0)).collect();
+    refused(terrain.ambient(1.0, 1.0, false, 0.0, 0.25, &too_many), "not 0 to 16");
+    let at_the_limit: Vec<AmbientChild> = (0..AMBIENT_MAX).map(|_| child(0, 0.0)).collect();
+    assert_eq!(terrain.ambient(1.0, 1.0, false, 0.0, 0.25, &at_the_limit).unwrap().len(), AMBIENT_MAX);
+}
+
+#[test]
+fn the_lua_provider_answers_ambient_with_one_amplitude_per_child_and_refuses_a_question_it_cannot_read() {
+    let lua = Lua::new();
+    let terrain = Rc::new(map(&[false, true], &[9, 7]));
+    let function = provider(&lua, terrain).expect("the provider");
+    let question = |children: &str| -> mlua::Result<mlua::Table> {
+        let request: mlua::Table = lua
+            .load(format!(
+                "return {{ op = 'ambient', x = 1.0, z = 1.0, winter = false, alt = 0.0, delta = 0.25, in_cockpit = false, children = {children} }}"
+            ))
+            .eval()?;
+        function.call(request)
+    };
+    let answer = question("{ { class = 0, previous = 0.125 }, { class = 1, previous = 0.125 } }").expect("an answer");
+    let amplitudes: Vec<f64> = answer.get("amplitudes").unwrap();
+    assert_eq!(amplitudes, vec![0.25, 0.0], "the sea (7) is flagged in this sector, the forest top (46) is not");
+    for (children, fragment) in [
+        ("{ { class = 9, previous = 0.0 } }", "ambient class"),
+        ("{ { class = 0.5, previous = 0.0 } }", "ambient class"),
+        ("{ { class = 0, previous = 0.1 } }", "exact single-precision"),
+        ("nil", "children must be a list"),
+    ] {
+        let error = question(children).unwrap_err().to_string();
+        assert!(error.contains(fragment), "{children}: {error}");
+    }
+    let request: mlua::Table = lua
+        .load("return { op = 'ambient', x = 1.0, z = 1.0, winter = false, alt = 0.0, delta = 0.25, in_cockpit = 1, children = {} }")
+        .eval()
+        .unwrap();
+    assert!(function
+        .call::<mlua::Table>(request)
+        .unwrap_err()
+        .to_string()
+        .contains("in_cockpit must be a boolean"));
+}
+
+/// The caller's complete floating-point state around the terrain AMBIENT amplitude, in the manner of the sector enumeration's test above (the same seeded states, the same registers, no mask): accepted
+/// questions (the smoothing both ways, the bounds, the altitude factor, the cockpit, the zero-volume branch with an input that must stay unused, a subnormal previous amplitude and delta) and refusals
+/// (outside the map, not finite, a class that is not one of the six), and the answers are the same whatever the state. It goes through the public library entry, and the position and every float cross
+/// the C boundary as bits or inside arrays read within the kernel's guard. Only the entry's own effect is claimed. Source only: Root runs it on the actual targets.
+#[test]
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+fn the_callers_complete_floating_point_state_survives_every_terrain_ambient_question_in_every_mode() {
+    use caller_fp::{difference, now, seed, Env, Seed};
+    use std::collections::BTreeMap;
+
+    let restore = RestoreFp {
+        image: caller_fp::x87_image(),
+        mxcsr: caller_fp::mxcsr(),
+    };
+    let terrain = map(&[false, true, false, true, true], &[9, 7, 9, 3]);
+    let subnormal = f32::from_bits(1);
+    type Question = (&'static str, f32, f32, bool, f32, f32, Vec<AmbientChild>);
+    let all_six: Vec<AmbientChild> = (0..6).map(|class| child(class, 0.125)).collect();
+    let questions: Vec<Question> = vec![
+        ("six classes outdoors", 512.0, 1536.0, false, 10.0, 0.1, all_six.clone()),
+        ("six classes in the cockpit", 512.0, 1536.0, true, 0.0, 0.25, all_six),
+        (
+            "fractional altitude and delta",
+            1.0,
+            1.0,
+            false,
+            123.456,
+            0.0166,
+            vec![child(0, 0.1), child(1, 0.2)],
+        ),
+        ("the upper bound", 1.0, 1.0, false, 0.0, 0.25, vec![child(0, 0.25)]),
+        ("the lower bound", 1.0, 1.0, false, 0.0, 0.25, vec![child(1, 0.0)]),
+        (
+            "just below the zero-volume altitude",
+            1.0,
+            1.0,
+            false,
+            f32::from_bits(280.0f32.to_bits() - 1),
+            0.1,
+            vec![child(0, 0.1)],
+        ),
+        (
+            "at the zero-volume altitude with an unused NaN",
+            1.0,
+            1.0,
+            false,
+            280.0,
+            0.1,
+            vec![child(0, f32::NAN)],
+        ),
+        (
+            "subnormal previous and delta",
+            1.0,
+            1.0,
+            false,
+            5.0,
+            subnormal,
+            vec![child(0, subnormal), child(2, subnormal)],
+        ),
+        ("subnormal altitude", 1.0, 1.0, false, subnormal, 0.1, vec![child(0, 0.1)]),
+        ("signed zero position and altitude", -0.0, -0.0, false, -0.0, -0.0, vec![child(0, 0.1)]),
+        ("no children", 1.0, 1.0, false, 5.0, 0.1, Vec::new()),
+        ("refused: outside the map", 2048.0, 0.0, false, 5.0, 0.1, vec![child(0, 0.1)]),
+        ("refused: not finite", f32::NAN, 0.0, false, 5.0, 0.1, vec![child(0, 0.1)]),
+        (
+            "refused: a class outside the six",
+            1.0,
+            1.0,
+            false,
+            5.0,
+            0.1,
+            vec![child(0, 0.1), child(6, 0.1)],
+        ),
+    ];
+
+    let mask = caller_fp::mxcsr_mask();
+    let mode_sets: Vec<u32> = if mask & 0x8040 == 0x8040 { vec![0, 0x8040] } else { vec![0, mask & 0x8000] };
+    type Answer = Result<Vec<f32>, String>;
+    let mut reference: Vec<Option<Answer>> = vec![None; questions.len()];
+    let mut leaks: BTreeMap<String, (usize, String)> = BTreeMap::new();
+    let mut answer_changes: Vec<String> = Vec::new();
+    let mut checked = 0usize;
+    for x87_rounding in 0u16..4 {
+        for x87_precision in [0u16, 3] {
+            for sse_rounding in 0u32..4 {
+                for sticky in [0u32, 0x3f] {
+                    for &modes in &mode_sets {
+                        for status in [0x0000u16, 0x403f, 0x2700] {
+                            let state = Seed {
+                                x87_rounding,
+                                x87_precision,
+                                status,
+                                sse_rounding,
+                                sticky,
+                                modes,
+                            };
+                            for (index, (what, x, z, cockpit, alt, delta, children)) in questions.iter().enumerate() {
+                                seed(state);
+                                let expected: Env = now();
+                                let answer = terrain.ambient(*x, *z, *cockpit, *alt, *delta, children);
+                                let actual = now();
+                                checked += 1;
+                                if actual != expected {
+                                    let key = format!("{what}: {}", difference(expected, actual));
+                                    leaks.entry(key).or_insert((0, format!("{state:?}"))).0 += 1;
+                                }
+                                if reference[index].is_none() {
+                                    reference[index] = Some(answer);
+                                } else if reference[index].as_ref() != Some(&answer) {
+                                    answer_changes.push(format!("{what} under {state:?}: {:?} -> {answer:?}", reference[index]));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    drop(restore);
+
+    for (index, (what, ..)) in questions.iter().enumerate() {
+        let answer = reference[index].as_ref().expect("every question ran");
+        assert_eq!(answer.is_err(), what.starts_with("refused"), "{what}: {answer:?}");
+    }
+    assert!(
+        answer_changes.is_empty(),
+        "the caller's state reached the kernel's answers ({} of {checked} calls):\n{}",
+        answer_changes.len(),
+        answer_changes.join("\n")
+    );
+    assert!(
+        leaks.is_empty(),
+        "the terrain ambient question changed the caller's floating-point state in {} kinds of call ({checked} calls checked, no mask):\n{}",
         leaks.len(),
         leaks
             .iter()

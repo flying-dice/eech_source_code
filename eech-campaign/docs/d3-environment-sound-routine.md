@@ -113,3 +113,53 @@ modes alias one array entry and are attenuated TWICE in the original; that behav
 reader/player/render disposition remains required D3 scope. Pending: Root proves c0b native + the new driver provenance, runs ONLY the new guards and the affected strict checks, then the first retail ambient
 measurement and its review; the physical host amplitude solver is the NEXT step after that and is not started. Task 51/D3 (effects, time, remaining terrain, spatial/object, model, full shipping, identity,
 review, current CI, normal merges) stays open; D4/D5 are not started.
+
+## The physical move: the ambient amplitude is the host's (production source; UNBUILT, UNRUN, UNREVIEWED)
+
+**Base:** clean pushed `4779d6434`. The original behaviour of `update_session_sound_effects` is MEASURED and independently reviewed (not repeated here): the 21ba driver on the unchanged c0b native, three roots, 46 distinct
+cases (44 answered, 2 explicit missing-gunship refusals), 47 actual routine calls, 0 anomalies, every restoration/session/RNG check; the private originals and the review `independent-environment-ambient-original-actual-review-...`
+(no findings) are reused as they stand. That baseline is the unchanged ambient body on the hosted field/sector baseline, not the whole-original DLL, and it makes no audio, render, player or CPU-FP claim.
+
+**What moved.** The rain, wind and terrain-smoothed AMPLITUDE arithmetic is no longer computed in EECH_DC (the hosted build, `EECH_CAMPAIGN_HOST_ENV` + `EECH_CAMPAIGN_HOST_TERRAIN`; the original body stays in the
+`#else` for the original game's build). The existing host services answer, by value:
+
+* **Environment provider, op `ambient`** (`ss_hostenv.h` AMBIENT; `eech-world` `env.rs`/`env_ref.c env_ref_ambient`): request `{ op, winter, x, z, y, alt, cloud_base, in_cockpit }` -- the point the sound is heard at (the camera, or
+  the gunship in the cockpit) and the campaign's observations of it; reply `{ rain_light, rain_heavy, wind_light, wind_heavy }`. The host computes them from ITS weather and wind with the original's expressions in the
+  original's order: the weather is asked only inside the rain branch (below the cloud base, and outdoors below 180 m of radar altitude); outdoors the target mode's entry and then the current mode's entry are attenuated
+  SEPARATELY by `1 - alt / 180`, so equal modes -- one aliased array entry -- are attenuated TWICE (the original's behaviour, kept); the wind levels are the piecewise function of `r` between the session's limits.
+* **Terrain provider, op `ambient`** (`mb_hostterrain.h` AMBIENT; `terrain.rs`/`terrain_ref.c host_terrain_ambient`): request `{ op, winter, x, z, alt, delta, in_cockpit, children = { { class, previous }, ... } }` -- the
+  point (clamped to the map, the same the sector question is asked at), the radar altitude, the PREVIOUS frame's delta, and for each of the session's terrain ambient sound children (sea, jungle, amb1-amb4 as classes 0-5), in the
+  session's child order, its previous amplification; reply `{ amplitudes = { ... } }`, one per child. The host decides it from ITS sector surfaces (the enumeration of EEDCS-51, so the same sector) with the original's smoothing
+  (previous +/- 0.5 * delta, bound to [0, 0.3], times `bound (1 - alt / 280, 0, 1)`, times 0.75 in the cockpit, and 0 at or above 280 m; the previous amplitude is the already SCALED value, so it compounds; it is used only
+  where the original read it).
+* **Campaign keeps** (`ss_updt.c`): the call and its observer counters, the point and its radar altitude, the clamp to the map, the sector query that still fills the legacy scratch mirror `terrain_types_in_sector` for its
+  other readers (the renderer, the observer hash) -- unchanged and still host-owned -- the child list, identities and order, each child's previous amplification (campaign state) and the writes of the new amplification. It
+  computes no level and no smoothing and has no Core fallback in the hosted build. No shared-RNG draw is made or moved; the delta is read where it was.
+
+**Observations the campaign supplies (explicit):** the point's height, its radar altitude (from the camera or gunship entity), the cloud base height (`get_cloud_3d_base_height`, a renderer-owned global: the headless run
+holds whatever the process holds, as the measured baseline printed), the cockpit flag, the frame delta and each child's previous amplification. They are observations of campaign/render state, not physical answers.
+
+**Boundary correctness.** Finite semantic requests and replies by value, no EECH pointer or layout. Requests are validated before they are sent (at most 16 terrain children, each class one of the six, the cockpit flag 0 or 1; the
+count of children is captured before the Lua provider runs). Replies are validated whole before anything is written: four finite levels with the wind levels in [0, 1]; exactly one finite amplitude per child. Named markers:
+`[env-provider:ambient.callback|answer]`, `[terrain-provider:ambient.request|callback|answer|amplitudes]`. A missing or malformed host stops the engine with an error naming the provider; there is no fallback. The two kernels
+reuse the field/sector FP lessons: no floating-point argument homing (the position as bits, every other float in an array read INSIDE the guard), no validation arithmetic before the guard, the complete x87/MXCSR state
+saved before the first floating-point action and restored and read back on every path, the answer staged and written only afterwards.
+
+**Compiled consumers.** The campaign routine is the one compiled consumer of these amplitudes; the sound-effect update that plays them (`se_snd.c`) and the renderer's reader of the scratch (`3drain.c`) are not moved here,
+are not exercised headless, and are NOT dead code: their compiled player/render disposition remains required D3 scope. No amplitude path was deferred to D5.
+
+**Tests added (targeted):** `env.rs` (the rain branches and the TWICE attenuation of equal outdoor modes, the wind piecewise levels with exact dyadic numbers, and the complete caller x87/SSE state over the seeded states);
+`terrain_sector.rs` (the six classes against four synthetic worlds, the bounds, the altitude and cockpit factors, the unused previous amplitude at or above 280 m, per-child previous amplitudes, the refusals, the Lua provider op, and
+the complete caller state over the seeded states, 14 questions); `eech-engine` (the by-value crossing, the request and answer refusals before anything is written, the environment answer); `eech-dc` (both Lua bridges).
+The generic witness provider `terrain-provider.lua` answers `ambient` (a land world with none of the six surfaces: silence). The measured original driver, fixture, rows and baselines are NOT changed.
+
+**Commands for Root** (nothing here was built or run; Root builds, then compares the SAME 44-case original driver on fresh roots with this candidate):
+1. `cargo fmt --check`; `cargo test -p eech-engine`; `cargo test -p eech-dc`; `cargo test -p eech-world --test terrain_sector --test env_sound_characterization --test env_sector_authority` and the `eech-world` library tests;
+   `cargo clippy --all-targets -- -D warnings` (default, `--features eech-dc/env-fixture`, `--features eech-dc/env-observer`).
+2. Rebuild the env-fixture native module and the shipping module from this source into NEW directories (the frozen c0b and 14192 natives are not overwritten).
+3. `eech-world lua/env-sound-characterization.lua root=<fresh candidate root> out=<private jsonl> scenario=lebanon_retail|georgia_retail` on each fresh candidate root, and compare row for row with the measured originals (every
+   amplification word); classify any difference per `REVIEW.md`. The first retail comparison is NOT run.
+4. Then the next finite public witness: changed / withheld / malformed amplitude answers from the host reaching the real consumer (not written here).
+
+**Remaining couplings (open):** lightning strike/sound entity creation and execution and the lightning timer's campaign side; the physical time inputs and the campaign calendar/timers/scheduling (Core by decision); the
+rest of terrain (trees, loaders, the per-type triangle functions); spatial/object and model services; the compiled player/render/sound-system consumers; full shipping, identity, review, CI and merges. D4/D5 are not started.

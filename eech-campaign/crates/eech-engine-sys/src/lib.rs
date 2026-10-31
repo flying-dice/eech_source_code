@@ -1125,6 +1125,10 @@ pub const EECH_TERRAIN_POINT: c_int = 2;
 pub const EECH_TERRAIN_FAST: c_int = 3;
 /// The SECTOR operation (EEDCS-51): the surface enumeration of the sector that holds a position, with the original's return value and the complete scratch by value.
 pub const EECH_TERRAIN_SECTOR: c_int = 4;
+pub const EECH_TERRAIN_AMBIENT: c_int = 5;
+/// The most children one AMBIENT question carries (`CAMPAIGN_TERRAIN_AMBIENT_MAX`) and the number of ambient classes (`CAMPAIGN_TERRAIN_AMBIENT_CLASSES`: sea, jungle, amb1 to amb4).
+pub const EECH_TERRAIN_AMBIENT_MAX: usize = 16;
+pub const EECH_TERRAIN_AMBIENT_CLASSES: c_int = 6;
 /// The room of a SECTOR reply's flags (`CAMPAIGN_TERRAIN_FLAGS_MAX`): `EECH_TERRAIN_TYPE_COUNT` characters `0` or `1` and a terminator, zero-padded.
 pub const EECH_TERRAIN_FLAGS_MAX: usize = 64;
 /// The number of EECH terrain types (`TERRAIN_TYPE_LAST` in modules/3d/terrain/terrtype.h): a surface type answer is in `0..EECH_TERRAIN_TYPE_COUNT`.
@@ -1138,6 +1142,15 @@ pub struct eech_terrain_request {
     pub x: f32,
     pub z: f32,
     pub hint: [c_char; EECH_TERRAIN_HINT_MAX + 1],
+    /// AMBIENT: whether the cockpit is the point and the number of children
+    pub ambient_in_cockpit: c_int,
+    pub ambient_count: c_int,
+    /// AMBIENT: the point's radar altitude and the frame delta
+    pub ambient_alt: f32,
+    pub ambient_delta: f32,
+    /// AMBIENT: for each child, its class and its previous amplification
+    pub ambient_class: [c_int; EECH_TERRAIN_AMBIENT_MAX],
+    pub ambient_previous: [f32; EECH_TERRAIN_AMBIENT_MAX],
 }
 
 #[repr(C)]
@@ -1164,6 +1177,8 @@ pub struct eech_terrain_reply {
     pub sector_returned: c_int,
     /// SECTOR: one `0` or `1` per terrain type, then the terminator
     pub sector_flags: [c_char; EECH_TERRAIN_FLAGS_MAX],
+    /// AMBIENT: the new amplification of each child of the request, in its order
+    pub ambient_amplitude: [f32; EECH_TERRAIN_AMBIENT_MAX],
 }
 
 pub type eech_terrain_callback = unsafe extern "C" fn(
@@ -1187,6 +1202,7 @@ pub const EECH_ENV_WEATHER: c_int = 5;
 pub const EECH_ENV_WIND: c_int = 6;
 pub const EECH_ENV_GUST: c_int = 7;
 pub const EECH_ENV_STEP: c_int = 8;
+pub const EECH_ENV_AMBIENT: c_int = 9;
 /// The number of EECH weather modes (`WEATHERMODE_LAST`): a mode is in `0..EECH_ENV_MODE_COUNT`.
 pub const EECH_ENV_MODE_COUNT: c_int = 5;
 
@@ -1220,6 +1236,10 @@ pub struct eech_env_request {
     pub camera: [f32; 3],
     pub have_draw: c_int,
     pub lightning_draw: f64,
+    /// AMBIENT (with `x`, `z` and `in_cockpit`): the point's height, its radar altitude and the cloud base height
+    pub ambient_y: f32,
+    pub ambient_alt: f32,
+    pub ambient_cloud_base: f32,
 }
 
 #[repr(C)]
@@ -1237,6 +1257,8 @@ pub struct eech_env_reply {
     pub expired: c_int,
     pub strike: [f32; 3],
     pub new_timer: f32,
+    /// AMBIENT: rain light, rain heavy, wind light, wind heavy
+    pub ambient_levels: [f32; 4],
 }
 
 impl Default for eech_env_state {
