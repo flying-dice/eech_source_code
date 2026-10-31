@@ -1,3 +1,35 @@
+# D3 checkpoint — original ambient behavior reviewed; host extraction active (31 October 2026, 14:30 UTC)
+
+Whole D3/EEDCS-21 remains the goal. Task47 is delivered atb657; Tasks48–51
+remain open. D4/D5 unstarted. Accepted baselines/tolerances unchanged.
+
+Task51/PR111 safe original sound evidence is pushed at4779d6434, explicit
+nativec0b +corrected21ba driver. All3actualnative/controller exits0/all6inputs0,
+50payloads/driver unchanged. Each108-row report:46distinctcases=44answered,
+2explicitmissing-gunshipcockpit refusals;47calls/0anomalies/allrestorationchecks.
+Both COMPLETE Lebanon files including endings are byte-identical SHA08fce9b0...8f10e.
+All7bounded probe sites found; notfull-map coverage. Independent actual review
+8755577f...cd2c closes with nofindings. DriverP2meaningfulred93bc13of23badrecords
+accepted remains; corrected21ba5guards/strict0/source review1f0d...844b and all9
+hosted jobs succeed. This is unchangedambient solver onhostedfield/sectorbaseline,
+not whole-originalDLL/audio/player/render/frame/CPUFP/Tacview acceptance.
+
+ONE Sonnet5.5High now implements the actual host-owned ambient rain/wind/terrain
+amplification solver, preserving measuredwords, DOUBLEequal-modeoutdoorrain
+attenuation, previous-delta phase/RNG/order. Source WIP/UNBUILT/UNRUN/UNREVIEWED;
+no physicalsoundcutover accepted yet. Fresh3candidate roots allmanifests0 UNUSED.
+Existing original/field/wind/sector/model/kernel evidence is reused; nooldruns.
+Ledger91 preserves allpriorHTML/fiveepicreports; Jira51comment10893 andPR111updated.
+Required lightning/soundexecution, physicaltime and remaining terrain/loaders,
+spatial/object/tree scans/transforms/solvers, modelhierarchy/viewpoints/devices/
+muzzles/targetpoints/physicalroutedata remain D3. Campaigncalendar/geography/
+timers/scheduling/policy/consequences remain Core.
+
+Task48/PR108 original frozenaafb fullshipping stillLIVE inoriginal6processes,
+PID/births verified14:24. Latest4prefixes exact~37.8MBTacview/24.4MBobservations,
+PARTIALONLY. Actualfull40/all8COMPLETEbytecomparisons/postinputs/payloads,
+newcompleted-evidencereview/currentCI/normalmerges remain gates. No quietrestart.
+
 # D3 checkpoint — sector authority passes; ambient characterization starts (31 October 2026, 13:56 UTC)
 
 Whole D3 (EEDCS-21) remains the objective. Task47 is delivered; Tasks48–51 remain
