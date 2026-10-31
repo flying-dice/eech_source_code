@@ -66,6 +66,8 @@
 
 #include "project.h"
 
+#include "entity/special/session/ss_envfx.h"
+
 #include "ai/highlevl/highlevl.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -189,6 +191,8 @@ static entity *create_local (entity_types type, int index, char *pargs)
 		raw->population_z_max = MAX_MAP_Z;
 
 		raw->fog_of_war_maximum_value = command_line_fog_of_war_maximum_value;
+
+		ENV_FX (ENV_FX_SESSION_CREATED, raw->local_weather_model, raw->day_segment_type, ENV_FXF (raw->start_time), ENV_FXF (raw->lightning_timer), ENV_FXF (raw->weather_radius), ENV_FXF (raw->wind_effect_radius), ENV_FXF (raw->time_of_day_acceleration), 0)
 
 		////////////////////////////////////////
 		//

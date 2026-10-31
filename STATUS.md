@@ -1,3 +1,37 @@
+# D3 checkpoint — original environment observer prepared; ground shipping live (31 October 2026)
+
+Task51 / PR111 normally composes accepted terrain integrationb657 at setup merge
+9e7f7fd64. The sole Sonnet5.5High author17412 / SAME69432 completed exit0 at
+2026-10-31T01:54:32.906269Z; the original handle is collectedterminal0, no restart.
+Feature-gated original initialization/reseed/sharedRNG/weather/lightning/sound and
+frame-phase hooks, bounded16384-event observer, preboot arming/readout, variable
+frame schedule and two labelled process-isolated physical-input cases are written.
+No environment solver/state/service is extracted. Original math/draw order is
+intended unchanged; default-feature preprocess/body and actual noninterference
+proof remain required. The one original NUL in eech_engine.c is preserved.
+Formatting/check pass; new compilation/guards/native observations/review are UNRUN.
+
+Reuse measured original99 three-root/1200frame controls and closed084/e116 guard
+records at their original identities. New default100ms controls must be judged
+against that retained original data as applicable; variable-frame controls expose
+phase that a constant schedule cannot. libc draws/client/save state/sound amplitudes
+remain unobserved as documented. New measurements must not be called restored:
+controlled effects/entities and libc state use a fresh-process isolation boundary.
+
+Task48 productaafb/test-onlye107 has closed source/FP/Clippy/actual weapon authority
+gates; publication5b3653195 has8/8 current CI success. The ORIGINAL full pack stays
+LIVE in SAME72359/runner20800, four original natives17448/8964/18980/24868 on separate
+roots. Its frozen sources/bin/roots/output must not be touched. At01:53UTC all4
+nonempty prefixes still match accepted bytes (about4.68MBACMI/3.03MBOBS per recorded
+run); no full40/eightCOMPLETE/EOF/post-input acceptance yet. Source/output details
+are in the ground branch and R:/d3-evidence/D3-NEXT-ACTION.json. No restart onquiet
+console/tooltimeout. Task47 is Done/normal mergeb657; Task48 remains In Progress.
+
+Ledger82/Jira48comment10879/51comment10880 preserve priorHTML/all5reports. WholeD3
+requires remaining spatial/model/hierarchy/device/physicalroute-data/loaders and
+environment/time responsibilities inhost; geography/routes/timers/scheduling/
+policy/consequences stayCore. D4/D5 not started. No baseline/tolerance/config change.
+
 # D3 environment original characterization — source prepared (30 October 2026)
 
 EEDCS-51, parent EEDCS-21, branch `codex/d3-environment-services`, freshly fetched

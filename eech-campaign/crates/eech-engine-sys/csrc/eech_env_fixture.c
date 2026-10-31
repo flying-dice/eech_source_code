@@ -59,7 +59,8 @@ enum
 	ENV_GROUP_INIT = 6,
 	ENV_GROUP_UPDATE_TIME = 7,
 	ENV_GROUP_UPDATE_WEATHER = 8,
-	ENV_GROUP_LAST = 8
+	ENV_GROUP_CONTROLLED = 9,
+	ENV_GROUP_LAST = 9
 };
 
 #define ENV_WEATHER_MAX 96
@@ -69,6 +70,7 @@ enum
 #define ENV_INIT_COUNT 7
 #define ENV_UPDATE_TIME_COUNT 10
 #define ENV_UPDATE_WEATHER_COUNT 16
+#define ENV_CONTROLLED_COUNT 2
 #define ENV_SCRATCH 12288
 
 #define ENV_FNV_OFFSET 14695981039346656037ull
@@ -839,6 +841,49 @@ static int env_update_weather_case (int i, char *text, int capacity, int *used)
 	return env_render_state (text, capacity, used, "env-update-weather-state", tag);
 }
 
+/* group 9, EXPLICITLY NOT A WITNESS: a controlled-weather case of the ORIGINAL setters, for a fresh process. It changes the live session (the original's own setters, with physical inputs) and
+   restores NOTHING: no random draw, entity or libc state it causes could be put back, so the process is the isolation boundary and the report says `changed=1` and `process_isolated=required`. It
+   is never part of the default run, the census or the witness set. i=0 brings the next lightning strike forward (only if the weather is already the local model with a non-zero radius); i=1
+   first makes the weather the local model with the radius the original's own session defaults use (40 km), then does the same. */
+static int env_controlled_case (int i, char *text, int capacity, int *used)
+{
+	static const char *const what[ENV_CONTROLLED_COUNT] = { "lightning_due", "local_weather_on" };
+	entity *en = get_session_entity ();
+	session *raw = env_session_raw ();
+	int local_before = (int) raw->local_weather_model;
+	unsigned radius_before = ENV_WORD (raw->weather_radius), timer_before = ENV_WORD (raw->lightning_timer);
+
+	if (get_comms_model () != COMMS_MODEL_SERVER)
+	{
+		ENV_EMIT ("env-controlled kind=controlled i=%d what=%s refused=not_the_server comms_model=%d\n", i, what[i], (int) get_comms_model ());
+		ENV_EMIT ("env-controlled-end group=9 index=%d changed=0 process_isolated=required\n", i);
+
+		return 0;
+	}
+
+	if (i == 0 && (!local_before || raw->weather_radius == 0.0f))
+	{
+		ENV_EMIT ("env-controlled kind=controlled i=%d what=%s refused=weather_not_local_or_radius_zero local_weather_model=%d weather_radius_w=%08x\n", i, what[i], local_before, radius_before);
+		ENV_EMIT ("env-controlled-end group=9 index=%d changed=0 process_isolated=required\n", i);
+
+		return 0;
+	}
+
+	if (i == 1)
+	{
+		set_local_entity_int_value (en, INT_TYPE_LOCAL_WEATHER_MODEL, TRUE);
+		set_local_entity_float_value (en, FLOAT_TYPE_WEATHER_RADIUS, 40.0 * KILOMETRE);
+	}
+
+	set_local_entity_float_value (en, FLOAT_TYPE_LIGHTNING_TIMER, 0.5);
+
+	ENV_EMIT ("env-controlled kind=controlled i=%d what=%s local_before=%d radius_before_w=%08x timer_before_w=%08x local_after=%d radius_after_w=%08x timer_after_w=%08x\n", i, what[i], local_before,
+		radius_before, timer_before, (int) raw->local_weather_model, ENV_WORD (raw->weather_radius), ENV_WORD (raw->lightning_timer));
+	ENV_EMIT ("env-controlled-end group=9 index=%d changed=1 process_isolated=required\n", i);
+
+	return 0;
+}
+
 static int env_case_count (int group)
 {
 	switch (group)
@@ -891,6 +936,20 @@ int eech_env_case_run (int group, int index, char *text, int capacity)
 
 		return 0;
 	}
+	if (group == ENV_GROUP_CONTROLLED)
+	{
+		if (index < 0 || index >= ENV_CONTROLLED_COUNT || env_controlled_case (index, text, capacity, used) != 0)
+		{
+			text[0] = 0;
+			used_value = 0;
+			append (text, capacity, used, "env-case-error reason=controlled_case_refused group=9 index=%d\n", index);
+
+			return -1;
+		}
+
+		return 0;
+	}
+
 	if (index < 0 || index >= env_case_count (group))
 	{
 		append (text, capacity, used, "env-case-error reason=index_out_of_range group=%d index=%d count=%d\n", group, index, env_case_count (group));

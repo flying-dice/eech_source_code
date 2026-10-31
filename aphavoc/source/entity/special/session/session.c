@@ -66,6 +66,8 @@
 
 #include "project.h"
 
+#include "entity/special/session/ss_envfx.h"
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -270,11 +272,17 @@ float get_session_random_start_time_of_day (void)
 
 	initialise_random_number_generator ();
 
+	ENV_FX (ENV_FX_START_RESEED, 0, 0, 0, 0, 0, 0, 0, 0)
+
 	index = rand16 () % NUM_RANDOM_SESSION_START_TIMES;
+
+	ENV_FX (ENV_FX_START_INDEX, index, 0, 0, 0, 0, 0, 0, 0)
 
 	start_time = random_session_start_times [index];
 
 	start_time += floor (sfrand1 () * ONE_MINUTE * 15.0);
+
+	ENV_FX (ENV_FX_START_TIME, 0, 0, ENV_FXF (start_time), 0, 0, 0, 0, 0)
 
 	if (start_time < 0.0)
 	{
@@ -284,6 +292,8 @@ float get_session_random_start_time_of_day (void)
 	{
 		start_time -= (24.0 * ONE_HOUR);
 	}
+
+	ENV_FX (ENV_FX_START_RESULT, 0, 0, ENV_FXF (start_time), 0, 0, 0, 0, 0)
 
 	return start_time;
 }
@@ -523,6 +533,8 @@ void set_session_fixed_weather_mode (entity *en, weathermodes weather_mode)
 
 	raw = (session *) get_local_entity_data (en);
 
+	ENV_FX (ENV_FX_FIXED_WEATHER, (int) weather_mode, 0, 0, 0, 0, 0, 0, 0)
+
 	raw->local_weather_model = FALSE;
 
 	raw->weather_mode = weather_mode;
@@ -549,6 +561,8 @@ void set_session_random_weather_mode (entity *en)
 
 	raw = (session *) get_local_entity_data (en);
 
+	ENV_FX (ENV_FX_WEATHER_BEGIN, 0, 0, 0, 0, 0, 0, 0, 0)
+
 	raw->local_weather_model = TRUE;
 
 	//
@@ -557,13 +571,21 @@ void set_session_random_weather_mode (entity *en)
 
 	raw->weather_radius = weather_rain_radius_min + ((weather_rain_radius_max - weather_rain_radius_min) * frand1 ());
 
+	ENV_FX (ENV_FX_WEATHER_DRAW, 1, 0, ENV_FXF (raw->weather_radius), 0, 0, 0, 0, 0)
+
 	raw->weather_increasing = (rand16 () & 1);
+
+	ENV_FX (ENV_FX_WEATHER_DRAW, 2, raw->weather_increasing, 0, 0, 0, 0, 0, 0)
 
 	raw->weather_position.x = MIN_MAP_X + ((MAX_MAP_X - MIN_MAP_X) * frand1 ());
 	raw->weather_position.y = 0.0;
+	ENV_FX (ENV_FX_WEATHER_DRAW, 3, 0, ENV_FXF (raw->weather_position.x), 0, 0, 0, 0, 0)
 	raw->weather_position.z = MIN_MAP_Z + ((MAX_MAP_Z - MIN_MAP_Z) * frand1 ());
 
+	ENV_FX (ENV_FX_WEATHER_DRAW, 4, 0, ENV_FXF (raw->weather_position.z), 0, 0, 0, 0, 0)
+
 	theta = PI * sfrand1 ();
+	ENV_FX (ENV_FX_WEATHER_DRAW, 5, 0, ENV_FXF (theta), 0, 0, 0, 0, 0)
 
 	raw->weather_velocity.x = sin (theta) * weather_rain_speed;
 	raw->weather_velocity.y = 0.0;
@@ -575,17 +597,27 @@ void set_session_random_weather_mode (entity *en)
 
 	raw->wind_effect_radius = weather_wind_radius_min + ((weather_wind_radius_max - weather_wind_radius_min) * frand1 ());
 
+	ENV_FX (ENV_FX_WEATHER_DRAW, 6, 0, ENV_FXF (raw->wind_effect_radius), 0, 0, 0, 0, 0)
+
 	raw->wind_increasing = (rand16 () & 1);
+
+	ENV_FX (ENV_FX_WEATHER_DRAW, 7, raw->wind_increasing, 0, 0, 0, 0, 0, 0)
 
 	raw->wind_effect_position.x = MIN_MAP_X + ((MAX_MAP_X - MIN_MAP_X) * frand1 ());
 	raw->wind_effect_position.y = 0.0;
+	ENV_FX (ENV_FX_WEATHER_DRAW, 8, 0, ENV_FXF (raw->wind_effect_position.x), 0, 0, 0, 0, 0)
 	raw->wind_effect_position.z = MIN_MAP_Z + ((MAX_MAP_Z - MIN_MAP_Z) * frand1 ());
 
+	ENV_FX (ENV_FX_WEATHER_DRAW, 9, 0, ENV_FXF (raw->wind_effect_position.z), 0, 0, 0, 0, 0)
+
 	theta = PI * sfrand1 ();
+	ENV_FX (ENV_FX_WEATHER_DRAW, 10, 0, ENV_FXF (theta), 0, 0, 0, 0, 0)
 
 	raw->wind_effect_velocity.x = sin (theta) * weather_wind_speed;
 	raw->wind_effect_velocity.y = 0.0;
 	raw->wind_effect_velocity.z = cos (theta) * weather_wind_speed;
+
+	ENV_FX (ENV_FX_WEATHER_END, 0, 0, 0, 0, 0, 0, 0, 0)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

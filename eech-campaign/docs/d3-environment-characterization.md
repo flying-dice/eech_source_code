@@ -128,3 +128,5 @@ How the regressions are protected: each group of the first correction has a muta
 6. The M4 regression pack and the existing Tacview comparisons against any candidate that moves authority, with the baseline governance of `docs/m4-baseline-governance.md`.
 
 Next validation action: the root builds the fixture DLL, runs the control/probe pair on Lebanon and checks the census, the `restored` and noninterference invariants and the unmodified snapshots before any case table is trusted.
+
+Second increment (the read-only observer of the initialisation, shared-entropy order, lightning/sound effects and frame time phase, a variable frame schedule and one labelled controlled-weather case; SOURCE PREPARED, UNRUN): see `d3-environment-observer.md`.

@@ -1381,6 +1381,14 @@ extern "C" {
     pub fn eech_engine_env_case(group: c_int, index: c_int, text: *mut c_char, capacity: c_int) -> c_int;
 }
 
+// TEST-ONLY (feature env-observer, EEDCS-51): the read-only observer of the original environment; see csrc/eech_env_observer.c.
+#[cfg(feature = "env-observer")]
+extern "C" {
+    pub fn eech_engine_env_observer_arm(on: c_int) -> c_int;
+    pub fn eech_engine_env_observer_report(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_env_observer_events(text: *mut c_char, capacity: c_int, more: *mut c_int) -> c_int;
+}
+
 #[cfg(feature = "sensor-fixture")]
 extern "C" {
     pub fn eech_engine_sensor_trace(text: *mut c_char, capacity: c_int) -> c_int;

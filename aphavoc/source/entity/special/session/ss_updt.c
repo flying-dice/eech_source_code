@@ -66,6 +66,8 @@
 
 #include "project.h"
 
+#include "entity/special/session/ss_envfx.h"
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -92,6 +94,8 @@ static void update_time_of_day (entity *en)
 	// Time of day
 	//
 
+	ENV_FX (ENV_FX_TOD_BEGIN, 0, 0, ENV_FXF (raw->elapsed_time), ENV_FXF (get_delta_time ()), ENV_FXF (raw->time_of_day_acceleration), 0, 0, 0)
+
 	raw->elapsed_time += (get_delta_time () * raw->time_of_day_acceleration);
 
 	time_of_day = calculate_session_time_of_day (en, NULL);
@@ -117,6 +121,8 @@ static void update_time_of_day (entity *en)
 	}
 
 	raw->day_segment_type = get_day_segment_type (time_of_day);
+
+	ENV_FX (ENV_FX_TOD_END, raw->skip_night_time, raw->day_segment_type, ENV_FXF (raw->elapsed_time), ENV_FXF (time_of_day), 0, 0, 0, 0)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -136,6 +142,8 @@ static void update_time_of_day_resync (entity *en)
 
 	if (raw->time_of_day_resync > SESSION_RESYNC_FREQUENCY)
 	{
+
+		ENV_FXC (ENV_FX_C_RESYNC_CALLS)
 
 		transmit_entity_comms_message (ENTITY_COMMS_UPDATE, en);
 
@@ -172,6 +180,8 @@ void update_lightning_effect (entity *en)
 
 	raw = (session *) get_local_entity_data (en);
 
+	ENV_FXC (ENV_FX_C_LIGHTNING_CALLS)
+
 	if (get_comms_model () == COMMS_MODEL_SERVER)
 	{
 		//
@@ -184,7 +194,11 @@ void update_lightning_effect (entity *en)
 		{
 			lightning_flag = TRUE;
 
+			ENV_FX (ENV_FX_LIGHTNING_EXPIRED, 1, 0, ENV_FXF (raw->lightning_timer), ENV_FXF (get_delta_time ()), 0, 0, 0, 0)
+
 			new_time = LIGHTNING_EFFECT_MINIMUM_TIMER + ((LIGHTNING_EFFECT_MAXIMUM_TIMER - LIGHTNING_EFFECT_MINIMUM_TIMER) * frand1 ());
+
+			ENV_FX (ENV_FX_LIGHTNING_NEW_TIMER, 0, 0, ENV_FXF (new_time), 0, 0, 0, 0, 0)
 
 			#if DEBUG_MODULES
 
@@ -193,6 +207,8 @@ void update_lightning_effect (entity *en)
 			#endif
 
 			set_client_server_entity_float_value (en, FLOAT_TYPE_LIGHTNING_TIMER, new_time);
+
+			ENV_FX (ENV_FX_LIGHTNING_TIMER_SET, 0, 0, ENV_FXF (raw->lightning_timer), 0, 0, 0, 0, 0)
 		}
 	}
 	else
@@ -234,9 +250,19 @@ void update_lightning_effect (entity *en)
 			set_3d_active_environment (main_3d_env);
 		}
 		
+		ENV_FX (ENV_FX_LIGHTNING_ENV, current_3d_env == NULL, 0, 0, 0, 0, 0, 0, 0)
+
+		ENV_FX (ENV_FX_STRIKE_BEGIN, 1, 0, ENV_FXF (raw->weather_position.x), ENV_FXF (raw->weather_position.z), 0, 0, 0, 0)
+
 		add_3d_lightning_strike (LIGHTNING_TYPE_CLOUD_BURST, 0.3, raw->weather_position.x, raw->weather_position.z);
 
+		ENV_FX (ENV_FX_STRIKE_END, 1, 0, 0, 0, 0, 0, 0, 0)
+
+		ENV_FX (ENV_FX_STRIKE_BEGIN, 2, 0, ENV_FXF (raw->weather_position.x), ENV_FXF (raw->weather_position.z), 0, 0, 0, 0)
+
 		add_3d_lightning_strike (LIGHTNING_TYPE_FORKED_1, 0.3, raw->weather_position.x, raw->weather_position.z);
+
+		ENV_FX (ENV_FX_STRIKE_END, 2, 0, 0, 0, 0, 0, 0, 0)
 
 		if (current_3d_env)
 		{
@@ -254,6 +280,8 @@ void update_lightning_effect (entity *en)
 
 			sound_effect_index = SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING;
 
+			ENV_FX (ENV_FX_SOUND_BEGIN, 1, 0, get_next_free_entity_index (), get_next_free_local_entity_index (), 0, 0, 0, 0)
+
 			create_client_server_sound_effect_entity
 			(
 				get_local_sector_entity (&(raw->weather_position)),
@@ -269,6 +297,8 @@ void update_lightning_effect (entity *en)
 				1,													// sample count
 				&sound_effect_index							// sample index list
 			);
+
+			ENV_FX (ENV_FX_SOUND_END, 1, 0, get_next_free_entity_index (), get_next_free_local_entity_index (), 0, 0, 0, 0)
 
 			//
 			// thunder sound effect
@@ -276,6 +306,8 @@ void update_lightning_effect (entity *en)
 
 			sound_effect_index = SOUND_SAMPLE_INDEX_AMBIENT_THUNDER;
 
+			ENV_FX (ENV_FX_SOUND_BEGIN, 2, 0, get_next_free_entity_index (), get_next_free_local_entity_index (), 0, 0, 0, 0)
+
 			create_client_server_sound_effect_entity
 			(
 				get_local_sector_entity (&(raw->weather_position)),
@@ -291,6 +323,8 @@ void update_lightning_effect (entity *en)
 				1,													// sample count
 				&sound_effect_index							// sample index list
 			);
+
+			ENV_FX (ENV_FX_SOUND_END, 2, 0, get_next_free_entity_index (), get_next_free_local_entity_index (), 0, 0, 0, 0)
 		}
 	}
 #endif
@@ -311,6 +345,8 @@ void update_transitional_weather (entity *en)
 	ASSERT (en);
 
 	raw = (session *) get_local_entity_data (en);
+
+	ENV_FXC (ENV_FX_C_WEATHER_CALLS)
 
 	if (raw->local_weather_model)
 	{
@@ -564,6 +600,8 @@ void update_session_sound_effects (entity *en)
 
 	raw = (session *) get_local_entity_data (en);
 
+	ENV_FXC (ENV_FX_C_SOUND_CALLS)
+
 	if (in_cockpit)
 	{
 		camera_pos = get_local_entity_vec3d_ptr (get_gunship_entity (), VEC3D_TYPE_POSITION);
@@ -673,6 +711,8 @@ void update_session_sound_effects (entity *en)
 		zpos = bound (camera_pos->z, MIN_MAP_Z, MAX_MAP_Z);
 		
 		get_terrain_3d_types_in_sector (xpos, zpos);
+
+		ENV_FXS (in_cockpit, camera_pos->x, camera_pos->y, camera_pos->z, alt, light_wind_sound_level, heavy_wind_sound_level, xpos, zpos)
 	}
 
 	//
@@ -920,6 +960,8 @@ void update_session_sound_effects (entity *en)
 
 static void update_server (entity *en)
 {
+	ENV_FXC (ENV_FX_C_UPDATE_SERVER)
+
 	update_time_of_day (en);
 
 	update_time_of_day_resync (en);

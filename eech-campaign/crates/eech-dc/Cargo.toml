@@ -40,6 +40,8 @@ aim-fixture = ["eech-engine/aim-fixture"]
 weapon-fixture = ["eech-engine/weapon-fixture"]
 # TEST-ONLY (EEDCS-51): the original session environment (weather, wind, clock) characterisation. Never enabled in the shipping build.
 env-fixture = ["eech-engine/env-fixture"]
+# TEST-ONLY (EEDCS-51): the read-only observer of the original environment initialisation, shared-entropy order, lightning/sound effects and frame time phase. Never enabled in the shipping build.
+env-observer = ["env-fixture", "eech-engine/env-observer"]
 
 # Code that runs inside a host's process: a panic in this DLL takes the host
 # down. The reference crate's restriction lints, denied here.

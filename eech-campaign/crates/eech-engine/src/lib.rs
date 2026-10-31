@@ -975,6 +975,13 @@ const WPN_REPORT_CAPACITY: usize = 160 * 1024;
 #[cfg(feature = "env-fixture")]
 const ENV_REPORT_CAPACITY: usize = 32 * 1024;
 
+/// TEST-ONLY (feature `env-observer`): arms (before boot) or disarms the read-only observer of the original environment. Arming after boot is refused, because the evidence would be incomplete.
+#[cfg(feature = "env-observer")]
+pub fn env_observer_arm(on: bool) -> Result<(), EngineError> {
+    // SAFETY: no pointers cross.
+    check(unsafe { sys::eech_engine_env_observer_arm(i32::from(on)) })
+}
+
 /// the booted engine (one per process)
 pub struct Engine {
     _not_send: std::marker::PhantomData<*const ()>,
@@ -4881,6 +4888,33 @@ impl Engine {
     pub fn aim_trace_reset(&self) -> Result<(), EngineError> {
         // SAFETY: no pointers cross.
         check(unsafe { sys::eech_engine_aim_trace_reset() })
+    }
+
+    /// TEST-ONLY (feature `env-observer`, EEDCS-51): the observer's state (armed, stored, read, dropped, overflow, the counters of the per-frame routines), as one `env-obs-report` line.
+    #[cfg(feature = "env-observer")]
+    pub fn env_observer_report(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; ENV_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_env_observer_report(text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `env-observer`, EEDCS-51): drains the observer's events not yet read, one `env-obs` line each, in the order the original produced them. Read-only apart from advancing the cursor.
+    #[cfg(feature = "env-observer")]
+    pub fn env_observer_events(&self) -> Result<String, EngineError> {
+        let mut all = String::new();
+        loop {
+            let mut text = vec![0 as std::os::raw::c_char; ENV_REPORT_CAPACITY];
+            let mut more: std::os::raw::c_int = 0;
+            // SAFETY: the buffer and `more` outlive the call and the capacity passed is the buffer length; the engine NUL-terminates the text.
+            check(unsafe { sys::eech_engine_env_observer_events(text.as_mut_ptr(), text.len() as i32, &mut more) })?;
+            // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+            all.push_str(&unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy());
+            if more == 0 {
+                return Ok(all);
+            }
+        }
     }
 
     /// TEST-ONLY (feature `env-fixture`, EEDCS-51): one case of the ORIGINAL session environment (weather, wind, clock), as `key=value` text lines: group 0 the census, 1 the unmodified session with

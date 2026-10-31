@@ -26,6 +26,8 @@ aim-fixture = ["eech-engine-sys/aim-fixture"]
 weapon-fixture = ["eech-engine-sys/weapon-fixture"]
 # TEST-ONLY (EEDCS-51): see eech-engine-sys.
 env-fixture = ["eech-engine-sys/env-fixture"]
+# TEST-ONLY (EEDCS-51): see eech-engine-sys.
+env-observer = ["env-fixture", "eech-engine-sys/env-observer"]
 
 [lints.rust]
 unsafe_op_in_unsafe_fn = "deny"

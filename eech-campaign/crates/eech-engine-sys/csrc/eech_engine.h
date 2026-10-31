@@ -408,4 +408,14 @@ int eech_engine_cmb_events (char *text, int capacity, int *more);
 int eech_engine_env_case (int group, int index, char *text, int capacity);
 #endif
 
+#ifdef EECH_ENV_OBSERVER
+/*
+ * TEST-ONLY (feature env-observer, EEDCS-51): see eech_env_observer.c. arm is valid only before boot (on) or at any time (off); the report and the events are read after boot.
+ * The events are drained incrementally: more is set to 1 while unread events remain. Not part of the shipping module.
+ */
+int eech_engine_env_observer_arm (int on);
+int eech_engine_env_observer_report (char *text, int capacity);
+int eech_engine_env_observer_events (char *text, int capacity, int *more);
+#endif
+
 #endif

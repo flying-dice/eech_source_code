@@ -25,6 +25,11 @@
 --   probes                   the most witness cases to run: an integer from 0 to 1024 (default 512). 0 is the control. The census says how many exist; the coverage row says how many ran
 --   probe_at                 the simulated second at which the witness set runs: a plain decimal number from 0 to seconds (default 0)
 --   snapshot_frames          retail snapshots after each of this many leading frames: an integer from 0 to 2000 (default 20)
+--   observer                 on | off (default off): arm the read-only observer of the original environment BEFORE boot (needs a module built with the env-observer feature; refused otherwise)
+--                            and record the boot and the frames' events in the file. Requires probes=0 (the witnesses call original routines on synthetic state and would mix into the record)
+--   frame_schedule           instead of frame_ms: 1 to 16 comma-separated frame lengths in ms (each 1 to 1000), cycled (e.g. 100,250,50), so the previous-delta phase can be seen
+--   controlled               none (default) | lightning_due | local_weather_on: ONE explicitly labelled controlled-weather case of the original setters (csrc group 9), right after the initial snapshots,
+--                            for a fresh process. It changes the live session and restores nothing (the process is the isolation boundary); it needs probes=0 and is not a default run
 --   snapshot_every           a retail snapshot every this many simulated seconds: a plain decimal number from 0 to 3600 (default 60; 0 none). At most one is taken per frame, whatever the number of periods the frame covered; the next due time is reached in constant work, so a tiny period is bounded by the frames
 -- A "plain decimal number" is digits with an optional single point (no sign, exponent, hex, space or text after it). The frames may not exceed 120000, and every loop stops at its bound.
 --
@@ -83,7 +88,40 @@ local probes = number_arg ("probes", args.probes, 512, 0, 1024, true)
 local probe_at = number_arg ("probe_at", args.probe_at, 0, 0, 21600, false)
 local snapshot_frames = number_arg ("snapshot_frames", args.snapshot_frames, 20, 0, 2000, true)
 local snapshot_every = number_arg ("snapshot_every", args.snapshot_every, 60, 0, 3600, false)
+local observer_text = args.observer == nil and "off" or args.observer
+if observer_text ~= "on" and observer_text ~= "off" then refuse ("observer must be on or off, got '" .. tostring (observer_text) .. "'") end
+local observer_on = observer_text == "on"
+if observer_on and probes > 0 then refuse ("observer=on needs probes=0: the witnesses call original routines on synthetic state and would mix into the natural record") end
+local controlled_cases = { lightning_due = 0, local_weather_on = 1 }
+local controlled_name = args.controlled
+local controlled_index
+if controlled_name ~= nil and controlled_name ~= "none" then
+	controlled_index = controlled_cases [controlled_name]
+	if controlled_index == nil then refuse ("controlled must be none, lightning_due or local_weather_on, got '" .. tostring (controlled_name) .. "'") end
+	if probes > 0 then refuse ("controlled=" .. controlled_name .. " changes the session and restores nothing: it needs probes=0 and a process of its own") end
+end
+-- the frame lengths: one (frame_ms) or a cycled schedule; a schedule is not combined with frame_ms
+local schedule = { frame_ms }
+if args.frame_schedule ~= nil then
+	if args.frame_ms ~= nil then refuse ("frame_ms and frame_schedule are alternatives: give one") end
+	local text = tostring (args.frame_schedule)
+	if #text > 80 then refuse ("frame_schedule is too long: at most 80 characters") end
+	schedule = {}
+	for token in (text .. ","):gmatch ("([^,]*),") do
+		if not token:match ("^%d+$") or #token > 4 or tonumber (token) < 1 or tonumber (token) > 1000 then refuse ("frame_schedule must be 1 to 16 integers from 1 to 1000 separated by commas, got '" .. text .. "'") end
+		schedule [#schedule + 1] = tonumber (token)
+	end
+	if #schedule < 1 or #schedule > 16 then refuse ("frame_schedule must name 1 to 16 frame lengths, got '" .. text .. "'") end
+end
 local frames = math.ceil (seconds * 1000 / frame_ms)
+if args.frame_schedule ~= nil then
+	frames = 0
+	local elapsed_ms = 0
+	while elapsed_ms < seconds * 1000 and frames <= MAX_FRAMES do
+		frames = frames + 1
+		elapsed_ms = elapsed_ms + schedule [(frames - 1) % #schedule + 1]
+	end
+end
 if frames > MAX_FRAMES then
 	refuse ("seconds=" .. seconds .. " at frame_ms=" .. frame_ms .. " needs " .. frames .. " frames; the most this driver runs is " .. MAX_FRAMES)
 end
@@ -158,13 +196,14 @@ local function parse_report (report)
 end
 
 -- one object per parsed line, in order; the same objects as ever for a well-formed report
-local function emit_lines (scope, lines)
+local function emit_lines (scope, lines, decorate)
 	local rows = {}
 	for _, line in ipairs (lines) do
 		local t = { event = line.event, scope = scope, at = clock.elapsed_seconds }
 		for _, kv in ipairs (line.fields) do
 			t [reserved [kv [1]] and ("field_" .. kv [1]) or kv [1]] = field_value (kv [1], kv [2])
 		end
+		if decorate ~= nil then decorate (line, t) end
 		emit (t)
 		rows [#rows + 1] = t
 	end
@@ -177,6 +216,7 @@ local kinds = {
 	f = { "a 16-digit lowercase hex fingerprint", function (v) return #v == 16 and v:match ("^%x+$") ~= nil and v == v:lower () end },
 	i = { "an integer", function (v) return #v <= 11 and v:match ("^-?%d+$") ~= nil end },
 	u = { "a non-negative integer", function (v) return #v <= 9 and v:match ("^%d+$") ~= nil end },
+	n = { "a counter", function (v) return #v <= 18 and v:match ("^%d+$") ~= nil end },
 	b = { "0 or 1", function (v) return v == "0" or v == "1" end },
 	s = { "a token", function (v) return #v <= 200 and v:match ("^[%w_,]+$") ~= nil end },
 }
@@ -355,6 +395,14 @@ local function shapes (group, index)
 			{ "update_weather_refused", { row ("env-update-weather", who .. " refused=unavailable_in_cockpit_or_no_camera_or_not_server in_cockpit:u camera:b comms_model:i"), end_row () }, true },
 		}
 	end
+	if group == 9 then
+		local head = "kind=controlled i:u what=lightning_due|local_weather_on"
+		return {
+			{ "controlled", { row ("env-controlled", head .. " local_before:b radius_before_w:w timer_before_w:w local_after:b radius_after_w:w timer_after_w:w"), row ("env-controlled-end", "group=9 index:u changed=1 process_isolated=required") }, false },
+			{ "controlled_refused_server", { row ("env-controlled", head .. " refused=not_the_server comms_model:i"), row ("env-controlled-end", "group=9 index:u changed=0 process_isolated=required") }, true },
+			{ "controlled_refused_weather", { row ("env-controlled", head .. " refused=weather_not_local_or_radius_zero local_weather_model:b weather_radius_w:w"), row ("env-controlled-end", "group=9 index:u changed=0 process_isolated=required") }, true },
+		}
+	end
 	return {}
 end
 
@@ -390,7 +438,21 @@ local function validate_report (group, index, lines, context)
 				end
 				if total > 1024 then return nil, "the census declares " .. total .. " cases, more than 1024" end
 			end
-			if group >= 2 then
+			if group == 9 then
+				-- a controlled case restores nothing and says so; its row is judged only by the inputs it echoes and by the guard it printed
+				local c, last = lines [1].map, lines [#lines].map
+				if tonumber (last.index) ~= index then return nil, "the controlled end marker is for index " .. last.index end
+				if c.what ~= (index == 0 and "lightning_due" or "local_weather_on") then return nil, "the controlled row is for what=" .. c.what .. ", not case " .. index end
+				local zero = { ["00000000"] = true, ["80000000"] = true }
+				if verdict.shape == "controlled_refused_server" and tonumber (c.comms_model) == context.comms_server then return nil, "the controlled case was refused as not the server although comms_model equals the census comms_server" end
+				if verdict.shape == "controlled_refused_weather" and not (index == 0 and (c.local_weather_model == "0" or zero [c.weather_radius_w])) then return nil, "the controlled case was refused as not local weather although the printed weather is local with a non-zero radius (or the case is not 0)" end
+				if not verdict.refused then
+					if c.timer_after_w ~= "3f000000" then return nil, "the lightning timer written is " .. c.timer_after_w .. ", not the 0.5 s input" end
+					if index == 0 and (c.local_before ~= "1" or zero [c.radius_before_w]) then return nil, "case 0 ran although the weather was not local with a non-zero radius" end
+					if index == 1 and (c.local_after ~= "1" or c.radius_after_w ~= "471c4000") then return nil, "case 1 did not leave the local model with the 40 km input radius" end
+				end
+			end
+			if group >= 2 and group <= 8 then
 				local last = lines [#lines].map
 				if tonumber (last.group) ~= group or tonumber (last.index) ~= index then return nil, "the end marker is for group " .. last.group .. " index " .. last.index end
 				if last.fp_before ~= last.fp_after then return nil, "the state fingerprint changed across the witness: " .. last.fp_before .. " then " .. last.fp_after end
@@ -454,13 +516,26 @@ local dc, engine
 local finished = false
 
 local function run ()
-	emit { event = "boot", scenario = scenario_name, seed = seed, seconds = seconds, frame_ms = frame_ms, probes = probes, probe_at = probe_at, snapshot_frames = snapshot_frames,
+	local boot_row = { event = "boot", scenario = scenario_name, seed = seed, seconds = seconds, frame_ms = frame_ms, probes = probes, probe_at = probe_at, snapshot_frames = snapshot_frames,
 		snapshot_every = snapshot_every, mode = probes == 0 and "control" or "probe", feature = "env-fixture" }
+	-- the new arguments appear only when given, so a run without them writes the boot row it always wrote
+	if observer_on then boot_row.observer = "on" end
+	if args.frame_schedule ~= nil then boot_row.frame_schedule = tostring (args.frame_schedule) end
+	if controlled_index ~= nil then boot_row.controlled = controlled_name end
+	emit (boot_row)
 
 	dc = require ("eech_dc")
 	dc.prepare_installation (root)
+	if observer_on then
+		-- the genuine refusal for a module without the observer; the observer is armed BEFORE boot, so the random start time, the reseed and the ten weather draws are in the record
+		if type (dc.env_observer_arm) ~= "function" then
+			emit { event = "refusal", reason = "env_observer_unavailable", detail = "the module was built without the env-observer feature" }
+			refuse ("the module has no env_observer_arm function: build eech-dc with the env-observer feature")
+		end
+		dc.env_observer_arm (true)
+	end
 	engine = dc.boot {
-		install_root = root, map = scenario.map, campaign_directory = "camp01", campaign = scenario.campaign, gunship = "apache",
+		install_root = root, map = scenario.map, terrain = host.terrain_provider (root, scenario.map), campaign_directory = "camp01", campaign = scenario.campaign, gunship = "apache",
 		seed = seed, bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss,
 		supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, sense = host.sense, aim = host.aim,
 	}
@@ -537,13 +612,13 @@ local function run ()
 	end
 
 	local frames_run = 0
-	local function step_frame ()
+	local function step_frame (ms)
 		local before = clock.elapsed_seconds
 		frames_run = frames_run + 1
 		if frames_run > MAX_FRAMES + 2 then refuse ("more than " .. MAX_FRAMES .. " frames were run") end
-		engine:frame (frame_ms)
+		engine:frame (ms)
 		clock = engine:clock ()
-		if not (clock.elapsed_seconds > before) then refuse ("the clock did not advance in a frame of " .. frame_ms .. " ms") end
+		if not (clock.elapsed_seconds > before) then refuse ("the clock did not advance in a frame of " .. ms .. " ms") end
 	end
 
 	local function snapshot (scope)
@@ -587,13 +662,100 @@ local function run ()
 		return advanced
 	end
 
+	-- THE OBSERVER (armed before boot; csrc/eech_env_observer.c). Its events are drained in order, written as they came (with the name of the kind added), and checked: the row shape, an unbroken
+	-- sequence from the boot, the shared seed word and its signed form being one word, frames that begin and end in pairs. At the end the report must say armed, nothing dropped, everything read, and
+	-- the frame and update counts the driver and the original's own counters give must agree. An observer that dropped events, or was not armed before boot, is refused, never reported as measured.
+	local OBS_KINDS = { "boot_begin", "boot_end", "seed_set", "seed_source", "start_reseed", "start_index", "start_time", "start_result", "session_created", "parser_session_begin", "parser_session_end",
+		"rain_tag", "wind_tag", "weather_begin", "weather_draw", "weather_end", "fixed_weather", "frame_begin", "frame_end", "tod_begin", "tod_end", "lightning_expired", "lightning_new_timer",
+		"lightning_timer_set", "lightning_env", "strike_begin", "strike_end", "sound_begin", "sound_end", "sound_facts" }
+	local obs = { next_seq = 0, counts = {}, open_frame = false }
+	local OBS_EVENT = compile ("seq:u kind:u a:i b:i rng:i rng_w:w w0:w w1:w w2:w w3:w w4:w w5:w")
+	local OBS_REPORT = compile ("armed:b capacity:u stored:u read:u dropped:u overflow:b next_seq:u update_server:n lightning_calls:n sound_calls:n resync_calls:n weather_calls:n sound_records:u")
+
+	local function observer_call (method, scope, event, spec, decorate)
+		local ok, text = pcall (function () return engine [method] (engine) end)
+		if not ok then refuse ("engine:" .. method .. " failed: " .. tostring (text)) end
+		if text == "" then return {} end
+		local lines, why = parse_report (text)
+		if lines == nil then refuse ("engine:" .. method .. " returned a malformed report: " .. why) end
+		emit_lines (scope, lines, decorate)
+		for _, line in ipairs (lines) do
+			if line.event ~= event then refuse ("engine:" .. method .. " returned the row '" .. line.event .. "' where '" .. event .. "' was expected") end
+			local problem = spec_error (line, spec)
+			if problem ~= nil then refuse ("engine:" .. method .. " row " .. event .. " " .. problem) end
+		end
+		return lines
+	end
+
+	local function observer_drain (scope)
+		local lines = observer_call ("env_observer_events", scope, "env-obs", OBS_EVENT, function (line, t) t.kind_name = OBS_KINDS [tonumber (line.map.kind) or 0] or "unknown" end)
+		for _, line in ipairs (lines) do
+			local m = line.map
+			local seq, kind = tonumber (m.seq), tonumber (m.kind)
+			if seq ~= obs.next_seq then refuse ("observer event " .. m.seq .. " follows " .. (obs.next_seq - 1) .. ": an event is missing or repeated") end
+			if kind < 1 or kind > #OBS_KINDS then refuse ("observer event " .. m.seq .. " has kind " .. m.kind .. ", which is not one of the " .. #OBS_KINDS .. " kinds") end
+			if (tonumber (m.rng) % 4294967296) ~= tonumber (m.rng_w, 16) then refuse ("observer event " .. m.seq .. ": rng " .. m.rng .. " and rng_w " .. m.rng_w .. " are not one word") end
+			if seq == 0 and kind ~= 1 then refuse ("the first observer event is kind " .. m.kind .. ", not boot_begin: the observer was not armed before boot") end
+			local name = OBS_KINDS [kind]
+			obs.counts [name] = (obs.counts [name] or 0) + 1
+			if name == "frame_begin" then
+				if obs.open_frame then refuse ("observer: a frame began inside a frame (event " .. m.seq .. ")") end
+				obs.open_frame = true
+			elseif name == "frame_end" then
+				if not obs.open_frame then refuse ("observer: a frame ended that had not begun (event " .. m.seq .. ")") end
+				obs.open_frame = false
+			end
+			obs.next_seq = seq + 1
+		end
+	end
+
+	local function observer_finish ()
+		observer_drain ("observer:final")
+		local lines = observer_call ("env_observer_report", "observer:report", "env-obs-report", OBS_REPORT)
+		if #lines ~= 1 then refuse ("the observer report has " .. #lines .. " rows, not 1") end
+		local r, c = lines [1].map, obs.counts
+		if r.armed ~= "1" then refuse ("the observer report says it is not armed") end
+		if r.dropped ~= "0" or r.overflow ~= "0" then refuse ("the observer dropped " .. r.dropped .. " events (capacity " .. r.capacity .. "): the record is incomplete") end
+		if tonumber (r.stored) ~= obs.next_seq or tonumber (r.read) ~= obs.next_seq or tonumber (r.next_seq) ~= obs.next_seq then
+			refuse ("the observer stored " .. r.stored .. ", read " .. r.read .. " and numbered " .. r.next_seq .. " events, but the driver received " .. obs.next_seq)
+		end
+		if (c.boot_begin or 0) ~= 1 or (c.boot_end or 0) ~= 1 then refuse ("the observer saw " .. (c.boot_begin or 0) .. " boot_begin and " .. (c.boot_end or 0) .. " boot_end events, not one of each") end
+		if obs.open_frame or (c.frame_begin or 0) ~= frames_run or (c.frame_end or 0) ~= frames_run then
+			refuse ("the observer saw " .. (c.frame_begin or 0) .. " frame_begin and " .. (c.frame_end or 0) .. " frame_end events for " .. frames_run .. " frames the driver ran")
+		end
+		if (c.tod_begin or 0) ~= (c.tod_end or 0) or (c.tod_begin or 0) ~= tonumber (r.update_server) then
+			refuse ("the observer saw " .. (c.tod_begin or 0) .. " tod_begin and " .. (c.tod_end or 0) .. " tod_end events for " .. r.update_server .. " session updates")
+		end
+		local summary = { event = "observer_summary", events = obs.next_seq, update_server = tonumber (r.update_server), lightning_calls = tonumber (r.lightning_calls), sound_calls = tonumber (r.sound_calls),
+			resync_fired = tonumber (r.resync_calls), weather_calls = tonumber (r.weather_calls), sound_records = tonumber (r.sound_records) }
+		for name, n in pairs (c) do summary ["n_" .. name] = n end
+		emit (summary)
+	end
+
+	if observer_on then
+		for _, method in ipairs ({ "env_observer_events", "env_observer_report" }) do
+			local present, fn = pcall (function () return engine [method] end)
+			if not present or type (fn) ~= "function" then
+				emit { event = "refusal", reason = "env_observer_unavailable", detail = "the engine has no " .. method .. " method" }
+				refuse ("the engine has no " .. method .. " method: build eech-dc with the env-observer feature")
+			end
+		end
+		observer_drain ("observer:boot")
+	end
+
 	campaign_row ("campaign:initial")
 	snapshot ("snapshot:initial")
+	if controlled_index ~= nil then
+		-- ONE controlled-weather case of the original setters, after the unmodified initial snapshots; it restores nothing and says so
+		case (9, controlled_index, "controlled:" .. controlled_name)
+		snapshot ("snapshot:controlled")
+	end
 	if probes > 0 then probe_state = "waiting" end
 	local next_periodic = snapshot_every > 0 and snapshot_every or nil
 	for n = 1, frames do
 		if probes > 0 and probe_state == "waiting" and clock.elapsed_seconds >= probe_at then run_probes () end
-		step_frame ()
+		step_frame (schedule [(n - 1) % #schedule + 1])
+		if observer_on and n % 200 == 0 then observer_drain ("observer:frame:" .. n) end
 		if n <= snapshot_frames then snapshot ("snapshot:frame:" .. n) end
 		if next_periodic ~= nil and clock.elapsed_seconds >= next_periodic then
 			snapshot ("snapshot:periodic:" .. string.format ("%.3f", clock.elapsed_seconds))
@@ -603,6 +765,7 @@ local function run ()
 	if probes > 0 and probe_state == "waiting" then run_probes () end
 	snapshot ("snapshot:final")
 	campaign_row ("campaign_end")
+	if observer_on then observer_finish () end
 
 	for _, g in ipairs (groups) do
 		emit { event = "coverage", group = g [1], name = g [2], available = g.count, ran = g.ran, refused = g.refused, truncated = g.ran < g.count }
