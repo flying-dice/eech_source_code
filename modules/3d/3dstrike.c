@@ -116,6 +116,14 @@ int
 lightning_strike
 	lightning_strikes[MAX_NUMBER_OF_LIGHTNING_STRIKES];
 
+#ifdef EECH_ENV_OBSERVER
+//
+// TEST-ONLY (EEDCS-51, feature env-observer, never shipping): how many times update_3d_lightning_strikes has been called. Read by the lightning queue probe (csrc/eech_env_observer.c).
+//
+unsigned int
+	eech_lightning_update_calls = 0;
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -202,6 +210,10 @@ void update_3d_lightning_strikes ( env_3d *env )
 	float
 		time_of_day;
 
+
+#ifdef EECH_ENV_OBSERVER
+	eech_lightning_update_calls++;
+#endif
 
 	time_of_day = get_3d_time_of_day ( env );
 
@@ -873,4 +885,42 @@ void draw_3d_lightning_cloud_burst ( lightning_strike *strike )
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef EECH_ENV_OBSERVER
+
+#include <string.h>
+
+//
+// TEST-ONLY (EEDCS-51, feature env-observer, never shipping): a READ-ONLY view of one slot of the strike queue for the lightning queue probe (csrc/eech_env_observer.c). It returns the number of
+// slots of the queue (MAX_NUMBER_OF_LIGHTNING_STRIKES) and, for a slot in range, copies eight words: the in_use flag as stored, the type as stored, the position x, y and z, the start time and the length
+// as IEEE bit patterns, and the current frame number as stored. It changes nothing; a slot out of range returns -1.
+//
+int eech_lightning_queue_view ( int slot, unsigned int *words )
+{
+
+	const lightning_strike
+		*strike;
+
+	if ( ( slot < 0 ) || ( slot >= MAX_NUMBER_OF_LIGHTNING_STRIKES ) || ( !words ) )
+	{
+
+		return ( -1 );
+	}
+
+	strike = &lightning_strikes[slot];
+
+	words[0] = ( unsigned int ) strike->in_use;
+	words[1] = ( unsigned int ) strike->type;
+	memcpy ( &words[2], &strike->position.x, sizeof ( unsigned int ) );
+	memcpy ( &words[3], &strike->position.y, sizeof ( unsigned int ) );
+	memcpy ( &words[4], &strike->position.z, sizeof ( unsigned int ) );
+	memcpy ( &words[5], &strike->time_started, sizeof ( unsigned int ) );
+	memcpy ( &words[6], &strike->time_length, sizeof ( unsigned int ) );
+	words[7] = ( unsigned int ) strike->current_frame_number;
+
+	return ( MAX_NUMBER_OF_LIGHTNING_STRIKES );
+}
+
+#endif
+
 #endif

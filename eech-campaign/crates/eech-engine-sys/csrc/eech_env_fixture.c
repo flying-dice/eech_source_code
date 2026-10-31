@@ -84,7 +84,8 @@ enum
 	ENV_GROUP_SECTOR = 10,
 	ENV_GROUP_SOUND = 11,
 	ENV_GROUP_WIDE = 12,
-	ENV_GROUP_LAST = 12
+	ENV_GROUP_LIGHTNING = 13,
+	ENV_GROUP_LAST = 13
 };
 
 #define ENV_WEATHER_MAX 96
@@ -2270,6 +2271,241 @@ static int env_wide_case (int index, char *text, int capacity, int *used)
 	return 0;
 }
 
+#ifdef EECH_ENV_OBSERVER
+
+/*
+ * GROUP 13 (explicit only, never in the default run, the census or the witness set; needs the env-observer build, which holds the read-only accessor to the strike queue): the lightning strike QUEUE
+ * (modules/3d/3dstrike.c) that add_3d_lightning_strike writes and update_3d_lightning_strikes ages. TEST-ONLY, SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED.
+ *
+ *   index 0     the plan and the natural report: the state of the queue now, and the records of the lightning queue probe (ss_envfx.h ENV_FXQ, csrc/eech_env_observer.c) stored while the ORIGINAL
+ *               lightning routine ran in the frames. Read-only.
+ *   index 1..4  PRIMITIVE CONTROLS of add_3d_lightning_strike and update_3d_lightning_strikes themselves, PROCESS-ISOLATED (one case per process, from a queue that has not been written): the queue
+ *               cannot be put back, so a case refuses if the queue is not empty and says changed=1. They call the two original primitives with the active environment set by plain assignment
+ *               (restored afterwards); they are NOT the lightning routine, NOT a missing-host proof and do not exercise the routine's own switch to the main environment (the natural run does that):
+ *                 1 add_without_active_environment      active environment NULL: does the add queue anything?
+ *                 2 add_with_the_main_environment       active environment the main one: the slot, the position, the type, the start time (the main environment's time of day) and the length
+ *                 3 fill_the_queue_and_drop_the_next    one add more than the queue has slots for: what the last add does
+ *                 4 age_a_cloud_burst_by_the_time_of_day a CLOUD_BURST aged by update_3d_lightning_strikes at three times of day (the forked types read texture animations the headless build may not
+ *                                                       initialise and are NOT exercised, said below)
+ * A prerequisite that is absent (no main environment, a queue that is not empty) is REFUSED and printed; nothing is forced.
+ */
+
+extern int eech_lightning_queue_view (int slot, unsigned int *words);
+extern unsigned int eech_lightning_update_calls;
+extern int eech_envobs_queue_report (char *text, int capacity, int *used);
+
+#define ENV_LQ_CASES 4
+
+static int env_lq_mask (unsigned int *mask, unsigned int *occupancy)
+{
+	unsigned int words[8];
+	int slot, slots = eech_lightning_queue_view (0, words);
+
+	*mask = 0;
+	*occupancy = 0;
+
+	if (slots < 1 || slots > 32)
+	{
+		return -1;
+	}
+
+	for (slot = 0; slot < slots; slot++)
+	{
+		eech_lightning_queue_view (slot, words);
+
+		if (words[0])
+		{
+			*mask |= ((unsigned int) 1) << slot;
+			(*occupancy)++;
+		}
+	}
+
+	return slots;
+}
+
+static int env_lq_active_state (void)
+{
+	return (active_3d_environment == NULL) ? 0 : ((active_3d_environment == main_3d_env) ? 1 : 2);
+}
+
+static int env_lq_slot (char *text, int capacity, int *used, const char *tag, int slot)
+{
+	unsigned int w[8];
+
+	if (eech_lightning_queue_view (slot, w) < 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-lightning-slot tag=%s slot=%d w0=%08x w1=%08x w2=%08x w3=%08x w4=%08x w5=%08x w6=%08x w7=%08x\n", tag, slot, w[0], w[1], w[2], w[3], w[4], w[5], w[6], w[7]);
+
+	return 0;
+}
+
+static int env_lq_slots_in_use (char *text, int capacity, int *used, const char *tag, int slots)
+{
+	unsigned int w[8];
+	int slot;
+
+	for (slot = 0; slot < slots; slot++)
+	{
+		eech_lightning_queue_view (slot, w);
+
+		if (w[0] && env_lq_slot (text, capacity, used, tag, slot) != 0)
+		{
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+static int env_lightning_case (int index, char *text, int capacity, int *used)
+{
+	static const char *const names[ENV_LQ_CASES] = { "add_without_active_environment", "add_with_the_main_environment", "fill_the_queue_and_drop_the_next", "age_a_cloud_burst_by_the_time_of_day" };
+	unsigned int mask_before, occupancy_before, mask_after, occupancy_after;
+	env_3d *active_saved = active_3d_environment;
+	const char *refusal = NULL;
+	float tod_saved = 0.0f;
+	int slots, i, first = -1;
+
+	slots = env_lq_mask (&mask_before, &occupancy_before);
+
+	if (index == 0)
+	{
+		ENV_EMIT ("env-lightning-plan version=1 cases=%d main_present=%d active=%d queue_capacity=%d mask_w=%08x update_calls=%u process_isolated=required\n", ENV_LQ_CASES, main_3d_env != NULL, env_lq_active_state (), slots,
+			mask_before, eech_lightning_update_calls);
+		ENV_EMIT ("env-lightning-unsupported item=forked_strike_update reason=update_3d_lightning_strikes_reads_texture_animations_the_headless_build_may_not_initialise_not_exercised\n");
+		ENV_EMIT ("env-lightning-unsupported item=drawing_and_the_application_scene_update reason=not_exercised_headless_not_claimed\n");
+
+		return eech_envobs_queue_report (text, capacity, used);
+	}
+
+	if (index < 1 || index > ENV_LQ_CASES)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-lightning kind=control i=%d label=%s main_present=%d active_before=%d queue_capacity=%d mask_before_w=%08x occupancy_before=%u update_calls_before=%u\n", index, names[index - 1], main_3d_env != NULL, env_lq_active_state (), slots,
+		mask_before, occupancy_before, eech_lightning_update_calls);
+
+	if (slots < 1)
+	{
+		refusal = "the_queue_accessor_does_not_answer";
+	}
+	else if (mask_before != 0)
+	{
+		refusal = "the_queue_is_not_empty_a_control_needs_a_process_that_has_not_queued_a_strike";
+	}
+	else if (index >= 2 && main_3d_env == NULL)
+	{
+		refusal = "there_is_no_main_3d_environment_nothing_is_forced";
+	}
+
+	if (refusal)
+	{
+		ENV_EMIT ("env-lightning-end i=%d refused=%s changed=0 process_isolated=required\n", index, refusal);
+
+		return 0;
+	}
+
+	switch (index)
+	{
+		case 1:
+		{
+			active_3d_environment = NULL;
+			add_3d_lightning_strike (LIGHTNING_TYPE_CLOUD_BURST, 0.3f, 1500.0f, 2500.0f);
+			break;
+		}
+		case 2:
+		{
+			active_3d_environment = main_3d_env;
+			ENV_EMIT ("env-lightning-input tag=add main_time_w=%08x type=%d length_w=%08x x_w=%08x z_w=%08x\n", ENV_WORD (main_3d_env->time_of_day), (int) LIGHTNING_TYPE_CLOUD_BURST, ENV_WORD (0.3f), ENV_WORD (1500.0f),
+				ENV_WORD (2500.0f));
+			add_3d_lightning_strike (LIGHTNING_TYPE_CLOUD_BURST, 0.3f, 1500.0f, 2500.0f);
+			break;
+		}
+		case 3:
+		{
+			active_3d_environment = main_3d_env;
+
+			/* one add more than the queue has slots for; the step rows are the last add that fits and the one that cannot */
+			for (i = 0; i <= slots; i++)
+			{
+				add_3d_lightning_strike (LIGHTNING_TYPE_CLOUD_BURST, 0.3f, (float) (i + 1), 2500.0f);
+
+				if (i >= slots - 1)
+				{
+					env_lq_mask (&mask_after, &occupancy_after);
+					ENV_EMIT ("env-lightning-step i=%d add=%d mask_w=%08x occupancy=%u\n", index, i + 1, mask_after, occupancy_after);
+				}
+			}
+
+			break;
+		}
+		default:
+		{
+			tod_saved = main_3d_env->time_of_day;
+			active_3d_environment = main_3d_env;
+
+			set_3d_time_of_day (main_3d_env, 100.0f);
+			add_3d_lightning_strike (LIGHTNING_TYPE_CLOUD_BURST, 0.3f, 1500.0f, 2500.0f);
+			env_lq_mask (&mask_after, &occupancy_after);
+
+			for (i = 0; i < slots; i++)
+			{
+				if (mask_after & (((unsigned int) 1) << i))
+				{
+					first = i;
+
+					break;
+				}
+			}
+
+			ENV_EMIT ("env-lightning-input tag=age added_at_w=%08x length_w=%08x inside_w=%08x after_the_end_w=%08x first_slot=%d\n", ENV_WORD (100.0f), ENV_WORD (0.3f), ENV_WORD (100.1f), ENV_WORD (100.5f), first);
+
+			if (first >= 0 && env_lq_slot (text, capacity, used, "added", first) != 0)
+			{
+				return -1;
+			}
+
+			set_3d_time_of_day (main_3d_env, 100.1f);
+			update_3d_lightning_strikes (main_3d_env);
+
+			if (first >= 0 && env_lq_slot (text, capacity, used, "aged_inside_the_length", first) != 0)
+			{
+				return -1;
+			}
+
+			set_3d_time_of_day (main_3d_env, 100.5f);
+			update_3d_lightning_strikes (main_3d_env);
+
+			if (first >= 0 && env_lq_slot (text, capacity, used, "aged_after_the_end", first) != 0)
+			{
+				return -1;
+			}
+
+			set_3d_time_of_day (main_3d_env, tod_saved);
+			break;
+		}
+	}
+
+	active_3d_environment = active_saved;
+	env_lq_mask (&mask_after, &occupancy_after);
+
+	if (env_lq_slots_in_use (text, capacity, used, "after", slots) != 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-lightning-end i=%d changed=1 mask_after_w=%08x occupancy_after=%u update_calls_after=%u active_restored=%d queue_restored=0 process_isolated=required\n", index, mask_after, occupancy_after,
+		eech_lightning_update_calls, active_3d_environment == active_saved);
+
+	return 0;
+}
+
+#endif
+
 static int env_case_count (int group)
 {
 	switch (group)
@@ -2379,6 +2615,27 @@ int eech_env_case_run (int group, int index, char *text, int capacity)
 		}
 
 		return 0;
+	}
+
+	if (group == ENV_GROUP_LIGHTNING)
+	{
+		/* explicit only; the cases 1 to 4 are PROCESS-ISOLATED (the strike queue cannot be put back, see env_lightning_case); needs the env-observer build */
+#ifdef EECH_ENV_OBSERVER
+		if (env_lightning_case (index, text, capacity, used) != 0)
+		{
+			text[0] = 0;
+			used_value = 0;
+			append (text, capacity, used, "env-case-error reason=lightning_case_refused_or_report_did_not_fit group=13 index=%d\n", index);
+
+			return -1;
+		}
+
+		return 0;
+#else
+		append (text, capacity, used, "env-case-error reason=lightning_queue_needs_the_env_observer_build group=13 index=%d\n", index);
+
+		return -1;
+#endif
 	}
 
 	if (index < 0 || index >= env_case_count (group))

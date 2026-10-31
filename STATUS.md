@@ -1,3 +1,28 @@
+# D3 original lightning strike QUEUE — characterisation probe prepared BEFORE any move (31 October 2026, test-only ORIGINAL probe, UNBUILT, UNRUN, UNREVIEWED)
+
+Clean pushed `12ca0f15f`; the ambient amplitude component is closed (b7 witness, sole final review `6fc68291...`) and is not repeated here. **This step moves nothing, hands nothing to a host and claims no result.** It follows the compact
+plan `physical-effects-compact-plan-opus55-medium-20261031.md` (sequential Opus 5.5 at medium; source advice, not measured fact) and the bounded source facts, with Root's corrections: the physical expiry and strike position
+are already HOST-owned (`campaign_env_step`) and stay so; the real routine switches to `main_3d_env` before it adds, so forcing the active environment to NULL before the routine would not exercise a NULL add (and the existing
+`ENV_FX_LIGHTNING_ENV` flag is the same value for "was the main one" and "was NULL and was switched"); nothing is manufactured or claimed as a public missing-host proof.
+
+**Wiring correction (before any build):** Root identified that the first version of this prep hooked only the legacy `update_lightning_effect` (the `#else` branch), which is NOT the active path of the current `12ca0f15f` baseline: `EECH_CAMPAIGN_HOST_ENV` is enabled, and `campaign_env_step` consumes the host's expiry and position and then calls the hosted `create_lightning_effects`, which still executes the ORIGINAL queue calls and sound creations. The same six read-only `ENV_FXQ` points are now also in the hosted `create_lightning_effects` (entry; before/after the CLOUD_BURST add; before/after the FORKED_1 add; after the original conditional restore and before the sound creations); the two branches compile exclusively, so nothing is captured twice, and no original call, arithmetic, RNG, heap or update order changed. This was a wrong-branch prep caught by review, not a measured runtime failure. What is characterised is the ORIGINAL QUEUE BEHAVIOUR ON THE CURRENT HOSTED FIELD/AMBIENT BASELINE, not a whole-original weather DLL; host-env is not turned off and no accepted field or ambient move is undone. The probe, drivers and guards remain UNBUILT, UNRUN, UNREVIEWED. Two fresh roots (`lebanon-natural`, `lebanon-primitive`) are Root's; each primitive control needs its own fresh process and root and is never reused.
+
+**Added (source only; production behaviour unchanged, every addition feature-gated to the env-observer build; details in `eech-campaign/docs/d3-lightning-queue.md`):**
+* a SEPARATE finite probe store (`ss_envfx.h ENV_FXQ`, six points: entry, around each `add_3d_lightning_strike`, after the original restore, in BOTH compiled entry points — the hosted `create_lightning_effects`, the ACTIVE path of the current baseline, and the legacy `update_lightning_effect`; they compile exclusively) — not the observer's event stream, so the
+  retained native765/driver235 grammar and traces are untouched; it reads the active/main 3D environment, the active time of day (bits) and the 32-slot queue through a read-only accessor and an `update_3d_lightning_strikes`
+  call counter added to `modules/3d/3dstrike.c` (observer build only);
+* fixture group 13 (`eech_env_fixture.c`): index 0 the plan and natural report; indices 1 to 4 four process-isolated PRIMITIVE controls (add with the active environment NULL by assignment; add with the main environment; one add
+  past capacity; a CLOUD_BURST aged by the time of day) — controls of the two original primitives, not of the routine; absent prerequisites are printed refusals, the forked types are explicitly not exercised;
+* `env-characterization.lua`: an optional `queue=on` (needs `observer=on`) that only APPENDS the probe's rows and derives each add's outcome (queued / no active environment / queue full / unexplained) from the masks;
+  with it off the driver is exactly as it was. `lua/env-lightning-queue.lua` runs one primitive control per fresh process and judges nothing physical.
+* tests: `tests/env_lightning_queue.rs` (new, scripted engine) and additions to the existing `host_callbacks.rs` stand-in (queue-argument refusals, rows only appended, derived outcomes, 15 damaged reports refused).
+
+**Not known, to be measured by Root, not predicted here:** whether the main 3D environment exists headless and which environment is active at the first strike; whether strikes are queued, whether the queue ever fills, whether
+`update_3d_lightning_strikes` runs in the headless frame; what the primitives do with a NULL environment or a full queue. **Root next:** format, the new tests, a new engine build (the b7 Lua-only reuse no longer applies; derive the
+payload set from the new snapshot), the feature-off token check now including `3dstrike.c`, ONE natural fixed-Lebanon run with the retained observer control's arguments plus `queue=on` compared on every non-queue row, then
+(if wanted) the four primitive controls, then the same independent combined review before any physical move. Retained controls are not rerun. The sound entities, their lifetimes, any speaker, network, player, renderer, Tacview,
+the remaining time/terrain/spatial/model inputs, full shipping 40 / all 8 byte identity and merges stay coupled and open D3; D4/D5 unstarted; no acceptance claimed.
+
 # D3 ambient amplitude authority closed — actual native d559 / judge b7 (31 October 2026)
 
 Rain/wind levels and terrain-child smoothing now come from the host. The REAL

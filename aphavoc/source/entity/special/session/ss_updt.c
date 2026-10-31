@@ -182,6 +182,8 @@ static void create_lightning_effects (entity *en, vec3d *strike_position)
 	// create lightning
 	//
 
+	ENV_FXQ (ENV_FXQ_ENTRY)
+
 	current_3d_env = get_3d_active_environment ();
 
 	if (current_3d_env == main_3d_env)
@@ -197,13 +199,21 @@ static void create_lightning_effects (entity *en, vec3d *strike_position)
 
 	ENV_FX (ENV_FX_STRIKE_BEGIN, 1, 0, ENV_FXF (strike_position->x), ENV_FXF (strike_position->z), 0, 0, 0, 0)
 
+	ENV_FXQ (ENV_FXQ_BEFORE_1)
+
 	add_3d_lightning_strike (LIGHTNING_TYPE_CLOUD_BURST, 0.3, strike_position->x, strike_position->z);
+
+	ENV_FXQ (ENV_FXQ_AFTER_1)
 
 	ENV_FX (ENV_FX_STRIKE_END, 1, 0, 0, 0, 0, 0, 0, 0)
 
 	ENV_FX (ENV_FX_STRIKE_BEGIN, 2, 0, ENV_FXF (strike_position->x), ENV_FXF (strike_position->z), 0, 0, 0, 0)
 
+	ENV_FXQ (ENV_FXQ_BEFORE_2)
+
 	add_3d_lightning_strike (LIGHTNING_TYPE_FORKED_1, 0.3, strike_position->x, strike_position->z);
+
+	ENV_FXQ (ENV_FXQ_AFTER_2)
 
 	ENV_FX (ENV_FX_STRIKE_END, 2, 0, 0, 0, 0, 0, 0, 0)
 
@@ -211,6 +221,8 @@ static void create_lightning_effects (entity *en, vec3d *strike_position)
 	{
 		set_3d_active_environment (current_3d_env);
 	}
+
+	ENV_FXQ (ENV_FXQ_RESTORED)
 
 	if (get_comms_model () == COMMS_MODEL_SERVER)
 	{
@@ -416,6 +428,8 @@ void update_lightning_effect (entity *en)
 		env_3d
 			*current_3d_env;
 
+		ENV_FXQ (ENV_FXQ_ENTRY)
+
 		current_3d_env = get_3d_active_environment ();
 
 		if (current_3d_env == main_3d_env)
@@ -431,13 +445,21 @@ void update_lightning_effect (entity *en)
 
 		ENV_FX (ENV_FX_STRIKE_BEGIN, 1, 0, ENV_FXF (raw->weather_position.x), ENV_FXF (raw->weather_position.z), 0, 0, 0, 0)
 
+		ENV_FXQ (ENV_FXQ_BEFORE_1)
+
 		add_3d_lightning_strike (LIGHTNING_TYPE_CLOUD_BURST, 0.3, raw->weather_position.x, raw->weather_position.z);
+
+		ENV_FXQ (ENV_FXQ_AFTER_1)
 
 		ENV_FX (ENV_FX_STRIKE_END, 1, 0, 0, 0, 0, 0, 0, 0)
 
 		ENV_FX (ENV_FX_STRIKE_BEGIN, 2, 0, ENV_FXF (raw->weather_position.x), ENV_FXF (raw->weather_position.z), 0, 0, 0, 0)
 
+		ENV_FXQ (ENV_FXQ_BEFORE_2)
+
 		add_3d_lightning_strike (LIGHTNING_TYPE_FORKED_1, 0.3, raw->weather_position.x, raw->weather_position.z);
+
+		ENV_FXQ (ENV_FXQ_AFTER_2)
 
 		ENV_FX (ENV_FX_STRIKE_END, 2, 0, 0, 0, 0, 0, 0, 0)
 
@@ -445,6 +467,8 @@ void update_lightning_effect (entity *en)
 		{
 			set_3d_active_environment (current_3d_env);
 		}
+
+		ENV_FXQ (ENV_FXQ_RESTORED)
 
 		if (get_comms_model () == COMMS_MODEL_SERVER)
 		{

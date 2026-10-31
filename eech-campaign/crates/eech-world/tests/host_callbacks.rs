@@ -2109,6 +2109,55 @@ end
 local function finish(group, index)
   return 'env-witness-end group=' .. group .. ' index=' .. index .. ' restored=1 fp_before=' .. FP .. ' fp_after=' .. FP .. '\n'
 end
+-- ---- group 13, index 0: the lightning queue probe's report (csrc/eech_env_fixture.c env_lightning_case, csrc/eech_env_observer.c eech_envobs_queue_report). The number of lightning events is the
+-- number of episodes the stand-in observer wrote (LIGHTNING_EPISODES, counted by its lightning ()); the shape says what the stand-in's queue did with each add: ok (both queued), no_environment (nothing
+-- active, nothing queued) or full (every slot already in use, nothing queued). The numbers are canned; the ORDER, the grammar and the reconciliation with the observer's events are the real ones.
+local function lq_pop(m)
+  local count = 0
+  for i = 0, 31 do
+    if math.floor(m / 2 ^ i) % 2 == 1 then count = count + 1 end
+  end
+  return count
+end
+local function lq_lowest_zero(m)
+  for i = 0, 31 do
+    if math.floor(m / 2 ^ i) % 2 == 0 then return i end
+  end
+  return -1
+end
+local LQ_ZERO = 'w0=00000000 w1=00000000 w2=00000000 w3=00000000 w4=00000000 w5=00000000 w6=00000000 w7=00000000'
+local LQ_QUEUED = 'w0=00000001 w1=00000001 w2=44bb8000 w3=45bb8000 w4=451c4000 w5=00000000 w6=3e99999a w7=00000000'
+local function queue_report(events, shape)
+  local mask = shape == 'full' and 4294967295 or 0
+  local seq, records = 0, {}
+  local function record(ev, point, active, m, slot, words)
+    records[#records + 1] = string.format('env-lq seq=%d point=%d n=%d active=%d main=1 time_present=%d time_w=00000000 mask_w=%08x occupancy=%d slot=%d %s\n', seq, point, ev, active, active ~= 0 and 1 or 0, m, lq_pop(m), slot, words)
+    seq = seq + 1
+  end
+  for ev = 1, events do
+    local active = shape == 'no_environment' and 0 or 1
+    record(ev, 0, 0, mask, -1, LQ_ZERO)
+    for k = 1, 2 do
+      record(ev, 2 * k - 1, active, mask, -1, LQ_ZERO)
+      local slot = -1
+      if shape == 'ok' then
+        slot = lq_lowest_zero(mask)
+        mask = mask + 2 ^ slot
+      end
+      record(ev, 2 * k, active, mask, slot, slot >= 0 and LQ_QUEUED or LQ_ZERO)
+    end
+    record(ev, 5, active, mask, -1, LQ_ZERO)
+  end
+  local text = string.format('env-lightning-plan version=1 cases=4 main_present=1 active=%d queue_capacity=32 mask_w=%08x update_calls=0 process_isolated=required\n', (events > 0 and shape ~= 'no_environment') and 1 or 0, mask)
+    .. 'env-lightning-unsupported item=forked_strike_update reason=update_3d_lightning_strikes_reads_texture_animations_not_exercised\n'
+    .. 'env-lightning-unsupported item=drawing_and_the_application_scene_update reason=not_exercised_headless_not_claimed\n'
+    .. string.format('env-lq-report armed=1 capacity=96 stored=%d dropped=0 overflow=0 lightning_events=%d update_calls=0 queue_capacity=32 final_mask_w=%08x final_occupancy=%d\n', #records, events, mask, lq_pop(mask))
+    .. table.concat(records)
+  for slot = 0, 31 do
+    if math.floor(mask / 2 ^ slot) % 2 == 1 then text = text .. string.format('env-lq-slot slot=%d %s\n', slot, LQ_QUEUED) end
+  end
+  return text
+end
 local function report(group, index)
   if group == 0 then
     return 'env-census version=1 session_bytes=1024 weather_cases=2 wind_cases=2 gust_cases=2 time_cases=3 init_cases=2 update_time_cases=1 update_weather_cases=2\n'
@@ -2170,9 +2219,31 @@ local function report(group, index)
     return 'env-controlled kind=controlled i=1 what=local_weather_on local_before=0 radius_before_w=00000000 timer_before_w=42700000 local_after=1 radius_after_w=471c4000 timer_after_w=3f000000\n'
       .. 'env-controlled-end group=9 index=1 changed=1 process_isolated=required\n'
   end
+  if group == 13 and index == 0 then return queue_report(LIGHTNING_EPISODES or 0, 'ok') end
   error('stand-in: no such group ' .. group)
 end
 local mutations = {
+  -- the lightning queue probe's report (group 13, index 0): coherent alternatives (accepted) and damaged forms (refused)
+  queue_no_environment = function() return queue_report(LIGHTNING_EPISODES or 0, 'no_environment') end,
+  queue_full = function() return queue_report(LIGHTNING_EPISODES or 0, 'full') end,
+  queue_not_armed = function(t) return (t:gsub('env%-lq%-report armed=1', 'env-lq-report armed=0', 1)) end,
+  queue_dropped = function(t) return (t:gsub('dropped=0 overflow=0', 'dropped=2 overflow=1', 1)) end,
+  queue_record_missing = function(t) return (t:gsub('env%-lq seq=0 [^\n]*\n', '', 1)) end,
+  queue_seq_gap = function(t) return (t:gsub('env%-lq seq=3 ', 'env-lq seq=9 ', 1)) end,
+  queue_point_swapped = function(t) return (t:gsub('env%-lq seq=1 point=1 ', 'env-lq seq=1 point=2 ', 1)) end,
+  queue_occupancy_wrong = function(t) return (t:gsub(' occupancy=1 ', ' occupancy=5 ', 1)) end,
+  queue_slot_wrong = function(t) return (t:gsub('slot=1 w0=', 'slot=0 w0=', 1)) end,
+  queue_final_slot_missing = function(t) return (t:gsub('env%-lq%-slot slot=1 [^\n]*\n', '', 1)) end,
+  queue_unexpected_row = function(t) return t .. 'env-lq-extra x=1\n' end,
+  queue_out_of_order = function(t)
+    local line = t:match('env%-lq%-report [^\n]*\n')
+    return (t:gsub('env%-lq%-report [^\n]*\n', '', 1)) .. line
+  end,
+  queue_events_mismatch = function(t) return (t:gsub('lightning_events=1', 'lightning_events=2', 1)) end,
+  queue_wrong_plan = function(t) return (t:gsub('mask_w=00000003 update', 'mask_w=00000001 update', 1)) end,
+  queue_unsupported_missing = function(t) return (t:gsub('env%-lightning%-unsupported [^\n]*\n', '', 1)) end,
+  queue_phantom_event = function() return queue_report(1, 'ok') end,
+  queue_missing_event = function() return queue_report(0, 'ok') end,
   marker_only = function(t) return t:match('[^\n]*\n$') end,
   wrong_family = function() return (report(2, 0):gsub('group=2', 'group=3')) end,
   missing_field = function(t) return (t:gsub(' vz_w=%x+', '', 1)) end,
@@ -2316,6 +2387,7 @@ obs_boot = function()
 end
 -- the twelve events of a lightning expiry; the last four are the server's sound entities
 local function lightning(with_sound)
+  LIGHTNING_EPISODES = (LIGHTNING_EPISODES or 0) + 1
   ev(22, 1, 0, 2000, h(0xbd000000), delta)
   if OBS_MUTATION == 'lightning_interrupted' then return end
   if OBS_MUTATION == 'lightning_misordered' then
@@ -2982,6 +3054,8 @@ fn the_environment_driver_runs_a_variable_frame_schedule_and_refuses_a_malformed
     let cases: &[(&[&str], &str)] = &[
         (&["observer=maybe"], "observer"),
         (&["observer=on"], "probes"),
+        (&["queue=maybe"], "queue"),
+        (&["queue=on"], "observer"),
         (&["controlled=thunder", "probes=0"], "controlled"),
         (&["controlled=lightning_due"], "probes"),
         (&["frame_schedule=100,,50"], "frame_schedule"),
@@ -3134,4 +3208,142 @@ fn the_environment_observer_accepts_a_stream_larger_than_one_fixture_buffer() {
     let summary = &env_rows(&run.rows, "observer_summary")[0];
     assert_eq!(summary["events"], 44 + 200 * 6);
     assert_eq!(summary["n_frame_begin"], 200);
+}
+
+// ---- the lightning strike queue probe (queue=on, EEDCS-51 D3). The stand-in answers canned reports of group 13 index 0 whose ORDER, grammar and reconciliation with the observer's own events are the real
+// ones; the numbers are canned. These checks protect the driver's contract with the probe: its rows are only APPENDED (every other row of the run is as it was), each add's outcome is DERIVED from the
+// masks the records hold, and a report that is incomplete, mis-numbered, out of order or at odds with the observer's events is refused. They say nothing about what the original queue does.
+
+const QUEUE_ROW_EVENTS: [&str; 8] = [
+    "env-lightning-plan",
+    "env-lightning-unsupported",
+    "env-lq-report",
+    "env-lq",
+    "env-lq-slot",
+    "lightning_queue_outcome",
+    "lightning_queue_environment",
+    "lightning_queue_summary",
+];
+
+fn queue_stand_in(observer_mutation: &'static str, mutation: &'static str) -> EnvStandIn {
+    EnvStandIn {
+        mutation,
+        group: 13,
+        index: 0,
+        observer_module: true,
+        observer_mutation,
+        ..EnvStandIn::WELL_FORMED
+    }
+}
+
+fn queue_args() -> Vec<&'static str> {
+    env_observer_args(&["queue=on"])
+}
+
+#[test]
+fn the_lightning_queue_probe_only_appends_its_rows_and_derives_each_outcome_from_the_masks() {
+    let off = run_env_scenario(&queue_stand_in("lightning_episode", "none"), &env_observer_args(&[]));
+    assert!(off.status.success(), "{}\n{}", off.stderr, off.out_text);
+    assert!(
+        off.rows.iter().all(|r| !QUEUE_ROW_EVENTS.contains(&r["event"].as_str().unwrap_or_default())),
+        "queue=off wrote queue rows"
+    );
+    let on = run_env_scenario(&queue_stand_in("lightning_episode", "none"), &queue_args());
+    assert!(on.status.success(), "{}\n{}", on.stderr, on.out_text);
+    // every row the run wrote without the probe is the row it writes with it, in the same order, and the probe's rows are all that is added
+    let others: Vec<&serde_json::Value> = on
+        .rows
+        .iter()
+        .filter(|r| !QUEUE_ROW_EVENTS.contains(&r["event"].as_str().unwrap_or_default()))
+        .collect();
+    let before: Vec<&serde_json::Value> = off.rows.iter().collect();
+    assert_eq!(others, before, "the probe changed a row that was there without it");
+
+    // one lightning event: six records (the entry, the two adds with their before and after, the restore); both adds queued, in slots 0 and 1, and the words of the slot kept as strings
+    let records = env_rows(&on.rows, "env-lq");
+    assert_eq!(records.len(), 6);
+    assert_eq!(records[2]["mask_w"], "00000001");
+    assert_eq!(records[4]["mask_w"], "00000003");
+    assert_eq!(records[2]["w2"], "44bb8000");
+    let outcomes = env_rows(&on.rows, "lightning_queue_outcome");
+    assert_eq!(outcomes.len(), 2);
+    for (k, outcome) in outcomes.iter().enumerate() {
+        assert_eq!(outcome["outcome"], "queued");
+        assert_eq!(outcome["call"], (k + 1) as u64);
+        assert_eq!(outcome["slot"], k as u64);
+        assert_eq!(outcome["w2"], "44bb8000");
+    }
+    let environment = &env_rows(&on.rows, "lightning_queue_environment")[0];
+    assert_eq!(environment["entry_active"], 0);
+    assert_eq!(environment["before_first_add_active"], 1);
+    assert_eq!(environment["switched_to_main"], true);
+    assert_eq!(environment["restored_to_entry"], false);
+    let summary = &env_rows(&on.rows, "lightning_queue_summary")[0];
+    assert_eq!(summary["lightning_events"], 1);
+    assert_eq!(summary["records"], 6);
+    assert_eq!(summary["queued"], 2);
+    assert_eq!(summary["no_active_environment"], 0);
+    assert_eq!(summary["queue_full"], 0);
+    assert_eq!(summary["unexplained"], 0);
+    assert_eq!(summary["final_occupancy"], 2);
+    assert_eq!(summary["queue_capacity"], 32);
+    assert_eq!(env_rows(&on.rows, "env-lq-slot").len(), 2);
+
+    // a run with no lightning event is a complete record of nothing: no records, no slots, no outcomes
+    let quiet = run_env_scenario(&queue_stand_in("none", "none"), &queue_args());
+    assert!(quiet.status.success(), "{}\n{}", quiet.stderr, quiet.out_text);
+    assert!(env_rows(&quiet.rows, "env-lq").is_empty() && env_rows(&quiet.rows, "lightning_queue_outcome").is_empty());
+    assert_eq!(env_rows(&quiet.rows, "lightning_queue_summary")[0]["lightning_events"], 0);
+}
+
+#[test]
+fn the_lightning_queue_probe_reports_an_add_with_no_active_environment_and_an_add_to_a_full_queue_as_what_they_are() {
+    for (mutation, outcome, occupancy, slots) in [
+        ("queue_no_environment", "no_active_environment", 0u64, 0usize),
+        ("queue_full", "queue_full", 32, 32),
+    ] {
+        let run = run_env_scenario(&queue_stand_in("lightning_episode", mutation), &queue_args());
+        assert!(run.status.success(), "{mutation}: {}\n{}", run.stderr, run.out_text);
+        let outcomes = env_rows(&run.rows, "lightning_queue_outcome");
+        assert_eq!(outcomes.len(), 2, "{mutation}");
+        assert!(outcomes.iter().all(|o| o["outcome"] == outcome && o["slot"] == -1), "{mutation}: {outcomes:?}");
+        let summary = &env_rows(&run.rows, "lightning_queue_summary")[0];
+        assert_eq!(summary["queued"], 0, "{mutation}");
+        assert_eq!(summary["unexplained"], 0, "{mutation}");
+        assert_eq!(summary["final_occupancy"], occupancy, "{mutation}");
+        assert_eq!(env_rows(&run.rows, "env-lq-slot").len(), slots, "{mutation}");
+    }
+}
+
+#[test]
+fn a_lightning_queue_report_that_is_incomplete_out_of_order_or_at_odds_with_the_observer_is_refused() {
+    let cases: &[(&str, &str, &str)] = &[
+        ("lightning_episode", "queue_not_armed", "not armed"),
+        ("lightning_episode", "queue_dropped", "dropped"),
+        ("lightning_episode", "queue_record_missing", "probe stored"),
+        ("lightning_episode", "queue_events_mismatch", "probe stored"),
+        ("lightning_episode", "queue_seq_gap", "is not point 3"),
+        ("lightning_episode", "queue_point_swapped", "is not point 1"),
+        ("lightning_episode", "queue_occupancy_wrong", "has occupancy"),
+        ("lightning_episode", "queue_slot_wrong", "names slot"),
+        ("lightning_episode", "queue_final_slot_missing", "occupied slot rows"),
+        ("lightning_episode", "queue_unexpected_row", "unexpected row"),
+        ("lightning_episode", "queue_out_of_order", "out of order"),
+        ("lightning_episode", "queue_wrong_plan", "different queues"),
+        ("lightning_episode", "queue_unsupported_missing", "exactly one plan"),
+        // the probe holds an event the observer's stream does not, and the reverse
+        ("none", "queue_phantom_event", "observer stream holds"),
+        ("lightning_episode", "queue_missing_event", "observer stream holds"),
+    ];
+    for (observer_mutation, mutation, says) in cases {
+        let run = run_env_scenario(&queue_stand_in(observer_mutation, mutation), &queue_args());
+        assert!(!run.status.success(), "{mutation} was accepted:\n{}", run.out_text);
+        assert!(
+            run.stderr.contains("env-characterization:") && run.stderr.contains(*says),
+            "{mutation}: the refusal does not say '{says}': {}",
+            run.stderr
+        );
+        assert_eq!(env_rows(&run.rows, "failure").len(), 1, "{mutation}: {}", run.out_text);
+        assert!(env_rows(&run.rows, "run").is_empty(), "{mutation}: a refused run reported a run row");
+    }
 }

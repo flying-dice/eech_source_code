@@ -27,6 +27,9 @@
 --   snapshot_frames          retail snapshots after each of this many leading frames: an integer from 0 to 2000 (default 20)
 --   observer                 on | off (default off): arm the read-only observer of the original environment BEFORE boot (needs a module built with the env-observer feature; refused otherwise)
 --                            and record the boot and the frames' events in the file. Requires probes=0 (the witnesses call original routines on synthetic state and would mix into the record)
+--   queue                    on | off (default off; needs observer=on): after everything else, APPEND the rows of the lightning strike queue probe (csrc group 13 index 0, ss_envfx.h ENV_FXQ; a module built with the
+--                            env-observer feature): what the original lightning routine found and did at each add_3d_lightning_strike. It adds rows after `observer_summary` only (the `lightning_queue_*` events
+--                            and the `env-lightning-*`/`env-lq*` rows of scope `queue:report`); with queue=off the driver is exactly as it was, and with it every earlier row is unchanged
 --   frame_schedule           instead of frame_ms: 1 to 16 comma-separated frame lengths in ms (each 1 to 1000), cycled (e.g. 100,250,50), so the previous-delta phase can be seen
 --   controlled               none (default) | lightning_due | local_weather_on: ONE explicitly labelled controlled-weather case of the original setters (csrc group 9), right after the initial snapshots,
 --                            for a fresh process. It changes the live session and restores nothing (the process is the isolation boundary); it needs probes=0 and is not a default run
@@ -92,6 +95,10 @@ local observer_text = args.observer == nil and "off" or args.observer
 if observer_text ~= "on" and observer_text ~= "off" then refuse ("observer must be on or off, got '" .. tostring (observer_text) .. "'") end
 local observer_on = observer_text == "on"
 if observer_on and probes > 0 then refuse ("observer=on needs probes=0: the witnesses call original routines on synthetic state and would mix into the natural record") end
+local queue_text = args.queue == nil and "off" or args.queue
+if queue_text ~= "on" and queue_text ~= "off" then refuse ("queue must be on or off, got '" .. tostring (queue_text) .. "'") end
+local queue_on = queue_text == "on"
+if queue_on and not observer_on then refuse ("queue=on needs observer=on: the lightning queue probe records only while the observer is armed") end
 local controlled_cases = { lightning_due = 0, local_weather_on = 1 }
 local controlled_name = args.controlled
 local controlled_index
@@ -939,6 +946,121 @@ local function run ()
 		emit (summary)
 	end
 
+	-- THE LIGHTNING QUEUE PROBE (queue=on, an addition that changes nothing before it: every row above and every row the driver wrote without it is as it was; this block only APPENDS rows). The
+	-- ORIGINAL lightning routine stores one record at each of six points per lightning event in a SEPARATE store (ss_envfx.h ENV_FXQ, csrc/eech_env_observer.c; it is not the event stream and adds no event
+	-- to it), and csrc/eech_env_fixture.c group 13 index 0 reports them with the queue as it stands. The report is parsed strictly, written out as it came, and accepted only with this shape: the plan, two
+	-- unsupported rows, the report, the records, the occupied slots, in that order; the records complete (six per event, numbered in sequence, point by point), nothing dropped, the occupancy counts agreeing
+	-- with the masks, and the events agreeing with the observer's own stream (one lightning_env and two strike_begin per event). What the original did with each add is DERIVED from the masks the records
+	-- hold, never assumed: a slot became occupied (queued), nothing changed with no active environment, nothing changed with every slot in use, or nothing changed for a reason the records do not show.
+	local LQ_SPECS = {
+		["env-lightning-plan"] = compile ("version=1 cases:u main_present:b active:u queue_capacity:i mask_w:w update_calls:n process_isolated=required"),
+		["env-lightning-unsupported"] = compile ("item:s reason:s"),
+		["env-lq-report"] = compile ("armed:b capacity:u stored:u dropped:u overflow:b lightning_events:u update_calls:n queue_capacity:i final_mask_w:w final_occupancy:u"),
+		["env-lq"] = compile ("seq:u point:u n:u active:u main:b time_present:b time_w:w mask_w:w occupancy:u slot:i w0:w w1:w w2:w w3:w w4:w w5:w w6:w w7:w"),
+		["env-lq-slot"] = compile ("slot:u w0:w w1:w w2:w w3:w w4:w w5:w w6:w w7:w"),
+	}
+	local LQ_RANK = { ["env-lightning-plan"] = 1, ["env-lightning-unsupported"] = 2, ["env-lq-report"] = 3, ["env-lq"] = 4, ["env-lq-slot"] = 5 }
+	local function lq_bit (word, i) return math.floor (word / 2 ^ i) % 2 end
+	local function lq_popcount (word)
+		local count = 0
+		for i = 0, 31 do count = count + lq_bit (word, i) end
+		return count
+	end
+	local function queue_probe ()
+		local ok, report = pcall (engine.env_case, engine, 13, 0)
+		if not ok then refuse ("env_case(13, 0) failed: " .. tostring (report)) end
+		local lines, why = parse_report (report)
+		if lines == nil then refuse ("env_case(13, 0) returned a malformed report: " .. why) end
+		emit_lines ("queue:report", lines)
+		local counts, rank, records, slot_rows = {}, 0, {}, {}
+		for _, line in ipairs (lines) do
+			local spec, r = LQ_SPECS [line.event], LQ_RANK [line.event]
+			if spec == nil then refuse ("env_case(13, 0) returned the unexpected row '" .. line.event .. "'") end
+			local problem = spec_error (line, spec)
+			if problem ~= nil then refuse ("env_case(13, 0) row " .. line.event .. " " .. problem) end
+			if r < rank then refuse ("env_case(13, 0) row " .. line.event .. " is out of order") end
+			rank = r
+			counts [line.event] = (counts [line.event] or 0) + 1
+			if line.event == "env-lq" then records [#records + 1] = line.map elseif line.event == "env-lq-slot" then slot_rows [#slot_rows + 1] = line.map end
+		end
+		if counts ["env-lightning-plan"] ~= 1 or counts ["env-lightning-unsupported"] ~= 2 or counts ["env-lq-report"] ~= 1 then refuse ("env_case(13, 0) did not return exactly one plan, two unsupported rows and one report") end
+		local plan, rep
+		for _, line in ipairs (lines) do
+			if line.event == "env-lightning-plan" then plan = line.map elseif line.event == "env-lq-report" then rep = line.map end
+		end
+		local events, capacity = tonumber (rep.lightning_events), tonumber (rep.queue_capacity)
+		if rep.armed ~= "1" then refuse ("the lightning queue probe says it is not armed") end
+		if rep.dropped ~= "0" or rep.overflow ~= "0" then refuse ("the lightning queue probe dropped " .. rep.dropped .. " records (capacity " .. rep.capacity .. "): the record is incomplete") end
+		if capacity < 1 or capacity > 32 then refuse ("the lightning queue has " .. rep.queue_capacity .. " slots: the accessor did not answer") end
+		if tonumber (rep.stored) ~= #records or #records ~= 6 * events then refuse ("the probe stored " .. rep.stored .. " records for " .. events .. " lightning events: six per event are expected") end
+		if plan.update_calls ~= rep.update_calls or plan.mask_w ~= rep.final_mask_w or plan.queue_capacity ~= rep.queue_capacity then refuse ("the plan and the report describe different queues") end
+		local final_mask = tonumber (rep.final_mask_w, 16)
+		if lq_popcount (final_mask) ~= tonumber (rep.final_occupancy) or #slot_rows ~= tonumber (rep.final_occupancy) then
+			refuse ("the final queue has occupancy " .. rep.final_occupancy .. " and mask " .. rep.final_mask_w .. " but " .. #slot_rows .. " occupied slot rows")
+		end
+		for _, s in ipairs (slot_rows) do
+			if tonumber (s.slot) >= capacity or tonumber (s.w0, 16) == 0 or lq_bit (final_mask, tonumber (s.slot)) ~= 1 then refuse ("occupied slot row " .. s.slot .. " is not an occupied slot of the final mask " .. rep.final_mask_w) end
+		end
+		if (obs.counts.lightning_env or 0) ~= events or (obs.counts.strike_begin or 0) ~= 2 * events or (obs.counts.strike_end or 0) ~= 2 * events then
+			refuse ("the probe holds " .. events .. " lightning events but the observer stream holds " .. (obs.counts.lightning_env or 0) .. " environment switches and " .. (obs.counts.strike_begin or 0) .. " strike calls")
+		end
+		local tally = { queued = 0, no_active_environment = 0, queue_full = 0, unexplained = 0 }
+		for ev = 1, events do
+			local base = (ev - 1) * 6
+			local function rec (point)
+				local r = records [base + point + 1]
+				if tonumber (r.seq) ~= base + point or tonumber (r.point) ~= point or tonumber (r.n) ~= ev then
+					refuse ("probe record " .. (base + point) .. " is not point " .. point .. " of lightning event " .. ev .. " (seq " .. r.seq .. ", point " .. r.point .. ", n " .. r.n .. ")")
+				end
+				local mask = tonumber (r.mask_w, 16)
+				if lq_popcount (mask) ~= tonumber (r.occupancy) then refuse ("probe record " .. r.seq .. " has occupancy " .. r.occupancy .. " for the mask " .. r.mask_w) end
+				if r.time_present == "0" and r.time_w ~= "00000000" then refuse ("probe record " .. r.seq .. " has a time word without an active environment") end
+				return r, mask
+			end
+			local entry, entry_mask = rec (0)
+			local before_1, restored
+			for k = 1, 2 do
+				local before, mask_before = rec (2 * k - 1)
+				local after, mask_after = rec (2 * k)
+				if k == 1 then before_1 = before end
+				local new_bits, kept, new_slot = 0, true, -1
+				for i = 0, 31 do
+					local b, a = lq_bit (mask_before, i), lq_bit (mask_after, i)
+					if b == 1 and a == 0 then kept = false end
+					if b == 0 and a == 1 then
+						new_bits = new_bits + 1
+						if new_slot < 0 then new_slot = i end
+					end
+				end
+				local outcome
+				if not kept then
+					outcome = "unexplained"
+				elseif new_bits == 1 then
+					outcome = "queued"
+				elseif new_bits == 0 and before.active == "0" then
+					outcome = "no_active_environment"
+				elseif new_bits == 0 and lq_popcount (mask_before) >= capacity then
+					outcome = "queue_full"
+				else
+					outcome = "unexplained"
+				end
+				if tonumber (after.slot) ~= new_slot then refuse ("probe record " .. after.seq .. " names slot " .. after.slot .. " but the masks show slot " .. new_slot) end
+				tally [outcome] = tally [outcome] + 1
+				local row = { event = "lightning_queue_outcome", lightning = ev, call = k, outcome = outcome, active_before = tonumber (before.active), main_present = tonumber (before.main), time_present = tonumber (before.time_present),
+					time_w = before.time_w, mask_before_w = before.mask_w, mask_after_w = after.mask_w, occupancy_after = tonumber (after.occupancy), slot = new_slot }
+				if outcome == "queued" then
+					for w = 0, 7 do row ["w" .. w] = after ["w" .. w] end
+				end
+				emit (row)
+			end
+			restored = rec (5)
+			emit { event = "lightning_queue_environment", lightning = ev, entry_active = tonumber (entry.active), entry_main_present = tonumber (entry.main), before_first_add_active = tonumber (before_1.active),
+				restored_active = tonumber (restored.active), switched_to_main = entry.active ~= "1" and before_1.active == "1", restored_to_entry = restored.active == entry.active, entry_mask_w = entry.mask_w }
+		end
+		emit { event = "lightning_queue_summary", lightning_events = events, records = #records, queued = tally.queued, no_active_environment = tally.no_active_environment, queue_full = tally.queue_full,
+			unexplained = tally.unexplained, update_calls = tonumber (rep.update_calls), final_occupancy = tonumber (rep.final_occupancy), queue_capacity = capacity, main_present = tonumber (plan.main_present) }
+	end
+
 	if observer_on then
 		for _, method in ipairs ({ "env_observer_events", "env_observer_report" }) do
 			local present, fn = pcall (function () return engine [method] end)
@@ -973,6 +1095,7 @@ local function run ()
 	snapshot ("snapshot:final")
 	campaign_row ("campaign_end")
 	if observer_on then observer_finish () end
+	if queue_on then queue_probe () end
 
 	for _, g in ipairs (groups) do
 		emit { event = "coverage", group = g [1], name = g [2], available = g.count, ran = g.ran, refused = g.refused, truncated = g.ran < g.count }

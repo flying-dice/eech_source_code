@@ -72,6 +72,30 @@ enum ENV_FX_COUNTERS
 	ENV_FX_C_COUNT
 };
 
+//
+// THE LIGHTNING QUEUE PROBE (ENV_FXQ). A SEPARATE, finite record store (csrc/eech_env_observer.c) that is NOT part of the event stream above: the stream, its kinds, its sequence numbers and the
+// transcript grammar that checks it are untouched, and the probe adds no event to it. Each probe point READS the active 3D environment, the main 3D environment and the lightning strike queue
+// (modules/3d/3dstrike.c, through a read-only accessor that exists only in this build) and stores integers and IEEE bit patterns. It draws nothing, allocates nothing, formats nothing and writes no
+// game variable. The point names the place in the original lightning routine: ENTRY (before the active environment is read), BEFORE/AFTER_n (around the n-th add_3d_lightning_strike), RESTORED (after
+// the original's own environment restore, before the sound entities). The same six points are in BOTH compiled entry points of the lightning routine, which compile exclusively: the hosted
+// create_lightning_effects (EECH_CAMPAIGN_HOST_ENV, the active path of the current baseline) and the legacy update_lightning_effect (the #else build).
+//
+
+enum ENV_FXQ_POINTS
+{
+	ENV_FXQ_ENTRY = 0,
+	ENV_FXQ_BEFORE_1,
+	ENV_FXQ_AFTER_1,
+	ENV_FXQ_BEFORE_2,
+	ENV_FXQ_AFTER_2,
+	ENV_FXQ_RESTORED,
+	ENV_FXQ_POINT_COUNT				// (not a point)
+};
+
+extern void eech_envobs_queue (int point, const void *main_env);
+
+#define ENV_FXQ(point) eech_envobs_queue (point, main_3d_env);
+
 extern int random_number_seed;
 
 extern void eech_envobs_event (int kind, int a, int b, unsigned int w0, unsigned int w1, unsigned int w2, unsigned int w3, unsigned int w4, unsigned int w5, int rng);
@@ -90,6 +114,7 @@ extern void eech_envobs_sound_facts (int in_cockpit, float x, float y, float z, 
 #define ENV_FXF(value) 0
 #define ENV_FXC(counter)
 #define ENV_FXS(in_cockpit, x, y, z, alt, light, heavy, sx, sz)
+#define ENV_FXQ(point)
 
 #endif
 
