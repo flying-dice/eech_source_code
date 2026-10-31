@@ -1815,3 +1815,207 @@ int env_ref_lightning_queue (const env_ref *field, env_ref_strike *out, char *er
 
 	return 0;
 }
+
+/*
+ * The PHYSICAL LIFETIME of a sound effect (EEDCS-51, D3): the original C of soundeff.c set_local_sound_effect_sample_indices and of se_updt.c update_server and update_client, field for field, with the types and
+ * the expression order of the original (a float field accumulating a float quotient, minus a float delta, compared with a double zero, the sample database's ints converted to float).  There is no persistent
+ * state here: the stored fields (the effect's lifetime and valid lifetime) are the campaign's record, handed over by value and returned.  The calls run in the CANONICAL arithmetic environment (see
+ * env_ref_ambient) and work on staged copies, committed (returned) only after the caller's state has been restored and read back; a refusal returns nothing.  The macros are the engine's own
+ * (compat/eech_dx.h).  The diagnostics the original logged (a rate that is not positive, a sum at the cap) are not arithmetic and are not carried.
+ */
+#define ENV_SND_MAX(A, B) (((A) > (B)) ? (A) : (B))
+#define ENV_SND_MIN(A, B) (((A) < (B)) ? (A) : (B))
+
+typedef struct env_sound_work
+{
+	float life;
+	float vlife;
+} env_sound_work;
+
+/* set_local_sound_effect_sample_indices: the effect's lifetime */
+static void sound_init_impl (int looping, int music, int count, const int *rate, const int *size, env_sound_work *w)
+{
+	int loop;
+
+	w->life = 0;
+	w->vlife = 0;
+
+	if (!looping)
+	{
+		float r, s;
+
+		for (loop = 0; loop < count; loop++)
+		{
+			r = (float) (rate[loop]);
+			s = (float) (size[loop]);
+
+			if (r <= 0.0)
+			{
+				/* the original logged here and added nothing */
+			}
+			else
+			{
+				w->life += (s / r);
+			}
+		}
+
+		w->life = ENV_SND_MIN (w->life, !music ? 40.0f : 300.0f);
+	}
+}
+
+/* one call of update_server (server) or update_client; need_playing is set, with nothing changed, when a server's expired effect holds a handle and the campaign has not said whether it is playing */
+static void sound_update_impl (int server, float delta, int valid, int looping, int has_handle, int have_playing, int playing, env_sound_work *w, int *expired, int *action, int *need_playing)
+{
+	*expired = FALSE;
+	*action = 0;
+	*need_playing = FALSE;
+
+	if (valid)
+	{
+		if (!looping)
+		{
+			w->life -= delta;
+		}
+
+		if (server)
+		{
+			if (w->life < 0.0)
+			{
+				*expired = TRUE;
+
+				if (has_handle)
+				{
+					if (!have_playing)
+					{
+						*need_playing = TRUE;
+					}
+					else if (!playing)
+					{
+						*action = 1;
+					}
+				}
+				else
+				{
+					*action = 1;
+				}
+			}
+		}
+		else if (!looping)
+		{
+			if (w->life < 0.0)
+			{
+				*expired = TRUE;
+
+				w->life = 0.0;
+			}
+		}
+	}
+	else
+	{
+		if (w->vlife > 0.0)
+		{
+			w->vlife = ENV_SND_MAX (w->vlife - delta, 0.0f);
+		}
+		else
+		{
+			*action = 2;
+		}
+	}
+}
+
+/* in_i = { looping, music, count, rate[ENV_REF_SOUND_SAMPLES], size[ENV_REF_SOUND_SAMPLES] }; out_lifetime = the effect's lifetime */
+int env_ref_sound_init (const int *in_i, float *out_lifetime, char *error, size_t error_size)
+{
+	env_fp_state saved;
+	env_sound_work work;
+	int result;
+
+	*out_lifetime = 0;
+
+	if ((in_i[2] < 1) || (in_i[2] > ENV_REF_SOUND_SAMPLES))
+	{
+		return fail (error, error_size, "a sound effect's sequence holds 1 to %d samples, not %d", ENV_REF_SOUND_SAMPLES, in_i[2]);
+	}
+
+	fp_save (&saved);
+
+	if (fp_enter_canonical (error, error_size) != 0)
+	{
+		return fp_leave (&saved, -1, error, error_size);
+	}
+
+	sound_init_impl (in_i[0], in_i[1], in_i[2], in_i + 3, in_i + 3 + ENV_REF_SOUND_SAMPLES, &work);
+
+	ENV_FP_SETTLE (work);
+
+	result = fp_leave (&saved, 0, error, error_size);
+
+	if ((result == 0) && (!isfinite (work.life) || (work.life < 0.0f)))
+	{
+		return fail (error, error_size, "the lifetime of the sound effect is not a finite number from 0 up");
+	}
+
+	if (result == 0)
+	{
+		*out_lifetime = work.life;
+	}
+
+	return result;
+}
+
+/* in_f = { delta, lifetime, valid lifetime }, in_i = { server, valid, looping, has handle, have playing, playing }; out_f = { lifetime, valid lifetime }, out_i = { expired, action (0 none, 1 kill, 2 unlink), need playing } */
+int env_ref_sound_update (const float *in_f, const int *in_i, float *out_f, int *out_i, char *error, size_t error_size)
+{
+	env_fp_state saved;
+	env_sound_work work;
+	int expired, action, need_playing;
+	int result;
+
+	out_f[0] = in_f[1];
+	out_f[1] = in_f[2];
+	out_i[0] = FALSE;
+	out_i[1] = 0;
+	out_i[2] = FALSE;
+
+	fp_save (&saved);
+
+	if (fp_enter_canonical (error, error_size) != 0)
+	{
+		return fp_leave (&saved, -1, error, error_size);
+	}
+
+	/* the floats are read from memory HERE, inside the guard, never as parameters */
+	work.life = in_f[1];
+	work.vlife = in_f[2];
+
+	sound_update_impl (in_i[0], in_f[0], in_i[1], in_i[2], in_i[3], in_i[4], in_i[5], &work, &expired, &action, &need_playing);
+
+	ENV_FP_SETTLE (work);
+	ENV_FP_SETTLE (expired);
+	ENV_FP_SETTLE (action);
+	ENV_FP_SETTLE (need_playing);
+
+	result = fp_leave (&saved, 0, error, error_size);
+
+	if ((result == 0) && (!isfinite (work.life) || !isfinite (work.vlife)))
+	{
+		return fail (error, error_size, "a lifetime of the sound effect is not finite after the update");
+	}
+
+	if (result == 0)
+	{
+		if (need_playing)
+		{
+			out_i[2] = TRUE;
+		}
+		else
+		{
+			out_f[0] = work.life;
+			out_f[1] = work.vlife;
+			out_i[0] = expired;
+			out_i[1] = action;
+		}
+	}
+
+	return result;
+}

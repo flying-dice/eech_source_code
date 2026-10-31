@@ -1318,8 +1318,9 @@ pub use sys::{eech_env_reply as EnvReply, eech_env_request as EnvRequest, eech_e
 /// The operations of an [`EnvRequest`] and the sizes of the field (the enums of ss_hostenv.h).
 pub use sys::{
     EECH_ENV_AMBIENT, EECH_ENV_DRAWS, EECH_ENV_EXPORT, EECH_ENV_FLOATS, EECH_ENV_GUST, EECH_ENV_IMPORT, EECH_ENV_INIT_FIXED, EECH_ENV_INIT_RANDOM,
-    EECH_ENV_INTS, EECH_ENV_LIGHTNING_ADD, EECH_ENV_LIGHTNING_UPDATE, EECH_ENV_MODE_COUNT, EECH_ENV_STEP, EECH_ENV_WEATHER, EECH_ENV_WIND,
-    EECH_LIGHTNING_SLOTS,
+    EECH_ENV_INTS, EECH_ENV_LIGHTNING_ADD, EECH_ENV_LIGHTNING_UPDATE, EECH_ENV_MODE_COUNT, EECH_ENV_SOUND_LIFETIME_INIT, EECH_ENV_SOUND_LIFETIME_UPDATE,
+    EECH_ENV_STEP, EECH_ENV_WEATHER, EECH_ENV_WIND, EECH_LIGHTNING_SLOTS, EECH_SOUND_ACTION_KILL, EECH_SOUND_ACTION_NONE, EECH_SOUND_ACTION_UNLINK,
+    EECH_SOUND_SAMPLES,
 };
 
 /// The host's environment provider. It is installed once, at boot, and is the only source of the campaign's physical weather and wind: the campaign has no weather or wind solver
@@ -1344,6 +1345,8 @@ fn env_op_label(op: c_int) -> &'static str {
         sys::EECH_ENV_AMBIENT => "ambient",
         sys::EECH_ENV_LIGHTNING_ADD => "lightning_add",
         sys::EECH_ENV_LIGHTNING_UPDATE => "lightning_update",
+        sys::EECH_ENV_SOUND_LIFETIME_INIT => "sound_lifetime_init",
+        sys::EECH_ENV_SOUND_LIFETIME_UPDATE => "sound_lifetime_update",
         _ => "unknown",
     }
 }
@@ -1477,6 +1480,40 @@ fn check_env_reply(request: &EnvRequest, reply: &EnvReply) -> Result<(), String>
                 if !(0..=5).contains(&strike.kind) {
                     return Err(format!("{answer} slot {index} has the type {}, which is not a lightning type", strike.kind));
                 }
+            }
+            Ok(())
+        }
+        sys::EECH_ENV_SOUND_LIFETIME_INIT => {
+            if reply.sound_lifetime.is_finite() && reply.sound_lifetime >= 0.0 {
+                Ok(())
+            } else {
+                Err(format!("{answer} the lifetime is not a finite number from 0 up"))
+            }
+        }
+        sys::EECH_ENV_SOUND_LIFETIME_UPDATE => {
+            if reply.sound_need_playing != 0 {
+                // only the server routine of a valid effect that holds a handle, not yet told whether it is playing, may be answered with a request for that
+                return if reply.sound_need_playing == 1
+                    && request.sound_server != 0
+                    && request.sound_valid != 0
+                    && request.sound_has_handle != 0
+                    && request.sound_have_playing == 0
+                {
+                    Ok(())
+                } else {
+                    Err(format!(
+                        "{answer} the provider asked whether a playback handle is playing where none may be asked about (only the server routine of a valid effect that holds a handle, once)"
+                    ))
+                };
+            }
+            if !(reply.sound_lifetime.is_finite() && reply.sound_valid_lifetime.is_finite()) {
+                return Err(format!("{answer} a lifetime is not finite"));
+            }
+            if reply.sound_expired != 0 && reply.sound_expired != 1 {
+                return Err(format!("{answer} expired is neither 0 nor 1"));
+            }
+            if !(sys::EECH_SOUND_ACTION_NONE..=sys::EECH_SOUND_ACTION_UNLINK).contains(&reply.sound_action) {
+                return Err(format!("{answer} the action {} is not none, kill or unlink", reply.sound_action));
             }
             Ok(())
         }
@@ -9939,6 +9976,108 @@ mod tests {
             assert_ne!(code, 0, "{why}: accepted");
             assert!(error.contains("[env-provider:ambient.answer]"), "{why}: {error}");
             assert_eq!(written.current_mode, 77, "{why}: a refusal wrote the reply");
+        }
+    }
+
+    #[test]
+    fn the_sound_lifetime_answer_of_a_direct_environment_provider_is_checked_at_the_boundary_before_anything_is_written() {
+        let init = EnvRequest {
+            op: sys::EECH_ENV_SOUND_LIFETIME_INIT,
+            sound_count: 1,
+            ..EnvRequest::default()
+        };
+        let (code, written, error) = env_crossing(init, |_| {
+            Ok(EnvReply {
+                sound_lifetime: 5.0,
+                ..EnvReply::default()
+            })
+        });
+        assert_eq!((code, written.sound_lifetime), (0, 5.0), "{error}");
+        for (what, lifetime) in [
+            ("a negative lifetime", -1.0f32),
+            ("a lifetime not finite", f32::NAN),
+            ("an infinite lifetime", f32::INFINITY),
+        ] {
+            let (code, written, error) = env_crossing(init, move |_| {
+                Ok(EnvReply {
+                    sound_lifetime: lifetime,
+                    ..EnvReply::default()
+                })
+            });
+            assert_ne!(code, 0, "{what}: accepted");
+            assert!(error.contains("[env-provider:sound_lifetime_init.answer]"), "{what}: {error}");
+            assert_eq!(written.current_mode, 77, "{what}: a refusal wrote the reply");
+        }
+        // an update: a completed answer reaches the campaign whole
+        let update = EnvRequest {
+            op: sys::EECH_ENV_SOUND_LIFETIME_UPDATE,
+            sound_server: 1,
+            sound_valid: 1,
+            ..EnvRequest::default()
+        };
+        let done = |edit: fn(&mut EnvReply)| {
+            move |_: &EnvRequest| {
+                let mut reply = EnvReply {
+                    sound_lifetime: 3.0,
+                    sound_valid_lifetime: 0.0,
+                    sound_expired: 1,
+                    sound_action: sys::EECH_SOUND_ACTION_KILL,
+                    ..EnvReply::default()
+                };
+                edit(&mut reply);
+                Ok(reply)
+            }
+        };
+        let (code, written, error) = env_crossing(update, done(|_| {}));
+        assert_eq!(
+            (code, written.sound_lifetime, written.sound_action),
+            (0, 3.0, sys::EECH_SOUND_ACTION_KILL),
+            "{error}"
+        );
+        for (what, edit) in [
+            (
+                "a lifetime not finite",
+                (|reply: &mut EnvReply| reply.sound_lifetime = f32::NAN) as fn(&mut EnvReply),
+            ),
+            ("a valid lifetime not finite", |reply| reply.sound_valid_lifetime = f32::INFINITY),
+            ("an expired flag of 2", |reply| reply.sound_expired = 2),
+            ("an action outside the three", |reply| reply.sound_action = 3),
+            ("a negative action", |reply| reply.sound_action = -1),
+        ] {
+            let (code, written, error) = env_crossing(update, done(edit));
+            assert_ne!(code, 0, "{what}: accepted");
+            assert!(error.contains("[env-provider:sound_lifetime_update.answer]"), "{what}: {error}");
+            assert_eq!(written.current_mode, 77, "{what}: a refusal wrote the reply");
+        }
+        // the question whether the handle is playing: only the server routine of a valid effect that holds a handle, once
+        let asked = EnvReply {
+            sound_need_playing: 1,
+            ..EnvReply::default()
+        };
+        let with_handle = EnvRequest { sound_has_handle: 1, ..update };
+        let (code, _, error) = env_crossing(with_handle, move |_| Ok(asked));
+        assert_eq!(code, 0, "{error}");
+        for (what, request) in [
+            ("an effect with no handle", update),
+            (
+                "a client routine",
+                EnvRequest {
+                    sound_server: 0,
+                    ..with_handle
+                },
+            ),
+            ("an invalid effect", EnvRequest { sound_valid: 0, ..with_handle }),
+            (
+                "a handle already said to be playing",
+                EnvRequest {
+                    sound_have_playing: 1,
+                    ..with_handle
+                },
+            ),
+        ] {
+            let (code, _, error) = env_crossing(request, move |_| Ok(asked));
+            assert_ne!(code, 0, "{what}: accepted");
+            assert!(error.contains("[env-provider:sound_lifetime_update.answer]"), "{what}: {error}");
         }
     }
 

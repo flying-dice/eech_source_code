@@ -765,4 +765,163 @@ void campaign_lightning_update (float time_of_day, int (*frames_of) (void), camp
 	memcpy (mirror, reply.lightning_queue, sizeof (reply.lightning_queue));
 }
 
+
+////////////////////////////////////////
+//
+// the physical lifetime of a sound effect (soundeff.c and se_updt.c, EEDCS-51 D3): see ss_hostenv.h SOUND_LIFETIME_INIT and SOUND_LIFETIME_UPDATE.  The stored fields stay in the effect's record (the pause and
+// resume functions, the network pack and unpack and the observer read and write them); they are handed over by value and the answer is applied by the caller.  This file holds no duration arithmetic, no
+// cap, no aging, no countdown and no expiry rule.
+//
+////////////////////////////////////////
+
+static int positive_zero (const float *value)
+{
+	static const float
+		zero = 0.0f;
+
+	return memcmp (value, &zero, sizeof (float)) == 0;
+}
+
+float campaign_sound_lifetime_init (int looping, int music, int count, const int *rate, const int *size)
+{
+	campaign_env_request
+		request;
+
+	campaign_env_reply
+		reply;
+
+	int
+		i;
+
+	// the host's sequence holds the sound manager's largest sequence (and one more); a longer one is refused here, never truncated
+	if ((count < 1) || (count > CAMPAIGN_SOUND_SAMPLES))
+	{
+		debug_fatal ("host environment: [env-provider:sound_lifetime_init.request] the sound effect has %d samples where the host's sequence holds 1 to %d", count, CAMPAIGN_SOUND_SAMPLES);
+	}
+
+	memset (&request, 0, sizeof (request));
+
+	request.op = CAMPAIGN_ENV_SOUND_LIFETIME_INIT;
+
+	request.sound_looping = (looping != 0);
+	request.sound_music = (music != 0);
+	request.sound_count = count;
+
+	for (i = 0; i < count; i++)
+	{
+		request.sound_rate[i] = rate[i];
+		request.sound_size[i] = size[i];
+	}
+
+	ask (&request, &reply, "sound_lifetime_init");
+
+	if (!isfinite (reply.sound_lifetime) || (reply.sound_lifetime < 0.0f))
+	{
+		debug_fatal ("host environment: [env-provider:sound_lifetime_init.answer] the host's lifetime is not a finite number from 0 up");
+	}
+
+	// a looping effect is not timed: the original gave it +0
+	if (looping && !positive_zero (&reply.sound_lifetime))
+	{
+		debug_fatal ("host environment: [env-provider:sound_lifetime_init.answer] the host gave a looping effect a lifetime other than 0");
+	}
+
+	return reply.sound_lifetime;
+}
+
+void campaign_sound_lifetime_update (int server, float delta, int valid, int looping, float *lifetime, float *valid_lifetime, void *handle, int (*playing_of) (void *handle), int *expired, int *action)
+{
+	campaign_env_request
+		request;
+
+	campaign_env_reply
+		reply;
+
+	memset (&request, 0, sizeof (request));
+
+	request.op = CAMPAIGN_ENV_SOUND_LIFETIME_UPDATE;
+
+	request.sound_server = (server != 0);
+	request.sound_valid = (valid != 0);
+	request.sound_looping = (looping != 0);
+	request.sound_has_handle = (handle != NULL);
+	request.sound_delta = delta;
+	request.sound_lifetime = *lifetime;
+	request.sound_valid_lifetime = *valid_lifetime;
+
+	ask (&request, &reply, "sound_lifetime_update");
+
+	if (reply.sound_need_playing)
+	{
+		// the host decides a server's expired effect by whether its handle is still playing, which only the campaign's sound system knows: asked once, nothing was changed by the host, and only for
+		// a handle the campaign really holds in the server routine of a valid effect (the original called get_system_sound_effect_playing in that branch and no other)
+		if ((reply.sound_need_playing != TRUE) || !server || !valid || !handle || !playing_of)
+		{
+			debug_fatal ("host environment: [env-provider:sound_lifetime_update.answer] the host asked whether a playback handle is playing where none may be asked about (only the server routine of a valid effect that holds a handle)");
+		}
+
+		request.sound_have_playing = TRUE;
+		request.sound_playing = (playing_of (handle) != 0);
+
+		ask (&request, &reply, "sound_lifetime_update");
+
+		if (reply.sound_need_playing)
+		{
+			debug_fatal ("host environment: [env-provider:sound_lifetime_update.answer] the host asked whether the handle is playing a second time");
+		}
+	}
+
+	// the whole answer is checked against the request BEFORE anything is written: the numbers are finite and the lifetime of a valid, timed effect is the only one that may change, the valid lifetime of an
+	// invalid effect the only other; an expiry belongs to a valid effect, a kill to the server's expired one and an unlink to an invalid one.  No lifetime, countdown or decision is worked out here.
+	if (!isfinite (reply.sound_lifetime) || !isfinite (reply.sound_valid_lifetime))
+	{
+		debug_fatal ("host environment: [env-provider:sound_lifetime_update.answer] a lifetime in the host's answer is not finite");
+	}
+
+	if ((reply.sound_expired != FALSE) && (reply.sound_expired != TRUE))
+	{
+		debug_fatal ("host environment: [env-provider:sound_lifetime_update.answer] expired is neither 0 nor 1");
+	}
+
+	if ((reply.sound_action < CAMPAIGN_SOUND_ACTION_NONE) || (reply.sound_action > CAMPAIGN_SOUND_ACTION_UNLINK))
+	{
+		debug_fatal ("host environment: [env-provider:sound_lifetime_update.answer] the action %d is not none, kill or unlink", reply.sound_action);
+	}
+
+	if ((!valid || looping) && !same_bits (&reply.sound_lifetime, lifetime))
+	{
+		debug_fatal ("host environment: [env-provider:sound_lifetime_update.answer] the host changed the lifetime of an effect that is invalid or looping");
+	}
+
+	if (valid && !same_bits (&reply.sound_valid_lifetime, valid_lifetime))
+	{
+		debug_fatal ("host environment: [env-provider:sound_lifetime_update.answer] the host changed the valid lifetime of a valid effect");
+	}
+
+	if (!valid && (reply.sound_valid_lifetime < 0.0f) && !same_bits (&reply.sound_valid_lifetime, valid_lifetime))
+	{
+		debug_fatal ("host environment: [env-provider:sound_lifetime_update.answer] the host's valid lifetime is below zero");
+	}
+
+	if (reply.sound_expired && !valid)
+	{
+		debug_fatal ("host environment: [env-provider:sound_lifetime_update.answer] the host reports an expiry of an invalid effect");
+	}
+
+	if ((reply.sound_action == CAMPAIGN_SOUND_ACTION_KILL) && (!server || !reply.sound_expired))
+	{
+		debug_fatal ("host environment: [env-provider:sound_lifetime_update.answer] the host kills an entity that is not an expired effect in the server routine");
+	}
+
+	if ((reply.sound_action == CAMPAIGN_SOUND_ACTION_UNLINK) && valid)
+	{
+		debug_fatal ("host environment: [env-provider:sound_lifetime_update.answer] the host unlinks a valid effect");
+	}
+
+	*lifetime = reply.sound_lifetime;
+	*valid_lifetime = reply.sound_valid_lifetime;
+	*expired = reply.sound_expired;
+	*action = reply.sound_action;
+}
+
 #endif

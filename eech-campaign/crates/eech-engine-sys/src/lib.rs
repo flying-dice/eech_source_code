@@ -1205,6 +1205,14 @@ pub const EECH_ENV_STEP: c_int = 8;
 pub const EECH_ENV_AMBIENT: c_int = 9;
 pub const EECH_ENV_LIGHTNING_ADD: c_int = 10;
 pub const EECH_ENV_LIGHTNING_UPDATE: c_int = 11;
+pub const EECH_ENV_SOUND_LIFETIME_INIT: c_int = 12;
+pub const EECH_ENV_SOUND_LIFETIME_UPDATE: c_int = 13;
+/// The samples of one sound effect's sequence that cross the boundary by value (`CAMPAIGN_SOUND_SAMPLES`).
+pub const EECH_SOUND_SAMPLES: usize = 16;
+/// The host's decisions for a sound effect's update (`CAMPAIGN_SOUND_ACTION_*`).
+pub const EECH_SOUND_ACTION_NONE: c_int = 0;
+pub const EECH_SOUND_ACTION_KILL: c_int = 1;
+pub const EECH_SOUND_ACTION_UNLINK: c_int = 2;
 /// The slots of the physical lightning queue (`CAMPAIGN_LIGHTNING_SLOTS`).
 pub const EECH_LIGHTNING_SLOTS: usize = 32;
 /// The number of EECH weather modes (`WEATHERMODE_LAST`): a mode is in `0..EECH_ENV_MODE_COUNT`.
@@ -1266,6 +1274,21 @@ pub struct eech_env_request {
     pub lightning_time_of_day: f32,
     pub lightning_have_frames: c_int,
     pub lightning_frames: c_int,
+    /// SOUND_LIFETIME_INIT: whether the effect loops, whether it is MUSIC, the sequence's sample count and each sample's descriptor rate and size by value; SOUND_LIFETIME_UPDATE (with `sound_looping`): the routine,
+    /// the validity, whether it holds a handle and, once the host has asked, whether that handle is playing, the frame delta and the stored lifetime and valid lifetime
+    pub sound_looping: c_int,
+    pub sound_music: c_int,
+    pub sound_count: c_int,
+    pub sound_rate: [c_int; EECH_SOUND_SAMPLES],
+    pub sound_size: [c_int; EECH_SOUND_SAMPLES],
+    pub sound_server: c_int,
+    pub sound_valid: c_int,
+    pub sound_has_handle: c_int,
+    pub sound_have_playing: c_int,
+    pub sound_playing: c_int,
+    pub sound_delta: f32,
+    pub sound_lifetime: f32,
+    pub sound_valid_lifetime: f32,
 }
 
 #[repr(C)]
@@ -1289,6 +1312,13 @@ pub struct eech_env_reply {
     pub lightning_slot: c_int,
     pub lightning_need_frames: c_int,
     pub lightning_queue: [eech_lightning_strike; EECH_LIGHTNING_SLOTS],
+    /// SOUND_LIFETIME_INIT: the lifetime; SOUND_LIFETIME_UPDATE: the lifetime and valid lifetime after the update, whether a valid effect's lifetime went below zero, the decision, or that the host needs to know
+    /// whether the handle is still playing (nothing changed)
+    pub sound_lifetime: f32,
+    pub sound_valid_lifetime: f32,
+    pub sound_expired: c_int,
+    pub sound_action: c_int,
+    pub sound_need_playing: c_int,
 }
 
 impl Default for eech_env_state {

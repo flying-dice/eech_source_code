@@ -68,6 +68,14 @@
 
 #include "entity/special/session/ss_envfx.h"
 
+#ifdef EECH_CAMPAIGN_HOST_ENV
+
+#include <string.h>
+
+#include "entity/special/session/ss_hostenv.h"
+
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -504,6 +512,40 @@ void set_local_sound_effect_sample_indices (entity *en, int count, sound_sample_
 	// determine playing time
 	//
 
+
+	#ifdef EECH_CAMPAIGN_HOST_ENV
+
+	//
+	// EECH_CAMPAIGN_HOST_ENV (EEDCS-51, D3): the physical lifetime of the effect is the HOST's (aphavoc/source/entity/special/session/ss_hostenv.h SOUND_LIFETIME_INIT): the sum of the samples'
+	// durations, the 40 s cap (300 s for MUSIC) and the looping case.  What the campaign still holds is the sound database: it reads each sample's rate and size from the descriptor (only for a timed effect,
+	// as the original did) and hands them over by value.  The original arithmetic follows in the #else, for the original game's build only.
+	//
+
+	{
+		int
+			rate [CAMPAIGN_SOUND_SAMPLES],
+			size [CAMPAIGN_SOUND_SAMPLES];
+
+		memset (rate, 0, sizeof (rate));
+
+		memset (size, 0, sizeof (size));
+
+		if (!raw->looping)
+		{
+			for (loop = 0; (loop < count) && (loop < CAMPAIGN_SOUND_SAMPLES); loop ++)
+			{
+				ASSERT (indices [loop] != SOUND_SAMPLE_INDEX_NONE);
+
+				rate [loop] = application_sound_effects [indices [loop]].rate;
+				size [loop] = application_sound_effects [indices [loop]].size;
+			}
+		}
+
+		raw->effect_lifetime = campaign_sound_lifetime_init (raw->looping, raw->eff.sub_type == ENTITY_SUB_TYPE_EFFECT_SOUND_MUSIC, count, rate, size);
+	}
+
+	#else
+
 	raw->effect_lifetime = 0;
 
 	if (!raw->looping)
@@ -536,6 +578,8 @@ void set_local_sound_effect_sample_indices (entity *en, int count, sound_sample_
 
 		raw->effect_lifetime = min (raw->effect_lifetime, raw->eff.sub_type != ENTITY_SUB_TYPE_EFFECT_SOUND_MUSIC ? 40.0f : 300.0f);
 	}
+
+	#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

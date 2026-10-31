@@ -15,6 +15,7 @@
 use mlua::Lua;
 
 const SCRIPT: &str = include_str!("../lua/env-sound-lifetime.lua");
+const WITNESS: &str = include_str!("../lua/env-sound-host-witness.lua");
 
 const FACTS: &str =
     "samples=300 lightning_rate=22050 lightning_size=88200 lightning_original_rate=22050 thunder_rate=22050 thunder_size=176400 thunder_original_rate=22050";
@@ -111,6 +112,12 @@ function file:close ()
 end
 function file:read () return table.concat (WRITTEN) end
 io.open = function () return file end
+-- the witness loads its delegate through `dofile`: this stand-in runs on Lua 5.1, whose `load` takes a reader function, so a source STRING is `loadstring`'s
+function dofile (path)
+	local chunk, err = (loadstring or load) (DELEGATE_SOURCE, '@' .. tostring (path))
+	if not chunk then error (err, 0) end
+	return chunk ()
+end
 
 local PLAN = '{plan}'
 local REPORTS = {{ {reports_lua} }}
@@ -131,6 +138,23 @@ package.preload.eech_dc = function ()
 			function engine:env_case (group, index)
 				if group ~= 14 then error ('SCRIPTED: unexpected group ' .. tostring (group), 0) end
 				if SCENARIO.engine_error and SCENARIO.engine_error == index then error ('engine fatal: an ASSERT fired in the original', 0) end
+				-- the campaign asking the host, as the hosted constructor and update routines do for the controlled-data case 4 (one sample, three updates) and case 6 (the two-sample sequence): the host's answer is
+				-- checked as the campaign checks it, and a refusal or a malformed answer stops the engine at the provider's marker
+				if SCENARIO.asks and index ~= 0 and config and config.environment then
+					local function ask (request)
+						local ok, answer = pcall (config.environment, request)
+						if not ok then error ('host environment: [env-provider:' .. request.op .. '.callback] ' .. tostring (answer), 0) end
+						if request.op == 'sound_lifetime_update' and type (answer) == 'table' and answer.action ~= nil and answer.action ~= 'none' and answer.action ~= 'kill' and answer.action ~= 'unlink' then
+							error ('host environment: [env-provider:sound_lifetime_update.answer] the action is not none, kill or unlink', 0)
+						end
+					end
+					if index == 6 then
+						ask ({{ op = 'sound_lifetime_init', looping = false, music = false, samples = {{ {{ rate = 4, size = 6 }}, {{ rate = 2, size = 5 }} }} }})
+					elseif index == 4 then
+						ask ({{ op = 'sound_lifetime_init', looping = false, music = false, samples = {{ {{ rate = 4, size = 20 }} }} }})
+						for _ = 1, 3 do ask ({{ op = 'sound_lifetime_update', server = true, delta = 2.0, valid = true, looping = false, lifetime = 5.0, valid_lifetime = 0.0, has_handle = false }}) end
+					end
+				end
 				local text = index == 0 and PLAN or (SCENARIO.report and SCENARIO.report [index]) or REPORTS [index]
 				if SCENARIO.edit then text = SCENARIO.edit (index, text) end
 				return text
@@ -154,6 +178,10 @@ struct Driven {
 }
 
 fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
+    drive_script("env-sound-lifetime.lua", SCRIPT, scenario, args)
+}
+
+fn drive_script(name: &str, script: &str, scenario: &str, args: &[(&str, &str)]) -> Driven {
     let lua = Lua::new();
     let mut table = String::from("{ root = 'unused-root', out = 'unused-out'");
     for (key, value) in args {
@@ -163,11 +191,12 @@ fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
     lua.load(format!("ARGS = {table}\nSCENARIO = {{ {scenario} }}"))
         .exec()
         .expect("the scenario is valid Lua");
+    lua.globals().set("DELEGATE_SOURCE", SCRIPT).expect("the delegate source");
     lua.load(collaborators())
         .set_name("scripted collaborators")
         .exec()
         .expect("the collaborators load");
-    let result = lua.load(SCRIPT).set_name("env-sound-lifetime.lua").exec().map_err(|e| e.to_string());
+    let result = lua.load(script).set_name(name).exec().map_err(|e| e.to_string());
     let written: Vec<String> = lua.globals().get("WRITTEN").expect("the collected output");
     let text = written.concat();
     let rows = text
@@ -468,6 +497,9 @@ fn data_report_variant(case: u32, variant: &str) -> String {
             paused: None,
             posts: if variant == "early" {
                 vec![None]
+            } else if variant == "nokill" {
+                // a host that never ages the effect: the lifetime comes back as it went, nothing expires
+                vec![Some(live); 3]
             } else {
                 vec![Some(cap("40400000", "00000000", 1, 0, 1)), Some(cap("3f800000", "00000000", 1, 0, 1)), None]
             },
@@ -488,7 +520,7 @@ fn data_report_variant(case: u32, variant: &str) -> String {
             slot: 20,
             sub: 1,
             server: true,
-            created: cap("40800000", "00000000", 1, 0, 1),
+            created: cap(if variant == "quarter" { "3e800000" } else { "40800000" }, "00000000", 1, 0, 1),
             paused: None,
             posts: vec![],
         }],
@@ -840,5 +872,122 @@ fn a_controlled_data_report_that_is_incomplete_unrestored_or_at_odds_with_its_ca
         );
         assert!(!of(&driven, "witness_failure").is_empty(), "{name}: no witness_failure row");
         assert!(of(&driven, "result").is_empty(), "{name}: a result row was written for a damaged report");
+    }
+}
+
+// ---- the public-host OWNERSHIP WITNESS of the sound lifetime (lua/env-sound-host-witness.lua): against a scripted engine whose canned reports stand for what a native shows. The numbers are canned shape examples; the
+// witness expects only what the original measured for case 4 (three calls, one kill) and the words it altered itself.
+
+fn witness(scenario: &str, extra: &[(&str, &str)]) -> Driven {
+    let mut args: Vec<(&str, &str)> = vec![("delegate", "/delegate/env-sound-lifetime.lua")];
+    args.extend_from_slice(extra);
+    drive_script("env-sound-host-witness.lua", WITNESS, scenario, &args)
+}
+
+fn authority(driven: &Driven) -> &serde_json::Value {
+    driven
+        .rows
+        .iter()
+        .find(|row| row.get("verdict").is_some())
+        .expect("the witness's authority record")
+}
+
+#[test]
+fn the_sound_host_witness_names_the_missing_capability_when_the_case_completes_without_the_host_being_asked() {
+    let driven = witness("", &[("case", "4")]);
+    let error = driven
+        .result
+        .clone()
+        .expect_err("a native that decides the lifetime itself must fail the witness");
+    assert!(error.contains("env-sound-host-witness: sound-host-capability-missing"), "{error}");
+    // the delegate really completed case 4 (its own rows and result are on the file), so this is the capability verdict and not a setup failure
+    let result = &of(&driven, "result")[0];
+    assert_eq!(
+        (result["case"].as_i64(), result["refused"].as_bool(), result["kills"].as_i64()),
+        (Some(4), Some(false), Some(1))
+    );
+    let record = authority(&driven);
+    assert_eq!(record["verdict"], "sound_host_capability_missing");
+    assert_eq!(
+        (record["op"].as_str(), record["requests"].as_i64(), record["completed"].as_bool()),
+        (Some("sound_lifetime_update"), Some(0), Some(true))
+    );
+}
+
+#[test]
+fn the_sound_host_witness_counts_only_its_operation_and_leaves_the_delegates_rows_untouched() {
+    let driven = witness("asks = true", &[("case", "4")]);
+    driven
+        .result
+        .clone()
+        .unwrap_or_else(|e| panic!("a native that asks the host was rejected: {e}\n{}", driven.text));
+    let record = authority(&driven);
+    assert_eq!(record["verdict"], "host_asked_and_decided");
+    // three updates are the operation; the constructor's init is another operation, forwarded and counted apart
+    assert_eq!((record["requests"].as_i64(), record["forwarded_other_requests"].as_i64()), (Some(3), Some(1)));
+    // the delegate's rows are exactly what the control driver alone writes for the same report
+    let alone = drive("", &[("case", "4")]);
+    let delegate_rows: Vec<&serde_json::Value> = driven.rows.iter().filter(|row| row.get("verdict").is_none()).collect();
+    assert_eq!(delegate_rows, alone.rows.iter().collect::<Vec<_>>());
+}
+
+#[test]
+fn the_sound_host_witness_in_changed_mode_needs_the_real_case_to_show_the_hosts_answer_and_not_only_a_request_count() {
+    // a host that never ages the effect: the case shows three calls and NO kill
+    let nokill = format!("asks = true, report = {{ [4] = '{}' }}", data_report_variant(4, "nokill"));
+    let driven = witness(&nokill, &[("case", "4"), ("mode", "changed")]);
+    driven.result.clone().unwrap_or_else(|e| panic!("{e}\n{}", driven.text));
+    assert_eq!(authority(&driven)["verdict"], "host_changed_the_decision");
+    assert_eq!(of(&driven, "result")[0]["kills"], 0);
+    // the host was asked and said nothing expires, but the case still shows the kill: the campaign decided itself
+    let still_kills = witness("asks = true", &[("case", "4"), ("mode", "changed")]);
+    assert!(
+        still_kills.result.clone().unwrap_err().contains("ownership-not-shown"),
+        "{:?}",
+        still_kills.result
+    );
+    // the constructor: the host gives the lifetime 0.25 and the constructed entity holds exactly that word; the default report holds the campaign's own sum
+    let quarter = format!("asks = true, report = {{ [6] = '{}' }}", data_report_variant(6, "quarter"));
+    let init = witness(&quarter, &[("case", "6"), ("mode", "changed_init")]);
+    init.result.clone().unwrap_or_else(|e| panic!("{e}\n{}", init.text));
+    assert_eq!(authority(&init)["creation_life_w"], "3e800000");
+    let summed = witness("asks = true", &[("case", "6"), ("mode", "changed_init")]);
+    assert!(summed.result.clone().unwrap_err().contains("ownership-not-shown"), "{:?}", summed.result);
+}
+
+#[test]
+fn the_sound_host_witness_stops_a_withheld_or_malformed_answer_at_its_boundary_and_reports_the_stop_as_the_evidence() {
+    for (mode, case, marker) in [
+        ("withheld", "4", "[env-provider:sound_lifetime_update.callback]"),
+        ("malformed", "4", "[env-provider:sound_lifetime_update.answer]"),
+        ("withheld_init", "6", "[env-provider:sound_lifetime_init.callback]"),
+    ] {
+        let driven = witness("asks = true", &[("case", case), ("mode", mode)]);
+        // a stop is the expected evidence: the witness returns normally, with the record of the stop, the delegate's engine_failure row and no result row
+        driven.result.clone().unwrap_or_else(|e| panic!("{mode}: {e}\n{}", driven.text));
+        let record = authority(&driven);
+        assert_eq!(
+            (record["verdict"].as_str(), record["marker"].as_str(), record["stopped"].as_bool()),
+            (Some("stopped_at_boundary"), Some(marker), Some(true)),
+            "{mode}"
+        );
+        assert!(of(&driven, "result").is_empty(), "{mode}: a result row was written");
+        assert_eq!(of(&driven, "engine_failure").len(), 1, "{mode}");
+    }
+    // a native that never asks the host cannot be stopped by it: the delegate completes, and that is `not-stopped`
+    let completed = witness("", &[("case", "4"), ("mode", "withheld")]);
+    assert!(completed.result.clone().unwrap_err().contains("not-stopped"), "{:?}", completed.result);
+}
+
+#[test]
+fn the_sound_host_witness_refuses_a_missing_delegate_and_a_case_that_is_not_the_modes_before_anything_runs() {
+    for args in [
+        vec![("case", "4")],
+        vec![("delegate", "x.lua"), ("case", "5")],
+        vec![("delegate", "x.lua"), ("mode", "healthy"), ("case", "6")],
+    ] {
+        let driven = drive_script("env-sound-host-witness.lua", WITNESS, "", &args);
+        assert!(driven.result.clone().unwrap_err().contains("env-sound-host-witness:"), "{args:?}");
+        assert!(driven.rows.is_empty(), "{args:?}: nothing was written");
     }
 }

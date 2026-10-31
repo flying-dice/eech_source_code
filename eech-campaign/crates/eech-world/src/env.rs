@@ -21,6 +21,11 @@
 //! - `lightning_update { time_of_day, frames? }`: `update_3d_lightning_strikes`: every strike in use is aged and the finished ones freed; `{ queue }`. A forked strike's frame number needs the strike
 //!   animation's frame count, which only the campaign's texture table holds: the host answers `{ need_frames = true }` (the queue is NOT changed) and the campaign asks again with `frames`.
 //!   The queue is empty when the provider is created. The campaign keeps only a read-only mirror of it.
+//! - `sound_lifetime_init { looping, music, samples = { { rate, size }, ... } }`: the physical lifetime of a new sound effect (EEDCS-51, soundeff.c `set_local_sound_effect_sample_indices`): the sum of the samples'
+//!   durations (`size / rate` for each sample of the sound database, the descriptors handed over by value), capped at 40 s (300 s for MUSIC) and 0 for a looping effect: `{ lifetime }`.
+//! - `sound_lifetime_update { server, delta, valid, looping, lifetime, valid_lifetime, has_handle, playing? }`: one call of se_updt.c `update_server` / `update_client`: the aging of a valid effect, the server's
+//!   expiry and kill decision, the client's clamp at zero, the countdown and unlink of an invalid effect: `{ lifetime, valid_lifetime, expired, action = "none" | "kill" | "unlink" }`, or
+//!   `{ need_playing = true }` (nothing changed) when a server's expired effect holds a handle and the campaign has not said whether it is `playing`. The host keeps NO state: the stored lifetimes travel by value.
 //! - `step { delta, server, in_cockpit, camera?, lightning_draw?, map }`: the physical update of one session update. `{ need_draw = true, timer }` (the field is NOT changed) when the
 //!   server's lightning timer has expired and the next timer needs the one draw of the shared random word, which only the campaign may make; the campaign then asks again with
 //!   `lightning_draw`. Otherwise `{ state, expired, strike?, new_timer? }`.
@@ -120,6 +125,8 @@ extern "C" {
         error_size: usize,
     ) -> i32;
     fn env_ref_lightning_queue(field: *const EnvRef, out: *mut Strike, error: *mut c_char, error_size: usize) -> i32;
+    fn env_ref_sound_init(in_i: *const i32, out_lifetime: *mut f32, error: *mut c_char, error_size: usize) -> i32;
+    fn env_ref_sound_update(in_f: *const f32, in_i: *const i32, out_f: *mut f32, out_i: *mut i32, error: *mut c_char, error_size: usize) -> i32;
     fn env_ref_step(
         field: *mut EnvRef,
         in_f: *const f32,
@@ -193,6 +200,114 @@ pub struct LightningAdd {
 pub enum LightningUpdate {
     Done,
     NeedFrames,
+}
+
+/// The samples of one sound effect's sequence the host accepts (`ENV_REF_SOUND_SAMPLES`).
+pub const SOUND_SAMPLES: usize = 16;
+
+/// One call of a sound effect's update routine (se_updt.c `update_server` / `update_client`), by value: the routine, the frame delta, the effect's validity and looping flag, the stored lifetime and valid
+/// lifetime, whether it holds a playback handle and, once the campaign has said so, whether that handle is playing.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct SoundUpdateInput {
+    pub server: bool,
+    pub delta: f32,
+    pub valid: bool,
+    pub looping: bool,
+    pub lifetime: f32,
+    pub valid_lifetime: f32,
+    pub has_handle: bool,
+    pub playing: Option<bool>,
+}
+
+/// What the host decides for a sound effect after an update: nothing, kill the entity, or unlink it from the update list and release its handle.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SoundAction {
+    None,
+    Kill,
+    Unlink,
+}
+
+/// The outcome of one update: the host needs to know whether the handle is playing (nothing changed), or the lifetimes after the call, whether a valid effect's lifetime went below zero, and the decision.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum SoundUpdate {
+    NeedPlaying,
+    Done {
+        lifetime: f32,
+        valid_lifetime: f32,
+        expired: bool,
+        action: SoundAction,
+    },
+}
+
+/// The lifetime of a new sound effect (soundeff.c `set_local_sound_effect_sample_indices`): the sum of the samples' durations (`size / rate` for each `(rate, size)` of the sample database), capped at 40 s (300 s
+/// for MUSIC), and 0 for a looping effect. The original arithmetic, in the canonical arithmetic environment; a refused call returns nothing.
+pub fn sound_lifetime_init(looping: bool, music: bool, samples: &[(i32, i32)]) -> Result<f32, String> {
+    if samples.is_empty() || samples.len() > SOUND_SAMPLES {
+        return Err(format!("a sound effect's sequence holds 1 to {SOUND_SAMPLES} samples, not {}", samples.len()));
+    }
+    let mut error = [0u8; ERROR_SIZE];
+    let mut in_i = [0i32; 3 + 2 * SOUND_SAMPLES];
+    in_i[0] = i32::from(looping);
+    in_i[1] = i32::from(music);
+    in_i[2] = samples.len() as i32;
+    let (rates, sizes) = in_i[3..].split_at_mut(SOUND_SAMPLES);
+    for ((rate_slot, size_slot), (rate, size)) in rates.iter_mut().zip(sizes.iter_mut()).zip(samples.iter()) {
+        *rate_slot = *rate;
+        *size_slot = *size;
+    }
+    let mut lifetime = 0.0f32;
+    // SAFETY: the array has the length the kernel reads; `lifetime` and `error` are writable for their sizes.
+    let status = unsafe { env_ref_sound_init(in_i.as_ptr(), &mut lifetime, error.as_mut_ptr().cast(), ERROR_SIZE) };
+    if status == 0 {
+        Ok(lifetime)
+    } else {
+        Err(message(&error))
+    }
+}
+
+/// One call of the sound effect's update routine (se_updt.c `update_server` / `update_client`): the aging of a valid effect, the server's expiry decision, the client's clamp at zero, the countdown and the
+/// unlink of an invalid effect. The original arithmetic in the canonical arithmetic environment; a refused call returns nothing.
+pub fn sound_lifetime_update(input: &SoundUpdateInput) -> Result<SoundUpdate, String> {
+    let mut error = [0u8; ERROR_SIZE];
+    let in_f = [input.delta, input.lifetime, input.valid_lifetime];
+    let in_i = [
+        i32::from(input.server),
+        i32::from(input.valid),
+        i32::from(input.looping),
+        i32::from(input.has_handle),
+        i32::from(input.playing.is_some()),
+        i32::from(input.playing.unwrap_or(false)),
+    ];
+    let mut out_f = [0.0f32; 2];
+    let mut out_i = [0i32; 3];
+    // SAFETY: the arrays have the lengths the kernel reads and writes; `error` is writable for its size.
+    let status = unsafe {
+        env_ref_sound_update(
+            in_f.as_ptr(),
+            in_i.as_ptr(),
+            out_f.as_mut_ptr(),
+            out_i.as_mut_ptr(),
+            error.as_mut_ptr().cast(),
+            ERROR_SIZE,
+        )
+    };
+    if status != 0 {
+        return Err(message(&error));
+    }
+    if out_i[2] != 0 {
+        return Ok(SoundUpdate::NeedPlaying);
+    }
+    let action = match out_i[1] {
+        0 => SoundAction::None,
+        1 => SoundAction::Kill,
+        _ => SoundAction::Unlink,
+    };
+    Ok(SoundUpdate::Done {
+        lifetime: out_f[0],
+        valid_lifetime: out_f[1],
+        expired: out_i[0] != 0,
+        action,
+    })
 }
 
 /// The campaign's observations for the ambient sound levels: `f = { x, z, y, alt, cloud base }` (the camera, or the gunship in the cockpit, its radar altitude and the cloud height).
@@ -706,6 +821,56 @@ fn respond(lua: &Lua, field: &RefCell<Field>, request: &LuaTable) -> LuaResult<L
             match field.lightning_update(time_of_day, frames).map_err(refuse)? {
                 LightningUpdate::NeedFrames => answer.set("need_frames", true)?,
                 LightningUpdate::Done => answer.set("queue", queue_table(lua, &field)?)?,
+            }
+        }
+        "sound_lifetime_init" => {
+            let samples_table = subtable(request, "samples")?;
+            let mut samples = Vec::new();
+            for index in 1..=samples_table.raw_len() {
+                let sample = match samples_table.get::<LuaValue>(index)? {
+                    LuaValue::Table(sample) => sample,
+                    other => return Err(refuse(format_args!("samples[{index}] must be a table, got {}", other.type_name()))),
+                };
+                samples.push((integer(&reader, &sample, "rate", "rate")?, integer(&reader, &sample, "size", "size")?));
+            }
+            let lifetime = sound_lifetime_init(boolean(request, "looping")?, boolean(request, "music")?, &samples).map_err(refuse)?;
+            answer.set("lifetime", f64::from(lifetime))?;
+        }
+        "sound_lifetime_update" => {
+            let playing = match request.get::<LuaValue>("playing")? {
+                LuaValue::Nil => None,
+                _ => Some(boolean(request, "playing")?),
+            };
+            let input = SoundUpdateInput {
+                server: boolean(request, "server")?,
+                delta: single(&reader, request, "delta", "delta")?,
+                valid: boolean(request, "valid")?,
+                looping: boolean(request, "looping")?,
+                lifetime: single(&reader, request, "lifetime", "lifetime")?,
+                valid_lifetime: single(&reader, request, "valid_lifetime", "valid_lifetime")?,
+                has_handle: boolean(request, "has_handle")?,
+                playing,
+            };
+            match sound_lifetime_update(&input).map_err(refuse)? {
+                SoundUpdate::NeedPlaying => answer.set("need_playing", true)?,
+                SoundUpdate::Done {
+                    lifetime,
+                    valid_lifetime,
+                    expired,
+                    action,
+                } => {
+                    answer.set("lifetime", f64::from(lifetime))?;
+                    answer.set("valid_lifetime", f64::from(valid_lifetime))?;
+                    answer.set("expired", expired)?;
+                    answer.set(
+                        "action",
+                        match action {
+                            SoundAction::None => "none",
+                            SoundAction::Kill => "kill",
+                            SoundAction::Unlink => "unlink",
+                        },
+                    )?;
+                }
             }
         }
         "gust" => {
@@ -1895,6 +2060,63 @@ mod tests {
         };
         let questions: Vec<Question> = vec![
             (
+                "a sound effect's lifetime: a sequence, the two caps, a looping effect and a rate that is not positive",
+                Box::new(move || {
+                    let mut out = Vec::new();
+                    for (looping, music, samples) in [
+                        (false, false, vec![(4, 6), (2, 5)]),
+                        (false, false, vec![(1, 400)]),
+                        (false, true, vec![(1, 400)]),
+                        (true, false, vec![(4, 20)]),
+                        (false, false, vec![(3, 7), (0, 9)]),
+                    ] {
+                        out.push(sound_lifetime_init(looping, music, &samples)?.to_bits());
+                    }
+                    Ok(out)
+                }),
+            ),
+            (
+                "a sound effect's update: the server's aging, expiry and handle question, the client's clamp, an invalid effect's countdown and unlink, a subnormal lifetime",
+                Box::new(move || {
+                    let mut out = Vec::new();
+                    let base = SoundUpdateInput {
+                        server: true,
+                        delta: 0.1,
+                        valid: true,
+                        looping: false,
+                        lifetime: 5.0,
+                        valid_lifetime: 0.0,
+                        has_handle: false,
+                        playing: None,
+                    };
+                    let inputs = [
+                        base,
+                        SoundUpdateInput { lifetime: 0.05, ..base },
+                        SoundUpdateInput { lifetime: 0.05, has_handle: true, ..base },
+                        SoundUpdateInput { lifetime: 0.05, has_handle: true, playing: Some(true), ..base },
+                        SoundUpdateInput { lifetime: 0.05, has_handle: true, playing: Some(false), ..base },
+                        SoundUpdateInput { looping: true, lifetime: 0.0, ..base },
+                        SoundUpdateInput { server: false, lifetime: 0.05, ..base },
+                        SoundUpdateInput { valid: false, valid_lifetime: 1.5, delta: 1.0, ..base },
+                        SoundUpdateInput { valid: false, valid_lifetime: 0.5, delta: 1.0, ..base },
+                        SoundUpdateInput { valid: false, valid_lifetime: 0.0, delta: 1.0, ..base },
+                        SoundUpdateInput { lifetime: subnormal, delta: subnormal, ..base },
+                    ];
+                    for input in inputs {
+                        match sound_lifetime_update(&input)? {
+                            SoundUpdate::NeedPlaying => out.push(u32::MAX),
+                            SoundUpdate::Done {
+                                lifetime,
+                                valid_lifetime,
+                                expired,
+                                action,
+                            } => out.extend([lifetime.to_bits(), valid_lifetime.to_bits(), u32::from(expired), action as u32]),
+                        }
+                    }
+                    Ok(out)
+                }),
+            ),
+            (
                 "an add and an add with no environment",
                 Box::new(move || {
                     let mut field = Field::new()?;
@@ -2044,5 +2266,139 @@ mod tests {
                 .collect::<Vec<_>>()
                 .join("\n")
         );
+    }
+
+    // ---- the physical lifetime of a sound effect (EEDCS-51, D3): the host's kernels of soundeff.c and se_updt.c, against the observations of the ORIGINAL (the controlled-data cases 4 to 10 of the original
+    // native 116ffd5fb: server 5 -> 3 -> 1 -> kill, client 5 -> 3 -> 1 -> 0 with no kill, a sequence of 4 seconds, the caps 40 and 300, loops left alone, an invalid effect's 1.5 -> 0.5 -> 0 and then the unlink).
+    // These numbers are what the original did, not a rule invented here.
+
+    fn sound_call(input: SoundUpdateInput) -> (f32, f32, bool, SoundAction) {
+        match sound_lifetime_update(&input).expect("the kernel answers") {
+            SoundUpdate::Done {
+                lifetime,
+                valid_lifetime,
+                expired,
+                action,
+            } => (lifetime, valid_lifetime, expired, action),
+            SoundUpdate::NeedPlaying => panic!("the host asked about a handle that was not there"),
+        }
+    }
+
+    fn sound_base() -> SoundUpdateInput {
+        SoundUpdateInput {
+            server: true,
+            delta: 2.0,
+            valid: true,
+            looping: false,
+            lifetime: 5.0,
+            valid_lifetime: 0.0,
+            has_handle: false,
+            playing: None,
+        }
+    }
+
+    #[test]
+    fn the_sound_lifetime_of_a_new_effect_is_the_sum_of_its_samples_with_the_two_caps_and_zero_for_a_loop() {
+        assert_eq!(sound_lifetime_init(false, false, &[(4, 20)]).unwrap(), 5.0);
+        // a sequence adds the durations
+        assert_eq!(sound_lifetime_init(false, false, &[(4, 6), (2, 5)]).unwrap(), 4.0);
+        // the cap is 40 s, and 300 s for a music sound
+        assert_eq!(sound_lifetime_init(false, false, &[(1, 400)]).unwrap(), 40.0);
+        assert_eq!(sound_lifetime_init(false, true, &[(1, 400)]).unwrap(), 300.0);
+        // a loop is not timed whatever its samples hold; the retail descriptors (size 0) give 0; a rate that is not positive adds nothing
+        assert_eq!(sound_lifetime_init(true, false, &[(4, 20)]).unwrap().to_bits(), 0.0f32.to_bits());
+        assert_eq!(sound_lifetime_init(false, false, &[(22050, 0)]).unwrap(), 0.0);
+        assert_eq!(sound_lifetime_init(false, false, &[(0, 9), (4, 20)]).unwrap(), 5.0);
+        // a sequence the host cannot hold is refused, never truncated
+        assert!(sound_lifetime_init(false, false, &[]).is_err());
+        assert!(sound_lifetime_init(false, false, &[(1, 1); SOUND_SAMPLES + 1]).is_err());
+    }
+
+    #[test]
+    fn the_server_ages_a_valid_effect_and_decides_its_expiry_by_the_handle() {
+        let mut state = sound_base();
+        let mut seen = Vec::new();
+        for _ in 0..3 {
+            let (lifetime, _, expired, action) = sound_call(state);
+            seen.push((lifetime, expired, action));
+            state.lifetime = lifetime;
+        }
+        assert_eq!(
+            seen,
+            [
+                (3.0, false, SoundAction::None),
+                (1.0, false, SoundAction::None),
+                (-1.0, true, SoundAction::Kill)
+            ]
+        );
+        // a loop is never aged and never expires
+        let looped = SoundUpdateInput {
+            looping: true,
+            lifetime: 0.0,
+            ..sound_base()
+        };
+        assert_eq!(sound_call(looped), (0.0, 0.0, false, SoundAction::None));
+        // an expired effect that holds a handle: the host asks whether it is still playing (nothing changed), then kills only an idle one
+        let held = SoundUpdateInput {
+            lifetime: 1.0,
+            has_handle: true,
+            ..sound_base()
+        };
+        assert_eq!(sound_lifetime_update(&held).unwrap(), SoundUpdate::NeedPlaying);
+        assert_eq!(
+            sound_call(SoundUpdateInput { playing: Some(true), ..held }),
+            (-1.0, 0.0, true, SoundAction::None)
+        );
+        assert_eq!(
+            sound_call(SoundUpdateInput { playing: Some(false), ..held }),
+            (-1.0, 0.0, true, SoundAction::Kill)
+        );
+        // an effect still above zero never asks about its handle
+        assert_eq!(
+            sound_call(SoundUpdateInput {
+                lifetime: 5.0,
+                has_handle: true,
+                ..sound_base()
+            }),
+            (3.0, 0.0, false, SoundAction::None)
+        );
+    }
+
+    #[test]
+    fn the_client_clamps_a_valid_effect_at_zero_and_never_kills() {
+        let mut state = SoundUpdateInput { server: false, ..sound_base() };
+        let mut seen = Vec::new();
+        for _ in 0..3 {
+            let (lifetime, _, _, action) = sound_call(state);
+            seen.push((lifetime, action));
+            state.lifetime = lifetime;
+        }
+        assert_eq!(seen, [(3.0, SoundAction::None), (1.0, SoundAction::None), (0.0, SoundAction::None)]);
+    }
+
+    #[test]
+    fn an_invalid_effect_counts_its_valid_lifetime_down_and_is_unlinked_on_the_next_update_by_both_routines() {
+        for server in [true, false] {
+            let mut state = SoundUpdateInput {
+                server,
+                valid: false,
+                valid_lifetime: 1.5,
+                delta: 1.0,
+                ..sound_base()
+            };
+            let mut seen = Vec::new();
+            for _ in 0..3 {
+                let (lifetime, valid_lifetime, expired, action) = sound_call(state);
+                // the effect's own lifetime is untouched, and an invalid effect never expires
+                assert_eq!((lifetime, expired), (5.0, false));
+                seen.push((valid_lifetime, action));
+                state.valid_lifetime = valid_lifetime;
+            }
+            assert_eq!(
+                seen,
+                [(0.5, SoundAction::None), (0.0, SoundAction::None), (0.0, SoundAction::Unlink)],
+                "server {server}"
+            );
+        }
     }
 }

@@ -190,3 +190,41 @@ own fresh process and root. Private coordinates and raw outputs stay outside Git
 * Remaining whole-D3 work: this characterisation run and comparison; moving the sound responsibility to the host only after it; the remaining time inputs; the required terrain, spatial and model services; the full
   shipping 40 and all 8 complete byte identities; current checks, review and the normal merges. D4 and D5 are unstarted. Choosing sound next does not close Task 51 or narrow D3. The probe, its drivers and its guards
   were originally prepared without runtime evidence; the checkpoint above supersedes that preparation status. No host API, schema or ABI is proposed.
+
+## Host-owned sound lifetime (candidate; source prepared 1 November 2026; UNBUILT natively, UNRUN, UNREVIEWED)
+
+**What moved.** The ORIGINAL physical decisions that the finite original characterization measured (the seven controlled-data cases 4 to 10 of the original native 116ffd5fb with drivers 2a/d4, plus the zero-size natural run and
+the three primitive controls) are now the HOST's, through two operations of the existing public environment provider (host-owned Lua -> `eech_dc` -> the campaign -> the provider callback; `ss_hostenv.h`):
+
+* `sound_lifetime_init` (`soundeff.c set_local_sound_effect_sample_indices`): the sum of the samples' durations (`size / rate` per sample, a rate that is not positive adds nothing), the 40 s cap or the 300 s MUSIC cap, and 0 for a looping effect.
+* `sound_lifetime_update` (`se_updt.c update_server` and `update_client`): the aging of a valid timed effect by the frame delta; the server's expiry and its decision (kill when there is no handle or the handle is not playing; leave a playing one);
+  the client's clamp at zero (it never kills); and the countdown of an invalid effect's valid lifetime, then its unlink on the NEXT update with the release of any handle. The host asks `need_playing` (nothing changed) once, only for a
+  server's expired valid effect that holds a handle; the campaign answers from its sound system.
+
+The reference host (`eech-world/csrc/env_ref.c`, `src/env.rs`) runs the original C expressions as kernels (same types and expression order, the engine's own `max`/`min`) in the canonical arithmetic environment, on staged copies
+committed only after the caller's floating-point state has been restored and read back. The host keeps NO state: the effect's stored fields stay in the campaign's record and travel by value (request: the descriptors' rate and size,
+or the delta, validity, looping flag, lifetime, valid lifetime and whether a handle is held; reply: the new lifetimes, whether a valid effect's lifetime went below zero, and the decision).
+
+**What the campaign still does, and why.** It reads each sample's rate and size from the sound database (`application_sound_effects[]`, loaded from the retail `sound.hdr`) and hands them over by value: this retained metadata input is a DATA
+WORKAROUND, not host ownership of the sound database or of asset lookup, and it needs the host to own that metadata before the sound domain is really host-owned. It owns the record (the pause and resume functions, the network
+pack and unpack and the observer read and write the lifetimes, so a host-held copy would diverge), the playback handle and the device (`get_system_sound_effect_playing`, `destroy_system_sound_effect`), and it APPLIES the checked answer in the
+original order: both lifetimes are written, then the entity is killed (`kill_client_server_entity`) or unlinked (`delete_local_entity_from_parents_child_list`) and its handle released. The probe points (`ENV_FXE_*`) keep their original
+places, so the same raw scenarios compare. Entity ids, allocation and list plumbing never cross the boundary. The campaign checks the whole answer before writing anything (finite numbers; a lifetime changes only for a valid timed effect, a valid
+lifetime only for an invalid one; an expiry belongs to a valid effect, a kill to the server's expired effect, an unlink to an invalid one; a looping effect's constructor lifetime is +0) and stops with an error naming the provider on a missing
+provider, a refusal or a malformed answer; there is no campaign arithmetic to fall back to in the hosted build (the original follows in the `#else`, for the original game's build only).
+
+**Not moved, and still explicit (nothing here is a quiet deferral of D3):** `pause_local_entity_sound_type` / `resume_local_entity_sound_type` (the validity change and the update-list relink, separately from the device-bound play call; 40 compiled files
+reference them, see the census above); the independent destroy path (`se_dstry.c`); the network pack, unpack and transmission of the lifetimes; the per-vehicle amplitude and pitch updaters; the sample and asset lookup; the playback handles and device;
+the speech cases of the constructor. The diagnostics the original logged in the constructor (a rate that is not positive, a sum at the cap) are not carried. A sequence of more than 16 samples is refused, not truncated (the sound
+manager's own limit is 15).
+
+**Cost.** Every call of a sound effect's update routine is now one provider request (including loops). That is the price of moving the decision and is to be measured, not assumed small.
+
+**Conformance and witness.** The scenario entrypoints are the existing ones: the controlled-data cases 4 to 10 (`env-sound-lifetime.lua`) and the natural run must reproduce the finite original measurements on a NEW candidate native
+(server 5 -> 3 -> 1 -> kill; client 5 -> 3 -> 1 -> 0 with no kill; the 4-second sequence; the 40/300 caps; loops left alone; the invalid effect's 1.5 -> 0.5 -> 0 and the unlink on the next update with no kill and the effect lifetime 5), and every
+legacy raw row. The compact ownership witness is `lua/env-sound-host-witness.lua` (modes healthy, changed, changed_init, withheld, malformed, withheld_init): against the old 116 native the control completes with the host asked 0 times
+(`sound-host-capability-missing`, the genuine missing-host capability red); against the candidate the real entity must show the host's changed answer, and a withheld or malformed answer must stop the engine at
+`[env-provider:sound_lifetime_update.callback|answer]` or `[env-provider:sound_lifetime_init.callback]`.
+
+**WIP actuals (my own, Linux container, no network, exclusive-new logs):** the default-feature `cargo check` of `eech-engine` and `eech-dc` compiles the changed hosted C (`ss_hostenv.c`, `soundeff.c`, `se_updt.c`); the reference kernels reproduce the measured
+observations; the floating-point-state test now includes the sound kernels; the boundary, the Lua bridge and the witness have scripted guards. See STATUS for the counts. Nothing was run natively.

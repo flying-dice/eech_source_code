@@ -6,7 +6,8 @@ use eech_engine::{
     MovementMode, MovementResult, MovementStep, ObjectReport, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side, SupplyReachDescriptor,
     TerrainAnswer, TerrainMapFacts, TerrainProvider, TerrainQuery, VehiclePose, WeaponFigures, EECH_ENV_AMBIENT, EECH_ENV_EXPORT, EECH_ENV_FLOATS,
     EECH_ENV_GUST, EECH_ENV_IMPORT, EECH_ENV_INIT_FIXED, EECH_ENV_INIT_RANDOM, EECH_ENV_INTS, EECH_ENV_LIGHTNING_ADD, EECH_ENV_LIGHTNING_UPDATE,
-    EECH_ENV_MODE_COUNT, EECH_ENV_STEP, EECH_ENV_WEATHER, EECH_ENV_WIND, EECH_LIGHTNING_SLOTS,
+    EECH_ENV_MODE_COUNT, EECH_ENV_SOUND_LIFETIME_INIT, EECH_ENV_SOUND_LIFETIME_UPDATE, EECH_ENV_STEP, EECH_ENV_WEATHER, EECH_ENV_WIND, EECH_LIGHTNING_SLOTS,
+    EECH_SOUND_SAMPLES,
 };
 use mlua::prelude::*;
 use std::path::PathBuf;
@@ -652,6 +653,9 @@ return function (request)
 	local server = request.server == true
 	local has_draw = request.lightning_draw ~= nil
 	local has_frames = request.frames ~= nil
+	local request_valid = request.valid == true
+	local request_has_handle = request.has_handle == true
+	local request_have_playing = request.playing ~= nil
 	local ok, answer = pcall (provider, request)
 	if not ok then return op .. '.callback', tostring (answer) end
 	if type (answer) ~= 'table' then return op .. '.answer', 'the ' .. op .. ' answer must be a table, got ' .. type (answer) end
@@ -686,6 +690,25 @@ return function (request)
 			if answer [name] < 0 or answer [name] > 1 then return 'ambient.answer', name .. ' must be within 0 to 1' end
 		end
 		return nil, string.format ('%s %s %s %s', fmt (answer.rain_light), fmt (answer.rain_heavy), fmt (answer.wind_light), fmt (answer.wind_heavy))
+	elseif op == 'sound_lifetime_init' then
+		-- the physical lifetime of a new sound effect (EEDCS-51): one finite number from 0 up
+		if not finite (answer.lifetime) or answer.lifetime < 0 then return op .. '.answer', 'lifetime must be a finite number from 0 up' end
+		return nil, fmt (answer.lifetime)
+	elseif op == 'sound_lifetime_update' then
+		-- one call of a sound effect's update routine: a request to know whether the handle is playing (once, only for the server's valid effect that holds one), or the lifetimes after the call, whether a valid
+		-- effect's lifetime went below zero and the decision
+		if answer.need_playing == true then
+			if not (server and request_valid and request_has_handle) then return op .. '.answer', 'the provider asked whether a handle is playing where none may be asked about' end
+			if request_have_playing then return op .. '.answer', 'the provider asked whether the handle is playing after it was told' end
+			return nil, '1'
+		end
+		if answer.need_playing ~= nil and answer.need_playing ~= false then return op .. '.answer', 'need_playing must be a boolean or nil' end
+		if not finite (answer.lifetime) then return op .. '.answer', 'lifetime must be a finite number' end
+		if not finite (answer.valid_lifetime) then return op .. '.answer', 'valid_lifetime must be a finite number' end
+		if type (answer.expired) ~= 'boolean' then return op .. '.answer', 'expired must be a boolean, got ' .. type (answer.expired) end
+		local action = ({ none = 0, kill = 1, unlink = 2 }) [answer.action]
+		if action == nil then return op .. '.answer', "action must be 'none', 'kill' or 'unlink'" end
+		return nil, string.format ('0 %s %s %d %d', fmt (answer.lifetime), fmt (answer.valid_lifetime), answer.expired and 1 or 0, action)
 	elseif op == 'lightning_add' or op == 'lightning_update' then
 		-- the physical lightning queue (EEDCS-51): an update the host cannot finish without the strike animation's frame count says so and changes nothing, once
 		if answer.need_frames == true then
@@ -829,6 +852,8 @@ fn env_op_name(op: i32) -> &'static str {
         EECH_ENV_AMBIENT => "ambient",
         EECH_ENV_LIGHTNING_ADD => "lightning_add",
         EECH_ENV_LIGHTNING_UPDATE => "lightning_update",
+        EECH_ENV_SOUND_LIFETIME_INIT => "sound_lifetime_init",
+        EECH_ENV_SOUND_LIFETIME_UPDATE => "sound_lifetime_update",
         _ => "unknown",
     }
 }
@@ -893,6 +918,37 @@ fn env_request_table(lua: &Lua, request: &EnvRequest) -> LuaResult<LuaTable> {
             table.set("time_of_day", f64::from(request.lightning_time_of_day))?;
             if request.lightning_have_frames != 0 {
                 table.set("frames", request.lightning_frames)?;
+            }
+        }
+        EECH_ENV_SOUND_LIFETIME_INIT => {
+            table.set("looping", request.sound_looping != 0)?;
+            table.set("music", request.sound_music != 0)?;
+            let samples = lua.create_table()?;
+            let count = usize::try_from(request.sound_count).unwrap_or(0);
+            for (index, (rate, size)) in request
+                .sound_rate
+                .iter()
+                .zip(request.sound_size.iter())
+                .take(count.min(EECH_SOUND_SAMPLES))
+                .enumerate()
+            {
+                let sample = lua.create_table()?;
+                sample.set("rate", *rate)?;
+                sample.set("size", *size)?;
+                samples.set(index + 1, sample)?;
+            }
+            table.set("samples", samples)?;
+        }
+        EECH_ENV_SOUND_LIFETIME_UPDATE => {
+            table.set("server", request.sound_server != 0)?;
+            table.set("delta", f64::from(request.sound_delta))?;
+            table.set("valid", request.sound_valid != 0)?;
+            table.set("looping", request.sound_looping != 0)?;
+            table.set("lifetime", f64::from(request.sound_lifetime))?;
+            table.set("valid_lifetime", f64::from(request.sound_valid_lifetime))?;
+            table.set("has_handle", request.sound_has_handle != 0)?;
+            if request.sound_have_playing != 0 {
+                table.set("playing", request.sound_playing != 0)?;
             }
         }
         EECH_ENV_STEP => {
@@ -1014,6 +1070,22 @@ fn call_environment(lua: &Lua, bridge: &LuaFunction, request: &EnvRequest) -> Re
                 env_f32(n[2], &answer)?,
                 env_f32(n[3], &answer)?,
             ];
+        }
+        EECH_ENV_SOUND_LIFETIME_INIT => {
+            let n = env_numbers::<1>(&text, &answer)?;
+            reply.sound_lifetime = env_f32(n[0], &answer)?;
+        }
+        EECH_ENV_SOUND_LIFETIME_UPDATE => {
+            // "1" when the host needs to know whether the handle is playing; else "0 <lifetime> <valid lifetime> <expired> <action>"
+            if text.trim() == "1" {
+                reply.sound_need_playing = 1;
+            } else {
+                let n = env_numbers::<5>(&text, &answer)?;
+                reply.sound_lifetime = env_f32(n[1], &answer)?;
+                reply.sound_valid_lifetime = env_f32(n[2], &answer)?;
+                reply.sound_expired = env_i32(n[3], &answer)?;
+                reply.sound_action = env_i32(n[4], &answer)?;
+            }
         }
         EECH_ENV_LIGHTNING_ADD | EECH_ENV_LIGHTNING_UPDATE => {
             // "1" when an update needs the strike animation's frame count; else "0 <slot>" and eight numbers for each of the queue's slots (in_use, type, x, y, z, time started, length, frame)
@@ -4483,6 +4555,132 @@ mod tests {
             let result = bad(&add);
             assert!(
                 matches!(&result, Err(message) if message.contains(&format!("[env-provider:{marker}]"))),
+                "{what}: {result:?}"
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn a_sound_lifetime_init_reaches_the_provider_by_value_and_one_finite_lifetime_comes_back_exactly() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let mut request = EnvRequest {
+            sound_count: 2,
+            sound_looping: 0,
+            sound_music: 1,
+            ..env_request(EECH_ENV_SOUND_LIFETIME_INIT)
+        };
+        request.sound_rate[..2].copy_from_slice(&[4, 2]);
+        request.sound_size[..2].copy_from_slice(&[6, 5]);
+        let mut provider = env_of(
+            &lua,
+            "assert (r.op == 'sound_lifetime_init' and r.looping == false and r.music == true and #r.samples == 2)
+             assert (r.samples [1].rate == 4 and r.samples [1].size == 6 and r.samples [2].rate == 2 and r.samples [2].size == 5)
+             return { lifetime = 4 }",
+        )?;
+        assert_eq!(provider(&request)?.sound_lifetime, 4.0);
+        for (_what, source, marker) in [
+            ("not a table", "return 4", "sound_lifetime_init.answer"),
+            ("a missing lifetime", "return {}", "sound_lifetime_init.answer"),
+            ("a negative lifetime", "return { lifetime = -1 }", "sound_lifetime_init.answer"),
+            ("a lifetime that is not finite", "return { lifetime = 1 / 0 }", "sound_lifetime_init.answer"),
+            ("a lifetime that is a string", "return { lifetime = '4' }", "sound_lifetime_init.answer"),
+            ("withheld", "error ('withheld')", "sound_lifetime_init.callback"),
+        ] {
+            let mut bad = env_of(&lua, source)?;
+            env_refusal(&mut bad, &request, marker);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn a_sound_lifetime_update_reaches_the_provider_by_value_and_its_decision_comes_back_exactly() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let request = EnvRequest {
+            sound_server: 1,
+            sound_valid: 1,
+            sound_looping: 0,
+            sound_has_handle: 1,
+            sound_delta: 2.0,
+            sound_lifetime: 1.0,
+            sound_valid_lifetime: 0.0,
+            ..env_request(EECH_ENV_SOUND_LIFETIME_UPDATE)
+        };
+        let mut provider = env_of(
+            &lua,
+            "assert (r.op == 'sound_lifetime_update' and r.server == true and r.valid == true and r.looping == false and r.has_handle == true and r.playing == nil)
+             assert (r.delta == 2 and r.lifetime == 1 and r.valid_lifetime == 0)
+             return { lifetime = -1, valid_lifetime = 0, expired = true, action = 'kill' }",
+        )?;
+        let reply = provider(&request)?;
+        assert_eq!(
+            (reply.sound_lifetime, reply.sound_valid_lifetime, reply.sound_expired, reply.sound_action),
+            (-1.0, 0.0, 1, eech_engine::EECH_SOUND_ACTION_KILL)
+        );
+        // the question whether the handle is playing, then the answer with the campaign's reply in the request
+        let mut asking = env_of(&lua, "if r.playing == nil then return { need_playing = true } end assert (r.playing == false) return { lifetime = 1, valid_lifetime = 0, expired = false, action = 'none' }")?;
+        assert_eq!(asking(&request)?.sound_need_playing, 1);
+        let told = EnvRequest {
+            sound_have_playing: 1,
+            sound_playing: 0,
+            ..request
+        };
+        let reply = asking(&told)?;
+        assert_eq!((reply.sound_need_playing, reply.sound_action, reply.sound_expired), (0, 0, 0));
+        for (_what, source, marker) in [
+            (
+                "an action that is not one of the three",
+                "return { lifetime = 1, valid_lifetime = 0, expired = false, action = 'explode' }",
+                "sound_lifetime_update.answer",
+            ),
+            (
+                "an action as a number",
+                "return { lifetime = 1, valid_lifetime = 0, expired = false, action = 1 }",
+                "sound_lifetime_update.answer",
+            ),
+            (
+                "expired as a number",
+                "return { lifetime = 1, valid_lifetime = 0, expired = 1, action = 'none' }",
+                "sound_lifetime_update.answer",
+            ),
+            (
+                "a lifetime that is not finite",
+                "return { lifetime = 0 / 0, valid_lifetime = 0, expired = false, action = 'none' }",
+                "sound_lifetime_update.answer",
+            ),
+            (
+                "a valid lifetime missing",
+                "return { lifetime = 1, expired = false, action = 'none' }",
+                "sound_lifetime_update.answer",
+            ),
+            ("withheld", "error ('withheld')", "sound_lifetime_update.callback"),
+        ] {
+            let mut bad = env_of(&lua, source)?;
+            env_refusal(&mut bad, &request, marker);
+        }
+        // the question about the handle where none may be asked: an effect with no handle, a client, an invalid effect, and a handle already said to be playing
+        for (what, asked) in [
+            (
+                "an effect with no handle",
+                EnvRequest {
+                    sound_has_handle: 0,
+                    ..request
+                },
+            ),
+            ("a client routine", EnvRequest { sound_server: 0, ..request }),
+            ("an invalid effect", EnvRequest { sound_valid: 0, ..request }),
+            (
+                "a handle already said to be playing",
+                EnvRequest {
+                    sound_have_playing: 1,
+                    ..request
+                },
+            ),
+        ] {
+            let mut ask = env_of(&lua, "return { need_playing = true }")?;
+            let result = ask(&asked);
+            assert!(
+                matches!(&result, Err(message) if message.contains("[env-provider:sound_lifetime_update.answer]")),
                 "{what}: {result:?}"
             );
         }

@@ -37,6 +37,12 @@
  *                campaign's texture table holds: the host answers NEED_FRAMES (nothing changed) and the campaign asks again with the count, read where the original read it and only because a forked
  *                strike was to be aged.  The campaign keeps a read-only MIRROR of the queue (the renderer's draw routines and the observer read it), refreshed from every answer and never evolved by the
  *                campaign; the answer is checked against the mirror and the request before anything is written.  No EECH pointer, slot layout or entity index crosses the boundary.
+ *   SOUND_LIFETIME_INIT / SOUND_LIFETIME_UPDATE
+ *                the PHYSICAL LIFETIME of a sound effect (soundeff.c and se_updt.c, EEDCS-51 D3): INIT answers the lifetime of a new effect (the sum of the samples' durations, the 40 s cap or the 300 s music cap, 0 for a
+ *                looping effect) from the sequence's sample descriptors handed over by value; UPDATE answers, for one call of the server or the client routine, the aged lifetime and valid lifetime, whether a valid effect's
+ *                lifetime went below zero, and the decision (none; kill the entity; unlink it from the update list and release its handle).  The stored fields stay in the effect's record, which the pause and
+ *                resume functions, the network pack and unpack and the observer read and write, so the request hands them over by value and the campaign applies the answer; the sound database (the descriptors), the
+ *                playback handle and the device stay the campaign's, and the host may ask once whether a handle is still playing (NEED_PLAYING, nothing changed).  No entity pointer, id or list layout crosses.
  *   STEP         the physical part of update_transitional_weather for one update: the delta of the frame (the previous frame's, as the original reads it),
  *                the camera position, the comms model, the map extents.  The lightning timer's expiry needs one draw of the shared word for the next
  *                timer: the first request carries none and the host answers NEED_DRAW without changing anything; the campaign then makes that one
@@ -119,10 +125,19 @@ enum campaign_env_op
 	CAMPAIGN_ENV_STEP,
 	CAMPAIGN_ENV_AMBIENT,
 	CAMPAIGN_ENV_LIGHTNING_ADD,
-	CAMPAIGN_ENV_LIGHTNING_UPDATE
+	CAMPAIGN_ENV_LIGHTNING_UPDATE,
+	CAMPAIGN_ENV_SOUND_LIFETIME_INIT,
+	CAMPAIGN_ENV_SOUND_LIFETIME_UPDATE
 };
 
 #define CAMPAIGN_ENV_DRAWS 10
+
+/* The samples of one sound effect's sequence that cross the boundary by value (the sound manager's MAX_SEQUENCED_SAMPLES is 15; a longer sequence is refused, not truncated), and the decisions the host
+   returns for a sound effect's update */
+#define CAMPAIGN_SOUND_SAMPLES 16
+#define CAMPAIGN_SOUND_ACTION_NONE 0
+#define CAMPAIGN_SOUND_ACTION_KILL 1
+#define CAMPAIGN_SOUND_ACTION_UNLINK 2
 
 typedef struct campaign_env_state
 {
@@ -167,6 +182,22 @@ typedef struct campaign_env_request
 	float lightning_time_of_day;
 	int lightning_have_frames;
 	int lightning_frames;
+	/* SOUND_LIFETIME_INIT (soundeff.c set_local_sound_effect_sample_indices): whether the effect loops, whether it is a MUSIC sound, and the sequence's samples by value (the sample descriptor's rate and size, as
+	   the ints the sound database holds); SOUND_LIFETIME_UPDATE (se_updt.c update_server / update_client): the routine, the frame delta, the effect's validity, whether it loops, its lifetime and valid lifetime as stored, whether
+	   it holds a playback handle and, only once the host has asked for it, whether that handle is still playing */
+	int sound_looping;
+	int sound_music;
+	int sound_count;
+	int sound_rate[CAMPAIGN_SOUND_SAMPLES];
+	int sound_size[CAMPAIGN_SOUND_SAMPLES];
+	int sound_server;
+	int sound_valid;
+	int sound_has_handle;
+	int sound_have_playing;
+	int sound_playing;
+	float sound_delta;
+	float sound_lifetime;
+	float sound_valid_lifetime;
 } campaign_env_request;
 
 typedef struct campaign_env_reply
@@ -193,6 +224,13 @@ typedef struct campaign_env_reply
 	int lightning_slot;
 	int lightning_need_frames;
 	campaign_lightning_strike lightning_queue[CAMPAIGN_LIGHTNING_SLOTS];
+	/* SOUND_LIFETIME_INIT: the effect's lifetime; SOUND_LIFETIME_UPDATE: the lifetime and valid lifetime after the update, whether a valid effect's lifetime went below zero, the decision (none, kill the entity,
+	   unlink it from the update list and release its handle) or that the host needs to know whether the handle is still playing (nothing was changed) */
+	float sound_lifetime;
+	float sound_valid_lifetime;
+	int sound_expired;
+	int sound_action;
+	int sound_need_playing;
 } campaign_env_reply;
 
 typedef int (*campaign_env_fn)
@@ -244,5 +282,14 @@ int campaign_env_step (struct SESSION *raw, int in_cockpit, const float *camera,
    of the strike animation through frames_of (called only when the host needs it, where the original read it). */
 int campaign_lightning_add (int type, float length, float x, float z, int environment_active, float time_of_day, campaign_lightning_strike *mirror);
 void campaign_lightning_update (float time_of_day, int (*frames_of) (void), campaign_lightning_strike *mirror);
+
+/* The physical lifetime of a sound effect (soundeff.c and se_updt.c).  INIT: the sum of the samples' durations, the cap (40 s; 300 s for MUSIC) and the looping case, from the sample descriptors the campaign hands over by value.
+   UPDATE: the aging of a valid effect by the frame delta, the server's expiry decision (kill when there is no handle or the handle is not playing), the client's clamp at zero, and the countdown and
+   unlink of an invalid effect.  The campaign keeps the stored fields (the pause and resume functions, the network pack and unpack and the observer read and write them), hands them over by value, checks the
+   answer against the request and applies it: writes both lifetimes, then kills the entity or unlinks it from the update list and releases its handle.  The sound database (the descriptors), the playback handle and the
+   device stay the campaign's: playing_of is called only when the host asks whether a handle is still playing.  A missing provider, a refusal or a malformed answer stops the engine with an error that names
+   the environment provider; there is no campaign arithmetic to fall back to. */
+float campaign_sound_lifetime_init (int looping, int music, int count, const int *rate, const int *size);
+void campaign_sound_lifetime_update (int server, float delta, int valid, int looping, float *lifetime, float *valid_lifetime, void *handle, int (*playing_of) (void *handle), int *expired, int *action);
 
 #endif

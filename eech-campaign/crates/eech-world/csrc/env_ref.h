@@ -95,4 +95,15 @@ int env_ref_lightning_update (env_ref *field, const float *in_f, const int *in_i
 /* the queue as it stands (ENV_REF_STRIKES slots), as plain bits */
 int env_ref_lightning_queue (const env_ref *field, env_ref_strike *out, char *error, size_t error_size);
 
+/* The PHYSICAL LIFETIME of a sound effect (EEDCS-51, D3; soundeff.c and se_updt.c).  No state is kept: the stored fields travel by value.  The samples of a sequence: ENV_REF_SOUND_SAMPLES at most. */
+#define ENV_REF_SOUND_SAMPLES 16
+
+/* set_local_sound_effect_sample_indices: in_i = { looping, music, count, rate[ENV_REF_SOUND_SAMPLES], size[ENV_REF_SOUND_SAMPLES] } (the sample database's ints); out_lifetime = the effect's lifetime.  CANONICAL arithmetic environment. */
+int env_ref_sound_init (const int *in_i, float *out_lifetime, char *error, size_t error_size);
+
+/* one call of update_server (in_i[0] set) or update_client: in_f = { delta, lifetime, valid lifetime }, in_i = { server, valid, looping, has handle, have playing, playing };
+   out_f = { lifetime, valid lifetime }, out_i = { expired, action (0 none, 1 kill, 2 unlink), need playing }.  need playing = 1 (nothing changed) when a server's expired effect holds a handle and the campaign has not
+   said whether it is playing.  CANONICAL arithmetic environment; the floats are read inside the guard from memory. */
+int env_ref_sound_update (const float *in_f, const int *in_i, float *out_f, int *out_i, char *error, size_t error_size);
+
 #endif
