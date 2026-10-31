@@ -1,0 +1,99 @@
+{
+  "review_id": "ENV-AMBIENT-AUTHORITY-SOURCE-8D0-20261031",
+  "reviewed_utc": "2026-10-31T15:58:34.8503490Z",
+  "reviewer": "Sole independent Codex reviewer; no nested agents",
+  "scope": "One finite new public ambient-authority Lua/Rust judge/docs correctness, clean-code, boundary and evidence pass from d559 to 8d0. No production, G11, numeric, FP or old kernel re-review; no builds, runs, source edits, process changes, Docker or public writes.",
+  "source": {
+    "repository": "R:/d3-evidence/environment-services-20261030",
+    "base": "d559c38592405afcabc172ec876a4fdfa7f9687b",
+    "head": "8d0c7bb69ef3f8593ced7c443227aa6839ab15fa",
+    "tree": "78b41bb662828778a72ab05f97278791e9df9703",
+    "clean": true,
+    "identities": [
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-ambient-authority.lua",
+        "blob": "d97bd3150b28da8fada3ebf5b20aa0838b16518e",
+        "sha256": "a32f411e30e8e64ab5e5583f699a5084ac9a6059d7f81373333e7a12fbebb1f5"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_ambient_authority.rs",
+        "blob": "71874659b0d8c52034f1a3cdc12170da552fc478",
+        "sha256": "3b6c709dfcdf8839020789514cc33cc0dfacde945da1e594b36297bace8cb92e"
+      },
+      {
+        "path": "eech-campaign/docs/d3-environment-sound-routine.md",
+        "blob": "550f24d46ed35f9fcd25278fdf9ec85d72d9527f",
+        "sha256": "d76f0ee22dc56fa3386db7eb4ce5989ff5f6e9354574dc0809ada971571e0a7b"
+      },
+      {
+        "path": "STATUS.md",
+        "blob": "2f33114e2d685247c6e2a0a075b812a70410567e",
+        "sha256": "66a2aa38441c90fb271e4f086f46ba4c1619b9672d68f690f48f70b4099e9047"
+      }
+    ],
+    "changed_scope": "New Lua driver and Rust judge/harness; docs/status and safe prior G12 closure receipts. All tracked production runtime C/Rust/private ABI/providers and G11 unchanged."
+  },
+  "reused_review": {
+    "path": "R:/d3-evidence/independent-environment-G12-correction-review-d559c3859-20261031.json",
+    "sha256": "4cbd6867393c961cf79f93da596dd55cc7d69d577bb68ba91d4c7b269cf236c6",
+    "scope": "Prior production/G11 numeric, FP and corrected G12 source/real-control evidence reused. None establishes this new witness."
+  },
+  "findings": [
+    {
+      "id": "ENV-AMBIENT-AUTHORITY-1",
+      "priority": "P1",
+      "title": "Healthy real child lists are rejected because the judge assumes attachment-call order",
+      "locations": [
+        "eech-campaign/crates/eech-world/tests/env_ambient_authority.rs:48",
+        "eech-campaign/crates/eech-world/tests/env_ambient_authority.rs:350",
+        "eech-campaign/crates/eech-world/tests/env_ambient_authority.rs:599",
+        "eech-campaign/crates/eech-world/tests/env_ambient_authority.rs:667"
+      ],
+      "evidence": "NAMES is light_rain, heavy_rain, light_wind, heavy_wind, sea, jungle, amb1, amb2, amb3, amb4. judge_complete requires the actual child-name vector to equal it exactly. However the real constructor inserts at the head; the unchanged characterized G11 case27 child vector is amb4, amb3, amb2, amb1, jungle, sea, heavy_wind, light_wind, heavy_rain, light_rain. Read-only inspection of the retained actual original case27 confirms those names; no new native run was performed. Scripted collaborators manufacture the forward vector and six forward terrain classes, so their healthy tests conceal the mismatch.",
+      "impact": "The first real healthy control fails before host-answer/consumer-word authority can be judged. Changed healthy modes likewise cannot pass. This is a witness error, not a production amplitude defect.",
+      "requested_change": "Use the genuine G11 list order and serialized ordinal/subtype/class facts. Make scripted healthy records and terrain questions match the real order, preserving the request-order-to-child-word mapping and distinct per-child changes. Do not reverse production physics or alter baselines. Retain a guard that wrong order/class mapping fails."
+    },
+    {
+      "id": "ENV-AMBIENT-AUTHORITY-2",
+      "priority": "P2",
+      "title": "The finite fixture and JSON protocol is not fully validated or reconciled",
+      "locations": [
+        "eech-campaign/crates/eech-world/lua/env-ambient-authority.lua:231",
+        "eech-campaign/crates/eech-world/lua/env-ambient-authority.lua:246",
+        "eech-campaign/crates/eech-world/tests/env_ambient_authority.rs:172",
+        "eech-campaign/crates/eech-world/tests/env_ambient_authority.rs:197",
+        "eech-campaign/crates/eech-world/tests/env_ambient_authority.rs:214",
+        "eech-campaign/crates/eech-world/tests/env_ambient_authority.rs:282",
+        "eech-campaign/docs/d3-environment-sound-routine.md"
+      ],
+      "evidence": [
+        "Lua collects exactly one env-sound-session row but never parses its selected-case i or session_unchanged_by_the_routine flag. Changing that row to another case or removing its flag does not affect success. Its before-child parser permits an empty vector and only compares after-list lengths; child ordinals and subtypes need not match the preceding vector, and rng_unchanged is not validated as 0/1.",
+        "Rust Child drops the serialized ordinal and subtype after only checking that they parse, so replacing numeric child ordinals/subtypes with duplicates leaves the mapping verdict unchanged. Facts ignores case.raw, children_before and restored and does not reconcile summary fields with the retained fixture text. Removing or changing only case.raw has no effect.",
+        "Facts requires the existence of a plan row but never validates its version/camera/completeness/selected-case facts. Ambient row n is neither parsed nor checked, and provider row ordering is not reconciled. A forged n or incomplete plan can therefore have the same verdict.",
+        "The fixed selected case27 has exactly one real call, but Lua accepts 1..8 and Rust accepts arbitrary positive calls; the recorder retains only the first four and judge_complete calls the last retained row the last answer. A coherent forged multi-call record can avoid the intended selected-case constraint.",
+        "Changed-mode judges do not check run.mode against the requested changed mode. The environment-variable documentation offers case6, while the public judge explicitly accepts only27; configuration and claimed coverage should agree."
+      ],
+      "impact": "The docs promise missing/truncated/dropped evidence cannot pass and mapping reaches the real corresponding children, but malformed or mismatched records can be treated as healthy. After fixing the real-order failure, the current finite guards still do not establish the stated protocol completeness.",
+      "requested_change": "Validate the actual finite G11 grammar before emitting case facts: selected case/label and exact call count, consecutive ordinal/subtype/class mapping across before and call vectors, one current-i session row with a 0/1 flag, valid required call/restoration fields. Have Facts require and reconcile the raw fixture record with JSON case fields, meaningful plan/envelope identity, provider n/order and counters, and expected mode; preserve refusal runs with no case row or post-stop observations. Add finite damaged-record guards for these concrete bypasses, and align optional-case documentation with supported judge scope. No new trace or physics framework is needed."
+    }
+  ],
+  "inspected_facts": [
+    "The seven modes are bounded fixture controls. Providers are armed immediately before the selected G11 call and only op=ambient is altered; other operations delegate to the reference unchanged. There is no post-stop observer query or invented healthy completion after an engine guard.",
+    "Changed environment answers use finite distinct dyadics; terrain answers use distinct per-request amplitudes. The intended judge compares actual child words with recorded provider replies and requires a change from control, which is stronger than request counting. These checks should be retained while correcting the findings.",
+    "Specific refusal markers agree with the existing Lua bridge ambient.callback/ambient.answer/ambient.amplitudes grammar. Refusal checks require a matching alteration and a stopped engine with no case row; no general campaign, speaker, player or render claim is justified.",
+    "Output write/flush/close failures propagate and witness failures are rejected. The bounded runner uses one owned child with concurrent bounded pipe tails; the timeout guard uses the test executable rather than shell descendants. No new source-specific process-control blocker found in this bounded single-child scope.",
+    "Scripted provider/engine collaborators test bookkeeping, not native physics or ownership. Public-path SKIPPED is explicit when assets are absent. Any real evidence must pin the new embedded Lua/judge and unchanged d559 native separately; prior d559 payload identity is not this new witness execution."
+  ],
+  "evidence": {
+    "actual_original_names_source": "R:/d3-evidence/environment-ambient-original-nativec0b-driver21ba-lebanon-20261031/environment.jsonl, selected original G11 case27; only class-name order inspected, closed original characterization otherwise reused",
+    "G11_serializer": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c:1410 prints ordinal:subtype:class:word; lines1769/1781 print selected-case call and session rows. Inspected only to validate the NEW witness grammar.",
+    "runtime": "New 8d0 Linux guards/strict and Windows judge build/export pending Root at review close; no new compiler/runtime success inferred. No real seven-mode result accepted."
+  },
+  "limitations": [
+    "Source-only finding batch; no tests or product runs executed by reviewer. Findings are source-specific control-flow/dataflow facts, not measured new runtime outcomes.",
+    "Production/G11/original/FP/G12 evidence retained and reused, no baseline/tolerance changes requested.",
+    "No raw retail coordinates, scratch flags or amplitude records reproduced in this report.",
+    "Whole Task51/D3 remains open: remaining sound/effects/time/terrain/spatial/model, full shipping40/all8, authority, review/currentCI/merges. D4/D5 unstarted. No audible/player/render/Tacview/general DCS acceptance."
+  ],
+  "verdict": "Two finite blocking witness groups. Correct genuine list-order handling and protocol reconciliation before treating any seven-mode output as accepted authority evidence."
+}

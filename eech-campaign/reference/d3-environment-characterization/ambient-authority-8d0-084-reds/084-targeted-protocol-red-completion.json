@@ -1,0 +1,18 @@
+{
+  "source": "084e1de349a3150624936892495cd4bb628b75c5",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-ambient-judge-084e1de34-linux-20261031.sh"
+  ],
+  "pid": 21100,
+  "controller_pid": 24504,
+  "state": "terminal",
+  "started_utc": "2026-10-31T16:05:31.917118+00:00",
+  "scope": "ONLY new focused P2 protocol red, fmt then selected test; old ancillary guard and strict phases NOT RUN. Scripted collaborators/bookkeeping, no native/retail campaign.",
+  "actual_exit": 101,
+  "completed_utc": "2026-10-31T16:07:08.941120+00:00"
+}

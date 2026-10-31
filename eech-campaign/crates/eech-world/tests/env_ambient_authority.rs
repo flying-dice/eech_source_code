@@ -16,7 +16,7 @@
 //!   EECH_AMBIENT_ROOTS        fresh verified installation roots, one per mode run (an OS path list), at least as many as the modes run
 //!   EECH_AMBIENT_MODES        optional: the modes to run, comma separated (the control is always run first); default: all seven
 //!   EECH_AMBIENT_SCENARIO     optional: lebanon_retail (default) or georgia_retail
-//!   EECH_AMBIENT_CASE         optional: the group 11 case, 27 (default) or 6
+//!   EECH_AMBIENT_CASE         optional: the group 11 case; only 27 (the default), the one-call case, is judged
 //!   EECH_AMBIENT_DIR          optional: a directory for the outputs (private; they contain map data and never belong in Git)
 //!   EECH_AMBIENT_WALL_SECONDS optional: the wall limit of ONE mode's process, 1 to 14400 seconds (default 3600)
 //!
@@ -44,18 +44,19 @@ const ALL_MODES: [&str; 7] = [
 ];
 const CASE: i64 = 27;
 const LABEL: &str = "terrain_sea_rising_from_zero";
-/// The ten ambient children in the order the campaign attaches them.
+/// The ten ambient children in the order the REAL session list holds them (characterized group 11, case 27). The constructor inserts each new sound child at the HEAD of the list, so this is the reverse of the order
+/// the campaign attaches them: the six terrain children (ordinals 0 to 5) come first, the four rain and wind children (ordinals 6 to 9) last. The records carry ordinal:subtype:class:word, never an entity id.
 const NAMES: [&str; 10] = [
-    "light_rain",
-    "heavy_rain",
-    "light_wind",
-    "heavy_wind",
-    "sea",
-    "jungle",
-    "amb1",
-    "amb2",
-    "amb3",
     "amb4",
+    "amb3",
+    "amb2",
+    "amb1",
+    "jungle",
+    "sea",
+    "heavy_wind",
+    "light_wind",
+    "heavy_rain",
+    "light_rain",
 ];
 /// The terrain classes 0 to 5 of the terrain provider's question, as the children they ask about.
 const CLASS_NAMES: [&str; 6] = ["sea", "jungle", "amb1", "amb2", "amb3", "amb4"];
@@ -97,8 +98,11 @@ struct TerrainRow {
     amplitudes: String,
 }
 
+/// One entry of a fixture child list: the slot (ordinal), the sub type, the class and the amplification word.
 #[derive(Clone, Debug)]
 struct Child {
+    ordinal: u32,
+    sub: u32,
     name: String,
     word: String,
 }
@@ -107,6 +111,8 @@ struct Child {
 struct CaseRow {
     label: String,
     calls: i64,
+    /// The list before the routine ran (words are the start values) and the list after the last call, slot for slot.
+    before: Vec<Child>,
     children: Vec<Child>,
 }
 
@@ -169,27 +175,189 @@ fn single(value: &str) -> Result<f32, String> {
     Ok(narrowed)
 }
 
+fn hex_word(value: &str, digits: usize) -> bool {
+    value.len() == digits && value.chars().all(|c| c.is_ascii_digit() || ('a'..='f').contains(&c))
+}
+
+/// One fixture child list, `ordinal:sub type:class:word,...`: not empty, the classes are the ten ambient classes, the words eight lowercase hex digits and the ordinals the consecutive slots 0, 1, 2 ... (the records
+/// carry no entity id).
 fn children_of(value: &str) -> Result<Vec<Child>, String> {
-    value
+    let children: Vec<Child> = value
         .split(',')
         .map(|entry| {
             let parts: Vec<&str> = entry.split(':').collect();
             match parts.as_slice() {
-                [index, sub, name, word]
-                    if index.parse::<u32>().is_ok()
-                        && sub.parse::<u32>().is_ok()
-                        && word.len() == 8
-                        && word.chars().all(|c| c.is_ascii_digit() || ('a'..='f').contains(&c)) =>
-                {
+                [ordinal, sub, name, word] if ordinal.parse::<u32>().is_ok() && sub.parse::<u32>().is_ok() && NAMES.contains(name) && hex_word(word, 8) => {
                     Ok(Child {
+                        ordinal: ordinal.parse().unwrap_or_default(),
+                        sub: sub.parse().unwrap_or_default(),
                         name: (*name).to_string(),
                         word: (*word).to_string(),
                     })
                 }
-                _ => Err(format!("a child entry {entry:?} is not index:sub type:class:eight lowercase hex digits")),
+                _ => Err(format!(
+                    "a child entry {entry:?} is not ordinal:sub type:class:eight lowercase hex digits of an ambient class"
+                )),
             }
         })
-        .collect()
+        .collect::<Result<_, _>>()?;
+    for (slot, child) in children.iter().enumerate() {
+        if usize::try_from(child.ordinal).ok() != Some(slot) {
+            return Err(format!(
+                "the ordinal {} is in slot {slot}: the ordinals of a child list are not consecutive from 0",
+                child.ordinal
+            ));
+        }
+    }
+    Ok(children)
+}
+
+/// The list before and the list after a call hold the same sub type and class in every slot: only the amplification words may differ.
+fn same_slots(before: &[Child], after: &[Child]) -> Result<(), String> {
+    if before.len() != after.len() {
+        return Err(format!("the call lists {} children for the {} listed before it", after.len(), before.len()));
+    }
+    for (b, a) in before.iter().zip(after) {
+        if (b.sub, &b.name) != (a.sub, &a.name) {
+            return Err(format!(
+                "slot {} is {}:{} after the call but {}:{} before it",
+                b.ordinal, a.sub, a.name, b.sub, b.name
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn fields_of(line: &str) -> std::collections::HashMap<&str, &str> {
+    line.split_whitespace().filter_map(|part| part.split_once('=')).collect()
+}
+
+fn whole(fields: &std::collections::HashMap<&str, &str>, key: &str) -> Option<i64> {
+    fields.get(key).and_then(|value| value.parse().ok())
+}
+
+/// A 0/1 fact of the original (a 0 is a fact about the original that the record keeps; any other value is not a record of the fixture).
+fn bool_fact(fields: &std::collections::HashMap<&str, &str>, key: &str, row: &str) -> Result<(), String> {
+    match fields.get(key) {
+        Some(&"0") | Some(&"1") => Ok(()),
+        _ => Err(format!("{key} is not 0 or 1 in {row:?}")),
+    }
+}
+
+/// The one call of case 27: the routine ran once, so each provider is asked once.
+const CALLS: i64 = 1;
+const RESTORATION: [&str; 6] = [
+    "restored",
+    "children_restored",
+    "scratch_restored",
+    "camera_restored",
+    "cloud_restored",
+    "in_cockpit_restored",
+];
+
+/// The fixture's own record of the case, validated with the grammar the driver enforces on it (a second, independent gate on the retained `raw`): the case head, exactly one call row, exactly one session row, the
+/// restoration record; the lists before and after the call, slot for slot.
+struct Record {
+    label: String,
+    calls: i64,
+    children_before: String,
+    children: String,
+    before: Vec<Child>,
+    after: Vec<Child>,
+}
+
+fn raw_record(raw: &str, case: i64) -> Result<Record, String> {
+    let lines: Vec<&str> = raw.split('\n').collect();
+    let [head, middle @ .., end] = lines.as_slice() else {
+        return Err("the raw fixture record has fewer than two rows".into());
+    };
+    let h = fields_of(head);
+    if !head.starts_with("env-sound kind=original ") || whole(&h, "i") != Some(case) || h.contains_key("refused") {
+        return Err(format!(
+            "the raw fixture record does not begin with the original's row of case {case}: {head:?}"
+        ));
+    }
+    let calls = whole(&h, "calls").ok_or("the raw fixture record has no number of calls")?;
+    if calls != CALLS {
+        return Err(format!("the raw fixture record is of {calls} calls, not the {CALLS} call of case {case}"));
+    }
+    let [call_row, session_row] = middle else {
+        return Err(format!(
+            "the raw fixture record has {} rows between its head and its end, not one call row and one session row",
+            middle.len()
+        ));
+    };
+    let c = fields_of(call_row);
+    if !call_row.starts_with("env-sound-call ") || whole(&c, "i") != Some(case) || whole(&c, "call") != Some(1) {
+        return Err(format!("the raw fixture record has no call row 1 of case {case}: {call_row:?}"));
+    }
+    bool_fact(&c, "rng_unchanged", call_row)?;
+    let s = fields_of(session_row);
+    if !session_row.starts_with("env-sound-session ") || whole(&s, "i") != Some(case) {
+        return Err(format!(
+            "the raw fixture record has a session row of another case or without its index: {session_row:?}"
+        ));
+    }
+    bool_fact(&s, "session_unchanged_by_the_routine", session_row)?;
+    let e = fields_of(end);
+    if !end.starts_with("env-sound-end ") || whole(&e, "i") != Some(case) {
+        return Err(format!(
+            "the raw fixture record does not end with the restoration record of case {case}: {end:?}"
+        ));
+    }
+    for name in RESTORATION {
+        if e.get(name) != Some(&"1") {
+            return Err(format!("FIXTURE DEFECT: {name} is not 1 after the case: {end:?}"));
+        }
+    }
+    match (e.get("fp_before"), e.get("fp_after")) {
+        (Some(before), Some(after)) if hex_word(before, 16) && before == after => {}
+        _ => return Err(format!("FIXTURE DEFECT: the state fingerprints are not two equal 16-digit words: {end:?}")),
+    }
+    let children_before = h.get("children_before").ok_or("the raw fixture record has no children_before")?;
+    let children = c.get("children").ok_or("the raw fixture record has no children after the call")?;
+    let (before, after) = (children_of(children_before)?, children_of(children)?);
+    same_slots(&before, &after)?;
+    // the fixture's setup: the rain and wind children at the sentinel, the terrain children at the case's start value
+    let amp0 = h
+        .get("amp0_w")
+        .filter(|value| hex_word(value, 8))
+        .ok_or("the raw fixture record has no eight-digit amp0_w")?;
+    for child in &before {
+        let rain_wind = ["light_rain", "heavy_rain", "light_wind", "heavy_wind"].contains(&child.name.as_str());
+        let start: &str = if rain_wind { "3f200000" } else { amp0 };
+        if child.word != start {
+            return Err(format!("FIXTURE DEFECT: the child {} started at {}, not {start}", child.name, child.word));
+        }
+    }
+    Ok(Record {
+        label: h.get("label").ok_or("the raw fixture record has no label")?.to_string(),
+        calls,
+        children_before: (*children_before).to_string(),
+        children: (*children).to_string(),
+        before,
+        after,
+    })
+}
+
+/// The plan row: its summary reconciles with the retained plan line, which is a version 1 plan with a camera, complete, of the ten ambient children and of at least the selected case.
+fn check_plan(plan: &Value, case: i64) -> Result<(), String> {
+    let raw = text(plan, "raw")?;
+    let p = fields_of(&raw);
+    let (cases, children) = (whole(&p, "cases"), whole(&p, "children"));
+    if !raw.starts_with("env-sound-plan version=1 ")
+        || p.get("camera") != Some(&"1")
+        || p.get("complete") != Some(&"1")
+        || cases != Some(int(plan, "cases")?)
+        || children != Some(int(plan, "children")?)
+        || children != i64::try_from(NAMES.len()).ok()
+        || !matches!(cases, Some(cases) if (case..=64).contains(&cases))
+    {
+        return Err(format!(
+            "the plan {raw:?} is not a complete version 1 plan with a camera, the ten ambient children and the selected case {case}, or its summary does not agree with it"
+        ));
+    }
+    Ok(())
 }
 
 impl Facts {
@@ -199,7 +367,7 @@ impl Facts {
             return Err(format!("the witness itself failed: {}", failure["reason"].as_str().unwrap_or("no reason")));
         }
         let boot = one(&rows, "boot")?;
-        one(&rows, "plan")?;
+        let plan_row = one(&rows, "plan")?;
         let authority = one(&rows, "authority")?.clone();
         let mode = text(boot, "mode")?;
         if text(&authority, "mode")? != mode {
@@ -209,25 +377,44 @@ impl Facts {
         if int(&authority, "case")? != case {
             return Err("the authority row is for another case than the boot row".into());
         }
+        check_plan(plan_row, case)?;
         let mut env = Vec::new();
         let mut terrain = Vec::new();
-        for row in of(&rows, "ambient") {
+        for (position, row) in of(&rows, "ambient").into_iter().enumerate() {
+            // the rows are the first questions of each provider, numbered from 1, the environment's before the terrain's in each call
+            let ordinal = int(row, "n")?;
             match row["provider"].as_str() {
-                Some("env") => env.push(EnvRow {
-                    sent: boolean(row, "sent")?,
-                    reply: [
-                        text(row, "rain_light")?,
-                        text(row, "rain_heavy")?,
-                        text(row, "wind_light")?,
-                        text(row, "wind_heavy")?,
-                    ],
-                }),
-                Some("terrain") => terrain.push(TerrainRow {
-                    sent: boolean(row, "sent")?,
-                    count: int(row, "count")?,
-                    classes: text(row, "classes")?,
-                    amplitudes: text(row, "amplitudes")?,
-                }),
+                Some("env") => {
+                    if ordinal != i64::try_from(env.len() + 1).unwrap_or(i64::MAX) || position % 2 != 0 {
+                        return Err(format!(
+                            "the environment ambient row {} has the ordinal {ordinal} at position {position}: the rows are numbered from 1 and alternate environment, terrain",
+                            env.len() + 1
+                        ));
+                    }
+                    env.push(EnvRow {
+                        sent: boolean(row, "sent")?,
+                        reply: [
+                            text(row, "rain_light")?,
+                            text(row, "rain_heavy")?,
+                            text(row, "wind_light")?,
+                            text(row, "wind_heavy")?,
+                        ],
+                    })
+                }
+                Some("terrain") => {
+                    if ordinal != i64::try_from(terrain.len() + 1).unwrap_or(i64::MAX) || position % 2 != 1 {
+                        return Err(format!(
+                            "the terrain ambient row {} has the ordinal {ordinal} at position {position}: the rows are numbered from 1 and alternate environment, terrain",
+                            terrain.len() + 1
+                        ));
+                    }
+                    terrain.push(TerrainRow {
+                        sent: boolean(row, "sent")?,
+                        count: int(row, "count")?,
+                        classes: text(row, "classes")?,
+                        amplitudes: text(row, "amplitudes")?,
+                    })
+                }
                 other => return Err(format!("an ambient row has the provider {other:?}")),
             }
         }
@@ -273,9 +460,38 @@ impl Facts {
                 "incoherent counters: altered {env_altered}/{terrain_altered} of {env_requests}/{terrain_requests} requests"
             ));
         }
+        // the order of the evidence: boot, plan, the ambient questions, the case (if the fixture returned), the authority row
+        let events: Vec<&str> = rows.iter().map(|row| row["event"].as_str().unwrap_or_default()).collect();
+        let ordered = match events.as_slice() {
+            ["boot", "plan", middle @ .., "authority"] => {
+                let questions = middle.iter().take_while(|event| **event == "ambient").count();
+                matches!(&middle[questions..], [] | ["case"])
+            }
+            _ => false,
+        };
+        if !ordered {
+            return Err(format!(
+                "the rows are not in the order boot, plan, ambient questions, case, authority: {events:?}"
+            ));
+        }
         let completed = authority["completed"]
             .as_bool()
             .ok_or("the authority row does not say whether the run completed")?;
+        // the envelope: a known mode, the marker that mode expects (none for the control and the changed modes), a failure text exactly when the engine stopped
+        if !ALL_MODES.contains(&mode.as_str()) {
+            return Err(format!("the run is for the unknown mode {mode:?}"));
+        }
+        let marker = text(&authority, "expected_marker")?;
+        if marker != refusal(&mode).unwrap_or_default() {
+            return Err(format!("the authority row expects the marker {marker:?}, not the one of mode {mode}"));
+        }
+        if completed != text(&authority, "failure")?.is_empty() {
+            return Err(format!(
+                "a run that {} carries the failure text {:?}",
+                if completed { "completed" } else { "was stopped" },
+                authority["failure"]
+            ));
+        }
         let cases = of(&rows, "case");
         let case_row = match (completed, cases.as_slice()) {
             (true, [row]) => {
@@ -283,10 +499,22 @@ impl Facts {
                 if int(row, "i")? != case || case_calls != calls || case_calls < 1 {
                     return Err("the case row is not the selected case with the authority row's calls".into());
                 }
+                // the retained fixture record, and the summary that must agree with it field by field
+                let record = raw_record(&text(row, "raw")?, case)?;
+                let (before, children) = (text(row, "children_before")?, text(row, "children")?);
+                if record.calls != case_calls
+                    || record.label != text(row, "label")?
+                    || record.children_before != before
+                    || record.children != children
+                    || text(row, "restored")? != "1"
+                {
+                    return Err("the case row's summary does not agree with its raw fixture record, or the fixture did not restore".into());
+                }
                 Some(CaseRow {
-                    label: text(row, "label")?,
+                    label: record.label,
                     calls: case_calls,
-                    children: children_of(&text(row, "children")?)?,
+                    before: record.before,
+                    children: record.after,
                 })
             }
             (true, other) => return Err(format!("a completed run wrote {} case rows, not one", other.len())),
@@ -348,9 +576,10 @@ fn judge_complete(run: &Facts) -> Result<Expected, String> {
         return Err("the ambient request rows are not the first questions of each provider".into());
     }
     let names: Vec<&str> = case.children.iter().map(|child| child.name.as_str()).collect();
-    if names != NAMES {
+    let names_before: Vec<&str> = case.before.iter().map(|child| child.name.as_str()).collect();
+    if names != NAMES || names_before != NAMES {
         return Err(format!(
-            "the case lists the children {names:?}, not the ten ambient children in order {NAMES:?}"
+            "the case lists the children {names:?} (before the call {names_before:?}), not the ten ambient children in the real list order {NAMES:?}"
         ));
     }
     // the answers the children must hold: the LAST question of each provider
@@ -372,9 +601,17 @@ fn judge_complete(run: &Facts) -> Result<Expected, String> {
                 .ok_or_else(|| format!("class {class:?} is not one of the six"))
         })
         .collect::<Result<_, _>>()?;
+    // the terrain question is tied to the slots of the real list: the children it asked about, in the order asked, are the terrain children of the list BEFORE the call and of the list AFTER it, slot for slot
     let terrain_children: Vec<&Child> = case.children.iter().filter(|child| CLASS_NAMES.contains(&child.name.as_str())).collect();
     let listed: Vec<&str> = terrain_children.iter().map(|child| child.name.as_str()).collect();
-    if usize::try_from(terrain_row.count).ok() != Some(asked.len()) || asked != listed || amplitudes.len() != asked.len() {
+    let listed_before: Vec<(u32, u32, &str)> = case
+        .before
+        .iter()
+        .filter(|child| CLASS_NAMES.contains(&child.name.as_str()))
+        .map(|child| (child.ordinal, child.sub, child.name.as_str()))
+        .collect();
+    let listed_after: Vec<(u32, u32, &str)> = terrain_children.iter().map(|child| (child.ordinal, child.sub, child.name.as_str())).collect();
+    if usize::try_from(terrain_row.count).ok() != Some(asked.len()) || asked != listed || listed_before != listed_after || amplitudes.len() != asked.len() {
         return Err(format!(
             "the terrain provider was asked about {asked:?} ({} children) and answered {} amplitudes, but the session lists {listed:?}",
             terrain_row.count,
@@ -431,6 +668,9 @@ fn judge_control(control: &Facts) -> Result<Expected, String> {
 }
 
 fn judge_changed_env(control: &Facts, reference: &Expected, run: &Facts) -> Result<(), String> {
+    if run.mode != "changed_env_ambient" {
+        return Err(format!("the run is for mode {}, not changed_env_ambient", run.mode));
+    }
     matched(control, run)?;
     let got = judge_complete(run)?;
     let requests = run.number("env_ambient_requests");
@@ -457,6 +697,9 @@ fn judge_changed_env(control: &Facts, reference: &Expected, run: &Facts) -> Resu
 }
 
 fn judge_changed_terrain(control: &Facts, reference: &Expected, run: &Facts) -> Result<(), String> {
+    if run.mode != "changed_terrain_ambient" {
+        return Err(format!("the run is for mode {}, not changed_terrain_ambient", run.mode));
+    }
     matched(control, run)?;
     let got = judge_complete(run)?;
     let requests = run.number("terrain_ambient_requests");
@@ -596,7 +839,10 @@ local function word (v)
 	local m, e = math.frexp (v)
 	return string.format ("%08x", (e - 1 + 127) * 8388608 + (m * 2 - 1) * 8388608)
 end
-local NAMES = { "light_rain", "heavy_rain", "light_wind", "heavy_wind", "sea", "jungle", "amb1", "amb2", "amb3", "amb4" }
+-- the REAL list order of group 11 (the constructor inserts at the head of the session list: the reverse of the attach order), each class with its own sub type
+local NAMES = { "amb4", "amb3", "amb2", "amb1", "jungle", "sea", "heavy_wind", "light_wind", "heavy_rain", "light_rain" }
+local SUB = { light_rain = 20, heavy_rain = 21, light_wind = 22, heavy_wind = 23, sea = 24, jungle = 25, amb1 = 26, amb2 = 27, amb3 = 28, amb4 = 29 }
+local CLASS = { sea = 0, jungle = 1, amb1 = 2, amb2 = 3, amb3 = 4, amb4 = 5 }
 
 host = {
 	args = ARGS,
@@ -647,8 +893,11 @@ package.preload.eech_dc = function ()
 				for _, name in ipairs { "wind_light", "wind_heavy" } do
 					if env [name] < 0 or env [name] > 1 then error ("host environment: [env-provider:ambient.answer] " .. name .. " must be within 0 to 1", 0) end
 				end
+				-- the terrain children, in the order of the session list (classes 5, 4, 3, 2, 1, 0)
 				local children = {}
-				for class = 0, 5 do children [#children + 1] = { class = class, previous = 0 } end
+				for _, name in ipairs (NAMES) do
+					if CLASS [name] then children [#children + 1] = { class = CLASS [name], previous = 0 } end
+				end
 				local ok2, terrain = pcall (config.terrain, { op = "ambient", x = 1.5, z = 2.5, winter = false, alt = 140, delta = 0.25, in_cockpit = false, children = children })
 				if not ok2 then error ("host terrain: [terrain-provider:ambient.callback] " .. tostring (terrain), 0) end
 				if type (terrain) ~= "table" then error ("host terrain: [terrain-provider:ambient.answer] not a table", 0) end
@@ -657,12 +906,21 @@ package.preload.eech_dc = function ()
 				for i = 1, 6 do
 					if not finite (a [i]) then error ("host terrain: [terrain-provider:ambient.amplitudes] amplitude " .. i .. " must be a finite number", 0) end
 				end
-				local words = { word (env.rain_light), word (env.rain_heavy), word (env.wind_light), word (env.wind_heavy) }
-				for i = 1, 6 do words [#words + 1] = word (a [i]) end
+				-- the words each child holds after the routine: the rain and wind children the environment's levels, each terrain child the amplitude asked of it, in the order of the list
+				local level = { light_rain = word (env.rain_light), heavy_rain = word (env.rain_heavy), light_wind = word (env.wind_light), heavy_wind = word (env.wind_heavy) }
+				local words, asked = {}, 0
+				for i, name in ipairs (NAMES) do
+					if CLASS [name] then
+						asked = asked + 1
+						words [i] = word (a [asked])
+					else
+						words [i] = level [name]
+					end
+				end
 				local before, after = {}, {}
 				for i, name in ipairs (NAMES) do
-					before [i] = string.format ("%d:%d:%s:%s", i - 1, 19 + i, name, i <= 4 and "3f200000" or "00000000")
-					after [i] = string.format ("%d:%d:%s:%s", i - 1, 19 + i, name, SCENARIO.after_word and i == SCENARIO.after_word.at and SCENARIO.after_word.value or words [i])
+					before [i] = string.format ("%d:%d:%s:%s", i - 1, SUB [name], name, CLASS [name] and "00000000" or "3f200000")
+					after [i] = string.format ("%d:%d:%s:%s", i - 1, SUB [name], name, SCENARIO.after_word and i == SCENARIO.after_word.at and SCENARIO.after_word.value or words [i])
 				end
 				local lines = {
 					"env-sound kind=original i=" .. index .. " label=" .. label .. " site=1 site_found=1 cockpit=0 calls=1 amp0_w=00000000 children_before=" .. table.concat (before, ","),
@@ -829,27 +1087,28 @@ fn evidence_that_is_incomplete_or_incoherent_has_no_facts_and_a_wrong_mapping_ha
         };
         assert!(error.contains(fragment), "expected {fragment:?} in {error:?}");
     };
-    // a child that does not hold what the host answered: a rain level, a wind level, a terrain amplitude, and two terrain words exchanged
+    // a child that does not hold what the host answered: a rain level, a wind level, a terrain amplitude, and two terrain words exchanged. The word is damaged in the summary AND in the raw fixture record
+    // (`replace`, every occurrence), so that the damaged record is a coherent one and it is the judge that refuses it. The terrain children are asked about in the real list order: amb4 first, sea last.
     refused(
-        healthy.replacen(&format!("heavy_wind:{}", reference_words[3]), "heavy_wind:3f800000", 1),
+        healthy.replace(&format!("heavy_wind:{}", reference_words[3]), "heavy_wind:3f800000"),
         "the heavy_wind child holds",
     );
     refused(
-        healthy.replacen(&format!("light_rain:{}", reference_words[0]), "light_rain:3f800000", 1),
+        healthy.replace(&format!("light_rain:{}", reference_words[0]), "light_rain:3f800000"),
         "the light_rain child holds",
     );
     refused(
-        healthy.replacen(&format!("sea:{}", terrain_words[0]), "sea:3f800000", 1),
-        "terrain child 0 (sea) holds",
+        healthy.replace(&format!("sea:{}", terrain_words[5]), "sea:3f800000"),
+        "terrain child 5 (sea) holds",
     );
     let exchanged = healthy
-        .replacen(&format!("amb3:{}", terrain_words[4]), "amb3:xxxxxxxx", 1)
-        .replacen(&format!("amb4:{}", terrain_words[5]), &format!("amb4:{}", terrain_words[4]), 1)
-        .replacen("amb3:xxxxxxxx", &format!("amb3:{}", terrain_words[5]), 1);
-    refused(exchanged, "terrain child 4 (amb3) holds");
-    // the classes asked about are not the children listed; a count that is not the number of amplitudes
+        .replace(&format!("amb4:{}", terrain_words[0]), "amb4:xxxxxxxx")
+        .replace(&format!("amb3:{}", terrain_words[1]), &format!("amb3:{}", terrain_words[0]))
+        .replace("amb4:xxxxxxxx", &format!("amb4:{}", terrain_words[1]));
+    refused(exchanged, "terrain child 0 (amb4) holds");
+    // the classes asked about are not the children listed (the first two exchanged); a count that is not the number of amplitudes
     refused(
-        healthy.replace("\"classes\":\"0,1,2,3,4,5\"", "\"classes\":\"0,1,2,3,5,4\""),
+        healthy.replace("\"classes\":\"5,4,3,2,1,0\"", "\"classes\":\"4,5,3,2,1,0\""),
         "the terrain provider was asked about",
     );
     refused(healthy.replace("\"count\":6", "\"count\":5"), "the terrain provider was asked about");
@@ -888,11 +1147,14 @@ fn evidence_that_is_incomplete_or_incoherent_has_no_facts_and_a_wrong_mapping_ha
             .replace("\"failure\":\"\"", "\"failure\":\"x\""),
         "wrote a case row",
     );
-    // a witness failure row is no facts at all
-    refused(
-        format!("{healthy}\n{{\"event\":\"witness_failure\",\"reason\":\"FIXTURE DEFECT\"}}"),
-        "the witness itself failed: FIXTURE DEFECT",
-    );
+    // a witness failure row is no facts at all. The driver ends every row with a newline, so the failure row is joined to the rows WITHOUT a blank record between them (a test-construction error of the first
+    // version of this test: its text had a blank row, which strict JSON refuses before the failure row is ever read)
+    let failure_row = "{\"event\":\"witness_failure\",\"reason\":\"FIXTURE DEFECT\"}";
+    refused(format!("{}\n{failure_row}", healthy.trim_end()), "the witness itself failed: FIXTURE DEFECT");
+    // and the strict-JSON refusal is intact: a blank record, a record that is not JSON and a truncated one are no facts, whatever else the text holds
+    refused(format!("{healthy}\n{failure_row}"), "a row is not strict JSON");
+    refused(format!("{}\nnot json", healthy.trim_end()), "a row is not strict JSON");
+    refused(healthy.trim_end().trim_end_matches('}').to_string(), "a row is not strict JSON");
 }
 
 #[test]
@@ -901,19 +1163,29 @@ fn the_judge_refuses_a_changed_run_that_did_not_change_what_it_claims_and_a_refu
     let reference = judge_control(&control).unwrap();
     // a changed run whose children still hold the REFERENCE's words although the sent answer was recorded: the host's answer did not reach the consumer
     let changed = run("changed_env_ambient").rows;
+    // (damaged in the summary and in the raw fixture record alike, so that the record is a coherent one that only the judge can refuse)
     let ignored = changed
-        .replacen(&format!("light_rain:{}", word(0.375)), &format!("light_rain:{}", word(0.5)), 1)
-        .replacen(&format!("heavy_rain:{}", word(0.1875)), &format!("heavy_rain:{}", word(0.25)), 1);
+        .replace(&format!("light_rain:{}", word(0.375)), &format!("light_rain:{}", word(0.5)))
+        .replace(&format!("heavy_rain:{}", word(0.1875)), &format!("heavy_rain:{}", word(0.25)));
     let facts_ignored = Facts::parse(&ignored).unwrap();
     assert!(judge_changed_env(&control, &reference, &facts_ignored)
         .unwrap_err()
         .contains("the light_rain child holds"));
     // a "changed" run that is the control, and a refusal mode judged against a healthy run
     let same = Facts::parse(&run("control").rows).unwrap();
-    assert!(judge_changed_env(&control, &reference, &same)
+    // (judged as the changed mode it is said to be, the control's own label is refused first: the mode is overridden to reach the question whether the answer was altered)
+    assert!(judge_changed_env(&control, &reference, &same).unwrap_err().contains("not changed_env_ambient"));
+    assert!(judge_changed_terrain(&control, &reference, &same)
+        .unwrap_err()
+        .contains("not changed_terrain_ambient"));
+    let mut same_env = same.clone();
+    same_env.mode = "changed_env_ambient".into();
+    assert!(judge_changed_env(&control, &reference, &same_env)
         .unwrap_err()
         .contains("not every environment answer was the alternative"));
-    assert!(judge_changed_terrain(&control, &reference, &same)
+    let mut same_terrain = same.clone();
+    same_terrain.mode = "changed_terrain_ambient".into();
+    assert!(judge_changed_terrain(&control, &reference, &same_terrain)
         .unwrap_err()
         .contains("not every terrain answer was the alternative"));
     let mut as_refusal = same.clone();
@@ -967,8 +1239,8 @@ fn the_driver_fails_distinctly_on_a_bad_fixture_text_a_missing_fixture_bad_argum
     // a child word that is not eight lowercase hex digits is a malformed record
     let short = drive("after_word = { at = 5, value = '3f8' }", &[]);
     assert!(short.result.unwrap_err().contains("malformed child entry"));
-    // the case 6 is a known case (the scripted fixture answers any index); arguments out of range or unknown are refused before anything runs
-    for (key, value) in [("mode", "sideways"), ("scenario", "mars_retail"), ("case", "5"), ("case", "nan")] {
+    // case 27 is the only selectable case (the former second option, case 6, cannot satisfy the same finite one-call contract and is gone); arguments out of range or unknown are refused before anything runs
+    for (key, value) in [("mode", "sideways"), ("scenario", "mars_retail"), ("case", "5"), ("case", "6"), ("case", "nan")] {
         let refused = drive("", &[(key, value)]);
         assert!(refused.result.unwrap_err().contains("env-ambient-authority:"), "{key}={value}");
         assert!(refused.rows.is_empty(), "{key}={value}: nothing was written");
@@ -1235,9 +1507,10 @@ fn the_host_decides_the_ambient_amplitudes_the_sound_children_hold_and_a_wrong_h
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-// RED PREP (independent source review of 8d0c7bb69, group 2: the finite fixture and JSON protocol is not fully validated or reconciled). The CURRENT driver and judge are unchanged; this test is new and is
-// expected to FAIL on them, naming every genuinely damaged record they still accept. Case 27 has exactly one call of the routine; the scripted engine keeps the forward child order of the CURRENT scripted
-// healthy records (the review's group 1, the real constructor's reversed order, is reproduced separately by Root on the real fixture and does not matter for this test).
+// PROTOCOL GUARD (independent source review of 8d0c7bb69, group 2: the finite fixture and JSON protocol must be fully validated and reconciled). It was added as a RED PREP on 084e1de34 and ACTUALLY FAILED there
+// (Root: 28 of 28 genuinely damaged records ACCEPTED). The correction (UNBUILT, UNRUN, UNREVIEWED) makes the driver and the judge refuse every one of them; the 28 damages and their assertions are unchanged except that
+// the driver-level edits address the tuples of the corrected scripted record, which now holds the REAL list order of group 11 (the review's group 1: amb4, amb3, amb2, amb1, jungle, sea, heavy_wind, light_wind,
+// heavy_rain, light_rain, ordinals 0 to 9) instead of the attach order.
 
 /// The rows with each row edited in place (strict JSON in, strict JSON out: no row is blank or malformed, so nothing here can be refused for its FORM).
 fn edit_rows(text: &str, edit: impl Fn(&mut Value)) -> String {
@@ -1270,7 +1543,7 @@ fn incomplete_real_case_or_json_witness_records_are_refused() {
         }
     };
 
-    // ---- (1) the REAL fixture's record (case 27, one call), damaged where the CURRENT driver reads it: it must refuse each as a witness failure
+    // ---- (1) the REAL fixture's record (case 27, one call), damaged where the driver reads it: it must refuse each as a witness failure
     let driver_damage: [(&str, &str); 8] = [
         ("session row of another case", "lines [3] = string.gsub (lines [3], 'i=27', 'i=26')"),
         ("session row without its 0/1 flag", "lines [3] = 'env-sound-session i=27'"),
@@ -1284,7 +1557,7 @@ fn incomplete_real_case_or_json_witness_records_are_refused() {
         ),
         (
             "children_before ordinals and subtypes that are not the call vector's",
-            "lines [1] = string.gsub (lines [1], '0:20:light_rain', '0:99:light_rain')",
+            "lines [1] = string.gsub (lines [1], '9:20:light_rain', '9:99:light_rain')",
         ),
         (
             "children_before classes that are not the call vector's",
@@ -1292,11 +1565,11 @@ fn incomplete_real_case_or_json_witness_records_are_refused() {
         ),
         (
             "call vector ordinals that are not consecutive",
-            "lines [2] = string.gsub (lines [2], '1:21:heavy_rain', '0:21:heavy_rain')",
+            "lines [2] = string.gsub (lines [2], '8:21:heavy_rain', '0:21:heavy_rain')",
         ),
         (
             "call vector subtype that is not the before vector's",
-            "lines [2] = string.gsub (lines [2], '2:22:light_wind', '2:98:light_wind')",
+            "lines [2] = string.gsub (lines [2], '7:22:light_wind', '7:98:light_wind')",
         ),
     ];
     for (name, edit) in driver_damage {
@@ -1304,7 +1577,7 @@ fn incomplete_real_case_or_json_witness_records_are_refused() {
         check(name, driven.result.is_ok() && accepted_text(&driven.rows));
     }
 
-    // ---- (2) the JSON the driver wrote, damaged where the CURRENT judge reads it (valid JSON, every row present): Facts or the judge must refuse each
+    // ---- (2) the JSON the driver wrote, damaged where the judge reads it (valid JSON, every row present): Facts or the judge must refuse each
     let case_edit = |f: fn(&mut Value)| {
         edit_rows(&healthy, move |row| {
             if row["event"] == "case" {

@@ -19,7 +19,9 @@
 --
 -- ONLY `op = "ambient"` is altered, and only while the selected case runs (armed just before it); every other operation of both providers (the weather and wind queries the fixture echoes, the sector question,
 -- the map facts) is delegated to the reference unchanged and the real host is not asked for an altered ambient question. The selected case is the fixture's group 11 case, UNCHANGED, with its per-child amplification words
--- (docs/d3-environment-sound-routine.md); default case 27 `terrain_sea_rising_from_zero` (one call of the routine, all ten ambient children present, outdoors), or 6 `rain_outdoor_altitude_90`.
+-- (docs/d3-environment-sound-routine.md); the ONE selected case is 27 `terrain_sea_rising_from_zero` (one call of the routine, all ten ambient children present, outdoors). The children are read in the order the
+-- REAL session list holds them -- the constructor inserts each new sound child at the HEAD of the list, so it is the reverse of the order the campaign attaches them: amb4, amb3, amb2, amb1, jungle, sea, heavy_wind,
+-- light_wind, heavy_rain, light_rain (the terrain provider is asked about the six terrain children in that list order, classes 5, 4, 3, 2, 1, 0). The records of group 11 carry ordinal:subtype:class:word, never an entity id.
 --
 -- WHAT THIS SHOWS AND WHAT IT DOES NOT. It shows, for the ambient amplitude of that fixture case, that the answer is the host's, mapped to the right real children in the right order, and that a withheld or malformed answer stops the
 -- campaign at the named new boundary with no fallback to a campaign solver. A refusal run stops the ENGINE (it is reported as such: the fixture never returns and no case row exists). It is a focused fixture control: it is not a real
@@ -29,7 +31,11 @@
 -- an `authority` row with completed = false and the engine's first error line; a failure of the WITNESS (a malformed fixture text, an output failure) raises an error beginning `env-ambient-authority:` after a
 -- best-effort `witness_failure` row.
 --
--- host.args: root, mode (default control), scenario (lebanon_retail default | georgia_retail), case (27 default | 6), out (JSON Lines path)
+-- The fixture's record of the selected case is validated as the mature characterization driver validates its own (plan version, camera and completeness; the case, session and call records and their 0/1 facts; the
+-- ordinal:subtype:class:word tuples before and after the call; the restoration facts and the sixteen-digit rendered-state fingerprints, which are hashes of the rendered state and not a floating-point proof) and the
+-- case row retains the raw record so that the judge can reconcile the summary with it. A malformed record is a failure of the WITNESS (a `witness_failure` row and an error), never a result.
+--
+-- host.args: root, mode (default control), scenario (lebanon_retail default | georgia_retail), case (27, the only case), out (JSON Lines path)
 
 io.stdout:setvbuf ("no")
 
@@ -50,10 +56,10 @@ local scenarios = {
 local scenario_name = args.scenario == nil and "lebanon_retail" or args.scenario
 local scenario = scenarios [scenario_name]
 if scenario == nil then refuse ("scenario must be lebanon_retail or georgia_retail, got '" .. tostring (scenario_name) .. "'") end
--- the selected characterized cases of the fixture's group 11 (csrc/eech_env_fixture.c), by index and label
-local CASES = { [27] = "terrain_sea_rising_from_zero", [6] = "rain_outdoor_altitude_90" }
+-- the selected characterized case of the fixture's group 11 (csrc/eech_env_fixture.c), by index and label: the one case with a single call of the routine and all six terrain children
+local CASES = { [27] = "terrain_sea_rising_from_zero" }
 local case = tonumber (args.case or "27")
-if not case or CASES [case] == nil then refuse ("case must be 27 or 6, got '" .. tostring (args.case) .. "'") end
+if not case or CASES [case] == nil then refuse ("case must be 27, got '" .. tostring (args.case) .. "'") end
 local seed = 1
 local out = assert (io.open (out_path, "w"))
 
@@ -198,16 +204,33 @@ local function lines_of (text)
 	return lines
 end
 local function hex_exact (value, digits) return type (value) == "string" and #value == digits and string.find (value, "^[0-9a-f]+$") ~= nil end
--- `idx:sub_type:name:word,...`: the word is eight lowercase hex digits
+local function bool_fact (value) return value == "0" or value == "1" end
+-- `ordinal:sub_type:class:word,...`: a non-empty list, the word is eight lowercase hex digits (these records carry no entity id)
 local function children_of (value, what)
 	local list = {}
 	if value == nil then hard (what .. " has no children field") end
+	if value == "" or string.find (value, "^,") or string.find (value, ",$") or string.find (value, ",,", 1, true) then hard (what .. " is not a comma separated child list: '" .. value .. "'") end
 	for entry in string.gmatch (value, "[^,]+") do
 		local idx, sub, name, word = string.match (entry, "^(%d+):(%d+):([%w_]+):(%x+)$")
-		if not idx or not hex_exact (word, 8) then hard (what .. " has a malformed child entry '" .. entry .. "' (index:sub type:class:eight lowercase hex digits)") end
+		if not idx or not hex_exact (word, 8) then hard (what .. " has a malformed child entry '" .. entry .. "' (ordinal:sub type:class:eight lowercase hex digits)") end
 		list [#list + 1] = { idx = tonumber (idx), sub = tonumber (sub), name = name, word = word }
 	end
+	if #list == 0 then hard (what .. " lists no children") end
 	return list
+end
+-- the slots of one vector are the consecutive ordinals 0, 1, 2 ...; two vectors of the same session list agree on the sub type and the class of every slot (only the amplification words may differ)
+local function consecutive (list, what)
+	for i, child in ipairs (list) do
+		if child.idx ~= i - 1 then hard (what .. " has the ordinal " .. child.idx .. " in slot " .. (i - 1) .. ": the ordinals are not consecutive from 0") end
+	end
+end
+local function same_slots (a, b, what)
+	if #a ~= #b then hard (what .. " lists " .. #b .. " children for " .. #a) end
+	for i = 1, #a do
+		if a [i].sub ~= b [i].sub or a [i].name ~= b [i].name then
+			hard (what .. " slot " .. (i - 1) .. " is " .. b [i].sub .. ":" .. b [i].name .. ", not the " .. a [i].sub .. ":" .. a [i].name .. " listed before the call")
+		end
+	end
 end
 local function ask (index)
 	local ok, text = pcall (engine.env_case, engine, 11, index)
@@ -220,7 +243,7 @@ local plan_lines = ask (0)
 if not plan_lines then hard ("env_case(11, 0) failed") end
 local p = fields (plan_lines [1] or "")
 local cases, child_count = tonumber (p.cases), tonumber (p.children)
-if not string.find (plan_lines [1] or "", "^env%-sound%-plan version=1 ") or p.camera ~= "1" or p.complete ~= "1" or not cases or cases < case or child_count ~= 10 then
+if not string.find (plan_lines [1] or "", "^env%-sound%-plan version=1 ") or p.camera ~= "1" or p.complete ~= "1" or not cases or cases ~= math.floor (cases) or cases < case or cases > 64 or child_count ~= 10 then
 	hard ("the plan is not a version 1 group 11 plan with a camera, the ten ambient children and the selected case: " .. tostring (plan_lines [1]))
 end
 emit { event = "plan", raw = plan_lines [1], cases = cases, children = child_count }
@@ -238,8 +261,9 @@ if lines then
 	local last = lines [#lines] or ""
 	local e = fields (last)
 	if not string.find (last, "^env%-sound%-end ") or tonumber (e.i) ~= case then hard ("the selected case does not end with its env-sound-end row: " .. last) end
+	-- case 27 is a ONE-call case: the routine ran once, so the host was asked once by each provider
 	local ncalls = tonumber (f.calls)
-	if not ncalls or ncalls < 1 or ncalls > 8 then hard ("the selected case has no finite number of calls: " .. head) end
+	if ncalls ~= 1 then hard ("the selected case is a one-call case, not " .. tostring (f.calls) .. " calls: " .. head) end
 	local call_rows, session_rows = {}, {}
 	for i = 2, #lines - 1 do
 		if string.find (lines [i], "^env%-sound%-call ") then call_rows [#call_rows + 1] = lines [i]
@@ -247,19 +271,34 @@ if lines then
 		else hard ("the selected case has an unexpected row: " .. lines [i]) end
 	end
 	if #call_rows ~= ncalls or #session_rows ~= 1 then hard ("the selected case has " .. #call_rows .. " call rows for " .. ncalls .. " calls and " .. #session_rows .. " session rows") end
+	-- the session row: of THIS case, with the original's 0/1 fact (a 0 is a fact about the original, kept in the raw record and never repaired)
+	local session_row = session_rows [1]
+	local s = fields (session_row)
+	if not string.find (s.i or "", "^%d+$") or tonumber (s.i) ~= case then hard ("the selected case has a session row of another case or without its index: " .. session_row) end
+	if not bool_fact (s.session_unchanged_by_the_routine) then hard ("the selected case has a session row without a 0 or 1 fact: " .. session_row) end
+	-- the vector before the call, in the real list order (head insertion): every child at the sentinel (rain, wind) or at the case's start value (terrain) the fixture says it set
 	local before = children_of (f.children_before, "the case's children_before")
+	consecutive (before, "the case's children_before")
+	if #before ~= child_count then hard ("the case lists " .. #before .. " children before the call, the plan " .. child_count) end
+	if not hex_exact (f.amp0_w, 8) then hard ("FIXTURE DEFECT: the selected case has no eight-digit amp0_w: " .. head) end
+	for _, child in ipairs (before) do
+		local rain_wind = child.name == "light_rain" or child.name == "heavy_rain" or child.name == "light_wind" or child.name == "heavy_wind"
+		if child.word ~= (rain_wind and "3f200000" or f.amp0_w) then hard ("FIXTURE DEFECT: child " .. child.name .. " started at " .. child.word .. ": " .. head) end
+	end
 	local after
 	for n, row in ipairs (call_rows) do
 		local r = fields (row)
 		if tonumber (r.i) ~= case or tonumber (r.call) ~= n then hard ("call row " .. n .. " is not of the selected case: " .. row) end
+		if not bool_fact (r.rng_unchanged) then hard ("call row " .. n .. " has no 0 or 1 rng_unchanged fact: " .. row) end
 		after = children_of (r.children, "call " .. n)
-		if #after ~= #before then hard ("call " .. n .. " lists " .. #after .. " children for " .. #before) end
+		consecutive (after, "call " .. n)
+		same_slots (before, after, "call " .. n)
 	end
 	-- the fixture restored what it says it restored (a defect of the fixture, never a result of the host)
 	for _, name in ipairs { "restored", "children_restored", "scratch_restored", "camera_restored", "cloud_restored", "in_cockpit_restored" } do
 		if e [name] ~= "1" then hard ("FIXTURE DEFECT: " .. name .. " is not 1 after the selected case: " .. last) end
 	end
-	if not hex_exact (e.fp_before, 16) or e.fp_before ~= e.fp_after then hard ("FIXTURE DEFECT: the state fingerprints of the selected case are not two equal 16-digit words: " .. last) end
+	if not hex_exact (e.fp_before, 16) or not hex_exact (e.fp_after, 16) or e.fp_before ~= e.fp_after then hard ("FIXTURE DEFECT: the state fingerprints of the selected case are not two equal 16-digit words: " .. last) end
 	case_row = { event = "case", i = case, label = f.label, calls = ncalls, children_before = f.children_before, children = fields (call_rows [#call_rows]).children, restored = e.restored, raw = table.concat (lines, "\n") }
 end
 
