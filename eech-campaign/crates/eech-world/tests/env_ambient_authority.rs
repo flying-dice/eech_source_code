@@ -670,6 +670,7 @@ package.preload.eech_dc = function ()
 					"env-sound-session i=" .. index .. " session_unchanged_by_the_routine=1",
 					"env-sound-end i=" .. index .. " restored=" .. (SCENARIO.unrestored and "0" or "1") .. " fp_before=0000000000000001 fp_after=0000000000000001 children_restored=1 scratch_restored=1 camera_restored=1 cloud_restored=1 in_cockpit_restored=1",
 				}
+				if SCENARIO.edit then SCENARIO.edit (lines) end
 				return table.concat (lines, "\n") .. "\n"
 			end
 			return engine
@@ -1231,4 +1232,297 @@ fn the_host_decides_the_ambient_amplitudes_the_sound_children_hold_and_a_wrong_h
             run.number("terrain_altered")
         );
     }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// RED PREP (independent source review of 8d0c7bb69, group 2: the finite fixture and JSON protocol is not fully validated or reconciled). The CURRENT driver and judge are unchanged; this test is new and is
+// expected to FAIL on them, naming every genuinely damaged record they still accept. Case 27 has exactly one call of the routine; the scripted engine keeps the forward child order of the CURRENT scripted
+// healthy records (the review's group 1, the real constructor's reversed order, is reproduced separately by Root on the real fixture and does not matter for this test).
+
+/// The rows with each row edited in place (strict JSON in, strict JSON out: no row is blank or malformed, so nothing here can be refused for its FORM).
+fn edit_rows(text: &str, edit: impl Fn(&mut Value)) -> String {
+    text.lines()
+        .map(|line| {
+            let mut row: Value = serde_json::from_str(line).expect("a genuine row");
+            edit(&mut row);
+            row.to_string()
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+#[test]
+fn incomplete_real_case_or_json_witness_records_are_refused() {
+    let healthy = run("control").rows;
+    // what "accepted" means: the rows parse to facts AND the control judge passes them (for a driver-level damage: the driver also completed)
+    let accepted_text = |text: &str| Facts::parse(text).and_then(|facts| judge_control(&facts).map(|_| ())).is_ok();
+    assert!(
+        accepted_text(&healthy),
+        "the healthy scripted control is not accepted, so the damaged records below would mean nothing"
+    );
+    let is = |row: &Value, event: &str| row["event"] == event;
+    let mut accepted: Vec<String> = Vec::new();
+    let mut total = 0usize;
+    let mut check = |name: &str, accepted_it: bool| {
+        total += 1;
+        if accepted_it {
+            accepted.push(name.to_string());
+        }
+    };
+
+    // ---- (1) the REAL fixture's record (case 27, one call), damaged where the CURRENT driver reads it: it must refuse each as a witness failure
+    let driver_damage: [(&str, &str); 8] = [
+        ("session row of another case", "lines [3] = string.gsub (lines [3], 'i=27', 'i=26')"),
+        ("session row without its 0/1 flag", "lines [3] = 'env-sound-session i=27'"),
+        (
+            "session row with a flag that is not 0 or 1",
+            "lines [3] = string.gsub (lines [3], 'routine=1', 'routine=2')",
+        ),
+        (
+            "call row with an rng_unchanged that is not 0 or 1",
+            "lines [2] = string.gsub (lines [2], 'rng_unchanged=1', 'rng_unchanged=7')",
+        ),
+        (
+            "children_before ordinals and subtypes that are not the call vector's",
+            "lines [1] = string.gsub (lines [1], '0:20:light_rain', '0:99:light_rain')",
+        ),
+        (
+            "children_before classes that are not the call vector's",
+            "lines [1] = string.gsub (lines [1], 'light_wind', 'heavy_wind')",
+        ),
+        (
+            "call vector ordinals that are not consecutive",
+            "lines [2] = string.gsub (lines [2], '1:21:heavy_rain', '0:21:heavy_rain')",
+        ),
+        (
+            "call vector subtype that is not the before vector's",
+            "lines [2] = string.gsub (lines [2], '2:22:light_wind', '2:98:light_wind')",
+        ),
+    ];
+    for (name, edit) in driver_damage {
+        let driven = drive(&format!("edit = function (lines) {edit} end"), &[]);
+        check(name, driven.result.is_ok() && accepted_text(&driven.rows));
+    }
+
+    // ---- (2) the JSON the driver wrote, damaged where the CURRENT judge reads it (valid JSON, every row present): Facts or the judge must refuse each
+    let case_edit = |f: fn(&mut Value)| {
+        edit_rows(&healthy, move |row| {
+            if row["event"] == "case" {
+                f(row)
+            }
+        })
+    };
+    let plan_edit = |f: fn(&mut Value)| {
+        edit_rows(&healthy, move |row| {
+            if row["event"] == "plan" {
+                f(row)
+            }
+        })
+    };
+    let authority_edit = |f: fn(&mut Value)| {
+        edit_rows(&healthy, move |row| {
+            if row["event"] == "authority" {
+                f(row)
+            }
+        })
+    };
+    let replace_raw = |row: &mut Value, from: &str, to: &str| {
+        let raw = row["raw"].as_str().unwrap_or_default().replace(from, to);
+        row["raw"] = Value::String(raw);
+    };
+    let json_damage: Vec<(&str, String)> = vec![
+        // the retained fixture record and the summary fields that must reconcile with it
+        (
+            "case row without its raw fixture record",
+            case_edit(|row| {
+                if let Some(o) = row.as_object_mut() {
+                    o.remove("raw");
+                }
+            }),
+        ),
+        (
+            "case row whose raw record says other calls than its summary",
+            edit_rows(&healthy, |row| {
+                if is(row, "case") {
+                    replace_raw(row, "calls=1", "calls=3")
+                }
+            }),
+        ),
+        (
+            "case row whose raw record is another case",
+            edit_rows(&healthy, |row| {
+                if is(row, "case") {
+                    replace_raw(row, "i=27", "i=26")
+                }
+            }),
+        ),
+        (
+            "case row without its children_before",
+            case_edit(|row| {
+                if let Some(o) = row.as_object_mut() {
+                    o.remove("children_before");
+                }
+            }),
+        ),
+        (
+            "case row with a children_before that is not a child list",
+            case_edit(|row| row["children_before"] = Value::String("none".into())),
+        ),
+        (
+            "case row whose fixture did not restore",
+            case_edit(|row| row["restored"] = Value::String("0".into())),
+        ),
+        (
+            "case row whose child ordinals and subtypes are duplicates",
+            case_edit(|row| {
+                let children = row["children"].as_str().unwrap_or_default().to_string();
+                let duplicated: Vec<String> = children
+                    .split(',')
+                    .map(|entry| {
+                        let parts: Vec<&str> = entry.split(':').collect();
+                        format!(
+                            "0:20:{}:{}",
+                            parts.get(2).copied().unwrap_or_default(),
+                            parts.get(3).copied().unwrap_or_default()
+                        )
+                    })
+                    .collect();
+                row["children"] = Value::String(duplicated.join(","));
+            }),
+        ),
+        // the plan: its version, camera, completeness and the selected case
+        (
+            "plan row without its raw record",
+            plan_edit(|row| {
+                if let Some(o) = row.as_object_mut() {
+                    o.remove("raw");
+                }
+            }),
+        ),
+        (
+            "plan of another version",
+            edit_rows(&healthy, |row| {
+                if is(row, "plan") {
+                    replace_raw(row, "version=1", "version=2")
+                }
+            }),
+        ),
+        (
+            "plan without a camera",
+            edit_rows(&healthy, |row| {
+                if is(row, "plan") {
+                    replace_raw(row, "camera=1", "camera=0")
+                }
+            }),
+        ),
+        (
+            "plan that is not complete",
+            edit_rows(&healthy, |row| {
+                if is(row, "plan") {
+                    replace_raw(row, "complete=1", "complete=0")
+                }
+            }),
+        ),
+        (
+            "plan with fewer cases than the selected one",
+            edit_rows(&healthy, |row| {
+                if is(row, "plan") {
+                    replace_raw(row, "cases=46", "cases=3");
+                    row["cases"] = Value::from(3);
+                }
+            }),
+        ),
+        // the provider rows: their ordinal and their order
+        (
+            "environment row with a forged ordinal",
+            edit_rows(&healthy, |row| {
+                if is(row, "ambient") && row["provider"] == "env" {
+                    row["n"] = Value::from(7)
+                }
+            }),
+        ),
+        (
+            "terrain row with a zero ordinal",
+            edit_rows(&healthy, |row| {
+                if is(row, "ambient") && row["provider"] == "terrain" {
+                    row["n"] = Value::from(0)
+                }
+            }),
+        ),
+        ("terrain row written before the environment row", {
+            let mut lines: Vec<&str> = healthy.lines().collect();
+            let env = lines.iter().position(|line| line.contains("\"provider\":\"env\"")).expect("an environment row");
+            let terrain = lines.iter().position(|line| line.contains("\"provider\":\"terrain\"")).expect("a terrain row");
+            lines.swap(env, terrain);
+            lines.join("\n")
+        }),
+        // the envelope of the authority row
+        (
+            "control that carries an expected marker",
+            authority_edit(|row| row["expected_marker"] = Value::String("[env-provider:ambient.callback]".into())),
+        ),
+        (
+            "completed run that carries a failure text",
+            authority_edit(|row| row["failure"] = Value::String("boom".into())),
+        ),
+        ("a coherent record of TWO calls of a one-call case", {
+            let mut rows: Vec<Value> = healthy.lines().map(|line| serde_json::from_str(line).expect("a genuine row")).collect();
+            let mut forged: Vec<Value> = Vec::new();
+            for mut row in rows.drain(..) {
+                if is(&row, "case") {
+                    row["calls"] = Value::from(2);
+                }
+                if is(&row, "authority") {
+                    for key in [
+                        "calls",
+                        "env_ambient_requests",
+                        "terrain_ambient_requests",
+                        "request_rows_env",
+                        "request_rows_terrain",
+                    ] {
+                        row[key] = Value::from(2);
+                    }
+                }
+                let duplicate = is(&row, "ambient").then(|| {
+                    let mut second = row.clone();
+                    second["n"] = Value::from(2);
+                    second
+                });
+                forged.push(row);
+                forged.extend(duplicate);
+            }
+            forged.iter().map(Value::to_string).collect::<Vec<_>>().join("\n")
+        }),
+    ];
+    for (name, text) in &json_damage {
+        check(name, accepted_text(text));
+    }
+
+    // ---- (3) the mode: a changed run is judged as the changed mode it claims to be
+    let control = Facts::parse(&healthy).expect("complete evidence");
+    let reference = judge_control(&control).expect("the healthy control");
+    let relabel = |text: &str| {
+        edit_rows(text, |row| {
+            if is(row, "boot") || is(row, "authority") {
+                row["mode"] = Value::String("control".into())
+            }
+        })
+    };
+    let changed_env = Facts::parse(&relabel(&run("changed_env_ambient").rows)).expect("complete evidence");
+    check(
+        "an environment-changed run relabeled control, judged as changed_env_ambient",
+        judge_changed_env(&control, &reference, &changed_env).is_ok(),
+    );
+    let changed_terrain = Facts::parse(&relabel(&run("changed_terrain_ambient").rows)).expect("complete evidence");
+    check(
+        "a terrain-changed run relabeled control, judged as changed_terrain_ambient",
+        judge_changed_terrain(&control, &reference, &changed_terrain).is_ok(),
+    );
+
+    assert!(
+        accepted.is_empty(),
+        "{} of {total} genuinely damaged witness records were ACCEPTED as healthy evidence (each should have been refused):\n  {}",
+        accepted.len(),
+        accepted.join("\n  ")
+    );
 }
