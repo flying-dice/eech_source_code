@@ -242,3 +242,45 @@ exactly the originals, and say nothing about the 6711 kernel's FP state, which i
 
 Commands for Root: `cargo test -p eech-world --test env_sector_authority` (14 functions now), then `cargo fmt --check` and `cargo clippy --all-targets -- -D warnings`; the fast and full stages already running cover
 the rest. Nothing else changes: no original, field, model or kernel experiment and no FP regression rerun is needed because of this change.
+
+## Two strict-Clippy test lints on 05b474e88 (test-only; UNBUILT, UNRUN)
+
+Actual 14192 Linux full pipeline (Root, overall 101): the default and env-observer affected-package test phases pass; the first strict Clippy stage failed only on (1) `terrain_sector.rs` `type_complexity` for the reference
+vector of the 6144-call regression and (2) `env_sector_authority.rs` `manual_range_contains` for the observer-capacity test of the judge; the observer strict stage was not reached. Both are corrected without suppression:
+
+1. `type SectorAnswer = Result<(i32, Vec<bool>), String>;` declared in the test function; `reference` is `Vec<Option<SectorAnswer>>`. Same type, so the matrix (6144 calls: rounding pairs, precision controls, stickies,
+   FTZ/DAZ, status words, every position and refusal), the seeds, the collected-mismatch reporting and every assertion are untouched.
+2. `if !(1..=OBSERVER_CAPACITY).contains(&capacity) || capacity < stored`: exactly the values the old `capacity < 1 || capacity > OBSERVER_CAPACITY || capacity < stored` refused (below 1, above the store's 16384, or below what
+   was stored), same message. The embedded Lua's own check is a different file and is unchanged.
+
+No C, header, Rust library source, ABI, provider, Lua, FP logic or domain changed, so the actual 05b14 guards and any public run under the pinned 14192 native and embedded Lua remain valid under this semantic equivalence; Root runs the
+new strict/guard checks. The subsequent Windows 05b attempt failed 13/14 at the timeout control before any real public mode or PRE check; five POST checks passed. All three corrected default 95-row cases are now exact to the originals, as recorded below.
+
+Commands for Root: `cargo clippy --all-targets -- -D warnings` (default, then `--features eech-dc/env-observer`), `cargo fmt --check`, `cargo test -p eech-world --test terrain_sector --test env_sector_authority`.
+
+## Windows judge-guard fixture failure on 05b474e88: the hung-child control's process shape (test-only; UNBUILT, UNRUN)
+
+**Actual (Root's, factual):** the new 05b judge compiled and exported 0 on Windows with the unchanged 14192 native and embedded Lua; `env_sector_authority.exe` then ran 14 tests: 13 passed, 1 FAILED --
+`the_wall_limit_is_a_finite_number_of_seconds_from_one_to_14400_and_a_hung_child_is_killed`, `the hung child was waited for: 29.337829s` (log `environment-sector-five-modes-controller-05b474e88-20261031/actual-Windows-judge-guards.log`).
+All 13 other bookkeeping functions passed, including the boot-frame coherence guard. No campaign mode and no preflight had started; the real public path was NOT RUN (the guard run finished 101, then only the five
+post-input checks, 0). The candidate roots for it are UNUSED. This is a defect of the test fixture's process shape, not a native or campaign result, and not a pass of anything public. (Root's earlier controller receipt
+that counted "ten" pre/post checks was vacuously true with no PRE stages; Root preserves it with an audit and requires exactly 5 pre + 5 post in a corrected private helper. This document claims neither ten checks nor
+any actual five-mode pass.)
+
+**Cause.** On Windows the control spawned `cmd /C "ping -n 30 127.0.0.1 > NUL"`. The runner killed `cmd`, but the `ping` descendant inherited and kept the stdout/stderr pipes open, so joining the pipe readers waited
+for it (~29 s, against the 25 s safety assertion). Linux used `sleep 30` directly (one process) and passed.
+
+**Fix (`tests/env_sector_authority.rs`, test-only).** The control now uses the pattern of the closed `env_wind_authority.rs`: the test executable itself is the child (`std::env::current_exe()` re-run with
+`--exact the_child_of_the_bounded_wait_controls`, `ENV_SECTOR_CHILD=hang|fail`), so there is ONE process on every OS and no shell, `ping`, `sleep` or grandchild. Kept exactly: the finite 1-14400 s wall parser cases, the
+2-second wall, the 25-second safety assertion. Added assertions: the error classification (`outlived its wall limit of 2 s`), the child's own diagnostic in the report, the child shown to be stopped (`kill: Ok(())`
+and `wait: Ok(`), at least the 2-second wall actually waited, and a second control that a failing child (exit 3) is read to its end with its diagnostic and is not a timeout. The helper test is a no-op without its
+environment variable. No skip, allow or tolerance changes; the `run_bounded` code is unchanged except for a doc comment that states its scope honestly: it kills the ONE child it started (the public witness's target is one
+`eech-world` process), it does not manage a process tree, and no job-object or process-manager framework is added. A descendant holding inherited pipes would still delay the join; nothing here claims otherwise.
+
+The two strict-Clippy fixes (the `SectorAnswer` alias in `terrain_sector.rs`, the equivalent `contains` range in the capacity predicate) are preserved. `env_sector_authority` now has 15 test functions (the 14 that ran on Windows, one of them rewritten,
+plus the child helper, a no-op without its environment variable). Commands for Root: `cargo test -p eech-world --test env_sector_authority` (the wall control takes about 2 s), `cargo fmt --check`,
+`cargo clippy --all-targets -- -D warnings` (default, then `--features eech-dc/env-observer`); then the Windows guards and the real five modes under the pinned 14192 native with explicit semantic equivalence.
+
+**Other actuals as reported by Root (not mine):** the corrected 14192 default 95-row cases, all three roots: native/controller 0, all six inputs 0, 49 payloads unchanged, 95 raw lines and endings EXACT against the `b2e`
+originals (receipt `environment-sector-fixed-14192c6e2-comparison-20261031.json`); Windows libs 78/22/251 all 0, sector 5 (incl. the unchanged 6144-call FP regression) and characterization 4 pass; Linux default and
+observer package tests pass; the e05 red (6144 calls, 76 kinds of MXCSR leak) and the 6711 numeric files stay retained. There is no actual sector host-authority result yet; Task 51/D3 stays open.

@@ -340,7 +340,9 @@ fn the_callers_complete_floating_point_state_survives_every_sector_query_in_ever
 
     let mask = caller_fp::mxcsr_mask();
     let mode_sets: Vec<u32> = if mask & 0x8040 == 0x8040 { vec![0, 0x8040] } else { vec![0, mask & 0x8000] };
-    let mut reference: Vec<Option<Result<(i32, Vec<bool>), String>>> = vec![None; calls.len()];
+    // the answer of one call, as the public entry gives it: the return value with the flags, or the refusal text
+    type SectorAnswer = Result<(i32, Vec<bool>), String>;
+    let mut reference: Vec<Option<SectorAnswer>> = vec![None; calls.len()];
     // what leaked: "call: words" -> (times, the first seed it happened under)
     let mut leaks: BTreeMap<String, (usize, String)> = BTreeMap::new();
     let mut answer_changes: Vec<String> = Vec::new();

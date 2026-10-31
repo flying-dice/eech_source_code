@@ -1,3 +1,27 @@
+# D3 Windows judge-guard fixture failure — the hung-child control's process shape (31 October 2026, test-only, UNBUILT)
+
+EEDCS-51 / PR111 on `05b474e88` plus the two-lint test fixes (kept). ACTUAL (Root): the new 05b judge compiled/exported 0 on Windows with the unchanged 14192 native and embedded Lua, then `env_sector_authority.exe` ran 14
+tests: 13 passed (the boot-frame coherence guard included), 1 FAILED -- `the_wall_limit_is_a_finite_number_of_seconds_from_one_to_14400_and_a_hung_child_is_killed`, `the hung child was waited for: 29.337829s`. No
+campaign mode or preflight started; the real five-mode public path was NOT RUN; the roots are UNUSED. This is a test-fixture defect, not a campaign or native result: the Windows control spawned `cmd /C ping`, the runner
+killed `cmd`, and the `ping` descendant kept the inherited pipes open until the readers' join. **Fix (test-only, UNBUILT, UNRUN):** the control now re-runs the test executable itself as the single-process child
+(the closed `env_wind_authority.rs` pattern, `ENV_SECTOR_CHILD=hang|fail`), keeping the finite wall parser cases, the 2-second wall and the 25-second safety assertion, and adding the error classification, the child's own
+diagnostic, a shown-stopped kill/wait, a lower bound on the wall and a failing-child control; `run_bounded` is unchanged apart from a doc comment stating its scope honestly (it kills the ONE child it started; no process-tree or
+job-object framework is claimed or added). The earlier controller receipt's "ten checks" boolean was vacuously true with no PRE stages (Root preserves it with an audit and requires exactly 5 pre + 5 post): no ten-check or
+five-mode pass is claimed here. Other actuals (Root): corrected 14192 default 95-row cases exact to the `b2e` originals on all 3 roots (receipt `environment-sector-fixed-14192c6e2-comparison-20261031.json`); Windows libs 78/22/251
+and sector 5 (incl. the 6144-call FP regression) + characterization 4 pass; Linux default/observer packages pass; old reds retained. No actual sector host-authority result yet. Whole Task 51/D3 stays OPEN (effects, time,
+remaining terrain, spatial/object, model, full shipping, current CI, review, normal merges); D4/D5 unstarted; no acceptance claimed. Details and commands: `docs/d3-environment-sector-surface.md`.
+
+# D3 two strict-Clippy test lints (31 October 2026, test-only, UNBUILT)
+
+EEDCS-51 / PR111 from clean pushed `05b474e88`. The boot-frames/doc narrow review (SHA-256 `78fe3346...b720`) closes the residual P2 with no findings. ACTUAL (Root, 14192 Linux full pipeline, overall 101): the default and env-observer
+affected-package test phases PASS; the first strict Clippy stage failed ONLY on two test-only lints and the observer strict stage was not reached: `terrain_sector.rs` `type_complexity` on the 6144-call reference vector and
+`env_sector_authority.rs` `manual_range_contains` on the observer-capacity test. Linux fast sector 5 (incl. the 6144-call regression) and authority 13 PASS (public path SKIPPED: not authority evidence). Actual Windows: native observer
+build and all lib/new-target exports 0; engine 78, module 22, world 251 all 0; sector 5 (incl. the unchanged 6144) and characterization 4 PASS; all 49 payloads unchanged; the 05b judge compile export 0 with the 14192 native and
+embedded Lua at the same hash `2c3456f9...14ad`. The Windows 05b guard attempt later failed 13/14 at the timeout control, before any real public mode or PRE input check; five POST checks passed. All three corrected default 95-row cases are now exact to the originals, as recorded above. **This change (test-only, UNBUILT, UNRUN):** (1) a local alias `SectorAnswer = Result<(i32, Vec<bool>), String>` in the FP test replaces the nested type; (2) the capacity predicate is
+`!(1..=OBSERVER_CAPACITY).contains(&capacity) || capacity < stored`, the same set of accepted values. No suppression, no change to the matrix (6144 calls, masks, seeds, cases), assertions, limits, C/header/Rust source, ABI, provider,
+Lua, FP logic or domain; Root reuses completed native tests under this explicit semantic equivalence with no production rebuild, and will run the corrected Windows judge/public path and new Linux strict/guard checks. Whole Task 51/D3 stays OPEN (effects,
+time, remaining terrain, spatial/object, model, full shipping, current CI, review, normal merges); D4/D5 unstarted; no acceptance claimed.
+
 # D3 residual P2 — the configured frame count in the sector-authority judge (31 October 2026, test judge only, UNBUILT)
 
 EEDCS-51 / PR111 from clean pushed `14192c6e2`. Independent correction review (SHA-256 `000b5f69...95`): P1 (sector-kernel caller-FP design) closes in source; the observer fixes hold; the two fixture fixes weakened nothing; ONE

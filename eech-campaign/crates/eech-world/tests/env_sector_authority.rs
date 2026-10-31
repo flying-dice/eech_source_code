@@ -175,7 +175,7 @@ fn observer_evidence(authority: &Value, completed: bool, pair_count: i64, sound_
             "the observer dropped {dropped} event(s) (overflow {overflow}): the evidence is incomplete"
         ));
     }
-    if capacity < 1 || capacity > OBSERVER_CAPACITY || capacity < stored {
+    if !(1..=OBSERVER_CAPACITY).contains(&capacity) || capacity < stored {
         return Err(format!("the observer reports capacity {capacity} for {stored} stored events"));
     }
     if events < 1 || stored != events || read != events || next_seq != events {
@@ -1335,6 +1335,9 @@ fn drain(mut pipe: impl Read + Send + 'static) -> std::thread::JoinHandle<Vec<u8
     })
 }
 
+/// Runs ONE child to its end within `wall` (the public witness's target is one `eech-world` process). Both pipes are read as it runs, only the last 64 KiB of each is kept, and a child that outlives the
+/// wall is killed and reported with how long it ran and what it had said. Scope, stated honestly: it kills THE child it started. It does not manage a process tree -- a descendant that inherited the pipes
+/// and outlived the child would keep them open and delay the readers' join -- and no job-object or process-manager framework is added; the controls below use a single-process child for that reason.
 fn run_bounded(command: &mut std::process::Command, wall: Duration) -> Result<Finished, String> {
     command
         .stdin(std::process::Stdio::null())
@@ -1392,29 +1395,60 @@ fn parse_wall(value: Option<&str>) -> Result<Duration, String> {
     }
 }
 
+/// The child of the bounded-wait controls: THIS test executable, re-run for this one test with ENV_SECTOR_CHILD naming what to do. Without it the test does nothing. It is ONE process on every
+/// operating system -- no shell, no `ping`, no `sleep` binary, no grandchild -- so the pipes the runner reads belong to the one child it kills. (The previous Windows control ran `cmd /C ping`; the runner
+/// killed the shell, the `ping` descendant kept the inherited pipes open, and joining the readers waited about 29 seconds: a defect of that fixture's process shape, not of the witness.)
+#[test]
+fn the_child_of_the_bounded_wait_controls() {
+    match std::env::var("ENV_SECTOR_CHILD").as_deref() {
+        Ok("hang") => {
+            eprintln!("child: about to hang");
+            std::thread::sleep(Duration::from_secs(300));
+        }
+        Ok("fail") => {
+            eprintln!("child: a diagnostic of its own");
+            std::process::exit(3);
+        }
+        _ => {}
+    }
+}
+
+fn child(behaviour: &str) -> std::process::Command {
+    let mut command = std::process::Command::new(std::env::current_exe().expect("this executable"));
+    command
+        .args(["--exact", "the_child_of_the_bounded_wait_controls", "--nocapture", "--test-threads=1"])
+        .env("ENV_SECTOR_CHILD", behaviour);
+    command
+}
+
 #[test]
 fn the_wall_limit_is_a_finite_number_of_seconds_from_one_to_14400_and_a_hung_child_is_killed() {
     assert_eq!(parse_wall(None).unwrap(), Duration::from_secs(3600));
     for bad in ["nan", "inf", "0", "14401", "abc", ""] {
         assert!(parse_wall(Some(bad)).unwrap_err().contains("finite number of seconds from 1 to 14400"), "{bad}");
     }
-    let mut hang = if cfg!(windows) {
-        std::process::Command::new("cmd")
-    } else {
-        std::process::Command::new("sleep")
-    };
-    if cfg!(windows) {
-        hang.args(["/C", "ping -n 30 127.0.0.1 > NUL"]);
-    } else {
-        hang.arg("30");
-    }
+    // a hung single-process child: killed at the 2 second wall, reported with how long it ran and what it had said, and really stopped (the kill succeeded and the wait returned its status)
     let started = Instant::now();
-    let error = run_bounded(&mut hang, Duration::from_secs(2)).map(|_| ()).unwrap_err();
+    let error = run_bounded(&mut child("hang"), Duration::from_secs(2)).map(|_| ()).unwrap_err();
+    let elapsed = started.elapsed();
     assert!(error.contains("outlived its wall limit of 2 s"), "{error}");
     assert!(
-        started.elapsed() < Duration::from_secs(25),
-        "the hung child was waited for: {:?}",
-        started.elapsed()
+        error.contains("child: about to hang"),
+        "the diagnostic the child had said is not reported: {error}"
+    );
+    assert!(
+        error.contains("kill: Ok(())") && error.contains("wait: Ok("),
+        "the child was not shown to be stopped: {error}"
+    );
+    assert!(elapsed >= Duration::from_secs(2), "the wall was not waited for: {elapsed:?}");
+    assert!(elapsed < Duration::from_secs(25), "the hung child was waited for: {elapsed:?}");
+    // a failing child is not a timeout: its exit status and its diagnostic are read to the end
+    let failed = run_bounded(&mut child("fail"), Duration::from_secs(120)).expect("a child that exits is not a timeout");
+    assert_eq!(failed.status.code(), Some(3));
+    assert!(
+        failed.stderr.contains("child: a diagnostic of its own") && failed.elapsed < Duration::from_secs(120),
+        "{}",
+        failed.stderr
     );
 }
 
