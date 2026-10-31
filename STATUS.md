@@ -1,4 +1,4 @@
-# D3 checkpoint — wind authority closed; original sound-sector fixture correction (31 October 2026, 12:31 UTC)
+# D3 checkpoint — original sector facts closed; host cutover active (31 October 2026, 12:48 UTC)
 
 The current objective remains COMPLETE D3 (EEDCS-21), with D4/D5 unstarted.
 Task47 is delivered at integration b6575594c. Tasks48/49/50/51 remain open.
@@ -30,13 +30,19 @@ actual-evidence review closes without findings (SHA843ec6af...d527). Safe
 receipts/review are pushed at4649b75d4 on PR111. Provider traffic is global,
 not policy/RNG/family isolation. No shipping/Task51/D3 acceptance.
 
-ONE Sonnet5.5 High lane now characterizes the original sound routine's sector
-surface query/scratch before its host cutover; fresh3 roots verify0. Test-only
-a78 driver guards4/4 pass; native Linux compile101 and Windows fixturebuild1
-both reproduce one review-found unescaped C string newline. The sole author is
-correcting that syntax only before original retail measurement; no sector
-cutover yet. Failed source/logs are preserved. Jira51comment10889 and ledger89
-record the closed wind witness and remaining work; all5 epic reports preserved.
+Original sector facts are now CLOSED bounded: nativeb2e builds0, all3 retail
+runs native/controller0, all6 input manifests0/48payloads unchanged. Each95-row
+file has92 samples (88 answered,4 explicit out-of-grid fixture rejections), all
+scratch/reset/repeat/interleave checks pass,0 anomalies; sound clamp maximum
+is answered. Both COMPLETE Lebanon raw files are byte-identical. The newa100
+guards pass fmt/4functions/strict0; independent actual review1408817f...6200
+has no findings. The earlier syntax/Clippy failures remain preserved.
+
+ONE Sonnet5.5 High lane is NOW implementing the physical sector-surface query
+in the host from clean e3439025a. Integration was freshly fetched and remains
+acceptedb6575594c. New dispatch/mirror plumbing is WIP/unbuilt/unrun/unreviewed;
+no sector acceptance yet. Fresh3 candidate roots verify0 and remain unused.
+Jira51/ledger89 record the reviewed wind gate; all5 epic reports are preserved.
 Existing
 original observer/effects/RNG/time evidence is reused. Sound/lightning effects,
 physical time inputs, remaining terrain/loaders, spatial/object/tree scans and
