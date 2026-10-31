@@ -216,6 +216,11 @@ static entity *create_local (entity_types type, int index, char *pargs)
 
 		raw->fog_of_war_maximum_value = bound (raw->fog_of_war_maximum_value, (8.0 * FOG_OF_WAR_DECAY_RATE), (8.0 * ONE_HOUR));
 
+#ifdef EECH_CAMPAIGN_HOST_ENV
+		// the session's defaults and attributes are the host's physical field from here on (ss_hostenv.h): the record keeps a read-only mirror
+		campaign_env_import ((struct SESSION *) raw);
+#endif
+
 		////////////////////////////////////////
 		//
 		// LINK INTO SYSTEM

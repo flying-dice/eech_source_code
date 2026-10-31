@@ -101,6 +101,11 @@ static void pack_local_data (entity *en, pack_modes mode)
 
          raw = (session *) get_local_entity_data (en);
 
+#ifdef EECH_CAMPAIGN_HOST_ENV
+			// the record's physical fields are a mirror of the host's field: refresh them before they are packed
+			campaign_env_refresh ((struct SESSION *) raw);
+#endif
+
          pack_float_value (en, FLOAT_TYPE_ELAPSED_TIME, raw->elapsed_time);
 
          pack_float_value (en, FLOAT_TYPE_LIGHTNING_TIMER, raw->lightning_timer);
@@ -242,6 +247,11 @@ void pack_local_session_data (pack_modes mode)
 	ASSERT (en);
 
 	raw = (session *) get_local_entity_data (en);
+
+#ifdef EECH_CAMPAIGN_HOST_ENV
+	// the record's physical fields are a mirror of the host's field: refresh them before they are packed
+	campaign_env_refresh ((struct SESSION *) raw);
+#endif
 
    switch (mode)
    {
@@ -805,6 +815,14 @@ void unpack_local_session_data (pack_modes mode)
 			break;
 		}
 	}
+#ifdef EECH_CAMPAIGN_HOST_ENV
+	// the unpacked session wrote the record directly: its physical fields are pushed to the host (ss_hostenv.h)
+	if (get_session_entity ())
+	{
+		campaign_env_import ((struct SESSION *) get_local_entity_data (get_session_entity ()));
+	}
+#endif
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

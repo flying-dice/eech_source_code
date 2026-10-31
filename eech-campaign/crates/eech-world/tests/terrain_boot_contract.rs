@@ -43,6 +43,10 @@ const SCRIPT: &str = r#"
     refused ('terrain_table', config { terrain = { op = 'point' } })
     refused ('no_aim_and_no_terrain', config { aim = false })
     refused ('no_aim_with_terrain', config { aim = false, terrain = function () end })
+    refused ('no_environment', config { terrain = function () end })
+    refused ('environment_number', config { terrain = function () end, environment = 5 })
+    refused ('environment_table', config { terrain = function () end, environment = { op = 'step' } })
+    refused ('neither_provider', config {})
     return results
 "#;
 
@@ -62,4 +66,15 @@ fn a_boot_without_a_terrain_provider_is_refused_with_the_missing_marker() {
         assert!(message.contains("aim"), "{name}: {message}");
         assert!(!message.contains("[terrain-provider:missing]"), "{name}: {message}");
     }
+    // the environment provider is required the same way (EEDCS-51): refused before anything boots, with its own marker, after the terrain's
+    for name in ["no_environment", "environment_number", "environment_table"] {
+        let message = get(name);
+        assert!(message.contains("[env-provider:missing]"), "{name}: {message}");
+        assert!(!message.contains("[terrain-provider:missing]"), "{name}: {message}");
+    }
+    let message = get("neither_provider");
+    assert!(
+        message.contains("[terrain-provider:missing]") && !message.contains("[env-provider:missing]"),
+        "{message}"
+    );
 }

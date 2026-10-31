@@ -20,7 +20,9 @@
 //!                          move_vehicle = host.move_vehicle,    -- the host's physical record of each routed vehicle
 //!                          observe_loss = function () return "forward" end,
 //!                          -- the host owns the physical terrain; boot is refused without it (see the README of reference/d3-terrain-characterization)
-//!                          terrain = host.terrain_provider (root, "..\\common\\maps\\map16") }
+//!                          terrain = host.terrain_provider (root, "..\\common\\maps\\map16"),
+//!                          -- the host owns the physical weather and wind field too (EEDCS-51); boot is refused without it ([env-provider:missing])
+//!                          environment = host.env_provider () }
 //! while true do
 //!     engine:frame (100)                -- milliseconds of simulated time
 //!     for _, o in ipairs (engine:objects ()) do ... end

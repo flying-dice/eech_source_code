@@ -1191,6 +1191,68 @@ unsafe extern "C" fn terrain_callback(
     }
 }
 
+/// One question the campaign asks of the host's physical weather and wind field, or one update of it, and the host's answer (aphavoc/.../ss_hostenv.h). They are the C structures
+/// of the callback, plain numbers by value: no EECH pointer, entity index or session layout is in them.
+pub use sys::{eech_env_reply as EnvReply, eech_env_request as EnvRequest, eech_env_state as EnvState};
+
+/// The operations of an [`EnvRequest`] and the sizes of the field (the enums of ss_hostenv.h).
+pub use sys::{
+    EECH_ENV_DRAWS, EECH_ENV_EXPORT, EECH_ENV_FLOATS, EECH_ENV_GUST, EECH_ENV_IMPORT, EECH_ENV_INIT_FIXED, EECH_ENV_INIT_RANDOM, EECH_ENV_INTS,
+    EECH_ENV_MODE_COUNT, EECH_ENV_STEP, EECH_ENV_WEATHER, EECH_ENV_WIND,
+};
+
+/// The host's environment provider. It is installed once, at boot, and is the only source of the campaign's physical weather and wind: the campaign has no weather or wind solver
+/// of its own to fall back to.
+pub type EnvProvider = Box<dyn FnMut(&EnvRequest) -> Result<EnvReply, String>>;
+
+thread_local! {
+    // the engine and its host run on one thread; a provider is not `Send`
+    static ENVIRONMENT: std::cell::RefCell<Option<EnvProvider>> = std::cell::RefCell::new(None);
+}
+
+/// The C side's environment callback (ss_hostenv.h). It runs the installed provider; a missing provider, a refusal and a panic all become an error the engine stops on, with the
+/// provider's marker in the message. The reply is written only after the provider has answered: a refusal leaves the C reply as it was.
+unsafe extern "C" fn environment_callback(
+    request: *const sys::eech_env_request,
+    reply_out: *mut sys::eech_env_reply,
+    error: *mut c_char,
+    error_size: usize,
+    _user: *mut c_void,
+) -> c_int {
+    let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
+        if request.is_null() || reply_out.is_null() {
+            return Err("[env-provider:callback] invalid native environment callback context".into());
+        }
+        // SAFETY: C supplies a readable request for the duration of this callback.
+        let source = unsafe { *request };
+        let reply = ENVIRONMENT.with(|slot| -> Result<EnvReply, String> {
+            let mut slot = slot
+                .try_borrow_mut()
+                .map_err(|_| "[env-provider:callback] the environment provider was asked again while it was answering".to_string())?;
+            match slot.as_mut() {
+                Some(provider) => provider(&source),
+                None => Err("[env-provider:missing] no environment provider is installed".to_string()),
+            }
+        })?;
+        // SAFETY: C supplies a writable reply for the duration of this callback.
+        unsafe { *reply_out = reply };
+        Ok(())
+    }));
+    match result {
+        Ok(Ok(())) => 0,
+        Ok(Err(message)) => {
+            // SAFETY: C owns this writable error buffer for the callback.
+            unsafe { write_callback_text(error, error_size, &message) };
+            1
+        }
+        Err(_) => {
+            // SAFETY: C owns this writable error buffer for the callback.
+            unsafe { write_callback_text(error, error_size, "[env-provider:callback] the environment provider panicked") };
+            1
+        }
+    }
+}
+
 struct HostContext<'a, F, G, H, M, L, D, A> {
     bind_mobile: &'a mut F,
     observe_loss: &'a mut G,
@@ -4420,6 +4482,7 @@ where
         sense: Some(sense::<F, G, H, M, L, D, A>),
         aim: Some(aim::<F, G, H, M, L, D, A>),
         terrain: Some(terrain_callback),
+        environment: Some(environment_callback),
         user: (&mut context as *mut HostContext<'_, F, G, H, M, L, D, A>).cast::<c_void>(),
     };
     check(call(&host))
@@ -4459,6 +4522,7 @@ impl Engine {
         sense_fn: &mut D,
         aim_fn: &mut A,
         terrain: TerrainProvider,
+        environment: EnvProvider,
     ) -> Result<Engine, EngineError>
     where
         F: FnMut(MemberDescriptor) -> Result<String, String>,
@@ -4492,6 +4556,8 @@ impl Engine {
         // The host's terrain provider is installed before the engine boots: the campaign asks about terrain while it loads and places its forces, and
         // from every entry afterwards. It is kept for the life of the process (the engine is one per process).
         TERRAIN.with(|slot| *slot.borrow_mut() = Some(terrain));
+        // The environment provider is installed with it, for the same reason: the campaign creates its session while it loads, and asks about the weather and the wind from every entry.
+        ENVIRONMENT.with(|slot| *slot.borrow_mut() = Some(environment));
         // SAFETY: every config pointer and the temporary host callback are valid for the call.
         with_host(
             bind_mobile_fn,

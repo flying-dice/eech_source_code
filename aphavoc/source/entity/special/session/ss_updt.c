@@ -161,6 +161,181 @@ static void update_time_of_day_resync (entity *en)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef EECH_CAMPAIGN_HOST_ENV
+
+//
+// EECH_CAMPAIGN_HOST_ENV (EEDCS-51, D3): the physical update of the weather, the wind and the lightning timer is the host's (ss_hostenv.h STEP).  The campaign keeps what the
+// original did around it, in the original order: the delta it reads is the previous frame's, the one draw of the shared random word that the next timer needs is made where
+// update_lightning_effect made it (inside campaign_env_step, straight after the host reports the expiry), the timer is set through the campaign's own setter, and then the
+// strikes and the two sound entities (their pitch draws, their allocation) are created in the original order at the position the original struck: the weather centre BEFORE it
+// moved.  The original solver follows, for the original game's build only.
+//
+
+static void create_lightning_effects (entity *en, vec3d *strike_position)
+{
+	env_3d
+		*current_3d_env;
+
+	//
+	// create lightning
+	//
+
+	current_3d_env = get_3d_active_environment ();
+
+	if (current_3d_env == main_3d_env)
+	{
+		current_3d_env = NULL;
+	}
+	else
+	{
+		set_3d_active_environment (main_3d_env);
+	}
+
+	ENV_FX (ENV_FX_LIGHTNING_ENV, current_3d_env == NULL, 0, 0, 0, 0, 0, 0, 0)
+
+	ENV_FX (ENV_FX_STRIKE_BEGIN, 1, 0, ENV_FXF (strike_position->x), ENV_FXF (strike_position->z), 0, 0, 0, 0)
+
+	add_3d_lightning_strike (LIGHTNING_TYPE_CLOUD_BURST, 0.3, strike_position->x, strike_position->z);
+
+	ENV_FX (ENV_FX_STRIKE_END, 1, 0, 0, 0, 0, 0, 0, 0)
+
+	ENV_FX (ENV_FX_STRIKE_BEGIN, 2, 0, ENV_FXF (strike_position->x), ENV_FXF (strike_position->z), 0, 0, 0, 0)
+
+	add_3d_lightning_strike (LIGHTNING_TYPE_FORKED_1, 0.3, strike_position->x, strike_position->z);
+
+	ENV_FX (ENV_FX_STRIKE_END, 2, 0, 0, 0, 0, 0, 0, 0)
+
+	if (current_3d_env)
+	{
+		set_3d_active_environment (current_3d_env);
+	}
+
+	if (get_comms_model () == COMMS_MODEL_SERVER)
+	{
+		sound_sample_indices
+			sound_effect_index;
+
+		//
+		// lightning sound effect
+		//
+
+		sound_effect_index = SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING;
+
+		ENV_FX (ENV_FX_SOUND_BEGIN, 1, 0, get_next_free_entity_index (), get_next_free_local_entity_index (), 0, 0, 0, 0)
+
+		create_client_server_sound_effect_entity
+		(
+			get_local_sector_entity (strike_position),
+			ENTITY_SIDE_NEUTRAL,
+			ENTITY_SUB_TYPE_EFFECT_SOUND_MISC,
+			SOUND_CHANNEL_SOUND_EFFECT,
+			SOUND_LOCALITY_ALL,
+			strike_position,								// position
+			1.0,												// amplification
+			0.85+(0.3* frand1 ()), //pitch
+			TRUE,												// valid sound effect
+			FALSE,											// looping
+			1,													// sample count
+			&sound_effect_index							// sample index list
+		);
+
+		ENV_FX (ENV_FX_SOUND_END, 1, 0, get_next_free_entity_index (), get_next_free_local_entity_index (), 0, 0, 0, 0)
+
+		//
+		// thunder sound effect
+		//
+
+		sound_effect_index = SOUND_SAMPLE_INDEX_AMBIENT_THUNDER;
+
+		ENV_FX (ENV_FX_SOUND_BEGIN, 2, 0, get_next_free_entity_index (), get_next_free_local_entity_index (), 0, 0, 0, 0)
+
+		create_client_server_sound_effect_entity
+		(
+			get_local_sector_entity (strike_position),
+			ENTITY_SIDE_NEUTRAL,
+			ENTITY_SUB_TYPE_EFFECT_SOUND_MISC,
+			SOUND_CHANNEL_SOUND_EFFECT,
+			SOUND_LOCALITY_ALL,
+			strike_position,								// position
+			1.0,												// amplification
+			0.85+(0.3* frand1 ()), //pitch
+			TRUE,												// valid sound effect
+			FALSE,											// looping
+			1,													// sample count
+			&sound_effect_index							// sample index list
+		);
+
+		ENV_FX (ENV_FX_SOUND_END, 2, 0, get_next_free_entity_index (), get_next_free_local_entity_index (), 0, 0, 0, 0)
+	}
+}
+
+void update_transitional_weather (entity *en)
+{
+	vec3d
+		*camera_pos,
+		strike_position;
+
+	session
+		*raw;
+
+	float
+		camera[3],
+		strike[3],
+		new_timer;
+
+	int
+		expired;
+
+	ASSERT (en);
+
+	raw = (session *) get_local_entity_data (en);
+
+	ENV_FXC (ENV_FX_C_WEATHER_CALLS)
+
+	// the observer counts the updates that reach the lightning timer (the local model with a weather zone), as it counted the calls of update_lightning_effect
+	if (raw->local_weather_model && (raw->weather_radius != 0.0))
+	{
+		ENV_FXC (ENV_FX_C_LIGHTNING_CALLS)
+	}
+
+	// the camera the original read (the player's gunship when the player is in the cockpit): by value; the host needs it only in the local model with a weather zone
+	if (in_cockpit)
+	{
+		camera_pos = get_gunship_entity () ? get_local_entity_vec3d_ptr (get_gunship_entity (), VEC3D_TYPE_POSITION) : NULL;
+	}
+	else
+	{
+		camera_pos = get_camera_entity () ? get_local_entity_vec3d_ptr (get_camera_entity (), VEC3D_TYPE_POSITION) : NULL;
+	}
+
+	if (camera_pos)
+	{
+		camera[0] = camera_pos->x;
+		camera[1] = camera_pos->y;
+		camera[2] = camera_pos->z;
+	}
+
+	expired = campaign_env_step ((struct SESSION *) raw, in_cockpit, camera_pos ? camera : NULL, strike, &new_timer);
+
+	if (expired)
+	{
+		strike_position.x = strike[0];
+		strike_position.y = strike[1];
+		strike_position.z = strike[2];
+
+		if (get_comms_model () == COMMS_MODEL_SERVER)
+		{
+			set_client_server_entity_float_value (en, FLOAT_TYPE_LIGHTNING_TIMER, new_timer);
+
+			ENV_FX (ENV_FX_LIGHTNING_TIMER_SET, 0, 0, ENV_FXF (raw->lightning_timer), 0, 0, 0, 0, 0)
+		}
+
+		create_lightning_effects (en, &strike_position);
+	}
+}
+
+#else
+
 #define LIGHTNING_EFFECT_MINIMUM_TIMER		20.0 * ONE_SECOND
 #define LIGHTNING_EFFECT_MAXIMUM_TIMER		4.0 * ONE_MINUTE
 
@@ -561,6 +736,8 @@ void update_transitional_weather (entity *en)
 
 	normalise_any_3d_vector (&raw->wind_direction_vector);
 }
+
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

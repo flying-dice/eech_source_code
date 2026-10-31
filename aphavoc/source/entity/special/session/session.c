@@ -98,6 +98,8 @@ entity
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifndef EECH_CAMPAIGN_HOST_ENV
+
 #define WIND_GUSTING_SAMPLE_POINTS	6
 
 static float
@@ -112,6 +114,8 @@ static float
 	};
 
 static float get_wind_gusting_modulation_value (float wind_gusting_value);
+
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -346,6 +350,43 @@ float get_session_preset_time_of_day (session_time_of_day_settings preset_enum)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef EECH_CAMPAIGN_HOST_ENV
+
+// EECH_CAMPAIGN_HOST_ENV (EEDCS-51, D3): the weather at a point is the host's (ss_hostenv.h); the original solver is below, for the original game's build only
+void get_session_weather_at_point (vec3d *pos, weathermodes *current_weather_mode, weathermodes *target_weather_mode, float *transitional_state)
+{
+	int
+		cwm,
+		twm,
+		simple;
+
+	float
+		ts;
+
+	ASSERT (get_session_entity ());
+
+	ASSERT (pos);
+
+	campaign_env_weather_at (pos->x, pos->z, &cwm, &twm, &ts, &simple);
+
+	if (current_weather_mode)
+	{
+		*current_weather_mode = (weathermodes) cwm;
+	}
+
+	if (target_weather_mode)
+	{
+		*target_weather_mode = (weathermodes) twm;
+	}
+
+	if (transitional_state)
+	{
+		*transitional_state = ts;
+	}
+}
+
+#else
+
 void get_session_weather_at_point (vec3d *pos, weathermodes *current_weather_mode, weathermodes *target_weather_mode, float *transitional_state)
 {
 	float
@@ -493,9 +534,34 @@ void get_session_weather_at_point (vec3d *pos, weathermodes *current_weather_mod
 	}
 }
 
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef EECH_CAMPAIGN_HOST_ENV
+
+weathermodes get_simple_session_weather_at_point (vec3d *pos)
+{
+	int
+		cwm,
+		twm,
+		simple;
+
+	float
+		ts;
+
+	ASSERT (get_session_entity ());
+
+	ASSERT (pos);
+
+	campaign_env_weather_at (pos->x, pos->z, &cwm, &twm, &ts, &simple);
+
+	return (weathermodes) simple;
+}
+
+#else
 
 weathermodes get_simple_session_weather_at_point (vec3d *pos)
 {
@@ -518,9 +584,31 @@ weathermodes get_simple_session_weather_at_point (vec3d *pos)
 	}
 }
 
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef EECH_CAMPAIGN_HOST_ENV
+
+void set_session_fixed_weather_mode (entity *en, weathermodes weather_mode)
+{
+	session
+		*raw;
+
+	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
+
+	ASSERT (en);
+
+	raw = (session *) get_local_entity_data (en);
+
+	ENV_FX (ENV_FX_FIXED_WEATHER, (int) weather_mode, 0, 0, 0, 0, 0, 0, 0)
+
+	campaign_env_init_fixed ((struct SESSION *) raw, (int) weather_mode);
+}
+
+#else
 
 void set_session_fixed_weather_mode (entity *en, weathermodes weather_mode)
 {
@@ -543,9 +631,86 @@ void set_session_fixed_weather_mode (entity *en, weathermodes weather_mode)
 	raw->weather_mode_transitional_status = 0.0;
 }
 
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef EECH_CAMPAIGN_HOST_ENV
+
+// The ten draws of the shared random word are made HERE, in the original's order (rain: radius, direction flag, x, z, heading; wind: the same five), each
+// where the original made it, and are the only ones; the host applies the original's expressions to them (ss_hostenv.h INIT_RANDOM).
+void set_session_random_weather_mode (entity *en)
+{
+	session
+		*raw;
+
+	double
+		draw[CAMPAIGN_ENV_DRAWS];
+
+	ASSERT (get_comms_model () == COMMS_MODEL_SERVER);
+
+	ASSERT (en);
+
+	raw = (session *) get_local_entity_data (en);
+
+	ENV_FX (ENV_FX_WEATHER_BEGIN, 0, 0, 0, 0, 0, 0, 0, 0)
+
+	//
+	// Rain
+	//
+
+	draw[0] = frand1 ();
+
+	ENV_FX (ENV_FX_WEATHER_DRAW, 1, 0, ENV_FXF ((float) draw[0]), 0, 0, 0, 0, 0)
+
+	draw[1] = (double) rand16 ();
+
+	ENV_FX (ENV_FX_WEATHER_DRAW, 2, ((int) draw[1]) & 1, 0, 0, 0, 0, 0, 0)
+
+	draw[2] = frand1 ();
+
+	ENV_FX (ENV_FX_WEATHER_DRAW, 3, 0, ENV_FXF ((float) draw[2]), 0, 0, 0, 0, 0)
+
+	draw[3] = frand1 ();
+
+	ENV_FX (ENV_FX_WEATHER_DRAW, 4, 0, ENV_FXF ((float) draw[3]), 0, 0, 0, 0, 0)
+
+	draw[4] = sfrand1 ();
+
+	ENV_FX (ENV_FX_WEATHER_DRAW, 5, 0, ENV_FXF ((float) draw[4]), 0, 0, 0, 0, 0)
+
+	//
+	// Wind
+	//
+
+	draw[5] = frand1 ();
+
+	ENV_FX (ENV_FX_WEATHER_DRAW, 6, 0, ENV_FXF ((float) draw[5]), 0, 0, 0, 0, 0)
+
+	draw[6] = (double) rand16 ();
+
+	ENV_FX (ENV_FX_WEATHER_DRAW, 7, ((int) draw[6]) & 1, 0, 0, 0, 0, 0, 0)
+
+	draw[7] = frand1 ();
+
+	ENV_FX (ENV_FX_WEATHER_DRAW, 8, 0, ENV_FXF ((float) draw[7]), 0, 0, 0, 0, 0)
+
+	draw[8] = frand1 ();
+
+	ENV_FX (ENV_FX_WEATHER_DRAW, 9, 0, ENV_FXF ((float) draw[8]), 0, 0, 0, 0, 0)
+
+	draw[9] = sfrand1 ();
+
+	ENV_FX (ENV_FX_WEATHER_DRAW, 10, 0, ENV_FXF ((float) draw[9]), 0, 0, 0, 0, 0)
+
+	campaign_env_init_random ((struct SESSION *) raw, draw);
+
+	ENV_FX (ENV_FX_WEATHER_END, 0, 0, 0, 0, 0, 0, 0, 0)
+}
+
+#else
 
 void set_session_random_weather_mode (entity *en)
 {
@@ -620,9 +785,37 @@ void set_session_random_weather_mode (entity *en)
 	ENV_FX (ENV_FX_WEATHER_END, 0, 0, 0, 0, 0, 0, 0, 0)
 }
 
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef EECH_CAMPAIGN_HOST_ENV
+
+float get_session_wind_velocity_at_point (vec3d *pos, vec3d *wind_velocity)
+{
+	float
+		wind_speed,
+		vector[3];
+
+	ASSERT (get_session_entity ());
+
+	ASSERT (pos);
+
+	wind_speed = campaign_env_wind_at (pos->x, pos->z, wind_velocity ? vector : NULL);
+
+	if (wind_velocity)
+	{
+		wind_velocity->x = vector[0];
+		wind_velocity->y = vector[1];
+		wind_velocity->z = vector[2];
+	}
+
+	return wind_speed;
+}
+
+#else
 
 float get_session_wind_velocity_at_point (vec3d *pos, vec3d *wind_velocity)
 {
@@ -683,6 +876,8 @@ float get_session_wind_velocity_at_point (vec3d *pos, vec3d *wind_velocity)
 
 	return wind_speed;
 }
+
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -917,6 +1112,12 @@ void attach_session_sound_effects (entity *en)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef EECH_CAMPAIGN_HOST_ENV
+
+/* the gust modulation is the host's (ss_hostenv.h GUST); the original is below, for the original game's build only */
+
+#else
+
 float get_wind_gusting_modulation_value (float wind_gusting_value)
 {
 	float
@@ -969,6 +1170,8 @@ float get_wind_gusting_modulation_value (float wind_gusting_value)
 	return (a + (d * (b - a)));
 }
 
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1008,7 +1211,11 @@ int check_point_inside_population_area (vec3d *point)
 
 float eech_env_fixture_gust_modulation (float wind_gusting_value)
 {
+#ifdef EECH_CAMPAIGN_HOST_ENV
+	return campaign_env_gust_modulation (wind_gusting_value);
+#else
 	return get_wind_gusting_modulation_value (wind_gusting_value);
+#endif
 }
 
 #endif

@@ -1,5 +1,10 @@
 # D3 environment services (EEDCS-51): characterisation of the ORIGINAL weather, wind and clock — first increment
 
+> **Production-stage note (EEDCS-51, host-owned field; UNBUILT, UNRUN, UNREVIEWED).** The physical weather/wind field has since moved to the reference host (see `d3-environment-provider.md`). The observer's
+> sites are unchanged except that the lightning timer arithmetic now runs in the host: `lightning_expired` is recorded for a server expiry before the draw is made, `lightning_new_timer` after it, and
+> nothing for a client's expiry, as before; the ten `weather_draw` events keep their sites, ordinals, flags and shared-seed words, but their `w0` is the draw value, not the computed field. The rest of this
+> document describes the ORIGINAL code and is unchanged.
+
 Verified guard checkpoint (30 October 2026): measured source `084858000` passes all8 environment guards on Linux and all8 by actual Windows execution. Formatting and world all-target strict Clippy pass0. The final narrow independent review closes the initializer wind-unavailable template finding without new findings (SHA256 `5916fd108f60f3932fb7a39e0c66cdcc8dcff682512b47525657845a4a67f3f7`). The guard now exercises35 malformed-report controls and8 coherent alternative forms. Safe receipts are in `reference/d3-environment-characterization/guard-closeout-084858000/`. Earlier prepared/UNRUN and pending-review sections below preserve their checkpoint-time state and are superseded by this entry for the guard changes. Original numerical behavior, prior explicit new-driver/original-DLL compatibility and failures retain their own identities and are reused; no physical environment service has moved, and Task51/D3 remain open.
 
 

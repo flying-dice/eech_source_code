@@ -1,5 +1,10 @@
 # D3 environment services (EEDCS-51): the read-only observer of the ORIGINAL initialisation, shared-entropy order, lightning/sound effects and frame time phase
 
+> **Production-stage note (EEDCS-51, host-owned field; UNBUILT, UNRUN, UNREVIEWED).** The physical weather/wind field has since moved to the reference host (see `d3-environment-provider.md`). The observer's
+> sites are unchanged except that the lightning timer arithmetic now runs in the host: `lightning_expired` is recorded for a server expiry before the draw is made, `lightning_new_timer` after it, and
+> nothing for a client's expiry, as before; the ten `weather_draw` events keep their sites, ordinals, flags and shared-seed words, but their `w0` is the draw value, not the computed field. The rest of this
+> document describes the ORIGINAL code and is unchanged.
+
 Status: **SOURCE PREPARED. UNBUILT. UNRUN. UNREVIEWED.** The author has no C compiler, Lua or cargo; Root builds, runs and reviews. This is a characterization step of the ORIGINAL code, not a production extraction:
 no physical state, solver or service moves, and nothing here claims host authority, a cutover, Task 51 or D3 completion. The closed measurements of the first increment
 (`d3-environment-characterization.md`, source `99352e33`) are unchanged evidence of what they measured; this step adds the evidence they explicitly excluded.

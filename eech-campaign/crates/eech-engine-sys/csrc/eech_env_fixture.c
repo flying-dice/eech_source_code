@@ -2,6 +2,12 @@
  * TEST-ONLY characterisation of the ORIGINAL session environment (EEDCS-51, first increment of D3). Compiled only with the `env-fixture` feature; never part of the shipping module.
  * SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED: nothing in this file has been compiled or executed. It moves no physics and adds no campaign behaviour.
  *
+ * HOST-OWNED FIELD (EECH_CAMPAIGN_HOST_ENV, EEDCS-51 production stage): when the module is built with the host-owned weather and wind field (ss_hostenv.h), the routines named below are the campaign's
+ * synchronous requests to the HOST, which runs the original arithmetic as its kernels, and the session record's physical fields are a read-only mirror of the host's field. The witnesses are unchanged
+ * in what they observe and print; they now reach the host's field through the campaign's own import (a witness pushes its synthetic input, a restore pushes the saved record back) and read it back
+ * through the campaign's own export (a snapshot or fingerprint re-reads the host first), so every number a case prints is still the original arithmetic's, now computed by the host. Against the original
+ * session code (no host field) the push and the re-read are no-ops and this file is the retained characterisation of the original.
+ *
  * What it observes is the session entity's environment: the clock (start time, elapsed time, time of day, day, day segment), the weather (the local ring model or the global/fixed
  * model, the simple half-transition choice) and the wind (the zone around a drifting centre, the gusts, the direction). Every number a case prints comes from the ORIGINAL routines
  * (session.c, ss_updt.c, ss_int.c, ss_float.c, range.c, vector.c); this file only chooses inputs, calls them and prints the words they return. It never recomputes a result.
@@ -128,6 +134,32 @@ static session *env_session_raw (void)
 	return (session *) get_local_entity_data (get_session_entity ());
 }
 
+/* With the host-owned field (EECH_CAMPAIGN_HOST_ENV, ss_hostenv.h) the session record's physical fields are a read-only MIRROR of the host's field.  A witness that sets synthetic physical state
+   therefore PUSHES it to the host through the campaign's own import, so that the queries and the update that follow run against it; a restore pushes the saved record back; and a state read
+   (a snapshot, a fingerprint) first re-reads the host's field, so what is rendered and compared is the host's, not a stale copy.  Against the original session code (no host field) all three are
+   no-ops: the record IS the field. */
+#ifdef EECH_CAMPAIGN_HOST_ENV
+#include "entity/special/session/ss_hostenv.h"
+
+static void env_push (void)
+{
+	campaign_env_import ((struct SESSION *) env_session_raw ());
+}
+
+static void env_pull (void)
+{
+	campaign_env_refresh ((struct SESSION *) env_session_raw ());
+}
+#else
+static void env_push (void)
+{
+}
+
+static void env_pull (void)
+{
+}
+#endif
+
 /* the camera's position, or NULL when the headless build holds no camera entity (it does hold one at present: create_local of the session asserts it) */
 static vec3d *env_camera_position (void)
 {
@@ -195,6 +227,8 @@ static uint64_t env_state_fingerprint (void)
 	int used = 0;
 
 	scratch[0] = '\0';
+
+	env_pull ();
 
 	if (env_render_state (scratch, ENV_SCRATCH, &used, "fp", "fp") != 0)
 	{
@@ -474,6 +508,7 @@ struct env_saved_state
 
 static void env_save_state (struct env_saved_state *s)
 {
+	env_pull ();
 	memcpy (&s->raw, env_session_raw (), sizeof (session));
 	s->season = (int) get_global_season ();
 	s->rng = random_number_seed;
@@ -483,6 +518,7 @@ static void env_save_state (struct env_saved_state *s)
 static void env_restore_state (const struct env_saved_state *s)
 {
 	memcpy (env_session_raw (), &s->raw, sizeof (session));
+	env_push ();
 	set_global_season (s->season);
 	random_number_seed = s->rng;
 	system_delta_time = s->delta;
@@ -522,6 +558,8 @@ static int env_snapshot (char *text, int capacity, int *used)
 	vec3d *cp = env_camera_position ();
 	vec3d centre;
 	int start = *used;
+
+	env_pull ();
 
 	if (env_render_state (text, capacity, used, "env-state", "retail") != 0)
 	{
@@ -566,6 +604,7 @@ static int env_weather_case (int i, char *text, int capacity, int *used)
 	raw->target_weather_mode = (weathermodes) c->twm;
 	raw->weather_mode_transitional_status = c->ts;
 	env_set_vec (&raw->weather_position, 0.0f, 0.0f, 0.0f);
+	env_push ();
 	env_set_vec (&pos, c->px, 0.0f, c->pz);
 	range = get_approx_2d_range (&pos, &raw->weather_position);
 
@@ -598,6 +637,8 @@ static int env_wind_case (int i, char *text, int capacity, int *used)
 		return 0;
 	}
 
+	env_push ();
+
 	range = get_approx_2d_range (&pos, &centre);
 	speed = get_session_wind_velocity_at_point (&pos, &wind);
 	speed_null = get_session_wind_velocity_at_point (&pos, NULL);
@@ -629,6 +670,7 @@ static int env_gust_case (int i, char *text, int capacity, int *used)
 	raw->wind_maximum_speed = 20.0f;
 	raw->wind_gusting_value = gust;
 	env_set_vec (&raw->wind_direction_vector, 1.0f, 0.0f, 0.0f);
+	env_push ();
 	env_set_vec (&wind, 0.0f, 0.0f, 0.0f);
 	{
 		vec3d pos;
@@ -827,6 +869,8 @@ static int env_update_weather_case (int i, char *text, int capacity, int *used)
 		raw->wind_effect_position.z = MAX_MAP_Z - 1.0f;
 		raw->wind_effect_velocity.z = 100.0f;
 	}
+
+	env_push ();
 
 	snprintf (tag, sizeof (tag), "before_%d", i);
 	ENV_EMIT ("env-update-weather kind=witness i=%d label=%s delta_w=%08x camera_dependent_fields=weather_mode,target_weather_mode,transitional_status_when_local_and_radius_nonzero camera=%d\n", i, labels[i],

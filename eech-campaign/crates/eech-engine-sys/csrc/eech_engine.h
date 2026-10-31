@@ -21,6 +21,7 @@
 #include "entity/mobile/mb_hostaim.h"
 #include "entity/mobile/mb_hostobj.h"
 #include "entity/mobile/mb_hostterrain.h"
+#include "entity/special/session/ss_hostenv.h"
 
 #define EECH_ENGINE_OK 0
 #define EECH_ENGINE_FATAL 1
@@ -71,6 +72,7 @@ typedef campaign_movement_result eech_movement_result;
 typedef campaign_move_vehicle_fn eech_move_vehicle_callback;
 typedef campaign_los_fn eech_line_of_sight_callback;
 typedef campaign_terrain_fn eech_terrain_callback;
+typedef campaign_env_fn eech_environment_callback;
 typedef campaign_sense_fn eech_sense_callback;
 typedef campaign_aim_fn eech_aim_callback;
 
@@ -92,6 +94,8 @@ struct eech_engine_host
 	eech_aim_callback aim;
 	/* Called synchronously for every physical terrain question (mb_hostterrain.h): the map facts, the surface at a point (elevation, normal, type, and the record's opaque hint) and the fast gridpost elevation. Unlike the dialogue callbacks above it is installed for the rest of the process by the first entry that carries it (boot requires it), because the campaign asks about terrain from every entry. The host owns the physical terrain; there is no campaign fallback. */
 	eech_terrain_callback terrain;
+	/* Called synchronously for every physical weather and wind question and for the physical update of the field (ss_hostenv.h): the host owns the weather and wind zones, their evolution, the gusts and the lightning timer; the campaign keeps the clock, the draws of the shared random word, the entity effects of a strike and every consequence. Installed for the rest of the process by the first entry that carries it (boot requires it); there is no campaign fallback. */
+	eech_environment_callback environment;
 	void *user;
 };
 

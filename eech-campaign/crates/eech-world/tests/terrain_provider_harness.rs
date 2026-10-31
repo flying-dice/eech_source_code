@@ -46,6 +46,8 @@ fn run(mode: &str, boot: &str, frame: &str) -> (Result<(), String>, String) {
                     return {{ elevation = 100 }}
                 end
             end,
+            -- the environment provider the script gives the (stand-in) boot: this harness is about the terrain
+            env_provider = function () return function () error ("the environment provider was asked in a terrain guard", 0) end end,
             bind_mobile = function () return "id" end, move_vehicle = function () end, observe_loss = function () end,
             supply_reached = function () end, line_of_sight = function () end, sense = function () end, aim = function () end,
         }}

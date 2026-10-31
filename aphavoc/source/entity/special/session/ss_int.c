@@ -236,6 +236,27 @@ static void set_local_int_value (entity *en, int_types type, int value)
 			break;
 		}
 	}
+#ifdef EECH_CAMPAIGN_HOST_ENV
+	// the physical fields of the record are a read-only MIRROR of the host's field (ss_hostenv.h): a write through this setter (the pack, the debug events, a test) is pushed to the host
+	switch (type)
+	{
+		case INT_TYPE_LOCAL_WEATHER_MODEL:
+		case INT_TYPE_TARGET_WEATHER_MODE:
+		case INT_TYPE_WEATHER_INCREASING:
+		case INT_TYPE_WEATHER_MODE:
+		case INT_TYPE_WIND_INCREASING:
+		{
+			campaign_env_import ((struct SESSION *) raw);
+
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
+#endif
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

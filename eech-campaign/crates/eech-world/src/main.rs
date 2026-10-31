@@ -10,6 +10,7 @@ mod crash;
 
 use eech_world::aim::{self, Aim};
 use eech_world::cmb;
+use eech_world::env;
 use eech_world::flight;
 use eech_world::los::{Los, LosRequest};
 use eech_world::movement::{
@@ -1274,6 +1275,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     host.set("args", args)?;
     // the host's own terrain (EEDCS-47): host.terrain_open { terrain_dir = ... } loads a map and returns the provider for it
     terrain::install(&lua, &host)?;
+    // the host's own physical weather and wind field (EEDCS-51): host.env_provider () makes a provider to give to dc.boot as environment = ...
+    env::install(&lua, &host)?;
     host.set(
         "log",
         lua.create_function(|_, message: String| {

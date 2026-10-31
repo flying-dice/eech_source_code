@@ -1,3 +1,40 @@
+# D3 checkpoint — physical weather/wind field production extraction prepared (31 October 2026)
+
+EEDCS-51 / PR111 from clean pushed `b8874cd6c` (reference-evidence only until now), the same sole
+Sonnet5.5High lane continuing an interrupted author's partial header. **NEW SOURCE: UNBUILT, UNRUN,
+UNREVIEWED.** No compiler, cargo or Lua was run; nothing is claimed physically, byte-identically or
+as host authority proven. Task 51/D3 is NOT complete and nothing here approves a merge.
+
+What moved in source (design and protocol: `eech-campaign/docs/d3-environment-provider.md`): the
+physical weather/wind field now belongs to the reference host (`eech-world/csrc/env_ref.c`, the
+ORIGINAL expressions with their types and order as kernels, complete x87/MXCSR guard on every exit
+including refusals, atomic copy-and-commit) behind a mandatory same-DLL provider
+(`dc.boot { environment = host.env_provider () }`, `[env-provider:*]` markers, no Core fallback).
+Moved: weather/simple-weather/wind/gust queries, `set_session_random_weather_mode` arithmetic,
+`set_session_fixed_weather_mode`, and the physical `update_transitional_weather` plus the
+lightning timer decrement/expiry/new-timer arithmetic. The session record's 23 floats and 5
+integers are a read-only mirror written only from checked host replies; setters, pack/unpack and
+creation sync through campaign `import`/`export`. D2 weapon wind (`wn_move.c`) reaches the host
+field unchanged through `get_session_wind_velocity_at_point`.
+
+Kept in Core, exact: campaign clock, skip-night, resync, scheduling and the update order with the
+PREVIOUS frame delta; every shared-RNG draw at its original site (two groups of exactly ten, the one
+lightning draw made only after the host reports an expiry through the two-call `need_draw`
+protocol; no speculative draw, no continuation framework); lightning strike and sound entity
+creation. Still coupled/open within Task51/D3: the strike/sound/terrain-scratch bridge, the time of
+day input, the mirror copy used by pack/save/player paths, and compiled client/save dispositions
+(export/import or a clear refusal). One recorded difference to classify, not hide: `weather_draw`
+observer events keep ordinals/flags/`rng` but their `w0` is now the draw value, not the computed field.
+
+Fixture/observer ported to the host field (witness pushes via `import`, restore pushes back,
+snapshots re-read via `export`; no-ops against the original code); every boot script and harness
+passes `environment`; Rust unit tests added for the bridge (`module.rs`) and kernels/provider
+(`env.rs`); boot-contract test covers the new marker. A client lightning expiry no longer requires
+a draw. Single NUL of `eech_engine.c` preserved. Final Task51 gates (new default shipping 40/all-8
+byte-identical comparison, changed/withheld/malformed authority incl. a launched projectile, one
+independent combined review, CI, normal merge) remain Root's. Ground original 72359 and the four
+natives, Task49/50 branches, baselines and tolerances untouched.
+
 # D3 checkpoint — actual observer drain failures retained; bounded recovery prepared (31 October 2026)
 
 All three native765/driver e98 observer120s attempts actually exited1 at the first
