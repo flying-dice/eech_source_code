@@ -5,19 +5,26 @@
 -- provider callback) as the physical operations `sound_lifetime_init` and `sound_lifetime_update` (docs/d3-sound-lifetime.md, eech-world/src/env.rs). This witness asks, on the native it is run against, whether the campaign
 -- really asks the host and whether the host's ANSWER is what the real entity shows.
 --
+-- PHASES. The campaign's own boot constructs sound effects too (the looping ambient sounds ask `sound_lifetime_init`, and a mode's operation may be one of them). The wrapper therefore forwards EVERY request
+-- unchanged while the delegate boots and counts the mode's operation apart as `boot_requests`; only when the delegate's `dc.boot` returns does the fixture phase begin, in which the mode's operation is counted
+-- as `requests` and altered, withheld or malformed. A stop is thus always at the selected fixture case, never inside boot.
+--
 -- WHAT IT DOES. It wraps the `host.env_provider` factory BEFORE the delegate boots and counts ONLY the requests whose `op` is the mode's; every other request is forwarded UNCHANGED to the original provider. It
 -- then runs the EXISTING control driver `lua/env-sound-lifetime.lua` for the mode's controlled-data case through `dofile`, so the delegate's argument checks, report validation, raw rows and output-failure
 -- handling are exactly its own, with no second parser. The delegate's rows stay on `out` untouched; this witness writes ONE compact separate record of its own on `authority_out`.
 --
 -- MODES (`mode=`, default healthy):
---   healthy        the request is forwarded to the reference host. REQUIRED: the case completed, the host was asked at least once and the real case shows what the ORIGINAL measured for it (case 4, the server's
---                  aging of a positive lifetime: three calls and ONE kill). Against a native that decides in the campaign the host is asked 0 times: `sound-host-capability-missing` (the RED of the capability).
---   changed        (case 4, `sound_lifetime_update`) the host answers every update itself with a valid answer that differs from the reference: nothing ages and nothing expires. REQUIRED: the host was asked and the
---                  REAL case shows NO kill (three calls, zero kills). A request count alone proves nothing: a native that asks the host and still ages and kills in the campaign fails here.
---   changed_init   (case 6, `sound_lifetime_init`) the host gives the new effect the lifetime 0.25. REQUIRED: the host was asked and the REAL entity's constructor state holds exactly 0.25.
+--   healthy        the request is forwarded to the reference host. REQUIRED: the case completed, the host was asked at least once in the FIXTURE phase and the real case shows what the ORIGINAL measured for it (case 4,
+--                  the server's aging of a positive lifetime: three calls, ONE kill, and the lifetime word already aged after the first call). Against a native that decides in the campaign the host is asked 0 times:
+--                  `sound-host-capability-missing` (the RED of the capability).
+--   changed        (case 4, `sound_lifetime_update`) the host answers every update itself with a valid answer that differs from the reference: the lifetimes come back as they went, nothing ages and nothing expires.
+--                  REQUIRED: the host was asked and the REAL entity's words show it: its lifetime word is the constructor's after every one of the three calls and the entity is never killed (three calls, zero kills,
+--                  four equal words, every state live). Aging and the kill decision are both read from the entity's own words; a request count alone proves nothing, and a native that asks the host and still ages or kills fails.
+--   changed_init   (case 6, `sound_lifetime_init`) the host gives the new effect the lifetime 0.25 (in the fixture phase only: the boot's own constructors are forwarded unchanged). REQUIRED: the host was asked and the
+--                  REAL entity's constructor state holds exactly 0.25.
 --   withheld       the host raises an error in `sound_lifetime_update`. REQUIRED: the campaign STOPS at `[env-provider:sound_lifetime_update.callback]` (the delegate fails in the engine, no result row).
 --   malformed      the host answers an action that does not exist. REQUIRED: the campaign stops at `[env-provider:sound_lifetime_update.answer]`, likewise.
---   withheld_init  the host raises an error in `sound_lifetime_init`. REQUIRED: the campaign stops at `[env-provider:sound_lifetime_init.callback]`, likewise.
+--   withheld_init  the host raises an error in `sound_lifetime_init` in the fixture phase. REQUIRED: the campaign stops at `[env-provider:sound_lifetime_init.callback]` in case 6, likewise.
 -- THE STOP EVIDENCE is the delegate's OWN record, read back when the delegate fails: the case's `engine_failure` row at the expected marker and NO result row, and the delegate's error must be its report of the
 -- engine's stop. A failure whose message happens to carry the marker (a path, a diagnostic) is rejected as that failure, and a stale or contradictory result row is `contradictory-result`.
 --
@@ -61,7 +68,9 @@ if authority_path == nil then authority_path = out_path .. ".authority.jsonl" en
 if type (authority_path) ~= "string" or authority_path == "" or authority_path == out_path then refuse ("authority_out must be a path other than out") end
 
 -- ---------------------------------------------------------------------------------------------------------------- the wrapper: forward everything, count only the op, alter only that op's answer
-local requests, forwarded = 0, 0
+-- The alteration is armed for the FIXTURE phase only: the campaign's own boot constructs sound effects too (the looping ambient sounds ask `sound_lifetime_init`), and those requests are forwarded UNCHANGED
+-- and counted apart (`boot_requests`); the phase turns to `fixture` when the delegate's `dc.boot` returns, so the alteration or refusal meets the selected fixture case and nothing earlier.
+local requests, forwarded, boot_requests, phase = 0, 0, 0, "boot"
 local factory = host.env_provider
 if type (factory) ~= "function" then refuse ("this host has no host.env_provider factory") end
 
@@ -69,7 +78,9 @@ local wrapped = function (...)
 	local base = factory (...)
 	if type (base) ~= "function" then error (NAME .. ": host.env_provider () did not return a provider function", 0) end
 	return function (request, ...)
-		if type (request) == "table" and request.op == OP then
+		if type (request) == "table" and request.op == OP and phase == "boot" then
+			boot_requests = boot_requests + 1
+		elseif type (request) == "table" and request.op == OP then
 			requests = requests + 1
 			-- the host never ages an effect and never expires one: the lifetimes come back as they went, nothing is decided
 			if mode == "changed" then return { lifetime = request.lifetime, valid_lifetime = request.valid_lifetime, expired = false, action = "none" } end
@@ -85,9 +96,17 @@ end
 local installed, install_error = pcall (function () host.env_provider = wrapped end)
 if not installed or host.env_provider ~= wrapped then refuse ("the host table does not accept a wrapped env_provider: " .. tostring (install_error)) end
 
+-- the phase hook: `dc.boot` is wrapped for the delegate's run only and restored after it; nothing else of the module is touched
+local dc = require ("eech_dc")
+local real_boot = dc.boot
+if type (real_boot) ~= "function" then refuse ("the eech_dc module has no boot function to mark the fixture phase with") end
+local hooked, hook_error = pcall (function () dc.boot = function (...) local engine = real_boot (...) phase = "fixture" return engine end end)
+if not hooked or dc.boot == real_boot then refuse ("the eech_dc module does not accept a wrapped boot: " .. tostring (hook_error)) end
+
 -- ---------------------------------------------------------------------------------------------------------------- the delegate, exactly as it is
 local ran, problem = pcall (dofile, delegate_path)
 host.env_provider = factory
+dc.boot = real_boot
 
 local function read_all (path)
 	local file, err = io.open (path, "r")
@@ -100,8 +119,8 @@ end
 local function write_record (completed, verdict, extra)
 	local file, err = io.open (authority_path, "w")
 	if not file then refuse ("OUTPUT FAILURE: opening " .. authority_path .. " failed: " .. tostring (err)) end
-	local line = string.format ('{"case":%d,"completed":%s,"delegate_ran":%s,"forwarded_other_requests":%d,"mode":"%s","op":"%s","requests":%d,%s"source":"host.env_provider wrapper on the public path","verdict":"%s"}\n',
-		CASE, completed and "true" or "false", ran and "true" or "false", forwarded, mode, OP, requests, extra or "", verdict)
+	local line = string.format ('{"boot_requests":%d,"case":%d,"completed":%s,"delegate_ran":%s,"forwarded_other_requests":%d,"mode":"%s","op":"%s","requests":%d,%s"source":"host.env_provider wrapper on the public path","verdict":"%s"}\n',
+		boot_requests, CASE, completed and "true" or "false", ran and "true" or "false", forwarded, mode, OP, requests, extra or "", verdict)
 	local ok, werr = file:write (line)
 	if not ok then refuse ("OUTPUT FAILURE: writing " .. authority_path .. " failed: " .. tostring (werr)) end
 	ok, werr = file:flush ()
@@ -120,17 +139,22 @@ local function delegate_rows ()
 end
 local function has (line, fragment) return string.find (line, fragment, 1, true) ~= nil end
 
--- the delegate's result row of this mode's case, if it wrote one: (completed, calls, kills); and the constructor state's lifetime word of its first entity
+-- the delegate's result row of this mode's case, if it wrote one: (completed, calls, kills, the constructor state's lifetime word of its first entity, and the lifetime words of that entity's state rows in order).
+-- The state rows are the delegate's own REAL entity words (the constructor's, then the state after each call): they are what shows whether the campaign wrote the host's lifetimes. Nothing is parsed twice: the
+-- delegate has already validated every row; this reads only these few fields back.
 local function case_result ()
 	local rows = delegate_rows ()
 	if rows == nil then return false end
-	local creation_word
+	local creation_word, words = nil, {}
 	for _, line in ipairs (rows) do
-		if has (line, '"event":"env-sound-state"') and has (line, '"ent":"0"') and has (line, '"tag":"0"') then creation_word = string.match (line, '"life_w":"(%x+)"') end
+		if has (line, '"event":"env-sound-state"') and has (line, '"ent":"0"') then
+			words [#words + 1] = { tag = string.match (line, '"tag":"(%d+)"'), life = string.match (line, '"life_w":"(%x+)"'), data = string.match (line, '"data":"(%d)"') }
+			if has (line, '"tag":"0"') then creation_word = words [#words].life end
+		end
 	end
 	for _, line in ipairs (rows) do
 		if has (line, '"event":"result"') and has (line, '"case":' .. CASE .. ',') and has (line, '"refused":false') then
-			return true, tonumber (string.match (line, '"calls":(%d+)')), tonumber (string.match (line, '"kills":(%d+)')), creation_word
+			return true, tonumber (string.match (line, '"calls":(%d+)')), tonumber (string.match (line, '"kills":(%d+)')), creation_word, words
 		end
 	end
 	return false
@@ -183,27 +207,39 @@ if not ran then
 	write_record (false, "setup_failure_delegate_failed")
 	error (tostring (problem), 0)
 end
-local completed, calls, kills, creation_word = case_result ()
+local completed, calls, kills, creation_word, words = case_result ()
 if not completed then
 	write_record (false, "setup_failure_case_did_not_complete")
 	refuse ("SETUP FAILURE: the delegate returned but case " .. CASE .. " did not complete (refused, or no result row on " .. out_path .. "): the lifetime was not exercised, so there is no ownership verdict")
 end
-local facts = string.format ('"calls":%s,"creation_life_w":"%s","kills":%s,', tostring (calls), tostring (creation_word), tostring (kills))
+-- the real entity's lifetime words, in order (the constructor's, then after each call), joined for the record
+local sequence = {}
+for _, word in ipairs (words) do sequence [#sequence + 1] = word.life end
+local facts = string.format ('"calls":%s,"creation_life_w":"%s","kills":%s,"life_words":"%s",', tostring (calls), tostring (creation_word), tostring (kills), table.concat (sequence, ","))
 if requests == 0 then
 	write_record (true, "sound_host_capability_missing", facts)
-	refuse ("sound-host-capability-missing: case " .. CASE .. " completed, and the host was asked 0 times for '" .. OP .. "' (" .. forwarded .. " other requests were forwarded unchanged): the campaign decided the lifetime without calling the host")
+	refuse ("sound-host-capability-missing: case " .. CASE .. " completed, and the host was asked 0 times for '" .. OP .. "' in the fixture phase (" .. boot_requests .. " in the boot phase, " .. forwarded .. " other requests were forwarded unchanged): the campaign decided the lifetime without calling the host")
 end
-if mode == "healthy" and (calls ~= 3 or kills ~= 1) then
-	write_record (true, "ownership_not_shown", facts)
-	refuse ("ownership-not-shown: the reference host was asked " .. requests .. " time(s) but the real case shows " .. tostring (calls) .. " calls and " .. tostring (kills) .. " kills, not the three calls and one kill the original measured")
-end
-if mode == "changed" and (calls ~= 3 or kills ~= 0) then
-	write_record (true, "ownership_not_shown", facts)
-	refuse ("ownership-not-shown: the host never expired the effect (" .. requests .. " request(s)) but the real case shows " .. tostring (calls) .. " calls and " .. tostring (kills) .. " kills: the campaign killed an entity the host did not")
-end
-if mode == "changed_init" and creation_word ~= "3e800000" then
+if mode == "healthy" then
+	-- the reference host ages: the first call changes the entity's lifetime word, and the case ends in the one kill the original measured
+	if calls ~= 3 or kills ~= 1 or #words < 2 or words [1].life == words [2].life then
+		write_record (true, "ownership_not_shown", facts)
+		refuse ("ownership-not-shown: the reference host was asked " .. requests .. " time(s) but the real case shows " .. tostring (calls) .. " calls, " .. tostring (kills) .. " kills and the lifetime words " .. table.concat (sequence, ",") .. ", not three calls, one kill and an aged lifetime after the first call")
+	end
+elseif mode == "changed" then
+	-- the host answered every update with the lifetime it was given and no expiry: the REAL entity must hold that lifetime word in the constructor's state and after every call (the campaign wrote the host's
+	-- lifetimes, so the aging is the host's), and be killed by nobody. The verdict claims the kill decision AND the aging only because both are read from the entity's own words.
+	local unchanged = #words == 4
+	for _, word in ipairs (words) do
+		if word.life ~= words [1].life or word.data ~= "1" then unchanged = false end
+	end
+	if calls ~= 3 or kills ~= 0 or not unchanged then
+		write_record (true, "ownership_not_shown", facts)
+		refuse ("ownership-not-shown: the host never aged or expired the effect (" .. requests .. " request(s)) but the real case shows " .. tostring (calls) .. " calls, " .. tostring (kills) .. " kills and the lifetime words " .. table.concat (sequence, ",") .. ": the campaign aged or killed an entity the host did not")
+	end
+elseif mode == "changed_init" and creation_word ~= "3e800000" then
 	write_record (true, "ownership_not_shown", facts)
 	refuse ("ownership-not-shown: the host gave the new effect the lifetime 0.25 (" .. requests .. " request(s)) but the real constructor state holds the word " .. tostring (creation_word) .. ", not 3e800000: the campaign summed the samples itself")
 end
 write_record (true, mode == "healthy" and "host_asked_and_decided" or "host_changed_the_decision", facts)
-io.stderr:write (string.format ("%s: mode=%s case %d completed; the host was asked %d time(s) for '%s'; the case shows %s calls, %s kills, creation word %s; %d other request(s) forwarded unchanged\n", NAME, mode, CASE, requests, OP, tostring (calls), tostring (kills), tostring (creation_word), forwarded))
+io.stderr:write (string.format ("%s: mode=%s case %d completed; the host was asked %d time(s) for '%s' in the fixture phase (%d in boot); the case shows %s calls, %s kills, lifetime words %s; %d other request(s) forwarded unchanged\n", NAME, mode, CASE, requests, OP, boot_requests, tostring (calls), tostring (kills), table.concat (sequence, ","), forwarded))

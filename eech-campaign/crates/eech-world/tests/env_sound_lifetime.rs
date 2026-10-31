@@ -127,12 +127,30 @@ host = {{
 	env_provider = function () return function () return {{}} end end,
 	bind_mobile = function () end,
 }}
+-- the campaign asking the host, as the hosted constructor and update routines do: the host's answer is checked as the campaign checks it, and a refusal or a malformed answer stops the engine at the provider's marker
+local function ask (config, request)
+	local ok, answer = pcall (config.environment, request)
+	if not ok then error ('host environment: [env-provider:' .. request.op .. '.callback] ' .. tostring (answer), 0) end
+	if request.op == 'sound_lifetime_update' and type (answer) == 'table' and answer.action ~= nil and answer.action ~= 'none' and answer.action ~= 'kill' and answer.action ~= 'unlink' then
+		error ('host environment: [env-provider:sound_lifetime_update.answer] the action is not none, kill or unlink', 0)
+	end
+	-- a looping effect's lifetime is +0 (the campaign refuses any other): the boot's own looping ambient sounds ask for it
+	if request.op == 'sound_lifetime_init' and request.looping and type (answer) == 'table' and answer.lifetime ~= nil and answer.lifetime ~= 0 then
+		error ('host environment: [env-provider:sound_lifetime_init.answer] the host gave a looping effect a lifetime other than 0', 0)
+	end
+end
+
 package.preload.eech_dc = function ()
 	local armed = false
 	local module = {{
 		prepare_installation = function () end,
 		boot = function (config)
 			if not armed and not SCENARIO.no_arm then error ('SCRIPTED: the observer was not armed before the boot', 0) end
+			-- the boot's own constructors: the looping ambient sounds ask the host for a lifetime before any fixture case runs
+			if SCENARIO.boot_asks and config and config.environment then
+				ask (config, {{ op = 'sound_lifetime_init', looping = true, music = false, samples = {{ {{ rate = 22050, size = 0 }} }} }})
+				ask (config, {{ op = 'sound_lifetime_init', looping = true, music = false, samples = {{ {{ rate = 22050, size = 0 }} }} }})
+			end
 			local engine = {{}}
 			if SCENARIO.no_env_case then return engine end
 			function engine:env_case (group, index)
@@ -141,18 +159,11 @@ package.preload.eech_dc = function ()
 				-- the campaign asking the host, as the hosted constructor and update routines do for the controlled-data case 4 (one sample, three updates) and case 6 (the two-sample sequence): the host's answer is
 				-- checked as the campaign checks it, and a refusal or a malformed answer stops the engine at the provider's marker
 				if SCENARIO.asks and index ~= 0 and config and config.environment then
-					local function ask (request)
-						local ok, answer = pcall (config.environment, request)
-						if not ok then error ('host environment: [env-provider:' .. request.op .. '.callback] ' .. tostring (answer), 0) end
-						if request.op == 'sound_lifetime_update' and type (answer) == 'table' and answer.action ~= nil and answer.action ~= 'none' and answer.action ~= 'kill' and answer.action ~= 'unlink' then
-							error ('host environment: [env-provider:sound_lifetime_update.answer] the action is not none, kill or unlink', 0)
-						end
-					end
 					if index == 6 then
-						ask ({{ op = 'sound_lifetime_init', looping = false, music = false, samples = {{ {{ rate = 4, size = 6 }}, {{ rate = 2, size = 5 }} }} }})
+						ask (config, {{ op = 'sound_lifetime_init', looping = false, music = false, samples = {{ {{ rate = 4, size = 6 }}, {{ rate = 2, size = 5 }} }} }})
 					elseif index == 4 then
-						ask ({{ op = 'sound_lifetime_init', looping = false, music = false, samples = {{ {{ rate = 4, size = 20 }} }} }})
-						for _ = 1, 3 do ask ({{ op = 'sound_lifetime_update', server = true, delta = 2.0, valid = true, looping = false, lifetime = 5.0, valid_lifetime = 0.0, has_handle = false }}) end
+						ask (config, {{ op = 'sound_lifetime_init', looping = false, music = false, samples = {{ {{ rate = 4, size = 20 }} }} }})
+						for _ = 1, 3 do ask (config, {{ op = 'sound_lifetime_update', server = true, delta = 2.0, valid = true, looping = false, lifetime = 5.0, valid_lifetime = 0.0, has_handle = false }}) end
 					end
 				end
 				local text = index == 0 and PLAN or (SCENARIO.report and SCENARIO.report [index]) or REPORTS [index]
@@ -497,6 +508,13 @@ fn data_report_variant(case: u32, variant: &str) -> String {
             paused: None,
             posts: if variant == "early" {
                 vec![None]
+            } else if variant == "agednokill" {
+                // a native that asks the host (which never expires anything) and still ages the effect itself: the lifetime words change, nobody kills
+                vec![
+                    Some(cap("40400000", "00000000", 1, 0, 1)),
+                    Some(cap("3f800000", "00000000", 1, 0, 1)),
+                    Some(cap("bf800000", "00000000", 1, 0, 1)),
+                ]
             } else if variant == "nokill" {
                 // a host that never ages the effect: the lifetime comes back as it went, nothing expires
                 vec![Some(live); 3]
@@ -916,15 +934,22 @@ fn the_sound_host_witness_names_the_missing_capability_when_the_case_completes_w
 
 #[test]
 fn the_sound_host_witness_counts_only_its_operation_and_leaves_the_delegates_rows_untouched() {
-    let driven = witness("asks = true", &[("case", "4")]);
+    let driven = witness("asks = true, boot_asks = true", &[("case", "4")]);
     driven
         .result
         .clone()
         .unwrap_or_else(|e| panic!("a native that asks the host was rejected: {e}\n{}", driven.text));
     let record = authority(&driven);
     assert_eq!(record["verdict"], "host_asked_and_decided");
-    // three updates are the operation; the constructor's init is another operation, forwarded and counted apart
-    assert_eq!((record["requests"].as_i64(), record["forwarded_other_requests"].as_i64()), (Some(3), Some(1)));
+    // three updates are the operation; the fixture's init and the boot's two looping inits are other operations, forwarded and counted apart
+    assert_eq!(
+        (
+            record["requests"].as_i64(),
+            record["boot_requests"].as_i64(),
+            record["forwarded_other_requests"].as_i64()
+        ),
+        (Some(3), Some(0), Some(3))
+    );
     // the delegate's rows are exactly what the control driver alone writes for the same report
     let alone = drive("", &[("case", "4")]);
     let delegate_rows: Vec<&serde_json::Value> = driven.rows.iter().filter(|row| row.get("verdict").is_none()).collect();
@@ -934,24 +959,38 @@ fn the_sound_host_witness_counts_only_its_operation_and_leaves_the_delegates_row
 #[test]
 fn the_sound_host_witness_in_changed_mode_needs_the_real_case_to_show_the_hosts_answer_and_not_only_a_request_count() {
     // a host that never ages the effect: the case shows three calls and NO kill
-    let nokill = format!("asks = true, report = {{ [4] = '{}' }}", data_report_variant(4, "nokill"));
+    let nokill = format!("asks = true, boot_asks = true, report = {{ [4] = '{}' }}", data_report_variant(4, "nokill"));
     let driven = witness(&nokill, &[("case", "4"), ("mode", "changed")]);
     driven.result.clone().unwrap_or_else(|e| panic!("{e}\n{}", driven.text));
     assert_eq!(authority(&driven)["verdict"], "host_changed_the_decision");
     assert_eq!(of(&driven, "result")[0]["kills"], 0);
     // the host was asked and said nothing expires, but the case still shows the kill: the campaign decided itself
-    let still_kills = witness("asks = true", &[("case", "4"), ("mode", "changed")]);
+    // the host never aged the effect and said nothing expires, but the case shows the effect aged although nobody killed it: the campaign aged it itself (the entity's own lifetime words say so)
+    let aged = format!("asks = true, boot_asks = true, report = {{ [4] = '{}' }}", data_report_variant(4, "agednokill"));
+    let aged = witness(&aged, &[("case", "4"), ("mode", "changed")]);
+    let error = aged.result.clone().unwrap_err();
+    assert!(
+        error.contains("ownership-not-shown") && error.contains("aged or killed an entity the host did not"),
+        "{error}"
+    );
+    assert_eq!(authority(&aged)["life_words"], "40a00000,40400000,3f800000,bf800000");
+    let still_kills = witness("asks = true, boot_asks = true", &[("case", "4"), ("mode", "changed")]);
     assert!(
         still_kills.result.clone().unwrap_err().contains("ownership-not-shown"),
         "{:?}",
         still_kills.result
     );
     // the constructor: the host gives the lifetime 0.25 and the constructed entity holds exactly that word; the default report holds the campaign's own sum
-    let quarter = format!("asks = true, report = {{ [6] = '{}' }}", data_report_variant(6, "quarter"));
+    let quarter = format!("asks = true, boot_asks = true, report = {{ [6] = '{}' }}", data_report_variant(6, "quarter"));
     let init = witness(&quarter, &[("case", "6"), ("mode", "changed_init")]);
     init.result.clone().unwrap_or_else(|e| panic!("{e}\n{}", init.text));
     assert_eq!(authority(&init)["creation_life_w"], "3e800000");
-    let summed = witness("asks = true", &[("case", "6"), ("mode", "changed_init")]);
+    // the boot's own constructors (the looping ambient sounds) were forwarded UNCHANGED and counted apart: the 0.25 met the selected fixture case only
+    assert_eq!(
+        (authority(&init)["boot_requests"].as_i64(), authority(&init)["requests"].as_i64()),
+        (Some(2), Some(1))
+    );
+    let summed = witness("asks = true, boot_asks = true", &[("case", "6"), ("mode", "changed_init")]);
     assert!(summed.result.clone().unwrap_err().contains("ownership-not-shown"), "{:?}", summed.result);
 }
 
@@ -962,7 +1001,7 @@ fn the_sound_host_witness_stops_a_withheld_or_malformed_answer_at_its_boundary_a
         ("malformed", "4", "[env-provider:sound_lifetime_update.answer]"),
         ("withheld_init", "6", "[env-provider:sound_lifetime_init.callback]"),
     ] {
-        let driven = witness("asks = true", &[("case", case), ("mode", mode)]);
+        let driven = witness("asks = true, boot_asks = true", &[("case", case), ("mode", mode)]);
         // a stop is the expected evidence: the witness returns normally, with the record of the stop, the delegate's engine_failure row and no result row
         driven.result.clone().unwrap_or_else(|e| panic!("{mode}: {e}\n{}", driven.text));
         let record = authority(&driven);
@@ -973,6 +1012,8 @@ fn the_sound_host_witness_stops_a_withheld_or_malformed_answer_at_its_boundary_a
         );
         assert!(of(&driven, "result").is_empty(), "{mode}: a result row was written");
         assert_eq!(of(&driven, "engine_failure").len(), 1, "{mode}");
+        // the boot's own init requests were forwarded unchanged before the fixture case: the stop of an init mode is at the fixture case, never inside boot
+        assert_eq!(record["boot_requests"].as_i64(), Some(if mode == "withheld_init" { 2 } else { 0 }), "{mode}");
     }
     // a native that never asks the host cannot be stopped by it: the delegate completes, and that is `not-stopped`
     let completed = witness("", &[("case", "4"), ("mode", "withheld")]);

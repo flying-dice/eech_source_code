@@ -191,7 +191,7 @@ own fresh process and root. Private coordinates and raw outputs stay outside Git
   shipping 40 and all 8 complete byte identities; current checks, review and the normal merges. D4 and D5 are unstarted. Choosing sound next does not close Task 51 or narrow D3. The probe, its drivers and its guards
   were originally prepared without runtime evidence; the checkpoint above supersedes that preparation status. No host API, schema or ABI is proposed.
 
-## Host-owned sound lifetime (candidate; source prepared 1 November 2026; UNBUILT natively, UNRUN, UNREVIEWED)
+## Host-owned sound lifetime (candidate; source prepared 31 October 2026; UNBUILT natively, UNRUN, UNREVIEWED)
 
 **What moved.** The ORIGINAL physical decisions that the finite original characterization measured (the seven controlled-data cases 4 to 10 of the original native 116ffd5fb with drivers 2a/d4, plus the zero-size natural run and
 the three primitive controls) are now the HOST's, through two operations of the existing public environment provider (host-owned Lua -> `eech_dc` -> the campaign -> the provider callback; `ss_hostenv.h`):
@@ -228,3 +228,13 @@ legacy raw row. The compact ownership witness is `lua/env-sound-host-witness.lua
 
 **WIP actuals (my own, Linux container, no network, exclusive-new logs):** the default-feature `cargo check` of `eech-engine` and `eech-dc` compiles the changed hosted C (`ss_hostenv.c`, `soundeff.c`, `se_updt.c`); the reference kernels reproduce the measured
 observations; the floating-point-state test now includes the sound kernels; the boundary, the Lua bridge and the witness have scripted guards. See STATUS for the counts. Nothing was run natively.
+
+**Correction after the independent source review of 402ba4410 (31 October 2026; source only, UNBUILT natively).** (1) *Floating-point scope of the reference kernels.* `env_ref_sound_init` and `env_ref_sound_update` copied float inputs to the outputs before
+`fp_save`, and validated, classified and assigned floats after `fp_leave`. Now nothing before `fp_save` touches a floating-point register (the outputs are initialised and later published as BITS with `memcpy`), the floats are loaded from memory
+after `fp_enter_canonical`, the finiteness and sign classification is made there and kept as an integer, results are settled as stored objects, the caller's state is restored and read back, and only then are the staged bits copied out. The expressions,
+their order and the stores are unchanged. The floating-point-state test now also covers refusals decided inside the scope: a signalling NaN as the lifetime, as the delta and as an invalid effect's valid lifetime, a quiet NaN and an infinity (answers and the
+caller's complete x87/MXCSR state are the same whatever the seeded state). No exception is masked globally and no tolerance changed. (2) *Witness phases.* The campaign's own boot constructs looping ambient sounds, so the init operation is asked during boot.
+`env-sound-host-witness.lua` now forwards every request unchanged until the delegate's `dc.boot` returns (the mode's operation is counted apart as `boot_requests`) and arms the alteration, refusal or malformed answer only for the fixture phase, so `changed_init`
+meets the selected case 6 constructor (not a looping boot effect, which the campaign correctly refuses) and `withheld_init` stops at the case 6 `engine_failure` row, never inside boot. The finite guards model the boot init requests. (3) *What `changed` proves.* It now reads the
+entity's own state words: the host answered every update with the lifetime it was given and no expiry, so the constructor's lifetime word must be the word after every one of the three calls and the entity must be killed by nobody; that establishes both the aging and the kill
+decision. `healthy` additionally requires the lifetime word to have aged after the first call. The delegate's grammar, rows and original driver behavior are unchanged.

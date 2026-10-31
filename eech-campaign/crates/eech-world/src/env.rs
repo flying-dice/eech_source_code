@@ -2172,6 +2172,41 @@ mod tests {
                 }),
             ),
             (
+                "refused: a sound update given a signalling NaN as the lifetime, the delta or the valid lifetime, a quiet NaN, and an infinity",
+                Box::new(move || {
+                    let base = SoundUpdateInput {
+                        server: true,
+                        delta: 0.1,
+                        valid: true,
+                        looping: false,
+                        lifetime: 5.0,
+                        valid_lifetime: 0.0,
+                        has_handle: false,
+                        playing: None,
+                    };
+                    let signalling = f32::from_bits(0x7fa0_0000);
+                    // every one of these is non-finite after the kernel: the refusal is decided INSIDE the canonical scope and the caller's state is restored whatever the input did to the unit
+                    let inputs = [
+                        SoundUpdateInput { lifetime: signalling, ..base },
+                        SoundUpdateInput { delta: signalling, ..base },
+                        SoundUpdateInput { valid: false, valid_lifetime: signalling, ..base },
+                        SoundUpdateInput { lifetime: f32::NAN, ..base },
+                        SoundUpdateInput { lifetime: f32::INFINITY, ..base },
+                    ];
+                    let mut refusals = Vec::new();
+                    for input in inputs {
+                        if let Err(error) = sound_lifetime_update(&input) {
+                            refusals.push(error);
+                        }
+                    }
+                    if refusals.len() == 5 {
+                        Err(refusals.join("; "))
+                    } else {
+                        Ok(vec![refusals.len() as u32])
+                    }
+                }),
+            ),
+            (
                 "refused: an unknown type",
                 Box::new(move || {
                     let mut field = Field::new()?;

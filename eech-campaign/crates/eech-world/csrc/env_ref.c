@@ -1923,15 +1923,23 @@ static void sound_update_impl (int server, float delta, int valid, int looping, 
 	}
 }
 
+/*
+ * The two entries below keep EVERY floating-point evaluation inside the saved canonical scope (independent source review of 402ba4410, ENV-HOST-SOUND-1): nothing before fp_save touches a floating-point register
+ * (the outputs are initialised and published as BITS with memcpy, never as float assignments), the floats are read from memory after fp_enter_canonical, the validation of the staged result (finiteness, sign) is
+ * made there too and kept as an integer flag, the results are settled as stored objects, the caller's state is restored and read back, and only then are the staged bits copied out.
+ */
+
 /* in_i = { looping, music, count, rate[ENV_REF_SOUND_SAMPLES], size[ENV_REF_SOUND_SAMPLES] }; out_lifetime = the effect's lifetime */
 int env_ref_sound_init (const int *in_i, float *out_lifetime, char *error, size_t error_size)
 {
 	env_fp_state saved;
 	env_sound_work work;
+	int bad;
 	int result;
 
-	*out_lifetime = 0;
+	memset (out_lifetime, 0, sizeof (*out_lifetime));
 
+	/* integers only: no floating-point work has happened yet */
 	if ((in_i[2] < 1) || (in_i[2] > ENV_REF_SOUND_SAMPLES))
 	{
 		return fail (error, error_size, "a sound effect's sequence holds 1 to %d samples, not %d", ENV_REF_SOUND_SAMPLES, in_i[2]);
@@ -1946,18 +1954,22 @@ int env_ref_sound_init (const int *in_i, float *out_lifetime, char *error, size_
 
 	sound_init_impl (in_i[0], in_i[1], in_i[2], in_i + 3, in_i + 3 + ENV_REF_SOUND_SAMPLES, &work);
 
+	/* the result is classified here, under the canonical environment, and kept as an integer */
+	bad = (!isfinite (work.life) || (work.life < 0.0f));
+
 	ENV_FP_SETTLE (work);
+	ENV_FP_SETTLE (bad);
 
 	result = fp_leave (&saved, 0, error, error_size);
 
-	if ((result == 0) && (!isfinite (work.life) || (work.life < 0.0f)))
+	if ((result == 0) && bad)
 	{
 		return fail (error, error_size, "the lifetime of the sound effect is not a finite number from 0 up");
 	}
 
 	if (result == 0)
 	{
-		*out_lifetime = work.life;
+		memcpy (out_lifetime, &work.life, sizeof (work.life));
 	}
 
 	return result;
@@ -1968,11 +1980,11 @@ int env_ref_sound_update (const float *in_f, const int *in_i, float *out_f, int 
 {
 	env_fp_state saved;
 	env_sound_work work;
-	int expired, action, need_playing;
+	int expired, action, need_playing, bad;
 	int result;
 
-	out_f[0] = in_f[1];
-	out_f[1] = in_f[2];
+	/* the lifetimes as they came, copied as bits: what a refusal or a question about the handle leaves */
+	memcpy (out_f, in_f + 1, 2 * sizeof (float));
 	out_i[0] = FALSE;
 	out_i[1] = 0;
 	out_i[2] = FALSE;
@@ -1990,14 +2002,17 @@ int env_ref_sound_update (const float *in_f, const int *in_i, float *out_f, int 
 
 	sound_update_impl (in_i[0], in_f[0], in_i[1], in_i[2], in_i[3], in_i[4], in_i[5], &work, &expired, &action, &need_playing);
 
+	bad = (!isfinite (work.life) || !isfinite (work.vlife));
+
 	ENV_FP_SETTLE (work);
 	ENV_FP_SETTLE (expired);
 	ENV_FP_SETTLE (action);
 	ENV_FP_SETTLE (need_playing);
+	ENV_FP_SETTLE (bad);
 
 	result = fp_leave (&saved, 0, error, error_size);
 
-	if ((result == 0) && (!isfinite (work.life) || !isfinite (work.vlife)))
+	if ((result == 0) && bad)
 	{
 		return fail (error, error_size, "a lifetime of the sound effect is not finite after the update");
 	}
@@ -2010,8 +2025,8 @@ int env_ref_sound_update (const float *in_f, const int *in_i, float *out_f, int 
 		}
 		else
 		{
-			out_f[0] = work.life;
-			out_f[1] = work.vlife;
+			memcpy (out_f, &work.life, sizeof (work.life));
+			memcpy (out_f + 1, &work.vlife, sizeof (work.vlife));
 			out_i[0] = expired;
 			out_i[1] = action;
 		}

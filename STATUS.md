@@ -1,3 +1,46 @@
+# D3 sound correction checkpoint — 31 October 2026, 22:48 UTC
+
+The same author completed the six-file correction batch with actual exit0 at
+22:47:45Z. All local WIP checks below passed; changed-source review, new native,
+current CI and candidate campaigns remain pending. The prior402 candidate built
+Windows0 and Linux full affected default/observer/both strict0, but both i686 CI
+jobs failed101:384 caller-FP-state failure kinds in4224 checked calls, no mask.
+Seven other CI jobs passed. Those failures remain retained in the private CI
+receipt and decoded logs; the corrected source must pass both i686 jobs too.
+Ground's22:42 four recording prefixes are byte exact (~91% Tacview/~90%
+observations), with all six original processes still present. This is partial
+evidence, not full40/40 or eight complete files. No candidate campaign has run;
+18 prepared roots remain unused. All earlier checkpoints below are history.
+
+# D3 host-owned sound lifetime — the two groups of the source review of 402ba4410 corrected (31 October 2026; source only, UNBUILT natively, UNRUN, UNREVIEWED)
+
+Candidate `402ba441003e362486d3591c2d078f4a9b1d3bbf`; consolidated review `independent-environment-host-sound-lifetime-source-review-402ba4410-20261031.json` (SHA-256 `0b5f4680...f8cb`): ENV-HOST-SOUND-1 (P1) and ENV-HOST-SOUND-2 (P2). One focused uncommitted batch; **changed production C: a NEW immutable native is needed, never a 116 or 402 binary relabelled.** The 402 build/raw receipts and the 18 unused fresh roots are untouched; nothing ran natively.
+
+**1 (P1) floating-point scope.** `env_ref_sound_init` / `env_ref_sound_update` no longer copy floats before `fp_save` or classify/assign them after `fp_leave`: outputs are initialised and published as bits (`memcpy`), floats are loaded after `fp_enter_canonical`, finiteness and sign are classified inside the scope into an integer flag, results are settled, the caller's state is restored and read back, then the staged bits are copied out. Expressions, order and stores unchanged; no global exception masking; no tolerance changed. The existing extended floating-point-state test (every pairing of rounding, precision, sticky flags, denormal modes and arranged status words, answers and complete caller state compared) now includes the refusals decided inside the scope: signalling NaN as lifetime, as delta and as an invalid effect's valid lifetime, a quiet NaN and an infinity.
+
+**2 (P2) witness init modes.** The wrapper forwards every request unchanged while the delegate boots (the campaign's boot asks `sound_lifetime_init` for its looping ambient sounds) and counts the mode's operation apart as `boot_requests`; the alteration, refusal or malformed answer is armed only for the fixture phase (the phase turns at the return of the delegate's `dc.boot`, which is wrapped for the run and restored). `changed_init` therefore meets the case 6 constructor (0.25 in the real constructor state) and `withheld_init` stops at the case 6 `engine_failure` row; the scripted guards model the boot init requests (including the campaign's refusal of a non-zero looping lifetime). `changed` now reconciles the delegate's REAL entity words with the answers it sent: the constructor's lifetime word equals the word after every call (so the host's aging, not only its kill decision, is what the campaign applied) and nobody killed; `healthy` also requires an aged word after the first call; a native that asks the host but ages itself is `ownership-not-shown` (guard added). The delegate's grammar, rows and behavior are unchanged; the authority record gains `boot_requests` and `life_words`.
+
+**WIP actuals (my own; Linux container, offline `--rm` private `/tmp/t`, Docker verified idle first, no Root cache touched; exclusive-new logs `sound-fix402-WIP-20261101-c1` (rustfmt on a private copy, outputs `sound-fix402-fmt-out-20261101-c1`) and `-c2`; every step's exit captured separately):** c2: fmt 0; default `cargo check` of `eech-engine` and `eech-dc --tests` 0 (the corrected C compiles); observer-feature check 0; `env_sound_lifetime` 14 passed (8 earlier witness-related guards extended: boot phase, `boot_requests`, the aged-nokill negative); `eech-world --lib` 264 passed (including the extended FP-state test); `eech-dc --lib` 28; `eech-engine --lib env` 4; clippy `-D warnings` over the three crates 0. The earlier `a4` log (strict error under a misleading exit 0) is retained and untrusted for exit codes. The date prose of the sound-doc heading is corrected to 31 October. `eech_engine.c` untouched (exactly 1 NUL).
+
+**Still the campaign's / still open (unchanged):** the sound database and asset lookup (the descriptor ints are handed over by value), the persistent record, pause/resume validity and update-list relink (40 compiled files), the independent destroy path, network pack/unpack, per-vehicle amplitude/pitch, playback handles and device, the speech cases. **Root next:** pin; NEW native; the old-safe 116 missing-host capability red (`healthy`, case 4: host asked 0 times in the fixture phase); the 11 same-original controls and complete raw comparison; the authority modes; the same reviewer on the changed source; actual review, shipping checks, CI, merges. Whole Task 51 and D3 remain open (time, required terrain/spatial/model, full shipping 40 / all 8 complete byte identity); D4/D5 unstarted; the six original shipping processes untouched.
+
+# D3 host-owned sound lifetime — source review found corrections (31 October 2026, 22:33 UTC)
+
+Candidate `402ba441003e362486d3591c2d078f4a9b1d3bbf` is pinned and pushed;
+its ordinary Windows observer build completed with actual exit 0 at 22:30:50Z.
+The full affected Linux default/observer and strict checks are still running.
+The same independent reviewer is consolidating the source review: floating work
+before saving/after restoring the caller's FP state, and init witnesses that
+alter boot constructors before their selected fixture, require correction.
+No candidate/default/authority campaign has run; all 18 prepared roots remain
+unused. The same Sonnet High context will address the consolidated findings in
+one batch; changed production C requires a fresh immutable native build. Existing
+original measurements remain accepted within their recorded finite scope.
+Ground shipping still runs in its six original processes; the latest 22:28
+Tacview/observation prefixes are exact but partial (about 90%). Full shipping
+40/40 and all eight complete byte comparisons remain pending. Task51 and D3 are
+open; D4/D5 have not started. Earlier checkpoints below are retained history.
+
 # D3 host-owned sound lifetime — first candidate extraction, source prepared (31 October 2026; UNBUILT natively, UNRUN, UNREVIEWED)
 
 Clean HEAD `a53e71b365911d49a4df4b51982ef6952296b5e3`; the finite original-domain characterization is closed (native 116ffd5fb, drivers 2a/d4; combined actual review `89c26171...3d2`). **This batch moves the characterized ORIGINAL sound-lifetime decisions into the host** (EECH_WORLD reference), through two new operations of the existing public environment provider; one focused uncommitted batch. Not whole Task 51/D3.
