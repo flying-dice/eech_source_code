@@ -1,3 +1,33 @@
+# D3 checkpoint — first host-amplitude default match; two corrections open (31 October 2026, 15:04 UTC)
+
+Task51/PR111 host-amplitude sourcea39a7a2ec is pushed/frozen. Normal Windows
+observer build and test export0; actual engine80/module24/world254 tests0.
+FIRSTLebanon candidate native/controller/prepost0/50payloads unchanged: all108
+COMPLETErawrows including endings EXACToriginalc0b/21 SHA08fce9b0...8f10e.
+This is numeric default conformance ONLY, not FP/authority/shipping acceptance.
+
+Linuxfastenvambient3PASS; terrainambient2PASS/2FAIL (5376questions,192answer
+changes undercallerFTZ/DAZ; freshsynthetic saturationexpectation alsofails).
+Fullpackages/strict NOTREACHED; actualWinambient2PASS/2FAIL reproduces.
+ONEcombinedindependentreview8cced1aa...9304c requires TWOgroups: isolate new
+arithmetic fromcaller modes/strengthen env mode coverage and classify synthetic
+upperexpectation fromretained originals; remove the newcampaign16-child limit
+while retaining a boundedtransport. No originalsource invariant enforces16.
+The earlier NaN-reader suspicion wasWITHDRAWN and isnotafinding.
+
+ONE Sonnet5.5High now prepares newredcontrols ONLY (env FTZ/DAZ/precision and
+realduplicate/>16childconstructor/list), keepingproduction guards/cap unchanged
+for meaningful reproduction beforethefinite2groupfix. Existingoriginal108-row
+files/acceptedbaselines/tolerances remain unchanged. FreshfixedLebanon andwide
+roots eachmanifest0; originalfirstcandidateLebanon consumed, Georgia/repeat unused.
+Jira51comment10894 andexternalD3-ACTIVE.json recordexactsource/process/receipts.
+
+WholeD3/EEDCS-21 remainsopen: publicamplitudeauthority, sound/lightningexecution,
+physicaltime, remainingterrain/spatial/model, fullshipping40/all8COMPLETEbyte
+identity/currentCI/review/normalmerges. Campaignpolicy/calendar/timers/scheduling
+stayCore. D4/D5unstarted. Groundoriginal6processes/fullpack remainLIVEprotected;
+latest4prefixes37.8MBACMI/24.4MBOBSexact, PARTIALONLY. No quietrestart.
+
 # D3 checkpoint — original ambient behavior reviewed; host extraction active (31 October 2026, 14:30 UTC)
 
 Whole D3/EEDCS-21 remains the goal. Task47 is delivered atb657; Tasks48–51
