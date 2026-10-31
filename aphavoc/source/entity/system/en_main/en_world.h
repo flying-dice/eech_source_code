@@ -198,6 +198,21 @@ extern world_map_data
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef EECH_CAMPAIGN_HOST_TERRAIN
+
+// Host-owned ground contact (EEDCS-48, D3 G2; mb_hostterrain.h): above and below ground are physical questions about the host's terrain, so the host answers them
+// (the original expressions, in the original order, are the host's), for every caller: the weapon flight, the avionics and the particles.  The world-map area the
+// below test compares against is the campaign's, supplied with the question.
+extern int campaign_terrain_ground_above (const vec3d *position);
+
+extern int campaign_terrain_ground_below (const vec3d *position);
+
+#define point_above_ground(POS) campaign_terrain_ground_above (POS)
+
+#define point_below_ground(POS) campaign_terrain_ground_below (POS)
+
+#else
+
 #define point_above_ground(POS)																		\
 (																												\
 	((POS)->y >= get_terrain_3d_point_sector_max_elevation ((POS)->x, (POS)->z)) ||	\
@@ -210,6 +225,8 @@ extern world_map_data
 	((POS)->y < get_terrain_3d_point_sector_max_elevation ((POS)->x, (POS)->z)) &&	\
 	((POS)->y < get_3d_terrain_elevation ((POS)->x, (POS)->z))								\
 )
+
+#endif
 
 #define point_above_floor(POS) ((POS)->y >= MIN_MAP_Y)
 

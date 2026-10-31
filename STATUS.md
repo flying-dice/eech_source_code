@@ -1,3 +1,41 @@
+# D3 checkpoint — terrain delivered; production ground handoff prepared (31 October 2026)
+
+Task47 is Done: PR107 normally mergedb6575594c114cf38c0206af24920e40f0e250b77,
+with freshly fetched merge tree exactly validated697ff11a3. Original full40/40,
+all8 COMPLETE default artifacts byte identical, inputs/all45payloads, final
+independent review and9currentCI passed. The user's earlier direct instruction
+to manage reviews and merge autonomously already authorizes normal delivery with
+the logged-in author. No GitHub formal self-approval is claimed. The redundant
+permission question is superseded; rationale and exact gates are preserved in
+PR107#issuecomment-6517339389 and reference/d3-terrain-characterization/normal-delivery-b6575594c/.
+Ledger80 readback preserved ALL prior HTML and all five epic reports exactly.
+
+Task48 / PR108: the same Sonnet5.5High ground author completed exit0 at
+2026-10-30T07:48:18.920546Z; original tool10627 was collected terminal0, no restart.
+Local setup mergese949cbfe7/06a4da620 compose delivered integrationb657 and
+reviewed host preparation55e3. Production source now routes above/below-ground
+and terrain-impact queries to host operations. Shared-record lazy queries,
+endpoint/impact aliasing and campaign class mapping are intended to remain exact.
+Weapon, avionics and particle call sites use the shared redirected entries.
+New real weapon-launch authority/refusal and moved-public-handoff witnesses are
+written. Formatting/check pass; compilation, affected tests, real native authority,
+shipping40/eight-complete-file comparison and independent source review remain
+UNRUN for this candidate. No physical acceptance or Task48 delivery is claimed.
+
+Task51 guard preparation is CLOSED at measured084858000: Linux8/8 plus strict
+Clippy/fmt0 and actual Windows8/8 pass. Final independent narrow review has no
+findings, SHA2565916fd108f60f3932fb7a39e0c66cdcc8dcff682512b47525657845a4a67f3f7.
+Safe closure pushedb8e8b6153; original99 numerical and e116 compatibility evidence
+retain their exact source labels and are reused. No environment physics moved.
+
+Fresh ground candidate and shipping roots were copied from the retained bundle;
+all6 pre-input manifests pass0. Original c119/feb and14bf/516d host preparation
+are reused. Required remaining derived terrain/physical loaders, object/model
+scans/transforms/solvers, hierarchy/viewpoints/devices/muzzles/target points,
+physical route data, environment/sharedRNG/time services remain D3. Campaign
+geography, route planning, timers, scheduling, policy and consequences stay Core.
+D3 remains active; D4/D5 not started; no accepted baseline or tolerance changed.
+
 Host Lua native checkpoint at clean516d2e3f60: Windows build0/four exports verified;
 Georgia and Lebanon direct3/3/45checks each pass without skips/pre-post inputs0.
 Public old-DLL harness7/7: healthy control passed, required-handoff failed with

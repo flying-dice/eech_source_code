@@ -1,11 +1,13 @@
--- Direct transport check of the reference host's GROUND operations (EEDCS-48, D3 G2 HOST PREPARATION; the campaign DLL does not send them yet). It runs in the actual eech-world
+-- Direct transport check of the reference host's GROUND operations (EEDCS-48, D3 G2; the campaign DLL sends them: mb_hostterrain.c). It runs in the actual eech-world
 -- host against a verified private retail map, through the provider the host exposes to Lua (`host.terrain_open`), whose answers are computed by the reviewed Terrain::ground_below
--- and Terrain::ground_impact (csrc/terrain_ref.c) over the host's own sectors and point solver. Nothing here computes a ground predicate: it sends requests and judges the
+-- Terrain::ground_above and Terrain::ground_impact (csrc/terrain_ref.c) over the host's own sectors and point solver. Nothing here computes a ground predicate: it sends requests and judges the
 -- replies, so it tests the Lua transport (shapes, strict numbers, hint flow, refusals) and that the physical answers have the documented relations. It does not re-derive them.
 --
--- Requests:   { op = "ground_below",  world = { min_x, min_z, max_x, max_z }, x, y, z, hint? }
+-- Requests:   { op = "ground_above",  world = { min_x, min_z, max_x, max_z }, x, y, z, hint? }
+--             { op = "ground_below",  world = { min_x, min_z, max_x, max_z }, x, y, z, hint? }
 --             { op = "ground_impact", world = { min_x, min_z, max_x, max_z }, above = { x, y, z }, below = { x, y, z }, hint? }
--- Replies:    ground_below:  { below, queried, record = nil | { last_elevation, normal = { nx, ny, nz }, type, stored, hint? } }
+-- Replies:    ground_above:  { above, queried, record = nil | { last_elevation, normal = { nx, ny, nz }, type, stored, hint? } }
+--             ground_below:  { below, queried, record = nil | { last_elevation, normal = { nx, ny, nz }, type, stored, hint? } }
 --             ground_impact: { above = { x, y, z }, below = { x, y, z }, impact = { x, y, z }, type, record = { ... } }
 --
 -- host.args:  terrain_dir=<the map<N>/terrain directory of a verified private installation>   (required)
@@ -45,6 +47,9 @@ local provider = host.terrain_open { terrain_dir = terrain_dir }
 local facts = provider { op = "map" }
 local world = { min_x = facts.min_x, min_z = facts.min_z, max_x = facts.max_x, max_z = facts.max_z }
 
+local function above (x, y, z, hint, area)
+	return provider { op = "ground_above", world = area or world, x = x, y = y, z = z, hint = hint }
+end
 local function below (x, y, z, hint, area)
 	return provider { op = "ground_below", world = area or world, x = x, y = y, z = z, hint = hint }
 end
@@ -107,6 +112,23 @@ local high_wrong = below (1000, 60000, 1000, wrong)
 check ("above the sector maximum with an altered hint: still decided, no read", high_wrong.below == false and high_wrong.queried == false)
 refused ("a read with an altered hint", { op = "ground_below", world = world, x = 1000, y = -5000, z = 1000, hint = wrong }, "terrain hint:")
 
+-- ---- the above predicate: the sector maximum first, then the elevation; the same record and the same hint flow as the below predicate ----
+local over = above (1000, 60000, 1000)
+check ("a high point: above is true", over.above == true)
+check ("a high point: above read no terrain, so no record", over.queried == false and over.record == nil)
+local under = above (1000, -5000, 1000)
+check ("a low point: above is false", under.above == false)
+check ("a low point: above read the terrain and returns the complete record", under.queried == true and is_record (under.record), under.record)
+check ("above and below agree on a high and on a low point", over.above == not high.below and under.above == not low.below)
+check ("above and below leave the same record", same_record (under.record, low.record))
+local warm_above = above (1000, -5000, 1000, under.record.hint)
+check ("above, warm: the same answer and record", warm_above.above == under.above and warm_above.queried == true and same_record (warm_above.record, under.record))
+local outside = above (1000, 60000, 1000, nil, small)
+check ("above does not compare against the campaign's world area (the same point is below under that area)", outside.above == true and outside.queried == false and clipped.below == true)
+local above_wrong = above (1000, 60000, 1000, wrong)
+check ("above the sector maximum with an altered hint: still decided, no read", above_wrong.above == true and above_wrong.queried == false)
+refused ("an above read with an altered hint", { op = "ground_above", world = world, x = 1000, y = -5000, z = 1000, hint = wrong }, "terrain hint:")
+
 -- ---- the impact: a proper crossing, an above endpoint under the ground, a below endpoint over it ----
 local ground_a = provider { op = "point", x = 1000, z = 1000 }.elevation
 local ground_b = provider { op = "point", x = 1050, z = 1000 }.elevation
@@ -154,6 +176,10 @@ refused ("an absent y", { op = "ground_below", world = world, x = 1000, z = 1000
 refused ("a numeric string x", { op = "ground_below", world = world, x = "1000", y = 0, z = 1000 }, "x must be a number, got string")
 refused ("a boolean z", { op = "ground_below", world = world, x = 1000, y = 0, z = true }, "z must be a number, got boolean")
 refused ("a double that is not an exact single", { op = "ground_below", world = world, x = 0.1, y = 0, z = 1000 }, "is not an exact single-precision value")
+refused ("an above question with an absent world", { op = "ground_above", x = 1000, y = 0, z = 1000 }, "world must be a table, got nil")
+refused ("an above question with a numeric string y", { op = "ground_above", world = world, x = 1000, y = "0", z = 1000 }, "y must be a number, got string")
+refused ("an above question with a non-finite z", { op = "ground_above", world = world, x = 1000, y = 0, z = 1 / zero }, "not finite")
+refused ("an above question with a double that is not an exact single", { op = "ground_above", world = world, x = 0.1, y = 0, z = 1000 }, "is not an exact single-precision value")
 refused ("an impact endpoint that is not a table", { op = "ground_impact", world = world, above = 5, below = { x = 1, y = 1, z = 1 } }, "above must be a table, got integer")
 refused ("an impact endpoint with an absent coordinate", { op = "ground_impact", world = world, above = { x = 1, y = 1 }, below = { x = 1, y = 1, z = 1 } }, "above.z")
 refused ("a hint that is a number", { op = "ground_below", world = world, x = 1000, y = 0, z = 1000, hint = 7 }, "hint must be a string or nil, got integer")
@@ -163,6 +189,7 @@ refused ("a NaN y", { op = "ground_below", world = world, x = 1000, y = zero / z
 refused ("a non-finite world bound", { op = "ground_below", world = { min_x = 0, min_z = 0, max_x = 1 / zero, max_z = 1 }, x = 1000, y = 0, z = 1000 }, "not finite")
 local wide = { min_x = -1000000, min_z = -1000000, max_x = 1000000, max_z = 1000000 }
 refused ("a sector-maximum read off the terrain", { op = "ground_below", world = wide, x = facts.max_x + 1, y = -100, z = 1000 }, "sector maximum is read off the terrain")
+refused ("an above sector-maximum read off the terrain", { op = "ground_above", world = wide, x = facts.max_x + 1, y = -100, z = 1000 }, "sector maximum is read off the terrain")
 refused ("an impact endpoint off the terrain", { op = "ground_impact", world = world, above = { x = facts.max_x + 1, y = 100, z = 1000 }, below = { x = 1000, y = -100, z = 1000 } },
 	"sector maximum is read off the terrain")
 

@@ -1,7 +1,7 @@
-//! Transport of the reference host's GROUND operations through its Lua terrain provider (EEDCS-48, D3 G2 HOST PREPARATION; the campaign DLL does not send them yet).
+//! Transport of the reference host's GROUND operations through its Lua terrain provider (EEDCS-48, D3 G2; the campaign DLL sends them: mb_hostterrain.c).
 //!
 //! `lua/ground-provider-transport.lua` is run IN the actual host code (`eech_world::terrain::install` is what the `eech-world` executable installs as `host.terrain_open`) against a
-//! verified private retail map. Its requests are answered by the reviewed `Terrain::ground_below` / `ground_impact` over the host's own sectors and point solver; the script judges
+//! verified private retail map. Its requests are answered by the reviewed `Terrain::ground_above` / `ground_below` / `ground_impact` over the host's own sectors and point solver; the script judges
 //! the reply shapes, the complete-or-absent record, the caller-owned world area, the cold and warm hint flow, the strict number reads (signed zero and a subnormal go in and come
 //! back with their bits; one field lookup) and the refusals. It computes no ground predicate of its own and mocks no answer.
 //!

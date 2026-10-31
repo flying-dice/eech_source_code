@@ -405,7 +405,8 @@ int eech_engine_cmb_events (char *text, int capacity, int *more);
  * cases and `impacts` impact cases from a private generator seeded with `seed`. The report is `key=value` text lines: the call counts and outcomes, how
  * often each call read the shared terrain point record, the impact checks, an order-dependent hash and bounded raw samples (float bit patterns). The shared
  * record is restored byte for byte. It takes no host argument. In the original module the three read the DLL's terrain; in the host-terrain module
- * (EECH_CAMPAIGN_HOST_TERRAIN) the terrain reads are questions to the provider that boot installed for the process, and the report is the host-semantic
+ * (EECH_CAMPAIGN_HOST_TERRAIN) the three themselves are questions to the provider that boot installed for the process (ground_above, ground_below and ground_impact:
+ * the host decides them; the DLL holds no predicate, sector maximum or bisection behind them), and the report is the host-semantic
  * profile (its own rows: ground-profile, ground-semantic-record, ground-semantic-hash), never the legacy ground-record and ground-hash. A refused probe (a precondition not held, a report that does not fit) writes `ground-refused reason=...`
  * and fails as a bad argument; each of points and impacts is 0 to 100000, and not both 0.
  */

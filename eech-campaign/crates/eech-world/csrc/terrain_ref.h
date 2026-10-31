@@ -90,7 +90,7 @@ int host_terrain_conformance_sweep (const host_terrain *map, uint32_t seed, int 
 	char *error, size_t error_size);
 
 /*
- * GROUND CONTACT (EEDCS-48, the host side of D3 group G2; PREPARATION: no production binding exists yet, the campaign DLL still computes these itself).
+ * GROUND CONTACT (EEDCS-48, the host side of D3 group G2; the campaign DLL no longer computes these: mb_hostterrain.c asks the host for all three).
  *
  * The two physical expressions the campaign's weapon flight asks about the ground, kept expression for expression from the original (en_world.h point_above_ground and
  * point_below_ground, en_cllsn.c get_ground_impact_point), over this map's own terrain: the sector maximum is read from the sectors the host already holds, and every
@@ -119,6 +119,14 @@ typedef struct host_ground_below_answer
 	host_terrain_answer record;
 } host_ground_below_answer;
 
+typedef struct host_ground_above_answer
+{
+	int32_t above; /* what point_above_ground answers */
+	/* as host_ground_below_answer: 1 when the answer read the terrain (the sector maximum decided it otherwise: no read, the record untouched, `record` zeroed) */
+	int32_t queried;
+	host_terrain_answer record;
+} host_ground_above_answer;
+
 typedef struct host_ground_impact_answer
 {
 	float above[3];  /* the above endpoint after the original's correction (unchanged when it already was above the ground) */
@@ -129,6 +137,9 @@ typedef struct host_ground_impact_answer
 	host_terrain_answer record;  /* the record the sequence left (there is always at least one read) */
 } host_ground_impact_answer;
 
+/* point_above_ground: the sector maximum first and, when it does not decide, the elevation. The world area is not consulted by the predicate itself but is validated like the other operations' */
+int host_terrain_ground_above (const host_terrain *map, const host_ground_world *world, float x, float y, float z, const host_terrain_hint *hint,
+	host_ground_above_answer *out, char *error, size_t error_size);
 int host_terrain_ground_below (const host_terrain *map, const host_ground_world *world, float x, float y, float z, const host_terrain_hint *hint,
 	host_ground_below_answer *out, char *error, size_t error_size);
 int host_terrain_ground_impact (const host_terrain *map, const host_ground_world *world, const float above[3], const float below[3], const host_terrain_hint *hint,

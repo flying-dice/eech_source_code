@@ -4034,7 +4034,7 @@ int host_terrain_conformance_sweep (const host_terrain *map, uint32_t seed, int 
 }
 
 /* ======================================================================================================================== */
-/* GROUND CONTACT (EEDCS-48, D3 G2 host side; PREPARATION: not bound to the campaign yet)                                    */
+/* GROUND CONTACT (EEDCS-48, D3 G2 host side; bound to the campaign: mb_hostterrain.c)                                         */
 /* ======================================================================================================================== */
 
 /*
@@ -4263,6 +4263,52 @@ int host_terrain_ground_below (const host_terrain *map, const host_ground_world 
 	}
 
 	out->below = below ? 1 : 0;
+	out->queried = ctx.queried;
+
+	if (ctx.queried)
+	{
+		ground_record_out (&ctx, &out->record);
+	}
+
+	return 0;
+}
+
+int host_terrain_ground_above (const host_terrain *map, const host_ground_world *world, float x, float y, float z, const host_terrain_hint *hint,
+	host_ground_above_answer *out, char *error, size_t error_size)
+{
+	struct ground_ctx ctx;
+	vec3d position;
+	fenv_t saved;
+	int above;
+
+	memset (out, 0, sizeof (*out));
+
+	if (!ground_world_valid (world))
+	{
+		return fail (error, error_size, "terrain ground: the world area is missing or not finite");
+	}
+
+	if (!ground_finite (x) || !ground_finite (y) || !ground_finite (z))
+	{
+		return fail (error, error_size, "terrain ground: a coordinate is not finite");
+	}
+
+	position.x = x;
+	position.y = y;
+	position.z = z;
+
+	ground_begin (&ctx, map, world, hint, error, error_size, &saved);
+
+	above = ground_above (&ctx, &position);
+
+	fesetenv (&saved);
+
+	if (ctx.failed)
+	{
+		return -1;
+	}
+
+	out->above = above ? 1 : 0;
 	out->queried = ctx.queried;
 
 	if (ctx.queried)

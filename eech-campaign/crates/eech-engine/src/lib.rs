@@ -997,6 +997,29 @@ pub enum TerrainQuery {
     Point { x: f32, z: f32, hint: Option<String>, winter: bool },
     /// the fast gridpost elevation at a point
     Fast { x: f32, z: f32, winter: bool },
+    /// EEDCS-48 (D3 G2): is the position above the ground (`point_above_ground`)? `world` is the campaign's world-map area `[min_x, min_z, max_x, max_z]`, campaign
+    /// geography supplied by value (the host does not assume it equals the terrain's extents); `hint` is the shared record's.
+    GroundAbove {
+        position: [f32; 3],
+        world: [f32; 4],
+        hint: Option<String>,
+        winter: bool,
+    },
+    /// is the position below the ground (`point_below_ground`)? As `GroundAbove`.
+    GroundBelow {
+        position: [f32; 3],
+        world: [f32; 4],
+        hint: Option<String>,
+        winter: bool,
+    },
+    /// where does the segment from an `above` to a `below` endpoint meet the ground (`get_ground_impact_point`)? As `GroundAbove`.
+    GroundImpact {
+        above: [f32; 3],
+        below: [f32; 3],
+        world: [f32; 4],
+        hint: Option<String>,
+        winter: bool,
+    },
 }
 
 /// The facts about the map the host owns (`TerrainQuery::Map`). `fast_width`/`fast_height` are 0 when the host has no fast grid.
@@ -1033,6 +1056,28 @@ pub enum TerrainAnswer {
     Fast {
         elevation: f32,
     },
+    /// EEDCS-48: the answer of `GroundAbove` and `GroundBelow`. `record` is present exactly when the answer read the terrain (otherwise the campaign keeps its whole record).
+    GroundPredicate {
+        value: bool,
+        record: Option<TerrainRecord>,
+    },
+    /// the answer of `GroundImpact`: both endpoints after the original's correction, the impact point and the complete record the final read left.
+    GroundImpact {
+        above: [f32; 3],
+        below: [f32; 3],
+        impact: [f32; 3],
+        record: TerrainRecord,
+    },
+}
+
+/// The record a ground-contact question left, by value: what a point answer stores (the legacy "a face is stored" test reads `stored`, never the hint).
+#[derive(Clone, Debug, PartialEq)]
+pub struct TerrainRecord {
+    pub last_elevation: f32,
+    pub normal: [f32; 3],
+    pub kind: i32,
+    pub hint: Option<String>,
+    pub stored: bool,
 }
 
 /// The host's terrain provider. It is installed once, at boot, and is the only source of the campaign's physical terrain: the campaign has no
@@ -1072,6 +1117,15 @@ fn terrain_hint_into(buffer: &mut [c_char], hint: Option<&str>) -> Result<(), St
     Ok(())
 }
 
+/// The record of a ground answer, into the reply's record fields (the ones a point answer fills).
+fn terrain_record_into(reply: &mut sys::eech_terrain_reply, record: &TerrainRecord) -> Result<(), String> {
+    reply.last_elevation = record.last_elevation;
+    reply.normal = record.normal;
+    reply.kind = record.kind;
+    reply.stored = c_int::from(record.stored);
+    terrain_hint_into(&mut reply.hint, record.hint.as_deref())
+}
+
 /// The C side's terrain callback (mb_hostterrain.h). It runs the installed provider; a missing provider, a refusal and a panic all become an error
 /// the engine stops on, with the provider's marker in the message.
 unsafe extern "C" fn terrain_callback(
@@ -1108,6 +1162,34 @@ unsafe extern "C" fn terrain_callback(
                 TerrainQuery::Fast {
                     x: source.x,
                     z: source.z,
+                    winter,
+                },
+            ),
+            sys::EECH_TERRAIN_GROUND_ABOVE => (
+                "ground_above",
+                TerrainQuery::GroundAbove {
+                    position: [source.x, source.y, source.z],
+                    world: source.world,
+                    hint: terrain_hint_text(&source.hint)?,
+                    winter,
+                },
+            ),
+            sys::EECH_TERRAIN_GROUND_BELOW => (
+                "ground_below",
+                TerrainQuery::GroundBelow {
+                    position: [source.x, source.y, source.z],
+                    world: source.world,
+                    hint: terrain_hint_text(&source.hint)?,
+                    winter,
+                },
+            ),
+            sys::EECH_TERRAIN_GROUND_IMPACT => (
+                "ground_impact",
+                TerrainQuery::GroundImpact {
+                    above: [source.x, source.y, source.z],
+                    below: source.below,
+                    world: source.world,
+                    hint: terrain_hint_text(&source.hint)?,
                     winter,
                 },
             ),
@@ -1159,11 +1241,26 @@ unsafe extern "C" fn terrain_callback(
                 terrain_hint_into(&mut reply.hint, hint.as_deref())?;
             }
             ("fast", TerrainAnswer::Fast { elevation }) => reply.elevation = elevation,
+            ("ground_above" | "ground_below", TerrainAnswer::GroundPredicate { value, record }) => {
+                reply.answer = c_int::from(value);
+                reply.queried = c_int::from(record.is_some());
+                if let Some(record) = record {
+                    terrain_record_into(&mut reply, &record)?;
+                }
+            }
+            ("ground_impact", TerrainAnswer::GroundImpact { above, below, impact, record }) => {
+                reply.above = above;
+                reply.below = below;
+                reply.impact = impact;
+                terrain_record_into(&mut reply, &record)?;
+            }
             (operation, answer) => {
                 let given = match answer {
                     TerrainAnswer::Map(_) => "map facts",
                     TerrainAnswer::Point { .. } => "a point answer",
                     TerrainAnswer::Fast { .. } => "a fast elevation",
+                    TerrainAnswer::GroundPredicate { .. } => "a ground predicate",
+                    TerrainAnswer::GroundImpact { .. } => "a ground impact",
                 };
                 return Err(format!(
                     "[terrain-provider:{operation}.answer] the provider answered a {operation} question with {given}"
@@ -9010,26 +9107,161 @@ mod tests {
         }
     }
 
+    fn ground_record() -> TerrainRecord {
+        TerrainRecord {
+            last_elevation: 7.5,
+            normal: [0.0, 0.5, 0.0],
+            kind: 11,
+            hint: Some("g".to_string()),
+            stored: true,
+        }
+    }
+
+    #[test]
+    fn a_ground_question_reaches_the_provider_with_every_request_field_and_its_answer_reaches_the_reply_exactly() {
+        // SAFETY: the request is plain data; zero is a valid value for every field.
+        let mut request: sys::eech_terrain_request = unsafe { std::mem::zeroed() };
+        request.winter = 1;
+        request.x = 1.0;
+        request.y = 2.0;
+        request.z = 3.0;
+        request.below = [4.0, 5.0, 6.0];
+        request.world = [-1.5, -2.5, 100.25, 200.75];
+        request.hint[0] = b'p' as c_char;
+        let crossing = |op: c_int, request: &mut sys::eech_terrain_request, provider: Box<dyn FnMut(TerrainQuery) -> Result<TerrainAnswer, String>>| {
+            request.op = op;
+            TERRAIN.with(|slot| *slot.borrow_mut() = Some(provider));
+            // SAFETY: the reply is plain data, started as a recognisable sentinel so that a refusal that wrote something shows.
+            let mut reply: sys::eech_terrain_reply = unsafe { std::mem::zeroed() };
+            reply.answer = 9;
+            reply.queried = 9;
+            reply.above = [-9.0; 3];
+            let mut error = [0 as c_char; 256];
+            // SAFETY: the request and reply are valid for the call, and the error buffer is writable for its length.
+            let code = unsafe { terrain_callback(request, &mut reply, error.as_mut_ptr(), error.len(), std::ptr::null_mut()) };
+            TERRAIN.with(|slot| *slot.borrow_mut() = None);
+            let text: Vec<u8> = error.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect();
+            (code, reply, String::from_utf8_lossy(&text).into_owned())
+        };
+        // above and below: the position (x, y, z), the world area, the hint and the season, by value
+        for (op, name) in [(sys::EECH_TERRAIN_GROUND_ABOVE, "above"), (sys::EECH_TERRAIN_GROUND_BELOW, "below")] {
+            let (code, reply, error) = crossing(
+                op,
+                &mut request,
+                Box::new(move |query| {
+                    let (position, world, hint, winter) = match query {
+                        TerrainQuery::GroundAbove { position, world, hint, winter } if name == "above" => (position, world, hint, winter),
+                        TerrainQuery::GroundBelow { position, world, hint, winter } if name == "below" => (position, world, hint, winter),
+                        other => panic!("{name}: {other:?}"),
+                    };
+                    assert_eq!(
+                        (position, world, hint.as_deref(), winter),
+                        ([1.0, 2.0, 3.0], [-1.5, -2.5, 100.25, 200.75], Some("p"), true)
+                    );
+                    Ok(TerrainAnswer::GroundPredicate {
+                        value: true,
+                        record: Some(ground_record()),
+                    })
+                }),
+            );
+            assert_eq!(code, 0, "{name}: {error}");
+            assert_eq!((reply.answer, reply.queried), (1, 1));
+            assert_eq!(
+                (reply.last_elevation, reply.normal, reply.kind, reply.stored, reply.hint[0]),
+                (7.5, [0.0, 0.5, 0.0], 11, 1, b'g' as c_char)
+            );
+            // an answer that read no terrain says so and carries no record: the hint and values stay zero
+            let (code, reply, error) = crossing(
+                op,
+                &mut request,
+                Box::new(|_| Ok(TerrainAnswer::GroundPredicate { value: false, record: None })),
+            );
+            assert_eq!(code, 0, "{name}: {error}");
+            assert_eq!(
+                (reply.answer, reply.queried, reply.last_elevation, reply.kind, reply.stored, reply.hint[0]),
+                (0, 0, 0.0, 0, 0, 0)
+            );
+        }
+        // impact: both endpoints in, both corrected endpoints and the impact point out, with the record
+        let (code, reply, error) = crossing(
+            sys::EECH_TERRAIN_GROUND_IMPACT,
+            &mut request,
+            Box::new(|query| {
+                assert_eq!(
+                    query,
+                    TerrainQuery::GroundImpact {
+                        above: [1.0, 2.0, 3.0],
+                        below: [4.0, 5.0, 6.0],
+                        world: [-1.5, -2.5, 100.25, 200.75],
+                        hint: Some("p".to_string()),
+                        winter: true
+                    }
+                );
+                Ok(TerrainAnswer::GroundImpact {
+                    above: [1.0, 2.001, 3.0],
+                    below: [4.0, 4.999, 6.0],
+                    impact: [4.0, 4.5, 6.0],
+                    record: ground_record(),
+                })
+            }),
+        );
+        assert_eq!(code, 0, "{error}");
+        assert_eq!(
+            (reply.above, reply.below, reply.impact),
+            ([1.0, 2.001, 3.0], [4.0, 4.999, 6.0], [4.0, 4.5, 6.0])
+        );
+        assert_eq!((reply.last_elevation, reply.kind, reply.stored, reply.hint[0]), (7.5, 11, 1, b'g' as c_char));
+        // a hint the C record cannot hold is refused before anything is written
+        let (code, reply, error) = crossing(
+            sys::EECH_TERRAIN_GROUND_IMPACT,
+            &mut request,
+            Box::new(|_| {
+                Ok(TerrainAnswer::GroundImpact {
+                    above: [0.0; 3],
+                    below: [0.0; 3],
+                    impact: [0.0; 3],
+                    record: TerrainRecord {
+                        hint: Some("h".repeat(128)),
+                        ..ground_record()
+                    },
+                })
+            }),
+        );
+        assert_ne!(code, 0);
+        assert!(error.contains("hint"), "{error}");
+        assert_eq!((reply.answer, reply.queried, reply.above), (9, 9, [-9.0; 3]), "a refused hint wrote nothing");
+    }
+
     #[test]
     fn a_terrain_answer_of_the_wrong_kind_is_refused_before_anything_is_written() {
-        // an operation name and the answer a provider gives (of a kind that is right for only one of the three operations)
+        // an operation name and the answer a provider gives (of a kind that is right for only one of the operations; the above and below predicates share one kind of answer)
         type GivenAnswer = (&'static str, fn() -> TerrainAnswer);
-        let answers: [GivenAnswer; 3] = [
+        let answers: [GivenAnswer; 5] = [
             ("map", || TerrainAnswer::Map(terrain_facts())),
             ("point", || terrain_point(None, true)),
             ("fast", || TerrainAnswer::Fast { elevation: 2.0 }),
+            ("ground_predicate", || TerrainAnswer::GroundPredicate { value: true, record: None }),
+            ("ground_impact", || TerrainAnswer::GroundImpact {
+                above: [0.0; 3],
+                below: [0.0; 3],
+                impact: [0.0; 3],
+                record: ground_record(),
+            }),
         ];
         let operations = [
             ("map", sys::EECH_TERRAIN_MAP),
             ("point", sys::EECH_TERRAIN_POINT),
             ("fast", sys::EECH_TERRAIN_FAST),
+            ("ground_above", sys::EECH_TERRAIN_GROUND_ABOVE),
+            ("ground_below", sys::EECH_TERRAIN_GROUND_BELOW),
+            ("ground_impact", sys::EECH_TERRAIN_GROUND_IMPACT),
         ];
         let mut refused = 0;
         for (asked, operation) in operations {
             for (given, answer) in &answers {
                 let answer = *answer;
                 let (code, reply, error) = terrain_crossing(operation, 0, "", move |_| Ok(answer()));
-                if asked == *given {
+                if asked == *given || (*given == "ground_predicate" && (asked == "ground_above" || asked == "ground_below")) {
                     assert_eq!(code, 0, "{asked} answered with {given}: {error}");
                     continue;
                 }
@@ -9044,7 +9276,8 @@ mod tests {
                 );
             }
         }
-        assert_eq!(refused, 6, "all six wrong pairings were exercised");
+        // six operations by five kinds of answer: thirty pairings, of which six are right
+        assert_eq!(refused, 24, "every wrong pairing was exercised");
     }
 
     #[test]

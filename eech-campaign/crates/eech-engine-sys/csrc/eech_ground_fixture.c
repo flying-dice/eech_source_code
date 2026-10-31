@@ -1,7 +1,9 @@
 /*
  * TEST-ONLY ground-contact characterisation (EEDCS-48, D3 G2). Compiled only with the `ground-fixture` feature; never part of the
- * shipping module. It changes no production source: it calls the ORIGINAL macros point_above_ground and point_below_ground
- * (en_world.h) and the ORIGINAL get_ground_impact_point (en_cllsn.c), the same expressions and the same call shape the hosted weapon
+ * shipping module. It changes no production source: it calls the macros point_above_ground and point_below_ground
+ * (en_world.h) and get_ground_impact_point (en_cllsn.c). In the ORIGINAL module these are the original expressions (the oracles were produced there); in the host-terrain
+ * module (the production handoff) they are the same calls, answered by the host's ground operations (mb_hostterrain.c), so the same probe, cases and physical fold measure
+ * the moved boundary. The calls have the same expressions and the same call shape the hosted weapon
  * lookups of wn_move.c use (CAMPAIGN_STEP_LOOKUP_GROUND_PROBE: point_below_ground (&p); CAMPAIGN_STEP_LOOKUP_GROUND_IMPACT:
  * get_ground_impact_point (&p, &q, &q), the impact aliased with the below endpoint), against the terrain the campaign's own boot
  * loaded. The lookup wrapper itself (answer_weapon_step_lookup) is static to wn_move.c and is entered only by a launched weapon's

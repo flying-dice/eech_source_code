@@ -1,0 +1,20 @@
+{
+  "schema": "d3-terrain-normal-delivery/v1",
+  "updated_utc": "2026-10-30T07:32:14.506256+00:00",
+  "PR": 107,
+  "merge": "b6575594c114cf38c0206af24920e40f0e250b77",
+  "delivery_head": "697ff11a3588fda73e345a6c1b03df4b50532f70",
+  "parents": [
+    "6bbaa8197a4843181d03cd355d562af998c75321",
+    "697ff11a3588fda73e345a6c1b03df4b50532f70"
+  ],
+  "tree": "29d8a8ed1f14e684db4eb21caf034e12cad759f9",
+  "tree_exact_delivery": true,
+  "Jira": "EEDCS-47 Done;comment10875",
+  "ledger": 80,
+  "authorization_record": "https://github.com/flying-dice/eech_source_code/pull/107#issuecomment-6517339389",
+  "formal_GitHub_APPROVED_claimed": false,
+  "fullshipping40PASS_8complete_exact": true,
+  "independent_review_sha256": "7a962a210411fe8b04691def68e3d65724298fe1a7edf0136b21618639f76f93",
+  "all_D3_complete": false
+}

@@ -1,5 +1,9 @@
 # D3 G2: ground contact, reference-host preparation (EEDCS-48)
 
+> **Superseded in part by `m5-ground-production-handoff.md`.** This note is the record of the PREPARATION state, when the campaign DLL was unchanged and still computed the ground predicates and the
+> impact search itself. The production handoff (source written, unbuilt and unrun by its author) binds the DLL to these kernels and adds the `ground_above` operation; statements below that the DLL is
+> unchanged describe the preparation state only. Nothing below is rewritten.
+
 **Status: kernel Windows conformance on all three retail roots passed and independent kernel review closed without findings at `14bfd3ed6`. The newer Lua transport and handoff harness passed Linux build/guards/lint and actual Windows retail/control/RED checks at `516d2e3f60`; one independent review of that new delta closed without open findings.** Branch `codex/d3-ground-host-preparation`, base `1b6218b06a0d0ca61f884a4b913c0c1e5ded3b01`. This prepares the HOST side of
 the below-ground and ground-impact extraction. It binds nothing: the campaign DLL (`wn_move.c`, `mb_hostterrain.c`, the public module bridge) is unchanged and still computes both
 itself, and the shipping behaviour is unchanged. Production cutover follows Task47 delivery and integration re-verification (ledger 14548994; Epic EEDCS-21). No completed extraction, shipping
