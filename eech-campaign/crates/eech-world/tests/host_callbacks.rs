@@ -2169,8 +2169,8 @@ end
 -- update, expired, killed: an early kill), long (three updates stored, the rest only counted by `upd`, then expired and killed), alive (three updates stored, five counted, never expired) or lost (only the first
 -- entity is tracked, the second creation is recorded and counted as untracked). The numbers are canned; the ORDER, the grammar and the reconciliation with the observer's events are the real ones.
 local SND_FACTS = 'comms=1 application_sound_system_enabled=0 sound_system_initialised=0 sound_system_paused=0 samples=300 lightning_rate=22050 lightning_size=88200 lightning_original_rate=22050 thunder_rate=22050 thunder_size=176400 thunder_original_rate=22050'
-local function snd_record(seq, point, n, tracked, frame, upd)
-  return string.format('env-snd seq=%d point=%d n=%d tracked=%d frame=%d upd=%d entity=%d etype=25 sub=1 channel=1 locality=0 valid=1 looping=0 panning=0 seqcount=1 handle=0 session_parent=1 update_member=1 sample=12 rate=22050 size=88200 orate=22050 life_w=3fc00000 vlife_w=00000000 amp_w=3f800000 pitch_w=3f800000 px_w=00000000 py_w=00000000 pz_w=00000000 delta_w=3dcccccd\n', seq, point, n, tracked, frame, upd, 9 + n)
+local function snd_record(seq, point, n, tracked, frame, upd, handle)
+  return string.format('env-snd seq=%d point=%d n=%d tracked=%d frame=%d upd=%d entity=%d etype=25 sub=1 channel=1 locality=0 valid=1 looping=0 panning=0 seqcount=1 handle=%d session_parent=1 update_member=1 sample=12 rate=22050 size=88200 orate=22050 life_w=3fc00000 vlife_w=00000000 amp_w=3f800000 pitch_w=3f800000 px_w=00000000 py_w=00000000 pz_w=00000000 delta_w=3dcccccd\n', seq, point, n, tracked, frame, upd, 9 + n, handle)
 end
 local function sound_report(episodes, shape)
   local steps = { { 0, 0, 2 }, { 1, 1, 3 }, { 2, 1, 4 }, { 5, 1, 4 } }
@@ -2179,8 +2179,16 @@ local function sound_report(episodes, shape)
     steps = { { 0, 0, 2 }, { 1, 1, 3 }, { 1, 2, 4 }, { 1, 3, 5 }, { 2, 7, 9 }, { 5, 7, 9 } }
     per_entity = 7
   elseif shape == 'playing' then
-    steps = { { 0, 0, 2 }, { 1, 1, 3 }, { 1, 2, 4 }, { 1, 3, 5 }, { 4, 3, 5 }, { 4, 7, 9 }, { 4, 9, 10 } }
+    -- the native capture rule: from the first playing-handle expiry (update 3, after the third entry) EVERY later update reaches an expiry branch and each is stored, 3 to 9 without a gap; the handle (steps' 4th
+    -- element) is there from the update that sees it. The device is not real: this is a canned protocol journal
+    steps = { { 0, 0, 2, 0 }, { 1, 1, 3, 0 }, { 1, 2, 4, 0 }, { 1, 3, 5, 1 }, { 4, 3, 5, 1 }, { 4, 4, 6, 1 }, { 4, 5, 7, 1 }, { 4, 6, 8, 1 }, { 4, 7, 9, 1 }, { 4, 8, 10, 1 }, { 4, 9, 11, 1 } }
     per_entity, kills = 10, 0
+  elseif shape == 'playing_gap' then
+    steps = { { 0, 0, 2, 0 }, { 1, 1, 3, 0 }, { 1, 2, 4, 0 }, { 1, 3, 5, 1 }, { 4, 3, 5, 1 }, { 4, 7, 9, 1 }, { 4, 9, 11, 1 } }
+    per_entity, kills = 10, 0
+  elseif shape == 'playing_skip' then
+    steps = { { 0, 0, 2, 0 }, { 1, 1, 3, 1 }, { 4, 1, 3, 1 }, { 1, 2, 4, 1 }, { 1, 3, 5, 1 }, { 4, 3, 5, 1 } }
+    per_entity, kills = 3, 0
   elseif shape == 'alive' then
     steps = { { 0, 0, 2 }, { 1, 1, 3 }, { 1, 2, 4 }, { 1, 3, 5 } }
     per_entity, kills = 5, 0
@@ -2192,7 +2200,7 @@ local function sound_report(episodes, shape)
     for _, step in ipairs(steps) do
       for n = 1, 2 do
         if not (shape == 'lost' and n == 2 and step[1] ~= 0) then
-          records[#records + 1] = snd_record(seq, step[1], n, (shape == 'lost' and n == 2) and -1 or (2 * e + n - 1), step[3], step[2])
+          records[#records + 1] = snd_record(seq, step[1], n, (shape == 'lost' and n == 2) and -1 or (2 * e + n - 1), step[3], step[2], step[4] or 0)
           seq = seq + 1
         end
       end
@@ -2315,7 +2323,7 @@ local mutations = {
   sound_dropped = function(t) return (t:gsub('dropped=0 overflow=0', 'dropped=3 overflow=1', 1)) end,
   sound_record_missing = function(t) return (t:gsub('env%-snd seq=7 [^\n]*\n', '', 1)) end,
   sound_seq_gap = function(t) return (t:gsub('env%-snd seq=3 ', 'env-snd seq=9 ', 1)) end,
-  sound_point_impossible = function(t) return (t:gsub('point=2 ', 'point=4 ', 1)) end,
+  sound_point_impossible = function(t) return (t:gsub('point=5 ', 'point=6 ', 1)) end,
   sound_entity_changes = function(t) return (t:gsub('upd=1 entity=10 ', 'upd=1 entity=12 ', 1)) end,
   sound_untracked_follower = function(t) return (t:gsub('point=1 n=1 tracked=0', 'point=1 n=1 tracked=-1', 1)) end,
   sound_creation_twice = function(t) return (t:gsub('seq=2 point=1 n=1 tracked=0 frame=3 upd=1', 'seq=2 point=0 n=1 tracked=0 frame=3 upd=0', 1)) end,
@@ -2334,6 +2342,12 @@ local mutations = {
   -- the residual counter forms (an expiry and a kill belong to the running update): an early kill whose records jump to update 4 with the total raised to match, a kill in another update than its expiry, and a handle that
   -- keeps playing across the sampling gap (coherent, accepted)
   sound_playing = function() return sound_report(LIGHTNING_EPISODES or 0, 'playing') end,
+  -- the playing-handle journal that is NOT coherent: the playing expiries of updates 4, 5, 6 and 8 are missing (the probe stores every expiry point), an entry after a playing expiry with no expiry of its own update,
+  -- a playing expiry that shows no handle, and an expiry that sees another handle than the entry of its own update
+  sound_playing_gap = function() return sound_report(LIGHTNING_EPISODES or 0, 'playing_gap') end,
+  sound_playing_skip = function() return sound_report(LIGHTNING_EPISODES or 0, 'playing_skip') end,
+  sound_playing_no_handle = function() return (sound_report(LIGHTNING_EPISODES or 0, 'playing'):gsub('(point=4 n=1[^\n]*)handle=1', '%1handle=0', 1)) end,
+  sound_expiry_other_handle = function() return (sound_report(LIGHTNING_EPISODES or 0, 'playing'):gsub('(point=1 n=1 tracked=0 frame=5 upd=3 [^\n]*)handle=1', '%1handle=0', 1)) end,
   sound_early_jump = function(t) t = (t:gsub('frame=4 upd=1', 'frame=4 upd=4')); return (t:gsub('updates=2', 'updates=8', 1)) end,
   sound_kill_other_update = function() local t = sound_report(LIGHTNING_EPISODES or 0, 'long'); t = (t:gsub('point=5 n=1 tracked=0 frame=9 upd=7', 'point=5 n=1 tracked=0 frame=9 upd=9', 1)); return (t:gsub('updates=14', 'updates=16', 1)) end,
   sound_stranded_kill = function(t) t = (t:gsub('env%-snd seq=%d+ point=5 [^\n]*\n', '')); t = (t:gsub('stored=8', 'stored=6', 1)); return (t:gsub('kills=2', 'kills=0', 1)) end,
@@ -3564,13 +3578,14 @@ fn the_sound_entity_probe_counts_the_updates_it_does_not_store_and_reports_an_en
     assert_eq!(summary["expired"], 0);
     assert_eq!(summary["untracked_creations"], 0);
     assert_eq!(summary["lifetimes_complete"], true);
-    // a handle that keeps playing across the sampling gap: repeated playing-handle expiries at later updates, never killed, the count a lower bound
+    // a handle that keeps playing: the playing-handle expiry of EVERY update from 3 to 9 is stored (the probe samples only entries and exits), never killed, the count a lower bound
     let playing = run_env_scenario(&sound_stand_in("lightning_episode", "sound_playing"), &sound_args());
     assert!(playing.status.success(), "{}{}", playing.stderr, playing.out_text);
     for entity in env_rows(&playing.rows, "sound_entity") {
         assert_eq!(entity["updates_at_last_record"], 9);
         assert_eq!(entity["updates_exact"], false);
         assert_eq!(entity["expiry"], "playing_handle");
+        assert_eq!(entity["handle_ever"], true);
         assert_eq!(entity["killed"], false);
     }
     // a creation the probe could not track is a creation, counted and classified: the run is NOT reported as a complete record of lifetimes
@@ -3591,7 +3606,7 @@ fn a_sound_entity_report_that_is_incomplete_out_of_order_or_at_odds_with_the_obs
         ("lightning_episode", "sound_dropped", "dropped 3"),
         ("lightning_episode", "sound_record_missing", "probe stored"),
         ("lightning_episode", "sound_seq_gap", "has seq 9"),
-        ("lightning_episode", "sound_point_impossible", "cannot follow point 4"),
+        ("lightning_episode", "sound_point_impossible", "cannot follow point 2"),
         ("lightning_episode", "sound_entity_changes", "but tracked entity 0"),
         ("lightning_episode", "sound_untracked_follower", "follows no tracked creation"),
         ("lightning_episode", "sound_creation_twice", "twice"),
@@ -3614,6 +3629,15 @@ fn a_sound_entity_report_that_is_incomplete_out_of_order_or_at_odds_with_the_obs
         // the residual counter forms: an early kill may not jump past the entries that are mandatory, and a kill is in the update of its expiry
         ("lightning_episode", "sound_early_jump", "mandatory entries have been stored"),
         ("lightning_episode", "sound_kill_other_update", "expiry straight before it"),
+        // the playing-handle journal must be complete and its handle truthful
+        ("lightning_episode", "sound_playing_gap", "the playing-expiry updates have a gap"),
+        ("lightning_episode", "sound_playing_skip", "does not give the expiry of update"),
+        ("lightning_episode", "sound_playing_no_handle", "that shows none"),
+        (
+            "lightning_episode",
+            "sound_expiry_other_handle",
+            "another handle than the entry of its own update",
+        ),
         // the probe holds creations the observer's stream does not, and the reverse
         ("lightning_episode", "sound_events_mismatch", "observer stream holds"),
         ("none", "sound_phantom", "observer stream holds"),

@@ -231,6 +231,9 @@ else
 			if r.map.n ~= creation_n then hard ("the probe record " .. r.map.seq .. " has n " .. r.map.n .. " where its creation has " .. creation_n) end
 			if not NEXT [lastpoint] [point] then hard ("the probe record " .. r.map.seq .. ": point " .. point .. " cannot follow point " .. lastpoint) end
 		end
+		-- the playback handle is what the branch says (none for an expiry with no handle, a handle for the two others) and the control itself never creates one
+		if point == 2 and r.map.handle ~= "0" then hard ("the probe record " .. r.map.seq .. " is an expiry with no handle that shows a handle") end
+		if (point == 3 or point == 4) and r.map.handle ~= "1" then hard ("the probe record " .. r.map.seq .. " is an expiry with a handle that shows none") end
 		if case == 1 and (point == 6 or point == 7) then hard ("the server control shows a client point: " .. r.raw) end
 		if case == 2 and point >= 1 and point <= 5 then hard ("the client control shows a server point: " .. r.raw) end
 		-- the update counter: a creation has run none; the n-th stored entry of an update is its n-th (the control calls at most twice, so none is left out); an exit, an expiry and a kill carry their update's count

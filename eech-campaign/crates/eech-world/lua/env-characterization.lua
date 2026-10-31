@@ -1177,6 +1177,7 @@ local function run ()
 				created = created + 1
 				if upd ~= 0 then refuse ("sound probe creation record " .. r.seq .. " has the update count " .. r.upd) end
 				if tracked >= 0 and chains [tracked] ~= nil then refuse ("sound probe record " .. r.seq .. " creates the tracked entity " .. tracked .. " twice") end
+				if r.handle ~= "0" or r.valid ~= "1" or r.looping ~= "0" then refuse ("sound probe creation record " .. r.seq .. " shows handle " .. r.handle .. ", valid " .. r.valid .. ", looping " .. r.looping .. " where the real constructor leaves no handle and the lightning routine passes valid and non-looping") end
 				if tonumber (r.n) < 1 or tonumber (r.n) > 2 then refuse ("sound probe record " .. r.seq .. " is a creation outside the lightning routine's two sound entities (n " .. r.n .. ")") end
 				-- the creation is the one the observer's own ordered stream brackets: the created-th sound_begin / sound_end pair, with the same ordinal in the routine, in the same frame, and (the constructor takes the
 				-- first free entity slot, se_creat.c get_free_entity with ENTITY_INDEX_DONT_CARE, which is what get_next_free_entity_index () read before it) the entity that was next to be given. The helper
@@ -1199,6 +1200,29 @@ local function run ()
 				if chain.entity ~= r.entity then refuse ("sound probe record " .. r.seq .. " is of entity " .. r.entity .. " but tracked entity " .. tracked .. " is " .. chain.entity) end
 				if r.n ~= chain.n_text then refuse ("sound probe record " .. r.seq .. " has n " .. r.n .. " where its creation has " .. chain.n_text) end
 				if not SND_NEXT [chain.last] [point] then refuse ("sound probe record " .. r.seq .. ": point " .. point .. " cannot follow point " .. chain.last .. " of tracked entity " .. tracked) end
+				-- THE SUPPORTED JOURNAL is the lightning routine's: every record that reads the entity is valid (TRUE) and non-looping (FALSE), as create_lightning_effects passes them. The rules below (the playback handle, and an
+				-- expiry observation in EVERY update once one has been observed) hold only there: the server routine goes below zero once and stays below (the delta is positive and nothing in the journal changes `valid`), so
+				-- each later update reaches an expiry branch and the probe stores every expiry point (only the entries and the exits are sampled). A record outside the journal is refused, not recomputed.
+				if point ~= 5 and (r.valid ~= "1" or r.looping ~= "0") then refuse ("sound probe record " .. r.seq .. " reads tracked entity " .. tracked .. " as valid " .. r.valid .. " looping " .. r.looping .. ", outside the supported valid non-looping journal") end
+				-- the playback handle is what the branch says it is (none for point 2, a handle for 3 and 4); once a record shows one the entity keeps it until its kill (only the invalid path destroys it, which is outside the
+				-- journal); an expiry in the update of an entry sees the handle that entry saw. No handle is ever created by the characterization itself: these are protocol truths of a captured journal.
+				if point == 2 and r.handle ~= "0" then refuse ("sound probe record " .. r.seq .. " is an expiry with no handle that shows a handle, tracked entity " .. tracked) end
+				if (point == 3 or point == 4) and r.handle ~= "1" then refuse ("sound probe record " .. r.seq .. " is an expiry with a handle (point " .. point .. ") that shows none, tracked entity " .. tracked) end
+				if point ~= 5 and chain.handle_seen and r.handle ~= "1" then refuse ("sound probe record " .. r.seq .. " shows no handle after an earlier record of tracked entity " .. tracked .. " showed one") end
+				if point >= 2 and point <= 4 and chain.last == 1 and upd == chain.upd and r.handle ~= chain.enter_handle then refuse ("sound probe record " .. r.seq .. " sees another handle than the entry of its own update, tracked entity " .. tracked) end
+				-- once an expiry with a playing handle has been observed, every later update reaches an expiry branch again, and each is stored: the next record is the next update's entry (while entries are still stored) or the
+				-- next update's expiry, and an entry that follows it is followed by that update's expiry. A gap in the playing-expiry updates is not a coherent journal.
+				local after_playing = chain.last == 4
+				if chain.need_expiry then
+					if (point ~= 3 and point ~= 4) or upd ~= chain.upd then refuse ("sound probe record " .. r.seq .. " (point " .. point .. ", update " .. upd .. ") does not give the expiry of update " .. chain.upd .. " that follows an entry after an observed playing-handle expiry, tracked entity " .. tracked) end
+					chain.need_expiry = false
+				elseif after_playing then
+					if chain.enters < ENTERS_STORED then
+						if point ~= 1 then refuse ("sound probe record " .. r.seq .. " (point " .. point .. ") does not give the entry of update " .. chain.upd + 1 .. " after a playing-handle expiry of tracked entity " .. tracked) end
+					elseif (point ~= 3 and point ~= 4) or upd ~= chain.upd + 1 then
+						refuse ("sound probe record " .. r.seq .. " (point " .. point .. ", update " .. upd .. ") is not the expiry of update " .. chain.upd + 1 .. " that must follow a playing-handle expiry of tracked entity " .. tracked .. ": the playing-expiry updates have a gap")
+					end
+				end
 				-- the update counter: the j-th stored entry into an update is update j (only the first ENTERS_STORED are stored); an exit carries its update's count; an expiry and a kill carry the count of the update they end
 				if point == 1 or point == 6 then
 					chain.enters = chain.enters + 1
@@ -1213,6 +1237,8 @@ local function run ()
 					if upd < chain.upd then refuse ("sound probe record " .. r.seq .. " shows the update count going down from " .. chain.upd .. " to " .. upd .. " for tracked entity " .. tracked) end
 					if chain.enters < ENTERS_STORED and upd ~= chain.enters then refuse ("sound probe record " .. r.seq .. " is in update " .. upd .. " but only " .. chain.enters .. " of the " .. ENTERS_STORED .. " mandatory entries have been stored for tracked entity " .. tracked .. ": the running update is the " .. chain.enters .. "th") end
 				end
+				if point == 1 then chain.need_expiry = after_playing; chain.enter_handle = r.handle end
+				if point ~= 5 and r.handle == "1" then chain.handle_seen = true end
 				chain.upd = upd
 				chain.last = point
 				if point == 2 or point == 3 or point == 4 then chain.expiry = ({ [2] = "no_handle", [3] = "idle_handle", [4] = "playing_handle" }) [point] end
@@ -1231,6 +1257,7 @@ local function run ()
 			-- an operation that began is finished: an expiry with no or an idle handle is followed by its kill, and an entry into the client routine by its exit
 			if chain.last == 2 or chain.last == 3 then refuse ("tracked entity " .. tracked .. " ends at an expiry (point " .. chain.last .. ") with no kill record after it") end
 			if chain.last == 6 then refuse ("tracked entity " .. tracked .. " ends inside the client routine: its exit record is missing") end
+			if chain.need_expiry then refuse ("tracked entity " .. tracked .. " ends with an entry after a playing-handle expiry and no expiry record for that update") end
 			entities = entities + 1
 			if chain.killed then killed = killed + 1 end
 			sum_last = sum_last + chain.upd

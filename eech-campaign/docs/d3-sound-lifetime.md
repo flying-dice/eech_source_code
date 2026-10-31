@@ -70,6 +70,15 @@ is its whole count; a count below three is whole because a further update would 
 creation; heap exhaustion would fault, not skip. Tracking loss is classified, never hidden: `sound_summary` carries `untracked_creations` and `lifetimes_complete`, and a `sound_untracked` row says that those
 lifetimes are not characterised.
 
+**The playing-handle journal (source-only; no handle is ever created by this work, and the stand-ins are canned protocol checks, not backend availability).** In the supported journal every record that reads the
+entity is valid and non-looping (as `create_lightning_effects` passes them; a record outside it is refused, not recomputed, because an unrecorded change of `valid`, or of time, would make the rules below
+unprovable). There the server routine goes below zero once and stays below (the delta is positive), and the probe samples only the entries and the exits after the third entry: **every** expiry point and kill is
+stored. So once an expiry with a playing handle has been observed at update u, the next record is the entry of update u+1 (while entries are still stored) or the expiry of update u+1, and an entry that follows an
+expiry is followed by the expiry of its own update; a journal with a playing expiry at update 3 and then at 7 and 9 is NOT coherent and is refused. A gap before the FIRST expiry is legitimate (the lifetime was still
+positive) and stays accepted (`sound_long`), as do alive lower bounds and one-update early kills. The handle is what the branch says: none for an expiry with no handle, a handle for the two others; the real
+constructor leaves none at creation; once a record shows a handle it stays until the kill; an expiry sees the handle of the entry of its own update. The accepted positive form (`sound_playing`) is the complete
+consecutive journal 3 to 9 with the handle from update 3. What the lifetime or the playing time is, and whether the headless process ever gets a handle, is not predicted.
+
 ## Entry-point changes, stated
 
 Source entry points changed (Root's feature-off check applies to the two production hook bodies only, as scoped above; the fixture and observer are test code): `aphavoc/source/entity/special/session/ss_envfx.h`, `.../effect/soundeff/soundeff.c`, `.../effect/soundeff/se_updt.c`,
