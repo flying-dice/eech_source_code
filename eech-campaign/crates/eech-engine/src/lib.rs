@@ -1210,6 +1210,100 @@ thread_local! {
     static ENVIRONMENT: std::cell::RefCell<Option<EnvProvider>> = std::cell::RefCell::new(None);
 }
 
+fn env_op_label(op: c_int) -> &'static str {
+    match op {
+        sys::EECH_ENV_IMPORT => "import",
+        sys::EECH_ENV_EXPORT => "export",
+        sys::EECH_ENV_INIT_RANDOM => "init_random",
+        sys::EECH_ENV_INIT_FIXED => "init_fixed",
+        sys::EECH_ENV_WEATHER => "weather",
+        sys::EECH_ENV_WIND => "wind",
+        sys::EECH_ENV_GUST => "gust",
+        sys::EECH_ENV_STEP => "step",
+        _ => "unknown",
+    }
+}
+
+fn env_state_refusal(state: &EnvState, op: &str) -> Result<(), String> {
+    if !state.f.iter().all(|value| value.is_finite()) {
+        return Err(format!("[env-provider:{op}.state] the field has a number that is not finite"));
+    }
+    if let Some(mode) = state.n.iter().take(2).find(|mode| !(0..sys::EECH_ENV_MODE_COUNT).contains(*mode)) {
+        return Err(format!("[env-provider:{op}.state] the weather mode {mode} is not one of the modes"));
+    }
+    if state.n.iter().skip(2).any(|flag| *flag != 0 && *flag != 1) {
+        return Err(format!("[env-provider:{op}.state] a flag is neither 0 nor 1"));
+    }
+    Ok(())
+}
+
+/// The reply of the environment provider checked against the request IT ANSWERS, by value, at the boundary every provider (a Lua one or a direct Rust one) passes through, before the
+/// C side reads a number of it: before the shared random word is drawn from, and before the session's mirror is written. The decisions that depend on the request (a wind vector the
+/// campaign asked for, the lightning protocol of a server or a client) are made from the request the campaign built, never from anything the provider could have changed.
+fn check_env_reply(request: &EnvRequest, reply: &EnvReply) -> Result<(), String> {
+    let op = env_op_label(request.op);
+    let answer = format!("[env-provider:{op}.answer]");
+    let mode_ok = |mode: c_int| (0..sys::EECH_ENV_MODE_COUNT).contains(&mode);
+    match request.op {
+        sys::EECH_ENV_IMPORT => Ok(()),
+        sys::EECH_ENV_EXPORT | sys::EECH_ENV_INIT_RANDOM | sys::EECH_ENV_INIT_FIXED => env_state_refusal(&reply.state, op),
+        sys::EECH_ENV_WEATHER => {
+            if mode_ok(reply.current_mode) && mode_ok(reply.target_mode) && mode_ok(reply.simple_mode) && reply.transitional_state.is_finite() {
+                Ok(())
+            } else {
+                Err(format!("{answer} the weather answer is malformed"))
+            }
+        }
+        sys::EECH_ENV_WIND => {
+            if reply.speed.is_finite() && (request.want_vector == 0 || reply.vector.iter().all(|value| value.is_finite())) {
+                Ok(())
+            } else {
+                Err(format!(
+                    "{answer} the wind answer is malformed (a speed, and a vector when one was asked for, must be finite)"
+                ))
+            }
+        }
+        sys::EECH_ENV_GUST => {
+            if reply.modulation.is_finite() {
+                Ok(())
+            } else {
+                Err(format!("{answer} the gust answer is malformed"))
+            }
+        }
+        sys::EECH_ENV_STEP => {
+            if reply.need_draw != 0 {
+                // only a server's first question, before the draw, may be answered with a request for the draw
+                if reply.need_draw != 1 || request.server == 0 || request.have_draw != 0 {
+                    return Err(format!(
+                        "{answer} the provider asked for the lightning draw where none may be asked for (only a server's first question, before the draw)"
+                    ));
+                }
+                return if reply.new_timer.is_finite() {
+                    Ok(())
+                } else {
+                    Err(format!("{answer} the timer is not finite"))
+                };
+            }
+            if reply.expired != 0 && reply.expired != 1 {
+                return Err(format!("{answer} expired is neither 0 nor 1"));
+            }
+            // the draw is made only because the first answer reported an expiry: the final answer must complete AND still report it
+            if request.have_draw != 0 && reply.expired != 1 {
+                return Err(format!("{answer} the lightning draw was made for an expiry the final answer does not report"));
+            }
+            // a server's expiry is negotiated (the host asks for the draw first)
+            if reply.expired == 1 && request.server != 0 && request.have_draw == 0 {
+                return Err(format!("{answer} a server's lightning timer expired without the draw the new timer needs"));
+            }
+            if reply.expired == 1 && (!reply.strike.iter().all(|value| value.is_finite()) || (request.server != 0 && !reply.new_timer.is_finite())) {
+                return Err(format!("{answer} the strike or the new timer is not finite"));
+            }
+            env_state_refusal(&reply.state, op)
+        }
+        _ => Err(format!("[env-provider:callback] unknown environment operation {}", request.op)),
+    }
+}
+
 /// The C side's environment callback (ss_hostenv.h). It runs the installed provider; a missing provider, a refusal and a panic all become an error the engine stops on, with the
 /// provider's marker in the message. The reply is written only after the provider has answered: a refusal leaves the C reply as it was.
 unsafe extern "C" fn environment_callback(
@@ -1230,7 +1324,7 @@ unsafe extern "C" fn environment_callback(
                 .try_borrow_mut()
                 .map_err(|_| "[env-provider:callback] the environment provider was asked again while it was answering".to_string())?;
             match slot.as_mut() {
-                Some(provider) => provider(&source),
+                Some(provider) => provider(&source).and_then(|reply| check_env_reply(&source, &reply).map(|()| reply)),
                 None => Err("[env-provider:missing] no environment provider is installed".to_string()),
             }
         })?;
@@ -9188,5 +9282,237 @@ mod tests {
         let (code, _, error) = terrain_crossing(sys::EECH_TERRAIN_FAST, 0, "", |_| Err("[terrain-provider:fast.elevation] nope".into()));
         assert_ne!(code, 0);
         assert_eq!(error, "[terrain-provider:fast.elevation] nope");
+    }
+
+    // ---- the environment provider boundary (EEDCS-51, D3): a DIRECT Rust provider is checked against the request it answers, exactly as a Lua one is ----
+
+    /// One crossing of the environment callback, as the C side makes it: this thread's provider is `provider`, the reply starts as a recognisable sentinel (a refusal that wrote
+    /// something shows), and the error text comes back.
+    fn env_crossing(request: EnvRequest, provider: impl FnMut(&EnvRequest) -> Result<EnvReply, String> + 'static) -> (c_int, EnvReply, String) {
+        ENVIRONMENT.with(|slot| *slot.borrow_mut() = Some(Box::new(provider)));
+        let mut reply = EnvReply {
+            current_mode: 77,
+            ..EnvReply::default()
+        };
+        let mut error = [0 as c_char; 256];
+        // SAFETY: the request and reply are valid for the call, and the error buffer is writable for its length.
+        let code = unsafe { environment_callback(&request, &mut reply, error.as_mut_ptr(), error.len(), std::ptr::null_mut()) };
+        ENVIRONMENT.with(|slot| *slot.borrow_mut() = None);
+        let text: Vec<u8> = error.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect();
+        (code, reply, String::from_utf8_lossy(&text).into_owned())
+    }
+
+    fn env_step_request(server: bool, have_draw: bool) -> EnvRequest {
+        EnvRequest {
+            op: sys::EECH_ENV_STEP,
+            server: c_int::from(server),
+            have_draw: c_int::from(have_draw),
+            lightning_draw: if have_draw { 0.5 } else { 0.0 },
+            ..EnvRequest::default()
+        }
+    }
+
+    fn env_valid_state() -> EnvState {
+        EnvState {
+            n: [1, 1, 0, 0, 0],
+            ..EnvState::default()
+        }
+    }
+
+    fn env_refused(request: EnvRequest, reply: EnvReply, marker: &str) {
+        let (code, written, error) = env_crossing(request, move |_| Ok(reply));
+        assert_ne!(code, 0, "{marker}: accepted");
+        assert!(error.contains(marker), "{marker}: {error}");
+        assert_eq!(written.current_mode, 77, "{marker}: a refusal wrote the reply");
+    }
+
+    #[test]
+    fn a_server_step_follows_the_lightning_protocol_and_a_completed_one_is_accepted() {
+        // the first question of an expired server timer: the provider asks for the draw
+        let ask = EnvReply {
+            need_draw: 1,
+            new_timer: -0.5,
+            ..EnvReply::default()
+        };
+        let (code, written, error) = env_crossing(env_step_request(true, false), move |_| Ok(ask));
+        assert_eq!((code, written.need_draw, written.new_timer), (0, 1, -0.5), "{error}");
+        // the second question, with the draw: expired, with a strike and the new timer
+        let done = EnvReply {
+            expired: 1,
+            strike: [1.0, 0.0, 2.0],
+            new_timer: 90.0,
+            state: env_valid_state(),
+            ..EnvReply::default()
+        };
+        let (code, written, error) = env_crossing(env_step_request(true, true), move |_| Ok(done));
+        assert_eq!((code, written.expired, written.new_timer), (0, 1, 90.0), "{error}");
+        // no expiry at all, with no draw
+        let calm = EnvReply {
+            state: env_valid_state(),
+            ..EnvReply::default()
+        };
+        let (code, _, error) = env_crossing(env_step_request(true, false), move |_| Ok(calm));
+        assert_eq!(code, 0, "{error}");
+        // a client's expiry needs no draw and no new timer
+        let client = EnvReply {
+            expired: 1,
+            strike: [1.0, 0.0, 2.0],
+            new_timer: f32::NAN,
+            state: env_valid_state(),
+            ..EnvReply::default()
+        };
+        let (code, written, error) = env_crossing(env_step_request(false, false), move |_| Ok(client));
+        assert_eq!((code, written.expired), (0, 1), "{error}");
+    }
+
+    #[test]
+    fn a_step_answer_that_breaks_the_lightning_protocol_is_refused_before_the_c_side_reads_it() {
+        let ask = EnvReply {
+            need_draw: 1,
+            new_timer: 0.0,
+            ..EnvReply::default()
+        };
+        // a client never draws, and a draw already made is not asked for again
+        env_refused(env_step_request(false, false), ask, "[env-provider:step.answer]");
+        env_refused(env_step_request(true, true), ask, "[env-provider:step.answer]");
+        env_refused(env_step_request(true, false), EnvReply { need_draw: 2, ..ask }, "[env-provider:step.answer]");
+        env_refused(
+            env_step_request(true, false),
+            EnvReply { new_timer: f32::NAN, ..ask },
+            "[env-provider:step.answer]",
+        );
+        // a server's expiry reported without the negotiation
+        let expired = EnvReply {
+            expired: 1,
+            strike: [0.0; 3],
+            new_timer: 5.0,
+            state: env_valid_state(),
+            ..EnvReply::default()
+        };
+        env_refused(env_step_request(true, false), expired, "[env-provider:step.answer]");
+        // the final answer after the draw must still report the expiry
+        let calm = EnvReply {
+            state: env_valid_state(),
+            ..EnvReply::default()
+        };
+        env_refused(env_step_request(true, true), calm, "[env-provider:step.answer]");
+        // malformed pieces
+        env_refused(env_step_request(true, true), EnvReply { expired: 2, ..expired }, "[env-provider:step.answer]");
+        env_refused(
+            env_step_request(true, true),
+            EnvReply {
+                strike: [f32::NAN, 0.0, 0.0],
+                ..expired
+            },
+            "[env-provider:step.answer]",
+        );
+        env_refused(
+            env_step_request(true, true),
+            EnvReply {
+                new_timer: f32::INFINITY,
+                ..expired
+            },
+            "[env-provider:step.answer]",
+        );
+        let mut bad_state = env_valid_state();
+        bad_state.n[0] = 9;
+        env_refused(
+            env_step_request(true, false),
+            EnvReply { state: bad_state, ..calm },
+            "[env-provider:step.state]",
+        );
+    }
+
+    #[test]
+    fn a_wind_vector_the_campaign_asked_for_is_required_of_a_direct_provider() {
+        let speed_only = EnvReply {
+            speed: 3.0,
+            vector: [f32::NAN; 3],
+            ..EnvReply::default()
+        };
+        let wanted = EnvRequest {
+            op: sys::EECH_ENV_WIND,
+            want_vector: 1,
+            ..EnvRequest::default()
+        };
+        env_refused(wanted, speed_only, "[env-provider:wind.answer]");
+        // a vector nobody asked for is not read
+        let unwanted = EnvRequest {
+            op: sys::EECH_ENV_WIND,
+            want_vector: 0,
+            ..EnvRequest::default()
+        };
+        let (code, written, error) = env_crossing(unwanted, move |_| Ok(speed_only));
+        assert_eq!((code, written.speed), (0, 3.0), "{error}");
+        env_refused(
+            unwanted,
+            EnvReply {
+                speed: f32::NAN,
+                ..EnvReply::default()
+            },
+            "[env-provider:wind.answer]",
+        );
+    }
+
+    #[test]
+    fn the_other_environment_answers_are_checked_at_the_boundary_too() {
+        let weather = EnvRequest {
+            op: sys::EECH_ENV_WEATHER,
+            ..EnvRequest::default()
+        };
+        let good = EnvReply {
+            current_mode: 1,
+            target_mode: 2,
+            simple_mode: 2,
+            transitional_state: 0.5,
+            ..EnvReply::default()
+        };
+        let (code, _, error) = env_crossing(weather, move |_| Ok(good));
+        assert_eq!(code, 0, "{error}");
+        env_refused(weather, EnvReply { target_mode: 5, ..good }, "[env-provider:weather.answer]");
+        env_refused(
+            weather,
+            EnvReply {
+                transitional_state: f32::NAN,
+                ..good
+            },
+            "[env-provider:weather.answer]",
+        );
+        let gust = EnvRequest {
+            op: sys::EECH_ENV_GUST,
+            ..EnvRequest::default()
+        };
+        env_refused(
+            gust,
+            EnvReply {
+                modulation: f32::INFINITY,
+                ..EnvReply::default()
+            },
+            "[env-provider:gust.answer]",
+        );
+        let export = EnvRequest {
+            op: sys::EECH_ENV_EXPORT,
+            ..EnvRequest::default()
+        };
+        let mut flag = env_valid_state();
+        flag.n[3] = 2;
+        env_refused(
+            export,
+            EnvReply {
+                state: flag,
+                ..EnvReply::default()
+            },
+            "[env-provider:export.state]",
+        );
+        let mut not_finite = env_valid_state();
+        not_finite.f[4] = f32::NAN;
+        env_refused(
+            export,
+            EnvReply {
+                state: not_finite,
+                ..EnvReply::default()
+            },
+            "[env-provider:export.state]",
+        );
     }
 }

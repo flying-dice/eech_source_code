@@ -90,9 +90,6 @@ struct env_ref
 	int has_state;
 };
 
-#define FP_ENTER fenv_t saved_environment; fegetenv (&saved_environment); fesetround (FE_TOWARDZERO)
-#define FP_LEAVE fesetenv (&saved_environment)
-
 static int fail (char *error, size_t error_size, const char *format, ...) __attribute__ ((format (printf, 3, 4)));
 
 static int fail (char *error, size_t error_size, const char *format, ...)
@@ -496,10 +493,7 @@ static int init_random_impl (env_ref *field, const double *draw, const float *co
 		return -1;
 	}
 
-	if (!all_finite (config, 6) || !all_finite (map, 6))
-	{
-		return fail (error, error_size, "the configuration or the map extents have a number that is not finite");
-	}
+	/* the configuration and the map extents are not checked up front (the middle of the map is not read here at all): a non-finite one gives a non-finite field, which the final check refuses */
 
 	for (i = 0; i < ENV_REF_DRAWS; i++)
 	{
@@ -638,18 +632,10 @@ static int step_impl (env_ref *field, const float *in_f, const int *in_i, double
 		return -1;
 	}
 
-	if (!all_finite (in_f, 10) || !(delta >= 0.0))
-	{
-		return fail (error, error_size, "the delta or the camera or the map extents are not finite numbers (the delta must not be negative)");
-	}
-
+	/* No input is refused up front: the original reads the camera only in a local weather model with a weather zone (and its x and z only), the map extents only in the bounces and the
+	   wind direction, and the delta everywhere, and it completes whatever finite or non-finite value those hold.  What each branch needs is read where the original read it.  The one
+	   thing that cannot be a field is a non-finite RESULT, which the final check below refuses before anything is committed. */
 	s = field->state;
-
-	/* the gust phase is wrapped by a loop that would not end for a huge value: refuse it, as no original run reaches it */
-	if (!(s.f[F_WIND_GUSTING_VALUE] >= 0.0) || !(s.f[F_WIND_GUSTING_VALUE] < 1.0e6))
-	{
-		return fail (error, error_size, "the gust phase %.9g is outside the range the original's wrap handles", (double) s.f[F_WIND_GUSTING_VALUE]);
-	}
 
 	if (s.n[N_LOCAL_WEATHER_MODEL])
 	{
@@ -838,6 +824,14 @@ static int step_impl (env_ref *field, const float *in_f, const int *in_i, double
 
 	s.f[F_WIND_GUSTING_VALUE] += (delta * WIND_GUST_FREQUENCY);
 
+	/* The original's wrap below is kept exactly (no clamp, no remainder).  Under round-toward-zero every pass of it lowers a finite phase, so it ends; the one phase it would never
+	   leave is infinity (infinity minus one is infinity).  That is the only unsupported condition, and it is refused before the loop; a NaN skips the loop as in the original and is
+	   refused with the other non-finite results below. */
+	if (isinf (s.f[F_WIND_GUSTING_VALUE]) && s.f[F_WIND_GUSTING_VALUE] > 0.0)
+	{
+		return fail (error, error_size, "the gust phase after the update is infinite: the original's wrap would never end");
+	}
+
 	while (s.f[F_WIND_GUSTING_VALUE] >= 1.0)
 	{
 		s.f[F_WIND_GUSTING_VALUE] -= 1.0;
@@ -907,26 +901,197 @@ static int step_impl (env_ref *field, const float *in_f, const int *in_i, double
 
 ////////////////////////////////////////
 //
-// the exported operations: each under the complete floating-point environment of its own
+// the caller's COMPLETE floating-point state
+//
+////////////////////////////////////////
+
+/*
+ * The kernels above run under round-toward-zero, as the engine does, and give the caller its own state back.  fegetenv/fesetround/fesetenv alone do NOT: on the shipping toolchain
+ * (MinGW-w64 12 posix) fesetenv restores the x87 environment but leaves the SSE rounding control (and the rest of MXCSR) where the kernel put it, which the retained actual
+ * control (reference/d3-model-characterization/model-mingw-fenv-control-20261030.json: MXCSR 0x1fb4, 0x3fb4 and 0x5fb4 come back as 0x7fb4 after the fenv-only sequence) shows.
+ * Every public entry therefore saves, before its FIRST statement (even a validation that only refuses can raise flags), the x87 environment (control, status and tag words and the
+ * exception pointers: fnstenv) and the whole of MXCSR (rounding control, masks AND sticky flags: stmxcsr), sets round-toward-zero for BOTH units and reads it back, runs the
+ * operation, and restores both (fldenv, ldmxcsr) on EVERY exit, refusals included, reading the restored control and status back; a restore that does not read back as saved is an
+ * environment failure, reported as such, and the answer is withheld and nothing is committed.
+ *
+ * Provenance: the explicit save/restore is the established guard of the reference host, taken from the closed reviewed model component (model-handoff-source-e48808f53,
+ * csrc/model_step.c: fegetenv + stmxcsr, ldmxcsr with a read-back) and from the ground component (ground-production-source-aafb21775, csrc/terrain_ref.c `host_fp_state`: the
+ * complete fnstenv image reloaded straight after the store, so the caller's masks stand while the kernel runs).  It is copied here for this component only; no unrelated feature of
+ * those components is merged, and nothing here claims a generic fix of the DLL's own floating-point handling.  Where there is no x87/SSE the C library's fegetenv/fesetenv is the
+ * whole state and is used.
+ */
+#if defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__))
+#define ENV_FP_X86 1
+#else
+#define ENV_FP_X86 0
+#endif
+
+typedef struct env_fp_state
+{
+#if ENV_FP_X86
+	unsigned char x87[28]; /* the fnstenv image */
+	unsigned int mxcsr;
+#else
+	fenv_t env;
+#endif
+} env_fp_state;
+
+#define ENV_MXCSR_ROUNDING_MASK 0x6000u
+#define ENV_MXCSR_ROUND_TOWARD_ZERO 0x6000u
+/* of the status word: the exception flags and the condition codes and stack top (not the derived stack-fault and summary bits) */
+#define ENV_X87_STATUS_COMPARED 0x7f3fu
+
+#if ENV_FP_X86
+static unsigned int fp_read_mxcsr (void)
+{
+	unsigned int mxcsr = 0;
+
+	__asm__ __volatile__ ("stmxcsr %0" : "=m" (mxcsr) : : "memory");
+
+	return mxcsr;
+}
+
+static void fp_write_mxcsr (unsigned int mxcsr)
+{
+	__asm__ __volatile__ ("ldmxcsr %0" : : "m" (mxcsr) : "memory");
+}
+
+static unsigned int fp_read_x87_control (void)
+{
+	unsigned short control = 0;
+
+	__asm__ __volatile__ ("fnstcw %0" : "=m" (control) : : "memory");
+
+	return control;
+}
+
+static unsigned int fp_read_x87_status (void)
+{
+	unsigned short status = 0;
+
+	__asm__ __volatile__ ("fnstsw %0" : "=m" (status) : : "memory");
+
+	return status;
+}
+#endif
+
+static void fp_save (env_fp_state *state)
+{
+#if ENV_FP_X86
+	__asm__ __volatile__ ("fnstenv %0" : "=m" (state->x87) : : "memory");
+	/* fnstenv masks every x87 exception: reload the image so the caller's masks stand while the kernel runs */
+	__asm__ __volatile__ ("fldenv %0" : : "m" (state->x87) : "memory");
+	state->mxcsr = fp_read_mxcsr ();
+#else
+	fegetenv (&state->env);
+#endif
+}
+
+/* round-toward-zero in BOTH units, read back; 0, or -1 with the message */
+static int fp_enter (char *error, size_t error_size)
+{
+	if (fesetround (FE_TOWARDZERO) != 0)
+	{
+		return fail (error, error_size, "the floating-point environment could not be set to round toward zero");
+	}
+
+#if ENV_FP_X86
+	fp_write_mxcsr ((fp_read_mxcsr () & ~ENV_MXCSR_ROUNDING_MASK) | ENV_MXCSR_ROUND_TOWARD_ZERO);
+
+	if ((fp_read_mxcsr () & ENV_MXCSR_ROUNDING_MASK) != ENV_MXCSR_ROUND_TOWARD_ZERO)
+	{
+		return fail (error, error_size, "the SSE rounding control could not be set to round toward zero");
+	}
+#endif
+
+	if (fegetround () != FE_TOWARDZERO)
+	{
+		return fail (error, error_size, "the floating-point environment did not read back as round toward zero");
+	}
+
+	return 0;
+}
+
+/* the caller's state back, read back; 0, or -1 */
+static int fp_restore (const env_fp_state *state)
+{
+#if ENV_FP_X86
+	unsigned int saved_control = (unsigned int) state->x87[0] | ((unsigned int) state->x87[1] << 8);
+	unsigned int saved_status = (unsigned int) state->x87[4] | ((unsigned int) state->x87[5] << 8);
+
+	__asm__ __volatile__ ("fldenv %0" : : "m" (state->x87) : "memory");
+	fp_write_mxcsr (state->mxcsr);
+
+	if (fp_read_mxcsr () != state->mxcsr || fp_read_x87_control () != saved_control || (fp_read_x87_status () & ENV_X87_STATUS_COMPARED) != (saved_status & ENV_X87_STATUS_COMPARED))
+	{
+		return -1;
+	}
+
+	return 0;
+#else
+	return fesetenv (&state->env) == 0 ? 0 : -1;
+#endif
+}
+
+/* the end of every operation, on every path: the caller's state is restored FIRST, and only then is the operation's own result allowed to stand */
+static int fp_leave (const env_fp_state *saved, int result, char *error, size_t error_size)
+{
+	if (fp_restore (saved) != 0)
+	{
+		return fail (error, error_size, "the caller's floating-point environment did not read back as saved: the answer is withheld");
+	}
+
+	return result;
+}
+
+////////////////////////////////////////
+//
+// the exported operations: each under the complete floating-point state of the caller, restored on every exit
+//
+// An operation that changes the field works on a COPY of it and commits that copy only after the caller's state has been restored and has read back, so a refusal of any kind (a
+// domain, a non-finite result, the environment itself) changes nothing.
 //
 ////////////////////////////////////////
 
 int env_ref_import (env_ref *field, const float *f, const int *n, char *error, size_t error_size)
 {
+	env_fp_state saved;
+	env_ref work;
 	int result;
 
-	FP_ENTER;
-	result = import_impl (field, f, n, error, error_size);
-	FP_LEAVE;
+	fp_save (&saved);
+
+	work = *field;
+
+	if (fp_enter (error, error_size) != 0)
+	{
+		return fp_leave (&saved, -1, error, error_size);
+	}
+
+	result = import_impl (&work, f, n, error, error_size);
+
+	result = fp_leave (&saved, result, error, error_size);
+
+	if (result == 0)
+	{
+		*field = work;
+	}
 
 	return result;
 }
 
 int env_ref_export (const env_ref *field, float *f, int *n, char *error, size_t error_size)
 {
+	env_fp_state saved;
 	int result = 0;
 
-	FP_ENTER;
+	fp_save (&saved);
+
+	if (fp_enter (error, error_size) != 0)
+	{
+		return fp_leave (&saved, -1, error, error_size);
+	}
+
 	if (require_state (field, error, error_size) != 0)
 	{
 		result = -1;
@@ -936,98 +1101,201 @@ int env_ref_export (const env_ref *field, float *f, int *n, char *error, size_t 
 		memcpy (f, field->state.f, sizeof (field->state.f));
 		memcpy (n, field->state.n, sizeof (field->state.n));
 	}
-	FP_LEAVE;
 
-	return result;
+	return fp_leave (&saved, result, error, error_size);
 }
 
 int env_ref_init_random (env_ref *field, const double *draw, const float *config, const float *map, char *error, size_t error_size)
 {
+	env_fp_state saved;
+	env_ref work;
 	int result;
 
-	FP_ENTER;
-	result = init_random_impl (field, draw, config, map, error, error_size);
-	FP_LEAVE;
+	fp_save (&saved);
+
+	work = *field;
+
+	if (fp_enter (error, error_size) != 0)
+	{
+		return fp_leave (&saved, -1, error, error_size);
+	}
+
+	result = init_random_impl (&work, draw, config, map, error, error_size);
+
+	result = fp_leave (&saved, result, error, error_size);
+
+	if (result == 0)
+	{
+		*field = work;
+	}
 
 	return result;
 }
 
 int env_ref_init_fixed (env_ref *field, int mode, char *error, size_t error_size)
 {
+	env_fp_state saved;
+	env_ref work;
 	int result;
 
-	FP_ENTER;
-	result = init_fixed_impl (field, mode, error, error_size);
-	FP_LEAVE;
+	fp_save (&saved);
+
+	work = *field;
+
+	if (fp_enter (error, error_size) != 0)
+	{
+		return fp_leave (&saved, -1, error, error_size);
+	}
+
+	result = init_fixed_impl (&work, mode, error, error_size);
+
+	result = fp_leave (&saved, result, error, error_size);
+
+	if (result == 0)
+	{
+		*field = work;
+	}
 
 	return result;
 }
 
 int env_ref_weather (const env_ref *field, float x, float z, int winter, int *modes, float *transitional_state, char *error, size_t error_size)
 {
+	env_fp_state saved;
 	int result = 0;
+	int cwm = 0, twm = 0;
+	float ts = 0.0;
 
-	FP_ENTER;
+	fp_save (&saved);
+
+	if (fp_enter (error, error_size) != 0)
+	{
+		return fp_leave (&saved, -1, error, error_size);
+	}
+
 	if (require_state (field, error, error_size) != 0)
 	{
 		result = -1;
 	}
 	else
 	{
-		int cwm, twm;
-		float ts;
-
 		weather_at (&field->state, x, z, winter, &cwm, &twm, &ts);
+	}
 
+	result = fp_leave (&saved, result, error, error_size);
+
+	if (result == 0)
+	{
 		modes[0] = cwm;
 		modes[1] = twm;
 
-		/* get_simple_session_weather_at_point */
+		/* get_simple_session_weather_at_point (the comparison is made under the caller's state restored, on a stored float: exact in any mode) */
 		modes[2] = (ts < 0.5) ? cwm : twm;
 
 		*transitional_state = ts;
 	}
-	FP_LEAVE;
 
 	return result;
 }
 
 int env_ref_wind (const env_ref *field, float x, float z, int want_vector, float *speed, float *vector, char *error, size_t error_size)
 {
+	env_fp_state saved;
 	int result = 0;
+	float answer_speed = 0.0, answer_vector[3] = { 0.0, 0.0, 0.0 };
 
-	FP_ENTER;
+	fp_save (&saved);
+
+	if (fp_enter (error, error_size) != 0)
+	{
+		return fp_leave (&saved, -1, error, error_size);
+	}
+
 	if (require_state (field, error, error_size) != 0)
 	{
 		result = -1;
 	}
 	else
 	{
-		result = wind_at (&field->state, x, z, speed, want_vector ? vector : NULL, error, error_size);
+		result = wind_at (&field->state, x, z, &answer_speed, want_vector ? answer_vector : NULL, error, error_size);
 	}
-	FP_LEAVE;
+
+	result = fp_leave (&saved, result, error, error_size);
+
+	if (result == 0)
+	{
+		*speed = answer_speed;
+
+		if (want_vector)
+		{
+			vector[0] = answer_vector[0];
+			vector[1] = answer_vector[1];
+			vector[2] = answer_vector[2];
+		}
+	}
 
 	return result;
 }
 
 int env_ref_gust (float phase, float *modulation, char *error, size_t error_size)
 {
+	env_fp_state saved;
+	float answer = 0.0;
 	int result;
 
-	FP_ENTER;
-	result = get_wind_gusting_modulation_value (phase, modulation, error, error_size);
-	FP_LEAVE;
+	fp_save (&saved);
+
+	if (fp_enter (error, error_size) != 0)
+	{
+		return fp_leave (&saved, -1, error, error_size);
+	}
+
+	result = get_wind_gusting_modulation_value (phase, &answer, error, error_size);
+
+	result = fp_leave (&saved, result, error, error_size);
+
+	if (result == 0)
+	{
+		*modulation = answer;
+	}
 
 	return result;
 }
 
 int env_ref_step (env_ref *field, const float *in_f, const int *in_i, double draw, int *out_i, float *out_f, char *error, size_t error_size)
 {
+	env_fp_state saved;
+	env_ref work;
 	int result;
 
-	FP_ENTER;
-	result = step_impl (field, in_f, in_i, draw, out_i, out_f, error, error_size);
-	FP_LEAVE;
+	out_i[0] = FALSE;
+	out_i[1] = FALSE;
+	out_f[0] = out_f[1] = out_f[2] = out_f[3] = 0.0;
+
+	fp_save (&saved);
+
+	work = *field;
+
+	if (fp_enter (error, error_size) != 0)
+	{
+		return fp_leave (&saved, -1, error, error_size);
+	}
+
+	result = step_impl (&work, in_f, in_i, draw, out_i, out_f, error, error_size);
+
+	result = fp_leave (&saved, result, error, error_size);
+
+	if (result != 0)
+	{
+		out_i[0] = FALSE;
+		out_i[1] = FALSE;
+		out_f[0] = out_f[1] = out_f[2] = out_f[3] = 0.0;
+	}
+	else
+	{
+		/* a need_draw answer leaves the field as it was (the copy is unchanged), so committing the copy is the same */
+		*field = work;
+	}
 
 	return result;
 }

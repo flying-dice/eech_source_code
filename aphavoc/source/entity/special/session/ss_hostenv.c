@@ -409,6 +409,18 @@ int campaign_env_step (struct SESSION *raw_in, int in_cockpit, const float *came
 
 	ask (&request, &reply, "step");
 
+	// the protocol of the lightning timer is checked here against the request the campaign built, BEFORE the shared random word is drawn from and before the mirror is written: only a server
+	// whose timer expired is ever asked for a draw (a client's next timer is set by the server), and a server's expiry is always negotiated through that question
+	if (reply.need_draw && ((reply.need_draw != TRUE) || !request.server))
+	{
+		debug_fatal ("host environment: [env-provider:step.answer] the host asked for the lightning draw where none may be asked for");
+	}
+
+	if (!reply.need_draw && request.server && reply.expired)
+	{
+		debug_fatal ("host environment: [env-provider:step.answer] a server's lightning timer expired without the draw the new timer needs");
+	}
+
 	if (reply.need_draw)
 	{
 		// the lightning timer expired and the next timer needs the one draw of the shared word the original made at this point (update_lightning_effect, straight
@@ -424,11 +436,17 @@ int campaign_env_step (struct SESSION *raw_in, int in_cockpit, const float *came
 		{
 			debug_fatal ("host environment: [env-provider:step.answer] the host asked for a second draw of the lightning timer");
 		}
+
+		// the draw was made for an expiry: the final answer must report that expiry
+		if (reply.expired != TRUE)
+		{
+			debug_fatal ("host environment: [env-provider:step.answer] the lightning draw was made for an expiry the host's final answer does not report");
+		}
 	}
 
 	check_state (&reply.state, "step");
 
-	if (!all_finite (reply.strike, 3) || !isfinite (reply.new_timer) || ((reply.expired != FALSE) && (reply.expired != TRUE)))
+	if (((reply.expired != FALSE) && (reply.expired != TRUE)) || (reply.expired && (!all_finite (reply.strike, 3) || (request.server && !isfinite (reply.new_timer)))))
 	{
 		debug_fatal ("host environment: [env-provider:step.answer] the host's step answer is malformed");
 	}
@@ -441,7 +459,7 @@ int campaign_env_step (struct SESSION *raw_in, int in_cockpit, const float *came
 		strike[1] = reply.strike[1];
 		strike[2] = reply.strike[2];
 
-		*new_timer = reply.new_timer;
+		*new_timer = request.server ? reply.new_timer : 0.0f;
 
 		// only the server draws and sets a next timer (a client's is set by the server): the original recorded nothing for a client's expiry
 		if (request.server)

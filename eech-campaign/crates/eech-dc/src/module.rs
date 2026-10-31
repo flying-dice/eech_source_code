@@ -555,7 +555,12 @@ end
 local function mode (v) return integer (v) and v >= 0 and v <= 4 end
 local function vector3 (v) return type (v) == 'table' and finite (v [1]) and finite (v [2]) and finite (v [3]) end
 return function (request)
+	-- THE CONTRACT IS CAPTURED HERE, BEFORE the provider is called: the provider is handed the request table and may change it, so every decision below that depends on what the campaign
+	-- asked (the operation, whether a wind vector was wanted, whether this is a server, whether the lightning draw was already made) is made from these values, never from the table
 	local op = request.op
+	local want_vector = request.want_vector == true
+	local server = request.server == true
+	local has_draw = request.lightning_draw ~= nil
 	local ok, answer = pcall (provider, request)
 	if not ok then return op .. '.callback', tostring (answer) end
 	if type (answer) ~= 'table' then return op .. '.answer', 'the ' .. op .. ' answer must be a table, got ' .. type (answer) end
@@ -572,7 +577,7 @@ return function (request)
 	elseif op == 'wind' then
 		if not finite (answer.speed) then return 'wind.answer', 'speed must be a finite number' end
 		local v = answer.vector
-		if request.want_vector then
+		if want_vector then
 			if not vector3 (v) then return 'wind.answer', 'vector must be three finite numbers' end
 		else
 			v = { 0, 0, 0 }
@@ -584,22 +589,28 @@ return function (request)
 	end
 	-- step
 	if answer.need_draw == true then
-		if request.lightning_draw ~= nil then return 'step.answer', 'the provider asked for the lightning draw it was given' end
+		-- only a SERVER's FIRST question, before the draw, may be answered with a request for the draw: a client never draws, and a draw already made is not asked for again
+		if not server then return 'step.answer', 'the provider asked for the lightning draw of a client, which never draws' end
+		if has_draw then return 'step.answer', 'the provider asked for the lightning draw it was given' end
 		if not finite (answer.timer) then return 'step.answer', 'timer must be a finite number' end
 		return nil, '1 ' .. fmt (answer.timer)
 	end
 	if answer.need_draw ~= nil and answer.need_draw ~= false then return 'step.answer', 'need_draw must be a boolean or nil' end
+	-- a completed step says whether the timer expired, explicitly (a missing field is not 'false')
 	local expired = answer.expired
-	if expired == nil then expired = false end
-	if type (expired) ~= 'boolean' then return 'step.answer', 'expired must be a boolean or nil' end
+	if type (expired) ~= 'boolean' then return 'step.answer', 'expired must be a boolean, got ' .. type (expired) end
+	-- the draw was made because the first answer reported an expiry: the final answer must complete and still report it
+	if has_draw and not expired then return 'step.answer', 'the lightning draw was made for an expiry the final answer does not report' end
 	local strike, new_timer = { 0, 0, 0 }, 0
 	if expired then
-		-- only the server draws the next timer (a client's new timer is set by the server)
-		if request.server and request.lightning_draw == nil then return 'step.answer', 'the lightning timer expired without the draw the new timer needs' end
+		-- a server's expiry is negotiated: it is reported only with the draw its new timer needs (a client's new timer is set by the server, and is not read)
+		if server and not has_draw then return 'step.answer', 'the lightning timer expired without the draw the new timer needs' end
 		strike = answer.strike
 		if not vector3 (strike) then return 'step.answer', 'strike must be three finite numbers' end
-		new_timer = answer.new_timer
-		if not finite (new_timer) then return 'step.answer', 'new_timer must be a finite number' end
+		if server then
+			new_timer = answer.new_timer
+			if not finite (new_timer) then return 'step.answer', 'new_timer must be a finite number' end
+		end
 	end
 	local text, marker, message = state_text (answer.state, 'step')
 	if not text then return marker, message end
@@ -3859,6 +3870,129 @@ mod tests {
         assert_eq!(no_vector(&env_request(EECH_ENV_WIND))?.speed, 3.0, "a vector nobody asked for is not required");
         let mut gust = env_of(&lua, "return { modulation = 1 / 0 }")?;
         env_refusal(&mut gust, &env_request(EECH_ENV_GUST), "gust.answer");
+        Ok(())
+    }
+
+    // ---- the request contract is captured BEFORE the provider is called (EEDCS-51, review ENV-PHYSICAL-2): a provider that edits the request it is handed gains nothing ----
+
+    #[test]
+    fn a_provider_that_edits_the_request_cannot_change_what_the_campaign_asked() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        // a wind vector was asked for; the provider clears the flag in the table and answers with a speed only: refused, not a silent zero vector
+        let mut wind = env_of(&lua, "r.want_vector = false return { speed = 3 }")?;
+        env_refusal(
+            &mut wind,
+            &EnvRequest {
+                want_vector: 1,
+                ..env_request(EECH_ENV_WIND)
+            },
+            "wind.answer",
+        );
+        // and with the flag as asked, the vector it sent is the one that arrives
+        let mut vector = env_of(&lua, "return { speed = 3, vector = { 1, 0, -2 } }")?;
+        let reply = vector(&EnvRequest {
+            want_vector: 1,
+            ..env_request(EECH_ENV_WIND)
+        })?;
+        assert_eq!((reply.speed, reply.vector), (3.0, [1.0, 0.0, -2.0]));
+        // the draw was made; the provider erases it from the table and asks for it again: refused
+        let mut again = env_of(&lua, "r.lightning_draw = nil return { need_draw = true, timer = 0 }")?;
+        env_refusal(
+            &mut again,
+            &EnvRequest {
+                server: 1,
+                have_draw: 1,
+                lightning_draw: 0.5,
+                ..env_request(EECH_ENV_STEP)
+            },
+            "step.answer",
+        );
+        // a client; the provider says it is a server and asks for the draw (which would advance the shared random word): refused
+        let mut client = env_of(&lua, "r.server = true return { need_draw = true, timer = 0 }")?;
+        env_refusal(
+            &mut client,
+            &EnvRequest {
+                server: 0,
+                ..env_request(EECH_ENV_STEP)
+            },
+            "step.answer",
+        );
+        // a server's expiry the provider reports as complete by claiming the draw was made
+        let mut claimed = env_of(
+            &lua,
+            "r.lightning_draw = 0.5 return { expired = true, strike = { 0, 0, 0 }, new_timer = 5, state = state () }",
+        )?;
+        env_refusal(
+            &mut claimed,
+            &EnvRequest {
+                server: 1,
+                ..env_request(EECH_ENV_STEP)
+            },
+            "step.answer",
+        );
+        // the operation itself is read once: a provider that renames it cannot turn one answer into another
+        let mut renamed = env_of(&lua, "r.op = 'gust' return { modulation = 0.25 }")?;
+        env_refusal(&mut renamed, &env_request(EECH_ENV_WIND), "wind.answer");
+        Ok(())
+    }
+
+    #[test]
+    fn a_completed_step_must_say_explicitly_whether_it_expired_and_a_draw_needs_an_expiry() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        for (what, source) in [
+            ("missing", "return { state = state () }"),
+            ("nil", "return { expired = nil, state = state () }"),
+            ("number", "return { expired = 0, state = state () }"),
+            ("string", "return { expired = 'false', state = state () }"),
+        ] {
+            let mut provider = env_of(&lua, source)?;
+            let message = provider(&env_request(EECH_ENV_STEP)).err().unwrap_or_default();
+            assert!(
+                message.contains("[env-provider:step.answer]") && message.contains("expired"),
+                "{what}: {message}"
+            );
+        }
+        // an explicit false is a completed step with no expiry, for a server and for a client
+        let mut calm = env_of(&lua, "return { expired = false, state = state () }")?;
+        for server in [0, 1] {
+            let reply = calm(&EnvRequest {
+                server,
+                ..env_request(EECH_ENV_STEP)
+            })?;
+            assert_eq!((reply.need_draw, reply.expired), (0, 0));
+        }
+        // after the draw the final answer must complete AND still report the expiry
+        env_refusal(
+            &mut calm,
+            &EnvRequest {
+                server: 1,
+                have_draw: 1,
+                lightning_draw: 0.5,
+                ..env_request(EECH_ENV_STEP)
+            },
+            "step.answer",
+        );
+        // a client that is asked nothing and expires is accepted without any draw
+        let mut expiring = env_of(&lua, "return { expired = true, strike = { 3, 0, 4 }, state = state () }")?;
+        let reply = expiring(&EnvRequest {
+            server: 0,
+            ..env_request(EECH_ENV_STEP)
+        })?;
+        assert_eq!((reply.expired, reply.strike, reply.new_timer), (1, [3.0, 0.0, 4.0], 0.0));
+        // the server's normal order: the question asks for the draw once, the second answer reports the expiry
+        let mut server = env_of(&lua, "if r.lightning_draw == nil then return { need_draw = true, timer = -1 } end return { expired = true, strike = { 0, 0, 0 }, new_timer = 60, state = state () }")?;
+        let first = server(&EnvRequest {
+            server: 1,
+            ..env_request(EECH_ENV_STEP)
+        })?;
+        assert_eq!((first.need_draw, first.new_timer), (1, -1.0));
+        let second = server(&EnvRequest {
+            server: 1,
+            have_draw: 1,
+            lightning_draw: 0.5,
+            ..env_request(EECH_ENV_STEP)
+        })?;
+        assert_eq!((second.need_draw, second.expired, second.new_timer), (0, 1, 60.0));
         Ok(())
     }
 }

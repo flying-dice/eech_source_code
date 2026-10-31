@@ -5,9 +5,11 @@
  * update_lightning_effect), with the same C types and the same expressions in the same order, so the same arithmetic gives the same bits.  The field is
  * the HOST's: the campaign module keeps only a read-only mirror of it (ss_hostenv.h).  See env_ref.c.
  *
- * Every function runs under a complete floating-point environment of its own: the caller's environment (the x87 control and status words and MXCSR) is saved on entry,
- * the round-toward-zero environment the original ran in is set, and the caller's environment is restored on EVERY exit, the early refusals included.  Every function
- * returns 0, or nonzero with a message in `error`; a refusal changes nothing.
+ * Every function runs under a complete floating-point environment of its own: before its first statement the caller's COMPLETE state (the x87 environment with fnstenv: control, status and
+ * tag words and the exception pointers; and the whole of MXCSR, control AND status bits, with stmxcsr -- fegetenv/fesetenv alone leave MXCSR as the kernel put it on the shipping
+ * MinGW toolchain) is saved, round-toward-zero is set for both units and read back, and the caller's state is restored (fldenv, ldmxcsr) and read back on EVERY exit, the early
+ * refusals included.  Every function returns 0, or nonzero with a message in `error`; a refusal changes nothing, an environment that does not read back as saved included.
+ * See env_ref.c for the provenance of the guard.  This is the guard of THIS component, not a claim about the campaign DLL's own floating-point handling.
  */
 #ifndef ENV_REF_H
 #define ENV_REF_H

@@ -1,3 +1,48 @@
+# D3 checkpoint — combined independent source review of 05b8caf82: three findings and one lint fixed in source (31 October 2026)
+
+EEDCS-51 / PR111 from clean pushed `05b8caf82`. The same sole Sonnet5.5High lane fixed the ONE
+combined independent review (`independent-environment-physical-source-review-05b8caf82-20261031.json`,
+SHA-256 `9c9e85b8...a49e86`, CHANGES_REQUIRED) and the first strict-Clippy failure. **NEW SOURCE:
+UNBUILT, UNRUN, UNREVIEWED**; no compiler, cargo or Lua was run; no pass, physical, FP, authority
+or shipping acceptance is claimed. Task 51/D3 stays open (strike/sound entities, the
+sound/terrain-scratch bridge, time inputs and the mirror's pack/save paths remain coupled in Core).
+
+Inherited actual validation at `05b8caf82` (Root's, not re-run): Windows env-fixture build 0 and
+46 payloads verified; three real native 164-case probes (Georgia, Lebanon, fresh Lebanon repeat),
+native/controller 0, six pre/post inputs 0, 705 strict rows each, all 704 original raw lines
+preserved with line endings plus one validation-metadata row; both Lebanon raw files byte-identical
+(`a25f409d...5d4a7`). Diagnostic normal-domain conformance only. Linux default/env-fixture tests passed
+their functions; strict Clippy exited 101 at `env.rs:359` `needless_question_mark`, fixed with no
+suppression; feature Clippy not reached.
+
+Actual hosted failures at `05b8caf82` (run 41192020532, retained log
+`environment-physical-05b8caf82-hosted-failures-20261031.log`): Windows-cross FP test at
+`env.rs:651` (assumed ambient nearest; got round-toward-zero), and on i686 (both stack-attribute
+settings) the gust test at `env.rs:608` (`gust(1/7)` is 0.24999999 on the original's x87 extended
+arithmetic, not 0.25; 1/7 is not exactly representable). Test context only, nothing in production
+arithmetic: the quotient test stays replaced by the explicit full x87/MXCSR mode/status matrix
+(which restores the registers itself), and the gust test now asserts exact bits at the dyadic
+phases 1/8 (0.21875) and 1/16 (0.109375). No tolerance, baseline or 164-case change; new candidate
+UNBUILT/UNRUN/UNREVIEWED; no acceptance claimed.
+
+Closed in source: ENV-PHYSICAL-1 (P1) every `env_ref.c` entry now saves the caller's COMPLETE x87
+environment (`fnstenv`) and MXCSR (`stmxcsr`) before its first statement, sets round-toward-zero in
+both units with read-back, and restores both (`fldenv`, `ldmxcsr`) with read-back on every exit
+including early refusals, committing a copy only afterwards (provenance: model `80fd/e488`
+`model_step.c`, ground `aafb21775` `host_fp_state`; the unchanged MinGW control is not rerun and this
+is no generic DLL FP claim); Rust test reads/writes the real registers in all four modes with sticky
+flags. ENV-PHYSICAL-2 (P1) the Lua bridge captures `want_vector`/`server`/draw presence BEFORE the
+provider runs; `need_draw` only for a server's first question; `expired` explicit boolean; the
+post-draw reply must still be expired; the same checks at the engine callback (direct `EnvProvider`)
+and in `ss_hostenv.c` before `frand1` and before the mirror commit; valid client expiry (no draw) and
+the server's one-draw order preserved. ENV-PHYSICAL-3 (P2) the blanket finite/camera/delta checks and
+the `[0,1e6)` gust cutoff are removed; the original's branch reads and wrap are kept, only an infinite
+post-update phase (the wrap's sole non-terminating input), a missing required camera and a non-finite
+RESULT are refused. `weather_draw.w0` remains a documented diagnostic-semantic change (draw value),
+old raw records immutable and not claimed byte-unchanged for that record. Single engine NUL preserved.
+Root formats, pins, builds, renews affected checks, public authority, shipping and review. Protected
+ground originals/packs and Task49/50 trees untouched.
+
 # D3 checkpoint — physical weather/wind field production extraction prepared (31 October 2026)
 
 EEDCS-51 / PR111 from clean pushed `b8874cd6c` (reference-evidence only until now), the same sole

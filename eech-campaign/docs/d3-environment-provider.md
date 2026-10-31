@@ -23,8 +23,19 @@ only a labelled read-only **mirror** of the field in the session record.
 | the lightning timer: decrement, expiry, the new timer's arithmetic | `ss_updt.c update_lightning_effect` (the timer half) |
 
 The kernels keep the original types and expression order (a float field times a double constant, a double expression stored in a float field, the single-precision `PI`), and run under
-round-toward-zero as the engine does. The host saves the caller's complete floating-point environment (x87 control and status words, MXCSR) on entry to **every** operation, sets
-round-toward-zero, and restores the caller's on **every** exit, early refusals included. Nothing was re-formulated.
+round-toward-zero as the engine does. Nothing was re-formulated.
+
+**The caller's complete floating-point state (corrected after the review of `05b8caf82`, finding ENV-PHYSICAL-1).** `fegetenv`/`fesetround`/`fesetenv` alone are not enough: on the shipping
+toolchain (MinGW-w64 12 posix) `fesetenv` restores the x87 environment but leaves the SSE rounding control and the rest of MXCSR where the kernel put it (the retained actual control
+`reference/d3-model-characterization/model-mingw-fenv-control-20261030.json`: MXCSR `0x1fb4`/`0x3fb4`/`0x5fb4` come back as `0x7fb4`). Every public entry of `env_ref.c` therefore saves,
+before its first statement, the x87 environment (`fnstenv`: control, status and tag words and the exception pointers, reloaded straight away so the caller's masks stand) and the whole of
+MXCSR (`stmxcsr`: rounding control, masks and sticky flags); sets round-toward-zero in both units and reads it back; and on **every** exit, refusals included, restores both (`fldenv`,
+`ldmxcsr`) and reads the restored control and status back. A restore that does not read back as saved is reported as an environment failure and withholds the answer and the commit. The
+guard is the established one of the reference host's closed components (`model_step.c` of the model component `80fd62ea4`/`e48808f53`: save, set, read back, restore with a read-back;
+`terrain_ref.c` `host_fp_state` of the ground component `aafb21775`: the complete `fnstenv` image), copied for this component only. It is a guard of this component's public entries; it is
+**not** a claim that the campaign DLL's own floating-point handling is fixed. The Rust test `the_callers_complete_floating_point_state_survives_every_operation_in_every_mode` reads and
+writes the real x87 control/status and MXCSR registers (all four rounding modes, sticky flags clear and set, accepted and refused operations) and also requires the kernels' answers to be the
+same bits in every caller mode; **it is source only: Root runs it on the actual Windows target, and the unchanged MinGW control is not rerun.**
 
 ## What stays in Core (the campaign), and why
 
@@ -62,7 +73,15 @@ rounds a near-integer). Numbers the campaign sends are exact single-precision va
 **STEP and the one lightning draw.** The campaign does not know in advance whether the timer expires. The host decrements and, on a server expiry with no `lightning_draw` given, answers
 `need_draw` **without changing anything** (`timer` carries the decremented value). The campaign then draws `frand1` at the original site and asks again with `lightning_draw`; the host answers
 with `expired`, `strike` (the weather centre **before** it moved, as the original struck), `new_timer` and the state after the update. The campaign sets the timer through its own setter and
-creates the strikes and sound entities in the original order. A client's expiry needs no draw (the server sets the next timer). A second `need_draw` is a refusal.
+creates the strikes and sound entities in the original order. A client's expiry needs no draw (the server sets the next timer).
+
+**The protocol is enforced against the request the campaign built, before the draw (finding ENV-PHYSICAL-2).** `need_draw` is legal only as a **server's first question** (no draw yet): a
+client's `need_draw`, a `need_draw` after the draw, a second one, or a server's expiry reported without the negotiation is a refusal **before** `frand1` is called and before the mirror is
+written. A completed step must say `expired` explicitly as a boolean (a missing field is not `false`); after the draw the final answer must complete and still report the expiry. These
+checks are made at three layers, each against the values of the request and never the provider's copy of the table: the Lua bridge (`module.rs`) captures `op`, `want_vector`, `server` and
+the presence of `lightning_draw` **before** it calls the provider, so a provider that edits the request it is handed (clears `want_vector`, deletes `lightning_draw`, claims to be a server)
+gains nothing; the engine's callback (`eech-engine` `check_env_reply`) checks every reply against the request it answers, so a **direct Rust `EnvProvider`** cannot bypass the Lua bridge; and
+the C side (`ss_hostenv.c`) repeats the lightning protocol before drawing. A wind vector the campaign asked for is required (never synthesised as zeros).
 
 ### Refusals and markers (atomic; nothing falls back to another solver)
 
@@ -74,8 +93,13 @@ A missing provider is refused at boot (`[env-provider:missing]`, after the terra
 * `<op>.state` the field in the answer is missing a number, not finite, a mode outside 0 to 4, or a flag that is not a boolean.
 
 The campaign's mirror is written only after an answer has been checked in full. The reference host's kernels work on a copy of the field and commit it only when the operation has finished,
-so a refused operation changes nothing on either side. Domain refusals in the kernel: a gust phase outside `[0, 1)` (the original asserts there), a non-finite field or camera, a mode or flag
-out of range on import, a draw the original's draw macro could not give, a negative delta, a weather-zone update with no camera, and a gust phase too large for the original's wrap loop to end.
+so a refused operation changes nothing on either side. The kernels refuse only what is not a field or what the original itself refuses or cannot complete (finding ENV-PHYSICAL-3):
+a gust phase outside `[0, 1)` **in a query** (the original asserts there), an imported field that is not finite or has a mode or flag out of range, a draw the original's draw macro
+could not give, a weather-zone update with no camera, a **result** that is not a finite field (checked before anything is committed), and a gust phase that the update would make infinite
+(the original's `while (gust >= 1.0) gust -= 1.0` can never leave infinity; every finite phase leaves it, under round-toward-zero each pass lowers it). They do **not** refuse up front a
+negative or not-finite delta, an unused camera component (the original reads only x and z, and only in a local model with a zone), the map extents it does not use, or a gust phase
+outside `[0, 1)` that the update wraps (a phase set to -0.25 with a delta of 5 reaches 0.25, as in the original). The old pre-update cutoff of `[0, 1e6)` is removed; the wrap is the
+original's loop, with no clamp and no remainder, so a very large finite phase takes proportionally many passes, as in the original.
 
 ### Transport
 
@@ -122,6 +146,31 @@ bodies preserved in the `#else` for the original game's build); `ss_updt.c` (`up
 `EECH_CAMPAIGN_HOST_ENV`, `eech_engine.h/.c` carrying the host callback and installing it at entry, `src/lib.rs` types), `eech-engine/src/lib.rs` (the provider and its thread-local),
 `eech-dc/src/module.rs` (the Lua bridge, the boot requirement and unit tests). Reference host: `eech-world/csrc/env_ref.c/.h` (kernels), `eech-world/src/env.rs` (the provider and unit tests),
 `lib.rs`/`main.rs`/`build.rs` registration, every boot script and harness now passes `environment = host.env_provider ()`.
+
+## Validation inherited at `05b8caf82` (reported by Root; not re-run here) and the review batch that followed
+
+Reported at `05b8caf82`: the Windows environment-fixture build exited 0 and all 46 payloads verified; three real native 164-case probes (Georgia, Lebanon, a fresh Lebanon repeat) each
+exited 0 at native and controller with all six pre/post inputs 0 and 705 strict rows, each preserving all 704 original raw lines **including line endings** exactly plus one explicit
+validation-metadata row; both complete Lebanon raw files are byte-identical (SHA-256 `a25f409d468403911b31c7e5827b21264d2b77886016b4794b5655b13461d4a7`; comparison
+`environment-physical-original-comparison-05b8caf82-20261031.json`). That is a diagnostic normal-domain conformance, **not** floating-point, authority or shipping acceptance. The original
+oracles stay closed and are reused, never rebuilt. Linux default and `env-fixture` tests for the affected packages passed their functions (asset-dependent missing inputs are not retail
+proof); strict Clippy first exited 101 at `eech-world/src/env.rs:359` (`needless_question_mark`), now fixed without a suppression; feature Clippy was not reached.
+
+**Actual hosted failures at `05b8caf82`** (GitHub run 41192020532, log `environment-physical-05b8caf82-hosted-failures-20261031.log`; reported, not re-run here): (1) Windows-cross under
+Wine, `the_caller_keeps_its_floating_point_environment` at `env.rs:651` expected the nearest quotient of 1/5 and got the round-toward-zero one (245 passed, 1 failed) -- the guard bug
+(ENV-PHYSICAL-1) together with a test that assumed the ambient mode in a process that had initialised the engine; (2) `i686-unknown-linux-gnu`, with and without
+`EECH_ORIGINAL_STACK_ATTRIBUTES=1`, `the_gust_modulation_is_the_originals_piecewise_table` at `env.rs:608` expected `gust(1.0 / 7.0) == 0.25` and got `0.24999999` (245 passed, 1 failed each);
+(3) x86_64 Linux strict Clippy, the `needless_question_mark` above. Bounded test-context changes, none to production arithmetic, flags or evaluation order, no tolerance or baseline: the
+superseded quotient test is replaced by the full x87/MXCSR matrix, which arranges each caller mode and status itself and restores the thread's registers when it ends (it assumes no
+ambient mode); and the gust test no longer asserts an exact value at 1/7, which is not representable -- the float nearest 1/7 times 7 is 1.0000000447, which the original's x87 build keeps
+in an extended register (so `ceil` is 2 and the result is 0.24999999) and an SSE build rounds to 1.0 (0.25); both are the original arithmetic, not a divergence. It now asserts exact bits at
+the dyadic phases 1/8 (0.21875, `0x3e600000`) and 1/16 (0.109375, `0x3de00000`), where the product, segment, fraction and result are exact in any precision and either unit. The original
+164-case fixture is untouched.
+
+The ONE combined independent source review of `05b8caf82` (`independent-environment-physical-source-review-05b8caf82-20261031.json`, SHA-256 `9c9e85b8...a49e86`) returned
+CHANGES_REQUIRED with three findings, closed in source by this batch (UNBUILT, UNRUN, UNREVIEWED): ENV-PHYSICAL-1 (complete x87/MXCSR guard, above), ENV-PHYSICAL-2 (request contract and
+lightning protocol, above), ENV-PHYSICAL-3 (branch-specific reads and the gust wrap, above). The `weather_draw.w0` change (the draw value, not the computed field) is a documented diagnostic
+change of a private feature; the old raw records are immutable and are not altered; it is not claimed byte-unchanged for that record.
 
 ## Remaining coupling and open gates (finite)
 

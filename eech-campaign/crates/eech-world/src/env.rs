@@ -356,7 +356,7 @@ fn number(reader: &CoordinateReader, table: &LuaTable, key: impl IntoLua, what: 
         let kind: String = reader.slot.get("kind")?;
         return Err(refuse(format_args!("{what} must be a number, got {kind}")));
     }
-    Ok(reader.slot.get("value")?)
+    reader.slot.get("value")
 }
 
 /// A request number that is exactly a single-precision value (the campaign's own); a finite value that a float would round is refused. A non-finite value is passed on:
@@ -604,8 +604,13 @@ mod tests {
     #[test]
     fn the_gust_modulation_is_the_originals_piecewise_table() {
         assert_eq!(Field::gust(0.0).unwrap(), 0.0);
-        // phase 1/7 * 7 = 1: the first sample point (0.25)
-        assert_eq!(Field::gust(1.0 / 7.0).unwrap(), 0.25);
+        // Exactly representable (dyadic) phases only. 1/7 is not one: the float nearest 1/7 times 7 is 1.0000000447, which the original's x87 build keeps in an extended register
+        // (floor 1, ceil 2, so it interpolates a hair towards the next sample: 0.24999999), while an SSE build rounds the product to 1.0 (0.25); both are the original arithmetic, so no
+        // exact value can be asserted there. A dyadic phase makes phase * 7, the segment, the fraction and the result exact in any precision and either unit.
+        // Phase 1/8: val = 0.875, between the implicit 0 before the first sample and the first sample (0.25): 0 + 0.875 * 0.25 = 0.21875.
+        assert_eq!(Field::gust(0.125).unwrap().to_bits(), 0x3e60_0000);
+        // Phase 1/16: val = 0.4375: 0.4375 * 0.25 = 0.109375.
+        assert_eq!(Field::gust(0.0625).unwrap().to_bits(), 0x3de0_0000);
         for refused in [-0.5f32, 1.0, 2.0, f32::NAN] {
             assert!(Field::gust(refused).is_err(), "{refused}");
         }
@@ -640,25 +645,129 @@ mod tests {
         assert_eq!(field.export().unwrap(), before);
     }
 
+    /// The processor's floating-point state of this thread, read and written directly (the x87 control and status words and MXCSR), so that the guard around every kernel is
+    /// checked against the REAL registers rather than against one quotient. Only where those registers exist.
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    mod fp {
+        use std::arch::asm;
+
+        pub fn mxcsr() -> u32 {
+            let mut value = 0u32;
+            // SAFETY: stores the 32-bit MXCSR to a local.
+            unsafe { asm!("stmxcsr dword ptr [{}]", in(reg) &mut value as *mut u32, options(nostack, preserves_flags)) };
+            value
+        }
+
+        pub fn set_mxcsr(value: u32) {
+            // SAFETY: loads MXCSR from a local; the values written are valid control/status settings read from or built on a prior read.
+            unsafe { asm!("ldmxcsr dword ptr [{}]", in(reg) &value as *const u32, options(nostack, readonly)) };
+        }
+
+        pub fn control() -> u16 {
+            let mut value = 0u16;
+            // SAFETY: stores the x87 control word to a local.
+            unsafe { asm!("fnstcw word ptr [{}]", in(reg) &mut value as *mut u16, options(nostack, preserves_flags)) };
+            value
+        }
+
+        pub fn set_control(value: u16) {
+            // SAFETY: loads the x87 control word from a local.
+            unsafe { asm!("fldcw word ptr [{}]", in(reg) &value as *const u16, options(nostack, readonly)) };
+        }
+
+        pub fn status() -> u16 {
+            let mut value = 0u16;
+            // SAFETY: stores the x87 status word to a local.
+            unsafe { asm!("fnstsw word ptr [{}]", in(reg) &mut value as *mut u16, options(nostack, preserves_flags)) };
+            value
+        }
+    }
+
+    /// Puts the thread's floating-point control back whatever a test did to it, even when an assertion fails.
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    struct RestoreFp {
+        mxcsr: u32,
+        control: u16,
+    }
+
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    impl Drop for RestoreFp {
+        fn drop(&mut self) {
+            fp::set_mxcsr(self.mxcsr);
+            fp::set_control(self.control);
+        }
+    }
+
+    /// Every operation, accepted and refused, under each of the four rounding modes and with the sticky flags of MXCSR both clear and set: the caller's x87 control and status words and
+    /// MXCSR are exactly what they were. And whatever the caller's mode, the kernels' answers are the same bits (they run in their own mode, round toward zero).
     #[test]
-    fn the_caller_keeps_its_floating_point_environment() {
-        // the kernels run in round-toward-zero and give the caller's environment back, on a refusal too
-        let mut field = Field::new().unwrap();
-        field.import(&defaults()).unwrap();
-        // 1/5 rounds up to nearest (0x3FC999999999999A) and down toward zero (0x3FC9999999999999), so the quotient shows the rounding mode
-        let quotient = || (std::hint::black_box(1.0f64) / std::hint::black_box(5.0f64)).to_bits();
-        let nearest = 0x3FC9_9999_9999_999A;
-        assert_eq!(quotient(), nearest);
-        let _ = field.init_fixed(9);
-        assert_eq!(quotient(), nearest);
-        let _ = field.step(&input(-1.0));
-        assert_eq!(quotient(), nearest);
-        let mut bad = defaults();
-        bad.f[3] = f32::NAN;
-        let _ = field.import(&bad);
-        assert_eq!(quotient(), nearest);
-        field.step(&input(1.0)).unwrap();
-        assert_eq!(quotient(), nearest);
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    fn the_callers_complete_floating_point_state_survives_every_operation_in_every_mode() {
+        let _restore = RestoreFp {
+            mxcsr: fp::mxcsr(),
+            control: fp::control(),
+        };
+        let original_control = fp::control();
+        let mut local = defaults();
+        local.n[2] = 1;
+        local.f[0] = 20000.0;
+        local.f[3] = 123.456;
+        local.f[6] = 7.77;
+        local.f[22] = 100.0;
+        let mut answers: Vec<(State, Weather, Wind)> = Vec::new();
+        for rounding in 0u32..4 {
+            for sticky in [0u32, 0x3f] {
+                // masks all set (0x1f80), the rounding control, and the six sticky exception flags clear or set
+                fp::set_mxcsr(0x1f80 | (rounding << 13) | sticky);
+                fp::set_control((original_control & !0x0c00) | ((rounding as u16) << 10));
+                let expected = (fp::mxcsr(), fp::control(), fp::status() & 0x3f);
+                let check = |what: &str| {
+                    assert_eq!(
+                        (fp::mxcsr(), fp::control(), fp::status() & 0x3f),
+                        expected,
+                        "{what}: rounding {rounding}, sticky {sticky:#x}"
+                    );
+                };
+                let mut field = Field::new().unwrap();
+                field.import(&local).unwrap();
+                check("import");
+                let weather = field.weather(9000.0, -3000.0, false).unwrap();
+                check("weather");
+                let wind = field.wind(1.0, 2.0, true).unwrap();
+                check("wind");
+                Field::gust(0.5).unwrap();
+                check("gust");
+                field.export().unwrap();
+                check("export");
+                field.step(&input(0.1)).unwrap();
+                check("step");
+                let state = field.export().unwrap();
+                field.init_fixed(2).unwrap();
+                check("init_fixed");
+                // the early refusals, each of which runs part of the validation under the guard
+                assert!(field.init_fixed(9).is_err());
+                check("init_fixed refused");
+                let mut nan = local;
+                nan.f[3] = f32::NAN;
+                assert!(field.import(&nan).is_err());
+                check("import refused");
+                assert!(Field::gust(2.0).is_err());
+                check("gust refused");
+                let mut blind = input(1.0);
+                blind.have_camera = false;
+                field.import(&local).unwrap();
+                assert!(field.step(&blind).is_err());
+                check("step refused (no camera)");
+                assert!(field.step(&input(f32::INFINITY)).is_err());
+                check("step refused (infinite delta)");
+                assert!(Field::new().unwrap().export().is_err());
+                check("export refused (no state)");
+                answers.push((state, weather, wind));
+            }
+        }
+        for answer in answers.iter().skip(1) {
+            assert_eq!(answer, &answers[0], "the caller's rounding mode reached the kernels");
+        }
     }
 
     #[test]
@@ -727,6 +836,95 @@ mod tests {
         blind.have_camera = false;
         assert!(field.step(&blind).unwrap_err().contains("camera"));
         assert_eq!(field.export().unwrap(), before);
+    }
+
+    // ---- the original's branch-specific reads and its gust wrap (review ENV-PHYSICAL-3): nothing is refused that the original completes ----
+
+    fn nan_camera(y_only: bool) -> StepInput {
+        let mut step = input(1.0);
+        step.f[1..4].copy_from_slice(&if y_only { [0.0, f32::NAN, 0.0] } else { [f32::NAN, f32::NAN, f32::NAN] });
+        step
+    }
+
+    /// A local weather zone whose centre is far outside its radius of the camera at the origin (a finite camera sees the dry zone), the lightning far away.
+    fn far_zone() -> State {
+        let mut zone = defaults();
+        zone.n[2] = 1;
+        zone.f[0] = 20000.0;
+        zone.f[3] = 50000.0;
+        zone.f[5] = 50000.0;
+        zone.f[22] = 1.0e6;
+        zone
+    }
+
+    #[test]
+    fn a_camera_the_original_does_not_read_is_not_refused_but_a_missing_required_one_is() {
+        // a local model with a zone reads the camera's x and z: a not-finite y (never read) is no reason to refuse, and the finite x and z are what answers (the dry zone, mode 1)
+        let mut field = Field::new().unwrap();
+        field.import(&far_zone()).unwrap();
+        field.step(&nan_camera(true)).unwrap();
+        let after = field.export().unwrap();
+        assert_eq!((after.n[0], after.n[1], after.f[2]), (1, 1, 0.0));
+        // a not-finite x and z ARE read, and the original completes: the range is not a number, no ring comparison holds, the heavy-rain branch answers (summer), the field stays finite
+        let mut field = Field::new().unwrap();
+        field.import(&far_zone()).unwrap();
+        field.step(&nan_camera(false)).unwrap();
+        let after = field.export().unwrap();
+        assert_eq!((after.n[0], after.n[1], after.f[2]), (3, 3, 0.0));
+        // the required camera absent: refused, and nothing changed
+        let mut field = Field::new().unwrap();
+        field.import(&far_zone()).unwrap();
+        let before = field.export().unwrap();
+        let mut blind = input(1.0);
+        blind.have_camera = false;
+        assert!(field.step(&blind).unwrap_err().contains("camera"));
+        assert_eq!(field.export().unwrap(), before);
+        // the global model, and a local model with no zone, read no camera at all
+        for local_without_zone in [false, true] {
+            let mut calm = defaults();
+            calm.n[2] = i32::from(local_without_zone);
+            let mut field = Field::new().unwrap();
+            field.import(&calm).unwrap();
+            let mut step = nan_camera(false);
+            field.step(&step).unwrap();
+            step.have_camera = false;
+            field.step(&step).unwrap();
+        }
+    }
+
+    #[test]
+    fn a_gust_phase_the_original_wraps_is_wrapped_not_refused_before_its_arithmetic() {
+        let phase_after = |gust: f32, delta: f32| {
+            let mut state = defaults();
+            state.f[10] = gust;
+            let mut field = Field::new().unwrap();
+            field.import(&state).unwrap();
+            field.step(&input(delta))?;
+            Ok::<f32, String>(field.export()?.f[10])
+        };
+        // a phase set below zero reaches a valid one in the update, as in the original (-0.25 + 5 * 0.1)
+        assert_eq!(phase_after(-0.25, 5.0), Ok(0.25));
+        // an ordinary wrap, and a phase far beyond the old cutoff of a million: the original's loop subtracts one until it is below one
+        let wrapped = phase_after(0.95, 1.0).unwrap();
+        assert!((0.0..0.06).contains(&wrapped) && (wrapped - 0.05).abs() < 1.0e-5, "{wrapped}");
+        assert_eq!(phase_after(2.0e6, 0.0), Ok(0.0));
+        // a phase that stays outside [0, 1) is a field the wind query then refuses, as the original's assertion does
+        assert_eq!(phase_after(-5.0, 0.0), Ok(-5.0));
+        // the one unsupported condition: the update would make the phase infinite, which the original's wrap could never leave
+        assert!(phase_after(0.5, f32::INFINITY).unwrap_err().contains("infinite"));
+        // a not-a-number delta gives a not-finite field, which is refused whole
+        assert!(phase_after(0.5, f32::NAN).is_err());
+    }
+
+    #[test]
+    fn a_negative_delta_is_arithmetic_not_a_refusal() {
+        let mut state = defaults();
+        state.f[16] = 10.0;
+        state.f[19] = 2.0;
+        let mut field = Field::new().unwrap();
+        field.import(&state).unwrap();
+        field.step(&input(-1.0)).unwrap();
+        assert_eq!(field.export().unwrap().f[16], 8.0);
     }
 
     #[test]
