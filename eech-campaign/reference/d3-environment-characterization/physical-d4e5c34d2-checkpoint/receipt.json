@@ -1,0 +1,69 @@
+{
+  "when_utc": "2026-10-31T11:17:29.005879+00:00",
+  "scope": "Safe measured d4 successes AND failures. ExplicitLFtextnormalization only. CABIprivate32entryfails andCI7of9; noacceptance. Oldfailedcomparatorretainedalongcorrectedscopedproof; no rawassets/bins/recordings uploaded.",
+  "files": [
+    {
+      "file": "source-review.json",
+      "raw_sha256": "4ffc19d7652543927d9a4db888826dcc20dd057e697b5eb7ca7560985446d506",
+      "raw_bytes": 8212,
+      "git_lf_sha256": "b7bde0be77f928c3fc9934bb28ace7534db2cdff1304ae9ef568116873cc973f",
+      "git_lf_bytes": 8149
+    },
+    {
+      "file": "linux-completion.json",
+      "raw_sha256": "232907b1817ab5675f3dfc02969be8b3e0d9be0ddc66230b724e7e690bf09468",
+      "raw_bytes": 648,
+      "git_lf_sha256": "7eb85f489f4cd1c4148bca537bbb6ea34870d724d069dcbbe572c226cc0b3cf9",
+      "git_lf_bytes": 630
+    },
+    {
+      "file": "actual-windows-tests.json",
+      "raw_sha256": "782acad48cb4c29bb547df615a4e27cc38e99fde300fd8259b91f6798423633d",
+      "raw_bytes": 2074,
+      "git_lf_sha256": "d754d08c60a03e55d96005e2b0c9ff6349cc5357455a15e9302ce58f998691a7",
+      "git_lf_bytes": 2017
+    },
+    {
+      "file": "numeric-comparison.json",
+      "raw_sha256": "e8066cff37a55ad56097a2e0cad6a5621b720ec4e8833962f5aeb3d393a08aed",
+      "raw_bytes": 1461,
+      "git_lf_sha256": "30f381506177c132266b2ce550af173b82010423f38aed2031fdd91ad1f51a1a",
+      "git_lf_bytes": 1428
+    },
+    {
+      "file": "120-comparison-first-failed.json",
+      "raw_sha256": "cc4109e8ed0f6581ee54dc218bf0e21b24efe06070184d17750e9370b9913c30",
+      "raw_bytes": 1734,
+      "git_lf_sha256": "21029ed90fa776645fc82202bcbb4b557edfaaaf59a85335d8ca11d65e8c2d6c",
+      "git_lf_bytes": 1695
+    },
+    {
+      "file": "120-comparison-corrected.json",
+      "raw_sha256": "2aaeb562de85e2369cd99b2ffef2219a858ad42df66c608c90e413706e0e4bad",
+      "raw_bytes": 3669,
+      "git_lf_sha256": "d20c6a23b12c9a9a0904e4afdd345a39d266dfd06c3003ec0873695b4f82add6",
+      "git_lf_bytes": 3588
+    },
+    {
+      "file": "hosted-ci.json",
+      "raw_sha256": "559c052398e4434d64556b3f7231467f6c4f18f7de895dae1e123890a8b84daa",
+      "raw_bytes": 1430,
+      "git_lf_sha256": "559c052398e4434d64556b3f7231467f6c4f18f7de895dae1e123890a8b84daa",
+      "git_lf_bytes": 1430
+    },
+    {
+      "file": "c-abi-isolation.json",
+      "raw_sha256": "9b9911395f6914187a2521198532567e0a834a0e9e056367c136497fe40cd705",
+      "raw_bytes": 2010,
+      "git_lf_sha256": "c383296af7e18de81900c71f4973874b6fcc17caf2f47437837150a90f4d4221",
+      "git_lf_bytes": 1968
+    },
+    {
+      "file": "c-abi-identity.json",
+      "raw_sha256": "47b562646abbe9a2dc87ab32150a22e5d64078f1c3b71efeb29a2b7f2278545c",
+      "raw_bytes": 1039,
+      "git_lf_sha256": "ad4ec81fd377f8bafe62d93d55e97c0d1526e7a85ee31cc952242ea1421e1481",
+      "git_lf_bytes": 1018
+    }
+  ]
+}

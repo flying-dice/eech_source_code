@@ -1,0 +1,60 @@
+{
+  "source": "d4e5c34d2b85e5ee6e9b98e2edd9b00e3c2505c4",
+  "scope": "Actual9hostedjobs7success2i686FPfail; NOTgreen",
+  "jobs": [
+    {
+      "id": 124518435228,
+      "name": "evidence-selftest",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 124518435351,
+      "name": "test (i686-unknown-linux-gnu)",
+      "status": "completed",
+      "conclusion": "failure"
+    },
+    {
+      "id": 124518435368,
+      "name": "test (x86_64-unknown-linux-gnu, EECH_C_OPT=2)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 124518435401,
+      "name": "test (i686-unknown-linux-gnu, EECH_ORIGINAL_STACK_ATTRIBUTES=1)",
+      "status": "completed",
+      "conclusion": "failure"
+    },
+    {
+      "id": 124518435409,
+      "name": "windows-cross",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 124518435414,
+      "name": "dcs-probe-tools",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 124518435415,
+      "name": "test (x86_64-unknown-linux-gnu)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 124518435889,
+      "name": "verify",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 124518434989,
+      "name": "Slice 1a historical equivalence",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ]
+}

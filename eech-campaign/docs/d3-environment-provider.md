@@ -209,6 +209,33 @@ with four findings, closed in source by this batch:
   camera IS needed, so the second, camera-less step legitimately refused. The test now asserts that evolved refusal (and that it changes nothing), then re-imports the calm state before the
   independent absent-camera step. The radius arithmetic and the required-camera error are unchanged.
 
+## Actual results at `d4e5c34d2` and the confirmed C-ABI prologue cause (UNBUILT, UNRUN, UNREVIEWED correction)
+
+Reported by Root (not re-run here). **Successes:** Windows fixture build 0; real Windows engine 77, dc 21, world 250, all exit 0 (the full matrix and the C consumer test included); Linux default and
+fixture tests and both strict Clippy phases exit 0 (completion 11:04:48), formatting 0; three retail 164-case probes each native/controller 0 with six pre/post inputs 0 and 46 payloads, the
+complete 705-line outputs exact against `05b8caf82` (all 704 original raw lines preserved); two 120 s configuration cases (control 10850 lines, probe 11514) exit 0 with every original
+mode-specific raw line and ending exact except the one added validation-metadata line, the common retail snapshot and initial/final campaign raw lines (10829 per mode) exact, the immediate
+probe retail/campaign fingerprints equal, and 1200 frames / elapsed 119.99835968017578 exact (`Run.complete` there is probe COVERAGE, control false / probe true, not campaign completion; an
+earlier selector that counted the probe-only rows and the run metadata failed and is retained as v1, the corrected v2 declares the mode flags; comparison
+`environment-physical-120-original-comparison-d4e5c34d2-v2-20261031.json`). **Failure (hosted only):** `i686-unknown-linux-gnu`, normal and `EECH_ORIGINAL_STACK_ATTRIBUTES=1`, GitHub run
+41194708801: the matrix assertion at `env.rs:776` after the first `NeedDraw` step, seed x87 rounding 0 / SSE rounding 0 / sticky 0 / status `0x2700`: the caller's x87 status reads `0x2500`
+(C1 cleared; control, tag and MXCSR equal; world 249 passed, 1 failed). Hosted x86_64, cross-built Windows and actual native Windows pass. The independent source review of `d4e5c34d2` closed
+the four earlier findings with no new source finding (SHA-256 `4ffc19d7...6d506`); this runtime bug is new and needs its own new-delta review.
+
+**Cause, confirmed by measurement (Root's private isolation probe, `environment-i686-c-abi-fp-isolation-d4-20261031/`).** The probe links the unmodified frozen kernel and seeds the complete x87
+control/status/tag words and MXCSR; on 32-bit it exits 1 (24 cases; every run A, a do-nothing call with the same prototype, exact; 16 real-kernel runs differ in the x87 status; 0 setup failures),
+on 64-bit it exits 0. The 32-bit disassembly shows the cause precisely: `env_ref_step` took the lightning draw as a **by-value `double`**, and the 32-bit callee homes that parameter in its
+prologue -- `+0x34f5 fld qword [esp+0x1ac]`, `+0x34fc fstp qword [esp+0x30]` -- and calls `fp_save` only at `+0x357e`. The x87 load clears C1 **before** the guard captures the caller's state, so
+the guard saves and faithfully restores an already-changed status. The output and field copies after the restore are integer `MOV`/`REP MOVS` and are not the cause; the Rust glue is not the cause.
+
+**Correction (finite).** `env_ref_step` now takes `const double *draw` (`env_ref.h`, `env_ref.c`) and the wrapper assigns an uninitialised local `double draw_value` **only after
+`fp_save`/`fp_enter`** (a NULL address with `have_draw` set is a refusal); `step_impl` and its arithmetic are unchanged. Rust (`env.rs`) declares the pointer and `Field::step` builds the draw's
+bits before the call with an integer move (`f64::to_bits`) and passes the address of that `u64` as `*const f64`: the same bits, signed zero and every value preserved. This is the private
+reference-host backend's ABI only; the campaign request/reply structs, the Lua numeric wire and the Core draw sites are untouched. The other entries (weather, wind, gust, which take float
+parameters by value) are not changed: their matrix operations passed this same seed. The matrix (96 conditions, every C1 assertion, i686 included) is unchanged and unmasked. A private probe v2
+(`environment-i686-c-abi-fp-probe-v2-20261031.c`, SHA-256 `8b0a5a56...38092`, with build notes) differs from the first only in this ABI, so Root can re-run the same matrix on the corrected
+kernel and retain the assembly: no x87 instruction may precede `fp_save` in `env_ref_step`. No generic DLL floating-point claim; source only until Root's execution.
+
 ## Remaining coupling and open gates (finite)
 
 * The lightning strike and sound entity creation, the sound/terrain-scratch bridge and the time-of-day input stay in Core (explicitly open within Task 51/D3).

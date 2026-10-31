@@ -1,0 +1,81 @@
+{
+  "source": "d4e5c34d2b85e5ee6e9b98e2edd9b00e3c2505c4",
+  "original": "99352e331527e8aafb2961949536217eab7a8ecf",
+  "when_utc": "2026-10-31T11:13:22.463161+00:00",
+  "whole_old_mode_reports": [
+    {
+      "mode": "control",
+      "all_native_prepost0": true,
+      "payloads": 46,
+      "original_lines": 10849,
+      "candidate_lines": 10850,
+      "additional_validation_metadata_rows": 1,
+      "all_original_raw_lines_including_endings_equal": true,
+      "first_difference_line": null,
+      "selected_original_rows": 10830,
+      "selected_candidate_rows": 10830,
+      "selected_raw_rows_including_endings_equal": true,
+      "original_sha256": "aeadff94a52953950c8736545e66756ed7c58b17028746c6a74449f343ae7b2d",
+      "candidate_sha256": "c4b35e155cf17ea95deabc118471d495159265740da6f4d43282dc7ecae92630"
+    },
+    {
+      "mode": "probe",
+      "all_native_prepost0": true,
+      "payloads": 46,
+      "original_lines": 11513,
+      "candidate_lines": 11514,
+      "additional_validation_metadata_rows": 1,
+      "all_original_raw_lines_including_endings_equal": true,
+      "first_difference_line": null,
+      "selected_original_rows": 10850,
+      "selected_candidate_rows": 10850,
+      "selected_raw_rows_including_endings_equal": true,
+      "original_sha256": "af638e8f6980078687aead46879527d6a6e0d4d64f4bb823931ec42ecda12f55",
+      "candidate_sha256": "d5674207463bd5a17e60040a06d10e32d14308c142052be7ccda89d2ead6c73e"
+    }
+  ],
+  "previous_failed_selector_receipt": "environment-physical-120-original-comparison-d4e5c34d2-20261031.json",
+  "selector_correction": "V1 wrongly selected probe-only before/after snapshots/campaign rows and mode-dependent final run row. A later unpersisted draft also wrongly equated complete: that field denotes probe coverage, not campaign duration. Originals perMODE alreadyexact; no raw output edited. V2 explicitly compares commonretail/campaigninitial/end RAW includingendings and raw clock/frame values, keeps mode-specific coverage metadata separate.",
+  "common_raw_rows_per_mode": 10829,
+  "common_raw_rows_including_endings_equal": true,
+  "raw_run_rows_identical": false,
+  "run_rows": [
+    {
+      "cases_available": 164,
+      "complete": false,
+      "elapsed_seconds": 119.99835968017578,
+      "event": "run",
+      "frames": 1200,
+      "probe_state": "not_requested",
+      "probes_requested": 0,
+      "probes_run": 0,
+      "unsupported_items": 6
+    },
+    {
+      "cases_available": 164,
+      "complete": true,
+      "elapsed_seconds": 119.99835968017578,
+      "event": "run",
+      "frames": 1200,
+      "probe_state": "ran",
+      "probes_requested": 512,
+      "probes_run": 164,
+      "unsupported_items": 6
+    }
+  ],
+  "run_clock_and_frames_equal": true,
+  "complete_flag_disposition": "Preservedoriginalcoverageflag: control false withprobes0/not_requested, probe truewith164of164cases. Not a native failure or permission to relabelcoverage.",
+  "actual_frame_count": 1200,
+  "actual_elapsed_seconds": 119.99835968017578,
+  "probe_noninterference": {
+    "campaign_after": "930598469",
+    "campaign_before": "930598469",
+    "campaign_equal": true,
+    "event": "probe_noninterference",
+    "probes_run": 164,
+    "retail_after": "45c70c402a7972d4",
+    "retail_before": "45c70c402a7972d4",
+    "retail_equal": true
+  },
+  "scope": "Nominal120s/config100ms1200frames bounded observedenvironmentstate/campaigndigests/probe noninterference. Native/controller/input exits0; not all-state/Tacview/shippingacceptance. One added validationmetadata row percase; all original mode-specific rawlines EXACT."
+}

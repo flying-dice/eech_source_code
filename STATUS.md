@@ -1,3 +1,18 @@
+# D3 checkpoint — d4e5c34d2: C-ABI prologue cause confirmed on i686; draw passed by address (31 October 2026)
+
+EEDCS-51 / PR111 from clean pushed `d4e5c34d2`. The independent review of `d4e5c34d2` closed all four earlier findings with no new source finding (SHA-256 `4ffc19d7...6d506`). Actual at d4 (Root's):
+Windows fixture 0; real Windows engine 77, dc 21, world 250 all exit 0 (full matrix and C consumer); Linux default, fixture and both strict Clippy 0; formatting 0; three retail 164-case probes
+exact against `05b8caf82` (704 original raw lines preserved); two 120 s cases 0 with every original mode-specific raw line exact except the one validation-metadata line, 1200 frames /
+119.99835968017578 s exact (`Run.complete` there is probe coverage, not campaign completion; the first selector failed and is retained as v1). ONE hosted failure: i686 (both stack variants),
+`env.rs:776`, the first `NeedDraw` step with seed status `0x2700` reads `0x2500` (C1 cleared). CONFIRMED by Root's private probe against the unmodified kernel (32-bit exit 1, 16 real calls
+differ, every do-nothing control exact; 64-bit exit 0) and its disassembly: `env_ref_step`'s by-value `double draw` is homed by the 32-bit callee (`fld qword [esp+0x1ac]` / `fstp qword
+[esp+0x30]` at +0x34f5/+0x34fc) before `fp_save` (+0x357e), so C1 is cleared before the guard captures the caller. Not Rust glue; the post-restore copies are integer.
+NEW SOURCE: UNBUILT, UNRUN, UNREVIEWED: `env_ref_step` takes `const double *draw`, read only inside the guard (NULL with have_draw refused); Rust passes the draw's bits by address (`f64::to_bits`
+built before the call). Private backend ABI only (no campaign struct, Lua wire or Core draw site changes); step_impl, arithmetic, the unmasked 96-condition matrix and i686 coverage unchanged; no
+other entry widened; no generic DLL FP claim. Private probe v2 `environment-i686-c-abi-fp-probe-v2-20261031.c` (SHA-256 `8b0a5a56...38092`) differs from v1 only in this ABI. This confirmed runtime
+bug needs a new-delta review and Root's actual runs. Whole D3 remains required (physical effects, sound/terrain-scratch, time, loaders, spatial, model); campaign policy stays Core; D4/D5
+not started; the wind-authority partial stays external and paused; `weather_draw.w0` remains a declared diagnostic difference.
+
 # D3 checkpoint — combined review of 2afd1b4c1: four residuals fixed in source (31 October 2026)
 
 EEDCS-51 / PR111 from clean pushed `2afd1b4c1`. The same sole Sonnet5.5High lane, redirected

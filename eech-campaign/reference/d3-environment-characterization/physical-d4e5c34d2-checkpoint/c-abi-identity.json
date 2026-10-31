@@ -1,0 +1,21 @@
+{
+  "source": "d4e5c34d2b85e5ee6e9b98e2edd9b00e3c2505c4",
+  "toolchain_image": "sha256:f5e72715222d08582a42c0b0d6159380074ff9a9e80334360e67f1f2af22923d",
+  "base_image": "sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51",
+  "gcc": "Debian12.2.0-14+deb12u1, gcc-multilib4:12.2.0-3, libc6-dev-i3862.36-9+deb12u14",
+  "toolchain_build_actual_exit": 0,
+  "scope": "Private finite C ABI isolation, no change to frozen kernel/shipping/compilerflags/baselines. This compiler is measured locally; exact hosted compiler identity not claimed. Native resultpending.",
+  "files": [
+    {
+      "name": "environment-i686-c-abi-fp-probe-20261031.c",
+      "sha256": "bd6b0af314a1649dba97b86b8f131cbcf2331ca01668a918cf7ec1f1610de02c",
+      "bytes": 20965
+    },
+    {
+      "name": "environment-i686-c-abi-fp-probe-20261031-build-notes.txt",
+      "sha256": "806804b1833f3c47a2a04f794cd02d982c05dcfd07298ca84be64e9dfdb3bf9f",
+      "bytes": 11294
+    }
+  ],
+  "when_utc": "2026-10-31T11:10:10.456255+00:00"
+}

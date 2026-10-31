@@ -1310,12 +1310,13 @@ int env_ref_gust (float phase, float *modulation, char *error, size_t error_size
 	return result;
 }
 
-int env_ref_step (env_ref *field, const float *in_f, const int *in_i, double draw, int *out_i, float *out_f, char *error, size_t error_size)
+int env_ref_step (env_ref *field, const float *in_f, const int *in_i, const double *draw, int *out_i, float *out_f, char *error, size_t error_size)
 {
 	env_fp_state saved;
 	env_ref work;
 	int staged_i[2];
 	float staged_f[4];
+	double draw_value;
 	int result;
 
 	fp_save (&saved);
@@ -1330,8 +1331,18 @@ int env_ref_step (env_ref *field, const float *in_f, const int *in_i, double dra
 
 	memcpy (&work, field, sizeof (work));
 
-	/* step_impl zeroes the staged results itself, first thing */
-	result = step_impl (&work, in_f, in_i, draw, staged_i, staged_f, error, error_size);
+	/* The draw is read HERE, inside the guard (never as a by-value parameter, which a 32-bit callee homes through the x87 stack before fp_save), and only when it is given. */
+	if ((in_i[4] != 0) && (draw == NULL))
+	{
+		result = fail (error, error_size, "the lightning draw was announced (have_draw) but no address for it was given");
+	}
+	else
+	{
+		draw_value = (draw != NULL) ? *draw : 0.0;
+
+		/* step_impl zeroes the staged results itself, first thing */
+		result = step_impl (&work, in_f, in_i, draw_value, staged_i, staged_f, error, error_size);
+	}
 
 	ENV_FP_SETTLE (work);
 	ENV_FP_SETTLE (staged_i);

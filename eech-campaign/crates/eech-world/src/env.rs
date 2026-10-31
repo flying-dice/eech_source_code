@@ -105,7 +105,7 @@ extern "C" {
         field: *mut EnvRef,
         in_f: *const f32,
         in_i: *const i32,
-        draw: f64,
+        draw: *const f64,
         out_i: *mut i32,
         out_f: *mut f32,
         error: *mut c_char,
@@ -312,13 +312,16 @@ impl Field {
         ];
         let mut out_i = [0i32; 2];
         let mut out_f = [0.0f32; 4];
-        // SAFETY: the arrays have the lengths the kernel reads and writes.
+        // The draw is passed by ADDRESS, built before the call from its bits (an integer move, no floating-point instruction in the glue): a by-value f64 is homed through the x87 stack by a
+        // 32-bit callee before its guard has saved the caller's state (the actual disassembly of d4e5c34d2). The C side reads it only inside its guard, and only when have_draw is set.
+        let draw_bits: u64 = input.draw.map_or(0, f64::to_bits);
+        // SAFETY: the arrays have the lengths the kernel reads and writes; `draw_bits` is a readable 8-byte value, the bits of an f64, alive for the call.
         let status = unsafe {
             env_ref_step(
                 self.raw,
                 input.f.as_ptr(),
                 in_i.as_ptr(),
-                input.draw.unwrap_or(0.0),
+                (&draw_bits as *const u64).cast::<f64>(),
                 out_i.as_mut_ptr(),
                 out_f.as_mut_ptr(),
                 error.as_mut_ptr().cast(),

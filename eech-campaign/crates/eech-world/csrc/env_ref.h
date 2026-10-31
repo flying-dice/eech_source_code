@@ -49,9 +49,11 @@ int env_ref_gust (float phase, float *modulation, char *error, size_t error_size
 /* The physical update of one session update.
    in_f  = { delta, camera x, y, z, map minimum x, maximum x, minimum z, maximum z, middle x, middle z }
    in_i  = { winter, server, in_cockpit, have_camera, have_draw }
-   draw  = the one draw of the lightning timer (used only when have_draw)
+   draw  = the ADDRESS of the one draw of the lightning timer (a readable double; read only when have_draw, and only inside the entry's floating-point guard).  It is a pointer and
+           not a double by value on purpose: a 32-bit callee homes a by-value double through the x87 stack in its prologue, BEFORE the guard has saved the caller's state, which clears
+           condition code C1 of the caller (the actual disassembly of the frozen d4e5c34d2 entry: fld qword [esp+..]; fstp qword [esp+..] before fp_save).  It may be NULL when no draw is given.
    out_i = { need_draw, expired }, out_f = { strike x, y, z, new timer }
    With need_draw the field is unchanged and out_f[3] is the timer after the decrement. */
-int env_ref_step (env_ref *field, const float *in_f, const int *in_i, double draw, int *out_i, float *out_f, char *error, size_t error_size);
+int env_ref_step (env_ref *field, const float *in_f, const int *in_i, const double *draw, int *out_i, float *out_f, char *error, size_t error_size);
 
 #endif
