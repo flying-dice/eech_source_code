@@ -1,3 +1,35 @@
+# D3 checkpoint — ground shipping live; original environment controls exact (31 October 2026)
+
+Ground Task48 / PR108 retains productionaafb21775 and focused test recoverye107.
+The original fullshipping tool72359/runner20800 and four campaign processes remain
+live at their original creation identities; no restart or input/binary change.
+The latest retained four nonempty prefixes still equal accepted bytes (proof
+R:/d3-evidence/ground-aafb-live-prefixes-third-20261031.json), PARTIALONLY.
+Actual40/full8COMPLETE comparisons, post-inputs, final new-evidence review/currentCI
+and normal delivery remain gates. All8publication checks at5b were green; this
+metadata checkpoint needs its own hosted check completion. Production inputs unchanged.
+
+Task51 / PR111 is pushed at76533dd3a. Original observer and unhooked Windows builds
+at2804 complete0, each46payloads verified; default/observer strictClippy and12guards0.
+New765observer Windows build0, Linux13guards/fmt/default+observer strictClippy0.
+All three original unhooked120s controls complete0/prepost manifests0: fixed100ms
+Lebanon and variable100,250,50ms Lebanon/Georgia. Complete fixed control preserves
+10827original99 snapshot rows, two campaign endpoints and the run row: all10830
+selected raw lines INCLUDING ENDINGS byte identical. Metadata is separately
+classified; this driver generates no Tacview and this is not shipping acceptance.
+Safe evidence is committed on Task51 branch; raw inputs/coordinates stay private.
+
+The single independent reviewer closes the enum/seed timing source corrections,
+but one residual trace-coherence P2 remains: impossible server lightning/client
+and rain/tag positive forms and observable phase-order checks. The same sole
+Sonnet5.5High context is correcting Lua/tests/docs (tool45237/PID16356 born02:21UTC).
+No environment solver/state/service has moved. The one Opus5.5Medium compact plan
+completed0 as read-only advice; it is unaccepted and cannot narrow requiredD3scope.
+Accepted integrationb657 was freshly fetched and remains current. Task47 Done;
+Task48/49/50/51 and wholeD3 remain open. Required physical spatial/model/loaders,
+environment and time services stayD3. Campaign geography/routes/timers/scheduling/
+policy/consequences stayCore. D4/D5 not started; baselines and tolerances preserved.
+
 # D3 checkpoint — focused ground gates closed; full shipping live (31 October 2026)
 
 Production aafb21775 and test-only recovery e1076ece3 have closed focused gates.
