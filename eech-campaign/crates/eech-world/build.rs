@@ -104,27 +104,16 @@ fn rotor_control(opt: &str) {
     let tool = build.get_compiler();
     let mut problems: Vec<String> = Vec::new();
     let one_line = |text: &str| text.replace('\r', "").replace('\n', " | ");
-    // a command's result: whether it exited successfully, and its exit status and output kept as text
-    let run = |command: &mut Command| match command.output() {
-        Ok(output) => (
-            output.status.success(),
-            format!(
-                "exit {}: {}{}",
-                output.status,
-                String::from_utf8_lossy(&output.stdout),
-                String::from_utf8_lossy(&output.stderr)
-            ),
-        ),
-        Err(error) => (false, format!("could not run: {error}")),
-    };
-    let (version_ok, version) = run(Command::new(tool.path()).arg("--version"));
-    if !version_ok || version.trim().len() < 12 {
-        problems.push(format!("the compiler version was not read: {}", one_line(&version)));
+    ran_selfcheck();
+    let version = Ran::of(Command::new(tool.path()).arg("--version"));
+    if let Some(problem) = version.identity_problem("the compiler version", 12) {
+        problems.push(problem);
     }
-    let (machine_ok, machine) = run(Command::new(tool.path()).arg("-dumpmachine"));
-    if !machine_ok || machine.trim().len() < 8 {
-        problems.push(format!("the compiler machine was not read: {}", one_line(&machine)));
+    let machine = Ran::of(Command::new(tool.path()).arg("-dumpmachine"));
+    if let Some(problem) = machine.identity_problem("the compiler machine", 8) {
+        problems.push(problem);
     }
+    let (version, machine) = (version.record(), machine.record());
     let args: Vec<String> = tool.args().iter().map(|arg| arg.to_string_lossy().into_owned()).collect();
     if args.is_empty() {
         problems.push("the compiler command has no arguments".to_string());
@@ -166,7 +155,8 @@ fn rotor_control(opt: &str) {
         let target = out_dir.join(format!("{}.s", source.replace('/', "_")));
         let mut command = tool.to_command();
         command.arg("-S").arg("-g0").arg("-o").arg(&target).arg(source);
-        let (ok, output) = run(&mut command);
+        let ran = Ran::of(&mut command);
+        let (ok, output) = (ran.success, ran.record());
         text.push_str(&format!(
             "==== {source}: assembly of the unmodified source, compiled with -S -g0 added to the command above ({})\n",
             one_line(output.trim())
@@ -210,6 +200,91 @@ fn rotor_control(opt: &str) {
     if let Err(error) = std::fs::write(&path, text) {
         panic!("the rotor control assembly record {} could not be written: {error}", path.display());
     }
+}
+
+/// One command's result with its exit status, standard output and standard error kept apart (a command that could not be run has no output and says so in its status).
+struct Ran {
+    success: bool,
+    status: String,
+    stdout: String,
+    stderr: String,
+}
+
+impl Ran {
+    fn of(command: &mut std::process::Command) -> Ran {
+        match command.output() {
+            Ok(output) => Ran {
+                success: output.status.success(),
+                status: format!("exit {}", output.status),
+                stdout: String::from_utf8_lossy(&output.stdout).into_owned(),
+                stderr: String::from_utf8_lossy(&output.stderr).into_owned(),
+            },
+            Err(error) => Ran {
+                success: false,
+                status: format!("could not run: {error}"),
+                stdout: String::new(),
+                stderr: String::new(),
+            },
+        }
+    }
+
+    /// The record kept: the actual status and the actual output.
+    fn record(&self) -> String {
+        format!("{}: {}{}", self.status, self.stdout, self.stderr)
+    }
+
+    /// Why this command's output is not an adequate identity (a successful exit AND at least `shortest` characters of trimmed standard output, judged before any status text is added), or None.
+    fn identity_problem(&self, what: &str, shortest: usize) -> Option<String> {
+        let text = self.stdout.trim();
+        if !self.success {
+            Some(format!(
+                "{what} was not read (the command failed): {}",
+                self.record().replace('\r', "").replace('\n', " | ")
+            ))
+        } else if text.len() < shortest {
+            Some(format!(
+                "{what} was not read (the command succeeded but its output has {} characters, fewer than {shortest}): {}",
+                text.len(),
+                self.record().replace('\r', "").replace('\n', " | ")
+            ))
+        } else {
+            None
+        }
+    }
+}
+
+/// A finite check of the judgement above, made on every build: a zero exit with empty or blank output and a non-zero exit with plenty of text are incomplete, a genuine identity is not. A wrong judgement stops the build.
+fn ran_selfcheck() {
+    let made = |success: bool, stdout: &str| Ran {
+        success,
+        status: if success {
+            "exit exit status: 0".into()
+        } else {
+            "exit exit status: 1".into()
+        },
+        stdout: stdout.to_string(),
+        stderr: String::new(),
+    };
+    assert!(
+        made(true, "").identity_problem("x", 12).is_some(),
+        "an empty successful output was accepted as an identity"
+    );
+    assert!(
+        made(true, " \n\t ").identity_problem("x", 12).is_some(),
+        "a blank successful output was accepted as an identity"
+    );
+    assert!(
+        made(false, "gcc (Ubuntu 12.4.0-2ubuntu1~24.04.1) 12.4.0").identity_problem("x", 12).is_some(),
+        "a failed command with output was accepted as an identity"
+    );
+    assert!(
+        made(true, "gcc (Ubuntu 12.4.0-2ubuntu1~24.04.1) 12.4.0\n").identity_problem("x", 12).is_none(),
+        "a genuine identity was refused"
+    );
+    assert!(
+        made(true, "x86_64-w64-mingw32\n").identity_problem("x", 8).is_none(),
+        "a genuine machine was refused"
+    );
 }
 
 /// The text of one label of a GNU assembly listing, from the label to its end directive, with the data of the `.LC` constants it names.
@@ -278,7 +353,7 @@ fn extract_symbols(assembly: &str, name: &str) -> (String, bool) {
         );
     }
     let mut text = String::new();
-    let mut shown: Vec<&str> = Vec::new();
+    let mut shown: Vec<String> = Vec::new();
     let mut external: Vec<String> = Vec::new();
     for label in &family {
         let body = extract_body(&lines, label, if *label == name { "function" } else { "clone of the function" });
@@ -288,8 +363,8 @@ fn extract_symbols(assembly: &str, name: &str) -> (String, bool) {
                 if op.starts_with("call") || op.starts_with("jmp") {
                     let target = target.trim_start_matches('*').split("@PLT").next().unwrap_or(target);
                     if labels.contains(&target) && !family.contains(&target) {
-                        if !shown.contains(&target) {
-                            shown.push(target);
+                        if !shown.iter().any(|known| known == target) {
+                            shown.push(target.to_string());
                         }
                     } else if !labels.contains(&target) && !target.starts_with(".L") && !external.iter().any(|known| known == target) {
                         external.push(target.to_string());
@@ -299,7 +374,7 @@ fn extract_symbols(assembly: &str, name: &str) -> (String, bool) {
         }
         text.push_str(&body);
     }
-    for callee in shown {
+    for callee in &shown {
         text.push_str(&extract_body(&lines, callee, "local callee (executed form as emitted)"));
     }
     text.push_str(&format!("---- calls to symbols this translation unit does not define: {external:?}\n"));
