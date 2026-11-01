@@ -6,6 +6,24 @@ The first production route-data move is prepared/pushed at `66dc2e8a237a46f92003
 
 Task51 ordinary source78 shipping continues on its original immutable snapshot without restart; fifth check around19:40 UTC finds all four available recording/observation prefixes exact (24,733,777/15,499,264/24,676,439/15,089,664 bytes), PARTIAL only. Actual full40/all8/post-input/final review/current checks/normal delivery remain pending. Ledger117 preserves prior authored HTML and all five epic reports; Jira50comment10937 records the closed original gate and extraction start. Task49/50/51 and wholeD3 remain In Progress; D4/D5 are unstarted. No accepted baseline, tolerance, oracle or flag changed. Historical checkpoint sections below retain their original scope and identities.
 
+# D3 host route boundary: topology guards and cleanup (1 November 2026): SOURCE ONLY; NOT BUILT, NOT RUN
+
+Review `independent-model-host-route-source-actual-def6a9bde-20261101.json` (SHA256 `63027184fff24cd2d2d774aaef1a4d19d089320eff3658b621db3300e041b293`, source `def6a9bdec11e5f8a27451d8057162a34f340693`) found no
+blocking issue in the finite seam's data path but two source findings, both addressed here:
+
+* ENV-HOST-ROUTE-BOUNDARY-1 (P1): a route of finite nodes and in-range endpoints could still overrun the parser's 24-entry start, child or parent tables or leave a loop with nothing changing.
+  `build/patches.rs` H6..H15 and `mb_hostmodel.c` now stop the hosted parser, before the write or the next pass, with `[model-provider:route.starts|links|progress|start|match]`
+  (`docs/m5-route-characterization.md`, "Topology guards"). Valid routes run the unchanged statements in the unchanged order; the original-profile parser, the provider, store, kernel and fixture
+  harness are not touched.
+* ENV-HOST-ROUTE-CLEANUP-1 (P2): H5b removes the `xmax`/`ymax`/`zmax` setup H5 left unused in the hosted parser; `campaign_model_route_probe` is now compiled only under `EECH_MODEL_HOST_FIXTURE`.
+
+Limits: only a static check was made, that each routegen.c host patch finds its expected count against the real source in sequence, including the candidate fixture's R1/R2/R6 afterwards; no staging build, compile,
+test, engine or native run, and the malformed shapes have not been run on any binary. The Root's def6 component evidence (Windows combined build, Linux gates, the 16-entry route FP receipt) was measured
+WITHOUT these guards; it is not evidence of them. For the Root's exercise through the public provider, expected markers: 13 disjoint black edges on 26 nodes give `route.starts` at the 25th start; one black edge to a
+node with 25 green children gives `route.links` (child table); two nodes and one green edge give `route.progress` (primary nodes); a healthy black-then-green route plus a separate red edge gives
+`route.progress` (remaining nodes); an empty route (no node) or one whose starts are none of them on a green line face gives `route.start`. Healthy Georgia 704 and Lebanon 528 must be unchanged and
+must raise none. Task50 and D3 remain In Progress; D4 and D5 are unstarted. After the finite seam is accepted the next work is the common and custom physical-model loader detachment with the required reader dispositions.
+
 # D3 route observer: the host profile no longer emits an unmeasured `route-bounds` row (1 November 2026): SOURCE + FOCUSED HOST-CRATE CHECKS ONLY; ENGINE C NOT BUILT, NOT RUN
 
 Defect (reported by the independent comparison `model-host-route-first-cohort-compare-8b4562edb-20261101.json`, `candidate_observer_truth_gate_closed=false`; reproduced by reading the sources):

@@ -601,6 +601,118 @@ pub const ROUTE_HOST_PATCHES: &[Patch] = &[
         replacement: "\t\t\t{\n\t\t\t\textern void campaign_model_route_position ( int node, vec3d *position ); /* EECH headless (D3) */\n\t\t\t\tcampaign_model_route_position ( count, &waypoint_nodes[count].position );\n\t\t\t}\n",
         count: 1,
     },
+    Patch {
+        file: "aphavoc/source/ai/faction/routegen.c",
+        id: "H5b-route-bounds-setup-removed",
+        why: "H5 takes each node's position from the host, so the bounds scale the parser used to decode a stored short with (xmax, ymax, zmax) has no reader left in the hosted parser: its declaration and computation are removed. The original parser (feature route-original) keeps them",
+        original: "\t\tfloat\n\t\t\txmax,\n\t\t\tymax,\n\t\t\tzmax;\n\n\t\txmax = max ( fabs ( object->bounding_box.xmin ), fabs ( object->bounding_box.xmax ) );\n\t\tymax = max ( fabs ( object->bounding_box.ymin ), fabs ( object->bounding_box.ymax ) );\n\t\tzmax = max ( fabs ( object->bounding_box.zmin ), fabs ( object->bounding_box.zmax ) );\n\n",
+        replacement: "",
+        count: 1,
+    },
+    // H6..H15: the bounded-input guards of the host route boundary (mb_hostmodel.c, "The bounded-input contract of the unchanged route-planning code"). Each ADDS one call (or a
+    // test in a loop condition) at a place where the unchanged parser would write past a table, read a start that is not there, or go round again with nothing changed; every
+    // original statement, its order and its result for a route the parser can take stay as they are, and the original parser (feature route-original) has none of them.
+    Patch {
+        file: "aphavoc/source/ai/faction/routegen.c",
+        id: "H6-route-guards-declared",
+        why: "declares the guard functions of the host route boundary, once, at file scope",
+        original: "int get_number_of_nodes_at_depth ( int tree_depth );\n",
+        replacement: concat!(
+            "/* the topology guards of the host route boundary (mb_hostmodel.c; EECH headless, D3) */\n",
+            "void campaign_model_route_room ( int what, int used, int capacity );\n",
+            "int campaign_model_route_progress ( int phase, int left );\n",
+            "int campaign_model_route_match_pass ( void );\n",
+            "void campaign_model_route_starts ( int starts );\n",
+            "void campaign_model_route_primary_start ( int index, int starts );\n",
+            "\n",
+            "int get_number_of_nodes_at_depth ( int tree_depth );\n"
+        ),
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/ai/faction/routegen.c",
+        id: "H7-route-start-capacity",
+        why: "the 24-entry start table: the write of the next start is refused with a named marker when the table is full (the original has only an ASSERT)",
+        original: "ASSERT ( number_of_waypoint_starting_nodes < MAX_WAYPOINT_STARTS );\n",
+        replacement: "ASSERT ( number_of_waypoint_starting_nodes < MAX_WAYPOINT_STARTS );\n\t\t\tcampaign_model_route_room ( 0, number_of_waypoint_starting_nodes, MAX_WAYPOINT_STARTS );\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/ai/faction/routegen.c",
+        id: "H8-route-link-capacity",
+        why: "the 24-entry child and parent tables of a node: the write of the next link (in the primary-node pass and in the all-node pass) is refused with a named marker when a table is full (the original has no check)",
+        original: "number_of_parents = waypoint_nodes[child].number_of_parents;\n",
+        replacement: concat!(
+            "number_of_parents = waypoint_nodes[child].number_of_parents;\n",
+            "\t\t\t\t\tcampaign_model_route_room ( 1, number_of_children, MAX_WAYPOINT_LINKS );\n",
+            "\t\t\t\t\tcampaign_model_route_room ( 2, number_of_parents, MAX_WAYPOINT_LINKS );\n"
+        ),
+        count: 2,
+    },
+    Patch {
+        file: "aphavoc/source/ai/faction/routegen.c",
+        id: "H9-route-primary-pass-progress",
+        why: "the primary-node pass walks the same line faces over the same nodes each time round: a pass that placed no primary node would be repeated for ever, so it is refused with a named marker",
+        original: "while ( number_of_primary_nodes_left )\n",
+        replacement: "while ( ( number_of_primary_nodes_left ) && ( campaign_model_route_progress ( 1, number_of_primary_nodes_left ) ) )\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/ai/faction/routegen.c",
+        id: "H10-route-remaining-pass-progress",
+        why: "the all-node pass: a pass that placed no node is refused with a named marker instead of repeating for ever (a node no start reaches)",
+        original: "while ( number_of_nodes_left )\n\t{\n\n\t\tsurface_point_refs = object->surface_points;\n",
+        replacement: "while ( ( number_of_nodes_left ) && ( campaign_model_route_progress ( 2, number_of_nodes_left ) ) )\n\t{\n\n\t\tsurface_point_refs = object->surface_points;\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/ai/faction/routegen.c",
+        id: "H11-route-node-index-progress",
+        why: "set_node_indices: a pass that gave no node its index is refused with a named marker instead of repeating for ever (defence in depth: the trees built before it make this unreachable)",
+        original: "while ( number_of_nodes_left )\n\t{\n\t\n\t\tfor ( count = 0; count < number_of_waypoint_nodes; count++ )\n",
+        replacement: "while ( ( number_of_nodes_left ) && ( campaign_model_route_progress ( 3, number_of_nodes_left ) ) )\n\t{\n\t\n\t\tfor ( count = 0; count < number_of_waypoint_nodes; count++ )\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/ai/faction/routegen.c",
+        id: "H12-route-position-pass-progress",
+        why: "the per-depth position table: the search for the node holding the next index at that depth is refused with a named marker when a pass finds none (node indices that are not 0..n-1 at a depth), instead of repeating for ever; each depth is its own phase",
+        original: "while ( number_of_nodes )\n",
+        replacement: "while ( ( number_of_nodes ) && ( campaign_model_route_progress ( 8 + current_depth, number_of_nodes ) ) )\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/ai/faction/routegen.c",
+        id: "H13-route-end-slot-match-passes",
+        why: "the end-slot matching repeats while it swapped anything: swaps that undo each other would repeat for ever, so the passes are bounded and the bound is a named marker",
+        original: "while ( !finished )\n",
+        replacement: "while ( ( !finished ) && ( campaign_model_route_match_pass () ) )\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/ai/faction/routegen.c",
+        id: "H14-route-start-exists",
+        why: "the parser reads waypoint_starting_nodes[0] without asking whether the route has a start; a route with none is refused with a named marker",
+        original: "if ( !waypoint_starting_nodes[0]->primary )\n",
+        replacement: "campaign_model_route_starts ( number_of_waypoint_starting_nodes );\n\n\tif ( !waypoint_starting_nodes[0]->primary )\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/ai/faction/routegen.c",
+        id: "H15-route-primary-start-index",
+        why: "primary_start_index is only assigned when a later start is primary and is then used as an index; it starts at 0 (no later start found) and a route with none is refused with a named marker before the index is used",
+        original: "\t\t\tprimary_start_index;\n",
+        replacement: "\t\t\tprimary_start_index = 0;\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/ai/faction/routegen.c",
+        id: "H15b-route-primary-start-checked",
+        why: "the check of the primary start index, immediately before the swap that uses it",
+        original: "tmp = waypoint_starting_nodes[0];\n",
+        replacement: "campaign_model_route_primary_start ( primary_start_index, number_of_waypoint_starting_nodes );\n\n\t\ttmp = waypoint_starting_nodes[0];\n",
+        count: 1,
+    },
 ];
 
 /// the staged text of `file` with the host-route patches applied (same strict count check as `apply`)

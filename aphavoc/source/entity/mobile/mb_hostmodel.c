@@ -363,7 +363,8 @@ int campaign_model_triangle (int scene, vec3d *points, int depth)
 //   campaign_model_route_position called by the parse for each node: the host's decoded position of the node last loaded.
 //
 // An answer the host cannot give (ABSENT for a route the campaign's hierarchy found, a refusal, a malformed or out-of-domain reply, more nodes or faces than the parser's own
-// tables hold) stops the engine with a named marker; nothing is invented, and nothing falls back to the campaign's arrays.
+// tables hold) stops the engine with a named marker; nothing is invented, and nothing falls back to the campaign's arrays. A route of valid nodes and faces whose SHAPE the parser
+// cannot take (more starts or links than its tables, no start, nodes it can never place, slots it can never settle) stops the same way, from the guards after campaign_model_route_position.
 
 #ifdef EECH_ROUTE_FIXTURE
 #include "eech_route_hooks.h"
@@ -384,6 +385,12 @@ struct route_key
 
 static struct route_key route_keys[ROUTE_KEYS];
 static int route_key_count;
+
+// the route being parsed and the state of the topology guards (campaign_model_route_room, _progress, _match_pass): reset by campaign_model_route_object at every parse
+static const struct route_key *route_current;
+static int route_progress_phase;
+static int route_progress_last;
+static int route_match_passes;
 
 static vec3d route_positions[ROUTE_NODES];
 static int route_loaded_nodes;
@@ -481,8 +488,9 @@ static void ask_route_raw (int operation, int scene, int kind, int cursor, campa
 	}
 }
 
-// TEST-ONLY diagnostic (the model-host-fixture's probe entry): one route node and one route face, as the host answered them, for a scene and kind the campaign's key table
-// does not hold. An absence is reported, not stopped on: the probe asks about any scene.
+#ifdef EECH_MODEL_HOST_FIXTURE
+// TEST-ONLY diagnostic (the model-host-fixture's probe entry, called by csrc/eech_model_host_fixture.c): one route node and one route face, as the host answered them, for a
+// scene and kind the campaign's key table does not hold. An absence is reported, not stopped on: the probe asks about any scene. Absent from every other build.
 int campaign_model_route_probe (int scene, int kind, int cursor, int *node_result, float *node, int *face_result, int *face)
 {
 	campaign_model_reply
@@ -507,6 +515,7 @@ int campaign_model_route_probe (int scene, int kind, int cursor, int *node_resul
 
 	return TRUE;
 }
+#endif
 
 // one step of a route cursor, with the checks every reply must pass: the kind's compiled name is echoed, and the host has not said the route is absent
 static void ask_route (int operation, const struct route_key *key, int cursor, campaign_model_reply *reply, const char *what)
@@ -544,6 +553,12 @@ struct OBJECT_3D *campaign_model_route_object (int handle)
 	}
 
 	key = &route_keys[handle];
+
+	// a new parse: the topology guards below (campaign_model_route_room and the others) count from here
+	route_current = key;
+	route_progress_phase = 0;
+	route_progress_last = 0;
+	route_match_passes = 0;
 
 	require_scene (key->scene, FALSE, "a route question");
 
@@ -671,6 +686,82 @@ void campaign_model_route_position (int node, vec3d *position)
 	}
 
 	*position = route_positions[node];
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------
+// The bounded-input contract of the unchanged route-planning code. routegen.c was written for the routes the original models hold: it indexes a 24-entry start table and 24-entry
+// child and parent tables by whatever shape the route happens to have, it reads the first start without asking whether there is one, and its tree loops end only when every node has
+// been placed. A host can answer a route that is well formed (finite nodes, endpoints in range, colours in domain) and still not one of those shapes. The staged patches
+// H6..H13 (build/patches.rs) call the functions below at the places where the parser would write past a table, read a start that is not there, or go round again with nothing
+// changed. They only test the parser's OWN counters on its OWN statements, at the point the statement is about to be taken: they place no node, solve nothing and change no
+// value of a route the parser could take. A shape it cannot take stops the engine with a named marker before the write or the next pass, so no table is overrun, no loop
+// spins, and nothing is truncated, skipped or invented.
+
+// the longest slot matching the parser may run: far beyond what a route needs (every swap places a node for one slot, so a settling route takes about one pass per slot, and the
+// slots of a route number a handful), so reaching it means the swaps are undoing each other, which the parser would repeat for ever
+#define ROUTE_MATCH_PASSES 4096
+
+// the next write to a table of `capacity` entries would be entry `used`: 0 the start table, 1 the children of a node, 2 the parents of a node
+void campaign_model_route_room (int what, int used, int capacity)
+{
+	if ((used < 0) || (used >= capacity))
+	{
+		debug_fatal ("host model: [model-provider:route.%s] the route of scene %d kind %d needs entry %d of the parser's %d-entry %s table", (what == 0) ? "starts" : "links",
+			route_current->scene, route_current->kind, used + 1, capacity, (what == 0) ? "start" : ((what == 1) ? "child" : "parent"));
+	}
+}
+
+// a pass over the line faces has just ended with `left` nodes still to place: the next pass walks the same faces over the same nodes, so unless the count fell it would go round for ever
+int campaign_model_route_progress (int phase, int left)
+{
+	if (phase != route_progress_phase)
+	{
+		route_progress_phase = phase;
+		route_progress_last = left;
+
+		return TRUE;
+	}
+
+	if (left >= route_progress_last)
+	{
+		debug_fatal ("host model: [model-provider:route.progress] a pass over the line faces of scene %d kind %d placed nothing (%s, %d left)", route_current->scene, route_current->kind,
+			(phase == 1) ? "primary nodes" : ((phase == 2) ? "remaining nodes" : ((phase == 3) ? "node indices" : "positions of a depth")), left);
+	}
+
+	route_progress_last = left;
+
+	return TRUE;
+}
+
+// the slot matching is about to take another pass
+int campaign_model_route_match_pass (void)
+{
+	route_match_passes++;
+
+	if (route_match_passes > ROUTE_MATCH_PASSES)
+	{
+		debug_fatal ("host model: [model-provider:route.match] the end-slot matching of scene %d kind %d did not settle in %d passes", route_current->scene, route_current->kind, ROUTE_MATCH_PASSES);
+	}
+
+	return TRUE;
+}
+
+// the parser is about to read its first start node
+void campaign_model_route_starts (int starts)
+{
+	if (starts <= 0)
+	{
+		debug_fatal ("host model: [model-provider:route.start] the route of scene %d kind %d has no start node (a node on exactly one black line face)", route_current->scene, route_current->kind);
+	}
+}
+
+// the parser is about to swap the primary start to the front: `index` is the later start it found primary, 0 when it found none
+void campaign_model_route_primary_start (int index, int starts)
+{
+	if ((index < 1) || (index >= starts))
+	{
+		debug_fatal ("host model: [model-provider:route.start] no start node of the route of scene %d kind %d is on a green line face", route_current->scene, route_current->kind);
+	}
 }
 
 #ifdef EECH_MODEL_HOST_FIXTURE
