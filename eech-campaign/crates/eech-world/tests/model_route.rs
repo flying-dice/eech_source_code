@@ -5,7 +5,10 @@
 //! top-level sub-object's own records before its children), the order and indirection of the line faces, the colour a face carries, and the difference between a true
 //! absence, the end of a cursor, an argument error and a refusal. The node arithmetic is checked only where it needs no formula: scales of exactly 1.0 and 2.0 return the
 //! short coordinates unchanged and doubled. What the retail data answers is the Root's comparison with the retained original route capture, never these tests.
-use eech_world::models::{compiled_scene_name, compiled_subobject_name, old_last, subobject_last, ModelStore, QueryError, RouteFace, RouteNode};
+use eech_world::models::{
+    compiled_scene_name, compiled_subobject_name, old_last, subobject_last, AnimationRef, ModelStore, ObjectFacts, ObjectHeader, QueryError, RouteFace, RouteNode, ROLE_APPROXIMATION,
+    ROLE_COLLISION, ROLE_MAIN, ROLE_SHADOW, ROLE_SUB_OBJECT,
+};
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
@@ -369,6 +372,49 @@ fn an_absence_is_not_an_end_not_an_argument_error_and_not_a_refusal() {
     assert!(matches!(store.route_node(1, subobject_last() as i64, 0), Err(QueryError::BadKind(_))));
     assert!(matches!(store.route_face(1, landing, -1), Err(QueryError::BadDepth(-1))));
     assert!(matches!(store.route_face(1, landing, i64::from(i32::MAX) + 1), Err(QueryError::BadDepth(_))));
+}
+
+fn facts(scale: f32) -> ObjectFacts {
+    let bounds = [0.0, scale, -scale, 0.0, -scale, scale];
+    ObjectFacts {
+        counts: [4, 3, 2, 0, 0, 0],
+        radius: 1.0f32.to_bits(),
+        bounding_box: bounds.map(f32::to_bits),
+        bounding_box2: bounds.map(f32::to_bits),
+    }
+}
+
+#[test]
+fn an_objects_header_facts_are_the_files_true_values_by_the_role_it_has_in_the_scene() {
+    let (_root, store) = standard();
+    // scene 1: main object 1 (scale 1.0), collision object 1, no approximation, no shadow object; sub-object array [object 3, object 1, object 2 (a child of the first)]
+    assert_eq!(store.object_header(1, ROLE_MAIN, 0).unwrap(), ObjectHeader::Found(facts(32767.0)));
+    assert_eq!(store.object_header(1, ROLE_COLLISION, 0).unwrap(), ObjectHeader::Found(facts(32767.0)));
+    assert_eq!(store.object_header(1, ROLE_SUB_OBJECT, 0).unwrap(), ObjectHeader::Found(facts(32767.0)));
+    assert_eq!(store.object_header(1, ROLE_SUB_OBJECT, 1).unwrap(), ObjectHeader::Found(facts(32767.0)));
+    assert_eq!(store.object_header(1, ROLE_SUB_OBJECT, 2).unwrap(), ObjectHeader::Found(facts(65534.0)));
+    // the file names no shadow object (0): no object in that role
+    assert_eq!(store.object_header(1, ROLE_SHADOW, 0).unwrap(), ObjectHeader::Absent);
+    // a cursor past the scene's own arrays is a refusal, not an absence and not a zero object
+    assert_eq!(store.object_header(1, ROLE_APPROXIMATION, 0).unwrap(), ObjectHeader::Refused("approximation_outside"));
+    assert_eq!(store.object_header(1, ROLE_SUB_OBJECT, 3).unwrap(), ObjectHeader::Refused("sub_object_outside"));
+    // a scene the files never described has no object in any role
+    assert_eq!(store.object_header(3, ROLE_MAIN, 0).unwrap(), ObjectHeader::Absent);
+    assert_eq!(store.object_header(3, ROLE_COLLISION, 0).unwrap(), ObjectHeader::Absent);
+    // arguments the campaign could never produce
+    assert!(matches!(store.object_header(0, ROLE_MAIN, 0), Err(QueryError::BadScene(0))));
+    assert!(matches!(store.object_header(1, 9, 0), Err(QueryError::BadRole(9))));
+    assert!(matches!(store.object_header(1, ROLE_MAIN, -1), Err(QueryError::BadDepth(-1))));
+}
+
+#[test]
+fn the_object_table_is_the_files_count_and_the_originals_room_and_a_table_scene_has_no_animation_references() {
+    let (_root, store) = standard();
+    assert_eq!(store.object_table(), (3, 2000));
+    // a scene of the binary database keeps its animation list in its own record: the host has none to give; a scene the files never described neither
+    assert_eq!(store.animation_ref(1, 0).unwrap(), AnimationRef::Absent);
+    assert_eq!(store.animation_ref(3, 0).unwrap(), AnimationRef::Absent);
+    assert!(matches!(store.animation_ref(1, -1), Err(QueryError::BadDepth(-1))));
 }
 
 #[test]

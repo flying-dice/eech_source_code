@@ -291,6 +291,28 @@ impl<'a> Reader<'a> {
 
     /// `get_nul_string`: the bytes up to a NUL, upper-cased; EOF before the NUL, or a string that fills `limit`, is refused (the original leaves the rest of such a string
     /// unread and misparses everything after it)
+    /// `get_nul_string`'s FALSE: the file ends before the string does (or before it starts). None then; a string that fills its buffer is the same refusal as `nul_string`.
+    fn nul_string_or_end(&mut self, limit: usize) -> Result<Option<Vec<u8>>, ModelError> {
+        let mut out = Vec::new();
+        loop {
+            if self.remaining() == 0 {
+                return Ok(None);
+            }
+            let b = self.take(1)?[0];
+            if b == 0 {
+                return Ok(Some(out));
+            }
+            out.push(b.to_ascii_uppercase());
+            if out.len() >= limit {
+                return fail(
+                    ErrorKind::Incompatible,
+                    self.file,
+                    format!("a string fills its {limit}-byte buffer at offset {}", self.pos),
+                );
+            }
+        }
+    }
+
     fn nul_string(&mut self, limit: usize) -> Result<Vec<u8>, ModelError> {
         let mut out = Vec::new();
         loop {
@@ -495,16 +517,30 @@ impl<T: Copy> Arena<T> {
     }
 }
 
-/// One surface description as the decoder reads it: the flags word (polygon bit 0, point count in byte 3) and the face count.
+/// One surface description as the decoder reads it: the flags word (polygon bit 0, point count in byte 3) and the face count, and the two texture indices (the animation
+/// facts the scene's texture animation list is built from).
 #[derive(Clone, Copy, Debug, Default)]
 struct Surface {
     flags: u32,
     faces: u16,
     /// the surface's colour word: blue in the low byte, then green, then red (`FACE_SURFACE_DESCRIPTION`)
     colour: u32,
+    /// the surface's texture index as the file holds it (an animation index when `texture_animation`)
+    texture_index: u16,
+    /// the surface's luminosity texture index as the file holds it (an animation index when `luminosity_texture_animation`)
+    luminosity_texture_index: u16,
 }
 
 impl Surface {
+    /// `texture_animation`: bit 9 of the flags word (the 14 bits of the first unsigned short are polygons, detail, smoothed, textured, has_luminosity_texture, additive,
+    /// translucent, luminous, has_specularity, texture_animation, ...)
+    fn texture_animation(&self) -> bool {
+        self.flags & (1 << 9) != 0
+    }
+    /// `luminosity_texture_animation`: the first of the five unsigned-char bit-fields, which the compiler packs straight after the 14 bits of the unsigned short, bit 14
+    fn luminosity_texture_animation(&self) -> bool {
+        self.flags & (1 << 14) != 0
+    }
     fn red(&self) -> u8 {
         (self.colour >> 16) as u8
     }
@@ -548,6 +584,10 @@ struct Object {
     number_of_points: u16,
     number_of_faces: u16,
     number_of_surfaces: u16,
+    /// the header counts the campaign's compatibility rows mirror (unsigned shorts in the original)
+    number_of_point_normals: u16,
+    number_of_lighting_normals: u16,
+    culling_normals_offset: u16,
     radius: f32,
     bounding_box: [f32; 6],
     bounding_box2: [f32; 6],
@@ -569,6 +609,9 @@ impl Object {
             number_of_points: 0,
             number_of_faces: 0,
             number_of_surfaces: 0,
+            number_of_point_normals: 0,
+            number_of_lighting_normals: 0,
+            culling_normals_offset: 0,
             radius: 0.0,
             bounding_box: [0.0; 6],
             bounding_box2: [0.0; 6],
@@ -621,6 +664,13 @@ struct Scene {
     bounds: [f32; 12],
     radius: f32,
     sub: SubObjects,
+    /// the object each approximation shows, in the file's order (0 for none)
+    approximations: Vec<i32>,
+    /// the shadow polygon object (0 for none)
+    shadow: i32,
+    /// For a scene an `.EES` replaced: the animated-surface references of its objects in the order `add_animation_object` visits them (main object, approximations, then every
+    /// sub-object in the scene's array order), each a legacy animation index or a logical animation name. A scene of `3dobjdb.bin` has none: its list is in its own record.
+    animation_refs: Vec<AnimationRef>,
 }
 
 impl Scene {
@@ -633,8 +683,22 @@ impl Scene {
             bounds: [0.0; 12],
             radius: 0.0,
             sub: SubObjects::default(),
+            approximations: Vec::new(),
+            shadow: 0,
+            animation_refs: Vec::new(),
         }
     }
+}
+
+/// One animated-surface reference of a scene's objects (`AnimationRef` is the host's answer to the animation cursor): the surface's texture index as the file holds it, or,
+/// where an `.EEO` overrides it with a name, the animation's logical NAME (the campaign resolves a name in its own animation table). The end of the references, and the
+/// absence of any list for a scene whose list is its own record, are different answers.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum AnimationRef {
+    Id(i32),
+    Name(String),
+    End,
+    Absent,
 }
 
 /// What the load found, for the report; none of it is a campaign decision.
@@ -676,10 +740,45 @@ pub struct ModelStore {
 // ---------------------------------------------------------------------------------------------------------------------------------
 // the loader
 
+/// The animated-surface references of a scene's objects in the order `add_animation_object` (modules/3d/3dobjdb.c) visits them: for each object in `visited` (the main object,
+/// each approximation, then every sub-object of the scene's array), each of its surfaces in order, the texture reference when the surface is a texture animation and then the
+/// luminosity texture reference when it is a luminosity texture animation. A reference is the file's index, or, where the object's `.EEO` overrides that texture with a name,
+/// the name (the original resolves it to the animation's index at load). The campaign applies its own `add_animation` (deduplication, order) to these in turn; nothing is
+/// deduplicated here. An object the loader holds no surfaces for (0, or one without) adds none.
+fn animation_refs_of(visited: &[i32], surfaces: &HashMap<usize, Vec<Surface>>, names: &HashMap<usize, Vec<(Vec<u8>, Vec<u8>)>>) -> Vec<AnimationRef> {
+    let mut refs = Vec::new();
+    for &object in visited {
+        let Ok(object) = usize::try_from(object) else { continue };
+        let Some(list) = surfaces.get(&object) else { continue };
+        let overrides = names.get(&object);
+        for (at, surface) in list.iter().enumerate() {
+            let pair = overrides.and_then(|n| n.get(at));
+            if surface.texture_animation() {
+                match pair.map(|p| &p.0).filter(|name| !name.is_empty()) {
+                    Some(name) => refs.push(AnimationRef::Name(String::from_utf8_lossy(name).into_owned())),
+                    None => refs.push(AnimationRef::Id(i32::from(surface.texture_index))),
+                }
+            }
+            if surface.luminosity_texture_animation() {
+                match pair.map(|p| &p.1).filter(|name| !name.is_empty()) {
+                    Some(name) => refs.push(AnimationRef::Name(String::from_utf8_lossy(name).into_owned())),
+                    None => refs.push(AnimationRef::Id(i32::from(surface.luminosity_texture_index))),
+                }
+            }
+        }
+    }
+    refs
+}
+
+/// One `.EEO` as `read_eeo` returns it: the object, its surfaces and its texture-name overrides (two names per surface, in surface order).
+type EeoObject = (Object, Vec<Surface>, Vec<(Vec<u8>, Vec<u8>)>);
+
 struct Loader {
     objects: Vec<Object>,
     object_bounds: Vec<f32>,
     own_surfaces: HashMap<usize, Vec<Surface>>,
+    /// each `.EEO` object's texture-name overrides, by object, in surface order
+    eeo_names: HashMap<usize, Vec<(Vec<u8>, Vec<u8>)>>,
     scenes: Vec<Scene>,
     points: Arena<[i16; 3]>,
     faces: Arena<u8>,
@@ -779,8 +878,8 @@ impl Loader {
             let number_of_surfaces = r.i32()?;
             let number_of_faces = r.i32()?;
             let number_of_point_normals = r.i32()?;
-            let _number_of_lighting_normals = r.i32()?;
-            let _culling_normals_offset = r.i32()?;
+            let number_of_lighting_normals = r.i32()?;
+            let culling_normals_offset = r.i32()?;
             // the object's counts are unsigned shorts in the original: a larger file value is truncated there, and the cursors below advance by the truncated value
             for value in [number_of_points, number_of_surfaces, number_of_faces, number_of_point_normals] {
                 if !(0..=0xffff).contains(&value) {
@@ -802,8 +901,10 @@ impl Loader {
             let mut surfaces = Vec::new();
             for _ in 0..number_of_surfaces {
                 let flags = r.u32()?;
-                let _texture_index = r.take(2)?;
-                let _luminosity_texture_index = r.take(2)?;
+                let texture = r.take(2)?;
+                let texture_index = u16::from_le_bytes([texture[0], texture[1]]);
+                let luminosity = r.take(2)?;
+                let luminosity_texture_index = u16::from_le_bytes([luminosity[0], luminosity[1]]);
                 // fread (&number_of_faces, sizeof (int)) into the 16-bit field: the low half stays
                 let faces_word = r.u32()?;
                 let colour = r.u32()?;
@@ -812,6 +913,8 @@ impl Loader {
                     flags,
                     faces: (faces_word & 0xffff) as u16,
                     colour,
+                    texture_index,
+                    luminosity_texture_index,
                 };
                 if surface.polygons() {
                     real_polygons += surface.faces as usize;
@@ -872,6 +975,10 @@ impl Loader {
                     number_of_points,
                     number_of_faces,
                     number_of_surfaces,
+                    // the original assigns the file's ints to unsigned shorts
+                    number_of_point_normals: (number_of_point_normals as u32 & 0xffff) as u16,
+                    number_of_lighting_normals: (number_of_lighting_normals as u32 & 0xffff) as u16,
+                    culling_normals_offset: (culling_normals_offset as u32 & 0xffff) as u16,
                     radius,
                     bounding_box,
                     bounding_box2,
@@ -923,7 +1030,7 @@ impl Loader {
     // ---- 3dobjs EEO objects ----
 
     /// `read_object`. Ok(None): the original returns FALSE before touching the object (unsupported version). The object comes back with its own arrays.
-    fn read_eeo(&mut self, bytes: &[u8], file: &str, source: ObjectSource) -> Result<Option<(Object, Vec<Surface>)>, ModelError> {
+    fn read_eeo(&mut self, bytes: &[u8], file: &str, source: ObjectSource) -> Result<Option<EeoObject>, ModelError> {
         let mut r = Reader::new(file, bytes);
         let version = r.i32()?;
         if !(1..=2).contains(&version) {
@@ -940,7 +1047,6 @@ impl Loader {
         let n_texture_points = r.count("texture points")?;
         let n_surface_point_refs = r.count("surface point references")?;
         let n_surface_point_normals = r.count("surface point normals")?;
-        let _ = n_lighting_normals;
         for (name, value) in [
             ("points", n_points),
             ("faces", n_faces),
@@ -974,7 +1080,15 @@ impl Loader {
                 let flags = u32::from_le_bytes([record[0], record[1], record[2], record[3]]);
                 let faces = u16::from_le_bytes([record[8], record[9]]);
                 let colour = u32::from_le_bytes([record[12], record[13], record[14], record[15]]);
-                surfaces.push(Surface { flags, faces, colour });
+                let texture_index = u16::from_le_bytes([record[4], record[5]]);
+                let luminosity_texture_index = u16::from_le_bytes([record[6], record[7]]);
+                surfaces.push(Surface {
+                    flags,
+                    faces,
+                    colour,
+                    texture_index,
+                    luminosity_texture_index,
+                });
             }
         }
         r.skip(2 * n_face_normals as u64)?;
@@ -985,7 +1099,18 @@ impl Loader {
             Vec::new()
         };
         r.skip(2 * n_surface_point_normals as u64)?;
-        // (the texture-name overrides that follow are not physical and are not read)
+        // The texture-name overrides that follow, two names for each surface in the order `read_object` reads them (upper-cased, as `get_nul_string (.., TRUE)` does): an
+        // empty name leaves the file's index, and the first name the file cannot supply (its end) stops the overrides there, the later surfaces keeping the file's indices.
+        // The names are kept for the animation facts only; a name's texture is the campaign's to register and resolve.
+        let mut names: Vec<(Vec<u8>, Vec<u8>)> = Vec::new();
+        for _ in 0..surfaces.len() {
+            let Some(texture) = r.nul_string_or_end(256)? else { break };
+            let Some(luminosity) = r.nul_string_or_end(256)? else {
+                names.push((texture, Vec::new()));
+                break;
+            };
+            names.push((texture, luminosity));
+        }
 
         let mut invalid = None;
         if faces_raw.iter().any(|&n| n < 3) {
@@ -999,6 +1124,10 @@ impl Loader {
             number_of_points: n_points as u16,
             number_of_faces: n_faces as u16,
             number_of_surfaces: n_surfaces as u16,
+            number_of_point_normals: n_point_normals as u16,
+            // assigned from the int to an unsigned short, as the original does; the offset is not set by `read_object`
+            number_of_lighting_normals: (n_lighting_normals as u32 & 0xffff) as u16,
+            culling_normals_offset: 0,
             radius,
             bounding_box,
             bounding_box2,
@@ -1038,7 +1167,7 @@ impl Loader {
             surfaces_start: 0,
             invalid,
         };
-        Ok(Some((object, surfaces)))
+        Ok(Some((object, surfaces, names)))
     }
 
     // ---- 3dobjdb.bin / .EES scenes ----
@@ -1096,11 +1225,12 @@ impl Loader {
         };
         let bytes = read_file(&path, &label)?;
         match self.read_eeo(&bytes, &label, ObjectSource::Named)? {
-            Some((object, surfaces)) => {
+            Some((object, surfaces, names)) => {
                 if let Some(why) = object.invalid {
                     return fail(ErrorKind::Incompatible, &label, format!("the original rejects this object: {why}"));
                 }
                 self.own_surfaces.insert(id, surfaces);
+                self.eeo_names.insert(id, names);
                 self.set_object(id, object);
                 self.summary.named_objects += 1;
             }
@@ -1362,27 +1492,21 @@ impl Loader {
                 format!("scene {scene_index}: main object {main_object} is outside the object table"),
             );
         }
+        let mut approximation_objects: Vec<i32> = Vec::new();
         for _ in 0..approximations {
-            match named_ref {
-                Some(named) => {
-                    self.named_object(r, named)?;
-                }
-                None => {
-                    r.i32()?;
-                }
-            }
+            let object = match named_ref {
+                Some(named) => self.named_object(r, named)?,
+                None => r.i32()?,
+            };
+            approximation_objects.push(object);
             r.f32()?;
         }
         Self::skip_schem(r, named_ref)?;
         r.i32()?; // shadow_approximation_index
-        match named_ref {
-            Some(named) => {
-                self.named_object(r, named)?;
-            }
-            None => {
-                r.i32()?;
-            }
-        }
+        let shadow: i32 = match named_ref {
+            Some(named) => self.named_object(r, named)?,
+            None => r.i32()?,
+        };
         r.skip(3 * 4)?; // shadow_polygon_object_scale
         let collision: i32 = match named_ref {
             Some(named) => {
@@ -1480,6 +1604,15 @@ impl Loader {
                 )
             }
         }
+        // an `.EES` scene's texture animation list is built from its objects' animated surfaces (`add_animation_object`): main object, approximations, every sub-object
+        let animation_refs = if named.is_some() {
+            let mut visited = vec![main_object];
+            visited.extend(approximation_objects.iter().copied());
+            visited.extend(sub.nodes.iter().map(|node| node.object));
+            animation_refs_of(&visited, &self.own_surfaces, &self.eeo_names)
+        } else {
+            Vec::new()
+        };
         self.scenes[scene_index] = Scene {
             loaded: true,
             source: if named.is_some() { SceneSource::Ees } else { SceneSource::Table },
@@ -1488,6 +1621,9 @@ impl Loader {
             bounds: out_bounds,
             radius: out_radius,
             sub,
+            approximations: approximation_objects,
+            shadow,
+            animation_refs,
         };
         Ok(scene_index)
     }
@@ -1510,6 +1646,7 @@ impl Loader {
             objects: Vec::new(),
             object_bounds: Vec::new(),
             own_surfaces: HashMap::new(),
+            eeo_names: HashMap::new(),
             scenes: vec![Scene::empty(); scene_last()],
             points: Arena::default(),
             faces: Arena::default(),
@@ -1581,12 +1718,13 @@ impl Loader {
                 }
                 let bytes = read_file(&path, &name)?;
                 match loader.read_eeo(&bytes, &name, ObjectSource::HexOverride)? {
-                    Some((mut object, surfaces)) => {
+                    Some((mut object, surfaces, names)) => {
                         if object.invalid.is_some() {
                             loader.summary.eeo_invalid += 1;
                         }
                         object.source = ObjectSource::HexOverride;
                         loader.own_surfaces.insert(id, surfaces);
+                        loader.eeo_names.insert(id, names);
                         loader.set_object(id, object);
                         loader.summary.eeo_hex_applied += 1;
                     }
@@ -1694,6 +1832,7 @@ pub enum QueryError {
     BadScene(i64),
     BadDepth(i64),
     BadKind(i64),
+    BadRole(i64),
 }
 
 impl fmt::Display for QueryError {
@@ -1702,6 +1841,7 @@ impl fmt::Display for QueryError {
             QueryError::BadScene(scene) => write!(f, "scene {scene} is outside 1 to {}", scene_last() - 1),
             QueryError::BadDepth(depth) => write!(f, "depth {depth} is not a non-negative 32-bit whole number"),
             QueryError::BadKind(kind) => write!(f, "sub-object kind {kind} is outside 1 to {}", subobject_last() - 1),
+            QueryError::BadRole(role) => write!(f, "object role {role} is not one of 0 to 4 (main, approximation, shadow, collision, sub-object)"),
         }
     }
 }
@@ -1744,6 +1884,32 @@ pub enum RouteFace {
         polygons: bool,
     },
     End,
+    Absent,
+    Refused(&'static str),
+}
+
+/// The roles an object plays in a scene, by which the campaign names the object it needs (it never sends the loader's own object number): the scene's main object, its
+/// n-th approximation, its shadow polygon object, its collision object, and its n-th sub-object (n counts the scene's sub-object array as the file lays it out).
+pub const ROLE_MAIN: i64 = 0;
+pub const ROLE_APPROXIMATION: i64 = 1;
+pub const ROLE_SHADOW: i64 = 2;
+pub const ROLE_COLLISION: i64 = 3;
+pub const ROLE_SUB_OBJECT: i64 = 4;
+
+/// The header facts of one object, exactly as the file holds them: the six counts the campaign's compatibility rows mirror (points, faces, surfaces, point normals, lighting
+/// normals, culling normals offset), and the radius and the two bounding boxes (`xmin xmax ymin ymax zmin zmax`) as float bit patterns.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ObjectFacts {
+    pub counts: [i32; 6],
+    pub radius: u32,
+    pub bounding_box: [u32; 6],
+    pub bounding_box2: [u32; 6],
+}
+
+/// The answer to an object-header question: the facts, the absence of an object in that role (the file names none), or a refusal.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ObjectHeader {
+    Found(ObjectFacts),
     Absent,
     Refused(&'static str),
 }
@@ -2055,6 +2221,76 @@ impl ModelStore {
         Ok(RouteFace::End)
     }
 
+    /// The header facts of the object `scene` has in `role` (`cursor` names the approximation or the sub-object). Nothing of the loader's numbering is given: the campaign names
+    /// the object by its place in the scene. A scene the files never described, a role with no object (the file names none) and a cursor past the scene's own arrays are
+    /// different answers.
+    pub fn object_header(&self, scene: i64, role: i64, cursor: i64) -> Result<ObjectHeader, QueryError> {
+        let id = self.check_scene(scene)?;
+        if !(0..=i32::MAX as i64).contains(&cursor) {
+            return Err(QueryError::BadDepth(cursor));
+        }
+        let s = &self.scenes[id];
+        let at = cursor as usize;
+        let object: i64 = match role {
+            ROLE_MAIN | ROLE_SHADOW | ROLE_COLLISION if !s.loaded => return Ok(ObjectHeader::Absent),
+            ROLE_MAIN => i64::from(s.index),
+            ROLE_SHADOW => i64::from(s.shadow),
+            ROLE_COLLISION => i64::from(s.collision),
+            ROLE_APPROXIMATION => match s.approximations.get(at) {
+                Some(object) => i64::from(*object),
+                None => return Ok(ObjectHeader::Refused("approximation_outside")),
+            },
+            ROLE_SUB_OBJECT => match s.sub.nodes.get(at) {
+                Some(node) => i64::from(node.object),
+                None => return Ok(ObjectHeader::Refused("sub_object_outside")),
+            },
+            other => return Err(QueryError::BadRole(other)),
+        };
+        // 0 is the null object (no object in that role), and so is the collision object's -1
+        if object <= 0 {
+            return Ok(ObjectHeader::Absent);
+        }
+        let Some(o) = usize::try_from(object).ok().and_then(|n| self.objects.get(n)) else {
+            return Ok(ObjectHeader::Refused("object_outside_table"));
+        };
+        if let Some(why) = o.invalid {
+            return Ok(ObjectHeader::Refused(why));
+        }
+        Ok(ObjectHeader::Found(ObjectFacts {
+            counts: [
+                i32::from(o.number_of_points),
+                i32::from(o.number_of_faces),
+                i32::from(o.number_of_surfaces),
+                i32::from(o.number_of_point_normals),
+                i32::from(o.number_of_lighting_normals),
+                i32::from(o.culling_normals_offset),
+            ],
+            radius: o.radius.to_bits(),
+            bounding_box: bits6(&o.bounding_box),
+            bounding_box2: bits6(&o.bounding_box2),
+        }))
+    }
+
+    /// How many objects `3dobjs.bin` holds and the room for custom ones the original has: the numbers the campaign's own object table is sized from.
+    pub fn object_table(&self) -> (i32, i32) {
+        (self.summary.table_objects as i32, CUSTOM_OBJECT_ROOM as i32)
+    }
+
+    /// The `index`th animated-surface reference of an `.EES` scene's objects, in the order `add_animation_object` visits them (see `animation_refs_of`): the file's animation
+    /// index, or a logical animation name where an `.EEO` overrides the texture; the end of the references; or the absence of any (a scene of `3dobjdb.bin` keeps its list in its
+    /// own record, a scene the files never described has none).
+    pub fn animation_ref(&self, scene: i64, index: i64) -> Result<AnimationRef, QueryError> {
+        let id = self.check_scene(scene)?;
+        if !(0..=i32::MAX as i64).contains(&index) {
+            return Err(QueryError::BadDepth(index));
+        }
+        let s = &self.scenes[id];
+        if !s.loaded || s.source != SceneSource::Ees {
+            return Ok(AnimationRef::Absent);
+        }
+        Ok(s.animation_refs.get(index as usize).cloned().unwrap_or(AnimationRef::End))
+    }
+
     /// The original's walk, translated exactly (3dobjdb.c); each read is checked against the BACKED length of its array.
     fn decode(&self, obj: &Object, depth_in: i32) -> Triangle {
         if let Some(why) = obj.invalid {
@@ -2357,5 +2593,70 @@ mod fs_tests {
         // an entry that vanished during the listing
         let fs = fake(vec![("", Node::Dir(vec![Ok("a.ees")]))]);
         assert_eq!(sorted_entries(&fs, &data(), false).unwrap_err().kind, ErrorKind::Inconsistent);
+    }
+}
+
+#[cfg(test)]
+mod animation_tests {
+    use super::*;
+
+    fn surface(texture: u16, luminosity: u16, texture_flag: bool, luminosity_flag: bool) -> Surface {
+        Surface {
+            flags: (u32::from(texture_flag) << 9) | (u32::from(luminosity_flag) << 14),
+            texture_index: texture,
+            luminosity_texture_index: luminosity,
+            ..Surface::default()
+        }
+    }
+
+    #[test]
+    fn animation_references_follow_the_visit_order_repeat_with_the_objects_and_prefer_an_override_name() {
+        let mut surfaces: HashMap<usize, Vec<Surface>> = HashMap::new();
+        surfaces.insert(5, vec![surface(7, 8, true, true), surface(9, 10, false, true)]);
+        surfaces.insert(6, vec![surface(11, 12, true, false)]);
+        let mut names: HashMap<usize, Vec<(Vec<u8>, Vec<u8>)>> = HashMap::new();
+        names.insert(6, vec![(b"SMOKE".to_vec(), Vec::new())]);
+        // the object 0 has no surfaces; object 5 is visited twice and its references come twice
+        let refs = animation_refs_of(&[5, 0, 6, 5], &surfaces, &names);
+        let name = AnimationRef::Name("SMOKE".to_string());
+        let expected = vec![
+            AnimationRef::Id(7),
+            AnimationRef::Id(8),
+            AnimationRef::Id(10),
+            name,
+            AnimationRef::Id(7),
+            AnimationRef::Id(8),
+            AnimationRef::Id(10),
+        ];
+        assert_eq!(refs, expected);
+    }
+
+    #[test]
+    fn an_override_name_replaces_the_index_only_for_the_texture_it_names_and_an_empty_name_keeps_the_file_index() {
+        let mut surfaces: HashMap<usize, Vec<Surface>> = HashMap::new();
+        surfaces.insert(3, vec![surface(21, 22, true, true), surface(23, 24, true, true)]);
+        let mut names: HashMap<usize, Vec<(Vec<u8>, Vec<u8>)>> = HashMap::new();
+        // the first surface overrides only its luminosity texture; the second surface has no pair (the overrides stopped at the end of the file)
+        names.insert(3, vec![(Vec::new(), b"GLOW".to_vec())]);
+        let refs = animation_refs_of(&[3], &surfaces, &names);
+        let expected = vec![
+            AnimationRef::Id(21),
+            AnimationRef::Name("GLOW".to_string()),
+            AnimationRef::Id(23),
+            AnimationRef::Id(24),
+        ];
+        assert_eq!(refs, expected);
+    }
+
+    #[test]
+    fn the_animation_flags_are_the_bits_the_compiled_surface_description_puts_them_at() {
+        assert!(surface(0, 0, true, false).texture_animation() && !surface(0, 0, true, false).luminosity_texture_animation());
+        assert!(!surface(0, 0, false, true).texture_animation() && surface(0, 0, false, true).luminosity_texture_animation());
+        // polygons (bit 0) and smoothed (bit 2) are not animations
+        let plain = Surface {
+            flags: 0b101,
+            ..Surface::default()
+        };
+        assert!(!plain.texture_animation() && !plain.luminosity_texture_animation());
     }
 }
