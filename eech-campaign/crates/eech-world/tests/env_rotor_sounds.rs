@@ -403,7 +403,7 @@ fn the_closed_grammar_rejects_the_concrete_acceptances_found_in_review() {
     let good = busy(0);
     let limit_actions = Spec {
         actions: 9,
-        act: vec!["1:5:00000000"; 8].join(","),
+        act: ["1:5:00000000"; 8].join(","),
         ..Spec::new(0)
     };
     let limit_children = Spec {
@@ -644,7 +644,7 @@ fn sweep_scenario(sweep_text: &str, sweep_page: &str, extra: &str) -> String {
     )
 }
 
-fn sweep_args<'a>(sweep: &'a str) -> Vec<(&'a str, &'a str)> {
+fn sweep_args(sweep: &str) -> Vec<(&str, &str)> {
     vec![("seconds", "1"), ("frame_ms", "1000"), ("sweep", sweep)]
 }
 
