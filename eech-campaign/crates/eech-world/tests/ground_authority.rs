@@ -745,8 +745,14 @@ local function ask (op)
 end
 
 local ids = 0
+-- test-only profile-selection collaborator: it models only the host API's order (prepare -> select -> boot) and answers nothing physical; it is not the processor arithmetic profile
+local profile_stage
 host = {
 	args = ARGS,
+	use_reference_arithmetic = function ()
+		assert (profile_stage == "prepared", "the profile must be selected right after the installation is prepared")
+		profile_stage = "selected"
+	end,
 	bind_mobile = function () ids = ids + 1 return "eech-world:" .. ids end,
 	aim = function () end,
 	terrain_provider = function ()
@@ -765,8 +771,9 @@ host = {
 
 package.preload.eech_dc = function ()
 	return {
-		prepare_installation = function () end,
+		prepare_installation = function () profile_stage = "prepared" end,
 		boot = function (config)
+			assert (profile_stage == "selected", "the profile must be selected before the boot")
 			provider = config.terrain
 			config.bind_mobile { movement_kind = "helicopter", side = "blue" }
 			config.bind_mobile { movement_kind = "ground", side = "red" }

@@ -24,8 +24,14 @@ const COLLABORATOR: &str = r#"
     CALLS = 0
     SEASONS = {}
     IN_ENGINE = false
+    PROFILE_STAGE = nil
     host = {
         args = { root = "unused-root", scenario = "lebanon_retail", mode = "@MODE@"@WINTER_ARG@ },
+        -- test-only profile-selection collaborator: it models only the host API's order (prepare -> select -> boot) and answers nothing physical; it is not the processor arithmetic profile
+        use_reference_arithmetic = function ()
+            assert (PROFILE_STAGE == "prepared", "the profile must be selected right after the installation is prepared")
+            PROFILE_STAGE = "selected"
+        end,
         -- the reference provider stand-in: a different map for each season, a hint and `stored` on every point answer
         terrain_provider = function (root, map)
             return function (request)
@@ -45,8 +51,9 @@ const COLLABORATOR: &str = r#"
     }
     package.preload ["eech_dc"] = function ()
         return {
-            prepare_installation = function () end,
+            prepare_installation = function () PROFILE_STAGE = "prepared" end,
             boot = function (config)
+                assert (PROFILE_STAGE == "selected", "the profile must be selected before the boot")
                 IN_ENGINE = true
                 assert (type (config.terrain) == "function", "no provider")
                 BOOT_WINTER = config.winter

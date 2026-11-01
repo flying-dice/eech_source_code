@@ -36,8 +36,14 @@ fn run(mode: &str, boot: &str, frame: &str) -> (Result<(), String>, String) {
     let setup = format!(
         r#"
         FRAME_COUNT = 0
+        PROFILE_STAGE = nil
         host = {{
             args = {{ root = "unused-root", out = "{out_path}", mode = "{mode}", seconds = "0.5", frame_ms = "100" }},
+            -- test-only profile-selection collaborator: it models only the host API's order (prepare -> select -> boot) and answers nothing physical; it is not the processor arithmetic profile
+            use_reference_arithmetic = function ()
+                assert (PROFILE_STAGE == "prepared", "the profile must be selected right after the installation is prepared")
+                PROFILE_STAGE = "selected"
+            end,
             -- a provider with valid answers; the script wraps it
             terrain_open = function (spec)
                 return function (request)
@@ -51,8 +57,9 @@ fn run(mode: &str, boot: &str, frame: &str) -> (Result<(), String>, String) {
         }}
         package.preload ["eech_dc"] = function ()
             return {{
-                prepare_installation = function () end,
+                prepare_installation = function () PROFILE_STAGE = "prepared" end,
                 boot = function (config)
+                    assert (PROFILE_STAGE == "selected", "the profile must be selected before the boot")
                     {boot}
                     return {{ frame = function (self, ms) FRAME_COUNT = FRAME_COUNT + 1; local n = FRAME_COUNT; {frame} end }}
                 end,

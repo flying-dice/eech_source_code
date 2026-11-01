@@ -1,4 +1,4 @@
-# D3 integration checkpoint — Task50 merged with accepted terrain/ground base `3fdbe6efd` (1 November 2026): MERGED SOURCE `700ac6753` plus ONE source correction; actual tests and runtime NOT yet run on this tree
+# D3 integration checkpoint — Task50 merged with accepted terrain/ground base `3fdbe6efd` (1 November 2026): `e012569e0` plus ONE test-only collaborator correction; Root's focused, default, feature-union and strict gates are NOT yet run on the corrected tree
 
 Task50/PR110 (EEDCS-50) now contains a normal merge of integration `3fdbe6efd08864898a320373d04be79a24c1a374` (Tasks 47 terrain and 48 ground, accepted)
 into `8ae9067e4`; the old model base was `6bbaa8197`. Parents are kept, nothing is squashed or rebased, and nothing was pushed to integration. The merged
@@ -15,6 +15,21 @@ missing model provider (unless the original-characterisation `model-fixture`) an
 blocks are all present; the Rust tests of both sides are kept. `eech_engine.c` was merged byte-wise: its single NUL and every other byte outside the hunks are as in the parents
 (NUL count 1, no CR). The three lifecycle scripts carry both `model = host.model` and `terrain = host.terrain_provider (...)`; the ground/terrain diagnostics now also pass `model`
 and `model-authority.lua` passes `terrain` (one added config item each; no logic changed). Two STATUS paragraphs were edited differently on both sides; the model-branch variant is kept.
+
+CURRENT (test-only correction on `e012569e0`, 1 November 2026): Root's ACTUAL Linux default package run of `e012569e0` failed with exit 101
+(`R:/d3-evidence/model-integration-e012569e0-linux-20261101.log`, reported): six `ground_authority` driver tests found `host.use_reference_arithmetic` nil. The independent consolidated review
+(`independent-model-integration-scripted-collaborators-e012569e0-20261101.json`, finding ENV-MODEL-COLLABORATOR-1, P2) found the cause by reading: three standalone Lua tests replace `host`
+with their own table and run the corresponding REAL corrected driver, and none supplied the new method: `tests/ground_authority.rs`, `tests/terrain_has_face_harness.rs` and
+`tests/terrain_provider_harness.rs`. Each host table now has a clearly test-only `use_reference_arithmetic` collaborator, and each scripted `eech_dc` records the stage: `prepare_installation`
+sets "prepared", the selection asserts "prepared" and sets "selected", and `boot` asserts "selected". That models only the host API's order (prepare -> select -> boot); it answers nothing
+physical, is NOT the processor arithmetic profile and is NO floating-point or numerical-profile coverage. Every existing physical/protocol fixture, refusal marker, negative check, argument-before-boot
+check, count and expectation of those tests is untouched. Unchanged on purpose: the five production selectors, the exact `(36, 2)` guard and its two exceptions, `tests/lua/ground-caller.lua` (it runs
+the real `eech-world` process and keeps the real method), `ground_handoff.rs` (stand-in driver or real World child) and `terrain-characterization.lua` (no scripted consumer was found by the review;
+that is a bounded source result, not proof of every external use). This change touches only those three Rust test files and this file: no executable source (production Lua, Rust `src`, C, FFI,
+patches) differs from `e012569e0`, so the reported actual Windows `e012569e0` native evidence (fixture exit 0; one public boot/frame smoke exit 0 with 35 frames; the 8 requested full caller-FP
+entries preserved; 2 full-1179 input checks 0; 56 payloads unchanged) stays at the `e012569e0` identity and is neither re-run nor re-labelled for the new commit. The 147 original presence mismatches
+remain the same as the old `80fd` reference. NOT run in this lane: any build, test, cargo, docker or native step. Next: Root's focused harness, default, feature-union, format and strict gates on the
+corrected commit; the next geometry characterization waits until the corrected package and strict integration validation close.
 
 CORRECTED after the independent source review (finding ENV-MODEL-INTEGRATION-1, P2): `tests/host_callbacks.rs` requires every `lua/*.lua` that calls `dc.prepare_installation` to select
 `host.use_reference_arithmetic ()` right after it and before the boot (except the two raw-context diagnostics) and counts the scripts. The five terrain/ground real-engine drivers imported
