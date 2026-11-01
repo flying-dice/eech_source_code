@@ -1,0 +1,108 @@
+{
+  "created_utc": "2026-11-01T08:32:56.587732+00:00",
+  "native_source": "e54423b5c17b4386c099240ea02158ec525c05f7",
+  "external_Lua_source": "06de242ae9b4050873207925d79a7a2e58be0c87",
+  "batch": "D:\\EECH-Migration-Evidence\\rotor-original-seven-native-e544-driver-06de-20261101\\controller.json",
+  "all_seven_distinct_cases_completed0": true,
+  "natural_controller": "D:\\EECH-Migration-Evidence\\rotor-original-seven-native-e544-driver-06de-20261101\\natural\\controller.json",
+  "natural_json_sha256": "dc7b107c9233064743f5fdec65a0c81cd88843bf82f2c575fb27c3c7c30234a9",
+  "raw": "D:\\EECH-Migration-Evidence\\rotor-original-seven-native-e544-driver-06de-20261101\\natural\\environment.jsonl.rotor.raw",
+  "raw_bytes": 304394730,
+  "raw_sha256": "e5593222ec73e84fe705e01fda0486eb103a5aa1a16db03cb75b788fd91c2591",
+  "complete_raw_lines": 208800,
+  "frames": 1200,
+  "frame_rows_including_boot": 1201,
+  "first_time_ms": 0,
+  "last_time_ms": 119900,
+  "all_sequences_contiguous": true,
+  "all_phase0": true,
+  "no_probe_loss_or_pending": true,
+  "distinct_entities": 174,
+  "player_counts": {
+    "0": 208800
+  },
+  "flight_model_presence_counts": {
+    "0": 208800
+  },
+  "actions_per_call_counts": {
+    "2": 208800
+  },
+  "visited_per_call_counts": {
+    "29": 182394,
+    "12": 26400,
+    "30": 6
+  },
+  "sound_children_per_call_counts": {
+    "23": 182394,
+    "6": 26400,
+    "24": 6
+  },
+  "distinct_rpm_words": 261,
+  "finite_rpm_min": 0.0,
+  "finite_rpm_max": 99.99992370605469,
+  "nonfinite_rpm_calls": 0,
+  "calls_with_changed_seed_word": 0,
+  "derived": {
+    "boot_calls": 0,
+    "bytes": 304394730,
+    "calls": 208800,
+    "calls_where_the_seed_word_changed": 0,
+    "calls_with_a_flight_model": 0,
+    "calls_with_requests": 208800,
+    "children_walked": 5606406,
+    "controlled_phase1_calls": 0,
+    "coverage_note": "natural coverage is only the phase 0 calls; the phase 1 calls are controlled world input and are not natural coverage; compiler_zero_init sweep rows are compiler-compatibility cases under the build's declared zero auto-init contract, not safe-language oracles; no sound is claimed to play",
+    "distinct_entities": 174,
+    "event": "derived",
+    "frames": 1200,
+    "last_seq": 208799,
+    "natural_calls": 208800,
+    "natural_phase0_calls": 208800,
+    "probe": "on",
+    "source": "the driver's join of the records above; not a measurement",
+    "sweep": "none",
+    "sweep_compiler_zero_init_cases": 0,
+    "sweep_executed": 0
+  },
+  "last_native_report": {
+    "version": "1",
+    "armed": "1",
+    "open": "0",
+    "phase": "0",
+    "capacity": "1024",
+    "max_actions": "8",
+    "max_children": "32",
+    "calls_total": "208800",
+    "drained": "208800",
+    "pending": "0",
+    "dropped": "0",
+    "over_actions": "0",
+    "over_children": "0",
+    "nested": "0",
+    "orphans": "0",
+    "bad_points": "0"
+  },
+  "sound_init_report": {
+    "original": "D:\\EECH-Migration-Evidence\\backend-default-probe-pair-b4265e529-20261101-0654\\probe\\environment.jsonl.case15.raw",
+    "candidate": "D:\\EECH-Migration-Evidence\\rotor-original-seven-native-e544-driver-06de-20261101\\natural\\environment.jsonl.sndinit.raw",
+    "original_bytes": 7516,
+    "candidate_bytes": 7516,
+    "original_sha256": "ce688f8595aec01c57f1bbaaa19acfe07d430b5eda8483d63477e7fc1c7ebaa4",
+    "candidate_sha256": "ce688f8595aec01c57f1bbaaa19acfe07d430b5eda8483d63477e7fc1c7ebaa4",
+    "complete_raw_report_equal": true,
+    "specific_ctor_and_fingerprint_joins": {
+      "env-sndinit-ctor": {
+        "original": "env-sndinit-ctor calls=5222 looping=3548 max_count=1 sample_reads=1674 distinct=64 out_of_domain=0 digest_w=17e67b8187903754",
+        "candidate": "env-sndinit-ctor calls=5222 looping=3548 max_count=1 sample_reads=1674 distinct=64 out_of_domain=0 digest_w=17e67b8187903754",
+        "complete_line_equal": true
+      },
+      "env-sndinit-fingerprint": {
+        "original": "env-sndinit-fingerprint [seed-word and entity-heap index words withheld from publication] unchanged=1",
+        "candidate": "env-sndinit-fingerprint [seed-word and entity-heap index words withheld from publication] unchanged=1",
+        "complete_line_equal": true
+      }
+    }
+  },
+  "actual_exit": 0,
+  "scope": "Complete natural120s original rotor capture on hosted baseline, all calls retained and audited, no firstN/digest called fullrecord. Source/profile/observational sideeffects remain bounded to Windowsx64; sixcontrolled3-way and oldunarmed diagnostic separate receipts. No hostmathmove/ownership, liveDCS/audio/Tacview/shipping or wholeD3 acceptance."
+}

@@ -1,0 +1,82 @@
+{
+  "controller_pid": 17224,
+  "state": "terminal",
+  "started_utc": "2026-11-01T08:22:22.726334+00:00",
+  "native_source": "e54423b5c17b4386c099240ea02158ec525c05f7",
+  "effective_source": "06de242ae9b4050873207925d79a7a2e58be0c87",
+  "image_from_canonical_build_info": "sha256:e0834a9b2b04c92e8fcab4a03988cc24869ea16efe4ac6725093367e219687b1",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "docker",
+    "run",
+    "--rm",
+    "--network",
+    "none",
+    "-i",
+    "-v",
+    "/mnt/d/EECH-Migration-Evidence/ro-e54423b5c:/src:ro",
+    "-v",
+    "/mnt/d/EECH-Migration-Evidence/rotor-corrected-windows-guards-native-e544-driver-06de-20261101:/evidence",
+    "-v",
+    "eech-win-target-d3-environment-physical-05b8caf82-20261031:/target",
+    "-v",
+    "eech-cargo:/usr/local/cargo/registry",
+    "-e",
+    "CARGO_TARGET_DIR=/target",
+    "-e",
+    "LUA_LIB=/opt/lua-mingw",
+    "-e",
+    "LUA_LIB_NAME=lua",
+    "-e",
+    "EECH_ENGINE_OPT=1",
+    "-w",
+    "/src/eech-campaign",
+    "-v",
+    "/mnt/d/EECH-Migration-Evidence/rotor-final-driver-overlay-06de242ae-20261101/driver.lua:/src/eech-campaign/crates/eech-world/lua/env-rotor-sounds.lua:ro",
+    "-v",
+    "/mnt/d/EECH-Migration-Evidence/rotor-final-driver-overlay-06de242ae-20261101/guard.rs:/src/eech-campaign/crates/eech-world/tests/env_rotor_sounds.rs:ro",
+    "sha256:e0834a9b2b04c92e8fcab4a03988cc24869ea16efe4ac6725093367e219687b1",
+    "sh",
+    "-s"
+  ],
+  "scope": "Only the corrected rotor driver guard executable, compiled from exact two-file06 overlay on unchanged e544 native/production source, then actual Windows execution. Prior e544 Engine/DC/World base test artifacts/results remain separate and reused; no native DLL rebuild/relabel, runtime /src fixture, campaign or shipping claim.",
+  "overlay_manifest": "D:\\EECH-Migration-Evidence\\rotor-final-driver-overlay-06de242ae-20261101\\manifest.json",
+  "overlay_files": [
+    {
+      "path": "eech-campaign/crates/eech-world/lua/env-rotor-sounds.lua",
+      "overlay": "D:\\EECH-Migration-Evidence\\rotor-final-driver-overlay-06de242ae-20261101\\driver.lua",
+      "sha256": "c02df5dbf4b951bc6c3ed1728325e8a0d29cc195ddc37ac5abf59e72f0f4519e",
+      "bytes": 46943,
+      "git_entry": "100644 blob 6d7c9e70af909af4993bf6a0992c5043b3ca3ba1",
+      "checkout_bytes_identical": true
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/env_rotor_sounds.rs",
+      "overlay": "D:\\EECH-Migration-Evidence\\rotor-final-driver-overlay-06de242ae-20261101\\guard.rs",
+      "sha256": "a53752a75de38a3d6086ce88188f8e65666d6c5dab63a8142b1fbc143b6465fd",
+      "bytes": 50546,
+      "git_entry": "100644 blob 5a7ee5fbcf947e784d7550375f80dc5bba488900",
+      "checkout_bytes_identical": true
+    }
+  ],
+  "build_pid": 22976,
+  "actual_build_exit": 0,
+  "cases": [
+    {
+      "name": "env_rotor_sounds",
+      "pid": 21552,
+      "args": [
+        "D:\\EECH-Migration-Evidence\\rotor-corrected-windows-guards-native-e544-driver-06de-20261101\\env_rotor_sounds.exe",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "state": "terminal",
+      "actual_exit": 0
+    }
+  ],
+  "actual_exit": 0,
+  "completed_utc": "2026-11-01T08:22:28.330279+00:00"
+}

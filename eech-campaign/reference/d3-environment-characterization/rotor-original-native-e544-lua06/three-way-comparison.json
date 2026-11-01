@@ -1,0 +1,100 @@
+{
+  "created_utc": "2026-11-01T08:27:55.550854+00:00",
+  "native_source": "e54423b5c17b4386c099240ea02158ec525c05f7",
+  "external_Lua_source": "06de242ae9b4050873207925d79a7a2e58be0c87",
+  "families": [
+    {
+      "family": "ai",
+      "declared_executed_calls": 12,
+      "complete_input_output_standard_fenv_rows_equal": true,
+      "whole_raw_reports_equal": false,
+      "all_nonplan_complete_raw_lines_equal": true,
+      "plan_rows": [
+        "env-rotor-plan version=1 case=ai_rpm_sweep process_isolated=required mutating=1 natural=0 phase=1 restores=main_rotor_rpm,player,flight_dynamics_pointer,probe_phase children_restored=0 instrumented=0 probe_armed=0 auto_var_init=declared_by_build_main_rs_zero",
+        "env-rotor-plan version=1 case=ai_rpm_sweep process_isolated=required mutating=1 natural=0 phase=1 restores=main_rotor_rpm,player,flight_dynamics_pointer,probe_phase children_restored=0 instrumented=1 probe_armed=0 auto_var_init=declared_by_build_main_rs_zero",
+        "env-rotor-plan version=1 case=ai_rpm_sweep process_isolated=required mutating=1 natural=0 phase=1 restores=main_rotor_rpm,player,flight_dynamics_pointer,probe_phase children_restored=0 instrumented=1 probe_armed=1 auto_var_init=declared_by_build_main_rs_zero"
+      ],
+      "cases": [
+        {
+          "name": "uninstrumented-ai",
+          "controller": "D:\\EECH-Migration-Evidence\\rotor-original-seven-native-e544-driver-06de-20261101\\uninstrumented-ai\\controller.json",
+          "raw": "D:\\EECH-Migration-Evidence\\rotor-original-seven-native-e544-driver-06de-20261101\\uninstrumented-ai\\environment.jsonl.sweep.raw",
+          "raw_bytes": 9049,
+          "raw_sha256": "93dc53d66fb24a2277cbc4fd5f45d8f0768d5bf0e7c981be3498492f1c68a3d3",
+          "complete_selected_rows": 36,
+          "complete_selected_bytes": 8480,
+          "complete_selected_sha256": "ad0b14ab2bea33b0fe667055c35a1f91e98379519382a30fe1ad9c928ef35f52"
+        },
+        {
+          "name": "unarmed-ai",
+          "controller": "D:\\EECH-Migration-Evidence\\rotor-original-seven-native-e544-driver-06de-20261101\\unarmed-ai\\controller.json",
+          "raw": "D:\\EECH-Migration-Evidence\\rotor-original-seven-native-e544-driver-06de-20261101\\unarmed-ai\\environment.jsonl.sweep.raw",
+          "raw_bytes": 9049,
+          "raw_sha256": "6960b5ce57ba089c0a04ea499341e920fda1e873b0c00991979591639f057521",
+          "complete_selected_rows": 36,
+          "complete_selected_bytes": 8480,
+          "complete_selected_sha256": "ad0b14ab2bea33b0fe667055c35a1f91e98379519382a30fe1ad9c928ef35f52"
+        },
+        {
+          "name": "ai-sweep",
+          "controller": "D:\\EECH-Migration-Evidence\\rotor-original-seven-native-e544-driver-06de-20261101\\ai-sweep\\controller.json",
+          "raw": "D:\\EECH-Migration-Evidence\\rotor-original-seven-native-e544-driver-06de-20261101\\ai-sweep\\environment.jsonl.sweep.raw",
+          "raw_bytes": 9049,
+          "raw_sha256": "23775a44fc9ad808ca4399bd73c72542fffe20aa13678035327fb020678aafd2",
+          "complete_selected_rows": 36,
+          "complete_selected_bytes": 8480,
+          "complete_selected_sha256": "ad0b14ab2bea33b0fe667055c35a1f91e98379519382a30fe1ad9c928ef35f52"
+        }
+      ],
+      "differences": []
+    },
+    {
+      "family": "fd",
+      "declared_executed_calls": 15,
+      "complete_input_output_standard_fenv_rows_equal": true,
+      "whole_raw_reports_equal": false,
+      "all_nonplan_complete_raw_lines_equal": true,
+      "plan_rows": [
+        "env-rotor-plan version=1 case=player_local_and_flight_model process_isolated=required mutating=1 natural=0 phase=1 restores=main_rotor_rpm,player,flight_dynamics_pointer,probe_phase children_restored=0 instrumented=0 probe_armed=0 auto_var_init=declared_by_build_main_rs_zero",
+        "env-rotor-plan version=1 case=player_local_and_flight_model process_isolated=required mutating=1 natural=0 phase=1 restores=main_rotor_rpm,player,flight_dynamics_pointer,probe_phase children_restored=0 instrumented=1 probe_armed=0 auto_var_init=declared_by_build_main_rs_zero",
+        "env-rotor-plan version=1 case=player_local_and_flight_model process_isolated=required mutating=1 natural=0 phase=1 restores=main_rotor_rpm,player,flight_dynamics_pointer,probe_phase children_restored=0 instrumented=1 probe_armed=1 auto_var_init=declared_by_build_main_rs_zero"
+      ],
+      "cases": [
+        {
+          "name": "uninstrumented-fd",
+          "controller": "D:\\EECH-Migration-Evidence\\rotor-original-seven-native-e544-driver-06de-20261101\\uninstrumented-fd\\controller.json",
+          "raw": "D:\\EECH-Migration-Evidence\\rotor-original-seven-native-e544-driver-06de-20261101\\uninstrumented-fd\\environment.jsonl.sweep.raw",
+          "raw_bytes": 11261,
+          "raw_sha256": "97ea91c62973719d863035391e1baf9a48da4b4ea160165edbdf94a42310640f",
+          "complete_selected_rows": 45,
+          "complete_selected_bytes": 10675,
+          "complete_selected_sha256": "34f15b6910bf89810ca7877a3459d415fc8b922cd3cd994253be182fe423e394"
+        },
+        {
+          "name": "unarmed-fd",
+          "controller": "D:\\EECH-Migration-Evidence\\rotor-original-seven-native-e544-driver-06de-20261101\\unarmed-fd\\controller.json",
+          "raw": "D:\\EECH-Migration-Evidence\\rotor-original-seven-native-e544-driver-06de-20261101\\unarmed-fd\\environment.jsonl.sweep.raw",
+          "raw_bytes": 11261,
+          "raw_sha256": "8baceb74dd0c52cb75009fd5c6eb4f61a622f64fc43d434adeda068bff136745",
+          "complete_selected_rows": 45,
+          "complete_selected_bytes": 10675,
+          "complete_selected_sha256": "34f15b6910bf89810ca7877a3459d415fc8b922cd3cd994253be182fe423e394"
+        },
+        {
+          "name": "fd-sweep",
+          "controller": "D:\\EECH-Migration-Evidence\\rotor-original-seven-native-e544-driver-06de-20261101\\fd-sweep\\controller.json",
+          "raw": "D:\\EECH-Migration-Evidence\\rotor-original-seven-native-e544-driver-06de-20261101\\fd-sweep\\environment.jsonl.sweep.raw",
+          "raw_bytes": 11261,
+          "raw_sha256": "c92bc6b29caee0c8f422467b11a2a24262bc3697025f3a3ac5b8591399a50d6b",
+          "complete_selected_rows": 45,
+          "complete_selected_bytes": 10675,
+          "complete_selected_sha256": "34f15b6910bf89810ca7877a3459d415fc8b922cd3cd994253be182fe423e394"
+        }
+      ],
+      "differences": []
+    }
+  ],
+  "all_complete_selected_rows_equal": true,
+  "actual_exit": 0,
+  "scope": "Six actualWindowsx64 controls only. ALL12AI/15FD input, stored-outputword and standardfegetround/fetestexcept rows compared COMPLETE with endings; all other raw lines compared separately. Whole raw report plan fields intentionally identify observer/probe state, never normalized or called whole equality. Not fullx87/MXCSR, arbitrarycompiler/floatdomain, audible/Tacview/shipping or host ownership proof. Natural120s and independent actual review remain separate."
+}

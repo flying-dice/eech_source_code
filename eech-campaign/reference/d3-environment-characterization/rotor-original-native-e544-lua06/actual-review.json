@@ -1,0 +1,626 @@
+{
+  "review_kind": "One combined completed original-rotor actual evidence / auditor / provenance pass; prior source reviews reused",
+  "source": {
+    "tested_native": "e54423b5c17b4386c099240ea02158ec525c05f7",
+    "tested_external_Lua": "06de242ae9b4050873207925d79a7a2e58be0c87",
+    "effective_final_guard_source": "06de242ae9b4050873207925d79a7a2e58be0c87",
+    "external_driver_sha256": "c02df5dbf4b951bc6c3ed1728325e8a0d29cc195ddc37ac5abf59e72f0f4519e",
+    "guard_sha256": "a53752a75de38a3d6086ce88188f8e65666d6c5dab63a8142b1fbc143b6465fd",
+    "reused_source_and_overlay_proofs": [
+      {
+        "path": "R:/d3-evidence/independent-environment-original-rotor-sounds-correction-source-review-e54423b5c-20261101.json",
+        "sha256": "48924aa08f68661d4b6d272ee6a5b439fc1975ba63b67046ec0571984e2d69ed",
+        "bytes": 14923
+      },
+      {
+        "path": "R:/d3-evidence/independent-environment-original-rotor-sounds-residual-source-review-99c2a64ae-20261101.json",
+        "sha256": "5d35ebefa872d5a0be4b5938da76d115db5e1234bed5970fac03cede5e5d34e3",
+        "bytes": 7961
+      },
+      {
+        "path": "R:/d3-evidence/independent-environment-original-rotor-sounds-test-lint-review-06de242ae-20261101.json",
+        "sha256": "3cb0655ba9291eb2bd1dc29ee2f9912e66f27a9eb0724b2e7d00a865b98a13f6",
+        "bytes": 3545
+      },
+      {
+        "path": "D:/EECH-Migration-Evidence/rotor-final-driver-overlay-06de242ae-20261101/manifest.json",
+        "sha256": "d86298eec44bd4f664489e693a1ea712a5be8e76e7b4676e78e5c550553a3274",
+        "bytes": 1825
+      }
+    ],
+    "mapping": "Frozen e544 native C/build/ABI and two separately identified feature profiles; exact06de external Lua/test overlay (Lua identical99c2, only two unused Rust constants removed). Test artifacts are not relabelled runtime binaries. Original rotor routine is measured atop the already-hosted baseline, not a whole-original DLL."
+  },
+  "findings": [],
+  "original_rotor_characterization_closed": true,
+  "bounded_three_way_rotor_transparency_closed": true,
+  "execution_accounting": {
+    "distinct_actual_native_controls": 8,
+    "new_seven_case_parent_actual_exit": 0,
+    "new_seven_case_parent_completed_utc": "2026-11-01T08:31:37.999420+00:00",
+    "reused_unarmed_control_runs": 1,
+    "duplicate_unarmed_runs": 0,
+    "all_eight_native_and_child_controller_exits": 0,
+    "successful_pre_post_input_checks": 16,
+    "unique_roots": 8,
+    "payloads_each_control": 67,
+    "controls": [
+      {
+        "name": "natural",
+        "controller": {
+          "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/natural/controller.json",
+          "sha256": "9158fb4eacc73b2384eed2d847ce2258228c9004f05b1ab728d723cc62c279d3",
+          "bytes": 28666
+        },
+        "native_source": "e54423b5c17b4386c099240ea02158ec525c05f7",
+        "fixture_profile": "env-observer",
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "pre_post_input_exit": [
+          0,
+          0
+        ],
+        "input_files": 1179,
+        "input_manifest_identities": [
+          {
+            "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/natural/pre-inputs.json",
+            "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+            "bytes": 209622
+          },
+          {
+            "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/natural/post-inputs.json",
+            "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+            "bytes": 209622
+          }
+        ],
+        "payloads_verified": 67,
+        "json_output": {
+          "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/natural/environment.jsonl",
+          "sha256": "dc7b107c9233064743f5fdec65a0c81cd88843bf82f2c575fb27c3c7c30234a9",
+          "bytes": 59813
+        },
+        "json_rows": 1208,
+        "external_driver_source": "06de242ae9b4050873207925d79a7a2e58be0c87",
+        "external_driver_sha256": "c02df5dbf4b951bc6c3ed1728325e8a0d29cc195ddc37ac5abf59e72f0f4519e"
+      },
+      {
+        "name": "ai-sweep",
+        "controller": {
+          "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/ai-sweep/controller.json",
+          "sha256": "16fda57028dc421e759a626530ddd98b1715133fc38ad572c6663c17323cf05d",
+          "bytes": 7006
+        },
+        "native_source": "e54423b5c17b4386c099240ea02158ec525c05f7",
+        "fixture_profile": "env-observer",
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "pre_post_input_exit": [
+          0,
+          0
+        ],
+        "input_files": 1179,
+        "input_manifest_identities": [
+          {
+            "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/ai-sweep/pre-inputs.json",
+            "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+            "bytes": 209622
+          },
+          {
+            "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/ai-sweep/post-inputs.json",
+            "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+            "bytes": 209622
+          }
+        ],
+        "payloads_verified": 67,
+        "json_output": {
+          "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/ai-sweep/environment.jsonl",
+          "sha256": "7e290b052b70bcfb902038bd5bb4761a19e4e10b78e36d985bdb721c6a8788b0",
+          "bytes": 14548
+        },
+        "json_rows": 123,
+        "external_driver_source": "06de242ae9b4050873207925d79a7a2e58be0c87",
+        "external_driver_sha256": "c02df5dbf4b951bc6c3ed1728325e8a0d29cc195ddc37ac5abf59e72f0f4519e",
+        "sweep_raw": {
+          "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/ai-sweep/environment.jsonl.sweep.raw",
+          "sha256": "23775a44fc9ad808ca4399bd73c72542fffe20aa13678035327fb020678aafd2",
+          "bytes": 9049
+        }
+      },
+      {
+        "name": "fd-sweep",
+        "controller": {
+          "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/fd-sweep/controller.json",
+          "sha256": "1b6a6489ac0340b68cd448abc984e6ce44c007f320ea2a5d4c5f3de75a6abc27",
+          "bytes": 7061
+        },
+        "native_source": "e54423b5c17b4386c099240ea02158ec525c05f7",
+        "fixture_profile": "env-observer",
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "pre_post_input_exit": [
+          0,
+          0
+        ],
+        "input_files": 1179,
+        "input_manifest_identities": [
+          {
+            "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/fd-sweep/pre-inputs.json",
+            "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+            "bytes": 209622
+          },
+          {
+            "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/fd-sweep/post-inputs.json",
+            "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+            "bytes": 209622
+          }
+        ],
+        "payloads_verified": 67,
+        "json_output": {
+          "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/fd-sweep/environment.jsonl",
+          "sha256": "43d588d9aba1fc9163ae0ec80cb9dbb828c4dd33f60363f38f98ba690e42b76e",
+          "bytes": 16559
+        },
+        "json_rows": 126,
+        "external_driver_source": "06de242ae9b4050873207925d79a7a2e58be0c87",
+        "external_driver_sha256": "c02df5dbf4b951bc6c3ed1728325e8a0d29cc195ddc37ac5abf59e72f0f4519e",
+        "sweep_raw": {
+          "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/fd-sweep/environment.jsonl.sweep.raw",
+          "sha256": "c92bc6b29caee0c8f422467b11a2a24262bc3697025f3a3ac5b8591399a50d6b",
+          "bytes": 11261
+        }
+      },
+      {
+        "name": "uninstrumented-ai",
+        "controller": {
+          "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/uninstrumented-ai/controller.json",
+          "sha256": "cc4491af82b5b7fe7060a2b9ab12406a78970136f69b0eb7733420efc39303ea",
+          "bytes": 4959
+        },
+        "native_source": "e54423b5c17b4386c099240ea02158ec525c05f7",
+        "fixture_profile": "env-fixture",
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "pre_post_input_exit": [
+          0,
+          0
+        ],
+        "input_files": 1179,
+        "input_manifest_identities": [
+          {
+            "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/uninstrumented-ai/pre-inputs.json",
+            "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+            "bytes": 209622
+          },
+          {
+            "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/uninstrumented-ai/post-inputs.json",
+            "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+            "bytes": 209622
+          }
+        ],
+        "payloads_verified": 67,
+        "json_output": {
+          "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/uninstrumented-ai/environment.jsonl",
+          "sha256": "0dc8f6d71389bb50d810379653eb2facf07bc95db54e01763e470f2095057629",
+          "bytes": 8388
+        },
+        "json_rows": 16,
+        "external_driver_source": "06de242ae9b4050873207925d79a7a2e58be0c87",
+        "external_driver_sha256": "c02df5dbf4b951bc6c3ed1728325e8a0d29cc195ddc37ac5abf59e72f0f4519e",
+        "sweep_raw": {
+          "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/uninstrumented-ai/environment.jsonl.sweep.raw",
+          "sha256": "93dc53d66fb24a2277cbc4fd5f45d8f0768d5bf0e7c981be3498492f1c68a3d3",
+          "bytes": 9049
+        }
+      },
+      {
+        "name": "uninstrumented-fd",
+        "controller": {
+          "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/uninstrumented-fd/controller.json",
+          "sha256": "0b54252905cdbb70671e308732438a288793fe1b8e226e11b30a8524446ae00d",
+          "bytes": 5012
+        },
+        "native_source": "e54423b5c17b4386c099240ea02158ec525c05f7",
+        "fixture_profile": "env-fixture",
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "pre_post_input_exit": [
+          0,
+          0
+        ],
+        "input_files": 1179,
+        "input_manifest_identities": [
+          {
+            "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/uninstrumented-fd/pre-inputs.json",
+            "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+            "bytes": 209622
+          },
+          {
+            "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/uninstrumented-fd/post-inputs.json",
+            "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+            "bytes": 209622
+          }
+        ],
+        "payloads_verified": 67,
+        "json_output": {
+          "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/uninstrumented-fd/environment.jsonl",
+          "sha256": "3733b97490c34b2b78a439cd33f56ec27382aa79ddac081556e0164470c2317a",
+          "bytes": 10398
+        },
+        "json_rows": 19,
+        "external_driver_source": "06de242ae9b4050873207925d79a7a2e58be0c87",
+        "external_driver_sha256": "c02df5dbf4b951bc6c3ed1728325e8a0d29cc195ddc37ac5abf59e72f0f4519e",
+        "sweep_raw": {
+          "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/uninstrumented-fd/environment.jsonl.sweep.raw",
+          "sha256": "97ea91c62973719d863035391e1baf9a48da4b4ea160165edbdf94a42310640f",
+          "bytes": 11261
+        }
+      },
+      {
+        "name": "unarmed-ai",
+        "controller": {
+          "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/unarmed-ai/controller.json",
+          "sha256": "d189b43a6a67f166ac265870d8b6525c2356b6f4c3771162ab19f67cee72c673",
+          "bytes": 4895
+        },
+        "native_source": "e54423b5c17b4386c099240ea02158ec525c05f7",
+        "fixture_profile": "env-observer",
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "pre_post_input_exit": [
+          0,
+          0
+        ],
+        "input_files": 1179,
+        "input_manifest_identities": [
+          {
+            "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/unarmed-ai/pre-inputs.json",
+            "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+            "bytes": 209622
+          },
+          {
+            "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/unarmed-ai/post-inputs.json",
+            "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+            "bytes": 209622
+          }
+        ],
+        "payloads_verified": 67,
+        "json_output": {
+          "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/unarmed-ai/environment.jsonl",
+          "sha256": "0dc8f6d71389bb50d810379653eb2facf07bc95db54e01763e470f2095057629",
+          "bytes": 8388
+        },
+        "json_rows": 16,
+        "external_driver_source": "06de242ae9b4050873207925d79a7a2e58be0c87",
+        "external_driver_sha256": "c02df5dbf4b951bc6c3ed1728325e8a0d29cc195ddc37ac5abf59e72f0f4519e",
+        "sweep_raw": {
+          "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/unarmed-ai/environment.jsonl.sweep.raw",
+          "sha256": "6960b5ce57ba089c0a04ea499341e920fda1e873b0c00991979591639f057521",
+          "bytes": 9049
+        }
+      },
+      {
+        "name": "unarmed-fd",
+        "controller": {
+          "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/unarmed-fd/controller.json",
+          "sha256": "76a767dcd6224ddea0fb9f19a0ad5929036ec80c8072e7ab7e6dd9ff2e52626c",
+          "bytes": 4949
+        },
+        "native_source": "e54423b5c17b4386c099240ea02158ec525c05f7",
+        "fixture_profile": "env-observer",
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "pre_post_input_exit": [
+          0,
+          0
+        ],
+        "input_files": 1179,
+        "input_manifest_identities": [
+          {
+            "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/unarmed-fd/pre-inputs.json",
+            "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+            "bytes": 209622
+          },
+          {
+            "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/unarmed-fd/post-inputs.json",
+            "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+            "bytes": 209622
+          }
+        ],
+        "payloads_verified": 67,
+        "json_output": {
+          "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/unarmed-fd/environment.jsonl",
+          "sha256": "3733b97490c34b2b78a439cd33f56ec27382aa79ddac081556e0164470c2317a",
+          "bytes": 10398
+        },
+        "json_rows": 19,
+        "external_driver_source": "06de242ae9b4050873207925d79a7a2e58be0c87",
+        "external_driver_sha256": "c02df5dbf4b951bc6c3ed1728325e8a0d29cc195ddc37ac5abf59e72f0f4519e",
+        "sweep_raw": {
+          "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/unarmed-fd/environment.jsonl.sweep.raw",
+          "sha256": "8baceb74dd0c52cb75009fd5c6eb4f61a622f64fc43d434adeda068bff136745",
+          "bytes": 11261
+        }
+      },
+      {
+        "name": "reused-unarmed-diagnostic",
+        "controller": {
+          "path": "D:/EECH-Migration-Evidence/rotor-unarmed-diagnostic-e54423b5c-20261101-0813/controller.json",
+          "sha256": "70627bac483352b23e78ebafbc5e56ec927214bd4913b62377b7335688b08549",
+          "bytes": 348495
+        },
+        "native_source": "e54423b5c17b4386c099240ea02158ec525c05f7",
+        "fixture_profile": "env-observer",
+        "actual_native_exit": 0,
+        "actual_controller_exit": 0,
+        "pre_post_input_exit": [
+          0,
+          0
+        ],
+        "input_files": 1179,
+        "input_manifest_identities": [
+          {
+            "path": "D:/EECH-Migration-Evidence/rotor-unarmed-diagnostic-e54423b5c-20261101-0813/pre-inputs.json",
+            "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+            "bytes": 209622
+          },
+          {
+            "path": "D:/EECH-Migration-Evidence/rotor-unarmed-diagnostic-e54423b5c-20261101-0813/post-inputs.json",
+            "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+            "bytes": 209622
+          }
+        ],
+        "payloads_verified": 67,
+        "json_output": {
+          "path": "D:/EECH-Migration-Evidence/rotor-unarmed-diagnostic-e54423b5c-20261101-0813/environment.jsonl",
+          "sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+          "bytes": 5191384
+        },
+        "json_rows": 17283
+      }
+    ]
+  },
+  "runtime_binary_identities": [
+    {
+      "profile": "env-observer",
+      "build_info": {
+        "path": "D:/EECH-Migration-Evidence/ro-e54423b5c/eech-campaign/target/env-observer/rotor-original-e54423b5c/BUILD-INFO.txt",
+        "sha256": "f00b4313586faee22525fc435f6c0f7a6f292ad3907595f23dcdc12055b9a716",
+        "bytes": 6821
+      },
+      "image": "sha256:e0834a9b2b04c92e8fcab4a03988cc24869ea16efe4ac6725093367e219687b1",
+      "target": "x86_64-pc-windows-gnu, release, FIXTURE BUILD (eech-dc/env-observer): test-only, not a shipping artifact",
+      "eech_dc_dll_sha256": "c5311d7159004c143e1ae61eb35ab60bc44f669f0cdcb81bc83c41e8c30a61d1",
+      "eech_world_exe_sha256": "2da4f5f5c615abb9b33a56b9d0c93c202dc19f8f632fec867cabcf178760727f",
+      "payloads": 67,
+      "all_payloads_exact_manifest": true
+    },
+    {
+      "profile": "env-fixture",
+      "build_info": {
+        "path": "D:/EECH-Migration-Evidence/ro-e54423b5c/eech-campaign/target/env-fixture/rotor-uninstrumented-e54423b5c/BUILD-INFO.txt",
+        "sha256": "d8d19250ea74e1c7d2db7ba3e98a7615ba6d747527f2d3acda00276022e81327",
+        "bytes": 6820
+      },
+      "image": "sha256:5004a962a9af5e44a0d32f1ce80d0b5ba3b08e19cfc53d1554a9516b428986b9",
+      "target": "x86_64-pc-windows-gnu, release, FIXTURE BUILD (eech-dc/env-fixture): test-only, not a shipping artifact",
+      "eech_dc_dll_sha256": "b4ee63ccbfd65cf92bb3a5d4a7474ca459234c31507ea4ee1623312dc8a6ab90",
+      "eech_world_exe_sha256": "2da4f5f5c615abb9b33a56b9d0c93c202dc19f8f632fec867cabcf178760727f",
+      "payloads": 67,
+      "all_payloads_exact_manifest": true
+    }
+  ],
+  "complete_natural_capture": {
+    "controller_completed_utc": "2026-11-01T08:31:37.986152Z",
+    "nominal_seconds": 120,
+    "actual_frame_calls": 1200,
+    "boot_frame_row": {
+      "frame": 0,
+      "calls": 0
+    },
+    "update_frame_rows": "Frames1..1200 each have174calls; not all1201rows have174.",
+    "raw_bytes": 304394730,
+    "complete_call_lines": 208800,
+    "raw_sha256": "e5593222ec73e84fe705e01fda0486eb103a5aa1a16db03cb75b788fd91c2591",
+    "raw_retained_whole": true,
+    "all_sequences_contiguous": true,
+    "all_phase0": true,
+    "all_player_AI0": true,
+    "all_fd_absent0": true,
+    "distinct_entities": 174,
+    "time_ms_first": 0,
+    "time_ms_last": 119900,
+    "time_buckets": 1200,
+    "calls_per_time_bucket": 174,
+    "actions_per_call": 2,
+    "child_visit_counts": {
+      "29": 182394,
+      "12": 26400,
+      "30": 6
+    },
+    "sound_child_counts": {
+      "23": 182394,
+      "6": 26400,
+      "24": 6
+    },
+    "distinct_rpm_words": 261,
+    "finite_rpm_range": [
+      0.0,
+      99.99992370605469
+    ],
+    "nonfinite_rpm_calls": 0,
+    "changed_rng_word_calls": 0,
+    "probe_loss_pending_open_orphan_nested_overflow_counters": 0,
+    "independent_verification": "After terminal receipt, streamed every byte/line once for the full sequence, ordered field grammar, all input words/unused FD zeros, all action tuples and every child tuple/type/sound-count/after_seen; all174-entity/time-bucket/frame/derived/native-report joins passed. No growing natural raw was opened or hashed before termination."
+  },
+  "three_way_sweep_evidence": {
+    "cases": "env-fixture/noobserver; env-observer/unarmed; env-observer/armed; each on its own verified root/process with10s of natural frames then one declared mutating sweep.",
+    "ai": {
+      "executed_inputs_each": 12,
+      "complete_selected_rows_each": 36,
+      "complete_selected_bytes_each": 8480,
+      "complete_selected_sha256": "ad0b14ab2bea33b0fe667055c35a1f91e98379519382a30fe1ad9c928ef35f52",
+      "all_selected_input_output_standard_fenv_rows_and_endings_exact": true,
+      "all_nonplan_raw_lines_and_endings_exact": true,
+      "whole_raw_equal": false
+    },
+    "fd": {
+      "executed_inputs_each": 15,
+      "defined_rows_each": 10,
+      "compiler_zero_init_rows_each": 5,
+      "complete_selected_rows_each": 45,
+      "complete_selected_bytes_each": 10675,
+      "complete_selected_sha256": "34f15b6910bf89810ca7877a3459d415fc8b922cd3cd994253be182fe423e394",
+      "all_selected_input_output_standard_fenv_rows_and_endings_exact": true,
+      "all_nonplan_raw_lines_and_endings_exact": true,
+      "whole_raw_equal": false
+    },
+    "whole_raw_difference_classification": "Exactly the first plan line identifies instrumented/probe_armed as0/0,1/0,1/1. Reports are retained unchanged; whole equality is FALSE, not normalized into true. All remaining raw lines are exact.",
+    "cohort": "The chosen sweep helicopter has29special-effect children,23sound children including2TURBINE2 and2APU. Those counts join all fixture output and armed-probe subtype records; all after words join. No raw heap ID is reproduced here.",
+    "f1_observed_behavior": "FD rows10/11 have zero T2 amplification words;12/13 have zero APU words;14 has both zero, for both matching children, in all3variants. Thus the specific unassigned-local behavior under the already-existing GCC zero-auto-init contract is measured, not merely assumed. No original initialization/math or flag was changed; outside this identified build contract no generic language-level oracle is claimed.",
+    "fp_scope": "Every measured rounding mode before/after is3072. Observed standard exception sets are2/0x22 forAI and0x22 forFD and match3-way. This is fegetround/FE_ALL_EXCEPT evidence on Windowsx64 scalar-SSE builds, not fullx87CW/SW/TW/TOP/precision/MXCSR/FTZ/DAZ state or i686/arbitrary-compiler/float-domain proof.",
+    "short_capacity": "All6controls used short_buffer512 through the real C API, received the named rotor_case_refused_or_report_did_not_fit error, then completed the real sweep with the expected cohort/count. Armed counters/phase stayed clean; fixed C preflight/cleanup source is reused, not re-reviewed. No fake capability or device was created."
+  },
+  "observer_interop_evidence": {
+    "reused_unarmed_diagnostic": {
+      "complete_bytes": 5191384,
+      "complete_rows": 17283,
+      "sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+      "whole_bytes_and_endings_equal_b426": true,
+      "partial_prefix_only": false,
+      "completed_utc": "2026-11-01T08:19:58.928417Z",
+      "scope": "Existing env-characterization Lua/generalobserver+queue+sound diagnostic with the new rotor probe unarmed. One completed run reused, not repeated."
+    },
+    "armed_natural_sound_init": {
+      "bytes": 7516,
+      "sha256": "ce688f8595aec01c57f1bbaaa19acfe07d430b5eda8483d63477e7fc1c7ebaa4",
+      "whole_raw_report_and_endings_equal_retained_b426_probe": true,
+      "ctor_and_end_fingerprint_rows_exact": true,
+      "scope": "Entire existing report matches, not just selected entropy/constructor rows; these joins remain distinct from the controlled actual rotor output-word comparison."
+    }
+  },
+  "auditor_assessment": [
+    "Runner binds clean source HEAD, exact BUILDINFO/profile and every payload before/after, reference inputs before/after, exact external script pre/post hashes, actual native/child exits and complete JSON; immutable output directories and finally receipts preserve errors.",
+    "Seven-case parent verifies completed source/actual-test gates and alreadycompleted unarmed comparison, launches exactly7new unique roots and records every actual child exit. Its earlier running receipt was not treated as completion; final explicit seven-entry array and all child receipts are0.",
+    "Three-way auditor checks exact12/15 ordered input/output/FP row budgets, all other raw lines separately and whole-report false. Independent recomputation matched its complete selected SHA values and exact bytes/endings.",
+    "Complete-natural auditor checks final receipts, all208800sequences/phase/time/count joins and the entire existing sound-init raw. Reviewer additionally validated every child/action tuple and frame0/frames1..1200 separately; no firstN or digest alone was called complete retained data.",
+    "Private raw, baselines, endings, inputs and tolerances were not edited, normalized, reinterpreted as a new accepted baseline or replaced by a model. Full natural and small raw files remain retained."
+  ],
+  "build_test_CI_evidence": {
+    "native_builds": "Both immutable e544 Windows fixture profiles actual0. Windows base Engine98/DC36/World292 and prior rotor guards11 all0 at08:17:01.561787Z. Separate99guard12 and06guard12 executables actual0 with their own effective identities.",
+    "linux": "e544 default+observer DLLs and full affected tests0; first strict101 on two test-only lint issues retained. Corrected99 newguards0 and actual old-a2c missing-after red101;99 strict101 on two unused test constants retained. Final06 targeted12guards plus default/observer strict all0 at08:23:44.662298Z, exact two overlays unchanged; old red was not rerun.",
+    "CI": {
+      "tested_head": "06de242ae9b4050873207925d79a7a2e58be0c87",
+      "all_nine_jobs_completed_success": true,
+      "both_i686_jobs_included": true,
+      "receipt": {
+        "path": "R:/d3-evidence/current-CI-06de242ae-20261101.json",
+        "sha256": "436450524707b03cf7a7b7ff8c9704ff8a3331c3d7152a102008832e8fca229e",
+        "bytes": 14457
+      }
+    },
+    "limits": "Green CI supports the tested source; it does not expand the actual Windowsx64 numerical comparison scope or constitute future publication/fullshipping acceptance."
+  },
+  "retained_history": [
+    "Original a2c malformed metadata/parser findings, sentinel helper6/7 failure101 and four-success/five-helper-failure CI remain intact; a2c builds were never used as accepted measurements or relabelled.",
+    "Prior raw-language P1 missed the material established F1 compile flag; e544 review records that correction transparently and actual3-way outputs now verify the bounded artifact behavior. No old report was rewritten.",
+    "e544 and99 test-lint strict failures, their stage boundaries and later separate06source/execution fixes remain distinct. No code/expectation/tolerance was changed just to turn a physical mismatch green."
+  ],
+  "artifacts": [
+    {
+      "path": "R:/d3-evidence/run-rotor-original-control-20261101.py",
+      "sha256": "2e1696c6b71d1be0254e5ceab92be433232316b9512a647484e15d4d62114518",
+      "bytes": 6517
+    },
+    {
+      "path": "R:/d3-evidence/run-rotor-original-seven-native-e544-driver-06de-20261101.py",
+      "sha256": "fc7d7f09ac5373265ced70e87a11ec868ab8db385fad3a2cabc8f74893380d68",
+      "bytes": 5516
+    },
+    {
+      "path": "R:/d3-evidence/compare-rotor-three-way-native-e544-lua06-20261101.py",
+      "sha256": "7aa99a629c3f62ec9d4f02f7058b1b5df0c8978f364178b9c55a962a9e9ba487",
+      "bytes": 4502
+    },
+    {
+      "path": "R:/d3-evidence/rotor-three-way-native-e544-lua06-20261101.json",
+      "sha256": "26ce32dbda84fd233692d0d4cc92154dd7417b40a7467ca3a572d189bb456bab",
+      "bytes": 7035
+    },
+    {
+      "path": "R:/d3-evidence/audit-rotor-complete-natural-native-e544-lua06-20261101.py",
+      "sha256": "423a79e1dfcb59108b25627213a847bff9b495492af57e8b630b548f20792e89",
+      "bytes": 5973
+    },
+    {
+      "path": "R:/d3-evidence/rotor-complete-natural-native-e544-lua06-20261101.json",
+      "sha256": "03eb8f5f4a802469bb128b3bd1411a05b3ea1d5033c13e9e1f9bdc355415ca54",
+      "bytes": 4789
+    },
+    {
+      "path": "R:/d3-evidence/rotor-unarmed-comparison-e54423b5c-20261101.json",
+      "sha256": "12d37c3f32aaa3f7529ff7bf04fe3e023f36d05554c58fad0a1c8f27117017b6",
+      "bytes": 1181
+    },
+    {
+      "path": "R:/d3-evidence/current-CI-06de242ae-20261101.json",
+      "sha256": "436450524707b03cf7a7b7ff8c9704ff8a3331c3d7152a102008832e8fca229e",
+      "bytes": 14457
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/rotor-original-seven-native-e544-driver-06de-20261101/controller.json",
+      "sha256": "46b6ae2fd866341de3fa1e306fcebd2f140df861b75a7fedfb30c53eb50ad65b",
+      "bytes": 12947
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/rotor-final-linux-overlay-99c2a64ae-20261101/controller.json",
+      "sha256": "54da49ca06537d7480dedee26ff67b362c678a2b9b8379be645e00579de1c4e0",
+      "bytes": 5983
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/rotor-final-linux-overlay-06de242ae-20261101/controller.json",
+      "sha256": "33dae3f3cbff3d28d7fcb280e349f4667ec493385efd86f082bc2d33b14a1c77",
+      "bytes": 5839
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/rotor-original-windows-tests-e54423b5c-20261101/controller.json",
+      "sha256": "59681151852c3a2c9ae99210b042094c3f9a243bb9b54879ac3db6aa56f6a93e",
+      "bytes": 2730
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/rotor-corrected-windows-guards-native-e544-driver-99c2-20261101/controller.json",
+      "sha256": "296c89bfb83ed7f8bd489a1eb000999d8995e068f37b3bb3dedf37b28f6ee772",
+      "bytes": 3293
+    },
+    {
+      "path": "D:/EECH-Migration-Evidence/rotor-corrected-windows-guards-native-e544-driver-06de-20261101/controller.json",
+      "sha256": "252b000e094943bf88967df51b7957740838e4c8dc8dc9df1fbbe57e86c9a973",
+      "bytes": 3294
+    },
+    {
+      "path": "R:/d3-evidence/environment-rotor-original-e54423b5c-linux-20261101-completion.json",
+      "sha256": "20f8aabe92073f14f1c774b8db894c8e34a2f0ca57776bc6b9fa7abec7605020",
+      "bytes": 684
+    },
+    {
+      "path": "R:/d3-evidence/environment-rotor-original-e54423b5c-windows-20261101-completion.json",
+      "sha256": "922ae7e4648e0233fa1f44d016046efd1e6536bb693d56350c03ecb991f65cfd",
+      "bytes": 623
+    },
+    {
+      "path": "R:/d3-evidence/environment-rotor-original-e54423b5c-windows-uninstrumented-20261101-completion.json",
+      "sha256": "88f1647a600fbf5ea551b7220536638b89a8b978cad8c2a200249ab129044391",
+      "bytes": 729
+    },
+    {
+      "path": "R:/d3-evidence/rotor-zero-auto-init-build-contract-a2c-7167-20261101.json",
+      "sha256": "98846f4b532178ce83f732bb03d1bde9e0161db3e708ee9942afd684854eb7eb",
+      "bytes": 2376
+    }
+  ],
+  "limitations": [
+    "Finite ORIGINAL rotor characterization and specified3-way transparency only. Rotor numeric solver still resides in the campaign; this is not a host ownership or physical extraction acceptance.",
+    "Natural domain is AI/noFD for this scenario; FD cases are declared synthetic global-FD/LOCAL input variation on a live helicopter, not live player flight, non-SESSION backend/range delivery, actual device/audio, or network/render proof.",
+    "No complete arbitrary-input/platform/x87 correctness claim; exact legacy field/time/campaign policy and required remaining terrain/spatial/model/time/non-SESSION playback obligations stay open. Whole Task51/D3, full40/all8shipping/Tacview and normal delivery are not closed; D4/D5 unstarted.",
+    "No publication files were reviewed in this pass. Private raw records and some private auditor fingerprint strings contain heap/seed evidence; safe publication/projection and later source changes are separate. This report itself omits raw positions/heap IDs/seed values and retail file data.",
+    "No product edits, builds/tests/native/retail experiments, Docker/cache/auth changes, external writes or nested agents by reviewer. Only read-only evidence computations and this canonical private LF report were performed."
+  ]
+}
