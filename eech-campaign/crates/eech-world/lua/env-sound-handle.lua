@@ -54,15 +54,15 @@ if scenario == nil then refuse ("scenario must be lebanon_retail or georgia_reta
 local create = host.output_create_new
 if type (create) ~= "function" then refuse ("this host has no host.output_create_new: evidence files cannot be created exclusively, and the driver does not fall back to a truncating open") end
 local paths = { out = out_path, case = out_path .. ".case.raw" }
-local files, created = {}, {}
+local files, opened = {}, {}
 for _, name in ipairs ({ "out", "case" }) do
 	local file, why = create (paths [name])
 	if file == nil then
-		for _, done in ipairs (created) do pcall (files [done].close, files [done]) end
+		for _, done in ipairs (opened) do pcall (files [done].close, files [done]) end
 		refuse ("OUTPUT FAILURE: creating " .. paths [name] .. " failed: " .. tostring (why) .. " (evidence is created exclusively and never overwritten; the same file under two names is refused)")
 	end
 	files [name] = file
-	created [#created + 1] = name
+	opened [#opened + 1] = name
 end
 local out = files.out
 
@@ -90,6 +90,9 @@ local function hard (message)
 	refuse (message)
 end
 local function first_line (text) return string.match (tostring (text), "[^\r\n]+") or tostring (text) end
+-- the raw text of a parsed row is kept APART from its map (a map holds exactly the report's own keys, so the grammar stays closed): a diagnostic reads it with raw_of and can never concatenate a nil
+local RAW = setmetatable ({}, { __mode = "k" })
+local function raw_of (map) return RAW [map] or "(no row)" end
 
 -- the native text, kept whole BEFORE any of it is validated
 local function keep (text)
@@ -189,6 +192,7 @@ local at = 1
 local function take (event, spec)
 	local row = rows [at]
 	local map = check (row, event, spec)
+	RAW [map] = row.raw
 	at = at + 1
 	return map, row
 end
@@ -225,7 +229,7 @@ local states = {}
 while rows [at] ~= nil and rows [at].event == "env-sound-state" do
 	local map = take ("env-sound-state", STATE)
 	states [#states + 1] = map
-	if map.ent ~= "0" or map.tag ~= tostring (#states - 1) then hard ("the entity state " .. #states .. " is not entity 0 at step " .. (#states - 1) .. ": " .. rows [at - 1].raw) end
+	if map.ent ~= "0" or map.tag ~= tostring (#states - 1) then hard ("the entity state " .. #states .. " is not entity 0 at step " .. (#states - 1) .. ": " .. raw_of (map)) end
 end
 if #states < 1 or #states > 4 then hard ("the report holds " .. #states .. " entity states where 1 to 4 are possible (the entity before the calls and one after each of at most three)") end
 for n, s in ipairs (states) do
@@ -246,7 +250,7 @@ local alive = last.data == "1"
 
 local after = take ("env-handle-state", "tag=after installed=1 used:b playing:b buffer_null=1")
 local cleanup = take ("env-handle-cleanup", "installed=1 entity_live_after:b detached:b destroyed_by_original:b destroyed_by_fixture:b used_final=0 playing_final=0 buffer_null_final=1")
-local cleanup_raw = rows [at - 1].raw
+local cleanup_raw = raw_of (cleanup)
 if cleanup.entity_live_after ~= (alive and "1" or "0") then hard ("the cleanup says the entity is " .. (cleanup.entity_live_after == "1" and "live" or "gone") .. " after the calls where its last state is " .. (alive and "live" or "dead") .. ": " .. cleanup_raw) end
 if cleanup.detached ~= (alive and last.handle or "0") then hard ("the cleanup says detached " .. cleanup.detached .. " where the entity's last state shows handle " .. (alive and last.handle or "none (dead)") .. ": " .. cleanup_raw) end
 -- the handle was released by the original (its kill) or by the fixture, never by neither and never by both; the facts come from the snapshot taken right after the calls
@@ -270,8 +274,8 @@ if calls + skipped ~= 3 or calls < 1 or calls ~= #states - 1 then hard ("the end
 
 -- ---------------------------------------------------------------------------------------------------------------- the probe's records against the calls, the entity and the handle
 if tonumber (report.stored) ~= #records then hard ("the probe says it stored " .. report.stored .. " records and the report holds " .. #records) end
-local created = records [1]
-if created == nil or created.point ~= "0" then hard ("the report holds no creation record of the tracked entity first") end
+local creation = records [1]
+if creation == nil or creation.point ~= "0" then hard ("the report holds no creation record of the tracked entity first") end
 -- what the constructor and the controlled descriptor fix, and what every later record of the same entity must still show
 local STABLE = { "entity", "etype", "sub", "channel", "locality", "panning", "seqcount", "valid", "looping", "session_parent", "update_member", "sample", "rate", "size", "orate", "amp_w", "pitch_w", "px_w", "py_w", "pz_w" }
 local ZERO_AFTER_KILL = { "sub", "channel", "locality", "valid", "looping", "panning", "seqcount", "handle", "session_parent", "update_member", "rate", "size", "orate" }
@@ -280,9 +284,9 @@ local enters, seen = 0, {}
 for n, r in ipairs (records) do
 	local point = tonumber (r.point)
 	if tonumber (r.seq) ~= n - 1 or point > 5 then hard ("the probe record " .. n .. " is out of sequence or of an unknown point: seq " .. r.seq .. " point " .. r.point) end
-	if r.tracked ~= "0" or r.n ~= "0" or r.frame ~= "0" then hard ("the probe record " .. r.seq .. " is not of the one tracked entity in the open-less, frame-less episode: " .. r.raw) end
+	if r.tracked ~= "0" or r.n ~= "0" or r.frame ~= "0" then hard ("the probe record " .. r.seq .. " is not of the one tracked entity in the open-less, frame-less episode: " .. raw_of (r)) end
 	if n == 1 then
-		if r.upd ~= "0" or r.handle ~= "0" then hard ("the creation record is not update 0 before the handle: " .. r.raw) end
+		if r.upd ~= "0" or r.handle ~= "0" then hard ("the creation record is not update 0 before the handle: " .. raw_of (r)) end
 	else
 		if point == 0 then hard ("the probe record " .. r.seq .. " is a second creation") end
 		if not NEXT [tonumber (records [n - 1].point)] [point] then hard ("the probe record " .. r.seq .. ": point " .. point .. " cannot follow point " .. records [n - 1].point) end
@@ -298,16 +302,16 @@ for n, r in ipairs (records) do
 		-- the kill reads the entity slot only (the sound data was freed with the entity): the raw fields are zero, there is no sample, and the type is the freed slot's
 		if n ~= #records then hard ("the kill record is not the last record") end
 		for _, key in ipairs (ZERO_AFTER_KILL) do
-			if r [key] ~= "0" then hard ("the kill record " .. r.seq .. " shows " .. key .. " " .. r [key] .. " where the freed entity's raw fields are zero: " .. r.raw) end
+			if r [key] ~= "0" then hard ("the kill record " .. r.seq .. " shows " .. key .. " " .. r [key] .. " where the freed entity's raw fields are zero: " .. raw_of (r)) end
 		end
 		for _, key in ipairs (ZERO_WORDS) do
-			if r [key] ~= "00000000" then hard ("the kill record " .. r.seq .. " shows " .. key .. " " .. r [key] .. " where the freed entity's raw words are zero: " .. r.raw) end
+			if r [key] ~= "00000000" then hard ("the kill record " .. r.seq .. " shows " .. key .. " " .. r [key] .. " where the freed entity's raw words are zero: " .. raw_of (r)) end
 		end
-		if r.sample ~= "-1" then hard ("the kill record " .. r.seq .. " shows a sample where the freed entity has none: " .. r.raw) end
-		if r.entity ~= created.entity or r.entity ~= last.slot or r.etype ~= last.etype then hard ("the kill record " .. r.seq .. " is not the dead entity's slot and freed type: " .. r.raw) end
+		if r.sample ~= "-1" then hard ("the kill record " .. r.seq .. " shows a sample where the freed entity has none: " .. raw_of (r)) end
+		if r.entity ~= creation.entity or r.entity ~= last.slot or r.etype ~= last.etype then hard ("the kill record " .. r.seq .. " is not the dead entity's slot and freed type: " .. raw_of (r)) end
 	else
 		for _, key in ipairs (STABLE) do
-			if r [key] ~= created [key] then hard ("the probe record " .. r.seq .. " shows " .. key .. " " .. r [key] .. " where the creation shows " .. created [key]) end
+			if r [key] ~= creation [key] then hard ("the probe record " .. r.seq .. " shows " .. key .. " " .. r [key] .. " where the creation shows " .. creation [key]) end
 		end
 		-- the handle is what the branch says: an expiry with NO handle cannot be, and an entry or an expiry with a handle shows it
 		if point == 2 then hard ("the probe record " .. r.seq .. " is an expiry with NO handle although the control installed one") end
@@ -316,10 +320,10 @@ for n, r in ipairs (records) do
 	seen [point] = (seen [point] or 0) + 1
 end
 -- the controlled descriptor and the sample sequence as the records read them from the original's tables
-if created.rate ~= "4" or created.size ~= "20" or created.orate ~= facts.lightning_original_rate then
-	hard ("the creation record shows the descriptor rate " .. created.rate .. " size " .. created.size .. " original rate " .. created.orate .. " where the control set 4, 20 and the facts read " .. facts.lightning_original_rate)
+if creation.rate ~= "4" or creation.size ~= "20" or creation.orate ~= facts.lightning_original_rate then
+	hard ("the creation record shows the descriptor rate " .. creation.rate .. " size " .. creation.size .. " original rate " .. creation.orate .. " where the control set 4, 20 and the facts read " .. facts.lightning_original_rate)
 end
-if created.seqcount ~= "1" or created.sample == "-1" then hard ("the creation record is not a single-sample effect with a sample: " .. created.raw) end
+if creation.seqcount ~= "1" or creation.sample == "-1" then hard ("the creation record is not a single-sample effect with a sample: " .. raw_of (creation)) end
 -- the counters against the records and the calls
 if tonumber (report.updates) ~= enters or enters ~= calls then hard ("the probe counts " .. report.updates .. " updates, holds " .. enters .. " entries and the end row says " .. calls .. " calls") end
 if tonumber (report.kills) ~= (seen [5] or 0) then hard ("the probe counts " .. report.kills .. " kills and the records hold " .. (seen [5] or 0)) end
@@ -327,23 +331,37 @@ if tonumber (report.kills) ~= (seen [5] or 0) then hard ("the probe counts " .. 
 local function same_words (state, r, what)
 	if state.life_w ~= r.life_w or state.vlife_w ~= r.vlife_w then hard (what .. " shows the words " .. r.life_w .. "/" .. r.vlife_w .. " where the entity state shows " .. state.life_w .. "/" .. state.vlife_w) end
 end
-if states [1].slot ~= created.entity or states [1].etype ~= created.etype or states [1].sub ~= created.sub or states [1].looping ~= created.looping or states [1].valid ~= created.valid or states [1].member ~= created.update_member then
-	hard ("the first entity state is not the creation record's entity: " .. created.raw)
+-- the probe's record and the entity state of the SAME instant also agree on the flags the update routine reads: validity, update-list membership, the handle, looping and the sub type
+local function same_instant (state, r, what)
+	same_words (state, r, what)
+	if state.valid ~= r.valid or state.member ~= r.update_member or state.handle ~= r.handle or state.looping ~= r.looping or state.sub ~= r.sub then
+		hard (what .. " shows valid " .. r.valid .. ", update member " .. r.update_member .. ", handle " .. r.handle .. ", looping " .. r.looping .. ", sub type " .. r.sub .. " where the entity state shows " ..
+			state.valid .. ", " .. state.member .. ", " .. state.handle .. ", " .. state.looping .. ", " .. state.sub)
+	end
 end
-same_words (states [1], created, "the creation record")
+if states [1].slot ~= creation.entity or states [1].etype ~= creation.etype or states [1].sub ~= creation.sub or states [1].looping ~= creation.looping or states [1].valid ~= creation.valid or states [1].member ~= creation.update_member then
+	hard ("the first entity state is not the creation record's entity: " .. raw_of (creation))
+end
+same_words (states [1], creation, "the creation record")
 for _, r in ipairs (records) do
 	local point, upd = tonumber (r.point), tonumber (r.upd)
 	if point == 1 then
-		same_words (states [upd], r, "the entry record " .. r.seq)
+		same_instant (states [upd], r, "the entry record " .. r.seq)
 	elseif point == 4 then
 		if states [upd + 1] == nil or states [upd + 1].data ~= "1" then hard ("the playing expiry record " .. r.seq .. " is followed by a dead or missing entity state") end
-		same_words (states [upd + 1], r, "the playing expiry record " .. r.seq)
+		same_instant (states [upd + 1], r, "the playing expiry record " .. r.seq)
 	elseif point == 3 then
 		if upd ~= calls or alive then hard ("the idle expiry record " .. r.seq .. " is not at the last call of an entity that was killed") end
 	elseif point == 5 then
 		if upd ~= calls or alive then hard ("the kill record " .. r.seq .. " is not at the last call of an entity that is dead") end
 	end
 end
+-- every call the helper made had its reason, and every call it did not make has one: the helper (the fixture's data_calls) calls the real update routine only while the entity is a live sound effect AND a member of the
+-- update list, so each state but the last is such an entity, and fewer than three calls mean that the entity is dead after the last call or no longer a member of the update list
+for n = 1, #states - 1 do
+	if states [n].data ~= "1" or states [n].member ~= "1" then hard ("the helper made call " .. n .. " although the entity was not a live member of the update list after state " .. n) end
+end
+if calls < 3 and alive and last.member == "1" then hard ("the helper stopped after " .. calls .. " of 3 calls although the entity is live and still a member of the update list") end
 -- the kill, the entity's last state, the probe and the handle tell one story
 local killed = (seen [5] or 0) == 1
 if killed == alive then hard ("the probe holds " .. (seen [5] or 0) .. " kill records and the entity's last state is " .. (alive and "live" or "dead")) end
@@ -353,14 +371,34 @@ if alive and (seen [3] or 0) ~= 0 then hard ("the entity is live but the probe h
 -- ---------------------------------------------------------------------------------------------------------------- the getter: a source-backed inference apart from a measured marker
 local expiry_with_handle = ((seen [3] or 0) + (seen [4] or 0)) > 0
 local getter_status
+local contradiction
 if expiry_with_handle then
 	if before.playing == "1" then
-		getter_status = (after.playing == "0") and "marker_cleared_measured" or "marker_preserved_contradicts_the_inferred_getter_call"
+		if after.playing == "0" then
+			getter_status = "marker_cleared_measured"
+		else
+			getter_status = "marker_preserved_contradicts_the_inferred_getter_call"
+			contradiction = "the stale playing marker survived an expiry with a handle, which contradicts the getter call the source and the expiry record imply"
+		end
 	else
 		getter_status = "inferred_from_an_expiry_with_a_handle_no_marker_to_measure"
 	end
 else
-	getter_status = (before.playing == "1" and after.playing == "0") and "marker_cleared_with_no_expiry_unexplained" or "no_expiry_with_a_handle_so_no_getter_call_inferred"
+	if before.playing == "1" and after.playing == "0" then
+		getter_status = "marker_cleared_with_no_expiry_unexplained"
+		contradiction = "the stale playing marker was cleared although no expiry with a handle reached the getter"
+	else
+		getter_status = "no_expiry_with_a_handle_so_no_getter_call_inferred"
+	end
+end
+if before.playing == "0" and after.playing == "1" then
+	getter_status = "marker_set_during_the_calls_unexplained"
+	contradiction = "the playing flag became set during the calls although nothing on this route sets it"
+end
+if contradiction ~= nil then
+	-- an honest diagnostic and the private raw stay; there is NO result
+	emit { event = "getter_diagnostic", case = case, getter_status = getter_status, handle_playing_before = before.playing, handle_playing_after_calls = after.playing, expiry_with_handle_records = (seen [3] or 0) + (seen [4] or 0) }
+	hard (contradiction .. " (" .. getter_status .. ")")
 end
 
 -- ---------------------------------------------------------------------------------------------------------------- what the driver JOINS (labelled derived; never a measurement)
@@ -369,16 +407,24 @@ emit {
 	handle_playing_before = before.playing, handle_playing_after_calls = after.playing, handle_used_after_calls = after.used,
 	getter_status = getter_status,
 	getter_call_measured_by_marker = getter_status == "marker_cleared_measured",
-	getter_call_inferred_from_source_and_expiry = expiry_with_handle and getter_status ~= "marker_preserved_contradicts_the_inferred_getter_call",
+	getter_call_inferred_from_source_and_expiry = expiry_with_handle,
 	expiry_with_handle_records = (seen [3] or 0) + (seen [4] or 0), expired_idle = seen [3] or 0, expired_playing = seen [4] or 0, killed = seen [5] or 0,
 	original_released_handle = cleanup.destroyed_by_original == "1", fixture_released_handle = cleanup.destroyed_by_fixture == "1", entity_live_after = alive,
-	calls = calls, handle_zeroed_playing = "0", handle_zeroed_used = "0",
+	calls = calls,
 	scope = "controlled test state: a buffer-absent idle record in the static array, not an original product, not a backend and not audio; a playing buffer and the original constructor's handle are unsupported; the destroy of an invalid effect (the unlink path) and the other callers of the getter are not exercised; the full report is the private raw sidecar",
 }
 emit { event = "result", case = case }
 
-for _, name in ipairs (created) do
+-- BOTH evidence files are closed here, the raw sidecar first so that a failure to close it can still be written to the JSON, and a close that fails does not stop the other: every close is attempted, every failure
+-- is reported, and the run then fails closed (a `result` row is not enough without a process that succeeds)
+local close_errors = {}
+for position = #opened, 1, -1 do
+	local name = opened [position]
 	local closed, close_error = files [name]:close ()
-	if not closed then refuse ("OUTPUT FAILURE: closing " .. paths [name] .. " failed: " .. tostring (close_error)) end
+	if not closed then
+		close_errors [#close_errors + 1] = "closing " .. paths [name] .. " failed: " .. tostring (close_error)
+		if name ~= "out" then pcall (emit, { event = "output_failure", reason = close_errors [#close_errors] }) end
+	end
 end
+if #close_errors > 0 then refuse ("OUTPUT FAILURE: " .. table.concat (close_errors, "; ")) end
 io.stderr:write (string.format ("env-sound-handle: case=%d calls=%d handle_used_after=%s expired_idle=%d expired_playing=%d killed=%d getter=%s\n", case, calls, after.used, seen [3] or 0, seen [4] or 0, seen [5] or 0, getter_status))

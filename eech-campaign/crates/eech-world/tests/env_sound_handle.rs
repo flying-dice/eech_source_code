@@ -55,6 +55,26 @@ impl Drop for Scratch {
 /// The scripted `eech_dc`: `SCENARIO.report` is what `env_case (14, index)` returns (or `SCENARIO.engine_error` what it raises); `no_arm` and `no_case` damage the module. ORDER records what happened in what order.
 const COLLABORATORS: &str = r##"
 ORDER = {}
+CLOSED = {}
+do
+	-- the REAL exclusive output primitive, wrapped only to record every close it is asked to make; `SCENARIO.close_fail` names (by the end of the path) the one file whose close is reported as failed AFTER the real close
+	local real = host.output_create_new
+	host.output_create_new = function (path)
+		local file, why = real (path)
+		if file == nil then return file, why end
+		local wrapper = {}
+		function wrapper:write (...) return file:write (...) end
+		function wrapper:flush () return file:flush () end
+		function wrapper:close ()
+			local closed, err = file:close ()
+			CLOSED [#CLOSED + 1] = path
+			local fail = SCENARIO.close_fail
+			if fail and string.sub (path, -#fail) == fail then return nil, "injected close failure" end
+			return closed, err
+		end
+		return wrapper
+	end
+end
 host.terrain_provider = function () return function () end end
 host.env_provider = function () return function () end end
 package.preload.eech_dc = function ()
@@ -83,6 +103,7 @@ struct Driven {
     rows: Vec<serde_json::Value>,
     case_raw: Option<String>,
     order: Vec<String>,
+    closed: Vec<String>,
 }
 
 fn long(text: &str) -> String {
@@ -127,6 +148,7 @@ fn drive_in(work: &Scratch, scenario: &str, args: &[(&str, &str)], before: &dyn 
         rows,
         case_raw: std::fs::read_to_string(work.path("handle.jsonl.case.raw")).ok(),
         order: lua.globals().get::<Vec<String>>("ORDER").unwrap_or_default(),
+        closed: lua.globals().get::<Vec<String>>("CLOSED").unwrap_or_default(),
     }
 }
 
@@ -138,7 +160,10 @@ fn error_of(driven: &Driven) -> String {
     driven.result.clone().expect_err("the driver must fail")
 }
 
-const LABELS: [&str; 2] = ["handle_idle_buffer_absent_server_expiry", "handle_idle_buffer_absent_stale_playing_server_expiry"];
+const LABELS: [&str; 2] = [
+    "handle_idle_buffer_absent_server_expiry",
+    "handle_idle_buffer_absent_stale_playing_server_expiry",
+];
 
 /// the state words of the entity after call `tag` (arbitrary words; the entity has aged by the controlled delta)
 const WORDS: [&str; 4] = ["3fc00000", "3f400000", "3e800000", "bd000000"];
@@ -156,9 +181,13 @@ fn head(case: u32) -> String {
 }
 
 fn state(tag: usize, live: bool) -> String {
+    state_member(tag, live, 1)
+}
+
+fn state_member(tag: usize, live: bool, member: u32) -> String {
     if live {
         let life = WORDS[tag];
-        format!("env-sound-state ent=0 slot=7 tag={tag} etype=25 data=1 sub=1 valid=1 looping=0 member=1 handle=1 life_w={life} vlife_w=00000000\n")
+        format!("env-sound-state ent=0 slot=7 tag={tag} etype=25 data=1 sub=1 valid=1 looping=0 member={member} handle=1 life_w={life} vlife_w=00000000\n")
     } else {
         // a kill frees the entity: the slot keeps its number and the freed slot's type, every other field is zero
         format!("env-sound-state ent=0 slot=7 tag={tag} etype=0 data=0 sub=0 valid=0 looping=0 member=0 handle=0 life_w=00000000 vlife_w=00000000\n")
@@ -193,6 +222,7 @@ struct Run {
     kill: bool,
     playing_from: Option<usize>,
     marker_after: u32,
+    unlinked: bool,
 }
 
 fn report(run: Run) -> String {
@@ -204,9 +234,14 @@ fn report(run: Run) -> String {
     text += &format!("env-handle-input tag=record {origin} initial_playing={initial}\n");
     text += &format!("env-handle-state tag=before installed=1 used=1 playing={initial} buffer_null=1\n");
     for tag in 0..=run.calls {
-        text += &state(tag, !(run.kill && tag == run.calls));
+        let member = u32::from(!(run.unlinked && tag == run.calls));
+        text += &state_member(tag, !(run.kill && tag == run.calls), member);
     }
-    text += &format!("env-handle-state tag=after installed=1 used={} playing={} buffer_null=1\n", u32::from(!run.kill), run.marker_after);
+    text += &format!(
+        "env-handle-state tag=after installed=1 used={} playing={} buffer_null=1\n",
+        u32::from(!run.kill),
+        run.marker_after
+    );
     let cleanup = if run.kill {
         "entity_live_after=0 detached=0 destroyed_by_original=1 destroyed_by_fixture=0"
     } else {
@@ -223,13 +258,25 @@ fn report(run: Run) -> String {
             records.push(record(records.len(), 4, upd, 1, WORDS[upd]));
         }
     }
-    let counters = format!("stored={} dropped=0 overflow=0 creations=1 updates={} kills={}", records.len(), run.calls, u32::from(run.kill));
+    let counters = format!(
+        "stored={} dropped=0 overflow=0 creations=1 updates={} kills={}",
+        records.len(),
+        run.calls,
+        u32::from(run.kill)
+    );
     text += &format!("env-snd-report armed=1 capacity=80 {counters} frames=0 tracked=1 open=0 track_all=0 untracked=0\n");
     for line in &records {
         text += line;
     }
-    let end = format!("changed=1 installed=1 entities=1 planned_entities=1 short_of_slots=0 calls={} skipped={}", run.calls, 3 - run.calls);
-    text + &format!("env-sound-end i={} {end} descriptor_restored=1 delta_restored=1 handle_released=1 process_isolated=required\n", run.case)
+    let end = format!(
+        "changed=1 installed=1 entities=1 planned_entities=1 short_of_slots=0 calls={} skipped={}",
+        run.calls,
+        3 - run.calls
+    );
+    text + &format!(
+        "env-sound-end i={} {end} descriptor_restored=1 delta_restored=1 handle_released=1 process_isolated=required\n",
+        run.case
+    )
 }
 
 fn scenario(text: &str) -> String {
@@ -241,7 +288,19 @@ fn args(case: &str) -> [(&str, &str); 1] {
 }
 
 const fn run(case: u32, calls: usize, kill: bool, playing_from: Option<usize>, marker_after: u32) -> Run {
-    Run { case, calls, kill, playing_from, marker_after }
+    Run {
+        case,
+        calls,
+        kill,
+        playing_from,
+        marker_after,
+        unlinked: false,
+    }
+}
+
+/// the same run, but the last state shows the live entity no longer a member of the update list (the helper's own reason to make no further call)
+const fn unlinked(shape: Run) -> Run {
+    Run { unlinked: true, ..shape }
 }
 
 const KILL_AT_1: Run = run(21, 1, true, None, 0);
@@ -251,11 +310,15 @@ const ALIVE_NO_EXPIRY: Run = run(21, 3, false, None, 0);
 const PLAYING_KEPT: Run = run(21, 3, false, Some(2), 0);
 const MARKER_CLEARED: Run = run(22, 3, true, None, 0);
 const MARKER_PRESERVED_AT_EXPIRY: Run = run(22, 3, true, None, 1);
+const MARKER_SET_FROM_CLEAR: Run = run(21, 3, true, None, 1);
+const ALIVE_TWO_CALLS: Run = run(21, 2, false, None, 0);
+const UNLINKED_AT_2: Run = unlinked(ALIVE_TWO_CALLS);
 const MARKER_PRESERVED_NO_EXPIRY: Run = run(22, 3, false, None, 1);
 const MARKER_CLEARED_NO_EXPIRY: Run = run(22, 3, false, None, 0);
 const MARKER_CLEARED_PLAYING: Run = run(22, 3, false, Some(3), 0);
 
-/// the positives of the damage test (the ones every damage table row starts from, and the marker shapes)
+/// The coherent positives of the damage test (the ones every damage table row starts from): an early kill, a kill at the last call, an entity alive with no expiry, a playing expiry, a measured marker, an UNCHANGED stale
+/// marker with no expiry (an observation, not getter coverage) and a live entity the helper stopped calling because it left the update list. None of them is a causal contradiction.
 const POSITIVES: [Run; 8] = [
     KILL_AT_1,
     KILL_AT_2,
@@ -263,15 +326,14 @@ const POSITIVES: [Run; 8] = [
     ALIVE_NO_EXPIRY,
     PLAYING_KEPT,
     MARKER_CLEARED,
-    MARKER_PRESERVED_AT_EXPIRY,
     MARKER_PRESERVED_NO_EXPIRY,
+    UNLINKED_AT_2,
 ];
 
 #[test]
 fn a_coherent_c_shaped_report_is_kept_whole_joined_and_never_judged_and_the_getter_evidence_is_labelled() {
     let inferred = "inferred_from_an_expiry_with_a_handle_no_marker_to_measure";
     let none = "no_expiry_with_a_handle_so_no_getter_call_inferred";
-    let contradicted = "marker_preserved_contradicts_the_inferred_getter_call";
     let cases = [
         (KILL_AT_3, inferred, false, true),
         (KILL_AT_2, inferred, false, true),
@@ -280,16 +342,22 @@ fn a_coherent_c_shaped_report_is_kept_whole_joined_and_never_judged_and_the_gett
         (ALIVE_NO_EXPIRY, none, false, false),
         (MARKER_CLEARED, "marker_cleared_measured", true, true),
         (MARKER_CLEARED_PLAYING, "marker_cleared_measured", true, true),
-        (MARKER_PRESERVED_AT_EXPIRY, contradicted, false, false),
         (MARKER_PRESERVED_NO_EXPIRY, none, false, false),
-        (MARKER_CLEARED_NO_EXPIRY, "marker_cleared_with_no_expiry_unexplained", false, false),
+        (UNLINKED_AT_2, none, false, false),
     ];
     for (run, status, measured, inferred_call) in cases {
         let text = report(run);
         let driven = drive(&scenario(&text), &args(&run.case.to_string()));
         let what = format!("case {} calls {} kill {}", run.case, run.calls, run.kill);
-        driven.result.clone().unwrap_or_else(|e| panic!("{what}: a coherent C-shaped report was rejected: {e}"));
-        assert_eq!(driven.case_raw.as_deref(), Some(text.as_str()), "{what}: the report is kept exactly as the engine wrote it");
+        driven
+            .result
+            .clone()
+            .unwrap_or_else(|e| panic!("{what}: a coherent C-shaped report was rejected: {e}"));
+        assert_eq!(
+            driven.case_raw.as_deref(),
+            Some(text.as_str()),
+            "{what}: the report is kept exactly as the engine wrote it"
+        );
         assert_eq!(driven.order, ["prepare", "arm:true", "boot", &format!("case:14,{}", run.case)]);
         let derived = &of(&driven, "derived")[0];
         assert_eq!(derived["getter_status"].as_str(), Some(status), "{what}");
@@ -298,9 +366,16 @@ fn a_coherent_c_shaped_report_is_kept_whole_joined_and_never_judged_and_the_gett
         assert_eq!(derived["original_released_handle"].as_bool(), Some(run.kill), "{what}");
         assert_eq!(derived["fixture_released_handle"].as_bool(), Some(!run.kill), "{what}");
         assert_eq!(derived["calls"].as_i64(), Some(run.calls as i64), "{what}");
-        assert_eq!(of(&driven, "unsupported").len(), 2, "the playing buffer and the original's handle are unsupported, not passes");
+        assert_eq!(
+            of(&driven, "unsupported").len(),
+            2,
+            "the playing buffer and the original's handle are unsupported, not passes"
+        );
         assert_eq!(of(&driven, "result").len(), 1);
-        assert!(driven.rows.iter().all(|row| row["event"] != "env-snd"), "the JSON holds summaries, the complete rows are the raw sidecar only");
+        assert!(
+            driven.rows.iter().all(|row| row["event"] != "env-snd"),
+            "the JSON holds summaries, the complete rows are the raw sidecar only"
+        );
     }
 }
 
@@ -309,16 +384,27 @@ fn a_report_the_fixture_refused_or_an_engine_that_stopped_is_a_failure_with_the_
     // the fixture refused before it changed anything: reported, and not a pass
     let refused = head(21) + "env-sound-end i=21 refused=the_sound_system_is_initialised changed=0 process_isolated=required\n";
     let driven = drive(&scenario(&refused), &args("21"));
-    assert!(error_of(&driven).contains("REFUSED case 21 (the_sound_system_is_initialised)"), "{:?}", driven.result);
+    assert!(
+        error_of(&driven).contains("REFUSED case 21 (the_sound_system_is_initialised)"),
+        "{:?}",
+        driven.result
+    );
     assert_eq!(of(&driven, "control_refused").len(), 1);
     assert!(of(&driven, "result").is_empty() && driven.case_raw.as_deref() == Some(refused.as_str()));
 
     let stopped = drive("{ engine_error = 'engine fatal: a stop in the control', report = '' }", &args("21"));
-    assert!(error_of(&stopped).contains("FAILED in the engine: engine fatal: a stop in the control"), "{:?}", stopped.result);
+    assert!(
+        error_of(&stopped).contains("FAILED in the engine: engine fatal: a stop in the control"),
+        "{:?}",
+        stopped.result
+    );
     assert_eq!(of(&stopped, "engine_failure").len(), 1);
     assert!(stopped.case_raw.expect("the failure is kept").contains("a stop in the control"));
 
-    let case_error = drive(&scenario("env-case-error reason=sound_lifetime_case_refused_or_report_did_not_fit group=14 index=21\n"), &args("21"));
+    let case_error = drive(
+        &scenario("env-case-error reason=sound_lifetime_case_refused_or_report_did_not_fit group=14 index=21\n"),
+        &args("21"),
+    );
     assert!(error_of(&case_error).contains("refused: env-case-error"), "{:?}", case_error.result);
 }
 
@@ -327,6 +413,7 @@ fn base(key: &str) -> Run {
     match key {
         "k2" => KILL_AT_2,
         "k3" => KILL_AT_3,
+        "alive2" => ALIVE_TWO_CALLS,
         "alive" => ALIVE_NO_EXPIRY,
         "playing" => PLAYING_KEPT,
         "m22" => MARKER_CLEARED,
@@ -390,6 +477,15 @@ a value outside its domain | 21 | k3 | slot=7 tag=1 => slot=2147483648 tag=1 | i
 a repeated field | 21 | k2 | dropped=0 overflow=0 => dropped=0 dropped=0 overflow=0 | malformed or repeated field
 a dropped probe record | 21 | k2 | dropped=0 overflow=0 => dropped=1 overflow=0 | is not dropped=0
 a missing end row | 21 | k2 | DROP env-sound-end | ends before its env-sound-end row
+a creation record that already has an update number | 21 | k2 | IN env-snd seq=0 point=0 :: upd=0 => upd=1 | the creation record is not update 0 before the handle
+a kill record that still shows a position word | 21 | k2 | IN env-snd seq=4 point=5 :: px_w=00000000 => px_w=46b2d000 | where the freed entity's raw words are zero
+a creation that is not a single sample effect | 21 | k3 | ALL seqcount=1 => seqcount=2 | the creation record is not a single-sample effect with a sample
+a first state in another slot than the creation | 21 | alive | ALL slot=7 => slot=8 | the first entity state is not the creation record's entity
+a later state whose validity differs from the entry record | 21 | k3 | IN env-sound-state ent=0 slot=7 tag=1 :: valid=1 => valid=0 | where the entity state shows 0, 1, 1, 0, 1
+a later state whose membership differs from the entry record | 21 | k3 | IN env-sound-state ent=0 slot=7 tag=1 :: member=1 => member=0 | where the entity state shows 1, 0, 1, 0, 1
+a later state whose handle differs from the entry record | 21 | k3 | IN env-sound-state ent=0 slot=7 tag=1 :: handle=1 => handle=0 | where the entity state shows 1, 1, 0, 0, 1
+a last state whose membership differs from the playing expiry | 21 | playing | IN env-sound-state ent=0 slot=7 tag=3 :: member=1 => member=0 | where the entity state shows 1, 0, 1, 0, 1
+two calls of three with nothing to stop the helper | 21 | alive2 | updates=2 => updates=2 | although the entity is live and still a member of the update list
 ";
 
 /// the report of `run` with the edits of one damage line applied
@@ -436,7 +532,10 @@ fn a_report_that_is_incomplete_contradictory_or_not_the_case_asked_for_is_a_fail
     for run in POSITIVES {
         let driven = drive(&scenario(&report(run)), &args(&run.case.to_string()));
         let what = format!("case {} calls {} kill {}", run.case, run.calls, run.kill);
-        driven.result.clone().unwrap_or_else(|e| panic!("{what}: the coherent positive was rejected: {e}"));
+        driven
+            .result
+            .clone()
+            .unwrap_or_else(|e| panic!("{what}: the coherent positive was rejected: {e}"));
     }
     let truncated = report(KILL_AT_2).trim_end_matches('\n').to_string();
     let driven = drive(&scenario(&truncated), &args("21"));
@@ -458,8 +557,89 @@ fn a_report_that_is_incomplete_contradictory_or_not_the_case_asked_for_is_a_fail
         };
         assert!(error.contains("env-sound-handle:") && error.contains(reason), "{what}: {error}");
         assert!(of(&driven, "result").is_empty(), "{what}: a damaged capture is never a result");
-        assert_eq!(driven.case_raw.as_deref(), Some(text.as_str()), "{what}: the raw text is kept even when it is refused");
+        assert_eq!(
+            driven.case_raw.as_deref(),
+            Some(text.as_str()),
+            "{what}: the raw text is kept even when it is refused"
+        );
+        // a diagnostic that failed on a nil is not a witness failure: the reason must have been written to the JSON as a witness_failure row
+        let failures = of(&driven, "witness_failure");
+        assert_eq!(failures.len(), 1, "{what}: exactly one witness_failure row");
+        assert!(
+            failures[0]["reason"].as_str().is_some_and(|text| text.contains(reason)),
+            "{what}: {:?}",
+            failures[0]
+        );
     }
+}
+
+/// A causal contradiction between the stale marker and the expiry records is a failure of the witness: the honest diagnostic and the private raw stay, and there is NO result. The legitimate observations
+/// (a marker measured cleared at an expiry; an UNCHANGED marker with no expiry, which is not getter coverage) are accepted first.
+#[test]
+fn a_causal_contradiction_of_the_marker_is_a_witness_failure_with_its_diagnostic_the_raw_kept_and_no_result() {
+    for (run, status) in [
+        (MARKER_CLEARED, "marker_cleared_measured"),
+        (MARKER_PRESERVED_NO_EXPIRY, "no_expiry_with_a_handle_so_no_getter_call_inferred"),
+    ] {
+        let driven = drive(&scenario(&report(run)), &args(&run.case.to_string()));
+        driven
+            .result
+            .clone()
+            .unwrap_or_else(|e| panic!("{status}: the legitimate observation was rejected: {e}"));
+        assert_eq!(of(&driven, "derived")[0]["getter_status"].as_str(), Some(status));
+    }
+    let contradictions = [
+        (MARKER_PRESERVED_AT_EXPIRY, "marker_preserved_contradicts_the_inferred_getter_call"),
+        (MARKER_CLEARED_NO_EXPIRY, "marker_cleared_with_no_expiry_unexplained"),
+        (MARKER_SET_FROM_CLEAR, "marker_set_during_the_calls_unexplained"),
+    ];
+    for (run, status) in contradictions {
+        let text = report(run);
+        let driven = drive(&scenario(&text), &args(&run.case.to_string()));
+        let error = error_of(&driven);
+        assert!(error.contains("env-sound-handle:") && error.contains(status), "{status}: {error}");
+        assert!(
+            of(&driven, "result").is_empty() && of(&driven, "derived").is_empty(),
+            "{status}: a contradiction is never a result"
+        );
+        assert_eq!(of(&driven, "getter_diagnostic")[0]["getter_status"].as_str(), Some(status));
+        assert_eq!(of(&driven, "witness_failure").len(), 1, "{status}");
+        assert_eq!(driven.case_raw.as_deref(), Some(text.as_str()), "{status}: the private raw is kept");
+    }
+}
+
+/// BOTH evidence files are closed by the driver itself, the raw sidecar first, whatever either close does; a close that fails (reported after the real close) fails the run although the `result` row was written.
+#[test]
+fn both_evidence_files_are_closed_explicitly_and_a_failure_to_close_either_fails_the_run_closed() {
+    let text = report(KILL_AT_2);
+    let driven = drive(&scenario(&text), &args("21"));
+    driven
+        .result
+        .clone()
+        .unwrap_or_else(|e| panic!("a coherent report with two good closes was rejected: {e}"));
+    assert_eq!(driven.closed.len(), 2, "both evidence files are closed: {:?}", driven.closed);
+    assert!(
+        driven.closed[0].ends_with("handle.jsonl.case.raw") && driven.closed[1].ends_with("handle.jsonl"),
+        "{:?}",
+        driven.closed
+    );
+    for (fail, named) in [
+        ("case.raw", "handle.jsonl.case.raw failed: injected close failure"),
+        ("handle.jsonl", "handle.jsonl failed: injected close failure"),
+    ] {
+        let driven = drive(&format!("{{ close_fail = '{fail}', report = {} }}", long(&text)), &args("21"));
+        let error = error_of(&driven);
+        assert!(error.contains("OUTPUT FAILURE: closing") && error.contains(named), "{fail}: {error}");
+        assert_eq!(driven.closed.len(), 2, "{fail}: the other file is still closed: {:?}", driven.closed);
+        assert_eq!(
+            of(&driven, "result").len(),
+            1,
+            "{fail}: the result row was written before the close, so a process success is required as well"
+        );
+    }
+    // a failure to close the raw sidecar is written to the JSON before the JSON is closed
+    let driven = drive(&format!("{{ close_fail = 'case.raw', report = {} }}", long(&text)), &args("21"));
+    assert_eq!(of(&driven, "output_failure").len(), 1);
 }
 
 #[test]
