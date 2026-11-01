@@ -3419,9 +3419,13 @@ static int env_case_count (int group)
    player kind, the current flight dynamics pointer and the rotor probe's phase. The report is STAGED in a bounded local buffer and copied out only after that restoration, and the case refuses BEFORE any change when the caller's buffer
    cannot hold the whole staged report, so a short buffer can never leave a changed global behind.
 
-   INHERITED INDETERMINATE DOMAIN. In the unchanged original routine, for a LOCAL player with a flight model, `right_turbine_amp` is assigned only when the two engines are more than 1.0 apart and `apu_amp` only when the APU rpm is above 0, but the
-   child switch reads them for any TURBINE2 or APU child. Those reads are uninitialised, not functions of the recorded inputs; the routine is not changed or initialised here, and such a call is never promoted to a replayable oracle:
-   a table shape that leaves one of them unassigned is EXECUTED only on a helicopter that has no child that would read it (and is then labelled `undefined_not_consumed`), and otherwise it is reported as skipped before the routine is called.
+   UNASSIGNED LOCALS OF THE ORIGINAL AND THE CANONICAL BUILD CONTRACT. In the unchanged original routine, for a LOCAL player with a flight model, `right_turbine_amp` is assigned only when the two engines are more than 1.0 apart and `apu_amp` only when the
+   APU rpm is above 0, but the child switch reads them for any TURBINE2 or APU child. At the LANGUAGE level those reads are uninitialised and not functions of the recorded inputs. The accepted canonical whole-engine build, however, compiles EVERY legacy unit
+   and every csrc unit (this fixture, the observer and helicop.c) with `-ftrivial-auto-var-init=zero` (eech-engine-sys/build/main.rs, the single cc::Build that all of them join), so in the ARTIFACTS this case runs the unassigned locals are zero by that
+   existing compile contract. The routine is not changed or initialised here and no flag is added. Every table shape is therefore EXECUTED, and a shape whose unassigned local is actually read by a child of this helicopter is labelled
+   `compiler_zero_init` (a compiler-compatibility case: the output depends on the build's zero-auto-init contract, not on the recorded inputs alone); a shape whose unassigned local no child reads is `undefined_not_consumed`; the rest are `defined`.
+   The contract is DECLARED by the build source, not detected at run time (`auto_var_init=declared_by_build_main_rs_zero` in the plan row); an observed value is a measurement of that build only, and outside GCC-family builds with the flag (an MSVC build, any build
+   without it) the language-level limitation stands and these rows are not an oracle.
    Case 16 keeps the helicopter's own AI player kind and the absent flight model (the natural headless branch: every value is assigned). Case 17 is the player-LOCAL / flight-model branch with an OWNED zeroed record; the acceleration
    vector is used by the original for every player kind when a flight model exists, the engine and APU words only for the LOCAL kind. That branch has never run headless and is optional. */
 
@@ -3450,7 +3454,7 @@ static const unsigned int env_rotor_ai_rpm[] = {
 /* rpm, acceleration vector, left and right engine rpm, APU rpm, then the two unassigned flags.
    DEFINED shapes (engines more than 1.0 apart AND APU above 0): full looping with zero acceleration; acceleration (3,4,0) (magnitude 5); the clamp (30,0,0) at 37.5 rpm; rpm exactly 30 with acceleration 15 (looping off, slap paused);
    the left engine exactly 1.0 (paused) and one ulp above it (resumed) against a right engine of 60; the right engine at 0.5 (paused); a huge APU and a tiny one; a stopped left engine.
-   INDETERMINATE shapes (reported skipped on a helicopter with a TURBINE2 or APU child): equal engines; engines exactly 1.0 apart and one ulp apart on the wrong side; APU 0. */
+   UNASSIGNED-LOCAL shapes (labelled `compiler_zero_init` on a helicopter with a TURBINE2 or APU child, and executed in every case): equal engines; engines exactly 1.0 apart; APU 0. */
 static const struct env_rotor_input env_rotor_fd_inputs[] = {
 	{ 0x42480000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x42480000u, 0x42700000u, 0x40A00000u, 0, 0 },
 	{ 0x42480000u, 0x40400000u, 0x40800000u, 0x00000000u, 0x42480000u, 0x42700000u, 0x40A00000u, 0, 0 },
@@ -3610,7 +3614,7 @@ static int env_rotor_case (int index, char *text, int capacity, int *used)
 	saved_player = raw->player;
 	memcpy (&saved_rpm, &raw->main_rotor_rpm, sizeof (saved_rpm));
 
-	ENV_ROTOR_STAGE_ROW ("env-rotor-plan version=1 case=%s process_isolated=required mutating=1 natural=0 phase=1 restores=main_rotor_rpm,player,flight_dynamics_pointer,probe_phase children_restored=0 instrumented=%d probe_armed=%d\n",
+	ENV_ROTOR_STAGE_ROW ("env-rotor-plan version=1 case=%s process_isolated=required mutating=1 natural=0 phase=1 restores=main_rotor_rpm,player,flight_dynamics_pointer,probe_phase children_restored=0 instrumented=%d probe_armed=%d auto_var_init=declared_by_build_main_rs_zero\n",
 		fd_branch ? "player_local_and_flight_model" : "ai_rpm_sweep", instrumented, armed);
 	ENV_ROTOR_STAGE_ROW ("env-rotor-entity ent=%d player=%d special_effect_children=%d sound_children=%d turbine2_children=%d apu_children=%d fd=0\n", get_local_entity_index (en), saved_player, children, sound, turbine2, apu);
 
@@ -3642,16 +3646,7 @@ static int env_rotor_case (int index, char *text, int capacity, int *used)
 			in.rpm = env_rotor_ai_rpm[i];
 		}
 
-		if ((in.right_unassigned && turbine2 > 0) || (in.apu_unassigned && apu > 0))
-		{
-			ENV_ROTOR_STAGE_ROW ("env-rotor-skipped i=%d rpm_w=%08x ax_w=%08x ay_w=%08x az_w=%08x lrpm_w=%08x rrpm_w=%08x apu_w=%08x reason=%s\n", i, in.rpm, in.ax, in.ay, in.az, in.lrpm, in.rrpm, in.apu,
-				(in.right_unassigned && turbine2 > 0 && in.apu_unassigned && apu > 0) ? "right_turbine_amp_and_apu_amp_unassigned_and_consumed" : ((in.right_unassigned && turbine2 > 0) ? "right_turbine_amp_unassigned_and_consumed" : "apu_amp_unassigned_and_consumed"));
-			skipped++;
-
-			continue;
-		}
-
-		class_ = (in.right_unassigned || in.apu_unassigned) ? "undefined_not_consumed" : "defined";
+		class_ = ((in.right_unassigned && turbine2 > 0) || (in.apu_unassigned && apu > 0)) ? "compiler_zero_init" : ((in.right_unassigned || in.apu_unassigned) ? "undefined_not_consumed" : "defined");
 
 		memcpy (&raw->main_rotor_rpm, &in.rpm, sizeof (in.rpm));
 

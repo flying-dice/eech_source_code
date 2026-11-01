@@ -181,9 +181,10 @@ extern void eech_envobs_sndinit (int point, int a, int b, int c, int d);
 // nothing, allocates nothing, formats nothing at the point and writes no game variable. The order of the original's pause and resume calls is recorded by a point placed immediately BEFORE each call, with the
 // delay as the exact integer zero word (the original's literal 0.0 delay has the bit pattern 0).
 //
-// INHERITED INDETERMINATE DOMAIN (not introduced and not fixed here): in the original routine, for a LOCAL player with a flight model, `right_turbine_amp` is assigned only when the two engines are more than 1.0 apart and
-// `apu_amp` only when the APU rpm is above 0, yet the child switch reads them for any TURBINE2 or APU child. Those reads are uninitialised stack values, not functions of the recorded inputs, so such a call is not
-// a replayable physical oracle; the controlled sweep refuses to execute those shapes on a helicopter that has such a child (it reports them as skipped).
+// UNASSIGNED LOCALS (not introduced and not fixed here): in the original routine, for a LOCAL player with a flight model, `right_turbine_amp` is assigned only when the two engines are more than 1.0 apart and
+// `apu_amp` only when the APU rpm is above 0, yet the child switch reads them for any TURBINE2 or APU child. At the language level those reads are uninitialised, not functions of the recorded inputs. The accepted
+// canonical whole-engine build compiles every legacy and csrc unit with `-ftrivial-auto-var-init=zero` (eech-engine-sys/build/main.rs), so in its artifacts they are zero by that existing compile contract; the controlled
+// sweep executes those shapes and labels them `compiler_zero_init`. Outside that contract the language-level limitation stands.
 //
 
 enum ENV_FXR_POINTS

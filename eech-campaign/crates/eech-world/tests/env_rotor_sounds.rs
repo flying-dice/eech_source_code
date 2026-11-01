@@ -545,7 +545,7 @@ fn executed_rows(i: u32, rpm: &str, acc: [&str; 3], eng: [&str; 3], class: &str)
 }
 
 fn plan(case: &str) -> String {
-    format!("env-rotor-plan version=1 case={case} process_isolated=required mutating=1 natural=0 phase=1 restores=main_rotor_rpm,player,flight_dynamics_pointer,probe_phase children_restored=0 instrumented=1 probe_armed=1\n")
+    format!("env-rotor-plan version=1 case={case} process_isolated=required mutating=1 natural=0 phase=1 restores=main_rotor_rpm,player,flight_dynamics_pointer,probe_phase children_restored=0 instrumented=1 probe_armed=1 auto_var_init=declared_by_build_main_rs_zero\n")
 }
 
 const ENTITY: &str = "env-rotor-entity ent=77 player=0 special_effect_children=2 sound_children=1 turbine2_children=1 apu_children=0 fd=0\n";
@@ -576,27 +576,32 @@ fn ai_page() -> String {
 
 const ENGINES: [&str; 3] = ["42480000", "42700000", "40a00000"];
 
-/// The flight model sweep: the LOCAL player kind (1) with a flight model; two executed defined shapes and one indeterminate shape reported skipped.
+/// Equal engines: `right_turbine_amp` is unassigned in the original, and the helicopter has a TURBINE2 child (ENTITY): a compiler-compatibility case under the build's zero auto-init contract.
+const EQUAL_ENGINES: [&str; 3] = ["42480000", "42480000", "40a00000"];
+
+/// The flight model sweep: the LOCAL player kind (1) with a flight model; two safe-language shapes and one compiler-compatibility shape, ALL executed.
 fn fd_text() -> String {
     format!(
-        "{}{ENTITY}{}{}env-rotor-skipped i=2 rpm_w=42480000 ax_w=00000000 ay_w=00000000 az_w=00000000 lrpm_w=42480000 rrpm_w=42480000 apu_w=40a00000 reason=right_turbine_amp_unassigned_and_consumed\n{FINGERPRINT}env-rotor-end refused=0 mutating=1 calls=2 skipped=1\n",
+        "{}{ENTITY}{}{}{}{FINGERPRINT}env-rotor-end refused=0 mutating=1 calls=3 skipped=0\n",
         plan("player_local_and_flight_model"),
         executed_rows(0, "42480000", [ZERO; 3], ENGINES, "defined"),
-        executed_rows(1, "42480000", ["40400000", "40800000", ZERO], ENGINES, "defined")
+        executed_rows(1, "42480000", ["40400000", "40800000", ZERO], ENGINES, "defined"),
+        executed_rows(2, "42480000", [ZERO; 3], EQUAL_ENGINES, "compiler_zero_init")
     )
 }
 
-/// The probe's phase 1 records of the flight model sweep (two calls); `damage` may change either call's record before it is printed.
+/// The probe's phase 1 records of the flight model sweep (three calls); `damage` may change any call's record before it is printed.
 fn fd_calls(damage: impl Fn(u32, &mut Spec)) -> String {
-    let accelerations = [[ZERO; 3], ["40400000", "40800000", ZERO]];
-    (0..2u32)
+    let accelerations = [[ZERO; 3], ["40400000", "40800000", ZERO], [ZERO; 3]];
+    let engines = [ENGINES, ENGINES, EQUAL_ENGINES];
+    (0..3u32)
         .map(|k| {
             let mut spec = Spec {
                 phase: 1,
                 player: 1,
                 fd: true,
                 acc: accelerations[k as usize].map(String::from),
-                eng: ENGINES.map(String::from),
+                eng: engines[k as usize].map(String::from),
                 ..Spec::new(k + 1)
             }
             .busy();
@@ -639,12 +644,12 @@ fn the_controlled_sweeps_run_last_are_stamped_apart_from_natural_coverage_and_jo
             derived["controlled_phase1_calls"].as_i64(),
             derived["calls"].as_i64(),
             derived["sweep_executed"].as_i64(),
-            derived["sweep_skipped"].as_i64()
+            derived["sweep_compiler_zero_init_cases"].as_i64()
         ),
         (Some(1), Some(2), Some(3), Some(2), Some(0))
     );
     assert!(derived["coverage_note"].as_str().unwrap_or_default().contains("not natural coverage"));
-    // the player/flight-model branch is its own case, with the real LOCAL kind, and reports the indeterminate shape it skipped
+    // the player/flight-model branch is its own case, with the real LOCAL kind; the unassigned-local shape is EXECUTED and labelled a compiler-compatibility case, reported apart from the safe-language shapes
     let driven = drive(&sweep_scenario(&fd_text(), &fd_page(), ""), &sweep_args("fd"));
     driven.result.clone().expect("a coherent flight model sweep");
     assert!(driven.order.iter().any(|step| step == "case:14,17"));
@@ -653,11 +658,23 @@ fn the_controlled_sweeps_run_last_are_stamped_apart_from_natural_coverage_and_jo
         (
             derived["calls_with_a_flight_model"].as_i64(),
             derived["sweep_executed"].as_i64(),
-            derived["sweep_skipped"].as_i64()
+            derived["sweep_compiler_zero_init_cases"].as_i64()
         ),
-        (Some(2), Some(2), Some(1))
+        (Some(3), Some(3), Some(1))
     );
-    assert_eq!(of(&driven, "sweep_skipped")[0]["reason"], "right_turbine_amp_unassigned_and_consumed");
+    let scopes: Vec<(&str, &str)> = of(&driven, "sweep_row")
+        .iter()
+        .map(|row| (row["class"].as_str().unwrap_or_default(), row["scope"].as_str().unwrap_or_default()))
+        .collect();
+    assert_eq!(
+        scopes,
+        [
+            ("defined", "controlled_world_input"),
+            ("defined", "controlled_world_input"),
+            ("compiler_zero_init", "compiler_compatibility_case_canonical_build_flag")
+        ]
+    );
+    assert!(of(&driven, "sweep_skipped").is_empty());
 }
 
 #[test]
@@ -796,9 +813,29 @@ fn a_sweep_report_that_is_refused_misdeclared_out_of_order_or_inconsistent_is_a_
         ("exception flags that are not hexadecimal", ai.replacen("excepts=0", "excepts=zz", 1), "not hexadecimal"),
         ("an unknown class", ai.replacen("class=defined", "class=maybe", 1), "unknown class"),
         ("an AI row that declares a flight model word", ai.replacen("ax_w=00000000", "ax_w=3f800000", 1), "declares a flight model word"),
-        ("an AI sweep that skips an input", ai.replacen("env-rotor-fingerprint", "env-rotor-skipped i=2 rpm_w=00000000 ax_w=00000000 ay_w=00000000 az_w=00000000 lrpm_w=00000000 rrpm_w=00000000 apu_w=00000000 reason=apu_amp_unassigned_and_consumed\nenv-rotor-fingerprint", 1), "no indeterminate shape to skip"),
+        (
+            "an AI sweep row labelled as a compiler-compatibility case",
+            ai.replacen("class=defined", "class=compiler_zero_init", 1),
+            "an AI sweep row is not fully defined",
+        ),
+        (
+            "a skipped row, which this protocol no longer has",
+            ai.replacen("env-rotor-fingerprint", "env-rotor-skipped i=2 rpm_w=00000000 ax_w=00000000 ay_w=00000000 az_w=00000000 lrpm_w=00000000 rrpm_w=00000000 apu_w=00000000 reason=apu_amp_unassigned_and_consumed\nenv-rotor-fingerprint", 1),
+            "not part of this protocol",
+        ),
+        (
+            "a sweep that does not state the build contract",
+            ai.replacen(" auto_var_init=declared_by_build_main_rs_zero", "", 1),
+            "has 10 fields",
+        ),
+        (
+            "a sweep that states another build contract",
+            ai.replacen("declared_by_build_main_rs_zero", "detected_at_run_time", 1),
+            "does not state the build contract",
+        ),
         ("the fingerprint missing", ai.replacen(FINGERPRINT, "", 1), "expected a env-rotor-sweep row"),
         ("an end row that disagrees", ai.replacen("calls=2 skipped=0", "calls=3 skipped=0", 1), "does not match"),
+        ("an end row that claims a skipped row", ai.replacen("calls=2 skipped=0", "calls=2 skipped=1", 1), "does not match"),
         ("a row after the end", format!("{ai}env-rotor-sweep i=2\n"), "row after its end row"),
         ("no input rows at all", format!("{}{ENTITY}{FINGERPRINT}env-rotor-end refused=0 mutating=1 calls=0 skipped=0\n", plan("ai_rpm_sweep")), "no input row"),
     ];

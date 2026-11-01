@@ -11,10 +11,13 @@
 -- COPIED versus CONSUMED. The acceleration vector of a present flight model is consumed for EVERY player kind and is always copied; the left, right and APU engine words are consumed ONLY for the LOCAL player kind and are
 -- copied only then (zero otherwise); the stored rpm and the player kind are always consumed and copied. The driver rejects a record that carries a word the original does not consume.
 --
--- INHERITED INDETERMINATE DOMAIN. In the unchanged original, for a LOCAL player with a flight model, `right_turbine_amp` is assigned only when the engines are more than 1.0 apart and `apu_amp` only when the APU rpm is above 0, yet
--- the child switch reads them for any TURBINE2 or APU child. Those reads are uninitialised stack values, not functions of the recorded inputs; the routine is NOT initialised or changed here and such a call is never promoted
--- to a replayable oracle. The controlled sweep therefore executes such a shape only on a helicopter with no child that would read the unassigned value (class `undefined_not_consumed`) and otherwise reports it as skipped before
--- the routine is called. The natural headless branch (AI player, no flight model) assigns everything.
+-- UNASSIGNED LOCALS AND THE CANONICAL BUILD CONTRACT. In the unchanged original, for a LOCAL player with a flight model, `right_turbine_amp` is assigned only when the engines are more than 1.0 apart and `apu_amp` only when the APU rpm is above 0,
+-- yet the child switch reads them for any TURBINE2 or APU child. At the language level those reads are uninitialised and not functions of the recorded inputs, and nothing here initialises or changes the routine. The accepted canonical
+-- whole-engine build, though, compiles every legacy unit and every csrc unit (helicop.c included) with `-ftrivial-auto-var-init=zero` (eech-engine-sys/build/main.rs, one cc::Build for all of them), so in the artifacts this driver
+-- characterises those locals are zero by that EXISTING compile contract. The controlled sweep therefore executes EVERY shape; one whose unassigned local is actually read by a child of the chosen helicopter is labelled
+-- `compiler_zero_init` (a compiler-compatibility case, reported apart from the safe-language cases, with its full output words and floating point rows), one whose unassigned local no child reads is `undefined_not_consumed`, the rest are
+-- `defined`. The contract is DECLARED by the build source and by the plan row (`auto_var_init=declared_by_build_main_rs_zero`), not detected at run time: what the rows show is a measurement of that build only, the zero value is
+-- PENDING Root's comparison and is never assumed here, and outside a build with that flag the language-level limitation stands. The natural headless branch (AI player, no flight model) assigns everything.
 --
 -- MEASURED vs INFERRED. Everything in a probe record is MEASURED by the probe in the original code. What this driver adds is counting, strict structural checking and JOINING of the records (each sweep call to the chosen helicopter,
 -- case, player kind, flight model and declared input words; the probe's `after` words to the fixture's own output words), labelled `derived`; it computes no level, pitch or acceleration and replays nothing. A branch no natural call took
@@ -367,6 +370,7 @@ end
 
 -- ---------------------------------------------------------------------------------------------------------------- the controlled sweep (world-input variation, mutating, declared)
 local executed, skipped_rows = {}, {}
+local compiler_cases = 0
 local sweep_entity
 local fd_sweep = (sweep == "fd")
 local function parse_sweep (text)
@@ -385,13 +389,14 @@ local function parse_sweep (text)
 		return exact (line, event, keys, what), line
 	end
 	if lines [1] ~= nil and string.sub (lines [1], 1, #"env-rotor-refused ") == "env-rotor-refused " then hard ("the controlled sweep was refused by the fixture (" .. lines [1] .. "): it is a failure of the witness, never a result") end
-	local plan = take ("env-rotor-plan", { "version", "case", "process_isolated", "mutating", "natural", "phase", "restores", "children_restored", "instrumented", "probe_armed" })
+	local plan = take ("env-rotor-plan", { "version", "case", "process_isolated", "mutating", "natural", "phase", "restores", "children_restored", "instrumented", "probe_armed", "auto_var_init" })
 	if plan.version ~= "1" or plan.process_isolated ~= "required" or plan.mutating ~= "1" or plan.natural ~= "0" or plan.phase ~= "1" or plan.children_restored ~= "0" then
 		hard ("the controlled sweep does not declare itself mutating, process-isolated and not natural, or does not state that it restores no child: " .. lines [1])
 	end
 	if plan.case ~= (fd_sweep and "player_local_and_flight_model" or "ai_rpm_sweep") then hard ("the sweep report is for the case " .. plan.case .. " where " .. sweep .. " was asked: " .. lines [1]) end
 	if plan.restores ~= "main_rotor_rpm,player,flight_dynamics_pointer,probe_phase" then hard ("the sweep does not declare the restoration it makes: " .. lines [1]) end
 	if (plan.instrumented ~= "0" and plan.instrumented ~= "1") or (plan.probe_armed ~= "0" and plan.probe_armed ~= "1") then hard ("the sweep's instrumented and armed flags are not flags: " .. lines [1]) end
+	if plan.auto_var_init ~= "declared_by_build_main_rs_zero" then hard ("the sweep does not state the build contract its unassigned locals rely on (auto_var_init): " .. lines [1]) end
 	if probe and (plan.instrumented ~= "1" or plan.probe_armed ~= "1") then hard ("the rotor probe is on but the sweep reports instrumented " .. plan.instrumented .. " armed " .. plan.probe_armed .. ": " .. lines [1]) end
 	local entity, entity_line = take ("env-rotor-entity", { "ent", "player", "special_effect_children", "sound_children", "turbine2_children", "apu_children", "fd" })
 	local e = {}
@@ -404,15 +409,7 @@ local function parse_sweep (text)
 	while lines [at] ~= nil and string.sub (lines [at], 1, #"env-rotor-fingerprint ") ~= "env-rotor-fingerprint " do
 		local words = { "i", "rpm_w", "ax_w", "ay_w", "az_w", "lrpm_w", "rrpm_w", "apu_w" }
 		if string.sub (lines [at], 1, #"env-rotor-skipped ") == "env-rotor-skipped " then
-			local keys = {}
-			for _, key in ipairs (words) do keys [#keys + 1] = key end
-			keys [#keys + 1] = "reason"
-			local row, line = take ("env-rotor-skipped", keys)
-			if as_count (row.i, line) ~= index then hard ("the sweep rows are out of order (expected i=" .. index .. "): " .. line) end
-			for _, key in ipairs (words) do if key ~= "i" and not is_word (row [key]) then hard ("a sweep row word is not an eight digit word: " .. line) end end
-			if not fd_sweep then hard ("the AI sweep has no indeterminate shape to skip: " .. line) end
-			if row.reason ~= "right_turbine_amp_unassigned_and_consumed" and row.reason ~= "apu_amp_unassigned_and_consumed" and row.reason ~= "right_turbine_amp_and_apu_amp_unassigned_and_consumed" then hard ("a skipped sweep row has an unknown reason: " .. line) end
-			skipped_rows [#skipped_rows + 1] = row
+			hard ("a skipped sweep row is not part of this protocol (every shape is executed under the build's zero auto-init contract): " .. lines [at])
 		else
 			local keys = {}
 			for _, key in ipairs (words) do keys [#keys + 1] = key end
@@ -420,7 +417,7 @@ local function parse_sweep (text)
 			local row, line = take ("env-rotor-sweep", keys)
 			if as_count (row.i, line) ~= index then hard ("the sweep rows are out of order (expected i=" .. index .. "): " .. line) end
 			for _, key in ipairs (words) do if key ~= "i" and not is_word (row [key]) then hard ("a sweep row word is not an eight digit word: " .. line) end end
-			if row.class ~= "defined" and row.class ~= "undefined_not_consumed" then hard ("a sweep row has an unknown class: " .. line) end
+			if row.class ~= "defined" and row.class ~= "undefined_not_consumed" and row.class ~= "compiler_zero_init" then hard ("a sweep row has an unknown class: " .. line) end
 			if not fd_sweep then
 				if row.class ~= "defined" then hard ("an AI sweep row is not fully defined: " .. line) end
 				for _, key in ipairs ({ "ax_w", "ay_w", "az_w", "lrpm_w", "rrpm_w", "apu_w" }) do if row [key] ~= ZERO then hard ("an AI sweep row declares a flight model word: " .. line) end end
@@ -445,7 +442,7 @@ local function parse_sweep (text)
 	take ("env-rotor-fingerprint", { "rng_before_w", "rng_after_w", "entity_before", "entity_after", "local_before", "local_after" })
 	local finish, finish_line = take ("env-rotor-end", { "refused", "mutating", "calls", "skipped" })
 	if finish.refused ~= "0" or finish.mutating ~= "1" then hard ("the sweep end row is not an unrefused mutating end: " .. finish_line) end
-	if as_count (finish.calls, finish_line) ~= #executed or as_count (finish.skipped, finish_line) ~= #skipped_rows or #executed < 1 then hard ("the sweep end row (" .. finish_line .. ") does not match the " .. #executed .. " executed and " .. #skipped_rows .. " skipped rows") end
+	if as_count (finish.calls, finish_line) ~= #executed or as_count (finish.skipped, finish_line) ~= 0 or #executed < 1 then hard ("the sweep end row (" .. finish_line .. ") does not match the " .. #executed .. " executed rows and no skipped row") end
 	if lines [at] ~= nil then hard ("the sweep report has a row after its end row: " .. lines [at]) end
 	return plan
 end
@@ -473,8 +470,12 @@ if sweep ~= "none" then
 	if type (text) ~= "string" or text == "" or string.find (text, "env-case-error", 1, true) then hard ("env_case (14, " .. index .. ") did not give a report: " .. first_line (text)) end
 	keep ("sweep", text)
 	parse_sweep (text)
-	for _, row in ipairs (executed) do emit { event = "sweep_row", scope = "controlled_world_input", i = tonumber (row.i), class = row.class, rpm_w = row.rpm_w, out = row.out_raw, excepts = row.fp.excepts } end
-	for _, row in ipairs (skipped_rows) do emit { event = "sweep_skipped", scope = "inherited_indeterminate_domain", i = tonumber (row.i), reason = row.reason, rpm_w = row.rpm_w } end
+	for _, row in ipairs (executed) do
+		-- a compiler-compatibility case is reported apart from the safe-language cases: its output depends on the build's zero auto-init contract
+		local scope = row.class == "compiler_zero_init" and "compiler_compatibility_case_canonical_build_flag" or "controlled_world_input"
+		if row.class == "compiler_zero_init" then compiler_cases = compiler_cases + 1 end
+		emit { event = "sweep_row", scope = scope, i = tonumber (row.i), class = row.class, rpm_w = row.rpm_w, out = row.out_raw, excepts = row.fp.excepts }
+	end
 	if probe then
 		local calls, records = drain ("after the sweep", 1)
 		sweep_calls = calls
@@ -511,8 +512,8 @@ emit {
 	event = "derived", source = "the driver's join of the records above; not a measurement", probe = probe_arg,
 	natural_calls = natural_calls, natural_phase0_calls = totals.phase0, controlled_phase1_calls = totals.phase1, calls = totals.calls, boot_calls = boot_calls, frames = frames,
 	distinct_entities = distinct, calls_with_requests = totals.with_actions, calls_with_a_flight_model = totals.fd_calls, calls_where_the_seed_word_changed = totals.rng_changed, children_walked = totals.kids_seen,
-	bytes = totals.bytes, sweep = sweep, sweep_executed = #executed, sweep_skipped = #skipped_rows, last_seq = last_seq,
-	coverage_note = "natural coverage is only the phase 0 calls; the phase 1 calls are controlled world input and are not natural coverage; skipped sweep shapes are the inherited indeterminate domain; no sound is claimed to play",
+	bytes = totals.bytes, sweep = sweep, sweep_executed = #executed, sweep_compiler_zero_init_cases = compiler_cases, last_seq = last_seq,
+	coverage_note = "natural coverage is only the phase 0 calls; the phase 1 calls are controlled world input and are not natural coverage; compiler_zero_init sweep rows are compiler-compatibility cases under the build's declared zero auto-init contract, not safe-language oracles; no sound is claimed to play",
 }
 emit { event = "result", calls = totals.calls, natural_calls = natural_calls, sweep = sweep, probe = probe_arg }
 
