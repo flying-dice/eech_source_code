@@ -1680,6 +1680,10 @@ extern "C" {
     pub fn eech_engine_env_rotor_arm(on: c_int) -> c_int;
     pub fn eech_engine_env_rotor_report(text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_env_rotor_events(text: *mut c_char, capacity: c_int, more: *mut c_int) -> c_int;
+    // the resumed-parent playback probe (ENV_FXP): armed only by its own call, drained in pages
+    pub fn eech_engine_env_play_arm(on: c_int) -> c_int;
+    pub fn eech_engine_env_play_report(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_env_play_events(text: *mut c_char, capacity: c_int, more: *mut c_int) -> c_int;
 }
 
 #[cfg(feature = "sensor-fixture")]

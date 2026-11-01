@@ -3708,6 +3708,503 @@ static int env_rotor_case (int index, char *text, int capacity, int *used)
 	return 0;
 }
 
+/* ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   THE RESUMED-PARENT PLAYBACK CHARACTERISATION (cases 18, 19 and 20 of group 14; EEDCS-51, D3). SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED. CHARACTERISATION ONLY: nothing here moves, removes or guards any
+   behavior, and none of it is part of the shipping module.
+
+   THE QUESTION. soundeff.c play_resumed_parent_sound, NON-SESSION branch: for a parent that is not the session the original takes the range from the main viewpoint to the parent's position
+   (get_approx_3d_range) and calls play_local_entity_sound (en, vp, range), which is fn_play_local_entity_sound[type] (en, vp, range). Which function that reaches, for which parent types, is a fact of the RUNNING
+   engine (en_snd.c sets every entry to a default no-op; a per-family overload may replace one; the per-family sources fw_snd.c, hc_snd.c, aa_snd.c, rv_snd.c and sh_snd.c are not in the compiled source list and their
+   overload calls are commented out in the family function tables, which is a reading of the source and not a measurement). The probe (ss_envfx.h ENV_FXP, eech_env_observer.c) records the table at the end of its
+   default initialisation and every non-session call; these cases add a census of the table at any moment (18) and a controlled exercise of the REAL collaborators (19, 20).
+
+   CASE 18 (read-only): the dispatch table census now, plus the entity type numbers the report needs to name types, and the probe's armed state. It changes nothing and draws nothing.
+
+   CASE 19 (PROCESS-ISOLATED and MUTATING, declared; restores what it sets): for a real FIXED-WING (a parent of the engine looping sound effects its constructor made) and a real AI HELICOPTER (a parent of the rotor looping
+   sound effect) found in the update list, and for each of three positions of the main viewpoint relative to the parent (coincident, a middle offset, an offset far outside any sound range: controlled INPUT offsets along
+   x, added once to the parent's position), it runs the original pause (delay 0.0) and then resume of one sub-type on the parent through the real pause_local_entity_sound_type and resume_local_entity_sound_type, which
+   ask the host (SOUND_PAUSE_RESUME) and, when it says so, call play_resumed_parent_sound. Whether the real children exist is REPORTED (a target without them is refused by name; nothing is synthesised). For every step
+   it prints the children's validity, update-list membership and lifetime words before, after the pause, after the resume and after the restoration with a digest of each, the returned counts, the number of calls the
+   probe saw (-1 without the observer), the shared seed word and the standard fenv rounding and exception flags around the pair, whether the main viewpoint and every child's validity, valid lifetime and update-list
+   membership are back as they were, and the dispatch entry's identity. The range itself is the probe's `range_w` of the call the ORIGINAL made: this fixture computes no range, no expected value and no oracle.
+   Positions are inputs (an offset word is printed, never a coordinate).
+
+   CASE 20 is case 19 with a deliberate, test-only RECORDING function installed in the dispatch entries of the fixed-wing and the helicopter type for the duration (it records the type and the range word it is given
+   and does nothing else; the saved entries are put back on the one path out, and their restoration is reported). It is the meaningful red of the characterisation: the census inside it and the probe's calls must
+   identify a LIVE non-default consumer, not a setup error. It exists in this fixture only.
+
+   The report is staged in a bounded local buffer and copied out after everything is restored; the case refuses BEFORE any change if the caller's buffer cannot hold it. */
+
+#define ENV_PLAY_CENSUS_CASE 18
+#define ENV_PLAY_RUN_CASE 19
+#define ENV_PLAY_OVERLOAD_CASE 20
+#define ENV_PLAY_STAGE 16384
+#define ENV_PLAY_CHILDREN 8
+#define ENV_PLAY_RECORDS 16
+
+#ifdef EECH_ENV_OBSERVER
+extern int eech_envobs_play_census_line (char *text, int capacity, int *used, const char *tag);
+extern int eech_envobs_play_is_armed (void);
+extern void eech_envobs_play_phase (int phase);
+extern uint32_t eech_envobs_play_total (void);
+#endif
+
+struct env_play_child
+{
+	int valid, member;
+	uint32_t life, vlife;
+};
+
+struct env_play_state
+{
+	int total, matching;
+	struct env_play_child child[ENV_PLAY_CHILDREN];
+};
+
+/* the sound effect children of `parent` (bounded by the number of entities, a longer list being a broken list), and for those of `sub` their validity, update-list membership and lifetime words */
+static void env_play_state_take (struct env_play_state *s, entity *parent, entity_sub_types sub)
+{
+	entity *child;
+	int visited = 0;
+
+	memset (s, 0, sizeof (*s));
+
+	for (child = get_local_entity_first_child (parent, LIST_TYPE_SPECIAL_EFFECT); child; child = get_local_entity_child_succ (child, LIST_TYPE_SPECIAL_EFFECT))
+	{
+		if (++visited > number_of_entities)
+		{
+			break;
+		}
+
+		if (get_local_entity_type (child) == ENTITY_TYPE_SOUND_EFFECT)
+		{
+			sound_effect *raw = (sound_effect *) get_local_entity_data (child);
+
+			s->total++;
+
+			if (raw->eff.sub_type == sub)
+			{
+				if (s->matching < ENV_PLAY_CHILDREN)
+				{
+					struct env_play_child *c = &s->child[s->matching];
+
+					c->valid = raw->valid_sound_effect != 0;
+					c->member = raw->eff.update_link.parent != NULL;
+
+					memcpy (&c->life, &raw->effect_lifetime, sizeof (c->life));
+					memcpy (&c->vlife, &raw->valid_effect_lifetime, sizeof (c->vlife));
+				}
+
+				s->matching++;
+			}
+		}
+	}
+}
+
+static uint32_t env_play_mix (uint32_t h, uint32_t value)
+{
+	int b;
+
+	for (b = 0; b < 4; b++)
+	{
+		h ^= (value >> (8 * b)) & 0xffu;
+		h *= 16777619u;
+	}
+
+	return h;
+}
+
+/* FNV-1a over every word of the state */
+static uint32_t env_play_digest (const struct env_play_state *s)
+{
+	uint32_t h = 2166136261u;
+	int i;
+
+	h = env_play_mix (h, (uint32_t) s->total);
+	h = env_play_mix (h, (uint32_t) s->matching);
+
+	for (i = 0; i < s->matching && i < ENV_PLAY_CHILDREN; i++)
+	{
+		h = env_play_mix (h, (uint32_t) s->child[i].valid);
+		h = env_play_mix (h, (uint32_t) s->child[i].member);
+		h = env_play_mix (h, s->child[i].life);
+		h = env_play_mix (h, s->child[i].vlife);
+	}
+
+	return h;
+}
+
+static void env_play_state_text (char *text, int size, const struct env_play_state *s)
+{
+	int used = 0, i;
+
+	text[0] = '\0';
+
+	if (s->matching == 0)
+	{
+		append (text, size, &used, "-");
+
+		return;
+	}
+
+	for (i = 0; i < s->matching && i < ENV_PLAY_CHILDREN; i++)
+	{
+		if (append (text, size, &used, "%s%d:%d:%08x:%08x", (i == 0) ? "" : ",", s->child[i].valid, s->child[i].member, s->child[i].vlife, s->child[i].life) != 0)
+		{
+			return;
+		}
+	}
+}
+
+/* puts the validity, valid lifetime and update-list membership of the matching children back as `saved` has them (the effect lifetime is only compared); a sub-type with no children is a no-op */
+static void env_play_restore (entity *parent, entity_sub_types sub, const struct env_play_state *saved)
+{
+	entity *child;
+	int visited = 0, index = 0;
+
+	for (child = get_local_entity_first_child (parent, LIST_TYPE_SPECIAL_EFFECT); child; child = get_local_entity_child_succ (child, LIST_TYPE_SPECIAL_EFFECT))
+	{
+		if (++visited > number_of_entities)
+		{
+			break;
+		}
+
+		if (get_local_entity_type (child) == ENTITY_TYPE_SOUND_EFFECT && ((sound_effect *) get_local_entity_data (child))->eff.sub_type == sub)
+		{
+			if (index < ENV_PLAY_CHILDREN && index < saved->matching)
+			{
+				sound_effect *raw = (sound_effect *) get_local_entity_data (child);
+				const struct env_play_child *c = &saved->child[index];
+				int member = raw->eff.update_link.parent != NULL;
+
+				raw->valid_sound_effect = c->valid;
+
+				memcpy (&raw->valid_effect_lifetime, &c->vlife, sizeof (c->vlife));
+
+				if (member && !c->member)
+				{
+					delete_local_entity_from_parents_child_list (child, LIST_TYPE_UPDATE);
+				}
+				else if (!member && c->member)
+				{
+					insert_local_entity_into_parents_child_list (child, LIST_TYPE_UPDATE, get_update_entity (), NULL);
+				}
+			}
+
+			index++;
+		}
+	}
+}
+
+/* the first entity of the update list of type `etype` (an AI helicopter when `ai_only`) that has a sound effect child of sub-type `sub`; the counts of its special-effect children, sound effect children, children of `sub`
+   and children of `second` are reported (a prerequisite that is absent is reported, never created) */
+static entity *env_play_pick (int etype, int ai_only, entity_sub_types sub, entity_sub_types second, int *special, int *sound, int *matching, int *second_count)
+{
+	entity *en, *child;
+	int s, k, m, t;
+
+	for (en = get_local_entity_first_child (get_update_entity (), LIST_TYPE_UPDATE); en; en = get_local_entity_child_succ (en, LIST_TYPE_UPDATE))
+	{
+		if (en->type != etype)
+		{
+			continue;
+		}
+
+		if (ai_only && ((helicopter *) get_local_entity_data (en))->player != ENTITY_PLAYER_AI)
+		{
+			continue;
+		}
+
+		s = k = m = t = 0;
+
+		for (child = get_local_entity_first_child (en, LIST_TYPE_SPECIAL_EFFECT); child; child = get_local_entity_child_succ (child, LIST_TYPE_SPECIAL_EFFECT))
+		{
+			s++;
+
+			if (child->type == ENTITY_TYPE_SOUND_EFFECT)
+			{
+				k++;
+
+				if (((sound_effect *) get_local_entity_data (child))->eff.sub_type == sub)
+				{
+					m++;
+				}
+
+				if (((sound_effect *) get_local_entity_data (child))->eff.sub_type == second)
+				{
+					t++;
+				}
+			}
+		}
+
+		if (m > 0)
+		{
+			*special = s;
+			*sound = k;
+			*matching = m;
+			*second_count = t;
+
+			return en;
+		}
+	}
+
+	return NULL;
+}
+
+/* the deliberate test-only consumer of case 20: it records the type and the range word it is given and does nothing else */
+static unsigned int env_play_recorded;
+static unsigned int env_play_recorded_type[ENV_PLAY_RECORDS];
+static unsigned int env_play_recorded_range[ENV_PLAY_RECORDS];
+
+static void env_play_recording_overload (entity *en, viewpoint *vp, float range)
+{
+	(void) vp;
+
+	if (env_play_recorded < ENV_PLAY_RECORDS)
+	{
+		env_play_recorded_type[env_play_recorded] = (unsigned int) en->type;
+
+		memcpy (&env_play_recorded_range[env_play_recorded], &range, sizeof (range));
+	}
+
+	env_play_recorded++;
+}
+
+static int env_play_default_entry (int etype)
+{
+	return fn_play_local_entity_sound[etype] == fn_play_local_entity_sound[0];
+}
+
+static int env_play_census_case (char *text, int capacity, int *used)
+{
+	int armed = 0;
+
+#ifdef EECH_ENV_OBSERVER
+	armed = eech_envobs_play_is_armed ();
+#endif
+
+	ENV_EMIT ("env-play-plan version=1 case=census mutating=0 natural=1 probe=%s armed=%d\n", armed ? "present" : "absent_or_unarmed", armed);
+	ENV_EMIT ("env-play-types fixed_wing=%d helicopter=%d sound_effect=%d session=%d routed_vehicle=%d ship_vehicle=%d anti_aircraft=%d entries=%d\n", (int) ENTITY_TYPE_FIXED_WING, (int) ENTITY_TYPE_HELICOPTER,
+		(int) ENTITY_TYPE_SOUND_EFFECT, (int) ENTITY_TYPE_SESSION, (int) ENTITY_TYPE_ROUTED_VEHICLE, (int) ENTITY_TYPE_SHIP_VEHICLE, (int) ENTITY_TYPE_ANTI_AIRCRAFT, (int) NUM_ENTITY_TYPES);
+
+#ifdef EECH_ENV_OBSERVER
+	if (eech_envobs_play_census_line (text, capacity, used, "now") != 0)
+	{
+		return -1;
+	}
+#else
+	ENV_EMIT ("env-play-census tag=now entries=%d default=unknown nondefault=unknown types=- over=0 reason=the_build_has_no_observer\n", (int) NUM_ENTITY_TYPES);
+#endif
+
+	ENV_EMIT ("env-play-end case=census refused=0 mutating=0\n");
+
+	return 0;
+}
+
+static int env_play_refuse (char *text, int capacity, int *used, const char *reason)
+{
+	ENV_EMIT ("env-play-refused reason=%s\n", reason);
+	ENV_EMIT ("env-play-end case=run refused=1 mutating=0 steps=0\n");
+
+	return 0;
+}
+
+static int env_play_case (int index, char *text, int capacity, int *used)
+{
+	const int overload = (index == ENV_PLAY_OVERLOAD_CASE);
+	static char stage[ENV_PLAY_STAGE];
+	static const char *const position_names[3] = { "coincident", "middle", "outside" };
+	static const float position_offsets[3] = { 0.0f, 2500.0f, 20000.0f };
+	struct
+	{
+		const char *name;
+		int etype, ai_only, special, sound, matching, second_count;
+		entity_sub_types sub, second;
+		entity *en;
+		void (*saved) (entity *en, viewpoint *vp, float range);
+	} target[2] = {
+		{ "fixed_wing", ENTITY_TYPE_FIXED_WING, 0, 0, 0, 0, 0, ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING1, ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING2, NULL, NULL },
+		{ "helicopter", ENTITY_TYPE_HELICOPTER, 1, 0, 0, 0, 0, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_LOOPING, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_SLAP, NULL, NULL }
+	};
+	int stage_used = 0, stage_failed = 0, instrumented = 0, armed = 0, steps = 0, found = 0, installed = 0, overload_restored = 1, t, p, i;
+	int rng_start = random_number_seed;
+	int entity_before = get_next_free_entity_index ();
+	int local_before = get_next_free_local_entity_index ();
+
+#define ENV_PLAY_ROW(...) do { if (append (stage, ENV_PLAY_STAGE, &stage_used, __VA_ARGS__) != 0) { stage_failed = 1; } } while (0)
+
+	/* BEFORE ANY CHANGE: the caller's buffer must hold the whole staged report, or the case refuses and nothing is changed */
+	if (capacity - *used < ENV_PLAY_STAGE)
+	{
+		return -1;
+	}
+
+	if (!get_session_entity () || !get_update_entity ())
+	{
+		return env_play_refuse (text, capacity, used, "no_session_or_update_entity");
+	}
+
+#ifdef EECH_ENV_OBSERVER
+	instrumented = 1;
+	armed = eech_envobs_play_is_armed ();
+#endif
+
+	for (t = 0; t < 2; t++)
+	{
+		target[t].en = env_play_pick (target[t].etype, target[t].ai_only, target[t].sub, target[t].second, &target[t].special, &target[t].sound, &target[t].matching, &target[t].second_count);
+
+		found += target[t].en != NULL;
+	}
+
+	ENV_PLAY_ROW ("env-play-plan version=1 case=%s process_isolated=required mutating=1 natural=0 phase=1 restores=main_vp,sound_child_valid,sound_child_valid_lifetime,update_list_membership,dispatch_entries instrumented=%d armed=%d overload=%d unit_offsets_w=%08x,%08x,%08x\n",
+		overload ? "overload" : "run", instrumented, armed, overload, ENV_WORD (position_offsets[0]), ENV_WORD (position_offsets[1]), ENV_WORD (position_offsets[2]));
+
+	for (t = 0; t < 2; t++)
+	{
+		if (target[t].en == NULL)
+		{
+			ENV_PLAY_ROW ("env-play-target kind=%s present=0 reason=no_such_entity_in_the_update_list_with_the_sound_effect_child_nothing_is_synthesised\n", target[t].name);
+		}
+		else
+		{
+			ENV_PLAY_ROW ("env-play-target kind=%s present=1 ent=%d etype=%d sub=%d special_effect_children=%d sound_children=%d matching_children=%d second_sub=%d second_children=%d default_entry=%d\n", target[t].name,
+				get_local_entity_index (target[t].en), (int) target[t].en->type, (int) target[t].sub, target[t].special, target[t].sound, target[t].matching, (int) target[t].second, target[t].second_count,
+				env_play_default_entry (target[t].etype));
+		}
+	}
+
+	if (found == 0)
+	{
+		return env_play_refuse (text, capacity, used, "neither_a_fixed_wing_nor_an_ai_helicopter_with_the_sound_effect_child_is_in_the_update_list");
+	}
+
+	/* FROM HERE EVERYTHING THE CASE CHANGES IS PUT BACK, on the one path out */
+#ifdef EECH_ENV_OBSERVER
+	eech_envobs_play_phase (1);
+#endif
+
+	if (overload)
+	{
+		for (t = 0; t < 2; t++)
+		{
+			target[t].saved = fn_play_local_entity_sound[target[t].etype];
+			fn_play_local_entity_sound[target[t].etype] = env_play_recording_overload;
+			installed++;
+		}
+
+		env_play_recorded = 0;
+
+#ifdef EECH_ENV_OBSERVER
+		if (eech_envobs_play_census_line (stage, ENV_PLAY_STAGE, &stage_used, "inside_overload") != 0)
+		{
+			stage_failed = 1;
+		}
+#endif
+	}
+
+	for (t = 0; t < 2; t++)
+	{
+		for (p = 0; p < 3 && target[t].en != NULL; p++)
+		{
+			entity *en = target[t].en;
+			viewpoint saved_vp = main_vp;
+			struct env_play_state before, paused, resumed, restored;
+			char before_text[512], resumed_text[512];
+			fexcept_t saved_flags;
+			vec3d *position = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
+			int pause_returned, resume_returned, round_before, round_after, excepts, seed_before, seed_after, calls = -1, vp_restored, state_restored, default_entry;
+			uint32_t total_before = 0;
+
+			env_play_state_take (&before, en, target[t].sub);
+
+			/* the controlled INPUT: the main viewpoint is put at the parent's position plus an offset along x */
+			main_vp.position = *position;
+			main_vp.position.x += position_offsets[p];
+
+			default_entry = env_play_default_entry (target[t].etype);
+			seed_before = random_number_seed;
+
+			fegetexceptflag (&saved_flags, FE_ALL_EXCEPT);
+			feclearexcept (FE_ALL_EXCEPT);
+			round_before = fegetround ();
+
+#ifdef EECH_ENV_OBSERVER
+			total_before = eech_envobs_play_total ();
+#endif
+
+			pause_returned = pause_local_entity_sound_type (en, target[t].sub, 0.0f);
+
+			env_play_state_take (&paused, en, target[t].sub);
+
+			resume_returned = resume_local_entity_sound_type (en, target[t].sub);
+
+#ifdef EECH_ENV_OBSERVER
+			calls = (int) (eech_envobs_play_total () - total_before);
+#endif
+			(void) total_before;
+
+			round_after = fegetround ();
+			excepts = fetestexcept (FE_ALL_EXCEPT);
+			fesetexceptflag (&saved_flags, FE_ALL_EXCEPT);
+
+			seed_after = random_number_seed;
+
+			env_play_state_take (&resumed, en, target[t].sub);
+
+			/* back as it was */
+			main_vp = saved_vp;
+			env_play_restore (en, target[t].sub, &before);
+			env_play_state_take (&restored, en, target[t].sub);
+
+			vp_restored = memcmp (&main_vp, &saved_vp, sizeof (main_vp)) == 0;
+			state_restored = env_play_digest (&restored) == env_play_digest (&before);
+
+			env_play_state_text (before_text, sizeof (before_text), &before);
+			env_play_state_text (resumed_text, sizeof (resumed_text), &resumed);
+
+			ENV_PLAY_ROW ("env-play-step kind=%s ent=%d etype=%d sub=%d pos=%s offset_w=%08x default_entry=%d pause_returned=%d resume_returned=%d calls=%d rng_before=%d rng_after=%d round_before=%d round_after=%d excepts=%x "
+				"digest_before=%08x digest_paused=%08x digest_resumed=%08x digest_restored=%08x vp_restored=%d state_restored=%d before=%s resumed=%s\n",
+				target[t].name, get_local_entity_index (en), (int) en->type, (int) target[t].sub, position_names[p], ENV_WORD (position_offsets[p]), default_entry, pause_returned, resume_returned, calls, seed_before,
+				seed_after, round_before, round_after, (unsigned int) excepts, env_play_digest (&before), env_play_digest (&paused), env_play_digest (&resumed), env_play_digest (&restored), vp_restored, state_restored,
+				before_text, resumed_text);
+
+			steps++;
+		}
+	}
+
+	if (overload)
+	{
+		for (t = 0; t < 2; t++)
+		{
+			fn_play_local_entity_sound[target[t].etype] = target[t].saved;
+			overload_restored = overload_restored && (fn_play_local_entity_sound[target[t].etype] == target[t].saved);
+		}
+
+		for (i = 0; i < (int) env_play_recorded && i < ENV_PLAY_RECORDS; i++)
+		{
+			ENV_PLAY_ROW ("env-play-recorded n=%d type=%u range_w=%08x\n", i, env_play_recorded_type[i], env_play_recorded_range[i]);
+		}
+
+		ENV_PLAY_ROW ("env-play-overload installed=%d recorded=%u restored=%d\n", installed, env_play_recorded, overload_restored);
+	}
+
+#ifdef EECH_ENV_OBSERVER
+	eech_envobs_play_phase (0);
+#endif
+
+	ENV_PLAY_ROW ("env-play-end case=%s refused=0 mutating=1 steps=%d rng_start=%d rng_end=%d entity_index_unchanged=%d local_index_unchanged=%d stage_ok=%d\n", overload ? "overload" : "run", steps, rng_start, random_number_seed,
+		entity_before == get_next_free_entity_index (), local_before == get_next_free_local_entity_index (), !stage_failed);
+
+	if (stage_failed)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("%s", stage);
+
+	return 0;
+}
+
 int eech_env_case_run (int group, int index, char *text, int capacity)
 {
 	int used_value = 0, *used = &used_value;
@@ -3832,6 +4329,21 @@ int eech_env_case_run (int group, int index, char *text, int capacity)
 			text[0] = 0;
 			used_value = 0;
 			append (text, capacity, used, "env-case-error reason=rotor_case_refused_or_report_did_not_fit group=14 index=%d\n", index);
+
+			return -1;
+		}
+
+		return 0;
+	}
+
+	if (group == ENV_GROUP_SOUND_LIFETIME && (index == ENV_PLAY_CENSUS_CASE || index == ENV_PLAY_RUN_CASE || index == ENV_PLAY_OVERLOAD_CASE))
+	{
+		/* explicit only; case 18 is read-only, cases 19 and 20 are PROCESS-ISOLATED and MUTATING but restore what they set (see env_play_case); available with or without the env-observer build */
+		if ((index == ENV_PLAY_CENSUS_CASE) ? env_play_census_case (text, capacity, used) : env_play_case (index, text, capacity, used))
+		{
+			text[0] = 0;
+			used_value = 0;
+			append (text, capacity, used, "env-case-error reason=play_case_refused_or_report_did_not_fit group=14 index=%d\n", index);
 
 			return -1;
 		}

@@ -434,6 +434,11 @@ int eech_engine_env_observer_events (char *text, int capacity, int *more);
 int eech_engine_env_rotor_arm (int on);
 int eech_engine_env_rotor_report (char *text, int capacity);
 int eech_engine_env_rotor_events (char *text, int capacity, int *more);
+
+/* TEST-ONLY (env-observer): the resumed-parent playback probe (ENV_FXP): armed only by its own call, before boot, and drained in pages */
+int eech_engine_env_play_arm (int on);
+int eech_engine_env_play_report (char *text, int capacity);
+int eech_engine_env_play_events (char *text, int capacity, int *more);
 #endif
 
 #ifdef EECH_GROUND_FIXTURE

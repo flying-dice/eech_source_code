@@ -1005,6 +1005,13 @@ pub fn env_rotor_arm(on: bool) -> Result<(), EngineError> {
     check(unsafe { sys::eech_engine_env_rotor_arm(i32::from(on)) })
 }
 
+/// TEST-ONLY (feature `env-observer`, EEDCS-51, D3): arms (before boot) or disarms the resumed-parent playback probe (ENV_FXP), which nothing else arms. Arming after boot is refused, because the evidence would be incomplete.
+#[cfg(feature = "env-observer")]
+pub fn env_play_arm(on: bool) -> Result<(), EngineError> {
+    // SAFETY: no pointers cross.
+    check(unsafe { sys::eech_engine_env_play_arm(i32::from(on)) })
+}
+
 /// the booted engine (one per process)
 pub struct Engine {
     _not_send: std::marker::PhantomData<*const ()>,
@@ -5807,6 +5814,34 @@ impl Engine {
             let mut more: std::os::raw::c_int = 0;
             // SAFETY: the buffer and `more` outlive the call and the capacity passed is the buffer length; the engine NUL-terminates the text.
             check(unsafe { sys::eech_engine_env_rotor_events(text.as_mut_ptr(), text.len() as i32, &mut more) })?;
+            // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+            all.push_str(&unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy());
+            if more == 0 {
+                return Ok(all);
+            }
+        }
+    }
+
+    /// TEST-ONLY (feature `env-observer`, EEDCS-51, D3): the resumed-parent playback probe's state: its counters, its page limit and the census of the playback dispatch table taken when the defaults were set.
+    #[cfg(feature = "env-observer")]
+    pub fn env_play_report(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; ENV_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_env_play_report(text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `env-observer`, EEDCS-51, D3): drains the resumed-parent playback probe's stored calls, one `env-play-call` line each, in the order the original made them; once everything is read the probe's
+    /// page is empty again.
+    #[cfg(feature = "env-observer")]
+    pub fn env_play_events(&self) -> Result<String, EngineError> {
+        let mut all = String::new();
+        loop {
+            let mut text = vec![0 as std::os::raw::c_char; ENV_REPORT_CAPACITY];
+            let mut more: std::os::raw::c_int = 0;
+            // SAFETY: the buffer and `more` outlive the call and the capacity passed is the buffer length; the engine NUL-terminates the text.
+            check(unsafe { sys::eech_engine_env_play_events(text.as_mut_ptr(), text.len() as i32, &mut more) })?;
             // SAFETY: the engine wrote a NUL-terminated string within the buffer.
             all.push_str(&unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy());
             if more == 0 {

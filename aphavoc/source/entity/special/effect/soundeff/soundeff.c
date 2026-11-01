@@ -200,6 +200,8 @@ static void play_resumed_parent_sound (entity *en)
 
 		range = get_approx_3d_range (&vp->position, position);
 
+		ENV_FXP (ENV_FXP_PLAY, en, 0, ENV_FXF (range))
+
 		play_local_entity_sound (en, vp, range);
 	}
 }

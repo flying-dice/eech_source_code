@@ -1508,4 +1508,237 @@ int eech_envobs_rotor_events (char *text, int capacity, int *more)
 	return 0;
 }
 
+
+/* ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   THE RESUMED-PARENT PLAYBACK PROBE (ss_envfx.h ENV_FXP; EEDCS-51, D3). It answers one question about the original, from the running engine and not from a reading of the source: does the NON-SESSION branch of
+   soundeff.c play_resumed_parent_sound (the range from the main viewpoint to the parent's position, then the per-family play_local_entity_sound through the dispatch table fn_play_local_entity_sound) ever reach
+   anything but the table's default no-op, for any parent type, and what does it compute when it is called. Two facts are kept, both from integer reads and bit copies (no float is loaded by value or computed here,
+   no pointer or address is recorded, nothing is drawn or written): at the end of initialise_entity_sound_default_functions the table's default entry and a census of the table (how many entries are not it, which
+   entity types); and, for each call of the non-session branch, the parent's entity type and index, whether the entry that call is about to reach is the default one, the range as the word the original computed,
+   the headless time, the phase and the shared seed word.
+
+   It is SEPARATE from the event stream, the sound entity, lightning, sound initialisation and rotor probes, and is armed ONLY by eech_envobs_play_arm (before boot): until then every point returns at once. It is a
+   PAGED store drained by the driver after every frame (eech_envobs_play_events). The limit (ENVP_CALLS calls pending at once) is stated in the report; a call that does not fit is counted in `dropped`, and every counter
+   is reported and refused by the driver when it is not zero: nothing is truncated into a result. `phase` is set by the controlled fixture (eech_env_fixture.c) so a controlled call is never mistaken for a natural one. */
+
+#define ENVP_CALLS 256
+#define ENVP_TYPES 64
+
+struct envp_call
+{
+	uint32_t seq, time_ms, phase, entity, type, session, is_default, range_word;
+	int32_t rng;
+};
+
+typedef void (*envp_play_function) (entity *en, viewpoint *vp, float range);
+
+static struct envp_call envp_pages[ENVP_CALLS];
+static envp_play_function envp_default;
+static int envp_armed;
+static uint32_t envp_phase, envp_stored, envp_read, envp_next_seq, envp_total, envp_drained, envp_dropped, envp_bad_point;
+static int envp_defaults_taken, envp_defaults_nondefault, envp_defaults_listed, envp_defaults_over;
+static uint32_t envp_defaults_types[ENVP_TYPES];
+
+/* the number of table entries that are not `envp_default`, and the first ENVP_TYPES of their entity types (the rest are counted in `over`) */
+static int envp_census (uint32_t *types, int *listed, int *over)
+{
+	int i, differ = 0;
+
+	*listed = 0;
+	*over = 0;
+
+	for (i = 0; i < NUM_ENTITY_TYPES; i++)
+	{
+		if (fn_play_local_entity_sound[i] != envp_default)
+		{
+			differ++;
+
+			if (*listed < ENVP_TYPES)
+			{
+				types[(*listed)++] = (uint32_t) i;
+			}
+			else
+			{
+				(*over)++;
+			}
+		}
+	}
+
+	return differ;
+}
+
+static void envp_types_text (char *text, size_t size, const uint32_t *types, int listed)
+{
+	size_t n = 0;
+	int i;
+
+	text[0] = '\0';
+
+	if (listed == 0)
+	{
+		snprintf (text, size, "-");
+
+		return;
+	}
+
+	for (i = 0; i < listed && n + 12 < size; i++)
+	{
+		n += (size_t) snprintf (text + n, size - n, "%s%u", (i == 0) ? "" : ",", (unsigned int) types[i]);
+	}
+}
+
+void eech_envobs_play_arm (int on)
+{
+	if (on)
+	{
+		memset (envp_pages, 0, sizeof (envp_pages));
+		memset (envp_defaults_types, 0, sizeof (envp_defaults_types));
+		envp_default = NULL;
+		envp_phase = envp_stored = envp_read = envp_next_seq = envp_total = envp_drained = envp_dropped = envp_bad_point = 0;
+		envp_defaults_taken = envp_defaults_nondefault = envp_defaults_listed = envp_defaults_over = 0;
+	}
+
+	envp_armed = on ? 1 : 0;
+}
+
+int eech_envobs_play_is_armed (void)
+{
+	return envp_armed;
+}
+
+void eech_envobs_play_phase (int phase)
+{
+	envp_phase = (uint32_t) phase;
+}
+
+/* the number of calls the probe has seen since it was armed (the fixture reads it before and after a step) */
+uint32_t eech_envobs_play_total (void)
+{
+	return envp_total;
+}
+
+void eech_envobs_play (int point, const void *p, int session, unsigned int range_word)
+{
+	const entity *en = (const entity *) p;
+	struct envp_call *c;
+
+	if (!envp_armed)
+	{
+		return;
+	}
+
+	if (point == ENV_FXP_DEFAULTS)
+	{
+		/* the table has just been set to its default for every type: entry 0 is the default */
+		envp_default = fn_play_local_entity_sound[0];
+		envp_defaults_nondefault = envp_census (envp_defaults_types, &envp_defaults_listed, &envp_defaults_over);
+		envp_defaults_taken++;
+
+		return;
+	}
+
+	if (point != ENV_FXP_PLAY || en == NULL)
+	{
+		envp_bad_point++;
+
+		return;
+	}
+
+	envp_total++;
+
+	if (envp_stored >= ENVP_CALLS)
+	{
+		envp_next_seq++;
+		envp_dropped++;
+
+		return;
+	}
+
+	c = &envp_pages[envp_stored++];
+	c->seq = envp_next_seq++;
+	c->time_ms = eech_headless_time_ms ();
+	c->phase = envp_phase;
+	c->entity = (uint32_t) get_local_entity_index ((entity *) en);
+	c->type = (uint32_t) en->type;
+	c->session = (uint32_t) session;
+	c->is_default = (envp_default != NULL && fn_play_local_entity_sound[en->type] == envp_default) ? 1 : 0;
+	c->range_word = range_word;
+	c->rng = (int32_t) random_number_seed;
+}
+
+/* a census of the dispatch table now, as one `env-play-census` row (the fixture prints it after boot, after every frame and inside its deliberate overload) */
+int eech_envobs_play_census_line (char *text, int capacity, int *used, const char *tag)
+{
+	uint32_t types[ENVP_TYPES];
+	char list[ENVP_TYPES * 4 + 8];
+	int listed, over, differ;
+
+	if (envp_default == NULL)
+	{
+		return append (text, capacity, used, "env-play-census tag=%s entries=%d default=unknown nondefault=unknown types=- over=0 reason=the_probe_was_not_armed_before_boot\n", tag, (int) NUM_ENTITY_TYPES);
+	}
+
+	differ = envp_census (types, &listed, &over);
+	envp_types_text (list, sizeof (list), types, listed);
+
+	return append (text, capacity, used, "env-play-census tag=%s entries=%d default=%d nondefault=%d types=%s over=%d\n", tag, (int) NUM_ENTITY_TYPES, (int) NUM_ENTITY_TYPES - differ, differ, list, over);
+}
+
+int eech_envobs_play_report (char *text, int capacity)
+{
+	int used = 0;
+	char list[ENVP_TYPES * 4 + 8];
+
+	text[0] = '\0';
+	envp_types_text (list, sizeof (list), envp_defaults_types, envp_defaults_listed);
+
+	return append (text, capacity, &used,
+		"env-play-report version=1 armed=%d phase=%u capacity=%d calls_total=%u drained=%u pending=%u dropped=%u bad_points=%u defaults_taken=%d defaults_entries=%d defaults_nondefault=%d defaults_types=%s defaults_over=%d\n",
+		envp_armed, envp_phase, ENVP_CALLS, envp_total, envp_drained, envp_stored - envp_read, envp_dropped, envp_bad_point, envp_defaults_taken, (int) NUM_ENTITY_TYPES, envp_defaults_nondefault, list, envp_defaults_over);
+}
+
+/* drains complete call lines while they fit `capacity`; `more` is 1 while stored calls remain unread. When everything stored has been read the page is empty again. */
+int eech_envobs_play_events (char *text, int capacity, int *more)
+{
+	int used = 0;
+	char line[256];
+
+	text[0] = '\0';
+	*more = 0;
+
+	while (envp_read < envp_stored)
+	{
+		const struct envp_call *c = &envp_pages[envp_read];
+		int before = used;
+
+		if (snprintf (line, sizeof (line), "env-play-call seq=%u t=%u phase=%u ent=%u type=%u session=%u default=%u range_w=%08x rng=%d\n", c->seq, c->time_ms, c->phase, c->entity, c->type, c->session, c->is_default,
+			c->range_word, (int) c->rng) >= (int) sizeof (line))
+		{
+			return -1;
+		}
+
+		if (append (text, capacity, &used, "%s", line) != 0)
+		{
+			text[before] = '\0';
+			used = before;
+
+			if (before == 0)
+			{
+				return -1;
+			}
+
+			*more = 1;
+
+			return 0;
+		}
+
+		envp_read++;
+		envp_drained++;
+	}
+
+	envp_stored = envp_read = 0;
+
+	return 0;
+}
+
 #endif
