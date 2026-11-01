@@ -1,0 +1,127 @@
+{
+  "kind": "Independent focused Task48 distinct-grid source and new failed-runtime evidence review",
+  "created_utc": "2026-10-29T14:42:29.101983+00:00",
+  "repository": "R:\\eech_source_code",
+  "base": "9e607637f750e2a08d0cb6c36d79709a68296d15",
+  "head": "c119a7370b5de43923a86d7a8124f9532bb523ee",
+  "clean_pinned_head_before_after": true,
+  "disposition": "Distinct-grid repair passes source review with no new grid/physical/boundary defect established. New actual failure artifacts expose one P2 JSON encoder defect that must be corrected before accepting the driver output contract. Closed sample/warm/legacy reviews reused; no original measurements or task acceptance.",
+  "findings": [
+    {
+      "id": "REFUSAL_CONTROL_BYTES_NOT_JSON",
+      "priority": "P2",
+      "file": "R:\\eech_source_code\\eech-campaign\\crates\\eech-world\\lua\\ground-characterization.lua",
+      "line": 103,
+      "title": "Escape every JSON control byte in error strings",
+      "mechanism": "The unchanged emit helper flattens CR/LF then uses Lua5.1 %q. Actual9e probe_refused error text contains four literal traceback TAB bytes, so all three ground.jsonl files fail strict Python JSON parsing on row2 column122. Lua quoting is not a JSON string encoder for all control bytes. The driver advertises JSON Lines but its reached refusal path is malformed; this can prevent downstream audit of failed/unsupported characterization.",
+      "bounded_correction": "Use a JSON string encoder that correctly escapes quote, backslash and every byte0..31 (prefer lossless escaping rather than erasing diagnostic content). Apply it to the affected driver keys/values. Add strict real-script controls containing all control bytes plus quote/backslash and traceback tabs, verifying semantic string preservation and actual invalid/failure disposition. Preserve all three original malformed raw files and their hashes; do not normalize/rewrite them into valid old output.",
+      "evidence": "Strict parsing performed against all three actual retained files; byte counts, exact errors and hashes below. Forensic strict=False decoding was used only to inspect known invalid artifacts, not to accept them as valid JSON or measurements."
+    }
+  ],
+  "grid_repair_assessment": [
+    "All four world-vs-terrain extent comparisons remain bit-exact. Only the incorrect requirement that sector side/counts be identical was removed. Both terrain-loaded and positive map checks remain; world sector side is additionally required positive.",
+    "Physical boundary generation now uses terrain_3d_sector_x_max/z_max. World counts/side are report-only. For type7, the selected interior physical boundary remains below the checked map maximum; point-boundary endpoint handling/clamping uses the same original expressions.",
+    "Actual world_map sector_side_length is int, and set_entity_world_map_size computes max from count*side-1. Terrain uses its own2048m grid. Lua schema correctly distinguishes all six integer fields and checks both products for equal covered extents, while C retains actual four-extent safety checks.",
+    "No original macro/function/numeric, shared-record anchor/restoration, FPU mode, private RNG algorithm, hash implementation or public C/Rust ABI change. Different physical sector-count inputs appropriately change characterization cases where the old unreachable fixture used campaign counts; no oracle was previously established or rewritten."
+  ],
+  "new_test_evidence": {
+    "actual": "Linux real host/Lua5.1 log shows10driver tests PASS0 and affected Clippy finishes0. Working-tree tested hashes exactly match pinned c119 Git blobs for driver/collaborator/tests/Cfixture.",
+    "meaning": "New tests accept both distinct4096/2048 grids with same covered extent and identical grids; reject old/missing/zero schema and x/z mismatches by specific reason. They are driver/schema guards, not a C precondition/native-retail proof.",
+    "prior_wording": "Previously inspected three quota-comment/prose replacements are now committed and retained; no executable effect.",
+    "limits": "No passed c119 fixture compilation/original retail query/oracle result reviewed. Root parallel build is separate and remains pending in supplied context."
+  },
+  "failed_original9e_artifacts": [
+    {
+      "map": "lebanon",
+      "actual_native_exit": 1,
+      "actual_source": "9e607637f750e2a08d0cb6c36d79709a68296d15",
+      "raw_sha256": "d46a835dab4607fa1a2d49cb31ccd9da5b790099f324a58453bd10c0f0fbb8ee",
+      "run_sha256": "d9cb4abe10531511ef617fd618d9fa47137d010acf7c322cf1e0171c81ad156f",
+      "strict_JSON_errors": [
+        {
+          "line": 2,
+          "column": 122,
+          "message": "Invalid control character at"
+        }
+      ],
+      "literal_TAB_bytes": 4,
+      "forensic_only_events": [
+        "boot",
+        "probe_refused"
+      ],
+      "post_input_log_sha256": "5ec37ebea2603a391eb3511c19bddbbd97bb72311b045a944298bd1c9ccab674",
+      "measurements_accepted": false
+    },
+    {
+      "map": "georgia",
+      "actual_native_exit": 1,
+      "actual_source": "9e607637f750e2a08d0cb6c36d79709a68296d15",
+      "raw_sha256": "b8e68c2cbe6da11e0eefb1f53838f2249661d26938c4e85f50c1d4e629e3bc3e",
+      "run_sha256": "6e1218d9cda8a8d16db2311bbd128caf796d41f985c921ad79c640d3267d643a",
+      "strict_JSON_errors": [
+        {
+          "line": 2,
+          "column": 122,
+          "message": "Invalid control character at"
+        }
+      ],
+      "literal_TAB_bytes": 4,
+      "forensic_only_events": [
+        "boot",
+        "probe_refused"
+      ],
+      "post_input_log_sha256": "5a69285a201fe43c18c266483a0e52781663c168db47ad2b15df270e339d2ff7",
+      "measurements_accepted": false
+    },
+    {
+      "map": "lebanon-repeat",
+      "actual_native_exit": 1,
+      "actual_source": "9e607637f750e2a08d0cb6c36d79709a68296d15",
+      "raw_sha256": "d46a835dab4607fa1a2d49cb31ccd9da5b790099f324a58453bd10c0f0fbb8ee",
+      "run_sha256": "af816147e948a0cf94fa28a051bb346cefc4fc84928b1be25fbbc98c1392199a",
+      "strict_JSON_errors": [
+        {
+          "line": 2,
+          "column": 122,
+          "message": "Invalid control character at"
+        }
+      ],
+      "literal_TAB_bytes": 4,
+      "forensic_only_events": [
+        "boot",
+        "probe_refused"
+      ],
+      "post_input_log_sha256": "cc2d68f1dbc57abe4a1a78d5a395afc46255e6ca2203f44df6000bdb23e189b5",
+      "measurements_accepted": false
+    }
+  ],
+  "independent_reuse_limits": [
+    "9e source build success and all3 actual native1 remain original facts, never relabelled as c119 or healthy success. Raw errors establish an invalid fixture precondition before the case loops; engine boot itself is not claimed free of ordinary physical queries.",
+    "There are no ground-case counters/hashes/oracle measurements from those failed probes. Post-input logs remain identical. Forensic event labels do not make malformed raw output valid.",
+    "Earlier sample/warm/legacy source closures and driver tests reused, not re-reviewed unchanged. Task47 immutable06 fullpack/process/cache remains untouched.",
+    "No reviewer build/test/compiler/Lua/native run, process mutation, source edit, delegation or external write; only read-only source/artifact/hash/strict-parse inspection and this authorized private report.",
+    "Healthy c119 output, if Root later obtains it, remains preliminary until encoder repair/delta review and strict raw validation/source correspondence; no Task48 or whole-D3 acceptance inferred."
+  ],
+  "changed_path_sha256": {
+    "STATUS.md": "dbc63c139300233e67e61910fbdd1ee01fa3cab4660e147e27b15f625aba0e0d",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_ground_fixture.c": "9f3d2492766c90d84e72a9681ce1eb8ca4108a36bd4832ad54599a3424008878",
+    "eech-campaign/crates/eech-world/lua/ground-characterization.lua": "d0616a43467c539d3de3ce06cafb581e8767f98c3bfd985400dafd8d3ab7df22",
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs": "a5351b94ff108bdca352e1fd03f41cc320e961cc8d36950e60a3f413e2b069f8",
+    "eech-campaign/crates/eech-world/tests/lua/ground-caller.lua": "462b7ddfa81bcc52fd0c38eec897aea56f342bf5de1f248f744001a898b201b2",
+    "eech-campaign/docs/m5-ground-characterization.md": "1b4364b6bdf38235028f71a2bb0c2adb6c4e8e8e667e44a11ffaa66fc697b5ad",
+    "eech-campaign/reference/d3-ground-characterization/distinct-grid-driver-execution.json": "aeea78018c614cd8a4ce875ef149e0f9fc20ba906e59c1fcc8d3f4f47962e760",
+    "eech-campaign/reference/d3-ground-characterization/independent-forced-sample-review-9e607637f.json": "0dd9252123cedd505a2b9e967bc6a5fcf8f842d5877f7a6d561f6223b949d51a",
+    "eech-campaign/reference/d3-ground-characterization/original-9e-build-completion.json": "5e300f6805cde307484535621f01a8687352a8317d59ccae4ae84e7a1a8fc248",
+    "eech-campaign/reference/d3-ground-characterization/original-9e-grid-refusals.json": "20687a83ebddb5f82801716e2ea6a9c3b320bb7c80a54148caa21944a1518dd9"
+  },
+  "original_implementation_sha256_unchanged": {
+    "aphavoc/source/entity/system/en_main/en_world.h": "e299d37dad40a95cde40a8406a11046ba15ecd7991c785586edcdcb6569ebc02",
+    "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c": "2a85122a70cd2f6c80b143e7f865aea742b25573187cb9b08ef45b40d55beafb",
+    "modules/3d/terrain/terrelev.c": "ef897d423c2d1a30bfec9cc9205c492a759020b5e0d85ee1d2a68d3df7311c9e",
+    "modules/3d/terrain/terrdata.c": "d2ff4997c5141ffb4ab79e6f70d218aa8d75960da53144a6e7e6586dcdcba63c"
+  },
+  "evidence_sha256": {
+    "ground-driver-linux-grid-working-completion.json": "e5a0daeffa71c699bb90e1eb72b30d7a529424b23a0db39340948649750bc2c8",
+    "ground-driver-linux-grid-working.log": "287d7b9bec9ca0e31693e2ab246eb55868a3530bbd9bdfa91c912da02c535355"
+  }
+}

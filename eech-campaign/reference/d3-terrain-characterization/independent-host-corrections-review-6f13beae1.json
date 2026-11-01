@@ -1,0 +1,147 @@
+{
+  "schema": "independent-review-v1",
+  "reviewed_utc": "2026-10-29T10:44:26.902274+00:00",
+  "base": "f4b61a475ee3032f45d8d29d098d122adbf7f337",
+  "head": "6f13beae1a0b7b1da7bc42c4b1e68e14f19a50d7",
+  "code_commit": "706e4f340",
+  "repository": "R:\\d2-sensor-detections",
+  "scope": "One focused combined correctness, clean-code and boundary-safety review of the six correction groups, new asset-free tests and necessary metadata. Closed original a8/source/runtime groups reused; no repeated original runtime audit.",
+  "disposition": "Five prior findings closed by source inspection. Provider-refusal P2 remains partially open: trigger/completed-frame accounting fixed, primary reason identification still too broad. No new C/Rust safety blocker found. No compiled-test, native, production-handoff or full-D3 acceptance.",
+  "prior_review": {
+    "path": "R:\\d3-evidence\\independent-host-terrain-source-review-f4b61a475.json",
+    "sha256": "2a53309a00090fd4b692fbdb2e82e70656133385b51d75f4bd1729de1c903d26"
+  },
+  "prior_finding_dispositions": [
+    {
+      "id": "TERRAIN_BUILD",
+      "previous_priority": "P1",
+      "status": "source resolved",
+      "basis": "Unmatched #endif removed; no numerical statement changed. Root reports corrected C syntax0. A complete corrected build is still required."
+    },
+    {
+      "id": "GEOMETRY_VIEWS",
+      "previous_priority": "P2",
+      "status": "source resolved",
+      "basis": "All file views use u64 subtraction-form spans before pointer formation. Solver geometry is copied to one malloc-owned block with4-aligned offsets, rather than typed reads of arbitrary file alignment. Sector field maxima bound the block to less than18MB, including worst-case127-point faces, so the allocation/downcasts also fit32-bit size_t. Error paths free each block. Reference indices and surface types remain checked before queries."
+    },
+    {
+      "id": "GLOBAL_QUERY_RACE",
+      "previous_priority": "P2",
+      "status": "source resolved",
+      "basis": "One shared Rust mutex covers every safe point-query, the whole conformance sweep and Drop across all maps. Open/get_facts do not use the mutable query statics; fast reads its own map/grid without those statics. The new test constructs differing maps within separate threads and compares real interleaved work with single-threaded answers."
+    },
+    {
+      "id": "HINT_PROVENANCE",
+      "previous_priority": "P2",
+      "status": "source resolved",
+      "basis": "Per-instance map key and tag cover every semantic hint field, including exact normal bits. C checks tag before map/face dereferences; structural checks remain, including finite normal and ny>0.00001. Tagged representation e2+88hex round-trips the bits. Legitimate solver-produced cached normals are not sanitized/recomputed. This is accidental-corruption/stale-map integrity, explicitly not cryptographic authorization."
+    },
+    {
+      "id": "SWEEP_CARDINALITY",
+      "previous_priority": "P2",
+      "status": "source resolved",
+      "basis": "Both C and Rust check count0..200000 and nonnegative emit before6+count. Emit is capped at256 and point count; Rust returns exactly that many produced entries. C null/out/sample guards are consistent with the wrapper. New tests cover overflow/negative counts and count0/emit256 yielding6samples."
+    },
+    {
+      "id": "PROVIDER_REFUSAL_PROOF",
+      "previous_priority": "P2",
+      "status": "partially resolved",
+      "basis": "malformed_sent records actual first point injection and requested/completed frames are distinct. However the only general refusal classifier is a substring search for terrain; see remaining finding."
+    }
+  ],
+  "findings": [
+    {
+      "id": "PROVIDER_REFUSAL_PROOF",
+      "priority": "P2",
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\terrain-provider.lua",
+      "line_start": 156,
+      "line_end": 166,
+      "related_lines": [
+        173,
+        181,
+        206
+      ],
+      "title": "Match the intended provider-contract refusal, not any terrain-named error",
+      "mechanism": "names_terrain accepts any message containing terrain. In missing mode an unrelated boot setup failure such as cannot open terrain.ffp passes check_refusal and the script returns normally. For bad_* an injected malformed answer followed by an unrelated terrain-named failure also passes (except bad_error requires its own text). A Lua filename can itself contain terrain, so matching that substring is not a primary guard reason. This leaves the original false-green evidence problem open.",
+      "bounded_correction": "Use explicit missing-provider/operation/field-specific primary guard identifiers or exact stable reason patterns, distinguishing terrain-file/setup errors. Keep malformed_sent and completed-frame counters. Add real-script local Lua controls for a terrain-named unrelated boot failure, a terrain-named unrelated post-injection frame failure and a wrong-mode refusal; all must fail. These controls are harness checks, not native or ownership proof."
+    }
+  ],
+  "new_test_assessment": {
+    "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\tests\\terrain_backend.rs",
+    "test_functions": 7,
+    "strength": "Synthetic byte maps exercise the actual loader/query/sweep/fast-grid FFI rather than mirror its formulas; changed valid hints test altered normal and foreign-map rejection; overflow counts/cardinality assertions address the defects directly; concurrent maps are created on their own threads. Handworked fast-grid expectations use exact power-of-two cells.",
+    "limits": "Tests were inspected, not run. Alignment fixtures have4points and byte references, so they do not exercise the257-plus-point word-reference branch; full32-bit execution and target C/Rust layout proof remain pending. Existing private-map tests still require assets and emit explicit SKIPPED/FAST ORACLE ABSENT; no unchanged oracle review repeated. No actual Lua provider-harness guard controls were added in this delta."
+  },
+  "boundary_numeric_assessment": "The new geometry copy, locks and hint metadata do not change copied solver arithmetic or campaign RNG stream. Map key generation uses host RandomState and an atomic serial, not campaign seed/index disclosure. C/Rust Hint gained u64 tag with repr(C); field order and codec exclude padding by inspection. Actual target layout/conformance and performance are not inferred. DLL dispatch remains unmoved; missing-grid generation and remaining D3 geometry/environment/time work remain explicit.",
+  "publication_assessment": {
+    "copied_prior_review_git_sha256": "2a53309a00090fd4b692fbdb2e82e70656133385b51d75f4bd1729de1c903d26",
+    "private_prior_review_sha256": "2a53309a00090fd4b692fbdb2e82e70656133385b51d75f4bd1729de1c903d26",
+    "semantic_review_copy_equal": true,
+    "scope": "Only new summary/serialization/claims checked. Original R1-R5 completion facts are reused, not re-audited. Summary distinguishes published serialization from private original and retains runtime a8/no-backend-acceptance.6f final commit changes only original-controls metadata relative to code706."
+  },
+  "source_pins": [
+    {
+      "path": "R:\\d2-sensor-detections\\STATUS.md",
+      "git_blob_sha256": "6c18bdd271b846cd0b41808360171997d00ef50a6eb01681b11a028065585e4a",
+      "worktree_sha256": "6c18bdd271b846cd0b41808360171997d00ef50a6eb01681b11a028065585e4a"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\docs\\handover\\D3-SCOPE-AUDIT.md",
+      "git_blob_sha256": "96733bbe32e5eba2db3f91933dbbce3901f9410b491fa8f3c6635004672b817f",
+      "worktree_sha256": "96733bbe32e5eba2db3f91933dbbce3901f9410b491fa8f3c6635004672b817f"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\csrc\\terrain_ref.c",
+      "git_blob_sha256": "488a6b24786338819ab9f6df106096a334593edc21b86fd99bf9defb570d266c",
+      "worktree_sha256": "488a6b24786338819ab9f6df106096a334593edc21b86fd99bf9defb570d266c"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\csrc\\terrain_ref.h",
+      "git_blob_sha256": "99c38e2f0ea5fdbe40ee8a67cd6ef98cd80ecfa6ac3ebc9f641def970dbc7dcb",
+      "worktree_sha256": "99c38e2f0ea5fdbe40ee8a67cd6ef98cd80ecfa6ac3ebc9f641def970dbc7dcb"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\terrain-provider.lua",
+      "git_blob_sha256": "8ec1866d65e23d3986887cfcbb254093989ffffcecad54e02c19007025d6ddce",
+      "worktree_sha256": "8ec1866d65e23d3986887cfcbb254093989ffffcecad54e02c19007025d6ddce"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\src\\terrain.rs",
+      "git_blob_sha256": "05b634878b038447375e83bf7add0687f86bd6604c83e2e99e277f8c8f7600d1",
+      "worktree_sha256": "05b634878b038447375e83bf7add0687f86bd6604c83e2e99e277f8c8f7600d1"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\tests\\terrain_backend.rs",
+      "git_blob_sha256": "bb31011099d2d642b2b126ab80dc0a9d8ee95f76ce8a0f9189420e0e6a7d14a2",
+      "worktree_sha256": "bb31011099d2d642b2b126ab80dc0a9d8ee95f76ce8a0f9189420e0e6a7d14a2"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\tests\\terrain_conformance.rs",
+      "git_blob_sha256": "481ade131d8356252f66711b626d2056f46d3bd0d87af16ad1ad97b138c3b4d8",
+      "worktree_sha256": "481ade131d8356252f66711b626d2056f46d3bd0d87af16ad1ad97b138c3b4d8"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\reference\\d3-terrain-characterization\\README.md",
+      "git_blob_sha256": "4e0efebe1079d46c46d62d9f34f428601d2adf81726e8e9c73b4e646e2ba8962",
+      "worktree_sha256": "4e0efebe1079d46c46d62d9f34f428601d2adf81726e8e9c73b4e646e2ba8962"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\reference\\d3-terrain-characterization\\independent-host-backend-review-f4b61a475.json",
+      "git_blob_sha256": "2a53309a00090fd4b692fbdb2e82e70656133385b51d75f4bd1729de1c903d26",
+      "worktree_sha256": "2a53309a00090fd4b692fbdb2e82e70656133385b51d75f4bd1729de1c903d26"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\reference\\d3-terrain-characterization\\original-controls-a8effa9f3.json",
+      "git_blob_sha256": "6a10ef22fe5ae1b84f8fde9ec892602063f65dc9f5ba63a390b5a8574d4d6b72",
+      "worktree_sha256": "6a10ef22fe5ae1b84f8fde9ec892602063f65dc9f5ba63a390b5a8574d4d6b72"
+    }
+  ],
+  "verification": {
+    "head_before_after": "6f13beae1a0b7b1da7bc42c4b1e68e14f19a50d7",
+    "clean_before_after": true,
+    "pinned_diff_check_actual_exit": 0,
+    "root_reported_checks": "Working-tree C syntax0, actual Lua5.1 syntax0 and cargo fmt/check0 via isolated formatter, as supplied by Root. No inference of compiled backend tests or Windows fixture/native completion.",
+    "reviewer_actions": "Read-only pinned source/diff, test and metadata inspection and hashes. Requested private JSON is the sole write. No compiler/build/test/native execution, source edits, process changes, external publishing or delegation."
+  },
+  "next_bounded_step": "Correct the specific refusal classifier and exercise actual Lua script guard controls; then request only that new delta. Root may validate the closed C/Rust safety corrections with clean compiled checks/builds while preserving exact source identities. Actual both-map point/fast conformance and public old-DLL RED/new handoff authority/refusal/default evidence remain future gates."
+}

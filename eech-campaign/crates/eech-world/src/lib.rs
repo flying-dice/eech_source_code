@@ -11,3 +11,4 @@ pub mod original_report;
 pub mod reference_arithmetic;
 pub mod sense;
 pub mod tacview;
+pub mod terrain;

@@ -32,6 +32,8 @@ loss-fixture = ["eech-engine/loss-fixture"]
 los-fixture = ["eech-engine/los-fixture"]
 # TEST-ONLY (EEDCS-43): the sensor-detection characterisation trace and probe. Never enabled in the shipping build.
 sensor-fixture = ["eech-engine/sensor-fixture"]
+# TEST-ONLY (EEDCS-47): the terrain surface characterisation trace and probe. Never enabled in the shipping build.
+terrain-fixture = ["eech-engine/terrain-fixture"]
 # TEST-ONLY (EEDCS-44): the physical weapon-aiming characterisation trace. Never enabled in the shipping build.
 aim-fixture = ["eech-engine/aim-fixture"]
 # TEST-ONLY (EEDCS-45): the physical weapon-execution characterisation trace, event log and controlled launch case. Never enabled in the shipping build.
@@ -40,6 +42,8 @@ weapon-fixture = ["eech-engine/weapon-fixture"]
 model-fixture = ["eech-engine/model-fixture"]
 # TEST-ONLY (EEDCS-50 D3): the shipping host-owned model data plus a diagnostic that counts the host's answers and overwrites the campaign's own model arrays. Never enabled in the shipping build.
 model-host-fixture = ["eech-engine/model-host-fixture"]
+# TEST-ONLY (EEDCS-48): the ground-contact characterisation probe. Never enabled in the shipping build.
+ground-fixture = ["eech-engine/ground-fixture"]
 
 # Code that runs inside a host's process: a panic in this DLL takes the host
 # down. The reference crate's restriction lints, denied here.

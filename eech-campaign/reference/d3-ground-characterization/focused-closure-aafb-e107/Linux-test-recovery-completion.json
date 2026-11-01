@@ -1,0 +1,18 @@
+{
+  "source": "e1076ece31565a3b4f73a7e2adbe8e2698d9c023",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-ground-fp-recovery-e1076ece3-linux-20261031.sh"
+  ],
+  "pid": 12764,
+  "controller_pid": 12064,
+  "state": "terminal",
+  "started_utc": "2026-10-31T01:23:14.715933+00:00",
+  "scope": "Test-only FP fixture recovery, selected backend tests and strict all-target lint; no product binary rebuild",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T01:25:20.038622+00:00"
+}

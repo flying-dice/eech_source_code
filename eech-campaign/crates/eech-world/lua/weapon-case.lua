@@ -120,7 +120,7 @@ local dc = require ("eech_dc")
 dc.prepare_installation (root)
 host.use_reference_arithmetic () -- the reference host's arithmetic profile, selected right after the installation is prepared (src/reference_arithmetic.rs)
 engine = dc.boot {
-	install_root = root, map = "..\\common\\maps\\map5", campaign_directory = "camp01", campaign = "LEBANON.CHC", gunship = "apache",
+	install_root = root, map = "..\\common\\maps\\map5", terrain = host.terrain_provider (root, "..\\common\\maps\\map5"), campaign_directory = "camp01", campaign = "LEBANON.CHC", gunship = "apache",
 	seed = seed, bind_mobile = bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss,
 	supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, model = host.model, sense = host.sense, aim = aim,
 }

@@ -12,7 +12,7 @@ host.use_reference_arithmetic () -- the reference host's arithmetic profile, sel
 
 local function config (callback)
 	return {
-		install_root = root, map = "..\\common\\maps\\map5", campaign_directory = "camp01", campaign = "LEBANON.CHC",
+		install_root = root, map = "..\\common\\maps\\map5", terrain = host.terrain_provider (root, "..\\common\\maps\\map5"), campaign_directory = "camp01", campaign = "LEBANON.CHC",
 		gunship = "apache", seed = 1, bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss, supply_reached = callback, line_of_sight = host.line_of_sight, model = host.model, sense = host.sense, aim = host.aim,
 	}
 end

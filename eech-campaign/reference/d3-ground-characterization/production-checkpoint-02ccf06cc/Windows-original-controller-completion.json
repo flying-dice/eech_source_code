@@ -1,0 +1,18 @@
+{
+  "source": "02ccf06cc0afcd8632fb5924a2117b1ebbbdd3b1",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-ground-production-02ccf06cc-windows-20261031.sh"
+  ],
+  "pid": 22220,
+  "controller_pid": 23948,
+  "state": "terminal",
+  "started_utc": "2026-10-31T00:37:22.501323+00:00",
+  "scope": "Shipping, ground fixture, weapon fixture builds and cross-test export; no native execution",
+  "actual_exit": 125,
+  "completed_utc": "2026-10-31T00:43:45.096321+00:00"
+}

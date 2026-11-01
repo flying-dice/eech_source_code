@@ -21,6 +21,7 @@
 #include "entity/mobile/mb_hostaim.h"
 #include "entity/mobile/mb_hostobj.h"
 #include "entity/mobile/mb_hostmodel.h"
+#include "entity/mobile/mb_hostterrain.h"
 
 #define EECH_ENGINE_OK 0
 #define EECH_ENGINE_FATAL 1
@@ -39,6 +40,8 @@ struct eech_engine_config
 	/* GUNSHIP_TYPE_* of the (server) player; its side is the player's side */
 	int gunship_type;
 	uint32_t random_seed;
+	/* nonzero: the session is in winter (the global season the original reads when it picks the terrain files; set before the terrain loads) */
+	int winter;
 	/* extra EECH.INI-style command line arguments, NULL-terminated (may be NULL) */
 	const char *const *arguments;
 };
@@ -68,6 +71,7 @@ typedef campaign_movement_step eech_movement_step;
 typedef campaign_movement_result eech_movement_result;
 typedef campaign_move_vehicle_fn eech_move_vehicle_callback;
 typedef campaign_los_fn eech_line_of_sight_callback;
+typedef campaign_terrain_fn eech_terrain_callback;
 typedef campaign_sense_fn eech_sense_callback;
 typedef campaign_aim_fn eech_aim_callback;
 typedef campaign_model_fn eech_model_callback;
@@ -90,6 +94,8 @@ struct eech_engine_host
 	eech_aim_callback aim;
 	/* Called synchronously for every physical model question (mb_hostmodel.h): the catalogue and each scene's radius and bounds at boot, and each step of a collision-triangle cursor. Unlike the dialogue callbacks above it is kept for the rest of the process: every entry that carries one refreshes it, an entry without one leaves it, and the entry's `user` pointer (which names that entry's own context) is NEVER retained, so the callback is always called with a NULL `user` and must not depend on it (boot requires the callback, except in the original-characterisation build model-fixture, which keeps the original accessors and has no host), because the campaign asks about models from every entry. The host owns the physical models; there is no campaign fallback. */
 	eech_model_callback model;
+	/* Called synchronously for every physical terrain question (mb_hostterrain.h): the map facts, the surface at a point (elevation, normal, type, and the record's opaque hint) and the fast gridpost elevation. Unlike the dialogue callbacks above it is installed for the rest of the process by the first entry that carries it (boot requires it), because the campaign asks about terrain from every entry. The host owns the physical terrain; there is no campaign fallback. */
+	eech_terrain_callback terrain;
 	void *user;
 };
 
@@ -335,6 +341,28 @@ int eech_engine_sensor_trace_reset (void);
 int eech_engine_sensor_probe (char *text, int capacity, const struct eech_engine_host *host);
 #endif
 
+#ifdef EECH_TERRAIN_FIXTURE
+/*
+ * TEST-ONLY (feature terrain-fixture, EEDCS-47): see eech_terrain_fixture.c. Not part of the shipping module.
+ * The report is `key=value` text lines: an order-dependent hash over every terrain query, the call counts (shared or private find-fast
+ * record, hint tried and hit, sector scans, no face found, clamped, Cuba flaw area), a surface-type histogram and a per-call-site table.
+ * Fails (bad argument) when the report does not fit `capacity`.
+ */
+/* The run-wide trace of every terrain query the campaign has made since boot or the last reset. */
+int eech_engine_terrain_trace (char *text, int capacity);
+int eech_engine_terrain_trace_reset (void);
+/*
+ * Runs the deterministic probe sweep over the loaded map (six fixed points, then `count` from the private generator seeded with `seed`),
+ * emitting the first `emit` samples (at most 256) in full; the run-wide trace and the shared find-fast record are left as found.
+ */
+int eech_engine_terrain_probe (uint32_t seed, int count, int emit, char *text, int capacity);
+/*
+ * The campaign's record predicate (get_3d_terrain_point_data_has_face, which the fixed-wing movement asks) through the real client queries at (x, z), on a private
+ * and on the shared record: fresh, after a query, after a second one, after clear. Only the host-terrain build has the predicate; elsewhere it fails (bad argument).
+ */
+int eech_engine_terrain_face_probe (float x, float z, char *text, int capacity);
+#endif
+
 #ifdef EECH_AIM_FIXTURE
 /*
  * TEST-ONLY (feature aim-fixture, EEDCS-44): see eech_aim_fixture.c. Not part of the shipping module.
@@ -420,6 +448,21 @@ int eech_engine_cmb_case_act (int op, const char *kind, int ordinal, const char 
 /* The controlled bridge case of the ORIGINAL collapse (EEDCS-46, R5, see eech_cmb_case.c): op 0 survey of every bridge, op 1 state of the bridge at ordinal, op 2 the declared structural failure of one\n   segment of it (index, or -1 for the first by criterion), op 3 disarm the observer.  Given the same complete host as a frame. */
 int eech_engine_cmb_case_bridge (int op, int ordinal, int index, int criterion, char *text, int capacity, const struct eech_engine_host *host);
 int eech_engine_cmb_events (char *text, int capacity, int *more);
+#endif
+
+#ifdef EECH_GROUND_FIXTURE
+/*
+ * TEST-ONLY (feature ground-fixture, EEDCS-48): see eech_ground_fixture.c. Not part of the shipping module.
+ * One read-only probe of the original point_above_ground, point_below_ground and get_ground_impact_point against the loaded terrain: `points` point
+ * cases and `impacts` impact cases from a private generator seeded with `seed`. The report is `key=value` text lines: the call counts and outcomes, how
+ * often each call read the shared terrain point record, the impact checks, an order-dependent hash and bounded raw samples (float bit patterns). The shared
+ * record is restored byte for byte. It takes no host argument. In the original module the three read the DLL's terrain; in the host-terrain module
+ * (EECH_CAMPAIGN_HOST_TERRAIN) the three themselves are questions to the provider that boot installed for the process (ground_above, ground_below and ground_impact:
+ * the host decides them; the DLL holds no predicate, sector maximum or bisection behind them), and the report is the host-semantic
+ * profile (its own rows: ground-profile, ground-semantic-record, ground-semantic-hash), never the legacy ground-record and ground-hash. A refused probe (a precondition not held, a report that does not fit) writes `ground-refused reason=...`
+ * and fails as a bad argument; each of points and impacts is 0 to 100000, and not both 0.
+ */
+int eech_engine_ground_probe (uint32_t seed, int points, int impacts, char *text, int capacity);
 #endif
 
 #endif

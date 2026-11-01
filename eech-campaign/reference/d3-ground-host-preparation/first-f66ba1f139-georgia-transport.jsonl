@@ -1,0 +1,29 @@
+{"event":"check","n":1,"name":"a high point: below is false","ok":true}
+{"event":"check","n":2,"name":"a high point: queried is false","ok":true}
+{"event":"check","n":3,"name":"a high point: no record","ok":true}
+{"event":"check","n":4,"name":"a low point: below is true","ok":true}
+{"event":"check","n":5,"name":"a low point: queried is true","ok":true}
+{"event":"check","n":6,"name":"a low point: the record is complete","ok":true}
+{"event":"check","n":7,"name":"a low point leaves a hint at the reference land point","ok":true}
+{"event":"check","n":8,"name":"warm: the same answer","ok":true}
+{"event":"check","n":9,"name":"warm: the same record","ok":true}
+{"event":"check","n":10,"name":"a smaller world: below is true","ok":true}
+{"event":"check","n":11,"name":"a smaller world: no terrain read","ok":true}
+{"event":"check","n":12,"name":"the map's own world: the same point is above","ok":true}
+{"event":"check","n":13,"name":"outside the world with an altered hint: still decided, no read","ok":true}
+{"event":"check","n":14,"name":"above the sector maximum with an altered hint: still decided, no read","ok":true}
+{"event":"check","n":15,"name":"a read with an altered hint is refused","ok":true}
+{"event":"check","n":16,"name":"a crossing: the replies are keyed positions","ok":true}
+{"event":"check","n":17,"name":"a crossing: x and z of both endpoints are unchanged","ok":true}
+{"event":"check","n":18,"name":"a crossing: the endpoints were already right","ok":true}
+{"event":"check","n":19,"name":"a crossing: a terrain type and a complete record","ok":true}
+{"event":"check","n":20,"name":"a crossing: the impact is between the endpoints in x","ok":true}
+{"event":"check","n":21,"name":"an above endpoint under the ground is corrected to the ground plus 0.001","ok":true}
+{"event":"check","n":22,"name":"a below endpoint over the ground is corrected to the ground minus 0.001","ok":true}
+{"event":"check","n":23,"name":"an impact cold and warm: the same endpoints, impact and type","ok":true}
+{"event":"check","n":24,"name":"an impact warm: the same record","ok":true}
+{"event":"check","n":25,"name":"a signed zero comes back as a signed zero","ok":true}
+{"event":"check","n":26,"name":"a subnormal comes back exactly","ok":true}
+{"event":"check","n":27,"name":"a getter is read once and answered","ok":true}
+{"event":"check","n":28,"name":"an absent world is refused","ok":true}
+{"event":"check","n":29,"name":"a world that is not a table is refused","ok":false}

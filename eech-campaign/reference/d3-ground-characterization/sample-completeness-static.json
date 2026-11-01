@@ -1,0 +1,10 @@
+{
+  "scope": "Remaining sample-checker correction only; static checks, no test/runtime result",
+  "diffcheck_exit": 0,
+  "fmt_exit": 0,
+  "caller_lua_exit": 0,
+  "driver_lua_exit": 0,
+  "c_fixture_sha256": "bdc14a2b8ab74667866db3c2a027f97e9f4788114391e1d256321d42c9c894bf",
+  "created_utc": "2026-10-29T14:19:50.6590829Z",
+  "fmt_check_exit": 0
+}

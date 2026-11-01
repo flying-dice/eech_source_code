@@ -1,0 +1,499 @@
+{
+  "schema": "independent-review-v1",
+  "reviewed_utc": "2026-10-29T11:45:44.888090+00:00",
+  "base": "7eae2424b78570a31719aa7df2a67a1e602ae139",
+  "head": "251bfe15b4f1a21c3cdd987db9dbf416be508287",
+  "repository": "R:\\d2-sensor-detections",
+  "scope": "One combined NEW production terrain handoff, ABI/provider lifecycle/cache, public Lua registrations, host missing-grid generation, tests/docs and original missing-grid evidence source pass. Closed7e/6f/source/runtime groups reused, not repeated.",
+  "disposition": "Changes requested:4P2 and1groupedP3. Ordinary shipping compile succeeded but no new production native acceptance. Correct in one bounded batch before authority/default/variant runtime validation.",
+  "findings": [
+    {
+      "id": "GRID_POSTPROCESSING",
+      "priority": "P2",
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\csrc\\terrain_ref.c",
+      "line_start": 2774,
+      "line_end": 2793,
+      "related_paths": [
+        {
+          "path": "R:\\d2-sensor-detections\\modules\\3d\\terrain\\terrsel.c",
+          "lines": [
+            413,
+            581
+          ]
+        },
+        {
+          "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\tests\\terrain_backend.rs",
+          "lines": [
+            322,
+            423,
+            430
+          ]
+        }
+      ],
+      "title": "Preserve the complete original generated-grid algorithm",
+      "mechanism": "Host generation stops after initial point sampling and retains sea sentinel-5000. Original terrsel.c then processes coastal intersections and replaces remaining-5000 with sea_height-1=-2. The new SEA test asserts the intermediate-5000 value rather than original final behavior. Independently read original generated files contain zero-5000posts and257456/394360posts at-2. The existing sweep test also still expects fast_available0 after its map now gains a generated grid, so it will fail on the new behavior.",
+      "bounded_correction": "Port the full original coast/postprocessing/read order into the host, including required host-owned coastal input services, without delegating the calculation to the DLL. Preserve original byte oracles and correct the sea/fast_available assertions. Then compare full generated data and original fast hashes on both controlled missing-file variants; do not declare the gap closed from a flat-land test."
+    },
+    {
+      "id": "REPLY_OPERATION",
+      "priority": "P2",
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-engine\\src\\lib.rs",
+      "line_start": 1092,
+      "line_end": 1124,
+      "title": "Reject an answer variant that does not match its terrain operation",
+      "mechanism": "terrain_callback derives TerrainQuery from source.op but matches TerrainAnswer independently. A safe Rust provider can answer Map or Fast to a POINT request; otherwise-zero point fields reach C, whose finite/type checks accept elevation0/normal0/type0/nil-hint. This fabricates a successful physical reply instead of refusing. Lua normally constructs the correct variant, so this is the public Rust/generic-host/native bridge seam, not an observed Lua native failure.",
+      "bounded_correction": "Validate the (request op,answer variant) pair before writing reply_out. Refuse every mismatched pair with a clear requested-operation marker, preserving valid variants. Test the actual callback/serialization path and prove no reply application on rejection."
+    },
+    {
+      "id": "REFERENCE_SEASON",
+      "priority": "P2",
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\src\\terrain.rs",
+      "line_start": 551,
+      "line_end": 557,
+      "related_paths": [
+        {
+          "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\campaign.lua",
+          "lines": [
+            66,
+            70
+          ]
+        },
+        {
+          "path": "R:\\d2-sensor-detections\\aphavoc\\source\\ui_menu\\sessparm\\sparm_sc.c",
+          "lines": [
+            146,
+            170
+          ]
+        },
+        {
+          "path": "R:\\d2-sensor-detections\\modules\\3d\\terrain\\terrdata.c",
+          "lines": [
+            219,
+            231
+          ]
+        }
+      ],
+      "title": "Select the same actual boot season in the reference host",
+      "mechanism": "All32new script registrations omit winter, and install_provider maps omission tofalse before native boot. Native set_current_game_session calls notify_session_parameters, which reads map_info and sets the season before the loader chooses default-W.sec when both winter files exist. Valid winter maps can therefore use winter DLL sector data and summer host point geometry silently; sector-count equality does not distinguish those maps.",
+      "bounded_correction": "Select/transport the actual original boot season at the correct point, or explicitly refuse an unsupported mismatch. Preserve winter-pair fallback semantics and distinguish season-dependent cache keys. Exercise distinct summer/winter file fixtures; no winter native coverage is claimed from the supplied summer controls."
+    },
+    {
+      "id": "NOHINT_VALIDITY",
+      "priority": "P2",
+      "path": "R:\\d2-sensor-detections\\aphavoc\\source\\entity\\mobile\\mb_hostterrain.c",
+      "line_start": 177,
+      "line_end": 183,
+      "related_paths": [
+        {
+          "path": "R:\\d2-sensor-detections\\aphavoc\\source\\entity\\mobile\\mb_hostterrain.c",
+          "lines": [
+            193,
+            200
+          ]
+        },
+        {
+          "path": "R:\\d2-sensor-detections\\aphavoc\\source\\entity\\mobile\\aircraft\\fixwing\\fw_move.c",
+          "lines": [
+            2512,
+            2521,
+            2807,
+            2816
+          ]
+        }
+      ],
+      "title": "Keep semantic record validity independent of optional opaque cache state",
+      "mechanism": "face_stored becomes true only if the point answer carries a nonempty hint. A valid generic no-hint surface answer never makes has_face true despite populating elevation/normal/type. Both fixed-wing death/contact paths consequently treat populated data as invalid and issue extra queries each call; sampling/order depends on exposing a cache token rather than physical facts.",
+      "bounded_correction": "Represent semantic stored-surface/record validity separately from optional cache hints, preserving original reference stale/no-face behavior with explicit by-value metadata if needed. A valid generic no-hint reply must establish usable data without a fake EECH hint. Cover actual client validity/predicate behavior and clear/refill cases."
+    },
+    {
+      "id": "DIAGNOSTIC_SCOPE",
+      "priority": "P3",
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-engine-sys\\csrc\\eech_terrain_fixture.c",
+      "line_start": 29,
+      "line_end": 33,
+      "related_paths": [
+        {
+          "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-engine-sys\\csrc\\eech_terrain_fixture.c",
+          "lines": [
+            436
+          ]
+        },
+        {
+          "path": "R:\\d2-sensor-detections\\aphavoc\\source\\entity\\mobile\\mb_hostterrain.c",
+          "lines": [
+            185,
+            187
+          ]
+        },
+        {
+          "path": "R:\\d2-sensor-detections\\eech-campaign\\reference\\d3-terrain-characterization\\README.md",
+          "lines": [
+            391,
+            392
+          ]
+        }
+      ],
+      "title": "Qualify retained hashes and solver-symbol checks precisely",
+      "mechanism": "The comment says point hashes remain comparable, but fold_answer includes fast_hit in word6 and the new client always reportsFALSE. Primed hashes can therefore change solely from the lost internal diagnostic even when physical tuples match. Separately README requires system_point_data absence although the new client legitimately defines a shared value cache under that name.",
+      "bounded_correction": "Distinguish physical tuple/sample comparison from diagnostic-containing primed/run hashes; preserve originals and classify deltas explicitly. Do not require optional host diagnostics or legacy solver echoes. Check object ownership and absence of original numerical triangle/scratch-reference code rather than banning the valid client shared-cache name."
+    }
+  ],
+  "ownership_and_memory_assessment": {
+    "dispatch": "EECH_CAMPAIGN_HOST_TERRAIN excludes the old terrelev numerical body and the legacy terrsel fast lookup; mb_hostterrain implements public point/fast/record operations solely through the required callback. No hidden DLL point/fast solver fallback was found. Legacy code text remains for the original game, not the active headless numerical dispatch.",
+    "values": "Terrain requests/replies and opaque bounded hint strings cross by value. Legacy record pointers are replaced by private C values; raw address/entity heap ID/seed/layout does not cross the public Lua boundary.32reference scripts explicitly register terrain; no automatic module-global default provider is used.",
+    "generation_lock": "Terrain::from_bytes now holds the same all-map C_SOLVER lock across open/generation. The new generation calls its C point body directly inside that interval, so the earlier global-static race is not reintroduced. Generated allocation is owned/freed by the C map; grid byte buffers remain alive as needed. No additional pointer-lifetime or allocation-bounds defect was established in this pass.",
+    "retention": "BOOTED.swap at the start prevents a second safe Rust boot from replacing the first provider. The owned TLS closure retains its Lua function; terrain_callback ignores transient with_host.user, so the retained C user address is not dereferenced by this Rust callback. try_borrow_mut and catch_unwind refuse reentrant borrowing/panics before C asks debug_fatal; fatal jumping occurs after the Rust callback returns. Provider retention includes failed native boot until thread/process end under the documented once-per-process model; it is not entry-scoped cleanup. This is an intentional resource-lifetime limit, not proof of post-failure recovery or a discovered UAF.",
+    "abi": "New request/reply and host callback field order match between C and repr(C) Rust by inspection. Actual32-bit size/alignment/all-inner-offset assertions were not supplied/executed for this new DTO set. Require relevant target ABI checks before final acceptance. No new representation mismatch was identified by source inspection.",
+    "float_rng": "Lua bridge validates fields before formatting/parsing and uses nearest_f32 for the callback rounding environment; fields/hints are copied without solver sanitation. New subnormal/negative-zero tests are source assertions, not an executed FE_TOWARDZERO native proof. No new campaign RNG draw/reordering was identified in the client. Original numeric generation is incomplete as findingGRID_POSTPROCESSING states."
+  },
+  "remaining_D3_coupling": [
+    "Native terrain/sector loader, type/cover/sector facts and trees remain G2/G3 data; core ground-impact geometry and contour/2D fast-grid generation remain compiled/active dependencies. Native sector-count matching is a declared transitional map constraint, not EECH-free DCS integration.",
+    "Active object/tree collision, device/sub-object viewpoints, target points/bounds, environmental/weather and host-time services remain finiteD3 work. They are not deferred toD5.",
+    "Shared value cache system_point_data is legitimate bookkeeping; it is not evidence that old numerical solving remains."
+  ],
+  "tests_and_claims": {
+    "added": "Real module missing/non-function terrain boot guards and real Lua bridge value/marker cases; generated-grid synthetic test. Source all32registration changes reviewed. No tests were launched by reviewer.",
+    "gaps": "New generated sea expected value mirrors the truncated algorithm and stale fast_available0 assertion must be corrected. No actual callback operation-variant test, winter selection fixture, no-hint client-validity test or new ABI inner-offset proof currently closes the findings. Native default/causal/refusal/recording/full-pack gates remain unrun.",
+    "root_checks": "Root reports Rustfmt/check0, all41Lua parsers0, standalone hostCsyntax0 anddiffcheck0. Retained ordinary shipping compile completionactual0 at2026-10-29T11:35:48.5602175Z was read. Compile success is not execution/ownership/regression acceptance."
+  },
+  "new_original_missing_grid_evidence": {
+    "source": "6f13beae1a0b7b1da7bc42c4b1e68e14f19a50d7",
+    "scope": "Controlled fresh variants with only selectedterrain.sim removed; accepted supplied retail files were not replaced. No new host-generated grid has been compared yet.",
+    "lebanon": {
+      "header": [
+        1025,
+        1025,
+        152,
+        184
+      ],
+      "bytes": 4202516,
+      "sha256": "d3a707e8d21964b3f8df8d28f8d2a5afd88c0aa52e648fc3495a25aa6a26aa42",
+      "fast_hash": "12f0edcddd5d840c",
+      "sea_minus5000_count": 0,
+      "minus2_count": 257456,
+      "other_inputs_rehashed": 1178
+    },
+    "georgia": {
+      "header": [
+        2049,
+        1025,
+        244,
+        232
+      ],
+      "bytes": 8400916,
+      "sha256": "83ac8c715274a117cbbef80e4665065746a6b0bf77c1b50b8b1aa1dd45d9700c",
+      "fast_hash": "aa1179597dceabc4",
+      "sea_minus5000_count": 0,
+      "minus2_count": 394360,
+      "other_inputs_rehashed": 1173
+    },
+    "verification": "Independently rehashed generated files/raw traces and checked run-record equality/completed native0 against the retained original records. Read actual Root controller0 results. Rehashed all other manifest inputs (excluding exactly the selected grid) and all44post-build entries. These original final grid bytes, not merely sea literals, are the required next host-comparison oracle."
+  },
+  "source_pins": [
+    {
+      "path": "R:\\d2-sensor-detections\\STATUS.md",
+      "git_blob_sha256": "70892db83ea7acf97d69d4e71ec8e5d3d3bc49f66a17c607c30faa549b5b1623"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\aphavoc\\source\\entity\\mobile\\aircraft\\fixwing\\fw_move.c",
+      "git_blob_sha256": "019bd8c3fdf75464a271e51e652342a3b0b7ad8962bb980292eb41fa5371a158"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\aphavoc\\source\\entity\\mobile\\mb_hostterrain.c",
+      "git_blob_sha256": "f84124112ec687107ee85aa7a1a9822eed2d3f5127cc683769c5b6e720067bf1"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\aphavoc\\source\\entity\\mobile\\mb_hostterrain.h",
+      "git_blob_sha256": "7f2a14fe20c74286de2321a70d5fcd4e222aaec01c4e797ff7578fe437b91059"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\docs\\handover\\D3-SCOPE-AUDIT.md",
+      "git_blob_sha256": "3d2659b48db611959b5b55c32400a09d4285461682c48e9b86f755caee4702c6"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-dc\\src\\lib.rs",
+      "git_blob_sha256": "25dfc2d5fc1fae926e7c38b403a8cc4c4702fe81c9a3b575697e7c8769e47dac"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-dc\\src\\module.rs",
+      "git_blob_sha256": "b2d5fbfca8a64991cb0ff5a324d514b36780b11233122fa8ec4b950ecfa81b34"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-engine-sys\\build\\main.rs",
+      "git_blob_sha256": "a5f05306691ce9f43e2176ee2feada41df1222baf41473dc465ed2f541a25441"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-engine-sys\\csrc\\eech_engine.c",
+      "git_blob_sha256": "92c528f0ebb63f6cbebb5f3249fc0b2b00cb689d4d9259ab369fd17bc2389a8c"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-engine-sys\\csrc\\eech_engine.h",
+      "git_blob_sha256": "8fa60c68b001e8bea481a2a0313c404f49f0feb719090677dbee7648cc733fe7"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-engine-sys\\csrc\\eech_terrain_fixture.c",
+      "git_blob_sha256": "384daa4a8c70b1199c5eb16497f89525b9d7609c822792a45458c15d1bc47ec1"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-engine-sys\\sources.txt",
+      "git_blob_sha256": "d9b9a509f50e7a529e8fde914c1aa7ba3d1fdd9d9c761163f3fec047cd1916ef"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-engine-sys\\src\\lib.rs",
+      "git_blob_sha256": "6cab12547960bb714ab568eccfc207c9c1a0ebab52d1b9b8e7a5737ff64ea789"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-engine\\src\\lib.rs",
+      "git_blob_sha256": "18fa9fabb101d5ad6bc8cdddf67e6f6429dc743e00e1d40c8422fabe1f0d1a2e"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\csrc\\terrain_ref.c",
+      "git_blob_sha256": "fb123bfa1e9e65295679ddb3e0b8fe28a97a66b1659646fd5afc9d1d75db1fde"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\csrc\\terrain_ref.h",
+      "git_blob_sha256": "a9ff52145d5e0284ede115ef7f4e1449f331ad17601ce8229d65d46bd7639381"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\aim-characterization.lua",
+      "git_blob_sha256": "79c309255a0aaf28b9bac0f1c1577e881ee83cc388f0b608429b62b1411cefac"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\aim-lead-probe.lua",
+      "git_blob_sha256": "56e7261beee6b5fa3e4ee39efa37fc2922b9a3d446e0c012533893d731dacc04"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\aim-person-case.lua",
+      "git_blob_sha256": "057dfa948d2c9c9bab8ae1106f2cfaf6415dea72dcec8ff705ebba300a4d8083"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\aim-provider.lua",
+      "git_blob_sha256": "72d2b9ec32aaf2e41dd0969eb04422319baf930df35cbb5fda693919876c5e56"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\aircraft-arrivals.lua",
+      "git_blob_sha256": "a61ca48a54aa4a414f7277f8c0d1e4ac6639323a945ecab1d5efa08506302277"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\bridge-case.lua",
+      "git_blob_sha256": "815638af0bdd6109f28d6190ec47d49336b7236d3d6ac88adc2b94f6a49ff0f5"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\campaign.lua",
+      "git_blob_sha256": "7e5766f50e33d03c7958ed5d9ed163eb521fa2d28c02bbb6052663d9979a695e"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\combat-case.lua",
+      "git_blob_sha256": "2ca8b13dd66cf04670d80c5b8286ce5e7a80a5aff1159db09807c9bc49f4f8d1"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\combat-characterization.lua",
+      "git_blob_sha256": "f30876439f3583ee9e51289f716e7d38f9f0255c8534c1c635addc385020fa6c"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\convoy-movement.lua",
+      "git_blob_sha256": "afef79896c5adf7457d6898fb8839629bf4598c61f018fdb73e7d03d17f9102a"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\dependent-carry.lua",
+      "git_blob_sha256": "fc657944f76e3f65917666268b45e12ba981a52cc300a6094ffcad51f348c597"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\dependent-fixture.lua",
+      "git_blob_sha256": "4bcde1fa6b870a4d9c7797bc33a237f72f2a141f183d778b6aa0e13ba49b0319"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\fixed-wing-movement.lua",
+      "git_blob_sha256": "1e88eb8e2375ba5bedd25e07066c77d2163bc8e40ec927bab0ff6bf65302240d"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\helicopter-lifecycle.lua",
+      "git_blob_sha256": "9615ec2a148fec5c4215b3fb37a967570c72479890fd3a0b1fb45ea55b2a2327"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\helicopter-movement.lua",
+      "git_blob_sha256": "0d24892463a01086ca8f2af272d46dc68303f4e23433a674f49fcb8f97ec1c6a"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\host-identities-lifecycle.lua",
+      "git_blob_sha256": "afe847c144abeb9296aa4e9f94fbfacd70c2ad3c57eb50677a8e63cf7cefbb5b"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\host-identities.lua",
+      "git_blob_sha256": "1a71e2f908ad5e8c8cd6a003e781d121f51126085495ff3bb9d67e68f321aaea"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\lifecycle.lua",
+      "git_blob_sha256": "66ae1ec1a0e0aefd8fa1c23bfddd830eb2776f1648433c2163651b97e4068d26"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\los-characterization.lua",
+      "git_blob_sha256": "b31c98d044fff04c8bc8b0675fdf4634f7d911706302656b1239f575e8a88080"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\los-controls.lua",
+      "git_blob_sha256": "bf0d5b12b5cbe3c5fa7e605710aa1a199297d12746e312adae1c61587adc38b6"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\los-provider.lua",
+      "git_blob_sha256": "792e718c459b5524d1395e0d612ef94856bb922232bf7281b39b550cf9357147"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\loss-all-family.lua",
+      "git_blob_sha256": "3480c6f1d14f2eced77713825c6302f390ac54fee6e8f35c4882534c777642e9"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\object-report-case.lua",
+      "git_blob_sha256": "ef8c367d2dcd322f5f760fd9d2d4af03d7d90369adbe98551011ec80b8cd3af4"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\remaining-arrivals.lua",
+      "git_blob_sha256": "cbd0537013de8248b1361b7bc7d475e07decf4442a8e230b6e513268081ceb58"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\sense-provider.lua",
+      "git_blob_sha256": "debea274a10a30f9f8d55ee5ccdcc1100c744afe9f657e739c9f2ba93f470eeb"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\sensor-characterization.lua",
+      "git_blob_sha256": "11408d1c81d05ced4f21a98ca561f11d3918383e52d44b4f6cc960c38470166c"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\supply-arrivals-lifecycle.lua",
+      "git_blob_sha256": "51a8c00bd7475cc5b632b9a5d72d161b8cba5fbf60230df4dd82d026cf548bf2"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\supply-arrivals.lua",
+      "git_blob_sha256": "beceb8b2fd945d908b9d32452bd7d12d3584cda7af37cc421c07bcd0e77b21ed"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\surface-movement.lua",
+      "git_blob_sha256": "bf49c807becedb752c7dd885e52aa6bd60db6c237145d62eed00244fc963fb21"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\terrain-characterization.lua",
+      "git_blob_sha256": "03b121cfb892234133c890fe4438265e09b96d70a3039e030a1230693c767214"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\weapon-case.lua",
+      "git_blob_sha256": "52e5c47660c16f687a11ebef0cf7aa966d451d47c92c65f90e70c46e10d7b86b"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\lua\\weapon-characterization.lua",
+      "git_blob_sha256": "041780d305e7cb28a56603d555504bee6d0bffa00c4a2ffe637ede442ea7b238"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\src\\terrain.rs",
+      "git_blob_sha256": "634bc0d4c7b5d2a86cb20349ed02b17984cc91e1bfd7bd745a8cdad9eb3da924"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\tests\\terrain_backend.rs",
+      "git_blob_sha256": "dea791fb171ffc7ae606815ccd29ad80feb312ce139fb3a61b73988d5920d208"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\crates\\eech-world\\tests\\terrain_boot_contract.rs",
+      "git_blob_sha256": "2ca9df2d14408d63fb14ab205daec11e1efb092659619eaea62a1553a2344fae"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\reference\\d3-terrain-characterization\\README.md",
+      "git_blob_sha256": "6f564efc7787df22fc59b74372b01cc3c64677fa5ac64c135a7da681bee6ac85"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\reference\\d3-terrain-characterization\\independent-public-red-review-7eae2424b.json",
+      "git_blob_sha256": "5077f0fe74eb217a65d1fa11513a775c63b86443e480c36e22a01c3b0c7d2d7d"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\reference\\d3-terrain-characterization\\original-missing-grid-6f13beae1.json",
+      "git_blob_sha256": "db2ff7918f63ead23e8d646c66abeab4e99810cfb8d6643525e492144b378c08"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\eech-campaign\\reference\\d3-terrain-characterization\\public-old-dll-red-572b98f15.json",
+      "git_blob_sha256": "e3903ae92705a8cb992081625d47c6499d793045e23d891db22cb92ef95ce731"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\modules\\3d\\terrain\\terrdata.h",
+      "git_blob_sha256": "d2d3a8e73d9af7785b3532d27431ab4e10478c2af7c29e6df34a8f28ceb07bfa"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\modules\\3d\\terrain\\terrelev.c",
+      "git_blob_sha256": "dd4a81ca92e0b2a8581750045f81fe70b8f80ce80bd00e3f4f62a53f1723e544"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\modules\\3d\\terrain\\terrelev.h",
+      "git_blob_sha256": "300a8adb5c5c85e052380a0b9fbc8ebf952550e8ea1a4b3cc4a326f2d6034274"
+    },
+    {
+      "path": "R:\\d2-sensor-detections\\modules\\3d\\terrain\\terrsel.c",
+      "git_blob_sha256": "c76770a97e4dd466f457c3b3bbb89f840c34110ff0019afdd1bf35591c6898ec"
+    }
+  ],
+  "evidence_pins": [
+    {
+      "path": "R:\\d3-evidence\\root-original-missing-grid-completion-6f13beae1.json",
+      "sha256": "938cf67f713f7232a152fac0f5de5445141aa56cc1ab91eb3a33313a7c79abac",
+      "bytes": 2108
+    },
+    {
+      "path": "R:\\d3-evidence\\original-missing-grid-generation-6f13beae1.json",
+      "sha256": "db2ff7918f63ead23e8d646c66abeab4e99810cfb8d6643525e492144b378c08",
+      "bytes": 6396
+    },
+    {
+      "path": "R:\\d3-evidence\\backend-6f13beae1-post-generated-grid-build-manifest.json",
+      "sha256": "8a5dcc1570c7ae41568f3d2634faa37057e7bb7889fd9a38bdffe7930003d9a4",
+      "bytes": 11985
+    },
+    {
+      "path": "R:\\d3-evidence\\build-shipping-terrain-251bfe15b-completion.json",
+      "sha256": "794ea39d6de102373e32fdc48971587c6fedec5a69d50ba19a36e175cc15e88c",
+      "bytes": 317
+    },
+    {
+      "path": "R:\\d3-evidence\\build-shipping-terrain-251bfe15b.log",
+      "sha256": "82b3d2f66374491904076e810024d51133ff304fbae88e1cce76be0d30c49d50",
+      "bytes": 4609
+    },
+    {
+      "path": "R:\\d3-evidence\\root-clean-production-prebuild-251bfe15b.json",
+      "sha256": "cc59b9930aad84bfe7a8ed1758a0d14d835e2f12178defc23198ff0adbbd8cff",
+      "bytes": 276
+    }
+  ],
+  "verification": {
+    "head_before_after": "251bfe15b4f1a21c3cdd987db9dbf416be508287",
+    "clean_before_after": true,
+    "pinned_diff_check_actual_exit": 0,
+    "reviewer_actions": "Read-only pinned source/diff, existing proof/config/raw and hash inspection. Requested private JSON is the sole write. No compiler/build/test/native campaign/process changes/remote write or delegation."
+  },
+  "next_bounded_step": "One sole-author correction batch for fourP2/P3, retaining source251 compile and old failures/oracles. Review only new corrections, then actual affected ABI/bridge/client controls and host-generated full-byte comparison before production authority/generic/refusal/default/native gates. FinalTacview40/all8/postinputs/currentCI/normalmerge/fullD3 acceptance remain pending.",
+  "late_root_generation_red": {
+    "scope": "New actual Root direct-kernel Windows conformance defect reproduction arrived after source inspection/report draft. Reviewer inspected existing logs/records only; no rerun.",
+    "cases": [
+      {
+        "map": "lebanon",
+        "actual_exit": 101,
+        "log": "R:\\d3-evidence\\missing-grid-red-251bfe15b-lebanon.log",
+        "log_sha256": "9976a323a20fcd10c4986fdf7a8aa1e5ea4e589119a05680c16acad83611e5cf",
+        "completion": "R:\\d3-evidence\\missing-grid-red-251bfe15b-lebanon-completion.json",
+        "completion_sha256": "8879184dcfb32e4e5807672b4b5f2fafe50fb0d9b46041f4a02d0ed4f7308bc5",
+        "host_fast_hash": "5c3a49e99f95388c",
+        "original_fast_hash": "12f0edcddd5d840c"
+      },
+      {
+        "map": "georgia",
+        "actual_exit": 101,
+        "log": "R:\\d3-evidence\\missing-grid-red-251bfe15b-georgia.log",
+        "log_sha256": "3ab31d959d890c315cd3cdba3000a823c630474e4a0fcaf47f1b845406db8858",
+        "completion": "R:\\d3-evidence\\missing-grid-red-251bfe15b-georgia-completion.json",
+        "completion_sha256": "4a205bbc5cee8ee680c7139963087480c92f19c96e818be1d02f0b4994d511c2",
+        "host_fast_hash": "b3bddb7ef4f1746a",
+        "original_fast_hash": "aa1179597dceabc4"
+      }
+    ],
+    "classification": "Reached fast-hash assertion regression on both maps, not setup/skip. Existing test ordering establishes preceding point/primed/counter comparisons passed. Not an end-to-end campaign execution or acceptance result. Supports GRID_POSTPROCESSING finding.",
+    "draft_preserved": {
+      "path": "R:\\d3-evidence\\independent-terrain-production-source-review-251bfe15b-before-late-generation-red.json",
+      "sha256": "196461de7c6713a07fe4e28fc9014c7d2426353c7397f3a4a8d3b180a61d02e4"
+    }
+  }
+}

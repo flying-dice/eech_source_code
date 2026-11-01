@@ -56,7 +56,8 @@ fn check(code: c_int) -> Result<(), EngineError> {
 /// TEST-ONLY (feature `weapon-fixture`, EEDCS-46): the report text of a controlled combat case when the engine rejected its arguments. The case driver writes its reason
 /// (`cmb-case-error reason=... detail=...`) into the report buffer before it returns the argument error, and `check` turns every argument error into "rejected by the engine";
 /// this keeps the reason instead of discarding it. Any other failure, and a rejection that wrote nothing, is unchanged.
-#[cfg(feature = "weapon-fixture")]
+/// The ground-contact probe (feature `ground-fixture`, EEDCS-48) writes `ground-refused reason=...` the same way and uses it too.
+#[cfg(any(feature = "weapon-fixture", feature = "ground-fixture"))]
 fn keep_case_reason(status: Result<(), EngineError>, text: &[std::os::raw::c_char]) -> Result<String, EngineError> {
     // SAFETY: the buffer was zero-filled and the engine NUL-terminates anything it writes within it.
     let report = unsafe { CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned();
@@ -90,6 +91,9 @@ pub struct EngineConfig {
     pub campaign_filename: String,
     pub gunship: Gunship,
     pub random_seed: u32,
+    /// the session is in winter: the global season the original reads when it picks the terrain files (default-W.sec and default-W.rgb when both exist),
+    /// set before the terrain loads and carried to the host terrain provider on every terrain request
+    pub winter: bool,
     /// extra EECH command-line arguments (EECH.INI syntax, e.g. `dmrate=10`)
     pub arguments: Vec<String>,
 }
@@ -956,6 +960,10 @@ pub struct Clock {
 #[cfg(feature = "sensor-fixture")]
 const SENSOR_REPORT_CAPACITY: usize = 96 * 1024;
 
+/// TEST-ONLY (feature `terrain-fixture`): room for one terrain report (the probe's samples and the per-call-site table); a report that does not fit is refused, never cut short.
+#[cfg(feature = "terrain-fixture")]
+const TERRAIN_REPORT_CAPACITY: usize = 192 * 1024;
+
 /// TEST-ONLY (feature `aim-fixture`): room for one aiming report; a report that does not fit is refused, never cut short.
 #[cfg(feature = "aim-fixture")]
 const AIM_REPORT_CAPACITY: usize = 96 * 1024;
@@ -969,6 +977,14 @@ const MODEL_REPORT_CAPACITY: usize = 192 * 1024;
 pub const MODEL_PAGE_SCENES: i32 = 96;
 #[cfg(feature = "model-fixture")]
 pub const MODEL_PAGE_TRIANGLES: i32 = 256;
+
+/// TEST-ONLY (feature `ground-fixture`, EEDCS-48): room for one ground-contact report; a report that does not fit is refused, never cut short.
+#[cfg(feature = "ground-fixture")]
+const GROUND_REPORT_CAPACITY: usize = 192 * 1024;
+
+/// TEST-ONLY (feature `ground-fixture`, EEDCS-48): the most point cases or impact cases one probe is asked for.
+#[cfg(feature = "ground-fixture")]
+pub const GROUND_PROBE_CASES_MAX: i32 = 100_000;
 
 /// TEST-ONLY (feature `weapon-fixture`): room for one weapon-execution report or one chunk of the event log; a report that does not fit is refused, never cut short.
 #[cfg(feature = "weapon-fixture")]
@@ -1140,6 +1156,307 @@ unsafe extern "C" fn model_callback(
         Err(_) => {
             // SAFETY: C owns this writable error buffer for the callback.
             unsafe { write_callback_text(error, error_size, "[model-provider:callback] the model provider panicked") };
+            1
+        }
+    }
+}
+
+/// One question the campaign asks of the host's physical terrain (aphavoc/.../mb_hostterrain.h). No EECH pointer or layout is in it: the hint is the
+/// host's own opaque string for one find-fast record, kept by the campaign and returned with the next query on that record. Every question carries
+/// `winter`: the season the terrain was loaded in (the global season the original reads when it picks its terrain files), captured before the first
+/// question, so a host serves the map of the season the campaign's own sector data was loaded for.
+#[derive(Clone, Debug, PartialEq)]
+pub enum TerrainQuery {
+    /// the map facts the core reads once at boot
+    Map { winter: bool },
+    /// the surface at a point, for a record whose last hint was `hint` (`None` for a fresh or cleared record)
+    Point { x: f32, z: f32, hint: Option<String>, winter: bool },
+    /// the fast gridpost elevation at a point
+    Fast { x: f32, z: f32, winter: bool },
+    /// EEDCS-48 (D3 G2): is the position above the ground (`point_above_ground`)? `world` is the campaign's world-map area `[min_x, min_z, max_x, max_z]`, campaign
+    /// geography supplied by value (the host does not assume it equals the terrain's extents); `hint` is the shared record's.
+    GroundAbove {
+        position: [f32; 3],
+        world: [f32; 4],
+        hint: Option<String>,
+        winter: bool,
+    },
+    /// is the position below the ground (`point_below_ground`)? As `GroundAbove`.
+    GroundBelow {
+        position: [f32; 3],
+        world: [f32; 4],
+        hint: Option<String>,
+        winter: bool,
+    },
+    /// where does the segment from an `above` to a `below` endpoint meet the ground (`get_ground_impact_point`)? As `GroundAbove`.
+    GroundImpact {
+        above: [f32; 3],
+        below: [f32; 3],
+        world: [f32; 4],
+        hint: Option<String>,
+        winter: bool,
+    },
+}
+
+/// The facts about the map the host owns (`TerrainQuery::Map`). `fast_width`/`fast_height` are 0 when the host has no fast grid.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct TerrainMapFacts {
+    pub sector_x_max: i32,
+    pub sector_z_max: i32,
+    pub fast_width: i32,
+    pub fast_height: i32,
+    pub min_x: f32,
+    pub min_z: f32,
+    pub max_x: f32,
+    pub max_z: f32,
+    pub min_height: f32,
+    pub max_height: f32,
+    pub scaled_height_difference: f32,
+}
+
+/// What the host answers. A point answer carries what the query returns (`elevation`) and what it stores in the record (`last_elevation`, the
+/// normal, the surface type `kind` as an EECH terrain-type id), the record's next `hint` (`None` when the query left none; the hint is the host's
+/// own state and says nothing about the surface) and `stored`: whether the record holds a surface afterwards, which is what the campaign's legacy
+/// "a face is stored" test (`get_3d_terrain_point_data_has_face`) reads. A host with no per-record state answers `stored: true` with no hint.
+#[derive(Clone, Debug, PartialEq)]
+pub enum TerrainAnswer {
+    Map(TerrainMapFacts),
+    Point {
+        elevation: f32,
+        last_elevation: f32,
+        normal: [f32; 3],
+        kind: i32,
+        hint: Option<String>,
+        stored: bool,
+    },
+    Fast {
+        elevation: f32,
+    },
+    /// EEDCS-48: the answer of `GroundAbove` and `GroundBelow`. `record` is present exactly when the answer read the terrain (otherwise the campaign keeps its whole record).
+    GroundPredicate {
+        value: bool,
+        record: Option<TerrainRecord>,
+    },
+    /// the answer of `GroundImpact`: both endpoints after the original's correction, the impact point and the complete record the final read left.
+    GroundImpact {
+        above: [f32; 3],
+        below: [f32; 3],
+        impact: [f32; 3],
+        record: TerrainRecord,
+    },
+}
+
+/// The record a ground-contact question left, by value: what a point answer stores (the legacy "a face is stored" test reads `stored`, never the hint).
+#[derive(Clone, Debug, PartialEq)]
+pub struct TerrainRecord {
+    pub last_elevation: f32,
+    pub normal: [f32; 3],
+    pub kind: i32,
+    pub hint: Option<String>,
+    pub stored: bool,
+}
+
+/// The host's terrain provider. It is installed once, at boot, and is the only source of the campaign's physical terrain: the campaign has no
+/// terrain solver of its own to fall back to.
+pub type TerrainProvider = Box<dyn FnMut(TerrainQuery) -> Result<TerrainAnswer, String>>;
+
+thread_local! {
+    // the engine and its host run on one thread; a provider is not `Send`
+    static TERRAIN: std::cell::RefCell<Option<TerrainProvider>> = std::cell::RefCell::new(None);
+}
+
+fn terrain_hint_text(buffer: &[c_char]) -> Result<Option<String>, String> {
+    let bytes: Vec<u8> = buffer.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect();
+    if bytes.is_empty() {
+        return Ok(None);
+    }
+    String::from_utf8(bytes)
+        .map(Some)
+        .map_err(|_| "[terrain-provider:point.hint] the record's hint is not UTF-8".to_string())
+}
+
+fn terrain_hint_into(buffer: &mut [c_char], hint: Option<&str>) -> Result<(), String> {
+    buffer.iter_mut().for_each(|byte| *byte = 0);
+    if let Some(text) = hint {
+        let bytes = text.as_bytes();
+        if bytes.is_empty() || bytes.len() > sys::EECH_TERRAIN_HINT_MAX || bytes.contains(&0) {
+            return Err(format!(
+                "[terrain-provider:point.hint] a hint is 1 to {} bytes without a NUL, got {}",
+                sys::EECH_TERRAIN_HINT_MAX,
+                bytes.len()
+            ));
+        }
+        for (slot, byte) in buffer.iter_mut().zip(bytes) {
+            *slot = *byte as c_char;
+        }
+    }
+    Ok(())
+}
+
+/// The record of a ground answer, into the reply's record fields (the ones a point answer fills).
+fn terrain_record_into(reply: &mut sys::eech_terrain_reply, record: &TerrainRecord) -> Result<(), String> {
+    reply.last_elevation = record.last_elevation;
+    reply.normal = record.normal;
+    reply.kind = record.kind;
+    reply.stored = c_int::from(record.stored);
+    terrain_hint_into(&mut reply.hint, record.hint.as_deref())
+}
+
+/// The C side's terrain callback (mb_hostterrain.h). It runs the installed provider; a missing provider, a refusal and a panic all become an error
+/// the engine stops on, with the provider's marker in the message.
+unsafe extern "C" fn terrain_callback(
+    request: *const sys::eech_terrain_request,
+    reply_out: *mut sys::eech_terrain_reply,
+    error: *mut c_char,
+    error_size: usize,
+    _user: *mut c_void,
+) -> c_int {
+    let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
+        if request.is_null() || reply_out.is_null() {
+            return Err("[terrain-provider:point.callback] invalid native terrain callback context".into());
+        }
+        // SAFETY: C supplies a readable request for the duration of this callback.
+        let source = unsafe { &*request };
+        let winter = match source.winter {
+            0 => false,
+            1 => true,
+            other => return Err(format!("[terrain-provider:point.callback] terrain received a season flag of {other}")),
+        };
+        let (operation, query) = match source.op {
+            sys::EECH_TERRAIN_MAP => ("map", TerrainQuery::Map { winter }),
+            sys::EECH_TERRAIN_POINT => (
+                "point",
+                TerrainQuery::Point {
+                    x: source.x,
+                    z: source.z,
+                    hint: terrain_hint_text(&source.hint)?,
+                    winter,
+                },
+            ),
+            sys::EECH_TERRAIN_FAST => (
+                "fast",
+                TerrainQuery::Fast {
+                    x: source.x,
+                    z: source.z,
+                    winter,
+                },
+            ),
+            sys::EECH_TERRAIN_GROUND_ABOVE => (
+                "ground_above",
+                TerrainQuery::GroundAbove {
+                    position: [source.x, source.y, source.z],
+                    world: source.world,
+                    hint: terrain_hint_text(&source.hint)?,
+                    winter,
+                },
+            ),
+            sys::EECH_TERRAIN_GROUND_BELOW => (
+                "ground_below",
+                TerrainQuery::GroundBelow {
+                    position: [source.x, source.y, source.z],
+                    world: source.world,
+                    hint: terrain_hint_text(&source.hint)?,
+                    winter,
+                },
+            ),
+            sys::EECH_TERRAIN_GROUND_IMPACT => (
+                "ground_impact",
+                TerrainQuery::GroundImpact {
+                    above: [source.x, source.y, source.z],
+                    below: source.below,
+                    world: source.world,
+                    hint: terrain_hint_text(&source.hint)?,
+                    winter,
+                },
+            ),
+            other => return Err(format!("[terrain-provider:point.callback] terrain received unknown operation {other}")),
+        };
+        let answer = TERRAIN.with(|slot| -> Result<TerrainAnswer, String> {
+            let mut slot = slot
+                .try_borrow_mut()
+                .map_err(|_| "[terrain-provider:point.callback] the terrain provider was asked again while it was answering".to_string())?;
+            match slot.as_mut() {
+                Some(provider) => provider(query),
+                None => Err("[terrain-provider:missing] no terrain provider is installed".to_string()),
+            }
+        })?;
+        // SAFETY: every field of the reply is plain data, and zero is a valid value for each
+        let mut reply: sys::eech_terrain_reply = unsafe { std::mem::zeroed() };
+        // the answer must be the kind of answer that was asked for: a provider that answers a point with the map facts, or a map with a point, has not
+        // answered the question, and the reply it would fill is not the reply the campaign reads for that operation
+        match (operation, answer) {
+            ("map", TerrainAnswer::Map(facts)) => {
+                reply.sector_x_max = facts.sector_x_max;
+                reply.sector_z_max = facts.sector_z_max;
+                reply.fast_width = facts.fast_width;
+                reply.fast_height = facts.fast_height;
+                reply.min_x = facts.min_x;
+                reply.min_z = facts.min_z;
+                reply.max_x = facts.max_x;
+                reply.max_z = facts.max_z;
+                reply.min_height = facts.min_height;
+                reply.max_height = facts.max_height;
+                reply.scaled_height_difference = facts.scaled_height_difference;
+            }
+            (
+                "point",
+                TerrainAnswer::Point {
+                    elevation,
+                    last_elevation,
+                    normal,
+                    kind,
+                    hint,
+                    stored,
+                },
+            ) => {
+                reply.elevation = elevation;
+                reply.last_elevation = last_elevation;
+                reply.normal = normal;
+                reply.kind = kind;
+                reply.stored = c_int::from(stored);
+                terrain_hint_into(&mut reply.hint, hint.as_deref())?;
+            }
+            ("fast", TerrainAnswer::Fast { elevation }) => reply.elevation = elevation,
+            ("ground_above" | "ground_below", TerrainAnswer::GroundPredicate { value, record }) => {
+                reply.answer = c_int::from(value);
+                reply.queried = c_int::from(record.is_some());
+                if let Some(record) = record {
+                    terrain_record_into(&mut reply, &record)?;
+                }
+            }
+            ("ground_impact", TerrainAnswer::GroundImpact { above, below, impact, record }) => {
+                reply.above = above;
+                reply.below = below;
+                reply.impact = impact;
+                terrain_record_into(&mut reply, &record)?;
+            }
+            (operation, answer) => {
+                let given = match answer {
+                    TerrainAnswer::Map(_) => "map facts",
+                    TerrainAnswer::Point { .. } => "a point answer",
+                    TerrainAnswer::Fast { .. } => "a fast elevation",
+                    TerrainAnswer::GroundPredicate { .. } => "a ground predicate",
+                    TerrainAnswer::GroundImpact { .. } => "a ground impact",
+                };
+                return Err(format!(
+                    "[terrain-provider:{operation}.answer] the provider answered a {operation} question with {given}"
+                ));
+            }
+        }
+        // SAFETY: C supplies a writable reply for the duration of this callback.
+        unsafe { *reply_out = reply };
+        Ok(())
+    }));
+    match result {
+        Ok(Ok(())) => 0,
+        Ok(Err(message)) => {
+            // SAFETY: C owns this writable error buffer for the callback.
+            unsafe { write_callback_text(error, error_size, &message) };
+            1
+        }
+        Err(_) => {
+            // SAFETY: C owns this writable error buffer for the callback.
+            unsafe { write_callback_text(error, error_size, "[terrain-provider:point.callback] the terrain provider panicked") };
             1
         }
     }
@@ -4378,6 +4695,7 @@ where
         model: MODEL
             .with(|slot| slot.try_borrow().map(|provider| provider.is_some()).unwrap_or(true))
             .then_some(model_callback as sys::eech_model_callback),
+        terrain: Some(terrain_callback),
         user: (&mut context as *mut HostContext<'_, F, G, H, M, L, D, A>).cast::<c_void>(),
     };
     check(call(&host))
@@ -4417,6 +4735,7 @@ impl Engine {
         sense_fn: &mut D,
         aim_fn: &mut A,
         model: Option<ModelProvider>,
+        terrain: TerrainProvider,
     ) -> Result<Engine, EngineError>
     where
         F: FnMut(MemberDescriptor) -> Result<String, String>,
@@ -4447,8 +4766,12 @@ impl Engine {
             campaign_filename: file.as_ptr(),
             gunship_type: config.gunship as c_int,
             random_seed: config.random_seed,
+            winter: c_int::from(config.winter),
             arguments: argv.as_ptr(),
         };
+        // The host's terrain provider is installed before the engine boots: the campaign asks about terrain while it loads and places its forces, and
+        // from every entry afterwards. It is kept for the life of the process (the engine is one per process).
+        TERRAIN.with(|slot| *slot.borrow_mut() = Some(terrain));
         // SAFETY: every config pointer and the temporary host callback are valid for the call.
         with_host(
             bind_mobile_fn,
@@ -4718,6 +5041,24 @@ impl Engine {
         check(unsafe { sys::eech_engine_sensor_trace(text.as_mut_ptr(), text.len() as i32) })?;
         // SAFETY: the engine wrote a NUL-terminated string within the buffer.
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `ground-fixture`, EEDCS-48): one read-only probe of the original `point_above_ground`, `point_below_ground` and
+    /// `get_ground_impact_point` against the loaded terrain (see `csrc/eech_ground_fixture.c`): `points` point cases and `impacts` impact cases from
+    /// a private generator seeded with `seed`. It returns the report as `key=value` text lines. The shared terrain point record is restored byte for
+    /// byte. A request out of range, or one the engine refuses (a precondition not held, a report that does not fit), fails; a refusal keeps the
+    /// engine's reason (`ground-refused reason=...`).
+    #[cfg(feature = "ground-fixture")]
+    pub fn ground_probe(&self, seed: u32, points: i32, impacts: i32) -> Result<String, EngineError> {
+        if !(0..=GROUND_PROBE_CASES_MAX).contains(&points) || !(0..=GROUND_PROBE_CASES_MAX).contains(&impacts) || points + impacts == 0 {
+            return Err(EngineError::BadArgument(format!(
+                "ground_probe: points and impacts must each be 0 to {GROUND_PROBE_CASES_MAX} and not both 0, got {points} and {impacts}"
+            )));
+        }
+        let mut text = vec![0 as std::os::raw::c_char; GROUND_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        let status = check(unsafe { sys::eech_engine_ground_probe(seed, points, impacts, text.as_mut_ptr(), text.len() as i32) });
+        keep_case_reason(status, &text)
     }
 
     /// TEST-ONLY (feature `aim-fixture`, EEDCS-44): the run-wide report of the physical weapon-aiming code the campaign's own update loop has run
@@ -5240,6 +5581,50 @@ impl Engine {
     pub fn sensor_trace_reset(&self) -> Result<(), EngineError> {
         // SAFETY: no pointers cross.
         check(unsafe { sys::eech_engine_sensor_trace_reset() })
+    }
+
+    /// TEST-ONLY (feature `terrain-fixture`, EEDCS-47): the run-wide report of every terrain query the campaign has made since boot or the
+    /// last reset, as `key=value` text lines. Read-only.
+    #[cfg(feature = "terrain-fixture")]
+    pub fn terrain_trace(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; TERRAIN_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_terrain_trace(text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `terrain-fixture`, EEDCS-47): clears the run-wide terrain trace.
+    #[cfg(feature = "terrain-fixture")]
+    pub fn terrain_trace_reset(&self) -> Result<(), EngineError> {
+        // SAFETY: no pointers cross.
+        check(unsafe { sys::eech_engine_terrain_trace_reset() })
+    }
+
+    /// TEST-ONLY (feature `terrain-fixture`, EEDCS-47): runs the deterministic terrain probe sweep over the loaded map (six fixed points,
+    /// then `count` from a private generator seeded with `seed`), writing the first `emit` samples (at most 256) in full. Read-only: the
+    /// run-wide trace and the shared find-fast record are left as found. In the unmoved module it asks nothing of the host; in the host-terrain module every
+    /// point and fast-elevation query of the sweep is a question to the installed terrain provider.
+    #[cfg(feature = "terrain-fixture")]
+    pub fn terrain_probe(&self, seed: u32, count: i32, emit: i32) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; TERRAIN_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_terrain_probe(seed, count, emit, text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `terrain-fixture`, EEDCS-47): the campaign's record predicate (`get_3d_terrain_point_data_has_face`, which the fixed-wing
+    /// movement asks) through the real client queries at (x, z), on a private and on the shared record: fresh, after a query, after a second one and
+    /// after a clear (`terrain-face-probe` line). Only the host-terrain module has the predicate; the unmoved one refuses. Every query it makes is a
+    /// question to the installed terrain provider.
+    #[cfg(feature = "terrain-fixture")]
+    pub fn terrain_face_probe(&self, x: f32, z: f32) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; TERRAIN_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_terrain_face_probe(x, z, text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
     }
 
     /// TEST-ONLY (feature `sensor-fixture`, EEDCS-43): runs the AI target-scan group functions for every eligible live source,
@@ -9110,5 +9495,293 @@ mod tests {
             scene: request.scene,
             depth: request.depth,
         }
+    }
+
+    /// One crossing of the terrain callback, as the C side makes it: the request is built the way mb_hostterrain.c builds it, this thread's provider is
+    /// `provider`, and the reply (which starts as a recognisable sentinel, so that a refusal that wrote something shows) and the error text come back.
+    fn terrain_crossing(
+        operation: c_int,
+        winter: c_int,
+        hint: &str,
+        provider: impl FnMut(TerrainQuery) -> Result<TerrainAnswer, String> + 'static,
+    ) -> (c_int, sys::eech_terrain_reply, String) {
+        TERRAIN.with(|slot| *slot.borrow_mut() = Some(Box::new(provider)));
+        // SAFETY: the request and reply are plain data; zero is a valid value for every field.
+        let mut request: sys::eech_terrain_request = unsafe { std::mem::zeroed() };
+        request.op = operation;
+        request.winter = winter;
+        request.x = 10.0;
+        request.z = 20.0;
+        for (slot, byte) in request.hint.iter_mut().zip(hint.as_bytes()) {
+            *slot = *byte as c_char;
+        }
+        // SAFETY: as above.
+        let mut reply: sys::eech_terrain_reply = unsafe { std::mem::zeroed() };
+        reply.elevation = 123.0;
+        reply.last_elevation = 456.0;
+        reply.sector_x_max = 7;
+        reply.stored = 9;
+        reply.hint[0] = b'#' as c_char;
+        let mut error = [0 as c_char; 256];
+        // SAFETY: the request and reply are valid for the call, and the error buffer is writable for its length.
+        let code = unsafe { terrain_callback(&request, &mut reply, error.as_mut_ptr(), error.len(), std::ptr::null_mut()) };
+        TERRAIN.with(|slot| *slot.borrow_mut() = None);
+        let text: Vec<u8> = error.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect();
+        (code, reply, String::from_utf8_lossy(&text).into_owned())
+    }
+
+    fn terrain_facts() -> TerrainMapFacts {
+        TerrainMapFacts {
+            sector_x_max: 4,
+            sector_z_max: 5,
+            fast_width: 0,
+            fast_height: 0,
+            min_x: 0.0,
+            min_z: 0.0,
+            max_x: 4000.0,
+            max_z: 5000.0,
+            min_height: -1.0,
+            max_height: 100.0,
+            scaled_height_difference: 0.5,
+        }
+    }
+
+    fn terrain_point(hint: Option<&str>, stored: bool) -> TerrainAnswer {
+        TerrainAnswer::Point {
+            elevation: 1.5,
+            last_elevation: 1.25,
+            normal: [0.0, 1.0, 0.0],
+            kind: 3,
+            hint: hint.map(str::to_string),
+            stored,
+        }
+    }
+
+    fn ground_record() -> TerrainRecord {
+        TerrainRecord {
+            last_elevation: 7.5,
+            normal: [0.0, 0.5, 0.0],
+            kind: 11,
+            hint: Some("g".to_string()),
+            stored: true,
+        }
+    }
+
+    #[test]
+    fn a_ground_question_reaches_the_provider_with_every_request_field_and_its_answer_reaches_the_reply_exactly() {
+        // SAFETY: the request is plain data; zero is a valid value for every field.
+        let mut request: sys::eech_terrain_request = unsafe { std::mem::zeroed() };
+        request.winter = 1;
+        request.x = 1.0;
+        request.y = 2.0;
+        request.z = 3.0;
+        request.below = [4.0, 5.0, 6.0];
+        request.world = [-1.5, -2.5, 100.25, 200.75];
+        request.hint[0] = b'p' as c_char;
+        let crossing = |op: c_int, request: &mut sys::eech_terrain_request, provider: Box<dyn FnMut(TerrainQuery) -> Result<TerrainAnswer, String>>| {
+            request.op = op;
+            TERRAIN.with(|slot| *slot.borrow_mut() = Some(provider));
+            // SAFETY: the reply is plain data, started as a recognisable sentinel so that a refusal that wrote something shows.
+            let mut reply: sys::eech_terrain_reply = unsafe { std::mem::zeroed() };
+            reply.answer = 9;
+            reply.queried = 9;
+            reply.above = [-9.0; 3];
+            let mut error = [0 as c_char; 256];
+            // SAFETY: the request and reply are valid for the call, and the error buffer is writable for its length.
+            let code = unsafe { terrain_callback(request, &mut reply, error.as_mut_ptr(), error.len(), std::ptr::null_mut()) };
+            TERRAIN.with(|slot| *slot.borrow_mut() = None);
+            let text: Vec<u8> = error.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect();
+            (code, reply, String::from_utf8_lossy(&text).into_owned())
+        };
+        // above and below: the position (x, y, z), the world area, the hint and the season, by value
+        for (op, name) in [(sys::EECH_TERRAIN_GROUND_ABOVE, "above"), (sys::EECH_TERRAIN_GROUND_BELOW, "below")] {
+            let (code, reply, error) = crossing(
+                op,
+                &mut request,
+                Box::new(move |query| {
+                    let (position, world, hint, winter) = match query {
+                        TerrainQuery::GroundAbove { position, world, hint, winter } if name == "above" => (position, world, hint, winter),
+                        TerrainQuery::GroundBelow { position, world, hint, winter } if name == "below" => (position, world, hint, winter),
+                        other => panic!("{name}: {other:?}"),
+                    };
+                    assert_eq!(
+                        (position, world, hint.as_deref(), winter),
+                        ([1.0, 2.0, 3.0], [-1.5, -2.5, 100.25, 200.75], Some("p"), true)
+                    );
+                    Ok(TerrainAnswer::GroundPredicate {
+                        value: true,
+                        record: Some(ground_record()),
+                    })
+                }),
+            );
+            assert_eq!(code, 0, "{name}: {error}");
+            assert_eq!((reply.answer, reply.queried), (1, 1));
+            assert_eq!(
+                (reply.last_elevation, reply.normal, reply.kind, reply.stored, reply.hint[0]),
+                (7.5, [0.0, 0.5, 0.0], 11, 1, b'g' as c_char)
+            );
+            // an answer that read no terrain says so and carries no record: the hint and values stay zero
+            let (code, reply, error) = crossing(
+                op,
+                &mut request,
+                Box::new(|_| Ok(TerrainAnswer::GroundPredicate { value: false, record: None })),
+            );
+            assert_eq!(code, 0, "{name}: {error}");
+            assert_eq!(
+                (reply.answer, reply.queried, reply.last_elevation, reply.kind, reply.stored, reply.hint[0]),
+                (0, 0, 0.0, 0, 0, 0)
+            );
+        }
+        // impact: both endpoints in, both corrected endpoints and the impact point out, with the record
+        let (code, reply, error) = crossing(
+            sys::EECH_TERRAIN_GROUND_IMPACT,
+            &mut request,
+            Box::new(|query| {
+                assert_eq!(
+                    query,
+                    TerrainQuery::GroundImpact {
+                        above: [1.0, 2.0, 3.0],
+                        below: [4.0, 5.0, 6.0],
+                        world: [-1.5, -2.5, 100.25, 200.75],
+                        hint: Some("p".to_string()),
+                        winter: true
+                    }
+                );
+                Ok(TerrainAnswer::GroundImpact {
+                    above: [1.0, 2.001, 3.0],
+                    below: [4.0, 4.999, 6.0],
+                    impact: [4.0, 4.5, 6.0],
+                    record: ground_record(),
+                })
+            }),
+        );
+        assert_eq!(code, 0, "{error}");
+        assert_eq!(
+            (reply.above, reply.below, reply.impact),
+            ([1.0, 2.001, 3.0], [4.0, 4.999, 6.0], [4.0, 4.5, 6.0])
+        );
+        assert_eq!((reply.last_elevation, reply.kind, reply.stored, reply.hint[0]), (7.5, 11, 1, b'g' as c_char));
+        // a hint the C record cannot hold is refused before anything is written
+        let (code, reply, error) = crossing(
+            sys::EECH_TERRAIN_GROUND_IMPACT,
+            &mut request,
+            Box::new(|_| {
+                Ok(TerrainAnswer::GroundImpact {
+                    above: [0.0; 3],
+                    below: [0.0; 3],
+                    impact: [0.0; 3],
+                    record: TerrainRecord {
+                        hint: Some("h".repeat(128)),
+                        ..ground_record()
+                    },
+                })
+            }),
+        );
+        assert_ne!(code, 0);
+        assert!(error.contains("hint"), "{error}");
+        assert_eq!((reply.answer, reply.queried, reply.above), (9, 9, [-9.0; 3]), "a refused hint wrote nothing");
+    }
+
+    #[test]
+    fn a_terrain_answer_of_the_wrong_kind_is_refused_before_anything_is_written() {
+        // an operation name and the answer a provider gives (of a kind that is right for only one of the operations; the above and below predicates share one kind of answer)
+        type GivenAnswer = (&'static str, fn() -> TerrainAnswer);
+        let answers: [GivenAnswer; 5] = [
+            ("map", || TerrainAnswer::Map(terrain_facts())),
+            ("point", || terrain_point(None, true)),
+            ("fast", || TerrainAnswer::Fast { elevation: 2.0 }),
+            ("ground_predicate", || TerrainAnswer::GroundPredicate { value: true, record: None }),
+            ("ground_impact", || TerrainAnswer::GroundImpact {
+                above: [0.0; 3],
+                below: [0.0; 3],
+                impact: [0.0; 3],
+                record: ground_record(),
+            }),
+        ];
+        let operations = [
+            ("map", sys::EECH_TERRAIN_MAP),
+            ("point", sys::EECH_TERRAIN_POINT),
+            ("fast", sys::EECH_TERRAIN_FAST),
+            ("ground_above", sys::EECH_TERRAIN_GROUND_ABOVE),
+            ("ground_below", sys::EECH_TERRAIN_GROUND_BELOW),
+            ("ground_impact", sys::EECH_TERRAIN_GROUND_IMPACT),
+        ];
+        let mut refused = 0;
+        for (asked, operation) in operations {
+            for (given, answer) in &answers {
+                let answer = *answer;
+                let (code, reply, error) = terrain_crossing(operation, 0, "", move |_| Ok(answer()));
+                if asked == *given || (*given == "ground_predicate" && (asked == "ground_above" || asked == "ground_below")) {
+                    assert_eq!(code, 0, "{asked} answered with {given}: {error}");
+                    continue;
+                }
+                refused += 1;
+                assert_ne!(code, 0, "a {asked} question answered with a {given} answer must be refused");
+                assert!(error.starts_with(&format!("[terrain-provider:{asked}.answer]")), "{asked}/{given}: {error}");
+                // nothing of the answer reached the reply: it is still the sentinel the crossing started with
+                assert_eq!(
+                    (reply.elevation, reply.last_elevation, reply.sector_x_max, reply.stored, reply.hint[0]),
+                    (123.0, 456.0, 7, 9, b'#' as c_char),
+                    "{asked}/{given} wrote into the reply"
+                );
+            }
+        }
+        // six operations by five kinds of answer: thirty pairings, of which six are right
+        assert_eq!(refused, 24, "every wrong pairing was exercised");
+    }
+
+    #[test]
+    fn a_terrain_question_reaches_the_provider_with_its_season_and_a_matching_answer_reaches_the_reply() {
+        for winter in [0, 1] {
+            let (code, reply, error) = terrain_crossing(sys::EECH_TERRAIN_MAP, winter, "", move |query| {
+                assert_eq!(query, TerrainQuery::Map { winter: winter == 1 });
+                Ok(TerrainAnswer::Map(terrain_facts()))
+            });
+            assert_eq!(code, 0, "{error}");
+            assert_eq!((reply.sector_x_max, reply.sector_z_max, reply.max_x), (4, 5, 4000.0));
+            let (code, _, error) = terrain_crossing(sys::EECH_TERRAIN_FAST, winter, "", move |query| {
+                assert_eq!(
+                    query,
+                    TerrainQuery::Fast {
+                        x: 10.0,
+                        z: 20.0,
+                        winter: winter == 1
+                    }
+                );
+                Ok(TerrainAnswer::Fast { elevation: 2.0 })
+            });
+            assert_eq!(code, 0, "{error}");
+        }
+        let (code, reply, error) = terrain_crossing(sys::EECH_TERRAIN_POINT, 1, "h", |query| {
+            assert_eq!(
+                query,
+                TerrainQuery::Point {
+                    x: 10.0,
+                    z: 20.0,
+                    hint: Some("h".into()),
+                    winter: true
+                }
+            );
+            Ok(terrain_point(None, true))
+        });
+        assert_eq!(code, 0, "{error}");
+        // a surface was stored although the host returned no hint: the flag is the host's, by value
+        assert_eq!(
+            (reply.elevation, reply.last_elevation, reply.kind, reply.stored, reply.hint[0]),
+            (1.5, 1.25, 3, 1, 0)
+        );
+        let (code, reply, error) = terrain_crossing(sys::EECH_TERRAIN_POINT, 0, "", |_| Ok(terrain_point(Some("opaque"), false)));
+        assert_eq!(code, 0, "{error}");
+        assert_eq!((reply.stored, reply.hint[0]), (0, b'o' as c_char));
+    }
+
+    #[test]
+    fn a_terrain_season_flag_that_is_not_a_flag_and_a_provider_refusal_stop_the_crossing() {
+        let (code, _, error) = terrain_crossing(sys::EECH_TERRAIN_MAP, 2, "", |_| panic!("the provider must not be asked"));
+        assert_ne!(code, 0);
+        assert!(error.contains("[terrain-provider:point.callback]") && error.contains("season flag"), "{error}");
+        let (code, _, error) = terrain_crossing(sys::EECH_TERRAIN_FAST, 0, "", |_| Err("[terrain-provider:fast.elevation] nope".into()));
+        assert_ne!(code, 0);
+        assert_eq!(error, "[terrain-provider:fast.elevation] nope");
     }
 }

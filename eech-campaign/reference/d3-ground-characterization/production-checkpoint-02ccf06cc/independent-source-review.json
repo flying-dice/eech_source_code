@@ -1,0 +1,257 @@
+{
+  "schema": 1,
+  "review_kind": "single combined new-delta correctness/clean-code/boundary/source-and-evidence review",
+  "reviewed_head": "02ccf06cc0afcd8632fb5924a2117b1ebbbdd3b1",
+  "base": "06a4da620f7d7188b9df228aa619f9be6fd48f07",
+  "snapshot": "R:\\d3-evidence\\ground-production-source-02ccf06cc",
+  "frozen_clean_before": true,
+  "frozen_clean_after": true,
+  "disposition": "CHANGES_REQUIRED",
+  "findings": [
+    {
+      "id": "GROUND-AUTHORITY-COHORT",
+      "priority": "P2",
+      "path": "eech-campaign/crates/eech-world/lua/ground-authority.lua",
+      "line": 228,
+      "related_locations": [
+        {
+          "path": "eech-campaign/crates/eech-world/tests/ground_authority.rs",
+          "line": 72
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/tests/ground_authority.rs",
+          "line": 103
+        }
+      ],
+      "title": "Freeze and judge the actual launched weapon cohort",
+      "detail": "take() admits births from every later natural-war frame into case_ordinals; the judge then accepts the first terminal row without checking its weapon identity, required fields, matched launch selection or zero pending count. A later unrelated weapon can therefore supply the claimed changed result; completed only means no exception, including a settle deadline with pending case weapons. Empty/missing terminal fields are converted to empty strings rather than refused. This undermines the new launch-through-glue authority claim, not the measured finite ground-query conformance.",
+      "requested_change": "Freeze immediate post-launch births once; accept exactly one terminal per cohort member and no foreign/missing IDs; require complete matched launch/config and terminal evidence, correct cardinalities and all healthy case members ended. Add meaningful later-birth/foreign-terminal/missing-field/incomplete-cohort controls without inventing physics."
+    },
+    {
+      "id": "GROUND-AUTHORITY-SINGLE-RECEIPT",
+      "priority": "P2",
+      "path": "eech-campaign/crates/eech-world/lua/ground-authority.lua",
+      "line": 113,
+      "related_locations": [
+        {
+          "path": "eech-campaign/crates/eech-world/lua/ground-authority.lua",
+          "line": 64
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/tests/ground_authority.rs",
+          "line": 153
+        }
+      ],
+      "title": "Judge the accepted single-precision reply rather than the provider double",
+      "detail": "The witness formats the provider Lua double before the bridge nearest_f32 conversion, then compares that text with the C weapon terminal single. Adding 37.5 is not guaranteed to produce an exact f32: 255.99998474121094 + 37.5 is 293.49998474121094, between the adjacent singles. Valid provider replies can therefore fail the claimed exact receipt/outcome relation even when correctly consumed. No actual native authority result is claimed here.",
+      "requested_change": "Use a deliberately f32-exact changed witness point, or record the exact consumed single values at the boundary. Retain exact comparison and test a nonrepresentable-double receipt; do not add tolerances, round artifacts or alter original physical oracles."
+    },
+    {
+      "id": "GROUND-ABOVE-CALLER-FP",
+      "priority": "P2",
+      "path": "eech-campaign/crates/eech-world/csrc/terrain_ref.c",
+      "line": 4304,
+      "related_locations": [
+        {
+          "path": "eech-campaign/crates/eech-world/csrc/terrain_ref.c",
+          "line": 4076
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/csrc/terrain_ref.c",
+          "line": 4286
+        }
+      ],
+      "title": "Preserve complete caller FP state in the newly exposed above entry",
+      "detail": "The new host_terrain_ground_above wrapper invokes ground_begin(fegetenv; fesetround toward-zero) and restores only fesetenv. The retained actual MinGW12-posix toolchain control demonstrates this exact sequence restores x87 but leaves MXCSR rounding at toward-zero for callers initially in the other three modes. Furthermore finite validation precedes the snapshot and can raise flags on nonfinite inputs. This is a new public-entry caller-state defect, not a claimed ground-fold mismatch; all three finite physical comparisons passed. Closed below/impact numerical algorithms are not reopened.",
+      "requested_change": "Use a complete caller-state guard around the new exposed entry, including early refusal paths; shared guard reuse is appropriate without changing original internal rounding/math. Verify success and refusal across all four caller rounding modes with nonzero status flags and exact x87 control/status plus MXCSR restoration. Preserve reference-world compatibility; do not introduce a host rounding workaround as proof."
+    },
+    {
+      "id": "GROUND-AUTHORITY-FINITE-IO",
+      "priority": "P2",
+      "path": "eech-campaign/crates/eech-world/lua/ground-authority.lua",
+      "line": 140,
+      "related_locations": [
+        {
+          "path": "eech-campaign/crates/eech-world/lua/ground-authority.lua",
+          "line": 56
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/lua/ground-authority.lua",
+          "line": 265
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/tests/ground_authority.rs",
+          "line": 333
+        }
+      ],
+      "title": "Make the new authority witness finite and propagate output failures",
+      "detail": "The simulated deadline loop has no monotonic-clock check or finite frame-count bound. A stalled clock loops forever, while the Rust parent blocks in Command::output without a wall deadline. The new writer also ignores write/flush/close results, including closing after its success evidence. Its declared bounded/retained-evidence contract is not enforced on these failure paths.",
+      "requested_change": "Enforce finite positive progress/frame budgets and a bounded child wait; fail on every output write/flush/close error. Cover a stalled clock and actual driver writer-error collaborators. Preserve ordinary simulation/query order and never treat missing evidence as an expected refusal."
+    },
+    {
+      "id": "GROUND-STRICT-LINT",
+      "priority": "P2",
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "line": 624,
+      "related_lines": [
+        626,
+        627,
+        628,
+        638,
+        639,
+        640,
+        670,
+        671,
+        672,
+        673,
+        674,
+        675
+      ],
+      "title": "Restore the required strict all-target lint gate",
+      "detail": "The actual unchanged Linux build finishes 441 passing test functions, then exits101 on thirteen new indexing_slicing errors in these helpers. The bounded callsites do not establish a memory-corruption finding; this is a concrete required validation failure, not a passed check.",
+      "requested_change": "Destructure fixed-size arrays or use checked slice/array conversions for the numeric helpers without suppressing the lint or weakening validation; rerun the affected strict checks and retain the original failure."
+    }
+  ],
+  "source_sha256": {
+    "aphavoc/source/entity/mobile/mb_hostterrain.c": "c044d18bff91df959f928b80243b4312e23b9ca9849e12582a0e3f894428e1e3",
+    "aphavoc/source/entity/mobile/mb_hostterrain.h": "17f4becffc3ddecb0563f7b316836fac976756338ccecf00cf1da6af496c4237",
+    "aphavoc/source/entity/system/en_main/en_world.h": "11fe4b05d998bda16ffce935d12a54d079df336a7cabba0c4169e05c496f9150",
+    "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c": "df6d10e0919792a98ce13ad7c45f7d14f8c74c4c37a20c7b8341d3e1b74f8053",
+    "eech-campaign/crates/eech-dc/src/module.rs": "3bab5bbcf6ef65b67504b7bf1b27571916bc592ba73ac3cd0bcdf0d744ed116f",
+    "eech-campaign/crates/eech-engine-sys/src/lib.rs": "d91eff3c1b3e17109bce119e4f57b068b2ec7e1487f32f06e4dac21e87a96337",
+    "eech-campaign/crates/eech-engine/src/lib.rs": "036b80bf35363b40c579927ae89967f8c480d36955d639a888d0d99cdaf54a33",
+    "eech-campaign/crates/eech-world/csrc/terrain_ref.c": "380f783f47d30512b879aa1b60f7939fc52489b56d51edb6e9096173d49931bd",
+    "eech-campaign/crates/eech-world/csrc/terrain_ref.h": "93fd88f58662dc69e5d93544249f138d360fcaba11e698890097ebb51456ffe1",
+    "eech-campaign/crates/eech-world/src/terrain.rs": "6c36db96b4335522cc84bd151f2e16ee877f597e0ab1461a32c8ad1ec1bcc870",
+    "eech-campaign/crates/eech-world/lua/ground-authority.lua": "b41e98662e97f77fca249c4134d8dc974518af66e44af7e3d116873febb8e5e3",
+    "eech-campaign/crates/eech-world/tests/ground_authority.rs": "0b8cab6351f95456ad09c13c1096f810b037e77df024a71b44dbd7965c7eb9d9",
+    "eech-campaign/docs/m5-ground-production-handoff.md": "f9b7f11f2b5e65b4ab75c92ff17b8cc0d9b7ea8fb5a91abd41064bed563df8bd"
+  },
+  "engine_c_embedded_NUL_count": 1,
+  "source_assessment": {
+    "reused_closed_work": "c119/feb original characterization and coordinate transport; 14bf/516d ground kernel/adapter preparation; accepted G1/D2. No unchanged numerical kernel sweep or new execution.",
+    "sound_new_boundary_observations": [
+      "All compiled above/below/impact callsites route to required host operations; original solver branches are excluded under the shipping host-terrain define. No fallback found.",
+      "Request world bounds/endpoints and reply values cross C/Rust/Lua by value; repr(C) scalar/array layouts correspond on inspection; private pointers stay private.",
+      "Complete reply validation precedes caller endpoint/shared-record commits; impact writes endpoints then record then final output, retaining the actual output-aliases-below caller. Predicate short circuits leave shared record untouched.",
+      "Provider getters are cached once before conversion; finite numeric values use the closed nearest-single conversion. Generic/nohint records remain supported; the reference implementation owns the physical query decisions.",
+      "Stable terrain callback lifetime/reentrancy model is inherited from accepted G1; no new freed user-context retention found. Existing sticky face-record semantics are retained."
+    ],
+    "no_claimed_physical_mismatch": true
+  },
+  "actual_evidence": {
+    "finite_conformance": [
+      {
+        "case": "georgia",
+        "original_sha256": "5d2d40ed04ad77d485d09fea3e7afef340967edae52a8013dd0b80327092844a",
+        "candidate_sha256": "0e6a9d7bc787c627922f69afc60cf40eadda24ab91d15710683738588b3861d7",
+        "bytes": 39559,
+        "strict_rows": 119,
+        "all_common_rows_exact": true,
+        "common_rows": 113,
+        "excluded_only_profile_specific_record_hash_rows": true,
+        "actual_native_exit": 0,
+        "all_four_companion_exits": 0,
+        "pre_post_input_files": 1174
+      },
+      {
+        "case": "lebanon",
+        "original_sha256": "248ca1e81a4c72bad8011d28f77271c28aba916dec16dd4b17602c7c38f00b91",
+        "candidate_sha256": "16e870fb3381b5739f065a7cff4ccdd68ea79a9ed1521d87108a00c2929682e5",
+        "bytes": 39581,
+        "strict_rows": 119,
+        "all_common_rows_exact": true,
+        "common_rows": 113,
+        "excluded_only_profile_specific_record_hash_rows": true,
+        "actual_native_exit": 0,
+        "all_four_companion_exits": 0,
+        "pre_post_input_files": 1179
+      },
+      {
+        "case": "lebanon-repeat",
+        "original_sha256": "248ca1e81a4c72bad8011d28f77271c28aba916dec16dd4b17602c7c38f00b91",
+        "candidate_sha256": "16e870fb3381b5739f065a7cff4ccdd68ea79a9ed1521d87108a00c2929682e5",
+        "bytes": 39581,
+        "strict_rows": 119,
+        "all_common_rows_exact": true,
+        "common_rows": 113,
+        "excluded_only_profile_specific_record_hash_rows": true,
+        "actual_native_exit": 0,
+        "all_four_companion_exits": 0,
+        "pre_post_input_files": 1179
+      }
+    ],
+    "build_manifests": [
+      {
+        "path": "R:\\d3-evidence\\ground-production-source-02ccf06cc\\eech-campaign\\target\\ground-fixture\\production-02ccf06cc\\BUILD-INFO.txt",
+        "sha256": "e0be8ce9900a183e8a3a935f3b6db068b1b6a9e6492af181722330748ea149f2",
+        "file_manifest_entries": 50,
+        "all_current_payloads_match": true,
+        "image": "sha256:51c69b6c291c65c0ac2cb0e964790c7d1d4918b135425b5ff45602b5b23aabda"
+      },
+      {
+        "path": "R:\\d3-evidence\\ground-production-source-02ccf06cc\\eech-campaign\\target\\weapon-fixture\\ground-authority-02ccf06cc\\BUILD-INFO.txt",
+        "sha256": "13f544e739c483cfb6b540e9ea398a00f0fc6df301f4fa06e6972644e2f7f18e",
+        "file_manifest_entries": 50,
+        "all_current_payloads_match": true,
+        "image": "sha256:5a18d06ba604c8576fd68a58c599f5326276e96f7a6f044189c163c9e4a67352"
+      },
+      {
+        "path": "R:\\d3-evidence\\ground-production-source-02ccf06cc\\eech-campaign\\target\\windows-ground-production-02ccf06cc\\BUILD-INFO.txt",
+        "sha256": "70f8e72d51ba4d80e4a094240285b4a3fa599cc56d90ef73582b6d9051024d71",
+        "file_manifest_entries": 50,
+        "all_current_payloads_match": true,
+        "image": "sha256:c5e04ec0832b8f1fad33d7b65bf60946bc30b1aab467d3a64ff7833897395722"
+      }
+    ],
+    "linux": {
+      "actual_exit": 101,
+      "passing_test_functions": 441,
+      "asset_dependent_missing_env_functions": "Explicit skips are not physical/map proof",
+      "strict_clippy": "13 new indexing_slicing errors; not passed"
+    },
+    "windows": {
+      "outer_actual_exit": 125,
+      "three_native_builds": "Shipping, ground-fixture and weapon-fixture each completed; all three 50-entry current manifests independently rehashed",
+      "failure_stage": "Cross-test export requested an absent earlier image after the build tag changed; not a native or source compilation failure",
+      "separate_export_recovery_actual_exit": 0,
+      "recovery_scope": "Cross-test compile/export only using actual current weapon image; no repeated native build or campaign, Windows test executables not counted as executed"
+    },
+    "fpu_prior_actual_control": {
+      "sha256": "ef118cf15b851c56bd902ea28d426d70ae761b7384ae3a4101b2b01f9f174dc1",
+      "same_mxcsr_by_initial_rounding": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "new_ground_above_full_state_measurement": "Not yet run; prior toolchain result supports the concrete source finding"
+    },
+    "identities_sha256": {
+      "ground-production-conformance-02ccf06cc-20261031/controller.json": "e835adc8101c0824da2aa8f4cf76abd04078016081c421305f003a93d97e5651",
+      "ground-production-02ccf06cc-linux-20261031-completion.json": "136755ebd6720595328bc4a328167830744d16e764c275a46a94d75f574e5b3a",
+      "ground-production-02ccf06cc-linux-20261031.log": "a5e97656b3cdf47c1bca7c3b42be62cb72deb1fb0c735d49f20690c6f8c59cee",
+      "ground-production-02ccf06cc-windows-20261031-completion.json": "0228e75110b952f59764602f5d34b4e5deb730c375b5f1ea48ebaa3028f58a25",
+      "ground-production-02ccf06cc-windows-20261031.log": "1186756948ac0af200718eadcd3143fb512ee9d8f06693dbe2ac9be493d3f06b",
+      "ground-production-02ccf06cc-export-recovery-20261031-completion.json": "e37321a47967c8b3aa954ec883bbae68a4c9dab80b057a062a059a6779c967ff",
+      "ground-production-02ccf06cc-export-recovery-20261031.log": "d8853febf70fef6a36938204579196ac78a809eae75e0c43b0af18ec20f69100",
+      "model-mingw-fenv-control-20261030/diagnostic.json": "ef118cf15b851c56bd902ea28d426d70ae761b7384ae3a4101b2b01f9f174dc1"
+    }
+  },
+  "review_setup_correction": "An independent read-only assertion initially assumed 1179 inputs for every map; actual Georgia uses its accepted 1174-file manifest. Corrected per-map assertion passed. No product/native data or report was changed.",
+  "readiness": {
+    "finite_reference_query_evidence": "PASS within the exact recorded cases; no legacy/semantic bookkeeping hash normalization",
+    "authority_witness": "HOLD acceptance until cohort/receipt/progress/output checks are corrected and actual matched authority/refusal gates run",
+    "new_public_above_FP_boundary": "HOLD full-state claim pending corrected guard and actual four-mode success/refusal evidence",
+    "source_gate": "CHANGES_REQUIRED; strict lint fails",
+    "native_permission": "Read-only diagnosis and already completed finite reference measurements are retained; no reviewer-run execution. Root owns bounded corrected-source validation."
+  },
+  "remaining_limits": [
+    "No actual production weapon authority/refusal cohort evidence accepted in this pass; environment-driven test functions without assets are not native witnesses.",
+    "No new whole shipping40/eight-file, performance/Tacview/visual, normal-merge or Task48/D3 acceptance.",
+    "G3 model/entity geometry, hierarchy/device/spatial, environment/time and physical solver/loader removal obligations remain within whole D3; no deferral of active physical responsibilities to D5.",
+    "Only the new delta was reviewed; original kernel formulas/order/folds were reused rather than retested or redefined."
+  ],
+  "review_actions": "Read-only source/Git/JSON/log/hash checks only; no builds, supplied checkers, tests, native processes, source/Git mutations, trackers, auth or nested agents. Only this report was written.",
+  "created_utc": "2026-10-31T00:49:38.021930+00:00"
+}

@@ -1,0 +1,39 @@
+{
+  "source": "c119a7370b5de43923a86d7a8124f9532bb523ee",
+  "scope": "Original probe/no-probe control after300simulated seconds +60after, 3600x100ms frames. Coarse identity/kind/side/alive digest only; not all-state or full Tacview evidence.",
+  "equal_digest_except_probed": true,
+  "records": [
+    {
+      "case": "probe",
+      "actual_native_exit": 0,
+      "strict_json_rows": 117,
+      "raw_sha256": "5add9b3be1cdf1611eddd6c10fa9a18f0473719b85974220f7c662981c454824",
+      "state_digest": {
+        "alive": 1712,
+        "digest": "2c4dce1c",
+        "elapsed": 359.96115112305,
+        "event": "state_digest",
+        "frames": 3600,
+        "objects": 1726,
+        "probed": true
+      }
+    },
+    {
+      "case": "control",
+      "actual_native_exit": 0,
+      "strict_json_rows": 3,
+      "raw_sha256": "1c44dfab41dad03c60cc1fe71ea9e642e592ff1e30e101a0b93cc2c083a0548d",
+      "state_digest": {
+        "alive": 1712,
+        "digest": "2c4dce1c",
+        "elapsed": 359.96115112305,
+        "event": "state_digest",
+        "frames": 3600,
+        "objects": 1726,
+        "probed": false
+      }
+    }
+  ],
+  "post_inputs": "pending",
+  "created_utc": "2026-10-29T14:57:24.875643+00:00"
+}

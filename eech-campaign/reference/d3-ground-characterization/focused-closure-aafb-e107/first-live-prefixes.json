@@ -1,0 +1,35 @@
+{
+  "updated_utc": "2026-10-31T01:39:34.653210+00:00",
+  "scope": "LIVE prefix equality only; no complete files or fullpack acceptance",
+  "pairs": [
+    {
+      "file": "R:\\d3-evidence\\shipping-ground-aafb21775-final-pack-20261031\\reference\\run1\\recording.acmi",
+      "captured_bytes": 1751500,
+      "compared_bytes": 1751500,
+      "nonempty": true,
+      "prefix_equal": true
+    },
+    {
+      "file": "R:\\d3-evidence\\shipping-ground-aafb21775-final-pack-20261031\\reference\\run1\\observations.jsonl",
+      "captured_bytes": 1396736,
+      "compared_bytes": 1396736,
+      "nonempty": true,
+      "prefix_equal": true
+    },
+    {
+      "file": "R:\\d3-evidence\\shipping-ground-aafb21775-final-pack-20261031\\reference\\run2\\recording.acmi",
+      "captured_bytes": 1751500,
+      "compared_bytes": 1751500,
+      "nonempty": true,
+      "prefix_equal": true
+    },
+    {
+      "file": "R:\\d3-evidence\\shipping-ground-aafb21775-final-pack-20261031\\reference\\run2\\observations.jsonl",
+      "captured_bytes": 1396736,
+      "compared_bytes": 1396736,
+      "nonempty": true,
+      "prefix_equal": true
+    }
+  ],
+  "all_four_nonempty_prefixes_equal": true
+}
