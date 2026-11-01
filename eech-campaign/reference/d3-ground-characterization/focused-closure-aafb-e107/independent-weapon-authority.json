@@ -1,0 +1,230 @@
+{
+  "schema": 1,
+  "review_kind": "New actual launched-weapon runtime/causal/evidence closeout only; no repeated source/kernel review",
+  "measured_production_and_authority_test_head": "aafb21775f5d3523a30f148d23fbce588902025a",
+  "FP_test_recovery_head": "e1076ece31565a3b4f73a7e2adbe8e2698d9c023",
+  "snapshot": "R:\\d3-evidence\\ground-production-source-aafb21775",
+  "frozen_clean_before": true,
+  "frozen_clean_after": true,
+  "disposition": "BOUNDED_WEAPON_AUTHORITY_AND_SPECIFIC_REFUSAL_GATES_CLOSED",
+  "findings": [],
+  "evidence": {
+    "controller_sha256": "b6f79caf80c26daa484acd195873d560366b7eae94f697298da9cfface159413",
+    "actual_controller_and_Windows_suite_exit": 0,
+    "suite_functions_passed": 16,
+    "ignored": 0,
+    "filtered": 0,
+    "explicit_skips": false,
+    "real_native_mode_children": 9,
+    "child_exit_basis": "Actual passing public test executes each named mode once and run_mode requires each child success before strict parsing/judgement. All9 actual mode files and judged lines corroborate this; standalone per-child PID inventories are not claimed.",
+    "root_count": 9,
+    "unique_root_paths": true,
+    "recorded_commands": 19,
+    "all_command_exits": 0,
+    "pre_post_manifest_checks": 18,
+    "input_files_each": 1179,
+    "log_sha256": "a619901e6a95278d8d30d17bdb9e1ab049a484511abb78101986702e8472c4e5",
+    "actual_script_sha256": "a8d23cf0161a7574fc3f32a364fc407451645d92f62ffd9de9bb422628afd055",
+    "script_exact_source": true,
+    "test_exe_sha256": "562c9d995e87389d17da8dd38febe96c31c42229e0502dce27736ac849dc2ae7",
+    "test_export_receipt_sha256": "62b0bbfe7d5e741cfb5c0932821e6acfa6f4e431626d9e44d42883c296c7cc04",
+    "weapon_BUILD_INFO_sha256": "df630aa72b46a44d2daddb37acc83d6d5e2d4d7c222730807c37a253bf6927c3",
+    "file_manifest_entries_rehashed": 50,
+    "all_current_payloads_match": true,
+    "modes": [
+      {
+        "mode": "control",
+        "strict_rows": 8,
+        "raw_sha256": "87433236fde66b1d0503f533b0381e89e6878e35fde291fe1752ad15e518fe92",
+        "matched_launch_config_cohort": true,
+        "cohort": [
+          "1"
+        ],
+        "completed": true,
+        "terminal_rows": 1,
+        "pending": 0,
+        "frames": 312,
+        "ground_after": 16,
+        "altered_below": 0,
+        "altered_impact": 0,
+        "reply_count": 1,
+        "specific_primary_marker": null,
+        "pre_post_inputs": 0
+      },
+      {
+        "mode": "below_true",
+        "strict_rows": 8,
+        "raw_sha256": "e7644f359b2c78e76b6d9626f00c2f58a753dcab3d96d85f654fcab346098eee",
+        "matched_launch_config_cohort": true,
+        "cohort": [
+          "1"
+        ],
+        "completed": true,
+        "terminal_rows": 1,
+        "pending": 0,
+        "frames": 312,
+        "ground_after": 22,
+        "altered_below": 1,
+        "altered_impact": 0,
+        "reply_count": 1,
+        "specific_primary_marker": null,
+        "pre_post_inputs": 0
+      },
+      {
+        "mode": "below_true_impact_shift",
+        "strict_rows": 8,
+        "raw_sha256": "308d107f1389cc42f8d786cf47d3b251b9b46b4e67bbfb7bcc65da3830f31d75",
+        "matched_launch_config_cohort": true,
+        "cohort": [
+          "1"
+        ],
+        "completed": true,
+        "terminal_rows": 1,
+        "pending": 0,
+        "frames": 312,
+        "ground_after": 22,
+        "altered_below": 1,
+        "altered_impact": 1,
+        "reply_count": 1,
+        "specific_primary_marker": null,
+        "pre_post_inputs": 0
+      },
+      {
+        "mode": "withheld_below",
+        "strict_rows": 6,
+        "raw_sha256": "d5d0e4100aac4b349bb53189aab9459033e7beb9c67bfc591f4c739b145856bc",
+        "matched_launch_config_cohort": true,
+        "cohort": [
+          "1"
+        ],
+        "completed": false,
+        "terminal_rows": 0,
+        "pending": 1,
+        "frames": 301,
+        "ground_after": 1,
+        "altered_below": 1,
+        "altered_impact": 0,
+        "reply_count": 0,
+        "specific_primary_marker": "ground_below.callback",
+        "pre_post_inputs": 0
+      },
+      {
+        "mode": "bad_below_predicate",
+        "strict_rows": 6,
+        "raw_sha256": "3b689bce2d318b724ff75fe3a32780e50cef6c192d550cc5e911b9e16f832684",
+        "matched_launch_config_cohort": true,
+        "cohort": [
+          "1"
+        ],
+        "completed": false,
+        "terminal_rows": 0,
+        "pending": 1,
+        "frames": 301,
+        "ground_after": 1,
+        "altered_below": 1,
+        "altered_impact": 0,
+        "reply_count": 0,
+        "specific_primary_marker": "ground_below.answer",
+        "pre_post_inputs": 0
+      },
+      {
+        "mode": "bad_below_record_present",
+        "strict_rows": 6,
+        "raw_sha256": "62c964d68dea7b93b9f63a29fc43d36ab47462e636a0b0c844423ff3a732b76b",
+        "matched_launch_config_cohort": true,
+        "cohort": [
+          "1"
+        ],
+        "completed": false,
+        "terminal_rows": 0,
+        "pending": 1,
+        "frames": 301,
+        "ground_after": 1,
+        "altered_below": 1,
+        "altered_impact": 0,
+        "reply_count": 0,
+        "specific_primary_marker": "ground_below.record",
+        "pre_post_inputs": 0
+      },
+      {
+        "mode": "withheld_impact",
+        "strict_rows": 6,
+        "raw_sha256": "c565dd101dd708323129a9fcbed1f2ec58bd36b67925b90999f991ee65170bbc",
+        "matched_launch_config_cohort": true,
+        "cohort": [
+          "1"
+        ],
+        "completed": false,
+        "terminal_rows": 0,
+        "pending": 1,
+        "frames": 301,
+        "ground_after": 2,
+        "altered_below": 1,
+        "altered_impact": 1,
+        "reply_count": 0,
+        "specific_primary_marker": "ground_impact.callback",
+        "pre_post_inputs": 0
+      },
+      {
+        "mode": "bad_impact_type",
+        "strict_rows": 7,
+        "raw_sha256": "688a9f62563cd7d142ed1fb6fd7a3b853e90daba96f942d45a3bb2ea7c145575",
+        "matched_launch_config_cohort": true,
+        "cohort": [
+          "1"
+        ],
+        "completed": false,
+        "terminal_rows": 0,
+        "pending": 1,
+        "frames": 301,
+        "ground_after": 2,
+        "altered_below": 1,
+        "altered_impact": 1,
+        "reply_count": 1,
+        "specific_primary_marker": "ground_impact.type",
+        "pre_post_inputs": 0
+      },
+      {
+        "mode": "bad_impact_record",
+        "strict_rows": 7,
+        "raw_sha256": "03770ff99258eea77f13d7922bb2253602cafa880267f46fa87c919199c4e425",
+        "matched_launch_config_cohort": true,
+        "cohort": [
+          "1"
+        ],
+        "completed": false,
+        "terminal_rows": 0,
+        "pending": 1,
+        "frames": 301,
+        "ground_after": 2,
+        "altered_below": 1,
+        "altered_impact": 1,
+        "reply_count": 1,
+        "specific_primary_marker": "ground_impact.record",
+        "pre_post_inputs": 0
+      }
+    ]
+  },
+  "causal_assessment": {
+    "matched_preconditions": "All9 actual files match warmup/configuration, selected launcher/target/weapon, full launch text and frozen cohort[1]; no later birth, foreign or duplicate terminal supplies a case result. Actual case is an anti-aircraft-launched20mm projectile, not all-family coverage.",
+    "predicate_authority": "Control completed its entire cohort. The valid below=true run actually sent one alteration and changed the same member from7steps to1step and a different position while completing; this is influence through real launch/flight glue rather than counts alone.",
+    "impact_authority": "Shift mode actually sent an exact-single altered reply. The cohort member terminal position exactly equals that recorded reply and differs from predicate-only; exact text receipts checked without tolerance or output normalization.",
+    "specific_refusals": "All6 actual runs reached their matched named ground callback/answer/record/type guard after healthy launch with the alteration sent. Cohort remains pending/no terminal as expected. Witness/native child processes succeed because their strict judgement expects the caught engine-entry failure; these are not healthy completed campaigns. bad_impact_type/record retain a provider-side point receipt, not a committed impact or terminal.",
+    "variation_limit": "The provider changes armed operations globally; ensuing query/world feedback may differ. This is bounded host-world authority, not an isolated policy/health/RNG or campaign-total causal comparison."
+  },
+  "reused_closures": {
+    "source_befc": "befc10c40b854bf1ae6e430efd57409c1732b1621ad8365707697c63163b93c1",
+    "test_source_16dff": "16dff745651a2cda68183eb2bf2adfa99cee28d7029cdf4a69bfd81016d5452a",
+    "actual_FP_strict_2d606": "2d60696be528582f00962c0681080a2ad6dc919ac2eef40b992ccf5b4ae2e672",
+    "identity_note": "Authority executable/production remain aafb; FP test-only recovery remains e107. No relabelled uninterrupted original pass."
+  },
+  "review_setup_note": "Initial read-only regex anchored judged lines at line start and missed control, printed after the Rust test name on the same line. Corrected non-anchored extraction verifies the exact nine-mode sequence; no product data/controller was changed.",
+  "limits": [
+    "The repeated summaries after the Rust result are synthetic control diagnostics (including deliberate incomplete cohorts), excluded from native mode facts.",
+    "Source/payload/manifest/test receipts are checked; fresh roots are distinct verified paths, not claimed filesystem-isolation proof.",
+    "Ordinary shipping pack has only been launched; no40/eight-complete pass, visual Tacview/performance, currentCI, formal GitHub approval, normal delivery, Task48 or whole-D3 acceptance is inferred.",
+    "Other maps/launcher/family/particle/avionics scenarios and remaining physical/spatial/model/entity/hierarchy/device/environment/time/solver-loader services remain within whole D3."
+  ],
+  "actions": "Read-only retained JSON/log/Git/source/payload hashing and this report only; no builds/tests/native/process/cache/auth/Git mutations, source edits, external writes or nested agents.",
+  "created_utc": "2026-10-31T01:33:24.019505+00:00"
+}

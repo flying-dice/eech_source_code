@@ -5,9 +5,10 @@
 -- It tests nothing about campaign policy; it shows that the campaign's physical terrain facts come from the host, and that a bad host is a
 -- visible failure. Modes (one per process, as the engine is one per process):
 --   mode=reference   the reference host's own terrain, unchanged: the control
---   mode=raised      the reference terrain with every elevation (point, stored, fast) raised by `raise` metres (default 10000)
+--   mode=raised      the reference terrain with every elevation (point, stored, fast) raised by `raise` metres (default 10000). The ground operations (EEDCS-48) are NOT raised: they
+--                    pass through to the reference, so this mode is physically inconsistent for any ground consumer and is judged only by the placement and line-of-sight sums
 --   mode=generic     a host with no EECH data: an analytic surface (land, type 9, everywhere), no hints, the reference map's extents only. It is an INPUT-WORLD
---                    VARIATION, not a hint test: all land changes the campaign's geography (Lebanon: popread.c terrain-class WATER selection -> the BLUE TARAWA model
+--                    VARIATION, not a hint test (it answers no ground operation: the first ground question stops the campaign at the ground boundary): all land changes the campaign's geography (Lebanon: popread.c terrain-class WATER selection -> the BLUE TARAWA model
 --                    -> a required named keysite), and the actual run fails at the campaign parser (USS TARAWA missing). That failure is recorded, not caught.
 --   mode=nohint      POSITIVE: the reference physical answers (same geography) with `hint` and `stored` removed from every point answer; map and fast unchanged.
 --                    Tests optional cache hints with compatible geography; reference-backed, not a data-free world
@@ -64,7 +65,7 @@ assert (host.terrain_open, "this eech-world has no host.terrain_open")
 local reference = host.terrain_open { terrain_dir = root .. scenario.terrain }
 local facts = reference { op = "map" }
 
-local calls = { map = 0, point = 0, fast = 0 }
+local calls = { map = 0, point = 0, fast = 0, ground_above = 0, ground_below = 0, ground_impact = 0 }
 
 local function counted (inner)
 	return function (request)
@@ -92,6 +93,9 @@ elseif mode == "raised" then
 elseif mode == "generic" then
 	provider = counted (function (request)
 		if request.op == "map" then return facts end
+		-- the ground operations (EEDCS-48) are physical questions about this world's terrain: an analytic answer here would be a second implementation of the host's ground
+		-- kernel, so this host does not have them, and the first ground question stops the campaign at the named ground boundary
+		if string.sub (request.op, 1, 7) == "ground_" then error ("the generic host has no ground operations", 0) end
 		local x, z = request.x, request.z
 		local elevation = 200 + 80 * math.sin (x / 5000) * math.cos (z / 7000)
 		if request.op == "fast" then return { elevation = elevation } end
@@ -107,6 +111,10 @@ elseif mode == "nohint" then
 		if request.op == "point" then
 			answer.hint = nil
 			answer.stored = nil
+		elseif answer.record then
+			-- the ground operations: the record they report is the same record, with the same cache state removed
+			answer.record.hint = nil
+			answer.record.stored = nil
 		end
 		return answer
 	end)
@@ -231,7 +239,7 @@ for f = 1, frames_requested do
 end
 emit {
 	event = "summary", mode = mode, frames_requested = frames_requested, frames_completed = frames_completed, failure = failure or "", malformed_sent = malformed_sent,
-	map_calls = calls.map, point_calls = calls.point, fast_calls = calls.fast,
+	map_calls = calls.map, point_calls = calls.point, fast_calls = calls.fast, ground_above_calls = calls.ground_above, ground_below_calls = calls.ground_below, ground_impact_calls = calls.ground_impact,
 	placed_count = placed.count, placed_sum = string.format ("%.9g", placed.sum),
 	los_terrain_count = los.count, los_terrain_sum = string.format ("%.9g", los.sum),
 }

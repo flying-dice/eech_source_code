@@ -1,0 +1,72 @@
+{
+  "scope": "Preflight only; no campaign result",
+  "when_utc": "2026-10-31T09:48:44.958451+00:00",
+  "role": "candidate",
+  "head": "aafb21775f5d3523a30f148d23fbce588902025a",
+  "runner": {
+    "bytes": 37543,
+    "sha256": "4dc08480b72722a7dfdae5dea319f61acc6414c4bdb29351982e1579393d66db"
+  },
+  "python": {
+    "executable": "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+    "version": [
+      3,
+      12,
+      14
+    ]
+  },
+  "build_info": {
+    "bytes": 5070,
+    "sha256": "2f2ed4946c5c21b8ee00de956992af294a0a9c356a2a549d0c8397577dec550c"
+  },
+  "expected_checks": [
+    "blindspot.georgia_resupply",
+    "evidence.artifacts",
+    "evidence.checkers",
+    "evidence.manifests",
+    "evidence.reproduce.chains",
+    "evidence.reproduce.loss",
+    "evidence.reproduce.m2_check",
+    "evidence.reproduce.m3_check",
+    "governance.fixture",
+    "governance.lineage",
+    "inputs.georgia",
+    "inputs.lebanon",
+    "inputs.lebanon_repeat",
+    "lifecycle.bad_arguments",
+    "lifecycle.boot_twice",
+    "lifecycle.missing_campaign",
+    "lifecycle.missing_map",
+    "lifecycle.missing_root",
+    "lifecycle.no_reuse",
+    "reference.baseline",
+    "reference.loss_chain",
+    "reference.observation_check",
+    "reference.observed_equals_unobserved",
+    "reference.repeatable",
+    "reference.supply_chains",
+    "regress.georgia.exact",
+    "regress.georgia.expectations",
+    "regress.lebanon.exact",
+    "regress.lebanon.expectations.mechanics",
+    "regress.lebanon.expectations.resupply",
+    "retained.chains_report",
+    "retained.check_report",
+    "retained.loss_report",
+    "retained.observations",
+    "retained.recording",
+    "sensitivity.loss_chain_check",
+    "sensitivity.observation_check",
+    "sensitivity.s3_exact",
+    "sensitivity.s3_lebanon_expectation",
+    "sensitivity.supply_chain_check"
+  ],
+  "verified_payload_count": 50,
+  "preflight_only_actual_exit": 0,
+  "three_input_manifest_exits": {
+    "georgia": 0,
+    "lebanon": 0,
+    "lebanon_repeat": 0
+  },
+  "limitation": "No campaign result; actual full ordinary recovery is running on new roots."
+}

@@ -4,7 +4,7 @@ use eech_engine::{
     AimEvent, AimReply, AimRequest, AimStepKind, AimTarget, AimWeapon, AimWorld, ArrivalAnswer, Engine, EngineConfig, EngineError, Gunship,
     HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor, MemberDescriptor, MovementMode, MovementResult,
     MovementStep, ObjectReport, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side, SupplyReachDescriptor, TerrainAnswer, TerrainMapFacts,
-    TerrainProvider, TerrainQuery, VehiclePose, WeaponFigures,
+    TerrainProvider, TerrainQuery, TerrainRecord, VehiclePose, WeaponFigures,
 };
 use mlua::prelude::*;
 use std::path::PathBuf;
@@ -416,6 +416,86 @@ return function (op, x, z, hint, winter)
 end
 "#;
 
+/// The ground-contact operations of the same provider (EEDCS-48, D3 G2): `ground_above` (point_above_ground), `ground_below` (point_below_ground) and
+/// `ground_impact` (get_ground_impact_point). The campaign hands the provider
+///
+///   { op = "ground_above" | "ground_below", world = { min_x, min_z, max_x, max_z }, x, y, z, hint?, winter }
+///   { op = "ground_impact", world = { ... }, above = { x, y, z }, below = { x, y, z }, hint?, winter }
+///
+/// (`world` is the campaign's world-map area, geography it supplies; every number is an exact single) and reads back, by value:
+///
+///   ground_above:  { above = boolean, queried = boolean, record = nil | { last_elevation, normal = { nx, ny, nz }, type, stored, hint? } }
+///   ground_below:  { below = boolean, queried = boolean, record = ... }
+///   ground_impact: { above = { x, y, z }, below = { x, y, z }, impact = { x, y, z }, type, record = { ... } }
+///
+/// `record` is present exactly when `queried` is true: an answer that read no terrain leaves the campaign's record as it is. `stored` is a boolean or nil (nil means true, as in
+/// a point answer: a host that keeps no per-record state reports a surface and no hint) and `type` of an impact must be the record's. Every number must be a Lua number (a string is refused, not coerced),
+/// finite, and is read once; the shape is checked here, before anything reaches the engine. Markers: `<op>.callback` (the provider raised), `<op>.answer` (not a table, or a
+/// field of the wrong type), `<op>.position` (a coordinate), `<op>.record` (the record), `<op>.type`.
+const GROUND_BRIDGE: &str = r#"
+local provider, types, hint_max = ...
+local huge = math.huge
+local function finite (v) return type (v) == 'number' and v == v and v ~= huge and v ~= -huge end
+local function integer (v) return finite (v) and v == math.floor (v) end
+local function point (op, name, t)
+	if type (t) ~= 'table' then return nil, op .. '.position', name .. ' must be a table of x, y and z' end
+	local x, y, z = t.x, t.y, t.z
+	if not (finite (x) and finite (y) and finite (z)) then return nil, op .. '.position', name .. ' must be three finite numbers x, y and z' end
+	return { x, y, z }
+end
+-- the record: its numbers as text, the type, the hint and the stored flag; nil and a marker when it is malformed
+local function record (op, r)
+	if type (r) ~= 'table' then return nil, op .. '.record', 'record must be a table' end
+	local last, n, kind, h, stored = r.last_elevation, r.normal, r.type, r.hint, r.stored
+	if not finite (last) then return nil, op .. '.record', 'record.last_elevation must be a finite number' end
+	local n1, n2, n3
+	if type (n) == 'table' and #n == 3 then n1, n2, n3 = n [1], n [2], n [3] end
+	if not (finite (n1) and finite (n2) and finite (n3)) then return nil, op .. '.record', 'record.normal must be three finite numbers' end
+	if not integer (kind) or kind < 0 or kind >= types then return nil, op .. '.type', 'record.type must be an integer from 0 to ' .. (types - 1) end
+	if h ~= nil and (type (h) ~= 'string' or #h < 1 or #h > hint_max or string.find (h, '[^\32-\126]') ~= nil) then
+		return nil, op .. '.record', 'record.hint must be nil or a string of 1 to ' .. hint_max .. ' printable ASCII bytes'
+	end
+	if stored == nil then stored = true end -- as a point answer: a record that holds a surface and does not say otherwise stored one
+	if type (stored) ~= 'boolean' then return nil, op .. '.record', 'record.stored must be a boolean or nil' end
+	return { text = string.format ('%.17g %.17g %.17g %.17g', last, n1, n2, n3), kind = kind, hint = h, stored = stored }
+end
+return function (op, winter, hint, min_x, min_z, max_x, max_z, x, y, z, bx, by, bz)
+	local request = { op = op, winter = winter, hint = hint, world = { min_x = min_x, min_z = min_z, max_x = max_x, max_z = max_z } }
+	if op == 'ground_impact' then
+		request.above, request.below = { x = x, y = y, z = z }, { x = bx, y = by, z = bz }
+	else
+		request.x, request.y, request.z = x, y, z
+	end
+	local ok, answer = pcall (provider, request)
+	if not ok then return op .. '.callback', tostring (answer) end
+	if type (answer) ~= 'table' then return op .. '.answer', 'the ' .. op .. ' answer must be a table, got ' .. type (answer) end
+	if op == 'ground_impact' then
+		local a, b, c, kind, r = answer.above, answer.below, answer.impact, answer.type, answer.record
+		local pa, ma, ta = point (op, 'above', a)
+		if not pa then return ma, ta end
+		local pb, mb, tb = point (op, 'below', b)
+		if not pb then return mb, tb end
+		local pc, mc, tc = point (op, 'impact', c)
+		if not pc then return mc, tc end
+		local rec, mr, tr = record (op, r)
+		if not rec then return mr, tr end
+		if kind ~= rec.kind then return op .. '.type', 'type must be the record\'s type' end
+		return nil, string.format ('%.17g %.17g %.17g %.17g %.17g %.17g %.17g %.17g %.17g ', pa [1], pa [2], pa [3], pb [1], pb [2], pb [3], pc [1], pc [2], pc [3]) .. rec.text,
+			rec.kind, rec.hint, rec.stored, true, true
+	end
+	local value, queried, r = answer [op == 'ground_above' and 'above' or 'below'], answer.queried, answer.record
+	if type (value) ~= 'boolean' then return op .. '.answer', (op == 'ground_above' and 'above' or 'below') .. ' must be a boolean' end
+	if type (queried) ~= 'boolean' then return op .. '.answer', 'queried must be a boolean' end
+	if not queried then
+		if r ~= nil then return op .. '.record', 'record must be absent when no terrain was read' end
+		return nil, '', nil, nil, nil, value, false
+	end
+	local rec, mr, tr = record (op, r)
+	if not rec then return mr, tr end
+	return nil, rec.text, rec.kind, rec.hint, rec.stored, value, true
+end
+"#;
+
 /// The number of EECH terrain types the provider's `type` is checked against (`TERRAIN_TYPE_LAST`), and the longest hint, mirrored from the C side.
 const TERRAIN_TYPE_COUNT: i64 = 62;
 const TERRAIN_HINT_MAX: i64 = 127;
@@ -423,8 +503,13 @@ const TERRAIN_HINT_MAX: i64 = 127;
 /// Builds the provider the engine keeps from the host's Lua function.
 fn terrain_provider(lua: &Lua, function: LuaFunction) -> LuaResult<TerrainProvider> {
     let build: LuaFunction = lua.load(TERRAIN_BRIDGE).set_name("eech terrain bridge").into_function()?;
-    let bridge: LuaFunction = build.call((function, TERRAIN_TYPE_COUNT, TERRAIN_HINT_MAX))?;
-    Ok(Box::new(move |query| call_terrain(&bridge, query)))
+    let bridge: LuaFunction = build.call((function.clone(), TERRAIN_TYPE_COUNT, TERRAIN_HINT_MAX))?;
+    let ground_build: LuaFunction = lua.load(GROUND_BRIDGE).set_name("eech ground bridge").into_function()?;
+    let ground: LuaFunction = ground_build.call((function, TERRAIN_TYPE_COUNT, TERRAIN_HINT_MAX))?;
+    Ok(Box::new(move |query| match query {
+        TerrainQuery::GroundAbove { .. } | TerrainQuery::GroundBelow { .. } | TerrainQuery::GroundImpact { .. } => call_ground(&ground, query),
+        query => call_terrain(&bridge, query),
+    }))
 }
 
 /// The `N` numbers of an answer's text as the nearest `f32`s; a malformed text is a refusal under `marker`.
@@ -465,6 +550,10 @@ fn call_terrain(bridge: &LuaFunction, query: TerrainQuery) -> Result<TerrainAnsw
         TerrainQuery::Map { winter } => ("map", None, None, None, *winter),
         TerrainQuery::Point { x, z, hint, winter } => ("point", Some(f64::from(*x)), Some(f64::from(*z)), hint.clone(), *winter),
         TerrainQuery::Fast { x, z, winter } => ("fast", Some(f64::from(*x)), Some(f64::from(*z)), None, *winter),
+        // the ground questions go to the ground bridge (`terrain_provider`), never here
+        TerrainQuery::GroundAbove { .. } | TerrainQuery::GroundBelow { .. } | TerrainQuery::GroundImpact { .. } => {
+            return Err("[terrain-provider:point.callback] a ground question reached the point bridge".to_string())
+        }
     };
     let (marker, text, kind, hint_out, stored): BridgeAnswer = bridge
         .call((op, x, z, hint, winter))
@@ -513,6 +602,101 @@ fn call_terrain(bridge: &LuaFunction, query: TerrainQuery) -> Result<TerrainAnsw
                 elevation: terrain_f32(n[0], "fast.elevation")?,
             })
         }
+    }
+}
+
+/// What the Lua ground bridge returns, in order: the refusal marker, the answer's numbers as text, then the record's surface type, hint and stored flag, the predicate and
+/// whether the terrain was read (each absent when the answer does not carry it).
+type GroundBridgeAnswer = (
+    Option<String>,
+    Option<String>,
+    Option<i64>,
+    Option<String>,
+    Option<bool>,
+    Option<bool>,
+    Option<bool>,
+);
+
+fn ground_record(numbers: [f64; 4], op: &str, kind: Option<i64>, hint: Option<String>, stored: Option<bool>) -> Result<TerrainRecord, String> {
+    let marker = format!("{op}.record");
+    let [last_elevation, nx, ny, nz] = numbers;
+    let kind = kind.ok_or_else(|| format!("[terrain-provider:{op}.type] the ground bridge returned no type"))?;
+    Ok(TerrainRecord {
+        last_elevation: terrain_f32(last_elevation, &marker)?,
+        normal: [terrain_f32(nx, &marker)?, terrain_f32(ny, &marker)?, terrain_f32(nz, &marker)?],
+        kind: i32::try_from(kind).map_err(|_| format!("[terrain-provider:{op}.type] the type is out of range"))?,
+        hint,
+        stored: stored.ok_or_else(|| format!("[terrain-provider:{marker}] the ground bridge returned no stored flag"))?,
+    })
+}
+
+fn ground_triple(numbers: [f64; 3], marker: &str) -> Result<[f32; 3], String> {
+    let [x, y, z] = numbers;
+    Ok([terrain_f32(x, marker)?, terrain_f32(y, marker)?, terrain_f32(z, marker)?])
+}
+
+/// The ground-contact questions (EEDCS-48, D3 G2) through `GROUND_BRIDGE`: the request fields cross as exact numbers and the answer's shape is checked in Lua, where the values are.
+fn call_ground(bridge: &LuaFunction, query: TerrainQuery) -> Result<TerrainAnswer, String> {
+    fn widen(values: &[f32; 3]) -> [f64; 3] {
+        let [x, y, z] = *values;
+        [f64::from(x), f64::from(y), f64::from(z)]
+    }
+    let (op, winter, hint, world, first, second) = match &query {
+        TerrainQuery::GroundAbove { position, world, hint, winter } => ("ground_above", *winter, hint.clone(), *world, widen(position), [0.0; 3]),
+        TerrainQuery::GroundBelow { position, world, hint, winter } => ("ground_below", *winter, hint.clone(), *world, widen(position), [0.0; 3]),
+        TerrainQuery::GroundImpact {
+            above,
+            below,
+            world,
+            hint,
+            winter,
+        } => ("ground_impact", *winter, hint.clone(), *world, widen(above), widen(below)),
+        _ => return Err("[terrain-provider:point.callback] a non-ground question reached the ground bridge".to_string()),
+    };
+    let [world_min_x, world_min_z, world_max_x, world_max_z] = world;
+    let [x, y, z] = first;
+    let [below_x, below_y, below_z] = second;
+    let (marker, text, kind, hint_out, stored, value, queried): GroundBridgeAnswer = bridge
+        .call((
+            op,
+            winter,
+            hint,
+            f64::from(world_min_x),
+            f64::from(world_min_z),
+            f64::from(world_max_x),
+            f64::from(world_max_z),
+            x,
+            y,
+            z,
+            below_x,
+            below_y,
+            below_z,
+        ))
+        .map_err(|error| format!("[terrain-provider:{op}.callback] {error}"))?;
+    if let Some(marker) = marker {
+        return Err(format!("[terrain-provider:{marker}] {}", text.unwrap_or_default()));
+    }
+    let text = text.ok_or_else(|| format!("[terrain-provider:{op}.answer] the ground bridge returned nothing"))?;
+    if op == "ground_impact" {
+        let [ax, ay, az, bx, by, bz, ix, iy, iz, last, nx, ny, nz] = terrain_numbers::<13>(&text, "ground_impact.answer")?;
+        return Ok(TerrainAnswer::GroundImpact {
+            above: ground_triple([ax, ay, az], "ground_impact.position")?,
+            below: ground_triple([bx, by, bz], "ground_impact.position")?,
+            impact: ground_triple([ix, iy, iz], "ground_impact.position")?,
+            record: ground_record([last, nx, ny, nz], op, kind, hint_out, stored)?,
+        });
+    }
+    let value = value.ok_or_else(|| format!("[terrain-provider:{op}.answer] the ground bridge returned no predicate"))?;
+    match queried {
+        Some(true) => {
+            let n = terrain_numbers::<4>(&text, &format!("{op}.record"))?;
+            Ok(TerrainAnswer::GroundPredicate {
+                value,
+                record: Some(ground_record(n, op, kind, hint_out, stored)?),
+            })
+        }
+        Some(false) => Ok(TerrainAnswer::GroundPredicate { value, record: None }),
+        None => Err(format!("[terrain-provider:{op}.answer] the ground bridge returned no queried flag")),
     }
 }
 
@@ -2216,6 +2400,14 @@ impl LuaUserData for LuaEngine {
         methods.add_method("terrain_face_probe", |_, this, (x, z): (f32, f32)| {
             this.engine.terrain_face_probe(x, z).map_err(lua_error)
         });
+        // TEST-ONLY (feature `ground-fixture`, EEDCS-48): the read-only ground-contact probe of the original point_above_ground, point_below_ground and
+        // get_ground_impact_point against the loaded terrain; not part of the shipping module. It takes no host callbacks of its own. In the unmoved (original)
+        // module the three read the DLL's terrain; in the host-terrain module (EECH_CAMPAIGN_HOST_TERRAIN) the elevation, normal and type reads of the probe's
+        // queries are questions to the terrain provider that boot installed for the rest of the process, so the engine must have been booted with one.
+        #[cfg(feature = "ground-fixture")]
+        methods.add_method("ground_probe", |_, this, (seed, points, impacts): (u32, i32, i32)| {
+            this.engine.ground_probe(seed, points, impacts).map_err(lua_error)
+        });
         // TEST-ONLY (feature `dependent-fixture`, EEDCS-40): not part of the shipping module.
         #[cfg(feature = "dependent-fixture")]
         methods.add_method(
@@ -3293,6 +3485,268 @@ mod tests {
         refused(&mut no_map, TerrainQuery::Map { winter: false }, "map.answer");
         let mut raising = terrain_of(&lua, "error ('no map')")?;
         refused(&mut raising, TerrainQuery::Map { winter: false }, "map.callback");
+        Ok(())
+    }
+
+    // ---- the ground-contact operations (EEDCS-48, D3 G2): the real ground bridge and answer parsing, with Lua providers of the test's choosing ----
+
+    const WORLD: [f32; 4] = [-10.5, -20.5, 3000.25, 4000.75];
+
+    fn above_of(position: [f32; 3], hint: Option<&str>) -> TerrainQuery {
+        TerrainQuery::GroundAbove {
+            position,
+            world: WORLD,
+            hint: hint.map(str::to_owned),
+            winter: false,
+        }
+    }
+
+    fn below_of(position: [f32; 3], hint: Option<&str>) -> TerrainQuery {
+        TerrainQuery::GroundBelow {
+            position,
+            world: WORLD,
+            hint: hint.map(str::to_owned),
+            winter: true,
+        }
+    }
+
+    fn impact_of(above: [f32; 3], below: [f32; 3], hint: Option<&str>) -> TerrainQuery {
+        TerrainQuery::GroundImpact {
+            above,
+            below,
+            world: WORLD,
+            hint: hint.map(str::to_owned),
+            winter: false,
+        }
+    }
+
+    const RECORD: &str = "{ last_elevation = 12.5, normal = { 0, 1, 0 }, type = 9, stored = true, hint = 'next' }";
+
+    fn the_record() -> TerrainRecord {
+        TerrainRecord {
+            last_elevation: 12.5,
+            normal: [0.0, 1.0, 0.0],
+            kind: 9,
+            hint: Some("next".to_string()),
+            stored: true,
+        }
+    }
+
+    #[test]
+    fn a_ground_question_reaches_the_provider_by_value_and_its_answer_comes_back_exactly() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        // above: the request is the position, the campaign's world area and the record's hint; the answer's negative zero and subnormal survive bit for bit
+        let mut above = terrain_of(
+            &lua,
+            "assert (r.op == 'ground_above' and r.x == 1.5 and r.y == -2.5 and r.z == 3.75 and r.hint == 'previous' and r.winter == false)
+             assert (r.world.min_x == -10.5 and r.world.min_z == -20.5 and r.world.max_x == 3000.25 and r.world.max_z == 4000.75)
+             return { above = true, queried = true, record = { last_elevation = -1 / (1 / 0), normal = { 2 ^ -130, 1, 0 }, type = 0, stored = false } }",
+        )?;
+        let TerrainAnswer::GroundPredicate { value, record: Some(record) } = above(above_of([1.5, -2.5, 3.75], Some("previous")))? else {
+            return Err("not a ground predicate with a record".into());
+        };
+        assert!(value);
+        assert_eq!(record.last_elevation.to_bits(), 0x8000_0000, "a negative zero is kept");
+        assert_eq!(record.normal.map(f32::to_bits), [0x0008_0000, 1.0f32.to_bits(), 0]);
+        assert_eq!(
+            (record.kind, record.hint.as_deref(), record.stored),
+            (0, None, false),
+            "no hint is None, and stored is the provider's word"
+        );
+        // below: the same request shape under its own op, in the other season; a decided answer carries no record
+        let mut below = terrain_of(
+            &lua,
+            "assert (r.op == 'ground_below' and r.x == 5 and r.y == 6 and r.z == 7 and r.hint == nil and r.winter == true and r.above == nil)
+             return { below = false, queried = false }",
+        )?;
+        assert_eq!(
+            below(below_of([5.0, 6.0, 7.0], None))?,
+            TerrainAnswer::GroundPredicate { value: false, record: None }
+        );
+        // impact: both endpoints, the world area and the hint; every output crosses
+        let mut impact = terrain_of(
+            &lua,
+            &format!(
+                "assert (r.op == 'ground_impact' and r.above.x == 1 and r.above.y == 2 and r.above.z == 3 and r.below.x == 4 and r.below.y == 5 and r.below.z == 6)
+                 assert (r.hint == 'h' and r.x == nil and r.world.max_z == 4000.75)
+                 return {{ above = {{ x = 1, y = 2.5, z = 3 }}, below = {{ x = 4, y = 4.75, z = 6 }}, impact = {{ x = 4, y = 4.5, z = 6 }}, type = 9, record = {RECORD} }}"
+            ),
+        )?;
+        assert_eq!(
+            impact(impact_of([1.0, 2.0, 3.0], [4.0, 5.0, 6.0], Some("h")))?,
+            TerrainAnswer::GroundImpact {
+                above: [1.0, 2.5, 3.0],
+                below: [4.0, 4.75, 6.0],
+                impact: [4.0, 4.5, 6.0],
+                record: the_record(),
+            }
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_malformed_ground_answer_is_refused_before_the_campaign_reads_any_of_it() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let impact_with = |body: &str| {
+            format!("return {{ above = {{ x = 1, y = 2, z = 3 }}, below = {{ x = 1, y = 2, z = 3 }}, impact = {{ x = 1, y = 2, z = 3 }}, type = 9, record = {RECORD}{body} }}")
+        };
+        // (provider source, query, the marker)
+        let cases: Vec<(String, TerrainQuery, &str)> = vec![
+            ("return nil".into(), above_of([0.0; 3], None), "ground_above.answer"),
+            ("return 'yes'".into(), below_of([0.0; 3], None), "ground_below.answer"),
+            ("error ('no ground')".into(), impact_of([0.0; 3], [1.0; 3], None), "ground_impact.callback"),
+            // the predicate is a boolean, not a number or a string; `queried` is a boolean
+            ("return { above = 1, queried = false }".into(), above_of([0.0; 3], None), "ground_above.answer"),
+            (
+                "return { below = 'true', queried = false }".into(),
+                below_of([0.0; 3], None),
+                "ground_below.answer",
+            ),
+            ("return { above = true }".into(), above_of([0.0; 3], None), "ground_above.answer"),
+            // the answer of the other op is not this op's answer
+            (
+                "return { below = true, queried = false }".into(),
+                above_of([0.0; 3], None),
+                "ground_above.answer",
+            ),
+            // a record is present exactly when the terrain was read
+            (
+                format!("return {{ above = true, queried = false, record = {RECORD} }}"),
+                above_of([0.0; 3], None),
+                "ground_above.record",
+            ),
+            (
+                "return { above = true, queried = true }".into(),
+                above_of([0.0; 3], None),
+                "ground_above.record",
+            ),
+            // the record is complete and exact: strings are not coerced, NaN is refused, stored is a boolean, the type is an integer in range
+            (
+                format!("return {{ above = true, queried = true, record = {} }}", RECORD.replace("12.5", "'12.5'")),
+                above_of([0.0; 3], None),
+                "ground_above.record",
+            ),
+            (
+                format!("return {{ above = true, queried = true, record = {} }}", RECORD.replace("12.5", "0 / 0")),
+                above_of([0.0; 3], None),
+                "ground_above.record",
+            ),
+            (
+                format!(
+                    "return {{ above = true, queried = true, record = {} }}",
+                    RECORD.replace("{ 0, 1, 0 }", "{ 0, 1 }")
+                ),
+                above_of([0.0; 3], None),
+                "ground_above.record",
+            ),
+            (
+                format!(
+                    "return {{ above = true, queried = true, record = {} }}",
+                    RECORD.replace("{ 0, 1, 0 }", "{ 0, '1', 0 }")
+                ),
+                above_of([0.0; 3], None),
+                "ground_above.record",
+            ),
+            (
+                format!(
+                    "return {{ below = true, queried = true, record = {} }}",
+                    RECORD.replace("stored = true", "stored = 1")
+                ),
+                below_of([0.0; 3], None),
+                "ground_below.record",
+            ),
+            (
+                format!(
+                    "return {{ below = true, queried = true, record = {} }}",
+                    RECORD.replace("stored = true", "stored = 'true'")
+                ),
+                below_of([0.0; 3], None),
+                "ground_below.record",
+            ),
+            (
+                format!(
+                    "return {{ below = true, queried = true, record = {} }}",
+                    RECORD.replace("type = 9", "type = 62")
+                ),
+                below_of([0.0; 3], None),
+                "ground_below.type",
+            ),
+            (
+                format!(
+                    "return {{ below = true, queried = true, record = {} }}",
+                    RECORD.replace("type = 9", "type = 1.5")
+                ),
+                below_of([0.0; 3], None),
+                "ground_below.type",
+            ),
+            (
+                format!("return {{ below = true, queried = true, record = {} }}", RECORD.replace("'next'", "''")),
+                below_of([0.0; 3], None),
+                "ground_below.record",
+            ),
+            // the impact: every endpoint and the impact point are three finite numbers, the type is the record's, the record is whole
+            (
+                impact_with("").replace("impact = { x = 1, y = 2, z = 3 }, ", ""),
+                impact_of([0.0; 3], [1.0; 3], None),
+                "ground_impact.position",
+            ),
+            (
+                impact_with("").replace("above = { x = 1, y = 2, z = 3 }", "above = { x = 1, y = '2', z = 3 }"),
+                impact_of([0.0; 3], [1.0; 3], None),
+                "ground_impact.position",
+            ),
+            (
+                impact_with("").replace("below = { x = 1, y = 2, z = 3 }", "below = { x = 1, y = 2 }"),
+                impact_of([0.0; 3], [1.0; 3], None),
+                "ground_impact.position",
+            ),
+            (
+                impact_with("").replace("impact = { x = 1, y = 2, z = 3 }", "impact = { x = 1, y = 2, z = 1 / 0 }"),
+                impact_of([0.0; 3], [1.0; 3], None),
+                "ground_impact.position",
+            ),
+            (
+                impact_with("").replace("type = 9, record", "type = 8, record"),
+                impact_of([0.0; 3], [1.0; 3], None),
+                "ground_impact.type",
+            ),
+            (
+                impact_with("").replace("type = 9, record", "record"),
+                impact_of([0.0; 3], [1.0; 3], None),
+                "ground_impact.type",
+            ),
+            (
+                impact_with("").replace(RECORD, "5"),
+                impact_of([0.0; 3], [1.0; 3], None),
+                "ground_impact.record",
+            ),
+        ];
+        for (index, (source, query, marker)) in cases.into_iter().enumerate() {
+            let mut provider = terrain_of(&lua, &source)?;
+            let error = refusal_of(provider(query), &format!("case {index}: {source}"));
+            assert!(error.starts_with(&format!("[terrain-provider:{marker}]")), "case {index} ({source}): {error}");
+        }
+        // a record that does not say whether it stored a surface stored one, as a point answer does; with no hint it is a host that keeps no per-record state
+        let mut bare = terrain_of(
+            &lua,
+            "return { below = false, queried = true, record = { last_elevation = 1, normal = { 0, 1, 0 }, type = 9 } }",
+        )?;
+        assert!(matches!(
+            bare(below_of([0.0; 3], None))?,
+            TerrainAnswer::GroundPredicate {
+                value: false,
+                record: Some(TerrainRecord { stored: true, hint: None, .. })
+            }
+        ));
+        // a provider can answer a position with a plain Lua integer: that is a number, and exact
+        let mut integers = terrain_of(
+            &lua,
+            "return { above = true, queried = true, record = { last_elevation = 3, normal = { 0, 1, 0 }, type = 2.0, stored = true } }",
+        )?;
+        assert!(matches!(
+            integers(above_of([0.0; 3], None))?,
+            TerrainAnswer::GroundPredicate { value: true, record: Some(TerrainRecord { last_elevation, kind: 2, .. }) } if last_elevation == 3.0
+        ));
         Ok(())
     }
 }

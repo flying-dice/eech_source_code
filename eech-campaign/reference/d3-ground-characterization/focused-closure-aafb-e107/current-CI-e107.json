@@ -1,0 +1,86 @@
+{
+  "baseRefName": "claude/eech-campaign-native-spike-tjkj6g",
+  "headRefOid": "e1076ece31565a3b4f73a7e2adbe8e2698d9c023",
+  "statusCheckRollup": [
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-31T01:28:04Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/flying-dice/eech_source_code/actions/runs/41154913136/job/124399463558",
+      "name": "test (x86_64-unknown-linux-gnu)",
+      "startedAt": "2026-10-31T01:20:59Z",
+      "status": "COMPLETED",
+      "workflowName": "eech-campaign"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-31T01:22:54Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/flying-dice/eech_source_code/actions/runs/41154913218/job/124399463946",
+      "name": "verify",
+      "startedAt": "2026-10-31T01:20:59Z",
+      "status": "COMPLETED",
+      "workflowName": "eech-core-ts"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-31T01:24:56Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/flying-dice/eech_source_code/actions/runs/41154913136/job/124399463652",
+      "name": "test (i686-unknown-linux-gnu)",
+      "startedAt": "2026-10-31T01:20:59Z",
+      "status": "COMPLETED",
+      "workflowName": "eech-campaign"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-31T01:24:42Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/flying-dice/eech_source_code/actions/runs/41154913136/job/124399463644",
+      "name": "test (i686-unknown-linux-gnu, EECH_ORIGINAL_STACK_ATTRIBUTES=1)",
+      "startedAt": "2026-10-31T01:20:59Z",
+      "status": "COMPLETED",
+      "workflowName": "eech-campaign"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-31T01:24:58Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/flying-dice/eech_source_code/actions/runs/41154913136/job/124399463569",
+      "name": "test (x86_64-unknown-linux-gnu, EECH_C_OPT=2)",
+      "startedAt": "2026-10-31T01:20:59Z",
+      "status": "COMPLETED",
+      "workflowName": "eech-campaign"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-31T01:21:18Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/flying-dice/eech_source_code/actions/runs/41154913136/job/124399463727",
+      "name": "evidence-selftest",
+      "startedAt": "2026-10-31T01:20:59Z",
+      "status": "COMPLETED",
+      "workflowName": "eech-campaign"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-31T01:22:28Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/flying-dice/eech_source_code/actions/runs/41154913136/job/124399463323",
+      "name": "dcs-probe-tools",
+      "startedAt": "2026-10-31T01:20:59Z",
+      "status": "COMPLETED",
+      "workflowName": "eech-campaign"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-31T01:24:45Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/flying-dice/eech_source_code/actions/runs/41154913136/job/124399463549",
+      "name": "windows-cross",
+      "startedAt": "2026-10-31T01:20:59Z",
+      "status": "COMPLETED",
+      "workflowName": "eech-campaign"
+    }
+  ]
+}

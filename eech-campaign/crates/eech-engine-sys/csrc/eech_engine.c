@@ -1632,3 +1632,34 @@ int eech_engine_wpn_case_launch (const char *launcher_id, const char *target_id,
 }
 
 #endif
+
+#ifdef EECH_GROUND_FIXTURE
+
+/*
+ * TEST-ONLY ground-contact characterisation (EEDCS-48): one read-only probe of the original point_above_ground, point_below_ground and
+ * get_ground_impact_point against the loaded terrain (eech_ground_fixture.c). It runs inside the engine entry, so it sees EECH's
+ * round-toward-zero mode as the campaign's own queries do, and it takes no host argument: none of the three asks a dialogue host. (In the host-terrain module their terrain reads go to the terrain provider that boot installed for the process.) It snapshots the shared
+ * terrain point record and writes it back byte for byte. The report is text, `key=value` lines; no pointer, address or entity index is in it.
+ * A request the probe refuses (a precondition) or whose report does not fit writes `ground-refused reason=...` and is a bad argument.
+ */
+extern int eech_ground_probe_run (uint32_t seed, int points, int impacts, char *text, int capacity);
+
+int eech_engine_ground_probe (uint32_t seed, int points, int impacts, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || (points < 0) || (points > 100000) || (impacts < 0) || (impacts > 100000) || (points + impacts <= 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	if (eech_ground_probe_run (seed, points, impacts, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif

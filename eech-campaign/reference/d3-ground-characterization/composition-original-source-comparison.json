@@ -1,0 +1,12 @@
+{
+  "scope": "Selective SOURCE comparison only: choosing non-host branches yields exact original C tokens after ignoring comments/whitespace. Host diagnostic branches require separate review; no runtime equality inferred.",
+  "g1_base": "f03a680c9625b89ac966322faf0dd96460a3e03d",
+  "ground_parent": "d44a19612d014fa25cddb8e455dbe145f3549e41",
+  "source_path": "eech-campaign/crates/eech-engine-sys/csrc/eech_ground_fixture.c",
+  "new_host_conditionals": 4,
+  "legacy_c_tokens_equal": true,
+  "legacy_tokens_sha256": "afe9cd74b1eee8a14957909ceab64affeb71e0c93aab8541779dd180d158da10",
+  "original_file_sha256": "9f3d2492766c90d84e72a9681ce1eb8ca4108a36bd4832ad54599a3424008878",
+  "current_file_sha256": "59ef54a819a9280784cd2a69d44266c5c624a1799210194ac3517b77b46dd936",
+  "created_utc": "2026-10-29T15:14:35.015940+00:00"
+}

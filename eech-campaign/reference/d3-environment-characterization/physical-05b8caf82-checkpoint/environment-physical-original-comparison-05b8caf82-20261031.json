@@ -1,0 +1,48 @@
+{
+  "scope": "COMPLETE candidate164case conformance reports vsretainedoriginal993, alloriginal rawlines+endings exact exceptoneexplicitadditional validationmetadata row. P1/P2sourcereviewfindingsremain; notshipping/authority/FPacceptance.",
+  "rows": [
+    {
+      "case": "georgia",
+      "old_source": "99352e331527e8aafb2961949536217eab7a8ecf",
+      "candidate_source": "05b8caf82fbb37ee4e7e9ecfbd412bbc598a9ebd",
+      "all_native_and_prepost_exit0": true,
+      "verified_payloads": 46,
+      "old_raw_lines": 704,
+      "candidate_raw_lines": 705,
+      "additional_validation_rows": 1,
+      "all_original_raw_lines_including_endings_equal": true,
+      "old_sha256": "c4d4dc6493663764be119151bdbac1117126a6afbad57546cd370fbaa38ba42c",
+      "candidate_sha256": "5165602d132abefb8a975f24cf909dcfbf7790a9a3e710edb90e62f179dca56f",
+      "first_difference": null
+    },
+    {
+      "case": "lebanon",
+      "old_source": "99352e331527e8aafb2961949536217eab7a8ecf",
+      "candidate_source": "05b8caf82fbb37ee4e7e9ecfbd412bbc598a9ebd",
+      "all_native_and_prepost_exit0": true,
+      "verified_payloads": 46,
+      "old_raw_lines": 704,
+      "candidate_raw_lines": 705,
+      "additional_validation_rows": 1,
+      "all_original_raw_lines_including_endings_equal": true,
+      "old_sha256": "95fbf3f003bbd2483de7f591511dcd66ba0103f22ad4ed750b2595bcf053a0f8",
+      "candidate_sha256": "a25f409d468403911b31c7e5827b21264d2b77886016b4794b5655b13461d4a7",
+      "first_difference": null
+    },
+    {
+      "case": "lebanon-repeat",
+      "old_source": "99352e331527e8aafb2961949536217eab7a8ecf",
+      "candidate_source": "05b8caf82fbb37ee4e7e9ecfbd412bbc598a9ebd",
+      "all_native_and_prepost_exit0": true,
+      "verified_payloads": 46,
+      "old_raw_lines": 704,
+      "candidate_raw_lines": 705,
+      "additional_validation_rows": 1,
+      "all_original_raw_lines_including_endings_equal": true,
+      "old_sha256": "95fbf3f003bbd2483de7f591511dcd66ba0103f22ad4ed750b2595bcf053a0f8",
+      "candidate_sha256": "a25f409d468403911b31c7e5827b21264d2b77886016b4794b5655b13461d4a7",
+      "first_difference": null
+    }
+  ],
+  "all_original_rows_exact": true
+}

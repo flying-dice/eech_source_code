@@ -300,6 +300,153 @@ void display_terrain_elevation_statistics ( void )
 {
 }
 
+////////////////////////////////////////
+//
+// the ground-contact queries (EEDCS-48, D3 G2)
+//
+// point_above_ground and point_below_ground (en_world.h) and get_ground_impact_point (en_cllsn.c) are, with the host's terrain, physical questions: the host
+// answers them with the original's expressions, short circuits and bisection (see mb_hostterrain.h).  Nothing here compares an elevation, reads a sector maximum or
+// bisects.  What is here is the campaign's half: the world-map area it supplies, the shared record the original's queries wrote (the one a NULL point record means),
+// the caller's buffers and their aliasing, and the terrain type -> class mapping.  A reply is checked completely before anything is written.
+//
+////////////////////////////////////////
+
+static void ground_request (campaign_terrain_request *request, int op)
+{
+	memset (request, 0, sizeof (*request));
+
+	request->op = op;
+
+	// the campaign's world-map area (point_inside_map_area), as it is when the question is asked
+	request->world[0] = MIN_MAP_X;
+	request->world[1] = MIN_MAP_Z;
+	request->world[2] = MAX_MAP_X;
+	request->world[3] = MAX_MAP_Z;
+
+	// the shared record's hint: the host looks at it only if it reads the terrain
+	strncpy (request->hint, system_point_data.hint, CAMPAIGN_TERRAIN_HINT_MAX);
+}
+
+static int ground_record_valid (const campaign_terrain_reply *reply)
+{
+	return all_finite (&reply->last_elevation, 1) && all_finite (reply->normal, 3) && (reply->type >= 0) && (reply->type < TERRAIN_TYPE_LAST) &&
+		((reply->stored == FALSE) || (reply->stored == TRUE)) && (memchr (reply->hint, '\0', sizeof (reply->hint)) != NULL);
+}
+
+// what the original's terrain reads left in the shared record: all of it, as a point query leaves it
+static void ground_record_commit (const campaign_terrain_reply *reply)
+{
+	system_point_data.last_elevation = reply->last_elevation;
+	system_point_data.face_normal.x = reply->normal[0];
+	system_point_data.face_normal.y = reply->normal[1];
+	system_point_data.face_normal.z = reply->normal[2];
+	system_point_data.terrain_type = reply->type;
+
+	strcpy (system_point_data.hint, reply->hint);
+
+	if (reply->stored)
+	{
+		system_point_data.face_stored = TRUE;
+	}
+}
+
+static int ground_predicate (int op, const vec3d *position, const char *what)
+{
+	campaign_terrain_request
+		request;
+
+	campaign_terrain_reply
+		reply;
+
+	ASSERT (position);
+
+	ground_request (&request, op);
+
+	request.x = position->x;
+	request.y = position->y;
+	request.z = position->z;
+
+	ask (&request, &reply, what);
+
+	if (((reply.answer != FALSE) && (reply.answer != TRUE)) || ((reply.queried != FALSE) && (reply.queried != TRUE)) || (reply.queried && !ground_record_valid (&reply)))
+	{
+		debug_fatal ("host terrain: [terrain-provider:ground.answer] the host's %s answer is malformed", what);
+	}
+
+	// an answer that read no terrain leaves the record exactly as it was, as the original's short circuits did
+	if (reply.queried)
+	{
+		ground_record_commit (&reply);
+	}
+
+	return reply.answer;
+}
+
+int campaign_terrain_ground_above (const vec3d *position)
+{
+	return ground_predicate (CAMPAIGN_TERRAIN_GROUND_ABOVE, position, "ground above");
+}
+
+int campaign_terrain_ground_below (const vec3d *position)
+{
+	return ground_predicate (CAMPAIGN_TERRAIN_GROUND_BELOW, position, "ground below");
+}
+
+terrain_classes campaign_terrain_ground_impact (vec3d *above_ground, vec3d *below_ground, vec3d *ground_impact_point)
+{
+	campaign_terrain_request
+		request;
+
+	campaign_terrain_reply
+		reply;
+
+	ASSERT (above_ground);
+
+	ASSERT (below_ground);
+
+	ASSERT (ground_impact_point);
+
+	// the endpoints cross by value, so the original's reads of one through the other cannot be reproduced: the callers pass distinct endpoints (the impact may alias the
+	// below endpoint, which is a write)
+	if (above_ground == below_ground)
+	{
+		debug_fatal ("host terrain: the ground impact endpoints are one buffer");
+	}
+
+	ground_request (&request, CAMPAIGN_TERRAIN_GROUND_IMPACT);
+
+	request.x = above_ground->x;
+	request.y = above_ground->y;
+	request.z = above_ground->z;
+	request.below[0] = below_ground->x;
+	request.below[1] = below_ground->y;
+	request.below[2] = below_ground->z;
+
+	ask (&request, &reply, "ground impact");
+
+	if (!all_finite (reply.above, 3) || !all_finite (reply.below, 3) || !all_finite (reply.impact, 3) || !ground_record_valid (&reply))
+	{
+		debug_fatal ("host terrain: [terrain-provider:ground.answer] the host's ground impact answer is malformed");
+	}
+
+	// the writes, in the original's order: the corrected endpoints, the record, then the impact point last (it may be the below endpoint's buffer)
+	above_ground->x = reply.above[0];
+	above_ground->y = reply.above[1];
+	above_ground->z = reply.above[2];
+
+	below_ground->x = reply.below[0];
+	below_ground->y = reply.below[1];
+	below_ground->z = reply.below[2];
+
+	ground_record_commit (&reply);
+
+	ground_impact_point->x = reply.impact[0];
+	ground_impact_point->y = reply.impact[1];
+	ground_impact_point->z = reply.impact[2];
+
+	return (get_terrain_type_class (get_3d_terrain_point_data_type (NULL)));
+}
+
 #ifdef EECH_TERRAIN_FIXTURE
 
 terrain_3d_point_data *eech_terrain_system_point_data ( void )

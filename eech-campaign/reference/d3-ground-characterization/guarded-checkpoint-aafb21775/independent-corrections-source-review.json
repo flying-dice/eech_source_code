@@ -1,0 +1,212 @@
+{
+  "schema": 1,
+  "review_kind": "single focused combined changed-source correctness/clean-code/boundary and bounded evidence review",
+  "reviewed_head": "aafb21775f5d3523a30f148d23fbce588902025a",
+  "base": "02ccf06cc0afcd8632fb5924a2117b1ebbbdd3b1",
+  "snapshot": "R:\\d3-evidence\\ground-production-source-aafb21775",
+  "prior_report": {
+    "path": "R:\\d3-evidence\\independent-ground-production-source-review-02ccf06cc-20261031.json",
+    "sha256": "76f52b1bd8b33d15bf07d10a9c8ce8d64625b701c1b023e25bfa551fcb3ab730",
+    "disposition": "CHANGES_REQUIRED, five P2 groups; retained unchanged"
+  },
+  "frozen_clean_before": true,
+  "frozen_clean_after": true,
+  "disposition": "SOURCE_CLOSED_PENDING_VALIDATION",
+  "findings": [],
+  "previous_findings": [
+    {
+      "id": "GROUND-AUTHORITY-COHORT",
+      "source_disposition": "CORRECTED",
+      "locations": [
+        "lua/ground-authority.lua:276-339",
+        "tests/ground_authority.rs:134-375"
+      ],
+      "reason": "Births are read and frozen immediately after the launch before frames. Later births/foreign terminals are kept separate, duplicate member terminals invalidate evidence, all terminal fields are required, counters must match member rows, healthy modes require the whole cohort ended. Per-member changed results and matched configuration/selection/launch text/cohort replace the first-terminal judgement. Real-driver collaborator cases exercise these bookkeeping failures, rather than substituting a physics oracle.",
+      "runtime_limit": "Actual original-war cohort/preconditions and healthy/refused modes remain unmeasured on aafb."
+    },
+    {
+      "id": "GROUND-AUTHORITY-SINGLE-RECEIPT",
+      "source_disposition": "CORRECTED",
+      "locations": [
+        "lua/ground-authority.lua:80-104",
+        "lua/ground-authority.lua:148-157",
+        "tests/ground_authority.rs:327-357",
+        "tests/ground_authority.rs:999-1038"
+      ],
+      "reason": "The altered y is deliberately placed on a binary 1/16 grid and both old and new y are checked as exact finite f32 values; every receipt records exactness for all coordinates. The judge requires an altered exact point consumed by a cohort member and different from its predicate-only terminal. A real-driver control covers the formerly inexact +37.5 counterexample.",
+      "runtime_limit": "This is an intentionally changed diagnostic world and exact-receipt witness, not a new default physical solver/oracle; actual native shifted mode still pending."
+    },
+    {
+      "id": "GROUND-ABOVE-CALLER-FP",
+      "source_disposition": "CORRECTED",
+      "locations": [
+        "csrc/terrain_ref.c:4220-4265",
+        "csrc/terrain_ref.c:4506-4542",
+        "tests/terrain_backend.rs:867-1090"
+      ],
+      "reason": "Thin public wrappers save the x86 x87 environment and MXCSR before validation, call the unchanged renamed entry bodies, and restore both on every ordinary return. The original RZ arithmetic is unchanged. Asset-free tests seed four modes and nonzero x87/SSE status, cover query/decided/early-refusal/later-refusal paths, and independently check the calls actually answer/refuse.",
+      "runtime_limit": "Actual Linux and especially MinGW Windows execution of these new tests is pending. Tests compare control/status/MXCSR, not the tag word or exception pointers; with all sticky flags already set they do not detect new glue-added sticky flags. No new mask-failure or non-x86 execution proof."
+    },
+    {
+      "id": "GROUND-AUTHORITY-FINITE-IO",
+      "source_disposition": "CORRECTED",
+      "locations": [
+        "lua/ground-authority.lua:64-78",
+        "lua/ground-authority.lua:180-203",
+        "lua/ground-authority.lua:337-346",
+        "tests/ground_authority.rs:936-997",
+        "tests/ground_authority.rs:1043-1208"
+      ],
+      "reason": "Finite arguments, strict positive clock progress, a finite frame budget, checked writes/flush/final close, and explicit witness-failure separation prevent stall/output failures being accepted as provider refusals. The parent drains bounded pipe tails, polls child completion, and kills/waits on timeout. Real-driver stall/budget/writer controls and actual same-executable hung/failing/chatty child controls are meaningful prepared tests.",
+      "runtime_limit": "Corrected checks have not yet completed; pipe drain assumes this single host child does not leave another process holding the pipe, consistent with the stated witness scope."
+    },
+    {
+      "id": "GROUND-STRICT-LINT",
+      "source_disposition": "CORRECTED",
+      "locations": [
+        "eech-dc/src/module.rs:620-697"
+      ],
+      "reason": "Record/triple/widen/argument arrays are fixed-size and destructured; the thirteen indexed accesses and sliced helper assumptions are removed without lint suppression, new coercion, rounding change, or getter duplication. Existing parsing/markers/validation are retained.",
+      "runtime_limit": "Strict Clippy closure requires actual aafb completion0, not static inference. The original02cc101 remains retained."
+    }
+  ],
+  "new_source_assessment": {
+    "original_ground_entry_bodies_exact_after_rename": true,
+    "closed_kernel_store_ABI_reviews_reused": true,
+    "no_new_physical_solver_or_fallback": true,
+    "engine_c_unchanged_and_NUL_count": 1,
+    "no_new_source_execution_blocker_found": true
+  },
+  "source_sha256": {
+    "eech-campaign/crates/eech-dc/src/module.rs": "bebf05eb727210414b0a836b69d60708ca79014c91418268e8564f54382f33af",
+    "eech-campaign/crates/eech-world/csrc/terrain_ref.c": "45474a41b160a3b7e09ac68dd7d6c878498063f5ef92b6624511455bc751f842",
+    "eech-campaign/crates/eech-world/csrc/terrain_ref.h": "39ed5efdf0a4914512efdaac975cd162e53b5c02e9648f3f317db9acb7a52a53",
+    "eech-campaign/crates/eech-world/lua/ground-authority.lua": "a8d23cf0161a7574fc3f32a364fc407451645d92f62ffd9de9bb422628afd055",
+    "eech-campaign/crates/eech-world/tests/ground_authority.rs": "fa5ee5768420f691d6a843e0e89cd4663a640fb66534651e8967ea1a67f88cd6",
+    "eech-campaign/crates/eech-world/tests/terrain_backend.rs": "c3080059360395180cff349f3b430e8e100ecffd28f815ec895cffce8315dcc4",
+    "eech-campaign/docs/m5-ground-production-handoff.md": "68b44c6f5f69c76956f5691294a0149de852e71f6eb4a9e2b70868448a843e98",
+    "STATUS.md": "ad263b0d8e686cecf78840ebb4d4741e9bc9b6fbcfb8ee9a641c5e77948f49ee"
+  },
+  "new_corrected_check_state_at_review": [
+    {
+      "kind": "linux",
+      "record": "R:\\d3-evidence\\ground-production-aafb21775-linux-20261031-process.json",
+      "sha256": "483a3f2d8a76b51f2dbdae6bd99a8e22fc40604dc595a5a61ba64a193cc4eab2",
+      "recorded_state": "running",
+      "actual_exit": null,
+      "note": "Only an actual terminal completion can establish a check result; running process records are not pass evidence."
+    },
+    {
+      "kind": "windows",
+      "record": "R:\\d3-evidence\\ground-production-aafb21775-windows-20261031-process.json",
+      "sha256": "a8ba1a467eee714da312cf3f433fe99c2081d06d75b24c98ca4d8b809a875215",
+      "recorded_state": "running",
+      "actual_exit": null,
+      "note": "Only an actual terminal completion can establish a check result; running process records are not pass evidence."
+    }
+  ],
+  "prior_measured_source_evidence": {
+    "measured_head": "02ccf06cc0afcd8632fb5924a2117b1ebbbdd3b1",
+    "public_controller_sha256": "237658b3189f91ad145771f614f831a36803f5759ce5cb381117fcf6b98348ed",
+    "controller_actual_exit": 0,
+    "all_recorded_command_exits": 0,
+    "direct_transport": [
+      {
+        "case": "georgia",
+        "checks": 60,
+        "raw_sha256": "69bc863bc0b2ee7d38c41d12e4f62ce02cc2ed4dae27d37c6e764783db52c228",
+        "native_test_functions": 3,
+        "explicit_skips": false
+      },
+      {
+        "case": "lebanon",
+        "checks": 60,
+        "raw_sha256": "69bc863bc0b2ee7d38c41d12e4f62ce02cc2ed4dae27d37c6e764783db52c228",
+        "native_test_functions": 3,
+        "explicit_skips": false
+      }
+    ],
+    "moved_handoff": {
+      "summary_sha256": "d6b50388f143c514e5784942cbf430e3a0c04a593d50929974059c296f056b2f",
+      "healthy": true,
+      "passed": true,
+      "ground_above": 416,
+      "ground_below": 400,
+      "ground_impact": 150,
+      "scope": "Real public host/DLL query handoff, not launched-weapon authority or complete shipping"
+    },
+    "source_binding": "Actual commands name old02cc binaries; no relabel as corrected aafb. Previous finite conformance and payload identities reused from76f52 review, not re-audited unchanged."
+  },
+  "safe_publication_receipts": [
+    {
+      "name": "validation.json",
+      "private_sha256": "87265297da50f32b6524c39fff9a7029543ef2e9f354d4f125acb318d07ae0cb",
+      "git_sha256": "b20cb643c27b12f7b5c119ce464ebb23153f2cee6eaa67c117f334e1d664fd7c",
+      "transformation": "CRLF to LF only, or already identical"
+    },
+    {
+      "name": "independent-source-review.json",
+      "private_sha256": "76f52b1bd8b33d15bf07d10a9c8ce8d64625b701c1b023e25bfa551fcb3ab730",
+      "git_sha256": "76f52b1bd8b33d15bf07d10a9c8ce8d64625b701c1b023e25bfa551fcb3ab730",
+      "transformation": "CRLF to LF only, or already identical"
+    },
+    {
+      "name": "finite-conformance.json",
+      "private_sha256": "e835adc8101c0824da2aa8f4cf76abd04078016081c421305f003a93d97e5651",
+      "git_sha256": "9f329615a30bcbf502af67f9e017e87b15a0368f13e51d1a4c0e038d2c551700",
+      "transformation": "CRLF to LF only, or already identical"
+    },
+    {
+      "name": "actual-Windows-public.json",
+      "private_sha256": "237658b3189f91ad145771f614f831a36803f5759ce5cb381117fcf6b98348ed",
+      "git_sha256": "e9e57d0d447073cc7c157f3aff19fdb933f7155bffad32ae9e900b4a855477e1",
+      "transformation": "CRLF to LF only, or already identical"
+    },
+    {
+      "name": "linux-completion.json",
+      "private_sha256": "136755ebd6720595328bc4a328167830744d16e764c275a46a94d75f574e5b3a",
+      "git_sha256": "3e1ffae74e415b3ccf1eb267a69a77bd32e9e2b67798882d37e90403a02bcacb",
+      "transformation": "CRLF to LF only, or already identical"
+    },
+    {
+      "name": "Windows-original-controller-completion.json",
+      "private_sha256": "0228e75110b952f59764602f5d34b4e5deb730c375b5f1ea48ebaa3028f58a25",
+      "git_sha256": "9acacef9ffedd306545670df2976cecda9f3e4e94dc7838c8d963446ef5ca04c",
+      "transformation": "CRLF to LF only, or already identical"
+    },
+    {
+      "name": "Windows-export-only-recovery-completion.json",
+      "private_sha256": "e37321a47967c8b3aa954ec883bbae68a4c9dab80b057a062a059a6779c967ff",
+      "git_sha256": "301690d077ccb92e842fee5f32c1246e9bb76778557857a80a9d4c8dc8f3116b",
+      "transformation": "CRLF to LF only, or already identical"
+    },
+    {
+      "name": "ledger81-preservation.json",
+      "private_sha256": "6b6d4f74e2f55863d5278b423810df7decc16645cf5190232a30e636848731ee",
+      "git_sha256": "6b6d4f74e2f55863d5278b423810df7decc16645cf5190232a30e636848731ee",
+      "transformation": "CRLF to LF only, or already identical"
+    }
+  ],
+  "bounded_native_execution_permission": {
+    "verdict": "ALLOW_CONDITIONAL_ON_SUCCESSFUL_BUILDS",
+    "scope": [
+      "Actual corrected asset-free Windows caller-FP tests across all four modes and refusal paths",
+      "Directed three-root finite comparison and moved public handoff/direct provider checks on corrected source",
+      "Fresh-root bounded real launch-cohort authority and specific refusal modes; no untriggered or setup-failure acceptance"
+    ],
+    "conditions": [
+      "Verify exact corrected source/build/payload identities and actual build/test exits",
+      "Retain actual untriggered/setup/primary-error results without loosening the judge",
+      "Preserve original c119/raw recordings and accepted shipping baseline/tolerances; classify any output differences rather than normalize"
+    ],
+    "not_acceptance": "Permission to measure source-safe controls is distinct from their actual completion/pass or production acceptance."
+  },
+  "limits": [
+    "No aafb compiled/runtime/strict-lint success is inferred from pending records. Old02cc public evidence proves the old source only.",
+    "The prepared real-driver collaborators validate witness bookkeeping and failures; they provide no independent campaign physics or authority claim.",
+    "Whole shipping40/eight complete artifacts, performance/Tacview/visual checks, current CI/normal delivery, Task48 and whole-D3 acceptance remain pending.",
+    "Required remaining spatial/model/entity/hierarchy/device/environment/time/physical solver-loader ownership remains within whole D3; no active physical responsibility is deferred to D5."
+  ],
+  "review_actions": "Read-only source/Git/JSON/log/hash inspection and private report creation only. No supplied checker/controller, build/test/native/process/cache/auth/Git mutation, source edits, external writes or nested agents.",
+  "created_utc": "2026-10-31T01:10:19.489549+00:00"
+}

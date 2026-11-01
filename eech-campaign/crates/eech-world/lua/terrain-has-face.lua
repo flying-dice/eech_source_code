@@ -59,6 +59,10 @@ local function provider (request)
 	if mode == "generic" and request.op == "point" then
 		answer.hint = nil
 		answer.stored = nil
+	elseif mode == "generic" and answer.record then
+		-- the ground operations (EEDCS-48) report the same record: the generic host keeps no hint and says nothing about a stored face there either
+		answer.record.hint = nil
+		answer.record.stored = nil
 	end
 	return answer
 end

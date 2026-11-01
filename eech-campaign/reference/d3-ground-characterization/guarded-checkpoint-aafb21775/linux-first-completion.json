@@ -1,0 +1,18 @@
+{
+  "source": "aafb21775f5d3523a30f148d23fbce588902025a",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-ground-production-aafb21775-linux-20261031.sh"
+  ],
+  "pid": 10052,
+  "controller_pid": 4348,
+  "state": "terminal",
+  "started_utc": "2026-10-31T01:07:18.073799+00:00",
+  "scope": "Affected ground package tests/lint; no retail execution",
+  "actual_exit": 101,
+  "completed_utc": "2026-10-31T01:11:10.655423+00:00"
+}

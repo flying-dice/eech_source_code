@@ -136,6 +136,143 @@ pub struct SweepSample {
     pub fast: f32,
 }
 
+/// The campaign's world-map area, by value (`host_ground_world`): campaign geography the below-ground test compares against. It is supplied by the caller and not assumed
+/// equal to the terrain's extents.
+#[repr(C)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct GroundWorld {
+    pub min_x: f32,
+    pub min_z: f32,
+    pub max_x: f32,
+    pub max_z: f32,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+struct RawGroundBelow {
+    below: i32,
+    queried: i32,
+    record: RawAnswer,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+struct RawGroundAbove {
+    above: i32,
+    queried: i32,
+    record: RawAnswer,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, Default)]
+struct RawGroundImpact {
+    above: [f32; 3],
+    below: [f32; 3],
+    impact: [f32; 3],
+    kind: i32,
+    own_assert_failures: i32,
+    record: RawAnswer,
+}
+
+/// `host_ground_point_sample` (csrc/terrain_ref.h): one emitted point case of the ground conformance probe. Words are bit patterns.
+#[repr(C)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct GroundPointSample {
+    pub n: i32,
+    pub tag: i32,
+    pub x: u32,
+    pub y: u32,
+    pub z: u32,
+    pub inside: i32,
+    pub above: i32,
+    pub above_queried: i32,
+    pub below: i32,
+    pub below_queried: i32,
+    pub above_elevation: u32,
+    pub below_elevation: u32,
+    pub above_type: i32,
+    pub below_type: i32,
+}
+
+/// `host_ground_impact_sample`: one emitted impact case of the ground conformance probe. Words are bit patterns.
+#[repr(C)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct GroundImpactSample {
+    pub n: i32,
+    pub kind: i32,
+    pub a0: [u32; 3],
+    pub b0: [u32; 3],
+    pub class_alias: i32,
+    pub pa: [u32; 3],
+    pub qa: [u32; 3],
+    pub class_separate: i32,
+    pub pb: [u32; 3],
+    pub qb: [u32; 3],
+    pub rb: [u32; 3],
+    pub alias_equal: i32,
+    pub warm_same: i32,
+    pub queried: i32,
+    pub elevation: u32,
+    pub type_word: i32,
+}
+
+/// The sample capacities of the ground probe (2 per point tag x 6 tags, 4 per impact type x 8 types).
+pub const GROUND_POINT_SAMPLES: usize = 12;
+pub const GROUND_IMPACT_SAMPLES: usize = 32;
+
+/// `host_ground_sweep` (csrc/terrain_ref.h): the totals of the ground conformance probe. The counter names are the fixture's report keys, with its "record touched" facts
+/// reported as `queried` (the call read the terrain).
+#[repr(C)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct GroundSweep {
+    pub physical_combined: u64,
+    pub physical_above: u64,
+    pub physical_below: u64,
+    pub physical_impact: u64,
+    pub points: i32,
+    pub in_map: i32,
+    pub off_map: i32,
+    pub input_mutated: i32,
+    pub above_cases: i32,
+    pub above_true: i32,
+    pub above_queried: i32,
+    pub above_true_unqueried: i32,
+    pub above_warm_same: i32,
+    pub below_cases: i32,
+    pub below_true: i32,
+    pub below_queried: i32,
+    pub below_true_unqueried: i32,
+    pub below_warm_same: i32,
+    pub below_off_map_true: i32,
+    pub below_off_map_queried: i32,
+    pub in_map_both: i32,
+    pub complement: i32,
+    pub not_complement: i32,
+    pub both_true: i32,
+    pub both_false: i32,
+    pub impacts: i32,
+    pub a_corrected: i32,
+    pub b_corrected: i32,
+    pub xz_changed: i32,
+    pub alias_equal: i32,
+    pub alias_unequal: i32,
+    pub warm_same: i32,
+    pub warm_different: i32,
+    pub impact_queried: i32,
+    pub impact_unqueried: i32,
+    pub impact_equals_corrected_below: i32,
+    pub class_count: [i32; 4],
+    pub class_other: i32,
+    pub by_type: [i32; 8],
+    pub original_below_endpoint_still_above: i32,
+    pub extra_above_endpoint_not_above: i32,
+    pub own_assert_failures: i32,
+    pub point_sample_count: i32,
+    pub impact_sample_count: i32,
+    pub point_samples: [GroundPointSample; GROUND_POINT_SAMPLES],
+    pub impact_samples: [GroundImpactSample; GROUND_IMPACT_SAMPLES],
+}
+
 extern "C" {
     fn host_terrain_open(
         sector: *const u8,
@@ -169,6 +306,49 @@ extern "C" {
         error: *mut c_char,
         error_size: usize,
     ) -> i32;
+    fn host_terrain_ground_above(
+        map: *const c_void,
+        world: *const GroundWorld,
+        x: f32,
+        y: f32,
+        z: f32,
+        hint: *const Hint,
+        out: *mut RawGroundAbove,
+        error: *mut c_char,
+        error_size: usize,
+    ) -> i32;
+    fn host_terrain_ground_below(
+        map: *const c_void,
+        world: *const GroundWorld,
+        x: f32,
+        y: f32,
+        z: f32,
+        hint: *const Hint,
+        out: *mut RawGroundBelow,
+        error: *mut c_char,
+        error_size: usize,
+    ) -> i32;
+    fn host_terrain_ground_impact(
+        map: *const c_void,
+        world: *const GroundWorld,
+        above: *const f32,
+        below: *const f32,
+        hint: *const Hint,
+        out: *mut RawGroundImpact,
+        error: *mut c_char,
+        error_size: usize,
+    ) -> i32;
+    fn host_terrain_ground_conformance(
+        map: *const c_void,
+        seed: u32,
+        points: i32,
+        impacts: i32,
+        class_of_type: *const i32,
+        class_count: usize,
+        out: *mut GroundSweep,
+        error: *mut c_char,
+        error_size: usize,
+    ) -> i32;
 }
 
 /// One point answer, with what the query did (for the conformance record; a provider for another world needs none of it).
@@ -188,6 +368,54 @@ pub struct Answer {
     pub clamped: bool,
     pub cuba: bool,
     pub nan_position: bool,
+}
+
+/// What `point_above_ground` answers (csrc/terrain_ref.c `host_terrain_ground_above`); `queried` and `record` are as for `GroundBelow`.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct GroundAbove {
+    pub above: bool,
+    pub queried: bool,
+    pub record: Option<Answer>,
+}
+
+/// What `point_below_ground` answers (csrc/terrain_ref.c `host_terrain_ground_below`).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct GroundBelow {
+    pub below: bool,
+    /// the answer read the terrain. When false the caller's record must be left exactly as it is and `record` is `None`; when true `record` is the complete record the last read left
+    /// (values, `stored` and the optional hint).
+    pub queried: bool,
+    pub record: Option<Answer>,
+}
+
+/// What `get_ground_impact_point` computes (csrc/terrain_ref.c `host_terrain_ground_impact`): the corrected endpoints, the impact point, the surface type the last query left
+/// (the campaign maps it to a terrain class) and the record the sequence left. The caller composes the original's aliasing of the impact with the below endpoint from these.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct GroundImpact {
+    pub above: [f32; 3],
+    pub below: [f32; 3],
+    pub impact: [f32; 3],
+    pub kind: i32,
+    /// how many of the original function's ASSERT conditions were false (inert in the characterised build: counted, never fatal)
+    pub own_assert_failures: i32,
+    pub record: Answer,
+}
+
+fn answer_of(raw: &RawAnswer) -> Answer {
+    Answer {
+        elevation: raw.elevation,
+        last_elevation: raw.last_elevation,
+        normal: raw.normal,
+        kind: raw.kind,
+        hint: (raw.has_hint != 0).then_some(raw.hint),
+        stored: raw.stored != 0,
+        fast_attempted: raw.fast_attempted != 0,
+        fast_hit: raw.fast_hit != 0,
+        found: raw.found != 0,
+        clamped: raw.clamped != 0,
+        cuba: raw.cuba != 0,
+        nan_position: raw.nan_position != 0,
+    }
 }
 
 /// A loaded map. The kernel keeps its own copy of the sector geometry; the fast grid it reads in place, so that buffer is owned here.
@@ -445,6 +673,133 @@ impl Terrain {
         Ok((report, samples))
     }
 
+    /// `point_above_ground` over this map: the sector maximum first and, when it does not decide, the elevation, exactly as `ground_below` reads them (the same helper). `world` is
+    /// accepted and validated like the other ground operations' (the campaign supplies it with every ground question) but this predicate does not compare against it. A decided
+    /// answer reads no terrain (`queried` false, the hint not looked at). Refused: as `ground_below`.
+    pub fn ground_above(&self, world: &GroundWorld, x: f32, y: f32, z: f32, hint: Option<&Hint>) -> Result<GroundAbove, String> {
+        let mut raw = RawGroundAbove::default();
+        let mut error = [0 as c_char; 256];
+        let _guard = solver_lock();
+        // SAFETY: as `ground_below`.
+        let status = unsafe {
+            host_terrain_ground_above(
+                self.map,
+                world,
+                x,
+                y,
+                z,
+                hint.map_or(std::ptr::null(), |h| h as *const Hint),
+                &mut raw,
+                error.as_mut_ptr(),
+                error.len(),
+            )
+        };
+        if status != 0 {
+            return Err(message(&error));
+        }
+        Ok(GroundAbove {
+            above: raw.above != 0,
+            queried: raw.queried != 0,
+            record: (raw.queried != 0).then(|| answer_of(&raw.record)),
+        })
+    }
+
+    /// `point_below_ground` over this map (G2 host side; the campaign DLL asks for it through the provider's `ground_below` operation). `world` is the campaign's world-map area and `hint` the one the caller's record
+    /// carries (None for a cleared record); both are inputs, never assumed. A point outside the world area is below ground without any terrain read (`queried` false, `hint` not
+    /// looked at); otherwise the sector maximum and, when it does not decide, the elevation are read as the original does. Refused: a coordinate that is not finite, a read off the
+    /// terrain (the original stops the engine there), and a hint the map did not issue when the terrain is first read.
+    pub fn ground_below(&self, world: &GroundWorld, x: f32, y: f32, z: f32, hint: Option<&Hint>) -> Result<GroundBelow, String> {
+        let mut raw = RawGroundBelow::default();
+        let mut error = [0 as c_char; 256];
+        let _guard = solver_lock();
+        // SAFETY: the map is live; `world` and the hint, when given, are valid pointers for the call (the kernel validates the hint's contents when it is used); the out pointers are
+        // valid; the solver's process-global statics are used only under the solver lock.
+        let status = unsafe {
+            host_terrain_ground_below(
+                self.map,
+                world,
+                x,
+                y,
+                z,
+                hint.map_or(std::ptr::null(), |h| h as *const Hint),
+                &mut raw,
+                error.as_mut_ptr(),
+                error.len(),
+            )
+        };
+        if status != 0 {
+            return Err(message(&error));
+        }
+        Ok(GroundBelow {
+            below: raw.below != 0,
+            queried: raw.queried != 0,
+            record: (raw.queried != 0).then(|| answer_of(&raw.record)),
+        })
+    }
+
+    /// `get_ground_impact_point` over this map (G2 host side; the provider's `ground_impact` operation). The endpoints are the original's inputs (above and below the ground); the answer carries both after the
+    /// original's correction, the impact point, the surface type the last query left and the record. See `ground_below` for the inputs and the refusals.
+    pub fn ground_impact(&self, world: &GroundWorld, above: [f32; 3], below: [f32; 3], hint: Option<&Hint>) -> Result<GroundImpact, String> {
+        let mut raw = RawGroundImpact::default();
+        let mut error = [0 as c_char; 256];
+        let _guard = solver_lock();
+        // SAFETY: as `ground_below`; the endpoint arrays are valid for three floats each.
+        let status = unsafe {
+            host_terrain_ground_impact(
+                self.map,
+                world,
+                above.as_ptr(),
+                below.as_ptr(),
+                hint.map_or(std::ptr::null(), |h| h as *const Hint),
+                &mut raw,
+                error.as_mut_ptr(),
+                error.len(),
+            )
+        };
+        if status != 0 {
+            return Err(message(&error));
+        }
+        Ok(GroundImpact {
+            above: raw.above,
+            below: raw.below,
+            impact: raw.impact,
+            kind: raw.kind,
+            own_assert_failures: raw.own_assert_failures,
+            record: answer_of(&raw.record),
+        })
+    }
+
+    /// CONFORMANCE ONLY: the ground probe of `eech_ground_fixture.c` (the one the original queries were characterised with) driven against `ground_below` and `ground_impact`.
+    /// `points` and `impacts` are 0..=100000 and not both 0; `class_of_type` is the campaign's terrain-type to class table (`TERRAIN_TYPE_LAST` entries, each 0..=3), which the
+    /// caller supplies because the vocabulary is the campaign's. See `host_terrain_ground_conformance`.
+    pub fn ground_conformance(&self, seed: u32, points: i32, impacts: i32, class_of_type: &[i32]) -> Result<GroundSweep, String> {
+        if !(0..=100_000).contains(&points) || !(0..=100_000).contains(&impacts) || points + impacts == 0 {
+            return Err(format!("terrain ground sweep: points {points} or impacts {impacts} is out of range"));
+        }
+        let mut report = GroundSweep::default();
+        let mut error = [0 as c_char; 256];
+        let _guard = solver_lock();
+        // SAFETY: the map is live; the class table is valid for its length, which the kernel checks; `report` is a valid out pointer of the layout the kernel writes; the solver's
+        // process-global statics are used only under the solver lock, held across the whole sweep.
+        let status = unsafe {
+            host_terrain_ground_conformance(
+                self.map,
+                seed,
+                points,
+                impacts,
+                class_of_type.as_ptr(),
+                class_of_type.len(),
+                &mut report,
+                error.as_mut_ptr(),
+                error.len(),
+            )
+        };
+        if status != 0 {
+            return Err(message(&error));
+        }
+        Ok(report)
+    }
+
     /// The fast grid's elevation (terrsel.c). An error when the map has no grid or the position cannot index it.
     pub fn fast_elevation(&self, x: f32, z: f32) -> Result<f32, String> {
         let mut value = 0.0f32;
@@ -642,6 +997,93 @@ fn seasonal_provider(lua: &Lua, dir: PathBuf, asserted: Option<bool>) -> LuaResu
     })
 }
 
+// ---- the ground operations of the provider (EEDCS-48, D3 G2; the campaign DLL sends them: mb_hostterrain.c, bridged by eech-dc GROUND_BRIDGE) ----
+//
+//   { op = "ground_above",  world = { min_x, min_z, max_x, max_z }, x, y, z, hint? }
+//   { op = "ground_below",  world = { min_x, min_z, max_x, max_z }, x, y, z, hint? }
+//   { op = "ground_impact", world = { min_x, min_z, max_x, max_z }, above = { x, y, z }, below = { x, y, z }, hint? }
+//
+// `world` is the campaign's world-map area: geography DATA the campaign supplies; the host performs the physical off-map predicate with it and never assumes it equals
+// the terrain's extents. Every number is read with `coordinate` (a Lua number only, an exact single, the exact bits Lua holds, one field lookup). The calculations are the
+// reviewed `Terrain::ground_below` and `Terrain::ground_impact`; nothing here computes a ground predicate. The hint is parsed here (host-private shape) and its tag is
+// validated by the kernel when the terrain is first READ, so a decided-without-a-read answer never looks at it.
+//
+// Replies, by value:
+//   ground_above:  { above = bool, queried = bool, record = nil | { last_elevation, normal = { nx, ny, nz }, type, stored, hint? } }
+//   ground_below:  { below = bool, queried = bool, record = nil | { last_elevation, normal = { nx, ny, nz }, type, stored, hint? } }
+//   ground_impact: { above = { x, y, z }, below = { x, y, z }, impact = { x, y, z }, type, record = { last_elevation, normal = { nx, ny, nz }, type, stored, hint? } }
+// `record` is absent exactly when `queried` is false (the caller then keeps its whole record); when present it is the complete last record: `stored` is independent of `hint`,
+// and a host that keeps no hint simply omits it. `type` is an EECH terrain type id; the type -> class mapping is the campaign's. The diagnostic assertion counters of the
+// kernel are not part of the reply.
+
+/// A request field that must be a table (the nested shapes of the ground operations).
+fn request_table(request: &LuaTable, field: &str) -> LuaResult<LuaTable> {
+    match request.get::<LuaValue>(field)? {
+        LuaValue::Table(table) => Ok(table),
+        other => Err(LuaError::runtime(format!("host.terrain: {field} must be a table, got {}", other.type_name()))),
+    }
+}
+
+/// `coordinate` of `path.key`: the same strict read, its refusal naming where it was.
+fn nested_coordinate(reader: &CoordinateReader, table: &LuaTable, path: &str, key: &str) -> LuaResult<f32> {
+    coordinate(reader, table, key).map_err(|error| match error {
+        LuaError::RuntimeError(message) => LuaError::runtime(format!("host.terrain: {path}.{key}: {}", message.trim_start_matches("host.terrain: "))),
+        other => other,
+    })
+}
+
+fn request_world(reader: &CoordinateReader, request: &LuaTable) -> LuaResult<GroundWorld> {
+    let world = request_table(request, "world")?;
+    Ok(GroundWorld {
+        min_x: nested_coordinate(reader, &world, "world", "min_x")?,
+        min_z: nested_coordinate(reader, &world, "world", "min_z")?,
+        max_x: nested_coordinate(reader, &world, "world", "max_x")?,
+        max_z: nested_coordinate(reader, &world, "world", "max_z")?,
+    })
+}
+
+fn request_position(reader: &CoordinateReader, request: &LuaTable, field: &str) -> LuaResult<[f32; 3]> {
+    let position = request_table(request, field)?;
+    Ok([
+        nested_coordinate(reader, &position, field, "x")?,
+        nested_coordinate(reader, &position, field, "y")?,
+        nested_coordinate(reader, &position, field, "z")?,
+    ])
+}
+
+/// The record's hint, nil or the host-private string form: its shape is parsed here, its tag is not (the kernel checks that when it reads the terrain).
+fn request_hint(request: &LuaTable) -> LuaResult<Option<Hint>> {
+    match request.get::<LuaValue>("hint")? {
+        LuaValue::Nil => Ok(None),
+        LuaValue::String(text) => Ok(Some(decode_hint(&text.to_str()?).map_err(LuaError::runtime)?)),
+        other => Err(LuaError::runtime(format!(
+            "host.terrain: hint must be a string or nil, got {}",
+            other.type_name()
+        ))),
+    }
+}
+
+fn position_table(lua: &Lua, position: &[f32; 3]) -> LuaResult<LuaTable> {
+    let table = lua.create_table()?;
+    table.set("x", f64::from(position[0]))?;
+    table.set("y", f64::from(position[1]))?;
+    table.set("z", f64::from(position[2]))?;
+    Ok(table)
+}
+
+/// The complete record a query left, by value: values, `stored` (independent of the hint) and the optional hint.
+fn record_table(lua: &Lua, record: &Answer) -> LuaResult<LuaTable> {
+    let table = lua.create_table()?;
+    table.set("last_elevation", f64::from(record.last_elevation))?;
+    table.set("normal", record.normal.iter().map(|c| f64::from(*c)).collect::<Vec<f64>>())?;
+    table.set("type", record.kind)?;
+    table.set("stored", record.stored)?;
+    if let Some(hint) = record.hint {
+        table.set("hint", encode_hint(&hint))?;
+    }
+    Ok(table)
+}
+
 fn respond(lua: &Lua, terrain: &Terrain, request: &LuaTable) -> LuaResult<LuaTable> {
     {
         let op: String = match request.get::<LuaValue>("op")? {
@@ -694,6 +1136,63 @@ fn respond(lua: &Lua, terrain: &Terrain, request: &LuaTable) -> LuaResult<LuaTab
                 let elevation = terrain.fast_elevation(x, z).map_err(|e| LuaError::runtime(format!("host.terrain: {e}")))?;
                 let table = lua.create_table()?;
                 table.set("elevation", f64::from(elevation))?;
+                Ok(table)
+            }
+            "ground_above" => {
+                let reader = coordinate_reader(lua)?;
+                let world = request_world(&reader, request)?;
+                let (x, y, z) = (
+                    coordinate(&reader, request, "x")?,
+                    coordinate(&reader, request, "y")?,
+                    coordinate(&reader, request, "z")?,
+                );
+                let hint = request_hint(request)?;
+                let answer = terrain
+                    .ground_above(&world, x, y, z, hint.as_ref())
+                    .map_err(|e| LuaError::runtime(format!("host.terrain: {e}")))?;
+                let table = lua.create_table()?;
+                table.set("above", answer.above)?;
+                table.set("queried", answer.queried)?;
+                if let Some(record) = &answer.record {
+                    table.set("record", record_table(lua, record)?)?;
+                }
+                Ok(table)
+            }
+            "ground_below" => {
+                let reader = coordinate_reader(lua)?;
+                let world = request_world(&reader, request)?;
+                let (x, y, z) = (
+                    coordinate(&reader, request, "x")?,
+                    coordinate(&reader, request, "y")?,
+                    coordinate(&reader, request, "z")?,
+                );
+                let hint = request_hint(request)?;
+                let answer = terrain
+                    .ground_below(&world, x, y, z, hint.as_ref())
+                    .map_err(|e| LuaError::runtime(format!("host.terrain: {e}")))?;
+                let table = lua.create_table()?;
+                table.set("below", answer.below)?;
+                table.set("queried", answer.queried)?;
+                if let Some(record) = &answer.record {
+                    table.set("record", record_table(lua, record)?)?;
+                }
+                Ok(table)
+            }
+            "ground_impact" => {
+                let reader = coordinate_reader(lua)?;
+                let world = request_world(&reader, request)?;
+                let above = request_position(&reader, request, "above")?;
+                let below = request_position(&reader, request, "below")?;
+                let hint = request_hint(request)?;
+                let answer = terrain
+                    .ground_impact(&world, above, below, hint.as_ref())
+                    .map_err(|e| LuaError::runtime(format!("host.terrain: {e}")))?;
+                let table = lua.create_table()?;
+                table.set("above", position_table(lua, &answer.above)?)?;
+                table.set("below", position_table(lua, &answer.below)?)?;
+                table.set("impact", position_table(lua, &answer.impact)?)?;
+                table.set("type", answer.kind)?;
+                table.set("record", record_table(lua, &answer.record)?)?;
                 Ok(table)
             }
             other => Err(LuaError::runtime(format!("host.terrain: unknown op {other:?}"))),
