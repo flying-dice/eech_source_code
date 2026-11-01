@@ -996,3 +996,88 @@ fn the_driver_override_falls_back_only_when_absent_and_fails_for_every_unreadabl
         assert!(refused(std::ffi::OsString::from_wide(&[0xd800, 0x78])), "a value that is not Unicode");
     }
 }
+
+/// One public Engine.boot in the original runs the entity-functions initialisation, and so the probe's defaults census, more than once (the game and its init screen, then the explicit entity system reinitialisation): the first
+/// report after a completed boot shows a count of 2 there. The driver anchors whatever count that first report has (at least one) and requires it unchanged afterwards; 2 is an example of the shape, not a rule.
+#[test]
+fn the_defaults_census_count_is_observed_after_boot_anchored_and_required_unchanged_afterwards() {
+    let natural_args: [(&str, &str); 2] = [("seconds", "2"), ("frame_ms", "1000")];
+    let natural = |extra: &str| format!("{{ pages = {}{extra} }}", pages(&[(2, &call(0, 0, 6, 12, 1))]));
+    let fixture = |extra: &str| fixture_scenario(&run_case(), &run_calls(1), extra);
+    let overload = |extra: &str| fixture_scenario(&overload_case(6, "11,12,32"), &run_calls(0), extra);
+
+    // coherent positives: the count of the single completed boot, 1 or 2 (or another), in every mode, with the census still showing arbitrary later non-default types
+    for count in [1, 2, 3] {
+        let report = format!(", report = {{ defaults_taken = {count} }}");
+        let census = format!("{report}, census_at = {{ [1] = {{ 12, 32 }}, [2] = {{ 12, 32 }} }}");
+        for (what, scenario, args) in [
+            ("natural", natural(&census), natural_args.to_vec()),
+            ("fixture", fixture(&report), vec![("mode", "fixture")]),
+            ("overload", overload(&report), vec![("mode", "overload")]),
+        ] {
+            let driven = drive(&scenario, &args);
+            driven
+                .result
+                .clone()
+                .unwrap_or_else(|e| panic!("{what}: a coherent boot with the defaults census taken {count} times was rejected: {e}"));
+            let raw = driven.play_raw.expect("the raw report is kept");
+            assert!(
+                raw.contains(&format!("defaults_taken={count} ")),
+                "{what}: the count is kept as the engine wrote it, never normalised"
+            );
+        }
+    }
+
+    // the count after boot must be at least one, and the anchored count must not change afterwards: a later reinitialisation is not accepted
+    let refused: [(&str, String, Vec<(&str, &str)>, &str); 7] = [
+        (
+            "a first report with no census",
+            natural(", report = { defaults_taken = 0 }"),
+            natural_args.to_vec(),
+            "taken 0 times where at least once is required",
+        ),
+        (
+            "an increase after the anchor in the next report",
+            natural(", report = { defaults_taken = 2 }, report_at = { [2] = { defaults_taken = 3 } }"),
+            natural_args.to_vec(),
+            "changed from 2 (right after boot) to 3",
+        ),
+        (
+            "an increase after the anchor of 1",
+            natural(", report_at = { [2] = { defaults_taken = 2 } }"),
+            natural_args.to_vec(),
+            "changed from 1 (right after boot) to 2",
+        ),
+        (
+            "a decrease after the anchor",
+            natural(", report = { defaults_taken = 2 }, report_at = { [2] = { defaults_taken = 1 } }"),
+            natural_args.to_vec(),
+            "changed from 2 (right after boot) to 1",
+        ),
+        (
+            "a census that vanished after the anchor",
+            natural(", report = { defaults_taken = 2 }, report_at = { [2] = { defaults_taken = 0 } }"),
+            natural_args.to_vec(),
+            "taken 0 times where at least once is required",
+        ),
+        (
+            "an increase across the fixture",
+            fixture(", report = { defaults_taken = 2 }, report_at = { [3] = { defaults_taken = 3 } }"),
+            vec![("mode", "fixture")],
+            "changed from 2 (right after boot) to 3 after the fixture",
+        ),
+        (
+            "an increase across the overload",
+            overload(", report = { defaults_taken = 2 }, report_at = { [3] = { defaults_taken = 3 } }"),
+            vec![("mode", "overload")],
+            "changed from 2 (right after boot) to 3 after the fixture",
+        ),
+    ];
+    for (what, scenario, args, reason) in refused {
+        let driven = drive(&scenario, &args);
+        let error = error_of(&driven);
+        assert!(error.contains("env-play-resumed-parent:") && error.contains(reason), "{what}: {error}");
+        assert!(of(&driven, "result").is_empty(), "{what}: a refused capture is never a result");
+        assert!(driven.play_raw.is_some(), "{what}: the raw text is kept even when it is refused");
+    }
+}

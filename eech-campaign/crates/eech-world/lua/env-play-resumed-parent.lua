@@ -21,7 +21,7 @@
 --
 -- THE JOINS (and the digests: the fixture's FNV digests of the before and resumed states are recomputed from the printed child words and the target's counts and must equal the printed ones; the integer fields are held to the
 -- int32_t and uint32_t domains of the C fields they come from). The serializers and the call flow of the C probe and fixture are the protocol; the driver computes no range and forces no pause or resume result. It requires the plan, end, mode, case, refusal and counter
--- values to be the ones of the mode; the probe's capacity, table size and defaults census to be fixed and the counters to move only forward, the defaults census to be taken with EVERY entry at the default and all type
+-- values to be the ones of the mode; the probe's capacity, table size and defaults census to be fixed (the number of times the census was taken is observed in the first report after boot, at least one, and then unchanged) and the counters to move only forward, the defaults census to be taken with EVERY entry at the default and all type
 -- lists to be unique, ascending and in range; natural drains to carry only phase 0 and the fixture's own drain only phase 1; exactly the two named target dispositions, and for each present target exactly the three
 -- declared, distinct positions in order, joined to the target's kind, entity, type and sub-type, with the children's state parsed, counted and bounded; and, in the overload, EVERY recorded row (contiguous ordinals, count
 -- equal to the overload row and to the controlled calls, type and range word equal to the probe's) and the installed, inside-census and restoration bookkeeping.
@@ -249,7 +249,7 @@ local FENV_ROUND = { [0] = true, [1024] = true, [2048] = true, [3072] = true }
 local POSITIONS = { "coincident", "middle", "outside" }
 local KINDS = { "fixed_wing", "helicopter" }
 
--- the probe's report: the table's dimensions, the capacity and the defaults census are fixed for the process; the counters only move forward; the defaults census is taken right after the loop that set EVERY entry to the
+-- the probe's report: the table's dimensions, the capacity and the defaults census (including how many times it was taken, as observed right after boot) are fixed after boot; the counters only move forward; the defaults census is taken right after the loop that set EVERY entry to the
 -- default, so it finds none that differs (a later non-default entry is the census's to show, not the defaults')
 local first_report, last_report
 local function report (when)
@@ -275,11 +275,15 @@ local function report (when)
 	for _, key in ipairs ({ "dropped", "bad_points", "defaults_over" }) do
 		if m [key] ~= 0 then hard ("the play probe's " .. key .. " is " .. m [key] .. " " .. when .. ": the capture is incomplete: " .. line) end
 	end
-	if m.defaults_taken ~= 1 then hard ("the dispatch table's defaults census was taken " .. m.defaults_taken .. " times where once is required (a probe armed after the defaults were set, or a second initialisation): " .. line) end
+	-- The census is taken once per initialisation of the entity functions; ONE public Engine.boot runs that initialisation more than once in the original (the game and its init screen, then the explicit entity system
+	-- reinitialisation), so the count after a completed boot is whatever that boot did (observed, never assumed) and is not a claim about a second public boot. It must be at least one (zero is a probe armed after the defaults
+	-- were set, or no census) and, once the first report after boot has anchored it, it must not change: a later change is a further initialisation (a reinitialisation after boot), which this driver does not accept.
+	if m.defaults_taken < 1 then hard ("the dispatch table's defaults census was taken " .. m.defaults_taken .. " times where at least once is required (a probe armed after the defaults were set, or no census): " .. line) end
 	if m.defaults_nondefault ~= 0 or #m.defaults_types ~= 0 then hard ("the defaults census finds " .. m.defaults_nondefault .. " non-default entries right after the loop that set every entry to the default: " .. line) end
 	if m.drained > m.calls_total or m.pending ~= m.calls_total - m.drained or m.pending > m.capacity then hard ("the play probe's counters are not coherent (" .. m.calls_total .. " total, " .. m.drained .. " drained, " .. m.pending .. " pending, capacity " .. m.capacity .. "): " .. line) end
 	if first_report then
 		if m.capacity ~= first_report.capacity or m.defaults_entries ~= first_report.defaults_entries then hard ("the play probe's capacity or table size changed between reports: " .. line) end
+		if m.defaults_taken ~= first_report.defaults_taken then hard ("the defaults census count changed from " .. first_report.defaults_taken .. " (right after boot) to " .. m.defaults_taken .. " " .. when .. ": the dispatch table was initialised again after the boot: " .. line) end
 		if m.calls_total < last_report.calls_total or m.drained < last_report.drained then hard ("the play probe's counters went backwards " .. when .. ": " .. line) end
 	end
 	first_report = first_report or m
