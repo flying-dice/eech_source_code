@@ -27,6 +27,9 @@ const SCRIPT: &str = r#"
             install_root = 'unused', map = 'unused', campaign = 'unused',
             bind_mobile = function () end, observe_loss = function () end, supply_reached = function () end, move_vehicle = function () end,
             line_of_sight = function () end, sense = function () end, aim = function () end,
+            -- the model provider is also a required boot callback (EEDCS-50, D3), validated before the terrain's: it is supplied so the terrain cases reach the terrain
+            -- check, and it must stay uncalled, because every case is refused by the module's own validation before the native boot
+            model = function () error ('the model callback must not be called: every case is refused before the native boot', 0) end,
         }
         for key, value in pairs (overrides) do c [key] = value end
         return c

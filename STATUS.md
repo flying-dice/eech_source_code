@@ -1,3 +1,25 @@
+# D3 integration checkpoint — `1399f9b76` actual default package: one test-setup failure, corrected in source (1 November 2026): TEST-ONLY FIX, UNBUILT, UNRUN
+
+Identities. Root's actual full default Cargo run of `1399f9b76` (`--no-fail-fast`, reported): 528 passed and ONE failing target, `tests/terrain_boot_contract.rs`; the three scripted-collaborator
+repairs of `1399f9b76` now pass and all 43 `host_callbacks` tests pass. Formatting, default all-target Clippy and the combined model-host + ground + line-of-sight all-target Clippy
+each exited 0 (terminal 17:46:46.105271Z; the strict run collected 97781 items, 0 failures). Those are results for `1399f9b76` and for nothing newer. The feature-union RUNTIME suite has NOT run, and a
+conditional Cargo pass is not evidence of public native coverage: none is inferred. Separately, the Windows `e012569e0` native smoke (35 frames; 8 requested raw caller-FP entries all preserved; 2 full-1179
+input checks 0; 56 payloads unchanged) stands at its own identity, and every other executable entry and mode of `1399f9b76` is source-map-exact to it. The earlier reports and raw results are retained.
+
+The failure (independent report `independent-model-integration-source-actual-1399f9b76-20261101.json`, SHA256 `80e8808fc239a717824a939d9fae76f8ed1ef37cc76ece9c174091d9e8e8244`, finding ENV-MODEL-BOOT-FIXTURE-1, P2):
+the module validates the dialogue callbacks, then the model provider, then the terrain provider. The common config of `tests/terrain_boot_contract.rs` supplied no `model`, so the three terrain
+missing / wrong-type cases were refused by `[model-provider:missing]` before reaching the terrain boundary they exist to check. A test-setup defect of the merge; no production geometry or terrain defect is inferred.
+
+Correction (this commit; `tests/terrain_boot_contract.rs` and this file only): the common config now carries a function-valued `model` that raises if it is ever called (every case is refused by the
+module's own validation before the native boot, so it must stay uncalled). The three terrain-marker cases and both aim-precedence cases are unchanged, and the production validation order, markers,
+oracles and exceptions are untouched. Not built or run here: the Root's actual full default run is the evidence.
+
+The ORIGINAL route observer of `dc4c7c41b` (section below) is UNBUILT, UNRUN and unmeasured; an independent source review of its 18 paths is in progress and will take this two-path delta into the same pass.
+No geometry responsibility moved. Root holds two fresh verified UNUSED original-route installation roots (Georgia 1174, Lebanon 1179) for the later measurements. Required active-reader disposition of the
+raw model readers stays a precondition of any production loader detachment, with the method chosen from evidence. Next, the Root's: the actual full default run of the corrected tree plus the meaningful
+route-fixture checks, then fresh original retail measurements once the source is clear. Task51 shipping (`78fe5efdb`) remains immutable and live, full 40 / all 8 pending (latest prefix 1731, all 4 exact partial);
+untouched. Task50 and D3 remain In Progress; D4/D5 are not started; no whole-integration closure is claimed before those actual tests.
+
 # D3 behaviour-first gate: ORIGINAL route-geometry observer prepared (1 November 2026): SOURCE WRITTEN, UNBUILT, UNRUN, UNREVIEWED
 
 Base `1399f9b76` (integration `3fdbe6efd`, merge `700ac6753`, production arithmetic correction `e012569e0`, scripted collaborators `1399f9b76`); Root's default, feature-union,
