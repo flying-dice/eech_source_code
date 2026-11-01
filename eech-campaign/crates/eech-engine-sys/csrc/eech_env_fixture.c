@@ -3433,6 +3433,293 @@ static int env_snd_handle_case (int index, char *text, int capacity, int *used)
 }
 
 /*
+ * GROUP 14, indices 23 and 24: two more ORIGINAL consumers of the SAME test-owned buffer-absent handle record as cases 21 and 22 (EEDCS-51, D3; explicit only; observer build only; each PROCESS-ISOLATED, one per fresh
+ * process). TEST-ONLY, SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED. CHARACTERISATION ONLY: nothing is moved, removed or guarded, and no production, host-ABI or schema line changed. Cases 21 and 22 reach only the VALID
+ * server expiry; these two reach the callers they cannot:
+ *
+ *   23 handle_invalid_server_unlink   an INVALID effect (the REAL pause_local_entity_sound_type on the session, delay 1.5, sub type ENGINE_LOOPING1) that holds the record, the REAL server routine of the function table at
+ *                                     delta 1.0 up to three times: se_updt.c's invalid branch (the host counts the valid lifetime down and says unlink) releases the handle with the REAL destroy_system_sound_effect, clears the
+ *                                     entity's handle and unlinks it from the update list. The status request of the valid expiry (the candidate's named stop) cannot be made here; the entity is not killed unless the original did.
+ *   24 handle_direct_playback         a LOOPING effect that holds the record, the REAL dispatch (play_local_entity_sound through fn_play_local_entity_sound, the overloaded se_snd.c play_local_sound) on the real child
+ *                                     at the legitimate session range 0.0 and the main viewpoint. The preconditions are the real flags: the sound effects option (saved, set TRUE through the real macro, restored), the
+ *                                     channel mute and the UI mute (read and printed). If the path reaches the handle it calls the REAL set volume, get playing and play bodies on the record; with a NULL buffer the DirectSound
+ *                                     entry points they then call are the headless null COM stubs (eech_com_null.c), so no pointer, vtable or device is involved. The record starts with THREE markers (playing = 1, paused = 1,
+ *                                     volume = -1) so the report shows how far the path got: a volume that changed means the set volume body ran; paused cleared means the play body ran, which is entered only when playing is
+ *                                     clear, so the stale playing marker was cleared first by the get playing body (a measurement of the flags, an inference of the call order from the source). A path that returns before them
+ *                                     (a flag, a range, a muted channel, a destroy) is reported as it is, never as a pass of the missing body. The scan (scan_local_entity_sounds) and the stop (stop_local_entity_sounds) are NOT
+ *                                     reached: the scan needs get_application_sound_system_status and the stop walks get_first_system_sound_effect, whose bound is the static count only initialise_sound_system sets (zero here), and
+ *                                     the fixture does not initialise the sound system.
+ *
+ * The record, its memory ownership, the refusals before any change, the normal-return cleanup and the fatal-poison caveat are those of cases 21 and 22 (see above): the first element of the static array soundman.c owns,
+ * in use, NULL buffer, user_data NULL, filled before the calls; on the normal-return path an entity that survived is DETACHED first, a record still in use is released by the REAL destroy, the record is zeroed, the final readback is
+ * taken after the zeroing, the tracking is turned OFF and the descriptor, delta and the option flag are restored before any row. The entity cannot be put back (the process is the isolation boundary). The report is PRIVATE
+ * test evidence: it contains the probe's slot and entity words and the entity's position words and needs a safe projection before publication; no pointer is in it. Case 23 refuses BEFORE any change when the session
+ * already has a child of the paused sub type (the pause would then touch other real children); its report counts the cohort before and after.
+ */
+
+#define ENV_SND_ROUTE_FIRST 23
+#define ENV_SND_ROUTE_LAST 24
+#define ENV_ROUTE_RATE 22050
+
+struct env_route_read
+{
+	int used, playing, paused, volume, rate, looping, panning, buffer_null;
+	uint32_t pitch;
+};
+
+static void env_route_take (struct env_route_read *s, const system_sound_effect *record)
+{
+	s->used = record->used;
+	s->playing = record->playing;
+	s->paused = record->paused;
+	s->volume = record->volume;
+	s->rate = record->rate;
+	s->looping = record->looping;
+	s->panning = record->panning;
+	s->buffer_null = record->sound_buffer == NULL;
+	memcpy (&s->pitch, &record->pitch, sizeof (s->pitch));
+}
+
+/* the session's special-effect children: how many are sound effects and how many of the sub type (read only; bounded by the number of entities) */
+static void env_route_cohort (entity *parent, entity_sub_types sub, int *sounds, int *of_type)
+{
+	entity *child;
+	int visited = 0;
+
+	*sounds = 0;
+	*of_type = 0;
+
+	for (child = get_local_entity_first_child (parent, LIST_TYPE_SPECIAL_EFFECT); child; child = get_local_entity_child_succ (child, LIST_TYPE_SPECIAL_EFFECT))
+	{
+		if (++visited > number_of_entities)
+		{
+			break;
+		}
+
+		if (get_local_entity_type (child) == ENTITY_TYPE_SOUND_EFFECT)
+		{
+			(*sounds)++;
+
+			if (((sound_effect *) get_local_entity_data (child))->eff.sub_type == sub)
+			{
+				(*of_type)++;
+			}
+		}
+	}
+}
+
+static int env_snd_route_case (int index, char *text, int capacity, int *used)
+{
+	static const char *const names[ENV_SND_ROUTE_LAST - ENV_SND_ROUTE_FIRST + 1] = { "handle_invalid_server_unlink", "handle_direct_playback" };
+	sound_effect_information *lightning = &application_sound_effects[SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING];
+	sound_sample_indices one = SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING;
+	system_sound_effect *handle = &current_system_sound_effects[0];
+	struct env_snd_snap snaps[ENV_SND_SNAPS];
+	struct env_route_read before, after, final;
+	sound_effect *raw;
+	entity *a = NULL, *parent = get_session_entity ();
+	const entity_sub_types pause_sub = ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING1;
+	const int unlink_case = (index == ENV_SND_ROUTE_FIRST);
+	int saved_rate = lightning->rate, saved_size = lightning->size, retail_rate = lightning->rate, retail_size = lightning->size;
+	int saved_flag = get_global_sound_effects_enabled (), flag_restored = 1;
+	int n = 0, calls = 0, installed = 0, live_after = 0, detached = 0, destroyed_by_fixture = 0, destroyed_by_original, i, descriptor_restored, delta_restored, short_of_slots;
+	int planned = unlink_case ? 3 : 1, cohort_before = 0, children_sound = 0, children_type = 0, paused = -1, ignored = 0;
+	int ui_muted = ui_sounds_muted, channel_muted = get_sound_channel_muted (0), channel_volume = get_sound_channel_volume (0);
+	float saved_delta = system_delta_time, delta = 1.0f, delay = 1.5f, range = 0.0f;
+	uint32_t one_word = 0x3f800000u;
+	const char *refusal = NULL;
+
+	memset (&before, 0, sizeof (before));
+	memset (&after, 0, sizeof (after));
+	memset (&final, 0, sizeof (final));
+
+	ENV_EMIT ("env-sound kind=control i=%d label=%s comms=%d\n", index, names[index - ENV_SND_ROUTE_FIRST], (int) get_comms_model ());
+
+	if (env_snd_facts (text, capacity, used, "control") != 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-snd-unsupported item=playing_handle_with_a_device_buffer reason=a_playing_buffer_needs_a_sound_system_device_never_created_here_and_never_faked_only_the_buffer_absent_idle_record_is_exercised\n");
+	ENV_EMIT ("env-snd-unsupported item=handle_made_by_the_original_constructor reason=the_headless_constructor_returns_no_handle_so_the_record_is_controlled_test_state_and_not_an_original_product\n");
+
+	if (parent)
+	{
+		env_route_cohort (parent, pause_sub, &ignored, &cohort_before);
+	}
+
+	if (get_comms_model () != COMMS_MODEL_SERVER)
+	{
+		refusal = "the_process_is_not_the_server_so_the_server_routine_cannot_be_observed";
+	}
+	else if (!parent)
+	{
+		refusal = "there_is_no_session_entity_to_parent_the_sound_effect";
+	}
+	else if (sound_system_initialised)
+	{
+		refusal = "the_sound_system_is_initialised_so_the_handle_records_may_belong_to_a_device";
+	}
+	else if (current_system_sound_effects[0].used)
+	{
+		refusal = "the_test_owned_handle_record_is_already_in_use";
+	}
+	else if (!env_snd_slots_free (1))
+	{
+		refusal = "there_is_no_free_entity_slot_for_the_real_constructor";
+	}
+	else if (unlink_case && cohort_before != 0)
+	{
+		refusal = "the_session_already_has_children_of_the_paused_sub_type_so_the_pause_would_touch_other_real_children";
+	}
+
+	if (refusal)
+	{
+		ENV_EMIT ("env-sound-end i=%d refused=%s changed=0 process_isolated=required\n", index, refusal);
+
+		return 0;
+	}
+
+	/* FROM HERE the entity cannot be put back (the process is the isolation boundary); on the normal-return path the descriptor, the delta and the option flag are restored, the tracking is turned off and the
+	   record is released and zeroed before any row is written (a fatal unwind does none of that: it poisons the engine and ends the process) */
+	if (unlink_case)
+	{
+		lightning->rate = 4;
+		lightning->size = 20;
+	}
+	else
+	{
+		set_global_sound_effects_enabled (TRUE);
+	}
+
+	eech_envobs_sound_track (1);
+
+	a = env_snd_data_make (unlink_case ? pause_sub : ENTITY_SUB_TYPE_EFFECT_SOUND_MISC, unlink_case ? FALSE : TRUE, 1, &one);
+
+	if (a)
+	{
+		memset (handle, 0, sizeof (*handle));
+
+		handle->number_of_sequenced_samples = 1;
+		handle->sound_sample_sequence[0].sound_sample_index = (int) SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING;
+		handle->rate = ENV_ROUTE_RATE;
+		handle->volume = -1;
+		handle->paused = TRUE;
+		handle->playing = unlink_case ? FALSE : TRUE;
+		handle->looping = unlink_case ? FALSE : TRUE;
+		memcpy (&handle->pitch, &one_word, sizeof (handle->pitch));
+		handle->sound_buffer = NULL;
+		handle->user_data = NULL;
+		handle->used = TRUE;
+
+		raw = (sound_effect *) get_local_entity_data (a);
+		raw->sound_effect_data = handle;
+		installed = 1;
+
+		env_route_take (&before, handle);
+		env_snd_snap_take (&snaps[n++], 0, 0, a);
+
+		if (unlink_case)
+		{
+			/* the REAL pause on the session: it walks the session's children of the sub type (the cohort was empty before ours) and invalidates them; then the REAL server routine, while the entity is a live member of the update list */
+			env_route_cohort (parent, pause_sub, &children_sound, &children_type);
+			paused = pause_local_entity_sound_type (parent, pause_sub, delay);
+			env_snd_snap_take (&snaps[n++], 0, 99, a);
+			calls = env_snd_data_calls (snaps, &n, 0, a, 1, delta, planned);
+		}
+		else
+		{
+			/* the REAL dispatch on the real child at the session range 0.0 and the main viewpoint (what scan_local_entity_sounds passes for a session effect) */
+			play_local_entity_sound (a, &main_vp, range);
+			calls = 1;
+			env_snd_snap_take (&snaps[n++], 0, 1, a);
+		}
+
+		env_route_take (&after, handle);
+
+		if (get_local_entity_type (a) == ENTITY_TYPE_SOUND_EFFECT && get_local_entity_data (a) != NULL)
+		{
+			live_after = 1;
+			raw = (sound_effect *) get_local_entity_data (a);
+
+			if (raw->sound_effect_data == handle)
+			{
+				raw->sound_effect_data = NULL;
+				detached = 1;
+			}
+		}
+
+		if (handle->used)
+		{
+			destroy_system_sound_effect (handle);
+			destroyed_by_fixture = 1;
+		}
+
+		memset (handle, 0, sizeof (*handle));
+
+		/* the ACTUAL final record: read back after the zeroing (the ownership facts come from `after`, taken before the fixture touched anything) */
+		env_route_take (&final, handle);
+	}
+
+	destroyed_by_original = installed && !destroyed_by_fixture && after.used == 0;
+
+	eech_envobs_sound_track (0);
+
+	system_delta_time = saved_delta;
+	delta_restored = system_delta_time == saved_delta;
+
+	lightning->rate = saved_rate;
+	lightning->size = saved_size;
+	descriptor_restored = lightning->rate == retail_rate && lightning->size == retail_size;
+
+	set_global_sound_effects_enabled (saved_flag);
+	flag_restored = get_global_sound_effects_enabled () == saved_flag;
+	short_of_slots = a == NULL;
+
+	/* nothing below changes the process: only rows are written */
+	ENV_EMIT ("env-route-input tag=descriptor controlled=%d controlled_rate=%d controlled_size=%d retail_rate=%d retail_size=%d\n", unlink_case, unlink_case ? 4 : 0, unlink_case ? 20 : 0, retail_rate, retail_size);
+	ENV_EMIT ("env-route-input tag=flags effects_enabled_before=%d ui_muted=%d channel_muted=%d channel_volume=%d\n", saved_flag != 0, ui_muted, channel_muted, channel_volume);
+	ENV_EMIT ("env-route-input tag=record origin=test_owned_static_record built_by=fixture buffer=absent device=none user_data=none initial_used=1 initial_playing=%d initial_paused=1 initial_volume=-1 rate=%d looping=%d\n",
+		!unlink_case, ENV_ROUTE_RATE, !unlink_case);
+
+	if (unlink_case)
+	{
+		ENV_EMIT ("env-route-input tag=pause sub=%d delay_w=%08x cohort_before=%d children_sound=%d children_of_type=%d returned=%d\n", (int) pause_sub, ENV_WORD (delay), cohort_before, children_sound, children_type, paused);
+		ENV_EMIT ("env-route-input tag=deltas calls=%d delta_w=%08x\n", planned, ENV_WORD (delta));
+	}
+	else
+	{
+		ENV_EMIT ("env-route-input tag=play range_w=%08x viewpoint=main_vp\n", ENV_WORD (range));
+	}
+
+	ENV_EMIT ("env-route-record tag=before installed=%d used=%d playing=%d paused=%d volume=%d rate=%d looping=%d panning=%d buffer_null=%d pitch_w=%08x\n", installed, before.used, before.playing, before.paused,
+		before.volume, before.rate, before.looping, before.panning, before.buffer_null, (unsigned int) before.pitch);
+
+	for (i = 0; i < n; i++)
+	{
+		const struct env_snd_snap *s = &snaps[i];
+
+		ENV_EMIT ("env-sound-state ent=%d slot=%d tag=%d etype=%d data=%d sub=%d valid=%d looping=%d member=%d handle=%d life_w=%08x vlife_w=%08x\n", s->ent, s->slot, s->tag, s->etype, s->data, s->sub, s->valid, s->looping, s->member,
+			s->handle, s->life, s->vlife);
+	}
+
+	ENV_EMIT ("env-route-record tag=after installed=%d used=%d playing=%d paused=%d volume=%d rate=%d looping=%d panning=%d buffer_null=%d pitch_w=%08x\n", installed, after.used, after.playing, after.paused,
+		after.volume, after.rate, after.looping, after.panning, after.buffer_null, (unsigned int) after.pitch);
+	ENV_EMIT ("env-route-cleanup installed=%d entity_live_after=%d detached=%d destroyed_by_original=%d destroyed_by_fixture=%d used_final=%d playing_final=%d paused_final=%d volume_final=%d buffer_null_final=%d\n", installed,
+		live_after, detached, destroyed_by_original, destroyed_by_fixture, final.used, final.playing, final.paused, final.volume, final.buffer_null);
+
+	if (eech_envobs_sound_report (text, capacity, used) != 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-sound-end i=%d changed=1 installed=%d entities=%d planned_entities=1 short_of_slots=%d calls=%d skipped=%d descriptor_restored=%d delta_restored=%d flag_restored=%d handle_released=%d process_isolated=required\n", index,
+		installed, a != NULL, short_of_slots, calls, planned - calls, descriptor_restored, delta_restored, flag_restored, installed ? (final.used == 0) : 1);
+
+	return 0;
+}
+
+/*
  * GROUP 14 index 15 (TEST-ONLY, SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED): the ORIGINAL initialisation of the application sound system and of the sound sample data, as it ran during this process's boot, and the
  * descriptor reads the sound effect constructor made since. READ-ONLY and NOT process-isolated: it creates nothing, draws nothing, opens nothing, calls no initialiser again and restores nothing (there is nothing to restore).
  * Every row is an OBSERVATION of what the original code did, not an expectation of what it should do; the facts the report cannot give are printed as `env-sndinit-unsupported`.
@@ -3508,6 +3795,11 @@ static int env_snd_case (int index, char *text, int capacity, int *used)
 	if (index >= ENV_SND_HANDLE_FIRST && index <= ENV_SND_HANDLE_LAST)
 	{
 		return env_snd_handle_case (index, text, capacity, used);
+	}
+
+	if (index >= ENV_SND_ROUTE_FIRST && index <= ENV_SND_ROUTE_LAST)
+	{
+		return env_snd_route_case (index, text, capacity, used);
 	}
 
 	if (index > ENV_SND_CASES && index <= ENV_SND_DATA_LAST)
