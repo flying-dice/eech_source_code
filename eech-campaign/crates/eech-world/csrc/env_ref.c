@@ -2125,6 +2125,24 @@ typedef struct rotor_vec3d
 	float x, y, z;
 } rotor_vec3d;
 
+/*
+ * NARROWING AT THE ORIGINAL'S FLOAT ASSIGNMENTS (ENV-HOST-ROTOR-CI-1; MEASURED by the controls of the 38b200b6c CI, see docs/d3-sound-lifetime.md).  In the original every `float x = <double expression>` is a store of a float: on
+ * the Windows x64 target (SSE) the value is narrowed there, and the next statement computes from the narrowed value.  On i686 (x87, gcc `-fexcess-precision=fast`, __FLT_EVAL_METHOD__ 2) the compiler may keep the value in a
+ * register at extended precision across the assignment.  The i686 assembly of this kernel shows it: the slap level goes `fdivs` (magnitude / 15.0), `fmuls` (times the looping level), is bounded, and is subtracted from the
+ * looping level while still in the x87 register (the float is stored only AFTER the subtraction), and `rrpm / 100.0` flows through `bound` into the `+ 0.6` with no first-assignment store; the original (and the
+ * unmodified control with its collaborator calls between the statements) narrows at those assignments.
+ *
+ * ROTOR_STORE_FLOAT (DESTINATION, EXPRESSION) is that assignment made to narrow: the expression, unchanged, is stored into an addressable volatile float and the destination takes the value read back.  On an SSE target
+ * the value is already a float after the conversion, so nothing changes there.  It is used only at the assignments below whose narrowing the measured i686 reds depend on (the acceleration force, the slap level, and the
+ * first assignment of the left and right turbine pitch); no flag, global or tolerance is involved.
+ */
+#define ROTOR_STORE_FLOAT(DESTINATION, EXPRESSION) \
+	do \
+	{ \
+		volatile float rotor_stored = (EXPRESSION); \
+		(DESTINATION) = rotor_stored; \
+	} while (0)
+
 /* modules/maths/vector.c get_3d_vector_magnitude, as a separate function returning float (the original is a call into another translation unit, so its result is a stored float) */
 static float __attribute__ ((noinline)) rotor_vector_magnitude (const rotor_vec3d *vector)
 {
@@ -2243,8 +2261,8 @@ int env_ref_rotor_sound (const unsigned int *in_w, const int *in_i, unsigned int
 
 		if (have_fd)
 		{
-			acc_force = (rotor_vector_magnitude (&acceleration) / 15.0);
-			slap_amp = (acc_force) * looping_amp;
+			ROTOR_STORE_FLOAT (acc_force, (rotor_vector_magnitude (&acceleration) / 15.0));
+			ROTOR_STORE_FLOAT (slap_amp, (acc_force) * looping_amp);
 			slap_amp = bound (slap_amp, 0.0, 1.0);
 		}
 		else
@@ -2264,7 +2282,7 @@ int env_ref_rotor_sound (const unsigned int *in_w, const int *in_i, unsigned int
 
 			play_both_sounds = fabs (lrpm - rrpm) > 1.0;
 
-			left_turbine_pitch = lrpm / 100.0;
+			ROTOR_STORE_FLOAT (left_turbine_pitch, lrpm / 100.0);
 			left_turbine_pitch = bound (left_turbine_pitch, 0.0, 1.6) + 0.6;
 			left_turbine_amp = 0.2 + bound ((lrpm - 20.0) * 0.01, 0.0, 0.4);
 
@@ -2273,7 +2291,7 @@ int env_ref_rotor_sound (const unsigned int *in_w, const int *in_i, unsigned int
 
 			if (play_both_sounds)
 			{
-				right_turbine_pitch = rrpm / 100.0;
+				ROTOR_STORE_FLOAT (right_turbine_pitch, rrpm / 100.0);
 				right_turbine_pitch = bound (right_turbine_pitch, 0.0, 1.6) + 0.6;
 				right_turbine_amp = 0.2 + bound ((rrpm - 40.0) * 0.02, 0.0, 0.4);
 
@@ -2289,7 +2307,12 @@ int env_ref_rotor_sound (const unsigned int *in_w, const int *in_i, unsigned int
 
 			if (apu_rpm > 0.0)
 			{
-				apu_pitch = bound (apu_rpm * 0.02, 0.0, 2.0) + 0.2;
+				/* the offset is read at run time: with the literal, the Wine / MinGW 13 compiler folded the saturated branch `2.0 + 0.2` AND its narrowing to the float constant 0x400ccccd (a load of
+				   .LC70 in the measured assembly) under its own round-to-nearest, so the guarded round-toward-zero never applied; Linux x86_64 performs the double addition and the conversion at run
+				   time (0x400ccccc).  A volatile double of the same value and type keeps the original expression, grouping and types and makes the addition a run-time operation. */
+				volatile double rotor_apu_pitch_offset = 0.2;
+
+				apu_pitch = bound (apu_rpm * 0.02, 0.0, 2.0) + rotor_apu_pitch_offset;
 				apu_amp = bound (apu_rpm * 0.01, 0.0, 0.25);
 				resume[count] = TRUE;
 				channel[count++] = ENV_REF_ROTOR_APU;
