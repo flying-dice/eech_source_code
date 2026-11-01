@@ -1,0 +1,208 @@
+{
+  "created_utc": "2026-11-01T10:59:06.258953+00:00",
+  "source": "26489a4a597dcbae087ec1bd6a779c2fbf2929e7",
+  "physical_kernel_source": "26489a4a597dcbae087ec1bd6a779c2fbf2929e7",
+  "cases": [
+    {
+      "platform": "linux",
+      "source": "26489a4a597dcbae087ec1bd6a779c2fbf2929e7",
+      "image": "sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51",
+      "actual_controller_exit": 0,
+      "cases": [
+        {
+          "name": "rotor_sound_kernel",
+          "args": [
+            "/evidence/rotor_sound_kernel",
+            "--nocapture"
+          ],
+          "actual_exit": 0
+        },
+        {
+          "name": "env_rotor_host_witness",
+          "args": [
+            "/evidence/env_rotor_host_witness",
+            "--nocapture"
+          ],
+          "actual_exit": 0
+        }
+      ],
+      "control_kernel_tests": 3,
+      "witness_tests": 12,
+      "complete_capture": true,
+      "variant_runs": 1152,
+      "restore_readback_mismatches": 0,
+      "all288_oracle_word_action_rows_passed": true,
+      "metadata": [
+        "capture status: complete",
+        "target x86_64-unknown-linux-gnu host x86_64-unknown-linux-gnu profile release | build-time environment of the cargo invocation (NOT the World EECH_ENGINE_OPT unless it is the same variable): EECH_ENGINE_OPT 1 EECH_C_OPT (unset); the C optimisation actually used is the -O of the command below (opt-level 1); EECH_C_OPT now (unset) | rust target_arch x86_64 pointer_width 64 os linux",
+        "compiler version: exit exit status: 0: cc (Debian 12.2.0-14+deb12u1) 12.2.0 | Copyright (C) 2022 Free Software Foundation, Inc. | This is free software; see the source for copying conditions.  There is NO | warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+        "compiler machine: exit exit status: 0: x86_64-linux-gnu",
+        "full compile command (the steps archive with env_ref.c uses the same settings): cc -O1 -ffunction-sections -fdata-sections -fPIC -g -gdwarf-4 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -m64 -w -std=gnu99 -w -fno-strict-aliasing -fwrapv -ftrivial-auto-var-init=zero -c -o <object> <source>",
+        "control build facts: __VERSION__=12.2.0 __GNUC__=12.2.0 __OPTIMIZE__=1 __FAST_MATH__=0 __FLT_EVAL_METHOD__=0 __FLT_EVAL_METHOD_TS_18661_3__=0 FLT_EVAL_METHOD=0 __FP_FAST_FMA=0 __SSE_MATH__=1 __SSE2_MATH__=1 __x86_64__=1 sizeof(long double)=16",
+        "source sha256: csrc/env_ref.c=b536099bee27f136a369d0fe0ec2b987aa177d746252815e1f9e80db0c764d21; csrc/env_ref.h=f1749f2b414821f8e2056144da90249f716f1e9d0f8c2cd753d84128bdb3d46c; tests/csrc/rotor_control.c=abe4cf5d7e0288ca8f73b1f997fd5092b7e6102a9342d80a724c5845da77f0fc; tests/csrc/rotor_control.h=19a8c9d096670a024c206638b46539e87d6e0cc025d902ece59003f1aecfb993; tests/csrc/rotor_control_body.h=375ca0ebb6a0cf1171a11df6e6c31d3d393e1e11f08c6b0d5f383758b9b355f3; tests/csrc/rotor_control_stubs.c=985868aae3a02dd71d6bea0d38ae1a9d1db772449ce84f42136c404a6e11398e; build.rs=4a0303b1fbc8a9ddaf7e730da526f138be7d8f549e9767ef9a9c71b49c8b29c9",
+        "floating-point baseline captured at the start of the diagnostics: x87 cw=037f sw=0000 tw=ffff mxcsr=00001f80",
+        "observed and restored: the x87 control, status and tag words (and the environment pointers, restored but not compared) and the complete MXCSR of this thread; NOT the x87 data registers, the XMM data or other threads; nothing is inferred about the engine's startup state or about the public caller's floating-point equivalence",
+        "capture status: complete"
+      ],
+      "exported_artifacts": [
+        {
+          "name": "rotor_sound_kernel",
+          "artifact": "/target/release/deps/rotor_sound_kernel-857a90ae1734e692",
+          "export": "rotor_sound_kernel",
+          "sha256": "b602ddac91f836ad41de74ca12cf8297ebb0bb59f884e17fe3c0ed85f77defc6"
+        },
+        {
+          "name": "env_rotor_host_witness",
+          "artifact": "/target/release/deps/env_rotor_host_witness-ec916eaf2ed74252",
+          "export": "env_rotor_host_witness",
+          "sha256": "625c0cb369724b002965288a96ff5f6c4ce6df24d2b9202315cc056251c266c9"
+        }
+      ],
+      "all_artifacts": {
+        "actual-tests.json": {
+          "bytes": 421,
+          "sha256": "f8eb723602b69e6442b0e329058ded47ae35fe1f321d725ea7bb65283287fb96"
+        },
+        "artifacts.jsonl": {
+          "bytes": 44937,
+          "sha256": "e36ade69430f99fda03016362302b5da0d208f6d9fe7d6d16cadd3846be4d1c9"
+        },
+        "build-receipt.json": {
+          "bytes": 658,
+          "sha256": "521b0466ec400c027b99ce6c13e6e2fccbd930eeec440c99b834b97da52d11a9"
+        },
+        "build.log": {
+          "bytes": 231,
+          "sha256": "7c9747d689b59e604ae174f2424f376abb7dafb029999eb37b2bd84194b7dd5a"
+        },
+        "controller.json": {
+          "bytes": 2125,
+          "sha256": "462c8b4aa82c8375553a5fc5c845711fbd1b265f0d8b7681fe58c575aa61f2f1"
+        },
+        "env_rotor_host_witness": {
+          "bytes": 1607376,
+          "sha256": "625c0cb369724b002965288a96ff5f6c4ce6df24d2b9202315cc056251c266c9"
+        },
+        "env_rotor_host_witness.log": {
+          "bytes": 2683,
+          "sha256": "d78c5f5ae8a258d91e81a888264b6b2ecc232af944ffbe40ae6c597d5b3a6b11"
+        },
+        "rotor_sound_kernel": {
+          "bytes": 1314560,
+          "sha256": "b602ddac91f836ad41de74ca12cf8297ebb0bb59f884e17fe3c0ed85f77defc6"
+        },
+        "rotor_sound_kernel.log": {
+          "bytes": 83033,
+          "sha256": "3573e0a6305547f1e42a57fb77e95d22f9bbe82876d7a9e7f0567566e4adf101"
+        },
+        "transport.log": {
+          "bytes": 220,
+          "sha256": "8b215e4d0e711446ea85b7c13523a7322bfe88432d570ea052c289257c25982d"
+        }
+      },
+      "completed_utc": "2026-11-01T10:58:40.397286+00:00"
+    },
+    {
+      "platform": "windows",
+      "source": "26489a4a597dcbae087ec1bd6a779c2fbf2929e7",
+      "image": "sha256:81387bd194274effd8a0b41cc6784e85e8a311004c9f1843dcd6e25b38b60c4b",
+      "actual_controller_exit": 0,
+      "cases": [
+        {
+          "name": "rotor_sound_kernel",
+          "pid": 22332,
+          "args": [
+            "D:\\EECH-Migration-Evidence\\host-rotor-control-selected-26489a4a5-windows-20261101\\rotor_sound_kernel.exe",
+            "--nocapture"
+          ],
+          "state": "terminal",
+          "actual_exit": 0
+        },
+        {
+          "name": "env_rotor_host_witness",
+          "pid": 13456,
+          "args": [
+            "D:\\EECH-Migration-Evidence\\host-rotor-control-selected-26489a4a5-windows-20261101\\env_rotor_host_witness.exe",
+            "--nocapture"
+          ],
+          "state": "terminal",
+          "actual_exit": 0
+        }
+      ],
+      "control_kernel_tests": 3,
+      "witness_tests": 12,
+      "complete_capture": true,
+      "variant_runs": 1152,
+      "restore_readback_mismatches": 0,
+      "all288_oracle_word_action_rows_passed": true,
+      "metadata": [
+        "capture status: complete",
+        "target x86_64-pc-windows-gnu host x86_64-unknown-linux-gnu profile release | build-time environment of the cargo invocation (NOT the World EECH_ENGINE_OPT unless it is the same variable): EECH_ENGINE_OPT 1 EECH_C_OPT (unset); the C optimisation actually used is the -O of the command below (opt-level 1); EECH_C_OPT now (unset) | rust target_arch x86_64 pointer_width 64 os windows",
+        "compiler version: exit exit status: 0: x86_64-w64-mingw32-gcc (GCC) 12-posix | Copyright (C) 2022 Free Software Foundation, Inc. | This is free software; see the source for copying conditions.  There is NO | warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+        "compiler machine: exit exit status: 0: x86_64-w64-mingw32",
+        "full compile command (the steps archive with env_ref.c uses the same settings): x86_64-w64-mingw32-gcc -O1 -ffunction-sections -fdata-sections -fPIC -g -gdwarf-2 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -m64 -w -std=gnu99 -w -fno-strict-aliasing -fwrapv -ftrivial-auto-var-init=zero -c -o <object> <source>",
+        "control build facts: __VERSION__=12-posix __GNUC__=12.0.0 __OPTIMIZE__=1 __FAST_MATH__=0 __FLT_EVAL_METHOD__=0 __FLT_EVAL_METHOD_TS_18661_3__=0 FLT_EVAL_METHOD=0 __FP_FAST_FMA=0 __SSE_MATH__=1 __SSE2_MATH__=1 __x86_64__=1 _WIN32=1 __MINGW32__=1 __MINGW64_VERSION_MAJOR=10 sizeof(long double)=16",
+        "source sha256: csrc/env_ref.c=b536099bee27f136a369d0fe0ec2b987aa177d746252815e1f9e80db0c764d21; csrc/env_ref.h=f1749f2b414821f8e2056144da90249f716f1e9d0f8c2cd753d84128bdb3d46c; tests/csrc/rotor_control.c=abe4cf5d7e0288ca8f73b1f997fd5092b7e6102a9342d80a724c5845da77f0fc; tests/csrc/rotor_control.h=19a8c9d096670a024c206638b46539e87d6e0cc025d902ece59003f1aecfb993; tests/csrc/rotor_control_body.h=375ca0ebb6a0cf1171a11df6e6c31d3d393e1e11f08c6b0d5f383758b9b355f3; tests/csrc/rotor_control_stubs.c=985868aae3a02dd71d6bea0d38ae1a9d1db772449ce84f42136c404a6e11398e; build.rs=4a0303b1fbc8a9ddaf7e730da526f138be7d8f549e9767ef9a9c71b49c8b29c9",
+        "floating-point baseline captured at the start of the diagnostics: x87 cw=027f sw=0000 tw=ffff mxcsr=00001f80",
+        "observed and restored: the x87 control, status and tag words (and the environment pointers, restored but not compared) and the complete MXCSR of this thread; NOT the x87 data registers, the XMM data or other threads; nothing is inferred about the engine's startup state or about the public caller's floating-point equivalence",
+        "capture status: complete"
+      ],
+      "exported_artifacts": [
+        {
+          "name": "rotor_sound_kernel",
+          "artifact": "/target/x86_64-pc-windows-gnu/release/deps/rotor_sound_kernel-2945140cba23b8f0.exe",
+          "export": "rotor_sound_kernel.exe",
+          "sha256": "65f8484d8bdb79c7e74a4bc914b8d2c258c1bd35754a7867e75e2f0b827b1e9c"
+        },
+        {
+          "name": "env_rotor_host_witness",
+          "artifact": "/target/x86_64-pc-windows-gnu/release/deps/env_rotor_host_witness-73faa4c70214145b.exe",
+          "export": "env_rotor_host_witness.exe",
+          "sha256": "c16a84481d1653c078bd2aaaa14d79735e709df75674bee99bb9cd7b35695867"
+        }
+      ],
+      "all_artifacts": {
+        "artifacts.jsonl": {
+          "bytes": 45544,
+          "sha256": "d5c606688d702a6cdd36cc7201cf8070a9a9bf1ab38997c2ca48382238e1d421"
+        },
+        "build-receipt.json": {
+          "bytes": 718,
+          "sha256": "04b9260ff8912348987474259a03d157cf6a0abe95e405c3a97ac477f8c947f1"
+        },
+        "build.log": {
+          "bytes": 231,
+          "sha256": "14aa33bffd4a14cb86639faabd2a1c9993994ce2ce073701121cd0a049f810b4"
+        },
+        "controller.json": {
+          "bytes": 2554,
+          "sha256": "a42604be5fbed346801659937bf839c032b8a01f2d4914694c5a5cc643bb8875"
+        },
+        "env_rotor_host_witness.exe": {
+          "bytes": 2635347,
+          "sha256": "c16a84481d1653c078bd2aaaa14d79735e709df75674bee99bb9cd7b35695867"
+        },
+        "env_rotor_host_witness.log": {
+          "bytes": 2693,
+          "sha256": "09677909dc043cf2a230b5ab725dfbe32a923ef7b7d05092a8a4386b0e05ddcc"
+        },
+        "rotor_sound_kernel.exe": {
+          "bytes": 3060160,
+          "sha256": "65f8484d8bdb79c7e74a4bc914b8d2c258c1bd35754a7867e75e2f0b827b1e9c"
+        },
+        "rotor_sound_kernel.log": {
+          "bytes": 82054,
+          "sha256": "84a78be8ea4500ea1d02035437e1515383f33a7d4605949137a8b68772618d11"
+        },
+        "transport.log": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "completed_utc": "2026-11-01T10:58:38.296507+00:00",
+      "runtime_lua_sha256": "7b2ec3f3fd174f6b65a2159ee46dc8e9102624a350d978e16ddf4396d7c2be0b"
+    }
+  ],
+  "actual_audit_exit": 0,
+  "scope": "Selected World build/control and guard actual results on pinned native Linux/GCC12.2 and actual Windows/MinGW12.2 only. Default test concurrency; complete exported artifacts/capture/readbacks. Linux fmt0 implied by set-e preceding successful build; Windows has no redundant formatter. No new EECH_DC module, retail campaign, original/default/authority replay, shipping/Tacview, exact i686/MinGW13 numerical or whole-extraction acceptance. Exact-target CI control results remain separate, including retained failures."
+}

@@ -1,0 +1,263 @@
+{
+  "schema": "independent-numerical-actual-supplement-v1",
+  "created_utc": "2026-11-01T11:14:27.078111+00:00",
+  "reviewer": "/root/d3_environment_review",
+  "source": {
+    "tested_native": "26489a4a597dcbae087ec1bd6a779c2fbf2929e7",
+    "tested_wrapper_source": "26489a4a597dcbae087ec1bd6a779c2fbf2929e7",
+    "tested_wrapper_sha256": "ee0df5407d4a3b7a602d9bd320649d2b38f6f72319e8c7804c52809e076da471",
+    "retained_delegate_source": "06de242ae9b4050873207925d79a7a2e58be0c87",
+    "retained_delegate_sha256": "c02df5dbf4b951bc6c3ed1728325e8a0d29cc195ddc37ac5abf59e72f0f4519e",
+    "comment_only_source_head": "a0bb76d2c2ba61841c92095e55cc9de764fc8b7c",
+    "native_is_not_relabelled_to_comment_head": true,
+    "source_report_preserved_byte_exact": "efdeed6c11c490230a8ef5ba8f15ef7f518126f17b89f8590e50d878a951b29f"
+  },
+  "scope": "Same combined review's new actual evidence and tiny comment/prose correction only. Previous source/original/physical-boundary/authority findings reused. New active non-SESSION characterization WIP excluded. No reviewer builds, test executions, campaigns, source changes, publishing, merges or nested agents.",
+  "findings": [],
+  "closures": {
+    "ENV_HOST_ROTOR_CI_1_numerical_P1_closed": true,
+    "ENV_HOST_ROTOR_NUMERIC_PROSE_1_closed": true,
+    "source_review_no_blocking_findings": true,
+    "finite_host_rotor_acoustics_slice_closed": true,
+    "finite_scope": "Host-owned rotor acoustic arithmetic, per-channel words and ordered pause/resume decisions on the retained canonical oracle, controlled roles and measured campaign baseline; checked public replacement/refusal paths.",
+    "whole_Task51_D3_closed": false,
+    "shipping_Tacview_or_normal_delivery_accepted": false,
+    "new_publication_reviewed": false
+  },
+  "numerical_evidence": {
+    "exact_current_native_CI": "All nine jobs across three source264 workflows completed SUCCESS; seven campaign jobs include both i686 layouts and Windows/Wine. Exact comment-head CI remains a distinct later-head gate, not inferred from264.",
+    "independent_checks": "All four literal exact-target CI blocks have complete capture, seven source hashes matching frozen264 Git blobs, all 27 retained sweep inputs and 261 natural distinct inputs matching for the kernel, 1152 diagnostic variant runs and zero restoration-readback mismatches. Unchanged exact word/action assertions now complete rather than stopping at the previous first failure.",
+    "i686_corrected_assembly": "Both GCC12.4.0 i686 listings emit fdivs;fstps;flds for acc_force, fmuls;fstps;flds for slap, and fdivs;fstps;flds before both first turbine-pitch bounds/additions. Thus the FD1 subtraction uses the narrowed slap and FD12 consumes the narrowed quotient. The three prior failing kernel words now match without an oracle, target, flag, tolerance or formula change.",
+    "Wine_corrected_assembly": "Measured x86_64-w64-mingw32-gcc 13-posix (__GNUC__13.0.0) now stores/loads the local volatile double offset. Its saturated .L430 branch loads that offset, executes addsd with the selected 2.0 bound, then cvtsd2ss; it no longer obtains the pitch by loading the previous pre-rounded 0x400ccccd float constant. FD7 matches0x400ccccc.",
+    "compiler_identity_limits": "i686/Linux CI is Ubuntu gcc-12 12.4.0-2ubuntu1~24.04.1. The EECH_C_OPT=2-labelled job records World -O1, not an inferred O2. Wine records 13-posix/macros13.0.0; no exact13.2 claim. Pinned selected compilers and actual native observer-build image are separate identities.",
+    "controls_are_not_oracles": "U is a token-preserved expression surrogate, not original-engine assembly; S is deliberately changed/staged. Their retained FD12 i686 and FD7 Wine canonical mismatches remain visible even though the corrected kernel matches. Default-rounding differences stay diagnostic. S never staged FD12's first quotient, so its failure does not refute the new original float-assignment boundary.",
+    "pinned_selected": "Independently verified every exported artifact's recorded size/hash in both pinned selected directories, actual exits and logs: Linux and native Windows each3 kernel/control tests plus12 witness tests pass, all288 assertions pass, capture complete,1152 variants/zero restore mismatches.",
+    "actual_observer_build": {
+      "source": "26489a4a597dcbae087ec1bd6a779c2fbf2929e7",
+      "image": "sha256:842755bb9b02f2ecaaa80a44dc90ba2a855dc7f3af5cdde96a96b60f1d93a0b4",
+      "build_exit": 0,
+      "completed_utc": "2026-11-01T11:01:50.557403Z",
+      "compiler": "BUILDINFO gcc12-posix; gcc-mingw-w64-x86-64-posix12.2.0-14+deb12u1+25.2+b1",
+      "profile": "env-observer fixture, not shipping",
+      "payloads": 68,
+      "eech_world_exe_sha256": "9bb91aad99cb554a72f89a9e1ed2182ece606211639e978f2e5d970f74399529",
+      "eech_dc_dll_sha256": "c22683b751ab3adfddc8caba78510387afe2b82d448e1d4c50fa75ea06955be2"
+    },
+    "actual_image_Windows_suites": {
+      "completed_utc": "2026-11-01T11:04:35.089609Z",
+      "controller_and_build_exits": 0,
+      "passed": {
+        "Engine": 99,
+        "DC": 37,
+        "World": 295,
+        "rotor_sound_kernel": 3,
+        "env_rotor_host_witness": 12,
+        "env_rotor_sounds": 12
+      },
+      "kernel_FP_test": "World log explicitly passes the_callers_complete_floating_point_state_survives_the_rotor_kernel_in_every_mode_and_its_words_do_not_depend_on_it."
+    }
+  },
+  "default_conformance": {
+    "new_controls": 4,
+    "actual_native_and_controller_exits": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "successful_pre_post_input_checks": 8,
+    "payloads_checked_per_control": 68,
+    "independent_method": "Verified terminal parent/child receipts, stage exits, exact pre/post reference manifest hashes and delegate JSON hashes; independently streamed and compared complete original/candidate files byte-for-byte, including endings, and recomputed SHA256. No growing file was accepted; no filtering, tolerance, normalization or original campaign rerun.",
+    "complete_files": [
+      {
+        "file": "natural rotor raw",
+        "bytes": 304394730,
+        "sha256": "e5593222ec73e84fe705e01fda0486eb103a5aa1a16db03cb75b788fd91c2591",
+        "whole_bytes_equal": true
+      },
+      {
+        "file": "natural constructor sidecar",
+        "bytes": 7516,
+        "sha256": "ce688f8595aec01c57f1bbaaa19acfe07d430b5eda8483d63477e7fc1c7ebaa4",
+        "whole_bytes_equal": true
+      },
+      {
+        "file": "unarmed legacy environment stream",
+        "bytes": 5191384,
+        "sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+        "whole_bytes_equal": true
+      }
+    ],
+    "natural": "Completed11:12:19.412808Z:208800 phase0 calls,174 entities,1200 frames,zero seed-word changes and zero probe loss/pending. Exact complete original raw supplies the accepted full-record continuity proof, not a prefix or selected fields.",
+    "controlled": "Each 10-second default contains17400 natural calls followed by12 AI or15 FD controlled calls. Complete roughly25MB probe files, constructor records, all controlled input/output words, ordered actions and child before/after words match the retained originals, endings included.",
+    "standard_fenv_exception": "FD whole sweep raw is exact. AI whole sweep raw remains FALSE because exactly the same ten previously reviewed diagnostic lines have hexadecimal masks0x02 versus0x22 (extra0x20); round_before/after3072 remain unchanged. Independently checked that these are the only differing lines/endings. The physical comparator does not normalize or accept whole raw equality. This carries forward the bounded source-backed diagnostic classification, not full public FP equivalence."
+  },
+  "public_authority": {
+    "new_controls": 6,
+    "actual_native_and_controller_exits": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "successful_pre_post_input_checks": 12,
+    "payloads_checked_per_control": 68,
+    "independent_checks": "Recomputed all artifact hashes listed by the authority assessment, exact pre/post manifests and BUILDINFO/payload hashes; parsed every complete probe call and sweep output. Joined sequence, phase, inputs, every ordered action, all SOUND children including duplicate subtypes, no-write winding pitch/unknown children, complete output rows and actual failure termination.",
+    "facts": [
+      {
+        "case": "ai-healthy",
+        "calls": 12,
+        "sound_children": 276,
+        "all_children": 348,
+        "actions": 24,
+        "pauses": 10,
+        "physical_different_calls": 0
+      },
+      {
+        "case": "ai-changed",
+        "calls": 12,
+        "sound_children": 276,
+        "all_children": 348,
+        "actions": 24,
+        "pauses": 10,
+        "physical_different_calls": 12
+      },
+      {
+        "case": "ai-withheld",
+        "requests": 1,
+        "marker": "[env-provider:rotor_sound.callback]",
+        "result_rows": 0
+      },
+      {
+        "case": "ai-malformed",
+        "requests": 1,
+        "marker": "[env-provider:rotor_sound.answer]",
+        "result_rows": 0
+      },
+      {
+        "case": "fd-healthy",
+        "calls": 15,
+        "sound_children": 345,
+        "all_children": 435,
+        "actions": 75,
+        "pauses": 11,
+        "physical_different_calls": 0
+      },
+      {
+        "case": "fd-changed",
+        "calls": 15,
+        "sound_children": 345,
+        "all_children": 435,
+        "actions": 75,
+        "pauses": 11,
+        "physical_different_calls": 15
+      }
+    ],
+    "changed_values": "Every changed call shows looping amplification0x3ec00000/pitch0x3f500000 and slap amplification0x3e400000. Every pause delay is0x40000000; action kind/order/channel and all unaffected words match its healthy reference. AI12/FD15 calls each have actual changed words, not merely counted requests.",
+    "refusals": "Withheld and malformed each request once, have zero base-provider errors, end with exactly one engine_failure and no result, and retain readable empty rotor/sweep artifacts. Withheld names its intentional callback withdrawal; malformed names winding at rotor_sound.answer. These are caught expected engine refusals, hence controller/native wrapper0, not healthy campaign completion.",
+    "capability_red_reuse": "The prior actual originale544 completed12-call/zero-request capability-missing red remains reused, not rerun or counted among the ten new controls. Earlier a17 zero-division failures and collector failures remain retained and are not relabelled."
+  },
+  "prose_correction": {
+    "head": "a0bb76d2c2ba61841c92095e55cc9de764fc8b7c",
+    "finding_closed": "ENV-HOST-ROTOR-NUMERIC-PROSE-1",
+    "verification": "Read exact Git-object delta: only STATUS, sound doc and the identified env_ref.c comment block change. Direct comparison of C prefix and suffix outside that block is byte-exact; all other tracked entries/modes are exact264. Archived changed-blob hashes and Root mapping receipt agree. Comment now attributes canonical narrowing to original Win64, restricts U's earlier spill observation to FD1 and explicitly retains U/S's FD12 failure. No binary is relabelled to a0bb.",
+    "source_report": "The historical source report remains exactlyefdeed6c11c490230a8ef5ba8f15ef7f518126f17b89f8590e50d878a951b29f; this separate supplement closes its sole prose finding."
+  },
+  "total_new_campaign_controls": {
+    "distinct_executions": 10,
+    "successful_input_checks": 20,
+    "fresh_roots_consumed": 10,
+    "no_original_or_successful_control_reruns": true
+  },
+  "evidence": [
+    {
+      "path": "R:\\d3-evidence\\independent-environment-host-rotor-numeric-correction-26489a4a5-20261101.json",
+      "bytes": 6462,
+      "sha256": "efdeed6c11c490230a8ef5ba8f15ef7f518126f17b89f8590e50d878a951b29f"
+    },
+    {
+      "path": "R:\\d3-evidence\\independent-environment-host-rotor-compiler-controls-actual-38b200b6c-20261101.json",
+      "bytes": 13140,
+      "sha256": "9a3385f390a7cbf53903a4562d1356f0051407fb45527cefe98a80e4b8ffdee6"
+    },
+    {
+      "path": "R:\\d3-evidence\\current-CI-26489a4a5-20261101.json",
+      "bytes": 11217,
+      "sha256": "2b6bc683840f01b7b966dd287b4bc301accf9395e6b7ae3973556e7e2d22297b"
+    },
+    {
+      "path": "R:\\d3-evidence\\host-rotor-control-selected264-actual-assessment-20261101.json",
+      "bytes": 12535,
+      "sha256": "ef0f33cc62d0c19b47ba696a448e0ddcd4a6e6eb0efa43bdc7b1ede081cae65d"
+    },
+    {
+      "path": "R:\\d3-evidence\\host-rotor-numeric-authority-assessment-26489a4a5-20261101.json",
+      "bytes": 19251,
+      "sha256": "b392b386fe3b0ccf4d3da5e4eb120a75ae0105652b9cdf624c0e211ec3409737"
+    },
+    {
+      "path": "R:\\d3-evidence\\host-rotor-controlled-comparison-26489a4a5-20261101.json",
+      "bytes": 4604,
+      "sha256": "ec4253a21514a93265a9640d37662a7dbfd4c3cbbdc781657faa306d8994ff52"
+    },
+    {
+      "path": "R:\\d3-evidence\\host-rotor-complete-defaults-comparison-26489a4a5-20261101.json",
+      "bytes": 4332,
+      "sha256": "6d7fb7dde256a0beec958e91b68927e645843c240741de2739b7b6a009bc7a7f"
+    },
+    {
+      "path": "R:\\d3-evidence\\host-rotor-comment-source-a0bb76d2c-20261101.json",
+      "bytes": 1684,
+      "sha256": "700c894134e356bbd3704e8e39e8b422cdc6ff67eba10e543ee49c26732600af"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\host-rotor-numeric-windows-tests-26489a4a5-20261101\\controller.json",
+      "bytes": 3501,
+      "sha256": "b51143228f2d8cbbf5fd3a7ec4c8b6550c0f45b8fe40d46daa05fe15adbe3c34"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\host-rotor-numeric-defaults-26489a4a5-20261101\\controller.json",
+      "bytes": 6433,
+      "sha256": "8fdbbe75b53753b8d9d9b54035017ea7fd9be017a557b668155562ca29ec101c"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\host-rotor-numeric-authority-26489a4a5-20261101\\controller.json",
+      "bytes": 10884,
+      "sha256": "73ad8864bcf17a314b7ec436cca1bc55fe1cac5c4c6fa4e4e4e8b60814201df6"
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\rn-26489a4a5\\eech-campaign\\target\\env-observer\\host-rotor-numeric-26489a4a5\\BUILD-INFO.txt",
+      "bytes": 6920,
+      "sha256": "ee57a18cb3cd6499474abe08586eb097904062e22964986ab33f1adb44c75fd5"
+    },
+    {
+      "path": "R:\\d3-evidence\\rotor-control-CI264-i686-job124828079537-20261101.json",
+      "bytes": 181239,
+      "sha256": "1c3672fc62768de304fb1b2bb35c986784a542c978e619675d2f49a0c2f7630c"
+    },
+    {
+      "path": "R:\\d3-evidence\\rotor-control-CI264-i686-stack-job124828079553-20261101.json",
+      "bytes": 181245,
+      "sha256": "d4efa28a064aa9e2267d0d22d6684745b3d224e3f12f1ee34fdc345e61bd6b2b"
+    },
+    {
+      "path": "R:\\d3-evidence\\rotor-control-CI264-linux-x64-label-opt2-job124828079486-20261101.json",
+      "bytes": 157135,
+      "sha256": "6be6b5ebc82cca18ee17d9162e3558b336703fdb5efa857b866642c91c19b4b1"
+    },
+    {
+      "path": "R:\\d3-evidence\\rotor-control-CI264-windows-wine-job124828079536-20261101.json",
+      "bytes": 155835,
+      "sha256": "df812a7d189407ebaa6e4efc930d0452f43f3ff34dbab275c91f553a0394a2b8"
+    }
+  ],
+  "limitations": [
+    "Finite measured host rotor arithmetic/actions and boundary ownership only. Natural coverage is AI/no-flight-model; FD/local/remote and compiler-zero-init shapes are controlled inputs under the established F1 contract, not natural player or audio delivery.",
+    "Variant readback covers declared thread CW/SW/TW/MXCSR fields, not x87/XMM data registers, other threads or measured engine-startup precision. Full public Lua/C caller FP equivalence is not inferred from word equality; the retained AI sticky-mask diagnostic difference remains explicit.",
+    "Core still owns entity/list iteration, subtype application, private mirrors, actual pause/resume side effects, networking/caller policy and per-family/backend responsibilities. Non-SESSION playback, device/audibility, metadata lifecycle, physical time and required terrain/spatial/model work remain separate D3 responsibilities.",
+    "Accepted prior source/original/default/public capability reports are reused in their exact finite scope. No raw/entity coordinates, retail inputs, binaries or full logs are published by this report.",
+    "Current source264 CI is green. Comment-head and later publication/final CI, full shipping40/all8/Tacview and normal delivery are separate; no whole Task51/D3 or D4/D5 acceptance."
+  ]
+}

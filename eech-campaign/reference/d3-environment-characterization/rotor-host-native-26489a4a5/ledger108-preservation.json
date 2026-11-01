@@ -1,0 +1,9 @@
+{
+  "beforeVersion": "v:107",
+  "afterVersion": "v:108",
+  "all_prior_authored_html_exact_prefix_after_only_parent_binding_normalization": true,
+  "all_five_jira_report_wrappers_queries_configuration_exact_after_only_parent_binding_normalization": true,
+  "new_section_checked": true,
+  "strict_whole_html_or_macro_wrapper_byte_equality_claimed": false,
+  "context_path": "D:/EECH-Migration-Evidence/ledger-host-rotor-numeric-v108-context-20261101.json"
+}

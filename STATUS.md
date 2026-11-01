@@ -1,3 +1,44 @@
+# D3 checkpoint: finite rotor slice closed; next parent-play characterization prepared
+
+Tested native/witness `26489a4a5`, comment-only `a0bb76d2c`: independent actual
+review `a5551db0a7f4d4e8842f979353bec61587ebc1c0cab3221f1e8457926ae99154`
+closes the finite host rotor arithmetic/actions and public authority slice with
+no findings. All9 exact264 CI jobs pass; pinned checks and actual-image Windows
+Engine99/DC37/World295/kernel3/two12-test driver suites pass. Ten fresh candidate
+controls complete0,20 full input checks0,68 payloads unchanged. COMPLETE304,394,730B
+natural rotor,7,516B constructor and5,191,384B unarmed stream are byte-identical to
+originals;12AI/15FD words and full probe/child/action bytes match. Exactly ten AI
+standard-fenv rows retain hex02->22/extra0x20, round3072 unchanged; whole-AI-raw=false
+and no full public-FP/audio claim. FDwhole raw exact. AI/FD changed answers affect
+real child state; named withheld/malformed refusals and prior capability red hold.
+
+Safe receipts: `eech-campaign/reference/d3-environment-characterization/rotor-host-native-26489a4a5/`.
+Eleven literal JSON copies, zero projections; separate publication review
+`8dc7cfc4fb761879aa1506bc5788d6323a1576f9b0a308a60424cfc831832f3c` is adjacent.
+Reviewed bytes are preserved, including CRLF through narrowly scoped attributes;
+final staged and committed Git blobs are checked. No retail inputs, raw coordinates,
+recordings or binaries are imported. Ledger108/Jira10925/PR111 record this bounded
+closure; all five ledger reports and prior authored HTML preserved after only
+server parent-binding normalization. Existing source/failed/partial history remains.
+
+NEW ORIGINAL non-SESSION parent-play dispatch/range characterization source
+`c54a02d02d2098adee3137f86b8938bff9164b19` is prepared by the sole Sonnet5.5High lane;
+UNBUILT, UNRUN, source review pending. This publication changes documentation only;
+all its other tracked entries equal that source. Production behavior has not moved
+in this next slice. Next: freeze a clean named source, affected guards and actual
+original dispatch/controlled/live-overload measurements before a removal or host
+handoff decision. D3/Task51, required remaining environment/loading/device/destroy/
+network/time and Tasks49/50 stay OPEN. Ordinary shipping40/all8 complete Tacview/
+observations/metrics, current final checks, independent review and normal delivery
+remain required. D4/D5 unstarted; no accepted baseline/tolerance changes.
+
+Closed private provisional cache cleanup preserved78 useful files (49,483,784B)
+including ELF/assembly/objects/logs and source, then removed only1,385,959,100B of
+its target/registry after owner/path/hash verification. Canonical caches and all
+accepted/failed evidence remain. See external cleanup receipt, not shipping proof.
+
+The following chronological checkpoints retain their own source and evidence identities.
+
 # D3 non-session resumed-parent playback: ORIGINAL characterization prepared (1 November 2026 UTC; SOURCE ONLY, UNBUILT, UNRUN, UNREVIEWED; CHARACTERISATION ONLY; after a0bb76d2c)
 
 Under the existing Task 51 and the M5 needed-only scope: `soundeff.c play_resumed_parent_sound`, NON-SESSION branch (the range from the main viewpoint to the parent's position by `get_approx_3d_range`, then `play_local_entity_sound` = `fn_play_local_entity_sound[type]`). Nothing is moved, removed, guarded or hosted; no formula, flag, oracle, baseline or the SESSION branch, rotor or closed source changed. Source reading (not a measurement, and not the Opus plan's blanket claim): the dispatch table is set to a default no-op for every entity type by `en_snd.c initialise_entity_sound_default_functions`; per-family overloads exist in `fw_snd.c`, `hc_snd.c`, `aa_snd.c`, `rv_snd.c`, `sh_snd.c` (absent from `sources.txt`, their calls commented out in the family tables) and `se_snd.c` (compiled, called from `se_funcs.c`: the sound-effect type is overloaded); callers of pause/resume include the fixed-wing and helicopter code, the vehicle interaction code, the gunship avionics, the network receive path (any entity) and `cdmusic.c` (a sound effect as `en`, which has no children). Whether any call reaches a non-default entry is therefore a fact of the running engine and is MEASURED, not inferred from headless or a false backend flag.

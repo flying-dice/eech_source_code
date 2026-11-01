@@ -1,0 +1,95 @@
+{
+  "created_utc": "2026-11-01T11:19:09.770966+00:00",
+  "candidate": "D:\\EECH-Migration-Evidence\\rotor-host-native264-safe-publication-20261101",
+  "tested_native": "26489a4a597dcbae087ec1bd6a779c2fbf2929e7",
+  "comment_source": "a0bb76d2c2ba61841c92095e55cc9de764fc8b7c",
+  "literal_receipts": 11,
+  "projection_receipts": 0,
+  "files": [
+    {
+      "path": "source-identity-264.json",
+      "source": "R:\\d3-evidence\\host-rotor-numeric-source-26489a4a5-20261101.json",
+      "bytes": 1266,
+      "sha256": "e01943a11f0197234e62b3c938c1204d9ccc6b7134110b35351652c670eca72a",
+      "literal_byte_copy": true
+    },
+    {
+      "path": "comment-identity-a0bb.json",
+      "source": "R:\\d3-evidence\\host-rotor-comment-source-a0bb76d2c-20261101.json",
+      "bytes": 1684,
+      "sha256": "700c894134e356bbd3704e8e39e8b422cdc6ff67eba10e543ee49c26732600af",
+      "literal_byte_copy": true
+    },
+    {
+      "path": "exact-source-ci.json",
+      "source": "R:\\d3-evidence\\current-CI-26489a4a5-20261101.json",
+      "bytes": 11217,
+      "sha256": "2b6bc683840f01b7b966dd287b4bc301accf9395e6b7ae3973556e7e2d22297b",
+      "literal_byte_copy": true
+    },
+    {
+      "path": "selected-platform-checks.json",
+      "source": "R:\\d3-evidence\\host-rotor-control-selected264-actual-assessment-20261101.json",
+      "bytes": 12535,
+      "sha256": "ef0f33cc62d0c19b47ba696a448e0ddcd4a6e6eb0efa43bdc7b1ede081cae65d",
+      "literal_byte_copy": true
+    },
+    {
+      "path": "complete-default-comparison.json",
+      "source": "R:\\d3-evidence\\host-rotor-complete-defaults-comparison-26489a4a5-20261101.json",
+      "bytes": 4332,
+      "sha256": "6d7fb7dde256a0beec958e91b68927e645843c240741de2739b7b6a009bc7a7f",
+      "literal_byte_copy": true
+    },
+    {
+      "path": "controlled-default-comparison.json",
+      "source": "R:\\d3-evidence\\host-rotor-controlled-comparison-26489a4a5-20261101.json",
+      "bytes": 4604,
+      "sha256": "ec4253a21514a93265a9640d37662a7dbfd4c3cbbdc781657faa306d8994ff52",
+      "literal_byte_copy": true
+    },
+    {
+      "path": "public-authority-assessment.json",
+      "source": "R:\\d3-evidence\\host-rotor-numeric-authority-assessment-26489a4a5-20261101.json",
+      "bytes": 19251,
+      "sha256": "b392b386fe3b0ccf4d3da5e4eb120a75ae0105652b9cdf624c0e211ec3409737",
+      "literal_byte_copy": true
+    },
+    {
+      "path": "independent-compiler-control-review-38.json",
+      "source": "R:\\d3-evidence\\independent-environment-host-rotor-compiler-controls-actual-38b200b6c-20261101.json",
+      "bytes": 13140,
+      "sha256": "9a3385f390a7cbf53903a4562d1356f0051407fb45527cefe98a80e4b8ffdee6",
+      "literal_byte_copy": true
+    },
+    {
+      "path": "independent-source-review-264.json",
+      "source": "R:\\d3-evidence\\independent-environment-host-rotor-numeric-correction-26489a4a5-20261101.json",
+      "bytes": 6462,
+      "sha256": "efdeed6c11c490230a8ef5ba8f15ef7f518126f17b89f8590e50d878a951b29f",
+      "literal_byte_copy": true
+    },
+    {
+      "path": "independent-final-actual-review-264.json",
+      "source": "R:\\d3-evidence\\independent-environment-host-rotor-numeric-actual-26489a4a5-20261101.json",
+      "bytes": 16351,
+      "sha256": "a5551db0a7f4d4e8842f979353bec61587ebc1c0cab3221f1e8457926ae99154",
+      "literal_byte_copy": true
+    },
+    {
+      "path": "ledger108-preservation.json",
+      "source": "R:\\d3-evidence\\ledger-host-rotor-numeric-v108-preservation-20261101.json",
+      "bytes": 456,
+      "sha256": "800deecda223120a32bf96e39a67be1ab311057858e17528dd2caa3f7fd05fee",
+      "literal_byte_copy": true
+    },
+    {
+      "path": "README.md",
+      "bytes": 4510,
+      "sha256": "ad12d792e3dd859c16ac5b9f60862ebbbe9af20493b73ff1e5319bfb5685dd22",
+      "literal_byte_copy": false,
+      "kind": "New explanatory prose, not a projection of a receipt."
+    }
+  ],
+  "scope": "Prepared publication only; a separate independent publication check is pending. No runtime, golden or implementation changes."
+}
