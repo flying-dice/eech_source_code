@@ -3718,7 +3718,9 @@ static int env_snd_route_case (int index, char *text, int capacity, int *used)
 	short_of_slots = a == NULL;
 
 	/* nothing below changes the process: only rows are written */
-	ENV_EMIT ("env-route-input tag=descriptor controlled=%d controlled_rate=%d controlled_size=%d retail_rate=%d retail_size=%d\n", unlink_case, unlink_case ? 4 : 0, unlink_case ? 20 : 0, retail_rate, retail_size);
+	/* the selected sample is the one the real constructor was given (the variable `one`, whose address env_snd_data_make passed on): its key and its enum index are declared here so the probe records can be joined to the input */
+	ENV_EMIT ("env-route-input tag=descriptor controlled=%d controlled_rate=%d controlled_size=%d retail_rate=%d retail_size=%d sample_key=ambient_lightning sample=%d\n", unlink_case, unlink_case ? 4 : 0, unlink_case ? 20 : 0,
+		retail_rate, retail_size, (int) one);
 	ENV_EMIT ("env-route-input tag=flags effects_enabled_before=%d ui_muted=%d channel_muted=%d channel_volume=%d\n", saved_flag != 0, ui_muted, channel_muted, channel_volume);
 	if (!unlink_case)
 	{

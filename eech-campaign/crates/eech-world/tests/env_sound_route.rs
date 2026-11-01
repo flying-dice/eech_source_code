@@ -246,7 +246,7 @@ fn report(run: Run) -> String {
     let playing = u32::from(!unlink);
     let mut text = head(run.case);
     text += &format!(
-        "env-route-input tag=descriptor controlled={} controlled_rate={} controlled_size={} retail_rate=22050 retail_size=88200\n",
+        "env-route-input tag=descriptor controlled={} controlled_rate={} controlled_size={} retail_rate=22050 retail_size=88200 sample_key=ambient_lightning sample=12\n",
         u32::from(unlink),
         if unlink { 4 } else { 0 },
         if unlink { 20 } else { 0 }
@@ -440,6 +440,12 @@ a released handle that the entity still points at | 24 | destroyed | IN env-soun
 the playback calls an update routine | 24 | early | stored=1 => stored=2 | says it stored 2
 a missing end row | 23 | u3 | DROP env-sound-end | ends before its env-sound-end row
 the pause names another sub type than the created effect | 23 | u3 | tag=pause sub=1 => tag=pause sub=2 | the pause names sub type 2
+every probe record shows another sample than the one constructed | 23 | u3 | ALL sample=12 rate= => sample=13 rate= | where the fixture constructed sample 12
+every probe record shows a negative sample | 24 | played | ALL sample=12 rate= => sample=-2 rate= | where the fixture constructed sample 12
+a constructed sample outside the catalogue the facts counted | 23 | u3 | ALL sample=12 => sample=300 | is outside the 300 samples the facts counted
+a post-pause validity of 2 in every view | 23 | u3 | ALL valid=0 => valid=2 | is not 'valid' as a b
+a looping flag of 2 in the first state | 24 | played | IN env-sound-state ent=0 slot=7 tag=0 :: looping=1 => looping=2 | is not 'looping' as a b
+a handle flag of 2 in a probe record | 23 | u3 | IN env-snd seq=1 :: handle=1 => handle=2 | is not 'handle' as a b
 a census below the one created effect | 23 | u3 | children_sound=3 => children_sound=0 | the cohort census is not the one created effect
 a pause that returned more than it could change | 23 | u3 | returned=1 => returned=2 | the pause returned 2
 a pause that returned a negative count | 23 | u3 | returned=1 => returned=-1 | the pause returned -1

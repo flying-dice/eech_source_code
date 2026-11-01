@@ -159,8 +159,8 @@ local function check (row, event, spec)
 	return row.map
 end
 local FACTS = "tag=control comms:i application_sound_system_enabled:i sound_system_initialised:i sound_system_paused:i samples:i lightning_rate:i lightning_size:i lightning_original_rate:i thunder_rate:i thunder_size:i thunder_original_rate:i"
-local STATE = "ent:i slot:i tag:n etype:i data:b sub:i valid:i looping:i member:b handle:b life_w:w vlife_w:w"
-local RECORD = "seq:n point:n n:n tracked:i frame:n upd:n entity:i etype:i sub:i channel:i locality:i valid:i looping:i panning:i seqcount:i handle:i session_parent:b update_member:b sample:i rate:i size:i orate:i life_w:w vlife_w:w amp_w:w pitch_w:w px_w:w py_w:w pz_w:w delta_w:w"
+local STATE = "ent:i slot:i tag:n etype:i data:b sub:i valid:b looping:b member:b handle:b life_w:w vlife_w:w"
+local RECORD = "seq:n point:n n:n tracked:i frame:n upd:n entity:i etype:i sub:i channel:i locality:i valid:b looping:b panning:i seqcount:i handle:b session_parent:b update_member:b sample:i rate:i size:i orate:i life_w:w vlife_w:w amp_w:w pitch_w:w px_w:w py_w:w pz_w:w delta_w:w"
 local LOOP = unlink_case and "0" or "1"
 local NEXT = { [0] = { [1] = true }, [1] = { [1] = true }, [5] = {} }
 
@@ -195,8 +195,10 @@ if rows [at] ~= nil and rows [at].event == "env-sound-end" and rows [at].map.ref
 	refuse ("the fixture REFUSED case " .. case .. " (" .. end_map.refused .. "): the control did not run, an unavailable prerequisite and not a result")
 end
 
-local descriptor = take ("env-route-input", "tag=descriptor " .. (unlink_case and "controlled=1 controlled_rate=4 controlled_size=20" or "controlled=0 controlled_rate=0 controlled_size=0") .. " retail_rate:i retail_size:i")
+local descriptor = take ("env-route-input", "tag=descriptor " .. (unlink_case and "controlled=1 controlled_rate=4 controlled_size=20" or "controlled=0 controlled_rate=0 controlled_size=0") .. " retail_rate:i retail_size:i sample_key=ambient_lightning sample:i")
 if descriptor.retail_rate ~= facts.lightning_rate or descriptor.retail_size ~= facts.lightning_size then hard ("the retail descriptor of the input row is not the one the facts row read before the change") end
+-- the selected sample: the fixture constructs the lightning sample and declares its enum index; the index is a member of the catalogue the facts counted, and every probe record must show the same sample
+if tonumber (descriptor.sample) < 0 or tonumber (descriptor.sample) >= tonumber (facts.samples) then hard ("the constructed sample " .. descriptor.sample .. " is outside the " .. facts.samples .. " samples the facts counted: " .. raw_of (descriptor)) end
 local flags = take ("env-route-input", "tag=flags effects_enabled_before:b ui_muted:i channel_muted:i channel_volume:i")
 -- case 24 trips assertions on purpose: its prerequisite (the logging assertion mode and the debug log option off) was checked by the fixture before any change and is recorded here
 if not unlink_case then take ("env-route-input", "tag=assert mode=logging debug_log=0") end
@@ -279,7 +281,8 @@ if creation == nil or creation.point ~= "0" or creation.upd ~= "0" or creation.h
 if creation.rate ~= (unlink_case and "4" or descriptor.retail_rate) or creation.size ~= (unlink_case and "20" or descriptor.retail_size) or creation.orate ~= facts.lightning_original_rate then
 	hard ("the creation record shows the descriptor rate " .. creation.rate .. " size " .. creation.size .. " original rate " .. creation.orate .. " where the inputs and the facts give " .. (unlink_case and "4, 20" or (descriptor.retail_rate .. ", " .. descriptor.retail_size)) .. " and " .. facts.lightning_original_rate)
 end
-if creation.seqcount ~= "1" or creation.sample == "-1" or creation.looping ~= LOOP then hard ("the creation record is not a single-sample effect with a sample and the looping the case installed: " .. raw_of (creation)) end
+if creation.sample ~= descriptor.sample then hard ("the creation record shows sample " .. creation.sample .. " where the fixture constructed sample " .. descriptor.sample .. ": " .. raw_of (creation)) end
+if creation.seqcount ~= "1" or creation.looping ~= LOOP then hard ("the creation record is not a single-sample effect and the looping the case installed: " .. raw_of (creation)) end
 -- what the constructor and the controlled descriptor fix; validity and update-list membership change on this route (the pause, the unlink) and are joined to the entity states of the same instant instead
 local STABLE = { "entity", "etype", "sub", "channel", "locality", "panning", "seqcount", "looping", "session_parent", "sample", "rate", "size", "orate", "amp_w", "pitch_w", "px_w", "py_w", "pz_w" }
 local enters = 0
