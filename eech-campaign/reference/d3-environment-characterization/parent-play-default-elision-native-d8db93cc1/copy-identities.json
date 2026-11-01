@@ -1,0 +1,96 @@
+{
+  "created_utc": "2026-11-01T13:13:35.988676+00:00",
+  "tested_native": "d8db93cc181a6980c00f9ec17967acf217645382",
+  "copies": [
+    {
+      "copy": "original-actual-review.json",
+      "source": "R:\\d3-evidence\\independent-environment-original-parent-play-actual-native8e-driver6aec-20261101.json",
+      "bytes": 11388,
+      "sha256": "0cff09b4b293e44e59a564241bc24cc98cf43837fb3a3769f8df7d50d51cc3e3",
+      "form": "literal complete JSON bytes; no projection or normalization"
+    },
+    {
+      "copy": "candidate-source-review.json",
+      "source": "R:\\d3-evidence\\independent-environment-parent-play-needed-only-source-d8db93cc1-20261101.json",
+      "bytes": 10596,
+      "sha256": "c18eca7bdc4cc7cde25fa9770947c7c83a10eccbaab8296cec40ccab521fb612",
+      "form": "literal complete JSON bytes; no projection or normalization"
+    },
+    {
+      "copy": "candidate-actual-review.json",
+      "source": "R:\\d3-evidence\\independent-environment-parent-play-needed-only-actual-d8db93cc1-20261101.json",
+      "bytes": 12948,
+      "sha256": "0e1f799a968a97584effd7f5a995dae68db8c2598892bd27d6354cabcc6f4a57",
+      "form": "literal complete JSON bytes; no projection or normalization"
+    },
+    {
+      "copy": "candidate-comparison.json",
+      "source": "R:\\d3-evidence\\parent-play-needed-only-candidate-comparison-d8db93cc1-20261101.json",
+      "bytes": 18445,
+      "sha256": "96edff9a46197e9003c89f3e4b1684879c0c9d1c63d7a59bdf91bc764c7cf4b6",
+      "form": "explicit labelled projection: remove one runtime allocation-index field/redact only its message token",
+      "private_original_sha256": "a542e8a1f0b2b65d758ff6ed6234060731d0d72c2ff845db9e714abc64dc6b0e"
+    },
+    {
+      "copy": "candidate-source-identity.json",
+      "source": "R:\\d3-evidence\\parent-play-needed-only-source-d8db93cc1-20261101.json",
+      "bytes": 3382,
+      "sha256": "ce3a058044f485463a0f50b8151248daaa9cb4b78d8069a73cb8d9c8b79a54ea",
+      "form": "literal complete JSON bytes; no projection or normalization"
+    },
+    {
+      "copy": "candidate-ci.json",
+      "source": "R:\\d3-evidence\\current-CI-d8db93cc1-20261101.json",
+      "bytes": 10623,
+      "sha256": "3337bcb11519df011beb1a015ee3c8153a01f8fc52aedb0877d1c11c8510ac2a",
+      "form": "literal complete JSON bytes; no projection or normalization"
+    },
+    {
+      "copy": "candidate-linux-guards.json",
+      "source": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-linux-guards-d8db93cc1-20261101\\controller.json",
+      "bytes": 1803,
+      "sha256": "ae830ee74962e685c4d090105b1e97d59f8a4b67612f4ec95fbede4e8d96b43a",
+      "form": "literal complete JSON bytes; no projection or normalization"
+    },
+    {
+      "copy": "candidate-windows-guards.json",
+      "source": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-windows-guards-d8db93cc1-20261101\\controller.json",
+      "bytes": 1871,
+      "sha256": "03d205cb79dd5e29ed2b88b355fc3976d0c278de3bd899e65ce6c74d35a87ec6",
+      "form": "literal complete JSON bytes; no projection or normalization"
+    },
+    {
+      "copy": "candidate-default-core.json",
+      "source": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-default-core-d8db93cc1-20261101\\controller.json",
+      "bytes": 2700,
+      "sha256": "3c685d7cc088a7c49216c2b066e03a932734e9402a326d85093026a7df74f39d",
+      "form": "literal complete JSON bytes; no projection or normalization"
+    },
+    {
+      "copy": "candidate-windows-build.json",
+      "source": "R:\\d3-evidence\\environment-parent-play-needed-only-d8db93cc1-windows-20261101-completion.json",
+      "bytes": 805,
+      "sha256": "fc964843003b7e605cc66b22eac1db9e3d1bf1ccd79016ea7ee09bc207780cf0",
+      "form": "literal complete JSON bytes; no projection or normalization"
+    },
+    {
+      "copy": "candidate-controls.json",
+      "source": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\controller.json",
+      "bytes": 6325,
+      "sha256": "b0af6a3ac83880800c4e997722053871e79589e191c2c852469fa218d1fac0f8",
+      "form": "literal complete JSON bytes; no projection or normalization"
+    },
+    {
+      "copy": "original-unarmed-comparison.json",
+      "source": "R:\\d3-evidence\\parent-play-unarmed-complete-native8e-comparison-20261101.json",
+      "bytes": 1370,
+      "sha256": "67b54a354a26ea95f84f2969a864ba2c009b6218161659c410d493ba9929fc2a",
+      "form": "literal complete JSON bytes; no projection or normalization"
+    }
+  ],
+  "literal_json_copies": 11,
+  "projections": 1,
+  "readme_sha256": "9daea1676bc076c711affa7f2772ca75fa12a53c53bd2d8c158cdc18f40676f1",
+  "scope": "New narrow publication correction only. Original V1bundle and P2report211992 retained. Eleven copies remain literal; one labelled allocation-index projection preserves private original a542unchanged. Independent correction review and Gitimport/staged/committed-byte checks pending.",
+  "previous_prepared_manifest_sha256": "872804872e79beb5c8dd72018357854acc680c44d7425b984ee6490a8c0f4cf6"
+}

@@ -1,3 +1,46 @@
+# D3 checkpoint: finite default parent-play removal closed; variable-frame candidate validation running
+
+Tested native/embedded driver `d8db93cc1`: independent actual review
+`0e1f799a968a97584effd7f5a995dae68db8c2598892bd27d6354cabcc6f4a57`
+closes the finite default-only non-SESSION resumed-parent range/dispatch removal
+and named unsupported-live-handler refusal. All four new native/controllers finish0,
+eight full input checks0,70 payloads unchanged; both15-test platform suites,
+strict lint, separate default Engine/DC feature audit and all9 exact-d8CI pass.
+The production predicate is compiled without observer symbols. SESSION and Core
+child/validity/relink/count/network order remain unchanged.
+
+Complete5,191,384B/17,283row unarmed observations are byte-identical to the original
+including endings (SHA48307ff0...d81d). All140 natural request metadata tuples and
+the entire425,242B C census/case record match; the whole4,134B controlled state
+record matches, including recorded RNG/rounding/exception flags. Whole parent-probe
+raw equality is FALSE: protocol1/range/default dispatch diagnostics become honest
+protocol2 elision records with no invented range. The deliberate live overload
+stops at its first typed request; no post-poison receiver-zero/restoration claim.
+Original native8e/externalLua6aec and failures remain separately retained.
+
+Safe receipts are in `eech-campaign/reference/d3-environment-characterization/parent-play-default-elision-native-d8db93cc1/`.
+Eleven literal JSON copies and one explicitly labelled allocation-index projection
+retain private originala542 unchanged; twelve-copy V1 publication P2 stays private
+and corrected review12268369 is adjacent. Prepared literal bytes are preserved with
+narrow -text/cr-at-eol attributes and staged/committed blob checks. The tested native
+is stilld8; this publication changes documentation/receipts only.
+
+The next required host-time check uses the EXISTING repo `env-characterization.lua`
+and `frame_schedule=100,250,50`. Two FIRST candidate controls, Lebanon and Georgia,
+run on immutable d8/fresh verified roots under tool63919/controller12188 since
+13:14:20Z. Reuse accepted originalnative765/driver235 variable-phase data and
+independent390d2c review; no original campaign rerun or new clock product/schema.
+Actual candidate comparisons remain PENDING. Existing script does not exercise
+zero-delta/locked-rate branches; those remain source-only limits, not invented coverage.
+
+Task51 and WHOLE D3 remain OPEN: required remaining environment/loading/device/
+destroy/network/physical-time disposition and Tasks49/50, ordinary shipping40/all8
+complete Tacview/observation/metric comparisons, current final checks/review and
+normal merges are still required. D4/D5 are unstarted. No baseline/tolerance/flag/
+oracle changes, all-family/global-dormancy, audible or full-public-FP claim.
+
+The following chronological entries retain their own at-the-time identities.
+
 # D3 resumed-parent playback candidate: prose corrections and the current evidence identities (1 November 2026 UTC; prose only; after 5505e906e; the candidate stays SOURCE ONLY, UNBUILT, UNRUN, UNREVIEWED)
 
 Prose only: the comment of `soundeff.c play_resumed_parent_sound` no longer says the deliberate original overload reached only the default no-op; it reached 9 live non-default recording calls (detected as a live consumer, entries restored), apart from the 140 natural and 9 controlled DEFAULT calls. Executable code, observer, protocol, guards, Lua and flags are byte-identical to 5505e906e. Current identities (reported by Root, not reproduced by the author): the final independently AUTHORED original actual report `independent-environment-original-parent-play-actual-native8e-driver6aec-20261101.json` (SHA256 `0cff09b4…c3e3`, 11388 bytes, no findings, finite original characterization closed) is the report; Root's transcript `…disposition-message-20261101-1240.json` (`2cf4a35d…7145`) is preserved as a transcript and is not that report. The exact d4634ebd2 parent head has all 9 CI jobs successful including strict lint, i686 and Wine (receipt `current-CI-d4634ebd2-20261101.json`); that is the parent head and NOT the candidate 5505e906e. Jira EEDCS-51 comment 10926 records the start; the ledger v109 was published at 12:44:06.486Z with a read-back of all prior authored HTML and the five complete Jira report wrappers, queries and attributes exact after normalising only the five known published-parent-id 14548994 binding fields (no whole-HTML byte-equality claim). All earlier failed and partial evidence is retained.

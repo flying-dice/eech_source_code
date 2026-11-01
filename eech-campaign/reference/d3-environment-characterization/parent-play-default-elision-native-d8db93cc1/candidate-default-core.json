@@ -1,0 +1,66 @@
+{
+  "state": "terminal",
+  "source": "d8db93cc181a6980c00f9ec17967acf217645382",
+  "image": "sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51",
+  "controller_pid": 8008,
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "docker",
+    "run",
+    "--rm",
+    "--network",
+    "none",
+    "-i",
+    "-v",
+    "/mnt/d/EECH-Migration-Evidence/pe-d8db93cc1:/src:ro",
+    "-v",
+    "/mnt/d/EECH-Migration-Evidence/parent-play-needed-only-default-core-d8db93cc1-20261101:/evidence",
+    "-v",
+    "eech-linux-d3-collision-driver-5416adb3b-20261029:/target",
+    "-v",
+    "eech-cargo:/usr/local/cargo/registry",
+    "-e",
+    "CARGO_TARGET_DIR=/target",
+    "-e",
+    "EECH_ENGINE_OPT=1",
+    "-w",
+    "/src/eech-campaign",
+    "sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51",
+    "sh",
+    "-s"
+  ],
+  "started_utc": "2026-11-01T12:55:00.879635+00:00",
+  "scope": "Actual Linux default-feature Engine/DC Core build and bounded archive feature-off audit. Separate from World-only scripted guards; no campaigns or baseline reruns.",
+  "pid": 2328,
+  "actual_default_core": {
+    "state": "terminal",
+    "actual_build_exit": 0,
+    "build_script_out_dir": "/target/release/build/eech-engine-sys-67f92dad784c85a2/out",
+    "archive": "/target/release/build/eech-engine-sys-67f92dad784c85a2/out/libeech_engine.a",
+    "archive_sha256": "40abc85373f1a009359c69b2603ff779ad510e7a791a3218e5ba0ae5521d359c",
+    "actual_default_guard_symbol_present": true,
+    "actual_observer_symbol_count": 0,
+    "exported_objects": [
+      {
+        "member": "1fae6ee599bf24be-soundeff.o",
+        "file": "/evidence/1fae6ee599bf24be-soundeff.o",
+        "bytes": 403488,
+        "sha256": "d0edd16c2fcbc287a06bcb107f212e5e0a3602367d1a482dd93481c50e99e1da"
+      },
+      {
+        "member": "c0227ba9890dc6c0-en_snd.o",
+        "file": "/evidence/c0227ba9890dc6c0-en_snd.o",
+        "bytes": 618232,
+        "sha256": "df5b172e4c95e51e6aae67cd5c57c162c2148092a8e92bd43b682fa73f587b61"
+      }
+    ],
+    "selected_symbols_sha256": "dbb9573d852b41499571ae0e844ed5c17b3f1fa2704f95d355b35ab589f6e958",
+    "completed_utc": "2026-11-01T12:56:20.951196+00:00",
+    "scope": "Actual default-feature Core/Engine C build, not just the scripted World guard. True-default predicate is compiled and observer symbols are absent. Two affected archive objects retained for independent inspection. Not shipping Windows regression/native authority or wholeD3 acceptance; original-game nonhost branch is source-reviewed only."
+  },
+  "actual_exit": 0,
+  "completed_utc": "2026-11-01T12:56:21.510299+00:00"
+}

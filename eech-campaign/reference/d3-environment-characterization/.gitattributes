@@ -1,2 +1,4 @@
 rotor-host-native-26489a4a5/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 rotor-host-native-26489a4a5-publication-review.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+parent-play-default-elision-native-d8db93cc1/*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+parent-play-default-elision-native-d8db93cc1-publication-review.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

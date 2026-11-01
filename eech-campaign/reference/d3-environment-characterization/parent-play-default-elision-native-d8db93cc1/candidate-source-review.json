@@ -1,0 +1,122 @@
+{
+  "schema": "independent-needed-only-source-review-v1",
+  "reviewer": "/root/d3_environment_review",
+  "source": {
+    "head": "d8db93cc181a6980c00f9ec17967acf217645382",
+    "base": "d4634ebd20335e170764d3da716143ddc91885d2",
+    "frozen_repository": "D:/EECH-Migration-Evidence/pe-d8db93cc1",
+    "clean": true,
+    "changed_paths": [
+      "STATUS.md",
+      "aphavoc/source/entity/special/effect/soundeff/soundeff.c",
+      "aphavoc/source/entity/special/session/ss_envfx.h",
+      "aphavoc/source/entity/system/en_funcs/en_snd.c",
+      "aphavoc/source/entity/system/en_funcs/en_snd.h",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_env_observer.c",
+      "eech-campaign/crates/eech-engine/src/lib.rs",
+      "eech-campaign/crates/eech-world/lua/env-play-elided-parent.lua",
+      "eech-campaign/crates/eech-world/tests/env_play_resumed_parent.rs",
+      "eech-campaign/docs/d3-sound-lifetime.md"
+    ],
+    "diff_sha256": "345288e51fbcdf00d6201d1c818ebeff96f330bd9cef9858fe501fdac17319a9",
+    "file_hashes": [
+      {
+        "path": "STATUS.md",
+        "sha256": "e7c6bfb999b492c966eaa4fe351d5c8e2eb7df9dc5d9207de8dcef1d948c2886"
+      },
+      {
+        "path": "aphavoc/source/entity/special/effect/soundeff/soundeff.c",
+        "sha256": "65777d592530b29c946aaf7779c472319ad4a02b49f928ca0d767bc7b8f609e0"
+      },
+      {
+        "path": "aphavoc/source/entity/special/session/ss_envfx.h",
+        "sha256": "4e967d42e2c745eedcf108209f3e56fd1eed9230d925787ed549ae7a449881d5"
+      },
+      {
+        "path": "aphavoc/source/entity/system/en_funcs/en_snd.c",
+        "sha256": "2f500d9ecc6bec9a2f9cbcdd1c2a3c88cff9bd3027d80e2cabc965300efe2e2d"
+      },
+      {
+        "path": "aphavoc/source/entity/system/en_funcs/en_snd.h",
+        "sha256": "6af12e71a2397003ee8435b6872499e96a31709f58c27b189b95c7953a3501ea"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c",
+        "sha256": "2ec96461dda1ac17136337a4ca32490d20d2eacf935afffac5cbafd8db96d61a"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_observer.c",
+        "sha256": "9cdb48c4c4d7c8ac6e06df423992c53a51b1778744daa40105075cb256d32e7c"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+        "sha256": "80fbc63e3c2963f29f767b238250245dc456022e85ff7f290a30753e4ac84166"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-play-elided-parent.lua",
+        "sha256": "6c8564fbef1237cd91b1e42d9efb9aba9c1d578e06d9c33d1fe5f374e78611d4"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_play_resumed_parent.rs",
+        "sha256": "c2d5c9008bb9cdbb0ad842d4c017027a60b2c55e8fc1cf03531d637a61c680f1"
+      },
+      {
+        "path": "eech-campaign/docs/d3-sound-lifetime.md",
+        "sha256": "6bdd74eefae88c03c0e3dbc4af896f9486e5f90666eb2aabc336b6ef3dad2624"
+      }
+    ],
+    "all_other_tracked_entries_and_modes_exact": true,
+    "original_Lua_unchanged": true,
+    "engine_C_unchanged_NUL_count": 1,
+    "engine_C_NUL_offset": 40800,
+    "fixture_executable_bytes_unchanged": true
+  },
+  "scope": "One combined new focused implementation/witness correctness, clean-code, boundary and prose pass. Original characterization0cff and unchanged kernels/fixtures/publication conclusions reused. No reviewer product edits, builds, tests, campaigns or nested agents.",
+  "findings": [],
+  "source_review_no_blocking_findings": true,
+  "inspected_facts": [
+    "campaign_play_entity_sound_is_default is implemented beside the actual static default_play_entity_sound, whose body is empty. It checks the supplied type against0..NUM_ENTITY_TYPES before indexing and compares the entry to that function, not mutable table[0], a backend flag or a family allowlist. Only the hosted build exposes this private integer predicate.",
+    "For a non-SESSION resumed parent the hosted helper reads its type, checks that predicate and invokes named debug_fatal on every non-default/invalid entry BEFORE get-position, any range arithmetic or physical dispatch. The true-default branch computes no range and performs no playback call. A merely installed SoundEffect32 override is legal; it is not a global startup refusal.",
+    "The actual headless debug_fatal formats the error, sets eech_engine_poisoned and longjmps to the active engine entry; without a target it aborts. It does not return into the elided path. A fatal fixture cannot restore or continue observing, which the candidate witness explicitly acknowledges.",
+    "The SESSION branch is byte-identical. Child walk/type matching, host validity/play/relink/count decision, validity application, playback-request position, relink and count order, timers and client/server/network wrappers are unchanged outside explanatory comments. The original-game #else retains its original range and dispatch body; this is a source-preservation conclusion, not a new original-game runtime result.",
+    "Observer protocol2 honestly uses env-play-elided with seven fields and NO range/default-word fiction. The C hook now receives only integer/pointer inputs; it does not recompute a legacy range. Its private default pointer captured at the all-default initialization point independently cross-checks the production predicate; a disagreement or invalid type increments bad_points instead of recording a valid elision.",
+    "Legacy observer streams and public text-buffer ABI are unchanged. Paging/completeness/counter/arm behavior remains the closed design. Version2 report and row names reject protocol1, and the accepted original Lua remains byte-exact and separate.",
+    "Candidate natural/fixture validation reuses the reviewed closed grammar, exact scalar/FNV/target/three-position/state/restoration/counter/phase/I/O joins. It accepts only default fixture entries and joins every reported elided request without inventing a physical result. Root's later actual comparison must establish original request/cohort/count/state conformance.",
+    "Candidate overload requires env_case20 to fail at the unique named boundary with a type/index for one of its target types. A returned report/refusal, generic error, missing metadata or wrong type fails. No Engine method is called after the accepted fatal: only cached bookkeeping, checked evidence writes and closes follow. It does not claim a measured zero receiver count, post-stop census or restoration.",
+    "New shared Rust drive_source keeps original-driver override behavior separate from the candidate's fixed embedded script. All old guards remain; two candidate functions cover protocol/version/range-field rejection, default identity, and named unsupported-stop discrimination. Scripted collaborators prove parser behavior, not genuine C fatal/absence or audio support.",
+    "Fixture executable bytes are unchanged; only the original-versus-candidate fatal/diagnostic explanation is revised. No host ABI, new numerical rule, flag, baseline, tolerance, oracle or preferred value is introduced."
+  ],
+  "clean_code_assessment": "The small predicate lives with its true static default and exports no private pointer. The removal is confined to one hosted route. Separate immutable version1/version2 test drivers preserve original evidence and make intentional schema differences explicit; shared test execution avoids replacing old tests. No concrete maintainability or boundary blocker found.",
+  "prose_and_scope": {
+    "basis": "Original8e/6aec:140 natural default requests,9 controlled defaults,9 detected deliberate non-default receiver calls. Source comments/docs correctly distinguish these and quote final authored0cff rather than treating the earlier transcript as a review.",
+    "diagnostics": "Report version, row names/range fields, deliberate-overload outcome and possible FP diagnostics intentionally differ. Actual strict comparisons must retain FALSE scopes and classify changes; no legacy range is recomputed solely for golden equality.",
+    "remaining_scope": "No all-family/global dormancy or audible support claim. Non-default request refusal is an explicit unsupported boundary, not positive live-backend support. Other playback entrypoints and required remaining services stay separate D3 responsibilities."
+  },
+  "new_execution_context": {
+    "producer": "Root; contextual gates, not reviewer executions or candidate runtime acceptance",
+    "Linux_World": "15guard functions and strictClippy actual0 at12:52:58Z; World-only compilation is not Core feature-off proof.",
+    "Linux_default_Core": "Separate Engine/DC build and archive/object audit reported0 at12:56:21Z: predicate T present, no eech_envobs_ symbols. This is ordinary hosted default-feature context, not old-game #else runtime equivalence.",
+    "Windows": "Ordinary observer build reported0 at12:55:33Z, actual imagef503d760d85e8db44565951d3c96768750a22852464b6c34a3bc216945545789,70payloads; native Windows guard15PASS0 at12:56:24Z using actual LuaDLL7b2ec3f3fd174f6b65a2159ee46dc8e9102624a350d978e16ddf4396d7c2be0b.",
+    "candidate_campaigns": "None run at source review; four fresh roots remain unused. Candidate current CI remains pending."
+  },
+  "limits": [
+    "Source gate only. The new candidate's complete ordinary/default, controlled-state and unsupported-live-request runtime evidence requires its separate actual review.",
+    "A named fatal plus reviewed source order supports before-calculation/dispatch. After poison no live handler count or state cleanup can be queried; absence is not manufactured as measured zero.",
+    "No full public FP, all-family/player/network/lifecycle, audio/device, complete terrain/spatial/model/time, shipping40/all8/Tacview, wholeTask51/D3, current-final-CI or normal delivery acceptance.",
+    "Old original driver/recordings and accepted0cff facts remain immutable. Protocol1 rejection alone is a schema check, not a fresh proof of old-native guard absence; the retained genuine original live-overload run supplies that contrast."
+  ],
+  "created_utc": "2026-11-01T12:59:46.664186+00:00",
+  "evidence": [
+    {
+      "path": "R:\\d3-evidence\\parent-play-needed-only-source-d8db93cc1-20261101.json",
+      "bytes": 3382,
+      "sha256": "ce3a058044f485463a0f50b8151248daaa9cb4b78d8069a73cb8d9c8b79a54ea"
+    },
+    {
+      "path": "R:\\d3-evidence\\independent-environment-original-parent-play-actual-native8e-driver6aec-20261101.json",
+      "bytes": 11388,
+      "sha256": "0cff09b4b293e44e59a564241bc24cc98cf43837fb3a3769f8df7d50d51cc3e3"
+    }
+  ]
+}
