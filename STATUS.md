@@ -18,6 +18,16 @@ The first production route-data move is prepared/pushed at `66dc2e8a237a46f92003
 
 Task51 ordinary source78 shipping continues on its original immutable snapshot without restart; fifth check around19:40 UTC finds all four available recording/observation prefixes exact (24,733,777/15,499,264/24,676,439/15,089,664 bytes), PARTIAL only. Actual full40/all8/post-input/final review/current checks/normal delivery remain pending. Ledger117 preserves prior authored HTML and all five epic reports; Jira50comment10937 records the closed original gate and extraction start. Task49/50/51 and wholeD3 remain In Progress; D4/D5 are unstarted. No accepted baseline, tolerance, oracle or flag changed. Historical checkpoint sections below retain their original scope and identities.
 
+# D3 four-buffer cut: one residual loader I/O finding closed in source (1 November 2026): UNBUILT, NOT RUN
+
+The same review pass found that the custom `.EEO` polygon-face stream accepted a NEGATIVE signed `number_of_polygoned_faces`: the stream loop and the validation loop do not run, so the file
+was accepted with its polygon region unread. `campaign_model_loader_count` (`mb_hostmodel.c`) now refuses a negative count by name (`[model-provider:object.loader] ... is not a number of
+records`, not a short read) before the stream, through one added call in the staged patch `LE4` (build/patches.rs; still 86 staged loader patches, all with their strict counts); a large count meets the end of the file and is
+the existing short-read refusal. Valid counts, stream offsets, texture overrides and the original validation phase are unchanged; the legacy header reads stay as they were. The Root's 051 builds
+are still running on their OWN source, which is neither stopped nor relabelled; nothing here is built or run. The three earlier groups stay closed in source only, and the CCC actuals stay valid at
+their own identity. Task50 and D3 (metadata, surfaces, normals, animation lists, hierarchy, viewpoint, device, muzzle, target-point, Task49 collision) and Task51's ordinary 78 shipping run remain
+open: no 40-check, all-eight or full closure.
+
 # D3 four-buffer cut: the finite gate is OPEN on three findings (review `7f220c49`); the corrected source is UNBUILT (1 November 2026)
 
 The Root's actuals at `ccc452982a` (their OWN source; not relabelled for the fixed source): default 569/0 and combined 569/0, fmt and both strict 0; Windows combined 0; six controls with all four

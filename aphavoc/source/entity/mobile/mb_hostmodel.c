@@ -818,6 +818,18 @@ void campaign_model_loader_skip (FILE *file, long long count, unsigned long long
 	}
 }
 
+// The custom loader streams its polygon faces through a local buffer for their one validation, and the stream loop is driven by the header's signed count. A NEGATIVE count is no
+// number of records: the loop would not run, the validation would be skipped and the file would be accepted with its polygon region unread, which the retained buffer never allowed.
+// It is refused here, by name and before the stream, as a bad count (not as a short read). An int count needs no upper bound: a large count meets the end of the file and is the
+// short-read refusal below.
+void campaign_model_loader_count (const char *what, int count)
+{
+	if (count < 0)
+	{
+		debug_fatal ("host model: [model-provider:object.loader] %s: a count of %d is not a number of records", what, count);
+	}
+}
+
 // the custom loader's polygon faces are streamed through a local buffer for their one validation; a chunk that was not read in full is the same refusal
 void campaign_model_loader_short (const char *what)
 {
