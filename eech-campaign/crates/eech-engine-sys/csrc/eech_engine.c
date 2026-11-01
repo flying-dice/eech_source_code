@@ -1752,6 +1752,7 @@ int eech_engine_model_state (char *text, int capacity)
 extern int eech_model_host_counters_run (char *text, int capacity);
 extern int eech_model_host_poison_run (void);
 extern int eech_model_host_probe_run (int scene, int depth, char *text, int capacity);
+extern int eech_model_host_horizon_refusal_run (char *text, int capacity);
 
 int eech_engine_model_host_counters (char *text, int capacity)
 {
@@ -1789,6 +1790,20 @@ int eech_engine_model_host_probe (int scene, int depth, char *text, int capacity
 		LEAVE (EECH_ENGINE_STATE);
 	}
 	if (!text || (capacity <= 0) || eech_model_host_probe_run (scene, depth, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_model_host_horizon_refusal (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_model_host_horizon_refusal_run (text, capacity) != 0)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}

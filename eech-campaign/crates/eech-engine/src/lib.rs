@@ -5325,6 +5325,18 @@ impl Engine {
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
     }
 
+    /// TEST-ONLY (feature `model-host-fixture`, EEDCS-50 D3 loader detachment): calls the REAL `add_3d_horizon_image` on the campaign's own horizon environment with a basename no
+    /// installation has, so that the reader takes its uncached branch, where the hosted engine stops by name (`[model-provider:object.geometry]`) before any image I/O or geometry
+    /// read. The stop is the engine's fatal error: it is returned as `Err` with that message and the engine is poisoned afterwards. `Ok` means the reader did not stop.
+    #[cfg(feature = "model-host-fixture")]
+    pub fn model_host_horizon_refusal(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; 256];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_model_host_horizon_refusal(text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
     /// TEST-ONLY (feature `model-host-fixture`, EEDCS-50 D3): one scene's radius and bounds (asked twice: same address and bits) and one step of its collision-triangle cursor
     /// through the REAL public accessors, as `key=value` rows in the format of the original fixture's (float bit patterns, the return, the buffer words written, the rounding
     /// mode before and after). A host that cannot answer stops the engine with its reason.

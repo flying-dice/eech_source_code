@@ -42,6 +42,7 @@ struct campaign_model_counters
 extern struct campaign_model_counters campaign_model_counts;
 extern void campaign_model_poison_arrays (void);
 extern void campaign_model_core_residency (int *rows, int *metadata_rows, int *points, int *faces, int *point_refs, int *surface_points);
+extern void campaign_model_core_horizon (int *cached, int *uncached);
 
 static uint32_t float_bits (float value)
 {
@@ -58,8 +59,8 @@ static void bounds_text (char *buffer, size_t capacity, const struct OBJECT_3D_B
 
 int eech_model_host_counters_run (char *text, int capacity)
 {
-	int rows, metadata_rows, points, faces, point_refs, surface_points;
-	int n, m;
+	int rows, metadata_rows, points, faces, point_refs, surface_points, cached, uncached;
+	int n, m, k;
 
 	n = snprintf (text, (size_t) capacity,
 		"model-host catalogue=%ld scene=%ld triangle=%ld found=%ld end=%ld absent=%ld bounds_reads=%ld bounds_without_lines_reads=%ld radius_reads=%ld"
@@ -79,7 +80,34 @@ int eech_model_host_counters_run (char *text, int capacity)
 	m = snprintf (text + n, (size_t) (capacity - n), "model-core-residency rows=%d metadata_rows=%d points=%d faces=%d point_refs=%d surface_points=%d\n", rows, metadata_rows, points, faces,
 		point_refs, surface_points);
 
-	return ((m < 0) || (m >= capacity - n)) ? 1 : 0;
+	if ((m < 0) || (m >= capacity - n))
+	{
+		return 1;
+	}
+
+	/* the horizon images the boot took: the pre-processed branch (point colours and fog, no point read) and the uncached one (which the hosted engine refuses by name) */
+	campaign_model_core_horizon (&cached, &uncached);
+	k = snprintf (text + n + m, (size_t) (capacity - n - m), "model-core-horizon cached=%d uncached=%d\n", cached, uncached);
+
+	return ((k < 0) || (k >= capacity - n - m)) ? 1 : 0;
+}
+
+/* An UNSUPPORTED reader, called for real: add_3d_horizon_image on the campaign's own horizon environment (main_3d_env, made at boot) with a basename no installation has. It has
+   no pre-processed `.bin`, so the real reader takes its uncached branch, where the hosted engine stops by name BEFORE any image I/O or geometry read (patches.rs LU1). The stop
+   unwinds to the engine entry as a fatal error and the engine is then poisoned: nothing is asked after it. A return from this function means the reader did NOT stop. */
+int eech_model_host_horizon_refusal_run (char *text, int capacity)
+{
+	extern env_3d *main_3d_env;
+	int n;
+
+	if (!main_3d_env)
+	{
+		return 1;
+	}
+	add_3d_horizon_image (main_3d_env, "eech-fixture-no-such-horizon", 0.0f, WEATHERMODE_DRY);
+	n = snprintf (text, (size_t) capacity, "model-core-horizon-refusal returned=1\n");
+
+	return ((n < 0) || (n >= capacity)) ? 1 : 0;
 }
 
 int eech_model_host_poison_run (void)

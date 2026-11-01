@@ -1549,6 +1549,7 @@ extern "C" {
     pub fn eech_engine_model_host_counters(text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_model_host_poison() -> c_int;
     pub fn eech_engine_model_host_probe(scene: c_int, depth: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_host_horizon_refusal(text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_model_host_fpu(kind: c_int, scene: c_int, depth: c_int, rounding: c_int, text: *mut c_char, capacity: c_int) -> c_int;
 }
 

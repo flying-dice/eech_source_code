@@ -811,11 +811,11 @@ pub fn route_host_files() -> Vec<&'static str> {
 
 /// The loader detachment (EEDCS-50, D3), applied by main.rs in every build that has a host model AND the host route parser (i.e. not for feature model-fixture, which keeps the
 /// original accessors, nor for feature route-original, whose parser reads the campaign's own arrays): the common (`3dobjs.*`) and custom (`.EEO`) loaders of modules/3d/3dobjdb.c
-/// keep no point buffer, no face-point-reference buffer and no surface-point-reference buffer. The three streams are skipped by their exact byte counts, so every later read stays
-/// aligned and every count, bound, radius, surface descriptor, normal and texture point is the file's true value. The `faces` buffer (one polygon point count per polygon face) is
-/// NOT moved by this batch: its one non-render reader, the Mi-24 HUD (hi_hud.c, `initialise_hind_hud`), has no host service yet. The readers of the three buffers are the host
-/// (the collision triangle, the route data, and for the scene's own main object the horizon's points and the cockpit poly-lines through the route cursors with kind 0) or stop by
-/// name (campaign_model_geometry_reader). Same strict count check as the other sets.
+/// keep no point, polygon face, face-point-reference or surface-point-reference buffer. The streams are skipped by their exact byte counts (the custom loader's polygon faces are
+/// streamed through a small local buffer for the original validation and kept nowhere), so every later read stays aligned and every count, bound, radius, surface descriptor,
+/// normal and texture point is the file's true value. The campaign's readers of those buffers are the host's (the collision triangle, the route data); the horizon image reads its
+/// pre-processed `.bin` (point colours and fog, never points) and stops by name when it would generate an uncached image; every legacy visual / display reader (renderer, shadow,
+/// explosion, cloud, cockpit poly-lines, the Mi-24 HUD) stops by name at its head (campaign_model_geometry_reader). Same strict count check as the other sets.
 pub const LOADER_HOST_PATCHES: &[Patch] = &[
     // ---- the common loader (initialise_3d_objects): 3dobjs.pts and 3dobjs.sp are not mapped, the face point list is neither allocated nor read into memory
     Patch {
@@ -923,97 +923,135 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
         replacement: "\tobj->surface_points = NULL; /* EECH headless (D3 loader): the host owns the surface-point references; their bytes are skipped */\n\tif ( number_of_surface_point_references )\n\t{\n\t\tfseek ( file, 2L * number_of_surface_point_references, SEEK_CUR );\n\t}\n",
         count: 1,
     },
-    // ---- the two readers of a scene's own main object that run outside the renderer: the host answers them through the route cursors with kind 0
+    // ---- the fourth buffer, the polygon faces (one polygon point count per polygon face): the common loader neither allocates nor reads it into memory, the custom loader streams it
+    //      through a small local buffer for the original validation and keeps nothing
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "LC11-face-buffer-not-allocated",
+        why: "the database-wide polygon face buffer is not allocated",
+        original: "object_database_faces = ( struct OBJECT_3D_FACE * ) safe_malloc ( sizeof ( object_3d_face ) * total_number_of_polygons );\n",
+        replacement: "object_database_faces = NULL; /* EECH headless (D3 loader): the polygon face buffer is not allocated */\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "LC12-faces-skipped",
+        why: "an object's polygon faces are in the stream between its point normals and its face point references: they are skipped by their exact byte count (number_of_real_polygons records), not read into memory",
+        original: "fread ( current_faces, sizeof ( struct OBJECT_3D_FACE ), number_of_real_polygons, fp );\n",
+        replacement: "fseek ( fp, ( long ) ( sizeof ( struct OBJECT_3D_FACE ) * number_of_real_polygons ), SEEK_CUR ); /* EECH headless (D3 loader): skipped, not retained */\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "LC13-object-faces-not-set",
+        why: "an object's faces pointer into the (unallocated) face buffer is not set: the row keeps NULL",
+        original: "objects_3d_data[count].faces = current_faces;\n",
+        replacement: "objects_3d_data[count].faces = NULL; /* EECH headless (D3 loader) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "LC14-face-cursor-not-advanced",
+        why: "there is no face buffer to advance a cursor through",
+        original: "current_faces += number_of_real_polygons;\n",
+        replacement: "/* EECH headless (D3 loader): the face buffer is not allocated; no cursor to advance */\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "LE4-custom-faces-streamed-for-validation",
+        why: "an .EEO's polygon faces (1 byte each) are read through a local buffer, in chunks, only to find whether any has fewer than 3 points; the object keeps NULL. The result is acted on where the original acted on it, after the texture overrides",
+        original: "\tif ( number_of_polygoned_faces )  // number of points in each poly\n\t{\n\t\tobj->faces = ( struct OBJECT_3D_FACE * ) safe_malloc ( 1 * number_of_polygoned_faces );\n\t\tfread ( obj->faces, 1, number_of_polygoned_faces, file );\n\t}\n\telse\n\t\tobj->faces = NULL;\n",
+        replacement: concat!(
+            "\tint eech_polygon_face_invalid = 0; /* EECH headless (D3 loader): a polygon face with fewer than 3 points was streamed past */\n",
+            "\n",
+            "\tobj->faces = NULL;\n",
+            "\tif ( number_of_polygoned_faces )  // number of points in each poly: streamed for the validation, not retained\n",
+            "\t{\n",
+            "\t\tstruct OBJECT_3D_FACE face_buffer[256];\n",
+            "\t\tint remaining = number_of_polygoned_faces;\n",
+            "\n",
+            "\t\twhile ( remaining > 0 )\n",
+            "\t\t{\n",
+            "\t\t\tint chunk = ( remaining < 256 ) ? remaining : 256;\n",
+            "\t\t\tint got = ( int ) fread ( face_buffer, 1, chunk, file );\n",
+            "\t\t\tint k;\n",
+            "\n",
+            "\t\t\tfor ( k = 0; k < got; k++ )\n",
+            "\t\t\t{\n",
+            "\t\t\t\tif ( face_buffer[k].number_of_points < 3 )\n",
+            "\t\t\t\t{\n",
+            "\t\t\t\t\teech_polygon_face_invalid = 1;\n",
+            "\t\t\t\t}\n",
+            "\t\t\t}\n",
+            "\n",
+            "\t\t\tremaining -= chunk;\n",
+            "\t\t}\n",
+            "\t}\n"
+        ),
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "LE5-custom-face-validation-from-stream",
+        why: "the original polygon-face validation (after the texture overrides, returning FALSE) reads the streamed result instead of the retained faces; its loop, its position and its DEBUG fatal are unchanged",
+        original: "if ( obj->faces[i].number_of_points < 3 )\n",
+        replacement: "if ( eech_polygon_face_invalid )\n",
+        count: 1,
+    },
+    // ---- the horizon image: the cached branch is untouched; an UNCACHED image would decode the object's stored points and read a TGA, which the hosted engine does not support
     Patch {
         file: "modules/3d/3dhoriz.c",
-        id: "LH1-horizon-points-from-host",
-        why: "add_3d_horizon_image reads the horizon object's stored points (and scales them by the object's bounds) at boot; the host's decode of the scene's main object (the same arithmetic, the route cursors with kind 0) is the point it uses. The count and the bounds stay the file's true values",
-        original: "\t\t\tpointx = object->points[count].x;\n\t\t\tpointy = object->points[count].y;\n\t\t\tpointz = object->points[count].z;\n\n\t\t\tpointx *= xmax;\n\t\t\tpointy *= ymax;\n\t\t\tpointz *= zmax;\n",
+        id: "LU1-uncached-horizon-image-refused",
+        why: "add_3d_horizon_image takes the pre-processed `.bin` branch (point colours and fog only, no point read) when its point count matches the object's true count; only otherwise does it read a TGA and decode the object's stored points. That uncached generation is a legacy visual path the hosted engine does not support: it stops by name at the start of the branch, before any image I/O or geometry read. The fixture build counts the branch taken, before the stop",
+        original: "\tif ( !binary_loaded )\n\t{\n\n\t\tfloat\n\t\t\txmax,\n",
         replacement: concat!(
-            "\t\t\t{\n",
-            "\t\t\t\tvec3d host_point;\n",
-            "\t\t\t\textern int campaign_model_scene_node ( int scene, int index, vec3d *position ); /* EECH headless (D3 loader) */\n",
-            "\n",
-            "\t\t\t\tif ( !campaign_model_scene_node ( ( int ) env->horizon_3d_scene_index, count, &host_point ) )\n",
-            "\t\t\t\t{\n",
-            "\t\t\t\t\tdebug_fatal ( \"host model: [model-provider:scene.point] the horizon object has %d points and the host ends its points at %d\", object->number_of_points, count );\n",
-            "\t\t\t\t}\n",
-            "\n",
-            "\t\t\t\tpointx = host_point.x;\n",
-            "\t\t\t\tpointy = host_point.y;\n",
-            "\t\t\t\tpointz = host_point.z;\n",
-            "\t\t\t}\n"
-        ),
-        count: 1,
-    },
-    Patch {
-        file: "modules/3d/3dobjdb.c",
-        id: "LP1-poly-lines-from-host",
-        why: "get_object_3d_poly_line_data walked the main object's line faces through the campaign's own face-point-reference, surface-point and point buffers; the host answers the same ordered line faces and decoded points through the route cursors with kind 0. The original body is kept in the staged text only inside #if 0 (closed by LP2), so it can be audited against the source and nothing of it is compiled",
-        original: "void get_object_3d_poly_line_data ( object_3d_index_numbers index, vec3d *return_points )\n{\n",
-        replacement: concat!(
-            "extern int campaign_model_scene_node ( int scene, int index, vec3d *position ); /* EECH headless (D3 loader) */\n",
-            "extern int campaign_model_scene_line ( int scene, int face, int *point0, int *point1 );\n",
-            "\n",
-            "void get_object_3d_poly_line_data ( object_3d_index_numbers index, vec3d *return_points )\n",
-            "{\n",
-            "\tint\n",
-            "\t\tcount,\n",
-            "\t\tface,\n",
-            "\t\tpoint0,\n",
-            "\t\tpoint1;\n",
-            "\n",
-            "\tASSERT ( ( index > OBJECT_3D_INVALID_OBJECT_INDEX ) && ( index < OBJECT_3D_LAST ) );\n",
-            "\tASSERT ( objects_3d_scene_database[index].index );\n",
-            "\tASSERT ( return_points );\n",
-            "\n",
-            "\tcount = 0;\n",
-            "\n",
-            "\tfor ( face = 0; campaign_model_scene_line ( ( int ) index, face, &point0, &point1 ); face++ )\n",
+            "#ifdef EECH_MODEL_HOST_FIXTURE\n",
             "\t{\n",
-            "\t\tif ( !campaign_model_scene_node ( ( int ) index, point0, &return_points[count] ) )\n",
-            "\t\t{\n",
-            "\t\t\tdebug_fatal ( \"host model: [model-provider:scene.line] line face %d of scene %d names point %d, which the host does not have\", face, ( int ) index, point0 );\n",
-            "\t\t}\n",
-            "\n",
-            "\t\tcount++;\n",
-            "\n",
-            "\t\tif ( !campaign_model_scene_node ( ( int ) index, point1, &return_points[count] ) )\n",
-            "\t\t{\n",
-            "\t\t\tdebug_fatal ( \"host model: [model-provider:scene.line] line face %d of scene %d names point %d, which the host does not have\", face, ( int ) index, point1 );\n",
-            "\t\t}\n",
-            "\n",
-            "\t\tcount++;\n",
+            "\t\textern void campaign_model_horizon_branch ( int binary_loaded ); /* EECH headless (D3 loader), fixture only */\n",
+            "\t\tcampaign_model_horizon_branch ( binary_loaded );\n",
             "\t}\n",
-            "}\n",
+            "#endif\n",
             "\n",
-            "#if 0 /* EECH headless (D3 loader): the original body, from the campaign's own buffers */\n",
-            "void get_object_3d_poly_line_data ( object_3d_index_numbers index, vec3d *return_points )\n",
-            "{\n"
+            "\tif ( !binary_loaded )\n",
+            "\t{\n",
+            "\t\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n",
+            "\t\tcampaign_model_geometry_reader ( \"add_3d_horizon_image (an uncached horizon image: no pre-processed .bin of the object's point count for this image)\" );\n",
+            "\n",
+            "\t\tfloat\n",
+            "\t\t\txmax,\n"
         ),
         count: 1,
     },
-    Patch {
-        file: "modules/3d/3dobjdb.c",
-        id: "LP2-poly-lines-original-ends",
-        why: "closes the #if 0 opened by LP1 at the end of the original body (this text occurs once: the OGRE_EE guard that follows the function closes right after)",
-        original: "#endif\n\nvoid get_3d_sub_object_world_viewpoint ( struct OBJECT_3D_SUB_OBJECT_SEARCH_DATA *search, viewpoint *vp )\n",
-        replacement: "#endif /* EECH headless (D3 loader) */\n#endif\n\nvoid get_3d_sub_object_world_viewpoint ( struct OBJECT_3D_SUB_OBJECT_SEARCH_DATA *search, viewpoint *vp )\n",
-        count: 1,
-    },
-    // ---- the renderer / device entries that read the three buffers: a named stop at their head (campaign_model_geometry_reader)
+    // ---- every legacy visual / display reader of the four buffers (renderer, shadow, explosion, cloud, horizon, cockpit poly-lines, Mi-24 HUD): a named stop at its head (campaign_model_geometry_reader)
     Patch {
         file: "modules/3d/3dobjdb.c",
         id: "LR-reader-debug_object",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "static void debug_object(const char* filename, int objid)\n{\n",
         replacement: "static void debug_object(const char* filename, int objid)\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"debug_object\" );\n",
         count: 1,
     },
     Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "LR-reader-get_object_3d_poly_line_data",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        original: "void get_object_3d_poly_line_data ( object_3d_index_numbers index, vec3d *return_points )\n{\n",
+        replacement: "void get_object_3d_poly_line_data ( object_3d_index_numbers index, vec3d *return_points )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"get_object_3d_poly_line_data\" );\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/gunships/avionics/hind/hi_hud.c",
+        id: "LR-reader-initialise_hind_hud",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        original: "void initialise_hind_hud (void)\n{\n",
+        replacement: "void initialise_hind_hud (void)\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"initialise_hind_hud\" );\n",
+        count: 1,
+    },
+    Patch {
         file: "modules/3d/3dhoriz.c",
         id: "LR-reader-draw_3d_horizon",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "void draw_3d_horizon ( void )\n{\n",
         replacement: "void draw_3d_horizon ( void )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"draw_3d_horizon\" );\n",
         count: 1,
@@ -1021,7 +1059,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dhoriz.c",
         id: "LR-reader-transform_3d_horizon",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "void transform_3d_horizon ( object_3d *object )\n{\n",
         replacement: "void transform_3d_horizon ( object_3d *object )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"transform_3d_horizon\" );\n",
         count: 1,
@@ -1029,7 +1067,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dhoriz.c",
         id: "LR-reader-render_3d_horizon_face",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "static void render_3d_horizon_face ( object_3d_face *this_face, int surface_index, int reference_offset, struct OBJECT_3D_INFO *object_base, int apply_filter, rgb_colour colour_filter)\n{\n",
         replacement: "static void render_3d_horizon_face ( object_3d_face *this_face, int surface_index, int reference_offset, struct OBJECT_3D_INFO *object_base, int apply_filter, rgb_colour colour_filter)\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"render_3d_horizon_face\" );\n",
         count: 1,
@@ -1037,7 +1075,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dhoriz.c",
         id: "LR-reader-render_3d_horizon_infrared_face",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "static void render_3d_horizon_infrared_face ( object_3d_face *this_face, int surface_index, int reference_offset, struct OBJECT_3D_INFO *object_base )\n{\n",
         replacement: "static void render_3d_horizon_infrared_face ( object_3d_face *this_face, int surface_index, int reference_offset, struct OBJECT_3D_INFO *object_base )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"render_3d_horizon_infrared_face\" );\n",
         count: 1,
@@ -1045,7 +1083,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dexplos.c",
         id: "LR-reader-transform_3d_explosion_object",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "void transform_3d_explosion_object ( object_3d *object, vec3d *pos, displacement_map *displacement, explosion_object_points_lookup *points_lookup, float amplitude, vec3d *camera_direction )\n{\n",
         replacement: "void transform_3d_explosion_object ( object_3d *object, vec3d *pos, displacement_map *displacement, explosion_object_points_lookup *points_lookup, float amplitude, vec3d *camera_direction )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"transform_3d_explosion_object\" );\n",
         count: 1,
@@ -1053,7 +1091,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dexplos.c",
         id: "LR-reader-draw_3d_explosion_clipped_faces",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "void draw_3d_explosion_clipped_faces ( int object_number, vec3d *pos, light_3d_source *lights, object_3d_info *this_object_3d_info )\n{\n",
         replacement: "void draw_3d_explosion_clipped_faces ( int object_number, vec3d *pos, light_3d_source *lights, object_3d_info *this_object_3d_info )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"draw_3d_explosion_clipped_faces\" );\n",
         count: 1,
@@ -1061,7 +1099,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dexplos.c",
         id: "LR-reader-draw_3d_explosion_unclipped_faces",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "void draw_3d_explosion_unclipped_faces ( int object_number, vec3d *pos, light_3d_source *lights, object_3d_info *this_object_3d_info )\n{\n",
         replacement: "void draw_3d_explosion_unclipped_faces ( int object_number, vec3d *pos, light_3d_source *lights, object_3d_info *this_object_3d_info )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"draw_3d_explosion_unclipped_faces\" );\n",
         count: 1,
@@ -1069,7 +1107,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dexplos.c",
         id: "LR-reader-generate_explosion_object_texture_points",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "explosion_object_points_lookup * generate_explosion_object_texture_points ( int object_number, displacement_map *displacement )\n{\n",
         replacement: "explosion_object_points_lookup * generate_explosion_object_texture_points ( int object_number, displacement_map *displacement )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"generate_explosion_object_texture_points\" );\n",
         count: 1,
@@ -1077,7 +1115,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dfaces.c",
         id: "LR-reader-render_3d_object_face",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "void render_3d_object_face ( object_3d_face_list *face_order )\n{\n",
         replacement: "void render_3d_object_face ( object_3d_face_list *face_order )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"render_3d_object_face\" );\n",
         count: 1,
@@ -1085,7 +1123,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dobject.c",
         id: "LR-reader-calculate_line_colour",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "real_colour calculate_line_colour ( struct OBJECT_3D_INFO *object_base )\n{\n",
         replacement: "real_colour calculate_line_colour ( struct OBJECT_3D_INFO *object_base )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"calculate_line_colour\" );\n",
         count: 1,
@@ -1093,7 +1131,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dobject.c",
         id: "LR-reader-calculate_line_normal",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "void calculate_line_normal ( struct OBJECT_3D_INFO *object_base, vec3d *result_normal )\n{\n",
         replacement: "void calculate_line_normal ( struct OBJECT_3D_INFO *object_base, vec3d *result_normal )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"calculate_line_normal\" );\n",
         count: 1,
@@ -1101,7 +1139,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dobjvb.c",
         id: "LR-reader-initialise_3d_objects_in_d3d_old",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "void initialise_3d_objects_in_d3d_old ( void )\n{\n",
         replacement: "void initialise_3d_objects_in_d3d_old ( void )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"initialise_3d_objects_in_d3d_old\" );\n",
         count: 1,
@@ -1109,7 +1147,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dobjvb.c",
         id: "LR-reader-object_3d_render_hardware_surface",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "void object_3d_render_hardware_surface ( object_3d *object )\n{\n",
         replacement: "void object_3d_render_hardware_surface ( object_3d *object )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"object_3d_render_hardware_surface\" );\n",
         count: 1,
@@ -1117,7 +1155,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dscon.c",
         id: "LR-reader-construct_3d_surface_reflective_triangle_fan",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "vertex * construct_3d_surface_reflective_triangle_fan ( int triangle_index, int base_point, int *polygon_outcode, vec3d *normal )\n{\n",
         replacement: "vertex * construct_3d_surface_reflective_triangle_fan ( int triangle_index, int base_point, int *polygon_outcode, vec3d *normal )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"construct_3d_surface_reflective_triangle_fan\" );\n",
         count: 1,
@@ -1125,7 +1163,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dscon.c",
         id: "LR-reader-construct_3d_surface_gouraud_reflective_triangle_fan",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "vertex * construct_3d_surface_gouraud_reflective_triangle_fan ( int triangle_index, int base_point, int *polygon_outcode )\n{\n",
         replacement: "vertex * construct_3d_surface_gouraud_reflective_triangle_fan ( int triangle_index, int base_point, int *polygon_outcode )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"construct_3d_surface_gouraud_reflective_triangle_fan\" );\n",
         count: 1,
@@ -1133,7 +1171,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dshadow.c",
         id: "LR-reader-draw_3d_object_shadow",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "void draw_3d_object_shadow ( object_3d_instance *obj )\n{\n",
         replacement: "void draw_3d_object_shadow ( object_3d_instance *obj )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"draw_3d_object_shadow\" );\n",
         count: 1,
@@ -1141,7 +1179,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dshadow.c",
         id: "LR-reader-transform_3d_object_shadow",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "void transform_3d_object_shadow ( object_3d *object, vec3d *object_3d_scale, viewpoint *vp, vec3d *pos, vec3d *terrain_normal, vec3d *projection_direction, double projection_constant, double projection_factor, int points_base )\n{\n",
         replacement: "void transform_3d_object_shadow ( object_3d *object, vec3d *object_3d_scale, viewpoint *vp, vec3d *pos, vec3d *terrain_normal, vec3d *projection_direction, double projection_constant, double projection_factor, int points_base )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"transform_3d_object_shadow\" );\n",
         count: 1,
@@ -1149,7 +1187,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dwface1.c",
         id: "LR-reader-wrender_clipped_3d_object_polygon",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "void wrender_clipped_3d_object_polygon ( object_3d_face *this_face )\n{\n",
         replacement: "void wrender_clipped_3d_object_polygon ( object_3d_face *this_face )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"wrender_clipped_3d_object_polygon\" );\n",
         count: 1,
@@ -1157,7 +1195,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dwface2.c",
         id: "LR-reader-wrender_unclipped_3d_object_textured_polygon",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "void wrender_unclipped_3d_object_textured_polygon ( object_3d_face *this_face )\n{\n",
         replacement: "void wrender_unclipped_3d_object_textured_polygon ( object_3d_face *this_face )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"wrender_unclipped_3d_object_textured_polygon\" );\n",
         count: 1,
@@ -1165,7 +1203,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dwface2.c",
         id: "LR-reader-wrender_unclipped_3d_object_gouraud_textured_polygon",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "void wrender_unclipped_3d_object_gouraud_textured_polygon ( object_3d_face *this_face )\n{\n",
         replacement: "void wrender_unclipped_3d_object_gouraud_textured_polygon ( object_3d_face *this_face )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"wrender_unclipped_3d_object_gouraud_textured_polygon\" );\n",
         count: 1,
@@ -1173,7 +1211,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dwface2.c",
         id: "LR-reader-wrender_unclipped_3d_object_gouraud_textured_nospecular_polygon",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "void wrender_unclipped_3d_object_gouraud_textured_nospecular_polygon ( object_3d_face *this_face )\n{\n",
         replacement: "void wrender_unclipped_3d_object_gouraud_textured_nospecular_polygon ( object_3d_face *this_face )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"wrender_unclipped_3d_object_gouraud_textured_nospecular_polygon\" );\n",
         count: 1,
@@ -1181,7 +1219,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dwface2.c",
         id: "LR-reader-wrender_unclipped_3d_object_polygon",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "void wrender_unclipped_3d_object_polygon ( object_3d_face *this_face )\n{\n",
         replacement: "void wrender_unclipped_3d_object_polygon ( object_3d_face *this_face )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"wrender_unclipped_3d_object_polygon\" );\n",
         count: 1,
@@ -1189,7 +1227,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dwface2.c",
         id: "LR-reader-wrender_unclipped_3d_object_gouraud_polygon",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "void wrender_unclipped_3d_object_gouraud_polygon ( object_3d_face *this_face )\n{\n",
         replacement: "void wrender_unclipped_3d_object_gouraud_polygon ( object_3d_face *this_face )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"wrender_unclipped_3d_object_gouraud_polygon\" );\n",
         count: 1,
@@ -1197,7 +1235,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dwface2.c",
         id: "LR-reader-wrender_translucent_unclipped_3d_object_reflective_polygon",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "void wrender_translucent_unclipped_3d_object_reflective_polygon ( object_3d_face *this_face )\n{\n",
         replacement: "void wrender_translucent_unclipped_3d_object_reflective_polygon ( object_3d_face *this_face )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"wrender_translucent_unclipped_3d_object_reflective_polygon\" );\n",
         count: 1,
@@ -1205,7 +1243,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dwface2.c",
         id: "LR-reader-wrender_translucent_unclipped_3d_object_reflective_gouraud_polygon",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "void wrender_translucent_unclipped_3d_object_reflective_gouraud_polygon ( object_3d_face *this_face )\n{\n",
         replacement: "void wrender_translucent_unclipped_3d_object_reflective_gouraud_polygon ( object_3d_face *this_face )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"wrender_translucent_unclipped_3d_object_reflective_gouraud_polygon\" );\n",
         count: 1,
@@ -1213,23 +1251,39 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/clouds/3dtrump.c",
         id: "LR-reader-transform_3d_cloud_trumpet",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "void transform_3d_cloud_trumpet ( object_3d *object, viewpoint *vp, vec3d *relative_position )\n{\n",
         replacement: "void transform_3d_cloud_trumpet ( object_3d *object, viewpoint *vp, vec3d *relative_position )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"transform_3d_cloud_trumpet\" );\n",
         count: 1,
     },
     Patch {
+        file: "modules/3d/clouds/3dtrump.c",
+        id: "LR-reader-draw_3d_cloud_trumpet",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        original: "void draw_3d_cloud_trumpet ( void )\n{\n",
+        replacement: "void draw_3d_cloud_trumpet ( void )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"draw_3d_cloud_trumpet\" );\n",
+        count: 1,
+    },
+    Patch {
         file: "modules/3d/clouds/3dclouds.c",
         id: "LR-reader-transform_3d_cloud",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "void transform_3d_cloud ( object_3d *object, vec3d *pos, light_3d_source *lights, int points_base )\n{\n",
         replacement: "void transform_3d_cloud ( object_3d *object, vec3d *pos, light_3d_source *lights, int points_base )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"transform_3d_cloud\" );\n",
         count: 1,
     },
     Patch {
+        file: "modules/3d/clouds/3dclouds.c",
+        id: "LR-reader-draw_3d_cloud",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        original: "void draw_3d_cloud ( object_3d_instance *obj )\n{\n",
+        replacement: "void draw_3d_cloud ( object_3d_instance *obj )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"draw_3d_cloud\" );\n",
+        count: 1,
+    },
+    Patch {
         file: "modules/3d/3dobjdrh.c",
         id: "LR-reader-draw_3d_object_hardware_faces",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "static void draw_3d_object_hardware_faces ( int object_number, object_3d_info *this_object_3d_info )\n{\n",
         replacement: "static void draw_3d_object_hardware_faces ( int object_number, object_3d_info *this_object_3d_info )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"draw_3d_object_hardware_faces\" );\n",
         count: 1,
@@ -1237,7 +1291,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dobjdrh.c",
         id: "LR-reader-draw_3d_object_untextured_hardware_faces",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "static void draw_3d_object_untextured_hardware_faces ( int object_number, object_3d_info *this_object_3d_info )\n{\n",
         replacement: "static void draw_3d_object_untextured_hardware_faces ( int object_number, object_3d_info *this_object_3d_info )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"draw_3d_object_untextured_hardware_faces\" );\n",
         count: 1,
@@ -1245,7 +1299,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dobjdrw.c",
         id: "LR-reader-draw_3d_object_clipped_faces",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "void draw_3d_object_clipped_faces ( int object_number )\n{\n",
         replacement: "void draw_3d_object_clipped_faces ( int object_number )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"draw_3d_object_clipped_faces\" );\n",
         count: 1,
@@ -1253,7 +1307,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dobjdrw.c",
         id: "LR-reader-draw_3d_object_unclipped_faces",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "void draw_3d_object_unclipped_faces ( int object_number )\n{\n",
         replacement: "void draw_3d_object_unclipped_faces ( int object_number )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"draw_3d_object_unclipped_faces\" );\n",
         count: 1,
@@ -1261,7 +1315,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dobjdrw.c",
         id: "LR-reader-draw_3d_object_untextured_clipped_faces",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "void draw_3d_object_untextured_clipped_faces ( int object_number )\n{\n",
         replacement: "void draw_3d_object_untextured_clipped_faces ( int object_number )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"draw_3d_object_untextured_clipped_faces\" );\n",
         count: 1,
@@ -1269,7 +1323,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dobjdrw.c",
         id: "LR-reader-draw_3d_object_untextured_unclipped_faces",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "void draw_3d_object_untextured_unclipped_faces ( int object_number )\n{\n",
         replacement: "void draw_3d_object_untextured_unclipped_faces ( int object_number )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"draw_3d_object_untextured_unclipped_faces\" );\n",
         count: 1,
@@ -1277,7 +1331,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dobjzdr.c",
         id: "LR-reader-draw_z_sorted_3d_object",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "void draw_z_sorted_3d_object ( object_3d_instance *obj )\n{\n",
         replacement: "void draw_z_sorted_3d_object ( object_3d_instance *obj )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"draw_z_sorted_3d_object\" );\n",
         count: 1,
@@ -1285,7 +1339,7 @@ pub const LOADER_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dobjzdr.c",
         id: "LR-reader-draw_z_sorted_sub_object",
-        why: "a renderer / device entry that reads a point, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
+        why: "a legacy visual / display reader of a point, face, face-point-reference or surface-point buffer the loader no longer holds: it stops by name at its head, before any of them is read",
         original: "void draw_z_sorted_sub_object ( object_3d_sub_instance *obj, object_3d_database_entry *scene, viewpoint *parent_viewpoint, light_3d_source *parent_lights, vec3d *position )\n{\n",
         replacement: "void draw_z_sorted_sub_object ( object_3d_sub_instance *obj, object_3d_database_entry *scene, viewpoint *parent_viewpoint, light_3d_source *parent_lights, vec3d *position )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader) */\n\tcampaign_model_geometry_reader ( \"draw_z_sorted_sub_object\" );\n",
         count: 1,

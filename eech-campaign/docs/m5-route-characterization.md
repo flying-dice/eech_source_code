@@ -182,14 +182,19 @@ the per-depth positions), which are textually unchanged. The host owns the model
   a host route beyond it is unsupported and unmeasured here, and a baseline route reaching it would be a regression to investigate, not an excused case). Nothing is truncated, skipped or invented, and a route the
   parser could take runs the same statements in the same order. The original parser has none of it. H5b removes the bounds scale (`xmax`/`ymax`/`zmax`) H5 left unused in the hosted parser.
   `campaign_model_route_probe` (test-only) is compiled only with `EECH_MODEL_HOST_FIXTURE`.
-* **Loader detachment, first batch** (source; NOT built, NOT run; `LOADER_HOST_PATCHES` in `build/patches.rs`, applied with the host route parser): the common loader (`initialise_3d_objects`)
-  does not map `3dobjs.pts` or `3dobjs.sp`, does not allocate the face point list and skips its stream bytes by their exact counts (`fseek`); the custom `.EEO` loader (`read_object`) skips the
-  same three streams by their exact byte counts. The rows keep the file's true counts, both bounds, radius, surface descriptors, normals and texture points, and the hierarchy is read as before; the
-  three buffers (`points`, `object_faces_point_plain_list`, `surface_points`) are NULL. The `faces` buffer (one polygon point count per polygon face) is NOT moved: its one non-render reader, the Mi-24 HUD
-  (`hi_hud.c` `initialise_hind_hud`, which sums them), has no host service yet. The readers of the three buffers are answered by the host or stop by name: the horizon's points (`add_3d_horizon_image`, at
-  boot) and the cockpit display poly-lines (`get_object_3d_poly_line_data`) ask the route cursors with **kind 0, the scene's main-object role** (no raw object number crosses; same decode, same echo), and every
-  renderer / device entry that dereferences them stops at its head with `[model-provider:object.geometry]` (the `LR-reader-*` patches). The model-host fixture's counters entry reports
-  `model-core-residency rows= metadata_rows= points= faces= point_refs= surface_points=` (integer counts over the actual rows, no address).
+* **Loader detachment, four buffers** (source; NOT built, NOT run; `LOADER_HOST_PATCHES` in `build/patches.rs`, applied with the host route parser): the common loader (`initialise_3d_objects`)
+  does not map `3dobjs.pts` or `3dobjs.sp` and does not allocate the polygon face buffer or the face point list; it skips their stream bytes by their exact counts (`fseek`). The custom `.EEO`
+  loader (`read_object`) skips the points, the face point references and the surface-point references the same way and streams the polygon faces (one byte each) through a small local buffer
+  only to find whether one has fewer than 3 points, acting on that where the original did (after the texture overrides, returning FALSE). The rows keep the file's true counts, both bounds, radius,
+  surface descriptors, normals and texture points, and the hierarchy is read as before; the four buffers (`points`, `faces`, `object_faces_point_plain_list`, `surface_points`) are NULL.
+  The campaign's own readers of them are the host's (the collision triangle, the route data). Every legacy VISUAL / DISPLAY reader stops by name at its head, before any buffer, image or device
+  is touched, with `[model-provider:object.geometry]` and the operation (the `LR-reader-*` patches: the renderer, shadow, explosion, cloud and horizon draws, the cockpit display poly-lines
+  `get_object_3d_poly_line_data` and the Mi-24 HUD `initialise_hind_hud`): none is a campaign requirement merely because it compiles, and none is ported. The horizon image is special only in that
+  boot reaches it: `add_3d_horizon_image` first loads `<image>.bin` when its point count matches the object's TRUE count, which reads point colours and fog and never a point, and that branch is
+  untouched; only an UNCACHED image (it would read a TGA and decode the stored points) stops, at the start of that branch (`LU1`). No main-object point service exists or is needed, and no
+  decode formula was changed or characterised: the earlier kind-0 route cursor (c389) is removed. The model-host fixture's counters report `model-core-residency rows= metadata_rows= points= faces=
+  point_refs= surface_points=` (integer counts over the actual rows, no address) and `model-core-horizon cached= uncached=`; the fixture entry `model_host_horizon_refusal` calls the REAL
+  `add_3d_horizon_image` with a basename no installation has, and `lua/model-horizon-control.lua` drives both.
 * **Controls prepared** (the Root runs them): the host store's contract tests (`tests/model_route.rs`: kind lookup order, the colour, the ordered faces through each surface's own
   references, absence versus end versus argument error versus refusal), the driver's host-profile shapes, the bridge tests in `eech-dc`, the model-host-fixture probe now also asks one route
   node and face under each caller rounding mode (`model-host-route` line), and the existing authority modes (`model-authority.lua` forwards the new `kind` argument; the route questions

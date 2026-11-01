@@ -412,6 +412,10 @@ int eech_engine_model_host_poison (void);
    original fixture's rows (float bit patterns, the return, the number of the nine buffer words written, the rounding mode before and after). Fails (bad argument) for a scene
    outside 1 .. OBJECT_3D_LAST - 1, a negative depth, or a report that does not fit `capacity`. A host that cannot answer stops the engine with its reason. */
 int eech_engine_model_host_probe (int scene, int depth, char *text, int capacity);
+/* An UNSUPPORTED legacy visual reader, called for real (EEDCS-50, D3 loader detachment): add_3d_horizon_image on the campaign's own horizon environment with a basename no installation
+   has. The real reader takes its uncached branch and the hosted engine stops by name ([model-provider:object.geometry]) before any image I/O or geometry read; that fatal error ends the
+   entry and the engine is then poisoned. OK means the reader did NOT stop. Bad argument when the horizon environment does not exist. */
+int eech_engine_model_host_horizon_refusal (char *text, int capacity);
 /* The COMPLETE outer floating-point state (x87 control and status words, MXCSR) around a real public entry, from the caller's side. NOT an engine entry: it is the caller. It sets
    the requested rounding mode (0 nearest, 1 down, 2 up, 3 toward zero) in both units with every exception masked and nonzero exception flags in both, calls kind 0
    (eech_engine_model_host_probe: the entry, the accessors, the host callback, the Lua provider and bridge; a host that cannot answer takes the entry's fatal path) or kind 1

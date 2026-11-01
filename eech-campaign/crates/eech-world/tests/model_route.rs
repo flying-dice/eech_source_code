@@ -350,22 +350,6 @@ fn the_line_faces_come_surface_by_surface_through_each_surfaces_own_references_w
 }
 
 #[test]
-fn kind_zero_is_the_scenes_main_object_with_the_same_ordered_nodes_and_line_faces() {
-    let (_root, store) = standard();
-    let landing = kind("FIXED_WING_LANDING_ROUTE");
-    // scene 1's main object is object 1, which the scene-level landing record also names: the same cursors answer, node for node and face for face
-    assert_eq!(nodes(&store, 1, 0), nodes(&store, 1, landing));
-    assert_eq!(faces(&store, 1, 0), faces(&store, 1, landing));
-    assert!(matches!(nodes(&store, 1, 0)[0], RouteNode::Found(_)));
-    // scene 2 has a main object and no sub-object records: only kind 0 finds it
-    assert_eq!(nodes(&store, 2, 0), nodes(&store, 1, landing));
-    assert_eq!(store.route_node(2, landing, 0).unwrap(), RouteNode::Absent);
-    // a scene the files never described has no main object
-    assert_eq!(store.route_node(3, 0, 0).unwrap(), RouteNode::Absent);
-    assert_eq!(store.route_face(3, 0, 0).unwrap(), RouteFace::Absent);
-}
-
-#[test]
 fn an_absence_is_not_an_end_not_an_argument_error_and_not_a_refusal() {
     let (_root, store) = standard();
     let landing = kind("FIXED_WING_LANDING_ROUTE");
@@ -381,7 +365,7 @@ fn an_absence_is_not_an_end_not_an_argument_error_and_not_a_refusal() {
     assert_eq!(store.route_face(1, landing, 3).unwrap(), RouteFace::End);
     // arguments the original could never produce are refused as arguments, before the data is touched
     assert!(matches!(store.route_node(0, landing, 0), Err(QueryError::BadScene(0))));
-    assert!(matches!(store.route_node(1, -1, 0), Err(QueryError::BadKind(-1))));
+    assert!(matches!(store.route_node(1, 0, 0), Err(QueryError::BadKind(0))));
     assert!(matches!(store.route_node(1, subobject_last() as i64, 0), Err(QueryError::BadKind(_))));
     assert!(matches!(store.route_face(1, landing, -1), Err(QueryError::BadDepth(-1))));
     assert!(matches!(store.route_face(1, landing, i64::from(i32::MAX) + 1), Err(QueryError::BadDepth(_))));

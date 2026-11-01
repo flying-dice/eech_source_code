@@ -18,7 +18,31 @@ The first production route-data move is prepared/pushed at `66dc2e8a237a46f92003
 
 Task51 ordinary source78 shipping continues on its original immutable snapshot without restart; fifth check around19:40 UTC finds all four available recording/observation prefixes exact (24,733,777/15,499,264/24,676,439/15,089,664 bytes), PARTIAL only. Actual full40/all8/post-input/final review/current checks/normal delivery remain pending. Ledger117 preserves prior authored HTML and all five epic reports; Jira50comment10937 records the closed original gate and extraction start. Task49/50/51 and wholeD3 remain In Progress; D4/D5 are unstarted. No accepted baseline, tolerance, oracle or flag changed. Historical checkpoint sections below retain their original scope and identities.
 
-# D3 loader detachment, first batch: three geometry buffers leave Core (1 November 2026): SOURCE ONLY; NOT BUILT, NOT RUN UNTIL THE ROOT'S ACTUALS
+# D3 loader detachment: all FOUR geometry buffers leave Core; the cached horizon path is preserved (1 November 2026): SOURCE ONLY; NOT BUILT, NOT RUN
+
+Supersedes the c389 entry below (three buffers, a kind-0 main-object cursor, scene node and line helpers): that expansion is removed (`models.rs`, `model_route.rs`, the `mb_hostmodel` helpers and the
+horizon and poly-line replacement patches are `c88e479c7` again); the partial main-point observer of a stopped turn was never validated and is archived by the Root, not carried. Why no main-point
+characterisation, service or acceptance exists: the evidence changed the scope. `add_3d_horizon_image` loads `<image>.bin` first when its point count matches the object's true count, which reads
+point colours and fog only; the verified retail bundle holds those files. Raw point decode happens only when that cache is absent, and the float / double equivalence of that decode was not assumed
+and is not needed. Whether the healthy boot really takes the cache is a native question the Root's run answers.
+
+* **Moved out of Core (source):** `points`, `faces`, `object_faces_point_plain_list` and `surface_points`: NULL on every row, bytes skipped exactly, stream alignment kept; the custom `.EEO` polygon-face
+  validation streams the face bytes through a local buffer and returns FALSE at the original validation phase after the same texture-override effects. Deinit tolerates NULL.
+* **Still true file metadata in Core (not faked):** every count, both bounds, the radius, surface descriptors and texture/animation indices, normals, texture points and the whole scene and hierarchy
+  load with `add_animation_object`, inputs and order unchanged. These move later by a semantic host reply, after the original animation-list characterisation (no closed capture covers it).
+  Hierarchy, viewpoint, device, muzzle, target-point, and Task49's collision scans and transforms remain open D3 work. Nothing here is D4 or D5, and the whole of D3 is not done.
+* **Readers:** the collision triangle and the route data were already the host's. Every legacy visual / display reader of the four buffers stops by name at its head with
+  `[model-provider:object.geometry]` and its operation (40 `LR-reader-*` heads: renderer, shadow, explosion, cloud, horizon, the cockpit display poly-lines, the Mi-24 HUD); the uncached horizon
+  image stops at the start of its branch (`LU1`), before any TGA I/O. No cockpit, HUD or horizon renderer is ported and the cached colour and fog data are untouched.
+* **Diagnostics (fixture only, off in shipping):** the model-host counters add `model-core-residency` (the four buffer counts over the actual rows next to `metadata_rows`) and
+  `model-core-horizon cached= uncached=`; `model_host_horizon_refusal` runs the REAL reader on `main_3d_env` with a nonexistent synthetic basename; `lua/model-horizon-control.lua` passes only if rows > 0,
+  metadata_rows > 0, all four counts are 0, cached > 0, uncached == 0, and the entry then fails with the named guard and the operation, naming no image or file error, after which nothing is asked.
+* **Static checks only:** all 60 `LOADER_HOST_PATCHES` find their strict counts against the real sources in staging order (20 loader, face and horizon patches, 40 reader heads); every remaining
+  dereference of the four buffers in the staged files is in a guarded function, in `#if 0`, a NULL assignment or a free, or (the horizon decode) after the `LU1` stop. No build, test, engine or native run; no
+  Tacview claim. The Root freezes and builds a pin, then runs the default and combined builds, the Windows fixture, the healthy Georgia 704 and Lebanon 528 captures and short bytes, the residency, the
+  cached-branch count and the uncached refusal. Task50 and D3 remain In Progress.
+
+# D3 loader detachment, first batch: three geometry buffers leave Core (1 November 2026): SUPERSEDED by the entry above; SOURCE ONLY; NOT BUILT, NOT RUN
 
 Starting from `c88e479c7`. Under EEDCS-50 the Core loaders no longer hold three of the four physical geometry buffers, in every build with the host route parser (not `model-fixture`, not `route-original`, which keep the original loader):
 

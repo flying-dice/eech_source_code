@@ -39,9 +39,6 @@
  *              walks them. The reply echoes the kind's compiled name, as the scene reply echoes the scene's. The intrinsic decode (the stored short, the bounds, the surface-point
  *              indirection) is the host's; the campaign receives decoded floats and node numbers only. ABSENT means the host has no route of that kind for the scene; the
  *              campaign asks only for a route its own hierarchy lookup found, so an ABSENT is a disagreement and stops the engine, as does a malformed or refused answer.
- *              Kind 0 is the MAIN-OBJECT role, not a sub-object kind: the line object of the scene itself (the object the original reads as the scene's `index`), with the
- *              same cursors, decode and echo (the echoed name of kind 0 is the empty text). The remaining physical readers of a scene's own line geometry ask it that way
- *              now that the loader keeps no point buffer: the horizon's points (3dhoriz.c) and the cockpit display poly-lines (3dobjdb.c). No raw object number crosses.
  *
  * The bounds and the radius are copied once, at boot, into immutable tables owned by this module (host-authored data, valid for the life of the process and never
  * written again). Callers hold the bounds pointer across loop iterations, so it must be stable; a rotating cache would not be. The tables are a snapshot of the host's
