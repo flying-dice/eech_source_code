@@ -33,6 +33,11 @@
 -- player kind and no flight model (the natural headless branch). `fd` gives the helicopter the local player kind and an OWNED flight dynamics record (the branch no headless run reaches; optional and separate for that reason). A refused
 -- case is a failure of the witness. `short_buffer=<n>` first asks the same case for a report buffer of n bytes and requires the engine to REFUSE it before changing anything (the staging guard).
 --
+-- CLASS AND COHORT. The declared TURBINE2 and APU child counts of the sweep helicopter are joined to the real sub-types (TURBINE2 36, APU 34) of the sound children the output lists, and every flight model row's class is reconciled
+-- with its declared engine and APU words (the original's assignment conditions on those finite words, not an amplitude or pitch oracle) and the consumed cohort, so a consumed unassigned local can never be relabelled as an ordinary
+-- controlled input. The floating point rows are accepted only as genuine standard <fenv.h> observations of the x86 targets (rounding mode 0, 1024, 2048 or 3072, never negative or unknown; exception flags within 0x3F); that is
+-- NOT the x87 control/status word or MXCSR and no proof of the full floating point state is claimed from it.
+--
 -- TRANSPARENCY (`probe=off` and the uninstrumented build). The sweep reports the OUTPUT WORDS each call left in the sound children (`env-rotor-out`) and the floating point rounding mode and exception flags around it
 -- (`env-rotor-fp`), read by the fixture alone. The identical sweep on the same scenario in (a) a build WITHOUT the observer (no hook in the routine), (b) the observer build UNARMED (`probe=off`) and (c) the observer build ARMED
 -- must print byte-identical `env-rotor-sweep`, `env-rotor-out` and `env-rotor-fp` rows: that comparison, not the seed, entity or constructor fingerprints, is what bears on the numerical transparency of the hooks. `probe=off` runs
@@ -369,6 +374,37 @@ if probe then
 end
 
 -- ---------------------------------------------------------------------------------------------------------------- the controlled sweep (world-input variation, mutating, declared)
+-- real sound sub-types (en_sbtyp.h ENTITY_SUB_TYPE_EFFECTS): the cohort the declared child counts are joined to
+local SUB_APU_TURBINE, SUB_ROTOR_TURBINE2 = 34, 36
+-- the standard <fenv.h> observations of the x86 / x86-64 targets of this build: FE_TONEAREST 0, FE_DOWNWARD 0x400, FE_UPWARD 0x800, FE_TOWARDZERO 0xC00 (the engine entry sets round-toward-zero); the exception flags are the six
+-- standard bits (0x3F). A negative (unavailable) or any other value is refused. This is NOT the x87 control/status word or MXCSR and no proof of the full floating point state is claimed from it.
+local FENV_ROUND = { [0] = true, [1024] = true, [2048] = true, [3072] = true }
+local FENV_EXCEPT_MASK = 63
+-- an IEEE single word as its exact value (a double holds it exactly); nil for an infinity or a NaN
+local function word_value (word)
+	local n = tonumber (word, 16)
+	local sign = 1
+	if n >= 2147483648 then sign = -1; n = n - 2147483648 end
+	local exponent = math.floor (n / 8388608)
+	local mantissa = n - exponent * 8388608
+	if exponent == 255 then return nil end
+	if exponent == 0 then return sign * mantissa * 2 ^ -149 end
+	return sign * (1 + mantissa / 8388608) * 2 ^ (exponent - 127)
+end
+-- the original's ASSIGNMENT CONDITIONS for the LOCAL player kind with a flight model, evaluated on the row's declared finite input words (not an amplitude or pitch oracle): right_turbine_amp is assigned only when the engines are
+-- more than 1.0 apart, apu_amp only when the APU rpm is above 0. Returns whether each is left UNASSIGNED.
+local function unassigned_locals (row, line)
+	local left, right, apu = word_value (row.lrpm_w), word_value (row.rrpm_w), word_value (row.apu_w)
+	if left == nil or right == nil or apu == nil then hard ("a sweep row declares an infinite or NaN engine word: " .. line) end
+	return not (math.abs (left - right) > 1.0), not (apu > 0.0)
+end
+local function fenv_round (value, i, line)
+	if type (value) ~= "string" or string.find (value, "^%d+$") == nil or #value > 5 or not FENV_ROUND [tonumber (value)] then
+		hard ("the rounding mode '" .. tostring (value) .. "' of i=" .. i .. " is refused: it is not a standard x86 fenv value (0, 1024, 2048 or 3072; a negative, unavailable or unknown state is never accepted): " .. line)
+	end
+	return tonumber (value)
+end
+
 local executed, skipped_rows = {}, {}
 local compiler_cases = 0
 local sweep_entity
@@ -426,11 +462,27 @@ local function parse_sweep (text)
 			if as_count (out_row.i, out_line) ~= index then hard ("the sweep output row does not belong to i=" .. index .. ": " .. out_line) end
 			local kids = items (out_row.kids, "^(%d+):(%x%x%x%x%x%x%x%x):(%x%x%x%x%x%x%x%x)$", out_line, "a sweep output")
 			if #kids ~= e.sound_children then hard ("the sweep output of i=" .. index .. " lists " .. #kids .. " sound children where the helicopter has " .. e.sound_children .. ": " .. out_line) end
+			-- the declared TURBINE2 and APU child counts are the real sub-type cohort of the sound children the output lists
+			local actual_t2, actual_apu = 0, 0
+			for _, kid in ipairs (kids) do
+				if tonumber (kid [1]) == SUB_ROTOR_TURBINE2 then actual_t2 = actual_t2 + 1 end
+				if tonumber (kid [1]) == SUB_APU_TURBINE then actual_apu = actual_apu + 1 end
+			end
+			if actual_t2 ~= e.turbine2_children then hard ("the sweep helicopter declares " .. e.turbine2_children .. " TURBINE2 children but its sound outputs list " .. actual_t2 .. ": " .. out_line) end
+			if actual_apu ~= e.apu_children then hard ("the sweep helicopter declares " .. e.apu_children .. " APU children but its sound outputs list " .. actual_apu .. ": " .. out_line) end
+			-- the class is reconciled with the declared finite inputs AND the consumed cohort: a local the original leaves unassigned and a child reads is a compiler-compatibility case whatever the row is labelled
+			if fd_sweep then
+				local right_unassigned, apu_unassigned = unassigned_locals (row, line)
+				local consumed = (right_unassigned and actual_t2 > 0) or (apu_unassigned and actual_apu > 0)
+				local expected = consumed and "compiler_zero_init" or ((right_unassigned or apu_unassigned) and "undefined_not_consumed" or "defined")
+				if row.class ~= expected then hard ("the sweep row i=" .. index .. " is labelled " .. row.class .. " but the classification gives " .. expected .. " (unassigned right_turbine_amp " .. tostring (right_unassigned) .. ", unassigned apu_amp " .. tostring (apu_unassigned) .. ", TURBINE2 children " .. actual_t2 .. ", APU children " .. actual_apu .. "): " .. line) end
+			end
 			local fp, fp_line = take ("env-rotor-fp", { "i", "round_before", "round_after", "excepts" })
 			if as_count (fp.i, fp_line) ~= index then hard ("the sweep floating point row does not belong to i=" .. index .. ": " .. fp_line) end
-			-- the rounding mode is a control the original function must leave alone; the exception flags are an output, compared across builds
-			if fp.round_before ~= fp.round_after then hard ("the rounding mode changed across the original call of i=" .. index .. ": " .. fp_line) end
-			if string.find (fp.excepts, "^%x+$") == nil then hard ("the sweep exception flags are not hexadecimal: " .. fp_line) end
+			-- the rounding mode is a control the original function must leave alone (both are genuine standard fenv observations); the exception flags are an output, compared across builds
+			local round_before, round_after = fenv_round (fp.round_before, index, fp_line), fenv_round (fp.round_after, index, fp_line)
+			if round_before ~= round_after then hard ("the rounding mode changed across the original call of i=" .. index .. ": " .. fp_line) end
+			if string.find (fp.excepts, "^%x%x?$") == nil or tonumber (fp.excepts, 16) > FENV_EXCEPT_MASK then hard ("the sweep exception flags '" .. fp.excepts .. "' of i=" .. index .. " are not a standard x86 exception flag set (the six bits 0x3F): " .. fp_line) end
 			row.out = kids
 			row.out_raw = out_row.kids
 			row.fp = fp

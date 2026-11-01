@@ -188,6 +188,10 @@ const ZERO: &str = "00000000";
 const ACT: &str = "1:5:00000000,0:6:00000000";
 /// a sound effect child (entity type 32): sub-type 5, stored amplification and pitch before and after
 const SOUND_KID: &str = "32:5:3f800000:3f800000:3f800000:3f800000:1";
+/// the sweep helicopter's sound children carry REAL sub-types (en_sbtyp.h): ROTOR_TURBINE2 is 36, ROTOR_TURBINE1 35 and APU_TURBINE 34
+const T2_KID: &str = "32:36:3f800000:3f800000:3f800000:3f800000:1";
+const TURBINE1_KID: &str = "32:35:3f800000:3f800000:3f800000:3f800000:1";
+const APU_KID: &str = "32:34:3f800000:3f800000:3f800000:3f800000:1";
 /// a child that is not a sound effect (entity type 9): no sound data
 const OTHER_KID: &str = "9:0:00000000:00000000:00000000:00000000:0";
 
@@ -229,11 +233,16 @@ impl Spec {
         }
     }
 
-    fn busy(mut self) -> Self {
+    fn busy(self) -> Self {
+        self.busy_with(SOUND_KID)
+    }
+
+    /// `busy`, with the one sound effect child being `kid`
+    fn busy_with(mut self, kid: &str) -> Self {
         self.actions = 2;
         self.act = ACT.into();
         self.visited = 2;
-        self.kids = format!("{OTHER_KID},{SOUND_KID}");
+        self.kids = format!("{OTHER_KID},{kid}");
         self.sound = 1;
         self
     }
@@ -534,12 +543,17 @@ fn a_module_without_the_rotor_functions_a_failed_drain_or_a_failed_frame_is_a_fa
 // ---- the controlled sweep: coherent positives with real semantics, and the concrete damaged forms ----
 
 const FINGERPRINT: &str = "env-rotor-fingerprint rng_before_w=00000001 rng_after_w=00000001 entity_before=104 entity_after=104 local_before=7 local_after=7\n";
-const SWEEP_KIDS: &str = "5:3f800000:3f800000";
+const SWEEP_KIDS: &str = "36:3f800000:3f800000";
 
 /// The three rows of one executed input: the declared input words, the fixture's own output words and the floating point control and status around the call.
 fn executed_rows(i: u32, rpm: &str, acc: [&str; 3], eng: [&str; 3], class: &str) -> String {
+    executed_rows_with(i, rpm, acc, eng, class, SWEEP_KIDS)
+}
+
+/// The same, with the sound children's output words given (`sub:amp_w:pitch_w`, comma separated). The rounding mode is the x86 standard fenv value for round-toward-zero (3072) before and after.
+fn executed_rows_with(i: u32, rpm: &str, acc: [&str; 3], eng: [&str; 3], class: &str, kids: &str) -> String {
     format!(
-        "env-rotor-sweep i={i} rpm_w={rpm} ax_w={} ay_w={} az_w={} lrpm_w={} rrpm_w={} apu_w={} class={class}\nenv-rotor-out i={i} kids={SWEEP_KIDS}\nenv-rotor-fp i={i} round_before=3 round_after=3 excepts=0\n",
+        "env-rotor-sweep i={i} rpm_w={rpm} ax_w={} ay_w={} az_w={} lrpm_w={} rrpm_w={} apu_w={} class={class}\nenv-rotor-out i={i} kids={kids}\nenv-rotor-fp i={i} round_before=3072 round_after=3072 excepts=0\n",
         acc[0], acc[1], acc[2], eng[0], eng[1], eng[2]
     )
 }
@@ -568,7 +582,7 @@ fn ai_page() -> String {
             rpm: rpm.into(),
             ..Spec::new(seq)
         }
-        .busy()
+        .busy_with(T2_KID)
         .line()
     };
     format!("{}{}", call(1, "00000000"), call(2, "41f00000"))
@@ -592,6 +606,11 @@ fn fd_text() -> String {
 
 /// The probe's phase 1 records of the flight model sweep (three calls); `damage` may change any call's record before it is printed.
 fn fd_calls(damage: impl Fn(u32, &mut Spec)) -> String {
+    fd_calls_with(T2_KID, damage)
+}
+
+/// The same, with the one sound effect child being `kid` (the cohort the sweep helicopter has).
+fn fd_calls_with(kid: &str, damage: impl Fn(u32, &mut Spec)) -> String {
     let accelerations = [[ZERO; 3], ["40400000", "40800000", ZERO], [ZERO; 3]];
     let engines = [ENGINES, ENGINES, EQUAL_ENGINES];
     (0..3u32)
@@ -604,7 +623,7 @@ fn fd_calls(damage: impl Fn(u32, &mut Spec)) -> String {
                 eng: engines[k as usize].map(String::from),
                 ..Spec::new(k + 1)
             }
-            .busy();
+            .busy_with(kid);
             damage(k, &mut spec);
             spec.line()
         })
@@ -728,8 +747,8 @@ fn a_sweep_call_that_does_not_join_its_helicopter_case_player_and_declared_input
             "ai",
             "a stored after word that is not the one the fixture read",
             ai.0.clone(),
-            ai.1.replacen("32:5:3f800000:3f800000:3f800000:3f800000:1", "32:5:3f800000:3f800000:40000000:3f800000:1", 1),
-            "recorded sub 5 after",
+            ai.1.replacen(T2_KID, "32:36:3f800000:3f800000:40000000:3f800000:1", 1),
+            "recorded sub 36 after",
         ),
         (
             "fd",
@@ -806,11 +825,17 @@ fn a_sweep_report_that_is_refused_misdeclared_out_of_order_or_inconsistent_is_a_
         ("a helicopter that starts as the LOCAL player", ai.replacen("player=0 special", "player=1 special", 1), "must start as an AI helicopter"),
         ("an input row out of order", ai.replacen("env-rotor-sweep i=0", "env-rotor-sweep i=1", 1), "out of order (expected i=0)"),
         ("an output row of another input", ai.replacen("env-rotor-out i=0", "env-rotor-out i=1", 1), "does not belong to i=0"),
-        ("an output row missing", ai.replacen("env-rotor-out i=0 kids=5:3f800000:3f800000\n", "", 1), "expected a env-rotor-out row"),
-        ("the output lists another number of sound children", ai.replacen("kids=5:3f800000:3f800000", "kids=5:3f800000:3f800000,6:3f800000:3f800000", 1), "lists 2 sound children"),
-        ("an output word that is not a word", ai.replacen("kids=5:3f800000:3f800000", "kids=5:3f80:3f800000", 1), "does not match its grammar"),
-        ("a rounding mode that changed across the call", ai.replacen("round_after=3", "round_after=0", 1), "rounding mode changed"),
-        ("exception flags that are not hexadecimal", ai.replacen("excepts=0", "excepts=zz", 1), "not hexadecimal"),
+        ("an output row missing", ai.replacen("env-rotor-out i=0 kids=36:3f800000:3f800000\n", "", 1), "expected a env-rotor-out row"),
+        ("the output lists another number of sound children", ai.replacen("kids=36:3f800000:3f800000", "kids=36:3f800000:3f800000,35:3f800000:3f800000", 1), "lists 2 sound children"),
+        ("an output word that is not a word", ai.replacen("kids=36:3f800000:3f800000", "kids=36:3f80:3f800000", 1), "does not match its grammar"),
+        ("a rounding mode that changed across the call", ai.replacen("round_after=3072", "round_after=0", 1), "rounding mode changed"),
+        ("exception flags that are not hexadecimal", ai.replacen("excepts=0", "excepts=zz", 1), "not a standard x86 exception flag set"),
+        ("exception flags beyond the six standard bits", ai.replacen("excepts=0", "excepts=ff", 1), "not a standard x86 exception flag set"),
+        ("a rounding mode that is not a number, before and after", ai.replacen("round_before=3072 round_after=3072", "round_before=bogus round_after=bogus", 1), "refused"),
+        ("an unavailable (negative) rounding mode, before and after", ai.replacen("round_before=3072 round_after=3072", "round_before=-1 round_after=-1", 1), "refused"),
+        ("a rounding mode that is no standard x86 value, before and after", ai.replacen("round_before=3072 round_after=3072", "round_before=7 round_after=7", 1), "refused"),
+        ("a cohort that declares an APU child the outputs do not have", ai.replacen("apu_children=0", "apu_children=1", 1), "declares 1 APU children"),
+        ("a cohort that declares no TURBINE2 child the outputs have", ai.replacen("turbine2_children=1", "turbine2_children=0", 1), "declares 0 TURBINE2 children"),
         ("an unknown class", ai.replacen("class=defined", "class=maybe", 1), "unknown class"),
         ("an AI row that declares a flight model word", ai.replacen("ax_w=00000000", "ax_w=3f800000", 1), "declares a flight model word"),
         (
@@ -841,6 +866,107 @@ fn a_sweep_report_that_is_refused_misdeclared_out_of_order_or_inconsistent_is_a_
     ];
     for (label, text, fragment) in cases {
         let driven = drive(&sweep_scenario(&text, &page, ""), &sweep_args("ai"));
+        let error = driven.result.clone().expect_err(label);
+        assert!(error.contains("env-rotor-sounds:") && error.contains(fragment), "{label}: {error}");
+        assert!(of(&driven, "result").is_empty(), "{label}");
+    }
+}
+
+/// A flight model sweep for a helicopter whose sound child is `kid_sub` (a real sub-type) and whose cohort is declared by `entity`: rows are (rpm, acceleration, engines, class).
+fn fd_variant(entity: &str, kid_sub: u32, rows: &[(&str, [&str; 3], [&str; 3], &str)]) -> (String, String) {
+    let kid = format!("{kid_sub}:3f800000:3f800000");
+    let mut text = format!("{}{entity}", plan("player_local_and_flight_model"));
+    for (i, (rpm, acc, eng, class)) in rows.iter().enumerate() {
+        text += &executed_rows_with(i as u32, rpm, *acc, *eng, class, &kid);
+    }
+    text += &format!("{FINGERPRINT}env-rotor-end refused=0 mutating=1 calls={} skipped=0\n", rows.len());
+    let page: String = rows
+        .iter()
+        .enumerate()
+        .map(|(k, (rpm, acc, eng, _))| {
+            Spec {
+                phase: 1,
+                player: 1,
+                fd: true,
+                rpm: (*rpm).into(),
+                acc: acc.map(String::from),
+                eng: eng.map(String::from),
+                ..Spec::new(k as u32 + 1)
+            }
+            .busy_with(&format!("32:{kid_sub}:3f800000:3f800000:3f800000:3f800000:1"))
+            .line()
+        })
+        .collect();
+    (text, page)
+}
+
+const NO_TURBINE2_NO_APU: &str = "env-rotor-entity ent=77 player=0 special_effect_children=2 sound_children=1 turbine2_children=0 apu_children=0 fd=0\n";
+const WITH_APU: &str = "env-rotor-entity ent=77 player=0 special_effect_children=2 sound_children=1 turbine2_children=0 apu_children=1 fd=0\n";
+const ASSIGNED_APU_ZERO: [&str; 3] = ["42480000", "42700000", "00000000"];
+
+#[test]
+fn the_class_of_every_flight_model_row_is_reconciled_with_its_declared_inputs_and_the_consumed_cohort() {
+    let rows_t1 = |class: &'static str| -> Vec<(&'static str, [&'static str; 3], [&'static str; 3], &'static str)> {
+        vec![("42480000", [ZERO; 3], ENGINES, "defined"), ("42480000", [ZERO; 3], EQUAL_ENGINES, class)]
+    };
+    // coherent: equal engines on a helicopter whose only sound child is TURBINE1 leave right_turbine_amp unassigned but UNREAD
+    let (text, page) = fd_variant(NO_TURBINE2_NO_APU, 35, &rows_t1("undefined_not_consumed"));
+    drive(&sweep_scenario(&text, &page, ""), &sweep_args("fd"))
+        .result
+        .expect("an unassigned local that no child reads");
+    // coherent: an APU of 0 on a helicopter with an APU child leaves apu_amp unassigned AND read
+    let apu_rows: Vec<(&str, [&str; 3], [&str; 3], &str)> = vec![
+        ("42480000", [ZERO; 3], ENGINES, "defined"),
+        ("42480000", [ZERO; 3], ASSIGNED_APU_ZERO, "compiler_zero_init"),
+    ];
+    let (text, page) = fd_variant(WITH_APU, 34, &apu_rows);
+    drive(&sweep_scenario(&text, &page, ""), &sweep_args("fd"))
+        .result
+        .expect("an unassigned APU local that an APU child reads");
+    // damaged: the same rows with the other class labels, and the shipped fixture's consumed row relabelled as an ordinary input
+    let relabel = |entity: &str, sub: u32, rows: Vec<(&'static str, [&'static str; 3], [&'static str; 3], &'static str)>| fd_variant(entity, sub, &rows);
+    let mut cases: Vec<(&str, (String, String), &str)> = vec![
+        (
+            "an unassigned local that no child reads, labelled as consumed",
+            relabel(NO_TURBINE2_NO_APU, 35, rows_t1("compiler_zero_init")),
+            "gives undefined_not_consumed",
+        ),
+        (
+            "an unassigned local that no child reads, labelled as defined",
+            relabel(NO_TURBINE2_NO_APU, 35, rows_t1("defined")),
+            "gives undefined_not_consumed",
+        ),
+        (
+            "an unassigned APU local that an APU child reads, labelled as defined",
+            relabel(
+                WITH_APU,
+                34,
+                vec![
+                    ("42480000", [ZERO; 3], ENGINES, "defined"),
+                    ("42480000", [ZERO; 3], ASSIGNED_APU_ZERO, "defined"),
+                ],
+            ),
+            "gives compiler_zero_init",
+        ),
+        (
+            "a fully assigned row labelled as a compiler-compatibility case",
+            relabel(WITH_APU, 34, vec![("42480000", [ZERO; 3], ENGINES, "compiler_zero_init")]),
+            "gives defined",
+        ),
+        (
+            "a fully assigned row labelled as unread",
+            relabel(NO_TURBINE2_NO_APU, 35, vec![("42480000", [ZERO; 3], ENGINES, "undefined_not_consumed")]),
+            "gives defined",
+        ),
+    ];
+    // the shipped positive (equal engines, a TURBINE2 child) with its compatibility row relabelled as an ordinary controlled input
+    cases.push((
+        "the shipped consumed zero-init row relabelled defined",
+        (fd_text().replacen("class=compiler_zero_init", "class=defined", 1), fd_page()),
+        "gives compiler_zero_init",
+    ));
+    for (label, (text, page), fragment) in cases {
+        let driven = drive(&sweep_scenario(&text, &page, ""), &sweep_args("fd"));
         let error = driven.result.clone().expect_err(label);
         assert!(error.contains("env-rotor-sounds:") && error.contains(fragment), "{label}: {error}");
         assert!(of(&driven, "result").is_empty(), "{label}");
