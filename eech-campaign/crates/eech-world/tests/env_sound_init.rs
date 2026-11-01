@@ -124,6 +124,10 @@ struct Shape {
     ctor_samples: Vec<(i32, i32, i32, i32, u32)>,
     ctor_looping: u32,
     ctor_overflow: u32,
+    /// how many calls of the load-side routine the shape shows (the probe keeps the first 8)
+    side_calls: u32,
+    /// a matched header entry whose length is 0: the descriptor's size does not change, whatever the match count says
+    zero_length_match: bool,
 }
 
 impl Shape {
@@ -141,9 +145,12 @@ impl Shape {
             matched: 0,
             missed: 0,
             attempts: vec![("header", 0, 0), ("header", 0, 1)],
-            ctor_samples: vec![(7, 22050, 0, 22050, 3), (9, 11025, 0, 11025, 1)],
+            // sample keys inside the declared catalogue (6 entries, keys 0 to 5)
+            ctor_samples: vec![(2, 22050, 0, 22050, 3), (4, 11025, 0, 11025, 1)],
             ctor_looping: 2,
             ctor_overflow: 0,
+            side_calls: 1,
+            zero_length_match: false,
         }
     }
 
@@ -192,27 +199,31 @@ fn report(s: &Shape) -> String {
              backend={backend} enabled_backend={enabled} initialised_backend={enabled} load={enabled} skipped={skipped} exited=1 enabled_exit={enabled}\n",
             s.no_sound, s.dedicated, s.matched, s.missed
         );
-        let end_size = if s.matched > 0 { 5 } else { 0 };
-        let end_digest = if s.matched > 0 { "00000000000000aa" } else { "cbf29ce484222325" };
+        let changed = s.matched > 0 && !s.zero_length_match;
+        let end_size = if changed { 5 } else { 0 };
+        let end_digest = if changed { "00000000000000aa" } else { "cbf29ce484222325" };
         t += &catalogue("filled", &n.to_string(), 0, "cbf29ce484222325");
         t += &catalogue("end", &n.to_string(), end_size, end_digest);
     }
-    let now_size = if s.matched > 0 { 5 } else { 0 };
-    let now_digest = if s.matched > 0 { "00000000000000aa" } else { "cbf29ce484222325" };
+    let changed = s.matched > 0 && !s.zero_length_match;
+    let now_size = if changed { 5 } else { 0 };
+    let now_digest = if changed { "00000000000000aa" } else { "cbf29ce484222325" };
     t += &catalogue("report", "now", now_size, now_digest);
     t += &format!(
         "env-sndinit-now no_sound={} dedicated=1 enabled=0 initialised=0 blocked_count=0 application_samples=6\n",
         s.no_sound
     );
     t += "env-sndinit-samples lightning_rate=22050 lightning_size=0 lightning_orate=22050 thunder_rate=22050 thunder_size=0 thunder_orate=22050\n";
-    t += "env-sndinit-load-side calls=1 recorded=1\n";
-    t += "env-sndinit-load-side-call n=0 side=3 enabled=0 no_sound=0 dedicated=1\n";
+    t += &format!("env-sndinit-load-side calls={} recorded={}\n", s.side_calls, s.side_calls.min(8));
+    for n in 0..s.side_calls.min(8) {
+        t += &format!("env-sndinit-load-side-call n={n} side=3 enabled=0 no_sound=0 dedicated=1\n");
+    }
     let attempts_of = |kind: &str| s.attempts.iter().filter(|a| a.0 == kind).count();
     let ok_of = |kind: &str| s.attempts.iter().filter(|a| a.0 == kind && a.1 == 1).count();
     t += &format!("env-sndinit-file kind=header attempts={} ok={}\n", attempts_of("header"), ok_of("header"));
     t += &format!("env-sndinit-file kind=data attempts={} ok={}\n", attempts_of("data"), ok_of("data"));
-    t += &format!("env-sndinit-file-log attempts={0} recorded={0}\n", s.attempts.len());
-    for (n, (kind, ok, retry)) in s.attempts.iter().enumerate() {
+    t += &format!("env-sndinit-file-log attempts={} recorded={}\n", s.attempts.len(), s.attempts.len().min(8));
+    for (n, (kind, ok, retry)) in s.attempts.iter().take(8).enumerate() {
         t += &format!("env-sndinit-file-attempt n={n} kind={kind} ok={ok} installation_root_retry={retry} read_mode=1\n");
     }
     let com = [
@@ -571,4 +582,150 @@ fn the_arguments_are_checked_before_anything_is_booted() {
             "{what}: something ran before the arguments were refused"
         );
     }
+}
+
+#[test]
+fn a_matched_zero_length_header_entry_full_tables_and_sample_keys_at_the_catalogue_edges_are_legitimate_states() {
+    // a header entry that matched a descriptor and has length 0 leaves the size at 0: the match count and the unchanged catalogue are both facts of the protocol
+    let zero_length = Shape {
+        header_opened: true,
+        matched: 3,
+        missed: 0,
+        zero_length_match: true,
+        attempts: vec![("header", 1, 0), ("data", 1, 0)],
+        ctor_samples: vec![(0, 22050, 0, 22050, 1), (5, 11025, 0, 11025, 2)],
+        ..Shape::backend_false()
+    };
+    let driven = healthy(&zero_length);
+    driven
+        .result
+        .clone()
+        .unwrap_or_else(|e| panic!("a matched zero-length header entry was refused: {e}\n{}", driven.text));
+    let derived = &of(&driven, "derived")[0];
+    assert_eq!(
+        (
+            derived["descriptors_matched"].as_i64(),
+            derived["catalogue_unchanged_since_initialisation"].as_bool(),
+            derived["header_opened_in_effects"].as_bool()
+        ),
+        (Some(3), Some(true), Some(true))
+    );
+    // the tables exactly full (8 side calls, 8 attempts) are complete, not partial
+    let full = Shape {
+        side_calls: 8,
+        attempts: vec![
+            ("header", 0, 0),
+            ("header", 0, 1),
+            ("data", 0, 0),
+            ("data", 0, 1),
+            ("header", 0, 0),
+            ("header", 0, 1),
+            ("data", 0, 0),
+            ("data", 0, 1),
+        ],
+        ..Shape::backend_false()
+    };
+    let driven = healthy(&full);
+    driven
+        .result
+        .clone()
+        .unwrap_or_else(|e| panic!("tables exactly at capacity were refused: {e}\n{}", driven.text));
+    let derived = &of(&driven, "derived")[0];
+    assert_eq!(
+        (derived["header_open_attempts"].as_i64(), derived["data_open_attempts"].as_i64()),
+        (Some(4), Some(4))
+    );
+}
+
+/// Every form is a failure of the witness (the old driver accepted them); the forms that were not refused are returned together, so one run shows all of them.
+fn capture_forms_not_refused(forms: &[(&str, String, &str)]) -> Vec<String> {
+    let mut missed = Vec::new();
+    for (name, text, says) in forms {
+        let driven = drive(text, "", "");
+        match &driven.result {
+            Ok(()) => missed.push(format!("{name}: ACCEPTED")),
+            Err(error) if !(error.contains("env-sound-init:") && error.contains(*says)) => {
+                missed.push(format!("{name}: refused as {error:?}, expected {says:?}"))
+            }
+            Err(_) if of(&driven, "witness_failure").is_empty() || !of(&driven, "result").is_empty() || !of(&driven, "derived").is_empty() => {
+                missed.push(format!("{name}: no witness_failure row, or a result or derived row for a damaged capture"));
+            }
+            Err(_) => {}
+        }
+    }
+    missed
+}
+
+#[test]
+fn a_truncated_or_self_contradictory_capture_table_is_a_failure_of_the_witness_and_never_a_derived_result() {
+    let base = report(&Shape::backend_false());
+    let nine_attempts: Vec<(&'static str, u32, u32)> = (0..9).map(|n| ("header", 0, n % 2)).collect();
+    let forms: Vec<(&str, String, &str)> = vec![
+        (
+            "nine load-side calls where the probe keeps eight",
+            report(&Shape {
+                side_calls: 9,
+                ..Shape::backend_false()
+            }),
+            "recorded only 8 of 9 load-side calls",
+        ),
+        (
+            "nine file attempts where the probe keeps eight",
+            report(&Shape {
+                attempts: nine_attempts,
+                ..Shape::backend_false()
+            }),
+            "recorded only 8 of 9 file attempts",
+        ),
+        (
+            "a header counter of ok=1 where both kept header attempts failed",
+            base.replace("kind=header attempts=2 ok=0", "kind=header attempts=2 ok=1"),
+            "do not reconcile",
+        ),
+        (
+            "a data counter of ok=1 with no data attempt kept",
+            base.replace("kind=data attempts=0 ok=0", "kind=data attempts=0 ok=1"),
+            "more successful opens than attempts",
+        ),
+        (
+            "an attempt moved from the header counter to the data counter",
+            base.replace("kind=header attempts=2 ok=0", "kind=header attempts=1 ok=0")
+                .replace("kind=data attempts=0 ok=0", "kind=data attempts=1 ok=0"),
+            "do not reconcile",
+        ),
+        (
+            "a sample key twice",
+            report(&Shape {
+                ctor_samples: vec![(2, 22050, 0, 22050, 3), (2, 22050, 0, 22050, 1)],
+                ..Shape::backend_false()
+            }),
+            "appears twice",
+        ),
+        (
+            "a sample key one past the catalogue",
+            report(&Shape {
+                ctor_samples: vec![(2, 22050, 0, 22050, 3), (6, 11025, 0, 11025, 1)],
+                ..Shape::backend_false()
+            }),
+            "outside the catalogue",
+        ),
+        (
+            "a negative sample key",
+            report(&Shape {
+                ctor_samples: vec![(-1, 22050, 0, 22050, 3)],
+                ..Shape::backend_false()
+            }),
+            "outside the catalogue",
+        ),
+        (
+            "a kept sample with no use",
+            report(&Shape {
+                ctor_samples: vec![(2, 22050, 0, 22050, 0), (4, 11025, 0, 11025, 1)],
+                ..Shape::backend_false()
+            }),
+            "has no use",
+        ),
+    ];
+    let missed = capture_forms_not_refused(&forms);
+    assert!(missed.is_empty(), "{missed:#?}");
 }

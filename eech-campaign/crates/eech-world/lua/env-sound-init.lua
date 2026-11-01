@@ -8,8 +8,8 @@
 -- cases are untouched. It moves nothing and decides nothing.
 --
 -- WHAT IT RECORDS (measured, by the original code): the command line flags at the moment of initialisation and which branch the original took (skipped by the no-sound or dedicated flag, or the backend initialisation
--- attempted and what it returned), the DirectSound entry points that were called and what they returned, the attempts to open sound.hdr and sound.dat and their results (zero is not "the assets are missing"), the
--- header's sample count and how many descriptors found their entry in it, the descriptor catalogue's counts and a digest of every entry's (index, rate, size, original rate), the descriptor reads the constructor made
+-- attempted and what it returned), the DirectSound entry points that were called and what they returned, the attempts to open sound.hdr and sound.dat and their results (zero attempts is a count of attempts, not a statement about the assets, and a descriptor size of 0 after the initialisation has several possible causes the rows can tell apart only in part: the header not opened, a descriptor with no entry in it, or a matched entry whose length is 0), the
+-- header's sample count and how many descriptors found their entry in it (a matched entry of length 0 is a legitimate state), the descriptor catalogue's counts and a digest of every entry's (index, rate, size, original rate), the descriptor reads the constructor made
 -- (calls, loops, samples, the distinct sample keys with their rate, size and original rate, a digest of every read), and whether the load routines ran. What it DERIVES from those rows is written in the `derived`
 -- row and labelled as the driver's join of the observations, never as a measurement.
 --
@@ -199,6 +199,8 @@ local flags_now = take ("env-sndinit-now", "no_sound:i dedicated:i enabled:i ini
 local samples = take ("env-sndinit-samples", "lightning_rate:i lightning_size:i lightning_orate:i thunder_rate:i thunder_size:i thunder_orate:i")
 local sides = take ("env-sndinit-load-side", "calls:n recorded:n")
 if number (sides, "recorded") ~= math.min (number (sides, "calls"), MAX_SIDES) then hard ("the load-side calls recorded " .. sides.map.recorded .. " of " .. sides.map.calls .. ": " .. sides.raw) end
+-- a table that cannot hold every call is a PARTIAL capture, not a shorter complete one: the probe keeps MAX_SIDES calls and says how many there were
+if number (sides, "calls") > MAX_SIDES then hard ("the probe recorded only " .. sides.map.recorded .. " of " .. sides.map.calls .. " load-side calls (it keeps " .. MAX_SIDES .. "): the capture is incomplete: " .. sides.raw) end
 local side_rows = {}
 for n = 0, number (sides, "recorded") - 1 do
 	local call = take ("env-sndinit-load-side-call", "n:n side:i enabled:i no_sound:i dedicated:i")
@@ -211,11 +213,25 @@ if number (header, "ok") > number (header, "attempts") or number (data, "ok") > 
 local file_log = take ("env-sndinit-file-log", "attempts:n recorded:n")
 if number (file_log, "attempts") ~= number (header, "attempts") + number (data, "attempts") then hard ("the file log counts " .. file_log.map.attempts .. " attempts but the two files " .. (number (header, "attempts") + number (data, "attempts")) .. ": " .. file_log.raw) end
 if number (file_log, "recorded") ~= math.min (number (file_log, "attempts"), MAX_ATTEMPTS) then hard ("the file log recorded " .. file_log.map.recorded .. " of " .. file_log.map.attempts .. ": " .. file_log.raw) end
+if number (file_log, "attempts") > MAX_ATTEMPTS then hard ("the probe recorded only " .. file_log.map.recorded .. " of " .. file_log.map.attempts .. " file attempts (it keeps " .. MAX_ATTEMPTS .. "): the capture is incomplete: " .. file_log.raw) end
 local attempt_rows = {}
 for n = 0, number (file_log, "recorded") - 1 do
 	local attempt = take ("env-sndinit-file-attempt", "n:n kind:s ok:b installation_root_retry:b read_mode:b")
 	if number (attempt, "n") ~= n or (attempt.map.kind ~= "header" and attempt.map.kind ~= "data") then hard ("the file attempt rows are out of order or of another kind: " .. attempt.raw) end
 	attempt_rows [#attempt_rows + 1] = attempt
+end
+-- the counters of each file are the kept attempts, all of them (the log is complete here): the attempts of its kind and the ones that succeeded
+for _, file in ipairs ({ { "header", header }, { "data", data } }) do
+	local kept, kept_ok = 0, 0
+	for _, attempt in ipairs (attempt_rows) do
+		if attempt.map.kind == file [1] then
+			kept = kept + 1
+			if attempt.map.ok == "1" then kept_ok = kept_ok + 1 end
+		end
+	end
+	if kept ~= number (file [2], "attempts") or kept_ok ~= number (file [2], "ok") then
+		hard ("the kept attempts of the " .. file [1] .. " file (" .. kept .. " attempts, " .. kept_ok .. " ok) do not reconcile with its counters (attempts " .. file [2].map.attempts .. ", ok " .. file [2].map.ok .. "): " .. file [2].raw)
+	end
 end
 local COM_NAMES = { "DirectSoundCreate", "IDirectSound_SetCooperativeLevel", "IDirectSound_CreateSoundBuffer", "IDirectSound_Release" }
 local com_rows = {}
@@ -227,10 +243,15 @@ end
 local ctor = take ("env-sndinit-ctor", "calls:n looping:n max_count:n sample_reads:n distinct:n distinct_overflow:n digest_w:d")
 if number (ctor, "looping") > number (ctor, "calls") then hard ("more looping constructor calls than calls: " .. ctor.raw) end
 if number (ctor, "distinct") > MAX_DISTINCT then hard ("more distinct samples than the probe keeps: " .. ctor.raw) end
-local sample_rows, uses = {}, 0
+local sample_rows, uses, seen_keys = {}, 0, {}
 for n = 0, number (ctor, "distinct") - 1 do
 	local sample = take ("env-sndinit-sample", "n:n index:i rate:i size:i orate:i uses:n")
 	if number (sample, "n") ~= n then hard ("the sample rows are out of order: " .. sample.raw) end
+	-- a kept sample is a sample key inside the reported catalogue, kept once, and was read at least once (that is why it is kept)
+	if number (sample, "index") < 0 or number (sample, "index") >= number (store, "catalogue_entries") then hard ("the sample key " .. sample.map.index .. " is outside the catalogue (0 to " .. (number (store, "catalogue_entries") - 1) .. "): " .. sample.raw) end
+	if seen_keys [sample.map.index] then hard ("the sample key " .. sample.map.index .. " appears twice in the kept samples: " .. sample.raw) end
+	seen_keys [sample.map.index] = true
+	if number (sample, "uses") < 1 then hard ("kept sample row " .. n .. " has no use: " .. sample.raw) end
 	uses = uses + number (sample, "uses")
 	sample_rows [#sample_rows + 1] = sample
 end
