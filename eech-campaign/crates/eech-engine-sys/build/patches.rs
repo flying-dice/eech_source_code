@@ -505,11 +505,32 @@ pub fn patched_files() -> Vec<&'static str> {
     files
 }
 
+/// one R8 patch: after `raw_object_index = <entry>->index;` the fixture is handed the entry and the number (the extern declaration is a block-local one, so no include is needed)
+macro_rules! caller_patch {
+    ($entry:literal, $count:expr) => {
+        Patch {
+            file: "aphavoc/source/ai/faction/popread.c",
+            id: concat!("R8-caller-", $entry),
+            why: "the route entry the original caller holds, paired with the raw object number it is about to pass to the parse",
+            original: concat!("raw_object_index = ", $entry, "->index;\n"),
+            replacement: concat!(
+                "raw_object_index = ",
+                $entry,
+                "->index;\n\t\t\t{\n\t\t\t\textern void eech_rf_caller ( const void *entry, int raw_object_index ); /* EECH route fixture (R8) */\n\t\t\t\teech_rf_caller ( ",
+                $entry,
+                ", raw_object_index );\n\t\t\t}\n"
+            ),
+            count: $count,
+        }
+    };
+}
+
 /// TEST-ONLY patches of the `route-fixture` feature (EEDCS-50, D3): observation hooks in the ORIGINAL airfield route parser and its route-object lookup, applied by
 /// main.rs ONLY when that feature is on, to the staged copy the shipping patches already produced (neither file has a shipping patch). They record values the original
 /// statements already read or computed (csrc/eech_route_hooks.h, csrc/eech_route_fixture.c); each ADDS a call and changes no original statement, argument, order or
 /// value. R2 adds one static observer function that reads the parser's own tables after the parse and turns the node pointers into node-array indices. With the feature
-/// off none of this exists in the build. Same strict count check as PATCHES.
+/// off none of this exists in the build. R7a/R7b also hand the hook the route entry the lookup returned (a private token that is never reported), and R8 hands it, at every original
+/// parse call site, the entry the caller holds and the raw number it passes (the caller context). Same strict count check as PATCHES.
 pub const ROUTE_FIXTURE_PATCHES: &[Patch] = &[
     Patch {
         file: "aphavoc/source/ai/faction/routegen.c",
@@ -596,7 +617,7 @@ pub const ROUTE_FIXTURE_PATCHES: &[Patch] = &[
         id: "R7a-lookup-found",
         why: "a route object was found for the airfield instance (scene index) and sub-object kind",
         original: "\t\treturn ( search.object_scene );\n",
-        replacement: "\t\t{\n\t\t\textern void eech_rf_lookup ( int scene, int kind, int found, int legacy_object ); /* EECH route fixture (R7a) */\n\t\t\teech_rf_lookup ( instance->object_number, ( int ) index, 1, ( int ) search.object_scene->index );\n\t\t}\n\t\treturn ( search.object_scene );\n",
+        replacement: "\t\t{\n\t\t\textern void eech_rf_lookup ( int scene, int kind, int found, int legacy_object, const void *entry ); /* EECH route fixture (R7a) */\n\t\t\teech_rf_lookup ( instance->object_number, ( int ) index, 1, ( int ) search.object_scene->index, search.object_scene );\n\t\t}\n\t\treturn ( search.object_scene );\n",
         count: 1,
     },
     Patch {
@@ -604,8 +625,41 @@ pub const ROUTE_FIXTURE_PATCHES: &[Patch] = &[
         id: "R7b-lookup-missing",
         why: "no route object exists for the airfield instance and sub-object kind",
         original: "\t\treturn ( NULL );\n#else\n\t\treturn 0;\n#endif\n",
-        replacement: "\t\t{\n\t\t\textern void eech_rf_lookup ( int scene, int kind, int found, int legacy_object ); /* EECH route fixture (R7b) */\n\t\t\teech_rf_lookup ( instance->object_number, ( int ) index, 0, -1 );\n\t\t}\n\t\treturn ( NULL );\n#else\n\t\treturn 0;\n#endif\n",
+        replacement: "\t\t{\n\t\t\textern void eech_rf_lookup ( int scene, int kind, int found, int legacy_object, const void *entry ); /* EECH route fixture (R7b) */\n\t\t\teech_rf_lookup ( instance->object_number, ( int ) index, 0, -1, NULL );\n\t\t}\n\t\treturn ( NULL );\n#else\n\t\treturn 0;\n#endif\n",
         count: 1,
+    },
+    // R8: the caller context. At each place popread takes the raw object number from the route entry it holds (`raw_object_index = <entry>->index;`) the entry and that number are handed
+    // to the fixture, which pairs them with the parse call that follows. The entry is the value the original caller itself selected (the result of its own lookup for a scene and kind);
+    // the number is the argument the parse will receive. Neither is recomputed, and no statement, argument, order or value of the original changes.
+    caller_patch!("fixedwing_landing_route", 1),
+    caller_patch!("fixedwing_takeoff_route", 1),
+    caller_patch!("fixedwing_landing_holding_route", 1),
+    caller_patch!("fixedwing_takeoff_holding_route", 1),
+    caller_patch!("helicopter_landing_route", 1),
+    caller_patch!("helicopter_takeoff_route", 1),
+    caller_patch!("helicopter_landing_holding_route", 1),
+    caller_patch!("helicopter_takeoff_holding_route", 1),
+    caller_patch!("vehicle_landing_route", 1),
+    caller_patch!("vehicle_takeoff_route", 1),
+    caller_patch!("vehicle_landing_holding_route", 1),
+    caller_patch!("vehicle_takeoff_holding_route", 1),
+    caller_patch!("ship_landing_route", 1),
+    caller_patch!("ship_takeoff_route", 1),
+    caller_patch!("ship_landing_holding_route", 1),
+    caller_patch!("ship_takeoff_holding_route", 1),
+    // the helper functions that receive the entry as a parameter
+    caller_patch!("landing_route", 3),
+    caller_patch!("takeoff_route", 3),
+    caller_patch!("landing_holding_route", 2),
+    caller_patch!("takeoff_holding_route", 2),
+    // the two troop-route calls pass the entry inline: the hook is the statement just before the parse call
+    Patch {
+        file: "aphavoc/source/ai/faction/popread.c",
+        id: "R8-caller-troop-routes",
+        why: "the troop landing and take-off routes are parsed straight from the entry the caller holds in `route`",
+        original: "parse_waypoint_routes_from_object ( route->index, 0, NULL );\n",
+        replacement: "{\n\t\t\t\t\textern void eech_rf_caller ( const void *entry, int raw_object_index ); /* EECH route fixture (R8) */\n\t\t\t\t\teech_rf_caller ( route, route->index );\n\t\t\t\t}\n\t\t\t\tparse_waypoint_routes_from_object ( route->index, 0, NULL );\n",
+        count: 2,
     },
 ];
 

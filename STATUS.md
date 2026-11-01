@@ -1,3 +1,33 @@
+# D3 route observer: first real captures FAILED on identity; caller-context fix prepared (1 November 2026): SOURCE + LOCAL DRIVER CHECKS ONLY, NOT RUN AGAINST ANY ENGINE
+
+Base `2ec202036`. FACTS of the first real original captures (source `d10dd8cc0`, Windows; private audit `model-original-route-first-incomplete-d10dd8cc0-20261101.json`; the raw JSONL and its hashes stay private and are never
+committed): one natural boot each of Georgia and Lebanon completed the boot and answered every route query, with no malformed report and no dropped, capped, orphan, open or interrupted capture, all four full retail input checks 0
+and all 57 payloads unchanged. Both runs (native and controller) exited 1, solely on completeness: Georgia 704 parser calls = 430 unique + 274 ambiguous identities; Lebanon 528 calls = 394 unique + 134 ambiguous. Every other cohort
+was retained. These are useful FAILED PARTIAL originals, not accepted measurements; the two initial installation roots are CONSUMED, the repeat pair (1806) is still fresh and UNUSED, and no native process or root was used here.
+
+Cause (from source): the observer inferred a parse's scene and kind from its raw model number, but several keys legitimately share one model. Fix prepared: the observer now captures the ACTUAL caller's context. At each of the 28
+original parse call sites in `popread.c` (26 `raw_object_index = <entry>->index;` sites and the two inline troop-route calls) a staged hook (new patch R8) is handed the route entry the caller itself selected and the number it takes
+from it; the lookup hook (R7a/R7b) also keeps the entry each lookup returned, as a private comparison token that is never reported. The next parse consumes that context and the entry's lookup gives the (scene, kind) the CALLER chose, so
+keys sharing a model are each `unique`. States are exact: `unique`, `missing`, `mismatch`, `unmatched`, `conflict`; a context no parse consumed is `stale` (counted, and the summary is not complete while any is). The raw number is diagnostic only
+(`legacy_object`, `caller_raw`). No original statement, argument, order, value or RNG changes; the geometry cohorts and their completeness joins are unchanged; the lookup table and all earlier grammar, counters, joins, controls, raw-text and
+no-query-after-malformed behaviour are kept. The driver validates the new rows and joins the caller's number and key to the observed lookup row and the call, and the summary's `contexts`/`stale` to the calls.
+
+Actual focused LOCAL checks (Linux, eech-world only, the Root's cache `eech-linux-d3-collision-driver-5416adb3b-20261029` checked free, image `sha256:4a5618cb...`; WORKING-TREE source on `2ec202036`, hashes in
+`eech-campaign/reference/d3-route-characterization/route-context-focused-checks-20261101.txt`, not a frozen or canonical run): `cargo fmt --all --check` exit 0; `--test route_characterization` 16 passed (adds a coherent alias-key positive,
+non-identity contexts as well-formed incomplete, a stale context, and damaged / near-miss context controls beside every earlier control); `--lib exclusive_output` 7 passed; the exact `(37, 2)` inventory guard 1 passed; strict World Clippy exit 0.
+Exit statuses were captured inside the container through a mounted script with controls (a passing cargo test gave 0, `false` gave 1). The earlier wrapper (`wsl.exe` passing the command line) was found to expand `$?` before the container
+ran, so the exit-code figures recorded in the `9c525b42a`-era evidence file are NOT evidence of child exits (their printed cargo result lines are); a correction note is appended there. NOT run: the C observer, the staged patches R1..R8
+and the engine entries were not compiled, linked or applied to the real source by any build; no Windows fixture build, no native or retail run.
+
+Other identities, unchanged and not results for this fix (as reported by the Root): independent source review `5b4908a1` closes the IO / protocol fixes on `d10`; `2ec202036` differs from `d10` only by a cfg(test) assertion formatting hunk and a
+proof-date correction; the fresh clean `2ec202036` World full package, fmt, Clippy and native-hash checks exited 0 at 18:34:19.318809Z; Core `9c525b42a` default and combined model-host / ground / LOS / route suites each 545 passed, 0 failed, with fmt and
+both strict runs 0; the Windows `d10` route fixture compiled with exit 0. (Tool numbers in those reports are tool session ids, not item counts.)
+
+Next, the Root's: independent source review of this delta, freeze, build the Windows route fixture, and run the corrected originals (fresh roots, repeatability) before any decoded-route-data or loader cutover; then compare the corresponding FULL geometry and graph
+rows with the retained `d10` partial captures, where only the documented identity / completeness metadata should differ. Actual original completeness is still OPEN and no complete original capture exists. Whole D3 remains the goal: physical model loading and the route
+decode are still Core; the active-reader disposition stays required before loader detachment; hierarchy, viewpoint, device, muzzle and target-point work is still required (Task49 owns object / tree collision, Task50 the model service and these readers). Task51
+original shipping (`78fe5efdb`) is untouched and immutable (third prefix check: all four partial files exact; full 40 / all 8 pending). Task50 and D3 remain In Progress; D4/D5 not started.
+
 # D3 route observer: two residual P2 findings corrected in source (1 November 2026): SOURCE ONLY, NOT RUN
 
 Base `9c525b42a`. Independent review `independent-model-original-route-correction-source-9c525b42a-20261101.json` (SHA256 `469dc51993d50c47a8b684545d07f88777a59e7996953c48c9af5df21931a216`, re-hashed) left two P2

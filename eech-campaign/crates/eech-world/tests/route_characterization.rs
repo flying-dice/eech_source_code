@@ -21,16 +21,26 @@ const EMITTER: &str = include_str!("../../eech-engine-sys/csrc/eech_route_fixtur
 
 #[derive(Clone, Copy, PartialEq)]
 enum Variant {
-    /// a coherent capture the observer would call complete
+    /// a coherent capture the observer would call complete, for the first lookup key
     Complete,
-    /// coherent rows, but the observer could not name one route identity (a raw object returned for several keys): explicitly incomplete
-    Ambiguous,
-    /// the call began and never ended: no totals, no rows
+    /// the same coherent capture for a SECOND key that shares the first key's model (the same raw number): both are unique and complete
+    Alias,
+    /// coherent rows, but no caller context was registered for the parse: explicitly incomplete
+    Missing,
+    /// coherent rows, but the number the caller took from its entry is not what the lookup returned: explicitly incomplete
+    Mismatch,
+    /// coherent rows, but no lookup returned the entry the caller held: explicitly incomplete
+    Unmatched,
+    /// coherent rows, but lookups returned the entry the caller held under two keys: explicitly incomplete
+    Conflict,
+    /// the call began and never ended: no totals, no rows (its caller context is the first key)
     Unended,
 }
 
 const SCENE: &str = "AIRFIELD_TEST";
 const KIND: &str = "ROUTE_KIND_TEST";
+const ALIAS_SCENE: &str = "AIRFIELD_ALT";
+const ALIAS_KIND: &str = "ROUTE_KIND_ALT";
 
 fn word(n: u32) -> String {
     format!("{:08x}", 0x3f80_0000 + n)
@@ -40,19 +50,34 @@ fn words(n: u32) -> String {
     format!("{},{},{}", word(n), word(n + 1), word(n + 2))
 }
 
+/// the identity row of a call whose caller context named this (scene, kind) and took raw number 7 from its entry
+fn unique_row(i: u32, scene: (u32, &str), kind: (u32, &str)) -> String {
+    format!(
+        "route-identity index={i} state=unique scene={} scene_name={} kind={} kind_name={} caller_raw=7\n",
+        scene.0, scene.1, kind.0, kind.1
+    )
+}
+
 fn call(index: u32, variant: Variant) -> String {
     let i = index;
-    let complete = u32::from(variant == Variant::Complete);
+    let complete = u32::from(matches!(variant, Variant::Complete | Variant::Alias));
     let ended = u32::from(variant != Variant::Unended);
-    let lookup = if variant == Variant::Complete { "0" } else { "-1" };
+    let lookup = match variant {
+        Variant::Complete | Variant::Unended => "0",
+        Variant::Alias => "1",
+        _ => "-1",
+    };
     let mut t = format!(
         "route-call index={i} legacy_object=7 lookup={lookup} slots={s} slots_stored={s} points=3 surfaces=1 faces=2 ended={ended} interrupted=0 complete={complete}\n",
         s = u32::from(variant != Variant::Unended)
     );
     t += &match variant {
-        Variant::Complete => format!("route-identity index={i} state=unique scene=11 scene_name={SCENE} kind=5 kind_name={KIND}\n"),
-        Variant::Ambiguous => format!("route-identity index={i} state=ambiguous\n"),
-        Variant::Unended => format!("route-identity index={i} state=unknown\n"),
+        Variant::Complete | Variant::Unended => unique_row(i, (11, SCENE), (5, KIND)),
+        Variant::Alias => unique_row(i, (12, ALIAS_SCENE), (6, ALIAS_KIND)),
+        Variant::Missing => format!("route-identity index={i} state=missing\n"),
+        Variant::Mismatch => format!("route-identity index={i} state=mismatch caller_raw=8\n"),
+        Variant::Unmatched => format!("route-identity index={i} state=unmatched caller_raw=7\n"),
+        Variant::Conflict => format!("route-identity index={i} state=conflict caller_raw=7\n"),
     };
     t += &format!(
         "route-bounds index={i} bits={},{},{},{},{},{}\n",
@@ -101,16 +126,24 @@ fn call(index: u32, variant: Variant) -> String {
     t
 }
 
-/// the summary for calls of these variants; `lookups` is the one lookup row the Complete calls name
+/// the summary for calls of these variants: two lookup rows that return the SAME raw number (7) for two different keys (the Complete and the Alias key), one caller context per call
+/// except a Missing one, and no stale context
 fn summary(calls: &[Variant]) -> String {
+    summary_with(calls, 0)
+}
+
+/// as `summary`, with `stale` caller contexts that no parse consumed
+fn summary_with(calls: &[Variant], stale: usize) -> String {
     let n = calls.len();
-    let incomplete = calls.iter().filter(|v| **v != Variant::Complete).count();
+    let incomplete = calls.iter().filter(|v| !matches!(v, Variant::Complete | Variant::Alias)).count();
+    let contexts = n - calls.iter().filter(|v| **v == Variant::Missing).count() + stale;
     let rows = |per_call: usize| calls.iter().filter(|v| **v != Variant::Unended).count() * per_call;
-    let value = u32::from(n > 0 && incomplete == 0);
+    let value = u32::from(n > 0 && incomplete == 0 && stale == 0);
     format!(
-        "route-summary calls={n} call_capacity=1024 dropped_calls=0 lookups=1 lookup_capacity=4096 dropped_lookups=0 orphans=0 interrupted=0 open=0 incomplete_calls={incomplete}\n\
+        "route-summary calls={n} call_capacity=1024 dropped_calls=0 lookups=2 lookup_capacity=4096 dropped_lookups=0 orphans=0 interrupted=0 open=0 incomplete_calls={incomplete} contexts={contexts} stale={stale}\n\
          route-pools slots={}/8192 nodes={}/32768 faces={}/32768 finals={}/32768 links={}/131072 starts={}/8192 depths={}/8192 offsets={}/65536\n\
          route-lookup index=0 scene=11 scene_name={SCENE} kind=5 kind_name={KIND} found=1 legacy_object=7\n\
+         route-lookup index=1 scene=12 scene_name={ALIAS_SCENE} kind=6 kind_name={ALIAS_KIND} found=1 legacy_object=7\n\
          route-complete value={value}\n",
         rows(1),
         rows(3),
@@ -368,8 +401,8 @@ fn the_report_that_declares_geometry_but_carries_none_is_malformed_not_measured(
 #[test]
 fn a_well_formed_incomplete_capture_is_drained_for_diagnosis_then_written_and_failed() {
     // call 0 is ambiguous (explicitly incomplete), call 1 is complete: the engine answered both, nothing is poisoned, so BOTH are read, then the run fails
-    let set = [Variant::Ambiguous, Variant::Complete];
-    let outcome = run(&healthy(summary(&set), vec![call(0, Variant::Ambiguous), call(1, Variant::Complete)]));
+    let set = [Variant::Conflict, Variant::Complete];
+    let outcome = run(&healthy(summary(&set), vec![call(0, Variant::Conflict), call(1, Variant::Complete)]));
     failure(&outcome, "NOT COMPLETE");
     assert_eq!(
         outcome.log,
@@ -399,7 +432,6 @@ fn a_well_formed_incomplete_capture_is_drained_for_diagnosis_then_written_and_fa
 /// each damage is applied to a coherent complete call (it must really occur in the text), and the driver must call the result malformed and ask no further question
 #[test]
 fn damaged_call_reports_are_malformed_and_stop_the_questions() {
-    let good = call(0, Variant::Complete);
     let damages: [(&str, &str, &str); 37] = [
         (
             "a node row is missing",
@@ -525,19 +557,17 @@ fn damaged_call_reports_are_malformed_and_stop_the_questions() {
         ),
     ];
     for (what, from, to) in damages {
-        assert_malformed_and_stops(&good, what, from, to);
+        assert_malformed_and_stops(Variant::Complete, what, from, to);
     }
 }
 
-/// `from` must occur in the coherent call; the damaged call is the first of two announced, so the second must never be asked
-fn assert_malformed_and_stops(good: &str, what: &str, from: &str, to: &str) {
+/// `from` must occur in the coherent call of variant `first`; the damaged call is the first of two announced, so the second must never be asked
+fn assert_malformed_and_stops(first: Variant, what: &str, from: &str, to: &str) {
+    let good = call(0, first);
     assert!(good.contains(from), "{what}: the damage does not apply to the coherent call: {from:?}");
     let damaged = good.replacen(from, to, 1);
     assert_ne!(damaged, good, "{what}");
-    let outcome = run(&healthy(
-        summary(&[Variant::Complete, Variant::Complete]),
-        vec![damaged, call(1, Variant::Complete)],
-    ));
+    let outcome = run(&healthy(summary(&[first, Variant::Complete]), vec![damaged, call(1, Variant::Complete)]));
     failure_in(what, &outcome, MALFORMED);
     assert_eq!(
         outcome.log,
@@ -552,32 +582,116 @@ fn assert_malformed_and_stops(good: &str, what: &str, from: &str, to: &str) {
     );
 }
 
-/// the identity state must be exactly one of the three literals the emitter writes: a near miss of the other two is malformed too, with or without the key fields
+/// the identity state must be exactly one of the five literals the emitter writes: a near miss of any of them is malformed too, with or without the key fields
 #[test]
 fn near_miss_identity_states_are_malformed() {
-    let two = |first: Variant| {
-        move |from: &str, to: &str| {
-            let good = call(0, first);
-            assert!(good.contains(from), "{from:?}");
-            let outcome = run(&healthy(
-                summary(&[first, Variant::Complete]),
-                vec![good.replacen(from, to, 1), call(1, Variant::Complete)],
-            ));
-            failure_in(to, &outcome, MALFORMED);
-            assert_eq!(outcome.log, ["prepare", "select", "boot", "summary", "call 0"], "{to}: asked again");
-        }
-    };
-    two(Variant::Ambiguous)("state=ambiguous", "state=ambiguous2");
-    two(Variant::Ambiguous)("state=ambiguous", "state=Ambiguous");
-    two(Variant::Unended)("state=unknown", "state=unknown-x");
-    two(Variant::Complete)("state=unique scene", "state=uniqueX scene");
-    // the same forms without the suffix are the coherent shapes and are accepted (the positives above)
+    let near_misses = [
+        (Variant::Complete, "state=unique scene", "state=uniqueX scene"),
+        (Variant::Missing, "state=missing", "state=missing-x"),
+        (Variant::Mismatch, "state=mismatch", "state=Mismatch"),
+        (Variant::Unmatched, "state=unmatched", "state=unmatched2"),
+        (Variant::Conflict, "state=conflict", "state=conflicts"),
+        // the former reverse-inference states are not part of the grammar any more
+        (Variant::Missing, "state=missing", "state=unknown"),
+        (Variant::Conflict, "state=conflict caller_raw=7", "state=ambiguous caller_raw=7"),
+    ];
+    for (first, from, to) in near_misses {
+        assert_malformed_and_stops(first, to, from, to);
+    }
+}
+
+/// the caller context is joined to the call and to the lookup it names, with a coherent positive first: each of these was a plausible way for an identity to pass or fail wrongly
+#[test]
+fn damaged_caller_contexts_are_malformed_and_stop_the_questions() {
+    let damages = [
+        (
+            Variant::Complete,
+            "the caller's number is not the parse's argument",
+            "caller_raw=7\nroute-bounds",
+            "caller_raw=8\nroute-bounds",
+        ),
+        (
+            Variant::Complete,
+            "the identity names the other key's names beside this key's lookup row",
+            "scene=11 scene_name=AIRFIELD_TEST kind=5 kind_name=ROUTE_KIND_TEST caller_raw",
+            "scene=12 scene_name=AIRFIELD_ALT kind=6 kind_name=ROUTE_KIND_ALT caller_raw",
+        ),
+        (Variant::Complete, "the identity names a lookup row that does not exist", "lookup=0", "lookup=2"),
+        (Variant::Alias, "the alias names the first key's lookup row", "lookup=1", "lookup=0"),
+        (Variant::Conflict, "a conflict still names a lookup row", "lookup=-1", "lookup=0"),
+        (
+            Variant::Conflict,
+            "a conflict carries a number that is not the parse's argument",
+            "state=conflict caller_raw=7",
+            "state=conflict caller_raw=9",
+        ),
+        (
+            Variant::Unmatched,
+            "an unmatched context carries a number that is not the parse's argument",
+            "state=unmatched caller_raw=7",
+            "state=unmatched caller_raw=9",
+        ),
+        (
+            Variant::Missing,
+            "a missing context grows a caller number",
+            "state=missing\n",
+            "state=missing caller_raw=7\n",
+        ),
+        (Variant::Missing, "a missing context still names a lookup row", "lookup=-1", "lookup=0"),
+    ];
+    for (first, what, from, to) in damages {
+        assert_malformed_and_stops(first, what, from, to);
+    }
+}
+
+/// two keys that share one model (one raw number) each have their own caller entry: both are unique and the capture is complete (the old reverse inference called these ambiguous)
+#[test]
+fn keys_that_share_one_raw_object_are_each_unique_and_complete() {
+    let set = [Variant::Complete, Variant::Alias];
+    let outcome = run(&healthy(summary(&set), vec![call(0, Variant::Complete), call(1, Variant::Alias)]));
+    assert!(outcome.result.is_ok(), "{:?}", outcome.result);
+    assert_eq!(outcome.log, ["prepare", "select", "boot", "summary", "call 0", "call 1"]);
+    let rows = events(&outcome);
+    let done = rows.last().unwrap();
+    assert!(
+        done.contains("\"complete\":true") && done.contains("\"calls\":2") && done.contains("\"incomplete_calls\":0"),
+        "{done}"
+    );
+    // each call is verbatim with its own key, though both carry the same raw number
+    let alias = call(1, Variant::Alias).replace('\n', "\\n");
+    assert!(rows
+        .iter()
+        .any(|r| r.contains(&alias) && r.contains("legacy_object=7") && r.contains("scene=12")));
+}
+
+/// a caller context that is not an identity (missing, mismatched, unmatched, conflicting) is a well-formed explicitly incomplete answer, like a clipped list: the other calls are still
+/// read for diagnosis, then the run fails; and a context that no parse consumed makes the summary incomplete
+#[test]
+fn contexts_that_are_not_identities_are_well_formed_but_incomplete() {
+    for bad in [Variant::Missing, Variant::Mismatch, Variant::Unmatched, Variant::Conflict] {
+        let outcome = run(&healthy(summary(&[bad, Variant::Complete]), vec![call(0, bad), call(1, Variant::Complete)]));
+        failure(&outcome, "NOT COMPLETE");
+        assert_eq!(outcome.log, ["prepare", "select", "boot", "summary", "call 0", "call 1"]);
+        let rows = events(&outcome);
+        let done = rows.last().unwrap();
+        assert!(
+            done.contains("\"complete\":false") && done.contains("\"incomplete_calls\":1") && done.contains("\"malformed\":false"),
+            "{done}"
+        );
+    }
+    // a stale context (registered, never consumed by a parse): the summary is explicitly not complete, though every call is
+    let stale = run(&healthy(summary_with(&[Variant::Complete], 1), vec![call(0, Variant::Complete)]));
+    failure(&stale, "NOT COMPLETE");
+    assert_eq!(stale.log, ["prepare", "select", "boot", "summary", "call 0"]);
+    let rows = events(&stale);
+    assert!(rows.iter().any(|r| r.contains("contexts=2 stale=1")), "{rows:?}");
+    assert!(rows.last().unwrap().contains("\"summary_complete\":false") && rows.last().unwrap().contains("\"malformed\":false"));
 }
 
 #[test]
 fn damaged_summaries_are_malformed_and_ask_for_no_call() {
     let good = summary(&[Variant::Complete]);
-    let damages: [(&str, &str, &str); 14] = [
+    let damages: [(&str, &str, &str); 17] = [
         ("the call capacity is not the observer's", "call_capacity=1024", "call_capacity=2048"),
         ("the lookup capacity is not the observer's", "lookup_capacity=4096", "lookup_capacity=100"),
         ("the calls exceed the capacity", "calls=1 ", "calls=2000 "),
@@ -594,6 +708,9 @@ fn damaged_summaries_are_malformed_and_ask_for_no_call() {
         ("a not-found lookup keeps a raw object", "found=1 legacy_object=7", "found=0 legacy_object=7"),
         ("a lookup name is not a name", "scene_name=AIRFIELD_TEST", "scene_name=AIRFIELD/TEST"),
         ("the incomplete count exceeds the calls", "incomplete_calls=0", "incomplete_calls=5"),
+        ("the stale contexts exceed the contexts", "contexts=1 stale=0", "contexts=1 stale=2"),
+        ("the verdict claims complete beside a stale one", "contexts=1 stale=0", "contexts=2 stale=1"),
+        ("the context counters are missing", " contexts=1 stale=0", ""),
         (
             "the summary has an extra line",
             "route-complete value=1\n",
@@ -620,11 +737,16 @@ fn a_summary_that_disagrees_with_the_calls_is_malformed() {
     let outcome = run(&healthy(bad_pool, vec![call(0, Variant::Complete)]));
     failure(&outcome, "nodes pool holds 4 rows, the calls hold 3");
     // an incomplete count the calls contradict, with the verdict honestly not complete
-    let bad_count = summary(&[Variant::Ambiguous]).replacen("incomplete_calls=1", "incomplete_calls=0", 1);
+    let bad_count = summary(&[Variant::Conflict]).replacen("incomplete_calls=1", "incomplete_calls=0", 1);
     failure(
-        &run(&healthy(bad_count, vec![call(0, Variant::Ambiguous)])),
+        &run(&healthy(bad_count, vec![call(0, Variant::Conflict)])),
         "the summary counts 0 incomplete calls, the calls say 1",
     );
+    // caller contexts that cannot be the calls' own: too few for the parses that were announced, or more than any parse consumed with none stale (a join that needs the calls)
+    let few = summary(&[Variant::Complete]).replacen("contexts=1 stale=0", "contexts=0 stale=0", 1);
+    failure(&run(&healthy(few, vec![call(0, Variant::Complete)])), "the summary registered 0 contexts");
+    let many = summary(&[Variant::Complete]).replacen("contexts=1 stale=0", "contexts=2 stale=0", 1);
+    failure(&run(&healthy(many, vec![call(0, Variant::Complete)])), "the summary registered 2 contexts");
     // a complete call under a summary whose verdict denies it
     let denied = summary(&[Variant::Complete])
         .replacen("route-complete value=1", "route-complete value=0", 1)

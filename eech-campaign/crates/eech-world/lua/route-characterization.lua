@@ -14,8 +14,8 @@
 -- THREE KINDS OF OUTCOME, kept apart.
 --   * MEASURED: the summary and every call are well formed AND the observer's own verdicts are complete (route-complete value=1, every call complete=1) AND every cohort a complete
 --     call promises is present in its rows (checked here against the call's OWN declared counts and row order; no route answer is recomputed). Only this passes.
---   * WELL-FORMED BUT INCOMPLETE: the native grammar and every count are coherent but the observer says the capture is not whole (an empty boot, a full table, an unknown or
---     ambiguous route identity, a clipped list, an unended call ...). That is the engine's honest answer, not an engine failure, so the remaining recorded calls ARE still read
+--   * WELL-FORMED BUT INCOMPLETE: the native grammar and every count are coherent but the observer says the capture is not whole (an empty boot, a full table, a missing, mismatched, unmatched or
+--     conflicting caller context, a clipped list, an unended call ...). That is the engine's honest answer, not an engine failure, so the remaining recorded calls ARE still read
 --     (once each, for diagnosis); then the run writes done complete=false and FAILS. It is never reported as a measured original.
 --   * MALFORMED: a line the C grammar cannot produce, an out-of-domain or contradictory number, rows that do not match their declared counts or each other, a summary that
 --     disagrees with the calls, or a complete=1 claim the rows do not support. The text is already written verbatim; a `malformed` row and done complete=false follow, the
@@ -146,13 +146,14 @@ end
 -- The summary: counters, pools, the lookups and the verdict. Returns what the calls are joined against.
 local function check_summary (text)
 	local r = reader (lines_of (text, "the summary"), "the summary")
-	local s = r.expect ("route-summary", { "calls", "call_capacity", "dropped_calls", "lookups", "lookup_capacity", "dropped_lookups", "orphans", "interrupted", "open", "incomplete_calls" })
+	local s = r.expect ("route-summary", { "calls", "call_capacity", "dropped_calls", "lookups", "lookup_capacity", "dropped_lookups", "orphans", "interrupted", "open", "incomplete_calls", "contexts", "stale" })
 	local summary = {
 		calls = int (s.calls, 0, CAP.calls, "calls"), dropped_calls = int (s.dropped_calls, 0, INT_MAX, "dropped_calls"),
 		lookups = int (s.lookups, 0, CAP.lookups, "lookups"), dropped_lookups = int (s.dropped_lookups, 0, INT_MAX, "dropped_lookups"),
 		orphans = int (s.orphans, 0, INT_MAX, "orphans"), interrupted = int (s.interrupted, 0, INT_MAX, "interrupted"), open = flag (s.open, "open"),
-		incomplete_calls = int (s.incomplete_calls, 0, CAP.calls, "incomplete_calls"),
+		incomplete_calls = int (s.incomplete_calls, 0, CAP.calls, "incomplete_calls"), contexts = int (s.contexts, 0, INT_MAX, "contexts"), stale = int (s.stale, 0, INT_MAX, "stale"),
 	}
+	if summary.stale > summary.contexts then malformed ("stale contexts exceed the contexts registered") end
 	if int (s.call_capacity, 0, INT_MAX, "call_capacity") ~= CAP.calls then malformed ("call_capacity is not the observer's " .. CAP.calls) end
 	if int (s.lookup_capacity, 0, INT_MAX, "lookup_capacity") ~= CAP.lookups then malformed ("lookup_capacity is not the observer's " .. CAP.lookups) end
 	if summary.incomplete_calls > summary.calls then malformed ("incomplete_calls exceeds calls") end
@@ -177,7 +178,7 @@ local function check_summary (text)
 	summary.complete = flag (verdict.value, "route-complete value")
 	r.finish ()
 	if summary.complete == 1 and not (summary.calls > 0 and summary.dropped_calls == 0 and summary.dropped_lookups == 0 and summary.orphans == 0 and summary.interrupted == 0 and
-			summary.open == 0 and summary.incomplete_calls == 0) then
+			summary.open == 0 and summary.incomplete_calls == 0 and summary.stale == 0) then
 		malformed ("route-complete value=1 contradicts the summary's own counters")
 	end
 	return summary
@@ -198,20 +199,36 @@ local function check_call (text, index, summary)
 	}
 	if c.slots_stored > math.max (c.slots, 0) then malformed (what .. " stored more slots than were requested") end
 
-	-- the identity row has two shapes: unique (with the key) or unknown / ambiguous (without)
-	-- the state is the WHOLE token after state= and must be one of the three literals the emitter writes (a prefix such as "unique-INVALID" is not "unique")
+	-- The identity row is the CALLER's context and has three shapes: unique (the key the caller chose, and the number it took from its entry), a context that is not an identity (mismatch,
+	-- unmatched, conflict: only the number the caller took) or no context at all (missing). The state is the WHOLE token after state= and must be one of the five literals the emitter
+	-- writes (a prefix such as "unique-INVALID" is not "unique").
 	local state = string.match (r.next_line () or "", "^route%-identity index=%d+ state=([^ ]*)")
 	if state == "unique" then
-		local i = r.expect ("route-identity", { "index", "state", "scene", "scene_name", "kind", "kind_name" })
+		local i = r.expect ("route-identity", { "index", "state", "scene", "scene_name", "kind", "kind_name", "caller_raw" })
 		mine (i, "route-identity")
 		if i.state ~= "unique" then malformed (what .. " has an identity state that is not the literal unique") end
 		c.identity, c.scene, c.kind = "unique", int (i.scene, 0, INT_MAX, "identity scene"), int (i.kind, 0, INT_MAX, "identity kind")
 		c.scene_name, c.kind_name = name (i.scene_name, "identity scene_name"), name (i.kind_name, "identity kind_name")
-	elseif state == "unknown" or state == "ambiguous" then
-		local i = r.expect ("route-identity", { "index", "state" })
+		c.caller_raw = int (i.caller_raw, 0, INT_MAX, "identity caller_raw")
+		if c.caller_raw ~= c.legacy then malformed (what .. " names a caller whose number is not the parse's argument") end
+		-- the unique identity IS the lookup row it names: the same key and names, found, and the raw number of that lookup is the parse's argument (other rows may share that number)
+		local row = summary.lookup_rows [c.lookup]
+		if not row or row.found ~= 1 or row.legacy ~= c.legacy or row.scene ~= c.scene or row.kind ~= c.kind or row.scene_name ~= c.scene_name or row.kind_name ~= c.kind_name then
+			malformed (what .. " has a unique identity that is not the lookup row it names")
+		end
+	elseif state == "mismatch" or state == "unmatched" or state == "conflict" then
+		local i = r.expect ("route-identity", { "index", "state", "caller_raw" })
 		mine (i, "route-identity")
 		if i.state ~= state then malformed (what .. " has an identity state that is not the literal " .. state) end
 		c.identity = state
+		c.caller_raw = int (i.caller_raw, 0, INT_MAX, "identity caller_raw")
+		-- the number is compared with the parse's argument before any lookup is searched, so only a mismatch may carry a number that differs from it
+		if state ~= "mismatch" and c.caller_raw ~= c.legacy then malformed (what .. " is " .. state .. " with a caller number that is not the parse's argument") end
+		if c.lookup ~= -1 then malformed (what .. " has no unique identity and still names a lookup row") end
+	elseif state == "missing" then
+		mine (r.expect ("route-identity", { "index", "state" }), "route-identity")
+		c.identity = "missing"
+		if c.lookup ~= -1 then malformed (what .. " has no caller context and still names a lookup row") end
 	else
 		malformed (what .. " has no route-identity row with a known state")
 	end
@@ -440,6 +457,14 @@ local function run ()
 
 	-- the summary and the calls must agree with each other
 	local joined, reason = pcall (function ()
+		-- every context registered is consumed by exactly one parse or is stale; a parse without a context is the missing identity (calls that were dropped for capacity are not visible, so
+		-- they widen the bound)
+		local missing = 0
+		for index = 0, summary.calls - 1 do if calls [index].identity == "missing" then missing = missing + 1 end end
+		local consumed = summary.contexts - summary.stale
+		if consumed + missing < summary.calls or consumed + missing > summary.calls + summary.dropped_calls then
+			malformed (string.format ("the summary registered %d contexts (%d stale) for %d calls (%d without a context, %d dropped)", summary.contexts, summary.stale, summary.calls, missing, summary.dropped_calls))
+		end
 		if incomplete ~= summary.incomplete_calls then malformed (string.format ("the summary counts %d incomplete calls, the calls say %d", summary.incomplete_calls, incomplete)) end
 		local sum = { slots = 0, nodes = 0, faces = 0, finals = 0, links = 0, starts = 0, depths = 0, offsets = 0 }
 		for index = 0, summary.calls - 1 do

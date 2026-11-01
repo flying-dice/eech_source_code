@@ -2,7 +2,8 @@
 
 **Status: observer SOURCE ONLY - not built into any engine, not run against any retail data, not accepted.** Nothing in this document is a measurement of the original: no original
 route has been observed, no count, hash or coverage figure of real routes exists, and none may be quoted from here. Only the Lua driver and the output helper have been exercised,
-locally in a working tree against invented C-shaped reports (section 2). Base `844e8d3b9`. This is the **original characterisation only**: it moves nothing out of the DLL, changes no
+locally in a working tree against invented C-shaped reports (section 2). The first REAL captures (source `d10dd8cc0`, Windows, 1 November 2026) completed the boot and every route query but FAILED
+completeness on identity alone (section 2, "First real captures"); they are retained private partial originals, not accepted measurements. Base `2ec202036`. This is the **original characterisation only**: it moves nothing out of the DLL, changes no
 production statement and prepares no cutover.
 
 Scope authority is the live M5 goal (Confluence 11534337), the migration ledger and Epic EEDCS-21: physical model loading, triangle decoding and bounds services belong to the
@@ -30,7 +31,7 @@ whole-D3 work; the observer records it (scene, kind, found, legacy number) so a 
 ## 2. The observer (`route-fixture`)
 
 Feature `eech-dc/route-fixture` (off in every shipping and every other fixture build; it composes with the host model and terrain providers because it observes the
-unmoved parser, not the collision accessors). Files: `csrc/eech_route_hooks.h`, `csrc/eech_route_fixture.c`, `ROUTE_FIXTURE_PATCHES` R1..R7b in `build/patches.rs`
+unmoved parser, not the collision accessors). Files: `csrc/eech_route_hooks.h`, `csrc/eech_route_fixture.c`, `ROUTE_FIXTURE_PATCHES` R1..R8 in `build/patches.rs`
 (staged only with the feature, strict count-checked like the others), `eech_engine_route_summary` and `eech_engine_route_call` (`csrc/eech_engine.c`), `Engine::route_summary`
 and `route_call`, the Lua methods `engine:route_summary ()` and `engine:route_call (index)`, `tools/build-windows-route-fixture.sh`, and the driver
 `lua/route-characterization.lua` with its local guards `tests/route_characterization.rs`.
@@ -39,7 +40,7 @@ What the patches do: they ADD a call and change no original statement, argument,
 bit patterns), draw no random number and keep no pointer. R3 records the call's arguments and the raw object's counts and bounds; R4 each node's raw `int16` point and the
 position the parser has just decoded; R5 each line face as the first pass reads it (surface, face, the two face-local references, the two resolved nodes, the surface colour,
 flags and point count); R6 calls the static observer R2 once at the parse end, which hands the final node, link (by node-array index), start and per-depth position and offset
-tables to the hooks; R7a/b record the route-object lookup. It observes values the original already read; it builds no parallel parser and walks nothing the original did not.
+tables to the hooks; R7a/b record the route-object lookup (and the entry it returned); R8 records the caller context at every parse call site (see "Route identity"). It observes values the original already read; it builds no parallel parser and walks nothing the original did not.
 
 What it can NOT show: a route object that was not looked up or parsed in this boot is absent; reaching routes in one boot is not proof that every route object of an
 installation is parsed. It does not observe `match_end_slots`' inputs beyond the `slots` argument or `get_waypoint_inhangar_bits` (the airfield code that consumes the tables);
@@ -55,16 +56,29 @@ parent and child link the final rows count (a list clipped at the parser's `MAX_
 with all the offsets its count declares (a positive count with no offsets is a shortfall). The expectations are the original's own counts, never a second route solver's answer.
 A report that does not fit its buffer is refused (never cut short).
 
-**Route identity.** The scene and kind of a parse are those of the lookups that returned its raw object, and only if they are unambiguous: exactly one distinct (scene, kind) is
-`unique`, none is `unknown`, two or more (a raw object returned for several keys) is `ambiguous`. The most recent matching lookup is never taken as evidence, because popread does
-several lookups before it parses and raw objects can alias. Unknown and ambiguous calls are recorded in full and are incomplete, so the measurement fails explicitly and the
-Root decides (for example by observing at the call sites) instead of a wrong key being recorded silently. The lookup table holds distinct lookups (a repeat of the same answer
-adds no row).
+**Route identity is the caller's context, not an inference.** The first real captures showed that the earlier rule (the scene and kind of the lookups that returned the parse's raw
+number, accepted only if exactly one) cannot work: several keys legitimately share one model, so a raw number does not name a key. The observer therefore records the ACTUAL parser
+caller's context. At every original parse call site popread holds the route entry it selected (the result of its own `get_airfield_waypoint_route_object` for a scene and kind) and has
+just taken the raw number it passes from it (`raw_object_index = <entry>->index;`, 26 sites, or the inline `route->index` of the two troop-route calls). Patch R8 hands the fixture
+that entry and number at each of those places (a block-local `eech_rf_caller (entry, number)`); R7a/R7b also hand it the entry each lookup returned, kept as a private comparison
+token that is never reported. The next `eech_rf_begin` consumes the context and looks the entry up among the lookups' entries, which gives the (scene, kind) THE CALLER CHOSE; keys that
+share a model have separate entries and are each `unique`. Nothing is recomputed, no original statement, argument, order or value changes, and the raw number remains diagnostic
+(`legacy_object`, `caller_raw`). The states are exact: `unique` (the entry was returned by lookups of one key and the number agrees), `missing` (no context was registered for the
+parse), `mismatch` (the caller's number is not the parse's argument, or not the lookup's), `unmatched` (no lookup returned the entry), `conflict` (lookups returned the entry under two
+keys). A context never consumed by a parse is `stale`: the summary counts `contexts` and `stale`, requires every context to be consumed by one parse or be stale, and is not complete
+while any is stale. All of these are recorded in full and are incomplete, so the measurement fails explicitly instead of a key being guessed. The lookup table holds distinct lookups.
+
+**First real captures (source `d10dd8cc0`; private audit, raw data never committed).** One natural boot each of Georgia and Lebanon completed the boot and answered every route query with
+no malformed report and no dropped, capped, orphan, open or interrupted capture, all four full retail input checks 0 and all 57 payloads unchanged; both runs exited 1 on completeness
+alone. Georgia: 704 parser calls, 430 unique and 274 ambiguous identities. Lebanon: 528 calls, 394 unique and 134 ambiguous. All other cohorts (slots, nodes, faces, finals, links, starts,
+depths, offsets) were retained. These are useful FAILED partial originals: the ambiguous identity came from the reverse-inference rule above, not from the geometry, and the
+corrected observer must be re-run on fresh installation roots. The expectation, to be verified by the Root after a corrected capture, is that corresponding full geometry and graph rows are
+byte-identical to those partial captures and only the documented identity and completeness metadata differ; no such comparison exists yet.
 
 ### The driver validates the whole native grammar
 
 `lua/route-characterization.lua` checks the summary and every call line by line against the grammar `csrc/eech_route_fixture.c` emits (name, key set and order, single spacing;
-exact decimal integers and lower-case 8-digit words in bounded domains; compiled names; the identity state as the whole literal token `unique`, `unknown` or `ambiguous`), the row counts against the counts each report declares, and the cross-report joins (the
+exact decimal integers and lower-case 8-digit words in bounded domains; compiled names; the identity state as the whole literal token `unique`, `missing`, `mismatch`, `unmatched` or `conflict`), the row counts against the counts each report declares, and the cross-report joins (the
 summary's counters, pools and verdict against the calls and against the lookup rows; the pinned table capacities). `tests/route_characterization.rs` checks that its capacities and
 its row grammar are the C source's. It distinguishes three outcomes:
 
@@ -72,7 +86,7 @@ its row grammar are the C source's. It distinguishes three outcomes:
   node, starts, depths and offsets against the call's own counts; each face-local reference below its surface's point count; the repeated faces of one surface carrying one surface
   record (colour, flags, polygon bit, point count, face count); and a face-local reference resolving to the same node wherever it recurs within a surface). These are consistency
   relations among captured records, not a recomputed route. Only this passes. No route answer is recomputed and no numerical geometry oracle exists.
-* **well-formed but incomplete** (an empty boot, a full table, an unknown or ambiguous identity, a clipped list, an unended call): the engine's honest answer, not a failure of the
+* **well-formed but incomplete** (an empty boot, a full table, a missing, mismatched, unmatched or conflicting caller context, a stale context, a clipped list, an unended call): the engine's honest answer, not a failure of the
   engine. The driver therefore still reads the remaining recorded calls once each, for diagnosis, then writes `done complete=false` and FAILS. This draining is deliberate.
 * **malformed** (a line the grammar cannot produce, an out-of-domain or contradictory number, rows that do not match their declared counts, a summary that disagrees with the
   calls, a `complete=1` the rows do not support): the text is already written verbatim; a `malformed` row and `done complete=false` follow, the driver FAILS, and the engine is

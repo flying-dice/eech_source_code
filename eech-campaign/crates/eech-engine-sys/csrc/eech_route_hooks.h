@@ -5,14 +5,18 @@
  *
  * Every hook only RECORDS a value the original route parser has just read or produced, in bounded private tables (eech_route_fixture.c). None allocates, frees, writes a
  * model or campaign byte, draws a random number, reads the clock, changes an entity or does floating-point arithmetic: floats cross as pointers and are copied as bit
- * patterns. Row indices are plain integers (the parser's own node numbers, which are positions in its node array); no pointer is stored or emitted.
+ * patterns. Row indices are plain integers (the parser's own node numbers, which are positions in its node array); no pointer is ever emitted (the route entries of the lookups and of the callers are kept only as private tokens that are compared with each other).
  */
 #ifndef EECH_ROUTE_HOOKS_H
 #define EECH_ROUTE_HOOKS_H
 
 /* popread.c get_airfield_waypoint_route_object has just searched the airfield instance `scene` (its scene index) for sub-object `kind`: found (1) with the raw object
-   `legacy_object` it returned, or not found (0, legacy_object -1) */
-extern void eech_rf_lookup (int scene, int kind, int found, int legacy_object);
+   `legacy_object` it returned and the route entry `entry` (an opaque token the fixture only compares and never reports), or not found (0, legacy_object -1, entry NULL) */
+extern void eech_rf_lookup (int scene, int kind, int found, int legacy_object, const void *entry);
+
+/* popread.c, immediately before an original parse call: the route entry the caller holds (the result of its own lookup) and the raw object number it has just taken from that entry,
+   which is the argument the parse will receive. The next eech_rf_begin consumes it. */
+extern void eech_rf_caller (const void *entry, int raw_object_index);
 
 /* parse_waypoint_routes_from_object begins: its arguments (`slots` is number_of_slots vec3d, or NULL) and the raw object it is about to read (struct OBJECT_3D) */
 extern void eech_rf_begin (int object_index, int number_of_slots, const void *slots, const void *object);

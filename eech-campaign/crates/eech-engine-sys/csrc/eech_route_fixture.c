@@ -11,8 +11,9 @@
  *     the parser leaves: the totals, every final node (tree depth, tree number, node index, flags, reference count), every parent and child link by node index, the
  *     starting nodes, and the per-depth position and offsets (the product the airfield code consumes).
  * Everything is a value the original statements already read or computed (build/patches.rs, ROUTE_FIXTURE_PATCHES): the hooks add calls, they change no original
- * statement, argument, order or value, do no floating-point arithmetic (floats are copied as bit patterns), draw no random number and store no pointer. The parser's own
- * node numbers are indices into its node array; they are the only identities in the report besides the compiled scene and sub-object names.
+ * statement, argument, order or value, do no floating-point arithmetic (floats are copied as bit patterns), draw no random number and report no pointer. (The route entries the lookups
+ * return and the callers hold are kept as private tokens that are only compared with each other.) The parser's own node numbers are indices into its node array; they are the
+ * only identities in the report besides the compiled scene and sub-object names.
  *
  * WHAT IT CANNOT SHOW. It does not reconstruct what the parser did not run: a route object that was never looked up or parsed in this boot is simply absent, and an empty
  * report says "no calls", which is NOT a measured original. A table that fills, a hook outside an open call, a call that never ends and a call that begins inside another
@@ -22,9 +23,13 @@
  * COMPLETENESS JOINS EVERY COHORT. A call is complete only if each cohort it promises was captured whole: the requested slots; the faces the raw object's surfaces
  * promise (their face counts, the parser's own loop bound); every final node; every parent and child link the final rows count (a link list clipped at the parser's
  * MAX_WAYPOINT_LINKS, or a target outside the node table, makes the call incomplete); every start; every depth with all the offsets its count declares; and ONE route
- * identity. The identity of a parse is the (scene, kind) of the lookups that returned its raw object: exactly one distinct key is `unique`, none is `unknown`, two or more
- * (a raw object returned for several keys) is `ambiguous`. The latest matching lookup is never taken as evidence; unknown and ambiguous calls are recorded in full and are
- * incomplete. The expectations are the original's own counts, never a second route solver's answer.
+ * identity. The identity of a parse is the CONTEXT OF ITS ACTUAL CALLER: at each original parse call site popread holds the route entry it selected (the result of its own
+ * lookup for a scene and kind) and has just taken the raw number it passes from it; the fixture is handed both (eech_rf_caller) and pairs them with the parse that follows. The
+ * entry is looked up in the table of entries the lookups returned, which gives the (scene, kind) the caller chose. Several keys may legitimately share one model (one raw number):
+ * each has its own entry, so they are each `unique`. The raw number is never used to find a key. No context is `missing`; a number that is not the parse's argument (or not the
+ * lookup's) is `mismatch`; an entry no lookup returned is `unmatched`; an entry returned under two keys is `conflict`; a context never consumed by a parse is `stale`
+ * (counted in the summary, which then is not complete). All of these are recorded in full and incomplete. The expectations are the original's own counts, never a second route
+ * solver's answer.
  *
  * It runs inside the engine entry (so it sees EECH's round-toward-zero mode) and changes nothing it observes.
  */
@@ -55,6 +60,8 @@
 struct rf_lookup
 {
 	int scene, kind, found, legacy;
+	/* the route entry the lookup returned: a private token, compared with the entries callers hold and NEVER reported */
+	const void *entry;
 };
 
 struct rf_node
@@ -101,8 +108,10 @@ struct rf_call
 	int node_first, node_count, face_first, face_count, final_first, final_count, link_first, link_count, start_first, start_count, depth_first, depth_count;
 	int dropped_slots, dropped_nodes, dropped_faces, dropped_finals, dropped_links, dropped_starts, dropped_depths, dropped_offsets;
 	int total_nodes, total_starts, total_depths, maximum_depth, have_totals;
-	/* the route identity the lookups give this parse: 0 none seen, 1 exactly one (scene, kind) was looked up for the raw object, 2 two or more distinct ones (ambiguous) */
-	int identity, key_scene, key_kind;
+	/* the route identity from the CALLER's context: 0 missing (no caller context was registered for this parse), 1 unique (the entry the caller held was returned by lookups of exactly one
+	   (scene, kind), and the raw number agrees), 2 mismatch (the number the caller took from its entry is not this parse's argument, or not the lookup's), 3 unmatched (no lookup returned
+	   that entry), 4 conflict (lookups returned that entry under two different keys). caller_raw is the number the caller took from its entry (diagnostic only). */
+	int identity, key_scene, key_kind, caller_raw;
 	/* the faces the raw object's surfaces promise the first pass will read (the sum of their face counts), and the depths whose offsets were not all stored */
 	int expected_faces, offset_shortfall;
 };
@@ -123,6 +132,9 @@ static int rf_dropped_calls, rf_dropped_lookups, rf_orphans, rf_interrupted_call
 /* the open call, or NULL; `rf_suppressed` is set while a begun call did not fit in the table (its hooks are then expected and counted nowhere) */
 static struct rf_call *rf_open_call;
 static int rf_suppressed;
+/* the caller context registered by the last eech_rf_caller and not yet consumed by a parse; contexts counts every registration and stale those never consumed */
+static const void *rf_pending_entry;
+static int rf_pending_raw, rf_have_pending, rf_contexts, rf_stale;
 
 static uint32_t bits_of (const float *value)
 {
@@ -131,14 +143,15 @@ static uint32_t bits_of (const float *value)
 	return word;
 }
 
-void eech_rf_lookup (int scene, int kind, int found, int legacy_object)
+void eech_rf_lookup (int scene, int kind, int found, int legacy_object, const void *entry)
 {
 	int i;
 
 	/* the table holds DISTINCT lookups: an airfield scene is constructed for every keysite that uses it, and the same (scene, kind) answer repeated adds no evidence */
 	for (i = 0; i < rf_lookup_count; i++)
 	{
-		if (rf_lookups[i].scene == scene && rf_lookups[i].kind == kind && rf_lookups[i].found == found && rf_lookups[i].legacy == legacy_object)
+		if (rf_lookups[i].scene == scene && rf_lookups[i].kind == kind && rf_lookups[i].found == found && rf_lookups[i].legacy == legacy_object &&
+			rf_lookups[i].entry == entry)
 		{
 			return;
 		}
@@ -152,7 +165,21 @@ void eech_rf_lookup (int scene, int kind, int found, int legacy_object)
 	rf_lookups[rf_lookup_count].kind = kind;
 	rf_lookups[rf_lookup_count].found = found;
 	rf_lookups[rf_lookup_count].legacy = legacy_object;
+	rf_lookups[rf_lookup_count].entry = entry;
 	rf_lookup_count++;
+}
+
+void eech_rf_caller (const void *entry, int raw_object_index)
+{
+	rf_contexts++;
+	if (rf_have_pending)
+	{
+		/* the previous caller context was never consumed by a parse */
+		rf_stale++;
+	}
+	rf_pending_entry = entry;
+	rf_pending_raw = raw_object_index;
+	rf_have_pending = 1;
 }
 
 void eech_rf_begin (int object_index, int number_of_slots, const void *slots, const void *object)
@@ -160,8 +187,12 @@ void eech_rf_begin (int object_index, int number_of_slots, const void *slots, co
 	const struct OBJECT_3D *raw = (const struct OBJECT_3D *) object;
 	struct rf_call *call;
 	const float *bound;
+	const void *context_entry = rf_pending_entry;
+	int context_raw = rf_pending_raw, have_context = rf_have_pending;
 	int i;
 
+	/* the caller context belongs to THIS parse whether or not the call fits in the table */
+	rf_have_pending = 0;
 	if (rf_open_call)
 	{
 		rf_open_call->interrupted = 1;
@@ -181,28 +212,46 @@ void eech_rf_begin (int object_index, int number_of_slots, const void *slots, co
 	call->object = object_index;
 	call->slots = number_of_slots;
 	call->slot_first = rf_slot_count;
-	/* The route identity is established only if the lookups seen so far name exactly ONE (scene, kind) for this raw object. popread does several lookups before it parses and a raw
-	   object can be returned for more than one key, so the latest match is not evidence: two distinct keys make the identity ambiguous and none makes it unknown, and in both cases
-	   the call is incomplete (it is still recorded in full). */
+	/* The route identity is the context of the CALLER: the route entry popread held when it took the raw number it passed to this parse (eech_rf_caller), looked up in the table of
+	   entries the lookups returned. That entry is the value the original caller itself selected for a scene and kind, so several keys that share one model each have their own entry;
+	   the raw number is never used to find a key. No context, a number that is not this parse's argument, an entry no lookup returned, or an entry returned under two keys is NOT an
+	   identity: the call is recorded in full and is incomplete. */
 	call->lookup = -1;
-	for (i = 0; i < rf_lookup_count; i++)
+	if (have_context)
 	{
-		if (!rf_lookups[i].found || rf_lookups[i].legacy != object_index)
-		{
-			continue;
-		}
-		if (call->identity == 0)
-		{
-			call->identity = 1;
-			call->lookup = i;
-			call->key_scene = rf_lookups[i].scene;
-			call->key_kind = rf_lookups[i].kind;
-		}
-		else if (rf_lookups[i].scene != call->key_scene || rf_lookups[i].kind != call->key_kind)
+		call->caller_raw = context_raw;
+		call->identity = 3;
+		if (context_raw != object_index)
 		{
 			call->identity = 2;
-			call->lookup = -1;
-			break;
+		}
+		else
+		{
+			for (i = 0; i < rf_lookup_count; i++)
+			{
+				if (!rf_lookups[i].found || rf_lookups[i].entry != context_entry)
+				{
+					continue;
+				}
+				if (call->identity == 3)
+				{
+					call->identity = 1;
+					call->lookup = i;
+					call->key_scene = rf_lookups[i].scene;
+					call->key_kind = rf_lookups[i].kind;
+				}
+				else if (rf_lookups[i].scene != call->key_scene || rf_lookups[i].kind != call->key_kind)
+				{
+					call->identity = 4;
+					call->lookup = -1;
+					break;
+				}
+			}
+			if (call->identity == 1 && rf_lookups[call->lookup].legacy != object_index)
+			{
+				call->identity = 2;
+				call->lookup = -1;
+			}
 		}
 	}
 	/* the faces the parser's first pass will read: its own loop bound, the sum of every surface's face count (read from the same records the parser reads) */
@@ -517,8 +566,9 @@ int eech_route_summary_run (char *text, int capacity)
 			incomplete++;
 		}
 	}
-	emit (&out, "route-summary calls=%d call_capacity=%d dropped_calls=%d lookups=%d lookup_capacity=%d dropped_lookups=%d orphans=%d interrupted=%d open=%d incomplete_calls=%d\n",
-		rf_call_count, RF_CALLS, rf_dropped_calls, rf_lookup_count, RF_LOOKUPS, rf_dropped_lookups, rf_orphans, rf_interrupted_calls, rf_open_call ? 1 : 0, incomplete);
+	emit (&out, "route-summary calls=%d call_capacity=%d dropped_calls=%d lookups=%d lookup_capacity=%d dropped_lookups=%d orphans=%d interrupted=%d open=%d incomplete_calls=%d contexts=%d stale=%d\n",
+		rf_call_count, RF_CALLS, rf_dropped_calls, rf_lookup_count, RF_LOOKUPS, rf_dropped_lookups, rf_orphans, rf_interrupted_calls, rf_open_call ? 1 : 0, incomplete, rf_contexts,
+		rf_stale + (rf_have_pending ? 1 : 0));
 	emit (&out, "route-pools slots=%d/%d nodes=%d/%d faces=%d/%d finals=%d/%d links=%d/%d starts=%d/%d depths=%d/%d offsets=%d/%d\n", rf_slot_count, RF_SLOTS, rf_node_count, RF_NODES,
 		rf_face_count, RF_FACES, rf_final_count, RF_FINALS, rf_link_count, RF_LINKS, rf_start_count, RF_STARTS, rf_depth_count, RF_DEPTHS, rf_offset_count, RF_OFFSETS);
 	for (i = 0; i < rf_lookup_count; i++)
@@ -527,7 +577,7 @@ int eech_route_summary_run (char *text, int capacity)
 			rf_lookups[i].kind, kind_name (rf_lookups[i].kind), rf_lookups[i].found, rf_lookups[i].legacy);
 	}
 	/* a boot that recorded no call has measured nothing */
-	emit (&out, "route-complete value=%d\n", (rf_call_count > 0 && rf_dropped_calls == 0 && rf_dropped_lookups == 0 && rf_orphans == 0 && rf_interrupted_calls == 0 && !rf_open_call && incomplete == 0) ? 1 : 0);
+	emit (&out, "route-complete value=%d\n", (rf_call_count > 0 && rf_dropped_calls == 0 && rf_dropped_lookups == 0 && rf_orphans == 0 && rf_interrupted_calls == 0 && !rf_open_call && incomplete == 0 && rf_stale == 0 && !rf_have_pending) ? 1 : 0);
 	return out.overflow ? 1 : 0;
 }
 
@@ -549,13 +599,18 @@ int eech_route_call_run (int index, char *text, int capacity)
 		c->lookup, c->slots, c->slot_stored, c->points, c->surfaces, c->faces, c->ended, c->interrupted, call_complete (c));
 	if (c->identity == 1)
 	{
-		emit (&out, "route-identity index=%d state=unique scene=%d scene_name=%s kind=%d kind_name=%s\n", index, c->key_scene, scene_name (c->key_scene), c->key_kind,
-			kind_name (c->key_kind));
+		emit (&out, "route-identity index=%d state=unique scene=%d scene_name=%s kind=%d kind_name=%s caller_raw=%d\n", index, c->key_scene, scene_name (c->key_scene), c->key_kind,
+			kind_name (c->key_kind), c->caller_raw);
+	}
+	else if (c->identity == 0)
+	{
+		/* no caller context was registered for this parse: no key is given, and the call is incomplete */
+		emit (&out, "route-identity index=%d state=missing\n", index);
 	}
 	else
 	{
-		/* unknown (no lookup named this raw object) or ambiguous (two or more distinct keys did): no key is given, and the call is incomplete */
-		emit (&out, "route-identity index=%d state=%s\n", index, c->identity == 2 ? "ambiguous" : "unknown");
+		/* a caller context exists but is not an identity (mismatch, unmatched, conflict): no key is given, the number the caller took is reported, and the call is incomplete */
+		emit (&out, "route-identity index=%d state=%s caller_raw=%d\n", index, c->identity == 2 ? "mismatch" : (c->identity == 3 ? "unmatched" : "conflict"), c->caller_raw);
 	}
 	emit (&out, "route-bounds index=%d bits=%08x,%08x,%08x,%08x,%08x,%08x\n", index, c->bounds[0], c->bounds[1], c->bounds[2], c->bounds[3], c->bounds[4], c->bounds[5]);
 	emit (&out, "route-dropped index=%d slots=%d nodes=%d faces=%d finals=%d links=%d starts=%d depths=%d offsets=%d\n", index, c->dropped_slots, c->dropped_nodes, c->dropped_faces,
