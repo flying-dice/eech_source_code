@@ -6,6 +6,25 @@ The first production route-data move is prepared/pushed at `66dc2e8a237a46f92003
 
 Task51 ordinary source78 shipping continues on its original immutable snapshot without restart; fifth check around19:40 UTC finds all four available recording/observation prefixes exact (24,733,777/15,499,264/24,676,439/15,089,664 bytes), PARTIAL only. Actual full40/all8/post-input/final review/current checks/normal delivery remain pending. Ledger117 preserves prior authored HTML and all five epic reports; Jira50comment10937 records the closed original gate and extraction start. Task49/50/51 and wholeD3 remain In Progress; D4/D5 are unstarted. No accepted baseline, tolerance, oracle or flag changed. Historical checkpoint sections below retain their original scope and identities.
 
+# D3 route observer: the host profile no longer emits an unmeasured `route-bounds` row (1 November 2026): SOURCE + FOCUSED HOST-CRATE CHECKS ONLY; ENGINE C NOT BUILT, NOT RUN
+
+Defect (reported by the independent comparison `model-host-route-first-cohort-compare-8b4562edb-20261101.json`, `candidate_observer_truth_gate_closed=false`; reproduced by reading the sources):
+`csrc/eech_route_fixture.c` emitted `route-bounds` for every call, but the HOST profile has no original parser object, so its bounds stayed all zero. The first candidate captures
+therefore contain 704 (Georgia) and 528 (Lebanon) zero-bounds rows that nothing measured, and the driver accepted them. Those old candidate captures carry the defect and are not
+corrected by this change. The separate geometry/graph comparisons (decoded nodes, ordered face fields, declared graph rows) are valid as comparisons of what they cover, but they are NOT
+whole extraction acceptance.
+
+Correction (source only): the emitter writes `route-bounds` only when not in the host profile (original profile bytes and schema unchanged); the driver's `check_call` expects the row only
+outside the host profile, so a host report that carries one is malformed and stops; the tests' `host_call` helper omits the row and one damaged control
+(`host_profile_reports_in_the_wrong_shape_or_out_of_range_are_malformed`) re-inserts an all-zero bounds row and requires `malformed`. Every original grammar, control and field assertion
+is unchanged. No Core, provider, kernel, production oracle, scope or baseline change.
+
+Focused checks actually run on the working tree (not a commit identity) in the canonical Linux cache (volume `eech-linux-d3-collision-driver-5416adb3b-20261029`, no container on it first;
+log `R:/d3-evidence/route-bounds-focused-20261101.log`; the `false` control returned 1): `cargo fmt --check` 0; `eech-world` `model_store` 45 passed, `route_characterization` 18 passed,
+`model_route` 6 passed, `--lib` 250 passed, the reference-script inventory 1 passed; `clippy -D warnings` 0. The C change compiled nowhere: the emitter is unbuilt and no engine,
+native, retail or FCE run was made. The Root owns the canonical rerun, corrected candidate captures, repeat, authority and floating-point controls and the combined independent review.
+Task50 and D3 remain In Progress; this is not an "all checks pass" claim.
+
 # D3 route extraction: two test-compile errors in `eech-dc` corrected (1 November 2026): TEST-ONLY SOURCE FIX, NOT BUILT, NOT RUN
 
 Actual facts (Root, `8b4562edb`): the canonical Windows HOST route-fixture compiled with exit 0 (19:49:12.196366Z); the first Linux default package compile stopped with exit 101 at 19:50:10.762454Z

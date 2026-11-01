@@ -691,7 +691,12 @@ int eech_route_call_run (int index, char *text, int capacity)
 		/* a caller context exists but is not an identity (mismatch, unmatched, conflict): no key is given, the number the caller took is reported, and the call is incomplete */
 		emit (&out, "route-identity index=%d state=%s caller_raw=%d\n", index, c->identity == 2 ? "mismatch" : (c->identity == 3 ? "unmatched" : "conflict"), c->caller_raw);
 	}
-	emit (&out, "route-bounds index=%d bits=%08x,%08x,%08x,%08x,%08x,%08x\n", index, c->bounds[0], c->bounds[1], c->bounds[2], c->bounds[3], c->bounds[4], c->bounds[5]);
+	/* The bounds are the ORIGINAL parser's object's bounding box. The host profile has no such object (the host decodes the nodes and the campaign never holds the bounds), so it
+	   writes no bounds row at all: a zero row would be an unmeasured value dressed as a measurement. */
+	if (!rf_host_profile)
+	{
+		emit (&out, "route-bounds index=%d bits=%08x,%08x,%08x,%08x,%08x,%08x\n", index, c->bounds[0], c->bounds[1], c->bounds[2], c->bounds[3], c->bounds[4], c->bounds[5]);
+	}
 	emit (&out, "route-dropped index=%d slots=%d nodes=%d faces=%d finals=%d links=%d starts=%d depths=%d offsets=%d\n", index, c->dropped_slots, c->dropped_nodes, c->dropped_faces,
 		c->dropped_finals, c->dropped_links, c->dropped_starts, c->dropped_depths, c->dropped_offsets);
 	emit (&out, "route-totals index=%d have=%d nodes=%d starts=%d depths=%d maximum_depth=%d rows_nodes=%d rows_faces=%d rows_finals=%d rows_links=%d rows_starts=%d rows_depths=%d\n", index,

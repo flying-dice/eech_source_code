@@ -172,7 +172,7 @@ the per-depth positions), which are textually unchanged. The host owns the model
   and none is invented. The original profile is built with `route-fixture` AND `route-original` (`EECH_ROUTE_PROFILE=original tools/build-windows-route-fixture.sh ...`), which keeps the
   unmoved parser. **What the Root compares across the move**: the declared unchanged cohorts, row for row and byte for byte, per scene and kind in the call order: the slots, the decoded
   node bit patterns, the ordered face point pairs with colour and polygon bit, the finals, links, starts, per-depth positions and offsets. What differs by construction: the raw shorts and
-  the face-local columns, the surface columns and bounds (the host profile has none), `legacy_object` and `caller_raw` (now the key number), and the profile line. No whole-file equality is claimed.
+  the face-local columns, the surface columns and the `route-bounds` row (the host profile has none; the emitter writes no bounds row there and the driver refuses one), `legacy_object` and `caller_raw` (now the key number), and the profile line. No whole-file equality is claimed.
 * **Controls prepared** (the Root runs them): the host store's contract tests (`tests/model_route.rs`: kind lookup order, the colour, the ordered faces through each surface's own
   references, absence versus end versus argument error versus refusal), the driver's host-profile shapes, the bridge tests in `eech-dc`, the model-host-fixture probe now also asks one route
   node and face under each caller rounding mode (`model-host-route` line), and the existing authority modes (`model-authority.lua` forwards the new `kind` argument; the route questions

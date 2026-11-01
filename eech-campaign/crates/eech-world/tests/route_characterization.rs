@@ -949,12 +949,14 @@ fn the_driver_grammar_is_the_emitters() {
 // ---------------------------------------------------------------------------------------------------------------------------------
 // the HOST profile: the airfield route parser takes its nodes and line faces from the host, so the report has no stored short, face-local reference or surface record
 
-/// the coherent call text in the host profile's shapes: a node row without its stored short, a face row with only the flat face number, the resolved nodes, the colour and the polygon bit
+/// the coherent call text in the host profile's shapes: a node row without its stored short, a face row with only the flat face number, the resolved nodes, the colour and the polygon bit,
+/// and no bounds row (the bounds are the original parser's object's; the host profile has none)
 fn host_call(text: &str) -> String {
     let mut out = String::new();
     for line in text.lines() {
         let tokens: Vec<&str> = line.split(' ').collect();
         let kept: Vec<&str> = match tokens[0] {
+            "route-bounds" => continue,
             "route-node" => tokens.iter().copied().filter(|t| !t.starts_with("raw=")).collect(),
             "route-face" => tokens
                 .iter()
@@ -1015,6 +1017,14 @@ fn host_profile_reports_in_the_wrong_shape_or_out_of_range_are_malformed() {
         MALFORMED,
     );
     failure_in("faces out of order", &host(good.replacen("face=1 point=1,2", "face=2 point=1,2", 1)), MALFORMED);
+    // the defect the first candidate captures carried: a bounds row the host never measured (all zero), which the host grammar must refuse rather than accept
+    let zero_bounds = "route-bounds index=0 bits=00000000,00000000,00000000,00000000,00000000,00000000\n";
+    assert!(!good.contains("route-bounds"), "{good}");
+    failure_in(
+        "a host call that carries an unmeasured bounds row",
+        &host(good.replacen("route-dropped", &format!("{zero_bounds}route-dropped"), 1)),
+        MALFORMED,
+    );
     // a profile that is not the literal host
     let wrong = run(&healthy(
         summary(&[Variant::Complete]).replacen("", "route-profile value=Host\n", 1),

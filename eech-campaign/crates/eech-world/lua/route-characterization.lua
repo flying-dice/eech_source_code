@@ -241,9 +241,13 @@ local function check_call (text, index, summary)
 		malformed (what .. " has no route-identity row with a known state")
 	end
 
-	local b = r.expect ("route-bounds", { "index", "bits" })
-	mine (b, "route-bounds")
-	words (b.bits, 6, "bounds")
+	-- The bounds row is the original parser's object's bounding box: the original grammar has it and the HOST profile has none (the campaign never holds the bounds), so a host
+	-- report that carries one is refused here, as the reader expects the next row to be route-dropped.
+	if summary.profile ~= "host" then
+		local b = r.expect ("route-bounds", { "index", "bits" })
+		mine (b, "route-bounds")
+		words (b.bits, 6, "bounds")
+	end
 	local d = r.expect ("route-dropped", { "index", "slots", "nodes", "faces", "finals", "links", "starts", "depths", "offsets" })
 	mine (d, "route-dropped")
 	c.dropped = 0
