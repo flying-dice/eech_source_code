@@ -1142,16 +1142,17 @@ fn the_hosted_driver_keeps_the_hosts_answer_the_campaigns_events_and_its_file_op
 #[test]
 fn the_original_driver_refuses_a_hosted_report_and_the_hosted_driver_refuses_an_original_one() {
     let hosted_report = hosted(&report(&hosted_shape(true)));
+    // `Driven.result` is mlua's Display of the error, which wraps a Lua `error (message, 0)` as `runtime error: <message>`; the origin prefix of the driver follows it
     let error = drive(&hosted_report, "", "")
         .result
         .expect_err("the original driver must refuse a report in which the campaign recorded no header open");
-    assert!(error.starts_with("env-sound-init:"), "{error}");
+    assert!(error.starts_with("runtime error: env-sound-init:"), "{error}");
     // an original-shaped report: the campaign recorded a header open and attempts of its own, which the host now owns
     let original = report(&Shape::header_opened());
     let error = drive_host(&original)
         .result
         .expect_err("a campaign that still opens the header is not a hosted initialisation");
-    assert!(error.starts_with("env-sound-init-host:"), "{error}");
+    assert!(error.starts_with("runtime error: env-sound-init-host:"), "{error}");
 }
 
 #[test]
@@ -1181,7 +1182,7 @@ fn an_incoherent_or_missing_host_answer_is_a_failure_of_the_witness() {
         ),
     ] {
         let error = drive_host(&text).result.expect_err(label);
-        assert!(error.starts_with("env-sound-init-host:"), "{label}: {error}");
+        assert!(error.starts_with("runtime error: env-sound-init-host:"), "{label}: {error}");
     }
 }
 
@@ -1248,7 +1249,7 @@ fn the_host_answer_totals_must_cover_the_whole_named_catalogue_and_fit_the_heade
         ),
     ] {
         let error = drive_host(&text).result.expect_err(label);
-        assert!(error.starts_with("env-sound-init-host:"), "{label}: {error}");
+        assert!(error.starts_with("runtime error: env-sound-init-host:"), "{label}: {error}");
     }
 }
 
