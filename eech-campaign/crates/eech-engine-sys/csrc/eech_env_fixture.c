@@ -3258,10 +3258,28 @@ static int env_snd_pause_case (int index, char *text, int capacity, int *used)
  * private raw sidecar and writes summaries to its JSON rows.
  */
 
+/*
+ * PROFILE ADAPTATION (source after 2e2fd548a; the comments above and below describe the cases 21 to 24 as the FROZEN 2e2fd548a native ran them, with the legacy sound backend linked, and those actual originals and their drivers are
+ * unchanged evidence). The Core no longer contains modules/sound: soundman.c, dsound.c, dirsound.c, dsound3d.c and soundhlp.c are replaced by appsound/snd_nobackend.c, whose handle functions refuse by name. So in THIS source:
+ *   - the typed test-owned record array below is defined here, TEST-ONLY (it used to be soundman.c's); it is one typed static record with no device, buffer, COM pointer or sentinel, and its address stays valid through a fatal unwind;
+ *   - there is no real get playing, destroy, set volume or play to run on it: a native handle operation is the named stop [env-sound:unsupported_native_handle], the valid-expiry status request is still the
+ *     named stop [env-sound:unsupported_handle_status], and the unlink or kill decision that would release a held handle is refused by the lifetime wrapper before anything is written;
+ *   - the fixture releases the record ITSELF on the normal-return path (env_release_test_record clears it), because the Core has no destroy to call; `destroyed_by_original` can therefore no longer be 1.
+ * The cases keep their rows and refusals so a candidate run is comparable by rows to the original; their expected result against this source is the NAMED STOP, which a candidate driver (lua/env-sound-native-guard.lua) accepts
+ * only in the engine's strict fatal shape. Nothing else in this file changed.
+ */
+
 #define ENV_SND_HANDLE_FIRST 21
 #define ENV_SND_HANDLE_LAST 22
 
-extern system_sound_effect current_system_sound_effects[];
+static system_sound_effect current_system_sound_effects[1];
+
+/* the fixture's own release of the test-owned record (the Core has no native destroy): buffer absent, no longer in use */
+static void env_release_test_record (system_sound_effect *record)
+{
+	record->sound_buffer = NULL;
+	record->used = FALSE;
+}
 
 struct env_snd_handle_read
 {
@@ -3381,7 +3399,7 @@ static int env_snd_handle_case (int index, char *text, int capacity, int *used)
 
 		if (handle->used)
 		{
-			destroy_system_sound_effect (handle);
+			env_release_test_record (handle);
 			destroyed_by_fixture = 1;
 		}
 
@@ -3692,7 +3710,7 @@ static int env_snd_route_case (int index, char *text, int capacity, int *used)
 
 		if (handle->used)
 		{
-			destroy_system_sound_effect (handle);
+			env_release_test_record (handle);
 			destroyed_by_fixture = 1;
 		}
 

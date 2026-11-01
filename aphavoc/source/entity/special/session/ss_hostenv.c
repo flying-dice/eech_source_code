@@ -911,6 +911,13 @@ void campaign_sound_lifetime_update (int server, float delta, int valid, int loo
 		debug_fatal ("host environment: [env-provider:sound_lifetime_update.answer] the host unlinks a valid effect");
 	}
 
+	// a decision that would release a NATIVE handle (the kill of an expired effect that holds one, or the unlink of an invalid effect that holds one) is a live attempt the campaign cannot serve: it stops here by name, after
+	// the answer has been validated and BEFORE anything is written, killed, unlinked or destroyed (the legacy sound backend, which would destroy the handle, is not part of the Core: appsound/snd_nobackend.c)
+	if (has_handle && ((reply.sound_action == CAMPAIGN_SOUND_ACTION_KILL) || (reply.sound_action == CAMPAIGN_SOUND_ACTION_UNLINK)))
+	{
+		debug_fatal ("host environment: [env-sound:unsupported_native_handle] the host's decision (%s) would release a native playback handle held by the effect; the legacy sound backend is not part of the campaign Core, so a live native handle is unsupported (nothing was written, killed, unlinked or destroyed)", (reply.sound_action == CAMPAIGN_SOUND_ACTION_KILL) ? "kill" : "unlink");
+	}
+
 	*lifetime = reply.sound_lifetime;
 	*valid_lifetime = reply.sound_valid_lifetime;
 	*expired = reply.sound_expired;

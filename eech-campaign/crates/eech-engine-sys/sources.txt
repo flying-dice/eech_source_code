@@ -25,6 +25,7 @@ aphavoc/source/app3d/3d_main.c
 aphavoc/source/app3d/3d_snd.c
 aphavoc/source/appsound/snd_data.c
 aphavoc/source/appsound/snd_init.c
+aphavoc/source/appsound/snd_nobackend.c
 aphavoc/source/cdmusic.c
 aphavoc/source/cmndline.c
 aphavoc/source/comms/comm_man.c
@@ -1082,11 +1083,6 @@ modules/misc/iff.c
 modules/misc/int_list.c
 modules/misc/string.c
 modules/multi/server.c
-modules/sound/dirsound.c
-modules/sound/dsound.c
-modules/sound/dsound3d.c
-modules/sound/soundhlp.c
-modules/sound/soundman.c
 modules/system/ascii.c
 modules/system/assert.c
 modules/system/cdrom.c
