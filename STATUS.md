@@ -18,7 +18,39 @@ The first production route-data move is prepared/pushed at `66dc2e8a237a46f92003
 
 Task51 ordinary source78 shipping continues on its original immutable snapshot without restart; fifth check around19:40 UTC finds all four available recording/observation prefixes exact (24,733,777/15,499,264/24,676,439/15,089,664 bytes), PARTIAL only. Actual full40/all8/post-input/final review/current checks/normal delivery remain pending. Ledger117 preserves prior authored HTML and all five epic reports; Jira50comment10937 records the closed original gate and extraction start. Task49/50/51 and wholeD3 remain In Progress; D4/D5 are unstarted. No accepted baseline, tolerance, oracle or flag changed. Historical checkpoint sections below retain their original scope and identities.
 
-# D3 loader detachment: all FOUR geometry buffers leave Core; the cached horizon path is preserved (1 November 2026): SOURCE ONLY; NOT BUILT, NOT RUN
+# D3 four-buffer cut: the finite gate is OPEN on three findings (review `7f220c49`); the corrected source is UNBUILT (1 November 2026)
+
+The Root's actuals at `ccc452982a` (their OWN source; not relabelled for the fixed source): default 569/0 and combined 569/0, fmt and both strict 0; Windows combined 0; six controls with all four
+Core buffers 0 over 11442 rows (10252 with metadata), 32 cached and 0 uncached horizon images before the REAL uncached call, whose Engine fatal was caught; Georgia 704 and Lebanon 528 files literal
+to `9e4`; the short recording literal to `80fd`; the withheld route node refused. They stay valid for the files they measured. The independent review
+`independent-model-four-buffer-cut-source-actual-ccc452982a-20261101.json` (SHA256 `7f220c49d8edad4fbabf004390f3a4e760d264a26eb48e8091e9ecc83806d07b`) keeps the finite gate OPEN on three
+findings, all closed in SOURCE here and not yet built or run; no claim that every legacy reader is safe until the review of this delta.
+
+* **P1, compiled aliased readers.** `3dtrans.c` (`transform_3d_object`, `transform_flat_3d_object`, `transform_unclipped_3d_object`, `transform_unclipped_flat_3d_object` read `object->points`;
+  `transform_3d_object_surface` and `transform_unclipped_3d_object_surface` also read `current_object_3d_surface_point_list`) are called by `draw_wbuffered_3d_object` and its siblings BEFORE the
+  guarded face heads, and by terrain and explosion drawing. Added named heads (`LR-reader-*`, 26 new, 66 in all): the scene funnel (`draw_3d_scene`, `draw_normal_scene_objects`,
+  `draw_transparent_scene_objects`), the four object draws and three sub-object draws (`3dobjdrw.c`, `3dobjdrz.c`, `3dobjdrh.c`), the six translucent entries, the six transforms and
+  `illuminate_3d_object_surface` (its alias is the retained NORMAL list, not a detached buffer; it is stopped as part of the visual family, not as a detached reader), and a leaf with no caller.
+  Coverage is a one-off dominance scan over the compiled `modules/3d` callers, function-pointer tables included: of 41 unguarded functions that mention a buffer or an alias, 35 are dominated by a
+  head and 6 are not and are explained (the horizon decode after the `LU1` stop, the loader's own NULL assignments and frees, the host-patched collision accessor, and a shadow-visibility local box).
+  `3dline.c`, `3dstrail.c` and the terrain files use other structs' `points`. Not a claim about reachability.
+* **P2, loader I/O.** The new skips no longer `fseek`: `campaign_model_loader_skip` reads past each region through a 4096-byte buffer with checked counts (64-bit byte count, no narrowing, no Windows
+  32-bit `long`), and a short read stops by name (`[model-provider:object.loader]`); the custom polygon-face chunks must be read in full or stop by name (`campaign_model_loader_short`). Valid files
+  read the same bytes in the same order (the original read them too), so counts, offsets, texture overrides, the validation phase, FP and RNG are unchanged. The legacy header reads stay unchecked.
+* **P2, witness.** `lua/model-horizon-control.lua` now parses the exact C grammar of all three counters rows (names, field order, decimal integers within 0..2147483647, a deliberate bound for
+  the Windows 32-bit `long` and Lua doubles), checks coherence (`metadata_rows` and each buffer count not above `rows`, `presence_mismatches` not above `presence_checked`), does NOT launch the
+  unsupported reader when the residency or cache evidence is invalid, and accepts the stop only as the whole first line of the Engine-owned fatal error (prefix, named marker, operation and
+  reason, equal to the actual CCC primary line). Tests add damaged forms of the first row and of the cause, and tie the driver's grammar and text to the C and the staged guard. The comment that
+  claimed feature absence is known before boot is corrected (capability is checked after the boot), and the uncached stop is described as before TGA and geometry work, after the cached `.bin` lookup.
+  Source-unit stand-ins are not native proof.
+* **Unchanged:** `models.rs`, `model_route.rs`, `model_host.rs`, `model_step.c` and every route, provider, ABI and FP path are as at `c88e479c7`; the cached horizon branch and the fixture counters are
+  as they were. 86 staged loader patches (20 loader, face and horizon patches and 66 heads) find their strict counts against the real sources in staging order. No build, test or native run.
+  Metadata, surfaces, normals, the animation lists and the hierarchy stay in Core; viewpoint, device, muzzle, target-point services and Task49 collision remain open D3 work. Task51's ordinary
+  78 original shipping processes stay LIVE (the 8th check at 21:29: all four prefixes exact, PARTIAL); no 40-check, all-eight or Task closure. The Root's separate path-audit addendum is theirs.
+  Next validation: freeze, fmt, the default and combined builds, then the Windows fixture control through the changed driver (the existing `model_host_horizon_refusal` entry). An optional
+  native witness of one NEW head, not built here, would call the real `transform_3d_object` with all-NULL arguments from a fixture entry: the head stops before any argument is used.
+
+# D3 loader detachment: all FOUR geometry buffers leave Core; the cached horizon path is preserved (1 November 2026): CCC SOURCE (tested by the Root; the guards, I/O and witness are corrected in the entry above); NOT BUILT AFTER THE CORRECTION
 
 Supersedes the c389 entry below (three buffers, a kind-0 main-object cursor, scene node and line helpers): that expansion is removed (`models.rs`, `model_route.rs`, the `mb_hostmodel` helpers and the
 horizon and poly-line replacement patches are `c88e479c7` again); the partial main-point observer of a stopped turn was never validated and is archived by the Root, not carried. Why no main-point

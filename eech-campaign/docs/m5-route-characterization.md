@@ -183,13 +183,16 @@ the per-depth positions), which are textually unchanged. The host owns the model
   parser could take runs the same statements in the same order. The original parser has none of it. H5b removes the bounds scale (`xmax`/`ymax`/`zmax`) H5 left unused in the hosted parser.
   `campaign_model_route_probe` (test-only) is compiled only with `EECH_MODEL_HOST_FIXTURE`.
 * **Loader detachment, four buffers** (source; NOT built, NOT run; `LOADER_HOST_PATCHES` in `build/patches.rs`, applied with the host route parser): the common loader (`initialise_3d_objects`)
-  does not map `3dobjs.pts` or `3dobjs.sp` and does not allocate the polygon face buffer or the face point list; it skips their stream bytes by their exact counts (`fseek`). The custom `.EEO`
-  loader (`read_object`) skips the points, the face point references and the surface-point references the same way and streams the polygon faces (one byte each) through a small local buffer
-  only to find whether one has fewer than 3 points, acting on that where the original did (after the texture overrides, returning FALSE). The rows keep the file's true counts, both bounds, radius,
+  does not map `3dobjs.pts` or `3dobjs.sp` and does not allocate the polygon face buffer or the face point list; it reads past their stream bytes through a small checked helper
+  (`campaign_model_loader_skip`: the byte count is formed in 64 bits after the count and record size are checked, every byte must be there, and a short read stops by name with
+  `[model-provider:object.loader]`; a seek would succeed past the end of a file and prove nothing). The custom `.EEO`
+  loader (`read_object`) reads past the points, the face point references and the surface-point references the same way and streams the polygon faces (one byte each) through a small local buffer
+  in full chunks (a chunk not read in full stops by name) only to find whether one has fewer than 3 points, acting on that where the original did (after the texture overrides, returning FALSE). The rows keep the file's true counts, both bounds, radius,
   surface descriptors, normals and texture points, and the hierarchy is read as before; the four buffers (`points`, `faces`, `object_faces_point_plain_list`, `surface_points`) are NULL.
   The campaign's own readers of them are the host's (the collision triangle, the route data). Every legacy VISUAL / DISPLAY reader stops by name at its head, before any buffer, image or device
-  is touched, with `[model-provider:object.geometry]` and the operation (the `LR-reader-*` patches: the renderer, shadow, explosion, cloud and horizon draws, the cockpit display poly-lines
-  `get_object_3d_poly_line_data` and the Mi-24 HUD `initialise_hind_hud`): none is a campaign requirement merely because it compiles, and none is ported. The horizon image is special only in that
+  is touched, with `[model-provider:object.geometry]` and the operation (the `LR-reader-*` patches: the scene draw funnel `draw_3d_scene` and its normal / transparent object passes, every draw,
+  sub-object, translucent, transform (`3dtrans.c`, including the surface transforms) and illumination head, the shadow, explosion, cloud and horizon draws, the cockpit display poly-lines
+  `get_object_3d_poly_line_data` and the Mi-24 HUD `initialise_hind_hud`; the coverage is by dominance from those heads over the compiled callers, function tables included): none is a campaign requirement merely because it compiles, and none is ported. The horizon image is special only in that
   boot reaches it: `add_3d_horizon_image` first loads `<image>.bin` when its point count matches the object's TRUE count, which reads point colours and fog and never a point, and that branch is
   untouched; only an UNCACHED image (it would read a TGA and decode the stored points) stops, at the start of that branch (`LU1`). No main-object point service exists or is needed, and no
   decode formula was changed or characterised: the earlier kind-0 route cursor (c389) is removed. The model-host fixture's counters report `model-core-residency rows= metadata_rows= points= faces=

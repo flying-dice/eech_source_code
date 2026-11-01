@@ -784,6 +784,46 @@ void campaign_model_geometry_reader (const char *reader)
 	debug_fatal ("host model: [model-provider:object.geometry] %s is a legacy visual / display reader of a model's point, face, face-point-reference or surface-point buffer, which the hosted campaign no longer holds and does not serve (no renderer, cockpit display or HUD is supported)", reader);
 }
 
+// The loaders no longer keep the point, face, face-point-reference and surface-point regions of a model (the host owns them, from its own load of the same files); they READ PAST
+// them. A region is `count` records of `element` bytes, taken from `file` through a small buffer: every byte must be there, so a file that ends inside one is refused by name here
+// instead of leaving the stream mis-aligned or an unread region counted as valid. Nothing is seeked (a seek past the end of a file succeeds and proves nothing, and a Windows long is
+// 32 bits); the byte count is formed in 64 bits after `count` and `element` are checked, so it cannot overflow. This is the loader's own error handling for the regions it newly
+// skips, not a validation of the model: the legacy header reads are as they were.
+void campaign_model_loader_skip (FILE *file, long long count, unsigned long long element, const char *what)
+{
+	unsigned char
+		buffer[4096];
+
+	unsigned long long
+		remaining;
+
+	if ((!file) || (count < 0) || (count > 0x7fffffffLL) || (element < 1) || (element > 16))
+	{
+		debug_fatal ("host model: [model-provider:object.loader] %s: a region of %d records of %d bytes is not one the loader can read past", what, (int) count, (int) element);
+	}
+
+	remaining = (unsigned long long) count * element;
+
+	while (remaining)
+	{
+		size_t
+			chunk = (remaining < sizeof (buffer)) ? (size_t) remaining : sizeof (buffer);
+
+		if (fread (buffer, 1, chunk, file) != chunk)
+		{
+			debug_fatal ("host model: [model-provider:object.loader] %s: the file ends inside a region of %d records of %d bytes (%d KiB of it still to read)", what, (int) count, (int) element, (int) (remaining >> 10));
+		}
+
+		remaining -= chunk;
+	}
+}
+
+// the custom loader's polygon faces are streamed through a local buffer for their one validation; a chunk that was not read in full is the same refusal
+void campaign_model_loader_short (const char *what)
+{
+	debug_fatal ("host model: [model-provider:object.loader] %s: the file ends inside the region, a short read is not read as valid data", what);
+}
+
 #ifdef EECH_MODEL_HOST_FIXTURE
 // TEST-ONLY: how often add_3d_horizon_image took the pre-processed `.bin` branch (point colours and fog only; no point read) and how often it did not. Counted at the branch the
 // real reader takes (staged patch LU1), before any refusal; an uncached call stops at the named guard right after.
