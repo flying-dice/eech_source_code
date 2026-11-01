@@ -11288,7 +11288,7 @@ mod tests {
                 );
                 let number = |label: &str| -> Option<u64> {
                     let rest = said.split(label).nth(1)?;
-                    rest.trim_start().split_whitespace().next()?.parse().ok()
+                    rest.split_whitespace().next()?.parse().ok()
                 };
                 let before = number("LIVE_BEFORE=");
                 // the handler pads the decimal with leading zeros to 20 digits
@@ -11309,7 +11309,8 @@ mod tests {
     #[test]
     fn a_match_needs_a_header_that_holds_entries_and_the_distinct_matches_cannot_outnumber_them() {
         let good = (22050, 22050, true, 96);
-        let cases: Vec<(&str, Vec<(c_int, &str)>, SoundCatalogueReply)> = vec![
+        type Case<'a> = (&'a str, Vec<(c_int, &'a str)>, SoundCatalogueReply);
+        let cases: Vec<Case<'_>> = vec![
             (
                 "a match in a header that is present and holds no entry",
                 vec![(94, "lstrike.pcm")],
