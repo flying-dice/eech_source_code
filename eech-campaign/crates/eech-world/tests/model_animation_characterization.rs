@@ -176,9 +176,12 @@ fn run(case: &Case) -> Outcome {
         with_entries = case.with_entries,
     );
     lua.load(setup).set_name("collaborator").exec().expect("the collaborator is valid Lua");
-    lua.load(format!("CLOCKS = {{ {}, {} }}\nSCENE_LAST = {}", case.clocks[0], case.clocks[1], case.scene_last))
-        .exec()
-        .expect("the clocks are valid Lua");
+    lua.load(format!(
+        "CLOCKS = {{ {}, {} }}\nSCENE_LAST = {}",
+        case.clocks[0], case.clocks[1], case.scene_last
+    ))
+    .exec()
+    .expect("the clocks are valid Lua");
     let pages = lua.create_table().unwrap();
     for (i, text) in case.pages.iter().enumerate() {
         pages.set(i + 1, lua.create_string(text.as_bytes()).unwrap()).unwrap();
@@ -274,7 +277,10 @@ fn damaged_pages_are_malformed_and_stop_the_questions() {
         ("an unknown source", good.replace("source=none", "source=nowhere")),
         ("a listed row with too few ids", good.replace("ids=3,5,9", "ids=3,5")),
         ("a listed row with too many ids", good.replace("ids=3,5,9", "ids=3,5,9,11")),
-        ("a listed row with no count", good.replace("count=3 capacity=3 filled=3", "count=0 capacity=3 filled=3")),
+        (
+            "a listed row with no count",
+            good.replace("count=3 capacity=3 filled=3", "count=0 capacity=3 filled=3"),
+        ),
         (
             "a listed row with less allocated than counted",
             good.replace("count=3 capacity=3 filled=3", "count=3 capacity=2 filled=3"),
@@ -291,7 +297,10 @@ fn damaged_pages_are_malformed_and_stop_the_questions() {
             "a declared list allocated beyond its count",
             good.replace("count=3 capacity=3 filled=3", "count=3 capacity=4 filled=3"),
         ),
-        ("a listed row with no source", good.replace("status=listed source=file", "status=listed source=none")),
+        (
+            "a listed row with no source",
+            good.replace("status=listed source=file", "status=listed source=none"),
+        ),
         ("an id outside the unsigned short", good.replace("ids=3,5,9", "ids=3,5,65536")),
         ("an id with a leading zero", good.replace("ids=3,5,9", "ids=3,05,9")),
         (
@@ -309,12 +318,18 @@ fn damaged_pages_are_malformed_and_stop_the_questions() {
                 "source=built succeeded=1 count=0 capacity=0 filled=1",
             ),
         ),
-        ("an empty row with no source", good.replace("status=empty source=file", "status=empty source=none")),
+        (
+            "an empty row with no source",
+            good.replace("status=empty source=file", "status=empty source=none"),
+        ),
         (
             "an absent row with content",
             good.replace("status=absent source=none succeeded=0", "status=absent source=none succeeded=1"),
         ),
-        ("an absent row with a source", good.replace("status=absent source=none", "status=absent source=file")),
+        (
+            "an absent row with a source",
+            good.replace("status=absent source=none", "status=absent source=file"),
+        ),
         (
             "ids on an empty row",
             good.replace("filled=0 ids=-\nmodel-anim scene=3", "filled=0 ids=4\nmodel-anim scene=3"),
@@ -323,12 +338,18 @@ fn damaged_pages_are_malformed_and_stop_the_questions() {
             "a finished list outcome with no source",
             good.replace("status=empty source=file", "status=stale source=none"),
         ),
-        ("an unobserved row with a source", good.replace("status=absent source=none", "status=unobserved source=file")),
+        (
+            "an unobserved row with a source",
+            good.replace("status=absent source=none", "status=unobserved source=file"),
+        ),
         ("a header field missing", good.replace(" unknown_scene=0", "")),
         ("a header that does not echo", good.replacen("first=1 count=5", "first=1 count=4", 1)),
         ("a digest that is not lowercase hexadecimal", good.replace(CONTENT, "0123456789ABCDEF")),
         ("a closing row that does not echo", good.replace("rows=5", "rows=4")),
-        ("hooks that saw a scene pointer outside the table", good.replace("unknown_scene=0", "unknown_scene=1")),
+        (
+            "hooks that saw a scene pointer outside the table",
+            good.replace("unknown_scene=0", "unknown_scene=1"),
+        ),
         ("more scenes read than scenes", good.replace("scenes_read=4", "scenes_read=6")),
         ("no final newline", good.trim_end().to_string()),
     ];
@@ -339,7 +360,12 @@ fn damaged_pages_are_malformed_and_stop_the_questions() {
         };
         let outcome = run(&case);
         failure_in(what, &outcome, "MALFORMED REPORT");
-        assert_eq!(asked(&outcome), 1, "{what}: the engine was asked again after a malformed page: {:?}", outcome.log);
+        assert_eq!(
+            asked(&outcome),
+            1,
+            "{what}: the engine was asked again after a malformed page: {:?}",
+            outcome.log
+        );
     }
 }
 
@@ -377,7 +403,11 @@ fn headers_that_disagree_with_each_other_or_with_the_rows_are_malformed_before_t
         ..multi_page()
     };
     let outcome = run(&case);
-    failure_in("a total the rows do not show", &outcome, "page headers count 67 scenes read and the rows show 66");
+    failure_in(
+        "a total the rows do not show",
+        &outcome,
+        "page headers count 67 scenes read and the rows show 66",
+    );
     assert_eq!(asked(&outcome), 2, "the first page was not read again: {:?}", outcome.log);
     // and a first page that already saw an unknown scene
     let unknown: Vec<String> = good.iter().map(|p| p.replace("unknown_scene=0", "unknown_scene=3")).collect();
@@ -398,7 +428,10 @@ fn a_clock_that_is_not_finite_and_whole_is_malformed_and_a_moved_clock_is_not_a_
         ("a text seconds field", "{ elapsed_seconds = \"0\", time_of_day_seconds = 1, day = 1 }"),
         ("a nan", "{ elapsed_seconds = 0/0, time_of_day_seconds = 1, day = 1 }"),
         ("an infinity", "{ elapsed_seconds = 0, time_of_day_seconds = 1/0, day = 1 }"),
-        ("a value beyond single precision", "{ elapsed_seconds = 1e39, time_of_day_seconds = 1, day = 1 }"),
+        (
+            "a value beyond single precision",
+            "{ elapsed_seconds = 1e39, time_of_day_seconds = 1, day = 1 }",
+        ),
         ("a fractional day", "{ elapsed_seconds = 0, time_of_day_seconds = 1, day = 1.5 }"),
         ("a day beyond 32 bits", "{ elapsed_seconds = 0, time_of_day_seconds = 1, day = 2147483648 }"),
         ("not a table", "17"),
