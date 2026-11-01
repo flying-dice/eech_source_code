@@ -1,8 +1,9 @@
-# D3 integration checkpoint — Task50 merged with accepted terrain/ground base `3fdbe6efd` (1 November 2026): MERGED SOURCE, UNBUILT, UNRUN, UNREVIEWED
+# D3 integration checkpoint — Task50 merged with accepted terrain/ground base `3fdbe6efd` (1 November 2026): MERGED SOURCE `700ac6753` plus ONE source correction; actual tests and runtime NOT yet run on this tree
 
 Task50/PR110 (EEDCS-50) now contains a normal merge of integration `3fdbe6efd08864898a320373d04be79a24c1a374` (Tasks 47 terrain and 48 ground, accepted)
 into `8ae9067e4`; the old model base was `6bbaa8197`. Parents are kept, nothing is squashed or rebased, and nothing was pushed to integration. The merged
-tree has never been compiled, run or reviewed: no result below is claimed for it. Earlier model evidence keeps its OWN identities and is not relabelled: the 828-model original
+tree (`700ac6753`) has not been compiled or run by this lane. An independent source review of `700ac6753`
+(`independent-model-integration-source-700ac6753-20261101.json`, SHA256 `5c4c295645c6c1d15e7dcd9a431d2b0e736ad541446eff73514eb8291a448c18`) inspected the FFI, the patch unions and the install/init order and found ONE P2 (below, corrected in the next commit) and no other material issue. Root's actual Linux package and compiler gate runs separately on a frozen `700ac6753` snapshot and is NOT a result for the correction, which still needs actual tests, runtime and a delta source review before any new geometry work. Earlier model evidence keeps its OWN identities and is not relabelled: the 828-model original
 catalogue, the poison-Core-array, host-authored, malformed and missing-provider controls, the 16 full-DLL FP entries over four rounding modes, the nine actual controls, the
 `4bee2cc8c` complete bytes and `reference/d3-model-characterization/model-bounded-checkpoint-80fd-e488-20261030.json` all belong to the earlier source. Nothing was rerun.
 
@@ -15,13 +16,18 @@ blocks are all present; the Rust tests of both sides are kept. `eech_engine.c` w
 (NUL count 1, no CR). The three lifecycle scripts carry both `model = host.model` and `terrain = host.terrain_provider (...)`; the ground/terrain diagnostics now also pass `model`
 and `model-authority.lua` passes `terrain` (one added config item each; no logic changed). Two STATUS paragraphs were edited differently on both sides; the model-branch variant is kept.
 
-KNOWN, UNRESOLVED (found by reading, for Root's validation; not fixed here because fixing would change accepted drivers):
-* `tests/host_callbacks.rs` requires every `lua/*.lua` that calls `dc.prepare_installation` to select `host.use_reference_arithmetic` (except the two named diagnostics) and expects
-  `(31, 2)`. The terrain/ground drivers from `3fdbe6efd` prepare without it (`ground-authority`, `ground-characterization`, `terrain-characterization`, `terrain-has-face`,
-  `terrain-provider`), so that test is expected to fail until a reviewed decision (add the selection and re-measure those drivers, or name them as exceptions with a reason).
-* `model-characterization.lua` (frozen) and `model-provider-check.lua` (stand-in engine) boot without a terrain provider and were not changed; the merged real boot requires one.
-  Retained `reference/` and `tools/` boot scripts are historical evidence and untouched.
-* Strict count-checked C patches of both sides (`MODEL_HOST_PATCHES`, the terrain patches) and the two hosts' `mb_host*` files were merged textually only; whether they still apply is unknown.
+CORRECTED after the independent source review (finding ENV-MODEL-INTEGRATION-1, P2): `tests/host_callbacks.rs` requires every `lua/*.lua` that calls `dc.prepare_installation` to select
+`host.use_reference_arithmetic ()` right after it and before the boot (except the two raw-context diagnostics) and counts the scripts. The five terrain/ground real-engine drivers imported
+from `3fdbe6efd` (`ground-authority`, `ground-characterization`, `terrain-characterization`, `terrain-has-face`, `terrain-provider`) prepared without it, so the guard rejected them and they
+did not run on the reference host's arithmetic profile. Each now has the one call immediately after `dc.prepare_installation (root)`; the guard is unchanged and the exact inventory is
+`(31, 2)` -> `(36, 2)` (36 select: the 30 retained clients, `campaign.lua` and these five; 2 are exceptions). No exemption was added and no oracle, baseline, tolerance, INI or flag changed. The two
+legitimate raw-context exceptions keep all their bytes: `model-authority.lua` (the public default-nearest and explicit-rounding boundary diagnostic) and the frozen original-oracle driver
+`model-characterization.lua`. `model-provider-check.lua` is neither an exception nor a boot script: it is a non-boot provider comparison that needs no campaign DLL and contains neither
+`dc.prepare_installation` nor `dc.boot`; it is unchanged (an earlier version of this entry wrongly called it a stand-in engine). These scripts and the guard are NOT run in this lane.
+
+STILL OPEN for Root's validation (read, not run): the frozen `model-characterization.lua` boots without a terrain provider; it is historical evidence at its own identity and is not proof of
+compatibility with the merged module, and it was not changed. Retained `reference/` and `tools/` boot scripts are historical evidence and untouched. The strict count-checked C patches of
+both sides (`MODEL_HOST_PATCHES`, the terrain patches) were merged as text; the source review found no issue in their union, but whether they apply and build is for the actual compiler gate.
 
 Goal and next unmet production gate (unchanged by this merge): complete whole D3. The DLL still loads the geometry files (`initialise_3d_objects`, `3dobjdb.c`) and
 `routegen.c` still decodes waypoint routes from the raw `objects_3d_data` arrays. Task51's accepted merge becomes the final base before Task50 shipping acceptance.
