@@ -1,0 +1,653 @@
+{
+  "created_utc": "2026-11-01T06:14:22.799637+00:00",
+  "reviewer": "sole independent Codex reviewer; no nested agents",
+  "source": {
+    "head": "7c85100efb1e1aa4669f6c88051f9adce041629c",
+    "native_production_source": "7c85100efb1e1aa4669f6c88051f9adce041629c",
+    "external_lua_source": "0960e22d1fc4cd6bf95373f839b5c49c72ec27d0",
+    "test_lint_only_effective_source": "0e25c5e00ee7e9aae41b4e97582c4d12a4681ac0",
+    "observed_repo_head": "0e25c5e00ee7e9aae41b4e97582c4d12a4681ac0",
+    "native_relabelled": false,
+    "new_native_payload_count": 64,
+    "old_capability_native": "7574caa2ca87a2a44608a234fd1dd73136b8e4c0",
+    "old_payload_count": 62,
+    "new_BUILD_INFO_sha256": "9dac187b544458c2da527cc181798246f7999dd2c2e1f9f82cfa4952b4d84d35",
+    "old_BUILD_INFO_sha256": "7824726195b658c3849d2f3872f88e4522923c0f182e3160fb6b8174ff51f603"
+  },
+  "scope": "One new consolidated actual-evidence/helper/checker review. Source, unchanged physical kernels/FP/original characterizations and source closure195896/1e469 reused. Reviewer ran read-only consistency/hash checks, not builds/tests/native/retail experiments. No proposed Git publication was supplied or approved in this pass.",
+  "findings": [],
+  "finite_host_sound_metadata_init_slice_closed": true,
+  "whole_Task51_D3_accepted": false,
+  "shipping_or_Tacview_or_normal_delivery_accepted": false,
+  "actual_inventory": {
+    "default_executions": 3,
+    "authority_executions": 10,
+    "authority_unique_variants": 8,
+    "duplicate_authority_variants": [
+      "malformed",
+      "short"
+    ],
+    "all_actual_executions": 13,
+    "all_pre_post_input_checks0": 26,
+    "new_native_and_controller0": 12,
+    "old_native_and_controller1_expected_capability_red": 1,
+    "duplicates_add_coverage": false
+  },
+  "comparisons": {
+    "complete_observation_off": {
+      "bytes": 5191384,
+      "rows": 17283,
+      "sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+      "baseline": "environment-original-sound-init-recovery-7574caa2c-20261101/observer-off/environment.jsonl",
+      "every_byte_and_ending_identical": true,
+      "partial_prefix_only": false
+    },
+    "metadata": {
+      "whole_reports_byte_identical": false,
+      "probe_stable_complete_lines": 85,
+      "header_present_stable_complete_lines": 70,
+      "stable_lines_and_endings_byte_identical": true,
+      "classification": "New host-answer mirror row; original Core file attempts/open-match events and private header count become0; raw_report path/length and derived keys change by declared provenance. Independently checked all non-disposed fields in boot/now and common derived fields, not only the helper wide exception mask. Catalogue/constructor/backend/seed/entity-fingerprint/result complete stable lines remain exact. No original report or baseline is normalized or relabelled."
+    },
+    "header_present_default": "The same declared synthetic pair yields7entries/4matches/2065misses and identical complete catalogue/constructor state to the accepted original boot. Host reply is explicitly a mirror; Core attempts/blocked count are0. No OS host-IO syscall trace is claimed from these Core counters."
+  },
+  "authority_facts": [
+    "Healthy absent and controlled-header public executions each issue1sound_catalogue request, alter0 and complete through the actual native. Real metadata digests are6605372942e1ea2c and8c600fed7309b2fc; controlled lightning size96 and thunder matched0 reproduce the finite original input semantics.",
+    "Changed execution issues1request and alters2descriptor answers. Actual lightning rate/size/original-rate are44100/4321/22050; thunder8000/0/8000. Host mirror says present1/header2/matched2 and real catalogue digest80bbbccaa4bbb061. These are real field values/digest, not request-count-only authority.",
+    "Withheld records1intentional withdrawal,0altered,0base_errors; retained native log carries the exact intentional-withdrawal cause and callback marker. Malformed/short/incoherent each record1altered answer,0withdrawals/base_errors and stop at the answer marker. All expected refusal processes exit0 only because the witness proves the stop; delegate_ran/completed arefalse, both actual retained files are readable and exactly0bytes, and no result is manufactured.",
+    "Old7574 uses its ORIGINAL completing delegate while the external0960 wrapper records its distinct identity. Actual native/controller exits1, request count0, original delegate result present and sound-data-host-capability-missing in retained log. It is a meaningful old-capability red, never a successful candidate or shipping run."
+  ],
+  "identity_and_boundary_checks": [
+    "Independently checked all13 child terminal receipts and stage exits, every one of26 complete manifest arrays/counts/bytes/combined hashes against its recorded original or controlled reference. Controlled-header cases use the unchanged declared1181-file reference; other cases use the original1179-file reference.",
+    "Independently hashed all64new and62old BUILD-INFO payloads and checked snapshot Git head/clean inputs. External wrapper/driver hashes agree with frozen0960 Git blobs and recorded pre/post wrapper hashes; delegate paths resolve to the appropriate original or hosted frozen script. Native binaries are never relabelled by later Lua/test heads.",
+    "Strictly parsed retained JSON (duplicate keys/nonfinite values refused), reconstructed all available full native sidecars from raw rows byte-for-byte and joined every raw key/value. Successful default/public results and empty refusal evidence agree with native logs and authority receipts.",
+    "Read the entire5000-byte default audit helper and control runner. Their terminal source-bound records are consistent with independent full-file checks. The helper intentionally classifies a fixed set of changed diagnostic rows; this review additionally compared their unchanged fields and every other complete line. The audit is finite to these retained cases, not an arbitrary future-report validator."
+  ],
+  "validation_and_preserved_failures": [
+    "Windows7c immutable observer build actual0@05:47:48.441964Z. Initial7c Linux pipeline stays101 after18pass/2new assertion failures; subsequent0960 default/observer affected-package tests pass, while its default strict stays101 on the two new test-only lints and observer strict was not reached.",
+    "Corrected0e25 overlay controller terminal0@06:08:18.021218Z, exact overlay hashes verified against Git. Default Engine94tests pass and BOTH strict profiles finish0. Its ordinary production bytes are7c;0960 full profiles and0e25 test-only/strict reuse are explicitly separate, not a relabelled whole-source binary.",
+    "Actual Windows0960 test export/build0; Engine94/DC34 and init22/witness13/provider7/cwd1 all actual0. Original World run291pass/1setupfailure (missing compile-time source path) and aggregate1 remain retained. SAME World exe SHA52c8ddadad032cd2faa369222a07297eedfe5634bc12847bb840efecd7aea0f6 then passes all292@06:06:20.472540Z with exact7c snd_data.c fixture at R:/src; source/executable hashes independently checked. No expectation/code patch or false original success.",
+    "Exact0e25 finalCI receipt now contains9completedSUCCESS jobs across3workflows, independently checked. This closes the recorded current-source CI component only; it does not turn the7c native into a0e25 binary, establish shipping/Tacview or approve normal delivery.",
+    "All21 moved Windows test-directory files and all12moved accepted-ground Git-pack files independently match retained pre-move SHA256 inventories. Original path junctions and move receipts preserve identities. Unrelated closed458 compression/read failures and long-path recovery remain provenance context, not new candidate physics evidence; no accepted originals are rerun or rewritten."
+  ],
+  "corrected_evidence_issue": {
+    "status": "resolved_by_explicit_correction",
+    "facts": "First authority aggregate1 actually contains6completed cases, including malformed/short; remaining aggregate0 executes4cases and repeats those2on fresh roots. The original remaining-controller prior_completed_cases/no-rerun statement is false and remains retained. Explicit correction supersedes it; all10actual executions audited and duplicates add no coverage. Root Jira correction/public explanation are context, not silently rewritten receipts.",
+    "correction": {
+      "path": "R:/d3-evidence/metadata-authority-execution-bookkeeping-correction-20261101.json",
+      "bytes": 1735,
+      "sha256": "ba1264ae3521c93203c15397433d3f97b82f72ee678a6263a2ce5925859fee97"
+    }
+  },
+  "limitations": [
+    "Finite INIT-time metadata/header lookup extraction only. No malformed/reload/all-file conditions, loader sample-data reads, positive backend/device/handle, non-session/per-family/range/audio/render/network/pitch/amplitude, physical time, terrain/spatial/model or wholeD3 acceptance.",
+    "CPU floating-mode preservation is not inferred from unchanged seed/entity fingerprints or raw word equality; unchanged prior kernel/source/FP gates are reused. No new all-state/Tacview or shipping40/all8 evidence.",
+    "Core descriptor policy, dynamic loaders/blocked data and other compiled readers remain coupled and required D3 work. Publication safety of any later projection, normal delivery, shipping and fullTask51 remain separate despite recorded0e25 CI success. D4/D5 not started."
+  ],
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/metadata-default-controls-7c-native-0960-lua-20261101/controller.json",
+      "bytes": 4537,
+      "sha256": "739eab1c6cb4562ee1d22efb8b66c46841bedae89f19fa4114dba6c73ebe235a"
+    },
+    {
+      "path": "R:/d3-evidence/metadata-default-controls-7c-native-0960-lua-20261101/comparison.json",
+      "bytes": 3792,
+      "sha256": "ea826f86b2cd784c2858e84420394dfbd4e918ccabba422ee85e5d01cf9844eb"
+    },
+    {
+      "path": "R:/d3-evidence/audit-metadata-default-controls-0960-20261101.py",
+      "bytes": 5000,
+      "sha256": "9d0a843c91aad88ca8f28517bfb7a8146309af74db68f1f9d26c07ff6891ff41"
+    },
+    {
+      "path": "R:/d3-evidence/run-host-sound-metadata-control-0960-20261101.py",
+      "bytes": 6325,
+      "sha256": "72ed01bef9dff4e2df6cc69b0d7d57d9af0da56a48cfe877ba0130db77aad009"
+    },
+    {
+      "path": "R:/d3-evidence/metadata-public-authority-0960-20261101/controller.json",
+      "bytes": 12602,
+      "sha256": "c614b508df104e98977b908e45f82949ed89b820235360cd887ad328b70ac4e7"
+    },
+    {
+      "path": "R:/d3-evidence/metadata-public-authority-remaining-0960-20261101/controller.json",
+      "bytes": 8936,
+      "sha256": "a63781990c3323bf4cc454a14c3c20f16acda7a4850e549cbfe59631534673af"
+    },
+    {
+      "path": "R:/d3-evidence/metadata-linux-final-overlay-0960-20261101/controller.json",
+      "bytes": 3974,
+      "sha256": "e34eed77f721a693bbefa858c6225c1f915b8b4357cbcd69ff465ebab387087b"
+    },
+    {
+      "path": "R:/d3-evidence/metadata-linux-test-lints-overlay-0e25-20261101/controller.json",
+      "bytes": 4487,
+      "sha256": "49ba9b7f4067d5b3a3fc7cff1aabc433bddd513dcae45c914c250adcee2880a4"
+    },
+    {
+      "path": "R:/d3-evidence/metadata-windows-tests-0960-20261101/controller.json",
+      "bytes": 4902,
+      "sha256": "9cbdacb9a866c196d60c8ee1f827fba6229859e7518aaf722054f9c179e8fa80"
+    },
+    {
+      "path": "R:/d3-evidence/metadata-windows-world-source-context-retest-0960-20261101/controller.json",
+      "bytes": 1055,
+      "sha256": "902a9c5a4f2e3acb50be6d2bbb4ba17532cd5efbd47b76acf07c072b97ca78df"
+    },
+    {
+      "path": "R:/d3-evidence/current-CI-0e25c5e00-20261101.json",
+      "bytes": 14458,
+      "sha256": "cf62dbe8daaee295c8b4eb606115d9d040af5f15510a7c520f50d7b413ce7ac9"
+    }
+  ],
+  "actual_controls": [
+    {
+      "group": "metadata-default-controls-7c-native-0960-lua-20261101",
+      "case": "probe",
+      "native_source": "7c85100efb1e1aa4669f6c88051f9adce041629c",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "pre_post_input_actual_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 64,
+      "controller": {
+        "path": "R:/d3-evidence/metadata-default-controls-7c-native-0960-lua-20261101/probe/controller.json",
+        "bytes": 7163,
+        "sha256": "73e1f9862da9960d54678687c8676e70efd82284274c8a9335c993ed116ea6fa"
+      },
+      "complete_json": {
+        "path": "R:/d3-evidence/metadata-default-controls-7c-native-0960-lua-20261101/probe/environment.jsonl",
+        "bytes": 21207,
+        "sha256": "19d7001af89083d9e61531bbb93474cadafe9785ff318778f737d43a4b6d0552"
+      },
+      "complete_sidecar": {
+        "path": "R:/d3-evidence/metadata-default-controls-7c-native-0960-lua-20261101/probe/environment.jsonl.case15.raw",
+        "bytes": 7440,
+        "sha256": "1bb589f054bcb695e2afdfca7fd4cee198523972b7b6e2df84bf5bc948763aac"
+      }
+    },
+    {
+      "group": "metadata-default-controls-7c-native-0960-lua-20261101",
+      "case": "observer-off",
+      "native_source": "7c85100efb1e1aa4669f6c88051f9adce041629c",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "pre_post_input_actual_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 64,
+      "controller": {
+        "path": "R:/d3-evidence/metadata-default-controls-7c-native-0960-lua-20261101/observer-off/controller.json",
+        "bytes": 348755,
+        "sha256": "e6f1a1e8219cad68fba557f83b26bdc57fde9c708ded75a5d7121ea96999da79"
+      },
+      "complete_json": {
+        "path": "R:/d3-evidence/metadata-default-controls-7c-native-0960-lua-20261101/observer-off/environment.jsonl",
+        "bytes": 5191384,
+        "sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d"
+      }
+    },
+    {
+      "group": "metadata-default-controls-7c-native-0960-lua-20261101",
+      "case": "header-present",
+      "native_source": "7c85100efb1e1aa4669f6c88051f9adce041629c",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "pre_post_input_actual_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 64,
+      "controller": {
+        "path": "R:/d3-evidence/metadata-default-controls-7c-native-0960-lua-20261101/header-present/controller.json",
+        "bytes": 6729,
+        "sha256": "1293e189e3592a862e1911c31a60d9bf5e717cd65eb9e67b51fae76d68a176d3"
+      },
+      "complete_json": {
+        "path": "R:/d3-evidence/metadata-default-controls-7c-native-0960-lua-20261101/header-present/environment.jsonl",
+        "bytes": 18181,
+        "sha256": "756868cdd60812de0315d268a98f33d69a17db2747558ddd37a370aae5d5aa3e"
+      },
+      "complete_sidecar": {
+        "path": "R:/d3-evidence/metadata-default-controls-7c-native-0960-lua-20261101/header-present/environment.jsonl.case15.raw",
+        "bytes": 6368,
+        "sha256": "b60aa1952d2a50868eb2acd33a4292583aff6ce095179d600a3836541e2dd7ae"
+      }
+    },
+    {
+      "group": "metadata-public-authority-0960-20261101",
+      "case": "healthy-absent",
+      "native_source": "7c85100efb1e1aa4669f6c88051f9adce041629c",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "pre_post_input_actual_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 64,
+      "controller": {
+        "path": "R:/d3-evidence/metadata-public-authority-0960-20261101/healthy-absent/controller.json",
+        "bytes": 6919,
+        "sha256": "01c82a0ad1112695425d38a0c7e7b4687fb15def24d971d4d180927802aaf470"
+      },
+      "complete_json": {
+        "path": "R:/d3-evidence/metadata-public-authority-0960-20261101/healthy-absent/environment.jsonl",
+        "bytes": 18162,
+        "sha256": "749ccf94e684d89f01434e1f28b5f6737afd95aa3786f9fbb071f8a6d8e735e8"
+      },
+      "complete_sidecar": {
+        "path": "R:/d3-evidence/metadata-public-authority-0960-20261101/healthy-absent/environment.jsonl.case15.raw",
+        "bytes": 6365,
+        "sha256": "ce159ab05f250545d302669981701f94b00f9fa8a3f98b093410361b63a26281"
+      },
+      "authority": {
+        "mode": "healthy",
+        "expect": "absent",
+        "verdict": "host_asked_and_decided",
+        "completed": true,
+        "delegate_ran": true,
+        "requests": 1,
+        "altered": 0,
+        "withdrawals": 0,
+        "base_errors": 0
+      },
+      "authority_receipt": {
+        "path": "R:/d3-evidence/metadata-public-authority-0960-20261101/healthy-absent/environment.jsonl.authority.jsonl",
+        "bytes": 426,
+        "sha256": "65d43e2a613b065972452270d3e36717ae34d161649c0af1f14e02e95bcdcfcf"
+      }
+    },
+    {
+      "group": "metadata-public-authority-0960-20261101",
+      "case": "healthy-control",
+      "native_source": "7c85100efb1e1aa4669f6c88051f9adce041629c",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "pre_post_input_actual_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 64,
+      "controller": {
+        "path": "R:/d3-evidence/metadata-public-authority-0960-20261101/healthy-control/controller.json",
+        "bytes": 6827,
+        "sha256": "cf393ad7370654f07ec66ac0e59d9d875eef19b2ced4c531a09ba98b3b73cca4"
+      },
+      "complete_json": {
+        "path": "R:/d3-evidence/metadata-public-authority-0960-20261101/healthy-control/environment.jsonl",
+        "bytes": 18168,
+        "sha256": "c67362cc9045a4c741043158bacb69481a0f5d7cf431de9bf79e22c10ea91a5a"
+      },
+      "complete_sidecar": {
+        "path": "R:/d3-evidence/metadata-public-authority-0960-20261101/healthy-control/environment.jsonl.case15.raw",
+        "bytes": 6368,
+        "sha256": "b60aa1952d2a50868eb2acd33a4292583aff6ce095179d600a3836541e2dd7ae"
+      },
+      "authority": {
+        "mode": "healthy",
+        "expect": "control",
+        "verdict": "host_asked_and_decided",
+        "completed": true,
+        "delegate_ran": true,
+        "requests": 1,
+        "altered": 0,
+        "withdrawals": 0,
+        "base_errors": 0
+      },
+      "authority_receipt": {
+        "path": "R:/d3-evidence/metadata-public-authority-0960-20261101/healthy-control/environment.jsonl.authority.jsonl",
+        "bytes": 427,
+        "sha256": "5c59a603d812144a867a44b2a9dd4681fbafecfdb0b2a4054f1864dc272777e5"
+      }
+    },
+    {
+      "group": "metadata-public-authority-0960-20261101",
+      "case": "changed",
+      "native_source": "7c85100efb1e1aa4669f6c88051f9adce041629c",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "pre_post_input_actual_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 64,
+      "controller": {
+        "path": "R:/d3-evidence/metadata-public-authority-0960-20261101/changed/controller.json",
+        "bytes": 6861,
+        "sha256": "0bfc749771403d8fe66c5755410280ef341ee2dcf377926d7eadacd068e6164a"
+      },
+      "complete_json": {
+        "path": "R:/d3-evidence/metadata-public-authority-0960-20261101/changed/environment.jsonl",
+        "bytes": 18156,
+        "sha256": "327c2a40edfe4b536ca7bbcce8f9929aa7524fd12a6805197ff8dfb6b5733bae"
+      },
+      "complete_sidecar": {
+        "path": "R:/d3-evidence/metadata-public-authority-0960-20261101/changed/environment.jsonl.case15.raw",
+        "bytes": 6366,
+        "sha256": "4fc72fd67d98213ffce288da80d573e6a8480dae9f6f9e783db7192303b18cef"
+      },
+      "authority": {
+        "mode": "changed",
+        "expect": "absent",
+        "verdict": "host_changed_the_decision",
+        "completed": true,
+        "delegate_ran": true,
+        "requests": 1,
+        "altered": 2,
+        "withdrawals": 0,
+        "base_errors": 0
+      },
+      "authority_receipt": {
+        "path": "R:/d3-evidence/metadata-public-authority-0960-20261101/changed/environment.jsonl.authority.jsonl",
+        "bytes": 429,
+        "sha256": "aa613cb01c362df3ae37f9e9987244ff0b98cac086587e5ce9e0a2c11b6af99a"
+      }
+    },
+    {
+      "group": "metadata-public-authority-0960-20261101",
+      "case": "withheld",
+      "native_source": "7c85100efb1e1aa4669f6c88051f9adce041629c",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "pre_post_input_actual_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 64,
+      "controller": {
+        "path": "R:/d3-evidence/metadata-public-authority-0960-20261101/withheld/controller.json",
+        "bytes": 4782,
+        "sha256": "ddb43c67866b7a138fef7a296d7b7ae81cc42c1af3c275e1219528ee0da8bf87"
+      },
+      "complete_json": {
+        "path": "R:/d3-evidence/metadata-public-authority-0960-20261101/withheld/environment.jsonl",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "complete_sidecar": {
+        "path": "R:/d3-evidence/metadata-public-authority-0960-20261101/withheld/environment.jsonl.case15.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "authority": {
+        "mode": "withheld",
+        "expect": "absent",
+        "verdict": "stopped_at_boundary",
+        "completed": false,
+        "delegate_ran": false,
+        "requests": 1,
+        "altered": 0,
+        "withdrawals": 1,
+        "base_errors": 0
+      },
+      "authority_receipt": {
+        "path": "R:/d3-evidence/metadata-public-authority-0960-20261101/withheld/environment.jsonl.authority.jsonl",
+        "bytes": 450,
+        "sha256": "8900a54e268665e17f8ae02e81ab67f0880860878463e793b407a00e8bbc5ad2"
+      }
+    },
+    {
+      "group": "metadata-public-authority-0960-20261101",
+      "case": "malformed",
+      "native_source": "7c85100efb1e1aa4669f6c88051f9adce041629c",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "pre_post_input_actual_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 64,
+      "controller": {
+        "path": "R:/d3-evidence/metadata-public-authority-0960-20261101/malformed/controller.json",
+        "bytes": 4790,
+        "sha256": "87211562d650b606acda8f12e0d9708dce094c1c7bb7f1d1ba1dde189f7f98b3"
+      },
+      "complete_json": {
+        "path": "R:/d3-evidence/metadata-public-authority-0960-20261101/malformed/environment.jsonl",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "complete_sidecar": {
+        "path": "R:/d3-evidence/metadata-public-authority-0960-20261101/malformed/environment.jsonl.case15.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "authority": {
+        "mode": "malformed",
+        "expect": "absent",
+        "verdict": "stopped_at_boundary",
+        "completed": false,
+        "delegate_ran": false,
+        "requests": 1,
+        "altered": 1,
+        "withdrawals": 0,
+        "base_errors": 0
+      },
+      "authority_receipt": {
+        "path": "R:/d3-evidence/metadata-public-authority-0960-20261101/malformed/environment.jsonl.authority.jsonl",
+        "bytes": 449,
+        "sha256": "cc89311692661c85dcec3952e7c8171e1b7623d1e9160d0e350d4402960ebe20"
+      }
+    },
+    {
+      "group": "metadata-public-authority-0960-20261101",
+      "case": "short",
+      "native_source": "7c85100efb1e1aa4669f6c88051f9adce041629c",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "pre_post_input_actual_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 64,
+      "controller": {
+        "path": "R:/d3-evidence/metadata-public-authority-0960-20261101/short/controller.json",
+        "bytes": 4756,
+        "sha256": "eb7a955d652b50b2caaef24452ce6aa2964bc4f5e253083a17e6456cee543af7"
+      },
+      "complete_json": {
+        "path": "R:/d3-evidence/metadata-public-authority-0960-20261101/short/environment.jsonl",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "complete_sidecar": {
+        "path": "R:/d3-evidence/metadata-public-authority-0960-20261101/short/environment.jsonl.case15.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "authority": {
+        "mode": "short",
+        "expect": "absent",
+        "verdict": "stopped_at_boundary",
+        "completed": false,
+        "delegate_ran": false,
+        "requests": 1,
+        "altered": 1,
+        "withdrawals": 0,
+        "base_errors": 0
+      },
+      "authority_receipt": {
+        "path": "R:/d3-evidence/metadata-public-authority-0960-20261101/short/environment.jsonl.authority.jsonl",
+        "bytes": 445,
+        "sha256": "095b2f9c8bfe52bf1f7fa92b97864a6783c7d571ec8d805b4855d53b70a8cc8f"
+      }
+    },
+    {
+      "group": "metadata-public-authority-remaining-0960-20261101",
+      "case": "malformed",
+      "native_source": "7c85100efb1e1aa4669f6c88051f9adce041629c",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "pre_post_input_actual_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 64,
+      "controller": {
+        "path": "R:/d3-evidence/metadata-public-authority-remaining-0960-20261101/malformed/controller.json",
+        "bytes": 4919,
+        "sha256": "f0dc9362b056a2765eae4a20d392f6426fabc90aa896f9f1ae70984c882212e4"
+      },
+      "complete_json": {
+        "path": "R:/d3-evidence/metadata-public-authority-remaining-0960-20261101/malformed/environment.jsonl",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "complete_sidecar": {
+        "path": "R:/d3-evidence/metadata-public-authority-remaining-0960-20261101/malformed/environment.jsonl.case15.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "authority": {
+        "mode": "malformed",
+        "expect": "absent",
+        "verdict": "stopped_at_boundary",
+        "completed": false,
+        "delegate_ran": false,
+        "requests": 1,
+        "altered": 1,
+        "withdrawals": 0,
+        "base_errors": 0
+      },
+      "authority_receipt": {
+        "path": "R:/d3-evidence/metadata-public-authority-remaining-0960-20261101/malformed/environment.jsonl.authority.jsonl",
+        "bytes": 449,
+        "sha256": "cc89311692661c85dcec3952e7c8171e1b7623d1e9160d0e350d4402960ebe20"
+      }
+    },
+    {
+      "group": "metadata-public-authority-remaining-0960-20261101",
+      "case": "short",
+      "native_source": "7c85100efb1e1aa4669f6c88051f9adce041629c",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "pre_post_input_actual_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 64,
+      "controller": {
+        "path": "R:/d3-evidence/metadata-public-authority-remaining-0960-20261101/short/controller.json",
+        "bytes": 4883,
+        "sha256": "abcad972544cc7eea68df089fbf9313c6a6d1a13d765177a4564b7c812ad611d"
+      },
+      "complete_json": {
+        "path": "R:/d3-evidence/metadata-public-authority-remaining-0960-20261101/short/environment.jsonl",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "complete_sidecar": {
+        "path": "R:/d3-evidence/metadata-public-authority-remaining-0960-20261101/short/environment.jsonl.case15.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "authority": {
+        "mode": "short",
+        "expect": "absent",
+        "verdict": "stopped_at_boundary",
+        "completed": false,
+        "delegate_ran": false,
+        "requests": 1,
+        "altered": 1,
+        "withdrawals": 0,
+        "base_errors": 0
+      },
+      "authority_receipt": {
+        "path": "R:/d3-evidence/metadata-public-authority-remaining-0960-20261101/short/environment.jsonl.authority.jsonl",
+        "bytes": 445,
+        "sha256": "095b2f9c8bfe52bf1f7fa92b97864a6783c7d571ec8d805b4855d53b70a8cc8f"
+      }
+    },
+    {
+      "group": "metadata-public-authority-remaining-0960-20261101",
+      "case": "incoherent",
+      "native_source": "7c85100efb1e1aa4669f6c88051f9adce041629c",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "pre_post_input_actual_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 64,
+      "controller": {
+        "path": "R:/d3-evidence/metadata-public-authority-remaining-0960-20261101/incoherent/controller.json",
+        "bytes": 4929,
+        "sha256": "fc4e79cef96997c9327615209a048d2c78bd9b222590cdfc8a18e7c6606c514f"
+      },
+      "complete_json": {
+        "path": "R:/d3-evidence/metadata-public-authority-remaining-0960-20261101/incoherent/environment.jsonl",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "complete_sidecar": {
+        "path": "R:/d3-evidence/metadata-public-authority-remaining-0960-20261101/incoherent/environment.jsonl.case15.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "authority": {
+        "mode": "incoherent",
+        "expect": "absent",
+        "verdict": "stopped_at_boundary",
+        "completed": false,
+        "delegate_ran": false,
+        "requests": 1,
+        "altered": 1,
+        "withdrawals": 0,
+        "base_errors": 0
+      },
+      "authority_receipt": {
+        "path": "R:/d3-evidence/metadata-public-authority-remaining-0960-20261101/incoherent/environment.jsonl.authority.jsonl",
+        "bytes": 450,
+        "sha256": "17abb970597005308ad856f48f761153c0f8e3aff9d13d890c61d8762242c859"
+      }
+    },
+    {
+      "group": "metadata-public-authority-remaining-0960-20261101",
+      "case": "old-capability-red",
+      "native_source": "7574caa2ca87a2a44608a234fd1dd73136b8e4c0",
+      "actual_native_exit": 1,
+      "actual_controller_exit": 1,
+      "pre_post_input_actual_exits": [
+        0,
+        0
+      ],
+      "verified_payloads": 62,
+      "controller": {
+        "path": "R:/d3-evidence/metadata-public-authority-remaining-0960-20261101/old-capability-red/controller.json",
+        "bytes": 7190,
+        "sha256": "9641cf7a086b21fd658d3da60fde12a74f4e08d482e6c2b9d1a3d20d4a5e1ba8"
+      },
+      "complete_json": {
+        "path": "R:/d3-evidence/metadata-public-authority-remaining-0960-20261101/old-capability-red/environment.jsonl",
+        "bytes": 18455,
+        "sha256": "5789cab50b531f595e5503f5e06ea015ffe16950b7e99940cbb0f924adebf858"
+      },
+      "complete_sidecar": {
+        "path": "R:/d3-evidence/metadata-public-authority-remaining-0960-20261101/old-capability-red/environment.jsonl.case15.raw",
+        "bytes": 6507,
+        "sha256": "8150fa0f3d3811832a837d17f911ed45d18b4aa22426cf0a52d331cfc3ab9bc3"
+      },
+      "authority": {
+        "mode": "healthy",
+        "expect": "absent",
+        "verdict": "sound_data_host_capability_missing",
+        "completed": true,
+        "delegate_ran": true,
+        "requests": 0,
+        "altered": 0,
+        "withdrawals": 0,
+        "base_errors": 0
+      },
+      "authority_receipt": {
+        "path": "R:/d3-evidence/metadata-public-authority-remaining-0960-20261101/old-capability-red/environment.jsonl.authority.jsonl",
+        "bytes": 453,
+        "sha256": "9a008bc6b649791211ba2a0e6e56fc40ba54909ee6f00c8c246285fffd32cfc8"
+      }
+    }
+  ],
+  "current_source_CI_all9_actual_success": true
+}

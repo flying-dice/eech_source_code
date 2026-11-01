@@ -1,0 +1,20 @@
+{
+  "state": "terminal",
+  "controller_pid": 23728,
+  "started_utc": "2026-11-01T06:06:19.930317+00:00",
+  "args": [
+    "R:\\d3-evidence\\metadata-windows-tests-0960-20261101\\eech_world.exe",
+    "--test-threads=1",
+    "--nocapture"
+  ],
+  "cwd": "R:\\d3-evidence\\metadata-windows-world-source-context-retest-0960-20261101",
+  "source_fixture": "R:\\src\\aphavoc\\source\\appsound\\snd_data.c",
+  "source_fixture_sha256": "99766c84b6877332ca43154ed52cb4efcfb8064de326c80471218a70ce8ad9be",
+  "immutable_test_exe_sha256": "52c8ddadad032cd2faa369222a07297eedfe5634bc12847bb840efecd7aea0f6",
+  "scope": "SAME immutable0960 Windows World unit binary; previous292test run had291pass1setupfailure because /src compile-time path absent. Fresh current-drive R:/src junction exposes EXACT unchanged7c original descriptor source. No test/code/data expectation change or shipping claim.",
+  "pid": 24052,
+  "actual_exit": 0,
+  "completed_utc": "2026-11-01T06:06:20.472540+00:00",
+  "exe_unchanged": true,
+  "source_fixture_unchanged": true
+}

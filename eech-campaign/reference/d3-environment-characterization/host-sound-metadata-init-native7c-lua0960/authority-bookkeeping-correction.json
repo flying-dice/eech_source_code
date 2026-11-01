@@ -1,0 +1,19 @@
+{
+ "state":"corrected",
+ "actual_code_or_expectation_change":false,
+ "cause":"Root inferred four completed authority cases from a truncated controller tail instead of reading the full case array. In fact the first controller completed six before the space guard stopped. The later controller therefore repeated malformed and short, then executed the previously unstarted incoherent and old-capability cases.",
+ "first_controller":"R:/d3-evidence/metadata-public-authority-0960-20261101/controller.json",
+ "first_completed_cases":["healthy-absent","healthy-control","changed","withheld","malformed","short"],
+ "first_actual_aggregate_exit":1,
+ "first_aggregate_failure":"Preparation space guard before incoherent; all six executed cases passed.",
+ "remaining_controller":"R:/d3-evidence/metadata-public-authority-remaining-0960-20261101/controller.json",
+ "remaining_executed_cases":["malformed","short","incoherent","old-capability-red"],
+ "duplicate_completed_cases":["malformed","short"],
+ "remaining_actual_aggregate_exit":0,
+ "unique_cases":8,
+ "actual_executions":10,
+ "old_capability_actual_native_exit":1,
+ "old_capability_expected_semantic_red":true,
+ "false_original_metadata_preserved":"remaining controller prior_completed_cases and its original orchestration source incorrectly say four/no completed case rerun. These retained originals are NOT silently rewritten. This explicit correction supersedes that bookkeeping claim and Jira10916's original four-unstarted wording.",
+ "evidence_disposition":"Retain all ten complete executions and actual identities; no native/source/test/baseline alteration; duplicate successes add no coverage. Same reviewer independently identified discrepancy during actual-evidence review."
+}
