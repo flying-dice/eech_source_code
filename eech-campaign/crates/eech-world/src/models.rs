@@ -781,6 +781,9 @@ pub struct LoadSummary {
 
 pub struct ModelStore {
     scenes: Vec<Scene>,
+    /// the scenes exactly as `3dobjdb.bin` records them, before any `.EES` replaced one: the campaign reads a database scene and then a custom scene file in turn, and asks the
+    /// host about each definition
+    table_scenes: Vec<Scene>,
     objects: Vec<Object>,
     surfaces: Vec<Surface>,
     /// the animation names the installation adds to the compiled ones (`GRAPHICS/TEXTURES/ANIMATION/*.TXT`, upper case)
@@ -836,6 +839,7 @@ struct Loader {
     eeo_names: HashMap<usize, Vec<(Vec<u8>, Vec<u8>)>>,
     custom_animations: BTreeSet<String>,
     scenes: Vec<Scene>,
+    table_scenes: Vec<Scene>,
     points: Arena<[i16; 3]>,
     faces: Arena<u8>,
     point_list: Arena<u8>,
@@ -1705,6 +1709,7 @@ impl Loader {
             eeo_names: HashMap::new(),
             custom_animations: custom_animation_names(&data)?,
             scenes: vec![Scene::empty(); scene_last()],
+            table_scenes: Vec::new(),
             points: Arena::default(),
             faces: Arena::default(),
             point_list: Arena::default(),
@@ -1804,6 +1809,7 @@ impl Loader {
             }
             // (the camera database that follows the scenes is not read)
         }
+        loader.table_scenes = loader.scenes.clone();
 
         // named scenes
         if let Some(objects_dir) = &objects_dir {
@@ -1869,6 +1875,7 @@ impl Loader {
         self.summary.scenes_loaded = self.scenes.iter().filter(|s| s.loaded).count();
         Ok(ModelStore {
             scenes: self.scenes,
+            table_scenes: self.table_scenes,
             objects: self.objects,
             surfaces,
             custom_animations: self.custom_animations,
@@ -2281,13 +2288,17 @@ impl ModelStore {
 
     /// The header facts of the object `scene` has in `role` (`cursor` names the approximation or the sub-object). Nothing of the loader's numbering is given: the campaign names
     /// the object by its place in the scene. A scene the files never described, a role with no object (the file names none) and a cursor past the scene's own arrays are
-    /// different answers.
-    pub fn object_header(&self, scene: i64, role: i64, cursor: i64) -> Result<ObjectHeader, QueryError> {
+    /// different answers. `custom` says which definition of the scene is meant: the record of `3dobjdb.bin` (false), or the scene a custom scene file defines (true; a scene
+    /// no custom file defines is refused, not answered from the database record).
+    pub fn object_header(&self, scene: i64, role: i64, cursor: i64, custom: bool) -> Result<ObjectHeader, QueryError> {
         let id = self.check_scene(scene)?;
         if !(0..=i32::MAX as i64).contains(&cursor) {
             return Err(QueryError::BadDepth(cursor));
         }
-        let s = &self.scenes[id];
+        let s = if custom { &self.scenes[id] } else { &self.table_scenes[id] };
+        if custom && (!s.loaded || s.source != SceneSource::Ees) {
+            return Ok(ObjectHeader::Refused("scene_has_no_custom_definition"));
+        }
         let at = cursor as usize;
         let object: i64 = match role {
             ROLE_MAIN | ROLE_SHADOW | ROLE_COLLISION if !s.loaded => return Ok(ObjectHeader::Absent),
@@ -2735,6 +2746,7 @@ mod animation_tests {
     fn store_with_custom(custom: &[&str]) -> ModelStore {
         ModelStore {
             scenes: Vec::new(),
+            table_scenes: Vec::new(),
             objects: Vec::new(),
             surfaces: Vec::new(),
             custom_animations: custom.iter().map(|n| n.to_string()).collect(),

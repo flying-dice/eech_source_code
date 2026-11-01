@@ -1033,8 +1033,9 @@ pub enum ModelQuery {
     /// how many objects the host's common database holds (asked once, before any scene is read); the campaign's room for custom objects is its own policy and is not asked
     ObjectTable,
     /// the header facts of the object `scene` has in `role` (0 main, 1 approximation, 2 shadow polygon object, 3 collision object, 4 sub-object); `cursor` names the approximation
-    /// or the sub-object. The campaign never sends its own object number.
-    Object { scene: i32, role: i32, cursor: i32 },
+    /// or the sub-object. The campaign never sends its own object number. `custom` says which definition of the scene is meant: the database's record, or the scene a custom
+    /// scene file defines.
+    Object { scene: i32, role: i32, cursor: i32, custom: bool },
     /// one step of an .EES scene's ordered animated-surface references (the order the original's `add_animation_object` visits the scene's objects)
     Animation { scene: i32, index: i32 },
 }
@@ -1206,12 +1207,13 @@ unsafe extern "C" fn model_callback(
                 },
             ),
             sys::EECH_MODEL_OBJECT_TABLE => ("object_table", ModelQuery::ObjectTable),
-            sys::EECH_MODEL_OBJECT => (
+            sys::EECH_MODEL_OBJECT | sys::EECH_MODEL_CUSTOM_OBJECT => (
                 "object",
                 ModelQuery::Object {
                     scene: source.scene,
                     role: source.role,
                     cursor: source.depth,
+                    custom: source.op == sys::EECH_MODEL_CUSTOM_OBJECT,
                 },
             ),
             sys::EECH_MODEL_ANIMATION => (

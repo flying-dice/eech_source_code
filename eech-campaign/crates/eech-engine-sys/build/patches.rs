@@ -1656,6 +1656,204 @@ pub fn loader_host_files() -> Vec<&'static str> {
     files
 }
 
+/// EEDCS-50, D3 L2 (model-file METADATA): the common and custom model-file loaders no longer parse a model file. Applied by main.rs after LOADER_HOST_PATCHES, in the builds
+/// that have the host-owned route data (not model-fixture or route-original, which keep the original loaders), to the staged text those sets produced; same strict count check.
+/// The campaign's own object table, id numbering, name history and sharing, and the scene / hierarchy loader (3dobjdb.bin and .EES) are unchanged: the host is asked, by
+/// (scene, role, cursor), for the metadata of the objects a scene names (campaign_model_scene_objects), for the object count (campaign_model_object_table) and for the ordered
+/// animation references of a custom scene (campaign_model_animation_reference), all in aphavoc/source/entity/mobile/mb_hostmodel.c.
+pub const LOADER_META_PATCHES: &[Patch] = &[
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "LM1-custom-loader-declaration-removed",
+        why: "the custom model-file loader (a named .EEO) is not compiled: the host owns the files, so its forward declaration goes with it",
+        original: "static int read_object ( object_3d *obj, const char* filename );\n",
+        replacement: "/* EECH headless (D3 loader, L2): the custom model-file loader (a named .EEO) is not compiled; the host owns the files */\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "LM2-named-object-not-read",
+        why: "get_object keeps its id allocation, name history and sharing exactly; it no longer opens the object's .EEO: the host describes the object when the scene that names it has been read (campaign_model_scene_objects, LM4)",
+        original: "\tsprintf ( new_filename, \"%s\\\\%s.EEO\", prefix, ptr );\n\tif ( !read_object ( &objects_3d_data[objid], new_filename ) )\n\t{\n\t\tdebug_log ( \"failed to load object: %s\", new_filename );\n\t\tfail = 1;\n\t}\n\n\treturn objid;\n",
+        replacement: "\t/* EECH headless (D3 loader, L2): the object's .EEO is the host's; its metadata fills this id's private row when the scene that names it has been read (campaign_model_scene_objects) */\n\n\treturn objid;\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "LM3a-surface-animation-walk-not-compiled",
+        why: "add_animation_object walked a loaded object's surfaces for animated textures; the surfaces are the host's now and the scene's animation references come from the host as logical names (LM4), so the walk is not compiled",
+        original: "static void add_animation_object (struct OBJECT_3D_SCENE_DATABASE_ENTRY *scene, int *allocated, int object_id )\n{\n",
+        replacement: "#if 0 /* EECH headless (D3 loader, L2): the surfaces are the host's; the scene's animation references are asked for by name (read_scene) */\nstatic void add_animation_object (struct OBJECT_3D_SCENE_DATABASE_ENTRY *scene, int *allocated, int object_id )\n{\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "LM3b-surface-animation-walk-end",
+        why: "closes the block of LM3a",
+        original: "\t\t\tadd_animation ( scene, allocated, object_3d->surfaces[surface].luminosity_texture_index );\n\t\t}\n\t}\n}\n",
+        replacement: "\t\t\tadd_animation ( scene, allocated, object_3d->surfaces[surface].luminosity_texture_index );\n\t\t}\n\t}\n}\n#endif\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "LM4-scene-objects-and-animation-references-from-the-host",
+        why: "after a scene's sub-objects are read (so before any bounding box is): the host describes every object the scene names by (scene, role, cursor) and the campaign's private rows are filled with its true counts, radius and bounds; and the animation list of a scene a custom scene file defines is built by the campaign's own add_animation from the host's ordered references (logical names), in the order, with the de-duplication, of the walk it replaces",
+        original: "\tread_subobjects ( fp, &objects_3d_scene_database[scene_index].number_of_sub_objects, &objects_3d_scene_database[scene_index].sub_objects, NULL, version );\n\n\t// Check for animation textures references in the objects of the scene\n\tif ( sceneid )\n\t{\n\t\tint\n\t\t\tallocated,\n\t\t\tcount;\n\n\t\tallocated = 0;\n\n\t\tadd_animation_object ( &objects_3d_scene_database[scene_index], &allocated, objects_3d_scene_database[scene_index].index );\n\t\tfor ( count = 0; count < objects_3d_scene_database[scene_index].number_of_approximations; count++ )\n\t\t{\n\t\t\tadd_animation_object ( &objects_3d_scene_database[scene_index], &allocated, objects_3d_scene_database[scene_index].approximations[count].object_number );\n\t\t}\n\t\tfor ( count = 0; count < objects_3d_scene_database[scene_index].total_number_of_sub_objects; count++ )\n\t\t{\n\t\t\tadd_animation_object ( &objects_3d_scene_database[scene_index], &allocated, objects_3d_scene_database[scene_index].sub_objects[count].index );\n\t\t}\n\t}\n\n\tinitialise_scene_quick_sub_object_search ( scene_index );\n",
+        replacement: "\tread_subobjects ( fp, &objects_3d_scene_database[scene_index].number_of_sub_objects, &objects_3d_scene_database[scene_index].sub_objects, NULL, version );\n\n\t/* EECH headless (D3 loader, L2): the host describes every object the scene names, by (scene, role, cursor), and the campaign's private rows are filled from its answers before anything reads a bounding box */\n\t{\n\t\textern void campaign_model_scene_objects ( int scene_index, int custom );\n\n\t\tcampaign_model_scene_objects ( scene_index, sceneid );\n\t}\n\n\t// Check for animation textures references in the objects of the scene: the host's ordered references (logical names), added by the campaign's own add_animation\n\tif ( sceneid )\n\t{\n\t\tint\n\t\t\tallocated,\n\t\t\tcount,\n\t\t\tanimation;\n\n\t\textern int campaign_model_animation_reference ( int scene_index, int index ); /* EECH headless (D3 loader, L2) */\n\n\t\tallocated = 0;\n\n\t\tfor ( count = 0; ( animation = campaign_model_animation_reference ( scene_index, count ) ) >= 0; count++ )\n\t\t{\n\t\t\tadd_animation ( &objects_3d_scene_database[scene_index], &allocated, animation );\n\t\t}\n\t}\n\n\tinitialise_scene_quick_sub_object_search ( scene_index );\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "LM5a-custom-loader-not-compiled",
+        why: "read_object parsed a named .EEO into the campaign's own arrays; the host owns the file now, and the loader is not compiled (the original text stays in the staged copy only, inside #if 0)",
+        original: "int read_object ( object_3d *obj, const char* filename )\n{\n\tFILE\n",
+        replacement: "#if 0 /* EECH headless (D3 loader, L2): the custom model-file loader is not compiled; the host owns the files */\nint read_object ( object_3d *obj, const char* filename )\n{\n\tFILE\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "LM5b-custom-loader-end",
+        why: "closes the block of LM5a",
+        original: "\t\t\t\treturn FALSE;\n\t\t\t}\n\t\t}\n\t}\n\n\treturn TRUE;\n}\n\n/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n\nvoid initialise_3d_objects ( const char *directory )\n",
+        replacement: "\t\t\t\treturn FALSE;\n\t\t\t}\n\t\t}\n\t}\n\n\treturn TRUE;\n}\n#endif\n\n/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////\n\nvoid initialise_3d_objects ( const char *directory )\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "LM6a-common-loader-host-table",
+        why: "the common loader no longer opens 3dobjs.bin or maps its point, surface-point, normal and texture-point files; the host says how many objects its database holds, and the campaign allocates its own rows (with its unchanged room for custom objects) from that count, every physical pointer NULL",
+        original: "\tsprintf ( filename, \"%s\\\\3dobjs.bin\", directory );\n\tfp = safe_fopen ( filename, \"rb\" );\n",
+        replacement: "\t/* EECH headless (D3 loader, L2): the host owns the model files. It says how many objects its common database holds; the campaign's rows, its custom room and its object numbering are its own, and every row starts zero, its physical pointers NULL, until the host describes the objects a scene names */\n\t{\n\t\textern int campaign_model_object_table ( int custom_room );\n\n\t\ttotal_number_of_objects = campaign_model_object_table ( custom_number_of_objects );\n\t}\n\n\ttotal_number_of_raw_3d_objects = total_number_of_objects + custom_number_of_objects;\n\n\tobjects_3d_data = ( struct OBJECT_3D * ) safe_malloc ( ( total_number_of_raw_3d_objects + 1 ) * sizeof ( struct OBJECT_3D ) );\n\tmemset ( objects_3d_data, 0, ( total_number_of_raw_3d_objects + 1 ) * sizeof ( struct OBJECT_3D ) );\n\n\tobject_database_points = NULL;\n\tobject_database_faces = NULL;\n\tobject_database_point_normals = NULL;\n\tobject_database_surfaces = NULL;\n\tobject_database_faces_point_list = NULL;\n\tobject_database_faces_face_normal_list = NULL;\n\tobject_database_surface_point_list = NULL;\n\tobject_database_surface_point_normal_list = NULL;\n\tobject_database_surface_point_texture_list = NULL;\n\n#if 0 /* EECH headless (D3 loader, L2): the common model-file loader and the binary-hex .EEO import are not compiled */\n\tsprintf ( filename, \"%s\\\\3dobjs.bin\", directory );\n\tfp = safe_fopen ( filename, \"rb\" );\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "LM6b-common-loader-end",
+        why: "closes the block of LM6a",
+        original: "\t/* 26JUL06 Casm Import of 3D objects END */\n",
+        replacement: "\t/* 26JUL06 Casm Import of 3D objects END */\n#endif\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "LM7a-surface-consolidation-not-compiled",
+        why: "the consolidation of every object's surfaces into one block copied the loaded surfaces; there are none, the surfaces are the host's",
+        original: "\t{\n\t\t// reallocates surfaces memory\n",
+        replacement: "#if 0 /* EECH headless (D3 loader, L2): there are no surfaces to consolidate */\n\t{\n\t\t// reallocates surfaces memory\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "LM7b-surface-consolidation-end",
+        why: "closes the block of LM7a",
+        original: "\t\tobject_database_surfaces = surfaces;\n\t\ttotal_number_of_surfaces = number_of_surfaces;\n\t}\n",
+        replacement: "\t\tobject_database_surfaces = surfaces;\n\t\ttotal_number_of_surfaces = number_of_surfaces;\n\t}\n#endif\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "LM-reader-get_object_3d_number_of_poly_lines",
+        why: "a legacy visual / display entry (a reader of the surface or normal arrays, or of a point, face or reference buffer, that the loader no longer holds): it stops by name at its head, before any buffer, image or device is touched",
+        original: "int get_object_3d_number_of_poly_lines ( object_3d_index_numbers index )\n{\n",
+        replacement: "int get_object_3d_number_of_poly_lines ( object_3d_index_numbers index )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader, L2) */\n\tcampaign_model_geometry_reader ( \"get_object_3d_number_of_poly_lines\" );\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dtrans.c",
+        id: "LM-reader-illuminate_3d_object",
+        why: "a legacy visual / display entry (a reader of the surface or normal arrays, or of a point, face or reference buffer, that the loader no longer holds): it stops by name at its head, before any buffer, image or device is touched",
+        original: "void illuminate_3d_object ( object_3d *object, vec3d *pos, light_3d_source *lights, vec3d *camera_direction, int points_base )\n{\n",
+        replacement: "void illuminate_3d_object ( object_3d *object, vec3d *pos, light_3d_source *lights, vec3d *camera_direction, int points_base )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader, L2) */\n\tcampaign_model_geometry_reader ( \"illuminate_3d_object\" );\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dwface1.c",
+        id: "LM-reader-wrender_translucent_clipped_3d_object_reflective_polygon",
+        why: "a legacy visual / display entry (a reader of the surface or normal arrays, or of a point, face or reference buffer, that the loader no longer holds): it stops by name at its head, before any buffer, image or device is touched",
+        original: "void wrender_translucent_clipped_3d_object_reflective_polygon ( object_3d_face *this_face )\n{\n",
+        replacement: "void wrender_translucent_clipped_3d_object_reflective_polygon ( object_3d_face *this_face )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader, L2) */\n\tcampaign_model_geometry_reader ( \"wrender_translucent_clipped_3d_object_reflective_polygon\" );\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/clouds/3dtrump.c",
+        id: "LM-reader-render_3d_cloud_trumpet_face",
+        why: "a legacy visual / display entry (a reader of the surface or normal arrays, or of a point, face or reference buffer, that the loader no longer holds): it stops by name at its head, before any buffer, image or device is touched",
+        original: "void render_3d_cloud_trumpet_face ( object_3d_face *this_face, int surface_index, int reference_offset, object_3d_info *object_base )\n{\n",
+        replacement: "void render_3d_cloud_trumpet_face ( object_3d_face *this_face, int surface_index, int reference_offset, object_3d_info *object_base )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader, L2) */\n\tcampaign_model_geometry_reader ( \"render_3d_cloud_trumpet_face\" );\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobject.c",
+        id: "LM-reader-pre_render_object_faces",
+        why: "a legacy visual / display entry (a reader of the surface or normal arrays, or of a point, face or reference buffer, that the loader no longer holds): it stops by name at its head, before any buffer, image or device is touched",
+        original: "void pre_render_object_faces ( int object_number )\n{\n",
+        replacement: "void pre_render_object_faces ( int object_number )\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader, L2) */\n\tcampaign_model_geometry_reader ( \"pre_render_object_faces\" );\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/gunships/avionics/hind/hi_hud.c",
+        id: "LM-reader-draw_hind_hud_on_texture",
+        why: "a legacy visual / display entry (a reader of the surface or normal arrays, or of a point, face or reference buffer, that the loader no longer holds): it stops by name at its head, before any buffer, image or device is touched",
+        original: "void draw_hind_hud_on_texture (void)\n{\n",
+        replacement: "void draw_hind_hud_on_texture (void)\n{\n\textern void campaign_model_geometry_reader ( const char *reader ); /* EECH headless (D3 loader, L2) */\n\tcampaign_model_geometry_reader ( \"draw_hind_hud_on_texture\" );\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dsubobj.c",
+        id: "LM8a-scene-bounds-require-a-filled-row",
+        why: "the scene's bounds are rotated from its main object's bounding boxes: that object's row must be one the host described (or the null object), else the engine stops by name before the row is read",
+        original: "\t\trotate_sub_scene_boundaries ( &rotated_bounds, &objects_3d_data[index].bounding_box );\n\t\trotate_sub_scene_boundaries ( &rotated_bounds2, &objects_3d_data[index].bounding_box2 );\n",
+        replacement: "\t\textern struct OBJECT_3D *campaign_model_object_row ( int object_number, const char *reader ); /* EECH headless (D3 loader, L2) */\n\t\trotate_sub_scene_boundaries ( &rotated_bounds, &campaign_model_object_row ( index, \"initialise_scene_bounding_sub_objects (scene main object)\" )->bounding_box );\n\t\trotate_sub_scene_boundaries ( &rotated_bounds2, &campaign_model_object_row ( index, \"initialise_scene_bounding_sub_objects (scene main object)\" )->bounding_box2 );\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dsubobj.c",
+        id: "LM8b-sub-object-bounds-require-a-filled-row",
+        why: "a sub-object's bounds are rotated from its object's bounding boxes: that object's row must be one the host described (or the null object), else the engine stops by name before the row is read",
+        original: "\trotate_sub_scene_boundaries ( &rotated_bounds, &objects_3d_data[ sub_object->index ].bounding_box );\n\trotate_sub_scene_boundaries ( &rotated_bounds2, &objects_3d_data[ sub_object->index ].bounding_box2 );\n",
+        replacement: "\t{\n\t\textern struct OBJECT_3D *campaign_model_object_row ( int object_number, const char *reader ); /* EECH headless (D3 loader, L2) */\n\n\t\trotate_sub_scene_boundaries ( &rotated_bounds, &campaign_model_object_row ( sub_object->index, \"initialise_scene_bounding_sub_objects (sub-object)\" )->bounding_box );\n\t\trotate_sub_scene_boundaries ( &rotated_bounds2, &campaign_model_object_row ( sub_object->index, \"initialise_scene_bounding_sub_objects (sub-object)\" )->bounding_box2 );\n\t}\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dhoriz.c",
+        id: "LM9a-horizon-environment-requires-a-filled-row",
+        why: "the horizon environment sizes its point colours from the horizon object's true point count and takes its maximum height from its bounds: that object's row must be one the host described, else the engine stops by name",
+        original: "\tobject = &objects_3d_data[env->horizon_3d_object_number];\n\n\tenv->horizon_point_colours =",
+        replacement: "\t{\n\t\textern struct OBJECT_3D *campaign_model_object_row ( int object_number, const char *reader ); /* EECH headless (D3 loader, L2) */\n\n\t\tobject = campaign_model_object_row ( env->horizon_3d_object_number, \"the horizon environment\" );\n\t}\n\n\tenv->horizon_point_colours =",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dhoriz.c",
+        id: "LM9b-horizon-image-requires-a-filled-row",
+        why: "the horizon image compares its pre-processed .bin's point count with the horizon object's true count: that object's row must be one the host described, else the engine stops by name",
+        original: "\tobject = &objects_3d_data[env->horizon_3d_object_number];\n\n\t//\n\t// Check to see if we have a pre-processed version of this file\n",
+        replacement: "\t{\n\t\textern struct OBJECT_3D *campaign_model_object_row ( int object_number, const char *reader ); /* EECH headless (D3 loader, L2) */\n\n\t\tobject = campaign_model_object_row ( env->horizon_3d_object_number, \"add_3d_horizon_image\" );\n\t}\n\n\t//\n\t// Check to see if we have a pre-processed version of this file\n",
+        count: 1,
+    },
+];
+
+/// the staged text of `file` with the metadata-loader patches applied (same strict count check as `apply`)
+pub fn apply_loader_meta(file: &str, text: &str) -> String {
+    let mut out = text.to_string();
+    for p in LOADER_META_PATCHES.iter().filter(|p| p.file == file) {
+        let found = out.matches(p.original).count();
+        assert_eq!(
+            found, p.count,
+            "loader-meta patch {} expects {} occurrence(s) of its original text in {}, found {}",
+            p.id, p.count, file, found
+        );
+        out = out.replace(p.original, p.replacement);
+    }
+    out
+}
+
+pub fn loader_meta_files() -> Vec<&'static str> {
+    let mut files: Vec<&str> = LOADER_META_PATCHES.iter().map(|p| p.file).collect();
+    files.sort_unstable();
+    files.dedup();
+    files
+}
+
 /// one R8 patch: after `raw_object_index = <entry>->index;` the fixture is handed the entry and the number (the extern declaration is a block-local one, so no include is needed)
 macro_rules! caller_patch {
     ($entry:literal, $count:expr) => {

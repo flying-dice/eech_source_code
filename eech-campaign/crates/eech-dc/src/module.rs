@@ -2692,6 +2692,8 @@ fn gunship(name: &str) -> LuaResult<Gunship> {
 ///                 approximation, 2 shadow polygon object, 3 collision object, 4 sub-object). Returns `{ result = "object", name = text, counts = {six whole numbers within 0..65535:
 ///                 points, faces, surfaces, point normals, lighting normals, culling normals offset}, radius = f, bb = {six}, bb2 = {six} }`, `{ result = "absent", name }` (the
 ///                 files name no object in that role) or `{ result = "refused", reason }`. `name` is the scene's compiled name (the echo). No object number crosses either way.
+///   "custom_object"  the same question about the scene a custom scene file defines (the campaign reads the database's record of a scene and later the custom file that replaces it);
+///                 "object" is always the database's record. A scene no custom file defines is `refused`.
 ///   "animation"  a scene index and a cursor (`depth`). Returns the ORDERED animated-surface references of an .EES scene: `{ result = "name", animation = text, name }` (the LOGICAL
 ///                 animation name; no file index is part of the contract), `end`, `absent` (the scene is not an .EES scene) or `refused`.
 ///
@@ -2775,14 +2777,14 @@ return function(op, scene, depth, kind)
 		if not objects then return nil, 'objects must be a whole number within 0..2147483647' end
 		return 'object_table', objects
 	end
-	if op == 'object' or op == 'animation' then
+	if op == 'object' or op == 'custom_object' or op == 'animation' then
 		local name, result = a.name, a.result
 		if type(name) ~= 'string' or #name > 127 or find(name, '\0', 1, true) then return nil, 'name must be text of at most 127 bytes without a NUL' end
 		if result == 'refused' then
 			local reason = a.reason
 			return 'refused', type(reason) == 'string' and reason:sub(1, 200) or ''
 		end
-		if op == 'object' then
+		if op ~= 'animation' then
 			if result == 'object' then
 				local counts = a.counts
 				if type(counts) ~= 'table' or counts[7] ~= nil then return nil, 'counts must be a table of six whole numbers' end
@@ -2930,7 +2932,7 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
         ModelQuery::RouteFace { scene, kind, index } => ("route_face", Some(scene), Some(index), Some(kind)),
         ModelQuery::ObjectTable => ("object_table", None, None, None),
         // the fourth place carries the role the object has in the scene
-        ModelQuery::Object { scene, role, cursor } => ("object", Some(scene), Some(cursor), Some(role)),
+        ModelQuery::Object { scene, role, cursor, custom } => (if custom { "custom_object" } else { "object" }, Some(scene), Some(cursor), Some(role)),
         ModelQuery::Animation { scene, index } => ("animation", Some(scene), Some(index), None),
     };
     type Reply = (
@@ -3061,7 +3063,7 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
             scene_name: g.ok_or_else(missing)?,
             step: ModelObject::Absent,
         }),
-        (ModelQuery::Object { scene, role, cursor }, "refused") => Err(format!(
+        (ModelQuery::Object { scene, role, cursor, .. }, "refused") => Err(format!(
             "[model-provider:object.refused] the host cannot answer for scene {scene} role {role} cursor {cursor}: {}",
             a.unwrap_or_default()
         )),
@@ -3936,6 +3938,90 @@ mod tests {
             let error = face(cursor).err().ok_or("accepted")?;
             assert!(error.contains("[model-provider:route_face.answer]"), "cursor {cursor}: {error}");
         }
+        Ok(())
+    }
+
+    #[test]
+    fn an_object_table_an_object_and_an_animation_name_cross_as_counts_exact_bits_and_logical_names() -> Test {
+        let lua = Lua::new();
+        // the table answer is a count only (a room for custom objects is the campaign's own policy and is not read even if a host offers one); an object carries its six counts, its
+        // radius and both boxes as exact bits; the custom definition of a scene is the same question under another name; an animation is a LOGICAL name, never an index
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene, depth, kind)
+               if op == 'object_table' then return { result = 'table', objects = 4165, room = 2000 } end
+               if op == 'object' or op == 'custom_object' then
+                 if depth == 0 then return { result = 'object', name = 'AH64D_APACHE_LONGBOW', counts = { 4, 3, 2, 1, 0, 65535 }, radius = '0x80000001', bb = '0x3f800000,0x40000000,0x40400000,0x40800000,0x40a00000,0x40c00000', bb2 = { 1, 2, 3, 4, 5, 6 } } end
+                 if depth == 1 then return { result = 'absent', name = 'AH64D_APACHE_LONGBOW' } end
+               end
+               if op == 'animation' then
+                 if depth == 0 then return { result = 'name', animation = 'USA_COPTER_DIGIT__001', name = 'AH64D_APACHE_LONGBOW' } end
+                 if depth == 1 then return { result = 'end', name = 'AH64D_APACHE_LONGBOW' } end
+                 if depth == 2 then return { result = 'absent', name = 'AH64D_APACHE_LONGBOW' } end
+               end
+               return { result = 'refused', reason = 'no' }
+             end",
+        )?;
+        assert_eq!(ask(&mut provider, ModelQuery::ObjectTable)?, ModelAnswer::ObjectTable { objects: 4165 });
+        for custom in [false, true] {
+            let ModelAnswer::Object { scene_name, step: ModelObject::Found(facts) } = ask(&mut provider, ModelQuery::Object { scene: 1, role: 0, cursor: 0, custom })? else {
+                return Err("not an object".into());
+            };
+            assert_eq!(scene_name, "AH64D_APACHE_LONGBOW");
+            assert_eq!(facts.counts, [4, 3, 2, 1, 0, 65535]);
+            assert_eq!(facts.radius.to_bits(), 0x8000_0001, "a subnormal bit pattern is exact");
+            assert_eq!(bits(facts.bounding_box), [0x3f80_0000, 0x4000_0000, 0x4040_0000, 0x4080_0000, 0x40a0_0000, 0x40c0_0000]);
+            assert_eq!(facts.bounding_box2, [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
+            assert!(matches!(
+                ask(&mut provider, ModelQuery::Object { scene: 1, role: 3, cursor: 1, custom })?,
+                ModelAnswer::Object { step: ModelObject::Absent, .. }
+            ));
+        }
+        assert_eq!(
+            ask(&mut provider, ModelQuery::Animation { scene: 1, index: 0 })?,
+            ModelAnswer::Animation { scene_name: "AH64D_APACHE_LONGBOW".to_string(), step: ModelAnimation::Name("USA_COPTER_DIGIT__001".to_string()) }
+        );
+        assert!(matches!(ask(&mut provider, ModelQuery::Animation { scene: 1, index: 1 })?, ModelAnswer::Animation { step: ModelAnimation::End, .. }));
+        assert!(matches!(ask(&mut provider, ModelQuery::Animation { scene: 1, index: 2 })?, ModelAnswer::Animation { step: ModelAnimation::Absent, .. }));
+        Ok(())
+    }
+
+    #[test]
+    fn an_object_or_animation_answer_that_is_malformed_numeric_or_refused_stops_with_its_marker() -> Test {
+        let lua = Lua::new();
+        // each answer is chosen by the cursor: an animation given as an index, a name with a NUL, an empty name, a count out of range, five counts, a missing radius, a refusal
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene, depth, kind)
+               local n = 'AH64D_APACHE_LONGBOW'
+               if op == 'animation' then
+                 if depth == 0 then return { result = 'id', id = 7, name = n } end
+                 if depth == 1 then return { result = 'name', animation = 'A\\0B', name = n } end
+                 if depth == 2 then return { result = 'name', animation = '', name = n } end
+                 if depth == 3 then return { result = 'refused', reason = 'animation_name_unknown', name = n } end
+                 return { result = 'name', animation = 'X' }
+               end
+               if depth == 0 then return { result = 'object', name = n, counts = { 1, 2, 3, 4, 5, 65536 }, radius = 1, bb = { 1, 2, 3, 4, 5, 6 }, bb2 = { 1, 2, 3, 4, 5, 6 } } end
+               if depth == 1 then return { result = 'object', name = n, counts = { 1, 2, 3, 4, 5 }, radius = 1, bb = { 1, 2, 3, 4, 5, 6 }, bb2 = { 1, 2, 3, 4, 5, 6 } } end
+               if depth == 2 then return { result = 'object', name = n, counts = { 1, 2, 3, 4, 5, 6 }, bb = { 1, 2, 3, 4, 5, 6 }, bb2 = { 1, 2, 3, 4, 5, 6 } } end
+               if depth == 3 then return { result = 'refused', reason = 'object_outside_table', name = n } end
+               return { result = 'object', name = n, counts = { 1, 2, 3, 4, 5, 6 }, radius = 1, bb = { 1, 2, 3, 4, 5, 6 }, bb2 = { 1, 2, 3, 4, 5, -1/0 } }
+             end",
+        )?;
+        let mut animation = |index: i32| ask(&mut provider, ModelQuery::Animation { scene: 1, index });
+        for cursor in [0, 1, 2, 4] {
+            let error = animation(cursor).err().ok_or("accepted")?;
+            assert!(error.contains("[model-provider:animation.answer]"), "animation {cursor}: {error}");
+        }
+        let refused = animation(3).err().ok_or("accepted")?;
+        assert!(refused.contains("[model-provider:animation.refused]") && refused.contains("animation_name_unknown"), "{refused}");
+        let mut object = |cursor: i32| ask(&mut provider, ModelQuery::Object { scene: 1, role: 0, cursor, custom: false });
+        for cursor in [0, 1, 2, 4] {
+            let error = object(cursor).err().ok_or("accepted")?;
+            assert!(error.contains("[model-provider:object.answer]"), "object {cursor}: {error}");
+        }
+        let refused = object(3).err().ok_or("accepted")?;
+        assert!(refused.contains("[model-provider:object.refused]") && refused.contains("object_outside_table"), "{refused}");
         Ok(())
     }
 

@@ -836,6 +836,409 @@ void campaign_model_loader_short (const char *what)
 	debug_fatal ("host model: [model-provider:object.loader] %s: the file ends inside the region, a short read is not read as valid data", what);
 }
 
+// ---------------------------------------------------------------------------------------------------------------------------------
+// MODEL-FILE METADATA (EEDCS-50, D3, L2). The common loader (3dobjs.bin, .pts, .sp, .spn, .spt, the binary-hex .EEO overrides) and the custom loader (a named .EEO) no longer parse a
+// model file: the HOST owns what the files say. The campaign keeps its own private object table (objects_3d_data), its numbering of objects (the ids of 3dobjdb.bin, and for named
+// objects the history and the custom allocation that get_object keeps), and the scene / hierarchy loader (3dobjdb.bin and .EES: L3, still the campaign's). What this half does:
+//
+//   campaign_model_object_table   asked at the start of the object loader: how many objects the host's common database holds. The room the campaign keeps for custom objects is
+//                                 the campaign's own policy (custom_number_of_objects) and is neither asked nor answered; the arithmetic of the table's size is checked here before
+//                                 the campaign allocates it.
+//   campaign_model_scene_objects  called by read_scene after the scene's sub-objects are read, so before anything reads a bounding box: for each object the scene names (main, each
+//                                 approximation, shadow polygon object, collision object, each sub-object) the host is asked by SEMANTIC address (scene, role, cursor), never by
+//                                 an object number, and the campaign's private row for the object the campaign's own file numbered is filled with the host's TRUE counts, radius and
+//                                 bounds. A row two references fill must agree with itself (a named conflict otherwise); a reference the host has no object for, an object the host has
+//                                 where the campaign names none, and an id outside the table stop the engine by name. A row nobody filled stays unfilled and is tracked as such:
+//                                 campaign_model_object_row refuses a required read of one before it touches the row.
+//   campaign_model_animation_reference   the ordered animated-surface references of a scene a custom scene file defines, as LOGICAL names the campaign resolves in its own animation
+//                                 table (a name that table does not hold stops the engine by name); the campaign's own add_animation de-duplicates and orders as it did.
+//
+// No point, face, surface, normal or texture-point buffer is read or kept: the rows keep NULL for all of them, and every legacy visual / display reader of one stops by name at its
+// head (the LR patches). Nothing falls back to a file of the campaign's own.
+
+#define OBJECT_COMMON_MAX 0x00ffffff
+#define ANIMATION_REFERENCES_MAX 1048576
+
+static unsigned char *object_row_filled;
+static int object_row_count;
+static unsigned char scene_objects_read[OBJECT_3D_LAST];
+static unsigned char scene_custom_read[OBJECT_3D_LAST];
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+// TEST-ONLY: what the metadata exchange did. objects_*: questions asked and how they were answered; rows_filled / rows_confirmed: first fills and agreeing refills of a row;
+// animation_*: reference questions asked and the names they carried; animation_ends: lists that ended.
+static long meta_objects_asked, meta_objects_found, meta_objects_absent, meta_rows_filled, meta_rows_confirmed, meta_animation_asked, meta_animation_names, meta_animation_ends;
+static unsigned char scene_animation_listed[OBJECT_3D_LAST];
+#endif
+
+static const char *role_name (int role)
+{
+	switch (role)
+	{
+		case CAMPAIGN_MODEL_ROLE_MAIN: return "main object";
+		case CAMPAIGN_MODEL_ROLE_APPROXIMATION: return "approximation";
+		case CAMPAIGN_MODEL_ROLE_SHADOW: return "shadow polygon object";
+		case CAMPAIGN_MODEL_ROLE_COLLISION: return "collision object";
+		case CAMPAIGN_MODEL_ROLE_SUB_OBJECT: return "sub-object";
+	}
+
+	return "unknown role";
+}
+
+// one metadata question about a scene, with the identity check every reply must pass: the scene's compiled name is echoed
+static void ask_metadata (int operation, int scene, int role, int cursor, campaign_model_reply *reply, const char *what)
+{
+	campaign_model_request
+		request;
+
+	const char
+		*expected;
+
+	memset (&request, 0, sizeof (request));
+	request.op = operation;
+	request.scene = scene;
+	request.depth = cursor;
+	request.role = role;
+
+	ask (&request, reply, what);
+
+	expected = ((scene > 0) && (scene < OBJECT_3D_LAST) && (object_3d_scene_names[scene])) ? object_3d_scene_names[scene] : "";
+
+	if ((memchr (reply->name, '\0', sizeof (reply->name)) == NULL) || (strcmp (reply->name, expected) != 0))
+	{
+		debug_fatal ("host model: [model-provider:%s.identity] the host named scene %d \"%.60s\" but the campaign names it \"%.60s\"", what, scene, reply->name, expected);
+	}
+}
+
+int campaign_model_object_table (int custom_room)
+{
+	campaign_model_request
+		request;
+
+	campaign_model_reply
+		reply;
+
+	unsigned long long
+		rows;
+
+	memset (&request, 0, sizeof (request));
+	request.op = CAMPAIGN_MODEL_OBJECT_TABLE;
+
+	ask (&request, &reply, "object table");
+
+	if ((reply.object_count < 0) || (reply.object_count > OBJECT_COMMON_MAX) || (custom_room < 0) || (custom_room > OBJECT_COMMON_MAX))
+	{
+		debug_fatal ("host model: [model-provider:object.table] the host's common database holds %d objects, which is not a count of objects (0 to %d), beside the campaign's room for %d custom ones", reply.object_count, OBJECT_COMMON_MAX, custom_room);
+	}
+
+	// the campaign's own table: the common objects, its custom room and the null object 0 (a row of the original's size each), all in 64 bits before anything is allocated
+	rows = (unsigned long long) reply.object_count + (unsigned long long) custom_room + 1ULL;
+
+	if (rows * (unsigned long long) sizeof (struct OBJECT_3D) > 0x7fffffffULL)
+	{
+		debug_fatal ("host model: [model-provider:object.table] %d common objects and room for %d custom ones are more rows than the campaign's object table can hold", reply.object_count, custom_room);
+	}
+
+	if (object_row_filled)
+	{
+		safe_free (object_row_filled);
+	}
+
+	object_row_filled = (unsigned char *) safe_malloc ((size_t) rows);
+
+	memset (object_row_filled, 0, (size_t) rows);
+
+	object_row_count = (int) (rows - 1ULL);
+
+	memset (scene_objects_read, 0, sizeof (scene_objects_read));
+	memset (scene_custom_read, 0, sizeof (scene_custom_read));
+
+	return reply.object_count;
+}
+
+static int bounds_equal (const struct OBJECT_3D_BOUNDS *bounds, const float *values)
+{
+	return (memcmp (&bounds->xmin, &values[0], sizeof (float)) == 0) && (memcmp (&bounds->xmax, &values[1], sizeof (float)) == 0) &&
+		(memcmp (&bounds->ymin, &values[2], sizeof (float)) == 0) && (memcmp (&bounds->ymax, &values[3], sizeof (float)) == 0) &&
+		(memcmp (&bounds->zmin, &values[4], sizeof (float)) == 0) && (memcmp (&bounds->zmax, &values[5], sizeof (float)) == 0);
+}
+
+// the object the campaign's own scene data numbers 'id' in 'role' of 'scene' ('custom': a custom scene file's definition), against the host's object in that place
+static void fill_object (int scene, int custom, int role, int cursor, int id)
+{
+	campaign_model_reply
+		reply;
+
+	struct OBJECT_3D
+		*row;
+
+	int
+		i;
+
+	ask_metadata (custom ? CAMPAIGN_MODEL_CUSTOM_OBJECT : CAMPAIGN_MODEL_OBJECT, scene, role, cursor, &reply, "object");
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	meta_objects_asked++;
+#endif
+
+	if ((reply.result != CAMPAIGN_MODEL_TRIANGLE_FOUND) && (reply.result != CAMPAIGN_MODEL_TRIANGLE_ABSENT))
+	{
+		debug_fatal ("host model: [model-provider:object.answer] the host's result for the %s (cursor %d) of scene %d is %d", role_name (role), cursor, scene, reply.result);
+	}
+
+	// the campaign's scene file names no object in this place (0, or the collision object's -1): the host must name none either
+	if (id <= 0)
+	{
+		if (reply.result == CAMPAIGN_MODEL_TRIANGLE_FOUND)
+		{
+			debug_fatal ("host model: [model-provider:object.disagree] the host has an object as the %s (cursor %d) of scene %d, where the campaign's scene file names none", role_name (role), cursor, scene);
+		}
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+		meta_objects_absent++;
+#endif
+
+		return;
+	}
+
+	if ((!object_row_filled) || (id > object_row_count))
+	{
+		debug_fatal ("host model: [model-provider:object.range] the campaign's scene %d names object %d as its %s (cursor %d), outside its table of %d objects", scene, id, role_name (role), cursor, object_row_count);
+	}
+
+	if (reply.result == CAMPAIGN_MODEL_TRIANGLE_ABSENT)
+	{
+		debug_fatal ("host model: [model-provider:object.absent] the host has no object as the %s (cursor %d) of scene %d, which the campaign's scene file names", role_name (role), cursor, scene);
+	}
+
+	// every number is checked in its domain before it is stored or compared: the counts are the unsigned shorts of the campaign's rows
+	for (i = 0; i < 6; i++)
+	{
+		if ((reply.object_counts[i] < 0) || (reply.object_counts[i] > 65535))
+		{
+			debug_fatal ("host model: [model-provider:object.answer] the host's count %d for the %s (cursor %d) of scene %d is %d, outside 0 to 65535", i, role_name (role), cursor, scene, reply.object_counts[i]);
+		}
+	}
+
+	if (!isfinite (reply.object_radius) || !all_finite (reply.object_bounds, 12))
+	{
+		debug_fatal ("host model: [model-provider:object.answer] the host's radius or bounds for the %s (cursor %d) of scene %d are not finite", role_name (role), cursor, scene);
+	}
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	meta_objects_found++;
+#endif
+
+	row = &objects_3d_data[id];
+
+	if (object_row_filled[id])
+	{
+		// a second reference to the same object of the campaign: the host must describe it the same way
+		if ((row->number_of_points != (unsigned short) reply.object_counts[0]) || (row->number_of_faces != (unsigned short) reply.object_counts[1]) ||
+			(row->number_of_surfaces != (unsigned short) reply.object_counts[2]) || (row->number_of_point_normals != (unsigned short) reply.object_counts[3]) ||
+			(row->number_of_lighting_normals != (unsigned short) reply.object_counts[4]) || (row->culling_normals_offset != (unsigned short) reply.object_counts[5]) ||
+			(memcmp (&row->radius, &reply.object_radius, sizeof (float)) != 0) || !bounds_equal (&row->bounding_box, &reply.object_bounds[0]) ||
+			!bounds_equal (&row->bounding_box2, &reply.object_bounds[6]))
+		{
+			debug_fatal ("host model: [model-provider:object.conflict] object %d is named by more than one reference of the campaign (this is the %s, cursor %d, of scene %d) and the host describes it differently each time", id, role_name (role), cursor, scene);
+		}
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+		meta_rows_confirmed++;
+#endif
+
+		return;
+	}
+
+	row->number_of_points = (unsigned short) reply.object_counts[0];
+	row->number_of_faces = (unsigned short) reply.object_counts[1];
+	row->number_of_surfaces = (unsigned short) reply.object_counts[2];
+	row->number_of_point_normals = (unsigned short) reply.object_counts[3];
+	row->number_of_lighting_normals = (unsigned short) reply.object_counts[4];
+	row->culling_normals_offset = (unsigned short) reply.object_counts[5];
+	row->radius = reply.object_radius;
+	bounds_from (&row->bounding_box, &reply.object_bounds[0]);
+	bounds_from (&row->bounding_box2, &reply.object_bounds[6]);
+
+	object_row_filled[id] = TRUE;
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	meta_rows_filled++;
+#endif
+}
+
+void campaign_model_scene_objects (int scene_index, int custom)
+{
+	const struct OBJECT_3D_SCENE_DATABASE_ENTRY
+		*scene;
+
+	int
+		i;
+
+	if ((!object_row_filled) || (!objects_3d_data) || (!objects_3d_scene_database))
+	{
+		debug_fatal ("host model: [model-provider:object.table] scene %d was read before the host's object table was asked for", scene_index);
+	}
+
+	if ((scene_index <= OBJECT_3D_INVALID_OBJECT_INDEX) || (scene_index >= OBJECT_3D_LAST))
+	{
+		debug_fatal ("host model: [model-provider:scene.index] the object loader read scene %d, outside %d to %d", scene_index, OBJECT_3D_INVALID_OBJECT_INDEX + 1, (int) OBJECT_3D_LAST - 1);
+	}
+
+	scene = &objects_3d_scene_database[scene_index];
+
+	if ((scene->number_of_approximations < 0) || ((scene->number_of_approximations > 0) && (!scene->approximations)) || (scene->total_number_of_sub_objects < 0) ||
+		((scene->total_number_of_sub_objects > 0) && (!scene->scene_sub_object_array)))
+	{
+		debug_fatal ("host model: [model-provider:object.scene] scene %d has %d approximations and %d sub-objects, which its own arrays do not hold", scene_index, scene->number_of_approximations, scene->total_number_of_sub_objects);
+	}
+
+	custom = (custom != 0);
+
+	fill_object (scene_index, custom, CAMPAIGN_MODEL_ROLE_MAIN, 0, scene->index);
+
+	for (i = 0; i < scene->number_of_approximations; i++)
+	{
+		fill_object (scene_index, custom, CAMPAIGN_MODEL_ROLE_APPROXIMATION, i, scene->approximations[i].object_number);
+	}
+
+	fill_object (scene_index, custom, CAMPAIGN_MODEL_ROLE_SHADOW, 0, scene->shadow_polygon_object_index);
+
+	fill_object (scene_index, custom, CAMPAIGN_MODEL_ROLE_COLLISION, 0, scene->collision_object_index);
+
+	for (i = 0; i < scene->total_number_of_sub_objects; i++)
+	{
+		fill_object (scene_index, custom, CAMPAIGN_MODEL_ROLE_SUB_OBJECT, i, scene->scene_sub_object_array[i].index);
+	}
+
+	scene_objects_read[scene_index] = TRUE;
+
+	if (custom)
+	{
+		scene_custom_read[scene_index] = TRUE;
+	}
+}
+
+// A required read of an object's compatibility row (the sub-object bounds, the horizon environment): the row the host filled, or the null object 0 (which the campaign always
+// kept zero), or a named stop before the row is touched. An unfilled row is not zero metadata and is never read as if it were.
+struct OBJECT_3D *campaign_model_object_row (int object_number, const char *reader)
+{
+	if ((!object_row_filled) || (!objects_3d_data))
+	{
+		debug_fatal ("host model: [model-provider:object.unfilled] %s read object %d before the host's metadata was asked for", reader, object_number);
+	}
+
+	if ((object_number < 0) || (object_number > object_row_count))
+	{
+		debug_fatal ("host model: [model-provider:object.range] %s read object %d, outside the campaign's table of %d objects", reader, object_number, object_row_count);
+	}
+
+	if ((object_number != 0) && (!object_row_filled[object_number]))
+	{
+		debug_fatal ("host model: [model-provider:object.unfilled] %s read object %d, which no scene read has had the host describe", reader, object_number);
+	}
+
+	return &objects_3d_data[object_number];
+}
+
+// The ordered animated-surface references of the scene a custom scene file defines: reference number 'index', or -1 where the list ends. A reference is a LOGICAL name; the
+// campaign maps it to its own animation table here, and the campaign's own add_animation orders and de-duplicates the result.
+int campaign_model_animation_reference (int scene_index, int index)
+{
+	campaign_model_reply
+		reply;
+
+	int
+		animation;
+
+	if ((scene_index <= OBJECT_3D_INVALID_OBJECT_INDEX) || (scene_index >= OBJECT_3D_LAST) || (index < 0))
+	{
+		debug_fatal ("host model: [model-provider:animation.index] animation reference %d of scene %d is outside the campaign's scenes or cursor", index, scene_index);
+	}
+
+	if (index >= ANIMATION_REFERENCES_MAX)
+	{
+		debug_fatal ("host model: [model-provider:animation.limit] the host gave scene %d more than %d animation references", scene_index, ANIMATION_REFERENCES_MAX);
+	}
+
+	ask_metadata (CAMPAIGN_MODEL_ANIMATION, scene_index, 0, index, &reply, "animation");
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	meta_animation_asked++;
+#endif
+
+	switch (reply.result)
+	{
+		case CAMPAIGN_MODEL_TRIANGLE_END:
+		{
+#ifdef EECH_MODEL_HOST_FIXTURE
+			meta_animation_ends++;
+			scene_animation_listed[scene_index] = TRUE;
+#endif
+
+			return -1;
+		}
+		case CAMPAIGN_MODEL_TRIANGLE_ABSENT:
+		{
+			debug_fatal ("host model: [model-provider:animation.absent] the host has no animation references for scene %d, which the campaign loaded from a custom scene file", scene_index);
+		}
+		case CAMPAIGN_MODEL_TRIANGLE_FOUND:
+		{
+			extern int get_object_3d_texture_animation_index_from_name ( const char *name );
+
+			if ((memchr (reply.animation_name, '\0', sizeof (reply.animation_name)) == NULL) || (reply.animation_name[0] == '\0'))
+			{
+				debug_fatal ("host model: [model-provider:animation.answer] the host's animation reference %d of scene %d is not a name", index, scene_index);
+			}
+
+			animation = get_object_3d_texture_animation_index_from_name (reply.animation_name);
+
+			if (animation < 0)
+			{
+				debug_fatal ("host model: [model-provider:animation.name] the host's animation reference %d of scene %d is \"%.60s\", which the campaign's animation table does not hold", index, scene_index, reply.animation_name);
+			}
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+			meta_animation_names++;
+#endif
+
+			return animation;
+		}
+		default:
+		{
+			debug_fatal ("host model: [model-provider:animation.answer] the host's result for animation reference %d of scene %d is %d", index, scene_index, reply.result);
+		}
+	}
+
+	return -1;
+}
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+// TEST-ONLY (the model-host-fixture counters entry): the metadata exchange as integer counts. values: objects asked, found, absent; rows filled, rows confirmed; animation questions,
+// names carried, lists ended.
+void campaign_model_core_metadata (long *values)
+{
+	values[0] = meta_objects_asked;
+	values[1] = meta_objects_found;
+	values[2] = meta_objects_absent;
+	values[3] = meta_rows_filled;
+	values[4] = meta_rows_confirmed;
+	values[5] = meta_animation_asked;
+	values[6] = meta_animation_names;
+	values[7] = meta_animation_ends;
+}
+
+// TEST-ONLY (the animation rows entry): whether the object loader read this scene, whether it was a custom scene file's definition, and whether its animation references were asked to the end
+void campaign_model_core_scene_state (int scene, int *read, int *custom, int *listed)
+{
+	int ok = (scene > OBJECT_3D_INVALID_OBJECT_INDEX) && (scene < OBJECT_3D_LAST);
+
+	*read = ok && scene_objects_read[scene];
+	*custom = ok && scene_custom_read[scene];
+	*listed = ok && scene_animation_listed[scene];
+}
+#endif
+
 #ifdef EECH_MODEL_HOST_FIXTURE
 // TEST-ONLY: how often add_3d_horizon_image took the pre-processed `.bin` branch (point colours and fog only; no point read) and how often it did not. Counted at the branch the
 // real reader takes (staged patch LU1), before any refusal; an uncached call stops at the named guard right after.

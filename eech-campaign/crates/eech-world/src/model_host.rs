@@ -245,11 +245,11 @@ impl LuaUserData for StoreHandle {
             let answer = this.0.route_face(scene, kind, index).map_err(query_error)?;
             route_face_table(lua, &answer)
         });
-        methods.add_method("object_header", |lua, this, (scene, role, cursor): (LuaValue, LuaValue, LuaValue)| {
+        methods.add_method("object_header", |lua, this, (scene, role, cursor, custom): (LuaValue, LuaValue, LuaValue, Option<bool>)| {
             let scene = whole(&scene, "scene", i64::MIN / 2, i64::MAX / 2)?;
             let role = whole(&role, "role", i64::MIN / 2, i64::MAX / 2)?;
             let cursor = whole(&cursor, "cursor", i64::MIN / 2, i64::MAX / 2)?;
-            let answer = this.0.object_header(scene, role, cursor).map_err(query_error)?;
+            let answer = this.0.object_header(scene, role, cursor, custom.unwrap_or(false)).map_err(query_error)?;
             object_header_table(lua, &answer)
         });
         methods.add_method("animation_ref", |lua, this, (scene, index): (LuaValue, LuaValue)| {
@@ -310,7 +310,7 @@ fn provider_number(value: Option<LuaValue>, name: &str, operation: &str) -> LuaR
 fn model_answer(lua: &Lua, store: &ModelStore, operation: &str, scene: Option<i64>, depth: Option<i64>, kind: Option<i64>) -> LuaResult<LuaTable> {
     let fail = |message: String| LuaError::runtime(format!("[model-provider:{operation}.request] {message}"));
     // only the route questions carry a sub-object kind, and the object question carries its role in the same place
-    if kind.is_some() && !matches!(operation, "route_node" | "route_face" | "object") {
+    if kind.is_some() && !matches!(operation, "route_node" | "route_face" | "object" | "custom_object") {
         return Err(fail("only a route or an object question has a kind".into()));
     }
     let table = lua.create_table()?;
@@ -381,11 +381,12 @@ fn model_answer(lua: &Lua, store: &ModelStore, operation: &str, scene: Option<i6
             table.set("result", "table")?;
             table.set("objects", store.common_objects())?;
         }
-        "object" => {
+        "object" | "custom_object" => {
             let scene = scene.ok_or_else(|| fail("an object question needs a scene".into()))?;
             let role = kind.ok_or_else(|| fail("an object question needs a role (the kind argument)".into()))?;
             let cursor = depth.ok_or_else(|| fail("an object question needs a cursor (the depth argument)".into()))?;
-            let table = object_header_table(lua, &store.object_header(scene, role, cursor).map_err(|e| fail(e.to_string()))?)?;
+            let answer = store.object_header(scene, role, cursor, operation == "custom_object").map_err(|e| fail(e.to_string()))?;
+            let table = object_header_table(lua, &answer)?;
             table.set("name", usize::try_from(scene).ok().and_then(compiled_scene_name).unwrap_or(""))?;
             return Ok(table);
         }

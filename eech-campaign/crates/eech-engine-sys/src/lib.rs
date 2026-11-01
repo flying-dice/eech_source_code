@@ -1128,6 +1128,7 @@ pub const EECH_MODEL_ROUTE_FACE: c_int = 5;
 pub const EECH_MODEL_OBJECT_TABLE: c_int = 6;
 pub const EECH_MODEL_OBJECT: c_int = 7;
 pub const EECH_MODEL_ANIMATION: c_int = 8;
+pub const EECH_MODEL_CUSTOM_OBJECT: c_int = 9;
 pub const EECH_MODEL_ANIMATION_NAME_MAX: usize = 127;
 pub const EECH_MODEL_TRIANGLE_FOUND: c_int = 1;
 pub const EECH_MODEL_TRIANGLE_END: c_int = 2;

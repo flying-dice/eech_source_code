@@ -42,6 +42,8 @@
  *              sub-object, counted as the scene's files lay them out). No object number, pointer, offset or layout is sent or asked for. The reply echoes the scene's compiled
  *              name and is FOUND (the six header counts the compatibility rows hold: points, faces, surfaces, point normals, lighting normals, culling normals offset;
  *              the radius; both bounding boxes) or ABSENT (the host's files name no object in that role). A refusal is an error of the provider. The campaign fills its private
+ *              CUSTOM_OBJECT is the same question about the scene a custom scene file defines (the campaign reads the database's record of a scene, and later the custom file that
+ *              replaces it, and each definition names its own objects); OBJECT is always about the database's record. The campaign fills its private
  *              rows from FOUND answers before anything reads them; an object two references name differently, or a name the host has no object for, stops the engine.
  *              ANIMATION: for an .EES scene, the ordered animated-surface references of its objects in the order the original's add_animation_object visits them. FOUND
  *              carries `animation_name`, the LOGICAL name of the texture animation (never a file's animation index: the host resolves the file's own numbering to the name); END
@@ -88,7 +90,8 @@ enum campaign_model_op
 	CAMPAIGN_MODEL_ROUTE_FACE,
 	CAMPAIGN_MODEL_OBJECT_TABLE,
 	CAMPAIGN_MODEL_OBJECT,
-	CAMPAIGN_MODEL_ANIMATION
+	CAMPAIGN_MODEL_ANIMATION,
+	CAMPAIGN_MODEL_CUSTOM_OBJECT
 };
 
 enum campaign_model_object_role

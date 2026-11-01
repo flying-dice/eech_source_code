@@ -139,6 +139,16 @@ fn main() {
             let patched: Vec<u8> = patches::apply_loader_host(file, &text).chars().map(|c| c as u32 as u8).collect();
             write_if_changed(&staged, &patched);
         }
+        // 1a3. EEDCS-50 (D3, L2): the model-file METADATA loaders (patches.rs, LOADER_META_PATCHES). The common and custom model-file loaders no longer parse a model file: the host is
+        //      asked for the object count, for the metadata of every object a scene names (by scene, role and cursor) and for the animation references of a custom scene. Applied to the
+        //      staged text LOADER_HOST_PATCHES produced, in the same builds (model-fixture and route-original keep the original loaders).
+        for file in patches::loader_meta_files() {
+            let staged = tree.join(file);
+            let bytes = fs::read(&staged).unwrap_or_else(|e| panic!("{file}: {e}"));
+            let text: String = bytes.iter().map(|&b| b as char).collect();
+            let patched: Vec<u8> = patches::apply_loader_meta(file, &text).chars().map(|c| c as u32 as u8).collect();
+            write_if_changed(&staged, &patched);
+        }
     }
 
     // 1a. TEST-ONLY (feature model-fixture, EEDCS-50): observation hooks in the staged model loader, on top of the shipping patches above (patches.rs,
