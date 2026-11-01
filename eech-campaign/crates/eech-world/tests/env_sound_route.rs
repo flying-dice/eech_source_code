@@ -208,19 +208,41 @@ fn state(tag: &str, live: bool, valid: u32, member: u32, handle: u32, looping: u
     }
 }
 
-fn record(seq: usize, upd: usize, handle: u32, valid: u32, member: u32, looping: u32, vlife: &str) -> String {
+/// What the constructor and the descriptor fix for a case: case 23 builds a non-looping effect over the CONTROLLED descriptor (rate 4, size 20); case 24 a looping effect over the retail one (the facts' rate and size)
+#[derive(Clone, Copy)]
+struct Shape {
+    looping: u32,
+    rate: u32,
+    size: u32,
+}
+
+const UNLINK_SHAPE: Shape = Shape { looping: 0, rate: 4, size: 20 };
+const PLAY_SHAPE: Shape = Shape {
+    looping: 1,
+    rate: 22050,
+    size: 88200,
+};
+
+fn record(seq: usize, upd: usize, handle: u32, valid: u32, member: u32, vlife: &str, shape: Shape) -> String {
     let point = u32::from(seq != 0);
     let delta = if seq == 0 { "3dcccccd" } else { "3f800000" };
     let slot = format!("env-snd seq={seq} point={point} n=0 tracked=0 frame=0 upd={upd} entity=7 etype=25");
-    let meta = format!("sub=1 channel=1 locality=0 valid={valid} looping={looping} panning=0 seqcount=1 handle={handle}");
-    let tail = format!("session_parent=1 update_member={member} sample=12 rate=4 size=20 orate=22050 life_w={LIFE} vlife_w={vlife}");
+    let meta = format!(
+        "sub=1 channel=1 locality=0 valid={valid} looping={} panning=0 seqcount=1 handle={handle}",
+        shape.looping
+    );
+    let tail = format!(
+        "session_parent=1 update_member={member} sample=12 rate={} size={} orate=22050 life_w={LIFE} vlife_w={vlife}",
+        shape.rate, shape.size
+    );
     let words = "amp_w=3f800000 pitch_w=3f800000 px_w=46b2d000 py_w=41200000 pz_w=46f1e000";
     format!("{slot} {meta} {tail} {words} delta_w={delta}\n")
 }
 
 fn report(run: Run) -> String {
     let unlink = run.case == 23;
-    let looping = u32::from(!unlink);
+    let shape = if unlink { UNLINK_SHAPE } else { PLAY_SHAPE };
+    let looping = shape.looping;
     let playing = u32::from(!unlink);
     let mut text = head(run.case);
     text += &format!(
@@ -230,10 +252,13 @@ fn report(run: Run) -> String {
         if unlink { 20 } else { 0 }
     );
     text += "env-route-input tag=flags effects_enabled_before=1 ui_muted=0 channel_muted=0 channel_volume=10\n";
+    if !unlink {
+        text += "env-route-input tag=assert mode=logging debug_log=0\n";
+    }
     let origin = "origin=test_owned_static_record built_by=fixture buffer=absent device=none user_data=none initial_used=1";
     text += &format!("env-route-input tag=record {origin} initial_playing={playing} initial_paused=1 initial_volume=-1 rate=22050 looping={looping}\n");
     if unlink {
-        text += "env-route-input tag=pause sub=7 delay_w=3fc00000 cohort_before=0 children_sound=3 children_of_type=1 returned=1\n";
+        text += "env-route-input tag=pause sub=1 delay_w=3fc00000 cohort_before=0 complete_before=1 children_sound=3 children_of_type=1 complete_after=1 called=1 returned=1\n";
         text += "env-route-input tag=deltas calls=3 delta_w=3f800000\n";
     } else {
         text += "env-route-input tag=play range_w=00000000 viewpoint=main_vp\n";
@@ -246,9 +271,9 @@ fn report(run: Run) -> String {
     text += &state("0", true, 1, 1, 1, looping, "00000000");
     if unlink {
         text += &state("99", true, 0, 1, 1, looping, VLIFE[0]);
-        for call in 1..=run.calls {
-            let gone = run.unlinked && call == run.calls;
-            text += &state(&call.to_string(), true, 0, u32::from(!gone), u32::from(!gone), looping, VLIFE[call]);
+        for (index, vlife) in VLIFE.iter().enumerate().skip(1).take(run.calls) {
+            let gone = run.unlinked && index == run.calls;
+            text += &state(&index.to_string(), true, 0, u32::from(!gone), u32::from(!gone), looping, vlife);
         }
     } else {
         text += &state("1", true, 1, 1, u32::from(!run.destroyed), looping, "00000000");
@@ -263,10 +288,10 @@ fn report(run: Run) -> String {
     };
     text += &format!("env-route-cleanup installed=1 {cleanup} used_final=0 playing_final=0 paused_final=0 volume_final=0 buffer_null_final=1\n");
     // the probe's records: the creation, and for case 23 one entry per call (the entity is invalid from the pause on)
-    let mut records = vec![record(0, 0, 0, 1, 1, looping, "00000000")];
+    let mut records = vec![record(0, 0, 0, 1, 1, "00000000", shape)];
     if unlink {
-        for call in 1..=run.calls {
-            records.push(record(call, call, 1, 0, 1, looping, VLIFE[call - 1]));
+        for (index, vlife) in VLIFE.iter().enumerate().take(run.calls) {
+            records.push(record(index + 1, index + 1, 1, 0, 1, vlife, shape));
         }
     }
     let counters = format!(
@@ -365,6 +390,24 @@ fn a_report_the_fixture_refused_or_an_engine_that_stopped_is_a_failure_with_the_
     );
     assert!(stopped.case_raw.expect("the failure is kept").contains("entity_index=7"));
 
+    // a refusal of case 24 for its assertion prerequisite is UNAVAILABLE, reported as a refusal and never as a pass
+    let reason = "the_debug_log_option_is_on_so_the_intentional_failed_assertions_would_reach_the_assert_log_stream_that_assert_c_leaves_closed";
+    let refused_assert = head(24) + &format!("env-sound-end i=24 refused={reason} changed=0 process_isolated=required\n");
+    let driven = drive(&scenario(&refused_assert), &args("24"));
+    assert!(error_of(&driven).contains(&format!("REFUSED case 24 ({reason})")), "{:?}", driven.result);
+    assert!(of(&driven, "result").is_empty() && of(&driven, "derived").is_empty());
+
+    // a cohort census that failed after the entity was created leaves the pause unmade: unavailable, with the private raw kept and no result
+    let census = damaged(&report(UNLINK_AT_3), "complete_after=1 called=1 => complete_after=0 called=0");
+    let driven = drive(&scenario(&census), &args("23"));
+    assert!(
+        error_of(&driven).contains("the cohort census was incomplete or invalid after the entity was created"),
+        "{:?}",
+        driven.result
+    );
+    assert_eq!(of(&driven, "control_unavailable").len(), 1);
+    assert!(of(&driven, "result").is_empty() && driven.case_raw.as_deref() == Some(census.as_str()));
+
     let case_error = drive(
         &scenario("env-case-error reason=sound_lifetime_case_refused_or_report_did_not_fit group=14 index=23\n"),
         &args("23"),
@@ -376,7 +419,7 @@ fn a_report_the_fixture_refused_or_an_engine_that_stopped_is_a_failure_with_the_
 /// damaged base whose edit is an identity). An edit is `from => to` (first occurrence), `IN needle :: from => to` (in the first line holding the needle) or `DROP text`; edits are separated by ` ;; `.
 const DAMAGES: &str = "\
 the case asked for is not the report's | 24 | u3 | label=handle_invalid_server_unlink => label=handle_invalid_server_unlink | is not i=24
-the cohort of the pause is not the one effect | 23 | u3 | children_of_type=1 => children_of_type=2 | is not children_of_type=1
+the cohort of the pause is not the one effect | 23 | u3 | children_of_type=1 => children_of_type=2 | the cohort census is not the one created effect
 the pause says it changed nothing but the validity flipped | 23 | u3 | returned=1 => returned=0 | the pause returned 0 but the entity's validity changed
 the probe counts another number of updates | 23 | u3 | updates=3 => updates=99 | the probe counts 99 updates
 an open episode | 23 | u3 | open=0 => open=1 | is not open=0
@@ -388,7 +431,7 @@ a state in another slot | 23 | u3 | slot=7 tag=1 => slot=8 tag=1 | is in slot 8
 an unlinked entity that still points at the released handle | 23 | u3 | IN env-sound-state ent=0 slot=7 tag=3 :: handle=0 => handle=1 ;; detached=0 => detached=1 | still points at it
 a release nobody claims | 23 | u3 | destroyed_by_original=1 => destroyed_by_original=0 | does not say the original released it
 a handle still in use that the fixture does not claim | 23 | linked3 | destroyed_by_fixture=1 => destroyed_by_fixture=0 | does not say the fixture released it
-a record read back that is not the one installed | 23 | u3 | tag=before installed=1 used=1 playing=0 => tag=before installed=1 used=1 playing=1 | is not the one installed
+a record read back that is not the one installed | 23 | u3 | tag=before installed=1 used=1 playing=0 => tag=before installed=1 used=1 playing=1 | is not playing=0
 a record zeroed with a flag left | 23 | u3 | paused_final=0 => paused_final=1 | is not paused_final=0
 a volume that changed without the play body | 24 | early | tag=after installed=1 used=1 playing=1 paused=1 volume=-1 => tag=after installed=1 used=1 playing=1 paused=1 volume=100 | neither played nor released
 a play body without the set volume body | 24 | early | tag=after installed=1 used=1 playing=1 paused=1 volume=-1 => tag=after installed=1 used=1 playing=1 paused=0 volume=-1 | the set volume body did not
@@ -396,6 +439,22 @@ a play body that left the record not playing | 24 | played | tag=after installed
 a released handle that the entity still points at | 24 | destroyed | IN env-sound-state ent=0 slot=7 tag=1 :: handle=0 => handle=1 ;; detached=0 => detached=1 | still points at it
 the playback calls an update routine | 24 | early | stored=1 => stored=2 | says it stored 2
 a missing end row | 23 | u3 | DROP env-sound-end | ends before its env-sound-end row
+the pause names another sub type than the created effect | 23 | u3 | tag=pause sub=1 => tag=pause sub=2 | the pause names sub type 2
+a census below the one created effect | 23 | u3 | children_sound=3 => children_sound=0 | the cohort census is not the one created effect
+a pause that returned more than it could change | 23 | u3 | returned=1 => returned=2 | the pause returned 2
+a pause that returned a negative count | 23 | u3 | returned=1 => returned=-1 | the pause returned -1
+an installed record that is looping on the unlink route | 23 | u3 | IN env-route-record tag=before :: looping=0 => looping=1 | is not looping=0
+an installed record with another pitch word | 23 | u3 | IN env-route-record tag=before :: pitch_w=3f800000 => pitch_w=3f800001 | is not pitch_w=3f800000
+an installed record that is panned | 23 | u3 | IN env-route-record tag=before :: panning=0 => panning=5 | is not panning=0
+a volume written on a route that writes none | 23 | u3 | IN env-route-record tag=after :: volume=-1 => volume=100 | is not volume=-1
+constructor metadata that is not the controlled descriptor | 23 | u3 | ALL rate=4 size=20 orate => rate=5 size=20 orate | shows the descriptor rate 5
+constructor metadata that is not the retail descriptor | 24 | played | ALL size=88200 orate => size=88201 orate | shows the descriptor rate 22050 size 88201
+an original rate that is not the facts' | 24 | played | ALL orate=22050 => orate=22051 | shows the descriptor rate
+a creation that is not a single sample | 23 | u3 | ALL seqcount=1 => seqcount=2 | is not a single-sample effect
+a creation whose looping is not the one installed | 24 | early | IN env-snd seq=0 :: looping=1 => looping=0 | and the looping the case installed
+an assertion prerequisite recorded as the debug log on | 24 | early | debug_log=0 => debug_log=1 | is not debug_log=0
+an assertion prerequisite recorded as a fatal mode | 24 | early | mode=logging => mode=fatal | is not mode=logging
+an assertion prerequisite that is missing | 24 | early | DROP tag=assert | the protocol has 3
 ";
 
 fn base(key: &str) -> Run {

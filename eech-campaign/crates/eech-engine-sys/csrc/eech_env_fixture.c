@@ -3450,6 +3450,14 @@ static int env_snd_handle_case (int index, char *text, int capacity, int *used)
  *                                     reached: the scan needs get_application_sound_system_status and the stop walks get_first_system_sound_effect, whose bound is the static count only initialise_sound_system sets (zero here), and
  *                                     the fixture does not initialise the sound system.
  *
+ * CASE 24 TRIPS ASSERTIONS ON PURPOSE. A buffer-absent record is controlled test state, NOT what the original constructor produces (it returns no handle here, and releases a record whose buffer failed): the real set volume,
+ * position, pitch and play bodies begin with ASSERT (effect->sound_buffer) and the dsound wrappers with ASSERT (dsound) and ASSERT (buffer), and all of those FAIL on this record. In the canonical (non DEBUG) build ASSERT is
+ * `if (!(E)) write_debug_log (...)`: a no-op unless the INI option debug_log (command_line_debug_log) is on, in which case modules/system/assert.c opens, appends to and fcloses a static FILE* WITHOUT clearing it, so the NEXT failed
+ * assertion would use a closed stream; in a DEBUG or DEBUG_ASSERT build ASSERT is process_assert, a debug_fatal on the first failure. The null COM entry points are ordinary E_FAIL functions (compat/eech_com.h declarations without
+ * prototypes, eech_com_null.c), so the DirectSound calls themselves cannot dereference the NULL buffer. Case 24 therefore REFUSES, before any change and with changed=0, when command_line_debug_log is set or the fixture is
+ * compiled with DEBUG or DEBUG_ASSERT (the fixture is built by the same cc::Build as soundman.c and assert.c; a refused case is UNAVAILABLE, never a pass). Nothing here changes the assertion subsystem, the logger, the option or the INI,
+ * and no assertion is suppressed. Case 23 trips none (its destroy asserts hold).
+ *
  * The record, its memory ownership, the refusals before any change, the normal-return cleanup and the fatal-poison caveat are those of cases 21 and 22 (see above): the first element of the static array soundman.c owns,
  * in use, NULL buffer, user_data NULL, filled before the calls; on the normal-return path an entity that survived is DETACHED first, a record still in use is released by the REAL destroy, the record is zeroed, the final readback is
  * taken after the zeroing, the tracking is turned OFF and the descriptor, delta and the option flag are restored before any row. The entity cannot be put back (the process is the isolation boundary). The report is PRIVATE
@@ -3480,10 +3488,12 @@ static void env_route_take (struct env_route_read *s, const system_sound_effect 
 	memcpy (&s->pitch, &record->pitch, sizeof (s->pitch));
 }
 
-/* the session's special-effect children: how many are sound effects and how many of the sub type (read only; bounded by the number of entities) */
-static void env_route_cohort (entity *parent, entity_sub_types sub, int *sounds, int *of_type)
+/* the session's special-effect children: how many are sound effects and how many of the sub type (read only). Returns 1 only when the walk reached the end of the list within the number of entities and every sound effect child
+   had data; otherwise 0 and the counts are PARTIAL and must not be used (the real pause walks the same list without a bound). */
+static int env_route_cohort (entity *parent, entity_sub_types sub, int *sounds, int *of_type)
 {
 	entity *child;
+	sound_effect *raw;
 	int visited = 0;
 
 	*sounds = 0;
@@ -3493,19 +3503,28 @@ static void env_route_cohort (entity *parent, entity_sub_types sub, int *sounds,
 	{
 		if (++visited > number_of_entities)
 		{
-			break;
+			return 0;
 		}
 
 		if (get_local_entity_type (child) == ENTITY_TYPE_SOUND_EFFECT)
 		{
+			raw = (sound_effect *) get_local_entity_data (child);
+
+			if (raw == NULL)
+			{
+				return 0;
+			}
+
 			(*sounds)++;
 
-			if (((sound_effect *) get_local_entity_data (child))->eff.sub_type == sub)
+			if (raw->eff.sub_type == sub)
 			{
 				(*of_type)++;
 			}
 		}
 	}
+
+	return 1;
 }
 
 static int env_snd_route_case (int index, char *text, int capacity, int *used)
@@ -3523,7 +3542,8 @@ static int env_snd_route_case (int index, char *text, int capacity, int *used)
 	int saved_rate = lightning->rate, saved_size = lightning->size, retail_rate = lightning->rate, retail_size = lightning->size;
 	int saved_flag = get_global_sound_effects_enabled (), flag_restored = 1;
 	int n = 0, calls = 0, installed = 0, live_after = 0, detached = 0, destroyed_by_fixture = 0, destroyed_by_original, i, descriptor_restored, delta_restored, short_of_slots;
-	int planned = unlink_case ? 3 : 1, cohort_before = 0, children_sound = 0, children_type = 0, paused = -1, ignored = 0;
+	int planned = unlink_case ? 3 : 1, cohort_before = 0, children_sound = 0, children_type = 0, paused = -1, ignored = 0, complete_before = 1, complete_after = 1, pause_called = 0;
+	int debug_log_on = command_line_debug_log;
 	int ui_muted = ui_sounds_muted, channel_muted = get_sound_channel_muted (0), channel_volume = get_sound_channel_volume (0);
 	float saved_delta = system_delta_time, delta = 1.0f, delay = 1.5f, range = 0.0f;
 	uint32_t one_word = 0x3f800000u;
@@ -3545,7 +3565,7 @@ static int env_snd_route_case (int index, char *text, int capacity, int *used)
 
 	if (parent)
 	{
-		env_route_cohort (parent, pause_sub, &ignored, &cohort_before);
+		complete_before = env_route_cohort (parent, pause_sub, &ignored, &cohort_before);
 	}
 
 	if (get_comms_model () != COMMS_MODEL_SERVER)
@@ -3568,10 +3588,24 @@ static int env_snd_route_case (int index, char *text, int capacity, int *used)
 	{
 		refusal = "there_is_no_free_entity_slot_for_the_real_constructor";
 	}
+	else if (unlink_case && !complete_before)
+	{
+		refusal = "the_cohort_census_of_the_session_children_is_incomplete_or_invalid_so_the_pause_walk_cannot_be_bounded";
+	}
 	else if (unlink_case && cohort_before != 0)
 	{
 		refusal = "the_session_already_has_children_of_the_paused_sub_type_so_the_pause_would_touch_other_real_children";
 	}
+	else if (!unlink_case && debug_log_on)
+	{
+		refusal = "the_debug_log_option_is_on_so_the_intentional_failed_assertions_would_reach_the_assert_log_stream_that_assert_c_leaves_closed";
+	}
+#if defined(DEBUG) || defined(DEBUG_ASSERT)
+	else if (!unlink_case)
+	{
+		refusal = "assertions_are_fatal_in_this_build_so_the_intentional_failed_assertions_would_stop_the_engine";
+	}
+#endif
 
 	if (refusal)
 	{
@@ -3621,11 +3655,18 @@ static int env_snd_route_case (int index, char *text, int capacity, int *used)
 
 		if (unlink_case)
 		{
-			/* the REAL pause on the session: it walks the session's children of the sub type (the cohort was empty before ours) and invalidates them; then the REAL server routine, while the entity is a live member of the update list */
-			env_route_cohort (parent, pause_sub, &children_sound, &children_type);
-			paused = pause_local_entity_sound_type (parent, pause_sub, delay);
-			env_snd_snap_take (&snaps[n++], 0, 99, a);
-			calls = env_snd_data_calls (snaps, &n, 0, a, 1, delta, planned);
+			/* the cohort is counted again with the entity in place; the REAL pause on the session is made only when the census is complete and valid and the cohort is exactly our own effect (the real pause walks the list without
+			   a bound and would invalidate any other child of the sub type); then the REAL server routine, while the entity is a live member of the update list. A census that fails now (after the entity exists) leaves the
+			   pause and the calls unmade and the report says so; the normal-return cleanup below still releases the record. */
+			complete_after = env_route_cohort (parent, pause_sub, &children_sound, &children_type);
+
+			if (complete_after && children_type == 1)
+			{
+				paused = pause_local_entity_sound_type (parent, pause_sub, delay);
+				pause_called = 1;
+				env_snd_snap_take (&snaps[n++], 0, 99, a);
+				calls = env_snd_data_calls (snaps, &n, 0, a, 1, delta, planned);
+			}
 		}
 		else
 		{
@@ -3679,12 +3720,19 @@ static int env_snd_route_case (int index, char *text, int capacity, int *used)
 	/* nothing below changes the process: only rows are written */
 	ENV_EMIT ("env-route-input tag=descriptor controlled=%d controlled_rate=%d controlled_size=%d retail_rate=%d retail_size=%d\n", unlink_case, unlink_case ? 4 : 0, unlink_case ? 20 : 0, retail_rate, retail_size);
 	ENV_EMIT ("env-route-input tag=flags effects_enabled_before=%d ui_muted=%d channel_muted=%d channel_volume=%d\n", saved_flag != 0, ui_muted, channel_muted, channel_volume);
+	if (!unlink_case)
+	{
+		/* the recorded prerequisite of the intentional failed assertions (see the comment above): the assertion mode of this build and the debug log option, both checked before any change */
+		ENV_EMIT ("env-route-input tag=assert mode=logging debug_log=%d\n", debug_log_on != 0);
+	}
+
 	ENV_EMIT ("env-route-input tag=record origin=test_owned_static_record built_by=fixture buffer=absent device=none user_data=none initial_used=1 initial_playing=%d initial_paused=1 initial_volume=-1 rate=%d looping=%d\n",
 		!unlink_case, ENV_ROUTE_RATE, !unlink_case);
 
 	if (unlink_case)
 	{
-		ENV_EMIT ("env-route-input tag=pause sub=%d delay_w=%08x cohort_before=%d children_sound=%d children_of_type=%d returned=%d\n", (int) pause_sub, ENV_WORD (delay), cohort_before, children_sound, children_type, paused);
+		ENV_EMIT ("env-route-input tag=pause sub=%d delay_w=%08x cohort_before=%d complete_before=%d children_sound=%d children_of_type=%d complete_after=%d called=%d returned=%d\n", (int) pause_sub, ENV_WORD (delay),
+			cohort_before, complete_before, children_sound, children_type, complete_after, pause_called, paused);
 		ENV_EMIT ("env-route-input tag=deltas calls=%d delta_w=%08x\n", planned, ENV_WORD (delta));
 	}
 	else

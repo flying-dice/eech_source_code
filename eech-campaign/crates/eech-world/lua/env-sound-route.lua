@@ -161,7 +161,7 @@ end
 local FACTS = "tag=control comms:i application_sound_system_enabled:i sound_system_initialised:i sound_system_paused:i samples:i lightning_rate:i lightning_size:i lightning_original_rate:i thunder_rate:i thunder_size:i thunder_original_rate:i"
 local STATE = "ent:i slot:i tag:n etype:i data:b sub:i valid:i looping:i member:b handle:b life_w:w vlife_w:w"
 local RECORD = "seq:n point:n n:n tracked:i frame:n upd:n entity:i etype:i sub:i channel:i locality:i valid:i looping:i panning:i seqcount:i handle:i session_parent:b update_member:b sample:i rate:i size:i orate:i life_w:w vlife_w:w amp_w:w pitch_w:w px_w:w py_w:w pz_w:w delta_w:w"
-local READ = "installed=1 used:b playing:b paused:b volume:i rate:i looping:b panning:i buffer_null=1 pitch_w:w"
+local LOOP = unlink_case and "0" or "1"
 local NEXT = { [0] = { [1] = true }, [1] = { [1] = true }, [5] = {} }
 
 -- ---------------------------------------------------------------------------------------------------------------- the case
@@ -198,17 +198,27 @@ end
 local descriptor = take ("env-route-input", "tag=descriptor " .. (unlink_case and "controlled=1 controlled_rate=4 controlled_size=20" or "controlled=0 controlled_rate=0 controlled_size=0") .. " retail_rate:i retail_size:i")
 if descriptor.retail_rate ~= facts.lightning_rate or descriptor.retail_size ~= facts.lightning_size then hard ("the retail descriptor of the input row is not the one the facts row read before the change") end
 local flags = take ("env-route-input", "tag=flags effects_enabled_before:b ui_muted:i channel_muted:i channel_volume:i")
+-- case 24 trips assertions on purpose: its prerequisite (the logging assertion mode and the debug log option off) was checked by the fixture before any change and is recorded here
+if not unlink_case then take ("env-route-input", "tag=assert mode=logging debug_log=0") end
 local initial_playing = unlink_case and "0" or "1"
+-- the record as installed (looping as the case names it, no panning, the pitch word 1.0); after the steps: the unlink route changes nothing in it but its use, the playback writes volume, paused, playing, panning and pitch
+local READ_BEFORE = "installed=1 used=1 playing=" .. initial_playing .. " paused=1 volume=-1 rate=22050 looping=" .. LOOP .. " panning=0 buffer_null=1 pitch_w=3f800000"
+local READ_AFTER = unlink_case and "installed=1 used:b playing=0 paused=1 volume=-1 rate=22050 looping=0 panning=0 buffer_null=1 pitch_w=3f800000"
+	or "installed=1 used:b playing:b paused:b volume:i rate=22050 looping=1 panning:i buffer_null=1 pitch_w:w"
 take ("env-route-input", "tag=record origin=test_owned_static_record built_by=fixture buffer=absent device=none user_data=none initial_used=1 initial_playing=" .. initial_playing .. " initial_paused=1 initial_volume=-1 rate=22050 looping=" .. (unlink_case and "0" or "1"))
 local pause
 if unlink_case then
-	pause = take ("env-route-input", "tag=pause sub:n delay_w=3fc00000 cohort_before=0 children_sound:n children_of_type=1 returned:i")
+	pause = take ("env-route-input", "tag=pause sub:n delay_w=3fc00000 cohort_before=0 complete_before=1 children_sound:n children_of_type:n complete_after:b called:b returned:i")
+	-- a census that failed after the entity was created leaves the pause and the calls unmade: an unavailable prerequisite, never a result
+	if pause.complete_after ~= "1" or pause.called ~= "1" then
+		emit { event = "control_unavailable", i = case, complete_after = pause.complete_after, called = pause.called }
+		refuse ("the cohort census was incomplete or invalid after the entity was created, or the pause was not made: the control did not run, an unavailable prerequisite and not a result")
+	end
 	take ("env-route-input", "tag=deltas calls=3 delta_w=3f800000")
 else
 	take ("env-route-input", "tag=play range_w=00000000 viewpoint=main_vp")
 end
-local before = take ("env-route-record", "tag=before " .. READ)
-if before.playing ~= initial_playing or before.paused ~= "1" or before.volume ~= "-1" or before.rate ~= "22050" then hard ("the record read back before the calls is not the one installed: " .. raw_of (before)) end
+local before = take ("env-route-record", "tag=before " .. READ_BEFORE)
 
 local states = {}
 while rows [at] ~= nil and rows [at].event == "env-sound-state" do
@@ -231,8 +241,14 @@ if states [1].data ~= "1" or states [1].valid ~= "1" or states [1].member ~= "1"
 local last = states [#states]
 local alive = last.data == "1"
 local first_call_state = unlink_case and 2 or 1
+if unlink_case then
+	-- the pause names the sub type of the only effect the control created, and its census holds that one effect among the session's sound children
+	if pause.sub ~= states [1].sub then hard ("the pause names sub type " .. pause.sub .. " where the created effect has sub type " .. states [1].sub .. ": " .. raw_of (pause)) end
+	if pause.children_of_type ~= "1" or tonumber (pause.children_sound) < tonumber (pause.children_of_type) then hard ("the cohort census is not the one created effect among the session's sound children: " .. raw_of (pause)) end
+	if tonumber (pause.returned) < 0 or tonumber (pause.returned) > tonumber (pause.children_of_type) then hard ("the pause returned " .. pause.returned .. " where it can have changed 0 or 1 effects: " .. raw_of (pause)) end
+end
 
-local after = take ("env-route-record", "tag=after " .. READ)
+local after = take ("env-route-record", "tag=after " .. READ_AFTER)
 local cleanup = take ("env-route-cleanup", "installed=1 entity_live_after:b detached:b destroyed_by_original:b destroyed_by_fixture:b used_final=0 playing_final=0 paused_final=0 volume_final=0 buffer_null_final=1")
 local cleanup_raw = raw_of (cleanup)
 if cleanup.entity_live_after ~= (alive and "1" or "0") then hard ("the cleanup says the entity is " .. (cleanup.entity_live_after == "1" and "live" or "gone") .. " where its last state is " .. (alive and "live" or "dead") .. ": " .. cleanup_raw) end
@@ -259,6 +275,11 @@ if calls + skipped ~= planned or calls < 1 or calls ~= #states - first_call_stat
 if tonumber (report.stored) ~= #records then hard ("the probe says it stored " .. report.stored .. " records and the report holds " .. #records) end
 local creation = records [1]
 if creation == nil or creation.point ~= "0" or creation.upd ~= "0" or creation.handle ~= "0" then hard ("the report holds no creation record first (update 0, no handle yet)") end
+-- the constructor's metadata against the declared inputs: the sample descriptor (controlled in case 23, the retail one in case 24), the original rate of the facts, one sample, and the looping the case installed
+if creation.rate ~= (unlink_case and "4" or descriptor.retail_rate) or creation.size ~= (unlink_case and "20" or descriptor.retail_size) or creation.orate ~= facts.lightning_original_rate then
+	hard ("the creation record shows the descriptor rate " .. creation.rate .. " size " .. creation.size .. " original rate " .. creation.orate .. " where the inputs and the facts give " .. (unlink_case and "4, 20" or (descriptor.retail_rate .. ", " .. descriptor.retail_size)) .. " and " .. facts.lightning_original_rate)
+end
+if creation.seqcount ~= "1" or creation.sample == "-1" or creation.looping ~= LOOP then hard ("the creation record is not a single-sample effect with a sample and the looping the case installed: " .. raw_of (creation)) end
 -- what the constructor and the controlled descriptor fix; validity and update-list membership change on this route (the pause, the unlink) and are joined to the entity states of the same instant instead
 local STABLE = { "entity", "etype", "sub", "channel", "locality", "panning", "seqcount", "looping", "session_parent", "sample", "rate", "size", "orate", "amp_w", "pitch_w", "px_w", "py_w", "pz_w" }
 local enters = 0
@@ -311,7 +332,7 @@ local derived = {
 	scope = "controlled test state: a buffer-absent record in the static array, not an original product, not a backend and not audio; the DirectSound entry points reached are the headless null stubs; a playing buffer is unsupported; the full report is the private raw sidecar",
 }
 if unlink_case then
-	derived.measured = "pause returned, validity flip, unlink (member 1 to 0), the entity's handle cleared, the record released by the original, the entity alive"
+	derived.observed = "the pause's returned count, the entity's validity, update-list membership and handle at each state, the record's use before and after, and who released it; unlinked, handle_cleared_by_original and original_released_handle are computed from them and are true or false as the report says (an entity that stayed linked, with the handle released by the fixture, is as coherent as one that was unlinked)"
 	derived.pause_returned = pause.returned
 	derived.unlinked = states [2].member == "1" and alive and last.member == "0"
 	derived.handle_cleared_by_original = states [2].handle == "1" and alive and last.handle == "0"
