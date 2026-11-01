@@ -171,6 +171,29 @@ extern void eech_envobs_sndinit (int point, int a, int b, int c, int d);
 
 #define ENV_FXA(point, a, b, c, d) eech_envobs_sndinit (point, a, b, c, d);
 
+//
+// THE HELICOPTER ROTOR SOUND PROBE (ENV_FXR; EEDCS-51, D3). A fourth SEPARATE, finite, DRAINED store (csrc/eech_env_observer.c): it is not the event stream, the sound entity probe, the lightning probe or the sound
+// initialisation probe, adds nothing to any of them, and is armed ONLY by its own arm call (never by `eech_envobs_arm`, never by default): until then every hook returns at once. The points sit in
+// helicopter/helicop.c update_local_helicopter_rotor_sounds (the per-helicopter physical computation of the rotor, turbine and APU sound levels and pitches, called from hc_updt.c for every helicopter, AI included).
+// A point READS what the original already holds: the helicopter's stored main rotor rpm, its player kind, the current flight model's stored vector and engine words (copied as bits with memcpy -- no float is loaded
+// or computed), the child sound effect's stored amplification and pitch, the entity heap's indices and the shared seed word. It calls no sound function, draws nothing, allocates nothing, formats nothing at the
+// point and writes no game variable. The order of the original's pause and resume calls is recorded by a point placed immediately BEFORE each call.
+//
+
+enum ENV_FXR_POINTS
+{
+	ENV_FXR_ENTER = 0,		// first statement after the helicopter's raw data is fetched: the inputs the function is about to read
+	ENV_FXR_ACTION,			// immediately BEFORE a pause (a: 0) or resume (a: 1) of the sound sub-type b with the delay w (as bits)
+	ENV_FXR_CHILD,			// a special-effect child of the helicopter is about to be examined (its entity type, and for a sound effect its sub-type and stored amplification and pitch)
+	ENV_FXR_CHILD_AFTER,		// ... the same sound effect child after the original's switch (its stored amplification and pitch again)
+	ENV_FXR_EXIT,			// last statement: the call is complete
+	ENV_FXR_POINT_COUNT		// (not a point)
+};
+
+extern void eech_envobs_rotor (int point, const void *en, int a, int b, unsigned int w);
+
+#define ENV_FXR(point, en, a, b, w) eech_envobs_rotor (point, (const void *) (en), a, b, w);
+
 #else
 
 #define ENV_FX(kind, a, b, w0, w1, w2, w3, w4, w5)
@@ -180,6 +203,7 @@ extern void eech_envobs_sndinit (int point, int a, int b, int c, int d);
 #define ENV_FXQ(point)
 #define ENV_FXE(point, en)
 #define ENV_FXA(point, a, b, c, d)
+#define ENV_FXR(point, en, a, b, w)
 
 #endif
 

@@ -65,6 +65,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "project.h"
+#include "entity/special/session/ss_envfx.h"
 #include "ai/taskgen/assign.h"
 #include "entity/tacview/tacview.h"
 
@@ -1507,6 +1508,8 @@ void update_local_helicopter_rotor_sounds (entity *en)
 
 	raw = (helicopter *) get_local_entity_data (en);
 
+	ENV_FXR (ENV_FXR_ENTER, en, 0, 0, 0)
+
 	if (raw->main_rotor_rpm >= HELICOPTER_ROTOR_SOUNDS_LOOPING_MAX_RPM_VALUE)
 	{
 		looping_amp = 1.0;
@@ -1565,9 +1568,15 @@ void update_local_helicopter_rotor_sounds (entity *en)
 		left_turbine_amp = 0.2 + bound((lrpm - 20.0) * 0.01, 0.0, 0.4);
 
 		if (lrpm > 1)
+		{
+			ENV_FXR (ENV_FXR_ACTION, en, 1, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE1, ENV_FXF (0.0))
 			resume_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE1);
+		}
 		else
+		{
+			ENV_FXR (ENV_FXR_ACTION, en, 0, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE1, ENV_FXF (0.0))
 			pause_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE1, 0.0);
+		}
 
 		if (play_both_sounds)
 		{
@@ -1577,12 +1586,19 @@ void update_local_helicopter_rotor_sounds (entity *en)
 			right_turbine_amp = 0.2 + bound((rrpm - 40.0) * 0.02, 0.0, 0.4);
 
 			if (rrpm > 1)
+			{
+				ENV_FXR (ENV_FXR_ACTION, en, 1, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE2, ENV_FXF (0.0))
 				resume_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE2);
+			}
 			else
+			{
+				ENV_FXR (ENV_FXR_ACTION, en, 0, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE2, ENV_FXF (0.0))
 				pause_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE2, 0.0);
+			}
 		}
 		else
 		{
+			ENV_FXR (ENV_FXR_ACTION, en, 0, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE2, ENV_FXF (0.0))
 			pause_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE2, 0.0);
 			left_turbine_amp *= 1.2;  // if only one sound is used for both engines, compensate by making it louder
 		}
@@ -1592,10 +1608,14 @@ void update_local_helicopter_rotor_sounds (entity *en)
 		{
 			apu_pitch = bound(apu_rpm * 0.02, 0.0, 2.0) + 0.2;
 			apu_amp = bound(apu_rpm * 0.01, 0.0, 0.25);
+			ENV_FXR (ENV_FXR_ACTION, en, 1, ENTITY_SUB_TYPE_EFFECT_SOUND_APU_TURBINE, ENV_FXF (0.0))
 			resume_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_APU_TURBINE);
 		}
 		else
+		{
+			ENV_FXR (ENV_FXR_ACTION, en, 0, ENTITY_SUB_TYPE_EFFECT_SOUND_APU_TURBINE, ENV_FXF (0.0))
 			pause_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_APU_TURBINE, 0.0);
+		}
 	}
 	else
 	{
@@ -1611,12 +1631,16 @@ void update_local_helicopter_rotor_sounds (entity *en)
 
 	if (looping_amp == 0.0)
 	{
+		ENV_FXR (ENV_FXR_ACTION, en, 0, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_LOOPING, ENV_FXF (0.0))
 		pause_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_LOOPING, 0.0);
+		ENV_FXR (ENV_FXR_ACTION, en, 0, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_SLAP, ENV_FXF (0.0))
 		pause_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_SLAP, 0.0);
 	}
 	else
 	{
+		ENV_FXR (ENV_FXR_ACTION, en, 1, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_LOOPING, ENV_FXF (0.0))
 		resume_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_LOOPING);
+		ENV_FXR (ENV_FXR_ACTION, en, 1, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_SLAP, ENV_FXF (0.0))
 		resume_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_SLAP);
 	}
 
@@ -1628,6 +1652,8 @@ void update_local_helicopter_rotor_sounds (entity *en)
 
 	while (spec)
 	{
+		ENV_FXR (ENV_FXR_CHILD, spec, 0, 0, 0)
+
 		if (spec->type == ENTITY_TYPE_SOUND_EFFECT)
 		{
 			switch (get_local_entity_int_value (spec, INT_TYPE_ENTITY_SUB_TYPE))
@@ -1661,10 +1687,14 @@ void update_local_helicopter_rotor_sounds (entity *en)
 				set_local_entity_float_value (spec, FLOAT_TYPE_SOUNDPITCH, looping_pitch);
 				break;
 			}
+
+			ENV_FXR (ENV_FXR_CHILD_AFTER, spec, 0, 0, 0)
 		}
 
 		spec = get_local_entity_child_succ (spec, LIST_TYPE_SPECIAL_EFFECT);
 	}
+
+	ENV_FXR (ENV_FXR_EXIT, en, 0, 0, 0)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

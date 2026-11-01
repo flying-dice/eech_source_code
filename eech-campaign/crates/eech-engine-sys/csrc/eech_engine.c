@@ -1738,6 +1738,54 @@ int eech_engine_env_observer_events (char *text, int capacity, int *more)
 	}
 	LEAVE (EECH_ENGINE_OK);
 }
+
+/* the helicopter rotor sound probe (eech_env_observer.c ENV_FXR): its own arm, report and drained events; arming is valid only BEFORE boot, like the observer's */
+extern void eech_envobs_rotor_arm (int on);
+extern int eech_envobs_rotor_report (char *text, int capacity);
+extern int eech_envobs_rotor_events (char *text, int capacity, int *more);
+
+int eech_engine_env_rotor_arm (int on)
+{
+	if (eech_engine_poisoned)
+	{
+		return EECH_ENGINE_POISONED;
+	}
+	if (on && (state != ENGINE_NEW))
+	{
+		return EECH_ENGINE_STATE;
+	}
+	eech_envobs_rotor_arm (on);
+	return EECH_ENGINE_OK;
+}
+
+int eech_engine_env_rotor_report (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || (eech_envobs_rotor_report (text, capacity) != 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+/* returns EECH_ENGINE_OK with `more` set to 1 while unread calls remain */
+int eech_engine_env_rotor_events (char *text, int capacity, int *more)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || !more || (eech_envobs_rotor_events (text, capacity, more) != 0))
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
 #endif
 
 #ifdef EECH_GROUND_FIXTURE

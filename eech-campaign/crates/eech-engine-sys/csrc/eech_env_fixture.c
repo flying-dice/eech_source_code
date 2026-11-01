@@ -3260,6 +3260,184 @@ static int env_snd_init_case (char *text, int capacity, int *used)
 	return 0;
 }
 
+/* ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   THE HELICOPTER ROTOR SOUND SWEEP (cases 16 and 17 of group 14; EEDCS-51, D3). CONTROLLED WORLD INPUT, NOT NATURAL COVERAGE: the natural calls of update_local_helicopter_rotor_sounds are recorded by the rotor probe
+   (eech_env_observer.c ENV_FXR) during the ordinary frames; these two cases run the ORIGINAL function itself, from the fixture, on one real helicopter of the loaded campaign with chosen stored inputs, so that the
+   thresholds and branches the natural run cannot reach are exercised. The probe records each call exactly as it records a natural one, stamped `phase=1`. Nothing here claims that any sound plays: no
+   backend, device, voice or handle exists or is faked, and the result says nothing about audibility.
+
+   PROCESS-ISOLATED AND MUTATING, declared and not hidden. The original function pauses and resumes sound children and writes their amplification and pitch, and the pause and resume helpers may change a child's valid flag and its
+   links; the case does NOT restore the children, so it must run in a process of its own, after the natural capture. It does restore the three things it sets itself: the helicopter's stored main rotor rpm, its
+   player kind and the current flight dynamics pointer (as words; no float is loaded). The report gives the shared seed word and the entity indices before and after as measured words; it does not claim them unchanged.
+   Case 16 keeps the helicopter's own AI player kind and the absent flight model (the natural headless branch) and sweeps the stored rpm over the thresholds (30 and 45), their neighbours, zero and out-of-range
+   values. Case 17 is the player-LOCAL / flight-model branch: it gives the helicopter the local player kind and points the flight dynamics at an OWNED zeroed record whose acceleration vector and engine words
+   are the chosen inputs. That branch has never run headless and is optional: a crash or refusal of case 17 does not affect case 16, which is why they are separate. */
+
+#define ENV_SND_ROTOR_AI_CASE 16
+#define ENV_SND_ROTOR_FD_CASE 17
+
+extern int eech_envobs_rotor_is_armed (void);
+extern void eech_envobs_rotor_phase (int phase);
+
+struct env_rotor_input
+{
+	unsigned int rpm, ax, ay, az, lrpm, rrpm, apu;
+};
+
+/* IEEE single words: 0, 10, the neighbours and values of the 30 and 45 thresholds, the midpoint 37.5, 60, 100 and -10 */
+static const unsigned int env_rotor_ai_rpm[] = {
+	0x00000000u, 0x41200000u, 0x41EFFFFFu, 0x41F00000u, 0x41F00001u, 0x42160000u, 0x4233FFFFu, 0x42340000u, 0x42340001u, 0x42700000u, 0x42C80000u, 0xC1200000u
+};
+
+/* rpm, acceleration vector, left and right engine rpm, APU rpm:
+   full looping and nothing running; a (3,4,0) acceleration (magnitude 5) with equal engines (one turbine sound); the clamp (30,0,0) at 37.5 rpm with engines 50 and 60 and an APU of 5; engines exactly 1.0 apart (one
+   sound) and one ulp more (two sounds); the engine at exactly 1.0 (paused) and one ulp above it (resumed); a huge APU; rpm exactly 30 with acceleration 15 (looping off, slap pause) */
+static const struct env_rotor_input env_rotor_fd_inputs[] = {
+	{ 0x42480000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x00000000u },
+	{ 0x42480000u, 0x40400000u, 0x40800000u, 0x00000000u, 0x42480000u, 0x42480000u, 0x00000000u },
+	{ 0x42160000u, 0x41F00000u, 0x00000000u, 0x00000000u, 0x42480000u, 0x42700000u, 0x40A00000u },
+	{ 0x42480000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x42480000u, 0x424C0000u, 0x00000000u },
+	{ 0x42480000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x42480000u, 0x424C0001u, 0x00000000u },
+	{ 0x00000000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x3F800000u, 0x3F000000u, 0x00000000u },
+	{ 0x00000000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x3F800001u, 0x3F800001u, 0x00000000u },
+	{ 0x42480000u, 0x00000000u, 0x00000000u, 0x00000000u, 0x42480000u, 0x42480000u, 0x43480000u },
+	{ 0x41F00000u, 0x41700000u, 0x00000000u, 0x00000000u, 0x42480000u, 0x42480000u, 0x41200000u }
+};
+
+/* the owned flight dynamics record of case 17: static, zero initialised, and never freed */
+static dynamics_type env_rotor_owned_flight_dynamics;
+
+/* the first helicopter of the update list whose player kind is AI and that has at least one sound effect child; the counts are reported */
+static entity *env_rotor_pick (int *children, int *sound)
+{
+	entity *en, *child;
+
+	for (en = get_local_entity_first_child (get_update_entity (), LIST_TYPE_UPDATE); en; en = get_local_entity_child_succ (en, LIST_TYPE_UPDATE))
+	{
+		if (en->type == ENTITY_TYPE_HELICOPTER && ((helicopter *) get_local_entity_data (en))->player == ENTITY_PLAYER_AI)
+		{
+			*children = 0;
+			*sound = 0;
+
+			for (child = get_local_entity_first_child (en, LIST_TYPE_SPECIAL_EFFECT); child; child = get_local_entity_child_succ (child, LIST_TYPE_SPECIAL_EFFECT))
+			{
+				(*children)++;
+
+				if (child->type == ENTITY_TYPE_SOUND_EFFECT)
+				{
+					(*sound)++;
+				}
+			}
+
+			if (*sound > 0)
+			{
+				return en;
+			}
+		}
+	}
+
+	return NULL;
+}
+
+static int env_rotor_refuse (char *text, int capacity, int *used, const char *reason)
+{
+	ENV_EMIT ("env-rotor-refused reason=%s\n", reason);
+	ENV_EMIT ("env-rotor-end refused=1 mutating=0\n");
+
+	return 0;
+}
+
+static int env_rotor_case (int index, char *text, int capacity, int *used)
+{
+	const int fd_branch = (index == ENV_SND_ROTOR_FD_CASE);
+	entity *en;
+	helicopter *raw;
+	dynamics_type *saved_fd;
+	unsigned int saved_rpm;
+	int saved_player, children = 0, sound = 0, calls = 0, i, count;
+	int rng_before = random_number_seed;
+	int entity_before = get_next_free_entity_index ();
+	int local_before = get_next_free_local_entity_index ();
+
+	ENV_EMIT ("env-rotor-plan version=1 case=%s process_isolated=required mutating=1 natural=0 phase=1 restores=main_rotor_rpm,player,flight_dynamics_pointer children_restored=0\n", fd_branch ? "player_local_and_flight_model" : "ai_rpm_sweep");
+
+	if (!eech_envobs_rotor_is_armed ())
+	{
+		return env_rotor_refuse (text, capacity, used, "the_rotor_probe_is_not_armed");
+	}
+
+	if (!get_session_entity () || !get_update_entity ())
+	{
+		return env_rotor_refuse (text, capacity, used, "no_session_or_update_entity");
+	}
+
+	if (current_flight_dynamics != NULL)
+	{
+		return env_rotor_refuse (text, capacity, used, "a_flight_model_is_already_current_so_the_headless_ai_branch_is_not_the_starting_state");
+	}
+
+	en = env_rotor_pick (&children, &sound);
+
+	if (en == NULL)
+	{
+		return env_rotor_refuse (text, capacity, used, "no_ai_helicopter_with_a_sound_effect_child_in_the_update_list");
+	}
+
+	raw = (helicopter *) get_local_entity_data (en);
+	saved_fd = current_flight_dynamics;
+	saved_player = raw->player;
+	memcpy (&saved_rpm, &raw->main_rotor_rpm, sizeof (saved_rpm));
+
+	ENV_EMIT ("env-rotor-entity ent=%d player=%d special_effect_children=%d sound_children=%d fd=0\n", get_local_entity_index (en), saved_player, children, sound);
+
+	count = fd_branch ? (int) (sizeof (env_rotor_fd_inputs) / sizeof (env_rotor_fd_inputs[0])) : (int) (sizeof (env_rotor_ai_rpm) / sizeof (env_rotor_ai_rpm[0]));
+
+	if (fd_branch)
+	{
+		memset (&env_rotor_owned_flight_dynamics, 0, sizeof (env_rotor_owned_flight_dynamics));
+		raw->player = ENTITY_PLAYER_LOCAL;
+		current_flight_dynamics = &env_rotor_owned_flight_dynamics;
+	}
+
+	for (i = 0; i < count; i++)
+	{
+		if (fd_branch)
+		{
+			const struct env_rotor_input *in = &env_rotor_fd_inputs[i];
+
+			memcpy (&raw->main_rotor_rpm, &in->rpm, sizeof (in->rpm));
+			memcpy (&env_rotor_owned_flight_dynamics.model_acceleration_vector.x, &in->ax, sizeof (in->ax));
+			memcpy (&env_rotor_owned_flight_dynamics.model_acceleration_vector.y, &in->ay, sizeof (in->ay));
+			memcpy (&env_rotor_owned_flight_dynamics.model_acceleration_vector.z, &in->az, sizeof (in->az));
+			memcpy (&env_rotor_owned_flight_dynamics.left_engine_n1_rpm.value, &in->lrpm, sizeof (in->lrpm));
+			memcpy (&env_rotor_owned_flight_dynamics.right_engine_n1_rpm.value, &in->rrpm, sizeof (in->rrpm));
+			memcpy (&env_rotor_owned_flight_dynamics.apu_rpm.value, &in->apu, sizeof (in->apu));
+		}
+		else
+		{
+			memcpy (&raw->main_rotor_rpm, &env_rotor_ai_rpm[i], sizeof (env_rotor_ai_rpm[i]));
+		}
+
+		eech_envobs_rotor_phase (1);
+		update_local_helicopter_rotor_sounds (en);
+		eech_envobs_rotor_phase (0);
+		calls++;
+
+		ENV_EMIT ("env-rotor-sweep i=%d rpm_w=%08x\n", i, fd_branch ? env_rotor_fd_inputs[i].rpm : env_rotor_ai_rpm[i]);
+	}
+
+	/* restore what the case itself set; the sound children are NOT restored (declared above) */
+	raw->player = saved_player;
+	current_flight_dynamics = saved_fd;
+	memcpy (&raw->main_rotor_rpm, &saved_rpm, sizeof (saved_rpm));
+
+	ENV_EMIT ("env-rotor-fingerprint rng_before_w=%08x rng_after_w=%08x entity_before=%d entity_after=%d local_before=%d local_after=%d\n", (unsigned int) rng_before, (unsigned int) random_number_seed,
+		entity_before, get_next_free_entity_index (), local_before, get_next_free_local_entity_index ());
+	ENV_EMIT ("env-rotor-end refused=0 mutating=1 calls=%d\n", calls);
+
+	return 0;
+}
+
 static int env_snd_case (int index, char *text, int capacity, int *used)
 {
 	static const char *const names[ENV_SND_CASES] = { "server_branch_ages_then_expires", "client_branch_ages_and_clamps", "playback_prerequisites" };
@@ -3291,6 +3469,11 @@ static int env_snd_case (int index, char *text, int capacity, int *used)
 	if (index == ENV_SND_INIT_CASE)
 	{
 		return env_snd_init_case (text, capacity, used);
+	}
+
+	if (index == ENV_SND_ROTOR_AI_CASE || index == ENV_SND_ROTOR_FD_CASE)
+	{
+		return env_rotor_case (index, text, capacity, used);
 	}
 
 	if (index > ENV_SND_CASES && index <= ENV_SND_DATA_LAST)

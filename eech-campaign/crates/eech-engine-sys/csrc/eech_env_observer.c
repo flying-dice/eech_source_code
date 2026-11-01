@@ -1156,4 +1156,350 @@ int eech_envobs_sndinit_report (char *text, int capacity, int *used)
 	return 0;
 }
 
+/* ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+   THE HELICOPTER ROTOR SOUND PROBE (ss_envfx.h ENV_FXR; EEDCS-51, D3). One record for each call of the original update_local_helicopter_rotor_sounds (helicopter/helicop.c), complete enough for a later independent
+   bit-for-bit replay of the function from the record alone: the inputs it reads (the helicopter's stored main rotor rpm and player kind, whether a current flight model exists and, when it does, the stored words of its
+   acceleration vector and the left, right and APU engine rpm), the ORDERED pause and resume requests with the sound sub-type and the delay (as bits), every special-effect child it walks in order (entity type; for a sound
+   effect its sub-type and its stored amplification and pitch BEFORE and AFTER the original's switch), and the shared seed word on entry and on exit (so any draw inside the call, by the pause and resume helpers
+   included, is visible; this probe itself draws nothing). Everything is READ with memcpy of the already stored words or with integer reads; no float is loaded by value, computed or written, and no sound, entity or game function
+   other than the plain accessors is called.
+
+   It is SEPARATE from the event stream, the sound entity probe, the lightning probe and the sound initialisation probe, and is armed ONLY by eech_envobs_rotor_arm (before boot): until then every point returns at once, so the
+   observation-off stream and every older report are unchanged. It is a PAGED store: the driver drains it after every frame (eech_envobs_rotor_events), and once everything stored has been read the page is empty again. The domain
+   limits are stated in the report, never assumed: ENVR_CALLS calls pending at once, ENVR_ACTIONS requests and ENVR_CHILDREN special-effect children per call. A call that does not fit the page is counted in `dropped`; a request or child
+   beyond the per-call limits is counted in `over_actions` / `over_children`; a call that begins inside another, a point with no call open and a point of another number are counted too. Every such counter is reported and the
+   driver refuses the capture if one is not zero: nothing is truncated into a result. `phase` is set by the controlled fixture (eech_env_fixture.c) so a world-input variation is never mistaken for natural coverage. */
+
+#define ENVR_CALLS 1024
+#define ENVR_ACTIONS 8
+#define ENVR_CHILDREN 32
+
+struct envr_action
+{
+	uint32_t kind, sub, delay;
+};
+
+struct envr_child
+{
+	uint32_t type, sub, before_amp, before_pitch, after_amp, after_pitch, after_seen;
+};
+
+struct envr_call
+{
+	uint32_t seq, time_ms, phase, entity;
+	int32_t player, rng_enter, rng_exit;
+	uint32_t fd_present, rpm, acc[3], lrpm, rrpm, apu;
+	uint32_t actions, visited, sound;
+	struct envr_action action[ENVR_ACTIONS];
+	struct envr_child child[ENVR_CHILDREN];
+};
+
+static struct envr_call envr_pages[ENVR_CALLS];
+static struct envr_call envr_open;
+static const void *envr_child_pointer[ENVR_CHILDREN];
+static int envr_armed, envr_is_open;
+static uint32_t envr_phase, envr_stored, envr_read, envr_next_seq, envr_total, envr_drained;
+static uint32_t envr_dropped, envr_over_actions, envr_over_children, envr_nested, envr_orphans, envr_bad_point;
+
+void eech_envobs_rotor_arm (int on)
+{
+	if (on)
+	{
+		memset (envr_pages, 0, sizeof (envr_pages));
+		memset (&envr_open, 0, sizeof (envr_open));
+		memset (envr_child_pointer, 0, sizeof (envr_child_pointer));
+		envr_is_open = 0;
+		envr_phase = envr_stored = envr_read = envr_next_seq = envr_total = envr_drained = 0;
+		envr_dropped = envr_over_actions = envr_over_children = envr_nested = envr_orphans = envr_bad_point = 0;
+	}
+
+	envr_armed = on ? 1 : 0;
+}
+
+int eech_envobs_rotor_is_armed (void)
+{
+	return envr_armed;
+}
+
+void eech_envobs_rotor_phase (int phase)
+{
+	envr_phase = (uint32_t) phase;
+}
+
+static void envr_sound_words (const void *p, uint32_t *sub, uint32_t *amp, uint32_t *pitch)
+{
+	const sound_effect *raw = (const sound_effect *) get_local_entity_data ((entity *) p);
+
+	*sub = (uint32_t) raw->eff.sub_type;
+	memcpy (amp, &raw->amplification, sizeof (*amp));
+	memcpy (pitch, &raw->pitch, sizeof (*pitch));
+}
+
+void eech_envobs_rotor (int point, const void *p, int a, int b, unsigned int w)
+{
+	struct envr_call *c = &envr_open;
+	entity *en = (entity *) p;
+	uint32_t slot;
+
+	if (!envr_armed)
+	{
+		return;
+	}
+
+	if (point < 0 || point >= ENV_FXR_POINT_COUNT)
+	{
+		envr_bad_point++;
+
+		return;
+	}
+
+	if (point == ENV_FXR_ENTER)
+	{
+		const helicopter *raw = (const helicopter *) get_local_entity_data (en);
+		const dynamics_type *fd = current_flight_dynamics;
+
+		if (envr_is_open)
+		{
+			envr_nested++;
+		}
+
+		memset (c, 0, sizeof (*c));
+		memset (envr_child_pointer, 0, sizeof (envr_child_pointer));
+		envr_is_open = 1;
+		c->time_ms = eech_headless_time_ms ();
+		c->phase = envr_phase;
+		c->entity = (uint32_t) get_local_entity_index (en);
+		c->player = (int32_t) raw->player;
+		memcpy (&c->rpm, &raw->main_rotor_rpm, sizeof (c->rpm));
+		c->fd_present = (fd != NULL) ? 1 : 0;
+
+		if (fd != NULL)
+		{
+			memcpy (&c->acc[0], &fd->model_acceleration_vector.x, sizeof (c->acc[0]));
+			memcpy (&c->acc[1], &fd->model_acceleration_vector.y, sizeof (c->acc[1]));
+			memcpy (&c->acc[2], &fd->model_acceleration_vector.z, sizeof (c->acc[2]));
+			memcpy (&c->lrpm, &fd->left_engine_n1_rpm.value, sizeof (c->lrpm));
+			memcpy (&c->rrpm, &fd->right_engine_n1_rpm.value, sizeof (c->rrpm));
+			memcpy (&c->apu, &fd->apu_rpm.value, sizeof (c->apu));
+		}
+
+		c->rng_enter = (int32_t) random_number_seed;
+
+		return;
+	}
+
+	if (!envr_is_open)
+	{
+		envr_orphans++;
+
+		return;
+	}
+
+	switch (point)
+	{
+		case ENV_FXR_ACTION:
+			if (c->actions < ENVR_ACTIONS)
+			{
+				c->action[c->actions].kind = (uint32_t) a;
+				c->action[c->actions].sub = (uint32_t) b;
+				c->action[c->actions].delay = w;
+			}
+			else
+			{
+				envr_over_actions++;
+			}
+
+			c->actions++;
+			break;
+		case ENV_FXR_CHILD:
+			slot = c->visited;
+			c->visited++;
+
+			if (slot >= ENVR_CHILDREN)
+			{
+				envr_over_children++;
+
+				break;
+			}
+
+			envr_child_pointer[slot] = p;
+			c->child[slot].type = (uint32_t) en->type;
+
+			if (en->type == ENTITY_TYPE_SOUND_EFFECT)
+			{
+				c->sound++;
+				envr_sound_words (p, &c->child[slot].sub, &c->child[slot].before_amp, &c->child[slot].before_pitch);
+			}
+
+			break;
+		case ENV_FXR_CHILD_AFTER:
+			/* the same sound effect child, straight after its CHILD point */
+			slot = (c->visited > 0) ? c->visited - 1 : 0;
+
+			if (c->visited == 0 || slot >= ENVR_CHILDREN)
+			{
+				break;
+			}
+
+			if (envr_child_pointer[slot] != p)
+			{
+				envr_orphans++;
+
+				break;
+			}
+
+			{
+				uint32_t sub;
+
+				envr_sound_words (p, &sub, &c->child[slot].after_amp, &c->child[slot].after_pitch);
+			}
+
+			c->child[slot].after_seen = 1;
+			break;
+		default:
+			/* ENV_FXR_EXIT */
+			c->rng_exit = (int32_t) random_number_seed;
+			c->seq = envr_next_seq++;
+			envr_total++;
+			envr_is_open = 0;
+
+			if (envr_stored >= ENVR_CALLS)
+			{
+				envr_dropped++;
+			}
+			else
+			{
+				envr_pages[envr_stored++] = *c;
+			}
+
+			break;
+	}
+}
+
+/* one formatted call: every field as an integer or a word, the lists as colon-separated tuples (`-` when empty) */
+static int envr_put (char *line, size_t size, size_t *n, const char *format, ...) __attribute__ ((format (printf, 4, 5)));
+
+static int envr_put (char *line, size_t size, size_t *n, const char *format, ...)
+{
+	va_list args;
+	int w;
+
+	va_start (args, format);
+	w = vsnprintf (line + *n, size - *n, format, args);
+	va_end (args);
+
+	if (w < 0 || (size_t) w >= size - *n)
+	{
+		return -1;
+	}
+
+	*n += (size_t) w;
+
+	return 0;
+}
+
+static int envr_format (char *line, size_t size, const struct envr_call *c)
+{
+	size_t n = 0;
+	uint32_t i, shown;
+
+	if (envr_put (line, size, &n, "env-rotor-call seq=%u t=%u phase=%u ent=%u player=%d fd=%u rng_in=%d rng_out=%d rpm_w=%08x acc_x_w=%08x acc_y_w=%08x acc_z_w=%08x lrpm_w=%08x rrpm_w=%08x apu_w=%08x actions=%u visited=%u sound=%u act=",
+		c->seq, c->time_ms, c->phase, c->entity, (int) c->player, c->fd_present, (int) c->rng_enter, (int) c->rng_exit, c->rpm, c->acc[0], c->acc[1], c->acc[2], c->lrpm, c->rrpm, c->apu, c->actions, c->visited, c->sound) != 0)
+	{
+		return -1;
+	}
+
+	shown = (c->actions < ENVR_ACTIONS) ? c->actions : ENVR_ACTIONS;
+
+	if (shown == 0 && envr_put (line, size, &n, "-") != 0)
+	{
+		return -1;
+	}
+
+	for (i = 0; i < shown; i++)
+	{
+		if (envr_put (line, size, &n, "%s%u:%u:%08x", (i == 0) ? "" : ",", c->action[i].kind, c->action[i].sub, c->action[i].delay) != 0)
+		{
+			return -1;
+		}
+	}
+
+	if (envr_put (line, size, &n, " kids=") != 0)
+	{
+		return -1;
+	}
+
+	shown = (c->visited < ENVR_CHILDREN) ? c->visited : ENVR_CHILDREN;
+
+	if (shown == 0 && envr_put (line, size, &n, "-") != 0)
+	{
+		return -1;
+	}
+
+	for (i = 0; i < shown; i++)
+	{
+		if (envr_put (line, size, &n, "%s%u:%u:%08x:%08x:%08x:%08x:%u", (i == 0) ? "" : ",", c->child[i].type, c->child[i].sub, c->child[i].before_amp, c->child[i].before_pitch, c->child[i].after_amp,
+			c->child[i].after_pitch, c->child[i].after_seen) != 0)
+		{
+			return -1;
+		}
+	}
+
+	return envr_put (line, size, &n, "\n");
+}
+
+int eech_envobs_rotor_report (char *text, int capacity)
+{
+	int used = 0;
+
+	text[0] = '\0';
+
+	return append (text, capacity, &used,
+		"env-rotor-report version=1 armed=%d open=%d phase=%u capacity=%d max_actions=%d max_children=%d calls_total=%u drained=%u pending=%u dropped=%u over_actions=%u over_children=%u nested=%u orphans=%u bad_points=%u\n",
+		envr_armed, envr_is_open, envr_phase, ENVR_CALLS, ENVR_ACTIONS, ENVR_CHILDREN, envr_total, envr_drained, envr_stored - envr_read, envr_dropped, envr_over_actions, envr_over_children, envr_nested,
+		envr_orphans, envr_bad_point);
+}
+
+/* drains complete call lines while they fit `capacity`; `more` is 1 while stored calls remain unread. When everything stored has been read the page is empty again. */
+int eech_envobs_rotor_events (char *text, int capacity, int *more)
+{
+	int used = 0;
+	char line[4096];
+
+	text[0] = '\0';
+	*more = 0;
+
+	while (envr_read < envr_stored)
+	{
+		int before = used;
+
+		if (envr_format (line, sizeof (line), &envr_pages[envr_read]) != 0)
+		{
+			return -1;
+		}
+
+		if (append (text, capacity, &used, "%s", line) != 0)
+		{
+			text[before] = '\0';
+			used = before;
+
+			if (before == 0)
+			{
+				return -1;
+			}
+
+			*more = 1;
+
+			return 0;
+		}
+
+		envr_read++;
+		envr_drained++;
+	}
+
+	envr_stored = envr_read = 0;
+
+	return 0;
+}
+
 #endif

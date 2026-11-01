@@ -2989,6 +2989,11 @@ impl LuaUserData for LuaEngine {
         methods.add_method("env_observer_report", |_, this, ()| this.engine.env_observer_report().map_err(lua_error));
         #[cfg(feature = "env-observer")]
         methods.add_method("env_observer_events", |_, this, ()| this.engine.env_observer_events().map_err(lua_error));
+        // TEST-ONLY (feature `env-observer`, EEDCS-51, D3): the helicopter rotor sound probe's report and its drained calls; not part of the shipping module.
+        #[cfg(feature = "env-observer")]
+        methods.add_method("env_rotor_report", |_, this, ()| this.engine.env_rotor_report().map_err(lua_error));
+        #[cfg(feature = "env-observer")]
+        methods.add_method("env_rotor_events", |_, this, ()| this.engine.env_rotor_events().map_err(lua_error));
         // TEST-ONLY (feature `env-fixture`, EEDCS-51): one case of the original session environment characterisation (group, index); not part of the shipping module.
         #[cfg(feature = "env-fixture")]
         methods.add_method("env_case", |_, this, (group, index): (i32, i32)| {
@@ -3518,6 +3523,12 @@ pub fn eech_dc(lua: &Lua) -> LuaResult<LuaTable> {
     exports.set(
         "env_observer_arm",
         lua.create_function(|_, on: bool| eech_engine::env_observer_arm(on).map_err(lua_error))?,
+    )?;
+    // TEST-ONLY (feature `env-observer`, EEDCS-51, D3): arms (true) or disarms (false) the helicopter rotor sound probe, which nothing else arms; arming is valid only before boot
+    #[cfg(feature = "env-observer")]
+    exports.set(
+        "env_rotor_arm",
+        lua.create_function(|_, on: bool| eech_engine::env_rotor_arm(on).map_err(lua_error))?,
     )?;
     Ok(exports)
 }

@@ -1644,6 +1644,10 @@ extern "C" {
     pub fn eech_engine_env_observer_arm(on: c_int) -> c_int;
     pub fn eech_engine_env_observer_report(text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_env_observer_events(text: *mut c_char, capacity: c_int, more: *mut c_int) -> c_int;
+    // the helicopter rotor sound probe (ENV_FXR): armed only by its own call, drained in pages
+    pub fn eech_engine_env_rotor_arm(on: c_int) -> c_int;
+    pub fn eech_engine_env_rotor_report(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_env_rotor_events(text: *mut c_char, capacity: c_int, more: *mut c_int) -> c_int;
 }
 
 #[cfg(feature = "sensor-fixture")]

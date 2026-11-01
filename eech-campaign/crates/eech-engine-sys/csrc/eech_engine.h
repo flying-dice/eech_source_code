@@ -426,6 +426,14 @@ int eech_engine_env_case (int group, int index, char *text, int capacity);
 int eech_engine_env_observer_arm (int on);
 int eech_engine_env_observer_report (char *text, int capacity);
 int eech_engine_env_observer_events (char *text, int capacity, int *more);
+/*
+ * TEST-ONLY (feature env-observer, EEDCS-51, D3): the helicopter rotor sound probe (see eech_env_observer.c ENV_FXR). It is armed ONLY by its own arm call, valid before boot (on) or at any time (off); nothing else arms it
+ * and the observation-off stream is unchanged. The report states its counters and domain limits; the events are DRAINED in pages: `more` is set to 1 while stored calls remain unread, and the page is empty again once
+ * everything has been read. Not part of the shipping module.
+ */
+int eech_engine_env_rotor_arm (int on);
+int eech_engine_env_rotor_report (char *text, int capacity);
+int eech_engine_env_rotor_events (char *text, int capacity, int *more);
 #endif
 
 #ifdef EECH_GROUND_FIXTURE
