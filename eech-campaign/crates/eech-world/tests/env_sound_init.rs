@@ -20,25 +20,43 @@ const SCRIPT: &str = include_str!("../lua/env-sound-init.lua");
 /// `engine_error` makes `env_case` itself stop; `io_fail` fails the n-th write, a flush or the close of the evidence.
 const COLLABORATORS: &str = r##"
 WRITTEN = {}
-local file = { writes = 0 }
-function file:write (text)
-	self.writes = self.writes + 1
-	local fail = SCENARIO.io_fail
-	if fail and fail.op == 'write' and fail.at == self.writes then return nil, 'disk full' end
-	WRITTEN [#WRITTEN + 1] = text
-	return self
+RAW = {}
+OPENED = {}
+local function evidence (store, prefix)
+	local file = { writes = 0 }
+	function file:write (text)
+		self.writes = self.writes + 1
+		local fail = SCENARIO.io_fail
+		if fail and fail.op == prefix .. 'write' and fail.at == self.writes then return nil, 'disk full' end
+		store [#store + 1] = text
+		return self
+	end
+	function file:flush ()
+		local fail = SCENARIO.io_fail
+		if fail and fail.op == prefix .. 'flush' and fail.at == self.writes then return nil, 'flush failed' end
+		return true
+	end
+	function file:close ()
+		local fail = SCENARIO.io_fail
+		if fail and fail.op == prefix .. 'close' then return nil, 'close failed' end
+		return true
+	end
+	return file
 end
-function file:flush ()
-	local fail = SCENARIO.io_fail
-	if fail and fail.op == 'flush' and fail.at == self.writes then return nil, 'flush failed' end
-	return true
+local out_file, raw_file = evidence (WRITTEN, ''), evidence (RAW, 'raw_')
+io.open = function (path, mode)
+	OPENED [#OPENED + 1] = tostring (path) .. ' ' .. tostring (mode)
+	local is_raw = string.find (path, '%.raw$') ~= nil
+	if string.sub (mode or 'r', 1, 1) == 'r' then
+		if is_raw and SCENARIO.raw_exists then return raw_file end
+		return nil, 'No such file'
+	end
+	if is_raw then
+		if SCENARIO.io_fail and SCENARIO.io_fail.op == 'raw_open' then return nil, 'cannot create' end
+		return raw_file
+	end
+	return out_file
 end
-function file:close ()
-	local fail = SCENARIO.io_fail
-	if fail and fail.op == 'close' then return nil, 'close failed' end
-	return true
-end
-io.open = function () return file end
 host = { args = ARGS, terrain_provider = function () return function () end end, env_provider = function () return function () end end }
 FRAMES = 0
 ARMED = 0
@@ -73,6 +91,8 @@ struct Driven {
     text: String,
     armed: i64,
     frames: i64,
+    /// what was written to the raw sidecar of the native report
+    raw: String,
 }
 
 fn drive(text: &str, args: &str, scenario_extra: &str) -> Driven {
@@ -99,6 +119,7 @@ fn drive(text: &str, args: &str, scenario_extra: &str) -> Driven {
         text,
         armed: lua.globals().get("ARMED").unwrap_or(-1),
         frames: lua.globals().get("FRAMES").unwrap_or(-1),
+        raw: lua.globals().get::<Vec<String>>("RAW").unwrap_or_default().concat(),
     }
 }
 
@@ -123,7 +144,9 @@ struct Shape {
     attempts: Vec<(&'static str, u32, u32)>,
     ctor_samples: Vec<(i32, i32, i32, i32, u32)>,
     ctor_looping: u32,
-    ctor_overflow: u32,
+    ctor_out_of_domain: u32,
+    /// the catalogue the report declares: sample keys are in 0 .. catalogue_entries
+    catalogue_entries: u32,
     /// how many calls of the load-side routine the shape shows (the probe keeps the first 8)
     side_calls: u32,
     /// a matched header entry whose length is 0: the descriptor's size does not change, whatever the match count says
@@ -148,7 +171,8 @@ impl Shape {
             // sample keys inside the declared catalogue (6 entries, keys 0 to 5)
             ctor_samples: vec![(2, 22050, 0, 22050, 3), (4, 11025, 0, 11025, 1)],
             ctor_looping: 2,
-            ctor_overflow: 0,
+            ctor_out_of_domain: 0,
+            catalogue_entries: 6,
             side_calls: 1,
             zero_length_match: false,
         }
@@ -183,8 +207,8 @@ fn report(s: &Shape) -> String {
     let mut t = String::new();
     t += "env-sndinit-plan version=1 read_only=1 process_isolated=not_needed comms=1\n";
     t += &format!(
-        "env-sndinit-store version=1 boots={} stored={} capacity=4 dropped={} orphans={} opens_outside_effects=0 catalogue_entries=6\n",
-        s.boots, s.stored, s.dropped, s.orphans
+        "env-sndinit-store version=1 boots={} stored={} capacity=4 dropped={} orphans={} opens_outside_effects=0 catalogue_entries={}\n",
+        s.boots, s.stored, s.dropped, s.orphans, s.catalogue_entries
     );
     for n in 0..s.stored {
         let (backend, skipped, enabled) = match s.gate {
@@ -237,12 +261,12 @@ fn report(s: &Shape) -> String {
     }
     let uses: u32 = s.ctor_samples.iter().map(|x| x.4).sum();
     t += &format!(
-        "env-sndinit-ctor calls={} looping={} max_count=1 sample_reads={} distinct={} distinct_overflow={} digest_w=0123456789abcdef\n",
+        "env-sndinit-ctor calls={} looping={} max_count=1 sample_reads={} distinct={} out_of_domain={} digest_w=0123456789abcdef\n",
         uses.max(1) + s.ctor_looping,
         s.ctor_looping,
-        uses + s.ctor_overflow,
+        uses + s.ctor_out_of_domain,
         s.ctor_samples.len(),
-        s.ctor_overflow
+        s.ctor_out_of_domain
     );
     for (n, (index, rate, size, orate, used)) in s.ctor_samples.iter().enumerate() {
         t += &format!("env-sndinit-sample n={n} index={index} rate={rate} size={size} orate={orate} uses={used}\n");
@@ -447,12 +471,12 @@ fn a_missing_partial_dropped_or_incomplete_capture_is_a_failure_of_the_witness_a
             "are not the uses of the kept samples",
         ),
         (
-            "distinct samples the probe could not keep",
+            "sample reads whose key is outside the catalogue",
             report(&Shape {
-                ctor_overflow: 2,
+                ctor_out_of_domain: 2,
                 ..Shape::backend_false()
             }),
-            "could not keep 2 distinct sample reads",
+            "samples whose key is outside the catalogue",
         ),
         (
             "a file log that does not add up",
@@ -762,4 +786,147 @@ fn a_sample_key_spelled_two_ways_is_still_the_same_key_and_distinct_keys_stay_di
             .unwrap_or_else(|e| panic!("{name}: distinct keys were refused: {e}\n{}", driven.text));
         assert_eq!(of(&driven, "derived")[0]["constructor_distinct_samples"], 2, "{name}");
     }
+}
+
+/// `n` distinct sample keys 0 .. n, each read once: a coherent capture, whatever number it is (arbitrary stand-in rates).
+fn keys(n: i32) -> Vec<(i32, i32, i32, i32, u32)> {
+    (0..n).map(|k| (k, 22050, 0, 22050, 1)).collect()
+}
+
+/// The size of the report buffer of the new group 14 index 15 case (csrc/eech_env_fixture.c `ENV_SND_INIT_REPORT_CAPACITY`), which the driver also holds as its limit.
+const REPORT_CAPACITY: usize = 320 * 1024;
+/// The size of the finite original catalogue (`NUM_SOUND_SAMPLE_INDICES`) as measured by the previous characterization run.
+const FULL_CATALOGUE: i32 = 2069;
+
+#[test]
+fn a_capture_of_more_than_32_distinct_samples_inside_its_catalogue_is_complete_not_partial() {
+    // the real native read 1674 samples of far more than 32 distinct keys in one 120 s boot: a coherent capture of any number of distinct keys is a capture
+    let shape = Shape {
+        catalogue_entries: 100,
+        ctor_samples: keys(40),
+        ..Shape::backend_false()
+    };
+    let driven = healthy(&shape);
+    driven.result.clone().unwrap_or_else(|e| panic!("40 distinct sample keys were refused: {e}"));
+    assert_eq!(of(&driven, "derived")[0]["constructor_distinct_samples"], 40);
+    assert_eq!(of(&driven, "env-sndinit-sample").len(), 40);
+}
+
+#[test]
+fn the_whole_finite_catalogue_domain_is_a_complete_capture_and_its_report_is_larger_than_32_kib() {
+    let shape = Shape {
+        catalogue_entries: FULL_CATALOGUE as u32,
+        ctor_samples: keys(FULL_CATALOGUE),
+        ..Shape::backend_false()
+    };
+    let text = report(&shape);
+    assert!(
+        text.len() > 32 * 1024 && text.len() < REPORT_CAPACITY,
+        "the full-domain report is {} bytes",
+        text.len()
+    );
+    let driven = drive(&text, "", "");
+    driven.result.clone().unwrap_or_else(|e| panic!("the full catalogue domain was refused: {e}"));
+    assert_eq!(of(&driven, "derived")[0]["constructor_distinct_samples"], FULL_CATALOGUE);
+    assert_eq!(of(&driven, "env-sndinit-sample").len(), FULL_CATALOGUE as usize);
+    // the key one past the domain is still refused, and so is every kept key of a smaller declared catalogue
+    let past = Shape {
+        catalogue_entries: FULL_CATALOGUE as u32,
+        ctor_samples: vec![(FULL_CATALOGUE, 22050, 0, 22050, 1)],
+        ..Shape::backend_false()
+    };
+    assert!(drive(&report(&past), "", "").result.unwrap_err().contains("outside the catalogue"));
+}
+
+#[test]
+fn a_report_beyond_the_declared_capacity_is_refused_and_never_taken_as_complete() {
+    let mut text = report(&Shape::backend_false());
+    while text.len() < REPORT_CAPACITY {
+        text += "env-sndinit-unsupported item=padding reason=padding\n";
+    }
+    let driven = drive(&text, "", "");
+    let error = driven.result.clone().unwrap_err();
+    assert!(error.contains("env-sound-init:") && error.contains("does not fit"), "{error}");
+    assert!(of(&driven, "result").is_empty() && of(&driven, "derived").is_empty());
+    // the engine's own refusal of a report that did not fit its buffer is also a failure, never a shorter report
+    let refused = drive(
+        "env-case-error reason=sound_lifetime_case_refused_or_report_did_not_fit group=14 index=15\n",
+        "",
+        "",
+    );
+    assert!(refused.result.unwrap_err().contains("refused"));
+}
+
+#[test]
+fn the_raw_native_report_is_kept_before_it_is_validated_and_every_failure_to_keep_it_is_a_failure() {
+    let good = report(&Shape::backend_false());
+    let driven = drive(&good, "", "");
+    driven.result.clone().expect("a healthy run");
+    assert_eq!(driven.raw, good, "the sidecar holds the native report exactly as it came");
+    assert!(
+        driven.rows.iter().any(|row| row["event"] == "raw_report" && row["bytes"] == good.len()),
+        "{}",
+        driven.text
+    );
+    assert!(driven
+        .rows
+        .iter()
+        .all(|row| row["event"] != "raw_report" || row["sidecar"] == "unused-out.case15.raw"));
+    // a report the driver refuses is kept too: it is the only copy of what the native said, and it is never complete evidence
+    let partial = report(&Shape {
+        dropped: 2,
+        ..Shape::backend_false()
+    });
+    let driven = drive(&partial, "", "");
+    assert!(driven.result.clone().unwrap_err().contains("dropped 2 records"));
+    assert_eq!(driven.raw, partial);
+    assert!(of(&driven, "result").is_empty() && of(&driven, "derived").is_empty());
+    // the same for an over-capacity report and for the text of a refused case
+    let refused = "env-case-error reason=report_did_not_fit group=14 index=15\n";
+    let driven = drive(refused, "", "");
+    assert!(driven.result.clone().unwrap_err().contains("refused"));
+    assert_eq!(driven.raw, refused);
+    // an engine that stopped returned nothing: the sidecar was created (so that its absence cannot be mistaken) and is empty
+    let stopped = drive(&good, "", ", engine_error = true");
+    assert!(stopped.result.unwrap_err().contains("FAILED in the engine"));
+    assert_eq!(stopped.raw, "");
+    // a named sidecar
+    let named = drive(&good, ", raw_out = 'elsewhere.raw'", "");
+    named.result.clone().expect("a healthy run");
+    assert_eq!(named.raw, good);
+    assert!(named.rows.iter().any(|row| row["event"] == "raw_report" && row["sidecar"] == "elsewhere.raw"));
+    // the failures: a sidecar that already exists (evidence is never overwritten), one that cannot be created, written, flushed or closed
+    for (what, extra, says) in [
+        ("an existing sidecar", ", raw_exists = true", "already exists"),
+        (
+            "a sidecar that cannot be created",
+            ", io_fail = { op = 'raw_open' }",
+            "OUTPUT FAILURE: creating",
+        ),
+        ("a failed sidecar write", ", io_fail = { op = 'raw_write', at = 1 }", "OUTPUT FAILURE: writing"),
+        ("a failed sidecar flush", ", io_fail = { op = 'raw_flush', at = 1 }", "OUTPUT FAILURE: flushing"),
+        ("a failed sidecar close", ", io_fail = { op = 'raw_close' }", "OUTPUT FAILURE: closing"),
+    ] {
+        let driven = drive(&good, "", extra);
+        let error = driven.result.clone().expect_err(&format!("{what}: not noticed"));
+        assert!(error.contains("env-sound-init:") && error.contains(says), "{what}: {error}");
+        assert!(of(&driven, "result").is_empty(), "{what}: a result was written");
+    }
+    // the existing sidecar is refused before anything is booted
+    let existing = drive(&good, "", ", raw_exists = true");
+    assert!(existing.rows.is_empty() && existing.frames == 0);
+}
+
+#[test]
+fn the_drivers_report_limit_is_the_size_the_collector_and_the_rust_wrapper_declare() {
+    // csrc/eech_env_observer.c proves a 320 KiB report holds the whole catalogue domain (a 128-character row for each key plus 16 KiB of fixed rows) and eech-engine passes that size for this case alone
+    assert!(
+        SCRIPT.contains("local REPORT_LIMIT = 320 * 1024\n"),
+        "the driver's limit is not the declared 320 KiB"
+    );
+    assert_eq!(REPORT_CAPACITY, 320 * 1024);
+    assert!(
+        FULL_CATALOGUE as usize * 128 + 16 * 1024 <= REPORT_CAPACITY,
+        "the declared worst case does not fit the declared capacity"
+    );
 }

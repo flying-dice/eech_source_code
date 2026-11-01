@@ -984,6 +984,13 @@ const WPN_REPORT_CAPACITY: usize = 160 * 1024;
 #[cfg(feature = "env-fixture")]
 const ENV_REPORT_CAPACITY: usize = 32 * 1024;
 
+/// TEST-ONLY (feature `env-fixture`): room for the ONE report of the sound initialisation case (group 14 index 15), which holds a row for each sample key the constructor read, up to the finite catalogue
+/// (`NUM_SOUND_SAMPLE_INDICES`, 2069 in the measured native). The bound is derived in csrc/eech_env_observer.c (a sample row is at most 128 characters, so 2069 rows are 264,832 bytes, plus at most 16 KiB of fixed rows,
+/// 281,216 in all) and checked there at compile time against `ENVA_REPORT_CAPACITY`, which this must equal (a test compares the two). Only this case has it: every other case keeps `ENV_REPORT_CAPACITY`.
+/// A report that does not fit is still refused by the engine, never cut short.
+#[cfg(feature = "env-fixture")]
+pub const ENV_SND_INIT_REPORT_CAPACITY: usize = 320 * 1024;
+
 /// TEST-ONLY (feature `env-observer`): arms (before boot) or disarms the read-only observer of the original environment. Arming after boot is refused, because the evidence would be incomplete.
 #[cfg(feature = "env-observer")]
 pub fn env_observer_arm(on: bool) -> Result<(), EngineError> {
@@ -5436,7 +5443,12 @@ impl Engine {
     /// state it touched before it returns and says so. Asks no host anything. An unknown group or index, or a report that does not fit, is an error carrying the reason.
     #[cfg(feature = "env-fixture")]
     pub fn env_case(&self, group: i32, index: i32) -> Result<String, EngineError> {
-        let mut text = vec![0 as std::os::raw::c_char; ENV_REPORT_CAPACITY];
+        let capacity = if group == 14 && index == 15 {
+            ENV_SND_INIT_REPORT_CAPACITY
+        } else {
+            ENV_REPORT_CAPACITY
+        };
+        let mut text = vec![0 as std::os::raw::c_char; capacity];
         // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
         let status = check(unsafe { sys::eech_engine_env_case(group, index, text.as_mut_ptr(), text.len() as i32) });
         keep_case_reason(status, &text)
@@ -10578,5 +10590,23 @@ mod tests {
         let (code, _, error) = terrain_crossing(sys::EECH_TERRAIN_SECTOR, 0, "", |_| Err("[terrain-provider:sector.callback] withheld".into()));
         assert_ne!(code, 0);
         assert_eq!(error, "[terrain-provider:sector.callback] withheld");
+    }
+
+    #[cfg(feature = "env-fixture")]
+    #[test]
+    fn the_sound_initialisation_report_buffer_is_the_size_the_collector_proves_it_needs_and_only_that_case_has_it() {
+        // csrc/eech_env_observer.c derives the worst case (a sample row of at most 128 characters for each of the NUM_SOUND_SAMPLE_INDICES keys, plus at most 16 KiB of fixed rows) and checks it against
+        // ENVA_REPORT_CAPACITY at compile time; the Rust buffer of that one case must be that number
+        let source = include_str!("../../eech-engine-sys/csrc/eech_env_observer.c");
+        let declared = source
+            .lines()
+            .find(|line| line.starts_with("#define ENVA_REPORT_CAPACITY "))
+            .map(|line| line.trim_start_matches("#define ENVA_REPORT_CAPACITY ").trim().parse::<usize>().unwrap_or(0))
+            .unwrap_or(0);
+        assert_eq!(declared, ENV_SND_INIT_REPORT_CAPACITY);
+        // the worst case, from the same constants, fits with room to spare for a catalogue of the measured size (checked at compile time)
+        const _: () = assert!(2069 * 128 + 16 * 1024 <= ENV_SND_INIT_REPORT_CAPACITY);
+        // every other case keeps the small buffer
+        assert_eq!(ENV_REPORT_CAPACITY, 32 * 1024);
     }
 }

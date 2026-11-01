@@ -20,7 +20,14 @@
 -- writes every row as it came. A report of another shape, an incomplete or partial capture, a missing probe, a refused case or a read-only probe that changed the shared seed word or the next free entity indices is a failure of
 -- the WITNESS: a `witness_failure` row and an error beginning `env-sound-init:`. If the engine stops, that is `engine_failure` and the same error. Write, flush and close failures of the evidence are failures too.
 --
--- host.args: root, out (JSON Lines path), scenario (lebanon_retail default | georgia_retail), seconds (0 to 600, default 0: natural frames run before the report so the constructor's reads are in it), frame_ms (10 to 1000, default 100)
+-- THE RAW SIDECAR. The native's report of the case is the sole diagnostic capture of a 120 s run, so it is written, whole and exactly as it came, to a checked sidecar file (`raw_out`, default `<out>.case15.raw`) BEFORE the driver
+-- validates a byte of it: a report the driver then refuses is still kept, and is never complete evidence (no `derived` or `result` row exists for it). The sidecar is created before the engine is booted and is never overwritten
+-- (an existing file is a refusal), so an engine that stops leaves an empty one; every create, write, flush and close of it is checked. It holds the native's private text and is not for Git.
+--
+-- THE REPORT'S SIZE. The case's report holds a row for each sample key the constructor read, up to the finite catalogue (the store row says how many entries it has); the buffer of this one case is REPORT_LIMIT bytes, derived from
+-- that worst case in csrc/eech_env_observer.c, and a report at or over it is refused, never taken as complete.
+--
+-- host.args: root, out (JSON Lines path), raw_out (the raw sidecar of the native report; default <out>.case15.raw), scenario (lebanon_retail default | georgia_retail), seconds (0 to 600, default 0: natural frames run before the report so the constructor's reads are in it), frame_ms (10 to 1000, default 100)
 
 io.stdout:setvbuf ("no")
 
@@ -42,7 +49,17 @@ if seconds == nil or seconds ~= math.floor (seconds) or seconds < 0 or seconds >
 local frame_ms = args.frame_ms == nil and 100 or tonumber (args.frame_ms)
 if frame_ms == nil or frame_ms ~= math.floor (frame_ms) or frame_ms < 10 or frame_ms > 1000 then refuse ("frame_ms must be an integer from 10 to 1000, got '" .. tostring (args.frame_ms) .. "'") end
 local seed = 1
+local raw_path = args.raw_out == nil and (out_path .. ".case15.raw") or args.raw_out
+if type (raw_path) ~= "string" or raw_path == "" or raw_path == out_path then refuse ("raw_out must be a path other than out") end
+-- evidence is never overwritten: a sidecar that exists is refused BEFORE anything is booted or created
+local existing = io.open (raw_path, "rb")
+if existing ~= nil then
+	existing:close ()
+	refuse ("the raw sidecar " .. raw_path .. " already exists: it is evidence and is not overwritten")
+end
 local out = assert (io.open (out_path, "w"))
+local raw, raw_error = io.open (raw_path, "wb")
+if raw == nil then refuse ("OUTPUT FAILURE: creating " .. raw_path .. " failed: " .. tostring (raw_error)) end
 
 local escapes = { ['"'] = '\\"', ['\\'] = '\\\\', ['\n'] = '\\n', ['\r'] = '\\r', ['\t'] = '\\t' }
 local function json_string (s)
@@ -100,9 +117,11 @@ for n = 1, frames do
 end
 
 -- ---------------------------------------------------------------------------------------------------------------- the report grammar: key=value rows, kept as text
+-- the buffer of this case's report: 320 KiB, the worst case of csrc/eech_env_observer.c (a row of at most 128 characters for each of the catalogue's keys, plus at most 16 KiB of fixed rows) with room to spare; Rust holds the same number
+local REPORT_LIMIT = 320 * 1024
 local function parse (text, what)
 	if type (text) ~= "string" or text == "" or string.sub (text, -1) ~= "\n" then hard (what .. " is empty or truncated (it does not end with a newline)") end
-	if #text >= 32 * 1024 then hard (what .. " does not fit the fixture's 32 KiB buffer") end
+	if #text >= REPORT_LIMIT then hard (what .. " does not fit the report buffer of " .. math.floor (REPORT_LIMIT / 1024) .. " KiB") end
 	local rows = {}
 	for line in string.gmatch (text, "([^\n]*)\n") do
 		if line == "" or string.find (line, "[^\32-\126]") then hard (what .. " has an empty line or a byte that is not printable ASCII") end
@@ -145,8 +164,20 @@ end
 local what = "env_case(14, 15)"
 local ok, text = pcall (engine.env_case, engine, 14, 15)
 if not ok then
+	pcall (raw.close, raw)
 	emit { event = "engine_failure", i = 15, reason = string.match (tostring (text), "[^\r\n]+") or tostring (text) }
 	refuse ("env_case(14, 15) FAILED in the engine: " .. (string.match (tostring (text), "[^\r\n]+") or tostring (text)))
+end
+-- the native's report is kept whole BEFORE any of it is validated
+if type (text) ~= "string" then text = "" end
+do
+	local wrote, werr = raw:write (text)
+	if not wrote then refuse ("OUTPUT FAILURE: writing " .. raw_path .. " failed: " .. tostring (werr)) end
+	local flushed, ferr = raw:flush ()
+	if not flushed then refuse ("OUTPUT FAILURE: flushing " .. raw_path .. " failed: " .. tostring (ferr)) end
+	local closed_raw, cerr = raw:close ()
+	if not closed_raw then refuse ("OUTPUT FAILURE: closing " .. raw_path .. " failed: " .. tostring (cerr)) end
+	emit { event = "raw_report", bytes = #text, sidecar = raw_path, note = "the native report exactly as returned, kept before validation; not complete evidence by itself" }
 end
 if string.find (text, "env-case-error", 1, true) then hard (what .. " refused: " .. text) end
 local rows = parse (text, what)
@@ -163,7 +194,7 @@ end
 local function number (row, key) return tonumber (row.map [key]) end
 
 local CAPACITY = 4
-local MAX_ATTEMPTS, MAX_SIDES, MAX_DISTINCT = 8, 8, 32
+local MAX_ATTEMPTS, MAX_SIDES = 8, 8
 local plan = take ("env-sndinit-plan", "version=1 read_only=1 process_isolated=not_needed comms:i")
 local store = take ("env-sndinit-store", "version=1 boots:n stored:n capacity=4 dropped:n orphans:n opens_outside_effects:n catalogue_entries:n")
 local boots, stored = number (store, "boots"), number (store, "stored")
@@ -240,9 +271,10 @@ for _, name in ipairs (COM_NAMES) do
 	if com.map ["function"] ~= name then hard ("the DirectSound rows are out of order (expected " .. name .. "): " .. com.raw) end
 	com_rows [name] = com
 end
-local ctor = take ("env-sndinit-ctor", "calls:n looping:n max_count:n sample_reads:n distinct:n distinct_overflow:n digest_w:d")
+local ctor = take ("env-sndinit-ctor", "calls:n looping:n max_count:n sample_reads:n distinct:n out_of_domain:n digest_w:d")
 if number (ctor, "looping") > number (ctor, "calls") then hard ("more looping constructor calls than calls: " .. ctor.raw) end
-if number (ctor, "distinct") > MAX_DISTINCT then hard ("more distinct samples than the probe keeps: " .. ctor.raw) end
+-- the kept keys are the keys of the catalogue (a table indexed by the key): there cannot be more of them than it has entries
+if number (ctor, "distinct") > number (store, "catalogue_entries") then hard ("more distinct samples (" .. ctor.map.distinct .. ") than the catalogue has entries (" .. store.map.catalogue_entries .. "): " .. ctor.raw) end
 local sample_rows, uses, seen_keys = {}, 0, {}
 for n = 0, number (ctor, "distinct") - 1 do
 	local sample = take ("env-sndinit-sample", "n:n index:i rate:i size:i orate:i uses:n")
@@ -257,9 +289,9 @@ for n = 0, number (ctor, "distinct") - 1 do
 	uses = uses + number (sample, "uses")
 	sample_rows [#sample_rows + 1] = sample
 end
--- every descriptor read is either a use of a kept distinct sample or a read of one that did not fit, and the overflow is reported: a table that does not add up is not a capture
-if uses + number (ctor, "distinct_overflow") ~= number (ctor, "sample_reads") then hard ("the constructor's sample reads (" .. ctor.map.sample_reads .. ") are not the uses of the kept samples (" .. uses .. ") plus the overflow (" .. ctor.map.distinct_overflow .. "): " .. ctor.raw) end
-if number (ctor, "distinct_overflow") ~= 0 then hard ("the probe could not keep " .. ctor.map.distinct_overflow .. " distinct sample reads: the capture is incomplete: " .. ctor.raw) end
+-- every descriptor read is either a use of a kept sample or a read whose key is outside the catalogue (counted, and refused below): a table that does not add up is not a capture
+if uses + number (ctor, "out_of_domain") ~= number (ctor, "sample_reads") then hard ("the constructor's sample reads (" .. ctor.map.sample_reads .. ") are not the uses of the kept samples (" .. uses .. ") plus the out-of-domain reads (" .. ctor.map.out_of_domain .. "): " .. ctor.raw) end
+if number (ctor, "out_of_domain") ~= 0 then hard ("the constructor read " .. ctor.map.out_of_domain .. " samples whose key is outside the catalogue (0 to " .. (number (store, "catalogue_entries") - 1) .. "): the capture is incomplete: " .. ctor.raw) end
 local unsupported = {}
 for _ = 1, 4 do unsupported [#unsupported + 1] = take ("env-sndinit-unsupported", "item:s reason:s") end
 local fingerprint = take ("env-sndinit-fingerprint", "rng_before_w:w rng_after_w:w entity_before:i entity_after:i local_before:i local_after:i unchanged:b")

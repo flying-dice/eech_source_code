@@ -643,7 +643,6 @@ extern int sound_system_initialised;
 extern int number_of_blocked_sound_samples;
 
 #define ENVA_BOOTS 4
-#define ENVA_DISTINCT 32
 #define ENVA_ATTEMPTS 8
 #define ENVA_SIDES 8
 #define ENVA_COM 4
@@ -675,11 +674,24 @@ struct enva_attempt
 	int kind, ok, fallback, read;
 };
 
-struct enva_sample
-{
-	int index, rate, size, orate;
-	uint32_t uses;
-};
+/*
+ * THE SAMPLE KEY DOMAIN. A sample key is an index into the descriptor catalogue, which has exactly NUM_SOUND_SAMPLE_INDICES entries (a compile-time constant of the original, 2069 in the measured native), so the set of keys the
+ * constructor can read is FINITE and known: the store is a table indexed by the key, not a guess at how many distinct keys a run reads (a first version kept 32 and a natural 120 s boot overflowed it with 1210 reads). Per key: the
+ * number of reads, and the rate, size and original rate of its FIRST read; plus the keys in the order they were first read. A key outside 0 .. NUM_SOUND_SAMPLE_INDICES - 1 cannot be stored: it is counted in `out_of_domain` and the
+ * driver refuses the capture. All of this is bounded test-only static storage (about 41 KiB), filled by integer operations at the hook: no heap, no float, no draw, no extra read of the game.
+ *
+ * THE REPORT'S WORST CASE. The report of group 14 index 15 is written into a buffer of ENVA_REPORT_CAPACITY bytes (csrc/eech_env_fixture.c passes whatever the caller gave it; the Rust wrapper gives this size for this case only, and the
+ * other cases keep their own). Its largest part is one sample row per kept key:
+ *   "env-sndinit-sample n=%u index=%d rate=%d size=%d orate=%d uses=%u\n" is 54 literal characters plus n (at most 10 digits), index, rate, size and orate (at most 11 characters each, a sign and 10 digits) and uses (at most 10 digits)
+ *   = 118 characters at the very most, taken as ENVA_SAMPLE_ROW_MAX 128; NUM_SOUND_SAMPLE_INDICES rows of that is 2069 * 128 = 264,832 bytes.
+ * Every other row is bounded by a fixed table (4 initialisations, 8 side calls, 8 file attempts, 4 DirectSound entries) of rows of at most about 520 characters, under 8 KiB in all; ENVA_REPORT_FIXED_MAX takes 16 KiB.
+ * The sum, 281,216, is covered by ENVA_REPORT_CAPACITY = 320 KiB = 327,680, which the compile-time check below enforces. `append` still refuses, never truncates, a report that does not fit.
+ */
+#define ENVA_SAMPLE_ROW_MAX 128
+#define ENVA_REPORT_FIXED_MAX 16384
+#define ENVA_REPORT_CAPACITY 327680
+
+typedef char enva_report_capacity_covers_the_whole_catalogue_domain[((NUM_SOUND_SAMPLE_INDICES * ENVA_SAMPLE_ROW_MAX + ENVA_REPORT_FIXED_MAX) <= ENVA_REPORT_CAPACITY) ? 1 : -1];
 
 static struct enva_boot enva_boots_table[ENVA_BOOTS];
 static uint32_t enva_boots, enva_dropped, enva_orphans, enva_opens_outside;
@@ -694,9 +706,11 @@ static struct enva_attempt enva_attempt_table[ENVA_ATTEMPTS];
 
 static uint32_t enva_com_calls[ENVA_COM], enva_com_last[ENVA_COM];
 
-static uint32_t enva_ctor_calls, enva_ctor_looping, enva_ctor_max_count, enva_ctor_reads, enva_distinct_count, enva_distinct_overflow;
+static uint32_t enva_ctor_calls, enva_ctor_looping, enva_ctor_max_count, enva_ctor_reads, enva_distinct_count, enva_out_of_domain;
 static uint64_t enva_ctor_digest = 0xcbf29ce484222325ULL;
-static struct enva_sample enva_samples[ENVA_DISTINCT];
+static uint32_t enva_sample_uses[NUM_SOUND_SAMPLE_INDICES];
+static int enva_sample_rate[NUM_SOUND_SAMPLE_INDICES], enva_sample_size[NUM_SOUND_SAMPLE_INDICES], enva_sample_orate[NUM_SOUND_SAMPLE_INDICES];
+static int enva_sample_order[NUM_SOUND_SAMPLE_INDICES];
 
 static uint64_t enva_fold (uint64_t digest, uint32_t word)
 {
@@ -810,37 +824,31 @@ void eech_envobs_sndinit (int point, int a, int b, int c, int d)
 
 		case ENV_FXA_CTOR_SAMPLE:
 		{
-			uint32_t n;
-
 			enva_ctor_reads++;
 			enva_ctor_digest = enva_fold (enva_ctor_digest, (uint32_t) a);
 			enva_ctor_digest = enva_fold (enva_ctor_digest, (uint32_t) b);
 			enva_ctor_digest = enva_fold (enva_ctor_digest, (uint32_t) c);
 			enva_ctor_digest = enva_fold (enva_ctor_digest, (uint32_t) d);
 
-			for (n = 0; n < enva_distinct_count; n++)
+			/* a key outside the catalogue cannot be stored: it is counted and the capture is refused by the driver (the read is still in the digest) */
+			if (a < 0 || a >= NUM_SOUND_SAMPLE_INDICES)
 			{
-				if (enva_samples[n].index == a)
-				{
-					enva_samples[n].uses++;
+				enva_out_of_domain++;
 
-					return;
-				}
+				return;
 			}
 
-			if (enva_distinct_count < ENVA_DISTINCT)
+			/* the first read of a key keeps its descriptor numbers and its place in the first-seen order; every read counts */
+			if (enva_sample_uses[a] == 0)
 			{
-				enva_samples[enva_distinct_count].index = a;
-				enva_samples[enva_distinct_count].rate = b;
-				enva_samples[enva_distinct_count].size = c;
-				enva_samples[enva_distinct_count].orate = d;
-				enva_samples[enva_distinct_count].uses = 1;
+				enva_sample_rate[a] = b;
+				enva_sample_size[a] = c;
+				enva_sample_orate[a] = d;
+				enva_sample_order[enva_distinct_count] = a;
 				enva_distinct_count++;
 			}
-			else
-			{
-				enva_distinct_overflow++;
-			}
+
+			enva_sample_uses[a]++;
 
 			return;
 		}
@@ -1125,16 +1133,18 @@ int eech_envobs_sndinit_report (char *text, int capacity, int *used)
 		}
 	}
 
-	if (append (text, capacity, used, "env-sndinit-ctor calls=%u looping=%u max_count=%u sample_reads=%u distinct=%u distinct_overflow=%u digest_w=%016llx\n", enva_ctor_calls, enva_ctor_looping, enva_ctor_max_count,
-		enva_ctor_reads, enva_distinct_count, enva_distinct_overflow, (unsigned long long) enva_ctor_digest) != 0)
+	if (append (text, capacity, used, "env-sndinit-ctor calls=%u looping=%u max_count=%u sample_reads=%u distinct=%u out_of_domain=%u digest_w=%016llx\n", enva_ctor_calls, enva_ctor_looping, enva_ctor_max_count,
+		enva_ctor_reads, enva_distinct_count, enva_out_of_domain, (unsigned long long) enva_ctor_digest) != 0)
 	{
 		return -1;
 	}
 
 	for (n = 0; n < enva_distinct_count; n++)
 	{
-		if (append (text, capacity, used, "env-sndinit-sample n=%u index=%d rate=%d size=%d orate=%d uses=%u\n", n, enva_samples[n].index, enva_samples[n].rate, enva_samples[n].size, enva_samples[n].orate,
-			enva_samples[n].uses) != 0)
+		int key = enva_sample_order[n];
+
+		if (append (text, capacity, used, "env-sndinit-sample n=%u index=%d rate=%d size=%d orate=%d uses=%u\n", n, key, enva_sample_rate[key], enva_sample_size[key], enva_sample_orate[key],
+			enva_sample_uses[key]) != 0)
 		{
 			return -1;
 		}
