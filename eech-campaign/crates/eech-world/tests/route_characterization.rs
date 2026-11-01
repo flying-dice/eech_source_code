@@ -400,7 +400,7 @@ fn a_well_formed_incomplete_capture_is_drained_for_diagnosis_then_written_and_fa
 #[test]
 fn damaged_call_reports_are_malformed_and_stop_the_questions() {
     let good = call(0, Variant::Complete);
-    let damages: [(&str, &str, &str); 30] = [
+    let damages: [(&str, &str, &str); 37] = [
         (
             "a node row is missing",
             "route-node index=0 node=1 raw=95,1,-1 bits=3f800015,3f800016,3f800017\n",
@@ -487,29 +487,91 @@ fn damaged_call_reports_are_malformed_and_stop_the_questions() {
         ("the call claims complete but is unended", "ended=1 interrupted=0", "ended=0 interrupted=0"),
         ("the report holds a carriage return", "route-end index=0\n", "route-end index=0\r\n"),
         ("the report holds a NUL", "route-end index=0\n", "route-end index=0\u{0}\n"),
+        // the residual false acceptances of the second review (ENV-ROUTE-PROTOCOL-2): each was accepted by the previous validator beside an otherwise coherent capture
+        (
+            "the identity state is a prefix match, not the literal unique",
+            "state=unique scene=11",
+            "state=unique-INVALID scene=11",
+        ),
+        (
+            "a face-local reference is outside its surface's point range",
+            "local=0,1 point=0,1",
+            "local=0,3 point=0,1",
+        ),
+        (
+            "two faces of one surface carry different colours",
+            "face=1 local=1,2 point=1,2 colour=0,255,0",
+            "face=1 local=1,2 point=1,2 colour=0,254,0",
+        ),
+        (
+            "two faces of one surface carry different polygon bits",
+            "point=1,2 colour=0,255,0 polygons=0",
+            "point=1,2 colour=0,255,0 polygons=1",
+        ),
+        (
+            "two faces of one surface carry different flags",
+            "face=1 local=1,2 point=1,2 colour=0,255,0 polygons=0 flags=00000000",
+            "face=1 local=1,2 point=1,2 colour=0,255,0 polygons=0 flags=00000001",
+        ),
+        (
+            "two faces of one surface carry different point counts",
+            "face=1 local=1,2 point=1,2 colour=0,255,0 polygons=0 flags=00000000 surface_points=3",
+            "face=1 local=1,2 point=1,2 colour=0,255,0 polygons=0 flags=00000000 surface_points=4",
+        ),
+        (
+            "one face-local reference resolves to two nodes within a surface",
+            "face=1 local=1,2 point=1,2",
+            "face=1 local=1,2 point=0,2",
+        ),
     ];
     for (what, from, to) in damages {
-        assert!(good.contains(from), "{what}: the damage does not apply to the coherent call: {from:?}");
-        let damaged = good.replacen(from, to, 1);
-        assert_ne!(damaged, good, "{what}");
-        // two calls are announced; the first is damaged, so the second must never be asked
-        let outcome = run(&healthy(
-            summary(&[Variant::Complete, Variant::Complete]),
-            vec![damaged, call(1, Variant::Complete)],
-        ));
-        failure_in(what, &outcome, MALFORMED);
-        assert_eq!(
-            outcome.log,
-            ["prepare", "select", "boot", "summary", "call 0"],
-            "{what}: the engine was asked again after malformed evidence"
-        );
-        let rows = events(&outcome);
-        assert!(rows.iter().any(|r| r.contains("\"event\":\"malformed\"")), "{what}: {rows:?}");
-        assert!(
-            rows.last().unwrap().contains("\"malformed\":true") && rows.last().unwrap().contains("\"complete\":false"),
-            "{what}: {rows:?}"
-        );
+        assert_malformed_and_stops(&good, what, from, to);
     }
+}
+
+/// `from` must occur in the coherent call; the damaged call is the first of two announced, so the second must never be asked
+fn assert_malformed_and_stops(good: &str, what: &str, from: &str, to: &str) {
+    assert!(good.contains(from), "{what}: the damage does not apply to the coherent call: {from:?}");
+    let damaged = good.replacen(from, to, 1);
+    assert_ne!(damaged, good, "{what}");
+    let outcome = run(&healthy(
+        summary(&[Variant::Complete, Variant::Complete]),
+        vec![damaged, call(1, Variant::Complete)],
+    ));
+    failure_in(what, &outcome, MALFORMED);
+    assert_eq!(
+        outcome.log,
+        ["prepare", "select", "boot", "summary", "call 0"],
+        "{what}: the engine was asked again after malformed evidence"
+    );
+    let rows = events(&outcome);
+    assert!(rows.iter().any(|r| r.contains("\"event\":\"malformed\"")), "{what}: {rows:?}");
+    assert!(
+        rows.last().unwrap().contains("\"malformed\":true") && rows.last().unwrap().contains("\"complete\":false"),
+        "{what}: {rows:?}"
+    );
+}
+
+/// the identity state must be exactly one of the three literals the emitter writes: a near miss of the other two is malformed too, with or without the key fields
+#[test]
+fn near_miss_identity_states_are_malformed() {
+    let two = |first: Variant| {
+        move |from: &str, to: &str| {
+            let good = call(0, first);
+            assert!(good.contains(from), "{from:?}");
+            let outcome = run(&healthy(
+                summary(&[first, Variant::Complete]),
+                vec![good.replacen(from, to, 1), call(1, Variant::Complete)],
+            ));
+            failure_in(to, &outcome, MALFORMED);
+            assert_eq!(outcome.log, ["prepare", "select", "boot", "summary", "call 0"], "{to}: asked again");
+        }
+    };
+    two(Variant::Ambiguous)("state=ambiguous", "state=ambiguous2");
+    two(Variant::Ambiguous)("state=ambiguous", "state=Ambiguous");
+    two(Variant::Unended)("state=unknown", "state=unknown-x");
+    two(Variant::Complete)("state=unique scene", "state=uniqueX scene");
+    // the same forms without the suffix are the coherent shapes and are accepted (the positives above)
 }
 
 #[test]

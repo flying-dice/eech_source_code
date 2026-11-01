@@ -36,3 +36,7 @@ B. CORRECTED SOURCE (working tree on 844e8d3b9), blobs:
 
 NOT run: the C observer (eech_route_fixture.c, the patches R1..R7b, the engine entries) was not compiled or linked in this batch; eech-engine, eech-engine-sys and eech-dc were not built;
 the other test targets of eech-world; any Windows fixture build; any retail data. Root will freeze the clean corrected source for canonical builds.
+
+Note added with the second correction (2 November batch; text only, nothing above is altered): the two RED runs (A, steps 1 and 2) were piped through tail in the wrapper, so their raw logs record
+only `docker-exit=0` (the docker run's own status); the cargo child's numeric exit status was NOT captured for them and none is claimed here (the failing-test result lines are the evidence).
+The green runs in B record their cargo exit codes directly. All blob hashes above match the committed 9c525b42a files; the checks remain working-tree identities, not canonical.

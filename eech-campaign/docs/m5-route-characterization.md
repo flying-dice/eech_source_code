@@ -64,12 +64,14 @@ adds no row).
 ### The driver validates the whole native grammar
 
 `lua/route-characterization.lua` checks the summary and every call line by line against the grammar `csrc/eech_route_fixture.c` emits (name, key set and order, single spacing;
-exact decimal integers and lower-case 8-digit words in bounded domains; compiled names), the row counts against the counts each report declares, and the cross-report joins (the
+exact decimal integers and lower-case 8-digit words in bounded domains; compiled names; the identity state as the whole literal token `unique`, `unknown` or `ambiguous`), the row counts against the counts each report declares, and the cross-report joins (the
 summary's counters, pools and verdict against the calls and against the lookup rows; the pinned table capacities). `tests/route_characterization.rs` checks that its capacities and
 its row grammar are the C source's. It distinguishes three outcomes:
 
 * **measured**: well formed, the observer's verdicts complete, and every complete call's rows support its claim (numbering, order, the faces' surface sequence, link counts per
-  node, starts, depths and offsets against the call's own counts). Only this passes. No route answer is recomputed and no numerical geometry oracle exists.
+  node, starts, depths and offsets against the call's own counts; each face-local reference below its surface's point count; the repeated faces of one surface carrying one surface
+  record (colour, flags, polygon bit, point count, face count); and a face-local reference resolving to the same node wherever it recurs within a surface). These are consistency
+  relations among captured records, not a recomputed route. Only this passes. No route answer is recomputed and no numerical geometry oracle exists.
 * **well-formed but incomplete** (an empty boot, a full table, an unknown or ambiguous identity, a clipped list, an unended call): the engine's honest answer, not a failure of the
   engine. The driver therefore still reads the remaining recorded calls once each, for diagnosis, then writes `done complete=false` and FAILS. This draining is deliberate.
 * **malformed** (a line the grammar cannot produce, an out-of-domain or contradictory number, rows that do not match their declared counts, a summary that disagrees with the
@@ -80,8 +82,11 @@ its row grammar are the C source's. It distinguishes three outcomes:
 
 `host.create_exclusive` (`src/exclusive_output.rs`, registered next to the other host functions; `json-lines.open` and every existing client are unchanged) uses the platform's own
 create-new open (`O_CREAT | O_EXCL`, `CREATE_NEW`), which atomically refuses ANY existing target: a file whatever its permissions, a directory, a link (also a dangling one). Lua
-5.1's `io.open` cannot (`"w"` truncates; a read-open check races and misses unreadable files) and an `x` mode is not assumed. Writes, flushes and the close are checked; the owned
-output is closed on every exit, and a failed close is reported together with any primary failure.
+5.1's `io.open` cannot (`"w"` truncates; a read-open check races and misses unreadable files) and an `x` mode is not assumed. Writes and flushes are checked, and the close is checked in two separate steps, both attempted and both reported: the data sync (`sync_all`, a durability step that is NOT
+the close) and then the descriptor / handle release by the platform's own close (`close`, `CloseHandle`), after the raw descriptor is taken out of the `File` so that its drop never
+closes a second time (a close interrupted by a signal has still released the descriptor on Linux and is not a failure). The release is attempted even if the sync failed. The owned output
+is closed on every exit, and a failed close is reported together with any primary failure. The helper's unit tests exercise the real platform close with a value that is not a
+descriptor / handle (the operating system refuses it); the driver tests' "close failed" cases use a Lua stand-in and show only how the driver reacts to a failed close.
 
 ### How it is run (the Root's, in order; none has been done)
 
@@ -94,7 +99,7 @@ output is closed on every exit, and a failed close is reported together with any
    and final tables); any difference is classified under the baseline governance, never absorbed by a tolerance.
 
 Local guards (`cargo test -p eech-world --test route_characterization`, and the helper's unit tests `--lib exclusive_output`) cover only the DRIVER and the output helper: argument
-refusal before any side effect, prepare -> select -> boot order, verbatim reports, a coherent C-shaped positive and 44 damaged-report controls, the well-formed-incomplete drain,
+refusal before any side effect, prepare -> select -> boot order, verbatim reports, a coherent C-shaped positive and 51 damaged-report controls plus 4 near-miss identity states, the well-formed-incomplete drain,
 no query after a malformed report or a failed engine call, the exclusive create and its IO failures, and drift guards against the C source. The reports are invented C-shaped text
 with no real route geometry; the guards prove nothing about the observer or the parser.
 

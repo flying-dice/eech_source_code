@@ -1,3 +1,27 @@
+# D3 route observer: two residual P2 findings corrected in source (2 November 2026): SOURCE ONLY, NOT RUN
+
+Base `9c525b42a`. Independent review `independent-model-original-route-correction-source-9c525b42a-20261101.json` (SHA256 `469dc51993d50c47a8b684545d07f88777a59e7996953c48c9af5df21931a216`, re-hashed) left two P2
+findings; both are corrected in source and NOTHING of this batch was built or run (the canonical Linux cache and every other build were kept free for the Root's running gates; checks were static: diff review,
+hash and width reading against the repository's `max_width = 160`). Not touched, as asked: the native C observer, hooks, patches, production validators and physics, accepted data. The observer's native C/patches/entries
+compiled in the Root's clean Windows route-fixture build of `9c525b42a` (reported: tool session 26133, exit 0) but are NOT run and NOT measured; no original retail data exists; the source gate stays false for these two fixes.
+
+* ENV-ROUTE-OUTPUT-2 (`src/exclusive_output.rs`): `close` no longer treats a successful `sync_all` as the close. The `File` is consumed once: the data sync runs, the raw descriptor / handle is then taken out of the `File` and
+  released by the platform's own close (`close` / `CloseHandle`), that result is returned, the release is attempted even if the sync failed, and the `File`'s drop therefore never closes a second time. A sync failure, a close
+  failure, or both are reported, each named as what it is; the Lua writer still closes the owned output on every exit and keeps the primary driver failure. Exclusive `create_new` is unchanged. No dependency or generic IO layer.
+  New unit tests: the sync/close combination rule; the REAL platform close with a value that is not a descriptor / handle (the operating system refuses it); a real file closed once with complete content. The driver
+  tests' "close failed" cases remain a Lua stand-in and are documented as only the driver's reaction.
+* ENV-ROUTE-PROTOCOL-2 (`route-characterization.lua`): the identity state is the whole token and must equal the literal `unique`, `unknown` or `ambiguous` (`unique-INVALID` and near misses are malformed); a face-local
+  reference must be below its surface's point count; the repeated faces of a surface must carry the same colour, flags, polygon bit and point count; and a face-local reference must resolve to the same node wherever it
+  recurs within a surface. These are consistency relations among captured records, not a second route solver. Seven new damaged controls extend the coherent-positive-first set (now 37 call controls, with the 14 summary
+  controls: 51) plus four near-miss identity states; every earlier row, capacity, join and no-query-after-malformed check, the verbatim text handling, and all earlier controls are unchanged.
+
+Provenance kept at its own identities: the focused checks of `9c525b42a` are WORKING-TREE checks (the five listed blob hashes match the committed files, but they are not a frozen or canonical run); the old repaired-harness
+result stands as 4 passed / 1 failed (the false acceptance), and the old red raw logs record `docker-exit=0` only, so no numeric cargo exit is claimed for them (noted in the retained evidence file). The old `69ef` red text is
+byte-for-byte as retained. Required next, the Root's: the focused driver and helper tests, fmt and strict gates on a clean pin of the corrected source, then a delta source review before the original retail measurements.
+The `844e8d3b9` model-callback test fix and the full default / feature-union suites are the Root's running gates and are not claimed here. Whole D3 remains the goal: the physical model loading and route decode are
+still Core and move only after genuine original characterization; active-reader disposition stays required before loader detachment; hierarchy, viewpoint, device, muzzle and target-point services remain required work.
+Task51 shipping (`78fe5efdb`) untouched and immutable (third live prefix check around 18:15 UTC exact for all four partial files, no complete 40 / all 8). Task50 and D3 remain In Progress; D4/D5 not started.
+
 # D3 route observer: four independent source findings corrected (1 November 2026): SOURCE + LOCAL DRIVER CHECKS ONLY; OBSERVER UNBUILT, UNRUN, UNMEASURED
 
 Base `844e8d3b9`. Independent review `independent-model-original-route-source-844e8d3b9-20261101.json` (SHA256 `5174507b6c7f3d97a9a7fde8ee1c1362a19e078ab160c54db3a2f0a36b61be62`, re-hashed) found four P2 groups in the

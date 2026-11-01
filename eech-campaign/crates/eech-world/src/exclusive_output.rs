@@ -5,6 +5,9 @@
 //! `CREATE_NEW` on Windows), which refuses ANY existing target atomically: a regular file whatever its permissions, a directory, a symbolic link (also a dangling one) and
 //! any other alias. The refusal and every later failure are reported the way Lua's file methods report them (`nil` and a reason), so a writer such as
 //! `json-lines.lua`'s `wrap` can check each `write`, `flush` and `close`. `json-lines.open` and every existing client are unchanged.
+//!
+//! `close` is checked in two separate steps, both attempted and both reported: the data sync (`sync_all`, a durability step that is NOT the close) and then the descriptor / handle release by the
+//! platform's own close (`close` / `CloseHandle`), after the raw descriptor is taken out of the `File` so that its drop never closes a second time.
 
 use mlua::prelude::*;
 use std::fs::{File, OpenOptions};
@@ -41,15 +44,87 @@ impl LuaUserData for ExclusiveFile {
                 Err(e) => failure(lua, format!("cannot flush {}: {e}", this.path)),
             }
         });
-        // closing flushes the data to the device and reports a failure; closing twice is harmless
+        // the file is consumed once: the data is synced, then the descriptor / handle is released by the platform's own close, and either failure is reported; closing twice is harmless
         methods.add_method_mut("close", |lua, this, ()| match this.file.take() {
             None => true.into_lua_multi(lua),
-            Some(file) => match file.sync_all() {
+            Some(file) => match close_checked(file) {
                 Ok(()) => true.into_lua_multi(lua),
-                Err(e) => failure(lua, format!("cannot close {}: {e}", this.path)),
+                Err(reason) => failure(lua, format!("cannot close {}: {reason}", this.path)),
             },
         });
     }
+}
+
+/// What a close reports. The data sync and the operating-system close are two different operations: both are attempted, both are reported, and neither hides the other.
+fn closing_report(synced: std::io::Result<()>, closed: std::io::Result<()>) -> Result<(), String> {
+    match (synced, closed) {
+        (Ok(()), Ok(())) => Ok(()),
+        (Err(sync), Ok(())) => Err(format!("the data sync failed (the descriptor was released): {sync}")),
+        (Ok(()), Err(close)) => Err(format!("the operating-system close failed (the data was synced): {close}")),
+        (Err(sync), Err(close)) => Err(format!("the data sync failed: {sync}; and the operating-system close failed: {close}")),
+    }
+}
+
+/// Consumes `file` exactly once. The sync (a durability step, NOT the close) runs first, then the descriptor / handle is released with the platform's own close and THAT result is
+/// returned. The release is attempted even if the sync failed, and `File`'s drop never closes again, because the raw descriptor / handle is taken out of the `File` first.
+fn close_checked(file: File) -> Result<(), String> {
+    let synced = file.sync_all();
+    let closed = release(file);
+    closing_report(synced, closed)
+}
+
+#[cfg(unix)]
+fn release(file: File) -> std::io::Result<()> {
+    use std::os::fd::IntoRawFd;
+    close_descriptor(file.into_raw_fd())
+}
+
+/// The platform close of a descriptor. A close interrupted by a signal has still released the descriptor on Linux (and retrying could close another thread's new one), so it is
+/// not a failure; every other error is returned.
+#[cfg(unix)]
+fn close_descriptor(descriptor: std::os::raw::c_int) -> std::io::Result<()> {
+    extern "C" {
+        fn close(descriptor: std::os::raw::c_int) -> std::os::raw::c_int;
+    }
+    // SAFETY: `close` takes only an integer. `release` passes the descriptor it just took out of the `File`, which nothing else owns and which is closed exactly once here; the
+    // test passes -1, which is not a descriptor and makes the call fail.
+    if unsafe { close(descriptor) } == 0 {
+        return Ok(());
+    }
+    let error = std::io::Error::last_os_error();
+    if error.kind() == std::io::ErrorKind::Interrupted {
+        Ok(())
+    } else {
+        Err(error)
+    }
+}
+
+#[cfg(windows)]
+fn release(file: File) -> std::io::Result<()> {
+    use std::os::windows::io::IntoRawHandle;
+    close_handle(file.into_raw_handle())
+}
+
+/// The platform close of a handle.
+#[cfg(windows)]
+fn close_handle(handle: *mut std::ffi::c_void) -> std::io::Result<()> {
+    #[link(name = "kernel32")]
+    extern "system" {
+        fn CloseHandle(handle: *mut std::ffi::c_void) -> i32;
+    }
+    // SAFETY: `release` passes the handle it just took out of the `File`, which nothing else owns and which is closed exactly once here; the test passes a null handle, which is
+    // not one and makes the call fail.
+    if unsafe { CloseHandle(handle) } != 0 {
+        Ok(())
+    } else {
+        Err(std::io::Error::last_os_error())
+    }
+}
+
+#[cfg(not(any(unix, windows)))]
+fn release(file: File) -> std::io::Result<()> {
+    drop(file);
+    Err(std::io::Error::new(std::io::ErrorKind::Unsupported, "this platform has no checked close"))
 }
 
 /// Creates `path` if and only if nothing exists there; otherwise the reason it could not.
@@ -179,6 +254,50 @@ mod tests {
         symlink(&missing, &dangling).unwrap();
         assert!(create_exclusive(&dangling.to_string_lossy()).is_err());
         assert!(!missing.exists(), "the dangling link's target must not be created");
+        std::fs::remove_dir_all(dir).unwrap();
+    }
+
+    /// the combination rule only: a failed sync does not hide a failed close, a failed close does not hide a good sync, and neither is reported as the other
+    #[test]
+    fn the_sync_and_the_operating_system_close_are_each_reported() {
+        let failed = |what: &str| Err(std::io::Error::other(what.to_string()));
+        assert!(closing_report(Ok(()), Ok(())).is_ok());
+        let sync_only = closing_report(failed("sync broke"), Ok(())).unwrap_err();
+        assert!(sync_only.contains("data sync failed") && sync_only.contains("sync broke") && !sync_only.contains("close failed"), "{sync_only}");
+        let close_only = closing_report(Ok(()), failed("close broke")).unwrap_err();
+        assert!(
+            close_only.contains("operating-system close failed") && close_only.contains("close broke") && !close_only.contains("sync failed"),
+            "{close_only}"
+        );
+        let both = closing_report(failed("sync broke"), failed("close broke")).unwrap_err();
+        assert!(both.contains("sync broke") && both.contains("close broke"), "{both}");
+    }
+
+    /// the REAL platform close (not a stand-in): a value that is not a descriptor / handle of this process makes the operating system refuse it, and that refusal is returned. (The
+    /// driver tests' "close failed" cases use a Lua stand-in and show only how the driver reacts to a failed close; they are not this.)
+    #[cfg(unix)]
+    #[test]
+    fn the_real_platform_close_reports_an_actual_close_failure() {
+        let error = close_descriptor(-1).expect_err("closing -1 must fail");
+        assert!(error.raw_os_error().is_some(), "{error}");
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn the_real_platform_close_reports_an_actual_close_failure() {
+        let error = close_handle(std::ptr::null_mut()).expect_err("closing a null handle must fail");
+        assert!(error.raw_os_error().is_some(), "{error}");
+    }
+
+    /// a real file is consumed once by the checked close, which succeeds, and its content is complete on disk afterwards
+    #[test]
+    fn a_real_file_is_closed_once_and_its_content_is_complete() {
+        let dir = scratch("close");
+        let path = dir.join("out.jsonl");
+        let mut file = create_exclusive(&path.to_string_lossy()).unwrap();
+        file.file.as_mut().unwrap().write_all(b"complete\n").unwrap();
+        close_checked(file.file.take().unwrap()).expect("a healthy close succeeds");
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), "complete\n");
         std::fs::remove_dir_all(dir).unwrap();
     }
 
