@@ -1,0 +1,140 @@
+{
+  "review": "Independent completed original scene-animation-list source and actual characterization",
+  "source": {
+    "head": "d30e153e9116bcfbfa816c5752ef2492360ac33a",
+    "original_producer_head": "4485ac3bc7aebc12aca934c7138c88f60ba93252",
+    "measured_native_capture_head": "a6cf70b672a6dab771048cc676e230b22ffa0972",
+    "checker_head": "d30e153e9116bcfbfa816c5752ef2492360ac33a",
+    "producer_base": "abfda863267c9aa7d71ebc29b10f168d98c484aa",
+    "frozen_checker_repository": "D:\\EECH-Migration-Evidence\\model-animation-original-d30e153e91",
+    "producer_diff_sha256": "5f9020db32a291cc935ce2c1220fc563f2cff47cac0380cd950dba6c3d7d83c7",
+    "producer_changed_git_blob_sha256": {
+      "STATUS.md": "2928bebf97d4b0af32c6af60746d68b0fa91a5f65277f8a17918bdab1927ebbe",
+      "eech-campaign/crates/eech-dc/src/module.rs": "2ad47855f590f365b2685af5fa5a9700ab9f44cb55739a9b9a7b71ef50bbc869",
+      "eech-campaign/crates/eech-engine-sys/build/patches.rs": "c5edec3fba07def435b3afc64cba1241d11fab4905dbb9ea374e705c582648b3",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c": "750c96f3256d75baaef3d7d4cb28d3300f11dec95ff54d00ced9e478c8bcb326",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h": "35157d0d6b00a50229862e071a8e428ae439b45f18c4fdc8c8adf7667be69b31",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_model_fixture.c": "2a1e4e3e4fa7b4553310f2ac25dcb9ab5aa347202df8716e6dfa0b8e3a91eb68",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_model_hooks.h": "3d6a20201a87a6a806343c962539f5b061e044ece430e48396a44ddaa1de88de",
+      "eech-campaign/crates/eech-engine-sys/src/lib.rs": "edf66325d612498b794de6395d4e8bce40f6a7657baef1be6f66618631fd42fd",
+      "eech-campaign/crates/eech-engine/src/lib.rs": "d2c21a8504d67e614d352399008675e661a9d1d2fe10f273572191522b6b2775",
+      "eech-campaign/crates/eech-world/lua/model-animation-characterization.lua": "1ecbfe50e299dc65b6158677d04f542c0632e1219d3bc71d5183fa96fce0b331",
+      "eech-campaign/crates/eech-world/tests/host_callbacks.rs": "3aab7d45f6f579bf470e80a4998f30e7ba414ec852f0d09d8d52557e202a8134",
+      "eech-campaign/crates/eech-world/tests/model_animation_characterization.rs": "3a7f7eab5feed97e35abb1ec2f724234877ccb210e820a2231281cc6abe3bdf3"
+    },
+    "checker_only_delta_since_actual_sha256": "a68efdf23a852dbf1a8c85bd2968237b1725f9650fb74a917f5356dc00bc61b9",
+    "checker_lua_sha256": "a927f954fe6cefa070b41ddc4fdda888f1ad7b66af926ceda0c4b7e7e52012dc",
+    "nine_existing_producer_hooks_bridge_plumbing_and_staging_blobs_modes_exact_4485_a6_d30": true
+  },
+  "scope": "Same single combined source correctness, clean-code, boundary-safety and completed actual review, including one consolidated driver P2 correction and the tiny invalid-day/test-borrow residual. Closed abf buffer work is reused, not audited again. No reviewer builds/tests/native executions, source edits or nested agents. The intervening report-only publication is excluded from independent publication approval.",
+  "findings": [],
+  "source_review_no_blocking_findings": true,
+  "finite_original_animation_gate_closed": true,
+  "original_scene_animation_characterization_closed": true,
+  "resolved_protocol_finding": {
+    "disposition": "Closed by the multipage cohort/header joins, row-domain/backing reconciliation, checked clocks and qualified digest scope. All pages require stable generation/content/read-count and zero unknown-scene count. DONE count joins the emitted non-absent/non-unobserved rows. Listed rows have exact filled/count backing; file capacity matches its declaration; empty/absent rows are coherent. Clock fields must exist and be finite; the final day predicate checks type, NaN and i32 range before modulo. Coherent multipage positives and finite damaged forms retain no-more-questions behavior. The Rust as_ref repair keeps the assertions intact."
+  },
+  "source_checks": {
+    "original_profile": "The observation is the ORIGINAL scene-list producer under model-fixture, atop the current accepted other services. It is not a whole-original engine or a production metadata ownership/API change. Model-fixture intentionally retains original model loaders/accessors/routes; shipping/model-host-fixture do not gain this diagnostic method.",
+    "hooks": "MA0..MA4 are additive integer/provenance observations at the original count, per-entry fread, grown-array binding, append and final-list points. The original fread is performed once and its result is observed; the original ignored that return. No parallel list construction, new model allocation/write, RNG draw or floating arithmetic is introduced by the hooks. Real source caller paths pass the validated scene table element.",
+    "backing_and_lifetime": "Final IDs are read and hashed only after recorded/current pointer and count agree, allocation identity and capacity cover the count, filled extent covers it, and the 4096-ID bound holds. Short/unknown/stale/unbacked/overflow/capacity states are explicit unsupported outcomes and are not dereferenced. Reset drops records across loader generations. The Engine-running/fixture entry contract supplies valid output buffers; paged emitter overflow fails rather than silently truncating.",
+    "private_identity": "Legacy scene/animation indices are private diagnostic facts, never production host identities. Pointer values are not emitted. The source/ABI request contains only bounded page indices; the test-only output owns its copied text.",
+    "digest_scope": "The FNV projection covers native scene index/state, count, filled extent, status and ordered verified IDs. It excludes some emitted provenance/backing/success fields; the corrected prose qualifies this, and only the first page is also reread byte-for-byte. This is not a claim of full table-field, process-memory or FP-state invariance. Existing model_state code/schema are unchanged; no cross-native model_state hash equality is inferred without a matching observation.",
+    "required_consumer": "The supplied source dataflow is valid: scene animation membership controls significant-digit and ID-modulo choices in set_local_entity_id_number, which consumes the entity seed and writes two campaign ID fields. Metadata must be preserved; it is not globally visual-only or dormant. No new runtime coverage of every consumer is claimed."
+  },
+  "actual_original_capture": {
+    "native_source": "a6cf70b672a6dab771048cc676e230b22ffa0972",
+    "producer_source": "4485ac3bc7aebc12aca934c7138c88f60ba93252",
+    "original_native_boots": 2,
+    "native_and_controller_exits": 0,
+    "full_pre_post_input_checks_exit_zero": 4,
+    "unchanged_payloads_rehashed_each": 59,
+    "build_info_sha256": "7eedf33cb64b12e4ab2c9dcceb21638718c01a406b0b6affd98bb1796c4287ca",
+    "per_case": {
+      "georgia": {
+        "complete_bytes": 883159,
+        "raw_sha256": "d8bae4ece090569002ac590d8fadfcb64c838c4a325762ced94a6b54b6da4b06"
+      },
+      "lebanon": {
+        "complete_bytes": 883159,
+        "raw_sha256": "5151f579bedefd38a7db4ca2d313f922163e8079cfdf8121b39af0fe1986cbae"
+      }
+    },
+    "each_capture": {
+      "JSON_rows": 3065,
+      "emitted_native_pages": 32,
+      "scene_rows": 3025,
+      "DONE_scenes": 2837,
+      "listed": 95,
+      "empty": 2742,
+      "absent": 188,
+      "ordered_ID_count": 510,
+      "built_listed": 23,
+      "built_empty": 121,
+      "file_listed": 72,
+      "file_empty": 2621,
+      "max_observed_count_and_capacity": 42,
+      "all_DONE_scenes_succeeded": true,
+      "unsupported_malformed_unknown_counts_zero": true,
+      "clocks_required_finite_and_equal": true
+    },
+    "independent_verification": "Full page grammar/echo/order, every raw-to-derived animation-row field, DONE/source/status totals, bounded ordered-ID counts, completion and all payload hashes checked against underlying controls. Recomputed the exact x86 native FNV projection from observed records (not a physical oracle): f1506ca29e44eb91, matching every page.",
+    "cross_case_equality": "All 32 emitted native page texts and 3025 derived raw animation JSON lines including endings are literal G/L equals. Whole JSON files are unequal because their scenario/provenance envelope differs. No new independent repeat run, normalization or expected-ID oracle.",
+    "read_only_observation": "The actual first-page reread and clocks pass the driver check. Source inspection confirms the observation entry writes only its output/local hash, not model/entity data. No full public/caller FP, arbitrary foreign-pointer or malformed-file native coverage is inferred."
+  },
+  "current_checker_validation": {
+    "source": "d30e153e9116bcfbfa816c5752ef2492360ac33a",
+    "Linux": {
+      "targeted_driver_tests_passed": 10,
+      "failed": 0,
+      "fmt_and_World_all_target_strict_exit": 0,
+      "completed_utc": "2026-11-01T23:00:20.659441Z",
+      "scope": "Standalone World corrected-driver tests/lint; no nonexistent DC feature and no new original C feature-suite claim"
+    },
+    "Windows_replay": {
+      "VM_binary_source": "a6cf70b672a6dab771048cc676e230b22ffa0972",
+      "checker_source": "d30e153e9116bcfbfa816c5752ef2492360ac33a",
+      "processes_exit_zero": 12,
+      "real_capture_positive_replays": 2,
+      "malformed_day_checker_refusals": 10,
+      "scope": "Real Windows host Lua VM with a stand-in engine supplying the retained literal native pages and clocks. Positive replay queries all 32 pages plus the first-page reread; negatives check before/after missing, NaN, infinity, huge and fractional days. Wrapper/log hashes and checker result files verified. This is checker validation, not a new C boot, Windows Rust-unit or enabled-trap/full-FP experiment."
+    },
+    "retained_broad_gates": {
+      "source": "4485ac3bc7aebc12aca934c7138c88f60ba93252",
+      "Linux_original_feature_package_passes": 578,
+      "failed": 0,
+      "fmt_and_original_feature_strict_exit": 0,
+      "Windows_original_model_fixture_build_exit": 0,
+      "scope": "Own producer identity; no 4485 native campaign run or relabel as d30"
+    },
+    "retained_exact_checker_CI": {
+      "source": "d30e153e9116bcfbfa816c5752ef2492360ac33a",
+      "workflows": 3,
+      "unique_completed_success_jobs": 9
+    }
+  },
+  "source_and_actual_identity_rule": "Nine complete source blobs/modes exist and match4485=a6=d30; the later change is only STATUS/Lua/test. Real finite native clocks take the same valid predicate path. Original measured data remain a6, corrected checker and targeted tests remain d30, Windows replay VM remains a6. No new binary or run is fabricated.",
+  "preserved_failures": "Initial producer formatting failure is retained; Root formatter changed only the test file. a6 Linux E0382 was a diagnostic Rust partial-move compile failure, not a C/native failure, and is corrected with as_ref. First d30 helper selected a nonexistent DC feature with standalone World and failed101 before any test; its logs/helper/completion remain separate. Corrected World-only v2 is the actual passing current gate. No original828/routes/FP matrix or repeat retail boot was rerun.",
+  "evidence_sha256": {
+    "model-animation-original-producer-source-d30e153e91-20261101.json": "58b9b5267396275e90b1e10518fa555ee5716759f8443eff7d03ca12445cffe1",
+    "model-animation-original-actual-a6cf70b672-20261101.json": "0c67a25a1cb4a0c9c86218f683155b80478e156d4e6c04dc7dc6cff0b7f02a28",
+    "audit-model-animation-original-a6-d30-20261101.py": "4bfea98ce7f1ac13eef7f12e9d300aeadffded20e408191e6ed1abbfdb065948",
+    "model-animation-original-validation-d30e153e91-20261101.json": "abb5123af6c3991d8a3e53c24cf4ead28bc306376db96e796e5b3ba1716dab86",
+    "model-animation-original-builds-4485ac3bc7-20261101.json": "b7af82c9d5236285c42dc78ebfec9612d8d425dd8a438eda6bbac248bd3a2bd2",
+    "model-animation-checker-replay-d30e153e91-20261101.json": "3e577fa904d118d5aecc4d14ed49e90f96082f7d7e327336de9a9acb2f2a8705",
+    "replay-model-animation-checker-d30e153e91-20261101.py": "46efc4bcf766e6920ec9c29905bee1bcdf4930a13a36d6dadd1243d2ecc4616e",
+    "model-animation-original-d30-all9CI-20261101.json": "c1685b0cb7b72fe86320b2b37dfcf3eb45fb7c238db10b77daf99758344cf4df",
+    "model-animation-d30-affected-command-recovery-20261101.json": "765df6f10cdbeb0653fcf6cb3bf750c48e25f54046997b22bf1d8b7f1e424ca8",
+    "model-animation-required-consumer-source-abfda86326-20261101.json": "c8e70221579b5629df0dfe7fc07b885b647bc90b98b9f38501bbd9d215c2f944",
+    "run-model-animation-original-native-20261101.py": "9e5096721638fa8e51bfd2d7f74aa34f8184ccf100b5810c4967d43a989dc1ed"
+  },
+  "limits": [
+    "This closes only the measured original final scene-list prerequisite for the two supported retail installations and observed file/built outcomes. No host metadata extraction or authority acceptance follows.",
+    "No unsafe malformed original files, arbitrary pointer injection, failure-branch native sweep, all-lifecycle/reinit or full caller-FP/RNG-state experiment is claimed.",
+    "No full model loader/metadata/hierarchy/viewpoint/device/muzzle/target-point or Task49 collision service closure.",
+    "No whole Task50, Task51, D3, shipping40/all8, Tacview, current final merge or delivery acceptance.",
+    "No independent publication approval for intervening literal-report imports; later report copies/manifests remain separate provenance actions."
+  ],
+  "conclusion": "No residual finding remains. The finite original animation-list characterization prerequisite is closed; the next required physical metadata move can be implemented and reviewed against these retained actual facts.",
+  "privacy": "Counts, source references and hashes only. Actual ordered legacy animation IDs, scene contents, retail assets, coordinates, recordings and pointer/allocation values remain private."
+}

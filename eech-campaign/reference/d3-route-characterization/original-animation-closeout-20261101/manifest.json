@@ -1,0 +1,58 @@
+{
+  "created_utc": "2026-11-01T23:05:00.513309+00:00",
+  "producer_source": "4485ac3bc7aebc12aca934c7138c88f60ba93252",
+  "native_capture_source": "a6cf70b672a6dab771048cc676e230b22ffa0972",
+  "current_checker_source": "d30e153e9116bcfbfa816c5752ef2492360ac33a",
+  "report_count": 8,
+  "reports": [
+    {
+      "file": "model-animation-original-builds-4485ac3bc7-20261101.json",
+      "bytes": 1407,
+      "sha256": "b7af82c9d5236285c42dc78ebfec9612d8d425dd8a438eda6bbac248bd3a2bd2",
+      "literal_private_copy": true
+    },
+    {
+      "file": "model-animation-original-producer-source-d30e153e91-20261101.json",
+      "bytes": 3125,
+      "sha256": "58b9b5267396275e90b1e10518fa555ee5716759f8443eff7d03ca12445cffe1",
+      "literal_private_copy": true
+    },
+    {
+      "file": "model-animation-original-actual-a6cf70b672-20261101.json",
+      "bytes": 4203,
+      "sha256": "0c67a25a1cb4a0c9c86218f683155b80478e156d4e6c04dc7dc6cff0b7f02a28",
+      "literal_private_copy": true
+    },
+    {
+      "file": "model-animation-original-validation-d30e153e91-20261101.json",
+      "bytes": 2475,
+      "sha256": "abb5123af6c3991d8a3e53c24cf4ead28bc306376db96e796e5b3ba1716dab86",
+      "literal_private_copy": true
+    },
+    {
+      "file": "model-animation-checker-replay-d30e153e91-20261101.json",
+      "bytes": 5709,
+      "sha256": "3e577fa904d118d5aecc4d14ed49e90f96082f7d7e327336de9a9acb2f2a8705",
+      "literal_private_copy": true
+    },
+    {
+      "file": "model-animation-original-d30-all9CI-20261101.json",
+      "bytes": 28092,
+      "sha256": "c1685b0cb7b72fe86320b2b37dfcf3eb45fb7c238db10b77daf99758344cf4df",
+      "literal_private_copy": true
+    },
+    {
+      "file": "model-animation-d30-affected-command-recovery-20261101.json",
+      "bytes": 689,
+      "sha256": "765df6f10cdbeb0653fcf6cb3bf750c48e25f54046997b22bf1d8b7f1e424ca8",
+      "literal_private_copy": true
+    },
+    {
+      "file": "independent-model-animation-original-complete-d30e153e91-20261101.json",
+      "bytes": 13766,
+      "sha256": "f8c302c726230afa1596773dc1054edd977c5a3418806c171a5735a6161fa7f5",
+      "literal_private_copy": true
+    }
+  ],
+  "scope": "Literal safe summary/review reports, preserving original line endings. No retail data or raw ID lists; manifest/README excluded from self hash; Root outer Git proof separate."
+}
