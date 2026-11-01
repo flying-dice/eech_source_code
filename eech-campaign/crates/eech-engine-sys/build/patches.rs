@@ -505,6 +505,126 @@ pub fn patched_files() -> Vec<&'static str> {
     files
 }
 
+/// One ROUTE_HOST patch for a place where popread.c takes the legacy model number from the route entry it holds (`raw_object_index = <entry>->index;`): the number the parse
+/// receives is now the entry's route key (campaign_model_route_handle in aphavoc/.../mb_hostmodel.c), so the parse names its route by the scene and kind the campaign's own
+/// lookup selected and never by a legacy object number. The statement keeps its position, its evaluation count and its order; the extern declaration is block-local.
+macro_rules! handle_patch {
+    ($entry:literal, $count:expr) => {
+        Patch {
+            file: "aphavoc/source/ai/faction/popread.c",
+            id: concat!("H3-route-handle-", $entry),
+            why: "the parse receives the route entry's key (scene and kind) where it used to receive the legacy model number taken from the entry",
+            original: concat!("raw_object_index = ", $entry, "->index;\n"),
+            replacement: concat!(
+                "{\n\t\t\t\textern int campaign_model_route_handle ( const void *entry ); /* EECH headless (D3) */\n\t\t\t\traw_object_index = campaign_model_route_handle ( ",
+                $entry,
+                " );\n\t\t\t}\n"
+            ),
+            count: $count,
+        }
+    };
+}
+
+/// Patches of the host-owned ROUTE data (EEDCS-50, D3), applied by main.rs unless the build keeps the original model accessors (feature model-fixture) or the original route
+/// parser (feature route-original, the immutable original characterisation). Strict count-checked like the others. The route-planning statements of routegen.c (the tree, the
+/// primary and start nodes, the end-slot matching) are NOT touched: only where the parser gets its nodes and line faces from changes, from the campaign DLL's own model
+/// arrays to the host (campaign_model_route_object / campaign_model_route_position), and popread.c's lookup is told which entry belongs to which (scene, kind).
+pub const ROUTE_HOST_PATCHES: &[Patch] = &[
+    Patch {
+        file: "aphavoc/source/ai/faction/popread.c",
+        id: "H1-route-lookup-found",
+        why: "a route entry was found for the airfield instance (scene index) and sub-object kind: the campaign records the entry as the key of that pair",
+        original: "\t\treturn ( search.object_scene );\n",
+        replacement: "\t\t{\n\t\t\textern void campaign_model_route_lookup ( int scene, int kind, const void *entry ); /* EECH headless (D3) */\n\t\t\tcampaign_model_route_lookup ( instance->object_number, ( int ) index, search.object_scene );\n\t\t}\n\t\treturn ( search.object_scene );\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/ai/faction/popread.c",
+        id: "H2-route-lookup-missing",
+        why: "no route entry exists for the airfield instance and sub-object kind: nothing to record (the fixture builds note the miss)",
+        original: "\t\treturn ( NULL );\n#else\n\t\treturn 0;\n#endif\n",
+        replacement: "\t\t{\n\t\t\textern void campaign_model_route_lookup ( int scene, int kind, const void *entry ); /* EECH headless (D3) */\n\t\t\tcampaign_model_route_lookup ( instance->object_number, ( int ) index, NULL );\n\t\t}\n\t\treturn ( NULL );\n#else\n\t\treturn 0;\n#endif\n",
+        count: 1,
+    },
+    handle_patch!("fixedwing_landing_route", 1),
+    handle_patch!("fixedwing_takeoff_route", 1),
+    handle_patch!("fixedwing_landing_holding_route", 1),
+    handle_patch!("fixedwing_takeoff_holding_route", 1),
+    handle_patch!("helicopter_landing_route", 1),
+    handle_patch!("helicopter_takeoff_route", 1),
+    handle_patch!("helicopter_landing_holding_route", 1),
+    handle_patch!("helicopter_takeoff_holding_route", 1),
+    handle_patch!("vehicle_landing_route", 1),
+    handle_patch!("vehicle_takeoff_route", 1),
+    handle_patch!("vehicle_landing_holding_route", 1),
+    handle_patch!("vehicle_takeoff_holding_route", 1),
+    handle_patch!("ship_landing_route", 1),
+    handle_patch!("ship_takeoff_route", 1),
+    handle_patch!("ship_landing_holding_route", 1),
+    handle_patch!("ship_takeoff_holding_route", 1),
+    handle_patch!("landing_route", 3),
+    handle_patch!("takeoff_route", 3),
+    handle_patch!("landing_holding_route", 2),
+    handle_patch!("takeoff_holding_route", 2),
+    Patch {
+        file: "aphavoc/source/ai/faction/popread.c",
+        id: "H3-route-handle-troop-routes",
+        why: "the troop landing and take-off routes are parsed straight from the entry the caller holds in `route`: `route` is read once, by the key lookup, whose result is the parser's argument",
+        original: "parse_waypoint_routes_from_object ( route->index, 0, NULL );\n",
+        replacement: "{\n\t\t\t\t\textern int campaign_model_route_handle ( const void *entry ); /* EECH headless (D3) */\n\t\t\t\t\tparse_waypoint_routes_from_object ( campaign_model_route_handle ( route ), 0, NULL );\n\t\t\t\t}\n",
+        count: 2,
+    },
+    Patch {
+        file: "aphavoc/source/ai/faction/routegen.c",
+        id: "H4-route-object-from-host",
+        why: "the parser's route object comes from the host (ordered nodes and line faces) instead of the campaign's own model arrays; the object is a packaging of the host's answers in the shape the unchanged loops walk",
+        original: "\tobject = &objects_3d_data[object_index];\n",
+        replacement: concat!(
+            "#ifdef EECH_ROUTE_FIXTURE\n",
+            "\t{\n",
+            "\t\textern void eech_rf_begin_host ( int object_index, int number_of_slots, const void *slots ); /* EECH route fixture */\n",
+            "\t\teech_rf_begin_host ( object_index, number_of_matching_slots, slots );\n",
+            "\t}\n",
+            "#endif\n",
+            "\t{\n",
+            "\t\textern struct OBJECT_3D *campaign_model_route_object ( int handle ); /* EECH headless (D3) */\n",
+            "\t\tobject = campaign_model_route_object ( object_index );\n",
+            "\t}\n"
+        ),
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/ai/faction/routegen.c",
+        id: "H5-route-node-from-host",
+        why: "each node's position is the host's decode (the stored short scaled by the object's bounds, in float, under the original's rounding), not a decode here",
+        original: "\t\t\twaypoint_nodes[count].position.x = object->points[count].x;\n\t\t\twaypoint_nodes[count].position.y = object->points[count].y;\n\t\t\twaypoint_nodes[count].position.z = object->points[count].z;\n\n\t\t\twaypoint_nodes[count].position.x *= xmax / 32767;\n\t\t\twaypoint_nodes[count].position.y *= ymax / 32767;\n\t\t\twaypoint_nodes[count].position.z *= zmax / 32767;\n",
+        replacement: "\t\t\t{\n\t\t\t\textern void campaign_model_route_position ( int node, vec3d *position ); /* EECH headless (D3) */\n\t\t\t\tcampaign_model_route_position ( count, &waypoint_nodes[count].position );\n\t\t\t}\n",
+        count: 1,
+    },
+];
+
+/// the staged text of `file` with the host-route patches applied (same strict count check as `apply`)
+pub fn apply_route_host(file: &str, text: &str) -> String {
+    let mut out = text.to_string();
+    for p in ROUTE_HOST_PATCHES.iter().filter(|p| p.file == file) {
+        let found = out.matches(p.original).count();
+        assert_eq!(
+            found, p.count,
+            "route-host patch {} expects {} occurrence(s) of its original text in {}, found {}",
+            p.id, p.count, file, found
+        );
+        out = out.replace(p.original, p.replacement);
+    }
+    out
+}
+
+pub fn route_host_files() -> Vec<&'static str> {
+    let mut files: Vec<&str> = ROUTE_HOST_PATCHES.iter().map(|p| p.file).collect();
+    files.sort_unstable();
+    files.dedup();
+    files
+}
+
 /// one R8 patch: after `raw_object_index = <entry>->index;` the fixture is handed the entry and the number (the extern declaration is a block-local one, so no include is needed)
 macro_rules! caller_patch {
     ($entry:literal, $count:expr) => {
@@ -663,10 +783,18 @@ pub const ROUTE_FIXTURE_PATCHES: &[Patch] = &[
     },
 ];
 
-/// the staged text of `file` with the route-fixture patches applied (same strict count check as `apply`)
-pub fn apply_route_fixture(file: &str, text: &str) -> String {
+/// In the HOST route profile the parser no longer reads the campaign's model arrays, so only the patches that hook text the host profile leaves alone apply: the hooks include,
+/// the final-table observer and the end of the parse. The caller context and the lookup come from the host profile itself (campaign_model_route_*), and the begin / node /
+/// face observations are made where the host's answers are taken.
+fn candidate_profile(id: &str) -> bool {
+    matches!(id, "R1-hooks-include" | "R2-final-observer" | "R6-end")
+}
+
+/// the staged text of `file` with the route-fixture patches applied (same strict count check as `apply`); `original` selects the whole set for the original route parser, or the
+/// subset of the host route profile
+pub fn apply_route_fixture(file: &str, text: &str, original: bool) -> String {
     let mut out = text.to_string();
-    for p in ROUTE_FIXTURE_PATCHES.iter().filter(|p| p.file == file) {
+    for p in ROUTE_FIXTURE_PATCHES.iter().filter(|p| p.file == file && (original || candidate_profile(p.id))) {
         let found = out.matches(p.original).count();
         assert_eq!(
             found, p.count,
@@ -678,8 +806,12 @@ pub fn apply_route_fixture(file: &str, text: &str) -> String {
     out
 }
 
-pub fn route_fixture_files() -> Vec<&'static str> {
-    let mut files: Vec<&str> = ROUTE_FIXTURE_PATCHES.iter().map(|p| p.file).collect();
+pub fn route_fixture_files(original: bool) -> Vec<&'static str> {
+    let mut files: Vec<&str> = ROUTE_FIXTURE_PATCHES
+        .iter()
+        .filter(|p| original || candidate_profile(p.id))
+        .map(|p| p.file)
+        .collect();
     files.sort_unstable();
     files.dedup();
     files

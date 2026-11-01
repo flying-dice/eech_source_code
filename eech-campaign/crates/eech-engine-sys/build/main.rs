@@ -114,6 +114,24 @@ fn main() {
         }
     }
 
+    // 1a1. EEDCS-50 (D3): the host-owned ROUTE data. The airfield route parser takes its nodes and line faces from the host (patches.rs, ROUTE_HOST_PATCHES) in every build that has
+    //      a host model. The builds that keep the ORIGINAL parser on purpose are feature model-fixture (the original accessors, no host) and feature route-original (the original
+    //      route characterisation: the observer of the unmoved parser).
+    let original_route = model_fixture || env::var_os("CARGO_FEATURE_ROUTE_ORIGINAL").is_some();
+    assert!(
+        !(original_route && env::var_os("CARGO_FEATURE_MODEL_HOST_FIXTURE").is_some() && !model_fixture),
+        "feature route-original keeps the original route parser and cannot be combined with model-host-fixture, which diagnoses the host-owned model data"
+    );
+    if !original_route {
+        for file in patches::route_host_files() {
+            let staged = tree.join(file);
+            let bytes = fs::read(&staged).unwrap_or_else(|e| panic!("{file}: {e}"));
+            let text: String = bytes.iter().map(|&b| b as char).collect();
+            let patched: Vec<u8> = patches::apply_route_host(file, &text).chars().map(|c| c as u32 as u8).collect();
+            write_if_changed(&staged, &patched);
+        }
+    }
+
     // 1a. TEST-ONLY (feature model-fixture, EEDCS-50): observation hooks in the staged model loader, on top of the shipping patches above (patches.rs,
     //     MODEL_FIXTURE_PATCHES). With the feature off the staged files are exactly the shipping ones: step 1 rewrote them from the original and the
     //     shipping patches this run.
@@ -130,11 +148,14 @@ fn main() {
     // 1a2. TEST-ONLY (feature route-fixture, EEDCS-50 D3): observation hooks in the staged ORIGINAL airfield route parser (routegen.c) and its route-object lookup
     //      (popread.c), patches.rs ROUTE_FIXTURE_PATCHES. Neither file has a shipping patch; with the feature off the staged files are exactly the shipping ones.
     if env::var_os("CARGO_FEATURE_ROUTE_FIXTURE").is_some() {
-        for file in patches::route_fixture_files() {
+        for file in patches::route_fixture_files(original_route) {
             let staged = tree.join(file);
             let bytes = fs::read(&staged).unwrap_or_else(|e| panic!("{file}: {e}"));
             let text: String = bytes.iter().map(|&b| b as char).collect();
-            let patched: Vec<u8> = patches::apply_route_fixture(file, &text).chars().map(|c| c as u32 as u8).collect();
+            let patched: Vec<u8> = patches::apply_route_fixture(file, &text, original_route)
+                .chars()
+                .map(|c| c as u32 as u8)
+                .collect();
             write_if_changed(&staged, &patched);
         }
     }

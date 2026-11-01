@@ -3,8 +3,9 @@
 use eech_engine::{
     AimEvent, AimReply, AimRequest, AimStepKind, AimTarget, AimWeapon, AimWorld, ArrivalAnswer, Engine, EngineConfig, EngineError, Gunship,
     HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor, MemberDescriptor, ModelAnswer, ModelProvider, ModelQuery,
-    ModelScene, ModelTriangle, MovementMode, MovementResult, MovementStep, ObjectReport, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side,
-    SupplyReachDescriptor, TerrainAnswer, TerrainMapFacts, TerrainProvider, TerrainQuery, TerrainRecord, VehiclePose, WeaponFigures,
+    ModelRouteFace, ModelRouteNode, ModelScene, ModelTriangle, MovementMode, MovementResult, MovementStep, ObjectReport, SenseMessage, SenseReason, SenseReply,
+    SenseScan, SenseState, Side, SupplyReachDescriptor, TerrainAnswer, TerrainMapFacts, TerrainProvider, TerrainQuery, TerrainRecord, VehiclePose,
+    WeaponFigures,
 };
 use mlua::prelude::*;
 use std::path::PathBuf;
@@ -2666,6 +2667,13 @@ fn gunship(name: &str) -> LuaResult<Gunship> {
 ///                 scene has a collider and the list is over at this depth), `{ result = "absent" }` (the scene is loaded and has no collider) or
 ///                 `{ result = "refused", reason = text }` (the host cannot answer for this scene or depth).
 ///
+///   "route_node"  a scene index, a cursor (`depth`, never negative) and a sub-object kind (`kind`, a whole number: the fourth argument of the provider). Returns the
+///                 node cursor of the ROUTE the scene files under that kind: `{ result = "node", p = {three}, name = text }` (the node's decoded x y z), `{ result = "end", name }`
+///                 (the route has no node at this cursor), `{ result = "absent", name }` (the host has no route of that kind for the scene) or `{ result = "refused", reason }`.
+///   "route_face"  the same three numbers. Returns the ORDERED line-face cursor: `{ result = "face", point0 = n, point1 = n, red = n, green = n, blue = n, polygons = bool, name }`
+///                 (the two node numbers the face joins, already resolved, and the colour 0..255 and polygon bit of its surface), `end`, `absent` or `refused` as above. `name` is the
+///                 kind's compiled name (an echo that host and campaign mean the same kind by the same number); the campaign checks it.
+///
 /// A float is a finite Lua number (rounded to the nearest single-precision value) or the exact bit pattern as text (`"0x3f800000"`, ten bytes). A list of six or nine floats is
 /// EITHER a table holding exactly the numbers 1..N (a number at every index, nothing at N+1 and no key outside 1..N) OR a text of exactly N bit patterns separated by single
 /// commas (`11 * N - 1` bytes); anything else is refused before any of it is parsed or allocated. "end" and "absent" are the original accessor's FALSE and are not errors; a
@@ -2731,9 +2739,38 @@ local function whole(v)
 	return format('%d', v)
 end
 
-return function(op, scene, depth)
-	local a = provider(op, scene, depth)
+-- a node number or a colour: a whole number within 0..max, as text
+local function ranged(v, max)
+	if not finite(v) or v ~= floor(v) or v < 0 or v > max then return nil end
+	return format('%d', v)
+end
+
+return function(op, scene, depth, kind)
+	local a = provider(op, scene, depth, kind)
 	if type(a) ~= 'table' then return nil, 'the provider returned ' .. type(a) .. ' instead of a table' end
+	if op == 'route_node' or op == 'route_face' then
+		local name, result = a.name, a.result
+		if type(name) ~= 'string' or #name > 127 or find(name, '\0', 1, true) then return nil, 'name must be text of at most 127 bytes without a NUL' end
+		if result == 'node' and op == 'route_node' then
+			local p, why = list(a.p, 3)
+			if not p then return nil, 'p ' .. why end
+			return 'node', p, nil, nil, nil, nil, nil, name
+		elseif result == 'face' and op == 'route_face' then
+			local point0, point1 = ranged(a.point0, 65535), ranged(a.point1, 65535)
+			local red, green, blue = ranged(a.red, 255), ranged(a.green, 255), ranged(a.blue, 255)
+			if not point0 or not point1 then return nil, 'point0 and point1 must be whole numbers within 0..65535' end
+			if not red or not green or not blue then return nil, 'red, green and blue must be whole numbers within 0..255' end
+			if type(a.polygons) ~= 'boolean' then return nil, 'polygons must be a boolean' end
+			-- the values after the tag: both node numbers, red, green, then blue and the polygon bit together as "<blue>:<0 or 1>" (the fifth text)
+			return 'face', point0, point1, red, green, blue .. (a.polygons and ':1' or ':0'), nil, name
+		elseif result == 'end' or result == 'absent' then
+			return result, nil, nil, nil, nil, nil, nil, name
+		elseif result == 'refused' then
+			local reason = a.reason
+			return 'refused', type(reason) == 'string' and reason:sub(1, 200) or ''
+		end
+		return nil, 'result must be node or face (as asked), end, absent or refused'
+	end
 	if op == 'catalogue' then
 		local scenes = whole(a.scenes)
 		if not scenes then return nil, 'scenes must be a whole number within 0..2147483647' end
@@ -2821,10 +2858,12 @@ fn bridged_float(pair: &str, what: &str, operation: &str) -> Result<f32, String>
 }
 
 fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, String> {
-    let (operation, scene, depth) = match query {
-        ModelQuery::Catalogue => ("catalogue", None, None),
-        ModelQuery::Scene { scene } => ("scene", Some(scene), None),
-        ModelQuery::Triangle { scene, depth } => ("triangle", Some(scene), Some(depth)),
+    let (operation, scene, depth, kind) = match query {
+        ModelQuery::Catalogue => ("catalogue", None, None, None),
+        ModelQuery::Scene { scene } => ("scene", Some(scene), None, None),
+        ModelQuery::Triangle { scene, depth } => ("triangle", Some(scene), Some(depth), None),
+        ModelQuery::RouteNode { scene, kind, index } => ("route_node", Some(scene), Some(index), Some(kind)),
+        ModelQuery::RouteFace { scene, kind, index } => ("route_face", Some(scene), Some(index), Some(kind)),
     };
     type Reply = (
         Option<String>,
@@ -2834,9 +2873,10 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
         Option<String>,
         Option<String>,
         Option<String>,
+        Option<String>,
     );
-    let (tag, a, b, c, d, e, f): Reply = bridge
-        .call((operation, scene, depth))
+    let (tag, a, b, c, d, e, f, g): Reply = bridge
+        .call((operation, scene, depth, kind))
         .map_err(|error| format!("[model-provider:{operation}.callback] {error}"))?;
     let Some(tag) = tag else {
         return Err(format!(
@@ -2870,6 +2910,56 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
         (ModelQuery::Triangle { .. }, "absent") => Ok(ModelAnswer::Triangle(ModelTriangle::Absent)),
         (ModelQuery::Triangle { scene, depth }, "refused") => Err(format!(
             "[model-provider:triangle.refused] the host cannot answer for scene {scene} depth {depth}: {}",
+            a.unwrap_or_default()
+        )),
+        (ModelQuery::RouteNode { .. }, "node") => Ok(ModelAnswer::RouteNode {
+            kind_name: g.ok_or_else(missing)?,
+            step: ModelRouteNode::Found(bridged_floats::<3>(&a.ok_or_else(missing)?, "p", operation)?),
+        }),
+        (ModelQuery::RouteNode { .. }, "end") => Ok(ModelAnswer::RouteNode {
+            kind_name: g.ok_or_else(missing)?,
+            step: ModelRouteNode::End,
+        }),
+        (ModelQuery::RouteNode { .. }, "absent") => Ok(ModelAnswer::RouteNode {
+            kind_name: g.ok_or_else(missing)?,
+            step: ModelRouteNode::Absent,
+        }),
+        (ModelQuery::RouteFace { .. }, "face") => {
+            let number = |text: Option<String>, what: &str| -> Result<i32, String> {
+                text.ok_or_else(missing)?
+                    .parse::<i32>()
+                    .map_err(|_| format!("[model-provider:{operation}.answer] {what} is out of range"))
+            };
+            // the fifth text carries the blue byte and the polygon bit as "<blue>:<0 or 1>"
+            let tail = e.ok_or_else(missing)?;
+            let (blue_text, polygons_text) = tail.split_once(':').ok_or_else(missing)?;
+            let polygons = match polygons_text {
+                "1" => true,
+                "0" => false,
+                _ => return Err(format!("[model-provider:{operation}.answer] polygons is not a boolean")),
+            };
+            let blue = blue_text
+                .parse::<i32>()
+                .map_err(|_| format!("[model-provider:{operation}.answer] blue is out of range"))?;
+            Ok(ModelAnswer::RouteFace {
+                kind_name: g.ok_or_else(missing)?,
+                step: ModelRouteFace::Found {
+                    point: [number(a, "point0")?, number(b, "point1")?],
+                    colour: [number(c, "red")?, number(d, "green")?, blue],
+                    polygons,
+                },
+            })
+        }
+        (ModelQuery::RouteFace { .. }, "end") => Ok(ModelAnswer::RouteFace {
+            kind_name: g.ok_or_else(missing)?,
+            step: ModelRouteFace::End,
+        }),
+        (ModelQuery::RouteFace { .. }, "absent") => Ok(ModelAnswer::RouteFace {
+            kind_name: g.ok_or_else(missing)?,
+            step: ModelRouteFace::Absent,
+        }),
+        (ModelQuery::RouteNode { scene, kind, index } | ModelQuery::RouteFace { scene, kind, index }, "refused") => Err(format!(
+            "[model-provider:{operation}.refused] the host cannot answer for scene {scene} kind {kind} cursor {index}: {}",
             a.unwrap_or_default()
         )),
         (_, other) => Err(format!(
@@ -3632,6 +3722,99 @@ mod tests {
 
     /// the nine floats 1.0 to 9.0 as bit patterns
     const ONE_TO_NINE: &str = "0x3f800000,0x40000000,0x40400000,0x40800000,0x40a00000,0x40c00000,0x40e00000,0x41000000,0x41100000";
+
+    #[test]
+    fn a_route_node_and_a_route_face_keep_their_numbers_and_name_their_kind() -> Test {
+        let lua = Lua::new();
+        // 1e-45 is subnormal and a negative zero keeps its sign: the node crosses as exact bits, not as a number a LuaValue would round
+        let mut provider = model_under_test(
+            &lua,
+            "local zero = 0
+             return function (op, scene, depth, kind)
+               if op == 'route_node' and depth == 0 then return { result = 'node', name = 'FIXED_WING_LANDING_ROUTE', p = { 1.5, -zero, 1e-45 } } end
+               if op == 'route_node' then return { result = 'end', name = 'FIXED_WING_LANDING_ROUTE' } end
+               if op == 'route_face' and depth == 0 then return { result = 'face', name = 'FIXED_WING_LANDING_ROUTE', point0 = 3, point1 = 7, red = 0, green = 255, blue = 16, polygons = false } end
+               if op == 'route_face' and depth == 1 then return { result = 'absent', name = 'FIXED_WING_LANDING_ROUTE' } end
+               return { result = 'end', name = 'FIXED_WING_LANDING_ROUTE' }
+             end",
+        )?;
+        let node = ask(&mut provider, ModelQuery::RouteNode { scene: 5, kind: 76, index: 0 })?;
+        let ModelAnswer::RouteNode {
+            kind_name,
+            step: ModelRouteNode::Found(position),
+        } = node
+        else {
+            return Err("not a node".into());
+        };
+        assert_eq!(kind_name, "FIXED_WING_LANDING_ROUTE");
+        assert_eq!(bits(position), bits([1.5_f32, -0.0, 1.0e-45]));
+        assert_eq!(
+            ask(&mut provider, ModelQuery::RouteNode { scene: 5, kind: 76, index: 3 })?,
+            ModelAnswer::RouteNode {
+                kind_name: "FIXED_WING_LANDING_ROUTE".into(),
+                step: ModelRouteNode::End
+            }
+        );
+        assert_eq!(
+            ask(&mut provider, ModelQuery::RouteFace { scene: 5, kind: 76, index: 0 })?,
+            ModelAnswer::RouteFace {
+                kind_name: "FIXED_WING_LANDING_ROUTE".into(),
+                step: ModelRouteFace::Found {
+                    point: [3, 7],
+                    colour: [0, 255, 16],
+                    polygons: false
+                }
+            }
+        );
+        assert_eq!(
+            ask(&mut provider, ModelQuery::RouteFace { scene: 5, kind: 76, index: 1 })?,
+            ModelAnswer::RouteFace {
+                kind_name: "FIXED_WING_LANDING_ROUTE".into(),
+                step: ModelRouteFace::Absent
+            }
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_route_answer_that_is_malformed_refused_or_of_the_wrong_kind_stops_with_its_marker() -> Test {
+        let lua = Lua::new();
+        // each answer is chosen by the cursor: 0 refused, 1 a face for a node question, 2 a colour out of range, 3 a polygon flag that is a number, 4 a node with four numbers,
+        // 5 a name with a NUL, 6 no name
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene, depth, kind)
+               local n = 'FIXED_WING_LANDING_ROUTE'
+               if depth == 0 then return { result = 'refused', reason = 'no such model', name = n } end
+               if depth == 1 then return { result = 'face', name = n, point0 = 0, point1 = 1, red = 0, green = 0, blue = 0, polygons = false } end
+               if depth == 2 then return { result = 'face', name = n, point0 = 0, point1 = 1, red = 256, green = 0, blue = 0, polygons = false } end
+               if depth == 3 then return { result = 'face', name = n, point0 = 0, point1 = 1, red = 0, green = 0, blue = 0, polygons = 1 } end
+               if depth == 4 then return { result = 'node', name = n, p = { 1, 2, 3, 4 } } end
+               if depth == 5 then return { result = 'end', name = 'A\\0B' } end
+               return { result = 'end' }
+             end",
+        )?;
+        let node = |index: i32| ask(&mut provider, ModelQuery::RouteNode { scene: 5, kind: 76, index });
+        let refused = node(0).err().ok_or("accepted")?;
+        assert!(
+            refused.contains("[model-provider:route_node.refused]") && refused.contains("no such model"),
+            "{refused}"
+        );
+        let wrong_kind = node(1).err().ok_or("accepted")?;
+        assert!(wrong_kind.contains("[model-provider:route_node.answer]"), "{wrong_kind}");
+        let four = node(4).err().ok_or("accepted")?;
+        assert!(four.contains("[model-provider:route_node.answer]"), "{four}");
+        let nul = node(5).err().ok_or("accepted")?;
+        assert!(nul.contains("[model-provider:route_node.answer]"), "{nul}");
+        let unnamed = node(6).err().ok_or("accepted")?;
+        assert!(unnamed.contains("[model-provider:route_node.answer]"), "{unnamed}");
+        let face = |index: i32| ask(&mut provider, ModelQuery::RouteFace { scene: 5, kind: 76, index });
+        for cursor in [2, 3] {
+            let error = face(cursor).err().ok_or("accepted")?;
+            assert!(error.contains("[model-provider:route_face.answer]"), "cursor {cursor}: {error}");
+        }
+        Ok(())
+    }
 
     #[test]
     fn a_triangle_is_a_table_or_a_text_of_exactly_nine_and_nothing_longer_or_sparser() -> Test {

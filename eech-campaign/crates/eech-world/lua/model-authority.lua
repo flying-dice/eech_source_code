@@ -175,9 +175,9 @@ local replied = { catalogue = 0, scene = 0, triangle = 0, found = 0, ended = 0, 
 local tripped = false
 local reference = host.model
 
-local function counted (op, scene, depth)
+local function counted (op, scene, depth, kind)
 	reference_counts [op] = (reference_counts [op] or 0) + 1
-	local answer = reference (op, scene, depth)
+	local answer = reference (op, scene, depth, kind)
 	if op == "triangle" then
 		if answer.result == "triangle" then reference_counts.found = reference_counts.found + 1
 		elseif answer.result == "end" then reference_counts.ended = reference_counts.ended + 1
@@ -201,14 +201,14 @@ local provider
 if mode == "reference" then
 	provider = counted
 elseif mode == "vanish" then
-	provider = function (op, scene, depth)
-		local answer = counted (op, scene, depth)
+	provider = function (op, scene, depth, kind)
+		local answer = counted (op, scene, depth, kind)
 		if op == "triangle" and answer.result == "triangle" then return { result = "end" } end
 		return answer
 	end
 elseif mode == "inflate" then
-	provider = function (op, scene, depth)
-		local answer = counted (op, scene, depth)
+	provider = function (op, scene, depth, kind)
+		local answer = counted (op, scene, depth, kind)
 		if op == "triangle" and answer.result == "triangle" then
 			if depth == 0 then return { result = "triangle", p = BIG } end
 			return { result = "end" }
@@ -216,15 +216,15 @@ elseif mode == "inflate" then
 		return answer
 	end
 elseif mode == "bounds_zero" then
-	provider = function (op, scene, depth)
-		local answer = counted (op, scene, depth)
+	provider = function (op, scene, depth, kind)
+		local answer = counted (op, scene, depth, kind)
 		if op == "scene" then return scene_with (answer, { bb = ZERO6, bb2 = ZERO6 }) end
 		return answer
 	end
 elseif mode == "absent_all" or mode == "bad_found_declared_absent" or mode == "bad_end_declared_absent" then
 	-- every scene is declared without a collider; the triangle answers follow the mode
-	provider = function (op, scene, depth)
-		local answer = counted (op, scene, depth)
+	provider = function (op, scene, depth, kind)
+		local answer = counted (op, scene, depth, kind)
 		if op == "scene" then return scene_with (answer, { collider = false }) end
 		if op == "triangle" then
 			if mode == "absent_all" then return { result = "absent" } end
@@ -240,29 +240,29 @@ elseif mode == "absent_all" or mode == "bad_found_declared_absent" or mode == "b
 elseif mode == "missing" then
 	provider = nil
 elseif mode == "decline" then
-	provider = function (op, scene, depth)
+	provider = function (op, scene, depth, kind)
 		if op == "triangle" then tripped = true error ("the host declines on purpose") end
-		return counted (op, scene, depth)
+		return counted (op, scene, depth, kind)
 	end
 elseif mode == "refused" then
-	provider = function (op, scene, depth)
+	provider = function (op, scene, depth, kind)
 		if op == "triangle" then tripped = true return { result = "refused", reason = "declined on purpose" } end
-		return counted (op, scene, depth)
+		return counted (op, scene, depth, kind)
 	end
 elseif mode == "bad_nil" then
-	provider = function (op, scene, depth)
+	provider = function (op, scene, depth, kind)
 		if op == "catalogue" then tripped = true return nil end
-		return counted (op, scene, depth)
+		return counted (op, scene, depth, kind)
 	end
 elseif mode == "bad_catalogue" then
-	provider = function (op, scene, depth)
-		local answer = counted (op, scene, depth)
+	provider = function (op, scene, depth, kind)
+		local answer = counted (op, scene, depth, kind)
 		if op == "catalogue" then tripped = true return { scenes = answer.scenes - 1 } end
 		return answer
 	end
 elseif mode == "bad_name" or mode == "bad_scene_nan" or mode == "bad_collider_unloaded" or mode == "bad_scene0_loaded" then
-	provider = function (op, scene, depth)
-		local answer = counted (op, scene, depth)
+	provider = function (op, scene, depth, kind)
+		local answer = counted (op, scene, depth, kind)
 		if op ~= "scene" then return answer end
 		if mode == "bad_name" and scene == 1 then tripped = true return scene_with (answer, { name = answer.name .. "_WRONG" })
 		elseif mode == "bad_scene_nan" and scene == 1 then tripped = true return scene_with (answer, { radius = "0x7fc00000" })
@@ -272,8 +272,8 @@ elseif mode == "bad_name" or mode == "bad_scene_nan" or mode == "bad_collider_un
 	end
 else
 	-- the first triangle question (of the matching kind) is answered wrongly
-	provider = function (op, scene, depth)
-		local answer = counted (op, scene, depth)
+	provider = function (op, scene, depth, kind)
+		local answer = counted (op, scene, depth, kind)
 		if op ~= "triangle" or tripped then return answer end
 		if mode == "bad_kind" then tripped = true return { p = BIG }
 		elseif mode == "bad_nan" and answer.result == "triangle" then
@@ -290,8 +290,8 @@ end
 -- what the provider function actually handed back to the campaign, after the mode's rewrite
 local function replying (inner)
 	if inner == nil then return nil end
-	return function (op, scene, depth)
-		local answer = inner (op, scene, depth)
+	return function (op, scene, depth, kind)
+		local answer = inner (op, scene, depth, kind)
 		if type (answer) == "table" then
 			if op == "triangle" then
 				replied.triangle = replied.triangle + 1

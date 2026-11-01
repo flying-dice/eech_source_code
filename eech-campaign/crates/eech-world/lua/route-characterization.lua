@@ -146,6 +146,13 @@ end
 -- The summary: counters, pools, the lookups and the verdict. Returns what the calls are joined against.
 local function check_summary (text)
 	local r = reader (lines_of (text, "the summary"), "the summary")
+	-- A report of the HOST profile (the airfield route parser takes its nodes and line faces from the host) says so first; a report of the original parser has no such line.
+	local profile = "original"
+	if string.match (r.next_line () or "", "^route%-profile ") then
+		local v = r.expect ("route-profile", { "value" })
+		if v.value ~= "host" then malformed ("the profile is not the literal host") end
+		profile = "host"
+	end
 	local s = r.expect ("route-summary", { "calls", "call_capacity", "dropped_calls", "lookups", "lookup_capacity", "dropped_lookups", "orphans", "interrupted", "open", "incomplete_calls", "contexts", "stale" })
 	local summary = {
 		calls = int (s.calls, 0, CAP.calls, "calls"), dropped_calls = int (s.dropped_calls, 0, INT_MAX, "dropped_calls"),
@@ -156,6 +163,7 @@ local function check_summary (text)
 	if summary.stale > summary.contexts then malformed ("stale contexts exceed the contexts registered") end
 	if int (s.call_capacity, 0, INT_MAX, "call_capacity") ~= CAP.calls then malformed ("call_capacity is not the observer's " .. CAP.calls) end
 	if int (s.lookup_capacity, 0, INT_MAX, "lookup_capacity") ~= CAP.lookups then malformed ("lookup_capacity is not the observer's " .. CAP.lookups) end
+	summary.profile = profile
 	if summary.incomplete_calls > summary.calls then malformed ("incomplete_calls exceeds calls") end
 	local p = r.expect ("route-pools", { "slots", "nodes", "faces", "finals", "links", "starts", "depths", "offsets" })
 	summary.pools = {}
@@ -260,20 +268,31 @@ local function check_call (text, index, summary)
 		words (v.bits, 3, "slot bits")
 	end
 	local node_numbers = {}
+	local host = summary.profile == "host"
 	for i = 1, rows.nodes do
-		local v = r.expect ("route-node", { "index", "node", "raw", "bits" })
+		-- the host profile has no stored short: the node is the host's decoded position
+		local v
+		if host then v = r.expect ("route-node", { "index", "node", "bits" }) else v = r.expect ("route-node", { "index", "node", "raw", "bits" }) end
 		mine (v, "route-node")
 		node_numbers [i] = int (v.node, 0, INT_MAX, "node")
-		ints (v.raw, 3, -32768, 32767, "raw point")
+		if not host then ints (v.raw, 3, -32768, 32767, "raw point") end
 		words (v.bits, 3, "decoded bits")
 	end
 	local faces = {}
 	for i = 1, rows.faces do
-		local v = r.expect ("route-face", { "index", "surface", "face", "local", "point", "colour", "polygons", "flags", "surface_points", "surface_faces" })
-		mine (v, "route-face")
-		faces [i] = { surface = int (v.surface, 0, INT_MAX, "face surface"), face = int (v.face, 0, INT_MAX, "face number"), local_refs = ints (v ["local"], 2, -INT_MAX, INT_MAX, "face local refs"),
-			colour = ints (v.colour, 3, 0, 255, "face colour"), polygons = flag (v.polygons, "face polygons"), flags = word (v.flags, "face flags"),
-			point = ints (v.point, 2, -INT_MAX, INT_MAX, "face resolved nodes"), surface_points = int (v.surface_points, 0, 256, "surface_points"), surface_faces = int (v.surface_faces, 0, 65535, "surface_faces") }
+		if host then
+			-- the host profile has the flat ordered faces only: the two resolved node numbers, the colour and the polygon bit
+			local v = r.expect ("route-face", { "index", "face", "point", "colour", "polygons" })
+			mine (v, "route-face")
+			faces [i] = { face = int (v.face, 0, INT_MAX, "face number"), point = ints (v.point, 2, -INT_MAX, INT_MAX, "face resolved nodes"),
+				colour = ints (v.colour, 3, 0, 255, "face colour"), polygons = flag (v.polygons, "face polygons") }
+		else
+			local v = r.expect ("route-face", { "index", "surface", "face", "local", "point", "colour", "polygons", "flags", "surface_points", "surface_faces" })
+			mine (v, "route-face")
+			faces [i] = { surface = int (v.surface, 0, INT_MAX, "face surface"), face = int (v.face, 0, INT_MAX, "face number"), local_refs = ints (v ["local"], 2, -INT_MAX, INT_MAX, "face local refs"),
+				colour = ints (v.colour, 3, 0, 255, "face colour"), polygons = flag (v.polygons, "face polygons"), flags = word (v.flags, "face flags"),
+				point = ints (v.point, 2, -INT_MAX, INT_MAX, "face resolved nodes"), surface_points = int (v.surface_points, 0, 256, "surface_points"), surface_faces = int (v.surface_faces, 0, 65535, "surface_faces") }
+		end
 	end
 	local finals = {}
 	for i = 1, rows.finals do
@@ -328,33 +347,42 @@ local function check_call (text, index, summary)
 		if rows.nodes ~= c.points or c.total_nodes ~= c.points then unsupported ("the node rows are not the object's points") end
 		for i = 1, rows.nodes do if node_numbers [i] ~= i - 1 then unsupported ("the node rows are not numbered in order") end end
 		if rows.faces ~= expected_faces then unsupported ("the first-pass faces are not the faces its surfaces promise") end
-		local previous, resolved
-		for i = 1, rows.faces do
-			local f = faces [i]
-			if f.surface >= c.surfaces or f.surface_points < 1 then unsupported ("a face is outside its object") end
-			for _, ref in ipairs (f.local_refs) do if ref < 0 or ref >= f.surface_points then unsupported ("a face-local reference is outside its surface's point range") end end
-			for _, node in ipairs (f.point) do if node < 0 or node >= c.points then unsupported ("a face names a node outside the table") end end
-			if previous and previous.surface == f.surface then
-				if f.face ~= previous.face + 1 or f.surface_faces ~= previous.surface_faces then unsupported ("the faces of a surface are not in order") end
-				-- the hook records the SAME surface record for every face of a surface: its colour, flags, polygon bit and point count cannot differ between faces
-				if f.flags ~= previous.flags or f.polygons ~= previous.polygons or f.surface_points ~= previous.surface_points or f.colour [1] ~= previous.colour [1] or
-						f.colour [2] ~= previous.colour [2] or f.colour [3] ~= previous.colour [3] then
-					unsupported ("two faces of one surface carry different surface records")
+		if host then
+			-- the host's faces are numbered in order and name nodes of the host's own table (there is no surface structure to join: the host resolved it)
+			for i = 1, rows.faces do
+				local f = faces [i]
+				if f.face ~= i - 1 then unsupported ("the line faces are not numbered in order") end
+				for _, node in ipairs (f.point) do if node < 0 or node >= c.points then unsupported ("a face names a node outside the table") end end
+			end
+		else
+			local previous, resolved
+			for i = 1, rows.faces do
+				local f = faces [i]
+				if f.surface >= c.surfaces or f.surface_points < 1 then unsupported ("a face is outside its object") end
+				for _, ref in ipairs (f.local_refs) do if ref < 0 or ref >= f.surface_points then unsupported ("a face-local reference is outside its surface's point range") end end
+				for _, node in ipairs (f.point) do if node < 0 or node >= c.points then unsupported ("a face names a node outside the table") end end
+				if previous and previous.surface == f.surface then
+					if f.face ~= previous.face + 1 or f.surface_faces ~= previous.surface_faces then unsupported ("the faces of a surface are not in order") end
+					-- the hook records the SAME surface record for every face of a surface: its colour, flags, polygon bit and point count cannot differ between faces
+					if f.flags ~= previous.flags or f.polygons ~= previous.polygons or f.surface_points ~= previous.surface_points or f.colour [1] ~= previous.colour [1] or
+							f.colour [2] ~= previous.colour [2] or f.colour [3] ~= previous.colour [3] then
+						unsupported ("two faces of one surface carry different surface records")
+					end
+				else
+					if previous and (f.surface <= previous.surface or previous.face + 1 ~= previous.surface_faces) then unsupported ("the surfaces are not in order or a surface was cut short") end
+					if f.face ~= 0 then unsupported ("a surface does not begin at its first face") end
+					resolved = {}
 				end
-			else
-				if previous and (f.surface <= previous.surface or previous.face + 1 ~= previous.surface_faces) then unsupported ("the surfaces are not in order or a surface was cut short") end
-				if f.face ~= 0 then unsupported ("a surface does not begin at its first face") end
-				resolved = {}
+				-- within one surface a face-local reference names ONE node: the same reference seen again must have resolved to the same node
+				for k = 1, 2 do
+					local seen = resolved [f.local_refs [k]]
+					if seen ~= nil and seen ~= f.point [k] then unsupported ("a face-local reference resolves to two different nodes within one surface") end
+					resolved [f.local_refs [k]] = f.point [k]
+				end
+				previous = f
 			end
-			-- within one surface a face-local reference names ONE node: the same reference seen again must have resolved to the same node
-			for k = 1, 2 do
-				local seen = resolved [f.local_refs [k]]
-				if seen ~= nil and seen ~= f.point [k] then unsupported ("a face-local reference resolves to two different nodes within one surface") end
-				resolved [f.local_refs [k]] = f.point [k]
-			end
-			previous = f
+			if previous and previous.face + 1 ~= previous.surface_faces then unsupported ("the last surface was cut short") end
 		end
-		if previous and previous.face + 1 ~= previous.surface_faces then unsupported ("the last surface was cut short") end
 		if rows.finals ~= c.total_nodes then unsupported ("the final rows are not the totals' nodes") end
 		local promised = 0
 		for i = 1, rows.finals do

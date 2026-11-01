@@ -1123,6 +1123,8 @@ pub const EECH_MODEL_NAME_MAX: usize = 127;
 pub const EECH_MODEL_CATALOGUE: c_int = 1;
 pub const EECH_MODEL_SCENE: c_int = 2;
 pub const EECH_MODEL_TRIANGLE: c_int = 3;
+pub const EECH_MODEL_ROUTE_NODE: c_int = 4;
+pub const EECH_MODEL_ROUTE_FACE: c_int = 5;
 pub const EECH_MODEL_TRIANGLE_FOUND: c_int = 1;
 pub const EECH_MODEL_TRIANGLE_END: c_int = 2;
 pub const EECH_MODEL_TRIANGLE_ABSENT: c_int = 3;
@@ -1133,6 +1135,8 @@ pub struct eech_model_request {
     pub op: c_int,
     pub scene: c_int,
     pub depth: c_int,
+    /// ROUTE_NODE and ROUTE_FACE: the route's sub-object kind (the scene is `scene`, the cursor `depth`)
+    pub kind: c_int,
 }
 
 /// The host's answer (campaign_model_reply); only the fields of the asked operation are meaningful.
@@ -1150,6 +1154,10 @@ pub struct eech_model_reply {
     pub name: [c_char; EECH_MODEL_NAME_MAX + 1],
     pub result: c_int,
     pub points: [f32; 9],
+    /// ROUTE_FACE: the two node indices the face joins, the surface's colour (red, green, blue) and its polygon bit (0 or 1)
+    pub route_point: [c_int; 2],
+    pub route_colour: [c_int; 3],
+    pub route_polygons: c_int,
 }
 
 pub type eech_model_callback =

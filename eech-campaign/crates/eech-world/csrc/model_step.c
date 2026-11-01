@@ -2,6 +2,7 @@
  * The host's private numeric kernel of the collision-model service (EEDCS-50, D3). Everything here is EECH's own arithmetic, kept expression for expression from
  * the original, so that the host and the original produce the same bits:
  *
+ *   eech_model_route_node     the float part of routegen.c parse_waypoint_routes_from_object for one node: short * (max (|min|, |max|) / 32767), in float
  *   eech_model_triangle       the float part of 3dobjdb.c get_object_3d_collision_object_geometry_triangle: the object's bounding box scales the three
  *                             short points of one triangle (max (fabs (min), fabs (max)) / 32767.0, in float, then (float) short * scale)
  *   eech_model_scene_bounds   3dsubobj.c initialise_scene_bounding_sub_objects, recurse_initialise_sub_scene_bounding_box and rotate_sub_scene_boundaries:
@@ -264,6 +265,59 @@ int eech_model_triangle(const int16_t *points, const float *bounds, float *out)
 	}
 
 	triangle_body(points, bounds, out);
+
+	return (leave_environment(&caller, MODEL_OK));
+}
+
+/* ------------------------------------------------------------------------------------------------------------------------------------ */
+/* routegen.c parse_waypoint_routes_from_object: the float part of one node */
+/* ------------------------------------------------------------------------------------------------------------------------------------ */
+
+/*
+ * routegen.c, expression for expression, for ONE node (the original runs it for every node of the route object, in order, each independent of the others):
+ *
+ *	xmax = max ( fabs ( object->bounding_box.xmin ), fabs ( object->bounding_box.xmax ) );   (float xmax; fabs is the double function)
+ *	position.x = object->points[count].x;                                                    (short to float, exact)
+ *	position.x *= xmax / 32767;                                                              (float / int is a FLOAT division; then a float multiply)
+ *
+ * This differs from the triangle's scale on purpose: the triangle divides in double (`xmax /= 32767.0`) and multiplies once, the route divides in float and multiplies
+ * the converted short in place. `point` is the three shorts x, y, z; `bounds` is the OBJECT's bounding box (xmin, xmax, ymin, ymax, zmin, zmax).
+ */
+static void __attribute__((noinline)) route_node_body(const int16_t *point, const float *bounds, float *out)
+{
+	float xmax, ymax, zmax;
+
+	xmax = max(fabs(bounds[0]), fabs(bounds[1]));
+	ymax = max(fabs(bounds[2]), fabs(bounds[3]));
+	zmax = max(fabs(bounds[4]), fabs(bounds[5]));
+
+	out[0] = point[0];
+	out[1] = point[1];
+	out[2] = point[2];
+
+	out[0] *= xmax / 32767;
+	out[1] *= ymax / 32767;
+	out[2] *= zmax / 32767;
+}
+
+int eech_model_route_node(const int16_t *point, const float *bounds, float *out)
+{
+	eech_model_caller_environment caller;
+	int result;
+
+	if (!point || !bounds || !out)
+	{
+		return (MODEL_BAD_ARGUMENT);
+	}
+
+	result = enter_environment(&caller);
+
+	if (result != MODEL_OK)
+	{
+		return (result);
+	}
+
+	route_node_body(point, bounds, out);
 
 	return (leave_environment(&caller, MODEL_OK));
 }

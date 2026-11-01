@@ -945,3 +945,80 @@ fn the_driver_grammar_is_the_emitters() {
         assert!(emitted.contains(row), "the driver expects {row:?} and the emitter does not write that shape");
     }
 }
+
+// ---------------------------------------------------------------------------------------------------------------------------------
+// the HOST profile: the airfield route parser takes its nodes and line faces from the host, so the report has no stored short, face-local reference or surface record
+
+/// the coherent call text in the host profile's shapes: a node row without its stored short, a face row with only the flat face number, the resolved nodes, the colour and the polygon bit
+fn host_call(text: &str) -> String {
+    let mut out = String::new();
+    for line in text.lines() {
+        let tokens: Vec<&str> = line.split(' ').collect();
+        let kept: Vec<&str> = match tokens[0] {
+            "route-node" => tokens.iter().copied().filter(|t| !t.starts_with("raw=")).collect(),
+            "route-face" => tokens
+                .iter()
+                .copied()
+                .filter(|t| {
+                    ["route-face", "index=", "face=", "point=", "colour=", "polygons="]
+                        .iter()
+                        .any(|p| t.starts_with(p) || *t == "route-face")
+                })
+                .collect(),
+            _ => tokens,
+        };
+        out += &kept.join(" ");
+        out += "\n";
+    }
+    out
+}
+
+fn host_summary(text: &str) -> String {
+    format!("route-profile value=host\n{text}")
+}
+
+#[test]
+fn a_host_profile_capture_is_validated_with_its_own_shapes() {
+    let two = [Variant::Complete, Variant::Alias];
+    let outcome = run(&healthy(
+        host_summary(&summary(&two)),
+        vec![host_call(&call(0, Variant::Complete)), host_call(&call(1, Variant::Alias))],
+    ));
+    assert!(outcome.result.is_ok(), "{:?}", outcome.result);
+    let rows = events(&outcome);
+    assert!(rows.last().unwrap().contains("\"complete\":true"), "{rows:?}");
+    // the rows are kept verbatim, in the host shapes
+    let text = host_call(&call(0, Variant::Complete)).replace('\n', "\\n");
+    assert!(
+        rows.iter().any(|r| r.contains(&text) && !r.contains(" raw=") && !r.contains(" local=")),
+        "{text:?} is not in {rows:?}"
+    );
+}
+
+#[test]
+fn host_profile_reports_in_the_wrong_shape_or_out_of_range_are_malformed() {
+    let good = host_call(&call(0, Variant::Complete));
+    assert!(good.contains("route-face index=0 face=0 point=0,1 colour=0,255,0 polygons=0\n"), "{good}");
+    let host = |text: String| run(&healthy(host_summary(&summary(&[Variant::Complete])), vec![text]));
+    // the original's shapes under the host profile
+    failure_in("original-shaped call under a host summary", &host(call(0, Variant::Complete)), MALFORMED);
+    // the host's shapes under an original summary
+    failure_in(
+        "host-shaped call under an original summary",
+        &run(&healthy(summary(&[Variant::Complete]), vec![good.clone()])),
+        MALFORMED,
+    );
+    // a face that names a node outside the host's own table, and faces that are not numbered in order
+    failure_in(
+        "a face outside the table",
+        &host(good.replacen("face=1 point=1,2", "face=1 point=1,9", 1)),
+        MALFORMED,
+    );
+    failure_in("faces out of order", &host(good.replacen("face=1 point=1,2", "face=2 point=1,2", 1)), MALFORMED);
+    // a profile that is not the literal host
+    let wrong = run(&healthy(
+        summary(&[Variant::Complete]).replacen("", "route-profile value=Host\n", 1),
+        vec![good.clone()],
+    ));
+    failure_in("a profile that is not the literal host", &wrong, MALFORMED);
+}

@@ -1,6 +1,6 @@
 #!/bin/sh
 # TEST-ONLY (EEDCS-50, D3): builds the Windows binaries with the original airfield route-parser observer
-# (`--features eech-dc/route-fixture`), through the unchanged tools/build-windows.sh and its Dockerfile image, in a cargo
+# (`--features eech-dc/route-fixture`, plus `eech-dc/route-original` when EECH_ROUTE_PROFILE=original keeps the unmoved parser), through the unchanged tools/build-windows.sh and its Dockerfile image, in a cargo
 # target volume of its own. The shipping build, its flags and its volume are untouched; the fixture DLL is never a
 # shipping artifact. The only difference from build-windows.sh is the one cargo argument added to its build line, which this
 # wrapper checks is the single change before it runs a temporary copy kept in the ignored target/ directory (one level below eech-campaign, so its paths resolve, and the build's uncommitted-files count stays honest).
@@ -16,7 +16,13 @@ src=$here/tools/build-windows.sh
 mkdir -p "$here/target"
 tmp=$here/target/.build-windows-route-fixture.tmp.sh
 old='-p eech-dc -p eech-world > /target/build.log'
-new='-p eech-dc -p eech-world --features eech-dc/route-fixture > /target/build.log'
+features='eech-dc/route-fixture'
+case ${EECH_ROUTE_PROFILE:-host} in
+	host) ;;
+	original) features='eech-dc/route-fixture,eech-dc/route-original' ;;
+	*) echo "EECH_ROUTE_PROFILE must be host (the default: the parser takes its route from the host) or original (the unmoved parser, the original characterisation)" >&2; exit 2 ;;
+esac
+new="-p eech-dc -p eech-world --features $features > /target/build.log"
 n=$(grep -cF -e "$old" "$src" || true)
 if [ "$n" != 1 ]; then echo "tools/build-windows.sh: expected exactly one cargo build line to adapt, found $n" >&2; exit 1; fi
 trap 'rm -f "$tmp"' EXIT

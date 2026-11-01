@@ -26,6 +26,10 @@ use std::sync::OnceLock;
 /// The compiled scene names (modules/3d/3dmodels.h, `OBJECT_3D_INDEX`): line n is scene n; scene 0 and `OBJECT_3D_LAST` have none.
 const SCENE_NAMES: &str = include_str!("../data/scene-names.txt");
 
+/// The compiled sub-object names (modules/3d/3dmodels.h, `OBJECT_3D_SUBINDEX`): line n is sub-object kind n; kind 0 and `OBJECT_3D_SUB_OBJECT_LAST` have none. The kind is the
+/// public half of a route's identity (the scene is the other): the campaign names the kind it selected and the host echoes the name.
+const SUBOBJECT_NAMES: &str = include_str!("../data/subobject-names.txt");
+
 /// `custom_number_of_objects` in 3dobjdb.c: how many objects past the retail table the original has room for.
 const CUSTOM_OBJECT_ROOM: i64 = 2000;
 /// the largest file the store will read (the retail files are a few megabytes)
@@ -35,6 +39,7 @@ const MAX_TREE_DEPTH: usize = 64;
 
 extern "C" {
     fn eech_model_triangle(points: *const i16, bounds: *const f32, out: *mut f32) -> i32;
+    fn eech_model_route_node(point: *const i16, bounds: *const f32, out: *mut f32) -> i32;
     fn eech_model_scene_bounds(
         main_object: i32,
         object_bounds: *const f32,
@@ -141,6 +146,41 @@ pub fn compiled_scene_name(scene: usize) -> Option<&'static str> {
         return None;
     }
     compiled_names().get(scene).copied()
+}
+
+fn compiled_subobject_names() -> &'static [&'static str] {
+    static NAMES: OnceLock<Vec<&'static str>> = OnceLock::new();
+    NAMES.get_or_init(|| {
+        let mut names = vec![""];
+        names.extend(SUBOBJECT_NAMES.lines());
+        names
+    })
+}
+
+/// One past the last valid sub-object kind: `OBJECT_3D_SUB_OBJECT_LAST`.
+pub fn subobject_last() -> usize {
+    compiled_subobject_names().len()
+}
+
+/// The sub-object name the original compiles for `kind` (modules/3d/3dmodels.h), or None outside 1 .. `subobject_last`.
+pub fn compiled_subobject_name(kind: usize) -> Option<&'static str> {
+    if kind == 0 {
+        return None;
+    }
+    compiled_subobject_names().get(kind).copied()
+}
+
+/// `get_subobject` (3dobjdb.c): an `.EES` names a sub-object kind; an empty name is -1, a name the compiled list does not hold is `OBJECT_3D_SUB_OBJECT_UNKNOWN`.
+fn subobject_by_name(name: &[u8]) -> i32 {
+    if name.is_empty() {
+        return -1;
+    }
+    let names = compiled_subobject_names();
+    let found = names.iter().skip(1).position(|n| n.as_bytes() == name).map(|i| i + 1);
+    match found.or_else(|| names.iter().position(|n| *n == "UNKNOWN")) {
+        Some(kind) => kind as i32,
+        None => -1,
+    }
 }
 
 /// `OBJECT_3D_OLD_LAST`: how many scene names `bininfo.bin` lists (the scenes before it are the retail ones).
@@ -460,9 +500,20 @@ impl<T: Copy> Arena<T> {
 struct Surface {
     flags: u32,
     faces: u16,
+    /// the surface's colour word: blue in the low byte, then green, then red (`FACE_SURFACE_DESCRIPTION`)
+    colour: u32,
 }
 
 impl Surface {
+    fn red(&self) -> u8 {
+        (self.colour >> 16) as u8
+    }
+    fn green(&self) -> u8 {
+        (self.colour >> 8) as u8
+    }
+    fn blue(&self) -> u8 {
+        self.colour as u8
+    }
     fn polygons(&self) -> bool {
         self.flags & 1 != 0
     }
@@ -539,6 +590,26 @@ pub enum SceneSource {
     Ees,
 }
 
+/// One sub-object as the route lookup reads it: the object it shows, its children (consecutive nodes of the scene's array) and the (kind, offset) records the original's
+/// `sub_object_indices` hold for it (`read_indices`): the kind names a child by its offset among this node's children.
+#[derive(Clone, Debug, Default)]
+struct SubNode {
+    object: i32,
+    first_child: i32,
+    child_count: i32,
+    indices: Vec<(i32, i32)>,
+}
+
+/// A scene's sub-object tables, kept as the original reads them, so that `initialise_scene_quick_sub_object_search` (3dsubobj.c) can be answered for a (scene, kind).
+#[derive(Clone, Debug, Default)]
+struct SubObjects {
+    /// the scene's own (kind, offset) records; the offset is among the scene's top-level sub-objects
+    indices: Vec<(i32, i32)>,
+    top_first: i32,
+    top_count: i32,
+    nodes: Vec<SubNode>,
+}
+
 #[derive(Clone, Debug)]
 struct Scene {
     loaded: bool,
@@ -549,6 +620,7 @@ struct Scene {
     collision: i32,
     bounds: [f32; 12],
     radius: f32,
+    sub: SubObjects,
 }
 
 impl Scene {
@@ -560,6 +632,7 @@ impl Scene {
             collision: 0,
             bounds: [0.0; 12],
             radius: 0.0,
+            sub: SubObjects::default(),
         }
     }
 }
@@ -636,6 +709,8 @@ fn min_sub_object_bytes(named: Option<&Named>) -> u64 {
 /// The sub-object nodes of one scene and the room its header declares for them (the original allocates exactly that and overruns it if the records say more).
 struct Tree {
     nodes: Vec<Node>,
+    /// each node's (kind, offset) records, parallel to `nodes`
+    node_indices: Vec<Vec<(i32, i32)>>,
     node_budget: usize,
     index_budget: usize,
     /// nodes reserved (their room taken) whose records have not been started: each still has to be read, from the bytes that remain, after the one being read now
@@ -731,11 +806,12 @@ impl Loader {
                 let _luminosity_texture_index = r.take(2)?;
                 // fread (&number_of_faces, sizeof (int)) into the 16-bit field: the low half stays
                 let faces_word = r.u32()?;
-                let _colour = r.u32()?;
+                let colour = r.u32()?;
                 let _reflectivity_specularity = r.take(2)?;
                 let surface = Surface {
                     flags,
                     faces: (faces_word & 0xffff) as u16,
+                    colour,
                 };
                 if surface.polygons() {
                     real_polygons += surface.faces as usize;
@@ -897,7 +973,8 @@ impl Loader {
                 let record = r.take(16)?;
                 let flags = u32::from_le_bytes([record[0], record[1], record[2], record[3]]);
                 let faces = u16::from_le_bytes([record[8], record[9]]);
-                surfaces.push(Surface { flags, faces });
+                let colour = u32::from_le_bytes([record[12], record[13], record[14], record[15]]);
+                surfaces.push(Surface { flags, faces, colour });
             }
         }
         r.skip(2 * n_face_normals as u64)?;
@@ -1060,10 +1137,10 @@ impl Loader {
         r.skip(n as u64 * 24)
     }
 
-    fn indices(r: &mut Reader, named: Option<&Named>, tree: &mut Tree) -> Result<(), ModelError> {
+    fn indices(r: &mut Reader, named: Option<&Named>, tree: &mut Tree) -> Result<Vec<(i32, i32)>, ModelError> {
         let n = r.count("sub-object indices")?;
         if n == 0 {
-            return Ok(());
+            return Ok(Vec::new());
         }
         if n > tree.index_budget {
             return fail(
@@ -1073,16 +1150,21 @@ impl Loader {
             );
         }
         tree.index_budget -= n;
-        for _ in 0..n {
-            if named.is_some() {
-                // get_subobject: a name (the index it resolves to is not physical)
-                r.nul_string(1024)?;
-            } else {
-                r.i32()?;
-            }
-            r.i32()?;
+        let mut records = Vec::new();
+        if records.try_reserve(n).is_err() {
+            return fail(ErrorKind::Limit, r.file, format!("cannot reserve room for {n} sub-object indices"));
         }
-        Ok(())
+        for _ in 0..n {
+            let kind = if named.is_some() {
+                // get_subobject: the name resolves to the compiled kind
+                subobject_by_name(&r.nul_string(1024)?)
+            } else {
+                r.i32()?
+            };
+            let offset = r.i32()?;
+            records.push((kind, offset));
+        }
+        Ok(records)
     }
 
     /// `read_subobjects`: the count, then room for that many consecutive nodes (the children of one node are consecutive in the original's array and in the kernel's),
@@ -1140,6 +1222,7 @@ impl Loader {
         tree.node_budget -= n;
         tree.pending += n as u64;
         tree.nodes.resize(total, Node::default());
+        tree.node_indices.resize(total, Vec::new());
         for k in 0..n {
             self.sub_object(r, named, tree, first + k, depth)?;
         }
@@ -1171,8 +1254,9 @@ impl Loader {
         }
         let _dissolve = r.f32()?;
         Self::value_keyframes(r)?;
-        Self::indices(r, named, tree)?;
+        let node_indices = Self::indices(r, named, tree)?;
         let (first_child, child_count) = self.sub_objects(r, named, tree, depth + 1)?;
+        tree.node_indices[at] = node_indices;
         tree.nodes[at] = Node {
             object: index,
             collision: contributes,
@@ -1337,13 +1421,29 @@ impl Loader {
         Self::value_keyframes(r)?;
         let mut tree = Tree {
             nodes: Vec::new(),
+            node_indices: Vec::new(),
             node_budget: scene_sub_objects,
             index_budget: scene_named_indices,
             pending: 0,
         };
-        Self::indices(r, named_ref, &mut tree)?;
+        let scene_indices = Self::indices(r, named_ref, &mut tree)?;
         let (top_first, top_count) = self.sub_objects(r, named_ref, &mut tree, 0)?;
         let nodes = tree.nodes;
+        let sub = SubObjects {
+            indices: scene_indices,
+            top_first,
+            top_count,
+            nodes: nodes
+                .iter()
+                .zip(tree.node_indices)
+                .map(|(node, indices)| SubNode {
+                    object: node.object,
+                    first_child: node.first_child,
+                    child_count: node.child_count,
+                    indices,
+                })
+                .collect(),
+        };
 
         // the scene's bounds and radius (3dsubobj.c), from the objects as they stand now
         let mut out_bounds = [0.0f32; 12];
@@ -1387,6 +1487,7 @@ impl Loader {
             collision,
             bounds: out_bounds,
             radius: out_radius,
+            sub,
         };
         Ok(scene_index)
     }
@@ -1592,6 +1693,7 @@ impl Loader {
 pub enum QueryError {
     BadScene(i64),
     BadDepth(i64),
+    BadKind(i64),
 }
 
 impl fmt::Display for QueryError {
@@ -1599,6 +1701,7 @@ impl fmt::Display for QueryError {
         match self {
             QueryError::BadScene(scene) => write!(f, "scene {scene} is outside 1 to {}", scene_last() - 1),
             QueryError::BadDepth(depth) => write!(f, "depth {depth} is not a non-negative 32-bit whole number"),
+            QueryError::BadKind(kind) => write!(f, "sub-object kind {kind} is outside 1 to {}", subobject_last() - 1),
         }
     }
 }
@@ -1615,6 +1718,33 @@ pub enum Triangle {
     /// the scene has no collision object (-1): the accessor returns FALSE without reading any
     Absent,
     /// the data cannot be shown to be backed, or is one the original would have crashed on: no answer is given
+    Refused(&'static str),
+}
+
+/// One step of a route's node cursor (`route_node`): the node's decoded position as float bit patterns, the end of the nodes, the absence of the route, or a refusal.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RouteNode {
+    /// x, y, z of the node as the original's parser decodes them (`short * (max (|min|, |max|) / 32767)`)
+    Found([u32; 3]),
+    /// the route has no node at this index or beyond
+    End,
+    /// the scene has no route object of this kind: the original's lookup finds nothing
+    Absent,
+    /// the data cannot be shown to be backed, or is one the original would have crashed on: no answer is given
+    Refused(&'static str),
+}
+
+/// One step of a route's line-face cursor (`route_face`), in the order the original's first pass walks them (surface by surface, face by face).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RouteFace {
+    /// the two node indices the face joins (the surface-point indirection already applied), the surface's colour and whether it is a polygon surface
+    Found {
+        point: [u32; 2],
+        colour: [u8; 3],
+        polygons: bool,
+    },
+    End,
+    Absent,
     Refused(&'static str),
 }
 
@@ -1770,6 +1900,159 @@ impl ModelStore {
             return Ok(Triangle::Refused("null_object"));
         }
         Ok(self.decode(&self.objects[s.collision as usize], depth as i32))
+    }
+
+    /// The route object of (scene, kind): the first entry the original's `initialise_scene_quick_sub_object_search` (3dsubobj.c) files under `kind`, which is what
+    /// `find_object_3d_sub_object` returns at depth 0. The scene's own index records come first, in file order; then each top-level sub-object in order, its own records
+    /// first and its children after (depth first). `Ok(None)` is a true absence (a scene never read, or no record of that kind); `Err` is data that cannot be followed.
+    fn route_object(&self, scene: usize, kind: i32) -> Result<Option<i32>, &'static str> {
+        let s = &self.scenes[scene];
+        if !s.loaded {
+            return Ok(None);
+        }
+        let sub = &s.sub;
+        let child = |first: i32, count: i32, offset: i32| -> Result<usize, &'static str> {
+            if offset < 0 || offset >= count {
+                return Err("sub_object_offset_outside");
+            }
+            let at = first as i64 + offset as i64;
+            sub.nodes.get(at as usize).map(|_| at as usize).ok_or("sub_object_node_outside")
+        };
+        for &(k, offset) in &sub.indices {
+            if k == kind {
+                let at = child(sub.top_first, sub.top_count, offset)?;
+                return Ok(Some(sub.nodes[at].object));
+            }
+        }
+        // depth first over the top-level sub-objects, each node's own records before its children
+        let mut stack: Vec<usize> = Vec::new();
+        for top in (0..sub.top_count.max(0)).rev() {
+            stack.push((sub.top_first as i64 + top as i64) as usize);
+        }
+        let mut visited = 0usize;
+        while let Some(at) = stack.pop() {
+            visited += 1;
+            if visited > sub.nodes.len() {
+                return Err("sub_object_tree_cycle");
+            }
+            let Some(node) = sub.nodes.get(at) else {
+                return Err("sub_object_node_outside");
+            };
+            for &(k, offset) in &node.indices {
+                if k == kind {
+                    let c = child(node.first_child, node.child_count, offset)?;
+                    return Ok(Some(sub.nodes[c].object));
+                }
+            }
+            for c in (0..node.child_count.max(0)).rev() {
+                stack.push((node.first_child as i64 + c as i64) as usize);
+            }
+        }
+        Ok(None)
+    }
+
+    /// The object a route query is about, or the answer that ends it: absent, or refused for a stated reason.
+    fn route_target(&self, scene: i64, kind: i64) -> Result<Result<&Object, (bool, &'static str)>, QueryError> {
+        let id = self.check_scene(scene)?;
+        if kind < 1 || kind >= subobject_last() as i64 {
+            return Err(QueryError::BadKind(kind));
+        }
+        // (true, _) is the absence; (false, why) a refusal
+        let object = match self.route_object(id, kind as i32) {
+            Ok(Some(object)) => object,
+            Ok(None) => return Ok(Err((true, "absent"))),
+            Err(why) => return Ok(Err((false, why))),
+        };
+        if object < 1 || object as usize >= self.objects.len() {
+            return Ok(Err((false, "route_object_outside_table")));
+        }
+        let object = &self.objects[object as usize];
+        if !object.present {
+            return Ok(Err((false, "null_object")));
+        }
+        if let Some(why) = object.invalid {
+            return Ok(Err((false, why)));
+        }
+        Ok(Ok(object))
+    }
+
+    /// The `index`th node of the route object of (scene, kind): the original's parse of `object->points[index]` (routegen.c `parse_waypoint_routes_from_object`), decoded by
+    /// the same float expressions under the same rounding. `End` once `index` reaches the object's point count.
+    pub fn route_node(&self, scene: i64, kind: i64, index: i64) -> Result<RouteNode, QueryError> {
+        if !(0..=i32::MAX as i64).contains(&index) {
+            return Err(QueryError::BadDepth(index));
+        }
+        let object = match self.route_target(scene, kind)? {
+            Ok(object) => object,
+            Err((true, _)) => return Ok(RouteNode::Absent),
+            Err((false, why)) => return Ok(RouteNode::Refused(why)),
+        };
+        if index >= object.number_of_points as i64 {
+            return Ok(RouteNode::End);
+        }
+        let Some(points) = object.points else {
+            return Ok(RouteNode::Refused("null_points"));
+        };
+        let Some(point) = self.points.get(points, index as usize) else {
+            return Ok(RouteNode::Refused("unbacked_points"));
+        };
+        let mut out = [0.0f32; 3];
+        // SAFETY: the pointers are to locals of exactly 3 shorts, 6 floats and 3 floats; the kernel reads the first two and writes the third.
+        let code = unsafe { eech_model_route_node(point.as_ptr(), object.bounding_box.as_ptr(), out.as_mut_ptr()) };
+        match code {
+            0 => {}
+            1 => return Ok(RouteNode::Refused("fp_masks")),
+            _ => return Ok(RouteNode::Refused("fp_environment")),
+        }
+        Ok(RouteNode::Found([out[0].to_bits(), out[1].to_bits(), out[2].to_bits()]))
+    }
+
+    /// The `index`th line face of the route object of (scene, kind), in the order the original's first pass walks them: for each surface, each of its faces, taking two
+    /// entries of the face point list (`point_refs`) and resolving each through the surface's own run of the surface-point references (`surface_point_refs`, advanced by the
+    /// surface's point count, 0 meaning 256). `End` once the surfaces' faces are used up.
+    pub fn route_face(&self, scene: i64, kind: i64, index: i64) -> Result<RouteFace, QueryError> {
+        if !(0..=i32::MAX as i64).contains(&index) {
+            return Err(QueryError::BadDepth(index));
+        }
+        let object = match self.route_target(scene, kind)? {
+            Ok(object) => object,
+            Err((true, _)) => return Ok(RouteFace::Absent),
+            Err((false, why)) => return Ok(RouteFace::Refused(why)),
+        };
+        let (mut face, mut refs, mut base) = (0i64, 0usize, 0usize);
+        for s in 0..object.number_of_surfaces as usize {
+            let Some(surface) = self.surfaces.get(object.surfaces_start + s).copied() else {
+                return Ok(RouteFace::Refused("unbacked_surfaces"));
+            };
+            if index < face + surface.faces as i64 {
+                let n = (index - face) as usize;
+                let Some(list) = object.point_list else {
+                    return Ok(RouteFace::Refused("null_point_list"));
+                };
+                let Some(surface_points) = object.surface_points else {
+                    return Ok(RouteFace::Refused("null_surface_points"));
+                };
+                let mut point = [0u32; 2];
+                for (k, slot) in point.iter_mut().enumerate() {
+                    let Some(reference) = self.point_list.get(list, refs + 2 * n + k) else {
+                        return Ok(RouteFace::Refused("unbacked_point_list"));
+                    };
+                    let Some(node) = self.surface_points.get(surface_points, base + reference as usize) else {
+                        return Ok(RouteFace::Refused("unbacked_surface_points"));
+                    };
+                    *slot = node as u32;
+                }
+                return Ok(RouteFace::Found {
+                    point,
+                    colour: [surface.red(), surface.green(), surface.blue()],
+                    polygons: surface.polygons(),
+                });
+            }
+            face += surface.faces as i64;
+            refs += 2 * surface.faces as usize;
+            base += surface.points() as usize;
+        }
+        Ok(RouteFace::End)
     }
 
     /// The original's walk, translated exactly (3dobjdb.c); each read is checked against the BACKED length of its array.

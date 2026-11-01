@@ -154,7 +154,28 @@ int eech_model_host_probe_run (int scene, int depth, char *text, int capacity)
 		}
 	}
 	n = snprintf (text + used, (size_t) (capacity - used), "\n");
-	return ((n < 0) || (n >= capacity - used)) ? 1 : 0;
+	if ((n < 0) || (n >= capacity - used))
+	{
+		return 1;
+	}
+	used += n;
+
+	/* the route cursor, node and line face, of the airfield landing route of the scene at the same depth: the same callback and Lua provider the campaign's parser uses, under the
+	   same entry, so the outer floating-point harness measures the route questions with the triangle ones. A scene with no such route answers `absent` (result 3). */
+	{
+		extern int campaign_model_route_probe (int scene, int kind, int cursor, int *node_result, float *node, int *face_result, int *face);
+		int node_result = 0, face_result = 0, face[6];
+		float node[3];
+
+		round_before = fegetround ();
+		campaign_model_route_probe (scene, OBJECT_3D_SUB_OBJECT_FIXED_WING_LANDING_ROUTE, depth, &node_result, node, &face_result, face);
+		round_after = fegetround ();
+		n = snprintf (text + used, (size_t) (capacity - used),
+			"model-host-route scene=%d kind=%d cursor=%d node_result=%d node=0x%08x,0x%08x,0x%08x face_result=%d face=%d,%d,%d,%d,%d,%d round_before=%d round_after=%d\n", scene,
+			(int) OBJECT_3D_SUB_OBJECT_FIXED_WING_LANDING_ROUTE, depth, node_result, float_bits (node[0]), float_bits (node[1]), float_bits (node[2]), face_result, face[0], face[1],
+			face[2], face[3], face[4], face[5], round_before, round_after);
+		return ((n < 0) || (n >= capacity - used)) ? 1 : 0;
+	}
 }
 
 

@@ -137,7 +137,7 @@ is none of these and is not allowed.**
 
 | Group (census hits) | Reads | Reached (as read) | At cutover |
 |---|---|---|---|
-| `aphavoc/.../routegen.c` (1) | points, bounds, surfaces, line faces | campaign load, popread, per airfield | **(a)/(b), next**: host route-data service keyed by scene and kind (section 1). Observed by this change |
+| `aphavoc/.../routegen.c` (1) | points, bounds, surfaces, line faces | campaign load, popread, per airfield | **(a), MOVED** (section 4): the parser takes its nodes and line faces from the host, keyed by scene and kind. Observed in both profiles |
 | `modules/3d/3dsubobj.c` (4), scene bounds built in `3dobjdb.c` (`initialise_scene_bounding_sub_objects`, `:1386`) | `bounding_box`, `bounding_box2` of each main and sub-object | at scene load (hierarchy construction) | **(b)**: the host's scene reply already carries the same bounds; the scene database must take its bounds from it. Part of the hierarchy service, still core-resident, visible |
 | `3dobjdb.c` remainder (loader 101 hits; `add_animation_object` surface texture-animation flags; `debug_object`; custom EEO/EES import) | the loader's own fills; surface texture flags | load | The loader itself is what leaves (host-owned model loading). Texture-animation lists are rendering data: **(c)** or a host render-metadata answer, decided with the renderer boundary, not here |
 | render and visibility: `3dobject.c` (19), `3dobjdrh/drw/drz.c` (64/53/12), `3dobjzdr.c` (20), `3dobjvb.c` (5), `3dobjvis.c` (33), `3dexplos.c` (32), `3dshadow.c` (51), `3dhoriz.c` (15), `3dwface1/2.c` (5/16), `3dfaces.c` (6), `3dscon.c` (9), `clouds/3dtrump.c` (5), `3dclouds.c` (3) | vertices, faces, surfaces, bounds for transform, draw, outcodes, shadows | renderer entry points (`draw_*`, `transform_*`, `get_object_3d_outcode`, instance visibility); the dedicated-server boot path calls no drawing, but that is **not proved dormant** for every campaign path | **(c)** by construction: these entries are not part of the hosted module's surface (the host owns rendering). The cutover Task must either remove them from the build or stop each entry clearly before reading an absent array; no silent empty-geometry draw. Which of them a boot actually reaches is established from evidence, by a method chosen at the cutover; none is assumed dormant |
@@ -147,5 +147,44 @@ Not in this census (separately read): `objects_3d_scene_database` readers (`popr
 poly-line accessors, per the host-authority audit table; the viewpoint, device, muzzle, target-point and camera services of `3dobjdb.c`. They remain whole-D3 work and none
 is assigned to another phase here.
 
-**Next concrete D3 step after the Root's measurement:** the host route-data service and the loader detachment for the route readers, as one cohesive change, with the active-reader
-disposition above settled for every group before the loader stops filling the array (the method for each is chosen from evidence then; nothing is assumed dormant).
+## 4. The first production extraction: the host owns the route data (source; NOT built, NOT run)
+
+With the original route characterisation closed (the unmoved parser, 704 Georgia and 528 Lebanon natural-boot calls with exact caller identities, four actual native runs 0,
+complete repeats byte-identical), the airfield route parser no longer reads the campaign DLL's model arrays. Core keeps what is campaign: which route its own hierarchy lookup
+selected for an airfield (`get_airfield_waypoint_route_object`, `popread.c`) and every route-planning statement of `routegen.c` (tree, primary and start nodes, end-slot matching,
+the per-depth positions), which are textually unchanged. The host owns the model data behind it.
+
+* **Host store** (`eech-world/src/models.rs`, the reference host; DCS would feed the same questions from its own data). The loader now keeps what it used to skip: each scene's and each
+  sub-object's (kind, offset) records (`read_indices`), with `get_subobject`'s name-to-kind resolution for `.EES` scenes (`data/subobject-names.txt`, generated from the original
+  header exactly as `scene-names.txt` is), and each surface's colour. `route_node (scene, kind, index)` and `route_face (scene, kind, index)` answer from them: the lookup is
+  `initialise_scene_quick_sub_object_search` (the scene's own records first, then each top-level sub-object's own records before its children, depth first) at depth 0; the node is
+  the stored short scaled by the object's bounds by a new C kernel entry (`model_step.c eech_model_route_node`: `max (fabs (min), fabs (max))` in float, then `short * (max / 32767)`
+  with the division in FLOAT, the original's expressions, under the same entry guard that restores the caller's complete floating-point state); the line faces come surface by surface,
+  each face's two entries of the face point list resolved through its own surface's run of the surface-point references, with the surface's colour and polygon bit. True absence
+  (a scene never read, no record of the kind), the end of a cursor, an argument error and a refusal by name (an unbacked read) are four different answers.
+* **Public operation** (`mb_hostmodel.h`): `ROUTE_NODE` and `ROUTE_FACE`, each (scene, kind, cursor) with the kind's compiled-name echo checked as the scene's is, through the same
+  callback, Lua bridge and strict request gate as the triangle (a fourth provider argument, `kind`). No raw short, bound or legacy object number crosses.
+* **Core** (`mb_hostmodel.c`, staged patches `ROUTE_HOST_PATCHES` H1..H5 in `build/patches.rs`): `get_airfield_waypoint_route_object` tells the campaign which entry was found for which
+  (scene, kind) (H1/H2); at the 28 places that took the legacy number from a route entry (26 `raw_object_index = <entry>->index;` sites and the two inline troop-route calls) the
+  parse now receives that entry's KEY (H3), evaluated once, in the same place and order; the parse's object is built from the host's ordered nodes and line faces (H4) and each node's
+  position is the host's (H5). The line faces are packed into surfaces of at most 128 faces of one colour and polygon bit so that the unchanged loops walk them: a packaging of the host's
+  flat answers in the same order, not a model. A route the hierarchy found and the host calls absent, a refusal, a malformed or out-of-domain reply, a kind name that disagrees, or more
+  nodes or faces than the parser's own tables hold stops the engine with a named `[model-provider:route.*]` marker; nothing is invented and nothing falls back to the campaign's arrays.
+* **Candidate characterisation** (feature `route-fixture` WITHOUT `route-original`): the observer of the HOST profile. It records the host's ACTUAL answers (decoded node bit patterns, the
+  ordered line faces with the colour and polygon bit) and the unchanged Core's final graph (finals, links, starts, per-depth positions and offsets), under the caller identity the production
+  key table gives (scene, kind). The report starts with `route-profile value=host` and has no raw stored shorts, face-local references or surface records: the campaign never holds them
+  and none is invented. The original profile is built with `route-fixture` AND `route-original` (`EECH_ROUTE_PROFILE=original tools/build-windows-route-fixture.sh ...`), which keeps the
+  unmoved parser. **What the Root compares across the move**: the declared unchanged cohorts, row for row and byte for byte, per scene and kind in the call order: the slots, the decoded
+  node bit patterns, the ordered face point pairs with colour and polygon bit, the finals, links, starts, per-depth positions and offsets. What differs by construction: the raw shorts and
+  the face-local columns, the surface columns and bounds (the host profile has none), `legacy_object` and `caller_raw` (now the key number), and the profile line. No whole-file equality is claimed.
+* **Controls prepared** (the Root runs them): the host store's contract tests (`tests/model_route.rs`: kind lookup order, the colour, the ordered faces through each surface's own
+  references, absence versus end versus argument error versus refusal), the driver's host-profile shapes, the bridge tests in `eech-dc`, the model-host-fixture probe now also asks one route
+  node and face under each caller rounding mode (`model-host-route` line), and the existing authority modes (`model-authority.lua` forwards the new `kind` argument; the route questions
+  pass through every mode unchanged). Poisoning the campaign's own geometry rows for the route objects is possible only after the loader detachment below, because the route no longer reads them
+  but other readers still do.
+
+**The next batch, the loader detachment, is NOT done**: the common `3dobjs.*` loading and the custom `.EEO` / `.EES` loading (`initialise_3d_objects`, `read_object`, `read_custom_scene` in
+`3dobjdb.c`) still fill `objects_3d_data` in the campaign DLL. It needs true counts, bounds and radius for the readers that remain (scene bounds, the render and visibility group, the Mi-24
+HUD, the texture-animation scan, section 3), NULL geometry pointers, and for each live reader a host query, true metadata or a named refusal BEFORE a buffer is read. The hierarchy,
+viewpoint, device, muzzle and target-point services of `3dobjdb.c` stay Core and are required whole-D3 work (Task49 owns collision, not all hierarchy).
+

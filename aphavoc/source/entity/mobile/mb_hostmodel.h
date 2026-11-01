@@ -31,6 +31,15 @@
  *              declared without a collider, ABSENT for one declared with, and any of the three for a scene declared not loaded, contradict the host's own declaration and
  *              stop the engine before any word of the caller's buffer is written.
  *
+ *   ROUTE_NODE / ROUTE_FACE   the route data of an airfield scene (EEDCS-50, D3). A route is the line object a scene files under a sub-object kind (the landing, take-off
+ *              and holding routes of airfields); the campaign's own hierarchy lookup still says whether the scene has one, and the campaign keeps the route
+ *              planning (the tree, the primary and start nodes, the end-slot matching). What the host owns is the model data behind it: the request carries the scene, the
+ *              sub-object kind and a cursor, and the host answers one step of the ORDERED nodes (ROUTE_NODE: FOUND with the node's decoded x y z, or END) or of the ORDERED
+ *              line faces (ROUTE_FACE: FOUND with the two node indices already resolved, the surface's colour and its polygon bit, or END), in the order the original
+ *              walks them. The reply echoes the kind's compiled name, as the scene reply echoes the scene's. The intrinsic decode (the stored short, the bounds, the surface-point
+ *              indirection) is the host's; the campaign receives decoded floats and node numbers only. ABSENT means the host has no route of that kind for the scene; the
+ *              campaign asks only for a route its own hierarchy lookup found, so an ABSENT is a disagreement and stops the engine, as does a malformed or refused answer.
+ *
  * The bounds and the radius are copied once, at boot, into immutable tables owned by this module (host-authored data, valid for the life of the process and never
  * written again). Callers hold the bounds pointer across loop iterations, so it must be stable; a rotating cache would not be. The tables are a snapshot of the host's
  * answers, not an authority of the campaign's own.
@@ -57,7 +66,9 @@ enum campaign_model_op
 {
 	CAMPAIGN_MODEL_CATALOGUE = 1,
 	CAMPAIGN_MODEL_SCENE,
-	CAMPAIGN_MODEL_TRIANGLE
+	CAMPAIGN_MODEL_TRIANGLE,
+	CAMPAIGN_MODEL_ROUTE_NODE,
+	CAMPAIGN_MODEL_ROUTE_FACE
 };
 
 enum campaign_model_triangle_result
@@ -72,8 +83,10 @@ typedef struct campaign_model_request
 	int op;
 	/* SCENE and TRIANGLE */
 	int scene;
-	/* TRIANGLE */
+	/* TRIANGLE; ROUTE_NODE and ROUTE_FACE: the cursor (the node or line-face index) */
 	int depth;
+	/* ROUTE_NODE and ROUTE_FACE: the route's sub-object kind (object_3d_sub_object_index_numbers); `scene` is the airfield scene */
+	int kind;
 } campaign_model_request;
 
 typedef struct campaign_model_reply
@@ -90,8 +103,12 @@ typedef struct campaign_model_reply
 	char name[CAMPAIGN_MODEL_NAME_MAX + 1];
 	/* TRIANGLE */
 	int result;
-	/* point 0 x y z, point 1, point 2 */
+	/* point 0 x y z, point 1, point 2; ROUTE_NODE: the node's x y z in the first three */
 	float points[9];
+	/* ROUTE_FACE: the two node indices the face joins, the surface's colour (red, green, blue) and its polygon bit */
+	int route_point[2];
+	int route_colour[3];
+	int route_polygons;
 } campaign_model_reply;
 
 typedef int (*campaign_model_fn)

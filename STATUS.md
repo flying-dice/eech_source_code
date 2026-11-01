@@ -1,3 +1,32 @@
+# D3 first production extraction: the host owns the airfield route data (2 November 2026): SOURCE, FOCUSED HOST-CRATE CHECKS ONLY; ENGINE C / PATCHES NOT BUILT, NOT RUN
+
+Base `fce1f1dfa` (the original route characterisation is closed; this batch repeats none of it). The campaign's airfield route parser no longer decodes routes from the DLL's own model arrays:
+the host decodes them and answers per (scene, route kind). WHAT MOVED: the intrinsic decode (the stored short scaled by the object's bounds, in float, under the original's rounding) and the
+surface-point indirection that turns a line face into two node numbers. WHAT STAYS CORE: which route the hierarchy lookup selected (`get_airfield_waypoint_route_object`) and every route-planning
+statement of `routegen.c` (tree, primary and start nodes, end-slot matching, per-depth positions), textually unchanged. Details: `eech-campaign/docs/m5-route-characterization.md` section 4.
+
+* Host (`eech-world`): `ModelStore` keeps the sub-object (kind, offset) records and each surface's colour (it skipped them); `route_node` / `route_face` (scene, kind, cursor) answer found / end /
+  absent / refused-by-name from the original's own lookup order; new C kernel entry `eech_model_route_node` (the original's float expressions under the same environment guard). Public operation
+  `ROUTE_NODE` / `ROUTE_FACE` with the kind's compiled-name echo, through the existing callback, Lua bridge and strict gate (a fourth provider argument).
+* Core (`mb_hostmodel.c`, staged `ROUTE_HOST_PATCHES` H1..H5): the lookup records which entry belongs to which (scene, kind); the 28 callers (26 assignment sites and the two troop-route calls)
+  hand the parse that entry's key where they handed the legacy model number, evaluated once in the same place; the parse's object is the host's ordered nodes and line faces packed in the shape
+  the unchanged loops walk (a packaging, not a model). Absent-for-a-found-route, refusal, malformed reply, kind-name disagreement and over-limit stop the engine with `[model-provider:route.*]`.
+* Characterisation: `route-fixture` now observes the HOST profile (host answers + Core's final graph; report starts `route-profile value=host`, no raw shorts or surface columns, none invented);
+  the original profile is `route-fixture` + `route-original` (`EECH_ROUTE_PROFILE=original`). Declared unchanged cohorts to compare with the closed originals: slots, decoded node bits, ordered
+  face point pairs with colour and polygon bit, finals, links, starts, per-depth positions and offsets. Differences by construction are listed in the doc; no whole-file equality is claimed.
+* Actual focused LOCAL checks (Linux, `eech-world` only, WORKING TREE, mounted-script exits with a control): fmt 0 (workspace); `model_store` 45, `model_route` 6 (new), `route_characterization` 18
+  (host shapes added), lib 250, the `(37, 2)` inventory 1, strict Clippy 0. Hashes, commands and the exclusions: `eech-campaign/reference/d3-route-characterization/route-host-extraction-focused-checks-20261101.txt`.
+* NOT run, not claimed: any compile of the engine C or of `eech-engine-sys` / `eech-engine` / `eech-dc` (their changed sources are fmt-clean only); the patches applied by a build (anchors counted by hand);
+  the new `eech-dc` bridge tests; the candidate and original-profile builds; any comparison with the closed original rows; the FP harness with the new `model-host-route` probe line; the host
+  altered / withheld / malformed controls against the engine. No Windows or Docker build, no retail data, no native process.
+* `model-authority.lua` now forwards the new fourth argument (`kind`) through its provider wrappers; the route questions pass through every mode unchanged.
+
+NEXT (Root): source review, freeze, build the Windows host-profile and original-profile route fixtures, run the finite controls (host altered / withheld / malformed, the route FP line under four roundings),
+and compare the declared cohorts with the closed originals. THEN the loader detachment (NOT done): the common `3dobjs.*` loading and the custom `.EEO` / `.EES` loading (`initialise_3d_objects`,
+`read_object`, `read_custom_scene`) still fill `objects_3d_data` in the DLL; detaching them needs true counts, bounds and radius for the readers that remain, NULL geometry buffers, and a host query,
+true metadata or a named refusal BEFORE any buffer read for each live reader (the 455-hit census is not dormancy evidence). Hierarchy, viewpoint, device, muzzle and target-point services stay Core
+and are required whole-D3 work (Task49 owns collision, not all hierarchy). Task51 shipping (`78fe5efdb`) untouched. Task50 and D3 remain In Progress; D4/D5 not started; nothing is accepted.
+
 # D3 route observer: one narrow source correction, the two troop sites evaluate the selected index once (1 November 2026): SOURCE ONLY, NOT BUILT, NOT RUN
 
 Base `c12551440`. Independent review `independent-model-route-caller-context-source-c12551440-20261101.json` (SHA256 `4af77d36a3647a2de911b13fd3a4d6adc0b2cd1499a19a54dbfe2f590a13de48`, re-hashed) found ONE P2, ENV-ROUTE-CONTEXT-1: the staged patch R8 for the two inline troop-route

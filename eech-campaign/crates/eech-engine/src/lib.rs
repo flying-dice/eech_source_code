@@ -1026,6 +1026,10 @@ pub enum ModelQuery {
     Scene { scene: i32 },
     /// one step of the collision-triangle cursor (asked live for every call of the accessor)
     Triangle { scene: i32, depth: i32 },
+    /// one step of a route's ORDERED node cursor: the airfield `scene`, the route's sub-object `kind` (object_3d_sub_object_index_numbers) and the node `index`
+    RouteNode { scene: i32, kind: i32, index: i32 },
+    /// one step of a route's ORDERED line-face cursor, the same three numbers
+    RouteFace { scene: i32, kind: i32, index: i32 },
 }
 
 /// One scene as the host answers it, in public terms only: the scene's compiled `name` (the echo that host and campaign mean the same scene by the same index; empty for the
@@ -1054,11 +1058,40 @@ pub enum ModelTriangle {
     Absent,
 }
 
+/// The answer to a route node cursor step: the node's decoded position (exact `f32` values), the end of the route's nodes, or the host's statement that it has no route
+/// of that kind for the scene. The host's own decode is all the campaign receives: no stored short, no bound and no scale.
+#[derive(Clone, Debug, PartialEq)]
+pub enum ModelRouteNode {
+    Found([f32; 3]),
+    End,
+    Absent,
+}
+
+/// The answer to a route line-face cursor step: the two node numbers the face joins (already resolved through the surface-point indirection, which is the host's), the
+/// surface's colour (red, green, blue) and whether it is a polygon surface; or the end of the faces; or the absence of the route.
+#[derive(Clone, Debug, PartialEq)]
+pub enum ModelRouteFace {
+    Found { point: [i32; 2], colour: [i32; 3], polygons: bool },
+    End,
+    Absent,
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum ModelAnswer {
-    Catalogue { scenes: i32 },
+    Catalogue {
+        scenes: i32,
+    },
     Scene(ModelScene),
     Triangle(ModelTriangle),
+    /// a route node step with the compiled name of the kind it is about (the echo that host and campaign mean the same kind by the same number)
+    RouteNode {
+        kind_name: String,
+        step: ModelRouteNode,
+    },
+    RouteFace {
+        kind_name: String,
+        step: ModelRouteFace,
+    },
 }
 
 /// The host's model provider. It is installed once, at boot, and is the only source of the campaign's collision-model answers: the campaign no longer compiles the code that
@@ -1068,6 +1101,22 @@ pub type ModelProvider = Box<dyn FnMut(ModelQuery) -> Result<ModelAnswer, String
 thread_local! {
     // the engine and its host run on one thread; a provider is not `Send`
     static MODEL: std::cell::RefCell<Option<ModelProvider>> = const { std::cell::RefCell::new(None) };
+}
+
+/// Copies a kind's compiled name into a reply with its terminator; one that does not fit, or holds a NUL, is not a name.
+fn put_name(reply: &mut sys::eech_model_reply, name: &str, operation: &str) -> Result<(), String> {
+    let bytes = name.as_bytes();
+    if bytes.len() > sys::EECH_MODEL_NAME_MAX || bytes.contains(&0) {
+        return Err(format!(
+            "[model-provider:{operation}.answer] the kind name is 0 to {} bytes without a NUL, got {}",
+            sys::EECH_MODEL_NAME_MAX,
+            bytes.len()
+        ));
+    }
+    for (slot, byte) in reply.name.iter_mut().zip(bytes) {
+        *slot = *byte as c_char;
+    }
+    Ok(())
 }
 
 /// The C side's model callback (mb_hostmodel.h). It runs the installed provider; a missing provider, a refusal, an answer of the wrong kind and a panic all become an error
@@ -1093,6 +1142,22 @@ unsafe extern "C" fn model_callback(
                 ModelQuery::Triangle {
                     scene: source.scene,
                     depth: source.depth,
+                },
+            ),
+            sys::EECH_MODEL_ROUTE_NODE => (
+                "route_node",
+                ModelQuery::RouteNode {
+                    scene: source.scene,
+                    kind: source.kind,
+                    index: source.depth,
+                },
+            ),
+            sys::EECH_MODEL_ROUTE_FACE => (
+                "route_face",
+                ModelQuery::RouteFace {
+                    scene: source.scene,
+                    kind: source.kind,
+                    index: source.depth,
                 },
             ),
             other => return Err(format!("[model-provider:callback] the model callback received unknown operation {other}")),
@@ -1139,11 +1204,37 @@ unsafe extern "C" fn model_callback(
                 ModelTriangle::End => reply.result = sys::EECH_MODEL_TRIANGLE_END,
                 ModelTriangle::Absent => reply.result = sys::EECH_MODEL_TRIANGLE_ABSENT,
             },
+            ("route_node", ModelAnswer::RouteNode { kind_name, step }) => {
+                put_name(&mut reply, &kind_name, "route_node")?;
+                match step {
+                    ModelRouteNode::Found(position) => {
+                        reply.result = sys::EECH_MODEL_TRIANGLE_FOUND;
+                        reply.points[..3].copy_from_slice(&position);
+                    }
+                    ModelRouteNode::End => reply.result = sys::EECH_MODEL_TRIANGLE_END,
+                    ModelRouteNode::Absent => reply.result = sys::EECH_MODEL_TRIANGLE_ABSENT,
+                }
+            }
+            ("route_face", ModelAnswer::RouteFace { kind_name, step }) => {
+                put_name(&mut reply, &kind_name, "route_face")?;
+                match step {
+                    ModelRouteFace::Found { point, colour, polygons } => {
+                        reply.result = sys::EECH_MODEL_TRIANGLE_FOUND;
+                        reply.route_point = point;
+                        reply.route_colour = colour;
+                        reply.route_polygons = c_int::from(polygons);
+                    }
+                    ModelRouteFace::End => reply.result = sys::EECH_MODEL_TRIANGLE_END,
+                    ModelRouteFace::Absent => reply.result = sys::EECH_MODEL_TRIANGLE_ABSENT,
+                }
+            }
             (operation, answer) => {
                 let given = match answer {
                     ModelAnswer::Catalogue { .. } => "a catalogue",
                     ModelAnswer::Scene(_) => "a scene",
                     ModelAnswer::Triangle(_) => "a triangle step",
+                    ModelAnswer::RouteNode { .. } => "a route node step",
+                    ModelAnswer::RouteFace { .. } => "a route face step",
                 };
                 return Err(format!(
                     "[model-provider:{operation}.answer] the provider answered a {operation} question with {given}"
@@ -9394,7 +9485,7 @@ mod tests {
     }
 
     fn model_request(op: c_int, scene: c_int, depth: c_int) -> sys::eech_model_request {
-        sys::eech_model_request { op, scene, depth }
+        sys::eech_model_request { op, scene, depth, kind: 0 }
     }
 
     #[test]
@@ -9529,6 +9620,7 @@ mod tests {
             op: request.op,
             scene: request.scene,
             depth: request.depth,
+            kind: request.kind,
         }
     }
 

@@ -132,6 +132,8 @@ static int rf_dropped_calls, rf_dropped_lookups, rf_orphans, rf_interrupted_call
 /* the open call, or NULL; `rf_suppressed` is set while a begun call did not fit in the table (its hooks are then expected and counted nowhere) */
 static struct rf_call *rf_open_call;
 static int rf_suppressed;
+/* set by the first parse of the HOST profile: the report then has no raw stored points, face-local references or surface records, because the campaign never holds them */
+static int rf_host_profile;
 /* the caller context registered by the last eech_rf_caller and not yet consumed by a parse; contexts counts every registration and stale those never consumed */
 static const void *rf_pending_entry;
 static int rf_pending_raw, rf_have_pending, rf_contexts, rf_stale;
@@ -188,9 +190,10 @@ int eech_rf_caller_index (const void *entry, int raw_object_index)
 	return raw_object_index;
 }
 
-void eech_rf_begin (int object_index, int number_of_slots, const void *slots, const void *object)
+/* The opening of a parse call, common to both profiles. `raw` is the original parser's object (the ORIGINAL profile), or NULL in the HOST profile, where the object's counts
+   arrive from eech_rf_host_counts once the host's answers have been taken. */
+static struct rf_call *rf_begin_call (int object_index, int number_of_slots, const void *slots, const struct OBJECT_3D *raw)
 {
-	const struct OBJECT_3D *raw = (const struct OBJECT_3D *) object;
 	struct rf_call *call;
 	const float *bound;
 	const void *context_entry = rf_pending_entry;
@@ -210,7 +213,7 @@ void eech_rf_begin (int object_index, int number_of_slots, const void *slots, co
 	{
 		rf_dropped_calls++;
 		rf_suppressed = 1;
-		return;
+		return NULL;
 	}
 	call = &rf_calls[rf_call_count++];
 	memset (call, 0, sizeof (*call));
@@ -261,7 +264,7 @@ void eech_rf_begin (int object_index, int number_of_slots, const void *slots, co
 		}
 	}
 	/* the faces the parser's first pass will read: its own loop bound, the sum of every surface's face count (read from the same records the parser reads) */
-	if (raw->surfaces)
+	if (raw && raw->surfaces)
 	{
 		for (i = 0; i < (int) raw->number_of_surfaces; i++)
 		{
@@ -282,13 +285,16 @@ void eech_rf_begin (int object_index, int number_of_slots, const void *slots, co
 		rf_slot_count++;
 		call->slot_stored++;
 	}
-	call->points = raw->number_of_points;
-	call->surfaces = raw->number_of_surfaces;
-	call->faces = raw->number_of_faces;
-	bound = (const float *) &raw->bounding_box;
-	for (i = 0; i < 6; i++)
+	if (raw)
 	{
-		call->bounds[i] = bits_of (bound + i);
+		call->points = raw->number_of_points;
+		call->surfaces = raw->number_of_surfaces;
+		call->faces = raw->number_of_faces;
+		bound = (const float *) &raw->bounding_box;
+		for (i = 0; i < 6; i++)
+		{
+			call->bounds[i] = bits_of (bound + i);
+		}
 	}
 	call->node_first = rf_node_count;
 	call->face_first = rf_face_count;
@@ -296,6 +302,19 @@ void eech_rf_begin (int object_index, int number_of_slots, const void *slots, co
 	call->link_first = rf_link_count;
 	call->start_first = rf_start_count;
 	call->depth_first = rf_depth_count;
+	return call;
+}
+
+void eech_rf_begin (int object_index, int number_of_slots, const void *slots, const void *object)
+{
+	rf_begin_call (object_index, number_of_slots, slots, (const struct OBJECT_3D *) object);
+}
+
+/* the HOST profile: the parser takes its route from the host (mb_hostmodel.c); the call opens before the host is asked, so that every answer is recorded under it */
+void eech_rf_begin_host (int object_index, int number_of_slots, const void *slots)
+{
+	rf_host_profile = 1;
+	rf_begin_call (object_index, number_of_slots, slots, NULL);
 }
 
 #define OPEN_OR_RETURN(call) \
@@ -354,6 +373,56 @@ void eech_rf_face (int surface, int face, int local0, int local1, int point0, in
 	rf_faces[rf_face_count].polygons = s->polygons;
 	rf_face_count++;
 	call->face_count++;
+}
+
+/* HOST profile: a node as the host gave it (the decoded position, as bit patterns; the stored short does not exist on this side) */
+void eech_rf_host_node (int index, const void *position)
+{
+	OPEN_OR_RETURN (call)
+	const float *v = (const float *) position;
+	if (rf_node_count >= RF_NODES)
+	{
+		call->dropped_nodes++;
+		return;
+	}
+	rf_nodes[rf_node_count].index = index;
+	rf_nodes[rf_node_count].raw[0] = rf_nodes[rf_node_count].raw[1] = rf_nodes[rf_node_count].raw[2] = 0;
+	rf_nodes[rf_node_count].decoded[0] = bits_of (v);
+	rf_nodes[rf_node_count].decoded[1] = bits_of (v + 1);
+	rf_nodes[rf_node_count].decoded[2] = bits_of (v + 2);
+	rf_node_count++;
+	call->node_count++;
+}
+
+/* HOST profile: a line face as the host gave it (the two node numbers, resolved; the surface's colour and polygon bit) */
+void eech_rf_host_face (int face, int point0, int point1, int red, int green, int blue, int polygons)
+{
+	OPEN_OR_RETURN (call)
+	if (rf_face_count >= RF_FACES)
+	{
+		call->dropped_faces++;
+		return;
+	}
+	memset (&rf_faces[rf_face_count], 0, sizeof (rf_faces[rf_face_count]));
+	rf_faces[rf_face_count].face = face;
+	rf_faces[rf_face_count].point[0] = point0;
+	rf_faces[rf_face_count].point[1] = point1;
+	rf_faces[rf_face_count].colour[0] = red;
+	rf_faces[rf_face_count].colour[1] = green;
+	rf_faces[rf_face_count].colour[2] = blue;
+	rf_faces[rf_face_count].polygons = polygons;
+	rf_face_count++;
+	call->face_count++;
+}
+
+/* HOST profile: the counts of what the host gave (nodes, the packed surfaces, line faces): the object's own counts, which the completeness joins compare the rows with */
+void eech_rf_host_counts (int nodes, int surfaces, int faces)
+{
+	OPEN_OR_RETURN (call)
+	call->points = nodes;
+	call->surfaces = surfaces;
+	call->faces = faces;
+	call->expected_faces = faces;
 }
 
 void eech_rf_final_totals (int node_total, int start_total, int depth_total, int maximum_depth)
@@ -572,6 +641,10 @@ int eech_route_summary_run (char *text, int capacity)
 			incomplete++;
 		}
 	}
+	if (rf_host_profile)
+	{
+		emit (&out, "route-profile value=host\n");
+	}
 	emit (&out, "route-summary calls=%d call_capacity=%d dropped_calls=%d lookups=%d lookup_capacity=%d dropped_lookups=%d orphans=%d interrupted=%d open=%d incomplete_calls=%d contexts=%d stale=%d\n",
 		rf_call_count, RF_CALLS, rf_dropped_calls, rf_lookup_count, RF_LOOKUPS, rf_dropped_lookups, rf_orphans, rf_interrupted_calls, rf_open_call ? 1 : 0, incomplete, rf_contexts,
 		rf_stale + (rf_have_pending ? 1 : 0));
@@ -637,13 +710,28 @@ int eech_route_call_run (int index, char *text, int capacity)
 	for (i = 0; i < c->node_count; i++)
 	{
 		const struct rf_node *n = &rf_nodes[c->node_first + i];
-		emit (&out, "route-node index=%d node=%d raw=%d,%d,%d bits=%08x,%08x,%08x\n", index, n->index, n->raw[0], n->raw[1], n->raw[2], n->decoded[0], n->decoded[1], n->decoded[2]);
+		if (rf_host_profile)
+		{
+			emit (&out, "route-node index=%d node=%d bits=%08x,%08x,%08x\n", index, n->index, n->decoded[0], n->decoded[1], n->decoded[2]);
+		}
+		else
+		{
+			emit (&out, "route-node index=%d node=%d raw=%d,%d,%d bits=%08x,%08x,%08x\n", index, n->index, n->raw[0], n->raw[1], n->raw[2], n->decoded[0], n->decoded[1], n->decoded[2]);
+		}
 	}
 	for (i = 0; i < c->face_count; i++)
 	{
 		const struct rf_face *f = &rf_faces[c->face_first + i];
-		emit (&out, "route-face index=%d surface=%d face=%d local=%d,%d point=%d,%d colour=%d,%d,%d polygons=%d flags=%08x surface_points=%d surface_faces=%u\n", index, f->surface, f->face,
-			f->local[0], f->local[1], f->point[0], f->point[1], f->colour[0], f->colour[1], f->colour[2], f->polygons, f->flags, f->surface_points, f->surface_faces);
+		if (rf_host_profile)
+		{
+			emit (&out, "route-face index=%d face=%d point=%d,%d colour=%d,%d,%d polygons=%d\n", index, f->face, f->point[0], f->point[1], f->colour[0], f->colour[1], f->colour[2],
+				f->polygons);
+		}
+		else
+		{
+			emit (&out, "route-face index=%d surface=%d face=%d local=%d,%d point=%d,%d colour=%d,%d,%d polygons=%d flags=%08x surface_points=%d surface_faces=%u\n", index, f->surface,
+				f->face, f->local[0], f->local[1], f->point[0], f->point[1], f->colour[0], f->colour[1], f->colour[2], f->polygons, f->flags, f->surface_points, f->surface_faces);
+		}
 	}
 	for (i = 0; i < c->final_count; i++)
 	{

@@ -25,6 +25,12 @@ extern int eech_rf_caller_index (const void *entry, int raw_object_index);
 /* parse_waypoint_routes_from_object begins: its arguments (`slots` is number_of_slots vec3d, or NULL) and the raw object it is about to read (struct OBJECT_3D) */
 extern void eech_rf_begin (int object_index, int number_of_slots, const void *slots, const void *object);
 
+/* HOST profile (the parser takes its route from the host): the parse opens before the host is asked; the host's nodes and line faces are recorded as they arrive; then the counts */
+extern void eech_rf_begin_host (int object_index, int number_of_slots, const void *slots);
+extern void eech_rf_host_node (int index, const void *position);
+extern void eech_rf_host_face (int face, int point0, int point1, int red, int green, int blue, int polygons);
+extern void eech_rf_host_counts (int nodes, int surfaces, int faces);
+
 /* one waypoint node, right after the parser decoded its position: its own index, the raw stored point (object_short_3d_point) and the decoded position (vec3d) */
 extern void eech_rf_node (int index, const void *point, const void *position);
 

@@ -35,6 +35,8 @@ fpu-test-support = []
 ground-fixture = []
 # TEST-ONLY (EEDCS-50, D3): the observer of the ORIGINAL airfield route parser and its route-object lookup (routegen.c, popread.c), reported through two read-only entries. Never enabled in the shipping build.
 route-fixture = []
+# TEST-ONLY (EEDCS-50, D3): keep the ORIGINAL airfield route parser (the campaign DLL's own model arrays) instead of the host-owned route data: the original route characterisation. Never enabled in the shipping build.
+route-original = []
 
 # TEST-ONLY (EEDCS-50): the isolated control of the original-model read-safety walk; it needs the feature's C
 [[test]]

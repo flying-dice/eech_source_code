@@ -346,6 +346,333 @@ int campaign_model_triangle (int scene, vec3d *points, int depth)
 	return FALSE;
 }
 
+// ---------------------------------------------------------------------------------------------------------------------------------
+// ROUTE data (EEDCS-50, D3). The campaign's airfield route parser (aphavoc/source/ai/faction/routegen.c) used to decode its routes from the DLL's own model arrays: the stored
+// short points, scaled by the object's bounds, and the line faces through the surface-point indirection. The host owns that decode now (mb_hostmodel.h, ROUTE_NODE and
+// ROUTE_FACE). What stays here is the campaign's half: which route (scene and kind) its own hierarchy lookup selected, and the shape the unchanged route-planning code walks.
+//
+//   campaign_model_route_lookup   called by get_airfield_waypoint_route_object (popread.c, the staged patch) with the airfield scene, the sub-object kind and the route entry
+//                                 that lookup found (NULL when it found none). The entry is a persistent entry of the campaign's own scene hierarchy, so the pair (entry, scene,
+//                                 kind) is fixed: it is kept as a private key. The pointer is never sent anywhere and never leaves this file.
+//   campaign_model_route_handle   called at every place the campaign took the model number from the route entry it holds (the staged patches): it returns that entry's key
+//                                 number, which is what the parse call receives where it used to receive the legacy object number. An entry that no lookup returned stops the engine.
+//   campaign_model_route_object   called by the parse: it asks the host for the route's ORDERED nodes and ORDERED line faces and returns them in the shape the parse's loops
+//                                 walk (a node count, and surfaces of at most 128 faces each, so that a face-local reference stays a byte), so the route-planning statements of
+//                                 routegen.c are the original's, unchanged. The surfaces here are a packaging of the host's flat faces (same order, colour and polygon bit per
+//                                 run), not the model's: the indirection the host resolved is not reconstructed from anything.
+//   campaign_model_route_position called by the parse for each node: the host's decoded position of the node last loaded.
+//
+// An answer the host cannot give (ABSENT for a route the campaign's hierarchy found, a refusal, a malformed or out-of-domain reply, more nodes or faces than the parser's own
+// tables hold) stops the engine with a named marker; nothing is invented, and nothing falls back to the campaign's arrays.
+
+#ifdef EECH_ROUTE_FIXTURE
+#include "eech_route_hooks.h"
+#endif
+
+#define ROUTE_KEYS 4096
+/* MAX_WAYPOINT_NODES of routegen.c: the parser's own node table */
+#define ROUTE_NODES 768
+#define ROUTE_FACES 8192
+/* a face-local reference is a byte: 128 faces use 256 references */
+#define ROUTE_SURFACE_FACES 128
+
+struct route_key
+{
+	const void *entry;
+	int scene, kind;
+};
+
+static struct route_key route_keys[ROUTE_KEYS];
+static int route_key_count;
+
+static vec3d route_positions[ROUTE_NODES];
+static int route_loaded_nodes;
+static struct OBJECT_3D route_object;
+static struct FACE_SURFACE_DESCRIPTION route_surfaces[ROUTE_FACES];
+static struct POINT_3D_PLAIN_REFERENCE route_surface_points[2 * ROUTE_FACES];
+static struct POINT_3D_SHORT_REFERENCE route_face_references[2 * ROUTE_FACES];
+
+void campaign_model_route_lookup (int scene, int kind, const void *entry)
+{
+	int
+		i;
+
+	if (entry)
+	{
+		for (i = 0; i < route_key_count; i++)
+		{
+			if (route_keys[i].entry == entry)
+			{
+				if ((route_keys[i].scene != scene) || (route_keys[i].kind != kind))
+				{
+					debug_fatal ("host model: [model-provider:route.context] one route entry was found for scene %d kind %d and for scene %d kind %d", route_keys[i].scene, route_keys[i].kind, scene, kind);
+				}
+
+				break;
+			}
+		}
+
+		if (i == route_key_count)
+		{
+			if (route_key_count >= ROUTE_KEYS)
+			{
+				debug_fatal ("host model: [model-provider:route.limit] more than %d distinct route entries", ROUTE_KEYS);
+			}
+
+			route_keys[route_key_count].entry = entry;
+			route_keys[route_key_count].scene = scene;
+			route_keys[route_key_count].kind = kind;
+			route_key_count++;
+		}
+	}
+	else
+	{
+		i = -1;
+	}
+
+#ifdef EECH_ROUTE_FIXTURE
+	eech_rf_lookup (scene, kind, entry != NULL, i, entry);
+#endif
+}
+
+int campaign_model_route_handle (const void *entry)
+{
+	int
+		i;
+
+	for (i = 0; i < route_key_count; i++)
+	{
+		if (route_keys[i].entry == entry)
+		{
+#ifdef EECH_ROUTE_FIXTURE
+			eech_rf_caller (entry, i);
+#endif
+
+			return i;
+		}
+	}
+
+	debug_fatal ("host model: [model-provider:route.context] a route entry the campaign holds was not returned by its own hierarchy lookup");
+
+	return -1;
+}
+
+// one step of a route cursor as the host answered it, with only the identity check: the kind's compiled name is echoed
+static void ask_route_raw (int operation, int scene, int kind, int cursor, campaign_model_reply *reply, const char *what)
+{
+	campaign_model_request
+		request;
+
+	const char
+		*expected;
+
+	memset (&request, 0, sizeof (request));
+	request.op = operation;
+	request.scene = scene;
+	request.depth = cursor;
+	request.kind = kind;
+	ask (&request, reply, what);
+
+	expected = ((kind >= 1) && (kind < OBJECT_3D_SUB_OBJECT_LAST) && (object_3d_subobject_names[kind])) ? object_3d_subobject_names[kind] : "";
+
+	if ((memchr (reply->name, '\0', sizeof (reply->name)) == NULL) || (strcmp (reply->name, expected) != 0))
+	{
+		debug_fatal ("host model: [model-provider:route.identity] the host named the route kind %d \"%.60s\" but the campaign names it \"%.60s\"", kind, reply->name, expected);
+	}
+}
+
+// TEST-ONLY diagnostic (the model-host-fixture's probe entry): one route node and one route face, as the host answered them, for a scene and kind the campaign's key table
+// does not hold. An absence is reported, not stopped on: the probe asks about any scene.
+int campaign_model_route_probe (int scene, int kind, int cursor, int *node_result, float *node, int *face_result, int *face)
+{
+	campaign_model_reply
+		reply;
+
+	require_scene (scene, FALSE, "a route probe");
+
+	ask_route_raw (CAMPAIGN_MODEL_ROUTE_NODE, scene, kind, cursor, &reply, "route node");
+	*node_result = reply.result;
+	node[0] = reply.points[0];
+	node[1] = reply.points[1];
+	node[2] = reply.points[2];
+
+	ask_route_raw (CAMPAIGN_MODEL_ROUTE_FACE, scene, kind, cursor, &reply, "route face");
+	*face_result = reply.result;
+	face[0] = reply.route_point[0];
+	face[1] = reply.route_point[1];
+	face[2] = reply.route_colour[0];
+	face[3] = reply.route_colour[1];
+	face[4] = reply.route_colour[2];
+	face[5] = reply.route_polygons;
+
+	return TRUE;
+}
+
+// one step of a route cursor, with the checks every reply must pass: the kind's compiled name is echoed, and the host has not said the route is absent
+static void ask_route (int operation, const struct route_key *key, int cursor, campaign_model_reply *reply, const char *what)
+{
+	ask_route_raw (operation, key->scene, key->kind, cursor, reply, what);
+
+	if (reply->result == CAMPAIGN_MODEL_TRIANGLE_ABSENT)
+	{
+		debug_fatal ("host model: [model-provider:route.answer] the host has no route of kind %d for scene %d, which the campaign's hierarchy found", key->kind, key->scene);
+	}
+
+	if ((reply->result != CAMPAIGN_MODEL_TRIANGLE_FOUND) && (reply->result != CAMPAIGN_MODEL_TRIANGLE_END))
+	{
+		debug_fatal ("host model: [model-provider:route.answer] the host's result for the %s %d of scene %d kind %d is %d", what, cursor, key->scene, key->kind, reply->result);
+	}
+}
+
+struct OBJECT_3D *campaign_model_route_object (int handle)
+{
+	campaign_model_reply
+		reply;
+
+	const struct route_key
+		*key;
+
+	int
+		nodes,
+		faces,
+		surfaces,
+		in_surface;
+
+	if ((handle < 0) || (handle >= route_key_count))
+	{
+		debug_fatal ("host model: [model-provider:route.context] route key %d is not one of the %d the campaign recorded", handle, route_key_count);
+	}
+
+	key = &route_keys[handle];
+
+	require_scene (key->scene, FALSE, "a route question");
+
+	if (!host_loaded[key->scene])
+	{
+		debug_fatal ("host model: [model-provider:route.answer] the campaign asked for a route of scene %d, which the host declared not loaded", key->scene);
+	}
+
+	// the nodes, in order, until the host says the list is over
+	route_loaded_nodes = 0;
+	nodes = 0;
+
+	for (;;)
+	{
+		ask_route (CAMPAIGN_MODEL_ROUTE_NODE, key, nodes, &reply, "route node");
+
+		if (reply.result == CAMPAIGN_MODEL_TRIANGLE_END)
+		{
+			break;
+		}
+
+		if (nodes >= ROUTE_NODES)
+		{
+			debug_fatal ("host model: [model-provider:route.limit] the route of scene %d kind %d has more than the %d nodes the route parser holds", key->scene, key->kind, ROUTE_NODES);
+		}
+
+		if (!all_finite (reply.points, 3))
+		{
+			debug_fatal ("host model: [model-provider:route.node] the host's node %d of scene %d kind %d is not finite", nodes, key->scene, key->kind);
+		}
+
+		route_positions[nodes].x = reply.points[0];
+		route_positions[nodes].y = reply.points[1];
+		route_positions[nodes].z = reply.points[2];
+
+#ifdef EECH_ROUTE_FIXTURE
+		eech_rf_host_node (nodes, &route_positions[nodes]);
+#endif
+
+		nodes++;
+	}
+
+	// the line faces, in order, packed into surfaces of one colour and polygon bit
+	faces = 0;
+	surfaces = 0;
+	in_surface = 0;
+
+	for (;;)
+	{
+		ask_route (CAMPAIGN_MODEL_ROUTE_FACE, key, faces, &reply, "route face");
+
+		if (reply.result == CAMPAIGN_MODEL_TRIANGLE_END)
+		{
+			break;
+		}
+
+		if (faces >= ROUTE_FACES)
+		{
+			debug_fatal ("host model: [model-provider:route.limit] the route of scene %d kind %d has more than %d line faces", key->scene, key->kind, ROUTE_FACES);
+		}
+
+		if ((reply.route_point[0] < 0) || (reply.route_point[0] >= nodes) || (reply.route_point[1] < 0) || (reply.route_point[1] >= nodes) ||
+			(reply.route_colour[0] < 0) || (reply.route_colour[0] > 255) || (reply.route_colour[1] < 0) || (reply.route_colour[1] > 255) ||
+			(reply.route_colour[2] < 0) || (reply.route_colour[2] > 255) || ((reply.route_polygons != FALSE) && (reply.route_polygons != TRUE)))
+		{
+			debug_fatal ("host model: [model-provider:route.face] the host's line face %d of scene %d kind %d is outside its route's %d nodes or the colour / polygon domain", faces, key->scene, key->kind, nodes);
+		}
+
+		if ((surfaces == 0) || (in_surface == ROUTE_SURFACE_FACES) || (route_surfaces[surfaces - 1].red != reply.route_colour[0]) ||
+			(route_surfaces[surfaces - 1].green != reply.route_colour[1]) || (route_surfaces[surfaces - 1].blue != reply.route_colour[2]) ||
+			(route_surfaces[surfaces - 1].polygons != reply.route_polygons))
+		{
+			memset (&route_surfaces[surfaces], 0, sizeof (route_surfaces[surfaces]));
+
+			route_surfaces[surfaces].polygons = reply.route_polygons;
+			route_surfaces[surfaces].red = (unsigned char) reply.route_colour[0];
+			route_surfaces[surfaces].green = (unsigned char) reply.route_colour[1];
+			route_surfaces[surfaces].blue = (unsigned char) reply.route_colour[2];
+
+			surfaces++;
+			in_surface = 0;
+		}
+
+		// the face-local references of a surface count from its first face; the references of every surface are stored back to back, so the surface's run of
+		// surface points begins where the previous surface's ended (the parse advances by the surface's point count, 0 meaning 256)
+		route_face_references[2 * faces].point = (unsigned char) (2 * in_surface);
+		route_face_references[2 * faces + 1].point = (unsigned char) (2 * in_surface + 1);
+		route_surface_points[2 * faces].point = (unsigned short) reply.route_point[0];
+		route_surface_points[2 * faces + 1].point = (unsigned short) reply.route_point[1];
+
+		in_surface++;
+		route_surfaces[surfaces - 1].number_of_faces = (unsigned short) in_surface;
+		route_surfaces[surfaces - 1].number_of_points = (unsigned char) ((2 * in_surface == 256) ? 0 : 2 * in_surface);
+
+#ifdef EECH_ROUTE_FIXTURE
+		eech_rf_host_face (faces, reply.route_point[0], reply.route_point[1], reply.route_colour[0], reply.route_colour[1], reply.route_colour[2], reply.route_polygons);
+#endif
+
+		faces++;
+	}
+
+	memset (&route_object, 0, sizeof (route_object));
+
+	route_object.number_of_points = (unsigned short) nodes;
+	route_object.number_of_faces = (unsigned short) faces;
+	route_object.number_of_surfaces = (unsigned short) surfaces;
+	route_object.surfaces = route_surfaces;
+	route_object.surface_points = route_surface_points;
+	route_object.object_faces_point_plain_list = route_face_references;
+
+	route_loaded_nodes = nodes;
+
+#ifdef EECH_ROUTE_FIXTURE
+	eech_rf_host_counts (nodes, surfaces, faces);
+#endif
+
+	return &route_object;
+}
+
+void campaign_model_route_position (int node, vec3d *position)
+{
+	if ((node < 0) || (node >= route_loaded_nodes) || (!position))
+	{
+		debug_fatal ("host model: [model-provider:route.node] the route parser read node %d of the %d the host gave", node, route_loaded_nodes);
+	}
+
+	*position = route_positions[node];
+}
+
 #ifdef EECH_MODEL_HOST_FIXTURE
 // TEST-ONLY (feature model-host-fixture): overwrites every campaign-side array the four ORIGINAL accessors read, so that a read of any of them gives a visibly wrong
 // answer (NaN bounds and radius; a collision object index that is outside the object table). The campaign then runs on host answers alone: if an accessor, or code

@@ -8,7 +8,7 @@
 //!
 //! No pointer, offset or legacy layout reaches Lua; the store is immutable and shared (`Arc`), so a value a script keeps never refers into it. Arguments are whole
 //! numbers within range or the call is refused before the store is touched. A missing asset is reported as `NOT RUN`, never as a pass.
-use crate::models::{hex_list, scene_last, ErrorKind, ModelStore, ObjectSource, SceneSource, Triangle};
+use crate::models::{hex_list, scene_last, ErrorKind, ModelStore, ObjectSource, RouteFace, RouteNode, SceneSource, Triangle};
 use crate::original_report;
 use mlua::prelude::*;
 use serde_json::Value;
@@ -60,6 +60,47 @@ fn triangle_table(lua: &Lua, answer: &Triangle) -> LuaResult<LuaTable> {
         Triangle::End => table.set("result", "end")?,
         Triangle::Absent => table.set("result", "absent")?,
         Triangle::Refused(reason) => {
+            table.set("result", "refused")?;
+            table.set("reason", *reason)?;
+        }
+    }
+    Ok(table)
+}
+
+/// A route node cursor step, as the provider contract carries it: the three float bit patterns, the end, the absence or a refusal.
+fn route_node_table(lua: &Lua, answer: &RouteNode) -> LuaResult<LuaTable> {
+    let table = lua.create_table()?;
+    match answer {
+        RouteNode::Found(bits) => {
+            table.set("result", "node")?;
+            table.set("p", hex_list(bits))?;
+        }
+        RouteNode::End => table.set("result", "end")?,
+        RouteNode::Absent => table.set("result", "absent")?,
+        RouteNode::Refused(reason) => {
+            table.set("result", "refused")?;
+            table.set("reason", *reason)?;
+        }
+    }
+    Ok(table)
+}
+
+/// A route line-face cursor step: the two node indices, the surface's colour and polygon bit, the end, the absence or a refusal.
+fn route_face_table(lua: &Lua, answer: &RouteFace) -> LuaResult<LuaTable> {
+    let table = lua.create_table()?;
+    match answer {
+        RouteFace::Found { point, colour, polygons } => {
+            table.set("result", "face")?;
+            table.set("point0", point[0])?;
+            table.set("point1", point[1])?;
+            table.set("red", colour[0])?;
+            table.set("green", colour[1])?;
+            table.set("blue", colour[2])?;
+            table.set("polygons", *polygons)?;
+        }
+        RouteFace::End => table.set("result", "end")?,
+        RouteFace::Absent => table.set("result", "absent")?,
+        RouteFace::Refused(reason) => {
             table.set("result", "refused")?;
             table.set("reason", *reason)?;
         }
@@ -147,6 +188,20 @@ impl LuaUserData for StoreHandle {
             let answer = this.0.triangle(scene, depth).map_err(query_error)?;
             triangle_table(lua, &answer)
         });
+        methods.add_method("route_node", |lua, this, (scene, kind, index): (LuaValue, LuaValue, LuaValue)| {
+            let scene = whole(&scene, "scene", i64::MIN / 2, i64::MAX / 2)?;
+            let kind = whole(&kind, "kind", i64::MIN / 2, i64::MAX / 2)?;
+            let index = whole(&index, "index", i64::MIN / 2, i64::MAX / 2)?;
+            let answer = this.0.route_node(scene, kind, index).map_err(query_error)?;
+            route_node_table(lua, &answer)
+        });
+        methods.add_method("route_face", |lua, this, (scene, kind, index): (LuaValue, LuaValue, LuaValue)| {
+            let scene = whole(&scene, "scene", i64::MIN / 2, i64::MAX / 2)?;
+            let kind = whole(&kind, "kind", i64::MIN / 2, i64::MAX / 2)?;
+            let index = whole(&index, "index", i64::MIN / 2, i64::MAX / 2)?;
+            let answer = this.0.route_face(scene, kind, index).map_err(query_error)?;
+            route_face_table(lua, &answer)
+        });
         methods.add_method("compare_original", |lua, this, path: String| {
             let report = compare_original(&this.0, Path::new(&path)).map_err(|e| LuaError::runtime(format!("model store: compare_original: {e}")))?;
             let t = lua.create_table()?;
@@ -196,8 +251,12 @@ fn provider_number(value: Option<LuaValue>, name: &str, operation: &str) -> LuaR
 /// The reference host's answer to one model question of the campaign (aphavoc/.../mb_hostmodel.h; the Lua contract is `call_model` in eech-dc/src/module.rs): the host's own
 /// store, answered with the original accessors' numbers as exact bit patterns. Scene 0 is the null scene (the invalid object index): the zeroed entry the original kept for
 /// it, which the campaign asks for like any other.
-fn model_answer(lua: &Lua, store: &ModelStore, operation: &str, scene: Option<i64>, depth: Option<i64>) -> LuaResult<LuaTable> {
+fn model_answer(lua: &Lua, store: &ModelStore, operation: &str, scene: Option<i64>, depth: Option<i64>, kind: Option<i64>) -> LuaResult<LuaTable> {
     let fail = |message: String| LuaError::runtime(format!("[model-provider:{operation}.request] {message}"));
+    // only the route questions carry a sub-object kind
+    if kind.is_some() && !matches!(operation, "route_node" | "route_face") {
+        return Err(fail("only a route question has a kind".into()));
+    }
     let table = lua.create_table()?;
     match operation {
         "catalogue" => {
@@ -242,6 +301,20 @@ fn model_answer(lua: &Lua, store: &ModelStore, operation: &str, scene: Option<i6
             let depth = depth.ok_or_else(|| fail("a triangle question needs a depth".into()))?;
             return triangle_table(lua, &store.triangle(scene, depth).map_err(|e| fail(e.to_string()))?);
         }
+        // A route question is about the route object of a scene and the sub-object kind the campaign's own hierarchy lookup selected; `depth` is the cursor (the node or
+        // face index). The reply names the kind (the compiled sub-object name) so that host and campaign mean the same kind by the same number, as the scene name does.
+        "route_node" | "route_face" => {
+            let scene = scene.ok_or_else(|| fail("a route question needs a scene".into()))?;
+            let kind = kind.ok_or_else(|| fail("a route question needs a kind".into()))?;
+            let index = depth.ok_or_else(|| fail("a route question needs a cursor (the depth argument)".into()))?;
+            let table = if operation == "route_node" {
+                route_node_table(lua, &store.route_node(scene, kind, index).map_err(|e| fail(e.to_string()))?)?
+            } else {
+                route_face_table(lua, &store.route_face(scene, kind, index).map_err(|e| fail(e.to_string()))?)?
+            };
+            table.set("name", crate::models::compiled_subobject_name(kind as usize).unwrap_or(""))?;
+            return Ok(table);
+        }
         other => return Err(fail(format!("unknown question {other:?}"))),
     }
     Ok(table)
@@ -258,10 +331,11 @@ local function whole(v, name, op)
 		error('[model-provider:' .. tostring(op) .. '.request] ' .. name .. ' must be a whole number', 0)
 	end
 end
-return function(op, scene, depth)
+return function(op, scene, depth, kind)
 	whole(scene, 'scene', op)
 	whole(depth, 'depth', op)
-	return inner(op, scene, depth)
+	whole(kind, 'kind', op)
+	return inner(op, scene, depth, kind)
 end
 "#;
 
@@ -280,21 +354,24 @@ pub fn register(lua: &Lua, host: &LuaTable) -> LuaResult<()> {
     // model assets refuses the boot with `NOT RUN: model assets absent`, never an empty database.
     let args: LuaTable = host.get("args")?;
     let shared: Rc<RefCell<Option<Arc<ModelStore>>>> = Rc::new(RefCell::new(None));
-    let lazy = lua.create_function(move |lua, (operation, scene, depth): (String, Option<LuaValue>, Option<LuaValue>)| {
-        let store = {
-            let mut slot = shared.borrow_mut();
-            if slot.is_none() {
-                let root: String = args
-                    .get::<Option<String>>("root")?
-                    .ok_or_else(|| LuaError::runtime("[model-provider:load] host.model needs root=<installation root> in the host arguments"))?;
-                *slot = Some(load_store(&root)?);
-            }
-            slot.clone().ok_or_else(|| LuaError::runtime("[model-provider:load] no store"))?
-        };
-        let scene = provider_number(scene, "scene", &operation)?;
-        let depth = provider_number(depth, "depth", &operation)?;
-        model_answer(lua, &store, &operation, scene, depth)
-    })?;
+    let lazy = lua.create_function(
+        move |lua, (operation, scene, depth, kind): (String, Option<LuaValue>, Option<LuaValue>, Option<LuaValue>)| {
+            let store = {
+                let mut slot = shared.borrow_mut();
+                if slot.is_none() {
+                    let root: String = args
+                        .get::<Option<String>>("root")?
+                        .ok_or_else(|| LuaError::runtime("[model-provider:load] host.model needs root=<installation root> in the host arguments"))?;
+                    *slot = Some(load_store(&root)?);
+                }
+                slot.clone().ok_or_else(|| LuaError::runtime("[model-provider:load] no store"))?
+            };
+            let scene = provider_number(scene, "scene", &operation)?;
+            let depth = provider_number(depth, "depth", &operation)?;
+            let kind = provider_number(kind, "kind", &operation)?;
+            model_answer(lua, &store, &operation, scene, depth, kind)
+        },
+    )?;
     host.set("model", strict(lua, lazy)?)?;
     // host.model_provider (store): the same provider over a store the script already loaded with host.model_store (shared, immutable), for a script that wraps or
     // replaces the reference host's answers.
@@ -303,11 +380,14 @@ pub fn register(lua: &Lua, host: &LuaTable) -> LuaResult<()> {
         lua.create_function(|lua, store: LuaAnyUserData| {
             let handle = store.borrow::<StoreHandle>()?;
             let store = handle.0.clone();
-            let inner = lua.create_function(move |lua, (operation, scene, depth): (String, Option<LuaValue>, Option<LuaValue>)| {
-                let scene = provider_number(scene, "scene", &operation)?;
-                let depth = provider_number(depth, "depth", &operation)?;
-                model_answer(lua, &store, &operation, scene, depth)
-            })?;
+            let inner = lua.create_function(
+                move |lua, (operation, scene, depth, kind): (String, Option<LuaValue>, Option<LuaValue>, Option<LuaValue>)| {
+                    let scene = provider_number(scene, "scene", &operation)?;
+                    let depth = provider_number(depth, "depth", &operation)?;
+                    let kind = provider_number(kind, "kind", &operation)?;
+                    model_answer(lua, &store, &operation, scene, depth, kind)
+                },
+            )?;
             strict(lua, inner)
         })?,
     )
