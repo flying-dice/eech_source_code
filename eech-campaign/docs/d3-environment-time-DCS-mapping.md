@@ -90,7 +90,9 @@ not change the reference provider, EECH World's default behaviour or any baselin
 
 Imports happen at session creation (`ss_creat.c`, after the attributes), after any write through the weather float, int or vector setters (`ss_float.c`, `ss_int.c`, `ss_vec3d.c`) and after a session unpack
 (`ss_pack.c`); an export precedes every pack. The original `init_fixed_impl` (`env_ref.c`) changes only `local_weather_model = FALSE`, `weather_mode = target_weather_mode = mode` and the transitional status `0`; it leaves
-every wind and zone field alone, and the **reference `step` still evolves the wind zone, the gust phase and the lightning timer**. So the reference `init_fixed` and `step` are **not** reused as "everything static".
+every wind and zone field alone. The **reference `step` still evolves the wind zone and the gust phase after `init_fixed`** (they sit outside the local/global weather branch); the lightning timer is decremented only
+in the **local** model branch, so after `init_fixed` has made the model global the reference step no longer evolves it. The reference `init_fixed` and `step` are therefore **not** reused as "everything static":
+the planned frozen F(M) step below is a separate provider behaviour.
 
 ### 3.2 The authored contract K (illustrative; not a schema, not read by any code, not a captured mission)
 
@@ -145,9 +147,12 @@ configured campaign weather: GOOD = DRY, FAIR = LIGHT_RAIN, POOR = SNOW in winte
 `local_weather_model`. That setting is `session_campaign_weather` (free flight: `session_free_flight_weather`) in the binary `game.cfg` that `boot` loads from the `cohokum` directory (`load_global_options_data`);
 its default is RANDOM (`global.c`), and no engine config field, argument or INI key in this source sets it.
 
-**The existing route** that permits a configured fixed weather equal to M is therefore: a `game.cfg` in the installation's `cohokum` directory whose campaign weather is GOOD / FAIR / POOR for M = DRY / LIGHT_RAIN /
-HEAVY_RAIN (winter off) or SNOW (winter on, the engine config's `winter`). No code change is needed; producing that file is a packaging step (the game's own options screen writes it). There is **no first-class boot control**
-for it, and this plan adds none.
+**The request sequences that reach a fixed weather equal to M** (the provider sees only `init_fixed (mode)`; it cannot tell which source caused it, and the plan adds no separate configuration pre-validation, boot
+control or restriction): (a) a campaign file whose rain tag is 0 calls `init_fixed (DRY)` (`parsgen.c`), which is compatible when M = DRY; (b) the configured campaign weather GOOD / FAIR / POOR calls
+`init_fixed` with DRY / LIGHT_RAIN / HEAVY_RAIN (winter off) or SNOW (winter on, the engine config's `winter`), compatible when it equals M. Either source is enough. Once any compatible fixed request has been
+answered the mirror says `local_weather_model = FALSE`, so a RANDOM or missing `game.cfg` (the default is RANDOM) issues **no** later `init_random`: with M = DRY and rain tag 0 such a boot reaches STATIC and is
+accepted. A RANDOM or missing `game.cfg` fails **only when neither source has established a compatible fixed sequence**. No code change is needed; where the configured source is wanted, producing the `game.cfg` is a
+packaging step (the game's own options screen writes it) and there is no first-class boot control for it.
 
 **The exact obstacle to "init_random refuses".** The first `init_random` is made by the Core at every parser boot, before any configured fixed weather exists, so refusing every `init_random` would refuse every campaign
 boot. The plan therefore does **not** turn that request into static data silently:
@@ -156,9 +161,9 @@ boot. The plan therefore does **not** turn that request into static data silentl
 | --- | --- | --- |
 | first `import` | accept only if bitwise equal to C0 (28 values by bit pattern); P := C0, phase BOOT. Anything else, including a session created with attributes, is refused `[env-weather:import_not_creation_default]` | acknowledgement; mirror unchanged |
 | first `init_random` (phase BOOT, P = C0) | a **no-effect** request: the Core's draws are made and ignored (shared-random order unchanged); answers **C0 unchanged** and arms the requirement below | state reply C0: the first mirror refresh, identical to what it already holds |
-| any other `init_random` (a second one, or P != C0) | refused `[env-weather:random_weather]`. This is what a configured RANDOM setting produces: the mirror still says local model, so the Core asks again | none |
+| any other `init_random` (a second one, or P != C0) | refused `[env-weather:random_weather]`. This is what a RANDOM setting produces **only when no earlier compatible fixed request made the model global**: the mirror then still says local model, so the Core asks again; a wrong-mode fixed request and an actual later `init_random` always refuse | none |
 | `init_fixed (m)` | `m` must equal M, else refused `[env-weather:fixed_mode_mismatch]`; each fixed request (the file's rain tag and the configured setting) is checked on its own, so a file with rain tag 0 needs M = DRY; answers F(M); P := F(M), phase STATIC | state reply F(M): the mirror is now F(M) |
-| `weather`, `wind`, `gust`, `ambient`, `step`, `export`, `lightning_*` before phase STATIC | refused `[env-weather:fixed_weather_not_applied]` (covers a RANDOM setting that never sent a fixed request) | none |
+| `weather`, `wind`, `gust`, `ambient`, `step`, `export`, `lightning_*` before phase STATIC | refused `[env-weather:fixed_weather_not_applied]` (covers a boot where neither the campaign file nor the configured setting sent a compatible fixed request, for example a RANDOM or missing `game.cfg` without rain tag 0) | none |
 | later `import` (setter, unpack, load) | accepted only if bitwise equal to P, else refused `[env-weather:import_mismatch]` | acknowledgement only; it never rewrites the mirror |
 | `export` | F(M) | state reply: refreshes the mirror |
 | `weather {x,z}` | `current = target = simple = M`, `transitional_state = 0`, global (non-local) | none |
@@ -167,8 +172,8 @@ boot. The plan therefore does **not** turn that request into static data silentl
 | `lightning_add` | refused `[env-weather:unsupported_strike]`: nothing in the static plan creates a strike (S: strikes come only from a step expiry), so a request means the world is not static | none |
 | `lightning_update` | answers the empty queue (no slot in use) | queue mirror stays empty |
 
-No operation of the vocabulary can load a non-empty queue (`import` carries only the 28 fields, S); one that did would be refused. This says nothing about whether DCS has a lightning API. A missing `game.cfg`
-or a RANDOM setting ends in a refusal at the first question, never in a substituted answer. The existing reference queue and lifetime implementations stay unchanged.
+No operation of the vocabulary can load a non-empty queue (`import` carries only the 28 fields, S); one that did would be refused. This says nothing about whether DCS has a lightning API. A boot with no compatible fixed request
+(a RANDOM or missing `game.cfg` and no rain tag 0, or a different mode) ends in a refusal, never in a substituted answer. The existing reference queue and lifetime implementations stay unchanged.
 
 ### 3.5 What is and is not an observation
 
@@ -178,8 +183,8 @@ real weather differs from M will look different from what the campaign believes:
 ### 3.6 Native questions, kept separate from the choices above (none answered here)
 
 (U) Is `env.mission` readable in the mission scripting state and unchanged after load; do the paired fields have the value types the generated shape declares; is `static = true` true of a real mission, and what a
-mission-authored weather change would do to it; the numeric meaning of `type_weather`, `atmosphere_type`, `clouds.iprecptns`; units of `clouds.base`/`thickness`. The boot, second-mission, save, client-import
-and `game.cfg`-absent matrix (each of the rows of the table above, against a real boot) is the M6 check of this section. No enum is interpreted and no comment is treated as evidence.
+mission-authored weather change would do to it; the numeric meaning of `type_weather`, `atmosphere_type`, `clouds.iprecptns`; units of `clouds.base`/`thickness`. The M6 check of this section is the restricted outcomes of the table above against a real boot, as each source of the
+fixed sequence (rain tag, configured setting, neither) and as each accepted or refused import; it does not imply general reload, second-mission, save or client-state support, which succeed only where the table accepts them. No enum is interpreted and no comment is treated as evidence.
 
 ## 4. Wind and ambient: one observation plane
 
@@ -256,7 +261,7 @@ M5 asks for reviewed calls and a workaround plan, not a live campaign. The plann
 
 1. **Time:** pause, accelerated and stalled callbacks; fractional-ms carry and integer rounding; mission end teardown; a second mission; no double advancement; track replay. The adapter's own cadence and refusal policy is a
    separate design to be validated.
-2. **Weather contract:** `env.mission` availability and stability; the pairing against a real mission; whether `static = true` holds; the boot / second-mission / save / client-import / absent-`game.cfg` matrix of
+2. **Weather contract:** `env.mission` availability and stability; the pairing against a real mission; whether `static = true` holds; the restricted boot outcomes (rain tag, configured setting, neither; accepted and refused imports, no general reload or client-state support implied) of
    section 3.4 against a real boot.
 3. **Wind and ambient:** `Vec3` axes and units at `h + 10` m, steady character, ground behaviour, float32 precision, and the horizontal mapping.
 4. **Backend:** the host's availability answer and sample descriptors in a DCS host.
