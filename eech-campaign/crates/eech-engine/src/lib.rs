@@ -11515,7 +11515,10 @@ mod tests {
             Ok(SoundBackendReply { available: false })
         });
         assert_eq!(backend_cross(Some(provider), 1, 1, 1, 0).0, 0);
-        assert_eq!((seen.borrow()[0].no_sound, seen.borrow()[0].dedicated, seen.borrow()[0].load_samples), (true, true, false));
+        assert_eq!(
+            (seen.borrow()[0].no_sound, seen.borrow()[0].dedicated, seen.borrow()[0].load_samples),
+            (true, true, false)
+        );
     }
 
     #[test]
@@ -11557,9 +11560,8 @@ mod tests {
     /// The real C `campaign_sound_backend` (ss_hostenv.c) against a C host function. The process-global host is shared by these tests, so they take turns.
     #[repr(C)]
     struct CampaignSoundBackendHost {
-        backend: Option<
-            unsafe extern "C" fn(*const sys::eech_sound_backend_request, *mut sys::eech_sound_backend_reply, *mut c_char, usize, *mut c_void) -> c_int,
-        >,
+        backend:
+            Option<unsafe extern "C" fn(*const sys::eech_sound_backend_request, *mut sys::eech_sound_backend_reply, *mut c_char, usize, *mut c_void) -> c_int>,
         user: *mut c_void,
     }
 
@@ -11589,7 +11591,10 @@ mod tests {
         // SAFETY: the C side passes a readable request and a writable reply for the call.
         let (request, reply) = unsafe { (&*request, &mut *reply) };
         BACKEND_CALLS.fetch_add(1, Ordering::SeqCst);
-        for (slot, value) in BACKEND_SEEN.iter().zip([request.phase, request.no_sound, request.dedicated, request.load_samples]) {
+        for (slot, value) in BACKEND_SEEN
+            .iter()
+            .zip([request.phase, request.no_sound, request.dedicated, request.load_samples])
+        {
             slot.store(value, Ordering::SeqCst);
         }
         match BACKEND_MODE.load(Ordering::SeqCst) {
@@ -11627,7 +11632,11 @@ mod tests {
         assert_eq!(enabled, 0);
         assert_eq!(BACKEND_CALLS.load(Ordering::SeqCst), 1, "the campaign asks the host once");
         let seen: Vec<c_int> = BACKEND_SEEN.iter().map(|slot| slot.load(Ordering::SeqCst)).collect();
-        assert_eq!(seen, [1, 0, 0, 1], "phase, no_sound, dedicated and the intent to load, as the campaign had them");
+        assert_eq!(
+            seen,
+            [1, 0, 0, 1],
+            "phase, no_sound, dedicated and the intent to load, as the campaign had them"
+        );
     }
 
     // The refusals end in debug_fatal, and outside an engine entry that aborts the process (there is no jump target). So each refusal runs in a CHILD process: the test binary re-runs this test with the case in the
@@ -11658,7 +11667,9 @@ mod tests {
                 println!("NOT_REFUSED {enabled}");
                 return;
             }
-            let Ok(exe) = std::env::current_exe() else { panic!("no test executable to re-run") };
+            let Ok(exe) = std::env::current_exe() else {
+                panic!("no test executable to re-run")
+            };
             for (case, marker) in CASES {
                 let output = std::process::Command::new(&exe)
                     .args([
@@ -11673,7 +11684,10 @@ mod tests {
                 let said = format!("{}{}", String::from_utf8_lossy(&output.stdout), String::from_utf8_lossy(&output.stderr));
                 assert!(!said.contains("NOT_REFUSED"), "case {case}: the campaign accepted a refused answer:\n{said}");
                 assert!(!output.status.success(), "case {case}: the child did not stop at the refusal:\n{said}");
-                assert!(said.contains("host sound backend:") && said.contains(marker), "case {case}: no `{marker}` refusal in:\n{said}");
+                assert!(
+                    said.contains("host sound backend:") && said.contains(marker),
+                    "case {case}: no `{marker}` refusal in:\n{said}"
+                );
             }
         }
     }

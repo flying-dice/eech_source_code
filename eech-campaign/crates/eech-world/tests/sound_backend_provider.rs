@@ -30,7 +30,12 @@ const REQUEST: &str = "{ op = 'sound_backend', phase = 'initialise', no_sound = 
 fn the_headless_reference_host_answers_that_no_backend_is_available_and_nothing_else() {
     let lua = Lua::new();
     let provider = make_provider(&lua).expect("a provider");
-    for flags in ["no_sound = false, dedicated = false", "no_sound = true, dedicated = false", "no_sound = false, dedicated = true", "no_sound = true, dedicated = true"] {
+    for flags in [
+        "no_sound = false, dedicated = false",
+        "no_sound = true, dedicated = false",
+        "no_sound = false, dedicated = true",
+        "no_sound = true, dedicated = true",
+    ] {
         let request = format!("{{ op = 'sound_backend', phase = 'initialise', {flags}, load_samples = true }}");
         let answer = ask(&lua, &provider, &request).expect("a valid request is answered");
         assert_eq!(answer.get::<LuaValue>("available").expect("a field"), LuaValue::Boolean(false), "{flags}");
@@ -67,11 +72,31 @@ fn a_request_that_is_not_the_campaigns_is_refused_by_name() {
             "{ op = 'sound_backend', phase = 'shutdown', no_sound = false, dedicated = false, load_samples = true }",
             "phase must be",
         ),
-        ("no phase", "{ op = 'sound_backend', no_sound = false, dedicated = false, load_samples = true }", "phase must be"),
-        ("a number as the phase", "{ op = 'sound_backend', phase = 1, no_sound = false, dedicated = false, load_samples = true }", "phase must be"),
-        ("no_sound that is not a boolean", "{ op = 'sound_backend', phase = 'initialise', no_sound = 0, dedicated = false, load_samples = true }", "no_sound must be a boolean"),
-        ("dedicated missing", "{ op = 'sound_backend', phase = 'initialise', no_sound = false, load_samples = true }", "dedicated must be a boolean"),
-        ("load_samples that is a string", "{ op = 'sound_backend', phase = 'initialise', no_sound = false, dedicated = false, load_samples = 'yes' }", "load_samples must be a boolean"),
+        (
+            "no phase",
+            "{ op = 'sound_backend', no_sound = false, dedicated = false, load_samples = true }",
+            "phase must be",
+        ),
+        (
+            "a number as the phase",
+            "{ op = 'sound_backend', phase = 1, no_sound = false, dedicated = false, load_samples = true }",
+            "phase must be",
+        ),
+        (
+            "no_sound that is not a boolean",
+            "{ op = 'sound_backend', phase = 'initialise', no_sound = 0, dedicated = false, load_samples = true }",
+            "no_sound must be a boolean",
+        ),
+        (
+            "dedicated missing",
+            "{ op = 'sound_backend', phase = 'initialise', no_sound = false, load_samples = true }",
+            "dedicated must be a boolean",
+        ),
+        (
+            "load_samples that is a string",
+            "{ op = 'sound_backend', phase = 'initialise', no_sound = false, dedicated = false, load_samples = 'yes' }",
+            "load_samples must be a boolean",
+        ),
     ] {
         let error = match ask(&lua, &provider, request) {
             Ok(_) => panic!("{label}: the request was answered"),

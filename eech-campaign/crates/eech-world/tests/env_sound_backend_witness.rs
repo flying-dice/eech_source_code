@@ -24,7 +24,11 @@ struct Scratch(PathBuf);
 
 impl Scratch {
     fn new() -> Self {
-        let dir = std::env::temp_dir().join(format!("eech-sound-backend-witness-{}-{}", std::process::id(), COUNTER.fetch_add(1, Ordering::SeqCst)));
+        let dir = std::env::temp_dir().join(format!(
+            "eech-sound-backend-witness-{}-{}",
+            std::process::id(),
+            COUNTER.fetch_add(1, Ordering::SeqCst)
+        ));
         std::fs::create_dir_all(&dir).expect("a scratch directory");
         Scratch(dir)
     }
@@ -136,7 +140,11 @@ end
         .exec()
         .expect("a fault in the read-back");
     }
-    let result = lua.load(WITNESS).set_name("env-sound-backend-host-witness.lua").exec().map_err(|e| e.to_string());
+    let result = lua
+        .load(WITNESS)
+        .set_name("env-sound-backend-host-witness.lua")
+        .exec()
+        .map_err(|e| e.to_string());
     let record = std::fs::read_to_string(work.path("environment.jsonl.authority.jsonl"))
         .ok()
         .and_then(|text| serde_json::from_str(text.trim()).ok());
@@ -164,7 +172,13 @@ fn healthy_shows_the_hosts_answer_one_request_and_no_campaign_device_call() {
     assert_eq!(verdict(&run), "host_asked_and_decided");
     let record = run.record.as_ref().expect("the record");
     assert_eq!(
-        (record["requests"].as_i64(), record["altered"].as_i64(), record["withdrawals"].as_i64(), record["base_errors"].as_i64(), record["mode"].as_str()),
+        (
+            record["requests"].as_i64(),
+            record["altered"].as_i64(),
+            record["withdrawals"].as_i64(),
+            record["base_errors"].as_i64(),
+            record["mode"].as_str()
+        ),
         (Some(1), Some(0), Some(0), Some(0), Some("healthy"))
     );
     assert!(record["delegate"].as_str().is_some_and(|path| path.ends_with("campaign.lua")), "{record}");
@@ -183,11 +197,17 @@ fn a_campaign_that_never_asks_the_host_fails_with_the_named_capability_verdict()
 fn a_campaign_that_asks_but_still_calls_the_device_or_stores_another_flag_does_not_show_ownership() {
     let device = run(&[("behaviour", "core_device_call")]);
     let error = failure(&device);
-    assert!(error.contains("ownership-not-shown") && error.contains("core_DirectSoundCreate_calls expected 0 observed 1"), "{error}");
+    assert!(
+        error.contains("ownership-not-shown") && error.contains("core_DirectSoundCreate_calls expected 0 observed 1"),
+        "{error}"
+    );
     assert_eq!(verdict(&device), "ownership_not_shown");
     let flag = run(&[("behaviour", "stored_flag_differs")]);
     let error = failure(&flag);
-    assert!(error.contains("ownership-not-shown") && error.contains("enabled_backend expected 0 observed 1"), "{error}");
+    assert!(
+        error.contains("ownership-not-shown") && error.contains("enabled_backend expected 0 observed 1"),
+        "{error}"
+    );
 }
 
 #[test]
@@ -201,7 +221,12 @@ fn an_available_withheld_or_malformed_answer_stops_the_campaign_at_its_own_bound
         // identified as the witness's OWN: one withdrawal (withheld) or one altered answer (the others), and the reference provider raised nothing before it
         let (withdrawals, altered) = if mode == "withheld" { (1, 0) } else { (0, 1) };
         assert_eq!(
-            (record["requests"].as_i64(), record["withdrawals"].as_i64(), record["altered"].as_i64(), record["base_errors"].as_i64()),
+            (
+                record["requests"].as_i64(),
+                record["withdrawals"].as_i64(),
+                record["altered"].as_i64(),
+                record["base_errors"].as_i64()
+            ),
             (Some(1), Some(withdrawals), Some(altered), Some(0)),
             "{mode}"
         );

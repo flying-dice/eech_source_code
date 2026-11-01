@@ -1030,7 +1030,10 @@ fn sound_backend_provider(lua: &Lua, function: LuaFunction) -> SoundBackendProvi
     Box::new(move |request: &SoundBackendRequest| -> Result<SoundBackendReply, String> {
         let callback = |error: LuaError| format!("[sound-backend-provider:callback] {error}");
         if request.phase != SOUND_BACKEND_PHASE_INITIALISE {
-            return Err(format!("[sound-backend-provider:request] the phase {} is not the initialisation", request.phase));
+            return Err(format!(
+                "[sound-backend-provider:request] the phase {} is not the initialisation",
+                request.phase
+            ));
         }
         let table = lua.create_table().map_err(callback)?;
         table.set("op", "sound_backend").map_err(callback)?;

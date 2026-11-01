@@ -1308,7 +1308,12 @@ fn backend_hosted(report: &str) -> String {
     let mut out = String::new();
     let mut asked = 0;
     for line in report.lines() {
-        let field = |key: &str| line.split(' ').find_map(|token| token.strip_prefix(&format!("{key}="))).and_then(|value| value.parse::<i64>().ok()).unwrap_or(0);
+        let field = |key: &str| {
+            line.split(' ')
+                .find_map(|token| token.strip_prefix(&format!("{key}=")))
+                .and_then(|value| value.parse::<i64>().ok())
+                .unwrap_or(0)
+        };
         if line.starts_with("env-sndinit-boot ") {
             asked = field("backend");
         }
@@ -1320,7 +1325,10 @@ fn backend_hosted(report: &str) -> String {
         out += line;
         out += "\n";
         if line.starts_with("env-sndinit-host-answer ") {
-            out += &format!("env-sndinit-host-backend n={} source=host_reply_mirror answers={asked} available=0\n", field("n"));
+            out += &format!(
+                "env-sndinit-host-backend n={} source=host_reply_mirror answers={asked} available=0\n",
+                field("n")
+            );
         }
     }
     out
@@ -1358,7 +1366,9 @@ fn the_backend_driver_keeps_the_hosts_answer_the_campaigns_flag_and_its_device_c
         assert!(derived.get("directsound_last_entry_called").is_none());
         // the host's backend row is kept as it came
         assert!(
-            driven.raw.contains(&format!("env-sndinit-host-backend n=0 source=host_reply_mirror answers={answers} available=0")),
+            driven
+                .raw
+                .contains(&format!("env-sndinit-host-backend n=0 source=host_reply_mirror answers={answers} available=0")),
             "{}",
             driven.raw
         );
@@ -1368,11 +1378,15 @@ fn the_backend_driver_keeps_the_hosts_answer_the_campaigns_flag_and_its_device_c
 #[test]
 fn the_backend_driver_and_the_metadata_driver_each_refuse_the_others_report() {
     let backend = backend_hosted(&report(&backend_shape(false)));
-    let error = drive_host(&backend).result.expect_err("the metadata driver must not accept a report holding the host-backend row");
+    let error = drive_host(&backend)
+        .result
+        .expect_err("the metadata driver must not accept a report holding the host-backend row");
     assert!(error.starts_with("runtime error: env-sound-init-host:"), "{error}");
     // a metadata report: the campaign still called DirectSound and there is no host-backend row
     let metadata = hosted(&report(&backend_shape(false)));
-    let error = drive_backend(&metadata).result.expect_err("a campaign that still decides the backend itself is not a backend-hosted initialisation");
+    let error = drive_backend(&metadata)
+        .result
+        .expect_err("a campaign that still decides the backend itself is not a backend-hosted initialisation");
     assert!(error.starts_with("runtime error: env-sound-init-backend:"), "{error}");
 }
 
@@ -1385,21 +1399,45 @@ fn a_damaged_host_backend_row_a_device_call_or_a_stored_flag_that_is_not_the_hos
     for (label, text) in [
         ("the host-backend row missing", drop_rows(&good, "env-sndinit-host-backend")),
         ("the host asked twice", good.replace("answers=1 available=0", "answers=2 available=0")),
-        ("the host never asked where the campaign took the backend branch", good.replace("answers=1 available=0", "answers=0 available=0")),
-        ("the host asked where a flag skipped the backend branch", skipped.replace("answers=0 available=0", "answers=1 available=0")),
-        ("an available backend, which the campaign refuses by name", good.replace("answers=1 available=0", "answers=1 available=1")),
+        (
+            "the host never asked where the campaign took the backend branch",
+            good.replace("answers=1 available=0", "answers=0 available=0"),
+        ),
+        (
+            "the host asked where a flag skipped the backend branch",
+            skipped.replace("answers=0 available=0", "answers=1 available=0"),
+        ),
+        (
+            "an available backend, which the campaign refuses by name",
+            good.replace("answers=1 available=0", "answers=1 available=1"),
+        ),
         ("a flag that is not a flag", good.replace("answers=1 available=0", "answers=1 available=2")),
-        ("another source label", good.replace("source=host_reply_mirror answers=1 available", "source=core_observation answers=1 available")),
+        (
+            "another source label",
+            good.replace("source=host_reply_mirror answers=1 available", "source=core_observation answers=1 available"),
+        ),
         ("another ordinal", good.replace("env-sndinit-host-backend n=0", "env-sndinit-host-backend n=1")),
-        ("the campaign's stored flag not the host's answer", good.replace("enabled_backend=0", "enabled_backend=1")),
-        ("a module backend the campaign initialised itself", good.replace("initialised_backend=0", "initialised_backend=1")),
+        (
+            "the campaign's stored flag not the host's answer",
+            good.replace("enabled_backend=0", "enabled_backend=1"),
+        ),
+        (
+            "a module backend the campaign initialised itself",
+            good.replace("initialised_backend=0", "initialised_backend=1"),
+        ),
         (
             "a DirectSoundCreate call by the campaign",
-            good.replace("env-sndinit-com function=DirectSoundCreate calls=0", "env-sndinit-com function=DirectSoundCreate calls=1"),
+            good.replace(
+                "env-sndinit-com function=DirectSoundCreate calls=0",
+                "env-sndinit-com function=DirectSoundCreate calls=1",
+            ),
         ),
         (
             "a later DirectSound entry called by the campaign",
-            good.replace("env-sndinit-com function=IDirectSound_Release calls=0", "env-sndinit-com function=IDirectSound_Release calls=2"),
+            good.replace(
+                "env-sndinit-com function=IDirectSound_Release calls=0",
+                "env-sndinit-com function=IDirectSound_Release calls=2",
+            ),
         ),
     ] {
         let error = drive_backend(&text).result.expect_err(label);
