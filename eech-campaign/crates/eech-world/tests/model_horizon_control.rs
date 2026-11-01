@@ -180,7 +180,10 @@ fn the_healthy_residency_and_the_genuine_engine_stop_pass_and_nothing_is_asked_a
     assert_eq!(outcome.log, ["prepare", "select", "boot", "counters", "refusal"]);
     let text = outcome.written.expect("the output exists");
     assert!(text.contains("\"event\":\"residency\"") && text.contains("\"pass\":true"), "{text}");
-    assert!(text.contains("\"event\":\"done\"") && text.contains("\"complete\":true") && text.contains("\"reader_launched\":true"), "{text}");
+    assert!(
+        text.contains("\"event\":\"done\"") && text.contains("\"complete\":true") && text.contains("\"reader_launched\":true"),
+        "{text}"
+    );
 }
 
 #[test]
@@ -198,19 +201,30 @@ fn any_resident_buffer_or_an_empty_table_fails_the_residency_and_the_reader_is_n
         case.counters = counters(&text, HORIZON_OK);
         let outcome = run(&case);
         failure_in(what, &outcome, "residency");
-        assert!(!reader_launched(&outcome), "{what}: the reader was launched on invalid evidence: {:?}", outcome.log);
+        assert!(
+            !reader_launched(&outcome),
+            "{what}: the reader was launched on invalid evidence: {:?}",
+            outcome.log
+        );
         assert!(outcome.written.expect("the output exists").contains("\"reader_launched\":false"), "{what}");
     }
 }
 
 #[test]
 fn a_boot_that_took_no_cached_horizon_image_or_an_uncached_one_fails_and_the_reader_is_not_launched() {
-    for (what, horizon) in [("no image took the cache", "cached=0 uncached=0"), ("one image was uncached", "cached=31 uncached=1")] {
+    for (what, horizon) in [
+        ("no image took the cache", "cached=0 uncached=0"),
+        ("one image was uncached", "cached=31 uncached=1"),
+    ] {
         let mut case = healthy();
         case.counters = counters(RESIDENCY_OK, horizon);
         let outcome = run(&case);
         failure_in(what, &outcome, "cached horizon branch");
-        assert!(!reader_launched(&outcome), "{what}: the reader was launched on invalid evidence: {:?}", outcome.log);
+        assert!(
+            !reader_launched(&outcome),
+            "{what}: the reader was launched on invalid evidence: {:?}",
+            outcome.log
+        );
     }
 }
 
@@ -220,18 +234,33 @@ fn a_counters_report_that_is_not_the_exact_coherent_grammar_is_malformed_and_the
     let cases: Vec<(&str, String)> = vec![
         ("a missing horizon row", good.replace("model-core-horizon cached=32 uncached=0\n", "")),
         ("an extra row", format!("{good}model-core-extra x=1\n")),
-        ("a residency field out of order", good.replace("rows=11442 metadata_rows=10252", "metadata_rows=10252 rows=11442")),
+        (
+            "a residency field out of order",
+            good.replace("rows=11442 metadata_rows=10252", "metadata_rows=10252 rows=11442"),
+        ),
         ("a residency field missing", good.replace(" surface_points=0", "")),
         ("a leading zero", good.replace("points=0 faces", "points=00 faces")),
         ("a sign", good.replace("points=0 faces", "points=-0 faces")),
         ("a duplicated space", good.replace("rows=11442 metadata_rows", "rows=11442  metadata_rows")),
-        ("a first line that is not the counters row", good.replacen("model-host catalogue", "something else", 1)),
+        (
+            "a first line that is not the counters row",
+            good.replacen("model-host catalogue", "something else", 1),
+        ),
         ("a first row without its last field", good.replace(" presence_mismatches=147", "")),
-        ("a first row with a trailing field", good.replacen("presence_mismatches=147\n", "presence_mismatches=147 extra=1\n", 1)),
-        ("a first row with a garbage suffix", good.replacen("presence_mismatches=147\n", "presence_mismatches=147garbage\n", 1)),
+        (
+            "a first row with a trailing field",
+            good.replacen("presence_mismatches=147\n", "presence_mismatches=147 extra=1\n", 1),
+        ),
+        (
+            "a first row with a garbage suffix",
+            good.replacen("presence_mismatches=147\n", "presence_mismatches=147garbage\n", 1),
+        ),
         ("a first row with two fields swapped", good.replace("found=0 end=0", "end=0 found=0")),
         ("a first row field outside the C domain", good.replace("scene=3026", "scene=2147483648")),
-        ("presence mismatches above the presence checked", good.replace("presence_mismatches=147", "presence_mismatches=3027")),
+        (
+            "presence mismatches above the presence checked",
+            good.replace("presence_mismatches=147", "presence_mismatches=3027"),
+        ),
         ("more metadata rows than rows", good.replace("metadata_rows=10252", "metadata_rows=11443")),
         ("a buffer count above the rows", good.replace("points=0 faces=0", "points=11443 faces=0")),
         ("a residency count outside the C domain", good.replace("rows=11442", "rows=4294967296")),
@@ -242,7 +271,11 @@ fn a_counters_report_that_is_not_the_exact_coherent_grammar_is_malformed_and_the
         case.counters = text;
         let outcome = run(&case);
         failure_in(what, &outcome, "MALFORMED REPORT");
-        assert!(!reader_launched(&outcome), "{what}: the reader was called after a malformed report: {:?}", outcome.log);
+        assert!(
+            !reader_launched(&outcome),
+            "{what}: the reader was called after a malformed report: {:?}",
+            outcome.log
+        );
     }
 }
 
@@ -261,10 +294,16 @@ fn an_uncached_reader_that_returns_or_stops_with_anything_but_the_engine_owned_n
         ("another engine prefix", stop().replace("EECH fatal error", "EECH setup error")),
         ("the prefix twice", format!("{STOP_PREFIX}{}", stop())),
         ("a trailing addition", format!("{} while loading eech-fixture-no-such-horizon.tga", stop())),
-        ("another operation", stop().replace("add_3d_horizon_image (an uncached horizon image", "draw_3d_horizon (x")),
+        (
+            "another operation",
+            stop().replace("add_3d_horizon_image (an uncached horizon image", "draw_3d_horizon (x"),
+        ),
         ("another marker", stop().replace("object.geometry", "route.start")),
         ("a missing image file", "Unable to read the horizon file - not a 24bit image".to_string()),
-        ("a file error", "cannot open eech-fixture-no-such-horizon.tga: No such file or directory".to_string()),
+        (
+            "a file error",
+            "cannot open eech-fixture-no-such-horizon.tga: No such file or directory".to_string(),
+        ),
         ("a generic callback error", "runtime error: eech: a callback failed".to_string()),
     ];
     for (what, message) in cases {
@@ -289,14 +328,21 @@ fn arguments_are_refused_before_the_installation_is_prepared() {
         ("no root", vec![("out", "@OUT@")]),
         ("no out", vec![("root", "unused-root")]),
         ("an unknown argument", vec![("root", "unused-root"), ("out", "@OUT@"), ("frames", "1")]),
-        ("an unknown scenario", vec![("root", "unused-root"), ("out", "@OUT@"), ("scenario", "elsewhere")]),
+        (
+            "an unknown scenario",
+            vec![("root", "unused-root"), ("out", "@OUT@"), ("scenario", "elsewhere")],
+        ),
     ];
     for (what, args) in cases {
         let mut case = healthy();
         case.args = args;
         let outcome = run(&case);
         assert!(outcome.result.is_err(), "{what}");
-        assert!(outcome.log.is_empty(), "{what}: something ran before the arguments were refused: {:?}", outcome.log);
+        assert!(
+            outcome.log.is_empty(),
+            "{what}: something ran before the arguments were refused: {:?}",
+            outcome.log
+        );
     }
 }
 
@@ -340,7 +386,10 @@ fn the_expected_stop_is_the_text_the_staged_guard_and_the_core_helper_write() {
     assert!(PATCHES.contains(STOP_OPERATION), "build/patches.rs LU1 does not name {STOP_OPERATION:?}");
     // the marker and the fixed reason are the helper's format with only the operation filled in
     let format = format!("host model: {STOP_MARKER}%s{STOP_REASON}");
-    assert!(CORE_C.contains(&format), "mb_hostmodel.c campaign_model_geometry_reader does not write {format:?}");
+    assert!(
+        CORE_C.contains(&format),
+        "mb_hostmodel.c campaign_model_geometry_reader does not write {format:?}"
+    );
     // and the driver's whole expected line is those parts (the driver writes the reason as two literals joined with `..`)
     let (reason_a, reason_b) = STOP_REASON.split_at(STOP_REASON.find("which ").expect("the reason has two parts"));
     for part in [STOP_PREFIX, STOP_MARKER.trim_end(), STOP_OPERATION, reason_a, reason_b] {
