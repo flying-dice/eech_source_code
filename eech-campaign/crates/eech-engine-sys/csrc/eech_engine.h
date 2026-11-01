@@ -465,4 +465,15 @@ int eech_engine_cmb_events (char *text, int capacity, int *more);
 int eech_engine_ground_probe (uint32_t seed, int points, int impacts, char *text, int capacity);
 #endif
 
+#ifdef EECH_ROUTE_FIXTURE
+/*
+ * TEST-ONLY (feature route-fixture, EEDCS-50 D3): see eech_route_fixture.c. Not part of the shipping module.
+ * What the ORIGINAL airfield route parser read and produced while the campaign loaded, as `key=value` text lines. `eech_engine_route_summary` is the table sizes, the
+ * route-object lookups and a `route-complete` verdict; `eech_engine_route_call` is one recorded parser call by its zero-based index (decoded node bit patterns, line
+ * faces, final tables). Both are read-only and take no host. A report that does not fit, or an index not recorded, fails as a bad argument.
+ */
+int eech_engine_route_summary (char *text, int capacity);
+int eech_engine_route_call (int index, char *text, int capacity);
+#endif
+
 #endif

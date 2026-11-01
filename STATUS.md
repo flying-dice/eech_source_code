@@ -1,3 +1,31 @@
+# D3 behaviour-first gate: ORIGINAL route-geometry observer prepared (1 November 2026): SOURCE WRITTEN, UNBUILT, UNRUN, UNREVIEWED
+
+Base `1399f9b76` (integration `3fdbe6efd`, merge `700ac6753`, production arithmetic correction `e012569e0`, scripted collaborators `1399f9b76`); Root's default, feature-union,
+format and strict gates of `1399f9b76` run separately and nothing here claims them. This change adds a TEST-ONLY observer of the ORIGINAL airfield route parser and records a finite
+source disposition of the retained raw-model readers. It is the characterisation step that must precede moving route data out of the DLL; it moves nothing, changes no production
+statement, constant, oracle, baseline, tolerance, INI or flag, and prepares no cutover. Full account: `eech-campaign/docs/m5-route-characterization.md`.
+
+What exists (feature `route-fixture`, off everywhere else): hooks added by strict count-checked staged patches R1..R7b (`build/patches.rs`) into `routegen.c` and the route-object
+lookup in `popread.c`, recording values the original already read or computed (raw `int16` points and the decoded float bits, the line faces in the parser's iteration order with
+their surface colour and flags, the final node / link / start / per-depth tables, the matching slots, and every route-object lookup by airfield scene and route kind);
+`csrc/eech_route_hooks.h` and `csrc/eech_route_fixture.c`; engine entries `route_summary` and `route_call` through sys, engine, `eech-dc` Lua; `lua/route-characterization.lua` (a natural
+boot exactly as `campaign.lua`, seed 1, no frame, strict arguments checked before any side effect, no overwrite, checked write / flush / close, reports kept verbatim, no engine
+question after a failure); the driver guards `tests/route_characterization.rs`; `tools/build-windows-route-fixture.sh`; the exact script inventory in `host_callbacks.rs` is now `(37, 2)`
+(the new driver selects the reference arithmetic profile like the others). Empty, unreached, capped, truncated, interrupted or open evidence makes the driver write `done complete=false` and FAIL;
+it is never a measured original. Hooks do no floating-point work and keep no pointer.
+
+Finding that shapes the next extraction (from source, unmeasured): the intrinsic decode (`int16 * bound / 32767`) and the surface-point indirection that resolves a face to nodes are physical
+model data and must be host-owned; a host callback of raw `int16` with Core decoding would leave the authoritative array in the DLL. Route-planning policy (primary / start nodes, tree
+building, end-slot matching, consumption by the airfield code) stays core. The route object's identity across the move is airfield scene plus route sub-object kind, not the legacy raw
+number the Core hierarchy search returns today; that search stays visible whole-D3 hierarchy work. The route readers are the first campaign-required raw-array readers; the other 19 compiled
+files of Root's census (455 identifier hits) are scene-bounds, loader and render/visibility code, classified in the document as host query, host metadata or an explicit stop, never
+as zeroed rows or assumed dormant (the census is not reachability). Hierarchy, viewpoint, device, muzzle and target-point services remain required whole-D3 work.
+
+NOT done, not claimed: any build, test, native run, original measurement of Lebanon or Georgia, determinism comparison, or review of this source. Next, the Root's: source review, the
+route-fixture build, and one fresh-process natural boot each of `lebanon_retail` and `georgia_retail` (twice, byte comparison), after the immutable 1399 gates close. Only then the cohesive
+cutover Task (host route-data service plus loader detachment for the route readers, with a reach counter for the render group first). Task50 and D3 remain In Progress; D4/D5 are not
+started; Task51 shipping was not touched.
+
 # D3 integration checkpoint — Task50 merged with accepted terrain/ground base `3fdbe6efd` (1 November 2026): `e012569e0` plus ONE test-only collaborator correction; Root's focused, default, feature-union and strict gates are NOT yet run on the corrected tree
 
 Task50/PR110 (EEDCS-50) now contains a normal merge of integration `3fdbe6efd08864898a320373d04be79a24c1a374` (Tasks 47 terrain and 48 ground, accepted)

@@ -32,6 +32,8 @@ model-host-fixture = ["eech-engine-sys/model-host-fixture"]
 fpu-test-support = ["eech-engine-sys/fpu-test-support"]
 # TEST-ONLY (EEDCS-48): see eech-engine-sys.
 ground-fixture = ["eech-engine-sys/ground-fixture"]
+# TEST-ONLY (EEDCS-50, D3): see eech-engine-sys.
+route-fixture = ["eech-engine-sys/route-fixture"]
 
 [lints.rust]
 unsafe_op_in_unsafe_fn = "deny"

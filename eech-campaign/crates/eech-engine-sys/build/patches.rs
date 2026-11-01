@@ -504,3 +504,129 @@ pub fn patched_files() -> Vec<&'static str> {
     files.dedup();
     files
 }
+
+/// TEST-ONLY patches of the `route-fixture` feature (EEDCS-50, D3): observation hooks in the ORIGINAL airfield route parser and its route-object lookup, applied by
+/// main.rs ONLY when that feature is on, to the staged copy the shipping patches already produced (neither file has a shipping patch). They record values the original
+/// statements already read or computed (csrc/eech_route_hooks.h, csrc/eech_route_fixture.c); each ADDS a call and changes no original statement, argument, order or
+/// value. R2 adds one static observer function that reads the parser's own tables after the parse and turns the node pointers into node-array indices. With the feature
+/// off none of this exists in the build. Same strict count check as PATCHES.
+pub const ROUTE_FIXTURE_PATCHES: &[Patch] = &[
+    Patch {
+        file: "aphavoc/source/ai/faction/routegen.c",
+        id: "R1-hooks-include",
+        why: "declares the observer hooks (csrc/eech_route_hooks.h)",
+        original: "#include \"routegen.h\"\n",
+        replacement: "#include \"routegen.h\"\n#include \"eech_route_hooks.h\" /* EECH route fixture (R1) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/ai/faction/routegen.c",
+        id: "R2-final-observer",
+        why: "a static function, run once at the end of a parse, that hands the parser's final node, link, start and per-depth tables to the hooks (node pointers become node-array indices)",
+        original: "void parse_waypoint_routes_from_object ( int object_index, int number_of_matching_slots, vec3d *slots )\n{\n",
+        replacement: concat!(
+            "static void eech_rf_observe_final ( int maximum_depth ) /* EECH route fixture (R2) */\n",
+            "{\n",
+            "\tint n, k;\n",
+            "\n",
+            "\teech_rf_final_totals ( number_of_waypoint_nodes, number_of_waypoint_starting_nodes, number_of_route_waypoint_positions, maximum_depth );\n",
+            "\tfor ( n = 0; n < number_of_waypoint_nodes && n < MAX_WAYPOINT_NODES; n++ )\n",
+            "\t{\n",
+            "\t\twaypoint_node *w = &waypoint_nodes[n];\n",
+            "\n",
+            "\t\teech_rf_final_node ( n, w->tree_depth, w->tree_number, w->node_index, w->primary, w->start, w->possible_start, w->references, w->in_route, w->processed, w->number_of_children, w->number_of_parents );\n",
+            "\t\tfor ( k = 0; k < w->number_of_children && k < MAX_WAYPOINT_LINKS; k++ )\n",
+            "\t\t{\n",
+            "\t\t\teech_rf_final_link ( n, 0, k, w->children[k] ? ( int ) ( w->children[k] - waypoint_nodes ) : -1 );\n",
+            "\t\t}\n",
+            "\t\tfor ( k = 0; k < w->number_of_parents && k < MAX_WAYPOINT_LINKS; k++ )\n",
+            "\t\t{\n",
+            "\t\t\teech_rf_final_link ( n, 1, k, w->parents[k] ? ( int ) ( w->parents[k] - waypoint_nodes ) : -1 );\n",
+            "\t\t}\n",
+            "\t}\n",
+            "\tfor ( k = 0; k < number_of_waypoint_starting_nodes && k < MAX_WAYPOINT_STARTS; k++ )\n",
+            "\t{\n",
+            "\t\teech_rf_final_start ( k, waypoint_starting_nodes[k] ? ( int ) ( waypoint_starting_nodes[k] - waypoint_nodes ) : -1 );\n",
+            "\t}\n",
+            "\tfor ( k = 0; k < number_of_route_waypoint_positions; k++ )\n",
+            "\t{\n",
+            "\t\teech_rf_final_position ( k, route_waypoint_positions[k].number_of_positions, &route_waypoint_positions[k].position, route_waypoint_positions[k].offsets );\n",
+            "\t}\n",
+            "\teech_rf_end ();\n",
+            "}\n",
+            "\n",
+            "void parse_waypoint_routes_from_object ( int object_index, int number_of_matching_slots, vec3d *slots )\n{\n"
+        ),
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/ai/faction/routegen.c",
+        id: "R3-begin",
+        why: "the call's arguments and the raw object it is about to read, right after the parser selects the object",
+        original: "\tobject = &objects_3d_data[object_index];\n",
+        replacement: "\tobject = &objects_3d_data[object_index];\n\teech_rf_begin ( object_index, number_of_matching_slots, slots, object ); /* EECH route fixture (R3) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/ai/faction/routegen.c",
+        id: "R4-node",
+        why: "each node's raw stored point and the position the parser has just decoded from it",
+        original: "\t\t\twaypoint_nodes[count].position.z *= zmax / 32767;\n",
+        replacement: "\t\t\twaypoint_nodes[count].position.z *= zmax / 32767;\n\t\t\teech_rf_node ( count, &object->points[count], &waypoint_nodes[count].position ); /* EECH route fixture (R4) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/ai/faction/routegen.c",
+        id: "R5-face",
+        why: "each line face as the parser's first pass has just read it (before the pointer advance)",
+        original: "\t\t\t\twaypoint_nodes[point1].primary = TRUE;\n\t\t\t}\n\n\t\t\tpoint_refs += 2;\n",
+        replacement: "\t\t\t\twaypoint_nodes[point1].primary = TRUE;\n\t\t\t}\n\n\t\t\teech_rf_face ( surface, count, point_refs[0].point, point_refs[1].point, point0, point1, &object->surfaces[surface], number_of_surface_points ); /* EECH route fixture (R5) */\n\t\t\tpoint_refs += 2;\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/ai/faction/routegen.c",
+        id: "R6-end",
+        why: "the end of the parse: the parser's tables are final",
+        original: "\t*/\n}\n",
+        replacement: "\t*/\n\n\teech_rf_observe_final ( maximum_tree_depth ); /* EECH route fixture (R6) */\n}\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/ai/faction/popread.c",
+        id: "R7a-lookup-found",
+        why: "a route object was found for the airfield instance (scene index) and sub-object kind",
+        original: "\t\treturn ( search.object_scene );\n",
+        replacement: "\t\t{\n\t\t\textern void eech_rf_lookup ( int scene, int kind, int found, int legacy_object ); /* EECH route fixture (R7a) */\n\t\t\teech_rf_lookup ( instance->object_number, ( int ) index, 1, ( int ) search.object_scene->index );\n\t\t}\n\t\treturn ( search.object_scene );\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/ai/faction/popread.c",
+        id: "R7b-lookup-missing",
+        why: "no route object exists for the airfield instance and sub-object kind",
+        original: "\t\treturn ( NULL );\n#else\n\t\treturn 0;\n#endif\n",
+        replacement: "\t\t{\n\t\t\textern void eech_rf_lookup ( int scene, int kind, int found, int legacy_object ); /* EECH route fixture (R7b) */\n\t\t\teech_rf_lookup ( instance->object_number, ( int ) index, 0, -1 );\n\t\t}\n\t\treturn ( NULL );\n#else\n\t\treturn 0;\n#endif\n",
+        count: 1,
+    },
+];
+
+/// the staged text of `file` with the route-fixture patches applied (same strict count check as `apply`)
+pub fn apply_route_fixture(file: &str, text: &str) -> String {
+    let mut out = text.to_string();
+    for p in ROUTE_FIXTURE_PATCHES.iter().filter(|p| p.file == file) {
+        let found = out.matches(p.original).count();
+        assert_eq!(
+            found, p.count,
+            "route-fixture patch {} expects {} occurrence(s) of its original text in {}, found {}",
+            p.id, p.count, file, found
+        );
+        out = out.replace(p.original, p.replacement);
+    }
+    out
+}
+
+pub fn route_fixture_files() -> Vec<&'static str> {
+    let mut files: Vec<&str> = ROUTE_FIXTURE_PATCHES.iter().map(|p| p.file).collect();
+    files.sort_unstable();
+    files.dedup();
+    files
+}

@@ -2452,6 +2452,11 @@ impl LuaUserData for LuaEngine {
         methods.add_method("ground_probe", |_, this, (seed, points, impacts): (u32, i32, i32)| {
             this.engine.ground_probe(seed, points, impacts).map_err(lua_error)
         });
+        // TEST-ONLY (feature `route-fixture`, EEDCS-50 D3): what the ORIGINAL airfield route parser read and produced during the campaign load; not part of the shipping module.
+        #[cfg(feature = "route-fixture")]
+        methods.add_method("route_summary", |_, this, ()| this.engine.route_summary().map_err(lua_error));
+        #[cfg(feature = "route-fixture")]
+        methods.add_method("route_call", |_, this, index: i32| this.engine.route_call(index).map_err(lua_error));
         // TEST-ONLY (feature `dependent-fixture`, EEDCS-40): not part of the shipping module.
         #[cfg(feature = "dependent-fixture")]
         methods.add_method(

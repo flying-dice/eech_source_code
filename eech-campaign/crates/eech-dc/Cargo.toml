@@ -44,6 +44,8 @@ model-fixture = ["eech-engine/model-fixture"]
 model-host-fixture = ["eech-engine/model-host-fixture"]
 # TEST-ONLY (EEDCS-48): the ground-contact characterisation probe. Never enabled in the shipping build.
 ground-fixture = ["eech-engine/ground-fixture"]
+# TEST-ONLY (EEDCS-50, D3): the observer of the original airfield route parser (route_summary and route_call). Never enabled in the shipping build.
+route-fixture = ["eech-engine/route-fixture"]
 
 # Code that runs inside a host's process: a panic in this DLL takes the host
 # down. The reference crate's restriction lints, denied here.

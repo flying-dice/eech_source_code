@@ -1827,3 +1827,42 @@ int eech_engine_ground_probe (uint32_t seed, int points, int impacts, char *text
 }
 
 #endif
+
+#ifdef EECH_ROUTE_FIXTURE
+
+/*
+ * TEST-ONLY (EEDCS-50, D3; feature route-fixture): the report of what the ORIGINAL airfield route parser read and produced during this process's campaign load
+ * (eech_route_fixture.c). Read-only: both entries pass no host, run inside the engine entry (EECH's round-toward-zero mode) and touch no campaign state.
+ */
+extern int eech_route_summary_run (char *text, int capacity);
+extern int eech_route_call_run (int index, char *text, int capacity);
+
+int eech_engine_route_summary (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_route_summary_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_route_call (int index, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || index < 0 || eech_route_call_run (index, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif
