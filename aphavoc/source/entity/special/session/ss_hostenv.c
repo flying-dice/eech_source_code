@@ -829,7 +829,7 @@ float campaign_sound_lifetime_init (int looping, int music, int count, const int
 	return reply.sound_lifetime;
 }
 
-void campaign_sound_lifetime_update (int server, float delta, int valid, int looping, float *lifetime, float *valid_lifetime, void *handle, int (*playing_of) (void *handle), int *expired, int *action)
+void campaign_sound_lifetime_update (int server, float delta, int valid, int looping, float *lifetime, float *valid_lifetime, int has_handle, int *expired, int *action)
 {
 	campaign_env_request
 		request;
@@ -844,7 +844,7 @@ void campaign_sound_lifetime_update (int server, float delta, int valid, int loo
 	request.sound_server = (server != 0);
 	request.sound_valid = (valid != 0);
 	request.sound_looping = (looping != 0);
-	request.sound_has_handle = (handle != NULL);
+	request.sound_has_handle = (has_handle != 0);
 	request.sound_delta = delta;
 	request.sound_lifetime = *lifetime;
 	request.sound_valid_lifetime = *valid_lifetime;
@@ -853,22 +853,15 @@ void campaign_sound_lifetime_update (int server, float delta, int valid, int loo
 
 	if (reply.sound_need_playing)
 	{
-		// the host decides a server's expired effect by whether its handle is still playing, which only the campaign's sound system knows: asked once, nothing was changed by the host, and only for
-		// a handle the campaign really holds in the server routine of a valid effect (the original called get_system_sound_effect_playing in that branch and no other)
-		if ((reply.sound_need_playing != TRUE) || !server || !valid || !handle || !playing_of)
+		// the host asks whether a server's expired effect's handle is still playing, which only the legacy sound system knows.  A request the protocol does not allow (not exactly TRUE, or outside the server routine of a
+		// valid effect that holds a handle) is still a protocol error of the host's answer; a request it does allow is a LIVE NATIVE HANDLE whose status this route no longer supplies: it stops here by name, BEFORE
+		// any native status query or device call, any lifetime write, kill, unlink or destruction.  The status is never defaulted to FALSE or taken from the reply.
+		if ((reply.sound_need_playing != TRUE) || !server || !valid || !has_handle)
 		{
 			debug_fatal ("host environment: [env-provider:sound_lifetime_update.answer] the host asked whether a playback handle is playing where none may be asked about (only the server routine of a valid effect that holds a handle)");
 		}
 
-		request.sound_have_playing = TRUE;
-		request.sound_playing = (playing_of (handle) != 0);
-
-		ask (&request, &reply, "sound_lifetime_update");
-
-		if (reply.sound_need_playing)
-		{
-			debug_fatal ("host environment: [env-provider:sound_lifetime_update.answer] the host asked whether the handle is playing a second time");
-		}
+		debug_fatal ("host environment: [env-sound:unsupported_handle_status] the host asks whether a native playback handle is playing at the expiry of a server sound effect; the campaign does not supply the status of a native handle, so a live native handle is unsupported on this route (no status query, state change or destruction was made)");
 	}
 
 	// the whole answer is checked against the request BEFORE anything is written: the numbers are finite and the lifetime of a valid, timed effect is the only one that may change, the valid lifetime of an

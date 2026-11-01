@@ -84,16 +84,6 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#ifdef EECH_CAMPAIGN_HOST_ENV
-
-// the sound system's answer to the host's one question about a server's expired effect: is the handle still playing (the handle and the device are the campaign's)
-static int host_handle_playing (void *handle)
-{
-	return get_system_sound_effect_playing ((system_sound_effect *) handle);
-}
-
-#endif
-
 static void update_server (entity *en)
 {
 
@@ -121,9 +111,11 @@ static void update_server (entity *en)
 
 	//
 	// EECH_CAMPAIGN_HOST_ENV (EEDCS-51, D3): the physical decisions of this update are the HOST's (aphavoc/source/entity/special/session/ss_hostenv.h SOUND_LIFETIME_UPDATE): the aging of a valid
-	// effect by the frame delta, whether its lifetime went below zero, whether the server kills the entity (no handle, or a handle that is not playing), and the countdown and unlink of an invalid effect.
-	// The campaign hands over the stored fields by value (and the frame delta where the original read it), writes both lifetimes from the checked answer and then does what the host decided, in the original
-	// order and at the original points: the kill, the unlink from the update list, the release of the handle.  The handle and the sound system stay the campaign's; the original follows in the #else.
+	// effect by the frame delta, whether its lifetime went below zero, whether the server kills the entity (no handle), and the countdown and unlink of an invalid effect.
+	// The campaign hands over the stored fields by value (and the frame delta where the original read it) and whether a handle is held, writes both lifetimes from the checked answer and then does what the host
+	// decided, in the original order and at the original points: the kill, the unlink from the update list, the release of the handle.  Whether a NATIVE handle is still playing is not a fact the campaign supplies:
+	// the original asked the sound system (get_system_sound_effect_playing) for an expired server effect that held a handle, this route does not, and a host that asks stops the engine by name
+	// ([env-sound:unsupported_handle_status], ss_hostenv.c) before any status query, state change or destruction.  The headless route creates no native handle, so nothing reaches it today.  The original follows in the #else.
 	//
 
 	{
@@ -131,7 +123,7 @@ static void update_server (entity *en)
 			expired,
 			action;
 
-		campaign_sound_lifetime_update (TRUE, get_delta_time (), raw->valid_sound_effect, raw->looping, &raw->effect_lifetime, &raw->valid_effect_lifetime, raw->sound_effect_data, host_handle_playing, &expired, &action);
+		campaign_sound_lifetime_update (TRUE, get_delta_time (), raw->valid_sound_effect, raw->looping, &raw->effect_lifetime, &raw->valid_effect_lifetime, (raw->sound_effect_data != NULL), &expired, &action);
 
 		if (expired)
 		{
@@ -275,7 +267,7 @@ static void update_client (entity *en)
 			expired,
 			action;
 
-		campaign_sound_lifetime_update (FALSE, get_delta_time (), raw->valid_sound_effect, raw->looping, &raw->effect_lifetime, &raw->valid_effect_lifetime, raw->sound_effect_data, host_handle_playing, &expired, &action);
+		campaign_sound_lifetime_update (FALSE, get_delta_time (), raw->valid_sound_effect, raw->looping, &raw->effect_lifetime, &raw->valid_effect_lifetime, (raw->sound_effect_data != NULL), &expired, &action);
 
 		if (action == CAMPAIGN_SOUND_ACTION_UNLINK)
 		{

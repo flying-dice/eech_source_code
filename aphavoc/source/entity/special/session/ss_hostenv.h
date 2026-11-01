@@ -436,10 +436,11 @@ void campaign_lightning_update (float time_of_day, int (*frames_of) (void), camp
    UPDATE: the aging of a valid effect by the frame delta, the server's expiry decision (kill when there is no handle or the handle is not playing), the client's clamp at zero, and the countdown and
    unlink of an invalid effect.  The campaign keeps the stored fields (the pause and resume functions, the network pack and unpack and the observer read and write them), hands them over by value, checks the
    answer against the request and applies it: writes both lifetimes, then kills the entity or unlinks it from the update list and releases its handle.  The sound database (the descriptors), the playback handle and the
-   device stay the campaign's: playing_of is called only when the host asks whether a handle is still playing.  A missing provider, a refusal or a malformed answer stops the engine with an error that names
+   device stay the campaign's, and only the PRESENCE of a handle is handed over: whether a native handle is playing is not supplied, so a host that asks (reply.sound_need_playing) stops the engine with
+   [env-sound:unsupported_handle_status] before any status query, state change or destruction.  A missing provider, a refusal or a malformed answer stops the engine with an error that names
    the environment provider; there is no campaign arithmetic to fall back to. */
 float campaign_sound_lifetime_init (int looping, int music, int count, const int *rate, const int *size);
-void campaign_sound_lifetime_update (int server, float delta, int valid, int looping, float *lifetime, float *valid_lifetime, void *handle, int (*playing_of) (void *handle), int *expired, int *action);
+void campaign_sound_lifetime_update (int server, float delta, int valid, int looping, float *lifetime, float *valid_lifetime, int has_handle, int *expired, int *action);
 
 /* The physical validity of ONE sound effect under a pause (resume = FALSE, with the delay) or a resume (soundeff.c).  The campaign hands over the effect's stored validity and valid lifetime and whether it is in the update
    list, by value, and asks once for each effect the legacy walk matched.  The whole answer is checked against the request before anything is written: the flags are 0 or 1, the valid lifetime is finite, an effect the call did not
