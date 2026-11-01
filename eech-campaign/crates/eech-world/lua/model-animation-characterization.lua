@@ -172,7 +172,8 @@ local function check_clock (c, when)
 		if type (v) ~= "number" or v ~= v or v > F32_MAX or v < -F32_MAX then malformed (string.format ("the %s clock's %s is not a finite single-precision number: %s", when, key, tostring (v))) end
 	end
 	local day = c.day
-	if type (day) ~= "number" or day % 1 ~= 0 or day < -2147483648 or day > INT_MAX then malformed (string.format ("the %s clock's day is not a 32-bit whole number: %s", when, tostring (day))) end
+	-- type, NaN and the 32-bit bounds first: the modulo that tests for a whole number is only taken of a finite value inside them (modulo of an infinity or a NaN raises the invalid flag)
+	if type (day) ~= "number" or day ~= day or day < -2147483648 or day > INT_MAX or day % 1 ~= 0 then malformed (string.format ("the %s clock's day is not a 32-bit whole number: %s", when, tostring (day))) end
 	return { elapsed_seconds = c.elapsed_seconds, time_of_day_seconds = c.time_of_day_seconds, day = day }
 end
 

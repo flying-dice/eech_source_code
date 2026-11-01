@@ -30,6 +30,18 @@ The first production route-data move is prepared/pushed at `66dc2e8a237a46f92003
 
 Task51 ordinary source78 shipping continues on its original immutable snapshot without restart; fifth check around19:40 UTC finds all four available recording/observation prefixes exact (24,733,777/15,499,264/24,676,439/15,089,664 bytes), PARTIAL only. Actual full40/all8/post-input/final review/current checks/normal delivery remain pending. Ledger117 preserves prior authored HTML and all five epic reports; Jira50comment10937 records the closed original gate and extraction start. Task49/50/51 and wholeD3 remain In Progress; D4/D5 are unstarted. No accepted baseline, tolerance, oracle or flag changed. Historical checkpoint sections below retain their original scope and identities.
 
+# D3 original animation-list driver: clock order and a test borrow (1 November 2026): SOURCE FIX UNBUILT
+
+Two tiny corrections to the driver and its test file only (C fixture, hooks and production exactly as at `4485`): `check_clock` now tests the day's type, NaN and 32-bit bounds BEFORE the
+modulo that tests for a whole number (a modulo of an infinity or NaN can raise the invalid flag under enabled caller traps); four small bad-day cases (NaN, infinity, 1e300, -1e300) join the clock tests.
+And `tests/model_animation_characterization.rs` took `outcome.written.expect(..)` by value and then borrowed `outcome` (E0382 in the Root's `a6` Linux compile, the only error in
+`model-animation-original-a6cf70b672-linux-20261101.log`); it now borrows with `as_ref()`, no clone.
+
+At `a6cf70b672` (their OWN source, not relabelled): the Windows original-feature build 0 with 59 payloads; the Linux test compile failed on that unit-test borrow only, not on the C or the native plumbing; the
+first original Georgia and Lebanon native controls and controllers exit 0 (batch 75490, 4 full input checks 0, 59 payloads each); no non-finite clock was run on an old unsafe native, the actual engine clocks were
+valid. Whole Task50, D3 (metadata, surfaces, normals, hierarchy, viewpoint, device, muzzle, target-point, Task49 collision) and Task51's ordinary 78 shipping run (6 births verified; the 10th prefix partial) remain open;
+the buffer cut stays finite-closed on its own actuals; D4 and D5 are not started. Nothing was built or run for this fix.
+
 # D3 original animation-list driver: coherence correction (1 November 2026): UNBUILT, UNRUN
 
 The independent review cleared the observer's C and hooks and found one driver and test coherence group, corrected in `lua/model-animation-characterization.lua` and its tests only; the C fixture, hooks,

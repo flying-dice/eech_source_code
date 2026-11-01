@@ -256,7 +256,7 @@ fn a_well_formed_unsupported_outcome_is_written_in_full_and_fails_the_run() {
         };
         let outcome = run(&with_row(1, damaged));
         failure_in(status, &outcome, "NOT MEASURED");
-        let text = outcome.written.expect("the output exists");
+        let text = outcome.written.as_ref().expect("the output exists");
         assert!(
             text.contains(&format!("\"status\":\"{status}\"")) && text.contains("\"complete\":false"),
             "{status}: {text}"
@@ -434,6 +434,10 @@ fn a_clock_that_is_not_finite_and_whole_is_malformed_and_a_moved_clock_is_not_a_
         ),
         ("a fractional day", "{ elapsed_seconds = 0, time_of_day_seconds = 1, day = 1.5 }"),
         ("a day beyond 32 bits", "{ elapsed_seconds = 0, time_of_day_seconds = 1, day = 2147483648 }"),
+        ("a nan day", "{ elapsed_seconds = 0, time_of_day_seconds = 1, day = 0/0 }"),
+        ("an infinite day", "{ elapsed_seconds = 0, time_of_day_seconds = 1, day = 1/0 }"),
+        ("a huge day", "{ elapsed_seconds = 0, time_of_day_seconds = 1, day = 1e300 }"),
+        ("a hugely negative day", "{ elapsed_seconds = 0, time_of_day_seconds = 1, day = -1e300 }"),
         ("not a table", "17"),
     ];
     for (what, clock) in bad {
