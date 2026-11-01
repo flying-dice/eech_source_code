@@ -1,3 +1,10 @@
+> Root measured update, 1 November 2026: the historical author proposals below
+> are followed by actual independent source/FP/authority closure and completed
+> ordinary shipping evidence. See `../reference/d3-ground-characterization/final-shipping-aafb-20261101/`:
+> actual runner0, exact40PASS, all8COMPLETE artifacts byte-identical, four post-input
+> checks0 and50payloads unchanged. Final review/current publication CI/merge remain
+> separate. No wholeD3 acceptance is inferred.
+
 # D3 G2: ground contact, production host handoff (EEDCS-48)
 
 **Status: implemented in source; the first source (`02ccf06cc`) was built and measured by the Root and independently reviewed (CHANGES_REQUIRED, five P2 groups); the corrections below are written

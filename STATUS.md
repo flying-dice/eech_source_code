@@ -1,3 +1,23 @@
+# D3 checkpoint — ground shipping completes byte-identically (1 November 2026)
+
+Task48/PR108 ordinary shipping recovery finished actual0 at00:13:42.528404Z.
+All40 accepted checks pass; all8 COMPLETE default artifacts are byte-identical
+to retained D2 baseline: two full Tacviews, two observations, two metrics and two
+campaign regression JSONs. Four post-input checks0 include the internal Lebanon
+copy; all50 payloads, BUILD-INFO and runner/launcher identities remain unchanged.
+Physical source/binaries stay aafb21775; later e107 is FP-test-only. Safe evidence:
+`eech-campaign/reference/d3-ground-characterization/final-shipping-aafb-20261101/`.
+Independent final evidence review, exact publication-head CI and normal merge
+are next; Task48 is not yet Done. Previous interrupted/failed attempts stay retained.
+
+Task51/PR111 original pause/resume four-case characterization is closed at native33
+with driver299 and independent df22 review, safe5e publication. The same single
+Sonnet5.5High context is implementing host validity/no-op/delay/relink decisions;
+new source is not yet independently reviewed or accepted. Metadata/backend/device,
+per-family sound and physical time remain coupled. WholeD3 required terrain/spatial/
+model services remain open. Campaign decisions/calendar/timers/scheduling stayCore.
+D4/D5 have not started. No baseline, tolerance, raw artifact or scenario changed.
+
 # D3 live checkpoint — ground regression and host queue extraction (31 October 2026, 18:55 UTC)
 
 The frozen aafb21775 ordinary ground pack remains in its original six processes (PID/births verified live18:52); no duplicate or restart. At18:55:05 all four growing recording prefixes equal accepted bytes exactly: Tacview76,408,516/76,588,696 bytes of117,690,861; observations54,243,328/54,272,000 of85,716,447. This is PARTIAL evidence. Actual runner completion, exact40PASS, all8COMPLETE artifact comparisons, post-run inputs, final review/current CI and normal merge remain pending. Source/bin/scripts/roots are frozen; no accepted baseline or tolerance changed. Private receipt: ground-recovery-aafb-live-prefixes-fourteenth-20261031-1855.json.
