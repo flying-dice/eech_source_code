@@ -1,0 +1,121 @@
+{
+  "review": "Independent combined bounded-store/atomic-output correction SOURCE review",
+  "created_utc": "2026-11-01T03:26:02.801337+00:00",
+  "source": {
+    "base": "aa1bf9364efa3d8f8d645ae32d5de4dc2da3a68d",
+    "head": "7574caa2ca87a2a44608a234fd1dd73136b8e4c0",
+    "tree": "8bc39328662ae1e2f1a26f5ffad80661ac7af88e",
+    "clean_at_review": true,
+    "changed_files": [
+      "STATUS.md",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_env_observer.c",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_envobs_store.h",
+      "eech-campaign/crates/eech-world/lua/env-sound-init.lua",
+      "eech-campaign/crates/eech-world/src/lib.rs",
+      "eech-campaign/crates/eech-world/src/main.rs",
+      "eech-campaign/crates/eech-world/src/output.rs",
+      "eech-campaign/crates/eech-world/tests/csrc/envobs_store_selftest.c",
+      "eech-campaign/crates/eech-world/tests/env_sound_init.rs",
+      "eech-campaign/crates/eech-world/tests/env_sound_init_store.rs",
+      "eech-campaign/docs/d3-sound-lifetime.md"
+    ]
+  },
+  "findings": [],
+  "source_review_no_blocking_findings": true,
+  "closed_groups": [
+    {
+      "id": "ENV-SOUND-INIT-CAPACITY-1",
+      "status": "Closed in source",
+      "facts": "Collector uses the shared pure C header with separate uint8 seen array, independent distinct<keys append bound, checked/saturating uint32 counters and a latched saturated report field. A seen key is never made unseen by counter exhaustion; its first descriptor/order is retained. Exhausted counts cannot wrap and the Lua driver refuses saturated capture before derived/result. Out-of-domain keys still count/refuse rather than index arrays. Report iteration is also catalogue-bounded. Catalogue/per-initialization counters remain bounded by original finite loops.",
+      "guards": "Four-key real-header standalone self-test presets near-UINT32_MAX states, full-order/inconsistent-seen state and latch maximum, checks every array canary, normal counts/first metadata/order, out-of-domain behavior and independent FNV digest. No billions of reads, campaign or new public fixture."
+    },
+    {
+      "id": "ENV-SOUND-INIT-CAPACITY-2",
+      "status": "Closed in source",
+      "facts": "New host.output_create_new uses std OpenOptions write+create_new and returns a Lua userdata or nil/error. Both JSON output and sidecar are created separately/exclusively before boot; aliases/existing unreadable files are refused by OS creation semantics, not path spelling/read-probe heuristics. No truncating fallback. Writes use write_all; flush checks file.flush plus sync_data; close takes/releases handle and checks sync_all result, and later handle operations refuse. A second-create error best-effort closes the first new empty output and fails before campaign work. A normal returned report is written/flushed/closed before parsing; failed/partial text remains private, never complete derived/result evidence.",
+      "guards": "Real filesystem helper tests cover dot/doubled spelling, hard/symbolic links, write-only existing file, directory/missing parent/dangling link, NUL-containing writes, checked flush/close/closed handle and two-name Lua creation. Driver stand-in models identity/collisions, rejects missing primitive with no fallback and verifies no io.open/truncation. IO errors propagate as failures; empty artifacts on already-failing engine/creation paths are not successful captures."
+    }
+  ],
+  "inspected_facts": {
+    "source_and_memory": "Read all11-file new delta, complete shared store/output helper/self-tests/driver changes/docs. No new memory, lifetime, FPU/RNG or physical solver issue found. Shared C routines use fixed caller-supplied arrays and integer operations only; no allocation/game call introduced. Header is private to collector/test, not a legacy layout exposed through host Lua.",
+    "build_placement_and_watch": "eech-engine-sys build/main.rs watches csrc recursively and includes its path; changing the new .h triggers build-script/C rebuild. Its compile loop includes top-level csrc/*.c. Standalone envobs_store_selftest.c is now only under eech-world/tests/csrc, never in that engine source set. Unix Rust test invokes CC/cc with -I real header and compiles/runs it each test execution; missing compiler fails, not skips. It is explicitly Unix-only, not measured Windows self-test coverage.",
+    "output_integration": "World library exports output and host main installs primitive beside existing helpers. File userdata owns Option<File> under RefCell; methods borrow only for their synchronous IO and returned error tuples are handled. No raw pointer, campaign ABI, physical-provider state or game ownership added. Primitive affects new diagnostic driver only; old output scripts need no behavioral change.",
+    "unchanged_proofs": "Reused aa1 118-byte sample row<128 and281216<327680 capacity proof, case15-only Rust buffer and previous226d/db32 hook/transparency/old299/whole1NULengine/physical-kernel facts. Existing buffer margin covers the added small saturation field. New observer C remains wholly feature gated; the prior exact-empty feature-off receipt is an aa1 source result, not mislabeled as an actual7574 preprocessing/run.",
+    "failure_history": "Inspected red1 actual old-aa1 body harness: distinct5/catalogue4/order canary overwritten, process1; old Lua15pass/2fail/Cargo101. Green1 supplied fmt/default+observer checks0,17driver+1store+6filesystem pass/default strict0, but wrong observer selection101 remains failed. Green2 corrected observer strict0; path1 fmt/observer check/store1 all0 after placement fix. These are author WIP executions, not reviewer tests/native/runtime acceptance. Old458 probe1/full raw report unavailable and separate458 observer-off0 remain distinct; no reconstruction or original rerun claimed."
+  },
+  "prior_review_reused": {
+    "path": "R:\\d3-evidence\\independent-environment-original-sound-init-capacity-source-review-aa1bf9364-20261101.json",
+    "sha256": "0bcbc35e16ab5d7d96e0741749e3927a2fe47e80660c05c6f1a96b63665b6705",
+    "scope": "Unchanged buffer/source/attempt facts plus earlier hook/physical reviews; no repeated unchanged review or tests."
+  },
+  "limitations": [
+    "Source-only no-blocker verdict. New immutable Windows/Linux host+collector builds, canonical profiles/strict/CI and actual Windows output-helper semantics are pending independent measured gates. Linux tests and standard create_new source semantics do not substitute for the Windows probe.",
+    "New C and new World helper require new source-bound native/host artifacts; never relabel458. Recovery probe/new observer-off on fresh0245 roots and complete actual/safe-publication review remain pending. Prior consumed roots stay consumed; missing original report/firstd1 raw gaps remain unavailable/partial.",
+    "No metadata/backend ownership move, general audio/player/render/non-session/physical-time or fullTask51/D3/shipping40/all8/current-finalCI/normaldelivery acceptance. Required sound/metadata/assets/speech/helicop/per-family/device/destroy/network/pitch/amplitude/time/terrain/spatial/model stayD3; D4/D5 unstarted.",
+    "Reviewer ran no builds/tests/native/filesystem experiments or process/cache/auth/source/public changes, spawned no agents; read existing source/logs and wrote only this private canonical LF report. Future source/report additions are not pre-reviewed."
+  ],
+  "file_identities": [
+    {
+      "path": "STATUS.md",
+      "sha256": "4fb0a10864c2b93f291a9055d36bf3de1c994794b811a64e05611e03dff9a6d7"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_observer.c",
+      "sha256": "cb5d4666df2f351872c7233209f966f24224c562858c58519fba8d0033625f31"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_envobs_store.h",
+      "sha256": "f5556dc437d615751334dc38b4c385c487931ad9284e3c1f055979e84e3eb2c3"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/env-sound-init.lua",
+      "sha256": "a40bd591c0b309819f1fcaa5a88464c49a64434df8c04baf95d8d644035c4182"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/lib.rs",
+      "sha256": "8443fcdf13ae76e46fb6190dd9204cd49a0423bdd7799f38f1707367036a72c2"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/main.rs",
+      "sha256": "250ea530f6dfa8f25b743954f3b9002c11157c8793c4e9020f09fe675902fa91"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/output.rs",
+      "sha256": "2a9f36c299ca544824fde957069511c127c9671ec6513db2cfb831c6b57b7684"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/csrc/envobs_store_selftest.c",
+      "sha256": "564c41db0b7f689c3a0272d4b4f8d993bb0690f0649d4fd9d9a8847d11bd5cd6"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/env_sound_init.rs",
+      "sha256": "46d1f60b5e04f20bcd50b5cc295cd6b47ed1ec883775a3b378b2e759f8a0917d"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/env_sound_init_store.rs",
+      "sha256": "cfae5faa3aaef5509f7c25db3211c17c5a2e0e91310fa63681e4a9441ce178c0"
+    },
+    {
+      "path": "eech-campaign/docs/d3-sound-lifetime.md",
+      "sha256": "58f11ceed769d165c432c8d54493d771c7a3c7f982e06da5f060cedfa2664e39"
+    }
+  ],
+  "evidence_identities": [
+    {
+      "path": "R:\\d3-evidence\\sound-capfix-WIP-20261101-red1.log",
+      "sha256": "6df72b109307fe37019b0a1d02c6d6e5b311fa8b7ed8b90c0f6eee21e4c72eb0"
+    },
+    {
+      "path": "R:\\d3-evidence\\sound-capfix-WIP-20261101-green1.log",
+      "sha256": "6d31561ac8d84ddc446cb6237d69eb51ee3a94f74a4500335e6fe4fca5b80cc7"
+    },
+    {
+      "path": "R:\\d3-evidence\\sound-capfix-WIP-20261101-green2.log",
+      "sha256": "aebc3df6efbfaeee8904eb2b84bdeae1d7af72befd709e7c0c639939d310d8c2"
+    },
+    {
+      "path": "R:\\d3-evidence\\sound-capfix-WIP-20261101-path1.log",
+      "sha256": "60d91d6f3214e2b3ed09b128d035e3d51abfa39613fc865a67a39ad7092789c4"
+    }
+  ]
+}

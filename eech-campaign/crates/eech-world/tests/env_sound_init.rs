@@ -181,6 +181,8 @@ struct Shape {
     ctor_out_of_domain: u32,
     /// the catalogue the report declares: sample keys are in 0 .. catalogue_entries
     catalogue_entries: u32,
+    /// how many of those slots are NAMED (the measured native: 2069 named of 2122 slots); a witness value only
+    named: u32,
     /// the latch of the probe's saturating counters (a counter that reached its maximum stopped counting and raised it)
     saturated: u32,
     /// how many calls of the load-side routine the shape shows (the probe keeps the first 8)
@@ -209,6 +211,7 @@ impl Shape {
             ctor_looping: 2,
             ctor_out_of_domain: 0,
             catalogue_entries: 6,
+            named: 6,
             saturated: 0,
             side_calls: 1,
             zero_length_match: false,
@@ -235,8 +238,8 @@ impl Shape {
     }
 }
 
-fn catalogue(when: &str, n: &str, size: u32, digest: &str) -> String {
-    format!("env-sndinit-catalogue n={n} when={when} named=6 nonzero_size={size} nonzero_rate=6 nonzero_orate=6 digest_w={digest}\n")
+fn catalogue(when: &str, n: &str, named: u32, size: u32, digest: &str) -> String {
+    format!("env-sndinit-catalogue n={n} when={when} named={named} nonzero_size={size} nonzero_rate={named} nonzero_orate={named} digest_w={digest}\n")
 }
 
 /// The report the C case prints, from a shape. The rows, their keys and their order are the `printf` formats of csrc/eech_env_observer.c eech_envobs_sndinit_report and csrc/eech_env_fixture.c env_snd_init_case.
@@ -263,16 +266,16 @@ fn report(s: &Shape) -> String {
         let changed = s.matched > 0 && !s.zero_length_match;
         let end_size = if changed { 5 } else { 0 };
         let end_digest = if changed { "00000000000000aa" } else { "cbf29ce484222325" };
-        t += &catalogue("filled", &n.to_string(), 0, "cbf29ce484222325");
-        t += &catalogue("end", &n.to_string(), end_size, end_digest);
+        t += &catalogue("filled", &n.to_string(), s.named, 0, "cbf29ce484222325");
+        t += &catalogue("end", &n.to_string(), s.named, end_size, end_digest);
     }
     let changed = s.matched > 0 && !s.zero_length_match;
     let now_size = if changed { 5 } else { 0 };
     let now_digest = if changed { "00000000000000aa" } else { "cbf29ce484222325" };
-    t += &catalogue("report", "now", now_size, now_digest);
+    t += &catalogue("report", "now", s.named, now_size, now_digest);
     t += &format!(
-        "env-sndinit-now no_sound={} dedicated=1 enabled=0 initialised=0 blocked_count=0 application_samples=6\n",
-        s.no_sound
+        "env-sndinit-now no_sound={} dedicated=1 enabled=0 initialised=0 blocked_count=0 application_samples={}\n",
+        s.no_sound, s.named
     );
     t += "env-sndinit-samples lightning_rate=22050 lightning_size=0 lightning_orate=22050 thunder_rate=22050 thunder_size=0 thunder_orate=22050\n";
     t += &format!("env-sndinit-load-side calls={} recorded={}\n", s.side_calls, s.side_calls.min(8));
@@ -840,8 +843,10 @@ fn keys(n: i32) -> Vec<(i32, i32, i32, i32, u32)> {
 
 /// The size of the report buffer of the new group 14 index 15 case (csrc/eech_env_fixture.c `ENV_SND_INIT_REPORT_CAPACITY`), which the driver also holds as its limit.
 const REPORT_CAPACITY: usize = 320 * 1024;
-/// The size of the finite original catalogue (`NUM_SOUND_SAMPLE_INDICES`) as measured by the previous characterization run.
-const FULL_CATALOGUE: i32 = 2069;
+/// The number of catalogue SLOTS (`catalogue_entries`, the collector's `NUM_SOUND_SAMPLE_INDICES`) the first complete measured report of native 7574 declared: 2122. It is NOT the number of named descriptors (2069, the `named` and `application_samples` fields of the same report), and sample keys are slot indices (that report's keys include 12 at or above 2069). A witness value for the full-domain guards, not a fact the driver or the C relies on: the C sizes everything from its own compile-time constant.
+const FULL_CATALOGUE: i32 = 2122;
+/// How many of those slots were named in the measured report (a witness value; the guards only need it to be fewer than the slots).
+const NAMED_DESCRIPTORS: u32 = 2069;
 
 #[test]
 fn a_capture_of_more_than_32_distinct_samples_inside_its_catalogue_is_complete_not_partial() {
@@ -859,8 +864,11 @@ fn a_capture_of_more_than_32_distinct_samples_inside_its_catalogue_is_complete_n
 
 #[test]
 fn the_whole_finite_catalogue_domain_is_a_complete_capture_and_its_report_is_larger_than_32_kib() {
+    // every one of the declared SLOTS (2122) read once, with fewer named descriptors (2069) than slots: the slot count, not the named count, is the key domain
+    assert!(NAMED_DESCRIPTORS < FULL_CATALOGUE as u32);
     let shape = Shape {
         catalogue_entries: FULL_CATALOGUE as u32,
+        named: NAMED_DESCRIPTORS,
         ctor_samples: keys(FULL_CATALOGUE),
         ..Shape::backend_false()
     };

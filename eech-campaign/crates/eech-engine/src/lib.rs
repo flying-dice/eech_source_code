@@ -10604,8 +10604,8 @@ mod tests {
             .map(|line| line.trim_start_matches("#define ENVA_REPORT_CAPACITY ").trim().parse::<usize>().unwrap_or(0))
             .unwrap_or(0);
         assert_eq!(declared, ENV_SND_INIT_REPORT_CAPACITY);
-        // the worst case, from the same constants, fits with room to spare for a catalogue of the measured size (checked at compile time)
-        const _: () = assert!(2069 * 128 + 16 * 1024 <= ENV_SND_INIT_REPORT_CAPACITY);
+        // a witness for the 2122 catalogue slots the first complete measured report declared (the collector's own compile-time check against its NUM_SOUND_SAMPLE_INDICES is the authoritative proof; 2069 is the NAMED count, not the slot count)
+        const _: () = assert!(2122 * 128 + 16 * 1024 <= ENV_SND_INIT_REPORT_CAPACITY);
         // every other case keeps the small buffer
         assert_eq!(ENV_REPORT_CAPACITY, 32 * 1024);
     }

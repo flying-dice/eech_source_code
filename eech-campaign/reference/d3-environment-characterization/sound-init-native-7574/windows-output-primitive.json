@@ -1,0 +1,40 @@
+{
+  "source": "7574caa2ca87a2a44608a234fd1dd73136b8e4c0",
+  "controller_pid": 9444,
+  "state": "terminal",
+  "started_utc": "2026-11-01T03:26:49.967369+00:00",
+  "scope": "Standalone Windows output-primitive validation on disposable private files. No campaign/native module require, retail roots, Tacview or shipping acceptance.",
+  "args": [
+    "R:\\d3-evidence\\environment-original-sound-init-source-7574caa2c\\eech-campaign\\target\\env-observer\\sound-init-original-7574caa2c\\eech-world.exe",
+    "R:\\d3-evidence\\sound-init-exclusive-output-native-7574caa2c-20261101\\probe.lua",
+    "dir=R:/d3-evidence/sound-init-exclusive-output-native-7574caa2c-20261101/files"
+  ],
+  "verified_payloads": 62,
+  "build_info_sha256": "7824726195b658c3849d2f3872f88e4522923c0f182e3160fb6b8174ff51f603",
+  "script_sha256": "88342a6414e6b32247acfecb36f5930a8dcad53ad6d1db744c89912066f90f3f",
+  "filesystem_case_insensitive": true,
+  "pid": 13944,
+  "actual_native_exit": 0,
+  "actual_exit": 0,
+  "observed": {
+    "fresh_created": "true",
+    "write": "true",
+    "flush": "true",
+    "close": "true",
+    "same_name_refused": "true",
+    "same_name_message": "The file exists. (os error 80) (AlreadyExists)",
+    "dot_alias_refused": "true",
+    "dot_alias_message": "The file exists. (os error 80) (AlreadyExists)",
+    "case_alias_refused_on_a_case_insensitive_filesystem": "true",
+    "case_alias_message": "The file exists. (os error 80) (AlreadyExists)",
+    "content_after_refusals": "abc",
+    "binary_created": "true",
+    "binary_write": "true",
+    "binary_flush": "true",
+    "binary_close": "true"
+  },
+  "ascii_bytes_preserved": true,
+  "binary_nul_and_lf_bytes_preserved": true,
+  "payloads_and_script_unchanged": true,
+  "completed_utc": "2026-11-01T03:26:50.187117+00:00"
+}
