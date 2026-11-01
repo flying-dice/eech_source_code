@@ -1,0 +1,46 @@
+{
+  "when_utc": "2026-10-31T10:32:22.734760+00:00",
+  "scope": "Safe summaries/review/actual terminal receipts only; private raw inputs/binaries/recordings retained outside Git. No acceptance.",
+  "copies": [
+    {
+      "file": "independent-environment-physical-source-review-05b8caf82-20261031.json",
+      "raw_sha256": "9c9e85b8ae1f45ec0057322af3823f87fec6295271ce274977f0cef2baa49e86",
+      "raw_bytes": 9992,
+      "git_normalized_sha256": "ea52da19dcab239e904be7f4e2be61bc9a461aa46c3c73a37ed7874901935e2c",
+      "git_normalized_bytes": 9909,
+      "git_text_normalization": "Git LF text normalization; raw identity retained explicitly, do not call same SHA"
+    },
+    {
+      "file": "environment-physical-original-comparison-05b8caf82-20261031.json",
+      "raw_sha256": "cfa4a16d066d03b3408449cd501062d7438101f13a210ea3b534bd9c3e07e96a",
+      "raw_bytes": 2217,
+      "git_normalized_sha256": "1ce1d8dc0c74ea569a95955dff40a2d98b8a3d2bcf379823d7e617422b4e3cbb",
+      "git_normalized_bytes": 2169,
+      "git_text_normalization": "Git LF text normalization; raw identity retained explicitly, do not call same SHA"
+    },
+    {
+      "file": "environment-physical-05b8caf82-linux-20261031-completion.json",
+      "raw_sha256": "95ef92726fd488e1e38c0e70eb13a54e54fb059e71efebcfba9d41deedc69d14",
+      "raw_bytes": 648,
+      "git_normalized_sha256": "3ab8aa229e7b1e026b315d6fce21c81de7a35af44fc0f51e49fa9f9145e9351a",
+      "git_normalized_bytes": 630,
+      "git_text_normalization": "Git LF text normalization; raw identity retained explicitly, do not call same SHA"
+    },
+    {
+      "file": "environment-physical-05b8caf82-windows-20261031-completion.json",
+      "raw_sha256": "7f42c11fb5a8073c647fcd19bbd592299a605734677c8bdaffe98f797e9a7737",
+      "raw_bytes": 651,
+      "git_normalized_sha256": "cbbcdc95441b8601bab02b83b73f0f15727a6df5d61349347c227d2dfbef6f0b",
+      "git_normalized_bytes": 633,
+      "git_text_normalization": "Git LF text normalization; raw identity retained explicitly, do not call same SHA"
+    },
+    {
+      "file": "ground-recovery-aafb-live-prefixes-second-20261031-1035.json",
+      "raw_sha256": "d52a738460b7076e9cdbf7d89055f88236aeafcce692631014a5d4b632eecbdb",
+      "raw_bytes": 2046,
+      "git_normalized_sha256": "86fc7467af68ad79decca1270a1b709a24a3afb79c2adcc981d40f84e4997628",
+      "git_normalized_bytes": 1999,
+      "git_text_normalization": "Git LF text normalization; raw identity retained explicitly, do not call same SHA"
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "kind": "Independent Task48 original ground-contact characterization source review",
+  "created_utc": "2026-10-29T13:52:03.638491+00:00",
+  "repository": "R:\\eech_source_code",
+  "base": "6bbaa8197a4843181d03cd355d562af998c75321",
+  "head": "7a4c12ca0ee6d61ee605d7f3576d9f08e13d8baf",
+  "branch": "codex/d3-ground-contact",
+  "clean_pinned_head_before_after": true,
+  "scope": "One combined correctness, clean-code, boundary and test-meaningfulness source pass. New original-only fixture and driver; no physical extraction or shipping acceptance. Task47 immutable06 runs and closed reviews untouched.",
+  "disposition": "Two P2 characterization defects and one P3 future-comparison qualification require bounded corrections. Original physical implementations are unchanged. No compile or runtime acceptance inferred.",
+  "findings": [
+    {
+      "id": "WARM_RECORD_CONTAMINATION",
+      "priority": "P2",
+      "file": "R:\\eech_source_code\\eech-campaign\\crates\\eech-engine-sys\\csrc\\eech_ground_fixture.c",
+      "line": 440,
+      "end_line": 452,
+      "title": "Start the warm impact call from the prior impact record, not diagnostic queries",
+      "mechanism": "After the separate get_ground_impact_point call and record observation, two extra point_above_ground checks run on corrected pb/qb before the call labelled warm. Their ordinary elevation clauses can change the shared record. Thus warm_same/warm_different compares a different instrumented query sequence, rather than the immediate repeat on the record the first impact left. The original function already evaluates its own ASSERT expressions; those must remain intact.",
+      "bounded_correction": "Save the exact separate-call post-record and restore it before warm, or perform the diagnostic predicate checks after the warm observation. Keep their results separately identified. Add a focused collaborator/observation check that detects an intervening record mutation before warm without mirroring the original solver."
+    },
+    {
+      "id": "MISSING_RESULT_MEASUREMENTS_ACCEPTED",
+      "priority": "P2",
+      "file": "R:\\eech_source_code\\eech-campaign\\crates\\eech-world\\lua\\ground-characterization.lua",
+      "line": 157,
+      "end_line": 171,
+      "title": "Require restoration/hash measurements rather than only report row names",
+      "mechanism": "ground-record restored=1 with both words_before and words_after absent passes because nil equals nil. A bare ground-hash row also passes. Required family rows need only exist, so missing or inconsistent counter values are accepted. Identical repeats of such a malformed report can reach a successful state_digest although no usable restoration/hash evidence was supplied. The current stand-in tests do not reject these cases.",
+      "bounded_correction": "Validate mandatory result schema: one required row per family, anchored/restored flags, exact hash/record-word strings, numeric finite/integer counters and correspondence to requested point/impact counts. Reject missing/duplicate fields/rows and inconsistent cardinalities before calling the report a result. Add real-driver negative controls for missing record words, missing hash fields and inconsistent counts; keep valid zero-count families supported."
+    },
+    {
+      "id": "LEGACY_RECORD_DIAGNOSTIC_COMPARABILITY",
+      "priority": "P3",
+      "file": "R:\\eech_source_code\\eech-campaign\\docs\\m5-ground-characterization.md",
+      "line": 157,
+      "end_line": 158,
+      "related": [
+        {
+          "file": "R:\\eech_source_code\\eech-campaign\\crates\\eech-engine-sys\\csrc\\eech_ground_fixture.c",
+          "line": 205
+        }
+      ],
+      "title": "Qualify which original folds remain comparable after G1/G2 composition",
+      "mechanism": "The proposed later candidate comparison names ground-hash/counters/samples generally. These folds include legacy sector/triangle fields and pointer-presence-derived held bits, and the original-only fixture directly accesses those legacy members. G1 replaces that layout with semantic values/optional hints. Those diagnostics are not interchangeable physical answers and must not become a generic/DCS provider requirement.",
+      "bounded_correction": "Preserve the original oracle and explicitly classify physical input/output, macro short-circuit facts and original-private record diagnostics. Require a deliberate fixture adaptation and documented comparison scope when composing G1/G2; do not force legacy indices/pointers into public host contracts or silently rewrite the old folds."
+    }
+  ],
+  "positive_source_conclusions": [
+    "All five original ground/terrain implementation files hashed unchanged against the accepted integration base. Calls target the real macros/function, including the actual aliased weapon-call shape; no substitute physical implementation or approved rule change.",
+    "Fixture feature propagates DC -> engine -> sys, C define gates the new source/API, Rust/Lua methods are cfg-gated, and default source adds an empty fixture translation unit. Existing shipping numerical expressions/call sites are untouched by inspection. Feature-OFF compiled/preprocessed equivalence still needs actual build evidence.",
+    "Engine entry validates state, writable buffer presence/capacity and bounded counts before the probe; Rust validates counts and uses an owned zeroed 192KiB buffer. C emit checks remaining capacity and returns refusal on overflow after restoring state. ABI uses u32/i32/char buffer only; no public pointer, private entity index or legacy heap identifier is exported.",
+    "container_of-style shared-record derivation stays private: actual original accessor returns system_point_data.face_normal and offsetof uses the compiled original struct. Anchor writes are snapshot/restored even when refused. Ordinary early refusals occur before mutation; healthy and report-overflow paths restore the full shared record. A fatal mid-probe poisons the engine and is explicitly not claimed restored.",
+    "Sentinel is memset before field assignment, so padding starts defined; snapshots use memcpy and restoration uses full bytes. Address-free hashes fold chosen values/presence bits, not pointer addresses. Private xorshift avoids campaign RNG.",
+    "Off-map tests invoke only point_below_ground, whose first map-area clause short-circuits. Above/impact inputs are kept within the original map preconditions. Sector/map edges, corrections/equality and aliases are actual original calls; runtime reachability and any fatal edge remain unproven, not skipped/accepted.",
+    "ASSERT in this build evaluates its expression and conditionally calls nonfatal write_debug_log; extra checks must remain observationally isolated as the P2 notes. Round-toward-zero is checked inside engine entry; actual MinGW/FPU behavior remains uncompiled/unrun evidence.",
+    "Driver rejects the declared malformed arguments before output/boot, bounds total frames, preserves hex sample/hash strings, compares repeats and retains probe-refused failures. Four new tests run the actual Lua script against a declared collaborator for flow only; they are not real-C or original-physics coverage.",
+    "Proposed R1-R7 are honestly unrun options. Digest is coarse and does not establish full campaign purity. No original full-native result, generic-host compatibility, G2 extraction or whole-D3 completion is claimed."
+  ],
+  "limits": [
+    "No reviewer source edits, tests/build/compiler/preprocessor/Lua/native runs, process actions, delegation or external writes. Only pinned Git/source inspection, read-only hashes/comparisons and this authorized private report.",
+    "Root-reported fmt/check0, shellsyntax0, diffcheck0 and 40 Lua parses0 are not re-executed. No fixture feature compile, feature-OFF object comparison, driver guard execution or original retail probe exists for this checkpoint.",
+    "No API composition with the unaccepted Task47 G1 branch reviewed here; original fixture is intentionally based on accepted integration. Later composition must address its legacy record instrumentation explicitly.",
+    "No separate Task/epic/full-D3 acceptance. Campaign policy/geography/timers/consequences remain core; terrain/spatial/model/environment/time work remains required."
+  ],
+  "changed_path_sha256": {
+    "STATUS.md": "865f29d9bde11863bfdc862326c9b09b0dd96960151fa93490c0910cd833e06d",
+    "eech-campaign/crates/eech-dc/Cargo.toml": "f3327183762b3ef03986239be40923588fa618985fec91704e7f64c4ce4b916c",
+    "eech-campaign/crates/eech-dc/src/module.rs": "ff8bf6958caf8b7fe97fadd09fb499155bb7ee3b93f66e100add2a5db1561b1b",
+    "eech-campaign/crates/eech-engine-sys/Cargo.toml": "d83ac21df682970d972130bcd90dad66949d5af164ed79a8deb883cf18ae9f66",
+    "eech-campaign/crates/eech-engine-sys/build/main.rs": "7733ae08bd88d82708150a90f3a5a6a2073b9fc50115e7fd07b6eea2f2c79c7f",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c": "50caf5f00af7c479bec3460baf4065379c579f49718dd640bb0d59910f57cace",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h": "8c4f20c9feff1055d663fac92f7fc54ffc385eb86af2dd92ea192f4b1ce96f97",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_ground_fixture.c": "e58ed96aa1dd6ad6ca35200c4e02ef7a5233fbd27f4785605726d3b86de515b7",
+    "eech-campaign/crates/eech-engine-sys/src/lib.rs": "dbcbfc3f5a4cf795a06b88acadd6e949ae9c51f93129be445850169eae6a9799",
+    "eech-campaign/crates/eech-engine/Cargo.toml": "2f90fb8a61732d21d7151e82b7d85691d70d7af96d9e2f2ef7ed47e444468ae7",
+    "eech-campaign/crates/eech-engine/src/lib.rs": "547f2729de50919be0113d62b0b0e8be128f4123422aa65fa4c2c81c76144360",
+    "eech-campaign/crates/eech-world/lua/ground-characterization.lua": "124f527ccf74462a045c9bd4482128ab7f9de462584b405ffc58d60fb5077001",
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs": "0af45bb180d47c506a4a14405a40f2f8a715ef570b817028df1ad53933479ec0",
+    "eech-campaign/docs/m5-ground-characterization.md": "112795355377ec699ad6a3c70b53193043848e84faa852fe35440496660c225d",
+    "eech-campaign/tools/build-windows-ground-fixture.sh": "979492370b27e7dd8c0c2711ed1e5c535760d6db06cb9305ec127119ee1a2c98"
+  },
+  "original_implementation_sha256_unchanged": {
+    "aphavoc/source/entity/system/en_main/en_world.h": "e299d37dad40a95cde40a8406a11046ba15ecd7991c785586edcdcb6569ebc02",
+    "aphavoc/source/entity/en_misc/en_maths/en_cllsn.c": "2a85122a70cd2f6c80b143e7f865aea742b25573187cb9b08ef45b40d55beafb",
+    "modules/3d/terrain/terrelev.c": "ef897d423c2d1a30bfec9cc9205c492a759020b5e0d85ee1d2a68d3df7311c9e",
+    "modules/3d/terrain/terrdata.c": "d2ff4997c5141ffb4ab79e6f70d218aa8d75960da53144a6e7e6586dcdcba63c",
+    "modules/3d/terrain/terrdata.h": "4733b873ca9507ba192aaacfdc1a6b31945ccd723d953becd411e505d1f166e1"
+  }
+}

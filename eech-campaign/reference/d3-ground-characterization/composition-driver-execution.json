@@ -1,0 +1,15 @@
+{
+  "g1_base": "f03a680c9625b89ac966322faf0dd96460a3e03d",
+  "actual_exit": 0,
+  "ground_parent": "d44a19612d014fa25cddb8e455dbe145f3549e41",
+  "scope": "Composed real Linux host/Lua5.1 ALL host_callbacks guards + affected Clippy; not native ground or shipping acceptance",
+  "tested_path_sha256": {
+    "eech-campaign/crates/eech-world/lua/ground-characterization.lua": "26fdf5d69431ae1f0de8e5c5a13bf6e9a1bd68acdcb693ab8f8982327baea0d6",
+    "eech-campaign/crates/eech-world/tests/lua/ground-caller.lua": "3d38fea82adb79142512ca4ed419a52551e7e73a6ff61bb349ba052fa438e6c2",
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs": "ddc182e6ffce5ecce4b26883bf7cb48907eeecb348de243a5def4cbbf2873dfd",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_ground_fixture.c": "59ef54a819a9280784cd2a69d44266c5c624a1799210194ac3517b77b46dd936",
+    "eech-campaign/crates/eech-dc/src/module.rs": "5aa52ff408f4fd7ebdfbaed528a730882c724ea92183b4a78e6289a083b9ab01"
+  },
+  "completed_utc": "2026-10-29T15:12:49.5597709Z",
+  "working_tree": true
+}

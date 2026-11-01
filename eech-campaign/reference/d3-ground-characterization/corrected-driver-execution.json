@@ -1,0 +1,13 @@
+{
+  "working_tree": true,
+  "scope": "Linux real-host/Lua5.1 corrected driver guards and affected Clippy; not original C query/shipping acceptance",
+  "completed_utc": "2026-10-29T14:31:18.3763466Z",
+  "tested_path_sha256": {
+    "eech-campaign/crates/eech-world/lua/ground-characterization.lua": "a083d5a0926eb9aa793f2849ada5cb9412337ff0efd98870f5f1b13f694624be",
+    "eech-campaign/crates/eech-world/tests/lua/ground-caller.lua": "5d4b70ea16b22fca71f50749f112ac3f3c7c333cb7bf05e139f92875c4b5fe85",
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs": "8efd2e180a8460cdf4283e4af147151af75e05d3c56b5923e86fa6f54bc46d81",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_ground_fixture.c": "bdc14a2b8ab74667866db3c2a027f97e9f4788114391e1d256321d42c9c894bf"
+  },
+  "source_base": "06ce4b7bcff6617c35f32e740bcb57c9c1cc1c19",
+  "actual_exit": 0
+}

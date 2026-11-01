@@ -28,6 +28,8 @@ weapon-fixture = []
 env-fixture = []
 # TEST-ONLY (EEDCS-51): the read-only observer of the original environment initialisation, shared-entropy order, lightning/sound effects and frame time phase. Never enabled in the shipping build.
 env-observer = ["env-fixture"]
+# TEST-ONLY (EEDCS-48): the ground-contact characterisation probe. Never enabled in the shipping build.
+ground-fixture = []
 
 [build-dependencies]
 cc = { version = "1.2", features = ["parallel"] }

@@ -195,6 +195,9 @@ fn main() {
     if env::var_os("CARGO_FEATURE_ENV_OBSERVER").is_some() {
         build.define("EECH_ENV_OBSERVER", None);
     }
+    if env::var_os("CARGO_FEATURE_GROUND_FIXTURE").is_some() {
+        build.define("EECH_GROUND_FIXTURE", None);
+    }
     if windows {
         build.flag("-include").flag(manifest.join("csrc/eech_win32_names.h").to_str().unwrap());
     }

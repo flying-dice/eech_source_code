@@ -1,3 +1,34 @@
+Root verification note (1 November): dirty Linux kernels and DLL-load tests did execute; no new Windows native retail campaign has run. The opt0 unresolved-symbol attempt remains failed. Its attribution to a preexisting inline-linkage limitation is an author inference, not an independently reproduced baseline result. Configured standard C optimization is1 (build/main.rs default), and that recovery passes. Clean immutable builds, source review and retail controls are next.
+
+# D3 integrated checkpoint — accepted ground (Task 47/48 Done) merged into the Task 51 environment branch; host pause/resume unaccepted (1 November 2026 UTC; merge in progress, uncommitted)
+
+**Ground baseline, accepted.** Task 47 is Done and Task 48 / PR 108 is Done by NORMAL merge `3fdbe6efd08864898a320373d04be79a24c1a374` (normal parents `b6575594c` and `1f`, accepted merge tree identical; Jira 48 Done, comment 10906; live M5 goal 11534337 v3 and ledger 14548994 v100 read back).
+Ordinary shipping source `aafb21775` completed 0: EXACT 40 checks pass, all 8 COMPLETE default artifacts (two full Tacviews, two observations, two metrics, two campaign regression JSONs) are byte-identical to the retained D2 baseline, four post-input checks 0,
+50 payloads, scripts and build unchanged. The same independent combined actual, source, floating-point and weapon reviews are clear, final evidence review `a29ec02cf5e9831cbb64495a5dbe83210cda4e2b6f73276231f9c4189738474a`, and all 8 exact final CI jobs pass.
+Safe evidence is under `eech-campaign/reference/d3-ground-characterization/final-shipping-aafb-20261101` and `focused-closure-aafb-e107`. The older entries below that speak of ground as running or as awaiting its final CI and merge are HISTORY, superseded by this one; the common base
+`b6575594c` is no longer the current ground baseline. This is the ground slice only: the whole of D3 (all 10 requirements in `D3-REQUIREMENTS.json`) stays open and D4/D5 have not started.
+
+**Task 51 host pause/resume, unaccepted.** The pinned batch `f3907195f94dd110fdc77b60047d7f89011c8600` (branch `codex/d3-environment-services`) moves the physical VALIDITY, NO-OP, delay-copy, resume playback-request, update-list relink decisions and the changed counts of one matching sound effect out of `soundeff.c` into the host
+(`sound_pause_resume`, see the entry below). It is NOT immutably built, NOT retail-measured, NOT reviewed and NOT accepted. It does not move the sound backend, the non-session range and per-family playback, the device, the callers, the network, the persistent mirrors, the sample metadata and assets or physical time; the SESSION parent's playback is the original initialized default no-op
+and no handle is manufactured. The accepted 299 sound driver and the characterization fixture C are unchanged.
+
+**This merge (f390 + 3fd), conflict by conflict (14 files; nothing aborted, rebased, reset or taken wholesale from a side).** (1) The three `Cargo.toml` files and `build/main.rs`: both families of TEST-ONLY features (`env-fixture`, `env-observer`, `ground-fixture`) kept; the host defines `EECH_CAMPAIGN_HOST_TERRAIN` and `EECH_CAMPAIGN_HOST_ENV` stay for every build, so ground and
+environment are both active in ordinary hosted production. (2) `mb_hostterrain.h`, `eech-engine-sys/src/lib.rs`, `eech-engine/src/lib.rs`, `eech-dc/src/module.rs`, `terrain.rs`, `terrain-provider.lua`: the one terrain callback now carries both families. The two branches had used operation numbers 4 and 5 for different things; the ACCEPTED ground operations keep 4 to 6 and the environment SECTOR and AMBIENT
+become 7 and 8 (Lua names unchanged); request and reply structs keep every field of both, in the same order in C and Rust; the ground bridge and the environment bridge are both routed by `terrain_provider`. (3) `eech_engine.h` / `eech_engine.c`: both test-only entry sets (`eech_engine_env_case`, the env observer, `eech_engine_ground_probe`) as complete `#ifdef` blocks; `eech_engine.c` was merged byte-safely
+(exactly one embedded NUL, at offset 40063 as in both parents; the file is HEAD plus the ground probe block). (4) `host_callbacks.rs` and `eech-dc` tests: both sides' tests kept, the shared `trace_lines` helper split into `env_trace_lines` and the ground one. (5) Auto-merged files were read, not trusted: `mb_hostterrain.c`, `terrain_ref.c/.h`
+(append-only on each side at different places, no removed line) and `terrain-has-face.lua` (distinct hunks). (6) The two accepted ground drivers `ground-authority.lua` and `ground-characterization.lua` boot the integrated module and so now give `environment = host.env_provider ()` (the original module is still booted without it); their identity changed and any retail run on the
+integrated native needs them frozen anew; the accepted ground evidence on the ground-only native is untouched. No fallback, no weakened validator, no masked or widened test, no copied binary. Details: `eech-campaign/docs/d3-environment-provider.md` "Integrated ground baseline".
+
+**My own WIP checks (offline Linux container, no network, reusing the verified-idle cache volume `eech-linux-d3-collision-driver-5416adb3b-20261029` as the target directory with a read-only source mount; exclusive-new logs, REAL exit tags from steps FILES; filenames carry 20261101, execution 1 November UTC; a dirty-tree WIP build, NOT a shipping artifact).**
+`sound-merge-WIP-20261101-a1.log`: default, env-observer and ground-fixture `cargo check --tests` of `eech-engine` and `eech-dc` 0 (the C of both hosts compiles together). `-b1.log` (retained, NOT a pass): fmt 1 on one import list I had merged, and `eech-world` stopped at `load_dc` (cargo's default stops there) so later test binaries did not run; `-d1.log`: fmt 0, `eech-world`
+`--no-fail-fast` all binaries pass except `load_dc` and `terrain_boot_contract`, which fail with `undefined symbol: generate_lookup_outcode` in the shared library: an artifact of my `EECH_ENGINE_OPT=0` build (an unoptimised build does not emit a legacy inline function), not an integration defect; `-e1.log` (retained failure: the cdylib was not built in that target directory) and `-f1.log`: at
+`EECH_ENGINE_OPT=1` with the cdylib built first, both pass. `sound-merge-fmt-WIP-20261101-c1.log` failed (my inner shell loop was malformed, retained), `-c2.log` ran rustfmt only on a private copy; one import list was reflowed and copied back. FINAL gates on the finished tree, `sound-merge-WIP-20261101-g1.log`: fmt 0; default, observer and ground-fixture check 0; `eech-engine` lib 85 passed; `eech-dc` tests 31 + 2 passed;
+clippy `-D warnings` over `eech-world`, `eech-dc`, `eech-engine` 0; at `EECH_ENGINE_OPT=1` the `eech-dc` cdylib builds (0), the whole of `eech-world` passes (23 test binaries, 531 passed, 0 failed, including the accepted ground authority, conformance, handoff, provider and terrain backend guards and every environment guard, and the sound lifetime and pause/resume witness stand-ins), and the cdylib LINKS with
+`env-observer` and `ground-fixture` together (0). Nothing was run natively or on retail. The ground stand-ins now require the environment provider for the integrated module.
+
+**Not run by me and still required:** a clean integrated pin and build, canonical Windows and full Linux, default and observer, both strict profiles, current CI, fresh retail controls (the 15 same-original raw comparisons, the old-33 missing-command red, the six ownership and refusal controls), full shipping 40 and all 8 complete byte comparisons for the integrated native, independent review. The old d2/d3/c2 exit tags remain untrusted;
+the first sound `d1` raw log remains unavailable; earlier failures (`sound-hostpr-WIP-20261101-d1` engine env 101 and `e1` fmt 1) stay failed and `f1` passed local gates only. The prepared fresh retail roots were not used.
+
 # D3 host-owned sound pause/resume — source prepared (1 November 2026 UTC; UNBUILT natively, UNRUN, UNREVIEWED; nothing ran natively or on retail)
 
 Uncommitted source batch on top of `5e7101d87` (the reviewed original pause/resume characterization; baseline native `33c015557` plus frozen Lua `299bcf05`, 4 SESSION-parent cases, finite scope).
@@ -1593,6 +1624,618 @@ Existing WSL2 EECH-D2-Build/localUnixDocker daemon exec37778 stays running; insp
 
 Detailed live checkpoint: R:/d2-evidence/ACTIVE-RUNS.json. WholeD2 goal remains ACTIVE. After weaponexecution, complete combatresolution/factualreports and whole-scope audit beforeD3. No historicalTypeScript port/call-map scope.
 
+# D3 checkpoint — ground shipping completes byte-identically (1 November 2026)
+
+Task48/PR108 ordinary shipping recovery finished actual0 at00:13:42.528404Z.
+All40 accepted checks pass; all8 COMPLETE default artifacts are byte-identical
+to retained D2 baseline: two full Tacviews, two observations, two metrics and two
+campaign regression JSONs. Four post-input checks0 include the internal Lebanon
+copy; all50 payloads, BUILD-INFO and runner/launcher identities remain unchanged.
+Physical source/binaries stay aafb21775; later e107 is FP-test-only. Safe evidence:
+`eech-campaign/reference/d3-ground-characterization/final-shipping-aafb-20261101/`.
+Independent final evidence review a29ec02c has no findings and closes this finite
+ground shipping gate. Exact final publication-head CI and normal merge are next;
+Task48 is not yet Done. Previous interrupted/failed attempts stay retained.
+
+Task51/PR111 original pause/resume four-case characterization is closed at native33
+with driver299 and independent df22 review, safe5e publication. The same single
+Sonnet5.5High context is implementing host validity/no-op/delay/relink decisions;
+new source is not yet independently reviewed or accepted. Metadata/backend/device,
+per-family sound and physical time remain coupled. WholeD3 required terrain/spatial/
+model services remain open. Campaign decisions/calendar/timers/scheduling stayCore.
+D4/D5 have not started. No baseline, tolerance, raw artifact or scenario changed.
+
+# D3 live checkpoint — ground regression and host queue extraction (31 October 2026, 18:55 UTC)
+
+The frozen aafb21775 ordinary ground pack remains in its original six processes (PID/births verified live18:52); no duplicate or restart. At18:55:05 all four growing recording prefixes equal accepted bytes exactly: Tacview76,408,516/76,588,696 bytes of117,690,861; observations54,243,328/54,272,000 of85,716,447. This is PARTIAL evidence. Actual runner completion, exact40PASS, all8COMPLETE artifact comparisons, post-run inputs, final review/current CI and normal merge remain pending. Source/bin/scripts/roots are frozen; no accepted baseline or tolerance changed. Private receipt: ground-recovery-aafb-live-prefixes-fourteenth-20261031-1855.json.
+
+Environment Task51 / draft PR111 retains independently closed original queue characterization (nativea27/driver60e, reviewaff8, five actual0/10inputs0/53payloads) and the complete17230-row current-host prequeue raw comparison. The older765 comparison stays FAILED on16 preexisting boot raw-versus-derived diagnostics. The actual new host-add capability red is retained: oldnative case2 completes/queues1 but sends0hostrequests, witness intentionally1. Safe evidence remains atfc725; ledger94 preserves all previous HTML and five epic reports.
+
+Host queue add/update/expiry now has implementation source188ac8c494ea0c550850c5ec37500f43d4cc93f9, UNACCEPTED. The same Sonnet5.5High lane corrected the first three independent source groups: unsafe frame conversion, missing texture/frame-domain checks and misleading refusal witness evidence. Focused WIP checks pass; new ordinary Windows/Linux builds are running. SAME reviewer has identified a concrete remaining natural-driver catalogue mismatch (fixture5 versus driver4); the finite delta pass is ongoing and candidate retail runs are held. No queue candidate numerical/Tacview acceptance is claimed. Sound lifetimes, physical time, required terrain/spatial/model services, full shipping and normal delivered merges remain wholeD3 requirements. Campaign decisions/calendar/timers/scheduling stay in Core; D4/D5 unstarted.
+
+# D3 checkpoint — public ambient authority closed; original queue probe begins (31 October 2026, 16:36 UTC)
+
+Task51/PR111 closure pushed12ca0f15f: exact b7judge/newLua +unchanged d559native
+passes REAL7modecase27 test0/30.84s, exactly14input checks0,51payloads/copiedLua
+exact. Three completed reference/changed modes map actual replywords to child
+ordinal/subtype/class slots; four named refusals stop with no completed case.
+Actual Linux/Windows11functions include all28negativechecks; BOTHstrict0,
+all9measuredb7CI SUCCESS. Sole independent source/actual review6fc68291...88d9f
+has no findings. F6numeric3complete108-row files remain byte-identical originals;
+FP/packages/Windows and d55916/17/20 gates reused. Failed8d0/084 evidence retained.
+No baseline/tolerance change; no frame/audio/player/render/Tacview/fullshipping
+or wholeTask51/D3 acceptance. Safe closure is in the environment branch under
+reference/d3-environment-characterization/ambient-native-d559-judge-b7-closure/.
+
+Ledger93 readback preserves allpriorHTML/five reports, Jira51comment10897,
+PR111body current. Sequential READONLY Opus5.5Medium planning completed0 with
+actual modelUsage verified. SAME sole Sonnet5.5High now prepares ORIGINAL
+lightning-queue observability only (controller11792/Claude25380, started16:32:21).
+Unbuilt/unrun/unreviewed, no queue behavior moved. Reuse closed originalobserver
+calls; new occupancy/outcome/time/update data comes before physical handoff.
+Existing soundcreation/lifetime/physicaltime and requiredterrain/spatial/model,
+fullshipping40/all8COMPLETEbyteidentity/currentCI/review/normalmerges remain.
+Campaign policy/calendar/timers/scheduling stayCore; D4/D5unstarted.
+
+Groundaafb original six processes verifiedLIVE in the16:07prefixcheck; allfour
+growingprefixes EXACT~52.3/52.5MBACMI/~35.6MBOBS, PARTIALONLY. No restart.
+D3-ACTIVE.json and D3-REQUIREMENTS.json preserve actual paths/processes/all10
+wholeepic requirements; do not narrow the goal to this component.
+
+# D3 checkpoint — real wide-list correction accepted, public amplitude witness started (31 October 2026, 15:52 UTC)
+
+Task51/PR111 pushed `d559c3859` changes G12 fixture/driver/tests only; production
+and G11 remain exactf6. Actual Windows build0; four new driver guards and BOTH
+strict phases0. Fresh real16/17/20-child control native/controller0, inputs0,
+51payloads unchanged: every own-half amplitude, retained/new IDs and order,
+post-cleanup list topology PASS. Prior counts6/16/17, creations10/1/3. The SAME
+independent review closes the fixture finding with no new issues, SHA256
+4cbd6867393c961cf79f93da596dd55cc7d69d577bb68ba91d4c7b269cf236c6.
+Raw7rowSHA51ff68cff933a996e62854c76cd4c8b08c4b63ba8903fae485662fdde7f5ee11.
+
+Production f6's three COMPLETE108-row raw files remain byte-identical to original
+c0b/21; actual Windows/strongFP/fullLinux/bothstrict/all9hosted checks pass.
+No originals, baselines or tolerances changed. Current d559CI8pass/1running
+at15:49UTC. Public changed/withheld/malformed amplitude authority is next:
+SAME one Sonnet5.5High test-only laneLIVE (controller3276/Claude24280, started
+15:48:20), seven fresh retail roots allmanifest0 UNUSED. Reuse immutable d559
+native only after exact newLua/test-only provenance proof; no native rebuild
+for a witness-only addition. Newwitness remains unbuilt/unrun/unreviewed.
+
+Ledger92 readback preserves ALL previous HTML and five epic reports; PR111
+current body records gates and remaining scope. Ground original six processes
+and fullshipping remain protectedLIVE, last fullidentitycheck15:37 and exact
+four growing prefixes15:39 (partial only). WholeD3 effects/time/terrain/spatial/
+model/fullshipping40/all8COMPLETEbyteidentity/currentCI/review/normalmerges
+remain open. Campaign policy/calendar/timers/scheduling stayCore; D4/D5unstarted.
+
+# D3 checkpoint — ambient numeric and FP gates pass; fixture correction underway (31 October 2026, 15:43 UTC)
+
+Task51/PR111 production `f6d812c7c` moves rain/wind levels and terrain-child
+ambient smoothing to host services. All three actual retail characterizations
+finish native/controller0; six input checks pass and51payloads remain exact.
+All COMPLETE108-row files, including endings, equal retained originalc0b/21
+bytes. Actual Windows engine81/module24/world254 and terrainambient4 pass.
+Linux fast guards, full default/observer affected packages and BOTH strict
+phases complete0. All nine hosted checks pass at f6; decoded Wine and both
+i686 logs explicitly pass both new complete-FP ambient tests. Canonical x87
+extended precision remains an unmeasured reference assumption, not a measured
+startup control word. Earlier meaningful reds are preserved.
+
+The sole combined review `6da71305...a0c6` closes the two production source
+findings and identifies one NEW G12 fixture cleanup defect: whole SESSION
+restoration rewinds the child-list root after allocation. The real diagnostic
+fails as a witness, with pre/postinputs0; no healthy16/17/20 acceptance claimed.
+The SAME one Sonnet5.5High lane corrects fixture topology/continuity only;
+production/G11/oracles stay unchanged. Fresh recoveryroot manifest0. Source
+review, fresh real wide control and public amplitude authority remain next.
+
+Ground frozenaafb pack remains LIVE in its original six processes (verified
+15:37UTC). Four growing recording prefixes match accepted bytes at15:39UTC
+(~48MB Tacview/~32.6MB observations), PARTIAL ONLY. Current main2b15 CI all
+8 jobs pass. No restart, final40-check or complete-pack acceptance inferred.
+
+WholeD3/EEDCS-21 stays open: sound/lightning execution, physical time, remaining
+terrain/spatial/model services, fullshipping40/all8COMPLETEbyteidentity,
+currentCI/independentreview/normalmerges. Campaign decisions, calendar, timers
+and scheduling stayCore. D4/D5unstarted; no baseline or tolerance changes.
+Jira51comment10895 and external D3-ACTIVE.json retain identities and receipts.
+
+# D3 checkpoint — first host-amplitude default match; two corrections open (31 October 2026, 15:04 UTC)
+
+Task51/PR111 host-amplitude sourcea39a7a2ec is pushed/frozen. Normal Windows
+observer build and test export0; actual engine80/module24/world254 tests0.
+FIRSTLebanon candidate native/controller/prepost0/50payloads unchanged: all108
+COMPLETErawrows including endings EXACToriginalc0b/21 SHA08fce9b0...8f10e.
+This is numeric default conformance ONLY, not FP/authority/shipping acceptance.
+
+Linuxfastenvambient3PASS; terrainambient2PASS/2FAIL (5376questions,192answer
+changes undercallerFTZ/DAZ; freshsynthetic saturationexpectation alsofails).
+Fullpackages/strict NOTREACHED; actualWinambient2PASS/2FAIL reproduces.
+ONEcombinedindependentreview8cced1aa...9304c requires TWOgroups: isolate new
+arithmetic fromcaller modes/strengthen env mode coverage and classify synthetic
+upperexpectation fromretained originals; remove the newcampaign16-child limit
+while retaining a boundedtransport. No originalsource invariant enforces16.
+The earlier NaN-reader suspicion wasWITHDRAWN and isnotafinding.
+
+ONE Sonnet5.5High now prepares newredcontrols ONLY (env FTZ/DAZ/precision and
+realduplicate/>16childconstructor/list), keepingproduction guards/cap unchanged
+for meaningful reproduction beforethefinite2groupfix. Existingoriginal108-row
+files/acceptedbaselines/tolerances remain unchanged. FreshfixedLebanon andwide
+roots eachmanifest0; originalfirstcandidateLebanon consumed, Georgia/repeat unused.
+Jira51comment10894 andexternalD3-ACTIVE.json recordexactsource/process/receipts.
+
+WholeD3/EEDCS-21 remainsopen: publicamplitudeauthority, sound/lightningexecution,
+physicaltime, remainingterrain/spatial/model, fullshipping40/all8COMPLETEbyte
+identity/currentCI/review/normalmerges. Campaignpolicy/calendar/timers/scheduling
+stayCore. D4/D5unstarted. Groundoriginal6processes/fullpack remainLIVEprotected;
+latest4prefixes37.8MBACMI/24.4MBOBSexact, PARTIALONLY. No quietrestart.
+
+# D3 checkpoint — original ambient behavior reviewed; host extraction active (31 October 2026, 14:30 UTC)
+
+Whole D3/EEDCS-21 remains the goal. Task47 is delivered atb657; Tasks48–51
+remain open. D4/D5 unstarted. Accepted baselines/tolerances unchanged.
+
+Task51/PR111 safe original sound evidence is pushed at4779d6434, explicit
+nativec0b +corrected21ba driver. All3actualnative/controller exits0/all6inputs0,
+50payloads/driver unchanged. Each108-row report:46distinctcases=44answered,
+2explicitmissing-gunshipcockpit refusals;47calls/0anomalies/allrestorationchecks.
+Both COMPLETE Lebanon files including endings are byte-identical SHA08fce9b0...8f10e.
+All7bounded probe sites found; notfull-map coverage. Independent actual review
+8755577f...cd2c closes with nofindings. DriverP2meaningfulred93bc13of23badrecords
+accepted remains; corrected21ba5guards/strict0/source review1f0d...844b and all9
+hosted jobs succeed. This is unchangedambient solver onhostedfield/sectorbaseline,
+not whole-originalDLL/audio/player/render/frame/CPUFP/Tacview acceptance.
+
+ONE Sonnet5.5High now implements the actual host-owned ambient rain/wind/terrain
+amplification solver, preserving measuredwords, DOUBLEequal-modeoutdoorrain
+attenuation, previous-delta phase/RNG/order. Source WIP/UNBUILT/UNRUN/UNREVIEWED;
+no physicalsoundcutover accepted yet. Fresh3candidate roots allmanifests0 UNUSED.
+Existing original/field/wind/sector/model/kernel evidence is reused; nooldruns.
+Ledger91 preserves allpriorHTML/fiveepicreports; Jira51comment10893 andPR111updated.
+Required lightning/soundexecution, physicaltime and remaining terrain/loaders,
+spatial/object/tree scans/transforms/solvers, modelhierarchy/viewpoints/devices/
+muzzles/targetpoints/physicalroutedata remain D3. Campaigncalendar/geography/
+timers/scheduling/policy/consequences remain Core.
+
+Task48/PR108 original frozenaafb fullshipping stillLIVE inoriginal6processes,
+PID/births verified14:24. Latest4prefixes exact~37.8MBTacview/24.4MBobservations,
+PARTIALONLY. Actualfull40/all8COMPLETEbytecomparisons/postinputs/payloads,
+newcompleted-evidencereview/currentCI/normalmerges remain gates. No quietrestart.
+
+# D3 checkpoint — sector authority passes; ambient characterization starts (31 October 2026, 13:56 UTC)
+
+Whole D3 (EEDCS-21) remains the objective. Task47 is delivered; Tasks48–51 remain
+open. D4/D5 are unstarted. No accepted baseline or tolerance changed.
+
+Task51/PR111 production14192 corrects the independently found full-FP sector
+boundary defect. All three complete 95-row default files (including endings)
+match originalb2e, all6 inputs pass and49payloads remain unchanged. Actual Windows
+engine78/module22/world251 and sector5/characterization4 pass, including the6144-call
+FP matrix; both hosted i686 variants pass that same test. Linux default and
+observer package tests pass. Its first strict phase fails only two test lints;
+new9c47 corrects those without changing behavior. Linux new15judge functions pass;
+both strict phases and current9c47CI remain pending. Old FP/guard/CI failures retained.
+
+New test-only9c47 judge + unchanged14192 native/embeddedLua has ACTUAL Windows
+15functions PASS in2.14s and separate real five-mode public test0 in32.87s.
+Control and changed modes each complete30frames/30sector requests/30sound updates;
+changed host flags reach the sound scratch. Observer224events reconcile without
+drops; only first4scratch records are emitted. Three withholding/malformed modes
+stop at their named sector guards after one alteration; these are stopped campaigns.
+Exactly5PRE+5POST manifests pass0, all49payloads unchanged, copiedLua exact.
+The prior05b13/14CMD/PING timeout failure and invalid private vacuous-ten boolean
+are retained with an audit; no original campaign started there. One independent
+source review of9c47 closes without findings (41a1cfaf...fae); actual evidence
+review is now pending. This is sector authority, not amplitude/Tacview/fullshipping
+or Task51 acceptance. Next ONE Sonnet5.5High lane is preparing original physical
+ambient amplification characterization, TESTONLY/UNBUILT/UNRUN, before moving it.
+
+Task48/PR108 ordinary frozenaafb fullshipping remains LIVE in original launcher9948,
+runner19032 and four native children. Latest all4 growing Tacview/observation
+prefixes equal accepted bytes (~33.3MB/~21.5MB per recording), PARTIAL ONLY.
+All8hosted jobs at currentfb2 publication pass; exact40/all8 COMPLETE byte comparisons,
+post-input/source/bin/script checks, new evidence review and normal merge remain.
+Required remaining terrain/loaders, spatial/object/tree scans/transforms/solvers,
+model hierarchy/viewpoints/devices/muzzles/targetpoints/physical route-data,
+lightning/sound execution and physical time stay D3; campaign scheduling/policy
+stay Core. Existing original/field/wind/model/kernel evidence is reused.
+
+# D3 checkpoint — first host-sector numeric match; FP correction active (31 October 2026, 13:21 UTC)
+
+The current objective remains COMPLETE D3 (EEDCS-21), with D4/D5 unstarted.
+Task47 is delivered at integration b6575594c. Tasks48/49/50/51 remain open.
+
+Ground Task48/PR108 ordinary shipping source aafb21775 continues in the original
+fresh recovery processes 9948/19032 and four native children. All focused gates
+are closed and prior b7a3dd63f CI is green; newer STATUS-only publication checks
+remain separate from runtime source aafb. Latest complete flushed prefixes of
+both Tacview recordings (~20.1 MB) and observations (~12.7 MB) match accepted
+bytes. This is PARTIAL: actual full exit, all40 checks, all8 complete artifacts,
+post-input/payload checks, new completed-evidence review and normal merge remain.
+
+Environment Task51/PR111 field product dd5e7c4ce closes its numeric, full FP,
+protocol, Linux/actual Windows and all9 hosted CI gates; independent source
+review has no findings. Three retail164-case raw oracles and the120s component
+control remain exact. Reuse this evidence; no accepted baseline/tolerance changed.
+The first real47 wind control reproduced a test-judge prefix defect (exit101),
+retained with its reviews. New test-only34c7c28bf includes actual event grammar,
+independent launch counts and complete loss-counter checks; source review closes
+at585 with no findings,34 is rustfmt only. Linux fmt/21functions/strict0 and
+Windows judge export/actual21functions0. The public runtime in those21 was
+explicitly SKIPPED. The separate REAL five-mode test exits0 after336.39s:
+changed wind changes the matched projectile's terminal flight toward+x;
+withheld/malformed replies stop at wind.callback/answer after one alteration.
+All10 pre/post input checks pass; all47 immutable native payloads and copied
+script SHA match. This uses immutable47 native plus new34 judge/embedded Lua
+with verified production equivalence. All9 CI jobs at34 pass; independent
+actual-evidence review closes without findings (SHA843ec6af...d527). Safe
+receipts/review are pushed at4649b75d4 on PR111. Provider traffic is global,
+not policy/RNG/family isolation. No shipping/Task51/D3 acceptance.
+
+Original sector facts are now CLOSED bounded: nativeb2e builds0, all3 retail
+runs native/controller0, all6 input manifests0/48payloads unchanged. Each95-row
+file has92 samples (88 answered,4 explicit out-of-grid fixture rejections), all
+scratch/reset/repeat/interleave checks pass,0 anomalies; sound clamp maximum
+is answered. Both COMPLETE Lebanon raw files are byte-identical. The newa100
+guards pass fmt/4functions/strict0; independent actual review1408817f...6200
+has no findings. The earlier syntax/Clippy failures remain preserved.
+
+The host sector query candidate6711d5f11 is pushed. All3 first native/controller
+probes0/all6inputs0/49payloads unchanged preserve every95 original raw line and
+ending EXACTLY. This is numeric-only, not FP/authority/shipping acceptance.
+Independent source review06419e7b requires complete callerFP preservation and
+strict observer-stream/completed-frame evidence. A test-only libtest type error
+also blocked both pipelines101, after the Windows native observer build succeeded.
+
+Test-only e05 preserves6711 production inputs and establishes actual FP RED:
+6144 calls,76 reported mismatch categories including MXCSR precision/underflow,
+focusedtest101. Observer guards11/13 pass,2fail synthetic-data/prefix assertions;
+the public path is explicitly SKIPPED in that guard run, not authority evidence.
+ONE Sonnet5.5 High author21992/controller18596 is NOW correcting full FP ingress/
+guard/output handling and the finite guard failures. No acceptance yet; failures
+are retained. Fresh fixed3 roots and authority5 roots allverify0 and are UNUSED.
+Jira51comment10891 records these measured gates; ledger89 records closed wind;
+all5 epic reports remain preserved. Integration was re-fetched and staysb6575594c.
+Existing
+original observer/effects/RNG/time evidence is reused. Sound/lightning effects,
+physical time inputs, remaining terrain/loaders, spatial/object/tree scans and
+model hierarchy/viewpoint/physical-route data stay required within D3. Campaign
+geography, policy, calendar, timers and scheduling remain in EECH_DC. The compact
+private process/gate checkpoint is R:/d3-evidence/D3-ACTIVE.json.
+
+# D3 checkpoint — environment conformance and review corrections (31 October 2026, 10:32 UTC)
+
+Task51 / draft PR111 production field/query/evolution candidate05b8caf82 has an
+actual Windows fixture build0 and three actual164-case retail probes0. All six
+pre/post input checks pass and46payloads verify. Every704 original raw line,
+INCLUDING ENDINGS, is exact on all3roots; one new validation metadata row is
+separate. This is finite numeric conformance, not authority/FP/shipping acceptance.
+Linux default/fixture package tests pass; first strictClippy101 is one lint,
+feature strictClippy not reached. Asset-dependent skipped data is not retail proof.
+
+ONE independent combined review requests explicit complete x87/MXCSR restoration,
+immutable reply/lightning-RNG protocol validation, and original branch-dependent
+input domains. Same Sonnet5.5High context is correcting all3groups plus the lint:
+Claude25532/controller5932 born10:28:57UTC, no live exec handle. New corrections
+are unbuilt/unrun/unreviewed. Preserve frozen05b source/bins/results/review.
+No repeat original oracles, baseline/tolerance changes or physical acceptance.
+
+Ground fresh fullshipping9948/runner19032 and24444/18928/24776/20752 remain live.
+All4recording prefixes match (~8MBACMI/5MBOBS per run), PARTIAL ONLY. Output
+R:/d3-evidence/shipping-ground-aafb21775-recovery-pack-20261031-0945. Full40/all8
+COMPLETE files/input+source+binary identities/final review/currentCI/normal merge
+remain. Old interrupted72359/19393 remain preserved, never passed/restarted.
+Required lightning effects/time/spatial/model/terrain services stayD3; campaign
+policy/scheduling stayCore. WholeD3 remains open, D4/D5 unstarted. Jira51comment
+10886 records these actual results. Compact checkpoint R:/d3-evidence/D3-ACTIVE.json.
+Safe05b receipts: reference/d3-environment-characterization/physical-05b8caf82-checkpoint/.
+
+# D3 checkpoint — verified interruption recovery (31 October 2026, 09:49 UTC)
+
+The old ground tool72359/runner20800/four native processes and field-author
+19393/PID10268 are NOT RUNNING. No completion receipts/pack report exist; actual
+exit codes are unavailable. Both attempts are INTERRUPTED/INCOMPLETE, never
+passed or assigned invented failure codes. Old roots/logs/partials remain intact;
+their final12.6MBACMI/7.91MBOBS prefixes still match accepted bytes. Interruption
+cause is unknown. The only partial source header was preserved byte-exactly.
+
+A separate fresh preflight completes0: exact40checks,50payloads, all3retail input
+manifests and Python3.12.14. SAME immutableaafb21775 binaries, no rebuild or
+baseline rerun. NEW hidden launcher9948 born09:49:05UTC, pack runner19032 born
+09:49:09UTC. Native campaigns24444/18928/24776/20752 born09:51UTC are LIVE with
+separate roots and unchanged seed1/100ms/3hour configuration. Output is
+R:/d3-evidence/shipping-ground-aafb21775-recovery-pack-20261031-0945.
+First4nonempty prefixes match accepted bytes (~0.777MBACMI/0.967MBOBS), PARTIALONLY.
+Monitor actualPID/birth/commands and run.json/completion; there is NOlive72359handle.
+Exact40/all8COMPLETE files, post-inputs/identities/review/currentCI/normalmerge remain.
+
+The same available local Sonnet5.5High contextf3982761 resumed at09:48:28UTC:
+Claude22716/controller22928, hidden background, no live19393toolhandle. Production
+C weather/wind dispatch/field/client wiring is being written, UNBUILT/UNRUN/
+UNREVIEWED. No extraction acceptance. Closed original observer evidence/review
+remains valid and reused at native765/driver235. M5v3/integrationb657 unchanged.
+Ledger85 readback preserves exact priorHTML/all5reports; Jira48comment10884 and
+51comment10885 record recovery. Safe interruption/preflight/prefix receipts are
+under reference/d3-ground-characterization/interruption-recovery-20261031-0945/.
+WholeD3 stays open; required physical services stayD3, campaign policy/timers/
+scheduling stayCore, D4/D5 unstarted. Baselines/tolerances/private data unchanged.
+
+# D3 checkpoint — environment original evidence closed; field extraction underway (31 October 2026)
+
+Task51 / draft PR111 has closed bounded original observation. Native76533dd3a with
+explicit driver235290e0d completed four 120-second cases with exit0: fixed Lebanon,
+variable Lebanon/Georgia and instrumented observer-OFF Lebanon. All eight pre/post
+input checks and46 payloads match. Complete selected raw lines including endings
+match uninstrumented controls:10830fixed and8139per variable case. This compares
+observed session state/campaign digests, not all campaign state or Tacview output.
+The natural traces preserve the two boot weather groups/20draws, reseeds, previous
+frame delta and complete server lightning/sound-call order. No visual/audio claim.
+
+Linux and actual Windows each pass14driver checks; formatting/strict affected
+Clippy and all8hosted jobs at235 pass. Independent actual evidence review closes
+without findings, SHA256390d2c417f5666649531b6523dfb98ae06a6d521601455b5a5451299d98364aa.
+Safe records are pushed on Task51 at b8874cd6c. Earlier real32KB drain failures
+remain retained. Ledger84 readback preserves all prior HTML/five epic reports;
+Jira10883 and PR111 describe the current bounded results and remaining work.
+
+The single Sonnet5.5High lane now implements the physical weather/wind field,
+queries and evolution/lightning-timer decision on the existing Task51 branch.
+Tool19393/PID10268 born02:43:51UTC, available contextf3982761. New implementation
+is unbuilt/unrun/unreviewed. No environment extraction or Task51 delivery is
+claimed. Campaign timers/scheduling/decisions stay Core; required physical sound,
+terrain-scratch, time, loaders and spatial/model work remain in D3.
+
+Ground Task48 remains frozen at productionaafb21775. Original fullshipping72359,
+runner20800 and four native campaigns are still live and untouched; latest four
+checked prefixes match accepted bytes (~10MBACMI/6.31MBOBS), partial only. Full40,
+eight COMPLETE default files, post-inputs, final review/currentCI and normal merge
+remain gates. Accepted integration remains b6575594c. WholeD3 is open; D4/D5 have
+not started. Baselines, tolerances, useful failures and private raw data remain intact.
+
+# D3 checkpoint — ground shipping live; original environment controls exact (31 October 2026)
+
+Ground Task48 / PR108 retains productionaafb21775 and focused test recoverye107.
+The original fullshipping tool72359/runner20800 and four campaign processes remain
+live at their original creation identities; no restart or input/binary change.
+The latest retained four nonempty prefixes still equal accepted bytes (proof
+R:/d3-evidence/ground-aafb-live-prefixes-third-20261031.json), PARTIALONLY.
+Actual40/full8COMPLETE comparisons, post-inputs, final new-evidence review/currentCI
+and normal delivery remain gates. All8publication checks at5b were green; this
+metadata checkpoint needs its own hosted check completion. Production inputs unchanged.
+
+Task51 / PR111 is pushed at76533dd3a. Original observer and unhooked Windows builds
+at2804 complete0, each46payloads verified; default/observer strictClippy and12guards0.
+New765observer Windows build0, Linux13guards/fmt/default+observer strictClippy0.
+All three original unhooked120s controls complete0/prepost manifests0: fixed100ms
+Lebanon and variable100,250,50ms Lebanon/Georgia. Complete fixed control preserves
+10827original99 snapshot rows, two campaign endpoints and the run row: all10830
+selected raw lines INCLUDING ENDINGS byte identical. Metadata is separately
+classified; this driver generates no Tacview and this is not shipping acceptance.
+Safe evidence is committed on Task51 branch; raw inputs/coordinates stay private.
+
+The single independent reviewer closes the enum/seed timing source corrections,
+but one residual trace-coherence P2 remains: impossible server lightning/client
+and rain/tag positive forms and observable phase-order checks. The same sole
+Sonnet5.5High context is correcting Lua/tests/docs (tool45237/PID16356 born02:21UTC).
+No environment solver/state/service has moved. The one Opus5.5Medium compact plan
+completed0 as read-only advice; it is unaccepted and cannot narrow requiredD3scope.
+Accepted integrationb657 was freshly fetched and remains current. Task47 Done;
+Task48/49/50/51 and wholeD3 remain open. Required physical spatial/model/loaders,
+environment and time services stayD3. Campaign geography/routes/timers/scheduling/
+policy/consequences stayCore. D4/D5 not started; baselines and tolerances preserved.
+
+# D3 checkpoint — focused ground gates closed; full shipping live (31 October 2026)
+
+Production aafb21775 and test-only recovery e1076ece3 have closed focused gates.
+All three real-map comparisons remain exact to c119/02cc; both Lebanon complete
+bounded reports match. Linux and actual Windows each pass21 synthetic backend
+checks, including104 caller-state calls across13cases/fourrounding modes/twoflag
+patterns. x87 control/status and MXCSR are exact. Strict all-target Clippy passes0.
+FP actual recovery review has no findings, SHA256
+2d60696be528582f00962c0681080a2ad6dc919ac2eef40b992ccf5b4ae2e672.
+
+Actual Windows weapon suite completed16/16 with9real modes and18pre/post manifests0.
+One anti-aircraft-launched20mm projectile cohort is matched: changed below answer
+changes7steps to1; exact shifted impact is consumed; all6specific withheld/malformed
+replies stop at the named guard after launch. This is bounded host-world authority,
+not all-family coverage or isolated campaign-policy/RNG causality. Independent
+actual authority review is clear, SHA256
+ac99a17707fdbcbc56c1c3e3f520c9a995a003b8456c368acd8d15c2c01b1d4e.
+All8 CI checks passed at e107. Safe proofs are under
+reference/d3-ground-characterization/focused-closure-aafb-e107/; raw data stays private.
+
+The ORIGINAL ordinary shipping pack is LIVE, SAME72359/runner20800 born01:31:27UTC.
+Four original campaign processes17448/8964/18980/24868 were verified with their
+creation identities and separate roots. Source/bin at immutable aafb; output
+R:/d3-evidence/shipping-ground-aafb21775-final-pack-20261031. At01:39UTC all4
+nonempty ACMI/observation prefixes match accepted bytes (about1.75MBACMI/1.40MBOBS
+per recording). These are PARTIAL, not40/40/eight-complete acceptance. Do not restart
+on quiet output/timeouts. Actual runner0, exact40PASS, complete8file comparison,
+post-inputs/source/bin rechecks/final review/currentCI/normalmerge remain required.
+
+The single Sonnet5.5High lane now characterizes original environment initialization,
+sharedRNG/lightning/effects and real variable-frame time phases on Task51 branch.
+SAME69432/PID17412 born01:39:24UTC, available environment contextf3982761...;
+accepted integrationb657 composed locally. Observer edits are unbuilt/unrun; no
+physical environment extraction yet. Existing original99/guard evidence is reused.
+Task47 remains Done/normal mergeb657; Task48 and wholeD3 stay open. Required other
+spatial/model/hierarchy/device/physical route-data/loaders/environment/time services
+remain D3, campaign geography/routes/timers/scheduling/consequences stay Core.
+D4/D5 not started; all earlier failures/baselines/tolerances remain unchanged.
+
+# D3 checkpoint — guarded product measured; test-only FP coverage recovery (31 October 2026)
+
+Production sourceaafb21775 is frozen/pushed. All three Windows builds and test
+export complete0. Renewed three-map finite native comparisons complete0 against
+c119 and previous02cc, with exact physical/semantic facts and unchanged complete
+Lebanon raw hash16e870fb3381b5739f065a7cff4ccdd68ea79a9ed1521d87108a00c2929682e5.
+All5source corrections are independently SOURCE_CLOSED_PENDING_VALIDATION, review
+SHA256befc10c40b854bf1ae6e430efd57409c1732b1621ad8365707697c63163b93c1.
+
+A new FP TEST COVERAGE assertion fails on Linux and actual Windows (both101):
+the old tiny point-map builder's sector maxima0 made900m correctly no-read; x5000
+was outside the supplied world3000 and below correctly no-read. FP-state matrix
+and hardware-reader controls pass both OSs, but cannot establish intended path
+coverage until the fixture is valid. New source changes ONLY terrain_backend.rs
+and its doc: valid sector heights for FP cases, inside-world/off-terrain refusals,
+explicit case expectations and a non-saturated status pattern. Producer5588 /
+SAME4642 completed0, collected; formatting0. Production inputs unchanged, so no
+product rebuild: sourceaafb remains the measured DLL/host, test-only recovery is
+separately named. The recovery controls and strictClippy remain UNRUN.
+
+The actual strict launched-weapon authority/refusal suite SAME22222 is live from
+unchanged aafb weapon-fixture DLL on9separate previously unused verified roots;
+no result yet. All16aafb Linux driver/child controls passed; asset no-env functions
+are not native proof. Linux stopped at the fixture assertion, so Clippy is not
+claimed passed. Original failures and all old evidence remain unchanged.
+
+Next: corrected test-only Linux/Windows FP controls and strict gate, collect SAME
+22222 actual result, public/physical source identities and full shipping40/eight
+complete default artifact equality, independent new-evidence/currentCI/normalmerge.
+Task47 is deliveredb657/Done; Task48/D3 remain open; required model/spatial/loaders/
+hierarchy/device/route-data/environment/sharedRNG/time services stay D3. Campaign
+geography, route planning, timers, scheduling and consequences stay Core. No
+accepted baseline, tolerance, seed or duration changed; D4/D5 not started.
+
+# D3 checkpoint — measured ground candidate; five review corrections prepared (31 October 2026)
+
+Measured02ccf06cc is preserved in an immutable snapshot and safe records under
+reference/d3-ground-characterization/production-checkpoint-02ccf06cc/. Three
+Windows builds complete0/all50payloads verified each; original parent125 is only
+export setup, separately recovered0 with the actual final image. Linux441 passing
+functions precede strictClippy101 on13indexing errors; asset no-env returns are
+not physical evidence. All3 real retail ground comparisons complete0:20kpoints/
+5kimpacts times2,113common decoded rows exactc119, physical/semantic/cache facts
+and restoration agree; both COMPLETE Lebanon reports match. Windows transport
+passes60/60checks per map/no skips. Moved public handoff is healthy/pass with
+416above/400below/150impact host requests. Inputs and all50payloads reverify.
+No shipping/full Tacview or launched-weapon authority acceptance is claimed.
+
+Independent combined review76f52b1bd8b33d15bf07d10a9c8ce8d64625b701c1b023e25bfa551fcb3ab730
+requests five finite P2 groups. The sole Sonnet5.5High correction author20536
+completed exit0 at2026-10-31T01:05:14.505544Z; SAME41896 collectedterminal0,
+no restart. New source freezes the launched cohort and strictly judges identities,
+uses exact-single changed replies, checks witness progress/frame/wall budgets and
+all I/O results, saves full caller FP state around all three ground entries including
+early refusals, and replaces indexed vectors with fixed arrays. New real-driver
+failure controls and asset-free synthetic-map/all4RC FP controls are prepared.
+Formatting/check pass; corrected compilation/tests/actualWindowsFP/weapon authority
+and source review are UNRUN. Original numerical kernels stay unchanged; changed
+FP wrappers warrant the directed finite comparisons on the corrected build.
+
+Next: freeze corrected source, affected Linux/strictClippy, actual Windows controls
+and launched-weapon authority/refusal, full shipping40/eight COMPLETE default file
+comparisons, one changed-delta independent review/currentCI/normal delivery.
+Task47 remains Done/normal mergeb657 with exact validatedtree697ff and unchanged
+full pack. Task48/D3 remain In Progress. Ledger81/Jira48comment10878 preserve the
+prior HTML and all5reports. Environment guard closure remainsb8e8b6153; environment
+physics and the rest of required spatial/model/hierarchy/device/route-data/loaders/
+sharedRNG/time remain D3 work. Campaign geography/routes/timers/policy/consequences
+stay Core. D4/D5 have not started; no baseline/tolerance/seed/duration changed.
+
+# D3 checkpoint — terrain delivered; production ground handoff prepared (31 October 2026)
+
+Task47 is Done: PR107 normally mergedb6575594c114cf38c0206af24920e40f0e250b77,
+with freshly fetched merge tree exactly validated697ff11a3. Original full40/40,
+all8 COMPLETE default artifacts byte identical, inputs/all45payloads, final
+independent review and9currentCI passed. The user's earlier direct instruction
+to manage reviews and merge autonomously already authorizes normal delivery with
+the logged-in author. No GitHub formal self-approval is claimed. The redundant
+permission question is superseded; rationale and exact gates are preserved in
+PR107#issuecomment-6517339389 and reference/d3-terrain-characterization/normal-delivery-b6575594c/.
+Ledger80 readback preserved ALL prior HTML and all five epic reports exactly.
+
+Task48 / PR108: the same Sonnet5.5High ground author completed exit0 at
+2026-10-30T07:48:18.920546Z; original tool10627 was collected terminal0, no restart.
+Local setup mergese949cbfe7/06a4da620 compose delivered integrationb657 and
+reviewed host preparation55e3. Production source now routes above/below-ground
+and terrain-impact queries to host operations. Shared-record lazy queries,
+endpoint/impact aliasing and campaign class mapping are intended to remain exact.
+Weapon, avionics and particle call sites use the shared redirected entries.
+New real weapon-launch authority/refusal and moved-public-handoff witnesses are
+written. Formatting/check pass; compilation, affected tests, real native authority,
+shipping40/eight-complete-file comparison and independent source review remain
+UNRUN for this candidate. No physical acceptance or Task48 delivery is claimed.
+
+Task51 guard preparation is CLOSED at measured084858000: Linux8/8 plus strict
+Clippy/fmt0 and actual Windows8/8 pass. Final independent narrow review has no
+findings, SHA2565916fd108f60f3932fb7a39e0c66cdcc8dcff682512b47525657845a4a67f3f7.
+Safe closure pushedb8e8b6153; original99 numerical and e116 compatibility evidence
+retain their exact source labels and are reused. No environment physics moved.
+
+Fresh ground candidate and shipping roots were copied from the retained bundle;
+all6 pre-input manifests pass0. Original c119/feb and14bf/516d host preparation
+are reused. Required remaining derived terrain/physical loaders, object/model
+scans/transforms/solvers, hierarchy/viewpoints/devices/muzzles/target points,
+physical route data, environment/sharedRNG/time services remain D3. Campaign
+geography, route planning, timers, scheduling, policy and consequences stay Core.
+D3 remains active; D4/D5 not started; no accepted baseline or tolerance changed.
+
+Host Lua native checkpoint at clean516d2e3f60: Windows build0/four exports verified;
+Georgia and Lebanon direct3/3/45checks each pass without skips/pre-post inputs0.
+Public old-DLL harness7/7: healthy control passed, required-handoff failed with
+GROUND-HANDOFF-RED only after healthy completion; each88878point/map1/ground0.
+Control/required post-inputs0, all4new/all46old payloads unchanged. Sole independent
+new-Lua review CLOSED without open findings at measured516/publication0e; P3
+private-raw/Git-copy newline provenance verified. No G2 cutover or shipping/Task48/D3 acceptance.
+See eech-campaign/reference/d3-ground-host-preparation/lua-native-516d2e3f60.json.
+
+The following is the preceding checkpoint/failure history.
+
+# D3 ground-host preparation checkpoint — 2026-10-29
+
+EEDCS-48 / Epic EEDCS-21; branch `codex/d3-ground-host-preparation`,
+base `1b6218b06a0d0ca61f884a4b913c0c1e5ded3b01`.
+Authority: live M5 goal 11534337 v3 and migration ledger 14548994 v59.
+D1/D2 are accepted. D3 remains in progress; D4/D5 have not started.
+
+The host ground kernel at `14bfd3ed63e906759a7e688068a1f8090bb74db7`
+passed actual Windows terrain_backend 17/17 and ground_conformance 4/4 on EACH
+fresh verified Georgia, Lebanon and separate Lebanon repeat root, without skips.
+All pre/post input manifests passed; original c119 raw hashes are unchanged.
+Physical folds, counters, samples and common cache facts match the original;
+the host's second full sweep equals its first. Independent review of that exact
+kernel and evidence closed with no actionable findings. See
+`eech-campaign/reference/d3-ground-host-preparation/`.
+
+The next host-only step adds Lua `ground_below`/`ground_impact` transport,
+direct retail-map tests and a healthy old-DLL control/required-handoff RED harness.
+Its actual Linux working-tree build, formatting and all-target host Clippy passed
+at 17:18:24Z. Six terrain library tests and eight map-free wrapper/guard tests
+ran and passed. Two additional functions explicitly SKIPPED: the real-map
+transport test and the public native control/RED test. Their reported Cargo
+success proves neither path. Source hashes and the complete Linux log are retained.
+This new Lua step has not yet had Windows/retail execution or independent review.
+
+No production DLL G2 dispatch, client, `wn_move` or public module bridge changed.
+The Lua layer is host preparation, not a delivered extraction. Next: build a
+named clean Windows host/test snapshot; run direct transport on both maps, then
+the healthy old-DLL control and expected missing-handoff RED using an explicitly
+identified test-only hybrid with the unchanged frozen febbb7cc5 fixture DLL.
+Investigate differences and independently review the new source and results.
+Production G2 cutover waits Task47 delivery and reverified integration.
+
+Task47's ordinary shipping pack from clean source
+`1156c8fbbdb80783164a95f54f1f782cea328307` remains running and untouched.
+Outer PID17636, runner24412 and native PIDs13480/22388/15952/14740 were verified
+against creation times and commands at this checkpoint. Tool session59652 owns
+the run. Retained Tacview/observation prefixes matched; complete40/eight full
+files/post-input checks and delivery are still pending. Do not restart on silence.
+
+Other above/below consumers, collision/tree/model queries, physical loaders,
+weather/environment/RNG and host-time inputs remain D3 scope. No baseline,
+tolerance, original oracle or generator was changed. Private retail inputs,
+binaries and raw recordings stay outside Git in `R:/d3-evidence`; external
+`D3-NEXT-ACTION.json` and `D3-REQUIREMENTS.json` carry the continuation state.
+
+Host provider transport, first native run (Georgia, build of f66ba1f13): checks 1..28 passed and
+check 29 FAILED on a wrong TEST expectation (the product's `got integer` refusal for `world = 5` was
+right; the test expected `got number`). The expectations are corrected in source and a non-integral
+case added; the raw failure is retained, and the refusals after check 29, Lebanon and the public
+control/RED have not run since. No pass, cutover or D3 acceptance is claimed. See
+eech-campaign/docs/m5-ground-host-preparation.md.
+
 # D3 terrain — full shipping40 and eight complete artifacts passed (30 October 2026)
 
 EEDCS-47 / PR107, measured production `1156c8fbbdb80783164a95f54f1f782cea328307`.
@@ -1628,6 +2271,657 @@ map-fact services dispatch to the host. The exact tested reader source from
 supplementalfix4b2043500 is imported atfa0601861; its terrain-file hash matches
 763316a9e3d192114cf8de6d00227d905b4c378975f923d1060ec9abf32bc1bd.
 G1 remains unaccepted until final-source shipping validation and normal delivery.
+
+# D3 commit/push checkpoint — environment initializer guard correction (30 October 2026)
+
+Task51 / draft PR111 source `9f82ba6f9` is committed and pushed. The sole
+Sonnet5.5 High author completed exit0 at 2026-10-30T07:16:22.507550+00:00.
+No active implementation writer remains. The correction permits initializer
+wind-unavailable rows when the inherited gust is outside its valid domain;
+the existing contextual guard still rejects a false absence. A coherent positive
+and a false-unavailability negative were added. C and physical values are unchanged.
+Formatting and formatting check pass. Tests and independent review of this latest
+small delta remain PENDING; prior e1165cad6 results do not validate the new delta.
+
+At e1165cad6, Linux and actual Windows each passed8 guards, strict Clippy passed,
+and the new-driver/original-DLL compatibility run preserved all704 original raw
+rows including line endings, adding only one validation metadata row. Independent
+review closed scheduler/Windows wiring and the main contextual checks, identifying
+the one initializer-template issue addressed by this checkpoint. Reports and their
+hashes are retained on the environment branch under
+`eech-campaign/reference/d3-environment-characterization/guard-checkpoint-20261030/`.
+Original three-root/1200-frame numerical evidence is reused; environment physics,
+natural lightning/shared-RNG causality and remaining required host services stay open.
+
+Task47 PR107 remains ready at697ff11a3:40/40 checks, all8 COMPLETE default files
+byte identical, final independent review clear,9 hosted checks successful at that
+head. Formal approval/normal merge remains pending the explicitly asked workflow
+exception; commit/push is not approval or acceptance. All five ledger reports and
+accepted baselines remain unchanged. D3 remains active; D4/D5 have not started.
+
+# D3 checkpoint — terrain full shipping passed; environment review corrections active (30 October 2026)
+
+Task47 / ready PR107, current `697ff11a3`: original59652 completed0. The exact40
+accepted checks pass and all8 COMPLETE default files are byte identical. All3
+external post-inputs, independently verified internal Lebanon-copy inputs, all45
+payload hashes, frozen1156 source identity and9 current hosted checks pass.
+Final independent review has no findings, SHA256
+7a962a210411fe8b04691def68e3d65724298fe1a7edf0136b21618639f76f93.
+The normal merge is pending an owner workflow exception: required formal reviewer
+fd-starscream-bot is also the logged-in author chosen by the user, so self-approval
+is unavailable. An explicit async question is pending; elapsed time is no approval.
+Do not fabricate GitHub approval or merge until that constraint is resolved.
+
+Task51 / draft PR111: measured original `99352e331` builds Windows0/all43 payloads.
+Three retail probes complete0 with164 cases each (two gust-domain refusals), all
+restoration markers and immediate campaign/session equality. Whole Lebanon reports
+repeat byte exactly. Both120s/all1200frame probe/control runs complete0;10,827common
+snapshot rows and campaign endpoints match. Default/feature tests and default
+Clippy pass; original featureClippy101 is retained, comment-only8e676a9ae recovery0.
+The combined independent review finds three P2 tooling groups: typed family/report
+completeness, bounded periodic scheduling, and Windows test paths. It finds no C
+numerical/FFI/memory/restoration blocker and permits reuse of unchanged originals.
+Review SHA2567bb4c638d218216f1e55e43bd5535423e2730f9c81abf0eda616cd64aa8935d4.
+
+The same sole Sonnet5.5 High context is correcting that batch: tool57176/PID21948,
+born06:09:04.790391UTC, sessionf3982761-70f5-4de8-a709-9d7c0655fbe7. Do not stage
+its active writer or restart on a quiet console. Changed guards/actual Windows
+execution and one changed-delta review remain required; environment physics has
+not moved. Ledger79/Jira47comment10874 preserve priorHTML/all5reports exactly.
+After actual Task47 delivery, verify integration before earliest Task48 production
+handoff. Required ground/object/model/loader/hierarchy/device/route-data/environment/
+time services remain D3; campaign geography/routes/timers/scheduling/consequences
+stay Core. D3 stays active; D4/D5 not started. No baseline/tolerance changed.
+
+# D3 checkpoint — environment characterization started; bounded model gates closed (30 October 2026)
+
+EEDCS-51 now owns the remaining weather/wind/environment and host-time-input
+extraction. Its original-behavior characterization is being implemented on
+`codex/d3-environment-services` from freshly fetched integration `6bbaa8197`.
+The sole Sonnet5.5 High CLI author is PID4296, born05:27:50.394156UTC,
+tool90536/sessionf3982761-70f5-4de8-a709-9d7c0655fbe7. No environment behavior
+has moved or passed a build/runtime/review gate yet. Campaign time/timer and
+scheduling semantics remain Core. Existing independent reviewer is reserved
+for the new delta; closed unchanged components are reused.
+
+Ledger14548994v78/Jira50comment10873/PR110 now record final bounded model
+authority, full caller-state and byte/frame restoration plus labelled test
+recovery. Published ledger HTML and all five epic report divs read back exactly.
+Current PR107 and PR110 each have9 successful hosted checks; both remain draft,
+with formal approval/normal delivery and the whole D3 scope open. The original
+Task47 pack59652 is still running; latest four recorded prefixes match about
+115.3MBACMI/83.6MBOBS, not complete acceptance. Do not restart that run.
+
+# D3 checkpoint — bounded model authority and byte restoration passed (30 October 2026)
+
+Production source `80fd62ea4`, with test/prose-only recovery `e48808f53`, now passes
+the completed bounded public-model gates. Complete ACMI, observation and metrics
+files match the old `4bee2cc8c` bytes; an independent observer confirms the same
+35 actual frames and final clock 3.49999737739563. All 16 success/refused public
+entries preserve full x87 control/status and MXCSR across all four rounding modes.
+Nine actual authority/refusal controls pass, including poisoned Core arrays,
+host-authored geometry, absent colliders, malformed answers and missing providers.
+Inputs and all 48 payload identities are verified for each native controller.
+
+Affected checks total 428 unique passing tests across the retained completed
+suites and a separately labelled recovery. Formatting and both default and
+feature-enabled strict Clippy pass. The original guard failure (exit 101) and
+wrong-shell recovery attempt (exit 2, no tests started) remain retained failures;
+corrected recovery completed exit 0 at 04:59:54 UTC. No production rebuild or
+unchanged kernel/native repetition was used for the test/prose correction.
+The two final independent evidence reviews have no findings. Safe assertions,
+hashes and review records are in the model branch's
+`eech-campaign/reference/d3-model-characterization/model-bounded-checkpoint-80fd-e488-20261030.json`.
+Earlier sections below describe their checkpoint time and are superseded by this
+entry where results were pending. Ledger v77/Jira comment10872 predate this closure.
+
+Task47's original runner is still live (same tool59652); the original two recorded
+campaign processes remain live and the two unrecorded processes have exited.
+No restart or final pack acceptance is claimed. Full 40 checks/eight complete
+artifacts, final input checks, current CI, formal approval and normal merges are
+still required. Required D3 physical solvers/scans/transforms/loaders, hierarchy,
+devices, route data, environment and host time remain open. Campaign policy,
+geography, route choices, timers and consequences stay in Core. Task50 and D3
+remain In Progress; D4/D5 have not started. Raw retail evidence stays outside Git.
+
+# D3 checkpoint — caller state proved; reference-host profile validating (30 October 2026)
+
+EEDCS-50 / draft PR110 source3833c822d passes both Windows builds/all48payloads
+each,423 affected tests/default and feature-enabled Clippy. Actual16requested/
+16measured success+refused native entries in all4initialroundings preserve full
+x87control/status and MXCSR. Every controller/native/prepost stage0. The generic
+DLL restoration is repaired; no arithmetic/kernel/baseline/tolerance change.
+
+Bounded byte equality is still RED: OBS1553674B exact; ACMI3165lines only2reference
+headers differ; metrics/checkpoints/1/seconds3to4. A delegating observer of the
+exactshippedcampaign proves old4bee35frames/3.49999737739563s vs383336frames/
+3.5999972820281982s; each observer-run matches its uninstrumented3rawartifacts
+exactly. This is host postprepare arithmetic/timing dependence, not formatting-only.
+Source/evidence review112cbd/cae3899 and safe proof pushed at5595ab039 retain allred.
+
+Prepared source80fd62ea4 explicitly gives EECH_WORLD its legacy SSE_RZ profile
+immediatelypostprepare on31referenceclients, preserving earlierparsing/x87/other
+CSRbits. Closedoriginaldriver and rawDLLdiagnostic remain deliberate exceptions.
+GenericDLLrepair/modelkernels unchanged. Bothauthors95426/PID544 and91456/PID6120
+terminal0/collected; no writeractive. Source pushed/frozen; Windows37206/PID5908
+andLinux23485/PID10116 live, one independent changed-delta review ongoing. Old35
+frames/finalclock/allcompleteboundedrawbytes plusnewprofilefullFPU still unproved.
+Ledger77/Jira10872/PR110 preserve priorHTML/all5epicreports exactly.
+
+The separate Task47 original6processes remainlive; twentieth four nonempty
+prefixes match (~108.5MBACMI/78.5MBOBS each). Full40/eight complete artifacts/final
+metrics/postinputs/normaldelivery pending. All828closedfinitegeometry reused.
+Required physicalsolvers/scans/transforms/loaders/hierarchy/devices/route-data,
+environment andhosttime remainD3; campaignpolicy/geography/routes/timers/consequences
+staycore. Task50/D3 InProgress; D4/D5 notstarted. Boundedchecks/preparedcode are not
+wholeD3 or fullshipping acceptance.
+
+# D3 checkpoint — all present retail model geometry matches; public handoff active (30 October 2026)
+
+EEDCS-50 / PR110 evidence is pushed at `5bce5c734c8f641f8fc0f7150705e260ab291151`.
+Reviewed original fixture `debf965cb` and unchanged host component `f9c6a1e4c`
+match every one of the 828 present models in verified retail inputs: 30,609 TRUE
+triangles plus 828 original end FALSE calls per root; the retained absence adds
+one FALSE. All 3,025 metadata records match. The 65 earlier models are reused;
+763 additional models, including 178 currently used, pass twelve bounded batches
+on all three case roots. Every native/input stage passes, with no cap, mismatch
+or state drift. Original triangle rows and complete host reports are byte exact
+across roots within each selected set/batch. Raw files and baselines are unchanged.
+
+Windows fixture compilation and Linux formatting/one Rust control test/69 synthetic
+expectations pass. The surface-provenance P2 is closed. Both Root aggregation
+failures remain controller1 after native/input0; separately reviewed read-only
+recoveries pass without native reruns. Final expanded evidence review SHA256:
+b8712c4bc6c0630e74eecea25bcec5bcdfd31a48d228f09483b46d4701037821.
+Ledger14548994v73 and Jira10868 record this; prior HTML and all five epic reports
+read back exactly. Finite current-input evidence is not generic/DCS support.
+
+The same Sonnet5.5 High session20f8 now implements required public model-query
+authority/refusal on the draft branch: tool13444/PID6768, born02:33:33.362640UTC.
+New handoff source remains unbuilt/unrun/unreviewed; no production claim. Required
+physical collision scans/transforms/solvers, hierarchy/viewpoints/devices/muzzles/
+target points and physical loader removal also remain D3 work, alongside environment
+and host time. Campaign shape choices, targets, policy, consequences, geography,
+routes, timers and scheduling stay core. An intermediate accessor handoff is not
+the final boundary. Task50/D3 remain In Progress; D4/D5 have not started.
+
+Task47 shipping115 remains in its original six processes and was not restarted.
+At02:35UTC all four nonempty recorded prefixes match accepted bytes (about94MB
+Tacview and67.5MB observations per recorded run). Full runner completion, all40
+checks, eight complete artifacts, post-input acceptance and normal delivery remain
+pending. Current PR107 head7b51efedb has nine successful CI checks; integration
+remains6bbaa8197. Retail data, raw recordings and useful tested caches stay local.
+
+# D3 checkpoint — prepared model component review closed; backing instrumentation active (30 October 2026)
+
+EEDCS-50 / PR110 prepared host-model component sourcef9c6a1e4c has no open
+independent source finding. Final closure report SHA256:
+e172b913493b2bbcc1b9ed91b9746698f2e2be3c8226925bdb1b362b05925787.
+Safe closure/build/validation/ledger proof is committed and pushed at3f62ddf3a.
+Actual Linux fmt/235 library tests/34 model integration tests/eight retained
+original diagnostic groups/all-target Clippy pass. Actual Windows build0,
+235 library and34 integration tests pass, including strict missing-host refusal.
+All six host/test payloads verify unchanged. All11 retained malformed reports
+refuse before success; healthy controls pass. Earlier failed stages remain intact.
+
+All three healthy retail repository runners/pre-post input checks complete0.
+All3025 scene records/IDs and215 retained original calls match per root. Complete
+host component reports remain byte identical to preceding corrected sources:
+1278336 bytes, SHA256
+ed3503b12227fec13cadd2d56b62296cdb08e5bd2e5b76f0ac61db776fc59317.
+Physical rows remain exact202; only two earlier diagnostic counts differ (+63bytes).
+Original reports, inputs, baselines and tolerances remain unchanged. This closes
+prepared-component source findings, not production, Task50 or D3 acceptance.
+
+The sole Sonnet5.5 High context20f8 now implements feature-only original allocation/
+backing provenance and memory-read safety for59 custom/mixed geometry gaps,
+tool68620/PID2940 born01:05:15.407328UTC. New source is unbuilt/unrun/unreviewed;
+an independent memory-safety review must precede newly enabled original calls.
+Original accessor arithmetic stays unchanged; host output is not the oracle.
+Jira10867 and ledger14548994v72 record closure and the next characterization,
+with all prior HTML and all five epic reports read back exactly.
+
+Task47 shipping115 remains live/untouched; matching prefixes are partial only,
+with full40/eight complete artifacts/post-inputs and normal delivery pending.
+Production model loading/queries remain in EECH_DC. Geometry gap measurement,
+public campaign authority/refusal integration, production loader/solver removal,
+hierarchy/viewpoint/device/muzzle/target points, entity collision, environment
+and host-time remain D3 work. Campaign geography, routes, timers, policy and
+consequences stay core. D3 remains In Progress; D4/D5 have not started.
+
+# D3 checkpoint — model tests pass; focused review corrections continue (30 October 2026)
+
+EEDCS-50 / PR110 tested8a5dad172 passes actual Linux fmt/235 library tests/30 model
+integration tests/eight retained diagnostic groups/all-target Clippy. Actual Windows
+build0,235 library and30 integration tests pass; strict missing-host refusal passes.
+All six host/test payloads verify unchanged. The61a80 test-helper compile failure
+and ba4 Clippy failure remain retained under their actual identities.
+
+All three healthy retail repository runners and pre/post manifest checks complete0.
+All3025 scene records/IDs and215 retained original calls match. The physical rows
+remain byte exact202; the sole diagnostic-row difference is two validated-envelope
+counts,63 bytes. Whole reports are identical across roots:1278336 bytes, SHA256
+ed3503b12227fec13cadd2d56b62296cdb08e5bd2e5b76f0ac61db776fc59317.
+The same four first corrupt reports now refuse, while healthy originals pass.
+
+The focused independent8a review is CHANGES_REQUIRED: original I/O handling and
+32-bit narrowing findings are resolved, but cumulative nested node allocations
+still reuse a byte budget, and gate/header/write-count report consistency needs
+correction. One P3 concerns exact-match resolver precedence wording/tests. Report
+SHA256:c6bd8075f0dbe69ebea23e694d601e904727c04e1b5b7cdb090043d6b4157d92.
+Two actual forged-gate reports still wrongly pass while omitting24 scene8 calls;
+those failures and healthy controls remain intact. No unsafe giant allocation ran.
+
+The sole Sonnet5.5 High context20f8 is correcting this finite second batch,
+tool87546/PID15588 born00:44:25.155709UTC; new source is unbuilt/unrun. Jira10866
+and ledger14548994v71 record the checkpoint, with prior HTML and all five epic
+reports read back exactly. No original-provenance extension has started yet.
+
+Task47 shipping115 handle59652 and all original six PID/births were verified live
+again; it remains untouched. Prefix equality is partial only: full40/eight complete
+artifacts/post-inputs and normal delivery are pending. Production model loading
+and queries remain in EECH_DC. All59 original custom/mixed geometry gaps, other
+required hierarchy/entity/environment/host-time services and native physical
+solver/loader removal remain D3 work. Campaign policy, geography, routes and
+timers stay core. D3 is In Progress; D4/D5 have not started.
+
+# D3 checkpoint — model review corrections running; report defect reproduced (30 October 2026)
+
+Jira EEDCS-50 comment10865 and migration ledger14548994v70 now record tested
+model202 and its four open review findings. Readback proves all prior HTML and
+all five epic reports exact. The sole Sonnet5.5 High correction lane is live at
+tool63952/PID22348, born00:17:27.030629UTC, relevant local context20f8. New source
+is unbuilt/unrun. No second implementation lane or new review is running.
+
+Actual immutable202 host controls reproduce all four report-completeness false
+greens: truncate after the first matching scene, duplicate a scene, omit a geometry
+terminal, and set original done failures1. Every corrupt input is wrongly accepted
+with native0/done failures0; the healthy original control also passes. The exact
+mutated report files are private and retained for the corrected-binary comparison;
+original report SHA, pre/post retail inputs and five host payloads stay unchanged.
+This is safe checker RED evidence, not altered physical expectations. The dangerous
+old exaggerated-allocation path was not executed merely to manufacture RED.
+
+Task47 shipping115 remains live under the same handle59652 and process identities.
+The fifteenth prefix check sees about73MB ACMI and51MB observations per run, all
+nonempty and byte equal to baseline prefixes. Full40/eight complete artifacts,
+post-input acceptance and delivery remain pending. No new production responsibility
+has moved; remaining model geometry/provenance, physical loader/solver removal,
+hierarchy/entity/environment/host-time scope is unchanged. D3 remains In Progress;
+D4/D5 have not started. Next: collect actual correction completion, validate the
+changed contracts and review only new changes before continuing the extraction.
+
+# D3 checkpoint — host model component tested; four review corrections open (30 October 2026)
+
+EEDCS-50 / draft PR110: source `2020436ce160ac3762f00f7ee8290f4e6247bce3`
+implements host-owned disk loading and model queries independently of the campaign
+DLL. Actual Linux formatting, 25 model-store tests, eight retained diagnostic
+guards and all-target Clippy pass. The Windows build and all25 model-store tests
+pass; the explicit missing-host override fails with native101 as required.
+
+Actual repository runners complete0 on Georgia, Lebanon and Lebanon-repeat.
+All3025 scene records/IDs and215 retained original accessor calls per root match,
+with no named-ID skips and surface block52517. All three complete host comparison
+reports have1278273 bytes and SHA256
+34e4b68478a2b998411edc46f5e5ad565e8a2fc304decabdb2cb3b8747b03e86.
+Pre/post inputs, original reports and five host build payloads are unchanged.
+These are model-component comparisons, not campaign/Tacview shipping runs.
+Initial0b JSON/Clippy failures and the separately discovered named-index error
+remain retained; no baseline or tolerance changed.
+
+The single independent combined review is CHANGES_REQUIRED, exactly four P2s:
+bound node allocation before resizing; propagate override-directory I/O errors;
+refuse incomplete/failed/duplicate original comparison reports; check wide scene
+IDs before narrowing to usize. Report SHA256:
+4f387a639e452c9942e89d693d4de0b7a2e7a914a34bf6c68dcd38626f48c613.
+The review independently confirms the concrete complete retail measurements;
+it does not approve the reusable comparator or current component for delivery.
+Safe report and validation metadata are in PR110's
+`eech-campaign/reference/d3-model-characterization/`.
+
+Both Sonnet implementation invocations and their builds are terminal/collected;
+no implementation writer is currently live. Next: one finite four-finding
+correction batch in the relevant Sonnet5.5 High context, affected validation and
+one review of the new changes. Then characterize the59 original custom/mixed
+geometry gaps using actual original allocation/backing provenance before new
+unsafe accessor calls. Other models have metadata coverage, not exhaustive
+triangle coverage. Production model loading/queries remain in EECH_DC.
+
+Task47 shipping115's original six process identities were verified live again
+at this checkpoint; it was neither stopped nor restarted. Previously checked
+Tacview/observation prefixes match only. Full40/eight complete files/post-inputs,
+normal delivery and subsequent production handoffs remain pending. Model
+hierarchy/viewpoint/device/muzzle/target points, entity collision, environment,
+host-time and required physical solver/loader removal remain D3 work. Campaign
+policy, geography, routes, timers and consequences stay in EECH_DC. D3 remains
+In Progress; D4/D5 have not started. Jira10864/ledger69 are the last external
+records and predate this component checkpoint.
+
+# D3 checkpoint — original retail model characterization reviewed; host loader next
+
+Task50 original-model preparation is independently closed with no open findings.
+Original native measurements remain366622e0c; the corrected diagnostic driver and
+portable guards are reviewed at309b3f050. Closure report SHA256:
+ab48e5079bcc07f119236d31555f70c082f733ae5a979956071bd6d6b8a62bce.
+Jira10864 and ledger14548994v69 record closure and implementation start; all prior
+HTML and all five epic reports read back exactly.
+Linux format/all8 guard groups/all-target Clippy pass. Windows host/test build0,
+all8 guard groups pass; an explicit invalid-host override is correctly refused.
+All3 new-driver native catalogue/selected-geometry runs complete0 and preserve
+exact original catalogue and geometry row bytes, including line endings. State,
+clock, input and original43 payload checks remain unchanged. Native366 is not
+relabeled as a new DLL build. C441 Clippy and Windows harness failures, and Root's
+aggregate log-label error with reviewed read-only recovery, remain retained.
+
+No physical responsibility has moved in this preparation. Collision-model
+loading/queries remain in the DLL. The sole Sonnet5.5High lane is now implementing the actual host-owned collision
+model loader/query component within EEDCS-50 (tool37865/PID2460, localcontext20f8), preserving original fan/depth/scaling and
+required binary/EEO/EES input semantics. The active custom/mixed-layout gaps must
+be investigated; no always-absent substitute is accepted. Model hierarchy,
+viewpoint/device/muzzle/target-point, entity collision, environment, host-time and
+required physical solver/loader removal remain whole-D3 work. Campaign decisions,
+consequences, geography, routes and timers stay in EECH_DC. Task47 original
+shipping115 continues; full40/eight complete files/post-input and normal delivery
+remain pending. D3 stays In Progress; D4/D5 have not started.
+
+# D3 checkpoint — real retail geometry measured; diagnostic correction active
+
+Task50 / draft PR110 publishes original source366 measurements and the combined
+review at `2d94dc7ab`. On all three verified roots, six real models yield208
+original TRUE triangles, six end FALSE calls and one absence FALSE. Four selected
+unsupported models are explicitly refused without original calls. All selected
+geometry bits/events match across roots; full raw files retain distinct state
+hashes. Every input, payload and before/after state/clock check passes. The strict
+read-only audit and independent review validate reuse of these original rows.
+
+The combined review has exactly one P2: the Lua diagnostic driver can accept
+incomplete or misidentified responses. Two actual real-DLL/old-driver controls
+reproduce missing-triangle and duplicate-catalogue-ID false success. The sole
+Sonnet5.5High context20f8 is correcting this bounded contract (tool94801,
+PID19040 born22:57:03UTC); no second implementation lane is active. Its moving
+source is unbuilt/unrun/unreviewed. Next: actual guards and unchanged native
+corruption controls against the corrected driver, focused changed-source review,
+then actual host collision-model loading/geometry extraction.
+
+Jira10863 and ledger14548994v68 record the measurements and open correction;
+all prior HTML and all five epic reports read back exactly. Task47 shipping115
+remains live in the original six processes; checked59MB Tacview/41MB observation
+prefixes match only. Full40/eight complete artifacts/post-input acceptance and
+normal delivery are pending. No new physical responsibility has moved. Active
+custom/mixed-layout model gaps, required hierarchy/viewpoint/device/muzzle/
+target-point, entity collision, environment, host-time and native physical solver/
+loader removal remain D3 work. D3 is In Progress; D4/D5 have not started.
+
+# D3 checkpoint — model fixture built; three retail catalogues measured
+
+EEDCS-50 / draft PR110, measured source `366622e0c08b2caaa5a5317f5197c0ee3d7050e9`.
+The Windows model-fixture build completed with actual exit 0 and 43 verified
+exports. The repository PowerShell runner completed with actual exit 0 on
+Georgia, Lebanon and Lebanon-repeat; all three pre/post input checks pass,
+all payloads remain unchanged, and each before/after native state digest matches.
+Each catalogue enumerates 3,025 scenes: 769 safe-to-probe, 2,009 absent,
+14 custom-object refusals, 45 face-layout mismatches and 188 missing scenes.
+These are catalogue results, not measured retail triangle equivalence. The full
+raw catalogue hashes differ and are retained; no cross-process byte equality
+is claimed. Safe metadata and exact build identity are recorded in
+`eech-campaign/reference/d3-model-characterization/`.
+
+The sole Sonnet High invocation completed with exit 0; no model implementation
+writer is running. Next: select campaign-used safe models with backed end reads,
+measure original triangles and refusal/absence/end behavior, then independent
+review before host loader extraction. No host loader or production dispatch has
+moved. Task50 and D3 remain In Progress; D4/D5 have not started. The original
+Task47 shipping processes remain running, untouched by this commit/push request;
+full-pack acceptance remains pending.
+
+# D3 checkpoint — original geometry witness closed; Task50 model-data work active
+
+Original forest-geometry witness preparation is independently CLOSED with no
+open finding. Native measurements remain47a4af0d1; the corrected diagnostic
+driver is reviewed/tested atb44d2c96f and published with closure/evidence through
+Task49 branchf2473817b. Final closure SHA256:
+4a97eb5468dc7cbc3202a9f68d572e7cd376441347f60624349d2d68c3606573.
+All15054 original queries/29894 ordered replies match host library and real Lua;
+default f3 reports/transcripts and controlled537 transcripts remain byte exact.
+Native state/refusal/input/export evidence remains47a, justified by exact source
+identity; no new native DLL build is claimed for the diagnostic-only fix.
+
+Linux/Windows18 diagnostic guards pass. The14 actual old/new driver runs show
+five newly rejected impossible histories, healthy inputs accepted by both and
+the old neutral-depth refusal preserved. Root's aggregate exit1 is retained;
+the independently reviewed read-only assessment0 corrects its event-label
+mistake (`trace_failed`, not `report_invalid`) without changing any raw run.
+Jira10862 and ledger14548994v67 record closure; prior HTML/all5 epic reports
+read back exactly. The original changes-required review/failures remain intact.
+
+EEDCS-50, Host collision-model loading and geometry, is now In Progress. Its
+dedicated branchcodex/d3-model-geometry starts at freshly fetched accepted
+integration6bbaa8197; worktreeR:/d3-evidence/model-geometry-20261029. The sole
+Sonnet5.5High lane is preparing real retail model/original-accessor
+characterization (tool8289, localcontext20f8be8d-68b1-4ff9-947f-73e2362b0071),
+before implementing the host loader. Nothing new there has been built/run.
+
+No additional production service is delivered by this preparation. Model loading
+and collision queries remain coupled to the DLL. Task47 shipping115 continues;
+checked48.5MB Tacview/32.7MB observation prefixes match only. Full40/eight complete
+artifacts/post-input checks and normal delivery remain pending. Required model,
+entity, environment, host-time and native physical solver/loader removal remain
+whole-D3 work; D4/D5 have not started.
+
+# D3 checkpoint — original geometry measured; fixture state corrections in progress
+
+Frozen/pushed Task49 source `537c36fafae6e16555bcea0c95b4a272921cfd93` now builds
+on Windows; all49 combined fixture/test exports verify. Actual Linux format,
+18 driver guards and Clippy pass; actual Windows18 guards and the invalid-host
+override control pass. All3 default reports and complete transcripts are byte
+identical to reviewed f3. Original controlled geometry produces6 triangles and
+real geometry hits, later-triangle hits, misses/partial writes, exhaustion and
+all4 flag combinations, with no geometry coverage gaps. Model/scene/pointer
+restoration checks pass. Both host library and actual Lua match every query and
+ordered terrain reply: Georgia4802/9598, each Lebanon5126/10148. All pre/post
+inputs and exported payloads remain unchanged. Host physical code is unchanged.
+
+Overall native controller45228 exits1 for an actual fixture state defect: the
+default-controlled-default control leaves witness fields on the next default
+record pages, while report/facts remain identical. Two further native controls
+show one-shot arming surviving a public range or Lua conversion refusal. All3
+RED scripts, raw reports and binaries remain retained. The same sole Sonnet High
+context is correcting that bounded cleanup contract (tool26934); no new witness
+review or acceptance is claimed. Model loading, entity collision, production
+authority, environment/time and required native solver/loader removal remain
+D3 work. Task47 shipping115 continues; checked prefixes match, full acceptance
+is pending. Jira10861 and ledger14548994v66 record this scope; prior ledger HTML
+and all5 epic reports read back exactly. D3 remains active; D4/D5 have not started.
+
+# User-requested commit/push checkpoint — geometry writer stopped, partial work preserved
+
+Task49 checkpoint `5154bc7e736c1145869cc181564b78fc3c504d55`.
+
+Root intentionally stopped the verified Sonnet High geometry-witness writer on
+2026-10-29 for a consistent commit/push checkpoint. Its local context is retained
+as39ea8c20-d032-41ae-bbbb-c52fb100b440. The Task49 branch preserves an unfinished
+feature-only observation hook; its fixture wrapper is not yet implemented. The
+new source is UNBUILT, UNRUN and unreviewed. Resume that context to finish the
+original geometry witness before further model-loader extraction. The reviewed
+8c452f197 host preparation below remains the measured evidence. Existing shipping
+regression processes were left running. D3 remains In Progress; no merge or
+acceptance is claimed.
+
+# Current D3 checkpoint — reviewed host tree component; original geometry witness active
+
+Task49 host tree loader/kernel preparation is reviewed at measured source
+`8c452f197449d3a08b8f7bfbad5c34ae652c22c1`, published in draftPR109 at
+`5022df48a466477f65b44ef6bd9595afce07753e`. The combined review and focused
+changed-source follow-up are CLOSED with no open findings; final review SHA
+4258f1b94e9eeb0821a1dc692190451ee1606454dc2631e148261605d47876ca. Linux format,
+17 tree units,1 real-host Lua and all-host-target Clippy complete0. Windows build0/
+all8 exports,17 units/1 real-host Lua and all three original captures pass. Every
+query/ordered lookup/answer bit matches through library and actual Lua:554/1102
+Georgia,600/1120 each Lebanon/repeat. Up/Down/Zero library caller modes preserve
+answers and complete control/status with nonzero flags. Same6 protocol/3 getter
+controls pass. All pre/post inputs, original traces and exported hashes unchanged.
+Earlier numerical, environment, checker and getter failures remain immutable.
+
+The same sole Sonnet High lane is now preparing a controlled ORIGINAL forest-tree
+geometry/model-decoder witness within Task49. This source work is unbuilt/unrun;
+the measured maps had no forest collision mesh. Required model loading follows
+original characterization. The reviewed host kernel remains unchanged, and
+production campaign queries still use the original DLL service. Full geometry,
+entity collision, authority/refusal and DCS mapping/workarounds remain required.
+
+Ledger14548994v65 readback preserves all prior HTML and all five epic reports;
+Jira10860 and draftPR109 retain exact evidence/limits. Four closed Cargo caches
+were removed after export/log/zero-owner checks, preserving all useful artifacts.
+Task47's original shipping115 remains live; checked43.4MB Tacview/28.7MB observation
+prefixes match. Full40/eight complete files/post-input acceptance and normal
+delivery still gate productionG2/G3. Remaining model/environment/host-time and
+required physical solver/loader removal remain whole-D3 scope. D4/D5 not started.
+
+# User-requested Git checkpoint — implementation stopped and partial source preserved
+
+On 29 October 2026 the user requested committing and pushing all current work.
+The sole Claude writer (verified PID 21552, local session
+`39ea8c20-d032-41ae-bbbb-c52fb100b440`) was interrupted for a consistent checkpoint.
+Task49 branch `codex/d3-object-tree-collision`, pushed at
+`f0bd165c9399d7dd92d05946cc402d154b61ddcf`, preserves partial `tree_step.c` and
+`trees.rs` files. They are not wired into the build/module, compiled, tested or
+independently reviewed; source comments are intentions, not accepted evidence.
+Resume that focused implementation context and complete its integration and
+original-query replay before claiming extraction. Existing reviewed capture
+evidence and G2 preparation remain unchanged. Task47 shipping115 was left running;
+complete byte identity remains pending. D3 is incomplete; D4/D5 have not started.
+
+# Current whole-D3 checkpoint — tree inputs reviewed; host loader/kernel preparation active
+
+Task49 draftPR109 is published at00d1cef8fdd64fae52e4bc0fb45fc3039d296498. The
+passive tree-input capture atf3fd93dfb has one CLOSED independent review with no
+open findings. Three retail captures0/prepost0 preserve all205 old report values;
+all six complete reports/transcripts match initial41 bytes. Georgia554 queries/
+1102 actual terrain lookups, Lebanon600/1120; native8-byte layout and actual file
+records verified. Linux and actualWindows15/15 guards, format/Clippy0; real C
+paging0 (108records,6EOF/extreme cases,6refusals). Ten actual old-checker false
+passes are corrected, with three valid boundary cases preserved. Review-copy
+CRLF/LF hashes are explicitly distinguished; decoded content is identical.
+
+The sole SonnetHigh lane is now implementing host-owned tree file loading and
+the physical kernel against these immutable inputs. This is unbuilt/unrun
+preparation; no production collision cutover. Native forest geometry is absent
+in measured maps and remains unexercised. Required entity/tree/model geometry,
+physical loaders and all remaining D3 responsibilities remain in scope.
+
+Ledger14548994v63 preserves all prior HTML and all five epic reports exactly on
+readback; Jira10856/10857 andPR109 record current evidence/limits. Task47 shipping115
+is live unchanged, checked31.2MB Tacview/19.7MB observations prefixes exact; full40,
+eight complete files, post-inputs and normal delivery remain pending. Production
+G2/G3 still waits validated preceding delivery and integration verification.
+Campaign geography, routes, timers, scheduling and consequences remain core.
+D3 stays active; D4/D5 have not started. The following preserves older checkpoints.
+
+# Current whole-D3 checkpoint — collision characterization reviewed; production gates remain
+
+Task49 draftPR109 is pushed at03413ccd33ef14da169354bae8ebb2cf0fad5495 on
+codex/d3-object-tree-collision. Measured native5416adb3b passes three boot and five
+moving/control cases, with post-inputs0, unchanged payloads, exact boot values,
+repeat equality and matching coarse control digests. Original query update-flag
+effects are reported and restored. Final driver/helper54e5ece85 passes10/10 tests
+on Linux and actual Windows, format and host Clippy0; four actual old-checker false
+passes are reproduced and corrected. One combined correction review is closed
+without open findings (SHA92ad84e8764c6a0b4068712a3faf9f82bb7ca4bfbcd46861193bb50776931bff).
+Coverage gaps remain; these are original measurements, not a host extraction.
+
+The sole SonnetHigh lane is preparing a bounded passive tree-query/ordered-terrain
+transcript under the same Task49. It is unbuilt/unrun; host tree loader/kernel
+preparation follows measured inputs. Entity/tree geometry paths and required
+physical loaders remain D3 work. Current ledger14548994v62 preserves all prior
+HTML and all five epic reports, verified on readback. Jira10854/10855 andPR109
+retain the source/evidence/review boundaries; raw retail artifacts remain private.
+
+Task47 corrected shipping115 remains live unchanged. Checked23.4MB Tacview and
+14.6MB observation prefixes match accepted bytes; final40/eight complete files,
+post-inputs, final review and normal delivery remain pending. Task48 reviewed
+host ground preparation is retained below; production G2/G3 cutover still follows
+validated preceding delivery and integration verification. Campaign geography,
+routes, timers, scheduling and consequences stay core. Remaining model/environment/
+host-time/physical solver and loader removal remain whole-D3 requirements.
+D3 stays active; D4/D5 have not started. No baseline or tolerance changed.
+
+# Current D3 checkpoint — host ground Lua preparation reviewed
+
+Task48 supplemental branch codex/d3-ground-host-preparation is pushed at55e3d195d.
+Measured clean516d2e3f60 Windows build0/all4 exports verified. Direct real Lua/map
+transport3/3 on EACH Georgia/Lebanon passes all45 checks without skips. Public
+old-DLL harness7/7: healthy control passes; required handoff fails only after the
+same healthy40 frames with GROUND-HANDOFF-RED. Both60-row reports/digests/restored
+records match; each88878 point/map1/ground0. All4 pre/post-input manifests0;
+all4new/all46old payloads unchanged. Explicit TEST-ONLY hybrid: new516 host and
+unchanged frozenfebbb7cc5 fixture DLL. No production G2 switch or shipping claim.
+
+One combined independent new-Lua review closed without open findings, pinned to
+measured516 and publication0e4987b5a; a P3 CRLF-private/LF-Git failure-copy provenance
+issue was corrected and verified. ReportSHAdeab8ab8c39e518bddf755d0045f8223c9989f018d5475e6fbdcc270cce86dcb.
+Safe proof/review/failure/cleanup records: reference/d3-ground-host-preparation/.
+Only the obsolete firstf66 Cargo cache was removed after export/log/owner checks;
+all tested binaries, original raw failures and roots remain preserved.
+
+Task47 shipping115 tool59652 is still live and untouched. Larger checked12.4MB
+Tacview/7.9MB observation prefixes match, but final40/eight complete files/post-inputs
+and delivery remain gates. Production G2 handoff waits Task47 normal delivery and
+verified integration, then requires actual changed/withheld authority and launch-glue
+witnesses, shipping regression and normal delivery. Existing40 callback guards are
+not shipping40. Accepted baselines, tolerances and original oracles are unchanged.
+
+EEDCS-49 (object/tree collision queries) is now In Progress after a live duplicate
+check and freshly fetched integration6bbaa8197. Sole Sonnet5.5High source-only
+original characterization runs in R:/d3-evidence/collision-characterization-20261029,
+branch codex/d3-object-tree-collision; no new native evidence or physical extraction.
+One independent reviewer is idle after the closed Lua pass. Model/device/target
+geometry, weather/environment/RNG, host time and required DLL physical solver/loader
+removal remain D3 scope. D3 is incomplete; D4/D5 have not started.
+
+The following checkpoints retain their original source and evidence identities.
+
+# Latest Task48 progress — reviewed host ground kernel; public handoff pending
+
+Existing EEDCS-48 / PR108. Host-only preparation branch codex/d3-ground-host-preparation
+is pushed atf66ba1f139; actual clean measured kernel source14bfd3ed6 has native Windows
+backend17/17 and ground_conformance4/4 on EACH fresh Georgia/Lebanon/separate-repeat
+root, no skips, all pre/post-inputs0. Original20k/5k physical hashes/counters/samples/
+common cache observations match immutablec119; a second host sweep equals its first.
+Linux terrain-library6 + vocabulary1 and host Clippy/fmt0 pass; earlier3no-env skips
+are explicit, not proof. All4 native build payload hashes verify.
+
+One independent source/native review of14bf found no actionable findings, report
+SHA10132850f6080d8c3b3a13c0f96b345044532a13f1fc3cfa127422c85fc6d2e1.
+Reviewed preparation supplies caller-world bounds as DATA, computes the physical
+predicate in host, preserves complete semantic record/hint results and no-read
+short circuits, ASSERT predicate side effects and endpoint alias reconstruction.
+This is host preparation; the production DLL/client/wn_move still use the old path.
+
+The sole Sonnet5.5High lane completed Lua-provider exposure and direct/healthy
+old-DLL missing-handoff test source in the isolated preparation branch. Its Linux
+build, format/check, six library tests, eight map-free guards and all-target Clippy
+passed0. The real-map and public native functions explicitly SKIPPED without their
+environment: Windows/retail execution and review of this new Lua step remain pending.
+No Claude implementation process remains live. No public authority, G2 cutover,
+completed Task48 or D3 acceptance is claimed. Task47 delivery/base verification
+still gates production G2 switching. Full D3 scope is retained. Ledger v59 records
+the reviewed kernel; the newer Lua check result is a subsequent checkpoint.
+
+Next: named clean Windows host/test build, actual direct transport on both maps,
+then healthy control and expected missing-handoff RED with the explicitly identified
+test-only frozen febbb7cc5 DLL/new-host hybrid, followed by independent review.
+Task47's shipping source1156c8fbb remains running unchanged (tool59652); retained
+prefixes match only partially. Complete40/full recordings/post-input gates remain.
+
+Safe evidence: eech-campaign/reference/d3-ground-host-preparation/.
+The following is the previous checkpoint, retained with its source identities.
+
+# D3 ground-contact — original characterization and G1 compatibility complete
+
+EEDCS-48 / PR108, branch codex/d3-ground-contact. Original characterization and
+probe/no-probe controls atc119 are retained. The separate G1 composition is now
+physically compatible on the declared cases after its reader fix. This main branch
+has no G2 production extraction. G2 cutover follows Task47 delivery/base verification.
 
 29 October 2026. Authority: M5 goal11534337v3 and ledger14548994v58 (live).
 D1/D2 are accepted. D3/EEDCS-21 is In Progress; D4/D5 have not started. Campaign

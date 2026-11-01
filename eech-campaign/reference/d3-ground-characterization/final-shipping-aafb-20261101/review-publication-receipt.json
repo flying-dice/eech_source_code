@@ -1,0 +1,9 @@
+{
+  "review_report": "independent-ground-final-shipping-review-aafb-20261101.json",
+  "private_original_sha256": "a29ec02cf5e9831cbb64495a5dbe83210cda4e2b6f73276231f9c4189738474a",
+  "copy_sha256_before_git_normalization": "a29ec02cf5e9831cbb64495a5dbe83210cda4e2b6f73276231f9c4189738474a",
+  "reviewed_publication_head": "4c7a94f81c8325f5bbdaa75363bd70ae8b35f652",
+  "reviewed_comparator_receipt_private_sha256": "0bc648fd409139f9f1058b668dcc99bfd4383400d5cb424b50dea39e54038374",
+  "finite_ground_shipping_acceptance": true,
+  "scope": "Literal review copy and factual closure added after review; these additions are not represented as pre-reviewed. Production/native/raw artifacts are unchanged. Current final CI and normal merge remain separate gates. WholeD3 remains open."
+}

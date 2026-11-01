@@ -42,6 +42,8 @@ weapon-fixture = ["eech-engine/weapon-fixture"]
 env-fixture = ["eech-engine/env-fixture"]
 # TEST-ONLY (EEDCS-51): the read-only observer of the original environment initialisation, shared-entropy order, lightning/sound effects and frame time phase. Never enabled in the shipping build.
 env-observer = ["env-fixture", "eech-engine/env-observer"]
+# TEST-ONLY (EEDCS-48): the ground-contact characterisation probe. Never enabled in the shipping build.
+ground-fixture = ["eech-engine/ground-fixture"]
 
 # Code that runs inside a host's process: a panic in this DLL takes the host
 # down. The reference crate's restriction lints, denied here.

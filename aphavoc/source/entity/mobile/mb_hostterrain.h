@@ -5,7 +5,7 @@
  * get_3d_terrain_elevation, get_3d_terrain_fast_elevation and the record getters) are implemented in mb_hostterrain.c as requests to the host; the
  * original solver (3d/terrain/terrelev.c, terrsel.c) is not compiled into the headless campaign module.
  *
- * The exchange is one synchronous host callback with four operations, each a single request and a single reply:
+ * The exchange is one synchronous host callback with five terrain operations (MAP, POINT, FAST, SECTOR, AMBIENT) and three ground operations (GROUND_ABOVE, GROUND_BELOW, GROUND_IMPACT, further down), each a single request and a single reply:
  *
  *   Every request carries the season the terrain was loaded in (`winter`), captured before the first question: the host serves the map of that season.
  *
@@ -34,6 +34,23 @@
  *          0 to 0.3, times the altitude factor, times 0.75 in the cockpit, and 0 at or above 280 m).  The campaign keeps its child identities and lifecycle and writes the amplitudes; it
  *          computes none.  This is separate from SECTOR, which still fills the legacy scratch mirror for the renderer and the observer.
  *
+ * Three more operations carry the ground-contact questions of the weapon flight, the avionics and the particles (EEDCS-48, D3 G2): whether a position is above the
+ * ground (en_world.h point_above_ground), whether it is below it (point_below_ground) and where the segment between an above and a below position meets it
+ * (en_cllsn.c get_ground_impact_point).  They are PHYSICAL questions, so the host answers them from its own terrain, with the original's expressions, order and
+ * short circuits; the DLL has no predicate, sector maximum or bisection of its own behind them.  What stays the campaign's: the world-map area the below-ground test
+ * compares against (campaign geography: `world`, supplied by value with every ground request and never assumed equal to the terrain's extents), the shared point
+ * record and what is written into it, the aliasing of the caller's buffers, and the terrain type -> class mapping.
+ *
+ *   GROUND_ABOVE, GROUND_BELOW  the position (x, y, z), the world area and the shared record's hint.  The reply is the predicate (`answer`) and `queried`: whether the answer
+ *          read the terrain.  When it did, the reply carries the complete record the last read left (last_elevation, normal, type, `stored`, hint) and the campaign
+ *          stores all of it in the shared record; when it did not (the sector maximum or the world area decided), the record in the reply is not looked at and the
+ *          campaign's record is left exactly as it is.
+ *   GROUND_IMPACT  the above endpoint (x, y, z), the below endpoint (`below`), the world area and the shared record's hint.  The reply is the above and below endpoints after
+ *          the original's correction, the impact point, and the complete record the final read left; the surface type of that record is what the campaign maps to a class.
+ *
+ * A ground reply is checked completely before any caller buffer or the shared record is written: a malformed reply stops the engine at the ground boundary and leaves
+ * both untouched.
+ *
  * The HINT is the host's opaque state for one find-fast record (the original kept pointers into its own terrain geometry there).  The campaign stores
  * it in the record and returns it with the next query on that record, exactly as the records are used (a shared record for queries that pass no record
  * of their own, private ones in entities and locals); it never parses, builds or compares one, and it is a bounded string, never a pointer.  A host that
@@ -61,6 +78,9 @@ enum campaign_terrain_op
 	CAMPAIGN_TERRAIN_MAP = 1,
 	CAMPAIGN_TERRAIN_POINT,
 	CAMPAIGN_TERRAIN_FAST,
+	CAMPAIGN_TERRAIN_GROUND_ABOVE,
+	CAMPAIGN_TERRAIN_GROUND_BELOW,
+	CAMPAIGN_TERRAIN_GROUND_IMPACT,
 	CAMPAIGN_TERRAIN_SECTOR,
 	CAMPAIGN_TERRAIN_AMBIENT
 };
@@ -94,6 +114,11 @@ typedef struct campaign_terrain_request
 	float ambient_alt, ambient_delta;
 	int ambient_class[CAMPAIGN_TERRAIN_AMBIENT_MAX];
 	float ambient_previous[CAMPAIGN_TERRAIN_AMBIENT_MAX];
+	/* GROUND_ABOVE and GROUND_BELOW: the position is (x, y, z); GROUND_IMPACT: the above endpoint is (x, y, z) and `below` is the below endpoint */
+	float y;
+	float below[3];
+	/* GROUND_*: the campaign's world-map area (min_x, min_z, max_x, max_z): campaign geography the host compares against, not the terrain's extents */
+	float world[4];
 } campaign_terrain_request;
 
 typedef struct campaign_terrain_reply
@@ -117,6 +142,11 @@ typedef struct campaign_terrain_reply
 	char sector_flags[CAMPAIGN_TERRAIN_FLAGS_MAX];
 	/* AMBIENT: the new amplification of each child of the request, in its order */
 	float ambient_amplitude[CAMPAIGN_TERRAIN_AMBIENT_MAX];
+	/* GROUND_ABOVE and GROUND_BELOW: the predicate (0 or 1), and (0 or 1) whether the answer read the terrain; the record above (last_elevation, normal, type, stored, hint)
+	   is meaningful only when it did */
+	int answer, queried;
+	/* GROUND_IMPACT: the endpoints after the original's correction and the impact point; the record above is the one the final read left */
+	float above[3], below[3], impact[3];
 } campaign_terrain_reply;
 
 typedef int (*campaign_terrain_fn)

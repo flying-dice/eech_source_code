@@ -1123,9 +1123,13 @@ pub const EECH_TERRAIN_ERROR_MAX: usize = 512;
 pub const EECH_TERRAIN_MAP: c_int = 1;
 pub const EECH_TERRAIN_POINT: c_int = 2;
 pub const EECH_TERRAIN_FAST: c_int = 3;
+/// The ground-contact operations (EEDCS-48): above ground, below ground, and the segment-against-ground search.
+pub const EECH_TERRAIN_GROUND_ABOVE: c_int = 4;
+pub const EECH_TERRAIN_GROUND_BELOW: c_int = 5;
+pub const EECH_TERRAIN_GROUND_IMPACT: c_int = 6;
 /// The SECTOR operation (EEDCS-51): the surface enumeration of the sector that holds a position, with the original's return value and the complete scratch by value.
-pub const EECH_TERRAIN_SECTOR: c_int = 4;
-pub const EECH_TERRAIN_AMBIENT: c_int = 5;
+pub const EECH_TERRAIN_SECTOR: c_int = 7;
+pub const EECH_TERRAIN_AMBIENT: c_int = 8;
 /// The most children one AMBIENT question carries (`CAMPAIGN_TERRAIN_AMBIENT_MAX`) and the number of ambient classes (`CAMPAIGN_TERRAIN_AMBIENT_CLASSES`: sea, jungle, amb1 to amb4).
 pub const EECH_TERRAIN_AMBIENT_MAX: usize = 16;
 pub const EECH_TERRAIN_AMBIENT_CLASSES: c_int = 6;
@@ -1151,6 +1155,11 @@ pub struct eech_terrain_request {
     /// AMBIENT: for each child, its class and its previous amplification
     pub ambient_class: [c_int; EECH_TERRAIN_AMBIENT_MAX],
     pub ambient_previous: [f32; EECH_TERRAIN_AMBIENT_MAX],
+    /// GROUND_ABOVE and GROUND_BELOW: the position is (x, y, z); GROUND_IMPACT: the above endpoint is (x, y, z) and `below` the below endpoint
+    pub y: f32,
+    pub below: [f32; 3],
+    /// GROUND_*: the campaign's world-map area (min_x, min_z, max_x, max_z): campaign geography, not the terrain's extents
+    pub world: [f32; 4],
 }
 
 #[repr(C)]
@@ -1179,6 +1188,13 @@ pub struct eech_terrain_reply {
     pub sector_flags: [c_char; EECH_TERRAIN_FLAGS_MAX],
     /// AMBIENT: the new amplification of each child of the request, in its order
     pub ambient_amplitude: [f32; EECH_TERRAIN_AMBIENT_MAX],
+    /// GROUND_ABOVE and GROUND_BELOW: the predicate, and whether the answer read the terrain (the record above is meaningful only then); each 0 or 1
+    pub answer: c_int,
+    pub queried: c_int,
+    /// GROUND_IMPACT: the endpoints after the original's correction and the impact point (the record above is the final read's)
+    pub above: [f32; 3],
+    pub below: [f32; 3],
+    pub impact: [f32; 3],
 }
 
 pub type eech_terrain_callback = unsafe extern "C" fn(
@@ -1642,6 +1658,11 @@ extern "C" {
         capacity: c_int,
         host: *const eech_engine_host,
     ) -> c_int;
+}
+
+#[cfg(feature = "ground-fixture")]
+extern "C" {
+    pub fn eech_engine_ground_probe(seed: u32, points: c_int, impacts: c_int, text: *mut c_char, capacity: c_int) -> c_int;
 }
 
 #[cfg(feature = "aim-fixture")]
