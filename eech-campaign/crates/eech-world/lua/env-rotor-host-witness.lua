@@ -105,11 +105,19 @@ local function fail (verdict, message, completed, extra)
 end
 
 -- ---------------------------------------------------------------------------------------------------------------- words: an exact single-precision number is compared as the IEEE word the probe prints
-local function hex8 (bits) return string.format ("%04x%04x", math.floor (bits / 65536), bits % 65536) end
+-- NOTHING HERE DIVIDES. The native host's floating point policy after boot traps a divide by zero in hardware (ENV-HOST-ROTOR-AUTHORITY-1: the sign test `1 / x < 0` of a zero ended both completed public controls
+-- with 0xC000008E, and `pcall` cannot catch that), so the sign of a zero is read from its printed form (a `-` is printed for a negative zero by the C library of the supported Linux and Windows hosts, which the
+-- process-isolated trap guard of tests/env_rotor_host_witness.rs checks on both), and the two halves of a word are taken by multiplying with an exact power of two instead of by `/` and `%`.
+local INVERSE_65536 = 0.0000152587890625 -- 2^-16, exact
+local SUBNORMAL_SCALE = 2 ^ 149 -- exact
+local function hex8 (bits)
+	local high = math.floor (bits * INVERSE_65536)
+	return string.format ("%04x%04x", high, bits - high * 65536)
+end
 local ZERO = "00000000"
 local function word_of (x)
 	if type (x) ~= "number" or x ~= x then return nil end
-	local negative = x < 0 or (x == 0 and 1 / x < 0)
+	local negative = x < 0 or (x == 0 and string.sub (string.format ("%g", x), 1, 1) == "-")
 	if negative then x = -x end
 	local bits
 	if x == math.huge then
@@ -125,7 +133,7 @@ local function word_of (x)
 			mantissa = (m * 2 - 1) * 8388608
 		else
 			exponent = 0
-			mantissa = x * 2 ^ 149
+			mantissa = x * SUBNORMAL_SCALE
 		end
 		if mantissa ~= math.floor (mantissa) or mantissa < 0 or mantissa >= 8388608 then return nil end
 		bits = exponent * 8388608 + mantissa

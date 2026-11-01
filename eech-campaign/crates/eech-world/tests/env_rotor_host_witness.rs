@@ -12,6 +12,14 @@ use std::collections::BTreeMap;
 
 const WITNESS: &str = include_str!("../lua/env-rotor-host-witness.lua");
 
+/// The witness the checks run: the committed one, or the copy named by `EECH_ROTOR_HOST_WITNESS_UNDER_TEST` (for instance the a17fe6562 witness, to see the trap guard fail on it).
+fn witness_source() -> String {
+    match std::env::var("EECH_ROTOR_HOST_WITNESS_UNDER_TEST") {
+        Ok(path) => std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("EECH_ROTOR_HOST_WITNESS_UNDER_TEST {path}: {e}")),
+        Err(_) => WITNESS.to_string(),
+    }
+}
+
 /// The scripted `host`: an exclusive-output primitive over a file store that canonicalises names (so a second spelling of a file is the same file) with injectable faults, `io.open` for checked reads of that store,
 /// a base provider, `dofile`, and the scripted delegate. A call is `{ phase, rpm }`; `SCENARIO.asks` is the number of times the delegate asks the provider per call (0 = the pre-extraction native). Faults are keyed by the
 /// canonical (lower case, forward slash) path: `open`, `read` and `close` of a read, `write`, `flush` and `close_write` of a created file.
@@ -58,23 +66,37 @@ host = {
 				turbine1 = { amplification = 1, pitch = pitch }, turbine2 = { amplification = 1, pitch = pitch },
 				apu = { amplification = 0, pitch = 1 }, winding = { amplification = 0.75 },
 			} }
+			-- the matrix: every level, pitch and pause delay is a value of VALUES (set by the test), cycled
+			local function value (n) return VALUES [(n % #VALUES) + 1] end
+			local c = 0
+			if SCENARIO.matrix then
+				MATRIX_COUNTER = (MATRIX_COUNTER or 0) + 1
+				c = MATRIX_COUNTER
+				for i, name in ipairs ({ "looping", "slap", "turbine1", "turbine2", "apu", "winding" }) do
+					answer.channels [name].amplification = value (c + i)
+					if name ~= "winding" then answer.channels [name].pitch = value (c + i + 3) end
+				end
+			end
 			if running then
 				answer.actions = { { action = "resume", channel = "looping" }, { action = "resume", channel = "slap" } }
 			else
-				answer.actions = { { action = "pause", channel = "looping", delay = 0 }, { action = "pause", channel = "slap", delay = 0 } }
+				local delay = SCENARIO.matrix and value (c + 7) or 0
+				answer.actions = { { action = "pause", channel = "looping", delay = delay }, { action = "pause", channel = "slap", delay = delay } }
 			end
 			return answer
 		end
 	end,
 }
 DELEGATE_SOURCE = [==[
-local WORD = { [0] = "00000000", [1] = "3f800000", [0.75] = "3f400000", [1.2999999523162842] = "3fa66666", [0.375] = "3ec00000", [0.8125] = "3f500000", [0.1875] = "3e400000", [2] = "40000000",
-	[3] = "40400000", [4] = "40800000", [40] = "42200000", [60] = "42700000" }
 local SUBS = { looping = 33, slap = 37, turbine1 = 35, turbine2 = 36, apu = 34, winding = 38 }
 local NAME_OF_SUB = { [33] = "looping", [37] = "slap", [35] = "turbine1", [36] = "turbine2", [34] = "apu", [38] = "winding", [39] = "winding" }
 local ORDER = { "looping", "slap", "turbine1", "turbine2", "apu", "winding" }
 local DEFAULT_PITCH = 1.2999999523162842
-local function w (x) local word = WORD [x]; if not word then error ("SCRIPTED: no word for " .. tostring (x), 0) end return word end
+local function w (x)
+	-- a delegate that loses the sign of a zero (the defect the matrix must catch)
+	if SCENARIO.drop_zero_sign and x == 0 then return "00000000" end
+	return IEEE_WORD (x)
+end
 local args = host.args
 local names = { out = args.out, rotor = args.out .. ".rotor.raw", sndinit = args.out .. ".sndinit.raw", sweep = args.out .. ".sweep.raw" }
 local files = {}
@@ -172,7 +194,59 @@ struct Driven {
 }
 
 fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
+    drive_with(scenario, args, false)
+}
+
+/// The exact single-precision values of the matrix, 1-based in `VALUES`: both zeros, the smallest and largest subnormal, the smallest normal number, the largest finite number and its negative, plus and minus one, the
+/// next number above one, and the 30 and 45 rpm thresholds with their one-ulp neighbours.
+fn matrix_values() -> Vec<f32> {
+    vec![
+        0.0,
+        -0.0,
+        f32::from_bits(0x0000_0001),
+        f32::from_bits(0x8000_0001),
+        f32::from_bits(0x007f_ffff),
+        f32::from_bits(0x0080_0000),
+        f32::MAX,
+        -f32::MAX,
+        1.0,
+        -1.0,
+        f32::from_bits(0x3f80_0001),
+        f32::from_bits(0x41f0_0000),
+        f32::from_bits(0x41f0_0001),
+        f32::from_bits(0x4233_ffff),
+        f32::from_bits(0x4234_0000),
+    ]
+}
+
+/// A matrix scenario: a boot call and one sweep call for each value after the first, whose rpm is that value; the base provider cycles the values through every level, pitch and pause delay.
+fn matrix_scenario(extra: &str) -> String {
+    let count = matrix_values().len();
+    let mut calls = String::from("calls = { { phase = 0, rpm = VALUES[1] }");
+    for index in 2..=count {
+        calls.push_str(&format!(", {{ phase = 1, rpm = VALUES[{index}] }}"));
+    }
+    calls.push_str(" }, matrix = true, asks = 1");
+    if !extra.is_empty() {
+        calls.push_str(", ");
+        calls.push_str(extra);
+    }
+    calls
+}
+
+/// As `drive`; with `traps` the witness itself (not the harness around it) runs with the divide-by-zero trap of the native host's floating point policy enabled, restored when it returns.
+fn drive_with(scenario: &str, args: &[(&str, &str)], traps: bool) -> Driven {
     let lua = Lua::new();
+    lua.globals()
+        .set(
+            "IEEE_WORD",
+            lua.create_function(|_, x: f64| Ok(format!("{:08x}", (x as f32).to_bits())))
+                .expect("the word function"),
+        )
+        .expect("the word function is installed");
+    lua.globals()
+        .set("VALUES", matrix_values().into_iter().map(f64::from).collect::<Vec<f64>>())
+        .expect("the matrix values are installed");
     let mut table = String::from("{ root = 'unused-root', out = 'run.jsonl', delegate = '/delegate/env-rotor-sounds.lua'");
     for (key, value) in args {
         table.push_str(&format!(", {key} = '{value}'"));
@@ -185,7 +259,17 @@ fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
         .set_name("scripted collaborators")
         .exec()
         .expect("the collaborators load");
-    let result = lua.load(WITNESS).set_name("env-rotor-host-witness.lua").exec().map_err(|e| e.to_string());
+    let source = witness_source();
+    let result = {
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        let _traps = traps.then(trap::DivideByZeroTraps::enable);
+        #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
+        assert!(!traps, "divide-by-zero traps are only controlled on x86");
+        lua.load(source.as_str())
+            .set_name("env-rotor-host-witness.lua")
+            .exec()
+            .map_err(|e| e.to_string())
+    };
     let store_table: LuaTable = lua.globals().get("STORE").expect("the scripted file store");
     let mut store = BTreeMap::new();
     for pair in store_table.pairs::<String, LuaTable>() {
@@ -534,4 +618,262 @@ fn the_witness_refuses_a_bad_argument_before_anything_is_created_or_run() {
         assert!(error_of(&driven).contains("env-rotor-host-witness:"), "{args:?}: {:?}", driven.result);
         assert!(driven.store.is_empty(), "{args:?}: nothing may be created");
     }
+}
+
+// ---- the witness under the native host's floating point policy (ENV-HOST-ROTOR-AUTHORITY-1). SOURCE PREPARED: UNRUN BY ITS AUTHOR.
+//
+// The native host traps a floating-point divide by zero in hardware after boot (both completed public controls of a17fe6562 ended with 0xC000008E on the first sign test of a zero, `1 / x < 0`), and `pcall` cannot
+// catch a trap. The masked stand-in in this file could not see that, so the witness is also run here in a CHILD PROCESS of this very test binary with the divide-by-zero exception UNMASKED (x87 and SSE control, restored on
+// return and read back), bounded in time. A child that dies of the trap, fails or does not finish fails the parent test; a second child that divides by zero on purpose must die of it, so a platform on which the trap
+// is not delivered cannot pass silently. The controls are set with `stmxcsr`/`ldmxcsr` and `fnstcw`/`fldcw` (std::arch::asm), which exist on every x86 Linux and Windows target: nothing is linked, nothing is gated off,
+// the engine's own exception policy is untouched and nothing is masked around the witness. The child of the first test runs the witness over the scenario that ended the public controls (an idle rotor with the rpm +0)
+// and over the matrix of exact words below, healthy and changed, and the damaged forms of the matrix. Set `EECH_ROTOR_HOST_WITNESS_UNDER_TEST` to another copy of the witness (the a17fe6562 one, for the red) and run
+// `the_witness_survives_enabled_divide_by_zero_traps_in_an_isolated_process`.
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+mod trap {
+    use std::arch::asm;
+
+    const MXCSR_ZERO_DIVIDE_MASK: u32 = 1 << 9;
+    const MXCSR_ZERO_DIVIDE_FLAG: u32 = 1 << 2;
+    const X87_ZERO_DIVIDE_MASK: u16 = 1 << 2;
+    /// the exception mask, rounding, flush and denormal bits of MXCSR: everything but the sticky flags
+    const MXCSR_CONTROL_BITS: u32 = !0x3f;
+
+    /// The processor's floating point controls of this thread: the x87 control word and MXCSR.
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub struct Controls {
+        pub x87: u16,
+        pub mxcsr: u32,
+    }
+
+    impl Controls {
+        pub fn read() -> Self {
+            let mut x87 = 0u16;
+            let mut mxcsr = 0u32;
+            // SAFETY: stores the control words to locals.
+            unsafe {
+                asm!("fnstcw word ptr [{}]", in(reg) &mut x87 as *mut u16, options(nostack, preserves_flags));
+                asm!("stmxcsr dword ptr [{}]", in(reg) &mut mxcsr as *mut u32, options(nostack, preserves_flags));
+            }
+            Self { x87, mxcsr }
+        }
+
+        /// the same controls, ignoring the sticky exception flags the run is allowed to leave behind
+        pub fn control_bits(self) -> (u16, u32) {
+            (self.x87, self.mxcsr & MXCSR_CONTROL_BITS)
+        }
+    }
+
+    /// The divide-by-zero exception unmasked in both units while this value lives; the controls it found are put back when it is dropped.
+    pub struct DivideByZeroTraps {
+        saved: Controls,
+    }
+
+    impl DivideByZeroTraps {
+        pub fn enable() -> Self {
+            let saved = Controls::read();
+            let x87 = saved.x87 & !X87_ZERO_DIVIDE_MASK;
+            // the sticky flag is cleared first so that unmasking cannot raise a past exception
+            let mxcsr = (saved.mxcsr & !MXCSR_ZERO_DIVIDE_MASK) & !MXCSR_ZERO_DIVIDE_FLAG;
+            // SAFETY: loads control words built from a prior read with one exception unmasked.
+            unsafe {
+                asm!("fnclex", options(nostack));
+                asm!("fldcw word ptr [{}]", in(reg) &x87 as *const u16, options(nostack, readonly));
+                asm!("ldmxcsr dword ptr [{}]", in(reg) &mxcsr as *const u32, options(nostack, readonly));
+            }
+            Self { saved }
+        }
+    }
+
+    impl Drop for DivideByZeroTraps {
+        fn drop(&mut self) {
+            // SAFETY: loads the control words that were read at enable.
+            unsafe {
+                asm!("fnclex", options(nostack));
+                asm!("fldcw word ptr [{}]", in(reg) &self.saved.x87 as *const u16, options(nostack, readonly));
+                asm!("ldmxcsr dword ptr [{}]", in(reg) &self.saved.mxcsr as *const u32, options(nostack, readonly));
+            }
+        }
+    }
+}
+
+/// The child half. It does nothing unless the parent sets `EECH_ROTOR_TRAP_CHILD` (`witness` or `control`) and prints a sentinel on success, which the parent requires, so a filtered-out or skipped child cannot pass.
+#[test]
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+fn fp_trap_child() {
+    let Ok(mode) = std::env::var("EECH_ROTOR_TRAP_CHILD") else { return };
+    let before = trap::Controls::read();
+    match mode.as_str() {
+        "control" => {
+            let traps = trap::DivideByZeroTraps::enable();
+            let zero = std::hint::black_box(0.0f64);
+            let quotient = std::hint::black_box(1.0f64) / zero;
+            drop(traps);
+            // reached only when the divide by zero was NOT delivered as a trap
+            println!("EECH_ROTOR_TRAP_CHILD_CONTROL_SURVIVED {quotient}");
+        }
+        "witness" => {
+            // the scenario of the public controls: an idle rotor with the rpm +0 at the head of the sweep, healthy and changed
+            for mode in ["healthy", "changed"] {
+                let driven = drive_with(&scenario("asks = 1"), &[("mode", mode)], true);
+                driven
+                    .result
+                    .clone()
+                    .unwrap_or_else(|e| panic!("{mode}: the witness failed under the trap: {e}"));
+                let record = authority(&driven);
+                assert_eq!(
+                    record["verdict"],
+                    if mode == "healthy" {
+                        "host_answer_shown_by_every_child"
+                    } else {
+                        "host_changed_the_acoustics"
+                    },
+                    "{mode}"
+                );
+            }
+            // the matrix of exact words: both zeros, the subnormal and normal boundaries, the largest finite number, the thresholds
+            let matrix = drive_with(&matrix_scenario(""), &[], true);
+            matrix.result.clone().unwrap_or_else(|e| panic!("the matrix failed under the trap: {e}"));
+            let record = authority(&matrix);
+            assert_eq!(record["verdict"], "host_answer_shown_by_every_child");
+            assert_eq!(record["calls"].as_i64(), Some(matrix_values().len() as i64));
+            // a delegate that records +0 where the host answered -0 must still be caught, under the trap
+            let dropped = drive_with(&matrix_scenario("drop_zero_sign = true"), &[], true);
+            let error = dropped.result.clone().expect_err("a lost zero sign must be caught");
+            assert!(error.contains("ownership-not-shown"), "{error}");
+            println!("EECH_ROTOR_TRAP_CHILD_WITNESS_OK");
+        }
+        other => panic!("unknown EECH_ROTOR_TRAP_CHILD mode {other}"),
+    }
+    // the controls come back exactly as the child found them (the sticky flags excepted)
+    assert_eq!(
+        trap::Controls::read().control_bits(),
+        before.control_bits(),
+        "the floating point controls were not restored"
+    );
+}
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+struct Child {
+    status: std::process::ExitStatus,
+    stdout: String,
+    stderr: String,
+}
+
+/// Runs `fp_trap_child` in a child process of this test binary, at most two minutes.
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+fn run_child(mode: &str) -> Child {
+    use std::io::Read;
+    use std::process::{Command, Stdio};
+    use std::time::{Duration, Instant};
+
+    let mut child = Command::new(std::env::current_exe().expect("this test binary"))
+        .args(["--exact", "fp_trap_child", "--nocapture", "--test-threads=1"])
+        .env("EECH_ROTOR_TRAP_CHILD", mode)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("the child process starts");
+    let started = Instant::now();
+    let status = loop {
+        if let Some(status) = child.try_wait().expect("the child can be waited for") {
+            break status;
+        }
+        if started.elapsed() > Duration::from_secs(120) {
+            let _ = child.kill();
+            let _ = child.wait();
+            panic!("the {mode} child did not finish in two minutes");
+        }
+        std::thread::sleep(Duration::from_millis(25));
+    };
+    let read = |pipe: Option<&mut dyn std::io::Read>| {
+        let mut text = String::new();
+        if let Some(pipe) = pipe {
+            let _ = pipe.read_to_string(&mut text);
+        }
+        text
+    };
+    let stdout = read(child.stdout.as_mut().map(|pipe| pipe as &mut dyn std::io::Read));
+    let stderr = read(child.stderr.as_mut().map(|pipe| pipe as &mut dyn std::io::Read));
+    Child { status, stdout, stderr }
+}
+
+/// Whether the child ended of a floating-point divide by zero: SIGFPE on Linux, STATUS_FLOAT_DIVIDE_BY_ZERO (0xC000008E) on Windows.
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+fn died_of_divide_by_zero(status: &std::process::ExitStatus) -> bool {
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::ExitStatusExt;
+        status.signal() == Some(8)
+    }
+    #[cfg(windows)]
+    {
+        status.code().map(|code| code as u32) == Some(0xC000_008E)
+    }
+    #[cfg(not(any(unix, windows)))]
+    {
+        let _ = status;
+        false
+    }
+}
+
+#[test]
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+fn the_witness_survives_enabled_divide_by_zero_traps_in_an_isolated_process() {
+    let child = run_child("witness");
+    if died_of_divide_by_zero(&child.status) {
+        panic!(
+            "the witness executed a floating-point divide by zero with the exception enabled (the native host's policy) and the child died of it: {:?}\n{}\n{}",
+            child.status, child.stdout, child.stderr
+        );
+    }
+    assert!(
+        child.status.success(),
+        "the trap-enabled child failed: {:?}\n{}\n{}",
+        child.status,
+        child.stdout,
+        child.stderr
+    );
+    assert_eq!(
+        child.stdout.matches("EECH_ROTOR_TRAP_CHILD_WITNESS_OK").count(),
+        1,
+        "the child did not report the witness run (it was filtered out or skipped): {:?}\n{}\n{}",
+        child.status,
+        child.stdout,
+        child.stderr
+    );
+}
+
+#[test]
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+fn the_trap_control_really_kills_a_child_that_divides_by_zero_so_the_guard_cannot_pass_silently() {
+    let child = run_child("control");
+    assert!(
+        died_of_divide_by_zero(&child.status),
+        "the child that divides by zero with the exception enabled was not killed by the trap, so the guard above proves nothing on this platform: {:?}\n{}\n{}",
+        child.status,
+        child.stdout,
+        child.stderr
+    );
+    assert!(!child.stdout.contains("CONTROL_SURVIVED"), "{}", child.stdout);
+}
+
+// ---- the exact words of the matrix, without any trap: both zeros, the subnormal and normal boundaries, the largest finite number and the thresholds are compared word for word
+
+#[test]
+fn the_witness_compares_the_exact_word_of_both_zeros_and_every_boundary_of_the_matrix() {
+    let driven = drive(&matrix_scenario(""), &[]);
+    driven.result.clone().unwrap_or_else(|e| panic!("the matrix was rejected: {e}"));
+    let record = authority(&driven);
+    assert_eq!(record["verdict"], "host_answer_shown_by_every_child");
+    assert_eq!(record["calls"].as_i64(), Some(matrix_values().len() as i64));
+    // a delegate that writes +0 for a -0 (in the rpm, a level, a pitch or a delay) is caught, and so is one that writes -0 for a +0
+    let dropped = drive(&matrix_scenario("drop_zero_sign = true"), &[]);
+    assert!(error_of(&dropped).contains("ownership-not-shown"), "{:?}", dropped.result);
+    // the changed mode over the same calls
+    let changed = drive(&matrix_scenario(""), &[("mode", "changed")]);
+    changed.result.clone().unwrap_or_else(|e| panic!("the changed matrix was rejected: {e}"));
+    let stopped = drive(&matrix_scenario("drop_zero_sign = true"), &[("mode", "changed")]);
+    assert!(error_of(&stopped).contains("ownership-not-shown"), "{:?}", stopped.result);
 }
