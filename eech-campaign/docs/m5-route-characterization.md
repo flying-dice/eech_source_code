@@ -1,10 +1,6 @@
 # D3: original route-geometry observer and retained raw-model-reader disposition (EEDCS-50)
 
-**Status: observer SOURCE ONLY - not built into any engine, not run against any retail data, not accepted.** Nothing in this document is a measurement of the original: no original
-route has been observed, no count, hash or coverage figure of real routes exists, and none may be quoted from here. Only the Lua driver and the output helper have been exercised,
-locally in a working tree against invented C-shaped reports (section 2). The first REAL captures (source `d10dd8cc0`, Windows, 1 November 2026) completed the boot and every route query but FAILED
-completeness on identity alone (section 2, "First real captures"); they are retained private partial originals, not accepted measurements. Base `2ec202036`. This is the **original characterisation only**: it moves nothing out of the DLL, changes no
-production statement and prepares no cutover.
+**Current status (1 November 2026): finite original characterization CLOSED; production extraction prepared, engine path not built or run.** Original FCE four native/controllers finish0, eight full retail input checks0,57 payloads per control; Georgia704/Lebanon528 calls have complete actual identities and complete repeats are literally byte-identical. Independent actual review SHA256 `b9122e133664715b011262f0bd5b6b8310741cfee6ae0ffb1201dc3ee3cb04cf`. Safe literal reports: [`original-route-closeout-fce-20261101`](../reference/d3-route-characterization/original-route-closeout-fce-20261101/README.md). D10 remains failed partial evidence; its complete geometry/graph rows agree literally, but its identity/completeness metadata and whole files differ. Nothing was rewritten. Section4 describes the new production move at66dc2e8a2: only focused host-crate checks have run; canonical builds and actual candidate comparisons/authority/refusal/FP remain pending. The earlier procedure and failure descriptions retain their historical identities.
 
 Scope authority is the live M5 goal (Confluence 11534337), the migration ledger and Epic EEDCS-21: physical model loading, triangle decoding and bounds services belong to the
 host; campaign shape selection, target decisions, consequences and route-planning policy stay in EECH_DC. Hierarchy, viewpoint, device, muzzle and target-point services
@@ -102,7 +98,7 @@ closes a second time (a close interrupted by a signal has still released the des
 is closed on every exit, and a failed close is reported together with any primary failure. The helper's unit tests exercise the real platform close with a value that is not a
 descriptor / handle (the operating system refuses it); the driver tests' "close failed" cases use a Lua stand-in and show only how the driver reacts to a failed close.
 
-### How it is run (the Root's, in order; none has been done)
+### Original measurement procedure (completed at FCE; retain for reproduction, do not rerun for handover)
 
 1. Build a `route-fixture` module (`tools/build-windows-route-fixture.sh target/route-fixture/<dir>`; it adds exactly the one cargo argument, like the ground wrapper).
 2. `eech-world lua/route-characterization.lua root=<retail root> out=<new file> scenario=lebanon_retail` and again with `georgia_retail`, each in a fresh process (the engine is
