@@ -416,7 +416,7 @@ fn a_report_the_fixture_refused_or_an_engine_that_stopped_is_a_failure_with_the_
 }
 
 /// One damaged report per line: `what | case | base | edits | reason`; the bases are the coherent positives above (u3, u2, linked3, played, early, destroyed) and `link2` (two calls of three with nothing to stop the helper, a
-/// damaged base whose edit is an identity). An edit is `from => to` (first occurrence), `IN needle :: from => to` (in the first line holding the needle) or `DROP text`; edits are separated by ` ;; `.
+/// damaged base whose edit is an identity). An edit is `from => to` (first occurrence), `ALL from => to` (every occurrence), `IN needle :: from => to` (in the first line holding the needle) or `DROP text`; edits are separated by ` ;; `.
 const DAMAGES: &str = "\
 the case asked for is not the report's | 24 | u3 | label=handle_invalid_server_unlink => label=handle_invalid_server_unlink | is not i=24
 the cohort of the pause is not the one effect | 23 | u3 | children_of_type=1 => children_of_type=2 | the cohort census is not the one created effect
@@ -494,6 +494,10 @@ fn damaged(text: &str, edits: &str) -> String {
                 .collect();
             assert!(done, "the damage IN {needle:?} matches no line");
             out = lines.iter().map(|l| format!("{l}\n")).collect();
+        } else if let Some(pair) = edit.strip_prefix("ALL ") {
+            let (from, to) = pair.split_once(" => ").expect("an edit is from => to");
+            assert!(out.contains(from), "the damage ALL {from:?} matches nothing");
+            out = out.replace(from, to);
         } else {
             let (from, to) = edit.split_once(" => ").expect("an edit is from => to");
             assert!(out.contains(from), "the damage {from:?} matches nothing");
