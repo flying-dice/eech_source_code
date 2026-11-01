@@ -209,8 +209,172 @@ static struct mf_surf_object mf_surf_object[MF_OBJECT_MAX];
 static struct mf_surfaces mf_surf;
 static unsigned char mf_surf_init[MF_SURFACE_MAX / 8u];
 
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* The scenes' TEXTURE ANIMATION LISTS as the original loader leaves them (EEDCS-50, D3; modules/3d/3dobjdb.c read_scene, add_animation_object, add_animation). A default scene
+   reads its list from the file (the count, then one int per entry); a scene replaced by an `.EES` (sceneid) is given an empty list by the file and then BUILT by
+   add_animation_object: the texture and luminosity-texture indices of the animated surfaces of its main object, approximations and sub-objects, in that order, without repeats,
+   in an array that add_animation grows (8, then doubling). The hooks (patches.rs MODEL_FIXTURE_PATCHES, MA0..MA5) are ADDITIVE: each is a call after a statement the loader already took
+   (the wrapped fread passes its result on unchanged); none changes a statement, an argument, an order or a value, and none allocates or writes a model byte. They record, per scene, where
+   the list was allocated, how large, how many leading entries were filled, and the final pointer and count, so the entry below can read a list only when its backing is shown. The ids are
+   the loader's own legacy texture animation indices: PRIVATE diagnostic data, never an identity of the host protocol. */
+
+#define MF_ANIM_IDS_MAX 4096
+
+enum { MF_ANIM_NONE = 0, MF_ANIM_BEGUN = 1, MF_ANIM_DONE = 2 };
+
+struct mf_anim
+{
+	int state;
+	int custom;                  /* read_scene was given a sceneid: the list is built by add_animation_object */
+	int declared;                /* the count the file declared */
+	uintptr_t file_ptr;          /* the array read_scene allocated for a declared list */
+	int file_capacity, file_filled, file_bad;
+	uintptr_t alloc_ptr;         /* the array add_animation allocated last */
+	int alloc_capacity, allocs, appends, overflow;
+	int extent;                  /* leading entries known to be filled */
+	uintptr_t final_ptr;
+	int final_count, fail;
+};
+
+static struct mf_anim mf_anim[OBJECT_3D_LAST];
+static int mf_anim_unknown_scene;
+
+static struct mf_anim *mf_anim_of (const void *scene)
+{
+	const struct OBJECT_3D_SCENE_DATABASE_ENTRY *e = (const struct OBJECT_3D_SCENE_DATABASE_ENTRY *) scene;
+	ptrdiff_t index;
+
+	if (!objects_3d_scene_database || e < objects_3d_scene_database)
+	{
+		mf_anim_unknown_scene++;
+		return NULL;
+	}
+	index = e - objects_3d_scene_database;
+	if (index <= OBJECT_3D_INVALID_OBJECT_INDEX || index >= OBJECT_3D_LAST)
+	{
+		mf_anim_unknown_scene++;
+		return NULL;
+	}
+	return &mf_anim[index];
+}
+
+static int mf_anim_capacity (const struct mf_anim *a)
+{
+	return a->allocs ? a->alloc_capacity : a->file_capacity;
+}
+
+/* read_scene has read the scene's declared list count */
+void eech_mf_anim_begin (int scene, int sceneid, int declared)
+{
+	struct mf_anim *a;
+
+	if (scene <= OBJECT_3D_INVALID_OBJECT_INDEX || scene >= OBJECT_3D_LAST)
+	{
+		mf_anim_unknown_scene++;
+		return;
+	}
+	a = &mf_anim[scene];
+	memset (a, 0, sizeof (*a));
+	a->state = MF_ANIM_BEGUN;
+	a->custom = sceneid != 0;
+	a->declared = declared;
+}
+
+/* one fread of one entry of a declared list: `returned` is what fread returned (the original ignores it) */
+void eech_mf_anim_file_read (int scene, int index, int total, const void *list, size_t returned)
+{
+	struct mf_anim *a;
+
+	if (scene <= OBJECT_3D_INVALID_OBJECT_INDEX || scene >= OBJECT_3D_LAST)
+	{
+		mf_anim_unknown_scene++;
+		return;
+	}
+	a = &mf_anim[scene];
+	if (a->state != MF_ANIM_BEGUN || total != a->declared)
+	{
+		a->file_bad = 1;
+		return;
+	}
+	if (index == 0)
+	{
+		a->file_ptr = (uintptr_t) list;
+		a->file_capacity = total;
+		a->file_filled = 0;
+	}
+	if (returned == 1 && index == a->file_filled && (uintptr_t) list == a->file_ptr)
+	{
+		a->file_filled++;
+		a->extent = a->file_filled;
+	}
+	else
+	{
+		a->file_bad = 1;
+	}
+}
+
+/* add_animation has allocated `capacity` ints for the scene's list (the entries already in it were copied) */
+void eech_mf_anim_alloc (const void *scene, const void *list, int capacity)
+{
+	struct mf_anim *a = mf_anim_of (scene);
+
+	if (!a)
+	{
+		return;
+	}
+	a->allocs++;
+	a->alloc_ptr = (uintptr_t) list;
+	a->alloc_capacity = capacity;
+}
+
+/* add_animation has appended one entry: the scene's count is now the position after it */
+void eech_mf_anim_append (const void *scene)
+{
+	struct mf_anim *a = mf_anim_of (scene);
+	int count;
+
+	if (!a)
+	{
+		return;
+	}
+	count = ((const struct OBJECT_3D_SCENE_DATABASE_ENTRY *) scene)->number_of_texture_animations;
+	a->appends++;
+	if (count > mf_anim_capacity (a))
+	{
+		a->overflow = 1;
+	}
+	else if (a->extent == count - 1)
+	{
+		a->extent = count;
+	}
+}
+
+/* read_scene is finishing the scene: the list and count it leaves */
+void eech_mf_anim_done (int scene, int fail)
+{
+	struct mf_anim *a;
+	const struct OBJECT_3D_SCENE_DATABASE_ENTRY *e;
+
+	if (scene <= OBJECT_3D_INVALID_OBJECT_INDEX || scene >= OBJECT_3D_LAST)
+	{
+		return;
+	}
+	a = &mf_anim[scene];
+	e = &objects_3d_scene_database[scene];
+	if (a->state != MF_ANIM_BEGUN)
+	{
+		return;
+	}
+	a->state = MF_ANIM_DONE;
+	a->final_ptr = (uintptr_t) e->texture_animations;
+	a->final_count = e->number_of_texture_animations;
+	a->fail = fail != 0;
+}
+
 void eech_mf_reset (void)
 {
+	memset (mf_anim, 0, sizeof (mf_anim));
+	mf_anim_unknown_scene = 0;
 	memset (&mf_common, 0, sizeof (mf_common));
 	memset (&mf_surf, 0, sizeof (mf_surf));
 	memset (mf_surf_object, 0, sizeof (mf_surf_object));
@@ -1550,6 +1714,129 @@ int eech_model_state_run (char *text, int capacity)
 	}
 	emit (&out, "model-state tables=%016llx pointers=%016llx content=%016llx content_objects=%ld backing=0x%016llx\n", (unsigned long long) tables,
 		(unsigned long long) pointers, (unsigned long long) content, callable_objects, (unsigned long long) backing);
+	return out.overflow ? 1 : 0;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* the scenes' final texture animation lists (read-only): the original loader's lists, read only where the hooks show their backing */
+
+struct anim_view
+{
+	const char *status, *source;
+	int succeeded, count, capacity, filled;
+	const int *ids;
+};
+
+/* One scene's final list as the hooks recorded it. A list is read (`ids` set) only when it is the array the loader allocated for it, still the scene's list with the same count, within
+   its allocation and its filled entries and within the fixed bound; every other case is a named outcome and nothing is read. */
+static void anim_view (int scene, struct anim_view *v)
+{
+	const struct mf_anim *a = &mf_anim[scene];
+	const struct OBJECT_3D_SCENE_DATABASE_ENTRY *e = &objects_3d_scene_database[scene];
+	uintptr_t allocated;
+
+	memset (v, 0, sizeof (*v));
+	v->status = "absent";
+	v->source = "none";
+	if (a->state != MF_ANIM_DONE)
+	{
+		if (e->number_of_texture_animations != 0 || e->texture_animations)
+		{
+			v->status = "unobserved"; /* a list the loader made that the hooks did not see */
+		}
+		return;
+	}
+	v->succeeded = e->succeeded;
+	v->source = a->custom ? "built" : "file";
+	v->count = a->final_count;
+	v->capacity = mf_anim_capacity (a);
+	v->filled = a->extent;
+	allocated = a->allocs ? a->alloc_ptr : a->file_ptr;
+	if (e->number_of_texture_animations != a->final_count || (uintptr_t) e->texture_animations != a->final_ptr)
+	{
+		v->status = "stale"; /* the scene's list is no longer the one recorded when its read ended */
+	}
+	else if (a->final_count < 0 || a->overflow)
+	{
+		v->status = a->overflow ? "overflow" : "unbacked";
+	}
+	else if (a->final_count == 0)
+	{
+		v->status = a->final_ptr ? "unbacked" : "empty";
+	}
+	else if (a->final_count > MF_ANIM_IDS_MAX)
+	{
+		v->status = "capacity";
+	}
+	else if (!a->final_ptr || a->final_ptr != allocated || a->final_count > v->capacity)
+	{
+		v->status = "unbacked";
+	}
+	else if (a->file_bad || a->extent < a->final_count)
+	{
+		v->status = "short_read";
+	}
+	else
+	{
+		v->status = "listed";
+		v->ids = (const int *) a->final_ptr;
+	}
+}
+
+int eech_model_animation_run (int first, int count, char *text, int capacity)
+{
+	struct out out;
+	uint64_t content = FNV_OFFSET;
+	int scene, rows = 0, done = 0;
+
+	out_begin (&out, text, capacity);
+	if (!objects_3d_scene_database || first < 1 || count < 1 || count > PAGE_SCENES || first > (int) OBJECT_3D_LAST - count)
+	{
+		return 1;
+	}
+	/* the digest of every scene's recorded state and verified list, over the whole database (not the page), so a driver can show that pages and before / after agree */
+	for (scene = OBJECT_3D_INVALID_OBJECT_INDEX + 1; scene < OBJECT_3D_LAST; scene++)
+	{
+		struct anim_view v;
+		int i;
+
+		anim_view (scene, &v);
+		done += mf_anim[scene].state == MF_ANIM_DONE;
+		hash_u64 (&content, (uint64_t) scene);
+		hash_u64 (&content, (uint64_t) mf_anim[scene].state);
+		hash_u64 (&content, (uint64_t) (unsigned) v.count);
+		hash_u64 (&content, (uint64_t) (unsigned) v.filled);
+		hash_bytes (&content, v.status, strlen (v.status) + 1);
+		for (i = 0; v.ids && i < v.count; i++)
+		{
+			hash_u64 (&content, (uint64_t) (unsigned) v.ids[i]);
+		}
+	}
+	emit (&out, "model-anim-page first=%d count=%d scene_last=%d generation=%u scenes_read=%d unknown_scene=%d content=%016llx\n", first, count, (int) OBJECT_3D_LAST, mf_generation, done,
+		mf_anim_unknown_scene, (unsigned long long) content);
+	for (scene = first; scene < first + count; scene++)
+	{
+		struct anim_view v;
+		int i;
+
+		anim_view (scene, &v);
+		emit (&out, "model-anim scene=%d name=%s status=%s source=%s succeeded=%d count=%d capacity=%d filled=%d ids=", scene, scene_name (scene), v.status, v.source, v.succeeded, v.count,
+			v.capacity, v.filled);
+		if (v.ids)
+		{
+			for (i = 0; i < v.count; i++)
+			{
+				emit (&out, "%s%d", i ? "," : "", v.ids[i]);
+			}
+		}
+		else
+		{
+			emit (&out, "-");
+		}
+		emit (&out, "\n");
+		rows++;
+	}
+	emit (&out, "model-anim-end first=%d count=%d rows=%d\n", first, count, rows);
 	return out.overflow ? 1 : 0;
 }
 

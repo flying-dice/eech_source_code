@@ -2098,10 +2098,10 @@ fn every_reference_script_that_prepares_the_installation_selects_the_profile_rig
         );
         with_profile += 1;
     }
-    // 38 scripts select the profile: the 30 retained reference clients, the shipped campaign.lua, the five terrain/ground real-engine drivers
-    // (ground-authority, ground-characterization, terrain-characterization, terrain-has-face, terrain-provider) the original route observer (route-characterization) and the loader-detachment control (model-horizon-control);
+    // 39 scripts select the profile: the 30 retained reference clients, the shipped campaign.lua, the five terrain/ground real-engine drivers
+    // (ground-authority, ground-characterization, terrain-characterization, terrain-has-face, terrain-provider), the original route observer (route-characterization), the loader-detachment control (model-horizon-control) and the original scene animation-list observer (model-animation-characterization);
     // the two diagnostics left out on purpose are counted apart. Scripts that prepare no installation (for example model-provider-check.lua, which boots no engine) are in neither count.
-    assert_eq!((with_profile, without_profile), (38, 2));
+    assert_eq!((with_profile, without_profile), (39, 2));
 }
 
 // The ground-contact characterisation driver (EEDCS-48; lua/ground-characterization.lua) against a small stand-in for the engine: only its argument safety, its flow and its own checks of what the probe

@@ -1560,6 +1560,7 @@ extern "C" {
     pub fn eech_engine_model_catalogue(first: c_int, count: c_int, text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_model_geometry(scene: c_int, first_depth: c_int, count: c_int, text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_model_state(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_animations(first: c_int, count: c_int, text: *mut c_char, capacity: c_int) -> c_int;
 }
 
 // The tumble draws are the only doubles in the step. They stay its last field, so the double's alignment (4 or 8 by

@@ -45,4 +45,18 @@ extern void eech_mf_consolidate_copy (int index, const void *object, const void 
 /* after the new block has been bound: the block and the record count the loader stored */
 extern void eech_mf_consolidate_end (const void *block, long long records);
 
+
+/* TEXTURE ANIMATION LISTS (read_scene, add_animation): the scene's declared list count was just read (`sceneid` is non-zero for a scene replaced by an `.EES`) */
+extern void eech_mf_anim_begin (int scene, int sceneid, int declared);
+
+/* one fread of entry `index` of a declared list of `total` ints at `list`; `returned` is what fread returned (the original ignores it) */
+extern void eech_mf_anim_file_read (int scene, int index, int total, const void *list, size_t returned);
+
+/* add_animation has just allocated `capacity` ints at `list` for the scene's list (the entries it held were copied), and has appended one entry */
+extern void eech_mf_anim_alloc (const void *scene, const void *list, int capacity);
+extern void eech_mf_anim_append (const void *scene);
+
+/* read_scene is finishing the scene (`fail` is the loader's own failure flag): the list and count it leaves are read back from the scene */
+extern void eech_mf_anim_done (int scene, int fail);
+
 #endif

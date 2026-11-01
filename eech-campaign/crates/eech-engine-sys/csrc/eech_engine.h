@@ -396,6 +396,10 @@ int eech_engine_model_catalogue (int first, int count, char *text, int capacity)
 int eech_engine_model_geometry (int scene, int first_depth, int count, char *text, int capacity);
 /* Hashes of every table these entries read (the scene table, the object table, the surface block, the addresses, the arrays the decoder reads). */
 int eech_engine_model_state (char *text, int capacity);
+/* One page of the scenes' FINAL texture animation lists as the original loader left them (EEDCS-50, D3), scenes `first ..= first + count - 1`: for each scene its disposition (listed,
+   empty, absent, or a named unsupported outcome), source, success flag, count, capacity, filled entries and the legacy animation ids in list order, read only where the loader hooks
+   show the array's backing. Read-only. Fails (bad argument) outside the page bounds or when the report does not fit `capacity`. */
+int eech_engine_model_animations (int first, int count, char *text, int capacity);
 #endif
 
 #ifdef EECH_MODEL_HOST_FIXTURE

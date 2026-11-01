@@ -18,6 +18,26 @@ The first production route-data move is prepared/pushed at `66dc2e8a237a46f92003
 
 Task51 ordinary source78 shipping continues on its original immutable snapshot without restart; fifth check around19:40 UTC finds all four available recording/observation prefixes exact (24,733,777/15,499,264/24,676,439/15,089,664 bytes), PARTIAL only. Actual full40/all8/post-input/final review/current checks/normal delivery remain pending. Ledger117 preserves prior authored HTML and all five epic reports; Jira50comment10937 records the closed original gate and extraction start. Task49/50/51 and wholeD3 remain In Progress; D4/D5 are unstarted. No accepted baseline, tolerance, oracle or flag changed. Historical checkpoint sections below retain their original scope and identities.
 
+# D3 original characterisation prepared: the scenes' final texture animation lists (1 November 2026): OBSERVER UNBUILT, UNRUN
+
+The three-buffer review groups are SOURCE-CLOSED at `abfda86326`; its final Windows and Linux builds are still running and there is no native run of that source yet. The CCC actuals stay at their own
+identity. Next original behaviour to pin before the remaining physical metadata and surface arrays leave Core: the FINAL per-scene texture animation lists that `read_scene`, `add_animation_object` and
+`add_animation` leave (`modules/3d/3dobjdb.c` 803..850 and 1360..1380). Existing original records cover surfaces, initialisation and fread provenance and 828 accessor cases, not these lists.
+
+* **What exists (source only):** five additive hooks in the ORIGINAL-keeping `model-fixture` build (`MA0..MA4`, `MODEL_FIXTURE_PATCHES`; the staged `3dobjdb.c` differs from the `c88e479c7`
+  pipeline's only by those four hook calls and one wrapped `fread` that passes its result on) record per scene the declared count, the file reads, each `add_animation` allocation and append, and the
+  final pointer and count; `eech_model_animation_run` (`csrc/eech_model_fixture.c`, entry `model_animations(first, count)`) reports 96 scenes a page: name, disposition (`listed`, `empty`, `absent`,
+  or an unsupported `short_read`, `overflow`, `unbacked`, `stale`, `unobserved`, `capacity`), source (`file` / `built`), success flag, count, allocation, filled entries and the legacy ids in list
+  order, read ONLY where the hooks show the array's backing, with a digest of the whole recorded state. Nothing recomputes a list; ids and counts are private diagnostic data; the loader, the scene
+  and texture arrays, RNG, FP, clock and entities are not touched. Feature off, `model-host-fixture`, `route-original` and the old drivers' outputs are unchanged.
+* **Driver:** `lua/model-animation-characterization.lua` (`root=` `out=` `scenario=lebanon_retail|georgia_retail`, exclusive checked output, reference arithmetic before the boot, one natural boot, no frame).
+  It checks each page as a report (exact grammar, order, echo, coherence per disposition, one digest on every page and after the run, clock unchanged), stops at the first malformed page, writes a
+  well-formed unsupported outcome in full and fails, and treats a missing feature, a synthetic database, no scene read or no list at all as NOT RUN / NOT MEASURED. Source-unit stand-ins are not native proof.
+* **Root run (original-keeping build):** `tools/build-windows-model-fixture.sh target/model-fixture/<dir>`, then in a fresh process per scenario `eech-world lua/model-animation-characterization.lua
+  root=<fresh retail root> out=<new file> scenario=lebanon_retail` and again with `georgia_retail`. A comparison with a later semantic host move is literal on the `anim` rows.
+* **Not claimed:** no metadata is host-owned yet; nothing is built or run; horizon, cockpit, HUD and renderers are not touched. Task50 and D3 remain open (metadata, surfaces, normals, animation lists,
+  hierarchy, viewpoint, device, muzzle, target-point, Task49 collision); Task51's ordinary 78 shipping run stays LIVE with no 40-check, all-eight or closure claim. D4 and D5 are not started.
+
 # D3 four-buffer cut: one residual loader I/O finding closed in source (1 November 2026): UNBUILT, NOT RUN
 
 The same review pass found that the custom `.EEO` polygon-face stream accepted a NEGATIVE signed `number_of_polygoned_faces`: the stream loop and the validation loop do not run, so the file

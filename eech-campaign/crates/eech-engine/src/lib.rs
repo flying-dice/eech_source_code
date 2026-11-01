@@ -5423,6 +5423,19 @@ impl Engine {
         Self::model_report(|text, capacity| unsafe { sys::eech_engine_model_geometry(scene, first_depth, count, text, capacity) })
     }
 
+    /// TEST-ONLY (feature `model-fixture`, EEDCS-50 D3): one page of the scenes' FINAL texture animation lists as the original loader left them, scenes `first ..= first + count - 1`.
+    /// `first` and `count` are checked here before the engine is entered (the page bound is the catalogue's). Read-only.
+    #[cfg(feature = "model-fixture")]
+    pub fn model_animations(&self, first: i32, count: i32) -> Result<String, EngineError> {
+        if first < 1 || !(1..=MODEL_PAGE_SCENES).contains(&count) || first > i32::MAX - MODEL_PAGE_SCENES {
+            return Err(EngineError::BadArgument(format!(
+                "model animation page: first {first} must be at least 1 and count {count} within 1..={MODEL_PAGE_SCENES}"
+            )));
+        }
+        // SAFETY: the buffer outlives the call and the capacity passed is its length.
+        Self::model_report(|text, capacity| unsafe { sys::eech_engine_model_animations(first, count, text, capacity) })
+    }
+
     /// TEST-ONLY (feature `model-fixture`, EEDCS-50): hashes of every table the model questions read.
     #[cfg(feature = "model-fixture")]
     pub fn model_state(&self) -> Result<String, EngineError> {

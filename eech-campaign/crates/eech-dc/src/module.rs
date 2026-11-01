@@ -2208,6 +2208,13 @@ impl LuaUserData for LuaEngine {
         });
         #[cfg(feature = "model-fixture")]
         methods.add_method("model_state", |_, this, ()| this.engine.model_state().map_err(lua_error));
+        // TEST-ONLY (feature `model-fixture`, EEDCS-50 D3): one page of the scenes' final texture animation lists as the original loader left them; not part of the shipping module.
+        #[cfg(feature = "model-fixture")]
+        methods.add_method("model_animations", |_, this, (first, count): (LuaValue, LuaValue)| {
+            let first = model_int(&first, "first", 1, i32::MAX - eech_engine::MODEL_PAGE_SCENES)?;
+            let count = model_int(&count, "count", 1, eech_engine::MODEL_PAGE_SCENES)?;
+            this.engine.model_animations(first, count).map_err(lua_error)
+        });
         // TEST-ONLY (feature `model-host-fixture`, EEDCS-50 D3): the host's model answers counted, and the campaign's own model arrays overwritten so that any read of them
         // would show; not part of the shipping module.
         #[cfg(feature = "model-host-fixture")]

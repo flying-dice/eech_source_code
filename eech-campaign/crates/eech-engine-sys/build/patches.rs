@@ -462,6 +462,47 @@ pub const MODEL_FIXTURE_PATCHES: &[Patch] = &[
         replacement: "void deinitialise_3d_objects ( void )\n{\n\teech_mf_reset (); /* EECH model fixture (M11) */\n\n",
         count: 1,
     },
+    // MA0..MA4: the scenes' texture animation lists (read_scene, add_animation). Additive records of what the original loader does; the wrapped fread passes its result on unchanged.
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "MA0-animation-list-declared",
+        why: "read_scene has read the scene's declared texture animation count (and knows whether it was given a sceneid): a new record of the scene's list begins",
+        original: "\tfread ( &number_of_texture_animations, sizeof ( int ), 1, fp );\n",
+        replacement: "\tfread ( &number_of_texture_animations, sizeof ( int ), 1, fp );\n\teech_mf_anim_begin ( scene_index, sceneid, number_of_texture_animations ); /* EECH model fixture (MA0) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "MA1-animation-list-file-entry",
+        why: "one fread of one entry of a declared list: what it returned is recorded and handed back unchanged to the statement (which ignores it, as the original did)",
+        original: "\t\t\tfread ( &objects_3d_scene_database[scene_index].texture_animations[tmp], sizeof ( int ), 1, fp );\n",
+        replacement: "\t\t\teech_mf_anim_file_read ( scene_index, tmp, number_of_texture_animations, objects_3d_scene_database[scene_index].texture_animations, fread ( &objects_3d_scene_database[scene_index].texture_animations[tmp], sizeof ( int ), 1, fp ) ); /* EECH model fixture (MA1) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "MA2-animation-list-allocated",
+        why: "add_animation has allocated the grown array and bound it as the scene's list: its address and size are recorded",
+        original: "\t\tscene->texture_animations = new_anim;\n",
+        replacement: "\t\tscene->texture_animations = new_anim;\n\t\teech_mf_anim_alloc ( scene, new_anim, *allocated ); /* EECH model fixture (MA2) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "MA3-animation-list-appended",
+        why: "add_animation has appended one entry: the scene's count is recorded",
+        original: "\tscene->texture_animations[scene->number_of_texture_animations++] = animation;\n",
+        replacement: "\tscene->texture_animations[scene->number_of_texture_animations++] = animation;\n\teech_mf_anim_append ( scene ); /* EECH model fixture (MA3) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "MA4-animation-list-final",
+        why: "read_scene is finishing the scene: the list and count it leaves (and its failure flag) are recorded before the scene's success flag is stored",
+        original: "\tobjects_3d_scene_database[scene_index].succeeded = !fail;\n",
+        replacement: "\teech_mf_anim_done ( scene_index, fail ); /* EECH model fixture (MA4) */\n\tobjects_3d_scene_database[scene_index].succeeded = !fail;\n",
+        count: 1,
+    },
 ];
 
 /// the staged text of `file` with the model-fixture patches applied (same strict count check as `apply`)

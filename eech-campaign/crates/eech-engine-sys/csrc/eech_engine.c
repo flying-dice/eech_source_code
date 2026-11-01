@@ -1683,6 +1683,7 @@ extern int eech_model_summary_run (char *text, int capacity);
 extern int eech_model_catalogue_run (int first, int count, char *text, int capacity);
 extern int eech_model_geometry_run (int scene, int first_depth, int count, char *text, int capacity);
 extern int eech_model_state_run (char *text, int capacity);
+extern int eech_model_animation_run (int first, int count, char *text, int capacity);
 
 int eech_engine_model_summary (char *text, int capacity)
 {
@@ -1720,6 +1721,20 @@ int eech_engine_model_geometry (int scene, int first_depth, int count, char *tex
 		LEAVE (EECH_ENGINE_STATE);
 	}
 	if (!text || (capacity <= 0) || eech_model_geometry_run (scene, first_depth, count, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_model_animations (int first, int count, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_model_animation_run (first, count, text, capacity) != 0)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
