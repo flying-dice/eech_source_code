@@ -3,9 +3,9 @@
 use eech_engine::{
     AimEvent, AimReply, AimRequest, AimStepKind, AimTarget, AimWeapon, AimWorld, ArrivalAnswer, Engine, EngineConfig, EngineError, Gunship,
     HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor, MemberDescriptor, ModelAnimation, ModelAnswer, ModelObject,
-    ModelObjectFacts, ModelProvider, ModelQuery, ModelRouteFace, ModelRouteNode, ModelScene, ModelTriangle, MovementMode, MovementResult, MovementStep, ObjectReport, SenseMessage, SenseReason, SenseReply,
-    SenseScan, SenseState, Side, SupplyReachDescriptor, TerrainAnswer, TerrainMapFacts, TerrainProvider, TerrainQuery, TerrainRecord, VehiclePose,
-    WeaponFigures,
+    ModelObjectFacts, ModelProvider, ModelQuery, ModelRouteFace, ModelRouteNode, ModelScene, ModelTriangle, MovementMode, MovementResult, MovementStep,
+    ObjectReport, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side, SupplyReachDescriptor, TerrainAnswer, TerrainMapFacts, TerrainProvider,
+    TerrainQuery, TerrainRecord, VehiclePose, WeaponFigures,
 };
 use mlua::prelude::*;
 use std::path::PathBuf;
@@ -3971,25 +3971,60 @@ mod tests {
         )?;
         assert_eq!(ask(&mut provider, ModelQuery::ObjectTable)?, ModelAnswer::ObjectTable { objects: 4165 });
         for custom in [false, true] {
-            let ModelAnswer::Object { scene_name, step: ModelObject::Found(facts) } = ask(&mut provider, ModelQuery::Object { scene: 1, role: 0, cursor: 0, custom })? else {
+            let ModelAnswer::Object {
+                scene_name,
+                step: ModelObject::Found(facts),
+            } = ask(
+                &mut provider,
+                ModelQuery::Object {
+                    scene: 1,
+                    role: 0,
+                    cursor: 0,
+                    custom,
+                },
+            )?
+            else {
                 return Err("not an object".into());
             };
             assert_eq!(scene_name, "AH64D_APACHE_LONGBOW");
             assert_eq!(facts.counts, [4, 3, 2, 1, 0, 65535]);
             assert_eq!(facts.radius.to_bits(), 0x8000_0001, "a subnormal bit pattern is exact");
-            assert_eq!(bits(facts.bounding_box), [0x3f80_0000, 0x4000_0000, 0x4040_0000, 0x4080_0000, 0x40a0_0000, 0x40c0_0000]);
+            assert_eq!(
+                bits(facts.bounding_box),
+                [0x3f80_0000, 0x4000_0000, 0x4040_0000, 0x4080_0000, 0x40a0_0000, 0x40c0_0000]
+            );
             assert_eq!(facts.bounding_box2, [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]);
             assert!(matches!(
-                ask(&mut provider, ModelQuery::Object { scene: 1, role: 3, cursor: 1, custom })?,
+                ask(
+                    &mut provider,
+                    ModelQuery::Object {
+                        scene: 1,
+                        role: 3,
+                        cursor: 1,
+                        custom
+                    }
+                )?,
                 ModelAnswer::Object { step: ModelObject::Absent, .. }
             ));
         }
         assert_eq!(
             ask(&mut provider, ModelQuery::Animation { scene: 1, index: 0 })?,
-            ModelAnswer::Animation { scene_name: "AH64D_APACHE_LONGBOW".to_string(), step: ModelAnimation::Name("USA_COPTER_DIGIT__001".to_string()) }
+            ModelAnswer::Animation {
+                scene_name: "AH64D_APACHE_LONGBOW".to_string(),
+                step: ModelAnimation::Name("USA_COPTER_DIGIT__001".to_string())
+            }
         );
-        assert!(matches!(ask(&mut provider, ModelQuery::Animation { scene: 1, index: 1 })?, ModelAnswer::Animation { step: ModelAnimation::End, .. }));
-        assert!(matches!(ask(&mut provider, ModelQuery::Animation { scene: 1, index: 2 })?, ModelAnswer::Animation { step: ModelAnimation::Absent, .. }));
+        assert!(matches!(
+            ask(&mut provider, ModelQuery::Animation { scene: 1, index: 1 })?,
+            ModelAnswer::Animation { step: ModelAnimation::End, .. }
+        ));
+        assert!(matches!(
+            ask(&mut provider, ModelQuery::Animation { scene: 1, index: 2 })?,
+            ModelAnswer::Animation {
+                step: ModelAnimation::Absent,
+                ..
+            }
+        ));
         Ok(())
     }
 
@@ -4021,14 +4056,30 @@ mod tests {
             assert!(error.contains("[model-provider:animation.answer]"), "animation {cursor}: {error}");
         }
         let refused = animation(3).err().ok_or("accepted")?;
-        assert!(refused.contains("[model-provider:animation.refused]") && refused.contains("animation_name_unknown"), "{refused}");
-        let mut object = |cursor: i32| ask(&mut provider, ModelQuery::Object { scene: 1, role: 0, cursor, custom: false });
+        assert!(
+            refused.contains("[model-provider:animation.refused]") && refused.contains("animation_name_unknown"),
+            "{refused}"
+        );
+        let mut object = |cursor: i32| {
+            ask(
+                &mut provider,
+                ModelQuery::Object {
+                    scene: 1,
+                    role: 0,
+                    cursor,
+                    custom: false,
+                },
+            )
+        };
         for cursor in [0, 1, 2, 4] {
             let error = object(cursor).err().ok_or("accepted")?;
             assert!(error.contains("[model-provider:object.answer]"), "object {cursor}: {error}");
         }
         let refused = object(3).err().ok_or("accepted")?;
-        assert!(refused.contains("[model-provider:object.refused]") && refused.contains("object_outside_table"), "{refused}");
+        assert!(
+            refused.contains("[model-provider:object.refused]") && refused.contains("object_outside_table"),
+            "{refused}"
+        );
         Ok(())
     }
 

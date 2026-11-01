@@ -5,7 +5,10 @@
 //! the caller's floating-point state, and keeps its data valid. The only numeric expectations are identities that do not need the original's formula: a scale of
 //! exactly 1.0 returns the short coordinates unchanged, and a rounding-sensitive scale returns the same bits whatever rounding mode the caller is in. What the
 //! retail data answers is the Root's comparison with the retained original report (the `model-host-compare` driver), never these tests.
-use eech_world::models::{compiled_animation_count, compiled_animation_name, compiled_scene_name, fp_state, old_last, scene_last, ErrorKind, ModelStore, ObjectSource, QueryError, SceneSource, Triangle};
+use eech_world::models::{
+    compiled_animation_count, compiled_animation_name, compiled_scene_name, fp_state, old_last, scene_last, ErrorKind, ModelStore, ObjectSource, QueryError,
+    SceneSource, Triangle,
+};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
 

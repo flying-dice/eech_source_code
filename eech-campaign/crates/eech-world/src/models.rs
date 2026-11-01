@@ -1906,7 +1906,10 @@ impl fmt::Display for QueryError {
             QueryError::BadScene(scene) => write!(f, "scene {scene} is outside 1 to {}", scene_last() - 1),
             QueryError::BadDepth(depth) => write!(f, "depth {depth} is not a non-negative 32-bit whole number"),
             QueryError::BadKind(kind) => write!(f, "sub-object kind {kind} is outside 1 to {}", subobject_last() - 1),
-            QueryError::BadRole(role) => write!(f, "object role {role} is not one of 0 to 4 (main, approximation, shadow, collision, sub-object)"),
+            QueryError::BadRole(role) => write!(
+                f,
+                "object role {role} is not one of 0 to 4 (main, approximation, shadow, collision, sub-object)"
+            ),
         }
     }
 }
@@ -2739,7 +2742,12 @@ mod animation_tests {
         // the first surface overrides only its luminosity texture; the second surface has no pair (the overrides stopped at the end of the file)
         names.insert(3, vec![(Vec::new(), b"GLOW".to_vec())]);
         let refs = animation_refs_of(&[3], &surfaces, &names);
-        let expected = vec![RawAnimation::Id(21), RawAnimation::Name(b"GLOW".to_vec()), RawAnimation::Id(23), RawAnimation::Id(24)];
+        let expected = vec![
+            RawAnimation::Id(21),
+            RawAnimation::Name(b"GLOW".to_vec()),
+            RawAnimation::Id(23),
+            RawAnimation::Id(24),
+        ];
         assert_eq!(refs, expected);
     }
 
@@ -2762,20 +2770,50 @@ mod animation_tests {
     fn a_reference_is_named_or_refused_never_passed_on_as_a_number_or_repaired() {
         let store = store_with_custom(&["MY_FLAG"]);
         // an index is a position in the compiled names
-        assert_eq!(store.name_animation(&RawAnimation::Id(0)), AnimationRef::Name(compiled_animation_name(0).unwrap().to_string()));
+        assert_eq!(
+            store.name_animation(&RawAnimation::Id(0)),
+            AnimationRef::Name(compiled_animation_name(0).unwrap().to_string())
+        );
         let last = compiled_animation_count() - 1;
-        assert_eq!(store.name_animation(&RawAnimation::Id(last as u16)), AnimationRef::Name(compiled_animation_name(last).unwrap().to_string()));
+        assert_eq!(
+            store.name_animation(&RawAnimation::Id(last as u16)),
+            AnimationRef::Name(compiled_animation_name(last).unwrap().to_string())
+        );
         // one past the compiled names has none: the dynamic animations are numbered by a directory listing
-        assert_eq!(store.name_animation(&RawAnimation::Id(compiled_animation_count() as u16)), AnimationRef::Refused("animation_index_has_no_compiled_name"));
+        assert_eq!(
+            store.name_animation(&RawAnimation::Id(compiled_animation_count() as u16)),
+            AnimationRef::Refused("animation_index_has_no_compiled_name")
+        );
         // an override: a compiled name in any case, or one the installation's animation files hold
-        assert_eq!(store.name_animation(&RawAnimation::Name(b"debris".to_vec())), AnimationRef::Name("DEBRIS".to_string()));
-        assert_eq!(store.name_animation(&RawAnimation::Name(b"My_Flag".to_vec())), AnimationRef::Name("MY_FLAG".to_string()));
-        assert_eq!(store.name_animation(&RawAnimation::Name(b"NOT_AN_ANIMATION".to_vec())), AnimationRef::Refused("animation_name_unknown"));
+        assert_eq!(
+            store.name_animation(&RawAnimation::Name(b"debris".to_vec())),
+            AnimationRef::Name("DEBRIS".to_string())
+        );
+        assert_eq!(
+            store.name_animation(&RawAnimation::Name(b"My_Flag".to_vec())),
+            AnimationRef::Name("MY_FLAG".to_string())
+        );
+        assert_eq!(
+            store.name_animation(&RawAnimation::Name(b"NOT_AN_ANIMATION".to_vec())),
+            AnimationRef::Refused("animation_name_unknown")
+        );
         // bytes that are not text are not repaired into another name; neither is an empty, a control-character or an over-long one
-        assert_eq!(store.name_animation(&RawAnimation::Name(vec![b'D', 0xff, b'B'])), AnimationRef::Refused("animation_name_not_text"));
-        assert_eq!(store.name_animation(&RawAnimation::Name(Vec::new())), AnimationRef::Refused("animation_name_not_an_identifier"));
-        assert_eq!(store.name_animation(&RawAnimation::Name(b"DE\x01BRIS".to_vec())), AnimationRef::Refused("animation_name_not_an_identifier"));
-        assert_eq!(store.name_animation(&RawAnimation::Name(vec![b'A'; MAX_ANIMATION_NAME + 1])), AnimationRef::Refused("animation_name_not_an_identifier"));
+        assert_eq!(
+            store.name_animation(&RawAnimation::Name(vec![b'D', 0xff, b'B'])),
+            AnimationRef::Refused("animation_name_not_text")
+        );
+        assert_eq!(
+            store.name_animation(&RawAnimation::Name(Vec::new())),
+            AnimationRef::Refused("animation_name_not_an_identifier")
+        );
+        assert_eq!(
+            store.name_animation(&RawAnimation::Name(b"DE\x01BRIS".to_vec())),
+            AnimationRef::Refused("animation_name_not_an_identifier")
+        );
+        assert_eq!(
+            store.name_animation(&RawAnimation::Name(vec![b'A'; MAX_ANIMATION_NAME + 1])),
+            AnimationRef::Refused("animation_name_not_an_identifier")
+        );
     }
 
     #[test]

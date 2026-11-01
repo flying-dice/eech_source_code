@@ -8,7 +8,9 @@
 //!
 //! No pointer, offset or legacy layout reaches Lua; the store is immutable and shared (`Arc`), so a value a script keeps never refers into it. Arguments are whole
 //! numbers within range or the call is refused before the store is touched. A missing asset is reported as `NOT RUN`, never as a pass.
-use crate::models::{compiled_scene_name, hex_list, scene_last, AnimationRef, ErrorKind, ModelStore, ObjectHeader, ObjectSource, RouteFace, RouteNode, SceneSource, Triangle};
+use crate::models::{
+    compiled_scene_name, hex_list, scene_last, AnimationRef, ErrorKind, ModelStore, ObjectHeader, ObjectSource, RouteFace, RouteNode, SceneSource, Triangle,
+};
 use crate::original_report;
 use mlua::prelude::*;
 use serde_json::Value;
@@ -245,13 +247,16 @@ impl LuaUserData for StoreHandle {
             let answer = this.0.route_face(scene, kind, index).map_err(query_error)?;
             route_face_table(lua, &answer)
         });
-        methods.add_method("object_header", |lua, this, (scene, role, cursor, custom): (LuaValue, LuaValue, LuaValue, Option<bool>)| {
-            let scene = whole(&scene, "scene", i64::MIN / 2, i64::MAX / 2)?;
-            let role = whole(&role, "role", i64::MIN / 2, i64::MAX / 2)?;
-            let cursor = whole(&cursor, "cursor", i64::MIN / 2, i64::MAX / 2)?;
-            let answer = this.0.object_header(scene, role, cursor, custom.unwrap_or(false)).map_err(query_error)?;
-            object_header_table(lua, &answer)
-        });
+        methods.add_method(
+            "object_header",
+            |lua, this, (scene, role, cursor, custom): (LuaValue, LuaValue, LuaValue, Option<bool>)| {
+                let scene = whole(&scene, "scene", i64::MIN / 2, i64::MAX / 2)?;
+                let role = whole(&role, "role", i64::MIN / 2, i64::MAX / 2)?;
+                let cursor = whole(&cursor, "cursor", i64::MIN / 2, i64::MAX / 2)?;
+                let answer = this.0.object_header(scene, role, cursor, custom.unwrap_or(false)).map_err(query_error)?;
+                object_header_table(lua, &answer)
+            },
+        );
         methods.add_method("animation_ref", |lua, this, (scene, index): (LuaValue, LuaValue)| {
             let scene = whole(&scene, "scene", i64::MIN / 2, i64::MAX / 2)?;
             let index = whole(&index, "index", i64::MIN / 2, i64::MAX / 2)?;
@@ -385,7 +390,9 @@ fn model_answer(lua: &Lua, store: &ModelStore, operation: &str, scene: Option<i6
             let scene = scene.ok_or_else(|| fail("an object question needs a scene".into()))?;
             let role = kind.ok_or_else(|| fail("an object question needs a role (the kind argument)".into()))?;
             let cursor = depth.ok_or_else(|| fail("an object question needs a cursor (the depth argument)".into()))?;
-            let answer = store.object_header(scene, role, cursor, operation == "custom_object").map_err(|e| fail(e.to_string()))?;
+            let answer = store
+                .object_header(scene, role, cursor, operation == "custom_object")
+                .map_err(|e| fail(e.to_string()))?;
             let table = object_header_table(lua, &answer)?;
             table.set("name", usize::try_from(scene).ok().and_then(compiled_scene_name).unwrap_or(""))?;
             return Ok(table);
