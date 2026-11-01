@@ -2129,8 +2129,10 @@ typedef struct rotor_vec3d
  * NARROWING AT THE ORIGINAL'S FLOAT ASSIGNMENTS (ENV-HOST-ROTOR-CI-1; MEASURED by the controls of the 38b200b6c CI, see docs/d3-sound-lifetime.md).  In the original every `float x = <double expression>` is a store of a float: on
  * the Windows x64 target (SSE) the value is narrowed there, and the next statement computes from the narrowed value.  On i686 (x87, gcc `-fexcess-precision=fast`, __FLT_EVAL_METHOD__ 2) the compiler may keep the value in a
  * register at extended precision across the assignment.  The i686 assembly of this kernel shows it: the slap level goes `fdivs` (magnitude / 15.0), `fmuls` (times the looping level), is bounded, and is subtracted from the
- * looping level while still in the x87 register (the float is stored only AFTER the subtraction), and `rrpm / 100.0` flows through `bound` into the `+ 0.6` with no first-assignment store; the original (and the
- * unmodified control with its collaborator calls between the statements) narrows at those assignments.
+ * looping level while still in the x87 register (the float is stored only AFTER the subtraction), and `rrpm / 100.0` flows through `bound` into the `+ 0.6` with no first-assignment store.  The assignment contract is the
+ * accepted canonical Windows x64 (SSE) behavior of the original: a float assignment narrows.  The unmodified control (a SURROGATE of the engine's compilation context, not its code generation) happened to spill the slap
+ * level early in the measured i686 flight-model row 1 and matches there; it does NOT narrow the first right-pitch quotient and fails flight-model row 12 as the staged control does, so it does not prove the first-assignment
+ * narrowing of row 12, which rests on the Windows x64 oracle.
  *
  * ROTOR_STORE_FLOAT (DESTINATION, EXPRESSION) is that assignment made to narrow: the expression, unchanged, is stored into an addressable volatile float and the destination takes the value read back.  On an SSE target
  * the value is already a float after the conversion, so nothing changes there.  It is used only at the assignments below whose narrowing the measured i686 reds depend on (the acceleration force, the slap level, and the
