@@ -1,0 +1,32 @@
+{
+  "source": "50e7f9d8578c7d283b6a47f01a0e2d09e24cfd2f",
+  "created_utc": "2026-11-01T20:40:01.850901+00:00",
+  "all_four_native_controller_exits": 0,
+  "all_eight_full_input_checks": 0,
+  "all_candidate_complete_repeats_byte_identical": true,
+  "cases": [
+    {
+      "case": "georgia",
+      "calls": 704,
+      "complete_candidate_repeat_bytes_equal": true,
+      "bytes_each": 10337109,
+      "sha256": "53b9ddc61e962003081fb577def24f8b2f4ef2f71a28a488c180b319257e01f8",
+      "both_native_controller_exits": 0,
+      "all4input_checks": 0,
+      "payloads_each": 57,
+      "host_bounds_rows_absent": true
+    },
+    {
+      "case": "lebanon",
+      "calls": 528,
+      "complete_candidate_repeat_bytes_equal": true,
+      "bytes_each": 7758545,
+      "sha256": "7de455637bda01ded949366ddf5969b9f07eff7b4d21abf1ca1a79f20258d08f",
+      "both_native_controller_exits": 0,
+      "all4input_checks": 0,
+      "payloads_each": 57,
+      "host_bounds_rows_absent": true
+    }
+  ],
+  "scope": "Complete HOST-profile natural-boot JSON files incl endings, first versus fresh repeat; not normalized. OriginalFCE comparison is separate selectedfield/literalgraph cohort audit because raw/surface/metadata representations differ. No new original/baseline run, shipping40/all8 or Task50/D3 closure."
+}

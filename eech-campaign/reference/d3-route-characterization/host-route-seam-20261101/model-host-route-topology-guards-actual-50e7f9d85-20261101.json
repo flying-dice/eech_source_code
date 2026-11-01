@@ -1,0 +1,99 @@
+{
+  "source": "50e7f9d8578c7d283b6a47f01a0e2d09e24cfd2f",
+  "created_utc": "2026-11-01T20:36:58.727728+00:00",
+  "all_four_new_guard_cases_pass": true,
+  "old_unsafe_native_executed": false,
+  "controller_source_pin_verified": "run-host-route-topology-control-20261101.py requires exact50esource before launching; source/binary/BUILDINFO/payload hashes also matched.",
+  "guard_scope": "Real public host-Lua/native campaign natural boot consumes finite synthetic host geometry at its first genuine selected route, then named actual Core write/progress guard stops. No mocksolver. This verifies 25thstart/25thchild/primary-loop stall/remaining-loop stall; parent-table, emptyroute, node-index, per-depth and matchlimit guards have sourcecoverage only, not extra runtime cases.",
+  "results": [
+    {
+      "control": "starts",
+      "native_process_exit": 1,
+      "expected_native_exit": 1,
+      "controller_exit": 0,
+      "pre_post_full_input_exits": [
+        0,
+        0
+      ],
+      "payloads_rehashed": 57,
+      "actual_complete_host_topology_supplied": true,
+      "synthetic_nodes": 26,
+      "synthetic_edges": 13,
+      "primary_marker": "[model-provider:route.starts]",
+      "primary_error": "route-characterization: boot failed: runtime error: eech: EECH fatal error: host model: [model-provider:route.starts] the route of scene 46 kind 76 needs entry 25 of the parser's 24-entry start table",
+      "queries_after_complete": 0,
+      "controller_sha256": "60931162c826e375e0343ba51e5e21899624318bb1c0f2cafaca467fc5fe53e2",
+      "native_log_sha256": "8956e1db4d0c6686ea58476b5703ad1cd3cdfd1b0ed4f8735c9a27a4bd97c071",
+      "input_audit_sha256": "391a8811ec8e9131e768335a9e5e1469c8f4018ea199aeab9ba61a719b2c184f"
+    },
+    {
+      "control": "children",
+      "native_process_exit": 1,
+      "expected_native_exit": 1,
+      "controller_exit": 0,
+      "pre_post_full_input_exits": [
+        0,
+        0
+      ],
+      "payloads_rehashed": 57,
+      "actual_complete_host_topology_supplied": true,
+      "synthetic_nodes": 27,
+      "synthetic_edges": 26,
+      "primary_marker": "[model-provider:route.links]",
+      "primary_error": "route-characterization: boot failed: runtime error: eech: EECH fatal error: host model: [model-provider:route.links] the route of scene 46 kind 76 needs entry 25 of the parser's 24-entry child table",
+      "queries_after_complete": 0,
+      "controller_sha256": "a8eecdfaab4e2fb192093d2919dbfb424631b265dd70b994da8054841effec08",
+      "native_log_sha256": "85f11b4523001e3f8b360b205bf09b623c1b4507395cb85a68f152ca699b453d",
+      "input_audit_sha256": "33a79402b959dcdadeed42597c50a1ef7990bd577041cfa42edd5fc698ecccae"
+    },
+    {
+      "control": "primary_stall",
+      "native_process_exit": 1,
+      "expected_native_exit": 1,
+      "controller_exit": 0,
+      "pre_post_full_input_exits": [
+        0,
+        0
+      ],
+      "payloads_rehashed": 57,
+      "actual_complete_host_topology_supplied": true,
+      "synthetic_nodes": 4,
+      "synthetic_edges": 2,
+      "primary_marker": "[model-provider:route.progress]",
+      "primary_error": "route-characterization: boot failed: runtime error: eech: EECH fatal error: host model: [model-provider:route.progress] a pass over the line faces of scene 46 kind 76 placed nothing (primary nodes, 2 left)",
+      "queries_after_complete": 0,
+      "controller_sha256": "d796ee3c3347f311bea7fe3b8edb036934dd9d50557d603062319dd60504d1e2",
+      "native_log_sha256": "080a2ed68c8e96bbd5b5cd5aca6648a70bc40276b4d75a6d477bbe4bd29a6117",
+      "input_audit_sha256": "5ae77ed980662c6feb93091ad511034b629e622744ae457b39ba87d6eaf921d1"
+    },
+    {
+      "control": "remaining_stall",
+      "native_process_exit": 1,
+      "expected_native_exit": 1,
+      "controller_exit": 0,
+      "pre_post_full_input_exits": [
+        0,
+        0
+      ],
+      "payloads_rehashed": 57,
+      "actual_complete_host_topology_supplied": true,
+      "synthetic_nodes": 5,
+      "synthetic_edges": 4,
+      "primary_marker": "[model-provider:route.progress]",
+      "primary_error": "route-characterization: boot failed: runtime error: eech: EECH fatal error: host model: [model-provider:route.progress] a pass over the line faces of scene 46 kind 76 placed nothing (remaining nodes, 3 left)",
+      "queries_after_complete": 0,
+      "controller_sha256": "d7403bdcad38f89948cbe9b30bfad40500017156a23f06d3e8da3a0f433f6fe6",
+      "native_log_sha256": "65ec8a2076cf51f2d35a26d57211a6d58924a21f340a8ad6ce3c4457ec40102e",
+      "input_audit_sha256": "3cd2bef9edc2575762c323e9c64f9c8967af42ad6465f8bf2da4169ade20a153"
+    }
+  ],
+  "wrapper": {
+    "path": "R:/d3-evidence/host-route-topology-controls-20261101.lua",
+    "sha256": "4c793621acf105c14d339f02b42956cd76f3bd0c2a93f6e3b70cb9c95226c405"
+  },
+  "controller": {
+    "path": "R:/d3-evidence/run-host-route-topology-control-20261101.py",
+    "sha256": "c24c0b271c3a520d204b38ce7e2b0247cd3a22a6f7cc7a240a7db3a28079e7a4"
+  },
+  "limits": "Knownunsafe old8b/def6/8d native was never given malformed topology. No after-fatal engine/buffer query. Sourceorder of checks, not a postfatalbuffer read, establishes beforewrite placement. Not proof of allpossible topology/safety, originalderived4096bound, absentCoregeometry/loaderdetachment, fullTacview/shipping40/all8, Task50/D3 acceptance. Newchanged-source combined review pending."
+}
