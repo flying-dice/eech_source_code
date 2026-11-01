@@ -249,8 +249,10 @@ for n = 0, number (ctor, "distinct") - 1 do
 	if number (sample, "n") ~= n then hard ("the sample rows are out of order: " .. sample.raw) end
 	-- a kept sample is a sample key inside the reported catalogue, kept once, and was read at least once (that is why it is kept)
 	if number (sample, "index") < 0 or number (sample, "index") >= number (store, "catalogue_entries") then hard ("the sample key " .. sample.map.index .. " is outside the catalogue (0 to " .. (number (store, "catalogue_entries") - 1) .. "): " .. sample.raw) end
-	if seen_keys [sample.map.index] then hard ("the sample key " .. sample.map.index .. " appears twice in the kept samples: " .. sample.raw) end
-	seen_keys [sample.map.index] = true
+	-- the key is its NUMBER, as the range test above read it: "2" and "02" (and "0" and "-0") are one key, so the table is keyed by the parsed value, never by the spelling
+	local key = string.format ("%d", number (sample, "index"))
+	if seen_keys [key] then hard ("the sample key " .. key .. " appears twice in the kept samples (" .. sample.map.index .. " repeats the key of an earlier row): " .. sample.raw) end
+	seen_keys [key] = true
 	if number (sample, "uses") < 1 then hard ("kept sample row " .. n .. " has no use: " .. sample.raw) end
 	uses = uses + number (sample, "uses")
 	sample_rows [#sample_rows + 1] = sample

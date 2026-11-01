@@ -729,3 +729,37 @@ fn a_truncated_or_self_contradictory_capture_table_is_a_failure_of_the_witness_a
     let missed = capture_forms_not_refused(&forms);
     assert!(missed.is_empty(), "{missed:#?}");
 }
+
+#[test]
+fn a_sample_key_spelled_two_ways_is_still_the_same_key_and_distinct_keys_stay_distinct() {
+    // the row grammar allows a leading zero and a minus sign, so the SAME number can be spelled two ways: a duplicate is a duplicate by value, not by spelling
+    let at = |first: i32, second: i32| {
+        report(&Shape {
+            ctor_samples: vec![(first, 22050, 0, 22050, 3), (second, 11025, 0, 11025, 1)],
+            ..Shape::backend_false()
+        })
+    };
+    let forms: Vec<(&str, String, &str)> = vec![
+        ("key 2 and key 02", at(2, 4).replace("n=1 index=4", "n=1 index=02"), "appears twice"),
+        ("key 02 and key 2", at(4, 2).replace("n=0 index=4", "n=0 index=02"), "appears twice"),
+        ("key 4 and key 004", at(4, 3).replace("n=1 index=3", "n=1 index=004"), "appears twice"),
+        ("key 0 and key -0", at(0, 4).replace("n=1 index=4", "n=1 index=-0"), "appears twice"),
+        ("key -0 and key 0", at(3, 0).replace("n=0 index=3", "n=0 index=-0"), "appears twice"),
+        ("key 00 and key 0", at(3, 0).replace("n=0 index=3", "n=0 index=00"), "appears twice"),
+    ];
+    let missed = capture_forms_not_refused(&forms);
+    assert!(missed.is_empty(), "{missed:#?}");
+    // distinct keys, however they are spelled, are accepted: 02 and 3, -0 and 1, and a plain pair at the catalogue edges
+    for (name, text) in [
+        ("02 and 3", at(2, 3).replace("n=0 index=2", "n=0 index=02")),
+        ("-0 and 1", at(0, 1).replace("n=0 index=0", "n=0 index=-0")),
+        ("0 and 5", at(0, 5)),
+    ] {
+        let driven = drive(&text, "", "");
+        driven
+            .result
+            .clone()
+            .unwrap_or_else(|e| panic!("{name}: distinct keys were refused: {e}\n{}", driven.text));
+        assert_eq!(of(&driven, "derived")[0]["constructor_distinct_samples"], 2, "{name}");
+    }
+}
