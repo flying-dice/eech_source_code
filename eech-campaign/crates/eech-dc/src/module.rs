@@ -2219,6 +2219,13 @@ impl LuaUserData for LuaEngine {
         // would show; not part of the shipping module.
         #[cfg(feature = "model-host-fixture")]
         methods.add_method("model_host_counters", |_, this, ()| this.engine.model_host_counters().map_err(lua_error));
+        // TEST-ONLY (feature `model-host-fixture`, EEDCS-50 D3 L2): one page of the scenes' final texture animation lists after the host-fed load, in the original observer's row grammar
+        #[cfg(feature = "model-host-fixture")]
+        methods.add_method("model_host_animations", |_, this, (first, count): (LuaValue, LuaValue)| {
+            let first = model_int(&first, "first", 1, i32::MAX - eech_engine::MODEL_PAGE_SCENES)?;
+            let count = model_int(&count, "count", 1, eech_engine::MODEL_PAGE_SCENES)?;
+            this.engine.model_host_animations(first, count).map_err(lua_error)
+        });
         #[cfg(feature = "model-host-fixture")]
         methods.add_method("model_host_poison", |_, this, ()| this.engine.model_host_poison().map_err(lua_error));
         // the complete outer floating-point state around a real public entry (see eech_engine_model_host_fpu); the arguments are whole numbers in range, checked before the engine is entered

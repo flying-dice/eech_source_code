@@ -43,6 +43,8 @@ extern struct campaign_model_counters campaign_model_counts;
 extern void campaign_model_poison_arrays (void);
 extern void campaign_model_core_residency (int *rows, int *metadata_rows, int *points, int *faces, int *point_refs, int *surface_points);
 extern void campaign_model_core_horizon (int *cached, int *uncached);
+extern void campaign_model_core_metadata (long *values);
+extern void campaign_model_core_scene_state (int scene, int *read, int *custom, int *listed);
 
 static uint32_t float_bits (float value)
 {
@@ -60,7 +62,8 @@ static void bounds_text (char *buffer, size_t capacity, const struct OBJECT_3D_B
 int eech_model_host_counters_run (char *text, int capacity)
 {
 	int rows, metadata_rows, points, faces, point_refs, surface_points, cached, uncached;
-	int n, m, k;
+	int n, m, k, j;
+	long metadata[8];
 
 	n = snprintf (text, (size_t) capacity,
 		"model-host catalogue=%ld scene=%ld triangle=%ld found=%ld end=%ld absent=%ld bounds_reads=%ld bounds_without_lines_reads=%ld radius_reads=%ld"
@@ -89,7 +92,197 @@ int eech_model_host_counters_run (char *text, int capacity)
 	campaign_model_core_horizon (&cached, &uncached);
 	k = snprintf (text + n + m, (size_t) (capacity - n - m), "model-core-horizon cached=%d uncached=%d\n", cached, uncached);
 
-	return ((k < 0) || (k >= capacity - n - m)) ? 1 : 0;
+	if ((k < 0) || (k >= capacity - n - m))
+	{
+		return 1;
+	}
+
+	/* the model-file metadata exchange (EEDCS-50, D3, L2): the questions the campaign asked of the host while it read its scenes, how they were answered, and how many private rows the
+	   answers filled (rows_filled) or confirmed again (rows_confirmed). The campaign has no model-file parser to compare with: these count the host's answers the campaign took. */
+	campaign_model_core_metadata (metadata);
+	j = snprintf (text + n + m + k, (size_t) (capacity - n - m - k),
+		"model-core-metadata objects_asked=%ld objects_found=%ld objects_absent=%ld rows_filled=%ld rows_confirmed=%ld animation_asked=%ld animation_names=%ld animation_ends=%ld\n",
+		metadata[0], metadata[1], metadata[2], metadata[3], metadata[4], metadata[5], metadata[6], metadata[7]);
+
+	return ((j < 0) || (j >= capacity - n - m - k)) ? 1 : 0;
+}
+
+/* The scenes' FINAL texture animation lists as the campaign holds them after the host-fed load (EEDCS-50, D3, L2), in the row grammar of the original observer (eech_model_fixture.c,
+   eech_model_animation_run) so the same driver reads them and a literal comparison with the original's rows is possible: scenes first .. first + count - 1; a scene the object loader
+   never read is `absent`; a list of no entries is `empty`; otherwise `listed` with the entries as the campaign's own table holds them (its private animation numbers: diagnostic data,
+   never the host protocol). The source is `built` for a scene a custom scene file defined, `file` for a database record; the allocation of a built list is what add_animation makes (8, then
+   doubling) and of a file list its count. Nothing is recomputed: the entries are read from the scene database as they stand. The page digest covers the same projection (status, count,
+   entries) but is this profile's own: it is not the original's. */
+#define HOST_ANIM_IDS_MAX 4096
+#define HOST_ANIM_PAGE_SCENES 96
+
+static void host_anim_hash (uint64_t *hash, uint64_t value)
+{
+	int i;
+
+	for (i = 0; i < 8; i++)
+	{
+		*hash ^= (value >> (8 * i)) & 0xffu;
+		*hash *= 0x100000001b3ULL;
+	}
+}
+
+struct host_anim_view
+{
+	const char *status, *source;
+	int succeeded, count, capacity, filled, read;
+	const int *ids;
+};
+
+static void host_anim_view (int scene, struct host_anim_view *v)
+{
+	const struct OBJECT_3D_SCENE_DATABASE_ENTRY *e = &objects_3d_scene_database[scene];
+	int custom, listed, cap;
+
+	memset (v, 0, sizeof (*v));
+	v->status = "absent";
+	v->source = "none";
+	campaign_model_core_scene_state (scene, &v->read, &custom, &listed);
+
+	if (!v->read)
+	{
+		return;
+	}
+
+	v->succeeded = e->succeeded;
+	v->source = custom ? "built" : "file";
+	v->count = e->number_of_texture_animations;
+
+	if (v->count < 0)
+	{
+		v->status = "unbacked";
+		return;
+	}
+
+	if (v->count == 0)
+	{
+		v->status = e->texture_animations ? "unbacked" : "empty";
+		return;
+	}
+
+	if (v->count > HOST_ANIM_IDS_MAX)
+	{
+		v->status = "capacity";
+		return;
+	}
+
+	if (!e->texture_animations)
+	{
+		v->status = "unbacked";
+		return;
+	}
+
+	cap = 8;
+	while (cap < v->count)
+	{
+		cap *= 2;
+	}
+	v->capacity = custom ? cap : v->count;
+	v->filled = v->count;
+	v->status = "listed";
+	v->ids = (const int *) e->texture_animations;
+}
+
+int eech_model_host_animation_run (int first, int count, char *text, int capacity)
+{
+	uint64_t content = 0xcbf29ce484222325ULL;
+	int scene, rows = 0, done = 0, n, m;
+
+	if (!objects_3d_scene_database || !text || capacity <= 0 || first < 1 || count < 1 || count > HOST_ANIM_PAGE_SCENES || first > (int) OBJECT_3D_LAST - count)
+	{
+		return 1;
+	}
+
+	for (scene = OBJECT_3D_INVALID_OBJECT_INDEX + 1; scene < OBJECT_3D_LAST; scene++)
+	{
+		struct host_anim_view v;
+		int i;
+
+		host_anim_view (scene, &v);
+		done += v.read != 0;
+		host_anim_hash (&content, (uint64_t) scene);
+		host_anim_hash (&content, (uint64_t) (unsigned) v.count);
+		host_anim_hash (&content, (uint64_t) (unsigned) v.filled);
+		for (i = 0; v.status[i]; i++)
+		{
+			host_anim_hash (&content, (uint64_t) (unsigned char) v.status[i]);
+		}
+		for (i = 0; v.ids && i < v.count; i++)
+		{
+			host_anim_hash (&content, (uint64_t) (unsigned) v.ids[i]);
+		}
+	}
+
+	n = snprintf (text, (size_t) capacity, "model-anim-page first=%d count=%d scene_last=%d generation=%u scenes_read=%d unknown_scene=%d content=%016llx\n", first, count, (int) OBJECT_3D_LAST,
+		1u, done, 0, (unsigned long long) content);
+
+	if ((n < 0) || (n >= capacity))
+	{
+		return 1;
+	}
+
+	for (scene = first; scene < first + count; scene++)
+	{
+		struct host_anim_view v;
+		int i;
+
+		host_anim_view (scene, &v);
+
+		m = snprintf (text + n, (size_t) (capacity - n), "model-anim scene=%d name=%s status=%s source=%s succeeded=%d count=%d capacity=%d filled=%d ids=", scene,
+			object_3d_scene_names[scene] ? object_3d_scene_names[scene] : "", v.status, v.source, v.succeeded, v.count, v.capacity, v.filled);
+
+		if ((m < 0) || (m >= capacity - n))
+		{
+			return 1;
+		}
+
+		n += m;
+
+		if (v.ids)
+		{
+			for (i = 0; i < v.count; i++)
+			{
+				m = snprintf (text + n, (size_t) (capacity - n), "%s%d", i ? "," : "", v.ids[i]);
+
+				if ((m < 0) || (m >= capacity - n))
+				{
+					return 1;
+				}
+
+				n += m;
+			}
+		}
+		else
+		{
+			m = snprintf (text + n, (size_t) (capacity - n), "-");
+
+			if ((m < 0) || (m >= capacity - n))
+			{
+				return 1;
+			}
+
+			n += m;
+		}
+
+		m = snprintf (text + n, (size_t) (capacity - n), "\n");
+
+		if ((m < 0) || (m >= capacity - n))
+		{
+			return 1;
+		}
+
+		n += m;
+		rows++;
+	}
+
+	m = snprintf (text + n, (size_t) (capacity - n), "model-anim-end first=%d count=%d rows=%d\n", first, count, rows);
+
+	return ((m < 0) || (m >= capacity - n)) ? 1 : 0;
 }
 
 /* An UNSUPPORTED reader, called for real: add_3d_horizon_image on the campaign's own horizon environment (main_3d_env, made at boot) with a basename no installation has. It has

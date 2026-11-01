@@ -969,11 +969,11 @@ const TERRAIN_REPORT_CAPACITY: usize = 192 * 1024;
 const AIM_REPORT_CAPACITY: usize = 96 * 1024;
 
 /// TEST-ONLY (feature `model-fixture`): room for one model report; a report that does not fit is refused, never cut short.
-#[cfg(feature = "model-fixture")]
+#[cfg(any(feature = "model-fixture", feature = "model-host-fixture"))]
 const MODEL_REPORT_CAPACITY: usize = 192 * 1024;
 
 /// TEST-ONLY (feature `model-fixture`): the most scenes one catalogue page and the most depths one geometry page may ask for. The same numbers bound the C side.
-#[cfg(feature = "model-fixture")]
+#[cfg(any(feature = "model-fixture", feature = "model-host-fixture"))]
 pub const MODEL_PAGE_SCENES: i32 = 96;
 #[cfg(feature = "model-fixture")]
 pub const MODEL_PAGE_TRIANGLES: i32 = 256;
@@ -5419,11 +5419,24 @@ impl Engine {
     /// the triangle ones, and how often the campaign read each of the bounds and radius tables the provider filled. Read-only.
     #[cfg(feature = "model-host-fixture")]
     pub fn model_host_counters(&self) -> Result<String, EngineError> {
-        let mut text = vec![0 as std::os::raw::c_char; 1024];
+        let mut text = vec![0 as std::os::raw::c_char; 2048];
         // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
         check(unsafe { sys::eech_engine_model_host_counters(text.as_mut_ptr(), text.len() as i32) })?;
         // SAFETY: the engine wrote a NUL-terminated string within the buffer.
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `model-host-fixture`, EEDCS-50 D3 L2): one page of the scenes' FINAL texture animation lists as the campaign holds them after the host-fed load, scenes
+    /// `first ..= first + count - 1`, in the row grammar of the original observer (`model_animations`). `first` and `count` are checked here before the engine is entered. Read-only.
+    #[cfg(feature = "model-host-fixture")]
+    pub fn model_host_animations(&self, first: i32, count: i32) -> Result<String, EngineError> {
+        if first < 1 || !(1..=MODEL_PAGE_SCENES).contains(&count) || first > i32::MAX - MODEL_PAGE_SCENES {
+            return Err(EngineError::BadArgument(format!(
+                "model host animation page: first {first} must be at least 1 and count {count} within 1..={MODEL_PAGE_SCENES}"
+            )));
+        }
+        // SAFETY: the buffer outlives the call and the capacity passed is its length.
+        Self::model_report(|text, capacity| unsafe { sys::eech_engine_model_host_animations(first, count, text, capacity) })
     }
 
     /// TEST-ONLY (feature `model-host-fixture`, EEDCS-50 D3 loader detachment): calls the REAL `add_3d_horizon_image` on the campaign's own horizon environment with a basename no
@@ -5483,7 +5496,7 @@ impl Engine {
 
     /// TEST-ONLY (feature `model-fixture`, EEDCS-50): runs one read-only model question and returns its `key=value` text. The report is NUL-terminated by the engine within
     /// the buffer; a refused argument or a report that does not fit is a bad-argument error.
-    #[cfg(feature = "model-fixture")]
+    #[cfg(any(feature = "model-fixture", feature = "model-host-fixture"))]
     fn model_report(call: impl FnOnce(*mut std::os::raw::c_char, i32) -> i32) -> Result<String, EngineError> {
         let mut text = vec![0 as std::os::raw::c_char; MODEL_REPORT_CAPACITY];
         check(call(text.as_mut_ptr(), text.len() as i32))?;

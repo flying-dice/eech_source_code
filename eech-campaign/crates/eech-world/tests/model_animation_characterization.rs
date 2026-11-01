@@ -10,6 +10,8 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 const SCRIPT: &str = include_str!("../lua/model-animation-characterization.lua");
 const JSON_LINES: &str = include_str!("../lua/json-lines.lua");
 const FIXTURE_C: &str = include_str!("../../eech-engine-sys/csrc/eech_model_fixture.c");
+/// the host profile's emitter of the same rows (the `model-host-fixture` build)
+const HOST_FIXTURE_C: &str = include_str!("../../eech-engine-sys/csrc/eech_model_host_fixture.c");
 
 const CONTENT: &str = "0123456789abcdef";
 const CLOCK: &str = "{ elapsed_seconds = 0, time_of_day_seconds = 1, day = 1 }";
@@ -538,7 +540,11 @@ fn lua_set(name: &str) -> Vec<String> {
 
 /// the keys of the C format string that starts `"<name> ` in the emitter, in the order it writes them
 fn c_keys(name: &str) -> Vec<String> {
-    let source = FIXTURE_C.replace('\r', "");
+    c_keys_in(FIXTURE_C, name)
+}
+
+fn c_keys_in(text: &str, name: &str) -> Vec<String> {
+    let source = text.replace('\r', "");
     let at = source.find(&format!("\"{name} ")).unwrap_or_else(|| panic!("the C fixture has no {name} row"));
     let literal = &source[at + 1..];
     let text = &literal[..literal.find('"').expect("the format string ends")];
@@ -576,4 +582,17 @@ fn the_driver_grammar_is_the_emitters() {
     assert_eq!(lua_set("STATUSES"), c_statuses);
     assert_eq!(lua_set("SOURCES"), ["built", "file", "none"]);
     assert!(FIXTURE_C.contains("#define MF_ANIM_IDS_MAX 4096") && FIXTURE_C.contains("#define PAGE_SCENES 96"));
+}
+
+#[test]
+fn the_host_profiles_rows_are_in_the_same_grammar_as_the_originals() {
+    // the observer=host path of the driver reads the host profile's page with the SAME checks, so its emitter must write the same names, field order and bounds
+    for (list, row) in [("PAGE_KEYS", "model-anim-page"), ("ROW_KEYS", "model-anim"), ("END_KEYS", "model-anim-end")] {
+        assert_eq!(lua_list(list), c_keys_in(HOST_FIXTURE_C, row), "{row}");
+    }
+    for status in ["listed", "empty", "absent", "unbacked", "capacity"] {
+        assert!(HOST_FIXTURE_C.contains(&format!("\"{status}\"")), "{status}");
+    }
+    assert!(HOST_FIXTURE_C.contains("#define HOST_ANIM_IDS_MAX 4096") && HOST_FIXTURE_C.contains("#define HOST_ANIM_PAGE_SCENES 96"));
+    assert!(SCRIPT.contains("observer=original|host"));
 }

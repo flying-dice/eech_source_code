@@ -21,7 +21,15 @@
 -- A malformed report stops the questions at once. A well-formed report with an unsupported outcome (short_read, overflow, unbacked, stale, unobserved, capacity) is written in full and the run
 -- fails: the lists are not measured. A run that read no scene, or found no list at all, is not measured either.
 --
--- host.args: root (installation root, required), out (the JSON Lines file, required; created exclusively), scenario (lebanon_retail, the default, or georgia_retail)
+-- OBSERVER (EEDCS-50, D3, L2). `observer=original` (the default) is the above. `observer=host` runs the SAME driver, grammar checks and row events against a module built with the
+-- `model-host-fixture` feature, whose scenes were loaded with the model files owned by the HOST: the same natural boot, the same pages, but the rows are read from the campaign's own scene
+-- database as the host-fed load left it (`model_host_animations`), with the sources `file` (a database record) and `built` (a custom scene file's definition) as before. The rows are
+-- written to the same `anim` events, so a candidate's rows are compared LITERALLY (name, source, count, capacity, entries in order) with the original report's; the ids are the campaign's
+-- own private animation numbers on both sides, never the host protocol, and nothing here recomputes a list. The scene count comes from the host's catalogue answer. The profile's page
+-- digest is its own, not the original's.
+--
+-- host.args: root (installation root, required), out (the JSON Lines file, required; created exclusively), scenario (lebanon_retail, the default, or georgia_retail),
+--            observer (original, the default, or host)
 
 io.stdout:setvbuf ("no")
 
@@ -37,7 +45,7 @@ local scenarios = {
 
 local function fail_args (message) error ("model-animation-characterization: " .. message, 0) end
 
-local known = { root = true, out = true, scenario = true }
+local known = { root = true, out = true, scenario = true, observer = true }
 for key in pairs (args) do
 	if not known [key] then fail_args ("unknown argument " .. tostring (key)) end
 end
@@ -48,6 +56,8 @@ if type (out_path) ~= "string" or out_path == "" then fail_args ("out=<JSON Line
 local scenario_name = args.scenario or "lebanon_retail"
 local scenario = scenarios [scenario_name]
 if not scenario then fail_args ("scenario=lebanon_retail|georgia_retail") end
+local observer = args.observer or "original"
+if observer ~= "original" and observer ~= "host" then fail_args ("observer=original|host") end
 if type (host.create_exclusive) ~= "function" then fail_args ("this host has no create_exclusive: an output that may never overwrite anything cannot be made safely") end
 
 -- ---------------------------------------------------------------------------------------------------------------------------------
@@ -219,7 +229,7 @@ local function run ()
 	-- the reference host's arithmetic profile, selected right after the installation is prepared and before the boot (src/reference_arithmetic.rs)
 	host.use_reference_arithmetic ()
 
-	emit { event = "header", scenario = scenario_name, seed = 1, frames = 0, observer = "model-fixture", note = "natural boot only; no frame is run" }
+	emit { event = "header", scenario = scenario_name, seed = 1, frames = 0, observer = (observer == "host") and "model-host-fixture" or "model-fixture", note = "natural boot only; no frame is run" }
 
 	local ok, engine = pcall (dc.boot, {
 		install_root = root, map = scenario.map, terrain = host.terrain_provider (root, scenario.map), campaign_directory = "camp01", campaign = scenario.campaign, gunship = "apache",
@@ -233,9 +243,19 @@ local function run ()
 	end
 	emit { event = "boot", booted = true }
 
-	if type (engine.model_animations) ~= "function" or type (engine.model_summary) ~= "function" or type (engine.clock) ~= "function" then
-		emit { event = "not_run", reason = "the booted module has no model-fixture entries" }
-		error ("model-animation-characterization: NOT RUN: this module was not built with the model-fixture feature", 0)
+	local rows_of -- the entry that gives one page of rows, by observer
+	if observer == "host" then
+		if type (engine.model_host_animations) ~= "function" or type (engine.clock) ~= "function" then
+			emit { event = "not_run", reason = "the booted module has no model-host-fixture entries" }
+			error ("model-animation-characterization: NOT RUN: this module was not built with the model-host-fixture feature", 0)
+		end
+		rows_of = function (first, count) return engine:model_host_animations (first, count) end
+	else
+		if type (engine.model_animations) ~= "function" or type (engine.model_summary) ~= "function" or type (engine.clock) ~= "function" then
+			emit { event = "not_run", reason = "the booted module has no model-fixture entries" }
+			error ("model-animation-characterization: NOT RUN: this module was not built with the model-fixture feature", 0)
+		end
+		rows_of = function (first, count) return engine:model_animations (first, count) end
 	end
 
 	local function ask (what, call)
@@ -256,10 +276,18 @@ local function run ()
 	end
 
 	local clock_before = clock_of ("before")
-	local summary_text = ask ("model_summary", function () return engine:model_summary () end)
-	emit { event = "model_summary", text = tostring (summary_text) }
-	local scene_last = type (summary_text) == "string" and string.match (summary_text, "^model%-summary scene_last=(%d+) ")
-	scene_last = scene_last and tonumber (scene_last)
+	local scene_last
+	if observer == "host" then
+		-- the host's own catalogue answer is the number of scene indices (the campaign checked it equals its own at boot)
+		local catalogue = ask ("catalogue", function () return host.model ("catalogue") end)
+		scene_last = type (catalogue) == "table" and catalogue.scenes or nil
+		emit { event = "model_summary", text = "model-summary scene_last=" .. tostring (scene_last) .. " (the host's catalogue)" }
+	else
+		local summary_text = ask ("model_summary", function () return engine:model_summary () end)
+		emit { event = "model_summary", text = tostring (summary_text) }
+		scene_last = type (summary_text) == "string" and string.match (summary_text, "^model%-summary scene_last=(%d+) ")
+		scene_last = scene_last and tonumber (scene_last)
+	end
 	if not scene_last or scene_last < 2 or scene_last > INT_MAX then protocol_failure ({ malformed = "the model summary does not name scene_last" }) end
 
 	local tally = { scenes = 0, ids = 0, by_status = {}, by_source = {} }
@@ -269,7 +297,7 @@ local function run ()
 	local first_page_text
 	while first < scene_last do
 		local count = math.min (PAGE_MAX, scene_last - first)
-		local text = ask ("model_animations " .. first, function () return engine:model_animations (first, count) end)
+		local text = ask ("model_animations " .. first, function () return rows_of (first, count) end)
 		emit { event = "page", first = first, count = count, text = tostring (text) }
 		local checked, rows, page = pcall (check_page, text, { first = first, count = count, scene_last = scene_last }, seen)
 		if not checked then protocol_failure (rows) end
@@ -295,7 +323,7 @@ local function run ()
 	end
 
 	-- the observer left everything where it was: the first page again (byte for byte), and the clock
-	local again = ask ("model_animations 1 (again)", function () return engine:model_animations (1, math.min (PAGE_MAX, scene_last - 1)) end)
+	local again = ask ("model_animations 1 (again)", function () return rows_of (1, math.min (PAGE_MAX, scene_last - 1)) end)
 	local clock_after = clock_of ("after")
 	local unchanged = again == first_page_text and clock_before.elapsed_seconds == clock_after.elapsed_seconds and clock_before.time_of_day_seconds == clock_after.time_of_day_seconds
 		and clock_before.day == clock_after.day

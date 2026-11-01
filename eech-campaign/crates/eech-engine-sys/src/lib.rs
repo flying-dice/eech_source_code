@@ -1563,6 +1563,7 @@ extern "C" {
 #[cfg(feature = "model-host-fixture")]
 extern "C" {
     pub fn eech_engine_model_host_counters(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_host_animations(first: c_int, count: c_int, text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_model_host_poison() -> c_int;
     pub fn eech_engine_model_host_probe(scene: c_int, depth: c_int, text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_model_host_horizon_refusal(text: *mut c_char, capacity: c_int) -> c_int;
