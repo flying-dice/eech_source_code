@@ -30,6 +30,29 @@ The first production route-data move is prepared/pushed at `66dc2e8a237a46f92003
 
 Task51 ordinary source78 shipping continues on its original immutable snapshot without restart; fifth check around19:40 UTC finds all four available recording/observation prefixes exact (24,733,777/15,499,264/24,676,439/15,089,664 bytes), PARTIAL only. Actual full40/all8/post-input/final review/current checks/normal delivery remain pending. Ledger117 preserves prior authored HTML and all five epic reports; Jira50comment10937 records the closed original gate and extraction start. Task49/50/51 and wholeD3 remain In Progress; D4/D5 are unstarted. No accepted baseline, tolerance, oracle or flag changed. Historical checkpoint sections below retain their original scope and identities.
 
+# D3 original animation-list driver: coherence correction (1 November 2026): UNBUILT, UNRUN
+
+The independent review cleared the observer's C and hooks and found one driver and test coherence group, corrected in `lua/model-animation-characterization.lua` and its tests only; the C fixture, hooks,
+production, model, route, kernel and public feature plumbing are exactly as at `4485`. The Root's 4485 builds are on their OWN source (Windows 0, Linux still running) and there is no native run of the
+observer yet; the buffer cut at `abfda86326` stays finite-closed on its own actuals and is not whole Task50 or D3.
+
+* **Headers joined to rows.** `scenes_read` must equal the scenes whose rows are not `absent` or `unobserved` (the scenes the loader finished reading), checked after the last page and before the first page is
+  read again; `unknown_scene` must be 0 and unchanged on every page (a nonzero count is malformed, not a note); generation, digest and `scenes_read` must be the same on every page.
+* **Row domains from the emitter's own states.** `listed`: 1..4096 ids, `filled` = `count`, allocation at least `count` (exactly `count` for a declared `file` list); `empty`: no count, allocation or filled entry;
+  `absent` and `unobserved`: no source and no content; every other outcome has a source. Nothing a valid retail list could not meet is required; an unsupported outcome is still written and NOT MEASURED.
+* **Clock.** Read before anything is asked and after the last answer: a table with finite single-precision `elapsed_seconds` and `time_of_day_seconds` and a whole 32-bit `day`; a missing, text, NaN,
+  infinite, fractional or out-of-range value is malformed before the next engine call, and both readings must be equal. The checked values are written. No wall clock or temporal oracle is added.
+* **Tests.** A coherent 99-scene multi-page capture (96 + 3 scenes) passes; damaged later pages (unknown scene, scenes read, digest, generation, echo, order, missing row, incoherent row), headers whose total
+  the rows do not show, a first page that saw an unknown scene, the row-domain forms and the bad or moved clocks are malformed or not a success and stop at the first bad evidence.
+* **Digest scope, stated honestly.** The page digest covers the recorded state and the verified list projection (status, count, filled entries, ids), not every emitted field (source, allocation and success flag
+  are not in it); "nothing moved" rests on that digest, the byte-for-byte re-read of the first page and the clock, not on a full-row or table invariance claim. This also qualifies the entry below.
+* **Why this characterisation matters (Root's source proof, `model-animation-required-consumer-source-abfda86326-20261101.json`):** `en_anim.c` `set_local_entity_id_number` derives the digit count and
+  modulo from the animation membership, seeding the entity id number and campaign significant digits. No metadata ownership has moved; raw legacy ids stay private to this fixture, and the shipping protocol
+  is unchanged.
+* **Unchanged commands:** `tools/build-windows-model-fixture.sh target/model-fixture/<dir>`, then in a fresh process per scenario `eech-world lua/model-animation-characterization.lua root=<fresh retail root>
+  out=<new file> scenario=lebanon_retail` and again with `georgia_retail`. Task50 and D3 (metadata, surfaces, normals, animation lists, hierarchy, viewpoint, device, muzzle, target-point, Task49 collision) and
+  Task51's ordinary 78 shipping run remain open; D4 and D5 are not started.
+
 # D3 original characterisation prepared: the scenes' final texture animation lists (1 November 2026): OBSERVER UNBUILT, UNRUN
 
 The three-buffer review groups are SOURCE-CLOSED at `abfda86326`; its final Windows and Linux builds are still running and there is no native run of that source yet. The CCC actuals stay at their own
@@ -40,7 +63,7 @@ identity. Next original behaviour to pin before the remaining physical metadata 
   pipeline's only by those four hook calls and one wrapped `fread` that passes its result on) record per scene the declared count, the file reads, each `add_animation` allocation and append, and the
   final pointer and count; `eech_model_animation_run` (`csrc/eech_model_fixture.c`, entry `model_animations(first, count)`) reports 96 scenes a page: name, disposition (`listed`, `empty`, `absent`,
   or an unsupported `short_read`, `overflow`, `unbacked`, `stale`, `unobserved`, `capacity`), source (`file` / `built`), success flag, count, allocation, filled entries and the legacy ids in list
-  order, read ONLY where the hooks show the array's backing, with a digest of the whole recorded state. Nothing recomputes a list; ids and counts are private diagnostic data; the loader, the scene
+  order, read ONLY where the hooks show the array's backing, with a digest of the recorded state and verified list projection (see the entry above for its scope). Nothing recomputes a list; ids and counts are private diagnostic data; the loader, the scene
   and texture arrays, RNG, FP, clock and entities are not touched. Feature off, `model-host-fixture`, `route-original` and the old drivers' outputs are unchanged.
 * **Driver:** `lua/model-animation-characterization.lua` (`root=` `out=` `scenario=lebanon_retail|georgia_retail`, exclusive checked output, reference arithmetic before the boot, one natural boot, no frame).
   It checks each page as a report (exact grammar, order, echo, coherence per disposition, one digest on every page and after the run, clock unchanged), stops at the first malformed page, writes a

@@ -10,8 +10,14 @@
 -- surface and no order is assumed; this is what a later semantic host move is compared to, literally.
 --
 -- THE REPORT IS CHECKED BEFORE IT IS BELIEVED. Each page must be exactly one `model-anim-page` row, `count` `model-anim` rows for scenes first .. first+count-1 in order, and one
--- `model-anim-end` row, in the C grammar (names, field order, decimal integers, bounded ids); every row must be coherent with its disposition (a `listed` row has exactly `count` ids and
--- backing for them, an `empty` or `absent` row has none, ...); the digest of the recorded state must be the same on every page and after the run, and the clock must not have moved.
+-- `model-anim-end` row, in the C grammar (names, field order, decimal integers, bounded ids). Every row must be coherent with its disposition, as the emitter's own states make it (a `listed`
+-- row has 1..4096 ids, exactly `count` of them, `filled` equal to `count`, an allocation of at least `count` and, for a declared (`file`) list, exactly `count`; an `empty` row has no count,
+-- allocation or filled entry; an `absent` or `unobserved` row has no source and no content; every other outcome is a list the loader made). The page headers must agree with each other and
+-- with the rows: the same generation, digest and `scenes_read` on every page, `unknown_scene` 0 on every page (a scene pointer the hooks could not place is an unsupported observer, not a
+-- note), and after the last page `scenes_read` equal to the scenes whose rows are not `absent` or `unobserved` (the scenes the loader finished reading). The clock is read before anything is
+-- asked and after the last answer: a table with finite `elapsed_seconds` and `time_of_day_seconds` (single-precision range) and a whole `day` (32-bit), equal both times.
+-- The digest covers the recorded state and the verified list projection (status, count, filled entries, ids), not every emitted field; the first page is also compared byte for byte when it is
+-- read again, and that is what the run relies on for "nothing moved".
 -- A malformed report stops the questions at once. A well-formed report with an unsupported outcome (short_read, overflow, unbacked, stale, unobserved, capacity) is written in full and the run
 -- fails: the lists are not measured. A run that read no scene, or found no list at all, is not measured either.
 --
@@ -114,8 +120,11 @@ local function check_page (text, request, seen)
 	page.content = header.content
 	if page.first ~= request.first or page.count ~= request.count then malformed ("the page does not echo its request") end
 	if page.scene_last ~= request.scene_last then malformed ("the page's scene_last is not the summary's") end
-	if page.scenes_read > page.scene_last then malformed ("scenes_read exceeds the scenes") end
-	if seen and (seen.content ~= page.content or seen.generation ~= page.generation or seen.scenes_read ~= page.scenes_read) then malformed ("the recorded state changed between pages") end
+	if page.scenes_read > page.scene_last - 1 then malformed ("scenes_read exceeds the scenes") end
+	if page.unknown_scene ~= 0 then malformed (string.format ("the loader hooks saw %d scene pointers outside the scene table", page.unknown_scene)) end
+	if seen and (seen.content ~= page.content or seen.generation ~= page.generation or seen.scenes_read ~= page.scenes_read or seen.unknown_scene ~= page.unknown_scene) then
+		malformed ("the recorded state changed between pages")
+	end
 
 	local rows = {}
 	for i = 1, request.count do
@@ -129,13 +138,20 @@ local function check_page (text, request, seen)
 		r.count = int (fields.count, -1, INT_MAX, "count")
 		r.capacity = int (fields.capacity, 0, INT_MAX, "capacity")
 		r.filled = int (fields.filled, 0, INT_MAX, "filled")
+		local at = "scene " .. r.scene .. ": "
 		if r.status == "listed" then
-			if r.source == "none" or r.count < 1 or r.count > IDS_MAX or r.capacity < r.count or r.filled < r.count then malformed ("scene " .. r.scene .. ": a listed row without backing for its count") end
+			-- the emitter says `listed` only for a list that is the allocated array, within its allocation and the bound, with every entry filled; a declared list is allocated at its count
+			if r.source == "none" or r.count < 1 or r.count > IDS_MAX or r.filled ~= r.count or r.capacity < r.count or (r.source == "file" and r.capacity ~= r.count) then
+				malformed (at .. "a listed row without the backing its count needs")
+			end
 			r.ids = parse_ids (fields.ids, r.count)
 		else
-			if fields.ids ~= "-" then malformed ("scene " .. r.scene .. ": only a listed row has ids") end
-			if r.status == "empty" and (r.source == "none" or r.count ~= 0) then malformed ("scene " .. r.scene .. ": an empty row with a count or no source") end
-			if r.status == "absent" and (r.source ~= "none" or r.count ~= 0 or r.capacity ~= 0 or r.filled ~= 0 or r.succeeded ~= 0) then malformed ("scene " .. r.scene .. ": an absent row with content") end
+			if fields.ids ~= "-" then malformed (at .. "only a listed row has ids") end
+			if r.status == "empty" and (r.source == "none" or r.count ~= 0 or r.capacity ~= 0 or r.filled ~= 0) then malformed (at .. "an empty row with a count, allocation or filled entry, or no source") end
+			if (r.status == "absent" or r.status == "unobserved") and (r.source ~= "none" or r.count ~= 0 or r.capacity ~= 0 or r.filled ~= 0 or r.succeeded ~= 0) then
+				malformed (at .. "an " .. r.status .. " row with a source or content")
+			end
+			if r.status ~= "absent" and r.status ~= "unobserved" and r.source == "none" then malformed (at .. "a " .. r.status .. " row with no source") end
 		end
 		rows [#rows + 1] = r
 	end
@@ -144,6 +160,20 @@ local function check_page (text, request, seen)
 		malformed ("the closing row does not echo the page")
 	end
 	return rows, page
+end
+
+-- the clock the engine reports (eech_clock: two single-precision seconds and a 32-bit day): present, numeric, finite and whole where it must be; nothing is rounded here
+local F32_MAX = 3.4028234663852886e38
+
+local function check_clock (c, when)
+	if type (c) ~= "table" then malformed ("the " .. when .. " clock is not a table") end
+	for _, key in ipairs { "elapsed_seconds", "time_of_day_seconds" } do
+		local v = c [key]
+		if type (v) ~= "number" or v ~= v or v > F32_MAX or v < -F32_MAX then malformed (string.format ("the %s clock's %s is not a finite single-precision number: %s", when, key, tostring (v))) end
+	end
+	local day = c.day
+	if type (day) ~= "number" or day % 1 ~= 0 or day < -2147483648 or day > INT_MAX then malformed (string.format ("the %s clock's day is not a 32-bit whole number: %s", when, tostring (day))) end
+	return { elapsed_seconds = c.elapsed_seconds, time_of_day_seconds = c.time_of_day_seconds, day = day }
 end
 
 -- ---------------------------------------------------------------------------------------------------------------------------------
@@ -216,8 +246,15 @@ local function run ()
 		return text
 	end
 
-	local clock_before = ask ("clock", function () return engine:clock () end)
-	if type (clock_before) ~= "table" then protocol_failure ({ malformed = "the clock is not a table" }) end
+	local function clock_of (when)
+		local raw = ask ("clock", function () return engine:clock () end)
+		local checked, clock = pcall (check_clock, raw, when)
+		if not checked then protocol_failure (clock) end
+		emit { event = "clock", when = when, elapsed_seconds = clock.elapsed_seconds, time_of_day_seconds = clock.time_of_day_seconds, day = clock.day }
+		return clock
+	end
+
+	local clock_before = clock_of ("before")
 	local summary_text = ask ("model_summary", function () return engine:model_summary () end)
 	emit { event = "model_summary", text = tostring (summary_text) }
 	local scene_last = type (summary_text) == "string" and string.match (summary_text, "^model%-summary scene_last=(%d+) ")
@@ -236,9 +273,8 @@ local function run ()
 		local checked, rows, page = pcall (check_page, text, { first = first, count = count, scene_last = scene_last }, seen)
 		if not checked then protocol_failure (rows) end
 		if not seen then
-			seen = { content = page.content, generation = page.generation, scenes_read = page.scenes_read }
+			seen = { content = page.content, generation = page.generation, scenes_read = page.scenes_read, unknown_scene = page.unknown_scene }
 			first_page_text = text
-			if page.unknown_scene ~= 0 then unsupported [#unsupported + 1] = string.format ("the loader hooks saw %d scene pointers outside the scene table", page.unknown_scene) end
 		end
 		for _, r in ipairs (rows) do
 			emit { event = "anim", scene = r.scene, name = r.name, status = r.status, source = r.source, succeeded = r.succeeded, count = r.count, capacity = r.capacity, filled = r.filled, ids = r.ids_text }
@@ -251,11 +287,15 @@ local function run ()
 		first = first + count
 	end
 	if tally.scenes ~= scene_last - 1 then protocol_failure ({ malformed = string.format ("%d scene rows for %d scenes", tally.scenes, scene_last - 1) }) end
+	-- the headers' count of finished scene reads is the rows': a scene the loader finished is every one whose row is not `absent` (never read) or `unobserved` (a list the hooks did not see)
+	local finished = tally.scenes - (tally.by_status.absent or 0) - (tally.by_status.unobserved or 0)
+	if finished ~= seen.scenes_read then
+		protocol_failure ({ malformed = string.format ("the page headers count %d scenes read and the rows show %d", seen.scenes_read, finished) })
+	end
 
-	-- the observer left everything where it was: the first page again (the digest and the rows), and the clock
+	-- the observer left everything where it was: the first page again (byte for byte), and the clock
 	local again = ask ("model_animations 1 (again)", function () return engine:model_animations (1, math.min (PAGE_MAX, scene_last - 1)) end)
-	local clock_after = ask ("clock", function () return engine:clock () end)
-	if type (clock_after) ~= "table" then protocol_failure ({ malformed = "the clock is not a table" }) end
+	local clock_after = clock_of ("after")
 	local unchanged = again == first_page_text and clock_before.elapsed_seconds == clock_after.elapsed_seconds and clock_before.time_of_day_seconds == clock_after.time_of_day_seconds
 		and clock_before.day == clock_after.day
 	emit { event = "unchanged", pass = unchanged }
