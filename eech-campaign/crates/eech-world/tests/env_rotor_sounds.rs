@@ -1,17 +1,29 @@
 //! The ORIGINAL helicopter rotor sound capture driver (`lua/env-rotor-sounds.lua`, EEDCS-51, D3), against a SCRIPTED engine and the REAL exclusive-output primitive. SOURCE PREPARED: UNRUN BY ITS AUTHOR.
 //!
-//! The driver reads what the rotor probe recorded in the original code and keeps it; it computes no level, pitch or acceleration. The texts here are SHAPE EXAMPLES with arbitrary numbers, never facts about any native.
-//! What these tests protect is the driver's judgement of a capture: that the probe is armed only through its own call and before boot, that the raw page text is kept whole before it is validated, that a lost,
-//! truncated, nested, malformed or incomplete capture is a failure of the witness and never a result, that the controlled sweep is separated from natural coverage and refused when it is not what it declares, and
-//! that the evidence is created exclusively. Whether the real probe records the real function correctly is Root's native run, not this file.
+//! The driver reads what the rotor probe recorded in the original code and keeps it; it computes no level, pitch or acceleration. The texts here are SHAPE EXAMPLES with the real enumerations (a sound effect child is
+//! entity type 32, the AI player kind is 0 and the LOCAL kind 1) and arbitrary numbers, never facts about any native. What these tests protect is the driver's judgement of a capture: that the probe is armed only through
+//! its own call and before boot, that the raw page text is kept whole before it is validated, that a lost, truncated, nested, malformed or incomplete capture is a failure of the witness and never a result (the
+//! grammar is closed: exact fields, anchored lists, counts within the limits, every sound child with its stored after data), that a controlled sweep is separated from natural coverage, refused when it is not what it
+//! declares and JOINED call by call to its chosen helicopter, case, player kind and declared inputs, and that the evidence is created exclusively and a foreign file is never mistaken for its output. Whether the real
+//! probe records the real function correctly is Root's native run, not this file.
+//!
+//! The driver under test can be replaced for a red/green comparison: set `EECH_ROTOR_DRIVER_UNDER_TEST` to the path of another copy of the driver (for instance the a2c5c46a8 one) and run
+//! `the_closed_grammar_rejects_the_concrete_acceptances_found_in_review`, which uses only the natural record format that both drivers share.
 
 use mlua::prelude::*;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 const SCRIPT: &str = include_str!("../lua/env-rotor-sounds.lua");
 
 static COUNTER: AtomicUsize = AtomicUsize::new(0);
+
+fn driver_source() -> String {
+    match std::env::var("EECH_ROTOR_DRIVER_UNDER_TEST") {
+        Ok(path) => std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("EECH_ROTOR_DRIVER_UNDER_TEST {path}: {e}")),
+        Err(_) => SCRIPT.to_string(),
+    }
+}
 
 struct Scratch(PathBuf);
 
@@ -34,7 +46,8 @@ impl Drop for Scratch {
 }
 
 /// The scripted `eech_dc`. `pages[n]` is what the n-th drain returns (the first is the drain after boot); the report counts the lines delivered, with `report` overrides; `sndinit`, `sweep_text` and `sweep_page` are the
-/// texts of `env_case (14, 15)`, `env_case (14, 16 or 17)` and the page the drain after the sweep returns. `no_arm`, `no_events` and `frame_error_at` damage the module. ORDER records what happened in what order.
+/// texts of `env_case (14, 15)`, `env_case (14, 16 or 17)` and the page the drain after the sweep returns. `env_case_capacity` refuses (or, damaged, accepts or pollutes). `no_arm`, `no_events` and `frame_error_at`
+/// damage the module. ORDER records what happened in what order.
 const COLLABORATORS: &str = r##"
 ORDER = {}
 FRAMES, EVENTS, DELIVERED = 0, 0, 0
@@ -72,14 +85,20 @@ package.preload.eech_dc = function ()
 					DELIVERED = DELIVERED + count_lines (page)
 					return page
 				end
+				function engine:env_rotor_report () return report_text () end
 			end
-			function engine:env_rotor_report () return report_text () end
 			function engine:env_case (group, index)
 				ORDER [#ORDER + 1] = "case:" .. group .. "," .. index
 				if group ~= 14 then error ("SCRIPTED: unexpected case " .. group .. "," .. index, 0) end
 				if index == 15 then return SCENARIO.sndinit end
 				if index == 16 or index == 17 then NEXT_PAGE = SCENARIO.sweep_page; return SCENARIO.sweep_text end
 				error ("SCRIPTED: unexpected case " .. group .. "," .. index, 0)
+			end
+			function engine:env_case_capacity (group, index, capacity)
+				ORDER [#ORDER + 1] = "capacity:" .. capacity
+				if SCENARIO.short_accepts then return "env-rotor-plan accepted" end
+				if SCENARIO.short_pollutes then SCENARIO.report = { phase = 1 } end
+				error (SCENARIO.short_reason or ("bad argument: env-case-error reason=rotor_case_refused_or_report_did_not_fit group=14 index=" .. index), 0)
 			end
 			return engine
 		end,
@@ -108,8 +127,16 @@ fn drive(scenario: &str, extra_args: &[(&str, &str)]) -> Driven {
     drive_in(&Scratch::new(), scenario, extra_args, &|_| {})
 }
 
+const SUFFIXES: [&str; 4] = ["", ".rotor.raw", ".sndinit.raw", ".sweep.raw"];
+
+/// Runs the driver in `work`. `before` may precreate files (a foreign file the driver must refuse to overwrite). A file that already existed when the driver started is FOREIGN: it is never read back as this
+/// invocation's output (its content is not JSON of ours), while everything the invocation genuinely created is read back and strictly parsed.
 fn drive_in(work: &Scratch, scenario: &str, extra_args: &[(&str, &str)], before: &dyn Fn(&Scratch)) -> Driven {
     before(work);
+    let foreign: Vec<&str> = SUFFIXES
+        .into_iter()
+        .filter(|suffix| Path::new(&work.path(&format!("environment.jsonl{suffix}"))).exists())
+        .collect();
     let lua = Lua::new();
     let host = lua.create_table().expect("a table");
     eech_world::output::install(&lua, &host).expect("the real exclusive output primitive");
@@ -126,13 +153,23 @@ fn drive_in(work: &Scratch, scenario: &str, extra_args: &[(&str, &str)], before:
         .set_name("scripted collaborators")
         .exec()
         .expect("the collaborators load");
-    let result = lua.load(SCRIPT).set_name("env-rotor-sounds.lua").exec().map_err(|e| e.to_string());
-    let rows = std::fs::read_to_string(work.path("environment.jsonl"))
-        .unwrap_or_default()
-        .lines()
-        .map(|line| serde_json::from_str(line).unwrap_or_else(|e| panic!("a row is not strict JSON: {line:?}: {e}")))
-        .collect();
-    let read = |suffix: &str| std::fs::read_to_string(work.path(&format!("environment.jsonl{suffix}"))).ok();
+    let result = lua.load(driver_source()).set_name("env-rotor-sounds.lua").exec().map_err(|e| e.to_string());
+    let rows = if foreign.contains(&"") {
+        Vec::new()
+    } else {
+        std::fs::read_to_string(work.path("environment.jsonl"))
+            .unwrap_or_default()
+            .lines()
+            .map(|line| serde_json::from_str(line).unwrap_or_else(|e| panic!("a row is not strict JSON: {line:?}: {e}")))
+            .collect()
+    };
+    let read = |suffix: &str| {
+        if foreign.contains(&suffix) {
+            None
+        } else {
+            std::fs::read_to_string(work.path(&format!("environment.jsonl{suffix}"))).ok()
+        }
+    };
     Driven {
         result,
         rows,
@@ -147,45 +184,102 @@ fn of<'a>(driven: &'a Driven, event: &str) -> Vec<&'a serde_json::Value> {
     driven.rows.iter().filter(|row| row["event"] == event).collect()
 }
 
-/// One valid call line: arbitrary example numbers in the real format. `fd` gives the flight model words; `act` and `kids` are the lists as the probe prints them.
-fn call(seq: u32, phase: u32, fd: bool, actions: u32, act: &str, visited: u32, kids: &str, sound: u32) -> String {
-    let (acc_x, acc_y, acc_z, lrpm, rrpm, apu) = if fd {
-        ("40400000", "40800000", "00000000", "42480000", "42700000", "40a00000")
-    } else {
-        ("00000000", "00000000", "00000000", "00000000", "00000000", "00000000")
-    };
-    format!(
-        "env-rotor-call seq={seq} t={} phase={phase} ent=77 player={} fd={} rng_in=5 rng_out=5 rpm_w=42480000 acc_x_w={acc_x} acc_y_w={acc_y} acc_z_w={acc_z} lrpm_w={lrpm} rrpm_w={rrpm} apu_w={apu} actions={actions} visited={visited} sound={sound} act={act} kids={kids}\n",
-        1000 + seq * 100,
-        if fd { 0 } else { 1 },
-        u32::from(fd)
-    )
+const ZERO: &str = "00000000";
+const ACT: &str = "1:5:00000000,0:6:00000000";
+/// a sound effect child (entity type 32): sub-type 5, stored amplification and pitch before and after
+const SOUND_KID: &str = "32:5:3f800000:3f800000:3f800000:3f800000:1";
+/// a child that is not a sound effect (entity type 9): no sound data
+const OTHER_KID: &str = "9:0:00000000:00000000:00000000:00000000:0";
+
+/// One probe record. The defaults are an AI helicopter without a flight model; `busy` gives it two requests and two children (one not a sound effect).
+#[derive(Clone)]
+struct Spec {
+    seq: u32,
+    phase: u32,
+    ent: u32,
+    player: u32,
+    fd: bool,
+    rpm: String,
+    acc: [String; 3],
+    eng: [String; 3],
+    actions: u32,
+    act: String,
+    visited: u32,
+    kids: String,
+    sound: u32,
 }
 
-/// A call with two requests and two children (one not a sound effect), and one with none of either.
-fn busy(seq: u32, phase: u32, fd: bool) -> String {
-    call(
-        seq,
-        phase,
-        fd,
-        2,
-        "1:5:00000000,0:6:00000000",
-        2,
-        "9:0:00000000:00000000:00000000:00000000:0,7:5:3f800000:3f800000:3f800000:3f800000:1",
-        1,
-    )
+impl Spec {
+    fn new(seq: u32) -> Self {
+        let zeros = || [ZERO.to_string(), ZERO.to_string(), ZERO.to_string()];
+        Spec {
+            seq,
+            phase: 0,
+            ent: 77,
+            player: 0,
+            fd: false,
+            rpm: "42480000".into(),
+            acc: zeros(),
+            eng: zeros(),
+            actions: 0,
+            act: "-".into(),
+            visited: 0,
+            kids: "-".into(),
+            sound: 0,
+        }
+    }
+
+    fn busy(mut self) -> Self {
+        self.actions = 2;
+        self.act = ACT.into();
+        self.visited = 2;
+        self.kids = format!("{OTHER_KID},{SOUND_KID}");
+        self.sound = 1;
+        self
+    }
+
+    fn line(&self) -> String {
+        format!(
+            "env-rotor-call seq={} t={} phase={} ent={} player={} fd={} rng_in=5 rng_out=5 rpm_w={} acc_x_w={} acc_y_w={} acc_z_w={} lrpm_w={} rrpm_w={} apu_w={} actions={} visited={} sound={} act={} kids={}\n",
+            self.seq,
+            1000 + self.seq * 100,
+            self.phase,
+            self.ent,
+            self.player,
+            u32::from(self.fd),
+            self.rpm,
+            self.acc[0],
+            self.acc[1],
+            self.acc[2],
+            self.eng[0],
+            self.eng[1],
+            self.eng[2],
+            self.actions,
+            self.visited,
+            self.sound,
+            self.act,
+            self.kids
+        )
+    }
 }
 
 fn quiet(seq: u32) -> String {
-    call(seq, 0, false, 0, "-", 0, "-", 0)
+    Spec::new(seq).line()
+}
+
+fn busy(seq: u32) -> String {
+    Spec::new(seq).busy().line()
 }
 
 const SNDINIT: &str = "env-sndinit-plan version=1\nenv-sndinit-ctor calls=3 looping=1 max_count=1 sample_reads=4 distinct=2 out_of_domain=0 digest_w=0123456789abcdef\nenv-sndinit-fingerprint rng_before_w=00000001 rng_after_w=00000001 entity_before=104 entity_after=104 local_before=7 local_after=7 unchanged=1\n";
 
-fn healthy_scenario() -> String {
-    let pages = [String::new(), format!("{}{}", quiet(0), busy(1, 0, false)), String::new(), busy(2, 0, false)];
+fn pages_scenario(pages: &[String]) -> String {
     let pages: Vec<String> = pages.iter().map(|page| lua_long(page)).collect();
     format!("{{ pages = {{ {} }}, sndinit = {} }}", pages.join(", "), lua_long(SNDINIT))
+}
+
+fn healthy_scenario() -> String {
+    pages_scenario(&[String::new(), format!("{}{}", quiet(0), busy(1)), String::new(), busy(2)])
 }
 
 #[test]
@@ -199,10 +293,7 @@ fn a_healthy_natural_capture_keeps_every_page_whole_in_order_and_arms_only_the_r
     // one drain after boot and one after each of the four frames
     assert_eq!(driven.order.iter().filter(|step| step.as_str() == "drain").count(), 5);
     // the raw sidecar is the native text exactly as returned, in order
-    assert_eq!(
-        driven.rotor_raw.as_deref(),
-        Some(format!("{}{}{}", quiet(0), busy(1, 0, false), busy(2, 0, false)).as_str())
-    );
+    assert_eq!(driven.rotor_raw.as_deref(), Some(format!("{}{}{}", quiet(0), busy(1), busy(2)).as_str()));
     assert_eq!(driven.sndinit_raw.as_deref(), Some(SNDINIT));
     assert!(driven.sweep_raw.is_none(), "no sweep was asked for");
     let derived = &of(&driven, "derived")[0];
@@ -228,19 +319,32 @@ fn a_healthy_natural_capture_keeps_every_page_whole_in_order_and_arms_only_the_r
         .any(|row| row["raw"].as_str().unwrap_or_default().starts_with("env-sndinit-fingerprint ")));
 }
 
+/// Runs each damaged page as the boot page and requires the named refusal, the page kept whole BEFORE it was judged, and no result row.
+fn refuses_pages(cases: Vec<(&str, String, &str)>) {
+    for (label, page, fragment) in cases {
+        let driven = drive(&pages_scenario(std::slice::from_ref(&page)), &[]);
+        let error = driven.result.clone().expect_err(label);
+        assert!(error.contains("env-rotor-sounds:") && error.contains(fragment), "{label}: {error}");
+        assert_eq!(driven.rotor_raw.as_deref(), Some(page.as_str()), "{label}");
+        assert!(of(&driven, "result").is_empty() && !of(&driven, "witness_failure").is_empty(), "{label}");
+    }
+}
+
 #[test]
 fn a_record_that_is_malformed_out_of_sequence_or_does_not_add_up_is_a_failure_of_the_witness_with_the_page_kept() {
-    let good = busy(0, 0, false);
-    let cases: Vec<(&str, String, &str)> = vec![
-        ("a sequence gap", format!("{}{}", good, busy(2, 0, false)), "out of sequence"),
-        ("a first call that is not 0", busy(1, 0, false), "out of sequence"),
+    let good = busy(0);
+    refuses_pages(vec![
+        ("a sequence gap", format!("{}{}", good, busy(2)), "out of sequence"),
+        ("a first call that is not 0", busy(1), "out of sequence"),
         (
             "a word that is not eight hex digits",
             good.replace("rpm_w=42480000", "rpm_w=4248"),
             "eight digit word",
         ),
-        ("a missing field", good.replace(" ent=77", ""), "has no field ent"),
-        ("a phase that is not 0 or 1", good.replace("phase=0", "phase=2"), "phase is neither"),
+        ("a missing field", good.replace(" ent=77", ""), "does not have exactly its"),
+        ("an extra field", good.replace(" ent=77", " ent=77 ghost=1"), "does not have exactly its"),
+        ("fields in another order", good.replace(" ent=77 player=0", " player=0 ent=77"), "is not ent"),
+        ("a phase that is not 0 or 1", good.replace("phase=0", "phase=2"), "only phase 0 may"),
         ("a flight model flag that is not a flag", good.replace("fd=0", "fd=3"), "flight model flag"),
         (
             "a flight model word without a flight model",
@@ -254,13 +358,13 @@ fn a_record_that_is_malformed_out_of_sequence_or_does_not_add_up_is_a_failure_of
         ),
         (
             "a request list that is empty where requests are recorded",
-            good.replace("act=1:5:00000000,0:6:00000000", "act=-"),
-            "lists no request",
+            good.replace(&format!("act={ACT}"), "act=-"),
+            "lists 0 requests where it records 2",
         ),
         (
             "a request that is not a pause or a resume",
             good.replace("1:5:00000000", "2:5:00000000"),
-            "request is malformed",
+            "does not match its grammar",
         ),
         (
             "fewer children listed than walked",
@@ -270,8 +374,8 @@ fn a_record_that_is_malformed_out_of_sequence_or_does_not_add_up_is_a_failure_of
         ("more sound children than children walked", good.replace("sound=1", "sound=5"), "not coherent"),
         (
             "a child word that is not a word",
-            good.replace("3f800000:3f800000:3f800000:3f800000:1", "3f80:3f800000:3f800000:3f800000:1"),
-            "child is malformed",
+            good.replace(SOUND_KID, "32:5:3f80:3f800000:3f800000:3f800000:1"),
+            "does not match its grammar",
         ),
         (
             "a row that is not a rotor call",
@@ -279,20 +383,84 @@ fn a_record_that_is_malformed_out_of_sequence_or_does_not_add_up_is_a_failure_of
             "not an env-rotor-call row",
         ),
         ("a byte that is not printable", good.replace("ent=77", "ent=77\u{7}"), "not printable"),
-    ];
-    for (label, page, fragment) in cases {
-        let scenario = format!("{{ pages = {{ {} }}, sndinit = {} }}", lua_long(&page), lua_long(SNDINIT));
-        let driven = drive(&scenario, &[]);
-        let error = driven.result.clone().expect_err(label);
-        assert!(error.contains("env-rotor-sounds:") && error.contains(fragment), "{label}: {error}");
-        // the native page was kept whole BEFORE it was judged, and no result row exists
-        assert_eq!(driven.rotor_raw.as_deref(), Some(page.as_str()), "{label}");
-        assert!(of(&driven, "result").is_empty() && !of(&driven, "witness_failure").is_empty(), "{label}");
-    }
+    ]);
     // a page that does not end in a newline is a truncated page
-    let truncated = good.trim_end().to_string();
-    let driven = drive(&format!("{{ pages = {{ {} }}, sndinit = {} }}", lua_long(&truncated), lua_long(SNDINIT)), &[]);
+    let driven = drive(&pages_scenario(&[good.trim_end().to_string()]), &[]);
     assert!(driven.result.clone().expect_err("truncated").contains("newline"), "{:?}", driven.result);
+}
+
+#[test]
+fn the_closed_grammar_rejects_the_concrete_acceptances_found_in_review() {
+    let good = busy(0);
+    let limit_actions = Spec {
+        actions: 9,
+        act: vec!["1:5:00000000"; 8].join(","),
+        ..Spec::new(0)
+    };
+    let limit_children = Spec {
+        visited: 33,
+        kids: vec![OTHER_KID; 33].join(","),
+        ..Spec::new(0)
+    };
+    let engine_words_for_an_ai = Spec {
+        fd: true,
+        eng: ["42480000".into(), "42700000".into(), "40a00000".into()],
+        ..Spec::new(0)
+    };
+    let sweep_page_in_a_natural_drain = Spec { phase: 1, ..Spec::new(0) };
+    refuses_pages(vec![
+        (
+            "a sound child with no stored after data and invented zero after words",
+            good.replace(SOUND_KID, "32:5:3f800000:3f800000:00000000:00000000:0"),
+            "no stored after data",
+        ),
+        (
+            "a junk prefix in a request tuple",
+            good.replace(ACT, &format!("x{ACT}")),
+            "does not match its grammar",
+        ),
+        (
+            "a junk suffix in a child tuple",
+            good.replace(SOUND_KID, &format!("{SOUND_KID}junk")),
+            "does not match its grammar",
+        ),
+        (
+            "a trailing comma in a request list",
+            good.replace(ACT, &format!("{ACT},")),
+            "empty or malformed item",
+        ),
+        (
+            "more requests than the limit with the loss counters false",
+            limit_actions.line(),
+            "beyond the limit",
+        ),
+        (
+            "more children than the limit with the loss counters false",
+            limit_children.line(),
+            "beyond the limit",
+        ),
+        (
+            "sound data on a child that is not a sound effect",
+            good.replace(OTHER_KID, "9:0:3f800000:00000000:00000000:00000000:0"),
+            "carries sound data",
+        ),
+        (
+            "a player kind that is not an ENTITY_PLAYERS value",
+            good.replace("player=0", "player=7"),
+            "ENTITY_PLAYERS",
+        ),
+        (
+            "fewer sound children listed than recorded",
+            good.replace("sound=1", "sound=2"),
+            "records 2 sound effect children and lists 1",
+        ),
+        (
+            "engine words for a player kind that does not consume them",
+            engine_words_for_an_ai.line(),
+            "engine word",
+        ),
+        ("a sweep call in a natural drain", sweep_page_in_a_natural_drain.line(), "only phase 0 may"),
+    ]);
 }
 
 #[test]
@@ -306,6 +474,7 @@ fn a_probe_that_lost_nested_orphaned_or_left_anything_open_is_never_a_complete_c
         ("a point of another number", "bad_points = 1"),
         ("a page still pending", "pending = 3"),
         ("a call left open", "open = 1"),
+        ("a phase left at 1", "phase = 1"),
         ("a probe that is not armed", "armed = 0"),
         ("more calls counted than lines read", "calls_total = 99"),
         ("fewer calls drained than lines read", "drained = 0"),
@@ -320,7 +489,7 @@ fn a_probe_that_lost_nested_orphaned_or_left_anything_open_is_never_a_complete_c
         assert!(error.contains("env-rotor-sounds:"), "{label}: {error}");
         assert!(of(&driven, "result").is_empty(), "{label}");
     }
-    // a report that lacks a field, repeats one or carries another version is refused at the first read
+    // a report that lacks a field or carries another version is refused at the first read
     for (label, override_) in [("a missing field", "dropped = false"), ("another version", "version = 2")] {
         let driven = drive(&format!("{{ pages = {{}}, report = {{ {override_} }}, sndinit = {} }}", lua_long(SNDINIT)), &[]);
         assert!(driven.result.clone().is_err(), "{label}");
@@ -362,9 +531,88 @@ fn a_module_without_the_rotor_functions_a_failed_drain_or_a_failed_frame_is_a_fa
     assert!(of(&driven, "engine_failure").iter().any(|row| row["frame"] == 2));
 }
 
-fn sweep_scenario(sweep_text: &str, sweep_page: &str) -> String {
+// ---- the controlled sweep: coherent positives with real semantics, and the concrete damaged forms ----
+
+const FINGERPRINT: &str = "env-rotor-fingerprint rng_before_w=00000001 rng_after_w=00000001 entity_before=104 entity_after=104 local_before=7 local_after=7\n";
+const SWEEP_KIDS: &str = "5:3f800000:3f800000";
+
+/// The three rows of one executed input: the declared input words, the fixture's own output words and the floating point control and status around the call.
+fn executed_rows(i: u32, rpm: &str, acc: [&str; 3], eng: [&str; 3], class: &str) -> String {
     format!(
-        "{{ pages = {{ '', {} }}, sndinit = {}, sweep_text = {}, sweep_page = {} }}",
+        "env-rotor-sweep i={i} rpm_w={rpm} ax_w={} ay_w={} az_w={} lrpm_w={} rrpm_w={} apu_w={} class={class}\nenv-rotor-out i={i} kids={SWEEP_KIDS}\nenv-rotor-fp i={i} round_before=3 round_after=3 excepts=0\n",
+        acc[0], acc[1], acc[2], eng[0], eng[1], eng[2]
+    )
+}
+
+fn plan(case: &str) -> String {
+    format!("env-rotor-plan version=1 case={case} process_isolated=required mutating=1 natural=0 phase=1 restores=main_rotor_rpm,player,flight_dynamics_pointer,probe_phase children_restored=0 instrumented=1 probe_armed=1\n")
+}
+
+const ENTITY: &str = "env-rotor-entity ent=77 player=0 special_effect_children=2 sound_children=1 turbine2_children=1 apu_children=0 fd=0\n";
+
+/// The AI sweep: rpm 0 then exactly 30, the helicopter's own AI player kind and no flight model.
+fn ai_text() -> String {
+    format!(
+        "{}{ENTITY}{}{}{FINGERPRINT}env-rotor-end refused=0 mutating=1 calls=2 skipped=0\n",
+        plan("ai_rpm_sweep"),
+        executed_rows(0, "00000000", [ZERO; 3], [ZERO; 3], "defined"),
+        executed_rows(1, "41f00000", [ZERO; 3], [ZERO; 3], "defined")
+    )
+}
+
+/// The probe's phase 1 records of the AI sweep: the same helicopter, AI player, no flight model, the same rpm words.
+fn ai_page() -> String {
+    let call = |seq: u32, rpm: &str| {
+        Spec {
+            phase: 1,
+            rpm: rpm.into(),
+            ..Spec::new(seq)
+        }
+        .busy()
+        .line()
+    };
+    format!("{}{}", call(1, "00000000"), call(2, "41f00000"))
+}
+
+const ENGINES: [&str; 3] = ["42480000", "42700000", "40a00000"];
+
+/// The flight model sweep: the LOCAL player kind (1) with a flight model; two executed defined shapes and one indeterminate shape reported skipped.
+fn fd_text() -> String {
+    format!(
+        "{}{ENTITY}{}{}env-rotor-skipped i=2 rpm_w=42480000 ax_w=00000000 ay_w=00000000 az_w=00000000 lrpm_w=42480000 rrpm_w=42480000 apu_w=40a00000 reason=right_turbine_amp_unassigned_and_consumed\n{FINGERPRINT}env-rotor-end refused=0 mutating=1 calls=2 skipped=1\n",
+        plan("player_local_and_flight_model"),
+        executed_rows(0, "42480000", [ZERO; 3], ENGINES, "defined"),
+        executed_rows(1, "42480000", ["40400000", "40800000", ZERO], ENGINES, "defined")
+    )
+}
+
+/// The probe's phase 1 records of the flight model sweep (two calls); `damage` may change either call's record before it is printed.
+fn fd_calls(damage: impl Fn(u32, &mut Spec)) -> String {
+    let accelerations = [[ZERO; 3], ["40400000", "40800000", ZERO]];
+    (0..2u32)
+        .map(|k| {
+            let mut spec = Spec {
+                phase: 1,
+                player: 1,
+                fd: true,
+                acc: accelerations[k as usize].map(String::from),
+                eng: ENGINES.map(String::from),
+                ..Spec::new(k + 1)
+            }
+            .busy();
+            damage(k, &mut spec);
+            spec.line()
+        })
+        .collect()
+}
+
+fn fd_page() -> String {
+    fd_calls(|_, _| {})
+}
+
+fn sweep_scenario(sweep_text: &str, sweep_page: &str, extra: &str) -> String {
+    format!(
+        "{{ pages = {{ '', {} }}, sndinit = {}, sweep_text = {}, sweep_page = {}{extra} }}",
         lua_long(&quiet(0)),
         lua_long(SNDINIT),
         lua_long(sweep_text),
@@ -372,56 +620,190 @@ fn sweep_scenario(sweep_text: &str, sweep_page: &str) -> String {
     )
 }
 
-const SWEEP_TEXT: &str = "env-rotor-plan version=1 case=ai_rpm_sweep process_isolated=required mutating=1 natural=0 phase=1 restores=main_rotor_rpm,player,flight_dynamics_pointer children_restored=0\nenv-rotor-entity ent=77 player=1 special_effect_children=2 sound_children=1 fd=0\nenv-rotor-sweep i=0 rpm_w=00000000\nenv-rotor-sweep i=1 rpm_w=41f00000\nenv-rotor-fingerprint rng_before_w=00000001 rng_after_w=00000001 entity_before=104 entity_after=104 local_before=7 local_after=7\nenv-rotor-end refused=0 mutating=1 calls=2\n";
+fn sweep_args<'a>(sweep: &'a str) -> Vec<(&'a str, &'a str)> {
+    vec![("seconds", "1"), ("frame_ms", "1000"), ("sweep", sweep)]
+}
 
 #[test]
-fn the_controlled_sweep_runs_last_is_stamped_apart_from_natural_coverage_and_must_match_its_own_report() {
-    let page = format!("{}{}", busy(1, 1, false), busy(2, 1, false));
-    let driven = drive(&sweep_scenario(SWEEP_TEXT, &page), &[("seconds", "1"), ("frame_ms", "1000"), ("sweep", "ai")]);
-    driven.result.clone().expect("a coherent sweep");
+fn the_controlled_sweeps_run_last_are_stamped_apart_from_natural_coverage_and_join_their_declared_inputs() {
+    let driven = drive(&sweep_scenario(&ai_text(), &ai_page(), ""), &sweep_args("ai"));
+    driven.result.clone().expect("a coherent AI sweep");
     // the read-only report comes first, the mutating case last
     let cases: Vec<&String> = driven.order.iter().filter(|step| step.starts_with("case:")).collect();
     assert_eq!(cases, ["case:14,15", "case:14,16"]);
-    assert_eq!(driven.sweep_raw.as_deref(), Some(SWEEP_TEXT));
+    assert_eq!(driven.sweep_raw.as_deref(), Some(ai_text().as_str()));
     let derived = &of(&driven, "derived")[0];
     assert_eq!(
         (
             derived["natural_phase0_calls"].as_i64(),
             derived["controlled_phase1_calls"].as_i64(),
-            derived["calls"].as_i64()
+            derived["calls"].as_i64(),
+            derived["sweep_executed"].as_i64(),
+            derived["sweep_skipped"].as_i64()
         ),
-        (Some(1), Some(2), Some(3))
+        (Some(1), Some(2), Some(3), Some(2), Some(0))
     );
     assert!(derived["coverage_note"].as_str().unwrap_or_default().contains("not natural coverage"));
-    // the player/flight-model branch is its own case
-    let fd_text = SWEEP_TEXT.replace("case=ai_rpm_sweep", "case=player_local_and_flight_model");
-    let driven = drive(
-        &sweep_scenario(&fd_text, &format!("{}{}", busy(1, 1, true), busy(2, 1, true))),
-        &[("seconds", "1"), ("frame_ms", "1000"), ("sweep", "fd")],
-    );
+    // the player/flight-model branch is its own case, with the real LOCAL kind, and reports the indeterminate shape it skipped
+    let driven = drive(&sweep_scenario(&fd_text(), &fd_page(), ""), &sweep_args("fd"));
     driven.result.clone().expect("a coherent flight model sweep");
     assert!(driven.order.iter().any(|step| step == "case:14,17"));
-    assert_eq!(of(&driven, "derived")[0]["calls_with_a_flight_model"].as_i64(), Some(2));
+    let derived = &of(&driven, "derived")[0];
+    assert_eq!(
+        (
+            derived["calls_with_a_flight_model"].as_i64(),
+            derived["sweep_executed"].as_i64(),
+            derived["sweep_skipped"].as_i64()
+        ),
+        (Some(2), Some(2), Some(1))
+    );
+    assert_eq!(of(&driven, "sweep_skipped")[0]["reason"], "right_turbine_amp_unassigned_and_consumed");
 }
 
 #[test]
-fn a_sweep_that_is_refused_misdeclared_or_does_not_match_the_probe_is_a_failure_of_the_witness() {
-    let page = format!("{}{}", busy(1, 1, false), busy(2, 1, false));
-    for (label, text, page, fragment) in [
+fn a_sweep_call_that_does_not_join_its_helicopter_case_player_and_declared_inputs_is_a_failure_of_the_witness() {
+    let ai = (ai_text(), ai_page());
+    let fd = (fd_text(), fd_page());
+    let cases: Vec<(&str, &str, String, String, &str)> = vec![
         (
-            "refused by the fixture",
-            "env-rotor-plan version=1 case=x process_isolated=required mutating=1\nenv-rotor-refused reason=no_ai_helicopter_with_a_sound_effect_child_in_the_update_list\nenv-rotor-end refused=1 mutating=0\n".to_string(),
-            String::new(),
-            "refused by the fixture",
+            "ai",
+            "the rpm word of a call that is not the declared one",
+            ai.0.clone(),
+            ai.1.replacen("rpm_w=00000000", "rpm_w=42480000", 1),
+            "recorded the rpm word",
         ),
-        ("not declaring itself mutating", SWEEP_TEXT.replace(" mutating=1 natural", " mutating=0 natural"), page.clone(), "does not declare itself mutating"),
-        ("not declaring itself process-isolated", SWEEP_TEXT.replace("process_isolated=required", "process_isolated=not_needed"), page.clone(), "does not declare itself mutating"),
-        ("more calls reported than rows", SWEEP_TEXT.replace("calls=2", "calls=3"), page.clone(), "sweep rows"),
-        ("a probe that recorded fewer phase 1 calls", SWEEP_TEXT.to_string(), busy(1, 1, false), "phase 1 calls"),
-        ("a probe that recorded natural calls as the sweep", SWEEP_TEXT.to_string(), format!("{}{}", busy(1, 0, false), busy(2, 1, false)), "phase 1 calls"),
-        ("an engine error text", "env-case-error reason=lightning_case_refused_or_report_did_not_fit group=14 index=16\n".to_string(), String::new(), "did not give a report"),
-    ] {
-        let driven = drive(&sweep_scenario(&text, &page), &[("seconds", "1"), ("frame_ms", "1000"), ("sweep", "ai")]);
+        (
+            "ai",
+            "a call for another helicopter",
+            ai.0.clone(),
+            ai.1.replacen("ent=77", "ent=78", 1),
+            "is for entity 78",
+        ),
+        (
+            "ai",
+            "an AI sweep call with the LOCAL player kind",
+            ai.0.clone(),
+            ai.1.replacen("player=0", "player=1", 1),
+            "has player 1",
+        ),
+        (
+            "ai",
+            "an AI sweep call with a flight model",
+            ai.0.clone(),
+            ai.1.replacen("fd=0", "fd=1", 1),
+            "flight model 1",
+        ),
+        (
+            "ai",
+            "fewer probe calls than executed inputs",
+            ai.0.clone(),
+            ai.1.lines().next().unwrap_or_default().to_string() + "\n",
+            "recorded 1 phase 1 calls where the sweep executed 2",
+        ),
+        (
+            "ai",
+            "a natural call in the sweep drain",
+            ai.0.clone(),
+            ai.1.replacen("phase=1", "phase=0", 1),
+            "only phase 1 may",
+        ),
+        (
+            "ai",
+            "a stored after word that is not the one the fixture read",
+            ai.0.clone(),
+            ai.1.replacen("32:5:3f800000:3f800000:3f800000:3f800000:1", "32:5:3f800000:3f800000:40000000:3f800000:1", 1),
+            "recorded sub 5 after",
+        ),
+        (
+            "fd",
+            "a flight model sweep call with the AI player kind (its engine words are then not copied)",
+            fd.0.clone(),
+            fd_calls(|k, spec| {
+                if k == 0 {
+                    spec.player = 0;
+                    spec.eng = [ZERO.to_string(), ZERO.to_string(), ZERO.to_string()];
+                }
+            }),
+            "has player 0",
+        ),
+        (
+            "fd",
+            "a flight model sweep call without a flight model",
+            fd.0.clone(),
+            fd_calls(|k, spec| {
+                if k == 0 {
+                    spec.fd = false;
+                    spec.acc = [ZERO.to_string(), ZERO.to_string(), ZERO.to_string()];
+                    spec.eng = [ZERO.to_string(), ZERO.to_string(), ZERO.to_string()];
+                }
+            }),
+            "flight model 0",
+        ),
+        (
+            "fd",
+            "an acceleration word that is not the declared one",
+            fd.0.clone(),
+            fd_calls(|k, spec| {
+                if k == 0 {
+                    spec.acc[0] = "40400000".to_string();
+                }
+            }),
+            "recorded acc_x_w",
+        ),
+        (
+            "fd",
+            "an engine word that is not the declared one",
+            fd.0.clone(),
+            fd_calls(|k, spec| {
+                if k == 1 {
+                    spec.eng[1] = "42480000".to_string();
+                }
+            }),
+            "recorded rrpm_w",
+        ),
+    ];
+    for (sweep, label, text, page, fragment) in cases {
+        let driven = drive(&sweep_scenario(&text, &page, ""), &sweep_args(sweep));
+        let error = driven.result.clone().expect_err(label);
+        assert!(error.contains("env-rotor-sounds:") && error.contains(fragment), "{label}: {error}");
+        assert!(of(&driven, "result").is_empty(), "{label}");
+        // the fixture's own text and the probe's page were both kept whole before they were judged
+        assert_eq!(driven.sweep_raw.as_deref(), Some(text.as_str()), "{label}");
+    }
+}
+
+#[test]
+fn a_sweep_report_that_is_refused_misdeclared_out_of_order_or_inconsistent_is_a_failure_of_the_witness() {
+    let ai = ai_text();
+    let page = ai_page();
+    let refused = "env-rotor-refused reason=no_ai_helicopter_with_a_sound_effect_child_and_at_most_32_special_effect_children_in_the_update_list\nenv-rotor-end refused=1 mutating=0 calls=0 skipped=0\n".to_string();
+    let cases: Vec<(&str, String, &str)> = vec![
+        ("refused by the fixture", refused, "refused by the fixture"),
+        ("an engine error text", "env-case-error reason=rotor_case_refused_or_report_did_not_fit group=14 index=16\n".to_string(), "did not give a report"),
+        ("not mutating", ai.replacen("mutating=1", "mutating=0", 1), "does not declare itself mutating"),
+        ("not process-isolated", ai.replacen("process_isolated=required", "process_isolated=not_needed", 1), "does not declare itself mutating"),
+        ("claiming to restore a child", ai.replacen("children_restored=0", "children_restored=1", 1), "does not declare itself mutating"),
+        ("another restoration", ai.replacen("restores=main_rotor_rpm,player,flight_dynamics_pointer,probe_phase", "restores=main_rotor_rpm", 1), "does not declare the restoration"),
+        ("the other case", ai.replacen("case=ai_rpm_sweep", "case=player_local_and_flight_model", 1), "is for the case"),
+        ("a probe that was not armed for an armed run", ai.replacen("probe_armed=1", "probe_armed=0", 1), "the rotor probe is on but"),
+        ("a helicopter that starts as the LOCAL player", ai.replacen("player=0 special", "player=1 special", 1), "must start as an AI helicopter"),
+        ("an input row out of order", ai.replacen("env-rotor-sweep i=0", "env-rotor-sweep i=1", 1), "out of order (expected i=0)"),
+        ("an output row of another input", ai.replacen("env-rotor-out i=0", "env-rotor-out i=1", 1), "does not belong to i=0"),
+        ("an output row missing", ai.replacen("env-rotor-out i=0 kids=5:3f800000:3f800000\n", "", 1), "expected a env-rotor-out row"),
+        ("the output lists another number of sound children", ai.replacen("kids=5:3f800000:3f800000", "kids=5:3f800000:3f800000,6:3f800000:3f800000", 1), "lists 2 sound children"),
+        ("an output word that is not a word", ai.replacen("kids=5:3f800000:3f800000", "kids=5:3f80:3f800000", 1), "does not match its grammar"),
+        ("a rounding mode that changed across the call", ai.replacen("round_after=3", "round_after=0", 1), "rounding mode changed"),
+        ("exception flags that are not hexadecimal", ai.replacen("excepts=0", "excepts=zz", 1), "not hexadecimal"),
+        ("an unknown class", ai.replacen("class=defined", "class=maybe", 1), "unknown class"),
+        ("an AI row that declares a flight model word", ai.replacen("ax_w=00000000", "ax_w=3f800000", 1), "declares a flight model word"),
+        ("an AI sweep that skips an input", ai.replacen("env-rotor-fingerprint", "env-rotor-skipped i=2 rpm_w=00000000 ax_w=00000000 ay_w=00000000 az_w=00000000 lrpm_w=00000000 rrpm_w=00000000 apu_w=00000000 reason=apu_amp_unassigned_and_consumed\nenv-rotor-fingerprint", 1), "no indeterminate shape to skip"),
+        ("the fingerprint missing", ai.replacen(FINGERPRINT, "", 1), "expected a env-rotor-sweep row"),
+        ("an end row that disagrees", ai.replacen("calls=2 skipped=0", "calls=3 skipped=0", 1), "does not match"),
+        ("a row after the end", format!("{ai}env-rotor-sweep i=2\n"), "row after its end row"),
+        ("no input rows at all", format!("{}{ENTITY}{FINGERPRINT}env-rotor-end refused=0 mutating=1 calls=0 skipped=0\n", plan("ai_rpm_sweep")), "no input row"),
+    ];
+    for (label, text, fragment) in cases {
+        let driven = drive(&sweep_scenario(&text, &page, ""), &sweep_args("ai"));
         let error = driven.result.clone().expect_err(label);
         assert!(error.contains("env-rotor-sounds:") && error.contains(fragment), "{label}: {error}");
         assert!(of(&driven, "result").is_empty(), "{label}");
@@ -429,9 +811,70 @@ fn a_sweep_that_is_refused_misdeclared_or_does_not_match_the_probe_is_a_failure_
 }
 
 #[test]
+fn the_short_buffer_guard_requires_the_engine_to_refuse_before_anything_is_changed() {
+    let mut args = sweep_args("ai");
+    args.push(("short_buffer", "512"));
+    let driven = drive(&sweep_scenario(&ai_text(), &ai_page(), ""), &args);
+    driven.result.clone().expect("a refused short buffer, then the real sweep");
+    assert!(driven.order.iter().any(|step| step == "capacity:512"));
+    assert_eq!(of(&driven, "short_buffer_guard")[0]["capacity"].as_i64(), Some(512));
+    for (label, extra, fragment) in [
+        (
+            "an engine that accepted the short buffer",
+            ", short_accepts = true",
+            "accepted a report buffer of 512",
+        ),
+        (
+            "a refusal for another reason",
+            ", short_reason = 'bad argument: something else'",
+            "another reason",
+        ),
+        ("a refusal that left the probe changed", ", short_pollutes = true", "left the probe changed"),
+    ] {
+        let driven = drive(&sweep_scenario(&ai_text(), &ai_page(), extra), &args);
+        let error = driven.result.clone().expect_err(label);
+        assert!(error.contains("env-rotor-sounds:") && error.contains(fragment), "{label}: {error}");
+        assert!(
+            !driven.order.iter().any(|step| step == "case:14,16"),
+            "{label}: the real sweep must not have run"
+        );
+    }
+    // the guard needs a sweep and a sensible size
+    for value in ["10", "30720", "x"] {
+        let driven = drive("{}", &[("sweep", "ai"), ("short_buffer", value)]);
+        assert!(driven.result.clone().expect_err("a bad size").contains("short_buffer needs"), "{value}");
+    }
+    assert!(drive("{}", &[("short_buffer", "512")])
+        .result
+        .expect_err("no sweep")
+        .contains("short_buffer needs"));
+}
+
+#[test]
+fn without_the_probe_the_driver_runs_the_frames_and_the_sweep_for_the_uninstrumented_comparison() {
+    let text = ai_text().replacen("instrumented=1 probe_armed=1", "instrumented=0 probe_armed=0", 1);
+    let scenario = format!("{{ no_arm = true, no_events = true, sweep_text = {} }}", lua_long(&text));
+    let mut args = sweep_args("ai");
+    args.push(("probe", "off"));
+    let driven = drive(&scenario, &args);
+    driven.result.clone().expect("a sweep without the probe");
+    // nothing of the probe was armed, drained or created
+    assert!(
+        !driven.order.iter().any(|step| step.starts_with("arm:") || step == "drain"),
+        "{:?}",
+        driven.order
+    );
+    assert!(driven.rotor_raw.is_none() && driven.sndinit_raw.is_none());
+    assert_eq!(driven.sweep_raw.as_deref(), Some(text.as_str()));
+    assert_eq!(of(&driven, "derived")[0]["probe"], "off");
+    assert_eq!(of(&driven, "sweep_row").len(), 2);
+}
+
+#[test]
 fn the_arguments_are_checked_before_anything_is_booted_and_the_evidence_is_created_exclusively() {
     for (args, fragment) in [
         (vec![("sweep", "all")], "sweep must be"),
+        (vec![("probe", "maybe")], "probe must be"),
         (vec![("seconds", "601")], "seconds must be"),
         (vec![("seconds", "1.5")], "seconds must be"),
         (vec![("frame_ms", "9")], "frame_ms must be"),
@@ -443,20 +886,24 @@ fn the_arguments_are_checked_before_anything_is_booted_and_the_evidence_is_creat
         assert!(driven.order.is_empty(), "{args:?}: nothing was booted or armed");
         assert!(driven.rotor_raw.is_none(), "{args:?}: no evidence file was created");
     }
-    // an evidence file that already exists is never overwritten, and the driver stops before it arms or boots anything
-    for suffix in [".rotor.raw", ".sndinit.raw", ""] {
+    // an evidence file that already exists is FOREIGN: never overwritten, never read back as this run's output, and the driver stops before it arms or boots anything
+    for suffix in [".rotor.raw", ".sndinit.raw", ".sweep.raw", ""] {
         let work = Scratch::new();
-        let existing = work.path(&format!("environment.jsonl{suffix}"));
-        let driven = drive_in(&work, "{}", &[], &|work| {
-            std::fs::write(work.path(&format!("environment.jsonl{suffix}")), "precious").expect("an existing file")
+        let sentinel = work.path(&format!("environment.jsonl{suffix}"));
+        let driven = drive_in(&work, "{}", &[("sweep", "ai")], &|work| {
+            std::fs::write(work.path(&format!("environment.jsonl{suffix}")), "precious").expect("an existing file");
         });
         let error = driven.result.clone().expect_err("an existing evidence file");
         assert!(error.contains("OUTPUT FAILURE"), "{suffix}: {error}");
         assert!(driven.order.is_empty(), "{suffix}: nothing was armed or booted");
         assert_eq!(
-            std::fs::read_to_string(&existing).expect("the file"),
+            std::fs::read_to_string(&sentinel).expect("the file"),
             "precious",
-            "{suffix}: an existing file was changed"
+            "{suffix}: a foreign file was changed"
         );
+        // the foreign sentinel is not parsed as the driver's JSON; everything the driver itself created before refusing stays strictly parsed
+        if suffix.is_empty() {
+            assert!(driven.rows.is_empty(), "the foreign out file must not be read back as rows");
+        }
     }
 }

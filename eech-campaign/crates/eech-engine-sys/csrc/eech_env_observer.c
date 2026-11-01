@@ -1275,12 +1275,18 @@ void eech_envobs_rotor (int point, const void *p, int a, int b, unsigned int w)
 
 		if (fd != NULL)
 		{
+			/* the acceleration vector is consumed for EVERY player kind when a flight model exists */
 			memcpy (&c->acc[0], &fd->model_acceleration_vector.x, sizeof (c->acc[0]));
 			memcpy (&c->acc[1], &fd->model_acceleration_vector.y, sizeof (c->acc[1]));
 			memcpy (&c->acc[2], &fd->model_acceleration_vector.z, sizeof (c->acc[2]));
-			memcpy (&c->lrpm, &fd->left_engine_n1_rpm.value, sizeof (c->lrpm));
-			memcpy (&c->rrpm, &fd->right_engine_n1_rpm.value, sizeof (c->rrpm));
-			memcpy (&c->apu, &fd->apu_rpm.value, sizeof (c->apu));
+
+			/* the engine and APU words are consumed ONLY for the LOCAL player kind: copied only then, zero otherwise */
+			if (raw->player == ENTITY_PLAYER_LOCAL)
+			{
+				memcpy (&c->lrpm, &fd->left_engine_n1_rpm.value, sizeof (c->lrpm));
+				memcpy (&c->rrpm, &fd->right_engine_n1_rpm.value, sizeof (c->rrpm));
+				memcpy (&c->apu, &fd->apu_rpm.value, sizeof (c->apu));
+			}
 		}
 
 		c->rng_enter = (int32_t) random_number_seed;

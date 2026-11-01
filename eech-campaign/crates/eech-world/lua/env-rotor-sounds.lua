@@ -1,36 +1,49 @@
 -- TEST-ONLY DRIVER of the ORIGINAL helicopter rotor sound computation (EEDCS-51, D3). SOURCE PREPARED: UNBUILT, UNRUN, UNREVIEWED.
 --
 -- WHAT IT ASKS. The ORIGINAL aphavoc/source/entity/mobile/aircraft/helicop/helicop.c update_local_helicopter_rotor_sounds, which hc_updt.c calls for every helicopter (the AI ones too) on the supported campaign path
--- and which needs no backend, playing handle or device: from the helicopter's stored main rotor rpm and player kind (and, for the local player, the flight model's acceleration vector and engine words) it computes the rotor,
--- slap, turbine and APU levels and pitches, asks the sound children to pause or resume, and writes the levels and pitches into the sound effect children. Nothing here moves or changes it. This driver asks WHAT the
--- original does, from the ROTOR PROBE (ss_envfx.h ENV_FXR; csrc/eech_env_observer.c), one record per call, complete enough for a later independent bit-for-bit replay of the function from the record alone: the inputs it
--- reads (as IEEE words), the ORDERED pause and resume requests with the sound sub-type and delay, every special-effect child it walks with the sound effect's stored amplification and pitch before and after, and the
--- shared seed word on entry and exit (so a draw by any helper inside the call is visible; the probe draws nothing).
+-- and which needs no backend, playing handle or device: from the helicopter's stored main rotor rpm and player kind (and, with a flight model, its acceleration vector and, for the LOCAL player only, its engine and
+-- APU words) it computes the rotor, slap, turbine and APU levels and pitches, asks the sound children to pause or resume, and writes the levels and pitches into the sound effect children. Nothing here moves or changes it,
+-- and it is characterised ATOP the already hosted baseline (weather, wind, session, lifetime, catalogue and backend exchanges): the build is never made with the host environment disabled. This driver asks WHAT the
+-- original does, from the ROTOR PROBE (ss_envfx.h ENV_FXR; csrc/eech_env_observer.c), one record per call, complete enough for a later independent bit-for-bit replay of a DEFINED call from the record alone: the inputs
+-- it consumes (as IEEE words), the ORDERED pause and resume requests with the sound sub-type and delay word, every special-effect child it walks with the sound effect's stored amplification and pitch before and after,
+-- and the shared seed word on entry and exit (so a draw by any helper inside the call is visible; the probe draws nothing).
 --
--- MEASURED vs INFERRED. Everything in a record is MEASURED by the probe in the original code. What this driver adds is only counting and structural checking of the records, labelled `derived`; it computes no level, pitch or
--- acceleration and replays nothing. A branch that no natural call took is not covered by the natural capture: the controlled sweep exists for that and is labelled as world-input variation, never natural coverage.
--- Nothing here shows that any sound plays or is audible; no backend, device, voice or handle exists or is faked.
+-- COPIED versus CONSUMED. The acceleration vector of a present flight model is consumed for EVERY player kind and is always copied; the left, right and APU engine words are consumed ONLY for the LOCAL player kind and are
+-- copied only then (zero otherwise); the stored rpm and the player kind are always consumed and copied. The driver rejects a record that carries a word the original does not consume.
+--
+-- INHERITED INDETERMINATE DOMAIN. In the unchanged original, for a LOCAL player with a flight model, `right_turbine_amp` is assigned only when the engines are more than 1.0 apart and `apu_amp` only when the APU rpm is above 0, yet
+-- the child switch reads them for any TURBINE2 or APU child. Those reads are uninitialised stack values, not functions of the recorded inputs; the routine is NOT initialised or changed here and such a call is never promoted
+-- to a replayable oracle. The controlled sweep therefore executes such a shape only on a helicopter with no child that would read the unassigned value (class `undefined_not_consumed`) and otherwise reports it as skipped before
+-- the routine is called. The natural headless branch (AI player, no flight model) assigns everything.
+--
+-- MEASURED vs INFERRED. Everything in a probe record is MEASURED by the probe in the original code. What this driver adds is counting, strict structural checking and JOINING of the records (each sweep call to the chosen helicopter,
+-- case, player kind, flight model and declared input words; the probe's `after` words to the fixture's own output words), labelled `derived`; it computes no level, pitch or acceleration and replays nothing. A branch no natural call took
+-- is not covered by the natural capture: the controlled sweep is world-input variation and is never natural coverage. Nothing here shows that any sound plays or is audible; no backend, device, voice or handle exists or is faked.
 --
 -- NATURAL CAPTURE. The probe is armed ONLY by `dc.env_rotor_arm (true)`, before boot, and by nothing else: the general observer is NOT armed, so the accepted event stream and every older report are untouched. The driver runs
--- `seconds` of natural frames and DRAINS the probe after boot and after every frame into the raw sidecar `<out>.rotor.raw` (the native text, written and flushed BEFORE it is validated), so the probe's page (1024 calls) is
--- never exceeded in a frame unless the world is larger than that, in which case the probe says so and the driver REFUSES: nothing is truncated into a result.
+-- `seconds` of natural frames and DRAINS the probe after boot and after every frame into the raw sidecar `<out>.rotor.raw` (the native text, written and flushed BEFORE it is validated). The page is 1024 calls; if the world is
+-- larger the probe says so and the driver REFUSES: nothing is truncated into a result. A natural drain may carry ONLY phase 0 calls.
 --
--- THE SWEEP (`sweep=ai` or `sweep=fd`; default none). After the natural frames and after the read-only sound-initialisation report, the fixture case (group 14, index 16 or 17) runs the original function on one real
--- helicopter with chosen stored inputs, and the probe records those calls stamped `phase=1`. It is PROCESS-ISOLATED and MUTATING (declared): it restores only the helicopter's rpm, player kind and the flight dynamics
--- pointer; it does not restore the sound children, which is why it runs last and says so. `ai` sweeps the stored rpm over the 30 and 45 thresholds and their neighbours with the helicopter's own AI player kind and no flight
--- model (the natural headless branch). `fd` gives the helicopter the local player kind and an OWNED flight dynamics record (the branch no headless run reaches; optional and separate for that reason). A refused case
--- is a failure of the witness.
+-- THE SWEEP (`sweep=ai` or `sweep=fd`; default none). After the natural frames and the read-only sound-initialisation report, the fixture case (group 14, index 16 or 17) runs the original function on one real helicopter with
+-- chosen stored inputs, and the probe records those calls stamped `phase=1`; the sweep drain may carry ONLY phase 1 calls. It is PROCESS-ISOLATED and MUTATING (declared): it restores the helicopter's rpm, player kind, the flight
+-- dynamics pointer and the probe's phase on every path, and does not restore the sound children, which is why it runs last. `ai` sweeps the stored rpm over the 30 and 45 thresholds and their neighbours with the helicopter's own AI
+-- player kind and no flight model (the natural headless branch). `fd` gives the helicopter the local player kind and an OWNED flight dynamics record (the branch no headless run reaches; optional and separate for that reason). A refused
+-- case is a failure of the witness. `short_buffer=<n>` first asks the same case for a report buffer of n bytes and requires the engine to REFUSE it before changing anything (the staging guard).
 --
--- TRANSPARENCY. After the natural frames the driver also keeps the existing read-only sound-initialisation report (group 14, index 15) in `<out>.sndinit.raw` and copies its fingerprint and constructor rows into the
--- output unvalidated: compared with the same report of an UNARMED run of the same scenario it shows whether arming the rotor probe changed the shared seed word, the entity indices or the constructor reads. The accepted
--- 17283-row observation-off stream is compared by its own driver, with the probe unarmed.
+-- TRANSPARENCY (`probe=off` and the uninstrumented build). The sweep reports the OUTPUT WORDS each call left in the sound children (`env-rotor-out`) and the floating point rounding mode and exception flags around it
+-- (`env-rotor-fp`), read by the fixture alone. The identical sweep on the same scenario in (a) a build WITHOUT the observer (no hook in the routine), (b) the observer build UNARMED (`probe=off`) and (c) the observer build ARMED
+-- must print byte-identical `env-rotor-sweep`, `env-rotor-out` and `env-rotor-fp` rows: that comparison, not the seed, entity or constructor fingerprints, is what bears on the numerical transparency of the hooks. `probe=off` runs
+-- the frames and the sweep only (no arm, drain or sound-initialisation report) so that it also works in a module built without the observer. The comparison is PENDING until Root runs it; the target is x86-64 with scalar SSE
+-- float and double arithmetic (no x87 extended-precision temporaries), and the rounding mode is read before and after each call.
 --
--- FAILURES (no result row; `witness_failure` or `refusal` and an error): a module without the rotor functions, a failed drain or frame, a malformed or incomplete record, a sequence gap, a probe counter that is not zero
--- (dropped, over_actions, over_children, nested, orphans, bad_points, pending, open), a calls total that is not the lines read, a refused or inconsistent sweep, and any failed write, flush or close of the evidence.
+-- FAILURES (no result row; `witness_failure` or `refusal` and an error): a module without the rotor functions, a failed drain or frame, a malformed or incomplete record (the grammar is closed: exact fields, anchored lists, counts
+-- within the limits, every sound child with exactly its stored after data), a sequence gap, a phase in the wrong drain, a probe counter that is not zero (dropped, over_actions, over_children, nested, orphans, bad_points,
+-- pending, open), a calls total that is not the lines read, a refused, out-of-order or inconsistent sweep, a sweep call that does not join its declared case, helicopter and inputs, and any failed write, flush or close of the evidence.
 --
 -- ARGUMENTS (host.args):
 --   eech-world <this script> root=<installation root> out=<JSON Lines path> [scenario=lebanon_retail|georgia_retail] [seconds=<0..600; default 0>] [frame_ms=<10..1000; default 100>] [sweep=none|ai|fd]
---   Evidence files, all created EXCLUSIVELY through host.output_create_new (never a truncating open): `out`, `<out>.rotor.raw`, `<out>.sndinit.raw` and, with a sweep, `<out>.sweep.raw`.
+--                                                                       [probe=on|off] [short_buffer=<128..30719>]
+--   Evidence files, all created EXCLUSIVELY through host.output_create_new (never a truncating open): `out`, with the probe `<out>.rotor.raw` and `<out>.sndinit.raw`, and with a sweep `<out>.sweep.raw`.
 
 io.stdout:setvbuf ("no")
 
@@ -54,12 +67,24 @@ local frame_ms = args.frame_ms == nil and 100 or tonumber (args.frame_ms)
 if frame_ms == nil or frame_ms ~= math.floor (frame_ms) or frame_ms < 10 or frame_ms > 1000 then refuse ("frame_ms must be an integer from 10 to 1000, got '" .. tostring (args.frame_ms) .. "'") end
 local sweep = args.sweep == nil and "none" or args.sweep
 if sweep ~= "none" and sweep ~= "ai" and sweep ~= "fd" then refuse ("sweep must be none, ai or fd, got '" .. tostring (args.sweep) .. "'") end
+local probe_arg = args.probe == nil and "on" or args.probe
+if probe_arg ~= "on" and probe_arg ~= "off" then refuse ("probe must be on or off, got '" .. tostring (args.probe) .. "'") end
+local probe = probe_arg == "on"
+local short_buffer
+if args.short_buffer ~= nil then
+	short_buffer = tonumber (args.short_buffer)
+	if sweep == "none" or short_buffer == nil or short_buffer ~= math.floor (short_buffer) or short_buffer < 128 or short_buffer > 30719 then refuse ("short_buffer needs a sweep and an integer from 128 to 30719, got '" .. tostring (args.short_buffer) .. "'") end
+end
 local seed = 1
 
 -- every evidence file is created exclusively, here, before anything is booted
 local create = host.output_create_new
 if type (create) ~= "function" then refuse ("this host has no host.output_create_new: evidence files cannot be created exclusively, and the driver does not fall back to a truncating open") end
-local paths = { out = out_path, rotor = out_path .. ".rotor.raw", sndinit = out_path .. ".sndinit.raw" }
+local paths = { out = out_path }
+if probe then
+	paths.rotor = out_path .. ".rotor.raw"
+	paths.sndinit = out_path .. ".sndinit.raw"
+end
 if sweep ~= "none" then paths.sweep = out_path .. ".sweep.raw" end
 local files, created = {}, {}
 for _, name in ipairs ({ "out", "rotor", "sndinit", "sweep" }) do
@@ -112,25 +137,64 @@ end
 local dc = require ("eech_dc")
 dc.prepare_installation (root)
 -- the hooks exist only in a module built with the env-observer feature; ONLY the rotor probe is armed, before boot, and the general observer is NOT
-for _, name in ipairs ({ "env_rotor_arm" }) do
-	if type (dc [name]) ~= "function" then
+if probe then
+	if type (dc.env_rotor_arm) ~= "function" then
 		emit { event = "refusal", reason = "rotor_probe_unavailable", detail = "the module was built without the env-observer feature" }
-		refuse ("the module has no " .. name .. " function: build eech-dc with the env-observer feature")
+		refuse ("the module has no env_rotor_arm function: build eech-dc with the env-observer feature")
 	end
+	dc.env_rotor_arm (true)
 end
-dc.env_rotor_arm (true)
 local engine = dc.boot {
 	install_root = root, map = scenario.map, terrain = host.terrain_provider (root, scenario.map), environment = host.env_provider (), campaign_directory = "camp01", campaign = scenario.campaign,
 	gunship = "apache", seed = seed, bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss,
 	supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, sense = host.sense, aim = host.aim,
 }
-emit { event = "boot", scenario = scenario_name, seed = seed, seconds = seconds, frame_ms = frame_ms, sweep = sweep, feature = "env-observer", probe = "rotor", armed_by = "dc.env_rotor_arm only" }
-for _, name in ipairs ({ "env_rotor_events", "env_rotor_report", "env_case" }) do
+emit { event = "boot", scenario = scenario_name, seed = seed, seconds = seconds, frame_ms = frame_ms, sweep = sweep, probe = probe_arg, feature = probe and "env-observer" or "none-required", armed_by = probe and "dc.env_rotor_arm only" or "nothing" }
+local needed = { "env_case" }
+if probe then needed = { "env_rotor_events", "env_rotor_report", "env_case" } end
+if short_buffer then needed [#needed + 1] = "env_case_capacity" end
+for _, name in ipairs (needed) do
 	local present, method = pcall (function () return engine [name] end)
 	if not present or type (method) ~= "function" then
 		emit { event = "refusal", reason = name .. "_unavailable", detail = "the module was built without the env-observer and env-fixture features" }
 		refuse ("the engine has no " .. name .. " method: build eech-dc with the env-observer and env-fixture features")
 	end
+end
+
+-- ---------------------------------------------------------------------------------------------------------------- exact row grammar (used for the fixture's own rows)
+local function exact (line, event, keys, what)
+	local tokens = {}
+	for token in string.gmatch (line, "%S+") do tokens [#tokens + 1] = token end
+	if tokens [1] ~= event then hard (what .. ": expected a " .. event .. " row: " .. line) end
+	if #tokens ~= #keys + 1 then hard (what .. ": the " .. event .. " row has " .. (#tokens - 1) .. " fields, the protocol has " .. #keys .. ": " .. line) end
+	local map = {}
+	for position, key in ipairs (keys) do
+		local k, v = string.match (tokens [position + 1], "^([%w_]+)=([^=]+)$")
+		if k ~= key then hard (what .. ": field " .. position .. " of the " .. event .. " row is not " .. key .. ": " .. line) end
+		map [key] = v
+	end
+	return map
+end
+local function is_word (v) return type (v) == "string" and #v == 8 and string.find (v, "^%x+$") ~= nil end
+local function as_count (v, line)
+	local n = tonumber (v)
+	if type (v) ~= "string" or string.find (v, "^%d+$") == nil or #v > 10 or n == nil then hard ("a count is not a plain non-negative integer (" .. tostring (v) .. "): " .. line) end
+	return n
+end
+-- a comma separated list of tuples, each matching the anchored pattern, with no junk, no empty item and no trailing comma
+local function items (list, pattern, line, what)
+	local found = {}
+	if list == "-" then return found end
+	local rest = list .. ","
+	while #rest > 0 do
+		local item, tail = string.match (rest, "^([^,]*),(.*)$")
+		if item == nil or item == "" then hard (what .. " list has an empty or malformed item: " .. line) end
+		local parts = { string.match (item, pattern) }
+		if #parts == 0 then hard (what .. " item '" .. item .. "' does not match its grammar: " .. line) end
+		found [#found + 1] = parts
+		rest = tail
+	end
+	return found
 end
 
 -- ---------------------------------------------------------------------------------------------------------------- the probe's report: its counters and its stated domain limits
@@ -158,74 +222,79 @@ local function require_clean (map, line, when)
 	for _, key in ipairs ({ "dropped", "over_actions", "over_children", "nested", "orphans", "bad_points", "pending", "open" }) do
 		if map [key] ~= 0 then hard ("the rotor probe's " .. key .. " is " .. map [key] .. " " .. when .. ": the capture is incomplete (a call was lost, truncated, nested or left open): " .. line) end
 	end
+	if map.phase ~= 0 then hard ("the rotor probe's phase is " .. map.phase .. " " .. when .. " where every path must restore it to 0: " .. line) end
 end
-local limits, limits_line = report ()
-emit { event = "rotor_limits", raw = limits_line, capacity = limits.capacity, max_actions = limits.max_actions, max_children = limits.max_children }
+local limits, limits_line
+if probe then
+	limits, limits_line = report ()
+	emit { event = "rotor_limits", raw = limits_line, capacity = limits.capacity, max_actions = limits.max_actions, max_children = limits.max_children }
+end
 
--- ---------------------------------------------------------------------------------------------------------------- the records
+-- ---------------------------------------------------------------------------------------------------------------- the records (a closed grammar)
+local SOUND_EFFECT_TYPE = 32 -- ENTITY_TYPE_SOUND_EFFECT (en_types.h)
+local PLAYER_AI, PLAYER_LOCAL, PLAYER_REMOTE = 0, 1, 2 -- ENTITY_PLAYERS (en_plyr.h)
 local FIELDS = { "seq", "t", "phase", "ent", "player", "fd", "rng_in", "rng_out", "rpm_w", "acc_x_w", "acc_y_w", "acc_z_w", "lrpm_w", "rrpm_w", "apu_w", "actions", "visited", "sound", "act", "kids" }
-local WORDS = { rpm_w = true, acc_x_w = true, acc_y_w = true, acc_z_w = true, lrpm_w = true, rrpm_w = true, apu_w = true }
+local ZERO = "00000000"
 local totals = { calls = 0, bytes = 0, phase0 = 0, phase1 = 0, fd_calls = 0, with_actions = 0, rng_changed = 0, kids_seen = 0 }
 local entities, distinct = {}, 0
 local last_seq = -1
-local sweep_calls = 0
-local function is_word (v) return type (v) == "string" and #v == 8 and string.find (v, "^%x+$") ~= nil end
-local function check_call (line)
+local sweep_records = {}
+local function check_call (line, expected_phase, when)
+	local tokens = {}
+	for token in string.gmatch (line, "%S+") do tokens [#tokens + 1] = token end
+	if tokens [1] ~= "env-rotor-call" or #tokens ~= #FIELDS + 1 then hard ("a rotor call does not have exactly its " .. #FIELDS .. " fields: " .. line) end
 	local f = {}
-	for key, value in string.gmatch (line, "([%w_]+)=(%S+)") do
-		if f [key] ~= nil then hard ("a rotor call repeats the field " .. key .. ": " .. line) end
-		f [key] = value
-	end
-	for _, key in ipairs (FIELDS) do
-		if f [key] == nil then hard ("a rotor call has no field " .. key .. ": " .. line) end
+	for position, key in ipairs (FIELDS) do
+		local k, v = string.match (tokens [position + 1], "^([%w_]+)=(%S+)$")
+		if k ~= key then hard ("field " .. position .. " of a rotor call is not " .. key .. ": " .. line) end
+		f [key] = v
 	end
 	local n = {}
 	for _, key in ipairs (FIELDS) do
-		if WORDS [key] then
+		if string.sub (key, -2) == "_w" then
 			if not is_word (f [key]) then hard ("the rotor call field " .. key .. " is not an eight digit word: " .. line) end
 		elseif key ~= "act" and key ~= "kids" then
+			if string.find (f [key], "^-?%d+$") == nil or #f [key] > 11 then hard ("the rotor call field " .. key .. " is not a plain integer: " .. line) end
 			n [key] = tonumber (f [key])
-			if n [key] == nil or n [key] ~= math.floor (n [key]) then hard ("the rotor call field " .. key .. " is not an integer: " .. line) end
 		end
 	end
 	-- the sequence has no gap: a lost call would show as a missing number, whatever the counters say
 	if n.seq ~= last_seq + 1 then hard ("the rotor calls are out of sequence (expected " .. (last_seq + 1) .. "): " .. line) end
 	last_seq = n.seq
-	if n.phase ~= 0 and n.phase ~= 1 then hard ("the rotor call phase is neither 0 nor 1: " .. line) end
+	if n.phase ~= expected_phase then hard ("a phase " .. n.phase .. " rotor call arrived " .. when .. " where only phase " .. expected_phase .. " may: " .. line) end
 	if n.fd ~= 0 and n.fd ~= 1 then hard ("the rotor call flight model flag is neither 0 nor 1: " .. line) end
+	if n.player ~= PLAYER_AI and n.player ~= PLAYER_LOCAL and n.player ~= PLAYER_REMOTE then hard ("the rotor call player kind " .. n.player .. " is not an ENTITY_PLAYERS value: " .. line) end
 	if n.ent < 0 or n.actions < 0 or n.visited < 0 or n.sound < 0 or n.sound > n.visited then hard ("the rotor call counts are not coherent: " .. line) end
-	if n.fd == 0 then
-		for key in pairs (WORDS) do
-			if key ~= "rpm_w" and f [key] ~= "00000000" then hard ("a rotor call without a flight model carries a flight model word (" .. key .. "): " .. line) end
+	-- the counts are within the stated limits: a record beyond them is refused, never masked by a minimum
+	if n.actions > limits.max_actions then hard ("a rotor call records " .. n.actions .. " requests beyond the limit of " .. limits.max_actions .. ": " .. line) end
+	if n.visited > limits.max_children then hard ("a rotor call records " .. n.visited .. " children beyond the limit of " .. limits.max_children .. ": " .. line) end
+	-- the words the original does not consume are zero: everything flight-model related without one; the engine and APU words unless the player is LOCAL
+	for _, key in ipairs ({ "acc_x_w", "acc_y_w", "acc_z_w" }) do
+		if n.fd == 0 and f [key] ~= ZERO then hard ("a rotor call without a flight model carries the word " .. key .. ": " .. line) end
+	end
+	for _, key in ipairs ({ "lrpm_w", "rrpm_w", "apu_w" }) do
+		if (n.fd == 0 or n.player ~= PLAYER_LOCAL) and f [key] ~= ZERO then hard ("a rotor call carries the engine word " .. key .. " that the original consumes only for a LOCAL player with a flight model: " .. line) end
+	end
+	-- the ordered requests: kind:sub:delay, anchored and exhaustive, exactly as many as recorded
+	local acts = items (f.act, "^([01]):(%d+):(%x%x%x%x%x%x%x%x)$", line, "a rotor request")
+	if #acts ~= n.actions then hard ("a rotor call lists " .. #acts .. " requests where it records " .. n.actions .. ": " .. line) end
+	-- the children walked: type:sub:before_amp:before_pitch:after_amp:after_pitch:after_seen, exactly as many as walked
+	local kids = items (f.kids, "^(%d+):(%d+):(%x%x%x%x%x%x%x%x):(%x%x%x%x%x%x%x%x):(%x%x%x%x%x%x%x%x):(%x%x%x%x%x%x%x%x):([01])$", line, "a rotor child")
+	if #kids ~= n.visited then hard ("a rotor call lists " .. #kids .. " children where it records " .. n.visited .. ": " .. line) end
+	local sound_count = 0
+	local sounds = {}
+	for _, kid in ipairs (kids) do
+		local kid_type, sub, ba, bp, aa, ap, seen = tonumber (kid [1]), tonumber (kid [2]), kid [3], kid [4], kid [5], kid [6], kid [7]
+		if kid_type == SOUND_EFFECT_TYPE then
+			sound_count = sound_count + 1
+			if seen ~= "1" then hard ("a sound effect child of a rotor call has no stored after data (after_seen " .. seen .. "): " .. line) end
+			if sub < 1 then hard ("a sound effect child of a rotor call has no sub-type: " .. line) end
+			sounds [#sounds + 1] = { sub = sub, after_amp = aa, after_pitch = ap }
+		else
+			if sub ~= 0 or ba ~= ZERO or bp ~= ZERO or aa ~= ZERO or ap ~= ZERO or seen ~= "0" then hard ("a child that is not a sound effect (type " .. kid_type .. ") carries sound data: " .. line) end
 		end
 	end
-	-- the ordered requests: kind:sub:delay, at most max_actions listed (the probe refuses a call with more)
-	local listed = math.min (n.actions, limits.max_actions)
-	local count = 0
-	if f.act == "-" then
-		if listed ~= 0 then hard ("a rotor call lists no request where it records " .. n.actions .. ": " .. line) end
-	else
-		for kind, sub, delay in string.gmatch (f.act, "(%d+):(%d+):(%x+),?") do
-			count = count + 1
-			if (kind ~= "0" and kind ~= "1") or not is_word (delay) then hard ("a rotor request is malformed: " .. line) end
-		end
-		if count ~= listed or select (2, string.gsub (f.act, ":", "")) ~= 2 * listed then hard ("a rotor call lists " .. count .. " requests where it records " .. n.actions .. ": " .. line) end
-	end
-	-- the children walked: type:sub:before_amp:before_pitch:after_amp:after_pitch:after_seen
-	listed = math.min (n.visited, limits.max_children)
-	count = 0
-	local sound_after = 0
-	if f.kids == "-" then
-		if listed ~= 0 then hard ("a rotor call lists no child where it records " .. n.visited .. ": " .. line) end
-	else
-		for type_, sub, ba, bp, aa, ap, seen in string.gmatch (f.kids, "(%d+):(%d+):(%x+):(%x+):(%x+):(%x+):(%d+),?") do
-			count = count + 1
-			if not (is_word (ba) and is_word (bp) and is_word (aa) and is_word (ap)) or (seen ~= "0" and seen ~= "1") then hard ("a rotor child is malformed: " .. line) end
-			if seen == "1" then sound_after = sound_after + 1 end
-		end
-		if count ~= listed or select (2, string.gsub (f.kids, ":", "")) ~= 6 * listed then hard ("a rotor call lists " .. count .. " children where it records " .. n.visited .. ": " .. line) end
-	end
-	if sound_after > n.sound then hard ("a rotor call has more children seen after the switch than sound effects: " .. line) end
+	if sound_count ~= n.sound then hard ("a rotor call records " .. n.sound .. " sound effect children and lists " .. sound_count .. ": " .. line) end
 	totals.calls = totals.calls + 1
 	totals [n.phase == 1 and "phase1" or "phase0"] = totals [n.phase == 1 and "phase1" or "phase0"] + 1
 	if n.fd == 1 then totals.fd_calls = totals.fd_calls + 1 end
@@ -233,34 +302,35 @@ local function check_call (line)
 	if n.rng_in ~= n.rng_out then totals.rng_changed = totals.rng_changed + 1 end
 	totals.kids_seen = totals.kids_seen + n.visited
 	if not entities [n.ent] then entities [n.ent] = true; distinct = distinct + 1 end
-	return n
+	return { n = n, f = f, sounds = sounds }
 end
 
-local function drain (when)
+-- drains the probe; a natural drain (boot, frames) may carry ONLY phase 0 calls and the sweep drain ONLY phase 1
+local function drain (when, expected_phase)
 	local ok, text = pcall (engine.env_rotor_events, engine)
 	if not ok then hard ("draining the rotor probe " .. when .. " FAILED in the engine: " .. first_line (text)) end
 	if type (text) ~= "string" then hard ("the rotor probe's events " .. when .. " are not text") end
-	if text == "" then return 0 end
+	if text == "" then return 0, {} end
 	-- kept whole BEFORE validation
 	keep ("rotor", text)
 	totals.bytes = totals.bytes + #text
 	if string.sub (text, -1) ~= "\n" then hard ("the rotor events " .. when .. " do not end with a newline (a truncated page)") end
-	local calls = 0
+	local calls, records = 0, {}
 	for line in string.gmatch (text, "([^\n]*)\n") do
 		if line == "" or string.find (line, "[^\32-\126]") then hard ("the rotor events " .. when .. " have an empty line or a byte that is not printable ASCII") end
 		if string.sub (line, 1, #"env-rotor-call ") ~= "env-rotor-call " then hard ("a rotor event " .. when .. " is not an env-rotor-call row: " .. string.sub (line, 1, 80)) end
-		local n = check_call (line)
-		if n.phase == 1 then sweep_calls = sweep_calls + 1 end
+		records [#records + 1] = check_call (line, expected_phase, when)
 		calls = calls + 1
 	end
-	return calls
+	return calls, records
 end
 
--- the calls made during boot (the probe was armed before it) are read before the first frame
-local boot_calls = drain ("after boot")
-emit { event = "rotor_frame", frame = 0, calls = boot_calls }
-
--- ---------------------------------------------------------------------------------------------------------------- the natural frames
+-- ---------------------------------------------------------------------------------------------------------------- the calls made during boot, then the natural frames
+local boot_calls = 0
+if probe then
+	boot_calls = drain ("after boot", 0)
+	emit { event = "rotor_frame", frame = 0, calls = boot_calls }
+end
 local frames = math.floor (seconds * 1000 / frame_ms)
 for n = 1, frames do
 	local ok, err = pcall (engine.frame, engine, frame_ms)
@@ -268,17 +338,19 @@ for n = 1, frames do
 		emit { event = "engine_failure", frame = n, reason = first_line (err) }
 		refuse ("frame " .. n .. " FAILED in the engine: " .. first_line (err))
 	end
-	local calls = drain ("after frame " .. n)
-	emit { event = "rotor_frame", frame = n, calls = calls }
+	if probe then
+		local calls = drain ("after frame " .. n, 0)
+		emit { event = "rotor_frame", frame = n, calls = calls }
+	end
 end
-local natural_map, natural_line = report ()
-require_clean (natural_map, natural_line, "after the natural frames")
-if natural_map.calls_total ~= totals.calls or natural_map.drained ~= totals.calls then hard ("the probe's calls (" .. natural_map.calls_total .. " total, " .. natural_map.drained .. " drained) are not the " .. totals.calls .. " lines read: " .. natural_line) end
-emit { event = "rotor_report", when = "after_natural_frames", raw = natural_line }
 local natural_calls = totals.calls
+if probe then
+	local natural_map, natural_line = report ()
+	require_clean (natural_map, natural_line, "after the natural frames")
+	if natural_map.calls_total ~= totals.calls or natural_map.drained ~= totals.calls then hard ("the probe's calls (" .. natural_map.calls_total .. " total, " .. natural_map.drained .. " drained) are not the " .. totals.calls .. " lines read: " .. natural_line) end
+	emit { event = "rotor_report", when = "after_natural_frames", raw = natural_line }
 
--- ---------------------------------------------------------------------------------------------------------------- the read-only sound-initialisation report, for the armed-versus-unarmed comparison
-do
+	-- the read-only sound-initialisation report, for the armed-versus-unarmed comparison
 	local ok, text = pcall (engine.env_case, engine, 14, 15)
 	if not ok then
 		emit { event = "engine_failure", i = 15, reason = first_line (text) }
@@ -286,19 +358,113 @@ do
 	end
 	if type (text) ~= "string" or text == "" or string.find (text, "env-case-error", 1, true) then hard ("env_case (14, 15) did not give a report: " .. first_line (text)) end
 	keep ("sndinit", text)
-	local found = 0
 	for _, prefix in ipairs ({ "env-sndinit-fingerprint ", "env-sndinit-ctor " }) do
 		local row = string.match (text, "\n(" .. string.gsub (prefix, "%-", "%%-") .. "[^\n]*)") or (string.sub (text, 1, #prefix) == prefix and string.match (text, "^([^\n]*)"))
 		if not row then hard ("the sound initialisation report has no " .. prefix .. "row") end
-		found = found + 1
 		emit { event = "sndinit_row", scope = "copied_unvalidated_for_the_armed_versus_unarmed_comparison", raw = row }
 	end
 end
 
 -- ---------------------------------------------------------------------------------------------------------------- the controlled sweep (world-input variation, mutating, declared)
-local sweep_expected
+local executed, skipped_rows = {}, {}
+local sweep_entity
+local fd_sweep = (sweep == "fd")
+local function parse_sweep (text)
+	if string.sub (text, -1) ~= "\n" then hard ("the sweep report does not end with a newline") end
+	local lines = {}
+	for line in string.gmatch (text, "([^\n]*)\n") do
+		if line == "" or string.find (line, "[^\32-\126]") then hard ("the sweep report has an empty line or a byte that is not printable ASCII") end
+		lines [#lines + 1] = line
+	end
+	local at = 1
+	local what = "the sweep report"
+	local function take (event, keys)
+		local line = lines [at]
+		if line == nil then hard (what .. " ends before its " .. event .. " row") end
+		at = at + 1
+		return exact (line, event, keys, what), line
+	end
+	if lines [1] ~= nil and string.sub (lines [1], 1, #"env-rotor-refused ") == "env-rotor-refused " then hard ("the controlled sweep was refused by the fixture (" .. lines [1] .. "): it is a failure of the witness, never a result") end
+	local plan = take ("env-rotor-plan", { "version", "case", "process_isolated", "mutating", "natural", "phase", "restores", "children_restored", "instrumented", "probe_armed" })
+	if plan.version ~= "1" or plan.process_isolated ~= "required" or plan.mutating ~= "1" or plan.natural ~= "0" or plan.phase ~= "1" or plan.children_restored ~= "0" then
+		hard ("the controlled sweep does not declare itself mutating, process-isolated and not natural, or does not state that it restores no child: " .. lines [1])
+	end
+	if plan.case ~= (fd_sweep and "player_local_and_flight_model" or "ai_rpm_sweep") then hard ("the sweep report is for the case " .. plan.case .. " where " .. sweep .. " was asked: " .. lines [1]) end
+	if plan.restores ~= "main_rotor_rpm,player,flight_dynamics_pointer,probe_phase" then hard ("the sweep does not declare the restoration it makes: " .. lines [1]) end
+	if (plan.instrumented ~= "0" and plan.instrumented ~= "1") or (plan.probe_armed ~= "0" and plan.probe_armed ~= "1") then hard ("the sweep's instrumented and armed flags are not flags: " .. lines [1]) end
+	if probe and (plan.instrumented ~= "1" or plan.probe_armed ~= "1") then hard ("the rotor probe is on but the sweep reports instrumented " .. plan.instrumented .. " armed " .. plan.probe_armed .. ": " .. lines [1]) end
+	local entity, entity_line = take ("env-rotor-entity", { "ent", "player", "special_effect_children", "sound_children", "turbine2_children", "apu_children", "fd" })
+	local e = {}
+	for key, value in pairs (entity) do e [key] = as_count (value, entity_line) end
+	if e.player ~= PLAYER_AI or e.fd ~= 0 then hard ("the sweep helicopter must start as an AI helicopter without a flight model: " .. entity_line) end
+	if e.sound_children < 1 or e.sound_children > e.special_effect_children or e.turbine2_children > e.sound_children or e.apu_children > e.sound_children then hard ("the sweep helicopter's child counts are not coherent: " .. entity_line) end
+	if probe and e.special_effect_children > limits.max_children then hard ("the sweep helicopter has more children than the probe's per-call limit: " .. entity_line) end
+	sweep_entity = e
+	local index = 0
+	while lines [at] ~= nil and string.sub (lines [at], 1, #"env-rotor-fingerprint ") ~= "env-rotor-fingerprint " do
+		local words = { "i", "rpm_w", "ax_w", "ay_w", "az_w", "lrpm_w", "rrpm_w", "apu_w" }
+		if string.sub (lines [at], 1, #"env-rotor-skipped ") == "env-rotor-skipped " then
+			local keys = {}
+			for _, key in ipairs (words) do keys [#keys + 1] = key end
+			keys [#keys + 1] = "reason"
+			local row, line = take ("env-rotor-skipped", keys)
+			if as_count (row.i, line) ~= index then hard ("the sweep rows are out of order (expected i=" .. index .. "): " .. line) end
+			for _, key in ipairs (words) do if key ~= "i" and not is_word (row [key]) then hard ("a sweep row word is not an eight digit word: " .. line) end end
+			if not fd_sweep then hard ("the AI sweep has no indeterminate shape to skip: " .. line) end
+			if row.reason ~= "right_turbine_amp_unassigned_and_consumed" and row.reason ~= "apu_amp_unassigned_and_consumed" and row.reason ~= "right_turbine_amp_and_apu_amp_unassigned_and_consumed" then hard ("a skipped sweep row has an unknown reason: " .. line) end
+			skipped_rows [#skipped_rows + 1] = row
+		else
+			local keys = {}
+			for _, key in ipairs (words) do keys [#keys + 1] = key end
+			keys [#keys + 1] = "class"
+			local row, line = take ("env-rotor-sweep", keys)
+			if as_count (row.i, line) ~= index then hard ("the sweep rows are out of order (expected i=" .. index .. "): " .. line) end
+			for _, key in ipairs (words) do if key ~= "i" and not is_word (row [key]) then hard ("a sweep row word is not an eight digit word: " .. line) end end
+			if row.class ~= "defined" and row.class ~= "undefined_not_consumed" then hard ("a sweep row has an unknown class: " .. line) end
+			if not fd_sweep then
+				if row.class ~= "defined" then hard ("an AI sweep row is not fully defined: " .. line) end
+				for _, key in ipairs ({ "ax_w", "ay_w", "az_w", "lrpm_w", "rrpm_w", "apu_w" }) do if row [key] ~= ZERO then hard ("an AI sweep row declares a flight model word: " .. line) end end
+			end
+			local out_row, out_line = take ("env-rotor-out", { "i", "kids" })
+			if as_count (out_row.i, out_line) ~= index then hard ("the sweep output row does not belong to i=" .. index .. ": " .. out_line) end
+			local kids = items (out_row.kids, "^(%d+):(%x%x%x%x%x%x%x%x):(%x%x%x%x%x%x%x%x)$", out_line, "a sweep output")
+			if #kids ~= e.sound_children then hard ("the sweep output of i=" .. index .. " lists " .. #kids .. " sound children where the helicopter has " .. e.sound_children .. ": " .. out_line) end
+			local fp, fp_line = take ("env-rotor-fp", { "i", "round_before", "round_after", "excepts" })
+			if as_count (fp.i, fp_line) ~= index then hard ("the sweep floating point row does not belong to i=" .. index .. ": " .. fp_line) end
+			-- the rounding mode is a control the original function must leave alone; the exception flags are an output, compared across builds
+			if fp.round_before ~= fp.round_after then hard ("the rounding mode changed across the original call of i=" .. index .. ": " .. fp_line) end
+			if string.find (fp.excepts, "^%x+$") == nil then hard ("the sweep exception flags are not hexadecimal: " .. fp_line) end
+			row.out = kids
+			row.out_raw = out_row.kids
+			row.fp = fp
+			executed [#executed + 1] = row
+		end
+		index = index + 1
+	end
+	if index < 1 then hard ("the sweep report has no input row") end
+	take ("env-rotor-fingerprint", { "rng_before_w", "rng_after_w", "entity_before", "entity_after", "local_before", "local_after" })
+	local finish, finish_line = take ("env-rotor-end", { "refused", "mutating", "calls", "skipped" })
+	if finish.refused ~= "0" or finish.mutating ~= "1" then hard ("the sweep end row is not an unrefused mutating end: " .. finish_line) end
+	if as_count (finish.calls, finish_line) ~= #executed or as_count (finish.skipped, finish_line) ~= #skipped_rows or #executed < 1 then hard ("the sweep end row (" .. finish_line .. ") does not match the " .. #executed .. " executed and " .. #skipped_rows .. " skipped rows") end
+	if lines [at] ~= nil then hard ("the sweep report has a row after its end row: " .. lines [at]) end
+	return plan
+end
+
+local sweep_calls = 0
 if sweep ~= "none" then
-	local index = sweep == "ai" and 16 or 17
+	local index = fd_sweep and 17 or 16
+	if short_buffer then
+		-- the staged report is refused for a buffer that cannot hold it BEFORE anything is changed: the engine keeps running and the probe sees no call
+		local before_map = probe and report ()
+		local ok, err = pcall (engine.env_case_capacity, engine, 14, index, short_buffer)
+		if ok then hard ("the engine accepted a report buffer of " .. short_buffer .. " bytes for the staged sweep") end
+		if string.find (tostring (err), "rotor_case_refused_or_report_did_not_fit", 1, true) == nil then hard ("the short buffer was refused for another reason: " .. first_line (err)) end
+		if probe then
+			local after_map, after_line = report ()
+			if after_map.calls_total ~= before_map.calls_total or after_map.phase ~= 0 or after_map.open ~= 0 or after_map.pending ~= 0 then hard ("the refused short-buffer sweep left the probe changed: " .. after_line) end
+		end
+		emit { event = "short_buffer_guard", capacity = short_buffer, reason = first_line (err) }
+	end
 	local ok, text = pcall (engine.env_case, engine, 14, index)
 	if not ok then
 		emit { event = "engine_failure", i = index, reason = first_line (text) }
@@ -306,37 +472,53 @@ if sweep ~= "none" then
 	end
 	if type (text) ~= "string" or text == "" or string.find (text, "env-case-error", 1, true) then hard ("env_case (14, " .. index .. ") did not give a report: " .. first_line (text)) end
 	keep ("sweep", text)
-	local refused = string.match (text, "env%-rotor%-refused reason=(%S+)")
-	if refused then hard ("the controlled sweep was refused by the fixture (" .. refused .. "): it is a failure of the witness, never a result") end
-	-- the declaration is read from the plan row itself: the end row also says mutating=1 and must not stand in for it
-	local plan_row = string.match (text, "^(env%-rotor%-plan version=1 [^\n]*)\n")
-	if not plan_row or not string.find (plan_row .. " ", " mutating=1 ", 1, true) or not string.find (plan_row .. " ", " process_isolated=required ", 1, true) then hard ("the controlled sweep does not declare itself mutating and process-isolated: " .. first_line (text)) end
-	local rows = select (2, string.gsub (text, "env%-rotor%-sweep i=", ""))
-	local ended = tonumber (string.match (text, "env%-rotor%-end refused=0 mutating=1 calls=(%d+)"))
-	if ended == nil or ended ~= rows or rows < 1 then hard ("the controlled sweep reports " .. tostring (ended) .. " calls and " .. rows .. " sweep rows: " .. text) end
-	sweep_expected = ended
-	local calls = drain ("after the sweep")
-	if sweep_calls ~= sweep_expected then hard ("the probe recorded " .. sweep_calls .. " phase 1 calls where the sweep made " .. sweep_expected) end
-	emit { event = "rotor_frame", frame = frames + 1, calls = calls, scope = "controlled_sweep_" .. sweep }
-	local map, line = report ()
-	require_clean (map, line, "after the sweep")
-	if map.calls_total ~= totals.calls or map.drained ~= totals.calls then hard ("the probe's calls (" .. map.calls_total .. " total, " .. map.drained .. " drained) are not the " .. totals.calls .. " lines read after the sweep: " .. line) end
-	emit { event = "rotor_report", when = "after_sweep", raw = line }
+	parse_sweep (text)
+	for _, row in ipairs (executed) do emit { event = "sweep_row", scope = "controlled_world_input", i = tonumber (row.i), class = row.class, rpm_w = row.rpm_w, out = row.out_raw, excepts = row.fp.excepts } end
+	for _, row in ipairs (skipped_rows) do emit { event = "sweep_skipped", scope = "inherited_indeterminate_domain", i = tonumber (row.i), reason = row.reason, rpm_w = row.rpm_w } end
+	if probe then
+		local calls, records = drain ("after the sweep", 1)
+		sweep_calls = calls
+		if #records ~= #executed then hard ("the probe recorded " .. #records .. " phase 1 calls where the sweep executed " .. #executed) end
+		-- every actual call joins the chosen helicopter, case, player kind, flight model and declared input words, in order
+		for k, record in ipairs (records) do
+			local row, n, f = executed [k], record.n, record.f
+			local what = "sweep call " .. (k - 1)
+			if n.ent ~= sweep_entity.ent then hard (what .. " is for entity " .. n.ent .. " where the sweep chose " .. sweep_entity.ent) end
+			if n.player ~= (fd_sweep and PLAYER_LOCAL or PLAYER_AI) or n.fd ~= (fd_sweep and 1 or 0) then hard (what .. " has player " .. n.player .. " and flight model " .. n.fd .. " where the " .. sweep .. " case declares otherwise") end
+			if f.rpm_w ~= row.rpm_w then hard (what .. " recorded the rpm word " .. f.rpm_w .. " where the sweep declared " .. row.rpm_w) end
+			for _, pair in ipairs ({ { "acc_x_w", "ax_w" }, { "acc_y_w", "ay_w" }, { "acc_z_w", "az_w" }, { "lrpm_w", "lrpm_w" }, { "rrpm_w", "rrpm_w" }, { "apu_w", "apu_w" } }) do
+				if f [pair [1]] ~= row [pair [2]] then hard (what .. " recorded " .. pair [1] .. " " .. f [pair [1]] .. " where the sweep declared " .. row [pair [2]]) end
+			end
+			-- the probe's stored-after words of the sound children are the words the fixture read from the same children after the call (a join of two measurements, not an oracle)
+			if #record.sounds ~= #row.out then hard (what .. " lists " .. #record.sounds .. " sound children where the fixture read " .. #row.out) end
+			for position, sound in ipairs (record.sounds) do
+				local expected = row.out [position]
+				if tostring (sound.sub) ~= expected [1] or sound.after_amp ~= expected [2] or sound.after_pitch ~= expected [3] then
+					hard (what .. " child " .. position .. " recorded sub " .. sound.sub .. " after " .. sound.after_amp .. ":" .. sound.after_pitch .. " where the fixture read " .. expected [1] .. " " .. expected [2] .. ":" .. expected [3])
+				end
+			end
+		end
+		emit { event = "rotor_frame", frame = frames + 1, calls = calls, scope = "controlled_sweep_" .. sweep }
+		local map, line = report ()
+		require_clean (map, line, "after the sweep")
+		if map.calls_total ~= totals.calls or map.drained ~= totals.calls then hard ("the probe's calls (" .. map.calls_total .. " total, " .. map.drained .. " drained) are not the " .. totals.calls .. " lines read after the sweep: " .. line) end
+		emit { event = "rotor_report", when = "after_sweep", raw = line }
+	end
 end
 
 -- ---------------------------------------------------------------------------------------------------------------- what the driver JOINS (labelled derived; never a measurement)
 emit {
-	event = "derived", source = "the driver's join of the records above; not a measurement",
+	event = "derived", source = "the driver's join of the records above; not a measurement", probe = probe_arg,
 	natural_calls = natural_calls, natural_phase0_calls = totals.phase0, controlled_phase1_calls = totals.phase1, calls = totals.calls, boot_calls = boot_calls, frames = frames,
 	distinct_entities = distinct, calls_with_requests = totals.with_actions, calls_with_a_flight_model = totals.fd_calls, calls_where_the_seed_word_changed = totals.rng_changed, children_walked = totals.kids_seen,
-	bytes = totals.bytes, sweep = sweep, last_seq = last_seq,
-	coverage_note = "natural coverage is only the phase 0 calls; the phase 1 calls are controlled world input and are not natural coverage; no sound is claimed to play",
+	bytes = totals.bytes, sweep = sweep, sweep_executed = #executed, sweep_skipped = #skipped_rows, last_seq = last_seq,
+	coverage_note = "natural coverage is only the phase 0 calls; the phase 1 calls are controlled world input and are not natural coverage; skipped sweep shapes are the inherited indeterminate domain; no sound is claimed to play",
 }
-emit { event = "result", calls = totals.calls, natural_calls = natural_calls, sweep = sweep }
+emit { event = "result", calls = totals.calls, natural_calls = natural_calls, sweep = sweep, probe = probe_arg }
 
 -- the last thing the witness does is close its evidence, and a close that fails is a failure after the last row as much as before it
 for _, name in ipairs (created) do
 	local closed, close_error = files [name]:close ()
 	if not closed then refuse ("OUTPUT FAILURE: closing " .. paths [name] .. " failed: " .. tostring (close_error)) end
 end
-io.stderr:write (string.format ("env-rotor-sounds: calls=%d natural=%d sweep=%s\n", totals.calls, natural_calls, sweep))
+io.stderr:write (string.format ("env-rotor-sounds: calls=%d natural=%d sweep=%s probe=%s\n", totals.calls, natural_calls, sweep, probe_arg))

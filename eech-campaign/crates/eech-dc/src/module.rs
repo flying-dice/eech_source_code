@@ -2989,6 +2989,11 @@ impl LuaUserData for LuaEngine {
         methods.add_method("env_observer_report", |_, this, ()| this.engine.env_observer_report().map_err(lua_error));
         #[cfg(feature = "env-observer")]
         methods.add_method("env_observer_events", |_, this, ()| this.engine.env_observer_events().map_err(lua_error));
+        // TEST-ONLY (feature `env-fixture`, EEDCS-51, D3): `env_case` with a report buffer of the caller's size (a short-buffer guard); not part of the shipping module.
+        #[cfg(feature = "env-fixture")]
+        methods.add_method("env_case_capacity", |_, this, (group, index, capacity): (i32, i32, usize)| {
+            this.engine.env_case_capacity(group, index, capacity).map_err(lua_error)
+        });
         // TEST-ONLY (feature `env-observer`, EEDCS-51, D3): the helicopter rotor sound probe's report and its drained calls; not part of the shipping module.
         #[cfg(feature = "env-observer")]
         methods.add_method("env_rotor_report", |_, this, ()| this.engine.env_rotor_report().map_err(lua_error));

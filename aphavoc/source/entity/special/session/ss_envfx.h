@@ -175,9 +175,15 @@ extern void eech_envobs_sndinit (int point, int a, int b, int c, int d);
 // THE HELICOPTER ROTOR SOUND PROBE (ENV_FXR; EEDCS-51, D3). A fourth SEPARATE, finite, DRAINED store (csrc/eech_env_observer.c): it is not the event stream, the sound entity probe, the lightning probe or the sound
 // initialisation probe, adds nothing to any of them, and is armed ONLY by its own arm call (never by `eech_envobs_arm`, never by default): until then every hook returns at once. The points sit in
 // helicopter/helicop.c update_local_helicopter_rotor_sounds (the per-helicopter physical computation of the rotor, turbine and APU sound levels and pitches, called from hc_updt.c for every helicopter, AI included).
-// A point READS what the original already holds: the helicopter's stored main rotor rpm, its player kind, the current flight model's stored vector and engine words (copied as bits with memcpy -- no float is loaded
-// or computed), the child sound effect's stored amplification and pitch, the entity heap's indices and the shared seed word. It calls no sound function, draws nothing, allocates nothing, formats nothing at the
-// point and writes no game variable. The order of the original's pause and resume calls is recorded by a point placed immediately BEFORE each call.
+// A point READS what the original already holds: the helicopter's stored main rotor rpm, its player kind, and, when a current flight model exists, the stored words the original CONSUMES (copied as bits with memcpy --
+// no float is loaded or computed, and no float is passed to any hook): the acceleration vector, which the original uses for EVERY player kind, and the left, right and APU engine words, which it uses ONLY for the LOCAL
+// player kind (so they are copied only then, and are zero otherwise), the child sound effect's stored amplification and pitch, the entity heap's indices and the shared seed word. It calls no sound function, draws
+// nothing, allocates nothing, formats nothing at the point and writes no game variable. The order of the original's pause and resume calls is recorded by a point placed immediately BEFORE each call, with the
+// delay as the exact integer zero word (the original's literal 0.0 delay has the bit pattern 0).
+//
+// INHERITED INDETERMINATE DOMAIN (not introduced and not fixed here): in the original routine, for a LOCAL player with a flight model, `right_turbine_amp` is assigned only when the two engines are more than 1.0 apart and
+// `apu_amp` only when the APU rpm is above 0, yet the child switch reads them for any TURBINE2 or APU child. Those reads are uninitialised stack values, not functions of the recorded inputs, so such a call is not
+// a replayable physical oracle; the controlled sweep refuses to execute those shapes on a helicopter that has such a child (it reports them as skipped).
 //
 
 enum ENV_FXR_POINTS

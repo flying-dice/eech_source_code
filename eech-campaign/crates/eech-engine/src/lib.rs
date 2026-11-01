@@ -5699,6 +5699,21 @@ impl Engine {
         }
     }
 
+    /// TEST-ONLY (feature `env-fixture`, EEDCS-51, D3): the same case as `env_case` with a report buffer of the CALLER's size, to prove at the C boundary that a case which stages its report refuses a buffer that
+    /// cannot hold it BEFORE it changes anything (the rotor sweep). A refusal is an error carrying the engine's reason; the engine stays running and nothing it owns is changed.
+    #[cfg(feature = "env-fixture")]
+    pub fn env_case_capacity(&self, group: i32, index: i32, capacity: usize) -> Result<String, EngineError> {
+        if capacity == 0 || capacity > ENV_SND_INIT_REPORT_CAPACITY {
+            return Err(EngineError::BadArgument(format!(
+                "the report capacity {capacity} is not between 1 and {ENV_SND_INIT_REPORT_CAPACITY}"
+            )));
+        }
+        let mut text = vec![0 as std::os::raw::c_char; capacity];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        let status = check(unsafe { sys::eech_engine_env_case(group, index, text.as_mut_ptr(), text.len() as i32) });
+        keep_case_reason(status, &text)
+    }
+
     /// TEST-ONLY (feature `env-observer`, EEDCS-51, D3): the rotor sound probe's state: its counters and its stated domain limits (calls pending at once, requests and children per call).
     #[cfg(feature = "env-observer")]
     pub fn env_rotor_report(&self) -> Result<String, EngineError> {
