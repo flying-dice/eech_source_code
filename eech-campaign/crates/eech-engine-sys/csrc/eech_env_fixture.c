@@ -3724,7 +3724,7 @@ static int env_rotor_case (int index, char *text, int capacity, int *used)
    sound effect) found in the update list, and for each of three positions of the main viewpoint relative to the parent (coincident, a middle offset, an offset far outside any sound range: controlled INPUT offsets along
    x, added once to the parent's position), it runs the original pause (delay 0.0) and then resume of one sub-type on the parent through the real pause_local_entity_sound_type and resume_local_entity_sound_type, which
    ask the host (SOUND_PAUSE_RESUME) and, when it says so, call play_resumed_parent_sound. Whether the real children exist is REPORTED (a target without them is refused by name; nothing is synthesised). For every step
-   it prints the children's validity, update-list membership and lifetime words before, after the pause, after the resume and after the restoration with a digest of each, the returned counts, the number of calls the
+   it prints the children's validity, update-list membership and lifetime words BEFORE the pair and AFTER the resume (the raw states) and an FNV digest of each of the four states (before, after the pause, after the resume, after the restoration), the returned counts, the number of calls the
    probe saw (-1 without the observer), the shared seed word and the standard fenv rounding and exception flags around the pair, whether the main viewpoint and every child's validity, valid lifetime and update-list
    membership are back as they were, and the dispatch entry's identity. The range itself is the probe's `range_w` of the call the ORIGINAL made: this fixture computes no range, no expected value and no oracle.
    Positions are inputs (an offset word is printed, never a coordinate).
@@ -3740,7 +3740,9 @@ static int env_rotor_case (int index, char *text, int capacity, int *used)
 #define ENV_PLAY_OVERLOAD_CASE 20
 #define ENV_PLAY_STAGE 16384
 #define ENV_PLAY_CHILDREN 8
-#define ENV_PLAY_RECORDS 16
+/* the most calls the recording function can be given: every matching child (at most ENV_PLAY_CHILDREN, which the preflight enforces before anything is changed) of the two targets, at the three positions, is resumed
+   at most once; 8 * 3 * 2 = 48.  A count beyond it cannot happen; if it ever did the case would mark its report incomplete instead of printing a prefix. */
+#define ENV_PLAY_RECORDS 48
 
 #ifdef EECH_ENV_OBSERVER
 extern int eech_envobs_play_census_line (char *text, int capacity, int *used, const char *tag);
@@ -3757,7 +3759,7 @@ struct env_play_child
 
 struct env_play_state
 {
-	int total, matching;
+	int total, matching, complete;
 	struct env_play_child child[ENV_PLAY_CHILDREN];
 };
 
@@ -3769,10 +3771,15 @@ static void env_play_state_take (struct env_play_state *s, entity *parent, entit
 
 	memset (s, 0, sizeof (*s));
 
+	/* `complete` is 1 only if the walk reached the end of the list; a state with more than ENV_PLAY_CHILDREN matching children keeps the first ENV_PLAY_CHILDREN, so it is complete only when matching fits */
+	s->complete = 1;
+
 	for (child = get_local_entity_first_child (parent, LIST_TYPE_SPECIAL_EFFECT); child; child = get_local_entity_child_succ (child, LIST_TYPE_SPECIAL_EFFECT))
 	{
 		if (++visited > number_of_entities)
 		{
+			s->complete = 0;
+
 			break;
 		}
 
@@ -3799,6 +3806,11 @@ static void env_play_state_take (struct env_play_state *s, entity *parent, entit
 			}
 		}
 	}
+
+	if (s->matching > ENV_PLAY_CHILDREN)
+	{
+		s->complete = 0;
+	}
 }
 
 static uint32_t env_play_mix (uint32_t h, uint32_t value)
@@ -3822,6 +3834,7 @@ static uint32_t env_play_digest (const struct env_play_state *s)
 
 	h = env_play_mix (h, (uint32_t) s->total);
 	h = env_play_mix (h, (uint32_t) s->matching);
+	h = env_play_mix (h, (uint32_t) s->complete);
 
 	for (i = 0; i < s->matching && i < ENV_PLAY_CHILDREN; i++)
 	{
@@ -3897,14 +3910,25 @@ static void env_play_restore (entity *parent, entity_sub_types sub, const struct
 }
 
 /* the first entity of the update list of type `etype` (an AI helicopter when `ai_only`) that has a sound effect child of sub-type `sub`; the counts of its special-effect children, sound effect children, children of `sub`
-   and children of `second` are reported (a prerequisite that is absent is reported, never created) */
-static entity *env_play_pick (int etype, int ai_only, entity_sub_types sub, entity_sub_types second, int *special, int *sound, int *matching, int *second_count)
+   and children of `second` are reported (a prerequisite that is absent is reported, never created).  `status` is 0 when found, 1 when there is none (genuine absence) and 2 when the walk could not be completed within the
+   number of entities or the first candidate has more than ENV_PLAY_CHILDREN matching children: the fixture's rollback (state, digest, restore) covers at most ENV_PLAY_CHILDREN, so a larger cohort is REFUSED by the case
+   before anything is changed and never truncated into a restoration claim. */
+static entity *env_play_pick (int etype, int ai_only, entity_sub_types sub, entity_sub_types second, int *special, int *sound, int *matching, int *second_count, int *status)
 {
 	entity *en, *child;
-	int s, k, m, t;
+	int s, k, m, t, outer = 0, inner;
+
+	*status = 1;
 
 	for (en = get_local_entity_first_child (get_update_entity (), LIST_TYPE_UPDATE); en; en = get_local_entity_child_succ (en, LIST_TYPE_UPDATE))
 	{
+		if (++outer > number_of_entities)
+		{
+			*status = 2;
+
+			return NULL;
+		}
+
 		if (en->type != etype)
 		{
 			continue;
@@ -3915,10 +3939,17 @@ static entity *env_play_pick (int etype, int ai_only, entity_sub_types sub, enti
 			continue;
 		}
 
-		s = k = m = t = 0;
+		s = k = m = t = inner = 0;
 
 		for (child = get_local_entity_first_child (en, LIST_TYPE_SPECIAL_EFFECT); child; child = get_local_entity_child_succ (child, LIST_TYPE_SPECIAL_EFFECT))
 		{
+			if (++inner > number_of_entities)
+			{
+				*status = 2;
+
+				return NULL;
+			}
+
 			s++;
 
 			if (child->type == ENTITY_TYPE_SOUND_EFFECT)
@@ -3943,8 +3974,9 @@ static entity *env_play_pick (int etype, int ai_only, entity_sub_types sub, enti
 			*sound = k;
 			*matching = m;
 			*second_count = t;
+			*status = (m > ENV_PLAY_CHILDREN) ? 2 : 0;
 
-			return en;
+			return (m > ENV_PLAY_CHILDREN) ? NULL : en;
 		}
 	}
 
@@ -4026,7 +4058,7 @@ static int env_play_case (int index, char *text, int capacity, int *used)
 		{ "fixed_wing", ENTITY_TYPE_FIXED_WING, 0, 0, 0, 0, 0, ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING1, ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING2, NULL, NULL },
 		{ "helicopter", ENTITY_TYPE_HELICOPTER, 1, 0, 0, 0, 0, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_LOOPING, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_SLAP, NULL, NULL }
 	};
-	int stage_used = 0, stage_failed = 0, instrumented = 0, armed = 0, steps = 0, found = 0, installed = 0, overload_restored = 1, t, p, i;
+	int stage_used = 0, stage_failed = 0, instrumented = 0, armed = 0, steps = 0, found = 0, installed = 0, overload_restored = 1, domain_exceeded = 0, status, t, p, i;
 	int rng_start = random_number_seed;
 	int entity_before = get_next_free_entity_index ();
 	int local_before = get_next_free_local_entity_index ();
@@ -4051,9 +4083,16 @@ static int env_play_case (int index, char *text, int capacity, int *used)
 
 	for (t = 0; t < 2; t++)
 	{
-		target[t].en = env_play_pick (target[t].etype, target[t].ai_only, target[t].sub, target[t].second, &target[t].special, &target[t].sound, &target[t].matching, &target[t].second_count);
+		target[t].en = env_play_pick (target[t].etype, target[t].ai_only, target[t].sub, target[t].second, &target[t].special, &target[t].sound, &target[t].matching, &target[t].second_count, &status);
 
 		found += target[t].en != NULL;
+		domain_exceeded += (status == 2);
+	}
+
+	/* BEFORE ANY CHANGE: a cohort or a walk outside the rollback domain refuses the whole case, consistently (the other target is not run alone) */
+	if (domain_exceeded)
+	{
+		return env_play_refuse (text, capacity, used, "a_target_has_more_matching_children_than_the_eight_child_rollback_domain_or_a_scan_did_not_finish_nothing_was_changed");
 	}
 
 	ENV_PLAY_ROW ("env-play-plan version=1 case=%s process_isolated=required mutating=1 natural=0 phase=1 restores=main_vp,sound_child_valid,sound_child_valid_lifetime,update_list_membership,dispatch_entries instrumented=%d armed=%d overload=%d unit_offsets_w=%08x,%08x,%08x\n",
@@ -4112,10 +4151,23 @@ static int env_play_case (int index, char *text, int capacity, int *used)
 			char before_text[512], resumed_text[512];
 			fexcept_t saved_flags;
 			vec3d *position = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
-			int pause_returned, resume_returned, round_before, round_after, excepts, seed_before, seed_after, calls = -1, vp_restored, state_restored, default_entry;
+			int pause_returned, resume_returned, round_entry, round_before, round_after, excepts, seed_before, seed_after, calls = -1, vp_restored, state_restored, default_entry;
 			uint32_t total_before = 0;
 
+			/* THE CALLER'S standard fenv environment (the exception flags and the rounding mode: not the x87 or SSE control words) is saved BEFORE anything is set up, so that the setup below (the float addition
+			   that places the viewpoint may raise a flag) is not mistaken for the caller's state, and it is put back at the one cleanup of the step. */
+			fegetexceptflag (&saved_flags, FE_ALL_EXCEPT);
+			round_entry = fegetround ();
+
 			env_play_state_take (&before, en, target[t].sub);
+
+			/* the cohort was bounded by the preflight; a state that is not complete now stops the step BEFORE any change, and the report is then refused as incomplete */
+			if (!before.complete)
+			{
+				stage_failed = 1;
+
+				continue;
+			}
 
 			/* the controlled INPUT: the main viewpoint is put at the parent's position plus an offset along x */
 			main_vp.position = *position;
@@ -4124,7 +4176,7 @@ static int env_play_case (int index, char *text, int capacity, int *used)
 			default_entry = env_play_default_entry (target[t].etype);
 			seed_before = random_number_seed;
 
-			fegetexceptflag (&saved_flags, FE_ALL_EXCEPT);
+			/* the measurement window of the original pair: its own flags, cleared here, are read below */
 			feclearexcept (FE_ALL_EXCEPT);
 			round_before = fegetround ();
 
@@ -4145,7 +4197,14 @@ static int env_play_case (int index, char *text, int capacity, int *used)
 
 			round_after = fegetround ();
 			excepts = fetestexcept (FE_ALL_EXCEPT);
+
+			/* the one cleanup of the floating-point environment: the caller's flags and rounding mode as they were at the entry of the step */
 			fesetexceptflag (&saved_flags, FE_ALL_EXCEPT);
+
+			if (fegetround () != round_entry)
+			{
+				fesetround (round_entry);
+			}
 
 			seed_after = random_number_seed;
 
@@ -4157,7 +4216,7 @@ static int env_play_case (int index, char *text, int capacity, int *used)
 			env_play_state_take (&restored, en, target[t].sub);
 
 			vp_restored = memcmp (&main_vp, &saved_vp, sizeof (main_vp)) == 0;
-			state_restored = env_play_digest (&restored) == env_play_digest (&before);
+			state_restored = restored.complete && env_play_digest (&restored) == env_play_digest (&before);
 
 			env_play_state_text (before_text, sizeof (before_text), &before);
 			env_play_state_text (resumed_text, sizeof (resumed_text), &resumed);
@@ -4178,6 +4237,12 @@ static int env_play_case (int index, char *text, int capacity, int *used)
 		{
 			fn_play_local_entity_sound[target[t].etype] = target[t].saved;
 			overload_restored = overload_restored && (fn_play_local_entity_sound[target[t].etype] == target[t].saved);
+		}
+
+		/* a count beyond the storage cannot happen (the preflight bounds the cohort); if it did, the report is marked incomplete and refused, never printed as a prefix */
+		if (env_play_recorded > ENV_PLAY_RECORDS)
+		{
+			stage_failed = 1;
 		}
 
 		for (i = 0; i < (int) env_play_recorded && i < ENV_PLAY_RECORDS; i++)

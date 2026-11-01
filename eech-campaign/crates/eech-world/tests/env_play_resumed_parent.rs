@@ -12,6 +12,15 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 const SCRIPT: &str = include_str!("../lua/env-play-resumed-parent.lua");
 
+/// The driver the checks run: the committed one, or the copy named by `EECH_PARENT_PLAY_DRIVER_UNDER_TEST` (for instance the b37d62293 driver, to see the semantic damaged-input guards fail on it). A path that cannot be
+/// read is a failure, never a fall back to the committed driver.
+fn driver_source() -> String {
+    match std::env::var("EECH_PARENT_PLAY_DRIVER_UNDER_TEST") {
+        Ok(path) => std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("EECH_PARENT_PLAY_DRIVER_UNDER_TEST {path}: {e}")),
+        Err(_) => SCRIPT.to_string(),
+    }
+}
+
 static COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 struct Scratch(PathBuf);
@@ -53,10 +62,11 @@ local function census_text (list)
 		.. "env-play-end case=census refused=0 mutating=0\n"
 end
 local function report_text ()
-	local base = SCENARIO.table or { 32 }
+	REPORTS = (REPORTS or 0) + 1
 	local r = { version = 1, armed = 1, phase = 0, capacity = 256, calls_total = DELIVERED, drained = DELIVERED, pending = 0, dropped = 0, bad_points = 0, defaults_taken = 1, defaults_entries = 40,
-		defaults_nondefault = #base, defaults_types = types_text (base), defaults_over = 0 }
+		defaults_nondefault = 0, defaults_types = "-", defaults_over = 0 }
 	for key, value in pairs (SCENARIO.report or {}) do r [key] = value end
+	for key, value in pairs ((SCENARIO.report_at or {}) [REPORTS] or {}) do r [key] = value end
 	local parts = {}
 	for _, key in ipairs ({ "version", "armed", "phase", "capacity", "calls_total", "drained", "pending", "dropped", "bad_points", "defaults_taken", "defaults_entries", "defaults_nondefault", "defaults_types", "defaults_over" }) do
 		if r [key] ~= false then parts [#parts + 1] = key .. "=" .. tostring (r [key]) end
@@ -137,7 +147,11 @@ fn drive_in(work: &Scratch, scenario: &str, extra_args: &[(&str, &str)], before:
         .set_name("scripted collaborators")
         .exec()
         .expect("the collaborators load");
-    let result = lua.load(SCRIPT).set_name("env-play-resumed-parent.lua").exec().map_err(|e| e.to_string());
+    let result = lua
+        .load(driver_source())
+        .set_name("env-play-resumed-parent.lua")
+        .exec()
+        .map_err(|e| e.to_string());
     let rows = if foreign_out {
         Vec::new()
     } else {
@@ -230,7 +244,7 @@ fn overload_case(recorded: u32, inside: &str) -> String {
     for n in 0..recorded.min(6) {
         text += &format!("env-play-recorded n={n} type={} range_w=44fa0000\n", if n < 3 { 11 } else { 12 });
     }
-    text + &format!("env-play-overload installed=2 recorded={recorded} restored=1\n") + END
+    text + &format!("env-play-overload installed=2 recorded={recorded} restored=1\n") + &END.replace("case=run", "case=overload")
 }
 
 fn pages(list: &[(usize, &str)]) -> String {
@@ -249,7 +263,8 @@ fn a_natural_run_keeps_the_raw_text_and_reports_the_table_and_the_calls_without_
     driven.result.clone().unwrap_or_else(|e| panic!("a complete natural capture was rejected: {e}"));
     assert_eq!(driven.order, ["prepare", "arm:true", "boot", "case:14,18", "case:14,18", "case:14,18"]);
     let defaults = &of(&driven, "play_defaults")[0];
-    assert_eq!((defaults["nondefault"].as_i64(), defaults["types"].as_str()), (Some(1), Some("32")));
+    assert_eq!((defaults["nondefault"].as_i64(), defaults["types"].as_str()), (Some(0), Some("")));
+    assert_eq!(of(&driven, "census")[0]["types"], "32");
     // the table is reported once and again only when it changes
     assert_eq!(of(&driven, "census").len(), 1);
     let derived = &of(&driven, "derived")[0];
@@ -451,7 +466,7 @@ fn the_deliberate_overload_is_the_one_meaningful_red_and_a_live_non_default_cons
         &[("mode", "overload")],
     );
     assert!(
-        error_of(&recorded).contains("the recording function was given 5 calls where the probe saw 6"),
+        error_of(&recorded).contains("the recording function was given 5 calls where the steps report 6"),
         "{:?}",
         recorded.result
     );
@@ -510,7 +525,7 @@ fn a_probe_that_lost_called_out_of_order_or_reports_an_unexpected_record_is_a_fa
         &format!("{{ pages = {}, report = {{ calls_total = 5 }} }}", pages(&[(1, &call(0, 0, 6, 12, 1))])),
         &[],
     );
-    assert!(error_of(&mismatch).contains("are not the 1 lines read"), "{:?}", mismatch.result);
+    assert!(error_of(&mismatch).contains("counters are not coherent"), "{:?}", mismatch.result);
 }
 
 #[test]
@@ -549,6 +564,227 @@ fn the_evidence_files_are_created_exclusively_and_a_foreign_file_is_refused_befo
             std::fs::read_to_string(work.path(&name)).expect("the foreign file"),
             "foreign\n",
             "{suffix}: a foreign file is never overwritten"
+        );
+    }
+}
+
+/// One damaged, otherwise coherent input in the serialized shape of the C probe and fixture: the mode, the scenario and the reason the driver must give. A valid positive of the same shape is driven first, so a driver that
+/// refuses the shape itself (a grammar or setup rejection) is not mistaken for one that catches the damage; and each damage is a bookkeeping contradiction, not a physical expectation.
+struct Damaged {
+    name: &'static str,
+    mode: &'static str,
+    scenario: String,
+    reason: &'static str,
+}
+
+fn without_lines(text: &str, keep: impl Fn(&str) -> bool) -> String {
+    text.lines().filter(|line| keep(line)).map(|line| format!("{line}\n")).collect()
+}
+
+fn fixture_scenario(case: &str, calls: &str, extra: &str) -> String {
+    format!("{{ case = {}, pages = {}{extra} }}", long(case), pages(&[(2, calls)]))
+}
+
+#[test]
+fn the_semantic_and_completeness_joins_refuse_a_coherent_looking_record_that_is_incomplete_or_contradictory() {
+    let ok_case = run_case();
+    let ok_calls = run_calls(1);
+    let ov_case = overload_case(6, "11,12,32");
+    let ov_calls = run_calls(0);
+    let natural = |extra: &str| format!("{{ pages = {}{extra} }}", pages(&[(2, &call(0, 0, 6, 12, 1))]));
+    // a fixture without the helicopter's middle step and without its probe call (the later calls renumbered): five steps, five calls
+    let five_case = without_lines(&ok_case, |line| {
+        !(line.starts_with("env-play-step kind=helicopter") && line.contains("pos=middle"))
+    })
+    .replace("steps=6", "steps=5");
+    let five_calls: String = [(5, 11), (5, 11), (5, 11), (6, 12), (6, 12)]
+        .iter()
+        .enumerate()
+        .map(|(seq, (ent, etype))| call(seq as u32, 1, *ent, *etype, 1))
+        .collect();
+    let damaged = [
+        Damaged {
+            name: "every recorded row removed",
+            mode: "overload",
+            scenario: fixture_scenario(&without_lines(&ov_case, |l| !l.starts_with("env-play-recorded ")), &ov_calls, ""),
+            reason: "recorded overload rows where the overload row says",
+        },
+        Damaged {
+            name: "the tail of the recording removed",
+            mode: "overload",
+            scenario: fixture_scenario(&ov_case.replacen("env-play-recorded n=5 type=12 range_w=44fa0000\n", "", 1), &ov_calls, ""),
+            reason: "recorded overload rows where the overload row says",
+        },
+        Damaged {
+            name: "a recorded ordinal that is not the next",
+            mode: "overload",
+            scenario: fixture_scenario(&ov_case.replacen("env-play-recorded n=2 ", "env-play-recorded n=7 ", 1), &ov_calls, ""),
+            reason: "has the ordinal 7 where 2 is next",
+        },
+        Damaged {
+            name: "an installed count that is not the two types",
+            mode: "overload",
+            scenario: fixture_scenario(&ov_case.replacen("installed=2", "installed=1", 1), &ov_calls, ""),
+            reason: "installed 1 recording entries",
+        },
+        Damaged {
+            name: "an end row with another number of steps",
+            mode: "fixture",
+            scenario: fixture_scenario(&ok_case.replace("steps=6", "steps=99"), &ok_calls, ""),
+            reason: "the fixture end row says 99 steps",
+        },
+        Damaged {
+            name: "a middle step omitted with its call",
+            mode: "fixture",
+            scenario: fixture_scenario(&five_case, &five_calls, ""),
+            reason: "is not the middle position",
+        },
+        Damaged {
+            name: "a third, unknown target",
+            mode: "fixture",
+            scenario: fixture_scenario(
+                &ok_case.replacen(
+                    "env-play-step kind=fixed_wing",
+                    "env-play-target kind=ship present=0 reason=unknown\nenv-play-step kind=fixed_wing",
+                    1,
+                ),
+                &ok_calls,
+                "",
+            ),
+            reason: "a third target row follows the two named targets",
+        },
+        Damaged {
+            name: "a child state that is not a state",
+            mode: "fixture",
+            scenario: fixture_scenario(&ok_case.replacen("before=0:0:00000000:3f800000", "before=not_a_state", 1), &ok_calls, ""),
+            reason: "child state that is not valid:member",
+        },
+        Damaged {
+            name: "a child state with another number of children",
+            mode: "fixture",
+            scenario: fixture_scenario(
+                &ok_case.replacen("before=0:0:00000000:3f800000", "before=0:0:00000000:3f800000,0:0:00000000:3f800000", 1),
+                &ok_calls,
+                "",
+            ),
+            reason: "lists 2 and 1 children where the target has 1",
+        },
+        Damaged {
+            name: "a step for another sub-type than its target",
+            mode: "fixture",
+            scenario: fixture_scenario(
+                &ok_case.replacen(
+                    "kind=fixed_wing ent=5 etype=11 sub=20 pos=coincident",
+                    "kind=fixed_wing ent=5 etype=11 sub=21 pos=coincident",
+                    1,
+                ),
+                &ok_calls,
+                "",
+            ),
+            reason: "not for the target the report named",
+        },
+        Damaged {
+            name: "a step at an offset other than the declared one",
+            mode: "fixture",
+            scenario: fixture_scenario(&ok_case.replacen("offset_w=451c4000", "offset_w=451c4001", 1), &ok_calls, ""),
+            reason: "is not the middle position with the declared offset",
+        },
+        Damaged {
+            name: "a plan that is not the case of the mode",
+            mode: "fixture",
+            scenario: fixture_scenario(&ok_case.replacen("version=1 case=run", "version=2 case=run", 1), &ok_calls, ""),
+            reason: "the fixture plan is not the run case of this mode",
+        },
+        Damaged {
+            name: "returns and calls beyond the children",
+            mode: "fixture",
+            scenario: fixture_scenario(&ok_case.replacen("resume_returned=1", "resume_returned=0", 1), &ok_calls, ""),
+            reason: "returns and call count are not within",
+        },
+        Damaged {
+            name: "a natural page with a phase 1 call",
+            mode: "natural",
+            scenario: format!("{{ pages = {} }}", pages(&[(2, &call(0, 1, 6, 12, 1))])),
+            reason: "a phase 1 play call arrived",
+        },
+        Damaged {
+            name: "a probe capacity of zero",
+            mode: "natural",
+            scenario: natural(", report = { capacity = 0 }"),
+            reason: "capacity is 0",
+        },
+        Damaged {
+            name: "a probe phase that is not restored",
+            mode: "natural",
+            scenario: natural(", report = { phase = 1 }"),
+            reason: "phase is 1",
+        },
+        Damaged {
+            name: "a table size that differs from the census",
+            mode: "natural",
+            scenario: natural(", report = { defaults_entries = 41 }"),
+            reason: "entries where the probe's table has 41",
+        },
+        Damaged {
+            name: "a census type list that is not ascending",
+            mode: "natural",
+            scenario: natural(", census_at = { [1] = { 32, 12 } }"),
+            reason: "not unique and ascending",
+        },
+        Damaged {
+            name: "a census type beyond the table",
+            mode: "natural",
+            scenario: natural(", census_at = { [1] = { 99 } }"),
+            reason: "beyond the 40 entries",
+        },
+        Damaged {
+            name: "counters that do not add up in the first report",
+            mode: "natural",
+            scenario: natural(", report_at = { [1] = { pending = 3 } }"),
+            reason: "counters are not coherent",
+        },
+        Damaged {
+            name: "a defaults census that finds a non-default entry",
+            mode: "natural",
+            scenario: natural(", report = { defaults_nondefault = 1, defaults_types = '12' }"),
+            reason: "finds 1 non-default entries right after",
+        },
+    ];
+    for item in damaged {
+        let extra: Vec<(&str, &str)> = if item.mode == "natural" {
+            vec![("seconds", "2"), ("frame_ms", "1000")]
+        } else {
+            vec![("mode", item.mode)]
+        };
+        // the undamaged shape of the same mode is accepted first
+        let positive = match item.mode {
+            "natural" => natural(""),
+            "fixture" => fixture_scenario(&ok_case, &ok_calls, ""),
+            _ => fixture_scenario(&ov_case, &ov_calls, ""),
+        };
+        let accepted = drive(&positive, &extra);
+        accepted
+            .result
+            .clone()
+            .unwrap_or_else(|e| panic!("{}: the coherent positive of this shape was rejected: {e}", item.name));
+        let driven = drive(&item.scenario, &extra);
+        let error = match driven.result.clone() {
+            Ok(()) => panic!(
+                "{}: the damaged record was ACCEPTED (expected a failure containing {:?})",
+                item.name, item.reason
+            ),
+            Err(error) => error,
+        };
+        assert!(
+            error.contains("env-play-resumed-parent:") && error.contains(item.reason),
+            "{}: {error}",
+            item.name
+        );
+        assert!(of(&driven, "result").is_empty(), "{}: a damaged capture is never a result", item.name);
+        assert!(
+            driven.play_raw.is_some() && driven.case_raw.is_some(),
+            "{}: the raw text is kept even when it is refused",
+            item.name
         );
     }
 }
