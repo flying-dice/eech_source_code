@@ -206,21 +206,22 @@ extern void eech_envobs_rotor (int point, const void *en, int a, int b, unsigned
 // until then every hook returns at once. It records two kinds of fact and nothing else, with integer reads and bit copies only (no float is computed, no pointer or address is recorded, nothing is drawn or written):
 //   ENV_FXP_DEFAULTS: the end of en_snd.c initialise_entity_sound_default_functions, where every entry of the playback dispatch table fn_play_local_entity_sound has just been set to the table's default no-op: the
 //                     probe keeps that entry as THE default and a census of the table (how many entries are not it, and which entity types) as it stands there;
-//   ENV_FXP_PLAY:     soundeff.c play_resumed_parent_sound, NON-SESSION branch only, immediately BEFORE the original's play_local_entity_sound (en, vp, range): the parent's entity type, whether the dispatch entry
-//                     that call is about to reach is the default one, the range as the word the original computed (ENV_FXF of its own value; the probe computes no range), the entity index and the shared seed word.
+//   ENV_FXP_ELIDED:   soundeff.c play_resumed_parent_sound, NON-SESSION branch only, where the request reached the table's own default no-op and was ELIDED (no range is computed and no playback function is called): the
+//                     parent's entity type and index and the shared seed word. It carries no range, because none exists here: the original's observer (the 8e90ab42e native) recorded the range word the original computed,
+//                     and a candidate must never print a zero as though it were a measured range. A request whose entry is NOT the default is not recorded: it stops the engine by name (EECH fatal error) before this point.
 // The session's own branch (already characterised) is not recorded. A census at any later moment is taken by the fixture case (csrc/eech_env_fixture.c, group 14 index 18).
 //
 
 enum ENV_FXP_POINTS
 {
 	ENV_FXP_DEFAULTS = 0,		// the end of initialise_entity_sound_default_functions
-	ENV_FXP_PLAY,			// the non-session branch of play_resumed_parent_sound, before the dispatch
+	ENV_FXP_ELIDED,			// the non-session branch of play_resumed_parent_sound, the default dispatch elided
 	ENV_FXP_POINT_COUNT		// (not a point)
 };
 
-extern void eech_envobs_play (int point, const void *en, int session, unsigned int range_word);
+extern void eech_envobs_play (int point, const void *en, int session);
 
-#define ENV_FXP(point, en, session, range_word) eech_envobs_play (point, (const void *) (en), session, range_word);
+#define ENV_FXP(point, en, session) eech_envobs_play (point, (const void *) (en), session);
 
 #else
 
@@ -232,7 +233,7 @@ extern void eech_envobs_play (int point, const void *en, int session, unsigned i
 #define ENV_FXE(point, en)
 #define ENV_FXA(point, a, b, c, d)
 #define ENV_FXR(point, en, a, b, w)
-#define ENV_FXP(point, en, session, range_word)
+#define ENV_FXP(point, en, session)
 
 #endif
 

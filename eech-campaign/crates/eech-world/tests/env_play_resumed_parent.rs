@@ -11,6 +11,8 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 const SCRIPT: &str = include_str!("../lua/env-play-resumed-parent.lua");
+/// the driver of the removal's candidate (protocol version 2), a separate file: the original's stays the one the 8e90ab42e native is run with
+const ELIDED: &str = include_str!("../lua/env-play-elided-parent.lua");
 
 /// The driver the checks run: the committed one, or the copy named by `EECH_PARENT_PLAY_DRIVER_UNDER_TEST` (for instance the b37d62293 driver, to see the semantic damaged-input guards fail on it). A path that cannot be
 /// read is a failure, never a fall back to the committed driver.
@@ -135,6 +137,15 @@ fn drive(scenario: &str, extra_args: &[(&str, &str)]) -> Driven {
 }
 
 fn drive_in(work: &Scratch, scenario: &str, extra_args: &[(&str, &str)], before: &dyn Fn(&Scratch)) -> Driven {
+    drive_source(driver_source(), work, scenario, extra_args, before)
+}
+
+/// the candidate driver against the same scripted engine (it never takes the override of the original's driver)
+fn drive_elided(scenario: &str, extra_args: &[(&str, &str)]) -> Driven {
+    drive_source(ELIDED.to_string(), &Scratch::new(), scenario, extra_args, &|_| {})
+}
+
+fn drive_source(source: String, work: &Scratch, scenario: &str, extra_args: &[(&str, &str)], before: &dyn Fn(&Scratch)) -> Driven {
     before(work);
     let foreign_out = std::path::Path::new(&work.path("environment.jsonl")).exists();
     let lua = Lua::new();
@@ -153,11 +164,7 @@ fn drive_in(work: &Scratch, scenario: &str, extra_args: &[(&str, &str)], before:
         .set_name("scripted collaborators")
         .exec()
         .expect("the collaborators load");
-    let result = lua
-        .load(driver_source())
-        .set_name("env-play-resumed-parent.lua")
-        .exec()
-        .map_err(|e| e.to_string());
+    let result = lua.load(source).set_name("driver under test").exec().map_err(|e| e.to_string());
     let rows = if foreign_out {
         Vec::new()
     } else {
@@ -1081,5 +1088,164 @@ fn the_defaults_census_count_is_observed_after_boot_anchored_and_required_unchan
         assert!(error.contains("env-play-resumed-parent:") && error.contains(reason), "{what}: {error}");
         assert!(of(&driven, "result").is_empty(), "{what}: a refused capture is never a result");
         assert!(driven.play_raw.is_some(), "{what}: the raw text is kept even when it is refused");
+    }
+}
+
+/// one request of the candidate's probe: a default dispatch ELIDED, with no range field because none was computed
+fn elided(seq: u32, phase: u32, ent: u32, etype: u32) -> String {
+    format!("env-play-elided seq={seq} t=1000 phase={phase} ent={ent} type={etype} session=0 rng=7\n")
+}
+
+/// the six requests of the controlled fixture, in step order (as `run_calls` for the original)
+fn run_elided() -> String {
+    let mut text = String::new();
+    let mut seq = 0;
+    for (ent, etype) in [(5, 11), (6, 12)] {
+        for _ in 0..3 {
+            text += &elided(seq, 1, ent, etype);
+            seq += 1;
+        }
+    }
+    text
+}
+
+const V2: &str = ", report = { version = 2 }";
+
+/// The candidate's protocol: a default dispatch is an `env-play-elided` row without a range, the report is version 2, the fixture must see default entries, and the deliberate overload must END in the engine's named
+/// unsupported-live-playback stop (nothing can be read after it). The original's version 1 and its `env-play-call` rows are refused by name, never accepted as the candidate's.
+#[test]
+fn the_elided_candidate_witness_accepts_default_elision_and_refuses_the_originals_protocol_and_a_live_default_claim() {
+    let natural_args: [(&str, &str); 2] = [("seconds", "2"), ("frame_ms", "1000")];
+    let natural = |page: &str, extra: &str| format!("{{ pages = {}{extra} }}", pages(&[(2, page)]));
+
+    // natural: the coherent positive; the rows have no range anywhere
+    let driven = drive_elided(&natural(&elided(0, 0, 6, 12), V2), &natural_args);
+    driven
+        .result
+        .clone()
+        .unwrap_or_else(|e| panic!("a coherent elided natural capture was rejected: {e}"));
+    let derived = &of(&driven, "derived")[0];
+    assert_eq!(
+        (derived["natural_elided"].as_i64(), derived["natural_elided_by_type"].as_str()),
+        (Some(1), Some("12:1"))
+    );
+    assert!(derived["range_diagnostic"].as_str().is_some_and(|text| text.starts_with("removed")));
+    assert!(driven.rows.iter().all(|row| row.get("range_w").is_none()), "no row carries a range word");
+    assert!(
+        driven.play_raw.clone().expect("the raw report").contains("version=2 "),
+        "the raw is kept as written"
+    );
+
+    // natural: the original's report, the original's row, a row that still carries a range, and a type beyond the table
+    let refused: [(&str, String, &str); 4] = [
+        ("the original's report version", natural(&elided(0, 0, 6, 12), ""), "is not protocol version 2"),
+        ("the original's call row", natural(&call(0, 0, 6, 12, 1), V2), "expected a env-play-elided row"),
+        (
+            "an elided row that still has a range field",
+            natural(&elided(0, 0, 6, 12).replace("rng=7", "range_w=44fa0000 rng=7"), V2),
+            "the protocol has 7",
+        ),
+        ("an elided type beyond the table", natural(&elided(0, 0, 6, 99), V2), "beyond the 40 entries"),
+    ];
+    for (what, scenario, reason) in refused {
+        let driven = drive_elided(&scenario, &natural_args);
+        let error = error_of(&driven);
+        assert!(error.contains("env-play-elided-parent:") && error.contains(reason), "{what}: {error}");
+        assert!(
+            of(&driven, "result").is_empty() && driven.play_raw.is_some(),
+            "{what}: refused with the raw kept, never a result"
+        );
+    }
+
+    // fixture: the original's step rows, joined to the elided requests
+    let fixture = |case: &str, calls: &str| fixture_scenario(case, calls, V2);
+    let args = [("mode", "fixture")];
+    let driven = drive_elided(&fixture(&run_case(), &run_elided()), &args);
+    driven.result.clone().unwrap_or_else(|e| panic!("a coherent elided fixture was rejected: {e}"));
+    let derived = &of(&driven, "derived")[0];
+    assert_eq!(
+        (derived["controlled_steps"].as_i64(), derived["controlled_elided"].as_i64()),
+        (Some(6), Some(6))
+    );
+    assert_eq!(derived["overload_stopped_at_unsupported_boundary"].as_bool(), Some(false));
+    // a step whose entry is not the target's, and a target and steps that agree on a NON-default entry (a live request is not elided)
+    let mismatch = drive_elided(
+        &fixture(&run_case().replace(" default_entry=1 pause", " default_entry=0 pause"), &run_elided()),
+        &args,
+    );
+    assert!(error_of(&mismatch).contains("dispatch identity 0 is not the target's"), "{:?}", mismatch.result);
+    let live = run_case()
+        .replace(" default_entry=1 pause", " default_entry=0 pause")
+        .replace("second_children=1 default_entry=1", "second_children=1 default_entry=0");
+    let live = drive_elided(&fixture(&live, &run_elided()), &args);
+    assert!(error_of(&live).contains("is not the default no-op"), "{:?}", live.result);
+    // the original's overload report is not the candidate's fixture
+    let recorded = drive_elided(&fixture(&overload_case(6, "11,12,32"), &run_elided()), &args);
+    assert!(error_of(&recorded).contains("fixture plan is not the run case"), "{:?}", recorded.result);
+}
+
+#[test]
+fn the_deliberate_overload_must_end_at_the_named_unsupported_live_playback_stop_for_a_target_type() {
+    let stop = |kind: u32, tail: &str| {
+        format!("EECH fatal error: host environment: [env-play:unsupported_live_playback] entity_type={kind} entity_index=5{tail}: the playback dispatch entry of the resumed parent is not the default no-op")
+    };
+    let overload = |extra: &str| format!("{{ report = {{ version = 2 }}{extra} }}");
+    let args = [("mode", "overload")];
+
+    // the stop for the fixed-wing and for the helicopter type is the evidence; the message is kept whole in the case raw
+    for kind in [11, 12] {
+        let driven = drive_elided(&overload(&format!(", case_error = {}", long(&stop(kind, ":")))), &args);
+        driven
+            .result
+            .clone()
+            .unwrap_or_else(|e| panic!("the named stop for type {kind} was rejected: {e}"));
+        let stopped = &of(&driven, "overload_stopped")[0];
+        assert_eq!(
+            (stopped["entity_type"].as_i64(), stopped["entity_index"].as_i64()),
+            (Some(i64::from(kind)), Some(5))
+        );
+        assert_eq!(of(&driven, "derived")[0]["overload_stopped_at_unsupported_boundary"].as_bool(), Some(true));
+        assert!(driven.case_raw.clone().expect("the case raw").contains("[env-play:unsupported_live_playback]"));
+    }
+
+    // a report that came back, a refusal to run, another failure, a stop for another type and a stop that names nothing are failures of the witness
+    let refused: [(&str, String, &str); 5] = [
+        (
+            "a report came back",
+            format!("{{ report = {{ version = 2 }}, case = {} }}", long(&overload_case(6, "11,12,32"))),
+            "returned a report",
+        ),
+        (
+            "the fixture refused to run",
+            format!(
+                "{{ report = {{ version = 2 }}, case = {} }}",
+                long("env-play-refused reason=no_targets\nenv-play-end case=overload refused=1 mutating=0 steps=0\n")
+            ),
+            "could not run",
+        ),
+        (
+            "another engine failure",
+            overload(", case_error = 'EECH fatal error: a different stop'"),
+            "not at the named unsupported-live-playback boundary",
+        ),
+        (
+            "a stop for another type",
+            overload(&format!(", case_error = {}", long(&stop(33, ":")))),
+            "is for entity type 33",
+        ),
+        (
+            "a stop that names no type and index",
+            overload(", case_error = '[env-play:unsupported_live_playback] without them'"),
+            "does not name the entity type and index",
+        ),
+    ];
+    for (what, scenario, reason) in refused {
+        let driven = drive_elided(&scenario, &args);
+        let error = error_of(&driven);
+        assert!(error.contains("env-play-elided-parent:") && error.contains(reason), "{what}: {error}");
+        assert!(
+            of(&driven, "result").is_empty() && driven.case_raw.is_some(),
+            "{what}: refused with the raw kept, never a result"
+        );
     }
 }

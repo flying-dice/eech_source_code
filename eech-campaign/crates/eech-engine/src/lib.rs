@@ -5832,8 +5832,8 @@ impl Engine {
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
     }
 
-    /// TEST-ONLY (feature `env-observer`, EEDCS-51, D3): drains the resumed-parent playback probe's stored calls, one `env-play-call` line each, in the order the original made them; once everything is read the probe's
-    /// page is empty again.
+    /// TEST-ONLY (feature `env-observer`, EEDCS-51, D3): drains the resumed-parent playback probe's stored requests in the order they were made, once everything is read the probe's page is empty again: one `env-play-elided`
+    /// line each (protocol version 2, the default dispatch elided, no range) in the candidate; the original's version 1 wrote `env-play-call` lines with the range word.
     #[cfg(feature = "env-observer")]
     pub fn env_play_events(&self) -> Result<String, EngineError> {
         let mut all = String::new();

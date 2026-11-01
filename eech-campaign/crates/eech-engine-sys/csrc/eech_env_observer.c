@@ -1510,12 +1510,14 @@ int eech_envobs_rotor_events (char *text, int capacity, int *more)
 
 
 /* ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-   THE RESUMED-PARENT PLAYBACK PROBE (ss_envfx.h ENV_FXP; EEDCS-51, D3). It answers one question about the original, from the running engine and not from a reading of the source: does the NON-SESSION branch of
-   soundeff.c play_resumed_parent_sound (the range from the main viewpoint to the parent's position, then the per-family play_local_entity_sound through the dispatch table fn_play_local_entity_sound) ever reach
-   anything but the table's default no-op, for any parent type, and what does it compute when it is called. Two facts are kept, both from integer reads and bit copies (no float is loaded by value or computed here,
-   no pointer or address is recorded, nothing is drawn or written): at the end of initialise_entity_sound_default_functions the table's default entry and a census of the table (how many entries are not it, which
-   entity types); and, for each call of the non-session branch, the parent's entity type and index, whether the entry that call is about to reach is the default one, the range as the word the original computed,
-   the headless time, the phase and the shared seed word.
+   THE RESUMED-PARENT PLAYBACK PROBE (ss_envfx.h ENV_FXP; EEDCS-51, D3). The ORIGINAL (the 8e90ab42e native, protocol version 1) asked, from the running engine and not from a reading of the source, whether the NON-SESSION
+   branch of soundeff.c play_resumed_parent_sound (the range from the main viewpoint to the parent's position, then the per-family play_local_entity_sound through the dispatch table fn_play_local_entity_sound) ever
+   reaches anything but the table's default no-op, and recorded the range word the original computed with each call (`env-play-call`). The CANDIDATE (protocol version 2) has removed that range and that call from the
+   campaign route for a parent whose entry is the default no-op; a parent whose entry is not the default stops the engine by name BEFORE this probe is reached. So the probe now keeps two facts, both from integer reads
+   and bit copies (no float is loaded by value or computed here, no pointer or address is recorded, nothing is drawn or written): at the end of initialise_entity_sound_default_functions the table's default entry and a
+   census of the table (how many entries are not it, which entity types); and, for each ELIDED request of the non-session branch, the parent's entity type and index, the headless time, the phase and the shared seed word
+   (`env-play-elided`). It has NO range field: nothing was computed, and a zero is never printed as though it were a measured range. Its own notion of the default (the table's first entry at the defaults) is a cross-check
+   of the production predicate (en_snd.c campaign_play_entity_sound_is_default), which asks the real default function: an elided request whose entry this probe does not see as default is counted in `bad_points`.
 
    It is SEPARATE from the event stream, the sound entity, lightning, sound initialisation and rotor probes, and is armed ONLY by eech_envobs_play_arm (before boot): until then every point returns at once. It is a
    PAGED store drained by the driver after every frame (eech_envobs_play_events). The limit (ENVP_CALLS calls pending at once) is stated in the report; a call that does not fit is counted in `dropped`, and every counter
@@ -1526,7 +1528,7 @@ int eech_envobs_rotor_events (char *text, int capacity, int *more)
 
 struct envp_call
 {
-	uint32_t seq, time_ms, phase, entity, type, session, is_default, range_word;
+	uint32_t seq, time_ms, phase, entity, type, session;
 	int32_t rng;
 };
 
@@ -1617,7 +1619,7 @@ uint32_t eech_envobs_play_total (void)
 	return envp_total;
 }
 
-void eech_envobs_play (int point, const void *p, int session, unsigned int range_word)
+void eech_envobs_play (int point, const void *p, int session)
 {
 	const entity *en = (const entity *) p;
 	struct envp_call *c;
@@ -1637,7 +1639,15 @@ void eech_envobs_play (int point, const void *p, int session, unsigned int range
 		return;
 	}
 
-	if (point != ENV_FXP_PLAY || en == NULL)
+	if (point != ENV_FXP_ELIDED || en == NULL)
+	{
+		envp_bad_point++;
+
+		return;
+	}
+
+	/* the production predicate said this entry is the default no-op; this probe's own default must agree (a type outside the table is no default) */
+	if ((unsigned int) en->type >= (unsigned int) NUM_ENTITY_TYPES || envp_default == NULL || fn_play_local_entity_sound[en->type] != envp_default)
 	{
 		envp_bad_point++;
 
@@ -1661,8 +1671,6 @@ void eech_envobs_play (int point, const void *p, int session, unsigned int range
 	c->entity = (uint32_t) get_local_entity_index ((entity *) en);
 	c->type = (uint32_t) en->type;
 	c->session = (uint32_t) session;
-	c->is_default = (envp_default != NULL && fn_play_local_entity_sound[en->type] == envp_default) ? 1 : 0;
-	c->range_word = range_word;
 	c->rng = (int32_t) random_number_seed;
 }
 
@@ -1693,7 +1701,7 @@ int eech_envobs_play_report (char *text, int capacity)
 	envp_types_text (list, sizeof (list), envp_defaults_types, envp_defaults_listed);
 
 	return append (text, capacity, &used,
-		"env-play-report version=1 armed=%d phase=%u capacity=%d calls_total=%u drained=%u pending=%u dropped=%u bad_points=%u defaults_taken=%d defaults_entries=%d defaults_nondefault=%d defaults_types=%s defaults_over=%d\n",
+		"env-play-report version=2 armed=%d phase=%u capacity=%d calls_total=%u drained=%u pending=%u dropped=%u bad_points=%u defaults_taken=%d defaults_entries=%d defaults_nondefault=%d defaults_types=%s defaults_over=%d\n",
 		envp_armed, envp_phase, ENVP_CALLS, envp_total, envp_drained, envp_stored - envp_read, envp_dropped, envp_bad_point, envp_defaults_taken, (int) NUM_ENTITY_TYPES, envp_defaults_nondefault, list, envp_defaults_over);
 }
 
@@ -1711,8 +1719,8 @@ int eech_envobs_play_events (char *text, int capacity, int *more)
 		const struct envp_call *c = &envp_pages[envp_read];
 		int before = used;
 
-		if (snprintf (line, sizeof (line), "env-play-call seq=%u t=%u phase=%u ent=%u type=%u session=%u default=%u range_w=%08x rng=%d\n", c->seq, c->time_ms, c->phase, c->entity, c->type, c->session, c->is_default,
-			c->range_word, (int) c->rng) >= (int) sizeof (line))
+		if (snprintf (line, sizeof (line), "env-play-elided seq=%u t=%u phase=%u ent=%u type=%u session=%u rng=%d\n", c->seq, c->time_ms, c->phase, c->entity, c->type, c->session,
+			(int) c->rng) >= (int) sizeof (line))
 		{
 			return -1;
 		}

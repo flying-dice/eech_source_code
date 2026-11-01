@@ -173,8 +173,14 @@ int pause_local_entity_sound_type (entity *en, entity_sub_types type, float dela
 #ifdef EECH_CAMPAIGN_HOST_ENV
 
 //
-// the parent's playback request of a resumed effect, as the original made it inline (below, in the #else): the session plays with the viewpoint and no range, any other parent with the range from the
-// viewpoint to its position.  Which function plays (the session's default no-op, or a per-family function) and the device stay the campaign's; the HOST decides only whether to ask.
+// the parent's playback request of a resumed effect.  The session plays with the viewpoint and no range, as the original did inline (below, in the #else); the HOST decides only whether to ask.
+//
+// Any other parent: the original took the range from the viewpoint to the parent's position and called fn_play_local_entity_sound[type] with it.  The running original (the 8e90ab42e native, 1200 natural frames,
+// the controlled fixed-wing and AI-helicopter pause and resume, and a deliberate recording overload) reached only the table's own default no-op from here, so for a parent whose entry IS that default function
+// the request is empty and neither the range nor the call is made (the range is computed for nothing else): the elision is observed by ENV_FXP_ELIDED.  A parent whose entry is anything else would be a live
+// playback consumer, which this campaign route no longer supports and does not serve silently: it stops here, by name, BEFORE any range is computed or any playback function is called.  What the entry is
+// is asked of the table's real default function (campaign_play_entity_sound_is_default, an entity type outside the table is not default), never of another entry; a non-default entry that the table merely holds
+// (for instance the sound effect type's own) is legal, only a live request through this route is unsupported.  The original game's build keeps the range and the call below.
 //
 
 static void play_resumed_parent_sound (entity *en)
@@ -185,24 +191,17 @@ static void play_resumed_parent_sound (entity *en)
 	}
 	else
 	{
-		vec3d
-			*position;
+		int
+			type;
 
-		viewpoint
-			*vp;
+		type = get_local_entity_type (en);
 
-		float
-			range;
+		if (!campaign_play_entity_sound_is_default (type))
+		{
+			debug_fatal ("host environment: [env-play:unsupported_live_playback] entity_type=%d entity_index=%d: the playback dispatch entry of the resumed parent is not the default no-op; live playback from a resumed parent is not supported (no range was computed and no playback function was called)", type, (int) get_local_entity_index (en));
+		}
 
-		vp = &main_vp;
-
-		position = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
-
-		range = get_approx_3d_range (&vp->position, position);
-
-		ENV_FXP (ENV_FXP_PLAY, en, 0, ENV_FXF (range))
-
-		play_local_entity_sound (en, vp, range);
+		ENV_FXP (ENV_FXP_ELIDED, en, 0)
 	}
 }
 
@@ -236,8 +235,8 @@ int resume_local_entity_sound_type (entity *en, entity_sub_types type)
 				//
 				// EECH_CAMPAIGN_HOST_ENV (EEDCS-51, D3): whether this effect is resumed, what that does to its validity, whether its parent is asked to play and whether it is put back in the update list,
 				// and whether it counts, are the HOST's (aphavoc/source/entity/special/session/ss_hostenv.h SOUND_PAUSE_RESUME).  The walk of the children and the sub type match stay the campaign's, and so
-				// does HOW the parent plays (the session's default no-op, or a range and a per-family function: the original's calls, made only when the host asks).  The answer is checked whole, then applied
-				// in the original order: the validity, the playback request, the relink, the count.  The original follows in the #else, for the original game's build only.
+				// does HOW the parent is asked to play (play_resumed_parent_sound above: the session's default no-op; any other parent only while its dispatch entry is the default no-op, else a named stop).
+				// The answer is checked whole, then applied in the original order: the validity, the playback request, the relink, the count.  The original follows in the #else, for the original game's build only.
 				//
 
 				{

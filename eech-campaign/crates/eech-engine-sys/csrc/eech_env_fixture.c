@@ -3733,7 +3733,13 @@ static int env_rotor_case (int index, char *text, int capacity, int *used)
    and does nothing else; the saved entries are put back on the one path out, and their restoration is reported). It is the meaningful red of the characterisation: the census inside it and the probe's calls must
    identify a LIVE non-default consumer, not a setup error. It exists in this fixture only.
 
-   The report is staged in a bounded local buffer and copied out after everything is restored; the case refuses BEFORE any change if the caller's buffer cannot hold it. */
+   The report is staged in a bounded local buffer and copied out after everything is restored; the case refuses BEFORE any change if the caller's buffer cannot hold it.
+
+   THE CANDIDATE (probe protocol version 2; the cases above are unchanged C). soundeff.c play_resumed_parent_sound no longer computes the range or calls the entry when the parent's entry is the table's default no-op: it
+   elides the request (the probe's `env-play-elided` row, counted in the same total, so a step's `calls` is its number of elided requests and carries no range), and for a parent whose entry is NOT that default it stops the
+   engine by name ([env-play:unsupported_live_playback]) before any range or playback call. So case 19 runs as before with elided requests, and case 20, whose recording function makes the fixed-wing and helicopter
+   entries non-default, ends at the FIRST request in the engine's fatal handler: the engine is poisoned, nothing is restored (the case is process-isolated) and no report text comes back; that fatal message is the
+   evidence, and a report that DID come back would mean the unsupported boundary was not reached. The recording function is therefore never given a call by a supported candidate. */
 
 #define ENV_PLAY_CENSUS_CASE 18
 #define ENV_PLAY_RUN_CASE 19

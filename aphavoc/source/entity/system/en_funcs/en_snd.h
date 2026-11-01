@@ -88,6 +88,17 @@ extern void (*fn_play_local_entity_sound[NUM_ENTITY_TYPES]) (entity *en, viewpoi
 
 extern void initialise_entity_sound_default_functions (void);
 
+#ifdef EECH_CAMPAIGN_HOST_ENV
+
+//
+// EECH_CAMPAIGN_HOST_ENV (EEDCS-51, D3): whether the playback dispatch entry of an entity type is, now, the table's own default no-op (en_snd.c default_play_entity_sound).  The question is asked of the
+// real function the table holds, not of another entry and not of a flag: an entity type outside the table is not default.  The original game's build does not have it.
+//
+
+extern int campaign_play_entity_sound_is_default (int entity_type);
+
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
