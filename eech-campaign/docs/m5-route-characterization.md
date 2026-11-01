@@ -59,7 +59,7 @@ A report that does not fit its buffer is refused (never cut short).
 **Route identity is the caller's context, not an inference.** The first real captures showed that the earlier rule (the scene and kind of the lookups that returned the parse's raw
 number, accepted only if exactly one) cannot work: several keys legitimately share one model, so a raw number does not name a key. The observer therefore records the ACTUAL parser
 caller's context. At every original parse call site popread holds the route entry it selected (the result of its own `get_airfield_waypoint_route_object` for a scene and kind) and has
-just taken the raw number it passes from it (`raw_object_index = <entry>->index;`, 26 sites, or the inline `route->index` of the two troop-route calls). Patch R8 hands the fixture
+just taken the raw number it passes from it (`raw_object_index = <entry>->index;`, 26 sites, or the inline `route->index` of the two troop-route calls, where `route->index` is evaluated once as the argument of a private identity-returning helper, `eech_rf_caller_index`, whose result is the parser's argument). Patch R8 hands the fixture
 that entry and number at each of those places (a block-local `eech_rf_caller (entry, number)`); R7a/R7b also hand it the entry each lookup returned, kept as a private comparison
 token that is never reported. The next `eech_rf_begin` consumes the context and looks the entry up among the lookups' entries, which gives the (scene, kind) THE CALLER CHOSE; keys that
 share a model have separate entries and are each `unique`. Nothing is recomputed, no original statement, argument, order or value changes, and the raw number remains diagnostic

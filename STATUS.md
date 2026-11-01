@@ -1,3 +1,18 @@
+# D3 route observer: one narrow source correction, the two troop sites evaluate the selected index once (1 November 2026): SOURCE ONLY, NOT BUILT, NOT RUN
+
+Base `c12551440`. Independent review `independent-model-route-caller-context-source-c12551440-20261101.json` (SHA256 `4af77d36a3647a2de911b13fd3a4d6adc0b2cd1499a19a54dbfe2f590a13de48`, re-hashed) found ONE P2, ENV-ROUTE-CONTEXT-1: the staged patch R8 for the two inline troop-route
+sites (`popread.c` lines 4410 and 4491) recorded `route->index` and then the original parser argument read `route->index` again. Corrected: the staged replacement now reads `parse_waypoint_routes_from_object ( eech_rf_caller_index ( route, route->index ), 0, NULL );`,
+so `route->index` is evaluated once, as the argument of a private helper that registers the caller context and returns exactly that integer as the parser's argument. The helper (`eech_rf_caller_index`, declared in `eech_route_hooks.h`,
+defined in `eech_route_fixture.c`) is three lines and calls the existing `eech_rf_caller`; no query, no getter, no macro, no second evaluation. The 26 straight-through assignment sites, the identity / key / count / refusal logic, the protocol
+and the IO groups are untouched; the staged anchors and counts (2 for the troop sites) are unchanged; the reviewer verified that the entry token is a persistent scene-database entry that distinguishes keys sharing one model. Static diff
+checks only: nothing was compiled, built or run in this batch (the canonical Linux and Windows builds of `c12551440` were running and were left alone).
+
+Identities, unchanged and precise: the first real original captures (`d10dd8cc0`) are FAILED PARTIAL originals, Georgia 704 calls (430 unique, 274 ambiguous) and Lebanon 528 calls (394 unique, 134 ambiguous), failing completeness solely on the
+ambiguous reverse identity, with all four input checks 0 and 57 payloads unchanged; they are not complete originals, and no complete original capture exists. Separately (the Root's report, not a result of this fix): a new ordinary 0.001-hour
+Lebanon run by the `d10` route-observer build completed with exit 0 and all three COMPLETE short files (Tacview 230871 B, observations 1553674 B, metrics 7477 B) are literally equal to the retained `80fd` originals; no baseline was re-run,
+this is bounded visible-effects evidence only, not the full 40 / all 8 pack and not a transparency result for `c12551440`. Task51 original shipping (`78fe5efdb`) is untouched, live and immutable (partial prefixes exact). No physical model loading
+or decoded route data has moved; whole D3 stays required (Task49 object / tree collision, Task50 model service and readers, hierarchy, viewpoint, device, muzzle, target-point); Task50 and D3 remain In Progress; D4/D5 not started.
+
 # D3 route observer: first real captures FAILED on identity; caller-context fix prepared (1 November 2026): SOURCE + LOCAL DRIVER CHECKS ONLY, NOT RUN AGAINST ANY ENGINE
 
 Base `2ec202036`. FACTS of the first real original captures (source `d10dd8cc0`, Windows; private audit `model-original-route-first-incomplete-d10dd8cc0-20261101.json`; the raw JSONL and its hashes stay private and are never

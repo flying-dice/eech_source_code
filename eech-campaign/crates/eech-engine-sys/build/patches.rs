@@ -656,9 +656,9 @@ pub const ROUTE_FIXTURE_PATCHES: &[Patch] = &[
     Patch {
         file: "aphavoc/source/ai/faction/popread.c",
         id: "R8-caller-troop-routes",
-        why: "the troop landing and take-off routes are parsed straight from the entry the caller holds in `route`",
+        why: "the troop landing and take-off routes are parsed straight from the entry the caller holds in `route`: `route->index` is evaluated once, as the helper's argument, and the helper returns that same value as the parser's argument",
         original: "parse_waypoint_routes_from_object ( route->index, 0, NULL );\n",
-        replacement: "{\n\t\t\t\t\textern void eech_rf_caller ( const void *entry, int raw_object_index ); /* EECH route fixture (R8) */\n\t\t\t\t\teech_rf_caller ( route, route->index );\n\t\t\t\t}\n\t\t\t\tparse_waypoint_routes_from_object ( route->index, 0, NULL );\n",
+        replacement: "{\n\t\t\t\t\textern int eech_rf_caller_index ( const void *entry, int raw_object_index ); /* EECH route fixture (R8) */\n\t\t\t\t\tparse_waypoint_routes_from_object ( eech_rf_caller_index ( route, route->index ), 0, NULL );\n\t\t\t\t}\n",
         count: 2,
     },
 ];

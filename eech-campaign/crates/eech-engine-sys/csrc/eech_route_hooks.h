@@ -18,6 +18,10 @@ extern void eech_rf_lookup (int scene, int kind, int found, int legacy_object, c
    which is the argument the parse will receive. The next eech_rf_begin consumes it. */
 extern void eech_rf_caller (const void *entry, int raw_object_index);
 
+/* the same, for the two troop-route calls that pass the entry's number inline: the call site evaluates `route->index` ONCE, as this function's argument, and uses the value returned here
+   (exactly that argument, unchanged) as the parse's argument */
+extern int eech_rf_caller_index (const void *entry, int raw_object_index);
+
 /* parse_waypoint_routes_from_object begins: its arguments (`slots` is number_of_slots vec3d, or NULL) and the raw object it is about to read (struct OBJECT_3D) */
 extern void eech_rf_begin (int object_index, int number_of_slots, const void *slots, const void *object);
 

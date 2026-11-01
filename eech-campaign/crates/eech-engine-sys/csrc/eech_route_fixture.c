@@ -182,6 +182,12 @@ void eech_rf_caller (const void *entry, int raw_object_index)
 	rf_have_pending = 1;
 }
 
+int eech_rf_caller_index (const void *entry, int raw_object_index)
+{
+	eech_rf_caller (entry, raw_object_index);
+	return raw_object_index;
+}
+
 void eech_rf_begin (int object_index, int number_of_slots, const void *slots, const void *object)
 {
 	const struct OBJECT_3D *raw = (const struct OBJECT_3D *) object;
