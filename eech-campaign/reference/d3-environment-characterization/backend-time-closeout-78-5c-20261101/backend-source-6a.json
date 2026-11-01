@@ -1,0 +1,94 @@
+{
+  "review": "Independent sound-backend detachment source review",
+  "created_utc": "2026-11-01T16:05:59.524590+00:00",
+  "source": {
+    "head": "6a72036984a793c9cf7c7520cb9a65747527a87a",
+    "base": "2e2fd548a9a71e32bc2931b7bc4ea96b49492601",
+    "frozen": "D:\\EECH-Migration-Evidence\\nb-6a7203698",
+    "clean": true,
+    "diff_sha256": "f4d295b4aed294fce9c96bc4b60fb6d5d9ae719b37683f03352b4a9ff0ab01ed",
+    "changed_files": [
+      {
+        "path": "STATUS.md",
+        "git_blob_sha256": "6c0adf8b54549b0de75adbc0d90313a27938d58843a1de6ab31725f67707b9aa"
+      },
+      {
+        "path": "aphavoc/source/appsound/snd_nobackend.c",
+        "git_blob_sha256": "371f08ef69855a9f8dcc95b397448ff481bba73c488881d7e6d0a3875dd3ce04"
+      },
+      {
+        "path": "aphavoc/source/entity/special/session/ss_hostenv.c",
+        "git_blob_sha256": "78836c8cd5b9a335778670129f2179597b1c2006a53ee38d9bf481fc05201919"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c",
+        "git_blob_sha256": "b107d9a6d997fed92c79f5836c1c0f6278fb73a6a73eb17e69e8cd9944b82831"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/sources.txt",
+        "git_blob_sha256": "5ebd33a9c223a1e20663a1f7537ec55e7bab772e83f112ba007683b7dab0e883"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-sound-native-guard.lua",
+        "git_blob_sha256": "2662a2f6fa9da0621a1247c2cf7154e907eee7b0ccf9773d43342c83ccf169ac"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_sound_native_guard.rs",
+        "git_blob_sha256": "13135f5fd532268de5ddd06fdad09616804e140d9898bb020aed5f29897508ce"
+      },
+      {
+        "path": "eech-campaign/docs/d3-sound-lifetime.md",
+        "git_blob_sha256": "c09aa41fccf06eaaada20a829941e513274d138b2b6a196e35f4db040419f8da"
+      }
+    ],
+    "removed_build_sources": [
+      "modules/sound/dirsound.c",
+      "modules/sound/dsound.c",
+      "modules/sound/dsound3d.c",
+      "modules/sound/soundhlp.c",
+      "modules/sound/soundman.c"
+    ],
+    "added_build_sources": [
+      "aphavoc/source/appsound/snd_nobackend.c"
+    ],
+    "engine_nul_offsets": [
+      40800
+    ]
+  },
+  "scope": "One combined new eight-path correctness, clean-code, boundary, fixture-memory and witness pass. Accepted e128 original controls and previous physical/source/FP/metadata/backend/parent/time reviews reused; no old corpus rerun or new tests/builds/native executions by reviewer.",
+  "findings": [
+    {
+      "id": "ENV-SOUND-DETACH-1",
+      "priority": "P1",
+      "title": "Guard the unsupported hosted SoundEffect playback request before its remaining physical mixer",
+      "locations": [
+        "aphavoc/source/entity/special/effect/soundeff/se_snd.c:140",
+        "aphavoc/source/entity/special/effect/soundeff/se_snd.c:252",
+        "aphavoc/source/entity/special/effect/soundeff/se_snd.c:322",
+        "aphavoc/source/entity/special/effect/soundeff/se_snd.c:531",
+        "aphavoc/source/appsound/snd_nobackend.c:156",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c:3692"
+      ],
+      "evidence": "Removing the five modules/sound implementations and refusing set_system_sound_effect_volume is not yet a guard of the physical playback responsibility. The unchanged SoundEffect dispatch body computes sound-range attenuation, amplification, channel/canopy/interior mixing and integer volume before reaching that adapter. The radio-noise branch can also consume frand1 before a refusal. New public fixture case24 intentionally reaches this real dispatch and therefore still executes physical mixing in Core before its expected named stop. Empty constructors do not avoid this work when a playback request is made; the physical computation is before the NULL/create boundary too.",
+      "reachability_boundary": "Current supported production boot/frame without a handle is bounded by source: reference sound backend false keeps application_sound_system_enabled false, scan returns before listener/range work, resumed SESSION dispatch is the default no-op, and non-default nonSESSION resumed parents are already guarded before range/dispatch. This does not prove global dormancy, and the supported public env_case dispatch is an explicit live route. en_snd scanning, if the unavailable application flag were true, reaches the new listener refusal before its range loops; stopping sees the declared empty backend handle set.",
+      "required_correction": "Add one meaningful hosted playback-entry disposition before range/mixing/physical-input queries or entropy consumption: the unsupported SoundEffect playback request must stop by name there, or be otherwise explicitly elided only where its request is proved empty. Keep Core policy gates as appropriate and preserve the original-game physical implementation under its classic branch. Do not migrate every unreachable UI routine or add a new audio service/fixture fleet. Update the candidate witness/prose so a downstream device refusal is not used as evidence that the physical mixer left Core.",
+      "scope": "One remaining physical-responsibility boundary finding, not a new memory error or a request to change the accepted host acoustic arithmetic."
+    }
+  ],
+  "source_review_no_blocking_findings": false,
+  "bounded_clear_facts": [
+    "sources.txt replaces exactly the five listed modules/sound C sources with snd_nobackend.c. The original backend files are unchanged; actual object/archive/link absence remains an execution gate.",
+    "The no-backend API preserves supported uninitialised results: creators and first handle NULL, initialisation/devices false, no deinitialisation work, false paused flag. pause_sound_system and continue_sound_system preserve the unconditional pause_music/unpause_music calls; those remain Core music policy/entity helpers with their existing option gates.",
+    "The new handle refusal functions do not dereference caller pointers, operate a buffer or mutate a record. Sample/listener/table operations explicitly refuse. is_source_sound_sample_valid now gives false for an empty backend; this is not a successful positive sample-store query, and the original no-store index access was not a supported exercised path.",
+    "Application sample loaders remain compiled in snd_data.c. Their application_sound_system_enabled/command-line gates are false in the supported current backend contract; main loading would stop at allocation before side loading. A direct side-loader body would perform file/header work if that unavailable flag became true, so the declaration of false availability is a bounded restriction, not removal of every loader or proof of global unreachable code. No live file/device operation is performed by the new adapter.",
+    "The added has_handle kill/unlink refusal follows whole host-answer validation and precedes lifetime/countdown/action writes and caller unlink/kill/destroy consequences. The existing valid-expiry need_playing refusal remains separate. The host lifetime operation is unchanged/stateless.",
+    "Fixture-owned typed static record storage replaces the removed backend array. Its address is valid through fatal poison; normal cleanup releases only that test-owned NULL-buffer record via its own helper and then zeroes/readbacks it. Historical original2e records/drivers retain their identity; candidate cases do not claim postfatal cleanup or restoration.",
+    "New guard accepts only the known first-line engine-fatal prefix followed by the named native-handle tag once, rejects reports/refused setup/other tags, writes the full private diagnostic before classification and makes no further Engine calls after poison. Both exclusive outputs have checked write/flush and normal success close handling; close failures fail the process even if result was already emitted.",
+    "New two scripted guard groups have coherent positives for both cases, finite wrong-prefix/duplicate/normal-report/output-failure forms and absent-only var_os test-driver selection. These are protocol guards, not actual C refusal or physical-removal proof."
+  ],
+  "execution_status": "Source only in this review. Root has launched named canonical builds/guards/default-Core archive/link checks; no terminal outcomes were supplied for this head at review time, and no candidate native campaign result is inferred.",
+  "limits": [
+    "Source gate remains false for ENV-SOUND-DETACH-1. No production backend-detachment actual closure, successful file/device/audio/playing-buffer support, full caller FP/RNG, all-family/global dormancy, shipping/Tacview, normal delivery or whole Task51/D3 acceptance. Tasks49/50/time/remaining mapping/services stay open.",
+    "No raw allocation indices or positions are reproduced. Private fatal/case raws require separately reviewed publication projection."
+  ]
+}
