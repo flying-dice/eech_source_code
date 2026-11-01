@@ -17,6 +17,9 @@
 //
 // The handle pointer and layout stay private: no function here reads or writes one.  This file adds no physical simulation and no second backend.
 //
+// These refusals are the last BACKSTOP, not the evidence that the physical mixer left the Core: a caller that computes physical state before it reaches the adapter has not left it.  The hosted SoundEffect
+// playback request (se_snd.c play_local_sound) is therefore decided at its own entry, before its range, volume and entropy work, with the same handle name.
+//
 
 #include "project.h"
 

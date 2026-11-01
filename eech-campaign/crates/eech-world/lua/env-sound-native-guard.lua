@@ -4,7 +4,9 @@
 -- WHAT CHANGED IN THE ENGINE (the candidate native, not this file). The Core no longer contains the legacy sound backend (modules/sound: soundman.c, dsound.c, dirsound.c, dsound3d.c, soundhlp.c). appsound/snd_nobackend.c gives the
 -- no-backend answers the legacy code already handled (initialisation and the device list fail, a create gives NULL, the handle set is empty) and REFUSES BY NAME every request that would ask a native handle, the listener or the
 -- sample store to do something: "[env-sound:unsupported_native_handle]" (a handle) or "[env-sound:unsupported_native_backend]" (samples, listener, handle table), before any native query, playback, destruction or state
--- change; and the lifetime wrapper (ss_hostenv.c) refuses the host's kill or unlink decision for an effect that holds a handle, before it writes, kills, unlinks or destroys, with the same handle tag.
+-- change; and the lifetime wrapper (ss_hostenv.c) refuses the host's kill or unlink decision for an effect that holds a handle, before it writes, kills, unlinks or destroys, with the same handle tag. The hosted
+-- SoundEffect playback entry (se_snd.c play_local_sound) refuses an effect that holds a handle with the same tag after the Core option and locality gates and BEFORE the range, amplification, channel, canopy and
+-- interior mixing and the radio-noise entropy (that physical mixer is compiled only for the original game), so case 24 stops at that ENTRY, earlier than any handle operation of the adapter.
 --
 -- WHAT THIS DRIVER ASKS. It runs ONE of the fixture's existing cases 23 and 24 (csrc/eech_env_fixture.c env_snd_route_case: the test-owned typed static record with no device, the real pause and the real server routine for 23,
 -- the real play dispatch for 24) once, through the real public host Lua path (Engine env_case), and accepts exactly ONE outcome: the engine's own fatal error whose FIRST LINE is, at its start, the one known shape of the
@@ -130,7 +132,7 @@ end
 if string.find (message, MARKER, #WRAPPER + #MARKER + 1, true) ~= nil then hard ("the stop names " .. MARKER .. " more than once (the whole text is in the private raw)") end
 -- NOTHING more is asked of the engine: it is poisoned, so no census, report, restoration or receiver check follows
 emit { event = "expected_refusal", case = case, label = LABELS [case], boundary = "unsupported_native_handle", engine_continued = false,
-	note = "the engine stopped in its fatal handler at the first native handle request of the handle-holding effect; nothing was queried, censused, restored or released after it, and no result of the campaign continuing is claimed" }
+	note = "the engine stopped in its fatal handler at the first native handle request of the handle-holding effect (case 24: the entry of the hosted playback request, before its mixing); nothing was queried, censused, restored or released after it, and no result of the campaign continuing is claimed" }
 emit { event = "result", case = case, outcome = "expected_named_refusal" }
 
 -- BOTH evidence files are closed here, the private raw first so that a failure to close it can still be written to the JSON; every close is attempted, every failure is reported and the run then fails closed
