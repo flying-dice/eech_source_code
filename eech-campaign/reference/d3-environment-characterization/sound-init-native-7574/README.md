@@ -81,3 +81,19 @@ records both original-file and committed-text hashes and each exact transform.
 This concerns receipt serialization only: all measured native/raw/recording
 files and accepted baselines remain unchanged. The canonical source review is
 LF already and its published bytes remain identical.
+
+## Independent actual review closed
+
+The canonical LF report `independent-final-actual-review.json` (SHA256
+`5d96cd8b7519aed751fe75ff15ea468da2e89f99c60cac2be090f55a9206fc35`)
+has no findings and closes only the measured ORIGINAL initialization/data
+characterization. It is bound to physical/native7574 and reviewed publicatione4.
+This follow-up adds that exact report, the reviewed source map and this scope
+closure; it does not change the native or imply Task51/D3/shipping acceptance.
+The audit required independent review at creation; that requirement is now
+fulfilled for this finite scope. Metadata/backend ownership remains Core.
+
+The first planned handoff is init-time rate/original-rate/size and header lookup,
+with campaign sound choices and availability policy kept in Core. A valid
+header-present original boot case is being prepared before moving that path;
+no production refusal or accepted baseline change is introduced for it.
