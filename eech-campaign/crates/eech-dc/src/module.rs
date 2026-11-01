@@ -3794,7 +3794,7 @@ mod tests {
                return { result = 'end' }
              end",
         )?;
-        let node = |index: i32| ask(&mut provider, ModelQuery::RouteNode { scene: 5, kind: 76, index });
+        let mut node = |index: i32| ask(&mut provider, ModelQuery::RouteNode { scene: 5, kind: 76, index });
         let refused = node(0).err().ok_or("accepted")?;
         assert!(
             refused.contains("[model-provider:route_node.refused]") && refused.contains("no such model"),
@@ -3808,7 +3808,7 @@ mod tests {
         assert!(nul.contains("[model-provider:route_node.answer]"), "{nul}");
         let unnamed = node(6).err().ok_or("accepted")?;
         assert!(unnamed.contains("[model-provider:route_node.answer]"), "{unnamed}");
-        let face = |index: i32| ask(&mut provider, ModelQuery::RouteFace { scene: 5, kind: 76, index });
+        let mut face = |index: i32| ask(&mut provider, ModelQuery::RouteFace { scene: 5, kind: 76, index });
         for cursor in [2, 3] {
             let error = face(cursor).err().ok_or("accepted")?;
             assert!(error.contains("[model-provider:route_face.answer]"), "cursor {cursor}: {error}");

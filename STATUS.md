@@ -6,6 +6,19 @@ The first production route-data move is prepared/pushed at `66dc2e8a237a46f92003
 
 Task51 ordinary source78 shipping continues on its original immutable snapshot without restart; fifth check around19:40 UTC finds all four available recording/observation prefixes exact (24,733,777/15,499,264/24,676,439/15,089,664 bytes), PARTIAL only. Actual full40/all8/post-input/final review/current checks/normal delivery remain pending. Ledger117 preserves prior authored HTML and all five epic reports; Jira50comment10937 records the closed original gate and extraction start. Task49/50/51 and wholeD3 remain In Progress; D4/D5 are unstarted. No accepted baseline, tolerance, oracle or flag changed. Historical checkpoint sections below retain their original scope and identities.
 
+# D3 route extraction: two test-compile errors in `eech-dc` corrected (1 November 2026): TEST-ONLY SOURCE FIX, NOT BUILT, NOT RUN
+
+Actual facts (Root, `8b4562edb`): the canonical Windows HOST route-fixture compiled with exit 0 (19:49:12.196366Z); the first Linux default package compile stopped with exit 101 at 19:50:10.762454Z
+with exactly two Rust test-compile errors in `eech-campaign/crates/eech-dc/src/module.rs` (log `model-host-route-8b4562edb-linux-20261101.log`): E0596 at line 3797 (`node`) and 3811 (`face`), the two
+closures of my new bridge test `a_route_answer_that_is_malformed_refused_or_of_the_wrong_kind_stops_with_its_marker` capture `provider` mutably and were not declared `mut`. My earlier focused checks
+built only `eech-world`, so these tests had never been compiled; that limit was stated and is now an actual failure.
+
+Correction (this commit; `module.rs` and this file only): `let node` -> `let mut node` and `let face` -> `let mut face`. Both lines are inside `mod tests` (from line 3158), so the source before
+`#[cfg(test)]` is literally identical; no assertion, oracle, production bridge, provider, C, patch, kernel or cfg flag changed. Static diff check only: nothing was compiled or run here, and no cache was used.
+The canonical Linux rerun is the Root's; whether the rest of the `eech-dc` / `eech-engine` tests then compile and pass is not known. The Root's candidate Georgia / Lebanon native controls on the immutable
+`8b4562edb` Windows build are not touched or restarted by this fix, and no original capture is rerun. The route extraction itself stays unaccepted: whole D3 (the loader detachment, hierarchy, viewpoint,
+device, muzzle, target-point work; Task49 owns collision) remains required. Root's section above and the historical sections below are unchanged.
+
 # D3 first production extraction: the host owns the airfield route data (1 November 2026): SOURCE, FOCUSED HOST-CRATE CHECKS ONLY; ENGINE C / PATCHES NOT BUILT, NOT RUN
 
 Base `fce1f1dfa` (the original route characterisation is closed; this batch repeats none of it). The campaign's airfield route parser no longer decodes routes from the DLL's own model arrays:
