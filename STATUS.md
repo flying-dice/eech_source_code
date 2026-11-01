@@ -8,7 +8,8 @@ case12; newhealthy2requests/exactcase12; alteredpause timer3s and alteredresume
 valid-but-unlinked real state; three named engine_failure/noresult refusals.
 All44pre/postinputs0, old56/new61payloads and driver/wrapper identities pass.
 Safe metadata: reference/d3-environment-characterization/sound-host-pause-native-82234/.
-NEW independent actual/auditor/publication review is pending; noTask51fullshipping,
+NEW independent actual/auditor/publication review e2e34e6d has no findings and
+closes only the measured SESSION host-pause slice; noTask51fullshipping,
 Tacview/normaldelivery orwholeD3acceptance. GroundTask48Done/PR108normal3fd.
 Requiredbackend/metadata/assets/perfamily/non-session/destroy/network/pitch/
 amplitude/time andterrain-spatial-model stayD3; campaign policy/calendar/timers/
