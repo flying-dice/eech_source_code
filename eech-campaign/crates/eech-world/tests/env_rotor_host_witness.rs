@@ -698,11 +698,118 @@ mod trap {
     }
 }
 
+/// A private, child-only observer of the floating-point divide-by-zero exception on Windows and under Wine. Under Wine the hardware exception reaches the unhandled-exception debugger (winedbg), which itself crashes, so
+/// the parent sees 0xC0000354 instead of the exception's own status (the a17fe6562 / 73ffddc3a CI). The observer is a vectored exception handler, installed first so that it sees the exception BEFORE any debugger: it reads
+/// the real exception record and acts ONLY for STATUS_FLOAT_DIVIDE_BY_ZERO (0xC000008E), for which it writes one unmistakable line to the child's stderr and ends the process with that very status. Every other exception
+/// is passed on untouched (the child then fails as before), so an unexpected exception, a debugger failure or a substring in a log is never taken for the observation. It does nothing in the parent, is removed (checked)
+/// when the child's work is done, changes no exception policy of the engine or the host, and masks nothing.
+#[cfg(windows)]
+mod observer {
+    use std::ffi::c_void;
+
+    /// EXCEPTION_RECORD (winnt.h); only the code is read (the other fields exist for the layout).
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct ExceptionRecord {
+        exception_code: u32,
+        exception_flags: u32,
+        exception_record: *mut ExceptionRecord,
+        exception_address: *mut c_void,
+        number_parameters: u32,
+        exception_information: [usize; 15],
+    }
+
+    /// EXCEPTION_POINTERS (winnt.h); the context record exists for the layout.
+    #[allow(dead_code)]
+    #[repr(C)]
+    struct ExceptionPointers {
+        exception_record: *mut ExceptionRecord,
+        context_record: *mut c_void,
+    }
+
+    type Handler = unsafe extern "system" fn(*mut ExceptionPointers) -> i32;
+
+    #[link(name = "kernel32")]
+    extern "system" {
+        fn AddVectoredExceptionHandler(first: u32, handler: Handler) -> *mut c_void;
+        fn RemoveVectoredExceptionHandler(handle: *mut c_void) -> u32;
+        fn GetStdHandle(which: u32) -> *mut c_void;
+        fn WriteFile(file: *mut c_void, buffer: *const u8, length: u32, written: *mut u32, overlapped: *mut c_void) -> i32;
+        fn GetCurrentProcess() -> *mut c_void;
+        fn TerminateProcess(process: *mut c_void, code: u32) -> i32;
+    }
+
+    const STATUS_FLOAT_DIVIDE_BY_ZERO: u32 = 0xC000_008E;
+    const STD_ERROR_HANDLE: u32 = -12i32 as u32;
+    const EXCEPTION_CONTINUE_SEARCH: i32 = 0;
+    /// the line the observer writes, and the parent requires exactly once
+    pub const OBSERVATION: &str = "EECH_ROTOR_TRAP_OBSERVED_STATUS_FLOAT_DIVIDE_BY_ZERO";
+    /// the same line as bytes with its newline (a constant: nothing is formatted or allocated inside the handler)
+    const NOTE: &[u8] = b"EECH_ROTOR_TRAP_OBSERVED_STATUS_FLOAT_DIVIDE_BY_ZERO\n";
+
+    unsafe extern "system" fn observe(pointers: *mut ExceptionPointers) -> i32 {
+        // SAFETY: the system passes valid EXCEPTION_POINTERS and EXCEPTION_RECORD pointers to a handler; they are only read here.
+        let code = unsafe {
+            pointers
+                .as_ref()
+                .and_then(|pointers| pointers.exception_record.as_ref())
+                .map(|record| record.exception_code)
+        };
+        if code == Some(STATUS_FLOAT_DIVIDE_BY_ZERO) {
+            let mut written = 0u32;
+            // SAFETY: plain Win32 calls on this process's own standard error and process handle; nothing here computes in floating point.
+            unsafe {
+                WriteFile(
+                    GetStdHandle(STD_ERROR_HANDLE),
+                    NOTE.as_ptr(),
+                    NOTE.len() as u32,
+                    &mut written,
+                    std::ptr::null_mut(),
+                );
+                TerminateProcess(GetCurrentProcess(), STATUS_FLOAT_DIVIDE_BY_ZERO);
+            }
+        }
+        EXCEPTION_CONTINUE_SEARCH
+    }
+
+    pub struct Observer(*mut c_void);
+
+    /// Installs the observer first in line; a failure to install is a failure of the child.
+    pub fn install() -> Observer {
+        // SAFETY: registers a handler of the signature the system calls; the handle is checked.
+        let handle = unsafe { AddVectoredExceptionHandler(1, observe) };
+        assert!(!handle.is_null(), "the vectored exception handler could not be installed");
+        Observer(handle)
+    }
+
+    impl Observer {
+        /// Removes the observer; the removal is checked.
+        pub fn remove(mut self) {
+            let handle = std::mem::replace(&mut self.0, std::ptr::null_mut());
+            // SAFETY: removes the handle returned by the install.
+            let removed = unsafe { RemoveVectoredExceptionHandler(handle) };
+            assert!(removed != 0, "the vectored exception handler could not be removed");
+        }
+    }
+
+    impl Drop for Observer {
+        fn drop(&mut self) {
+            if !self.0.is_null() {
+                // SAFETY: removes the handle returned by the install (best effort on an unwinding path).
+                unsafe { RemoveVectoredExceptionHandler(self.0) };
+            }
+        }
+    }
+}
+
 /// The child half. It does nothing unless the parent sets `EECH_ROTOR_TRAP_CHILD` (`witness` or `control`) and prints a sentinel on success, which the parent requires, so a filtered-out or skipped child cannot pass.
 #[test]
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 fn fp_trap_child() {
     let Ok(mode) = std::env::var("EECH_ROTOR_TRAP_CHILD") else { return };
+    // Windows and Wine: see the exception before any debugger does (child only; removed below)
+    #[cfg(windows)]
+    let exception_observer = observer::install();
     let before = trap::Controls::read();
     match mode.as_str() {
         "control" => {
@@ -746,6 +853,8 @@ fn fp_trap_child() {
         }
         other => panic!("unknown EECH_ROTOR_TRAP_CHILD mode {other}"),
     }
+    #[cfg(windows)]
+    exception_observer.remove();
     // the controls come back exactly as the child found them (the sticky flags excepted)
     assert_eq!(
         trap::Controls::read().control_bits(),
@@ -764,7 +873,6 @@ struct Child {
 /// Runs `fp_trap_child` in a child process of this test binary, at most two minutes.
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 fn run_child(mode: &str) -> Child {
-    use std::io::Read;
     use std::process::{Command, Stdio};
     use std::time::{Duration, Instant};
 
@@ -799,21 +907,22 @@ fn run_child(mode: &str) -> Child {
     Child { status, stdout, stderr }
 }
 
-/// Whether the child ended of a floating-point divide by zero: SIGFPE on Linux, STATUS_FLOAT_DIVIDE_BY_ZERO (0xC000008E) on Windows.
+/// Whether the child ended of a floating-point divide by zero: SIGFPE on Linux; on Windows and under Wine STATUS_FLOAT_DIVIDE_BY_ZERO (0xC000008E) AND the child's own observer line (written only on seeing that very
+/// exception record), exactly once. The status alone is not accepted (a debugger can end a child with another status, and another status cannot be remapped), nor is the line alone.
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-fn died_of_divide_by_zero(status: &std::process::ExitStatus) -> bool {
+fn died_of_divide_by_zero(child: &Child) -> bool {
     #[cfg(unix)]
     {
         use std::os::unix::process::ExitStatusExt;
-        status.signal() == Some(8)
+        child.status.signal() == Some(8)
     }
     #[cfg(windows)]
     {
-        status.code().map(|code| code as u32) == Some(0xC000_008E)
+        child.status.code().map(|code| code as u32) == Some(0xC000_008E) && child.stderr.matches(observer::OBSERVATION).count() == 1
     }
     #[cfg(not(any(unix, windows)))]
     {
-        let _ = status;
+        let _ = child;
         false
     }
 }
@@ -822,7 +931,7 @@ fn died_of_divide_by_zero(status: &std::process::ExitStatus) -> bool {
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 fn the_witness_survives_enabled_divide_by_zero_traps_in_an_isolated_process() {
     let child = run_child("witness");
-    if died_of_divide_by_zero(&child.status) {
+    if died_of_divide_by_zero(&child) {
         panic!(
             "the witness executed a floating-point divide by zero with the exception enabled (the native host's policy) and the child died of it: {:?}\n{}\n{}",
             child.status, child.stdout, child.stderr
@@ -850,8 +959,8 @@ fn the_witness_survives_enabled_divide_by_zero_traps_in_an_isolated_process() {
 fn the_trap_control_really_kills_a_child_that_divides_by_zero_so_the_guard_cannot_pass_silently() {
     let child = run_child("control");
     assert!(
-        died_of_divide_by_zero(&child.status),
-        "the child that divides by zero with the exception enabled was not killed by the trap, so the guard above proves nothing on this platform: {:?}\n{}\n{}",
+        died_of_divide_by_zero(&child),
+        "the child that divides by zero with the exception enabled was not observed to die of the floating-point divide by zero (on Windows and under Wine: the status 0xC000008E and the child's own observation line), so the guard above proves nothing on this platform: {:?}\n{}\n{}",
         child.status,
         child.stdout,
         child.stderr

@@ -1434,15 +1434,16 @@ fn call_environment(lua: &Lua, bridge: &LuaFunction, request: &EnvRequest) -> Re
                 .collect::<Option<Vec<f64>>>()
                 .ok_or_else(|| format!("[env-provider:{answer}] the answer's numbers are malformed"))?;
             let fixed = 2 + 3 * EECH_ROTOR_CHANNELS;
-            if n.len() < fixed {
+            // the status, the channel triples, the count and the request triples, taken by structure: the whole length and the count are checked before anything is written
+            let (Some(channel_numbers), Some(&count_number), Some(request_numbers)) = (n.get(1..fixed - 1), n.get(fixed - 1), n.get(fixed..)) else {
                 return Err(format!("[env-provider:{answer}] the answer's numbers are too few"));
-            }
-            let count = env_i32(n[fixed - 1], &answer)?;
+            };
+            let count = env_i32(count_number, &answer)?;
             let count = usize::try_from(count)
                 .ok()
                 .filter(|count| *count <= EECH_ROTOR_ACTIONS)
                 .ok_or_else(|| format!("[env-provider:{answer}] the number of requests is out of range"))?;
-            if n.len() != fixed + 3 * count {
+            if request_numbers.len() != 3 * count {
                 return Err(format!(
                     "[env-provider:{answer}] the answer has {} numbers where {} requests need {}",
                     n.len(),
@@ -1450,16 +1451,36 @@ fn call_environment(lua: &Lua, bridge: &LuaFunction, request: &EnvRequest) -> Re
                     fixed + 3 * count
                 ));
             }
-            for channel in 0..EECH_ROTOR_CHANNELS {
-                reply.rotor_write[channel] = env_i32(n[1 + 3 * channel], &answer)?;
-                reply.rotor_amplification[channel] = env_f32(n[2 + 3 * channel], &answer)?;
-                reply.rotor_pitch[channel] = env_f32(n[3 + 3 * channel], &answer)?;
+            let malformed = || format!("[env-provider:{answer}] the answer's numbers are malformed");
+            // the destinations are the reply's own arrays, so no position can be out of them
+            for (((write, amplification), pitch), triple) in reply
+                .rotor_write
+                .iter_mut()
+                .zip(reply.rotor_amplification.iter_mut())
+                .zip(reply.rotor_pitch.iter_mut())
+                .zip(channel_numbers.chunks(3))
+            {
+                let &[mask, level, tone] = triple else {
+                    return Err(malformed());
+                };
+                *write = env_i32(mask, &answer)?;
+                *amplification = env_f32(level, &answer)?;
+                *pitch = env_f32(tone, &answer)?;
             }
-            reply.rotor_action_count = env_i32(n[fixed - 1], &answer)?;
-            for position in 0..count {
-                reply.rotor_action_resume[position] = env_i32(n[fixed + 3 * position], &answer)?;
-                reply.rotor_action_channel[position] = env_i32(n[fixed + 3 * position + 1], &answer)?;
-                reply.rotor_action_delay[position] = env_f32(n[fixed + 3 * position + 2], &answer)?;
+            reply.rotor_action_count = env_i32(count_number, &answer)?;
+            for (((resume, channel), delay), triple) in reply
+                .rotor_action_resume
+                .iter_mut()
+                .zip(reply.rotor_action_channel.iter_mut())
+                .zip(reply.rotor_action_delay.iter_mut())
+                .zip(request_numbers.chunks(3))
+            {
+                let &[flag, which, wait] = triple else {
+                    return Err(malformed());
+                };
+                *resume = env_i32(flag, &answer)?;
+                *channel = env_i32(which, &answer)?;
+                *delay = env_f32(wait, &answer)?;
             }
         }
         EECH_ENV_LIGHTNING_ADD | EECH_ENV_LIGHTNING_UPDATE => {
@@ -5398,7 +5419,7 @@ mod tests {
                 "nine actions",
                 format!(
                     "return {{ {channels}, actions = {{ {} }} }}",
-                    vec!["{ action = 'resume', channel = 'looping' }"; 9].join(", ")
+                    ["{ action = 'resume', channel = 'looping' }"; 9].join(", ")
                 ),
                 "rotor_sound.answer",
             ),

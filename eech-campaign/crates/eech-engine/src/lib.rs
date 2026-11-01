@@ -10853,7 +10853,8 @@ mod tests {
             assert_eq!(code, 0, "{error}");
             assert_eq!(written.rotor_amplification, [0.5, 0.25, 0.75, 1.0, 0.125, 0.75]);
         }
-        let cases: Vec<(&str, EnvRequest, fn(&mut EnvReply))> = vec![
+        type Case = (&'static str, EnvRequest, fn(&mut EnvReply));
+        let cases: &[Case] = &[
             ("a write mask that is not the protocol's", local, |reply| reply.rotor_write[0] = 1),
             ("a winding channel that writes a pitch", local, |reply| reply.rotor_write[5] = 3),
             ("an amplification that is not finite", local, |reply| reply.rotor_amplification[2] = f32::NAN),
@@ -10869,7 +10870,7 @@ mod tests {
             ("a resume with a delay", local, |reply| reply.rotor_action_delay[2] = 0.5),
             ("looping and slap that disagree", local, |reply| reply.rotor_action_resume[4] = 0),
         ];
-        for (what, request, edit) in cases {
+        for &(what, request, edit) in cases {
             let (code, written, error) = env_crossing(request, done(request, edit));
             assert_ne!(code, 0, "{what}: accepted");
             assert!(error.contains("[env-provider:rotor_sound.answer]"), "{what}: {error}");
