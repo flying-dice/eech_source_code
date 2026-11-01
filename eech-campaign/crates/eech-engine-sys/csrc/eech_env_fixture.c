@@ -3234,20 +3234,28 @@ static int env_snd_pause_case (int index, char *text, int capacity, int *used)
  * the original never produces a used record whose buffer is absent: THIS RECORD IS CONTROLLED TEST STATE, NOT A BACKEND AND NOT AN ORIGINAL PRODUCT. It is the first element of the real, static, zero-initialised
  * array current_system_sound_effects that soundman.c owns (so its address stays valid through every real call and through a fatal unwind, and nothing here ever frees it), filled as a real record would be (one sequenced
  * sample, used = TRUE, sound_buffer = NULL) and no COM pointer, vtable, sentinel address, global status override or audio code exists. user_data is left NULL (the constructor stores the entity there; neither routine
- * reads it). Case 22 starts the same record with playing = TRUE as a SENSITIVITY MARKER (the real getter writes the flag, so a clear flag afterwards shows the getter ran); that is controlled test state too and
+ * reads it). Case 22 starts the same record with playing = TRUE as a SENSITIVITY MARKER (the real getter writes the flag: a flag cleared afterwards is the MEASURED evidence that it wrote it, while that the host's question reached the getter at an expiry is only inferred from the source and the probe's expiry records); that is controlled test state too and
  * says nothing about a real playing buffer, which cannot be made without a device and is NOT manufactured here.
  *
  *   21 handle_idle_buffer_absent_server_expiry         the handle's playing flag starts clear
  *   22 handle_idle_buffer_absent_stale_playing_server_expiry   the handle's playing flag starts set
  * Both: the lightning descriptor is set to rate 4 size 20 (as case 4; restored), ONE sound effect entity is built by the real constructor and given the handle, and the real server routine of the function table runs at
  * delta 2.0 up to three times while the entity is a live sound effect in the update list (the delta is restored). The original tracking probe records the ordinary points, with the handle flag, so the report shows
- * whether the expiry found an idle or a playing handle and whether the kill followed; the handle's own fields (used, playing, buffer absent) are read back before the calls, after them and after cleanup. Nothing
+ * whether the expiry found an idle or a playing handle and whether the kill followed; the handle's own fields (used, playing, buffer absent) are read back before the calls, right after them (before the fixture touches anything) and after the cleanup has zeroed the record. Nothing
  * here decides a result: the rows are what the original did (including, for a kill, what the real destroy did to the record).
  *
- * CLEANUP, on every path after the handle is installed: if the entity survived and still points at the handle it is DETACHED first; if the record is still in use the REAL destroy_system_sound_effect releases it
- * (and the row says the fixture did, not the original); the record is then zeroed. All of that happens before any row is written, so a report that does not fit leaves nothing changed except the entity (which cannot
- * be put back: the process is the isolation boundary and the end row says so). Refusals come BEFORE any change: not the server, no session, no free entity slot, a sound system that IS initialised (the array might
- * then belong to a device) or a handle slot already in use. No pointer, address, allocation index or coordinate is printed.
+ * CLEANUP, on the NORMAL-RETURN path after the handle is installed: if the entity survived and still points at the handle it is DETACHED first; if the record is still in use the REAL destroy_system_sound_effect releases it
+ * (and the row says the fixture did, not the original); the record is then zeroed and its fields are read back AFTER the zeroing (`used_final`, `playing_final` and `buffer_null_final` of the cleanup row are the
+ * zeroed record, not the state the destroy left: the destroy clears `used` but not `playing`). Who released the record (the original's kill or the fixture) is decided from the snapshot taken right after the
+ * calls, before the fixture touches anything. The descriptor numbers and the frame delta are restored and the tracking switch is turned OFF (it was off before; this is a reset to off, not a restore of an
+ * unknown previous state) before any row is written, so a report that does not fit leaves nothing changed except the entity (which cannot be put back: the process is the isolation boundary and the end row
+ * says so). None of this runs on the FATAL path: a debug_fatal inside a real call (an invalid host answer, a failed assertion) unwinds out of the case, poisons the engine and ends the isolated process with the
+ * record still held by the static array and the entity, which is valid memory, and nothing is restored or inferred after it. Refusals come BEFORE any change: not the server, no session, no free entity slot, a
+ * sound system that IS initialised (the array might then belong to a device) or a handle slot already in use.
+ *
+ * WHAT THE REPORT CONTAINS. No pointer or address is printed. The rows are PRIVATE test evidence: they include the closed probe's own entity slot and type words (`slot=`, `entity=`) and the sound entity's
+ * position words (`px_w`, `py_w`, `pz_w`), the reused tracking rows of the original observer, which need a precise safe projection before anything is published to Git. The driver keeps the whole report in a
+ * private raw sidecar and writes summaries to its JSON rows.
  */
 
 #define ENV_SND_HANDLE_FIRST 21
@@ -3326,7 +3334,8 @@ static int env_snd_handle_case (int index, char *text, int capacity, int *used)
 		return 0;
 	}
 
-	/* FROM HERE the entity cannot be put back (the process is the isolation boundary); the descriptor, the delta, the tracking switch and the handle record are put back before any row is written */
+	/* FROM HERE the entity cannot be put back (the process is the isolation boundary); on the normal-return path the descriptor and the delta are restored, the tracking switch is turned off and the handle record is released and
+	   zeroed before any row is written (a fatal unwind does none of that: it poisons the engine and ends the process) */
 	lightning->rate = 4;
 	lightning->size = 20;
 
@@ -3376,9 +3385,10 @@ static int env_snd_handle_case (int index, char *text, int capacity, int *used)
 			destroyed_by_fixture = 1;
 		}
 
-		env_snd_handle_take (&final, handle);
-
 		memset (handle, 0, sizeof (*handle));
+
+		/* the ACTUAL final record: read back after the zeroing (the ownership facts above come from `after`, taken before the fixture touched anything) */
+		env_snd_handle_take (&final, handle);
 	}
 
 	destroyed_by_original = installed && !destroyed_by_fixture && after.used == 0;
