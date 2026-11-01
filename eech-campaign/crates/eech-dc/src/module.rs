@@ -6,8 +6,8 @@ use eech_engine::{
     MovementMode, MovementResult, MovementStep, ObjectReport, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side, SupplyReachDescriptor,
     TerrainAnswer, TerrainMapFacts, TerrainProvider, TerrainQuery, VehiclePose, WeaponFigures, EECH_ENV_AMBIENT, EECH_ENV_EXPORT, EECH_ENV_FLOATS,
     EECH_ENV_GUST, EECH_ENV_IMPORT, EECH_ENV_INIT_FIXED, EECH_ENV_INIT_RANDOM, EECH_ENV_INTS, EECH_ENV_LIGHTNING_ADD, EECH_ENV_LIGHTNING_UPDATE,
-    EECH_ENV_MODE_COUNT, EECH_ENV_SOUND_LIFETIME_INIT, EECH_ENV_SOUND_LIFETIME_UPDATE, EECH_ENV_STEP, EECH_ENV_WEATHER, EECH_ENV_WIND, EECH_LIGHTNING_SLOTS,
-    EECH_SOUND_SAMPLES,
+    EECH_ENV_MODE_COUNT, EECH_ENV_SOUND_LIFETIME_INIT, EECH_ENV_SOUND_LIFETIME_UPDATE, EECH_ENV_SOUND_PAUSE_RESUME, EECH_ENV_STEP, EECH_ENV_WEATHER,
+    EECH_ENV_WIND, EECH_LIGHTNING_SLOTS, EECH_SOUND_SAMPLES,
 };
 use mlua::prelude::*;
 use std::path::PathBuf;
@@ -709,6 +709,13 @@ return function (request)
 		local action = ({ none = 0, kill = 1, unlink = 2 }) [answer.action]
 		if action == nil then return op .. '.answer', "action must be 'none', 'kill' or 'unlink'" end
 		return nil, string.format ('0 %s %s %d %d', fmt (answer.lifetime), fmt (answer.valid_lifetime), answer.expired and 1 or 0, action)
+	elseif op == 'sound_pause_resume' then
+		-- one effect under a pause or a resume (EEDCS-51): the host's answer is explicit in every field (a missing flag is not false) and the valid lifetime is the exact stored or copied number
+		for _, name in ipairs { 'changed', 'valid', 'play', 'relink' } do
+			if type (answer [name]) ~= 'boolean' then return op .. '.answer', name .. ' must be a boolean, got ' .. type (answer [name]) end
+		end
+		if not finite (answer.valid_lifetime) then return op .. '.answer', 'valid_lifetime must be a finite number' end
+		return nil, string.format ('0 %d %d %s %d %d', answer.changed and 1 or 0, answer.valid and 1 or 0, fmt (answer.valid_lifetime), answer.play and 1 or 0, answer.relink and 1 or 0)
 	elseif op == 'lightning_add' or op == 'lightning_update' then
 		-- the physical lightning queue (EEDCS-51): an update the host cannot finish without the strike animation's frame count says so and changes nothing, once
 		if answer.need_frames == true then
@@ -854,6 +861,7 @@ fn env_op_name(op: i32) -> &'static str {
         EECH_ENV_LIGHTNING_UPDATE => "lightning_update",
         EECH_ENV_SOUND_LIFETIME_INIT => "sound_lifetime_init",
         EECH_ENV_SOUND_LIFETIME_UPDATE => "sound_lifetime_update",
+        EECH_ENV_SOUND_PAUSE_RESUME => "sound_pause_resume",
         _ => "unknown",
     }
 }
@@ -949,6 +957,15 @@ fn env_request_table(lua: &Lua, request: &EnvRequest) -> LuaResult<LuaTable> {
             table.set("has_handle", request.sound_has_handle != 0)?;
             if request.sound_have_playing != 0 {
                 table.set("playing", request.sound_playing != 0)?;
+            }
+        }
+        EECH_ENV_SOUND_PAUSE_RESUME => {
+            table.set("resume", request.sound_resume != 0)?;
+            table.set("valid", request.sound_valid != 0)?;
+            table.set("member", request.sound_member != 0)?;
+            table.set("valid_lifetime", f64::from(request.sound_valid_lifetime))?;
+            if request.sound_resume == 0 {
+                table.set("delay", f64::from(request.sound_delay))?;
             }
         }
         EECH_ENV_STEP => {
@@ -1086,6 +1103,15 @@ fn call_environment(lua: &Lua, bridge: &LuaFunction, request: &EnvRequest) -> Re
                 reply.sound_expired = env_i32(n[3], &answer)?;
                 reply.sound_action = env_i32(n[4], &answer)?;
             }
+        }
+        EECH_ENV_SOUND_PAUSE_RESUME => {
+            // "0 <changed> <valid> <valid lifetime> <play> <relink>"
+            let n = env_numbers::<6>(&text, &answer)?;
+            reply.sound_changed = env_i32(n[1], &answer)?;
+            reply.sound_valid = env_i32(n[2], &answer)?;
+            reply.sound_valid_lifetime = env_f32(n[3], &answer)?;
+            reply.sound_play = env_i32(n[4], &answer)?;
+            reply.sound_relink = env_i32(n[5], &answer)?;
         }
         EECH_ENV_LIGHTNING_ADD | EECH_ENV_LIGHTNING_UPDATE => {
             // "1" when an update needs the strike animation's frame count; else "0 <slot>" and eight numbers for each of the queue's slots (in_use, type, x, y, z, time started, length, frame)
@@ -4683,6 +4709,88 @@ mod tests {
                 matches!(&result, Err(message) if message.contains("[env-provider:sound_lifetime_update.answer]")),
                 "{what}: {result:?}"
             );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn a_sound_pause_resume_reaches_the_provider_by_value_and_its_decision_comes_back_exactly() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let pause = EnvRequest {
+            sound_resume: 0,
+            sound_valid: 1,
+            sound_member: 1,
+            sound_delay: 1.5,
+            sound_valid_lifetime: 0.25,
+            ..env_request(EECH_ENV_SOUND_PAUSE_RESUME)
+        };
+        let mut provider = env_of(
+            &lua,
+            "assert (r.op == 'sound_pause_resume' and r.resume == false and r.valid == true and r.member == true and r.delay == 1.5 and r.valid_lifetime == 0.25)
+             return { changed = true, valid = false, valid_lifetime = 1.5, play = false, relink = false }",
+        )?;
+        let reply = provider(&pause)?;
+        assert_eq!(
+            (
+                reply.sound_changed,
+                reply.sound_valid,
+                reply.sound_valid_lifetime,
+                reply.sound_play,
+                reply.sound_relink
+            ),
+            (1, 0, 1.5, 0, 0)
+        );
+        // a resume carries no delay; the stored valid lifetime comes back as the exact word it went with, and the host may ask to play and to relink
+        let resume = EnvRequest {
+            sound_resume: 1,
+            sound_valid: 0,
+            sound_member: 0,
+            sound_delay: 0.0,
+            sound_valid_lifetime: -0.0,
+            ..env_request(EECH_ENV_SOUND_PAUSE_RESUME)
+        };
+        let mut resuming = env_of(
+            &lua,
+            "assert (r.resume == true and r.valid == false and r.member == false and r.delay == nil and 1 / r.valid_lifetime < 0)
+             return { changed = true, valid = true, valid_lifetime = r.valid_lifetime, play = true, relink = true }",
+        )?;
+        let reply = resuming(&resume)?;
+        assert_eq!(
+            (
+                reply.sound_changed,
+                reply.sound_valid,
+                reply.sound_valid_lifetime.to_bits(),
+                reply.sound_play,
+                reply.sound_relink
+            ),
+            (1, 1, (-0.0f32).to_bits(), 1, 1)
+        );
+        for (_what, source, marker) in [
+            (
+                "a flag as a number",
+                "return { changed = 1, valid = false, valid_lifetime = 1.5, play = false, relink = false }",
+                "sound_pause_resume.answer",
+            ),
+            (
+                "a flag missing",
+                "return { changed = true, valid = false, valid_lifetime = 1.5, play = false }",
+                "sound_pause_resume.answer",
+            ),
+            (
+                "a valid lifetime that is not finite",
+                "return { changed = true, valid = false, valid_lifetime = 1 / 0, play = false, relink = false }",
+                "sound_pause_resume.answer",
+            ),
+            (
+                "a valid lifetime missing",
+                "return { changed = true, valid = false, play = false, relink = false }",
+                "sound_pause_resume.answer",
+            ),
+            ("not a table", "return 1", "sound_pause_resume.answer"),
+            ("withheld", "error ('withheld')", "sound_pause_resume.callback"),
+        ] {
+            let mut bad = env_of(&lua, source)?;
+            env_refusal(&mut bad, &pause, marker);
         }
         Ok(())
     }

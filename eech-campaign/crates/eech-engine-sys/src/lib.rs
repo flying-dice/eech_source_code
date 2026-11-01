@@ -1207,6 +1207,7 @@ pub const EECH_ENV_LIGHTNING_ADD: c_int = 10;
 pub const EECH_ENV_LIGHTNING_UPDATE: c_int = 11;
 pub const EECH_ENV_SOUND_LIFETIME_INIT: c_int = 12;
 pub const EECH_ENV_SOUND_LIFETIME_UPDATE: c_int = 13;
+pub const EECH_ENV_SOUND_PAUSE_RESUME: c_int = 14;
 /// The samples of one sound effect's sequence that cross the boundary by value (`CAMPAIGN_SOUND_SAMPLES`).
 pub const EECH_SOUND_SAMPLES: usize = 16;
 /// The host's decisions for a sound effect's update (`CAMPAIGN_SOUND_ACTION_*`).
@@ -1289,6 +1290,10 @@ pub struct eech_env_request {
     pub sound_delta: f32,
     pub sound_lifetime: f32,
     pub sound_valid_lifetime: f32,
+    /// SOUND_PAUSE_RESUME (with `sound_valid` and `sound_valid_lifetime`): whether it is a resume (else a pause), whether the effect is in the update list and the delay a pause carries
+    pub sound_resume: c_int,
+    pub sound_member: c_int,
+    pub sound_delay: f32,
 }
 
 #[repr(C)]
@@ -1319,6 +1324,11 @@ pub struct eech_env_reply {
     pub sound_expired: c_int,
     pub sound_action: c_int,
     pub sound_need_playing: c_int,
+    /// SOUND_PAUSE_RESUME: whether the call changed the effect, its validity (and, in `sound_valid_lifetime`, valid lifetime) after the call, whether its parent is asked to play and whether it is put back in the update list
+    pub sound_changed: c_int,
+    pub sound_valid: c_int,
+    pub sound_play: c_int,
+    pub sound_relink: c_int,
 }
 
 impl Default for eech_env_state {

@@ -43,7 +43,15 @@
  *                lifetime went below zero, and the decision (none; kill the entity; unlink it from the update list and release its handle).  The stored fields stay in the effect's record, which the pause and
  *                resume functions, the network pack and unpack and the observer read and write, so the request hands them over by value and the campaign applies the answer; the sound database (the descriptors), the
  *                playback handle and the device stay the campaign's, and the host may ask once whether a handle is still playing (NEED_PLAYING, nothing changed).  No entity pointer, id or list layout crosses.
- *   STEP         the physical part of update_transitional_weather for one update: the delta of the frame (the previous frame's, as the original reads it),
+ *   SOUND_PAUSE_RESUME
+ *                the PHYSICAL VALIDITY of ONE sound effect under a pause or a resume (soundeff.c pause_local_entity_sound_type / resume_local_entity_sound_type): the campaign walks the parent's special-effect children and
+ *                matches the sound type and sub type (legacy list plumbing, private pointers), then asks once for each matching effect, by value: pause or resume, the delay a pause carries, the effect's validity and valid
+ *                lifetime as stored and whether it is a member of the update list.  The host answers whether the call CHANGED the effect (the count the original returned is the sum of these), the validity and valid lifetime
+ *                after the call (a pause of a valid effect makes it invalid and copies the delay; a resume of an invalid one makes it valid and leaves the old valid lifetime; anything else is a no-op that leaves
+ *                every field), whether the effect's parent is asked to play its sound (a resume that changed it) and whether the effect is put back in the update list (a resume that changed an effect that was not in it).  The
+ *                campaign checks the whole answer before it writes anything, writes the validity and valid lifetime, then makes the playback request, then the relink, then adds to its count, in the original order.  How the
+ *                parent plays (the session's default no-op, or a range and a per-family function) stays the campaign's.  No entity pointer, id or list layout crosses.
+ *   STEP        the physical part of update_transitional_weather for one update: the delta of the frame (the previous frame's, as the original reads it),
  *                the camera position, the comms model, the map extents.  The lightning timer's expiry needs one draw of the shared word for the next
  *                timer: the first request carries none and the host answers NEED_DRAW without changing anything; the campaign then makes that one
  *                draw at the original site and asks again with it.  The reply carries the field after the step and, on an expiry, the position the
@@ -127,7 +135,8 @@ enum campaign_env_op
 	CAMPAIGN_ENV_LIGHTNING_ADD,
 	CAMPAIGN_ENV_LIGHTNING_UPDATE,
 	CAMPAIGN_ENV_SOUND_LIFETIME_INIT,
-	CAMPAIGN_ENV_SOUND_LIFETIME_UPDATE
+	CAMPAIGN_ENV_SOUND_LIFETIME_UPDATE,
+	CAMPAIGN_ENV_SOUND_PAUSE_RESUME
 };
 
 #define CAMPAIGN_ENV_DRAWS 10
@@ -198,6 +207,10 @@ typedef struct campaign_env_request
 	float sound_delta;
 	float sound_lifetime;
 	float sound_valid_lifetime;
+	/* SOUND_PAUSE_RESUME (with sound_valid and sound_valid_lifetime above): whether it is a resume (else a pause), whether the effect is in the update list, and the delay a pause carries */
+	int sound_resume;
+	int sound_member;
+	float sound_delay;
 } campaign_env_request;
 
 typedef struct campaign_env_reply
@@ -231,6 +244,11 @@ typedef struct campaign_env_reply
 	int sound_expired;
 	int sound_action;
 	int sound_need_playing;
+	/* SOUND_PAUSE_RESUME: whether the call changed the effect, its validity and (with sound_valid_lifetime above) valid lifetime after the call, whether its parent is asked to play and whether it is put back in the update list */
+	int sound_changed;
+	int sound_valid;
+	int sound_play;
+	int sound_relink;
 } campaign_env_reply;
 
 typedef int (*campaign_env_fn)
@@ -291,5 +309,13 @@ void campaign_lightning_update (float time_of_day, int (*frames_of) (void), camp
    the environment provider; there is no campaign arithmetic to fall back to. */
 float campaign_sound_lifetime_init (int looping, int music, int count, const int *rate, const int *size);
 void campaign_sound_lifetime_update (int server, float delta, int valid, int looping, float *lifetime, float *valid_lifetime, void *handle, int (*playing_of) (void *handle), int *expired, int *action);
+
+/* The physical validity of ONE sound effect under a pause (resume = FALSE, with the delay) or a resume (soundeff.c).  The campaign hands over the effect's stored validity and valid lifetime and whether it is in the update
+   list, by value, and asks once for each effect the legacy walk matched.  The whole answer is checked against the request before anything is written: the flags are 0 or 1, the valid lifetime is finite, an effect the call did not
+   change keeps every field, a pause changes only a valid effect to an invalid one, a resume only an invalid one to a valid one and leaves the valid lifetime, a playback request belongs to a resume that changed the effect and a
+   relink to such a resume of an effect that is not in the update list.  Then the new validity and valid lifetime are written to *valid and *valid_lifetime (and nowhere before), and the function returns whether the call changed
+   the effect (the original's count is the sum), with *play and *relink for the caller to apply, in that order.  A missing provider, a refusal or a malformed answer stops the engine with an error that names the environment
+   provider; there is no campaign rule to fall back to. */
+int campaign_sound_pause_resume (int resume, float delay, int member, int *valid, float *valid_lifetime, int *play, int *relink);
 
 #endif

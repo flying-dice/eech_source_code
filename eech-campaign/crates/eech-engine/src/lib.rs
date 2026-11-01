@@ -1319,8 +1319,8 @@ pub use sys::{eech_env_reply as EnvReply, eech_env_request as EnvRequest, eech_e
 pub use sys::{
     EECH_ENV_AMBIENT, EECH_ENV_DRAWS, EECH_ENV_EXPORT, EECH_ENV_FLOATS, EECH_ENV_GUST, EECH_ENV_IMPORT, EECH_ENV_INIT_FIXED, EECH_ENV_INIT_RANDOM,
     EECH_ENV_INTS, EECH_ENV_LIGHTNING_ADD, EECH_ENV_LIGHTNING_UPDATE, EECH_ENV_MODE_COUNT, EECH_ENV_SOUND_LIFETIME_INIT, EECH_ENV_SOUND_LIFETIME_UPDATE,
-    EECH_ENV_STEP, EECH_ENV_WEATHER, EECH_ENV_WIND, EECH_LIGHTNING_SLOTS, EECH_SOUND_ACTION_KILL, EECH_SOUND_ACTION_NONE, EECH_SOUND_ACTION_UNLINK,
-    EECH_SOUND_SAMPLES,
+    EECH_ENV_SOUND_PAUSE_RESUME, EECH_ENV_STEP, EECH_ENV_WEATHER, EECH_ENV_WIND, EECH_LIGHTNING_SLOTS, EECH_SOUND_ACTION_KILL, EECH_SOUND_ACTION_NONE,
+    EECH_SOUND_ACTION_UNLINK, EECH_SOUND_SAMPLES,
 };
 
 /// The host's environment provider. It is installed once, at boot, and is the only source of the campaign's physical weather and wind: the campaign has no weather or wind solver
@@ -1347,6 +1347,7 @@ fn env_op_label(op: c_int) -> &'static str {
         sys::EECH_ENV_LIGHTNING_UPDATE => "lightning_update",
         sys::EECH_ENV_SOUND_LIFETIME_INIT => "sound_lifetime_init",
         sys::EECH_ENV_SOUND_LIFETIME_UPDATE => "sound_lifetime_update",
+        sys::EECH_ENV_SOUND_PAUSE_RESUME => "sound_pause_resume",
         _ => "unknown",
     }
 }
@@ -1514,6 +1515,18 @@ fn check_env_reply(request: &EnvRequest, reply: &EnvReply) -> Result<(), String>
             }
             if !(sys::EECH_SOUND_ACTION_NONE..=sys::EECH_SOUND_ACTION_UNLINK).contains(&reply.sound_action) {
                 return Err(format!("{answer} the action {} is not none, kill or unlink", reply.sound_action));
+            }
+            Ok(())
+        }
+        sys::EECH_ENV_SOUND_PAUSE_RESUME => {
+            if ![reply.sound_changed, reply.sound_valid, reply.sound_play, reply.sound_relink]
+                .iter()
+                .all(|flag| *flag == 0 || *flag == 1)
+            {
+                return Err(format!("{answer} changed, valid, play and relink must each be 0 or 1"));
+            }
+            if !reply.sound_valid_lifetime.is_finite() {
+                return Err(format!("{answer} the valid lifetime is not finite"));
             }
             Ok(())
         }
@@ -10078,6 +10091,56 @@ mod tests {
             let (code, _, error) = env_crossing(request, move |_| Ok(asked));
             assert_ne!(code, 0, "{what}: accepted");
             assert!(error.contains("[env-provider:sound_lifetime_update.answer]"), "{what}: {error}");
+        }
+    }
+
+    #[test]
+    fn the_sound_pause_resume_answer_of_a_direct_environment_provider_is_checked_at_the_boundary_before_anything_is_written() {
+        let request = EnvRequest {
+            op: sys::EECH_ENV_SOUND_PAUSE_RESUME,
+            sound_valid: 1,
+            sound_member: 1,
+            sound_delay: 1.5,
+            ..EnvRequest::default()
+        };
+        let done = |edit: fn(&mut EnvReply)| {
+            move |_: &EnvRequest| {
+                let mut reply = EnvReply {
+                    sound_changed: 1,
+                    sound_valid: 0,
+                    sound_valid_lifetime: 1.5,
+                    ..EnvReply::default()
+                };
+                edit(&mut reply);
+                Ok(reply)
+            }
+        };
+        // a completed answer reaches the campaign whole
+        let (code, written, error) = env_crossing(request, done(|_| {}));
+        assert_eq!(
+            (
+                code,
+                written.sound_changed,
+                written.sound_valid,
+                written.sound_valid_lifetime,
+                written.sound_play,
+                written.sound_relink
+            ),
+            (0, 1, 0, 1.5, 0, 0),
+            "{error}"
+        );
+        for (what, edit) in [
+            ("a changed flag of 2", (|reply: &mut EnvReply| reply.sound_changed = 2) as fn(&mut EnvReply)),
+            ("a negative valid flag", |reply| reply.sound_valid = -1),
+            ("a play flag of 2", |reply| reply.sound_play = 2),
+            ("a relink flag of 3", |reply| reply.sound_relink = 3),
+            ("a valid lifetime not finite", |reply| reply.sound_valid_lifetime = f32::NAN),
+            ("an infinite valid lifetime", |reply| reply.sound_valid_lifetime = f32::INFINITY),
+        ] {
+            let (code, written, error) = env_crossing(request, done(edit));
+            assert_ne!(code, 0, "{what}: accepted");
+            assert!(error.contains("[env-provider:sound_pause_resume.answer]"), "{what}: {error}");
+            assert_eq!(written.current_mode, 77, "{what}: a refusal wrote the reply");
         }
     }
 

@@ -924,4 +924,118 @@ void campaign_sound_lifetime_update (int server, float delta, int valid, int loo
 	*action = reply.sound_action;
 }
 
+////////////////////////////////////////
+//
+// the physical validity of ONE sound effect under a pause or a resume (soundeff.c, EEDCS-51 D3): see ss_hostenv.h SOUND_PAUSE_RESUME.  The legacy walk of the parent's children, the type and sub type match, the
+// playback of the parent's sound and the update-list relink stay the caller's (private pointers and device-bound plumbing); this file holds no rule of when an effect is valid, no no-op decision, no delay copy and
+// no count.  A stored valid lifetime the host leaves alone is never written (its exact word stays in the record).
+//
+////////////////////////////////////////
+
+int campaign_sound_pause_resume (int resume, float delay, int member, int *valid, float *valid_lifetime, int *play, int *relink)
+{
+	campaign_env_request
+		request;
+
+	campaign_env_reply
+		reply;
+
+	memset (&request, 0, sizeof (request));
+
+	request.op = CAMPAIGN_ENV_SOUND_PAUSE_RESUME;
+
+	request.sound_resume = (resume != 0);
+	request.sound_valid = (*valid != 0);
+	request.sound_member = (member != 0);
+	request.sound_valid_lifetime = *valid_lifetime;
+
+	// only a pause carries a delay; a resume's request holds none
+	if (!resume)
+	{
+		request.sound_delay = delay;
+	}
+
+	ask (&request, &reply, "sound_pause_resume");
+
+	// the whole answer is checked against the request BEFORE anything is written.  Nothing is worked out here: an answer is only held to the fields the call may touch.
+	if ((reply.sound_changed != FALSE) && (reply.sound_changed != TRUE))
+	{
+		debug_fatal ("host environment: [env-provider:sound_pause_resume.answer] changed is neither 0 nor 1");
+	}
+
+	if ((reply.sound_valid != FALSE) && (reply.sound_valid != TRUE))
+	{
+		debug_fatal ("host environment: [env-provider:sound_pause_resume.answer] valid is neither 0 nor 1");
+	}
+
+	if ((reply.sound_play != FALSE) && (reply.sound_play != TRUE))
+	{
+		debug_fatal ("host environment: [env-provider:sound_pause_resume.answer] play is neither 0 nor 1");
+	}
+
+	if ((reply.sound_relink != FALSE) && (reply.sound_relink != TRUE))
+	{
+		debug_fatal ("host environment: [env-provider:sound_pause_resume.answer] relink is neither 0 nor 1");
+	}
+
+	if (!isfinite (reply.sound_valid_lifetime))
+	{
+		debug_fatal ("host environment: [env-provider:sound_pause_resume.answer] the valid lifetime in the host's answer is not finite");
+	}
+
+	if (!reply.sound_changed)
+	{
+		if ((reply.sound_valid != request.sound_valid) || !same_bits (&reply.sound_valid_lifetime, valid_lifetime))
+		{
+			debug_fatal ("host environment: [env-provider:sound_pause_resume.answer] the host changed the validity or the valid lifetime of an effect it reports unchanged");
+		}
+
+		if (reply.sound_play || reply.sound_relink)
+		{
+			debug_fatal ("host environment: [env-provider:sound_pause_resume.answer] the host asks for playback or a relink of an effect it reports unchanged");
+		}
+	}
+	else if (!resume)
+	{
+		if (!request.sound_valid || reply.sound_valid)
+		{
+			debug_fatal ("host environment: [env-provider:sound_pause_resume.answer] the host changed a pause other than a valid effect to an invalid one");
+		}
+
+		if (reply.sound_play || reply.sound_relink)
+		{
+			debug_fatal ("host environment: [env-provider:sound_pause_resume.answer] the host asks for playback or a relink on a pause");
+		}
+	}
+	else
+	{
+		if (request.sound_valid || !reply.sound_valid)
+		{
+			debug_fatal ("host environment: [env-provider:sound_pause_resume.answer] the host changed a resume other than an invalid effect to a valid one");
+		}
+
+		if (!same_bits (&reply.sound_valid_lifetime, valid_lifetime))
+		{
+			debug_fatal ("host environment: [env-provider:sound_pause_resume.answer] the host changed the valid lifetime on a resume");
+		}
+
+		if (reply.sound_relink && member)
+		{
+			debug_fatal ("host environment: [env-provider:sound_pause_resume.answer] the host relinks an effect that is already in the update list");
+		}
+	}
+
+	*valid = reply.sound_valid;
+
+	if (reply.sound_changed && !resume)
+	{
+		*valid_lifetime = reply.sound_valid_lifetime;
+	}
+
+	*play = reply.sound_play;
+	*relink = reply.sound_relink;
+
+	return reply.sound_changed;
+}
+
 #endif

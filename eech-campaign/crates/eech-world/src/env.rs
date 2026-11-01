@@ -26,6 +26,9 @@
 //! - `sound_lifetime_update { server, delta, valid, looping, lifetime, valid_lifetime, has_handle, playing? }`: one call of se_updt.c `update_server` / `update_client`: the aging of a valid effect, the server's
 //!   expiry and kill decision, the client's clamp at zero, the countdown and unlink of an invalid effect: `{ lifetime, valid_lifetime, expired, action = "none" | "kill" | "unlink" }`, or
 //!   `{ need_playing = true }` (nothing changed) when a server's expired effect holds a handle and the campaign has not said whether it is `playing`. The host keeps NO state: the stored lifetimes travel by value.
+//! - `sound_pause_resume { resume, valid, member, valid_lifetime, delay? }`: one effect the campaign matched under a pause or a resume (soundeff.c `pause_local_entity_sound_type` / `resume_local_entity_sound_type`, EEDCS-51):
+//!   `{ changed, valid, valid_lifetime, play, relink }`. A pause of a valid effect makes it invalid and copies the `delay`; a resume of an invalid one makes it valid, asks its parent to `play` and, when it is not a `member` of
+//!   the update list, to `relink` it; anything else is a no-op that changes nothing (the stored `valid_lifetime` comes back as the very number it was given). The `changed` flags are the original's count. The host keeps NO state.
 //! - `step { delta, server, in_cockpit, camera?, lightning_draw?, map }`: the physical update of one session update. `{ need_draw = true, timer }` (the field is NOT changed) when the
 //!   server's lightning timer has expired and the next timer needs the one draw of the shared random word, which only the campaign may make; the campaign then asks again with
 //!   `lightning_draw`. Otherwise `{ state, expired, strike?, new_timer? }`.
@@ -127,6 +130,7 @@ extern "C" {
     fn env_ref_lightning_queue(field: *const EnvRef, out: *mut Strike, error: *mut c_char, error_size: usize) -> i32;
     fn env_ref_sound_init(in_i: *const i32, out_lifetime: *mut f32, error: *mut c_char, error_size: usize) -> i32;
     fn env_ref_sound_update(in_f: *const f32, in_i: *const i32, out_f: *mut f32, out_i: *mut i32, error: *mut c_char, error_size: usize) -> i32;
+    fn env_ref_sound_pause_resume(in_w: *const u32, in_i: *const i32, out_w: *mut u32, out_i: *mut i32, error: *mut c_char, error_size: usize) -> i32;
     fn env_ref_step(
         field: *mut EnvRef,
         in_f: *const f32,
@@ -307,6 +311,59 @@ pub fn sound_lifetime_update(input: &SoundUpdateInput) -> Result<SoundUpdate, St
         valid_lifetime: out_f[1],
         expired: out_i[0] != 0,
         action,
+    })
+}
+
+/// One matching effect under a pause or a resume (soundeff.c `pause_local_entity_sound_type` / `resume_local_entity_sound_type`), by value: pause or resume, the effect's stored validity, whether it is in the
+/// update list, the delay a pause carries and the stored valid lifetime.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct SoundPauseResumeInput {
+    pub resume: bool,
+    pub valid: bool,
+    pub member: bool,
+    pub delay: f32,
+    pub valid_lifetime: f32,
+}
+
+/// What the host decides for one effect under a pause or a resume: whether the call changed it (the original's count is the sum), its validity and valid lifetime after the call (the stored word, untouched, unless a
+/// pause changed the effect), whether the parent is asked to play and whether the effect goes back in the update list.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct SoundPauseResume {
+    pub changed: bool,
+    pub valid: bool,
+    pub valid_lifetime: f32,
+    pub play: bool,
+    pub relink: bool,
+}
+
+/// One matching effect under a pause or a resume. The original decisions, with no floating-point work: the delay and the valid lifetime travel as 32-bit words, so the caller's x87 and MXCSR state is untouched and a
+/// stale valid lifetime comes back as the very word it was given. A number that is not finite is refused; a refused call returns nothing.
+pub fn sound_pause_resume(input: &SoundPauseResumeInput) -> Result<SoundPauseResume, String> {
+    let mut error = [0u8; ERROR_SIZE];
+    let in_w = [input.delay.to_bits(), input.valid_lifetime.to_bits()];
+    let in_i = [i32::from(input.resume), i32::from(input.valid), i32::from(input.member)];
+    let mut out_w = [0u32; 1];
+    let mut out_i = [0i32; 4];
+    // SAFETY: the arrays have the lengths the kernel reads and writes; `error` is writable for its size.
+    let status = unsafe {
+        env_ref_sound_pause_resume(
+            in_w.as_ptr(),
+            in_i.as_ptr(),
+            out_w.as_mut_ptr(),
+            out_i.as_mut_ptr(),
+            error.as_mut_ptr().cast(),
+            ERROR_SIZE,
+        )
+    };
+    if status != 0 {
+        return Err(message(&error));
+    }
+    Ok(SoundPauseResume {
+        changed: out_i[0] != 0,
+        valid: out_i[1] != 0,
+        valid_lifetime: f32::from_bits(out_w[0]),
+        play: out_i[2] != 0,
+        relink: out_i[3] != 0,
     })
 }
 
@@ -872,6 +929,23 @@ fn respond(lua: &Lua, field: &RefCell<Field>, request: &LuaTable) -> LuaResult<L
                     )?;
                 }
             }
+        }
+        "sound_pause_resume" => {
+            let resume = boolean(request, "resume")?;
+            let input = SoundPauseResumeInput {
+                resume,
+                valid: boolean(request, "valid")?,
+                member: boolean(request, "member")?,
+                // only a pause carries a delay; a resume's request holds none and the kernel never reads one
+                delay: if resume { 0.0 } else { single(&reader, request, "delay", "delay")? },
+                valid_lifetime: single(&reader, request, "valid_lifetime", "valid_lifetime")?,
+            };
+            let decision = sound_pause_resume(&input).map_err(refuse)?;
+            answer.set("changed", decision.changed)?;
+            answer.set("valid", decision.valid)?;
+            answer.set("valid_lifetime", f64::from(decision.valid_lifetime))?;
+            answer.set("play", decision.play)?;
+            answer.set("relink", decision.relink)?;
         }
         "gust" => {
             let phase = single(&reader, request, "phase", "phase")?;
@@ -2172,6 +2246,74 @@ mod tests {
                 }),
             ),
             (
+                "a sound effect under a pause and a resume: every changing and no-op form, a stale valid lifetime that is negative zero and one that is subnormal",
+                Box::new(move || {
+                    let mut out = Vec::new();
+                    for (resume, valid, member, delay, valid_lifetime) in [
+                        (false, true, true, 1.5f32, 0.0f32),
+                        (false, false, true, 9.0, 1.5),
+                        (true, false, true, 0.0, 1.5),
+                        (true, false, false, 0.0, 1.5),
+                        (true, true, true, 0.0, 1.5),
+                        (false, true, false, subnormal, 1.5),
+                        (true, false, true, 0.0, -0.0),
+                        (false, false, false, 1.0, subnormal),
+                    ] {
+                        let decision = sound_pause_resume(&SoundPauseResumeInput {
+                            resume,
+                            valid,
+                            member,
+                            delay,
+                            valid_lifetime,
+                        })?;
+                        out.extend([
+                            u32::from(decision.changed),
+                            u32::from(decision.valid),
+                            decision.valid_lifetime.to_bits(),
+                            u32::from(decision.play),
+                            u32::from(decision.relink),
+                        ]);
+                    }
+                    Ok(out)
+                }),
+            ),
+            (
+                "refused: a pause given a signalling NaN, a quiet NaN or an infinity as the delay it would write, and as the stored valid lifetime",
+                Box::new(move || {
+                    let signalling = f32::from_bits(0x7fa0_0000);
+                    let base = SoundPauseResumeInput {
+                        resume: false,
+                        valid: true,
+                        member: true,
+                        delay: 1.5,
+                        valid_lifetime: 0.0,
+                    };
+                    let inputs = [
+                        SoundPauseResumeInput { delay: signalling, ..base },
+                        SoundPauseResumeInput { delay: f32::NAN, ..base },
+                        SoundPauseResumeInput { delay: f32::INFINITY, ..base },
+                        SoundPauseResumeInput { valid_lifetime: signalling, ..base },
+                        SoundPauseResumeInput {
+                            resume: true,
+                            valid: false,
+                            valid_lifetime: f32::NEG_INFINITY,
+                            ..base
+                        },
+                    ];
+                    let mut refusals = Vec::new();
+                    for input in inputs {
+                        if let Err(error) = sound_pause_resume(&input) {
+                            refusals.push(error);
+                        }
+                    }
+                    if refusals.len() == 5 {
+                        Err(refusals.join("; "))
+                    } else {
+                        Ok(vec![refusals.len() as u32])
+                    }
+                }),
+            ),
+            (
                 "refused: a sound update given a signalling NaN as the lifetime, the delta or the valid lifetime, a quiet NaN, and an infinity",
                 Box::new(move || {
                     let base = SoundUpdateInput {
@@ -2434,6 +2576,235 @@ mod tests {
                 [(0.5, SoundAction::None), (0.0, SoundAction::None), (0.0, SoundAction::Unlink)],
                 "server {server}"
             );
+        }
+    }
+
+    // ---- the physical validity of a sound effect under a pause and a resume (EEDCS-51, D3): the host's decisions of soundeff.c pause_local_entity_sound_type / resume_local_entity_sound_type for ONE matching
+    // effect, against the observations of the ORIGINAL SESSION-parent cases 11 to 14 (native 33c015557, driver 299bcf051): linked pause/resume 1,1 with the 1.5 valid lifetime kept; after the unlink 1,1 with the
+    // effect lifetime 5 kept and the next valid update giving 4; repeated and no-op 0,1,0,1,0 with the second pause's 9 ignored while invalid; a resume never clears the old valid lifetime. These numbers are what
+    // the original did, not a rule invented here.
+
+    /// the stored fields of one effect and its place in the update list, which the campaign keeps and hands over by value
+    #[derive(Clone, Copy, Debug, PartialEq)]
+    struct StoredEffect {
+        valid: bool,
+        member: bool,
+        lifetime: f32,
+        valid_lifetime: f32,
+    }
+
+    fn stored() -> StoredEffect {
+        StoredEffect {
+            valid: true,
+            member: true,
+            lifetime: 5.0,
+            valid_lifetime: 0.0,
+        }
+    }
+
+    /// what the campaign does with the host answer, in the original order: write the validity (and the valid lifetime of a pause that changed it), ask the parent to play, relink, count
+    fn applied(effect: &mut StoredEffect, input: SoundPauseResumeInput) -> (u32, bool) {
+        let decision = sound_pause_resume(&input).expect("the kernel answers");
+        effect.valid = decision.valid;
+        if decision.changed && !input.resume {
+            effect.valid_lifetime = decision.valid_lifetime;
+        }
+        if decision.relink {
+            effect.member = true;
+        }
+        (u32::from(decision.changed), decision.play)
+    }
+
+    fn pause_of(effect: &mut StoredEffect, delay: f32) -> u32 {
+        let input = SoundPauseResumeInput {
+            resume: false,
+            valid: effect.valid,
+            member: effect.member,
+            delay,
+            valid_lifetime: effect.valid_lifetime,
+        };
+        applied(effect, input).0
+    }
+
+    fn resume_of(effect: &mut StoredEffect) -> (u32, bool) {
+        let input = SoundPauseResumeInput {
+            resume: true,
+            valid: effect.valid,
+            member: effect.member,
+            delay: 0.0,
+            valid_lifetime: effect.valid_lifetime,
+        };
+        applied(effect, input)
+    }
+
+    /// one server update of the effect (the e502 lifetime kernel), applied as the campaign applies it: both lifetimes, then an unlink
+    fn updated(effect: &mut StoredEffect, delta: f32) {
+        let input = SoundUpdateInput {
+            server: true,
+            delta,
+            valid: effect.valid,
+            looping: false,
+            lifetime: effect.lifetime,
+            valid_lifetime: effect.valid_lifetime,
+            has_handle: false,
+            playing: None,
+        };
+        let (lifetime, valid_lifetime, _, action) = sound_call(input);
+        effect.lifetime = lifetime;
+        effect.valid_lifetime = valid_lifetime;
+        if action == SoundAction::Unlink {
+            effect.member = false;
+        }
+    }
+
+    #[test]
+    fn a_pause_invalidates_only_a_valid_effect_and_copies_its_delay_and_a_resume_validates_only_an_invalid_one() {
+        let pause = |valid, delay, valid_lifetime| {
+            sound_pause_resume(&SoundPauseResumeInput {
+                resume: false,
+                valid,
+                member: true,
+                delay,
+                valid_lifetime,
+            })
+            .unwrap()
+        };
+        let changed = pause(true, 1.5, 0.0);
+        assert_eq!(
+            (changed.changed, changed.valid, changed.valid_lifetime, changed.play, changed.relink),
+            (true, false, 1.5, false, false)
+        );
+        // an invalid effect is a no-op: the delay is not copied and the stored valid lifetime is the very number it was
+        let no_op = pause(false, 9.0, 1.5);
+        assert_eq!(
+            (no_op.changed, no_op.valid, no_op.valid_lifetime, no_op.play, no_op.relink),
+            (false, false, 1.5, false, false)
+        );
+        let resume = |valid, member| {
+            sound_pause_resume(&SoundPauseResumeInput {
+                resume: true,
+                valid,
+                member,
+                delay: 0.0,
+                valid_lifetime: 1.5,
+            })
+            .unwrap()
+        };
+        // a resume of an invalid effect validates it, asks the parent to play, and relinks it only when it is not in the update list; the old valid lifetime is left
+        let linked = resume(false, true);
+        assert_eq!(
+            (linked.changed, linked.valid, linked.valid_lifetime, linked.play, linked.relink),
+            (true, true, 1.5, true, false)
+        );
+        let unlinked = resume(false, false);
+        assert_eq!(
+            (unlinked.changed, unlinked.valid, unlinked.valid_lifetime, unlinked.play, unlinked.relink),
+            (true, true, 1.5, true, true)
+        );
+        // a resume of a valid effect is a no-op: no playback, no relink, even for an effect that is not in the update list
+        let valid = resume(true, false);
+        assert_eq!(
+            (valid.changed, valid.valid, valid.valid_lifetime, valid.play, valid.relink),
+            (false, true, 1.5, false, false)
+        );
+    }
+
+    #[test]
+    fn the_original_session_cases_are_reproduced_by_the_host_decisions_applied_in_the_campaign_order() {
+        // case 11: linked pause then resume, returns 1,1; the effect stays linked, the lifetime 5 and the valid lifetime 1.5 are kept
+        let mut effect = stored();
+        let returns = (pause_of(&mut effect, 1.5), resume_of(&mut effect).0);
+        assert_eq!(returns, (1, 1));
+        assert_eq!(
+            effect,
+            StoredEffect {
+                valid_lifetime: 1.5,
+                ..stored()
+            }
+        );
+
+        // case 12: the invalid effect valid lifetime counts down 1.5 -> 0.5 -> 0 and stays linked at zero, the next update unlinks it; the resume validates and relinks it with the effect lifetime 5, and the
+        // next valid update gives 4
+        let mut effect = stored();
+        assert_eq!(pause_of(&mut effect, 1.5), 1);
+        let mut countdown = Vec::new();
+        for _ in 0..3 {
+            updated(&mut effect, 1.0);
+            countdown.push((effect.valid_lifetime, effect.member, effect.lifetime));
+        }
+        assert_eq!(countdown, [(0.5, true, 5.0), (0.0, true, 5.0), (0.0, false, 5.0)]);
+        let (count, play) = resume_of(&mut effect);
+        assert_eq!((count, play), (1, true));
+        assert_eq!((effect.valid, effect.member, effect.lifetime, effect.valid_lifetime), (true, true, 5.0, 0.0));
+        updated(&mut effect, 1.0);
+        assert_eq!((effect.valid, effect.member, effect.lifetime), (true, true, 4.0));
+
+        // case 13: a resume before any pause 0, a pause 1, a second pause with the delay 9 while invalid 0 (it is ignored), a resume 1 that does not clear the old 1.5, a second resume 0
+        let mut effect = stored();
+        let returns = [
+            resume_of(&mut effect).0,
+            pause_of(&mut effect, 1.5),
+            pause_of(&mut effect, 9.0),
+            resume_of(&mut effect).0,
+            resume_of(&mut effect).0,
+        ];
+        assert_eq!(returns, [0, 1, 0, 1, 0]);
+        assert_eq!(
+            effect,
+            StoredEffect {
+                valid_lifetime: 1.5,
+                ..stored()
+            }
+        );
+    }
+
+    #[test]
+    fn a_stale_valid_lifetime_that_the_call_does_not_change_comes_back_as_the_very_word_it_was_given() {
+        for word in [0x8000_0000u32, 0x0000_0003, 0x3fc0_0000, 0x7f7f_ffff, 0x0000_0000] {
+            let stale = f32::from_bits(word);
+            for (resume, valid) in [(false, false), (true, true), (true, false), (false, true)] {
+                let decision = sound_pause_resume(&SoundPauseResumeInput {
+                    resume,
+                    valid,
+                    member: true,
+                    delay: 1.5,
+                    valid_lifetime: stale,
+                })
+                .unwrap();
+                // only a pause that changed the effect carries a new valid lifetime (the delay word)
+                let written = !resume && valid;
+                let expected = if written { 1.5f32.to_bits() } else { word };
+                assert_eq!(decision.valid_lifetime.to_bits(), expected, "word {word:08x} resume {resume} valid {valid}");
+            }
+        }
+    }
+
+    #[test]
+    fn a_stored_valid_lifetime_that_is_not_finite_or_a_delay_that_would_be_written_is_refused_and_an_unwritten_delay_is_never_read() {
+        let base = SoundPauseResumeInput {
+            resume: false,
+            valid: true,
+            member: true,
+            delay: 1.5,
+            valid_lifetime: 0.0,
+        };
+        for bad in [f32::NAN, f32::INFINITY, f32::NEG_INFINITY, f32::from_bits(0x7fa0_0000)] {
+            assert!(sound_pause_resume(&SoundPauseResumeInput { delay: bad, ..base }).is_err());
+            assert!(sound_pause_resume(&SoundPauseResumeInput { valid_lifetime: bad, ..base }).is_err());
+            // a no-op pause (the effect is invalid) and a resume write no delay: it is not read
+            assert!(sound_pause_resume(&SoundPauseResumeInput {
+                delay: bad,
+                valid: false,
+                ..base
+            })
+            .is_ok());
+            assert!(sound_pause_resume(&SoundPauseResumeInput {
+                delay: bad,
+                resume: true,
+                valid: false,
+                ..base
+            })
+            .is_ok());
         }
     }
 }

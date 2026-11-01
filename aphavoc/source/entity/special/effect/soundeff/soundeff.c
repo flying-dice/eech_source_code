@@ -117,6 +117,32 @@ int pause_local_entity_sound_type (entity *en, entity_sub_types type, float dela
 
 			if (raw->eff.sub_type == type)
 			{
+				#ifdef EECH_CAMPAIGN_HOST_ENV
+
+				//
+				// EECH_CAMPAIGN_HOST_ENV (EEDCS-51, D3): whether this effect is paused, what that does to its validity and valid lifetime, the delay copy and whether it counts are the HOST's
+				// (aphavoc/source/entity/special/session/ss_hostenv.h SOUND_PAUSE_RESUME).  The walk of the children and the sub type match stay the campaign's; the stored fields are handed over
+				// by value and written from the checked answer.  The original follows in the #else, for the original game's build only.
+				//
+
+				{
+					int
+						valid,
+						play,
+						relink;
+
+					valid = raw->valid_sound_effect;
+
+					if (campaign_sound_pause_resume (FALSE, delay, (get_local_entity_parent (spec, LIST_TYPE_UPDATE) != NULL), &valid, &raw->valid_effect_lifetime, &play, &relink))
+					{
+						raw->valid_sound_effect = valid;
+
+						count ++;
+					}
+				}
+
+				#else
+
 				//
 				// "pause" sound
 				//
@@ -129,6 +155,8 @@ int pause_local_entity_sound_type (entity *en, entity_sub_types type, float dela
 
 					count ++;
 				}
+
+				#endif
 			}
 		}
 
@@ -141,6 +169,42 @@ int pause_local_entity_sound_type (entity *en, entity_sub_types type, float dela
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef EECH_CAMPAIGN_HOST_ENV
+
+//
+// the parent's playback request of a resumed effect, as the original made it inline (below, in the #else): the session plays with the viewpoint and no range, any other parent with the range from the
+// viewpoint to its position.  Which function plays (the session's default no-op, or a per-family function) and the device stay the campaign's; the HOST decides only whether to ask.
+//
+
+static void play_resumed_parent_sound (entity *en)
+{
+	if (en == get_session_entity ())
+	{
+		play_local_entity_sound (en, &main_vp, 0);
+	}
+	else
+	{
+		vec3d
+			*position;
+
+		viewpoint
+			*vp;
+
+		float
+			range;
+
+		vp = &main_vp;
+
+		position = get_local_entity_vec3d_ptr (en, VEC3D_TYPE_POSITION);
+
+		range = get_approx_3d_range (&vp->position, position);
+
+		play_local_entity_sound (en, vp, range);
+	}
+}
+
+#endif
 
 int resume_local_entity_sound_type (entity *en, entity_sub_types type)
 {
@@ -165,6 +229,48 @@ int resume_local_entity_sound_type (entity *en, entity_sub_types type)
 
 			if (raw->eff.sub_type == type)
 			{
+				#ifdef EECH_CAMPAIGN_HOST_ENV
+
+				//
+				// EECH_CAMPAIGN_HOST_ENV (EEDCS-51, D3): whether this effect is resumed, what that does to its validity, whether its parent is asked to play and whether it is put back in the update list,
+				// and whether it counts, are the HOST's (aphavoc/source/entity/special/session/ss_hostenv.h SOUND_PAUSE_RESUME).  The walk of the children and the sub type match stay the campaign's, and so
+				// does HOW the parent plays (the session's default no-op, or a range and a per-family function: the original's calls, made only when the host asks).  The answer is checked whole, then applied
+				// in the original order: the validity, the playback request, the relink, the count.  The original follows in the #else, for the original game's build only.
+				//
+
+				{
+					int
+						valid,
+						play,
+						relink;
+
+					valid = raw->valid_sound_effect;
+
+					if (campaign_sound_pause_resume (TRUE, 0.0f, (get_local_entity_parent (spec, LIST_TYPE_UPDATE) != NULL), &valid, &raw->valid_effect_lifetime, &play, &relink))
+					{
+						raw->valid_sound_effect = valid;
+
+						if (play)
+						{
+							play_resumed_parent_sound (en);
+						}
+
+						if (relink)
+						{
+							if (get_local_entity_parent (spec, LIST_TYPE_UPDATE))
+							{
+								debug_fatal ("host environment: [env-provider:sound_pause_resume.answer] the host relinks an effect that the parent's playback left in the update list");
+							}
+
+							insert_local_entity_into_parents_child_list (spec, LIST_TYPE_UPDATE, get_update_entity (), NULL);
+						}
+
+						count ++;
+					}
+				}
+
+				#else
+
 				//
 				// "unpause" sound
 				//
@@ -208,6 +314,8 @@ int resume_local_entity_sound_type (entity *en, entity_sub_types type)
 
 					count ++;
 				}
+
+				#endif
 			}
 		}
 

@@ -106,4 +106,9 @@ int env_ref_sound_init (const int *in_i, float *out_lifetime, char *error, size_
    said whether it is playing.  CANONICAL arithmetic environment; the floats are read inside the guard from memory. */
 int env_ref_sound_update (const float *in_f, const int *in_i, float *out_f, int *out_i, char *error, size_t error_size);
 
+/* soundeff.c pause_local_entity_sound_type / resume_local_entity_sound_type for ONE matching effect: in_w = { delay, valid lifetime } as 32-bit WORDS, in_i = { resume, valid, member of the update list };
+   out_w = { valid lifetime } as a word (the delay for a pause that changed the effect, else the word it came in as), out_i = { changed, valid, play (the parent is asked to play), relink (the effect goes back in the update list) }.
+   No floating-point work: the caller's x87 and MXCSR state is never touched.  A valid lifetime, and a delay that would be written, that is not finite is refused (nothing changed). */
+int env_ref_sound_pause_resume (const unsigned int *in_w, const int *in_i, unsigned int *out_w, int *out_i, char *error, size_t error_size);
+
 #endif

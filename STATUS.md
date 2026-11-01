@@ -1,3 +1,34 @@
+# D3 host-owned sound pause/resume — source prepared (1 November 2026 UTC; UNBUILT natively, UNRUN, UNREVIEWED; nothing ran natively or on retail)
+
+Uncommitted source batch on top of `5e7101d87` (the reviewed original pause/resume characterization; baseline native `33c015557` plus frozen Lua `299bcf05`, 4 SESSION-parent cases, finite scope).
+It moves the physical VALIDITY, NO-OP, delay-copy, resume playback-request and update-list relink decisions and the changed counts of ONE matching sound effect out of `soundeff.c`
+into the host, as one more public ENVIRONMENT-provider operation, `sound_pause_resume { resume, valid, member, valid_lifetime, delay? }` ->
+`{ changed, valid, valid_lifetime, play, relink }`. The legacy children walk and sub type match, the stored fields, HOW the parent plays (the SESSION's default no-op; the
+non-session range and per-family branch is the original code, called only when the host asks, and is NOT characterized or moved), the callers and the comms transmission stay Core.
+The hosted build has no pause or resume rule left in C (`#else` keeps the original); the complete answer is checked (flags, finite, an unchanged effect keeps its exact bits, a pause
+changes only a valid effect, a resume only an invalid one and leaves the valid lifetime, no double relink) before the validity/valid lifetime are written, then the playback
+request, then the relink, then the count, in the original order. The host entry has no floating-point work (32-bit words; negative zero and subnormal stale words round-trip).
+Files: `ss_hostenv.h/.c`, `soundeff.c`, `env_ref.c/.h`, `env.rs`, `eech-engine-sys`, `eech-engine`, `eech-dc` module, the witness Lua (six more modes) and their tests, plus docs.
+Characterization fixture C, observer, probe sampling, accepted driver `299bcf05`, host lifetime kernels/protocol, `eech_engine.c` (1 NUL), baselines and tolerances are untouched.
+PRODUCTION C changed: Root must build a NEW native and must not relabel 33 or e502.
+
+My own WIP checks (offline Linux container, no network, Docker verified idle first, exclusive-new logs, REAL exit tags from steps FILES; filenames carry 20261101, actual execution
+1 November UTC): `sound-hostpr-fmt-WIP-20261101-a1.log` (rustfmt applied only to a private copy; formatted files copied back); `sound-hostpr-WIP-20261101-d1.log` FAILED
+(`ENGINE_ENV_EXIT=101`: my engine-boundary arm for the new operation had not been copied in; retained); `-e1.log` (fix; its fmt check 1 on one arm and a warning probe that cannot show
+warnings, the C build uses `-w`; retained); `-f1.log` on the final state: fmt 0, default and observer-feature check of `eech-engine`/`eech-dc` 0 (the changed hosted C compiles),
+`eech-world` lib 268 passed, `env_sound_lifetime` 25 passed (including the new witness modes and the accepted 299 driver's stand-in guards), `eech-dc` lib 29, `eech-engine` env 5, clippy 0.
+Not run by me: a native on the new C, any C-level test of the adapter checks (they are exercised only by the witness modes on a native, Root's), the old-33 capability red on a native (the
+witness stand-in shows the verdict `sound-host-capability-missing`), the feature-off token check, retail, Windows, CI. Disclosures kept: old d2/d3/c2 exit tags remain untrusted; the first
+`d1` raw log remains unavailable; my WSL runner script was recreated from the transcript after I had deleted the first one.
+
+Still unmeasured: whether the real boot sends this operation, how many requests a real campaign sends (helicopter engine sounds pause/resume while flight dynamics run), the
+non-session branch, handles/device. Whole Task 51/D3 stays open: metadata/assets, persistent mirrors, independent destroy, network, pitch/amplitude, physical time, required
+terrain/spatial/model, full 40 / all 8 complete recordings, current CI, normal merges; D4/D5 unstarted.
+
+Root next: pin this source; the same reviewer on the delta; build the NEW native; verify the old-33 red (real case 12 completes, 0 new requests); run the unchanged `299bcf05` driver on
+cases 11 to 14 once and compare with the 33 originals word for word (plus the relevant default, natural and client cases, potentially 15 same-original diagnostics) and investigate any
+difference; run the six witness modes with real replies; independent actual review; then current CI, shipping 40 / all 8 complete, merges, Jira and ledger.
+
 # D3 original pause/resume — four controls measured (1 November 2026 update; measured31October; original four-case characterization reviewed)
 
 Native33c015557fb3fbc26592e20b143ada40ec155e1f plus separately frozen Lua299bcf05128da68e85c8490025594f99969335b8:

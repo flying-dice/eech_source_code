@@ -2034,3 +2034,63 @@ int env_ref_sound_update (const float *in_f, const int *in_i, float *out_f, int 
 
 	return result;
 }
+
+/*
+ * The PHYSICAL VALIDITY of ONE sound effect under a pause or a resume (EEDCS-51, D3): the original C of soundeff.c pause_local_entity_sound_type and resume_local_entity_sound_type for ONE matching child, field for
+ * field.  The walk of the parent's children and the sub type match are the campaign's legacy plumbing and are not here; nor is the playback of the parent's sound, only whether it is asked.
+ *
+ *     pause:   if (raw->valid_sound_effect) { raw->valid_sound_effect = FALSE; raw->valid_effect_lifetime = delay; count++; }
+ *     resume:  if (!raw->valid_sound_effect) { raw->valid_sound_effect = TRUE; play_local_entity_sound (en, ...); if (!member) { insert into the update list; } count++; }
+ *
+ * There is NO floating-point work in this entry, so it needs no canonical scope and leaves the caller's x87 and MXCSR state untouched: the delay and the valid lifetime are carried as their 32-bit WORDS
+ * (the original's only float operation is the copy `valid_effect_lifetime = delay`, which is a copy of the word for any finite number; a float copy through the x87 would touch the stack and flags and could
+ * alter a signalling NaN), their finiteness is decided on the exponent bits, and a stale valid lifetime that is not changed is returned as the very word it came in as.  A number that is not finite is refused:
+ * the host boundary carries finite numbers only.  No state is kept.
+ */
+#define ENV_WORD_EXPONENT 0x7f800000u
+
+/* in_w = { delay, valid lifetime } as words; in_i = { resume, valid, member }; out_w = { valid lifetime } as a word; out_i = { changed, valid, play, relink } */
+int env_ref_sound_pause_resume (const unsigned int *in_w, const int *in_i, unsigned int *out_w, int *out_i, char *error, size_t error_size)
+{
+	/* what a refusal leaves: the valid lifetime as it came, nothing changed */
+	out_w[0] = in_w[1];
+	out_i[0] = FALSE;
+	out_i[1] = (in_i[1] != 0);
+	out_i[2] = FALSE;
+	out_i[3] = FALSE;
+
+	if ((in_w[1] & ENV_WORD_EXPONENT) == ENV_WORD_EXPONENT)
+	{
+		return fail (error, error_size, "the valid lifetime of the sound effect is not a finite number");
+	}
+
+	if (!in_i[0])
+	{
+		/* pause */
+		if (in_i[1])
+		{
+			/* the delay is carried only when it is written */
+			if ((in_w[0] & ENV_WORD_EXPONENT) == ENV_WORD_EXPONENT)
+			{
+				return fail (error, error_size, "the delay of the pause is not a finite number");
+			}
+
+			out_i[1] = FALSE;
+			out_w[0] = in_w[0];
+			out_i[0] = TRUE;
+		}
+	}
+	else
+	{
+		/* resume */
+		if (!in_i[1])
+		{
+			out_i[1] = TRUE;
+			out_i[2] = TRUE;
+			out_i[3] = !in_i[2];
+			out_i[0] = TRUE;
+		}
+	}
+
+	return 0;
+}

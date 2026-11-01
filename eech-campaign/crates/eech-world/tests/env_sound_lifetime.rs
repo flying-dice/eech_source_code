@@ -130,7 +130,13 @@ local REPORTS = {{ {reports_lua} }}
 host = {{
 	args = ARGS,
 	terrain_provider = function () return function () return {{}} end end,
-	env_provider = function () return function () return {{}} end end,
+	-- the reference host, standing in: a pause or resume request is answered as a no-op that changes nothing (the canned report stands for what a native shows); any other request gets an empty answer
+	env_provider = function () return function (request)
+		if type (request) == 'table' and request.op == 'sound_pause_resume' then
+			return {{ changed = false, valid = request.valid, valid_lifetime = request.valid_lifetime, play = false, relink = false }}
+		end
+		return {{}}
+	end end,
 	bind_mobile = function () end,
 }}
 -- the campaign asking the host, as the hosted constructor and update routines do: the host's answer is checked as the campaign checks it, and a refusal or a malformed answer stops the engine at the provider's marker
@@ -143,6 +149,15 @@ local function ask (config, request)
 	-- a looping effect's lifetime is +0 (the campaign refuses any other): the boot's own looping ambient sounds ask for it
 	if request.op == 'sound_lifetime_init' and request.looping and type (answer) == 'table' and answer.lifetime ~= nil and answer.lifetime ~= 0 then
 		error ('host environment: [env-provider:sound_lifetime_init.answer] the host gave a looping effect a lifetime other than 0', 0)
+	end
+	-- a pause or a resume of one matching effect: every field of the answer is explicit (a number is not a flag), and a pause changes only a valid effect to an invalid one
+	if request.op == 'sound_pause_resume' then
+		if type (answer) ~= 'table' or type (answer.changed) ~= 'boolean' or type (answer.valid) ~= 'boolean' or type (answer.play) ~= 'boolean' or type (answer.relink) ~= 'boolean' or type (answer.valid_lifetime) ~= 'number' then
+			error ('host environment: [env-provider:sound_pause_resume.answer] a flag of the answer is not a boolean or the valid lifetime is not a number', 0)
+		end
+		if answer.changed and not request.resume and (not request.valid or answer.valid) then
+			error ('host environment: [env-provider:sound_pause_resume.answer] the host changed a pause other than a valid effect to an invalid one', 0)
+		end
 	end
 end
 
@@ -157,6 +172,11 @@ package.preload.eech_dc = function ()
 				ask (config, {{ op = 'sound_lifetime_init', looping = true, music = false, samples = {{ {{ rate = 22050, size = 0 }} }} }})
 				ask (config, {{ op = 'sound_lifetime_init', looping = true, music = false, samples = {{ {{ rate = 22050, size = 0 }} }} }})
 			end
+			-- the boot's own pause and resume traffic (a music sound and the cockpit lamps pause and resume their effects): forwarded unchanged and counted apart by the witness
+			if SCENARIO.boot_pause_asks and config and config.environment then
+				ask (config, {{ op = 'sound_pause_resume', resume = true, valid = true, member = true, valid_lifetime = 0.0 }})
+				ask (config, {{ op = 'sound_pause_resume', resume = false, valid = false, member = true, delay = 0.0, valid_lifetime = 0.0 }})
+			end
 			local engine = {{}}
 			if SCENARIO.no_env_case then return engine end
 			function engine:env_case (group, index)
@@ -170,6 +190,21 @@ package.preload.eech_dc = function ()
 					elseif index == 4 then
 						ask (config, {{ op = 'sound_lifetime_init', looping = false, music = false, samples = {{ {{ rate = 4, size = 20 }} }} }})
 						for _ = 1, 3 do ask (config, {{ op = 'sound_lifetime_update', server = true, delta = 2.0, valid = true, looping = false, lifetime = 5.0, valid_lifetime = 0.0, has_handle = false }}) end
+					elseif index == 11 then
+						-- one valid effect paused with the delay 1.5, then resumed while still linked
+						ask (config, {{ op = 'sound_pause_resume', resume = false, valid = true, member = true, delay = 1.5, valid_lifetime = 0.0 }})
+						ask (config, {{ op = 'sound_pause_resume', resume = true, valid = false, member = true, valid_lifetime = 1.5 }})
+					elseif index == 12 then
+						-- paused, counted down and unlinked by the lifetime updates, then resumed while not in the update list
+						ask (config, {{ op = 'sound_pause_resume', resume = false, valid = true, member = true, delay = 1.5, valid_lifetime = 0.0 }})
+						ask (config, {{ op = 'sound_pause_resume', resume = true, valid = false, member = false, valid_lifetime = 0.0 }})
+					elseif index == 13 then
+						-- a resume of a valid effect (a no-op), a pause, a second pause of the now invalid effect, a resume, a resume of the valid effect again
+						ask (config, {{ op = 'sound_pause_resume', resume = true, valid = true, member = true, valid_lifetime = 0.0 }})
+						ask (config, {{ op = 'sound_pause_resume', resume = false, valid = true, member = true, delay = 1.5, valid_lifetime = 0.0 }})
+						ask (config, {{ op = 'sound_pause_resume', resume = false, valid = false, member = true, delay = 9.0, valid_lifetime = 1.5 }})
+						ask (config, {{ op = 'sound_pause_resume', resume = true, valid = false, member = true, valid_lifetime = 1.5 }})
+						ask (config, {{ op = 'sound_pause_resume', resume = true, valid = true, member = true, valid_lifetime = 1.5 }})
 					end
 				end
 				local text = index == 0 and PLAN or (SCENARIO.report and SCENARIO.report [index]) or REPORTS [index]
@@ -1090,6 +1125,12 @@ fn pause_report(case: u32) -> String {
 
 /// `stored_enters` is how many ENTER records per entity the canned probe keeps; the real probe keeps `STORED_ENTERS`, a larger number is the invented form the driver must refuse.
 fn pause_report_storing(case: u32, stored_enters: u32) -> String {
+    pause_report_variant(case, stored_enters, "")
+}
+
+/// `variant` is what a host that answers differently would leave on the real entity: "delay3" (case 11: the host copied its own valid lifetime 3.0 on the pause) and "not_relinked" (case 12: the host did not put the
+/// resumed effect back in the update list, so the update after the resume is not made).
+fn pause_report_variant(case: u32, stored_enters: u32, variant: &str) -> String {
     let s = 23;
     let ent = |slot: u32, sub: i32| Ent {
         slot,
@@ -1102,8 +1143,9 @@ fn pause_report_storing(case: u32, stored_enters: u32) -> String {
     // [state at tag 0, tag 1, ...] for each effect, and the steps
     let (ents, caps, steps): (Vec<Ent>, Vec<Vec<Cap>>, Vec<PauseStep>) = match case {
         11 => {
-            let paused = cap("40a00000", "3fc00000", 0, 0, 1);
-            let resumed = cap("40a00000", "3fc00000", 1, 0, 1);
+            let copied = if variant == "delay3" { "40400000" } else { "3fc00000" };
+            let paused = cap("40a00000", copied, 0, 0, 1);
+            let resumed = cap("40a00000", copied, 1, 0, 1);
             (
                 vec![ent(20, s)],
                 vec![vec![PAUSE_LIVE, paused, resumed]],
@@ -1118,8 +1160,10 @@ fn pause_report_storing(case: u32, stored_enters: u32) -> String {
             let p05 = cap("40a00000", "3f000000", 0, 0, 1);
             let p00 = cap("40a00000", "00000000", 0, 0, 1);
             let unlinked = cap("40a00000", "00000000", 0, 0, 0);
-            let resumed = cap("40a00000", "00000000", 1, 0, 1);
-            let aged = cap("40800000", "00000000", 1, 0, 1);
+            let relinked = variant != "not_relinked";
+            let resumed = cap("40a00000", "00000000", 1, 0, u32::from(relinked));
+            // a resumed effect that is not in the update list is not updated: the state after the update step is the one before it
+            let aged = if relinked { cap("40800000", "00000000", 1, 0, 1) } else { resumed };
             (
                 vec![ent(20, s)],
                 vec![vec![PAUSE_LIVE, p15, p05, p00, unlinked, resumed, aged]],
@@ -1128,8 +1172,8 @@ fn pause_report_storing(case: u32, stored_enters: u32) -> String {
                     update_step(),
                     update_step(),
                     update_step(),
-                    pause_step(2, s, "00000000", 1, [11, 1, 0, 1, 0], [11, 1, 1, 0, 1]),
-                    update_step(),
+                    pause_step(2, s, "00000000", 1, [11, 1, 0, 1, 0], [11, 1, 1, 0, u32::from(relinked)]),
+                    if relinked { update_step() } else { PauseStep { made: 0, ..update_step() } },
                 ],
             )
         }
@@ -1494,4 +1538,152 @@ fn a_pause_and_resume_scan_must_agree_with_the_cohort_states_beside_it_and_not_o
     ];
     let missed = forms_not_refused(&damaged);
     assert!(missed.is_empty(), "{missed:#?}");
+}
+
+// ---- the public-host OWNERSHIP WITNESS of the sound pause and resume (the `pause_*` and `resume_changed` modes of lua/env-sound-host-witness.lua): against the same scripted engine, whose canned reports stand for what
+// a native shows. The words the witness expects are the ones the ORIGINAL measured for cases 11 to 13 and the ones it makes the host answer itself.
+
+const PAUSE_BOOT: &str = "asks = true, boot_asks = true, boot_pause_asks = true";
+
+#[test]
+fn the_pause_resume_witness_names_the_missing_capability_when_the_case_completes_without_the_host_being_asked() {
+    let driven = witness("", &[("case", "12"), ("mode", "pause_healthy")]);
+    let error = driven
+        .result
+        .clone()
+        .expect_err("a native that decides the validity itself must fail the witness");
+    assert!(error.contains("env-sound-host-witness: sound-host-capability-missing"), "{error}");
+    // the delegate really completed case 12 (its own rows and result are on the file), so this is the capability verdict and not a setup failure
+    let result = &of(&driven, "result")[0];
+    assert_eq!(
+        (
+            result["case"].as_i64(),
+            result["refused"].as_bool(),
+            result["calls"].as_i64(),
+            result["returns"].as_str()
+        ),
+        (Some(12), Some(false), Some(4), Some("1,1"))
+    );
+    let record = authority(&driven);
+    assert_eq!(record["verdict"], "sound_host_capability_missing");
+    assert_eq!(
+        (record["op"].as_str(), record["requests"].as_i64(), record["altered"].as_i64()),
+        (Some("sound_pause_resume"), Some(0), Some(0))
+    );
+}
+
+#[test]
+fn the_pause_resume_witness_counts_the_boot_traffic_apart_and_shows_the_originals_words_on_the_real_case() {
+    let driven = witness(PAUSE_BOOT, &[("case", "12"), ("mode", "pause_healthy")]);
+    driven
+        .result
+        .clone()
+        .unwrap_or_else(|e| panic!("a native that asks the host was rejected: {e}\n{}", driven.text));
+    let record = authority(&driven);
+    assert_eq!(record["verdict"], "host_asked_and_decided");
+    // the pause and the resume of the fixture are the requests; the boot's two are forwarded unchanged and counted apart; the fixture's other operations are other requests
+    assert_eq!(
+        (record["requests"].as_i64(), record["boot_requests"].as_i64(), record["altered"].as_i64()),
+        (Some(2), Some(2), Some(0))
+    );
+    assert_eq!(record["returns"], "1,1");
+    assert_eq!(
+        record["state_words"],
+        "11:00000000,01:3fc00000,01:3f000000,01:00000000,00:00000000,11:00000000,11:00000000"
+    );
+    // the delegate's rows are exactly what the control driver alone writes for the same report
+    let alone = drive("", &[("case", "12")]);
+    let delegate_rows: Vec<&serde_json::Value> = driven.rows.iter().filter(|row| row.get("verdict").is_none()).collect();
+    assert_eq!(delegate_rows, alone.rows.iter().collect::<Vec<_>>());
+    // a host that was asked, with a real case that does not show what the original measured, is not shown to own the decision
+    let unmoved = format!(
+        "{PAUSE_BOOT}, report = {{ [12] = '{}' }}",
+        pause_report_variant(12, STORED_ENTERS, "not_relinked")
+    );
+    let error = witness(&unmoved, &[("case", "12"), ("mode", "pause_healthy")]).result.unwrap_err();
+    assert!(error.contains("ownership-not-shown"), "{error}");
+}
+
+#[test]
+fn the_pause_resume_witness_in_a_changed_mode_needs_the_real_entity_to_hold_the_hosts_answer_and_not_only_a_request_count() {
+    // the host copied 3.0 on the pause where it was given the delay 1.5: the entity holds the host's word
+    let copied = format!("{PAUSE_BOOT}, report = {{ [11] = '{}' }}", pause_report_variant(11, STORED_ENTERS, "delay3"));
+    let driven = witness(&copied, &[("case", "11"), ("mode", "pause_changed")]);
+    driven.result.clone().unwrap_or_else(|e| panic!("{e}\n{}", driven.text));
+    let record = authority(&driven);
+    assert_eq!(record["verdict"], "host_changed_the_decision");
+    assert_eq!(
+        (
+            record["altered"].as_i64(),
+            record["requests"].as_i64(),
+            record["boot_requests"].as_i64(),
+            record["returns"].as_str()
+        ),
+        (Some(1), Some(2), Some(2), Some("1,1"))
+    );
+    assert_eq!(record["state_words"], "11:00000000,01:40400000,11:40400000");
+    // the host was asked and altered its answer, but the entity holds the delay the campaign was given: the campaign copied the delay itself
+    let campaign_copied = witness(PAUSE_BOOT, &[("case", "11"), ("mode", "pause_changed")]);
+    let error = campaign_copied.result.unwrap_err();
+    assert!(error.contains("ownership-not-shown") && error.contains("3.0 (40400000)"), "{error}");
+
+    // the host did not relink the resumed effect: the entity is valid and out of the update list, and the update after the resume is not made
+    let unlinked = format!(
+        "{PAUSE_BOOT}, report = {{ [12] = '{}' }}",
+        pause_report_variant(12, STORED_ENTERS, "not_relinked")
+    );
+    let driven = witness(&unlinked, &[("case", "12"), ("mode", "resume_changed")]);
+    driven.result.clone().unwrap_or_else(|e| panic!("{e}\n{}", driven.text));
+    let record = authority(&driven);
+    assert_eq!(record["verdict"], "host_changed_the_decision");
+    assert_eq!((record["altered"].as_i64(), record["calls"].as_i64()), (Some(1), Some(3)));
+    assert_eq!(
+        record["state_words"],
+        "11:00000000,01:3fc00000,01:3f000000,01:00000000,00:00000000,10:00000000,10:00000000"
+    );
+    // the campaign relinked it itself although the host did not: the real case shows a member and four calls
+    let campaign_relinked = witness(PAUSE_BOOT, &[("case", "12"), ("mode", "resume_changed")]);
+    let error = campaign_relinked.result.unwrap_err();
+    assert!(error.contains("ownership-not-shown") && error.contains("did not relink"), "{error}");
+}
+
+#[test]
+fn the_pause_resume_witness_stops_a_withheld_malformed_or_incoherent_answer_at_its_boundary_and_reports_the_stop_as_the_evidence() {
+    for (mode, case, marker) in [
+        ("pause_withheld", "11", "[env-provider:sound_pause_resume.callback]"),
+        ("pause_malformed", "11", "[env-provider:sound_pause_resume.answer]"),
+        ("pause_incoherent", "13", "[env-provider:sound_pause_resume.answer]"),
+    ] {
+        let driven = witness(PAUSE_BOOT, &[("case", case), ("mode", mode)]);
+        driven.result.clone().unwrap_or_else(|e| panic!("{mode}: {e}\n{}", driven.text));
+        let record = authority(&driven);
+        assert_eq!(
+            (record["verdict"].as_str(), record["marker"].as_str(), record["stopped"].as_bool()),
+            (Some("stopped_at_boundary"), Some(marker), Some(true)),
+            "{mode}"
+        );
+        assert!(of(&driven, "result").is_empty(), "{mode}: a result row was written");
+        assert_eq!(of(&driven, "engine_failure").len(), 1, "{mode}");
+        // the boot's own pause and resume requests were forwarded unchanged before the fixture case: the stop is at the fixture case, never inside boot
+        assert_eq!(record["boot_requests"].as_i64(), Some(2), "{mode}");
+    }
+    // a well-formed answer the campaign still refuses names its reason, and it is not stopped by another answer: case 13 with the incoherent change only meets the second pause
+    let failure = witness(PAUSE_BOOT, &[("case", "13"), ("mode", "pause_incoherent")]);
+    assert!(failure.text.contains("pause other than a valid effect"), "{}", failure.text);
+    // a native that never asks the host cannot be stopped by it: the delegate completes, and that is `not-stopped`
+    let completed = witness("", &[("case", "11"), ("mode", "pause_withheld")]);
+    assert!(completed.result.clone().unwrap_err().contains("not-stopped"), "{:?}", completed.result);
+}
+
+#[test]
+fn the_pause_resume_witness_refuses_a_case_that_is_not_the_modes_before_anything_runs() {
+    for args in [
+        vec![("delegate", "x.lua"), ("mode", "pause_healthy"), ("case", "11")],
+        vec![("delegate", "x.lua"), ("mode", "pause_changed"), ("case", "12")],
+        vec![("delegate", "x.lua"), ("mode", "pause_incoherent"), ("case", "12")],
+    ] {
+        let driven = drive_script("env-sound-host-witness.lua", WITNESS, "", &args);
+        assert!(driven.result.clone().unwrap_err().contains("env-sound-host-witness:"), "{args:?}");
+        assert!(driven.rows.is_empty(), "{args:?}: nothing was written");
+    }
 }

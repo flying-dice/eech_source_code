@@ -25,17 +25,31 @@
 --   withheld       the host raises an error in `sound_lifetime_update`. REQUIRED: the campaign STOPS at `[env-provider:sound_lifetime_update.callback]` (the delegate fails in the engine, no result row).
 --   malformed      the host answers an action that does not exist. REQUIRED: the campaign stops at `[env-provider:sound_lifetime_update.answer]`, likewise.
 --   withheld_init  the host raises an error in `sound_lifetime_init` in the fixture phase. REQUIRED: the campaign stops at `[env-provider:sound_lifetime_init.callback]` in case 6, likewise.
+--   PAUSE AND RESUME MODES (`sound_pause_resume`, the host's validity, no-op, delay copy, playback request and relink decisions for ONE matching effect; the cases 11 to 13 of the delegate, the ORIGINAL SESSION-parent
+--   observations of native 33c015557 with driver 299bcf051). The campaign still walks the children and matches the sub type; each matching effect is one request. The words the witness checks are the observed
+--   ORIGINAL outputs (case 11: returns 1,1; case 12: returns 1,1, four calls with only three sampled ENTERs, the valid lifetime 3fc00000 after the pause, unlinked at tag 4, valid and linked again after the resume) and the
+--   altered ones it writes itself; it computes no decision.
+--   pause_healthy     (case 12) the requests are forwarded to the reference host. REQUIRED: the case completed, the host was asked in the FIXTURE phase and the real entity shows the original's words.
+--   pause_changed     (case 11) the host answers the PAUSE with the valid lifetime 3.0 (word 40400000) instead of the delay 1.5 it was given. REQUIRED: the real entity's state after the pause holds 40400000: the delay copy
+--                     is the host's, not the campaign's (the returned counts stay 1,1).
+--   resume_changed    (case 12) the host answers the RESUME of the invalid effect with a validity change, a playback request and NO relink. REQUIRED: the real entity is valid and NOT in the update list after the resume, so
+--                     the update after it is not made (three calls, not four): the relink is the host's, not the campaign's.
+--   pause_withheld    (case 11) the host raises an error in `sound_pause_resume`. REQUIRED: the campaign stops at `[env-provider:sound_pause_resume.callback]`, no result row.
+--   pause_malformed   (case 11) the host answers its flags as numbers. REQUIRED: the campaign stops at `[env-provider:sound_pause_resume.answer]`.
+--   pause_incoherent  (case 13) the host answers the second pause of an effect that is already invalid with a change. REQUIRED: the campaign stops at `[env-provider:sound_pause_resume.answer]` with its reason (a pause
+--                     changes only a valid effect): a well-formed answer that the campaign still refuses before writing anything.
 -- THE STOP EVIDENCE is the delegate's OWN record, read back when the delegate fails: the case's `engine_failure` row at the expected marker and NO result row, and the delegate's error must be its report of the
 -- engine's stop. A failure whose message happens to carry the marker (a path, a diagnostic) is rejected as that failure, and a stale or contradictory result row is `contradictory-result`.
 --
 -- VERDICTS (errors begin `env-sound-host-witness:`): `SETUP FAILURE` -- the delegate failed (healthy, changed) or the case was refused or has no result: NOT a verdict on ownership; `sound-host-capability-missing`;
 -- `ownership-not-shown` -- the host was asked but the real case does not show the host's answer; `not-stopped` / `wrong-boundary` -- a withheld or malformed answer did not stop the campaign at its marker.
 --
--- WHAT IT DOES NOT. It asserts no private type, struct layout or ABI, creates no playback handle and exercises no renderer, speaker, network, pause/resume or device. The word values it checks are the observed ORIGINAL
+-- WHAT IT DOES NOT. It asserts no private type, struct layout or ABI, creates no playback handle and exercises no renderer, speaker, network, device, non-session parent (range and per-family playback) or independent destroy. The word values it checks are the observed ORIGINAL
 -- outputs of the finite controlled-data cases, and the altered ones it writes itself; it computes no lifetime.
 --
 -- ARGUMENTS (host.args, as the host executable passes them):
---   eech-world <this script> root=<installation root> out=<delegate JSON Lines path> delegate=<ABSOLUTE path of lua/env-sound-lifetime.lua> [mode=healthy|changed|changed_init|withheld|malformed|withheld_init]
+--   eech-world <this script> root=<installation root> out=<delegate JSON Lines path> delegate=<ABSOLUTE path of lua/env-sound-lifetime.lua> [mode=healthy|changed|changed_init|withheld|malformed|withheld_init|
+--                                                                                  pause_healthy|pause_changed|resume_changed|pause_withheld|pause_malformed|pause_incoherent]
 --                                                                                  [scenario=lebanon_retail|georgia_retail] [authority_out=<this witness's record path; default <out>.authority.jsonl>]
 --   `root`, `out`, `scenario` are the delegate's own arguments and are passed through unchanged; `case` is selected by the mode. One fresh process and root per run.
 
@@ -57,10 +71,16 @@ local MODES = {
 	withheld = { op = "sound_lifetime_update", case = 4, marker = "[env-provider:sound_lifetime_update.callback]" },
 	malformed = { op = "sound_lifetime_update", case = 4, marker = "[env-provider:sound_lifetime_update.answer]" },
 	withheld_init = { op = "sound_lifetime_init", case = 6, marker = "[env-provider:sound_lifetime_init.callback]" },
+	pause_healthy = { op = "sound_pause_resume", case = 12 },
+	pause_changed = { op = "sound_pause_resume", case = 11 },
+	resume_changed = { op = "sound_pause_resume", case = 12 },
+	pause_withheld = { op = "sound_pause_resume", case = 11, marker = "[env-provider:sound_pause_resume.callback]" },
+	pause_malformed = { op = "sound_pause_resume", case = 11, marker = "[env-provider:sound_pause_resume.answer]" },
+	pause_incoherent = { op = "sound_pause_resume", case = 13, marker = "[env-provider:sound_pause_resume.answer]", fragment = "pause other than a valid effect" },
 }
 local plan = MODES [mode]
-if plan == nil then refuse ("mode must be healthy, changed, changed_init, withheld, malformed or withheld_init, got '" .. tostring (mode) .. "'") end
-local OP, CASE, MARKER = plan.op, plan.case, plan.marker
+if plan == nil then refuse ("mode must be healthy, changed, changed_init, withheld, malformed, withheld_init, pause_healthy, pause_changed, resume_changed, pause_withheld, pause_malformed or pause_incoherent, got '" .. tostring (mode) .. "'") end
+local OP, CASE, MARKER, FRAGMENT = plan.op, plan.case, plan.marker, plan.fragment
 if args.case ~= nil and tostring (args.case) ~= tostring (CASE) then refuse ("case must be " .. CASE .. " for mode " .. mode .. ", got '" .. tostring (args.case) .. "'") end
 args.case = tostring (CASE)
 local authority_path = args.authority_out
@@ -70,7 +90,7 @@ if type (authority_path) ~= "string" or authority_path == "" or authority_path =
 -- ---------------------------------------------------------------------------------------------------------------- the wrapper: forward everything, count only the op, alter only that op's answer
 -- The alteration is armed for the FIXTURE phase only: the campaign's own boot constructs sound effects too (the looping ambient sounds ask `sound_lifetime_init`), and those requests are forwarded UNCHANGED
 -- and counted apart (`boot_requests`); the phase turns to `fixture` when the delegate's `dc.boot` returns, so the alteration or refusal meets the selected fixture case and nothing earlier.
-local requests, forwarded, boot_requests, phase = 0, 0, 0, "boot"
+local requests, forwarded, boot_requests, altered, phase = 0, 0, 0, 0, "boot"
 local factory = host.env_provider
 if type (factory) ~= "function" then refuse ("this host has no host.env_provider factory") end
 
@@ -87,6 +107,21 @@ local wrapped = function (...)
 			if mode == "changed_init" then return { lifetime = 0.25 } end
 			if mode == "withheld" or mode == "withheld_init" then error ("the host withholds its " .. OP .. " answer", 0) end
 			if mode == "malformed" then return { lifetime = 1, valid_lifetime = 0, expired = false, action = "explode" } end
+			-- the pause and resume modes alter ONE kind of request each (counted as `altered`); every other request of the operation is forwarded to the reference host
+			if mode == "pause_withheld" then error ("the host withholds its " .. OP .. " answer", 0) end
+			if mode == "pause_changed" and request.resume == false then
+				altered = altered + 1
+				return { changed = true, valid = false, valid_lifetime = 3.0, play = false, relink = false }
+			end
+			if mode == "resume_changed" and request.resume == true and request.valid == false then
+				altered = altered + 1
+				return { changed = true, valid = true, valid_lifetime = request.valid_lifetime, play = true, relink = false }
+			end
+			if mode == "pause_malformed" then return { changed = 1, valid = 0, valid_lifetime = 1.5, play = 0, relink = 0 } end
+			if mode == "pause_incoherent" and request.resume == false and request.valid == false then
+				altered = altered + 1
+				return { changed = true, valid = false, valid_lifetime = request.delay, play = false, relink = false }
+			end
 		else
 			forwarded = forwarded + 1
 		end
@@ -119,8 +154,8 @@ end
 local function write_record (completed, verdict, extra)
 	local file, err = io.open (authority_path, "w")
 	if not file then refuse ("OUTPUT FAILURE: opening " .. authority_path .. " failed: " .. tostring (err)) end
-	local line = string.format ('{"boot_requests":%d,"case":%d,"completed":%s,"delegate_ran":%s,"forwarded_other_requests":%d,"mode":"%s","op":"%s","requests":%d,%s"source":"host.env_provider wrapper on the public path","verdict":"%s"}\n',
-		boot_requests, CASE, completed and "true" or "false", ran and "true" or "false", forwarded, mode, OP, requests, extra or "", verdict)
+	local line = string.format ('{"altered":%d,"boot_requests":%d,"case":%d,"completed":%s,"delegate_ran":%s,"forwarded_other_requests":%d,"mode":"%s","op":"%s","requests":%d,%s"source":"host.env_provider wrapper on the public path","verdict":"%s"}\n',
+		altered, boot_requests, CASE, completed and "true" or "false", ran and "true" or "false", forwarded, mode, OP, requests, extra or "", verdict)
 	local ok, werr = file:write (line)
 	if not ok then refuse ("OUTPUT FAILURE: writing " .. authority_path .. " failed: " .. tostring (werr)) end
 	ok, werr = file:flush ()
@@ -148,13 +183,16 @@ local function case_result ()
 	local creation_word, words = nil, {}
 	for _, line in ipairs (rows) do
 		if has (line, '"event":"env-sound-state"') and has (line, '"ent":"0"') then
-			words [#words + 1] = { tag = string.match (line, '"tag":"(%d+)"'), life = string.match (line, '"life_w":"(%x+)"'), data = string.match (line, '"data":"(%d)"') }
+			words [#words + 1] = {
+				tag = string.match (line, '"tag":"(%d+)"'), life = string.match (line, '"life_w":"(%x+)"'), data = string.match (line, '"data":"(%d)"'),
+				valid = string.match (line, '"valid":"(%d)"'), member = string.match (line, '"member":"(%d)"'), vlife = string.match (line, '"vlife_w":"(%x+)"'),
+			}
 			if has (line, '"tag":"0"') then creation_word = words [#words].life end
 		end
 	end
 	for _, line in ipairs (rows) do
 		if has (line, '"event":"result"') and has (line, '"case":' .. CASE .. ',') and has (line, '"refused":false') then
-			return true, tonumber (string.match (line, '"calls":(%d+)')), tonumber (string.match (line, '"kills":(%d+)')), creation_word, words
+			return true, tonumber (string.match (line, '"calls":(%d+)')), tonumber (string.match (line, '"kills":(%d+)')), creation_word, words, string.match (line, '"returns":"([%d,]*)"')
 		end
 	end
 	return false
@@ -193,6 +231,14 @@ if MARKER then
 		write_record (false, "wrong_boundary")
 		refuse ("wrong-boundary: the engine stopped in case " .. CASE .. ", but not at " .. MARKER .. ": " .. failure_row)
 	end
+	if FRAGMENT and not has (failure_row, FRAGMENT) then
+		write_record (false, "wrong_boundary")
+		refuse ("wrong-boundary: the engine stopped in case " .. CASE .. " at " .. MARKER .. ", but not for the reason the answer was altered to cause (" .. FRAGMENT .. "): " .. failure_row)
+	end
+	if altered == 0 and (mode == "pause_incoherent") then
+		write_record (false, "setup_failure_nothing_was_altered")
+		refuse ("SETUP FAILURE: the delegate stopped, but the host altered no answer in mode " .. mode .. ": the stop is not the altered answer's: " .. delegate_error)
+	end
 	if not string.find (delegate_error, "^env%-sound%-lifetime: env_case%(14, " .. CASE .. "%) FAILED in the engine") then
 		write_record (false, "setup_failure_delegate_error_is_not_the_engine_stop")
 		refuse ("SETUP FAILURE: the delegate's error is not its report of the engine's stop in case " .. CASE .. ": " .. delegate_error)
@@ -207,7 +253,7 @@ if not ran then
 	write_record (false, "setup_failure_delegate_failed")
 	error (tostring (problem), 0)
 end
-local completed, calls, kills, creation_word, words = case_result ()
+local completed, calls, kills, creation_word, words, returns = case_result ()
 if not completed then
 	write_record (false, "setup_failure_case_did_not_complete")
 	refuse ("SETUP FAILURE: the delegate returned but case " .. CASE .. " did not complete (refused, or no result row on " .. out_path .. "): the lifetime was not exercised, so there is no ownership verdict")
@@ -216,6 +262,12 @@ end
 local sequence = {}
 for _, word in ipairs (words) do sequence [#sequence + 1] = word.life end
 local facts = string.format ('"calls":%s,"creation_life_w":"%s","kills":%s,"life_words":"%s",', tostring (calls), tostring (creation_word), tostring (kills), table.concat (sequence, ","))
+if OP == "sound_pause_resume" then
+	-- the pause and resume cases: what the real entity's own state rows show, tag by tag (valid, member of the update list, valid lifetime word) and the delegate's returned counts
+	local shown = {}
+	for _, word in ipairs (words) do shown [#shown + 1] = tostring (word.valid) .. tostring (word.member) .. ":" .. tostring (word.vlife) end
+	facts = facts .. string.format ('"returns":"%s","state_words":"%s",', tostring (returns), table.concat (shown, ","))
+end
 if requests == 0 then
 	write_record (true, "sound_host_capability_missing", facts)
 	refuse ("sound-host-capability-missing: case " .. CASE .. " completed, and the host was asked 0 times for '" .. OP .. "' in the fixture phase (" .. boot_requests .. " in the boot phase, " .. forwarded .. " other requests were forwarded unchanged): the campaign decided the lifetime without calling the host")
@@ -240,6 +292,29 @@ elseif mode == "changed" then
 elseif mode == "changed_init" and creation_word ~= "3e800000" then
 	write_record (true, "ownership_not_shown", facts)
 	refuse ("ownership-not-shown: the host gave the new effect the lifetime 0.25 (" .. requests .. " request(s)) but the real constructor state holds the word " .. tostring (creation_word) .. ", not 3e800000: the campaign summed the samples itself")
+elseif OP == "sound_pause_resume" then
+	-- the entity's own state rows, tag by tag (words [tag + 1]): the constructor's (0), after each step. The words checked are the ORIGINAL's observed ones, or the ones the witness itself made the host answer.
+	local function at (tag) return words [tag + 1] or {} end
+	local function not_shown (what)
+		write_record (true, "ownership_not_shown", facts)
+		refuse ("ownership-not-shown: " .. what .. " (" .. requests .. " request(s), " .. altered .. " altered): the real case shows the returns " .. tostring (returns) .. ", " .. tostring (calls) .. " calls and the state words " .. table.concat (sequence, ",") .. " / " .. facts)
+	end
+	if mode == "pause_healthy" then
+		-- the original's case 12: returns 1,1; four calls; the pause makes the effect invalid with the delay word; the third update unlinks it; the resume validates it and puts it back
+		if returns ~= "1,1" or calls ~= 4 or #words ~= 7 or at (1).valid ~= "0" or at (1).vlife ~= "3fc00000" or at (4).member ~= "0" or at (5).valid ~= "1" or at (5).member ~= "1" then
+			not_shown ("the reference host decided and the real case does not show what the original measured for it")
+		end
+	elseif mode == "pause_changed" then
+		-- the host copied 3.0 where it was given the delay 1.5: the entity holds the host's word after the pause, valid again after the resume the host did not alter
+		if altered ~= 1 or returns ~= "1,1" or #words ~= 3 or at (1).valid ~= "0" or at (1).vlife ~= "40400000" or at (2).valid ~= "1" then
+			not_shown ("the host copied its own valid lifetime 3.0 (40400000) on the pause, and the entity does not hold it")
+		end
+	elseif mode == "resume_changed" then
+		-- the host validated the effect and asked to play but did not relink it: the entity is valid and not a member of the update list, and the update after it is not made
+		if altered ~= 1 or returns ~= "1,1" or calls ~= 3 or #words ~= 7 or at (5).valid ~= "1" or at (5).member ~= "0" or at (6).member ~= "0" then
+			not_shown ("the host did not relink the resumed effect, and the entity is a member of the update list or was updated")
+		end
+	end
 end
-write_record (true, mode == "healthy" and "host_asked_and_decided" or "host_changed_the_decision", facts)
+write_record (true, (mode == "healthy" or mode == "pause_healthy") and "host_asked_and_decided" or "host_changed_the_decision", facts)
 io.stderr:write (string.format ("%s: mode=%s case %d completed; the host was asked %d time(s) for '%s' in the fixture phase (%d in boot); the case shows %s calls, %s kills, lifetime words %s; %d other request(s) forwarded unchanged\n", NAME, mode, CASE, requests, OP, boot_requests, tostring (calls), tostring (kills), table.concat (sequence, ","), forwarded))
