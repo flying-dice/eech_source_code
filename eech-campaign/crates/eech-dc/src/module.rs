@@ -2230,7 +2230,9 @@ impl LuaUserData for LuaEngine {
         // TEST-ONLY (feature `model-host-fixture`): the REAL add_3d_horizon_image called on the campaign's horizon environment with a basename no installation has; the engine stops by name
         // and is poisoned (see Engine::model_host_horizon_refusal). Not part of the shipping module.
         #[cfg(feature = "model-host-fixture")]
-        methods.add_method("model_host_horizon_refusal", |_, this, ()| this.engine.model_host_horizon_refusal().map_err(lua_error));
+        methods.add_method("model_host_horizon_refusal", |_, this, ()| {
+            this.engine.model_host_horizon_refusal().map_err(lua_error)
+        });
         #[cfg(feature = "model-host-fixture")]
         methods.add_method("model_host_probe", |_, this, (scene, depth): (LuaValue, LuaValue)| {
             let scene = model_int(&scene, "scene", 1, i32::MAX - 1)?;

@@ -181,7 +181,10 @@ fn any_resident_buffer_or_an_empty_table_fails_the_residency_and_the_run() {
 
 #[test]
 fn a_boot_that_took_no_cached_horizon_image_or_an_uncached_one_fails() {
-    for (what, horizon) in [("no image took the cache", "cached=0 uncached=0"), ("one image was uncached", "cached=31 uncached=1")] {
+    for (what, horizon) in [
+        ("no image took the cache", "cached=0 uncached=0"),
+        ("one image was uncached", "cached=31 uncached=1"),
+    ] {
         let mut case = healthy();
         case.counters = counters(RESIDENCY_OK, horizon);
         failure_in(what, &run(&case), "cached horizon branch");
@@ -194,12 +197,18 @@ fn a_counters_report_that_is_not_the_exact_grammar_is_malformed_and_the_reader_i
     let cases: Vec<(&str, String)> = vec![
         ("a missing horizon row", good.replace("model-core-horizon cached=32 uncached=0\n", "")),
         ("an extra row", format!("{good}model-core-extra x=1\n")),
-        ("a field out of order", good.replace("rows=12000 metadata_rows=11000", "metadata_rows=11000 rows=12000")),
+        (
+            "a field out of order",
+            good.replace("rows=12000 metadata_rows=11000", "metadata_rows=11000 rows=12000"),
+        ),
         ("a field missing", good.replace(" surface_points=0", "")),
         ("a leading zero", good.replace("points=0 faces", "points=00 faces")),
         ("a sign", good.replace("points=0 faces", "points=-0 faces")),
         ("a duplicated space", good.replace("rows=12000 metadata_rows", "rows=12000  metadata_rows")),
-        ("a first line that is not the counters row", good.replacen("model-host catalogue", "something else", 1)),
+        (
+            "a first line that is not the counters row",
+            good.replacen("model-host catalogue", "something else", 1),
+        ),
         ("no final newline", good.trim_end().to_string()),
     ];
     for (what, text) in cases {
@@ -220,10 +229,16 @@ fn an_uncached_reader_that_returns_or_stops_for_another_reason_is_not_coverage()
 
     let cases = [
         ("a missing image file", "Unable to read the horizon file - not a 24bit image".to_string()),
-        ("the generic helper without the operation", GUARD.replace("add_3d_horizon_image (an uncached horizon image", "draw_3d_horizon (x")),
+        (
+            "the generic helper without the operation",
+            GUARD.replace("add_3d_horizon_image (an uncached horizon image", "draw_3d_horizon (x"),
+        ),
         ("a stop that names a TGA", format!("{GUARD} while loading eech-fixture-no-such-horizon.tga")),
         ("another marker", GUARD.replace("object.geometry", "route.start")),
-        ("a file error", "cannot open eech-fixture-no-such-horizon.tga: No such file or directory".to_string()),
+        (
+            "a file error",
+            "cannot open eech-fixture-no-such-horizon.tga: No such file or directory".to_string(),
+        ),
     ];
     for (what, message) in cases {
         let mut case = healthy();
@@ -247,13 +262,20 @@ fn arguments_are_refused_before_the_installation_is_prepared() {
         ("no root", vec![("out", "@OUT@")]),
         ("no out", vec![("root", "unused-root")]),
         ("an unknown argument", vec![("root", "unused-root"), ("out", "@OUT@"), ("frames", "1")]),
-        ("an unknown scenario", vec![("root", "unused-root"), ("out", "@OUT@"), ("scenario", "elsewhere")]),
+        (
+            "an unknown scenario",
+            vec![("root", "unused-root"), ("out", "@OUT@"), ("scenario", "elsewhere")],
+        ),
     ];
     for (what, args) in cases {
         let mut case = healthy();
         case.args = args;
         let outcome = run(&case);
         assert!(outcome.result.is_err(), "{what}");
-        assert!(outcome.log.is_empty(), "{what}: something ran before the arguments were refused: {:?}", outcome.log);
+        assert!(
+            outcome.log.is_empty(),
+            "{what}: something ran before the arguments were refused: {:?}",
+            outcome.log
+        );
     }
 }
