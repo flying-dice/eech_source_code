@@ -625,6 +625,7 @@ pub const ROUTE_HOST_PATCHES: &[Patch] = &[
             "int campaign_model_route_match_pass ( void );\n",
             "void campaign_model_route_starts ( int starts );\n",
             "void campaign_model_route_primary_start ( int index, int starts );\n",
+            "void campaign_model_route_swap_index ( int what, int index, int count, int capacity );\n",
             "\n",
             "int get_number_of_nodes_at_depth ( int tree_depth );\n"
         ),
@@ -720,6 +721,43 @@ pub const ROUTE_HOST_PATCHES: &[Patch] = &[
         why: "the check of the primary start index, immediately before the swap that uses it",
         original: "tmp = waypoint_starting_nodes[0];\n",
         replacement: "campaign_model_route_primary_start ( primary_start_index, number_of_waypoint_starting_nodes );\n\n\t\ttmp = waypoint_starting_nodes[0];\n",
+        count: 1,
+    },
+    // H16..H18: the end-slot matching's swap (swap_waypoint_nodes) resolves table indices by its own searches and then writes through them. The tree swap searches the start table from
+    // entry 1, so a swap that involves the primary tree (entry 0) resolves to the logical count, and the original only has an ASSERT there; the children of one parent are searched with
+    // two uninitialised indices. The checks are against the LOGICAL counts and the physical capacities, before the ASSERT and before either write, with the named marker route.swap.
+    Patch {
+        file: "aphavoc/source/ai/faction/routegen.c",
+        id: "H16-route-swap-child-indices-initialised",
+        why: "the two child indices of a same-parent swap are only assigned when the search finds the child; they start at -1 (not found) so that H17 can refuse an index the search did not resolve",
+        original: "\t\tchild_index,\n\t\tother_child_index;\n",
+        replacement: "\t\tchild_index = -1,\n\t\tother_child_index = -1;\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/ai/faction/routegen.c",
+        id: "H17-route-swap-child-indices-checked",
+        why: "a same-parent swap writes the parent's child table through two searched indices: each must be a resolved entry of the parent's logical child count (and of the 24-entry table) before the first write",
+        original: "common_parent->children[child_index] = other_child;\n",
+        replacement: concat!(
+            "campaign_model_route_swap_index ( 1, child_index, common_parent->number_of_children, MAX_WAYPOINT_LINKS );\n",
+            "\t\tcampaign_model_route_swap_index ( 1, other_child_index, common_parent->number_of_children, MAX_WAYPOINT_LINKS );\n",
+            "\n",
+            "\t\tcommon_parent->children[child_index] = other_child;\n"
+        ),
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/ai/faction/routegen.c",
+        id: "H18-route-swap-root-indices-checked",
+        why: "a tree swap writes the start table through two searched indices (the search begins at entry 1): each must be a resolved entry 1 .. logical count - 1 (and inside the 24-entry table) before the ASSERT that only the original has and before either write",
+        original: "ASSERT ( child_index < number_of_waypoint_starting_nodes );\n",
+        replacement: concat!(
+            "campaign_model_route_swap_index ( 0, child_index, number_of_waypoint_starting_nodes, MAX_WAYPOINT_STARTS );\n",
+            "\t\tcampaign_model_route_swap_index ( 0, other_child_index, number_of_waypoint_starting_nodes, MAX_WAYPOINT_STARTS );\n",
+            "\n",
+            "\t\tASSERT ( child_index < number_of_waypoint_starting_nodes );\n"
+        ),
         count: 1,
     },
 ];

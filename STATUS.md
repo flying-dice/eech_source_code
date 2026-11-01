@@ -6,6 +6,27 @@ The first production route-data move is prepared/pushed at `66dc2e8a237a46f92003
 
 Task51 ordinary source78 shipping continues on its original immutable snapshot without restart; fifth check around19:40 UTC finds all four available recording/observation prefixes exact (24,733,777/15,499,264/24,676,439/15,089,664 bytes), PARTIAL only. Actual full40/all8/post-input/final review/current checks/normal delivery remain pending. Ledger117 preserves prior authored HTML and all five epic reports; Jira50comment10937 records the closed original gate and extraction start. Task49/50/51 and wholeD3 remain In Progress; D4/D5 are unstarted. No accepted baseline, tolerance, oracle or flag changed. Historical checkpoint sections below retain their original scope and identities.
 
+# D3 host route boundary: one residual P1, the end-slot swap's resolved indices (1 November 2026): SOURCE ONLY; NOT BUILT, NOT RUN
+
+Review `independent-model-host-route-guard-actual-50e7f9d85-20261101.json` (SHA256 `583c29a2d09b5406d9ba976de665a855b22daac98b91a2e05be33a5a7841c2c2`, source `50e7f9d8578c7d283b6a47f01a0e2d09e24cfd2f`) closed the
+other new guards and left ENV-HOST-ROUTE-BOUNDARY-2 (P1): `swap_waypoint_nodes` (the end-slot matching's swap) resolves table indices by its own searches and writes through them. Its tree swap searches
+the start table from entry 1, so a swap that selects the primary tree (entry 0, the `node_index` 0 leaf) resolves to the logical start count; with 24 starts that is `waypoint_starting_nodes[24]`, and
+only the original `ASSERT` stood before the write (the 4096-pass limit comes too late). Its same-parent swap reads two indices that are assigned only if the search finds the child.
+
+Correction (staged patches H16..H18 and `campaign_model_route_swap_index`, marker `[model-provider:route.swap]`): H18 checks both resolved start-table indices (valid: 1 .. logical start count - 1, and inside the
+24 entries) immediately BEFORE the original `ASSERT` and before either write; H16 initialises the two child indices to -1 and H17 checks both against the parent's logical child count (and the 24-entry table)
+before the first write. The swap is not skipped, redirected or repaired: index 0 is still not searched for, partners are not chosen differently, and every swap the original takes runs the same statements in
+the same order. Original-profile parser, provider, store, kernel, ABI, FP and earlier guards are untouched. Static check only: all 18 `routegen.c` host patches find their expected counts against the real
+source in sequence, and the candidate fixture's R1/R2/R6 afterwards; no staging build, compile, test, engine or native run. The Root's own actuals at `50e7f9d85` (healthy captures, repeats, four
+malformed-topology controls, the short campaign) are those of that identity and do not prove this correction.
+
+One source-derived input recipe for the Root's guarded run (read from `popread.c` 2296..2360 and `routegen.c`, NOT executed anywhere): the campaign parses the fixed-wing landing route with no slots, takes the
+absolute positions of its deepest-level nodes in `node_index` order as `matching_slots`, then parses the take-off route of the same airfield with them. Give BOTH routes the same 24 independent trees (a black
+edge start-middle and a green edge middle-leaf: 24 starts, 72 nodes, depth 2, one `node_index` k per tree), the landing leaves at distinct positions more than 3.0 apart (slot k), and the take-off leaves the same
+except that tree 0's and tree 1's leaf positions are exchanged. Then `match_end_slots` meets slot 0 with the tree-0 leaf (`node_index` 0) out of range, finds tree 1's leaf in range, `swap_waypoint_nodes` climbs both
+to their roots (common parent NULL), searches the start table from 1: tree 1's root resolves, tree 0's does not (24). The corrected parser must stop with `route.swap` before any write. Run it only on the corrected build.
+Task50 and D3 remain In Progress; the loader detachment is the next real work after the finite boundary is closed.
+
 # D3 host route boundary guards: source-only follow-up to `8d1c79c8d` (1 November 2026): NOT BUILT, NOT RUN
 
 Root's source read found a regression in the new progress guard: `set_node_indices` runs once from the parse and again from every end-slot swap (`swap_waypoint_nodes`, after it has invalidated the

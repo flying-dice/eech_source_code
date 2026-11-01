@@ -757,6 +757,21 @@ int campaign_model_route_match_pass (void)
 	return TRUE;
 }
 
+// The end-slot matching is about to swap two nodes (swap_waypoint_nodes) and `index` is the table index the swap's own search resolved for one of them. what 0: a TREE swap, whose
+// search of the start table begins at entry 1 (the primary tree at entry 0 is never looked for), so a tree it did not find comes back as `count`; the valid entries are 1 .. count - 1.
+// what 1: a swap of two children of one parent, whose search of the parent's children comes back as -1 when it found nothing (valid 0 .. count - 1). `count` is the table's LOGICAL
+// count, `capacity` its physical size; an index outside either is a swap the unchanged algorithm cannot take. The original has only an ASSERT before the start-table write (none
+// for the children), and nothing else bounds what the matching may select from host positions, so the refusal is made here, before the assertion and before either write. The swap
+// is not redirected, skipped or repaired: the index 0 tree is not searched for, partners are not chosen differently, and every swap the original takes runs as before.
+void campaign_model_route_swap_index (int what, int index, int count, int capacity)
+{
+	if ((index < ((what == 0) ? 1 : 0)) || (index >= count) || (index >= capacity))
+	{
+		debug_fatal ("host model: [model-provider:route.swap] the end-slot matching of scene %d kind %d swaps %s at index %d, which the parser's search did not resolve inside its %d of %d entries",
+			route_current->scene, route_current->kind, (what == 0) ? "a tree through the start table" : "two children of one parent", index, count, capacity);
+	}
+}
+
 // the parser is about to read its first start node
 void campaign_model_route_starts (int starts)
 {
