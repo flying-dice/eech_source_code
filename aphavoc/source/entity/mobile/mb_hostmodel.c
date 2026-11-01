@@ -861,14 +861,11 @@ void campaign_model_loader_short (const char *what)
 
 static unsigned char *object_row_filled;
 static int object_row_count;
-static unsigned char scene_objects_read[OBJECT_3D_LAST];
-static unsigned char scene_custom_read[OBJECT_3D_LAST];
 
 #ifdef EECH_MODEL_HOST_FIXTURE
 // TEST-ONLY: what the metadata exchange did. objects_*: questions asked and how they were answered; rows_filled / rows_confirmed: first fills and agreeing refills of a row;
 // animation_*: reference questions asked and the names they carried; animation_ends: lists that ended.
 static long meta_objects_asked, meta_objects_found, meta_objects_absent, meta_rows_filled, meta_rows_confirmed, meta_animation_asked, meta_animation_names, meta_animation_ends;
-static unsigned char scene_animation_listed[OBJECT_3D_LAST];
 #endif
 
 static const char *role_name (int role)
@@ -949,9 +946,6 @@ int campaign_model_object_table (int custom_room)
 	memset (object_row_filled, 0, (size_t) rows);
 
 	object_row_count = (int) (rows - 1ULL);
-
-	memset (scene_objects_read, 0, sizeof (scene_objects_read));
-	memset (scene_custom_read, 0, sizeof (scene_custom_read));
 
 	return reply.object_count;
 }
@@ -1111,12 +1105,6 @@ void campaign_model_scene_objects (int scene_index, int custom)
 		fill_object (scene_index, custom, CAMPAIGN_MODEL_ROLE_SUB_OBJECT, i, scene->scene_sub_object_array[i].index);
 	}
 
-	scene_objects_read[scene_index] = TRUE;
-
-	if (custom)
-	{
-		scene_custom_read[scene_index] = TRUE;
-	}
 }
 
 // A required read of an object's compatibility row (the sub-object bounds, the horizon environment): the row the host filled, or the null object 0 (which the campaign always
@@ -1173,7 +1161,6 @@ int campaign_model_animation_reference (int scene_index, int index)
 		{
 #ifdef EECH_MODEL_HOST_FIXTURE
 			meta_animation_ends++;
-			scene_animation_listed[scene_index] = TRUE;
 #endif
 
 			return -1;
@@ -1226,16 +1213,6 @@ void campaign_model_core_metadata (long *values)
 	values[5] = meta_animation_asked;
 	values[6] = meta_animation_names;
 	values[7] = meta_animation_ends;
-}
-
-// TEST-ONLY (the animation rows entry): whether the object loader read this scene, whether it was a custom scene file's definition, and whether its animation references were asked to the end
-void campaign_model_core_scene_state (int scene, int *read, int *custom, int *listed)
-{
-	int ok = (scene > OBJECT_3D_INVALID_OBJECT_INDEX) && (scene < OBJECT_3D_LAST);
-
-	*read = ok && scene_objects_read[scene];
-	*custom = ok && scene_custom_read[scene];
-	*listed = ok && scene_animation_listed[scene];
 }
 #endif
 

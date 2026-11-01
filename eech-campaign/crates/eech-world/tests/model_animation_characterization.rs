@@ -10,6 +10,8 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 const SCRIPT: &str = include_str!("../lua/model-animation-characterization.lua");
 const JSON_LINES: &str = include_str!("../lua/json-lines.lua");
 const FIXTURE_C: &str = include_str!("../../eech-engine-sys/csrc/eech_model_fixture.c");
+/// the staged patches, whose hook calls the host profile's rows depend on
+const PATCHES: &str = include_str!("../../eech-engine-sys/build/patches.rs");
 /// the host profile's emitter of the same rows (the `model-host-fixture` build)
 const HOST_FIXTURE_C: &str = include_str!("../../eech-engine-sys/csrc/eech_model_host_fixture.c");
 
@@ -590,9 +592,17 @@ fn the_host_profiles_rows_are_in_the_same_grammar_as_the_originals() {
     for (list, row) in [("PAGE_KEYS", "model-anim-page"), ("ROW_KEYS", "model-anim"), ("END_KEYS", "model-anim-end")] {
         assert_eq!(lua_list(list), c_keys_in(HOST_FIXTURE_C, row), "{row}");
     }
-    for status in ["listed", "empty", "absent", "unbacked", "capacity"] {
+    // the host profile names every outcome the driver knows, and decides them from RECORDED backing (hooks at the real stages), not from the count
+    for status in ["listed", "empty", "absent", "short_read", "overflow", "unbacked", "stale", "unobserved", "capacity"] {
         assert!(HOST_FIXTURE_C.contains(&format!("\"{status}\"")), "{status}");
     }
+    for hook in ["eech_hf_anim_begin", "eech_hf_anim_file_read", "eech_hf_anim_alloc", "eech_hf_anim_append", "eech_hf_anim_done", "eech_hf_anim_reset"] {
+        assert!(HOST_FIXTURE_C.contains(&format!("void {hook} (")), "{hook} is not defined by the host profile");
+        assert!(PATCHES.contains(&format!("{hook} (")), "{hook} is not called by a staged patch");
+    }
+    // no capacity or filled figure is derived from the count: they are the records the hooks made
+    assert!(HOST_FIXTURE_C.contains("v->capacity = hf_anim_capacity (a);") && HOST_FIXTURE_C.contains("v->filled = a->extent;"));
+    assert!(!HOST_FIXTURE_C.contains("cap *= 2") && !HOST_FIXTURE_C.contains("campaign_model_core_scene_state"));
     assert!(HOST_FIXTURE_C.contains("#define HOST_ANIM_IDS_MAX 4096") && HOST_FIXTURE_C.contains("#define HOST_ANIM_PAGE_SCENES 96"));
     assert!(SCRIPT.contains("observer=original|host"));
 }

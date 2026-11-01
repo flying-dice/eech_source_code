@@ -44,7 +44,6 @@ extern void campaign_model_poison_arrays (void);
 extern void campaign_model_core_residency (int *rows, int *metadata_rows, int *points, int *faces, int *point_refs, int *surface_points);
 extern void campaign_model_core_horizon (int *cached, int *uncached);
 extern void campaign_model_core_metadata (long *values);
-extern void campaign_model_core_scene_state (int scene, int *read, int *custom, int *listed);
 
 static uint32_t float_bits (float value)
 {
@@ -108,13 +107,178 @@ int eech_model_host_counters_run (char *text, int capacity)
 }
 
 /* The scenes' FINAL texture animation lists as the campaign holds them after the host-fed load (EEDCS-50, D3, L2), in the row grammar of the original observer (eech_model_fixture.c,
-   eech_model_animation_run) so the same driver reads them and a literal comparison with the original's rows is possible: scenes first .. first + count - 1; a scene the object loader
-   never read is `absent`; a list of no entries is `empty`; otherwise `listed` with the entries as the campaign's own table holds them (its private animation numbers: diagnostic data,
-   never the host protocol). The source is `built` for a scene a custom scene file defined, `file` for a database record; the allocation of a built list is what add_animation makes (8, then
-   doubling) and of a file list its count. Nothing is recomputed: the entries are read from the scene database as they stand. The page digest covers the same projection (status, count,
-   entries) but is this profile's own: it is not the original's. */
+   eech_model_animation_run), so the same driver reads them and a literal comparison with the original's rows is possible: scenes first .. first + count - 1.
+
+   WHAT IS MEASURED. Not inferred: the hooks below (patches.rs HOST_ANIM_FIXTURE_PATCHES, HA1..HA7) are ADDITIVE calls at the real stages of read_scene and add_animation, exactly the
+   stages the original observer hooks (MA0..MA4): the scene's declared list count was read; each entry of a declared list was read (what fread returned is recorded and handed back
+   unchanged); add_animation allocated its grown array (address and size) and appended an entry; read_scene is finishing (the list pointer and count it leaves). None changes a statement,
+   an argument, an order or a value, and none allocates or writes a model byte. A row is read from the scene database only where the recorded backing shows the list is the array the
+   campaign allocated for it, still the scene's list with the same count, within its allocation and filled in full: every other case is a named outcome and nothing is read. The
+   capacity and filled figures are those records (the allocation add_animation or read_scene made, the entries known to be filled), never derived from the count. A scene whose read the
+   hooks never saw is absent. The source is built for a scene a custom scene file defined (the hook is told sceneid), file for a database record. The ids are the campaign's own private
+   animation numbers (diagnostic data, never the host protocol). The page digest covers the recorded state and the verified projection; it is this profile's own, not the original's. */
 #define HOST_ANIM_IDS_MAX 4096
 #define HOST_ANIM_PAGE_SCENES 96
+
+enum { HF_ANIM_NONE = 0, HF_ANIM_BEGUN = 1, HF_ANIM_DONE = 2 };
+
+struct hf_anim
+{
+	int state;
+	int custom;                  /* read_scene was given a sceneid: the list is built by add_animation */
+	int declared;                /* the count the file declared */
+	uintptr_t file_ptr;          /* the array read_scene allocated for a declared list */
+	int file_capacity, file_filled, file_bad;
+	uintptr_t alloc_ptr;         /* the array add_animation allocated last */
+	int alloc_capacity, allocs, appends, overflow;
+	int extent;                  /* leading entries known to be filled */
+	uintptr_t final_ptr;
+	int final_count, fail;
+};
+
+static struct hf_anim hf_anim[OBJECT_3D_LAST];
+static int hf_anim_unknown_scene;
+static unsigned hf_generation;
+
+static struct hf_anim *hf_anim_of (const void *scene)
+{
+	const struct OBJECT_3D_SCENE_DATABASE_ENTRY *e = (const struct OBJECT_3D_SCENE_DATABASE_ENTRY *) scene;
+	ptrdiff_t index;
+
+	if (!objects_3d_scene_database || e < objects_3d_scene_database)
+	{
+		hf_anim_unknown_scene++;
+		return NULL;
+	}
+	index = e - objects_3d_scene_database;
+	if (index <= OBJECT_3D_INVALID_OBJECT_INDEX || index >= OBJECT_3D_LAST)
+	{
+		hf_anim_unknown_scene++;
+		return NULL;
+	}
+	return &hf_anim[index];
+}
+
+static int hf_anim_capacity (const struct hf_anim *a)
+{
+	return a->allocs ? a->alloc_capacity : a->file_capacity;
+}
+
+/* read_scene has read the scene's declared list count */
+void eech_hf_anim_begin (int scene, int sceneid, int declared)
+{
+	struct hf_anim *a;
+
+	if (scene <= OBJECT_3D_INVALID_OBJECT_INDEX || scene >= OBJECT_3D_LAST)
+	{
+		hf_anim_unknown_scene++;
+		return;
+	}
+	a = &hf_anim[scene];
+	memset (a, 0, sizeof (*a));
+	a->state = HF_ANIM_BEGUN;
+	a->custom = sceneid != 0;
+	a->declared = declared;
+}
+
+/* one fread of one entry of a declared list: `returned` is what fread returned (the original ignores it) */
+void eech_hf_anim_file_read (int scene, int index, int total, const void *list, size_t returned)
+{
+	struct hf_anim *a;
+
+	if (scene <= OBJECT_3D_INVALID_OBJECT_INDEX || scene >= OBJECT_3D_LAST)
+	{
+		hf_anim_unknown_scene++;
+		return;
+	}
+	a = &hf_anim[scene];
+	if (a->state != HF_ANIM_BEGUN || total != a->declared)
+	{
+		a->file_bad = 1;
+		return;
+	}
+	if (index == 0)
+	{
+		a->file_ptr = (uintptr_t) list;
+		a->file_capacity = total;
+		a->file_filled = 0;
+	}
+	if (returned == 1 && index == a->file_filled && (uintptr_t) list == a->file_ptr)
+	{
+		a->file_filled++;
+		a->extent = a->file_filled;
+	}
+	else
+	{
+		a->file_bad = 1;
+	}
+}
+
+/* add_animation has allocated `capacity` ints for the scene's list (the entries already in it were copied) */
+void eech_hf_anim_alloc (const void *scene, const void *list, int capacity)
+{
+	struct hf_anim *a = hf_anim_of (scene);
+
+	if (!a)
+	{
+		return;
+	}
+	a->allocs++;
+	a->alloc_ptr = (uintptr_t) list;
+	a->alloc_capacity = capacity;
+}
+
+/* add_animation has appended one entry: the scene's count is now the position after it */
+void eech_hf_anim_append (const void *scene)
+{
+	struct hf_anim *a = hf_anim_of (scene);
+	int count;
+
+	if (!a)
+	{
+		return;
+	}
+	count = ((const struct OBJECT_3D_SCENE_DATABASE_ENTRY *) scene)->number_of_texture_animations;
+	a->appends++;
+	if (count > hf_anim_capacity (a))
+	{
+		a->overflow = 1;
+	}
+	else if (a->extent == count - 1)
+	{
+		a->extent = count;
+	}
+}
+
+/* read_scene is finishing the scene: the list and count it leaves */
+void eech_hf_anim_done (int scene, int fail)
+{
+	struct hf_anim *a;
+	const struct OBJECT_3D_SCENE_DATABASE_ENTRY *e;
+
+	if (scene <= OBJECT_3D_INVALID_OBJECT_INDEX || scene >= OBJECT_3D_LAST)
+	{
+		return;
+	}
+	a = &hf_anim[scene];
+	e = &objects_3d_scene_database[scene];
+	if (a->state != HF_ANIM_BEGUN)
+	{
+		return;
+	}
+	a->state = HF_ANIM_DONE;
+	a->final_ptr = (uintptr_t) e->texture_animations;
+	a->final_count = e->number_of_texture_animations;
+	a->fail = fail != 0;
+}
+
+/* the objects are freed: every record is dropped */
+void eech_hf_anim_reset (void)
+{
+	memset (hf_anim, 0, sizeof (hf_anim));
+	hf_anim_unknown_scene = 0;
+	hf_generation++;
+}
 
 static void host_anim_hash (uint64_t *hash, uint64_t value)
 {
@@ -130,62 +294,64 @@ static void host_anim_hash (uint64_t *hash, uint64_t value)
 struct host_anim_view
 {
 	const char *status, *source;
-	int succeeded, count, capacity, filled, read;
+	int succeeded, count, capacity, filled;
 	const int *ids;
 };
 
+/* One scene's final list as the hooks recorded it. A list is read (`ids` set) only when it is the array the campaign allocated for it, still the scene's list with the same count,
+   within its allocation and its filled entries and within the fixed bound; every other case is a named outcome and nothing is read. The same decision table as the original observer's. */
 static void host_anim_view (int scene, struct host_anim_view *v)
 {
+	const struct hf_anim *a = &hf_anim[scene];
 	const struct OBJECT_3D_SCENE_DATABASE_ENTRY *e = &objects_3d_scene_database[scene];
-	int custom, listed, cap;
+	uintptr_t allocated;
 
 	memset (v, 0, sizeof (*v));
 	v->status = "absent";
 	v->source = "none";
-	campaign_model_core_scene_state (scene, &v->read, &custom, &listed);
-
-	if (!v->read)
+	if (a->state != HF_ANIM_DONE)
 	{
+		if (e->number_of_texture_animations != 0 || e->texture_animations)
+		{
+			v->status = "unobserved"; /* a list the loader made that the hooks did not see */
+		}
 		return;
 	}
-
 	v->succeeded = e->succeeded;
-	v->source = custom ? "built" : "file";
-	v->count = e->number_of_texture_animations;
-
-	if (v->count < 0)
+	v->source = a->custom ? "built" : "file";
+	v->count = a->final_count;
+	v->capacity = hf_anim_capacity (a);
+	v->filled = a->extent;
+	allocated = a->allocs ? a->alloc_ptr : a->file_ptr;
+	if (e->number_of_texture_animations != a->final_count || (uintptr_t) e->texture_animations != a->final_ptr)
 	{
-		v->status = "unbacked";
-		return;
+		v->status = "stale"; /* the scene's list is no longer the one recorded when its read ended */
 	}
-
-	if (v->count == 0)
+	else if (a->final_count < 0 || a->overflow)
 	{
-		v->status = e->texture_animations ? "unbacked" : "empty";
-		return;
+		v->status = a->overflow ? "overflow" : "unbacked";
 	}
-
-	if (v->count > HOST_ANIM_IDS_MAX)
+	else if (a->final_count == 0)
+	{
+		v->status = a->final_ptr ? "unbacked" : "empty";
+	}
+	else if (a->final_count > HOST_ANIM_IDS_MAX)
 	{
 		v->status = "capacity";
-		return;
 	}
-
-	if (!e->texture_animations)
+	else if (!a->final_ptr || a->final_ptr != allocated || a->final_count > v->capacity)
 	{
 		v->status = "unbacked";
-		return;
 	}
-
-	cap = 8;
-	while (cap < v->count)
+	else if (a->file_bad || a->extent < a->final_count)
 	{
-		cap *= 2;
+		v->status = "short_read";
 	}
-	v->capacity = custom ? cap : v->count;
-	v->filled = v->count;
-	v->status = "listed";
-	v->ids = (const int *) e->texture_animations;
+	else
+	{
+		v->status = "listed";
+		v->ids = (const int *) a->final_ptr;
+	}
 }
 
 int eech_model_host_animation_run (int first, int count, char *text, int capacity)
@@ -204,8 +370,9 @@ int eech_model_host_animation_run (int first, int count, char *text, int capacit
 		int i;
 
 		host_anim_view (scene, &v);
-		done += v.read != 0;
+		done += hf_anim[scene].state == HF_ANIM_DONE;
 		host_anim_hash (&content, (uint64_t) scene);
+		host_anim_hash (&content, (uint64_t) hf_anim[scene].state);
 		host_anim_hash (&content, (uint64_t) (unsigned) v.count);
 		host_anim_hash (&content, (uint64_t) (unsigned) v.filled);
 		for (i = 0; v.status[i]; i++)
@@ -219,7 +386,7 @@ int eech_model_host_animation_run (int first, int count, char *text, int capacit
 	}
 
 	n = snprintf (text, (size_t) capacity, "model-anim-page first=%d count=%d scene_last=%d generation=%u scenes_read=%d unknown_scene=%d content=%016llx\n", first, count, (int) OBJECT_3D_LAST,
-		1u, done, 0, (unsigned long long) content);
+		hf_generation, done, hf_anim_unknown_scene, (unsigned long long) content);
 
 	if ((n < 0) || (n >= capacity))
 	{

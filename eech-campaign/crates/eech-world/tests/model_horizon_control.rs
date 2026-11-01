@@ -20,6 +20,13 @@ const HOST_ROW: &str = concat!(
 );
 const RESIDENCY_OK: &str = "rows=11442 metadata_rows=10252 points=0 faces=0 point_refs=0 surface_points=0";
 const HORIZON_OK: &str = "cached=32 uncached=0";
+// the metadata row of a healthy boot, coherent with RESIDENCY_OK: 21000 questions = 18000 found + 3000 absent; the 18000 found answers filled 10252 rows and confirmed 7748 again; 150 animation
+// questions = 130 names + 20 ends
+const ZERO_METADATA: &str = "objects_asked=0 objects_found=0 objects_absent=0 rows_filled=0 rows_confirmed=0 animation_asked=0 animation_names=0 animation_ends=0";
+const METADATA_OK: &str = concat!(
+    "objects_asked=21000 objects_found=18000 objects_absent=3000 rows_filled=10252 rows_confirmed=7748 ",
+    "animation_asked=150 animation_names=130 animation_ends=20"
+);
 
 // the Engine-owned stop of the uncached horizon reader, in parts (the engine's prefix, the named marker, the operation, the fixed reason)
 const STOP_PREFIX: &str = "runtime error: eech: EECH fatal error: host model: ";
@@ -45,7 +52,11 @@ fn residency(rows: u32, metadata: u32, buffers: [u32; 4]) -> String {
 }
 
 fn counters(residency: &str, horizon: &str) -> String {
-    format!("{HOST_ROW}model-core-residency {residency}\nmodel-core-horizon {horizon}\n")
+    counters_with(residency, horizon, METADATA_OK)
+}
+
+fn counters_with(residency: &str, horizon: &str, metadata: &str) -> String {
+    format!("{HOST_ROW}model-core-residency {residency}\nmodel-core-horizon {horizon}\nmodel-core-metadata {metadata}\n")
 }
 
 fn healthy_counters() -> String {
@@ -198,7 +209,8 @@ fn any_resident_buffer_or_an_empty_table_fails_the_residency_and_the_reader_is_n
     ];
     for (what, text) in cases {
         let mut case = healthy();
-        case.counters = counters(&text, HORIZON_OK);
+        let metadata = if text.starts_with("rows=0 ") { ZERO_METADATA } else { METADATA_OK };
+        case.counters = counters_with(&text, HORIZON_OK, metadata);
         let outcome = run(&case);
         failure_in(what, &outcome, "residency");
         assert!(
@@ -233,7 +245,21 @@ fn a_counters_report_that_is_not_the_exact_coherent_grammar_is_malformed_and_the
     let good = healthy_counters();
     let cases: Vec<(&str, String)> = vec![
         ("a missing horizon row", good.replace("model-core-horizon cached=32 uncached=0\n", "")),
+        ("a missing metadata row", good.replace(&format!("model-core-metadata {METADATA_OK}\n"), "")),
+        ("the old three-row report", counters_three_rows()),
         ("an extra row", format!("{good}model-core-extra x=1\n")),
+        ("the metadata row before the horizon row", counters_swapped_rows()),
+        ("a metadata field out of order", good.replace("objects_found=18000 objects_absent=3000", "objects_absent=3000 objects_found=18000")),
+        ("a metadata field missing", good.replace(" animation_ends=20", "")),
+        ("a metadata trailing field", good.replacen("animation_ends=20\n", "animation_ends=20 extra=1\n", 1)),
+        ("a metadata leading zero", good.replace("objects_asked=21000", "objects_asked=021000")),
+        ("a metadata sign", good.replace("objects_absent=3000", "objects_absent=-3000")),
+        ("a metadata count outside the C domain", good.replace("objects_asked=21000", "objects_asked=4294967296")),
+        ("found and absent not adding up to asked", good.replace("objects_asked=21000", "objects_asked=21001")),
+        ("filled and confirmed not adding up to found", good.replace("rows_confirmed=7748", "rows_confirmed=7749")),
+        ("animation names and ends not adding up to asked", good.replace("animation_names=130", "animation_names=131")),
+        ("more rows filled than rows", good.replace("rows_filled=10252 rows_confirmed=7748", "rows_filled=11443 rows_confirmed=6557")),
+        ("a row with a true point count that no answer filled", good.replace("rows_filled=10252 rows_confirmed=7748", "rows_filled=10251 rows_confirmed=7749")),
         (
             "a residency field out of order",
             good.replace("rows=11442 metadata_rows=10252", "metadata_rows=10252 rows=11442"),
@@ -277,6 +303,39 @@ fn a_counters_report_that_is_not_the_exact_coherent_grammar_is_malformed_and_the
             outcome.log
         );
     }
+}
+
+fn counters_three_rows() -> String {
+    format!("{HOST_ROW}model-core-residency {RESIDENCY_OK}\nmodel-core-horizon {HORIZON_OK}\n")
+}
+
+fn counters_swapped_rows() -> String {
+    format!("{HOST_ROW}model-core-residency {RESIDENCY_OK}\nmodel-core-metadata {METADATA_OK}\nmodel-core-horizon {HORIZON_OK}\n")
+}
+
+#[test]
+fn a_boot_whose_metadata_took_no_host_answer_fails_and_the_reader_is_not_launched() {
+    // coherent, but nothing was asked of the host and no row was filled by it: zero everywhere is not a host-owned load
+    let none = "objects_asked=0 objects_found=0 objects_absent=0 rows_filled=0 rows_confirmed=0 animation_asked=0 animation_names=0 animation_ends=0";
+    // a coherent report with rows filled but nothing found is impossible (rows_filled <= objects_found); asked-only-absent leaves no row filled
+    let absent_only = "objects_asked=5 objects_found=0 objects_absent=5 rows_filled=0 rows_confirmed=0 animation_asked=0 animation_names=0 animation_ends=0";
+    for (what, text, residency_text) in [
+        ("nothing asked", none, residency(11442, 0, [0, 0, 0, 0])),
+        ("only absences answered", absent_only, residency(11442, 0, [0, 0, 0, 0])),
+    ] {
+        let mut case = healthy();
+        case.counters = counters_with(&residency_text, HORIZON_OK, text);
+        let outcome = run(&case);
+        // zero metadata_rows fails the residency gate: the reader is not launched either way
+        failure_in(what, &outcome, "NOT COMPLETE");
+        assert!(!reader_launched(&outcome), "{what}: the reader was launched on invalid evidence: {:?}", outcome.log);
+    }
+    // true point counts present (metadata_rows > 0) is itself incoherent without a filling answer: malformed, never launched
+    let mut case = healthy();
+    case.counters = counters_with(RESIDENCY_OK, HORIZON_OK, none);
+    let outcome = run(&case);
+    failure_in("rows with true counts but nothing filled them", &outcome, "MALFORMED REPORT");
+    assert!(!reader_launched(&outcome));
 }
 
 #[test]
@@ -377,6 +436,8 @@ fn the_driver_grammar_is_the_emitters() {
     assert_eq!(lua_list("HOST_KEYS"), c_keys("model-host", "%ld"));
     assert_eq!(lua_list("RESIDENCY_KEYS"), c_keys("model-core-residency", "%d"));
     assert_eq!(lua_list("HORIZON_KEYS"), c_keys("model-core-horizon", "%d"));
+    assert_eq!(lua_list("METADATA_KEYS"), c_keys("model-core-metadata", "%ld"));
+    assert_eq!(lua_list("METADATA_KEYS").len(), 8);
     assert_eq!(lua_list("HOST_KEYS").len(), 11);
 }
 

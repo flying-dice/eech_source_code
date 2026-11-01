@@ -4,9 +4,13 @@
 --   1. RESIDENCY. After the healthy boot it reads the model-host counters report. Its first row is the closed catalogue / presence counters (the exact C field list below), its
 --      `model-core-residency` row counts, over the actual rows of the campaign's own object table, how many still hold each of the four physical buffers (points, faces, face point
 --      references, surface point references) next to how many rows carry the file's true point count, and its `model-core-horizon` row counts the horizon images the boot took through
---      the pre-processed `.bin` branch (point colours and fog only, no point read) and through the uncached branch. The report must be EXACTLY those three rows in the C grammar (names,
+--      the pre-processed `.bin` branch (point colours and fog only, no point read) and through the uncached branch; its `model-core-metadata` row counts the model-file metadata
+--      exchange (EEDCS-50, D3, L2): the objects the campaign asked the host about and how they were answered, the private rows those answers filled or confirmed, and the animation
+--      references asked. The report must be EXACTLY those FOUR rows in the C grammar (names,
 --      field order, decimal integers as C's %d and %ld write them, within 0..2147483647) and COHERENT (metadata_rows <= rows, each buffer count <= rows, presence_mismatches <=
---      presence_checked). It passes only if rows > 0, metadata_rows > 0, all four buffer counts are 0, cached > 0 and uncached == 0. Anything else - a malformed or incoherent report, or
+--      presence_checked; objects_found + objects_absent == objects_asked, rows_filled + rows_confirmed == objects_found, animation_names + animation_ends == animation_asked, and
+--      metadata_rows <= rows_filled <= rows: every answer the campaign took is accounted for, and a row with a true point count was filled by one). It passes only if rows > 0,
+--      metadata_rows > 0, all four buffer counts are 0, objects_asked > 0 and rows_filled > 0 (the metadata really came from the host's answers), cached > 0 and uncached == 0. Anything else - a malformed or incoherent report, or
 --      resident buffers, or a boot that did not use the cached images - fails here and the unsupported reader is NOT launched.
 --      The integer bound 2147483647 is deliberate: C long is 32 bits on the Windows native control, and Lua numbers are doubles, so no larger value is believed.
 --   2. AN UNSUPPORTED READER, CALLED FOR REAL. Only after a passing residency does it call the fixture entry that runs the REAL `add_3d_horizon_image` on the campaign's own horizon
@@ -49,7 +53,7 @@ if not scenario then fail_args ("scenario=lebanon_retail|georgia_retail") end
 if type (host.create_exclusive) ~= "function" then fail_args ("this host has no create_exclusive: an output that may never overwrite anything cannot be made safely") end
 
 -- ---------------------------------------------------------------------------------------------------------------------------------
--- the report grammar (csrc/eech_model_host_fixture.c eech_model_host_counters_run): three rows, in this order, each `name key=value ...` with decimal integers exactly as C's %d
+-- the report grammar (csrc/eech_model_host_fixture.c eech_model_host_counters_run): four rows, in this order, each `name key=value ...` with decimal integers exactly as C's %d
 -- and %ld write them. tests/model_horizon_control.rs checks that these names and field lists are the C emitter's.
 
 local INT_MAX = 2147483647
@@ -57,6 +61,7 @@ local INT_MAX = 2147483647
 local HOST_KEYS = { "catalogue", "scene", "triangle", "found", "end", "absent", "bounds_reads", "bounds_without_lines_reads", "radius_reads", "presence_checked", "presence_mismatches" }
 local RESIDENCY_KEYS = { "rows", "metadata_rows", "points", "faces", "point_refs", "surface_points" }
 local HORIZON_KEYS = { "cached", "uncached" }
+local METADATA_KEYS = { "objects_asked", "objects_found", "objects_absent", "rows_filled", "rows_confirmed", "animation_asked", "animation_names", "animation_ends" }
 
 local function malformed (message) error ({ malformed = message }, 0) end
 
@@ -90,17 +95,25 @@ local function parse_counters (text)
 	if type (text) ~= "string" then malformed ("the counters report is not a string") end
 	local lines = {}
 	for line in string.gmatch (text, "([^\n]*)\n") do lines [#lines + 1] = line end
-	if #lines ~= 3 or string.sub (text, -1) ~= "\n" or select (2, string.gsub (text, "\n", "")) ~= 3 then malformed (string.format ("the counters report has %d lines, expected 3", #lines)) end
+	if #lines ~= 4 or string.sub (text, -1) ~= "\n" or select (2, string.gsub (text, "\n", "")) ~= 4 then malformed (string.format ("the counters report has %d lines, expected 4", #lines)) end
 	local counters = row (lines [1], "model-host", HOST_KEYS)
 	local residency = row (lines [2], "model-core-residency", RESIDENCY_KEYS)
 	local horizon = row (lines [3], "model-core-horizon", HORIZON_KEYS)
+	local metadata = row (lines [4], "model-core-metadata", METADATA_KEYS)
 	-- coherence: what the rows count cannot exceed what they are counted over
 	if counters.presence_mismatches > counters.presence_checked then malformed ("presence_mismatches exceeds presence_checked") end
 	if residency.metadata_rows > residency.rows then malformed ("metadata_rows exceeds rows") end
 	for _, key in ipairs { "points", "faces", "point_refs", "surface_points" } do
 		if residency [key] > residency.rows then malformed (key .. " exceeds rows") end
 	end
-	return residency, horizon
+	-- the metadata exchange: every question the campaign asked was answered found or absent (any other answer stops the engine), every found answer filled a row or confirmed one, every
+	-- animation question was answered with a name or the end of the list, and a row that carries a true point count was filled by an answer
+	if metadata.objects_found + metadata.objects_absent ~= metadata.objects_asked then malformed ("objects_found + objects_absent is not objects_asked") end
+	if metadata.rows_filled + metadata.rows_confirmed ~= metadata.objects_found then malformed ("rows_filled + rows_confirmed is not objects_found") end
+	if metadata.animation_names + metadata.animation_ends ~= metadata.animation_asked then malformed ("animation_names + animation_ends is not animation_asked") end
+	if metadata.rows_filled > residency.rows then malformed ("rows_filled exceeds rows") end
+	if residency.metadata_rows > metadata.rows_filled then malformed ("metadata_rows exceeds rows_filled: a row with a true point count that no host answer filled") end
+	return residency, horizon, metadata
 end
 
 -- The whole first line of the Engine-owned error the stop produces (the engine's own prefix, then the host model's message for this operation): the C text is
@@ -154,7 +167,7 @@ local function run ()
 		error ("model-horizon-control: model_host_counters failed: " .. first_line (text), 0)
 	end
 	emit { event = "counters", text = type (text) == "string" and text or tostring (text) }
-	local parsed, residency, horizon = pcall (parse_counters, text)
+	local parsed, residency, horizon, metadata = pcall (parse_counters, text)
 	if not parsed then
 		local reason = type (residency) == "table" and residency.malformed or tostring (residency)
 		emit { event = "malformed", reason = reason }
@@ -162,14 +175,18 @@ local function run ()
 		error ("model-horizon-control: MALFORMED REPORT: " .. reason .. " (the engine is not asked again)", 0)
 	end
 	local residency_ok = residency.rows > 0 and residency.metadata_rows > 0 and residency.points == 0 and residency.faces == 0 and residency.point_refs == 0 and residency.surface_points == 0
+	local metadata_ok = metadata.objects_asked > 0 and metadata.rows_filled > 0
 	local horizon_ok = horizon.cached > 0 and horizon.uncached == 0
 	emit { event = "residency", rows = residency.rows, metadata_rows = residency.metadata_rows, points = residency.points, faces = residency.faces, point_refs = residency.point_refs,
 		surface_points = residency.surface_points, pass = residency_ok }
+	emit { event = "metadata", objects_asked = metadata.objects_asked, objects_found = metadata.objects_found, objects_absent = metadata.objects_absent, rows_filled = metadata.rows_filled,
+		rows_confirmed = metadata.rows_confirmed, animation_asked = metadata.animation_asked, animation_names = metadata.animation_names, animation_ends = metadata.animation_ends, pass = metadata_ok }
 	emit { event = "horizon_cache", cached = horizon.cached, uncached = horizon.uncached, pass = horizon_ok }
-	if not (residency_ok and horizon_ok) then
+	if not (residency_ok and metadata_ok and horizon_ok) then
 		-- the evidence the stop would be read against is not valid: the unsupported reader is not launched
-		emit { event = "done", complete = false, residency = residency_ok, horizon_cache = horizon_ok, refusal = false, malformed = false, reader_launched = false }
+		emit { event = "done", complete = false, residency = residency_ok, metadata = metadata_ok, horizon_cache = horizon_ok, refusal = false, malformed = false, reader_launched = false }
 		if not residency_ok then error ("model-horizon-control: NOT COMPLETE: the residency is not (rows > 0, metadata_rows > 0, all four buffers 0); the reader was not launched", 0) end
+		if not metadata_ok then error ("model-horizon-control: NOT COMPLETE: the metadata exchange took no host answer (objects_asked > 0 and rows_filled > 0 are required); the reader was not launched", 0) end
 		error ("model-horizon-control: NOT COMPLETE: the boot did not take only the cached horizon branch; the reader was not launched", 0)
 	end
 
@@ -186,7 +203,7 @@ local function run ()
 	end
 
 	local complete = refused and matched
-	emit { event = "done", complete = complete, residency = true, horizon_cache = true, refusal = complete, malformed = false, reader_launched = true }
+	emit { event = "done", complete = complete, residency = true, metadata = true, horizon_cache = true, refusal = complete, malformed = false, reader_launched = true }
 	if not refused then error ("model-horizon-control: NOT COMPLETE: the uncached horizon reader did not stop", 0) end
 	if not matched then error ("model-horizon-control: NOT COMPLETE: the reader stopped, but not with the Engine-owned named guard at add_3d_horizon_image before image I/O", 0) end
 end

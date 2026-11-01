@@ -149,6 +149,17 @@ fn main() {
             let patched: Vec<u8> = patches::apply_loader_meta(file, &text).chars().map(|c| c as u32 as u8).collect();
             write_if_changed(&staged, &patched);
         }
+        // 1a4. TEST-ONLY (feature model-host-fixture, EEDCS-50 D3 L2): observation hooks at the real stages of the scenes' texture animation lists (patches.rs, HOST_ANIM_FIXTURE_PATCHES),
+        //      so the host profile's animation rows report the allocation, reads and fills that happened. With the feature off the staged files are the shipping ones.
+        if env::var_os("CARGO_FEATURE_MODEL_HOST_FIXTURE").is_some() {
+            for file in patches::host_anim_fixture_files() {
+                let staged = tree.join(file);
+                let bytes = fs::read(&staged).unwrap_or_else(|e| panic!("{file}: {e}"));
+                let text: String = bytes.iter().map(|&b| b as char).collect();
+                let patched: Vec<u8> = patches::apply_host_anim_fixture(file, &text).chars().map(|c| c as u32 as u8).collect();
+                write_if_changed(&staged, &patched);
+            }
+        }
     }
 
     // 1a. TEST-ONLY (feature model-fixture, EEDCS-50): observation hooks in the staged model loader, on top of the shipping patches above (patches.rs,

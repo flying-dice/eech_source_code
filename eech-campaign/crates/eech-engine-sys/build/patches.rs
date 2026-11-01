@@ -1854,6 +1854,89 @@ pub fn loader_meta_files() -> Vec<&'static str> {
     files
 }
 
+/// TEST-ONLY patches of the `model-host-fixture` feature (EEDCS-50, D3 L2): observation hooks at the real stages of the scenes' texture animation lists (read_scene, add_animation) in the
+/// staged text the shipping sets produced, the same stages the original-observer hooks MA0..MA4 take, so the host profile's rows report the allocation, reads and fills that
+/// happened and infer none. Each ADDS a call and changes no statement, argument, order or value (the wrapped fread passes its result on unchanged). Same strict count check.
+pub const HOST_ANIM_FIXTURE_PATCHES: &[Patch] = &[
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "HA1-hooks-declared",
+        why: "declares the host-profile observer hooks (csrc/eech_model_host_fixture.c) before add_animation, which is the first place they are called",
+        original: "static void add_animation (struct OBJECT_3D_SCENE_DATABASE_ENTRY *scene, int *allocated, int animation )\n{\n",
+        replacement: "extern void eech_hf_anim_begin ( int scene, int sceneid, int declared ); /* EECH host fixture (HA1) */\nextern void eech_hf_anim_file_read ( int scene, int index, int total, const void *list, size_t returned );\nextern void eech_hf_anim_alloc ( const void *scene, const void *list, int capacity );\nextern void eech_hf_anim_append ( const void *scene );\nextern void eech_hf_anim_done ( int scene, int fail );\nextern void eech_hf_anim_reset ( void );\n\nstatic void add_animation (struct OBJECT_3D_SCENE_DATABASE_ENTRY *scene, int *allocated, int animation )\n{\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "HA2-animation-list-declared",
+        why: "read_scene has read the scene's declared texture animation count (and knows whether it was given a sceneid): a new record of the scene's list begins",
+        original: "\tfread ( &number_of_texture_animations, sizeof ( int ), 1, fp );\n",
+        replacement: "\tfread ( &number_of_texture_animations, sizeof ( int ), 1, fp );\n\teech_hf_anim_begin ( scene_index, sceneid, number_of_texture_animations ); /* EECH host fixture (HA2) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "HA3-animation-list-file-entry",
+        why: "one fread of one entry of a declared list: what it returned is recorded and handed back unchanged to the statement (which ignores it, as the original did)",
+        original: "\t\t\tfread ( &objects_3d_scene_database[scene_index].texture_animations[tmp], sizeof ( int ), 1, fp );\n",
+        replacement: "\t\t\teech_hf_anim_file_read ( scene_index, tmp, number_of_texture_animations, objects_3d_scene_database[scene_index].texture_animations, fread ( &objects_3d_scene_database[scene_index].texture_animations[tmp], sizeof ( int ), 1, fp ) ); /* EECH host fixture (HA3) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "HA4-animation-list-allocated",
+        why: "add_animation has allocated the grown array and bound it as the scene's list: its address and size are recorded",
+        original: "\t\tscene->texture_animations = new_anim;\n",
+        replacement: "\t\tscene->texture_animations = new_anim;\n\t\teech_hf_anim_alloc ( scene, new_anim, *allocated ); /* EECH host fixture (HA4) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "HA5-animation-list-appended",
+        why: "add_animation has appended one entry: the scene's count is recorded",
+        original: "\tscene->texture_animations[scene->number_of_texture_animations++] = animation;\n",
+        replacement: "\tscene->texture_animations[scene->number_of_texture_animations++] = animation;\n\teech_hf_anim_append ( scene ); /* EECH host fixture (HA5) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "HA6-animation-list-final",
+        why: "read_scene is finishing the scene: the list and count it leaves (and its failure flag) are recorded before the scene's success flag is stored",
+        original: "\tobjects_3d_scene_database[scene_index].succeeded = !fail;\n",
+        replacement: "\teech_hf_anim_done ( scene_index, fail ); /* EECH host fixture (HA6) */\n\tobjects_3d_scene_database[scene_index].succeeded = !fail;\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "HA7-reset-on-deinitialise",
+        why: "the objects are freed: every record is dropped",
+        original: "void deinitialise_3d_objects ( void )\n{\n",
+        replacement: "void deinitialise_3d_objects ( void )\n{\n\teech_hf_anim_reset (); /* EECH host fixture (HA7) */\n\n",
+        count: 1,
+    },
+];
+
+pub fn apply_host_anim_fixture(file: &str, text: &str) -> String {
+    let mut out = text.to_string();
+    for p in HOST_ANIM_FIXTURE_PATCHES.iter().filter(|p| p.file == file) {
+        let found = out.matches(p.original).count();
+        assert_eq!(
+            found, p.count,
+            "host-anim-fixture patch {} expects {} occurrence(s) of its original text in {}, found {}",
+            p.id, p.count, file, found
+        );
+        out = out.replace(p.original, p.replacement);
+    }
+    out
+}
+
+pub fn host_anim_fixture_files() -> Vec<&'static str> {
+    let mut files: Vec<&str> = HOST_ANIM_FIXTURE_PATCHES.iter().map(|p| p.file).collect();
+    files.sort_unstable();
+    files.dedup();
+    files
+}
+
 /// one R8 patch: after `raw_object_index = <entry>->index;` the fixture is handed the entry and the number (the extern declaration is a block-local one, so no include is needed)
 macro_rules! caller_patch {
     ($entry:literal, $count:expr) => {
