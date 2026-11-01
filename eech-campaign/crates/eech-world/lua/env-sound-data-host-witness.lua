@@ -19,20 +19,30 @@
 --   changed        the host answers the lightning sample with rate 44100, original rate 22050 and a matched header entry of length 4321, and the thunder sample with rate and original rate 8000 and a matched entry of
 --                  length 0 (the header marked present). REQUIRED: the REAL report shows exactly those numbers (lightning 44100/4321/22050, thunder 8000/0/8000), the host's answer mirrored as a present header, the number of matched
 --                  descriptors the answer holds, and a catalogue digest that is neither the healthy digest nor the control's: the numbers are the host's, not the campaign's.
---   withheld       the host raises an error in `sound_catalogue`. REQUIRED: the campaign STOPS at `[sound-data-provider:callback]` (the delegate fails in the engine) and no report row is written.
---   malformed      the host answers a rate of 0. REQUIRED: the campaign stops at `[sound-data-provider:answer]`.
---   short          the host answers one entry fewer than asked. REQUIRED: the campaign stops at `[sound-data-provider:answer]`.
---   incoherent     the host answers a header entry for a descriptor while saying there is no header. REQUIRED: the campaign stops at `[sound-data-provider:answer]`.
+--   withheld       the witness itself withdraws the answer: it records the withdrawal and raises its OWN identified error (the cause token `WITHDRAWAL`) BEFORE the reference provider is consulted, so an error of the provider can
+--                  never be taken for the withdrawal. REQUIRED: exactly one request and one withdrawal, no provider error, the campaign STOPS at `[sound-data-provider:callback]` AND the stop carries the withdrawal's cause (the
+--                  generic marker alone is not the cause), and the evidence below is empty.
+--   malformed      the host answers a rate of 0. REQUIRED: exactly one request and one altered answer, no provider error, the campaign stops at `[sound-data-provider:answer]`, and the evidence below is empty.
+--   short          the host answers one entry fewer than asked. REQUIRED: as malformed.
+--   incoherent     the host answers a header entry for a descriptor while saying there is no header. REQUIRED: as malformed.
 --   nothing is applied before the whole answer is checked: a stop is the first and only thing the engine does with a refused answer, so the delegate writes no boot row.
 --
--- VERDICTS (errors begin `env-sound-data-host-witness:`): `SETUP FAILURE` -- the delegate failed (healthy, changed) or the stop is not the engine's: NOT a verdict on ownership; `sound-data-host-capability-missing`;
--- `ownership-not-shown` -- the host was asked but the real report does not show the host's answer; `not-stopped` / `wrong-boundary` -- a withheld or malformed answer did not stop the campaign at its marker.
+-- THE EVIDENCE OF A REFUSAL. For every refusal the delegate's `out` and its raw sidecar are read back with a CHECKED open, read and close, and both must be EMPTY: the delegate creates them before boot and writes nothing until boot
+-- has returned. A file that cannot be opened, read or closed is a SETUP FAILURE (evidence unavailable) and never proof that the campaign wrote no row; a boot row is a contradiction; any other text is unexpected evidence.
+--
+-- THE DELEGATE. `delegate=` is either driver, and the record names it (`delegate`). On a HOSTED native it is `lua/env-sound-init-host.lua`. That driver intentionally rejects an ORIGINAL (7574) native's report, before this
+-- witness could judge anything, so the capability red on the old native must be run with the ORIGINAL driver `lua/env-sound-init.lua` as the delegate: it completes there, the host is asked 0 times, and this witness reaches
+-- the capability verdict BEFORE it reads any hosted row. The original driver on a hosted native fails by its own unchanged guards: a setup failure, no verdict.
+--
+-- VERDICTS (errors begin `env-sound-data-host-witness:`): `SETUP FAILURE` -- the delegate failed (healthy, changed), the stop is not the engine's or not the intended refusal's (the reference provider raised first, the withdrawal
+-- is not the cause, the host was never asked), or the evidence cannot be read back: NOT a verdict on ownership; `sound-data-host-capability-missing`; `ownership-not-shown` -- the host was asked but the real report does
+-- not show the host's answer; `not-stopped` / `wrong-boundary` -- a withheld or malformed answer did not stop the campaign at its marker; `contradictory-result` / `unexpected-evidence` -- a stop that left a boot row or text.
 --
 -- WHAT IT DOES NOT. It asserts no private type, struct layout or ABI, creates no playback handle, loads no sample data and exercises no renderer, speaker, network or device; it says nothing about the other compiled readers
 -- of the sound database or the sample loader (`load_side_dependant_application_sound_samples`), which still reads and may still change the metadata when a sound device exists. It computes no rate or size.
 --
 -- ARGUMENTS (host.args, as the host executable passes them):
---   eech-world <this script> root=<installation root> out=<delegate JSON Lines path> delegate=<ABSOLUTE path of lua/env-sound-init-host.lua> [mode=healthy|changed|withheld|malformed|short|incoherent] [expect=absent|control]
+--   eech-world <this script> root=<installation root> out=<delegate JSON Lines path> delegate=<ABSOLUTE path of lua/env-sound-init-host.lua, or of lua/env-sound-init.lua for the capability red on the old native> [mode=healthy|changed|withheld|malformed|short|incoherent] [expect=absent|control]
 --                                                                       [scenario=lebanon_retail|georgia_retail] [seconds=<n>] [frame_ms=<n>] [authority_out=<this witness's record path; default <out>.authority.jsonl>]
 --   `root`, `out`, `scenario`, `seconds` and `frame_ms` are the delegate's own arguments and are passed through unchanged. One fresh process and root per run.
 
@@ -75,12 +85,14 @@ local EXPECTED = {
 
 -- ---------------------------------------------------------------------------------------------------------------- the wrapper: forward everything, count only the op, alter only that op's answer
 local requests, forwarded, altered = 0, 0, 0
+local withdrawals, base_errors = 0, 0
+-- the cause of a withheld answer: raised only by this witness, before the reference provider is consulted, and required in the campaign's stop
+local WITHDRAWAL = NAME .. ": the intentional withdrawal of the " .. OP .. " answer"
 local final_matched, final_header_count = 0, 0
 local factory = host.env_provider
 if type (factory) ~= "function" then refuse ("this host has no host.env_provider factory") end
 
 local function alter (request, answer)
-	if mode == "withheld" then error ("the host withholds its " .. OP .. " answer", 0) end
 	if type (answer) ~= "table" or type (answer.entries) ~= "table" then return answer end
 	if mode == "malformed" then
 		altered = altered + 1
@@ -120,7 +132,18 @@ local wrapped = function (...)
 	return function (request, ...)
 		if type (request) == "table" and request.op == OP then
 			requests = requests + 1
-			return alter (request, base (request, ...))
+			-- WITHHELD: the withdrawal is this witness's own and is recorded and identified BEFORE the reference provider is consulted, so an error of that provider cannot be taken for it
+			if mode == "withheld" then
+				withdrawals = withdrawals + 1
+				error (WITHDRAWAL, 0)
+			end
+			-- every other mode alters the provider's answer: a provider that raises first (a header it cannot parse) never reaches the alteration, and that is counted, not mistaken for the intended refusal
+			local consulted, answer = pcall (base, request, ...)
+			if not consulted then
+				base_errors = base_errors + 1
+				error (answer, 0)
+			end
+			return alter (request, answer)
 		end
 		forwarded = forwarded + 1
 		return base (request, ...)
@@ -133,19 +156,29 @@ if not installed or host.env_provider ~= wrapped then refuse ("the host table do
 local ran, problem = pcall (dofile, delegate_path)
 host.env_provider = factory
 
-local function read_all (path)
-	local file = io.open (path, "r")
-	if not file then return nil end
-	local text = file:read ("*a")
-	file:close ()
+-- a CHECKED read of an evidence file: its text, or nil and the reason (a failed open, read or close is never an empty file)
+local function read_checked (path)
+	local file, open_error = io.open (path, "r")
+	if not file then return nil, "open failed: " .. tostring (open_error) end
+	local text, read_error = file:read ("*a")
+	if text == nil then
+		pcall (file.close, file)
+		return nil, "read failed: " .. tostring (read_error)
+	end
+	local closed, close_error = file:close ()
+	if not closed then return nil, "close failed: " .. tostring (close_error) end
 	return text
+end
+
+local function json_text (value)
+	return '"' .. (string.gsub (tostring (value), '[%c"\\\128-\255]', function (c) return string.format ("\\u%04x", string.byte (c)) end)) .. '"'
 end
 
 local function write_record (completed, verdict, extra)
 	local file, err = host.output_create_new (authority_path)
 	if not file then refuse ("OUTPUT FAILURE: creating " .. authority_path .. " failed: " .. tostring (err) .. " (evidence is created exclusively and never overwritten)") end
-	local line = string.format ('{"altered":%d,"completed":%s,"delegate_ran":%s,"expect":"%s","forwarded_other_requests":%d,"mode":"%s","op":"%s","requests":%d,%s"source":"host.env_provider wrapper on the public path","verdict":"%s"}\n',
-		altered, completed and "true" or "false", ran and "true" or "false", expect, forwarded, mode, OP, requests, extra or "", verdict)
+	local line = string.format ('{"altered":%d,"base_errors":%d,"completed":%s,"delegate":%s,"delegate_ran":%s,"expect":"%s","forwarded_other_requests":%d,"mode":"%s","op":"%s","requests":%d,%s"source":"host.env_provider wrapper on the public path","verdict":"%s","withdrawals":%d}\n',
+		altered, base_errors, completed and "true" or "false", json_text (delegate_path), ran and "true" or "false", expect, forwarded, mode, OP, requests, extra or "", verdict, withdrawals)
 	local ok, werr = file:write (line)
 	if not ok then refuse ("OUTPUT FAILURE: writing " .. authority_path .. " failed: " .. tostring (werr)) end
 	ok, werr = file:flush ()
@@ -175,13 +208,32 @@ if MARKER then
 		refuse ("not-stopped: the host answered its '" .. OP .. "' request wrongly (" .. mode .. ", " .. requests .. " request(s)) and the delegate completed: the campaign did not stop at " .. MARKER)
 	end
 	local delegate_error = tostring (problem)
+	-- the evidence the stop is judged by: the delegate's out and its raw sidecar, read back with a checked open, read and close. Unavailable evidence is a failure of the witness, never "no row".
+	local evidence = {}
+	for _, item in ipairs ({ { "out", out_path }, { "sidecar", raw_path } }) do
+		local text, why = read_checked (item [2])
+		if text == nil then
+			write_record (false, "setup_failure_evidence_unreadable")
+			refuse ("SETUP FAILURE: the delegate's evidence (" .. item [1] .. ") " .. item [2] .. " could not be read (" .. why .. "): a refusal is judged by what the campaign left behind, and there is no verdict without it")
+		end
+		evidence [item [1]] = text
+	end
 	if requests == 0 then
 		write_record (false, "setup_failure_the_host_was_never_asked")
 		refuse ("SETUP FAILURE: the delegate stopped but the host was asked 0 times for '" .. OP .. "': the stop is not the " .. mode .. " answer's: " .. delegate_error)
 	end
-	if mode ~= "withheld" and altered == 0 then
+	if base_errors > 0 then
+		write_record (false, "setup_failure_base_provider_error")
+		refuse ("SETUP FAILURE: the reference provider raised an error " .. base_errors .. " time(s) before the " .. mode .. " refusal could be made: the stop is the provider's, not the intended refusal's: " .. delegate_error)
+	end
+	if mode == "withheld" then
+		if withdrawals ~= 1 or requests ~= 1 then
+			write_record (false, "setup_failure_no_single_withdrawal")
+			refuse ("SETUP FAILURE: the host recorded " .. withdrawals .. " withdrawals in " .. requests .. " request(s) where the refusal is one withdrawal of one request: " .. delegate_error)
+		end
+	elseif altered ~= 1 or requests ~= 1 then
 		write_record (false, "setup_failure_nothing_was_altered")
-		refuse ("SETUP FAILURE: the delegate stopped, but the host altered no answer in mode " .. mode .. ": the stop is not the altered answer's: " .. delegate_error)
+		refuse ("SETUP FAILURE: the host altered " .. altered .. " answers in " .. requests .. " request(s) in mode " .. mode .. " where the refusal is one altered answer of one request: the stop is not the altered answer's: " .. delegate_error)
 	end
 	if not has (delegate_error, "host sound data") then
 		write_record (false, "setup_failure_delegate_error_is_not_the_engine_stop")
@@ -191,9 +243,18 @@ if MARKER then
 		write_record (false, "wrong_boundary")
 		refuse ("wrong-boundary: the engine stopped at the sample metadata provider, but not at " .. MARKER .. ": " .. delegate_error)
 	end
-	if has (read_all (out_path), '"event":"boot"') then
+	-- the generic callback marker is not the cause: the stop must carry this witness's own withdrawal
+	if mode == "withheld" and not has (delegate_error, WITHDRAWAL) then
+		write_record (false, "setup_failure_withdrawal_not_the_cause")
+		refuse ("SETUP FAILURE: the engine stopped at " .. MARKER .. " but the stop does not carry this witness's withdrawal (" .. WITHDRAWAL .. "): the callback failed for another reason: " .. delegate_error)
+	end
+	if has (evidence.out, '"event":"boot"') then
 		write_record (false, "contradictory_boot_row")
 		refuse ("contradictory-result: the delegate wrote its boot row although the campaign is said to have stopped inside boot")
+	end
+	if evidence.out ~= "" or evidence.sidecar ~= "" then
+		write_record (false, "unexpected_evidence_state")
+		refuse ("unexpected-evidence: the campaign stopped inside boot but its evidence is not empty (out " .. #evidence.out .. " bytes, sidecar " .. #evidence.sidecar .. " bytes)")
 	end
 	write_record (false, "stopped_at_boundary", string.format ('"marker":"%s","stopped":true,', MARKER))
 	io.stderr:write (string.format ("%s: mode=%s stopped at %s after %d host request(s) for '%s'\n", NAME, mode, MARKER, requests, OP))
@@ -209,7 +270,11 @@ if requests == 0 then
 	write_record (true, "sound_data_host_capability_missing")
 	refuse ("sound-data-host-capability-missing: the delegate completed and the host was asked 0 times for '" .. OP .. "': the campaign still reads its sample metadata itself")
 end
-local raw = read_all (raw_path)
+local raw, raw_why = read_checked (raw_path)
+if raw == nil then
+	write_record (false, "setup_failure_evidence_unreadable")
+	refuse ("SETUP FAILURE: the delegate's raw native report " .. raw_path .. " could not be read (" .. raw_why .. "): there is no ownership verdict")
+end
 local boot = raw and fields_of (raw, "env-sndinit-boot n=0")
 local answered = raw and fields_of (raw, "env-sndinit-host-answer n=0")
 local core_header = raw and fields_of (raw, "env-sndinit-file kind=header")

@@ -1089,10 +1089,13 @@ fn hosted(report: &str) -> String {
     out
 }
 
-/// A hosted shape: the campaign made no file attempt.
+/// A hosted shape: the campaign made no file attempt. The host's answer covers the WHOLE request of this catalogue (named 6): an installed header matched 5 and missed 1, an absent pair missed all 6.
 fn hosted_shape(opened: bool) -> Shape {
+    let (matched, missed) = if opened { (5, 1) } else { (0, 6) };
     Shape {
         attempts: vec![],
+        matched,
+        missed,
         ..if opened { Shape::header_opened() } else { Shape::backend_false() }
     }
 }
@@ -1103,7 +1106,7 @@ fn drive_host(text: &str) -> Driven {
 
 #[test]
 fn the_hosted_driver_keeps_the_hosts_answer_the_campaigns_events_and_its_file_operations_apart() {
-    for (opened, present, count, matched, missed) in [(false, false, 0, 0, 0), (true, true, 7, 5, 2)] {
+    for (opened, present, count, matched, missed) in [(false, false, 0, 0, 6), (true, true, 7, 5, 1)] {
         let driven = drive_host(&hosted(&report(&hosted_shape(opened))));
         driven.result.clone().expect("a coherent hosted capture");
         let derived = &of(&driven, "derived")[0];
@@ -1154,7 +1157,7 @@ fn the_original_driver_refuses_a_hosted_report_and_the_hosted_driver_refuses_an_
 #[test]
 fn an_incoherent_or_missing_host_answer_is_a_failure_of_the_witness() {
     let good = hosted(&report(&hosted_shape(true)));
-    assert!(good.contains("present=1 header_count=7 matched=5 missed=2"));
+    assert!(good.contains("present=1 header_count=7 matched=5 missed=1"));
     for (label, text) in [
         (
             "an absent pair with entries",
@@ -1179,5 +1182,87 @@ fn an_incoherent_or_missing_host_answer_is_a_failure_of_the_witness() {
     ] {
         let error = drive_host(&text).result.expect_err(label);
         assert!(error.starts_with("env-sound-init-host:"), "{label}: {error}");
+    }
+}
+
+// ---- review ENV-SOUND-METADATA-CORRECTION-1: the host-answer totals are JOINED to the catalogue of the same initialisation, and Core records no header count ----
+//
+// The catalogue of these shapes names 6 descriptors (the real native: 2069 of 2122 slots); the table is unique by slot, so the descriptors asked are the named ones. The host's answer must account for every one of them
+// (matched + missed = named), and cannot match more descriptors than its header has entries. A Core boot row carries header_count 0 together with its zero open and match events.
+
+#[test]
+fn the_host_answer_totals_must_cover_the_whole_named_catalogue_and_fit_the_header() {
+    let opened = hosted(&report(&hosted_shape(true)));
+    let absent = hosted(&report(&hosted_shape(false)));
+    assert!(opened.contains("present=1 header_count=7 matched=5 missed=1") && absent.contains("present=0 header_count=0 matched=0 missed=6"));
+    for (label, text) in [
+        (
+            "missing misses (a descriptor unaccounted for)",
+            opened.replace("matched=5 missed=1", "matched=5 missed=0"),
+        ),
+        (
+            "extra misses (a descriptor counted twice)",
+            opened.replace("matched=5 missed=1", "matched=5 missed=2"),
+        ),
+        (
+            "a match with no miss for the rest, the request truncated",
+            opened.replace("matched=5 missed=1", "matched=2 missed=1"),
+        ),
+        (
+            "more matches than the header has entries",
+            opened.replace("header_count=7 matched=5", "header_count=4 matched=5"),
+        ),
+        (
+            "matches that exactly fill a smaller header, plus a miss too many",
+            opened.replace("header_count=7 matched=5 missed=1", "header_count=5 matched=5 missed=2"),
+        ),
+        (
+            "an absent pair that missed fewer than the whole request",
+            absent.replace("matched=0 missed=6", "matched=0 missed=5"),
+        ),
+        (
+            "an absent pair that missed more than the whole request",
+            absent.replace("matched=0 missed=6", "matched=0 missed=7"),
+        ),
+        ("an absent pair that missed nothing", absent.replace("matched=0 missed=6", "matched=0 missed=0")),
+        (
+            "a stale Core header count beside zero Core open and match events",
+            opened.replacen("header_count=0 matched=0 missed=0 backend", "header_count=7 matched=0 missed=0 backend", 1),
+        ),
+        (
+            "a stale Core header count in an absent pair",
+            absent.replacen("header_count=0 matched=0 missed=0 backend", "header_count=2 matched=0 missed=0 backend", 1),
+        ),
+    ] {
+        let error = drive_host(&text).result.expect_err(label);
+        assert!(error.starts_with("env-sound-init-host:"), "{label}: {error}");
+    }
+}
+
+#[test]
+fn coherent_host_answers_stay_accepted_a_zero_match_a_full_header_and_every_miss_in_an_absent_pair() {
+    let opened = hosted(&report(&hosted_shape(true)));
+    let absent = hosted(&report(&hosted_shape(false)));
+    for (label, text) in [
+        ("the installed header as the canned positive", opened.clone()),
+        (
+            "a present header that matched nothing",
+            opened.replace("matched=5 missed=1", "matched=0 missed=6"),
+        ),
+        (
+            "a present empty header (nothing to match, everything missed)",
+            opened.replace("header_count=7 matched=5 missed=1", "header_count=0 matched=0 missed=6"),
+        ),
+        (
+            "matches that exactly fill the header",
+            opened.replace("header_count=7 matched=5 missed=1", "header_count=5 matched=5 missed=1"),
+        ),
+        (
+            "every descriptor matched in a larger header",
+            opened.replace("matched=5 missed=1", "matched=6 missed=0"),
+        ),
+        ("the absent pair, every descriptor missed", absent.clone()),
+    ] {
+        drive_host(&text).result.unwrap_or_else(|error| panic!("{label}: {error}"));
     }
 }

@@ -72,16 +72,24 @@ fn install_control(root: &Scratch) {
 /// (the host's mirror, the campaign's own file counters and the descriptors' numbers kept apart, as the hosted driver's report keeps them), or shows its own table's numbers.
 const CAMPAIGN: &str = r#"
 local behaviour = host.args.behaviour or "asks"
-local out = assert (host.output_create_new (host.args.out))
-local raw_file = assert (host.output_create_new (host.args.out .. ".case15.raw"))
+local out, raw_file
+if behaviour ~= "no_evidence" then
+	out = assert (host.output_create_new (host.args.out))
+	raw_file = assert (host.output_create_new (host.args.out .. ".case15.raw"))
+end
 local names = { { 93, "thunder.pcm" }, { 94, "lstrike.pcm" }, { 2087, "ch46e_windup_ext.pcm" }, { 2051, "kiowa_windup_ext.pcm" } }
 local answer
-local function stop (marker, text) error ("engine: host sound data: " .. marker .. " " .. text, 0) end
+local function stop (marker, text)
+	-- the evidence a stop may leave behind, to test what the witness reads back
+	if behaviour == "boot_row_then_stop" then assert (out:write ('{"event":"boot"}\n')) assert (out:flush ()) end
+	if behaviour == "raw_then_stop" then assert (raw_file:write ("env-sndinit-boot n=0\n")) assert (raw_file:flush ()) end
+	error ("engine: host sound data: " .. marker .. " " .. text, 0)
+end
 if behaviour ~= "own_table" then
 	local request = { op = "sound_catalogue", slots = 2122, entries = {} }
 	for position, item in ipairs (names) do request.entries [position] = { index = item [1], name = item [2] } end
 	local asked, result = pcall (host.env_provider (), request)
-	if not asked then stop ("[sound-data-provider:callback]", tostring (result)) end
+	if not asked then stop ("[sound-data-provider:callback]", behaviour == "asks_then_generic_stop" and "an unrelated callback failure" or tostring (result)) end
 	answer = result
 	if behaviour ~= "does_not_check" then
 		local marker = behaviour == "wrong_marker" and "[sound-data-provider:request]" or "[sound-data-provider:answer]"
@@ -126,6 +134,11 @@ struct Run {
 }
 
 fn run(root: &Scratch, args: &[(&str, &str)]) -> Run {
+    run_with(root, args, None)
+}
+
+/// `fault`: which evidence file (`out` or `sidecar`) fails, and how (`open`, `read` or `close`), when the WITNESS reads it back. The campaign's own writes and every other file are the real ones.
+fn run_with(root: &Scratch, args: &[(&str, &str)], fault: Option<(&str, &str)>) -> Run {
     let work = Scratch::new();
     let delegate = work.path("campaign.lua");
     std::fs::write(&delegate, CAMPAIGN).expect("the scripted campaign");
@@ -147,6 +160,27 @@ fn run(root: &Scratch, args: &[(&str, &str)]) -> Run {
     )
     .exec()
     .expect("a dofile");
+    if let Some((file, kind)) = fault {
+        let target = match file {
+            "out" => work.path("environment.jsonl"),
+            _ => format!("{}.case15.raw", work.path("environment.jsonl")),
+        };
+        lua.load(format!(
+            r#"
+local real_open, target, kind = io.open, [==[{target}]==], "{kind}"
+io.open = function (path, mode)
+	if path ~= target then return real_open (path, mode) end
+	if kind == "open" then return nil, target .. ": injected open failure" end
+	return {{
+		read = function (self, ...) if kind == "read" then return nil, "injected read failure" end return "" end,
+		close = function (self) if kind == "close" then return nil, "injected close failure" end return true end,
+	}}
+end
+"#
+        ))
+        .exec()
+        .expect("a fault in the read-back");
+    }
     let result = lua.load(WITNESS).set_name("env-sound-data-host-witness.lua").exec().map_err(|e| e.to_string());
     let record = std::fs::read_to_string(work.path("environment.jsonl.authority.jsonl"))
         .ok()
@@ -241,6 +275,18 @@ fn a_withheld_malformed_short_or_incoherent_answer_must_stop_the_campaign_at_the
         let record = run.record.as_ref().expect("the record");
         assert_eq!(record["verdict"], "stopped_at_boundary", "{mode}");
         assert_eq!(record["marker"], marker, "{mode}");
+        // the refusal is identified as the witness's OWN: one withdrawal (withheld) or one altered answer (the others), and the reference provider raised nothing before it
+        let (withdrawals, altered) = if mode == "withheld" { (1, 0) } else { (0, 1) };
+        assert_eq!(
+            (
+                record["requests"].as_i64(),
+                record["withdrawals"].as_i64(),
+                record["altered"].as_i64(),
+                record["base_errors"].as_i64()
+            ),
+            (Some(1), Some(withdrawals), Some(altered), Some(0)),
+            "{mode}"
+        );
     }
 }
 
@@ -260,4 +306,105 @@ fn a_campaign_that_completes_on_a_refused_answer_or_stops_at_another_boundary_is
         "{:?}",
         unasked.result
     );
+}
+
+// ---- review ENV-SOUND-METADATA-CORRECTION-2: the refusal is the witness's own and identified, and the evidence it is judged by is read back, checked, and expected empty ----
+
+/// A header the reference provider cannot parse (a negative count), with its data file: the reference provider raises its own error for it.
+fn install_broken_header(root: &Scratch) {
+    let dir = root.0.join("cohokum").join("audio");
+    std::fs::create_dir_all(&dir).expect("a directory");
+    std::fs::write(dir.join("sound.hdr"), (-1i32).to_le_bytes()).expect("a header");
+    std::fs::write(dir.join("sound.dat"), [1u8; 8]).expect("a data file");
+}
+
+#[test]
+fn a_withdrawal_is_recorded_before_the_reference_provider_is_consulted_and_is_identified_by_its_cause() {
+    // a healthy installation and one whose header the reference provider would refuse: withholding never consults it, so both stop for the witness's own withdrawal
+    let healthy = Scratch::new();
+    let broken = Scratch::new();
+    install_broken_header(&broken);
+    for root in [&healthy, &broken] {
+        let run = run(root, &[("mode", "withheld")]);
+        run.result.clone().unwrap_or_else(|e| panic!("{e}"));
+        let record = run.record.as_ref().expect("the record");
+        assert_eq!(record["verdict"], "stopped_at_boundary");
+        assert_eq!(
+            (record["requests"].as_i64(), record["withdrawals"].as_i64(), record["base_errors"].as_i64()),
+            (Some(1), Some(1), Some(0))
+        );
+    }
+}
+
+#[test]
+fn a_stop_that_is_not_the_witnesss_own_withdrawal_is_not_accepted_as_one() {
+    // the campaign asked, the host withdrew, and the campaign stopped at the generic callback marker for another reason: the marker alone is not the cause
+    let root = Scratch::new();
+    let run = run(&root, &[("mode", "withheld"), ("behaviour", "asks_then_generic_stop")]);
+    let error = failure(&run);
+    assert!(error.contains("SETUP FAILURE") && error.contains("withdrawal"), "{error}");
+    assert_eq!(verdict(&run), "setup_failure_withdrawal_not_the_cause");
+}
+
+#[test]
+fn a_reference_provider_error_before_the_alteration_is_a_setup_failure_and_never_the_intended_refusal() {
+    let root = Scratch::new();
+    install_broken_header(&root);
+    for mode in ["malformed", "short", "incoherent"] {
+        let run = run(&root, &[("mode", mode)]);
+        let error = failure(&run);
+        assert!(error.contains("SETUP FAILURE") && error.contains("reference provider"), "{mode}: {error}");
+        assert_eq!(verdict(&run), "setup_failure_base_provider_error", "{mode}");
+        let record = run.record.as_ref().expect("the record");
+        assert_eq!((record["base_errors"].as_i64(), record["altered"].as_i64()), (Some(1), Some(0)), "{mode}");
+    }
+}
+
+#[test]
+fn evidence_that_cannot_be_read_back_is_a_setup_failure_for_every_refusal_never_a_stop() {
+    let root = Scratch::new();
+    for mode in ["withheld", "malformed", "short", "incoherent"] {
+        // the control: nothing injected, the files are the campaign's and are empty
+        run(&root, &[("mode", mode)]).result.unwrap_or_else(|e| panic!("{mode}: {e}"));
+        for file in ["out", "sidecar"] {
+            for kind in ["open", "read", "close"] {
+                let run = run_with(&root, &[("mode", mode)], Some((file, kind)));
+                let error = failure(&run);
+                assert!(
+                    error.contains("SETUP FAILURE") && error.contains("could not be read") && error.contains(&format!("injected {kind} failure")),
+                    "{mode} {file} {kind}: {error}"
+                );
+                assert_eq!(verdict(&run), "setup_failure_evidence_unreadable", "{mode} {file} {kind}");
+            }
+        }
+        // and evidence that was never created is unreadable, not an empty result
+        let missing = run(&root, &[("mode", mode), ("behaviour", "no_evidence")]);
+        let error = failure(&missing);
+        assert!(error.contains("SETUP FAILURE") && error.contains("could not be read"), "{mode}: {error}");
+        assert_eq!(verdict(&missing), "setup_failure_evidence_unreadable", "{mode}");
+    }
+}
+
+#[test]
+fn a_refusal_that_left_a_boot_row_or_any_report_text_behind_is_contradicted_by_its_own_evidence() {
+    let root = Scratch::new();
+    for mode in ["withheld", "malformed", "short", "incoherent"] {
+        let boot = run(&root, &[("mode", mode), ("behaviour", "boot_row_then_stop")]);
+        assert!(failure(&boot).contains("contradictory-result"), "{mode}: {:?}", boot.result);
+        assert_eq!(verdict(&boot), "contradictory_boot_row", "{mode}");
+        let raw = run(&root, &[("mode", mode), ("behaviour", "raw_then_stop")]);
+        assert!(failure(&raw).contains("unexpected-evidence"), "{mode}: {:?}", raw.result);
+        assert_eq!(verdict(&raw), "unexpected_evidence_state", "{mode}");
+    }
+}
+
+#[test]
+fn the_record_names_the_delegate_that_judged_the_native_so_an_original_delegate_on_the_old_native_is_distinguishable() {
+    let root = Scratch::new();
+    // a native that never asks the host: the capability verdict, which a completing delegate (the ORIGINAL driver on the old native) reaches before any hosted row is read
+    let run = run(&root, &[("behaviour", "own_table")]);
+    assert!(failure(&run).contains("sound-data-host-capability-missing"));
+    let record = run.record.as_ref().expect("the record");
+    assert_eq!(verdict(&run), "sound_data_host_capability_missing");
+    assert!(record["delegate"].as_str().is_some_and(|path| path.ends_with("campaign.lua")), "{record}");
 }

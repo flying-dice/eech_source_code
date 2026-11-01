@@ -9,6 +9,8 @@
 --   * the `derived` row names every number by its provenance: `core_*` (the campaign's own file operations and events: counts of attempts in eech_win32.c, which are 0 when the host owns the files) and `host_reply_*` (the
 --     host's answer). The campaign's file-attempt counters are reported as they are and are never synthesised from the host's answer; `blocked_count` of the `env-sndinit-now` row is the campaign's private count (0).
 -- Every other check, row and the raw-sidecar and exclusive-output handling are the original driver's.
+-- Corrected after the source review of 7c85100ef (ENV-SOUND-METADATA-CORRECTION-1): the host answer's matched + missed must equal the NAMED descriptors of the same initialisation's filled catalogue, its matches cannot
+-- exceed its header entries, and the Core boot row's header count must be 0. (The derivation above is otherwise unchanged; this file is now maintained by hand.)
 --
 -- (The text below is the original driver's own header, kept verbatim.)
 --
@@ -251,6 +253,13 @@ for n = 0, stored - 1 do
 	if number (answered, "present") ~= 0 and number (answered, "present") ~= 1 then hard ("the host's header-present flag is neither 0 nor 1: " .. answered.raw) end
 	if number (answered, "header_count") < 0 or (number (answered, "present") == 0 and (number (answered, "header_count") ~= 0 or number (answered, "matched") ~= 0)) then hard ("the host's answer is not coherent (an absent pair has no entry and matches nothing): " .. answered.raw) end
 	if number (answered, "matched") > 0 and number (answered, "header_count") == 0 then hard ("the host's answer matches descriptors in a header that holds no entry: " .. answered.raw) end
+	-- THE ANSWER IS JOINED TO THE CATALOGUE OF THIS INITIALISATION. The request lists every descriptor the compiled table names, once per slot, so the descriptors asked are the `named` slots of the catalogue just filled:
+	-- the host's matched and missed must account for every one of them (an absent pair legitimately misses them all; a match of length 0 is still a match), and one header entry matches one descriptor, so the matches
+	-- cannot outnumber the header's entries. The Core boot row records no header count of its own (its header-open and match events are 0 above): a stale one is a Core header read that the host now owns.
+	local named = number (filled, "named")
+	if number (answered, "matched") + number (answered, "missed") ~= named then hard ("the host's answer accounts for " .. (number (answered, "matched") + number (answered, "missed")) .. " descriptors where the catalogue of initialisation " .. n .. " names " .. named .. ": " .. answered.raw .. " | " .. filled.raw) end
+	if number (answered, "matched") > number (answered, "header_count") then hard ("the host's answer matches " .. answered.map.matched .. " descriptors in a header of " .. answered.map.header_count .. " entries: " .. answered.raw) end
+	if number (boot, "header_count") ~= 0 then hard ("initialisation " .. n .. " recorded a Core header count of " .. boot.map.header_count .. " where the campaign reads no header: " .. boot.raw) end
 	if number (boot, "backend") + number (boot, "skipped") ~= 1 then hard ("initialisation " .. n .. " took " .. (number (boot, "backend") + number (boot, "skipped")) .. " branches of the backend gate, not one: " .. boot.raw) end
 	if number (boot, "load") > 1 then hard ("initialisation " .. n .. " ran the sample loader " .. boot.map.load .. " times: " .. boot.raw) end
 	boot_rows [n] = boot
