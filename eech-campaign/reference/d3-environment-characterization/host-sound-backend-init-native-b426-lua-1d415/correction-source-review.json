@@ -1,0 +1,136 @@
+{
+  "review_kind": "One bounded correction-delta source correctness / clean-code / boundary pass; no runtime acceptance",
+  "source": {
+    "head": "1d41509047977863768ab4e52a6202c2fec44a78",
+    "base": "b4265e529cfa2bd6113993d404f60b5819a01b86",
+    "implementation_head": "deea053990dd993b37d9e7fef769f14a4cc97ddf",
+    "repo": "R:/d3-evidence/environment-services-20261030",
+    "head_clean_verified": true,
+    "diff_command": [
+      "git",
+      "diff",
+      "--binary",
+      "--full-index",
+      "b4265e529cfa2bd6113993d404f60b5819a01b86",
+      "1d41509047977863768ab4e52a6202c2fec44a78"
+    ],
+    "diff_sha256": "00e7571db25b241a6b32b08ef2d7fb4c0bbbff21eb68cab58bfd05757fe7b7c3",
+    "changed_files": [
+      {
+        "path": "STATUS.md",
+        "git_blob": "c4b1b3caa0517bc7c228c0615aedbeaa3faa13e1",
+        "sha256": "605f0795f5eafd7123f37ec52b37c9b9b13677d4d6a434a7542784bd2ddb52d8",
+        "bytes": 446355
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-sound-backend-host-witness.lua",
+        "git_blob": "e161cc23e4016ac7b137f37527e49d9200ae2031",
+        "sha256": "af1803cc2d40c3259b40ac7074616e4f1e905670d81365ec81e5a6284fd60035",
+        "bytes": 22733
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_sound_backend_witness.rs",
+        "git_blob": "67c0994361b0ecf74885ff92ba99711e5f7fe071",
+        "sha256": "23118973a1926c2344786690b713bb0556b25d2ab65d972b64b8812dc192eae1",
+        "bytes": 19551
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_sound_init.rs",
+        "git_blob": "65994296e6da0a2bb88dcb6b4b85e771da28d0dd",
+        "sha256": "f89059a2636d594c10bd9a4ca5c9d6119d72354164396ed792851d5966e8dc6d",
+        "bytes": 69510
+      },
+      {
+        "path": "eech-campaign/docs/d3-sound-lifetime.md",
+        "git_blob": "358eef769172354e37dd40681d4c01acdfe314f2",
+        "sha256": "113e58ba302446c0da76df2be8ba64cb46e619d30de96f8a514bff099431b1ba",
+        "bytes": 121767
+      }
+    ],
+    "final_format_delta_paths": [
+      "eech-campaign/crates/eech-world/tests/env_sound_backend_witness.rs",
+      "eech-campaign/crates/eech-world/tests/env_sound_init.rs"
+    ],
+    "final_format_delta_sha256": "282180224cfb5ac96dee3be6a6fe775f65393f404d108b2a9513f0d7de953620"
+  },
+  "findings": [],
+  "source_review_no_blocking_findings": true,
+  "prior_review": {
+    "path": "R:/d3-evidence/independent-environment-host-sound-backend-source-review-b4265e529-20261101.json",
+    "sha256": "7693ab3a16ab8a4d73a10aa0dcaebeca597ed2d1ed511a79b5979b25ab64e2fa",
+    "unchanged_production_findings_reopened": false
+  },
+  "closed_groups": [
+    {
+      "id": "ENV-SOUND-BACKEND-1",
+      "disposition": "Source closed",
+      "facts": [
+        "Healthy now reads the raw evidence through checked open/read/close before a zero-request verdict. gate_of requires all four gate fields to be 0/1, exactly one attempted/skipped branch, and flag/branch agreement. A missing or incoherent row is a setup failure.",
+        "A coherent zero-request skipped branch is explicitly not_applicable_backend_branch_skipped; only a coherent attempted branch produces missing-capability. A skipped branch that nevertheless made a request cannot become healthy: boot_skipped must be 0.",
+        "New stand-ins cover no_sound and dedicated predicate skips, attempted/no-request capability red, skipped-but-asked contradiction, missing/both/incoherent/nonflag gate evidence, and checked sidecar open/read/close failures. These are parser/bookkeeping tests, not measured public-engine dedicated-mode support. Existing named refusal/cause/empty-evidence guards remain strict."
+      ],
+      "locations": [
+        "eech-campaign/crates/eech-world/lua/env-sound-backend-host-witness.lua:234-283",
+        "eech-campaign/crates/eech-world/tests/env_sound_backend_witness.rs:62-94,205-251"
+      ]
+    },
+    {
+      "id": "ENV-SOUND-BACKEND-2",
+      "disposition": "Source/docs scope closed under supplied Root TL disposition",
+      "facts": [
+        "Docs now limit original measurements to their default-flag / SESSION cases, explicitly identify campaign per-family playback paths independent of scene scan, and preserve catalogue/duration/state/status/range/playback consequences as required D3 until hosted or explicitly eliminated from the supported path.",
+        "Absent public retail UI reinit, renderer scan and application shutdown routes are documented exclusion/removal candidates rather than new audio/UI products. No global dormancy is inferred and no active campaign service is silently deferred to D5.",
+        "One-boot public contract and an explicit untested M6 DCS mission/unload/reload lifecycle question/check are recorded. Unavailable remains a reference-host capability answer; available=true remains unsupported, never positive backend proof. STATUS preserves the old wording historically with explicit superseding corrections."
+      ],
+      "locations": [
+        "eech-campaign/docs/d3-sound-lifetime.md:445-464,481-501",
+        "STATUS.md:1-13"
+      ],
+      "authority_reused": "M5 v3 and ledger v104 readbacks and immutable public call graph inspected in prior 7693 report; no new authority or source census rerun."
+    },
+    {
+      "id": "ENV-SOUND-BACKEND-3",
+      "disposition": "Source closed; corrected test execution pending",
+      "facts": [
+        "backend_hosted now accepts original-shaped input, applies existing hosted(original) exactly once, then adds backend rows and zeroes actual COM counters. Every call site still passes report(&backend_shape(...)); no double transformation.",
+        "The attempted/skipped positive controls now contain coherent metadata and backend host-answer rows. Cross-driver assertions require rejection at the new backend/catalogue row distinction, not just any Lua error. Each retained damaged mutation requires its own relevant diagnostic; no parser or assertion was weakened.",
+        "Final two-test-file Root commit was inspected as formatting only. Actual b426 23-pass/2-fail red remains a test-fixture failure and is not relabelled; new green is not inferred from source."
+      ],
+      "locations": [
+        "eech-campaign/crates/eech-world/tests/env_sound_init.rs:1306-1337,1350-1485"
+      ]
+    }
+  ],
+  "production_equivalence": {
+    "method": "Compare git ls-tree -r -z records (mode, object type, blob ID, path) for every tracked entry excluding exactly the five reviewed Lua/test/doc paths; identical byte-for-byte lists. All runtime C/header/Rust/ABI/observer/build/asset/fixture/other Lua entries therefore retain their exact b426 Git blob bytes and modes.",
+    "equal_other_tracked_entries": 8629,
+    "excluded_paths": [
+      "STATUS.md",
+      "eech-campaign/crates/eech-world/lua/env-sound-backend-host-witness.lua",
+      "eech-campaign/crates/eech-world/tests/env_sound_backend_witness.rs",
+      "eech-campaign/crates/eech-world/tests/env_sound_init.rs",
+      "eech-campaign/docs/d3-sound-lifetime.md"
+    ],
+    "equal_tree_records_sha256": "590adc049aac1b300bc7dc6b7af407d40bf5526a7eef0294f5e42fd7c87d801c",
+    "engine_c": {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+      "sha256": "da75f41eebec834f25567091d91f692a681ae4193441da3a4d13d2856e8f87cc",
+      "exact_base_bytes": true,
+      "nul_count": 1,
+      "nul_offsets": [
+        40800
+      ]
+    }
+  },
+  "execution_context_not_acceptance": [
+    "Root reported b426 Windows World292 normal D: cwd with D:/src absent passed; the two fixture tests failed while other selected executables passed. These are parent-produced results, not rerun here, and no new corrected guard result is inferred.",
+    "Root reported an observation-off b426 native control currently running with unchanged env-characterization.lua, while other default/authority roots remain unused. A live process is not completion, equality or authority evidence.",
+    "Corrected 1d415 Lua/test checks, explicit mixed native-b426/new-Lua mapping, current CI, actual authority/refusal/skipped-configuration controls and full shipping remain separate gates. No build, test or native run was executed by this reviewer."
+  ],
+  "limitations": [
+    "Review is restricted to the five new paths and exact unchanged-production identity proof; prior b426 production/C/FFI/FPU facts are reused, not re-reviewed.",
+    "Source clearance does not establish native/linker, caller FPU, default whole-byte conformance, host ownership/authority, positive audio/backend, DCS API/lifecycle, Tacview, full40/all8 shipping, current CI or normal delivery acceptance.",
+    "Reference false and explicit unsupported true preserve a finite backend-init slice only. Campaign-reachable loader/playback/status/range/device/metadata consequences and physical time/terrain/spatial/model responsibilities still need their recorded D3 dispositions. Whole Task51/D3 remains open; D4/D5 unstarted.",
+    "No product edits, builds/tests/native experiments, external writes, authentication/cache changes or nested agents. Only this private canonical report is created."
+  ]
+}

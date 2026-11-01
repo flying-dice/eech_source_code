@@ -1,0 +1,329 @@
+{
+  "review_kind": "One combined new source / census authority pass; no execution or publication acceptance",
+  "source": {
+    "head": "b4265e529cfa2bd6113993d404f60b5819a01b86",
+    "base": "10030aa90019d01d0bc3e7623d744656d343c042",
+    "implementation_head": "a5809ac5218974972ec760298a13e0816181b6ae",
+    "census_commit": "c1882eac39e2ce586cf6be749a5b20cf14730cd6",
+    "frozen_repo": "D:/EECH-Migration-Evidence/be-b4265e529",
+    "head_and_clean_verified": true,
+    "diff_command": [
+      "git",
+      "diff",
+      "--binary",
+      "--full-index",
+      "10030aa90019d01d0bc3e7623d744656d343c042",
+      "b4265e529cfa2bd6113993d404f60b5819a01b86"
+    ],
+    "diff_sha256": "999fdb506cd2a262d93c72f3c5c6d269e26c51136fe85a10f0a6befe17260587",
+    "changed_file_count": 19,
+    "changed_files": [
+      {
+        "path": "STATUS.md",
+        "git_blob": "49e58031f227bae28da0c3bf11a3c2e754594bd5",
+        "bytes": 441952,
+        "sha256": "a36ca27a750b5b13679a2823ca25a3bca29ad0dbdd139d73fc2e64f74598f33c"
+      },
+      {
+        "path": "aphavoc/source/appsound/snd_init.c",
+        "git_blob": "7ead6c6b7751beb55ad5663a0341eb9400b152b7",
+        "bytes": 7075,
+        "sha256": "c239d35aa305fdea5f8198dacbda6346220f71a4b156cbbadd4a46d8f53f97d9"
+      },
+      {
+        "path": "aphavoc/source/entity/special/session/ss_envfx.h",
+        "git_blob": "c8fe06827480a5c1d0da684c1348a617164a9782",
+        "bytes": 14308,
+        "sha256": "3f1ba3f1e1cff195cb13abcb4e58a8fa46c65bf58a7811389f53d23ce86ced5e"
+      },
+      {
+        "path": "aphavoc/source/entity/special/session/ss_hostenv.c",
+        "git_blob": "4a002a8fdc0b269d8c51817c79ac793bf18931ea",
+        "bytes": 43960,
+        "sha256": "56b1becee2972ff56e7c237d0d30dfd8705a455adefaed3f84201b632469beeb"
+      },
+      {
+        "path": "aphavoc/source/entity/special/session/ss_hostenv.h",
+        "git_blob": "445b758a2b7b1eb1d80da3c4497b095524afc1c4",
+        "bytes": 30041,
+        "sha256": "f8938c12beb2f98f3de7e3561767f537eceb07e56640085a9ff2b838503946ea"
+      },
+      {
+        "path": "eech-campaign/crates/eech-dc/src/module.rs",
+        "git_blob": "9d8bd71aff09a68c179fc01630d8e4c99bb132c2",
+        "bytes": 302859,
+        "sha256": "f129b64fd0bc9b3d786d0f0a191d742700d93350cc19fa9edeb441013c53128f"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+        "git_blob": "808102efc2712bb72d7f8ce9e45f6952d61eabd8",
+        "bytes": 64890,
+        "sha256": "da75f41eebec834f25567091d91f692a681ae4193441da3a4d13d2856e8f87cc"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h",
+        "git_blob": "74bf29d67f8e346a7df040f56832b63ab1b67fce",
+        "bytes": 26770,
+        "sha256": "7648e75b8ac241640e42a2cce94e6638215f7d0b70772630d53acf8d79f46726"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_observer.c",
+        "git_blob": "575efeb9a0a9009b1b27da0806961a35fc035af2",
+        "bytes": 40934,
+        "sha256": "dae4df064be51d2f914a531814e39041329e8acf3f252a7a8688a4114abec208"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+        "git_blob": "5ce5c34284c958d8f4417885cfb425036ea1ee9a",
+        "bytes": 64193,
+        "sha256": "b77998084b6e516d1c70d3ec3b051fd83017fdbdf51134c9129354dede12af9d"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+        "git_blob": "e8e1ad99c6baa9ccb0fc18dfa10b982d373b9bea",
+        "bytes": 548039,
+        "sha256": "9c863509011bf95b5c487c2a8dc22bd5898feb9a04a789bb2b9d9daac62972a1"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-sound-backend-host-witness.lua",
+        "git_blob": "f664e308754282db4ebd450d4f4fde379f8d9e61",
+        "bytes": 19624,
+        "sha256": "eee15874f4d10e0e9748720892e640d95c0aa6697e51651e77ce5fb46a1c1f04"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-sound-init-backend.lua",
+        "git_blob": "377d40245f0e0eb181478e979934e314a0181fab",
+        "bytes": 40349,
+        "sha256": "c2b158034cec21a190e6176c7fc66914256557903a525df606f2393618dafc7f"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/env.rs",
+        "git_blob": "c3c2b35ed7dcb3f2ea7e00c60cef6234ff879768",
+        "bytes": 140334,
+        "sha256": "8c43c27c53286adbc72dda01ee6203ba31763579de6d14f5150010148b6b535f"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/sound_data.rs",
+        "git_blob": "058accd29c141330e34de999bc1b739463bbd272",
+        "bytes": 37517,
+        "sha256": "1bc60c8c30c14efe18dcd45042a52bc7b813206d92aaf6b906a651a394c0363a"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_sound_backend_witness.rs",
+        "git_blob": "1bd4103e6384e324f2f694db15b2d5f2d114138f",
+        "bytes": 16079,
+        "sha256": "7e9a21f82d7e4eb7b34317d3b8e3c23d0f070dd7de2604636c4da1f53c6e4abb"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_sound_init.rs",
+        "git_blob": "a46cbb01f6cf26a59c21020b856d12e1239f74f7",
+        "bytes": 67902,
+        "sha256": "62df1014ada56efa18f92e1e290a30033afef769233b18c62ca02f288a216dba"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/sound_backend_provider.rs",
+        "git_blob": "450254268c852c0552049d780b7c71b7b2e263dd",
+        "bytes": 5589,
+        "sha256": "d1a6c25a88913f949f1702444b156fe74ac2bdf4ba14dcc040111bc2f7a3fec4"
+      },
+      {
+        "path": "eech-campaign/docs/d3-sound-lifetime.md",
+        "git_blob": "c4f3abb02f93e305e521f3c1a46128f4c5652813",
+        "bytes": 116616,
+        "sha256": "ccfd28dc8f0be8842980ba0ebeae9270ab5e183f2c5857b33121f730887ea9e0"
+      }
+    ],
+    "format_only_delta_paths": [
+      "eech-campaign/crates/eech-dc/src/module.rs",
+      "eech-campaign/crates/eech-engine/src/lib.rs",
+      "eech-campaign/crates/eech-world/tests/env_sound_backend_witness.rs",
+      "eech-campaign/crates/eech-world/tests/env_sound_init.rs",
+      "eech-campaign/crates/eech-world/tests/sound_backend_provider.rs"
+    ],
+    "engine_c_nul_count": 1,
+    "engine_c_nul_offsets": [
+      40800
+    ],
+    "protected_blobs_equal_to_base": [
+      "eech-campaign/crates/eech-world/lua/env-sound-init.lua",
+      "eech-campaign/crates/eech-world/lua/env-sound-init-host.lua",
+      "eech-campaign/crates/eech-world/lua/env-sound-lifetime.lua",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c",
+      "aphavoc/source/appsound/snd_data.c"
+    ]
+  },
+  "source_review_no_blocking_findings": false,
+  "findings": [
+    {
+      "id": "ENV-SOUND-BACKEND-1",
+      "priority": "P2",
+      "title": "Classify flag-skipped boots before declaring missing backend capability",
+      "locations": [
+        {
+          "path": "eech-campaign/crates/eech-world/lua/env-sound-backend-host-witness.lua",
+          "lines": "230-233,239-265"
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/tests/env_sound_backend_witness.rs",
+          "lines": "186-194"
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/tests/env_sound_init.rs",
+          "lines": "1354-1383"
+        }
+      ],
+      "evidence": "The healthy witness emits sound_backend_host_capability_missing immediately on requests==0, before reading the native boot row. Production still asks only under !command_line_no_sound && !command_line_comms_dedicated_server (snd_init.c:96-122). The new backend driver and its coherent skipped=true test explicitly accept a skipped boot with zero backend answers. no_sound is a supported INI option (aphavoc/source/eechini.c:1091-1092), processed during public Engine boot. Thus a correct new native with sound disabled can complete and be falsely reported as still deciding its backend itself. The existing missing-capability stand-in hardcodes backend=1, skipped=0 and does not cover this prerequisite.",
+      "action": "Read checked native gate/flag evidence before the zero-request capability verdict; require a coherent attempted backend branch for missing-capability evidence, and give a coherent flag-skipped boot an explicit setup/not-applicable classification. Preserve the genuine old-native zero-request red for an attempted branch and add finite flag-skipped positive/negative bookkeeping controls. Do not force an extra production host call or alter the original short circuit."
+    },
+    {
+      "id": "ENV-SOUND-BACKEND-2",
+      "priority": "P2",
+      "title": "Qualify the census coverage claim and separate required campaign services from legacy UI removal candidates",
+      "locations": [
+        {
+          "path": "eech-campaign/docs/d3-sound-lifetime.md",
+          "lines": "445-464,481"
+        },
+        {
+          "path": "STATUS.md",
+          "lines": "3,7"
+        }
+      ],
+      "evidence": "The census says every reached route is measured and the rest cannot be measured without a backend, then labels shutdown, UI re-initialisation and the scene scan all required D3 work. Those are not equivalent claims. Original traces cover specific default flag outcomes and SESSION behavior; supported no_sound skips remain reachable. Campaign update routes also reach resume/per-family playback without the omitted scene scan: fw_updt.c:159/232/306 -> fw_anim.c:230/274, hc_updt.c:238/641 -> helicop.c:1568/1580/1595/1619 -> soundeff.c:180-204/209-255 -> per-family play (e.g. fw_snd.c:79-138). Conversely immutable public Engine/module routes provide one boot and frame, no options-menu reinit or shutdown entry, and omit flight draw/scene calls. M5 explicitly limits EECH_WORLD to DCS-needed services; compiling a legacy UI body alone does not require rebuilding it as a host service.",
+      "action": "Replace the blanket measured/unmeasurable and all-required statements with the bounded source disposition below. Keep campaign-reachable physical metadata, state/status, duration, range and playback consequences required for D3 until extracted or explicitly eliminated from the supported host path. Have Root record the necessary DCS-facing operations/workarounds and the TL disposition of pure UI/draw/shutdown code as removal candidates; do not silently defer currently reachable campaign services to D5 or claim global dormancy."
+    },
+    {
+      "id": "ENV-SOUND-BACKEND-3",
+      "priority": "P2",
+      "title": "Build the backend test fixture from a coherent hosted metadata report",
+      "locations": [
+        {
+          "path": "eech-campaign/crates/eech-world/tests/env_sound_init.rs",
+          "lines": "1307-1335,1352-1353,1395-1396"
+        }
+      ],
+      "evidence": "backend_hosted iterates its raw report argument and only inserts the host-backend row after an env-sndinit-host-answer row. Its callers pass report(&backend_shape(...)), which produces the ORIGINAL report without the metadata host-answer row. The existing hosted(report) transformation is never applied. Consequently the supposed healthy fixture contains neither required host answer and the damaged-form test fails before its mutations. Independently read immutable source and canonical Linux log: the healthy test refuses missing env-sndinit-host-answer at row 4; the damaged test fails good.contains(host-backend-row). The cross-driver negative can reject an incoherent report for an earlier schema error rather than the intended new backend distinction.",
+      "action": "Apply the existing hosted transformation exactly once before the backend-specific transformation (inside the helper or at every call), retain its coherent catalogue/count/flag joins, then preserve the healthy skipped/attempted and each damaged/cross-driver assertion. Keep the actual red results; this is test-fixture construction, not evidence of a production defect or reason to weaken the parser."
+    }
+  ],
+  "inspected_facts": [
+    "Production snd_init keeps metadata initialisation first, the existing no_sound/dedicated gate, backend assignment and later ENV_FXA_BACKEND/load order. HOST_ENV dispatches to campaign_sound_backend; the classic initialise_sound_system call remains in #else. available=true fails before assignment; reference false is a finite unsupported-positive slice, not positive audio support.",
+    "C request/reply and Rust repr(C) layouts agree: four int request fields, one int reply, synchronous callback with caller-owned storage. Engine host field order agrees on both sides; enter installs a copied callback/user pair; Rust TLS owns the provider, catches panic/reentrancy, validates phase/boolean fields, and writes the reply only on success. C sentinel -1 and 0/1 validation prevent silent answers; missing/refusal/malformed/unsupported markers are explicit. New exchange contains no float arithmetic, RNG draw, pointer or handle protocol.",
+    "The module accepts a dedicated sound_backend function or the existing environment provider, validates function kind before boot, sends the documented by-value table, and requires a boolean available. Reference env responds false without device/file operation. Existing sound_catalogue/duration/pause operations are unchanged.",
+    "Observer host-backend counters are labelled host_reply_mirror; actual Core COM counters remain independent. The new driver checks each boot/answer ordinal and count, available=0, enabled flag equality, initialised flag=0 and every actual COM count=0; original and metadata drivers remain unchanged and reject the new schema.",
+    "The witness preserves named refusal/cause counters and checked readable-empty out/sidecar requirements, provider errors distinct from intentional withdrawal, exclusive authority output, and forwards unrelated operations. New stand-in tests verify bookkeeping only; none is real native/physical evidence. Finding 1 concerns conditional zero-request classification, not any measured product failure.",
+    "The include_bytes test embeds the unchanged repository snd_data.c at the correct relative path and retains the Latin-1 conversion and table assertions. It removes the runtime source-path dependency without weakening comparisons. Canonical C build source must remain the same frozen tree (build/main.rs also permits an explicit EECH_SOURCE_ROOT override); no assertion here proves arbitrary alternate source roots equal.",
+    "Old failed DirectSound initialisation sets maximum_current_system_sound_effects and sound_system_initialised=false; the new unavailable path leaves static-zero private module state. create_single/sequenced_system_sound_effect are guarded by sound_system_initialised and the capacity has no caller outside the module except its internal creators/iteration. No new externally observable failure was established for the supported one-boot, always-unavailable slice. Whole internal state identity or positive/reinitialisation support is not claimed.",
+    "The five Rust-file final commit was inspected as formatting of the implementation; no source-meaning change found. All 19 changed files were inspected once; unchanged physical kernels, accepted raw oracles and prior reviews were reused."
+  ],
+  "census_scope_conclusion": {
+    "word_limit": "Under 500 words; source/authority analysis, Root retains TL scope decision",
+    "text": "M5 requires the physical services needed by the supported campaign/DCS integration, not a replacement EECH audio/UI product. The census correctly identifies the ordinary init gate, the dedicated side-loader short circuit, absence of scene scan in Engine.frame, and absence of public UI reinit/shutdown entry points. It overstates coverage: accepted default traces do not measure every supported flag branch, and campaign resume/per-family paths can bypass the scene scan. Those reached logical state and playback requests are not made irrelevant by a false backend or a SESSION-only no-op. Required D3 dispositions include campaign-visible catalogue/duration/state/status and any retained range/playback consequences, with explicit host operations or a documented DCS workaround. Available=true is currently a clear refusal and supplies no positive support. Legacy menu toggles, renderer scan and application shutdown that have no supported public route are candidates for documented exclusion and later obsolete-code removal, rather than automatic new host implementations. This does not close or defer currently reachable campaign couplings. The one-boot public lifecycle and any intended future DCS unload/reinit lifecycle need an explicit supported contract or M5 risk/follow-up; no live DCS lifecycle behavior is established here. Source references support route classification, not global runtime dormancy.",
+    "source_refs": [
+      "10030:eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c:156-214,333-373",
+      "10030:eech-campaign/crates/eech-engine/src/lib.rs:16 and Engine::boot BOOTED guard",
+      "10030:eech-campaign/crates/eech-dc/src/module.rs public boot/config/method registration",
+      "10030:aphavoc/source/appsound/snd_init.c:82-164",
+      "10030:aphavoc/source/appsound/snd_data.c:2464-2516",
+      "10030:aphavoc/source/entity/system/en_funcs/en_snd.c:121-143",
+      "10030:aphavoc/source/app3d/3d_snd.c:73-83; aphavoc/source/flight.c:419,462",
+      "10030:aphavoc/source/entity/special/effect/soundeff/soundeff.c:180-255",
+      "10030:aphavoc/source/entity/mobile/aircraft/fixwing/fw_updt.c:159,232,306; fw_anim.c:230,274; fw_snd.c:79-138",
+      "10030:aphavoc/source/entity/mobile/aircraft/helicop/hc_updt.c:238,641; helicop.c:1487-1620",
+      "10030:aphavoc/source/ui_menu/options/op_snd.c:845-982; aphavoc/source/deinit.c:171"
+    ],
+    "authority": [
+      {
+        "path": "D:/EECH-Migration-Evidence/m5-11534337-v3-live-20261101-0608.html",
+        "bytes": 6901,
+        "sha256": "e3bbca298c60997b2558002784b554393e43113c36560407a72ca8b31770c63d",
+        "authority": "Root-supplied live readback, M5 v3 / ledger v104; no external authority edits"
+      },
+      {
+        "path": "D:/EECH-Migration-Evidence/ledger-host-sound-metadata-v104-readback-20261101.html",
+        "bytes": 246769,
+        "sha256": "796e7fbd01052d97977f5e11f5d1e8952d7a7b227735ff21e697dbe49d0491e0",
+        "authority": "Root-supplied live readback, M5 v3 / ledger v104; no external authority edits"
+      }
+    ]
+  },
+  "limitations": [
+    "Source-only gate is false pending three P2 corrections. No compiler, linker, unit test, native candidate, authority witness, CI or shipping operation was executed by this reviewer. Terminal Root-produced build/test evidence received during this same pass is explicitly recorded separately.",
+    "Canonical Root Windows build0 and Linux default-test101 receipts/logs were read after the source pass completed; actual tests failed as finding 3. No candidate/default/authority native campaign has run; no later green, observer or strict outcome is inferred.",
+    "New C-consumer positive and Unix child refusal tests are source-inspected, not executed here. Windows C symbol/export/linkage and caller FP preservation remain actual build/test gates; no new float kernel was introduced and old FP/kernel acceptance is reused, not rerun.",
+    "No positive audio/backend, dynamic loader refresh, non-SESSION/device/range, UI/reinit/shutdown, DCS runtime, physical-time/terrain/spatial/model, Tacview/full40/all8 shipping, final CI or normal delivery acceptance. Whole Task51/D3 remains open; D4/D5 not started.",
+    "No source or product changes, builds/tests/native runs, external writes, auth/cache changes or nested agents. Only this private report is written. Earlier original/metadata/kernel reports and failed/partial evidence remain unchanged."
+  ],
+  "canonical_execution_context_received_during_same_pass": {
+    "artifacts": [
+      {
+        "path": "R:/d3-evidence/environment-host-sound-backend-b4265e529-linux-20261101-completion.json",
+        "sha256": "2d175a9363b9847a35b2b3f98cdffad270fee9c2793b3725953ab6744e9909d0",
+        "bytes": 662,
+        "receipt": {
+          "source": "b4265e529cfa2bd6113993d404f60b5819a01b86",
+          "args": [
+            "wsl",
+            "-d",
+            "EECH-D2-Build",
+            "--",
+            "sh",
+            "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-host-sound-backend-b4265e529-linux-20261101.sh"
+          ],
+          "pid": 7192,
+          "controller_pid": 18008,
+          "state": "terminal",
+          "started_utc": "2026-11-01T06:36:09.643618+00:00",
+          "scope": "Canonical backend availability default+observer affected Engine/DC/World builds/tests and both strict profiles; actual retail/authority/shipping separate",
+          "actual_exit": 101,
+          "completed_utc": "2026-11-01T06:40:03.037393+00:00"
+        }
+      },
+      {
+        "path": "R:/d3-evidence/environment-host-sound-backend-b4265e529-linux-20261101.log",
+        "sha256": "ba0ffd8a8cea8d33991f408c5254f7a655280401a1dbb3f76fb9815453b4b369",
+        "bytes": 73801
+      },
+      {
+        "path": "R:/d3-evidence/environment-host-sound-backend-b4265e529-windows-20261101-completion.json",
+        "sha256": "48fb02d02c85b223e4135a0b178d0905fccbc7f5caf4e4d8b9a103b9116de5db",
+        "bytes": 607,
+        "receipt": {
+          "source": "b4265e529cfa2bd6113993d404f60b5819a01b86",
+          "args": [
+            "wsl",
+            "-d",
+            "EECH-D2-Build",
+            "--",
+            "sh",
+            "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-host-sound-backend-b4265e529-windows-20261101.sh"
+          ],
+          "pid": 424,
+          "controller_pid": 1624,
+          "state": "terminal",
+          "started_utc": "2026-11-01T06:36:09.600538+00:00",
+          "scope": "Canonical backend availability Windows observer build ONLY; actual tests/authority/shipping separate",
+          "actual_exit": 0,
+          "completed_utc": "2026-11-01T06:38:57.041469+00:00"
+        }
+      },
+      {
+        "path": "R:/d3-evidence/environment-host-sound-backend-b4265e529-windows-20261101.log",
+        "sha256": "b149d509ffa5218f3426ffa2939385acb6f39dbb7fa31d7cf50a52569d2a2db1",
+        "bytes": 6791
+      }
+    ],
+    "facts": [
+      "Windows observer build actual exit 0 at 2026-11-01T06:38:57.041469Z; no native campaign or unit execution inferred.",
+      "Linux default library build reached success, then default tests exited 101 at 2026-11-01T06:40:03.037393Z; env_sound_init 23 pass / 2 new failures described in finding 3. Subsequent observer/strict pipeline phases were not reached.",
+      "Root reported an initial Windows unit export setup 125 used a stale image; a separate actual-BUILDINFO-image recovery was still running. No successful export/test outcome is claimed here."
+    ],
+    "source_unchanged": true,
+    "no_reviewer_execution": true
+  },
+  "prior_same_pass_report_before_terminal_context": {
+    "path": "R:/d3-evidence/independent-environment-host-sound-backend-source-review-b4265e529-20261101-before-terminal-gate-context.json",
+    "sha256": "b270addefd375ac1ee1961ff95e66b2380b536a66db46e45157619833629f3d5",
+    "reason": "Preserve the initial two-source-group report before newly supplied terminal build/test evidence and its concrete fixture failure were appended in the same finite pass."
+  }
+}

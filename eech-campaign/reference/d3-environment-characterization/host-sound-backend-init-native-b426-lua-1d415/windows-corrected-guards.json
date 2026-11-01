@@ -1,0 +1,103 @@
+{
+  "state": "terminal",
+  "controller_pid": 22004,
+  "started_utc": "2026-11-01T07:03:18.863377+00:00",
+  "native_source": "b4265e529cfa2bd6113993d404f60b5819a01b86",
+  "effective_test_source": "1d41509047977863768ab4e52a6202c2fec44a78",
+  "image_from_canonical_build_info": "sha256:361634d294f2a5f441b6b0cd08a6b5ff45874a98bf1a9ecb59c68faeff477a93",
+  "overlays": [
+    {
+      "path": "STATUS.md",
+      "sha256": "605f0795f5eafd7123f37ec52b37c9b9b13677d4d6a434a7542784bd2ddb52d8"
+    },
+    {
+      "path": "eech-campaign/docs/d3-sound-lifetime.md",
+      "sha256": "113e58ba302446c0da76df2be8ba64cb46e619d30de96f8a514bff099431b1ba"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/env-sound-backend-host-witness.lua",
+      "sha256": "af1803cc2d40c3259b40ac7074616e4f1e905670d81365ec81e5a6284fd60035"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/env_sound_backend_witness.rs",
+      "sha256": "23118973a1926c2344786690b713bb0556b25d2ab65d972b64b8812dc192eae1"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/env_sound_init.rs",
+      "sha256": "f89059a2636d594c10bd9a4ca5c9d6119d72354164396ed792851d5966e8dc6d"
+    }
+  ],
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "docker",
+    "run",
+    "--rm",
+    "--network",
+    "none",
+    "-i",
+    "-v",
+    "/mnt/d/EECH-Migration-Evidence/be-b4265e529:/src:ro",
+    "-v",
+    "/mnt/d/EECH-Migration-Evidence/backend-corrected-windows-guards-1d4150904-20261101:/evidence",
+    "-v",
+    "eech-win-target-d3-environment-physical-05b8caf82-20261031:/target",
+    "-v",
+    "eech-cargo:/usr/local/cargo/registry",
+    "-e",
+    "CARGO_TARGET_DIR=/target",
+    "-e",
+    "LUA_LIB=/opt/lua-mingw",
+    "-e",
+    "LUA_LIB_NAME=lua",
+    "-e",
+    "EECH_ENGINE_OPT=1",
+    "-w",
+    "/src/eech-campaign",
+    "-v",
+    "/mnt/d/EECH-Migration-Evidence/backend-final-overlay-1d4150904-20261101/overlay/STATUS.md:/src/STATUS.md:ro",
+    "-v",
+    "/mnt/d/EECH-Migration-Evidence/backend-final-overlay-1d4150904-20261101/overlay/eech-campaign/docs/d3-sound-lifetime.md:/src/eech-campaign/docs/d3-sound-lifetime.md:ro",
+    "-v",
+    "/mnt/d/EECH-Migration-Evidence/backend-final-overlay-1d4150904-20261101/overlay/eech-campaign/crates/eech-world/lua/env-sound-backend-host-witness.lua:/src/eech-campaign/crates/eech-world/lua/env-sound-backend-host-witness.lua:ro",
+    "-v",
+    "/mnt/d/EECH-Migration-Evidence/backend-final-overlay-1d4150904-20261101/overlay/eech-campaign/crates/eech-world/tests/env_sound_backend_witness.rs:/src/eech-campaign/crates/eech-world/tests/env_sound_backend_witness.rs:ro",
+    "-v",
+    "/mnt/d/EECH-Migration-Evidence/backend-final-overlay-1d4150904-20261101/overlay/eech-campaign/crates/eech-world/tests/env_sound_init.rs:/src/eech-campaign/crates/eech-world/tests/env_sound_init.rs:ro",
+    "sha256:361634d294f2a5f441b6b0cd08a6b5ff45874a98bf1a9ecb59c68faeff477a93",
+    "sh",
+    "-s"
+  ],
+  "scope": "Only TWO changed Windows integration binaries recompiled/executed on exact5fileoverlay; priorb426unchangedunits/provider/catalogue/root tests retained. No nativeDLL rebuild/relabel, no runtime source fixture or campaign/shipping claim.",
+  "build_pid": 7448,
+  "actual_build_exit": 0,
+  "cases": [
+    {
+      "name": "env_sound_init",
+      "pid": 10152,
+      "args": [
+        "D:\\EECH-Migration-Evidence\\backend-corrected-windows-guards-1d4150904-20261101\\env_sound_init.exe",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "state": "terminal",
+      "actual_exit": 0
+    },
+    {
+      "name": "env_sound_backend_witness",
+      "pid": 12536,
+      "args": [
+        "D:\\EECH-Migration-Evidence\\backend-corrected-windows-guards-1d4150904-20261101\\env_sound_backend_witness.exe",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "state": "terminal",
+      "actual_exit": 0
+    }
+  ],
+  "actual_exit": 0,
+  "overlay_unchanged": true,
+  "completed_utc": "2026-11-01T07:03:23.609349+00:00"
+}
