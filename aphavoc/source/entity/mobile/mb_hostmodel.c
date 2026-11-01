@@ -692,13 +692,15 @@ void campaign_model_route_position (int node, vec3d *position)
 // The bounded-input contract of the unchanged route-planning code. routegen.c was written for the routes the original models hold: it indexes a 24-entry start table and 24-entry
 // child and parent tables by whatever shape the route happens to have, it reads the first start without asking whether there is one, and its tree loops end only when every node has
 // been placed. A host can answer a route that is well formed (finite nodes, endpoints in range, colours in domain) and still not one of those shapes. The staged patches
-// H6..H13 (build/patches.rs) call the functions below at the places where the parser would write past a table, read a start that is not there, or go round again with nothing
+// H6..H15 (build/patches.rs) call the functions below at the places where the parser would write past a table, read a start that is not there, or go round again with nothing
 // changed. They only test the parser's OWN counters on its OWN statements, at the point the statement is about to be taken: they place no node, solve nothing and change no
 // value of a route the parser could take. A shape it cannot take stops the engine with a named marker before the write or the next pass, so no table is overrun, no loop
 // spins, and nothing is truncated, skipped or invented.
 
-// the longest slot matching the parser may run: far beyond what a route needs (every swap places a node for one slot, so a settling route takes about one pass per slot, and the
-// slots of a route number a handful), so reaching it means the swaps are undoing each other, which the parser would repeat for ever
+// A WORK LIMIT of this host boundary, not a bound derived from the original parser: the original has no limit on the passes of its end-slot matching, and nothing here proves that a
+// matching that reaches this many passes would never have settled, or that it was undoing its own swaps. 4096 is an explicitly chosen, newly supported finite contract: a host route
+// whose slot matching needs more passes is UNSUPPORTED and UNMEASURED here and stops with the named marker instead of running without bound. It excuses no baseline case: a route of
+// the original models that reached it would be a regression to investigate, not an accepted refusal. (No smaller invariant of the matching is claimed.)
 #define ROUTE_MATCH_PASSES 4096
 
 // the next write to a table of `capacity` entries would be entry `used`: 0 the start table, 1 the children of a node, 2 the parents of a node
@@ -711,7 +713,16 @@ void campaign_model_route_room (int what, int used, int capacity)
 	}
 }
 
-// a pass over the line faces has just ended with `left` nodes still to place: the next pass walks the same faces over the same nodes, so unless the count fell it would go round for ever
+// A loop of the parser is about to take a pass with `left` nodes still to place: the pass before it walked the same faces over the same nodes, so unless the count fell that pass
+// placed nothing and this one would place nothing either. The state (`phase`, last count) belongs to ONE invocation of ONE loop: the tree and position loops each run once per
+// parse (campaign_model_route_object resets it), and set_node_indices, which the parser calls again from every end-slot swap, starts each invocation with
+// campaign_model_route_progress_begin, so the count of one invocation is never compared with the last count of another.
+void campaign_model_route_progress_begin (void)
+{
+	route_progress_phase = 0;
+	route_progress_last = 0;
+}
+
 int campaign_model_route_progress (int phase, int left)
 {
 	if (phase != route_progress_phase)

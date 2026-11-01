@@ -620,6 +620,7 @@ pub const ROUTE_HOST_PATCHES: &[Patch] = &[
         replacement: concat!(
             "/* the topology guards of the host route boundary (mb_hostmodel.c; EECH headless, D3) */\n",
             "void campaign_model_route_room ( int what, int used, int capacity );\n",
+            "void campaign_model_route_progress_begin ( void );\n",
             "int campaign_model_route_progress ( int phase, int left );\n",
             "int campaign_model_route_match_pass ( void );\n",
             "void campaign_model_route_starts ( int starts );\n",
@@ -632,9 +633,9 @@ pub const ROUTE_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "aphavoc/source/ai/faction/routegen.c",
         id: "H7-route-start-capacity",
-        why: "the 24-entry start table: the write of the next start is refused with a named marker when the table is full (the original has only an ASSERT)",
+        why: "the 24-entry start table: the write of the next start is refused with a named marker when the table is full (the original has only an ASSERT); the check comes BEFORE the ASSERT so an assertion-enabled build reports the named marker, not a generic assertion",
         original: "ASSERT ( number_of_waypoint_starting_nodes < MAX_WAYPOINT_STARTS );\n",
-        replacement: "ASSERT ( number_of_waypoint_starting_nodes < MAX_WAYPOINT_STARTS );\n\t\t\tcampaign_model_route_room ( 0, number_of_waypoint_starting_nodes, MAX_WAYPOINT_STARTS );\n",
+        replacement: "campaign_model_route_room ( 0, number_of_waypoint_starting_nodes, MAX_WAYPOINT_STARTS );\n\n\t\t\tASSERT ( number_of_waypoint_starting_nodes < MAX_WAYPOINT_STARTS );\n",
         count: 1,
     },
     Patch {
@@ -668,9 +669,17 @@ pub const ROUTE_HOST_PATCHES: &[Patch] = &[
     Patch {
         file: "aphavoc/source/ai/faction/routegen.c",
         id: "H11-route-node-index-progress",
-        why: "set_node_indices: a pass that gave no node its index is refused with a named marker instead of repeating for ever (defence in depth: the trees built before it make this unreachable)",
+        why: "set_node_indices: a pass that gave no node its index is refused with a named marker instead of repeating for ever (defence in depth: the trees built before it make this unreachable). The state belongs to one invocation: H11b starts every invocation afresh",
         original: "while ( number_of_nodes_left )\n\t{\n\t\n\t\tfor ( count = 0; count < number_of_waypoint_nodes; count++ )\n",
         replacement: "while ( ( number_of_nodes_left ) && ( campaign_model_route_progress ( 3, number_of_nodes_left ) ) )\n\t{\n\t\n\t\tfor ( count = 0; count < number_of_waypoint_nodes; count++ )\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/ai/faction/routegen.c",
+        id: "H11b-route-node-index-invocation",
+        why: "set_node_indices runs once from the parse and again from every end-slot swap (after the swap invalidated the indices): each invocation begins its own progress count, so a later invocation that legitimately starts with as many nodes unnumbered as the last one ended with is never compared with it",
+        original: "\t//\n\t// Count the number of nodes that haven't been given a valid node index\n\t//\n",
+        replacement: "\tcampaign_model_route_progress_begin ();\n\n\t//\n\t// Count the number of nodes that haven't been given a valid node index\n\t//\n",
         count: 1,
     },
     Patch {

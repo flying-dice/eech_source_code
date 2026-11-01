@@ -175,10 +175,11 @@ the per-depth positions), which are textually unchanged. The host owns the model
   the face-local columns, the surface columns and the `route-bounds` row (the host profile has none; the emitter writes no bounds row there and the driver refuses one), `legacy_object` and `caller_raw` (now the key number), and the profile line. No whole-file equality is claimed.
 * **Topology guards** (source; NOT built, NOT run; H5b..H15 and `mb_hostmodel.c`): finite nodes and in-range endpoints do not make a route the unchanged parser can take. It has a 24-entry start
   table and 24-entry child and parent tables that it indexes by the route's shape (an `ASSERT` or nothing guards them), it reads the first start without asking whether there is one, and its
-  tree loops end only when every node has been placed. The staged parser now calls the boundary at those places, with the parser's own counters and before the write or the next pass, and a
+  tree loops end only when every node has been placed. The staged parser now calls the boundary at those places, with the parser's own counters and before the write or the next pass (the start-table check before the original `ASSERT`; the node-index progress count begins afresh at every `set_node_indices` invocation, which the end-slot swaps call again), and a
   shape it cannot take stops the engine with a named marker: `[model-provider:route.starts]` (the 25th start), `route.links` (the 25th child or parent of one node), `route.progress` (a pass over
   the line faces placed no primary node, no remaining node, no node index, or no position of a depth), `route.start` (no start node, or no primary start) and `route.match` (the end-slot
-  matching did not settle in 4096 passes: a termination bound that is far above what a settling route needs, not a value taken from the original). Nothing is truncated, skipped or invented, and a route the
+  matching needed more than 4096 passes: an explicit WORK LIMIT of the host boundary, newly supported, not derived from the original and not a proof that such a matching would never have settled;
+  a host route beyond it is unsupported and unmeasured here, and a baseline route reaching it would be a regression to investigate, not an excused case). Nothing is truncated, skipped or invented, and a route the
   parser could take runs the same statements in the same order. The original parser has none of it. H5b removes the bounds scale (`xmax`/`ymax`/`zmax`) H5 left unused in the hosted parser.
   `campaign_model_route_probe` (test-only) is compiled only with `EECH_MODEL_HOST_FIXTURE`.
 * **Controls prepared** (the Root runs them): the host store's contract tests (`tests/model_route.rs`: kind lookup order, the colour, the ordered faces through each surface's own

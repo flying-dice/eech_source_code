@@ -6,6 +6,16 @@ The first production route-data move is prepared/pushed at `66dc2e8a237a46f92003
 
 Task51 ordinary source78 shipping continues on its original immutable snapshot without restart; fifth check around19:40 UTC finds all four available recording/observation prefixes exact (24,733,777/15,499,264/24,676,439/15,089,664 bytes), PARTIAL only. Actual full40/all8/post-input/final review/current checks/normal delivery remain pending. Ledger117 preserves prior authored HTML and all five epic reports; Jira50comment10937 records the closed original gate and extraction start. Task49/50/51 and wholeD3 remain In Progress; D4/D5 are unstarted. No accepted baseline, tolerance, oracle or flag changed. Historical checkpoint sections below retain their original scope and identities.
 
+# D3 host route boundary guards: source-only follow-up to `8d1c79c8d` (1 November 2026): NOT BUILT, NOT RUN
+
+Root's source read found a regression in the new progress guard: `set_node_indices` runs once from the parse and again from every end-slot swap (`swap_waypoint_nodes`, after it has invalidated the
+indices), but the guard's count was reset only per parse, so a later invocation could legitimately start with as many nodes unnumbered as the last one ended with and be refused. H11b now begins the
+count at the entry of EVERY `set_node_indices` invocation (`campaign_model_route_progress_begin`); no state crosses invocations. The other progress loops each run once per parse (primary, remaining,
+and one position loop per depth, each its own phase) and the parse resets them. H7 now puts the named start-capacity check BEFORE the original `ASSERT`. `ROUTE_MATCH_PASSES` 4096 is documented as an
+explicit work limit of the host boundary, not derived from the original and not proof that a matching reaching it would never settle: a host route beyond it is unsupported and unmeasured, and a
+baseline route reaching it would be a regression. Static check only: all 15 `routegen.c` host patches find their expected counts against the real source in sequence, and the candidate fixture's R1/R2/R6
+afterwards; no staging build, compile, test, engine or native run. The Root's finite actuals remain those of `def6a9bde`; nothing here is acceptance of the guards. Task50 and D3 remain In Progress.
+
 # D3 host route boundary: topology guards and cleanup (1 November 2026): SOURCE ONLY; NOT BUILT, NOT RUN
 
 Review `independent-model-host-route-source-actual-def6a9bde-20261101.json` (SHA256 `63027184fff24cd2d2d774aaef1a4d19d089320eff3658b621db3300e041b293`, source `def6a9bdec11e5f8a27451d8057162a34f340693`) found no
