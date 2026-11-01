@@ -293,13 +293,16 @@ fn the_guard_evidence_files_are_exclusive_and_both_closed_and_a_failed_close_fai
         driven.closed
     );
 
-    for (fail, named) in [
+    for (fail, expected_close_error) in [
         ("fatal.raw", "guard.jsonl.fatal.raw failed: injected close failure"),
         ("guard.jsonl", "guard.jsonl failed: injected close failure"),
     ] {
         let driven = drive(&format!("{{ close_fail = '{fail}', engine_error = {} }}", long(&named())), &args("21"));
         let error = error_of(&driven);
-        assert!(error.contains("OUTPUT FAILURE: closing") && error.contains(named), "{fail}: {error}");
+        assert!(
+            error.contains("OUTPUT FAILURE: closing") && error.contains(expected_close_error),
+            "{fail}: {error}"
+        );
         assert_eq!(driven.closed.len(), 2, "{fail}: the other file is still closed: {:?}", driven.closed);
         assert_eq!(
             of(&driven, "result").len(),
