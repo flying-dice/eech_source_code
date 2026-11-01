@@ -5,7 +5,7 @@
 //! the caller's floating-point state, and keeps its data valid. The only numeric expectations are identities that do not need the original's formula: a scale of
 //! exactly 1.0 returns the short coordinates unchanged, and a rounding-sensitive scale returns the same bits whatever rounding mode the caller is in. What the
 //! retail data answers is the Root's comparison with the retained original report (the `model-host-compare` driver), never these tests.
-use eech_world::models::{compiled_scene_name, fp_state, old_last, scene_last, ErrorKind, ModelStore, ObjectSource, QueryError, SceneSource, Triangle};
+use eech_world::models::{compiled_animation_count, compiled_animation_name, compiled_scene_name, fp_state, old_last, scene_last, ErrorKind, ModelStore, ObjectSource, QueryError, SceneSource, Triangle};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
@@ -817,6 +817,35 @@ fn the_compiled_scene_names_are_the_originals_header_when_the_header_is_here() {
     for (i, name) in expected.iter().enumerate() {
         assert_eq!(compiled_scene_name(i + 1), Some(name.as_str()), "scene {}", i + 1);
     }
+}
+
+#[test]
+fn the_compiled_animation_names_are_the_originals_header_when_the_header_is_here() {
+    let header = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../modules/3d/textanim.h");
+    let Ok(text) = std::fs::read_to_string(&header) else {
+        eprintln!("NOT CHECKED: {} is not available here", header.display());
+        return;
+    };
+    // the original's names are the entries before KNOWN_LAST, in order (the LAST_OLD entry holds its place)
+    let mut expected = Vec::new();
+    for line in text.lines() {
+        let line = line.trim();
+        if let Some(rest) = line.strip_prefix("TEXTURE_ANIMATION_INDEX(") {
+            if let Some(name) = rest.split(')').next() {
+                if name == "KNOWN_LAST" {
+                    break;
+                }
+                if !name.is_empty() && name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
+                    expected.push(name.to_string());
+                }
+            }
+        }
+    }
+    assert_eq!(expected.len(), compiled_animation_count(), "the header lists a different number of animations");
+    for (i, name) in expected.iter().enumerate() {
+        assert_eq!(compiled_animation_name(i), Some(name.as_str()), "animation {i}");
+    }
+    assert_eq!(compiled_animation_name(expected.len()), None);
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------------

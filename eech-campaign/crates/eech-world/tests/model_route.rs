@@ -408,9 +408,10 @@ fn an_objects_header_facts_are_the_files_true_values_by_the_role_it_has_in_the_s
 }
 
 #[test]
-fn the_object_table_is_the_files_count_and_the_originals_room_and_a_table_scene_has_no_animation_references() {
+fn the_object_count_is_the_files_and_a_table_scene_has_no_animation_references() {
     let (_root, store) = standard();
-    assert_eq!(store.object_table(), (3, 2000));
+    // a count of what the files hold; the room the campaign keeps for custom objects is its own policy and is not part of the answer
+    assert_eq!(store.common_objects(), 3);
     // a scene of the binary database keeps its animation list in its own record: the host has none to give; a scene the files never described neither
     assert_eq!(store.animation_ref(1, 0).unwrap(), AnimationRef::Absent);
     assert_eq!(store.animation_ref(3, 0).unwrap(), AnimationRef::Absent);

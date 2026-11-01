@@ -31,6 +31,23 @@
  *              declared without a collider, ABSENT for one declared with, and any of the three for a scene declared not loaded, contradict the host's own declaration and
  *              stop the engine before any word of the caller's buffer is written.
  *
+ *   OBJECT_TABLE / OBJECT / ANIMATION   the metadata of the physical models the campaign's compatibility rows mirror (EEDCS-50, D3, L2: the common and custom model-file
+ *              loaders no longer parse 3dobjs.bin, its point / surface-point / normal / texture-point files or a custom .EEO). The campaign keeps its own private object numbering,
+ *              its history of named objects and their sharing, and the scene / hierarchy loader; the host owns what the model files say.
+ *              OBJECT_TABLE (asked once, before any scene is read): the number of objects the common database holds (a count of what the host's files contain; `object_count`).
+ *              The room the campaign keeps for custom objects, the ids it gives them and its history of named objects are the campaign's own allocation policy: they are neither
+ *              asked for nor answered, and a provider need not know them.
+ *              OBJECT: asked after a scene's records are read, for each object the scene names. The request is SEMANTIC: the scene (the EECH scene index), the `role` the
+ *              object has in it (0 main, 1 approximation, 2 shadow polygon object, 3 collision object, 4 sub-object) and the `depth` cursor (the approximation or the
+ *              sub-object, counted as the scene's files lay them out). No object number, pointer, offset or layout is sent or asked for. The reply echoes the scene's compiled
+ *              name and is FOUND (the six header counts the compatibility rows hold: points, faces, surfaces, point normals, lighting normals, culling normals offset;
+ *              the radius; both bounding boxes) or ABSENT (the host's files name no object in that role). A refusal is an error of the provider. The campaign fills its private
+ *              rows from FOUND answers before anything reads them; an object two references name differently, or a name the host has no object for, stops the engine.
+ *              ANIMATION: for an .EES scene, the ordered animated-surface references of its objects in the order the original's add_animation_object visits them. FOUND
+ *              carries `animation_name`, the LOGICAL name of the texture animation (never a file's animation index: the host resolves the file's own numbering to the name); END
+ *              ends the list, ABSENT says the scene is not an .EES scene (it keeps its list in its own record). A reference the host cannot name is a refusal of the provider. The
+ *              campaign maps the name to its own private animation table, de-duplicates in its own add_animation, as the original did, and stops on a name its table does not hold.
+ *
  *   ROUTE_NODE / ROUTE_FACE   the route data of an airfield scene (EEDCS-50, D3). A route is the line object a scene files under a sub-object kind (the landing, take-off
  *              and holding routes of airfields); the campaign's own hierarchy lookup still says whether the scene has one, and the campaign keeps the route
  *              planning (the tree, the primary and start nodes, the end-slot matching). What the host owns is the model data behind it: the request carries the scene, the
@@ -68,8 +85,23 @@ enum campaign_model_op
 	CAMPAIGN_MODEL_SCENE,
 	CAMPAIGN_MODEL_TRIANGLE,
 	CAMPAIGN_MODEL_ROUTE_NODE,
-	CAMPAIGN_MODEL_ROUTE_FACE
+	CAMPAIGN_MODEL_ROUTE_FACE,
+	CAMPAIGN_MODEL_OBJECT_TABLE,
+	CAMPAIGN_MODEL_OBJECT,
+	CAMPAIGN_MODEL_ANIMATION
 };
+
+enum campaign_model_object_role
+{
+	CAMPAIGN_MODEL_ROLE_MAIN = 0,
+	CAMPAIGN_MODEL_ROLE_APPROXIMATION,
+	CAMPAIGN_MODEL_ROLE_SHADOW,
+	CAMPAIGN_MODEL_ROLE_COLLISION,
+	CAMPAIGN_MODEL_ROLE_SUB_OBJECT
+};
+
+/* the longest animation name (without the terminator) a reply may carry */
+#define CAMPAIGN_MODEL_ANIMATION_NAME_MAX 127
 
 enum campaign_model_triangle_result
 {
@@ -87,6 +119,8 @@ typedef struct campaign_model_request
 	int depth;
 	/* ROUTE_NODE and ROUTE_FACE: the route's sub-object kind (object_3d_sub_object_index_numbers); `scene` is the airfield scene */
 	int kind;
+	/* OBJECT: the role the object has in `scene` (campaign_model_object_role); `depth` is the approximation or sub-object cursor. ANIMATION: `depth` is the reference cursor */
+	int role;
 } campaign_model_request;
 
 typedef struct campaign_model_reply
@@ -109,6 +143,15 @@ typedef struct campaign_model_reply
 	int route_point[2];
 	int route_colour[3];
 	int route_polygons;
+	/* OBJECT_TABLE: the number of objects the common database holds */
+	int object_count;
+	/* OBJECT (FOUND): points, faces, surfaces, point normals, lighting normals, culling normals offset */
+	int object_counts[6];
+	float object_radius;
+	/* xmin, xmax, ymin, ymax, zmin, zmax of the bounding box, then of the second bounding box */
+	float object_bounds[12];
+	/* ANIMATION (FOUND): the logical name of the texture animation */
+	char animation_name[CAMPAIGN_MODEL_ANIMATION_NAME_MAX + 1];
 } campaign_model_reply;
 
 typedef int (*campaign_model_fn)

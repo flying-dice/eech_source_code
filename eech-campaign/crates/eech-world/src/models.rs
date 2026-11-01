@@ -18,7 +18,7 @@
 //! C (`csrc/model_step.c`) under its round-toward-zero guard.
 //!
 //! The store is immutable after `ModelStore::load`; every query returns owned plain values, so nothing a caller holds can outlive or alias it.
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fmt;
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
@@ -29,6 +29,13 @@ const SCENE_NAMES: &str = include_str!("../data/scene-names.txt");
 /// The compiled sub-object names (modules/3d/3dmodels.h, `OBJECT_3D_SUBINDEX`): line n is sub-object kind n; kind 0 and `OBJECT_3D_SUB_OBJECT_LAST` have none. The kind is the
 /// public half of a route's identity (the scene is the other): the campaign names the kind it selected and the host echoes the name.
 const SUBOBJECT_NAMES: &str = include_str!("../data/subobject-names.txt");
+
+/// The compiled texture animation names (modules/3d/textanim.h, `TEXTURE_ANIMATION_INDEX`, up to but not including `KNOWN_LAST`): line n is the original's animation n. The file's
+/// own animation indices (`3dobjs.bin` surfaces) are positions in this list; the first `LAST_OLD` of them are the ones `bininfo.bin` also holds. The host resolves such an index to
+/// the NAME here, so that only a logical name crosses to the campaign, which maps it to its own private table.
+const ANIMATION_NAMES: &str = include_str!("../data/animation-names.txt");
+/// the longest animation name a reply carries
+const MAX_ANIMATION_NAME: usize = 127;
 
 /// `custom_number_of_objects` in 3dobjdb.c: how many objects past the retail table the original has room for.
 const CUSTOM_OBJECT_ROOM: i64 = 2000;
@@ -146,6 +153,21 @@ pub fn compiled_scene_name(scene: usize) -> Option<&'static str> {
         return None;
     }
     compiled_names().get(scene).copied()
+}
+
+fn compiled_animation_names() -> &'static [&'static str] {
+    static NAMES: OnceLock<Vec<&'static str>> = OnceLock::new();
+    NAMES.get_or_init(|| ANIMATION_NAMES.lines().collect())
+}
+
+/// The animation name the original compiles for the file's animation index `index` (modules/3d/textanim.h), or None outside the compiled list.
+pub fn compiled_animation_name(index: usize) -> Option<&'static str> {
+    compiled_animation_names().get(index).copied()
+}
+
+/// How many animation names the original compiles (`TEXTURE_ANIMATION_INDEX_KNOWN_LAST`).
+pub fn compiled_animation_count() -> usize {
+    compiled_animation_names().len()
 }
 
 fn compiled_subobject_names() -> &'static [&'static str] {
@@ -340,6 +362,29 @@ fn words_of(raw: &[u8]) -> Vec<u16> {
 fn points_of(raw: &[u8]) -> Vec<[i16; 3]> {
     let at = |i: usize, k: usize| i16::from_le_bytes([raw[6 * i + 2 * k], raw[6 * i + 2 * k + 1]]);
     (0..raw.len() / 6).map(|i| [at(i, 0), at(i, 1), at(i, 2)]).collect()
+}
+
+/// The animation names the installation adds to the compiled ones: every `*.TXT` of `GRAPHICS/TEXTURES/ANIMATION` beside `3ddata`, by its upper-case name without the
+/// extension, as the original registers them (3dobjid.c). Only the NAMES are kept: the numbering the original gives them follows a directory listing and is not reproduced.
+/// A missing directory adds none.
+fn custom_animation_names(data: &Path) -> Result<BTreeSet<String>, ModelError> {
+    let mut dir = data.parent().unwrap_or(data).to_path_buf();
+    for part in ["GRAPHICS", "TEXTURES", "ANIMATION"] {
+        match find_named(&RealFs, &dir, part, Kind::Directory)? {
+            Some(next) => dir = next,
+            None => return Ok(BTreeSet::new()),
+        }
+    }
+    let mut out = BTreeSet::new();
+    for (name, _) in typed_entries(&RealFs, &dir, Kind::File)? {
+        let upper = name.to_ascii_uppercase();
+        if let Some(stem) = upper.strip_suffix(".TXT") {
+            if !stem.is_empty() {
+                out.insert(stem.to_string());
+            }
+        }
+    }
+    Ok(out)
 }
 
 /// What a path is, following links.
@@ -670,7 +715,7 @@ struct Scene {
     shadow: i32,
     /// For a scene an `.EES` replaced: the animated-surface references of its objects in the order `add_animation_object` visits them (main object, approximations, then every
     /// sub-object in the scene's array order), each a legacy animation index or a logical animation name. A scene of `3dobjdb.bin` has none: its list is in its own record.
-    animation_refs: Vec<AnimationRef>,
+    animation_refs: Vec<RawAnimation>,
 }
 
 impl Scene {
@@ -690,15 +735,23 @@ impl Scene {
     }
 }
 
-/// One animated-surface reference of a scene's objects (`AnimationRef` is the host's answer to the animation cursor): the surface's texture index as the file holds it, or,
-/// where an `.EEO` overrides it with a name, the animation's logical NAME (the campaign resolves a name in its own animation table). The end of the references, and the
-/// absence of any list for a scene whose list is its own record, are different answers.
+/// One animated-surface reference of a scene's objects as the files hold it, PRIVATE to the store: the surface's animation index, or, where an `.EEO` overrides it, the bytes of
+/// the name it gives. Neither crosses the boundary as it is: `ModelStore::animation_ref` resolves it to a logical name or refuses it.
+#[derive(Clone, Debug, PartialEq, Eq)]
+enum RawAnimation {
+    Id(u16),
+    Name(Vec<u8>),
+}
+
+/// The host's answer to the animation cursor: the animation's logical NAME (the campaign maps it to its own table; no file index crosses), the end of the references, the
+/// absence of any list for a scene whose list is its own record, or the statement that a reference cannot be named (an index outside the compiled names, whose dynamic order
+/// depends on a directory listing; an override that is not text, or names no animation the installation has). A refusal is never a number and never a repaired name.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum AnimationRef {
-    Id(i32),
     Name(String),
     End,
     Absent,
+    Refused(&'static str),
 }
 
 /// What the load found, for the report; none of it is a campaign decision.
@@ -730,6 +783,8 @@ pub struct ModelStore {
     scenes: Vec<Scene>,
     objects: Vec<Object>,
     surfaces: Vec<Surface>,
+    /// the animation names the installation adds to the compiled ones (`GRAPHICS/TEXTURES/ANIMATION/*.TXT`, upper case)
+    custom_animations: BTreeSet<String>,
     points: Arena<[i16; 3]>,
     faces: Arena<u8>,
     point_list: Arena<u8>,
@@ -745,7 +800,7 @@ pub struct ModelStore {
 /// luminosity texture reference when it is a luminosity texture animation. A reference is the file's index, or, where the object's `.EEO` overrides that texture with a name,
 /// the name (the original resolves it to the animation's index at load). The campaign applies its own `add_animation` (deduplication, order) to these in turn; nothing is
 /// deduplicated here. An object the loader holds no surfaces for (0, or one without) adds none.
-fn animation_refs_of(visited: &[i32], surfaces: &HashMap<usize, Vec<Surface>>, names: &HashMap<usize, Vec<(Vec<u8>, Vec<u8>)>>) -> Vec<AnimationRef> {
+fn animation_refs_of(visited: &[i32], surfaces: &HashMap<usize, Vec<Surface>>, names: &HashMap<usize, Vec<(Vec<u8>, Vec<u8>)>>) -> Vec<RawAnimation> {
     let mut refs = Vec::new();
     for &object in visited {
         let Ok(object) = usize::try_from(object) else { continue };
@@ -755,14 +810,14 @@ fn animation_refs_of(visited: &[i32], surfaces: &HashMap<usize, Vec<Surface>>, n
             let pair = overrides.and_then(|n| n.get(at));
             if surface.texture_animation() {
                 match pair.map(|p| &p.0).filter(|name| !name.is_empty()) {
-                    Some(name) => refs.push(AnimationRef::Name(String::from_utf8_lossy(name).into_owned())),
-                    None => refs.push(AnimationRef::Id(i32::from(surface.texture_index))),
+                    Some(name) => refs.push(RawAnimation::Name(name.clone())),
+                    None => refs.push(RawAnimation::Id(surface.texture_index)),
                 }
             }
             if surface.luminosity_texture_animation() {
                 match pair.map(|p| &p.1).filter(|name| !name.is_empty()) {
-                    Some(name) => refs.push(AnimationRef::Name(String::from_utf8_lossy(name).into_owned())),
-                    None => refs.push(AnimationRef::Id(i32::from(surface.luminosity_texture_index))),
+                    Some(name) => refs.push(RawAnimation::Name(name.clone())),
+                    None => refs.push(RawAnimation::Id(surface.luminosity_texture_index)),
                 }
             }
         }
@@ -779,6 +834,7 @@ struct Loader {
     own_surfaces: HashMap<usize, Vec<Surface>>,
     /// each `.EEO` object's texture-name overrides, by object, in surface order
     eeo_names: HashMap<usize, Vec<(Vec<u8>, Vec<u8>)>>,
+    custom_animations: BTreeSet<String>,
     scenes: Vec<Scene>,
     points: Arena<[i16; 3]>,
     faces: Arena<u8>,
@@ -1647,6 +1703,7 @@ impl Loader {
             object_bounds: Vec::new(),
             own_surfaces: HashMap::new(),
             eeo_names: HashMap::new(),
+            custom_animations: custom_animation_names(&data)?,
             scenes: vec![Scene::empty(); scene_last()],
             points: Arena::default(),
             faces: Arena::default(),
@@ -1814,6 +1871,7 @@ impl Loader {
             scenes: self.scenes,
             objects: self.objects,
             surfaces,
+            custom_animations: self.custom_animations,
             points: self.points,
             faces: self.faces,
             point_list: self.point_list,
@@ -2271,14 +2329,15 @@ impl ModelStore {
         }))
     }
 
-    /// How many objects `3dobjs.bin` holds and the room for custom ones the original has: the numbers the campaign's own object table is sized from.
-    pub fn object_table(&self) -> (i32, i32) {
-        (self.summary.table_objects as i32, CUSTOM_OBJECT_ROOM as i32)
+    /// How many objects the common database (`3dobjs.bin`) holds: a count of what the files contain. The room the campaign keeps for custom objects, and the numbering it gives
+    /// them, are the campaign's own allocation policy and are neither asked for nor answered.
+    pub fn common_objects(&self) -> i32 {
+        self.summary.table_objects as i32
     }
 
-    /// The `index`th animated-surface reference of an `.EES` scene's objects, in the order `add_animation_object` visits them (see `animation_refs_of`): the file's animation
-    /// index, or a logical animation name where an `.EEO` overrides the texture; the end of the references; or the absence of any (a scene of `3dobjdb.bin` keeps its list in its
-    /// own record, a scene the files never described has none).
+    /// The `index`th animated-surface reference of an `.EES` scene's objects, in the order `add_animation_object` visits them (see `animation_refs_of`), as a logical animation
+    /// NAME: the compiled name of the file's animation index, or the (validated, upper-case) name an `.EEO` gives where it overrides the texture; the end of the references; the
+    /// absence of any (a scene of `3dobjdb.bin` keeps its list in its own record, a scene the files never described has none); or a refusal for a reference that cannot be named.
     pub fn animation_ref(&self, scene: i64, index: i64) -> Result<AnimationRef, QueryError> {
         let id = self.check_scene(scene)?;
         if !(0..=i32::MAX as i64).contains(&index) {
@@ -2288,7 +2347,37 @@ impl ModelStore {
         if !s.loaded || s.source != SceneSource::Ees {
             return Ok(AnimationRef::Absent);
         }
-        Ok(s.animation_refs.get(index as usize).cloned().unwrap_or(AnimationRef::End))
+        Ok(match s.animation_refs.get(index as usize) {
+            Some(raw) => self.name_animation(raw),
+            None => AnimationRef::End,
+        })
+    }
+
+    /// A reference as the files hold it, as a name the campaign can map to its own table, or a refusal. An index is a position in the compiled names; one past them has no
+    /// name here (the original's dynamic animations are numbered by a directory listing, which no file index can name). An override is accepted only as text with no control
+    /// character, at most the reply's length, and only when the compiled names or the installation's own animation files hold it (compared as the original does, without regard
+    /// to ASCII case); nothing is repaired or replaced.
+    fn name_animation(&self, raw: &RawAnimation) -> AnimationRef {
+        match raw {
+            RawAnimation::Id(id) => match compiled_animation_name(usize::from(*id)) {
+                Some(name) => AnimationRef::Name(name.to_string()),
+                None => AnimationRef::Refused("animation_index_has_no_compiled_name"),
+            },
+            RawAnimation::Name(bytes) => {
+                let Ok(text) = std::str::from_utf8(bytes) else {
+                    return AnimationRef::Refused("animation_name_not_text");
+                };
+                if text.is_empty() || text.len() > MAX_ANIMATION_NAME || text.chars().any(char::is_control) {
+                    return AnimationRef::Refused("animation_name_not_an_identifier");
+                }
+                let upper = text.to_ascii_uppercase();
+                if compiled_animation_names().iter().any(|n| *n == upper) || self.custom_animations.contains(&upper) {
+                    AnimationRef::Name(upper)
+                } else {
+                    AnimationRef::Refused("animation_name_unknown")
+                }
+            }
+        }
     }
 
     /// The original's walk, translated exactly (3dobjdb.c); each read is checked against the BACKED length of its array.
@@ -2618,15 +2707,15 @@ mod animation_tests {
         names.insert(6, vec![(b"SMOKE".to_vec(), Vec::new())]);
         // the object 0 has no surfaces; object 5 is visited twice and its references come twice
         let refs = animation_refs_of(&[5, 0, 6, 5], &surfaces, &names);
-        let name = AnimationRef::Name("SMOKE".to_string());
+        let name = RawAnimation::Name(b"SMOKE".to_vec());
         let expected = vec![
-            AnimationRef::Id(7),
-            AnimationRef::Id(8),
-            AnimationRef::Id(10),
+            RawAnimation::Id(7),
+            RawAnimation::Id(8),
+            RawAnimation::Id(10),
             name,
-            AnimationRef::Id(7),
-            AnimationRef::Id(8),
-            AnimationRef::Id(10),
+            RawAnimation::Id(7),
+            RawAnimation::Id(8),
+            RawAnimation::Id(10),
         ];
         assert_eq!(refs, expected);
     }
@@ -2639,13 +2728,42 @@ mod animation_tests {
         // the first surface overrides only its luminosity texture; the second surface has no pair (the overrides stopped at the end of the file)
         names.insert(3, vec![(Vec::new(), b"GLOW".to_vec())]);
         let refs = animation_refs_of(&[3], &surfaces, &names);
-        let expected = vec![
-            AnimationRef::Id(21),
-            AnimationRef::Name("GLOW".to_string()),
-            AnimationRef::Id(23),
-            AnimationRef::Id(24),
-        ];
+        let expected = vec![RawAnimation::Id(21), RawAnimation::Name(b"GLOW".to_vec()), RawAnimation::Id(23), RawAnimation::Id(24)];
         assert_eq!(refs, expected);
+    }
+
+    fn store_with_custom(custom: &[&str]) -> ModelStore {
+        ModelStore {
+            scenes: Vec::new(),
+            objects: Vec::new(),
+            surfaces: Vec::new(),
+            custom_animations: custom.iter().map(|n| n.to_string()).collect(),
+            points: Arena::default(),
+            faces: Arena::default(),
+            point_list: Arena::default(),
+            surface_points: Arena::default(),
+            summary: LoadSummary::default(),
+        }
+    }
+
+    #[test]
+    fn a_reference_is_named_or_refused_never_passed_on_as_a_number_or_repaired() {
+        let store = store_with_custom(&["MY_FLAG"]);
+        // an index is a position in the compiled names
+        assert_eq!(store.name_animation(&RawAnimation::Id(0)), AnimationRef::Name(compiled_animation_name(0).unwrap().to_string()));
+        let last = compiled_animation_count() - 1;
+        assert_eq!(store.name_animation(&RawAnimation::Id(last as u16)), AnimationRef::Name(compiled_animation_name(last).unwrap().to_string()));
+        // one past the compiled names has none: the dynamic animations are numbered by a directory listing
+        assert_eq!(store.name_animation(&RawAnimation::Id(compiled_animation_count() as u16)), AnimationRef::Refused("animation_index_has_no_compiled_name"));
+        // an override: a compiled name in any case, or one the installation's animation files hold
+        assert_eq!(store.name_animation(&RawAnimation::Name(b"debris".to_vec())), AnimationRef::Name("DEBRIS".to_string()));
+        assert_eq!(store.name_animation(&RawAnimation::Name(b"My_Flag".to_vec())), AnimationRef::Name("MY_FLAG".to_string()));
+        assert_eq!(store.name_animation(&RawAnimation::Name(b"NOT_AN_ANIMATION".to_vec())), AnimationRef::Refused("animation_name_unknown"));
+        // bytes that are not text are not repaired into another name; neither is an empty, a control-character or an over-long one
+        assert_eq!(store.name_animation(&RawAnimation::Name(vec![b'D', 0xff, b'B'])), AnimationRef::Refused("animation_name_not_text"));
+        assert_eq!(store.name_animation(&RawAnimation::Name(Vec::new())), AnimationRef::Refused("animation_name_not_an_identifier"));
+        assert_eq!(store.name_animation(&RawAnimation::Name(b"DE\x01BRIS".to_vec())), AnimationRef::Refused("animation_name_not_an_identifier"));
+        assert_eq!(store.name_animation(&RawAnimation::Name(vec![b'A'; MAX_ANIMATION_NAME + 1])), AnimationRef::Refused("animation_name_not_an_identifier"));
     }
 
     #[test]

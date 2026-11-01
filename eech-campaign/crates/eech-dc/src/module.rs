@@ -2,8 +2,8 @@
 
 use eech_engine::{
     AimEvent, AimReply, AimRequest, AimStepKind, AimTarget, AimWeapon, AimWorld, ArrivalAnswer, Engine, EngineConfig, EngineError, Gunship,
-    HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor, MemberDescriptor, ModelAnswer, ModelProvider, ModelQuery,
-    ModelRouteFace, ModelRouteNode, ModelScene, ModelTriangle, MovementMode, MovementResult, MovementStep, ObjectReport, SenseMessage, SenseReason, SenseReply,
+    HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor, MemberDescriptor, ModelAnimation, ModelAnswer, ModelObject,
+    ModelObjectFacts, ModelProvider, ModelQuery, ModelRouteFace, ModelRouteNode, ModelScene, ModelTriangle, MovementMode, MovementResult, MovementStep, ObjectReport, SenseMessage, SenseReason, SenseReply,
     SenseScan, SenseState, Side, SupplyReachDescriptor, TerrainAnswer, TerrainMapFacts, TerrainProvider, TerrainQuery, TerrainRecord, VehiclePose,
     WeaponFigures,
 };
@@ -2687,6 +2687,14 @@ fn gunship(name: &str) -> LuaResult<Gunship> {
 ///                 (the two node numbers the face joins, already resolved, and the colour 0..255 and polygon bit of its surface), `end`, `absent` or `refused` as above. `name` is the
 ///                 kind's compiled name (an echo that host and campaign mean the same kind by the same number); the campaign checks it.
 ///
+///   "object_table"  no scene, no depth. Returns `{ result = "table", objects = n }`: how many objects the host's common database holds (the campaign's room for custom objects is its own).
+///   "object"     a scene index, a cursor (`depth`, never negative: the approximation or the sub-object) and, in the fourth place, the ROLE the object has in the scene (0 main, 1
+///                 approximation, 2 shadow polygon object, 3 collision object, 4 sub-object). Returns `{ result = "object", name = text, counts = {six whole numbers within 0..65535:
+///                 points, faces, surfaces, point normals, lighting normals, culling normals offset}, radius = f, bb = {six}, bb2 = {six} }`, `{ result = "absent", name }` (the
+///                 files name no object in that role) or `{ result = "refused", reason }`. `name` is the scene's compiled name (the echo). No object number crosses either way.
+///   "animation"  a scene index and a cursor (`depth`). Returns the ORDERED animated-surface references of an .EES scene: `{ result = "name", animation = text, name }` (the LOGICAL
+///                 animation name; no file index is part of the contract), `end`, `absent` (the scene is not an .EES scene) or `refused`.
+///
 /// A float is a finite Lua number (rounded to the nearest single-precision value) or the exact bit pattern as text (`"0x3f800000"`, ten bytes). A list of six or nine floats is
 /// EITHER a table holding exactly the numbers 1..N (a number at every index, nothing at N+1 and no key outside 1..N) OR a text of exactly N bit patterns separated by single
 /// commas (`11 * N - 1` bytes); anything else is refused before any of it is parsed or allocated. "end" and "absent" are the original accessor's FALSE and are not errors; a
@@ -2761,6 +2769,49 @@ end
 return function(op, scene, depth, kind)
 	local a = provider(op, scene, depth, kind)
 	if type(a) ~= 'table' then return nil, 'the provider returned ' .. type(a) .. ' instead of a table' end
+	if op == 'object_table' then
+		if a.result ~= 'table' then return nil, 'result must be table' end
+		local objects = ranged(a.objects, 2147483647)
+		if not objects then return nil, 'objects must be a whole number within 0..2147483647' end
+		return 'object_table', objects
+	end
+	if op == 'object' or op == 'animation' then
+		local name, result = a.name, a.result
+		if type(name) ~= 'string' or #name > 127 or find(name, '\0', 1, true) then return nil, 'name must be text of at most 127 bytes without a NUL' end
+		if result == 'refused' then
+			local reason = a.reason
+			return 'refused', type(reason) == 'string' and reason:sub(1, 200) or ''
+		end
+		if op == 'object' then
+			if result == 'object' then
+				local counts = a.counts
+				if type(counts) ~= 'table' or counts[7] ~= nil then return nil, 'counts must be a table of six whole numbers' end
+				local parts = {}
+				for i = 1, 6 do
+					parts[i] = ranged(counts[i], 65535)
+					if not parts[i] then return nil, 'counts element ' .. i .. ' must be a whole number within 0..65535' end
+				end
+				local r, why = scalar(a.radius)
+				if not r then return nil, 'radius ' .. why end
+				local b, why1 = list(a.bb, 6)
+				if not b then return nil, 'bb ' .. why1 end
+				local b2, why2 = list(a.bb2, 6)
+				if not b2 then return nil, 'bb2 ' .. why2 end
+				return 'object', concat(parts, ' '), r, b, b2, nil, nil, name
+			elseif result == 'absent' then
+				return 'absent', nil, nil, nil, nil, nil, nil, name
+			end
+			return nil, 'result must be object, absent or refused'
+		end
+		if result == 'name' then
+			local animation = a.animation
+			if type(animation) ~= 'string' or #animation < 1 or #animation > 127 or find(animation, '\0', 1, true) then return nil, 'animation must be text of 1 to 127 bytes without a NUL' end
+			return 'name', animation, nil, nil, nil, nil, nil, name
+		elseif result == 'end' or result == 'absent' then
+			return result, nil, nil, nil, nil, nil, nil, name
+		end
+		return nil, 'result must be name, end, absent or refused'
+	end
 	if op == 'route_node' or op == 'route_face' then
 		local name, result = a.name, a.result
 		if type(name) ~= 'string' or #name > 127 or find(name, '\0', 1, true) then return nil, 'name must be text of at most 127 bytes without a NUL' end
@@ -2877,6 +2928,10 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
         ModelQuery::Triangle { scene, depth } => ("triangle", Some(scene), Some(depth), None),
         ModelQuery::RouteNode { scene, kind, index } => ("route_node", Some(scene), Some(index), Some(kind)),
         ModelQuery::RouteFace { scene, kind, index } => ("route_face", Some(scene), Some(index), Some(kind)),
+        ModelQuery::ObjectTable => ("object_table", None, None, None),
+        // the fourth place carries the role the object has in the scene
+        ModelQuery::Object { scene, role, cursor } => ("object", Some(scene), Some(cursor), Some(role)),
+        ModelQuery::Animation { scene, index } => ("animation", Some(scene), Some(index), None),
     };
     type Reply = (
         Option<String>,
@@ -2971,6 +3026,61 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
             kind_name: g.ok_or_else(missing)?,
             step: ModelRouteFace::Absent,
         }),
+        (ModelQuery::ObjectTable, "object_table") => {
+            let count = |text: Option<String>, what: &str| -> Result<i32, String> {
+                text.ok_or_else(missing)?
+                    .parse::<i32>()
+                    .map_err(|_| format!("[model-provider:{operation}.answer] {what} is out of range"))
+            };
+            Ok(ModelAnswer::ObjectTable { objects: count(a, "objects")? })
+        }
+        (ModelQuery::Object { .. }, "object") => {
+            let mut counts = [0_i32; 6];
+            let text = a.ok_or_else(missing)?;
+            let mut tokens = text.split(' ');
+            for slot in counts.iter_mut() {
+                *slot = tokens
+                    .next()
+                    .and_then(|token| token.parse::<i32>().ok())
+                    .ok_or_else(|| format!("[model-provider:{operation}.answer] the counts are malformed"))?;
+            }
+            if tokens.next().is_some() {
+                return Err(format!("[model-provider:{operation}.answer] more counts than expected"));
+            }
+            Ok(ModelAnswer::Object {
+                scene_name: g.ok_or_else(missing)?,
+                step: ModelObject::Found(ModelObjectFacts {
+                    counts,
+                    radius: bridged_float(&b.ok_or_else(missing)?, "radius", operation)?,
+                    bounding_box: bridged_floats::<6>(&c.ok_or_else(missing)?, "bb", operation)?,
+                    bounding_box2: bridged_floats::<6>(&d.ok_or_else(missing)?, "bb2", operation)?,
+                }),
+            })
+        }
+        (ModelQuery::Object { .. }, "absent") => Ok(ModelAnswer::Object {
+            scene_name: g.ok_or_else(missing)?,
+            step: ModelObject::Absent,
+        }),
+        (ModelQuery::Object { scene, role, cursor }, "refused") => Err(format!(
+            "[model-provider:object.refused] the host cannot answer for scene {scene} role {role} cursor {cursor}: {}",
+            a.unwrap_or_default()
+        )),
+        (ModelQuery::Animation { .. }, "name") => Ok(ModelAnswer::Animation {
+            scene_name: g.ok_or_else(missing)?,
+            step: ModelAnimation::Name(a.ok_or_else(missing)?),
+        }),
+        (ModelQuery::Animation { .. }, "end") => Ok(ModelAnswer::Animation {
+            scene_name: g.ok_or_else(missing)?,
+            step: ModelAnimation::End,
+        }),
+        (ModelQuery::Animation { .. }, "absent") => Ok(ModelAnswer::Animation {
+            scene_name: g.ok_or_else(missing)?,
+            step: ModelAnimation::Absent,
+        }),
+        (ModelQuery::Animation { scene, index }, "refused") => Err(format!(
+            "[model-provider:animation.refused] the host cannot answer for scene {scene} reference {index}: {}",
+            a.unwrap_or_default()
+        )),
         (ModelQuery::RouteNode { scene, kind, index } | ModelQuery::RouteFace { scene, kind, index }, "refused") => Err(format!(
             "[model-provider:{operation}.refused] the host cannot answer for scene {scene} kind {kind} cursor {index}: {}",
             a.unwrap_or_default()

@@ -8,7 +8,7 @@
 //!
 //! No pointer, offset or legacy layout reaches Lua; the store is immutable and shared (`Arc`), so a value a script keeps never refers into it. Arguments are whole
 //! numbers within range or the call is refused before the store is touched. A missing asset is reported as `NOT RUN`, never as a pass.
-use crate::models::{hex_list, scene_last, ErrorKind, ModelStore, ObjectSource, RouteFace, RouteNode, SceneSource, Triangle};
+use crate::models::{compiled_scene_name, hex_list, scene_last, AnimationRef, ErrorKind, ModelStore, ObjectHeader, ObjectSource, RouteFace, RouteNode, SceneSource, Triangle};
 use crate::original_report;
 use mlua::prelude::*;
 use serde_json::Value;
@@ -101,6 +101,49 @@ fn route_face_table(lua: &Lua, answer: &RouteFace) -> LuaResult<LuaTable> {
         RouteFace::End => table.set("result", "end")?,
         RouteFace::Absent => table.set("result", "absent")?,
         RouteFace::Refused(reason) => {
+            table.set("result", "refused")?;
+            table.set("reason", *reason)?;
+        }
+    }
+    Ok(table)
+}
+
+/// An object-header step (`object`): the six counts, the radius and both bounding boxes as the file holds them (float bit patterns), the absence of an object in that role,
+/// or a refusal. The scene's compiled name is the echo the campaign checks; no object number is part of it.
+fn object_header_table(lua: &Lua, answer: &ObjectHeader) -> LuaResult<LuaTable> {
+    let table = lua.create_table()?;
+    match answer {
+        ObjectHeader::Found(facts) => {
+            table.set("result", "object")?;
+            let counts = lua.create_table()?;
+            for (i, count) in facts.counts.iter().enumerate() {
+                counts.set(i + 1, *count)?;
+            }
+            table.set("counts", counts)?;
+            table.set("radius", format!("0x{:08x}", facts.radius))?;
+            table.set("bb", hex_list(&facts.bounding_box))?;
+            table.set("bb2", hex_list(&facts.bounding_box2))?;
+        }
+        ObjectHeader::Absent => table.set("result", "absent")?,
+        ObjectHeader::Refused(reason) => {
+            table.set("result", "refused")?;
+            table.set("reason", *reason)?;
+        }
+    }
+    Ok(table)
+}
+
+/// An animated-surface reference step (`animation`): the LOGICAL animation name (no file index), the end of the references, the absence of any, or a refusal.
+fn animation_table(lua: &Lua, answer: &AnimationRef) -> LuaResult<LuaTable> {
+    let table = lua.create_table()?;
+    match answer {
+        AnimationRef::Name(name) => {
+            table.set("result", "name")?;
+            table.set("animation", name.as_str())?;
+        }
+        AnimationRef::End => table.set("result", "end")?,
+        AnimationRef::Absent => table.set("result", "absent")?,
+        AnimationRef::Refused(reason) => {
             table.set("result", "refused")?;
             table.set("reason", *reason)?;
         }
@@ -202,6 +245,19 @@ impl LuaUserData for StoreHandle {
             let answer = this.0.route_face(scene, kind, index).map_err(query_error)?;
             route_face_table(lua, &answer)
         });
+        methods.add_method("object_header", |lua, this, (scene, role, cursor): (LuaValue, LuaValue, LuaValue)| {
+            let scene = whole(&scene, "scene", i64::MIN / 2, i64::MAX / 2)?;
+            let role = whole(&role, "role", i64::MIN / 2, i64::MAX / 2)?;
+            let cursor = whole(&cursor, "cursor", i64::MIN / 2, i64::MAX / 2)?;
+            let answer = this.0.object_header(scene, role, cursor).map_err(query_error)?;
+            object_header_table(lua, &answer)
+        });
+        methods.add_method("animation_ref", |lua, this, (scene, index): (LuaValue, LuaValue)| {
+            let scene = whole(&scene, "scene", i64::MIN / 2, i64::MAX / 2)?;
+            let index = whole(&index, "index", i64::MIN / 2, i64::MAX / 2)?;
+            let answer = this.0.animation_ref(scene, index).map_err(query_error)?;
+            animation_table(lua, &answer)
+        });
         methods.add_method("compare_original", |lua, this, path: String| {
             let report = compare_original(&this.0, Path::new(&path)).map_err(|e| LuaError::runtime(format!("model store: compare_original: {e}")))?;
             let t = lua.create_table()?;
@@ -253,9 +309,9 @@ fn provider_number(value: Option<LuaValue>, name: &str, operation: &str) -> LuaR
 /// it, which the campaign asks for like any other.
 fn model_answer(lua: &Lua, store: &ModelStore, operation: &str, scene: Option<i64>, depth: Option<i64>, kind: Option<i64>) -> LuaResult<LuaTable> {
     let fail = |message: String| LuaError::runtime(format!("[model-provider:{operation}.request] {message}"));
-    // only the route questions carry a sub-object kind
-    if kind.is_some() && !matches!(operation, "route_node" | "route_face") {
-        return Err(fail("only a route question has a kind".into()));
+    // only the route questions carry a sub-object kind, and the object question carries its role in the same place
+    if kind.is_some() && !matches!(operation, "route_node" | "route_face" | "object") {
+        return Err(fail("only a route or an object question has a kind".into()));
     }
     let table = lua.create_table()?;
     match operation {
@@ -313,6 +369,31 @@ fn model_answer(lua: &Lua, store: &ModelStore, operation: &str, scene: Option<i6
                 route_face_table(lua, &store.route_face(scene, kind, index).map_err(|e| fail(e.to_string()))?)?
             };
             table.set("name", crate::models::compiled_subobject_name(kind as usize).unwrap_or(""))?;
+            return Ok(table);
+        }
+        // The metadata of the physical models the campaign mirrors in its private compatibility rows (EEDCS-50, D3, L2). The table question is asked once, before any scene;
+        // an object question names the object by the role it has in a scene (the fourth argument is the ROLE) and a cursor (the depth argument), never by the campaign's own
+        // object number; the reply echoes the scene's compiled name.
+        "object_table" => {
+            if scene.is_some() || depth.is_some() {
+                return Err(fail("an object table question has no scene or depth".into()));
+            }
+            table.set("result", "table")?;
+            table.set("objects", store.common_objects())?;
+        }
+        "object" => {
+            let scene = scene.ok_or_else(|| fail("an object question needs a scene".into()))?;
+            let role = kind.ok_or_else(|| fail("an object question needs a role (the kind argument)".into()))?;
+            let cursor = depth.ok_or_else(|| fail("an object question needs a cursor (the depth argument)".into()))?;
+            let table = object_header_table(lua, &store.object_header(scene, role, cursor).map_err(|e| fail(e.to_string()))?)?;
+            table.set("name", usize::try_from(scene).ok().and_then(compiled_scene_name).unwrap_or(""))?;
+            return Ok(table);
+        }
+        "animation" => {
+            let scene = scene.ok_or_else(|| fail("an animation question needs a scene".into()))?;
+            let index = depth.ok_or_else(|| fail("an animation question needs a cursor (the depth argument)".into()))?;
+            let table = animation_table(lua, &store.animation_ref(scene, index).map_err(|e| fail(e.to_string()))?)?;
+            table.set("name", usize::try_from(scene).ok().and_then(compiled_scene_name).unwrap_or(""))?;
             return Ok(table);
         }
         other => return Err(fail(format!("unknown question {other:?}"))),

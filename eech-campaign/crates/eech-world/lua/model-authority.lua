@@ -28,6 +28,18 @@
 --   bad_end_absent    a scene the reference host declares without a collider is answered `end`
 --   bad_found_declared_absent   every scene is declared without a collider and the first triangle question is answered with a finite triangle (FOUND contradicts the declaration)
 --   bad_end_declared_absent     every scene is declared without a collider and the first triangle question is answered `end`
+--
+-- THE METADATA CONTROLS (EEDCS-50, D3, L2: the campaign's common / custom model-file loaders no longer parse the model files; the host answers `object_table`, `object` and
+-- `animation`, aphavoc/.../mb_hostmodel.h). All are asked while the campaign loads its scene database, so they act at the boot stage:
+--   object_withheld     the first question for the MAIN object of scene 1 is answered `absent` (the host's files name no object where the campaign's scene file names one):
+--                       the engine must stop on `[model-provider:object.absent]` before any compatibility row is read; nothing falls back to a file of the campaign's own
+--   animation_withheld  the first animated-surface reference question (asked only for a scene loaded from an .EES file) is answered `absent`: the engine must stop on
+--                       `[model-provider:animation.absent]`
+--   animation_unknown   the first reference is a logical animation name the campaign's registry does not hold: the engine must stop on `[model-provider:animation.name]`
+--   animation_dropped   (a HEALTHY run, the changed-host control) the first scene's references are answered as an empty list; the campaign's scene animation list for that scene
+--                       is then the host's, which the original-animation driver reads as the final ordered scene animation rows, and which the texture-animation frames of the
+--                       entity ID digits (en_anim.c set_local_entity_id_number: it sets a digit only when the instance's scene lists that animation) follow. The summary's
+--                       `tripped` says whether the change was given; a run that was never asked an animation question reports it as `tripped = false`: the control is unreached.
 -- A bad_* mode whose precondition the run did not reach (for the triangle ones: no triangle question of the matching kind was asked) is reported `UNREACHED` and fails the run,
 -- never counted as covered.
 --
@@ -81,7 +93,8 @@ local args = host.args
 
 local modes = { reference = true, vanish = true, inflate = true, bounds_zero = true, absent_all = true, missing = true, decline = true, refused = true, bad_nil = true,
 	bad_catalogue = true, bad_name = true, bad_scene_nan = true, bad_collider_unloaded = true, bad_scene0_loaded = true, bad_kind = true, bad_nan = true, bad_count = true,
-	bad_hex = true, bad_absent = true, bad_end_absent = true, bad_found_declared_absent = true, bad_end_declared_absent = true }
+	bad_hex = true, bad_absent = true, bad_end_absent = true, bad_found_declared_absent = true, bad_end_declared_absent = true, object_withheld = true, animation_withheld = true,
+	animation_unknown = true, animation_dropped = true }
 local scenarios = {
 	lebanon_retail = { map = "..\\common\\maps\\map5", campaign = "LEBANON.CHC" },
 	georgia_retail = { map = "..\\common\\maps\\map3", campaign = "GEORGIA.CHC" },
@@ -237,6 +250,21 @@ elseif mode == "absent_all" or mode == "bad_found_declared_absent" or mode == "b
 		end
 		return answer
 	end
+elseif mode == "object_withheld" then
+	provider = function (op, scene, depth, kind)
+		local answer = counted (op, scene, depth, kind)
+		if op == "object" and scene == 1 and kind == 0 and not tripped then tripped = true return { result = "absent", name = answer.name } end
+		return answer
+	end
+elseif mode == "animation_withheld" or mode == "animation_unknown" or mode == "animation_dropped" then
+	provider = function (op, scene, depth, kind)
+		local answer = counted (op, scene, depth, kind)
+		if op ~= "animation" or tripped then return answer end
+		if mode == "animation_withheld" then tripped = true return { result = "absent", name = answer.name }
+		elseif mode == "animation_unknown" and answer.result == "name" then tripped = true return { result = "name", animation = "NO_SUCH_ANIMATION", name = answer.name }
+		elseif mode == "animation_dropped" and answer.result == "name" then tripped = true return { result = "end", name = answer.name } end
+		return answer
+	end
 elseif mode == "missing" then
 	provider = nil
 elseif mode == "decline" then
@@ -327,7 +355,8 @@ local triangle_markers = { decline = "[model-provider:triangle.callback]", refus
 	bad_nan = "[model-provider:triangle.answer]", bad_count = "[model-provider:triangle.answer]", bad_hex = "[model-provider:triangle.answer]",
 	bad_absent = "[model-provider:triangle.answer]", bad_end_absent = "[model-provider:triangle.answer]", bad_found_declared_absent = "[model-provider:triangle.answer]",
 	bad_end_declared_absent = "[model-provider:triangle.answer]" }
-local expected_marker = boot_markers [mode] or triangle_markers [mode]
+local metadata_markers = { object_withheld = "[model-provider:object.absent]", animation_withheld = "[model-provider:animation.absent]", animation_unknown = "[model-provider:animation.name]" }
+local expected_marker = boot_markers [mode] or triangle_markers [mode] or metadata_markers [mode]
 
 local function matches (message) return expected_marker ~= nil and string.find (message, expected_marker, 1, true) ~= nil end
 

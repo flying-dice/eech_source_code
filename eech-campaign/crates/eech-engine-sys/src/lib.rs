@@ -1125,6 +1125,10 @@ pub const EECH_MODEL_SCENE: c_int = 2;
 pub const EECH_MODEL_TRIANGLE: c_int = 3;
 pub const EECH_MODEL_ROUTE_NODE: c_int = 4;
 pub const EECH_MODEL_ROUTE_FACE: c_int = 5;
+pub const EECH_MODEL_OBJECT_TABLE: c_int = 6;
+pub const EECH_MODEL_OBJECT: c_int = 7;
+pub const EECH_MODEL_ANIMATION: c_int = 8;
+pub const EECH_MODEL_ANIMATION_NAME_MAX: usize = 127;
 pub const EECH_MODEL_TRIANGLE_FOUND: c_int = 1;
 pub const EECH_MODEL_TRIANGLE_END: c_int = 2;
 pub const EECH_MODEL_TRIANGLE_ABSENT: c_int = 3;
@@ -1137,6 +1141,8 @@ pub struct eech_model_request {
     pub depth: c_int,
     /// ROUTE_NODE and ROUTE_FACE: the route's sub-object kind (the scene is `scene`, the cursor `depth`)
     pub kind: c_int,
+    /// OBJECT: the role the object has in `scene` (0 main, 1 approximation, 2 shadow polygon object, 3 collision object, 4 sub-object); `depth` is the cursor
+    pub role: c_int,
 }
 
 /// The host's answer (campaign_model_reply); only the fields of the asked operation are meaningful.
@@ -1158,6 +1164,15 @@ pub struct eech_model_reply {
     pub route_point: [c_int; 2],
     pub route_colour: [c_int; 3],
     pub route_polygons: c_int,
+    /// OBJECT_TABLE: the number of objects the common database holds
+    pub object_count: c_int,
+    /// OBJECT (FOUND): points, faces, surfaces, point normals, lighting normals, culling normals offset
+    pub object_counts: [c_int; 6],
+    pub object_radius: f32,
+    /// the bounding box then the second bounding box, each `xmin xmax ymin ymax zmin zmax`
+    pub object_bounds: [f32; 12],
+    /// ANIMATION (FOUND): the logical name of the texture animation
+    pub animation_name: [c_char; EECH_MODEL_ANIMATION_NAME_MAX + 1],
 }
 
 pub type eech_model_callback =

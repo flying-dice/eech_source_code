@@ -1030,6 +1030,13 @@ pub enum ModelQuery {
     RouteNode { scene: i32, kind: i32, index: i32 },
     /// one step of a route's ORDERED line-face cursor, the same three numbers
     RouteFace { scene: i32, kind: i32, index: i32 },
+    /// how many objects the host's common database holds (asked once, before any scene is read); the campaign's room for custom objects is its own policy and is not asked
+    ObjectTable,
+    /// the header facts of the object `scene` has in `role` (0 main, 1 approximation, 2 shadow polygon object, 3 collision object, 4 sub-object); `cursor` names the approximation
+    /// or the sub-object. The campaign never sends its own object number.
+    Object { scene: i32, role: i32, cursor: i32 },
+    /// one step of an .EES scene's ordered animated-surface references (the order the original's `add_animation_object` visits the scene's objects)
+    Animation { scene: i32, index: i32 },
 }
 
 /// One scene as the host answers it, in public terms only: the scene's compiled `name` (the echo that host and campaign mean the same scene by the same index; empty for the
@@ -1076,6 +1083,32 @@ pub enum ModelRouteFace {
     Absent,
 }
 
+/// The header facts of one object exactly as the host's files hold them: the six counts the campaign's compatibility rows mirror (points, faces, surfaces, point normals,
+/// lighting normals, culling normals offset), the radius and the two bounding boxes `xmin xmax ymin ymax zmin zmax` (exact `f32` values).
+#[derive(Clone, Debug, PartialEq)]
+pub struct ModelObjectFacts {
+    pub counts: [i32; 6],
+    pub radius: f32,
+    pub bounding_box: [f32; 6],
+    pub bounding_box2: [f32; 6],
+}
+
+/// The answer to an object question: the object's facts, or the statement that the host's files name no object in that role.
+#[derive(Clone, Debug, PartialEq)]
+pub enum ModelObject {
+    Found(ModelObjectFacts),
+    Absent,
+}
+
+/// The answer to an animation-reference step: the LOGICAL name of a texture animation (never a file's animation index), the end of the references, or the statement that the
+/// scene keeps its list in its own record (it is not an .EES scene).
+#[derive(Clone, Debug, PartialEq)]
+pub enum ModelAnimation {
+    Name(String),
+    End,
+    Absent,
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum ModelAnswer {
     Catalogue {
@@ -1091,6 +1124,18 @@ pub enum ModelAnswer {
     RouteFace {
         kind_name: String,
         step: ModelRouteFace,
+    },
+    ObjectTable {
+        objects: i32,
+    },
+    /// an object step with the compiled name of the scene it is about (the echo that host and campaign mean the same scene by the same index)
+    Object {
+        scene_name: String,
+        step: ModelObject,
+    },
+    Animation {
+        scene_name: String,
+        step: ModelAnimation,
     },
 }
 
@@ -1157,6 +1202,22 @@ unsafe extern "C" fn model_callback(
                 ModelQuery::RouteFace {
                     scene: source.scene,
                     kind: source.kind,
+                    index: source.depth,
+                },
+            ),
+            sys::EECH_MODEL_OBJECT_TABLE => ("object_table", ModelQuery::ObjectTable),
+            sys::EECH_MODEL_OBJECT => (
+                "object",
+                ModelQuery::Object {
+                    scene: source.scene,
+                    role: source.role,
+                    cursor: source.depth,
+                },
+            ),
+            sys::EECH_MODEL_ANIMATION => (
+                "animation",
+                ModelQuery::Animation {
+                    scene: source.scene,
                     index: source.depth,
                 },
             ),
@@ -1228,6 +1289,41 @@ unsafe extern "C" fn model_callback(
                     ModelRouteFace::Absent => reply.result = sys::EECH_MODEL_TRIANGLE_ABSENT,
                 }
             }
+            ("object_table", ModelAnswer::ObjectTable { objects }) => reply.object_count = objects,
+            ("object", ModelAnswer::Object { scene_name, step }) => {
+                put_name(&mut reply, &scene_name, "object")?;
+                match step {
+                    ModelObject::Found(facts) => {
+                        reply.result = sys::EECH_MODEL_TRIANGLE_FOUND;
+                        reply.object_counts = facts.counts;
+                        reply.object_radius = facts.radius;
+                        reply.object_bounds[..6].copy_from_slice(&facts.bounding_box);
+                        reply.object_bounds[6..].copy_from_slice(&facts.bounding_box2);
+                    }
+                    ModelObject::Absent => reply.result = sys::EECH_MODEL_TRIANGLE_ABSENT,
+                }
+            }
+            ("animation", ModelAnswer::Animation { scene_name, step }) => {
+                put_name(&mut reply, &scene_name, "animation")?;
+                match step {
+                    ModelAnimation::Name(name) => {
+                        let bytes = name.as_bytes();
+                        if bytes.is_empty() || bytes.len() > sys::EECH_MODEL_ANIMATION_NAME_MAX || bytes.contains(&0) {
+                            return Err(format!(
+                                "[model-provider:animation.answer] an animation name is 1 to {} bytes without a NUL, got {}",
+                                sys::EECH_MODEL_ANIMATION_NAME_MAX,
+                                bytes.len()
+                            ));
+                        }
+                        for (slot, byte) in reply.animation_name.iter_mut().zip(bytes) {
+                            *slot = *byte as c_char;
+                        }
+                        reply.result = sys::EECH_MODEL_TRIANGLE_FOUND;
+                    }
+                    ModelAnimation::End => reply.result = sys::EECH_MODEL_TRIANGLE_END,
+                    ModelAnimation::Absent => reply.result = sys::EECH_MODEL_TRIANGLE_ABSENT,
+                }
+            }
             (operation, answer) => {
                 let given = match answer {
                     ModelAnswer::Catalogue { .. } => "a catalogue",
@@ -1235,6 +1331,9 @@ unsafe extern "C" fn model_callback(
                     ModelAnswer::Triangle(_) => "a triangle step",
                     ModelAnswer::RouteNode { .. } => "a route node step",
                     ModelAnswer::RouteFace { .. } => "a route face step",
+                    ModelAnswer::ObjectTable { .. } => "an object table",
+                    ModelAnswer::Object { .. } => "an object step",
+                    ModelAnswer::Animation { .. } => "an animation step",
                 };
                 return Err(format!(
                     "[model-provider:{operation}.answer] the provider answered a {operation} question with {given}"
