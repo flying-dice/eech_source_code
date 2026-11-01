@@ -263,7 +263,10 @@ mod tests {
         let failed = |what: &str| Err(std::io::Error::other(what.to_string()));
         assert!(closing_report(Ok(()), Ok(())).is_ok());
         let sync_only = closing_report(failed("sync broke"), Ok(())).unwrap_err();
-        assert!(sync_only.contains("data sync failed") && sync_only.contains("sync broke") && !sync_only.contains("close failed"), "{sync_only}");
+        assert!(
+            sync_only.contains("data sync failed") && sync_only.contains("sync broke") && !sync_only.contains("close failed"),
+            "{sync_only}"
+        );
         let close_only = closing_report(Ok(()), failed("close broke")).unwrap_err();
         assert!(
             close_only.contains("operating-system close failed") && close_only.contains("close broke") && !close_only.contains("sync failed"),
