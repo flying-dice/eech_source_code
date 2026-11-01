@@ -1,4 +1,4 @@
-# D3 route observer: two residual P2 findings corrected in source (2 November 2026): SOURCE ONLY, NOT RUN
+# D3 route observer: two residual P2 findings corrected in source (1 November 2026): SOURCE ONLY, NOT RUN
 
 Base `9c525b42a`. Independent review `independent-model-original-route-correction-source-9c525b42a-20261101.json` (SHA256 `469dc51993d50c47a8b684545d07f88777a59e7996953c48c9af5df21931a216`, re-hashed) left two P2
 findings; both are corrected in source and NOTHING of this batch was built or run (the canonical Linux cache and every other build were kept free for the Root's running gates; checks were static: diff review,
