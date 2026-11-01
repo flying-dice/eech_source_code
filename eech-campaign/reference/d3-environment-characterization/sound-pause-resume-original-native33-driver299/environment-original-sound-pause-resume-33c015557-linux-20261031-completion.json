@@ -1,0 +1,18 @@
+{
+  "source": "33c015557fb3fbc26592e20b143ada40ec155e1f",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-original-sound-pause-resume-33c015557-linux-20261031.sh"
+  ],
+  "pid": 18392,
+  "controller_pid": 10404,
+  "state": "terminal",
+  "started_utc": "2026-10-31T23:35:16.288972+00:00",
+  "scope": "Original pause/resume characterization linux ordinary observer build/affected new-driver and module guards/default+observer C checks and both strict profiles; closed unchanged numerical kernels reused; source review/default raw/public authority/Tacview/shipping acceptance separate",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T23:42:14.711102+00:00"
+}

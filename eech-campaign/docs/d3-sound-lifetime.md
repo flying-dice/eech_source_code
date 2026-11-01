@@ -1,5 +1,29 @@
 # D3: original sound entity and lifetime characterization
 
+## Original pause/resume measured — 31 October 2026; update1November
+
+Native33c015557 plus explicitly separate Lua299bcf051 now complete all four
+new SESSION-parent controls11..14: native/controllers0, eight input checks0,
+56 unchanged native payloads and driver pre/post hash,147 raw rows. The
+source-equivalence proof covers3,597 C/Rust/build files byte-identical. Both
+native builds and canonical corrected-driver guards/lint pass0; all9exact299
+CI jobs pass. Original production pause/resume is still Core-owned.
+
+Return sequences are1,1;1,1;0,1,0,1,0;0,2,0,2. Actual state captures show
+validity/list relink independently of the default no-op SESSION playback:
+resume preserves the old validity timer, a second pause while invalid ignores
+its new delay, and resume after next-update unlink restores membership before
+a valid update ages the effect5->4. Case12 counts four real updates but stores
+only the first three ENTERs. No fourth record is fabricated. Before/after scan
+counts join all matching cohort states; unrelated boot children are legitimate.
+
+The [safe observations](../reference/d3-environment-characterization/sound-pause-resume-original-native33-driver299)
+are a derived projection excluding raw strings, volatile slots/IDs and position
+words; private raw data is never rewritten. The same independent combined actual/auditor/safe-publication review has no findings, private-original SHA256 `df22d2e9967a6a6580ea0afd2010f0431196e3d235d341bed20e03de6c06fba7`. It closes ONLY these four measured original SESSION-parent cases; no host pause/resume move or whole Task51/D3/shipping acceptance. Next is the characterized host validity/relink
+move, preserving these measurements. Backend/device/non-session/range/network/
+destroy/pitch/amplitude/time and remaining required D3 services remain open;
+no shipping40/all8complete or whole Task51/D3 closure. D4/D5 unstarted.
+
 ## Host duration/lifetime measured candidate — 31 October 2026
 
 Native/source `e5020587153e1922acdc412598c4920501988a9a` now completes the

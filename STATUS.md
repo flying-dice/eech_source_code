@@ -1,3 +1,28 @@
+# D3 original pause/resume — four controls measured (1 November 2026 update; measured31October; original four-case characterization reviewed)
+
+Native33c015557fb3fbc26592e20b143ada40ec155e1f plus separately frozen Lua299bcf05128da68e85c8490025594f99969335b8:
+all four new cases11..14 complete native/controller0, eight pre/post input checks0,
+56 native payloads and actual driver pre/post hashes unchanged;147 raw rows kept
+private. Original production pause/resume remains untouched. Explicit provenance
+checks3,597 C/Rust/build files byte-identical; no new299 native is claimed.
+Both33 builds0, canonical299driver20guards/lint0, corrected source reviewd067
+has no findings and all9exact299CI jobs pass. The two33source P2s/redCargo101
+and all failed/untrusted WIP logs remain preserved.
+
+Observed return sequences: linked pause/resume1,1; after-unlink1,1/four updates
+with only three sampled ENTERs; repeated/no-op0,1,0,1,0; subtype0,2,0,2.
+Countdown1.5->.5->0 stays linked at zero, next update unlinks; resume re-links
+and preserves effect life5, next valid update gives4. Repeated pause9 leaves
+the existing1.5 timer unchanged; resume does not clear it. Device/handles and
+non-session/audible/network/destroy/per-vehicle behavior remain unmeasured.
+Entity state is intentionally not restored; each case is process-isolated.
+Safe projected observations/identities are prepared under
+`reference/d3-environment-characterization/sound-pause-resume-original-native33-driver299`.
+The same independent combined actual/auditor/safe-publication review has no findings, private-original SHA256 `df22d2e9967a6a6580ea0afd2010f0431196e3d235d341bed20e03de6c06fba7`. It closes ONLY these four measured original SESSION-parent cases; no host pause/resume move or whole Task51/D3/shipping acceptance. Task51 and D3 remain open: remaining sound/time/required
+terrain-spatial-model/full40/all8complete recordings/current-finalCI/normal
+merges still apply. D4/D5 unstarted; no baseline/tolerance/raw artifact changed.
+Earlier checkpoints below are history.
+
 # D3 original sound pause/resume — two driver P2s from the 33c0155 source review fixed (31 October 2026; Lua/tests/docs only; UNRUN on retail, new source review pending)
 
 Root: the immutable33c Windows build completed0 at23:38:18Z and affected Linux
