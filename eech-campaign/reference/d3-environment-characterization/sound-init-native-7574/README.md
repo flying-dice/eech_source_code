@@ -72,3 +72,12 @@ reinitialization, loader data reads or other compiled-reader liveness is claimed
 The original metadata/assets, speech availability, winding-rotor duration,
 per-family/range/device/destroy/network/pitch/amplitude and physical-time duties
 remain D3 work. Campaign decisions, calendar, timers and scheduling remain Core.
+
+## Published receipt text
+
+Original receipts were copied byte for byte before staging. Git stores some
+JSON receipt text with LF line endings. `publication-text-identities.json`
+records both original-file and committed-text hashes and each exact transform.
+This concerns receipt serialization only: all measured native/raw/recording
+files and accepted baselines remain unchanged. The canonical source review is
+LF already and its published bytes remain identical.
