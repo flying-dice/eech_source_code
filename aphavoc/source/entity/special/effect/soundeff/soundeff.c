@@ -175,9 +175,10 @@ int pause_local_entity_sound_type (entity *en, entity_sub_types type, float dela
 //
 // the parent's playback request of a resumed effect.  The session plays with the viewpoint and no range, as the original did inline (below, in the #else); the HOST decides only whether to ask.
 //
-// Any other parent: the original took the range from the viewpoint to the parent's position and called fn_play_local_entity_sound[type] with it.  The running original (the 8e90ab42e native, 1200 natural frames,
-// the controlled fixed-wing and AI-helicopter pause and resume, and a deliberate recording overload) reached only the table's own default no-op from here, so for a parent whose entry IS that default function
-// the request is empty and neither the range nor the call is made (the range is computed for nothing else): the elision is observed by ENV_FXP_ELIDED.  A parent whose entry is anything else would be a live
+// Any other parent: the original took the range from the viewpoint to the parent's position and called fn_play_local_entity_sound[type] with it.  The running original (the 8e90ab42e native) reached only the table's
+// own default no-op from here in its 1200 natural frames (140 requests) and in the controlled fixed-wing and AI-helicopter pause and resume (9 calls); its DELIBERATE recording overload, which made those two entries
+// non-default, reached 9 live non-default recording calls, which were detected as a live consumer and whose entries were restored.  So for a parent whose entry IS the default function the request is empty and
+// neither the range nor the call is made (the range is computed for nothing else): the elision is observed by ENV_FXP_ELIDED.  A parent whose entry is anything else would be a live
 // playback consumer, which this campaign route no longer supports and does not serve silently: it stops here, by name, BEFORE any range is computed or any playback function is called.  What the entry is
 // is asked of the table's real default function (campaign_play_entity_sound_is_default, an entity type outside the table is not default), never of another entry; a non-default entry that the table merely holds
 // (for instance the sound effect type's own) is legal, only a live request through this route is unsupported.  The original game's build keeps the range and the call below.
