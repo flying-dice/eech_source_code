@@ -761,7 +761,7 @@ pub const ROUTE_HOST_PATCHES: &[Patch] = &[
         count: 1,
     },
     // H19/H20: popread.c's CONSUMERS of the parser's per-depth position table index it with fixed steps from the deepest depth (current_route_waypoint_offset = depth count - 1, then
-    // -1, -2 and so on to fixed floors), which a route a host answers need not support (a connected two-node route has one depth). Every `route_waypoint_positions[
+    // -1, -2 and so on to fixed floors), which a route a host answers need not support (a three-node black/green chain has three depths; fixed-wing approach reads -1). Every `route_waypoint_positions[
     // current_route_waypoint_offset]` of popread.c, and so the WAYPOINT_ALTITUDE macro that expands to one, indexes through a check that returns the same index. The six
     // `route_waypoint_positions[count]` copies (troop routes) are bounded by the table's own count and are not wrapped; the parser's own table writes are in routegen.c, not here.
     Patch {
