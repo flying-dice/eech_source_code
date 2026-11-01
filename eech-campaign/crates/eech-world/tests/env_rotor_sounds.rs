@@ -190,8 +190,6 @@ const ACT: &str = "1:5:00000000,0:6:00000000";
 const SOUND_KID: &str = "32:5:3f800000:3f800000:3f800000:3f800000:1";
 /// the sweep helicopter's sound children carry REAL sub-types (en_sbtyp.h): ROTOR_TURBINE2 is 36, ROTOR_TURBINE1 35 and APU_TURBINE 34
 const T2_KID: &str = "32:36:3f800000:3f800000:3f800000:3f800000:1";
-const TURBINE1_KID: &str = "32:35:3f800000:3f800000:3f800000:3f800000:1";
-const APU_KID: &str = "32:34:3f800000:3f800000:3f800000:3f800000:1";
 /// a child that is not a sound effect (entity type 9): no sound data
 const OTHER_KID: &str = "9:0:00000000:00000000:00000000:00000000:0";
 
