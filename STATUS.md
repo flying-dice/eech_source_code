@@ -1,12 +1,41 @@
+# D3 route observer: four independent source findings corrected (1 November 2026): SOURCE + LOCAL DRIVER CHECKS ONLY; OBSERVER UNBUILT, UNRUN, UNMEASURED
+
+Base `844e8d3b9`. Independent review `independent-model-original-route-source-844e8d3b9-20261101.json` (SHA256 `5174507b6c7f3d97a9a7fde8ee1c1362a19e078ab160c54db3a2f0a36b61be62`, re-hashed) found four P2 groups in the
+original route observer of `dc4c7c41b`; all four are corrected in source here. NO original retail data exists yet; the C observer, its patches and the engine entries were NOT compiled or linked in this batch;
+no geometry responsibility moved. Details and the grammar: `eech-campaign/docs/m5-route-characterization.md`.
+
+* ENV-ROUTE-CAPTURE-1 (`eech_route_fixture.c`): a call is complete only if every promised cohort was captured whole (requested slots, the faces the raw object's surfaces promise, every final node, every parent and
+  child link the final rows count with none clipped or outside the table, every start, every depth with all the offsets its count declares). The route identity is the (scene, kind) of the lookups that returned the raw
+  object only if exactly one distinct key did; none is `unknown`, several is `ambiguous`; both are recorded in full and incomplete. The latest matching lookup is no longer taken as evidence. Lookups are kept distinct.
+  The original parser statements are untouched (the patches R1..R7b did not change); the checks use the original's own counts.
+* ENV-ROUTE-PROTOCOL-1 (`route-characterization.lua`): the driver validates the complete native grammar, bounded exact integers and words, row counts, order, indices, identity and the cross-report joins; separates
+  measured / well-formed-but-incomplete (the remaining calls are deliberately still read once each for diagnosis, then the run fails) / malformed (written verbatim, `malformed` + `done complete=false`, the engine is not
+  asked again); a failed engine call stops the questions. The old positive (declared geometry, no rows) is replaced by a coherent C-shaped synthetic one; 44 damaged-report controls and drift guards against the C
+  source are added. The report text is kept byte for byte. No numerical geometry oracle and no generic parser framework.
+* ENV-ROUTE-OUTPUT-1: new `host.create_exclusive` (`src/exclusive_output.rs`, registered in `main.rs`; platform create-new open, atomic, refuses ANY existing target) used by the new driver, with checked write, flush and
+  close and the owned output closed on every exit. `json-lines.open` and every existing client are unchanged. No `x` open mode is assumed.
+* ENV-ROUTE-PROVENANCE-1: the actual-1399 review hash is `280e8808fc239a717824a939d9fae76f8ed1ef37cc76ece9c174091d9e8e8244` (re-hashed from the report bytes); `97781` is a TOOL SESSION identifier, not a count; the actual strict
+  evidence is exactly three commands (cargo fmt, default all-target Clippy, combined model-host + ground + line-of-sight all-target Clippy), each exit 0, with no strict runtime test count (the earlier lines below are corrected).
+
+Actual focused LOCAL checks (Linux, the Root's free Rust/Lua-only cache `eech-linux-d3-collision-driver-5416adb3b-20261029`, image `sha256:4a5618cb...`; WORKING-TREE source on `844e8d3b9`, not a frozen commit and not a canonical
+build; identities, commands and exits in `eech-campaign/reference/d3-route-characterization/route-driver-focused-checks-20261101.txt`): `cargo fmt --all --check` 0; `--test route_characterization` 12 passed; `--lib exclusive_output`
+4 passed; the exact `(37, 2)` reference-profile inventory guard 1 passed; `cargo clippy --locked -p eech-world --all-targets -- -D warnings` 0. OLD-driver red preserved: the committed tests of `dc4c7c41b` had never run (0 of 5
+passed, the test's Lua state lacked `debug`); with only that repaired, the old driver (blob `cedefbc4...`) ACCEPTED a call declaring points and faces with no rows (4 passed, 1 failed; test blob `69ef0d2d...`, retained).
+
+Not run, not claimed: the C observer build, link, patches or entries; `eech-engine`, `eech-engine-sys`, `eech-dc` builds; any Windows fixture or retail run; the full default suite of this source; the feature-union runtime suite.
+The `844e8d3b9` model-callback test fix is independently source-clear and has not been run. Numerical transparency of the added observer calls is unmeasured. Required active-reader disposition of the raw model readers stays a
+precondition of production loader detachment, with each method chosen from evidence; hierarchy, viewpoint, device, muzzle and target-point services remain required whole-D3 work (Task49 owns object / tree collision, not
+automatically all hierarchy). Task51 shipping (`78fe5efdb`) untouched and immutable; Task50 and D3 remain In Progress; D4/D5 not started.
+
 # D3 integration checkpoint — `1399f9b76` actual default package: one test-setup failure, corrected in source (1 November 2026): TEST-ONLY FIX, UNBUILT, UNRUN
 
 Identities. Root's actual full default Cargo run of `1399f9b76` (`--no-fail-fast`, reported): 528 passed and ONE failing target, `tests/terrain_boot_contract.rs`; the three scripted-collaborator
 repairs of `1399f9b76` now pass and all 43 `host_callbacks` tests pass. Formatting, default all-target Clippy and the combined model-host + ground + line-of-sight all-target Clippy
-each exited 0 (terminal 17:46:46.105271Z; the strict run collected 97781 items, 0 failures). Those are results for `1399f9b76` and for nothing newer. The feature-union RUNTIME suite has NOT run, and a
+each exited 0 (terminal 17:46:46.105271Z). The number 97781 is a TOOL SESSION identifier of that strict run, NOT a count of tests or items; the strict evidence is exactly three commands (cargo fmt, default all-target Clippy, and the combined model-host + ground + line-of-sight all-target Clippy), with no strict runtime test count. Those are results for `1399f9b76` and for nothing newer. The feature-union RUNTIME suite has NOT run, and a
 conditional Cargo pass is not evidence of public native coverage: none is inferred. Separately, the Windows `e012569e0` native smoke (35 frames; 8 requested raw caller-FP entries all preserved; 2 full-1179
 input checks 0; 56 payloads unchanged) stands at its own identity, and every other executable entry and mode of `1399f9b76` is source-map-exact to it. The earlier reports and raw results are retained.
 
-The failure (independent report `independent-model-integration-source-actual-1399f9b76-20261101.json`, SHA256 `80e8808fc239a717824a939d9fae76f8ed1ef37cc76ece9c174091d9e8e8244`, finding ENV-MODEL-BOOT-FIXTURE-1, P2):
+The failure (independent report `independent-model-integration-source-actual-1399f9b76-20261101.json`, SHA256 `280e8808fc239a717824a939d9fae76f8ed1ef37cc76ece9c174091d9e8e8244` (the report bytes were re-hashed for this correction; the earlier text had lost the leading 2), finding ENV-MODEL-BOOT-FIXTURE-1, P2):
 the module validates the dialogue callbacks, then the model provider, then the terrain provider. The common config of `tests/terrain_boot_contract.rs` supplied no `model`, so the three terrain
 missing / wrong-type cases were refused by `[model-provider:missing]` before reaching the terrain boundary they exist to check. A test-setup defect of the merge; no production geometry or terrain defect is inferred.
 

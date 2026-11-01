@@ -2,6 +2,7 @@
 //! campaign script observes.
 pub mod aim;
 pub mod cmb;
+pub mod exclusive_output;
 pub mod flight;
 pub mod los;
 pub mod model_host;

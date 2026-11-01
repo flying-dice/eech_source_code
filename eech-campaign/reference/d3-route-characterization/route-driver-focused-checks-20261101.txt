@@ -1,0 +1,38 @@
+Route-characterization driver: focused local checks of 1 November 2026 (Task50 / EEDCS-50, D3). WORKING-TREE checks, NOT a frozen clean-commit run, NOT a canonical build.
+Nothing here is a measurement of the original or a result for the route observer in the DLL; the reports used are invented C-shaped text.
+
+Environment (all four runs): WSL distro EECH-D2-Build, Docker image sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51, Cargo target volume
+eech-linux-d3-collision-driver-5416adb3b-20261029 (checked free: no container using it), registry volume eech-cargo, physical worktree path under /mnt/c/.../d3-evidence/model-geometry-20261029,
+base commit 844e8d3b95976269a2459470ee5faf2a5433bf8a plus the uncommitted corrections of this batch. Command shape:
+  docker run --rm -v <worktree>:/src -v <volume>:/target -v eech-cargo:/usr/local/cargo/registry -e CARGO_TARGET_DIR=/target -w /src/eech-campaign <image> sh -c '<cargo ...>'
+Only Rust/Lua host crates (eech-world) were built; no engine C, no Windows build, no retail root, no other cache.
+
+A. OLD DRIVER (dc4c7c41b / 844e8d3b9), blob lua/route-characterization.lua = cedefbc48ec103314a99fa6a949e73fc1ad6a2eec637fbc4ca85a48b4e624521
+   Step 1. tests/route_characterization.rs as committed (blob 083f9f27f3245323b4790ad7029187774ce1fa5c5e2cfd892a2c8f6be86171c4) + ONE added test (file blob
+   844061afe593a0106469b6f44f67a7f70dc76de82f09390f2bf529c4f1218854):  cargo test --release --locked -p eech-world --test route_characterization
+   RESULT: 0 passed, 5 failed. Every failure: `attempt to index global 'debug' (a nil value)` at route-characterization.lua:18 (the test's Lua state had no debug library).
+   The committed tests had therefore never run (a test-setup defect of the committed file, not a driver result).
+   Step 2. only the harness state repaired (`unsafe { Lua::unsafe_new() }`), test file blob 69ef0d2d76168d294579b615ef9f5db338382584bd40bfe204e078b49e422b90
+   (retained: old-driver-red-test-69ef0d2d.rs.txt), same old driver:
+   RESULT: 4 passed, 1 failed. The failure: a_call_that_declares_geometry_but_carries_none_is_malformed_not_measured:
+     "the driver accepted what it must reject (expected a failure about \"malformed\")"
+   i.e. the OLD driver accepted a call declaring points=2 and faces=1 with no node, face or final row (its own positive fixture was exactly that).
+
+B. CORRECTED SOURCE (working tree on 844e8d3b9), blobs:
+   a8120e74754bba5dc2932144b7346a7bc6659705a3e7112d8dbac95b68dfc6d6*crates/eech-world/lua/route-characterization.lua
+   2d11ccfb54dfaa202b0df65a3af669b20fef63ce1fd54d2ef51991aea95f8385*crates/eech-world/tests/route_characterization.rs
+   bc23fe8aaaafac89b597d4b90236a063cfb3feb6ed3b7ba9c9c3b3e88e6945b7*crates/eech-world/src/exclusive_output.rs
+   3946912123a1fb21bd4b621bef181c10156d26205eca0099035dca1f3e674aab*crates/eech-engine-sys/csrc/eech_route_fixture.c
+   a91623caa4a28959d11722c2d6fe87469197debf8f57b11be032e5673870bb5a*crates/eech-world/tests/host_callbacks.rs
+   fmt:      cargo fmt --all --check                                                       exit 0
+   driver:   cargo test --release --locked -p eech-world --test route_characterization     exit 0: 12 passed, 0 failed
+             (coherent C-shaped positive; 30 damaged-call and 14 damaged-summary controls; summary/call disagreement; well-formed-incomplete drain; empty boot; failed engine call;
+              argument refusal; existing output refused; create/write/flush/close failures with the output closed once; drift guards: capacities and row grammar equal the C source)
+   helper:   cargo test --release --locked -p eech-world --lib exclusive_output            exit 0: 4 passed, 0 failed
+             (create/write/flush/close; any existing target refused and unchanged: file, empty file, directory, mode-000 file, symlink, dangling symlink; missing parent directory)
+   guard:    cargo test --release --locked -p eech-world --test host_callbacks every_reference_script    exit 0: 1 passed (the exact (37, 2) inventory)
+   clippy:   cargo clippy --locked -p eech-world --all-targets -- -D warnings              exit 0
+   Raw logs (not committed): R:/d3-evidence/route-driver-old-red-step1-debug-missing-20261101.log, route-driver-old-red-20261101.log, route-driver-focused-final-20261101.log.
+
+NOT run: the C observer (eech_route_fixture.c, the patches R1..R7b, the engine entries) was not compiled or linked in this batch; eech-engine, eech-engine-sys and eech-dc were not built;
+the other test targets of eech-world; any Windows fixture build; any retail data. Root will freeze the clean corrected source for canonical builds.

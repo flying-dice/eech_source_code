@@ -4,7 +4,7 @@
  * WHAT IT OBSERVES. The campaign's natural boot reads every airfield population (popread.c) and, for each airfield's landing, take-off and holding routes, runs the
  * ORIGINAL parser parse_waypoint_routes_from_object (routegen.c) over the raw line-face object the DLL's own model loader read from 3dobjs.*. This fixture records, in
  * order and without parsing anything itself, what that real parser reads and produces:
- *   - each route-object lookup popread makes (airfield scene, route sub-object kind, found or not): the semantic identity of the route (the compiled scene and
+ *   - each DISTINCT route-object lookup popread makes (airfield scene, route sub-object kind, found or not; a repeat of the same answer adds no row): the semantic identity of the route (the compiled scene and
  *     sub-object names), as opposed to the legacy raw object number the lookup returns (kept only as a diagnostic word, `legacy_object`);
  *   - per parser call: its arguments (the matching slots as bit patterns), the raw object's counts and bounds, every node's raw stored int16 point and the float position
  *     the parser decoded from it, every line face the first pass reads (surface, face, face-local and resolved node indices, the surface colour and flags), and the tables
@@ -18,6 +18,13 @@
  * report says "no calls", which is NOT a measured original. A table that fills, a hook outside an open call, a call that never ends and a call that begins inside another
  * are each counted and make the summary say `complete=0`. A natural boot in which no call was recorded is `complete=0` as well. Reaching a route object through a boot is
  * not proof that every route object of every installation was parsed.
+ *
+ * COMPLETENESS JOINS EVERY COHORT. A call is complete only if each cohort it promises was captured whole: the requested slots; the faces the raw object's surfaces
+ * promise (their face counts, the parser's own loop bound); every final node; every parent and child link the final rows count (a link list clipped at the parser's
+ * MAX_WAYPOINT_LINKS, or a target outside the node table, makes the call incomplete); every start; every depth with all the offsets its count declares; and ONE route
+ * identity. The identity of a parse is the (scene, kind) of the lookups that returned its raw object: exactly one distinct key is `unique`, none is `unknown`, two or more
+ * (a raw object returned for several keys) is `ambiguous`. The latest matching lookup is never taken as evidence; unknown and ambiguous calls are recorded in full and are
+ * incomplete. The expectations are the original's own counts, never a second route solver's answer.
  *
  * It runs inside the engine entry (so it sees EECH's round-toward-zero mode) and changes nothing it observes.
  */
@@ -94,6 +101,10 @@ struct rf_call
 	int node_first, node_count, face_first, face_count, final_first, final_count, link_first, link_count, start_first, start_count, depth_first, depth_count;
 	int dropped_slots, dropped_nodes, dropped_faces, dropped_finals, dropped_links, dropped_starts, dropped_depths, dropped_offsets;
 	int total_nodes, total_starts, total_depths, maximum_depth, have_totals;
+	/* the route identity the lookups give this parse: 0 none seen, 1 exactly one (scene, kind) was looked up for the raw object, 2 two or more distinct ones (ambiguous) */
+	int identity, key_scene, key_kind;
+	/* the faces the raw object's surfaces promise the first pass will read (the sum of their face counts), and the depths whose offsets were not all stored */
+	int expected_faces, offset_shortfall;
 };
 
 static struct rf_call rf_calls[RF_CALLS];
@@ -122,6 +133,16 @@ static uint32_t bits_of (const float *value)
 
 void eech_rf_lookup (int scene, int kind, int found, int legacy_object)
 {
+	int i;
+
+	/* the table holds DISTINCT lookups: an airfield scene is constructed for every keysite that uses it, and the same (scene, kind) answer repeated adds no evidence */
+	for (i = 0; i < rf_lookup_count; i++)
+	{
+		if (rf_lookups[i].scene == scene && rf_lookups[i].kind == kind && rf_lookups[i].found == found && rf_lookups[i].legacy == legacy_object)
+		{
+			return;
+		}
+	}
 	if (rf_lookup_count >= RF_LOOKUPS)
 	{
 		rf_dropped_lookups++;
@@ -160,13 +181,36 @@ void eech_rf_begin (int object_index, int number_of_slots, const void *slots, co
 	call->object = object_index;
 	call->slots = number_of_slots;
 	call->slot_first = rf_slot_count;
+	/* The route identity is established only if the lookups seen so far name exactly ONE (scene, kind) for this raw object. popread does several lookups before it parses and a raw
+	   object can be returned for more than one key, so the latest match is not evidence: two distinct keys make the identity ambiguous and none makes it unknown, and in both cases
+	   the call is incomplete (it is still recorded in full). */
 	call->lookup = -1;
-	for (i = rf_lookup_count - 1; i >= 0; i--)
+	for (i = 0; i < rf_lookup_count; i++)
 	{
-		if (rf_lookups[i].found && rf_lookups[i].legacy == object_index)
+		if (!rf_lookups[i].found || rf_lookups[i].legacy != object_index)
 		{
+			continue;
+		}
+		if (call->identity == 0)
+		{
+			call->identity = 1;
 			call->lookup = i;
+			call->key_scene = rf_lookups[i].scene;
+			call->key_kind = rf_lookups[i].kind;
+		}
+		else if (rf_lookups[i].scene != call->key_scene || rf_lookups[i].kind != call->key_kind)
+		{
+			call->identity = 2;
+			call->lookup = -1;
 			break;
+		}
+	}
+	/* the faces the parser's first pass will read: its own loop bound, the sum of every surface's face count (read from the same records the parser reads) */
+	if (raw->surfaces)
+	{
+		for (i = 0; i < (int) raw->number_of_surfaces; i++)
+		{
+			call->expected_faces += raw->surfaces[i].number_of_faces;
 		}
 	}
 	for (i = 0; slots && i < number_of_slots; i++)
@@ -356,6 +400,10 @@ void eech_rf_final_position (int depth, int count, const void *position, const v
 		rf_offset_count++;
 		d->stored_offsets++;
 	}
+	if (d->stored_offsets != count)
+	{
+		call->offset_shortfall++;
+	}
 	call->depth_count++;
 }
 
@@ -419,11 +467,39 @@ static int call_dropped (const struct rf_call *c)
 	return c->dropped_slots + c->dropped_nodes + c->dropped_faces + c->dropped_finals + c->dropped_links + c->dropped_starts + c->dropped_depths + c->dropped_offsets;
 }
 
-/* a call is a measured original only if it ended, was not cut by another call, lost no row, and recorded the totals and every row its totals promise */
+/* the parent and child link rows the final node rows promise (their own child and parent counts), and the link rows whose target is not a node of the table */
+static void link_expectation (const struct rf_call *c, long *promised, long *bad)
+{
+	int i;
+	*promised = 0;
+	*bad = 0;
+	for (i = 0; i < c->final_count; i++)
+	{
+		const struct rf_final *f = &rf_finals[c->final_first + i];
+		*promised += (f->children > 0 ? f->children : 0) + (f->parents > 0 ? f->parents : 0);
+	}
+	for (i = 0; i < c->link_count; i++)
+	{
+		const struct rf_link *l = &rf_links[c->link_first + i];
+		if (l->target < 0 || l->target >= c->total_nodes)
+		{
+			(*bad)++;
+		}
+	}
+}
+
+/* A call is a measured original only if it ended, was not cut by another call, lost no row, has ONE route identity, and every cohort it promises was captured whole: the requested
+   slots, the faces the raw object's surfaces promise, every final node, every parent and child link the final rows count (none clipped, none pointing outside the table), every start,
+   and every depth with all the offsets its count declares. The expectations are the original's own counts, not a second solver's answer. */
 static int call_complete (const struct rf_call *c)
 {
-	return c->ended && !c->interrupted && c->have_totals && call_dropped (c) == 0 && c->node_count == c->points && c->final_count == c->total_nodes &&
-		c->start_count == c->total_starts && c->depth_count == c->total_depths;
+	long promised, bad;
+
+	link_expectation (c, &promised, &bad);
+	return c->ended && !c->interrupted && c->have_totals && call_dropped (c) == 0 && c->identity == 1 && c->slots >= 0 && c->slot_stored == c->slots &&
+		c->node_count == c->points && c->total_nodes == c->points && c->final_count == c->total_nodes && c->face_count == c->expected_faces &&
+		promised == c->link_count && bad == 0 && c->start_count == c->total_starts && c->depth_count == c->total_depths && c->total_depths == c->maximum_depth + 1 &&
+		c->offset_shortfall == 0;
 }
 
 int eech_route_summary_run (char *text, int capacity)
@@ -471,20 +547,27 @@ int eech_route_call_run (int index, char *text, int capacity)
 	c = &rf_calls[index];
 	emit (&out, "route-call index=%d legacy_object=%d lookup=%d slots=%d slots_stored=%d points=%d surfaces=%d faces=%d ended=%d interrupted=%d complete=%d\n", index, c->object,
 		c->lookup, c->slots, c->slot_stored, c->points, c->surfaces, c->faces, c->ended, c->interrupted, call_complete (c));
-	if (c->lookup >= 0)
+	if (c->identity == 1)
 	{
-		emit (&out, "route-identity index=%d scene=%d scene_name=%s kind=%d kind_name=%s\n", index, rf_lookups[c->lookup].scene, scene_name (rf_lookups[c->lookup].scene),
-			rf_lookups[c->lookup].kind, kind_name (rf_lookups[c->lookup].kind));
+		emit (&out, "route-identity index=%d state=unique scene=%d scene_name=%s kind=%d kind_name=%s\n", index, c->key_scene, scene_name (c->key_scene), c->key_kind,
+			kind_name (c->key_kind));
 	}
 	else
 	{
-		emit (&out, "route-identity index=%d unknown=1\n", index);
+		/* unknown (no lookup named this raw object) or ambiguous (two or more distinct keys did): no key is given, and the call is incomplete */
+		emit (&out, "route-identity index=%d state=%s\n", index, c->identity == 2 ? "ambiguous" : "unknown");
 	}
 	emit (&out, "route-bounds index=%d bits=%08x,%08x,%08x,%08x,%08x,%08x\n", index, c->bounds[0], c->bounds[1], c->bounds[2], c->bounds[3], c->bounds[4], c->bounds[5]);
 	emit (&out, "route-dropped index=%d slots=%d nodes=%d faces=%d finals=%d links=%d starts=%d depths=%d offsets=%d\n", index, c->dropped_slots, c->dropped_nodes, c->dropped_faces,
 		c->dropped_finals, c->dropped_links, c->dropped_starts, c->dropped_depths, c->dropped_offsets);
 	emit (&out, "route-totals index=%d have=%d nodes=%d starts=%d depths=%d maximum_depth=%d rows_nodes=%d rows_faces=%d rows_finals=%d rows_links=%d rows_starts=%d rows_depths=%d\n", index,
 		c->have_totals, c->total_nodes, c->total_starts, c->total_depths, c->maximum_depth, c->node_count, c->face_count, c->final_count, c->link_count, c->start_count, c->depth_count);
+	{
+		long promised, bad;
+
+		link_expectation (c, &promised, &bad);
+		emit (&out, "route-capture index=%d expected_faces=%d expected_links=%ld bad_links=%ld offset_shortfall=%d\n", index, c->expected_faces, promised, bad, c->offset_shortfall);
+	}
 	for (i = 0; i < c->slot_stored; i++)
 	{
 		const uint32_t *b = rf_slot_bits[c->slot_first + i];

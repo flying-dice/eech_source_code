@@ -5085,7 +5085,9 @@ impl Engine {
     #[cfg(feature = "route-fixture")]
     pub fn route_call(&self, index: i32) -> Result<String, EngineError> {
         if !(0..ROUTE_CALLS_MAX).contains(&index) {
-            return Err(EngineError::BadArgument(format!("route_call: index {index} must be within 0..{ROUTE_CALLS_MAX}")));
+            return Err(EngineError::BadArgument(format!(
+                "route_call: index {index} must be within 0..{ROUTE_CALLS_MAX}"
+            )));
         }
         let mut text = vec![0 as std::os::raw::c_char; ROUTE_REPORT_CAPACITY];
         // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.

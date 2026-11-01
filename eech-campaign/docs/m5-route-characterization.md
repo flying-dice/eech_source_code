@@ -1,7 +1,8 @@
 # D3: original route-geometry observer and retained raw-model-reader disposition (EEDCS-50)
 
-**Status: source written, NOT built, NOT compiled, NOT run, NOT reviewed.** Nothing in this document is a measurement. No original route has been observed, no count,
-hash or coverage figure exists, and none may be quoted from here. Base `1399f9b76`. This is the **original characterisation only**: it moves nothing out of the DLL, changes no
+**Status: observer SOURCE ONLY - not built into any engine, not run against any retail data, not accepted.** Nothing in this document is a measurement of the original: no original
+route has been observed, no count, hash or coverage figure of real routes exists, and none may be quoted from here. Only the Lua driver and the output helper have been exercised,
+locally in a working tree against invented C-shaped reports (section 2). Base `844e8d3b9`. This is the **original characterisation only**: it moves nothing out of the DLL, changes no
 production statement and prepares no cutover.
 
 Scope authority is the live M5 goal (Confluence 11534337), the migration ledger and Epic EEDCS-21: physical model loading, triangle decoding and bounds services belong to the
@@ -45,12 +46,42 @@ installation is parsed. It does not observe `match_end_slots`' inputs beyond the
 the end-to-end consumption is covered by the existing accepted campaign recordings, which a later cutover must keep byte-exact. Legacy numbering (`legacy_object`, node
 numbers) is diagnostic only; comparison across the move is by scene name, kind name, call order and the physical rows.
 
-### Completeness is explicit
+### Completeness is explicit, and joins every cohort a call promises
 
 Every pool is bounded and counted. `route-complete value=1` requires at least one recorded call, no dropped call or lookup, no hook outside an open call, no interrupted or open
-call, and every call complete (ended, totals recorded, node rows = the object's point count, final rows = the totals, no row dropped). An empty boot, a full table or a cut
-call is `complete=0`: the driver writes it, writes `done complete=false`, then FAILS. A report that does not fit its buffer is refused (never cut short); after any failure
-the engine is not asked again.
+call, and every call complete. A call is complete only if it ended, has totals, lost no row, has ONE route identity, and **every cohort it promises was captured whole**: the
+requested slots (stored = requested); the first-pass faces (the rows equal the sum of the raw object's surfaces' face counts, the parser's own loop bound); every final node; every
+parent and child link the final rows count (a list clipped at the parser's `MAX_WAYPOINT_LINKS`, or a target outside the node table, is incomplete); every start; and every depth
+with all the offsets its count declares (a positive count with no offsets is a shortfall). The expectations are the original's own counts, never a second route solver's answer.
+A report that does not fit its buffer is refused (never cut short).
+
+**Route identity.** The scene and kind of a parse are those of the lookups that returned its raw object, and only if they are unambiguous: exactly one distinct (scene, kind) is
+`unique`, none is `unknown`, two or more (a raw object returned for several keys) is `ambiguous`. The most recent matching lookup is never taken as evidence, because popread does
+several lookups before it parses and raw objects can alias. Unknown and ambiguous calls are recorded in full and are incomplete, so the measurement fails explicitly and the
+Root decides (for example by observing at the call sites) instead of a wrong key being recorded silently. The lookup table holds distinct lookups (a repeat of the same answer
+adds no row).
+
+### The driver validates the whole native grammar
+
+`lua/route-characterization.lua` checks the summary and every call line by line against the grammar `csrc/eech_route_fixture.c` emits (name, key set and order, single spacing;
+exact decimal integers and lower-case 8-digit words in bounded domains; compiled names), the row counts against the counts each report declares, and the cross-report joins (the
+summary's counters, pools and verdict against the calls and against the lookup rows; the pinned table capacities). `tests/route_characterization.rs` checks that its capacities and
+its row grammar are the C source's. It distinguishes three outcomes:
+
+* **measured**: well formed, the observer's verdicts complete, and every complete call's rows support its claim (numbering, order, the faces' surface sequence, link counts per
+  node, starts, depths and offsets against the call's own counts). Only this passes. No route answer is recomputed and no numerical geometry oracle exists.
+* **well-formed but incomplete** (an empty boot, a full table, an unknown or ambiguous identity, a clipped list, an unended call): the engine's honest answer, not a failure of the
+  engine. The driver therefore still reads the remaining recorded calls once each, for diagnosis, then writes `done complete=false` and FAILS. This draining is deliberate.
+* **malformed** (a line the grammar cannot produce, an out-of-domain or contradictory number, rows that do not match their declared counts, a summary that disagrees with the
+  calls, a `complete=1` the rows do not support): the text is already written verbatim; a `malformed` row and `done complete=false` follow, the driver FAILS, and the engine is
+  not asked again. An engine call that itself fails stops the questions at once.
+
+### The output is created exclusively
+
+`host.create_exclusive` (`src/exclusive_output.rs`, registered next to the other host functions; `json-lines.open` and every existing client are unchanged) uses the platform's own
+create-new open (`O_CREAT | O_EXCL`, `CREATE_NEW`), which atomically refuses ANY existing target: a file whatever its permissions, a directory, a link (also a dangling one). Lua
+5.1's `io.open` cannot (`"w"` truncates; a read-open check races and misses unreadable files) and an `x` mode is not assumed. Writes, flushes and the close are checked; the owned
+output is closed on every exit, and a failed close is reported together with any primary failure.
 
 ### How it is run (the Root's, in order; none has been done)
 
@@ -62,9 +93,20 @@ the engine is not asked again.
 4. Only then a cutover Task may use these rows as the original side of an original-versus-host comparison (same scenes, kinds, call order, node bit patterns, face order
    and final tables); any difference is classified under the baseline governance, never absorbed by a tolerance.
 
-Local guards (`cargo test -p eech-world --test route_characterization`, the Root's to run) cover only the DRIVER: argument refusal before any side effect, no overwrite,
-prepare -> select -> boot order, verbatim reports, writing then failing an empty or incomplete measurement, and no query after a failure. They use invented protocol text and
-prove nothing about the observer or the parser.
+Local guards (`cargo test -p eech-world --test route_characterization`, and the helper's unit tests `--lib exclusive_output`) cover only the DRIVER and the output helper: argument
+refusal before any side effect, prepare -> select -> boot order, verbatim reports, a coherent C-shaped positive and 44 damaged-report controls, the well-formed-incomplete drain,
+no query after a malformed report or a failed engine call, the exclusive create and its IO failures, and drift guards against the C source. The reports are invented C-shaped text
+with no real route geometry; the guards prove nothing about the observer or the parser.
+
+### Retained evidence of the old driver's false acceptance (working-tree checks, not a frozen-commit run)
+
+The driver of `dc4c7c41b` (`route-characterization.lua` blob `cedefbc48ec1...`) was exercised for the first time by a focused local Linux run on the Root's free Rust/Lua-only cache
+(`eech-linux-d3-collision-driver-5416adb3b-20261029`, image `sha256:4a5618cb...`, `cargo test --release --locked -p eech-world --test route_characterization`). Step 1, the test
+file as committed plus one added test: **0 passed, 5 failed**, a test-setup defect (the test's Lua state had no `debug` library, which the driver uses to find its own path), so the
+committed positive had never run. Step 2, only that harness state repaired (blob `69ef0d2d...`, retained as `reference/d3-route-characterization/old-driver-red-test-69ef0d2d.rs.txt`):
+**4 passed, 1 failed**, the failure being the old driver ACCEPTING a call that declares `points=2` and `faces=1` and carries no node, face or final row (the old positive fixture did
+exactly that). This is the actual red for the missing-body acceptance; the new driver rejects it as malformed (`the_report_that_declares_geometry_but_carries_none_is_malformed_not_measured`).
+Details and the post-correction results are in `reference/d3-route-characterization/route-driver-focused-checks-20261101.txt`.
 
 ## 3. Retained readers of the raw model array: finite disposition (read, not run)
 
@@ -79,12 +121,12 @@ is none of these and is not allowed.**
 | `aphavoc/.../routegen.c` (1) | points, bounds, surfaces, line faces | campaign load, popread, per airfield | **(a)/(b), next**: host route-data service keyed by scene and kind (section 1). Observed by this change |
 | `modules/3d/3dsubobj.c` (4), scene bounds built in `3dobjdb.c` (`initialise_scene_bounding_sub_objects`, `:1386`) | `bounding_box`, `bounding_box2` of each main and sub-object | at scene load (hierarchy construction) | **(b)**: the host's scene reply already carries the same bounds; the scene database must take its bounds from it. Part of the hierarchy service, still core-resident, visible |
 | `3dobjdb.c` remainder (loader 101 hits; `add_animation_object` surface texture-animation flags; `debug_object`; custom EEO/EES import) | the loader's own fills; surface texture flags | load | The loader itself is what leaves (host-owned model loading). Texture-animation lists are rendering data: **(c)** or a host render-metadata answer, decided with the renderer boundary, not here |
-| render and visibility: `3dobject.c` (19), `3dobjdrh/drw/drz.c` (64/53/12), `3dobjzdr.c` (20), `3dobjvb.c` (5), `3dobjvis.c` (33), `3dexplos.c` (32), `3dshadow.c` (51), `3dhoriz.c` (15), `3dwface1/2.c` (5/16), `3dfaces.c` (6), `3dscon.c` (9), `clouds/3dtrump.c` (5), `3dclouds.c` (3) | vertices, faces, surfaces, bounds for transform, draw, outcodes, shadows | renderer entry points (`draw_*`, `transform_*`, `get_object_3d_outcode`, instance visibility); the dedicated-server boot path calls no drawing, but that is **not proved dormant** for every campaign path | **(c)** by construction: these entries are not part of the hosted module's surface (the host owns rendering). The cutover Task must either remove them from the build or stop each entry clearly before reading an absent array; no silent empty-geometry draw. A reach counter is needed to know which, and is a separate bounded step |
+| render and visibility: `3dobject.c` (19), `3dobjdrh/drw/drz.c` (64/53/12), `3dobjzdr.c` (20), `3dobjvb.c` (5), `3dobjvis.c` (33), `3dexplos.c` (32), `3dshadow.c` (51), `3dhoriz.c` (15), `3dwface1/2.c` (5/16), `3dfaces.c` (6), `3dscon.c` (9), `clouds/3dtrump.c` (5), `3dclouds.c` (3) | vertices, faces, surfaces, bounds for transform, draw, outcodes, shadows | renderer entry points (`draw_*`, `transform_*`, `get_object_3d_outcode`, instance visibility); the dedicated-server boot path calls no drawing, but that is **not proved dormant** for every campaign path | **(c)** by construction: these entries are not part of the hosted module's surface (the host owns rendering). The cutover Task must either remove them from the build or stop each entry clearly before reading an absent array; no silent empty-geometry draw. Which of them a boot actually reaches is established from evidence, by a method chosen at the cutover; none is assumed dormant |
 | `hi_hud.c:328` (1) | `hud_display_model` pointer into the array | the player's Mi-24 avionics init | **(c)** (player-gunship UI, not the campaign), or a host display-model answer with the avionics boundary; the legacy pointer stays private either way |
 
 Not in this census (separately read): `objects_3d_scene_database` readers (`popread.c` scene link objects, `damage.c` `succeeded`, `main_sc.c` menu links) and the
 poly-line accessors, per the host-authority audit table; the viewpoint, device, muzzle, target-point and camera services of `3dobjdb.c`. They remain whole-D3 work and none
 is assigned to another phase here.
 
-**Next concrete D3 step after the Root's measurement:** the host route-data service and the loader detachment for the route readers, as one cohesive change, with the
-reach counter above run first for the render group (the smallest measurement that turns "census" into "reached or not" for this build).
+**Next concrete D3 step after the Root's measurement:** the host route-data service and the loader detachment for the route readers, as one cohesive change, with the active-reader
+disposition above settled for every group before the loader stops filling the array (the method for each is chosen from evidence then; nothing is assumed dormant).
