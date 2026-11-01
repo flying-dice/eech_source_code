@@ -64,6 +64,7 @@ static enum engine_operation operation;
 	campaign_terrain_host terrain_host; \
 	campaign_env_host env_host; \
 	campaign_sound_catalogue_host catalogue_host; \
+	campaign_sound_backend_host backend_host; \
 	if (eech_engine_poisoned) \
 	{ \
 		return EECH_ENGINE_POISONED; \
@@ -92,6 +93,8 @@ static enum engine_operation operation;
 	env_host.user = entry_host ? entry_host->user : NULL; \
 	catalogue_host.catalogue = entry_host ? entry_host->sound_catalogue : NULL; \
 	catalogue_host.user = entry_host ? entry_host->user : NULL; \
+	backend_host.backend = entry_host ? entry_host->sound_backend : NULL; \
+	backend_host.user = entry_host ? entry_host->user : NULL; \
 	campaign_roster_set_host (entry_host ? &roster_host : NULL); \
 	campaign_supply_arrival_set_host (entry_host ? &arrival_host : NULL); \
 	campaign_movement_set_host (entry_host ? &movement_host : NULL); \
@@ -104,6 +107,8 @@ static enum engine_operation operation;
 	campaign_env_set_host (&env_host); \
 	/* the sample metadata host is installed the same way: it is asked once, at boot, but it is kept for the process like the environment host */ \
 	campaign_sound_catalogue_set_host (&catalogue_host); \
+	/* the sound backend host likewise: asked once, at boot, but kept for the process */ \
+	campaign_sound_backend_set_host (&backend_host); \
 	fegetenv (&caller_fenv); \
 	fesetround (FE_TOWARDZERO); \
 	eech_fatal_target = &fatal_jmp; \

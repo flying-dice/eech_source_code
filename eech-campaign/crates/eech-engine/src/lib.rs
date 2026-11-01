@@ -1852,6 +1852,90 @@ unsafe extern "C" fn sound_catalogue_callback(
     }
 }
 
+/// The only phase of the sound backend exchange: the availability decision of `initialise_application_sound_system` (ss_hostenv.h CAMPAIGN_SOUND_BACKEND_PHASE_INITIALISE).
+pub const SOUND_BACKEND_PHASE_INITIALISE: i32 = 1;
+
+/// One exchange of the host's physical sound backend availability (aphavoc/.../ss_hostenv.h campaign_sound_backend_request), asked once at boot behind the campaign's own flag test. It carries what the campaign
+/// actually knows and intends: the phase, the two command line flags as they stand and whether the samples would be loaded if the backend is available. No pointer, handle or device description crosses.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SoundBackendRequest {
+    pub phase: i32,
+    pub no_sound: bool,
+    pub dedicated: bool,
+    pub load_samples: bool,
+}
+
+/// The host's whole answer: whether a physical sound backend is available. The campaign refuses `true` by name (`[sound-backend-provider:unsupported]`) until the loader bodies and the playback routes are the
+/// host's too; it is carried to the C side exactly as the host gave it.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SoundBackendReply {
+    pub available: bool,
+}
+
+/// The host's sound backend provider. It is installed once, at boot, and is the only source of the campaign's backend availability: the campaign has no device call to fall back to.
+pub type SoundBackendProvider = Box<dyn FnMut(&SoundBackendRequest) -> Result<SoundBackendReply, String>>;
+
+thread_local! {
+    // the engine and its host run on one thread; a provider is not `Send`
+    static SOUND_BACKEND: std::cell::RefCell<Option<SoundBackendProvider>> = std::cell::RefCell::new(None);
+}
+
+/// The C side's sound backend callback (ss_hostenv.h). It runs the installed provider; a missing provider, a refusal and a panic all become an error the engine stops on, with the provider's marker. The reply is written
+/// only after the provider has answered; the request is checked first, so a request that is not the campaign's never reaches the host.
+unsafe extern "C" fn sound_backend_callback(
+    request: *const sys::eech_sound_backend_request,
+    reply_out: *mut sys::eech_sound_backend_reply,
+    error: *mut c_char,
+    error_size: usize,
+    _user: *mut c_void,
+) -> c_int {
+    let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
+        if request.is_null() || reply_out.is_null() {
+            return Err("[sound-backend-provider:callback] invalid native sound backend callback context".into());
+        }
+        // SAFETY: C supplies a readable request and a writable reply for the duration of this callback.
+        let (source, out) = unsafe { (&*request, &mut *reply_out) };
+        if source.phase != SOUND_BACKEND_PHASE_INITIALISE {
+            return Err(format!("[sound-backend-provider:request] the phase {} is not the initialisation", source.phase));
+        }
+        let flag = |value: c_int, what: &str| match value {
+            0 => Ok(false),
+            1 => Ok(true),
+            other => Err(format!("[sound-backend-provider:request] {what} is {other}, not a flag")),
+        };
+        let request = SoundBackendRequest {
+            phase: source.phase,
+            no_sound: flag(source.no_sound, "no_sound")?,
+            dedicated: flag(source.dedicated, "dedicated")?,
+            load_samples: flag(source.load_samples, "load_samples")?,
+        };
+        let reply = SOUND_BACKEND.with(|slot| -> Result<SoundBackendReply, String> {
+            let mut slot = slot
+                .try_borrow_mut()
+                .map_err(|_| "[sound-backend-provider:callback] the sound backend provider was asked again while it was answering".to_string())?;
+            match slot.as_mut() {
+                Some(provider) => provider(&request),
+                None => Err("[sound-backend-provider:missing] no sound backend provider is installed".to_string()),
+            }
+        })?;
+        out.available = c_int::from(reply.available);
+        Ok(())
+    }));
+    match result {
+        Ok(Ok(())) => 0,
+        Ok(Err(message)) => {
+            // SAFETY: C owns this writable error buffer for the callback.
+            unsafe { write_callback_text(error, error_size, &message) };
+            1
+        }
+        Err(_) => {
+            // SAFETY: C owns this writable error buffer for the callback.
+            unsafe { write_callback_text(error, error_size, "[sound-backend-provider:callback] the sound backend provider panicked") };
+            1
+        }
+    }
+}
+
 struct HostContext<'a, F, G, H, M, L, D, A> {
     bind_mobile: &'a mut F,
     observe_loss: &'a mut G,
@@ -5083,6 +5167,7 @@ where
         terrain: Some(terrain_callback),
         environment: Some(environment_callback),
         sound_catalogue: Some(sound_catalogue_callback),
+        sound_backend: Some(sound_backend_callback),
         user: (&mut context as *mut HostContext<'_, F, G, H, M, L, D, A>).cast::<c_void>(),
     };
     check(call(&host))
@@ -5124,6 +5209,7 @@ impl Engine {
         terrain: TerrainProvider,
         environment: EnvProvider,
         sound_catalogue: SoundCatalogueProvider,
+        sound_backend: SoundBackendProvider,
     ) -> Result<Engine, EngineError>
     where
         F: FnMut(MemberDescriptor) -> Result<String, String>,
@@ -5161,6 +5247,8 @@ impl Engine {
         ENVIRONMENT.with(|slot| *slot.borrow_mut() = Some(environment));
         // The sample metadata provider too: the campaign asks it once, while it initialises its sound database during boot, before any session exists.
         SOUND_CATALOGUE.with(|slot| *slot.borrow_mut() = Some(sound_catalogue));
+        // And the sound backend provider: the campaign asks it once, in the same initialisation, behind its own flag test.
+        SOUND_BACKEND.with(|slot| *slot.borrow_mut() = Some(sound_backend));
         // SAFETY: every config pointer and the temporary host callback are valid for the call.
         with_host(
             bind_mobile_fn,
@@ -11375,5 +11463,218 @@ mod tests {
         );
         assert_eq!((code, present, count), (0, 1, 1), "{error}");
         assert_eq!((twice.matched.as_slice(), twice.size.as_slice()), (&[1, 1][..], &[0, 0][..]));
+    }
+
+    // ---- EEDCS-51 D3: the host-owned sound backend availability (ss_hostenv.h campaign_sound_backend_request) ----
+
+    /// One crossing of the backend callback with this thread's provider (`None`: none installed); the reply starts as the sentinel 99 and the error text comes back.
+    fn backend_cross(provider: Option<SoundBackendProvider>, phase: c_int, no_sound: c_int, dedicated: c_int, load_samples: c_int) -> (c_int, c_int, String) {
+        SOUND_BACKEND.with(|slot| *slot.borrow_mut() = provider);
+        let request = sys::eech_sound_backend_request {
+            phase,
+            no_sound,
+            dedicated,
+            load_samples,
+        };
+        let mut reply = sys::eech_sound_backend_reply { available: 99 };
+        let mut error = [0 as c_char; 512];
+        // SAFETY: the request and reply are valid for the call, and the error buffer is writable for its length.
+        let code = unsafe { sound_backend_callback(&request, &mut reply, error.as_mut_ptr(), error.len(), std::ptr::null_mut()) };
+        SOUND_BACKEND.with(|slot| *slot.borrow_mut() = None);
+        let text: Vec<u8> = error.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect();
+        (code, reply.available, String::from_utf8_lossy(&text).into_owned())
+    }
+
+    #[test]
+    fn the_backend_callback_carries_the_phase_flags_and_intent_to_the_provider_and_the_answer_back() {
+        for available in [false, true] {
+            let seen = std::rc::Rc::new(std::cell::RefCell::new(Vec::new()));
+            let record = seen.clone();
+            let provider: SoundBackendProvider = Box::new(move |request: &SoundBackendRequest| {
+                record.borrow_mut().push(*request);
+                Ok(SoundBackendReply { available })
+            });
+            let (code, written, error) = backend_cross(Some(provider), 1, 0, 0, 1);
+            // the bridge carries the host's answer as it was given; the C side refuses `true` by name
+            assert_eq!((code, written), (0, c_int::from(available)), "{error}");
+            assert_eq!(
+                *seen.borrow(),
+                [SoundBackendRequest {
+                    phase: SOUND_BACKEND_PHASE_INITIALISE,
+                    no_sound: false,
+                    dedicated: false,
+                    load_samples: true
+                }]
+            );
+        }
+        // the flags are carried as they stand
+        let seen = std::rc::Rc::new(std::cell::RefCell::new(Vec::new()));
+        let record = seen.clone();
+        let provider: SoundBackendProvider = Box::new(move |request: &SoundBackendRequest| {
+            record.borrow_mut().push(*request);
+            Ok(SoundBackendReply { available: false })
+        });
+        assert_eq!(backend_cross(Some(provider), 1, 1, 1, 0).0, 0);
+        assert_eq!((seen.borrow()[0].no_sound, seen.borrow()[0].dedicated, seen.borrow()[0].load_samples), (true, true, false));
+    }
+
+    #[test]
+    fn a_missing_refusing_or_panicking_backend_provider_is_a_named_boundary_and_writes_no_answer() {
+        let (code, written, error) = backend_cross(None, 1, 0, 0, 1);
+        assert_eq!((code, written), (1, 99));
+        assert!(error.starts_with("[sound-backend-provider:missing]"), "{error}");
+        let refusing: SoundBackendProvider = Box::new(|_: &SoundBackendRequest| Err("[sound-backend-provider:callback] the host refused".to_string()));
+        let (code, written, error) = backend_cross(Some(refusing), 1, 0, 0, 1);
+        assert_eq!((code, written), (1, 99));
+        assert!(error.starts_with("[sound-backend-provider:callback] the host refused"), "{error}");
+        let panicking: SoundBackendProvider = Box::new(|_: &SoundBackendRequest| panic!("a host bug"));
+        let (code, written, error) = backend_cross(Some(panicking), 1, 0, 0, 1);
+        assert_eq!((code, written), (1, 99));
+        assert!(error.starts_with("[sound-backend-provider:callback]") && error.contains("panicked"), "{error}");
+    }
+
+    #[test]
+    fn a_backend_request_that_is_not_the_campaigns_never_reaches_the_host() {
+        for (label, phase, no_sound, dedicated, load_samples) in [
+            ("another phase", 2, 0, 0, 1),
+            ("no phase", 0, 0, 0, 1),
+            ("no_sound that is not a flag", 1, 2, 0, 1),
+            ("dedicated that is not a flag", 1, 0, -1, 1),
+            ("load intent that is not a flag", 1, 0, 0, 7),
+        ] {
+            let asked = std::rc::Rc::new(std::cell::Cell::new(0));
+            let count = asked.clone();
+            let provider: SoundBackendProvider = Box::new(move |_: &SoundBackendRequest| {
+                count.set(count.get() + 1);
+                Ok(SoundBackendReply { available: false })
+            });
+            let (code, written, error) = backend_cross(Some(provider), phase, no_sound, dedicated, load_samples);
+            assert_eq!((code, written, asked.get()), (1, 99, 0), "{label}");
+            assert!(error.starts_with("[sound-backend-provider:request]"), "{label}: {error}");
+        }
+    }
+
+    /// The real C `campaign_sound_backend` (ss_hostenv.c) against a C host function. The process-global host is shared by these tests, so they take turns.
+    #[repr(C)]
+    struct CampaignSoundBackendHost {
+        backend: Option<
+            unsafe extern "C" fn(*const sys::eech_sound_backend_request, *mut sys::eech_sound_backend_reply, *mut c_char, usize, *mut c_void) -> c_int,
+        >,
+        user: *mut c_void,
+    }
+
+    extern "C" {
+        fn campaign_sound_backend_set_host(host: *const CampaignSoundBackendHost);
+        fn campaign_sound_backend(no_sound: c_int, dedicated: c_int) -> c_int;
+    }
+
+    static C_BACKEND_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+    /// 0 answers "not available"; 1 "available"; 2 a refusal with a message; 3 a refusal without one; 4 writes nothing; 5 answers 2.
+    static BACKEND_MODE: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(0);
+    static BACKEND_CALLS: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(0);
+    static BACKEND_SEEN: [std::sync::atomic::AtomicI32; 4] = [
+        std::sync::atomic::AtomicI32::new(-1),
+        std::sync::atomic::AtomicI32::new(-1),
+        std::sync::atomic::AtomicI32::new(-1),
+        std::sync::atomic::AtomicI32::new(-1),
+    ];
+
+    unsafe extern "C" fn witness_backend_host(
+        request: *const sys::eech_sound_backend_request,
+        reply: *mut sys::eech_sound_backend_reply,
+        error: *mut c_char,
+        error_size: usize,
+        _user: *mut c_void,
+    ) -> c_int {
+        // SAFETY: the C side passes a readable request and a writable reply for the call.
+        let (request, reply) = unsafe { (&*request, &mut *reply) };
+        BACKEND_CALLS.fetch_add(1, Ordering::SeqCst);
+        for (slot, value) in BACKEND_SEEN.iter().zip([request.phase, request.no_sound, request.dedicated, request.load_samples]) {
+            slot.store(value, Ordering::SeqCst);
+        }
+        match BACKEND_MODE.load(Ordering::SeqCst) {
+            0 => reply.available = 0,
+            1 => reply.available = 1,
+            2 => {
+                // SAFETY: C owns this writable error buffer.
+                unsafe { write_callback_text(error, error_size, "[sound-backend-provider:callback] withheld by the C host") };
+                return 1;
+            }
+            3 => return 1,
+            4 => {}
+            _ => reply.available = 2,
+        }
+        0
+    }
+
+    fn install_backend_host() {
+        let host = CampaignSoundBackendHost {
+            backend: Some(witness_backend_host),
+            user: std::ptr::null_mut(),
+        };
+        // SAFETY: the C function copies the host before it returns.
+        unsafe { campaign_sound_backend_set_host(&host) };
+    }
+
+    #[test]
+    fn the_c_backend_check_asks_once_with_the_real_request_and_returns_only_not_available() {
+        let _serial = C_BACKEND_LOCK.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+        BACKEND_MODE.store(0, Ordering::SeqCst);
+        BACKEND_CALLS.store(0, Ordering::SeqCst);
+        install_backend_host();
+        // SAFETY: the host above is installed; the function returns the host's checked answer.
+        let enabled = unsafe { campaign_sound_backend(0, 0) };
+        assert_eq!(enabled, 0);
+        assert_eq!(BACKEND_CALLS.load(Ordering::SeqCst), 1, "the campaign asks the host once");
+        let seen: Vec<c_int> = BACKEND_SEEN.iter().map(|slot| slot.load(Ordering::SeqCst)).collect();
+        assert_eq!(seen, [1, 0, 0, 1], "phase, no_sound, dedicated and the intent to load, as the campaign had them");
+    }
+
+    // The refusals end in debug_fatal, and outside an engine entry that aborts the process (there is no jump target). So each refusal runs in a CHILD process: the test binary re-runs this test with the case in the
+    // environment, and the parent requires the abnormal stop and the provider's boundary marker in what the child said. (Unix only, like the catalogue refusals.)
+    #[cfg(unix)]
+    mod backend_refusal {
+        use super::*;
+
+        const CASES: [(c_int, &str); 6] = [
+            (-1, "[sound-backend-provider:missing]"),
+            (2, "[sound-backend-provider:callback] withheld by the C host"),
+            (3, "[sound-backend-provider:callback]"),
+            (4, "[sound-backend-provider:answer]"),
+            (5, "[sound-backend-provider:answer]"),
+            (1, "[sound-backend-provider:unsupported]"),
+        ];
+
+        #[test]
+        fn a_missing_withheld_unwritten_malformed_or_available_backend_answer_stops_the_campaign_at_a_distinct_named_boundary() {
+            if let Ok(case) = std::env::var("EECH_SOUND_BACKEND_REFUSAL_CASE") {
+                let mode: c_int = case.parse().unwrap_or(0);
+                if mode >= 0 {
+                    BACKEND_MODE.store(mode, Ordering::SeqCst);
+                    install_backend_host();
+                }
+                // SAFETY: the refusal stops the process.
+                let enabled = unsafe { campaign_sound_backend(0, 0) };
+                println!("NOT_REFUSED {enabled}");
+                return;
+            }
+            let Ok(exe) = std::env::current_exe() else { panic!("no test executable to re-run") };
+            for (case, marker) in CASES {
+                let output = std::process::Command::new(&exe)
+                    .args([
+                        "--exact",
+                        "tests::backend_refusal::a_missing_withheld_unwritten_malformed_or_available_backend_answer_stops_the_campaign_at_a_distinct_named_boundary",
+                        "--nocapture",
+                        "--test-threads=1",
+                    ])
+                    .env("EECH_SOUND_BACKEND_REFUSAL_CASE", case.to_string())
+                    .output();
+                let Ok(output) = output else { panic!("case {case}: the child did not run") };
+                let said = format!("{}{}", String::from_utf8_lossy(&output.stdout), String::from_utf8_lossy(&output.stderr));
+                assert!(!said.contains("NOT_REFUSED"), "case {case}: the campaign accepted a refused answer:\n{said}");
+                assert!(!output.status.success(), "case {case}: the child did not stop at the refusal:\n{said}");
+                assert!(said.contains("host sound backend:") && said.contains(marker), "case {case}: no `{marker}` refusal in:\n{said}");
+            }
+        }
     }
 }

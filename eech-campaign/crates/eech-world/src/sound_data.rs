@@ -391,9 +391,9 @@ mod tests {
     /// The descriptor table in snd_data.c is the original; this table is the host's own copy of its names and rates, so the two must not drift (tools/generate-sound-assets.py regenerates it).
     #[test]
     fn the_hosts_asset_rates_are_the_originals_descriptor_table_for_every_name() {
-        let source =
-            std::fs::read(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../aphavoc/source/appsound/snd_data.c")).expect("the descriptor table's source");
-        let text: String = source.iter().map(|byte| *byte as char).collect();
+        // the original source is embedded by the compiler from the path relative to THIS file, so the test binary carries the exact table it was built against and needs no source tree at run time
+        const SOURCE: &[u8] = include_bytes!("../../../../aphavoc/source/appsound/snd_data.c");
+        let text: String = SOURCE.iter().map(|byte| *byte as char).collect();
         // strip comments
         let mut clean = String::new();
         let mut rest = text.as_str();

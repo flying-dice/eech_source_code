@@ -314,6 +314,48 @@ typedef struct campaign_sound_catalogue_host
 	void *user;
 } campaign_sound_catalogue_host;
 
+/*
+ * The host-owned physical SOUND BACKEND AVAILABILITY at initialisation (EEDCS-51, D3; snd_init.c initialise_application_sound_system).  The original asked the platform sound module (`initialise_sound_system ()`, DirectSound
+ * or OpenAL) whether a physical backend could be started and stored the answer in `application_sound_system_enabled`.  That fact is the HOST's: the campaign makes no device call here and has no backend of its own to fall
+ * back to.  The campaign keeps its flag test (`!no_sound && !dedicated`), the place and the order of the call, the descriptor policy and every consequence of the answer.
+ *
+ * The request carries what the campaign actually knows and intends: the phase (only CAMPAIGN_SOUND_BACKEND_PHASE_INITIALISE exists), the two command line flags as they stand (both 0 here, since the call is behind the flag
+ * test; they are carried so the host sees the real condition), and whether the campaign will go on to load its samples if the backend is available (1).  The reply is one flag: the backend is available (1) or not (0).  No
+ * pointer, handle, COM structure or device description crosses.
+ *
+ * "Available" is REFUSED by name (`[sound-backend-provider:unsupported]`) until the sample loader bodies and the playback routes are the host's as well: the campaign has no handles to give such a backend, and a positive
+ * answer is neither accepted nor faked.  It is a separate exchange from the environment, the duration and the sample metadata callbacks: it does not enlarge the request or the reply of any of them.
+ */
+#define CAMPAIGN_SOUND_BACKEND_PHASE_INITIALISE 1
+
+typedef struct campaign_sound_backend_request
+{
+	int phase;
+	int no_sound;
+	int dedicated;
+	int load_samples;
+} campaign_sound_backend_request;
+
+typedef struct campaign_sound_backend_reply
+{
+	int available;
+} campaign_sound_backend_reply;
+
+typedef int (*campaign_sound_backend_fn)
+(
+	const campaign_sound_backend_request *request,
+	campaign_sound_backend_reply *reply,
+	char *error,
+	size_t error_size,
+	void *user
+);
+
+typedef struct campaign_sound_backend_host
+{
+	campaign_sound_backend_fn backend;
+	void *user;
+} campaign_sound_backend_host;
+
 struct SESSION;
 
 /* Installs the host for the rest of the process (like the terrain provider it is kept across engine entries: the field is asked about from every entry).  A NULL host or
@@ -375,5 +417,14 @@ void campaign_sound_catalogue_set_host (const campaign_sound_catalogue_host *hos
    and the distinct (slot, name) pairs matched are no more than the header's entries (a question asked twice is one pair).  A missing provider, a refusal and a malformed answer stop the engine with an error that names the sample metadata
    provider; there is no campaign lookup to fall back to. */
 void campaign_sound_catalogue (int slots, int count, const int *index, const char *const *name, int *header_present, int *header_count, int *rate, int *original_rate, int *matched, int *size);
+
+/* Installs the sound backend host for the rest of the process (kept across engine entries, like the environment host). A NULL host or one with no callback leaves the installed one. */
+void campaign_sound_backend_set_host (const campaign_sound_backend_host *host);
+
+/* The physical sound backend availability at initialisation (see campaign_sound_backend_request): asks the installed host once and checks the answer before it returns.  `no_sound` and `dedicated` are the command line flags as
+   they stand (0 or 1).  The checks: a provider is installed, the flags are flags, the host wrote an answer, and the answer is 0 or 1.  An answer of 1 stops the engine with `[sound-backend-provider:unsupported]`, so the
+   function returns only 0 (not available) and the caller has stored and applied nothing before it.  A missing provider, a refusal, a panic and a malformed answer stop the engine with an error that names the sound backend
+   provider and its boundary (missing, request, callback, answer, unsupported); there is no campaign backend to fall back to. */
+int campaign_sound_backend (int no_sound, int dedicated);
 
 #endif

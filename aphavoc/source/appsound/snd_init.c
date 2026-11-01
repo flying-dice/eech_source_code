@@ -68,6 +68,12 @@
 
 #include "entity/special/session/ss_envfx.h"
 
+#ifdef EECH_CAMPAIGN_HOST_ENV
+
+#include "entity/special/session/ss_hostenv.h"
+
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -97,7 +103,23 @@ void initialise_application_sound_system (void)
 		// Initialise the modules sound system
 		//
 
+#ifdef EECH_CAMPAIGN_HOST_ENV
+
+		//
+		// EECH_CAMPAIGN_HOST_ENV (EEDCS-51, D3): the physical backend AVAILABILITY is the host's (ss_hostenv.h campaign_sound_backend_request).  The campaign keeps the flag test above and the order of
+		// everything around this statement; it makes no DirectSound or other device call here and has no backend of its own to fall back to.  An answer of "available" is refused by name until the loader
+		// bodies and the playback routes are the host's too, so what is stored below is always the host's "not available".
+		//
+
+		application_sound_system_enabled = campaign_sound_backend ( command_line_no_sound, command_line_comms_dedicated_server );
+
+		ENV_FXA (ENV_FXA_HOST_BACKEND, application_sound_system_enabled, 0, 0, 0)
+
+#else
+
 		application_sound_system_enabled = initialise_sound_system ();
+
+#endif
 
 		ENV_FXA (ENV_FXA_BACKEND, 0, 0, 0, 0)
 	

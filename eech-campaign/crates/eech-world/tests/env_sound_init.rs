@@ -1291,3 +1291,118 @@ fn coherent_host_answers_stay_accepted_a_zero_match_a_full_header_and_every_miss
         drive_host(&text).result.unwrap_or_else(|error| panic!("{label}: {error}"));
     }
 }
+
+// ---- the HOST-OWNED sound backend availability (EEDCS-51, D3): `env-sound-init-backend.lua` keeps the host's answer, the campaign's stored flag and its (absent) device calls APART ----
+//
+// A backend report is the metadata report with one more row, `env-sndinit-host-backend` (the host's validated answer, a mirror), after the host-answer row, and with every DirectSound entry counter of the campaign 0
+// (the campaign makes no device call). The numbers are shape examples, not facts about any native. The metadata driver refuses such a report and this driver refuses a metadata report: each fails closed.
+
+const BACKEND_SCRIPT: &str = include_str!("../lua/env-sound-init-backend.lua");
+
+fn drive_backend(text: &str) -> Driven {
+    drive_script(BACKEND_SCRIPT, "env-sound-init-backend.lua", text, "", "")
+}
+
+/// The backend form of a hosted report: the host-backend row follows each host-answer row (answers = the boot's backend-branch count, available 0), and no DirectSound entry was called by the campaign.
+fn backend_hosted(report: &str) -> String {
+    let mut out = String::new();
+    let mut asked = 0;
+    for line in report.lines() {
+        let field = |key: &str| line.split(' ').find_map(|token| token.strip_prefix(&format!("{key}="))).and_then(|value| value.parse::<i64>().ok()).unwrap_or(0);
+        if line.starts_with("env-sndinit-boot ") {
+            asked = field("backend");
+        }
+        if line.starts_with("env-sndinit-com ") {
+            let function = line.split(' ').find_map(|token| token.strip_prefix("function=")).unwrap_or("");
+            out += &format!("env-sndinit-com function={function} calls=0 last_return_w=00000000\n");
+            continue;
+        }
+        out += line;
+        out += "\n";
+        if line.starts_with("env-sndinit-host-answer ") {
+            out += &format!("env-sndinit-host-backend n={} source=host_reply_mirror answers={asked} available=0\n", field("n"));
+        }
+    }
+    out
+}
+
+fn backend_shape(skipped: bool) -> Shape {
+    if skipped {
+        Shape {
+            dedicated: 1,
+            gate: 2,
+            ..hosted_shape(false)
+        }
+    } else {
+        hosted_shape(false)
+    }
+}
+
+#[test]
+fn the_backend_driver_keeps_the_hosts_answer_the_campaigns_flag_and_its_device_calls_apart() {
+    for (skipped, answers, branch) in [(false, 1, "host_reported_backend_unavailable"), (true, 0, "skipped_by_flags")] {
+        let driven = drive_backend(&backend_hosted(&report(&backend_shape(skipped))));
+        driven.result.clone().unwrap_or_else(|error| panic!("skipped {skipped}: {error}"));
+        let derived = &of(&driven, "derived")[0];
+        assert_eq!(
+            (
+                derived["host_reply_backend_answers"].as_i64(),
+                derived["host_reply_backend_available"].as_bool(),
+                derived["core_directsound_last_entry_called"].as_str(),
+                derived["first_branch"].as_str()
+            ),
+            (Some(answers), Some(false), Some("none"), Some(branch)),
+            "skipped {skipped}"
+        );
+        // the original driver's claim about the DirectSound entries, which would be false here, is gone
+        assert!(derived.get("directsound_last_entry_called").is_none());
+        // the host's backend row is kept as it came
+        assert!(
+            driven.raw.contains(&format!("env-sndinit-host-backend n=0 source=host_reply_mirror answers={answers} available=0")),
+            "{}",
+            driven.raw
+        );
+    }
+}
+
+#[test]
+fn the_backend_driver_and_the_metadata_driver_each_refuse_the_others_report() {
+    let backend = backend_hosted(&report(&backend_shape(false)));
+    let error = drive_host(&backend).result.expect_err("the metadata driver must not accept a report holding the host-backend row");
+    assert!(error.starts_with("runtime error: env-sound-init-host:"), "{error}");
+    // a metadata report: the campaign still called DirectSound and there is no host-backend row
+    let metadata = hosted(&report(&backend_shape(false)));
+    let error = drive_backend(&metadata).result.expect_err("a campaign that still decides the backend itself is not a backend-hosted initialisation");
+    assert!(error.starts_with("runtime error: env-sound-init-backend:"), "{error}");
+}
+
+#[test]
+fn a_damaged_host_backend_row_a_device_call_or_a_stored_flag_that_is_not_the_hosts_answer_is_a_failure_of_the_witness() {
+    let good = backend_hosted(&report(&backend_shape(false)));
+    assert!(good.contains("env-sndinit-host-backend n=0 source=host_reply_mirror answers=1 available=0"));
+    let skipped = backend_hosted(&report(&backend_shape(true)));
+    assert!(skipped.contains("answers=0 available=0"));
+    for (label, text) in [
+        ("the host-backend row missing", drop_rows(&good, "env-sndinit-host-backend")),
+        ("the host asked twice", good.replace("answers=1 available=0", "answers=2 available=0")),
+        ("the host never asked where the campaign took the backend branch", good.replace("answers=1 available=0", "answers=0 available=0")),
+        ("the host asked where a flag skipped the backend branch", skipped.replace("answers=0 available=0", "answers=1 available=0")),
+        ("an available backend, which the campaign refuses by name", good.replace("answers=1 available=0", "answers=1 available=1")),
+        ("a flag that is not a flag", good.replace("answers=1 available=0", "answers=1 available=2")),
+        ("another source label", good.replace("source=host_reply_mirror answers=1 available", "source=core_observation answers=1 available")),
+        ("another ordinal", good.replace("env-sndinit-host-backend n=0", "env-sndinit-host-backend n=1")),
+        ("the campaign's stored flag not the host's answer", good.replace("enabled_backend=0", "enabled_backend=1")),
+        ("a module backend the campaign initialised itself", good.replace("initialised_backend=0", "initialised_backend=1")),
+        (
+            "a DirectSoundCreate call by the campaign",
+            good.replace("env-sndinit-com function=DirectSoundCreate calls=0", "env-sndinit-com function=DirectSoundCreate calls=1"),
+        ),
+        (
+            "a later DirectSound entry called by the campaign",
+            good.replace("env-sndinit-com function=IDirectSound_Release calls=0", "env-sndinit-com function=IDirectSound_Release calls=2"),
+        ),
+    ] {
+        let error = drive_backend(&text).result.expect_err(label);
+        assert!(error.starts_with("runtime error: env-sound-init-backend:"), "{label}: {error}");
+    }
+}

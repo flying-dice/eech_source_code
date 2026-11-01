@@ -74,6 +74,7 @@ typedef campaign_los_fn eech_line_of_sight_callback;
 typedef campaign_terrain_fn eech_terrain_callback;
 typedef campaign_env_fn eech_environment_callback;
 typedef campaign_sound_catalogue_fn eech_sound_catalogue_callback;
+typedef campaign_sound_backend_fn eech_sound_backend_callback;
 typedef campaign_sense_fn eech_sense_callback;
 typedef campaign_aim_fn eech_aim_callback;
 
@@ -99,6 +100,8 @@ struct eech_engine_host
 	eech_environment_callback environment;
 	/* Called synchronously ONCE at boot (ss_hostenv.h campaign_sound_catalogue_request, snd_data.c): the host owns the physical sample metadata at initialisation: each named descriptor's rate and original rate and, from the host's own sound.hdr / sound.dat (its data root, presence and lookup), the length of the header's entry for it. Installed for the rest of the process by the first entry that carries it (boot requires it); there is no campaign fallback. */
 	eech_sound_catalogue_callback sound_catalogue;
+	/* Called synchronously ONCE at boot (ss_hostenv.h campaign_sound_backend_request, snd_init.c): the host owns the physical sound backend AVAILABILITY at initialisation. The request carries the phase, the two command line flags and whether the samples would be loaded; the reply is one flag. An answer of available is refused by name until the loader bodies and playback routes are the host's. Installed like the other hosts and kept for the process. */
+	eech_sound_backend_callback sound_backend;
 	void *user;
 };
 

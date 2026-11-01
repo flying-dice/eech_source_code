@@ -33,6 +33,10 @@
 //!   exists): the campaign names its descriptors, in its table's order, by the slot each fills and the asset it plays, and the host answers `{ header_present, header_count, entries = { { rate, original_rate, matched,
 //!   size }, ... } }`, one entry for each, in order. The host owns the rates, where its `audio\sound.hdr` and `audio\sound.dat` are (its own sound data root: `host.env_provider { sound_root = ... }`, else the host's
 //!   `root` argument; a host with neither refuses), whether the pair is present and the header's lookup (sound_data.rs). An absent pair is a legitimate answer; a header the original could only misread is refused by name.
+//! - `sound_backend { phase = "initialise", no_sound, dedicated, load_samples }`: the physical SOUND BACKEND AVAILABILITY at initialisation (EEDCS-51, snd_init.c `initialise_application_sound_system`, asked once at boot
+//!   behind the campaign's own flag test): the host answers `{ available }`. The reference host has no audio device or playback support, so it honestly answers `available = false` (the headless original's answer too);
+//!   it fakes no device and keeps no state. The campaign refuses `available = true` by name until the loader bodies and the playback routes are the host's. A request that is not the campaign's (another phase,
+//!   a flag that is not a boolean) is refused by name.
 //! - `step { delta, server, in_cockpit, camera?, lightning_draw?, map }`: the physical update of one session update. `{ need_draw = true, timer }` (the field is NOT changed) when the
 //!   server's lightning timer has expired and the next timer needs the one draw of the shared random word, which only the campaign may make; the campaign then asks again with
 //!   `lightning_draw`. Otherwise `{ state, expired, strike?, new_timer? }`.
@@ -985,6 +989,22 @@ fn respond(lua: &Lua, field: &RefCell<Field>, sound_root: &Option<PathBuf>, requ
                 entries.set(position + 1, item)?;
             }
             answer.set("entries", entries)?;
+        }
+        "sound_backend" => {
+            match request.get::<LuaValue>("phase")? {
+                LuaValue::String(phase) if phase.to_str()? == "initialise" => {}
+                other => {
+                    return Err(refuse(format_args!(
+                        "[sound-backend-provider:request] phase must be \"initialise\", got {}",
+                        other.type_name()
+                    )))
+                }
+            }
+            for flag in ["no_sound", "dedicated", "load_samples"] {
+                boolean(request, flag)?;
+            }
+            // the reference host has no audio backend: it says so, and nothing else
+            answer.set("available", false)?;
         }
         "gust" => {
             let phase = single(&reader, request, "phase", "phase")?;

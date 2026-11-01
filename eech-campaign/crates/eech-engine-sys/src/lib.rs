@@ -1398,6 +1398,28 @@ pub type eech_sound_catalogue_callback = unsafe extern "C" fn(
     user: *mut c_void,
 ) -> c_int;
 
+/// The host-owned physical sound backend availability exchange (ss_hostenv.h campaign_sound_backend_request): plain integers, owned by the C caller for the callback.
+#[repr(C)]
+pub struct eech_sound_backend_request {
+    pub phase: c_int,
+    pub no_sound: c_int,
+    pub dedicated: c_int,
+    pub load_samples: c_int,
+}
+
+#[repr(C)]
+pub struct eech_sound_backend_reply {
+    pub available: c_int,
+}
+
+pub type eech_sound_backend_callback = unsafe extern "C" fn(
+    request: *const eech_sound_backend_request,
+    reply: *mut eech_sound_backend_reply,
+    error: *mut c_char,
+    error_size: usize,
+    user: *mut c_void,
+) -> c_int;
+
 #[repr(C)]
 pub struct eech_engine_host {
     pub bind_mobile: Option<eech_bind_mobile_callback>,
@@ -1410,6 +1432,7 @@ pub struct eech_engine_host {
     pub terrain: Option<eech_terrain_callback>,
     pub environment: Option<eech_environment_callback>,
     pub sound_catalogue: Option<eech_sound_catalogue_callback>,
+    pub sound_backend: Option<eech_sound_backend_callback>,
     pub user: *mut c_void,
 }
 

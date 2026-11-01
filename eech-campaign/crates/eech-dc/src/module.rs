@@ -9,6 +9,7 @@ use eech_engine::{
     EECH_ENV_LIGHTNING_UPDATE, EECH_ENV_MODE_COUNT, EECH_ENV_SOUND_LIFETIME_INIT, EECH_ENV_SOUND_LIFETIME_UPDATE, EECH_ENV_SOUND_PAUSE_RESUME, EECH_ENV_STEP,
     EECH_ENV_WEATHER, EECH_ENV_WIND, EECH_LIGHTNING_SLOTS, EECH_SOUND_SAMPLES,
 };
+use eech_engine::{SoundBackendProvider, SoundBackendReply, SoundBackendRequest, SOUND_BACKEND_PHASE_INITIALISE};
 use eech_engine::{SoundCatalogueEntry, SoundCatalogueProvider, SoundCatalogueReply, SoundCatalogueRequest};
 use mlua::prelude::*;
 use std::path::PathBuf;
@@ -1004,6 +1005,55 @@ fn sound_catalogue_provider(lua: &Lua, function: LuaFunction) -> SoundCatalogueP
             header_count,
             entries,
         })
+    })
+}
+
+/// The function that answers the sound backend availability question: the boot's `sound_backend` when it gave one, else the host's environment provider (the reference host answers it). There is no campaign device
+/// call to fall back to, so a `sound_backend` that is not a function is refused, with the stable marker; a provider that cannot answer is refused with the same marker family at the question, which the engine asks
+/// before it stores anything.
+fn sound_backend_function(config: &LuaTable, environment: &LuaFunction) -> LuaResult<LuaFunction> {
+    match config.get::<LuaValue>("sound_backend")? {
+        LuaValue::Nil => Ok(environment.clone()),
+        LuaValue::Function(function) => Ok(function),
+        value => Err(LuaError::runtime(format!(
+            "eech: [sound-backend-provider:missing] the sound backend provider must be a function, got {}",
+            value.type_name()
+        ))),
+    }
+}
+
+/// Builds the sound backend provider the engine keeps from the host's Lua function. The request is
+/// `{ op = "sound_backend", phase = "initialise", no_sound = bool, dedicated = bool, load_samples = bool }` and the answer `{ available = bool }`. A Lua error, a missing field and a value of the wrong kind are
+/// refusals that name the sound backend provider; whether `available = true` is acceptable is the campaign's decision at the C boundary (it is refused by name until the loader and playback routes are the host's).
+fn sound_backend_provider(lua: &Lua, function: LuaFunction) -> SoundBackendProvider {
+    let lua = lua.clone();
+    Box::new(move |request: &SoundBackendRequest| -> Result<SoundBackendReply, String> {
+        let callback = |error: LuaError| format!("[sound-backend-provider:callback] {error}");
+        if request.phase != SOUND_BACKEND_PHASE_INITIALISE {
+            return Err(format!("[sound-backend-provider:request] the phase {} is not the initialisation", request.phase));
+        }
+        let table = lua.create_table().map_err(callback)?;
+        table.set("op", "sound_backend").map_err(callback)?;
+        table.set("phase", "initialise").map_err(callback)?;
+        table.set("no_sound", request.no_sound).map_err(callback)?;
+        table.set("dedicated", request.dedicated).map_err(callback)?;
+        table.set("load_samples", request.load_samples).map_err(callback)?;
+        let answer: LuaTable = match function.call::<LuaValue>(table).map_err(callback)? {
+            LuaValue::Table(answer) => answer,
+            other => {
+                return Err(format!(
+                    "[sound-backend-provider:answer] the provider answered with {} where a table was expected",
+                    other.type_name()
+                ))
+            }
+        };
+        match answer.get::<LuaValue>("available").map_err(callback)? {
+            LuaValue::Boolean(available) => Ok(SoundBackendReply { available }),
+            other => Err(format!(
+                "[sound-backend-provider:answer] available must be a boolean, got {}",
+                other.type_name()
+            )),
+        }
     })
 }
 
@@ -3404,6 +3454,8 @@ fn boot(lua: &Lua, config: LuaTable) -> LuaResult<LuaEngine> {
     };
     // EEDCS-51 (D3): the host owns the physical sample metadata at initialisation (rates, and the sizes in its own sound.hdr / sound.dat). A provider that is not a function is refused here, before anything boots.
     let sound_data = sound_data_function(&config, &environment)?;
+    // EEDCS-51 (D3): and the physical sound backend availability at initialisation, asked in the same boot behind the campaign's own flag test.
+    let sound_backend = sound_backend_function(&config, &environment)?;
     let arguments: Vec<String> = config.get::<Option<Vec<String>>>("arguments")?.unwrap_or_default();
     let config = EngineConfig {
         install_root: PathBuf::from(config.get::<String>("install_root")?),
@@ -3434,6 +3486,7 @@ fn boot(lua: &Lua, config: LuaTable) -> LuaResult<LuaEngine> {
         terrain_provider(lua, terrain)?,
         environment_provider(lua, environment)?,
         sound_catalogue_provider(lua, sound_data),
+        sound_backend_provider(lua, sound_backend),
     )
     .map_err(lua_error)?;
     Ok(LuaEngine {
@@ -5531,6 +5584,96 @@ mod tests {
             match sound_data_function(&config, &environment) {
                 Ok(_) => return Err(format!("a sample metadata provider {given} was accepted").into()),
                 Err(error) => assert!(error.to_string().contains("[sound-data-provider:missing]"), "{error}"),
+            }
+        }
+        Ok(())
+    }
+
+    // ---- the host's sound backend availability provider as a Lua function (EEDCS-51, D3): the request it is given and the answer it may give ----
+
+    fn backend_provider_of(lua: &Lua, body: &str) -> Result<SoundBackendProvider, Box<dyn std::error::Error>> {
+        let function: LuaFunction = lua.load(format!("return function (request) {body} end")).eval()?;
+        Ok(sound_backend_provider(lua, function))
+    }
+
+    fn backend_request() -> SoundBackendRequest {
+        SoundBackendRequest {
+            phase: SOUND_BACKEND_PHASE_INITIALISE,
+            no_sound: false,
+            dedicated: true,
+            load_samples: true,
+        }
+    }
+
+    #[test]
+    fn the_backend_question_reaches_the_hosts_lua_by_value_and_only_a_boolean_answer_is_read() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let mut provider = backend_provider_of(
+            &lua,
+            "assert (request.op == 'sound_backend' and request.phase == 'initialise') \
+             assert (request.no_sound == false and request.dedicated == true and request.load_samples == true) \
+             return { available = false }",
+        )?;
+        assert!(!provider(&backend_request())?.available);
+        // the host's answer is carried as it is, whatever it is: the campaign decides what it accepts
+        let mut available = backend_provider_of(&lua, "return { available = true }")?;
+        assert!(available(&backend_request())?.available);
+        for (label, body) in [
+            ("a nil", "return nil"),
+            ("a number", "return 5"),
+            ("a string", "return 'yes'"),
+            ("no field", "return {}"),
+            ("a number as the flag", "return { available = 0 }"),
+            ("a string as the flag", "return { available = 'false' }"),
+        ] {
+            let mut provider = backend_provider_of(&lua, body)?;
+            let Err(error) = provider(&backend_request()) else {
+                return Err(format!("{label}: an unreadable answer was accepted").into());
+            };
+            assert!(error.starts_with("[sound-backend-provider:answer]"), "{label}: {error}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn a_backend_provider_that_raises_or_is_not_a_function_is_refused_by_name_and_a_foreign_phase_is_never_sent() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let mut provider = backend_provider_of(&lua, "error ('the host has no audio', 0)")?;
+        let Err(error) = provider(&backend_request()) else {
+            return Err("a raising provider answered".into());
+        };
+        assert!(
+            error.starts_with("[sound-backend-provider:callback]") && error.contains("the host has no audio"),
+            "{error}"
+        );
+        // a host whose environment provider does not know the operation is the same named refusal
+        let mut old_host = backend_provider_of(
+            &lua,
+            "if request.op ~= 'weather' then error ('host.env: unknown op ' .. request.op, 0) end return {}",
+        )?;
+        let Err(error) = old_host(&backend_request()) else {
+            return Err("a host that does not know the operation answered".into());
+        };
+        assert!(
+            error.starts_with("[sound-backend-provider:callback]") && error.contains("unknown op sound_backend"),
+            "{error}"
+        );
+        let mut calls = backend_provider_of(&lua, "return { available = false }")?;
+        let Err(error) = calls(&SoundBackendRequest { phase: 2, ..backend_request() }) else {
+            return Err("a foreign phase was sent".into());
+        };
+        assert!(error.starts_with("[sound-backend-provider:request]"), "{error}");
+        // the boot's choice of the function: its own `sound_backend`, else the environment provider; one that is given and is not a function stops the boot with the stable marker before the engine is touched
+        let environment: LuaFunction = lua.load("return function () return 'environment' end").eval()?;
+        let empty: LuaTable = lua.load("return {}").eval()?;
+        assert_eq!(sound_backend_function(&empty, &environment)?.call::<String>(())?, "environment");
+        let separate: LuaTable = lua.load("return { sound_backend = function () return 'separate' end }").eval()?;
+        assert_eq!(sound_backend_function(&separate, &environment)?.call::<String>(())?, "separate");
+        for given in ["5", "'text'", "{}", "true"] {
+            let config: LuaTable = lua.load(format!("return {{ sound_backend = {given} }}")).eval()?;
+            match sound_backend_function(&config, &environment) {
+                Ok(_) => return Err(format!("a sound backend provider {given} was accepted").into()),
+                Err(error) => assert!(error.to_string().contains("[sound-backend-provider:missing]"), "{error}"),
             }
         }
         Ok(())

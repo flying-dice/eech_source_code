@@ -662,6 +662,8 @@ struct enva_boot
 	int matched, missed;
 	/* the HOST's validated sample metadata answer (ENV_FXA_HOST_ANSWER): a MIRROR of what the host said, not an observation of a file operation of the campaign; open_true/open_false/matched/missed above stay the campaign's own events */
 	int host_answers, host_present, host_header_count, host_matched, host_missed;
+	/* the HOST's validated backend availability answer (ENV_FXA_HOST_BACKEND): a MIRROR of what the host said; the campaign makes no DirectSound call in the hosted initialisation, so the platform counters below stay what they are (0) */
+	int host_backend_answers, host_backend_available;
 	int backend, enabled_backend, initialised_backend;
 	int load, skipped, exited, enabled_exit;
 	struct enva_catalogue filled_catalogue, end_catalogue;
@@ -891,6 +893,10 @@ void eech_envobs_sndinit (int point, int a, int b, int c, int d)
 			enva_in_effects = 0;
 			enva_take_catalogue (&boot->end_catalogue);
 			break;
+		case ENV_FXA_HOST_BACKEND:
+			boot->host_backend_answers++;
+			boot->host_backend_available = a;
+			break;
 		case ENV_FXA_BACKEND:
 			boot->backend++;
 			boot->enabled_backend = application_sound_system_enabled;
@@ -1045,6 +1051,12 @@ int eech_envobs_sndinit_report (char *text, int capacity, int *used)
 		/* the host's answer, labelled as a mirror: the campaign's own events above (open_true, open_false, matched, missed) and its file attempts below are NOT these numbers */
 		if (append (text, capacity, used, "env-sndinit-host-answer n=%u source=host_reply_mirror answers=%d present=%d header_count=%d matched=%d missed=%d\n", n, b->host_answers, b->host_present, b->host_header_count, b->host_matched,
 			b->host_missed) != 0)
+		{
+			return -1;
+		}
+
+		/* the host's backend answer, labelled as a mirror: the campaign's own events (backend, enabled_backend above) and the DirectSound entry counters below are NOT these numbers */
+		if (append (text, capacity, used, "env-sndinit-host-backend n=%u source=host_reply_mirror answers=%d available=%d\n", n, b->host_backend_answers, b->host_backend_available) != 0)
 		{
 			return -1;
 		}

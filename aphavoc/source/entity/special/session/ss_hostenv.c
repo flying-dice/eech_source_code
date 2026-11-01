@@ -1178,4 +1178,78 @@ void campaign_sound_catalogue (int slots, int count, const int *index, const cha
 	*header_count = reply.header_count;
 }
 
+////////////////////////////////////////
+
+// The host-owned physical sound backend availability (ss_hostenv.h campaign_sound_backend_request): one exchange at initialisation, checked before the caller stores anything.
+
+static campaign_sound_backend_host
+	backend_host;
+
+static int
+	backend_host_installed;
+
+void campaign_sound_backend_set_host (const campaign_sound_backend_host *host)
+{
+	if (host && host->backend)
+	{
+		backend_host = *host;
+
+		backend_host_installed = TRUE;
+	}
+}
+
+int campaign_sound_backend (int no_sound, int dedicated)
+{
+	campaign_sound_backend_request
+		request;
+
+	campaign_sound_backend_reply
+		reply;
+
+	char
+		error[CAMPAIGN_ENV_ERROR_MAX + 1];
+
+	if (!backend_host_installed)
+	{
+		debug_fatal ("host sound backend: [sound-backend-provider:missing] no sound backend provider is installed");
+	}
+
+	// what the campaign asks is checked before the host is asked: a flag that is not a flag is the campaign's error, not the host's
+	if (((no_sound != 0) && (no_sound != 1)) || ((dedicated != 0) && (dedicated != 1)))
+	{
+		debug_fatal ("host sound backend: [sound-backend-provider:request] the campaign's flags are not flags (no_sound %d, dedicated %d)", no_sound, dedicated);
+	}
+
+	memset (&request, 0, sizeof (request));
+
+	request.phase = CAMPAIGN_SOUND_BACKEND_PHASE_INITIALISE;
+	request.no_sound = no_sound;
+	request.dedicated = dedicated;
+	request.load_samples = TRUE;
+
+	// the host's answer starts as a value no valid answer contains, so a host that wrote nothing is refused, never read as "not available"
+	memset (&reply, 0, sizeof (reply));
+
+	reply.available = -1;
+
+	memset (error, 0, sizeof (error));
+
+	if (backend_host.backend (&request, &reply, error, CAMPAIGN_ENV_ERROR_MAX, backend_host.user) != 0)
+	{
+		debug_fatal ("host sound backend: %s", error[0] ? error : "[sound-backend-provider:callback] the host sound backend provider failed without a message");
+	}
+
+	if ((reply.available != 0) && (reply.available != 1))
+	{
+		debug_fatal ("host sound backend: [sound-backend-provider:answer] the availability answer is not 0 or 1 (%d)", reply.available);
+	}
+
+	if (reply.available)
+	{
+		debug_fatal ("host sound backend: [sound-backend-provider:unsupported] the host reports a physical sound backend, which is not supported until the sample loader bodies and the playback routes are the host's: the campaign has no handles for it and does not fake one");
+	}
+
+	return reply.available;
+}
+
 #endif
