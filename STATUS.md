@@ -1,3 +1,19 @@
+# D3 host pause/resume — all22 actual controls measured (1 November 2026)
+
+Physical82234/newimmutableWindows+Linux0/bothstrict0/all9currentCIgreen;
+same independent source/materialmerge review0487clear. All15 SAME-original
+COMPLETE diagnostic files/endings match retained bytes, including natural120s.
+Seven public controls pass with intentional old33native1/0newrequests/exactold
+case12; newhealthy2requests/exactcase12; alteredpause timer3s and alteredresume
+valid-but-unlinked real state; three named engine_failure/noresult refusals.
+All44pre/postinputs0, old56/new61payloads and driver/wrapper identities pass.
+Safe metadata: reference/d3-environment-characterization/sound-host-pause-native-82234/.
+NEW independent actual/auditor/publication review is pending; noTask51fullshipping,
+Tacview/normaldelivery orwholeD3acceptance. GroundTask48Done/PR108normal3fd.
+Requiredbackend/metadata/assets/perfamily/non-session/destroy/network/pitch/
+amplitude/time andterrain-spatial-model stayD3; campaign policy/calendar/timers/
+scheduling stayCore; D4/D5unstarted. Allfailedattempts/firstd1rawgap retained.
+
 Root verification note (1 November): dirty Linux kernels and DLL-load tests did execute; no new Windows native retail campaign has run. The opt0 unresolved-symbol attempt remains failed. Its attribution to a preexisting inline-linkage limitation is an author inference, not an independently reproduced baseline result. Configured standard C optimization is1 (build/main.rs default), and that recovery passes. Clean immutable builds, source review and retail controls are next.
 
 # D3 integrated checkpoint — accepted ground (Task 47/48 Done) merged into the Task 51 environment branch; host pause/resume unaccepted (1 November 2026 UTC; merge in progress, uncommitted)

@@ -1,0 +1,65 @@
+{
+  "runtime_source": "82234a3a3cb6d54fbbede7a2cf7939c965e353c3",
+  "scope": "Safe metadata projection/copies; private-original byte identities are distinct from any Git text normalization. No raw recordings, coordinates, retail input or binaries copied. Actual independent publication review is pending.",
+  "copies": [
+    {
+      "file": "host-pause-combined-82234a3a3-20261101.json",
+      "private_original_sha256": "2b59a7e991aa313ccdab2e7da14f3e11dce28c1379715a8870a375c459f0eac2",
+      "copy_before_git_normalization_sha256": "2b59a7e991aa313ccdab2e7da14f3e11dce28c1379715a8870a375c459f0eac2",
+      "bytes": 28765
+    },
+    {
+      "file": "audit-host-pause-controls-v3-20261101.py",
+      "private_original_sha256": "b2c09681e397e06d4ac706925b29e21797a2b4d389c86773ab4aca85eaa93ba8",
+      "copy_before_git_normalization_sha256": "b2c09681e397e06d4ac706925b29e21797a2b4d389c86773ab4aca85eaa93ba8",
+      "bytes": 11011
+    },
+    {
+      "file": "host-pause-first-audit-payload-assumption-failure-20261101.json",
+      "private_original_sha256": "7e0c7195ee2a99c5ffc66bd895dd8ed768f1c5faca75b123fc3aa2309ab56ee4",
+      "copy_before_git_normalization_sha256": "7e0c7195ee2a99c5ffc66bd895dd8ed768f1c5faca75b123fc3aa2309ab56ee4",
+      "bytes": 1427
+    },
+    {
+      "file": "host-pause-second-audit-step-aggregation-failure-20261101.json",
+      "private_original_sha256": "65d9f1cb3f0092290005e790727ffb672c4b8fa00e9b9f732b3cba88d2e84985",
+      "copy_before_git_normalization_sha256": "65d9f1cb3f0092290005e790727ffb672c4b8fa00e9b9f732b3cba88d2e84985",
+      "bytes": 1465
+    },
+    {
+      "file": "compare-host-pause-defaults-20261101.py",
+      "private_original_sha256": "ffc25d3159deae6ff237abea9ea470bd07ecb86c17dfd6a742513709cb911cad",
+      "copy_before_git_normalization_sha256": "ffc25d3159deae6ff237abea9ea470bd07ecb86c17dfd6a742513709cb911cad",
+      "bytes": 2810
+    },
+    {
+      "file": "independent-environment-host-pause-integrated-source-review-82234a3a3-20261101.json",
+      "private_original_sha256": "0487a1cc8042a666fccf501030cc6426f00c1dd8902f1c9bc7446a440fda1422",
+      "copy_before_git_normalization_sha256": "0487a1cc8042a666fccf501030cc6426f00c1dd8902f1c9bc7446a440fda1422",
+      "bytes": 13965
+    },
+    {
+      "file": "current-CI-82234a3a3-20261101.json",
+      "private_original_sha256": "719566103d0b27102473c4811076625182fcca998a10243abd5e6d330cc3e870",
+      "copy_before_git_normalization_sha256": "719566103d0b27102473c4811076625182fcca998a10243abd5e6d330cc3e870",
+      "bytes": 15642
+    },
+    {
+      "file": "environment-host-sound-pause-82234a3a3-windows-20261101-completion.json",
+      "private_original_sha256": "eff354fad2b236f913155897fb1143baa93f53dd6b19214bdb62a789e1260d9f",
+      "copy_before_git_normalization_sha256": "eff354fad2b236f913155897fb1143baa93f53dd6b19214bdb62a789e1260d9f",
+      "bytes": 737
+    },
+    {
+      "file": "environment-host-sound-pause-82234a3a3-linux-20261101-completion.json",
+      "private_original_sha256": "098fb42cf905c74a238ad50cee260b6acf402d463010fccd1d7928976a1744a9",
+      "copy_before_git_normalization_sha256": "098fb42cf905c74a238ad50cee260b6acf402d463010fccd1d7928976a1744a9",
+      "bytes": 733
+    },
+    {
+      "file": "complete-raw-comparison.json",
+      "private_original_sha256": "27d0e246698893e1a28cddf9a3e215f9665512181f3374faa08c9339582b7c7e",
+      "bytes": 12630
+    }
+  ]
+}
