@@ -1303,8 +1303,10 @@ fn drive_backend(text: &str) -> Driven {
     drive_script(BACKEND_SCRIPT, "env-sound-init-backend.lua", text, "", "")
 }
 
-/// The backend form of a hosted report: the host-backend row follows each host-answer row (answers = the boot's backend-branch count, available 0), and no DirectSound entry was called by the campaign.
-fn backend_hosted(report: &str) -> String {
+/// The backend form of an ORIGINAL-shaped report (what `report (&shape)` gives): the existing `hosted` transformation is applied exactly once here, which zeroes the campaign's header events and inserts the metadata
+/// host-answer row; then the host-backend row follows each host-answer row (answers = the boot's backend-branch count, available 0), and no DirectSound entry was called by the campaign.
+fn backend_hosted(original: &str) -> String {
+    let report = hosted(original);
     let mut out = String::new();
     let mut asked = 0;
     for line in report.lines() {
@@ -1381,13 +1383,24 @@ fn the_backend_driver_and_the_metadata_driver_each_refuse_the_others_report() {
     let error = drive_host(&backend)
         .result
         .expect_err("the metadata driver must not accept a report holding the host-backend row");
-    assert!(error.starts_with("runtime error: env-sound-init-host:"), "{error}");
-    // a metadata report: the campaign still called DirectSound and there is no host-backend row
+    // the metadata driver reads the host-answer row and then expects the catalogue: the host-backend row is where it does not belong
+    assert!(
+        error.starts_with("runtime error: env-sound-init-host:")
+            && error.contains("does not give the row env-sndinit-catalogue")
+            && error.contains("env-sndinit-host-backend n=0"),
+        "{error}"
+    );
+    // a metadata report (the campaign still called DirectSound, and there is no host-backend row): the backend driver expects the host-backend row right after the host-answer row
     let metadata = hosted(&report(&backend_shape(false)));
     let error = drive_backend(&metadata)
         .result
         .expect_err("a campaign that still decides the backend itself is not a backend-hosted initialisation");
-    assert!(error.starts_with("runtime error: env-sound-init-backend:"), "{error}");
+    assert!(
+        error.starts_with("runtime error: env-sound-init-backend:")
+            && error.contains("does not give the row env-sndinit-host-backend")
+            && error.contains("env-sndinit-catalogue n=0 when=filled"),
+        "{error}"
+    );
 }
 
 #[test]
@@ -1396,34 +1409,48 @@ fn a_damaged_host_backend_row_a_device_call_or_a_stored_flag_that_is_not_the_hos
     assert!(good.contains("env-sndinit-host-backend n=0 source=host_reply_mirror answers=1 available=0"));
     let skipped = backend_hosted(&report(&backend_shape(true)));
     assert!(skipped.contains("answers=0 available=0"));
-    for (label, text) in [
-        ("the host-backend row missing", drop_rows(&good, "env-sndinit-host-backend")),
-        ("the host asked twice", good.replace("answers=1 available=0", "answers=2 available=0")),
+    for (label, text, reason) in [
+        ("the host-backend row missing", drop_rows(&good, "env-sndinit-host-backend"), "does not give the row env-sndinit-host-backend"),
+        ("the host asked twice", good.replace("answers=1 available=0", "answers=2 available=0"), "the host was asked"),
         (
             "the host never asked where the campaign took the backend branch",
             good.replace("answers=1 available=0", "answers=0 available=0"),
+            "the host was asked",
         ),
         (
             "the host asked where a flag skipped the backend branch",
             skipped.replace("answers=0 available=0", "answers=1 available=0"),
+            "the host was asked",
         ),
         (
             "an available backend, which the campaign refuses by name",
             good.replace("answers=1 available=0", "answers=1 available=1"),
+            "reports an available backend",
         ),
-        ("a flag that is not a flag", good.replace("answers=1 available=0", "answers=1 available=2")),
+        (
+            "a flag that is not a flag",
+            good.replace("answers=1 available=0", "answers=1 available=2"),
+            "reports an available backend",
+        ),
         (
             "another source label",
             good.replace("source=host_reply_mirror answers=1 available", "source=core_observation answers=1 available"),
+            "source=host_reply_mirror",
         ),
-        ("another ordinal", good.replace("env-sndinit-host-backend n=0", "env-sndinit-host-backend n=1")),
+        (
+            "another ordinal",
+            good.replace("env-sndinit-host-backend n=0", "env-sndinit-host-backend n=1"),
+            "carries another ordinal",
+        ),
         (
             "the campaign's stored flag not the host's answer",
             good.replace("enabled_backend=0", "enabled_backend=1"),
+            "are not the host's answer",
         ),
         (
             "a module backend the campaign initialised itself",
             good.replace("initialised_backend=0", "initialised_backend=1"),
+            "are not the host's answer",
         ),
         (
             "a DirectSoundCreate call by the campaign",
@@ -1431,6 +1458,7 @@ fn a_damaged_host_backend_row_a_device_call_or_a_stored_flag_that_is_not_the_hos
                 "env-sndinit-com function=DirectSoundCreate calls=0",
                 "env-sndinit-com function=DirectSoundCreate calls=1",
             ),
+            "the campaign called DirectSoundCreate",
         ),
         (
             "a later DirectSound entry called by the campaign",
@@ -1438,9 +1466,12 @@ fn a_damaged_host_backend_row_a_device_call_or_a_stored_flag_that_is_not_the_hos
                 "env-sndinit-com function=IDirectSound_Release calls=0",
                 "env-sndinit-com function=IDirectSound_Release calls=2",
             ),
+            "the campaign called IDirectSound_Release",
         ),
     ] {
         let error = drive_backend(&text).result.expect_err(label);
         assert!(error.starts_with("runtime error: env-sound-init-backend:"), "{label}: {error}");
+        // refused for its own reason, never for an earlier schema error of the fixture
+        assert!(error.contains(reason), "{label}: {error}");
     }
 }

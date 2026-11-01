@@ -59,7 +59,9 @@ local function stop (marker, text)
 	error ("engine: host sound backend: " .. marker .. " " .. text, 0)
 end
 local answered, answer = 0, nil
-if behaviour ~= "decides_itself" then
+-- the behaviours that never ask the host: a native that still decides itself, and boots whose gate the flags closed or whose gate row is damaged
+local silent = { decides_itself = true, skipped_by_no_sound = true, skipped_by_dedicated = true, skipped_incoherent = true, both_branches = true, no_gate_row = true, flags_not_flags = true }
+if not silent [behaviour] then
 	local phase = behaviour == "bad_request" and "shutdown" or "initialise"
 	local request = { op = "sound_backend", phase = phase, no_sound = false, dedicated = false, load_samples = true }
 	local asked, result = pcall (host.env_provider (), request)
@@ -74,14 +76,21 @@ if behaviour ~= "decides_itself" then
 end
 local device_calls = behaviour == "core_device_call" and 1 or 0
 local enabled = behaviour == "stored_flag_differs" and 1 or 0
+local no_sound, dedicated, backend, skipped = 0, 0, 1, 0
+if behaviour == "skipped_by_no_sound" or behaviour == "skipped_but_asked" then no_sound, backend, skipped = 1, 0, 1 end
+if behaviour == "skipped_by_dedicated" then dedicated, backend, skipped = 1, 0, 1 end
+if behaviour == "skipped_incoherent" then backend, skipped = 0, 1 end
+if behaviour == "both_branches" then skipped = 1 end
+if behaviour == "flags_not_flags" then no_sound = 7 end
 local lines = {
-	"env-sndinit-boot n=0 backend=1 enabled_backend=" .. enabled .. " initialised_backend=0 skipped=0",
+	"env-sndinit-boot n=0 no_sound=" .. no_sound .. " dedicated=" .. dedicated .. " backend=" .. backend .. " enabled_backend=" .. enabled .. " initialised_backend=0 skipped=" .. skipped,
 	"env-sndinit-host-backend n=0 source=host_reply_mirror answers=" .. answered .. " available=0",
 	"env-sndinit-com function=DirectSoundCreate calls=" .. device_calls .. " last_return_w=00000000",
 	"env-sndinit-com function=IDirectSound_SetCooperativeLevel calls=0 last_return_w=00000000",
 	"env-sndinit-com function=IDirectSound_CreateSoundBuffer calls=0 last_return_w=00000000",
 	"env-sndinit-com function=IDirectSound_Release calls=0 last_return_w=00000000",
 }
+if behaviour == "no_gate_row" then table.remove (lines, 1) end
 assert (raw_file:write (table.concat (lines, "\n") .. "\n"))
 assert (raw_file:close ())
 assert (out:write ('{"event":"boot"}\n'))
@@ -191,6 +200,43 @@ fn a_campaign_that_never_asks_the_host_fails_with_the_named_capability_verdict()
     assert!(failure(&run).contains("sound-backend-host-capability-missing"));
     assert_eq!(verdict(&run), "sound_backend_host_capability_missing");
     assert_eq!(run.record.as_ref().map(|record| record["requests"].as_i64()), Some(Some(0)));
+}
+
+#[test]
+fn a_boot_whose_flags_closed_the_backend_branch_is_not_applicable_and_never_a_missing_capability() {
+    // the gate is the campaign's own: a coherent boot that skipped the backend branch (no_sound or dedicated) correctly never asked the host
+    for behaviour in ["skipped_by_no_sound", "skipped_by_dedicated"] {
+        let run = run(&[("behaviour", behaviour)]);
+        let error = failure(&run);
+        assert!(error.contains("SETUP FAILURE") && error.contains("not-applicable") && !error.contains("capability-missing"), "{behaviour}: {error}");
+        assert_eq!(verdict(&run), "not_applicable_backend_branch_skipped", "{behaviour}");
+        assert_eq!(run.record.as_ref().map(|record| record["requests"].as_i64()), Some(Some(0)), "{behaviour}");
+    }
+    // the attempted branch with no request stays the genuine capability red
+    let attempted = run(&[("behaviour", "decides_itself")]);
+    assert!(failure(&attempted).contains("sound-backend-host-capability-missing"));
+    assert_eq!(verdict(&attempted), "sound_backend_host_capability_missing");
+    // a skipped boot that nevertheless asked the host is a contradiction the healthy check refuses
+    let asked = run(&[("behaviour", "skipped_but_asked")]);
+    let error = failure(&asked);
+    assert!(error.contains("ownership-not-shown") && error.contains("boot_skipped expected 0 observed 1"), "{error}");
+}
+
+#[test]
+fn missing_unreadable_or_incoherent_gate_evidence_is_a_setup_failure_and_never_a_capability_verdict() {
+    for behaviour in ["skipped_incoherent", "both_branches", "no_gate_row", "flags_not_flags"] {
+        let run = run(&[("behaviour", behaviour)]);
+        let error = failure(&run);
+        assert!(error.contains("SETUP FAILURE") && error.contains("gate evidence") && !error.contains("capability-missing"), "{behaviour}: {error}");
+        assert_eq!(verdict(&run), "setup_failure_gate_evidence_incoherent", "{behaviour}");
+    }
+    // the sidecar that carries the gate is read with a checked open, read and close before any zero-request verdict
+    for kind in ["open", "read", "close"] {
+        let run = run_with(&[("behaviour", "decides_itself")], Some(("sidecar", kind)));
+        let error = failure(&run);
+        assert!(error.contains("SETUP FAILURE") && error.contains(&format!("injected {kind} failure")), "{kind}: {error}");
+        assert_eq!(verdict(&run), "setup_failure_evidence_unreadable", "{kind}");
+    }
 }
 
 #[test]

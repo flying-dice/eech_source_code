@@ -29,8 +29,12 @@
 -- verdict BEFORE it reads any hosted row, provided the delegate COMPLETES there: use `lua/env-sound-init-host.lua` on the metadata native and the ORIGINAL `lua/env-sound-init.lua` on the original (the backend driver refuses
 -- their reports, by its own guards, before this witness could judge). The record names the delegate (`delegate`).
 --
+-- THE GATE. Zero requests is a missing capability ONLY when the delegate's own boot row shows a coherent boot that TOOK the backend branch (flags no_sound 0 and dedicated 0, backend 1, skipped 0): the campaign asks only
+-- behind `!no_sound && !dedicated` and a supported configuration (the `no_sound` option, a dedicated server) can close that gate. A coherent boot that SKIPPED the branch is `not_applicable_backend_branch_skipped`, a
+-- setup-class refusal that is neither ownership nor a missing capability; a missing, unreadable or incoherent gate row is a setup failure. The witness never forces a host call and never changes the short circuit.
+--
 -- VERDICTS (errors begin `env-sound-backend-host-witness:`): `SETUP FAILURE` -- the delegate failed (healthy), the stop is not the engine's or not the intended refusal's (the reference provider raised first, the withdrawal is
--- not the cause, the host was never asked), or the evidence cannot be read back: NOT a verdict on ownership; `sound-backend-host-capability-missing`; `ownership-not-shown` -- the host was asked but the real report does not show
+-- not the cause, the host was never asked), the evidence cannot be read back, the gate evidence is incoherent, or the backend branch was skipped by a flag (not applicable): NOT a verdict on ownership; `sound-backend-host-capability-missing`; `ownership-not-shown` -- the host was asked but the real report does not show
 -- its answer; `not-stopped` / `wrong-boundary` -- a refused answer did not stop the campaign at its marker; `contradictory-result` / `unexpected-evidence` -- a stop that left a boot row or text.
 --
 -- WHAT IT DOES NOT. It asserts no private type, struct layout or ABI, creates no playback handle or device, loads no sample and exercises no renderer, speaker, network or playback route; it says nothing about the sample loader
@@ -227,16 +231,38 @@ if not ran then
 	write_record (false, "setup_failure_delegate_failed")
 	error (tostring (problem), 0)
 end
-if requests == 0 then
-	write_record (true, "sound_backend_host_capability_missing")
-	refuse ("sound-backend-host-capability-missing: the delegate completed and the host was asked 0 times for '" .. OP .. "': the campaign still decides its sound backend itself")
-end
+-- THE GATE EVIDENCE IS READ BEFORE ANY ZERO-REQUEST VERDICT. The campaign asks the host only behind its own flag test (`!no_sound && !dedicated`, snd_init.c), which a supported configuration can close (the
+-- `no_sound` option, a dedicated server). A coherent boot that SKIPPED the backend branch correctly never asks, and is NOT a missing host capability; only a coherent boot that took the backend branch and still
+-- did not ask is. Missing, unreadable or incoherent gate evidence is a setup failure and no verdict.
 local raw, raw_why = read_checked (raw_path)
 if raw == nil then
 	write_record (false, "setup_failure_evidence_unreadable")
 	refuse ("SETUP FAILURE: the delegate's raw native report " .. raw_path .. " could not be read (" .. raw_why .. "): there is no ownership verdict")
 end
 local boot = fields_of (raw, "env-sndinit-boot n=0")
+local function gate_of (row)
+	if row == nil then return nil, "the report has no boot row" end
+	local no_sound, dedicated, backend, skipped = tonumber (row.no_sound), tonumber (row.dedicated), tonumber (row.backend), tonumber (row.skipped)
+	for _, value in ipairs ({ no_sound or -1, dedicated or -1, backend or -1, skipped or -1 }) do
+		if value ~= 0 and value ~= 1 then return nil, "no_sound, dedicated, backend and skipped must each be 0 or 1 (" .. tostring (row.no_sound) .. ", " .. tostring (row.dedicated) .. ", " .. tostring (row.backend) .. ", " .. tostring (row.skipped) .. ")" end
+	end
+	if backend + skipped ~= 1 then return nil, "the backend branch was taken " .. backend .. " times and skipped " .. skipped .. " times, not exactly one of them" end
+	if ((no_sound == 1 or dedicated == 1) and 1 or 0) ~= skipped then return nil, "the flags (no_sound " .. no_sound .. ", dedicated " .. dedicated .. ") do not agree with the branch (skipped " .. skipped .. ")" end
+	return { no_sound = no_sound, dedicated = dedicated, skipped = skipped == 1 }
+end
+local gate, gate_why = gate_of (boot)
+if gate == nil then
+	write_record (false, "setup_failure_gate_evidence_incoherent")
+	refuse ("SETUP FAILURE: the delegate's gate evidence in " .. raw_path .. " is missing or incoherent (" .. gate_why .. "): there is no capability or ownership verdict")
+end
+if requests == 0 then
+	if gate.skipped then
+		write_record (true, "not_applicable_backend_branch_skipped")
+		refuse ("SETUP FAILURE: not-applicable: the campaign skipped its backend branch behind its own flag test (no_sound " .. gate.no_sound .. ", dedicated " .. gate.dedicated .. ") and correctly never asked the host: this run shows neither ownership nor a missing capability")
+	end
+	write_record (true, "sound_backend_host_capability_missing")
+	refuse ("sound-backend-host-capability-missing: the delegate completed, the campaign took its backend branch (no_sound 0, dedicated 0) and the host was asked 0 times for '" .. OP .. "': the campaign still decides its sound backend itself")
+end
 local answered = fields_of (raw, "env-sndinit-host-backend n=0")
 local coms = {}
 for _, name in ipairs ({ "DirectSoundCreate", "IDirectSound_SetCooperativeLevel", "IDirectSound_CreateSoundBuffer", "IDirectSound_Release" }) do
@@ -253,6 +279,7 @@ local function expect (what, wanted, observed)
 	if wanted ~= observed then wrong [#wrong + 1] = what .. " expected " .. tostring (wanted) .. " observed " .. tostring (observed) end
 end
 -- the HOST's answer: one answer, available 0, mirrored; the campaign's stored flag is that answer; and the campaign made no device call, which is a separate fact from the host's answer
+expect ("boot_skipped", "0", tostring (gate.skipped and 1 or 0))
 expect ("host_reply_answers", "1", answered.answers)
 expect ("host_reply_available", "0", answered.available)
 expect ("source", "host_reply_mirror", answered.source)
