@@ -772,6 +772,28 @@ void campaign_model_route_swap_index (int what, int index, int count, int capaci
 	}
 }
 
+// A CONSUMER of the parser's per-depth position table (popread.c: the airfield insertion functions and their WAYPOINT_ALTITUDE) is about to index `table` (the parser's
+// route_waypoint_positions, `count` entries, number_of_route_waypoint_positions) with `index`. The consumers step the index by fixed amounts from the deepest depth (minus 1, minus 2,
+// to a fixed floor) and read it, which holds for the routes the original models have and says nothing about a route a host answers: a connected two-node route has one depth, so
+// the first fixed step lands on -1. The staged patches H19/H20 wrap each such index in this function, once per indexed expression, so it is checked before anything is read, and
+// it returns the same index; an index outside the table, or no table, stops the engine with a named marker. Nothing is clamped, defaulted or invented, and no minimum depth per route
+// kind is assumed: only the table the parser actually built is the domain. (The parser's own reads and writes of the table are not wrapped, only popread's consumers.)
+int campaign_model_route_position_index (int index, int count, const void *table)
+{
+	if ((!table) || (index < 0) || (index >= count))
+	{
+		if (route_current)
+		{
+			debug_fatal ("host model: [model-provider:route.position] the campaign reads depth %d of a route position table of %d (the route last parsed was scene %d kind %d)", index, table ? count : 0,
+				route_current->scene, route_current->kind);
+		}
+
+		debug_fatal ("host model: [model-provider:route.position] the campaign reads depth %d of a route position table of %d", index, table ? count : 0);
+	}
+
+	return index;
+}
+
 // the parser is about to read its first start node
 void campaign_model_route_starts (int starts)
 {

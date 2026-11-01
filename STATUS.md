@@ -6,6 +6,23 @@ The first production route-data move is prepared/pushed at `66dc2e8a237a46f92003
 
 Task51 ordinary source78 shipping continues on its original immutable snapshot without restart; fifth check around19:40 UTC finds all four available recording/observation prefixes exact (24,733,777/15,499,264/24,676,439/15,089,664 bytes), PARTIAL only. Actual full40/all8/post-input/final review/current checks/normal delivery remain pending. Ledger117 preserves prior authored HTML and all five epic reports; Jira50comment10937 records the closed original gate and extraction start. Task49/50/51 and wholeD3 remain In Progress; D4/D5 are unstarted. No accepted baseline, tolerance, oracle or flag changed. Historical checkpoint sections below retain their original scope and identities.
 
+# D3 host route boundary: popread consumers of the position table (1 November 2026): SOURCE ONLY; NOT BUILT, NOT RUN
+
+The Root's source inspection found one more required consumer gap: `popread.c` `insert_airport_fixedwing_routes` (and the other airfield insertion functions) read `route_waypoint_positions[current_route_waypoint_offset]`
+from the deepest depth (`number_of_route_waypoint_positions - 1`) and step the offset down by fixed amounts (decrements at 2920, 2950, 2964 and so on), so a route with too few depths reads index -1 and below.
+Correction (staged patches H19/H20 and `campaign_model_route_position_index`, marker `[model-provider:route.position]`): all 205 occurrences of that indexed expression in `popread.c` (the `WAYPOINT_ALTITUDE` macro is one of them)
+now index through a check that returns the same index, once per expression and before anything is read, and stops the engine when the index is outside `[0, number_of_route_waypoint_positions)` or the table does not exist. Nothing
+is clamped, defaulted or invented and no minimum depth per route kind is introduced. The six `route_waypoint_positions[count]` troop-route copies are bounded by the table's own count and are not wrapped; routegen.c's own
+table writes are untouched. Original-profile build unchanged. Static check only: all 23 named routegen.c/popread.c host patches apply with their counts against the real sources in sequence (H20: 205 expected, 205 found, 0
+unwrapped, 6 `[count]` left), and a scan of the 12 offset loops found no read that uses a loop's exit index except the intended floor (offset 3 after the `> 3` taxi loop); no build, test or run.
+
+Control correction for the Root: with the earlier `route.start` guard a connected pure-black TWO-node route no longer reaches `popread` (both nodes are starts, none on a green face, so the old code's uninitialised
+`primary_start_index` is now refused as `route.start`). The smallest route that passes the parser is THREE nodes: black start-middle, green middle-leaf (depth count 3). Give landing AND take-off that same answer with
+identical coordinates (the take-off's leaf is within 3.0 of the single slot, so no swap). `validate_airport_links` (landing parse, slots, take-off parse) completes; the insertion then reads offsets 2, 1, 0 and the decrement
+at 2964 makes it -1, so the expected result is `route.position` for depth -1 of a 3-entry table, before any read at -1. Run on the corrected build only. Together with the 24-tree swap control already given (`route.swap`),
+these are source-derived inputs, not executed anywhere. Task50 and D3 remain In Progress; no finite or whole closure. The Root's `50e7f9d85` actuals (704/528 and repeats, short campaign, four topology controls, def6 FP) keep their
+own source identity and are not proof of this change.
+
 # D3 host route boundary: one residual P1, the end-slot swap's resolved indices (1 November 2026): SOURCE ONLY; NOT BUILT, NOT RUN
 
 Review `independent-model-host-route-guard-actual-50e7f9d85-20261101.json` (SHA256 `583c29a2d09b5406d9ba976de665a855b22daac98b91a2e05be33a5a7841c2c2`, source `50e7f9d8578c7d283b6a47f01a0e2d09e24cfd2f`) closed the

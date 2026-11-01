@@ -760,6 +760,31 @@ pub const ROUTE_HOST_PATCHES: &[Patch] = &[
         ),
         count: 1,
     },
+    // H19/H20: popread.c's CONSUMERS of the parser's per-depth position table index it with fixed steps from the deepest depth (current_route_waypoint_offset = depth count - 1, then
+    // -1, -2 and so on to fixed floors), which a route a host answers need not support (a connected two-node route has one depth). Every `route_waypoint_positions[
+    // current_route_waypoint_offset]` of popread.c, and so the WAYPOINT_ALTITUDE macro that expands to one, indexes through a check that returns the same index. The six
+    // `route_waypoint_positions[count]` copies (troop routes) are bounded by the table's own count and are not wrapped; the parser's own table writes are in routegen.c, not here.
+    Patch {
+        file: "aphavoc/source/ai/faction/popread.c",
+        id: "H19-route-position-index-declared",
+        why: "declares the check of an index into the parser's per-depth position table, at file scope before its first use (the WAYPOINT_ALTITUDE macro is the first place the pattern appears; a macro is expanded where it is used)",
+        original: "#define WAYPOINT_ALTITUDE route_waypoint_positions[current_route_waypoint_offset].position.y\n",
+        replacement: concat!(
+            "/* the host route boundary's check of an index into the parser's per-depth position table (mb_hostmodel.c; EECH headless, D3) */\n",
+            "int campaign_model_route_position_index ( int index, int count, const void *table );\n",
+            "\n",
+            "#define WAYPOINT_ALTITUDE route_waypoint_positions[current_route_waypoint_offset].position.y\n"
+        ),
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/ai/faction/popread.c",
+        id: "H20-route-position-index-checked",
+        why: "each popread read of the per-depth position table (205 indexed expressions of popread.c, one of them inside the WAYPOINT_ALTITUDE macro) takes its index through a check that returns it unchanged, or stops with route.position, before the table is touched",
+        original: "route_waypoint_positions[current_route_waypoint_offset]",
+        replacement: "route_waypoint_positions[campaign_model_route_position_index ( current_route_waypoint_offset, number_of_route_waypoint_positions, route_waypoint_positions )]",
+        count: 205,
+    },
 ];
 
 /// the staged text of `file` with the host-route patches applied (same strict count check as `apply`)
