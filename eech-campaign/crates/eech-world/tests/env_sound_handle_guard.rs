@@ -11,6 +11,23 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 const SCRIPT: &str = include_str!("../lua/env-sound-handle-guard.lua");
 
+/// The driver the checks run: the committed one, or the copy named by `EECH_SOUND_HANDLE_GUARD_DRIVER_UNDER_TEST` (for instance the frozen 6f5d522b3 driver, to see the structural guard fail on its false accepts). Only an
+/// ABSENT variable selects the committed driver; a value that is not Unicode, is empty, does not exist, is a directory or cannot be read is a failure, never a fall back.
+fn driver_source() -> String {
+    select_driver(std::env::var_os("EECH_SOUND_HANDLE_GUARD_DRIVER_UNDER_TEST"))
+}
+
+/// The selection itself, apart from the process environment (nothing here mutates it, so the parallel tests are unaffected).
+fn select_driver(value: Option<std::ffi::OsString>) -> String {
+    match value {
+        None => SCRIPT.to_string(),
+        Some(path) => {
+            let path = PathBuf::from(path);
+            std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("EECH_SOUND_HANDLE_GUARD_DRIVER_UNDER_TEST {path:?}: {e}"))
+        }
+    }
+}
+
 static COUNTER: AtomicUsize = AtomicUsize::new(0);
 
 struct Scratch(PathBuf);
@@ -114,7 +131,7 @@ fn drive_in(work: &Scratch, scenario: &str, args: &[(&str, &str)], before: &dyn 
         .set_name("scripted collaborators")
         .exec()
         .expect("the collaborators load");
-    let result = lua.load(SCRIPT).set_name("env-sound-handle-guard.lua").exec().map_err(|e| e.to_string());
+    let result = lua.load(driver_source()).set_name("driver under test").exec().map_err(|e| e.to_string());
     let rows = if foreign {
         Vec::new()
     } else {
@@ -141,7 +158,20 @@ fn error_of(driven: &Driven) -> String {
     driven.result.clone().expect_err("the driver must fail")
 }
 
-const NAMED: &str = "EECH fatal error: host environment: [env-sound:unsupported_handle_status] the host asks whether a native playback handle is playing at the expiry of a server sound effect";
+const TAG: &str = "[env-sound:unsupported_handle_status]";
+
+/// the engine's own message of the named stop (ss_hostenv.c debug_fatal), without any wrapper
+const MESSAGE: &str =
+    "host environment: [env-sound:unsupported_handle_status] the host asks whether a native playback handle is playing at the expiry of a server sound effect";
+
+/// An engine fatal as the public Lua path shows it (the shape the retained parent-play overload stop has): the first line wraps the engine's message as "runtime error: eech: EECH fatal error: " and a traceback follows.
+fn actual(message: &str) -> String {
+    format!("runtime error: eech: EECH fatal error: {message}\nstack traceback:\n\t[C]: in ?")
+}
+
+fn named() -> String {
+    actual(MESSAGE)
+}
 
 fn stop(text: &str) -> String {
     format!("{{ engine_error = {} }}", long(text))
@@ -155,7 +185,7 @@ fn args(case: &str) -> [(&str, &str); 1] {
 #[test]
 fn the_named_unsupported_handle_status_stop_is_the_only_accepted_outcome_and_nothing_follows_it() {
     for case in ["21", "22"] {
-        let driven = drive(&stop(NAMED), &args(case));
+        let driven = drive(&stop(&named()), &args(case));
         driven
             .result
             .clone()
@@ -167,47 +197,93 @@ fn the_named_unsupported_handle_status_stop_is_the_only_accepted_outcome_and_not
         assert_eq!(refusal["engine_continued"].as_bool(), Some(false));
         assert_eq!(of(&driven, "result")[0]["outcome"].as_str(), Some("expected_named_refusal"));
         // the whole fatal text is private; the JSON holds the named boundary and fixed words only
-        assert_eq!(driven.fatal_raw.as_deref(), Some(format!("{NAMED}\n").as_str()));
+        assert_eq!(driven.fatal_raw.as_deref(), Some(format!("{}\n", named()).as_str()));
         let json = serde_json::to_string(&driven.rows).expect("rows");
         assert!(!json.contains("playing at the expiry") && !json.contains("EECH fatal error"), "{json}");
     }
 
     let report = "env-sound kind=control i=21 label=handle_idle_buffer_absent_server_expiry comms=1\nenv-sound-end i=21 changed=1 installed=1 entities=1\n";
     let refused = "env-sound kind=control i=21 label=handle_idle_buffer_absent_server_expiry comms=1\nenv-sound-end i=21 refused=the_process_is_not_the_server changed=0\n";
-    let other = "EECH fatal error: host environment: [env-provider:sound_lifetime_update.answer] entity_index=7 a protocol error";
-    let live = "EECH fatal error: host environment: [env-play:unsupported_live_playback] entity_type=10 entity_index=7";
-    let twice = format!("{NAMED}; {NAMED}");
+    let provider = format!("host environment: [env-provider:sound_lifetime_update.answer] entity_index=7 the provider quoted {TAG} in its detail");
+    let live = "host environment: [env-play:unsupported_live_playback] entity_type=10 entity_index=7";
+    let later_word = format!("host environment: detail {TAG} rest");
+    let repeated = format!("{MESSAGE} {TAG}");
+    let later_line = format!("generic failure\n{}", named());
+    // each of these is a normal report, a refusal or an exception that merely CONTAINS the tag: only the engine's own fatal, with the tag at the start of the first line after the known wrapper, is accepted
+    let why = "not with the known engine fatal wrapper";
     let cases = [
         (
             "a normal report (the original native)",
             format!("{{ report = {} }}", long(report)),
             "returned a report instead of stopping",
+            "none",
         ),
-        ("a refused case", format!("{{ report = {} }}", long(refused)), "REFUSED case 21"),
-        ("another stop of the engine", stop(other), "not at [env-sound:unsupported_handle_status]"),
-        ("a different named stop", stop(live), "not at [env-sound:unsupported_handle_status]"),
-        ("a stop that names it twice", stop(&twice), "more than once"),
+        ("a refused case", format!("{{ report = {} }}", long(refused)), "REFUSED case 21", "none"),
+        ("a bare tag", stop(TAG), why, "none"),
+        (
+            "a generic Lua error that quotes the tag",
+            stop(&format!("input:1: boom {TAG} rest")),
+            why,
+            "none",
+        ),
+        (
+            "a generic prefix that carries the tag",
+            stop(&format!("runtime error: boom {TAG} rest")),
+            why,
+            "none",
+        ),
+        (
+            "an unwrapped token without the runtime wrapper",
+            stop(&format!("EECH fatal error: {MESSAGE}")),
+            why,
+            "none",
+        ),
+        (
+            "another native fatal that quotes the tag in its detail",
+            stop(&actual(&provider)),
+            why,
+            "[env-provider:sound_lifetime_update.answer]",
+        ),
+        ("a different named stop", stop(&actual(live)), why, "[env-play:unsupported_live_playback]"),
+        ("the tag after other words of the engine message", stop(&actual(&later_word)), why, "none"),
+        ("the tag on a later line", stop(&later_line), why, "none"),
+        ("the tag repeated", stop(&actual(&repeated)), "more than once", "none"),
     ];
-    for (what, scenario, reason) in cases {
+    for (what, scenario, reason, tag) in cases {
         let driven = drive(&scenario, &args("21"));
-        let error = error_of(&driven);
+        let error = match driven.result.clone() {
+            Ok(()) => panic!("{what}: the driver ACCEPTED an outcome that is not the engine's named stop (expected a failure containing {reason:?})"),
+            Err(error) => error,
+        };
         assert!(error.contains("env-sound-handle-guard:") && error.contains(reason), "{what}: {error}");
         assert!(
             of(&driven, "expected_refusal").is_empty() && of(&driven, "result").is_empty(),
             "{what}: not an expected refusal and not a result"
         );
-        assert_eq!(of(&driven, "witness_failure").len(), 1, "{what}");
+        let failures = of(&driven, "witness_failure");
+        assert_eq!(failures.len(), 1, "{what}");
+        assert!(
+            failures[0]["reason"].as_str().is_some_and(|text| text.contains(reason)),
+            "{what}: {:?}",
+            failures[0]
+        );
         assert!(driven.fatal_raw.is_some(), "{what}: the private raw is kept");
-        // only the bracketed tag of another stop is projected: its text (an index here) never reaches the JSON
+        // only the bracketed tag found at the structural position is projected, and no text of the failure ever reaches the JSON
+        if reason == why {
+            assert_eq!(of(&driven, "engine_failure")[0]["tag"].as_str(), Some(tag), "{what}");
+        }
         let json = serde_json::to_string(&driven.rows).expect("rows");
-        assert!(!json.contains("entity_index"), "{what}: {json}");
+        assert!(
+            !json.contains("entity_index") && !json.contains("boom") && !json.contains("quoted") && !json.contains("generic failure"),
+            "{what}: {json}"
+        );
     }
 }
 
 /// Exclusive evidence files, a refused module or case before anything runs, and BOTH closes made with a failed one failing the run closed (the stop itself was expected, the outer process still must succeed).
 #[test]
 fn the_guard_evidence_files_are_exclusive_and_both_closed_and_a_failed_close_fails_the_run_closed() {
-    let scenario = stop(NAMED);
+    let scenario = stop(&named());
     let driven = drive(&scenario, &args("21"));
     driven.result.clone().unwrap_or_else(|e| panic!("the coherent named stop was rejected: {e}"));
     assert_eq!(driven.closed.len(), 2, "both evidence files are closed: {:?}", driven.closed);
@@ -221,7 +297,7 @@ fn the_guard_evidence_files_are_exclusive_and_both_closed_and_a_failed_close_fai
         ("fatal.raw", "guard.jsonl.fatal.raw failed: injected close failure"),
         ("guard.jsonl", "guard.jsonl failed: injected close failure"),
     ] {
-        let driven = drive(&format!("{{ close_fail = '{fail}', engine_error = {} }}", long(NAMED)), &args("21"));
+        let driven = drive(&format!("{{ close_fail = '{fail}', engine_error = {} }}", long(&named())), &args("21"));
         let error = error_of(&driven);
         assert!(error.contains("OUTPUT FAILURE: closing") && error.contains(named), "{fail}: {error}");
         assert_eq!(driven.closed.len(), 2, "{fail}: the other file is still closed: {:?}", driven.closed);
@@ -231,17 +307,17 @@ fn the_guard_evidence_files_are_exclusive_and_both_closed_and_a_failed_close_fai
             "{fail}: the result row came before the closes, so a succeeding process is required as well"
         );
     }
-    let driven = drive(&format!("{{ close_fail = 'fatal.raw', engine_error = {} }}", long(NAMED)), &args("21"));
+    let driven = drive(&format!("{{ close_fail = 'fatal.raw', engine_error = {} }}", long(&named())), &args("21"));
     assert_eq!(
         of(&driven, "output_failure").len(),
         1,
         "a failure to close the private raw is written to the JSON before it is closed"
     );
 
-    let no_arm = drive(&format!("{{ no_arm = true, engine_error = {} }}", long(NAMED)), &args("21"));
+    let no_arm = drive(&format!("{{ no_arm = true, engine_error = {} }}", long(&named())), &args("21"));
     assert!(error_of(&no_arm).contains("env_observer_arm"), "{:?}", no_arm.result);
     assert!(!no_arm.order.iter().any(|step| step == "boot"), "nothing was booted: {:?}", no_arm.order);
-    let no_case = drive(&format!("{{ no_case = true, engine_error = {} }}", long(NAMED)), &args("21"));
+    let no_case = drive(&format!("{{ no_case = true, engine_error = {} }}", long(&named())), &args("21"));
     assert!(error_of(&no_case).contains("no env_case method"), "{:?}", no_case.result);
     for bad in ["20", "23", "21.5", "x"] {
         let driven = drive(&scenario, &args(bad));
@@ -253,4 +329,25 @@ fn the_guard_evidence_files_are_exclusive_and_both_closed_and_a_failed_close_fai
     });
     assert!(error_of(&foreign).contains("OUTPUT FAILURE: creating"), "{:?}", foreign.result);
     assert!(foreign.order.is_empty(), "no boot after a refused output: {:?}", foreign.order);
+
+    // the driver selector: only an absent variable selects the committed driver; anything present is read or fails, and nothing mutates the process environment
+    assert_eq!(select_driver(None), SCRIPT);
+    let work = Scratch::new();
+    let path = work.path("driver.lua");
+    std::fs::write(&path, "-- another driver\n").expect("a driver file");
+    assert_eq!(select_driver(Some(path.clone().into())), "-- another driver\n");
+    let refused = |value: std::ffi::OsString| std::panic::catch_unwind(move || select_driver(Some(value))).is_err();
+    assert!(refused(work.path("missing.lua").into()), "a path that does not exist");
+    assert!(refused(std::ffi::OsString::new()), "an empty value");
+    assert!(refused(work.0.clone().into_os_string()), "a directory");
+    #[cfg(unix)]
+    {
+        use std::os::unix::ffi::OsStringExt;
+        assert!(refused(std::ffi::OsString::from_vec(vec![0xff, 0xfe, b'x'])), "a value that is not Unicode");
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::ffi::OsStringExt;
+        assert!(refused(std::ffi::OsString::from_wide(&[0xd800, 0x78])), "a value that is not Unicode");
+    }
 }

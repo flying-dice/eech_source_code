@@ -6,8 +6,10 @@
 -- lifetime write, kill, unlink or destruction. That is a fatal error of the engine, which poisons it. The headless route creates no native handle, so only a fixture that installs one can reach it.
 --
 -- WHAT THIS DRIVER ASKS. It runs ONE of the fixture's existing cases 21 and 22 (csrc/eech_env_fixture.c env_snd_handle_case, unchanged: the test-owned buffer-absent handle record and the real server routine) once, through the
--- real public host Lua path (Engine env_case), and accepts exactly ONE outcome: the engine's own fatal error naming [env-sound:unsupported_handle_status]. A normal report (the original native, which still answers the
--- status and goes on to kill), a refusal of the case, any other fatal error, a missing method or an output failure FAILS the driver. After the stop the engine is poisoned: this driver makes NO further engine call, takes
+-- real public host Lua path (Engine env_case), and accepts exactly ONE outcome: the engine's own fatal error whose FIRST LINE is, at its start, the one known shape of the engine's fatal reaching Lua (EngineError::Fatal shown by
+-- eech-dc's lua_error and mlua: "runtime error: eech: EECH fatal error: host environment: ") directly followed by [env-sound:unsupported_handle_status] and a space. The tag is judged at that STRUCTURAL position and nowhere
+-- else: a bare tag, a generic Lua error that quotes it, another native fatal (a callback or provider error, a different named stop) whose detail quotes it, a tag on a later line, an unwrapped token and a repeated tag all FAIL.
+-- A normal report (the original native, which still answers the status and goes on to kill), a refusal of the case, any other fatal error, a missing method or an output failure FAILS the driver too. After the stop the engine is poisoned: this driver makes NO further engine call, takes
 -- no census, restores nothing and claims neither that the campaign continued nor a result of the control; the static test-owned record stays valid through the fatal and the process ends, and the fixture's cleanup does
 -- not run. An expected stop is reported as an `expected_refusal` row and the process exits 0; that is the outer diagnostic only.
 --
@@ -105,6 +107,9 @@ end
 
 -- ---------------------------------------------------------------------------------------------------------------- the one accepted outcome: the named stop
 local MARKER = "[env-sound:unsupported_handle_status]"
+-- the first line of the engine's fatal as it reaches Lua (the same wrapper the retained parent-play overload stop shows): mlua's "runtime error: " around eech-dc's "eech: " around EngineError::Fatal's "EECH fatal error: "
+-- around the engine's own message, which begins with "host environment: " (ss_hostenv.c debug_fatal)
+local WRAPPER = "runtime error: eech: EECH fatal error: host environment: "
 local ok, text = pcall (engine.env_case, engine, 14, case)
 keep (tostring (text) .. "\n")
 if ok then
@@ -115,13 +120,14 @@ if ok then
 	hard ("case " .. case .. " returned a report instead of stopping at " .. MARKER .. ": the engine answered or never asked the status of the native handle")
 end
 local message = tostring (text)
-local first = string.find (message, MARKER, 1, true)
-if first == nil then
-	-- only the bracketed tag of another stop is projected; its text stays in the private raw
-	emit { event = "engine_failure", case = case, tag = string.match (message, "%[[%w_%-]+:[%w_%.]+%]") or "none" }
-	hard ("the case stopped, but not at " .. MARKER .. " (the whole text is in the private raw)")
+local first_line = string.match (message, "^[^\n]*")
+if string.sub (first_line, 1, #WRAPPER + #MARKER + 1) ~= WRAPPER .. MARKER .. " " then
+	-- only the bracketed tag at the same structural position is projected; no text of the failure reaches the JSON (it stays in the private raw)
+	local position_tag = string.match (first_line, "^runtime error: eech: EECH fatal error: host environment: (%[[%w_%-]+:[%w_%.]+%])")
+	emit { event = "engine_failure", case = case, tag = position_tag or "none" }
+	hard ("the case stopped, but not with the known engine fatal wrapper naming " .. MARKER .. " first (the whole text is in the private raw)")
 end
-if string.find (message, MARKER, first + #MARKER, true) ~= nil then hard ("the stop names " .. MARKER .. " more than once (the whole text is in the private raw)") end
+if string.find (message, MARKER, #WRAPPER + #MARKER + 1, true) ~= nil then hard ("the stop names " .. MARKER .. " more than once (the whole text is in the private raw)") end
 -- NOTHING more is asked of the engine: it is poisoned, so no census, report, restoration or receiver check follows
 emit { event = "expected_refusal", case = case, label = LABELS [case], boundary = "unsupported_handle_status", engine_continued = false,
 	note = "the engine stopped in its fatal handler at the first expiry of the handle-holding effect; nothing was queried, censused, restored or released after it, and no result of the campaign continuing is claimed" }
