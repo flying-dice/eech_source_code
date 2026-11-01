@@ -46,7 +46,11 @@ struct Case {
 }
 
 fn healthy() -> Case {
-    Case { root_ok: true, with_entries: true, pages: vec![page(&rows()), page(&rows())] }
+    Case {
+        root_ok: true,
+        with_entries: true,
+        pages: vec![page(&rows()), page(&rows())],
+    }
 }
 
 struct Outcome {
@@ -127,7 +131,11 @@ fn run(case: &Case) -> Outcome {
     lua.globals().set("PAGES", pages).unwrap();
     let host: Table = lua.globals().get("host").unwrap();
     eech_world::exclusive_output::register(&lua, &host).unwrap();
-    let result = lua.load(SCRIPT).set_name("model-animation-characterization.lua").exec().map_err(|e| e.to_string());
+    let result = lua
+        .load(SCRIPT)
+        .set_name("model-animation-characterization.lua")
+        .exec()
+        .map_err(|e| e.to_string());
     let log: Vec<String> = lua.globals().get("LOG").unwrap_or_default();
     let written = std::fs::read_to_string(&out).ok();
     let _ = std::fs::remove_file(&out);
@@ -145,14 +153,20 @@ fn failure_in(what: &str, outcome: &Outcome, reason: &str) {
 fn with_row(index: usize, new_row: String) -> Case {
     let mut all = rows();
     all[index] = new_row;
-    Case { pages: vec![page(&all), page(&all)], ..healthy() }
+    Case {
+        pages: vec![page(&all), page(&all)],
+        ..healthy()
+    }
 }
 
 #[test]
 fn a_coherent_capture_passes_in_order_keeps_every_native_page_verbatim_and_shows_the_state_unchanged() {
     let outcome = run(&healthy());
     assert!(outcome.result.is_ok(), "{:?}", outcome.result);
-    assert_eq!(outcome.log, ["prepare", "select", "boot", "clock", "summary", "animations 1 5", "animations 1 5", "clock"]);
+    assert_eq!(
+        outcome.log,
+        ["prepare", "select", "boot", "clock", "summary", "animations 1 5", "animations 1 5", "clock"]
+    );
     let text = outcome.written.expect("the output exists");
     assert!(text.contains("\"event\":\"done\"") && text.contains("\"complete\":true"), "{text}");
     assert!(text.contains("\"ids\":\"3,5,9\"") && text.contains("\"source\":\"built\""), "{text}");
@@ -167,8 +181,15 @@ fn a_well_formed_unsupported_outcome_is_written_in_full_and_fails_the_run() {
         let outcome = run(&case);
         failure_in(status, &outcome, "NOT MEASURED");
         let text = outcome.written.expect("the output exists");
-        assert!(text.contains(&format!("\"status\":\"{status}\"")) && text.contains("\"complete\":false"), "{status}: {text}");
-        assert_eq!(outcome.log.iter().filter(|l| l.starts_with("animations")).count(), 2, "{status}: the capture was read in full");
+        assert!(
+            text.contains(&format!("\"status\":\"{status}\"")) && text.contains("\"complete\":false"),
+            "{status}: {text}"
+        );
+        assert_eq!(
+            outcome.log.iter().filter(|l| l.starts_with("animations")).count(),
+            2,
+            "{status}: the capture was read in full"
+        );
     }
 }
 
@@ -184,13 +205,28 @@ fn damaged_pages_are_malformed_and_stop_the_questions() {
         ("an unknown source", good.replace("source=none", "source=nowhere")),
         ("a listed row with too few ids", good.replace("ids=3,5,9", "ids=3,5")),
         ("a listed row with too many ids", good.replace("ids=3,5,9", "ids=3,5,9,11")),
-        ("a listed row with no count", good.replace("count=3 capacity=3 filled=3", "count=0 capacity=3 filled=3")),
-        ("a listed row without backing", good.replace("count=3 capacity=3 filled=3", "count=3 capacity=2 filled=3")),
+        (
+            "a listed row with no count",
+            good.replace("count=3 capacity=3 filled=3", "count=0 capacity=3 filled=3"),
+        ),
+        (
+            "a listed row without backing",
+            good.replace("count=3 capacity=3 filled=3", "count=3 capacity=2 filled=3"),
+        ),
         ("an id outside the unsigned short", good.replace("ids=3,5,9", "ids=3,5,65536")),
         ("an id with a leading zero", good.replace("ids=3,5,9", "ids=3,05,9")),
-        ("an empty row with a count", good.replace("source=file succeeded=1 count=0 capacity=0", "source=file succeeded=1 count=1 capacity=0")),
-        ("an absent row with content", good.replace("status=absent source=none succeeded=0", "status=absent source=none succeeded=1")),
-        ("ids on an empty row", good.replace("filled=0 ids=-\nmodel-anim scene=3", "filled=0 ids=4\nmodel-anim scene=3")),
+        (
+            "an empty row with a count",
+            good.replace("source=file succeeded=1 count=0 capacity=0", "source=file succeeded=1 count=1 capacity=0"),
+        ),
+        (
+            "an absent row with content",
+            good.replace("status=absent source=none succeeded=0", "status=absent source=none succeeded=1"),
+        ),
+        (
+            "ids on an empty row",
+            good.replace("filled=0 ids=-\nmodel-anim scene=3", "filled=0 ids=4\nmodel-anim scene=3"),
+        ),
         ("a header field missing", good.replace(" unknown_scene=0", "")),
         ("a header that does not echo", good.replacen("first=1 count=5", "first=1 count=4", 1)),
         ("a digest that is not lowercase hexadecimal", good.replace(CONTENT, "0123456789ABCDEF")),
@@ -198,7 +234,10 @@ fn damaged_pages_are_malformed_and_stop_the_questions() {
         ("no final newline", good.trim_end().to_string()),
     ];
     for (what, text) in cases {
-        let case = Case { pages: vec![text, good.clone()], ..healthy() };
+        let case = Case {
+            pages: vec![text, good.clone()],
+            ..healthy()
+        };
         let outcome = run(&case);
         failure_in(what, &outcome, "MALFORMED REPORT");
         let asked = outcome.log.iter().filter(|l| l.starts_with("animations")).count();
@@ -210,7 +249,10 @@ fn damaged_pages_are_malformed_and_stop_the_questions() {
 fn a_changed_digest_between_the_page_and_the_second_read_is_not_a_success() {
     let mut again = page(&rows());
     again = again.replace(CONTENT, "fedcba9876543210");
-    let case = Case { pages: vec![page(&rows()), again], ..healthy() };
+    let case = Case {
+        pages: vec![page(&rows()), again],
+        ..healthy()
+    };
     failure_in("the state changed", &run(&case), "changed");
 }
 
@@ -223,10 +265,16 @@ fn an_empty_or_unread_capture_is_not_measured() {
         row(4, "FOURTH", "empty", "built", (1, 0, 0, 0), "-"),
         row(5, "FIFTH", "empty", "built", (1, 0, 0, 0), "-"),
     ];
-    let case = Case { pages: vec![page(&all_empty), page(&all_empty)], ..healthy() };
+    let case = Case {
+        pages: vec![page(&all_empty), page(&all_empty)],
+        ..healthy()
+    };
     failure_in("no list at all", &run(&case), "no scene has a list");
     let unread = page(&rows()).replace("scenes_read=4", "scenes_read=0");
-    let case = Case { pages: vec![unread.clone(), unread], ..healthy() };
+    let case = Case {
+        pages: vec![unread.clone(), unread],
+        ..healthy()
+    };
     failure_in("no scene read", &run(&case), "saw no scene read");
 }
 
@@ -262,7 +310,12 @@ fn lua_set(name: &str) -> Vec<String> {
     let at = SCRIPT.find(&format!("local {name} = {{")).unwrap_or_else(|| panic!("the driver has no {name}"));
     let rest = &SCRIPT[at..];
     let body = &rest[rest.find('{').unwrap() + 1..rest.find('}').unwrap()];
-    let mut keys: Vec<String> = body.split(',').filter_map(|item| item.split('=').next()).map(|k| k.trim().to_string()).filter(|k| !k.is_empty()).collect();
+    let mut keys: Vec<String> = body
+        .split(',')
+        .filter_map(|item| item.split('=').next())
+        .map(|k| k.trim().to_string())
+        .filter(|k| !k.is_empty())
+        .collect();
     keys.sort();
     keys
 }
@@ -285,10 +338,20 @@ fn the_driver_grammar_is_the_emitters() {
     assert_eq!(lua_list("ROW_KEYS"), c_keys("model-anim"));
     assert_eq!(lua_list("END_KEYS"), c_keys("model-anim-end"));
     // the statuses and sources the C names, and no others
-    let mut c_statuses: Vec<String> = ["listed", "empty", "absent", "short_read", "overflow", "unbacked", "stale", "unobserved", "capacity"]
-        .iter()
-        .map(|s| s.to_string())
-        .collect();
+    let mut c_statuses: Vec<String> = [
+        "listed",
+        "empty",
+        "absent",
+        "short_read",
+        "overflow",
+        "unbacked",
+        "stale",
+        "unobserved",
+        "capacity",
+    ]
+    .iter()
+    .map(|s| s.to_string())
+    .collect();
     c_statuses.sort();
     for status in &c_statuses {
         let named = [format!("v->status = \"{status}\""), format!("? \"{status}\""), format!(": \"{status}\"")];
