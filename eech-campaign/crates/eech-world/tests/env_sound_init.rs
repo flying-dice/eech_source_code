@@ -1233,6 +1233,19 @@ fn the_host_answer_totals_must_cover_the_whole_named_catalogue_and_fit_the_heade
             "a stale Core header count in an absent pair",
             absent.replacen("header_count=0 matched=0 missed=0 backend", "header_count=2 matched=0 missed=0 backend", 1),
         ),
+        // the catalogue of `opened` has 5 non-zero sizes: the C initialiser clears every size and assigns one only to a matched descriptor, so the host cannot have matched fewer than that
+        (
+            "a total that covers the request but matched fewer descriptors than the catalogue has sizes",
+            opened.replace("matched=5 missed=1", "matched=2 missed=4"),
+        ),
+        (
+            "a zero-match answer beside a catalogue that kept 5 sizes",
+            opened.replace("matched=5 missed=1", "matched=0 missed=6"),
+        ),
+        (
+            "a present empty header beside a catalogue that kept 5 sizes",
+            opened.replace("header_count=7 matched=5 missed=1", "header_count=0 matched=0 missed=6"),
+        ),
     ] {
         let error = drive_host(&text).result.expect_err(label);
         assert!(error.starts_with("env-sound-init-host:"), "{label}: {error}");
@@ -1243,16 +1256,27 @@ fn the_host_answer_totals_must_cover_the_whole_named_catalogue_and_fit_the_heade
 fn coherent_host_answers_stay_accepted_a_zero_match_a_full_header_and_every_miss_in_an_absent_pair() {
     let opened = hosted(&report(&hosted_shape(true)));
     let absent = hosted(&report(&hosted_shape(false)));
+    // genuinely zero-match catalogues: no size was assigned, so the end and report rows keep 0 sizes and the filled digest (nothing changed)
+    let none_matched = hosted(&report(&Shape {
+        matched: 0,
+        missed: 6,
+        ..hosted_shape(true)
+    }));
+    assert!(none_matched.contains("present=1 header_count=7 matched=0 missed=6") && none_matched.contains("when=end named=6 nonzero_size=0"));
+    // matched entries of length 0: matched, but no size is non-zero
+    let zero_lengths = hosted(&report(&Shape {
+        zero_length_match: true,
+        ..hosted_shape(true)
+    }));
+    assert!(zero_lengths.contains("matched=5 missed=1") && zero_lengths.contains("when=end named=6 nonzero_size=0"));
     for (label, text) in [
         ("the installed header as the canned positive", opened.clone()),
-        (
-            "a present header that matched nothing",
-            opened.replace("matched=5 missed=1", "matched=0 missed=6"),
-        ),
+        ("a present header that matched nothing", none_matched.clone()),
         (
             "a present empty header (nothing to match, everything missed)",
-            opened.replace("header_count=7 matched=5 missed=1", "header_count=0 matched=0 missed=6"),
+            none_matched.replace("header_count=7 matched=0 missed=6", "header_count=0 matched=0 missed=6"),
         ),
+        ("matched entries of length 0", zero_lengths),
         (
             "matches that exactly fill the header",
             opened.replace("header_count=7 matched=5 missed=1", "header_count=5 matched=5 missed=1"),

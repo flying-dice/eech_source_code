@@ -259,6 +259,8 @@ for n = 0, stored - 1 do
 	local named = number (filled, "named")
 	if number (answered, "matched") + number (answered, "missed") ~= named then hard ("the host's answer accounts for " .. (number (answered, "matched") + number (answered, "missed")) .. " descriptors where the catalogue of initialisation " .. n .. " names " .. named .. ": " .. answered.raw .. " | " .. filled.raw) end
 	if number (answered, "matched") > number (answered, "header_count") then hard ("the host's answer matches " .. answered.map.matched .. " descriptors in a header of " .. answered.map.header_count .. " entries: " .. answered.raw) end
+	-- the C initialiser clears every size and assigns one only to a matched descriptor: the end catalogue cannot hold more non-zero sizes than the host matched (a matched length of 0 is still a match)
+	if number (finished, "nonzero_size") > number (answered, "matched") then hard ("the end catalogue of initialisation " .. n .. " holds " .. finished.map.nonzero_size .. " non-zero sizes where the host matched " .. answered.map.matched .. ": " .. answered.raw .. " | " .. finished.raw) end
 	if number (boot, "header_count") ~= 0 then hard ("initialisation " .. n .. " recorded a Core header count of " .. boot.map.header_count .. " where the campaign reads no header: " .. boot.raw) end
 	if number (boot, "backend") + number (boot, "skipped") ~= 1 then hard ("initialisation " .. n .. " took " .. (number (boot, "backend") + number (boot, "skipped")) .. " branches of the backend gate, not one: " .. boot.raw) end
 	if number (boot, "load") > 1 then hard ("initialisation " .. n .. " ran the sample loader " .. boot.map.load .. " times: " .. boot.raw) end
