@@ -1,3 +1,27 @@
+# D3 original sound initialisation and sample-data characterization — source prepared (1 November 2026 UTC; characterization only; UNBUILT natively, UNRUN, UNREVIEWED)
+
+Uncommitted batch on clean pushed `78d251d60`. The closed finite host pause slice (physical `82234`, all 15 same-original files byte-identical, public 7 controls, 22 roots / 44 inputs 0, old33 payload 56 / new combined 61, independent review `e2e34e6d`) is reused, not repeated; Task 51 and the whole of D3 stay open, no
+shipping/Tacviews/backend/delivery claim, D4/D5 unstarted. This batch is ORIGINAL code observation only. Nothing is moved: no metadata, backend, per-family, destroy or time behavior and no new host command. The accepted 299 sound driver (SHA256 `7b1f3d491a20…a24e`), cases 0 to 14, closed kernels/witness and baselines are unchanged.
+
+New: a TEST-ONLY sound initialisation probe (`ENV_FXA` hooks in `ss_envfx.h`, placed in `snd_init.c`, `snd_data.c` and the hosted block of `soundeff.c`; store, report and the platform counters in `eech_env_observer.c`, `eech_win32.c` `eech_fopen` and `eech_com_null.c`),
+armed by nothing and never reset by arming, in a separate store (no event or record is added to the old streams); one read-only fixture case, group 14 index 15 (previously refused); a NEW driver `lua/env-sound-init.lua` and its guards `tests/env_sound_init.rs`. `eech_engine.c` is untouched. Fixture C changed: Root must build a NEW original observer native.
+
+Source finding that changes the earlier plan: `initialise_application_sound_effects` runs unconditionally and OPENS `audio\sound.hdr` (it needs `sound.hdr` AND `sound.dat`, retried under the installation root's `cohokum\`) to set each descriptor's `size`; only the sample-data loaders are behind the backend result. Size 0 therefore does not mean "samples
+not loaded" and is not yet known to mean "assets missing". Also by source reading: `eech_engine.c boot` runs the sound initialisation while the dedicated flag is still FALSE and the headless `DirectSoundCreate` is the null `E_FAIL` entry point, so the backend is expected to be attempted and to fail at its first call: INFERENCES until the probe measures them (flags and branch, what each DirectSound entry
+returned, header/data open attempts and results, header count and matches, catalogue counts and digest, loader calls, the constructor's descriptor reads). Static census of descriptor readers is in the documentation (source, liveness not measured); notably `speech.c` keeps only samples with `size > 0`, so a future host metadata table with real sizes would change the speech
+stream and must be introduced deliberately.
+
+Feature-OFF scope (checked by me against HEAD with the real staging and the same defines, `__FILE__` prefix-mapped): `eech_win32.c` and `eech_com_null.c` preprocess RAW IDENTICAL; `snd_init.c` differs only in blank lines; `snd_data.c` in blank lines and ONE `__LINE__` integer literal; `soundeff.c` in blank lines and FIVE; nothing unexplained. This is not a whole-DLL identity claim; ordinary
+shipping production equivalence stays Root's to prove.
+
+My WIP checks (offline Linux container, read-only source mount, verified-idle cache volume, exclusive-new logs, REAL exit tags from steps FILES; filenames carry 20261101; nothing ran natively): `sound-init-WIP-20261101-a1` default/observer/ground-fixture/both `cargo check --tests` 0; `-b2` fmt 0, the 7 new driver guards and the accepted environment guards pass, `eech-world` lib 268,
+`eech-engine` lib 85, `eech-dc` 31+2, clippy `-D warnings` default and observer 0, opt-1 cdylib builds (default, observer, observer + ground-fixture); `-c1` (RETAINED, its baseline step failed because the mount is a git worktree whose `.git` points outside the container) the observer-built and the default module both load at opt 1 (`load_dc`, `terrain_boot_contract` pass; no unresolved `eech_` symbol);
+`-d1` and `-e1` (retained) the preprocess comparison mixed two staging paths in `__FILE__` and then lacked the blank-line class; `-f1` the feature-OFF comparison above. The format run `sound-init-fmt-WIP-20261101-b1` formatted only a private copy. Not run by me: any native, a retail root, the new case on an engine, a Windows build, CI. Disclosures kept: old d2/d3/c2 exit tags untrusted, first `d1` raw log unavailable,
+earlier failed WIP logs retained.
+
+Root next: pin the batch; same independent reviewer on the delta; build the NEW immutable original observer native (Windows and full Linux, default and observer, both strict, CI); prove ordinary shipping production equivalence; fresh verified retail roots; run `lua/env-sound-init.lua` once and compare the relevant old diagnostics as risk requires; investigate any difference; independent actual review of the measured facts, then the
+reviewed host-metadata design. Remaining D3 coupling: sample metadata/assets, speech `size > 0`, non-session range and per-family playback, handles and device, independent destroy and network, pitch/amplitude, persistent mirrors, physical time, required terrain/spatial/model; campaign calendar, timers and scheduling stay Core.
+
 # D3 host pause/resume — all22 actual controls measured (1 November 2026)
 
 Physical82234/newimmutableWindows+Linux0/bothstrict0/all9currentCIgreen;

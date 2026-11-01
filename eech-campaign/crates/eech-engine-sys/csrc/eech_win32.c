@@ -1338,12 +1338,20 @@ static void trace_open (const char *native, const char *mode, const void *result
 	}
 }
 
+#ifdef EECH_ENV_OBSERVER
+extern void eech_envobs_file (const char *native, const char *mode, int ok);
+#endif
+
 FILE *eech_fopen (const char *name, const char *mode)
 {
 	FILE *f = eech_fopen_untraced (name, mode);
 	char native[PATH_MAX];
 	eech_native_path (name, native, sizeof (native));
 	trace_open (native, mode, f);
+#ifdef EECH_ENV_OBSERVER
+	/* TEST-ONLY (feature env-observer): the sound initialisation probe counts the attempts to open sound.hdr and sound.dat and their results (eech_env_observer.c); it makes no attempt of its own */
+	eech_envobs_file (native, mode, f != NULL);
+#endif
 	return f;
 }
 

@@ -66,6 +66,8 @@
 
 #include "project.h"
 
+#include "entity/special/session/ss_envfx.h"
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -79,6 +81,8 @@ int
 
 void initialise_application_sound_system (void)
 {
+
+	ENV_FXA (ENV_FXA_INIT_ENTER, 0, 0, 0, 0)
 
 	//
 	// create effects database ( required even if no sound )
@@ -94,6 +98,8 @@ void initialise_application_sound_system (void)
 		//
 
 		application_sound_system_enabled = initialise_sound_system ();
+
+		ENV_FXA (ENV_FXA_BACKEND, 0, 0, 0, 0)
 	
 		if ( application_sound_system_enabled )
 		{
@@ -102,6 +108,8 @@ void initialise_application_sound_system (void)
 			// Load the sound effects up
 			//
 
+			ENV_FXA (ENV_FXA_LOAD, 0, 0, 0, 0)
+
 			load_application_sound_samples ();
 		}
 	}
@@ -109,7 +117,11 @@ void initialise_application_sound_system (void)
 	{
 
 		application_sound_system_enabled = FALSE;
+
+		ENV_FXA (ENV_FXA_SKIPPED, 0, 0, 0, 0)
 	}
+
+	ENV_FXA (ENV_FXA_INIT_EXIT, 0, 0, 0, 0)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

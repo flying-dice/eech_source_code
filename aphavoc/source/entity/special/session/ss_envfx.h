@@ -134,6 +134,41 @@ extern void eech_envobs_sound (int point, const void *en);
 
 #define ENV_FXE(point, en) eech_envobs_sound (point, (const void *) (en));
 
+//
+// THE SOUND INITIALISATION PROBE (ENV_FXA). A third SEPARATE, finite store (csrc/eech_env_observer.c): it is NOT the event stream and NOT the ENV_FXE record store, it adds no event and no record to either, and it is
+// NEVER reset by arming (the application sound system is initialised during boot, once, and the observer may be armed before it or not at all: the store counts from process start and reports `boots`). A point READS
+// integers the original code already holds (the command line flags, the backend result, the counts of the sound database header, a sample index and its descriptor's rate, size and original rate) and stores them in
+// fixed tables; it calls nothing, allocates nothing, draws nothing, opens nothing, formats nothing and writes no game variable. The descriptor catalogue digest is made from the table
+// `application_sound_effects` with integer operations only. Points sit in appsound/snd_init.c initialise_application_sound_system, appsound/snd_data.c initialise_application_sound_effects,
+// open_application_sound_file_system and load_side_dependant_application_sound_samples, and in soundeff.c set_local_sound_effect_sample_indices (the hosted block that reads the descriptors for the host's duration question).
+// The attempts to open the sound header and data files and the calls of the null DirectSound entry points are counted where they happen, in csrc/eech_win32.c and csrc/eech_com_null.c (the headless platform layer),
+// so no extra attempt is made to learn them. The report is the explicit fixture case group 14 index 15 (csrc/eech_env_fixture.c env_snd_init_case).
+//
+
+enum ENV_FXA_POINTS
+{
+	ENV_FXA_INIT_ENTER = 0,		// snd_init.c initialise_application_sound_system: first statement (the flags and the backend state as they stand)
+	ENV_FXA_EFFECTS_BEGIN,		// snd_data.c initialise_application_sound_effects: first statement
+	ENV_FXA_DESCRIPTORS_FILLED,	// ... the compiled-in descriptors are in the table (the digest is taken here), before the header is read
+	ENV_FXA_OPEN_TRUE,		// snd_data.c open_application_sound_file_system returns TRUE (a: the header's sample count)
+	ENV_FXA_OPEN_FALSE,		// ... returns FALSE
+	ENV_FXA_HEADER_MATCH,		// ... a descriptor found its entry in the header (its size is set)
+	ENV_FXA_HEADER_MISS,		// ... a descriptor found no entry
+	ENV_FXA_EFFECTS_END,		// initialise_application_sound_effects: last statement (the digest is taken again)
+	ENV_FXA_BACKEND,		// snd_init.c: initialise_sound_system returned and its result was stored
+	ENV_FXA_LOAD,			// snd_init.c: load_application_sound_samples is about to be called
+	ENV_FXA_SKIPPED,		// snd_init.c: the sound system is not initialised (no-sound or dedicated flag)
+	ENV_FXA_INIT_EXIT,		// initialise_application_sound_system: last statement
+	ENV_FXA_LOAD_SIDE,		// snd_data.c load_side_dependant_application_sound_samples: first statement (a: the side)
+	ENV_FXA_CTOR,			// soundeff.c set_local_sound_effect_sample_indices, hosted block: before the descriptors are read (a: the sample count, b: the looping flag)
+	ENV_FXA_CTOR_SAMPLE,		// ... one descriptor read (a: the sample index, b: rate, c: size, d: original rate)
+	ENV_FXA_POINT_COUNT		// (not a point)
+};
+
+extern void eech_envobs_sndinit (int point, int a, int b, int c, int d);
+
+#define ENV_FXA(point, a, b, c, d) eech_envobs_sndinit (point, a, b, c, d);
+
 #else
 
 #define ENV_FX(kind, a, b, w0, w1, w2, w3, w4, w5)
@@ -142,6 +177,7 @@ extern void eech_envobs_sound (int point, const void *en);
 #define ENV_FXS(in_cockpit, x, y, z, alt, light, heavy, sx, sz)
 #define ENV_FXQ(point)
 #define ENV_FXE(point, en)
+#define ENV_FXA(point, a, b, c, d)
 
 #endif
 

@@ -631,4 +631,516 @@ int eech_envobs_sound_report (char *text, int capacity, int *used)
 	return 0;
 }
 
+/*
+ * THE SOUND INITIALISATION PROBE (ss_envfx.h ENV_FXA). A third separate finite store: fixed tables, integers only, filled by the hooks of the original initialisation of the application sound system (appsound/snd_init.c,
+ * snd_data.c), by the descriptor reads of the sound effect constructor (soundeff.c, hosted block), and, in the headless platform layer, by the open attempts for the sound header and data files (eech_win32.c
+ * eech_fopen) and the calls of the null DirectSound entry points (eech_com_null.c). It is NOT reset by arming: the initialisation happens during boot, before or without any arming, and the store counts from
+ * process start. A point reads values the original already holds; nothing here calls the engine, allocates, draws, opens a file, formats at the point or writes a game variable. A record that does not fit is counted
+ * in `dropped` and the report says so (the driver refuses incomplete evidence). Nothing in it is a pointer, an address, a path or a coordinate.
+ */
+
+extern int sound_system_initialised;
+extern int number_of_blocked_sound_samples;
+
+#define ENVA_BOOTS 4
+#define ENVA_DISTINCT 32
+#define ENVA_ATTEMPTS 8
+#define ENVA_SIDES 8
+#define ENVA_COM 4
+
+struct enva_catalogue
+{
+	uint32_t named, nonzero_size, nonzero_rate, nonzero_orate;
+	uint64_t digest;
+};
+
+struct enva_boot
+{
+	int no_sound, dedicated, enabled_before, initialised_before;
+	int effects_begin, filled, effects_end;
+	int open_true, open_false, header_count;
+	int matched, missed;
+	int backend, enabled_backend, initialised_backend;
+	int load, skipped, exited, enabled_exit;
+	struct enva_catalogue filled_catalogue, end_catalogue;
+};
+
+struct enva_side
+{
+	int side, enabled, no_sound, dedicated;
+};
+
+struct enva_attempt
+{
+	int kind, ok, fallback, read;
+};
+
+struct enva_sample
+{
+	int index, rate, size, orate;
+	uint32_t uses;
+};
+
+static struct enva_boot enva_boots_table[ENVA_BOOTS];
+static uint32_t enva_boots, enva_dropped, enva_orphans, enva_opens_outside;
+static int enva_current = -1;
+static int enva_in_effects;
+
+static struct enva_side enva_sides[ENVA_SIDES];
+static uint32_t enva_side_calls;
+
+static uint32_t enva_file_attempts[2], enva_file_ok[2], enva_attempt_count;
+static struct enva_attempt enva_attempt_table[ENVA_ATTEMPTS];
+
+static uint32_t enva_com_calls[ENVA_COM], enva_com_last[ENVA_COM];
+
+static uint32_t enva_ctor_calls, enva_ctor_looping, enva_ctor_max_count, enva_ctor_reads, enva_distinct_count, enva_distinct_overflow;
+static uint64_t enva_ctor_digest = 0xcbf29ce484222325ULL;
+static struct enva_sample enva_samples[ENVA_DISTINCT];
+
+static uint64_t enva_fold (uint64_t digest, uint32_t word)
+{
+	int byte;
+
+	for (byte = 0; byte < 4; byte++)
+	{
+		digest ^= (uint64_t) ((word >> (8 * byte)) & 0xffu);
+		digest *= 0x100000001b3ULL;
+	}
+
+	return digest;
+}
+
+/* the descriptor table, read with integer operations only: how many entries are named, have a size, a rate and an original rate, and an FNV-1a digest of (index, rate, size, original rate) of every entry in index order */
+static void enva_take_catalogue (struct enva_catalogue *c)
+{
+	int i;
+
+	memset (c, 0, sizeof (*c));
+
+	c->digest = 0xcbf29ce484222325ULL;
+
+	for (i = 0; i < NUM_SOUND_SAMPLE_INDICES; i++)
+	{
+		const sound_effect_information *item = &application_sound_effects[i];
+
+		if (item->name != NULL)
+		{
+			c->named++;
+		}
+
+		if (item->size != 0)
+		{
+			c->nonzero_size++;
+		}
+
+		if (item->rate != 0)
+		{
+			c->nonzero_rate++;
+		}
+
+		if (item->original_rate != 0)
+		{
+			c->nonzero_orate++;
+		}
+
+		c->digest = enva_fold (c->digest, (uint32_t) i);
+		c->digest = enva_fold (c->digest, (uint32_t) item->rate);
+		c->digest = enva_fold (c->digest, (uint32_t) item->size);
+		c->digest = enva_fold (c->digest, (uint32_t) item->original_rate);
+	}
+}
+
+void eech_envobs_sndinit (int point, int a, int b, int c, int d)
+{
+	struct enva_boot *boot = (enva_current >= 0) ? &enva_boots_table[enva_current] : NULL;
+
+	(void) c;
+
+	switch (point)
+	{
+		case ENV_FXA_INIT_ENTER:
+			if (enva_boots < ENVA_BOOTS)
+			{
+				enva_current = (int) enva_boots;
+				boot = &enva_boots_table[enva_current];
+				memset (boot, 0, sizeof (*boot));
+				boot->no_sound = command_line_no_sound;
+				boot->dedicated = command_line_comms_dedicated_server;
+				boot->enabled_before = application_sound_system_enabled;
+				boot->initialised_before = sound_system_initialised;
+			}
+			else
+			{
+				enva_current = -1;
+				enva_dropped++;
+			}
+
+			enva_boots++;
+
+			return;
+
+		case ENV_FXA_LOAD_SIDE:
+			if (enva_side_calls < ENVA_SIDES)
+			{
+				enva_sides[enva_side_calls].side = a;
+				enva_sides[enva_side_calls].enabled = application_sound_system_enabled;
+				enva_sides[enva_side_calls].no_sound = command_line_no_sound;
+				enva_sides[enva_side_calls].dedicated = command_line_comms_dedicated_server;
+			}
+
+			enva_side_calls++;
+
+			return;
+
+		case ENV_FXA_CTOR:
+			enva_ctor_calls++;
+
+			if (b != 0)
+			{
+				enva_ctor_looping++;
+			}
+
+			if ((uint32_t) a > enva_ctor_max_count)
+			{
+				enva_ctor_max_count = (uint32_t) a;
+			}
+
+			return;
+
+		case ENV_FXA_CTOR_SAMPLE:
+		{
+			uint32_t n;
+
+			enva_ctor_reads++;
+			enva_ctor_digest = enva_fold (enva_ctor_digest, (uint32_t) a);
+			enva_ctor_digest = enva_fold (enva_ctor_digest, (uint32_t) b);
+			enva_ctor_digest = enva_fold (enva_ctor_digest, (uint32_t) c);
+			enva_ctor_digest = enva_fold (enva_ctor_digest, (uint32_t) d);
+
+			for (n = 0; n < enva_distinct_count; n++)
+			{
+				if (enva_samples[n].index == a)
+				{
+					enva_samples[n].uses++;
+
+					return;
+				}
+			}
+
+			if (enva_distinct_count < ENVA_DISTINCT)
+			{
+				enva_samples[enva_distinct_count].index = a;
+				enva_samples[enva_distinct_count].rate = b;
+				enva_samples[enva_distinct_count].size = c;
+				enva_samples[enva_distinct_count].orate = d;
+				enva_samples[enva_distinct_count].uses = 1;
+				enva_distinct_count++;
+			}
+			else
+			{
+				enva_distinct_overflow++;
+			}
+
+			return;
+		}
+
+		default:
+			break;
+	}
+
+	/* the remaining points belong to the boot whose initialisation is running */
+	if (boot == NULL)
+	{
+		enva_orphans++;
+
+		return;
+	}
+
+	switch (point)
+	{
+		case ENV_FXA_EFFECTS_BEGIN:
+			boot->effects_begin++;
+			enva_in_effects = 1;
+			break;
+		case ENV_FXA_DESCRIPTORS_FILLED:
+			boot->filled++;
+			enva_take_catalogue (&boot->filled_catalogue);
+			break;
+		case ENV_FXA_OPEN_TRUE:
+			if (enva_in_effects)
+			{
+				boot->open_true++;
+				boot->header_count = a;
+			}
+			else
+			{
+				enva_opens_outside++;
+			}
+			break;
+		case ENV_FXA_OPEN_FALSE:
+			if (enva_in_effects)
+			{
+				boot->open_false++;
+			}
+			else
+			{
+				enva_opens_outside++;
+			}
+			break;
+		case ENV_FXA_HEADER_MATCH:
+			boot->matched++;
+			break;
+		case ENV_FXA_HEADER_MISS:
+			boot->missed++;
+			break;
+		case ENV_FXA_EFFECTS_END:
+			boot->effects_end++;
+			enva_in_effects = 0;
+			enva_take_catalogue (&boot->end_catalogue);
+			break;
+		case ENV_FXA_BACKEND:
+			boot->backend++;
+			boot->enabled_backend = application_sound_system_enabled;
+			boot->initialised_backend = sound_system_initialised;
+			break;
+		case ENV_FXA_LOAD:
+			boot->load++;
+			break;
+		case ENV_FXA_SKIPPED:
+			boot->skipped++;
+			break;
+		case ENV_FXA_INIT_EXIT:
+			boot->exited++;
+			boot->enabled_exit = application_sound_system_enabled;
+			break;
+		default:
+			enva_dropped++;
+			break;
+	}
+}
+
+/* eech_win32.c eech_fopen: every open attempt by the engine reports its native path here; only the sound header and data files are recorded (kind 0 sound.hdr, 1 sound.dat, by the file name alone, case-insensitively),
+   as a count, the result and whether the path was the installation-root retry (it contains a cohokum directory). No path is stored or exported. The caller made the attempt; this adds none. */
+static int enva_lower (int ch)
+{
+	return (ch >= 'A' && ch <= 'Z') ? ch + ('a' - 'A') : ch;
+}
+
+static int enva_ends_with (const char *text, const char *tail)
+{
+	size_t length = strlen (text), tail_length = strlen (tail), n;
+
+	if (length < tail_length)
+	{
+		return 0;
+	}
+
+	for (n = 0; n < tail_length; n++)
+	{
+		if (enva_lower ((unsigned char) text[length - tail_length + n]) != tail[n])
+		{
+			return 0;
+		}
+	}
+
+	return (length == tail_length) || text[length - tail_length - 1] == '/' || text[length - tail_length - 1] == '\\';
+}
+
+static int enva_contains_cohokum (const char *text)
+{
+	static const char needle[] = "cohokum";
+	size_t n, m;
+
+	for (n = 0; text[n] != '\0'; n++)
+	{
+		for (m = 0; needle[m] != '\0' && text[n + m] != '\0'; m++)
+		{
+			if (enva_lower ((unsigned char) text[n + m]) != needle[m])
+			{
+				break;
+			}
+		}
+
+		if (needle[m] == '\0')
+		{
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+void eech_envobs_file (const char *native, const char *mode, int ok)
+{
+	int kind;
+
+	if (native == NULL)
+	{
+		return;
+	}
+
+	if (enva_ends_with (native, "sound.hdr"))
+	{
+		kind = 0;
+	}
+	else if (enva_ends_with (native, "sound.dat"))
+	{
+		kind = 1;
+	}
+	else
+	{
+		return;
+	}
+
+	enva_file_attempts[kind]++;
+
+	if (ok)
+	{
+		enva_file_ok[kind]++;
+	}
+
+	if (enva_attempt_count < ENVA_ATTEMPTS)
+	{
+		enva_attempt_table[enva_attempt_count].kind = kind;
+		enva_attempt_table[enva_attempt_count].ok = ok ? 1 : 0;
+		enva_attempt_table[enva_attempt_count].fallback = enva_contains_cohokum (native);
+		enva_attempt_table[enva_attempt_count].read = (mode != NULL && mode[0] == 'r') ? 1 : 0;
+	}
+
+	enva_attempt_count++;
+}
+
+/* eech_com_null.c: a call of one of the null DirectSound entry points (0 DirectSoundCreate, 1 IDirectSound_SetCooperativeLevel, 2 IDirectSound_CreateSoundBuffer, 3 IDirectSound_Release) and the low 32 bits of what it returned */
+void eech_envobs_com (int which, long long returned)
+{
+	if (which < 0 || which >= ENVA_COM)
+	{
+		return;
+	}
+
+	enva_com_calls[which]++;
+	enva_com_last[which] = (uint32_t) (uint64_t) returned;
+}
+
+/* appended at *used in the caller's buffer (the fixture's group 14 index 15): READ-ONLY. A report that does not fit is refused (-1), never truncated. */
+int eech_envobs_sndinit_report (char *text, int capacity, int *used)
+{
+	static const char *const com_names[ENVA_COM] = { "DirectSoundCreate", "IDirectSound_SetCooperativeLevel", "IDirectSound_CreateSoundBuffer", "IDirectSound_Release" };
+	static const char *const kind_names[2] = { "header", "data" };
+	struct enva_catalogue now;
+	uint32_t n, stored = (enva_boots < ENVA_BOOTS) ? enva_boots : ENVA_BOOTS;
+
+	enva_take_catalogue (&now);
+
+	if (append (text, capacity, used, "env-sndinit-store version=1 boots=%u stored=%u capacity=%d dropped=%u orphans=%u opens_outside_effects=%u catalogue_entries=%d\n", enva_boots, stored, ENVA_BOOTS, enva_dropped, enva_orphans,
+		enva_opens_outside, NUM_SOUND_SAMPLE_INDICES) != 0)
+	{
+		return -1;
+	}
+
+	for (n = 0; n < stored; n++)
+	{
+		const struct enva_boot *b = &enva_boots_table[n];
+
+		if (append (text, capacity, used, "env-sndinit-boot n=%u no_sound=%d dedicated=%d enabled_before=%d initialised_before=%d effects_begin=%d filled=%d effects_end=%d open_true=%d open_false=%d header_count=%d matched=%d missed=%d"
+			" backend=%d enabled_backend=%d initialised_backend=%d load=%d skipped=%d exited=%d enabled_exit=%d\n", n, b->no_sound, b->dedicated, b->enabled_before, b->initialised_before, b->effects_begin, b->filled,
+			b->effects_end, b->open_true, b->open_false, b->header_count, b->matched, b->missed, b->backend, b->enabled_backend, b->initialised_backend, b->load, b->skipped, b->exited, b->enabled_exit) != 0)
+		{
+			return -1;
+		}
+
+		if (append (text, capacity, used, "env-sndinit-catalogue n=%u when=filled named=%u nonzero_size=%u nonzero_rate=%u nonzero_orate=%u digest_w=%016llx\n", n, b->filled_catalogue.named, b->filled_catalogue.nonzero_size,
+			b->filled_catalogue.nonzero_rate, b->filled_catalogue.nonzero_orate, (unsigned long long) b->filled_catalogue.digest) != 0)
+		{
+			return -1;
+		}
+
+		if (append (text, capacity, used, "env-sndinit-catalogue n=%u when=end named=%u nonzero_size=%u nonzero_rate=%u nonzero_orate=%u digest_w=%016llx\n", n, b->end_catalogue.named, b->end_catalogue.nonzero_size,
+			b->end_catalogue.nonzero_rate, b->end_catalogue.nonzero_orate, (unsigned long long) b->end_catalogue.digest) != 0)
+		{
+			return -1;
+		}
+	}
+
+	if (append (text, capacity, used, "env-sndinit-catalogue n=now when=report named=%u nonzero_size=%u nonzero_rate=%u nonzero_orate=%u digest_w=%016llx\n", now.named, now.nonzero_size, now.nonzero_rate, now.nonzero_orate,
+		(unsigned long long) now.digest) != 0)
+	{
+		return -1;
+	}
+
+	if (append (text, capacity, used, "env-sndinit-now no_sound=%d dedicated=%d enabled=%d initialised=%d blocked_count=%d application_samples=%d\n", command_line_no_sound, command_line_comms_dedicated_server,
+		application_sound_system_enabled, sound_system_initialised, number_of_blocked_sound_samples, number_of_application_sound_samples) != 0)
+	{
+		return -1;
+	}
+
+	if (append (text, capacity, used, "env-sndinit-samples lightning_rate=%d lightning_size=%d lightning_orate=%d thunder_rate=%d thunder_size=%d thunder_orate=%d\n",
+		application_sound_effects[SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING].rate, application_sound_effects[SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING].size, application_sound_effects[SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING].original_rate,
+		application_sound_effects[SOUND_SAMPLE_INDEX_AMBIENT_THUNDER].rate, application_sound_effects[SOUND_SAMPLE_INDEX_AMBIENT_THUNDER].size, application_sound_effects[SOUND_SAMPLE_INDEX_AMBIENT_THUNDER].original_rate) != 0)
+	{
+		return -1;
+	}
+
+	if (append (text, capacity, used, "env-sndinit-load-side calls=%u recorded=%u\n", enva_side_calls, (enva_side_calls < ENVA_SIDES) ? enva_side_calls : ENVA_SIDES) != 0)
+	{
+		return -1;
+	}
+
+	for (n = 0; n < enva_side_calls && n < ENVA_SIDES; n++)
+	{
+		if (append (text, capacity, used, "env-sndinit-load-side-call n=%u side=%d enabled=%d no_sound=%d dedicated=%d\n", n, enva_sides[n].side, enva_sides[n].enabled, enva_sides[n].no_sound, enva_sides[n].dedicated) != 0)
+		{
+			return -1;
+		}
+	}
+
+	for (n = 0; n < 2; n++)
+	{
+		if (append (text, capacity, used, "env-sndinit-file kind=%s attempts=%u ok=%u\n", kind_names[n], enva_file_attempts[n], enva_file_ok[n]) != 0)
+		{
+			return -1;
+		}
+	}
+
+	if (append (text, capacity, used, "env-sndinit-file-log attempts=%u recorded=%u\n", enva_attempt_count, (enva_attempt_count < ENVA_ATTEMPTS) ? enva_attempt_count : ENVA_ATTEMPTS) != 0)
+	{
+		return -1;
+	}
+
+	for (n = 0; n < enva_attempt_count && n < ENVA_ATTEMPTS; n++)
+	{
+		if (append (text, capacity, used, "env-sndinit-file-attempt n=%u kind=%s ok=%d installation_root_retry=%d read_mode=%d\n", n, kind_names[enva_attempt_table[n].kind], enva_attempt_table[n].ok,
+			enva_attempt_table[n].fallback, enva_attempt_table[n].read) != 0)
+		{
+			return -1;
+		}
+	}
+
+	for (n = 0; n < ENVA_COM; n++)
+	{
+		if (append (text, capacity, used, "env-sndinit-com function=%s calls=%u last_return_w=%08x\n", com_names[n], enva_com_calls[n], enva_com_last[n]) != 0)
+		{
+			return -1;
+		}
+	}
+
+	if (append (text, capacity, used, "env-sndinit-ctor calls=%u looping=%u max_count=%u sample_reads=%u distinct=%u distinct_overflow=%u digest_w=%016llx\n", enva_ctor_calls, enva_ctor_looping, enva_ctor_max_count,
+		enva_ctor_reads, enva_distinct_count, enva_distinct_overflow, (unsigned long long) enva_ctor_digest) != 0)
+	{
+		return -1;
+	}
+
+	for (n = 0; n < enva_distinct_count; n++)
+	{
+		if (append (text, capacity, used, "env-sndinit-sample n=%u index=%d rate=%d size=%d orate=%d uses=%u\n", n, enva_samples[n].index, enva_samples[n].rate, enva_samples[n].size, enva_samples[n].orate,
+			enva_samples[n].uses) != 0)
+		{
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
 #endif

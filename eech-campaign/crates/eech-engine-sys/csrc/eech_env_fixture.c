@@ -3220,6 +3220,46 @@ static int env_snd_pause_case (int index, char *text, int capacity, int *used)
 	return 0;
 }
 
+/*
+ * GROUP 14 index 15 (TEST-ONLY, SOURCE PREPARED, UNBUILT, UNRUN, UNREVIEWED): the ORIGINAL initialisation of the application sound system and of the sound sample data, as it ran during this process's boot, and the
+ * descriptor reads the sound effect constructor made since. READ-ONLY and NOT process-isolated: it creates nothing, draws nothing, opens nothing, calls no initialiser again and restores nothing (there is nothing to restore).
+ * Every row is an OBSERVATION of what the original code did, not an expectation of what it should do; the facts the report cannot give are printed as `env-sndinit-unsupported`.
+ *
+ * The facts come from the sound initialisation probe (ss_envfx.h ENV_FXA, csrc/eech_env_observer.c), which is armed by nothing and records from process start: hooks in the original routines read the command line flags,
+ * the backend result, the header counts and the descriptor table; the attempts to open sound.hdr and sound.dat and the calls of the null DirectSound entry points are counted where they happen in the platform layer.
+ * An old native without these hooks has no such case (the index is refused). The report ends with the shared seed word and the next free entity indices read before and after the report: they must be equal.
+ */
+
+#define ENV_SND_INIT_CASE 15
+
+extern int random_number_seed;
+extern int eech_envobs_sndinit_report (char *text, int capacity, int *used);
+
+static int env_snd_init_case (char *text, int capacity, int *used)
+{
+	int rng_before = random_number_seed;
+	int entity_before = get_next_free_entity_index ();
+	int local_before = get_next_free_local_entity_index ();
+
+	ENV_EMIT ("env-sndinit-plan version=1 read_only=1 process_isolated=not_needed comms=%d\n", (int) get_comms_model ());
+
+	if (eech_envobs_sndinit_report (text, capacity, used) != 0)
+	{
+		return -1;
+	}
+
+	ENV_EMIT ("env-sndinit-unsupported item=positive_playing_backend reason=the_headless_build_has_only_the_null_directsound_entry_points_so_no_device_exists_no_handle_is_created_or_faked\n");
+	ENV_EMIT ("env-sndinit-unsupported item=second_initialisation reason=initialising_an_already_booted_library_again_would_rewind_state_so_the_first_and_only_boot_initialisation_is_the_observation\n");
+	ENV_EMIT ("env-sndinit-unsupported item=sample_data_loaded_by_the_original_loader reason=load_application_sound_samples_runs_only_after_a_successful_backend_initialisation_so_the_data_files_are_read_here_for_the_header_only\n");
+	ENV_EMIT ("env-sndinit-unsupported item=other_descriptor_consumers reason=a_static_census_of_the_compiled_readers_is_in_the_documentation_the_probe_counts_the_constructor_reads_only\n");
+	ENV_EMIT ("env-sndinit-fingerprint rng_before_w=%08x rng_after_w=%08x entity_before=%d entity_after=%d local_before=%d local_after=%d unchanged=%d\n", (unsigned int) rng_before, (unsigned int) random_number_seed,
+		entity_before, get_next_free_entity_index (), local_before, get_next_free_local_entity_index (),
+		(rng_before == random_number_seed) && (entity_before == get_next_free_entity_index ()) && (local_before == get_next_free_local_entity_index ()));
+	ENV_EMIT ("env-sndinit-end changed=0 read_only=1\n");
+
+	return 0;
+}
+
 static int env_snd_case (int index, char *text, int capacity, int *used)
 {
 	static const char *const names[ENV_SND_CASES] = { "server_branch_ages_then_expires", "client_branch_ages_and_clamps", "playback_prerequisites" };
@@ -3246,6 +3286,11 @@ static int env_snd_case (int index, char *text, int capacity, int *used)
 	if (index >= ENV_SND_PAUSE_FIRST && index <= ENV_SND_PAUSE_LAST)
 	{
 		return env_snd_pause_case (index, text, capacity, used);
+	}
+
+	if (index == ENV_SND_INIT_CASE)
+	{
+		return env_snd_init_case (text, capacity, used);
 	}
 
 	if (index > ENV_SND_CASES && index <= ENV_SND_DATA_LAST)

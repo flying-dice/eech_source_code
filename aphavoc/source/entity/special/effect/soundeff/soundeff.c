@@ -638,6 +638,8 @@ void set_local_sound_effect_sample_indices (entity *en, int count, sound_sample_
 
 		memset (size, 0, sizeof (size));
 
+		ENV_FXA (ENV_FXA_CTOR, count, raw->looping, 0, 0)
+
 		if (!raw->looping)
 		{
 			for (loop = 0; (loop < count) && (loop < CAMPAIGN_SOUND_SAMPLES); loop ++)
@@ -646,6 +648,8 @@ void set_local_sound_effect_sample_indices (entity *en, int count, sound_sample_
 
 				rate [loop] = application_sound_effects [indices [loop]].rate;
 				size [loop] = application_sound_effects [indices [loop]].size;
+
+				ENV_FXA (ENV_FXA_CTOR_SAMPLE, indices [loop], rate [loop], size [loop], application_sound_effects [indices [loop]].original_rate)
 			}
 		}
 

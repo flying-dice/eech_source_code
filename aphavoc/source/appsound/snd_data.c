@@ -66,6 +66,8 @@
 
 #include "project.h"
 
+#include "entity/special/session/ss_envfx.h"
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2496,6 +2498,8 @@ static void load_from_file ( int sound_sample_index, int type, int rate, int siz
 void load_side_dependant_application_sound_samples ( entity_sides side )
 {
 
+	ENV_FXA (ENV_FXA_LOAD_SIDE, side, 0, 0, 0)
+
 	if ( application_sound_system_enabled )
 	{
 
@@ -2966,10 +2970,14 @@ int open_application_sound_file_system ( char *directory )
 
 		block_sound_sample_data_file = safe_fopen ( block_filename, "rb" );
 
+		ENV_FXA (ENV_FXA_OPEN_TRUE, number_of_blocked_sound_samples, 0, 0, 0)
+
 		return ( TRUE );
 	}
 	else
 	{
+
+		ENV_FXA (ENV_FXA_OPEN_FALSE, 0, 0, 0, 0)
 
 		return ( FALSE );
 	}
@@ -3089,6 +3097,8 @@ void initialise_application_sound_effects ( void )
 	int
 		count;
 
+	ENV_FXA (ENV_FXA_EFFECTS_BEGIN, 0, 0, 0, 0)
+
 	memset (application_sound_effects, 0, sizeof (sound_effect_information) * NUM_SOUND_SAMPLE_INDICES);
 
 	number_of_application_sound_samples = ( sizeof ( application_sound_samples ) / sizeof ( sound_sample_information ) );
@@ -3111,6 +3121,8 @@ void initialise_application_sound_effects ( void )
 		item->reference_sound_range = application_sound_samples[count].reference_sound_range;
 		item->maximum_sound_range = application_sound_samples[count].maximum_sound_range;
 	}
+
+	ENV_FXA (ENV_FXA_DESCRIPTORS_FILLED, 0, 0, 0, 0)
 
 	//
 	// Now read in the header stuff & set the size of the samples.
@@ -3139,18 +3151,24 @@ void initialise_application_sound_effects ( void )
 				{
 
 					application_sound_effects[application_sound_samples[count].sound_sample_index].size = blocked_sound_samples[sound_block_header_index].sound_data_length;
+
+					ENV_FXA (ENV_FXA_HEADER_MATCH, 0, 0, 0, 0)
 				}
 				else
 				{
 					#if DEBUG_MODULE
 					debug_log ( "Cannot find blocked sound sample info for %s", filename );
 					#endif
+
+					ENV_FXA (ENV_FXA_HEADER_MISS, 0, 0, 0, 0)
 				}
 			}
 		}
 
 		close_application_sound_file_system ();
 	}
+
+	ENV_FXA (ENV_FXA_EFFECTS_END, 0, 0, 0, 0)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

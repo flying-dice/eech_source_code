@@ -1,0 +1,574 @@
+//! Harness guards of `lua/env-sound-init.lua` (EEDCS-51, D3): the ORIGINAL application sound initialisation and sound sample data characterization. SOURCE PREPARED: UNBUILT, UNRUN, UNREVIEWED.
+//!
+//! The driver asks the fixture's group 14 index 15 (csrc/eech_env_fixture.c `env_snd_init_case`, the sound initialisation probe of csrc/eech_env_observer.c) for the facts of the boot's initialisation. These tests run
+//! the REAL driver against a SCRIPTED engine whose `env_case` returns the text the test chooses. The texts are SHAPE EXAMPLES built from the schema of the C `printf` formats: their numbers are arbitrary, self-consistent
+//! stand-ins and are NOT facts about any native (no native has been run). They prove only what the DRIVER does with such text: it keeps a complete capture whatever it shows (a boot skipped by a flag, a backend that
+//! returned false, a header that opened, a catalogue and constructor reads of any size within the probe's bounds), writes every row as it came with its values as text, and joins them only in a row labelled `derived`; and it
+//! refuses (a `witness_failure` row, an error beginning `env-sound-init:` and no `result` row) a missing probe, a partial, dropped or overflowing capture, a report of another shape, a read-only probe that changed the
+//! seed word or the entity indices, a refused case, and a failed write, flush or close. An engine that stops is `engine_failure`. They judge nothing about the DLL: a positive playing backend, a second initialisation and
+//! the original loader's data reads are not exercised and not claimed.
+//!
+//!   eech-world lua/env-sound-init.lua root=<verified retail root> out=<env-sound-init-<scenario>.jsonl> scenario=lebanon_retail|georgia_retail [seconds=<0..600>] [frame_ms=<10..1000>]
+//!
+//! with an `eech-dc` built with the `env-observer` feature (which includes `env-fixture`).
+
+use mlua::Lua;
+
+const SCRIPT: &str = include_str!("../lua/env-sound-init.lua");
+
+/// The scripted `eech_dc`: `env_case (14, 15)` answers the text the scenario gives; `no_arm` removes the observer function (a module without the feature), `no_env_case` the method, `frame_error_at` makes the n-th frame stop,
+/// `engine_error` makes `env_case` itself stop; `io_fail` fails the n-th write, a flush or the close of the evidence.
+const COLLABORATORS: &str = r##"
+WRITTEN = {}
+local file = { writes = 0 }
+function file:write (text)
+	self.writes = self.writes + 1
+	local fail = SCENARIO.io_fail
+	if fail and fail.op == 'write' and fail.at == self.writes then return nil, 'disk full' end
+	WRITTEN [#WRITTEN + 1] = text
+	return self
+end
+function file:flush ()
+	local fail = SCENARIO.io_fail
+	if fail and fail.op == 'flush' and fail.at == self.writes then return nil, 'flush failed' end
+	return true
+end
+function file:close ()
+	local fail = SCENARIO.io_fail
+	if fail and fail.op == 'close' then return nil, 'close failed' end
+	return true
+end
+io.open = function () return file end
+host = { args = ARGS, terrain_provider = function () return function () end end, env_provider = function () return function () end end }
+FRAMES = 0
+ARMED = 0
+package.preload.eech_dc = function ()
+	local module = {
+		prepare_installation = function () end,
+		boot = function ()
+			local engine = {}
+			function engine:frame (ms)
+				FRAMES = FRAMES + 1
+				if SCENARIO.frame_error_at == FRAMES then error ('engine fatal: a frame stopped in the original', 0) end
+			end
+			if not SCENARIO.no_env_case then
+				function engine:env_case (group, index)
+					if group ~= 14 or index ~= 15 then error ('SCRIPTED: unexpected case ' .. tostring (group) .. ',' .. tostring (index), 0) end
+					if SCENARIO.engine_error then error ('engine fatal: an ASSERT fired in the original', 0) end
+					return SCENARIO.text
+				end
+			end
+			return engine
+		end,
+	}
+	-- the driver must NOT arm the observer (the probe is armed by nothing): arming is counted, never performed
+	if not SCENARIO.no_arm then module.env_observer_arm = function () ARMED = ARMED + 1 end end
+	return module
+end
+"##;
+
+struct Driven {
+    result: Result<(), String>,
+    rows: Vec<serde_json::Value>,
+    text: String,
+    armed: i64,
+    frames: i64,
+}
+
+fn drive(text: &str, args: &str, scenario_extra: &str) -> Driven {
+    let lua = Lua::new();
+    lua.load(format!(
+        "ARGS = {{ root = 'unused-root', out = 'unused-out'{args} }}\nSCENARIO = {{ text = [==[{text}]==]{scenario_extra} }}"
+    ))
+    .exec()
+    .expect("the scenario is valid Lua");
+    lua.load(COLLABORATORS)
+        .set_name("scripted collaborators")
+        .exec()
+        .expect("the collaborators load");
+    let result = lua.load(SCRIPT).set_name("env-sound-init.lua").exec().map_err(|e| e.to_string());
+    let written: Vec<String> = lua.globals().get("WRITTEN").expect("the collected output");
+    let text = written.concat();
+    let rows = text
+        .lines()
+        .map(|line| serde_json::from_str(line).unwrap_or_else(|e| panic!("a row is not strict JSON: {line:?}: {e}")))
+        .collect();
+    Driven {
+        result,
+        rows,
+        text,
+        armed: lua.globals().get("ARMED").unwrap_or(-1),
+        frames: lua.globals().get("FRAMES").unwrap_or(-1),
+    }
+}
+
+fn of<'a>(driven: &'a Driven, event: &str) -> Vec<&'a serde_json::Value> {
+    driven.rows.iter().filter(|row| row["event"] == event).collect()
+}
+
+/// What a shape example shows; every number is an arbitrary stand-in.
+#[derive(Clone)]
+struct Shape {
+    boots: u32,
+    stored: u32,
+    dropped: u32,
+    orphans: u32,
+    no_sound: u32,
+    dedicated: u32,
+    /// the backend branch: 0 = attempted and false, 1 = attempted and true, 2 = skipped by a flag
+    gate: u32,
+    header_opened: bool,
+    matched: u32,
+    missed: u32,
+    attempts: Vec<(&'static str, u32, u32)>,
+    ctor_samples: Vec<(i32, i32, i32, i32, u32)>,
+    ctor_looping: u32,
+    ctor_overflow: u32,
+}
+
+impl Shape {
+    /// the backend initialisation attempted and returned false, the header not opened, two failed open attempts, the null DirectSoundCreate called once
+    fn backend_false() -> Self {
+        Shape {
+            boots: 1,
+            stored: 1,
+            dropped: 0,
+            orphans: 0,
+            no_sound: 0,
+            dedicated: 0,
+            gate: 0,
+            header_opened: false,
+            matched: 0,
+            missed: 0,
+            attempts: vec![("header", 0, 0), ("header", 0, 1)],
+            ctor_samples: vec![(7, 22050, 0, 22050, 3), (9, 11025, 0, 11025, 1)],
+            ctor_looping: 2,
+            ctor_overflow: 0,
+        }
+    }
+
+    fn skipped() -> Self {
+        Shape {
+            no_sound: 0,
+            dedicated: 1,
+            gate: 2,
+            ..Shape::backend_false()
+        }
+    }
+
+    fn header_opened() -> Self {
+        Shape {
+            header_opened: true,
+            matched: 5,
+            missed: 2,
+            attempts: vec![("header", 1, 0), ("data", 1, 0)],
+            ..Shape::backend_false()
+        }
+    }
+}
+
+fn catalogue(when: &str, n: &str, size: u32, digest: &str) -> String {
+    format!("env-sndinit-catalogue n={n} when={when} named=6 nonzero_size={size} nonzero_rate=6 nonzero_orate=6 digest_w={digest}\n")
+}
+
+/// The report the C case prints, from a shape. The rows, their keys and their order are the `printf` formats of csrc/eech_env_observer.c eech_envobs_sndinit_report and csrc/eech_env_fixture.c env_snd_init_case.
+fn report(s: &Shape) -> String {
+    let mut t = String::new();
+    t += "env-sndinit-plan version=1 read_only=1 process_isolated=not_needed comms=1\n";
+    t += &format!(
+        "env-sndinit-store version=1 boots={} stored={} capacity=4 dropped={} orphans={} opens_outside_effects=0 catalogue_entries=6\n",
+        s.boots, s.stored, s.dropped, s.orphans
+    );
+    for n in 0..s.stored {
+        let (backend, skipped, enabled) = match s.gate {
+            0 => (1, 0, 0),
+            1 => (1, 0, 1),
+            _ => (0, 1, 0),
+        };
+        let (open_true, open_false) = if s.header_opened { (1, 0) } else { (0, 1) };
+        let header_count = if s.header_opened { 7 } else { 0 };
+        t += &format!(
+            "env-sndinit-boot n={n} no_sound={} dedicated={} enabled_before=0 initialised_before=0 effects_begin=1 filled=1 effects_end=1 open_true={open_true} open_false={open_false} header_count={header_count} matched={} missed={} \
+             backend={backend} enabled_backend={enabled} initialised_backend={enabled} load={enabled} skipped={skipped} exited=1 enabled_exit={enabled}\n",
+            s.no_sound, s.dedicated, s.matched, s.missed
+        );
+        let end_size = if s.matched > 0 { 5 } else { 0 };
+        let end_digest = if s.matched > 0 { "00000000000000aa" } else { "cbf29ce484222325" };
+        t += &catalogue("filled", &n.to_string(), 0, "cbf29ce484222325");
+        t += &catalogue("end", &n.to_string(), end_size, end_digest);
+    }
+    let now_size = if s.matched > 0 { 5 } else { 0 };
+    let now_digest = if s.matched > 0 { "00000000000000aa" } else { "cbf29ce484222325" };
+    t += &catalogue("report", "now", now_size, now_digest);
+    t += &format!(
+        "env-sndinit-now no_sound={} dedicated=1 enabled=0 initialised=0 blocked_count=0 application_samples=6\n",
+        s.no_sound
+    );
+    t += "env-sndinit-samples lightning_rate=22050 lightning_size=0 lightning_orate=22050 thunder_rate=22050 thunder_size=0 thunder_orate=22050\n";
+    t += "env-sndinit-load-side calls=1 recorded=1\n";
+    t += "env-sndinit-load-side-call n=0 side=3 enabled=0 no_sound=0 dedicated=1\n";
+    let attempts_of = |kind: &str| s.attempts.iter().filter(|a| a.0 == kind).count();
+    let ok_of = |kind: &str| s.attempts.iter().filter(|a| a.0 == kind && a.1 == 1).count();
+    t += &format!("env-sndinit-file kind=header attempts={} ok={}\n", attempts_of("header"), ok_of("header"));
+    t += &format!("env-sndinit-file kind=data attempts={} ok={}\n", attempts_of("data"), ok_of("data"));
+    t += &format!("env-sndinit-file-log attempts={0} recorded={0}\n", s.attempts.len());
+    for (n, (kind, ok, retry)) in s.attempts.iter().enumerate() {
+        t += &format!("env-sndinit-file-attempt n={n} kind={kind} ok={ok} installation_root_retry={retry} read_mode=1\n");
+    }
+    let com = [
+        ("DirectSoundCreate", u32::from(s.gate != 2), "80004005"),
+        ("IDirectSound_SetCooperativeLevel", 0, "00000000"),
+        ("IDirectSound_CreateSoundBuffer", 0, "00000000"),
+        ("IDirectSound_Release", 0, "00000000"),
+    ];
+    for (name, calls, last) in com {
+        t += &format!("env-sndinit-com function={name} calls={calls} last_return_w={last}\n");
+    }
+    let uses: u32 = s.ctor_samples.iter().map(|x| x.4).sum();
+    t += &format!(
+        "env-sndinit-ctor calls={} looping={} max_count=1 sample_reads={} distinct={} distinct_overflow={} digest_w=0123456789abcdef\n",
+        uses.max(1) + s.ctor_looping,
+        s.ctor_looping,
+        uses + s.ctor_overflow,
+        s.ctor_samples.len(),
+        s.ctor_overflow
+    );
+    for (n, (index, rate, size, orate, used)) in s.ctor_samples.iter().enumerate() {
+        t += &format!("env-sndinit-sample n={n} index={index} rate={rate} size={size} orate={orate} uses={used}\n");
+    }
+    t += "env-sndinit-unsupported item=positive_playing_backend reason=a_reason\n\
+           env-sndinit-unsupported item=second_initialisation reason=a_reason\n\
+           env-sndinit-unsupported item=sample_data_loaded_by_the_original_loader reason=a_reason\n\
+           env-sndinit-unsupported item=other_descriptor_consumers reason=a_reason\n";
+    t += "env-sndinit-fingerprint rng_before_w=00000001 rng_after_w=00000001 entity_before=104 entity_after=104 local_before=7 local_after=7 unchanged=1\n";
+    t += "env-sndinit-end changed=0 read_only=1\n";
+    t
+}
+
+fn healthy(s: &Shape) -> Driven {
+    drive(&report(s), "", "")
+}
+
+#[test]
+fn a_complete_capture_is_kept_row_for_row_whatever_branch_it_shows_and_the_driver_arms_nothing() {
+    for (name, shape, branch) in [
+        ("the backend returned false", Shape::backend_false(), "backend_initialisation_returned_false"),
+        ("skipped by the dedicated flag", Shape::skipped(), "skipped_by_flags"),
+        (
+            "the backend returned true",
+            Shape {
+                gate: 1,
+                ..Shape::backend_false()
+            },
+            "backend_enabled",
+        ),
+        ("the header opened", Shape::header_opened(), "backend_initialisation_returned_false"),
+    ] {
+        let driven = healthy(&shape);
+        driven.result.clone().unwrap_or_else(|e| panic!("{name}: {e}\n{}", driven.text));
+        // every fixture row is on the file exactly as it came, the words kept as text
+        for line in report(&shape).lines() {
+            assert!(
+                driven.rows.iter().any(|row| row["scope"] == "case" && row["raw"] == line),
+                "{name}: the row {line:?} is not on the file"
+            );
+        }
+        let derived = &of(&driven, "derived")[0];
+        assert_eq!(derived["first_branch"], branch, "{name}");
+        assert_eq!(of(&driven, "result").len(), 1, "{name}");
+        assert!(driven.rows.iter().all(|row| row["event"] != "witness_failure"), "{name}");
+        // the probe is armed by nothing: the driver does not arm the observer
+        assert_eq!(driven.armed, 0, "{name}");
+    }
+}
+
+#[test]
+fn the_derived_row_is_a_join_of_the_rows_and_says_so() {
+    let driven = healthy(&Shape::header_opened());
+    driven.result.clone().expect("a healthy run");
+    let derived = &of(&driven, "derived")[0];
+    assert!(derived["source"].as_str().unwrap_or_default().contains("not a measurement"));
+    assert_eq!(
+        (
+            derived["header_opened_in_effects"].as_bool(),
+            derived["header_opens_ok"].as_i64(),
+            derived["data_opens_ok"].as_i64(),
+            derived["descriptors_matched"].as_i64(),
+            derived["descriptors_missed"].as_i64(),
+            derived["directsound_last_entry_called"].as_str(),
+            derived["constructor_distinct_samples"].as_i64(),
+            derived["load_routines_ran"].as_bool()
+        ),
+        (Some(true), Some(1), Some(1), Some(5), Some(2), Some("DirectSoundCreate"), Some(2), Some(false))
+    );
+    // a catalogue that did not change since the initialisation, and one that did
+    assert_eq!(derived["catalogue_unchanged_since_initialisation"].as_bool(), Some(true));
+    let changed = report(&Shape::header_opened()).replace(
+        "env-sndinit-catalogue n=now when=report named=6 nonzero_size=5 nonzero_rate=6 nonzero_orate=6 digest_w=00000000000000aa",
+        "env-sndinit-catalogue n=now when=report named=6 nonzero_size=5 nonzero_rate=6 nonzero_orate=6 digest_w=00000000000000bb",
+    );
+    let driven = drive(&changed, "", "");
+    driven.result.clone().expect("a catalogue that changed is a fact, not a failure of the witness");
+    assert_eq!(of(&driven, "derived")[0]["catalogue_unchanged_since_initialisation"].as_bool(), Some(false));
+}
+
+#[test]
+fn natural_frames_run_before_the_report_and_an_engine_that_stops_in_a_frame_is_the_result() {
+    let text = report(&Shape::backend_false());
+    let driven = drive(&text, ", seconds = '2', frame_ms = '500'", "");
+    driven.result.clone().expect("a healthy run");
+    assert_eq!(driven.frames, 4);
+    assert_eq!(of(&driven, "result")[0]["frames"], 4);
+    let stopped = drive(&text, ", seconds = '2', frame_ms = '500'", ", frame_error_at = 3");
+    let error = stopped.result.clone().unwrap_err();
+    assert!(error.contains("env-sound-init: frame 3 FAILED in the engine:"), "{error}");
+    let failures = of(&stopped, "engine_failure");
+    assert_eq!(failures.len(), 1);
+    assert_eq!(failures[0]["frame"], 3);
+    assert!(of(&stopped, "result").is_empty() && of(&stopped, "witness_failure").is_empty());
+}
+
+#[test]
+fn an_engine_that_stops_in_the_case_a_refused_case_and_a_missing_probe_are_distinct_failures() {
+    let text = report(&Shape::backend_false());
+    let engine = drive(&text, "", ", engine_error = true");
+    assert!(engine.result.clone().unwrap_err().contains("env_case(14, 15) FAILED in the engine:"));
+    assert_eq!(of(&engine, "engine_failure").len(), 1);
+    assert!(of(&engine, "witness_failure").is_empty() && of(&engine, "result").is_empty());
+
+    let refused = drive(
+        "env-case-error reason=sound_lifetime_case_refused_or_report_did_not_fit group=11 index=15\n",
+        "",
+        "",
+    );
+    assert!(refused.result.clone().unwrap_err().contains("env_case(14, 15) refused"));
+    assert!(!of(&refused, "witness_failure").is_empty() && of(&refused, "result").is_empty());
+
+    let no_arm = drive(&text, "", ", no_arm = true");
+    assert!(no_arm.result.clone().unwrap_err().contains("build eech-dc with the env-observer feature"));
+    assert_eq!(of(&no_arm, "refusal")[0]["reason"], "env_observer_unavailable");
+
+    let no_method = drive(&text, "", ", no_env_case = true");
+    assert!(no_method.result.clone().unwrap_err().contains("the engine has no env_case method"));
+    assert_eq!(of(&no_method, "refusal")[0]["reason"], "env_case_unavailable");
+}
+
+#[test]
+fn a_missing_partial_dropped_or_incomplete_capture_is_a_failure_of_the_witness_and_never_a_result() {
+    let base = report(&Shape::backend_false());
+    let cases: Vec<(&str, String, &str)> = vec![
+        (
+            "no initialisation recorded at all (the probe or its hooks are not in this boot)",
+            report(&Shape {
+                boots: 0,
+                stored: 0,
+                ..Shape::backend_false()
+            }),
+            "recorded no initialisation",
+        ),
+        (
+            "records dropped",
+            report(&Shape {
+                dropped: 2,
+                ..Shape::backend_false()
+            }),
+            "dropped 2 records",
+        ),
+        (
+            "points that belong to no initialisation",
+            report(&Shape {
+                orphans: 3,
+                ..Shape::backend_false()
+            }),
+            "belong to no initialisation",
+        ),
+        (
+            "more initialisations than the probe keeps",
+            report(&Shape {
+                boots: 5,
+                stored: 4,
+                ..Shape::backend_false()
+            }),
+            "initialised the sound system 5 times",
+        ),
+        (
+            "stored does not add up to boots",
+            base.replace("boots=1 stored=1", "boots=1 stored=0"),
+            "stored 0 of 1",
+        ),
+        (
+            "an initialisation that did not finish its effects",
+            base.replace("effects_end=1", "effects_end=0"),
+            "effects_end=0",
+        ),
+        ("an initialisation that did not exit", base.replace("exited=1", "exited=0"), "exited=0"),
+        (
+            "two results of the header open",
+            base.replace("open_true=0 open_false=1", "open_true=1 open_false=1"),
+            "2 results of the header open",
+        ),
+        (
+            "no result of the header open",
+            base.replace("open_true=0 open_false=1", "open_true=0 open_false=0"),
+            "0 results of the header open",
+        ),
+        (
+            "neither branch of the backend gate",
+            base.replace(
+                "backend=1 enabled_backend=0 initialised_backend=0 load=0 skipped=0",
+                "backend=0 enabled_backend=0 initialised_backend=0 load=0 skipped=0",
+            ),
+            "0 branches of the backend gate",
+        ),
+        (
+            "both branches of the backend gate",
+            base.replace("load=0 skipped=0", "load=0 skipped=1"),
+            "2 branches of the backend gate",
+        ),
+        (
+            "the loader ran twice",
+            base.replace("load=0 skipped=0", "load=2 skipped=0"),
+            "ran the sample loader 2 times",
+        ),
+        (
+            "samples that do not add up to the reads",
+            base.replace("sample_reads=4", "sample_reads=5"),
+            "are not the uses of the kept samples",
+        ),
+        (
+            "distinct samples the probe could not keep",
+            report(&Shape {
+                ctor_overflow: 2,
+                ..Shape::backend_false()
+            }),
+            "could not keep 2 distinct sample reads",
+        ),
+        (
+            "a file log that does not add up",
+            base.replace("env-sndinit-file-log attempts=2", "env-sndinit-file-log attempts=3"),
+            "the file log counts 3 attempts",
+        ),
+        (
+            "a read-only probe that changed the entity indices",
+            base.replace(
+                "entity_after=104 local_before=7 local_after=7 unchanged=1",
+                "entity_after=105 local_before=7 local_after=7 unchanged=1",
+            ),
+            "changed the shared seed word or the next free entity indices",
+        ),
+        (
+            "a read-only probe that says it changed",
+            base.replace("unchanged=1", "unchanged=0"),
+            "changed the shared seed word",
+        ),
+        (
+            "a digest of the wrong width",
+            base.replacen("digest_w=cbf29ce484222325", "digest_w=cbf29ce4842223", 1),
+            "'digest_w' as a d",
+        ),
+        (
+            "a word of the wrong width",
+            base.replace("last_return_w=80004005", "last_return_w=8000405"),
+            "'last_return_w' as a w",
+        ),
+        (
+            "a flag that is not a flag",
+            base.replace("ok=0 installation_root_retry=0", "ok=2 installation_root_retry=0"),
+            "'ok' as a b",
+        ),
+        (
+            "a plan of another version",
+            base.replace("version=1 read_only=1", "version=2 read_only=1"),
+            "is not version=1",
+        ),
+        ("a repeated field", base.replace("comms=1", "comms=1 comms=1"), "repeated field"),
+        (
+            "a row out of order (the DirectSound rows swapped)",
+            swap_rows(&base, "IDirectSound_Release", "IDirectSound_CreateSoundBuffer"),
+            "are out of order",
+        ),
+        (
+            "a missing row (no constructor row)",
+            drop_rows(&base, "env-sndinit-ctor "),
+            "does not give the row env-sndinit-ctor",
+        ),
+        (
+            "a missing probe row (no store)",
+            drop_rows(&base, "env-sndinit-store "),
+            "does not give the row env-sndinit-store",
+        ),
+        (
+            "a row after the end row",
+            format!("{base}env-sndinit-plan version=1 read_only=1 process_isolated=not_needed comms=1\n"),
+            "has a row after its end row",
+        ),
+        ("a report that does not end with a newline", base.trim_end().to_string(), "empty or truncated"),
+        ("a report with an empty line", base.replacen("\n", "\n\n", 1), "empty line"),
+        ("a report that is empty", String::new(), "empty or truncated"),
+    ];
+    for (name, text, says) in &cases {
+        let driven = drive(text, "", "");
+        let error = driven
+            .result
+            .clone()
+            .expect_err(&format!("{name}: a damaged report was accepted:\n{}", driven.text));
+        assert!(
+            error.contains("env-sound-init:") && error.contains(*says),
+            "{name}: expected {says:?} in {error:?}"
+        );
+        assert!(!of(&driven, "witness_failure").is_empty(), "{name}: no witness_failure row");
+        assert!(
+            of(&driven, "result").is_empty() && of(&driven, "derived").is_empty(),
+            "{name}: a result was written for a damaged report"
+        );
+    }
+}
+
+fn drop_rows(text: &str, prefix: &str) -> String {
+    text.lines().filter(|line| !line.starts_with(prefix)).map(|line| format!("{line}\n")).collect()
+}
+
+fn swap_rows(text: &str, first: &str, second: &str) -> String {
+    let mut lines: Vec<&str> = text.lines().collect();
+    let a = lines.iter().position(|l| l.contains(&format!("function={first} "))).expect("first row");
+    let b = lines.iter().position(|l| l.contains(&format!("function={second} "))).expect("second row");
+    lines.swap(a, b);
+    lines.iter().map(|line| format!("{line}\n")).collect()
+}
+
+#[test]
+fn a_failed_write_flush_or_close_of_the_evidence_is_a_failure_of_the_witness() {
+    let text = report(&Shape::backend_false());
+    for (what, extra, says) in [
+        ("the first write", ", io_fail = { op = 'write', at = 1 }", "OUTPUT FAILURE: writing"),
+        (
+            "a write in the middle of the report",
+            ", io_fail = { op = 'write', at = 9 }",
+            "OUTPUT FAILURE: writing",
+        ),
+        ("a flush", ", io_fail = { op = 'flush', at = 4 }", "OUTPUT FAILURE: flushing"),
+        ("the close", ", io_fail = { op = 'close' }", "OUTPUT FAILURE: closing"),
+    ] {
+        let driven = drive(&text, "", extra);
+        let error = driven.result.clone().expect_err(&format!("{what}: an output failure was not noticed"));
+        assert!(error.contains("env-sound-init:") && error.contains(says), "{what}: {error}");
+    }
+}
+
+#[test]
+fn the_arguments_are_checked_before_anything_is_booted() {
+    let text = report(&Shape::backend_false());
+    for (what, args, says) in [
+        ("an unknown scenario", ", scenario = 'mars'", "scenario must be"),
+        ("seconds out of range", ", seconds = '601'", "seconds must be"),
+        ("seconds that is not an integer", ", seconds = '1.5'", "seconds must be"),
+        ("a frame length that is too small", ", frame_ms = '9'", "frame_ms must be"),
+    ] {
+        let driven = drive(&text, args, "");
+        assert!(driven.result.clone().unwrap_err().contains(says), "{what}");
+        assert!(
+            driven.rows.is_empty() && driven.frames == 0,
+            "{what}: something ran before the arguments were refused"
+        );
+    }
+}
