@@ -772,6 +772,151 @@ void campaign_model_route_swap_index (int what, int index, int count, int capaci
 	}
 }
 
+// ---------------------------------------------------------------------------------------------------------------------------------
+// The scene's own line geometry (EEDCS-50, D3 loader detachment). The common and custom loaders keep no point, face-point-reference or surface-point buffer, so the two
+// readers of a scene's MAIN object that run outside the renderer ask the host through the route cursors with kind 0 (mb_hostmodel.h): the horizon's points (3dhoriz.c,
+// add_3d_horizon_image, at boot) and the cockpit display poly-lines (3dobjdb.c, get_object_3d_poly_line_data). The host's answer is the same decode as a route's; an absent
+// scene, a refusal or a malformed reply stops the engine with a named marker, and the caller's buffer is only written by a FOUND answer.
+
+// the main object's node `index` of `scene`, written to `position`; FALSE at the end of the nodes
+int campaign_model_scene_node (int scene, int index, vec3d *position)
+{
+	campaign_model_reply
+		reply;
+
+	require_scene (scene, FALSE, "a scene point question");
+
+	if ((index < 0) || (!position))
+	{
+		debug_fatal ("host model: [model-provider:scene.point] the campaign asked for point %d of scene %d", index, scene);
+	}
+
+	if (!host_loaded[scene])
+	{
+		debug_fatal ("host model: [model-provider:scene.point] the campaign asked for a point of scene %d, which the host declared not loaded", scene);
+	}
+
+	ask_route_raw (CAMPAIGN_MODEL_ROUTE_NODE, scene, 0, index, &reply, "scene point");
+
+	if (reply.result == CAMPAIGN_MODEL_TRIANGLE_END)
+	{
+		return FALSE;
+	}
+
+	if ((reply.result != CAMPAIGN_MODEL_TRIANGLE_FOUND) || (!all_finite (reply.points, 3)))
+	{
+		debug_fatal ("host model: [model-provider:scene.point] the host's point %d of scene %d is not a finite point (result %d)", index, scene, reply.result);
+	}
+
+	position->x = reply.points[0];
+	position->y = reply.points[1];
+	position->z = reply.points[2];
+
+	return TRUE;
+}
+
+// the main object's line face `face` of `scene`: the two node numbers it joins; FALSE at the end of the faces. A polygon surface is not a line and stops the engine (the
+// original asserts it)
+int campaign_model_scene_line (int scene, int face, int *point0, int *point1)
+{
+	campaign_model_reply
+		reply;
+
+	require_scene (scene, FALSE, "a scene line question");
+
+	if ((face < 0) || (!point0) || (!point1))
+	{
+		debug_fatal ("host model: [model-provider:scene.line] the campaign asked for line face %d of scene %d", face, scene);
+	}
+
+	if (!host_loaded[scene])
+	{
+		debug_fatal ("host model: [model-provider:scene.line] the campaign asked for a line of scene %d, which the host declared not loaded", scene);
+	}
+
+	ask_route_raw (CAMPAIGN_MODEL_ROUTE_FACE, scene, 0, face, &reply, "scene line");
+
+	if (reply.result == CAMPAIGN_MODEL_TRIANGLE_END)
+	{
+		return FALSE;
+	}
+
+	if ((reply.result != CAMPAIGN_MODEL_TRIANGLE_FOUND) || (reply.route_point[0] < 0) || (reply.route_point[1] < 0) || (reply.route_polygons != FALSE))
+	{
+		debug_fatal ("host model: [model-provider:scene.line] the host's line face %d of scene %d is not a line between two nodes (result %d, polygons %d)", face, scene, reply.result,
+			reply.route_polygons);
+	}
+
+	*point0 = reply.route_point[0];
+	*point1 = reply.route_point[1];
+
+	return TRUE;
+}
+
+// A render or device entry that would read a physical geometry buffer the loader no longer holds (EEDCS-50, D3 loader detachment). The common and custom loaders keep no point,
+// face-point-reference or surface-point buffer, so the renderer's draw, transform and shadow entries (staged patches LR-*, build/patches.rs) stop the engine here, by name, at
+// their head (the LR-reader patches of LOADER_HOST_PATCHES) and before any of those buffers is read: nothing is drawn from nothing, no buffer is faked and nothing falls back to the campaign's own arrays. The campaign's
+// state does not depend on these entries; whether any of them is reachable in a hosted engine is NOT established here (compiled presence is not dormancy), and a run that
+// reaches one reports it by this marker instead of reading a NULL buffer.
+void campaign_model_geometry_reader (const char *reader)
+{
+	debug_fatal ("host model: [model-provider:object.geometry] %s needs a point, face-point-reference or surface-point buffer of a model, which the campaign no longer holds and the host has no service for", reader);
+}
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+// TEST-ONLY (the model-host-fixture's counters entry): how many rows of the campaign's own object table still hold each physical buffer, as integer counts only (no
+// address). `rows` are the table's objects 1 .. total_number_of_raw_3d_objects and `metadata_rows` those with a true point count; `points`, `faces`, `point_refs` and
+// `surface_points` count the rows whose buffer pointer is not NULL. The metadata is the file's true header values and stays populated; the loader detachment is shown by
+// the three buffer counts it removes being zero while the metadata count is not.
+void campaign_model_core_residency (int *rows, int *metadata_rows, int *points, int *faces, int *point_refs, int *surface_points)
+{
+	int
+		i;
+
+	*rows = 0;
+	*metadata_rows = 0;
+	*points = 0;
+	*faces = 0;
+	*point_refs = 0;
+	*surface_points = 0;
+
+	if (!objects_3d_data)
+	{
+		return;
+	}
+
+	for (i = 1; i <= total_number_of_raw_3d_objects; i++)
+	{
+		(*rows)++;
+
+		if (objects_3d_data[i].number_of_points)
+		{
+			(*metadata_rows)++;
+		}
+
+		if (objects_3d_data[i].points)
+		{
+			(*points)++;
+		}
+
+		if (objects_3d_data[i].faces)
+		{
+			(*faces)++;
+		}
+
+		if (objects_3d_data[i].object_faces_point_plain_list)
+		{
+			(*point_refs)++;
+		}
+
+		if (objects_3d_data[i].surface_points)
+		{
+			(*surface_points)++;
+		}
+	}
+}
+#endif
+
 // A CONSUMER of the parser's per-depth position table (popread.c: the airfield insertion functions and their WAYPOINT_ALTITUDE) is about to index `table` (the parser's
 // route_waypoint_positions, `count` entries, number_of_route_waypoint_positions) with `index`. The consumers step the index by fixed amounts from the deepest depth (minus 1, minus 2,
 // to a fixed floor) and read it, which holds for the routes the original models have and says nothing about a route a host answers: a three-node black/green chain has three depths,

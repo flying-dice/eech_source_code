@@ -18,6 +18,28 @@ The first production route-data move is prepared/pushed at `66dc2e8a237a46f92003
 
 Task51 ordinary source78 shipping continues on its original immutable snapshot without restart; fifth check around19:40 UTC finds all four available recording/observation prefixes exact (24,733,777/15,499,264/24,676,439/15,089,664 bytes), PARTIAL only. Actual full40/all8/post-input/final review/current checks/normal delivery remain pending. Ledger117 preserves prior authored HTML and all five epic reports; Jira50comment10937 records the closed original gate and extraction start. Task49/50/51 and wholeD3 remain In Progress; D4/D5 are unstarted. No accepted baseline, tolerance, oracle or flag changed. Historical checkpoint sections below retain their original scope and identities.
 
+# D3 loader detachment, first batch: three geometry buffers leave Core (1 November 2026): SOURCE ONLY; NOT BUILT, NOT RUN UNTIL THE ROOT'S ACTUALS
+
+Starting from `c88e479c7`. Under EEDCS-50 the Core loaders no longer hold three of the four physical geometry buffers, in every build with the host route parser (not `model-fixture`, not `route-original`, which keep the original loader):
+
+* **Moved:** `points`, the face point references (`object_faces_point_plain_list`) and the surface-point references (`surface_points`). The common loader does not map `3dobjs.pts` / `3dobjs.sp` or allocate the face
+  point list and skips the face-reference bytes by their exact count; the custom `.EEO` loader skips all three streams by their exact byte counts, so every later read, the polygon-face validation and the texture
+  overrides run as before. Deinit already tolerates NULL and frees no host buffer.
+* **Still true file metadata in Core (not faked, not moved yet):** every count, both bounds, the radius, surface descriptors and their texture/animation indices, normals, texture points, and the whole scene and
+  hierarchy load including `add_animation_object` (inputs and order unchanged). **`faces` stays resident:** the Mi-24 HUD (`hi_hud.c:342`, `initialise_hind_hud`) sums the polygon point counts and no host service
+  answers that yet; this is the exact dependency, so the detachment is NOT complete. Hierarchy, viewpoint, device, muzzle and target-point services, Task49's collision scans and transforms, and the animation-list
+  characterisation (not covered by any closed capture) remain open D3 work. Nothing here is D4 or D5.
+* **Readers resolved from the source:** the horizon's points (`3dhoriz.c` `add_3d_horizon_image`, reached at boot from `3d_init.c`) and the cockpit display poly-lines (`3dobjdb.c` `get_object_3d_poly_line_data`; the
+  Comanche, Hokum and Ka-50 MFDs) now ask the host through the existing route cursors with kind 0, the scene's main-object role (`models.rs` `route_target`; the echoed kind name is empty; the arithmetic is the same
+  float expressions, so the horizon and poly-line values should be bit-equal, which is NOT yet measured). The collision triangle and the route parser were already the host's. 36 renderer / device entries that
+  dereference the buffers (draw, transform, shadow, explosion, cloud, horizon and the wface leaves; `LR-reader-*`) stop at their head with `[model-provider:object.geometry]`. Whether any of them is reachable in a
+  hosted engine is not established (compiled presence is not dormancy): a run that reaches one fails by name. No existing fixture entry calls one, so that marker has no control yet.
+* **Diagnostic:** the model-host fixture's counters entry now also reports `model-core-residency rows= metadata_rows= points= faces= point_refs= surface_points=` over the actual rows. Expected at the next native
+  boot: `points`, `point_refs` and `surface_points` 0, `metadata_rows` and `faces` nonzero (faces is the reported residue).
+* **Static checks only:** all 52 `LOADER_HOST_PATCHES` find their strict counts against the real sources in the order `main.rs` applies them (PATCHES, MODEL_HOST, ROUTE_HOST, LOADER_HOST), 16 loader / reader patches
+  and 36 renderer heads. No build, compile, test, engine or native run, no Tacview claim; the unit test for kind 0 (`model_route.rs`) was written, not run. The Root freezes and builds one pin, then runs the host
+  Lua, native boot with the residency line, the horizon and poly-line values against the original, the refusal, and the deterministic captures and short bytes. Task50 and D3 remain In Progress.
+
 # D3 host route boundary: popread consumers of the position table (1 November 2026): SOURCE ONLY; NOT BUILT, NOT RUN
 
 The Root's source inspection found one more required consumer gap: `popread.c` `insert_airport_fixedwing_routes` (and the other airfield insertion functions) read `route_waypoint_positions[current_route_waypoint_offset]`

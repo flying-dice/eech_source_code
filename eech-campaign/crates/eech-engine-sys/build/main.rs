@@ -130,6 +130,15 @@ fn main() {
             let patched: Vec<u8> = patches::apply_route_host(file, &text).chars().map(|c| c as u32 as u8).collect();
             write_if_changed(&staged, &patched);
         }
+        // 1a2. EEDCS-50 (D3): the loader detachment (patches.rs, LOADER_HOST_PATCHES). With the route parser on the host, the common and custom loaders keep no point,
+        //      face-point-reference or surface-point buffer; the same two original-keeping builds (model-fixture, route-original) read them, so they keep the original loader.
+        for file in patches::loader_host_files() {
+            let staged = tree.join(file);
+            let bytes = fs::read(&staged).unwrap_or_else(|e| panic!("{file}: {e}"));
+            let text: String = bytes.iter().map(|&b| b as char).collect();
+            let patched: Vec<u8> = patches::apply_loader_host(file, &text).chars().map(|c| c as u32 as u8).collect();
+            write_if_changed(&staged, &patched);
+        }
     }
 
     // 1a. TEST-ONLY (feature model-fixture, EEDCS-50): observation hooks in the staged model loader, on top of the shipping patches above (patches.rs,

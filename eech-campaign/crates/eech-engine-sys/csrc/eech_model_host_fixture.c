@@ -41,6 +41,7 @@ struct campaign_model_counters
 
 extern struct campaign_model_counters campaign_model_counts;
 extern void campaign_model_poison_arrays (void);
+extern void campaign_model_core_residency (int *rows, int *metadata_rows, int *points, int *faces, int *point_refs, int *surface_points);
 
 static uint32_t float_bits (float value)
 {
@@ -57,14 +58,28 @@ static void bounds_text (char *buffer, size_t capacity, const struct OBJECT_3D_B
 
 int eech_model_host_counters_run (char *text, int capacity)
 {
-	int n = snprintf (text, (size_t) capacity,
+	int rows, metadata_rows, points, faces, point_refs, surface_points;
+	int n, m;
+
+	n = snprintf (text, (size_t) capacity,
 		"model-host catalogue=%ld scene=%ld triangle=%ld found=%ld end=%ld absent=%ld bounds_reads=%ld bounds_without_lines_reads=%ld radius_reads=%ld"
 		" presence_checked=%ld presence_mismatches=%ld\n",
 		campaign_model_counts.catalogue, campaign_model_counts.scene, campaign_model_counts.triangle, campaign_model_counts.found, campaign_model_counts.end,
 		campaign_model_counts.absent, campaign_model_counts.bounds_reads, campaign_model_counts.bounds_without_lines_reads, campaign_model_counts.radius_reads,
 		campaign_model_counts.presence_checked, campaign_model_counts.presence_mismatches);
 
-	return ((n < 0) || (n >= capacity)) ? 1 : 0;
+	if ((n < 0) || (n >= capacity))
+	{
+		return 1;
+	}
+
+	/* the loader detachment (EEDCS-50, D3): how many rows of the campaign's own object table still hold each physical buffer, as integer counts over the actual rows (no address),
+	   next to the rows that still carry the file's true point count. */
+	campaign_model_core_residency (&rows, &metadata_rows, &points, &faces, &point_refs, &surface_points);
+	m = snprintf (text + n, (size_t) (capacity - n), "model-core-residency rows=%d metadata_rows=%d points=%d faces=%d point_refs=%d surface_points=%d\n", rows, metadata_rows, points, faces,
+		point_refs, surface_points);
+
+	return ((m < 0) || (m >= capacity - n)) ? 1 : 0;
 }
 
 int eech_model_host_poison_run (void)

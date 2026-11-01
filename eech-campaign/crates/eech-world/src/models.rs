@@ -1701,7 +1701,7 @@ impl fmt::Display for QueryError {
         match self {
             QueryError::BadScene(scene) => write!(f, "scene {scene} is outside 1 to {}", scene_last() - 1),
             QueryError::BadDepth(depth) => write!(f, "depth {depth} is not a non-negative 32-bit whole number"),
-            QueryError::BadKind(kind) => write!(f, "sub-object kind {kind} is outside 1 to {}", subobject_last() - 1),
+            QueryError::BadKind(kind) => write!(f, "sub-object kind {kind} is outside 0 (the main object) to {}", subobject_last() - 1),
         }
     }
 }
@@ -1954,14 +1954,24 @@ impl ModelStore {
     /// The object a route query is about, or the answer that ends it: absent, or refused for a stated reason.
     fn route_target(&self, scene: i64, kind: i64) -> Result<Result<&Object, (bool, &'static str)>, QueryError> {
         let id = self.check_scene(scene)?;
-        if kind < 1 || kind >= subobject_last() as i64 {
+        if kind < 0 || kind >= subobject_last() as i64 {
             return Err(QueryError::BadKind(kind));
         }
         // (true, _) is the absence; (false, why) a refusal
-        let object = match self.route_object(id, kind as i32) {
-            Ok(Some(object)) => object,
-            Ok(None) => return Ok(Err((true, "absent"))),
-            Err(why) => return Ok(Err((false, why))),
+        let object = if kind == 0 {
+            // kind 0 is the MAIN-OBJECT role, not a sub-object kind: the scene's own object (what the original reads as `objects_3d_scene_database[scene].index`). It is how the
+            // campaign's remaining physical readers of a scene's line geometry (the horizon's points, the cockpit display poly-lines) ask the host once the loader no longer
+            // holds the point buffers. A scene never read has no object.
+            if !self.scenes[id].loaded {
+                return Ok(Err((true, "absent")));
+            }
+            self.scenes[id].index
+        } else {
+            match self.route_object(id, kind as i32) {
+                Ok(Some(object)) => object,
+                Ok(None) => return Ok(Err((true, "absent"))),
+                Err(why) => return Ok(Err((false, why))),
+            }
         };
         if object < 1 || object as usize >= self.objects.len() {
             return Ok(Err((false, "route_object_outside_table")));
