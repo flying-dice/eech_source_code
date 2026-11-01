@@ -29,6 +29,11 @@
 //! - `sound_pause_resume { resume, valid, member, valid_lifetime, delay? }`: one effect the campaign matched under a pause or a resume (soundeff.c `pause_local_entity_sound_type` / `resume_local_entity_sound_type`, EEDCS-51):
 //!   `{ changed, valid, valid_lifetime, play, relink }`. A pause of a valid effect makes it invalid and copies the `delay`; a resume of an invalid one makes it valid, asks its parent to `play` and, when it is not a `member` of
 //!   the update list, to `relink` it; anything else is a no-op that changes nothing (the stored `valid_lifetime` comes back as the very number it was given). The `changed` flags are the original's count. The host keeps NO state.
+//! - `rotor_sound { player = "ai" | "local" | "remote", rpm, flight_model, acceleration = { x, y, z }?, left_rpm?, right_rpm?, apu_rpm? }`: the acoustics of ONE helicopter's rotor, turbines and APU (EEDCS-51, D3, helicop.c
+//!   `update_local_helicopter_rotor_sounds`): `{ channels = { looping, slap, turbine1, turbine2, apu = { amplification, pitch }, winding = { amplification } }, actions = { { action = "pause" | "resume", channel, delay? }, ... } }`.
+//!   The host owns every level and pitch (the 30/45 rpm thresholds, the looping pitch, the slap level from the magnitude of the acceleration, the turbines and the APU, the winding constant) and the CHOICE and order of the pause and
+//!   resume requests; the campaign owns the reads, the walk of the children, the helper calls and the writes. `acceleration` is given for EVERY role when a flight model is current; the three engine rpm only for the local
+//!   role with one. The looping channel's level is already the original's `looping - slap`. The host keeps NO state.
 //! - `sound_catalogue { slots, entries = { { index, name }, ... } }`: the physical SAMPLE METADATA at initialisation (EEDCS-51, snd_data.c `initialise_application_sound_effects`, asked once at boot, before any session
 //!   exists): the campaign names its descriptors, in its table's order, by the slot each fills and the asset it plays, and the host answers `{ header_present, header_count, entries = { { rate, original_rate, matched,
 //!   size }, ... } }`, one entry for each, in order. The host owns the rates, where its `audio\sound.hdr` and `audio\sound.dat` are (its own sound data root: `host.env_provider { sound_root = ... }`, else the host's
@@ -142,6 +147,7 @@ extern "C" {
     fn env_ref_sound_init(in_i: *const i32, out_lifetime: *mut f32, error: *mut c_char, error_size: usize) -> i32;
     fn env_ref_sound_update(in_f: *const f32, in_i: *const i32, out_f: *mut f32, out_i: *mut i32, error: *mut c_char, error_size: usize) -> i32;
     fn env_ref_sound_pause_resume(in_w: *const u32, in_i: *const i32, out_w: *mut u32, out_i: *mut i32, error: *mut c_char, error_size: usize) -> i32;
+    fn env_ref_rotor_sound(in_w: *const u32, in_i: *const i32, out_w: *mut u32, out_i: *mut i32, error: *mut c_char, error_size: usize) -> i32;
     fn env_ref_step(
         field: *mut EnvRef,
         in_f: *const f32,
@@ -375,6 +381,114 @@ pub fn sound_pause_resume(input: &SoundPauseResumeInput) -> Result<SoundPauseRes
         valid_lifetime: f32::from_bits(out_w[0]),
         play: out_i[2] != 0,
         relink: out_i[3] != 0,
+    })
+}
+
+/// The channels of the rotor acoustics, in the protocol's order, by the name the Lua host uses.
+pub const ROTOR_CHANNEL_NAMES: [&str; ROTOR_CHANNELS] = ["looping", "slap", "turbine1", "turbine2", "apu", "winding"];
+pub const ROTOR_CHANNELS: usize = 6;
+pub const ROTOR_ACTIONS: usize = 8;
+
+/// Whose helicopter it is, as the campaign sees it (never the EECH enumeration).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum RotorPlayer {
+    Ai,
+    Local,
+    Remote,
+}
+
+/// One helicopter's rotor observations, by value: the stored main rotor rpm, the acceleration vector of the current flight model (a GLOBAL: present for every role when a flight model is current) and the left, right and
+/// APU rpm (read only for the local role with a flight model; the others are not read).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct RotorSoundInput {
+    pub player: RotorPlayer,
+    pub rpm: f32,
+    pub acceleration: Option<[f32; 3]>,
+    pub engines: [f32; 3],
+}
+
+/// One ordered request the original makes of the sounds of the helicopter: pause (with its delay) or resume, for a channel.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct RotorAction {
+    pub resume: bool,
+    pub channel: usize,
+    pub delay: f32,
+}
+
+/// The acoustics of one helicopter: the write mask (1 amplification, 2 pitch), amplification and pitch of every channel, and the ordered requests.
+#[derive(Clone, Debug, PartialEq)]
+pub struct RotorSound {
+    pub write: [i32; ROTOR_CHANNELS],
+    pub amplification: [f32; ROTOR_CHANNELS],
+    pub pitch: [f32; ROTOR_CHANNELS],
+    pub actions: Vec<RotorAction>,
+}
+
+/// The acoustics of one helicopter's rotor, turbines and APU: the original arithmetic and the choice of the requests, in the canonical arithmetic environment (the caller's complete state is restored). The numbers
+/// travel as 32-bit words. A number the original would consume that is not finite is refused and nothing is returned.
+pub fn rotor_sound(input: &RotorSoundInput) -> Result<RotorSound, String> {
+    let mut error = [0u8; ERROR_SIZE];
+    let acceleration = input.acceleration.unwrap_or([0.0; 3]);
+    let local_engines = input.player == RotorPlayer::Local && input.acceleration.is_some();
+    let engines = if local_engines { input.engines } else { [0.0; 3] };
+    let in_w = [
+        input.rpm.to_bits(),
+        acceleration[0].to_bits(),
+        acceleration[1].to_bits(),
+        acceleration[2].to_bits(),
+        engines[0].to_bits(),
+        engines[1].to_bits(),
+        engines[2].to_bits(),
+    ];
+    let in_i = [
+        match input.player {
+            RotorPlayer::Ai => 0,
+            RotorPlayer::Local => 1,
+            RotorPlayer::Remote => 2,
+        },
+        i32::from(input.acceleration.is_some()),
+    ];
+    let mut out_w = [0u32; 2 * ROTOR_CHANNELS + ROTOR_ACTIONS];
+    let mut out_i = [0i32; ROTOR_CHANNELS + 1 + 2 * ROTOR_ACTIONS];
+    // SAFETY: the arrays have the lengths the kernel reads and writes; `error` is writable for its size.
+    let status = unsafe {
+        env_ref_rotor_sound(
+            in_w.as_ptr(),
+            in_i.as_ptr(),
+            out_w.as_mut_ptr(),
+            out_i.as_mut_ptr(),
+            error.as_mut_ptr().cast(),
+            ERROR_SIZE,
+        )
+    };
+    if status != 0 {
+        return Err(message(&error));
+    }
+    let count = usize::try_from(out_i[ROTOR_CHANNELS])
+        .ok()
+        .filter(|count| *count <= ROTOR_ACTIONS)
+        .ok_or("the kernel returned a number of requests out of range")?;
+    let write: [i32; ROTOR_CHANNELS] = std::array::from_fn(|channel| out_i[channel]);
+    let amplification: [f32; ROTOR_CHANNELS] = std::array::from_fn(|channel| f32::from_bits(out_w[channel]));
+    let pitch: [f32; ROTOR_CHANNELS] = std::array::from_fn(|channel| f32::from_bits(out_w[ROTOR_CHANNELS + channel]));
+    let actions = (0..count)
+        .map(|position| {
+            let channel = usize::try_from(out_i[ROTOR_CHANNELS + 1 + ROTOR_ACTIONS + position])
+                .ok()
+                .filter(|channel| *channel < ROTOR_CHANNELS - 1)
+                .ok_or("the kernel returned a request channel out of range")?;
+            Ok(RotorAction {
+                resume: out_i[ROTOR_CHANNELS + 1 + position] != 0,
+                channel,
+                delay: f32::from_bits(out_w[2 * ROTOR_CHANNELS + position]),
+            })
+        })
+        .collect::<Result<Vec<_>, String>>()?;
+    Ok(RotorSound {
+        write,
+        amplification,
+        pitch,
+        actions,
     })
 }
 
@@ -957,6 +1071,62 @@ fn respond(lua: &Lua, field: &RefCell<Field>, sound_root: &Option<PathBuf>, requ
             answer.set("valid_lifetime", f64::from(decision.valid_lifetime))?;
             answer.set("play", decision.play)?;
             answer.set("relink", decision.relink)?;
+        }
+        "rotor_sound" => {
+            let player = match request.get::<LuaValue>("player")? {
+                LuaValue::String(text) => match &*text.to_str()? {
+                    "ai" => RotorPlayer::Ai,
+                    "local" => RotorPlayer::Local,
+                    "remote" => RotorPlayer::Remote,
+                    other => return Err(refuse(format_args!("player {other:?} is not ai, local or remote"))),
+                },
+                other => return Err(refuse(format_args!("player must be a string, got {}", other.type_name()))),
+            };
+            let flight_model = boolean(request, "flight_model")?;
+            // the acceleration is read for every role when a flight model is current; the engines only for the local role with one
+            let acceleration = if flight_model {
+                Some(singles(&reader, &subtable(request, "acceleration")?, &["x", "y", "z"], "acceleration")?)
+            } else {
+                None
+            };
+            let engines = if flight_model && player == RotorPlayer::Local {
+                [
+                    single(&reader, request, "left_rpm", "left_rpm")?,
+                    single(&reader, request, "right_rpm", "right_rpm")?,
+                    single(&reader, request, "apu_rpm", "apu_rpm")?,
+                ]
+            } else {
+                [0.0; 3]
+            };
+            let decision = rotor_sound(&RotorSoundInput {
+                player,
+                rpm: single(&reader, request, "rpm", "rpm")?,
+                acceleration,
+                engines,
+            })
+            .map_err(refuse)?;
+            let channels = lua.create_table()?;
+            for (index, name) in ROTOR_CHANNEL_NAMES.iter().enumerate() {
+                let channel = lua.create_table()?;
+                channel.set("amplification", f64::from(decision.amplification[index]))?;
+                // the winding channel writes the amplification only: it has no pitch
+                if decision.write[index] & 2 != 0 {
+                    channel.set("pitch", f64::from(decision.pitch[index]))?;
+                }
+                channels.set(*name, channel)?;
+            }
+            answer.set("channels", channels)?;
+            let actions = lua.create_table()?;
+            for (position, action) in decision.actions.iter().enumerate() {
+                let item = lua.create_table()?;
+                item.set("action", if action.resume { "resume" } else { "pause" })?;
+                item.set("channel", ROTOR_CHANNEL_NAMES[action.channel])?;
+                if !action.resume {
+                    item.set("delay", f64::from(action.delay))?;
+                }
+                actions.set(position + 1, item)?;
+            }
+            answer.set("actions", actions)?;
         }
         "sound_catalogue" => {
             let root = sound_root
@@ -2903,5 +3073,156 @@ mod tests {
             })
             .is_ok());
         }
+    }
+
+    // ---- the acoustics of a helicopter's rotor (EEDCS-51, D3): the contract of the host's kernel.  The numbers of the ORIGINAL are in tests/rotor_sound_kernel.rs (retained measurements); here are the
+    // structure of an answer, the refusals and the caller's floating-point state.
+
+    fn rotor(player: RotorPlayer, rpm: f32, acceleration: Option<[f32; 3]>, engines: [f32; 3]) -> RotorSoundInput {
+        RotorSoundInput {
+            player,
+            rpm,
+            acceleration,
+            engines,
+        }
+    }
+
+    #[test]
+    fn the_rotor_answer_is_the_loop_and_slap_pair_for_a_helicopter_that_is_not_the_local_players_and_the_engines_too_for_the_local_one() {
+        // an AI helicopter above the top threshold: the loop at the full level and the constant pitch 1, no slap without a flight model, the winding constant, no engine request
+        let ai = rotor_sound(&rotor(RotorPlayer::Ai, 60.0, None, [0.0; 3])).unwrap();
+        assert_eq!(ai.write, [3, 3, 3, 3, 3, 1]);
+        assert_eq!((ai.amplification[0], ai.pitch[0], ai.amplification[1], ai.pitch[1]), (1.0, 1.0, 0.0, 1.0));
+        assert_eq!((ai.amplification[2], ai.pitch[2], ai.amplification[3], ai.pitch[3]), (1.0, 1.3, 1.0, 1.3));
+        assert_eq!((ai.amplification[4], ai.pitch[4], ai.amplification[5], ai.pitch[5]), (0.0, 1.0, 0.75, 0.0));
+        assert_eq!(
+            ai.actions,
+            [
+                RotorAction {
+                    resume: true,
+                    channel: 0,
+                    delay: 0.0
+                },
+                RotorAction {
+                    resume: true,
+                    channel: 1,
+                    delay: 0.0
+                }
+            ]
+        );
+        // at or below the bottom threshold the loop and the slap are both paused, whatever the acceleration, and the pause carries the word of zero
+        let idle = rotor_sound(&rotor(RotorPlayer::Remote, 30.0, Some([100.0, 0.0, 0.0]), [9.0; 3])).unwrap();
+        assert_eq!((idle.amplification[0].to_bits(), idle.amplification[1].to_bits()), (0, 0));
+        assert!(idle.actions.iter().all(|action| !action.resume && action.delay.to_bits() == 0));
+        assert_eq!(idle.actions.iter().map(|action| action.channel).collect::<Vec<_>>(), [0, 1]);
+        // the acceleration is used for a REMOTE helicopter too, and the engines are not (it holds the constants)
+        let remote = rotor_sound(&rotor(RotorPlayer::Remote, 60.0, Some([30.0, 0.0, 0.0]), [9.0; 3])).unwrap();
+        assert_eq!((remote.amplification[1], remote.amplification[0]), (1.0, 0.0));
+        assert_eq!((remote.amplification[2], remote.pitch[2], remote.amplification[4]), (1.0, 1.3, 0.0));
+        assert_eq!(remote.actions.len(), 2);
+        // the local helicopter with a flight model: the engines' pause or resume come first, turbine 1, turbine 2, the APU, then the loop and the slap
+        let local = rotor_sound(&rotor(RotorPlayer::Local, 60.0, Some([0.0; 3]), [60.0, 60.0, 0.0])).unwrap();
+        assert_eq!(local.actions.iter().map(|action| action.channel).collect::<Vec<_>>(), [2, 3, 4, 0, 1]);
+        assert_eq!(
+            local.actions.iter().map(|action| action.resume).collect::<Vec<_>>(),
+            [true, false, false, true, true]
+        );
+        // the two engines within 1.0 of each other are ONE sound: the left level times 1.2 and the right turbine paused; the F1 zeros of the right turbine and the APU levels
+        assert_eq!(local.amplification[3].to_bits(), 0);
+        assert_eq!(local.amplification[4].to_bits(), 0);
+        // a local helicopter WITHOUT a flight model has no engine requests either
+        let blind = rotor_sound(&rotor(RotorPlayer::Local, 60.0, None, [60.0; 3])).unwrap();
+        assert_eq!(blind.actions.len(), 2);
+    }
+
+    #[test]
+    fn a_rotor_question_with_a_number_the_original_would_consume_that_is_not_finite_is_refused_and_one_it_would_not_is_never_read() {
+        for bad in [f32::NAN, f32::INFINITY, f32::NEG_INFINITY, f32::from_bits(0x7fa0_0000)] {
+            assert!(rotor_sound(&rotor(RotorPlayer::Ai, bad, None, [0.0; 3])).is_err());
+            assert!(rotor_sound(&rotor(RotorPlayer::Remote, 60.0, Some([bad, 0.0, 0.0]), [0.0; 3])).is_err());
+            for engine in 0..3 {
+                let mut engines = [60.0; 3];
+                engines[engine] = bad;
+                assert!(rotor_sound(&rotor(RotorPlayer::Local, 60.0, Some([0.0; 3]), engines)).is_err());
+                // the engines are not read for another role, nor without a flight model
+                assert!(rotor_sound(&rotor(RotorPlayer::Ai, 60.0, Some([0.0; 3]), engines)).is_ok());
+                assert!(rotor_sound(&rotor(RotorPlayer::Local, 60.0, None, engines)).is_ok());
+            }
+            // the acceleration is not read without a flight model
+            assert!(rotor_sound(&rotor(RotorPlayer::Ai, 60.0, None, [bad; 3])).is_ok());
+        }
+    }
+
+    /// The caller's complete floating-point state survives the rotor kernel in every mode, and its answer words do not depend on it (the kernel sets the canonical environment itself).
+    #[test]
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    fn the_callers_complete_floating_point_state_survives_the_rotor_kernel_in_every_mode_and_its_words_do_not_depend_on_it() {
+        let restore = RestoreFp {
+            image: fp::x87_image(),
+            mxcsr: fp::mxcsr(),
+        };
+        let questions = [
+            rotor(RotorPlayer::Ai, 37.5, None, [0.0; 3]),
+            rotor(RotorPlayer::Remote, 41.25, Some([1.5, -2.5, 20.0]), [0.0; 3]),
+            rotor(RotorPlayer::Local, 44.0, Some([3.0, 4.0, 12.0]), [12.5, 20.0, 3.0]),
+            rotor(RotorPlayer::Local, 31.0, Some([0.1, 0.2, 0.3]), [50.0, 50.5, 0.0]),
+            rotor(
+                RotorPlayer::Local,
+                f32::from_bits(3),
+                Some([f32::from_bits(1); 3]),
+                [1.0, 1.0, f32::from_bits(2)],
+            ),
+            rotor(RotorPlayer::Local, f32::NAN, Some([0.0; 3]), [0.0; 3]),
+        ];
+        let words = |answer: &Result<RotorSound, String>| -> Result<Vec<u32>, String> {
+            answer.clone().map(|sound| {
+                let mut words: Vec<u32> = sound.amplification.iter().chain(&sound.pitch).map(|value| value.to_bits()).collect();
+                words.extend(sound.write.iter().map(|value| *value as u32));
+                for action in &sound.actions {
+                    words.extend([u32::from(action.resume), action.channel as u32, action.delay.to_bits()]);
+                }
+                words
+            })
+        };
+        let mask = fp::mxcsr_mask();
+        let mode_sets: Vec<u32> = if mask & 0x8040 == 0x8040 { vec![0, 0x8040] } else { vec![0, mask & 0x8000] };
+        let mut reference: Vec<Option<Result<Vec<u32>, String>>> = vec![None; questions.len()];
+        let mut failures = Vec::new();
+        for x87_rounding in 0u16..4 {
+            for x87_precision in [0u16, 3] {
+                for sse_rounding in 0u32..4 {
+                    for sticky in [0u32, 0x3f] {
+                        for &modes in &mode_sets {
+                            for status in [0x0000u16, 0x403f, 0x2700] {
+                                for (index, question) in questions.iter().enumerate() {
+                                    fp::seed_modes(x87_rounding, x87_precision, status, sse_rounding, sticky, modes);
+                                    let expected = fp::now();
+                                    let answer = words(&rotor_sound(question));
+                                    let actual = fp::now();
+                                    let state = format!("x87 rounding {x87_rounding}, precision {x87_precision}, SSE rounding {sse_rounding}, MXCSR sticky {sticky:#x}, modes {modes:#x}, x87 status {status:#06x}");
+                                    if actual != expected {
+                                        failures.push(format!("question {index}: the state {expected:x?} became {actual:x?} under {state}"));
+                                    }
+                                    match &reference[index] {
+                                        None => reference[index] = Some(answer),
+                                        Some(first) if *first != answer => failures.push(format!("question {index}: the answer changed under {state}")),
+                                        Some(_) => {}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        drop(restore);
+        assert!(
+            failures.is_empty(),
+            "{} failures, first:\n{}",
+            failures.len(),
+            failures.iter().take(8).cloned().collect::<Vec<_>>().join("\n")
+        );
+        assert!(reference[5].as_ref().unwrap().is_err(), "a rpm that is not a number is refused");
+        assert!(reference[..5].iter().all(|answer| answer.as_ref().unwrap().is_ok()));
     }
 }

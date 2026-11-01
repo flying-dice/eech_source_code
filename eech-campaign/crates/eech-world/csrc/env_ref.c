@@ -2094,3 +2094,278 @@ int env_ref_sound_pause_resume (const unsigned int *in_w, const int *in_i, unsig
 
 	return 0;
 }
+
+/*
+ * The ACOUSTICS of ONE helicopter's rotor, turbines and APU (EEDCS-51, D3): the original C of aphavoc/source/entity/mobile/aircraft/helicop/helicop.c update_local_helicopter_rotor_sounds with the same C types, the same
+ * expressions (the double literals and operations stay double, the float stores stay float stores) in the same order, so the same arithmetic gives the same bits.  Only the ARITHMETIC and the CHOICE of the pause and
+ * resume requests are here; the reads of the stored fields, the calls of the pause and resume helpers, the walk of the children and the writes are the campaign's.
+ *
+ *     the looping level:   rpm >= 45 -> 1.0;  rpm <= 30 -> 0.0;  else (rpm - 30) / (45 - 30)
+ *     the looping pitch:   rpm / 100.0, and 1.0 for an AI helicopter
+ *     the slap level:      with a flight model (a GLOBAL, used for EVERY player role): get_3d_vector_magnitude (acceleration) / 15.0, times the looping level, bounded 0 to 1; without one 0.0
+ *     the local engines:   only for the LOCAL role with a flight model: the turbine pitches and levels, the one-sound case (engines not more than 1.0 apart: the left level x1.2) and the APU
+ *     elsewhere:           both turbines pitch 1.3 and level 1.0, the APU pitch 1.0 and level 0.0
+ *     the winding level:   the constant 0.75 (amplification only)
+ *     the requests:        the local engines' pause or resume of turbine 1, turbine 2 (always one) and the APU, then looping and slap together (pause when the looping level is exactly 0.0, else resume)
+ *     the looping write:   the looping level minus the slap level (the campaign subtracts nothing)
+ *
+ * F1 (the compatibility decision of the canonical whole-engine build, eech-engine-sys/build/main.rs, `-ftrivial-auto-var-init=zero`): in the original, `right_turbine_amp` is assigned only when the engines are more than 1.0 apart and
+ * `apu_amp` only when the APU rpm is above 0, and are read by the child switch either way; the measured original (independent final actual review of e54423b5c, flight model inputs 10 to 14) shows them zero in the canonical artifacts.  They
+ * are set to 0.0 here, explicitly, as that canonical-build behavior; this is NOT a gameplay fix and says nothing about any other compiler.
+ *
+ * The original arithmetic ran in the engine's own environment (round toward zero in both units), so this entry sets the CANONICAL arithmetic environment (fp_enter_canonical) before any floating-point work; the caller's complete
+ * state is restored and read back on every path.  The words travel as 32-bit words (bit exact); the float work happens only between fp_save and fp_leave.  A role outside 0 to 2, a flag that is not 0 or 1 and a consumed
+ * number that is not finite are refused before any floating-point work (nothing is written).
+ */
+#define HELICOPTER_ROTOR_SOUNDS_LOOPING_MAX_RPM_VALUE	45
+#define HELICOPTER_ROTOR_SOUNDS_LOOPING_MIN_RPM_VALUE	30
+
+typedef struct rotor_vec3d
+{
+	float x, y, z;
+} rotor_vec3d;
+
+/* modules/maths/vector.c get_3d_vector_magnitude, as a separate function returning float (the original is a call into another translation unit, so its result is a stored float) */
+static float __attribute__ ((noinline)) rotor_vector_magnitude (const rotor_vec3d *vector)
+{
+	float x, y, z;
+
+	x = (vector->x * vector->x);
+	y = (vector->y * vector->y);
+	z = (vector->z * vector->z);
+
+	return (sqrt (x + y + z));
+}
+
+/* in_w = { rpm, acceleration x, y, z, left engine rpm, right engine rpm, APU rpm } as WORDS; in_i = { role (0 AI, 1 local, 2 remote), flight model present };
+   out_w = { amplification[6], pitch[6], delay[8] } as words (the delays of the requests; every one is the word of 0.0); out_i = { write mask[6], request count, resume[8], channel[8] } */
+int env_ref_rotor_sound (const unsigned int *in_w, const int *in_i, unsigned int *out_w, int *out_i, char *error, size_t error_size)
+{
+	env_fp_state saved;
+	int result = 0;
+	int role = in_i[0];
+	int have_fd = in_i[1];
+	int local_engines = (role == 1) && have_fd;
+	int count = 0;
+	int resume[ENV_REF_ROTOR_ACTIONS];
+	int channel[ENV_REF_ROTOR_ACTIONS];
+	float amplification[ENV_REF_ROTOR_CHANNELS];
+	float pitch[ENV_REF_ROTOR_CHANNELS];
+	int i;
+
+	memset (out_w, 0, sizeof (unsigned int) * (2 * ENV_REF_ROTOR_CHANNELS + ENV_REF_ROTOR_ACTIONS));
+	memset (out_i, 0, sizeof (int) * (ENV_REF_ROTOR_CHANNELS + 1 + 2 * ENV_REF_ROTOR_ACTIONS));
+	memset (resume, 0, sizeof (resume));
+	memset (channel, 0, sizeof (channel));
+	memset (amplification, 0, sizeof (amplification));
+	memset (pitch, 0, sizeof (pitch));
+
+	if (role < 0 || role > 2)
+	{
+		return fail (error, error_size, "the player role %d is not 0 (AI), 1 (local) or 2 (remote)", role);
+	}
+
+	if ((have_fd != 0) && (have_fd != 1))
+	{
+		return fail (error, error_size, "the flight model flag %d is neither 0 nor 1", have_fd);
+	}
+
+	/* the numbers the original consumes must be finite words: the rpm always, the acceleration with a flight model, the engines for the local role with one (decided on the exponent bits, no float is loaded) */
+	if ((in_w[0] & ENV_WORD_EXPONENT) == ENV_WORD_EXPONENT)
+	{
+		return fail (error, error_size, "the main rotor rpm is not a finite number");
+	}
+
+	for (i = 1; have_fd && i < 4; i++)
+	{
+		if ((in_w[i] & ENV_WORD_EXPONENT) == ENV_WORD_EXPONENT)
+		{
+			return fail (error, error_size, "the acceleration is not a finite vector");
+		}
+	}
+
+	for (i = 4; local_engines && i < 7; i++)
+	{
+		if ((in_w[i] & ENV_WORD_EXPONENT) == ENV_WORD_EXPONENT)
+		{
+			return fail (error, error_size, "an engine or APU rpm is not a finite number");
+		}
+	}
+
+	fp_save (&saved);
+
+	if (fp_enter_canonical (error, error_size) != 0)
+	{
+		return fp_leave (&saved, -1, error, error_size);
+	}
+
+	{
+		float rpm;
+		rotor_vec3d acceleration;
+		float
+			looping_amp,
+			looping_pitch,
+			slap_amp,
+			left_turbine_amp, right_turbine_amp, apu_amp,
+			left_turbine_pitch = 1.0, right_turbine_pitch = 1.0, apu_pitch = 1.0,
+			winding_amp,
+			acc_force;
+
+		memcpy (&rpm, &in_w[0], sizeof (rpm));
+		memcpy (&acceleration.x, &in_w[1], sizeof (float));
+		memcpy (&acceleration.y, &in_w[2], sizeof (float));
+		memcpy (&acceleration.z, &in_w[3], sizeof (float));
+
+		/* F1: the canonical build's zero for the two levels the original assigns only on some paths */
+		right_turbine_amp = 0.0;
+		apu_amp = 0.0;
+
+		if (rpm >= HELICOPTER_ROTOR_SOUNDS_LOOPING_MAX_RPM_VALUE)
+		{
+			looping_amp = 1.0;
+		}
+		else if (rpm <= HELICOPTER_ROTOR_SOUNDS_LOOPING_MIN_RPM_VALUE)
+		{
+			looping_amp = 0.0;
+		}
+		else
+		{
+			looping_amp = (rpm - HELICOPTER_ROTOR_SOUNDS_LOOPING_MIN_RPM_VALUE) /
+								(HELICOPTER_ROTOR_SOUNDS_LOOPING_MAX_RPM_VALUE - HELICOPTER_ROTOR_SOUNDS_LOOPING_MIN_RPM_VALUE);
+		}
+
+		looping_pitch = rpm / 100.0;
+
+		if (role == 0)
+		{
+			looping_pitch = 1.0;
+		}
+
+		if (have_fd)
+		{
+			acc_force = (rotor_vector_magnitude (&acceleration) / 15.0);
+			slap_amp = (acc_force) * looping_amp;
+			slap_amp = bound (slap_amp, 0.0, 1.0);
+		}
+		else
+		{
+			acc_force = 0.0;
+			slap_amp = 0.0;
+		}
+
+		if (local_engines)
+		{
+			float lrpm, rrpm, apu_rpm;
+			short play_both_sounds;
+
+			memcpy (&lrpm, &in_w[4], sizeof (lrpm));
+			memcpy (&rrpm, &in_w[5], sizeof (rrpm));
+			memcpy (&apu_rpm, &in_w[6], sizeof (apu_rpm));
+
+			play_both_sounds = fabs (lrpm - rrpm) > 1.0;
+
+			left_turbine_pitch = lrpm / 100.0;
+			left_turbine_pitch = bound (left_turbine_pitch, 0.0, 1.6) + 0.6;
+			left_turbine_amp = 0.2 + bound ((lrpm - 20.0) * 0.01, 0.0, 0.4);
+
+			resume[count] = (lrpm > 1);
+			channel[count++] = ENV_REF_ROTOR_TURBINE1;
+
+			if (play_both_sounds)
+			{
+				right_turbine_pitch = rrpm / 100.0;
+				right_turbine_pitch = bound (right_turbine_pitch, 0.0, 1.6) + 0.6;
+				right_turbine_amp = 0.2 + bound ((rrpm - 40.0) * 0.02, 0.0, 0.4);
+
+				resume[count] = (rrpm > 1);
+				channel[count++] = ENV_REF_ROTOR_TURBINE2;
+			}
+			else
+			{
+				resume[count] = FALSE;
+				channel[count++] = ENV_REF_ROTOR_TURBINE2;
+				left_turbine_amp *= 1.2;
+			}
+
+			if (apu_rpm > 0.0)
+			{
+				apu_pitch = bound (apu_rpm * 0.02, 0.0, 2.0) + 0.2;
+				apu_amp = bound (apu_rpm * 0.01, 0.0, 0.25);
+				resume[count] = TRUE;
+				channel[count++] = ENV_REF_ROTOR_APU;
+			}
+			else
+			{
+				resume[count] = FALSE;
+				channel[count++] = ENV_REF_ROTOR_APU;
+			}
+		}
+		else
+		{
+			left_turbine_pitch = right_turbine_pitch = 1.3;
+			left_turbine_amp = right_turbine_amp = 1.0;
+			apu_pitch = 1.0;
+			apu_amp = 0.0;
+		}
+
+		winding_amp = 0.75;
+
+		if (looping_amp == 0.0)
+		{
+			resume[count] = FALSE;
+			channel[count++] = ENV_REF_ROTOR_LOOPING;
+			resume[count] = FALSE;
+			channel[count++] = ENV_REF_ROTOR_SLAP;
+		}
+		else
+		{
+			resume[count] = TRUE;
+			channel[count++] = ENV_REF_ROTOR_LOOPING;
+			resume[count] = TRUE;
+			channel[count++] = ENV_REF_ROTOR_SLAP;
+		}
+
+		/* the values the campaign's children receive: the looping level is the original's (looping_amp - slap_amp) */
+		amplification[ENV_REF_ROTOR_LOOPING] = (looping_amp - slap_amp);
+		pitch[ENV_REF_ROTOR_LOOPING] = looping_pitch;
+		amplification[ENV_REF_ROTOR_SLAP] = (slap_amp);
+		pitch[ENV_REF_ROTOR_SLAP] = looping_pitch;
+		amplification[ENV_REF_ROTOR_TURBINE1] = left_turbine_amp;
+		pitch[ENV_REF_ROTOR_TURBINE1] = left_turbine_pitch;
+		amplification[ENV_REF_ROTOR_TURBINE2] = right_turbine_amp;
+		pitch[ENV_REF_ROTOR_TURBINE2] = right_turbine_pitch;
+		amplification[ENV_REF_ROTOR_APU] = apu_amp;
+		pitch[ENV_REF_ROTOR_APU] = apu_pitch;
+		amplification[ENV_REF_ROTOR_WINDING] = winding_amp;
+		(void) acc_force;
+	}
+
+	ENV_FP_SETTLE (amplification);
+	ENV_FP_SETTLE (pitch);
+
+	result = fp_leave (&saved, result, error, error_size);
+
+	if (result == 0)
+	{
+		/* after the restore only integer work and bitwise copies remain: no float is loaded, compared or stored */
+		memcpy (&out_w[0], amplification, sizeof (amplification));
+		memcpy (&out_w[ENV_REF_ROTOR_CHANNELS], pitch, sizeof (pitch));
+
+		for (i = 0; i < ENV_REF_ROTOR_CHANNELS; i++)
+		{
+			out_i[i] = (i == ENV_REF_ROTOR_WINDING) ? 1 : 3;
+		}
+
+		/* the winding channel writes the amplification only: its pitch word is zero and unused */
+		out_w[ENV_REF_ROTOR_CHANNELS + ENV_REF_ROTOR_WINDING] = 0;
+		out_i[ENV_REF_ROTOR_CHANNELS] = count;
+
+		for (i = 0; i < count; i++)
+		{
+			out_i[ENV_REF_ROTOR_CHANNELS + 1 + i] = resume[i];
+			out_i[ENV_REF_ROTOR_CHANNELS + 1 + ENV_REF_ROTOR_ACTIONS + i] = channel[i];
+		}
+	}
+
+	return result;
+}

@@ -1442,6 +1442,12 @@ pub use sys::{
     EECH_ENV_SOUND_PAUSE_RESUME, EECH_ENV_STEP, EECH_ENV_WEATHER, EECH_ENV_WIND, EECH_LIGHTNING_SLOTS, EECH_SOUND_ACTION_KILL, EECH_SOUND_ACTION_NONE,
     EECH_SOUND_ACTION_UNLINK, EECH_SOUND_SAMPLES,
 };
+/// ROTOR_SOUND (the helicopter rotor acoustics): the operation, the logical channels, the player roles, the write mask bits and the most requests a reply may hold.
+pub use sys::{
+    EECH_ENV_ROTOR_SOUND, EECH_ROTOR_ACTIONS, EECH_ROTOR_CHANNELS, EECH_ROTOR_CHANNEL_APU, EECH_ROTOR_CHANNEL_LOOPING, EECH_ROTOR_CHANNEL_SLAP,
+    EECH_ROTOR_CHANNEL_TURBINE1, EECH_ROTOR_CHANNEL_TURBINE2, EECH_ROTOR_CHANNEL_WINDING, EECH_ROTOR_PLAYER_AI, EECH_ROTOR_PLAYER_LOCAL,
+    EECH_ROTOR_PLAYER_REMOTE, EECH_ROTOR_WRITE_AMPLIFICATION, EECH_ROTOR_WRITE_PITCH,
+};
 
 /// The host's environment provider. It is installed once, at boot, and is the only source of the campaign's physical weather and wind: the campaign has no weather or wind solver
 /// of its own to fall back to.
@@ -1468,6 +1474,7 @@ fn env_op_label(op: c_int) -> &'static str {
         sys::EECH_ENV_SOUND_LIFETIME_INIT => "sound_lifetime_init",
         sys::EECH_ENV_SOUND_LIFETIME_UPDATE => "sound_lifetime_update",
         sys::EECH_ENV_SOUND_PAUSE_RESUME => "sound_pause_resume",
+        sys::EECH_ENV_ROTOR_SOUND => "rotor_sound",
         _ => "unknown",
     }
 }
@@ -1647,6 +1654,72 @@ fn check_env_reply(request: &EnvRequest, reply: &EnvReply) -> Result<(), String>
             }
             if !reply.sound_valid_lifetime.is_finite() {
                 return Err(format!("{answer} the valid lifetime is not finite"));
+            }
+            Ok(())
+        }
+        sys::EECH_ENV_ROTOR_SOUND => {
+            // the whole reply is held to the protocol here, against the request, before the C side reads a word: the masks, the finite levels, the number and the channel order of the requests
+            let wanted_mask = |channel: usize| {
+                if channel == sys::EECH_ROTOR_CHANNEL_WINDING as usize {
+                    sys::EECH_ROTOR_WRITE_AMPLIFICATION
+                } else {
+                    sys::EECH_ROTOR_WRITE_AMPLIFICATION | sys::EECH_ROTOR_WRITE_PITCH
+                }
+            };
+            for channel in 0..sys::EECH_ROTOR_CHANNELS {
+                if reply.rotor_write[channel] != wanted_mask(channel) {
+                    return Err(format!(
+                        "{answer} the write mask {} of channel {channel} is not the protocol's {}",
+                        reply.rotor_write[channel],
+                        wanted_mask(channel)
+                    ));
+                }
+                if !reply.rotor_amplification[channel].is_finite() || !reply.rotor_pitch[channel].is_finite() {
+                    return Err(format!("{answer} a level of channel {channel} is not finite"));
+                }
+            }
+            if reply.rotor_pitch[sys::EECH_ROTOR_CHANNEL_WINDING as usize].to_bits() != 0 {
+                return Err(format!("{answer} the winding channel has a pitch where it may write none"));
+            }
+            let local_engines = request.rotor_player == sys::EECH_ROTOR_PLAYER_LOCAL && request.rotor_have_flight_model != 0;
+            let channels: &[c_int] = if local_engines {
+                &[
+                    sys::EECH_ROTOR_CHANNEL_TURBINE1,
+                    sys::EECH_ROTOR_CHANNEL_TURBINE2,
+                    sys::EECH_ROTOR_CHANNEL_APU,
+                    sys::EECH_ROTOR_CHANNEL_LOOPING,
+                    sys::EECH_ROTOR_CHANNEL_SLAP,
+                ]
+            } else {
+                &[sys::EECH_ROTOR_CHANNEL_LOOPING, sys::EECH_ROTOR_CHANNEL_SLAP]
+            };
+            let count = usize::try_from(reply.rotor_action_count).unwrap_or(usize::MAX);
+            if count != channels.len() {
+                return Err(format!(
+                    "{answer} {} requests where the original makes {} for this role",
+                    reply.rotor_action_count,
+                    channels.len()
+                ));
+            }
+            for (position, channel) in channels.iter().enumerate() {
+                if reply.rotor_action_channel[position] != *channel {
+                    return Err(format!(
+                        "{answer} request {position} is for channel {} where the original asks channel {channel}",
+                        reply.rotor_action_channel[position]
+                    ));
+                }
+                if reply.rotor_action_resume[position] != 0 && reply.rotor_action_resume[position] != 1 {
+                    return Err(format!("{answer} request {position} has a resume flag that is neither 0 nor 1"));
+                }
+                if !reply.rotor_action_delay[position].is_finite() {
+                    return Err(format!("{answer} the delay of request {position} is not finite"));
+                }
+                if reply.rotor_action_resume[position] == 1 && reply.rotor_action_delay[position].to_bits() != 0 {
+                    return Err(format!("{answer} request {position} resumes with a delay, which a resume does not carry"));
+                }
+            }
+            if reply.rotor_action_resume[channels.len() - 2] != reply.rotor_action_resume[channels.len() - 1] {
+                return Err(format!("{answer} the looping and slap requests are not both pauses or both resumes"));
             }
             Ok(())
         }
@@ -10716,6 +10789,90 @@ mod tests {
             let (code, written, error) = env_crossing(request, done(edit));
             assert_ne!(code, 0, "{what}: accepted");
             assert!(error.contains("[env-provider:sound_pause_resume.answer]"), "{what}: {error}");
+            assert_eq!(written.current_mode, 77, "{what}: a refusal wrote the reply");
+        }
+    }
+
+    #[test]
+    fn the_rotor_sound_answer_of_a_direct_environment_provider_is_checked_against_the_protocol_and_the_role_before_anything_is_written() {
+        let local = EnvRequest {
+            op: sys::EECH_ENV_ROTOR_SOUND,
+            rotor_player: sys::EECH_ROTOR_PLAYER_LOCAL,
+            rotor_have_flight_model: 1,
+            rotor_rpm: 50.0,
+            rotor_acceleration: [3.0, 4.0, 0.0],
+            rotor_left_rpm: 50.0,
+            rotor_right_rpm: 60.0,
+            rotor_apu_rpm: 5.0,
+            ..EnvRequest::default()
+        };
+        let ai = EnvRequest {
+            rotor_player: sys::EECH_ROTOR_PLAYER_AI,
+            rotor_left_rpm: 0.0,
+            rotor_right_rpm: 0.0,
+            rotor_apu_rpm: 0.0,
+            ..local
+        };
+        // a reply the original could give for the role: every channel with its write mask, the requests of the role in its order (the local role with a flight model: turbine 1, turbine 2, APU, looping, slap)
+        let reply_for = |request: &EnvRequest| {
+            let mut reply = EnvReply {
+                rotor_write: [3, 3, 3, 3, 3, 1],
+                rotor_amplification: [0.5, 0.25, 0.75, 1.0, 0.125, 0.75],
+                rotor_pitch: [1.0, 1.0, 1.3, 1.3, 1.0, 0.0],
+                ..EnvReply::default()
+            };
+            let local_engines = request.rotor_player == sys::EECH_ROTOR_PLAYER_LOCAL && request.rotor_have_flight_model != 0;
+            let channels: &[c_int] = if local_engines {
+                &[
+                    sys::EECH_ROTOR_CHANNEL_TURBINE1,
+                    sys::EECH_ROTOR_CHANNEL_TURBINE2,
+                    sys::EECH_ROTOR_CHANNEL_APU,
+                    sys::EECH_ROTOR_CHANNEL_LOOPING,
+                    sys::EECH_ROTOR_CHANNEL_SLAP,
+                ]
+            } else {
+                &[sys::EECH_ROTOR_CHANNEL_LOOPING, sys::EECH_ROTOR_CHANNEL_SLAP]
+            };
+            reply.rotor_action_count = channels.len() as c_int;
+            for (position, channel) in channels.iter().enumerate() {
+                reply.rotor_action_channel[position] = *channel;
+                reply.rotor_action_resume[position] = 1;
+            }
+            reply
+        };
+        let done = |request: EnvRequest, edit: fn(&mut EnvReply)| {
+            move |_: &EnvRequest| {
+                let mut reply = reply_for(&request);
+                edit(&mut reply);
+                Ok(reply)
+            }
+        };
+        // a completed answer reaches the campaign whole, for the local role and for an AI helicopter under a global flight model
+        for request in [local, ai] {
+            let (code, written, error) = env_crossing(request, done(request, |_| {}));
+            assert_eq!(code, 0, "{error}");
+            assert_eq!(written.rotor_amplification, [0.5, 0.25, 0.75, 1.0, 0.125, 0.75]);
+        }
+        let cases: Vec<(&str, EnvRequest, fn(&mut EnvReply))> = vec![
+            ("a write mask that is not the protocol's", local, |reply| reply.rotor_write[0] = 1),
+            ("a winding channel that writes a pitch", local, |reply| reply.rotor_write[5] = 3),
+            ("an amplification that is not finite", local, |reply| reply.rotor_amplification[2] = f32::NAN),
+            ("a pitch that is not finite", local, |reply| reply.rotor_pitch[4] = f32::INFINITY),
+            ("a winding pitch word", local, |reply| reply.rotor_pitch[5] = 1.0),
+            ("fewer requests than the role makes", local, |reply| reply.rotor_action_count = 2),
+            ("turbine and APU requests for an AI helicopter", ai, |reply| reply.rotor_action_count = 5),
+            ("a request count beyond the limit", local, |reply| reply.rotor_action_count = 9),
+            ("a negative request count", local, |reply| reply.rotor_action_count = -1),
+            ("requests in another channel order", local, |reply| reply.rotor_action_channel.swap(0, 1)),
+            ("a resume flag of 2", local, |reply| reply.rotor_action_resume[0] = 2),
+            ("a delay that is not finite", local, |reply| reply.rotor_action_delay[1] = f32::NAN),
+            ("a resume with a delay", local, |reply| reply.rotor_action_delay[2] = 0.5),
+            ("looping and slap that disagree", local, |reply| reply.rotor_action_resume[4] = 0),
+        ];
+        for (what, request, edit) in cases {
+            let (code, written, error) = env_crossing(request, done(request, edit));
+            assert_ne!(code, 0, "{what}: accepted");
+            assert!(error.contains("[env-provider:rotor_sound.answer]"), "{what}: {error}");
             assert_eq!(written.current_mode, 77, "{what}: a refusal wrote the reply");
         }
     }

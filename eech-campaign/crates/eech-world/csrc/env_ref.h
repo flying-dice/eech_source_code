@@ -111,4 +111,20 @@ int env_ref_sound_update (const float *in_f, const int *in_i, float *out_f, int 
    No floating-point work: the caller's x87 and MXCSR state is never touched.  A valid lifetime, and a delay that would be written, that is not finite is refused (nothing changed). */
 int env_ref_sound_pause_resume (const unsigned int *in_w, const int *in_i, unsigned int *out_w, int *out_i, char *error, size_t error_size);
 
+/* The acoustics of ONE helicopter's rotor, turbines and APU (helicop.c update_local_helicopter_rotor_sounds): the original arithmetic and the choice of the pause and resume requests, in the canonical arithmetic environment.
+   in_w = { main rotor rpm, acceleration x, y, z, left engine rpm, right engine rpm, APU rpm } as 32-bit WORDS; in_i = { role (0 AI, 1 local, 2 remote), a flight model is current };
+   out_w = { amplification[ENV_REF_ROTOR_CHANNELS], pitch[ENV_REF_ROTOR_CHANNELS], delay[ENV_REF_ROTOR_ACTIONS] } as words (the winding pitch word is zero and unused);
+   out_i = { write mask[ENV_REF_ROTOR_CHANNELS] (1 amplification, 2 pitch; the winding channel 1, the others 3), request count, resume[ENV_REF_ROTOR_ACTIONS], channel[ENV_REF_ROTOR_ACTIONS] }.
+   The acceleration is used for every role when a flight model exists; the three engine words only for the local role with one.  Zero outputs on a refusal. */
+#define ENV_REF_ROTOR_LOOPING 0
+#define ENV_REF_ROTOR_SLAP 1
+#define ENV_REF_ROTOR_TURBINE1 2
+#define ENV_REF_ROTOR_TURBINE2 3
+#define ENV_REF_ROTOR_APU 4
+#define ENV_REF_ROTOR_WINDING 5
+#define ENV_REF_ROTOR_CHANNELS 6
+#define ENV_REF_ROTOR_ACTIONS 8
+
+int env_ref_rotor_sound (const unsigned int *in_w, const int *in_i, unsigned int *out_w, int *out_i, char *error, size_t error_size);
+
 #endif

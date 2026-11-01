@@ -51,6 +51,15 @@
  *                every field), whether the effect's parent is asked to play its sound (a resume that changed it) and whether the effect is put back in the update list (a resume that changed an effect that was not in it).  The
  *                campaign checks the whole answer before it writes anything, writes the validity and valid lifetime, then makes the playback request, then the relink, then adds to its count, in the original order.  How the
  *                parent plays (the session's default no-op, or a range and a per-family function) stays the campaign's.  No entity pointer, id or list layout crosses.
+ *   ROTOR_SOUND  the PHYSICAL ACOUSTICS of ONE helicopter's rotor, turbines and APU (helicop.c update_local_helicopter_rotor_sounds, EEDCS-51 D3, called for every helicopter, AI ones included): from the stored main rotor
+ *                rpm, the player role and the global current flight model, the host answers the amplification and pitch of each logical sound channel (looping, slap, turbine 1, turbine 2, APU and winding) with the
+ *                write mask of each (winding is amplification only) and the ORDERED pause and resume requests with their delays, using the original's expressions: the thresholds, the AI pitch constant, the global
+ *                flight model's acceleration magnitude / 15 clamp (used for EVERY player role when a flight model exists), the local-only engine and APU branch, the single-turbine x1.2 case, the winding constant and the
+ *                looping level minus the slap level (the campaign subtracts nothing).  The request is by value: the role (a protocol code, never the EECH enumeration), the rpm, whether a flight model exists and its
+ *                acceleration vector (the host computes the magnitude), and the left, right and APU rpm only where the original reads them (the local role with a flight model).  The campaign checks the WHOLE reply
+ *                before it changes anything, then makes the requested pause and resume calls in the host's order through its own helpers, walks the helicopter's children and writes only what the original wrote.  The
+ *                helpers' validity decision is the SOUND_PAUSE_RESUME exchange; the resumed parent's range, status and per-family playback stay the campaign's (required, not moved here).  No entity pointer, id or sub type
+ *                number crosses.
  *   STEP        the physical part of update_transitional_weather for one update: the delta of the frame (the previous frame's, as the original reads it),
  *                the camera position, the comms model, the map extents.  The lightning timer's expiry needs one draw of the shared word for the next
  *                timer: the first request carries none and the host answers NEED_DRAW without changing anything; the campaign then makes that one
@@ -136,7 +145,8 @@ enum campaign_env_op
 	CAMPAIGN_ENV_LIGHTNING_UPDATE,
 	CAMPAIGN_ENV_SOUND_LIFETIME_INIT,
 	CAMPAIGN_ENV_SOUND_LIFETIME_UPDATE,
-	CAMPAIGN_ENV_SOUND_PAUSE_RESUME
+	CAMPAIGN_ENV_SOUND_PAUSE_RESUME,
+	CAMPAIGN_ENV_ROTOR_SOUND
 };
 
 #define CAMPAIGN_ENV_DRAWS 10
@@ -147,6 +157,21 @@ enum campaign_env_op
 #define CAMPAIGN_SOUND_ACTION_NONE 0
 #define CAMPAIGN_SOUND_ACTION_KILL 1
 #define CAMPAIGN_SOUND_ACTION_UNLINK 2
+
+/* ROTOR_SOUND: the player roles (protocol codes, not the EECH enumeration), the logical channels, the write mask bits and the most pause and resume requests a reply may hold (the original makes five at most) */
+#define CAMPAIGN_ROTOR_PLAYER_AI 0
+#define CAMPAIGN_ROTOR_PLAYER_LOCAL 1
+#define CAMPAIGN_ROTOR_PLAYER_REMOTE 2
+#define CAMPAIGN_ROTOR_CHANNEL_LOOPING 0
+#define CAMPAIGN_ROTOR_CHANNEL_SLAP 1
+#define CAMPAIGN_ROTOR_CHANNEL_TURBINE1 2
+#define CAMPAIGN_ROTOR_CHANNEL_TURBINE2 3
+#define CAMPAIGN_ROTOR_CHANNEL_APU 4
+#define CAMPAIGN_ROTOR_CHANNEL_WINDING 5
+#define CAMPAIGN_ROTOR_CHANNELS 6
+#define CAMPAIGN_ROTOR_WRITE_AMPLIFICATION 1
+#define CAMPAIGN_ROTOR_WRITE_PITCH 2
+#define CAMPAIGN_ROTOR_ACTIONS 8
 
 typedef struct campaign_env_state
 {
@@ -211,6 +236,14 @@ typedef struct campaign_env_request
 	int sound_resume;
 	int sound_member;
 	float sound_delay;
+	/* ROTOR_SOUND: the player role, the stored main rotor rpm, whether a flight model is current (a global) and its acceleration vector, and the left, right and APU rpm (zero unless the role is local and a flight model exists) */
+	int rotor_player;
+	int rotor_have_flight_model;
+	float rotor_rpm;
+	float rotor_acceleration[3];
+	float rotor_left_rpm;
+	float rotor_right_rpm;
+	float rotor_apu_rpm;
 } campaign_env_request;
 
 typedef struct campaign_env_reply
@@ -249,6 +282,14 @@ typedef struct campaign_env_reply
 	int sound_valid;
 	int sound_play;
 	int sound_relink;
+	/* ROTOR_SOUND: for each channel the write mask (amplification, pitch) and the two levels; then the ordered pause and resume requests (resume flag, channel, the delay a pause carries) */
+	int rotor_write[CAMPAIGN_ROTOR_CHANNELS];
+	float rotor_amplification[CAMPAIGN_ROTOR_CHANNELS];
+	float rotor_pitch[CAMPAIGN_ROTOR_CHANNELS];
+	int rotor_action_count;
+	int rotor_action_resume[CAMPAIGN_ROTOR_ACTIONS];
+	int rotor_action_channel[CAMPAIGN_ROTOR_ACTIONS];
+	float rotor_action_delay[CAMPAIGN_ROTOR_ACTIONS];
 } campaign_env_reply;
 
 typedef int (*campaign_env_fn)
@@ -407,6 +448,24 @@ void campaign_sound_lifetime_update (int server, float delta, int valid, int loo
    the effect (the original's count is the sum), with *play and *relink for the caller to apply, in that order.  A missing provider, a refusal or a malformed answer stops the engine with an error that names the environment
    provider; there is no campaign rule to fall back to. */
 int campaign_sound_pause_resume (int resume, float delay, int member, int *valid, float *valid_lifetime, int *play, int *relink);
+
+/* The checked host answer of one ROTOR_SOUND question (see above): the levels and write mask of each channel and the ordered requests. */
+typedef struct campaign_rotor_sound
+{
+	int write[CAMPAIGN_ROTOR_CHANNELS];
+	float amplification[CAMPAIGN_ROTOR_CHANNELS];
+	float pitch[CAMPAIGN_ROTOR_CHANNELS];
+	int action_count;
+	int action_resume[CAMPAIGN_ROTOR_ACTIONS];
+	int action_channel[CAMPAIGN_ROTOR_ACTIONS];
+	float action_delay[CAMPAIGN_ROTOR_ACTIONS];
+} campaign_rotor_sound;
+
+/* Asks the host once for the acoustics of one helicopter and checks the WHOLE reply before it returns: the write mask of every channel is the protocol's (amplification and pitch; the winding channel amplification only and its
+   pitch zero), every level finite, the number and the channel order of the requests those of the original for the role (the local role with a flight model: turbine 1, turbine 2, APU, then looping and slap; any other case: looping
+   and slap only, both pauses or both resumes), every resume flag 0 or 1, every delay finite and a resume's delay zero.  `acceleration` is read only when `have_flight_model` is set and the three engine rpm only for the local role with
+   a flight model (the request carries zero otherwise).  A missing provider, a withheld or malformed reply stops the engine with an error naming the environment provider; `result` is written only after every check passed. */
+void campaign_rotor_sound_ask (int player, float rpm, int have_flight_model, const float *acceleration, float left_rpm, float right_rpm, float apu_rpm, campaign_rotor_sound *result);
 
 /* Installs the sample metadata host for the rest of the process (kept across engine entries, like the environment host). A NULL host or one with no callback leaves the installed one. */
 void campaign_sound_catalogue_set_host (const campaign_sound_catalogue_host *host);

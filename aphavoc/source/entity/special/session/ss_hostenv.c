@@ -926,6 +926,147 @@ void campaign_sound_lifetime_update (int server, float delta, int valid, int loo
 
 ////////////////////////////////////////
 //
+// the physical acoustics of ONE helicopter (helicop.c update_local_helicopter_rotor_sounds, EEDCS-51 D3): see ss_hostenv.h ROTOR_SOUND.  The host computes every level, pitch and the ORDERED requests; this function
+// holds no threshold, no rate and no decision, and only checks the answer against the request and the protocol before the caller changes anything.
+//
+////////////////////////////////////////
+
+void campaign_rotor_sound_ask (int player, float rpm, int have_flight_model, const float *acceleration, float left_rpm, float right_rpm, float apu_rpm, campaign_rotor_sound *result)
+{
+	campaign_env_request
+		request;
+
+	campaign_env_reply
+		reply;
+
+	int
+		local_engines,
+		expected_actions,
+		i;
+
+	float
+		zero;
+
+	// the channels the original asks for, in its order: the local role with a flight model asks turbine 1, turbine 2 and the APU first
+	static const int
+		engine_channels[3] = { CAMPAIGN_ROTOR_CHANNEL_TURBINE1, CAMPAIGN_ROTOR_CHANNEL_TURBINE2, CAMPAIGN_ROTOR_CHANNEL_APU };
+
+	memset (&request, 0, sizeof (request));
+
+	request.op = CAMPAIGN_ENV_ROTOR_SOUND;
+
+	request.rotor_player = player;
+	request.rotor_have_flight_model = (have_flight_model != 0);
+	request.rotor_rpm = rpm;
+
+	// read only where the original read them: the acceleration with a flight model (every role), the engines for the local role with one
+	local_engines = (player == CAMPAIGN_ROTOR_PLAYER_LOCAL) && have_flight_model;
+
+	if (have_flight_model)
+	{
+		request.rotor_acceleration[0] = acceleration[0];
+		request.rotor_acceleration[1] = acceleration[1];
+		request.rotor_acceleration[2] = acceleration[2];
+	}
+
+	if (local_engines)
+	{
+		request.rotor_left_rpm = left_rpm;
+		request.rotor_right_rpm = right_rpm;
+		request.rotor_apu_rpm = apu_rpm;
+	}
+
+	if ((player != CAMPAIGN_ROTOR_PLAYER_AI) && (player != CAMPAIGN_ROTOR_PLAYER_LOCAL) && (player != CAMPAIGN_ROTOR_PLAYER_REMOTE))
+	{
+		debug_fatal ("host environment: [env-provider:rotor_sound.request] the player role %d is not one of the protocol's roles", player);
+	}
+
+	ask (&request, &reply, "rotor_sound");
+
+	// the WHOLE answer is checked before anything is written: the write masks, the levels, the requests
+	for (i = 0; i < CAMPAIGN_ROTOR_CHANNELS; i++)
+	{
+		const int
+			wanted = (i == CAMPAIGN_ROTOR_CHANNEL_WINDING) ? CAMPAIGN_ROTOR_WRITE_AMPLIFICATION : (CAMPAIGN_ROTOR_WRITE_AMPLIFICATION | CAMPAIGN_ROTOR_WRITE_PITCH);
+
+		if (reply.rotor_write[i] != wanted)
+		{
+			debug_fatal ("host environment: [env-provider:rotor_sound.answer] the write mask %d of channel %d is not the protocol's %d", reply.rotor_write[i], i, wanted);
+		}
+
+		if (!isfinite (reply.rotor_amplification[i]))
+		{
+			debug_fatal ("host environment: [env-provider:rotor_sound.answer] the amplification of channel %d is not finite", i);
+		}
+
+		if ((wanted & CAMPAIGN_ROTOR_WRITE_PITCH) && !isfinite (reply.rotor_pitch[i]))
+		{
+			debug_fatal ("host environment: [env-provider:rotor_sound.answer] the pitch of channel %d is not finite", i);
+		}
+	}
+
+	// a channel with no pitch write carries no pitch: the winding sounds keep the pitch they had
+	zero = 0.0f;
+
+	if (!same_bits (&reply.rotor_pitch[CAMPAIGN_ROTOR_CHANNEL_WINDING], &zero))
+	{
+		debug_fatal ("host environment: [env-provider:rotor_sound.answer] the winding channel has a pitch where it may write none");
+	}
+
+	expected_actions = local_engines ? 5 : 2;
+
+	if (reply.rotor_action_count != expected_actions)
+	{
+		debug_fatal ("host environment: [env-provider:rotor_sound.answer] %d pause and resume requests where the original makes %d for this role", reply.rotor_action_count, expected_actions);
+	}
+
+	for (i = 0; i < expected_actions; i++)
+	{
+		const int
+			wanted_channel = local_engines ? ((i < 3) ? engine_channels[i] : (i == 3 ? CAMPAIGN_ROTOR_CHANNEL_LOOPING : CAMPAIGN_ROTOR_CHANNEL_SLAP)) : (i == 0 ? CAMPAIGN_ROTOR_CHANNEL_LOOPING : CAMPAIGN_ROTOR_CHANNEL_SLAP);
+
+		if (reply.rotor_action_channel[i] != wanted_channel)
+		{
+			debug_fatal ("host environment: [env-provider:rotor_sound.answer] request %d is for channel %d where the original asks channel %d", i, reply.rotor_action_channel[i], wanted_channel);
+		}
+
+		if ((reply.rotor_action_resume[i] != FALSE) && (reply.rotor_action_resume[i] != TRUE))
+		{
+			debug_fatal ("host environment: [env-provider:rotor_sound.answer] request %d has a resume flag that is neither 0 nor 1", i);
+		}
+
+		if (!isfinite (reply.rotor_action_delay[i]))
+		{
+			debug_fatal ("host environment: [env-provider:rotor_sound.answer] the delay of request %d is not finite", i);
+		}
+
+		if (reply.rotor_action_resume[i] && !same_bits (&reply.rotor_action_delay[i], &zero))
+		{
+			debug_fatal ("host environment: [env-provider:rotor_sound.answer] request %d resumes with a delay, which a resume does not carry", i);
+		}
+	}
+
+	// the looping and slap requests are one decision: both pauses or both resumes
+	if (reply.rotor_action_resume[expected_actions - 2] != reply.rotor_action_resume[expected_actions - 1])
+	{
+		debug_fatal ("host environment: [env-provider:rotor_sound.answer] the looping and slap requests are not both pauses or both resumes");
+	}
+
+	memset (result, 0, sizeof (*result));
+
+	memcpy (result->write, reply.rotor_write, sizeof (result->write));
+	memcpy (result->amplification, reply.rotor_amplification, sizeof (result->amplification));
+	memcpy (result->pitch, reply.rotor_pitch, sizeof (result->pitch));
+
+	result->action_count = reply.rotor_action_count;
+
+	memcpy (result->action_resume, reply.rotor_action_resume, sizeof (result->action_resume));
+	memcpy (result->action_channel, reply.rotor_action_channel, sizeof (result->action_channel));
+	memcpy (result->action_delay, reply.rotor_action_delay, sizeof (result->action_delay));
+}
+
+////////////////////////////////////////
+//
 // the physical validity of ONE sound effect under a pause or a resume (soundeff.c, EEDCS-51 D3): see ss_hostenv.h SOUND_PAUSE_RESUME.  The legacy walk of the parent's children, the type and sub type match, the
 // playback of the parent's sound and the update-list relink stay the caller's (private pointers and device-bound plumbing); this file holds no rule of when an effect is valid, no no-op decision, no delay copy and
 // no count.  A stored valid lifetime the host leaves alone is never written (its exact word stays in the record).

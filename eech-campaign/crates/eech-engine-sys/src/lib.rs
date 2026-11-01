@@ -1224,6 +1224,21 @@ pub const EECH_ENV_LIGHTNING_UPDATE: c_int = 11;
 pub const EECH_ENV_SOUND_LIFETIME_INIT: c_int = 12;
 pub const EECH_ENV_SOUND_LIFETIME_UPDATE: c_int = 13;
 pub const EECH_ENV_SOUND_PAUSE_RESUME: c_int = 14;
+pub const EECH_ENV_ROTOR_SOUND: c_int = 15;
+/// ROTOR_SOUND: the logical channels (`CAMPAIGN_ROTOR_CHANNEL_*`: looping, slap, turbine 1, turbine 2, APU, winding), the pause and resume requests a reply may hold, the player roles and the write mask bits.
+pub const EECH_ROTOR_CHANNELS: usize = 6;
+pub const EECH_ROTOR_ACTIONS: usize = 8;
+pub const EECH_ROTOR_PLAYER_AI: c_int = 0;
+pub const EECH_ROTOR_PLAYER_LOCAL: c_int = 1;
+pub const EECH_ROTOR_PLAYER_REMOTE: c_int = 2;
+pub const EECH_ROTOR_CHANNEL_LOOPING: c_int = 0;
+pub const EECH_ROTOR_CHANNEL_SLAP: c_int = 1;
+pub const EECH_ROTOR_CHANNEL_TURBINE1: c_int = 2;
+pub const EECH_ROTOR_CHANNEL_TURBINE2: c_int = 3;
+pub const EECH_ROTOR_CHANNEL_APU: c_int = 4;
+pub const EECH_ROTOR_CHANNEL_WINDING: c_int = 5;
+pub const EECH_ROTOR_WRITE_AMPLIFICATION: c_int = 1;
+pub const EECH_ROTOR_WRITE_PITCH: c_int = 2;
 /// The samples of one sound effect's sequence that cross the boundary by value (`CAMPAIGN_SOUND_SAMPLES`).
 pub const EECH_SOUND_SAMPLES: usize = 16;
 /// The host's decisions for a sound effect's update (`CAMPAIGN_SOUND_ACTION_*`).
@@ -1310,6 +1325,15 @@ pub struct eech_env_request {
     pub sound_resume: c_int,
     pub sound_member: c_int,
     pub sound_delay: f32,
+    /// ROTOR_SOUND: the player role (`EECH_ROTOR_PLAYER_*`), the stored main rotor rpm, whether a flight model is current (global) and its acceleration vector, and the left, right and APU rpm (zero unless the role is local
+    /// and a flight model exists)
+    pub rotor_player: c_int,
+    pub rotor_have_flight_model: c_int,
+    pub rotor_rpm: f32,
+    pub rotor_acceleration: [f32; 3],
+    pub rotor_left_rpm: f32,
+    pub rotor_right_rpm: f32,
+    pub rotor_apu_rpm: f32,
 }
 
 #[repr(C)]
@@ -1345,6 +1369,14 @@ pub struct eech_env_reply {
     pub sound_valid: c_int,
     pub sound_play: c_int,
     pub sound_relink: c_int,
+    /// ROTOR_SOUND: for each channel the write mask and the two levels; then the ordered pause and resume requests (resume flag, channel, the delay a pause carries)
+    pub rotor_write: [c_int; EECH_ROTOR_CHANNELS],
+    pub rotor_amplification: [f32; EECH_ROTOR_CHANNELS],
+    pub rotor_pitch: [f32; EECH_ROTOR_CHANNELS],
+    pub rotor_action_count: c_int,
+    pub rotor_action_resume: [c_int; EECH_ROTOR_ACTIONS],
+    pub rotor_action_channel: [c_int; EECH_ROTOR_ACTIONS],
+    pub rotor_action_delay: [f32; EECH_ROTOR_ACTIONS],
 }
 
 impl Default for eech_env_state {

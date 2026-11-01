@@ -6,8 +6,9 @@ use eech_engine::{
     MovementMode, MovementResult, MovementStep, ObjectReport, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side, SupplyReachDescriptor,
     TerrainAnswer, TerrainMapFacts, TerrainProvider, TerrainQuery, TerrainRecord, VehiclePose, WeaponFigures, EECH_ENV_AMBIENT, EECH_ENV_EXPORT,
     EECH_ENV_FLOATS, EECH_ENV_GUST, EECH_ENV_IMPORT, EECH_ENV_INIT_FIXED, EECH_ENV_INIT_RANDOM, EECH_ENV_INTS, EECH_ENV_LIGHTNING_ADD,
-    EECH_ENV_LIGHTNING_UPDATE, EECH_ENV_MODE_COUNT, EECH_ENV_SOUND_LIFETIME_INIT, EECH_ENV_SOUND_LIFETIME_UPDATE, EECH_ENV_SOUND_PAUSE_RESUME, EECH_ENV_STEP,
-    EECH_ENV_WEATHER, EECH_ENV_WIND, EECH_LIGHTNING_SLOTS, EECH_SOUND_SAMPLES,
+    EECH_ENV_LIGHTNING_UPDATE, EECH_ENV_MODE_COUNT, EECH_ENV_ROTOR_SOUND, EECH_ENV_SOUND_LIFETIME_INIT, EECH_ENV_SOUND_LIFETIME_UPDATE,
+    EECH_ENV_SOUND_PAUSE_RESUME, EECH_ENV_STEP, EECH_ENV_WEATHER, EECH_ENV_WIND, EECH_LIGHTNING_SLOTS, EECH_ROTOR_ACTIONS, EECH_ROTOR_CHANNELS,
+    EECH_ROTOR_PLAYER_AI, EECH_ROTOR_PLAYER_LOCAL, EECH_ROTOR_PLAYER_REMOTE, EECH_SOUND_SAMPLES,
 };
 use eech_engine::{SoundBackendProvider, SoundBackendReply, SoundBackendRequest, SOUND_BACKEND_PHASE_INITIALISE};
 use eech_engine::{SoundCatalogueEntry, SoundCatalogueProvider, SoundCatalogueReply, SoundCatalogueRequest};
@@ -807,6 +808,60 @@ return function (request)
 		end
 		if not finite (answer.valid_lifetime) then return op .. '.answer', 'valid_lifetime must be a finite number' end
 		return nil, string.format ('0 %d %d %s %d %d', answer.changed and 1 or 0, answer.valid and 1 or 0, fmt (answer.valid_lifetime), answer.play and 1 or 0, answer.relink and 1 or 0)
+	elseif op == 'rotor_sound' then
+		-- the acoustics of ONE helicopter (EEDCS-51, D3): every logical channel by name with its levels and the ordered requests; an unknown name, an extra field, a missing or non-finite level, a pitch on the
+		-- winding channel and a delay on a resume are refused, and a missing number is never read as zero
+		local names = { 'looping', 'slap', 'turbine1', 'turbine2', 'apu', 'winding' }
+		local known = {}
+		for i, name in ipairs (names) do known [name] = i end
+		local channels = answer.channels
+		if type (channels) ~= 'table' then return op .. '.answer', 'channels must be a table, got ' .. type (channels) end
+		for name in pairs (channels) do
+			if known [name] == nil then return op .. '.answer', 'channels has the unknown channel ' .. tostring (name) end
+		end
+		local out = { '0' }
+		for _, name in ipairs (names) do
+			local c = channels [name]
+			if type (c) ~= 'table' then return op .. '.answer', 'channels.' .. name .. ' must be a table, got ' .. type (c) end
+			for key in pairs (c) do
+				if key ~= 'amplification' and key ~= 'pitch' then return op .. '.answer', 'channels.' .. name .. ' has the unknown field ' .. tostring (key) end
+			end
+			if not finite (c.amplification) then return op .. '.answer', 'channels.' .. name .. '.amplification must be a finite number' end
+			local mask, pitch = 3, c.pitch
+			if name == 'winding' then
+				if pitch ~= nil then return op .. '.answer', 'the winding channel writes the amplification only and must carry no pitch' end
+				mask, pitch = 1, 0
+			elseif not finite (pitch) then
+				return op .. '.answer', 'channels.' .. name .. '.pitch must be a finite number'
+			end
+			out [#out + 1] = string.format ('%d %s %s', mask, fmt (c.amplification), fmt (pitch))
+		end
+		local actions = answer.actions
+		if type (actions) ~= 'table' or actions [9] ~= nil then return op .. '.answer', 'actions must be a list of at most 8 requests' end
+		local listed = 0
+		for _ in pairs (actions) do listed = listed + 1 end
+		if listed ~= #actions then return op .. '.answer', 'actions must be a plain list' end
+		out [#out + 1] = string.format ('%d', listed)
+		local kinds = { pause = 0, resume = 1 }
+		for i, request in ipairs (actions) do
+			if type (request) ~= 'table' then return op .. '.answer', 'actions [' .. i .. '] must be a table, got ' .. type (request) end
+			for key in pairs (request) do
+				if key ~= 'action' and key ~= 'channel' and key ~= 'delay' then return op .. '.answer', 'actions [' .. i .. '] has the unknown field ' .. tostring (key) end
+			end
+			local kind = kinds [request.action]
+			if kind == nil then return op .. '.answer', 'actions [' .. i .. "].action must be 'pause' or 'resume'" end
+			local channel = known [request.channel]
+			if channel == nil or channel > 5 then return op .. '.answer', 'actions [' .. i .. '].channel must be looping, slap, turbine1, turbine2 or apu' end
+			local delay = request.delay
+			if kind == 1 then
+				if delay ~= nil then return op .. '.answer', 'actions [' .. i .. '] resumes with a delay, which a resume does not carry' end
+				delay = 0
+			elseif not finite (delay) then
+				return op .. '.answer', 'actions [' .. i .. '].delay must be a finite number'
+			end
+			out [#out + 1] = string.format ('%d %d %s', kind, channel - 1, fmt (delay))
+		end
+		return nil, table.concat (out, ' ')
 	elseif op == 'lightning_add' or op == 'lightning_update' then
 		-- the physical lightning queue (EEDCS-51): an update the host cannot finish without the strike animation's frame count says so and changes nothing, once
 		if answer.need_frames == true then
@@ -1099,6 +1154,7 @@ fn env_op_name(op: i32) -> &'static str {
         EECH_ENV_SOUND_LIFETIME_INIT => "sound_lifetime_init",
         EECH_ENV_SOUND_LIFETIME_UPDATE => "sound_lifetime_update",
         EECH_ENV_SOUND_PAUSE_RESUME => "sound_pause_resume",
+        EECH_ENV_ROTOR_SOUND => "rotor_sound",
         _ => "unknown",
     }
 }
@@ -1203,6 +1259,26 @@ fn env_request_table(lua: &Lua, request: &EnvRequest) -> LuaResult<LuaTable> {
             table.set("valid_lifetime", f64::from(request.sound_valid_lifetime))?;
             if request.sound_resume == 0 {
                 table.set("delay", f64::from(request.sound_delay))?;
+            }
+        }
+        EECH_ENV_ROTOR_SOUND => {
+            // the semantic role (never the EECH enumeration), the stored rpm, the global flight model and its acceleration, and the engine words only where the original reads them
+            let role = match request.rotor_player {
+                EECH_ROTOR_PLAYER_AI => "ai",
+                EECH_ROTOR_PLAYER_LOCAL => "local",
+                EECH_ROTOR_PLAYER_REMOTE => "remote",
+                other => return Err(LuaError::runtime(format!("the rotor player role {other} is not one of the protocol's roles"))),
+            };
+            table.set("player", role)?;
+            table.set("rpm", f64::from(request.rotor_rpm))?;
+            table.set("flight_model", request.rotor_have_flight_model != 0)?;
+            if request.rotor_have_flight_model != 0 {
+                table.set("acceleration", env_named_floats(lua, &["x", "y", "z"], &request.rotor_acceleration)?)?;
+                if request.rotor_player == EECH_ROTOR_PLAYER_LOCAL {
+                    table.set("left_rpm", f64::from(request.rotor_left_rpm))?;
+                    table.set("right_rpm", f64::from(request.rotor_right_rpm))?;
+                    table.set("apu_rpm", f64::from(request.rotor_apu_rpm))?;
+                }
             }
         }
         EECH_ENV_STEP => {
@@ -1349,6 +1425,42 @@ fn call_environment(lua: &Lua, bridge: &LuaFunction, request: &EnvRequest) -> Re
             reply.sound_valid_lifetime = env_f32(n[3], &answer)?;
             reply.sound_play = env_i32(n[4], &answer)?;
             reply.sound_relink = env_i32(n[5], &answer)?;
+        }
+        EECH_ENV_ROTOR_SOUND => {
+            // "0", then for each of the channels "<write mask> <amplification> <pitch>", then "<count>" and for each request "<resume> <channel> <delay>"
+            let n = text
+                .split_whitespace()
+                .map(|part| part.parse::<f64>().ok().filter(|value| value.is_finite()))
+                .collect::<Option<Vec<f64>>>()
+                .ok_or_else(|| format!("[env-provider:{answer}] the answer's numbers are malformed"))?;
+            let fixed = 2 + 3 * EECH_ROTOR_CHANNELS;
+            if n.len() < fixed {
+                return Err(format!("[env-provider:{answer}] the answer's numbers are too few"));
+            }
+            let count = env_i32(n[fixed - 1], &answer)?;
+            let count = usize::try_from(count)
+                .ok()
+                .filter(|count| *count <= EECH_ROTOR_ACTIONS)
+                .ok_or_else(|| format!("[env-provider:{answer}] the number of requests is out of range"))?;
+            if n.len() != fixed + 3 * count {
+                return Err(format!(
+                    "[env-provider:{answer}] the answer has {} numbers where {} requests need {}",
+                    n.len(),
+                    count,
+                    fixed + 3 * count
+                ));
+            }
+            for channel in 0..EECH_ROTOR_CHANNELS {
+                reply.rotor_write[channel] = env_i32(n[1 + 3 * channel], &answer)?;
+                reply.rotor_amplification[channel] = env_f32(n[2 + 3 * channel], &answer)?;
+                reply.rotor_pitch[channel] = env_f32(n[3 + 3 * channel], &answer)?;
+            }
+            reply.rotor_action_count = env_i32(n[fixed - 1], &answer)?;
+            for position in 0..count {
+                reply.rotor_action_resume[position] = env_i32(n[fixed + 3 * position], &answer)?;
+                reply.rotor_action_channel[position] = env_i32(n[fixed + 3 * position + 1], &answer)?;
+                reply.rotor_action_delay[position] = env_f32(n[fixed + 3 * position + 2], &answer)?;
+            }
         }
         EECH_ENV_LIGHTNING_ADD | EECH_ENV_LIGHTNING_UPDATE => {
             // "1" when an update needs the strike animation's frame count; else "0 <slot>" and eight numbers for each of the queue's slots (in_use, type, x, y, z, time started, length, frame)
@@ -5153,6 +5265,177 @@ mod tests {
         ] {
             let mut bad = env_of(&lua, source)?;
             env_refusal(&mut bad, &pause, marker);
+        }
+        Ok(())
+    }
+
+    const ROTOR_CHANNELS: &str = "channels = { looping = { amplification = 0.5, pitch = 1 }, slap = { amplification = 0.25, pitch = 1 }, turbine1 = { amplification = 0.75, pitch = 1.5 }, \
+        turbine2 = { amplification = 1, pitch = 1.25 }, apu = { amplification = 0.125, pitch = 0.5 }, winding = { amplification = 0.75 } }";
+
+    #[test]
+    fn a_rotor_sound_question_reaches_the_provider_by_value_and_its_whole_answer_comes_back_exactly() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let local = EnvRequest {
+            rotor_player: EECH_ROTOR_PLAYER_LOCAL,
+            rotor_have_flight_model: 1,
+            rotor_rpm: 50.0,
+            rotor_acceleration: [3.0, 4.0, -0.0],
+            rotor_left_rpm: 50.0,
+            rotor_right_rpm: 60.0,
+            rotor_apu_rpm: 5.0,
+            ..env_request(EECH_ENV_ROTOR_SOUND)
+        };
+        let mut provider = env_of(
+            &lua,
+            &format!(
+                "assert (r.op == 'rotor_sound' and r.player == 'local' and r.rpm == 50 and r.flight_model == true)
+                 assert (r.acceleration.x == 3 and r.acceleration.y == 4 and 1 / r.acceleration.z < 0)
+                 assert (r.left_rpm == 50 and r.right_rpm == 60 and r.apu_rpm == 5)
+                 return {{ {ROTOR_CHANNELS}, actions = {{
+                   {{ action = 'resume', channel = 'turbine1' }}, {{ action = 'pause', channel = 'turbine2', delay = 0 }}, {{ action = 'resume', channel = 'apu' }},
+                   {{ action = 'pause', channel = 'looping', delay = 0 }}, {{ action = 'pause', channel = 'slap', delay = 0 }} }} }}"
+            ),
+        )?;
+        let reply = provider(&local)?;
+        assert_eq!(reply.rotor_write, [3, 3, 3, 3, 3, 1]);
+        assert_eq!(reply.rotor_amplification, [0.5, 0.25, 0.75, 1.0, 0.125, 0.75]);
+        assert_eq!(reply.rotor_pitch, [1.0, 1.0, 1.5, 1.25, 0.5, 0.0]);
+        assert_eq!(reply.rotor_action_count, 5);
+        assert_eq!(reply.rotor_action_resume[..5], [1, 0, 1, 0, 0]);
+        assert_eq!(reply.rotor_action_channel[..5], [2, 3, 4, 0, 1]);
+        // an AI helicopter under a global flight model: the acceleration is given, the engine words are not
+        let ai = EnvRequest {
+            rotor_player: EECH_ROTOR_PLAYER_AI,
+            rotor_left_rpm: 0.0,
+            rotor_right_rpm: 0.0,
+            rotor_apu_rpm: 0.0,
+            ..local
+        };
+        let mut ai_provider = env_of(
+            &lua,
+            &format!(
+                "assert (r.player == 'ai' and r.flight_model == true and r.acceleration.x == 3 and r.left_rpm == nil and r.right_rpm == nil and r.apu_rpm == nil)
+                 return {{ {ROTOR_CHANNELS}, actions = {{ {{ action = 'resume', channel = 'looping' }}, {{ action = 'resume', channel = 'slap' }} }} }}"
+            ),
+        )?;
+        assert_eq!(ai_provider(&ai)?.rotor_action_count, 2);
+        // no flight model: no acceleration, and a remote helicopter is a role of its own
+        let remote = EnvRequest {
+            rotor_player: EECH_ROTOR_PLAYER_REMOTE,
+            rotor_have_flight_model: 0,
+            rotor_acceleration: [0.0; 3],
+            ..local
+        };
+        let mut remote_provider = env_of(
+            &lua,
+            &format!(
+                "assert (r.player == 'remote' and r.flight_model == false and r.acceleration == nil and r.left_rpm == nil)
+                 return {{ {ROTOR_CHANNELS}, actions = {{ {{ action = 'pause', channel = 'looping', delay = 0 }}, {{ action = 'pause', channel = 'slap', delay = 0 }} }} }}"
+            ),
+        )?;
+        assert_eq!(remote_provider(&remote)?.rotor_action_resume[..2], [0, 0]);
+        // a role that is not the protocol's is refused before the provider is asked
+        let mut never = env_of(&lua, "error ('must not be asked')")?;
+        assert!(never(&EnvRequest { rotor_player: 9, ..local }).is_err());
+        // every damaged answer is refused under its marker, and a withheld one under the callback marker
+        let two = "actions = { { action = 'resume', channel = 'looping' }, { action = 'resume', channel = 'slap' } }";
+        let channels = ROTOR_CHANNELS;
+        for (_what, source, marker) in [
+            ("not a table", "return 1".to_string(), "rotor_sound.answer"),
+            ("no channels", format!("return {{ {two} }}"), "rotor_sound.answer"),
+            (
+                "an unknown channel",
+                format!(
+                    "return {{ {}, {two} }}",
+                    channels.replace("channels = {", "channels = { extra = { amplification = 1, pitch = 1 },")
+                ),
+                "rotor_sound.answer",
+            ),
+            (
+                "a channel missing",
+                format!("return {{ {}, {two} }}", channels.replace("slap = { amplification = 0.25, pitch = 1 }, ", "")),
+                "rotor_sound.answer",
+            ),
+            (
+                "a pitch on the winding channel",
+                format!(
+                    "return {{ {}, {two} }}",
+                    channels.replace("winding = { amplification = 0.75 }", "winding = { amplification = 0.75, pitch = 1 }")
+                ),
+                "rotor_sound.answer",
+            ),
+            (
+                "a pitch missing",
+                format!(
+                    "return {{ {}, {two} }}",
+                    channels.replace("looping = { amplification = 0.5, pitch = 1 }", "looping = { amplification = 0.5 }")
+                ),
+                "rotor_sound.answer",
+            ),
+            (
+                "an amplification missing",
+                format!(
+                    "return {{ {}, {two} }}",
+                    channels.replace("looping = { amplification = 0.5, pitch = 1 }", "looping = { pitch = 1 }")
+                ),
+                "rotor_sound.answer",
+            ),
+            (
+                "an amplification that is not finite",
+                format!("return {{ {}, {two} }}", channels.replace("amplification = 0.5", "amplification = 1 / 0")),
+                "rotor_sound.answer",
+            ),
+            (
+                "a field that is not one",
+                format!(
+                    "return {{ {}, {two} }}",
+                    channels.replace("amplification = 0.5, pitch = 1 }", "amplification = 0.5, pitch = 1, volume = 1 }")
+                ),
+                "rotor_sound.answer",
+            ),
+            ("no actions", format!("return {{ {channels} }}"), "rotor_sound.answer"),
+            (
+                "nine actions",
+                format!(
+                    "return {{ {channels}, actions = {{ {} }} }}",
+                    vec!["{ action = 'resume', channel = 'looping' }"; 9].join(", ")
+                ),
+                "rotor_sound.answer",
+            ),
+            (
+                "an unknown action",
+                format!("return {{ {channels}, actions = {{ {{ action = 'play', channel = 'looping' }} }} }}"),
+                "rotor_sound.answer",
+            ),
+            (
+                "a winding request",
+                format!("return {{ {channels}, actions = {{ {{ action = 'resume', channel = 'winding' }} }} }}"),
+                "rotor_sound.answer",
+            ),
+            (
+                "a resume with a delay",
+                format!("return {{ {channels}, actions = {{ {{ action = 'resume', channel = 'looping', delay = 0 }} }} }}"),
+                "rotor_sound.answer",
+            ),
+            (
+                "a pause with no delay",
+                format!("return {{ {channels}, actions = {{ {{ action = 'pause', channel = 'looping' }} }} }}"),
+                "rotor_sound.answer",
+            ),
+            (
+                "a delay that is not finite",
+                format!("return {{ {channels}, actions = {{ {{ action = 'pause', channel = 'looping', delay = 0 / 0 }} }} }}"),
+                "rotor_sound.answer",
+            ),
+            (
+                "a request with a field that is not one",
+                format!("return {{ {channels}, actions = {{ {{ action = 'resume', channel = 'looping', volume = 1 }} }} }}"),
+                "rotor_sound.answer",
+            ),
+            ("withheld", "error ('withheld')".to_string(), "rotor_sound.callback"),
+        ] {
+            let mut bad = env_of(&lua, &source)?;
+            env_refusal(&mut bad, &ai, marker);
         }
         Ok(())
     }
