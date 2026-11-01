@@ -19,7 +19,8 @@
 -- WHAT IT DOES NOT. It computes no range and no expected value (a range word is the original's, copied), defines no oracle, hosts nothing, and says nothing about devices, handles, loaders, destroy, network, time, the
 -- session branch or whether any sound plays. It computes nothing else either: every number is a count or a word read back.
 --
--- THE JOINS. The serializers and the call flow of the C probe and fixture are the protocol; the driver computes no range and forces no pause or resume result. It requires the plan, end, mode, case, refusal and counter
+-- THE JOINS (and the digests: the fixture's FNV digests of the before and resumed states are recomputed from the printed child words and the target's counts and must equal the printed ones; the integer fields are held to the
+-- int32_t and uint32_t domains of the C fields they come from). The serializers and the call flow of the C probe and fixture are the protocol; the driver computes no range and forces no pause or resume result. It requires the plan, end, mode, case, refusal and counter
 -- values to be the ones of the mode; the probe's capacity, table size and defaults census to be fixed and the counters to move only forward, the defaults census to be taken with EVERY entry at the default and all type
 -- lists to be unique, ascending and in range; natural drains to carry only phase 0 and the fixture's own drain only phase 1; exactly the two named target dispositions, and for each present target exactly the three
 -- declared, distinct positions in order, joined to the target's kind, entity, type and sub-type, with the children's state parsed, counted and bounded; and, in the overload, EVERY recorded row (contiguous ordinals, count
@@ -145,10 +146,21 @@ local function exact (line, event, keys, what)
 	end
 	return map
 end
+-- the C serializers print an int with %d and an unsigned int with %u, so a value is the canonical decimal text of a number in the domain of its C type (no sign on zero, no leading zero, no value a fixed-width field cannot hold);
+-- the text is checked BEFORE it is converted, and the range after (a plain "is it a whole number" would accept 2^40)
 local function integer (value, what, line)
-	if type (value) ~= "string" or string.find (value, "^%-?%d+$") == nil or #value > 11 then hard (what .. " is not a plain integer (" .. tostring (value) .. "): " .. line) end
-	return tonumber (value)
+	if type (value) ~= "string" or (value ~= "0" and string.find (value, "^%-?[1-9]%d*$") == nil) or #value > 11 then hard (what .. " is not a canonical decimal integer (" .. tostring (value) .. "): " .. line) end
+	local n = tonumber (value)
+	if n < -2147483648 or n > 2147483647 then hard (what .. " " .. value .. " is outside the int32_t domain of its C field: " .. line) end
+	return n
 end
+local function uint32 (value, what, line)
+	if type (value) ~= "string" or (value ~= "0" and string.find (value, "^[1-9]%d*$") == nil) or #value > 10 then hard (what .. " is not a canonical decimal unsigned integer (" .. tostring (value) .. "): " .. line) end
+	local n = tonumber (value)
+	if n > 4294967295 then hard (what .. " " .. value .. " is outside the uint32_t domain of its C field: " .. line) end
+	return n
+end
+-- an int field that is a count, an index or an entity type: never negative
 local function count (value, what, line)
 	local n = integer (value, what, line)
 	if n < 0 then hard (what .. " is negative: " .. line) end
@@ -162,6 +174,37 @@ end
 local function word (value, what, line)
 	if type (value) ~= "string" or string.find (value, "^%x%x%x%x%x%x%x%x$") == nil then hard (what .. " is not an eight digit word (" .. tostring (value) .. "): " .. line) end
 	return value
+end
+-- The fixture's FNV-1a digest of a state, bit for bit as csrc/eech_env_fixture.c env_play_digest and env_play_mix compute it: the 32-bit offset basis 2166136261, then for each word (the number of sound effect children, the number of
+-- matching children, the completeness flag 1, and for each matching child its validity, update-list membership, LIFETIME word and VALID-LIFETIME word, in that C order, which is not the order the state text prints them in)
+-- each of its four bytes, least significant first, is xored in and the hash multiplied by 16777619 modulo 2^32. A double holds 53 bits exactly and the product has up to 56, so the multiplication is made in two 16-bit
+-- limbs, every intermediate below 2^42; the byte xor is made bit by bit. This is bookkeeping of the printed words against the printed digest, not a model of anything physical.
+local FNV_PRIME = 16777619
+local function xor_byte (a, b)
+	local r, bit = 0, 1
+	for _ = 1, 8 do
+		local x, y = a % 2, b % 2
+		if x ~= y then r = r + bit end
+		a, b, bit = (a - x) / 2, (b - y) / 2, bit * 2
+	end
+	return r
+end
+local function fnv_mix (h, value)
+	for b = 0, 3 do
+		local byte = math.floor (value / 2 ^ (8 * b)) % 256
+		local low = h % 256
+		h = h - low + xor_byte (low, byte)
+		local high, lower = math.floor (h / 65536), h % 65536
+		h = (((high * FNV_PRIME) % 65536) * 65536 + lower * FNV_PRIME) % 4294967296
+	end
+	return h
+end
+local function state_digest (total, matching, children)
+	local h = fnv_mix (fnv_mix (fnv_mix (2166136261, total), matching), 1)
+	for _, child in ipairs (children) do
+		h = fnv_mix (fnv_mix (fnv_mix (fnv_mix (h, tonumber (child.valid)), tonumber (child.member)), tonumber (child.life, 16)), tonumber (child.vlife, 16))
+	end
+	return string.format ("%04x%04x", math.floor (h / 65536), h % 65536)
 end
 -- a list of entity types as the census prints it: unique, ascending (the table is walked in order) and below the number of entries
 local function type_list (value, what, line, entries)
@@ -218,9 +261,9 @@ local function report (when)
 	local line = lines [1]
 	local r = exact (line, "env-play-report", REPORT_KEYS, "the play probe's report")
 	local m = {
-		version = count (r.version, "version", line), armed = count (r.armed, "armed", line), phase = count (r.phase, "phase", line), capacity = count (r.capacity, "capacity", line),
-		calls_total = count (r.calls_total, "calls_total", line), drained = count (r.drained, "drained", line), pending = count (r.pending, "pending", line), dropped = count (r.dropped, "dropped", line),
-		bad_points = count (r.bad_points, "bad_points", line), defaults_taken = count (r.defaults_taken, "defaults_taken", line), defaults_entries = count (r.defaults_entries, "defaults_entries", line),
+		version = count (r.version, "version", line), armed = count (r.armed, "armed", line), phase = uint32 (r.phase, "phase", line), capacity = count (r.capacity, "capacity", line),
+		calls_total = uint32 (r.calls_total, "calls_total", line), drained = uint32 (r.drained, "drained", line), pending = uint32 (r.pending, "pending", line), dropped = uint32 (r.dropped, "dropped", line),
+		bad_points = uint32 (r.bad_points, "bad_points", line), defaults_taken = count (r.defaults_taken, "defaults_taken", line), defaults_entries = count (r.defaults_entries, "defaults_entries", line),
 		defaults_nondefault = count (r.defaults_nondefault, "defaults_nondefault", line), defaults_over = count (r.defaults_over, "defaults_over", line),
 	}
 	m.defaults_types = type_list (r.defaults_types, "defaults_types", line, math.max (m.defaults_entries, 1))
@@ -256,8 +299,8 @@ local function drain (when, expected_phase)
 	for _, line in ipairs (lines_of (text, "the play probe's events " .. when)) do
 		local c = exact (line, "env-play-call", CALL_KEYS, "a play call " .. when)
 		local n = {
-			seq = count (c.seq, "seq", line), t = count (c.t, "t", line), phase = count (c.phase, "phase", line), ent = count (c.ent, "ent", line), type = count (c.type, "type", line),
-			session = count (c.session, "session", line), default = count (c.default, "default", line), range_w = word (c.range_w, "range_w", line), rng = integer (c.rng, "rng", line),
+			seq = uint32 (c.seq, "seq", line), t = uint32 (c.t, "t", line), phase = uint32 (c.phase, "phase", line), ent = uint32 (c.ent, "ent", line), type = uint32 (c.type, "type", line),
+			session = uint32 (c.session, "session", line), default = uint32 (c.default, "default", line), range_w = word (c.range_w, "range_w", line), rng = integer (c.rng, "rng", line),
 		}
 		if n.seq ~= last_seq + 1 then hard ("the play calls are out of sequence (expected " .. (last_seq + 1) .. "): " .. line) end
 		last_seq = n.seq
@@ -451,6 +494,9 @@ if mode ~= "natural" then
 				for _, key in ipairs ({ "digest_before", "digest_paused", "digest_resumed", "digest_restored" }) do word (s [key], key, line) end
 				step.before, step.resumed = state_list (s.before, "the state before the pair", line), state_list (s.resumed, "the state after the resume", line)
 				if #step.before ~= target.matching or #step.resumed ~= target.matching then hard ("a fixture step lists " .. #step.before .. " and " .. #step.resumed .. " children where the target has " .. target.matching .. ": " .. line) end
+				-- the digests of the two states whose words are printed are the digests of those words (the paused and restored states have no raw words: the restored digest is only required to equal the before digest)
+				if state_digest (target.sound, target.matching, step.before) ~= s.digest_before then hard ("the before digest " .. s.digest_before .. " is not the FNV digest of the printed before words: " .. line) end
+				if state_digest (target.sound, target.matching, step.resumed) ~= s.digest_resumed then hard ("the resumed digest " .. s.digest_resumed .. " is not the FNV digest of the printed resumed words: " .. line) end
 				if s.vp_restored ~= "1" or s.state_restored ~= "1" or s.digest_before ~= s.digest_restored then hard ("a fixture step did not restore the main viewpoint and the children's state (restored vp " .. s.vp_restored .. ", state " .. s.state_restored .. "): " .. line) end
 				steps [#steps + 1] = step
 				fixture_facts.steps = fixture_facts.steps + 1
@@ -465,13 +511,13 @@ if mode ~= "natural" then
 				local line = rows [at]
 				local r = next_row ("env-play-recorded", { "n", "type", "range_w" }, "a recorded overload call")
 				if count (r.n, "n", line) ~= #recorded_rows then hard ("the recorded overload call has the ordinal " .. r.n .. " where " .. #recorded_rows .. " is next: " .. line) end
-				local given_type = count (r.type, "type", line)
+				local given_type = uint32 (r.type, "type", line)
 				if given_type >= entries then hard ("a recorded overload call has the entity type " .. given_type .. " beyond the " .. entries .. " entries: " .. line) end
 				recorded_rows [#recorded_rows + 1] = { type = given_type, range_w = word (r.range_w, "range_w", line) }
 			end
 			if not has ("env-play-overload ") then hard ("the overload report has no overload row") end
 			local o, o_line = next_row ("env-play-overload", { "installed", "recorded", "restored" }, "the overload row")
-			fixture_facts.installed, fixture_facts.recorded = count (o.installed, "installed", o_line), count (o.recorded, "recorded", o_line)
+			fixture_facts.installed, fixture_facts.recorded = count (o.installed, "installed", o_line), uint32 (o.recorded, "recorded", o_line)
 			if fixture_facts.installed ~= 2 then hard ("the deliberate overload installed " .. fixture_facts.installed .. " recording entries where the two targets' types need 2: " .. o_line) end
 			if o.restored ~= "1" then hard ("the deliberate overload's dispatch entries were not restored: " .. o_line) end
 			if #recorded_rows ~= fixture_facts.recorded then hard ("the report holds " .. #recorded_rows .. " recorded overload rows where the overload row says " .. fixture_facts.recorded .. ": the recording is incomplete") end

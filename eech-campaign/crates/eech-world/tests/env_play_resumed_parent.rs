@@ -15,9 +15,15 @@ const SCRIPT: &str = include_str!("../lua/env-play-resumed-parent.lua");
 /// The driver the checks run: the committed one, or the copy named by `EECH_PARENT_PLAY_DRIVER_UNDER_TEST` (for instance the b37d62293 driver, to see the semantic damaged-input guards fail on it). A path that cannot be
 /// read is a failure, never a fall back to the committed driver.
 fn driver_source() -> String {
-    match std::env::var("EECH_PARENT_PLAY_DRIVER_UNDER_TEST") {
-        Ok(path) => std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("EECH_PARENT_PLAY_DRIVER_UNDER_TEST {path}: {e}")),
-        Err(_) => SCRIPT.to_string(),
+    select_driver(std::env::var_os("EECH_PARENT_PLAY_DRIVER_UNDER_TEST"))
+}
+
+/// The selection itself, apart from the process environment (nothing here mutates it): `None` (the variable is absent) is the ONLY fall back; a present value is a path and is read, and a path that is not Unicode, is
+/// empty, does not exist or is not a readable file fails.
+fn select_driver(value: Option<std::ffi::OsString>) -> String {
+    match value {
+        None => SCRIPT.to_string(),
+        Some(path) => std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("EECH_PARENT_PLAY_DRIVER_UNDER_TEST {path:?}: {e}")),
     }
 }
 
@@ -187,13 +193,46 @@ fn call(seq: u32, phase: u32, ent: u32, etype: u32, default: u32) -> String {
     format!("env-play-call seq={seq} t=1000 phase={phase} ent={ent} type={etype} session=0 default={default} range_w=44fa0000 rng=7\n")
 }
 
+/// The fixture's FNV-1a digest (csrc/eech_env_fixture.c env_play_mix): 32 bits, each word byte by byte least significant first, the multiplication modulo 2^32.
+fn fnv(words: &[u32]) -> u32 {
+    let mut hash = 2_166_136_261u32;
+    for word in words {
+        for byte in 0..4 {
+            hash ^= (word >> (8 * byte)) & 0xff;
+            hash = hash.wrapping_mul(16_777_619);
+        }
+    }
+    hash
+}
+
+/// env_play_digest of a state of `total` sound effect children whose matching children are `[valid, member, lifetime word, valid lifetime word]` (the C mixing order; the state TEXT prints the valid lifetime before the
+/// lifetime), complete.
+fn state_digest(total: u32, children: &[[u32; 4]]) -> String {
+    let mut words = vec![total, children.len() as u32, 1];
+    for child in children {
+        words.extend_from_slice(child);
+    }
+    format!("{:08x}", fnv(&words))
+}
+
+/// the child of the shaped targets (two sound children, one matching) before the pair and after the resume, as the step rows print them: `valid:member:valid_lifetime_word:lifetime_word`
+fn before_digest() -> String {
+    state_digest(2, &[[0, 0, 0x3f80_0000, 0]])
+}
+
+fn resumed_digest() -> String {
+    state_digest(2, &[[1, 1, 0x3f80_0000, 0]])
+}
+
 const OFFSETS: [(&str, &str); 3] = [("coincident", "00000000"), ("middle", "451c4000"), ("outside", "469c4000")];
 
 /// the fixture's step row for one target and position
 fn step(kind: &str, ent: u32, etype: u32, sub: u32, position: usize, default_entry: u32, calls: i32) -> String {
     let (name, offset) = OFFSETS[position];
+    let (before, resumed) = (before_digest(), resumed_digest());
+    // the paused state has no raw words in the row: its digest is only a word
     format!(
-        "env-play-step kind={kind} ent={ent} etype={etype} sub={sub} pos={name} offset_w={offset} default_entry={default_entry} pause_returned=1 resume_returned=1 calls={calls} rng_before=7 rng_after=7 round_before=3072 round_after=3072 excepts=0 digest_before=0a0b0c0d digest_paused=1a1b1c1d digest_resumed=2a2b2c2d digest_restored=0a0b0c0d vp_restored=1 state_restored=1 before=0:0:00000000:3f800000 resumed=1:1:00000000:3f800000\n"
+        "env-play-step kind={kind} ent={ent} etype={etype} sub={sub} pos={name} offset_w={offset} default_entry={default_entry} pause_returned=1 resume_returned=1 calls={calls} rng_before=7 rng_after=7 round_before=3072 round_after=3072 excepts=0 digest_before={before} digest_paused=1a1b1c1d digest_resumed={resumed} digest_restored={before} vp_restored=1 state_restored=1 before=0:0:00000000:3f800000 resumed=1:1:00000000:3f800000\n"
     )
 }
 
@@ -235,7 +274,11 @@ fn overload_case(recorded: u32, inside: &str) -> String {
     let mut text = plan("overload", 1)
         + &target("fixed_wing", 5, 11, 20, 21)
         + &target("helicopter", 6, 12, 33, 37)
-        + &format!("env-play-census tag=inside_overload entries=40 default=37 nondefault=3 types={inside} over=0\n");
+        + &format!(
+            "env-play-census tag=inside_overload entries=40 default={} nondefault={} types={inside} over=0\n",
+            40 - inside.split(',').count(),
+            inside.split(',').count()
+        );
     for (kind, ent, etype, sub) in [("fixed_wing", 5, 11, 20), ("helicopter", 6, 12, 33)] {
         for position in 0..3 {
             text += &step(kind, ent, etype, sub, position, 0, 1);
@@ -363,7 +406,7 @@ fn a_fixture_step_that_did_not_restore_or_a_table_that_changed_across_the_fixtur
     );
     assert!(error_of(&driven).contains("did not restore the main viewpoint"), "{:?}", driven.result);
     assert!(of(&driven, "witness_failure").len() == 1 && of(&driven, "result").is_empty());
-    let digest = run_case().replacen("digest_restored=0a0b0c0d", "digest_restored=0a0b0c0e", 1);
+    let digest = run_case().replacen(&format!("digest_restored={}", before_digest()), "digest_restored=0a0b0c0e", 1);
     let driven = drive(
         &format!("{{ case = {}, pages = {} }}", long(&digest), pages(&[(2, &run_calls(1))])),
         &[("mode", "fixture")],
@@ -450,7 +493,7 @@ fn the_deliberate_overload_is_the_one_meaningful_red_and_a_live_non_default_cons
 
     // the census inside the overload does not list the helicopter type: the consumer was not identified
     let census = drive(
-        &format!("{{ case = {}, pages = {} }}", long(&overload_case(6, "11,32")), pages(&[(2, &run_calls(0))])),
+        &format!("{{ case = {}, pages = {} }}", long(&overload_case(6, "11,13,32")), pages(&[(2, &run_calls(0))])),
         &[("mode", "overload")],
     );
     assert!(error_of(&census).contains("does not list entity type 12 as non-default"), "{:?}", census.result);
@@ -750,41 +793,206 @@ fn the_semantic_and_completeness_joins_refuse_a_coherent_looking_record_that_is_
             reason: "finds 1 non-default entries right after",
         },
     ];
-    for item in damaged {
-        let extra: Vec<(&str, &str)> = if item.mode == "natural" {
-            vec![("seconds", "2"), ("frame_ms", "1000")]
-        } else {
-            vec![("mode", item.mode)]
-        };
-        // the undamaged shape of the same mode is accepted first
-        let positive = match item.mode {
-            "natural" => natural(""),
-            "fixture" => fixture_scenario(&ok_case, &ok_calls, ""),
-            _ => fixture_scenario(&ov_case, &ov_calls, ""),
-        };
-        let accepted = drive(&positive, &extra);
-        accepted
-            .result
-            .clone()
-            .unwrap_or_else(|e| panic!("{}: the coherent positive of this shape was rejected: {e}", item.name));
-        let driven = drive(&item.scenario, &extra);
-        let error = match driven.result.clone() {
-            Ok(()) => panic!(
-                "{}: the damaged record was ACCEPTED (expected a failure containing {:?})",
-                item.name, item.reason
+    for item in &damaged {
+        check_damaged(item);
+    }
+}
+
+/// the coherent positive of each mode
+fn positive_scenario(mode: &str) -> String {
+    match mode {
+        "natural" => format!("{{ pages = {} }}", pages(&[(2, &call(0, 0, 6, 12, 1))])),
+        "fixture" => fixture_scenario(&run_case(), &run_calls(1), ""),
+        _ => fixture_scenario(&overload_case(6, "11,12,32"), &run_calls(0), ""),
+    }
+}
+
+/// The coherent positive of the mode is accepted first (so a refused shape is never mistaken for a caught damage), then the damaged input must fail with the reason, leave no result and keep the raw text.
+fn check_damaged(item: &Damaged) {
+    let extra: Vec<(&str, &str)> = if item.mode == "natural" {
+        vec![("seconds", "2"), ("frame_ms", "1000")]
+    } else {
+        vec![("mode", item.mode)]
+    };
+    let accepted = drive(&positive_scenario(item.mode), &extra);
+    accepted
+        .result
+        .clone()
+        .unwrap_or_else(|e| panic!("{}: the coherent positive of this shape was rejected: {e}", item.name));
+    let driven = drive(&item.scenario, &extra);
+    let error = match driven.result.clone() {
+        Ok(()) => panic!(
+            "{}: the damaged record was ACCEPTED (expected a failure containing {:?})",
+            item.name, item.reason
+        ),
+        Err(error) => error,
+    };
+    assert!(
+        error.contains("env-play-resumed-parent:") && error.contains(item.reason),
+        "{}: {error}",
+        item.name
+    );
+    assert!(of(&driven, "result").is_empty(), "{}: a damaged capture is never a result", item.name);
+    assert!(
+        driven.play_raw.is_some() && driven.case_raw.is_some(),
+        "{}: the raw text is kept even when it is refused",
+        item.name
+    );
+}
+
+#[test]
+fn the_state_digests_and_the_c_integer_domains_are_joined_to_the_serialized_fields() {
+    let ok_case = run_case();
+    let ok_calls = run_calls(1);
+    let before_text = "before=0:0:00000000:3f800000";
+    let (before, resumed) = (before_digest(), resumed_digest());
+
+    // a DIFFERENT coherent state with its own digest is accepted: the digest is joined to the printed words, not fixed
+    let changed = state_digest(2, &[[0, 0, 0x4000_0000, 0]]);
+    let coherent = ok_case
+        .replacen(before_text, "before=0:0:00000000:40000000", 1)
+        .replacen(&format!("digest_before={before}"), &format!("digest_before={changed}"), 1)
+        .replacen(&format!("digest_restored={before}"), &format!("digest_restored={changed}"), 1);
+    let positive = drive(&fixture_scenario(&coherent, &ok_calls, ""), &[("mode", "fixture")]);
+    positive
+        .result
+        .clone()
+        .unwrap_or_else(|e| panic!("a changed word with its own digest was rejected: {e}"));
+
+    // the boundaries of the C types are valid values: int32_t from -2147483648 to 2147483647 and uint32_t up to 4294967295
+    let edge = format!(
+        "{}{}",
+        call(0, 0, 4_294_967_295, 12, 1)
+            .replace("rng=7", "rng=-2147483648")
+            .replace("t=1000", "t=4294967295"),
+        call(1, 0, 6, 12, 1).replace("rng=7", "rng=2147483647")
+    );
+    let boundary = drive(&format!("{{ pages = {} }}", pages(&[(2, &edge)])), &[("seconds", "2"), ("frame_ms", "1000")]);
+    boundary.result.clone().unwrap_or_else(|e| panic!("the C boundary values were rejected: {e}"));
+    assert_eq!(of(&boundary, "derived")[0]["natural_calls"].as_i64(), Some(2));
+
+    let natural_call = |from: &str, to: &str| format!("{{ pages = {} }}", pages(&[(2, &call(0, 0, 6, 12, 1).replace(from, to))]));
+    let natural = |extra: &str| format!("{{ pages = {}{extra} }}", pages(&[(2, &call(0, 0, 6, 12, 1))]));
+    let damaged = [
+        Damaged {
+            name: "a changed lifetime word with the old digest",
+            mode: "fixture",
+            scenario: fixture_scenario(&ok_case.replacen(before_text, "before=0:0:00000000:40000000", 1), &ok_calls, ""),
+            reason: "is not the FNV digest of the printed before words",
+        },
+        Damaged {
+            name: "a changed valid-lifetime word after the resume with the old digest",
+            mode: "fixture",
+            scenario: fixture_scenario(
+                &ok_case.replacen("resumed=1:1:00000000:3f800000", "resumed=1:1:00000001:3f800000", 1),
+                &ok_calls,
+                "",
             ),
-            Err(error) => error,
-        };
-        assert!(
-            error.contains("env-play-resumed-parent:") && error.contains(item.reason),
-            "{}: {error}",
-            item.name
-        );
-        assert!(of(&driven, "result").is_empty(), "{}: a damaged capture is never a result", item.name);
-        assert!(
-            driven.play_raw.is_some() && driven.case_raw.is_some(),
-            "{}: the raw text is kept even when it is refused",
-            item.name
-        );
+            reason: "is not the FNV digest of the printed resumed words",
+        },
+        Damaged {
+            name: "a changed validity flag with the old digest",
+            mode: "fixture",
+            scenario: fixture_scenario(&ok_case.replacen(before_text, "before=1:0:00000000:3f800000", 1), &ok_calls, ""),
+            reason: "is not the FNV digest of the printed before words",
+        },
+        Damaged {
+            name: "a stale before digest (restored digest alike)",
+            mode: "fixture",
+            scenario: fixture_scenario(
+                &ok_case.replacen(&format!("digest_before={before}"), "digest_before=deadbeef", 1).replacen(
+                    &format!("digest_restored={before}"),
+                    "digest_restored=deadbeef",
+                    1,
+                ),
+                &ok_calls,
+                "",
+            ),
+            reason: "is not the FNV digest of the printed before words",
+        },
+        Damaged {
+            name: "a stale resumed digest",
+            mode: "fixture",
+            scenario: fixture_scenario(
+                &ok_case.replacen(&format!("digest_resumed={resumed}"), "digest_resumed=deadbeef", 1),
+                &ok_calls,
+                "",
+            ),
+            reason: "is not the FNV digest of the printed resumed words",
+        },
+        Damaged {
+            name: "a probe seed above int32_t",
+            mode: "natural",
+            scenario: natural_call("rng=7", "rng=2147483648"),
+            reason: "outside the int32_t domain",
+        },
+        Damaged {
+            name: "a probe seed below int32_t",
+            mode: "natural",
+            scenario: natural_call("rng=7", "rng=-2147483649"),
+            reason: "outside the int32_t domain",
+        },
+        Damaged {
+            name: "a time above uint32_t",
+            mode: "natural",
+            scenario: natural_call("t=1000", "t=4294967296"),
+            reason: "outside the uint32_t domain",
+        },
+        Damaged {
+            name: "an entity index above uint32_t",
+            mode: "natural",
+            scenario: natural_call("ent=6", "ent=4294967296"),
+            reason: "outside the uint32_t domain",
+        },
+        Damaged {
+            name: "a sequence number with a leading zero",
+            mode: "natural",
+            scenario: natural_call("seq=0 ", "seq=00 "),
+            reason: "not a canonical decimal unsigned integer",
+        },
+        Damaged {
+            name: "a capacity above int32_t",
+            mode: "natural",
+            scenario: natural(", report = { capacity = 2147483648 }"),
+            reason: "outside the int32_t domain",
+        },
+        Damaged {
+            name: "a fixture seed above int32_t",
+            mode: "fixture",
+            scenario: fixture_scenario(&ok_case.replacen("rng_before=7", "rng_before=2147483648", 1), &ok_calls, ""),
+            reason: "outside the int32_t domain",
+        },
+        Damaged {
+            name: "an end seed below int32_t",
+            mode: "fixture",
+            scenario: fixture_scenario(&ok_case.replace("rng_end=7", "rng_end=-2147483649"), &ok_calls, ""),
+            reason: "outside the int32_t domain",
+        },
+    ];
+    for item in &damaged {
+        check_damaged(item);
+    }
+}
+
+#[test]
+fn the_driver_override_falls_back_only_when_absent_and_fails_for_every_unreadable_value() {
+    assert_eq!(select_driver(None), SCRIPT);
+    let work = Scratch::new();
+    let path = work.path("driver.lua");
+    std::fs::write(&path, "-- another driver\n").expect("a driver file");
+    assert_eq!(select_driver(Some(path.clone().into())), "-- another driver\n");
+    let refused = |value: std::ffi::OsString| std::panic::catch_unwind(move || select_driver(Some(value))).is_err();
+    assert!(refused(work.path("missing.lua").into()), "a path that does not exist");
+    assert!(refused(std::ffi::OsString::new()), "an empty value");
+    assert!(refused(work.0.clone().into_os_string()), "a directory");
+    #[cfg(unix)]
+    {
+        use std::os::unix::ffi::OsStringExt;
+        assert!(refused(std::ffi::OsString::from_vec(vec![0xff, 0xfe, b'x'])), "a value that is not Unicode");
+    }
+    #[cfg(windows)]
+    {
+        use std::os::windows::ffi::OsStringExt;
+        assert!(refused(std::ffi::OsString::from_wide(&[0xd800, 0x78])), "a value that is not Unicode");
     }
 }
