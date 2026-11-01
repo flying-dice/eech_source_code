@@ -1029,7 +1029,9 @@ fn the_defaults_census_count_is_observed_after_boot_anchored_and_required_unchan
     }
 
     // the count after boot must be at least one, and the anchored count must not change afterwards: a later reinitialisation is not accepted
-    let refused: [(&str, String, Vec<(&str, &str)>, &str); 7] = [
+    // what is driven, the arguments of the run and the reason the driver must give
+    type Refusal = (&'static str, String, Vec<(&'static str, &'static str)>, &'static str);
+    let refused: [Refusal; 7] = [
         (
             "a first report with no census",
             natural(", report = { defaults_taken = 0 }"),
