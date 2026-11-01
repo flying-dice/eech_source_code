@@ -1410,8 +1410,16 @@ fn a_damaged_host_backend_row_a_device_call_or_a_stored_flag_that_is_not_the_hos
     let skipped = backend_hosted(&report(&backend_shape(true)));
     assert!(skipped.contains("answers=0 available=0"));
     for (label, text, reason) in [
-        ("the host-backend row missing", drop_rows(&good, "env-sndinit-host-backend"), "does not give the row env-sndinit-host-backend"),
-        ("the host asked twice", good.replace("answers=1 available=0", "answers=2 available=0"), "the host was asked"),
+        (
+            "the host-backend row missing",
+            drop_rows(&good, "env-sndinit-host-backend"),
+            "does not give the row env-sndinit-host-backend",
+        ),
+        (
+            "the host asked twice",
+            good.replace("answers=1 available=0", "answers=2 available=0"),
+            "the host was asked",
+        ),
         (
             "the host never asked where the campaign took the backend branch",
             good.replace("answers=1 available=0", "answers=0 available=0"),

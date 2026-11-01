@@ -208,7 +208,10 @@ fn a_boot_whose_flags_closed_the_backend_branch_is_not_applicable_and_never_a_mi
     for behaviour in ["skipped_by_no_sound", "skipped_by_dedicated"] {
         let run = run(&[("behaviour", behaviour)]);
         let error = failure(&run);
-        assert!(error.contains("SETUP FAILURE") && error.contains("not-applicable") && !error.contains("capability-missing"), "{behaviour}: {error}");
+        assert!(
+            error.contains("SETUP FAILURE") && error.contains("not-applicable") && !error.contains("capability-missing"),
+            "{behaviour}: {error}"
+        );
         assert_eq!(verdict(&run), "not_applicable_backend_branch_skipped", "{behaviour}");
         assert_eq!(run.record.as_ref().map(|record| record["requests"].as_i64()), Some(Some(0)), "{behaviour}");
     }
@@ -219,7 +222,10 @@ fn a_boot_whose_flags_closed_the_backend_branch_is_not_applicable_and_never_a_mi
     // a skipped boot that nevertheless asked the host is a contradiction the healthy check refuses
     let asked = run(&[("behaviour", "skipped_but_asked")]);
     let error = failure(&asked);
-    assert!(error.contains("ownership-not-shown") && error.contains("boot_skipped expected 0 observed 1"), "{error}");
+    assert!(
+        error.contains("ownership-not-shown") && error.contains("boot_skipped expected 0 observed 1"),
+        "{error}"
+    );
 }
 
 #[test]
@@ -227,14 +233,20 @@ fn missing_unreadable_or_incoherent_gate_evidence_is_a_setup_failure_and_never_a
     for behaviour in ["skipped_incoherent", "both_branches", "no_gate_row", "flags_not_flags"] {
         let run = run(&[("behaviour", behaviour)]);
         let error = failure(&run);
-        assert!(error.contains("SETUP FAILURE") && error.contains("gate evidence") && !error.contains("capability-missing"), "{behaviour}: {error}");
+        assert!(
+            error.contains("SETUP FAILURE") && error.contains("gate evidence") && !error.contains("capability-missing"),
+            "{behaviour}: {error}"
+        );
         assert_eq!(verdict(&run), "setup_failure_gate_evidence_incoherent", "{behaviour}");
     }
     // the sidecar that carries the gate is read with a checked open, read and close before any zero-request verdict
     for kind in ["open", "read", "close"] {
         let run = run_with(&[("behaviour", "decides_itself")], Some(("sidecar", kind)));
         let error = failure(&run);
-        assert!(error.contains("SETUP FAILURE") && error.contains(&format!("injected {kind} failure")), "{kind}: {error}");
+        assert!(
+            error.contains("SETUP FAILURE") && error.contains(&format!("injected {kind} failure")),
+            "{kind}: {error}"
+        );
         assert_eq!(verdict(&run), "setup_failure_evidence_unreadable", "{kind}");
     }
 }
