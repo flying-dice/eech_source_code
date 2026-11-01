@@ -7,8 +7,9 @@ campaign regression JSONs. Four post-input checks0 include the internal Lebanon
 copy; all50 payloads, BUILD-INFO and runner/launcher identities remain unchanged.
 Physical source/binaries stay aafb21775; later e107 is FP-test-only. Safe evidence:
 `eech-campaign/reference/d3-ground-characterization/final-shipping-aafb-20261101/`.
-Independent final evidence review, exact publication-head CI and normal merge
-are next; Task48 is not yet Done. Previous interrupted/failed attempts stay retained.
+Independent final evidence review a29ec02c has no findings and closes this finite
+ground shipping gate. Exact final publication-head CI and normal merge are next;
+Task48 is not yet Done. Previous interrupted/failed attempts stay retained.
 
 Task51/PR111 original pause/resume four-case characterization is closed at native33
 with driver299 and independent df22 review, safe5e publication. The same single

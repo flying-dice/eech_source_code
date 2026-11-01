@@ -35,3 +35,13 @@ are separate gates and were pending when this evidence was prepared. Required
 derived terrain/loaders, object scans/transforms/narrow phase, model hierarchy,
 viewpoints/devices/muzzles/target points/physical route data, environment and time
 services remain D3 work. D4/D5 have not started.
+
+## Independent completed-evidence review
+
+The same independent reviewer reports no findings and closes finite ground
+shipping acceptance. The original canonical-LF report SHA256 is
+`a29ec02cf5e9831cbb64495a5dbe83210cda4e2b6f73276231f9c4189738474a`.
+It binds the reviewed publication4c7 and separately identified comparator receipt,
+and independently compares all eight complete streams. The report is copied here
+literally after review, with a factual publication receipt; those additions are
+not represented as pre-reviewed. Current final CI and normal merge remain separate.

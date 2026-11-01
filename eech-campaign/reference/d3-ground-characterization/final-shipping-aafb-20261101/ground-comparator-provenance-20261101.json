@@ -1,0 +1,27 @@
+{
+  "scope": "After-the-call provenance receipt for Root-observed comparator tool completion; does not imply a separate rerun or retained subprocess stdout file.",
+  "recorded_utc": "2026-11-01T00:23:32.748257+00:00",
+  "baseline": "R:\\d2-evidence\\baseline-host-20261026-shortpath",
+  "candidate": "R:\\d3-evidence\\shipping-ground-aafb21775-recovery-pack-20261031-0945",
+  "accepted_report": "R:\\d2-evidence\\baseline-host-20261026-shortpath\\report.json",
+  "accepted_report_sha256": "0d6cadc4d1506686d6d6535459498c561bf70b4d2e9fbaff03c4600cffff1a97",
+  "comparator_sha256": "c7bb3ed6d21a532f888da01943e69228124c54999ecf81966b6fb28b29979ea6",
+  "comparison_sha256": "cdeec9fe8b0bebc30e8df06ce36f683ffc1815259c1a86cb8e3c52a100e991ad",
+  "actual_tool_exit_code": 0,
+  "observed_tool_stdout": "40 accepted checks per report; 8/8 complete files equal",
+  "command": [
+    "C:/Users/starscream/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/python.exe",
+    "-B",
+    "-X",
+    "utf8",
+    "C:\\Users\\starscream\\.codex\\skills\\eech-regression\\scripts\\compare_complete_packs.py",
+    "--baseline",
+    "R:\\d2-evidence\\baseline-host-20261026-shortpath",
+    "--candidate",
+    "R:\\d3-evidence\\shipping-ground-aafb21775-recovery-pack-20261031-0945",
+    "--accepted-report",
+    "R:\\d2-evidence\\baseline-host-20261026-shortpath\\report.json",
+    "--out",
+    "R:\\d3-evidence\\ground-aafb21775-complete-comparison-20261101.json"
+  ]
+}
