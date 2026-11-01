@@ -17,8 +17,11 @@ audio, shipping or normal-delivery evidence.
 | Old capability native (expected red) | `7574caa2ca87a2a44608a234fd1dd73136b8e4c0`, 62 payloads |
 | New native payloads | 64; `BUILD_INFO` `9dac187b544458c2da527cc181798246f7999dd2c2e1f9f82cfa4952b4d84d35` (old `7824726195b658c3849d2f3872f88e4522923c0f182e3160fb6b8174ff51f603`) |
 
-**The 7c native is not rebuilt at later commits and is never relabelled.** The 0960 Lua and 0e25 tests ran against
-the frozen 7c binaries; the 0e25 change is test code, so no native rebuild was needed or done.
+**The 7c native is not rebuilt at later commits and is never relabelled.** The public runtime controls ran the frozen 7c
+Windows eech-world.exe and eech_dc.dll with frozen external 0960 Lua. The later 0e25 Engine unit tests and strict
+checks were built/evaluated from the seven-file effective-source overlay on the clean 7c snapshot; they are separate
+test artifacts. The Windows native production artifacts remain identified as 7c and are never relabelled as a later
+test or publication commit.
 
 ## Results (actual)
 
