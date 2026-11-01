@@ -9,6 +9,7 @@ use eech_engine::{
     EECH_ENV_LIGHTNING_UPDATE, EECH_ENV_MODE_COUNT, EECH_ENV_SOUND_LIFETIME_INIT, EECH_ENV_SOUND_LIFETIME_UPDATE, EECH_ENV_SOUND_PAUSE_RESUME, EECH_ENV_STEP,
     EECH_ENV_WEATHER, EECH_ENV_WIND, EECH_LIGHTNING_SLOTS, EECH_SOUND_SAMPLES,
 };
+use eech_engine::{SoundCatalogueEntry, SoundCatalogueProvider, SoundCatalogueReply, SoundCatalogueRequest};
 use mlua::prelude::*;
 use std::path::PathBuf;
 
@@ -910,6 +911,100 @@ fn environment_provider(lua: &Lua, function: LuaFunction) -> LuaResult<EnvProvid
     let bridge: LuaFunction = build.call((function, ENV_FLOAT_NAMES.to_vec(), ENV_INT_NAMES.to_vec()))?;
     let lua = lua.clone();
     Ok(Box::new(move |request| call_environment(&lua, &bridge, request)))
+}
+
+/// The function that answers the sample metadata question: the boot's `sound_data` when it gave one, else the host's environment provider (the reference host's answers it). There is no campaign reader to
+/// fall back to, so a `sound_data` that is not a function is refused, with the stable marker; a provider that cannot answer is refused with the same marker at the first question, which the engine
+/// asks before it applies anything.
+fn sound_data_function(config: &LuaTable, environment: &LuaFunction) -> LuaResult<LuaFunction> {
+    match config.get::<LuaValue>("sound_data")? {
+        LuaValue::Nil => Ok(environment.clone()),
+        LuaValue::Function(function) => Ok(function),
+        value => Err(LuaError::runtime(format!(
+            "eech: [sound-data-provider:missing] the sample metadata provider must be a function, got {}",
+            value.type_name()
+        ))),
+    }
+}
+
+/// A Lua number that is a whole number inside an `i32` (an integer, or a float with no fraction), or the stable refusal naming the field.
+fn catalogue_integer(value: LuaValue, what: &str) -> Result<i32, String> {
+    let refuse = || format!("[sound-data-provider:answer] {what} must be a whole number that fits a 32-bit integer");
+    match value {
+        LuaValue::Integer(number) => i32::try_from(number).map_err(|_| refuse()),
+        LuaValue::Number(number) if number.is_finite() && number.fract() == 0.0 && number >= f64::from(i32::MIN) && number <= f64::from(i32::MAX) => {
+            Ok(number as i32)
+        }
+        _ => Err(refuse()),
+    }
+}
+
+fn catalogue_boolean(value: LuaValue, what: &str) -> Result<bool, String> {
+    match value {
+        LuaValue::Boolean(flag) => Ok(flag),
+        other => Err(format!("[sound-data-provider:answer] {what} must be a boolean, got {}", other.type_name())),
+    }
+}
+
+/// Builds the sample metadata provider the engine keeps from the host's Lua function (the host's environment provider unless the boot gave a separate `sound_data` function). The request is
+/// `{ op = "sound_catalogue", slots = N, entries = { { index = slot, name = asset }, ... } }` and the answer `{ header_present = bool, header_count = n, entries = { { rate, original_rate, matched = bool, size }, ... } }`
+/// in the request's order. A Lua error, a missing field and a value of the wrong kind are refusals that name the sample metadata provider; the engine's boundary then checks the whole answer.
+fn sound_catalogue_provider(lua: &Lua, function: LuaFunction) -> SoundCatalogueProvider {
+    let lua = lua.clone();
+    Box::new(move |request: &SoundCatalogueRequest| -> Result<SoundCatalogueReply, String> {
+        let callback = |error: LuaError| format!("[sound-data-provider:callback] {error}");
+        let table = lua.create_table().map_err(callback)?;
+        table.set("op", "sound_catalogue").map_err(callback)?;
+        table.set("slots", request.slots).map_err(callback)?;
+        let entries = lua.create_table().map_err(callback)?;
+        for (position, (slot, name)) in request.descriptors.iter().enumerate() {
+            let entry = lua.create_table().map_err(callback)?;
+            entry.set("index", *slot).map_err(callback)?;
+            entry.set("name", name.as_str()).map_err(callback)?;
+            entries.set(position + 1, entry).map_err(callback)?;
+        }
+        table.set("entries", entries).map_err(callback)?;
+        let answer: LuaTable = match function.call::<LuaValue>(table).map_err(callback)? {
+            LuaValue::Table(answer) => answer,
+            other => {
+                return Err(format!(
+                    "[sound-data-provider:answer] the provider answered with {} where a table was expected",
+                    other.type_name()
+                ))
+            }
+        };
+        let field = |name: &str| answer.get::<LuaValue>(name).map_err(callback);
+        let header_present = catalogue_boolean(field("header_present")?, "header_present")?;
+        let header_count = catalogue_integer(field("header_count")?, "header_count")?;
+        let listed = match field("entries")? {
+            LuaValue::Table(listed) => listed,
+            other => return Err(format!("[sound-data-provider:answer] entries must be a table, got {}", other.type_name())),
+        };
+        let mut entries = Vec::with_capacity(request.descriptors.len());
+        for position in 1..=listed.raw_len() {
+            let entry = match listed.get::<LuaValue>(position).map_err(callback)? {
+                LuaValue::Table(entry) => entry,
+                other => {
+                    return Err(format!(
+                        "[sound-data-provider:answer] entries[{position}] must be a table, got {}",
+                        other.type_name()
+                    ))
+                }
+            };
+            let member = |name: &str| entry.get::<LuaValue>(name).map_err(callback);
+            entries.push(SoundCatalogueEntry {
+                rate: catalogue_integer(member("rate")?, &format!("entries[{position}].rate"))?,
+                original_rate: catalogue_integer(member("original_rate")?, &format!("entries[{position}].original_rate"))?,
+                matched: catalogue_boolean(member("matched")?, &format!("entries[{position}].matched"))?,
+                size: catalogue_integer(member("size")?, &format!("entries[{position}].size"))?,
+            });
+        }
+        Ok(SoundCatalogueReply {
+            header_present,
+            header_count,
+            entries,
+        })
+    })
 }
 
 fn env_state_table(lua: &Lua, state: &EnvState) -> LuaResult<LuaTable> {
@@ -3307,6 +3402,8 @@ fn boot(lua: &Lua, config: LuaTable) -> LuaResult<LuaEngine> {
             )))
         }
     };
+    // EEDCS-51 (D3): the host owns the physical sample metadata at initialisation (rates, and the sizes in its own sound.hdr / sound.dat). A provider that is not a function is refused here, before anything boots.
+    let sound_data = sound_data_function(&config, &environment)?;
     let arguments: Vec<String> = config.get::<Option<Vec<String>>>("arguments")?.unwrap_or_default();
     let config = EngineConfig {
         install_root: PathBuf::from(config.get::<String>("install_root")?),
@@ -3336,6 +3433,7 @@ fn boot(lua: &Lua, config: LuaTable) -> LuaResult<LuaEngine> {
         &mut aimer,
         terrain_provider(lua, terrain)?,
         environment_provider(lua, environment)?,
+        sound_catalogue_provider(lua, sound_data),
     )
     .map_err(lua_error)?;
     Ok(LuaEngine {
@@ -5307,6 +5405,134 @@ mod tests {
             integers(above_of([0.0; 3], None))?,
             TerrainAnswer::GroundPredicate { value: true, record: Some(TerrainRecord { last_elevation, kind: 2, .. }) } if last_elevation == 3.0
         ));
+        Ok(())
+    }
+
+    // ---- the host's sample metadata provider as a Lua function (EEDCS-51, D3): the request it is given and the answer it may give ----
+
+    fn catalogue_provider_of(lua: &Lua, body: &str) -> Result<SoundCatalogueProvider, Box<dyn std::error::Error>> {
+        let function: LuaFunction = lua.load(format!("return function (request) {body} end")).eval()?;
+        Ok(sound_catalogue_provider(lua, function))
+    }
+
+    fn catalogue_request() -> SoundCatalogueRequest {
+        SoundCatalogueRequest {
+            slots: 2122,
+            descriptors: vec![(94, "lstrike.pcm".to_string()), (2087, "ch46e_windup_ext.pcm".to_string())],
+        }
+    }
+
+    #[test]
+    fn the_catalogue_question_reaches_the_hosts_lua_by_value_and_its_answer_is_read_entry_by_entry() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let mut provider = catalogue_provider_of(
+            &lua,
+            "assert (request.op == 'sound_catalogue' and request.slots == 2122 and #request.entries == 2) \
+             assert (request.entries[1].index == 94 and request.entries[1].name == 'lstrike.pcm') \
+             assert (request.entries[2].index == 2087 and request.entries[2].name == 'ch46e_windup_ext.pcm') \
+             return { header_present = true, header_count = 7, entries = { \
+               { rate = 22050, original_rate = 22050, matched = true, size = 96 }, \
+               { rate = 11025.0, original_rate = 11025, matched = false, size = 0 } } }",
+        )?;
+        let reply = provider(&catalogue_request())?;
+        assert!(reply.header_present);
+        assert_eq!(reply.header_count, 7);
+        assert_eq!(
+            reply.entries,
+            vec![
+                SoundCatalogueEntry {
+                    rate: 22050,
+                    original_rate: 22050,
+                    matched: true,
+                    size: 96
+                },
+                SoundCatalogueEntry {
+                    rate: 11025,
+                    original_rate: 11025,
+                    matched: false,
+                    size: 0
+                }
+            ]
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_catalogue_answer_of_the_wrong_kind_or_shape_is_refused_by_name() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let entry = "{ rate = 22050, original_rate = 22050, matched = true, size = 1 }";
+        let cases: Vec<(&str, String)> = vec![
+            ("nothing", "return nil".to_string()),
+            ("a string", "return 'yes'".to_string()),
+            ("a count that is not whole", format!("return {{ header_present = true, header_count = 1.5, entries = {{ {entry}, {entry} }} }}")),
+            ("a count that does not fit", format!("return {{ header_present = true, header_count = 4294967296, entries = {{ {entry}, {entry} }} }}")),
+            ("a present flag that is a number", format!("return {{ header_present = 1, header_count = 1, entries = {{ {entry}, {entry} }} }}")),
+            ("no entries table", "return { header_present = true, header_count = 1 }".to_string()),
+            ("an entry that is not a table", format!("return {{ header_present = true, header_count = 1, entries = {{ {entry}, 5 }} }}")),
+            (
+                "a rate that is a string",
+                format!("return {{ header_present = true, header_count = 1, entries = {{ {entry}, {{ rate = '22050', original_rate = 1, matched = true, size = 1 }} }} }}"),
+            ),
+            (
+                "a matched flag that is a number",
+                format!("return {{ header_present = true, header_count = 1, entries = {{ {entry}, {{ rate = 1, original_rate = 1, matched = 1, size = 1 }} }} }}"),
+            ),
+            (
+                "a missing size",
+                format!("return {{ header_present = true, header_count = 1, entries = {{ {entry}, {{ rate = 1, original_rate = 1, matched = false }} }} }}"),
+            ),
+            (
+                "a length that is not a number",
+                format!("return {{ header_present = true, header_count = 1, entries = {{ {entry}, {{ rate = 1, original_rate = 1, matched = true, size = 0/0 }} }} }}"),
+            ),
+        ];
+        for (label, body) in cases {
+            let mut provider = catalogue_provider_of(&lua, &body)?;
+            let Err(error) = provider(&catalogue_request()) else {
+                return Err(format!("{label}: the answer was accepted").into());
+            };
+            assert!(error.starts_with("[sound-data-provider:answer]"), "{label}: {error}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn a_catalogue_provider_that_raises_is_refused_by_name_and_a_provider_that_is_not_a_function_is_refused_before_boot(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let mut provider = catalogue_provider_of(&lua, "error ('the host has no sound files', 0)")?;
+        let Err(error) = provider(&catalogue_request()) else {
+            return Err("a raising provider answered".into());
+        };
+        assert!(
+            error.starts_with("[sound-data-provider:callback]") && error.contains("the host has no sound files"),
+            "{error}"
+        );
+        // an old host's environment provider answers every operation it knows and raises on one it does not: that is the same refusal, named
+        let mut old_host = catalogue_provider_of(
+            &lua,
+            "if request.op ~= 'weather' then error ('host.env: unknown op ' .. request.op, 0) end return {}",
+        )?;
+        let Err(error) = old_host(&catalogue_request()) else {
+            return Err("a host that does not know the operation answered".into());
+        };
+        assert!(
+            error.starts_with("[sound-data-provider:callback]") && error.contains("unknown op sound_catalogue"),
+            "{error}"
+        );
+        // the boot's choice of the function: its own `sound_data`, else the environment provider; one that is given and is not a function stops the boot with the stable marker before the engine is touched
+        let environment: LuaFunction = lua.load("return function () return 'environment' end").eval()?;
+        let empty: LuaTable = lua.load("return {}").eval()?;
+        assert_eq!(sound_data_function(&empty, &environment)?.call::<String>(())?, "environment");
+        let separate: LuaTable = lua.load("return { sound_data = function () return 'separate' end }").eval()?;
+        assert_eq!(sound_data_function(&separate, &environment)?.call::<String>(())?, "separate");
+        for given in ["5", "'text'", "{}", "true"] {
+            let config: LuaTable = lua.load(format!("return {{ sound_data = {given} }}")).eval()?;
+            match sound_data_function(&config, &environment) {
+                Ok(_) => return Err(format!("a sample metadata provider {given} was accepted").into()),
+                Err(error) => assert!(error.to_string().contains("[sound-data-provider:missing]"), "{error}"),
+            }
+        }
         Ok(())
     }
 }

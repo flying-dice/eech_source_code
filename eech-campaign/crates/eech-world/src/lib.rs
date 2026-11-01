@@ -8,5 +8,7 @@ pub mod los;
 pub mod movement;
 pub mod output;
 pub mod sense;
+pub mod sound_assets;
+pub mod sound_data;
 pub mod tacview;
 pub mod terrain;

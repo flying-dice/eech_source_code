@@ -15,6 +15,8 @@
 use mlua::Lua;
 
 const SCRIPT: &str = include_str!("../lua/env-sound-init.lua");
+/// The driver derived for the host-owned initialisation (the original driver above is not edited).
+const HOST_SCRIPT: &str = include_str!("../lua/env-sound-init-host.lua");
 
 /// The scripted `eech_dc`: `env_case (14, 15)` answers the text the scenario gives; `no_arm` removes the observer function (a module without the feature), `no_env_case` the method, `frame_error_at` makes the n-th frame stop,
 /// `engine_error` makes `env_case` itself stop; `io_fail` fails the n-th write, a flush or the close of the evidence.
@@ -124,6 +126,10 @@ struct Driven {
 }
 
 fn drive(text: &str, args: &str, scenario_extra: &str) -> Driven {
+    drive_script(SCRIPT, "env-sound-init.lua", text, args, scenario_extra)
+}
+
+fn drive_script(script: &str, name: &str, text: &str, args: &str, scenario_extra: &str) -> Driven {
     let lua = Lua::new();
     lua.load(format!(
         "ARGS = {{ root = 'unused-root', out = 'unused-out'{args} }}\nSCENARIO = {{ text = [==[{text}]==]{scenario_extra} }}"
@@ -134,7 +140,7 @@ fn drive(text: &str, args: &str, scenario_extra: &str) -> Driven {
         .set_name("scripted collaborators")
         .exec()
         .expect("the collaborators load");
-    let result = lua.load(SCRIPT).set_name("env-sound-init.lua").exec().map_err(|e| e.to_string());
+    let result = lua.load(script).set_name(name).exec().map_err(|e| e.to_string());
     let written: Vec<String> = lua.globals().get("WRITTEN").expect("the collected output");
     let text = written.concat();
     let rows = text
@@ -1044,5 +1050,134 @@ fn two_spellings_of_one_path_and_an_existing_or_unreadable_output_are_refused_be
         );
         assert_eq!(driven.truncated, 0, "{what}: an existing file was truncated");
         assert_eq!(driven.raw, "", "{what}: nothing may have been written to a file that was not created");
+    }
+}
+
+// ---- the HOST-OWNED initialisation (EEDCS-51, D3; review ENV-SOUND-METADATA-4): a hosted report keeps the host's answer, the campaign's own events and its file operations APART ----
+//
+// The original driver (above) requires exactly one header-open result recorded by the CAMPAIGN; a hosted initialisation records none, because the host owns the files. So the original driver refuses a hosted report
+// (fail closed, its guards unchanged) and `env-sound-init-host.lua` is the driver of the hosted candidate. The report here is the original shape with the campaign's open/match events zeroed and the host's validated
+// answer as its own row; the numbers are shape examples, not measurements.
+
+/// The hosted form of a report: each boot row keeps no header-open or match event of the campaign, and is followed by the host's answer row (a mirror of what the host said).
+fn hosted(report: &str) -> String {
+    let mut out = String::new();
+    for line in report.lines() {
+        if !line.starts_with("env-sndinit-boot ") {
+            out += line;
+            out += "\n";
+            continue;
+        }
+        let field = |key: &str| {
+            line.split(' ')
+                .find_map(|token| token.strip_prefix(&format!("{key}=")))
+                .and_then(|value| value.parse::<i64>().ok())
+                .unwrap_or(0)
+        };
+        let (n, present, header_count, matched, missed) = (field("n"), field("open_true"), field("header_count"), field("matched"), field("missed"));
+        let zeroed: Vec<String> = line
+            .split(' ')
+            .map(|token| match token.split('=').next().unwrap_or_default() {
+                "open_true" | "open_false" | "header_count" | "matched" | "missed" => format!("{}=0", token.split('=').next().unwrap_or_default()),
+                _ => token.to_string(),
+            })
+            .collect();
+        out += &zeroed.join(" ");
+        out += "\n";
+        out += &format!("env-sndinit-host-answer n={n} source=host_reply_mirror answers=1 present={present} header_count={header_count} matched={matched} missed={missed}\n");
+    }
+    out
+}
+
+/// A hosted shape: the campaign made no file attempt.
+fn hosted_shape(opened: bool) -> Shape {
+    Shape {
+        attempts: vec![],
+        ..if opened { Shape::header_opened() } else { Shape::backend_false() }
+    }
+}
+
+fn drive_host(text: &str) -> Driven {
+    drive_script(HOST_SCRIPT, "env-sound-init-host.lua", text, "", "")
+}
+
+#[test]
+fn the_hosted_driver_keeps_the_hosts_answer_the_campaigns_events_and_its_file_operations_apart() {
+    for (opened, present, count, matched, missed) in [(false, false, 0, 0, 0), (true, true, 7, 5, 2)] {
+        let driven = drive_host(&hosted(&report(&hosted_shape(opened))));
+        driven.result.clone().expect("a coherent hosted capture");
+        let derived = &of(&driven, "derived")[0];
+        assert_eq!(
+            (
+                derived["host_reply_header_present"].as_bool(),
+                derived["host_reply_header_count"].as_i64(),
+                derived["host_reply_descriptors_matched"].as_i64(),
+                derived["host_reply_descriptors_missed"].as_i64()
+            ),
+            (Some(present), Some(count), Some(matched), Some(missed))
+        );
+        // the campaign's own operations are reported as they are, not as the host's answer
+        assert_eq!(
+            (
+                derived["core_header_opens_in_effects"].as_i64(),
+                derived["core_header_open_attempts"].as_i64(),
+                derived["core_data_open_attempts"].as_i64()
+            ),
+            (Some(0), Some(0), Some(0))
+        );
+        // and the original driver's claims, which would be false here, are gone
+        assert!(derived.get("header_opened_in_effects").is_none() && derived.get("descriptors_matched").is_none());
+        // the host's answer row is kept as it came
+        assert!(
+            driven.raw.contains("env-sndinit-host-answer n=0 source=host_reply_mirror answers=1"),
+            "{}",
+            driven.raw
+        );
+    }
+}
+
+#[test]
+fn the_original_driver_refuses_a_hosted_report_and_the_hosted_driver_refuses_an_original_one() {
+    let hosted_report = hosted(&report(&hosted_shape(true)));
+    let error = drive(&hosted_report, "", "")
+        .result
+        .expect_err("the original driver must refuse a report in which the campaign recorded no header open");
+    assert!(error.starts_with("env-sound-init:"), "{error}");
+    // an original-shaped report: the campaign recorded a header open and attempts of its own, which the host now owns
+    let original = report(&Shape::header_opened());
+    let error = drive_host(&original)
+        .result
+        .expect_err("a campaign that still opens the header is not a hosted initialisation");
+    assert!(error.starts_with("env-sound-init-host:"), "{error}");
+}
+
+#[test]
+fn an_incoherent_or_missing_host_answer_is_a_failure_of_the_witness() {
+    let good = hosted(&report(&hosted_shape(true)));
+    assert!(good.contains("present=1 header_count=7 matched=5 missed=2"));
+    for (label, text) in [
+        (
+            "an absent pair with entries",
+            good.replace("present=1 header_count=7", "present=0 header_count=7"),
+        ),
+        (
+            "an absent pair that matched",
+            good.replace("present=1 header_count=7", "present=0 header_count=0"),
+        ),
+        (
+            "matches in a header that holds none",
+            good.replace("present=1 header_count=7", "present=1 header_count=0"),
+        ),
+        ("a present flag that is not a flag", good.replace("present=1", "present=2")),
+        ("two answers", good.replace("answers=1", "answers=2")),
+        ("another source label", good.replace("source=host_reply_mirror", "source=original")),
+        ("the answer row missing", drop_rows(&good, "env-sndinit-host-answer")),
+        (
+            "a campaign header match recorded where the host owns the lookup",
+            good.replacen("matched=0 missed=0 backend", "matched=3 missed=0 backend", 1),
+        ),
+    ] {
+        let error = drive_host(&text).result.expect_err(label);
+        assert!(error.starts_with("env-sound-init-host:"), "{label}: {error}");
     }
 }

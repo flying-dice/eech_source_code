@@ -1690,6 +1690,168 @@ unsafe extern "C" fn environment_callback(
     }
 }
 
+/// One exchange of the host's physical sample metadata (aphavoc/.../ss_hostenv.h campaign_sound_catalogue_request), asked once at boot, before any session exists. The campaign names its descriptors, in its
+/// table's order, each by the slot it fills and the asset name it plays; the host answers each one's rate and original rate and, from its own sound.hdr and sound.dat, whether the header has an entry for
+/// it and that entry's length. `slots` is the size of the catalogue's domain (valid slots are 0 to `slots` - 1); it is not the number of named descriptors, which nothing here assumes.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SoundCatalogueRequest {
+    pub slots: i32,
+    pub descriptors: Vec<(i32, String)>,
+}
+
+/// The host's answer for one descriptor: the sample's rate and original rate (positive), whether the header has an entry for it and, when it has, that entry's length (0 or more; a length of 0 is a valid
+/// size and not a miss). An unmatched descriptor's `size` is 0.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SoundCatalogueEntry {
+    pub rate: i32,
+    pub original_rate: i32,
+    pub matched: bool,
+    pub size: i32,
+}
+
+/// The host's whole answer: whether the header and data files could both be opened for reading (an absent pair is a legitimate answer), how many entries the header holds, and one entry for each descriptor, in the
+/// request's order.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SoundCatalogueReply {
+    pub header_present: bool,
+    pub header_count: i32,
+    pub entries: Vec<SoundCatalogueEntry>,
+}
+
+/// The host's sample metadata provider. It is installed once, at boot, and is the only source of the campaign's sample rates and sizes: the campaign has no sound file reader or lookup of its own to fall back to.
+pub type SoundCatalogueProvider = Box<dyn FnMut(&SoundCatalogueRequest) -> Result<SoundCatalogueReply, String>>;
+
+thread_local! {
+    // the engine and its host run on one thread; a provider is not `Send`
+    static SOUND_CATALOGUE: std::cell::RefCell<Option<SoundCatalogueProvider>> = std::cell::RefCell::new(None);
+}
+
+/// The reply of the sample metadata provider checked against the request it answers, before the C side reads a number of it. The checks are the whole contract: one entry for each descriptor, a header count of 0 or more
+/// (and 0 for an absent pair), a positive rate and original rate, a length that is 0 or more for a matched entry and 0 for an unmatched one, and a match only in a header that holds entries, with no more
+/// distinct (slot, name) matches than the header has entries.
+fn check_sound_catalogue_reply(request: &SoundCatalogueRequest, reply: &SoundCatalogueReply) -> Result<(), String> {
+    let answer = "[sound-data-provider:answer]";
+    if reply.entries.len() != request.descriptors.len() {
+        return Err(format!(
+            "{answer} the provider answered {} descriptors where the campaign asked about {}",
+            reply.entries.len(),
+            request.descriptors.len()
+        ));
+    }
+    if reply.header_count < 0 || (!reply.header_present && reply.header_count != 0) {
+        return Err(format!(
+            "{answer} the header answer is malformed (present {}, entries {})",
+            reply.header_present, reply.header_count
+        ));
+    }
+    let mut matches = std::collections::BTreeSet::new();
+    for (position, (entry, (slot, name))) in reply.entries.iter().zip(request.descriptors.iter()).enumerate() {
+        if entry.rate < 1 || entry.original_rate < 1 || entry.size < 0 || (!entry.matched && entry.size != 0) {
+            return Err(format!(
+                "{answer} the answer for descriptor {position} (slot {slot}, {name}) is malformed (rate {}, original rate {}, matched {}, length {})",
+                entry.rate, entry.original_rate, entry.matched, entry.size
+            ));
+        }
+        if entry.matched {
+            matches.insert((*slot, name.as_str()));
+        }
+    }
+    // the answer must be one a header could give: a match needs a header that holds entries, and a header entry matches one (slot, name) pair, so the distinct pairs matched cannot outnumber the entries
+    // (the same question asked twice is one pair; a present header with no entry and a matched length of 0 are both valid)
+    if !matches.is_empty() && (!reply.header_present || matches.len() as i64 > i64::from(reply.header_count)) {
+        return Err(format!(
+            "{answer} the answer matches {} distinct descriptors in a header that is {} and holds {} entries",
+            matches.len(),
+            if reply.header_present { "present" } else { "absent" },
+            reply.header_count
+        ));
+    }
+    Ok(())
+}
+
+/// The C side's sample metadata callback (ss_hostenv.h). It runs the installed provider; a missing provider, a refusal and a panic all become an error the engine stops on, with the provider's marker in the message. The reply
+/// arrays are written only after the provider has answered AND the whole answer has been checked: a refusal or a malformed answer leaves them as the C side filled them.
+unsafe extern "C" fn sound_catalogue_callback(
+    request: *const sys::eech_sound_catalogue_request,
+    reply_out: *mut sys::eech_sound_catalogue_reply,
+    error: *mut c_char,
+    error_size: usize,
+    _user: *mut c_void,
+) -> c_int {
+    let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
+        if request.is_null() || reply_out.is_null() {
+            return Err("[sound-data-provider:callback] invalid native sample metadata callback context".into());
+        }
+        // SAFETY: C supplies a readable request and a writable reply for the duration of this callback.
+        let (source, out) = unsafe { (&*request, &mut *reply_out) };
+        let count = usize::try_from(source.count).map_err(|_| format!("[sound-data-provider:request] the descriptor count {} is negative", source.count))?;
+        if source.slots < 1 {
+            return Err(format!("[sound-data-provider:request] the catalogue domain {} is not a size", source.slots));
+        }
+        if count > 0
+            && (source.index.is_null()
+                || source.name.is_null()
+                || out.rate.is_null()
+                || out.original_rate.is_null()
+                || out.matched.is_null()
+                || out.size.is_null())
+        {
+            return Err("[sound-data-provider:request] the native request or its reply arrays are missing".into());
+        }
+        let mut descriptors = Vec::with_capacity(count);
+        for position in 0..count {
+            // SAFETY: C supplies `count` slot indices and `count` NUL-terminated names for the duration of this callback.
+            let (slot, name) = unsafe { (*source.index.add(position), *source.name.add(position)) };
+            if name.is_null() {
+                return Err(format!("[sound-data-provider:request] descriptor {position} has no asset name"));
+            }
+            // SAFETY: a non-null name of the request is a NUL-terminated C string.
+            let name = unsafe { std::ffi::CStr::from_ptr(name) }
+                .to_str()
+                .map_err(|_| format!("[sound-data-provider:request] descriptor {position}'s asset name is not UTF-8"))?;
+            descriptors.push((slot, name.to_string()));
+        }
+        let request = SoundCatalogueRequest {
+            slots: source.slots,
+            descriptors,
+        };
+        let reply = SOUND_CATALOGUE.with(|slot| -> Result<SoundCatalogueReply, String> {
+            let mut slot = slot
+                .try_borrow_mut()
+                .map_err(|_| "[sound-data-provider:callback] the sample metadata provider was asked again while it was answering".to_string())?;
+            match slot.as_mut() {
+                Some(provider) => provider(&request).and_then(|reply| check_sound_catalogue_reply(&request, &reply).map(|()| reply)),
+                None => Err("[sound-data-provider:missing] no sample metadata provider is installed".to_string()),
+            }
+        })?;
+        out.header_present = c_int::from(reply.header_present);
+        out.header_count = reply.header_count;
+        for (position, entry) in reply.entries.iter().enumerate() {
+            // SAFETY: C supplies `count` writable entries in each reply array, and the checked reply holds exactly `count` entries.
+            unsafe {
+                *out.rate.add(position) = entry.rate;
+                *out.original_rate.add(position) = entry.original_rate;
+                *out.matched.add(position) = c_int::from(entry.matched);
+                *out.size.add(position) = entry.size;
+            }
+        }
+        Ok(())
+    }));
+    match result {
+        Ok(Ok(())) => 0,
+        Ok(Err(message)) => {
+            // SAFETY: C owns this writable error buffer for the callback.
+            unsafe { write_callback_text(error, error_size, &message) };
+            1
+        }
+        Err(_) => {
+            // SAFETY: C owns this writable error buffer for the callback.
+            unsafe { write_callback_text(error, error_size, "[sound-data-provider:callback] the sample metadata provider panicked") };
+            1
+        }
+    }
+}
+
 struct HostContext<'a, F, G, H, M, L, D, A> {
     bind_mobile: &'a mut F,
     observe_loss: &'a mut G,
@@ -4920,6 +5082,7 @@ where
         aim: Some(aim::<F, G, H, M, L, D, A>),
         terrain: Some(terrain_callback),
         environment: Some(environment_callback),
+        sound_catalogue: Some(sound_catalogue_callback),
         user: (&mut context as *mut HostContext<'_, F, G, H, M, L, D, A>).cast::<c_void>(),
     };
     check(call(&host))
@@ -4960,6 +5123,7 @@ impl Engine {
         aim_fn: &mut A,
         terrain: TerrainProvider,
         environment: EnvProvider,
+        sound_catalogue: SoundCatalogueProvider,
     ) -> Result<Engine, EngineError>
     where
         F: FnMut(MemberDescriptor) -> Result<String, String>,
@@ -4995,6 +5159,8 @@ impl Engine {
         TERRAIN.with(|slot| *slot.borrow_mut() = Some(terrain));
         // The environment provider is installed with it, for the same reason: the campaign creates its session while it loads, and asks about the weather and the wind from every entry.
         ENVIRONMENT.with(|slot| *slot.borrow_mut() = Some(environment));
+        // The sample metadata provider too: the campaign asks it once, while it initialises its sound database during boot, before any session exists.
+        SOUND_CATALOGUE.with(|slot| *slot.borrow_mut() = Some(sound_catalogue));
         // SAFETY: every config pointer and the temporary host callback are valid for the call.
         with_host(
             bind_mobile_fn,
@@ -10608,5 +10774,605 @@ mod tests {
         const _: () = assert!(2122 * 128 + 16 * 1024 <= ENV_SND_INIT_REPORT_CAPACITY);
         // every other case keeps the small buffer
         assert_eq!(ENV_REPORT_CAPACITY, 32 * 1024);
+    }
+
+    // ---- the host-owned physical sample metadata (EEDCS-51, D3): the SOUND CATALOGUE callback, at its Rust boundary and through the REAL C consumer ----
+
+    /// The request of a catalogue question as the C side builds it: arrays the host reads (slots and NUL-terminated names) and the reply arrays the host writes, which start as a recognisable sentinel so that a refusal
+    /// that wrote something shows.
+    struct CatalogueCall {
+        slots: Vec<c_int>,
+        names: Vec<std::ffi::CString>,
+        rate: Vec<c_int>,
+        original_rate: Vec<c_int>,
+        matched: Vec<c_int>,
+        size: Vec<c_int>,
+    }
+
+    impl CatalogueCall {
+        fn new(descriptors: &[(c_int, &str)]) -> Self {
+            let count = descriptors.len();
+            CatalogueCall {
+                slots: descriptors.iter().map(|(slot, _)| *slot).collect(),
+                names: descriptors.iter().filter_map(|(_, name)| std::ffi::CString::new(*name).ok()).collect(),
+                rate: vec![-7; count],
+                original_rate: vec![-7; count],
+                matched: vec![-7; count],
+                size: vec![-7; count],
+            }
+        }
+
+        /// One crossing of the callback with this thread's provider (`None`: no provider installed); the reply header starts as the sentinel 99, and the error text comes back.
+        fn cross(&mut self, domain: c_int, provider: Option<SoundCatalogueProvider>) -> (c_int, c_int, c_int, String) {
+            SOUND_CATALOGUE.with(|slot| *slot.borrow_mut() = provider);
+            let pointers: Vec<*const c_char> = self.names.iter().map(|name| name.as_ptr()).collect();
+            let request = sys::eech_sound_catalogue_request {
+                slots: domain,
+                count: self.slots.len() as c_int,
+                index: self.slots.as_ptr(),
+                name: pointers.as_ptr(),
+            };
+            let mut reply = sys::eech_sound_catalogue_reply {
+                header_present: 99,
+                header_count: 99,
+                rate: self.rate.as_mut_ptr(),
+                original_rate: self.original_rate.as_mut_ptr(),
+                matched: self.matched.as_mut_ptr(),
+                size: self.size.as_mut_ptr(),
+            };
+            let mut error = [0 as c_char; 512];
+            // SAFETY: the request and reply (and the arrays they point at) are valid for the call, and the error buffer is writable for its length.
+            let code = unsafe { sound_catalogue_callback(&request, &mut reply, error.as_mut_ptr(), error.len(), std::ptr::null_mut()) };
+            SOUND_CATALOGUE.with(|slot| *slot.borrow_mut() = None);
+            let text: Vec<u8> = error.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect();
+            (code, reply.header_present, reply.header_count, String::from_utf8_lossy(&text).into_owned())
+        }
+
+        fn untouched(&self) -> bool {
+            [&self.rate, &self.original_rate, &self.matched, &self.size]
+                .iter()
+                .all(|array| array.iter().all(|value| *value == -7))
+        }
+    }
+
+    fn catalogue_answer(entries: &[(i32, i32, bool, i32)]) -> SoundCatalogueReply {
+        SoundCatalogueReply {
+            header_present: true,
+            header_count: 7,
+            entries: entries
+                .iter()
+                .map(|(rate, original_rate, matched, size)| SoundCatalogueEntry {
+                    rate: *rate,
+                    original_rate: *original_rate,
+                    matched: *matched,
+                    size: *size,
+                })
+                .collect(),
+        }
+    }
+
+    #[test]
+    fn a_catalogue_question_reaches_the_provider_by_value_and_a_valid_answer_reaches_the_arrays_exactly() {
+        let mut call = CatalogueCall::new(&[(94, "lstrike.pcm"), (2087, "ch46e_windup_ext.pcm"), (93, "thunder.pcm")]);
+        let (code, present, count, error) = call.cross(
+            2122,
+            Some(Box::new(|request: &SoundCatalogueRequest| {
+                assert_eq!(request.slots, 2122);
+                assert_eq!(
+                    request.descriptors,
+                    vec![
+                        (94, "lstrike.pcm".to_string()),
+                        (2087, "ch46e_windup_ext.pcm".to_string()),
+                        (93, "thunder.pcm".to_string())
+                    ]
+                );
+                Ok(catalogue_answer(&[(22050, 22050, true, 96), (22050, 11025, true, 40), (44100, 44100, true, 0)]))
+            })),
+        );
+        assert_eq!(code, 0, "{error}");
+        assert_eq!((present, count), (1, 7));
+        assert_eq!(call.rate, [22050, 22050, 44100]);
+        assert_eq!(call.original_rate, [22050, 11025, 44100]);
+        assert_eq!(call.matched, [1, 1, 1]);
+        assert_eq!(call.size, [96, 40, 0], "a matched length of 0 is a size and stays 0 beside a matched flag of 1");
+    }
+
+    #[test]
+    fn an_absent_pair_and_an_empty_question_are_valid_answers() {
+        let mut call = CatalogueCall::new(&[(94, "lstrike.pcm"), (93, "thunder.pcm")]);
+        let (code, present, count, error) = call.cross(
+            2122,
+            Some(Box::new(|_: &SoundCatalogueRequest| {
+                Ok(SoundCatalogueReply {
+                    header_present: false,
+                    header_count: 0,
+                    entries: vec![
+                        SoundCatalogueEntry {
+                            rate: 22050,
+                            original_rate: 22050,
+                            matched: false,
+                            size: 0,
+                        };
+                        2
+                    ],
+                })
+            })),
+        );
+        assert_eq!((code, present, count), (0, 0, 0), "{error}");
+        assert_eq!((call.matched.as_slice(), call.size.as_slice()), (&[0, 0][..], &[0, 0][..]));
+        let mut empty = CatalogueCall::new(&[]);
+        let (code, present, _, error) = empty.cross(
+            2122,
+            Some(Box::new(|request: &SoundCatalogueRequest| {
+                assert!(request.descriptors.is_empty());
+                Ok(SoundCatalogueReply {
+                    header_present: true,
+                    header_count: 3,
+                    entries: vec![],
+                })
+            })),
+        );
+        assert_eq!((code, present), (0, 1), "{error}");
+    }
+
+    #[test]
+    fn a_malformed_catalogue_answer_is_refused_by_name_before_anything_is_written() {
+        let good = (22050, 22050, true, 10);
+        let cases: Vec<(&str, SoundCatalogueReply)> = vec![
+            ("too few entries", catalogue_answer(&[good])),
+            ("too many entries", catalogue_answer(&[good, good, good])),
+            ("a rate of zero", catalogue_answer(&[good, (0, 22050, false, 0)])),
+            ("a negative original rate", catalogue_answer(&[good, (22050, -1, false, 0)])),
+            ("a negative length", catalogue_answer(&[good, (22050, 22050, true, -1)])),
+            ("a length on an unmatched entry", catalogue_answer(&[good, (22050, 22050, false, 5)])),
+            (
+                "a negative header count",
+                SoundCatalogueReply {
+                    header_count: -1,
+                    ..catalogue_answer(&[good, good])
+                },
+            ),
+            (
+                "entries in a header that is not there",
+                SoundCatalogueReply {
+                    header_present: false,
+                    header_count: 3,
+                    ..catalogue_answer(&[good, good])
+                },
+            ),
+            (
+                "a match in a header that is not there",
+                SoundCatalogueReply {
+                    header_present: false,
+                    header_count: 0,
+                    ..catalogue_answer(&[good, good])
+                },
+            ),
+        ];
+        for (label, reply) in cases {
+            let mut call = CatalogueCall::new(&[(94, "lstrike.pcm"), (93, "thunder.pcm")]);
+            let (code, present, count, error) = call.cross(2122, Some(Box::new(move |_: &SoundCatalogueRequest| Ok(reply.clone()))));
+            assert_ne!(code, 0, "{label}");
+            assert!(error.starts_with("[sound-data-provider:answer]"), "{label}: {error}");
+            assert!(
+                call.untouched() && (present, count) == (99, 99),
+                "{label}: the arrays or the header were written"
+            );
+        }
+    }
+
+    #[test]
+    fn a_withheld_or_missing_or_panicking_catalogue_provider_is_refused_by_name_and_writes_nothing() {
+        let mut call = CatalogueCall::new(&[(94, "lstrike.pcm")]);
+        let (code, _, _, error) = call.cross(
+            2122,
+            Some(Box::new(|_: &SoundCatalogueRequest| {
+                Err("[sound-data-provider:header] withheld by the host".to_string())
+            })),
+        );
+        assert_ne!(code, 0);
+        assert_eq!(error, "[sound-data-provider:header] withheld by the host");
+        assert!(call.untouched());
+        let (code, _, _, error) = call.cross(2122, None);
+        assert_ne!(code, 0);
+        assert!(error.starts_with("[sound-data-provider:missing]"), "{error}");
+        let (code, _, _, error) = call.cross(
+            2122,
+            Some(Box::new(|_: &SoundCatalogueRequest| -> Result<SoundCatalogueReply, String> {
+                std::panic::resume_unwind(Box::new("the provider panicked"))
+            })),
+        );
+        assert_ne!(code, 0);
+        assert!(error.starts_with("[sound-data-provider:callback]"), "{error}");
+        assert!(call.untouched());
+        // a domain that is not a size is the campaign's error, named
+        let (code, _, _, error) = call.cross(0, Some(Box::new(|_: &SoundCatalogueRequest| Ok(catalogue_answer(&[])))));
+        assert_ne!(code, 0);
+        assert!(error.starts_with("[sound-data-provider:request]"), "{error}");
+    }
+
+    // The REAL C consumer: snd_data.c initialise_application_sound_effects, called directly with a C host installed. It needs no boot, no map and no asset. What it proves: the campaign names every
+    // descriptor of its table to the host and takes the RATES, ORIGINAL RATES and SIZES from the host's answer alone (the host here answers numbers that are in no table), keeps its own names, and
+    // leaves the slots its table does not name as the zero its fill leaves. The refusal half ends in debug_fatal, which needs an engine entry to unwind to; the Rust boundary above and the host's own
+    // tests witness the refusals, and the real engine witnesses them end to end.
+
+    #[repr(C)]
+    struct CampaignSoundCatalogueHost {
+        catalogue: Option<
+            unsafe extern "C" fn(*const sys::eech_sound_catalogue_request, *mut sys::eech_sound_catalogue_reply, *mut c_char, usize, *mut c_void) -> c_int,
+        >,
+        user: *mut c_void,
+    }
+
+    /// The C `sound_effect_information` (aphavoc/source/appsound/snd_data.h).
+    #[repr(C)]
+    #[derive(Clone, Copy)]
+    struct SoundEffectInformation {
+        name: *const c_char,
+        original_rate: c_int,
+        rate: c_int,
+        size: c_int,
+        maximum_volume: c_int,
+        minimum_sound_range: f32,
+        reference_sound_range: f32,
+        maximum_sound_range: f32,
+    }
+
+    /// The enumeration's count the engine was built with, as the test sees it: the array below and the domain the campaign sends must be the same number.
+    const WITNESS_SLOTS: usize = 2122;
+
+    extern "C" {
+        fn campaign_sound_catalogue_set_host(host: *const CampaignSoundCatalogueHost);
+        fn initialise_application_sound_effects();
+        static application_sound_effects: [SoundEffectInformation; WITNESS_SLOTS];
+    }
+
+    static CATALOGUE_CALLS: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(0);
+    static CATALOGUE_SEEN_SLOTS: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(-1);
+    static CATALOGUE_SEEN_COUNT: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(-1);
+    static CATALOGUE_SEEN_VALID: AtomicBool = AtomicBool::new(false);
+
+    /// The rate the C host answers for a slot (a number in no descriptor table), the original rate, and whether and how long its header entry is.
+    fn witness_answer(slot: c_int) -> (c_int, c_int, c_int, c_int) {
+        let matched = c_int::from(slot % 3 == 0);
+        (12_000 + slot % 7, 13_000 + slot % 5, matched, if matched == 1 { slot % 11 } else { 0 })
+    }
+
+    /// The C sound database and the installed host are process-global: the tests that drive them take turns.
+    static C_CATALOGUE_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+    /// What the C host does: 0 answers coherently; 1 answers coherently after recording whether the LIVE catalogue was still the previous one at the moment it was asked; the others answer a refusal's case.
+    static CATALOGUE_MODE: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(0);
+    static CATALOGUE_LIVE_AT_CALLBACK: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+    /// A fingerprint of the live sound database: every slot's name pointer presence, rate, original rate, size and volume.
+    fn live_catalogue_fingerprint() -> u64 {
+        // SAFETY: the array is the engine's own sound database.
+        let effects = unsafe { &*std::ptr::addr_of!(application_sound_effects) };
+        let mut digest = 0xcbf2_9ce4_8422_2325u64;
+        for effect in effects.iter() {
+            for word in [
+                u64::from(!effect.name.is_null()),
+                effect.rate as u64,
+                effect.original_rate as u64,
+                effect.size as u64,
+                effect.maximum_volume as u64,
+            ] {
+                digest = (digest ^ word).wrapping_mul(0x0000_0100_0000_01b3);
+            }
+        }
+        digest
+    }
+
+    unsafe extern "C" fn witness_catalogue_host(
+        request: *const sys::eech_sound_catalogue_request,
+        reply: *mut sys::eech_sound_catalogue_reply,
+        error: *mut c_char,
+        error_size: usize,
+        _user: *mut c_void,
+    ) -> c_int {
+        let mode = CATALOGUE_MODE.load(Ordering::SeqCst);
+        CATALOGUE_LIVE_AT_CALLBACK.store(live_catalogue_fingerprint(), Ordering::SeqCst);
+        // SAFETY: the C side passes a readable request and a writable reply (and `count` entries in each array) for the call.
+        unsafe {
+            let (request, reply) = (&*request, &mut *reply);
+            CATALOGUE_CALLS.fetch_add(1, Ordering::SeqCst);
+            CATALOGUE_SEEN_SLOTS.store(request.slots, Ordering::SeqCst);
+            CATALOGUE_SEEN_COUNT.store(request.count, Ordering::SeqCst);
+            if mode == 6 {
+                write_callback_text(error, error_size, "[sound-data-provider:header] withheld by the C host");
+                return 1;
+            }
+            if mode == 7 {
+                // writes nothing: every entry stays the sentinel the campaign gave it
+                reply.header_present = 1;
+                reply.header_count = 1;
+                return 0;
+            }
+            let mut seen = std::collections::BTreeSet::new();
+            let mut valid = request.count > 0;
+            let mut matches = 0;
+            for position in 0..request.count as usize {
+                let slot = *request.index.add(position);
+                valid &=
+                    (0..request.slots).contains(&slot) && seen.insert(slot) && !(*request.name.add(position)).is_null() && *(*request.name.add(position)) != 0;
+                let (rate, original_rate, matched, size) = witness_answer(slot);
+                *reply.rate.add(position) = rate;
+                *reply.original_rate.add(position) = original_rate;
+                *reply.matched.add(position) = matched;
+                *reply.size.add(position) = size;
+                matches += matched;
+            }
+            CATALOGUE_SEEN_VALID.store(valid, Ordering::SeqCst);
+            // the header holds exactly as many entries as there are distinct matched descriptors (the table names each slot once), so the answer is coherent
+            reply.header_present = 1;
+            reply.header_count = matches;
+            match mode {
+                2 => *reply.rate = 0,
+                3 => {
+                    reply.header_present = 0;
+                    reply.header_count = 0;
+                }
+                4 => {
+                    reply.header_present = 0;
+                    reply.header_count = 3;
+                }
+                5 => reply.header_count = matches - 1,
+                8 => reply.header_count = 0,
+                _ => {}
+            }
+        }
+        0
+    }
+
+    fn install_catalogue_host() {
+        let host = CampaignSoundCatalogueHost {
+            catalogue: Some(witness_catalogue_host),
+            user: std::ptr::null_mut(),
+        };
+        // SAFETY: the C function copies the host before it returns.
+        unsafe { campaign_sound_catalogue_set_host(&host) };
+    }
+
+    #[test]
+    fn the_c_sound_initialisation_takes_every_rate_and_size_from_the_hosts_answer_and_keeps_its_own_names() {
+        let _serial = C_CATALOGUE_LOCK.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+        CATALOGUE_CALLS.store(0, Ordering::SeqCst);
+        CATALOGUE_MODE.store(0, Ordering::SeqCst);
+        install_catalogue_host();
+        // SAFETY: no argument; it fills the sound database from the installed host's answer.
+        unsafe { initialise_application_sound_effects() };
+        assert_eq!(CATALOGUE_CALLS.load(Ordering::SeqCst), 1, "the campaign asks the host once");
+        assert_eq!(
+            CATALOGUE_SEEN_SLOTS.load(Ordering::SeqCst),
+            WITNESS_SLOTS as c_int,
+            "the domain is the enumeration's count, not the named count"
+        );
+        let named = CATALOGUE_SEEN_COUNT.load(Ordering::SeqCst);
+        assert!(named > 0 && (named as usize) <= WITNESS_SLOTS);
+        assert!(
+            CATALOGUE_SEEN_VALID.load(Ordering::SeqCst),
+            "every request slot is in the domain, once, with a name"
+        );
+        // SAFETY: the array is the engine's own sound database, filled by the call above.
+        let effects = unsafe { &*std::ptr::addr_of!(application_sound_effects) };
+        let mut named_slots = 0;
+        for (slot, effect) in effects.iter().enumerate() {
+            if effect.name.is_null() {
+                // a slot the table does not name keeps the zero the fill leaves
+                assert_eq!((effect.rate, effect.original_rate, effect.size), (0, 0, 0), "slot {slot}");
+            } else {
+                named_slots += 1;
+                let (rate, original_rate, _, size) = witness_answer(slot as c_int);
+                assert_eq!(
+                    (effect.rate, effect.original_rate, effect.size),
+                    (rate, original_rate, size),
+                    "slot {slot}: not the host's answer"
+                );
+            }
+        }
+        assert_eq!(named_slots, named, "every descriptor the campaign named is filled, and no other slot");
+    }
+
+    #[test]
+    fn the_live_catalogue_is_still_the_previous_one_when_the_host_is_asked() {
+        let _serial = C_CATALOGUE_LOCK.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+        // a first initialisation fills the live catalogue; the second asks the host again, and at the moment it is asked nothing of the live catalogue (not its names, rates, sizes or volumes) has been cleared or rebuilt
+        CATALOGUE_MODE.store(0, Ordering::SeqCst);
+        install_catalogue_host();
+        // SAFETY: no argument.
+        unsafe { initialise_application_sound_effects() };
+        let first = live_catalogue_fingerprint();
+        CATALOGUE_MODE.store(1, Ordering::SeqCst);
+        // SAFETY: no argument.
+        unsafe { initialise_application_sound_effects() };
+        assert_eq!(
+            CATALOGUE_LIVE_AT_CALLBACK.load(Ordering::SeqCst),
+            first,
+            "the campaign wrote the live catalogue before the host answered"
+        );
+        assert_eq!(live_catalogue_fingerprint(), first, "the same coherent answer rebuilds the same catalogue");
+        CATALOGUE_MODE.store(0, Ordering::SeqCst);
+    }
+
+    // The refusals end in debug_fatal, and outside an engine entry that aborts the process (there is no jump target). So each refusal runs in a CHILD process: the test binary re-runs this test with the case in
+    // the environment, the child fills the live catalogue, installs a host that answers wrongly, initialises again and is stopped by the campaign's refusal (the abort). The parent requires the abnormal stop, the
+    // provider's marker in what the child said, and a fingerprint of the live catalogue printed by the child's abort handler that equals the one it printed before the call: a refused answer left the previous
+    // catalogue exactly as it was. (Unix only: the handler uses the C library's `signal`; the Windows build runs the Rust-boundary and C-consumer tests above.)
+
+    #[cfg(unix)]
+    mod refusal {
+        use super::*;
+        use std::os::unix::process::ExitStatusExt;
+
+        extern "C" {
+            fn signal(signum: c_int, handler: extern "C" fn(c_int)) -> usize;
+            fn write(fd: c_int, buffer: *const c_void, count: usize) -> isize;
+            fn _exit(code: c_int) -> !;
+        }
+
+        const SIGABRT: c_int = 6;
+
+        extern "C" fn on_abort(_signal: c_int) {
+            // the process is stopping: report the live catalogue's fingerprint once, with no allocation
+            let mut digits = [b'0'; 20];
+            let mut value = live_catalogue_fingerprint();
+            let mut at = digits.len();
+            while value > 0 {
+                at -= 1;
+                digits[at] = b'0' + (value % 10) as u8;
+                value /= 10;
+            }
+            let prefix = b"\nLIVE_AFTER=";
+            // SAFETY: writes buffers that live for the call to standard output, then ends the process.
+            unsafe {
+                write(1, prefix.as_ptr().cast(), prefix.len());
+                write(1, digits.as_ptr().cast(), digits.len());
+                write(1, b"\n".as_ptr().cast(), 1);
+                _exit(86);
+            }
+        }
+
+        const CASES: [(c_int, &str); 7] = [
+            (2, "[sound-data-provider:answer]"),
+            (3, "[sound-data-provider:answer]"),
+            (4, "[sound-data-provider:answer]"),
+            (5, "[sound-data-provider:answer]"),
+            (6, "[sound-data-provider:header]"),
+            (7, "[sound-data-provider:answer]"),
+            (8, "[sound-data-provider:answer]"),
+        ];
+
+        fn child(case: c_int) {
+            CATALOGUE_MODE.store(0, Ordering::SeqCst);
+            install_catalogue_host();
+            // SAFETY: no argument; the live catalogue is filled by a coherent answer first.
+            unsafe { initialise_application_sound_effects() };
+            println!("LIVE_BEFORE={}", live_catalogue_fingerprint());
+            CATALOGUE_MODE.store(case, Ordering::SeqCst);
+            // SAFETY: the handler is an `extern "C"` function that lives for the process.
+            unsafe { signal(SIGABRT, on_abort) };
+            // SAFETY: no argument. The refused answer stops the campaign: the process aborts and the handler reports.
+            unsafe { initialise_application_sound_effects() };
+            println!("NOT_REFUSED");
+        }
+
+        #[test]
+        fn a_refused_catalogue_answer_stops_the_campaign_at_the_providers_marker_and_leaves_the_previous_catalogue_untouched() {
+            if let Ok(case) = std::env::var("EECH_SOUND_CATALOGUE_REFUSAL_CASE") {
+                child(case.parse().unwrap_or(0));
+                return;
+            }
+            let exe = std::env::current_exe().map_err(|e| e.to_string());
+            let Ok(exe) = exe else { panic!("no test executable to re-run") };
+            for (case, marker) in CASES {
+                let output = std::process::Command::new(&exe)
+                    .args([
+                        "--exact",
+                        "tests::refusal::a_refused_catalogue_answer_stops_the_campaign_at_the_providers_marker_and_leaves_the_previous_catalogue_untouched",
+                        "--nocapture",
+                        "--test-threads=1",
+                    ])
+                    .env("EECH_SOUND_CATALOGUE_REFUSAL_CASE", case.to_string())
+                    .output();
+                let Ok(output) = output else { panic!("case {case}: the child did not run") };
+                let said = format!("{}{}", String::from_utf8_lossy(&output.stdout), String::from_utf8_lossy(&output.stderr));
+                assert!(!said.contains("NOT_REFUSED"), "case {case}: the campaign accepted a refused answer:\n{said}");
+                assert!(
+                    output.status.code() == Some(86) || output.status.signal() == Some(SIGABRT),
+                    "case {case}: the child did not stop at the refusal:\n{said}"
+                );
+                assert!(
+                    said.contains("host sound data:") && said.contains(marker),
+                    "case {case}: no `{marker}` refusal in:\n{said}"
+                );
+                let number = |label: &str| -> Option<u64> {
+                    let rest = said.split(label).nth(1)?;
+                    rest.trim_start().split_whitespace().next()?.parse().ok()
+                };
+                let before = number("LIVE_BEFORE=");
+                // the handler pads the decimal with leading zeros to 20 digits
+                let after = number("LIVE_AFTER=");
+                assert!(
+                    before.is_some() && before == after,
+                    "case {case}: the live catalogue changed across the refusal ({before:?} then {after:?}):\n{said}"
+                );
+            }
+        }
+    }
+
+    // ---- review ENV-SOUND-METADATA-3: a whole answer must be COHERENT, not only well formed ----
+    //
+    // Appended inside the `tests` module of eech-engine/src/lib.rs (it uses the `CatalogueCall` and `catalogue_answer` helpers of the catalogue tests). On the frozen 0455 overlay the first two answers below
+    // are ACCEPTED (it checks counts and signs only): that is the behaviour these tests are red for. The last test is the other direction: a coherent answer must stay accepted.
+
+    #[test]
+    fn a_match_needs_a_header_that_holds_entries_and_the_distinct_matches_cannot_outnumber_them() {
+        let good = (22050, 22050, true, 96);
+        let cases: Vec<(&str, Vec<(c_int, &str)>, SoundCatalogueReply)> = vec![
+            (
+                "a match in a header that is present and holds no entry",
+                vec![(94, "lstrike.pcm")],
+                SoundCatalogueReply {
+                    header_count: 0,
+                    ..catalogue_answer(&[good])
+                },
+            ),
+            (
+                "two distinct matched descriptors in a header of one entry",
+                vec![(94, "lstrike.pcm"), (93, "thunder.pcm")],
+                SoundCatalogueReply {
+                    header_count: 1,
+                    ..catalogue_answer(&[good, (22050, 22050, true, 0)])
+                },
+            ),
+            (
+                "the same name under two slots is two distinct matches",
+                vec![(94, "lstrike.pcm"), (95, "lstrike.pcm")],
+                SoundCatalogueReply {
+                    header_count: 1,
+                    ..catalogue_answer(&[good, good])
+                },
+            ),
+        ];
+        for (label, descriptors, reply) in cases {
+            let mut call = CatalogueCall::new(&descriptors);
+            let (code, present, count, error) = call.cross(2122, Some(Box::new(move |_: &SoundCatalogueRequest| Ok(reply.clone()))));
+            assert_ne!(code, 0, "{label}");
+            assert!(error.starts_with("[sound-data-provider:answer]"), "{label}: {error}");
+            assert!(
+                call.untouched() && (present, count) == (99, 99),
+                "{label}: the arrays or the header were written"
+            );
+        }
+    }
+
+    #[test]
+    fn a_coherent_answer_stays_accepted_a_present_empty_header_a_zero_length_match_and_repeated_identical_questions() {
+        // a header that is present and holds no entry, with nothing matched
+        let mut call = CatalogueCall::new(&[(94, "lstrike.pcm")]);
+        let (code, present, count, error) = call.cross(
+            2122,
+            Some(Box::new(|_: &SoundCatalogueRequest| {
+                Ok(SoundCatalogueReply {
+                    header_count: 0,
+                    ..catalogue_answer(&[(22050, 22050, false, 0)])
+                })
+            })),
+        );
+        assert_eq!((code, present, count), (0, 1, 0), "{error}");
+        // the same question twice, both matched by the header's ONE entry (a repeated identical query is one distinct match), one of them a zero length
+        let mut twice = CatalogueCall::new(&[(94, "lstrike.pcm"), (94, "lstrike.pcm")]);
+        let (code, present, count, error) = twice.cross(
+            2122,
+            Some(Box::new(|_: &SoundCatalogueRequest| {
+                Ok(SoundCatalogueReply {
+                    header_count: 1,
+                    ..catalogue_answer(&[(22050, 22050, true, 0), (22050, 22050, true, 0)])
+                })
+            })),
+        );
+        assert_eq!((code, present, count), (0, 1, 1), "{error}");
+        assert_eq!((twice.matched.as_slice(), twice.size.as_slice()), (&[1, 1][..], &[0, 0][..]));
     }
 }

@@ -1371,6 +1371,33 @@ impl Default for eech_env_reply {
 pub type eech_environment_callback =
     unsafe extern "C" fn(request: *const eech_env_request, reply: *mut eech_env_reply, error: *mut c_char, error_size: usize, user: *mut c_void) -> c_int;
 
+/// The host-owned physical sample metadata exchange (ss_hostenv.h campaign_sound_catalogue_request): plain data owned by the C caller for the callback.
+#[repr(C)]
+pub struct eech_sound_catalogue_request {
+    pub slots: c_int,
+    pub count: c_int,
+    pub index: *const c_int,
+    pub name: *const *const c_char,
+}
+
+#[repr(C)]
+pub struct eech_sound_catalogue_reply {
+    pub header_present: c_int,
+    pub header_count: c_int,
+    pub rate: *mut c_int,
+    pub original_rate: *mut c_int,
+    pub matched: *mut c_int,
+    pub size: *mut c_int,
+}
+
+pub type eech_sound_catalogue_callback = unsafe extern "C" fn(
+    request: *const eech_sound_catalogue_request,
+    reply: *mut eech_sound_catalogue_reply,
+    error: *mut c_char,
+    error_size: usize,
+    user: *mut c_void,
+) -> c_int;
+
 #[repr(C)]
 pub struct eech_engine_host {
     pub bind_mobile: Option<eech_bind_mobile_callback>,
@@ -1382,6 +1409,7 @@ pub struct eech_engine_host {
     pub aim: Option<eech_aim_callback>,
     pub terrain: Option<eech_terrain_callback>,
     pub environment: Option<eech_environment_callback>,
+    pub sound_catalogue: Option<eech_sound_catalogue_callback>,
     pub user: *mut c_void,
 }
 

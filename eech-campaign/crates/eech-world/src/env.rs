@@ -29,6 +29,10 @@
 //! - `sound_pause_resume { resume, valid, member, valid_lifetime, delay? }`: one effect the campaign matched under a pause or a resume (soundeff.c `pause_local_entity_sound_type` / `resume_local_entity_sound_type`, EEDCS-51):
 //!   `{ changed, valid, valid_lifetime, play, relink }`. A pause of a valid effect makes it invalid and copies the `delay`; a resume of an invalid one makes it valid, asks its parent to `play` and, when it is not a `member` of
 //!   the update list, to `relink` it; anything else is a no-op that changes nothing (the stored `valid_lifetime` comes back as the very number it was given). The `changed` flags are the original's count. The host keeps NO state.
+//! - `sound_catalogue { slots, entries = { { index, name }, ... } }`: the physical SAMPLE METADATA at initialisation (EEDCS-51, snd_data.c `initialise_application_sound_effects`, asked once at boot, before any session
+//!   exists): the campaign names its descriptors, in its table's order, by the slot each fills and the asset it plays, and the host answers `{ header_present, header_count, entries = { { rate, original_rate, matched,
+//!   size }, ... } }`, one entry for each, in order. The host owns the rates, where its `audio\sound.hdr` and `audio\sound.dat` are (its own sound data root: `host.env_provider { sound_root = ... }`, else the host's
+//!   `root` argument; a host with neither refuses), whether the pair is present and the header's lookup (sound_data.rs). An absent pair is a legitimate answer; a header the original could only misread is refused by name.
 //! - `step { delta, server, in_cockpit, camera?, lightning_draw?, map }`: the physical update of one session update. `{ need_draw = true, timer }` (the field is NOT changed) when the
 //!   server's lightning timer has expired and the next timer needs the one draw of the shared random word, which only the campaign may make; the campaign then asks again with
 //!   `lightning_draw`. Otherwise `{ state, expired, strike?, new_timer? }`.
@@ -40,7 +44,10 @@ use crate::terrain::{coordinate_reader, CoordinateReader};
 use mlua::prelude::*;
 use std::cell::RefCell;
 use std::ffi::c_char;
+use std::path::PathBuf;
 use std::rc::Rc;
+
+use crate::sound_data;
 
 pub const FLOATS: usize = 23;
 pub const INTS: usize = 5;
@@ -784,7 +791,7 @@ fn queue_table(lua: &Lua, field: &Field) -> LuaResult<LuaTable> {
     Ok(table)
 }
 
-fn respond(lua: &Lua, field: &RefCell<Field>, request: &LuaTable) -> LuaResult<LuaTable> {
+fn respond(lua: &Lua, field: &RefCell<Field>, sound_root: &Option<PathBuf>, request: &LuaTable) -> LuaResult<LuaTable> {
     let op = match request.get::<LuaValue>("op")? {
         LuaValue::String(op) => op.to_str()?.to_string(),
         other => return Err(refuse(format_args!("op must be a string, got {}", other.type_name()))),
@@ -947,6 +954,38 @@ fn respond(lua: &Lua, field: &RefCell<Field>, request: &LuaTable) -> LuaResult<L
             answer.set("play", decision.play)?;
             answer.set("relink", decision.relink)?;
         }
+        "sound_catalogue" => {
+            let root = sound_root
+                .as_ref()
+                .ok_or_else(|| refuse("[sound-data-provider:unconfigured] this host has no sound data root (host.env_provider { sound_root = ... }, or a `root` argument): it cannot answer where the sound files are"))?;
+            let slots = integer(&reader, request, "slots", "slots")?;
+            let listed = subtable(request, "entries")?;
+            let mut descriptors = Vec::new();
+            for position in 1..=listed.raw_len() {
+                let entry = match listed.get::<LuaValue>(position)? {
+                    LuaValue::Table(entry) => entry,
+                    other => return Err(refuse(format_args!("entries[{position}] must be a table, got {}", other.type_name()))),
+                };
+                let name = match entry.get::<LuaValue>("name")? {
+                    LuaValue::String(name) => name.to_str()?.to_string(),
+                    other => return Err(refuse(format_args!("entries[{position}].name must be a string, got {}", other.type_name()))),
+                };
+                descriptors.push((integer(&reader, &entry, "index", &format!("entries[{position}].index"))?, name));
+            }
+            let reply = sound_data::answer(root, slots, &descriptors).map_err(refuse)?;
+            answer.set("header_present", reply.header_present)?;
+            answer.set("header_count", reply.header_count)?;
+            let entries = lua.create_table()?;
+            for (position, entry) in reply.entries.iter().enumerate() {
+                let item = lua.create_table()?;
+                item.set("rate", entry.rate)?;
+                item.set("original_rate", entry.original_rate)?;
+                item.set("matched", entry.matched)?;
+                item.set("size", entry.size)?;
+                entries.set(position + 1, item)?;
+            }
+            answer.set("entries", entries)?;
+        }
         "gust" => {
             let phase = single(&reader, request, "phase", "phase")?;
             answer.set("modulation", f64::from(Field::gust(phase).map_err(refuse)?))?;
@@ -993,15 +1032,53 @@ fn respond(lua: &Lua, field: &RefCell<Field>, request: &LuaTable) -> LuaResult<L
 }
 
 /// A new provider function with a field of its own (empty until the campaign imports its session's defaults).
-pub fn provider(lua: &Lua) -> LuaResult<LuaFunction> {
+pub fn provider(lua: &Lua, sound_root: Option<PathBuf>) -> LuaResult<LuaFunction> {
     let field = Rc::new(RefCell::new(Field::new().map_err(LuaError::runtime)?));
-    lua.create_function(move |lua, request: LuaTable| respond(lua, &field, &request))
+    lua.create_function(move |lua, request: LuaTable| respond(lua, &field, &sound_root, &request))
+}
+
+/// A sound root as a stable absolute path (relative to the working directory at the time the host configures it), or the host's configuration error.
+fn anchored(root: &str) -> LuaResult<PathBuf> {
+    std::path::absolute(root).map_err(|error| refuse(format_args!("sound_root {root:?} cannot be anchored to a directory: {error}")))
 }
 
 /// Installs `host.env_provider ()`: the reference host's environment provider, to be given to `dc.boot` as `environment = ...`. Each call makes a new field; it is a shared helper
 /// for the reference host's scripts, not a default: the module never takes a provider from the host's globals, and a boot without `environment` is refused.
+///
+/// The provider also answers the sample metadata question (`sound_catalogue`), from the host's OWN sound data root: `host.env_provider { sound_root = <installation root> }`, else the host's
+/// `root` argument (`host.args.root`), which is how every reference driver names its installation. A relative root is anchored to the host's working directory when the provider is made (the engine changes
+/// directory during boot), and a root that cannot be anchored is an error then. The campaign is never asked for a path.
 pub fn install(lua: &Lua, host: &LuaTable) -> LuaResult<()> {
-    host.set("env_provider", lua.create_function(|lua, ()| provider(lua))?)
+    let host_table = host.clone();
+    host.set(
+        "env_provider",
+        lua.create_function(move |lua, config: Option<LuaTable>| {
+            let configured = match &config {
+                Some(config) => match config.get::<LuaValue>("sound_root")? {
+                    LuaValue::Nil => None,
+                    LuaValue::String(root) => Some(root.to_str()?.to_string()),
+                    other => return Err(refuse(format_args!("sound_root must be a string, got {}", other.type_name()))),
+                },
+                None => None,
+            };
+            let root = match configured {
+                Some(root) => Some(root),
+                None => match host_table.get::<LuaValue>("args")? {
+                    LuaValue::Table(args) => match args.get::<LuaValue>("root")? {
+                        LuaValue::String(root) => Some(root.to_str()?.to_string()),
+                        _ => None,
+                    },
+                    _ => None,
+                },
+            };
+            // the root is anchored NOW, while the host's working directory is the one it was configured in: the campaign asks inside native boot, after the engine has changed the directory to <root>/cohokum
+            let root = match root {
+                Some(root) => Some(anchored(&root)?),
+                None => None,
+            };
+            provider(lua, root)
+        })?,
+    )
 }
 
 #[cfg(test)]

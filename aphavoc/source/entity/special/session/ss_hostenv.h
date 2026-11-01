@@ -266,6 +266,54 @@ typedef struct campaign_env_host
 	void *user;
 } campaign_env_host;
 
+/*
+ * The host-owned PHYSICAL SAMPLE METADATA at initialisation (EEDCS-51, D3; snd_data.c initialise_application_sound_effects): for each descriptor the campaign names, the host answers the sample's rate and original rate and,
+ * from its own sound.hdr / sound.dat, whether its header has an entry for the descriptor and that entry's length. The host owns where it looks for the two files (its own data root and search order), whether they are present
+ * (both must be openable for reading; an absent pair is a legitimate answer, not a failure), the header's contents and the lookup in them (the original's rolling unsigned 32-bit case-sensitive hash, then a case-insensitive
+ * name comparison, then the exact sample index; the FIRST matching entry wins; a matched length of 0 is a valid size, distinct from no match). The campaign keeps the descriptor TABLE (its names, volumes and ranges),
+ * which descriptor a sound uses and every consequence.
+ *
+ * It is a separate exchange from the environment callback because it is large and asked once, at boot, before any session exists: it does not enlarge the request or the reply of any other operation. Both arrays and strings are plain data
+ * owned by the caller for the duration of the call (no EECH pointer, layout or entity index crosses); the host writes the reply's arrays, the caller reads them only after the answer has been checked IN FULL,
+ * and writes NOTHING of the live sound database (names, ranges, rates, sizes) before that: a refused answer leaves the previous catalogue exactly as it was.
+ *
+ * `slots` is the size of the catalogue's domain (the sample enumeration's count: valid slots are 0 to slots - 1); it is NOT the number of named descriptors, which the exchange does not bound or assume.
+ */
+typedef struct campaign_sound_catalogue_request
+{
+	int slots;
+	int count;
+	const int *index;
+	const char *const *name;
+} campaign_sound_catalogue_request;
+
+typedef struct campaign_sound_catalogue_reply
+{
+	/* both files could be opened for reading, and how many entries the header holds (0 when the pair is absent) */
+	int header_present;
+	int header_count;
+	/* `count` entries each, in the request's order: the rate and the original rate (positive); whether the header had an entry for the descriptor (0 or 1) and, when it did, that entry's length (0 or more; 0 otherwise) */
+	int *rate;
+	int *original_rate;
+	int *matched;
+	int *size;
+} campaign_sound_catalogue_reply;
+
+typedef int (*campaign_sound_catalogue_fn)
+(
+	const campaign_sound_catalogue_request *request,
+	campaign_sound_catalogue_reply *reply,
+	char *error,
+	size_t error_size,
+	void *user
+);
+
+typedef struct campaign_sound_catalogue_host
+{
+	campaign_sound_catalogue_fn catalogue;
+	void *user;
+} campaign_sound_catalogue_host;
+
 struct SESSION;
 
 /* Installs the host for the rest of the process (like the terrain provider it is kept across engine entries: the field is asked about from every entry).  A NULL host or
@@ -317,5 +365,15 @@ void campaign_sound_lifetime_update (int server, float delta, int valid, int loo
    the effect (the original's count is the sum), with *play and *relink for the caller to apply, in that order.  A missing provider, a refusal or a malformed answer stops the engine with an error that names the environment
    provider; there is no campaign rule to fall back to. */
 int campaign_sound_pause_resume (int resume, float delay, int member, int *valid, float *valid_lifetime, int *play, int *relink);
+
+/* Installs the sample metadata host for the rest of the process (kept across engine entries, like the environment host). A NULL host or one with no callback leaves the installed one. */
+void campaign_sound_catalogue_set_host (const campaign_sound_catalogue_host *host);
+
+/* The physical sample metadata of `count` descriptors (see campaign_sound_catalogue_request): asks the installed host once and checks the WHOLE answer before it returns.  The four output
+   arrays have `count` entries each and are the host's scratch until the function returns: nothing else is written, and when a check stops the engine their contents mean nothing and the caller has applied nothing. The checks: the header flags are 0 or 1, a header's count is 0 or more (and 0 with no header), every rate and original rate is
+   positive, every matched flag is 0 or 1, a matched length is 0 or more and an unmatched entry's length is 0, and the answer is coherent: a match needs a header that holds entries (a present header with none matches nothing, a matched length of 0 is valid)
+   and the distinct (slot, name) pairs matched are no more than the header's entries (a question asked twice is one pair).  A missing provider, a refusal and a malformed answer stop the engine with an error that names the sample metadata
+   provider; there is no campaign lookup to fall back to. */
+void campaign_sound_catalogue (int slots, int count, const int *index, const char *const *name, int *header_present, int *header_count, int *rate, int *original_rate, int *matched, int *size);
 
 #endif

@@ -1038,4 +1038,144 @@ int campaign_sound_pause_resume (int resume, float delay, int member, int *valid
 	return reply.sound_changed;
 }
 
+////////////////////////////////////////
+
+// The host-owned physical sample metadata (ss_hostenv.h campaign_sound_catalogue_request): one exchange at initialisation, checked in full before the caller applies anything.
+
+static campaign_sound_catalogue_host
+	catalogue_host;
+
+static int
+	catalogue_host_installed;
+
+void campaign_sound_catalogue_set_host (const campaign_sound_catalogue_host *host)
+{
+	if (host && host->catalogue)
+	{
+		catalogue_host = *host;
+
+		catalogue_host_installed = TRUE;
+	}
+}
+
+void campaign_sound_catalogue (int slots, int count, const int *index, const char *const *name, int *header_present, int *header_count, int *rate, int *original_rate, int *matched, int *size)
+{
+	campaign_sound_catalogue_request
+		request;
+
+	campaign_sound_catalogue_reply
+		reply;
+
+	char
+		error[CAMPAIGN_ENV_ERROR_MAX + 1];
+
+	int
+		i,
+		j,
+		distinct_matches;
+
+	if (!catalogue_host_installed)
+	{
+		debug_fatal ("host sound data: [sound-data-provider:missing] no sample metadata provider is installed");
+	}
+
+	// what the campaign asks about is checked before the host is asked: a slot outside the domain, a missing name or an empty request is the campaign's error, not the host's
+	if ((slots < 1) || (count < 0) || !index || !name || !header_present || !header_count || !rate || !original_rate || !matched || !size)
+	{
+		debug_fatal ("host sound data: [sound-data-provider:request] the campaign's sample metadata request is not well formed (slots %d, count %d)", slots, count);
+	}
+
+	for (i = 0; i < count; i++)
+	{
+		if ((index[i] < 0) || (index[i] >= slots) || !name[i] || !name[i][0])
+		{
+			debug_fatal ("host sound data: [sound-data-provider:request] descriptor %d has slot %d (the domain is 0 to %d) or no asset name", i, index[i], slots - 1);
+		}
+	}
+
+	// the host's scratch starts as values no valid answer contains, so an entry the host did not write is refused, never read as a rate of zero or a header entry of length zero
+	for (i = 0; i < count; i++)
+	{
+		rate[i] = -1;
+		original_rate[i] = -1;
+		matched[i] = -1;
+		size[i] = -1;
+	}
+
+	memset (&request, 0, sizeof (request));
+
+	request.slots = slots;
+	request.count = count;
+	request.index = index;
+	request.name = name;
+
+	memset (&reply, 0, sizeof (reply));
+
+	reply.header_present = -1;
+	reply.header_count = -1;
+	reply.rate = rate;
+	reply.original_rate = original_rate;
+	reply.matched = matched;
+	reply.size = size;
+
+	memset (error, 0, sizeof (error));
+
+	if (catalogue_host.catalogue (&request, &reply, error, CAMPAIGN_ENV_ERROR_MAX, catalogue_host.user) != 0)
+	{
+		debug_fatal ("host sound data: %s", error[0] ? error : "[sound-data-provider:callback] the host sample metadata provider failed without a message");
+	}
+
+	if (((reply.header_present != 0) && (reply.header_present != 1)) || (reply.header_count < 0) || (!reply.header_present && (reply.header_count != 0)))
+	{
+		debug_fatal ("host sound data: [sound-data-provider:answer] the header answer is malformed (present %d, entries %d)", reply.header_present, reply.header_count);
+	}
+
+	for (i = 0; i < count; i++)
+	{
+		if ((rate[i] < 1) || (original_rate[i] < 1) || ((matched[i] != 0) && (matched[i] != 1)) || (size[i] < 0) || (!matched[i] && (size[i] != 0)))
+		{
+			debug_fatal ("host sound data: [sound-data-provider:answer] the answer for descriptor %d (slot %d) is malformed (rate %d, original rate %d, matched %d, length %d)", i, index[i], rate[i], original_rate[i], matched[i], size[i]);
+		}
+	}
+
+	// the answer must be one a header could give: a match needs a header that holds entries, and one header entry matches one (slot, name) pair, so the distinct pairs matched cannot outnumber the entries.
+	// The same question asked twice is one pair; a present header with no entry, and a matched length of 0, are both valid.
+	distinct_matches = 0;
+
+	for (i = 0; i < count; i++)
+	{
+		if (matched[i])
+		{
+			int
+				repeated;
+
+			repeated = FALSE;
+
+			for (j = 0; j < i; j++)
+			{
+				if (matched[j] && (index[j] == index[i]) && (strcmp (name[j], name[i]) == 0))
+				{
+					repeated = TRUE;
+
+					break;
+				}
+			}
+
+			if (!repeated)
+			{
+				distinct_matches++;
+			}
+		}
+	}
+
+	if ((distinct_matches > 0) && (!reply.header_present || (distinct_matches > reply.header_count)))
+	{
+		debug_fatal ("host sound data: [sound-data-provider:answer] the answer matches %d distinct descriptors in a header that is %s and holds %d entries", distinct_matches, reply.header_present ? "present" : "absent", reply.header_count);
+	}
+
+	*header_present = reply.header_present;
+
+	*header_count = reply.header_count;
+}
+
 #endif

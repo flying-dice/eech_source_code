@@ -73,6 +73,7 @@ typedef campaign_move_vehicle_fn eech_move_vehicle_callback;
 typedef campaign_los_fn eech_line_of_sight_callback;
 typedef campaign_terrain_fn eech_terrain_callback;
 typedef campaign_env_fn eech_environment_callback;
+typedef campaign_sound_catalogue_fn eech_sound_catalogue_callback;
 typedef campaign_sense_fn eech_sense_callback;
 typedef campaign_aim_fn eech_aim_callback;
 
@@ -96,6 +97,8 @@ struct eech_engine_host
 	eech_terrain_callback terrain;
 	/* Called synchronously for every physical weather and wind question and for the physical update of the field (ss_hostenv.h): the host owns the weather and wind zones, their evolution, the gusts and the lightning timer; the campaign keeps the clock, the draws of the shared random word, the entity effects of a strike and every consequence. Installed for the rest of the process by the first entry that carries it (boot requires it); there is no campaign fallback. */
 	eech_environment_callback environment;
+	/* Called synchronously ONCE at boot (ss_hostenv.h campaign_sound_catalogue_request, snd_data.c): the host owns the physical sample metadata at initialisation: each named descriptor's rate and original rate and, from the host's own sound.hdr / sound.dat (its data root, presence and lookup), the length of the header's entry for it. Installed for the rest of the process by the first entry that carries it (boot requires it); there is no campaign fallback. */
+	eech_sound_catalogue_callback sound_catalogue;
 	void *user;
 };
 

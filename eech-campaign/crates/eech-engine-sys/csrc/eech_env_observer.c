@@ -660,6 +660,8 @@ struct enva_boot
 	int effects_begin, filled, effects_end;
 	int open_true, open_false, header_count;
 	int matched, missed;
+	/* the HOST's validated sample metadata answer (ENV_FXA_HOST_ANSWER): a MIRROR of what the host said, not an observation of a file operation of the campaign; open_true/open_false/matched/missed above stay the campaign's own events */
+	int host_answers, host_present, host_header_count, host_matched, host_missed;
 	int backend, enabled_backend, initialised_backend;
 	int load, skipped, exited, enabled_exit;
 	struct enva_catalogue filled_catalogue, end_catalogue;
@@ -869,6 +871,21 @@ void eech_envobs_sndinit (int point, int a, int b, int c, int d)
 		case ENV_FXA_HEADER_MISS:
 			boot->missed++;
 			break;
+		case ENV_FXA_HOST_ANSWER:
+			if (enva_in_effects)
+			{
+				boot->host_answers++;
+				boot->host_present = a;
+				boot->host_header_count = b;
+				boot->host_matched = c;
+				boot->host_missed = d;
+			}
+			else
+			{
+				/* a host answer outside the initialisation is counted with the opens outside it */
+				enva_bump (&enva_opens_outside, &enva_saturated);
+			}
+			break;
 		case ENV_FXA_EFFECTS_END:
 			boot->effects_end++;
 			enva_in_effects = 0;
@@ -1021,6 +1038,13 @@ int eech_envobs_sndinit_report (char *text, int capacity, int *used)
 		if (append (text, capacity, used, "env-sndinit-boot n=%u no_sound=%d dedicated=%d enabled_before=%d initialised_before=%d effects_begin=%d filled=%d effects_end=%d open_true=%d open_false=%d header_count=%d matched=%d missed=%d"
 			" backend=%d enabled_backend=%d initialised_backend=%d load=%d skipped=%d exited=%d enabled_exit=%d\n", n, b->no_sound, b->dedicated, b->enabled_before, b->initialised_before, b->effects_begin, b->filled,
 			b->effects_end, b->open_true, b->open_false, b->header_count, b->matched, b->missed, b->backend, b->enabled_backend, b->initialised_backend, b->load, b->skipped, b->exited, b->enabled_exit) != 0)
+		{
+			return -1;
+		}
+
+		/* the host's answer, labelled as a mirror: the campaign's own events above (open_true, open_false, matched, missed) and its file attempts below are NOT these numbers */
+		if (append (text, capacity, used, "env-sndinit-host-answer n=%u source=host_reply_mirror answers=%d present=%d header_count=%d matched=%d missed=%d\n", n, b->host_answers, b->host_present, b->host_header_count, b->host_matched,
+			b->host_missed) != 0)
 		{
 			return -1;
 		}

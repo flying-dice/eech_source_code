@@ -162,6 +162,7 @@ enum ENV_FXA_POINTS
 	ENV_FXA_LOAD_SIDE,		// snd_data.c load_side_dependant_application_sound_samples: first statement (a: the side)
 	ENV_FXA_CTOR,			// soundeff.c set_local_sound_effect_sample_indices, hosted block: before the descriptors are read (a: the sample count, b: the looping flag)
 	ENV_FXA_CTOR_SAMPLE,		// ... one descriptor read (a: the sample index, b: rate, c: size, d: original rate)
+	ENV_FXA_HOST_ANSWER,		// snd_data.c hosted initialise_application_sound_effects: the host's VALIDATED sample metadata answer, a MIRROR of what the host said and not an observation of any file operation of the campaign (a: header present, b: the header's entry count, c: descriptors matched, d: descriptors missed)
 	ENV_FXA_POINT_COUNT		// (not a point)
 };
 

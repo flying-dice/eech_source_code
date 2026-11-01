@@ -63,6 +63,7 @@ static enum engine_operation operation;
 	campaign_aim_host aim_host; \
 	campaign_terrain_host terrain_host; \
 	campaign_env_host env_host; \
+	campaign_sound_catalogue_host catalogue_host; \
 	if (eech_engine_poisoned) \
 	{ \
 		return EECH_ENGINE_POISONED; \
@@ -89,6 +90,8 @@ static enum engine_operation operation;
 	terrain_host.user = entry_host ? entry_host->user : NULL; \
 	env_host.environment = entry_host ? entry_host->environment : NULL; \
 	env_host.user = entry_host ? entry_host->user : NULL; \
+	catalogue_host.catalogue = entry_host ? entry_host->sound_catalogue : NULL; \
+	catalogue_host.user = entry_host ? entry_host->user : NULL; \
 	campaign_roster_set_host (entry_host ? &roster_host : NULL); \
 	campaign_supply_arrival_set_host (entry_host ? &arrival_host : NULL); \
 	campaign_movement_set_host (entry_host ? &movement_host : NULL); \
@@ -99,6 +102,8 @@ static enum engine_operation operation;
 	campaign_terrain_set_host (&terrain_host); \
 	/* the environment host is installed by the first entry that carries one and kept for the process, like the terrain host: the field is asked about from every entry */ \
 	campaign_env_set_host (&env_host); \
+	/* the sample metadata host is installed the same way: it is asked once, at boot, but it is kept for the process like the environment host */ \
+	campaign_sound_catalogue_set_host (&catalogue_host); \
 	fegetenv (&caller_fenv); \
 	fesetround (FE_TOWARDZERO); \
 	eech_fatal_target = &fatal_jmp; \
@@ -296,7 +301,7 @@ int eech_engine_boot (const struct eech_engine_config *config, const struct eech
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!config || !config->install_root || !config->map_path || !config->campaign_directory || !config->campaign_filename || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim || !host->terrain || !host->environment)
+	if (!config || !config->install_root || !config->map_path || !config->campaign_directory || !config->campaign_filename || !host || !host->bind_mobile || !host->observe_loss || !host->supply_reached || !host->move_vehicle || !host->line_of_sight || !host->sense || !host->aim || !host->terrain || !host->environment || !host->sound_catalogue)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}
