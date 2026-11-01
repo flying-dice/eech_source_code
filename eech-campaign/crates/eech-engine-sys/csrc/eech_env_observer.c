@@ -24,6 +24,7 @@
 #include "entity/special/session/ss_envfx.h"
 
 #include "eech_engine.h"
+#include "eech_envobs_store.h"
 #include "eech_headless.h"
 
 #define ENVOBS_CAPACITY 16384
@@ -706,24 +707,15 @@ static struct enva_attempt enva_attempt_table[ENVA_ATTEMPTS];
 
 static uint32_t enva_com_calls[ENVA_COM], enva_com_last[ENVA_COM];
 
-static uint32_t enva_ctor_calls, enva_ctor_looping, enva_ctor_max_count, enva_ctor_reads, enva_distinct_count, enva_out_of_domain;
-static uint64_t enva_ctor_digest = 0xcbf29ce484222325ULL;
+/* the latch of every counter of this store that reached its maximum (eech_envobs_store.h enva_bump): it is reported and the driver refuses a capture in which it is not 0 */
+static uint32_t enva_saturated;
+
+static uint32_t enva_ctor_calls, enva_ctor_looping, enva_ctor_max_count;
 static uint32_t enva_sample_uses[NUM_SOUND_SAMPLE_INDICES];
+static uint8_t enva_sample_seen[NUM_SOUND_SAMPLE_INDICES];
 static int enva_sample_rate[NUM_SOUND_SAMPLE_INDICES], enva_sample_size[NUM_SOUND_SAMPLE_INDICES], enva_sample_orate[NUM_SOUND_SAMPLE_INDICES];
 static int enva_sample_order[NUM_SOUND_SAMPLE_INDICES];
-
-static uint64_t enva_fold (uint64_t digest, uint32_t word)
-{
-	int byte;
-
-	for (byte = 0; byte < 4; byte++)
-	{
-		digest ^= (uint64_t) ((word >> (8 * byte)) & 0xffu);
-		digest *= 0x100000001b3ULL;
-	}
-
-	return digest;
-}
+static struct enva_sample_store enva_samples = { NUM_SOUND_SAMPLE_INDICES, enva_sample_uses, enva_sample_seen, enva_sample_rate, enva_sample_size, enva_sample_orate, enva_sample_order, &enva_saturated, 0, 0, 0, ENVA_FNV_OFFSET };
 
 /* the descriptor table, read with integer operations only: how many entries are named, have a size, a rate and an original rate, and an FNV-1a digest of (index, rate, size, original rate) of every entry in index order */
 static void enva_take_catalogue (struct enva_catalogue *c)
@@ -787,10 +779,10 @@ void eech_envobs_sndinit (int point, int a, int b, int c, int d)
 			else
 			{
 				enva_current = -1;
-				enva_dropped++;
+				enva_bump (&enva_dropped, &enva_saturated);
 			}
 
-			enva_boots++;
+			enva_bump (&enva_boots, &enva_saturated);
 
 			return;
 
@@ -803,16 +795,16 @@ void eech_envobs_sndinit (int point, int a, int b, int c, int d)
 				enva_sides[enva_side_calls].dedicated = command_line_comms_dedicated_server;
 			}
 
-			enva_side_calls++;
+			enva_bump (&enva_side_calls, &enva_saturated);
 
 			return;
 
 		case ENV_FXA_CTOR:
-			enva_ctor_calls++;
+			enva_bump (&enva_ctor_calls, &enva_saturated);
 
 			if (b != 0)
 			{
-				enva_ctor_looping++;
+				enva_bump (&enva_ctor_looping, &enva_saturated);
 			}
 
 			if ((uint32_t) a > enva_ctor_max_count)
@@ -823,35 +815,10 @@ void eech_envobs_sndinit (int point, int a, int b, int c, int d)
 			return;
 
 		case ENV_FXA_CTOR_SAMPLE:
-		{
-			enva_ctor_reads++;
-			enva_ctor_digest = enva_fold (enva_ctor_digest, (uint32_t) a);
-			enva_ctor_digest = enva_fold (enva_ctor_digest, (uint32_t) b);
-			enva_ctor_digest = enva_fold (enva_ctor_digest, (uint32_t) c);
-			enva_ctor_digest = enva_fold (enva_ctor_digest, (uint32_t) d);
-
-			/* a key outside the catalogue cannot be stored: it is counted and the capture is refused by the driver (the read is still in the digest) */
-			if (a < 0 || a >= NUM_SOUND_SAMPLE_INDICES)
-			{
-				enva_out_of_domain++;
-
-				return;
-			}
-
-			/* the first read of a key keeps its descriptor numbers and its place in the first-seen order; every read counts */
-			if (enva_sample_uses[a] == 0)
-			{
-				enva_sample_rate[a] = b;
-				enva_sample_size[a] = c;
-				enva_sample_orate[a] = d;
-				enva_sample_order[enva_distinct_count] = a;
-				enva_distinct_count++;
-			}
-
-			enva_sample_uses[a]++;
+			/* the bookkeeping is eech_envobs_store.h enva_sample_read: every read in the digest, a key outside the catalogue counted, the first read of a key kept in order, no counter allowed to wrap */
+			enva_sample_read (&enva_samples, a, b, c, d);
 
 			return;
-		}
 
 		default:
 			break;
@@ -860,7 +827,7 @@ void eech_envobs_sndinit (int point, int a, int b, int c, int d)
 	/* the remaining points belong to the boot whose initialisation is running */
 	if (boot == NULL)
 	{
-		enva_orphans++;
+		enva_bump (&enva_orphans, &enva_saturated);
 
 		return;
 	}
@@ -883,7 +850,7 @@ void eech_envobs_sndinit (int point, int a, int b, int c, int d)
 			}
 			else
 			{
-				enva_opens_outside++;
+				enva_bump (&enva_opens_outside, &enva_saturated);
 			}
 			break;
 		case ENV_FXA_OPEN_FALSE:
@@ -893,7 +860,7 @@ void eech_envobs_sndinit (int point, int a, int b, int c, int d)
 			}
 			else
 			{
-				enva_opens_outside++;
+				enva_bump (&enva_opens_outside, &enva_saturated);
 			}
 			break;
 		case ENV_FXA_HEADER_MATCH:
@@ -923,7 +890,7 @@ void eech_envobs_sndinit (int point, int a, int b, int c, int d)
 			boot->enabled_exit = application_sound_system_enabled;
 			break;
 		default:
-			enva_dropped++;
+			enva_bump (&enva_dropped, &enva_saturated);
 			break;
 	}
 }
@@ -1001,11 +968,11 @@ void eech_envobs_file (const char *native, const char *mode, int ok)
 		return;
 	}
 
-	enva_file_attempts[kind]++;
+	enva_bump (&enva_file_attempts[kind], &enva_saturated);
 
 	if (ok)
 	{
-		enva_file_ok[kind]++;
+		enva_bump (&enva_file_ok[kind], &enva_saturated);
 	}
 
 	if (enva_attempt_count < ENVA_ATTEMPTS)
@@ -1016,7 +983,7 @@ void eech_envobs_file (const char *native, const char *mode, int ok)
 		enva_attempt_table[enva_attempt_count].read = (mode != NULL && mode[0] == 'r') ? 1 : 0;
 	}
 
-	enva_attempt_count++;
+	enva_bump (&enva_attempt_count, &enva_saturated);
 }
 
 /* eech_com_null.c: a call of one of the null DirectSound entry points (0 DirectSoundCreate, 1 IDirectSound_SetCooperativeLevel, 2 IDirectSound_CreateSoundBuffer, 3 IDirectSound_Release) and the low 32 bits of what it returned */
@@ -1027,7 +994,7 @@ void eech_envobs_com (int which, long long returned)
 		return;
 	}
 
-	enva_com_calls[which]++;
+	enva_bump (&enva_com_calls[which], &enva_saturated);
 	enva_com_last[which] = (uint32_t) (uint64_t) returned;
 }
 
@@ -1041,8 +1008,8 @@ int eech_envobs_sndinit_report (char *text, int capacity, int *used)
 
 	enva_take_catalogue (&now);
 
-	if (append (text, capacity, used, "env-sndinit-store version=1 boots=%u stored=%u capacity=%d dropped=%u orphans=%u opens_outside_effects=%u catalogue_entries=%d\n", enva_boots, stored, ENVA_BOOTS, enva_dropped, enva_orphans,
-		enva_opens_outside, NUM_SOUND_SAMPLE_INDICES) != 0)
+	if (append (text, capacity, used, "env-sndinit-store version=1 boots=%u stored=%u capacity=%d dropped=%u orphans=%u opens_outside_effects=%u catalogue_entries=%d saturated=%u\n", enva_boots, stored, ENVA_BOOTS, enva_dropped, enva_orphans,
+		enva_opens_outside, NUM_SOUND_SAMPLE_INDICES, enva_saturated) != 0)
 	{
 		return -1;
 	}
@@ -1134,12 +1101,12 @@ int eech_envobs_sndinit_report (char *text, int capacity, int *used)
 	}
 
 	if (append (text, capacity, used, "env-sndinit-ctor calls=%u looping=%u max_count=%u sample_reads=%u distinct=%u out_of_domain=%u digest_w=%016llx\n", enva_ctor_calls, enva_ctor_looping, enva_ctor_max_count,
-		enva_ctor_reads, enva_distinct_count, enva_out_of_domain, (unsigned long long) enva_ctor_digest) != 0)
+		enva_samples.reads, enva_samples.distinct, enva_samples.out_of_domain, (unsigned long long) enva_samples.digest) != 0)
 	{
 		return -1;
 	}
 
-	for (n = 0; n < enva_distinct_count; n++)
+	for (n = 0; n < enva_samples.distinct && n < NUM_SOUND_SAMPLE_INDICES; n++)
 	{
 		int key = enva_sample_order[n];
 

@@ -22,6 +22,11 @@ const COLLABORATORS: &str = r##"
 WRITTEN = {}
 RAW = {}
 OPENED = {}
+CREATED = {}
+HANDLES = {}
+TRUNCATED = {}
+IO_OPEN_USED = 0
+local function normalise (path) return (string.gsub (path, '^%./', '')) end
 local function evidence (store, prefix)
 	local file = { writes = 0 }
 	function file:write (text)
@@ -29,7 +34,7 @@ local function evidence (store, prefix)
 		local fail = SCENARIO.io_fail
 		if fail and fail.op == prefix .. 'write' and fail.at == self.writes then return nil, 'disk full' end
 		store [#store + 1] = text
-		return self
+		return true
 	end
 	function file:flush ()
 		local fail = SCENARIO.io_fail
@@ -44,20 +49,40 @@ local function evidence (store, prefix)
 	return file
 end
 local out_file, raw_file = evidence (WRITTEN, ''), evidence (RAW, 'raw_')
+-- the file a path names: the driver's out file or the raw sidecar; two spellings of one path name the SAME file (the stand-in's model of file identity; the real one is proved on a real filesystem in src/output.rs)
+local function identity_file (path)
+	if normalise (path) == normalise (ARGS.out) then return out_file end
+	return raw_file
+end
+local function exists (id) return SCENARIO.exists ~= nil and SCENARIO.exists [id] == true end
+-- the OLD mechanism: a read-open that finds nothing (or cannot read) and a truncating write-open. A driver that still uses it is judged by what it does to the files.
 io.open = function (path, mode)
+	IO_OPEN_USED = IO_OPEN_USED + 1
 	OPENED [#OPENED + 1] = tostring (path) .. ' ' .. tostring (mode)
-	local is_raw = string.find (path, '%.raw$') ~= nil
+	local id = normalise (path)
+	local readable = not (SCENARIO.unreadable ~= nil and SCENARIO.unreadable [id] == true)
 	if string.sub (mode or 'r', 1, 1) == 'r' then
-		if is_raw and SCENARIO.raw_exists then return raw_file end
-		return nil, 'No such file'
+		if exists (id) and readable then return identity_file (path) end
+		return nil, 'No such file or permission denied'
 	end
-	if is_raw then
-		if SCENARIO.io_fail and SCENARIO.io_fail.op == 'raw_open' then return nil, 'cannot create' end
-		return raw_file
-	end
-	return out_file
+	if SCENARIO.io_fail and SCENARIO.io_fail.op == 'raw_open' and id ~= normalise (ARGS.out) then return nil, 'cannot create' end
+	if exists (id) then TRUNCATED [id] = true end
+	HANDLES [id] = (HANDLES [id] or 0) + 1
+	return identity_file (path)
 end
 host = { args = ARGS, terrain_provider = function () return function () end end, env_provider = function () return function () end end }
+-- the host primitive: EXCLUSIVE creation (the model of CREATE_NEW): a name that exists, or that is another spelling of one already created, is refused; it returns a handle with write, flush and close
+if not SCENARIO.no_create then
+	host.output_create_new = function (path)
+		local id = normalise (path)
+		OPENED [#OPENED + 1] = tostring (path) .. ' create_new'
+		if SCENARIO.io_fail and SCENARIO.io_fail.op == 'raw_open' and id ~= normalise (ARGS.out) then return nil, 'cannot create' end
+		if SCENARIO.io_fail and SCENARIO.io_fail.op == 'out_open' and id == normalise (ARGS.out) then return nil, 'cannot create' end
+		if CREATED [id] or exists (id) then return nil, 'already exists' end
+		CREATED [id] = true
+		return identity_file (path)
+	end
+end
 FRAMES = 0
 ARMED = 0
 package.preload.eech_dc = function ()
@@ -93,6 +118,9 @@ struct Driven {
     frames: i64,
     /// what was written to the raw sidecar of the native report
     raw: String,
+    /// how many times the OLD truncating open was used for evidence, and how many existing files it truncated
+    io_open_used: i64,
+    truncated: usize,
 }
 
 fn drive(text: &str, args: &str, scenario_extra: &str) -> Driven {
@@ -120,6 +148,12 @@ fn drive(text: &str, args: &str, scenario_extra: &str) -> Driven {
         armed: lua.globals().get("ARMED").unwrap_or(-1),
         frames: lua.globals().get("FRAMES").unwrap_or(-1),
         raw: lua.globals().get::<Vec<String>>("RAW").unwrap_or_default().concat(),
+        io_open_used: lua.globals().get("IO_OPEN_USED").unwrap_or(-1),
+        truncated: lua
+            .globals()
+            .get::<mlua::Table>("TRUNCATED")
+            .map(|t| t.pairs::<mlua::Value, mlua::Value>().count())
+            .unwrap_or(usize::MAX),
     }
 }
 
@@ -147,6 +181,8 @@ struct Shape {
     ctor_out_of_domain: u32,
     /// the catalogue the report declares: sample keys are in 0 .. catalogue_entries
     catalogue_entries: u32,
+    /// the latch of the probe's saturating counters (a counter that reached its maximum stopped counting and raised it)
+    saturated: u32,
     /// how many calls of the load-side routine the shape shows (the probe keeps the first 8)
     side_calls: u32,
     /// a matched header entry whose length is 0: the descriptor's size does not change, whatever the match count says
@@ -173,6 +209,7 @@ impl Shape {
             ctor_looping: 2,
             ctor_out_of_domain: 0,
             catalogue_entries: 6,
+            saturated: 0,
             side_calls: 1,
             zero_length_match: false,
         }
@@ -207,8 +244,8 @@ fn report(s: &Shape) -> String {
     let mut t = String::new();
     t += "env-sndinit-plan version=1 read_only=1 process_isolated=not_needed comms=1\n";
     t += &format!(
-        "env-sndinit-store version=1 boots={} stored={} capacity=4 dropped={} orphans={} opens_outside_effects=0 catalogue_entries={}\n",
-        s.boots, s.stored, s.dropped, s.orphans, s.catalogue_entries
+        "env-sndinit-store version=1 boots={} stored={} capacity=4 dropped={} orphans={} opens_outside_effects=0 catalogue_entries={} saturated={}\n",
+        s.boots, s.stored, s.dropped, s.orphans, s.catalogue_entries, s.saturated
     );
     for n in 0..s.stored {
         let (backend, skipped, enabled) = match s.gate {
@@ -400,6 +437,14 @@ fn a_missing_partial_dropped_or_incomplete_capture_is_a_failure_of_the_witness_a
                 ..Shape::backend_false()
             }),
             "recorded no initialisation",
+        ),
+        (
+            "a counter of the probe that reached its maximum and stopped counting (it never wraps; the latch is raised)",
+            report(&Shape {
+                saturated: 2,
+                ..Shape::backend_false()
+            }),
+            "reached its limit and stopped counting",
         ),
         (
             "records dropped",
@@ -897,7 +942,7 @@ fn the_raw_native_report_is_kept_before_it_is_validated_and_every_failure_to_kee
     assert!(named.rows.iter().any(|row| row["event"] == "raw_report" && row["sidecar"] == "elsewhere.raw"));
     // the failures: a sidecar that already exists (evidence is never overwritten), one that cannot be created, written, flushed or closed
     for (what, extra, says) in [
-        ("an existing sidecar", ", raw_exists = true", "already exists"),
+        ("an existing sidecar", ", exists = { ['unused-out.case15.raw'] = true }", "already exists"),
         (
             "a sidecar that cannot be created",
             ", io_fail = { op = 'raw_open' }",
@@ -913,7 +958,7 @@ fn the_raw_native_report_is_kept_before_it_is_validated_and_every_failure_to_kee
         assert!(of(&driven, "result").is_empty(), "{what}: a result was written");
     }
     // the existing sidecar is refused before anything is booted
-    let existing = drive(&good, "", ", raw_exists = true");
+    let existing = drive(&good, "", ", exists = { ['unused-out.case15.raw'] = true }");
     assert!(existing.rows.is_empty() && existing.frames == 0);
 }
 
@@ -929,4 +974,67 @@ fn the_drivers_report_limit_is_the_size_the_collector_and_the_rust_wrapper_decla
         FULL_CATALOGUE as usize * 128 + 16 * 1024 <= REPORT_CAPACITY,
         "the declared worst case does not fit the declared capacity"
     );
+}
+
+#[test]
+fn the_evidence_files_are_created_exclusively_through_the_hosts_primitive_and_never_by_a_truncating_open() {
+    let good = report(&Shape::backend_false());
+    let driven = drive(&good, "", "");
+    driven.result.clone().expect("a healthy run");
+    assert_eq!(driven.io_open_used, 0, "the evidence was opened by a mechanism that truncates an existing file");
+    assert_eq!(driven.truncated, 0);
+    // a host without the primitive cannot make exclusive evidence files: the run is refused before anything is booted, never a fall back to a truncating open
+    let without = drive(&good, "", ", no_create = true");
+    let error = without.result.clone().unwrap_err();
+    assert!(error.contains("env-sound-init:") && error.contains("output_create_new"), "{error}");
+    assert!(without.rows.is_empty() && without.frames == 0 && without.io_open_used == 0 && without.truncated == 0);
+}
+
+#[test]
+fn two_spellings_of_one_path_and_an_existing_or_unreadable_output_are_refused_before_anything_is_booted_and_nothing_is_truncated() {
+    let good = report(&Shape::backend_false());
+    for (what, args, extra, says) in [
+        (
+            "raw_out is another spelling of out",
+            ", out = 'capture.jsonl', raw_out = './capture.jsonl'",
+            "",
+            "already exists",
+        ),
+        (
+            "out is another spelling of the sidecar",
+            ", out = './capture.jsonl', raw_out = 'capture.jsonl'",
+            "",
+            "already exists",
+        ),
+        (
+            "raw_out is literally out",
+            ", raw_out = 'unused-out'",
+            "",
+            "raw_out must be a path other than out",
+        ),
+        ("an out file that exists", "", ", exists = { ['unused-out'] = true }", "already exists"),
+        ("a sidecar that exists", "", ", exists = { ['unused-out.case15.raw'] = true }", "already exists"),
+        (
+            "a sidecar that exists and cannot be read",
+            "",
+            ", exists = { ['unused-out.case15.raw'] = true }, unreadable = { ['unused-out.case15.raw'] = true }",
+            "already exists",
+        ),
+        (
+            "an out file that exists and cannot be read",
+            "",
+            ", exists = { ['unused-out'] = true }, unreadable = { ['unused-out'] = true }",
+            "already exists",
+        ),
+    ] {
+        let driven = drive(&good, args, extra);
+        let refused = driven.result.clone().expect_err(&format!("{what}: the collision was not noticed"));
+        assert!(refused.contains("env-sound-init:") && refused.contains(says), "{what}: {refused}");
+        assert!(
+            driven.rows.is_empty() && driven.frames == 0,
+            "{what}: something ran or was written before the collision was refused"
+        );
+        assert_eq!(driven.truncated, 0, "{what}: an existing file was truncated");
+        assert_eq!(driven.raw, "", "{what}: nothing may have been written to a file that was not created");
+    }
 }

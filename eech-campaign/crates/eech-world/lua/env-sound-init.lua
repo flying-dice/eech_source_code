@@ -21,13 +21,17 @@
 -- the WITNESS: a `witness_failure` row and an error beginning `env-sound-init:`. If the engine stops, that is `engine_failure` and the same error. Write, flush and close failures of the evidence are failures too.
 --
 -- THE RAW SIDECAR. The native's report of the case is the sole diagnostic capture of a 120 s run, so it is written, whole and exactly as it came, to a checked sidecar file (`raw_out`, default `<out>.case15.raw`) BEFORE the driver
--- validates a byte of it: a report the driver then refuses is still kept, and is never complete evidence (no `derived` or `result` row exists for it). The sidecar is created before the engine is booted and is never overwritten
--- (an existing file is a refusal), so an engine that stops leaves an empty one; every create, write, flush and close of it is checked. It holds the native's private text and is not for Git.
+-- validates a byte of it: a report the driver then refuses is still kept, and is never complete evidence (no `derived` or `result` row exists for it). It holds the native's private text and is not for Git.
+--
+-- EVIDENCE FILES ARE CREATED EXCLUSIVELY. Both `out` and the sidecar are made, before the engine is booted, by the host's `host.output_create_new` (src/output.rs): the operating system's atomic create-new open, which fails if anything of
+-- that name exists (readable or not) and for a second spelling of a file this run has just created, so two names for one file, an existing output and an unreadable one are all refused before anything is booted and nothing is ever
+-- truncated. There is NO fall back: Lua's `io.open` modes truncate, a read-open then write-open is not atomic, and the Windows Lua of this host does not create a file for the mode "wbx" (measured by Root, receipt
+-- sound-init-exclusive-output-runtime-20261101), so a host without the primitive is refused. An engine that stops leaves an empty sidecar; every create, write, flush and close is checked.
 --
 -- THE REPORT'S SIZE. The case's report holds a row for each sample key the constructor read, up to the finite catalogue (the store row says how many entries it has); the buffer of this one case is REPORT_LIMIT bytes, derived from
 -- that worst case in csrc/eech_env_observer.c, and a report at or over it is refused, never taken as complete.
 --
--- host.args: root, out (JSON Lines path), raw_out (the raw sidecar of the native report; default <out>.case15.raw), scenario (lebanon_retail default | georgia_retail), seconds (0 to 600, default 0: natural frames run before the report so the constructor's reads are in it), frame_ms (10 to 1000, default 100)
+-- host.args: root, out (JSON Lines path; created, it must not exist), raw_out (the raw sidecar of the native report; default <out>.case15.raw), scenario (lebanon_retail default | georgia_retail), seconds (0 to 600, default 0: natural frames run before the report so the constructor's reads are in it), frame_ms (10 to 1000, default 100)
 
 io.stdout:setvbuf ("no")
 
@@ -51,15 +55,16 @@ if frame_ms == nil or frame_ms ~= math.floor (frame_ms) or frame_ms < 10 or fram
 local seed = 1
 local raw_path = args.raw_out == nil and (out_path .. ".case15.raw") or args.raw_out
 if type (raw_path) ~= "string" or raw_path == "" or raw_path == out_path then refuse ("raw_out must be a path other than out") end
--- evidence is never overwritten: a sidecar that exists is refused BEFORE anything is booted or created
-local existing = io.open (raw_path, "rb")
-if existing ~= nil then
-	existing:close ()
-	refuse ("the raw sidecar " .. raw_path .. " already exists: it is evidence and is not overwritten")
+-- both evidence files are created exclusively, here, before anything is booted (see the header); the second spelling of a file the first just created fails like any other name that exists
+local create = host.output_create_new
+if type (create) ~= "function" then refuse ("this host has no host.output_create_new: evidence files cannot be created exclusively, and the driver does not fall back to a truncating open") end
+local out, out_error = create (out_path)
+if out == nil then refuse ("OUTPUT FAILURE: creating " .. out_path .. " failed: " .. tostring (out_error) .. " (evidence is created exclusively and never overwritten)") end
+local raw, raw_error = create (raw_path)
+if raw == nil then
+	pcall (out.close, out)
+	refuse ("OUTPUT FAILURE: creating " .. raw_path .. " failed: " .. tostring (raw_error) .. " (evidence is created exclusively and never overwritten; the same file under two names is refused)")
 end
-local out = assert (io.open (out_path, "w"))
-local raw, raw_error = io.open (raw_path, "wb")
-if raw == nil then refuse ("OUTPUT FAILURE: creating " .. raw_path .. " failed: " .. tostring (raw_error)) end
 
 local escapes = { ['"'] = '\\"', ['\\'] = '\\\\', ['\n'] = '\\n', ['\r'] = '\\r', ['\t'] = '\\t' }
 local function json_string (s)
@@ -196,13 +201,15 @@ local function number (row, key) return tonumber (row.map [key]) end
 local CAPACITY = 4
 local MAX_ATTEMPTS, MAX_SIDES = 8, 8
 local plan = take ("env-sndinit-plan", "version=1 read_only=1 process_isolated=not_needed comms:i")
-local store = take ("env-sndinit-store", "version=1 boots:n stored:n capacity=4 dropped:n orphans:n opens_outside_effects:n catalogue_entries:n")
+local store = take ("env-sndinit-store", "version=1 boots:n stored:n capacity=4 dropped:n orphans:n opens_outside_effects:n catalogue_entries:n saturated:n")
 local boots, stored = number (store, "boots"), number (store, "stored")
 -- completeness of the capture: an initialisation that was never recorded (a native without the hooks cannot answer this case, but a boot that ran none of them could), a table that overflowed, a point that had no
 -- initialisation to belong to
 if boots < 1 then hard ("the probe recorded no initialisation of the application sound system: " .. store.raw) end
 if stored ~= math.min (boots, CAPACITY) then hard ("the probe stored " .. stored .. " of " .. boots .. " initialisations (capacity " .. CAPACITY .. "): " .. store.raw) end
 if number (store, "dropped") ~= 0 then hard ("the probe dropped " .. store.map.dropped .. " records: the capture is incomplete: " .. store.raw) end
+-- a counter of the probe that reached its maximum stopped counting (it never wraps) and raised the latch: whatever the other rows say, the capture is not complete
+if number (store, "saturated") ~= 0 then hard ("a counter of the probe reached its limit and stopped counting (" .. store.map.saturated .. " times): the capture is incomplete: " .. store.raw) end
 if number (store, "orphans") ~= 0 then hard ("the probe saw " .. store.map.orphans .. " points that belong to no initialisation: the capture is incomplete: " .. store.raw) end
 if boots > CAPACITY then hard ("the process initialised the sound system " .. boots .. " times and the probe keeps " .. CAPACITY .. ": the capture is incomplete: " .. store.raw) end
 if number (store, "catalogue_entries") < 1 then hard ("the descriptor catalogue has no entries: " .. store.raw) end
