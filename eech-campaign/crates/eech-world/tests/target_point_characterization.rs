@@ -82,7 +82,10 @@ fn ev(seq: u32, site: usize, branch: u8, case: &'static str) -> Ev {
 
 /// branch 1: the instance has a TARGET_POINT sub-object, and the original overwrites the instance viewpoint from the entity pose
 fn target_point(seq: u32, site: usize) -> Ev {
-    Ev { vp_changed: true, ..ev(seq, site, 1, "target_point_subobject") }
+    Ev {
+        vp_changed: true,
+        ..ev(seq, site, 1, "target_point_subobject")
+    }
 }
 
 fn instance_position(seq: u32, site: usize) -> Ev {
@@ -114,7 +117,11 @@ fn fallback(seq: u32, site: usize, fixed: bool) -> Ev {
 }
 
 fn event_text(i: usize, e: &Ev) -> String {
-    let (branch_name, case) = if e.branch == 0 { ("-", "-") } else { (BRANCHES[usize::from(e.branch) - 1], e.case) };
+    let (branch_name, case) = if e.branch == 0 {
+        ("-", "-")
+    } else {
+        (BRANCHES[usize::from(e.branch) - 1], e.case)
+    };
     let model_name = if e.model >= 0 { format!("SCENE_{}", e.model) } else { "-".to_string() };
     let heading = e.heading.map_or("-".to_string(), |h| format!("{h:08x}"));
     let offset = e.offset.map_or("-".to_string(), |o| format!("{:08x},{:08x},{:08x}", o[0], o[1], o[2]));
@@ -176,9 +183,13 @@ fn summary_with(events: &[Ev], census_whole: bool, stale: u32) -> String {
         n - present,
     );
     if census_whole {
-        t += &format!("tp-census runs=1 ended=1 open=0 expected={EXPECTED} recorded={EXPECTED} sub_object=3 bbox=2 invalid_zero=1 duplicates=0 stray=0 live_mismatch=0\n");
+        t += &format!(
+            "tp-census runs=1 ended=1 open=0 expected={EXPECTED} recorded={EXPECTED} sub_object=3 bbox=2 invalid_zero=1 duplicates=0 stray=0 live_mismatch=0\n"
+        );
     } else {
-        t += &format!("tp-census runs=1 ended=1 open=0 expected={EXPECTED} recorded=5 sub_object=2 bbox=2 invalid_zero=1 duplicates=0 stray=0 live_mismatch=0\n");
+        t += &format!(
+            "tp-census runs=1 ended=1 open=0 expected={EXPECTED} recorded=5 sub_object=2 bbox=2 invalid_zero=1 duplicates=0 stray=0 live_mismatch=0\n"
+        );
     }
     t += &format!("tp-complete census={} queries_whole={}\n", u8::from(census_whole), u8::from(stale == 0));
     t
@@ -190,14 +201,24 @@ fn summary(events: &[Ev]) -> String {
 
 /// the census of the offset table: index 0 is the invalid index's zero, 1 and 3 and 5 come from a TARGET_POINT sub-object, 2 and 4 from the bounding box. Not whole: index 5 was never recorded.
 fn census_text(whole: bool) -> String {
-    let mut t = format!("tp-offset index=0 name=- state=invalid_zero offset={} bounds=- live=1\n", "00000000,00000000,00000000");
+    let mut t = format!(
+        "tp-offset index=0 name=- state=invalid_zero offset={} bounds=- live=1\n",
+        "00000000,00000000,00000000"
+    );
     for i in 1..EXPECTED {
         if i == 5 && !whole {
             t += "tp-offset index=5 name=SCENE_5 state=none offset=- bounds=- live=-\n";
         } else if i % 2 == 0 {
-            t += &format!("tp-offset index={i} name=SCENE_{i} state=bbox offset={} bounds={} live=1\n", words(10 * i as u32, 3), words(50 * i as u32, 6));
+            t += &format!(
+                "tp-offset index={i} name=SCENE_{i} state=bbox offset={} bounds={} live=1\n",
+                words(10 * i as u32, 3),
+                words(50 * i as u32, 6)
+            );
         } else {
-            t += &format!("tp-offset index={i} name=SCENE_{i} state=sub_object offset={} bounds=- live=1\n", words(10 * i as u32, 3));
+            t += &format!(
+                "tp-offset index={i} name=SCENE_{i} state=sub_object offset={} bounds=- live=1\n",
+                words(10 * i as u32, 3)
+            );
         }
     }
     t
@@ -212,7 +233,10 @@ fn every_branch() -> Vec<Ev> {
         fixed_shape(3, 4, "heading_zero_quirk", Some(0), false),
         fixed_shape(4, 1, "no_horizontal_offset", None, false),
         fallback(5, 0, false),
-        Ev { host_id: Some("RV 12 with spaces"), ..fallback(6, 1, true) },
+        Ev {
+            host_id: Some("RV 12 with spaces"),
+            ..fallback(6, 1, true)
+        },
     ]
 }
 
@@ -250,10 +274,15 @@ struct Case {
 /// a run whose boot made no query and whose frames made `events`
 fn healthy(events: &[Ev]) -> Case {
     Case {
-        args: [("root", "unused-root"), ("out", "@OUT@"), ("scenario", "lebanon_retail"), ("checkpoint_every", "0")]
-            .iter()
-            .map(|(k, v)| (k.to_string(), v.to_string()))
-            .collect(),
+        args: [
+            ("root", "unused-root"),
+            ("out", "@OUT@"),
+            ("scenario", "lebanon_retail"),
+            ("checkpoint_every", "0"),
+        ]
+        .iter()
+        .map(|(k, v)| (k.to_string(), v.to_string()))
+        .collect(),
         summaries: vec![summary(&[]), summary(events)],
         censuses: vec![census_text(true)],
         events: events.iter().enumerate().map(|(i, e)| Some(event_text(i, e))).collect(),
@@ -464,7 +493,10 @@ fn a_run_reaching_every_branch_passes_in_order_and_keeps_every_native_report_ver
     let outcome = run(&healthy(&events));
     outcome.result.as_ref().expect("a whole, coherent capture passes");
     // prepare -> select -> boot -> boot summary -> census -> clock -> 36 frames (3.6 s at 100 ms) -> clock -> end summary -> census again -> every query once, in order
-    let mut expected: Vec<String> = ["prepare", "select", "boot", "summary", "offsets", "clock"].iter().map(|s| s.to_string()).collect();
+    let mut expected: Vec<String> = ["prepare", "select", "boot", "summary", "offsets", "clock"]
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
     expected.extend(std::iter::repeat_n("FRAME".to_string(), 36));
     expected.extend(["clock", "summary", "offsets"].iter().map(|s| s.to_string()));
     expected.extend((0..events.len()).map(|i| format!("event {i}")));
@@ -479,7 +511,10 @@ fn a_run_reaching_every_branch_passes_in_order_and_keeps_every_native_report_ver
     assert!(all.contains("host_id_len=17 host_id=RV 12 with spaces"));
     assert!(all.contains(&census_text(true).lines().next().unwrap().to_string()));
     let done = done_row(&outcome);
-    assert!(done.contains("\"complete\":true") && done.contains("\"branches_reached\":\"1,2,3,4\"") && done.contains("\"natural_queries_reached\":true"), "{done}");
+    assert!(
+        done.contains("\"complete\":true") && done.contains("\"branches_reached\":\"1,2,3,4\"") && done.contains("\"natural_queries_reached\":true"),
+        "{done}"
+    );
     assert!(done.contains("\"queries\":7") && done.contains("\"boot_calls\":0"), "{done}");
 }
 
@@ -488,8 +523,14 @@ fn a_run_that_reaches_no_query_passes_but_says_nothing_is_covered() {
     let outcome = run(&healthy(&[]));
     outcome.result.as_ref().expect("a whole capture with no query is a whole capture");
     let done = done_row(&outcome);
-    assert!(done.contains("\"natural_queries_reached\":false") && done.contains("\"branches_reached\":\"none\"") && done.contains("\"queries\":0"), "{done}");
-    assert!(rows(&outcome).iter().any(|r| r.contains("\"event\":\"unreached\"")), "the run must say that nothing was reached");
+    assert!(
+        done.contains("\"natural_queries_reached\":false") && done.contains("\"branches_reached\":\"none\"") && done.contains("\"queries\":0"),
+        "{done}"
+    );
+    assert!(
+        rows(&outcome).iter().any(|r| r.contains("\"event\":\"unreached\"")),
+        "the run must say that nothing was reached"
+    );
     assert_eq!(count(&outcome, "event 0"), 0);
 }
 
@@ -512,9 +553,18 @@ fn the_heading_zero_quirk_is_a_checked_contract_of_the_report() {
     run(&healthy(&negative_zero)).result.expect("a negative-zero heading is the quirk too");
     // a zero heading that the report says rotated, a non-zero heading that it says did not, and a horizontal offset with no heading read are each contradictions
     let cases: [(&str, Vec<Ev>); 3] = [
-        ("a zero heading that rotated", vec![fixed_shape(0, 3, "rotated_horizontal_offset", Some(0), true)]),
-        ("a non-zero heading that did not rotate", vec![fixed_shape(0, 3, "heading_zero_quirk", Some(0x3f00_0000), false)]),
-        ("a horizontal offset without a heading", vec![fixed_shape(0, 3, "heading_zero_quirk", None, false)]),
+        (
+            "a zero heading that rotated",
+            vec![fixed_shape(0, 3, "rotated_horizontal_offset", Some(0), true)],
+        ),
+        (
+            "a non-zero heading that did not rotate",
+            vec![fixed_shape(0, 3, "heading_zero_quirk", Some(0x3f00_0000), false)],
+        ),
+        (
+            "a horizontal offset without a heading",
+            vec![fixed_shape(0, 3, "heading_zero_quirk", None, false)],
+        ),
     ];
     for (what, events) in cases {
         let outcome = run(&healthy(&events));
@@ -532,9 +582,16 @@ fn a_capture_that_is_not_whole_is_drained_for_diagnosis_then_written_and_failed(
     case.summaries = vec![summary(&[]), summary_with(&events, true, 1)];
     let outcome = run(&case);
     failure(&outcome, "NOT COMPLETE");
-    assert_eq!(count(&outcome, &format!("event {}", events.len() - 1)), 1, "every recorded query is still read once");
+    assert_eq!(
+        count(&outcome, &format!("event {}", events.len() - 1)),
+        1,
+        "every recorded query is still read once"
+    );
     let done = done_row(&outcome);
-    assert!(done.contains("\"complete\":false") && done.contains("\"malformed\":false") && done.contains("\"queries_whole\":false"), "{done}");
+    assert!(
+        done.contains("\"complete\":false") && done.contains("\"malformed\":false") && done.contains("\"queries_whole\":false"),
+        "{done}"
+    );
 }
 
 /// a damaged or contradictory report: what is wrong, how the case is damaged, and the stand-in log entry that must never appear because the driver stopped asking first (empty: the
@@ -544,9 +601,21 @@ type Damage = (&'static str, fn(&mut Case), &'static str);
 #[test]
 fn damaged_or_contradictory_reports_are_malformed_and_stop_the_questions() {
     let damages: [Damage; 14] = [
-        ("calls that are not the events", |c| c.summaries[1] = c.summaries[1].replace("tp-summary calls=7", "tp-summary calls=8"), "event 0"),
-        ("a whole verdict the counters do not support", |c| c.summaries[1] = c.summaries[1].replace("stale=0", "stale=2"), "event 0"),
-        ("a census verdict the counters do not support", |c| c.summaries[1] = c.summaries[1].replace("tp-complete census=1", "tp-complete census=0"), "event 0"),
+        (
+            "calls that are not the events",
+            |c| c.summaries[1] = c.summaries[1].replace("tp-summary calls=7", "tp-summary calls=8"),
+            "event 0",
+        ),
+        (
+            "a whole verdict the counters do not support",
+            |c| c.summaries[1] = c.summaries[1].replace("stale=0", "stale=2"),
+            "event 0",
+        ),
+        (
+            "a census verdict the counters do not support",
+            |c| c.summaries[1] = c.summaries[1].replace("tp-complete census=1", "tp-complete census=0"),
+            "event 0",
+        ),
         (
             "a branch row of another branch",
             |c| c.summaries[1] = c.summaries[1].replace("tp-branch branch=2 name=instance_position", "tp-branch branch=2 name=instance_target_point"),
@@ -560,19 +629,43 @@ fn damaged_or_contradictory_reports_are_malformed_and_stop_the_questions() {
             },
             "event 0",
         ),
-        ("a census at the end that is not the census at the boot", |c| c.censuses.push(census_text(true).replace("live=1", "live=0")), "event 0"),
-        ("a census row out of order", |c| c.censuses[0] = c.censuses[0].replace("tp-offset index=2 ", "tp-offset index=9 "), "FRAME"),
+        (
+            "a census at the end that is not the census at the boot",
+            |c| c.censuses.push(census_text(true).replace("live=1", "live=0")),
+            "event 0",
+        ),
+        (
+            "a census row out of order",
+            |c| c.censuses[0] = c.censuses[0].replace("tp-offset index=2 ", "tp-offset index=9 "),
+            "FRAME",
+        ),
         (
             "a branch 2 call whose instance viewpoint changed",
             |c| {
-                c.events[1] = Some(event_text(1, &Ev { vp_changed: true, ..instance_position(1, 2) }));
-                c.summaries[1] = summary(&[target_point(0, 1), Ev { vp_changed: true, ..instance_position(1, 2) }]);
+                c.events[1] = Some(event_text(
+                    1,
+                    &Ev {
+                        vp_changed: true,
+                        ..instance_position(1, 2)
+                    },
+                ));
+                c.summaries[1] = summary(&[
+                    target_point(0, 1),
+                    Ev {
+                        vp_changed: true,
+                        ..instance_position(1, 2)
+                    },
+                ]);
             },
             "event 2",
         ),
         (
             "an event whose caller disagrees with the summary",
-            |c| c.events[0] = c.events[0].as_ref().map(|t| t.replace("site=1 site_name=aim_vectors", "site=2 site_name=aim_lead")),
+            |c| {
+                c.events[0] = c.events[0]
+                    .as_ref()
+                    .map(|t| t.replace("site=1 site_name=aim_vectors", "site=2 site_name=aim_lead"))
+            },
             "",
         ),
         (
@@ -602,7 +695,12 @@ fn damaged_or_contradictory_reports_are_malformed_and_stop_the_questions() {
         assert!(done.contains("\"complete\":false") && done.contains("\"malformed\":true"), "{what}: {done}");
         // the damaged report was already kept verbatim; the engine is not asked again once the driver has stopped
         if !forbidden.is_empty() {
-            assert_eq!(count(&outcome, forbidden), 0, "{what}: the engine was asked past the damaged report: {:?}", outcome.log);
+            assert_eq!(
+                count(&outcome, forbidden),
+                0,
+                "{what}: the engine was asked past the damaged report: {:?}",
+                outcome.log
+            );
         }
     }
 }
@@ -667,15 +765,47 @@ fn arguments_are_refused_before_any_side_effect() {
     let cases: [ArgCase; 11] = [
         ("no root", vec![("out", "@OUT@")], "root=<installation root> is required"),
         ("no out", vec![("root", "unused-root")], "out=<JSON Lines file> is required"),
-        ("a scenario that is not retail", vec![("root", "r"), ("out", "@OUT@"), ("scenario", "georgia")], "scenario=lebanon_retail|georgia_retail"),
-        ("an argument the driver does not know", vec![("root", "r"), ("out", "@OUT@"), ("hours", "1")], "unknown argument hours"),
-        ("seconds that are not a number", vec![("root", "r"), ("out", "@OUT@"), ("seconds", "soon")], "seconds is not a number"),
+        (
+            "a scenario that is not retail",
+            vec![("root", "r"), ("out", "@OUT@"), ("scenario", "georgia")],
+            "scenario=lebanon_retail|georgia_retail",
+        ),
+        (
+            "an argument the driver does not know",
+            vec![("root", "r"), ("out", "@OUT@"), ("hours", "1")],
+            "unknown argument hours",
+        ),
+        (
+            "seconds that are not a number",
+            vec![("root", "r"), ("out", "@OUT@"), ("seconds", "soon")],
+            "seconds is not a number",
+        ),
         ("no seconds", vec![("root", "r"), ("out", "@OUT@"), ("seconds", "0")], "seconds must be above 0"),
-        ("too many seconds", vec![("root", "r"), ("out", "@OUT@"), ("seconds", "3601")], "seconds must be above 0 and at most 3600"),
-        ("a fractional frame", vec![("root", "r"), ("out", "@OUT@"), ("seconds", "3.65")], "not a whole number of frames"),
-        ("a frame that is too short", vec![("root", "r"), ("out", "@OUT@"), ("frame_ms", "5")], "frame_ms must be a whole number"),
-        ("a negative checkpoint", vec![("root", "r"), ("out", "@OUT@"), ("checkpoint_every", "-1")], "checkpoint_every must not be negative"),
-        ("a run of too many frames", vec![("root", "r"), ("out", "@OUT@"), ("seconds", "3600"), ("frame_ms", "10")], "the run must be 1 to"),
+        (
+            "too many seconds",
+            vec![("root", "r"), ("out", "@OUT@"), ("seconds", "3601")],
+            "seconds must be above 0 and at most 3600",
+        ),
+        (
+            "a fractional frame",
+            vec![("root", "r"), ("out", "@OUT@"), ("seconds", "3.65")],
+            "not a whole number of frames",
+        ),
+        (
+            "a frame that is too short",
+            vec![("root", "r"), ("out", "@OUT@"), ("frame_ms", "5")],
+            "frame_ms must be a whole number",
+        ),
+        (
+            "a negative checkpoint",
+            vec![("root", "r"), ("out", "@OUT@"), ("checkpoint_every", "-1")],
+            "checkpoint_every must not be negative",
+        ),
+        (
+            "a run of too many frames",
+            vec![("root", "r"), ("out", "@OUT@"), ("seconds", "3600"), ("frame_ms", "10")],
+            "the run must be 1 to",
+        ),
     ];
     for (name, args, reason) in cases {
         let mut case = healthy(&[]);
@@ -711,7 +841,12 @@ fn samples_at_the_requested_cadence_are_read_between_the_frames() {
     assert_eq!(count(&outcome, "summary"), 5);
     let position = |entry: &str, nth: usize| outcome.log.iter().enumerate().filter(|(_, l)| *l == entry).nth(nth).map(|(i, _)| i).unwrap();
     let tenth_frame = position("FRAME", 9);
-    assert_eq!(outcome.log[tenth_frame + 1], "summary", "the first sample follows the tenth frame: {:?}", outcome.log);
+    assert_eq!(
+        outcome.log[tenth_frame + 1],
+        "summary",
+        "the first sample follows the tenth frame: {:?}",
+        outcome.log
+    );
 }
 
 #[test]
@@ -810,7 +945,14 @@ fn expected_rows() -> Vec<(String, Vec<String>)> {
     for part in SCRIPT.split("\"tp-").skip(1) {
         let (name, rest) = part.split_once('"').unwrap();
         let Some(rest) = rest.strip_prefix(", {") else { continue };
-        let keys: Vec<String> = rest.split('}').next().unwrap().split(',').map(|k| k.trim().trim_matches('"').to_string()).filter(|k| !k.is_empty()).collect();
+        let keys: Vec<String> = rest
+            .split('}')
+            .next()
+            .unwrap()
+            .split(',')
+            .map(|k| k.trim().trim_matches('"').to_string())
+            .filter(|k| !k.is_empty())
+            .collect();
         let row = (format!("tp-{name}"), keys);
         if !rows.contains(&row) {
             rows.push(row);
@@ -840,27 +982,50 @@ fn the_driver_grammar_is_the_emitters() {
 
 /// the string literals an emitter function returns, in order
 fn returned(function: &str) -> Vec<String> {
-    let start = EMITTER.find(&format!("static const char *{function} (")).unwrap_or_else(|| panic!("the emitter has no {function}"));
+    let start = EMITTER
+        .find(&format!("static const char *{function} ("))
+        .unwrap_or_else(|| panic!("the emitter has no {function}"));
     let body = &EMITTER[start..];
     let end = body.find("\n}\n").unwrap();
-    body[..end].split("return \"").skip(1).map(|s| s.split('"').next().unwrap().to_string()).filter(|s| s != "-").collect()
+    body[..end]
+        .split("return \"")
+        .skip(1)
+        .map(|s| s.split('"').next().unwrap().to_string())
+        .filter(|s| s != "-")
+        .collect()
 }
 
 #[test]
 fn the_driver_names_and_caps_are_the_emitters() {
     let lua_names = |table: &str| -> Vec<String> {
-        let line = SCRIPT.lines().find(|l| l.starts_with(table)).unwrap_or_else(|| panic!("the driver has no {table}"));
+        let line = SCRIPT
+            .lines()
+            .find(|l| l.starts_with(table))
+            .unwrap_or_else(|| panic!("the driver has no {table}"));
         line.split('"').skip(1).step_by(2).map(String::from).collect()
     };
     assert_eq!(lua_names("local SITES = {"), returned("site_name"));
     assert_eq!(lua_names("local BRANCHES = {"), returned("branch_name"));
-    let cases: Vec<String> = SCRIPT.lines().filter(|l| l.starts_with("\t[")).flat_map(|l| l.split('"').skip(1).step_by(2).map(String::from).collect::<Vec<_>>()).collect();
+    let cases: Vec<String> = SCRIPT
+        .lines()
+        .filter(|l| l.starts_with("\t["))
+        .flat_map(|l| l.split('"').skip(1).step_by(2).map(String::from).collect::<Vec<_>>())
+        .collect();
     assert_eq!(cases, returned("case_name"));
     let define = |name: &str| -> u64 {
-        EMITTER.lines().find_map(|l| l.strip_prefix(&format!("#define {name} "))).unwrap_or_else(|| panic!("the emitter has no {name}")).trim().parse().unwrap()
+        EMITTER
+            .lines()
+            .find_map(|l| l.strip_prefix(&format!("#define {name} ")))
+            .unwrap_or_else(|| panic!("the emitter has no {name}"))
+            .trim()
+            .parse()
+            .unwrap()
     };
     let lua_number = |name: &str| -> u64 {
-        let line = SCRIPT.lines().find(|l| l.starts_with(&format!("local {name} = "))).unwrap_or_else(|| panic!("the driver has no {name}"));
+        let line = SCRIPT
+            .lines()
+            .find(|l| l.starts_with(&format!("local {name} = ")))
+            .unwrap_or_else(|| panic!("the driver has no {name}"));
         line.split('=').nth(1).unwrap().trim().parse().unwrap()
     };
     assert_eq!(lua_number("EVENTS_CAPACITY"), define("TP_EVENTS"));
