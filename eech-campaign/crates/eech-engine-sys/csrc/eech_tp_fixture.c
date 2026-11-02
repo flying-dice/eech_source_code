@@ -33,7 +33,7 @@
  *      without a TARGET_POINT, a mobile with no instance, a fixed object with the invalid shape. This mode gives each a real, explicitly declared physical PRECONDITION on a real live
  *      entity, calls the ORIGINAL once, and restores the precondition before anything else runs: (1) a real aircraft or vehicle with an instance has that instance pointer replaced by a
  *      temporarily constructed instance of a real census bounding-box scene that carries no random skin (construct_3d_object draws rand() only for a skin, so the choice needs none), then
- *      restored and the temporary instance destructed; (2) the same pointer set to NULL, then restored; (3) a real fixed structure's shape set to the invalid index through its typed
+ *      restored and the temporary instance destructed; (2) the instance pointer of a real mobile (possibly another one than case 1's) set to NULL, then restored; (3) a real fixed structure's shape set to the invalid index through its typed
  *      setter, then restored. There is no typed setter for the instance pointer (the aircraft and vehicle pointer setters handle only the sound effect), so the field the typed getter
  *      reads is written directly: a fixture-only use of the private layout that never reaches the wire. Each case verifies the change took (through the typed getters), verifies the
  *      restoration (the pointer, the shape, the real instance's viewpoint words and, for the constructed instance, the engine's three construction counters), and a restoration that fails

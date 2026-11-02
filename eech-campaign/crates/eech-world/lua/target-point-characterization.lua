@@ -38,6 +38,8 @@
 -- frame, with the change, the original's answer and the restoration verified inside the engine (a failed restoration is a refusal that stops the run here). Each case is reported as applied/called/
 -- restored by semantic identity (families, model and shape indices and names) with the real instance's viewpoint and the construction counters checked; a case with no real candidate is NOT called and
 -- says why. Its queries are caller class setup_probe (counted apart, never natural, never aim or weapon coverage, never host authority).
+-- Restoration is claimed only on a NORMAL return of the original: a fatal unwind has no guaranteed cleanup and no next frame. Cases 1 and 2 may use different mobiles, and fewer than three entities
+-- may be involved. The report's models are joined to the census by index and name, and case 1's scene to the pass that applied when its query ran.
 --
 -- host.args: root (installation root, required), out (the JSON Lines file, required; created exclusively), probe (controlled, setup, or absent), scenario (lebanon_retail, the default, or georgia_retail),
 --            seconds (default 3.6), frame_ms (default 100; seconds*1000/frame_ms must be a whole number of frames), checkpoint_every (simulated seconds between summary samples,
@@ -510,7 +512,20 @@ end
 
 -- The setup probe's report. Each case is either unavailable (no real candidate, said so with its reason, nothing changed) or a real entity given an explicit physical precondition, observed once
 -- through the original and restored. A case that was called must have been applied AND restored, and what the original cannot have written (the real instance's viewpoint) unchanged.
-local function check_setup (text)
+-- What the C setup can say when a case is not called. A missing candidate belongs to ITS case only; a candidate that was found but did not take the precondition has the reasons below.
+local SETUP_MISSING = {
+	{ no_mobile_with_instance = true, no_census_pass = true, no_bbox_scene_without_skin = true },
+	{ no_mobile_with_instance = true },
+	{ no_fixed_structure_with_valid_shape = true },
+}
+local SETUP_NOT_CALLED = {
+	{ scene_has_target_point = true, setup_not_applied = true },
+	{ setup_not_applied = true },
+	{ setup_not_applied = true },
+}
+
+-- `rows` are the census rows of the pass that was the latest to end at the boot (the setup runs right after it): the models the report names are joined to them by index and name.
+local function check_setup (text, rows)
 	local list = lines_of (text, "the setup report")
 	if #list ~= #SETUP_NAMES + 1 then malformed ("the setup report has " .. #list .. " lines, expected " .. (#SETUP_NAMES + 1)) end
 	local head = fields (list [1], "tp-setup", { "status", "visited", "entities" }, "the setup head")
@@ -531,15 +546,28 @@ local function check_setup (text)
 			if c.reason == "-" or c.applied ~= 0 or c.called ~= 0 or c.restored ~= 0 or c.entity_type ~= "-" or c.host_id_state ~= "-" or c.from ~= -1 or c.to ~= -1 or c.vp_unchanged ~= -1 or c.counters_restored ~= -1 then
 				malformed (what .. " is unavailable but carries a reason-less or changed state")
 			end
+			if not SETUP_MISSING [b] [c.reason] then malformed (what .. " is unavailable for the reason '" .. c.reason .. "', which that case cannot have") end
+			if c.from_name ~= "-" or c.to_name ~= "-" then malformed (what .. " is unavailable but names a model") end
 		else
 			if c.host_id_state ~= "present" and c.host_id_state ~= "absent" then malformed (what .. " has the host identity state '" .. tostring (c.host_id_state) .. "'") end
 			if c.entity_type == "-" or c.from < 1 then malformed (what .. " is available but names no entity or original value") end
 			-- what was done is restored: a restoration that did not hold is never reported, the engine refuses instead
 			if c.restored ~= 1 then malformed (what .. " was given a precondition that was not restored") end
+			-- the original is called exactly when the precondition took: applied and called are one fact
+			if c.called ~= c.applied then malformed (what .. " was called without being applied, or applied and not called") end
 			if c.called == 1 then
-				if c.applied ~= 1 or c.reason ~= "-" then malformed (what .. " was called without being applied or with a reason") end
-			elseif c.reason == "-" then
-				malformed (what .. " was not called and gives no reason")
+				if c.reason ~= "-" then malformed (what .. " was called and still gives a reason") end
+			elseif not SETUP_NOT_CALLED [b] [c.reason] then
+				malformed (what .. " was not called for the reason '" .. c.reason .. "', which that case cannot have")
+			end
+			-- the original model (the instance's scene, or the shape) is a model of the census, by index and name; the constructed scene is a bounding-box model of it; the sentinels have no name
+			local from_row = rows [c.from]
+			if not from_row or c.from_name ~= from_row.name then malformed (what .. " names a model of the census that is not the census's model " .. c.from) end
+			if b == 1 then
+				local to_row = rows [c.to]
+				if not to_row or to_row.state ~= "bbox" or c.to_name ~= to_row.name then malformed (what .. " was given a scene that is not a bounding-box model of the census, or not under its census name") end
+			elseif c.to_name ~= "-" then
+				malformed (what .. " names a model for a sentinel")
 			end
 			if b == 1 and (c.vp_unchanged ~= 1 or c.counters_restored ~= 1 or c.to < 1) then malformed (what .. " did not restore the real instance's viewpoint and the construction counters") end
 			if b == 2 and (c.vp_unchanged ~= 1 or c.counters_restored ~= -1 or c.to ~= -1) then malformed (what .. " did not restore the real instance's viewpoint") end
@@ -660,10 +688,11 @@ local function run ()
 	-- THE CENSUS, straight after the boot: every original pass of the initialiser the boot ran is kept as its own generation, read and kept in full BEFORE the verdict is judged, so a
 	-- capture that is not whole still retains what it saw. It must be whole before any frame is run.
 	local boot_summary = sample ("boot")
-	local boot_texts = {}
+	local boot_texts, boot_rows = {}, {}
 	for g = 0, boot_summary.census.generations - 1 do
-		local text, _, counts = read_pass ("boot", g, boot_summary)
+		local text, rows, counts = read_pass ("boot", g, boot_summary)
 		boot_texts [g] = text
+		boot_rows [g] = rows
 		emit { event = "census", generation = g, expected = boot_summary.census.expected, sub_object = counts.sub_object, bbox = counts.bbox, invalid_zero = counts.invalid_zero, none = counts.none,
 			live_mismatch = counts.live_mismatch, complete = boot_summary.passes [g].complete == 1 }
 	end
@@ -691,7 +720,7 @@ local function run ()
 	if setup_requested then
 		local setup_text = ask ("target_point_setup", function () return engine:target_point_setup () end)
 		emit { event = "setup", text = setup_text }
-		local prepared, report = pcall (check_setup, setup_text)
+		local prepared, report = pcall (check_setup, setup_text, boot_rows [boot_summary.census.last])
 		if not prepared then protocol_failure (report) end
 		setup_report = report
 	end
@@ -885,8 +914,9 @@ local function run ()
 					-- the entity the original was asked about is the one the setup changed: its family, and whether it had a host identity
 					if e.entity_type_name ~= c.entity_type or e.host_id_state ~= c.host_id_state then malformed (string.format ("setup query event %d is not about the entity case %d changed", index, e.detail)) end
 					if e.detail == 1 then
-						-- the constructed instance is a real census bounding-box scene: the model the original saw is that scene, with the census's own name
-						local row = (end_rows [final.census.last] or {}) [c.to]
+						-- the constructed instance is a real census bounding-box scene: the model the original saw is that scene, with the census's own name IN THE PASS THAT APPLIED WHEN THE QUERY RAN
+						-- (e.gen), not in whatever pass came last: a later pass may arrive during the frames without changing what the setup saw
+						local row = (end_rows [e.gen] or {}) [c.to]
 						if e.model ~= c.to or not row or row.state ~= "bbox" or e.model_name ~= row.name or e.model_name ~= c.to_name then malformed (string.format ("setup query event %d did not see the bounding-box scene it was set up with", index)) end
 					elseif e.detail == 3 then
 						if e.shape ~= 0 then malformed (string.format ("setup query event %d did not read the invalid shape", index)) end

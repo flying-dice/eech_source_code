@@ -333,6 +333,11 @@ fn summary(events: &[Ev]) -> String {
 /// the rows census pass `g` recorded, as the observer reports them while the table holds pass `current`: index 0 is the invalid index's zero, 1 and 3 and 5 come from a TARGET_POINT
 /// sub-object, 2 and 4 from the bounding box. `whole` false: pass `g` never recorded model 5.
 fn pass_text(g: usize, current: usize, whole: bool) -> String {
+    pass_text_rows(g, current, whole, false)
+}
+
+/// as `pass_text`, and with `swap` models 3 and 4 trade their states in this pass (3 from a bounding box, 4 from a sub-object): the census of a LATER pass may say another thing of a model
+fn pass_text_rows(g: usize, current: usize, whole: bool, swap: bool) -> String {
     let live = |i: usize| u8::from(census_offset_in(g, i) == census_offset_in(current, i));
     let mut t = format!(
         "tp-offset generation={g} index=0 name=- state=invalid_zero offset={} bounds=- live=1\n",
@@ -341,7 +346,7 @@ fn pass_text(g: usize, current: usize, whole: bool) -> String {
     for i in 1..EXPECTED {
         if i == 5 && !whole {
             t += &format!("tp-offset generation={g} index=5 name=SCENE_5 state=none offset=- bounds=- live=-\n");
-        } else if i % 2 == 0 {
+        } else if (i % 2 == 0) != (swap && (i == 3 || i == 4)) {
             t += &format!(
                 "tp-offset generation={g} index={i} name=SCENE_{i} state=bbox offset={} bounds={} live={}\n",
                 offset_text(census_offset_in(g, i)),
@@ -455,6 +460,13 @@ fn healthy(events: &[Ev]) -> Case {
 fn arg(case: &mut Case, key: &str, value: &str) {
     case.args.retain(|(k, _)| k != key);
     case.args.push((key.to_string(), value.to_string()));
+}
+
+/// change the setup report's text; the change must really change it
+fn edit_setup(case: &mut Case, from: &str, to: &str) {
+    let text = case.setup_report.as_ref().expect("a setup report");
+    assert!(text.contains(from) && from != to, "the setup report has no {from:?} to change: {text}");
+    case.setup_report = Some(text.replacen(from, to, 1));
 }
 
 /// change one recorded event's text; the change must really change it
@@ -1435,11 +1447,11 @@ fn the_probe_scan_is_bounded_validated_and_staged_before_it_calls_the_original()
 fn setup_text(called: [bool; 3]) -> String {
     let mut t = String::from("tp-setup status=complete visited=60 entities=40\n");
     let unavailable = ["no_mobile_with_instance", "no_mobile_with_instance", "no_fixed_structure_with_valid_shape"];
-    // (from, from_name, to, to_name, vp_unchanged, counters_restored, host identity): a real mobile's instance scene 7 replaced by the bounding-box scene 4; the same mobile with none; a
+    // (from, from_name, to, to_name, vp_unchanged, counters_restored, host identity): a real mobile's instance scene 3 replaced by the bounding-box scene 4; a real mobile (possibly another) with none; a
     // structure's shape 5 set to the invalid index
     let shape = [
-        (7, "SCENE_7", 4, "SCENE_4", 1, 1, "present"),
-        (7, "SCENE_7", -1, "-", 1, -1, "present"),
+        (3, "SCENE_3", 4, "SCENE_4", 1, 1, "present"),
+        (3, "SCENE_3", -1, "-", 1, -1, "present"),
         (5, "SCENE_5", 0, "-", -1, -1, "absent"),
     ];
     for (k, is_called) in called.iter().enumerate() {
@@ -1535,7 +1547,7 @@ fn the_setup_probe_is_separate_from_the_natural_run_and_says_which_cases_were_no
 
 #[test]
 fn damaged_setup_reports_and_restorations_are_malformed_and_stop_the_questions() {
-    let faults: [(&str, fn(&mut Case), &str); 9] = [
+    let faults: [(&str, fn(&mut Case), &str); 17] = [
         (
             "a constructed scene the original did not see",
             |c| change(c, 0, "model=4 model_name=SCENE_4", "model=2 model_name=SCENE_2"),
@@ -1595,7 +1607,7 @@ fn damaged_setup_reports_and_restorations_are_malformed_and_stop_the_questions()
                 c.setup_report = c.setup_report.take().map(|t| {
                     t.replacen(
                         "reason=- applied=1 called=1 restored=1 entity_type=TYPE_14 host_id_state=absent",
-                        "reason=setup_not_applied applied=1 called=0 restored=1 entity_type=TYPE_14 host_id_state=absent",
+                        "reason=setup_not_applied applied=0 called=0 restored=1 entity_type=TYPE_14 host_id_state=absent",
                         1,
                     )
                 })
@@ -1606,6 +1618,46 @@ fn damaged_setup_reports_and_restorations_are_malformed_and_stop_the_questions()
             "a query about another entity family than the one changed",
             |c| c.setup_report = c.setup_report.take().map(|t| t.replacen("entity_type=TYPE_14", "entity_type=TYPE_15", 1)),
             "is not about the entity case 1 changed",
+        ),
+        (
+            "a case applied but never called",
+            |c| edit_setup(c, "reason=- applied=1 called=1 restored=1 entity_type=TYPE_14 host_id_state=absent", "reason=setup_not_applied applied=1 called=0 restored=1 entity_type=TYPE_14 host_id_state=absent"),
+            "was called without being applied, or applied and not called",
+        ),
+        (
+            "a reason that case cannot have when it was not called",
+            |c| edit_setup(c, "name=not_fixed_no_instance available=1 reason=- applied=1 called=1", "name=not_fixed_no_instance available=1 reason=scene_has_target_point applied=0 called=0"),
+            "was not called for the reason 'scene_has_target_point', which that case cannot have",
+        ),
+        (
+            "a missing-candidate reason on an available case",
+            |c| edit_setup(c, "name=fixed_invalid_shape available=1 reason=- applied=1 called=1", "name=fixed_invalid_shape available=1 reason=no_fixed_structure_with_valid_shape applied=0 called=0"),
+            "was not called for the reason 'no_fixed_structure_with_valid_shape', which that case cannot have",
+        ),
+        (
+            "a name for the no-instance sentinel",
+            |c| edit_setup(c, "to=-1 to_name=-", "to=-1 to_name=SCENE_4"),
+            "names a model for a sentinel",
+        ),
+        (
+            "a name for the invalid-shape sentinel",
+            |c| edit_setup(c, "to=0 to_name=-", "to=0 to_name=SCENE_1"),
+            "names a model for a sentinel",
+        ),
+        (
+            "an original model name the census does not give its index",
+            |c| edit_setup(c, "from=3 from_name=SCENE_3", "from=3 from_name=SCENE_4"),
+            "names a model of the census that is not the census's model 3",
+        ),
+        (
+            "a constructed scene that is not a bounding-box model of the census",
+            |c| edit_setup(c, "to=4 to_name=SCENE_4", "to=3 to_name=SCENE_3"),
+            "was given a scene that is not a bounding-box model of the census",
+        ),
+        (
+            "an original shape outside the census",
+            |c| edit_setup(c, "from=5 from_name=SCENE_5", "from=9 from_name=SCENE_9"),
+            "names a model of the census that is not the census's model 9",
         ),
         (
             "a setup query when no setup was asked for",
@@ -1647,6 +1699,60 @@ fn damaged_setup_reports_and_restorations_are_malformed_and_stop_the_questions()
     let outcome = run(&absent);
     failure(&outcome, "NOT RUN");
     assert_eq!(count(&outcome, "FRAME"), 0);
+}
+
+#[test]
+fn an_unavailable_setup_case_has_only_its_own_reasons_and_no_names() {
+    let (mut wrong_case, _) = setup_case([true, true, false]);
+    edit_setup(&mut wrong_case, "reason=no_fixed_structure_with_valid_shape", "reason=no_mobile_with_instance");
+    let outcome = run(&wrong_case);
+    failure(&outcome, MALFORMED);
+    failure(&outcome, "setup case 3 is unavailable for the reason 'no_mobile_with_instance', which that case cannot have");
+    let (mut named, _) = setup_case([true, true, false]);
+    edit_setup(
+        &mut named,
+        "available=0 reason=no_fixed_structure_with_valid_shape applied=0 called=0 restored=0 entity_type=- host_id_state=- from=-1 from_name=-",
+        "available=0 reason=no_fixed_structure_with_valid_shape applied=0 called=0 restored=0 entity_type=- host_id_state=- from=-1 from_name=SCENE_3",
+    );
+    let outcome = run(&named);
+    failure(&outcome, MALFORMED);
+    failure(&outcome, "setup case 3 is unavailable but names a model");
+    // the same reasons are valid on the case they belong to
+    for (which, reason) in [(1usize, "no_census_pass"), (1, "no_bbox_scene_without_skin")] {
+        let (mut case, _) = setup_case([false, false, true]);
+        let mut report = case.setup_report.take().unwrap();
+        let from = if which == 1 { "available=0 reason=no_mobile_with_instance" } else { "name=not_fixed_no_instance available=0 reason=no_mobile_with_instance" };
+        let to = from.replace("reason=no_mobile_with_instance", &format!("reason={reason}"));
+        assert!(report.contains(from));
+        report = report.replacen(from, &to, 1);
+        case.setup_report = Some(report);
+        run(&case).result.unwrap_or_else(|e| panic!("case {which} may be unavailable for {reason}: {e}"));
+    }
+}
+
+#[test]
+fn the_setup_scene_is_joined_to_the_pass_that_applied_when_the_query_ran() {
+    // The setup ran right after the boot (passes 0 and 1), so its queries name pass 1. A third pass arrives during the frames and, in its own rows, models 3 and 4 trade their states: model 4, the
+    // scene the setup constructed, is a bounding-box model in the pass that applied and no longer in the last pass.
+    let three = [Pass::full(3), Pass::full(1), Pass::full(0)];
+    let grown = || {
+        let (mut case, events) = setup_case([true; 3]);
+        case.summaries[1] = summary_passes(&events, &three, 0);
+        case.end_censuses = vec![pass_text(0, 2, true), pass_text(1, 2, true), pass_text_rows(2, 2, true, true)];
+        case
+    };
+    let outcome = run(&grown());
+    outcome.result.as_ref().expect("a setup that applied in pass 1 stays valid when a later pass says otherwise of the same model");
+    let done = done_row(&outcome);
+    assert!(done.contains("\"generations\":3") && done.contains("\"setup_cases\":\"1,2,3\""), "{done}");
+    // the same queries claiming the LAST pass are joined to its rows, where the scene is not a bounding-box model
+    let mut moved = grown();
+    for index in 0..4 {
+        change(&mut moved, index, "gen=1 gen_open=0", "gen=2 gen_open=0");
+    }
+    let outcome = run(&moved);
+    failure(&outcome, MALFORMED);
+    failure(&outcome, "setup query event 0 did not see the bounding-box scene it was set up with");
 }
 
 #[test]
