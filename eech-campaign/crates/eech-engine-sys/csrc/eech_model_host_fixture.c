@@ -62,7 +62,7 @@ int eech_model_host_counters_run (char *text, int capacity)
 {
 	int rows, metadata_rows, points, faces, point_refs, surface_points, cached, uncached;
 	int n, m, k, j;
-	long metadata[8];
+	long metadata[9];
 
 	n = snprintf (text, (size_t) capacity,
 		"model-host catalogue=%ld scene=%ld triangle=%ld found=%ld end=%ld absent=%ld bounds_reads=%ld bounds_without_lines_reads=%ld radius_reads=%ld"
@@ -100,8 +100,8 @@ int eech_model_host_counters_run (char *text, int capacity)
 	   answers filled (rows_filled) or confirmed again (rows_confirmed). The campaign has no model-file parser to compare with: these count the host's answers the campaign took. */
 	campaign_model_core_metadata (metadata);
 	j = snprintf (text + n + m + k, (size_t) (capacity - n - m - k),
-		"model-core-metadata objects_asked=%ld objects_found=%ld objects_absent=%ld rows_filled=%ld rows_confirmed=%ld animation_asked=%ld animation_names=%ld animation_ends=%ld\n",
-		metadata[0], metadata[1], metadata[2], metadata[3], metadata[4], metadata[5], metadata[6], metadata[7]);
+		"model-core-metadata objects_asked=%ld objects_found=%ld objects_absent=%ld rows_filled=%ld rows_confirmed=%ld rows_replaced=%ld animation_asked=%ld animation_names=%ld animation_ends=%ld\n",
+		metadata[0], metadata[1], metadata[2], metadata[3], metadata[4], metadata[5], metadata[6], metadata[7], metadata[8]);
 
 	return ((j < 0) || (j >= capacity - n - m - k)) ? 1 : 0;
 }

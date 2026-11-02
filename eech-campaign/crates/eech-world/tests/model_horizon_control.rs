@@ -23,9 +23,9 @@ const HORIZON_OK: &str = "cached=32 uncached=0";
 // the metadata row of a healthy boot, coherent with RESIDENCY_OK: 21000 questions = 18000 found + 3000 absent; the 18000 found answers filled 10252 rows and confirmed 7748 again; 150 animation
 // questions = 130 names + 20 ends
 const ZERO_METADATA: &str =
-    "objects_asked=0 objects_found=0 objects_absent=0 rows_filled=0 rows_confirmed=0 animation_asked=0 animation_names=0 animation_ends=0";
+    "objects_asked=0 objects_found=0 objects_absent=0 rows_filled=0 rows_confirmed=0 rows_replaced=0 animation_asked=0 animation_names=0 animation_ends=0";
 const METADATA_OK: &str = concat!(
-    "objects_asked=21000 objects_found=18000 objects_absent=3000 rows_filled=10252 rows_confirmed=7748 ",
+    "objects_asked=21000 objects_found=18000 objects_absent=3000 rows_filled=10252 rows_confirmed=7748 rows_replaced=0 ",
     "animation_asked=150 animation_names=130 animation_ends=20"
 );
 
@@ -199,6 +199,17 @@ fn the_healthy_residency_and_the_genuine_engine_stop_pass_and_nothing_is_asked_a
 }
 
 #[test]
+fn a_row_taken_over_by_a_new_object_number_and_described_again_is_counted_as_it_happened() {
+    // 10253 first fills, one of them later replaced: 10252 rows hold a description, as the residency row says; the 18000 found answers are 10253 fills and 7747 repeats
+    let replaced = "objects_asked=21000 objects_found=18000 objects_absent=3000 rows_filled=10253 rows_confirmed=7747 rows_replaced=1 animation_asked=150 animation_names=130 animation_ends=20";
+    let mut case = healthy();
+    case.counters = counters_with(RESIDENCY_OK, HORIZON_OK, replaced);
+    let outcome = run(&case);
+    assert!(outcome.result.is_ok(), "{:?}", outcome.result);
+    assert!(outcome.written.expect("the output exists").contains("\"rows_replaced\":1"));
+}
+
+#[test]
 fn any_resident_buffer_or_an_empty_table_fails_the_residency_and_the_reader_is_not_launched() {
     let cases = [
         ("a point buffer", residency(11442, 10252, [1, 0, 0, 0])),
@@ -282,6 +293,18 @@ fn a_counters_report_that_is_not_the_exact_coherent_grammar_is_malformed_and_the
             good.replace("rows_filled=10252 rows_confirmed=7748", "rows_filled=11443 rows_confirmed=6557"),
         ),
         (
+            "more rows replaced than ever filled",
+            good.replace("rows_replaced=0", "rows_replaced=10253"),
+        ),
+        (
+            "a row with a true point count that replacement left undescribed",
+            good.replace("rows_replaced=0", "rows_replaced=1"),
+        ),
+        (
+            "a metadata row without the replaced field",
+            good.replace(" rows_replaced=0", ""),
+        ),
+        (
             "a row with a true point count that no answer filled",
             good.replace("rows_filled=10252 rows_confirmed=7748", "rows_filled=10251 rows_confirmed=7749"),
         ),
@@ -341,9 +364,9 @@ fn counters_swapped_rows() -> String {
 #[test]
 fn a_boot_whose_metadata_took_no_host_answer_fails_and_the_reader_is_not_launched() {
     // coherent, but nothing was asked of the host and no row was filled by it: zero everywhere is not a host-owned load
-    let none = "objects_asked=0 objects_found=0 objects_absent=0 rows_filled=0 rows_confirmed=0 animation_asked=0 animation_names=0 animation_ends=0";
+    let none = "objects_asked=0 objects_found=0 objects_absent=0 rows_filled=0 rows_confirmed=0 rows_replaced=0 animation_asked=0 animation_names=0 animation_ends=0";
     // a coherent report with rows filled but nothing found is impossible (rows_filled <= objects_found); asked-only-absent leaves no row filled
-    let absent_only = "objects_asked=5 objects_found=0 objects_absent=5 rows_filled=0 rows_confirmed=0 animation_asked=0 animation_names=0 animation_ends=0";
+    let absent_only = "objects_asked=5 objects_found=0 objects_absent=5 rows_filled=0 rows_confirmed=0 rows_replaced=0 animation_asked=0 animation_names=0 animation_ends=0";
     for (what, text, residency_text) in [
         ("nothing asked", none, residency(11442, 0, [0, 0, 0, 0])),
         ("only absences answered", absent_only, residency(11442, 0, [0, 0, 0, 0])),
@@ -466,7 +489,7 @@ fn the_driver_grammar_is_the_emitters() {
     assert_eq!(lua_list("RESIDENCY_KEYS"), c_keys("model-core-residency", "%d"));
     assert_eq!(lua_list("HORIZON_KEYS"), c_keys("model-core-horizon", "%d"));
     assert_eq!(lua_list("METADATA_KEYS"), c_keys("model-core-metadata", "%ld"));
-    assert_eq!(lua_list("METADATA_KEYS").len(), 8);
+    assert_eq!(lua_list("METADATA_KEYS").len(), 9);
     assert_eq!(lua_list("HOST_KEYS").len(), 11);
 }
 

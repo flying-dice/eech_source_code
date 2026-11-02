@@ -9,7 +9,8 @@
 --      references asked. The report must be EXACTLY those FOUR rows in the C grammar (names,
 --      field order, decimal integers as C's %d and %ld write them, within 0..2147483647) and COHERENT (metadata_rows <= rows, each buffer count <= rows, presence_mismatches <=
 --      presence_checked; objects_found + objects_absent == objects_asked, rows_filled + rows_confirmed == objects_found, animation_names + animation_ends == animation_asked, and
---      metadata_rows <= rows_filled <= rows: every answer the campaign took is accounted for, and a row with a true point count was filled by one). It passes only if rows > 0,
+--      metadata_rows <= rows_filled - rows_replaced <= rows, rows_replaced <= rows_filled: every answer the campaign took is accounted for, a row a new object number takes over is
+--      counted when it is replaced and again when it is re-described, and a row with a true point count was filled by an answer). It passes only if rows > 0,
 --      metadata_rows > 0, all four buffer counts are 0, objects_asked > 0 and rows_filled > 0 (the metadata really came from the host's answers), cached > 0 and uncached == 0. Anything else - a malformed or incoherent report, or
 --      resident buffers, or a boot that did not use the cached images - fails here and the unsupported reader is NOT launched.
 --      The integer bound 2147483647 is deliberate: C long is 32 bits on the Windows native control, and Lua numbers are doubles, so no larger value is believed.
@@ -61,7 +62,7 @@ local INT_MAX = 2147483647
 local HOST_KEYS = { "catalogue", "scene", "triangle", "found", "end", "absent", "bounds_reads", "bounds_without_lines_reads", "radius_reads", "presence_checked", "presence_mismatches" }
 local RESIDENCY_KEYS = { "rows", "metadata_rows", "points", "faces", "point_refs", "surface_points" }
 local HORIZON_KEYS = { "cached", "uncached" }
-local METADATA_KEYS = { "objects_asked", "objects_found", "objects_absent", "rows_filled", "rows_confirmed", "animation_asked", "animation_names", "animation_ends" }
+local METADATA_KEYS = { "objects_asked", "objects_found", "objects_absent", "rows_filled", "rows_confirmed", "rows_replaced", "animation_asked", "animation_names", "animation_ends" }
 
 local function malformed (message) error ({ malformed = message }, 0) end
 
@@ -111,8 +112,11 @@ local function parse_counters (text)
 	if metadata.objects_found + metadata.objects_absent ~= metadata.objects_asked then malformed ("objects_found + objects_absent is not objects_asked") end
 	if metadata.rows_filled + metadata.rows_confirmed ~= metadata.objects_found then malformed ("rows_filled + rows_confirmed is not objects_found") end
 	if metadata.animation_names + metadata.animation_ends ~= metadata.animation_asked then malformed ("animation_names + animation_ends is not animation_asked") end
-	if metadata.rows_filled > residency.rows then malformed ("rows_filled exceeds rows") end
-	if residency.metadata_rows > metadata.rows_filled then malformed ("metadata_rows exceeds rows_filled: a row with a true point count that no host answer filled") end
+	-- a filled row can be taken over by a new object number (rows_replaced) and described again: the rows that hold a description now are the first fills less the replacements
+	if metadata.rows_replaced > metadata.rows_filled then malformed ("rows_replaced exceeds rows_filled: a row that was never described cannot have been replaced") end
+	local described = metadata.rows_filled - metadata.rows_replaced
+	if described > residency.rows then malformed ("rows_filled less rows_replaced exceeds rows") end
+	if residency.metadata_rows > described then malformed ("metadata_rows exceeds the described rows (rows_filled less rows_replaced): a row with a true point count that no host answer filled") end
 	return residency, horizon, metadata
 end
 
@@ -180,7 +184,7 @@ local function run ()
 	emit { event = "residency", rows = residency.rows, metadata_rows = residency.metadata_rows, points = residency.points, faces = residency.faces, point_refs = residency.point_refs,
 		surface_points = residency.surface_points, pass = residency_ok }
 	emit { event = "metadata", objects_asked = metadata.objects_asked, objects_found = metadata.objects_found, objects_absent = metadata.objects_absent, rows_filled = metadata.rows_filled,
-		rows_confirmed = metadata.rows_confirmed, animation_asked = metadata.animation_asked, animation_names = metadata.animation_names, animation_ends = metadata.animation_ends, pass = metadata_ok }
+		rows_confirmed = metadata.rows_confirmed, rows_replaced = metadata.rows_replaced, animation_asked = metadata.animation_asked, animation_names = metadata.animation_names, animation_ends = metadata.animation_ends, pass = metadata_ok }
 	emit { event = "horizon_cache", cached = horizon.cached, uncached = horizon.uncached, pass = horizon_ok }
 	if not (residency_ok and metadata_ok and horizon_ok) then
 		-- the evidence the stop would be read against is not valid: the unsupported reader is not launched

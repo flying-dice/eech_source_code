@@ -1129,6 +1129,7 @@ pub const EECH_MODEL_OBJECT_TABLE: c_int = 6;
 pub const EECH_MODEL_OBJECT: c_int = 7;
 pub const EECH_MODEL_ANIMATION: c_int = 8;
 pub const EECH_MODEL_CUSTOM_OBJECT: c_int = 9;
+pub const EECH_MODEL_CUSTOM_ORDER: c_int = 10;
 pub const EECH_MODEL_ANIMATION_NAME_MAX: usize = 127;
 pub const EECH_MODEL_TRIANGLE_FOUND: c_int = 1;
 pub const EECH_MODEL_TRIANGLE_END: c_int = 2;
@@ -1144,8 +1145,11 @@ pub struct eech_model_request {
     pub kind: c_int,
     /// OBJECT: the role the object has in `scene` (0 main, 1 approximation, 2 shadow polygon object, 3 collision object, 4 sub-object); `depth` is the cursor
     pub role: c_int,
-    /// OBJECT, CUSTOM_OBJECT and ANIMATION: which definition of the scene is meant: the campaign's n-th read of it (0 for the first), in the order it makes them
+    /// which definition of the scene is meant: OBJECT, the n-th record of the scene database; CUSTOM_OBJECT and ANIMATION, the position of the custom scene file in the walk the
+    /// campaign announced (CUSTOM_ORDER)
     pub definition: c_int,
+    /// CUSTOM_ORDER: the name of the directory under OBJECTS that holds the custom scene file (NUL-terminated)
+    pub key: [c_char; EECH_MODEL_NAME_MAX + 1],
 }
 
 /// The host's answer (campaign_model_reply); only the fields of the asked operation are meaningful.

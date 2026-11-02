@@ -54,6 +54,8 @@ impl W {
 
 #[derive(Clone)]
 struct Mesh {
+    /// the object's culling normals offset in the table (0 unless a test sets it)
+    culling: i32,
     points: Vec<[i16; 3]>,
     bb: [f32; 6],
     bb2: [f32; 6],
@@ -72,6 +74,7 @@ fn polygon_flags(points: u32) -> u32 {
 /// a quad whose scale is exactly 1.0 (the bounding box's largest absolute value is 32767)
 fn identity_quad() -> Mesh {
     Mesh {
+        culling: 0,
         points: vec![[0, 0, 0], [32767, 0, 0], [32767, 32767, 0], [0, 32767, 0]],
         bb: [0.0, 32767.0, 0.0, 32767.0, 0.0, 32767.0],
         bb2: [0.0, 32767.0, 0.0, 32767.0, 0.0, 32767.0],
@@ -86,6 +89,7 @@ fn identity_quad() -> Mesh {
 /// a quad whose scales are not exactly representable, so the bits depend on the rounding the arithmetic runs in
 fn sensitive_quad() -> Mesh {
     Mesh {
+        culling: 0,
         points: vec![[1, 12345, 30001], [-22222, 17, 9], [31000, -31000, 7], [123, 4567, -8901]],
         bb: [-10000.0, 9000.0, -12000.0, 11000.0, -9500.5, 8888.25],
         bb2: [-10000.0, 9000.0, -12000.0, 11000.0, -9500.5, 8888.25],
@@ -147,7 +151,7 @@ fn build_table(entries: &[Entry], declared_polygons: Option<i32>) -> Table {
                     .i32(m.number_of_faces)
                     .i32(0)
                     .i32(0)
-                    .i32(0);
+                    .i32(m.culling);
                 bin.f32(1.0).i32(m.sp.len() as i32).i32(0).i32(0);
                 bin.floats(&m.bb).floats(&m.bb2);
                 for (flags, faces) in &m.surfaces {
@@ -821,13 +825,13 @@ fn a_table_scene_read_before_the_first_named_object_keeps_the_facts_the_object_h
     assert_eq!(found(store.object_header(4, ROLE_COLLISION, 0, 0, false).unwrap()), before);
     // scene 1 has two definitions: the database record (object 1, a table object) and the custom file (the named object, which took number 4)
     let table_one = found(store.object_header(1, ROLE_MAIN, 0, 0, false).unwrap());
-    let named_one = found(store.object_header(1, ROLE_MAIN, 0, 1, true).unwrap());
+    let named_one = found(store.object_header(1, ROLE_MAIN, 0, 0, true).unwrap());
     assert_ne!(table_one, named_one);
     assert_eq!(named_one.counts[2], 1, "the named object has one surface, like the final view of object 4");
     assert_eq!(named_one.bounding_box2, [0.0, 5.0, 0.0, 6.0, 0.0, 0.0].map(f32::to_bits));
     assert_ne!(named_one, before, "the named object is not the table's object 4");
     // the same number, two moments: the campaign must reset its row when the number is allocated and fill it again; the host's two answers differ
-    assert_eq!(found(store.object_header(1, ROLE_COLLISION, 0, 1, true).unwrap()), named_one);
+    assert_eq!(found(store.object_header(1, ROLE_COLLISION, 0, 0, true).unwrap()), named_one);
 }
 
 #[test]
@@ -843,9 +847,10 @@ fn a_scene_defined_twice_by_custom_files_answers_each_definition_with_its_own_ob
     let store = root.load().unwrap();
     assert_eq!(store.summary().ees_duplicate_scenes.len(), 1, "one scene is defined by two custom files");
 
-    // definition 0 is the database record, 1 the first custom file (named object 4), 2 the second (named object 5): the order the campaign reads them in
-    let first = found(store.object_header(1, ROLE_MAIN, 0, 1, true).unwrap());
-    let second = found(store.object_header(1, ROLE_MAIN, 0, 2, true).unwrap());
+    // a custom definition is named by its position in the campaign's walk: 0 the first file (named object 4), 1 the second (named object 5); the database record is its own kind
+    assert_eq!(store.custom_walk(), [(1, "MODDIR".to_string()), (1, "MODDIR2".to_string())]);
+    let first = found(store.object_header(1, ROLE_MAIN, 0, 0, true).unwrap());
+    let second = found(store.object_header(1, ROLE_MAIN, 0, 1, true).unwrap());
     assert_eq!(
         first.bounding_box2,
         [0.0, 5.0, 0.0, 6.0, 0.0, 0.0].map(f32::to_bits),
@@ -860,18 +865,9 @@ fn a_scene_defined_twice_by_custom_files_answers_each_definition_with_its_own_ob
     // the final scene is the last definition; the earlier one is NOT answered with it
     assert_eq!(store.scene(1).unwrap().main, 5);
     // a definition of the wrong kind, or one that does not exist, is refused by name and never answered from another definition
-    assert_eq!(
-        store.object_header(1, ROLE_MAIN, 0, 0, true).unwrap(),
-        ObjectHeader::Refused("definition_kind_differs")
-    );
-    assert_eq!(
-        store.object_header(1, ROLE_MAIN, 0, 1, false).unwrap(),
-        ObjectHeader::Refused("definition_kind_differs")
-    );
-    assert_eq!(
-        store.object_header(1, ROLE_MAIN, 0, 3, true).unwrap(),
-        ObjectHeader::Refused("definition_outside")
-    );
+    assert_eq!(store.object_header(1, ROLE_MAIN, 0, 1, false).unwrap(), ObjectHeader::Refused("definition_outside"));
+    assert_eq!(store.object_header(1, ROLE_MAIN, 0, 2, true).unwrap(), ObjectHeader::Refused("definition_outside"));
+    assert_eq!(store.object_header(2, ROLE_MAIN, 0, 0, true).unwrap(), ObjectHeader::Refused("definition_scene_differs"));
     // a scene defined once is unchanged by all this
     assert!(matches!(store.object_header(3, ROLE_MAIN, 0, 0, false).unwrap(), ObjectHeader::Found(_)));
 }
@@ -887,15 +883,13 @@ fn animation_references_are_per_definition_logical_names_and_an_unknown_name_is_
     root.write(&format!("OBJECTS/MODDIR2/{scene}.ees"), &ees("Turret"));
     root.write("OBJECTS/MODDIR2/turret.eeo", &eeo_animated(&identity_quad(), 0, b"no_such_flag\0\0"));
     let store = root.load().unwrap();
-    // the database record keeps its list in its own record
-    assert_eq!(store.animation_ref(1, 0, 0).unwrap(), AnimationRef::Absent);
     // add_animation_object visits the main object, the approximations and the sub-objects (not the collision object): one reference, then the end
     let name = compiled_animation_name(3).unwrap().to_string();
-    assert_eq!(store.animation_ref(1, 0, 1).unwrap(), AnimationRef::Name(name));
-    assert_eq!(store.animation_ref(1, 1, 1).unwrap(), AnimationRef::End);
+    assert_eq!(store.animation_ref(1, 0, 0).unwrap(), AnimationRef::Name(name));
+    assert_eq!(store.animation_ref(1, 1, 0).unwrap(), AnimationRef::End);
     // the second definition's reference is the override NAME, in upper case, whether or not any table holds it: the campaign decides, not the host
-    assert_eq!(store.animation_ref(1, 0, 2).unwrap(), AnimationRef::Name("NO_SUCH_FLAG".to_string()));
-    assert_eq!(store.animation_ref(1, 0, 3).unwrap(), AnimationRef::Refused("definition_outside"));
+    assert_eq!(store.animation_ref(1, 0, 1).unwrap(), AnimationRef::Name("NO_SUCH_FLAG".to_string()));
+    assert_eq!(store.animation_ref(1, 0, 2).unwrap(), AnimationRef::Refused("definition_outside"));
 }
 
 #[test]
@@ -905,7 +899,122 @@ fn an_override_name_that_is_not_text_is_refused_and_never_repaired() {
     root.write(&format!("OBJECTS/MODDIR/{scene}.ees"), &ees("Chassis"));
     root.write("OBJECTS/MODDIR/chassis.eeo", &eeo_animated(&chassis(), 0, &[b'D', 0xff, b'B', 0, 0]));
     let store = root.load().unwrap();
-    assert_eq!(store.animation_ref(1, 0, 1).unwrap(), AnimationRef::Refused("animation_name_not_text"));
+    assert_eq!(store.animation_ref(1, 0, 0).unwrap(), AnimationRef::Refused("animation_name_not_text"));
+}
+
+/// Directories under OBJECTS are walked by the campaign in the file system's own order, not a sorted one, and what a custom definition sees depends on it: the first named object takes
+/// the table's object count as its number and so REPLACES the last table object, and a custom scene that names that object by its hex number (the original's get_object accepts
+/// 'XXXX.LWO' and returns the number as it is) sees the table's object or the named one according to whether the named object's file was walked before it.
+fn two_directory_root() -> Root {
+    let root = standard();
+    // directory A: scene 1, whose named object takes number 4; directory B: scene 2, whose main and collision object is object 4 BY NUMBER
+    root.write(&format!("OBJECTS/A/{}.ees", compiled_scene_name(1).unwrap()), &ees("Chassis"));
+    root.write("OBJECTS/A/chassis.eeo", &eeo(1, &chassis()));
+    root.write(&format!("OBJECTS/B/{}.ees", compiled_scene_name(2).unwrap()), &ees("0004.LWO"));
+    root
+}
+
+#[test]
+fn the_campaigns_walk_order_and_not_a_sorted_one_decides_what_a_custom_definition_sees() {
+    let root = two_directory_root();
+    // the table's object 4 as the independent baseline: two surfaces, and the scene bounds computed from it
+    let table_bounds = [0.0, 32767.0, 0.0, 32767.0, 0.0, 32767.0].map(f32::to_bits);
+    let chassis_bounds = [0.0, 5.0, 0.0, 6.0, 0.0, 0.0].map(f32::to_bits);
+
+    // sorted (the host's order when the campaign announced none): A then B, so B sees the named object that replaced object 4
+    let sorted = root.load().unwrap();
+    assert_eq!(sorted.custom_walk(), [(1, "A".to_string()), (2, "B".to_string())]);
+    assert_eq!(found(sorted.object_header(2, ROLE_MAIN, 0, 1, true).unwrap()).counts[2], 1, "B was read after A: object 4 is the named object, one surface");
+    assert_eq!(sorted.scene(2).unwrap().bounding_box2, chassis_bounds, "and its bounds were computed from it");
+
+    // the campaign's own walk visited B first (an unsorted directory order): B sees the table's object 4, whatever a sorted walk would have shown
+    let order = [(2, "B".to_string()), (1, "A".to_string())];
+    let walked = ModelStore::load_in_order(&root.dir, &order).unwrap();
+    assert_eq!(walked.custom_walk(), order);
+    assert_eq!(found(walked.object_header(2, ROLE_MAIN, 0, 0, true).unwrap()).counts[2], 2, "B was read first: object 4 is still the table's, two surfaces");
+    assert_eq!(walked.scene(2).unwrap().bounding_box2, table_bounds, "and its bounds were computed from it");
+    // A's own object is the named one in both orders (the first named object takes number 4 whenever it is read)
+    assert_eq!(found(walked.object_header(1, ROLE_MAIN, 0, 1, true).unwrap()).counts[2], 1);
+    // a position is the campaign's own: scene 2's file is position 1 in the sorted store and position 0 in the walked one, and is refused at the other
+    assert_eq!(sorted.object_header(2, ROLE_MAIN, 0, 0, true).unwrap(), ObjectHeader::Refused("definition_scene_differs"));
+    assert_eq!(walked.object_header(2, ROLE_MAIN, 0, 1, true).unwrap(), ObjectHeader::Refused("definition_scene_differs"));
+    // the file system's names are the identity: a walk that names a file the host lacks, names one twice or leaves one out is refused by name
+    for (what, bad) in [
+        ("a file the host lacks", vec![(2, "B".to_string()), (1, "A".to_string()), (3, "C".to_string())]),
+        ("a file named twice", vec![(2, "B".to_string()), (2, "B".to_string()), (1, "A".to_string())]),
+        ("a file left out", vec![(2, "B".to_string())]),
+        ("another scene's file", vec![(1, "B".to_string()), (2, "A".to_string())]),
+    ] {
+        let error = ModelStore::load_in_order(&root.dir, &bad).err().unwrap_or_else(|| panic!("{what}: accepted"));
+        assert_eq!(error.kind, ErrorKind::Inconsistent, "{what}: {error}");
+    }
+    assert!(sorted.has_custom_scene(2, "B") && !sorted.has_custom_scene(2, "A"));
+}
+
+/// The reference host's provider replaying the campaign's announced walk (host.model, op custom_order): the real host binary, the real store, a script that plays the campaign's
+/// announcement. The walk visits directory B before A, which a sorted walk would not.
+const ORDER_WITNESS: &str = r#"
+local function expect (condition, message) if not condition then error (message, 0) end end
+local ask = host.model
+-- the campaign announces its walk, file by file: scene, position, role (0 a file), no definition, the directory name
+expect (ask ("custom_order", 2, 0, 0, nil, "B").result == "found", "B was announced and the host has it")
+expect (ask ("custom_order", 1, 1, 0, nil, "A").result == "found", "A was announced and the host has it")
+expect (ask ("custom_order", 3, 2, 0, nil, "ZZ").result == "absent", "a directory the host does not have is absent")
+expect (ask ("custom_order", nil, 2, 1, nil, nil).result == "end", "the closing step ends the walk")
+-- scene 2's file is position 0 of this walk and was read before the named object replaced table object 4: two surfaces (counts: points faces surfaces ...)
+local b = ask ("custom_object", 2, 0, 0, 0)
+expect (b.result == "object" and b.counts [3] == 2, "B read first sees the table's object 4, got " .. tostring (b.counts and b.counts [3]))
+-- scene 1's file is position 1: the named object, one surface
+local a = ask ("custom_object", 1, 0, 0, 1)
+expect (a.result == "object" and a.counts [3] == 1, "A read second is the named object")
+-- a position belongs to one scene
+expect (ask ("custom_object", 1, 0, 0, 0).result == "refused", "position 0 is scene 2's file, not scene 1's")
+io.stdout:write ("order-witness ok\n")
+"#;
+
+#[test]
+fn the_reference_host_replays_the_campaigns_announced_walk_and_answers_by_its_positions() {
+    let root = two_directory_root();
+    let run = run_lua(&[("order-witness.lua", ORDER_WITNESS)], "order-witness.lua", &[format!("root={}", slashes(&root.dir))]);
+    assert!(run.status.success(), "{}", run.stderr);
+}
+
+#[test]
+fn a_replaced_row_keeps_the_header_field_read_object_never_assigns() {
+    // 3dobjdb.c read_object assigns the counts, bounds, radius and buffers of an object it reads into a row, and never culling_normals_offset: the first named object takes the
+    // number of the last table object, and a binary-hex override replaces a table object in place, so in both the row keeps the table's value. A row nothing was in has zero.
+    let mut with_offset = mixed_quad();
+    with_offset.culling = 7;
+    let mut other = sensitive_quad();
+    other.culling = 5;
+    let table = build_table(&[Entry::Mesh(identity_quad()), Entry::Null, Entry::Mesh(other), Entry::Mesh(with_offset)], None);
+    let root = Root::new(
+        &table,
+        &[binary_scene(1, 1, 1), binary_scene(2, 1, 0), binary_scene(3, 3, 3), binary_scene(4, 4, 4), binary_scene(5, 1, 2)],
+    );
+    let scene = compiled_scene_name(1).unwrap();
+    let mut turret = identity_quad();
+    turret.points = vec![[0, 0, 0], [7, 0, 0], [7, 8, 0], [0, 8, 0]];
+    root.write(&format!("OBJECTS/MODDIR/{scene}.ees"), &ees("Chassis"));
+    root.write("OBJECTS/MODDIR/chassis.eeo", &eeo(1, &chassis()));
+    root.write(&format!("OBJECTS/MODDIR/{}.ees", compiled_scene_name(2).unwrap()), &ees("Turret"));
+    root.write("OBJECTS/MODDIR/turret.eeo", &eeo(1, &turret));
+    // the override of table object 3
+    let mut replacement = identity_quad();
+    replacement.points = vec![[0, 0, 0], [100, 0, 0], [100, 200, 0], [0, 200, 0]];
+    root.write("OBJECTS/0003.EEO", &eeo(1, &replacement));
+    let store = root.load().unwrap();
+
+    // the table's own values, as parsed (the table scenes were read before any named object)
+    assert_eq!(found(store.object_header(4, ROLE_MAIN, 0, 0, false).unwrap()).counts[5], 7);
+    // the hex override of object 3 replaced its points and kept its offset: the independent view shows the override took, the header shows what it kept
+    assert_eq!(store.scene(3).unwrap().collision_object.unwrap().source, ObjectSource::HexOverride);
+    assert_eq!(found(store.object_header(3, ROLE_MAIN, 0, 0, false).unwrap()).counts[5], 5);
+    // the first named object (number 4) replaced the last table object in place: it keeps 7, and every other count is its own (one surface, where the table's object had two)
+    let chassis_facts = found(store.object_header(1, ROLE_MAIN, 0, 0, true).unwrap());
+    assert_eq!((chassis_facts.counts[2], chassis_facts.counts[5]), (1, 7));
+    // the second named object (number 5) is a fresh row: nothing to keep
+    assert_eq!(found(store.object_header(2, ROLE_MAIN, 0, 1, true).unwrap()).counts[5], 0);
 }
 
 #[test]
@@ -2750,8 +2859,8 @@ package.preload["eech_dc"] = function ()
 			local cursor = 0
 			while true do
 				-- the question goes through the script provider (so the change is made and counted); an engine that IGNORES the answers asks it and then keeps the reference host list
-				local reply = config.model ("animation", 1, cursor, nil, 1)
-				if host.args.ignore == "1" then reply = host.model ("animation", 1, cursor, nil, 1) end
+				local reply = config.model ("animation", 1, cursor, nil, 0)
+				if host.args.ignore == "1" then reply = host.model ("animation", 1, cursor, nil, 0) end
 				if reply.result == "end" then break end
 				if reply.result ~= "name" then error ("stand-in: unexpected animation answer " .. tostring (reply.result), 0) end
 				local id = registry [reply.animation] or 0
@@ -2864,7 +2973,7 @@ fn a_changed_host_control_is_covered_only_when_it_was_given_and_its_consequence_
     let changed = run.row("changed_control");
     assert_eq!(
         (changed["scene"].as_i64(), changed["definition"].as_i64(), changed["final_status"].as_str()),
-        (Some(1), Some(1), Some("empty"))
+        (Some(1), Some(0), Some("empty"))
     );
     assert_eq!((changed["final_count"].as_i64(), changed["consequence"].as_bool()), (Some(0), Some(true)));
     assert_eq!(

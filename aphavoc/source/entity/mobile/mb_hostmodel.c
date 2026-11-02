@@ -860,8 +860,19 @@ void campaign_model_loader_short (const char *what)
 #define ANIMATION_REFERENCES_MAX 1048576
 
 static unsigned char *object_row_filled;
+// a row that get_object REPLACED while the host had described it: read_object never assigns culling_normals_offset, so the row keeps its value, and the host's description of the new
+// object must carry the same one (checked when the new object is described)
+static unsigned char *object_row_carry;
 static int object_row_count;
 
+// The custom scene files in the order the campaign's own walk visits them (announced to the host before any is read; see mb_hostmodel.h, CUSTOM_ORDER): the scene and the name of
+// the directory that holds each, how many, whether the announcement is complete, the next one to be read and the one being read. A custom definition is named to the host by its
+// POSITION in this walk, verified against the announcement as each file is read.
+#define CUSTOM_WALK_MAX 4096
+static int custom_walk_scene[CUSTOM_WALK_MAX];
+static char custom_walk_key[CUSTOM_WALK_MAX][CAMPAIGN_MODEL_NAME_MAX + 1];
+static int custom_walk_count, custom_walk_announced, custom_walk_cursor, custom_walk_current;
+static int scene_database_reads[OBJECT_3D_LAST];
 // How many times the object loader has read each scene (the scene database's record, then every custom scene file that defines it again), and which of those reads is the current one:
 // the DEFINITION of the scene the host is asked about. Each read is answered with the facts the objects had when that definition was read, never a later one's.
 static int scene_reads[OBJECT_3D_LAST];
@@ -869,8 +880,10 @@ static int scene_definition[OBJECT_3D_LAST];
 
 #ifdef EECH_MODEL_HOST_FIXTURE
 // TEST-ONLY: what the metadata exchange did. objects_*: questions asked and how they were answered; rows_filled / rows_confirmed: first fills and agreeing refills of a row;
+// rows_replaced: filled rows that a new object number took over (so the rows holding a description now are rows_filled - rows_replaced);
 // animation_*: reference questions asked and the names they carried; animation_ends: lists that ended.
-static long meta_objects_asked, meta_objects_found, meta_objects_absent, meta_rows_filled, meta_rows_confirmed, meta_animation_asked, meta_animation_names, meta_animation_ends;
+static long meta_objects_asked, meta_objects_found, meta_objects_absent, meta_rows_filled, meta_rows_confirmed, meta_rows_replaced, meta_animation_asked, meta_animation_names,
+	meta_animation_ends;
 #endif
 
 static const char *role_name (int role)
@@ -947,6 +960,15 @@ int campaign_model_object_table (int custom_room)
 		safe_free (object_row_filled);
 	}
 
+	if (object_row_carry)
+	{
+		safe_free (object_row_carry);
+	}
+
+	object_row_carry = (unsigned char *) safe_malloc ((size_t) rows);
+
+	memset (object_row_carry, 0, (size_t) rows);
+
 	object_row_filled = (unsigned char *) safe_malloc ((size_t) rows);
 
 	memset (object_row_filled, 0, (size_t) rows);
@@ -955,6 +977,12 @@ int campaign_model_object_table (int custom_room)
 
 	memset (scene_reads, 0, sizeof (scene_reads));
 	memset (scene_definition, 0, sizeof (scene_definition));
+	memset (scene_database_reads, 0, sizeof (scene_database_reads));
+
+	custom_walk_count = 0;
+	custom_walk_announced = FALSE;
+	custom_walk_cursor = 0;
+	custom_walk_current = -1;
 
 	return reply.object_count;
 }
@@ -1053,6 +1081,17 @@ static void fill_object (int scene, int custom, int definition, int role, int cu
 		return;
 	}
 
+	if (object_row_carry[id])
+	{
+		// the row was replaced by a new number and still holds the one field read_object does not assign: the host's description of the new object must carry the same value
+		if (row->culling_normals_offset != (unsigned short) reply.object_counts[5])
+		{
+			debug_fatal ("host model: [model-provider:object.carry] object %d replaced a described row and kept its culling normals offset %d, but the host describes the %s (cursor %d) of scene %d with %d", id, (int) row->culling_normals_offset, role_name (role), cursor, scene, reply.object_counts[5]);
+		}
+
+		object_row_carry[id] = FALSE;
+	}
+
 	row->number_of_points = (unsigned short) reply.object_counts[0];
 	row->number_of_faces = (unsigned short) reply.object_counts[1];
 	row->number_of_surfaces = (unsigned short) reply.object_counts[2];
@@ -1099,10 +1138,26 @@ void campaign_model_scene_objects (int scene_index, int custom)
 
 	custom = (custom != 0);
 
-	// this is the scene's n-th read: the host answers with the definition it read n-th, and the animation references of this read are of the same definition
-	definition = scene_reads[scene_index]++;
-	scene_definition[scene_index] = definition;
+	// The definition this read is, in terms the host can check: a custom scene file is the one at this POSITION of the campaign's announced walk (verified when the file was
+	// opened); a record of the scene database is the scene's n-th such record. The animation references of this read are of the same definition.
+	if (custom)
+	{
+		if ((custom_walk_current < 0) || (custom_walk_scene[custom_walk_current] != scene_index))
+		{
+			debug_fatal ("host model: [model-provider:order.walk] the custom scene %d was read without the announced walk reaching it (position %d)", scene_index, custom_walk_current);
+		}
 
+		definition = custom_walk_current;
+
+		custom_walk_current = -1;
+	}
+	else
+	{
+		definition = scene_database_reads[scene_index]++;
+	}
+
+	scene_reads[scene_index]++;
+	scene_definition[scene_index] = definition;
 	fill_object (scene_index, custom, definition, CAMPAIGN_MODEL_ROLE_MAIN, 0, scene->index);
 
 	for (i = 0; i < scene->number_of_approximations; i++)
@@ -1121,17 +1176,133 @@ void campaign_model_scene_objects (int scene_index, int custom)
 
 }
 
+// ---- the campaign's walk of the custom scene files (EEDCS-50, D3, L2). The original visits OBJECTS/<directory>/<SCENE NAME>.EES with _findfirst / _findnext, which is the file
+// system's own order and not a sorted one, and what a custom definition sees depends on it. The campaign therefore ANNOUNCES its walk to the host, file by file, before it reads
+// any (campaign_model_custom_order, once per file, then campaign_model_custom_order_end), and then names each definition it reads by its position in that walk
+// (campaign_model_custom_reading, called as each file is opened, checks that the file read is the one announced at that position).
+
+static void ask_order (int position, int scene, int end, const char *directory, campaign_model_reply *reply)
+{
+	campaign_model_request
+		request;
+
+	size_t
+		length = directory ? strlen (directory) : 0;
+
+	if ((!end) && ((length == 0) || (length > CAMPAIGN_MODEL_NAME_MAX)))
+	{
+		debug_fatal ("host model: [model-provider:order.walk] the custom scene directory name \"%.60s\" is not 1 to %d bytes", directory ? directory : "", (int) CAMPAIGN_MODEL_NAME_MAX);
+	}
+
+	memset (&request, 0, sizeof (request));
+	request.op = CAMPAIGN_MODEL_CUSTOM_ORDER;
+	request.scene = scene;
+	request.depth = position;
+	request.role = end ? 1 : 0;
+
+	if (!end)
+	{
+		memcpy (request.key, directory, length);
+	}
+
+	ask (&request, reply, "custom walk");
+}
+
+void campaign_model_custom_order (int scene, int position, const char *directory)
+{
+	campaign_model_reply
+		reply;
+
+	if ((!object_row_filled) || (position != custom_walk_count) || (position >= CUSTOM_WALK_MAX) || (scene <= OBJECT_3D_INVALID_OBJECT_INDEX) || (scene >= OBJECT_3D_LAST))
+	{
+		debug_fatal ("host model: [model-provider:order.walk] the walk announcement step %d (scene %d) is not the next of %d, or is outside the walk's %d files", position, scene, custom_walk_count, CUSTOM_WALK_MAX);
+	}
+
+	ask_order (position, scene, FALSE, directory, &reply);
+
+	if (reply.result == CAMPAIGN_MODEL_TRIANGLE_ABSENT)
+	{
+		debug_fatal ("host model: [model-provider:order.absent] the host has no custom scene file of scene %d in the directory \"%.60s\" that the campaign's walk visits", scene, directory);
+	}
+
+	if (reply.result != CAMPAIGN_MODEL_TRIANGLE_FOUND)
+	{
+		debug_fatal ("host model: [model-provider:order.answer] the host's result for walk step %d is %d", position, reply.result);
+	}
+
+	custom_walk_scene[position] = scene;
+
+	strcpy (custom_walk_key[position], directory);
+
+	custom_walk_count++;
+}
+
+void campaign_model_custom_order_end (int count)
+{
+	campaign_model_reply
+		reply;
+
+	if ((!object_row_filled) || (count != custom_walk_count))
+	{
+		debug_fatal ("host model: [model-provider:order.walk] the walk announcement ends with %d files but %d were announced", count, custom_walk_count);
+	}
+
+	ask_order (count, 0, TRUE, NULL, &reply);
+
+	if (reply.result != CAMPAIGN_MODEL_TRIANGLE_END)
+	{
+		debug_fatal ("host model: [model-provider:order.answer] the host's result for the end of the walk is %d", reply.result);
+	}
+
+	custom_walk_announced = TRUE;
+	custom_walk_cursor = 0;
+	custom_walk_current = -1;
+}
+
+void campaign_model_custom_reading (int scene, const char *directory)
+{
+	if ((!custom_walk_announced) || (custom_walk_cursor >= custom_walk_count) || (scene != custom_walk_scene[custom_walk_cursor]) || (strcmp (directory, custom_walk_key[custom_walk_cursor]) != 0))
+	{
+		debug_fatal ("host model: [model-provider:order.walk] the campaign opened the custom scene file of scene %d in the directory \"%.60s\", which is not the next of its announced walk (position %d of %d)", scene, directory, custom_walk_cursor, custom_walk_count);
+	}
+
+	custom_walk_current = custom_walk_cursor++;
+}
+
 // A NEW object number is being allocated by get_object (the campaign's own allocation, history and sharing are unchanged). The original opened the object's file into this row at
 // this moment, REPLACING whatever the row held: for the first named object, the last common object, which earlier scene reads had already taken their bounds from. The same
 // replacement is made here: the row is cleared and unfilled, and the host describes it when the scene that names the object has been read.
 void campaign_model_object_reset (int object_number)
 {
+	struct OBJECT_3D
+		*row;
+
 	if ((!object_row_filled) || (!objects_3d_data) || (object_number < 1) || (object_number > object_row_count))
 	{
 		debug_fatal ("host model: [model-provider:object.range] the campaign allocated object %d, outside its table of %d objects", object_number, object_row_count);
 	}
 
-	memset (&objects_3d_data[object_number], 0, sizeof (objects_3d_data[object_number]));
+	// what read_object assigns is cleared (and described again by the host); what it never assigns, culling_normals_offset, stays as the row had it, and a row the host had described
+	// is remembered so that the new description can be checked against it. The buffers are NULL in every row.
+	row = &objects_3d_data[object_number];
+
+	if (object_row_filled[object_number])
+	{
+		object_row_carry[object_number] = TRUE;
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+		meta_rows_replaced++;
+#endif
+	}
+
+	row->number_of_points = 0;
+	row->number_of_faces = 0;
+	row->number_of_surfaces = 0;
+	row->number_of_point_normals = 0;
+	row->number_of_lighting_normals = 0;
+	row->radius = 0;
+	memset (&row->bounding_box, 0, sizeof (row->bounding_box));
+	memset (&row->bounding_box2, 0, sizeof (row->bounding_box2));
 
 	object_row_filled[object_number] = FALSE;
 }
@@ -1232,8 +1403,8 @@ int campaign_model_animation_reference (int scene_index, int index)
 }
 
 #ifdef EECH_MODEL_HOST_FIXTURE
-// TEST-ONLY (the model-host-fixture counters entry): the metadata exchange as integer counts. values: objects asked, found, absent; rows filled, rows confirmed; animation questions,
-// names carried, lists ended.
+// TEST-ONLY (the model-host-fixture counters entry): the metadata exchange as integer counts. values: objects asked, found, absent; rows filled, rows confirmed, rows replaced; animation
+// questions, names carried, lists ended.
 void campaign_model_core_metadata (long *values)
 {
 	values[0] = meta_objects_asked;
@@ -1241,9 +1412,10 @@ void campaign_model_core_metadata (long *values)
 	values[2] = meta_objects_absent;
 	values[3] = meta_rows_filled;
 	values[4] = meta_rows_confirmed;
-	values[5] = meta_animation_asked;
-	values[6] = meta_animation_names;
-	values[7] = meta_animation_ends;
+	values[5] = meta_rows_replaced;
+	values[6] = meta_animation_asked;
+	values[7] = meta_animation_names;
+	values[8] = meta_animation_ends;
 }
 #endif
 

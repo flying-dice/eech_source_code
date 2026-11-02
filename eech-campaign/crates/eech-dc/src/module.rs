@@ -2,7 +2,7 @@
 
 use eech_engine::{
     AimEvent, AimReply, AimRequest, AimStepKind, AimTarget, AimWeapon, AimWorld, ArrivalAnswer, Engine, EngineConfig, EngineError, Gunship,
-    HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor, MemberDescriptor, ModelAnimation, ModelAnswer, ModelObject,
+    HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor, MemberDescriptor, ModelAnimation, ModelAnswer, ModelObject, ModelOrder,
     ModelObjectFacts, ModelProvider, ModelQuery, ModelRouteFace, ModelRouteNode, ModelScene, ModelTriangle, MovementMode, MovementResult, MovementStep,
     ObjectReport, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side, SupplyReachDescriptor, TerrainAnswer, TerrainMapFacts, TerrainProvider,
     TerrainQuery, TerrainRecord, VehiclePose, WeaponFigures,
@@ -2775,9 +2775,18 @@ local function ranged(v, max)
 	return format('%d', v)
 end
 
-return function(op, scene, depth, kind, definition)
-	local a = provider(op, scene, depth, kind, definition)
+return function(op, scene, depth, kind, definition, key)
+	local a = provider(op, scene, depth, kind, definition, key)
 	if type(a) ~= 'table' then return nil, 'the provider returned ' .. type(a) .. ' instead of a table' end
+	if op == 'custom_order' then
+		local result = a.result
+		if result == 'found' or result == 'absent' or result == 'end' then return result end
+		if result == 'refused' then
+			local reason = a.reason
+			return 'refused', type(reason) == 'string' and reason:sub(1, 200) or ''
+		end
+		return nil, 'result must be found, absent, end or refused'
+	end
 	if op == 'object_table' then
 		if a.result ~= 'table' then return nil, 'result must be table' end
 		local objects = ranged(a.objects, 2147483647)
@@ -2931,13 +2940,13 @@ fn bridged_float(pair: &str, what: &str, operation: &str) -> Result<f32, String>
 }
 
 fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, String> {
-    let (operation, scene, depth, kind, definition) = match query {
-        ModelQuery::Catalogue => ("catalogue", None, None, None, None),
-        ModelQuery::Scene { scene } => ("scene", Some(scene), None, None, None),
-        ModelQuery::Triangle { scene, depth } => ("triangle", Some(scene), Some(depth), None, None),
-        ModelQuery::RouteNode { scene, kind, index } => ("route_node", Some(scene), Some(index), Some(kind), None),
-        ModelQuery::RouteFace { scene, kind, index } => ("route_face", Some(scene), Some(index), Some(kind), None),
-        ModelQuery::ObjectTable => ("object_table", None, None, None, None),
+    let (operation, scene, depth, kind, definition, key) = match query.clone() {
+        ModelQuery::Catalogue => ("catalogue", None, None, None, None, None),
+        ModelQuery::Scene { scene } => ("scene", Some(scene), None, None, None, None),
+        ModelQuery::Triangle { scene, depth } => ("triangle", Some(scene), Some(depth), None, None, None),
+        ModelQuery::RouteNode { scene, kind, index } => ("route_node", Some(scene), Some(index), Some(kind), None, None),
+        ModelQuery::RouteFace { scene, kind, index } => ("route_face", Some(scene), Some(index), Some(kind), None, None),
+        ModelQuery::ObjectTable => ("object_table", None, None, None, None, None),
         // the fourth place carries the role the object has in the scene
         ModelQuery::Object {
             scene,
@@ -2951,8 +2960,11 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
             Some(cursor),
             Some(role),
             Some(definition),
+            None,
         ),
-        ModelQuery::Animation { scene, index, definition } => ("animation", Some(scene), Some(index), None, Some(definition)),
+        ModelQuery::Animation { scene, index, definition } => ("animation", Some(scene), Some(index), None, Some(definition), None),
+        // the announcement of the order of the custom scene files: the role place says whether this step ends it
+        ModelQuery::CustomOrder { scene, position, end, key } => ("custom_order", Some(scene), Some(position), Some(i32::from(end)), None, Some(key)),
     };
     type Reply = (
         Option<String>,
@@ -2965,7 +2977,7 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
         Option<String>,
     );
     let (tag, a, b, c, d, e, f, g): Reply = bridge
-        .call((operation, scene, depth, kind, definition))
+        .call((operation, scene, depth, kind, definition, key))
         .map_err(|error| format!("[model-provider:{operation}.callback] {error}"))?;
     let Some(tag) = tag else {
         return Err(format!(
@@ -3047,6 +3059,13 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
             kind_name: g.ok_or_else(missing)?,
             step: ModelRouteFace::Absent,
         }),
+        (ModelQuery::CustomOrder { .. }, "found") => Ok(ModelAnswer::CustomOrder(ModelOrder::Accepted)),
+        (ModelQuery::CustomOrder { .. }, "absent") => Ok(ModelAnswer::CustomOrder(ModelOrder::Absent)),
+        (ModelQuery::CustomOrder { .. }, "end") => Ok(ModelAnswer::CustomOrder(ModelOrder::End)),
+        (ModelQuery::CustomOrder { scene, position, key, .. }, "refused") => Err(format!(
+            "[model-provider:custom_order.refused] the host cannot take the walk announcement (scene {scene}, position {position}, directory {key:?}): {}",
+            a.unwrap_or_default()
+        )),
         (ModelQuery::ObjectTable, "object_table") => {
             let count = |text: Option<String>, what: &str| -> Result<i32, String> {
                 text.ok_or_else(missing)?
@@ -4064,6 +4083,29 @@ mod tests {
     }
 
     #[test]
+    fn the_campaigns_walk_announcement_reaches_the_provider_with_its_directory_and_its_answers_come_back() -> Test {
+        let lua = Lua::new();
+        // the sixth argument is the directory name; the kind place says whether the step is the closing one
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene, depth, kind, definition, key)
+               if op ~= 'custom_order' then return { result = 'refused', reason = 'no' } end
+               if kind == 1 then return { result = 'end' } end
+               if key == 'MODDIR' and scene == 7 and depth == 2 then return { result = 'found' } end
+               if key == 'GONE' then return { result = 'absent' } end
+               return { result = 'refused', reason = 'unexpected ' .. tostring (key) }
+             end",
+        )?;
+        let step = |scene: i32, position: i32, end: bool, key: &str| ModelQuery::CustomOrder { scene, position, end, key: key.to_string() };
+        assert_eq!(ask(&mut provider, step(7, 2, false, "MODDIR"))?, ModelAnswer::CustomOrder(ModelOrder::Accepted));
+        assert_eq!(ask(&mut provider, step(7, 3, false, "GONE"))?, ModelAnswer::CustomOrder(ModelOrder::Absent));
+        assert_eq!(ask(&mut provider, step(0, 4, true, ""))?, ModelAnswer::CustomOrder(ModelOrder::End));
+        let refused = ask(&mut provider, step(7, 0, false, "OTHER")).err().ok_or("accepted")?;
+        assert!(refused.contains("[model-provider:custom_order.refused]") && refused.contains("OTHER"), "{refused}");
+        Ok(())
+    }
+
+    #[test]
     fn an_object_or_animation_answer_that_is_malformed_numeric_or_refused_stops_with_its_marker() -> Test {
         let lua = Lua::new();
         // each answer is chosen by the cursor: an animation given as an index, a name with a NUL, an empty name, a count out of range, five counts, a missing radius, a refusal
@@ -4306,30 +4348,30 @@ mod tests {
              end",
         )?;
         let query = ModelQuery::Triangle { scene: 7, depth: 3 };
-        assert_eq!(ask(&mut provider, query)?, ModelAnswer::Triangle(ModelTriangle::End));
-        assert_eq!(ask(&mut provider, query)?, ModelAnswer::Triangle(ModelTriangle::Absent));
-        let refused = ask(&mut provider, query).err().ok_or("accepted")?;
+        assert_eq!(ask(&mut provider, query.clone())?, ModelAnswer::Triangle(ModelTriangle::End));
+        assert_eq!(ask(&mut provider, query.clone())?, ModelAnswer::Triangle(ModelTriangle::Absent));
+        let refused = ask(&mut provider, query.clone()).err().ok_or("accepted")?;
         assert!(
             refused.contains("[model-provider:triangle.refused]") && refused.contains("scene 7 depth 3") && refused.contains("no such model"),
             "{refused}"
         );
         for _ in 0..3 {
-            let error = ask(&mut provider, query).err().ok_or("accepted")?;
+            let error = ask(&mut provider, query.clone()).err().ok_or("accepted")?;
             assert!(error.contains("[model-provider:triangle.answer]"), "{error}");
         }
         for _ in 0..2 {
-            let error = ask(&mut provider, query).err().ok_or("accepted")?;
+            let error = ask(&mut provider, query.clone()).err().ok_or("accepted")?;
             assert!(
                 error.contains("[model-provider:triangle.answer]") && error.contains("instead of a table"),
                 "{error}"
             );
         }
-        let error = ask(&mut provider, query).err().ok_or("accepted")?;
+        let error = ask(&mut provider, query.clone()).err().ok_or("accepted")?;
         assert!(
             error.contains("[model-provider:triangle.callback]") && error.contains("the host fell over"),
             "{error}"
         );
-        let error = ask(&mut provider, query).err().ok_or("accepted")?;
+        let error = ask(&mut provider, query.clone()).err().ok_or("accepted")?;
         assert!(
             error.contains("[model-provider:triangle.answer]") && error.contains("instead of a table"),
             "{error}"

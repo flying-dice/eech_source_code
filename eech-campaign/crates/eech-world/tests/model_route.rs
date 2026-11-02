@@ -434,10 +434,10 @@ fn an_objects_header_facts_are_the_files_true_values_by_the_role_it_has_in_the_s
     assert!(matches!(store.object_header(0, ROLE_MAIN, 0, 0, false), Err(QueryError::BadScene(0))));
     assert!(matches!(store.object_header(1, 9, 0, 0, false), Err(QueryError::BadRole(9))));
     assert!(matches!(store.object_header(1, ROLE_MAIN, -1, 0, false), Err(QueryError::BadDepth(-1))));
-    // no custom scene file defines scene 1 here: the database record is not offered as one (the campaign's read and the host's definition must be of the same kind)
+    // no custom scene file was walked here: position 0 is not a definition, and the database record is not offered as one
     assert_eq!(
         store.object_header(1, ROLE_MAIN, 0, 0, true).unwrap(),
-        ObjectHeader::Refused("definition_kind_differs")
+        ObjectHeader::Refused("definition_outside")
     );
 }
 
@@ -447,7 +447,7 @@ fn the_object_count_is_the_files_and_a_table_scene_has_no_animation_references()
     // a count of what the files hold; the room the campaign keeps for custom objects is its own policy and is not part of the answer
     assert_eq!(store.common_objects(), 3);
     // a scene of the binary database keeps its animation list in its own record: the host has none to give; a scene the files never described neither
-    assert_eq!(store.animation_ref(1, 0, 0).unwrap(), AnimationRef::Absent);
+    assert_eq!(store.animation_ref(1, 0, 0).unwrap(), AnimationRef::Refused("definition_outside"));
     assert_eq!(store.animation_ref(3, 0, 0).unwrap(), AnimationRef::Refused("definition_outside"));
     assert!(matches!(store.animation_ref(1, -1, 0), Err(QueryError::BadDepth(-1))));
 }

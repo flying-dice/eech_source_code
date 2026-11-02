@@ -9,7 +9,7 @@
 //! No pointer, offset or legacy layout reaches Lua; the store is immutable and shared (`Arc`), so a value a script keeps never refers into it. Arguments are whole
 //! numbers within range or the call is refused before the store is touched. A missing asset is reported as `NOT RUN`, never as a pass.
 use crate::models::{
-    compiled_scene_name, hex_list, scene_last, AnimationRef, ErrorKind, ModelStore, ObjectHeader, ObjectSource, RouteFace, RouteNode, SceneSource, Triangle,
+    compiled_scene_name, hex_list, scene_last, AnimationRef, CustomWalk, ErrorKind, ModelStore, ObjectHeader, ObjectSource, RouteFace, RouteNode, SceneSource, Triangle,
 };
 use crate::original_report;
 use mlua::prelude::*;
@@ -439,18 +439,67 @@ local function whole(v, name, op)
 		error('[model-provider:' .. tostring(op) .. '.request] ' .. name .. ' must be a whole number', 0)
 	end
 end
-return function(op, scene, depth, kind, definition)
+local function text(v, name, op)
+	if v ~= nil and type(v) ~= 'string' then
+		error('[model-provider:' .. tostring(op) .. '.request] ' .. name .. ' must be text', 0)
+	end
+end
+return function(op, scene, depth, kind, definition, key)
 	whole(scene, 'scene', op)
 	whole(depth, 'depth', op)
 	whole(kind, 'kind', op)
 	whole(definition, 'definition', op)
-	return inner(op, scene, depth, kind, definition)
+	text(key, 'key', op)
+	return inner(op, scene, depth, kind, definition, key)
 end
 "#;
 
 fn strict(lua: &Lua, inner: LuaFunction) -> LuaResult<LuaFunction> {
     let build: LuaFunction = lua.load(STRICT_REQUEST).set_name("eech model request check").into_function()?;
     build.call(inner)
+}
+
+/// The campaign's announcement of the order in which it walks the custom scene files (mb_hostmodel.h, CUSTOM_ORDER): one file per step (`role` 0: the scene, the position and the
+/// upper-cased name of the directory that holds it), then a closing step (`role` 1). A file the host does not have is `absent`; the closing step returns the whole walk. Steps
+/// must come one after another from position 0.
+fn custom_order(
+    lua: &Lua,
+    store: &ModelStore,
+    announced: &RefCell<CustomWalk>,
+    scene: Option<i64>,
+    position: Option<i64>,
+    role: Option<i64>,
+    key: Option<String>,
+) -> LuaResult<(LuaTable, Option<CustomWalk>)> {
+    let fail = |message: String| LuaError::runtime(format!("[model-provider:custom_order.request] {message}"));
+    let position = position.ok_or_else(|| fail("a walk announcement step needs a position (the depth argument)".into()))?;
+    let role = role.ok_or_else(|| fail("a walk announcement step says whether it ends the walk (the kind argument: 0 a file, 1 the end)".into()))?;
+    let mut list = announced.borrow_mut();
+    if position != list.len() as i64 {
+        return Err(fail(format!("step {position} came when step {} was next", list.len())));
+    }
+    let table = lua.create_table()?;
+    match role {
+        0 => {
+            let scene = scene.ok_or_else(|| fail("a walk step needs a scene".into()))?;
+            if scene < 1 || scene >= scene_last() as i64 {
+                return Err(fail(format!("scene {scene} is outside 1 to {}", scene_last() - 1)));
+            }
+            let key = key.filter(|k| !k.is_empty()).ok_or_else(|| fail("a walk step needs the name of the directory (the key argument)".into()))?.to_ascii_uppercase();
+            if store.has_custom_scene(scene as usize, &key) {
+                list.push((scene as usize, key));
+                table.set("result", "found")?;
+            } else {
+                table.set("result", "absent")?;
+            }
+            Ok((table, None))
+        }
+        1 => {
+            table.set("result", "end")?;
+            Ok((table, Some(std::mem::take(&mut *list))))
+        }
+        other => Err(fail(format!("a walk step is 0 (a file) or 1 (the end), got {other}"))),
+    }
 }
 
 pub fn register(lua: &Lua, host: &LuaTable) -> LuaResult<()> {
@@ -463,8 +512,17 @@ pub fn register(lua: &Lua, host: &LuaTable) -> LuaResult<()> {
     // model assets refuses the boot with `NOT RUN: model assets absent`, never an empty database.
     let args: LuaTable = host.get("args")?;
     let shared: Rc<RefCell<Option<Arc<ModelStore>>>> = Rc::new(RefCell::new(None));
+    let announced: Rc<RefCell<CustomWalk>> = Rc::new(RefCell::new(Vec::new()));
     let lazy = lua.create_function(
-        move |lua, (operation, scene, depth, kind, definition): (String, Option<LuaValue>, Option<LuaValue>, Option<LuaValue>, Option<LuaValue>)| {
+        move |lua,
+              (operation, scene, depth, kind, definition, key): (
+            String,
+            Option<LuaValue>,
+            Option<LuaValue>,
+            Option<LuaValue>,
+            Option<LuaValue>,
+            Option<String>,
+        )| {
             let store = {
                 let mut slot = shared.borrow_mut();
                 if slot.is_none() {
@@ -479,6 +537,21 @@ pub fn register(lua: &Lua, host: &LuaTable) -> LuaResult<()> {
             let depth = provider_number(depth, "depth", &operation)?;
             let kind = provider_number(kind, "kind", &operation)?;
             let definition = provider_number(definition, "definition", &operation)?;
+            if operation == "custom_order" {
+                // the campaign walks the custom scene files in the file system's order; once it has announced the whole walk the host replays its definitions in that order
+                let (table, finished) = custom_order(lua, &store, &announced, scene, depth, kind, key)?;
+                if let Some(order) = finished {
+                    if order.as_slice() != store.custom_walk() {
+                        let root: String = args
+                            .get::<Option<String>>("root")?
+                            .ok_or_else(|| LuaError::runtime("[model-provider:load] host.model needs root=<installation root> in the host arguments"))?;
+                        let reloaded = ModelStore::load_in_order(Path::new(&root), &order)
+                            .map_err(|e| LuaError::runtime(format!("[model-provider:custom_order.refused] the campaign's walk cannot be replayed: {e}")))?;
+                        *shared.borrow_mut() = Some(Arc::new(reloaded));
+                    }
+                }
+                return Ok(table);
+            }
             model_answer(lua, &store, &operation, scene, depth, kind, definition)
         },
     )?;
@@ -490,12 +563,33 @@ pub fn register(lua: &Lua, host: &LuaTable) -> LuaResult<()> {
         lua.create_function(|lua, store: LuaAnyUserData| {
             let handle = store.borrow::<StoreHandle>()?;
             let store = handle.0.clone();
+            let announced: Rc<RefCell<CustomWalk>> = Rc::new(RefCell::new(Vec::new()));
             let inner = lua.create_function(
-                move |lua, (operation, scene, depth, kind, definition): (String, Option<LuaValue>, Option<LuaValue>, Option<LuaValue>, Option<LuaValue>)| {
+                move |lua,
+                      (operation, scene, depth, kind, definition, key): (
+                    String,
+                    Option<LuaValue>,
+                    Option<LuaValue>,
+                    Option<LuaValue>,
+                    Option<LuaValue>,
+                    Option<String>,
+                )| {
                     let scene = provider_number(scene, "scene", &operation)?;
                     let depth = provider_number(depth, "depth", &operation)?;
                     let kind = provider_number(kind, "kind", &operation)?;
                     let definition = provider_number(definition, "definition", &operation)?;
+                    if operation == "custom_order" {
+                        // this provider's store is fixed: it can take the announcement only if the walk is the one it was loaded in
+                        let (table, finished) = custom_order(lua, &store, &announced, scene, depth, kind, key)?;
+                        if let Some(order) = finished {
+                            if order.as_slice() != store.custom_walk() {
+                                return Err(LuaError::runtime(
+                                    "[model-provider:custom_order.refused] this provider's store was loaded in a different order than the campaign's walk and cannot be reloaded",
+                                ));
+                            }
+                        }
+                        return Ok(table);
+                    }
                     model_answer(lua, &store, &operation, scene, depth, kind, definition)
                 },
             )?;

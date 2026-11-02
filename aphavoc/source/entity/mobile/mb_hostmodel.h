@@ -44,6 +44,14 @@
  *              the radius; both bounding boxes) or ABSENT (the host's files name no object in that role). A refusal is an error of the provider. The campaign fills its private
  *              CUSTOM_OBJECT is the same question about the scene a custom scene file defines (the campaign reads the database's record of a scene, and later the custom file that
  *              replaces it, and each definition names its own objects); OBJECT is always about the database's record. The campaign fills its private
+ *              CUSTOM_ORDER: the campaign walks the custom scene files (OBJECTS/<directory>/<SCENE NAME>.EES) in the file system's own order, which is not sorted, and what a custom
+ *              definition sees depends on that order (the number the first named object takes and the table object it replaces, the history of named objects of its directory, which
+ *              definition of a scene is read last). Before it reads any of them it ANNOUNCES the walk: for each file in order, `scene` (the EECH scene index), `depth` (the
+ *              position, from 0, one after another) and `key` (the directory name); the host answers FOUND if it has that file and ABSENT if not (a refusal that stops the engine).
+ *              A final request with `role` 1 and `depth` the number of files ends the announcement; the host answers END and, if its own order differs, replays its definitions
+ *              in the campaign's. CUSTOM_OBJECT and ANIMATION then name a custom definition by its POSITION in that walk (`definition`), which the campaign verifies against the
+ *              announcement as it reads each file. Positions are the campaign's own ordinals of its walk; no object number or layout crosses.
+ *              The campaign fills its private
  *              rows from FOUND answers before anything reads them; an object two references name differently, or a name the host has no object for, stops the engine.
  *              ANIMATION: for an .EES scene, the ordered animated-surface references of its objects in the order the original's add_animation_object visits them. FOUND
  *              carries `animation_name`, the LOGICAL name of the texture animation (never a file's animation index: the host resolves the file's own numbering to the name); END
@@ -92,7 +100,8 @@ enum campaign_model_op
 	CAMPAIGN_MODEL_OBJECT_TABLE,
 	CAMPAIGN_MODEL_OBJECT,
 	CAMPAIGN_MODEL_ANIMATION,
-	CAMPAIGN_MODEL_CUSTOM_OBJECT
+	CAMPAIGN_MODEL_CUSTOM_OBJECT,
+	CAMPAIGN_MODEL_CUSTOM_ORDER
 };
 
 enum campaign_model_object_role
@@ -125,9 +134,11 @@ typedef struct campaign_model_request
 	int kind;
 	/* OBJECT: the role the object has in `scene` (campaign_model_object_role); `depth` is the approximation or sub-object cursor. ANIMATION: `depth` is the reference cursor */
 	int role;
-	/* OBJECT, CUSTOM_OBJECT and ANIMATION: which DEFINITION of the scene is meant: the campaign reads a scene once for every definition the files give it (the record of the scene
-	   database, then each custom scene file that defines it again), and `definition` counts those reads from 0, in the order the campaign makes them */
+	/* Which DEFINITION of the scene is meant. OBJECT: the scene's n-th record of the scene database (n from 0). CUSTOM_OBJECT and ANIMATION: the POSITION, from 0, of the custom
+	   scene file in the walk the campaign announced with CUSTOM_ORDER, which it verifies against the file it opens */
 	int definition;
+	/* CUSTOM_ORDER: the name of the directory under OBJECTS that holds the custom scene file (NUL-terminated) */
+	char key[CAMPAIGN_MODEL_NAME_MAX + 1];
 } campaign_model_request;
 
 typedef struct campaign_model_reply

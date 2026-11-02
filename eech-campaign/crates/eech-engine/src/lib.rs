@@ -1018,7 +1018,7 @@ pub fn under_round_toward_zero<R>(f: impl FnOnce() -> R) -> (R, bool) {
 
 /// One question the campaign asks of the host's physical models (aphavoc/.../mb_hostmodel.h). No EECH pointer, offset or layout is in it: a scene is the EECH scene index,
 /// a plain integer that the host and the campaign both derive from the same data, and a depth is the caller's running triangle index.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ModelQuery {
     /// how many scene indices the host's models cover (asked once, at boot)
     Catalogue,
@@ -1034,8 +1034,8 @@ pub enum ModelQuery {
     ObjectTable,
     /// the header facts of the object `scene` has in `role` (0 main, 1 approximation, 2 shadow polygon object, 3 collision object, 4 sub-object); `cursor` names the approximation
     /// or the sub-object. The campaign never sends its own object number. `custom` says which definition of the scene is meant: the database's record, or the scene a custom
-    /// scene file defines. `definition` counts the campaign's reads of the scene from 0, in the order it makes them (the scene database's record, then each custom scene file that
-    /// defines the scene again), so an earlier read is answered with the facts of ITS definition and never with a later one's.
+    /// scene file defines. `definition` is the n-th record of the scene database (`custom` false), or the position of the custom scene file in the walk the campaign announced
+    /// (`custom` true; see `CustomOrder`), so every read is answered with the facts of ITS definition and never with another one's.
     Object {
         scene: i32,
         role: i32,
@@ -1045,6 +1045,9 @@ pub enum ModelQuery {
     },
     /// one step of an .EES scene's ordered animated-surface references (the order the original's `add_animation_object` visits the scene's objects)
     Animation { scene: i32, index: i32, definition: i32 },
+    /// one step of the campaign's ANNOUNCEMENT of the order in which it walks the custom scene files: file number `position` is the scene `scene`'s file in the directory named
+    /// `key`; or (`end`) the walk is over and has `position` files. The campaign's definitions are then named by their position in that walk.
+    CustomOrder { scene: i32, position: i32, end: bool, key: String },
 }
 
 /// One scene as the host answers it, in public terms only: the scene's compiled `name` (the echo that host and campaign mean the same scene by the same index; empty for the
@@ -1117,6 +1120,14 @@ pub enum ModelAnimation {
     Absent,
 }
 
+/// The host's answer to a step of the campaign's walk announcement: it has that file, it has none, or (to the closing step) the announcement is accepted.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ModelOrder {
+    Accepted,
+    Absent,
+    End,
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum ModelAnswer {
     Catalogue {
@@ -1145,6 +1156,7 @@ pub enum ModelAnswer {
         scene_name: String,
         step: ModelAnimation,
     },
+    CustomOrder(ModelOrder),
 }
 
 /// The host's model provider. It is installed once, at boot, and is the only source of the campaign's collision-model answers: the campaign no longer compiles the code that
@@ -1232,6 +1244,23 @@ unsafe extern "C" fn model_callback(
                     definition: source.definition,
                 },
             ),
+            sys::EECH_MODEL_CUSTOM_ORDER => {
+                // the directory name: NUL-terminated within the field, valid text
+                let Some(length) = source.key.iter().position(|c| *c == 0) else {
+                    return Err("[model-provider:custom_order.request] the directory name is not NUL-terminated".to_string());
+                };
+                let bytes: Vec<u8> = source.key[..length].iter().map(|c| *c as u8).collect();
+                let key = String::from_utf8(bytes).map_err(|_| "[model-provider:custom_order.request] the directory name is not text".to_string())?;
+                (
+                    "custom_order",
+                    ModelQuery::CustomOrder {
+                        scene: source.scene,
+                        position: source.depth,
+                        end: source.role == 1,
+                        key,
+                    },
+                )
+            }
             other => return Err(format!("[model-provider:callback] the model callback received unknown operation {other}")),
         };
         let answer = MODEL.with(|slot| -> Result<ModelAnswer, String> {
@@ -1301,6 +1330,13 @@ unsafe extern "C" fn model_callback(
                 }
             }
             ("object_table", ModelAnswer::ObjectTable { objects }) => reply.object_count = objects,
+            ("custom_order", ModelAnswer::CustomOrder(step)) => {
+                reply.result = match step {
+                    ModelOrder::Accepted => sys::EECH_MODEL_TRIANGLE_FOUND,
+                    ModelOrder::Absent => sys::EECH_MODEL_TRIANGLE_ABSENT,
+                    ModelOrder::End => sys::EECH_MODEL_TRIANGLE_END,
+                };
+            }
             ("object", ModelAnswer::Object { scene_name, step }) => {
                 put_name(&mut reply, &scene_name, "object")?;
                 match step {
@@ -1345,6 +1381,7 @@ unsafe extern "C" fn model_callback(
                     ModelAnswer::ObjectTable { .. } => "an object table",
                     ModelAnswer::Object { .. } => "an object step",
                     ModelAnswer::Animation { .. } => "an animation step",
+                    ModelAnswer::CustomOrder(_) => "a walk announcement step",
                 };
                 return Err(format!(
                     "[model-provider:{operation}.answer] the provider answered a {operation} question with {given}"
@@ -9640,6 +9677,7 @@ mod tests {
             kind: 0,
             role: 0,
             definition: 0,
+            key: [0; sys::EECH_MODEL_NAME_MAX + 1],
         }
     }
 
@@ -9652,6 +9690,7 @@ mod tests {
             kind: 0,
             role,
             definition,
+            key: [0; sys::EECH_MODEL_NAME_MAX + 1],
         }
     }
 
@@ -9730,6 +9769,45 @@ mod tests {
             unsafe { std::ffi::CStr::from_ptr(reply.animation_name.as_ptr()) }.to_str(),
             Ok("USA_COPTER_DIGIT__001")
         );
+    }
+
+    #[test]
+    fn the_model_callback_carries_the_campaigns_walk_announcement_with_its_directory_name() {
+        // a file of the walk: scene 7, position 2, in the directory MODDIR; the host has it (FOUND), lacks it (ABSENT), or the walk is over (END)
+        for (answer, expected) in [
+            (ModelOrder::Accepted, sys::EECH_MODEL_TRIANGLE_FOUND),
+            (ModelOrder::Absent, sys::EECH_MODEL_TRIANGLE_ABSENT),
+        ] {
+            let mut request = model_request(sys::EECH_MODEL_CUSTOM_ORDER, 7, 2);
+            for (slot, byte) in request.key.iter_mut().zip(b"MODDIR") {
+                *slot = *byte as c_char;
+            }
+            let (code, reply, error) = model_crossing(
+                Some(Box::new(move |query| match query {
+                    ModelQuery::CustomOrder { scene: 7, position: 2, end: false, key } if key == "MODDIR" => Ok(ModelAnswer::CustomOrder(answer)),
+                    other => Err(format!("unexpected {other:?}")),
+                })),
+                request,
+            );
+            assert_eq!((code, reply.result), (0, expected), "{error}");
+        }
+        // the closing step carries the number of files and no directory
+        let mut request = model_request(sys::EECH_MODEL_CUSTOM_ORDER, 0, 3);
+        request.role = 1;
+        let (code, reply, error) = model_crossing(
+            Some(Box::new(|query| match query {
+                ModelQuery::CustomOrder { scene: 0, position: 3, end: true, key } if key.is_empty() => Ok(ModelAnswer::CustomOrder(ModelOrder::End)),
+                other => Err(format!("unexpected {other:?}")),
+            })),
+            request,
+        );
+        assert_eq!((code, reply.result), (0, sys::EECH_MODEL_TRIANGLE_END), "{error}");
+        // a directory name that is not terminated inside its field is refused before the provider is asked
+        let mut request = model_request(sys::EECH_MODEL_CUSTOM_ORDER, 7, 0);
+        request.key = [b'X' as c_char; sys::EECH_MODEL_NAME_MAX + 1];
+        let (code, _, error) = model_crossing(Some(Box::new(|_| panic!("the provider must not be asked"))), request);
+        assert_eq!(code, 1);
+        assert!(error.contains("[model-provider:custom_order.request]"), "{error}");
     }
 
     #[test]
@@ -9867,6 +9945,7 @@ mod tests {
             kind: request.kind,
             role: request.role,
             definition: request.definition,
+            key: request.key,
         }
     }
 

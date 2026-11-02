@@ -387,6 +387,85 @@ fn points_of(raw: &[u8]) -> Vec<[i16; 3]> {
     (0..raw.len() / 6).map(|i| [at(i, 0), at(i, 1), at(i, 2)]).collect()
 }
 
+/// One custom scene file, found under `OBJECTS/<directory>/<SCENE NAME>.EES`.
+struct CustomFile {
+    scene: usize,
+    directory: String,
+    /// the directory's name in upper case: the semantic identity of the definition among the definitions of one scene
+    directory_key: String,
+    directory_path: PathBuf,
+    file_name: String,
+    file_path: PathBuf,
+}
+
+/// Every custom scene file whose name is a scene's, in sorted order. Two files that cannot be told apart by (scene, directory) - differing only in case - are refused: which of
+/// them the campaign's walk reads last is not decidable by name.
+fn discover_custom_files(objects_dir: &Path, summary: &mut LoadSummary) -> Result<Vec<CustomFile>, ModelError> {
+    let mut out: Vec<CustomFile> = Vec::new();
+    for (directory, directory_path) in sorted_entries(&RealFs, objects_dir, true)? {
+        if directory == "." || directory == ".." {
+            continue;
+        }
+        for (file_name, file_path) in sorted_entries(&RealFs, &directory_path, false)? {
+            let upper = file_name.to_ascii_uppercase();
+            let Some(stem) = upper.strip_suffix(".EES") else { continue };
+            let Some(scene) = scene_by_name(stem.as_bytes()) else {
+                summary.ees_unresolved_names.push(format!("{directory}/{file_name}"));
+                continue;
+            };
+            let directory_key = directory.to_ascii_uppercase();
+            if let Some(other) = out.iter().find(|f| f.scene == scene && f.directory_key == directory_key) {
+                return fail(
+                    ErrorKind::Inconsistent,
+                    &format!("{directory}/{file_name}"),
+                    format!("scene {scene} is also defined by {}/{}: the two cannot be told apart by directory", other.directory, other.file_name),
+                );
+            }
+            out.push(CustomFile {
+                scene,
+                directory: directory.clone(),
+                directory_key,
+                directory_path: directory_path.clone(),
+                file_name,
+                file_path,
+            });
+        }
+    }
+    Ok(out)
+}
+
+/// The files in the campaign's own walk order, or as found when it announced none. The walk must name every file once: a file it names that does not exist here, or one it
+/// never reached, is a refusal (the host and the campaign are not looking at the same installation).
+fn ordered_custom_files(files: Vec<CustomFile>, order: Option<&[(usize, String)]>) -> Result<Vec<CustomFile>, ModelError> {
+    let Some(order) = order else { return Ok(files) };
+    let mut slots: Vec<Option<CustomFile>> = files.into_iter().map(Some).collect();
+    let mut out = Vec::with_capacity(order.len());
+    for (scene, key) in order {
+        let taken = slots
+            .iter_mut()
+            .find(|slot| slot.as_ref().is_some_and(|f| f.scene == *scene && f.directory_key == *key))
+            .and_then(Option::take);
+        match taken {
+            Some(file) => out.push(file),
+            None => {
+                return fail(
+                    ErrorKind::Inconsistent,
+                    "OBJECTS",
+                    format!("the campaign's walk names the custom scene file of scene {scene} in directory {key}, which the host does not have (or names twice)"),
+                )
+            }
+        }
+    }
+    if let Some(left) = slots.iter().flatten().next() {
+        return fail(
+            ErrorKind::Inconsistent,
+            &format!("{}/{}", left.directory, left.file_name),
+            "the host has a custom scene file that the campaign's walk never reached",
+        );
+    }
+    Ok(out)
+}
+
 /// What a path is, following links.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Kind {
@@ -709,10 +788,6 @@ struct Scene {
     bounds: [f32; 12],
     radius: f32,
     sub: SubObjects,
-    /// the object each approximation shows, in the file's order (0 for none)
-    approximations: Vec<i32>,
-    /// the shadow polygon object (0 for none)
-    shadow: i32,
     /// For a scene an `.EES` replaced: the animated-surface references of its objects in the order `add_animation_object` visits them (main object, approximations, then every
     /// sub-object in the scene's array order), each a legacy animation index or a logical animation name. A scene of `3dobjdb.bin` has none: its list is in its own record.
     animation_refs: Vec<RawAnimation>,
@@ -730,8 +805,6 @@ impl Scene {
             bounds: [0.0; 12],
             radius: 0.0,
             sub: SubObjects::default(),
-            approximations: Vec::new(),
-            shadow: 0,
             animation_refs: Vec::new(),
             facts: SceneFacts::default(),
         }
@@ -799,6 +872,9 @@ pub struct ModelStore {
     /// the objects it names as they stood when it was read. The campaign reads a scene once per definition and fills its rows then; the final scene alone would show an earlier
     /// definition the objects of a later one (the first named object REPLACES the last table object's number).
     definitions: Vec<Vec<Scene>>,
+    /// the custom scene files in the order they were read (see `Loader`), and the definition each made
+    custom_walk: CustomWalk,
+    custom_positions: Vec<Option<(usize, usize)>>,
     objects: Vec<Object>,
     surfaces: Vec<Surface>,
     points: Arena<[i16; 3]>,
@@ -816,7 +892,7 @@ pub struct ModelStore {
 /// luminosity texture reference when it is a luminosity texture animation. A reference is the file's index, or, where the object's `.EEO` overrides that texture with a name,
 /// the name (the original resolves it to the animation's index at load). The campaign applies its own `add_animation` (deduplication, order) to these in turn; nothing is
 /// deduplicated here. An object the loader holds no surfaces for (0, or one without) adds none.
-fn animation_refs_of(visited: &[i32], surfaces: &HashMap<usize, Vec<Surface>>, names: &HashMap<usize, Vec<(Vec<u8>, Vec<u8>)>>) -> Vec<RawAnimation> {
+fn animation_refs_of(visited: &[i32], surfaces: &HashMap<usize, Vec<Surface>>, names: &OverrideNames) -> Vec<RawAnimation> {
     let mut refs = Vec::new();
     for &object in visited {
         let Ok(object) = usize::try_from(object) else { continue };
@@ -841,6 +917,12 @@ fn animation_refs_of(visited: &[i32], surfaces: &HashMap<usize, Vec<Surface>>, n
     refs
 }
 
+/// The texture-name overrides of each `.EEO` object, by object number: two names (the texture and the luminosity texture) per surface, in surface order.
+type OverrideNames = HashMap<usize, Vec<(Vec<u8>, Vec<u8>)>>;
+
+/// The custom scene files in the order they were read, as (scene, upper-case directory name).
+pub type CustomWalk = Vec<(usize, String)>;
+
 /// One `.EEO` as `read_eeo` returns it: the object, its surfaces and its texture-name overrides (two names per surface, in surface order).
 type EeoObject = (Object, Vec<Surface>, Vec<(Vec<u8>, Vec<u8>)>);
 
@@ -849,9 +931,13 @@ struct Loader {
     object_bounds: Vec<f32>,
     own_surfaces: HashMap<usize, Vec<Surface>>,
     /// each `.EEO` object's texture-name overrides, by object, in surface order
-    eeo_names: HashMap<usize, Vec<(Vec<u8>, Vec<u8>)>>,
+    eeo_names: OverrideNames,
     scenes: Vec<Scene>,
     definitions: Vec<Vec<Scene>>,
+    /// the custom scene files in the order they were read, as (scene, upper-case directory name), and for each the definition it made (the scene and its index in
+    /// `definitions`), or None where the original skips the file (an unsupported version)
+    custom_walk: CustomWalk,
+    custom_positions: Vec<Option<(usize, usize)>>,
     points: Arena<[i16; 3]>,
     faces: Arena<u8>,
     point_list: Arena<u8>,
@@ -895,6 +981,14 @@ struct Named<'a> {
 }
 
 impl Loader {
+    /// Stores an object that the original's `read_object` reads INTO an existing row (a binary-hex override of a table object, or the first named object, which takes the table's
+    /// object count as its number and so overwrites the last table object). That function assigns the header counts, bounds, radius and buffers but NEVER
+    /// `culling_normals_offset` (3dobjdb.c read_object), so the row keeps the value it had; a row nothing was in has zero there.
+    fn replace_object(&mut self, index: usize, mut object: Object) {
+        object.culling_normals_offset = self.objects[index].culling_normals_offset;
+        self.set_object(index, object);
+    }
+
     fn set_object(&mut self, index: usize, object: Object) {
         self.object_bounds[index * 12..index * 12 + 6].copy_from_slice(&object.bounding_box);
         self.object_bounds[index * 12 + 6..index * 12 + 12].copy_from_slice(&object.bounding_box2);
@@ -1303,7 +1397,7 @@ impl Loader {
                 }
                 self.own_surfaces.insert(id, surfaces);
                 self.eeo_names.insert(id, names);
-                self.set_object(id, object);
+                self.replace_object(id, object);
                 self.summary.named_objects += 1;
             }
             None => return fail(ErrorKind::Incompatible, &label, "an object version the original does not read"),
@@ -1700,8 +1794,6 @@ impl Loader {
             bounds: out_bounds,
             radius: out_radius,
             sub,
-            approximations: approximation_objects,
-            shadow,
             animation_refs,
             facts,
         };
@@ -1738,7 +1830,7 @@ impl Loader {
 
     // ---- everything ----
 
-    fn load(root: &Path) -> Result<ModelStore, ModelError> {
+    fn load(root: &Path, order: Option<&[(usize, String)]>) -> Result<ModelStore, ModelError> {
         let data = root.join("cohokum").join("3ddata");
         match RealFs.kind(&data).map_err(|e| io_failure(&data, "cannot determine what the path is", &e))? {
             Some(Kind::Directory) => {}
@@ -1757,6 +1849,8 @@ impl Loader {
             eeo_names: HashMap::new(),
             scenes: vec![Scene::empty(); scene_last()],
             definitions: vec![Vec::new(); scene_last()],
+            custom_walk: Vec::new(),
+            custom_positions: Vec::new(),
             points: Arena::default(),
             faces: Arena::default(),
             point_list: Arena::default(),
@@ -1834,7 +1928,7 @@ impl Loader {
                         object.source = ObjectSource::HexOverride;
                         loader.own_surfaces.insert(id, surfaces);
                         loader.eeo_names.insert(id, names);
-                        loader.set_object(id, object);
+                        loader.replace_object(id, object);
                         loader.summary.eeo_hex_applied += 1;
                     }
                     None => loader.summary.eeo_hex_unsupported_version += 1,
@@ -1857,39 +1951,48 @@ impl Loader {
             // (the camera database that follows the scenes is not read)
         }
 
-        // named scenes
+        // named scenes: the custom scene files, in the order the campaign's walk visited them when it announced one, else sorted
         if let Some(objects_dir) = &objects_dir {
+            let files = ordered_custom_files(discover_custom_files(objects_dir, &mut loader.summary)?, order)?;
             let mut defined: BTreeMap<usize, String> = BTreeMap::new();
-            for (dir_name, dir_path) in sorted_entries(&RealFs, objects_dir, true)? {
-                if dir_name == "." || dir_name == ".." {
+            let mut directory: Option<String> = None;
+            for file in &files {
+                // the original resets the history of named objects for every directory its walk enters
+                if directory.as_deref() != Some(file.directory_key.as_str()) {
+                    loader.history.clear();
+                    directory = Some(file.directory_key.clone());
+                }
+                loader.custom_walk.push((file.scene, file.directory_key.clone()));
+                let label = format!("{}/{}", file.directory, file.file_name);
+                let bytes = read_file(&file.file_path, &label)?;
+                let mut r = Reader::new(&label, &bytes);
+                let version = r.i32()?;
+                if !(-3..=-1).contains(&version) {
+                    loader.summary.ees_unsupported_version += 1;
+                    loader.custom_positions.push(None);
                     continue;
                 }
-                loader.history.clear();
-                for (file_name, file_path) in sorted_entries(&RealFs, &dir_path, false)? {
-                    let upper = file_name.to_ascii_uppercase();
-                    let Some(stem) = upper.strip_suffix(".EES") else { continue };
-                    let Some(scene) = scene_by_name(stem.as_bytes()) else {
-                        loader.summary.ees_unresolved_names.push(format!("{dir_name}/{file_name}"));
-                        continue;
-                    };
-                    let bytes = read_file(&file_path, &format!("{dir_name}/{file_name}"))?;
-                    let label = format!("{dir_name}/{file_name}");
-                    let mut r = Reader::new(&label, &bytes);
-                    let version = r.i32()?;
-                    if !(-3..=-1).contains(&version) {
-                        loader.summary.ees_unsupported_version += 1;
-                        continue;
-                    }
-                    if let Some(previous) = defined.insert(scene, label.clone()) {
-                        loader.summary.ees_duplicate_scenes.push(format!("{} replaced by {label}", previous));
-                    }
-                    loader.read_scene(&mut r, Some((scene, Named { version, prefix: &dir_path })))?;
-                    loader.summary.ees_applied += 1;
+                if let Some(previous) = defined.insert(file.scene, label.clone()) {
+                    loader.summary.ees_duplicate_scenes.push(format!("{} replaced by {label}", previous));
                 }
+                loader.read_scene(
+                    &mut r,
+                    Some((
+                        file.scene,
+                        Named {
+                            version,
+                            prefix: &file.directory_path,
+                        },
+                    )),
+                )?;
+                loader.custom_positions.push(Some((file.scene, loader.definitions[file.scene].len() - 1)));
+                loader.summary.ees_applied += 1;
             }
+        } else if order.is_some_and(|walk| !walk.is_empty()) {
+            return fail(ErrorKind::Inconsistent, "OBJECTS", "the campaign's walk visited custom scene files, the host has no OBJECTS directory");
         }
 
-        loader.finish()
+                loader.finish()
     }
 
     /// The consolidated surface block (the original's "reallocates surfaces memory"), the summary, the store.
@@ -1922,6 +2025,8 @@ impl Loader {
         Ok(ModelStore {
             scenes: self.scenes,
             definitions: self.definitions,
+            custom_walk: self.custom_walk,
+            custom_positions: self.custom_positions,
             objects: self.objects,
             surfaces,
             points: self.points,
@@ -2081,7 +2186,25 @@ impl ModelStore {
                 format!("the numeric kernel's node is {kernel_node} bytes, the host's {}", std::mem::size_of::<Node>()),
             );
         }
-        Loader::load(root)
+        Loader::load(root, None)
+    }
+
+    /// Loads the same installation visiting the custom scene files in the order the CAMPAIGN's own walk visited them (`order`: the scene and the upper-case name of the directory
+    /// that holds each file). The original walks `OBJECTS` with `_findfirst` / `_findnext`, which on the engine's platforms is the file system's own, unsorted, order; what a
+    /// custom definition sees (the number the first named object takes, which table object it replaces, the history of named objects of its directory, which definition of a
+    /// scene is last) depends on that order, so the host replays the campaign's order and not a sorted one. A file the walk names that the host lacks, or a file the walk never
+    /// reached, is a refusal.
+    pub fn load_in_order(root: &Path, order: &[(usize, String)]) -> Result<ModelStore, ModelError> {
+        // the kernel's size is checked by `load` for the same installation
+        let kernel_node = unsafe { eech_model_node_size() };
+        if kernel_node != std::mem::size_of::<Node>() {
+            return fail(
+                ErrorKind::Limit,
+                "model_step.c",
+                format!("the numeric kernel's node is {kernel_node} bytes, the host's {}", std::mem::size_of::<Node>()),
+            );
+        }
+        Loader::load(root, Some(order))
     }
 
     pub fn summary(&self) -> &LoadSummary {
@@ -2336,10 +2459,11 @@ impl ModelStore {
     }
 
     /// The header facts of the object `scene` has in `role` (`cursor` names the approximation or the sub-object) in one DEFINITION of the scene. Nothing of the loader's numbering
-    /// is given: the campaign names the object by its place in the scene. The campaign reads a scene once for each definition, in the order the loader did: `definition` counts
-    /// those reads from 0 (the `3dobjdb.bin` record first, then each custom scene file that defined the scene), and `custom` says which kind the campaign is reading; a
-    /// disagreement between that and the host's own order is refused, never answered from another definition. The facts are those the objects had when the definition was
-    /// read. A role with no object (the file names none) and a cursor past the definition's own arrays are different answers.
+    /// is given: the campaign names the object by its place in the scene. A definition is named by what the campaign knows of it: the n-th `3dobjdb.bin` record of the scene
+    /// (`custom` false; `definition` counts the campaign's reads of it from 0), or the custom scene file at position `definition` of the campaign's own walk (`custom` true; the
+    /// walk it announced, see `load_in_order`, which also fixes the scene and directory of every position). A position that is not that scene's, one the walk skipped, or a
+    /// record that does not exist is refused, never answered from another definition. The facts are those the objects had when the definition was read, in the walk's order.
+    /// A role with no object (the file names none) and a cursor past the definition's own arrays are different answers.
     pub fn object_header(&self, scene: i64, role: i64, cursor: i64, definition: i64, custom: bool) -> Result<ObjectHeader, QueryError> {
         let id = self.check_scene(scene)?;
         if !(0..=i32::MAX as i64).contains(&cursor) {
@@ -2348,12 +2472,10 @@ impl ModelStore {
         if !(0..=i32::MAX as i64).contains(&definition) {
             return Err(QueryError::BadDepth(definition));
         }
-        let Some(s) = self.definitions[id].get(definition as usize) else {
-            return Ok(ObjectHeader::Refused("definition_outside"));
+        let s = match self.definition_of(id, definition as usize, custom) {
+            Ok(s) => s,
+            Err(why) => return Ok(ObjectHeader::Refused(why)),
         };
-        if custom != (s.source == SceneSource::Ees) {
-            return Ok(ObjectHeader::Refused("definition_kind_differs"));
-        }
         let at = cursor as usize;
         let found = match role {
             ROLE_MAIN => &s.facts.main,
@@ -2370,6 +2492,30 @@ impl ModelStore {
             other => return Err(QueryError::BadRole(other)),
         };
         Ok(found.clone())
+    }
+
+    /// The definition the campaign means: its n-th database record of the scene, or the custom file at position n of its walk (which must be this scene's).
+    fn definition_of(&self, id: usize, n: usize, custom: bool) -> Result<&Scene, &'static str> {
+        if custom {
+            match self.custom_positions.get(n) {
+                Some(Some((scene, index))) if *scene == id => Ok(&self.definitions[id][*index]),
+                Some(Some(_)) => Err("definition_scene_differs"),
+                Some(None) => Err("definition_skipped"),
+                None => Err("definition_outside"),
+            }
+        } else {
+            self.definitions[id].iter().filter(|s| s.source == SceneSource::Table).nth(n).ok_or("definition_outside")
+        }
+    }
+
+    /// The custom scene files in the order they were read, as (scene, upper-case directory name): the campaign's own walk when it announced one, else sorted.
+    pub fn custom_walk(&self) -> &[(usize, String)] {
+        &self.custom_walk
+    }
+
+    /// Whether the host has the custom scene file of `scene` in the directory named `directory_key` (upper case).
+    pub fn has_custom_scene(&self, scene: usize, directory_key: &str) -> bool {
+        self.custom_walk.iter().any(|(s, k)| *s == scene && k == directory_key)
     }
     /// How many objects the common database (`3dobjs.bin`) holds: a count of what the files contain. The room the campaign keeps for custom objects, and the numbering it gives
     /// them, are the campaign's own allocation policy and are neither asked for nor answered.
@@ -2389,12 +2535,11 @@ impl ModelStore {
         if !(0..=i32::MAX as i64).contains(&definition) {
             return Err(QueryError::BadDepth(definition));
         }
-        let Some(s) = self.definitions[id].get(definition as usize) else {
-            return Ok(AnimationRef::Refused("definition_outside"));
+        // only a custom scene file has references: `definition` is its position in the campaign's walk
+        let s = match self.definition_of(id, definition as usize, true) {
+            Ok(s) => s,
+            Err(why) => return Ok(AnimationRef::Refused(why)),
         };
-        if s.source != SceneSource::Ees {
-            return Ok(AnimationRef::Absent);
-        }
         Ok(match s.animation_refs.get(index as usize) {
             Some(raw) => name_animation(raw),
             None => AnimationRef::End,
@@ -2723,7 +2868,7 @@ mod animation_tests {
         let mut surfaces: HashMap<usize, Vec<Surface>> = HashMap::new();
         surfaces.insert(5, vec![surface(7, 8, true, true), surface(9, 10, false, true)]);
         surfaces.insert(6, vec![surface(11, 12, true, false)]);
-        let mut names: HashMap<usize, Vec<(Vec<u8>, Vec<u8>)>> = HashMap::new();
+        let mut names: OverrideNames = HashMap::new();
         names.insert(6, vec![(b"SMOKE".to_vec(), Vec::new())]);
         // the object 0 has no surfaces; object 5 is visited twice and its references come twice
         let refs = animation_refs_of(&[5, 0, 6, 5], &surfaces, &names);
@@ -2744,7 +2889,7 @@ mod animation_tests {
     fn an_override_name_replaces_the_index_only_for_the_texture_it_names_and_an_empty_name_keeps_the_file_index() {
         let mut surfaces: HashMap<usize, Vec<Surface>> = HashMap::new();
         surfaces.insert(3, vec![surface(21, 22, true, true), surface(23, 24, true, true)]);
-        let mut names: HashMap<usize, Vec<(Vec<u8>, Vec<u8>)>> = HashMap::new();
+        let mut names: OverrideNames = HashMap::new();
         // the first surface overrides only its luminosity texture; the second surface has no pair (the overrides stopped at the end of the file)
         names.insert(3, vec![(Vec::new(), b"GLOW".to_vec())]);
         let refs = animation_refs_of(&[3], &surfaces, &names);

@@ -1830,6 +1830,30 @@ pub const LOADER_META_PATCHES: &[Patch] = &[
         replacement: "\t{\n\t\textern struct OBJECT_3D *campaign_model_object_row ( int object_number, const char *reader ); /* EECH headless (D3 loader, L2) */\n\n\t\tobject = campaign_model_object_row ( env->horizon_3d_object_number, \"add_3d_horizon_image\" );\n\t}\n\n\t//\n\t// Check to see if we have a pre-processed version of this file\n",
         count: 1,
     },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "LM10a-custom-walk-announcement-defined",
+        why: "the campaign announces to the host the order in which it will walk the custom scene files (the file system's own, unsorted, order), before it reads any: what a custom definition sees depends on that order, so the host replays the campaign's and not a sorted one",
+        original: "static void initialise_custom_scenes(const char* directory)\n{\n",
+        replacement: "/* EECH headless (D3 loader, L2): the campaign ANNOUNCES the walk of the custom scene files to the host before it reads any. The walk is the same _findfirst / _findnext one\n   initialise_custom_scenes makes below (the file system's own order, not a sorted one), one announcement per file the walk will read, so that what a custom definition sees is\n   replayed by the host in the order the campaign sees it. */\nstatic void announce_custom_scenes ( const char *directory )\n{\n\tint\n\t\trc = 0,\n\t\tposition = 0;\n\tlong\n\t\thandle;\n\tstruct _finddata_t\n\t\tdi;\n\tchar\n\t\tpattern[512];\n\textern void campaign_model_custom_order ( int scene, int position, const char *directory_name );\n\textern void campaign_model_custom_order_end ( int count );\n\n\tsnprintf ( pattern, ARRAY_LENGTH(pattern), \"%s\\\\OBJECTS\\\\*.*\", directory );\n\tfor ( rc = handle = _findfirst ( pattern, &di ); rc != -1; rc = _findnext ( handle, &di ) )\n\t{\n\t\tint\n\t\t\tinner_rc;\n\t\tlong\n\t\t\tinner_handle;\n\t\tstruct _finddata_t\n\t\t\tfi;\n\n\t\tif ( !( di.attrib & _A_SUBDIR ) )\n\t\t\tcontinue;\n\n\t\tif ( !strcmp ( di.name, \".\" ) || !strcmp ( di.name, \"..\" ) )\n\t\t\tcontinue;\n\n\t\tsnprintf ( pattern, ARRAY_LENGTH(pattern), \"%s\\\\OBJECTS\\\\%s\\\\*.EES\", directory, di.name );\n\t\tfor ( inner_rc = inner_handle = _findfirst ( pattern, &fi ); inner_rc != -1; inner_rc = _findnext ( inner_handle, &fi ) )\n\t\t{\n\t\t\tint\n\t\t\t\tscene;\n\n\t\t\tif ( fi.attrib & _A_SUBDIR )\n\t\t\t\tcontinue;\n\n\t\t\tfi.name[strlen ( fi.name ) - 4] = '\\0';\n\t\t\tstrupr ( fi.name );\n\t\t\tscene = get_scene ( fi.name );\n\t\t\tif ( !scene )\n\t\t\t\tcontinue;\n\n\t\t\tcampaign_model_custom_order ( scene, position++, di.name );\n\t\t}\n\t\t_findclose ( inner_handle );\n\t}\n\n\t_findclose ( handle );\n\n\tcampaign_model_custom_order_end ( position );\n}\n\nstatic void initialise_custom_scenes(const char* directory)\n{\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "LM10b-custom-walk-announced",
+        why: "the announcement is made before the first file of the walk is read",
+        original: "\tsnprintf ( filename, ARRAY_LENGTH(filename), \"%s\\\\OBJECTS\\\\*.*\", directory );\n",
+        replacement: "\tannounce_custom_scenes ( directory ); /* EECH headless (D3 loader, L2) */\n\n\tsnprintf ( filename, ARRAY_LENGTH(filename), \"%s\\\\OBJECTS\\\\*.*\", directory );\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "LM10c-custom-walk-verified",
+        why: "as each custom scene file is opened, the file the walk reached is checked against the one announced at that position, so the host's definition for it is the file really read",
+        original: "\t\t\tsnprintf ( prefix, ARRAY_LENGTH ( prefix ), \"%s\\\\OBJECTS\\\\%s\", directory, di.name );\n",
+        replacement: "\t\t\tsnprintf ( prefix, ARRAY_LENGTH ( prefix ), \"%s\\\\OBJECTS\\\\%s\", directory, di.name );\n\n\t\t\t{\n\t\t\t\textern void campaign_model_custom_reading ( int scene, const char *directory_name ); /* EECH headless (D3 loader, L2) */\n\n\t\t\t\tcampaign_model_custom_reading ( sceneid, di.name );\n\t\t\t}\n",
+        count: 1,
+    },
 ];
 
 /// the staged text of `file` with the metadata-loader patches applied (same strict count check as `apply`)
