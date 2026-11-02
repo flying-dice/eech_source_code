@@ -576,6 +576,17 @@ local function check_setup (text, rows)
 		report.cases [b] = c
 		report.called_total = report.called_total + c.called
 	end
+	-- Cases 1 and 2 come from ONE scan of the same mobiles: a mobile with an instance was found exactly when case 2 is available, and case 1's 'no mobile' reason is that same fact (a case 1 that
+	-- is available, or short of a scene, needs the mobile case 2 has). They may be the same mobile, so no more than one is needed.
+	local c1, c2, c3 = report.cases [1], report.cases [2], report.cases [3]
+	if (c1.reason == "no_mobile_with_instance") ~= (c2.available == 0) then
+		malformed (string.format ("setup cases 1 and 2 disagree about the mobile with an instance one scan found (case 1: '%s', case 2 available: %d)", c1.reason, c2.available))
+	end
+	-- The population: a mobile with an instance (case 2 available) and a fixed structure (case 3 available) are different entities of the examined families.
+	local needed = c2.available + c3.available
+	if report.entities < needed then
+		malformed (string.format ("the setup reports %d entities but its available cases need at least %d (a mobile and a fixed structure are different entities)", report.entities, needed))
+	end
 	return report
 end
 
