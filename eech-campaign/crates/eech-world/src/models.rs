@@ -74,6 +74,7 @@ extern "C" {
         out_position: *mut f32,
         out_attitude: *mut f32,
     ) -> i32;
+    fn eech_model_fixed_target_point(base: *const f32, offset: *const f32, heading: *const f32, out: *mut f32, path: *mut i32) -> i32;
     fn eech_model_fp_state(x87_masks: *mut i32, sse_masks: *mut i32, sse_rounding: *mut i32, x87_control: *mut u32, mxcsr_bits: *mut u32) -> i32;
 }
 
@@ -2171,6 +2172,33 @@ pub enum TargetPointWorld {
     Refused(&'static str),
 }
 
+/// The host's answer for a FIXED object's target point (the original's no-instance path, branch 3 of `get_local_entity_target_point`, or its position-copy fallback for the invalid
+/// shape): the three result float bit patterns, and which way the original's own tests went. A refusal is never a number.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum FixedTarget {
+    /// a valid shape: the entity position with the shape's offset added as the original adds it
+    Offset {
+        result: [u32; 3],
+        path: FixedPath,
+    },
+    /// the invalid shape (0): the original copies the position and adds nothing, so the words are the entity position's own bits
+    PositionCopy {
+        result: [u32; 3],
+    },
+    Refused(&'static str),
+}
+
+/// Which way the original's tests went for a valid shape.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FixedPath {
+    /// the offset has no x or z part: the heading is never read and only y is added
+    NoHorizontal,
+    /// the offset has a horizontal part and the heading is zero: the legacy quirk, x and z are not added (y still is)
+    HeadingZero,
+    /// the offset has a horizontal part and a non-zero heading: x and z are rotated and added
+    Rotated,
+}
+
 /// The sub-object state the world answer assumes: a freshly constructed instance (`construct_3d_sub_objects`: keyframe 0 of every sub-object, relative scale from keyframe 0).
 /// A live instance whose sub-objects the campaign has since moved, animated or scaled is NOT covered; the host does not hold that state, and the parity diagnostic is what shows
 /// whether this assumption holds for the recorded queries.
@@ -2639,6 +2667,53 @@ impl ModelStore {
                 position: p.map(f32::to_bits),
                 attitude: a.map(f32::to_bits),
             },
+        })
+    }
+
+    /// The target point of a FIXED object, `get_local_entity_target_point` branch 3, from the entity position the original had copied (`base`, float bit patterns) and the heading
+    /// it reads ONLY when the shape's offset has a horizontal part (`heading`, a float bit pattern; `None` when the caller has none). The shape's offset is the store's own
+    /// `target_point_local`, not a value the caller supplies. Shape 0 is the invalid shape: the original copies the position and adds nothing, so the answer is the position's own
+    /// words (an add of zero would change a negative zero). A shape outside the catalogue is an argument error; a heading the original would have read but the caller lacks is a
+    /// refusal, never a default.
+    pub fn target_point_fixed(&self, shape: i64, base: [u32; 3], heading: Option<u32>) -> Result<FixedTarget, QueryError> {
+        if shape == 0 {
+            return Ok(FixedTarget::PositionCopy { result: base });
+        }
+        let local = match self.target_point_local(shape)? {
+            TargetPointLocal::Offset { offset, .. } => offset,
+            TargetPointLocal::Refused(why) => return Ok(FixedTarget::Refused(why)),
+        };
+        let base_floats = base.map(f32::from_bits);
+        let offset_floats = local.map(f32::from_bits);
+        let heading_float = heading.map(f32::from_bits);
+        let mut out = [0.0f32; 3];
+        let mut path = 0i32;
+        // SAFETY: base, offset and out are locals of exactly three floats, heading is null or one float, path is one int; the kernel reads the first three inputs and writes the last two.
+        let code = unsafe {
+            eech_model_fixed_target_point(
+                base_floats.as_ptr(),
+                offset_floats.as_ptr(),
+                heading_float.as_ref().map_or(std::ptr::null(), |h| h as *const f32),
+                out.as_mut_ptr(),
+                &mut path,
+            )
+        };
+        match code {
+            0 => {}
+            1 => return Ok(FixedTarget::Refused("fp_masks")),
+            2 => return Ok(FixedTarget::Refused("fp_environment")),
+            4 => return Ok(FixedTarget::Refused("heading_missing")),
+            _ => return Ok(FixedTarget::Refused("kernel_argument")),
+        }
+        let path = match path {
+            0 => FixedPath::NoHorizontal,
+            1 => FixedPath::HeadingZero,
+            2 => FixedPath::Rotated,
+            _ => return Ok(FixedTarget::Refused("kernel_path")),
+        };
+        Ok(FixedTarget::Offset {
+            result: out.map(f32::to_bits),
+            path,
         })
     }
 

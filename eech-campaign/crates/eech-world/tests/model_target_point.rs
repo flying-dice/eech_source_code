@@ -9,8 +9,8 @@
 //! neither is anything about the retail data: what the retail scenes answer is the Root's comparison with the retained original census and queries (the host Lua
 //! `compare_target_points`), never these tests. Only the state `keyframe0` is exercised; a live instance's moved sub-objects are not claimed.
 use eech_world::models::{
-    compiled_scene_name, compiled_subobject_name, fp_state, old_last, scene_last, subobject_last, ModelStore, OffsetSource, QueryError, TargetPointLocal,
-    TargetPointWorld,
+    compiled_scene_name, compiled_subobject_name, fp_state, old_last, scene_last, subobject_last, FixedPath, FixedTarget, ModelStore, OffsetSource, QueryError,
+    TargetPointLocal, TargetPointWorld,
 };
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -298,6 +298,9 @@ fn standard() -> (Root, ModelStore) {
         scene_record(5, 2, &[], &[]),
         scene_record(6, 3, &[], &[]),
         scene_record(7, 1, &[(other, 0)], &[sub(at(5.0, 5.0, 5.0), vec![], vec![])]),
+        // scenes 9 and 10 (8 stays an empty slot): a target point straight up (0,2,0), and one with only a z part (0,1,3), for a fixed object's offset
+        scene_record(9, 1, &[(tp, 0)], &[sub(at(0.0, 2.0, 0.0), vec![], vec![])]),
+        scene_record(10, 1, &[(tp, 0)], &[sub(at(0.0, 1.0, 3.0), vec![], vec![])]),
     ];
     let root = Root::new(
         &[
@@ -638,7 +641,7 @@ fn report_file(dir: &std::path::Path, damaged: bool) -> PathBuf {
     for (index, branch, result) in [
         (0, 1, "41500000,41a80000,42000000"),
         (1, 1, "41500000,41a80000,42000001"),
-        (2, 3, "00000000,00000000,00000000"),
+        (2, 2, "00000000,00000000,00000000"),
     ] {
         lines.push(serde_json::json!({ "event": "query", "index": index, "text": query(index, branch, result) }));
     }
@@ -724,4 +727,289 @@ fn the_host_lua_comparison_checks_every_recorded_offset_row_of_both_passes_and_e
     )
     .exec()
     .expect("the comparison reports what the retained rows hold");
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------
+// a FIXED object's target point (branch 3 of get_local_entity_target_point): the host adds the shape's own offset to the entity position the original had copied
+
+/// the entity position the tests give: 100, 50, -20
+const BASE: [f32; 3] = [100.0, 50.0, -20.0];
+
+fn fixed(store: &ModelStore, shape: i64, base: [u32; 3], heading: Option<u32>) -> FixedTarget {
+    store.target_point_fixed(shape, base, heading).unwrap()
+}
+
+fn offset_answer(result: [f32; 3], path: FixedPath) -> FixedTarget {
+    FixedTarget::Offset { result: bits3(result), path }
+}
+
+#[test]
+fn an_offset_with_no_horizontal_part_never_reads_the_heading_and_only_adds_y() {
+    let (_root, store) = standard();
+    // scene 9's target point is (0, 2, 0): the original's first test is false, so the heading is not read at all
+    let expected = offset_answer([100.0, 52.0, -20.0], FixedPath::NoHorizontal);
+    assert_eq!(fixed(&store, 9, bits3(BASE), None), expected);
+    // a heading the caller happens to have is not read either: not a NaN, not a rotation
+    for heading in [0x7fc0_0000, 0x4000_0000, 0x0000_0000] {
+        assert_eq!(fixed(&store, 9, bits3(BASE), Some(heading)), expected, "heading {heading:08x}");
+    }
+    // the empty slot (scene 8) has the zero offset: no horizontal part either
+    assert!(matches!(
+        fixed(&store, 8, bits3(BASE), None),
+        FixedTarget::Offset {
+            path: FixedPath::NoHorizontal,
+            ..
+        }
+    ));
+}
+
+#[test]
+fn a_zero_heading_keeps_the_legacy_quirk_x_and_z_are_not_added_but_y_still_is() {
+    let (_root, store) = standard();
+    // scene 4's offset is (1, 2, 3): it has a horizontal part, so the heading is read; zero (either sign) skips the rotation and its additions
+    for heading in [0x0000_0000, 0x8000_0000] {
+        assert_eq!(
+            fixed(&store, 4, bits3(BASE), Some(heading)),
+            offset_answer([100.0, 52.0, -20.0], FixedPath::HeadingZero),
+            "heading {heading:08x}"
+        );
+    }
+    assert_eq!(
+        fixed(&store, 1, bits3(BASE), Some(0)),
+        offset_answer([100.0, 50.0, -20.0], FixedPath::HeadingZero)
+    );
+}
+
+#[test]
+fn a_heading_the_original_would_have_read_but_the_caller_lacks_is_a_refusal_never_a_default() {
+    let (_root, store) = standard();
+    for shape in [1, 2, 4, 10] {
+        assert_eq!(
+            fixed(&store, shape, bits3(BASE), None),
+            FixedTarget::Refused("heading_missing"),
+            "shape {shape}"
+        );
+    }
+}
+
+#[test]
+fn a_non_zero_heading_rotates_and_adds_x_and_z_exactly_where_the_arithmetic_is_exact() {
+    let (_root, store) = standard();
+    // scene 10's offset is (0, 1, 3). With a tiny heading h, sin h is h and cos h is exactly 1, so the rotated x is 3h, which a round-toward-zero add to 100 loses, and the rotated z
+    // is exactly 3: the sum is (100, 51, -17). The path says the rotation was taken. What sin and cos give for a large heading is the measured original's to say (the retail replay), not this test's.
+    let tiny = 1.0e-30f32.to_bits();
+    assert_eq!(
+        fixed(&store, 10, bits3(BASE), Some(tiny)),
+        offset_answer([100.0, 51.0, -17.0], FixedPath::Rotated)
+    );
+}
+
+#[test]
+fn the_invalid_shape_copies_the_position_and_a_valid_empty_slot_adds_a_zero_that_changes_a_negative_zero() {
+    let (_root, store) = standard();
+    // the bits of the position the original copied: a negative zero in every coordinate and a NaN with a payload
+    let negative_zero = [0x8000_0000, 0x8000_0000, 0x8000_0000];
+    let payload = [0x7fc1_2345, 0x8000_0000, 0xff80_0001];
+    // shape 0: the original copies the position and adds nothing; no add of zero, no float conversion
+    assert_eq!(fixed(&store, 0, negative_zero, None), FixedTarget::PositionCopy { result: negative_zero });
+    assert_eq!(fixed(&store, 0, payload, Some(0x3f80_0000)), FixedTarget::PositionCopy { result: payload });
+    // shape 8 is a valid shape (an empty slot, offset zero): the original still adds its y, and -0.0 + 0.0 is +0.0; x and z are not touched
+    assert_eq!(
+        fixed(&store, 8, negative_zero, None),
+        FixedTarget::Offset {
+            result: [0x8000_0000, 0x0000_0000, 0x8000_0000],
+            path: FixedPath::NoHorizontal
+        }
+    );
+}
+
+#[test]
+fn a_shape_outside_the_catalogue_is_an_argument_error_and_an_inventory_store_cannot_say() {
+    let (root, store) = standard();
+    let last = scene_last() as i64 - 1;
+    assert!(matches!(store.target_point_fixed(last + 1, bits3(BASE), None), Err(QueryError::BadScene(_))));
+    assert!(matches!(store.target_point_fixed(-1, bits3(BASE), None), Err(QueryError::BadScene(-1))));
+    assert!(matches!(store.target_point_fixed(last, bits3(BASE), None).unwrap(), FixedTarget::Offset { .. }));
+    let inventory = ModelStore::load_inventory(&root.dir).expect("the fixture inventory loads");
+    assert_eq!(
+        fixed(&inventory, 1, bits3(BASE), Some(0)),
+        FixedTarget::Refused("custom_definitions_not_loaded")
+    );
+    assert_eq!(fixed(&inventory, 0, bits3(BASE), None), FixedTarget::PositionCopy { result: bits3(BASE) });
+}
+
+#[cfg(target_arch = "x86_64")]
+#[test]
+fn a_fixed_target_query_hands_the_callers_floating_point_state_back_and_does_not_depend_on_it() {
+    let (_root, store) = standard();
+    let original_mxcsr = fpu::mxcsr();
+    let original_x87 = fpu::x87_control();
+    // a heading whose sin and cos are not exact, through the rotated, the zero-heading and the no-horizontal paths
+    let ask = |store: &ModelStore| {
+        (
+            store.target_point_fixed(2, bits3(BASE), Some(0.5f32.to_bits())).unwrap(),
+            store.target_point_fixed(2, bits3(BASE), Some(0)).unwrap(),
+            store.target_point_fixed(9, bits3(BASE), None).unwrap(),
+        )
+    };
+    let reference = ask(&store);
+    assert!(matches!(reference.0, FixedTarget::Offset { path: FixedPath::Rotated, .. }));
+    for rounding in 0u32..4 {
+        let mxcsr = 0x1f80 | (rounding << 13) | 0x21;
+        let x87 = 0x037f | ((rounding as u16) << 10);
+        fpu::set_mxcsr(mxcsr);
+        fpu::set_x87_control(x87);
+        let before = fp_state().unwrap();
+        let answers = ask(&store);
+        let after = fp_state().unwrap();
+        fpu::set_mxcsr(original_mxcsr);
+        fpu::set_x87_control(original_x87);
+        assert_eq!(after, before, "rounding {rounding}: the caller's floating-point state after the queries");
+        assert_eq!(answers, reference, "rounding {rounding}: the answers depended on the caller's rounding mode");
+    }
+    // an exception unmasked in the caller is refused, state untouched
+    fpu::set_mxcsr(original_mxcsr & !0x80);
+    let before = fp_state().unwrap();
+    let refused = store.target_point_fixed(2, bits3(BASE), Some(0.5f32.to_bits())).unwrap();
+    let after = fp_state().unwrap();
+    fpu::set_mxcsr(original_mxcsr);
+    assert_eq!(refused, FixedTarget::Refused("fp_masks"));
+    assert_eq!(before, after);
+}
+
+/// (shape, case, heading, the offset the original read, the result it returned, the base position when the observer recorded one)
+type FixedRow<'a> = (usize, &'a str, String, &'a str, &'a str, Option<&'a str>);
+
+/// A retained report in the observer's shape with branch-3 queries (the entity position, the heading the original read, the offset it read and the result it returned, as literal
+/// words): eight fixed-object queries and one branch-2 query. The tiny heading is the float 1e-30.
+fn fixed_report_file(dir: &std::path::Path) -> PathBuf {
+    let tiny = format!("{:08x}", 1.0e-30f32.to_bits());
+    let base = "42c80000,42480000,c1a00000";
+    // (shape, case, heading, offset the original read, result, base)
+    let rows: Vec<FixedRow> = vec![
+        (
+            9,
+            "no_horizontal_offset",
+            "-".into(),
+            "00000000,40000000,00000000",
+            "42c80000,42500000,c1a00000",
+            Some(base),
+        ),
+        (
+            1,
+            "heading_zero_quirk",
+            "00000000".into(),
+            "3f800000,00000000,00000000",
+            "42c80000,42480000,c1a00000",
+            Some(base),
+        ),
+        (
+            10,
+            "rotated_horizontal_offset",
+            tiny.clone(),
+            "00000000,3f800000,40400000",
+            "42c80000,424c0000,c1880000",
+            Some(base),
+        ),
+        // the original's result differs from the host's by one ulp in y
+        (
+            9,
+            "no_horizontal_offset",
+            "-".into(),
+            "00000000,40000000,00000000",
+            "42c80000,42500001,c1a00000",
+            Some(base),
+        ),
+        // an observer from before the base position was recorded
+        (
+            9,
+            "no_horizontal_offset",
+            "-".into(),
+            "00000000,40000000,00000000",
+            "42c80000,42500000,c1a00000",
+            None,
+        ),
+        // the heading the original read is missing from the report
+        (
+            4,
+            "rotated_horizontal_offset",
+            "-".into(),
+            "3f800000,40000000,40400000",
+            "42c80000,42500000,c1a00000",
+            Some(base),
+        ),
+        // the offset the original read is not the host's, the arithmetic from the host's agrees with the result
+        (
+            9,
+            "no_horizontal_offset",
+            "-".into(),
+            "00000000,40400000,00000000",
+            "42c80000,42500000,c1a00000",
+            Some(base),
+        ),
+    ];
+    let mut lines = vec![
+        serde_json::json!({ "event": "offsets", "when": "boot", "generation": 0, "text": "tp-offset generation=0 index=0 name=- state=invalid_zero offset=00000000,00000000,00000000 bounds=- live=1\n" }),
+    ];
+    let mut index = 0;
+    for (shape, case, heading, offset, result, base) in rows {
+        let base_field = base.map_or(String::new(), |b| format!("base={b} "));
+        let text = format!(
+            "tp-event index={index} seq={index} branch=3 case={case} model={shape} model_name={} fixed=1 shape={shape} horizontal=1 heading={heading} xz_applied=0 offset={offset} result={result} {base_field}host_id_len=0\n",
+            observer_name(shape)
+        );
+        lines.push(serde_json::json!({ "event": "query", "index": index, "text": text }));
+        index += 1;
+    }
+    // a shape outside the catalogue and a branch-2 query
+    let outside = format!("tp-event index={index} seq={index} branch=3 case=no_horizontal_offset model=-1 model_name=- fixed=1 shape=99999 horizontal=0 heading=- xz_applied=0 offset=- result={base} base={base} host_id_len=0\n");
+    lines.push(serde_json::json!({ "event": "query", "index": index, "text": outside }));
+    index += 1;
+    let two = format!("tp-event index={index} seq={index} branch=2 case=instance_without_target_point model=7 model_name=- fixed=0 shape=-1 horizontal=0 heading=- xz_applied=0 offset=- result={base} base={base} host_id_len=0\n");
+    lines.push(serde_json::json!({ "event": "query", "index": index, "text": two }));
+    let path = dir.join("fixed-report.jsonl");
+    std::fs::write(&path, lines.iter().map(|l| l.to_string() + "\n").collect::<String>()).unwrap();
+    path
+}
+
+#[test]
+fn the_host_lua_face_answers_a_fixed_target_from_words_and_the_comparer_replays_branch_three_from_the_recorded_inputs() {
+    let (root, _store) = standard();
+    let lua = lua_with_store(&root.dir);
+    let dir = root.dir.join("reports");
+    std::fs::create_dir_all(&dir).unwrap();
+    lua.globals().set("FLOAT_TINY", 1.0e-30f32.to_bits()).unwrap();
+    lua.globals().set("FIXED", fixed_report_file(&dir).to_string_lossy().into_owned()).unwrap();
+    lua.load(
+        r#"
+        local store = host.model_store (ROOT)
+        local base = "0x42c80000,0x42480000,0xc1a00000"
+        local a = store:target_point_fixed (9, base)
+        assert (a.result == "offset" and a.path == "no_horizontal" and a.position == "0x42c80000,0x42500000,0xc1a00000", a.position)
+        a = store:target_point_fixed (1, base, "0x00000000")
+        assert (a.path == "heading_zero" and a.position == "0x42c80000,0x42480000,0xc1a00000", a.position)
+        a = store:target_point_fixed (10, base, string.format ("0x%08x", FLOAT_TINY))
+        assert (a.path == "rotated" and a.position == "0x42c80000,0x424c0000,0xc1880000", a.position)
+        a = store:target_point_fixed (4, base)
+        assert (a.result == "refused" and a.reason == "heading_missing")
+        a = store:target_point_fixed (0, "0x80000000,0x80000000,0x80000000")
+        assert (a.result == "position_copy" and a.position == "0x80000000,0x80000000,0x80000000", a.position)
+        assert (not pcall (store.target_point_fixed, store, -1, base))
+        assert (not pcall (store.target_point_fixed, store, 9, "0x1,0x2"))
+        assert (not pcall (store.target_point_fixed, store, 9, base, "1"))
+
+        local r = store:compare_target_points (FIXED)
+        assert (r.queries == 9 and r.branch3_queries == 8 and r.other_branch_queries == 1 and r.branch1_queries == 0, "queries")
+        -- seven carry a base position (the old-format one does not); the host answers four exactly; one is a different result; two are refused (a missing heading, a shape outside)
+        assert (r.branch3_complete == 7 and r.branch3_missing_input == 1, "inputs")
+        assert (r.branch3_matched == 4 and r.branch3_mismatches == 1 and r.branch3_refused == 2, "outcomes")
+        assert (r.branch3_offset_input_differs == 1, "input")
+        -- nothing is passed by default: every branch-3 query is exactly one outcome
+        assert (r.branch3_matched + r.branch3_mismatches + r.branch3_refused + r.branch3_missing_input == r.branch3_queries)
+        local text = table.concat (r.listed, "\n")
+        assert (text:find ("42c80000,42500001,c1a00000", 1, true) and text:find ("no base position", 1, true) and text:find ("heading_missing", 1, true) and text:find ("outside the catalogue", 1, true), text)
+        "#,
+    )
+    .exec()
+    .expect("the fixed-target face and the branch-3 replay count every outcome apart");
 }

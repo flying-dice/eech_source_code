@@ -815,3 +815,101 @@ int eech_model_world_viewpoint(const eech_model_node *nodes, int32_t node_count,
 
 	return (leave_environment(&caller, MODEL_OK));
 }
+
+/* ------------------------------------------------------------------------------------------------------------------------------------ */
+/* en_maths.c get_local_entity_target_point, the no-instance FIXED-object path (branch 3): the shape's offset added to the entity position (EEDCS-52, D3) */
+/* ------------------------------------------------------------------------------------------------------------------------------------ */
+
+#define MODEL_MISSING_INPUT 4
+
+/*
+ * The original's statements for a fixed object of a valid shape, copied with their types and their order (target_point is the entity position the original's
+ * get_local_entity_vec3d had already copied; `offset` is target_point_offsets[index]; every local is the float the original declares, sin and cos are the double functions
+ * assigned to float):
+ *
+ *	if ((target_point_offsets[index].x != 0.0) || (target_point_offsets[index].z != 0.0))
+ *	{
+ *		heading = get_local_entity_float_value (en, FLOAT_TYPE_HEADING);
+ *
+ *		if (heading != 0.0)
+ *		{
+ *			sin_heading = sin (heading);
+ *			cos_heading = cos (heading);
+ *
+ *			rotated_x_offset = (cos_heading * target_point_offsets[index].x) + (sin_heading * target_point_offsets[index].z);
+ *			rotated_z_offset = (cos_heading * target_point_offsets[index].z) - (sin_heading * target_point_offsets[index].x);
+ *
+ *			target_point->x += rotated_x_offset;
+ *			target_point->z += rotated_z_offset;
+ *		}
+ *	}
+ *
+ *	target_point->y += target_point_offsets[index].y;
+ *
+ * The heading is read ONLY inside the first test: a missing heading is a refusal exactly where the original would have read one, and nothing is defaulted. `path` reports which
+ * branch of the original was taken: 0 no horizontal offset, 1 horizontal offset and a zero heading (the legacy quirk: x and z are not added), 2 rotated.
+ */
+static int __attribute__((noinline)) fixed_target_point_body(const float *base, const float *offset, const float *heading, float *out, int32_t *path)
+{
+	vec3d target_point, target_point_offset;
+	float heading_value, sin_heading, cos_heading, rotated_x_offset, rotated_z_offset;
+
+	memcpy(&target_point, base, sizeof(vec3d));
+	memcpy(&target_point_offset, offset, sizeof(vec3d));
+
+	*path = 0;
+
+	if ((target_point_offset.x != 0.0) || (target_point_offset.z != 0.0))
+	{
+		*path = 1;
+
+		if (!heading)
+		{
+			return (MODEL_MISSING_INPUT);
+		}
+
+		memcpy(&heading_value, heading, sizeof(float));
+
+		if (heading_value != 0.0)
+		{
+			*path = 2;
+
+			sin_heading = sin(heading_value);
+			cos_heading = cos(heading_value);
+
+			rotated_x_offset = (cos_heading * target_point_offset.x) + (sin_heading * target_point_offset.z);
+			rotated_z_offset = (cos_heading * target_point_offset.z) - (sin_heading * target_point_offset.x);
+
+			target_point.x += rotated_x_offset;
+			target_point.z += rotated_z_offset;
+		}
+	}
+
+	target_point.y += target_point_offset.y;
+
+	memcpy(out, &target_point, sizeof(vec3d));
+
+	return (MODEL_OK);
+}
+
+int eech_model_fixed_target_point(const float *base, const float *offset, const float *heading, float *out, int32_t *path)
+{
+	eech_model_caller_environment caller;
+	int result;
+
+	if (!base || !offset || !out || !path)
+	{
+		return (MODEL_BAD_ARGUMENT);
+	}
+
+	result = enter_environment(&caller);
+
+	if (result != MODEL_OK)
+	{
+		return (result);
+	}
+
+	result = fixed_target_point_body(base, offset, heading, out, path);
+
+	return (leave_environment(&caller, result));
+}
