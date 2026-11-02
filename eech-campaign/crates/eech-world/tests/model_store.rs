@@ -1031,7 +1031,11 @@ io.stdout:write ("lifecycle ok\n")
 #[test]
 fn a_walk_announcement_is_one_bounded_transaction_that_is_final_once_closed() {
     let root = two_directory_root();
-    let run = run_lua(&[("lifecycle.lua", LIFECYCLE_WITNESS)], "lifecycle.lua", &[format!("root={}", slashes(&root.dir))]);
+    let run = run_lua(
+        &[("lifecycle.lua", LIFECYCLE_WITNESS)],
+        "lifecycle.lua",
+        &[format!("root={}", slashes(&root.dir))],
+    );
     assert!(run.status.success(), "{}", run.stderr);
 }
 
@@ -1109,10 +1113,16 @@ fn the_database_and_the_announced_walk_need_no_successful_sorted_history() {
     assert_eq!(inventory.common_objects(), 4);
     assert_eq!(inventory.custom_walk().len(), 1600);
     assert!(matches!(inventory.object_header(1, ROLE_MAIN, 0, 0, false).unwrap(), ObjectHeader::Found(_)));
-    assert_eq!(inventory.object_header(1, ROLE_MAIN, 0, 0, true).unwrap(), ObjectHeader::Refused("custom_definitions_not_loaded"));
+    assert_eq!(
+        inventory.object_header(1, ROLE_MAIN, 0, 0, true).unwrap(),
+        ObjectHeader::Refused("custom_definitions_not_loaded")
+    );
     let walked = ModelStore::load_in_order(&root.dir, &announced).unwrap();
     assert_eq!(walked.custom_walk(), announced);
-    assert!(matches!(walked.object_header(announced[0].0 as i64, ROLE_MAIN, 0, 0, true).unwrap(), ObjectHeader::Found(_)));
+    assert!(matches!(
+        walked.object_header(announced[0].0 as i64, ROLE_MAIN, 0, 0, true).unwrap(),
+        ObjectHeader::Found(_)
+    ));
     // and the reference provider takes the campaign's boot in that order: the database's questions, the announcement, the replay, the final answers
     let walk = announced.iter().map(|(scene, key)| format!("{scene}:{key}")).collect::<Vec<_>>().join(",");
     let run = run_lua(

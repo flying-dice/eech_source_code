@@ -647,7 +647,14 @@ impl ProviderState {
         let inventory = self.base(current.clone())?;
         let outcome = self
             .announcement
-            .take(&|scene, key| inventory.has_custom_scene(scene, key), scene, position, role, key, CUSTOM_WALK_MAX)
+            .take(
+                &|scene, key| inventory.has_custom_scene(scene, key),
+                scene,
+                position,
+                role,
+                key,
+                CUSTOM_WALK_MAX,
+            )
             .map_err(|message| LuaError::runtime(format!("[model-provider:custom_order.request] {message}")))?;
         let table = lua.create_table()?;
         match outcome {
@@ -714,23 +721,31 @@ pub fn register(lua: &Lua, host: &LuaTable) -> LuaResult<()> {
         sorted_answers: false,
         fixed: false,
     }));
-    let lazy = lua.create_function(
-        move |lua,
-              provider_arguments: ProviderArguments| {
-            let (operation, scene, depth, kind, definition, key) = provider_arguments;
-            let scene = provider_number(scene, "scene", &operation)?;
-            let depth = provider_number(depth, "depth", &operation)?;
-            let kind = provider_number(kind, "kind", &operation)?;
-            let definition = provider_number(definition, "definition", &operation)?;
-            // the host argument is read only while the installation is not pinned yet
-            let current = if state.borrow().root.is_none() { args.get::<Option<String>>("root")? } else { None };
-            state.borrow_mut().answer(
-                lua,
-                current,
-                Question { operation, scene, depth, kind, definition, key },
-            )
-        },
-    )?;
+    let lazy = lua.create_function(move |lua, provider_arguments: ProviderArguments| {
+        let (operation, scene, depth, kind, definition, key) = provider_arguments;
+        let scene = provider_number(scene, "scene", &operation)?;
+        let depth = provider_number(depth, "depth", &operation)?;
+        let kind = provider_number(kind, "kind", &operation)?;
+        let definition = provider_number(definition, "definition", &operation)?;
+        // the host argument is read only while the installation is not pinned yet
+        let current = if state.borrow().root.is_none() {
+            args.get::<Option<String>>("root")?
+        } else {
+            None
+        };
+        state.borrow_mut().answer(
+            lua,
+            current,
+            Question {
+                operation,
+                scene,
+                depth,
+                kind,
+                definition,
+                key,
+            },
+        )
+    })?;
     host.set("model", strict(lua, lazy)?)?;
     // host.model_provider (store): the same provider over a store the script already loaded with host.model_store (shared, immutable), for a script that wraps or
     // replaces the reference host's answers. Its store is fixed: it takes the campaign's announcement only if the walk is the one the store was loaded in.
@@ -747,17 +762,25 @@ pub fn register(lua: &Lua, host: &LuaTable) -> LuaResult<()> {
                 sorted_answers: false,
                 fixed: true,
             }));
-            let inner = lua.create_function(
-                move |lua,
-                      provider_arguments: ProviderArguments| {
-                    let (operation, scene, depth, kind, definition, key) = provider_arguments;
-                    let scene = provider_number(scene, "scene", &operation)?;
-                    let depth = provider_number(depth, "depth", &operation)?;
-                    let kind = provider_number(kind, "kind", &operation)?;
-                    let definition = provider_number(definition, "definition", &operation)?;
-                    state.borrow_mut().answer(lua, None, Question { operation, scene, depth, kind, definition, key })
-                },
-            )?;
+            let inner = lua.create_function(move |lua, provider_arguments: ProviderArguments| {
+                let (operation, scene, depth, kind, definition, key) = provider_arguments;
+                let scene = provider_number(scene, "scene", &operation)?;
+                let depth = provider_number(depth, "depth", &operation)?;
+                let kind = provider_number(kind, "kind", &operation)?;
+                let definition = provider_number(definition, "definition", &operation)?;
+                state.borrow_mut().answer(
+                    lua,
+                    None,
+                    Question {
+                        operation,
+                        scene,
+                        depth,
+                        kind,
+                        definition,
+                        key,
+                    },
+                )
+            })?;
             strict(lua, inner)
         })?,
     )
@@ -1033,11 +1056,16 @@ mod walk_tests {
     #[test]
     fn a_coherent_announcement_is_taken_in_order_closed_and_final() {
         let mut walk = WalkAnnouncement::default();
-        assert!(matches!(file(&mut walk, 2, 0, "b", 4096), Ok(StepOutcome::Found)), "a directory name is compared in upper case");
+        assert!(
+            matches!(file(&mut walk, 2, 0, "b", 4096), Ok(StepOutcome::Found)),
+            "a directory name is compared in upper case"
+        );
         assert!(matches!(file(&mut walk, 1, 1, "A", 4096), Ok(StepOutcome::Found)));
         // a file the host lacks is absent and is not taken: the next position is still 2
         assert!(matches!(file(&mut walk, 3, 2, "ZZ", 4096), Ok(StepOutcome::Absent)));
-        let Ok(StepOutcome::End(order)) = end(&mut walk, 2) else { panic!("the walk did not close") };
+        let Ok(StepOutcome::End(order)) = end(&mut walk, 2) else {
+            panic!("the walk did not close")
+        };
         assert_eq!(order, [(2, "B".to_string()), (1, "A".to_string())]);
         // closed is final: no late step, no second end, no new walk
         for result in [file(&mut walk, 3, 0, "C", 4096), end(&mut walk, 0), end(&mut walk, 2)] {
@@ -1058,7 +1086,10 @@ mod walk_tests {
         assert!(file(&mut walk, 1, 1, "a", 4096).err().is_some_and(|e| e.contains("twice")));
         // out of sequence: ahead, behind, negative
         for position in [2, 0, -1] {
-            assert!(file(&mut walk, 2, position, "B", 4096).err().is_some_and(|e| e.contains("was next")), "position {position}");
+            assert!(
+                file(&mut walk, 2, position, "B", 4096).err().is_some_and(|e| e.contains("was next")),
+                "position {position}"
+            );
         }
         // domains: a scene outside the compiled ones, no directory, one longer than the reply's field, a role that is neither a file nor the end
         assert!(file(&mut walk, 0, 1, "B", 4096).is_err() && file(&mut walk, scene_last() as i64, 1, "B", 4096).is_err());
@@ -1067,7 +1098,9 @@ mod walk_tests {
         assert!(walk.take(&has, Some(2), Some(1), Some(7), Some("B".into()), 4096).is_err());
         // none of that changed the state: the walk still has its one file and is still open
         assert!(matches!(file(&mut walk, 2, 1, "B", 4096), Ok(StepOutcome::Found)));
-        let Ok(StepOutcome::End(order)) = end(&mut walk, 2) else { panic!("the walk did not close") };
+        let Ok(StepOutcome::End(order)) = end(&mut walk, 2) else {
+            panic!("the walk did not close")
+        };
         assert_eq!(order, [(1, "A".to_string()), (2, "B".to_string())]);
     }
 

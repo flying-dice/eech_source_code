@@ -20,7 +20,9 @@ fn original() -> Option<String> {
 #[test]
 fn the_original_reads_a_scene_only_for_a_supported_version_and_skips_the_rest_without_reading_one() {
     let Some(source) = original() else { return };
-    let start = source.find("void read_custom_scene ( const char* filename )").expect("the original has read_custom_scene");
+    let start = source
+        .find("void read_custom_scene ( const char* filename )")
+        .expect("the original has read_custom_scene");
     let end = start + source[start..].find("safe_fclose ( fp );").expect("the function closes its file");
     let body = &source[start..end];
     // the one place a scene is read is inside the supported-version test
