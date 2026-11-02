@@ -1,0 +1,10 @@
+{
+  "runtime_source": "c500a314a7a7f71277e4687ebe9a9cac9a3f6daf",
+  "guard_source": "75d6cb62a64ebe883d906d1b0f7f5bbb57bbe014",
+  "changed_paths": [
+    "STATUS.md",
+    "eech-campaign/crates/eech-world/tests/target_point_characterization.rs"
+  ],
+  "all_other_tracked_blobs_and_modes_equal": true,
+  "scope": "Only STATUS and test grammar differ; all C/productionRust/Lua/ABI/Cargo/build/manifest blobs+modes identical. ReusedWindows/native keepC500identity. Priorc500default101 staysfailed."
+}
