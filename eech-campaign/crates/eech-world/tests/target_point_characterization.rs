@@ -1437,7 +1437,11 @@ fn setup_text(called: [bool; 3]) -> String {
     let unavailable = ["no_mobile_with_instance", "no_mobile_with_instance", "no_fixed_structure_with_valid_shape"];
     // (from, from_name, to, to_name, vp_unchanged, counters_restored, host identity): a real mobile's instance scene 7 replaced by the bounding-box scene 4; the same mobile with none; a
     // structure's shape 5 set to the invalid index
-    let shape = [(7, "SCENE_7", 4, "SCENE_4", 1, 1, "present"), (7, "SCENE_7", -1, "-", 1, -1, "present"), (5, "SCENE_5", 0, "-", -1, -1, "absent")];
+    let shape = [
+        (7, "SCENE_7", 4, "SCENE_4", 1, 1, "present"),
+        (7, "SCENE_7", -1, "-", 1, -1, "present"),
+        (5, "SCENE_5", 0, "-", -1, -1, "absent"),
+    ];
     for (k, is_called) in called.iter().enumerate() {
         if *is_called {
             let (from, from_name, to, to_name, vp, counters, host) = shape[k];
@@ -1461,8 +1465,15 @@ fn setup_text(called: [bool; 3]) -> String {
 /// the setup query of a case: the caller class is the setup's and its detail the case; the entity is the one the report names
 fn setup_query(seq: u32, which: i32) -> Ev {
     let base = match which {
-        1 => Ev { model: 4, host_id: Some("MOBILE 1"), ..instance_position(seq, 7) },
-        2 => Ev { host_id: Some("MOBILE 1"), ..fallback(seq, 7, false) },
+        1 => Ev {
+            model: 4,
+            host_id: Some("MOBILE 1"),
+            ..instance_position(seq, 7)
+        },
+        2 => Ev {
+            host_id: Some("MOBILE 1"),
+            ..fallback(seq, 7, false)
+        },
         _ => fallback(seq, 7, true),
     };
     Ev { detail: which, ..base }
@@ -1470,7 +1481,11 @@ fn setup_query(seq: u32, which: i32) -> Ev {
 
 /// a run with the setup probe: one setup query per called case, then one natural query during the frames
 fn setup_case(called: [bool; 3]) -> (Case, Vec<Ev>) {
-    let mut events: Vec<Ev> = (0..3).filter(|k| called[*k]).enumerate().map(|(i, k)| setup_query(i as u32, k as i32 + 1)).collect();
+    let mut events: Vec<Ev> = (0..3)
+        .filter(|k| called[*k])
+        .enumerate()
+        .map(|(i, k)| setup_query(i as u32, k as i32 + 1))
+        .collect();
     events.push(target_point(events.len() as u32, 1));
     let mut case = healthy(&events);
     arg(&mut case, "probe", "setup");
@@ -1485,10 +1500,17 @@ fn the_setup_probe_is_separate_from_the_natural_run_and_says_which_cases_were_no
     let outcome = run(&case);
     outcome.result.as_ref().expect("a coherent setup and a natural query");
     let at = |entry: &str| outcome.log.iter().position(|l| l == entry).unwrap();
-    assert!(at("setup") < at("FRAME"), "the setup runs after the boot census and before any frame: {:?}", outcome.log);
+    assert!(
+        at("setup") < at("FRAME"),
+        "the setup runs after the boot census and before any frame: {:?}",
+        outcome.log
+    );
     let done = done_row(&outcome);
     assert!(
-        done.contains("\"setup_queries\":3") && done.contains("\"setup_cases\":\"1,2,3\"") && done.contains("\"setup_unavailable\":\"none\"") && done.contains("\"setup_probe\":true"),
+        done.contains("\"setup_queries\":3")
+            && done.contains("\"setup_cases\":\"1,2,3\"")
+            && done.contains("\"setup_unavailable\":\"none\"")
+            && done.contains("\"setup_probe\":true"),
         "{done}"
     );
     assert!(
@@ -1526,27 +1548,58 @@ fn damaged_setup_reports_and_restorations_are_malformed_and_stop_the_questions()
         ),
         (
             "a precondition that was not restored",
-            |c| c.setup_report = c.setup_report.take().map(|t| t.replacen("applied=1 called=1 restored=1", "applied=1 called=1 restored=0", 2)),
+            |c| {
+                c.setup_report = c
+                    .setup_report
+                    .take()
+                    .map(|t| t.replacen("applied=1 called=1 restored=1", "applied=1 called=1 restored=0", 2))
+            },
             "was given a precondition that was not restored",
         ),
         (
             "a real instance whose viewpoint changed",
-            |c| c.setup_report = c.setup_report.take().map(|t| t.replacen("vp_unchanged=1 counters_restored=1", "vp_unchanged=0 counters_restored=1", 1)),
+            |c| {
+                c.setup_report = c
+                    .setup_report
+                    .take()
+                    .map(|t| t.replacen("vp_unchanged=1 counters_restored=1", "vp_unchanged=0 counters_restored=1", 1))
+            },
             "did not restore the real instance's viewpoint and the construction counters",
         ),
         (
             "construction counters that were not restored",
-            |c| c.setup_report = c.setup_report.take().map(|t| t.replacen("vp_unchanged=1 counters_restored=1", "vp_unchanged=1 counters_restored=0", 1)),
+            |c| {
+                c.setup_report = c
+                    .setup_report
+                    .take()
+                    .map(|t| t.replacen("vp_unchanged=1 counters_restored=1", "vp_unchanged=1 counters_restored=0", 1))
+            },
             "did not restore the real instance's viewpoint and the construction counters",
         ),
         (
             "a case called although its precondition was not applied",
-            |c| c.setup_report = c.setup_report.take().map(|t| t.replacen("reason=- applied=1 called=1 restored=1 entity_type=TYPE_14 host_id_state=absent", "reason=- applied=0 called=1 restored=1 entity_type=TYPE_14 host_id_state=absent", 1)),
+            |c| {
+                c.setup_report = c.setup_report.take().map(|t| {
+                    t.replacen(
+                        "reason=- applied=1 called=1 restored=1 entity_type=TYPE_14 host_id_state=absent",
+                        "reason=- applied=0 called=1 restored=1 entity_type=TYPE_14 host_id_state=absent",
+                        1,
+                    )
+                })
+            },
             "was called without being applied",
         ),
         (
             "a query the report says was never made",
-            |c| c.setup_report = c.setup_report.take().map(|t| t.replacen("reason=- applied=1 called=1 restored=1 entity_type=TYPE_14 host_id_state=absent", "reason=setup_not_applied applied=1 called=0 restored=1 entity_type=TYPE_14 host_id_state=absent", 1)),
+            |c| {
+                c.setup_report = c.setup_report.take().map(|t| {
+                    t.replacen(
+                        "reason=- applied=1 called=1 restored=1 entity_type=TYPE_14 host_id_state=absent",
+                        "reason=setup_not_applied applied=1 called=0 restored=1 entity_type=TYPE_14 host_id_state=absent",
+                        1,
+                    )
+                })
+            },
             "the setup called 0 times for fixed_invalid_shape but 1 setup queries were recorded",
         ),
         (
@@ -1573,7 +1626,10 @@ fn damaged_setup_reports_and_restorations_are_malformed_and_stop_the_questions()
     early.summaries[0] = summary(&events[..1]);
     let outcome = run(&early);
     failure(&outcome, MALFORMED);
-    failure(&outcome, "setup query event 0 (call 0) is outside the interval [1, 4) that starts at the boot sample");
+    failure(
+        &outcome,
+        "setup query event 0 (call 0) is outside the interval [1, 4) that starts at the boot sample",
+    );
     // an engine refusal (a restoration that did not hold, an incomplete scan, a small buffer) is a primary failure: no frame, nothing read, never "unavailable"
     for reason in ["restoration_mismatch_case_2", "list_longer_than_heap", "report_capacity", "already_run"] {
         let (mut case, _) = setup_case([true; 3]);
@@ -1605,7 +1661,10 @@ fn the_setup_changes_are_applied_observed_restored_and_checked_in_that_order() {
     let in_order = |body: &str, steps: &[&str]| {
         let mut last = 0;
         for step in steps {
-            let at = body[last..].find(step).unwrap_or_else(|| panic!("{step:?} is missing or out of order in:\n{body}")) + last;
+            let at = body[last..]
+                .find(step)
+                .unwrap_or_else(|| panic!("{step:?} is missing or out of order in:\n{body}"))
+                + last;
             last = at + step.len();
         }
     };
@@ -1625,7 +1684,13 @@ fn the_setup_changes_are_applied_observed_restored_and_checked_in_that_order() {
     );
     in_order(
         section("static void setup_no_instance_case ("),
-        &["*field = NULL;", "get_local_entity_ptr_value (en, PTR_TYPE_INSTANCE_3D_OBJECT) == NULL", "get_local_entity_target_point (en, &point);", "*field = original;", "row->restored ="],
+        &[
+            "*field = NULL;",
+            "get_local_entity_ptr_value (en, PTR_TYPE_INSTANCE_3D_OBJECT) == NULL",
+            "get_local_entity_target_point (en, &point);",
+            "*field = original;",
+            "row->restored =",
+        ],
     );
     in_order(
         section("static void setup_invalid_shape_case ("),
@@ -1639,12 +1704,28 @@ fn the_setup_changes_are_applied_observed_restored_and_checked_in_that_order() {
     let run_body = section("int eech_tp_setup_run (");
     in_order(
         run_body,
-        &["capacity < TP_SETUP_MIN_CAPACITY", "visited >= number_of_entities", "probe_heap_slot (en)", "get_local_entity_data (en)", "tp_setup_done = 1;", "setup_instance_case (", "restoration_mismatch_case_1"],
+        &[
+            "capacity < TP_SETUP_MIN_CAPACITY",
+            "visited >= number_of_entities",
+            "probe_heap_slot (en)",
+            "get_local_entity_data (en)",
+            "tp_setup_done = 1;",
+            "setup_instance_case (",
+            "restoration_mismatch_case_1",
+        ],
     );
     assert!(run_body.contains("skin.animation < 0"), "the constructed scene must need no random skin");
-    assert_eq!(run_body.matches("return probe_refused (").count(), 10, "every unsafe or failed path refuses through the one error channel");
+    assert_eq!(
+        run_body.matches("return probe_refused (").count(),
+        10,
+        "every unsafe or failed path refuses through the one error channel"
+    );
     for case in ["setup_instance_case", "setup_no_instance_case", "setup_invalid_shape_case"] {
-        assert_eq!(section(&format!("static void {case} (")).matches("get_local_entity_target_point (").count(), 1, "{case} calls the original once");
+        assert_eq!(
+            section(&format!("static void {case} (")).matches("get_local_entity_target_point (").count(),
+            1,
+            "{case} calls the original once"
+        );
     }
     assert_eq!(
         run_body.matches("get_local_entity_target_point (").count(),
@@ -2261,7 +2342,10 @@ fn the_driver_names_and_caps_are_the_emitters() {
     assert_eq!(lua_number("PROBE_PICKS"), define("TP_PROBE_PICKS"));
     assert_eq!(lua_names("local SETUP_NAMES = {"), returned("setup_case_name"));
     assert_eq!(returned("setup_case_name").len() as u64, define("TP_SETUP_CASES"));
-    assert_eq!(lua_number("SETUP_SITE"), site_classes().iter().position(|c| c == "TP_SITE_SETUP").unwrap() as u64);
+    assert_eq!(
+        lua_number("SETUP_SITE"),
+        site_classes().iter().position(|c| c == "TP_SITE_SETUP").unwrap() as u64
+    );
     assert_eq!(lua_names("local PROBE_NAMES = {"), returned("probe_bucket_name"));
     assert_eq!(returned("probe_bucket_name").len() as u64, define("TP_PROBE_BUCKETS"));
     assert_eq!(lua_number("GENERATIONS_CAPACITY"), define("TP_GENERATIONS"));
