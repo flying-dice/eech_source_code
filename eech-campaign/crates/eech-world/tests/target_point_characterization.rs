@@ -22,8 +22,23 @@ const ENGINE_RS: &str = include_str!("../../eech-engine/src/lib.rs");
 // ---------------------------------------------------------------------------------------------------------------------------------
 // C-shaped synthetic reports
 
-const SITES: [&str; 7] = ["unattributed", "aim_vectors", "aim_lead", "aim_intercept", "weapon_step_target_vec", "other", "controlled_probe"];
-const PROBE_NAMES: [&str; 6] = ["instance_without_target_point", "fixed_no_horizontal", "fixed_rotated", "fixed_heading_zero", "not_fixed_no_instance", "fixed_invalid_shape"];
+const SITES: [&str; 7] = [
+    "unattributed",
+    "aim_vectors",
+    "aim_lead",
+    "aim_intercept",
+    "weapon_step_target_vec",
+    "other",
+    "controlled_probe",
+];
+const PROBE_NAMES: [&str; 6] = [
+    "instance_without_target_point",
+    "fixed_no_horizontal",
+    "fixed_rotated",
+    "fixed_heading_zero",
+    "not_fixed_no_instance",
+    "fixed_invalid_shape",
+];
 const BRANCHES: [&str; 4] = ["instance_target_point", "instance_position", "fixed_shape_offset", "position_fallback"];
 /// the number of model indices the synthetic census holds
 const EXPECTED: usize = 6;
@@ -1133,7 +1148,11 @@ fn probe_text(picked: [usize; 6]) -> String {
     for (i, name) in PROBE_NAMES.iter().enumerate() {
         let p = picked[i];
         let candidates = if p < 2 { p } else { p + 3 };
-        t += &format!("tp-probe-bucket bucket={} name={name} candidates={candidates} picked={p} available={}\n", i + 1, u8::from(p > 0));
+        t += &format!(
+            "tp-probe-bucket bucket={} name={name} candidates={candidates} picked={p} available={}\n",
+            i + 1,
+            u8::from(p > 0)
+        );
     }
     t
 }
@@ -1172,10 +1191,16 @@ fn the_controlled_probe_is_kept_apart_from_the_natural_run_and_says_which_cases_
     let outcome = run(&case);
     outcome.result.as_ref().expect("a coherent probe and a natural query");
     let at = |entry: &str| outcome.log.iter().position(|l| l == entry).unwrap();
-    assert!(at("probe") < at("FRAME"), "the probe runs after the boot census and before any frame: {:?}", outcome.log);
+    assert!(
+        at("probe") < at("FRAME"),
+        "the probe runs after the boot census and before any frame: {:?}",
+        outcome.log
+    );
     let done = done_row(&outcome);
     assert!(
-        done.contains("\"controlled_queries\":6") && done.contains("\"controlled_cases\":\"1,2,3,4,5,6\"") && done.contains("\"controlled_unavailable\":\"none\""),
+        done.contains("\"controlled_queries\":6")
+            && done.contains("\"controlled_cases\":\"1,2,3,4,5,6\"")
+            && done.contains("\"controlled_unavailable\":\"none\""),
         "{done}"
     );
     assert!(
@@ -1191,37 +1216,62 @@ fn the_controlled_probe_is_kept_apart_from_the_natural_run_and_says_which_cases_
     let outcome = run(&unavailable);
     outcome.result.as_ref().expect("an unavailable case is reported, not a failure");
     let done = done_row(&outcome);
-    assert!(done.contains("\"controlled_unavailable\":\"4\"") && done.contains("\"controlled_cases\":\"1,2,3,5,6\""), "{done}");
-    assert!(rows(&outcome).iter().any(|r| r.contains("\"event\":\"probe_unavailable\"") && r.contains("\"cases\":\"4\"")));
+    assert!(
+        done.contains("\"controlled_unavailable\":\"4\"") && done.contains("\"controlled_cases\":\"1,2,3,5,6\""),
+        "{done}"
+    );
+    assert!(rows(&outcome)
+        .iter()
+        .any(|r| r.contains("\"event\":\"probe_unavailable\"") && r.contains("\"cases\":\"4\"")));
     // with no natural query at all the run still says nothing natural was reached
     let mut only_probe = healthy(&[]);
     let probed: Vec<Ev> = (1..=6).map(|b| controlled(b as u32 - 1, b)).collect();
-    only_probe = Case { events: probed.iter().enumerate().map(|(i, e)| Some(event_text(i, e))).collect(), ..only_probe };
+    only_probe = Case {
+        events: probed.iter().enumerate().map(|(i, e)| Some(event_text(i, e))).collect(),
+        ..only_probe
+    };
     arg(&mut only_probe, "probe", "controlled");
     only_probe.probe_report = Some(probe_text([1; 6]));
     only_probe.summaries = vec![summary(&[]), summary(&probed)];
     let outcome = run(&only_probe);
     outcome.result.as_ref().expect("controlled queries alone are a whole capture");
     let done = done_row(&outcome);
-    assert!(done.contains("\"natural_queries_reached\":false") && done.contains("\"branches_reached\":\"none\""), "{done}");
-    assert!(rows(&outcome).iter().any(|r| r.contains("\"event\":\"unreached\"")), "nothing natural was reached and the run says so");
+    assert!(
+        done.contains("\"natural_queries_reached\":false") && done.contains("\"branches_reached\":\"none\""),
+        "{done}"
+    );
+    assert!(
+        rows(&outcome).iter().any(|r| r.contains("\"event\":\"unreached\"")),
+        "nothing natural was reached and the run says so"
+    );
 }
 
 #[test]
 fn damaged_or_contradictory_probe_reports_are_malformed_and_stop_the_questions() {
     // a controlled query whose case is not the one the original took: the pick was for a heading-zero shape and the original is said to have rotated
     let (mut wrong_case, _) = probe_case(&[1, 2, 3, 4, 5, 6]);
-    change(&mut wrong_case, 3, "site=6 site_name=controlled_probe detail=4", "site=6 site_name=controlled_probe detail=3");
+    change(
+        &mut wrong_case,
+        3,
+        "site=6 site_name=controlled_probe detail=4",
+        "site=6 site_name=controlled_probe detail=3",
+    );
     let outcome = run(&wrong_case);
     failure(&outcome, MALFORMED);
-    failure(&outcome, "event 3 was picked as fixed_rotated but the original took branch 3 case 'heading_zero_quirk'");
+    failure(
+        &outcome,
+        "event 3 was picked as fixed_rotated but the original took branch 3 case 'heading_zero_quirk'",
+    );
     assert_eq!(count(&outcome, "event 4"), 0, "the engine was asked past the contradiction");
     // a controlled query the report says nobody picked
     let (mut unpicked, _) = probe_case(&[1, 2, 3, 4, 5, 6]);
     unpicked.probe_report = Some(probe_text([0, 1, 1, 1, 1, 1]));
     let outcome = run(&unpicked);
     failure(&outcome, MALFORMED);
-    failure(&outcome, "the probe picked 0 entities for instance_without_target_point but 1 controlled queries were recorded");
+    failure(
+        &outcome,
+        "the probe picked 0 entities for instance_without_target_point but 1 controlled queries were recorded",
+    );
     // a controlled query when no probe was asked for
     let (mut unasked, _) = probe_case(&[1, 2, 3, 4, 5, 6]);
     unasked.args.retain(|(k, _)| k != "probe");
@@ -1230,7 +1280,9 @@ fn damaged_or_contradictory_probe_reports_are_malformed_and_stop_the_questions()
     failure(&outcome, "event 0 is a controlled query but no probe was asked for");
     // picks that are not the candidates bounded by the probe's limit
     let (mut too_many, _) = probe_case(&[1, 2, 3, 4, 5, 6]);
-    too_many.probe_report = too_many.probe_report.map(|t| t.replace("candidates=1 picked=1 available=1", "candidates=1 picked=2 available=1"));
+    too_many.probe_report = too_many
+        .probe_report
+        .map(|t| t.replace("candidates=1 picked=1 available=1", "candidates=1 picked=2 available=1"));
     let outcome = run(&too_many);
     failure(&outcome, MALFORMED);
     failure(&outcome, "picks that are not its candidates");
