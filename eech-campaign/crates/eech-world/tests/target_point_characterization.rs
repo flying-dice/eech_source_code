@@ -1558,16 +1558,29 @@ fn a_case_applied_but_not_called_is_rejected_apart_from_one_that_was_never_appli
     let build = || {
         let (mut case, _) = setup_case([true, true, false]);
         let report = case.setup_report.take().unwrap();
-        assert_eq!(report.matches(unavailable).count(), 1, "the unavailable row of case 3 is in the report exactly once");
+        assert_eq!(
+            report.matches(unavailable).count(),
+            1,
+            "the unavailable row of case 3 is in the report exactly once"
+        );
         case.setup_report = Some(report.replacen(unavailable, not_applied, 1));
-        assert!(case.events.iter().flatten().all(|e| !e.contains("site=7 site_name=setup_probe detail=3")), "case 3 has no query");
+        assert!(
+            case.events.iter().flatten().all(|e| !e.contains("site=7 site_name=setup_probe detail=3")),
+            "case 3 has no query"
+        );
         case
     };
     // positive first: available, never applied, never called, no query
     let outcome = run(&build());
-    outcome.result.as_ref().expect("an available case 3 whose precondition did not apply is reported not called, with no query");
+    outcome
+        .result
+        .as_ref()
+        .expect("an available case 3 whose precondition did not apply is reported not called, with no query");
     let done = done_row(&outcome);
-    assert!(done.contains("\"setup_queries\":2") && done.contains("\"setup_cases\":\"1,2\"") && done.contains("\"setup_unavailable\":\"3:setup_not_applied\""), "{done}");
+    assert!(
+        done.contains("\"setup_queries\":2") && done.contains("\"setup_cases\":\"1,2\"") && done.contains("\"setup_unavailable\":\"3:setup_not_applied\""),
+        "{done}"
+    );
 
     // the single fault: ONLY applied becomes 1 (the case is still not called and still has no query)
     let applied_not_called = "reason=setup_not_applied applied=1 called=0 restored=1 entity_type=TYPE_14 host_id_state=absent from=5";
@@ -1577,7 +1590,11 @@ fn a_case_applied_but_not_called_is_rejected_apart_from_one_that_was_never_appli
     assert_eq!(report.matches(was_not_applied).count(), 1, "the mutation hits exactly once");
     let mutated = report.replacen(was_not_applied, applied_not_called, 1);
     assert_eq!(mutated.len(), report.len(), "only one character changed");
-    assert_eq!(mutated.chars().zip(report.chars()).filter(|(a, b)| a != b).count(), 1, "exactly one character differs");
+    assert_eq!(
+        mutated.chars().zip(report.chars()).filter(|(a, b)| a != b).count(),
+        1,
+        "exactly one character differs"
+    );
     fault.setup_report = Some(mutated);
     let outcome = run(&fault);
     failure(&outcome, MALFORMED);
