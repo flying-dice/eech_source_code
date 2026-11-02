@@ -1051,54 +1051,102 @@ static int probe_bucket (entity *en)
 	}
 }
 
+/* A used-entity list node is trusted only if it is an aligned slot of the entity heap this run allocated; compared as integers, never as unrelated pointers. */
+static int probe_heap_slot (const entity *en)
+{
+	uintptr_t base = (uintptr_t) entities;
+	uintptr_t at = (uintptr_t) en;
+
+	if (!entities || number_of_entities <= 0)
+	{
+		return 0;
+	}
+	if (at < base || at >= base + ((uintptr_t) number_of_entities * sizeof (entity)))
+	{
+		return 0;
+	}
+	return ((at - base) % sizeof (entity)) == 0;
+}
+
+/* A refusal: nothing was called, the once flag is untouched, and the reason is the text (the engine entry turns the non-zero return into a bad argument that keeps it). */
+static int probe_refused (char *text, int capacity, const char *reason, int visited)
+{
+	snprintf (text, (size_t) capacity, "tp-probe-refused reason=%s visited=%d\n", reason, visited);
+	return 1;
+}
+
 int eech_tp_probe_run (char *text, int capacity)
 {
 	struct out out;
 	entity *picks[TP_PROBE_BUCKETS + 1][TP_PROBE_PICKS];
 	int candidates[TP_PROBE_BUCKETS + 1], picked[TP_PROBE_BUCKETS + 1];
-	int examined = 0, out_of_range = 0, b, k;
+	int visited = 0, examined = 0, out_of_range = 0, b, k;
 	entity *en;
 
-	out_start (&out, text, capacity);
-	/* once, and only between queries and passes */
-	if (tp_probe_done || tp_open || tp_gen_open || tp_pending)
+	if (capacity <= 0)
 	{
 		return 1;
 	}
-	tp_probe_done = 1;
+	text[0] = '\0';
+	/* once, and only between queries and passes */
+	if (tp_probe_done)
+	{
+		return probe_refused (text, capacity, "already_run", 0);
+	}
+	if (tp_open || tp_gen_open || tp_pending)
+	{
+		return probe_refused (text, capacity, "a_query_or_pass_is_running", 0);
+	}
 	memset (candidates, 0, sizeof (candidates));
 	memset (picked, 0, sizeof (picked));
-	for (en = get_local_entity_list (); en; en = get_local_entity_succ (en))
+	/* THE SCAN. It visits at most as many nodes as the heap has slots, validates each node as a heap slot BEFORE it reads the node, and touches no original function. A list that is still
+	   going at the bound (a cycle), or leaves the heap, makes the whole scan INCOMPLETE: the probe is refused, nothing is called and no case is ever called unavailable from a partial scan. */
+	for (en = get_local_entity_list (); en;)
 	{
 		int bucket;
 
-		if (!(entities && en >= entities && en < entities + number_of_entities))
+		if (visited >= number_of_entities)
 		{
-			break;
+			return probe_refused (text, capacity, "list_longer_than_heap", visited);
 		}
-		if (!probe_type_considered ((int) en->type))
+		if (!probe_heap_slot (en))
 		{
-			continue;
+			return probe_refused (text, capacity, "list_node_not_a_heap_slot", visited);
 		}
-		examined++;
-		bucket = probe_bucket (en);
-		if (bucket < 0)
+		visited++;
+		if (probe_type_considered ((int) en->type))
 		{
-			out_of_range++;
-			continue;
+			examined++;
+			bucket = probe_bucket (en);
+			if (bucket < 0)
+			{
+				out_of_range++;
+			}
+			else if (bucket > 0)
+			{
+				candidates[bucket]++;
+				if (picked[bucket] < TP_PROBE_PICKS)
+				{
+					picks[bucket][picked[bucket]] = en;
+					picked[bucket]++;
+				}
+			}
 		}
-		if (bucket == 0)
-		{
-			continue;
-		}
-		candidates[bucket]++;
-		if (picked[bucket] < TP_PROBE_PICKS)
-		{
-			picks[bucket][picked[bucket]] = en;
-			picked[bucket]++;
-		}
+		en = get_local_entity_succ (en);
 	}
-	emit (&out, "tp-probe entities=%d shape_out_of_range=%d\n", examined, out_of_range);
+	/* THE REPORT, staged BEFORE any original is called: its size depends on the scan only, so a buffer that cannot hold it refuses here with nothing consumed */
+	out_start (&out, text, capacity);
+	emit (&out, "tp-probe status=complete visited=%d entities=%d shape_out_of_range=%d\n", visited, examined, out_of_range);
+	for (b = 1; b <= TP_PROBE_BUCKETS; b++)
+	{
+		emit (&out, "tp-probe-bucket bucket=%d name=%s candidates=%d picked=%d available=%d\n", b, probe_bucket_name (b), candidates[b], picked[b], picked[b] > 0 ? 1 : 0);
+	}
+	if (out.overflow)
+	{
+		return probe_refused (text, capacity, "report_capacity", visited);
+	}
+	/* the scan is complete and the report fits: only now is the once flag consumed and the original called, at most TP_PROBE_PICKS times per case */
+	tp_probe_done = 1;
 	for (b = 1; b <= TP_PROBE_BUCKETS; b++)
 	{
 		for (k = 0; k < picked[b]; k++)
@@ -1109,9 +1157,8 @@ int eech_tp_probe_run (char *text, int capacity)
 			eech_tp_caller (3, b);
 			get_local_entity_target_point (picks[b][k], &point);
 		}
-		emit (&out, "tp-probe-bucket bucket=%d name=%s candidates=%d picked=%d available=%d\n", b, probe_bucket_name (b), candidates[b], picked[b], picked[b] > 0 ? 1 : 0);
 	}
-	return out.overflow ? 1 : 0;
+	return 0;
 }
 
 #endif

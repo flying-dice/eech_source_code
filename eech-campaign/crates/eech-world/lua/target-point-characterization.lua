@@ -467,14 +467,24 @@ end
 local function check_probe (text)
 	local list = lines_of (text, "the probe report")
 	if #list ~= #PROBE_NAMES + 1 then malformed ("the probe report has " .. #list .. " lines, expected " .. (#PROBE_NAMES + 1)) end
-	local head = fields (list [1], "tp-probe", { "entities", "shape_out_of_range" }, "the probe head")
-	local report = { entities = int (head.entities, 0, INT_MAX, "probe entities"), out_of_range = int (head.shape_out_of_range, 0, INT_MAX, "probe shape_out_of_range"), picked = {}, candidates = {} }
+	local head = fields (list [1], "tp-probe", { "status", "visited", "entities", "shape_out_of_range" }, "the probe head")
+	-- only a COMPLETE scan reports; a refused one raises instead (tp-probe-refused), calls nothing and is never a list of unavailable cases
+	if head.status ~= "complete" then malformed ("the probe's scan is not complete: " .. tostring (head.status)) end
+	local report = { visited = int (head.visited, 0, INT_MAX, "probe visited"), entities = int (head.entities, 0, INT_MAX, "probe entities"), out_of_range = int (head.shape_out_of_range, 0, INT_MAX, "probe shape_out_of_range"), picked = {}, candidates = {}, picked_total = 0 }
+	local candidate_total = 0
 	for b = 1, #PROBE_NAMES do
 		local v = fields (list [b + 1], "tp-probe-bucket", { "bucket", "name", "candidates", "picked", "available" }, "probe case " .. b)
 		if int (v.bucket, 1, #PROBE_NAMES, "probe bucket") ~= b or v.name ~= PROBE_NAMES [b] then malformed ("the probe case rows are not in order at " .. b) end
 		local candidates, picked, available = int (v.candidates, 0, INT_MAX, "probe candidates"), int (v.picked, 0, PROBE_PICKS, "probe picked"), flag (v.available, "probe available")
 		if picked ~= math.min (candidates, PROBE_PICKS) or (available == 1) ~= (picked > 0) then malformed ("probe case " .. b .. " has picks that are not its candidates bounded by " .. PROBE_PICKS) end
 		report.picked [b], report.candidates [b] = picked, candidates
+		report.picked_total = report.picked_total + picked
+		candidate_total = candidate_total + candidates
+	end
+	-- the population: the candidates and the shapes outside the table are drawn from the entities of the examined families, which are drawn from the list nodes visited
+	if report.entities > report.visited then malformed (string.format ("the probe examined %d entities of only %d list nodes visited", report.entities, report.visited)) end
+	if candidate_total + report.out_of_range > report.entities then
+		malformed (string.format ("the probe counts %d candidates and %d shapes outside the table among only %d examined entities", candidate_total, report.out_of_range, report.entities))
 	end
 	return report
 end
@@ -757,6 +767,19 @@ local function run ()
 			end
 		end)
 		if not probe_joined then protocol_failure (probe_why) end
+		-- The probe ran ONCE, immediately after the boot sample and before any frame, so its queries are exactly the contiguous span of call numbers that starts at the boot sample's call count and is as
+		-- long as its picks: no controlled query outside it, no natural query inside it. (Nothing is assumed about the time of the other queries.)
+		local first_call, last_call = boot_summary.calls, boot_summary.calls + probe_report.picked_total
+		local interval_ok, interval_why = pcall (function ()
+			if last_call > final.calls then malformed (string.format ("the probe's %d queries do not fit after the boot sample's %d calls in the %d the observer counts", probe_report.picked_total, first_call, final.calls)) end
+			for index = 0, final.events - 1 do
+				local e = events [index]
+				local inside = e.seq >= first_call and e.seq < last_call
+				if e.site == CONTROLLED_SITE and not inside then malformed (string.format ("controlled query event %d (call %d) is outside the interval [%d, %d) that starts at the boot sample", index, e.seq, first_call, last_call)) end
+				if e.site ~= CONTROLLED_SITE and inside then malformed (string.format ("natural query event %d (call %d) is inside the controlled interval [%d, %d)", index, e.seq, first_call, last_call)) end
+			end
+		end)
+		if not interval_ok then protocol_failure (interval_why) end
 	end
 	local reached = {}
 	for b = 1, 4 do

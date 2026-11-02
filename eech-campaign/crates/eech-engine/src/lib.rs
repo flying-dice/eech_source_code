@@ -57,7 +57,7 @@ fn check(code: c_int) -> Result<(), EngineError> {
 /// (`cmb-case-error reason=... detail=...`) into the report buffer before it returns the argument error, and `check` turns every argument error into "rejected by the engine";
 /// this keeps the reason instead of discarding it. Any other failure, and a rejection that wrote nothing, is unchanged.
 /// The ground-contact probe (feature `ground-fixture`, EEDCS-48) writes `ground-refused reason=...` the same way and uses it too.
-#[cfg(any(feature = "weapon-fixture", feature = "env-fixture", feature = "ground-fixture"))]
+#[cfg(any(feature = "weapon-fixture", feature = "env-fixture", feature = "ground-fixture", feature = "target-point-fixture"))]
 fn keep_case_reason(status: Result<(), EngineError>, text: &[std::os::raw::c_char]) -> Result<String, EngineError> {
     // SAFETY: the buffer was zero-filled and the engine NUL-terminates anything it writes within it.
     let report = unsafe { CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned();
@@ -6136,9 +6136,9 @@ impl Engine {
     pub fn target_point_probe(&self) -> Result<String, EngineError> {
         let mut text = vec![0 as std::os::raw::c_char; TARGET_POINT_LINE_CAPACITY];
         // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
-        check(unsafe { sys::eech_engine_target_point_probe(text.as_mut_ptr(), text.len() as i32) })?;
-        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
-        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+        let status = check(unsafe { sys::eech_engine_target_point_probe(text.as_mut_ptr(), text.len() as i32) });
+        // a refusal writes `tp-probe-refused reason=...` and fails as a bad argument that keeps the reason (nothing was called)
+        keep_case_reason(status, &text)
     }
 
     /// TEST-ONLY (feature `target-point-fixture`, EEDCS-52 D3): one recorded query by its zero-based index, as one `key=value` text line. `index` is checked here before the engine is

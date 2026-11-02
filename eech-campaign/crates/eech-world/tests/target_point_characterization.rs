@@ -411,7 +411,7 @@ struct Case {
     feature_off: bool,
     /// the controlled probe's report (None: the module has no probe), and whether the probe call raises
     probe_report: Option<String>,
-    probe_fails: bool,
+    probe_fails: Option<&'static str>,
     boot_fails: bool,
     existing: Option<&'static str>,
     io: Io,
@@ -438,7 +438,7 @@ fn healthy(events: &[Ev]) -> Case {
         fail_frame: 0,
         feature_off: false,
         probe_report: None,
-        probe_fails: false,
+        probe_fails: None,
         boot_fails: false,
         existing: None,
         io: Io::Real,
@@ -551,7 +551,7 @@ fn run(case: &Case) -> Outcome {
                         if PROBE_REPORT then
                             engine.target_point_probe = function ()
                                 note ("probe")
-                                if PROBE_FAIL then error ("probe refused", 0) end
+                                if PROBE_FAIL then error (PROBE_FAIL, 0) end
                                 return PROBE_REPORT
                             end
                         end
@@ -599,7 +599,10 @@ fn run(case: &Case) -> Outcome {
         Some(text) => lua.globals().set("PROBE_REPORT", lua.create_string(text.as_bytes()).unwrap()).unwrap(),
         None => lua.globals().set("PROBE_REPORT", false).unwrap(),
     }
-    lua.globals().set("PROBE_FAIL", case.probe_fails).unwrap();
+    match case.probe_fails {
+        Some(text) => lua.globals().set("PROBE_FAIL", text).unwrap(),
+        None => lua.globals().set("PROBE_FAIL", false).unwrap(),
+    }
     let host: Table = lua.globals().get("host").unwrap();
     match case.io {
         Io::Real => eech_world::exclusive_output::register(&lua, &host).unwrap(),
@@ -1144,7 +1147,7 @@ fn a_query_is_anchored_to_the_sampled_call_boundaries() {
 
 /// the probe's report when it picked this many entities for each case (a case with one candidate has that one; with more it has more than the bound)
 fn probe_text(picked: [usize; 6]) -> String {
-    let mut t = String::from("tp-probe entities=40 shape_out_of_range=0\n");
+    let mut t = String::from("tp-probe status=complete visited=60 entities=40 shape_out_of_range=0\n");
     for (i, name) in PROBE_NAMES.iter().enumerate() {
         let p = picked[i];
         let candidates = if p < 2 { p } else { p + 3 };
@@ -1247,6 +1250,105 @@ fn the_controlled_probe_is_kept_apart_from_the_natural_run_and_says_which_cases_
 }
 
 #[test]
+fn the_probe_follows_a_boot_query_and_its_interval_is_exact() {
+    // a natural query at the boot (call 0), then the probe's six (calls 1 to 6), then one natural query during the frames (call 7): the boot sample counted one call, so the probe's span starts at 1
+    let mut events = vec![target_point(0, 1)];
+    events.extend((1..=6).map(|b| controlled(b as u32, b)));
+    events.push(target_point(7, 1));
+    let coherent = || {
+        let mut case = healthy(&events);
+        arg(&mut case, "probe", "controlled");
+        case.probe_report = Some(probe_text([1; 6]));
+        case.summaries = vec![summary(&events[..1]), summary(&events)];
+        case
+    };
+    let outcome = run(&coherent());
+    outcome.result.as_ref().expect("a boot query, the probe's span and a later natural query");
+    let done = done_row(&outcome);
+    assert!(done.contains("\"controlled_queries\":6") && done.contains("\"queries\":1") && done.contains("\"boot_calls\":1"), "{done}");
+
+    // the probe is IMMEDIATELY after the boot sample: if that sample is taken as having seen no call, the boot query sits inside the span the probe must own
+    let mut late = coherent();
+    late.summaries[0] = summary(&[]);
+    let outcome = run(&late);
+    failure(&outcome, MALFORMED);
+    failure(&outcome, "natural query event 0 (call 0) is inside the controlled interval [0, 6)");
+
+    // a controlled query before the span starts: the boot sample claims the first (controlled) call as its own
+    let (mut early, probed) = probe_case(&[1, 2, 3, 4, 5, 6]);
+    early.summaries[0] = summary(&probed[..1]);
+    let outcome = run(&early);
+    failure(&outcome, MALFORMED);
+    failure(&outcome, "controlled query event 0 (call 0) is outside the interval [1, 7) that starts at the boot sample");
+}
+
+#[test]
+fn a_probe_population_that_cannot_hold_its_own_candidates_is_malformed() {
+    let (coherent, _) = probe_case(&[1, 2, 3, 4, 5, 6]);
+    run(&coherent).result.expect("the coherent probe passes");
+    let faults: [(&str, &str, &str, &str); 4] = [
+        ("fewer entities than candidates", "entities=40", "entities=5", "the probe counts 6 candidates"),
+        ("fewer list nodes than entities", "visited=60", "visited=30", "the probe examined 40 entities of only 30 list nodes"),
+        ("a scan that is not complete", "status=complete", "status=partial", "the probe's scan is not complete"),
+        ("shapes outside the table beyond the entities", "shape_out_of_range=0", "shape_out_of_range=36", "and 36 shapes outside the table among only 40"),
+    ];
+    for (what, from, to, reason) in faults {
+        let (mut case, _) = probe_case(&[1, 2, 3, 4, 5, 6]);
+        let report = case.probe_report.take().unwrap();
+        assert!(report.contains(from), "{what}: nothing to change");
+        case.probe_report = Some(report.replace(from, to));
+        let outcome = run(&case);
+        failure(&outcome, MALFORMED);
+        failure(&outcome, reason);
+        assert_eq!(count(&outcome, "FRAME"), 0, "{what}: a frame was run");
+    }
+    // the same population with picks but no entities at all
+    let (mut empty, _) = probe_case(&[1, 2, 3, 4, 5, 6]);
+    empty.probe_report = empty.probe_report.map(|t| t.replace("visited=60 entities=40", "visited=0 entities=0"));
+    let outcome = run(&empty);
+    failure(&outcome, MALFORMED);
+    failure(&outcome, "the probe counts 6 candidates");
+}
+
+#[test]
+fn a_refused_probe_scan_stops_the_run_and_is_never_unavailable_cases() {
+    // the engine refuses an incomplete scan (a list longer than the heap, a node outside it) or a report that does not fit: it called nothing, and the reason reaches the failure
+    for reason in ["list_longer_than_heap", "list_node_not_a_heap_slot", "report_capacity", "already_run"] {
+        let (mut case, _) = probe_case(&[1, 2, 3, 4, 5, 6]);
+        let text: &'static str = Box::leak(format!("tp-probe-refused reason={reason} visited=4096").into_boxed_str());
+        case.probe_fails = Some(text);
+        let outcome = run(&case);
+        failure(&outcome, "target_point_probe failed: tp-probe-refused reason=");
+        failure(&outcome, reason);
+        assert_eq!(count(&outcome, "FRAME"), 0, "{reason}: a frame was run");
+        assert_eq!(count(&outcome, "event 0"), 0, "{reason}: a query was read");
+        assert!(!rows(&outcome).iter().any(|r| r.contains("probe_unavailable")), "{reason}: a refusal was reported as unavailable cases");
+    }
+}
+
+#[test]
+fn the_probe_scan_is_bounded_validated_and_staged_before_it_calls_the_original() {
+    // the contract of the C probe, as ORDER inside it: the node is validated before it is read, the visit count is bounded by the heap, the report is staged (and checked to fit) before the once
+    // flag is consumed, and the flag is consumed before the first original call
+    let start = EMITTER.find("int eech_tp_probe_run (").expect("the probe");
+    let body = &EMITTER[start..];
+    let body = &body[..body.find("\n}\n").unwrap()];
+    let at = |needle: &str| body.find(needle).unwrap_or_else(|| panic!("the probe has no {needle:?}"));
+    assert!(at("visited >= number_of_entities") < at("probe_heap_slot (en)"), "the visit bound comes first");
+    assert!(at("probe_heap_slot (en)") < at("en->type"), "a node is validated as a heap slot before it is read");
+    assert!(at("en->type") < at("get_local_entity_succ (en)"), "the successor is read only from a validated node");
+    assert!(at("\"report_capacity\"") < at("tp_probe_done = 1;"), "the report capacity is checked before the once flag is consumed");
+    assert!(at("tp_probe_done = 1;") < at("get_local_entity_target_point ("), "the once flag is consumed before the first original call");
+    assert_eq!(body.matches("get_local_entity_target_point (").count(), 1, "the original is called from one place only");
+    assert!(body.matches("return probe_refused (").count() >= 5, "every incomplete or unsafe path refuses explicitly");
+    // the validation is by integer address and slot alignment, never by comparing unrelated pointers
+    let helper = EMITTER.find("static int probe_heap_slot (").expect("the slot check");
+    let helper = &EMITTER[helper..];
+    let helper = &helper[..helper.find("\n}\n").unwrap()];
+    assert!(helper.contains("(uintptr_t) en") && helper.contains("% sizeof (entity)"), "{helper}");
+}
+
+#[test]
 fn damaged_or_contradictory_probe_reports_are_malformed_and_stop_the_questions() {
     // a controlled query whose case is not the one the original took: the pick was for a heading-zero shape and the original is said to have rotated
     let (mut wrong_case, _) = probe_case(&[1, 2, 3, 4, 5, 6]);
@@ -1289,7 +1391,7 @@ fn damaged_or_contradictory_probe_reports_are_malformed_and_stop_the_questions()
     assert_eq!(count(&outcome, "FRAME"), 0);
     // a probe that raises is a primary engine failure: no frame, nothing asked again
     let (mut raising, _) = probe_case(&[1, 2, 3, 4, 5, 6]);
-    raising.probe_fails = true;
+    raising.probe_fails = Some("probe refused");
     let outcome = run(&raising);
     failure(&outcome, "target_point_probe failed: probe refused");
     assert_eq!(count(&outcome, "FRAME"), 0);
@@ -1716,6 +1818,29 @@ fn the_driver_grammar_is_the_emitters() {
     }
 }
 
+/// the emitter's caller classes in numeric order (the enum that precedes TP_SITES)
+fn site_classes() -> Vec<String> {
+    let start = EMITTER.find("\tTP_SITE_UNATTRIBUTED,").expect("the caller class enum");
+    let end = start + EMITTER[start..].find("TP_SITES").expect("the end of the caller class enum");
+    EMITTER[start..end].lines().map(str::trim).filter(|l| l.starts_with("TP_SITE_")).map(|l| l.trim_end_matches(',').to_string()).collect()
+}
+
+/// the name site_name gives each caller class, by class number: the `case` of that class, or the `default` for a class with none
+fn site_names_by_class(classes: &[String]) -> Vec<String> {
+    let start = EMITTER.find("static const char *site_name (").expect("the emitter has site_name");
+    let body = &EMITTER[start..];
+    let body = &body[..body.find("\n}\n").unwrap()];
+    let first_return = |from: usize| -> String {
+        let at = from + body[from..].find("return \"").expect("a return after the label") + "return \"".len();
+        body[at..].split('"').next().unwrap().to_string()
+    };
+    let fallback = first_return(body.find("default:").expect("site_name has a default"));
+    classes
+        .iter()
+        .map(|class| body.find(&format!("case {class}:")).map_or_else(|| fallback.clone(), first_return))
+        .collect()
+}
+
 /// the string literals an emitter function returns, in order
 fn returned(function: &str) -> Vec<String> {
     let start = EMITTER
@@ -1740,7 +1865,10 @@ fn the_driver_names_and_caps_are_the_emitters() {
             .unwrap_or_else(|| panic!("the driver has no {table}"));
         line.split('"').skip(1).step_by(2).map(String::from).collect()
     };
-    assert_eq!(lua_names("local SITES = {"), returned("site_name"));
+    // the protocol is the caller class NUMBER: the emitter's enum order, its site_name switch (a case per named class, the default for the rest) and the driver's table must agree class by class,
+    // whatever order the switch happens to list its returns in
+    let classes = site_classes();
+    assert_eq!(lua_names("local SITES = {"), site_names_by_class(&classes));
     assert_eq!(lua_names("local BRANCHES = {"), returned("branch_name"));
     let cases: Vec<String> = SCRIPT
         .lines()
@@ -1766,6 +1894,8 @@ fn the_driver_names_and_caps_are_the_emitters() {
     };
     assert_eq!(lua_number("EVENTS_CAPACITY"), define("TP_EVENTS"));
     assert_eq!(lua_number("HOST_ID_MAX"), define("TP_HOST_ID"));
+    assert_eq!(lua_number("SITE_COUNT"), site_classes().len() as u64);
+    assert_eq!(lua_number("CONTROLLED_SITE"), site_classes().iter().position(|c| c == "TP_SITE_CONTROLLED").unwrap() as u64);
     assert_eq!(lua_number("PROBE_PICKS"), define("TP_PROBE_PICKS"));
     assert_eq!(lua_names("local PROBE_NAMES = {"), returned("probe_bucket_name"));
     assert_eq!(returned("probe_bucket_name").len() as u64, define("TP_PROBE_BUCKETS"));
