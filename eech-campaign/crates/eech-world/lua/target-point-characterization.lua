@@ -566,6 +566,10 @@ local function run ()
 	-- THE FRAMES. The campaign decides what is queried; nothing here selects, creates or calls anything.
 	local clock_before = read_clock ("before")
 	local previous = boot_summary
+	-- The summaries are the only moments the driver knows the observer's state. A query's seq is the call count when it BEGAN and its gen the latest ended census pass then, so against each
+	-- sample (calls, last pass ended): a query that began before that call count cannot name a later pass than the sample's, and one that began at or after it cannot name an earlier one.
+	-- Nothing is assumed between samples, and the open flag (unknown at a query's moment) is not constrained.
+	local boundaries = { { calls = boot_summary.calls, last = boot_summary.census.last, when = "the boot sample" } }
 	local next_sample = checkpoint_every
 	for f = 1, frames do
 		local stepped, problem = pcall (function () engine:frame (frame_ms) end)
@@ -578,10 +582,12 @@ local function run ()
 			local now = sample ("frame " .. f)
 			local monotone, bad = pcall (function ()
 				if now.calls < previous.calls or now.events < previous.events or now.dropped < previous.dropped then malformed ("a query counter went backwards between two samples") end
+				if now.census.last < previous.census.last then malformed ("the latest ended census pass went backwards between two samples") end
 				same_census (boot_summary, now, "frame " .. f)
 			end)
 			if not monotone then protocol_failure (bad) end
 			previous = now
+			boundaries [#boundaries + 1] = { calls = now.calls, last = now.census.last, when = "the sample at frame " .. f }
 			next_sample = next_sample + checkpoint_every
 		end
 	end
@@ -595,8 +601,10 @@ local function run ()
 	local final = sample ("end")
 	local monotone_end, bad_end = pcall (function ()
 		if final.calls < previous.calls or final.events < previous.events or final.dropped < previous.dropped then malformed ("a query counter went backwards at the end") end
+		if final.census.last < previous.census.last then malformed ("the latest ended census pass went backwards at the end") end
 	end)
 	if not monotone_end then protocol_failure (bad_end) end
+	boundaries [#boundaries + 1] = { calls = final.calls, last = final.census.last, when = "the end sample" }
 	-- the final summary may add passes (a later initialisation is a new original product) but may not change one the boot held
 	local same, same_reason = pcall (same_census, boot_summary, final, "end")
 	if not same then protocol_failure (same_reason) end
@@ -624,6 +632,13 @@ local function run ()
 		seen = event.seq
 		if event.gen < previous_gen then protocol_failure ({ malformed = "event " .. index .. " names an older census pass than the event before it" }) end
 		previous_gen = event.gen
+		for _, b in ipairs (boundaries) do
+			if event.seq < b.calls and event.gen > b.last then
+				protocol_failure ({ malformed = string.format ("event %d began before %s (%d calls) yet names pass %d, a pass that had not ended by then (the latest was %d)", index, b.when, b.calls, event.gen, b.last) })
+			elseif event.seq >= b.calls and event.gen < b.last then
+				protocol_failure ({ malformed = string.format ("event %d began at or after %s (%d calls) yet names pass %d, earlier than the latest that had ended by then (%d)", index, b.when, b.calls, event.gen, b.last) })
+			end
+		end
 		events[index] = event
 	end
 

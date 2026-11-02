@@ -429,6 +429,13 @@ fn arg(case: &mut Case, key: &str, value: &str) {
     case.args.push((key.to_string(), value.to_string()));
 }
 
+/// change one recorded event's text; the change must really change it
+fn change(case: &mut Case, index: usize, from: &str, to: &str) {
+    let text = case.events[index].as_ref().expect("a recorded event");
+    assert!(text.contains(from) && from != to, "the event has no {from:?} to change: {text}");
+    case.events[index] = Some(text.replace(from, to));
+}
+
 fn run(case: &Case) -> Outcome {
     static SERIAL: AtomicUsize = AtomicUsize::new(0);
     let out = std::env::temp_dir().join(format!(
@@ -1028,6 +1035,72 @@ fn a_later_pass_is_a_new_original_product_and_each_query_binds_to_the_pass_it_ra
     let outcome = run(&disagreeing);
     failure(&outcome, MALFORMED);
     failure(&outcome, "census rows and the summary's totals of the pass disagree");
+}
+
+#[test]
+fn a_query_is_anchored_to_the_sampled_call_boundaries() {
+    // A boot query that ran between the two initialiser passes (and with a pass running: the open flag is unknown at a query's moment and is not constrained), a query of model 4 after pass 1,
+    // and a later query after a third pass that ended before the sample taken at two calls. The summaries are the only moments the driver knows the observer's state.
+    let events = vec![
+        Ev {
+            gen_open: true,
+            ..target_point(0, 0).at_pass(0)
+        },
+        fixed_shape(1, 3, 4, "rotated_horizontal_offset", Some(0x3f00_0000), true).at_pass(1),
+        Ev {
+            gen: 2,
+            ..instance_position(2, 2)
+        },
+    ];
+    let three = [Pass::full(3), Pass::full(1), Pass::full(0)];
+    let coherent = || {
+        let mut case = healthy(&events);
+        arg(&mut case, "checkpoint_every", "1");
+        let mid = summary_passes(&events[..2], &three, 0);
+        // the boot (one call), three samples while the frames run (two calls, the third pass ended), and the end (three calls)
+        case.summaries = vec![summary(&events[..1]), mid.clone(), mid.clone(), mid, summary_passes(&events, &three, 0)];
+        case.end_censuses = vec![pass_text(0, 2, true), pass_text(1, 2, true), pass_text(2, 2, true)];
+        case
+    };
+    let outcome = run(&coherent());
+    outcome.result.as_ref().expect("a boot query between two passes and a pass added between samples are coherent");
+    let done = done_row(&outcome);
+    assert!(done.contains("\"generations\":3") && done.contains("\"boot_calls\":1") && done.contains("\"queries\":2"), "{done}");
+
+    // a pre-boot query (it began before the boot sample's one call) cannot name the third pass, which ended only during the frames
+    let mut future = coherent();
+    change(&mut future, 0, "gen=0 gen_open=1", "gen=2 gen_open=1");
+    let outcome = run(&future);
+    failure(&outcome, MALFORMED);
+    failure(&outcome, "event 0 began before the boot sample (1 calls) yet names pass 2");
+    assert_eq!(count(&outcome, "event 1"), 0, "the engine was asked past the future generation");
+
+    // a query that began after the sample at two calls cannot name a pass earlier than the third, which had ended by then, although the boot sample alone would allow it
+    let mut stale = coherent();
+    change(&mut stale, 2, "gen=2 gen_open=0", "gen=1 gen_open=0");
+    let outcome = run(&stale);
+    failure(&outcome, MALFORMED);
+    failure(&outcome, "event 2 began at or after the sample at frame 10 (2 calls) yet names pass 1");
+
+    // without any later sample, a post-boot query still cannot name a pass earlier than the latest that had ended at the boot (the monotone order alone allows it here)
+    let simple = vec![
+        Ev {
+            gen_open: true,
+            ..target_point(0, 0).at_pass(0)
+        },
+        target_point(1, 1),
+    ];
+    let boot_one = |events: &[Ev]| {
+        let mut case = healthy(events);
+        case.summaries = vec![summary(&events[..1]), summary(events)];
+        case
+    };
+    run(&boot_one(&simple)).result.expect("a boot query between the passes, then one after both");
+    let mut after_boot = boot_one(&simple);
+    change(&mut after_boot, 1, "gen=1 gen_open=0", "gen=0 gen_open=0");
+    let outcome = run(&after_boot);
+    failure(&outcome, MALFORMED);
+    failure(&outcome, "event 1 began at or after the boot sample (1 calls) yet names pass 0");
 }
 
 #[test]
