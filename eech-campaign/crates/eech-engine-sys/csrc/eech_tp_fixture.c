@@ -1116,6 +1116,11 @@ int eech_tp_probe_run (char *text, int capacity)
 		visited++;
 		if (probe_type_considered ((int) en->type))
 		{
+			/* an eligible node must carry live entity data BEFORE any typed getter dereferences it (a valid heap slot and a type do not establish that): refused, never skipped or called unavailable */
+			if (!get_local_entity_data (en))
+			{
+				return probe_refused (text, capacity, "eligible_node_without_entity_data", visited);
+			}
 			examined++;
 			bucket = probe_bucket (en);
 			if (bucket < 0)

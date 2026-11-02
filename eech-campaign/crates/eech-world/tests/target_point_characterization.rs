@@ -1313,7 +1313,7 @@ fn a_probe_population_that_cannot_hold_its_own_candidates_is_malformed() {
 #[test]
 fn a_refused_probe_scan_stops_the_run_and_is_never_unavailable_cases() {
     // the engine refuses an incomplete scan (a list longer than the heap, a node outside it) or a report that does not fit: it called nothing, and the reason reaches the failure
-    for reason in ["list_longer_than_heap", "list_node_not_a_heap_slot", "report_capacity", "already_run"] {
+    for reason in ["list_longer_than_heap", "list_node_not_a_heap_slot", "eligible_node_without_entity_data", "report_capacity", "already_run"] {
         let (mut case, _) = probe_case(&[1, 2, 3, 4, 5, 6]);
         let text: &'static str = Box::leak(format!("tp-probe-refused reason={reason} visited=4096").into_boxed_str());
         case.probe_fails = Some(text);
@@ -1336,11 +1336,14 @@ fn the_probe_scan_is_bounded_validated_and_staged_before_it_calls_the_original()
     let at = |needle: &str| body.find(needle).unwrap_or_else(|| panic!("the probe has no {needle:?}"));
     assert!(at("visited >= number_of_entities") < at("probe_heap_slot (en)"), "the visit bound comes first");
     assert!(at("probe_heap_slot (en)") < at("en->type"), "a node is validated as a heap slot before it is read");
-    assert!(at("en->type") < at("get_local_entity_succ (en)"), "the successor is read only from a validated node");
+    assert!(at("en->type") < at("get_local_entity_data (en)"), "an eligible node's data is checked after its type is known");
+    assert!(at("get_local_entity_data (en)") < at("probe_bucket (en)"), "an eligible node carries live data BEFORE any typed getter reads it");
+    assert!(at("eligible_node_without_entity_data") < at("probe_bucket (en)"), "a node without data is refused, not skipped or counted");
+    assert!(at("probe_bucket (en)") < at("get_local_entity_succ (en)"), "the successor is read only from a validated node");
     assert!(at("\"report_capacity\"") < at("tp_probe_done = 1;"), "the report capacity is checked before the once flag is consumed");
     assert!(at("tp_probe_done = 1;") < at("get_local_entity_target_point ("), "the once flag is consumed before the first original call");
     assert_eq!(body.matches("get_local_entity_target_point (").count(), 1, "the original is called from one place only");
-    assert!(body.matches("return probe_refused (").count() >= 5, "every incomplete or unsafe path refuses explicitly");
+    assert!(body.matches("return probe_refused (").count() >= 6, "every incomplete or unsafe path refuses explicitly");
     // the validation is by integer address and slot alignment, never by comparing unrelated pointers
     let helper = EMITTER.find("static int probe_heap_slot (").expect("the slot check");
     let helper = &EMITTER[helper..];
