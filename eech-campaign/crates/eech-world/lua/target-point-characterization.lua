@@ -324,7 +324,7 @@ local function check_summary (text)
 	if counted and kept_draws > rng.pass_draws then malformed ("the passes report more draws than were made inside passes") end
 	if counted and census.dropped == 0 and census.interrupted == 0 and census.open == 0 and kept_draws ~= rng.pass_draws then malformed ("the passes' draws are not the draws made inside passes") end
 	local seed_marks, exposed_marks = 0, 0
-	local next_gen, dropped_begins, interrupted_begins, bracket_total = 0, 0, 0, 0
+	local next_gen, dropped_begins, interrupted_begins, bracket_total, abandoned_total, early_dropped = 0, 0, 0, 0, 0, false
 	local ended_gen, interrupted_gen = {}, {}
 	local open_begin, after_pass, previous_draws, last_seed_draws = nil, nil, 0, 0
 	for i = 0, rng.count - 1 do
@@ -354,12 +354,14 @@ local function check_summary (text)
 			-- one begin per kept pass, in the order the census kept them; a pass beyond the history is the one identity -1
 			if mark.gen == -1 then
 				dropped_begins = dropped_begins + 1
+				if next_gen < GENERATIONS_CAPACITY then early_dropped = true end
 			else
 				if mark.gen ~= next_gen then malformed ("rng pass_begin mark " .. i .. " names pass " .. mark.gen .. ", the next kept pass is " .. next_gen) end
 				next_gen = next_gen + 1
 			end
 			if open_begin then
 				interrupted_begins = interrupted_begins + 1
+				abandoned_total = abandoned_total + (mark.draws - open_begin.draws)
 				if open_begin.gen >= 0 then interrupted_gen [open_begin.gen] = true end
 			end
 			if after_pass and mark.draws ~= after_pass.draws then malformed ("rng pass_begin mark " .. i .. " follows a pass end after outside draws that have no exposed mark") end
@@ -395,6 +397,7 @@ local function check_summary (text)
 		rng.history = "complete"
 		if seed_marks ~= rng.seeds or exposed_marks ~= rng.exposed then malformed ("the rng seed or exposed marks are not the totals") end
 		if next_gen ~= census.generations then malformed ("the rng marks begin " .. next_gen .. " kept passes, the census kept " .. census.generations) end
+		if early_dropped then malformed ("a pass beyond the history began while kept generations remained") end
 		if dropped_begins ~= census.dropped then malformed ("the rng marks begin " .. dropped_begins .. " passes beyond the history, the census counts " .. census.dropped) end
 		if interrupted_begins ~= census.interrupted then malformed ("the rng marks abandon " .. interrupted_begins .. " passes, the census counts " .. census.interrupted) end
 		for g = 0, census.generations - 1 do
@@ -404,7 +407,9 @@ local function check_summary (text)
 		if (open_begin ~= nil) ~= (census.open == 1) then malformed ("the rng marks leave a pass open exactly when the census does not say so") end
 		-- no draw outside a pass follows the last pass end unrecorded, and the draws inside passes are the brackets of the ended passes plus the open pass's so far
 		if after_pass and rng.draws ~= after_pass.draws then malformed ("outside draws follow the last pass end and no exposed mark records the first") end
-		if bracket_total + (open_begin and (rng.draws - open_begin.draws) or 0) ~= rng.pass_draws then malformed ("the draws inside passes are not the brackets of the pass marks") end
+		if bracket_total + abandoned_total + (open_begin and (rng.draws - open_begin.draws) or 0) ~= rng.pass_draws then malformed ("the draws inside passes are not the brackets of the pass marks") end
+		-- a pass abandoned by the next begin drew inside a pass that no pass line reports: the history is explicitly INCOMPLETE (and the census is not whole), never evidence about the stream
+		if interrupted_begins > 0 then rng.history = "incomplete" end
 	elseif counted then
 		rng.history = "partial"
 		if seed_marks > rng.seeds or exposed_marks > rng.exposed then malformed ("the rng marks held are more than the totals") end
@@ -471,18 +476,25 @@ end
 -- is a new original product and is allowed (it is judged by its own line and by the final verdict). While no pass was added nothing wrote the table, so even the live facts and the verdict must
 -- be those of the boot; once one was added an older pass may legitimately differ from the table. (The QUERY counters grow; these do not.)
 local PASS_FIXED = { "ended", "interrupted", "recorded", "sub_object", "bbox", "invalid_zero", "duplicates", "out_of_range", "complete", "rng_draws", "skinned" }
-local function same_census (boot, later, when)
-	-- the CRT stream only moves forward: its counters never fall and the marks the boot held are the same first marks of every later summary
+-- The CRT stream only moves forward between any two samples, and the driver holds it to that between every CONSECUTIVE pair as well as against the boot: its counters never fall, a
+-- latched overflow never clears, no mark disappears or changes, and a mark appended after the earlier sample is not older than that sample's draw total (so the draws it had already
+-- seen cannot be reassigned backwards). `from` names the earlier sample in the message. This is the stream only: the census passes the boot held are judged separately below.
+local function rng_continuity (earlier, later, when, from)
 	for _, key in ipairs { "draws", "seeds", "pass_draws", "outside", "exposed", "dropped" } do
-		if later.rng [key] < boot.rng [key] then malformed ("the CRT counter '" .. key .. "' fell after the boot (" .. when .. ")") end
+		if later.rng [key] < earlier.rng [key] then malformed ("the CRT counter '" .. key .. "' fell after " .. from .. " (" .. when .. ")") end
 	end
-	if boot.rng.overflow == 1 and later.rng.overflow ~= 1 then malformed ("the CRT overflow latch cleared after the boot (" .. when .. ")") end
-	for i = boot.rng.count, later.rng.count - 1 do
-		if later.rng.marks [i].draws < boot.rng.draws then malformed ("rng mark " .. i .. " was appended after the sample yet is older than its " .. boot.rng.draws .. " draws (" .. when .. ")") end
+	if earlier.rng.overflow == 1 and later.rng.overflow ~= 1 then malformed ("the CRT overflow latch cleared after " .. from .. " (" .. when .. ")") end
+	if later.rng.count < earlier.rng.count then malformed ("rng marks disappeared after " .. from .. " (" .. when .. ")") end
+	for i = earlier.rng.count, later.rng.count - 1 do
+		if later.rng.marks [i].draws < earlier.rng.draws then malformed ("rng mark " .. i .. " was appended after the sample yet is older than its " .. earlier.rng.draws .. " draws (" .. when .. ")") end
 	end
-	for i = 0, boot.rng.count - 1 do
-		if later.rng.lines [i] ~= boot.rng.lines [i] then malformed ("rng mark " .. i .. " changed after the boot (" .. when .. ")") end
+	for i = 0, earlier.rng.count - 1 do
+		if later.rng.lines [i] ~= earlier.rng.lines [i] then malformed ("rng mark " .. i .. " changed after " .. from .. " (" .. when .. ")") end
 	end
+end
+
+local function same_census (boot, later, when)
+	rng_continuity (boot, later, when, "the boot")
 	local b, l = boot.census, later.census
 	if l.expected ~= b.expected then malformed ("the census size changed after the boot (" .. when .. ")") end
 	if l.generations < b.generations then malformed ("the census lost a pass after the boot (" .. when .. ")") end
@@ -928,6 +940,7 @@ local function run ()
 			local monotone, bad = pcall (function ()
 				if now.calls < previous.calls or now.events < previous.events or now.dropped < previous.dropped then malformed ("a query counter went backwards between two samples") end
 				if now.census.last < previous.census.last then malformed ("the latest ended census pass went backwards between two samples") end
+				if previous ~= boot_summary then rng_continuity (previous, now, "frame " .. f, "the previous sample") end
 				same_census (boot_summary, now, "frame " .. f)
 			end)
 			if not monotone then protocol_failure (bad) end
@@ -947,6 +960,7 @@ local function run ()
 	local monotone_end, bad_end = pcall (function ()
 		if final.calls < previous.calls or final.events < previous.events or final.dropped < previous.dropped then malformed ("a query counter went backwards at the end") end
 		if final.census.last < previous.census.last then malformed ("the latest ended census pass went backwards at the end") end
+		if previous ~= boot_summary then rng_continuity (previous, final, "end", "the previous sample") end
 	end)
 	if not monotone_end then protocol_failure (bad_end) end
 	boundaries [#boundaries + 1] = { calls = final.calls, last = final.census.last, when = "the end sample" }

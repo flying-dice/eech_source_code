@@ -2236,13 +2236,13 @@ fn a_census_that_is_not_whole_keeps_every_pass_it_saw_and_is_not_measured() {
     type Variant = (&'static str, fn(&mut Case));
     let variants: [Variant; 3] = [
         ("a pass begun beyond the bounded history", |c| {
-            c.summaries[0] = c.summaries[0]
+            // the history holds four passes: four kept and a fifth beyond it, whose begin and end the CRT marks say too
+            let four = [Pass::full(2), Pass::full(0), Pass::full(1), Pass::full(0)];
+            c.censuses = (0..4).map(|g| pass_text(g, 3, true)).collect();
+            let text = summary_passes(&[], &four, 0)
                 .replace("capacity=4 dropped=0", "capacity=4 dropped=1")
                 .replace("tp-complete census=1", "tp-complete census=0");
-            // the pass beyond the history began and ended, which the CRT marks say too
-            let text = c.summaries[0].clone();
-            let (from, until) = (text.find("tp-rng ").unwrap(), text.find("tp-complete").unwrap());
-            c.summaries[0] = format!("{}{}{}", &text[..from], rng_text_with(&two_passes(), 1), &text[until..]);
+            c.summaries[0] = with_rng(&text, &rng_stream(&four, 1));
         }),
         ("a duplicate inside the latest pass", |c| {
             c.summaries[0] = c.summaries[0]
@@ -3309,4 +3309,161 @@ fn no_string_literal_of_the_emitter_is_broken_across_lines() {
         }
         assert!(quotes % 2 == 0, "line {} of the emitter has an unclosed string literal: {line}", number + 1);
     }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------
+// the CRT stream between consecutive samples, a pass beyond the history, and an abandoned pass
+
+/// a run with the boot sample, three samples while the frames run, and the end, each carrying its own CRT stream over the two-pass census
+fn sampled(rngs: [&Rng; 5]) -> Case {
+    let events = every_branch();
+    let mut case = healthy(&events);
+    arg(&mut case, "checkpoint_every", "1");
+    case.summaries = vec![
+        with_rng(&summary(&[]), rngs[0]),
+        with_rng(&summary(&events), rngs[1]),
+        with_rng(&summary(&events), rngs[2]),
+        with_rng(&summary(&events), rngs[3]),
+        with_rng(&summary(&events), rngs[4]),
+    ];
+    case
+}
+
+/// `rng` with a seed mark appended at `at` draws, the draws since the preceding seed being `since`
+fn seeded(rng: &Rng, at: u32, since: u32) -> Rng {
+    let mut next = rng.clone().with_seed(at, since);
+    next.draws = next.draws.max(at);
+    next.outside = next.draws - next.pass_draws;
+    next
+}
+
+/// a full mark list (32 marks) over the standard stream, five more marks dropped
+fn lost_marks_stream() -> Rng {
+    let mut partial = rng_stream(&two_passes(), 0);
+    let mut since = 4;
+    while partial.marks.len() < 32 {
+        partial = partial.with_seed(8, since);
+        since = 0;
+    }
+    partial.dropped = 5;
+    partial.seeds += 5;
+    partial
+}
+
+#[test]
+fn the_crt_stream_is_continuous_between_every_consecutive_pair_of_samples_not_only_against_the_boot() {
+    // the positive first: a boot at 8 draws, a sample at 14 (six unmarked outside draws), the same again, a seed appended at 15, and the end
+    let boot = rng_stream(&two_passes(), 0);
+    let mid = boot.clone().with_unmarked_outside(6);
+    let later = seeded(&mid, 15, 11);
+    run(&sampled([&boot, &mid, &mid, &later, &later]))
+        .result
+        .expect("a boot, a mid sample and an end that only grow are coherent");
+
+    // an older appended mark: the boot saw 8 draws, so a seed at 13 passes against the boot, but the sample before it saw 14
+    let older = seeded(&mid, 13, 9);
+    failure(
+        &run(&sampled([&boot, &mid, &older, &older, &older])),
+        "rng mark 8 was appended after the sample yet is older than its 14 draws (frame 20)",
+    );
+    // the same fault at the end sample is caught against the sample before the end
+    failure(
+        &run(&sampled([&boot, &mid, &mid, &mid, &older])),
+        "rng mark 8 was appended after the sample yet is older than its 14 draws (end)",
+    );
+
+    // a mark that changes between two intermediate samples, though the boot's own marks are untouched
+    let lost = lost_marks_stream();
+    let changed = lost.clone().edit_mark(
+        "kind=seed gen=-1 value=0000002a draws=8 since_seed=0",
+        "kind=seed gen=-1 value=0000002b draws=8 since_seed=0",
+    );
+    run(&sampled([&boot, &lost, &lost, &lost, &lost]))
+        .result
+        .expect("a full mark list that stays the same is coherent");
+    failure(
+        &run(&sampled([&boot, &lost, &changed, &changed, &changed])),
+        "rng mark 9 changed after the previous sample (frame 20)",
+    );
+
+    // a latch that clears between two intermediate samples, though the boot never latched
+    let mut latched = boot.clone();
+    latched.overflow = 1;
+    failure(
+        &run(&sampled([&boot, &latched, &boot, &boot, &boot])),
+        "the CRT overflow latch cleared after the previous sample (frame 20)",
+    );
+
+    // a total that falls between the last sample and the end
+    failure(
+        &run(&sampled([&boot, &mid, &mid, &later, &mid])),
+        "the CRT counter 'draws' fell after the previous sample (end)",
+    );
+}
+
+#[test]
+fn a_pass_beyond_the_history_cannot_begin_while_kept_generations_remain_and_a_lost_history_stays_incomplete() {
+    // two kept passes and a pass beyond the history is source-impossible (the history holds four): rejected on a complete history
+    let mut early = healthy(&[]);
+    let text = early.summaries[0]
+        .replace("capacity=4 dropped=0", "capacity=4 dropped=1")
+        .replace("tp-complete census=1", "tp-complete census=0");
+    early.summaries[0] = with_rng(&text, &rng_stream(&two_passes(), 1));
+    failure(&run(&early), "a pass beyond the history began while kept generations remained");
+    // a partial history may lose any of its marks: nothing about its order is concluded from the marks it kept
+    let mut partial = rng_stream(&two_passes(), 1);
+    let mut since = 4;
+    while partial.marks.len() < 32 {
+        partial = partial.with_seed(8, since);
+        since = 0;
+    }
+    partial.dropped = 3;
+    partial.seeds += 3;
+    let outcome = run(&one_stream(&partial));
+    outcome.result.as_ref().expect("a lost mark list is explicitly partial, not malformed");
+    assert!(done_row(&outcome).contains("\"rng_history\":\"partial\""), "{}", done_row(&outcome));
+}
+
+#[test]
+fn an_abandoned_pass_with_draws_is_an_incomplete_history_and_not_a_malformed_one() {
+    // pass 0 began, drew twice, and was abandoned by pass 1's begin, which then drew three times and ended, with one outside draw after it
+    let abandoned = Pass {
+        ended: false,
+        interrupted: true,
+        skinned: 0, // the skin prediction is read only when a pass ends
+        ..Pass::full(2)
+    };
+    let passes = vec![abandoned, Pass::full(0)];
+    let marks = [
+        "kind=seed gen=-1 value=0000002a draws=0 since_seed=0",
+        "kind=pass_begin gen=0 value=- draws=0 since_seed=0",
+        "kind=pass_begin gen=1 value=- draws=2 since_seed=2",
+        "kind=pass_end gen=1 value=- draws=5 since_seed=5",
+        "kind=exposed gen=1 value=- draws=6 since_seed=6",
+    ];
+    let stream = Rng {
+        marks: marks.iter().map(ToString::to_string).collect(),
+        draws: 6,
+        seeds: 1,
+        pass_draws: 5,
+        outside: 1,
+        exposed: 1,
+        dropped: 0,
+        overflow: 0,
+    };
+    let census = |stream: &Rng| {
+        let mut case = healthy(&[]);
+        let text = summary_passes(&[], &passes, 0).replace("interrupted=0 stray=0", "interrupted=1 stray=0");
+        case.summaries = vec![with_rng(&text, stream), with_rng(&text, stream)];
+        case
+    };
+    // the join accepts the abandoned pass's draws as draws inside passes; the census is not whole, so the run stops NOT MEASURED, and not as a malformed report
+    let outcome = run(&census(&stream));
+    failure(&outcome, "NOT MEASURED");
+    assert!(!outcome.result.as_ref().unwrap_err().contains("MALFORMED"), "{:?}", outcome.result);
+    // the relation is still enforced: the same marks with the abandoned pass's two draws missing from the inside-pass total are malformed
+    let mut short = stream.clone();
+    short.pass_draws = 3;
+    short.outside = 3;
+    failure(&run(&census(&short)), "the draws inside passes are not the brackets of the pass marks");
 }
