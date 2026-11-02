@@ -340,10 +340,85 @@ fn summary_passes(events: &[Ev], passes: &[Pass], stale: u32) -> String {
     t
 }
 
+/// The CRT stream the observer reports: the totals and the ordered marks (each mark as `kind=.. gen=.. value=.. draws=.. since_seed=..`, numbered when written).
+#[derive(Clone)]
+struct Rng {
+    marks: Vec<String>,
+    draws: u32,
+    seeds: u32,
+    pass_draws: u32,
+    outside: u32,
+    exposed: u32,
+    dropped: u32,
+    overflow: u8,
+}
+
+impl Rng {
+    fn text(&self) -> String {
+        let mut t = format!(
+            "tp-rng draws={} seeds={} pass_draws={} outside_draws={} exposed={} marks={} mark_capacity=32 marks_dropped={} overflow={}\n",
+            self.draws,
+            self.seeds,
+            self.pass_draws,
+            self.outside,
+            self.exposed,
+            self.marks.len(),
+            self.dropped,
+            self.overflow
+        );
+        for (i, m) in self.marks.iter().enumerate() {
+            t += &format!("tp-rng-mark seq={i} {m}\n");
+        }
+        t
+    }
+
+    /// draws made outside every pass that no mark records (only the FIRST outside draw after a pass end is marked)
+    fn with_unmarked_outside(mut self, n: u32) -> Rng {
+        self.draws += n;
+        self.outside += n;
+        self
+    }
+
+    /// a seed mark appended later: it records the draws so far and the draws since the preceding seed (before it resets)
+    fn with_seed(mut self, draws: u32, since: u32) -> Rng {
+        self.marks.push(format!("kind=seed gen=-1 value=0000002a draws={draws} since_seed={since}"));
+        self.seeds += 1;
+        self.draws = self.draws.max(draws);
+        self
+    }
+
+    /// remove the first mark that holds `text`; the totals are left as they were
+    fn remove_mark(mut self, text: &str) -> Rng {
+        let index = self
+            .marks
+            .iter()
+            .position(|m| m.contains(text))
+            .unwrap_or_else(|| panic!("no mark holds {text:?}: {:?}", self.marks));
+        self.marks.remove(index);
+        self
+    }
+
+    /// replace the first occurrence of `from` in the written mark list; the change must really change it
+    fn edit_mark(mut self, from: &str, to: &str) -> Rng {
+        let index = self
+            .marks
+            .iter()
+            .position(|m| m.contains(from))
+            .unwrap_or_else(|| panic!("no mark holds {from:?}: {:?}", self.marks));
+        self.marks[index] = self.marks[index].replacen(from, to, 1);
+        self
+    }
+}
+
 /// The CRT stream of a boot with these passes, as the observer reports it: the campaign seeds before the first pass and again before each later one, each pass draws its own count, and
 /// the first draw outside a pass after each pass end (no reseed between) is that pass's exposed mark. Draws are summed, never invented: a pass that did not end drew nothing the report
 /// keeps. `dropped` passes beyond the history leave a begin and an end mark with no draws.
-fn rng_text_with(passes: &[Pass], dropped: u32) -> String {
+fn rng_stream(passes: &[Pass], dropped: u32) -> Rng {
+    rng_stream_with(passes, dropped, true)
+}
+
+/// as `rng_stream`; with `expose` false nothing draws outside a pass after a pass end in the window (no exposed mark, and the last pass end is still pending)
+fn rng_stream_with(passes: &[Pass], dropped: u32, expose: bool) -> Rng {
     let mut marks: Vec<String> = Vec::new();
     let (mut draws, mut since, mut seeds, mut pass_draws, mut outside) = (0u32, 0u32, 0u32, 0u32, 0u32);
     let seed = |marks: &mut Vec<String>, draws: u32, since: &mut u32| {
@@ -363,28 +438,42 @@ fn rng_text_with(passes: &[Pass], dropped: u32) -> String {
             since += p.draws;
             pass_draws += p.draws;
             marks.push(format!("kind=pass_end gen={g} value=- draws={draws} since_seed={since}"));
-            draws += 1;
-            since += 1;
-            outside += 1;
-            marks.push(format!("kind=exposed gen={g} value=- draws={draws} since_seed={since}"));
+            if expose {
+                draws += 1;
+                since += 1;
+                outside += 1;
+                marks.push(format!("kind=exposed gen={g} value=- draws={draws} since_seed={since}"));
+            }
         }
     }
     for _ in 0..dropped {
         marks.push(format!("kind=pass_begin gen=-1 value=- draws={draws} since_seed={since}"));
         marks.push(format!("kind=pass_end gen=-1 value=- draws={draws} since_seed={since}"));
     }
-    let mut t = format!(
-        "tp-rng draws={draws} seeds={seeds} pass_draws={pass_draws} outside_draws={outside} exposed={outside} marks={} mark_capacity=32 marks_dropped=0\n",
-        marks.len()
-    );
-    for (i, m) in marks.iter().enumerate() {
-        t += &format!("tp-rng-mark seq={i} {m}\n");
+    Rng {
+        marks,
+        draws,
+        seeds,
+        pass_draws,
+        outside,
+        exposed: outside,
+        dropped: 0,
+        overflow: 0,
     }
-    t
+}
+
+fn rng_text_with(passes: &[Pass], dropped: u32) -> String {
+    rng_stream(passes, dropped).text()
 }
 
 fn rng_text(passes: &[Pass]) -> String {
     rng_text_with(passes, 0)
+}
+
+/// a summary with its CRT block replaced by `rng`
+fn with_rng(summary: &str, rng: &Rng) -> String {
+    let (from, until) = (summary.find("tp-rng ").unwrap(), summary.find("tp-complete").unwrap());
+    format!("{}{}{}", &summary[..from], rng.text(), &summary[until..])
 }
 
 /// as `summary_passes` after a two-pass boot; `census_whole` false makes the second pass miss model 5
@@ -2866,7 +2955,7 @@ fn the_crt_stream_is_reported_per_pass_and_by_ordered_marks_that_join_the_pass_l
     outcome.result.as_ref().expect("the coherent stream passes");
     let all = outcome.written.as_ref().expect("the output exists");
     assert!(
-        all.contains("tp-rng draws=8 seeds=2 pass_draws=6 outside_draws=2 exposed=2 marks=8 mark_capacity=32 marks_dropped=0"),
+        all.contains("tp-rng draws=8 seeds=2 pass_draws=6 outside_draws=2 exposed=2 marks=8 mark_capacity=32 marks_dropped=0 overflow=0"),
         "{all}"
     );
     assert!(all.contains("rng_draws=3 skinned=3"), "{all}");
@@ -2900,7 +2989,7 @@ fn the_crt_stream_is_reported_per_pass_and_by_ordered_marks_that_join_the_pass_l
         let from = text.find("tp-rng ").unwrap();
         let until = text.find("tp-complete").unwrap();
         quiet.summaries[index] = format!(
-            "{}tp-rng draws=6 seeds=2 pass_draws=6 outside_draws=0 exposed=0 marks=6 mark_capacity=32 marks_dropped=0\n\
+            "{}tp-rng draws=6 seeds=2 pass_draws=6 outside_draws=0 exposed=0 marks=6 mark_capacity=32 marks_dropped=0 overflow=0\n\
              tp-rng-mark seq=0 kind=seed gen=-1 value=0000002a draws=0 since_seed=0\n\
              tp-rng-mark seq=1 kind=pass_begin gen=0 value=- draws=0 since_seed=0\n\
              tp-rng-mark seq=2 kind=pass_end gen=0 value=- draws=3 since_seed=3\n\
@@ -2926,7 +3015,7 @@ fn a_crt_report_that_contradicts_itself_is_malformed() {
         ("seeds=2 ", "seeds=3 ", "the rng seed or exposed marks are not the totals"),
         ("mark_capacity=32", "mark_capacity=31", "the mark capacity is not the observer's 32"),
         ("kind=exposed", "kind=hidden", "has the kind 'hidden'"),
-        ("kind=exposed gen=1", "kind=exposed gen=0", "does not follow a pass end with no seed between"),
+        ("kind=exposed gen=1", "kind=exposed gen=0", "is not the first outside draw after a pass end"),
         (
             "kind=pass_end gen=0 value=- draws=3 since_seed=3",
             "kind=pass_end gen=0 value=- draws=2 since_seed=2",
@@ -2945,7 +3034,7 @@ fn a_crt_report_that_contradicts_itself_is_malformed() {
         (
             "kind=pass_end gen=1 value=- draws=7 since_seed=3",
             "kind=pass_end gen=1 value=- draws=7 since_seed=9",
-            "draws that are not ordered within the totals",
+            "has since_seed 9, the draws since the preceding seed are 3",
         ),
         (
             "kind=seed gen=-1 value=0000002a draws=0",
@@ -2966,10 +3055,258 @@ fn a_crt_report_that_contradicts_itself_is_malformed() {
     more.summaries[1] = more.summaries[1].replacen("rng_draws=3", "rng_draws=4", 1);
     failure(&run(&more), "the passes report more draws than were made inside passes");
     let mut skinned = healthy(&every_branch());
-    skinned.summaries[1] = skinned.summaries[1].replacen("skinned=3", "skinned=99", 1);
-    failure(&run(&skinned), "predicts more skinned scenes than the table has");
+    skinned.summaries[1] = skinned.summaries[1].replacen("skinned=3", "skinned=6", 1);
+    failure(&run(&skinned), "predicts more skinned scenes than the table has beyond the invalid scene 0");
     // the boot's marks are the first marks of every later summary
     let mut moved = healthy(&every_branch());
     moved.summaries[1] = moved.summaries[1].replacen("kind=seed gen=-1 value=0000002a draws=0", "kind=seed gen=-1 value=0000002b draws=0", 1);
     failure(&run(&moved), "rng mark 0 changed after the boot");
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------
+// the CRT stream as evidence: identity, exact joins, sampled boundaries, loss and overflow
+
+/// a run whose boot and final summaries carry these CRT streams over the two-pass boot
+fn streams(boot: &Rng, last: &Rng) -> Case {
+    let mut case = healthy(&every_branch());
+    case.summaries = vec![with_rng(&summary(&[]), boot), with_rng(&summary(&every_branch()), last)];
+    case
+}
+
+fn one_stream(rng: &Rng) -> Case {
+    streams(rng, rng)
+}
+
+#[test]
+fn a_complete_history_is_whole_and_the_pending_pass_and_exposed_draws_are_reported_not_concluded() {
+    // two passes, a seed between them, an outside draw after each pass end: whole, nothing pending
+    let outcome = run(&one_stream(&rng_stream(&two_passes(), 0)));
+    outcome.result.as_ref().expect("a complete, coherent history");
+    let done = done_row(&outcome);
+    for part in [
+        "\"rng_history\":\"complete\"",
+        "\"rng_pending\":false",
+        "\"rng_exposed\":2",
+        "\"rng_overflow\":false",
+    ] {
+        assert!(done.contains(part), "{part}: {done}");
+    }
+    // the last pass ended and nothing was drawn after it in the window: complete, but the pass is PENDING (a later consumer is not excluded) and no exposed mark exists
+    let quiet = rng_stream_with(&two_passes(), 0, false);
+    let outcome = run(&one_stream(&quiet));
+    outcome
+        .result
+        .as_ref()
+        .expect("a window with no outside draw after the last pass end is coherent");
+    let done = done_row(&outcome);
+    assert!(
+        done.contains("\"rng_history\":\"complete\"") && done.contains("\"rng_pending\":true") && done.contains("\"rng_exposed\":0"),
+        "{done}"
+    );
+}
+
+#[test]
+fn every_kept_pass_has_exactly_one_ordered_begin_and_end_and_no_other_mark_can_stand_for_one() {
+    let whole = rng_stream(&two_passes(), 0);
+    run(&one_stream(&whole)).result.expect("the positive first");
+    // duplicate pass-0 begin and end cannot replace the missing pass-1 marks
+    let duplicated = whole.clone().edit_mark("kind=pass_begin gen=1", "kind=pass_begin gen=0");
+    failure(&run(&one_stream(&duplicated)), "names pass 0, the next kept pass is 1");
+    // a begin out of order
+    let skipped = whole.clone().edit_mark("kind=pass_begin gen=0", "kind=pass_begin gen=1");
+    failure(&run(&one_stream(&skipped)), "names pass 1, the next kept pass is 0");
+    // a seed mark cannot stand in for a pass begin: the pass end then has nothing to close
+    let substituted = whole.clone().edit_mark("kind=pass_begin gen=1 value=-", "kind=seed gen=-1 value=0000002a");
+    failure(&run(&one_stream(&substituted)), "does not close the pass that began");
+    // an ended pass whose marks were lost: the census kept two passes and the marks begin only one (the second pass drew nothing here, so the draw totals stay coherent)
+    let passes = vec![Pass::full(2), Pass { draws: 0, ..Pass::full(0) }];
+    let one_pass = rng_stream(&passes[..1], 0);
+    let mut missing = healthy(&every_branch());
+    missing.summaries = vec![
+        with_rng(&summary_passes(&[], &passes, 0), &one_pass),
+        with_rng(&summary_passes(&every_branch(), &passes, 0), &one_pass),
+    ];
+    failure(&run(&missing), "the rng marks begin 1 kept passes, the census kept 2");
+    // the same two passes with both pairs present is the positive twin
+    let mut both = healthy(&every_branch());
+    let two = rng_stream(&passes, 0);
+    both.summaries = vec![
+        with_rng(&summary_passes(&[], &passes, 0), &two),
+        with_rng(&summary_passes(&every_branch(), &passes, 0), &two),
+    ];
+    run(&both).result.expect("two passes, the second drawing nothing");
+}
+
+#[test]
+fn since_seed_is_exactly_the_draws_since_the_preceding_seed_and_a_seed_records_the_value_before_it_resets() {
+    let whole = rng_stream(&two_passes(), 0);
+    // the exposed mark and the second seed: one more or one fewer than the draws since the seed before them
+    failure(
+        &run(&one_stream(&whole.clone().edit_mark(
+            "kind=exposed gen=1 value=- draws=8 since_seed=4",
+            "kind=exposed gen=1 value=- draws=8 since_seed=5",
+        ))),
+        "has since_seed 5, the draws since the preceding seed are 4",
+    );
+    failure(
+        &run(&one_stream(&whole.clone().edit_mark(
+            "kind=seed gen=-1 value=0000002a draws=4 since_seed=4",
+            "kind=seed gen=-1 value=0000002a draws=4 since_seed=3",
+        ))),
+        "has since_seed 3, the draws since the preceding seed are 4",
+    );
+    // a mark after a seed that did not reset the count
+    failure(
+        &run(&one_stream(&whole.clone().edit_mark(
+            "kind=pass_begin gen=1 value=- draws=4 since_seed=0",
+            "kind=pass_begin gen=1 value=- draws=4 since_seed=4",
+        ))),
+        "has since_seed 4, the draws since the preceding seed are 0",
+    );
+}
+
+#[test]
+fn an_exposed_mark_is_the_first_outside_draw_after_a_pass_end_at_exactly_one_more_draw() {
+    let whole = rng_stream(&two_passes(), 0);
+    // at the same draw as the pass end (no draw happened), and later than the first draw
+    for (draws, since) in [(7, 3), (9, 5)] {
+        let mut moved = whole.clone().edit_mark(
+            "kind=exposed gen=1 value=- draws=8 since_seed=4",
+            &format!("kind=exposed gen=1 value=- draws={draws} since_seed={since}"),
+        );
+        moved.draws = moved.draws.max(draws);
+        moved.outside = moved.draws - moved.pass_draws;
+        failure(&run(&one_stream(&moved)), "is not the first outside draw after a pass end");
+    }
+    // an outside draw before a seed with no exposed mark for it
+    let ghost = whole.clone().remove_mark("kind=exposed gen=0");
+    failure(&run(&one_stream(&ghost)), "follows a pass end after outside draws that have no exposed mark");
+    // an outside draw after the last pass end, in the window, with no exposed mark
+    let hidden = rng_stream_with(&two_passes(), 0, false).with_unmarked_outside(1);
+    failure(
+        &run(&one_stream(&hidden)),
+        "outside draws follow the last pass end and no exposed mark records the first",
+    );
+}
+
+#[test]
+fn a_mark_appended_after_a_sample_is_never_older_than_the_sample_and_the_counters_only_grow() {
+    // the sample at the boot saw 14 draws: six outside draws after the last mark, none of them marked (only the first after a pass end is)
+    let whole = rng_stream(&two_passes(), 0);
+    let boot = whole.clone().with_unmarked_outside(6);
+    // a seed appended later at 14 draws is at the sample, and one at 15 after it: coherent
+    for at in [14, 15] {
+        let last = boot.clone().with_seed(at, at - 4);
+        let mut last = last;
+        last.draws = last.draws.max(at);
+        last.outside = last.draws - last.pass_draws;
+        run(&streams(&boot, &last))
+            .result
+            .unwrap_or_else(|e| panic!("a mark appended at {at} draws: {e}"));
+    }
+    // a seed appended at 13 draws is older than the 14 the sample already saw: the draws were reassigned backwards
+    let mut older = boot.clone().with_seed(13, 9);
+    older.draws = 15;
+    older.outside = older.draws - older.pass_draws;
+    failure(
+        &run(&streams(&boot, &older)),
+        "rng mark 8 was appended after the sample yet is older than its 14 draws",
+    );
+    // totals that fall between samples
+    failure(&run(&streams(&boot, &whole)), "the CRT counter 'draws' fell after the boot");
+}
+
+#[test]
+fn a_lost_or_overflowed_history_is_checked_as_far_as_it_goes_and_is_never_reported_as_whole() {
+    // 32 marks held and five more dropped: the first marks are an exact prefix, the identity joins that need the whole history are withheld, and the report says partial
+    let mut partial = rng_stream(&two_passes(), 0);
+    let mut since = 4;
+    while partial.marks.len() < 32 {
+        partial = partial.with_seed(8, since);
+        since = 0;
+    }
+    partial.dropped = 5;
+    partial.seeds += 5;
+    let outcome = run(&one_stream(&partial));
+    outcome
+        .result
+        .as_ref()
+        .expect("a full mark list with dropped marks is coherent as far as it goes");
+    assert!(done_row(&outcome).contains("\"rng_history\":\"partial\""), "{}", done_row(&outcome));
+    // even marks that hold no pass mark at all are only partial, not whole
+    let mut seeds_only = rng_stream(&two_passes(), 0);
+    seeds_only.marks = (0..32).map(|_| "kind=seed gen=-1 value=0000002a draws=0 since_seed=0".to_string()).collect();
+    seeds_only.dropped = 8;
+    seeds_only.seeds = 40;
+    seeds_only.exposed = 2;
+    let outcome = run(&one_stream(&seeds_only));
+    outcome.result.as_ref().expect("a partial history without its pass marks is not malformed");
+    assert!(done_row(&outcome).contains("\"rng_history\":\"partial\""), "{}", done_row(&outcome));
+    // marks dropped while the list was not full
+    let mut early = rng_stream(&two_passes(), 0);
+    early.dropped = 1;
+    failure(&run(&one_stream(&early)), "marks were dropped while the mark list was not full");
+    // a latched overflow: the totals stopped at their limit, no relation between them is believed or required, and the report says overflowed
+    let mut latched = rng_stream(&two_passes(), 0);
+    latched.draws = 4_294_967_295;
+    latched.pass_draws = 4_294_967_295;
+    latched.outside = 4_294_967_295;
+    latched.overflow = 1;
+    let outcome = run(&one_stream(&latched));
+    outcome.result.as_ref().expect("a latched overflow is reported, not rejected");
+    let done = done_row(&outcome);
+    assert!(
+        done.contains("\"rng_history\":\"overflowed\"") && done.contains("\"rng_overflow\":true"),
+        "{done}"
+    );
+    // the same wrapped-looking totals WITHOUT the latch are malformed: a wrapped total can never look complete
+    let mut wrapped = latched.clone();
+    wrapped.overflow = 0;
+    wrapped.outside = 3;
+    failure(&run(&one_stream(&wrapped)), "are not pass draws");
+    let mut flag = rng_stream(&two_passes(), 0);
+    flag.overflow = 2;
+    failure(&run(&one_stream(&flag)), "rng overflow 2 is outside 0..1");
+    // the latch never clears once set
+    let mut boot = rng_stream(&two_passes(), 0);
+    boot.overflow = 1;
+    failure(
+        &run(&streams(&boot, &rng_stream(&two_passes(), 0))),
+        "the CRT overflow latch cleared after the boot",
+    );
+}
+
+#[test]
+fn the_skin_prediction_counts_scenes_beyond_the_invalid_one_and_is_never_required_to_equal_the_draws() {
+    for skinned in [0, 2, 5] {
+        let mut case = healthy(&every_branch());
+        case.summaries[1] = case.summaries[1].replacen("skinned=3", &format!("skinned={skinned}"), 1);
+        case.summaries[0] = case.summaries[0].replacen("skinned=3", &format!("skinned={skinned}"), 1);
+        run(&case).result.unwrap_or_else(|e| panic!("skinned={skinned} against draws=3: {e}"));
+    }
+}
+
+#[test]
+fn no_string_literal_of_the_emitter_is_broken_across_lines() {
+    // A text scan of the emitter cannot compile it, but a string literal that runs into the next line is the commonest way a format edit breaks the C: every code line of the emitter
+    // must hold an even number of unescaped double quotes (adjacent literals continue on lines of their own, each closed).
+    for (number, line) in EMITTER.lines().enumerate() {
+        let trimmed = line.trim_start();
+        if trimmed.starts_with("/*") || trimmed.starts_with('*') || trimmed.starts_with("//") {
+            continue;
+        }
+        let bytes = line.as_bytes();
+        let mut quotes = 0;
+        let mut i = 0;
+        while i < bytes.len() {
+            match bytes[i] {
+                b'\\' => i += 1,
+                b'\'' if i + 2 < bytes.len() && bytes[i + 2] == b'\'' => i += 2,
+                b'"' => quotes += 1,
+                _ => {}
+            }
+            i += 1;
+        }
+        assert!(quotes % 2 == 0, "line {} of the emitter has an unclosed string literal: {line}", number + 1);
+    }
 }

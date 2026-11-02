@@ -118,6 +118,8 @@ local RNG_MARK_CAPACITY = 32
 local RNG_KINDS = { seed = true, pass_begin = true, pass_end = true, exposed = true }
 local CHAIN_STATES = { complete = true, empty = true, too_deep = true, unterminated = true, wrong_root = true, null_result = true }
 local INT_MAX = 2147483647
+-- the observer's RNG totals are unsigned: a total that latched its overflow stops at the limit and is reported, not wrapped
+local UINT_MAX = 4294967295
 
 local SITES = { [0] = "unattributed", "aim_vectors", "aim_lead", "aim_intercept", "weapon_step_target_vec", "other", "controlled_probe", "setup_probe" }
 local SITE_COUNT = 8
@@ -284,10 +286,10 @@ local function check_summary (text)
 			sub_object = int (p.sub_object, 0, INT_MAX, "pass sub_object"), bbox = int (p.bbox, 0, INT_MAX, "pass bbox"), invalid_zero = int (p.invalid_zero, 0, INT_MAX, "pass invalid_zero"),
 			duplicates = int (p.duplicates, 0, INT_MAX, "pass duplicates"), out_of_range = int (p.out_of_range, 0, INT_MAX, "pass out_of_range"),
 			live_mismatch = int (p.live_mismatch, 0, INT_MAX, "pass live_mismatch"), complete = flag (p.complete, "pass complete"),
-			rng_draws = int (p.rng_draws, 0, INT_MAX, "pass rng_draws"), skinned = int (p.skinned, 0, INT_MAX, "pass skinned"),
+			rng_draws = int (p.rng_draws, 0, UINT_MAX, "pass rng_draws"), skinned = int (p.skinned, 0, INT_MAX, "pass skinned"),
 		}
 		-- the skin prediction counts scenes of the table; a pass that never ended has no draws of its own
-		if pass.skinned > census.expected then malformed ("pass " .. g .. " predicts more skinned scenes than the table has") end
+		if pass.skinned > census.expected - 1 then malformed ("pass " .. g .. " predicts more skinned scenes than the table has beyond the invalid scene 0") end
 		if pass.ended == 0 and (pass.rng_draws ~= 0 or pass.skinned ~= 0) then malformed ("pass " .. g .. " never ended but carries draws") end
 		if pass.sub_object + pass.bbox + pass.invalid_zero ~= pass.recorded or pass.recorded > census.expected or pass.invalid_zero > 1 or pass.live_mismatch > pass.recorded then
 			malformed ("the totals of pass " .. g .. " are incoherent")
@@ -301,65 +303,113 @@ local function check_summary (text)
 	end
 	if census.last ~= latest_ended then malformed ("the census names pass " .. census.last .. " as the latest ended, the pass rows say " .. latest_ended) end
 
-	-- the CRT stream: the totals, then the ordered marks
-	local r = take ("tp-rng", { "draws", "seeds", "pass_draws", "outside_draws", "exposed", "marks", "mark_capacity", "marks_dropped" })
+	-- The CRT stream: the totals, then the ordered marks. What it can and cannot support (the decision rule): a history is COMPLETE only if no mark was dropped and no counter latched an overflow;
+	-- a partial or overflowed history is checked as far as it goes and withholds every conclusion about the stream. Even a complete history is evidence only for the captured window: a pass
+	-- still pending when the capture ends leaves later exposure open, and a recorded seed before any consumer ran is what erases an earlier advancement.
+	local r = take ("tp-rng", { "draws", "seeds", "pass_draws", "outside_draws", "exposed", "marks", "mark_capacity", "marks_dropped", "overflow" })
 	m.rng = {
-		draws = int (r.draws, 0, INT_MAX, "rng draws"), seeds = int (r.seeds, 0, INT_MAX, "rng seeds"), pass_draws = int (r.pass_draws, 0, INT_MAX, "rng pass_draws"),
-		outside = int (r.outside_draws, 0, INT_MAX, "rng outside_draws"), exposed = int (r.exposed, 0, INT_MAX, "rng exposed"), count = int (r.marks, 0, RNG_MARK_CAPACITY, "rng marks"),
-		dropped = int (r.marks_dropped, 0, INT_MAX, "rng marks_dropped"), marks = {}, lines = {},
+		draws = int (r.draws, 0, UINT_MAX, "rng draws"), seeds = int (r.seeds, 0, UINT_MAX, "rng seeds"), pass_draws = int (r.pass_draws, 0, UINT_MAX, "rng pass_draws"),
+		outside = int (r.outside_draws, 0, UINT_MAX, "rng outside_draws"), exposed = int (r.exposed, 0, UINT_MAX, "rng exposed"), count = int (r.marks, 0, RNG_MARK_CAPACITY, "rng marks"),
+		dropped = int (r.marks_dropped, 0, UINT_MAX, "rng marks_dropped"), overflow = flag (r.overflow, "rng overflow"), marks = {}, lines = {},
 	}
 	local rng = m.rng
 	if int (r.mark_capacity, 0, INT_MAX, "rng mark_capacity") ~= RNG_MARK_CAPACITY then malformed ("the mark capacity is not the observer's " .. RNG_MARK_CAPACITY) end
-	if rng.draws ~= rng.pass_draws + rng.outside then malformed (string.format ("rng draws %d are not pass draws %d + outside draws %d", rng.draws, rng.pass_draws, rng.outside)) end
 	if rng.dropped > 0 and rng.count ~= RNG_MARK_CAPACITY then malformed ("marks were dropped while the mark list was not full") end
+	-- a latched overflow means a total stopped at its limit: no relation between the totals can be believed from there, and none is required
+	local counted = rng.overflow == 0
+	if counted and rng.draws ~= rng.pass_draws + rng.outside then malformed (string.format ("rng draws %d are not pass draws %d + outside draws %d", rng.draws, rng.pass_draws, rng.outside)) end
 	-- the draws of the kept passes are part of the draws made inside passes, and are all of them when no pass was lost, abandoned or left open
 	local kept_draws = 0
 	for g = 0, census.generations - 1 do kept_draws = kept_draws + m.passes [g].rng_draws end
-	if kept_draws > rng.pass_draws then malformed ("the passes report more draws than were made inside passes") end
-	if census.dropped == 0 and census.interrupted == 0 and census.open == 0 and kept_draws ~= rng.pass_draws then malformed ("the passes' draws are not the draws made inside passes") end
-	local begun, ended_marks, seed_marks, exposed_marks = 0, 0, 0, 0
-	local open_begin, after_pass, previous_draws = nil, nil, 0
+	if counted and kept_draws > rng.pass_draws then malformed ("the passes report more draws than were made inside passes") end
+	if counted and census.dropped == 0 and census.interrupted == 0 and census.open == 0 and kept_draws ~= rng.pass_draws then malformed ("the passes' draws are not the draws made inside passes") end
+	local seed_marks, exposed_marks = 0, 0
+	local next_gen, dropped_begins, interrupted_begins, bracket_total = 0, 0, 0, 0
+	local ended_gen, interrupted_gen = {}, {}
+	local open_begin, after_pass, previous_draws, last_seed_draws = nil, nil, 0, 0
 	for i = 0, rng.count - 1 do
 		at = at + 1
 		if not list [at] then malformed ("the summary ends before rng mark " .. i) end
 		local k = fields (list [at], "tp-rng-mark", { "seq", "kind", "gen", "value", "draws", "since_seed" }, "rng mark " .. i)
 		if int (k.seq, 0, RNG_MARK_CAPACITY, "rng mark seq") ~= i then malformed ("the rng marks are not in order at " .. i) end
 		if not RNG_KINDS [k.kind] then malformed ("rng mark " .. i .. " has the kind '" .. tostring (k.kind) .. "'") end
-		local mark = { kind = k.kind, gen = int (k.gen, -1, GENERATIONS_CAPACITY - 1, "rng mark gen"), draws = int (k.draws, 0, INT_MAX, "rng mark draws"), since = int (k.since_seed, 0, INT_MAX, "rng mark since_seed") }
+		local mark = { kind = k.kind, gen = int (k.gen, -1, GENERATIONS_CAPACITY - 1, "rng mark gen"), draws = int (k.draws, 0, UINT_MAX, "rng mark draws"), since = int (k.since_seed, 0, UINT_MAX, "rng mark since_seed") }
 		if k.kind == "seed" then word (k.value, "rng seed value") elseif k.value ~= "-" then malformed ("rng mark " .. i .. " is not a seed but carries a value") end
 		if k.kind == "seed" and mark.gen ~= -1 then malformed ("rng seed mark " .. i .. " names a pass") end
-		if mark.draws < previous_draws or mark.draws > rng.draws or mark.since > mark.draws then malformed ("rng mark " .. i .. " has draws that are not ordered within the totals") end
+		if mark.draws < previous_draws or mark.draws > rng.draws then malformed ("rng mark " .. i .. " has draws that are not ordered within the totals") end
 		previous_draws = mark.draws
+		if counted then
+			-- since_seed is exactly the draws since the preceding seed's total (the seed mark itself records the value BEFORE it resets)
+			if mark.since ~= mark.draws - last_seed_draws then
+				malformed (string.format ("rng mark %d has since_seed %d, the draws since the preceding seed are %d", i, mark.since, mark.draws - last_seed_draws))
+			end
+		end
 		if k.kind == "seed" then
 			seed_marks = seed_marks + 1
+			-- a pass end followed by a seed with draws in between must have shown an exposed mark first
+			if after_pass and mark.draws ~= after_pass.draws then malformed ("rng seed mark " .. i .. " follows a pass end after outside draws that have no exposed mark") end
 			after_pass = nil
+			last_seed_draws = mark.draws
 		elseif k.kind == "pass_begin" then
-			begun = begun + 1
+			-- one begin per kept pass, in the order the census kept them; a pass beyond the history is the one identity -1
+			if mark.gen == -1 then
+				dropped_begins = dropped_begins + 1
+			else
+				if mark.gen ~= next_gen then malformed ("rng pass_begin mark " .. i .. " names pass " .. mark.gen .. ", the next kept pass is " .. next_gen) end
+				next_gen = next_gen + 1
+			end
+			if open_begin then
+				interrupted_begins = interrupted_begins + 1
+				if open_begin.gen >= 0 then interrupted_gen [open_begin.gen] = true end
+			end
+			if after_pass and mark.draws ~= after_pass.draws then malformed ("rng pass_begin mark " .. i .. " follows a pass end after outside draws that have no exposed mark") end
 			open_begin = mark
 			after_pass = nil
 		elseif k.kind == "pass_end" then
-			ended_marks = ended_marks + 1
 			if not open_begin or open_begin.gen ~= mark.gen then malformed ("rng pass_end mark " .. i .. " does not close the pass that began") end
-			-- a kept pass that ended: the draws between its two marks are the draws its own line reports
-			if mark.gen >= 0 and m.passes [mark.gen] and m.passes [mark.gen].ended == 1 and mark.draws - open_begin.draws ~= m.passes [mark.gen].rng_draws then
-				malformed ("the marks of pass " .. mark.gen .. " bracket " .. (mark.draws - open_begin.draws) .. " draws, its line says " .. m.passes [mark.gen].rng_draws)
+			bracket_total = bracket_total + (mark.draws - open_begin.draws)
+			if mark.gen >= 0 then
+				if ended_gen [mark.gen] then malformed ("rng pass " .. mark.gen .. " ended twice") end
+				ended_gen [mark.gen] = true
+				-- a kept pass that ended: the draws between its two marks are the draws its own line reports
+				if m.passes [mark.gen] and m.passes [mark.gen].ended == 1 and counted and mark.draws - open_begin.draws ~= m.passes [mark.gen].rng_draws then
+					malformed ("the marks of pass " .. mark.gen .. " bracket " .. (mark.draws - open_begin.draws) .. " draws, its line says " .. m.passes [mark.gen].rng_draws)
+				end
 			end
 			open_begin = nil
-			after_pass = mark.gen
+			after_pass = mark
 		else
 			exposed_marks = exposed_marks + 1
-			-- the first draw outside any pass after a pass end, with no seed between: it follows that end
-			if after_pass == nil or after_pass ~= mark.gen or mark.since < 1 then malformed ("rng exposed mark " .. i .. " does not follow a pass end with no seed between") end
+			-- the FIRST draw outside any pass after a pass end with no seed between: it follows that end at exactly one more draw
+			if after_pass == nil or after_pass.gen ~= mark.gen or mark.draws ~= after_pass.draws + 1 then
+				malformed ("rng exposed mark " .. i .. " is not the first outside draw after a pass end (draws pass_end + 1, no seed between)")
+			end
 			after_pass = nil
 		end
 		rng.marks [i] = mark
 		rng.lines [i] = list [at]
 	end
-	if rng.dropped == 0 then
+	rng.pending = (after_pass ~= nil) or (open_begin ~= nil)
+	if rng.dropped == 0 and counted then
+		-- an untruncated history: every total is its marks, every kept pass has exactly one ordered begin and, if it ended, one end, and the passes' flags are the marks' facts
+		rng.history = "complete"
 		if seed_marks ~= rng.seeds or exposed_marks ~= rng.exposed then malformed ("the rng seed or exposed marks are not the totals") end
-		if begun ~= census.generations + census.dropped or ended_marks > begun then malformed ("the rng pass marks are not the census passes") end
-	elseif seed_marks > rng.seeds or exposed_marks > rng.exposed then
-		malformed ("the rng marks held are more than the totals")
+		if next_gen ~= census.generations then malformed ("the rng marks begin " .. next_gen .. " kept passes, the census kept " .. census.generations) end
+		if dropped_begins ~= census.dropped then malformed ("the rng marks begin " .. dropped_begins .. " passes beyond the history, the census counts " .. census.dropped) end
+		if interrupted_begins ~= census.interrupted then malformed ("the rng marks abandon " .. interrupted_begins .. " passes, the census counts " .. census.interrupted) end
+		for g = 0, census.generations - 1 do
+			if (m.passes [g].ended == 1) ~= (ended_gen [g] == true) then malformed ("pass " .. g .. " ended=" .. m.passes [g].ended .. " disagrees with its rng end mark") end
+			if (m.passes [g].interrupted == 1) ~= (interrupted_gen [g] == true) then malformed ("pass " .. g .. " interrupted=" .. m.passes [g].interrupted .. " disagrees with its rng marks") end
+		end
+		if (open_begin ~= nil) ~= (census.open == 1) then malformed ("the rng marks leave a pass open exactly when the census does not say so") end
+		-- no draw outside a pass follows the last pass end unrecorded, and the draws inside passes are the brackets of the ended passes plus the open pass's so far
+		if after_pass and rng.draws ~= after_pass.draws then malformed ("outside draws follow the last pass end and no exposed mark records the first") end
+		if bracket_total + (open_begin and (rng.draws - open_begin.draws) or 0) ~= rng.pass_draws then malformed ("the draws inside passes are not the brackets of the pass marks") end
+	elseif counted then
+		rng.history = "partial"
+		if seed_marks > rng.seeds or exposed_marks > rng.exposed then malformed ("the rng marks held are more than the totals") end
+	else
+		rng.history = "overflowed"
 	end
 	local v = take ("tp-complete", { "census", "queries_whole" })
 	m.census_whole = flag (v.census, "census whole")
@@ -423,7 +473,13 @@ end
 local PASS_FIXED = { "ended", "interrupted", "recorded", "sub_object", "bbox", "invalid_zero", "duplicates", "out_of_range", "complete", "rng_draws", "skinned" }
 local function same_census (boot, later, when)
 	-- the CRT stream only moves forward: its counters never fall and the marks the boot held are the same first marks of every later summary
-	if later.rng.draws < boot.rng.draws or later.rng.seeds < boot.rng.seeds or later.rng.exposed < boot.rng.exposed then malformed ("the CRT counters fell after the boot (" .. when .. ")") end
+	for _, key in ipairs { "draws", "seeds", "pass_draws", "outside", "exposed", "dropped" } do
+		if later.rng [key] < boot.rng [key] then malformed ("the CRT counter '" .. key .. "' fell after the boot (" .. when .. ")") end
+	end
+	if boot.rng.overflow == 1 and later.rng.overflow ~= 1 then malformed ("the CRT overflow latch cleared after the boot (" .. when .. ")") end
+	for i = boot.rng.count, later.rng.count - 1 do
+		if later.rng.marks [i].draws < boot.rng.draws then malformed ("rng mark " .. i .. " was appended after the sample yet is older than its " .. boot.rng.draws .. " draws (" .. when .. ")") end
+	end
 	for i = 0, boot.rng.count - 1 do
 		if later.rng.lines [i] ~= boot.rng.lines [i] then malformed ("rng mark " .. i .. " changed after the boot (" .. when .. ")") end
 	end
@@ -1062,7 +1118,8 @@ local function run ()
 	local natural_calls = final.calls - controlled_total - setup_total
 	local queries = final.calls - boot_summary.calls - controlled_total - setup_total
 	local whole = final.queries_whole == 1 and final.census_whole == 1
-	emit { event = "done", complete = whole, census_complete = true, queries_whole = whole, queries = queries, boot_calls = boot_summary.calls, total_calls = final.calls, events = final.events, generations = final.census.generations,
+	emit { event = "done", rng_history = final.rng.history or "unknown", rng_pending = final.rng.pending == true, rng_exposed = final.rng.exposed, rng_overflow = final.rng.overflow == 1,
+		complete = whole, census_complete = true, queries_whole = whole, queries = queries, boot_calls = boot_summary.calls, total_calls = final.calls, events = final.events, generations = final.census.generations,
 		natural_queries_reached = natural_calls > 0, branches_reached = #reached > 0 and table.concat (reached, ",") or "none", frames = frames, malformed = false,
 		controlled_probe = probe_requested, controlled_queries = controlled_total, controlled_cases = #controlled_cases > 0 and table.concat (controlled_cases, ",") or "none",
 		controlled_unavailable = #unavailable > 0 and table.concat (unavailable, ",") or "none",

@@ -65,6 +65,7 @@
 #ifdef EECH_TARGET_POINT_FIXTURE
 
 #include <ctype.h>
+#include <limits.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -210,6 +211,18 @@ static int tp_rng_mark_count;
 static unsigned tp_rng_marks_dropped, tp_rng_draws, tp_rng_since_seed, tp_rng_seeds, tp_rng_pass_draws, tp_rng_outside, tp_rng_exposed, tp_rng_pass_begin_draws;
 /* the pass whose end no seed has followed yet (-1: a pass beyond the history), or -2 for none */
 static int tp_rng_after_pass = -2;
+/* latched when any RNG total reached its limit: a wrapped total could look complete, so the counter stops there, this is set, and the report withholds every conclusion about the stream */
+static int tp_rng_overflow;
+
+static void rng_bump (unsigned *counter)
+{
+	if (*counter == UINT_MAX)
+	{
+		tp_rng_overflow = 1;
+		return;
+	}
+	(*counter)++;
+}
 
 static void rng_mark (int kind, int gen, uint32_t value)
 {
@@ -226,27 +239,27 @@ static void rng_mark (int kind, int gen, uint32_t value)
 	}
 	else
 	{
-		tp_rng_marks_dropped++;
+		rng_bump (&tp_rng_marks_dropped);
 	}
 }
 
 /* every rand () of the build: counts, then makes the original's one call, unchanged */
 int eech_tp_counted_rand (void)
 {
-	tp_rng_draws++;
-	tp_rng_since_seed++;
+	rng_bump (&tp_rng_draws);
+	rng_bump (&tp_rng_since_seed);
 	if (tp_gen_open)
 	{
-		tp_rng_pass_draws++;
+		rng_bump (&tp_rng_pass_draws);
 	}
 	else
 	{
-		tp_rng_outside++;
+		rng_bump (&tp_rng_outside);
 		if (tp_rng_after_pass != -2)
 		{
 			/* the first draw after a pass end with no reseed between: the stream position the pass left is now observable */
 			rng_mark (TP_MARK_EXPOSED, tp_rng_after_pass, 0);
-			tp_rng_exposed++;
+			rng_bump (&tp_rng_exposed);
 			tp_rng_after_pass = -2;
 		}
 	}
@@ -257,7 +270,7 @@ int eech_tp_counted_rand (void)
 void eech_tp_seed (int seed)
 {
 	rng_mark (TP_MARK_SEED, -1, (uint32_t) seed);
-	tp_rng_seeds++;
+	rng_bump (&tp_rng_seeds);
 	tp_rng_since_seed = 0;
 	tp_rng_after_pass = -2;
 }
@@ -1129,8 +1142,8 @@ int eech_tp_summary_run (char *text, int capacity)
 			all_complete = 0;
 		}
 	}
-	emit (&out, "tp-rng draws=%u seeds=%u pass_draws=%u outside_draws=%u exposed=%u marks=%d mark_capacity=%d marks_dropped=%u\n", tp_rng_draws, tp_rng_seeds, tp_rng_pass_draws, tp_rng_outside,
-		tp_rng_exposed, tp_rng_mark_count, TP_RNG_MARKS, tp_rng_marks_dropped);
+	emit (&out, "tp-rng draws=%u seeds=%u pass_draws=%u outside_draws=%u exposed=%u marks=%d mark_capacity=%d marks_dropped=%u overflow=%d\n", tp_rng_draws, tp_rng_seeds, tp_rng_pass_draws, tp_rng_outside,
+		tp_rng_exposed, tp_rng_mark_count, TP_RNG_MARKS, tp_rng_marks_dropped, tp_rng_overflow);
 	for (i = 0; i < tp_rng_mark_count; i++)
 	{
 		char value[12];
