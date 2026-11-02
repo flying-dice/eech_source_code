@@ -126,8 +126,7 @@ fn census_offset_in(g: usize, i: usize) -> [u32; 3] {
     o
 }
 
-/// branch 3: no instance, a fixed object of a valid shape (5 has a horizontal offset
-, 3 has none). The offset is that shape's census row. `heading` is what the original read, `xz` whether it
+/// branch 3: no instance, a fixed object of a valid shape (5 has a horizontal offset, 3 has none). The offset is that shape's census row. `heading` is what the original read, `xz` whether it
 /// added the rotated x/z offsets.
 fn fixed_shape(seq: u32, site: usize, shape: i32, case: &'static str, heading: Option<u32>, xz: bool) -> Ev {
     let horizontal = case != "no_horizontal_offset";

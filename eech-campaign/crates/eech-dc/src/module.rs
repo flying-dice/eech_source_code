@@ -3436,7 +3436,9 @@ impl LuaUserData for LuaEngine {
         #[cfg(feature = "target-point-fixture")]
         methods.add_method("target_point_summary", |_, this, ()| this.engine.target_point_summary().map_err(lua_error));
         #[cfg(feature = "target-point-fixture")]
-        methods.add_method("target_point_offsets", |_, this, generation: i32| this.engine.target_point_offsets(generation).map_err(lua_error));
+        methods.add_method("target_point_offsets", |_, this, generation: i32| {
+            this.engine.target_point_offsets(generation).map_err(lua_error)
+        });
         #[cfg(feature = "target-point-fixture")]
         methods.add_method("target_point_event", |_, this, index: i32| {
             this.engine.target_point_event(index).map_err(lua_error)
