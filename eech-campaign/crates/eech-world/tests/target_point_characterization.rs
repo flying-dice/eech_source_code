@@ -217,7 +217,15 @@ struct Pass {
 impl Pass {
     /// a complete pass: every one of the six models recorded once (three from a sub-object, two from the bounding box, the invalid zero)
     fn full(live_mismatch: usize) -> Pass {
-        Pass { ended: true, interrupted: false, recorded: EXPECTED, sub_object: 3, bbox: 2, duplicates: 0, live_mismatch }
+        Pass {
+            ended: true,
+            interrupted: false,
+            recorded: EXPECTED,
+            sub_object: 3,
+            bbox: 2,
+            duplicates: 0,
+            live_mismatch,
+        }
     }
 
     fn complete(&self) -> bool {
@@ -259,7 +267,10 @@ fn summary_passes(events: &[Ev], passes: &[Pass], stale: u32) -> String {
         n - present,
     );
     let last = passes.iter().rposition(|p| p.ended).map_or(-1, |i| i as i32);
-    t += &format!("tp-census expected={EXPECTED} generations={} capacity=4 dropped=0 open=0 interrupted=0 stray=0 last={last}\n", passes.len());
+    t += &format!(
+        "tp-census expected={EXPECTED} generations={} capacity=4 dropped=0 open=0 interrupted=0 stray=0 last={last}\n",
+        passes.len()
+    );
     for (g, p) in passes.iter().enumerate() {
         t += &format!(
             "tp-pass ordinal={g} ended={} interrupted={} recorded={} sub_object={} bbox={} invalid_zero=1 duplicates={} out_of_range=0 live_mismatch={} complete={}\n",
@@ -274,7 +285,8 @@ fn summary_passes(events: &[Ev], passes: &[Pass], stale: u32) -> String {
         );
     }
     // whole: a pass ran, every pass is a complete snapshot, the latest to end is the last kept, and the table is the latest pass's
-    let census_whole = !passes.is_empty() && passes.iter().all(Pass::complete) && last == passes.len() as i32 - 1 && passes.last().is_some_and(|p| p.live_mismatch == 0);
+    let census_whole =
+        !passes.is_empty() && passes.iter().all(Pass::complete) && last == passes.len() as i32 - 1 && passes.last().is_some_and(|p| p.live_mismatch == 0);
     t += &format!("tp-complete census={} queries_whole={}\n", u8::from(census_whole), u8::from(stale == 0));
     t
 }
@@ -284,7 +296,14 @@ fn summary_with(events: &[Ev], census_whole: bool, stale: u32) -> String {
     let passes = if census_whole {
         two_passes()
     } else {
-        vec![Pass::full(2), Pass { recorded: 5, sub_object: 2, ..Pass::full(0) }]
+        vec![
+            Pass::full(2),
+            Pass {
+                recorded: 5,
+                sub_object: 2,
+                ..Pass::full(0)
+            },
+        ]
     };
     summary_passes(events, &passes, stale)
 }
@@ -297,7 +316,10 @@ fn summary(events: &[Ev]) -> String {
 /// sub-object, 2 and 4 from the bounding box. `whole` false: pass `g` never recorded model 5.
 fn pass_text(g: usize, current: usize, whole: bool) -> String {
     let live = |i: usize| u8::from(census_offset_in(g, i) == census_offset_in(current, i));
-    let mut t = format!("tp-offset generation={g} index=0 name=- state=invalid_zero offset={} bounds=- live=1\n", offset_text(census_offset(0)));
+    let mut t = format!(
+        "tp-offset generation={g} index=0 name=- state=invalid_zero offset={} bounds=- live=1\n",
+        offset_text(census_offset(0))
+    );
     for i in 1..EXPECTED {
         if i == 5 && !whole {
             t += &format!("tp-offset generation={g} index=5 name=SCENE_5 state=none offset=- bounds=- live=-\n");
@@ -607,7 +629,10 @@ fn a_run_reaching_every_branch_passes_in_order_and_keeps_every_native_report_ver
     let outcome = run(&healthy(&events));
     outcome.result.as_ref().expect("a whole, coherent capture passes");
     // prepare -> select -> boot -> boot summary -> every census pass -> clock -> 36 frames (3.6 s at 100 ms) -> clock -> end summary -> every census pass again -> every query once, in order
-    let mut expected: Vec<String> = ["prepare", "select", "boot", "summary", "offsets 0", "offsets 1", "clock"].iter().map(|s| s.to_string()).collect();
+    let mut expected: Vec<String> = ["prepare", "select", "boot", "summary", "offsets 0", "offsets 1", "clock"]
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
     expected.extend(std::iter::repeat_n("FRAME".to_string(), 36));
     expected.extend(["clock", "summary", "offsets 0", "offsets 1"].iter().map(|s| s.to_string()));
     expected.extend((0..events.len()).map(|i| format!("event {i}")));
@@ -627,7 +652,11 @@ fn a_run_reaching_every_branch_passes_in_order_and_keeps_every_native_report_ver
     assert!(all.contains(&format!("index=5 name=SCENE_5 state=sub_object offset={}", offset_text(census_offset_in(0, 5)))));
     assert!(all.contains(&format!("index=5 name=SCENE_5 state=sub_object offset={}", offset_text(census_offset_in(1, 5)))));
     assert_ne!(census_offset_in(0, 5), census_offset_in(1, 5));
-    assert_eq!(all.matches("\"event\":\"offsets\"").count(), 4, "two passes read at the boot and again at the end");
+    assert_eq!(
+        all.matches("\"event\":\"offsets\"").count(),
+        4,
+        "two passes read at the boot and again at the end"
+    );
     let done = done_row(&outcome);
     assert!(
         done.contains("\"complete\":true") && done.contains("\"branches_reached\":\"1,2,3,4\"") && done.contains("\"natural_queries_reached\":true"),
@@ -662,7 +691,10 @@ fn a_census_that_is_not_whole_is_not_measured_and_no_frame_is_run() {
     assert_eq!(count(&outcome, "FRAME"), 0);
     // the failed capture still keeps what it saw: BOTH passes, the incomplete one included, are read and retained before the verdict is judged
     let all = outcome.written.as_ref().unwrap();
-    assert!(all.contains("tp-offset generation=0 index=1 ") && all.contains("tp-offset generation=1 index=5 name=SCENE_5 state=none"), "{all}");
+    assert!(
+        all.contains("tp-offset generation=0 index=1 ") && all.contains("tp-offset generation=1 index=5 name=SCENE_5 state=none"),
+        "{all}"
+    );
     assert!(done_row(&outcome).contains("\"census_complete\":false"));
 }
 
@@ -752,7 +784,12 @@ fn damaged_or_contradictory_reports_are_malformed_and_stop_the_questions() {
         ),
         (
             "a census at the end that is not the census at the boot",
-            |c| c.end_censuses = vec![pass_text(0, 1, true), pass_text(1, 1, true).replace(&offset_text(census_offset(3)), &offset_text([0x4000_0000, 0x3f80_0009, 0]))],
+            |c| {
+                c.end_censuses = vec![
+                    pass_text(0, 1, true),
+                    pass_text(1, 1, true).replace(&offset_text(census_offset(3)), &offset_text([0x4000_0000, 0x3f80_0009, 0])),
+                ]
+            },
             "event 0",
         ),
         (
@@ -829,7 +866,12 @@ fn damaged_or_contradictory_reports_are_malformed_and_stop_the_questions() {
         ),
         (
             "a final pass line whose snapshot facts differ from the boot's",
-            |c| c.summaries[1] = c.summaries[1].replace("ordinal=1 ended=1 interrupted=0 recorded=6 sub_object=3 bbox=2", "ordinal=1 ended=1 interrupted=0 recorded=6 sub_object=2 bbox=3"),
+            |c| {
+                c.summaries[1] = c.summaries[1].replace(
+                    "ordinal=1 ended=1 interrupted=0 recorded=6 sub_object=3 bbox=2",
+                    "ordinal=1 ended=1 interrupted=0 recorded=6 sub_object=2 bbox=3",
+                )
+            },
             "event 0",
         ),
         (
@@ -839,17 +881,33 @@ fn damaged_or_contradictory_reports_are_malformed_and_stop_the_questions() {
         ),
         (
             "a final live fact that changed although no pass was added",
-            |c| c.summaries[1] = c.summaries[1].replace("ordinal=0 ended=1 interrupted=0 recorded=6 sub_object=3 bbox=2 invalid_zero=1 duplicates=0 out_of_range=0 live_mismatch=2", "ordinal=0 ended=1 interrupted=0 recorded=6 sub_object=3 bbox=2 invalid_zero=1 duplicates=0 out_of_range=0 live_mismatch=1"),
+            |c| {
+                c.summaries[1] = c.summaries[1].replace(
+                    "ordinal=0 ended=1 interrupted=0 recorded=6 sub_object=3 bbox=2 invalid_zero=1 duplicates=0 out_of_range=0 live_mismatch=2",
+                    "ordinal=0 ended=1 interrupted=0 recorded=6 sub_object=3 bbox=2 invalid_zero=1 duplicates=0 out_of_range=0 live_mismatch=1",
+                )
+            },
             "event 0",
         ),
         (
             "a pass that claims to be complete although it holds a duplicate inside the pass",
-            |c| c.summaries[0] = c.summaries[0].replacen("recorded=6 sub_object=3 bbox=2 invalid_zero=1 duplicates=0", "recorded=6 sub_object=3 bbox=2 invalid_zero=1 duplicates=1", 1),
+            |c| {
+                c.summaries[0] = c.summaries[0].replacen(
+                    "recorded=6 sub_object=3 bbox=2 invalid_zero=1 duplicates=0",
+                    "recorded=6 sub_object=3 bbox=2 invalid_zero=1 duplicates=1",
+                    1,
+                )
+            },
             "FRAME",
         ),
         (
             "a latest pass that differs from the table under a whole verdict",
-            |c| c.summaries[1] = c.summaries[1].replace("ordinal=1 ended=1 interrupted=0 recorded=6 sub_object=3 bbox=2 invalid_zero=1 duplicates=0 out_of_range=0 live_mismatch=0", "ordinal=1 ended=1 interrupted=0 recorded=6 sub_object=3 bbox=2 invalid_zero=1 duplicates=0 out_of_range=0 live_mismatch=1"),
+            |c| {
+                c.summaries[1] = c.summaries[1].replace(
+                    "ordinal=1 ended=1 interrupted=0 recorded=6 sub_object=3 bbox=2 invalid_zero=1 duplicates=0 out_of_range=0 live_mismatch=0",
+                    "ordinal=1 ended=1 interrupted=0 recorded=6 sub_object=3 bbox=2 invalid_zero=1 duplicates=0 out_of_range=0 live_mismatch=1",
+                )
+            },
             "event 0",
         ),
         (
@@ -874,7 +932,11 @@ fn damaged_or_contradictory_reports_are_malformed_and_stop_the_questions() {
         ),
         (
             "a fixed-shape offset that is the words of the other pass",
-            |c| c.events[2] = c.events[2].as_ref().map(|t| t.replace(&offset_text(census_offset_in(1, 5)), &offset_text(census_offset_in(0, 5)))),
+            |c| {
+                c.events[2] = c.events[2]
+                    .as_ref()
+                    .map(|t| t.replace(&offset_text(census_offset_in(1, 5)), &offset_text(census_offset_in(0, 5))))
+            },
             "event 3",
         ),
         (
@@ -936,7 +998,11 @@ fn a_later_pass_is_a_new_original_product_and_each_query_binds_to_the_pass_it_ra
     case.end_censuses = vec![pass_text(0, 2, true), pass_text(1, 2, true), pass_text(2, 2, true)];
     let outcome = run(&case);
     outcome.result.as_ref().expect("a whole capture of three passes, the last the table");
-    assert_eq!(count(&outcome, "offsets 2"), 1, "the pass that appeared during the frames is read once, at the end");
+    assert_eq!(
+        count(&outcome, "offsets 2"),
+        1,
+        "the pass that appeared during the frames is read once, at the end"
+    );
     let all = outcome.written.as_ref().unwrap();
     assert_eq!(all.matches("\"event\":\"offsets\"").count(), 5, "two passes at the boot, three at the end");
     let done = done_row(&outcome);
@@ -953,7 +1019,10 @@ fn a_later_pass_is_a_new_original_product_and_each_query_binds_to_the_pass_it_ra
     let mut disagreeing = healthy(&events);
     disagreeing.summaries = vec![
         summary(&[]),
-        summary_passes(&events, &[Pass::full(3), Pass::full(1), Pass::full(0)], 0).replace("ordinal=2 ended=1 interrupted=0 recorded=6 sub_object=3 bbox=2", "ordinal=2 ended=1 interrupted=0 recorded=6 sub_object=2 bbox=3"),
+        summary_passes(&events, &[Pass::full(3), Pass::full(1), Pass::full(0)], 0).replace(
+            "ordinal=2 ended=1 interrupted=0 recorded=6 sub_object=3 bbox=2",
+            "ordinal=2 ended=1 interrupted=0 recorded=6 sub_object=2 bbox=3",
+        ),
     ];
     disagreeing.end_censuses = case.end_censuses.clone();
     let outcome = run(&disagreeing);
@@ -966,7 +1035,9 @@ fn a_census_that_is_not_whole_keeps_every_pass_it_saw_and_is_not_measured() {
     type Variant = (&'static str, fn(&mut Case));
     let variants: [Variant; 3] = [
         ("a pass begun beyond the bounded history", |c| {
-            c.summaries[0] = c.summaries[0].replace("capacity=4 dropped=0", "capacity=4 dropped=1").replace("tp-complete census=1", "tp-complete census=0");
+            c.summaries[0] = c.summaries[0]
+                .replace("capacity=4 dropped=0", "capacity=4 dropped=1")
+                .replace("tp-complete census=1", "tp-complete census=0");
         }),
         ("a duplicate inside the latest pass", |c| {
             c.summaries[0] = c.summaries[0]
@@ -993,7 +1064,10 @@ fn a_census_that_is_not_whole_keeps_every_pass_it_saw_and_is_not_measured() {
         failure(&outcome, "NOT MEASURED");
         assert_eq!(count(&outcome, "FRAME"), 0, "{what}: a frame was run");
         let all = outcome.written.as_ref().unwrap();
-        assert!(all.contains("\"generation\":0") && all.contains("\"generation\":1"), "{what}: a pass was not kept");
+        assert!(
+            all.contains("\"generation\":0") && all.contains("\"generation\":1"),
+            "{what}: a pass was not kept"
+        );
         assert!(done_row(&outcome).contains("\"census_complete\":false"), "{what}");
     }
 }
