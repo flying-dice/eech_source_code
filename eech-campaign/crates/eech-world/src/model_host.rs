@@ -10,13 +10,13 @@
 //! numbers within range or the call is refused before the store is touched. A missing asset is reported as `NOT RUN`, never as a pass.
 use crate::models::{
     compiled_scene_name, hex_list, scene_last, AnimationRef, CustomWalk, ErrorKind, ModelStore, ObjectHeader, ObjectSource, RouteFace, RouteNode, SceneSource,
-    Triangle,
+    Triangle, CUSTOM_WALK_MAX,
 };
 use crate::original_report;
 use mlua::prelude::*;
 use serde_json::Value;
 use std::cell::RefCell;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::sync::Arc;
 
@@ -296,6 +296,24 @@ impl LuaUserData for StoreHandle {
     }
 }
 
+/// The database of the installation at `root` with its custom scene files inventoried and none read (see ModelStore::load_inventory).
+fn load_inventory(root: &Path) -> LuaResult<Arc<ModelStore>> {
+    match ModelStore::load_inventory(root) {
+        Ok(store) => Ok(Arc::new(store)),
+        Err(e) if e.kind == ErrorKind::Missing => Err(LuaError::runtime(format!("NOT RUN: model assets absent: {e}"))),
+        Err(e) => Err(LuaError::runtime(format!("model store refused: {e}"))),
+    }
+}
+
+/// The store of the installation at `root`, its custom scene files read in sorted order.
+fn load_path(root: &Path) -> LuaResult<Arc<ModelStore>> {
+    match ModelStore::load(root) {
+        Ok(store) => Ok(Arc::new(store)),
+        Err(e) if e.kind == ErrorKind::Missing => Err(LuaError::runtime(format!("NOT RUN: model assets absent: {e}"))),
+        Err(e) => Err(LuaError::runtime(format!("model store refused: {e}"))),
+    }
+}
+
 /// Loads the store of the retail installation at `root`: a missing asset is `NOT RUN`, any other refusal names the file and why.
 fn load_store(root: &str) -> LuaResult<Arc<ModelStore>> {
     match ModelStore::load(Path::new(root)) {
@@ -460,49 +478,220 @@ fn strict(lua: &Lua, inner: LuaFunction) -> LuaResult<LuaFunction> {
     build.call(inner)
 }
 
-/// The campaign's announcement of the order in which it walks the custom scene files (mb_hostmodel.h, CUSTOM_ORDER): one file per step (`role` 0: the scene, the position and the
-/// upper-cased name of the directory that holds it), then a closing step (`role` 1). A file the host does not have is `absent`; the closing step returns the whole walk. Steps
-/// must come one after another from position 0.
-fn custom_order(
-    lua: &Lua,
-    store: &ModelStore,
-    announced: &RefCell<CustomWalk>,
-    scene: Option<i64>,
-    position: Option<i64>,
-    role: Option<i64>,
-    key: Option<String>,
-) -> LuaResult<(LuaTable, Option<CustomWalk>)> {
-    let fail = |message: String| LuaError::runtime(format!("[model-provider:custom_order.request] {message}"));
-    let position = position.ok_or_else(|| fail("a walk announcement step needs a position (the depth argument)".into()))?;
-    let role = role.ok_or_else(|| fail("a walk announcement step says whether it ends the walk (the kind argument: 0 a file, 1 the end)".into()))?;
-    let mut list = announced.borrow_mut();
-    if position != list.len() as i64 {
-        return Err(fail(format!("step {position} came when step {} was next", list.len())));
+/// The longest directory name a walk step carries (the reply's name field).
+const WALK_KEY_MAX: usize = 127;
+
+/// One provider's announcement of the campaign's walk of the custom scene files (mb_hostmodel.h, CUSTOM_ORDER). It is ONE transaction with a lifecycle: open while steps arrive,
+/// closed by the closing step, and a closed announcement is final: a late step is refused and never starts another (a new provider is a new transaction). The files are bounded
+/// (the campaign's own limit), each (scene, directory) is taken at most once, and the steps arrive one after another from position 0. Everything is checked before the state
+/// changes.
+#[derive(Default)]
+struct WalkAnnouncement {
+    steps: CustomWalk,
+    closed: bool,
+}
+
+enum StepOutcome {
+    /// the host has the file and the step is taken
+    Found,
+    /// the host has no such file
+    Absent,
+    /// the walk is closed: the whole announced walk
+    End(CustomWalk),
+}
+
+impl WalkAnnouncement {
+    fn take(
+        &mut self,
+        has_file: &dyn Fn(usize, &str) -> bool,
+        scene: Option<i64>,
+        position: Option<i64>,
+        role: Option<i64>,
+        key: Option<String>,
+        cap: usize,
+    ) -> Result<StepOutcome, String> {
+        if self.closed {
+            return Err("the announcement is complete: a provider takes one walk announcement, and a late step does not start another".into());
+        }
+        let position = position.ok_or("a walk announcement step needs a position (the depth argument)")?;
+        let role = role.ok_or("a walk announcement step says whether it ends the walk (the kind argument: 0 a file, 1 the end)")?;
+        if position != self.steps.len() as i64 {
+            return Err(format!("step {position} came when step {} was next", self.steps.len()));
+        }
+        match role {
+            0 => {
+                if self.steps.len() >= cap {
+                    return Err(format!("the walk has more than the {cap} files a campaign announces"));
+                }
+                let scene = scene.ok_or("a walk step needs a scene")?;
+                if scene < 1 || scene >= scene_last() as i64 {
+                    return Err(format!("scene {scene} is outside 1 to {}", scene_last() - 1));
+                }
+                let key = key
+                    .filter(|k| !k.is_empty() && k.len() <= WALK_KEY_MAX)
+                    .ok_or_else(|| format!("a walk step needs the name of the directory (the key argument), 1 to {WALK_KEY_MAX} bytes"))?
+                    .to_ascii_uppercase();
+                let scene = scene as usize;
+                if self.steps.iter().any(|(s, k)| *s == scene && *k == key) {
+                    return Err(format!("the file of scene {scene} in directory {key} was announced twice"));
+                }
+                if has_file(scene, &key) {
+                    self.steps.push((scene, key));
+                    Ok(StepOutcome::Found)
+                } else {
+                    Ok(StepOutcome::Absent)
+                }
+            }
+            1 => {
+                self.closed = true;
+                Ok(StepOutcome::End(std::mem::take(&mut self.steps)))
+            }
+            other => Err(format!("a walk step is 0 (a file) or 1 (the end), got {other}")),
+        }
     }
-    let table = lua.create_table()?;
-    match role {
-        0 => {
-            let scene = scene.ok_or_else(|| fail("a walk step needs a scene".into()))?;
-            if scene < 1 || scene >= scene_last() as i64 {
-                return Err(fail(format!("scene {scene} is outside 1 to {}", scene_last() - 1)));
-            }
-            let key = key
-                .filter(|k| !k.is_empty())
-                .ok_or_else(|| fail("a walk step needs the name of the directory (the key argument)".into()))?
-                .to_ascii_uppercase();
-            if store.has_custom_scene(scene as usize, &key) {
-                list.push((scene as usize, key));
-                table.set("result", "found")?;
-            } else {
-                table.set("result", "absent")?;
-            }
-            Ok((table, None))
+}
+
+/// What one reference provider holds. The installation is PINNED the first time the provider needs it (an absolute path, resolved then and never again: a relative text is not
+/// read again after the engine changed the working directory, and a changed host argument selects nothing else). The database's own facts come from the INVENTORY store, which
+/// reads no custom scene file; the final scenes come from the FULL store, which is built once, in the order the campaign announced (or sorted, when none was and a tool asks).
+struct ProviderState {
+    root: Option<PathBuf>,
+    inventory: Option<Arc<ModelStore>>,
+    full: Option<Arc<ModelStore>>,
+    announcement: WalkAnnouncement,
+    /// a final answer has been given from the sorted store because no walk was announced: an announcement afterwards would contradict it
+    sorted_answers: bool,
+    /// the full store is fixed (a script's own store): an announcement is verified against it, never replayed
+    fixed: bool,
+}
+
+/// What the Lua provider function is called with: the operation, then the scene, the depth, the kind, the definition (each a number or nothing) and the directory name.
+type ProviderArguments = (String, Option<LuaValue>, Option<LuaValue>, Option<LuaValue>, Option<LuaValue>, Option<String>);
+
+/// One question of the campaign, its numbers already checked as whole numbers.
+struct Question {
+    operation: String,
+    scene: Option<i64>,
+    depth: Option<i64>,
+    kind: Option<i64>,
+    definition: Option<i64>,
+    key: Option<String>,
+}
+
+/// An installation root as an absolute path, resolved now against the current working directory.
+fn absolute_root(text: &str) -> LuaResult<PathBuf> {
+    let path = Path::new(text);
+    if path.is_absolute() {
+        return Ok(path.to_path_buf());
+    }
+    std::env::current_dir()
+        .map(|dir| dir.join(path))
+        .map_err(|e| LuaError::runtime(format!("[model-provider:load] cannot resolve the relative installation root {text:?}: {e}")))
+}
+
+impl ProviderState {
+    fn pinned_root(&mut self, current: Option<String>) -> LuaResult<PathBuf> {
+        if let Some(root) = &self.root {
+            return Ok(root.clone());
         }
-        1 => {
-            table.set("result", "end")?;
-            Ok((table, Some(std::mem::take(&mut *list))))
+        let text = current.ok_or_else(|| LuaError::runtime("[model-provider:load] host.model needs root=<installation root> in the host arguments"))?;
+        let root = absolute_root(&text)?;
+        self.root = Some(root.clone());
+        Ok(root)
+    }
+
+    /// The store that answers the database's own questions: the full store when there is one, else the inventory (loaded now).
+    fn base(&mut self, current: Option<String>) -> LuaResult<Arc<ModelStore>> {
+        if let Some(full) = &self.full {
+            return Ok(full.clone());
         }
-        other => Err(fail(format!("a walk step is 0 (a file) or 1 (the end), got {other}"))),
+        if self.inventory.is_none() {
+            let root = self.pinned_root(current)?;
+            self.inventory = Some(load_inventory(&root)?);
+        }
+        self.inventory.clone().ok_or_else(|| LuaError::runtime("[model-provider:load] no store"))
+    }
+
+    /// The store that answers the final questions (scenes, triangles, routes, custom definitions, animation references).
+    fn final_store(&mut self, current: Option<String>) -> LuaResult<Arc<ModelStore>> {
+        if let Some(full) = &self.full {
+            return Ok(full.clone());
+        }
+        if self.announcement.closed {
+            return Err(LuaError::runtime(
+                "[model-provider:custom_order.refused] the announced walk could not be replayed, and no final answer is given from another order",
+            ));
+        }
+        if !self.announcement.steps.is_empty() {
+            return Err(LuaError::runtime(
+                "[model-provider:custom_order.request] a final answer was asked before the campaign's walk announcement was complete",
+            ));
+        }
+        // no walk was announced (a tool, not the campaign): the sorted order, and nothing announced afterwards may contradict it
+        let root = self.pinned_root(current)?;
+        let full = load_path(&root)?;
+        self.full = Some(full.clone());
+        self.sorted_answers = true;
+        Ok(full)
+    }
+
+    fn custom_order(
+        &mut self,
+        lua: &Lua,
+        current: Option<String>,
+        scene: Option<i64>,
+        position: Option<i64>,
+        role: Option<i64>,
+        key: Option<String>,
+    ) -> LuaResult<LuaTable> {
+        let inventory = self.base(current.clone())?;
+        let outcome = self
+            .announcement
+            .take(&|scene, key| inventory.has_custom_scene(scene, key), scene, position, role, key, CUSTOM_WALK_MAX)
+            .map_err(|message| LuaError::runtime(format!("[model-provider:custom_order.request] {message}")))?;
+        let table = lua.create_table()?;
+        match outcome {
+            StepOutcome::Found => table.set("result", "found")?,
+            StepOutcome::Absent => table.set("result", "absent")?,
+            StepOutcome::End(order) => {
+                if self.sorted_answers {
+                    return Err(LuaError::runtime(
+                        "[model-provider:custom_order.refused] a final answer was already given from the sorted store: the campaign's walk announcement came too late",
+                    ));
+                }
+                if self.fixed {
+                    if self.full.as_ref().is_some_and(|full| order.as_slice() != full.custom_walk()) {
+                        return Err(LuaError::runtime(
+                            "[model-provider:custom_order.refused] this provider's store was loaded in a different order than the campaign's walk and cannot be reloaded",
+                        ));
+                    }
+                } else {
+                    let root = self.pinned_root(None)?;
+                    let replayed = ModelStore::load_in_order(&root, &order)
+                        .map_err(|e| LuaError::runtime(format!("[model-provider:custom_order.refused] the campaign's walk cannot be replayed: {e}")))?;
+                    self.full = Some(Arc::new(replayed));
+                }
+                table.set("result", "end")?;
+            }
+        }
+        Ok(table)
+    }
+
+    /// One question of the campaign.
+    fn answer(&mut self, lua: &Lua, current: Option<String>, q: Question) -> LuaResult<LuaTable> {
+        let operation = q.operation.as_str();
+        match operation {
+            "custom_order" => self.custom_order(lua, current, q.scene, q.depth, q.kind, q.key),
+            // the database's own questions: independent of how the custom scene files are read
+            "object_table" | "object" => {
+                let store = self.base(current)?;
+                model_answer(lua, &store, operation, q.scene, q.depth, q.kind, q.definition)
+            }
+            _ => {
+                let store = self.final_store(current)?;
+                model_answer(lua, &store, operation, q.scene, q.depth, q.kind, q.definition)
+            }
+        }
     }
 }
 
@@ -511,90 +700,62 @@ pub fn register(lua: &Lua, host: &LuaTable) -> LuaResult<()> {
         "model_store",
         lua.create_function(|lua, root: String| lua.create_userdata(StoreHandle(load_store(&root)?)))?,
     )?;
-    // host.model (op, scene, depth): the reference host's model provider, which a script passes to `eech_dc.boot` as `model`. The store is the host's own, loaded from the
-    // installation root the script gave (`root=`, the same `host.args.root` the campaign scripts boot with) when the campaign first asks, which is at boot; a root with no
-    // model assets refuses the boot with `NOT RUN: model assets absent`, never an empty database.
+    // host.model (op, scene, depth, kind, definition, key): the reference host's model provider, which a script passes to `eech_dc.boot` as `model`. The installation is the
+    // one the script gave (`root=`, the same `host.args.root` the campaign scripts boot with), PINNED as an absolute path when the provider is registered (or, if the
+    // argument is not there yet, the first time it is needed) and never resolved again; a root with no model assets refuses the boot with `NOT RUN: model assets absent`, never an
+    // empty database.
     let args: LuaTable = host.get("args")?;
-    let shared: Rc<RefCell<Option<Arc<ModelStore>>>> = Rc::new(RefCell::new(None));
-    let announced: Rc<RefCell<CustomWalk>> = Rc::new(RefCell::new(Vec::new()));
+    let pinned = args.get::<Option<String>>("root").ok().flatten().and_then(|text| absolute_root(&text).ok());
+    let state = Rc::new(RefCell::new(ProviderState {
+        root: pinned,
+        inventory: None,
+        full: None,
+        announcement: WalkAnnouncement::default(),
+        sorted_answers: false,
+        fixed: false,
+    }));
     let lazy = lua.create_function(
         move |lua,
-              (operation, scene, depth, kind, definition, key): (
-            String,
-            Option<LuaValue>,
-            Option<LuaValue>,
-            Option<LuaValue>,
-            Option<LuaValue>,
-            Option<String>,
-        )| {
-            let store = {
-                let mut slot = shared.borrow_mut();
-                if slot.is_none() {
-                    let root: String = args
-                        .get::<Option<String>>("root")?
-                        .ok_or_else(|| LuaError::runtime("[model-provider:load] host.model needs root=<installation root> in the host arguments"))?;
-                    *slot = Some(load_store(&root)?);
-                }
-                slot.clone().ok_or_else(|| LuaError::runtime("[model-provider:load] no store"))?
-            };
+              provider_arguments: ProviderArguments| {
+            let (operation, scene, depth, kind, definition, key) = provider_arguments;
             let scene = provider_number(scene, "scene", &operation)?;
             let depth = provider_number(depth, "depth", &operation)?;
             let kind = provider_number(kind, "kind", &operation)?;
             let definition = provider_number(definition, "definition", &operation)?;
-            if operation == "custom_order" {
-                // the campaign walks the custom scene files in the file system's order; once it has announced the whole walk the host replays its definitions in that order
-                let (table, finished) = custom_order(lua, &store, &announced, scene, depth, kind, key)?;
-                if let Some(order) = finished {
-                    if order.as_slice() != store.custom_walk() {
-                        let root: String = args
-                            .get::<Option<String>>("root")?
-                            .ok_or_else(|| LuaError::runtime("[model-provider:load] host.model needs root=<installation root> in the host arguments"))?;
-                        let reloaded = ModelStore::load_in_order(Path::new(&root), &order)
-                            .map_err(|e| LuaError::runtime(format!("[model-provider:custom_order.refused] the campaign's walk cannot be replayed: {e}")))?;
-                        *shared.borrow_mut() = Some(Arc::new(reloaded));
-                    }
-                }
-                return Ok(table);
-            }
-            model_answer(lua, &store, &operation, scene, depth, kind, definition)
+            // the host argument is read only while the installation is not pinned yet
+            let current = if state.borrow().root.is_none() { args.get::<Option<String>>("root")? } else { None };
+            state.borrow_mut().answer(
+                lua,
+                current,
+                Question { operation, scene, depth, kind, definition, key },
+            )
         },
     )?;
     host.set("model", strict(lua, lazy)?)?;
     // host.model_provider (store): the same provider over a store the script already loaded with host.model_store (shared, immutable), for a script that wraps or
-    // replaces the reference host's answers.
+    // replaces the reference host's answers. Its store is fixed: it takes the campaign's announcement only if the walk is the one the store was loaded in.
     host.set(
         "model_provider",
         lua.create_function(|lua, store: LuaAnyUserData| {
             let handle = store.borrow::<StoreHandle>()?;
             let store = handle.0.clone();
-            let announced: Rc<RefCell<CustomWalk>> = Rc::new(RefCell::new(Vec::new()));
+            let state = Rc::new(RefCell::new(ProviderState {
+                root: None,
+                inventory: Some(store.clone()),
+                full: Some(store),
+                announcement: WalkAnnouncement::default(),
+                sorted_answers: false,
+                fixed: true,
+            }));
             let inner = lua.create_function(
                 move |lua,
-                      (operation, scene, depth, kind, definition, key): (
-                    String,
-                    Option<LuaValue>,
-                    Option<LuaValue>,
-                    Option<LuaValue>,
-                    Option<LuaValue>,
-                    Option<String>,
-                )| {
+                      provider_arguments: ProviderArguments| {
+                    let (operation, scene, depth, kind, definition, key) = provider_arguments;
                     let scene = provider_number(scene, "scene", &operation)?;
                     let depth = provider_number(depth, "depth", &operation)?;
                     let kind = provider_number(kind, "kind", &operation)?;
                     let definition = provider_number(definition, "definition", &operation)?;
-                    if operation == "custom_order" {
-                        // this provider's store is fixed: it can take the announcement only if the walk is the one it was loaded in
-                        let (table, finished) = custom_order(lua, &store, &announced, scene, depth, kind, key)?;
-                        if let Some(order) = finished {
-                            if order.as_slice() != store.custom_walk() {
-                                return Err(LuaError::runtime(
-                                    "[model-provider:custom_order.refused] this provider's store was loaded in a different order than the campaign's walk and cannot be reloaded",
-                                ));
-                            }
-                        }
-                        return Ok(table);
-                    }
-                    model_answer(lua, &store, &operation, scene, depth, kind, definition)
+                    state.borrow_mut().answer(lua, None, Question { operation, scene, depth, kind, definition, key })
                 },
             )?;
             strict(lua, inner)
@@ -851,4 +1012,70 @@ fn host_walk(store: &ModelStore, scene: i64) -> String {
         }
     }
     format!("host triangles {HOST_WALK_CAP}+ (walk capped)")
+}
+
+#[cfg(test)]
+mod walk_tests {
+    use super::*;
+
+    fn has(scene: usize, key: &str) -> bool {
+        matches!((scene, key), (1, "A") | (2, "B") | (3, "C"))
+    }
+
+    fn file(walk: &mut WalkAnnouncement, scene: i64, position: i64, key: &str, cap: usize) -> Result<StepOutcome, String> {
+        walk.take(&has, Some(scene), Some(position), Some(0), Some(key.to_string()), cap)
+    }
+
+    fn end(walk: &mut WalkAnnouncement, position: i64) -> Result<StepOutcome, String> {
+        walk.take(&has, None, Some(position), Some(1), None, 4096)
+    }
+
+    #[test]
+    fn a_coherent_announcement_is_taken_in_order_closed_and_final() {
+        let mut walk = WalkAnnouncement::default();
+        assert!(matches!(file(&mut walk, 2, 0, "b", 4096), Ok(StepOutcome::Found)), "a directory name is compared in upper case");
+        assert!(matches!(file(&mut walk, 1, 1, "A", 4096), Ok(StepOutcome::Found)));
+        // a file the host lacks is absent and is not taken: the next position is still 2
+        assert!(matches!(file(&mut walk, 3, 2, "ZZ", 4096), Ok(StepOutcome::Absent)));
+        let Ok(StepOutcome::End(order)) = end(&mut walk, 2) else { panic!("the walk did not close") };
+        assert_eq!(order, [(2, "B".to_string()), (1, "A".to_string())]);
+        // closed is final: no late step, no second end, no new walk
+        for result in [file(&mut walk, 3, 0, "C", 4096), end(&mut walk, 0), end(&mut walk, 2)] {
+            assert!(result.err().is_some_and(|e| e.contains("complete")));
+        }
+    }
+
+    #[test]
+    fn an_announcement_is_bounded_unique_in_sequence_and_in_its_domains_before_anything_changes() {
+        let mut walk = WalkAnnouncement::default();
+        assert!(file(&mut walk, 1, 0, "A", 2).is_ok());
+        assert!(file(&mut walk, 2, 1, "B", 2).is_ok());
+        // the cap: a third file is refused without being taken
+        assert!(file(&mut walk, 3, 2, "C", 2).err().is_some_and(|e| e.contains("more than the 2 files")));
+        // the same file twice, at the next position
+        let mut walk = WalkAnnouncement::default();
+        assert!(file(&mut walk, 1, 0, "A", 4096).is_ok());
+        assert!(file(&mut walk, 1, 1, "a", 4096).err().is_some_and(|e| e.contains("twice")));
+        // out of sequence: ahead, behind, negative
+        for position in [2, 0, -1] {
+            assert!(file(&mut walk, 2, position, "B", 4096).err().is_some_and(|e| e.contains("was next")), "position {position}");
+        }
+        // domains: a scene outside the compiled ones, no directory, one longer than the reply's field, a role that is neither a file nor the end
+        assert!(file(&mut walk, 0, 1, "B", 4096).is_err() && file(&mut walk, scene_last() as i64, 1, "B", 4096).is_err());
+        assert!(file(&mut walk, 2, 1, "", 4096).is_err());
+        assert!(file(&mut walk, 2, 1, &"B".repeat(WALK_KEY_MAX + 1), 4096).is_err());
+        assert!(walk.take(&has, Some(2), Some(1), Some(7), Some("B".into()), 4096).is_err());
+        // none of that changed the state: the walk still has its one file and is still open
+        assert!(matches!(file(&mut walk, 2, 1, "B", 4096), Ok(StepOutcome::Found)));
+        let Ok(StepOutcome::End(order)) = end(&mut walk, 2) else { panic!("the walk did not close") };
+        assert_eq!(order, [(1, "A".to_string()), (2, "B".to_string())]);
+    }
+
+    #[test]
+    fn a_relative_installation_root_is_made_absolute_once_and_an_absolute_one_is_kept() {
+        let relative = absolute_root("some/installation").unwrap();
+        assert!(relative.is_absolute() && relative.ends_with("some/installation"));
+        let absolute = std::env::current_dir().unwrap().join("elsewhere");
+        assert_eq!(absolute_root(absolute.to_str().unwrap()).unwrap(), absolute);
+    }
 }

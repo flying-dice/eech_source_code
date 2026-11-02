@@ -1854,6 +1854,22 @@ pub const LOADER_META_PATCHES: &[Patch] = &[
         replacement: "\t\t\tsnprintf ( prefix, ARRAY_LENGTH ( prefix ), \"%s\\\\OBJECTS\\\\%s\", directory, di.name );\n\n\t\t\t{\n\t\t\t\textern void campaign_model_custom_reading ( int scene, const char *directory_name ); /* EECH headless (D3 loader, L2) */\n\n\t\t\t\tcampaign_model_custom_reading ( sceneid, di.name );\n\t\t\t}\n",
         count: 1,
     },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "LM10d-custom-file-skipped-by-version",
+        why: "read_custom_scene opens a file, finds a scene version the original does not read, logs it and returns without read_scene: the walk position the file held is consumed explicitly as SKIPPED (no object row is claimed read)",
+        original: "\t\tdebug_log ( \"Unsupported scene version %i in file %s\", version, filename );\n",
+        replacement: "\t\tdebug_log ( \"Unsupported scene version %i in file %s\", version, filename );\n\t\t{\n\t\t\textern void campaign_model_custom_skipped ( void ); /* EECH headless (D3 loader, L2) */\n\n\t\t\tcampaign_model_custom_skipped ();\n\t\t}\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/3d/3dobjdb.c",
+        id: "LM10e-custom-walk-complete",
+        why: "the actual traversal of the custom scene files is over: every announced position must have been opened, each read or explicitly skipped, and no read left outstanding, before the boot goes on",
+        original: "\t_findclose ( handle );\n\t/* 06FEB08 Casm Import of 3D scenes END */\n",
+        replacement: "\t_findclose ( handle );\n\n\t{\n\t\textern void campaign_model_custom_walk_complete ( void ); /* EECH headless (D3 loader, L2) */\n\n\t\tcampaign_model_custom_walk_complete ();\n\t}\n\t/* 06FEB08 Casm Import of 3D scenes END */\n",
+        count: 1,
+    },
 ];
 
 /// the staged text of `file` with the metadata-loader patches applied (same strict count check as `apply`)

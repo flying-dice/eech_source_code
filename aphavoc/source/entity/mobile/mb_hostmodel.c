@@ -871,7 +871,7 @@ static int object_row_count;
 #define CUSTOM_WALK_MAX 4096
 static int custom_walk_scene[CUSTOM_WALK_MAX];
 static char custom_walk_key[CUSTOM_WALK_MAX][CAMPAIGN_MODEL_NAME_MAX + 1];
-static int custom_walk_count, custom_walk_announced, custom_walk_cursor, custom_walk_current;
+static int custom_walk_count, custom_walk_announced, custom_walk_cursor, custom_walk_current, custom_walk_read, custom_walk_skipped;
 static int scene_database_reads[OBJECT_3D_LAST];
 // How many times the object loader has read each scene (the scene database's record, then every custom scene file that defines it again), and which of those reads is the current one:
 // the DEFINITION of the scene the host is asked about. Each read is answered with the facts the objects had when that definition was read, never a later one's.
@@ -983,6 +983,8 @@ int campaign_model_object_table (int custom_room)
 	custom_walk_announced = FALSE;
 	custom_walk_cursor = 0;
 	custom_walk_current = -1;
+	custom_walk_read = 0;
+	custom_walk_skipped = 0;
 
 	return reply.object_count;
 }
@@ -1150,6 +1152,7 @@ void campaign_model_scene_objects (int scene_index, int custom)
 		definition = custom_walk_current;
 
 		custom_walk_current = -1;
+		custom_walk_read++;
 	}
 	else
 	{
@@ -1266,7 +1269,36 @@ void campaign_model_custom_reading (int scene, const char *directory)
 		debug_fatal ("host model: [model-provider:order.walk] the campaign opened the custom scene file of scene %d in the directory \"%.60s\", which is not the next of its announced walk (position %d of %d)", scene, directory, custom_walk_cursor, custom_walk_count);
 	}
 
+	// a file opened before this one was neither read nor skipped: a read is outstanding
+	if (custom_walk_current >= 0)
+	{
+		debug_fatal ("host model: [model-provider:order.walk] the custom scene file at position %d of the announced walk was opened and neither read nor skipped before the next was opened", custom_walk_current);
+	}
+
 	custom_walk_current = custom_walk_cursor++;
+}
+
+// The file just opened has a scene version the original does not read: it logs that and returns without read_scene. The position it held is consumed as SKIPPED, and no object row
+// is claimed read for it (the host holds no definition at that position either).
+void campaign_model_custom_skipped (void)
+{
+	if (custom_walk_current < 0)
+	{
+		debug_fatal ("host model: [model-provider:order.walk] a custom scene file was skipped that the announced walk had not reached");
+	}
+
+	custom_walk_current = -1;
+	custom_walk_skipped++;
+}
+
+// The original traversal of the custom scene files is over. It must have opened every announced file (a traversal that ends early has an announced tail it never reached), each
+// either read by read_scene or skipped for its version, and none may be left outstanding.
+void campaign_model_custom_walk_complete (void)
+{
+	if ((!custom_walk_announced) || (custom_walk_current >= 0) || (custom_walk_cursor != custom_walk_count) || (custom_walk_read + custom_walk_skipped != custom_walk_count))
+	{
+		debug_fatal ("host model: [model-provider:order.walk] the traversal of the custom scene files ended with %d of the %d announced files opened (%d read, %d skipped for an unsupported version) and %s read outstanding", custom_walk_cursor, custom_walk_count, custom_walk_read, custom_walk_skipped, (custom_walk_current >= 0) ? "a" : "no");
+	}
 }
 
 // A NEW object number is being allocated by get_object (the campaign's own allocation, history and sharing are unchanged). The original opened the object's file into this row at

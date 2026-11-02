@@ -37,6 +37,9 @@ const ANIMATION_NAMES: &str = include_str!("../data/animation-names.txt");
 /// the longest animation name a reply carries
 const MAX_ANIMATION_NAME: usize = 127;
 
+/// The most custom scene files the campaign announces in one walk (mb_hostmodel.c `CUSTOM_WALK_MAX`): a host refuses an announcement of more.
+pub const CUSTOM_WALK_MAX: usize = 4096;
+
 /// `custom_number_of_objects` in 3dobjdb.c: how many objects past the retail table the original has room for.
 const CUSTOM_OBJECT_ROOM: i64 = 2000;
 /// the largest file the store will read (the retail files are a few megabytes)
@@ -880,6 +883,8 @@ pub struct ModelStore {
     /// the custom scene files in the order they were read (see `Loader`), and the definition each made
     custom_walk: CustomWalk,
     custom_positions: Vec<Option<(usize, usize)>>,
+    /// the custom files were inventoried and none read: only the database's definitions and the inventory are answerable
+    inventory_only: bool,
     objects: Vec<Object>,
     surfaces: Vec<Surface>,
     points: Arena<[i16; 3]>,
@@ -922,6 +927,16 @@ fn animation_refs_of(visited: &[i32], surfaces: &HashMap<usize, Vec<Surface>>, n
     refs
 }
 
+/// What the loader does with the custom scene files. `Sorted`: reads them in sorted order (no walk was announced). `Ordered`: reads them in the campaign's own announced walk.
+/// `Inventory`: reads NONE of them; it records which files exist, which is all the host needs to accept an announcement, and which reading them in any order cannot spoil
+/// (the original's room for custom objects and its history of named objects make a successful read order-dependent).
+#[derive(Clone, Copy)]
+enum Custom<'a> {
+    Sorted,
+    Ordered(&'a [(usize, String)]),
+    Inventory,
+}
+
 /// The texture-name overrides of each `.EEO` object, by object number: two names (the texture and the luminosity texture) per surface, in surface order.
 type OverrideNames = HashMap<usize, Vec<(Vec<u8>, Vec<u8>)>>;
 
@@ -943,6 +958,8 @@ struct Loader {
     /// `definitions`), or None where the original skips the file (an unsupported version)
     custom_walk: CustomWalk,
     custom_positions: Vec<Option<(usize, usize)>>,
+    /// the custom files were inventoried and none read (see `Custom::Inventory`)
+    inventory_only: bool,
     points: Arena<[i16; 3]>,
     faces: Arena<u8>,
     point_list: Arena<u8>,
@@ -1835,7 +1852,7 @@ impl Loader {
 
     // ---- everything ----
 
-    fn load(root: &Path, order: Option<&[(usize, String)]>) -> Result<ModelStore, ModelError> {
+    fn load(root: &Path, phase: Custom) -> Result<ModelStore, ModelError> {
         let data = root.join("cohokum").join("3ddata");
         match RealFs.kind(&data).map_err(|e| io_failure(&data, "cannot determine what the path is", &e))? {
             Some(Kind::Directory) => {}
@@ -1856,6 +1873,7 @@ impl Loader {
             definitions: vec![Vec::new(); scene_last()],
             custom_walk: Vec::new(),
             custom_positions: Vec::new(),
+            inventory_only: false,
             points: Arena::default(),
             faces: Arena::default(),
             point_list: Arena::default(),
@@ -1958,7 +1976,17 @@ impl Loader {
 
         // named scenes: the custom scene files, in the order the campaign's walk visited them when it announced one, else sorted
         if let Some(objects_dir) = &objects_dir {
-            let files = ordered_custom_files(discover_custom_files(objects_dir, &mut loader.summary)?, order)?;
+            let files = discover_custom_files(objects_dir, &mut loader.summary)?;
+            if let Custom::Inventory = phase {
+                // which files exist, in sorted order; none is read
+                loader.custom_walk = files.iter().map(|f| (f.scene, f.directory_key.clone())).collect();
+                loader.inventory_only = true;
+            }
+            let files = match phase {
+                Custom::Inventory => Vec::new(),
+                Custom::Sorted => files,
+                Custom::Ordered(order) => ordered_custom_files(files, Some(order))?,
+            };
             let mut defined: BTreeMap<usize, String> = BTreeMap::new();
             let mut directory: Option<String> = None;
             for file in &files {
@@ -1993,12 +2021,17 @@ impl Loader {
                 loader.custom_positions.push(Some((file.scene, loader.definitions[file.scene].len() - 1)));
                 loader.summary.ees_applied += 1;
             }
-        } else if order.is_some_and(|walk| !walk.is_empty()) {
-            return fail(
-                ErrorKind::Inconsistent,
-                "OBJECTS",
-                "the campaign's walk visited custom scene files, the host has no OBJECTS directory",
-            );
+        } else if let Custom::Ordered(walk) = phase {
+            if !walk.is_empty() {
+                return fail(
+                    ErrorKind::Inconsistent,
+                    "OBJECTS",
+                    "the campaign's walk visited custom scene files, the host has no OBJECTS directory",
+                );
+            }
+        }
+        if let Custom::Inventory = phase {
+            loader.inventory_only = true;
         }
 
         loader.finish()
@@ -2036,6 +2069,7 @@ impl Loader {
             definitions: self.definitions,
             custom_walk: self.custom_walk,
             custom_positions: self.custom_positions,
+            inventory_only: self.inventory_only,
             objects: self.objects,
             surfaces,
             points: self.points,
@@ -2185,7 +2219,30 @@ impl ModelStore {
     /// Loads the model data of the retail installation at `root` from its disk assets. Every refusal names the file and why; there is no fallback to a synthetic or
     /// empty database.
     pub fn load(root: &Path) -> Result<ModelStore, ModelError> {
-        // the kernel's size must be the one this side lays out
+        Self::check_kernel()?;
+        Loader::load(root, Custom::Sorted)
+    }
+
+    /// Loads the same installation visiting the custom scene files in the order the CAMPAIGN's own walk visited them (`order`: the scene and the upper-case name of the directory
+    /// that holds each file). The original walks `OBJECTS` with `_findfirst` / `_findnext`, which on the engine's platforms is the file system's own, unsorted, order; what a
+    /// custom definition sees (the number the first named object takes, which table object it replaces, the history of named objects of its directory, which definition of a
+    /// scene is last) depends on that order, so the host replays the campaign's order and not a sorted one. A file the walk names that the host lacks, or a file the walk never
+    /// reached, is a refusal.
+    pub fn load_in_order(root: &Path, order: &[(usize, String)]) -> Result<ModelStore, ModelError> {
+        Self::check_kernel()?;
+        Loader::load(root, Custom::Ordered(order))
+    }
+
+    /// Loads the installation's database (the table, the binary-hex overrides and the database's scenes) and INVENTORIES the custom scene files without reading any: enough to say
+    /// whether the host has a file the campaign's walk names, and to answer the database's own definitions, and independent of the order the custom files can be read in (a
+    /// successful read depends on it). Only those two kinds of question may be asked of it; the final scenes come from `load` or `load_in_order`.
+    pub fn load_inventory(root: &Path) -> Result<ModelStore, ModelError> {
+        Self::check_kernel()?;
+        Loader::load(root, Custom::Inventory)
+    }
+
+    /// the kernel's size must be the one this side lays out
+    fn check_kernel() -> Result<(), ModelError> {
         // SAFETY: a plain function returning a size.
         let kernel_node = unsafe { eech_model_node_size() };
         if kernel_node != std::mem::size_of::<Node>() {
@@ -2195,25 +2252,7 @@ impl ModelStore {
                 format!("the numeric kernel's node is {kernel_node} bytes, the host's {}", std::mem::size_of::<Node>()),
             );
         }
-        Loader::load(root, None)
-    }
-
-    /// Loads the same installation visiting the custom scene files in the order the CAMPAIGN's own walk visited them (`order`: the scene and the upper-case name of the directory
-    /// that holds each file). The original walks `OBJECTS` with `_findfirst` / `_findnext`, which on the engine's platforms is the file system's own, unsorted, order; what a
-    /// custom definition sees (the number the first named object takes, which table object it replaces, the history of named objects of its directory, which definition of a
-    /// scene is last) depends on that order, so the host replays the campaign's order and not a sorted one. A file the walk names that the host lacks, or a file the walk never
-    /// reached, is a refusal.
-    pub fn load_in_order(root: &Path, order: &[(usize, String)]) -> Result<ModelStore, ModelError> {
-        // the kernel's size is checked by `load` for the same installation
-        let kernel_node = unsafe { eech_model_node_size() };
-        if kernel_node != std::mem::size_of::<Node>() {
-            return fail(
-                ErrorKind::Limit,
-                "model_step.c",
-                format!("the numeric kernel's node is {kernel_node} bytes, the host's {}", std::mem::size_of::<Node>()),
-            );
-        }
-        Loader::load(root, Some(order))
+        Ok(())
     }
 
     pub fn summary(&self) -> &LoadSummary {
@@ -2506,6 +2545,9 @@ impl ModelStore {
     /// The definition the campaign means: its n-th database record of the scene, or the custom file at position n of its walk (which must be this scene's).
     fn definition_of(&self, id: usize, n: usize, custom: bool) -> Result<&Scene, &'static str> {
         if custom {
+            if self.inventory_only {
+                return Err("custom_definitions_not_loaded");
+            }
             match self.custom_positions.get(n) {
                 Some(Some((scene, index))) if *scene == id => Ok(&self.definitions[id][*index]),
                 Some(Some(_)) => Err("definition_scene_differs"),

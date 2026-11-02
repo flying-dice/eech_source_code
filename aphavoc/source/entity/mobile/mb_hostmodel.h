@@ -51,6 +51,11 @@
  *              A final request with `role` 1 and `depth` the number of files ends the announcement; the host answers END and, if its own order differs, replays its definitions
  *              in the campaign's. CUSTOM_OBJECT and ANIMATION then name a custom definition by its POSITION in that walk (`definition`), which the campaign verifies against the
  *              announcement as it reads each file. Positions are the campaign's own ordinals of its walk; no object number or layout crosses.
+ *              The announcement is ONE transaction of at most 4096 files, each (scene, directory) once, steps one after another from 0; a closed announcement is final (a late step
+ *              is refused and a new provider is a new transaction). The campaign's actual traversal must then open every announced file, each read or skipped (a file whose scene
+ *              version the original does not read is skipped without a read, and the walk position it held is consumed as skipped), and the boot stops by name if it does not.
+ *              The host needs only the database and an INVENTORY of the custom files to take the announcement; it replays its custom definitions in the announced order after it,
+ *              and gives no answer about a final scene before that.
  *              The campaign fills its private
  *              rows from FOUND answers before anything reads them; an object two references name differently, or a name the host has no object for, stops the engine.
  *              ANIMATION: for an .EES scene, the ordered animated-surface references of its objects in the order the original's add_animation_object visits them. FOUND

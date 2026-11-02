@@ -1006,6 +1006,123 @@ fn the_reference_host_replays_the_campaigns_announced_walk_and_answers_by_its_po
     assert!(run.status.success(), "{}", run.stderr);
 }
 
+/// The lifecycle of one provider's walk announcement, in the real host VM: a coherent walk is taken and closed; everything wrong is refused by name and takes nothing; a closed walk is
+/// final.
+const LIFECYCLE_WITNESS: &str = r#"
+local function expect (condition, message) if not condition then error (message, 0) end end
+local function refused (marker, call)
+	local ok, message = pcall (call)
+	expect (not ok and string.find (tostring (message), marker, 1, true), "expected a refusal naming " .. marker .. ", got " .. tostring (message))
+end
+local ask = host.model
+expect (ask ("custom_order", 2, 0, 0, nil, "B").result == "found", "B is taken at position 0")
+refused ("was next", function () return ask ("custom_order", 1, 5, 0, nil, "A") end)
+refused ("twice", function () return ask ("custom_order", 2, 1, 0, nil, "b") end)
+refused ("directory", function () return ask ("custom_order", 1, 1, 0, nil, string.rep ("A", 128)) end)
+refused ("outside", function () return ask ("custom_order", 99999, 1, 0, nil, "A") end)
+refused ("0 (a file) or 1", function () return ask ("custom_order", 1, 1, 5, nil, "A") end)
+expect (ask ("custom_order", 1, 1, 0, nil, "A").result == "found", "none of that took a step: A still goes in at position 1")
+expect (ask ("custom_order", nil, 2, 1, nil, nil).result == "end", "the walk closes")
+refused ("complete", function () return ask ("custom_order", 2, 0, 0, nil, "B") end)
+refused ("complete", function () return ask ("custom_order", nil, 2, 1, nil, nil) end)
+io.stdout:write ("lifecycle ok\n")
+"#;
+
+#[test]
+fn a_walk_announcement_is_one_bounded_transaction_that_is_final_once_closed() {
+    let root = two_directory_root();
+    let run = run_lua(&[("lifecycle.lua", LIFECYCLE_WITNESS)], "lifecycle.lua", &[format!("root={}", slashes(&root.dir))]);
+    assert!(run.status.success(), "{}", run.stderr);
+}
+
+/// The installation a provider chose is pinned: a later change of the host argument selects nothing else, and a root given relative to the starting directory is resolved against it.
+const PINNED_WITNESS: &str = r#"
+local function expect (condition, message) if not condition then error (message, 0) end end
+host.args.root = "no-such-installation"
+local catalogue = host.model ("catalogue")
+expect (catalogue.scenes and catalogue.scenes > 0, "the provider answered from the installation it chose, not from the changed argument")
+io.stdout:write ("pinned ok\n")
+"#;
+
+#[test]
+fn the_installation_a_provider_chose_is_pinned_even_when_given_relative_or_changed_afterwards() {
+    let root = two_directory_root();
+    let name = root.dir.file_name().unwrap().to_string_lossy().to_string();
+    let parent = root.dir.parent().unwrap().to_path_buf();
+    // the root is relative to the directory the host started in, which is not the directory of the script or of the installation
+    let run = run_lua_in(&[("pinned.lua", PINNED_WITNESS)], "pinned.lua", &[format!("root={name}")], Some(&parent));
+    assert!(run.status.success(), "{}", run.stderr);
+}
+
+/// 1000 custom scenes each naming a different object, which fill a directory's history of 1000 names, sorted BEFORE 600 scenes that name one shared object twice. Read in sorted order
+/// the shared name is no longer in the history when it comes, so each of the 1200 references allocates again and the original's room of 2000 objects runs out; read with the
+/// 600 first (the order a file system may give), the shared name is recorded at once and the whole directory takes about 1000 objects. Returns the root and the second order.
+fn room_root() -> (Root, Vec<(usize, String)>) {
+    let root = standard();
+    let mut files: Vec<(String, usize)> = (1..=1600usize)
+        .map(|scene| (format!("{}.EES", compiled_scene_name(scene).unwrap()), scene))
+        .collect();
+    files.sort_by(|a, b| a.0.cmp(&b.0));
+    let object = eeo(1, &identity_quad());
+    root.write("OBJECTS/D/X.eeo", &object);
+    for (position, (name, _)) in files.iter().enumerate() {
+        let object_name = if position < 1000 { format!("F{position}") } else { "X".to_string() };
+        if position < 1000 {
+            root.write(&format!("OBJECTS/D/{object_name}.eeo"), &object);
+        }
+        root.write(&format!("OBJECTS/D/{name}"), &ees(&object_name));
+    }
+    let mut announced: Vec<(usize, String)> = files[1000..].iter().map(|(_, scene)| (*scene, "D".to_string())).collect();
+    announced.extend(files[..1000].iter().map(|(_, scene)| (*scene, "D".to_string())));
+    (root, announced)
+}
+
+const BOOTSTRAP_WITNESS: &str = r#"
+local function expect (condition, message) if not condition then error (message, 0) end end
+local ask = host.model
+-- the campaign's boot order: the database's own questions first (no custom scene file is read for them), then the announced walk, then the final answers
+local count = ask ("object_table")
+expect (count.result == "table" and count.objects == 4, "the database holds 4 objects")
+expect (ask ("object", 1, 0, 0, 0).result == "object", "the database's own definition of scene 1")
+local walk, n, first = host.args.walk, 0, nil
+for item in string.gmatch (walk, "[^,]+") do
+	local scene, key = string.match (item, "^(%d+):(.+)$")
+	first = first or tonumber (scene)
+	local step = ask ("custom_order", tonumber (scene), n, 0, nil, key)
+	expect (step.result == "found", "step " .. n .. " " .. item .. ": " .. tostring (step.result))
+	n = n + 1
+end
+expect (ask ("custom_order", nil, n, 1, nil, nil).result == "end", "the walk closes")
+local o = ask ("custom_object", first, 0, 0, 0)
+expect (o.result == "object", "the first announced file is position 0: " .. tostring (o.result) .. " " .. tostring (o.reason))
+expect (ask ("catalogue").scenes > 0, "the final answers come after the replay")
+io.stdout:write ("bootstrap ok\n")
+"#;
+
+#[test]
+fn the_database_and_the_announced_walk_need_no_successful_sorted_history() {
+    let (root, announced) = room_root();
+    // read in sorted order the custom scenes do not fit the original's room of objects
+    assert_eq!(root.load().err().unwrap().kind, ErrorKind::Limit);
+    // but the database and the inventory of custom files need none of that, and the campaign's own order fits
+    let inventory = ModelStore::load_inventory(&root.dir).unwrap();
+    assert_eq!(inventory.common_objects(), 4);
+    assert_eq!(inventory.custom_walk().len(), 1600);
+    assert!(matches!(inventory.object_header(1, ROLE_MAIN, 0, 0, false).unwrap(), ObjectHeader::Found(_)));
+    assert_eq!(inventory.object_header(1, ROLE_MAIN, 0, 0, true).unwrap(), ObjectHeader::Refused("custom_definitions_not_loaded"));
+    let walked = ModelStore::load_in_order(&root.dir, &announced).unwrap();
+    assert_eq!(walked.custom_walk(), announced);
+    assert!(matches!(walked.object_header(announced[0].0 as i64, ROLE_MAIN, 0, 0, true).unwrap(), ObjectHeader::Found(_)));
+    // and the reference provider takes the campaign's boot in that order: the database's questions, the announcement, the replay, the final answers
+    let walk = announced.iter().map(|(scene, key)| format!("{scene}:{key}")).collect::<Vec<_>>().join(",");
+    let run = run_lua(
+        &[("bootstrap.lua", BOOTSTRAP_WITNESS)],
+        "bootstrap.lua",
+        &[format!("root={}", slashes(&root.dir)), format!("walk={walk}")],
+    );
+    assert!(run.status.success(), "{}", run.stderr);
+}
+
 #[test]
 fn a_replaced_row_keeps_the_header_field_read_object_never_assigns() {
     // 3dobjdb.c read_object assigns the counts, bounds, radius and buffers of an object it reads into a row, and never culling_normals_offset: the first named object takes the
@@ -2711,12 +2828,19 @@ impl Drop for ScriptRun {
 /// Writes `files` into a fresh directory and runs the host binary on `main` with `args`. `{dir}` in an argument is that directory; the output is `{dir}/out.jsonl` unless an
 /// `out=` argument names another.
 fn run_lua(files: &[(&str, &str)], main: &str, args: &[String]) -> ScriptRun {
+    run_lua_in(files, main, args, None)
+}
+
+fn run_lua_in(files: &[(&str, &str)], main: &str, args: &[String], working_directory: Option<&Path>) -> ScriptRun {
     let dir = temp_dir("witness");
     for (name, text) in files {
         std::fs::write(dir.join(name), text).unwrap();
     }
     let out = dir.join("out.jsonl");
     let mut command = std::process::Command::new(host_binary());
+    if let Some(cwd) = working_directory {
+        command.current_dir(cwd);
+    }
     command.arg(dir.join(main));
     if !args.iter().any(|a| a.starts_with("out=")) {
         command.arg(format!("out={}", slashes(&out)));
