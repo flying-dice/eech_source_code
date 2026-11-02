@@ -1862,8 +1862,13 @@ fn expected_rows() -> Vec<(String, Vec<String>)> {
 
 #[test]
 fn the_driver_grammar_is_the_emitters() {
-    let emitted = emitted_rows();
+    // The one emitted row that is NOT part of the successful report grammar is the probe's refusal: it is written by `probe_refused` and leaves through the engine's bad-argument ERROR
+    // channel (see the_probe_refusal_is_the_error_channel_and_not_a_report_row), so the driver never parses it as a report. It is recognised by its exact shape, nothing else is exempt.
+    let refusal: (String, Vec<String>) = ("tp-probe-refused".to_string(), vec!["reason".to_string(), "visited".to_string()]);
+    let (error_rows, emitted): (Vec<_>, Vec<_>) = emitted_rows().into_iter().partition(|row| *row == refusal);
+    assert_eq!(error_rows.len(), 1, "the emitter writes the probe refusal exactly once, in exactly this shape");
     let mut expected = expected_rows();
+    assert!(!expected.contains(&refusal), "the driver must not parse the refusal as a successful report row");
     // the identity length is read by the driver apart from the other event keys, because the identity itself follows it to the end of the line
     for (name, keys) in &mut expected {
         if name == "tp-event" {
@@ -1877,6 +1882,35 @@ fn the_driver_grammar_is_the_emitters() {
     for row in &expected {
         assert!(emitted.contains(row), "the driver expects {row:?} and the emitter does not write that shape");
     }
+}
+
+#[test]
+fn the_probe_refusal_is_the_error_channel_and_not_a_report_row() {
+    // the text exists once, in the one function that refuses, and that function returns the non-zero status that the engine entry turns into a bad argument
+    let literal = "\"tp-probe-refused reason=%s visited=%d\\n\"";
+    assert_eq!(EMITTER.matches(literal).count(), 1, "the refusal text is written in one place");
+    let start = EMITTER.find("static int probe_refused (").expect("probe_refused");
+    let function = &EMITTER[start..];
+    let function = &function[..function.find("\n}\n").unwrap()];
+    assert!(function.contains(literal) && function.contains("snprintf (text, (size_t) capacity,") && function.contains("return 1;"), "{function}");
+    // it is never written into the report a successful probe builds (that buffer is filled by `emit (&out, ...)`)
+    assert!(!EMITTER.contains("emit (&out, \"tp-probe-refused"), "a refusal must not be a row of the successful report");
+    // and the other tp-probe rows the report does hold are the status head and the case rows
+    for row in ["emit (&out, \"tp-probe status=complete", "emit (&out, \"tp-probe-bucket bucket="] {
+        assert!(EMITTER.contains(row), "the report row {row:?} is not emitted");
+    }
+    // the Rust side keeps the reason of a non-zero status as the error (the same convention as the ground and weapon probes), instead of returning it as a report
+    let method = ENGINE_RS.find("pub fn target_point_probe(").expect("the engine method");
+    let method = &ENGINE_RS[method..];
+    let method = &method[..method.find("\n    }\n").unwrap()];
+    assert!(method.contains("let status = check(") && method.contains("keep_case_reason(status, &text)"), "{method}");
+    let keeper = ENGINE_RS.find("fn keep_case_reason(").expect("keep_case_reason");
+    let keeper = &ENGINE_RS[keeper..];
+    let keeper = &keeper[..keeper.find("\n}\n").unwrap()];
+    assert!(keeper.contains("Err(EngineError::BadArgument(_)) if !report.trim().is_empty() => Err(EngineError::BadArgument(report.trim().to_string()))"), "{keeper}");
+    // the driver takes a probe failure through its checked engine call (the stop-after-engine-failure path, whose behaviour the refusal guards run) and has no parser for the refusal row
+    assert!(SCRIPT.contains("ask (\"target_point_probe\""), "the probe is asked through the checked call");
+    assert!(!SCRIPT.contains("\"tp-probe-refused\""), "the driver must not parse the refusal as a report row (a comment may name it)");
 }
 
 /// the emitter's caller classes in numeric order (the enum that precedes TP_SITES)
