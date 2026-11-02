@@ -1098,6 +1098,9 @@ pub enum ModelQuery {
     },
     /// one step of an .EES scene's ordered animated-surface references (the order the original's `add_animation_object` visits the scene's objects)
     Animation { scene: i32, index: i32, definition: i32 },
+    /// a scene's LOCAL target-point offset (EEDCS-52): the three coordinates `initialise_target_point_offsets` used to compute by constructing the scene. Never asked for the
+    /// invalid scene 0, whose entry is the campaign's own zero
+    TargetPointOffset { scene: i32 },
     /// one step of the campaign's ANNOUNCEMENT of the order in which it walks the custom scene files: file number `position` is the scene `scene`'s file in the directory named
     /// `key`; or (`end`) the walk is over and has `position` files. The campaign's definitions are then named by their position in that walk.
     CustomOrder { scene: i32, position: i32, end: bool, key: String },
@@ -1210,6 +1213,11 @@ pub enum ModelAnswer {
         step: ModelAnimation,
     },
     CustomOrder(ModelOrder),
+    /// a scene's three LOCAL offset coordinates (exact `f32` values, signed zeros and tiny magnitudes included) with the scene's compiled name (the echo)
+    TargetPointOffset {
+        scene_name: String,
+        offset: [f32; 3],
+    },
 }
 
 /// The host's model provider. It is installed once, at boot, and is the only source of the campaign's collision-model answers: the campaign no longer compiles the code that
@@ -1278,6 +1286,7 @@ unsafe extern "C" fn model_callback(
                     index: source.depth,
                 },
             ),
+            sys::EECH_MODEL_TARGET_POINT_OFFSET => ("target_point_offset", ModelQuery::TargetPointOffset { scene: source.scene }),
             sys::EECH_MODEL_OBJECT_TABLE => ("object_table", ModelQuery::ObjectTable),
             sys::EECH_MODEL_OBJECT | sys::EECH_MODEL_CUSTOM_OBJECT => (
                 "object",
@@ -1382,6 +1391,11 @@ unsafe extern "C" fn model_callback(
                     ModelRouteFace::Absent => reply.result = sys::EECH_MODEL_TRIANGLE_ABSENT,
                 }
             }
+            ("target_point_offset", ModelAnswer::TargetPointOffset { scene_name, offset }) => {
+                put_name(&mut reply, &scene_name, "target_point_offset")?;
+                reply.result = sys::EECH_MODEL_TRIANGLE_FOUND;
+                reply.points[..3].copy_from_slice(&offset);
+            }
             ("object_table", ModelAnswer::ObjectTable { objects }) => reply.object_count = objects,
             ("custom_order", ModelAnswer::CustomOrder(step)) => {
                 reply.result = match step {
@@ -1435,6 +1449,7 @@ unsafe extern "C" fn model_callback(
                     ModelAnswer::Object { .. } => "an object step",
                     ModelAnswer::Animation { .. } => "an animation step",
                     ModelAnswer::CustomOrder(_) => "a walk announcement step",
+                    ModelAnswer::TargetPointOffset { .. } => "a target point offset",
                 };
                 return Err(format!(
                     "[model-provider:{operation}.answer] the provider answered a {operation} question with {given}"
@@ -6335,6 +6350,28 @@ impl Engine {
         check(unsafe { sys::eech_engine_model_host_horizon_refusal(text.as_mut_ptr(), text.len() as i32) })?;
         // SAFETY: the engine wrote a NUL-terminated string within the buffer.
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `model-host-fixture`, EEDCS-52 D3): the host-authored target-point offsets as the campaign HOLDS them: how many TARGET_POINT_OFFSET questions the host was
+    /// asked since boot, and for scenes `first ..= first + count - 1` the float bit patterns of the private table the direct guidance consumer reads. `first` and `count` are checked
+    /// here before the engine is entered. Read-only.
+    #[cfg(feature = "model-host-fixture")]
+    pub fn model_host_target_offsets(&self, first: i32, count: i32) -> Result<String, EngineError> {
+        if first < 1 || !(1..=MODEL_PAGE_SCENES).contains(&count) || first > i32::MAX - MODEL_PAGE_SCENES {
+            return Err(EngineError::BadArgument(format!(
+                "model host target offsets: first {first} must be at least 1 and count {count} within 1..={MODEL_PAGE_SCENES}"
+            )));
+        }
+        // SAFETY: the buffer outlives the call and the capacity passed is its length.
+        Self::model_report(|text, capacity| unsafe { sys::eech_engine_model_host_target_offsets(first, count, text, capacity) })
+    }
+
+    /// TEST-ONLY (feature `model-host-fixture`, EEDCS-52 D3): the direct guidance consumer (`calculate_attack_guide_intercept_point`) called once for real on a live stationary mobile with
+    /// a valid shape and a guided weapon; the row reports the held offset and the consumer's three coordinates, or that no candidate exists. Read-only apart from the call.
+    #[cfg(feature = "model-host-fixture")]
+    pub fn model_host_attack_consumer(&self) -> Result<String, EngineError> {
+        // SAFETY: the buffer outlives the call and the capacity passed is its length.
+        Self::model_report(|text, capacity| unsafe { sys::eech_engine_model_host_attack_consumer(text, capacity) })
     }
 
     /// TEST-ONLY (feature `model-host-fixture`, EEDCS-50 D3): one scene's radius and bounds (asked twice: same address and bits) and one step of its collision-triangle cursor

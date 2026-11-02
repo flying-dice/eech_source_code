@@ -516,6 +516,32 @@ fn model_answer(
             table.set("name", crate::models::compiled_subobject_name(kind as usize).unwrap_or(""))?;
             return Ok(table);
         }
+        // A scene's LOCAL target-point offset (EEDCS-52, D3): the host's own `target_point_local` (the TARGET_POINT sub-object's position or the bounding-box centre, or the zero
+        // of a catalogue slot no file defines), as exact bit patterns, with the scene's compiled name as the echo. The invalid scene 0 is not asked by the campaign and is not answered
+        // here as a scene: it is the campaign's own zero. A refusal of the store is a refusal of the provider, never a number.
+        "target_point_offset" => {
+            let scene = scene.ok_or_else(|| fail("a target point offset question needs a scene".into()))?;
+            if depth.is_some() {
+                return Err(fail("a target point offset question has no depth".into()));
+            }
+            if scene < 1 {
+                return Err(fail(format!(
+                    "scene {scene} has no target point offset to ask for: the invalid scene's zero is the campaign's own"
+                )));
+            }
+            match store.target_point_local(scene).map_err(|e| fail(e.to_string()))? {
+                TargetPointLocal::Offset { offset, .. } => {
+                    table.set("result", "offset")?;
+                    table.set("p", hex_list(&offset))?;
+                    table.set("name", usize::try_from(scene).ok().and_then(compiled_scene_name).unwrap_or(""))?;
+                }
+                TargetPointLocal::Refused(reason) => {
+                    table.set("result", "refused")?;
+                    table.set("reason", reason)?;
+                    table.set("name", usize::try_from(scene).ok().and_then(compiled_scene_name).unwrap_or(""))?;
+                }
+            }
+        }
         // The metadata of the physical models the campaign mirrors in its private compatibility rows (EEDCS-50, D3, L2). The table question is asked once, before any scene;
         // an object question names the object by the role it has in a scene (the fourth argument is the ROLE) and a cursor (the depth argument), never by the campaign's own
         // object number; the reply echoes the scene's compiled name.
@@ -1200,26 +1226,43 @@ fn compare_fixed_query(store: &ModelStore, report: &mut TargetPointReport, field
         report.list(format!("{label}: the host names that scene {host_name:?}"));
         return Ok(());
     }
-    // the input under the arithmetic: the offset the original read is the offset the host derives from its own model (a difference is the INPUT, not the math)
-    if let (Some(recorded), Ok(TargetPointLocal::Offset { offset, .. })) = (
-        get("offset").filter(|text| *text != "-").and_then(|text| parse_plain_words(text, 3)),
-        store.target_point_local(shape),
-    ) {
-        if recorded[..] != offset[..] {
-            report.branch3_offset_input_differs += 1;
-            report.list(format!(
-                "{label}: the offset the original read {} is not the host's {}",
-                hex_plain(&recorded),
-                hex_plain(&offset)
-            ));
-        }
-    }
+    // The two recorded facts the replay is judged against besides the result: the case (which way the original's own tests went) and the offset it read. A row that does not carry a
+    // known case label or a well-formed offset cannot have these checks, so it is counted as missing its input (never matched with the checks switched off); a label that is none
+    // of the three or an offset that is not three words is a malformed report.
     let expected_path = match get("case") {
         Some("no_horizontal_offset") => Some(FixedPath::NoHorizontal),
         Some("heading_zero_quirk") => Some(FixedPath::HeadingZero),
         Some("rotated_horizontal_offset") => Some(FixedPath::Rotated),
-        _ => None,
+        None | Some("-") => None,
+        Some(other) => return Err(format!("a branch-3 tp-event row with the unknown case '{other}': {entry}")),
     };
+    let recorded_offset = match get("offset") {
+        None | Some("-") => None,
+        Some(text) => Some(parse_plain_words(text, 3).ok_or_else(|| format!("a branch-3 tp-event row with a bad offset: {entry}"))?),
+    };
+    let (Some(expected_path), Some(recorded_offset)) = (expected_path, recorded_offset) else {
+        report.branch3_missing_input += 1;
+        report.list(format!(
+            "{label}: the row carries no {} (an older or incomplete observer); it is counted as missing its input and is not replayed",
+            if get("case").is_none_or(|c| c == "-") {
+                "case label"
+            } else {
+                "recorded offset"
+            }
+        ));
+        return Ok(());
+    };
+    // the input under the arithmetic: the offset the original read is the offset the host derives from its own model (a difference is the INPUT, not the math)
+    if let Ok(TargetPointLocal::Offset { offset, .. }) = store.target_point_local(shape) {
+        if recorded_offset[..] != offset[..] {
+            report.branch3_offset_input_differs += 1;
+            report.list(format!(
+                "{label}: the offset the original read {} is not the host's {}",
+                hex_plain(&recorded_offset),
+                hex_plain(&offset)
+            ));
+        }
+    }
     match store.target_point_fixed(shape, [base[0], base[1], base[2]], heading) {
         Err(e) => {
             report.branch3_refused += 1;
@@ -1248,7 +1291,7 @@ fn compare_fixed_query(store: &ModelStore, report: &mut TargetPointReport, field
                     hex_plain(&base),
                     heading.map_or("-".to_string(), |h| format!("{h:08x}"))
                 ));
-            } else if expected_path.is_some_and(|expected| expected != path) {
+            } else if expected_path != path {
                 report.branch3_mismatches += 1;
                 report.list(format!(
                     "{label}: same bits but the original took '{}' and the host the {} path",

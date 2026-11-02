@@ -57,6 +57,8 @@ struct campaign_model_counters
 	/* REFERENCE-ADAPTER DIAGNOSTIC, never an acceptance rule: scenes whose host-declared presence (loaded, collider) differs from what the campaign's own loaded arrays imply
 	   (a scene has a main object; it has a collision object other than -1), and how many were compared. Taken at boot, before anything can poison the arrays. */
 	long presence_checked, presence_mismatches;
+	/* TARGET_POINT_OFFSET questions asked of the host (EEDCS-52); read by the target-offset diagnostic, not by the counters line */
+	long target_offset;
 };
 
 struct campaign_model_counters campaign_model_counts;
@@ -203,6 +205,53 @@ static void require_scene (int scene, int allow_invalid_index, const char *what)
 	{
 		debug_fatal ("host model: [model-provider:scene.index] %s was asked about scene %d, outside %d to %d", what, scene, allow_invalid_index ? 0 : 1, (int) OBJECT_3D_LAST - 1);
 	}
+}
+
+// The host-authored LOCAL target-point offset of a scene (mb_hostmodel.h, TARGET_POINT_OFFSET). One question, one reply, no cache here: the caller copies the three coordinates
+// into its own table. The reply must echo the scene's compiled name, be FOUND, and carry three finite floats; anything else stops the engine and nothing is invented.
+void campaign_model_target_point_offset (int scene, vec3d *offset)
+{
+	campaign_model_request
+		request;
+
+	campaign_model_reply
+		reply;
+
+	const char
+		*expected;
+
+	require_scene (scene, FALSE, "a target point offset");
+
+	memset (&request, 0, sizeof (request));
+	request.op = CAMPAIGN_MODEL_TARGET_POINT_OFFSET;
+	request.scene = scene;
+
+#ifdef EECH_MODEL_HOST_FIXTURE
+	campaign_model_counts.target_offset++;
+#endif
+
+	ask (&request, &reply, "target point offset");
+
+	expected = object_3d_scene_names[scene] ? object_3d_scene_names[scene] : "";
+
+	if ((memchr (reply.name, '\0', sizeof (reply.name)) == NULL) || (strcmp (reply.name, expected) != 0))
+	{
+		debug_fatal ("host model: [model-provider:target_point_offset.identity] the host named scene %d \"%.60s\" but the campaign names it \"%.60s\"", scene, reply.name, expected);
+	}
+
+	if (reply.result != CAMPAIGN_MODEL_TRIANGLE_FOUND)
+	{
+		debug_fatal ("host model: [model-provider:target_point_offset.result] the host gave no target point offset for scene %d (result %d)", scene, reply.result);
+	}
+
+	if (!all_finite (reply.points, 3))
+	{
+		debug_fatal ("host model: [model-provider:target_point_offset.value] the host's target point offset for scene %d is not finite", scene);
+	}
+
+	offset->x = reply.points[0];
+	offset->y = reply.points[1];
+	offset->z = reply.points[2];
 }
 
 struct OBJECT_3D_BOUNDS *campaign_model_bounding_box (int scene)

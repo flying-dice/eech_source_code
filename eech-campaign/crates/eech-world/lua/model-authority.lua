@@ -44,6 +44,19 @@
 --   A changed-host control is covered ONLY when (1) the change was actually given (a run never asked an animation question of the kind is UNREACHED and FAILS, never an
 --   exit 0), (2) the changed definition is the scene's final one, and (3) the module's own host-profile row (model_host_animations, a model-host-fixture DLL) shows the
 --   consequence above. Without that DLL entry the control is unavailable and fails. It chooses no preferred scene: the scene is the first the campaign's own load asked about.
+-- THE TARGET-POINT OFFSET CONTROLS (EEDCS-52, D3: initialise_target_point_offsets asks the host for each scene's LOCAL offset, `target_point_offset`, instead of constructing the scene; the
+--   campaign copies the three coordinates into its private `target_point_offsets` table, which the direct guidance consumer gd_attck.c calculate_attack_guide_intercept_point reads). All are
+--   asked while the campaign initialises its weapons (twice per boot), so they act at the boot stage:
+--   offsets=1          (any healthy mode) after the frames, read the HELD offsets of `offset_scenes` (default 1,2,3) with the DLL's model_host_target_offsets and call the REAL direct guidance
+--                      consumer once on a live stationary mobile (model_host_attack_consumer). Covered only when the host was asked about each scene, the native question count equals the
+--                      provider's, each held word triple is exactly what the provider replied for that scene, and the consumer returned exactly the held words of its target's shape. A DLL
+--                      without the fixture, or no stationary mobile with a valid shape and a guided weapon, is UNAVAILABLE and fails the run, never counted as covered.
+--   offsets_changed    (a CHANGED-host control, healthy; needs offsets=1) every scene's offset is answered with the constant 1.5, 2.5, -4.5. Covered only when the held words and the consumer's
+--                      three coordinates are that constant and differ from what the reference host answered.
+--   offsets_withheld   the first offset question is answered `refused`: the engine must stop on `[model-provider:target_point_offset.refused]`, with no fallback to the original construction
+--   offsets_bad_nan    the first offset is a NaN bit pattern: `[model-provider:target_point_offset.value]`
+--   offsets_bad_name   the first answer echoes another scene's name: `[model-provider:target_point_offset.identity]`
+--   offsets_bad_end    the first answer is `end` (the question has no cursor): `[model-provider:target_point_offset.answer]`
 -- A bad_* mode whose precondition the run did not reach (for the triangle ones: no triangle question of the matching kind was asked) is reported `UNREACHED` and fails the run,
 -- never counted as covered.
 --
@@ -98,7 +111,7 @@ local args = host.args
 local modes = { reference = true, vanish = true, inflate = true, bounds_zero = true, absent_all = true, missing = true, decline = true, refused = true, bad_nil = true,
 	bad_catalogue = true, bad_name = true, bad_scene_nan = true, bad_collider_unloaded = true, bad_scene0_loaded = true, bad_kind = true, bad_nan = true, bad_count = true,
 	bad_hex = true, bad_absent = true, bad_end_absent = true, bad_found_declared_absent = true, bad_end_declared_absent = true, object_withheld = true, animation_withheld = true,
-	animation_unknown = true, animation_dropped = true }
+	animation_unknown = true, animation_dropped = true, offsets_changed = true, offsets_withheld = true, offsets_bad_nan = true, offsets_bad_name = true, offsets_bad_end = true }
 local scenarios = {
 	lebanon_retail = { map = "..\\common\\maps\\map5", campaign = "LEBANON.CHC" },
 	georgia_retail = { map = "..\\common\\maps\\map3", campaign = "GEORGIA.CHC" },
@@ -162,12 +175,17 @@ if #probe_scenes * #probe_depths > 1024 then fail_args ("probe_scenes x probe_de
 if args.probe_depths and #probe_scenes == 0 then fail_args ("probe_depths without probe_scenes") end
 local probes_requested = #probe_scenes * #probe_depths
 local fpu_requested = whole (args.fpu or "0", "fpu", 0, 1) == 1
+local offsets_requested = whole (args.offsets or "0", "offsets", 0, 1) == 1
+local offset_scenes = whole_list (args.offset_scenes or (offsets_requested and "1,2,3" or nil), "offset_scenes", 1, 2147483646, 64, true)
+if args.offset_scenes and not offsets_requested then fail_args ("offset_scenes without offsets=1") end
+if mode == "offsets_changed" and not offsets_requested then fail_args ("offsets_changed needs offsets=1: its consequence is read from the held offsets") end
 local fpu_roundings = whole_list (args.fpu_rounding or "0,1,2,3", "fpu_rounding", 0, 3, 4, true)
 local fpu_scene = whole (args.fpu_scene or "1", "fpu_scene", 1, 2147483646)
 local fpu_depth = whole (args.fpu_depth or "0", "fpu_depth", 0, 2147483646)
 -- a refusing mode stops the engine at the refused entry, so only one initial rounding can be measured in it: decided now, before anything is written or booted
-local healthy_modes = { reference = true, vanish = true, inflate = true, bounds_zero = true, absent_all = true }
-local boot_only_modes = { missing = true, bad_nil = true, bad_catalogue = true, bad_name = true, bad_scene_nan = true, bad_collider_unloaded = true, bad_scene0_loaded = true }
+local healthy_modes = { reference = true, vanish = true, inflate = true, bounds_zero = true, absent_all = true, offsets_changed = true }
+local boot_only_modes = { missing = true, bad_nil = true, bad_catalogue = true, bad_name = true, bad_scene_nan = true, bad_collider_unloaded = true, bad_scene0_loaded = true,
+	offsets_withheld = true, offsets_bad_nan = true, offsets_bad_name = true, offsets_bad_end = true }
 if fpu_requested and not healthy_modes [mode] then
 	if boot_only_modes [mode] then
 		fail_args ("fpu=1 cannot be measured in mode " .. mode .. ": the host is refused at boot, before any public entry exists to measure")
@@ -187,7 +205,9 @@ local function first_line (e) return (tostring (e):gsub ("\n.*", "")) end
 -- ---------------------------------------------------------------------------------------------------------------------------------
 -- the provider. `reference_*` count the reference host's answers, `replied_*` what the provider function handed back
 
-local reference_counts = { catalogue = 0, scene = 0, triangle = 0, found = 0, ended = 0, absent = 0, refused = 0 }
+local reference_counts = { catalogue = 0, scene = 0, triangle = 0, found = 0, ended = 0, absent = 0, refused = 0, target_point_offset = 0 }
+local reference_offset, replied_offset = {}, {}
+local CHANGED_OFFSET = "0x3fc00000,0x40200000,0xc0900000"
 local replied = { catalogue = 0, scene = 0, triangle = 0, found = 0, ended = 0, absent = 0, refused = 0, other = 0 }
 local tripped = false
 local changed -- the one change a changed-host control made: { scene, definition, replaced }
@@ -200,6 +220,7 @@ local function counted (op, scene, depth, kind, definition, key)
 		animation_final_definition [scene] = math.max (animation_final_definition [scene] or 0, definition)
 	end
 	local answer = reference (op, scene, depth, kind, definition, key)
+	if op == "target_point_offset" and type (answer) == "table" and answer.result == "offset" then reference_offset [scene] = answer.p end
 	if op == "triangle" then
 		if answer.result == "triangle" then reference_counts.found = reference_counts.found + 1
 		elseif answer.result == "end" then reference_counts.ended = reference_counts.ended + 1
@@ -281,6 +302,24 @@ elseif mode == "animation_unknown" or mode == "animation_dropped" then
 		if mode == "animation_unknown" then return { result = "name", animation = "NO_SUCH_ANIMATION", name = answer.name } end
 		return { result = "end", name = answer.name }
 	end
+elseif mode == "offsets_changed" then
+	provider = function (op, scene, depth, kind, definition, key)
+		local answer = counted (op, scene, depth, kind, definition, key)
+		if op == "target_point_offset" and answer.result == "offset" then tripped = true return { result = "offset", p = CHANGED_OFFSET, name = answer.name } end
+		return answer
+	end
+elseif mode == "offsets_withheld" or mode == "offsets_bad_nan" or mode == "offsets_bad_name" or mode == "offsets_bad_end" then
+	-- the first offset question is answered wrongly; everything else is the reference host's answer
+	provider = function (op, scene, depth, kind, definition, key)
+		local answer = counted (op, scene, depth, kind, definition, key)
+		if op ~= "target_point_offset" or tripped then return answer end
+		tripped = true
+		if mode == "offsets_withheld" then return { result = "refused", reason = "withheld on purpose" }
+		elseif mode == "offsets_bad_nan" then return { result = "offset", p = "0x7fc00000,0x00000000,0x00000000", name = answer.name }
+		elseif mode == "offsets_bad_name" then return { result = "offset", p = answer.p, name = answer.name .. "_WRONG" }
+		end
+		return { result = "end", name = answer.name }
+	end
 elseif mode == "missing" then
 	provider = nil
 elseif mode == "decline" then
@@ -347,6 +386,7 @@ local function replying (inner)
 				else replied.other = replied.other + 1 end
 			else
 				replied [op] = (replied [op] or 0) + 1
+				if op == "target_point_offset" and answer.result == "offset" then replied_offset [scene] = answer.p end
 			end
 		else
 			replied.other = replied.other + 1
@@ -372,7 +412,9 @@ local triangle_markers = { decline = "[model-provider:triangle.callback]", refus
 	bad_absent = "[model-provider:triangle.answer]", bad_end_absent = "[model-provider:triangle.answer]", bad_found_declared_absent = "[model-provider:triangle.answer]",
 	bad_end_declared_absent = "[model-provider:triangle.answer]" }
 local metadata_markers = { object_withheld = "[model-provider:object.absent]", animation_withheld = "[model-provider:animation.absent]" }
-local expected_marker = boot_markers [mode] or triangle_markers [mode] or metadata_markers [mode]
+local offset_markers = { offsets_withheld = "[model-provider:target_point_offset.refused]", offsets_bad_nan = "[model-provider:target_point_offset.value]",
+	offsets_bad_name = "[model-provider:target_point_offset.identity]", offsets_bad_end = "[model-provider:target_point_offset.answer]" }
+local expected_marker = boot_markers [mode] or triangle_markers [mode] or metadata_markers [mode] or offset_markers [mode]
 
 local function matches (message) return expected_marker ~= nil and string.find (message, expected_marker, 1, true) ~= nil end
 
@@ -404,8 +446,13 @@ if not ok then
 	return
 end
 assert (mode ~= "missing", "boot succeeded without a model provider")
-local boot_refused = { bad_nil = true, bad_catalogue = true, bad_name = true, bad_scene_nan = true, bad_collider_unloaded = true, bad_scene0_loaded = true }
-assert (not boot_refused [mode], "boot accepted a malformed boot-time model answer: mode " .. mode)
+local boot_refused = { bad_nil = true, bad_catalogue = true, bad_name = true, bad_scene_nan = true, bad_collider_unloaded = true, bad_scene0_loaded = true,
+	offsets_withheld = true, offsets_bad_nan = true, offsets_bad_name = true, offsets_bad_end = true }
+if boot_refused [mode] then
+	-- the boot succeeded: either the guarded answer was never asked for (unavailable, not covered) or it was given and ACCEPTED (the guard did not fire)
+	if not tripped then error ("UNREACHED: " .. mode .. " booted without its answer ever being given; the control is unavailable, not covered", 0) end
+	error ("boot accepted a malformed boot-time model answer: mode " .. mode, 0)
+end
 
 -- the boot asked the host for the catalogue and every scene (a host that was never asked is not authoritative)
 emit { event = "booted", mode = mode, scenario = args.scenario or "lebanon_retail", catalogue_asked = reference_counts.catalogue, scenes_asked = reference_counts.scene }
@@ -599,6 +646,72 @@ elseif fpu_requested then
 	end
 end
 
+-- ---------------------------------------------------------------------------------------------------------------------------------
+-- the HELD target-point offsets and the direct guidance consumer (offsets=1). The campaign must hold exactly what the host replied for each requested scene (a count alone is not
+-- authority), and the consumer's three coordinates are read from that table, so a changed host answer must move both.
+
+local offsets_problem
+local offsets_rows, offsets_asked = 0, -1
+if offsets_requested and primary then
+	offsets_problem = "UNREACHED: the requested target-point offset observation was not made: the run's primary failure at the " .. primary.stage .. " stage came first (" .. primary.message .. "); the control is unavailable, not covered"
+elseif offsets_requested then
+	if type (engine.model_host_target_offsets) ~= "function" or type (engine.model_host_attack_consumer) ~= "function" then
+		offsets_problem = "offsets=1 needs a DLL built with the model-host-fixture feature: unavailable, not covered"
+	else
+		for _, scene in ipairs (offset_scenes) do
+			local read_ok, report = pcall (engine.model_host_target_offsets, engine, scene, 1)
+			if not read_ok then
+				record_primary ("offsets", first_line (report))
+				offsets_problem = offsets_problem or ("the held offset of scene " .. scene .. " could not be read: " .. first_line (report))
+				break
+			end
+			local asked, row_scene, held = string.match (tostring (report), "model%-host%-offsets asked=(%d+)\nmodel%-host%-offset scene=(%d+) cache=(%S+)\n")
+			offsets_asked = tonumber (asked) or -1
+			local replied_words, reference_words = replied_offset [scene], reference_offset [scene]
+			emit { event = "target_offset", scene = scene, held = held or "", replied = replied_words or "", reference = reference_words or "", asked = offsets_asked }
+			if tonumber (row_scene) ~= scene or not held then
+				offsets_problem = offsets_problem or ("the held-offset report is not for scene " .. scene)
+			elseif not replied_words then
+				offsets_problem = offsets_problem or ("UNREACHED: the host was never asked for the target-point offset of scene " .. scene .. "; the control is unavailable, not covered")
+			elseif held ~= replied_words then
+				offsets_problem = offsets_problem or string.format ("scene %d: the campaign holds %s but the host replied %s", scene, held, replied_words)
+			elseif mode == "offsets_changed" and (held ~= CHANGED_OFFSET or held == reference_words) then
+				offsets_problem = offsets_problem or string.format ("scene %d: the changed host offset %s is not what the campaign holds (%s; the reference host answered %s)", scene, CHANGED_OFFSET, held, tostring (reference_words))
+			else
+				offsets_rows = offsets_rows + 1
+			end
+		end
+		if not offsets_problem and offsets_asked ~= reference_counts.target_point_offset then
+			offsets_problem = string.format ("the native code asked the host %d offset questions and the provider counted %d", offsets_asked, reference_counts.target_point_offset)
+		elseif not offsets_problem and offsets_asked < 1 then
+			offsets_problem = "UNREACHED: the host was asked no target-point offset question; the control is unavailable, not covered"
+		end
+		if not primary then
+			local called, report = pcall (engine.model_host_attack_consumer, engine)
+			emit { event = "attack_consumer", ok = called, report = called and tostring (report) or first_line (report) }
+			if not called then
+				record_primary ("consumer", first_line (report))
+				offsets_problem = offsets_problem or ("the direct guidance consumer failed: " .. first_line (report))
+			else
+				local status = string.match (report, "status=(%S+)")
+				if status ~= "called" then
+					offsets_problem = offsets_problem or ("UNREACHED: the direct guidance consumer could not be called (" .. tostring (string.match (report, "reason=(%S+)")) .. "); the control is unavailable, not covered")
+				else
+					local shape, cache, consumer, equal = string.match (report, "scene=(%d+) entity_type=%d+ weapon=%d+ cache=(%S+) consumer=(%S+) equal=(%d)")
+					local replied_words = replied_offset [tonumber (shape)]
+					if equal ~= "1" or cache ~= consumer then
+						offsets_problem = offsets_problem or string.format ("the direct consumer returned %s but the held offset of its target's shape %s is %s", tostring (consumer), tostring (shape), tostring (cache))
+					elseif replied_words and cache ~= replied_words then
+						offsets_problem = offsets_problem or string.format ("the consumer's target shape %s holds %s but the host replied %s", tostring (shape), cache, replied_words)
+					elseif mode == "offsets_changed" and consumer ~= CHANGED_OFFSET then
+						offsets_problem = offsets_problem or string.format ("the changed host offset did not reach the direct consumer: it returned %s", tostring (consumer))
+					end
+				end
+			end
+		end
+	end
+end
+
 local native_counters = ""
 if has_fixture and not primary then
 	local counters_ok, counters = pcall (engine.model_host_counters, engine)
@@ -616,7 +729,7 @@ emit { event = "summary", mode = mode, frames = frames, frames_run = ran, failur
 	los_requested = los_requested, los_hash = los and los.hash or "", los_lookup_hash = los and los.lookup_hash or "", los_visible = los and los.visible or -1,
 	probes_requested = probes_requested, probes_ok = probes_ok, probes_failed = probes_failed,
 	progress_problem = progress_problem or "", los_problem = los_problem or "", probe_problem = probe_problem or "", fpu_requested = fpu_requested, fpu_expected_entries = fpu_expected_entries, fpu_rows = fpu_rows, fpu_measured = fpu_measured, fpu_unreached = fpu_unreached,
-	fpu_problem = fpu_problem or "" }
+	fpu_problem = fpu_problem or "", offsets_requested = offsets_requested, offsets_rows = offsets_rows, offsets_asked = offsets_asked, offsets_problem = offsets_problem or "" }
 out.close ()
 io.stderr:write (string.format ("model-authority: mode=%s frames=%d/%d reference triangle=%d found=%d ended=%d absent=%d; replied found=%d ended=%d absent=%d; primary=%s\n", mode, ran, frames,
 	reference_counts.triangle, reference_counts.found, reference_counts.ended, reference_counts.absent, replied.found, replied.ended, replied.absent,
@@ -654,3 +767,4 @@ if progress_problem then error (progress_problem, 0) end
 if los_problem then error (los_problem, 0) end
 if probe_problem then error (probe_problem, 0) end
 if fpu_problem then error (fpu_problem, 0) end
+if offsets_problem then error (offsets_problem, 0) end

@@ -1130,6 +1130,7 @@ pub const EECH_MODEL_OBJECT: c_int = 7;
 pub const EECH_MODEL_ANIMATION: c_int = 8;
 pub const EECH_MODEL_CUSTOM_OBJECT: c_int = 9;
 pub const EECH_MODEL_CUSTOM_ORDER: c_int = 10;
+pub const EECH_MODEL_TARGET_POINT_OFFSET: c_int = 11;
 pub const EECH_MODEL_ANIMATION_NAME_MAX: usize = 127;
 pub const EECH_MODEL_TRIANGLE_FOUND: c_int = 1;
 pub const EECH_MODEL_TRIANGLE_END: c_int = 2;
@@ -1875,6 +1876,8 @@ extern "C" {
     pub fn eech_engine_model_host_counters(text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_model_host_animations(first: c_int, count: c_int, text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_model_host_poison() -> c_int;
+    pub fn eech_engine_model_host_target_offsets(first: c_int, count: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_model_host_attack_consumer(text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_model_host_probe(scene: c_int, depth: c_int, text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_model_host_horizon_refusal(text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_model_host_fpu(kind: c_int, scene: c_int, depth: c_int, rounding: c_int, text: *mut c_char, capacity: c_int) -> c_int;

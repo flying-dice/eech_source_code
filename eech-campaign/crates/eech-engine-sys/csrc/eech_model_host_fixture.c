@@ -28,6 +28,7 @@
 
 #include "project.h"
 
+#include "entity/special/guide/gd_attck.h"
 #include "eech_engine.h"
 #include "eech_headless.h"
 
@@ -37,6 +38,7 @@ struct campaign_model_counters
 {
 	long catalogue, scene, triangle, found, end, absent, bounds_reads, bounds_without_lines_reads, radius_reads;
 	long presence_checked, presence_mismatches;
+	long target_offset;
 };
 
 extern struct campaign_model_counters campaign_model_counts;
@@ -466,6 +468,137 @@ int eech_model_host_horizon_refusal_run (char *text, int capacity)
 	}
 	add_3d_horizon_image (main_3d_env, "eech-fixture-no-such-horizon", 0.0f, WEATHERMODE_DRY);
 	n = snprintf (text, (size_t) capacity, "model-core-horizon-refusal returned=1\n");
+
+	return ((n < 0) || (n >= capacity)) ? 1 : 0;
+}
+
+/* The host-authored target-point offsets as the campaign HOLDS them (EEDCS-52, D3): `initialise_target_point_offsets` copied each scene's three LOCAL coordinates from the host's
+   TARGET_POINT_OFFSET answers into the private `target_point_offsets` table the direct guidance consumer reads. This reports how many such questions the host was asked since boot
+   (the real boot asks once per scene per initialiser invocation, and invokes it twice) and, for scenes `first ..= first + count - 1`, the held words. A held value that equals what
+   the host answered is the authority; one the campaign could have computed itself would show only if the host's answer were changed. Read-only. */
+int eech_model_host_target_offsets_run (int first, int count, char *text, int capacity)
+{
+	int i, n, used;
+
+	if ((first < 1) || (count < 1) || (first > (int) OBJECT_3D_LAST - count))
+	{
+		return 1;
+	}
+
+	used = snprintf (text, (size_t) capacity, "model-host-offsets asked=%ld\n", campaign_model_counts.target_offset);
+
+	if ((used < 0) || (used >= capacity))
+	{
+		return 1;
+	}
+
+	for (i = first; i < first + count; i++)
+	{
+		n = snprintf (text + used, (size_t) (capacity - used), "model-host-offset scene=%d cache=0x%08x,0x%08x,0x%08x\n", i, float_bits (target_point_offsets[i].x),
+			float_bits (target_point_offsets[i].y), float_bits (target_point_offsets[i].z));
+
+		if ((n < 0) || (n >= capacity - used))
+		{
+			return 1;
+		}
+
+		used += n;
+	}
+
+	return 0;
+}
+
+/* A used-entity list node is trusted only if it is an aligned slot of the entity heap this run allocated (compared as integers); the same check the original target-point
+   observer makes before it dereferences a node. */
+static int host_heap_slot (const entity *en)
+{
+	uintptr_t base = (uintptr_t) entities;
+	uintptr_t at = (uintptr_t) en;
+
+	if (!entities || number_of_entities <= 0)
+	{
+		return 0;
+	}
+
+	if ((at < base) || (at >= base + ((uintptr_t) number_of_entities * sizeof (entity))))
+	{
+		return 0;
+	}
+
+	return ((at - base) % sizeof (entity)) == 0;
+}
+
+/* The DIRECT guidance consumer, called for real on a real entity (EEDCS-52, D3): `calculate_attack_guide_intercept_point` (gd_attck.c) reads all three LOCAL offset coordinates of
+   the target's shape from `target_point_offsets` and returns them as its intercept point when the target is not moving and the weapon is not a ballistic one. This finds, among the
+   live mobiles, the first whose shape is a valid scene and whose velocity is exactly zero, picks the first weapon with a guidance type (so the ballistic drop branch is not taken),
+   calls the consumer once and reports the held offset, the consumer's three coordinates and their equality. No candidate is UNAVAILABLE with its reason, never a pass. The entity is
+   not changed; the function draws no random number and advances no time. Not an engine target selection: the entity is chosen by this diagnostic. */
+int eech_model_host_attack_consumer_run (char *text, int capacity)
+{
+	entity *en, *target = NULL;
+	int visited = 0, shape = 0, weapon = -1, w, equal;
+	vec3d ip;
+	float velocity;
+	int n;
+
+	for (en = get_local_entity_list (); en;)
+	{
+		int type;
+
+		if ((visited >= number_of_entities) || !host_heap_slot (en))
+		{
+			n = snprintf (text, (size_t) capacity, "model-host-consumer status=unavailable reason=entity_list_not_trusted visited=%d\n", visited);
+			return ((n < 0) || (n >= capacity)) ? 1 : 0;
+		}
+
+		visited++;
+		type = (int) en->type;
+
+		if (((type == ENTITY_TYPE_ROUTED_VEHICLE) || (type == ENTITY_TYPE_ANTI_AIRCRAFT) || (type == ENTITY_TYPE_SHIP_VEHICLE)) && get_local_entity_data (en))
+		{
+			int candidate = get_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE);
+
+			if ((candidate > OBJECT_3D_INVALID_OBJECT_INDEX) && (candidate < OBJECT_3D_LAST))
+			{
+				velocity = get_local_entity_float_value (en, FLOAT_TYPE_VELOCITY);
+
+				if ((float_bits (velocity) & 0x7fffffffu) == 0)
+				{
+					target = en;
+					shape = candidate;
+					break;
+				}
+			}
+		}
+
+		en = get_local_entity_succ (en);
+	}
+
+	for (w = 0; w < NUM_ENTITY_SUB_TYPE_WEAPONS; w++)
+	{
+		if (weapon_database[w].guidance_type != WEAPON_GUIDANCE_TYPE_NONE)
+		{
+			weapon = w;
+			break;
+		}
+	}
+
+	if (!target || (weapon < 0))
+	{
+		n = snprintf (text, (size_t) capacity, "model-host-consumer status=unavailable reason=%s visited=%d\n", !target ? "no_stationary_mobile_with_a_valid_shape" : "no_guided_weapon", visited);
+		return ((n < 0) || (n >= capacity)) ? 1 : 0;
+	}
+
+	memset (&ip, 0, sizeof (ip));
+	calculate_attack_guide_intercept_point (target, target, weapon, &ip);
+
+	equal = (float_bits (ip.x) == float_bits (target_point_offsets[shape].x)) && (float_bits (ip.y) == float_bits (target_point_offsets[shape].y)) &&
+		(float_bits (ip.z) == float_bits (target_point_offsets[shape].z));
+
+	n = snprintf (text, (size_t) capacity,
+		"model-host-consumer status=called scene=%d entity_type=%d weapon=%d cache=0x%08x,0x%08x,0x%08x consumer=0x%08x,0x%08x,0x%08x equal=%d\n", shape, (int) target->type, weapon,
+		float_bits (target_point_offsets[shape].x), float_bits (target_point_offsets[shape].y), float_bits (target_point_offsets[shape].z), float_bits (ip.x), float_bits (ip.y),
+		float_bits (ip.z), equal);
 
 	return ((n < 0) || (n >= capacity)) ? 1 : 0;
 }

@@ -73,6 +73,16 @@
  *              indirection) is the host's; the campaign receives decoded floats and node numbers only. ABSENT means the host has no route of that kind for the scene; the
  *              campaign asks only for a route its own hierarchy lookup found, so an ABSENT is a disagreement and stops the engine, as does a malformed or refused answer.
  *
+ *   TARGET_POINT_OFFSET   a scene's LOCAL target-point offset (EEDCS-52, D3): the three floats initialise_target_point_offsets (wn_dbase.c) used to compute by constructing an
+ *              instance of the scene, searching it for a TARGET_POINT sub-object, taking that sub-object's world position under an identity pose or, failing that, the centre of
+ *              the scene's bounding box with y clamped at zero. The host owns that physical work now (the same model data and the same arithmetic as the original, on the host's
+ *              own store); the campaign asks once per scene per initialiser invocation (the real boot invokes it twice, and each invocation asks again), receives the three
+ *              coordinates in the first three words of `points`, and copies them into the private `target_point_offsets` table that the direct guidance consumer
+ *              (gd_attck.c calculate_attack_guide_intercept_point) reads. The reply echoes the scene's compiled name and must be FOUND with three finite floats; an END or
+ *              ABSENT, a non-finite coordinate, a refusal or a provider that is missing stops the engine with the host's reason, and there is no fallback to the original
+ *              construction. A scene no file defines is a valid catalogue slot with the zero bounding box and answers a zero offset, which is not a refusal; the invalid index 0 is
+ *              not asked (its entry is the zero the original assigned).
+ *
  * The bounds and the radius are copied once, at boot, into immutable tables owned by this module (host-authored data, valid for the life of the process and never
  * written again). Callers hold the bounds pointer across loop iterations, so it must be stable; a rotating cache would not be. The tables are a snapshot of the host's
  * answers, not an authority of the campaign's own.
@@ -106,7 +116,8 @@ enum campaign_model_op
 	CAMPAIGN_MODEL_OBJECT,
 	CAMPAIGN_MODEL_ANIMATION,
 	CAMPAIGN_MODEL_CUSTOM_OBJECT,
-	CAMPAIGN_MODEL_CUSTOM_ORDER
+	CAMPAIGN_MODEL_CUSTOM_ORDER,
+	CAMPAIGN_MODEL_TARGET_POINT_OFFSET
 };
 
 enum campaign_model_object_role

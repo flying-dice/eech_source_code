@@ -114,6 +114,19 @@ fn main() {
         }
     }
 
+    // 1a0b. EEDCS-52 (D3): the host-owned target-point OFFSETS. initialise_target_point_offsets asks the host for each scene's local offset (patches.rs, TARGET_POINT_HOST_PATCHES) in every
+    //      build that has a host model. The builds that keep the ORIGINAL initialiser on purpose are feature target-point-fixture (the original characterisation, whose observer hooks
+    //      are inside the original body) and feature model-fixture (the original accessors, no host).
+    if !model_fixture && env::var_os("CARGO_FEATURE_TARGET_POINT_FIXTURE").is_none() {
+        for file in patches::target_point_host_files() {
+            let staged = tree.join(file);
+            let bytes = fs::read(&staged).unwrap_or_else(|e| panic!("{file}: {e}"));
+            let text: String = bytes.iter().map(|&b| b as char).collect();
+            let patched: Vec<u8> = patches::apply_target_point_host(file, &text).chars().map(|c| c as u32 as u8).collect();
+            write_if_changed(&staged, &patched);
+        }
+    }
+
     // 1a1. EEDCS-50 (D3): the host-owned ROUTE data. The airfield route parser takes its nodes and line faces from the host (patches.rs, ROUTE_HOST_PATCHES) in every build that has
     //      a host model. The builds that keep the ORIGINAL parser on purpose are feature model-fixture (the original accessors, no host) and feature route-original (the original
     //      route characterisation: the observer of the unmoved parser).

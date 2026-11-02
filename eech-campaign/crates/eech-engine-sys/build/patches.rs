@@ -2398,3 +2398,52 @@ pub fn target_point_fixture_files() -> Vec<&'static str> {
     files.dedup();
     files
 }
+
+/// Patches of the host-owned target-point OFFSETS (EEDCS-52, D3), applied by main.rs unless the build keeps the ORIGINAL initialiser on purpose: feature target-point-fixture (the
+/// original characterisation, whose observer hooks sit inside the original body, TARGET_POINT_FIXTURE_PATCHES) or feature model-fixture (the original accessors, no host).
+/// `initialise_target_point_offsets` used to construct an instance of every scene, search it for a TARGET_POINT sub-object, take its world position or the centre of the scene's
+/// bounding box, and destruct it. The host owns that physical work: the replacement asks it for the three LOCAL coordinates of each scene (campaign_model_target_point_offset,
+/// mb_hostmodel.h) and copies them into `target_point_offsets`, which stays the private table the direct guidance consumer (gd_attck.c) reads. What stays the campaign's: the
+/// seeker-limit calculation once per invocation, before the offsets (the real boot invokes the initialiser twice), and the zero entry of the invalid scene. The original body is
+/// not compiled in these builds (`#if 0`), so it cannot run as a fallback; no instance is constructed, so no constructor work and no `rand()` draw is left in the campaign.
+/// Strict count-checked like the others.
+pub const TARGET_POINT_HOST_PATCHES: &[Patch] = &[
+    Patch {
+        file: "aphavoc/source/entity/mobile/weapon/wn_dbase.c",
+        id: "TH1-offsets-from-host",
+        why: "initialise_target_point_offsets constructed model instances and computed the offsets itself. The host owns the physical models: the function keeps the seeker-limit call (once per invocation, first) and the invalid scene's zero, and takes every other scene's three local coordinates from the host. The original body follows inside #if 0.",
+        original: "void initialise_target_point_offsets (void)\n{\n",
+        replacement: "extern void campaign_model_target_point_offset ( int scene, vec3d *offset ); /* EECH headless (D3) */\n\nvoid initialise_target_point_offsets (void)\n{\n\tint\n\t\tscene;\n\n\tdebug_assert (get_3d_objects_initialised ());\n\n\tcalculate_seeker_limits_from_launch_angle();\n\n\ttarget_point_offsets[OBJECT_3D_INVALID_OBJECT_INDEX].x = 0.0;\n\ttarget_point_offsets[OBJECT_3D_INVALID_OBJECT_INDEX].y = 0.0;\n\ttarget_point_offsets[OBJECT_3D_INVALID_OBJECT_INDEX].z = 0.0;\n\n\tfor (scene = OBJECT_3D_INVALID_OBJECT_INDEX + 1; scene < OBJECT_3D_LAST; scene++)\n\t{\n\t\tcampaign_model_target_point_offset ( scene, &target_point_offsets[scene] );\n\t}\n}\n\n#if 0 /* EECH headless (D3): the original constructing body is not compiled; see mb_hostmodel.h, TARGET_POINT_OFFSET */\nvoid initialise_target_point_offsets (void)\n{\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/mobile/weapon/wn_dbase.c",
+        id: "TH2-original-offsets-ends",
+        why: "closes the #if 0 opened by TH1 at the end of the original initialiser (this text occurs once, at the end of that function)",
+        original: "\t\tdestruct_3d_object (inst3d);\n\t}\n}\n",
+        replacement: "\t\tdestruct_3d_object (inst3d);\n\t}\n}\n#endif /* EECH headless (D3) */\n",
+        count: 1,
+    },
+];
+
+/// the staged text of `file` with the host target-point offset patches applied (same strict count check as `apply`)
+pub fn apply_target_point_host(file: &str, text: &str) -> String {
+    let mut out = text.to_string();
+    for p in TARGET_POINT_HOST_PATCHES.iter().filter(|p| p.file == file) {
+        let found = out.matches(p.original).count();
+        assert_eq!(
+            found, p.count,
+            "target-point-host patch {} expects {} occurrence(s) of its original text in {}, found {}",
+            p.id, p.count, file, found
+        );
+        out = out.replace(p.original, p.replacement);
+    }
+    out
+}
+
+pub fn target_point_host_files() -> Vec<&'static str> {
+    let mut files: Vec<&str> = TARGET_POINT_HOST_PATCHES.iter().map(|p| p.file).collect();
+    files.sort_unstable();
+    files.dedup();
+    files
+}

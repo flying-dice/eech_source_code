@@ -424,6 +424,13 @@ int eech_engine_model_host_counters (char *text, int capacity);
    eech_engine_model_animations (the original observer) so the same driver reads and compares them. Read-only. Fails (bad argument) outside the page bounds or when the report does not
    fit `capacity`. */
 int eech_engine_model_host_animations (int first, int count, char *text, int capacity);
+/* The host-authored target-point offsets as the campaign HOLDS them (EEDCS-52, D3): `model-host-offsets asked=N` (the TARGET_POINT_OFFSET questions asked of the host since boot) and one
+   `model-host-offset scene=S cache=0x..,0x..,0x..` row per scene `first ..= first + count - 1` (the float bit patterns of the private table the direct guidance consumer reads). Read-only.
+   Fails (bad argument) for scenes outside 1 .. OBJECT_3D_LAST - 1 or a report that does not fit `capacity`. */
+int eech_engine_model_host_target_offsets (int first, int count, char *text, int capacity);
+/* The direct guidance consumer (gd_attck.c calculate_attack_guide_intercept_point) called once for real on a live stationary mobile with a valid shape and a guided weapon: one
+   `model-host-consumer` row with the held offset, the consumer's three coordinates and their equality, or status=unavailable with its reason. Read-only apart from the call. */
+int eech_engine_model_host_attack_consumer (char *text, int capacity);
 /* Overwrites every array the ORIGINAL accessors read (the scene database's radius, bounds and collision object index) with values that make any read visible. */
 int eech_engine_model_host_poison (void);
 /* One scene's radius and bounds (asked twice: same address and bits) and one step of its collision-triangle cursor through the REAL public accessors, in the format of the

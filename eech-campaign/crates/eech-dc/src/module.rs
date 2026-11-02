@@ -3155,6 +3155,17 @@ impl LuaUserData for LuaEngine {
             let count = model_int(&count, "count", 1, eech_engine::MODEL_PAGE_SCENES)?;
             this.engine.model_host_animations(first, count).map_err(lua_error)
         });
+        // TEST-ONLY (feature `model-host-fixture`, EEDCS-52 D3): the host-authored target-point offsets as the campaign holds them, and the direct guidance consumer called for real
+        #[cfg(feature = "model-host-fixture")]
+        methods.add_method("model_host_target_offsets", |_, this, (first, count): (LuaValue, LuaValue)| {
+            let first = model_int(&first, "first", 1, i32::MAX - eech_engine::MODEL_PAGE_SCENES)?;
+            let count = model_int(&count, "count", 1, eech_engine::MODEL_PAGE_SCENES)?;
+            this.engine.model_host_target_offsets(first, count).map_err(lua_error)
+        });
+        #[cfg(feature = "model-host-fixture")]
+        methods.add_method("model_host_attack_consumer", |_, this, ()| {
+            this.engine.model_host_attack_consumer().map_err(lua_error)
+        });
         #[cfg(feature = "model-host-fixture")]
         methods.add_method("model_host_poison", |_, this, ()| this.engine.model_host_poison().map_err(lua_error));
         // the complete outer floating-point state around a real public entry (see eech_engine_model_host_fpu); the arguments are whole numbers in range, checked before the engine is entered
@@ -3663,6 +3674,11 @@ fn gunship(name: &str) -> LuaResult<Gunship> {
 ///                 (the two node numbers the face joins, already resolved, and the colour 0..255 and polygon bit of its surface), `end`, `absent` or `refused` as above. `name` is the
 ///                 kind's compiled name (an echo that host and campaign mean the same kind by the same number); the campaign checks it.
 ///
+///   "target_point_offset"  a scene index (never the invalid index 0; no depth). Returns `{ result = "offset", p = {three}, name = text }`: the scene's LOCAL target-point offset, the
+///                 three coordinates the campaign's initialiser used to compute by constructing the scene (the TARGET_POINT sub-object's position, or the bounding-box centre with y
+///                 clamped at zero; a scene no file defines is a valid slot and answers the zero offset), or `{ result = "refused", reason }`. `name` is the scene's compiled name (an echo).
+///                 There is no `end` or `absent` answer: the campaign copies the three coordinates and asks again at every initialiser invocation.
+///
 ///   "object_table"  no scene, no depth. Returns `{ result = "table", objects = n }`: how many objects the host's common database holds (the campaign's room for custom objects is its own).
 ///   "object"     a scene index, a cursor (`depth`, never negative: the approximation or the sub-object) and, in the fourth place, the ROLE the object has in the scene (0 main, 1
 ///                 approximation, 2 shadow polygon object, 3 collision object, 4 sub-object). Returns `{ result = "object", name = text, counts = {six whole numbers within 0..65535:
@@ -3799,6 +3815,18 @@ return function(op, scene, depth, kind, definition, key)
 		end
 		return nil, 'result must be name, end, absent or refused'
 	end
+	if op == 'target_point_offset' then
+		local name, result = a.name, a.result
+		if result == 'refused' then
+			local reason = a.reason
+			return 'refused', type(reason) == 'string' and reason:sub(1, 200) or ''
+		end
+		if type(name) ~= 'string' or #name > 127 or find(name, '\0', 1, true) then return nil, 'name must be text of at most 127 bytes without a NUL' end
+		if result ~= 'offset' then return nil, 'result must be offset or refused' end
+		local p, why = list(a.p, 3)
+		if not p then return nil, 'p ' .. why end
+		return 'offset', p, nil, nil, nil, nil, nil, name
+	end
 	if op == 'route_node' or op == 'route_face' then
 		local name, result = a.name, a.result
 		if type(name) ~= 'string' or #name > 127 or find(name, '\0', 1, true) then return nil, 'name must be text of at most 127 bytes without a NUL' end
@@ -3916,6 +3944,7 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
         ModelQuery::RouteNode { scene, kind, index } => ("route_node", Some(scene), Some(index), Some(kind), None, None),
         ModelQuery::RouteFace { scene, kind, index } => ("route_face", Some(scene), Some(index), Some(kind), None, None),
         ModelQuery::ObjectTable => ("object_table", None, None, None, None, None),
+        ModelQuery::TargetPointOffset { scene } => ("target_point_offset", Some(scene), None, None, None, None),
         // the fourth place carries the role the object has in the scene
         ModelQuery::Object {
             scene,
@@ -4088,6 +4117,14 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
         }),
         (ModelQuery::Animation { scene, index, .. }, "refused") => Err(format!(
             "[model-provider:animation.refused] the host cannot answer for scene {scene} reference {index}: {}",
+            a.unwrap_or_default()
+        )),
+        (ModelQuery::TargetPointOffset { .. }, "offset") => Ok(ModelAnswer::TargetPointOffset {
+            scene_name: g.ok_or_else(missing)?,
+            offset: bridged_floats::<3>(&a.ok_or_else(missing)?, "p", operation)?,
+        }),
+        (ModelQuery::TargetPointOffset { scene }, "refused") => Err(format!(
+            "[model-provider:target_point_offset.refused] the host cannot answer for scene {scene}: {}",
             a.unwrap_or_default()
         )),
         (ModelQuery::RouteNode { scene, kind, index } | ModelQuery::RouteFace { scene, kind, index }, "refused") => Err(format!(
@@ -4985,6 +5022,71 @@ mod tests {
         for cursor in [2, 3] {
             let error = face(cursor).err().ok_or("accepted")?;
             assert!(error.contains("[model-provider:route_face.answer]"), "cursor {cursor}: {error}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn a_target_point_offset_crosses_as_three_exact_bit_patterns_with_the_scenes_name() -> Test {
+        let lua = Lua::new();
+        // a negative zero, a subnormal and an ordinary number: the offset arrives as bits (a table of numbers would round them); the empty slot's zero is an answer, not a refusal
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene)
+               if op == 'target_point_offset' and scene == 5 then return { result = 'offset', name = 'SCENE_FIVE', p = '0x80000000,0x00000001,0x40490fdb' } end
+               if op == 'target_point_offset' and scene == 6 then return { result = 'offset', name = 'SCENE_SIX', p = { 1.5, 0, -2.25 } } end
+               return { result = 'offset', name = 'EMPTY', p = '0x00000000,0x00000000,0x00000000' }
+             end",
+        )?;
+        let ModelAnswer::TargetPointOffset { scene_name, offset } = ask(&mut provider, ModelQuery::TargetPointOffset { scene: 5 })? else {
+            return Err("not an offset".into());
+        };
+        assert_eq!(scene_name, "SCENE_FIVE");
+        assert_eq!(bits(offset), [0x8000_0000, 0x0000_0001, 0x4049_0fdb]);
+        let ModelAnswer::TargetPointOffset { offset, .. } = ask(&mut provider, ModelQuery::TargetPointOffset { scene: 6 })? else {
+            return Err("not an offset".into());
+        };
+        assert_eq!(bits(offset), bits([1.5_f32, 0.0, -2.25]));
+        assert_eq!(
+            ask(&mut provider, ModelQuery::TargetPointOffset { scene: 7 })?,
+            ModelAnswer::TargetPointOffset {
+                scene_name: "EMPTY".into(),
+                offset: [0.0, 0.0, 0.0]
+            }
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_target_point_offset_that_is_withheld_malformed_or_of_the_wrong_kind_stops_with_its_marker() -> Test {
+        let lua = Lua::new();
+        // each answer is chosen by the scene: 1 refused, 2 an end (the question has no cursor), 3 an absent, 4 two numbers, 5 a non-finite number, 6 four numbers, 7 no name,
+        // 8 a name with a NUL, 9 a route node answered to this question, 10 text that is not three bit patterns
+        let mut provider = model_under_test(
+            &lua,
+            "return function (op, scene)
+               local n = 'SCENE'
+               if scene == 1 then return { result = 'refused', reason = 'no such model' } end
+               if scene == 2 then return { result = 'end', name = n } end
+               if scene == 3 then return { result = 'absent', name = n } end
+               if scene == 4 then return { result = 'offset', name = n, p = { 1, 2 } } end
+               if scene == 5 then return { result = 'offset', name = n, p = { 1, 0 / 0, 3 } } end
+               if scene == 6 then return { result = 'offset', name = n, p = { 1, 2, 3, 4 } } end
+               if scene == 7 then return { result = 'offset', p = { 1, 2, 3 } } end
+               if scene == 8 then return { result = 'offset', name = 'A\\0B', p = { 1, 2, 3 } } end
+               if scene == 9 then return { result = 'node', name = n, p = { 1, 2, 3 } } end
+               return { result = 'offset', name = n, p = '1,2,3' }
+             end",
+        )?;
+        let mut offset = |scene: i32| ask(&mut provider, ModelQuery::TargetPointOffset { scene });
+        let refused = offset(1).err().ok_or("accepted")?;
+        assert!(
+            refused.contains("[model-provider:target_point_offset.refused]") && refused.contains("no such model"),
+            "{refused}"
+        );
+        for scene in 2..=10 {
+            let error = offset(scene).err().ok_or("accepted")?;
+            assert!(error.contains("[model-provider:target_point_offset.answer]"), "scene {scene}: {error}");
         }
         Ok(())
     }

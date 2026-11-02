@@ -301,6 +301,7 @@ fn standard() -> (Root, ModelStore) {
         // scenes 9 and 10 (8 stays an empty slot): a target point straight up (0,2,0), and one with only a z part (0,1,3), for a fixed object's offset
         scene_record(9, 1, &[(tp, 0)], &[sub(at(0.0, 2.0, 0.0), vec![], vec![])]),
         scene_record(10, 1, &[(tp, 0)], &[sub(at(0.0, 1.0, 3.0), vec![], vec![])]),
+        scene_record(11, 1, &[(tp, 0)], &[sub(at(1.0e-30, 2.0, 0.0), vec![], vec![])]),
     ];
     let root = Root::new(
         &[
@@ -1012,4 +1013,128 @@ fn the_host_lua_face_answers_a_fixed_target_from_words_and_the_comparer_replays_
     )
     .exec()
     .expect("the fixed-target face and the branch-3 replay count every outcome apart");
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------
+// the provider's TARGET_POINT_OFFSET answer (EEDCS-52, D3): what initialise_target_point_offsets now asks the host for instead of constructing the scene
+
+#[test]
+fn the_provider_answers_a_scenes_local_offset_as_exact_bits_with_its_name_and_refuses_what_it_cannot() {
+    let (root, store) = standard();
+    let lua = lua_with_store(&root.dir);
+    for (name, scene) in [("NAME8", 8), ("NAME9", 9), ("NAME10", 10), ("NAME11", 11)] {
+        lua.globals().set(name, compiled_scene_name(scene).unwrap()).unwrap();
+    }
+    lua.globals().set("TINY", format!("0x{:08x}", 1.0e-30f32.to_bits())).unwrap();
+    lua.globals().set("LAST", scene_last() as i64).unwrap();
+    lua.load(
+        r#"
+        local provider = host.model_provider (host.model_store (ROOT))
+        local a = provider ("target_point_offset", 9)
+        assert (a.result == "offset" and a.p == "0x00000000,0x40000000,0x00000000" and a.name == NAME9, tostring (a.p))
+        a = provider ("target_point_offset", 10)
+        assert (a.p == "0x00000000,0x3f800000,0x40400000" and a.name == NAME10, tostring (a.p))
+        -- a tiny coordinate keeps every bit through the exact boundary
+        a = provider ("target_point_offset", 11)
+        assert (a.p == TINY .. ",0x40000000,0x00000000" and a.name == NAME11, tostring (a.p))
+        -- a catalogue slot no file defines is a valid answer: the zero bounding box, not a refusal
+        a = provider ("target_point_offset", 8)
+        assert (a.result == "offset" and a.p == "0x00000000,0x00000000,0x00000000" and a.name == NAME8, tostring (a.p))
+        -- the invalid scene is the campaign's own zero and is not asked; a depth, a missing scene and a scene outside the catalogue are refused as requests
+        assert (not pcall (provider, "target_point_offset", 0))
+        assert (not pcall (provider, "target_point_offset", 9, 1))
+        assert (not pcall (provider, "target_point_offset", nil))
+        assert (not pcall (provider, "target_point_offset", LAST))
+        assert (not pcall (provider, "target_point_offset", -1))
+        "#,
+    )
+    .exec()
+    .expect("the provider's offset answers");
+    // the provider's answer is the store's own local offset, word for word, for every scene the fixture defines
+    for scene in 1..=11i64 {
+        let TargetPointLocal::Offset { offset, .. } = store.target_point_local(scene).unwrap() else {
+            panic!("scene {scene} has no offset")
+        };
+        lua.globals().set("SCENE", scene).unwrap();
+        lua.globals()
+            .set("WORDS", format!("0x{:08x},0x{:08x},0x{:08x}", offset[0], offset[1], offset[2]))
+            .unwrap();
+        lua.load(r#"assert (host.model_provider (host.model_store (ROOT)) ("target_point_offset", SCENE).p == WORDS, SCENE)"#)
+            .exec()
+            .unwrap_or_else(|e| panic!("scene {scene}: {e}"));
+    }
+}
+
+/// a report with an offsets event and these branch-3 rows, each `(case field, offset field)` as the row text holds them (an empty field is absent)
+fn branch_three_report(dir: &std::path::Path, name: &str, rows: &[(&str, &str)]) -> PathBuf {
+    let mut lines = vec![
+        serde_json::json!({ "event": "offsets", "when": "boot", "generation": 0, "text": "tp-offset generation=0 index=0 name=- state=invalid_zero offset=00000000,00000000,00000000 bounds=- live=1\n" }),
+    ];
+    for (index, (case, offset)) in rows.iter().enumerate() {
+        let text = format!(
+            "tp-event index={index} seq={index} branch=3 {case}model=9 model_name={} fixed=1 shape=9 horizontal=0 heading=- xz_applied=0 {offset}result=42c80000,42500000,c1a00000 base=42c80000,42480000,c1a00000 host_id_len=0\n",
+            observer_name(9)
+        );
+        lines.push(serde_json::json!({ "event": "query", "index": index, "text": text }));
+    }
+    let path = dir.join(name);
+    std::fs::write(&path, lines.iter().map(|l| l.to_string() + "\n").collect::<String>()).unwrap();
+    path
+}
+
+#[test]
+fn a_branch_three_row_without_a_known_case_or_a_well_formed_offset_is_never_counted_matched() {
+    let (root, _store) = standard();
+    let lua = lua_with_store(&root.dir);
+    let dir = root.dir.join("reports");
+    std::fs::create_dir_all(&dir).unwrap();
+    let good_case = "case=no_horizontal_offset ";
+    let good_offset = "offset=00000000,40000000,00000000 ";
+    // the positive first: a row that carries both is replayed and matches (scene 9's offset is (0, 2, 0): y 50 + 2 = 52)
+    let control = branch_three_report(&dir, "control.jsonl", &[(good_case, good_offset)]);
+    // a row with no offset (absent or "-") or no case label (absent or "-") cannot have those checks: counted as missing its input, listed once per reason
+    let missing = branch_three_report(
+        &dir,
+        "missing.jsonl",
+        &[
+            (good_case, good_offset),
+            ("", good_offset),
+            ("case=- ", good_offset),
+            (good_case, ""),
+            (good_case, "offset=- "),
+        ],
+    );
+    // a label that is none of the three and an offset that is not three words are malformed reports, not rows to skip
+    let unknown = branch_three_report(&dir, "unknown.jsonl", &[("case=rotated_by_mistake ", good_offset)]);
+    let short = branch_three_report(&dir, "short.jsonl", &[(good_case, "offset=00000000,40000000 ")]);
+    let loose = branch_three_report(&dir, "loose.jsonl", &[(good_case, "offset=0,40000000,00000000 ")]);
+    for (name, path) in [
+        ("CONTROL", &control),
+        ("MISSING", &missing),
+        ("UNKNOWN", &unknown),
+        ("SHORT", &short),
+        ("LOOSE", &loose),
+    ] {
+        lua.globals().set(name, path.to_string_lossy().into_owned()).unwrap();
+    }
+    lua.load(
+        r#"
+        local store = host.model_store (ROOT)
+        local r = store:compare_target_points (CONTROL)
+        assert (r.branch3_queries == 1 and r.branch3_matched == 1 and r.branch3_missing_input == 0 and r.branch3_mismatches == 0 and r.branch3_refused == 0, "control")
+        r = store:compare_target_points (MISSING)
+        assert (r.branch3_queries == 5 and r.branch3_matched == 1 and r.branch3_missing_input == 4, "missing")
+        assert (r.branch3_matched + r.branch3_mismatches + r.branch3_refused + r.branch3_missing_input == r.branch3_queries)
+        local text = table.concat (r.listed, "\n")
+        assert (text:find ("case label", 1, true) and text:find ("recorded offset", 1, true), text)
+        local ok, why = pcall (store.compare_target_points, store, UNKNOWN)
+        assert (not ok and tostring (why):find ("unknown case 'rotated_by_mistake'", 1, true), tostring (why))
+        ok, why = pcall (store.compare_target_points, store, SHORT)
+        assert (not ok and tostring (why):find ("bad offset", 1, true), tostring (why))
+        ok, why = pcall (store.compare_target_points, store, LOOSE)
+        assert (not ok and tostring (why):find ("bad offset", 1, true), tostring (why))
+        "#,
+    )
+    .exec()
+    .expect("a missing or malformed case or offset is counted or refused, never matched");
 }

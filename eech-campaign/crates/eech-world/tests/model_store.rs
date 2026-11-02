@@ -3017,6 +3017,24 @@ package.preload["eech_dc"] = function ()
 			for depth = 0, 2 do config.model ("triangle", 1, depth) end
 		end
 		if ask == "boot" then native_triangle (config) end
+		-- `engine_offsets=core` plays initialise_target_point_offsets: twice per boot (the real boot invokes it twice) it asks the provider for the LOCAL offset of scenes 1..5 and copies
+		-- the three coordinates into a table the direct consumer reads. The native stops are the marker texts the module raises. `ignore=1` plays an engine that asks and then keeps the
+		-- reference host's answer instead of the one it was given.
+		local held, asked = {}, 0
+		if (host.args.engine_offsets or "none") == "core" then
+			for _ = 1, 2 do
+				for scene = 1, 5 do
+					asked = asked + 1
+					local answer = config.model ("target_point_offset", scene)
+					if type (answer) ~= "table" then error ("eech: [model-provider:target_point_offset.answer] the provider returned no table", 0) end
+					if answer.result == "refused" then error ("eech: [model-provider:target_point_offset.refused] " .. tostring (answer.reason), 0) end
+					if answer.result ~= "offset" then error ("eech: [model-provider:target_point_offset.answer] result must be offset or refused", 0) end
+					if answer.name ~= host.model ("scene", scene).name then error ("eech: [model-provider:target_point_offset.identity] the host named another scene", 0) end
+					if string.find (answer.p, "0x7fc", 1, true) then error ("eech: [model-provider:target_point_offset.value] the offset is not finite", 0) end
+					held [scene] = host.args.ignore == "1" and host.model ("target_point_offset", scene).p or answer.p
+				end
+			end
+		end
 		-- `animation=core` plays what the campaign does with a custom scene definition's references: it asks them to the end, maps each LOGICAL name to its own table (a name it lacks is
 		-- the accepted T2 tolerance: animation 0) and de-duplicates as add_animation does. `animation=none` asks nothing. `ignore=1` plays an engine that ignores the host's answers and
 		-- keeps the reference host's list.
@@ -3069,6 +3087,18 @@ package.preload["eech_dc"] = function ()
 			end
 		end
 		function engine:model_host_counters () return "model-host catalogue=1 scene=3026\n" end
+		if (host.args.offsets_fixture or "yes") == "yes" then
+			function engine:model_host_target_offsets (first, count)
+				return string.format ("model-host-offsets asked=%d\nmodel-host-offset scene=%d cache=%s\n", asked, first, held [first] or "0x00000000,0x00000000,0x00000000")
+			end
+			-- the real consumer returns the held words of its target's shape (scene 2 here); `consumer=none` plays a run with no stationary mobile, `consumer=other` a consumer that did not read the table
+			function engine:model_host_attack_consumer ()
+				if host.args.consumer == "none" then return "model-host-consumer status=unavailable reason=no_stationary_mobile_with_a_valid_shape visited=3\n" end
+				local cache = held [2] or "0x00000000,0x00000000,0x00000000"
+				local consumer = host.args.consumer == "other" and "0x3f800000,0x3f800000,0x3f800000" or cache
+				return string.format ("model-host-consumer status=called scene=2 entity_type=1 weapon=4 cache=%s consumer=%s equal=%d\n", cache, consumer, consumer == cache and 1 or 0)
+			end
+		end
 		function engine:model_host_probe (scene, depth)
 			if ask == "probe" then native_triangle (config) end
 			if standin == "refuse" then error ("the probe was refused\nby the stand-in") end
@@ -3186,6 +3216,103 @@ fn a_changed_host_control_is_covered_only_when_it_was_given_and_its_consequence_
         // given, but the engine ignored it and kept the reference list: the final list does not show the change
         let run = stand_in_run_with(animated_root(), &[&format!("mode={mode}"), "animation=core", "ignore=1"], "healthy");
         assert!(!run.status.success() && run.stderr.contains("does not show it"), "{mode}: {}", run.stderr);
+    }
+}
+
+// The target-point offset controls (EEDCS-52, D3): the campaign copies the host's LOCAL offset of each scene into the table the direct guidance consumer reads. What is tested here is
+// the script's own bookkeeping and verdict against a stand-in engine; that the native code does the same is the model-host-fixture DLL's run.
+const CHANGED_OFFSET: &str = "0x3fc00000,0x40200000,0xc0900000";
+
+#[test]
+fn the_held_target_offsets_are_the_hosts_a_changed_host_moves_them_and_the_direct_consumer() {
+    // the healthy control: the campaign holds exactly what the reference host replied for each requested scene, the native question count is the provider's (twice per boot), and the
+    // direct consumer returned the held words of its target's shape
+    let run = stand_in_run(&["engine_offsets=core", "offsets=1"], "healthy");
+    assert!(run.status.success(), "{}", run.stderr);
+    let rows: Vec<Value> = run.rows().into_iter().filter(|r| r["event"] == "target_offset").collect();
+    assert_eq!(rows.len(), 3);
+    for row in &rows {
+        assert!(!row["held"].as_str().unwrap().is_empty(), "{row}");
+        assert_eq!(row["held"], row["replied"], "{row}");
+        assert_eq!(row["held"], row["reference"], "{row}");
+        assert_eq!(row["asked"].as_i64(), Some(10), "{row}");
+    }
+    let summary = run.row("summary");
+    assert_eq!(
+        (
+            summary["offsets_rows"].as_i64(),
+            summary["offsets_asked"].as_i64(),
+            summary["offsets_problem"].as_str()
+        ),
+        (Some(3), Some(10), Some(""))
+    );
+    assert!(run.row("attack_consumer")["report"].as_str().unwrap().contains("status=called"));
+
+    // a changed host: every offset answered with a constant. The held words and the consumer's coordinates are that constant, and differ from the reference host's answer
+    let run = stand_in_run(&["mode=offsets_changed", "engine_offsets=core", "offsets=1"], "healthy");
+    assert!(run.status.success(), "{}", run.stderr);
+    for row in run.rows().into_iter().filter(|r| r["event"] == "target_offset") {
+        assert_eq!(row["held"].as_str(), Some(CHANGED_OFFSET), "{row}");
+        assert_ne!(row["held"], row["reference"], "{row}");
+    }
+    assert!(run.row("attack_consumer")["report"]
+        .as_str()
+        .unwrap()
+        .contains(&format!("consumer={CHANGED_OFFSET}")));
+
+    // an engine that asks and then keeps the reference answer (it computed the offset itself): the changed answer is not what the campaign holds
+    let run = stand_in_run(&["mode=offsets_changed", "engine_offsets=core", "offsets=1", "ignore=1"], "healthy");
+    assert!(!run.status.success() && run.stderr.contains("the campaign holds"), "{}", run.stderr);
+
+    // unavailable is never covered: the host was never asked, the DLL has no fixture entries, no stationary mobile exists, or the consumer did not read the table
+    let run = stand_in_run(&["engine_offsets=none", "offsets=1"], "healthy");
+    assert!(
+        !run.status.success() && run.stderr.contains("UNREACHED") && run.stderr.contains("never asked"),
+        "{}",
+        run.stderr
+    );
+    let run = stand_in_run(&["engine_offsets=core", "offsets=1", "offsets_fixture=no"], "healthy");
+    assert!(!run.status.success() && run.stderr.contains("model-host-fixture"), "{}", run.stderr);
+    let run = stand_in_run(&["engine_offsets=core", "offsets=1", "consumer=none"], "healthy");
+    assert!(
+        !run.status.success() && run.stderr.contains("UNREACHED") && run.stderr.contains("direct guidance consumer"),
+        "{}",
+        run.stderr
+    );
+    let run = stand_in_run(&["engine_offsets=core", "offsets=1", "consumer=other"], "healthy");
+    assert!(!run.status.success() && run.stderr.contains("the direct consumer returned"), "{}", run.stderr);
+
+    // the arguments: the changed control reads its consequence from the held offsets, and a scene list means an observation was asked for
+    for (args, fragment) in [
+        (vec!["mode=offsets_changed"], "offsets=1"),
+        (vec!["offset_scenes=1"], "without offsets=1"),
+        (vec!["offsets=2"], "offsets"),
+    ] {
+        let run = stand_in_run(&args, "healthy");
+        assert!(!run.status.success() && run.stderr.contains(fragment), "{args:?}: {}", run.stderr);
+    }
+}
+
+#[test]
+fn a_withheld_or_malformed_target_offset_answer_stops_the_engine_by_name_and_nothing_falls_back() {
+    for (mode, marker) in [
+        ("offsets_withheld", "[model-provider:target_point_offset.refused]"),
+        ("offsets_bad_nan", "[model-provider:target_point_offset.value]"),
+        ("offsets_bad_name", "[model-provider:target_point_offset.identity]"),
+        ("offsets_bad_end", "[model-provider:target_point_offset.answer]"),
+    ] {
+        let run = stand_in_run(&[&format!("mode={mode}"), "engine_offsets=core", "offsets=1"], "healthy");
+        assert!(run.status.success(), "{mode}: the stop was not recognised\n{}", run.stderr);
+        let boot = run.row("boot_failed");
+        assert_eq!(
+            (boot["stage"].as_str(), boot["matched"].as_bool(), boot["tripped"].as_bool()),
+            (Some("boot"), Some(true), Some(true)),
+            "{mode}"
+        );
+        assert!(boot["error"].as_str().unwrap().contains(marker), "{boot}");
+        // the answer was never asked for: UNREACHED, not coverage
+        let run = stand_in_run(&[&format!("mode={mode}"), "engine_offsets=none"], "healthy");
+        assert!(!run.status.success() && run.stderr.contains("UNREACHED"), "{mode}: {}", run.stderr);
     }
 }
 
