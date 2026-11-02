@@ -7,6 +7,12 @@ The review procedure is in [REVIEW.md](docs/governance/REVIEW.md).
 
 ## Start each session
 
+Read [the execution controls](docs/governance/EXECUTION.md) and the current
+[active extraction card](docs/handover/ACTIVE-EXTRACTION.json). They make the next
+production change and its actual blockers explicit. Run the card's small progress
+guard before starting another preparation batch; this does not relax correctness,
+review, byte-identical regression or milestone authority requirements.
+
 Read the current M5 goal on Confluence, live:
 [EECH M5 Goal: EECH_DC into DCS World](https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337).
 It is the authoritative current scope and outranks Jira or legacy GitHub issue
