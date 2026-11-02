@@ -2114,3 +2114,57 @@ int eech_engine_route_call (int index, char *text, int capacity)
 }
 
 #endif
+
+#ifdef EECH_TARGET_POINT_FIXTURE
+
+/*
+ * TEST-ONLY (EEDCS-52, D3; feature target-point-fixture): the report of what the ORIGINAL target-point query, its callers and the boot census of target_point_offsets[] did during this
+ * process (eech_tp_fixture.c). Read-only: the entries pass no host, run inside the engine entry (EECH's round-toward-zero mode) and touch no campaign state.
+ */
+extern int eech_tp_summary_run (char *text, int capacity);
+extern int eech_tp_offsets_run (char *text, int capacity);
+extern int eech_tp_event_run (int index, char *text, int capacity);
+
+int eech_engine_target_point_summary (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_tp_summary_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_target_point_offsets (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_tp_offsets_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+int eech_engine_target_point_event (int index, char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || index < 0 || eech_tp_event_run (index, text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
+#endif

@@ -3432,6 +3432,13 @@ impl LuaUserData for LuaEngine {
         methods.add_method("route_summary", |_, this, ()| this.engine.route_summary().map_err(lua_error));
         #[cfg(feature = "route-fixture")]
         methods.add_method("route_call", |_, this, index: i32| this.engine.route_call(index).map_err(lua_error));
+        // TEST-ONLY (feature `target-point-fixture`, EEDCS-52 D3): what the ORIGINAL target-point query, its callers and the boot census of the offset table did; not part of the shipping module.
+        #[cfg(feature = "target-point-fixture")]
+        methods.add_method("target_point_summary", |_, this, ()| this.engine.target_point_summary().map_err(lua_error));
+        #[cfg(feature = "target-point-fixture")]
+        methods.add_method("target_point_offsets", |_, this, ()| this.engine.target_point_offsets().map_err(lua_error));
+        #[cfg(feature = "target-point-fixture")]
+        methods.add_method("target_point_event", |_, this, index: i32| this.engine.target_point_event(index).map_err(lua_error));
         // TEST-ONLY (feature `dependent-fixture`, EEDCS-40): not part of the shipping module.
         #[cfg(feature = "dependent-fixture")]
         methods.add_method(

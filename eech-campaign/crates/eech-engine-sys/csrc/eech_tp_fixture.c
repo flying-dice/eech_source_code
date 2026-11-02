@@ -1,0 +1,852 @@
+/*
+ * TEST-ONLY original target-point characterisation (EEDCS-52, D3). Compiled only with the `target-point-fixture` feature; never part of the shipping module.
+ *
+ * WHAT IT OBSERVES. Two things the ORIGINAL code does, with the hooks of eech_tp_hooks.h placed (build/patches.rs, TARGET_POINT_FIXTURE_PATCHES) between original statements of
+ * the STAGED copies of the sources; the sources in the tree are never edited, so the shipping build contains none of this.
+ *
+ *   1. THE QUERY. Every call of get_local_entity_target_point (en_maths.c) that the campaign's own update loop makes: the caller that reached it (weapon.c fill_aim_target with its
+ *      aim mode, or the weapon step's target-vector lookup; any other caller, such as a camera or the HUD, is "unattributed" and counted), the branch it took (1 an instance with a
+ *      TARGET_POINT sub-object, 2 an instance without one, 3 no instance and a fixed object of a valid shape, 4 the position fallback: no instance and either not a fixed object or
+ *      an invalid shape), the entity's type, the host identity the host ALREADY issued for it (campaign_object_host_id only reads; it never asks the host, so the observer allocates
+ *      no identity), the semantic model (the scene name of the instance, or of the shape), the offset it read, for a fixed shape whether a horizontal offset exists, the heading it read and
+ *      whether the rotated x/z offsets were added (a heading of zero adds none: the legacy quirk, recorded, not corrected), the float bits it returned, and the instance viewpoint
+ *      (position and attitude, twelve words) before and after the call, because branch 1 overwrites it from the entity pose.
+ *   2. THE CENSUS. initialise_target_point_offsets (wn_dbase.c) fills target_point_offsets[] once at boot: per model index, whether its offset came from the model's TARGET_POINT
+ *      sub-object, from the bounding-box fallback (with the six bounds it used) or is the invalid index's zero, and the float bits. The census records facts the original already
+ *      computed; it constructs and measures no model of its own. At report time each recorded entry is compared with the live table, so a later write to it would show.
+ *
+ * WHAT IT CANNOT SHOW. A call that no boot or frame reached is simply absent: an empty query report says "no calls", which is NOT a measured original, and a branch with no
+ * call is not covered. A table that fills, a hook outside an open call, a call that never ends and a call that begins inside another are each counted and make the capture not whole.
+ * The camera, HUD and player callers are not hooked; their calls are counted as unattributed when they happen. The AI attack guidance (gd_attck.c) reads target_point_offsets[]
+ * directly and is not observed. Nothing here constructs a model, calls the function from outside the game's order, draws a random number or reads a clock.
+ *
+ * It runs inside the engine entry (so it sees EECH's round-toward-zero mode) and changes nothing it observes.
+ */
+
+#ifdef EECH_TARGET_POINT_FIXTURE
+
+#include <ctype.h>
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "project.h"
+
+#include "entity/mobile/mb_hostaim.h"
+#include "entity/mobile/mb_hostobj.h"
+#include "eech_tp_hooks.h"
+
+#define TP_EVENTS 4096
+#define TP_HOST_ID 128
+
+enum
+{
+	TP_SITE_UNATTRIBUTED,
+	TP_SITE_AIM_VECTORS,
+	TP_SITE_AIM_LEAD,
+	TP_SITE_AIM_INTERCEPT,
+	TP_SITE_WEAPON_STEP,
+	TP_SITE_OTHER,
+	TP_SITES
+};
+
+enum
+{
+	TP_CASE_TARGET_POINT,
+	TP_CASE_INSTANCE_POSITION,
+	TP_CASE_NO_HORIZONTAL,
+	TP_CASE_HEADING_ZERO,
+	TP_CASE_ROTATED,
+	TP_CASE_NOT_FIXED,
+	TP_CASE_INVALID_SHAPE,
+	TP_CASES
+};
+
+enum
+{
+	TP_HOST_ID_ABSENT,
+	TP_HOST_ID_PRESENT,
+	TP_HOST_ID_OVERLONG
+};
+
+struct tp_event
+{
+	int seq, site, detail, branch, entity_type;
+	int host_id_state, host_id_len;
+	char host_id[TP_HOST_ID + 1];
+	int instance, model, fixed, shape, shape_out_of_range, horizontal, heading_read, xz_applied;
+	uint32_t heading;
+	int offset_known;
+	uint32_t offset[3], result[3];
+	int vp_known, vp_changed;
+	uint32_t vp_before[12], vp_after[12];
+};
+
+struct tp_census_row
+{
+	int state; /* 0 not recorded, 1 sub-object, 2 bounding box, 3 the invalid index's zero */
+	uint32_t offset[3], bounds[6];
+};
+
+static struct tp_event tp_events[TP_EVENTS];
+static struct tp_event tp_current;
+static const object_3d_instance *tp_current_instance;
+static int tp_open;
+static int tp_event_count, tp_calls, tp_dropped, tp_stale, tp_interrupted, tp_orphans, tp_unclassified, tp_out_of_range, tp_overlong;
+static int tp_pending, tp_pending_site, tp_pending_detail;
+static int tp_matrix[TP_SITES][5];
+static int tp_case_count[TP_CASES];
+static int tp_vp_changed_count, tp_host_present, tp_host_absent;
+
+static struct tp_census_row tp_census_rows[OBJECT_3D_LAST];
+static int tp_census_runs, tp_census_ended, tp_census_open, tp_census_duplicates, tp_census_stray;
+
+static uint32_t bits_of (const float *value)
+{
+	uint32_t word;
+	memcpy (&word, value, sizeof (word));
+	return word;
+}
+
+static void copy_vec (uint32_t *out, const float *x, const float *y, const float *z)
+{
+	out[0] = bits_of (x);
+	out[1] = bits_of (y);
+	out[2] = bits_of (z);
+}
+
+static void copy_vp (uint32_t *out, const object_3d_instance *instance)
+{
+	int i, j;
+
+	copy_vec (out, &instance->vp.position.x, &instance->vp.position.y, &instance->vp.position.z);
+	for (i = 0; i < 3; i++)
+	{
+		for (j = 0; j < 3; j++)
+		{
+			out[3 + (i * 3) + j] = bits_of (&instance->vp.attitude[i][j]);
+		}
+	}
+}
+
+static int site_class (int site, int detail)
+{
+	if (site == 1)
+	{
+		switch (detail)
+		{
+			case CAMPAIGN_AIM_VECTORS:
+			{
+				return TP_SITE_AIM_VECTORS;
+			}
+			case CAMPAIGN_AIM_LEAD:
+			{
+				return TP_SITE_AIM_LEAD;
+			}
+			case CAMPAIGN_AIM_INTERCEPT:
+			{
+				return TP_SITE_AIM_INTERCEPT;
+			}
+			default:
+			{
+				return TP_SITE_OTHER;
+			}
+		}
+	}
+	if (site == 2)
+	{
+		return detail == 1 ? TP_SITE_WEAPON_STEP : TP_SITE_OTHER;
+	}
+	if (site == 0)
+	{
+		return TP_SITE_UNATTRIBUTED;
+	}
+	return TP_SITE_OTHER;
+}
+
+static const char *site_name (int site_class_value)
+{
+	switch (site_class_value)
+	{
+		case TP_SITE_UNATTRIBUTED:
+		{
+			return "unattributed";
+		}
+		case TP_SITE_AIM_VECTORS:
+		{
+			return "aim_vectors";
+		}
+		case TP_SITE_AIM_LEAD:
+		{
+			return "aim_lead";
+		}
+		case TP_SITE_AIM_INTERCEPT:
+		{
+			return "aim_intercept";
+		}
+		case TP_SITE_WEAPON_STEP:
+		{
+			return "weapon_step_target_vec";
+		}
+		default:
+		{
+			return "other";
+		}
+	}
+}
+
+static const char *branch_name (int branch)
+{
+	switch (branch)
+	{
+		case 1:
+		{
+			return "instance_target_point";
+		}
+		case 2:
+		{
+			return "instance_position";
+		}
+		case 3:
+		{
+			return "fixed_shape_offset";
+		}
+		case 4:
+		{
+			return "position_fallback";
+		}
+		default:
+		{
+			return "-";
+		}
+	}
+}
+
+/* the case within a branch: integer logic over the recorded flags only; -1 when the call reached no branch */
+static int case_of (const struct tp_event *e)
+{
+	switch (e->branch)
+	{
+		case 1:
+		{
+			return TP_CASE_TARGET_POINT;
+		}
+		case 2:
+		{
+			return TP_CASE_INSTANCE_POSITION;
+		}
+		case 3:
+		{
+			if (!e->horizontal)
+			{
+				return TP_CASE_NO_HORIZONTAL;
+			}
+			return e->xz_applied ? TP_CASE_ROTATED : TP_CASE_HEADING_ZERO;
+		}
+		case 4:
+		{
+			return e->fixed ? TP_CASE_INVALID_SHAPE : TP_CASE_NOT_FIXED;
+		}
+		default:
+		{
+			return -1;
+		}
+	}
+}
+
+static const char *case_name (int value)
+{
+	switch (value)
+	{
+		case TP_CASE_TARGET_POINT:
+		{
+			return "target_point_subobject";
+		}
+		case TP_CASE_INSTANCE_POSITION:
+		{
+			return "instance_without_target_point";
+		}
+		case TP_CASE_NO_HORIZONTAL:
+		{
+			return "no_horizontal_offset";
+		}
+		case TP_CASE_HEADING_ZERO:
+		{
+			return "heading_zero_quirk";
+		}
+		case TP_CASE_ROTATED:
+		{
+			return "rotated_horizontal_offset";
+		}
+		case TP_CASE_NOT_FIXED:
+		{
+			return "not_fixed";
+		}
+		case TP_CASE_INVALID_SHAPE:
+		{
+			return "invalid_shape";
+		}
+		default:
+		{
+			return "-";
+		}
+	}
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* the query hooks */
+
+void eech_tp_caller (int site, int detail)
+{
+	if (tp_pending)
+	{
+		/* the previous caller context was never consumed by a call */
+		tp_stale++;
+	}
+	tp_pending = 1;
+	tp_pending_site = site;
+	tp_pending_detail = detail;
+}
+
+void eech_tp_begin (const void *en_pointer, const void *instance)
+{
+	struct ENTITY *en = (struct ENTITY *) en_pointer;
+	const char *id;
+	size_t length;
+
+	if (tp_open)
+	{
+		/* the previous call never ended */
+		tp_interrupted++;
+	}
+	memset (&tp_current, 0, sizeof (tp_current));
+	tp_open = 1;
+	tp_current.seq = tp_calls;
+	tp_calls++;
+	if (tp_pending)
+	{
+		tp_current.site = tp_pending_site;
+		tp_current.detail = tp_pending_detail;
+		tp_pending = 0;
+	}
+	tp_current.shape = -1;
+	tp_current.model = -1;
+	tp_current_instance = (const object_3d_instance *) instance;
+	if (en)
+	{
+		tp_current.entity_type = (int) get_local_entity_type (en);
+		/* only reads an identity the host already issued: it never asks the host and issues none */
+		id = campaign_object_host_id (en);
+		if (id && id[0])
+		{
+			length = strlen (id);
+			if (length <= TP_HOST_ID)
+			{
+				memcpy (tp_current.host_id, id, length + 1);
+				tp_current.host_id_len = (int) length;
+				tp_current.host_id_state = TP_HOST_ID_PRESENT;
+			}
+			else
+			{
+				tp_current.host_id_state = TP_HOST_ID_OVERLONG;
+			}
+		}
+	}
+	if (tp_current_instance)
+	{
+		tp_current.instance = 1;
+		tp_current.model = tp_current_instance->object_number;
+		tp_current.vp_known = 1;
+		copy_vp (tp_current.vp_before, tp_current_instance);
+	}
+	else
+	{
+		/* no instance: the position fallback unless the fixed-object path below finds a valid shape */
+		tp_current.branch = 4;
+	}
+}
+
+#define OPEN_OR_RETURN \
+	if (!tp_open) \
+	{ \
+		tp_orphans++; \
+		return; \
+	}
+
+void eech_tp_instance_target_point (void)
+{
+	OPEN_OR_RETURN
+	tp_current.branch = 1;
+}
+
+void eech_tp_instance_position (void)
+{
+	OPEN_OR_RETURN
+	tp_current.branch = 2;
+}
+
+void eech_tp_fixed (void)
+{
+	OPEN_OR_RETURN
+	tp_current.fixed = 1;
+}
+
+void eech_tp_shape (int index)
+{
+	OPEN_OR_RETURN
+	tp_current.shape = index;
+	if (index == OBJECT_3D_INVALID_OBJECT_INDEX)
+	{
+		return;
+	}
+	tp_current.branch = 3;
+	if (index > OBJECT_3D_INVALID_OBJECT_INDEX && index < OBJECT_3D_LAST)
+	{
+		tp_current.model = index;
+		tp_current.offset_known = 1;
+		copy_vec (tp_current.offset, &target_point_offsets[index].x, &target_point_offsets[index].y, &target_point_offsets[index].z);
+	}
+	else
+	{
+		/* the original indexes its table with this value; nothing is read here */
+		tp_current.shape_out_of_range = 1;
+	}
+}
+
+void eech_tp_horizontal (void)
+{
+	OPEN_OR_RETURN
+	tp_current.horizontal = 1;
+}
+
+void eech_tp_heading (const float *heading)
+{
+	OPEN_OR_RETURN
+	tp_current.heading_read = 1;
+	tp_current.heading = bits_of (heading);
+}
+
+void eech_tp_xz_applied (void)
+{
+	OPEN_OR_RETURN
+	tp_current.xz_applied = 1;
+}
+
+void eech_tp_end (const void *target_point)
+{
+	const vec3d *point = (const vec3d *) target_point;
+	int site, kind;
+
+	OPEN_OR_RETURN
+	copy_vec (tp_current.result, &point->x, &point->y, &point->z);
+	if (tp_current_instance)
+	{
+		copy_vp (tp_current.vp_after, tp_current_instance);
+		tp_current.vp_changed = memcmp (tp_current.vp_before, tp_current.vp_after, sizeof (tp_current.vp_before)) != 0;
+	}
+	tp_open = 0;
+	site = site_class (tp_current.site, tp_current.detail);
+	kind = case_of (&tp_current);
+	if (kind < 0)
+	{
+		tp_unclassified++;
+	}
+	else
+	{
+		tp_matrix[site][tp_current.branch]++;
+		tp_case_count[kind]++;
+	}
+	if (tp_current.vp_changed)
+	{
+		tp_vp_changed_count++;
+	}
+	if (tp_current.shape_out_of_range)
+	{
+		tp_out_of_range++;
+	}
+	if (tp_current.host_id_state == TP_HOST_ID_PRESENT)
+	{
+		tp_host_present++;
+	}
+	else if (tp_current.host_id_state == TP_HOST_ID_ABSENT)
+	{
+		tp_host_absent++;
+	}
+	else
+	{
+		tp_overlong++;
+	}
+	if (tp_event_count < TP_EVENTS)
+	{
+		tp_events[tp_event_count] = tp_current;
+		tp_event_count++;
+	}
+	else
+	{
+		tp_dropped++;
+	}
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* the census hooks */
+
+static void census_record (int index, int state, const void *offset, const object_3d_bounds *bounds)
+{
+	const vec3d *point = (const vec3d *) offset;
+	struct tp_census_row *row;
+
+	if (!tp_census_open)
+	{
+		tp_census_stray++;
+		return;
+	}
+	if (index < OBJECT_3D_INVALID_OBJECT_INDEX || index >= OBJECT_3D_LAST)
+	{
+		tp_census_stray++;
+		return;
+	}
+	row = &tp_census_rows[index];
+	if (row->state != 0)
+	{
+		tp_census_duplicates++;
+	}
+	memset (row, 0, sizeof (*row));
+	row->state = state;
+	copy_vec (row->offset, &point->x, &point->y, &point->z);
+	if (bounds)
+	{
+		row->bounds[0] = bits_of (&bounds->xmin);
+		row->bounds[1] = bits_of (&bounds->xmax);
+		row->bounds[2] = bits_of (&bounds->ymin);
+		row->bounds[3] = bits_of (&bounds->ymax);
+		row->bounds[4] = bits_of (&bounds->zmin);
+		row->bounds[5] = bits_of (&bounds->zmax);
+	}
+}
+
+void eech_tp_census_begin (void)
+{
+	tp_census_runs++;
+	tp_census_open = 1;
+}
+
+void eech_tp_census_invalid (const void *offset)
+{
+	census_record (OBJECT_3D_INVALID_OBJECT_INDEX, 3, offset, NULL);
+}
+
+void eech_tp_census_sub_object (int index, const void *offset)
+{
+	census_record (index, 1, offset, NULL);
+}
+
+void eech_tp_census_bbox (int index, const void *offset, const void *bounds)
+{
+	census_record (index, 2, offset, (const object_3d_bounds *) bounds);
+}
+
+void eech_tp_census_end (void)
+{
+	if (!tp_census_open)
+	{
+		tp_census_stray++;
+		return;
+	}
+	tp_census_open = 0;
+	tp_census_ended++;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* reports: `key=value` text lines; a report that does not fit is refused, never cut short */
+
+struct out
+{
+	char *text;
+	int capacity, used, overflow;
+};
+
+static void emit (struct out *out, const char *format, ...) __attribute__ ((format (printf, 2, 3)));
+
+static void emit (struct out *out, const char *format, ...)
+{
+	va_list args;
+	int n;
+	if (out->overflow)
+	{
+		return;
+	}
+	va_start (args, format);
+	n = vsnprintf (out->text + out->used, (size_t) (out->capacity - out->used), format, args);
+	va_end (args);
+	if (n < 0 || n >= out->capacity - out->used)
+	{
+		out->overflow = 1;
+		return;
+	}
+	out->used += n;
+}
+
+static void out_start (struct out *out, char *text, int capacity)
+{
+	out->text = text;
+	out->capacity = capacity;
+	out->used = 0;
+	out->overflow = 0;
+}
+
+/* a table name as one token of [A-Za-z0-9_.-]; "-" when there is none */
+static void clean_name (char *dst, size_t capacity, const char *name)
+{
+	size_t i = 0;
+
+	if (name)
+	{
+		for (; name[i] && i + 1 < capacity; i++)
+		{
+			unsigned char c = (unsigned char) name[i];
+			dst[i] = (isalnum (c) || c == '_' || c == '.' || c == '-') ? (char) c : '_';
+		}
+	}
+	if (i == 0)
+	{
+		dst[i++] = '-';
+	}
+	dst[i] = '\0';
+}
+
+static const char *scene_name (int scene)
+{
+	if (scene > OBJECT_3D_INVALID_OBJECT_INDEX && scene < OBJECT_3D_LAST && object_3d_scene_names[scene])
+	{
+		return object_3d_scene_names[scene];
+	}
+	return NULL;
+}
+
+static const char *entity_type_name (int type)
+{
+	if (type >= 0 && type < NUM_ENTITY_TYPES)
+	{
+		return entity_type_database[type].name;
+	}
+	return NULL;
+}
+
+/* `count` words as lower-case 8-digit hex separated by commas; the buffer holds at most 12 */
+static void words_text (char *dst, size_t capacity, const uint32_t *words, int count)
+{
+	int i;
+	size_t used = 0;
+
+	dst[0] = '\0';
+	for (i = 0; i < count; i++)
+	{
+		int n = snprintf (dst + used, capacity - used, "%s%08x", i ? "," : "", (unsigned int) words[i]);
+		if (n < 0 || (size_t) n >= capacity - used)
+		{
+			return;
+		}
+		used += (size_t) n;
+	}
+}
+
+static int census_live (int index)
+{
+	const struct tp_census_row *row = &tp_census_rows[index];
+
+	return row->offset[0] == bits_of (&target_point_offsets[index].x) && row->offset[1] == bits_of (&target_point_offsets[index].y) &&
+		row->offset[2] == bits_of (&target_point_offsets[index].z);
+}
+
+static const char *census_state_name (int state)
+{
+	switch (state)
+	{
+		case 1:
+		{
+			return "sub_object";
+		}
+		case 2:
+		{
+			return "bbox";
+		}
+		case 3:
+		{
+			return "invalid_zero";
+		}
+		default:
+		{
+			return "none";
+		}
+	}
+}
+
+struct census_totals
+{
+	int recorded, sub_object, bbox, invalid_zero, live_mismatch;
+};
+
+static void census_totals_of (struct census_totals *totals)
+{
+	int i;
+
+	memset (totals, 0, sizeof (*totals));
+	for (i = 0; i < OBJECT_3D_LAST; i++)
+	{
+		int state = tp_census_rows[i].state;
+
+		if (state == 0)
+		{
+			continue;
+		}
+		totals->recorded++;
+		if (state == 1)
+		{
+			totals->sub_object++;
+		}
+		else if (state == 2)
+		{
+			totals->bbox++;
+		}
+		else
+		{
+			totals->invalid_zero++;
+		}
+		if (!census_live (i))
+		{
+			totals->live_mismatch++;
+		}
+	}
+}
+
+int eech_tp_summary_run (char *text, int capacity)
+{
+	struct out out;
+	struct census_totals census;
+	int i, b, stale, census_whole, queries_whole;
+
+	out_start (&out, text, capacity);
+	census_totals_of (&census);
+	stale = tp_stale + (tp_pending ? 1 : 0);
+	emit (&out, "tp-summary calls=%d events=%d event_capacity=%d dropped=%d stale=%d interrupted=%d orphans=%d unclassified=%d open=%d out_of_range=%d host_id_overlong=%d\n",
+		tp_calls, tp_event_count, TP_EVENTS, tp_dropped, stale, tp_interrupted, tp_orphans, tp_unclassified, tp_open ? 1 : 0, tp_out_of_range, tp_overlong);
+	for (b = 1; b <= 4; b++)
+	{
+		int total = 0;
+
+		for (i = 0; i < TP_SITES; i++)
+		{
+			total += tp_matrix[i][b];
+		}
+		emit (&out, "tp-branch branch=%d name=%s calls=%d\n", b, branch_name (b), total);
+	}
+	for (i = 0; i < TP_SITES; i++)
+	{
+		emit (&out, "tp-site site=%d name=%s b1=%d b2=%d b3=%d b4=%d\n", i, site_name (i), tp_matrix[i][1], tp_matrix[i][2], tp_matrix[i][3], tp_matrix[i][4]);
+	}
+	emit (&out, "tp-case target_point=%d instance_position=%d no_horizontal=%d heading_zero=%d rotated=%d not_fixed=%d invalid_shape=%d vp_changed=%d host_id_present=%d host_id_absent=%d\n",
+		tp_case_count[TP_CASE_TARGET_POINT], tp_case_count[TP_CASE_INSTANCE_POSITION], tp_case_count[TP_CASE_NO_HORIZONTAL], tp_case_count[TP_CASE_HEADING_ZERO],
+		tp_case_count[TP_CASE_ROTATED], tp_case_count[TP_CASE_NOT_FIXED], tp_case_count[TP_CASE_INVALID_SHAPE], tp_vp_changed_count, tp_host_present, tp_host_absent);
+	emit (&out, "tp-census runs=%d ended=%d open=%d expected=%d recorded=%d sub_object=%d bbox=%d invalid_zero=%d duplicates=%d stray=%d live_mismatch=%d\n",
+		tp_census_runs, tp_census_ended, tp_census_open ? 1 : 0, (int) OBJECT_3D_LAST, census.recorded, census.sub_object, census.bbox, census.invalid_zero,
+		tp_census_duplicates, tp_census_stray, census.live_mismatch);
+	/* a census is whole only if it ran exactly once, ended, recorded every index once and the table still holds what it recorded; a query capture is whole only if no call was lost,
+	   interrupted, unclassified or out of range. A capture with NO call is whole but measured nothing: the caller reads `calls` */
+	census_whole = tp_census_runs == 1 && tp_census_ended == 1 && !tp_census_open && census.recorded == (int) OBJECT_3D_LAST && tp_census_duplicates == 0 &&
+		tp_census_stray == 0 && census.live_mismatch == 0 && census.invalid_zero == 1;
+	queries_whole = tp_dropped == 0 && stale == 0 && tp_interrupted == 0 && tp_orphans == 0 && tp_unclassified == 0 && !tp_open && tp_out_of_range == 0 && tp_overlong == 0;
+	emit (&out, "tp-complete census=%d queries_whole=%d\n", census_whole ? 1 : 0, queries_whole ? 1 : 0);
+	return out.overflow ? 1 : 0;
+}
+
+int eech_tp_offsets_run (char *text, int capacity)
+{
+	struct out out;
+	int i;
+
+	out_start (&out, text, capacity);
+	for (i = 0; i < OBJECT_3D_LAST; i++)
+	{
+		const struct tp_census_row *row = &tp_census_rows[i];
+		char name[96], offset[40], bounds[64];
+
+		clean_name (name, sizeof (name), scene_name (i));
+		if (row->state == 0)
+		{
+			emit (&out, "tp-offset index=%d name=%s state=none offset=- bounds=- live=-\n", i, name);
+			continue;
+		}
+		words_text (offset, sizeof (offset), row->offset, 3);
+		if (row->state == 2)
+		{
+			words_text (bounds, sizeof (bounds), row->bounds, 6);
+		}
+		else
+		{
+			strcpy (bounds, "-");
+		}
+		emit (&out, "tp-offset index=%d name=%s state=%s offset=%s bounds=%s live=%d\n", i, name, census_state_name (row->state), offset, bounds, census_live (i) ? 1 : 0);
+	}
+	return out.overflow ? 1 : 0;
+}
+
+int eech_tp_event_run (int index, char *text, int capacity)
+{
+	struct out out;
+	const struct tp_event *e;
+	char type_name[96], model_name[96], heading[12], offset[40], before[128], after[128];
+	int kind;
+
+	out_start (&out, text, capacity);
+	if (index < 0 || index >= tp_event_count)
+	{
+		return 1;
+	}
+	e = &tp_events[index];
+	kind = case_of (e);
+	clean_name (type_name, sizeof (type_name), entity_type_name (e->entity_type));
+	clean_name (model_name, sizeof (model_name), e->model >= 0 ? scene_name (e->model) : NULL);
+	if (e->heading_read)
+	{
+		snprintf (heading, sizeof (heading), "%08x", (unsigned int) e->heading);
+	}
+	else
+	{
+		strcpy (heading, "-");
+	}
+	if (e->offset_known)
+	{
+		words_text (offset, sizeof (offset), e->offset, 3);
+	}
+	else
+	{
+		strcpy (offset, "-");
+	}
+	if (e->vp_known)
+	{
+		words_text (before, sizeof (before), e->vp_before, 12);
+		words_text (after, sizeof (after), e->vp_after, 12);
+	}
+	else
+	{
+		strcpy (before, "-");
+		strcpy (after, "-");
+	}
+	emit (&out, "tp-event index=%d seq=%d site=%d site_name=%s detail=%d branch=%d branch_name=%s case=%s entity_type=%d entity_type_name=%s instance=%d model=%d model_name=%s "
+		"fixed=%d shape=%d horizontal=%d heading=%s xz_applied=%d offset=%s result=%08x,%08x,%08x vp_before=%s vp_after=%s vp_changed=%d host_id_state=%s host_id_len=%d",
+		index, e->seq, site_class (e->site, e->detail), site_name (site_class (e->site, e->detail)), e->detail, e->branch, branch_name (e->branch), case_name (kind), e->entity_type,
+		type_name, e->instance, e->model, model_name, e->fixed, e->shape, e->horizontal, heading, e->xz_applied, offset, (unsigned int) e->result[0], (unsigned int) e->result[1],
+		(unsigned int) e->result[2], before, after, e->vp_changed, e->host_id_state == TP_HOST_ID_PRESENT ? "present" : (e->host_id_state == TP_HOST_ID_ABSENT ? "absent" : "overlong"),
+		e->host_id_len);
+	if (e->host_id_state == TP_HOST_ID_PRESENT)
+	{
+		/* the identity is the LAST field and runs to the end of the line (its length is declared above): the host's text is printable but may hold spaces */
+		emit (&out, " host_id=%s", e->host_id);
+	}
+	emit (&out, "\n");
+	return out.overflow ? 1 : 0;
+}
+
+#endif

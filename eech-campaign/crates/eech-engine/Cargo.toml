@@ -40,6 +40,8 @@ ground-fixture = ["eech-engine-sys/ground-fixture"]
 route-fixture = ["eech-engine-sys/route-fixture"]
 # TEST-ONLY (EEDCS-50, D3): see eech-engine-sys.
 route-original = ["eech-engine-sys/route-original"]
+# TEST-ONLY (EEDCS-52, D3): see eech-engine-sys.
+target-point-fixture = ["eech-engine-sys/target-point-fixture"]
 
 [lints.rust]
 unsafe_op_in_unsafe_fn = "deny"

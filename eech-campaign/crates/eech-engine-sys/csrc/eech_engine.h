@@ -531,4 +531,17 @@ int eech_engine_route_summary (char *text, int capacity);
 int eech_engine_route_call (int index, char *text, int capacity);
 #endif
 
+#ifdef EECH_TARGET_POINT_FIXTURE
+/*
+ * TEST-ONLY (feature target-point-fixture, EEDCS-52 D3): see eech_tp_fixture.c. Not part of the shipping module.
+ * What the ORIGINAL get_local_entity_target_point, the callers that reached it and the boot census of target_point_offsets[] did, as `key=value` text lines.
+ * `eech_engine_target_point_summary` is the counters, the branch and caller matrix, the case counts, the census totals and two verdicts (the census is whole; the query capture is whole);
+ * `eech_engine_target_point_offsets` is one row per model index of the census; `eech_engine_target_point_event` is one recorded query by its zero-based index. All are read-only and
+ * take no host. A report that does not fit, or an index not recorded, fails as a bad argument.
+ */
+int eech_engine_target_point_summary (char *text, int capacity);
+int eech_engine_target_point_offsets (char *text, int capacity);
+int eech_engine_target_point_event (int index, char *text, int capacity);
+#endif
+
 #endif

@@ -190,6 +190,19 @@ fn main() {
         }
     }
 
+    // 1a3. TEST-ONLY (feature target-point-fixture, EEDCS-52 D3): observation hooks in the staged ORIGINAL get_local_entity_target_point (en_maths.c), initialise_target_point_offsets
+    //      (wn_dbase.c) and the two campaign callers that reach the query (weapon.c, wn_move.c), patches.rs TARGET_POINT_FIXTURE_PATCHES. None of the four files has a shipping
+    //      patch; with the feature off the staged files are exactly the shipping ones.
+    if env::var_os("CARGO_FEATURE_TARGET_POINT_FIXTURE").is_some() {
+        for file in patches::target_point_fixture_files() {
+            let staged = tree.join(file);
+            let bytes = fs::read(&staged).unwrap_or_else(|e| panic!("{file}: {e}"));
+            let text: String = bytes.iter().map(|&b| b as char).collect();
+            let patched: Vec<u8> = patches::apply_target_point_fixture(file, &text).chars().map(|c| c as u32 as u8).collect();
+            write_if_changed(&staged, &patched);
+        }
+    }
+
     // 1b. TEST-ONLY red build (feature dependent-fixture-old-guard): the staged copy of rv_hostmv.c gets the boolean apply guard
     //     EEDCS-40 replaced by a depth counter. The source tree and the shipping build are untouched.
     if env::var_os("CARGO_FEATURE_DEPENDENT_FIXTURE_OLD_GUARD").is_some() {
@@ -305,6 +318,9 @@ fn main() {
     }
     if env::var_os("CARGO_FEATURE_ROUTE_FIXTURE").is_some() {
         build.define("EECH_ROUTE_FIXTURE", None);
+    }
+    if env::var_os("CARGO_FEATURE_TARGET_POINT_FIXTURE").is_some() {
+        build.define("EECH_TARGET_POINT_FIXTURE", None);
     }
     if windows {
         build.flag("-include").flag(manifest.join("csrc/eech_win32_names.h").to_str().unwrap());

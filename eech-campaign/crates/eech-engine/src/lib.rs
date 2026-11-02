@@ -994,6 +994,18 @@ const ROUTE_REPORT_CAPACITY: usize = 1024 * 1024;
 #[cfg(feature = "route-fixture")]
 pub const ROUTE_CALLS_MAX: i32 = 1024;
 
+/// TEST-ONLY (feature `target-point-fixture`, EEDCS-52 D3): room for the census rows (one per model index); a report that does not fit is refused, never cut short.
+#[cfg(feature = "target-point-fixture")]
+const TARGET_POINT_REPORT_CAPACITY: usize = 4 * 1024 * 1024;
+
+/// TEST-ONLY (feature `target-point-fixture`): room for the summary or one recorded query (a few lines); a report that does not fit is refused, never cut short.
+#[cfg(feature = "target-point-fixture")]
+const TARGET_POINT_LINE_CAPACITY: usize = 64 * 1024;
+
+/// TEST-ONLY (feature `target-point-fixture`): the most queries the C side records. The same number bounds the C table (csrc/eech_tp_fixture.c TP_EVENTS).
+#[cfg(feature = "target-point-fixture")]
+pub const TARGET_POINT_EVENTS_MAX: i32 = 4096;
+
 /// TEST-ONLY (feature `weapon-fixture`): room for one weapon-execution report or one chunk of the event log; a report that does not fit is refused, never cut short.
 #[cfg(feature = "weapon-fixture")]
 const WPN_REPORT_CAPACITY: usize = 160 * 1024;
@@ -6079,6 +6091,45 @@ impl Engine {
         let mut text = vec![0 as std::os::raw::c_char; ROUTE_REPORT_CAPACITY];
         // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
         check(unsafe { sys::eech_engine_route_call(index, text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `target-point-fixture`, EEDCS-52 D3): what the ORIGINAL target-point query, its callers and the boot census of `target_point_offsets[]` did in this process, as
+    /// `key=value` text lines: the counters, the branch and caller matrix, the case counts, the census totals and the two verdicts (see `csrc/eech_tp_fixture.c`). Read-only; a report
+    /// that does not fit fails.
+    #[cfg(feature = "target-point-fixture")]
+    pub fn target_point_summary(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; TARGET_POINT_LINE_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_target_point_summary(text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `target-point-fixture`, EEDCS-52 D3): the census of `target_point_offsets[]`, one row per model index, as `key=value` text lines. Read-only; a report that does
+    /// not fit fails.
+    #[cfg(feature = "target-point-fixture")]
+    pub fn target_point_offsets(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; TARGET_POINT_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_target_point_offsets(text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `target-point-fixture`, EEDCS-52 D3): one recorded query by its zero-based index, as one `key=value` text line. `index` is checked here before the engine is
+    /// entered, and again by the engine, which refuses an index it did not record.
+    #[cfg(feature = "target-point-fixture")]
+    pub fn target_point_event(&self, index: i32) -> Result<String, EngineError> {
+        if !(0..TARGET_POINT_EVENTS_MAX).contains(&index) {
+            return Err(EngineError::BadArgument(format!(
+                "target_point_event: index {index} must be within 0..{TARGET_POINT_EVENTS_MAX}"
+            )));
+        }
+        let mut text = vec![0 as std::os::raw::c_char; TARGET_POINT_LINE_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_target_point_event(index, text.as_mut_ptr(), text.len() as i32) })?;
         // SAFETY: the engine wrote a NUL-terminated string within the buffer.
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
     }

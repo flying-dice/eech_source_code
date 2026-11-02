@@ -2168,3 +2168,193 @@ pub fn route_fixture_files(original: bool) -> Vec<&'static str> {
     files.dedup();
     files
 }
+
+/// TEST-ONLY patches of the `target-point-fixture` feature (EEDCS-52, D3): observation hooks in the ORIGINAL `get_local_entity_target_point` (en_maths.c), the original
+/// `initialise_target_point_offsets` (wn_dbase.c) and the two campaign callers that reach the query (weapon.c `fill_aim_target`, wn_move.c the weapon step's target-vector
+/// lookup), applied by main.rs ONLY when that feature is on, to the staged copies (none of the four files has a shipping patch). They record values the original statements
+/// already read or computed (csrc/eech_tp_hooks.h, csrc/eech_tp_fixture.c); each ADDS a call and changes no original statement, argument, order or value. With the feature off none of
+/// this exists in the build and the in-tree sources are never edited. Same strict count check as PATCHES.
+pub const TARGET_POINT_FIXTURE_PATCHES: &[Patch] = &[
+    Patch {
+        file: "aphavoc/source/entity/en_misc/en_maths/en_maths.c",
+        id: "TP1-hooks-include",
+        why: "declares the observer hooks (csrc/eech_tp_hooks.h)",
+        original: "#include \"project.h\"\n",
+        replacement: "#include \"project.h\"\n#include \"eech_tp_hooks.h\" /* EECH target-point fixture (TP1) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/en_misc/en_maths/en_maths.c",
+        id: "TP2-begin",
+        why: "the query begins, right after the original read the entity's 3D instance",
+        original: "\tinst3d = (object_3d_instance *) get_local_entity_ptr_value (en, PTR_TYPE_INSTANCE_3D_OBJECT);\n",
+        replacement: "\tinst3d = (object_3d_instance *) get_local_entity_ptr_value (en, PTR_TYPE_INSTANCE_3D_OBJECT);\n\teech_tp_begin ( en, inst3d ); /* EECH target-point fixture (TP2) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/en_misc/en_maths/en_maths.c",
+        id: "TP3-instance-target-point",
+        why: "branch 1: the instance holds a TARGET_POINT sub-object; the hook runs before the original overwrites the instance viewpoint from the entity pose",
+        original: "\t\t\tget_local_entity_vec3d (en, VEC3D_TYPE_POSITION, (vec3d *) &inst3d->vp.position);\n",
+        replacement: "\t\t\teech_tp_instance_target_point (); /* EECH target-point fixture (TP3) */\n\t\t\tget_local_entity_vec3d (en, VEC3D_TYPE_POSITION, (vec3d *) &inst3d->vp.position);\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/en_misc/en_maths/en_maths.c",
+        id: "TP4-instance-position",
+        why: "branch 2: the instance holds no TARGET_POINT sub-object and the original answers the entity position",
+        original: "\t\telse\n\t\t{\n\t\t\tget_local_entity_vec3d (en, VEC3D_TYPE_POSITION, target_point);\n",
+        replacement: "\t\telse\n\t\t{\n\t\t\teech_tp_instance_position (); /* EECH target-point fixture (TP4) */\n\t\t\tget_local_entity_vec3d (en, VEC3D_TYPE_POSITION, target_point);\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/en_misc/en_maths/en_maths.c",
+        id: "TP5-fixed",
+        why: "no instance, and the entity is a fixed object",
+        original: "\t\tif (get_local_entity_int_value (en, INT_TYPE_IDENTIFY_FIXED))\n\t\t{\n",
+        replacement: "\t\tif (get_local_entity_int_value (en, INT_TYPE_IDENTIFY_FIXED))\n\t\t{\n\t\t\teech_tp_fixed (); /* EECH target-point fixture (TP5) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/en_misc/en_maths/en_maths.c",
+        id: "TP6-shape",
+        why: "the shape index the original has just read for a fixed object",
+        original: "\t\t\tindex = get_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE);\n",
+        replacement: "\t\t\tindex = get_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE);\n\t\t\teech_tp_shape ( index ); /* EECH target-point fixture (TP6) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/en_misc/en_maths/en_maths.c",
+        id: "TP7-horizontal",
+        why: "the shape's offset has a non-zero x or z (the original's own test, entered)",
+        original: "\t\t\t\tif ((target_point_offsets[index].x != 0.0) || (target_point_offsets[index].z != 0.0))\n\t\t\t\t{\n",
+        replacement: "\t\t\t\tif ((target_point_offsets[index].x != 0.0) || (target_point_offsets[index].z != 0.0))\n\t\t\t\t{\n\t\t\t\t\teech_tp_horizontal (); /* EECH target-point fixture (TP7) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/en_misc/en_maths/en_maths.c",
+        id: "TP8-heading",
+        why: "the heading the original has just read; the hook takes it by pointer and copies its bit pattern",
+        original: "\t\t\t\t\theading = get_local_entity_float_value (en, FLOAT_TYPE_HEADING);\n",
+        replacement: "\t\t\t\t\theading = get_local_entity_float_value (en, FLOAT_TYPE_HEADING);\n\t\t\t\t\teech_tp_heading ( &heading ); /* EECH target-point fixture (TP8) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/en_misc/en_maths/en_maths.c",
+        id: "TP9-xz-applied",
+        why: "the original's own `heading != 0.0` test was entered: it is about to add the rotated x/z offsets (a heading of zero never gets here, the legacy quirk)",
+        original: "\t\t\t\t\t\tsin_heading = sin (heading);\n",
+        replacement: "\t\t\t\t\t\teech_tp_xz_applied (); /* EECH target-point fixture (TP9) */\n\t\t\t\t\t\tsin_heading = sin (heading);\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/en_misc/en_maths/en_maths.c",
+        id: "TP10-end",
+        why: "the query ends: the target point it returned (the function has no earlier return)",
+        original: "\t\t\t\ttarget_point->y += target_point_offsets[index].y;\n\t\t\t}\n\t\t}\n\t}\n}\n",
+        replacement: "\t\t\t\ttarget_point->y += target_point_offsets[index].y;\n\t\t\t}\n\t\t}\n\t}\n\n\teech_tp_end ( target_point ); /* EECH target-point fixture (TP10) */\n}\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/mobile/weapon/wn_dbase.c",
+        id: "TP11-hooks-include",
+        why: "declares the observer hooks (csrc/eech_tp_hooks.h)",
+        original: "#include \"project.h\"\n",
+        replacement: "#include \"project.h\"\n#include \"eech_tp_hooks.h\" /* EECH target-point fixture (TP11) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/mobile/weapon/wn_dbase.c",
+        id: "TP12-census-begin",
+        why: "the census begins; the hook sits before calculate_seeker_limits_from_launch_angle, which is a separate campaign weapon-policy calculation that keeps its order and single execution",
+        original: "\tdebug_assert (get_3d_objects_initialised ());\n\n\tcalculate_seeker_limits_from_launch_angle();\n",
+        replacement: "\tdebug_assert (get_3d_objects_initialised ());\n\n\teech_tp_census_begin (); /* EECH target-point fixture (TP12) */\n\n\tcalculate_seeker_limits_from_launch_angle();\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/mobile/weapon/wn_dbase.c",
+        id: "TP13-census-invalid",
+        why: "the table's entry for the invalid object index, as the original has just zeroed it",
+        original: "\ttarget_point_offsets[OBJECT_3D_INVALID_OBJECT_INDEX].z = 0.0;\n",
+        replacement: "\ttarget_point_offsets[OBJECT_3D_INVALID_OBJECT_INDEX].z = 0.0;\n\teech_tp_census_invalid ( &target_point_offsets[OBJECT_3D_INVALID_OBJECT_INDEX] ); /* EECH target-point fixture (TP13) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/mobile/weapon/wn_dbase.c",
+        id: "TP14-census-sub-object",
+        why: "a model's entry taken from its TARGET_POINT sub-object's world position",
+        original: "\t\t\ttarget_point_offsets[object_3d_index] = vp.position;\n",
+        replacement: "\t\t\ttarget_point_offsets[object_3d_index] = vp.position;\n\t\t\teech_tp_census_sub_object ( object_3d_index, &target_point_offsets[object_3d_index] ); /* EECH target-point fixture (TP14) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/mobile/weapon/wn_dbase.c",
+        id: "TP15-census-bbox",
+        why: "a model's entry derived from its bounding box (y = max (centre y, 0)); the hook also reads the box the original used",
+        original: "\t\t\ttarget_point_offsets[object_3d_index].z = (bounding_box->zmin + bounding_box->zmax) * 0.5;\n",
+        replacement: "\t\t\ttarget_point_offsets[object_3d_index].z = (bounding_box->zmin + bounding_box->zmax) * 0.5;\n\t\t\teech_tp_census_bbox ( object_3d_index, &target_point_offsets[object_3d_index], bounding_box ); /* EECH target-point fixture (TP15) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/mobile/weapon/wn_dbase.c",
+        id: "TP16-census-end",
+        why: "the census ends after the last model",
+        original: "\t\tdestruct_3d_object (inst3d);\n\t}\n}\n",
+        replacement: "\t\tdestruct_3d_object (inst3d);\n\t}\n\n\teech_tp_census_end (); /* EECH target-point fixture (TP16) */\n}\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/mobile/weapon/weapon.c",
+        id: "TP17-hooks-include",
+        why: "declares the observer hooks (csrc/eech_tp_hooks.h)",
+        original: "#include \"entity/mobile/mb_aimfx.h\"\n",
+        replacement: "#include \"entity/mobile/mb_aimfx.h\"\n#include \"eech_tp_hooks.h\" /* EECH target-point fixture (TP17) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/mobile/weapon/weapon.c",
+        id: "TP18-caller-aim",
+        why: "the caller context of fill_aim_target: the aim step's mode (vectors, lead or intercept) says which host aim operation asked",
+        original: "\tget_local_entity_target_point (target, &point);\n",
+        replacement: "\teech_tp_caller ( 1, step->mode ); /* EECH target-point fixture (TP18) */\n\tget_local_entity_target_point (target, &point);\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/mobile/weapon/wn_move.c",
+        id: "TP19-hooks-include",
+        why: "declares the observer hooks (csrc/eech_tp_hooks.h)",
+        original: "#include \"project.h\"\n",
+        replacement: "#include \"project.h\"\n#include \"eech_tp_hooks.h\" /* EECH target-point fixture (TP19) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/mobile/weapon/wn_move.c",
+        id: "TP20-caller-weapon-step",
+        why: "the caller context of the weapon step's target-vector lookup (question 1, the target point)",
+        original: "\t\t\t\t\tget_local_entity_target_point (target, &p);\n",
+        replacement: "\t\t\t\t\teech_tp_caller ( 2, lookup->b ); /* EECH target-point fixture (TP20) */\n\t\t\t\t\tget_local_entity_target_point (target, &p);\n",
+        count: 1,
+    },
+];
+
+/// the staged text of `file` with the target-point-fixture patches applied (same strict count check as `apply`)
+pub fn apply_target_point_fixture(file: &str, text: &str) -> String {
+    let mut out = text.to_string();
+    for p in TARGET_POINT_FIXTURE_PATCHES.iter().filter(|p| p.file == file) {
+        let found = out.matches(p.original).count();
+        assert_eq!(
+            found, p.count,
+            "target-point-fixture patch {} expects {} occurrence(s) of its original text in {}, found {}",
+            p.id, p.count, file, found
+        );
+        out = out.replace(p.original, p.replacement);
+    }
+    out
+}
+
+pub fn target_point_fixture_files() -> Vec<&'static str> {
+    let mut files: Vec<&str> = TARGET_POINT_FIXTURE_PATCHES.iter().map(|p| p.file).collect();
+    files.sort_unstable();
+    files.dedup();
+    files
+}

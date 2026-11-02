@@ -1830,6 +1830,13 @@ extern "C" {
     pub fn eech_engine_route_call(index: c_int, text: *mut c_char, capacity: c_int) -> c_int;
 }
 
+#[cfg(feature = "target-point-fixture")]
+extern "C" {
+    pub fn eech_engine_target_point_summary(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_target_point_offsets(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_target_point_event(index: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+}
+
 #[cfg(feature = "aim-fixture")]
 extern "C" {
     pub fn eech_engine_aim_trace(text: *mut c_char, capacity: c_int) -> c_int;

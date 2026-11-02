@@ -41,6 +41,8 @@ ground-fixture = []
 route-fixture = []
 # TEST-ONLY (EEDCS-50, D3): keep the ORIGINAL airfield route parser (the campaign DLL's own model arrays) instead of the host-owned route data: the original route characterisation. Never enabled in the shipping build.
 route-original = []
+# TEST-ONLY (EEDCS-52, D3): the observer of the ORIGINAL get_local_entity_target_point, the callers that reach it and the boot census of target_point_offsets[] (en_maths.c, wn_dbase.c, weapon.c, wn_move.c), reported through three read-only entries. Never enabled in the shipping build.
+target-point-fixture = []
 
 # TEST-ONLY (EEDCS-50): the isolated control of the original-model read-safety walk; it needs the feature's C
 [[test]]
