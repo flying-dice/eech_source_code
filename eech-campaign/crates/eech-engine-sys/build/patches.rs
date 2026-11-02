@@ -2171,7 +2171,7 @@ pub fn route_fixture_files(original: bool) -> Vec<&'static str> {
 
 /// TEST-ONLY patches of the `target-point-fixture` feature (EEDCS-52, D3): observation hooks in the ORIGINAL `get_local_entity_target_point` (en_maths.c), the original
 /// `initialise_target_point_offsets` (wn_dbase.c) and the two campaign callers that reach the query (weapon.c `fill_aim_target`, wn_move.c the weapon step's target-vector
-/// lookup), applied by main.rs ONLY when that feature is on, to the staged copies (none of the four files has a shipping patch). They record values the original statements
+/// lookup), applied by main.rs ONLY when that feature is on, to the staged copies (none of these files has a shipping patch; random.c gets only the one `srand` announcement, and eech_tp_rand.h counts every `rand`). They record values the original statements
 /// already read or computed (csrc/eech_tp_hooks.h, csrc/eech_tp_fixture.c); each ADDS a call and changes no original statement, argument, order or value. With the feature off none of
 /// this exists in the build and the in-tree sources are never edited. Same strict count check as PATCHES.
 pub const TARGET_POINT_FIXTURE_PATCHES: &[Patch] = &[
@@ -2333,6 +2333,46 @@ pub const TARGET_POINT_FIXTURE_PATCHES: &[Patch] = &[
         why: "the caller context of the weapon step's target-vector lookup (question 1, the target point)",
         original: "\t\t\t\t\tget_local_entity_target_point (target, &p);\n",
         replacement: "\t\t\t\t\teech_tp_caller ( 2, lookup->b ); /* EECH target-point fixture (TP20) */\n\t\t\t\t\tget_local_entity_target_point (target, &p);\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/en_misc/en_maths/en_maths.c",
+        id: "TP21-base-branch2",
+        why: "branch 2: the entity position the original's get_local_entity_vec3d has just copied into the result (the hook follows the statement and reads it before anything is added)",
+        original: "\t\t\teech_tp_instance_position (); /* EECH target-point fixture (TP4) */\n\t\t\tget_local_entity_vec3d (en, VEC3D_TYPE_POSITION, target_point);\n",
+        replacement: "\t\t\teech_tp_instance_position (); /* EECH target-point fixture (TP4) */\n\t\t\tget_local_entity_vec3d (en, VEC3D_TYPE_POSITION, target_point);\n\t\t\teech_tp_base_position ( target_point ); /* EECH target-point fixture (TP21) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/en_misc/en_maths/en_maths.c",
+        id: "TP22-base-no-instance",
+        why: "branches 3 and 4: the entity position the original's get_local_entity_vec3d has just copied into the result, before the fixed-object test and before any physical addition",
+        original: "\telse\n\t{\n\t\tget_local_entity_vec3d (en, VEC3D_TYPE_POSITION, target_point);\n\n\t\t//\n",
+        replacement: "\telse\n\t{\n\t\tget_local_entity_vec3d (en, VEC3D_TYPE_POSITION, target_point);\n\t\teech_tp_base_position ( target_point ); /* EECH target-point fixture (TP22) */\n\n\t\t//\n",
+        count: 1,
+    },
+    Patch {
+        file: "aphavoc/source/entity/en_misc/en_maths/en_maths.c",
+        id: "TP23-instance-chain",
+        why: "branch 1: right before the original walks the sub-object chain, the hook reads the same parent chain and the instance's relative scale (no second search, no write)",
+        original: "\t\t\tget_3d_sub_object_world_viewpoint (&search, &vp);\n",
+        replacement: "\t\t\teech_tp_instance_chain ( search.result_sub_object, inst3d ); /* EECH target-point fixture (TP23) */\n\t\t\tget_3d_sub_object_world_viewpoint (&search, &vp);\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/maths/random.c",
+        id: "TP24-hooks-include",
+        why: "declares the observer hooks (csrc/eech_tp_hooks.h)",
+        original: "#include \"maths.h\"\n",
+        replacement: "#include \"maths.h\"\n#include \"eech_tp_hooks.h\" /* EECH target-point fixture (TP24) */\n",
+        count: 1,
+    },
+    Patch {
+        file: "modules/maths/random.c",
+        id: "TP25-seed",
+        why: "the campaign's seeding reaches the CRT stream here: the hook announces the seed right before the original's srand (seed)",
+        original: "\tsrand (seed);\n",
+        replacement: "\teech_tp_seed ( seed ); /* EECH target-point fixture (TP25) */\n\tsrand (seed);\n",
         count: 1,
     },
 ];

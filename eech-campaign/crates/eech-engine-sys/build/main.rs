@@ -192,7 +192,7 @@ fn main() {
 
     // 1a3. TEST-ONLY (feature target-point-fixture, EEDCS-52 D3): observation hooks in the staged ORIGINAL get_local_entity_target_point (en_maths.c), initialise_target_point_offsets
     //      (wn_dbase.c) and the two campaign callers that reach the query (weapon.c, wn_move.c), patches.rs TARGET_POINT_FIXTURE_PATCHES. None of the four files has a shipping
-    //      patch; with the feature off the staged files are exactly the shipping ones.
+    //      patch (random.c also gets the one srand announcement); with the feature off the staged files are exactly the shipping ones.
     if env::var_os("CARGO_FEATURE_TARGET_POINT_FIXTURE").is_some() {
         for file in patches::target_point_fixture_files() {
             let staged = tree.join(file);
@@ -321,6 +321,8 @@ fn main() {
     }
     if env::var_os("CARGO_FEATURE_TARGET_POINT_FIXTURE").is_some() {
         build.define("EECH_TARGET_POINT_FIXTURE", None);
+        // EEDCS-52: every rand () of this build is counted (csrc/eech_tp_rand.h renames it; the real call happens once, in place); no other build includes the header
+        build.flag("-include").flag(manifest.join("csrc/eech_tp_rand.h").to_str().unwrap());
     }
     if windows {
         build.flag("-include").flag(manifest.join("csrc/eech_win32_names.h").to_str().unwrap());

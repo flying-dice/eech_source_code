@@ -40,6 +40,20 @@
  *      stops the run before any frame. The queries are caller class "setup_probe", not natural, not aim/weapon coverage and not host authority; the temporary instance is an environment
  *      precondition. The allocator's internal state is not claimed identical, only the counters named above.
  *
+ *   5. THE ORIGINAL INPUTS OF THE PHYSICAL QUERY (the completeness step before any host extraction). Branches 2, 3 and 4 record the entity BASE position: the three words the original's own
+ *      get_local_entity_vec3d has just copied into the result, read by a hook placed right after that statement and before any physical addition (branch 1 keeps its vp_after position and
+ *      attitude, and its original write of the instance viewpoint). Branch 1 records, immediately before the original calls get_3d_sub_object_world_viewpoint, the instance's relative scale
+ *      and the chain of sub-object placements that function is about to walk: it follows the same `parent` pointers from the sub-object the original's search already found up to the main
+ *      object, copies each node's relative position, heading, pitch, roll and scale as bit patterns (topmost sub-object first, the order the original applies them), and says whether the walk
+ *      ended at this instance. It is bounded (the original's own 256-slot array; eight nodes are kept), makes no second search and no write, and exposes no pointer. A chain deeper than eight
+ *      nodes, a walk that does not end, a wrong root or a null result is reported as that state with its depth and NO nodes: never a truncated chain presented as whole.
+ *   6. THE CRT RANDOM STREAM. Every rand () of the build is renamed (csrc/eech_tp_rand.h, force-included only with this feature) to eech_tp_counted_rand, which counts the draw and calls the
+ *      real rand () once, in the same place, with the same arguments and result; the single srand () of the build (random.c set_random_number_seed, called by the campaign's own seeding)
+ *      is announced by a hook placed before it. The observer keeps, per initialiser pass, the draws made inside it and the number of scenes whose `skin.animation` field predicts a draw,
+ *      and a bounded ordered list of marks (seed, pass begin, pass end, and the first draw OUTSIDE any pass that follows a pass end with no reseed in between: the point where a draw count
+ *      of the pass would be visible to a later consumer). It draws nothing, seeds nothing and reorders nothing. The campaign's own custom generator (random_number_seed, rand16 and
+ *      friends) is a different generator and is not counted. It is single-threaded bookkeeping: the engine runs on one thread behind its entry lock.
+ *
  * WHAT IT CANNOT SHOW. A call that no boot or frame reached is simply absent: an empty query report says "no calls", which is NOT a measured original, and a branch with no
  * call is not covered. A table that fills, a hook outside an open call, a call that never ends and a call that begins inside another are each counted and make the capture not whole.
  * The camera, HUD and player callers are not hooked; their calls are counted as unattributed when they happen. The AI attack guidance (gd_attck.c) reads target_point_offsets[]
@@ -63,10 +77,19 @@
 #include "entity/mobile/mb_hostobj.h"
 #include "eech_tp_hooks.h"
 
+/* eech_tp_rand.h (force-included) renamed every rand () to eech_tp_counted_rand; the one real call is inside that function */
+#undef rand
+extern int rand (void);
+
 #define TP_EVENTS 4096
 #define TP_HOST_ID 128
 /* the most original initialiser passes kept; one boot has been seen to run two */
 #define TP_GENERATIONS 4
+/* sub-object nodes kept per branch-1 chain (a deeper chain is reported as such, without nodes), and the original's own limit for the walk (objects[256] in get_3d_sub_object_world_viewpoint) */
+#define TP_CHAIN 8
+#define TP_WALK_MAX 256
+/* ordered CRT-stream marks kept */
+#define TP_RNG_MARKS 32
 
 enum
 {
@@ -97,6 +120,25 @@ enum
 
 enum
 {
+	TP_CHAIN_NONE,
+	TP_CHAIN_COMPLETE,
+	TP_CHAIN_EMPTY,
+	TP_CHAIN_TOO_DEEP,
+	TP_CHAIN_UNTERMINATED,
+	TP_CHAIN_WRONG_ROOT,
+	TP_CHAIN_NULL_RESULT
+};
+
+enum
+{
+	TP_MARK_SEED,
+	TP_MARK_PASS_BEGIN,
+	TP_MARK_PASS_END,
+	TP_MARK_EXPOSED
+};
+
+enum
+{
 	TP_HOST_ID_ABSENT,
 	TP_HOST_ID_PRESENT,
 	TP_HOST_ID_OVERLONG
@@ -115,6 +157,14 @@ struct tp_event
 	uint32_t offset[3], result[3];
 	int vp_known, vp_changed;
 	uint32_t vp_before[12], vp_after[12];
+	/* the entity base position the original's get_local_entity_vec3d copied (branches 2, 3 and 4) */
+	int base_known;
+	uint32_t base[3];
+	/* branch 1: the main object's relative scale, and the chain of placements get_3d_sub_object_world_viewpoint is about to apply, topmost first: position (3), heading, pitch, roll, scale (3) */
+	int scale_known;
+	uint32_t main_scale[3];
+	int chain_state, chain_depth;
+	uint32_t chain[TP_CHAIN][9];
 };
 
 struct tp_census_row
@@ -137,12 +187,95 @@ struct tp_generation
 {
 	int ended, interrupted;
 	int duplicates, out_of_range;
+	/* CRT draws made while this pass ran, and the scenes whose skin field predicts one (read when the pass ended) */
+	unsigned rng_draws;
+	int skinned;
 	struct tp_census_row rows[OBJECT_3D_LAST];
 };
 
 static struct tp_generation tp_generations[TP_GENERATIONS];
 /* passes kept, passes begun beyond the history, the pass running (kept or not), the kept pass it fills (-1: none or not kept), the latest kept pass that ended, passes abandoned by the next begin, hooks outside a pass */
 static int tp_gen_count, tp_gen_dropped, tp_gen_open, tp_gen_current = -1, tp_gen_last = -1, tp_gen_interrupted, tp_census_stray;
+
+/* the CRT random stream (see the header comment, item 6) */
+struct tp_rng_mark
+{
+	int kind, gen;
+	uint32_t value;
+	unsigned draws, since_seed;
+};
+
+static struct tp_rng_mark tp_rng_marks[TP_RNG_MARKS];
+static int tp_rng_mark_count;
+static unsigned tp_rng_marks_dropped, tp_rng_draws, tp_rng_since_seed, tp_rng_seeds, tp_rng_pass_draws, tp_rng_outside, tp_rng_exposed, tp_rng_pass_begin_draws;
+/* the pass whose end no seed has followed yet (-1: a pass beyond the history), or -2 for none */
+static int tp_rng_after_pass = -2;
+
+static void rng_mark (int kind, int gen, uint32_t value)
+{
+	if (tp_rng_mark_count < TP_RNG_MARKS)
+	{
+		struct tp_rng_mark *mark = &tp_rng_marks[tp_rng_mark_count];
+
+		mark->kind = kind;
+		mark->gen = gen;
+		mark->value = value;
+		mark->draws = tp_rng_draws;
+		mark->since_seed = tp_rng_since_seed;
+		tp_rng_mark_count++;
+	}
+	else
+	{
+		tp_rng_marks_dropped++;
+	}
+}
+
+/* every rand () of the build: counts, then makes the original's one call, unchanged */
+int eech_tp_counted_rand (void)
+{
+	tp_rng_draws++;
+	tp_rng_since_seed++;
+	if (tp_gen_open)
+	{
+		tp_rng_pass_draws++;
+	}
+	else
+	{
+		tp_rng_outside++;
+		if (tp_rng_after_pass != -2)
+		{
+			/* the first draw after a pass end with no reseed between: the stream position the pass left is now observable */
+			rng_mark (TP_MARK_EXPOSED, tp_rng_after_pass, 0);
+			tp_rng_exposed++;
+			tp_rng_after_pass = -2;
+		}
+	}
+	return rand ();
+}
+
+/* announced right before the original's srand (seed) in set_random_number_seed */
+void eech_tp_seed (int seed)
+{
+	rng_mark (TP_MARK_SEED, -1, (uint32_t) seed);
+	tp_rng_seeds++;
+	tp_rng_since_seed = 0;
+	tp_rng_after_pass = -2;
+}
+
+/* the scenes (1 .. OBJECT_3D_LAST - 1) whose skin field says skin_random draws once for them: skin_init sets `animation` for every scene from its name, -1 for none */
+static int skinned_scenes (void)
+{
+	int i, count = 0;
+
+	for (i = OBJECT_3D_INVALID_OBJECT_INDEX + 1; i < OBJECT_3D_LAST; i++)
+	{
+		if (objects_3d_scene_database[i].skin.animation >= 0)
+		{
+			count++;
+		}
+	}
+	return count;
+}
 
 static uint32_t bits_of (const float *value)
 {
@@ -277,6 +410,64 @@ static const char *branch_name (int branch)
 		default:
 		{
 			return "-";
+		}
+	}
+}
+
+static const char *chain_state_name (int state)
+{
+	switch (state)
+	{
+		case TP_CHAIN_COMPLETE:
+		{
+			return "complete";
+		}
+		case TP_CHAIN_EMPTY:
+		{
+			return "empty";
+		}
+		case TP_CHAIN_TOO_DEEP:
+		{
+			return "too_deep";
+		}
+		case TP_CHAIN_UNTERMINATED:
+		{
+			return "unterminated";
+		}
+		case TP_CHAIN_WRONG_ROOT:
+		{
+			return "wrong_root";
+		}
+		case TP_CHAIN_NULL_RESULT:
+		{
+			return "null_result";
+		}
+		default:
+		{
+			return "-";
+		}
+	}
+}
+
+static const char *mark_name (int kind)
+{
+	switch (kind)
+	{
+		case TP_MARK_SEED:
+		{
+			return "seed";
+		}
+		case TP_MARK_PASS_BEGIN:
+		{
+			return "pass_begin";
+		}
+		case TP_MARK_PASS_END:
+		{
+			return "pass_end";
+		}
+		default:
+		{
+			return "exposed";
 		}
 	}
 }
@@ -444,6 +635,78 @@ void eech_tp_instance_position (void)
 {
 	OPEN_OR_RETURN
 	tp_current.branch = 2;
+}
+
+/* branches 2, 3 and 4: the original's get_local_entity_vec3d has just copied the entity position into the result; nothing physical has been added yet */
+void eech_tp_base_position (const void *target_point)
+{
+	const vec3d *point = (const vec3d *) target_point;
+
+	OPEN_OR_RETURN
+	copy_vec (tp_current.base, &point->x, &point->y, &point->z);
+	tp_current.base_known = 1;
+}
+
+/* branch 1, right before the original calls get_3d_sub_object_world_viewpoint: the placements it is about to walk, read through the same parent pointers from the sub-object the search found */
+void eech_tp_instance_chain (const void *result_sub_object, const void *instance)
+{
+	const object_3d_sub_instance *node = (const object_3d_sub_instance *) result_sub_object;
+	const object_3d_instance *main_object = (const object_3d_instance *) instance;
+	const object_3d_sub_instance *leaf_first[TP_CHAIN];
+	int depth = 0, i;
+
+	OPEN_OR_RETURN
+	if (main_object)
+	{
+		copy_vec (tp_current.main_scale, &main_object->relative_scale.x, &main_object->relative_scale.y, &main_object->relative_scale.z);
+		tp_current.scale_known = 1;
+	}
+	if (!node)
+	{
+		tp_current.chain_state = TP_CHAIN_NULL_RESULT;
+		return;
+	}
+	while (node->parent)
+	{
+		if (depth == TP_WALK_MAX)
+		{
+			tp_current.chain_state = TP_CHAIN_UNTERMINATED;
+			tp_current.chain_depth = depth;
+			return;
+		}
+		if (depth < TP_CHAIN)
+		{
+			leaf_first[depth] = node;
+		}
+		depth++;
+		node = node->parent;
+	}
+	tp_current.chain_depth = depth;
+	if ((const void *) node != instance)
+	{
+		tp_current.chain_state = TP_CHAIN_WRONG_ROOT;
+		return;
+	}
+	if (depth == 0)
+	{
+		tp_current.chain_state = TP_CHAIN_EMPTY;
+		return;
+	}
+	if (depth > TP_CHAIN)
+	{
+		tp_current.chain_state = TP_CHAIN_TOO_DEEP;
+		return;
+	}
+	for (i = 0; i < depth; i++)
+	{
+		const object_3d_sub_instance *step = leaf_first[depth - 1 - i];
+		uint32_t *out = tp_current.chain[i];
+
+		copy_vec (out, &step->relative_position.x, &step->relative_position.y, &step->relative_position.z);
+		copy_vec (out + 3, &step->relative_heading, &step->relative_pitch, &step->relative_roll);
+		copy_vec (out + 6, &step->relative_scale.x, &step->relative_scale.y, &step->relative_scale.z);
+	}
+	tp_current.chain_state = TP_CHAIN_COMPLETE;
 }
 
 void eech_tp_fixed (void)
@@ -615,6 +878,8 @@ void eech_tp_census_begin (void)
 		tp_gen_current = -1;
 		tp_gen_dropped++;
 	}
+	tp_rng_pass_begin_draws = tp_rng_draws;
+	rng_mark (TP_MARK_PASS_BEGIN, tp_gen_current, 0);
 }
 
 void eech_tp_census_invalid (const void *offset)
@@ -639,6 +904,13 @@ void eech_tp_census_end (void)
 		tp_census_stray++;
 		return;
 	}
+	if (tp_gen_current >= 0)
+	{
+		tp_generations[tp_gen_current].rng_draws = tp_rng_draws - tp_rng_pass_begin_draws;
+		tp_generations[tp_gen_current].skinned = skinned_scenes ();
+	}
+	rng_mark (TP_MARK_PASS_END, tp_gen_current, 0);
+	tp_rng_after_pass = tp_gen_current;
 	tp_gen_open = 0;
 	if (tp_gen_current >= 0)
 	{
@@ -849,13 +1121,30 @@ int eech_tp_summary_run (char *text, int capacity)
 	for (i = 0; i < tp_gen_count; i++)
 	{
 		census_totals_of (&tp_generations[i], &census);
-		emit (&out, "tp-pass ordinal=%d ended=%d interrupted=%d recorded=%d sub_object=%d bbox=%d invalid_zero=%d duplicates=%d out_of_range=%d live_mismatch=%d complete=%d\n", i,
+		emit (&out, "tp-pass ordinal=%d ended=%d interrupted=%d recorded=%d sub_object=%d bbox=%d invalid_zero=%d duplicates=%d out_of_range=%d live_mismatch=%d complete=%d rng_draws=%u skinned=%d\n", i,
 			tp_generations[i].ended, tp_generations[i].interrupted, census.recorded, census.sub_object, census.bbox, census.invalid_zero, tp_generations[i].duplicates,
-			tp_generations[i].out_of_range, census.live_mismatch, census.complete);
+			tp_generations[i].out_of_range, census.live_mismatch, census.complete, tp_generations[i].rng_draws, tp_generations[i].skinned);
 		if (!census.complete)
 		{
 			all_complete = 0;
 		}
+	}
+	emit (&out, "tp-rng draws=%u seeds=%u pass_draws=%u outside_draws=%u exposed=%u marks=%d mark_capacity=%d marks_dropped=%u\n", tp_rng_draws, tp_rng_seeds, tp_rng_pass_draws, tp_rng_outside,
+		tp_rng_exposed, tp_rng_mark_count, TP_RNG_MARKS, tp_rng_marks_dropped);
+	for (i = 0; i < tp_rng_mark_count; i++)
+	{
+		char value[12];
+
+		if (tp_rng_marks[i].kind == TP_MARK_SEED)
+		{
+			snprintf (value, sizeof (value), "%08x", (unsigned int) tp_rng_marks[i].value);
+		}
+		else
+		{
+			strcpy (value, "-");
+		}
+		emit (&out, "tp-rng-mark seq=%d kind=%s gen=%d value=%s draws=%u since_seed=%u\n", i, mark_name (tp_rng_marks[i].kind), tp_rng_marks[i].gen, value, tp_rng_marks[i].draws,
+			tp_rng_marks[i].since_seed);
 	}
 	/* the census is whole only if at least one pass ran, no pass was lost, abandoned or left open, no hook strayed, every kept pass is a complete snapshot, and the LATEST pass is the one the
 	   table holds now (an older pass may differ: it is a fact about that pass, not a lost capture). A query capture is whole only if no call was lost, interrupted, unclassified or out of
@@ -913,8 +1202,8 @@ int eech_tp_event_run (int index, char *text, int capacity)
 {
 	struct out out;
 	const struct tp_event *e;
-	char type_name[96], model_name[96], heading[12], offset[40], before[128], after[128];
-	int kind;
+	char type_name[96], model_name[96], heading[12], offset[40], before[128], after[128], base[40], scale[40], chain[TP_CHAIN * 9 * 9 + 8];
+	int kind, i;
 
 	out_start (&out, text, capacity);
 	if (index < 0 || index >= tp_event_count)
@@ -951,11 +1240,42 @@ int eech_tp_event_run (int index, char *text, int capacity)
 		strcpy (before, "-");
 		strcpy (after, "-");
 	}
+	if (e->base_known)
+	{
+		words_text (base, sizeof (base), e->base, 3);
+	}
+	else
+	{
+		strcpy (base, "-");
+	}
+	if (e->scale_known)
+	{
+		words_text (scale, sizeof (scale), e->main_scale, 3);
+	}
+	else
+	{
+		strcpy (scale, "-");
+	}
+	/* the chain: nodes of nine words, topmost first, joined by `;`; only a complete chain carries them */
+	strcpy (chain, "-");
+	if (e->chain_state == TP_CHAIN_COMPLETE)
+	{
+		size_t used = 0;
+
+		chain[0] = '\0';
+		for (i = 0; i < e->chain_depth && i < TP_CHAIN; i++)
+		{
+			char node[96];
+
+			words_text (node, sizeof (node), e->chain[i], 9);
+			used += (size_t) snprintf (chain + used, sizeof (chain) - used, "%s%s", i ? ";" : "", node);
+		}
+	}
 	emit (&out, "tp-event index=%d seq=%d gen=%d gen_open=%d site=%d site_name=%s detail=%d branch=%d branch_name=%s case=%s entity_type=%d entity_type_name=%s instance=%d model=%d model_name=%s "
-		"fixed=%d shape=%d horizontal=%d heading=%s xz_applied=%d offset=%s result=%08x,%08x,%08x vp_before=%s vp_after=%s vp_changed=%d host_id_state=%s host_id_len=%d",
+		"fixed=%d shape=%d horizontal=%d heading=%s xz_applied=%d offset=%s result=%08x,%08x,%08x vp_before=%s vp_after=%s base=%s main_scale=%s chain_state=%s chain_depth=%d chain=%s vp_changed=%d host_id_state=%s host_id_len=%d",
 		index, e->seq, e->gen_last, e->gen_open, site_class (e->site, e->detail), site_name (site_class (e->site, e->detail)), e->detail, e->branch, branch_name (e->branch), case_name (kind), e->entity_type,
 		type_name, e->instance, e->model, model_name, e->fixed, e->shape, e->horizontal, heading, e->xz_applied, offset, (unsigned int) e->result[0], (unsigned int) e->result[1],
-		(unsigned int) e->result[2], before, after, e->vp_changed, e->host_id_state == TP_HOST_ID_PRESENT ? "present" : (e->host_id_state == TP_HOST_ID_ABSENT ? "absent" : "overlong"),
+		(unsigned int) e->result[2], before, after, base, scale, chain_state_name (e->chain_state), e->chain_depth, chain, e->vp_changed, e->host_id_state == TP_HOST_ID_PRESENT ? "present" : (e->host_id_state == TP_HOST_ID_ABSENT ? "absent" : "overlong"),
 		e->host_id_len);
 	if (e->host_id_state == TP_HOST_ID_PRESENT)
 	{

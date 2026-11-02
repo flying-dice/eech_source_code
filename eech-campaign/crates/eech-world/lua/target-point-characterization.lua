@@ -110,6 +110,13 @@ if type (host.create_exclusive) ~= "function" then fail_args ("this host has no 
 local EVENTS_CAPACITY = 4096
 local HOST_ID_MAX = 128
 local GENERATIONS_CAPACITY = 4
+-- the branch-1 chain: nodes the observer keeps, and the original's own walk limit (objects [256] in get_3d_sub_object_world_viewpoint)
+local CHAIN_KEPT = 8
+local CHAIN_WALK_MAX = 256
+-- the CRT-stream marks the observer keeps, and the kinds it writes
+local RNG_MARK_CAPACITY = 32
+local RNG_KINDS = { seed = true, pass_begin = true, pass_end = true, exposed = true }
+local CHAIN_STATES = { complete = true, empty = true, too_deep = true, unterminated = true, wrong_root = true, null_result = true }
 local INT_MAX = 2147483647
 
 local SITES = { [0] = "unattributed", "aim_vectors", "aim_lead", "aim_intercept", "weapon_step_target_vec", "other", "controlled_probe", "setup_probe" }
@@ -270,14 +277,18 @@ local function check_summary (text)
 	m.passes = {}
 	local all_complete, latest_ended = true, -1
 	for g = 0, census.generations - 1 do
-		local p = take ("tp-pass", { "ordinal", "ended", "interrupted", "recorded", "sub_object", "bbox", "invalid_zero", "duplicates", "out_of_range", "live_mismatch", "complete" })
+		local p = take ("tp-pass", { "ordinal", "ended", "interrupted", "recorded", "sub_object", "bbox", "invalid_zero", "duplicates", "out_of_range", "live_mismatch", "complete", "rng_draws", "skinned" })
 		if int (p.ordinal, 0, GENERATIONS_CAPACITY - 1, "pass ordinal") ~= g then malformed ("the pass rows are not in order at " .. g) end
 		local pass = {
 			ended = flag (p.ended, "pass ended"), interrupted = flag (p.interrupted, "pass interrupted"), recorded = int (p.recorded, 0, INT_MAX, "pass recorded"),
 			sub_object = int (p.sub_object, 0, INT_MAX, "pass sub_object"), bbox = int (p.bbox, 0, INT_MAX, "pass bbox"), invalid_zero = int (p.invalid_zero, 0, INT_MAX, "pass invalid_zero"),
 			duplicates = int (p.duplicates, 0, INT_MAX, "pass duplicates"), out_of_range = int (p.out_of_range, 0, INT_MAX, "pass out_of_range"),
 			live_mismatch = int (p.live_mismatch, 0, INT_MAX, "pass live_mismatch"), complete = flag (p.complete, "pass complete"),
+			rng_draws = int (p.rng_draws, 0, INT_MAX, "pass rng_draws"), skinned = int (p.skinned, 0, INT_MAX, "pass skinned"),
 		}
+		-- the skin prediction counts scenes of the table; a pass that never ended has no draws of its own
+		if pass.skinned > census.expected then malformed ("pass " .. g .. " predicts more skinned scenes than the table has") end
+		if pass.ended == 0 and (pass.rng_draws ~= 0 or pass.skinned ~= 0) then malformed ("pass " .. g .. " never ended but carries draws") end
 		if pass.sub_object + pass.bbox + pass.invalid_zero ~= pass.recorded or pass.recorded > census.expected or pass.invalid_zero > 1 or pass.live_mismatch > pass.recorded then
 			malformed ("the totals of pass " .. g .. " are incoherent")
 		end
@@ -290,6 +301,66 @@ local function check_summary (text)
 	end
 	if census.last ~= latest_ended then malformed ("the census names pass " .. census.last .. " as the latest ended, the pass rows say " .. latest_ended) end
 
+	-- the CRT stream: the totals, then the ordered marks
+	local r = take ("tp-rng", { "draws", "seeds", "pass_draws", "outside_draws", "exposed", "marks", "mark_capacity", "marks_dropped" })
+	m.rng = {
+		draws = int (r.draws, 0, INT_MAX, "rng draws"), seeds = int (r.seeds, 0, INT_MAX, "rng seeds"), pass_draws = int (r.pass_draws, 0, INT_MAX, "rng pass_draws"),
+		outside = int (r.outside_draws, 0, INT_MAX, "rng outside_draws"), exposed = int (r.exposed, 0, INT_MAX, "rng exposed"), count = int (r.marks, 0, RNG_MARK_CAPACITY, "rng marks"),
+		dropped = int (r.marks_dropped, 0, INT_MAX, "rng marks_dropped"), marks = {}, lines = {},
+	}
+	local rng = m.rng
+	if int (r.mark_capacity, 0, INT_MAX, "rng mark_capacity") ~= RNG_MARK_CAPACITY then malformed ("the mark capacity is not the observer's " .. RNG_MARK_CAPACITY) end
+	if rng.draws ~= rng.pass_draws + rng.outside then malformed (string.format ("rng draws %d are not pass draws %d + outside draws %d", rng.draws, rng.pass_draws, rng.outside)) end
+	if rng.dropped > 0 and rng.count ~= RNG_MARK_CAPACITY then malformed ("marks were dropped while the mark list was not full") end
+	-- the draws of the kept passes are part of the draws made inside passes, and are all of them when no pass was lost, abandoned or left open
+	local kept_draws = 0
+	for g = 0, census.generations - 1 do kept_draws = kept_draws + m.passes [g].rng_draws end
+	if kept_draws > rng.pass_draws then malformed ("the passes report more draws than were made inside passes") end
+	if census.dropped == 0 and census.interrupted == 0 and census.open == 0 and kept_draws ~= rng.pass_draws then malformed ("the passes' draws are not the draws made inside passes") end
+	local begun, ended_marks, seed_marks, exposed_marks = 0, 0, 0, 0
+	local open_begin, after_pass, previous_draws = nil, nil, 0
+	for i = 0, rng.count - 1 do
+		at = at + 1
+		if not list [at] then malformed ("the summary ends before rng mark " .. i) end
+		local k = fields (list [at], "tp-rng-mark", { "seq", "kind", "gen", "value", "draws", "since_seed" }, "rng mark " .. i)
+		if int (k.seq, 0, RNG_MARK_CAPACITY, "rng mark seq") ~= i then malformed ("the rng marks are not in order at " .. i) end
+		if not RNG_KINDS [k.kind] then malformed ("rng mark " .. i .. " has the kind '" .. tostring (k.kind) .. "'") end
+		local mark = { kind = k.kind, gen = int (k.gen, -1, GENERATIONS_CAPACITY - 1, "rng mark gen"), draws = int (k.draws, 0, INT_MAX, "rng mark draws"), since = int (k.since_seed, 0, INT_MAX, "rng mark since_seed") }
+		if k.kind == "seed" then word (k.value, "rng seed value") elseif k.value ~= "-" then malformed ("rng mark " .. i .. " is not a seed but carries a value") end
+		if k.kind == "seed" and mark.gen ~= -1 then malformed ("rng seed mark " .. i .. " names a pass") end
+		if mark.draws < previous_draws or mark.draws > rng.draws or mark.since > mark.draws then malformed ("rng mark " .. i .. " has draws that are not ordered within the totals") end
+		previous_draws = mark.draws
+		if k.kind == "seed" then
+			seed_marks = seed_marks + 1
+			after_pass = nil
+		elseif k.kind == "pass_begin" then
+			begun = begun + 1
+			open_begin = mark
+			after_pass = nil
+		elseif k.kind == "pass_end" then
+			ended_marks = ended_marks + 1
+			if not open_begin or open_begin.gen ~= mark.gen then malformed ("rng pass_end mark " .. i .. " does not close the pass that began") end
+			-- a kept pass that ended: the draws between its two marks are the draws its own line reports
+			if mark.gen >= 0 and m.passes [mark.gen] and m.passes [mark.gen].ended == 1 and mark.draws - open_begin.draws ~= m.passes [mark.gen].rng_draws then
+				malformed ("the marks of pass " .. mark.gen .. " bracket " .. (mark.draws - open_begin.draws) .. " draws, its line says " .. m.passes [mark.gen].rng_draws)
+			end
+			open_begin = nil
+			after_pass = mark.gen
+		else
+			exposed_marks = exposed_marks + 1
+			-- the first draw outside any pass after a pass end, with no seed between: it follows that end
+			if after_pass == nil or after_pass ~= mark.gen or mark.since < 1 then malformed ("rng exposed mark " .. i .. " does not follow a pass end with no seed between") end
+			after_pass = nil
+		end
+		rng.marks [i] = mark
+		rng.lines [i] = list [at]
+	end
+	if rng.dropped == 0 then
+		if seed_marks ~= rng.seeds or exposed_marks ~= rng.exposed then malformed ("the rng seed or exposed marks are not the totals") end
+		if begun ~= census.generations + census.dropped or ended_marks > begun then malformed ("the rng pass marks are not the census passes") end
+	elseif seed_marks > rng.seeds or exposed_marks > rng.exposed then
+		malformed ("the rng marks held are more than the totals")
+	end
 	local v = take ("tp-complete", { "census", "queries_whole" })
 	m.census_whole = flag (v.census, "census whole")
 	m.queries_whole = flag (v.queries_whole, "queries_whole")
@@ -349,8 +420,13 @@ end
 -- Every pass is an original product of the boot and nothing may change it afterwards: each pass the boot summary holds appears in every later summary with the same snapshot facts. A LATER pass
 -- is a new original product and is allowed (it is judged by its own line and by the final verdict). While no pass was added nothing wrote the table, so even the live facts and the verdict must
 -- be those of the boot; once one was added an older pass may legitimately differ from the table. (The QUERY counters grow; these do not.)
-local PASS_FIXED = { "ended", "interrupted", "recorded", "sub_object", "bbox", "invalid_zero", "duplicates", "out_of_range", "complete" }
+local PASS_FIXED = { "ended", "interrupted", "recorded", "sub_object", "bbox", "invalid_zero", "duplicates", "out_of_range", "complete", "rng_draws", "skinned" }
 local function same_census (boot, later, when)
+	-- the CRT stream only moves forward: its counters never fall and the marks the boot held are the same first marks of every later summary
+	if later.rng.draws < boot.rng.draws or later.rng.seeds < boot.rng.seeds or later.rng.exposed < boot.rng.exposed then malformed ("the CRT counters fell after the boot (" .. when .. ")") end
+	for i = 0, boot.rng.count - 1 do
+		if later.rng.lines [i] ~= boot.rng.lines [i] then malformed ("rng mark " .. i .. " changed after the boot (" .. when .. ")") end
+	end
 	local b, l = boot.census, later.census
 	if l.expected ~= b.expected then malformed ("the census size changed after the boot (" .. when .. ")") end
 	if l.generations < b.generations then malformed ("the census lost a pass after the boot (" .. when .. ")") end
@@ -380,7 +456,7 @@ local function check_event (text, index, summary, rows)
 	local head, length, rest = string.match (list [1], "^(.-) host_id_len=(%d+)(.*)$")
 	if not head then malformed (what .. " has no host_id_len") end
 	local e = fields (head, "tp-event", { "index", "seq", "gen", "gen_open", "site", "site_name", "detail", "branch", "branch_name", "case", "entity_type", "entity_type_name", "instance", "model", "model_name",
-		"fixed", "shape", "horizontal", "heading", "xz_applied", "offset", "result", "vp_before", "vp_after", "vp_changed", "host_id_state" }, what)
+		"fixed", "shape", "horizontal", "heading", "xz_applied", "offset", "result", "vp_before", "vp_after", "base", "main_scale", "chain_state", "chain_depth", "chain", "vp_changed", "host_id_state" }, what)
 	if int (e.index, 0, INT_MAX, "event index") ~= index then malformed (what .. " carries another event's index") end
 	local f = {
 		seq = int (e.seq, 0, INT_MAX, "seq"), gen = int (e.gen, -1, GENERATIONS_CAPACITY - 1, "gen"), gen_open = flag (e.gen_open, "gen_open"), site = int (e.site, 0, SITE_COUNT - 1, "site"), detail = int (e.detail, -INT_MAX, INT_MAX, "detail"), branch = int (e.branch, 0, 4, "branch"),
@@ -430,9 +506,49 @@ local function check_event (text, index, summary, rows)
 	end
 	words (e.result, 3, what .. " result")
 
+	-- the original inputs of the physical query. The BASE position is the entity position the original's own get_local_entity_vec3d copied (branches 2, 3 and 4), read before any physical
+	-- addition; branch 1 carries its position and attitude in vp_after instead
+	if f.branch == 2 or f.branch == 3 or f.branch == 4 then
+		f.base = words (e.base, 3, what .. " base")
+	elseif e.base ~= "-" then
+		malformed (what .. " carries a base position but its branch did not copy the entity position")
+	end
+	if f.branch == 2 or f.branch == 4 then
+		-- the original answers the entity position unchanged
+		if e.result ~= e.base then malformed (what .. " answered the entity position but its result is not the base position") end
+	end
+	-- branch 1 only: the instance's relative scale and the placement chain the original is about to walk. Anything but a complete chain says why and carries no nodes
+	if f.branch == 1 then
+		words (e.main_scale, 3, what .. " main_scale")
+		if not CHAIN_STATES [e.chain_state] then malformed (what .. " has the chain state '" .. tostring (e.chain_state) .. "'") end
+		local depth = int (e.chain_depth, 0, CHAIN_WALK_MAX, "chain_depth")
+		if e.chain_state == "complete" then
+			if depth < 1 or depth > CHAIN_KEPT then malformed (what .. " has a complete chain of " .. depth .. " nodes, the observer keeps 1 to " .. CHAIN_KEPT) end
+			local nodes = 0
+			for node in string.gmatch (e.chain .. ";", "([^;]*);") do
+				nodes = nodes + 1
+				words (node, 9, what .. " chain node " .. nodes)
+			end
+			if nodes ~= depth then malformed (what .. " declares a chain of " .. depth .. " nodes and holds " .. nodes) end
+		else
+			if e.chain ~= "-" then malformed (what .. " has the chain state '" .. e.chain_state .. "' but carries nodes") end
+			if (e.chain_state == "empty" or e.chain_state == "null_result") and depth ~= 0 then malformed (what .. " has an empty chain with a depth") end
+			if e.chain_state == "too_deep" and depth <= CHAIN_KEPT then malformed (what .. " is too deep with only " .. depth .. " nodes") end
+			if e.chain_state == "unterminated" and depth ~= CHAIN_WALK_MAX then malformed (what .. " did not end but stopped at " .. depth) end
+		end
+		f.chain_state = e.chain_state
+	else
+		if e.main_scale ~= "-" or e.chain_state ~= "-" or e.chain_depth ~= "0" or e.chain ~= "-" then malformed (what .. " is not branch 1 but carries a scale or a chain") end
+	end
+
 	-- the heading and the offset are known only on the paths that read them
 	if e.heading ~= "-" then f.heading = word (e.heading, what .. " heading") end
 	if e.offset ~= "-" then f.offset = words (e.offset, 3, what .. " offset") end
+	-- branch 3 added no rotated x/z offset (no horizontal offset, or the heading-zero quirk): x and z are the base words, and only y was changed. Applied only where the offset was read
+	if f.branch == 3 and f.offset and f.xz_applied == 0 then
+		local answer = words (e.result, 3, what .. " result")
+		if answer [1] ~= f.base [1] or answer [3] ~= f.base [3] then malformed (what .. " added no rotated x/z offset but its x or z is not the base position's") end
+	end
 	if f.branch == 1 or f.branch == 2 then
 		if f.instance ~= 1 or f.fixed ~= 0 or f.shape ~= -1 or f.horizontal ~= 0 or f.heading or f.xz_applied ~= 0 or f.offset then malformed (what .. " is an instance branch but carries fixed-object values") end
 		if f.branch == 2 and f.vp_changed ~= 0 then malformed (what .. " answered the entity position but its instance viewpoint changed") end

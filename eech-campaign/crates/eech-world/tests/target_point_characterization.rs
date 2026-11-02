@@ -74,6 +74,8 @@ struct Ev {
     model: i32,
     vp_changed: bool,
     host_id: Option<&'static str>,
+    /// branch 1: the state of the placement chain the observer read and its depth (a complete chain carries that many nodes)
+    chain: (&'static str, u32),
 }
 
 fn ev(seq: u32, site: usize, branch: u8, case: &'static str) -> Ev {
@@ -105,6 +107,7 @@ fn ev(seq: u32, site: usize, branch: u8, case: &'static str) -> Ev {
         model: if instance { 7 } else { -1 },
         vp_changed: false,
         host_id: None,
+        chain: ("complete", 2),
     }
 }
 
@@ -195,13 +198,33 @@ fn event_text(i: usize, e: &Ev) -> String {
         (true, false) => words(100, 12),
         (true, true) => words(200, 12),
     };
+    // the entity base position is known on the paths that copy it (branches 2, 3 and 4); the original answers it unchanged on 2 and 4, and on 3 changes only y unless it rotated the x/z offsets
+    let w = |n: u32| 0x3f80_0000 + n;
+    let base = [w(400), w(401), w(402)];
+    let rotated = [w(300), w(302), w(304)];
+    let (base_text, result) = match e.branch {
+        2 | 4 => (offset_text(base), base),
+        3 if e.xz => (offset_text(base), rotated),
+        3 => (offset_text(base), [base[0], rotated[1], base[2]]),
+        _ => ("-".to_string(), rotated),
+    };
+    let (scale_text, chain_state, chain_depth, chain_text) = if e.branch == 1 {
+        let nodes = if e.chain.0 == "complete" && e.chain.1 > 0 {
+            (0..e.chain.1).map(|i| words(600 + 10 * i, 9)).collect::<Vec<_>>().join(";")
+        } else {
+            "-".to_string()
+        };
+        (offset_text([0x3f80_0000; 3]), e.chain.0, e.chain.1, nodes)
+    } else {
+        ("-".to_string(), "-", 0, "-".to_string())
+    };
     let (state, tail) = match e.host_id {
         Some(id) => ("present", format!("host_id_len={} host_id={id}", id.len())),
         None => ("absent", "host_id_len=0".to_string()),
     };
     format!(
         "tp-event index={i} seq={} gen={} gen_open={} site={} site_name={} detail={} branch={} branch_name={branch_name} case={case} entity_type=14 entity_type_name=TYPE_14 instance={} model={} model_name={model_name} \
-         fixed={} shape={} horizontal={} heading={heading} xz_applied={} offset={offset} result={} vp_before={before} vp_after={after} vp_changed={} host_id_state={state} {tail}\n",
+         fixed={} shape={} horizontal={} heading={heading} xz_applied={} offset={offset} result={} vp_before={before} vp_after={after} base={base_text} main_scale={scale_text} chain_state={chain_state} chain_depth={chain_depth} chain={chain_text} vp_changed={} host_id_state={state} {tail}\n",
         e.seq,
         e.gen,
         u8::from(e.gen_open),
@@ -215,7 +238,7 @@ fn event_text(i: usize, e: &Ev) -> String {
         e.shape,
         u8::from(e.horizontal),
         u8::from(e.xz),
-        words(300, 3),
+        offset_text(result),
         u8::from(e.vp_changed),
     )
 }
@@ -230,6 +253,9 @@ struct Pass {
     bbox: usize,
     duplicates: usize,
     live_mismatch: usize,
+    /// CRT draws made while the pass ran, and the scenes whose skin field predicts one
+    draws: u32,
+    skinned: usize,
 }
 
 impl Pass {
@@ -243,6 +269,8 @@ impl Pass {
             bbox: 2,
             duplicates: 0,
             live_mismatch,
+            draws: 3,
+            skinned: 3,
         }
     }
 
@@ -291,7 +319,7 @@ fn summary_passes(events: &[Ev], passes: &[Pass], stale: u32) -> String {
     );
     for (g, p) in passes.iter().enumerate() {
         t += &format!(
-            "tp-pass ordinal={g} ended={} interrupted={} recorded={} sub_object={} bbox={} invalid_zero=1 duplicates={} out_of_range=0 live_mismatch={} complete={}\n",
+            "tp-pass ordinal={g} ended={} interrupted={} recorded={} sub_object={} bbox={} invalid_zero=1 duplicates={} out_of_range=0 live_mismatch={} complete={} rng_draws={} skinned={}\n",
             u8::from(p.ended),
             u8::from(p.interrupted),
             p.recorded,
@@ -299,14 +327,64 @@ fn summary_passes(events: &[Ev], passes: &[Pass], stale: u32) -> String {
             p.bbox,
             p.duplicates,
             p.live_mismatch,
-            u8::from(p.complete())
+            u8::from(p.complete()),
+            if p.ended { p.draws } else { 0 },
+            p.skinned
         );
     }
+    t += &rng_text(passes);
     // whole: a pass ran, every pass is a complete snapshot, the latest to end is the last kept, and the table is the latest pass's
     let census_whole =
         !passes.is_empty() && passes.iter().all(Pass::complete) && last == passes.len() as i32 - 1 && passes.last().is_some_and(|p| p.live_mismatch == 0);
     t += &format!("tp-complete census={} queries_whole={}\n", u8::from(census_whole), u8::from(stale == 0));
     t
+}
+
+/// The CRT stream of a boot with these passes, as the observer reports it: the campaign seeds before the first pass and again before each later one, each pass draws its own count, and
+/// the first draw outside a pass after each pass end (no reseed between) is that pass's exposed mark. Draws are summed, never invented: a pass that did not end drew nothing the report
+/// keeps. `dropped` passes beyond the history leave a begin and an end mark with no draws.
+fn rng_text_with(passes: &[Pass], dropped: u32) -> String {
+    let mut marks: Vec<String> = Vec::new();
+    let (mut draws, mut since, mut seeds, mut pass_draws, mut outside) = (0u32, 0u32, 0u32, 0u32, 0u32);
+    let seed = |marks: &mut Vec<String>, draws: u32, since: &mut u32| {
+        marks.push(format!("kind=seed gen=-1 value=0000002a draws={draws} since_seed={since}"));
+        *since = 0;
+    };
+    seed(&mut marks, draws, &mut since);
+    seeds += 1;
+    for (g, p) in passes.iter().enumerate() {
+        if g > 0 {
+            seed(&mut marks, draws, &mut since);
+            seeds += 1;
+        }
+        marks.push(format!("kind=pass_begin gen={g} value=- draws={draws} since_seed={since}"));
+        if p.ended {
+            draws += p.draws;
+            since += p.draws;
+            pass_draws += p.draws;
+            marks.push(format!("kind=pass_end gen={g} value=- draws={draws} since_seed={since}"));
+            draws += 1;
+            since += 1;
+            outside += 1;
+            marks.push(format!("kind=exposed gen={g} value=- draws={draws} since_seed={since}"));
+        }
+    }
+    for _ in 0..dropped {
+        marks.push(format!("kind=pass_begin gen=-1 value=- draws={draws} since_seed={since}"));
+        marks.push(format!("kind=pass_end gen=-1 value=- draws={draws} since_seed={since}"));
+    }
+    let mut t = format!(
+        "tp-rng draws={draws} seeds={seeds} pass_draws={pass_draws} outside_draws={outside} exposed={outside} marks={} mark_capacity=32 marks_dropped=0\n",
+        marks.len()
+    );
+    for (i, m) in marks.iter().enumerate() {
+        t += &format!("tp-rng-mark seq={i} {m}\n");
+    }
+    t
+}
+
+fn rng_text(passes: &[Pass]) -> String {
+    rng_text_with(passes, 0)
 }
 
 /// as `summary_passes` after a two-pass boot; `census_whole` false makes the second pass miss model 5
@@ -2072,6 +2150,10 @@ fn a_census_that_is_not_whole_keeps_every_pass_it_saw_and_is_not_measured() {
             c.summaries[0] = c.summaries[0]
                 .replace("capacity=4 dropped=0", "capacity=4 dropped=1")
                 .replace("tp-complete census=1", "tp-complete census=0");
+            // the pass beyond the history began and ended, which the CRT marks say too
+            let text = c.summaries[0].clone();
+            let (from, until) = (text.find("tp-rng ").unwrap(), text.find("tp-complete").unwrap());
+            c.summaries[0] = format!("{}{}{}", &text[..from], rng_text_with(&two_passes(), 1), &text[until..]);
         }),
         ("a duplicate inside the latest pass", |c| {
             c.summaries[0] = c.summaries[0]
@@ -2603,6 +2685,18 @@ fn the_driver_names_and_caps_are_the_emitters() {
     };
     assert_eq!(lua_number("EVENTS_CAPACITY"), define("TP_EVENTS"));
     assert_eq!(lua_number("HOST_ID_MAX"), define("TP_HOST_ID"));
+    // the branch-1 chain and the CRT marks: the numbers and the names are the emitter's
+    assert_eq!(lua_number("CHAIN_KEPT"), define("TP_CHAIN"));
+    assert_eq!(lua_number("CHAIN_WALK_MAX"), define("TP_WALK_MAX"));
+    assert_eq!(lua_number("RNG_MARK_CAPACITY"), define("TP_RNG_MARKS"));
+    for state in ["complete", "empty", "too_deep", "unterminated", "wrong_root", "null_result"] {
+        assert!(EMITTER.contains(&format!("return \"{state}\";")), "the emitter has no chain state {state}");
+        assert!(SCRIPT.contains(&format!("{state} = true")), "the driver has no chain state {state}");
+    }
+    for kind in ["seed", "pass_begin", "pass_end", "exposed"] {
+        assert!(EMITTER.contains(&format!("return \"{kind}\";")), "the emitter has no mark kind {kind}");
+        assert!(SCRIPT.contains(&format!("{kind} = true")), "the driver has no mark kind {kind}");
+    }
     assert_eq!(lua_number("SITE_COUNT"), site_classes().len() as u64);
     assert_eq!(
         lua_number("CONTROLLED_SITE"),
@@ -2621,4 +2715,261 @@ fn the_driver_names_and_caps_are_the_emitters() {
     assert!(ENGINE_RS.contains(&format!("pub const TARGET_POINT_GENERATIONS_MAX: i32 = {};", define("TP_GENERATIONS"))));
     // the engine's own bound on an event index is the same table
     assert!(ENGINE_RS.contains(&format!("pub const TARGET_POINT_EVENTS_MAX: i32 = {};", define("TP_EVENTS"))));
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------
+// the original inputs of the physical query: the entity base position, the branch-1 scale and placement chain, and the CRT stream
+
+/// a run whose only recorded query is `event`, over the two-pass boot
+fn one_of(event: Ev) -> Case {
+    healthy(&[event])
+}
+
+#[test]
+fn every_branch_carries_the_base_position_it_copied_and_branch_one_carries_its_scale_and_chain() {
+    let case = healthy(&every_branch());
+    let outcome = run(&case);
+    outcome
+        .result
+        .as_ref()
+        .expect("a run with a base position on branches 2, 3 and 4 and a chain on branch 1 is coherent");
+    let all = outcome.written.as_ref().expect("the output exists");
+    // the fields are written verbatim into the retained output
+    assert!(all.contains("base=3f800190,3f800191,3f800192"), "{all}");
+    assert!(
+        all.contains("main_scale=3f800000,3f800000,3f800000 chain_state=complete chain_depth=2 chain="),
+        "{all}"
+    );
+    let text = case.events[0].as_ref().unwrap();
+    assert!(text.contains("base=- main_scale=3f800000,3f800000,3f800000"), "{text}");
+}
+
+#[test]
+fn a_base_position_is_only_where_the_original_copied_one_and_the_answer_joins_it() {
+    // branch 1 copies no entity position into its result: it has vp_after instead
+    let mut case = healthy(&every_branch());
+    change(&mut case, 0, "base=- ", "base=3f800190,3f800191,3f800192 ");
+    failure(&run(&case), "carries a base position but its branch did not copy the entity position");
+    // branches 2, 3 and 4 must carry it, as eight-digit words
+    for index in [1, 2, 3, 4, 5, 6] {
+        let mut case = healthy(&every_branch());
+        change(&mut case, index, "base=3f800190,3f800191,3f800192 ", "base=- ");
+        failure(&run(&case), &format!("event {index} base is not a lower-case 8-digit word"));
+    }
+    let mut short = healthy(&every_branch());
+    change(&mut short, 1, "base=3f800190,3f800191,3f800192 ", "base=3f800190,3f800191 ");
+    failure(&run(&short), "event 1 base has 2 words, expected 3");
+    // the entity position is answered unchanged on branches 2 and 4
+    for index in [1, 5, 6] {
+        let mut case = healthy(&every_branch());
+        change(&mut case, index, "result=3f800190,3f800191,3f800192", "result=3f800190,3f800191,3f800193");
+        failure(&run(&case), "answered the entity position but its result is not the base position");
+    }
+    // branch 3 with no rotated x/z offset (no horizontal offset, or the heading-zero quirk) changes only y: x and z are the base words
+    for index in [3, 4] {
+        let mut x = healthy(&every_branch());
+        change(&mut x, index, "result=3f800190,3f80012e,3f800192", "result=3f80012c,3f80012e,3f800192");
+        failure(&run(&x), "added no rotated x/z offset but its x or z is not the base position's");
+        let mut z = healthy(&every_branch());
+        change(&mut z, index, "result=3f800190,3f80012e,3f800192", "result=3f800190,3f80012e,3f800193");
+        failure(&run(&z), "added no rotated x/z offset but its x or z is not the base position's");
+    }
+    // the rotated case is free to move x and z (its result is the rotated sum, which the driver does not recompute)
+    run(&healthy(&every_branch())).result.expect("the rotated case moves x and z");
+}
+
+#[test]
+fn the_branch_one_chain_is_complete_or_says_why_it_is_not_and_never_carries_a_partial_chain() {
+    // the states the observer can report, each with a depth it can have
+    for (state, depth) in [
+        ("complete", 1),
+        ("complete", 8),
+        ("empty", 0),
+        ("too_deep", 9),
+        ("too_deep", 256),
+        ("unterminated", 256),
+        ("wrong_root", 0),
+        ("wrong_root", 3),
+        ("null_result", 0),
+    ] {
+        let outcome = run(&one_of(Ev {
+            chain: (state, depth),
+            ..target_point(0, 1)
+        }));
+        outcome
+            .result
+            .as_ref()
+            .unwrap_or_else(|e| panic!("the chain state {state} at depth {depth} is a coherent report: {e}"));
+    }
+    // a complete chain holds exactly its depth in nodes, of nine words, and between one and the eight the observer keeps
+    let mut count = healthy(&every_branch());
+    change(&mut count, 0, "chain_depth=2", "chain_depth=3");
+    failure(&run(&count), "event 0 declares a chain of 3 nodes and holds 2");
+    for depth in [0, 9] {
+        let deep = one_of(Ev {
+            chain: ("complete", depth),
+            ..target_point(0, 1)
+        });
+        failure(&run(&deep), &format!("has a complete chain of {depth} nodes, the observer keeps 1 to 8"));
+    }
+    // a chain that is not complete carries no nodes, and its depth means what its state says
+    for (state, depth, reason) in [
+        ("too_deep", 5, "is too deep with only 5 nodes"),
+        ("unterminated", 100, "did not end but stopped at 100"),
+        ("empty", 2, "has an empty chain with a depth"),
+        ("null_result", 1, "has an empty chain with a depth"),
+    ] {
+        let case = one_of(Ev {
+            chain: (state, depth),
+            ..target_point(0, 1)
+        });
+        failure(&run(&case), reason);
+    }
+    let mut nodes = one_of(Ev {
+        chain: ("too_deep", 9),
+        ..target_point(0, 1)
+    });
+    change(
+        &mut nodes,
+        0,
+        "chain=-",
+        "chain=3f800000,3f800000,3f800000,3f800000,3f800000,3f800000,3f800000,3f800000,3f800000",
+    );
+    failure(&run(&nodes), "has the chain state 'too_deep' but carries nodes");
+    // a state the observer does not write
+    let mut state = healthy(&every_branch());
+    change(&mut state, 0, "chain_state=complete", "chain_state=whole");
+    failure(&run(&state), "has the chain state 'whole'");
+    // the scale is three words
+    let mut scale = healthy(&every_branch());
+    change(&mut scale, 0, "main_scale=3f800000,3f800000,3f800000", "main_scale=3f800000,3f800000");
+    failure(&run(&scale), "event 0 main_scale has 2 words, expected 3");
+    // the other branches carry neither a scale nor a chain
+    for (from, to) in [
+        ("main_scale=- ", "main_scale=3f800000,3f800000,3f800000 "),
+        ("chain_state=- ", "chain_state=complete "),
+        ("chain_depth=0 ", "chain_depth=1 "),
+        (
+            "chain=- vp_changed",
+            "chain=3f800000,3f800000,3f800000,3f800000,3f800000,3f800000,3f800000,3f800000,3f800000 vp_changed",
+        ),
+    ] {
+        let mut case = healthy(&every_branch());
+        change(&mut case, 1, from, to);
+        failure(&run(&case), "is not branch 1 but carries a scale or a chain");
+    }
+}
+
+#[test]
+fn the_crt_stream_is_reported_per_pass_and_by_ordered_marks_that_join_the_pass_lines() {
+    let outcome = run(&healthy(&every_branch()));
+    outcome.result.as_ref().expect("the coherent stream passes");
+    let all = outcome.written.as_ref().expect("the output exists");
+    assert!(
+        all.contains("tp-rng draws=8 seeds=2 pass_draws=6 outside_draws=2 exposed=2 marks=8 mark_capacity=32 marks_dropped=0"),
+        "{all}"
+    );
+    assert!(all.contains("rng_draws=3 skinned=3"), "{all}");
+    assert!(all.contains("tp-rng-mark seq=7 kind=exposed gen=1 value=- draws=8 since_seed=4"), "{all}");
+    // a pass can draw more or fewer times than its skin prediction: both are reported, neither is repaired to match
+    let passes = vec![
+        Pass {
+            draws: 2,
+            skinned: 3,
+            ..Pass::full(2)
+        },
+        Pass {
+            draws: 5,
+            skinned: 3,
+            ..Pass::full(0)
+        },
+    ];
+    let mut case = healthy(&every_branch());
+    case.summaries = vec![summary_passes(&[], &passes, 0), summary_passes(&every_branch(), &passes, 0)];
+    let outcome = run(&case);
+    outcome
+        .result
+        .as_ref()
+        .expect("a measured draw count that differs from the skin prediction is a fact, not a malformed report");
+    let all = outcome.written.as_ref().expect("the output exists");
+    assert!(all.contains("rng_draws=2 skinned=3") && all.contains("rng_draws=5 skinned=3"), "{all}");
+    // no draw outside a pass after the last pass end: the stream the passes left is never observed, and that is reported (no exposed mark), not invented
+    let mut quiet = healthy(&every_branch());
+    for index in 0..2 {
+        let text = quiet.summaries[index].clone();
+        let from = text.find("tp-rng ").unwrap();
+        let until = text.find("tp-complete").unwrap();
+        quiet.summaries[index] = format!(
+            "{}tp-rng draws=6 seeds=2 pass_draws=6 outside_draws=0 exposed=0 marks=6 mark_capacity=32 marks_dropped=0\n\
+             tp-rng-mark seq=0 kind=seed gen=-1 value=0000002a draws=0 since_seed=0\n\
+             tp-rng-mark seq=1 kind=pass_begin gen=0 value=- draws=0 since_seed=0\n\
+             tp-rng-mark seq=2 kind=pass_end gen=0 value=- draws=3 since_seed=3\n\
+             tp-rng-mark seq=3 kind=seed gen=-1 value=0000002a draws=3 since_seed=3\n\
+             tp-rng-mark seq=4 kind=pass_begin gen=1 value=- draws=3 since_seed=0\n\
+             tp-rng-mark seq=5 kind=pass_end gen=1 value=- draws=6 since_seed=3\n\
+             {}",
+            &text[..from],
+            &text[until..]
+        );
+    }
+    run(&quiet)
+        .result
+        .expect("a stream with no draw outside a pass after the last pass end has no exposed mark");
+}
+
+#[test]
+fn a_crt_report_that_contradicts_itself_is_malformed() {
+    // (what to change in the final summary, to what, the reason). Every change must really change the text.
+    let cases: [(&str, &str, &str); 12] = [
+        ("tp-rng draws=8 ", "tp-rng draws=9 ", "are not pass draws"),
+        ("exposed=2 marks=8", "exposed=3 marks=8", "the rng seed or exposed marks are not the totals"),
+        ("seeds=2 ", "seeds=3 ", "the rng seed or exposed marks are not the totals"),
+        ("mark_capacity=32", "mark_capacity=31", "the mark capacity is not the observer's 32"),
+        ("kind=exposed", "kind=hidden", "has the kind 'hidden'"),
+        ("kind=exposed gen=1", "kind=exposed gen=0", "does not follow a pass end with no seed between"),
+        (
+            "kind=pass_end gen=0 value=- draws=3 since_seed=3",
+            "kind=pass_end gen=0 value=- draws=2 since_seed=2",
+            "bracket 2 draws, its line says 3",
+        ),
+        (
+            "kind=seed gen=-1 value=0000002a draws=4",
+            "kind=seed gen=0 value=0000002a draws=4",
+            "names a pass",
+        ),
+        (
+            "kind=pass_begin gen=1 value=- ",
+            "kind=pass_begin gen=1 value=0000002a ",
+            "is not a seed but carries a value",
+        ),
+        (
+            "kind=pass_end gen=1 value=- draws=7 since_seed=3",
+            "kind=pass_end gen=1 value=- draws=7 since_seed=9",
+            "draws that are not ordered within the totals",
+        ),
+        (
+            "kind=seed gen=-1 value=0000002a draws=0",
+            "kind=seed gen=-1 value=2a draws=0",
+            "rng seed value is not a lower-case 8-digit word",
+        ),
+        ("kind=pass_end gen=1", "kind=pass_end gen=0", "does not close the pass that began"),
+    ];
+    for (from, to, reason) in cases {
+        let mut case = healthy(&every_branch());
+        let text = case.summaries[1].clone();
+        assert!(text.contains(from) && from != to, "the summary has no {from:?} to change: {text}");
+        case.summaries[1] = text.replacen(from, to, 1);
+        failure(&run(&case), reason);
+    }
+    // a pass line that claims more draws than were made inside passes, or predicts more skinned scenes than the table has
+    let mut more = healthy(&every_branch());
+    more.summaries[1] = more.summaries[1].replacen("rng_draws=3", "rng_draws=4", 1);
+    failure(&run(&more), "the passes report more draws than were made inside passes");
+    let mut skinned = healthy(&every_branch());
+    skinned.summaries[1] = skinned.summaries[1].replacen("skinned=3", "skinned=99", 1);
+    failure(&run(&skinned), "predicts more skinned scenes than the table has");
+    // the boot's marks are the first marks of every later summary
+    let mut moved = healthy(&every_branch());
+    moved.summaries[1] = moved.summaries[1].replacen("kind=seed gen=-1 value=0000002a draws=0", "kind=seed gen=-1 value=0000002b draws=0", 1);
+    failure(&run(&moved), "rng mark 0 changed after the boot");
 }

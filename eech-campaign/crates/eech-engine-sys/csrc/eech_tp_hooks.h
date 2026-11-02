@@ -21,6 +21,9 @@ extern void eech_tp_begin (const void *en, const void *instance);
 /* the instance holds a TARGET_POINT sub-object: the original is about to overwrite the instance viewpoint from the entity pose (branch 1) */
 extern void eech_tp_instance_target_point (void);
 
+/* branch 1, immediately before the original calls get_3d_sub_object_world_viewpoint: the sub-object its search found and the instance it searched; the hook reads the parent chain the original is about to walk */
+extern void eech_tp_instance_chain (const void *result_sub_object, const void *instance);
+
 /* the instance holds no TARGET_POINT sub-object: the original answers the entity position (branch 2) */
 extern void eech_tp_instance_position (void);
 
@@ -39,6 +42,9 @@ extern void eech_tp_heading (const float *heading);
 /* the original is about to add the rotated x/z offsets (it enters this only when the heading is non-zero) */
 extern void eech_tp_xz_applied (void);
 
+/* branches 2, 3 and 4: right after the original's get_local_entity_vec3d has copied the entity position into the result, before any physical addition */
+extern void eech_tp_base_position (const void *target_point);
+
 /* get_local_entity_target_point ends: the target point it returned */
 extern void eech_tp_end (const void *target_point);
 
@@ -49,5 +55,8 @@ extern void eech_tp_census_invalid (const void *offset);
 extern void eech_tp_census_sub_object (int index, const void *offset);
 extern void eech_tp_census_bbox (int index, const void *offset, const void *bounds);
 extern void eech_tp_census_end (void);
+
+/* random.c set_random_number_seed: right before the original's srand (seed) */
+extern void eech_tp_seed (int seed);
 
 #endif
