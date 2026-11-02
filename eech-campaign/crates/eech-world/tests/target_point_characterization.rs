@@ -1104,8 +1104,10 @@ fn a_partial_capture_is_bounded_by_the_summary_and_a_row_beyond_it_is_malformed(
     let events = &all[..6];
     let partial = summary(events)
         .replace("calls=6 events=6", "calls=7 events=6")
-        .replace("interrupted=0", "interrupted=1")
+        // only the QUERY counter of the tp-summary line: "interrupted=0" also appears on the census line and on every pass line, where it means an initialiser pass abandoned by the next begin
+        .replace("interrupted=0 orphans=0", "interrupted=1 orphans=0")
         .replace("queries_whole=1", "queries_whole=0");
+    assert_eq!(partial.matches("interrupted=1").count(), 1, "the census passes are untouched: they are all complete, ended snapshots");
     let mut case = healthy(events);
     case.summaries = vec![summary(&[]), partial.clone()];
     let outcome = run(&case);
