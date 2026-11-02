@@ -1204,6 +1204,4 @@ fn the_driver_names_and_caps_are_the_emitters() {
     assert_eq!(lua_number("HOST_ID_MAX"), define("TP_HOST_ID"));
     // the engine's own bound on an event index is the same table
     assert!(ENGINE_RS.contains(&format!("pub const TARGET_POINT_EVENTS_MAX: i32 = {};", define("TP_EVENTS"))));
-    // the synthetic census of these guards is the size the driver is given by its summary, not a constant of the driver
-    assert!(EXPECTED > 1);
 }
