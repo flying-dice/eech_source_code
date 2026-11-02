@@ -36,7 +36,14 @@
       "sha256": "63c08c2c209a77f7f9bbbd697643388bf67c31614a1ff3e05297209612598133",
       "private_original": "R:\\d3-evidence\\environment-CI-d4564f36a8-20261102-1535.json",
       "literal_copy": true
+    },
+    {
+      "file": "independent-final-review.json",
+      "bytes": 13475,
+      "sha256": "49305929a2bf5c5ad2a15d7d63d30cbe4c7589ee6a5d39d8568cdbdbec32b55c",
+      "private_original": "R:\\d3-evidence\\independent-environment-final-shipping-review-78fe5efdb-20261102.json",
+      "literal_copy": true
     }
   ],
-  "scope": "Literal safe reports only; no retail assets, raw recordings or binaries. No final review/merge/wholeD3 claim."
+  "scope": "Literal safe reports including independent completed-shipping/publication review. Final delivery CI and normal merge remain separate. No wholeD3 claim."
 }

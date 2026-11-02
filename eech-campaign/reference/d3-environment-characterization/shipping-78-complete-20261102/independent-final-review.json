@@ -1,0 +1,247 @@
+{
+  "review": "Independent Task51 completed ordinary shipping evidence, helper correctness, source identity and safe-publication review",
+  "source": {
+    "native": "78fe5efdb5cbaff904e3b645d680acbd7776597d",
+    "prior_documentation_head": "d4564f36a878b9cee1010ef30891858b4b5c8c84",
+    "reviewed_publication_head": "bf7e8d44980058edacf270a8f80c092512f58dec",
+    "native_snapshot_clean": true,
+    "all_other_tracked_entries_and_modes_exact_native": true,
+    "metadata_only_changed_entries": 20,
+    "publication_delta_sha256": "7ff8dd393676baef2e028b0cc31da7c0776d712d693f862c68b8fd398d67bc20"
+  },
+  "findings": [],
+  "finite_task51_shipping_gate_closed": true,
+  "finite_task51_reference_shipping_acceptance": true,
+  "safe_publication_no_blocking_findings": true,
+  "task51_delivery_complete": false,
+  "whole_D3_accepted": false,
+  "actual_completion": {
+    "runner_exit": 0,
+    "runner_completed_utc": "2026-11-02T07:08:52.219365+00:00",
+    "launcher_gate_passed": true,
+    "launcher_completed_utc": "2026-11-02T07:09:06.456507+00:00",
+    "runtime_and_retained_tiers_complete": true,
+    "accepted_check_set_exact": true,
+    "accepted_checks": 40,
+    "accepted_checks_passed": 40,
+    "claim_counts_retained": {
+      "PASS - directly protected": 17,
+      "PASS - baseline-sensitive": 12,
+      "NOT COVERED": 8,
+      "EVIDENCE ONLY - not automatically checked": 8
+    },
+    "note": "40 checks is not 40 fully covered behavioural claims; existing evidence-only and NOT COVERED claims and blind spots remain."
+  },
+  "complete_comparison": {
+    "baseline_pack": "R:\\d2-evidence\\baseline-host-20261026-shortpath",
+    "accepted_report": "R:\\eech_source_code\\eech-campaign\\reference\\m5-all-family-loss\\final-pack\\report.json",
+    "candidate_pack": "D:\\EECH-Migration-Evidence\\shipping-environment-production-78fe5efdb-20261101-1626",
+    "comparator": "C:/Users/starscream/.codex/skills/eech-regression/scripts/compare_complete_packs.py",
+    "root_actual_comparator_exit": 0,
+    "root_exit_provenance": "Parent provided the explicit Python -B -X utf8 command with these baseline/candidate/accepted-report/out paths and actual tool exit0, stdout 40 accepted checks per report; 8/8 complete files equal. The original comparison JSON is unchanged.",
+    "independent_verification": "Reviewer streamed both full files in binary mode and asserted every block equal, then independently SHA-256 hashed both complete files and checked sizes/hashes against every comparison row. No newline, tolerance, row or golden normalization.",
+    "complete_files_equal": 8,
+    "artifacts": [
+      {
+        "file": "reference/run1/recording.acmi",
+        "bytes": 117690861,
+        "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+      },
+      {
+        "file": "reference/run1/observations.jsonl",
+        "bytes": 85716447,
+        "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+      },
+      {
+        "file": "reference/run1/metrics.json",
+        "bytes": 35942,
+        "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+      },
+      {
+        "file": "reference/run2/recording.acmi",
+        "bytes": 117690861,
+        "sha256": "3bd17b647665b558c7378206a3717c94e9cf771d4781d78e0b2aaae9a7d2d19b"
+      },
+      {
+        "file": "reference/run2/observations.jsonl",
+        "bytes": 85716447,
+        "sha256": "da26bab01163aa4ab725f9f2ecb516d37a4558777fe3684222b8d885822e77cf"
+      },
+      {
+        "file": "reference/run2/metrics.json",
+        "bytes": 35942,
+        "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+      },
+      {
+        "file": "regress/georgia_retail.json",
+        "bytes": 22427,
+        "sha256": "7427660511cf60c503d393f94021b51fef03723a629d6bc6987d497d93c9148d"
+      },
+      {
+        "file": "regress/lebanon_retail.json",
+        "bytes": 35942,
+        "sha256": "fa09d56212e4366fb8f39c02b632cf1fef60a817bf644bfe64143e6fbd662587"
+      }
+    ]
+  },
+  "identity": {
+    "ordinary_windows_build": true,
+    "payloads_rehashed_exact": 74,
+    "build_info_sha256": "98baeb069c2d57b64f1a409d60265fb0246997acc3d9abfaa5529dd56b999b56",
+    "native_dll_sha256": "ac1c429111f952920003fdabb7b7eb917840c1bced84c34dc1fef153bf369d92",
+    "world_exe_sha256": "0898f75aeb75ab394394d8f8a5747e726f2ef883e8ae834b2b326d2ebf9eded8",
+    "image_from_build_info": "sha256:babe37757110653e4c6e504e835f9e4a8b86bf889c71f1696ba1d463d8998ec3",
+    "source_runner_sha256": "4dc08480b72722a7dfdae5dea319f61acc6414c4bdb29351982e1579393d66db",
+    "preflight_runner_sha256": "4dc08480b72722a7dfdae5dea319f61acc6414c4bdb29351982e1579393d66db",
+    "pack_configuration": "Existing accepted Windows retail v1 pack: seed1, three simulated hours, 100ms frames; observation/reference flags and separate roots are those of the unchanged runner/pack configuration.",
+    "scripts_and_reference_metadata": "Actual preflight hashes, current payload hashes, recorded report build hashes and frozen source identities agree."
+  },
+  "inputs": {
+    "external_post_checks": 3,
+    "internal_copied_lebanon_post_checks": 1,
+    "all_four_actual_check_exits": 0,
+    "georgia_files": 1174,
+    "lebanon_files_each": 1179,
+    "independent_evidence": "Read the original post-check logs, launcher exit records and Root internal-check exit/command. The complete internal 1179-entry manifest equals the frozen reference input list; accepted root combined hashes and per-run configuration agree. No checker/native campaign rerun by reviewer.",
+    "engine_written_state": "Existing manifest treatment of engine-written files is unchanged; no new exclusion was introduced."
+  },
+  "helpers": {
+    "assessment": "The unchanged skill comparator checks exact accepted check sets and all PASS reports before comparing the eight nonempty complete files. It explicitly separates actual exits/input identity; the launcher and Root audit provide those separate gates. Root audit binds clean source, ordinary profile, payloads, completion, fourth input check and metadata-only successor. Reviewer independently verified the central assertions rather than treating report booleans as proof.",
+    "side_effect_limit": "Only read-only inspection, hashing and the requested independent report; no builds/tests/campaigns, artifact changes or nested agents."
+  },
+  "publication": {
+    "head": "bf7e8d44980058edacf270a8f80c092512f58dec",
+    "folder": "eech-campaign/reference/d3-environment-characterization/shipping-78-complete-20261102/",
+    "literal_json_copies": [
+      {
+        "file": "runner.json",
+        "bytes": 909,
+        "sha256": "f1f3c3672958006020403cdbf4e1c3d27699c4698f5a55bd1211f57b11b1e8f4"
+      },
+      {
+        "file": "launcher-completion.json",
+        "bytes": 862,
+        "sha256": "e45a3137e2473debd46ddd3d4c70be8c12012f3386504c3bdcf8527dac7e5c3c"
+      },
+      {
+        "file": "complete-comparison.json",
+        "bytes": 3221,
+        "sha256": "cdeec9fe8b0bebc30e8df06ce36f683ffc1815259c1a86cb8e3c52a100e991ad"
+      },
+      {
+        "file": "root-audit.json",
+        "bytes": 4188,
+        "sha256": "da56cd98962992c710fba776dd83db3489d8eb0b27dc042c4203148140c0aba0"
+      },
+      {
+        "file": "prior-documentation-head-ci.json",
+        "bytes": 28092,
+        "sha256": "63c08c2c209a77f7f9bbbd697643388bf67c31614a1ff3e05297209612598133"
+      }
+    ],
+    "all_five_git_blobs_exact_private_originals": true,
+    "README_and_STATUS_claims": "Correctly describe complete equality, distinguish ordinary native78 and documentation d456, preserve historical prefix limits, and leave new publication CI/independent review/normal merge pending as written.",
+    "privacy": "Whitelist contains five small literal metadata receipts, manifest, README and scoped attributes only. No retail inputs, raw campaign recordings, scene geometry, entity-position rows, native binaries or credentials are copied.",
+    "text_forms": "*.json -text preserves private original CRLF bytes; no receipt or raw-output normalization.",
+    "future_review_copy": "Any later literal copy of this report is outside this reviewed publication head and must be identified transparently; no recursive review claim."
+  },
+  "CI": {
+    "verified_prior_head": "d4564f36a878b9cee1010ef30891858b4b5c8c84",
+    "all_nine_prior_jobs_completed_success": true,
+    "publication_head_CI": "Not assessed by this report; required before normal delivery, and prior greens are not relabelled as publication-head results."
+  },
+  "reused_finite_reviews": [
+    {
+      "scope": "backend/entry actual gate",
+      "report": "independent-environment-sound-backend-detach-actual-78fe5efdb-20261101.json",
+      "sha256": "03369ba4610fd507de6ea78f2cbe5619c5bf590060db562d2baafe80b135e418"
+    },
+    {
+      "scope": "backend/play-entry source correction",
+      "review_prefix": "acd79644"
+    },
+    {
+      "scope": "time/DCS mapping bootstrap source/design plan",
+      "review_sha256": "bb1bf59272ff99c60f433062853b03bc5cc95e82928cc9bf5fc9a01ce68a5b1d"
+    }
+  ],
+  "authority": {
+    "M5_goal": "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
+    "M5_live_version_read": 3,
+    "migration_ledger": "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994",
+    "ledger_live_summary_version_read": 122,
+    "task": "EEDCS-51",
+    "task_live_status": "In Progress",
+    "boundary": "M5 requires needed physical host services and protected reference behaviour; live DCS operation belongs to M6. This report does not change scope or issue state."
+  },
+  "limitations": [
+    "This closes the new finite Task51 ordinary reference shipping/conformance and reviewed safe-publication evidence gate. It is not a formal GitHub APPROVED review, normal merge or Jira Task Done action.",
+    "The complete Tacview/observation/metrics comparison is byte equality, not visual Tacview inspection, live DCS/M6 execution or all-simulator equivalence.",
+    "Existing one-seed/three-hour, recording/observation, known lifecycle and other pack blind spots are retained. No new positive audio/backend, all-caller FP, arbitrary timing/reload or global-dormancy claim follows.",
+    "Required model/hierarchy/viewpoint/device/muzzle/target-point services and Task49 physical collision remain separate D3 work. Task50 and whole D3 are not accepted here.",
+    "The original long run, earlier failed/partial experiments and live-prefix receipts keep their own identities and historical scope; no campaign was restarted or re-recorded to obtain this result.",
+    "Current final-head CI, current technical-lead approval, any required material-base validation, normal merge and authorized delivery updates remain separate gates."
+  ],
+  "retained_identity_receipts": [
+    {
+      "path": "D:\\EECH-Migration-Evidence\\shipping-environment-production-78fe5efdb-20261101-1626\\run.json",
+      "sha256": "f1f3c3672958006020403cdbf4e1c3d27699c4698f5a55bd1211f57b11b1e8f4",
+      "bytes": 909
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\shipping-environment-production-78fe5efdb-20261101-1626\\completion.json",
+      "sha256": "e45a3137e2473debd46ddd3d4c70be8c12012f3386504c3bdcf8527dac7e5c3c",
+      "bytes": 862
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\shipping-environment-production-78fe5efdb-20261101-1626\\report.json",
+      "sha256": "044a38359190264c0687aa6a5656c5d865e0d53f373f3ff238acf8af3e5e7d7a",
+      "bytes": 39343
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\shipping-environment-production-78fe5efdb-20261101-1626\\preflight.json",
+      "sha256": "9d9c312b7c85bfaa459dad3c7f7efd31e7ad79e3f94b294152c5b673a9a10d58",
+      "bytes": 14696
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-shipping-audit-78fe5efdb-20261102-1535.json",
+      "sha256": "da56cd98962992c710fba776dd83db3489d8eb0b27dc042c4203148140c0aba0",
+      "bytes": 4188
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-shipping-complete-78fe5efdb-20261102-1535.json",
+      "sha256": "cdeec9fe8b0bebc30e8df06ce36f683ffc1815259c1a86cb8e3c52a100e991ad",
+      "bytes": 3221
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-shipping-internal-post-inputs-78fe5efdb-20261102-1535.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "bytes": 209622
+    },
+    {
+      "path": "R:\\d3-evidence\\audit-environment-shipping-20261102-1535.py",
+      "sha256": "ea7f979aa48c1e300859e54cb95100131e695957c7b86e4fac3610e706739cc9",
+      "bytes": 3816
+    },
+    {
+      "path": "C:\\Users\\starscream\\.codex\\skills\\eech-regression\\scripts\\compare_complete_packs.py",
+      "sha256": "c7bb3ed6d21a532f888da01943e69228124c54999ecf81966b6fb28b29979ea6",
+      "bytes": 2670
+    },
+    {
+      "path": "D:\\EECH-Migration-Evidence\\nb-78fe5efdb\\eech-campaign\\target\\windows-environment-production-78fe5efdb\\BUILD-INFO.txt",
+      "sha256": "98baeb069c2d57b64f1a409d60265fb0246997acc3d9abfaa5529dd56b999b56",
+      "bytes": 7428
+    },
+    {
+      "path": "R:\\eech_source_code\\eech-campaign\\reference\\m5-all-family-loss\\final-pack\\report.json",
+      "sha256": "d7e89d6443197f756702631928725aa93ea7160bf06600167d696c2a74c6e99c",
+      "bytes": 38767
+    },
+    {
+      "path": "R:\\d2-evidence\\baseline-host-20261026-shortpath\\report.json",
+      "sha256": "0d6cadc4d1506686d6d6535459498c561bf70b4d2e9fbaff03c4600cffff1a97",
+      "bytes": 38726
+    }
+  ]
+}
