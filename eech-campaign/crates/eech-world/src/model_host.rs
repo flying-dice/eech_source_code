@@ -13,8 +13,8 @@
 //! No pointer, offset or legacy layout reaches Lua; the store is immutable and shared (`Arc`), so a value a script keeps never refers into it. Arguments are whole
 //! numbers within range or the call is refused before the store is touched. A missing asset is reported as `NOT RUN`, never as a pass.
 use crate::models::{
-    compiled_scene_name, hex_list, scene_index_by_name, scene_last, AnimationRef, CustomWalk, ErrorKind, ModelStore, ObjectHeader, ObjectSource, OffsetSource, RouteFace,
-    RouteNode, SceneSource, TargetPointLocal, TargetPointWorld, Triangle, CUSTOM_WALK_MAX, TARGET_POINT_STATE,
+    compiled_scene_name, hex_list, scene_index_by_name, scene_last, AnimationRef, CustomWalk, ErrorKind, ModelStore, ObjectHeader, ObjectSource, OffsetSource,
+    RouteFace, RouteNode, SceneSource, TargetPointLocal, TargetPointWorld, Triangle, CUSTOM_WALK_MAX, TARGET_POINT_STATE,
 };
 use crate::original_report;
 use mlua::prelude::*;
@@ -273,9 +273,7 @@ impl LuaUserData for StoreHandle {
             let answer = this.0.animation_ref(scene, index, definition).map_err(query_error)?;
             animation_table(lua, &answer)
         });
-        methods.add_method("scene_index", |_, _this, name: String| {
-            Ok(scene_index_by_name(&name).map(|scene| scene as i64))
-        });
+        methods.add_method("scene_index", |_, _this, name: String| Ok(scene_index_by_name(&name).map(|scene| scene as i64)));
         methods.add_method("target_point_local", |lua, this, scene: LuaValue| {
             let scene = whole(&scene, "scene", i64::MIN / 2, i64::MAX / 2)?;
             let answer = this.0.target_point_local(scene).map_err(query_error)?;
@@ -320,8 +318,7 @@ impl LuaUserData for StoreHandle {
             Ok(table)
         });
         methods.add_method("compare_target_points", |lua, this, path: String| {
-            let report =
-                compare_target_points(&this.0, Path::new(&path)).map_err(|e| LuaError::runtime(format!("model store: compare_target_points: {e}")))?;
+            let report = compare_target_points(&this.0, Path::new(&path)).map_err(|e| LuaError::runtime(format!("model store: compare_target_points: {e}")))?;
             let t = lua.create_table()?;
             for (name, value) in [
                 ("offset_events", report.offset_events),
@@ -910,11 +907,16 @@ fn pose_words<const N: usize>(pose: &LuaTable, key: &str, default: Option<[u32; 
     match value {
         LuaValue::Nil => default.ok_or_else(|| LuaError::runtime(format!("model store: bad argument: the pose has no {key}"))),
         LuaValue::String(text) => {
-            let text = text.to_str().map_err(|_| LuaError::runtime(format!("model store: bad argument: pose {key} is not text")))?;
+            let text = text
+                .to_str()
+                .map_err(|_| LuaError::runtime(format!("model store: bad argument: pose {key} is not text")))?;
             let words = parse_bits(&text).ok_or_else(|| LuaError::runtime(format!("model store: bad argument: pose {key} is not 0x-prefixed hex words")))?;
             <[u32; N]>::try_from(words).map_err(|w| LuaError::runtime(format!("model store: bad argument: pose {key} has {} words, not {N}", w.len())))
         }
-        other => Err(LuaError::runtime(format!("model store: bad argument: pose {key} must be text, got {}", other.type_name()))),
+        other => Err(LuaError::runtime(format!(
+            "model store: bad argument: pose {key} must be text, got {}",
+            other.type_name()
+        ))),
     }
 }
 
@@ -962,13 +964,18 @@ fn field<'a>(fields: &[(&'a str, &'a str)], key: &str) -> Option<&'a str> {
 
 /// `00000000,3f800000` as bit patterns (the observer writes them without a prefix)
 fn parse_plain_words(list: &str, count: usize) -> Option<Vec<u32>> {
-    let words: Option<Vec<u32>> = list.split(',').map(|w| if w.len() == 8 { u32::from_str_radix(w, 16).ok() } else { None }).collect();
+    let words: Option<Vec<u32>> = list
+        .split(',')
+        .map(|w| if w.len() == 8 { u32::from_str_radix(w, 16).ok() } else { None })
+        .collect();
     words.filter(|w| w.len() == count)
 }
 
 /// The name the observer writes for a scene: every character that is not alphanumeric, `_`, `.` or `-` becomes `_` (clean_name in eech_tp_fixture.c).
 fn observer_name(name: &str) -> String {
-    name.chars().map(|c| if c.is_ascii_alphanumeric() || matches!(c, '_' | '.' | '-') { c } else { '_' }).collect()
+    name.chars()
+        .map(|c| if c.is_ascii_alphanumeric() || matches!(c, '_' | '.' | '-') { c } else { '_' })
+        .collect()
 }
 
 /// Compares the store with a retained target-point observer report (the JSON Lines the original-DLL characterisation driver wrote): every recorded LOCAL offset row of every
@@ -1047,7 +1054,11 @@ fn compare_offset_row(store: &ModelStore, report: &mut TargetPointReport, entry:
             Ok(view) if view.loaded && view.bounding_box[..] == bounds[..] => {}
             Ok(view) => {
                 report.offset_mismatches += 1;
-                report.list(format!("{label}: bounds original {} host {}", hex_plain(&bounds), hex_plain(&view.bounding_box)));
+                report.list(format!(
+                    "{label}: bounds original {} host {}",
+                    hex_plain(&bounds),
+                    hex_plain(&view.bounding_box)
+                ));
             }
             Err(e) => {
                 report.offset_mismatches += 1;
@@ -1062,15 +1073,26 @@ fn compare_offset_row(store: &ModelStore, report: &mut TargetPointReport, entry:
         }
         Ok(TargetPointLocal::Refused(why)) => {
             report.offset_mismatches += 1;
-            report.list(format!("{label}: the original has {} ({state}), the host refuses ({why})", hex_plain(&original)));
+            report.list(format!(
+                "{label}: the original has {} ({state}), the host refuses ({why})",
+                hex_plain(&original)
+            ));
         }
         Ok(TargetPointLocal::Offset { offset, source }) => {
             if offset[..] != original[..] {
                 report.offset_mismatches += 1;
-                report.list(format!("{label}: {state} original {} host {} ({})", hex_plain(&original), hex_plain(&offset), offset_source_name(source)));
+                report.list(format!(
+                    "{label}: {state} original {} host {} ({})",
+                    hex_plain(&original),
+                    hex_plain(&offset),
+                    offset_source_name(source)
+                ));
             } else if source != expected_source {
                 report.offset_mismatches += 1;
-                report.list(format!("{label}: same bits but the original took {state}, the host {}", offset_source_name(source)));
+                report.list(format!(
+                    "{label}: same bits but the original took {state}, the host {}",
+                    offset_source_name(source)
+                ));
             }
         }
     }
@@ -1126,7 +1148,12 @@ fn compare_query(store: &ModelStore, report: &mut TargetPointReport, body: &str)
                 report.branch1_matched += 1;
             } else {
                 report.branch1_mismatches += 1;
-                report.list(format!("{label}: original {} host {} (state {TARGET_POINT_STATE}, root pose {})", hex_plain(&result), hex_plain(&position), hex_plain(&vp)));
+                report.list(format!(
+                    "{label}: original {} host {} (state {TARGET_POINT_STATE}, root pose {})",
+                    hex_plain(&result),
+                    hex_plain(&position),
+                    hex_plain(&vp)
+                ));
             }
         }
     }

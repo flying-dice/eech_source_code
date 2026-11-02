@@ -71,11 +71,24 @@ fn table(objects: &[Mesh]) -> (Vec<u8>, Vec<u8>, Vec<u8>) {
     let points: usize = objects.iter().map(|m| m.points.len()).sum();
     let plain: usize = objects.iter().map(|m| m.list.len()).sum();
     let mut bin = W::default();
-    bin.i32(objects.len() as i32).i32(surfaces as i32).i32(points as i32).i32(0).i32(plain as i32).i32(0).i32(0).i32(0);
+    bin.i32(objects.len() as i32)
+        .i32(surfaces as i32)
+        .i32(points as i32)
+        .i32(0)
+        .i32(plain as i32)
+        .i32(0)
+        .i32(0)
+        .i32(0);
     let (mut pts, mut sp) = (W::default(), W::default());
     for m in objects {
         let faces: i32 = m.surfaces.iter().map(|s| s.1 as i32).sum();
-        bin.i32(0).i32(m.points.len() as i32).i32(m.surfaces.len() as i32).i32(faces).i32(0).i32(0).i32(0);
+        bin.i32(0)
+            .i32(m.points.len() as i32)
+            .i32(m.surfaces.len() as i32)
+            .i32(faces)
+            .i32(0)
+            .i32(0)
+            .i32(0);
         bin.f32(1.0).i32(m.sp.len() as i32).i32(0).i32(0);
         bin.floats(&m.bb).floats(&m.bb);
         for (flags, count, colour) in &m.surfaces {
@@ -116,7 +129,12 @@ struct Sub {
 }
 
 fn sub(key: [f32; 9], indices: Vec<(i32, i32)>, children: Vec<Sub>) -> Sub {
-    Sub { object: 1, key, indices, children }
+    Sub {
+        object: 1,
+        key,
+        indices,
+        children,
+    }
 }
 
 fn sub_record(w: &mut W, s: &Sub) {
@@ -198,7 +216,11 @@ struct Root {
 impl Root {
     fn new(objects: &[Mesh], scenes: &[Vec<u8>]) -> Root {
         static COUNTER: AtomicUsize = AtomicUsize::new(0);
-        let dir = std::env::temp_dir().join(format!("eech-world-model-target-point-{}-{}", std::process::id(), COUNTER.fetch_add(1, Ordering::SeqCst)));
+        let dir = std::env::temp_dir().join(format!(
+            "eech-world-model-target-point-{}-{}",
+            std::process::id(),
+            COUNTER.fetch_add(1, Ordering::SeqCst)
+        ));
         let _ = std::fs::remove_dir_all(&dir);
         let data = dir.join("cohokum").join("3ddata");
         std::fs::create_dir_all(&data).unwrap();
@@ -219,7 +241,9 @@ impl Drop for Root {
 }
 
 fn kind(name: &str) -> i32 {
-    (1..subobject_last()).find(|k| compiled_subobject_name(*k) == Some(name)).unwrap_or_else(|| panic!("no compiled sub-object kind {name}")) as i32
+    (1..subobject_last())
+        .find(|k| compiled_subobject_name(*k) == Some(name))
+        .unwrap_or_else(|| panic!("no compiled sub-object kind {name}")) as i32
 }
 
 fn target_point() -> i32 {
@@ -247,13 +271,25 @@ fn standard() -> (Root, ModelStore) {
         key
     };
     let scenes = vec![
-        scene_record(1, 1, &[(tp, 1)], &[sub(at(100.0, 0.0, 0.0), vec![(tp, 0)], vec![sub(at(7.0, 0.0, 0.0), vec![], vec![])]), sub(at(1.0, 0.0, 0.0), vec![], vec![])]),
+        scene_record(
+            1,
+            1,
+            &[(tp, 1)],
+            &[
+                sub(at(100.0, 0.0, 0.0), vec![(tp, 0)], vec![sub(at(7.0, 0.0, 0.0), vec![], vec![])]),
+                sub(at(1.0, 0.0, 0.0), vec![], vec![]),
+            ],
+        ),
         scene_record(
             2,
             1,
             &[],
             &[
-                sub(at(3.0, 0.0, 0.0), vec![], vec![sub(at(0.0, 1.0, 0.0), vec![(tp, 0)], vec![sub(at(0.0, 0.0, 9.0), vec![], vec![])])]),
+                sub(
+                    at(3.0, 0.0, 0.0),
+                    vec![],
+                    vec![sub(at(0.0, 1.0, 0.0), vec![(tp, 0)], vec![sub(at(0.0, 0.0, 9.0), vec![], vec![])])],
+                ),
                 sub(at(50.0, 0.0, 0.0), vec![(tp, 0)], vec![sub(at(0.0, 0.0, 0.0), vec![], vec![])]),
             ],
         ),
@@ -264,7 +300,11 @@ fn standard() -> (Root, ModelStore) {
         scene_record(7, 1, &[(other, 0)], &[sub(at(5.0, 5.0, 5.0), vec![], vec![])]),
     ];
     let root = Root::new(
-        &[mesh([-1.0, 1.0, -1.0, 1.0, -1.0, 1.0]), mesh([-4.0, 2.0, -10.0, -2.0, 0.0, 6.0]), mesh([-4.0, 2.0, 2.0, 10.0, 0.0, 6.0])],
+        &[
+            mesh([-1.0, 1.0, -1.0, 1.0, -1.0, 1.0]),
+            mesh([-4.0, 2.0, -10.0, -2.0, 0.0, 6.0]),
+            mesh([-4.0, 2.0, 2.0, 10.0, 0.0, 6.0]),
+        ],
         &scenes,
     );
     let store = ModelStore::load(&root.dir).expect("the fixture installation loads");
@@ -355,7 +395,11 @@ fn a_scene_without_a_target_point_falls_back_to_its_bounding_box_centre_with_y_c
     assert_eq!(local(&store, 6), ([-1.0, 6.0, 3.0], OffsetSource::BoundingBox));
     // sub-objects without a TARGET_POINT record do not make one: the bounding box still decides (the scene bounds, whatever they are, are the store's own)
     let bounds = floats(store.scene(7).unwrap().bounding_box);
-    let expected = [(bounds[0] + bounds[1]) * 0.5, ((bounds[2] + bounds[3]) * 0.5).max(0.0), (bounds[4] + bounds[5]) * 0.5];
+    let expected = [
+        (bounds[0] + bounds[1]) * 0.5,
+        ((bounds[2] + bounds[3]) * 0.5).max(0.0),
+        (bounds[4] + bounds[5]) * 0.5,
+    ];
     assert_eq!(local(&store, 7), (expected, OffsetSource::BoundingBox));
 }
 
@@ -374,7 +418,13 @@ fn bits6(v: [f32; 6]) -> [u32; 6] {
 fn the_invalid_scene_is_zero_a_scene_never_read_is_refused_and_a_scene_outside_the_catalogue_is_an_argument_error() {
     let (_root, store) = standard();
     // scene 0 is the original's invalid object index: its offset is the zero it sets, from no data
-    assert_eq!(store.target_point_local(0).unwrap(), TargetPointLocal::Offset { offset: [0; 3], source: OffsetSource::InvalidZero });
+    assert_eq!(
+        store.target_point_local(0).unwrap(),
+        TargetPointLocal::Offset {
+            offset: [0; 3],
+            source: OffsetSource::InvalidZero
+        }
+    );
     // scene 8 is in the catalogue but the files never defined it: no number is invented for it
     assert_eq!(store.target_point_local(8).unwrap(), TargetPointLocal::Refused("scene_not_loaded"));
     assert_eq!(world(&store, 8, [0.0; 3], IDENTITY, [1.0; 3]), TargetPointWorld::Refused("scene_not_loaded"));
@@ -438,7 +488,9 @@ fn a_target_point_query_hands_the_callers_floating_point_state_back_and_does_not
         (
             store.target_point_local(3).unwrap(),
             store.target_point_local(5).unwrap(),
-            store.target_point_world(4, bits3([0.1, 0.2, 0.3]), bits9(CYCLE), bits3([0.7, 0.7, 0.7])).unwrap(),
+            store
+                .target_point_world(4, bits3([0.1, 0.2, 0.3]), bits9(CYCLE), bits3([0.7, 0.7, 0.7]))
+                .unwrap(),
         )
     };
     let reference = pose(&store);
@@ -499,7 +551,11 @@ fn lua_with_store(root: &std::path::Path) -> mlua::Lua {
 
 /// the observer's text for a scene name (`clean_name`)
 fn observer_name(scene: usize) -> String {
-    compiled_scene_name(scene).unwrap().chars().map(|c| if c.is_ascii_alphanumeric() || matches!(c, '_' | '.' | '-') { c } else { '_' }).collect()
+    compiled_scene_name(scene)
+        .unwrap()
+        .chars()
+        .map(|c| if c.is_ascii_alphanumeric() || matches!(c, '_' | '.' | '-') { c } else { '_' })
+        .collect()
 }
 
 /// A retained report in the observer's shape, with literal hex words. Both passes of the census carry the same rows (scene 9 is not recorded by the original); the queries
@@ -527,7 +583,11 @@ fn report_file(dir: &std::path::Path, damaged: bool) -> PathBuf {
     for (when, generation) in [("boot", 0u32), ("boot", 1), ("end", 0), ("end", 1)] {
         lines.push(serde_json::json!({ "event": "offsets", "when": when, "generation": generation, "text": pass(generation) }));
     }
-    for (index, branch, result) in [(0, 1, "41500000,41a80000,42000000"), (1, 1, "41500000,41a80000,42000001"), (2, 3, "00000000,00000000,00000000")] {
+    for (index, branch, result) in [
+        (0, 1, "41500000,41a80000,42000000"),
+        (1, 1, "41500000,41a80000,42000001"),
+        (2, 3, "00000000,00000000,00000000"),
+    ] {
         lines.push(serde_json::json!({ "event": "query", "index": index, "text": query(index, branch, result) }));
     }
     let path = dir.join(if damaged { "damaged.jsonl" } else { "report.jsonl" });

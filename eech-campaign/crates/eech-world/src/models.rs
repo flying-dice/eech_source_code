@@ -2180,7 +2180,11 @@ pub fn scene_index_by_name(name: &str) -> Option<usize> {
 
 /// The sub-object kind `TARGET_POINT` stands for in the compiled list.
 fn target_point_kind() -> Option<i32> {
-    compiled_subobject_names().iter().skip(1).position(|n| *n == "TARGET_POINT").map(|i| i as i32 + 1)
+    compiled_subobject_names()
+        .iter()
+        .skip(1)
+        .position(|n| *n == "TARGET_POINT")
+        .map(|i| i as i32 + 1)
 }
 
 /// One step of a route's node cursor (`route_node`): the node's decoded position as float bit patterns, the end of the nodes, the absence of the route, or a refusal.
@@ -2544,7 +2548,13 @@ impl ModelStore {
         let sub = &self.scenes[scene].sub.nodes;
         let chain: Vec<Node> = path
             .iter()
-            .map(|&i| Node { object: sub[i].object, collision: 0, first_child: sub[i].first_child, child_count: sub[i].child_count, keyframe: sub[i].keyframe })
+            .map(|&i| Node {
+                object: sub[i].object,
+                collision: 0,
+                first_child: sub[i].first_child,
+                child_count: sub[i].child_count,
+                keyframe: sub[i].keyframe,
+            })
             .collect();
         let indices: Vec<i32> = (0..chain.len() as i32).collect();
         let (mut out_position, mut out_attitude) = ([0.0f32; 3], [0.0f32; 9]);
@@ -2575,7 +2585,10 @@ impl ModelStore {
     /// loaded scene gives its bounding-box centre with y clamped at zero. A scene the files never defined is refused, not zero.
     pub fn target_point_local(&self, scene: i64) -> Result<TargetPointLocal, QueryError> {
         if scene == 0 {
-            return Ok(TargetPointLocal::Offset { offset: [0; 3], source: OffsetSource::InvalidZero });
+            return Ok(TargetPointLocal::Offset {
+                offset: [0; 3],
+                source: OffsetSource::InvalidZero,
+            });
         }
         let id = self.check_scene(scene)?;
         if !self.scenes[id].loaded {
@@ -2585,7 +2598,10 @@ impl ModelStore {
         match self.target_point_viewpoint(id, [0.0; 3], IDENTITY, [1.0; 3]) {
             Err(why) => return Ok(TargetPointLocal::Refused(why)),
             Ok(Some((position, _))) => {
-                return Ok(TargetPointLocal::Offset { offset: [position[0].to_bits(), position[1].to_bits(), position[2].to_bits()], source: OffsetSource::SubObject })
+                return Ok(TargetPointLocal::Offset {
+                    offset: [position[0].to_bits(), position[1].to_bits(), position[2].to_bits()],
+                    source: OffsetSource::SubObject,
+                })
             }
             Ok(None) => {}
         }
@@ -2593,7 +2609,10 @@ impl ModelStore {
         // SAFETY: the pointers are to a local of 12 floats (the first six read) and a local of 3 floats the kernel writes.
         let code = unsafe { eech_model_target_point_bbox(self.scenes[id].bounds.as_ptr(), out.as_mut_ptr()) };
         match code {
-            0 => Ok(TargetPointLocal::Offset { offset: [out[0].to_bits(), out[1].to_bits(), out[2].to_bits()], source: OffsetSource::BoundingBox }),
+            0 => Ok(TargetPointLocal::Offset {
+                offset: [out[0].to_bits(), out[1].to_bits(), out[2].to_bits()],
+                source: OffsetSource::BoundingBox,
+            }),
             1 => Ok(TargetPointLocal::Refused("fp_masks")),
             2 => Ok(TargetPointLocal::Refused("fp_environment")),
             _ => Ok(TargetPointLocal::Refused("kernel_argument")),
