@@ -35,11 +35,15 @@
 --                       the engine must stop on `[model-provider:object.absent]` before any compatibility row is read; nothing falls back to a file of the campaign's own
 --   animation_withheld  the first animated-surface reference question (asked only for a scene loaded from an .EES file) is answered `absent`: the engine must stop on
 --                       `[model-provider:animation.absent]`
---   animation_unknown   the first reference is a logical animation name the campaign's registry does not hold: the engine must stop on `[model-provider:animation.name]`
---   animation_dropped   (a HEALTHY run, the changed-host control) the first scene's references are answered as an empty list; the campaign's scene animation list for that scene
---                       is then the host's, which the original-animation driver reads as the final ordered scene animation rows, and which the texture-animation frames of the
---                       entity ID digits (en_anim.c set_local_entity_id_number: it sets a digit only when the instance's scene lists that animation) follow. The summary's
---                       `tripped` says whether the change was given; a run that was never asked an animation question reports it as `tripped = false`: the control is unreached.
+--   animation_unknown   (a CHANGED-host control, healthy) the first reference the host would give is answered as a valid logical name the campaign's animation table does not hold.
+--                       That is NOT a refusal: the campaign owns the decision for such a name and keeps the accepted original policy (add_new_animation with the T2 tolerance maps it to
+--                       animation 0). The consequence is the scene's FINAL list: its first entry is 0.
+--   animation_dropped   (a CHANGED-host control, healthy) the first scene's references are answered as an empty list; the consequence is that scene's FINAL list: empty, where the
+--                       reference host's answer had at least one entry. The texture-animation frames of the entity ID digits (en_anim.c set_local_entity_id_number: it sets a digit
+--                       only when the instance's scene lists that animation) follow that list; the event records whether the replaced reference is a digit animation.
+--   A changed-host control is covered ONLY when (1) the change was actually given (a run never asked an animation question of the kind is UNREACHED and FAILS, never an
+--   exit 0), (2) the changed definition is the scene's final one, and (3) the module's own host-profile row (model_host_animations, a model-host-fixture DLL) shows the
+--   consequence above. Without that DLL entry the control is unavailable and fails. It chooses no preferred scene: the scene is the first the campaign's own load asked about.
 -- A bad_* mode whose precondition the run did not reach (for the triangle ones: no triangle question of the matching kind was asked) is reported `UNREACHED` and fails the run,
 -- never counted as covered.
 --
@@ -186,11 +190,16 @@ local function first_line (e) return (tostring (e):gsub ("\n.*", "")) end
 local reference_counts = { catalogue = 0, scene = 0, triangle = 0, found = 0, ended = 0, absent = 0, refused = 0 }
 local replied = { catalogue = 0, scene = 0, triangle = 0, found = 0, ended = 0, absent = 0, refused = 0, other = 0 }
 local tripped = false
+local changed -- the one change a changed-host control made: { scene, definition, replaced }
 local reference = host.model
 
-local function counted (op, scene, depth, kind)
+local animation_final_definition = {}
+local function counted (op, scene, depth, kind, definition)
 	reference_counts [op] = (reference_counts [op] or 0) + 1
-	local answer = reference (op, scene, depth, kind)
+	if op == "animation" and type (scene) == "number" and type (definition) == "number" then
+		animation_final_definition [scene] = math.max (animation_final_definition [scene] or 0, definition)
+	end
+	local answer = reference (op, scene, depth, kind, definition)
 	if op == "triangle" then
 		if answer.result == "triangle" then reference_counts.found = reference_counts.found + 1
 		elseif answer.result == "end" then reference_counts.ended = reference_counts.ended + 1
@@ -214,14 +223,14 @@ local provider
 if mode == "reference" then
 	provider = counted
 elseif mode == "vanish" then
-	provider = function (op, scene, depth, kind)
-		local answer = counted (op, scene, depth, kind)
+	provider = function (op, scene, depth, kind, definition)
+		local answer = counted (op, scene, depth, kind, definition)
 		if op == "triangle" and answer.result == "triangle" then return { result = "end" } end
 		return answer
 	end
 elseif mode == "inflate" then
-	provider = function (op, scene, depth, kind)
-		local answer = counted (op, scene, depth, kind)
+	provider = function (op, scene, depth, kind, definition)
+		local answer = counted (op, scene, depth, kind, definition)
 		if op == "triangle" and answer.result == "triangle" then
 			if depth == 0 then return { result = "triangle", p = BIG } end
 			return { result = "end" }
@@ -229,15 +238,15 @@ elseif mode == "inflate" then
 		return answer
 	end
 elseif mode == "bounds_zero" then
-	provider = function (op, scene, depth, kind)
-		local answer = counted (op, scene, depth, kind)
+	provider = function (op, scene, depth, kind, definition)
+		local answer = counted (op, scene, depth, kind, definition)
 		if op == "scene" then return scene_with (answer, { bb = ZERO6, bb2 = ZERO6 }) end
 		return answer
 	end
 elseif mode == "absent_all" or mode == "bad_found_declared_absent" or mode == "bad_end_declared_absent" then
 	-- every scene is declared without a collider; the triangle answers follow the mode
-	provider = function (op, scene, depth, kind)
-		local answer = counted (op, scene, depth, kind)
+	provider = function (op, scene, depth, kind, definition)
+		local answer = counted (op, scene, depth, kind, definition)
 		if op == "scene" then return scene_with (answer, { collider = false }) end
 		if op == "triangle" then
 			if mode == "absent_all" then return { result = "absent" } end
@@ -251,46 +260,53 @@ elseif mode == "absent_all" or mode == "bad_found_declared_absent" or mode == "b
 		return answer
 	end
 elseif mode == "object_withheld" then
-	provider = function (op, scene, depth, kind)
-		local answer = counted (op, scene, depth, kind)
+	provider = function (op, scene, depth, kind, definition)
+		local answer = counted (op, scene, depth, kind, definition)
 		if op == "object" and scene == 1 and kind == 0 and not tripped then tripped = true return { result = "absent", name = answer.name } end
 		return answer
 	end
-elseif mode == "animation_withheld" or mode == "animation_unknown" or mode == "animation_dropped" then
-	provider = function (op, scene, depth, kind)
-		local answer = counted (op, scene, depth, kind)
-		if op ~= "animation" or tripped then return answer end
-		if mode == "animation_withheld" then tripped = true return { result = "absent", name = answer.name }
-		elseif mode == "animation_unknown" and answer.result == "name" then tripped = true return { result = "name", animation = "NO_SUCH_ANIMATION", name = answer.name }
-		elseif mode == "animation_dropped" and answer.result == "name" then tripped = true return { result = "end", name = answer.name } end
+elseif mode == "animation_withheld" then
+	provider = function (op, scene, depth, kind, definition)
+		local answer = counted (op, scene, depth, kind, definition)
+		if op == "animation" and not tripped then tripped = true return { result = "absent", name = answer.name } end
 		return answer
+	end
+elseif mode == "animation_unknown" or mode == "animation_dropped" then
+	-- the change is made to the first CURSOR 0 reference the reference host would give a custom scene definition; everything else is the reference host's answer
+	provider = function (op, scene, depth, kind, definition)
+		local answer = counted (op, scene, depth, kind, definition)
+		if op ~= "animation" or tripped or depth ~= 0 or answer.result ~= "name" then return answer end
+		tripped = true
+		changed = { scene = scene, definition = definition, replaced = answer.animation }
+		if mode == "animation_unknown" then return { result = "name", animation = "NO_SUCH_ANIMATION", name = answer.name } end
+		return { result = "end", name = answer.name }
 	end
 elseif mode == "missing" then
 	provider = nil
 elseif mode == "decline" then
-	provider = function (op, scene, depth, kind)
+	provider = function (op, scene, depth, kind, definition)
 		if op == "triangle" then tripped = true error ("the host declines on purpose") end
-		return counted (op, scene, depth, kind)
+		return counted (op, scene, depth, kind, definition)
 	end
 elseif mode == "refused" then
-	provider = function (op, scene, depth, kind)
+	provider = function (op, scene, depth, kind, definition)
 		if op == "triangle" then tripped = true return { result = "refused", reason = "declined on purpose" } end
-		return counted (op, scene, depth, kind)
+		return counted (op, scene, depth, kind, definition)
 	end
 elseif mode == "bad_nil" then
-	provider = function (op, scene, depth, kind)
+	provider = function (op, scene, depth, kind, definition)
 		if op == "catalogue" then tripped = true return nil end
-		return counted (op, scene, depth, kind)
+		return counted (op, scene, depth, kind, definition)
 	end
 elseif mode == "bad_catalogue" then
-	provider = function (op, scene, depth, kind)
-		local answer = counted (op, scene, depth, kind)
+	provider = function (op, scene, depth, kind, definition)
+		local answer = counted (op, scene, depth, kind, definition)
 		if op == "catalogue" then tripped = true return { scenes = answer.scenes - 1 } end
 		return answer
 	end
 elseif mode == "bad_name" or mode == "bad_scene_nan" or mode == "bad_collider_unloaded" or mode == "bad_scene0_loaded" then
-	provider = function (op, scene, depth, kind)
-		local answer = counted (op, scene, depth, kind)
+	provider = function (op, scene, depth, kind, definition)
+		local answer = counted (op, scene, depth, kind, definition)
 		if op ~= "scene" then return answer end
 		if mode == "bad_name" and scene == 1 then tripped = true return scene_with (answer, { name = answer.name .. "_WRONG" })
 		elseif mode == "bad_scene_nan" and scene == 1 then tripped = true return scene_with (answer, { radius = "0x7fc00000" })
@@ -300,8 +316,8 @@ elseif mode == "bad_name" or mode == "bad_scene_nan" or mode == "bad_collider_un
 	end
 else
 	-- the first triangle question (of the matching kind) is answered wrongly
-	provider = function (op, scene, depth, kind)
-		local answer = counted (op, scene, depth, kind)
+	provider = function (op, scene, depth, kind, definition)
+		local answer = counted (op, scene, depth, kind, definition)
 		if op ~= "triangle" or tripped then return answer end
 		if mode == "bad_kind" then tripped = true return { p = BIG }
 		elseif mode == "bad_nan" and answer.result == "triangle" then
@@ -318,8 +334,8 @@ end
 -- what the provider function actually handed back to the campaign, after the mode's rewrite
 local function replying (inner)
 	if inner == nil then return nil end
-	return function (op, scene, depth, kind)
-		local answer = inner (op, scene, depth, kind)
+	return function (op, scene, depth, kind, definition)
+		local answer = inner (op, scene, depth, kind, definition)
 		if type (answer) == "table" then
 			if op == "triangle" then
 				replied.triangle = replied.triangle + 1
@@ -355,7 +371,7 @@ local triangle_markers = { decline = "[model-provider:triangle.callback]", refus
 	bad_nan = "[model-provider:triangle.answer]", bad_count = "[model-provider:triangle.answer]", bad_hex = "[model-provider:triangle.answer]",
 	bad_absent = "[model-provider:triangle.answer]", bad_end_absent = "[model-provider:triangle.answer]", bad_found_declared_absent = "[model-provider:triangle.answer]",
 	bad_end_declared_absent = "[model-provider:triangle.answer]" }
-local metadata_markers = { object_withheld = "[model-provider:object.absent]", animation_withheld = "[model-provider:animation.absent]", animation_unknown = "[model-provider:animation.name]" }
+local metadata_markers = { object_withheld = "[model-provider:object.absent]", animation_withheld = "[model-provider:animation.absent]" }
 local expected_marker = boot_markers [mode] or triangle_markers [mode] or metadata_markers [mode]
 
 local function matches (message) return expected_marker ~= nil and string.find (message, expected_marker, 1, true) ~= nil end
@@ -399,6 +415,38 @@ if poison then
 	assert (has_fixture, "poison=1 needs a DLL built with the model-host-fixture feature: unavailable, not covered")
 	engine:model_host_poison ()
 	emit { event = "poisoned", note = "radius, both bounds and the collision object index of every campaign-side scene entry overwritten" }
+end
+
+-- ---------------------------------------------------------------------------------------------------------------------------------
+-- a changed-host control must have been given AND have its consequence in the campaign's own final list. A problem found here is reported by the verdict: never an exit 0.
+
+local changed_problem
+if mode == "animation_unknown" or mode == "animation_dropped" then
+	if not tripped or not changed then
+		changed_problem = "UNREACHED: the " .. mode .. " change was never given (the campaign asked no animation reference of a custom scene definition); the control is unavailable, not covered"
+	elseif animation_final_definition [changed.scene] ~= changed.definition then
+		changed_problem = string.format ("UNREACHED: the changed definition %d of scene %d is not the scene's final one (%d): its list is not what the campaign keeps", changed.definition, changed.scene,
+			animation_final_definition [changed.scene] or -1)
+	elseif type (engine.model_host_animations) ~= "function" then
+		changed_problem = "UNREACHED: the consequence of " .. mode .. " can only be read from a DLL built with the model-host-fixture feature (model_host_animations); the control is unavailable, not covered"
+	else
+		local read_ok, page = pcall (engine.model_host_animations, engine, changed.scene, 1)
+		if not read_ok then
+			changed_problem = mode .. ": the final list of scene " .. changed.scene .. " could not be read: " .. first_line (page)
+		else
+			local scene, status, count, ids = string.match (tostring (page), "model%-anim scene=(%d+) name=%S+ status=(%S+) source=%S+ succeeded=%d+ count=(%d+) capacity=%d+ filled=%d+ ids=(%S+)\n")
+			local first_id = ids and string.match (ids, "^(%d+)")
+			local consequence
+			if mode == "animation_dropped" then consequence = status == "empty" and tonumber (count) == 0
+			else consequence = status == "listed" and first_id == "0" end
+			emit { event = "changed_control", mode = mode, scene = changed.scene, definition = changed.definition, replaced = changed.replaced, digit_animation = type (changed.replaced) == "string" and string.find (changed.replaced, "DIGIT", 1, true) ~= nil,
+				final_status = status or "", final_count = tonumber (count) or -1, final_ids = ids or "", consequence = consequence == true }
+			if tonumber (scene) ~= changed.scene or not consequence then
+				changed_problem = string.format ("%s: the change was given but the final list of scene %d does not show it (status %s, count %s, entries %s)", mode, changed.scene, tostring (status), tostring (count), tostring (ids))
+			end
+		end
+	end
+	if changed_problem then emit { event = "changed_control_failed", mode = mode, problem = changed_problem } end
 end
 
 -- ---------------------------------------------------------------------------------------------------------------------------------
@@ -601,6 +649,7 @@ end
 if primary then
 	error (string.format ("the %s stage failed: %s%s%s", primary.stage, primary.message, probe_problem and ("; " .. probe_problem) or "", fpu_problem and ("; " .. fpu_problem) or ""), 0)
 end
+if changed_problem then error (changed_problem, 0) end
 if progress_problem then error (progress_problem, 0) end
 if los_problem then error (los_problem, 0) end
 if probe_problem then error (probe_problem, 0) end

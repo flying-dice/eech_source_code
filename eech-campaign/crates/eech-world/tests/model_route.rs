@@ -388,33 +388,35 @@ fn facts(scale: f32) -> ObjectFacts {
 fn an_objects_header_facts_are_the_files_true_values_by_the_role_it_has_in_the_scene() {
     let (_root, store) = standard();
     // scene 1: main object 1 (scale 1.0), collision object 1, no approximation, no shadow object; sub-object array [object 3, object 1, object 2 (a child of the first)]
-    assert_eq!(store.object_header(1, ROLE_MAIN, 0, false).unwrap(), ObjectHeader::Found(facts(32767.0)));
-    assert_eq!(store.object_header(1, ROLE_COLLISION, 0, false).unwrap(), ObjectHeader::Found(facts(32767.0)));
-    assert_eq!(store.object_header(1, ROLE_SUB_OBJECT, 0, false).unwrap(), ObjectHeader::Found(facts(32767.0)));
-    assert_eq!(store.object_header(1, ROLE_SUB_OBJECT, 1, false).unwrap(), ObjectHeader::Found(facts(32767.0)));
-    assert_eq!(store.object_header(1, ROLE_SUB_OBJECT, 2, false).unwrap(), ObjectHeader::Found(facts(65534.0)));
+    assert_eq!(store.object_header(1, ROLE_MAIN, 0, 0, false).unwrap(), ObjectHeader::Found(facts(32767.0)));
+    assert_eq!(store.object_header(1, ROLE_COLLISION, 0, 0, false).unwrap(), ObjectHeader::Found(facts(32767.0)));
+    assert_eq!(store.object_header(1, ROLE_SUB_OBJECT, 0, 0, false).unwrap(), ObjectHeader::Found(facts(32767.0)));
+    assert_eq!(store.object_header(1, ROLE_SUB_OBJECT, 1, 0, false).unwrap(), ObjectHeader::Found(facts(32767.0)));
+    assert_eq!(store.object_header(1, ROLE_SUB_OBJECT, 2, 0, false).unwrap(), ObjectHeader::Found(facts(65534.0)));
     // the file names no shadow object (0): no object in that role
-    assert_eq!(store.object_header(1, ROLE_SHADOW, 0, false).unwrap(), ObjectHeader::Absent);
+    assert_eq!(store.object_header(1, ROLE_SHADOW, 0, 0, false).unwrap(), ObjectHeader::Absent);
     // a cursor past the scene's own arrays is a refusal, not an absence and not a zero object
     assert_eq!(
-        store.object_header(1, ROLE_APPROXIMATION, 0, false).unwrap(),
+        store.object_header(1, ROLE_APPROXIMATION, 0, 0, false).unwrap(),
         ObjectHeader::Refused("approximation_outside")
     );
     assert_eq!(
-        store.object_header(1, ROLE_SUB_OBJECT, 3, false).unwrap(),
+        store.object_header(1, ROLE_SUB_OBJECT, 3, 0, false).unwrap(),
         ObjectHeader::Refused("sub_object_outside")
     );
     // a scene the files never described has no object in any role
-    assert_eq!(store.object_header(3, ROLE_MAIN, 0, false).unwrap(), ObjectHeader::Absent);
-    assert_eq!(store.object_header(3, ROLE_COLLISION, 0, false).unwrap(), ObjectHeader::Absent);
+    assert_eq!(store.object_header(3, ROLE_MAIN, 0, 0, false).unwrap(), ObjectHeader::Refused("definition_outside"));
+    assert_eq!(store.object_header(3, ROLE_COLLISION, 0, 0, false).unwrap(), ObjectHeader::Refused("definition_outside"));
+    // scene 1 was read once: there is no second definition to ask about
+    assert_eq!(store.object_header(1, ROLE_MAIN, 0, 1, false).unwrap(), ObjectHeader::Refused("definition_outside"));
     // arguments the campaign could never produce
-    assert!(matches!(store.object_header(0, ROLE_MAIN, 0, false), Err(QueryError::BadScene(0))));
-    assert!(matches!(store.object_header(1, 9, 0, false), Err(QueryError::BadRole(9))));
-    assert!(matches!(store.object_header(1, ROLE_MAIN, -1, false), Err(QueryError::BadDepth(-1))));
-    // no custom scene file defines scene 1 here: the database record is not offered as one
+    assert!(matches!(store.object_header(0, ROLE_MAIN, 0, 0, false), Err(QueryError::BadScene(0))));
+    assert!(matches!(store.object_header(1, 9, 0, 0, false), Err(QueryError::BadRole(9))));
+    assert!(matches!(store.object_header(1, ROLE_MAIN, -1, 0, false), Err(QueryError::BadDepth(-1))));
+    // no custom scene file defines scene 1 here: the database record is not offered as one (the campaign's read and the host's definition must be of the same kind)
     assert_eq!(
-        store.object_header(1, ROLE_MAIN, 0, true).unwrap(),
-        ObjectHeader::Refused("scene_has_no_custom_definition")
+        store.object_header(1, ROLE_MAIN, 0, 0, true).unwrap(),
+        ObjectHeader::Refused("definition_kind_differs")
     );
 }
 
@@ -424,9 +426,9 @@ fn the_object_count_is_the_files_and_a_table_scene_has_no_animation_references()
     // a count of what the files hold; the room the campaign keeps for custom objects is its own policy and is not part of the answer
     assert_eq!(store.common_objects(), 3);
     // a scene of the binary database keeps its animation list in its own record: the host has none to give; a scene the files never described neither
-    assert_eq!(store.animation_ref(1, 0).unwrap(), AnimationRef::Absent);
-    assert_eq!(store.animation_ref(3, 0).unwrap(), AnimationRef::Absent);
-    assert!(matches!(store.animation_ref(1, -1), Err(QueryError::BadDepth(-1))));
+    assert_eq!(store.animation_ref(1, 0, 0).unwrap(), AnimationRef::Absent);
+    assert_eq!(store.animation_ref(3, 0, 0).unwrap(), AnimationRef::Refused("definition_outside"));
+    assert!(matches!(store.animation_ref(1, -1, 0), Err(QueryError::BadDepth(-1))));
 }
 
 #[test]

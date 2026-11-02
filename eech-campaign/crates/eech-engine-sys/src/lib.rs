@@ -1144,6 +1144,8 @@ pub struct eech_model_request {
     pub kind: c_int,
     /// OBJECT: the role the object has in `scene` (0 main, 1 approximation, 2 shadow polygon object, 3 collision object, 4 sub-object); `depth` is the cursor
     pub role: c_int,
+    /// OBJECT, CUSTOM_OBJECT and ANIMATION: which definition of the scene is meant: the campaign's n-th read of it (0 for the first), in the order it makes them
+    pub definition: c_int,
 }
 
 /// The host's answer (campaign_model_reply); only the fields of the asked operation are meaningful.

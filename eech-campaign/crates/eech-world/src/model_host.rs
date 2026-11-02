@@ -249,18 +249,23 @@ impl LuaUserData for StoreHandle {
         });
         methods.add_method(
             "object_header",
-            |lua, this, (scene, role, cursor, custom): (LuaValue, LuaValue, LuaValue, Option<bool>)| {
+            |lua, this, (scene, role, cursor, definition, custom): (LuaValue, LuaValue, LuaValue, LuaValue, Option<bool>)| {
                 let scene = whole(&scene, "scene", i64::MIN / 2, i64::MAX / 2)?;
                 let role = whole(&role, "role", i64::MIN / 2, i64::MAX / 2)?;
                 let cursor = whole(&cursor, "cursor", i64::MIN / 2, i64::MAX / 2)?;
-                let answer = this.0.object_header(scene, role, cursor, custom.unwrap_or(false)).map_err(query_error)?;
+                let definition = whole(&definition, "definition", i64::MIN / 2, i64::MAX / 2)?;
+                let answer = this
+                    .0
+                    .object_header(scene, role, cursor, definition, custom.unwrap_or(false))
+                    .map_err(query_error)?;
                 object_header_table(lua, &answer)
             },
         );
-        methods.add_method("animation_ref", |lua, this, (scene, index): (LuaValue, LuaValue)| {
+        methods.add_method("animation_ref", |lua, this, (scene, index, definition): (LuaValue, LuaValue, LuaValue)| {
             let scene = whole(&scene, "scene", i64::MIN / 2, i64::MAX / 2)?;
             let index = whole(&index, "index", i64::MIN / 2, i64::MAX / 2)?;
-            let answer = this.0.animation_ref(scene, index).map_err(query_error)?;
+            let definition = whole(&definition, "definition", i64::MIN / 2, i64::MAX / 2)?;
+            let answer = this.0.animation_ref(scene, index, definition).map_err(query_error)?;
             animation_table(lua, &answer)
         });
         methods.add_method("compare_original", |lua, this, path: String| {
@@ -312,11 +317,23 @@ fn provider_number(value: Option<LuaValue>, name: &str, operation: &str) -> LuaR
 /// The reference host's answer to one model question of the campaign (aphavoc/.../mb_hostmodel.h; the Lua contract is `call_model` in eech-dc/src/module.rs): the host's own
 /// store, answered with the original accessors' numbers as exact bit patterns. Scene 0 is the null scene (the invalid object index): the zeroed entry the original kept for
 /// it, which the campaign asks for like any other.
-fn model_answer(lua: &Lua, store: &ModelStore, operation: &str, scene: Option<i64>, depth: Option<i64>, kind: Option<i64>) -> LuaResult<LuaTable> {
+fn model_answer(
+    lua: &Lua,
+    store: &ModelStore,
+    operation: &str,
+    scene: Option<i64>,
+    depth: Option<i64>,
+    kind: Option<i64>,
+    definition: Option<i64>,
+) -> LuaResult<LuaTable> {
     let fail = |message: String| LuaError::runtime(format!("[model-provider:{operation}.request] {message}"));
     // only the route questions carry a sub-object kind, and the object question carries its role in the same place
     if kind.is_some() && !matches!(operation, "route_node" | "route_face" | "object" | "custom_object") {
         return Err(fail("only a route or an object question has a kind".into()));
+    }
+    // the definition of a scene (the n-th time the campaign reads it) belongs to the object and animation questions
+    if definition.is_some() && !matches!(operation, "object" | "custom_object" | "animation") {
+        return Err(fail("only an object or an animation question has a definition".into()));
     }
     let table = lua.create_table()?;
     match operation {
@@ -390,8 +407,9 @@ fn model_answer(lua: &Lua, store: &ModelStore, operation: &str, scene: Option<i6
             let scene = scene.ok_or_else(|| fail("an object question needs a scene".into()))?;
             let role = kind.ok_or_else(|| fail("an object question needs a role (the kind argument)".into()))?;
             let cursor = depth.ok_or_else(|| fail("an object question needs a cursor (the depth argument)".into()))?;
+            let definition = definition.ok_or_else(|| fail("an object question needs a definition (the fifth argument)".into()))?;
             let answer = store
-                .object_header(scene, role, cursor, operation == "custom_object")
+                .object_header(scene, role, cursor, definition, operation == "custom_object")
                 .map_err(|e| fail(e.to_string()))?;
             let table = object_header_table(lua, &answer)?;
             table.set("name", usize::try_from(scene).ok().and_then(compiled_scene_name).unwrap_or(""))?;
@@ -400,7 +418,8 @@ fn model_answer(lua: &Lua, store: &ModelStore, operation: &str, scene: Option<i6
         "animation" => {
             let scene = scene.ok_or_else(|| fail("an animation question needs a scene".into()))?;
             let index = depth.ok_or_else(|| fail("an animation question needs a cursor (the depth argument)".into()))?;
-            let table = animation_table(lua, &store.animation_ref(scene, index).map_err(|e| fail(e.to_string()))?)?;
+            let definition = definition.ok_or_else(|| fail("an animation question needs a definition (the fifth argument)".into()))?;
+            let table = animation_table(lua, &store.animation_ref(scene, index, definition).map_err(|e| fail(e.to_string()))?)?;
             table.set("name", usize::try_from(scene).ok().and_then(compiled_scene_name).unwrap_or(""))?;
             return Ok(table);
         }
@@ -420,11 +439,12 @@ local function whole(v, name, op)
 		error('[model-provider:' .. tostring(op) .. '.request] ' .. name .. ' must be a whole number', 0)
 	end
 end
-return function(op, scene, depth, kind)
+return function(op, scene, depth, kind, definition)
 	whole(scene, 'scene', op)
 	whole(depth, 'depth', op)
 	whole(kind, 'kind', op)
-	return inner(op, scene, depth, kind)
+	whole(definition, 'definition', op)
+	return inner(op, scene, depth, kind, definition)
 end
 "#;
 
@@ -444,7 +464,7 @@ pub fn register(lua: &Lua, host: &LuaTable) -> LuaResult<()> {
     let args: LuaTable = host.get("args")?;
     let shared: Rc<RefCell<Option<Arc<ModelStore>>>> = Rc::new(RefCell::new(None));
     let lazy = lua.create_function(
-        move |lua, (operation, scene, depth, kind): (String, Option<LuaValue>, Option<LuaValue>, Option<LuaValue>)| {
+        move |lua, (operation, scene, depth, kind, definition): (String, Option<LuaValue>, Option<LuaValue>, Option<LuaValue>, Option<LuaValue>)| {
             let store = {
                 let mut slot = shared.borrow_mut();
                 if slot.is_none() {
@@ -458,7 +478,8 @@ pub fn register(lua: &Lua, host: &LuaTable) -> LuaResult<()> {
             let scene = provider_number(scene, "scene", &operation)?;
             let depth = provider_number(depth, "depth", &operation)?;
             let kind = provider_number(kind, "kind", &operation)?;
-            model_answer(lua, &store, &operation, scene, depth, kind)
+            let definition = provider_number(definition, "definition", &operation)?;
+            model_answer(lua, &store, &operation, scene, depth, kind, definition)
         },
     )?;
     host.set("model", strict(lua, lazy)?)?;
@@ -470,11 +491,12 @@ pub fn register(lua: &Lua, host: &LuaTable) -> LuaResult<()> {
             let handle = store.borrow::<StoreHandle>()?;
             let store = handle.0.clone();
             let inner = lua.create_function(
-                move |lua, (operation, scene, depth, kind): (String, Option<LuaValue>, Option<LuaValue>, Option<LuaValue>)| {
+                move |lua, (operation, scene, depth, kind, definition): (String, Option<LuaValue>, Option<LuaValue>, Option<LuaValue>, Option<LuaValue>)| {
                     let scene = provider_number(scene, "scene", &operation)?;
                     let depth = provider_number(depth, "depth", &operation)?;
                     let kind = provider_number(kind, "kind", &operation)?;
-                    model_answer(lua, &store, &operation, scene, depth, kind)
+                    let definition = provider_number(definition, "definition", &operation)?;
+                    model_answer(lua, &store, &operation, scene, depth, kind, definition)
                 },
             )?;
             strict(lua, inner)

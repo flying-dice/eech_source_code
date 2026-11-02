@@ -1034,10 +1034,11 @@ pub enum ModelQuery {
     ObjectTable,
     /// the header facts of the object `scene` has in `role` (0 main, 1 approximation, 2 shadow polygon object, 3 collision object, 4 sub-object); `cursor` names the approximation
     /// or the sub-object. The campaign never sends its own object number. `custom` says which definition of the scene is meant: the database's record, or the scene a custom
-    /// scene file defines.
-    Object { scene: i32, role: i32, cursor: i32, custom: bool },
+    /// scene file defines. `definition` counts the campaign's reads of the scene from 0, in the order it makes them (the scene database's record, then each custom scene file that
+    /// defines the scene again), so an earlier read is answered with the facts of ITS definition and never with a later one's.
+    Object { scene: i32, role: i32, cursor: i32, definition: i32, custom: bool },
     /// one step of an .EES scene's ordered animated-surface references (the order the original's `add_animation_object` visits the scene's objects)
-    Animation { scene: i32, index: i32 },
+    Animation { scene: i32, index: i32, definition: i32 },
 }
 
 /// One scene as the host answers it, in public terms only: the scene's compiled `name` (the echo that host and campaign mean the same scene by the same index; empty for the
@@ -1213,6 +1214,7 @@ unsafe extern "C" fn model_callback(
                     scene: source.scene,
                     role: source.role,
                     cursor: source.depth,
+                    definition: source.definition,
                     custom: source.op == sys::EECH_MODEL_CUSTOM_OBJECT,
                 },
             ),
@@ -1221,6 +1223,7 @@ unsafe extern "C" fn model_callback(
                 ModelQuery::Animation {
                     scene: source.scene,
                     index: source.depth,
+                    definition: source.definition,
                 },
             ),
             other => return Err(format!("[model-provider:callback] the model callback received unknown operation {other}")),
@@ -9624,7 +9627,92 @@ mod tests {
     }
 
     fn model_request(op: c_int, scene: c_int, depth: c_int) -> sys::eech_model_request {
-        sys::eech_model_request { op, scene, depth, kind: 0 }
+        sys::eech_model_request {
+            op,
+            scene,
+            depth,
+            kind: 0,
+            role: 0,
+            definition: 0,
+        }
+    }
+
+    /// an OBJECT-family question: the role the object has in the scene, and the cursor (the depth)
+    fn object_request(op: c_int, scene: c_int, role: c_int, cursor: c_int, definition: c_int) -> sys::eech_model_request {
+        sys::eech_model_request {
+            op,
+            scene,
+            depth: cursor,
+            kind: 0,
+            role,
+            definition,
+        }
+    }
+
+    #[test]
+    fn the_model_callback_carries_the_object_family_by_role_and_cursor_and_animations_as_logical_names() {
+        let facts = ModelObjectFacts {
+            counts: [4, 3, 2, 1, 0, 65535],
+            radius: -0.0,
+            bounding_box: [-1.0, 2.0, -3.0, 4.0, -5.0, 6.0],
+            bounding_box2: [-0.5, 0.25, -0.125, 0.0625, -2.0, 8.0],
+        };
+        let given = facts.clone();
+        // the database record and a custom scene file's definition are two operations of the C side and one query with a flag on this side; the role and cursor arrive as sent
+        for (op, custom) in [(sys::EECH_MODEL_OBJECT, false), (sys::EECH_MODEL_CUSTOM_OBJECT, true)] {
+            let given = given.clone();
+            let (code, reply, error) = model_crossing(
+                Some(Box::new(move |query| match query {
+                    ModelQuery::Object {
+                        scene: 7,
+                        role: 4,
+                        cursor: 2,
+                        definition: 3,
+                        custom: c,
+                    } if c == custom => Ok(ModelAnswer::Object {
+                        scene_name: "UH60_BLACKHAWK".to_string(),
+                        step: ModelObject::Found(given.clone()),
+                    }),
+                    other => Err(format!("unexpected {other:?}")),
+                })),
+                object_request(op, 7, 4, 2, 3),
+            );
+            assert_eq!(code, 0, "{error}");
+            assert_eq!(reply.result, sys::EECH_MODEL_TRIANGLE_FOUND);
+            assert_eq!(reply.object_counts, facts.counts);
+            assert_eq!(reply.object_radius.to_bits(), (-0.0_f32).to_bits(), "a negative zero keeps its sign");
+            assert_eq!(reply.object_bounds[..6], facts.bounding_box);
+            assert_eq!(reply.object_bounds[6..], facts.bounding_box2);
+            // SAFETY: the callback NUL-terminated the name within its array, which began zeroed.
+            assert_eq!(unsafe { std::ffi::CStr::from_ptr(reply.name.as_ptr()) }.to_str(), Ok("UH60_BLACKHAWK"));
+        }
+        // the table answer is a count only
+        let (code, reply, _) = model_crossing(
+            Some(Box::new(|query| match query {
+                ModelQuery::ObjectTable => Ok(ModelAnswer::ObjectTable { objects: 4165 }),
+                other => Err(format!("unexpected {other:?}")),
+            })),
+            model_request(sys::EECH_MODEL_OBJECT_TABLE, 0, 0),
+        );
+        assert_eq!((code, reply.object_count), (0, 4165));
+        // an animation reference is a name, copied with its terminator, and the end of the list is its own result
+        let (code, reply, error) = model_crossing(
+            Some(Box::new(|query| match query {
+                ModelQuery::Animation { scene: 7, index: 0, definition: 0 } => Ok(ModelAnswer::Animation {
+                    scene_name: "UH60_BLACKHAWK".to_string(),
+                    step: ModelAnimation::Name("USA_COPTER_DIGIT__001".to_string()),
+                }),
+                ModelQuery::Animation { scene: 7, index: 1, definition: 0 } => Ok(ModelAnswer::Animation {
+                    scene_name: "UH60_BLACKHAWK".to_string(),
+                    step: ModelAnimation::End,
+                }),
+                other => Err(format!("unexpected {other:?}")),
+            })),
+            model_request(sys::EECH_MODEL_ANIMATION, 7, 0),
+        );
+        assert_eq!((code, reply.result), (0, sys::EECH_MODEL_TRIANGLE_FOUND), "{error}");
+        // SAFETY: the callback NUL-terminated the name within its array, which began zeroed.
+        assert_eq!(unsafe { std::ffi::CStr::from_ptr(reply.animation_name.as_ptr()) }.to_str(), Ok("USA_COPTER_DIGIT__001"));
     }
 
     #[test]
@@ -9760,6 +9848,8 @@ mod tests {
             scene: request.scene,
             depth: request.depth,
             kind: request.kind,
+            role: request.role,
+            definition: request.definition,
         }
     }
 

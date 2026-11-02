@@ -1673,9 +1673,9 @@ pub const LOADER_META_PATCHES: &[Patch] = &[
     Patch {
         file: "modules/3d/3dobjdb.c",
         id: "LM2-named-object-not-read",
-        why: "get_object keeps its id allocation, name history and sharing exactly; it no longer opens the object's .EEO: the host describes the object when the scene that names it has been read (campaign_model_scene_objects, LM4)",
+        why: "get_object keeps its id allocation, name history and sharing exactly; it no longer opens the object's .EEO, but a NEW number still replaces its row as the original's read did (the row is cleared and unfilled): the host describes the object when the scene that names it has been read (campaign_model_scene_objects, LM4)",
         original: "\tsprintf ( new_filename, \"%s\\\\%s.EEO\", prefix, ptr );\n\tif ( !read_object ( &objects_3d_data[objid], new_filename ) )\n\t{\n\t\tdebug_log ( \"failed to load object: %s\", new_filename );\n\t\tfail = 1;\n\t}\n\n\treturn objid;\n",
-        replacement: "\t/* EECH headless (D3 loader, L2): the object's .EEO is the host's; its metadata fills this id's private row when the scene that names it has been read (campaign_model_scene_objects) */\n\n\treturn objid;\n",
+        replacement: "\t/* EECH headless (D3 loader, L2): the object's .EEO is the host's. The number is NEW, and the original opened the file into this row here, REPLACING whatever the row held (for the first named object, the last common object): the private row is cleared and unfilled, and the host describes it when the scene that names it has been read (campaign_model_scene_objects) */\n\t{\n\t\textern void campaign_model_object_reset ( int object_number );\n\n\t\tcampaign_model_object_reset ( objid );\n\t}\n\n\treturn objid;\n",
         count: 1,
     },
     Patch {

@@ -2775,8 +2775,8 @@ local function ranged(v, max)
 	return format('%d', v)
 end
 
-return function(op, scene, depth, kind)
-	local a = provider(op, scene, depth, kind)
+return function(op, scene, depth, kind, definition)
+	local a = provider(op, scene, depth, kind, definition)
 	if type(a) ~= 'table' then return nil, 'the provider returned ' .. type(a) .. ' instead of a table' end
 	if op == 'object_table' then
 		if a.result ~= 'table' then return nil, 'result must be table' end
@@ -2931,16 +2931,22 @@ fn bridged_float(pair: &str, what: &str, operation: &str) -> Result<f32, String>
 }
 
 fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, String> {
-    let (operation, scene, depth, kind) = match query {
-        ModelQuery::Catalogue => ("catalogue", None, None, None),
-        ModelQuery::Scene { scene } => ("scene", Some(scene), None, None),
-        ModelQuery::Triangle { scene, depth } => ("triangle", Some(scene), Some(depth), None),
-        ModelQuery::RouteNode { scene, kind, index } => ("route_node", Some(scene), Some(index), Some(kind)),
-        ModelQuery::RouteFace { scene, kind, index } => ("route_face", Some(scene), Some(index), Some(kind)),
-        ModelQuery::ObjectTable => ("object_table", None, None, None),
+    let (operation, scene, depth, kind, definition) = match query {
+        ModelQuery::Catalogue => ("catalogue", None, None, None, None),
+        ModelQuery::Scene { scene } => ("scene", Some(scene), None, None, None),
+        ModelQuery::Triangle { scene, depth } => ("triangle", Some(scene), Some(depth), None, None),
+        ModelQuery::RouteNode { scene, kind, index } => ("route_node", Some(scene), Some(index), Some(kind), None),
+        ModelQuery::RouteFace { scene, kind, index } => ("route_face", Some(scene), Some(index), Some(kind), None),
+        ModelQuery::ObjectTable => ("object_table", None, None, None, None),
         // the fourth place carries the role the object has in the scene
-        ModelQuery::Object { scene, role, cursor, custom } => (if custom { "custom_object" } else { "object" }, Some(scene), Some(cursor), Some(role)),
-        ModelQuery::Animation { scene, index } => ("animation", Some(scene), Some(index), None),
+        ModelQuery::Object { scene, role, cursor, definition, custom } => (
+            if custom { "custom_object" } else { "object" },
+            Some(scene),
+            Some(cursor),
+            Some(role),
+            Some(definition),
+        ),
+        ModelQuery::Animation { scene, index, definition } => ("animation", Some(scene), Some(index), None, Some(definition)),
     };
     type Reply = (
         Option<String>,
@@ -2953,7 +2959,7 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
         Option<String>,
     );
     let (tag, a, b, c, d, e, f, g): Reply = bridge
-        .call((operation, scene, depth, kind))
+        .call((operation, scene, depth, kind, definition))
         .map_err(|error| format!("[model-provider:{operation}.callback] {error}"))?;
     let Some(tag) = tag else {
         return Err(format!(
@@ -3086,7 +3092,7 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
             scene_name: g.ok_or_else(missing)?,
             step: ModelAnimation::Absent,
         }),
-        (ModelQuery::Animation { scene, index }, "refused") => Err(format!(
+        (ModelQuery::Animation { scene, index, .. }, "refused") => Err(format!(
             "[model-provider:animation.refused] the host cannot answer for scene {scene} reference {index}: {}",
             a.unwrap_or_default()
         )),
@@ -3980,6 +3986,7 @@ mod tests {
                     scene: 1,
                     role: 0,
                     cursor: 0,
+                    definition: 0,
                     custom,
                 },
             )?
@@ -4001,6 +4008,7 @@ mod tests {
                         scene: 1,
                         role: 3,
                         cursor: 1,
+                        definition: 0,
                         custom
                     }
                 )?,
@@ -4008,18 +4016,18 @@ mod tests {
             ));
         }
         assert_eq!(
-            ask(&mut provider, ModelQuery::Animation { scene: 1, index: 0 })?,
+            ask(&mut provider, ModelQuery::Animation { scene: 1, index: 0, definition: 0 })?,
             ModelAnswer::Animation {
                 scene_name: "AH64D_APACHE_LONGBOW".to_string(),
                 step: ModelAnimation::Name("USA_COPTER_DIGIT__001".to_string())
             }
         );
         assert!(matches!(
-            ask(&mut provider, ModelQuery::Animation { scene: 1, index: 1 })?,
+            ask(&mut provider, ModelQuery::Animation { scene: 1, index: 1, definition: 0 })?,
             ModelAnswer::Animation { step: ModelAnimation::End, .. }
         ));
         assert!(matches!(
-            ask(&mut provider, ModelQuery::Animation { scene: 1, index: 2 })?,
+            ask(&mut provider, ModelQuery::Animation { scene: 1, index: 2, definition: 0 })?,
             ModelAnswer::Animation {
                 step: ModelAnimation::Absent,
                 ..
@@ -4050,7 +4058,7 @@ mod tests {
                return { result = 'object', name = n, counts = { 1, 2, 3, 4, 5, 6 }, radius = 1, bb = { 1, 2, 3, 4, 5, 6 }, bb2 = { 1, 2, 3, 4, 5, -1/0 } }
              end",
         )?;
-        let mut animation = |index: i32| ask(&mut provider, ModelQuery::Animation { scene: 1, index });
+        let mut animation = |index: i32| ask(&mut provider, ModelQuery::Animation { scene: 1, index, definition: 0 });
         for cursor in [0, 1, 2, 4] {
             let error = animation(cursor).err().ok_or("accepted")?;
             assert!(error.contains("[model-provider:animation.answer]"), "animation {cursor}: {error}");
@@ -4067,6 +4075,7 @@ mod tests {
                     scene: 1,
                     role: 0,
                     cursor,
+                    definition: 0,
                     custom: false,
                 },
             )

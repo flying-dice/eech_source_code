@@ -6,8 +6,8 @@
 //! exactly 1.0 returns the short coordinates unchanged, and a rounding-sensitive scale returns the same bits whatever rounding mode the caller is in. What the
 //! retail data answers is the Root's comparison with the retained original report (the `model-host-compare` driver), never these tests.
 use eech_world::models::{
-    compiled_animation_count, compiled_animation_name, compiled_scene_name, fp_state, old_last, scene_last, ErrorKind, ModelStore, ObjectSource, QueryError,
-    SceneSource, Triangle,
+    compiled_animation_count, compiled_animation_name, compiled_scene_name, fp_state, old_last, scene_last, AnimationRef, ErrorKind, ModelStore, ObjectHeader,
+    ObjectSource, QueryError, SceneSource, Triangle, ROLE_COLLISION, ROLE_MAIN,
 };
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -752,6 +752,144 @@ fn a_named_scene_replaces_the_scene_and_numbers_its_objects_from_the_tables_obje
     assert_eq!((summary.table_objects, summary.objects_total, summary.surface_block), (4, 6, 4));
     // the other scenes are the table's
     assert_eq!(store.scene(3).unwrap().source, SceneSource::Table);
+}
+
+
+// ---------------------------------------------------------------------------------------------------------------------------------
+// The campaign reads a scene once for every DEFINITION the files give it, in the order the loader read them, and fills its rows then. What the host says about an object must be
+// what the object was when THAT definition was read: the first named object REPLACES the last table object's number (get_next_object_id returns the table's count), so a table
+// scene read earlier must not be shown the named object, and the second of two custom definitions of one scene must not be shown the first's, or the last's.
+
+/// an .EEO like eeo(), whose surface is an animated texture: `texture` is the file's animation index and `names` the override names appended after the references
+fn eeo_animated(m: &Mesh, texture: u16, names: &[u8]) -> Vec<u8> {
+    let mut w = W::default();
+    w.i32(1).i32(m.points.len() as i32).i32(m.number_of_faces).i32(m.faces.len() as i32);
+    w.i32(m.surfaces.len() as i32)
+        .i32(0)
+        .i32(0)
+        .i32(m.list.len() as i32)
+        .i32(0)
+        .i32(m.sp.len() as i32)
+        .i32(0);
+    w.floats(&m.bb).floats(&m.bb2).f32(1.0);
+    for p in &m.points {
+        w.bytes(&p[0].to_le_bytes()).bytes(&p[1].to_le_bytes()).bytes(&p[2].to_le_bytes());
+    }
+    w.bytes(&m.faces).bytes(&m.list);
+    for (flags, faces) in &m.surfaces {
+        // bit 9 is the surface's texture animation (the compiled FACE_SURFACE_DESCRIPTION)
+        w.u32(*flags | (1 << 9)).u16(texture).u16(0).u16(*faces).u16(0).u32(0);
+    }
+    w.bytes(&vec![0; 2 * m.faces.len()]);
+    for s in &m.sp {
+        w.u16(*s);
+    }
+    w.bytes(names);
+    w.0
+}
+
+fn found(header: ObjectHeader) -> eech_world::models::ObjectFacts {
+    match header {
+        ObjectHeader::Found(facts) => facts,
+        other => panic!("expected the facts of an object, got {other:?}"),
+    }
+}
+
+fn chassis() -> Mesh {
+    let mut chassis = identity_quad();
+    chassis.points = vec![[0, 0, 0], [5, 0, 0], [5, 6, 0], [0, 6, 0]];
+    chassis.bb2 = [0.0, 5.0, 0.0, 6.0, 0.0, 0.0];
+    chassis
+}
+
+#[test]
+fn a_table_scene_read_before_the_first_named_object_keeps_the_facts_the_object_had_then() {
+    let plain = standard().load().unwrap();
+    // object 4 as the table holds it (scene 4's main and collision object): the mixed layout, two surfaces
+    let before = found(plain.object_header(4, ROLE_MAIN, 0, 0, false).unwrap());
+    assert_eq!(before.counts[2], 2, "the table's object 4 has two surfaces");
+
+    let root = standard();
+    root.write(&format!("OBJECTS/MODDIR/{}.ees", compiled_scene_name(1).unwrap()), &ees("Chassis"));
+    root.write("OBJECTS/MODDIR/chassis.eeo", &eeo(1, &chassis()));
+    let store = root.load().unwrap();
+
+    // the final state of object 4 is the named object's: the public view of scene 4 shows it (as the existing named-scene test pins) ...
+    let view = store.scene(4).unwrap().collision_object.unwrap();
+    assert_eq!((view.source, view.surfaces), (ObjectSource::Named, 1));
+    // ... but scene 4's DATABASE definition was read before it and is answered with what object 4 was then, not with a later definition's object
+    assert_eq!(found(store.object_header(4, ROLE_MAIN, 0, 0, false).unwrap()), before);
+    assert_eq!(found(store.object_header(4, ROLE_COLLISION, 0, 0, false).unwrap()), before);
+    // scene 1 has two definitions: the database record (object 1, a table object) and the custom file (the named object, which took number 4)
+    let table_one = found(store.object_header(1, ROLE_MAIN, 0, 0, false).unwrap());
+    let named_one = found(store.object_header(1, ROLE_MAIN, 0, 1, true).unwrap());
+    assert_ne!(table_one, named_one);
+    assert_eq!(named_one.counts[2], 1, "the named object has one surface, like the final view of object 4");
+    assert_eq!(named_one.bounding_box2, [0.0, 5.0, 0.0, 6.0, 0.0, 0.0].map(f32::to_bits));
+    assert_ne!(named_one, before, "the named object is not the table's object 4");
+    // the same number, two moments: the campaign must reset its row when the number is allocated and fill it again; the host's two answers differ
+    assert_eq!(found(store.object_header(1, ROLE_COLLISION, 0, 1, true).unwrap()), named_one);
+}
+
+#[test]
+fn a_scene_defined_twice_by_custom_files_answers_each_definition_with_its_own_objects_and_kind() {
+    let root = standard();
+    let mut turret = identity_quad();
+    turret.points = vec![[0, 0, 0], [7, 0, 0], [7, 8, 0], [0, 8, 0]];
+    let scene = compiled_scene_name(1).unwrap();
+    root.write(&format!("OBJECTS/MODDIR/{scene}.ees"), &ees("Chassis"));
+    root.write("OBJECTS/MODDIR/chassis.eeo", &eeo(1, &chassis()));
+    root.write(&format!("OBJECTS/MODDIR2/{scene}.ees"), &ees("Turret"));
+    root.write("OBJECTS/MODDIR2/turret.eeo", &eeo(1, &turret));
+    let store = root.load().unwrap();
+    assert_eq!(store.summary().ees_duplicate_scenes.len(), 1, "one scene is defined by two custom files");
+
+    // definition 0 is the database record, 1 the first custom file (named object 4), 2 the second (named object 5): the order the campaign reads them in
+    let first = found(store.object_header(1, ROLE_MAIN, 0, 1, true).unwrap());
+    let second = found(store.object_header(1, ROLE_MAIN, 0, 2, true).unwrap());
+    assert_eq!(first.bounding_box2, [0.0, 5.0, 0.0, 6.0, 0.0, 0.0].map(f32::to_bits), "the first custom definition's own object");
+    assert_eq!(second.bounding_box2, [0.0, 32767.0, 0.0, 32767.0, 0.0, 32767.0].map(f32::to_bits), "the second custom definition's own object");
+    assert_ne!(first, second);
+    // the final scene is the last definition; the earlier one is NOT answered with it
+    assert_eq!(store.scene(1).unwrap().main, 5);
+    // a definition of the wrong kind, or one that does not exist, is refused by name and never answered from another definition
+    assert_eq!(store.object_header(1, ROLE_MAIN, 0, 0, true).unwrap(), ObjectHeader::Refused("definition_kind_differs"));
+    assert_eq!(store.object_header(1, ROLE_MAIN, 0, 1, false).unwrap(), ObjectHeader::Refused("definition_kind_differs"));
+    assert_eq!(store.object_header(1, ROLE_MAIN, 0, 3, true).unwrap(), ObjectHeader::Refused("definition_outside"));
+    // a scene defined once is unchanged by all this
+    assert!(matches!(store.object_header(3, ROLE_MAIN, 0, 0, false).unwrap(), ObjectHeader::Found(_)));
+}
+
+#[test]
+fn animation_references_are_per_definition_logical_names_and_an_unknown_name_is_still_the_names_text() {
+    let root = standard();
+    let scene = compiled_scene_name(1).unwrap();
+    // definition 1: the file's animation index 3 (a compiled name); definition 2: the object overrides its texture with a name no table holds, in lower case, and a second surface
+    // is not given (the names stop at the end of the file)
+    root.write(&format!("OBJECTS/MODDIR/{scene}.ees"), &ees("Chassis"));
+    root.write("OBJECTS/MODDIR/chassis.eeo", &eeo_animated(&chassis(), 3, b""));
+    root.write(&format!("OBJECTS/MODDIR2/{scene}.ees"), &ees("Turret"));
+    root.write("OBJECTS/MODDIR2/turret.eeo", &eeo_animated(&identity_quad(), 0, b"no_such_flag\0\0"));
+    let store = root.load().unwrap();
+    // the database record keeps its list in its own record
+    assert_eq!(store.animation_ref(1, 0, 0).unwrap(), AnimationRef::Absent);
+    // add_animation_object visits the main object, the approximations and the sub-objects (not the collision object): one reference, then the end
+    let name = compiled_animation_name(3).unwrap().to_string();
+    assert_eq!(store.animation_ref(1, 0, 1).unwrap(), AnimationRef::Name(name));
+    assert_eq!(store.animation_ref(1, 1, 1).unwrap(), AnimationRef::End);
+    // the second definition's reference is the override NAME, in upper case, whether or not any table holds it: the campaign decides, not the host
+    assert_eq!(store.animation_ref(1, 0, 2).unwrap(), AnimationRef::Name("NO_SUCH_FLAG".to_string()));
+    assert_eq!(store.animation_ref(1, 0, 3).unwrap(), AnimationRef::Refused("definition_outside"));
+}
+
+#[test]
+fn an_override_name_that_is_not_text_is_refused_and_never_repaired() {
+    let root = standard();
+    let scene = compiled_scene_name(1).unwrap();
+    root.write(&format!("OBJECTS/MODDIR/{scene}.ees"), &ees("Chassis"));
+    root.write("OBJECTS/MODDIR/chassis.eeo", &eeo_animated(&chassis(), 0, &[b'D', 0xff, b'B', 0, 0]));
+    let store = root.load().unwrap();
+    assert_eq!(store.animation_ref(1, 0, 1).unwrap(), AnimationRef::Refused("animation_name_not_text"));
 }
 
 #[test]
@@ -2585,6 +2723,26 @@ package.preload["eech_dc"] = function ()
 			for depth = 0, 2 do config.model ("triangle", 1, depth) end
 		end
 		if ask == "boot" then native_triangle (config) end
+		-- `animation=core` plays what the campaign does with a custom scene definition's references: it asks them to the end, maps each LOGICAL name to its own table (a name it lacks is
+		-- the accepted T2 tolerance: animation 0) and de-duplicates as add_animation does. `animation=none` asks nothing. `ignore=1` plays an engine that ignores the host's answers and
+		-- keeps the reference host's list.
+		local list
+		if (host.args.animation or "none") == "core" then
+			local registry = { USA_COPTER_DIGIT__002 = 3 }
+			local seen = {}
+			list = {}
+			local cursor = 0
+			while true do
+				-- the question goes through the script provider (so the change is made and counted); an engine that IGNORES the answers asks it and then keeps the reference host list
+				local reply = config.model ("animation", 1, cursor, nil, 1)
+				if host.args.ignore == "1" then reply = host.model ("animation", 1, cursor, nil, 1) end
+				if reply.result == "end" then break end
+				if reply.result ~= "name" then error ("stand-in: unexpected animation answer " .. tostring (reply.result), 0) end
+				local id = registry [reply.animation] or 0
+				if not seen [id] then seen [id] = true list [#list + 1] = id end
+				cursor = cursor + 1
+			end
+		end
 		local now = 0
 		local calls = 0
 		local engine = {}
@@ -2606,6 +2764,16 @@ package.preload["eech_dc"] = function ()
 			function engine:los_probe () native_triangle (config) return { hash = "0", calls = 1, visible = 0, skipped = 0, lookup_hash = "0", lookups = 0 } end
 		end
 		function engine:model_host_poison () end
+		if list and host.args.norows ~= "1" then
+			-- the host-profile row of scene 1, as the diagnostic build reports it (one page of one scene)
+			function engine:model_host_animations (first, count)
+				local head = string.format ("model-anim-page first=%d count=%d scene_last=3026 generation=1 scenes_read=1 unknown_scene=0 content=0000000000000000\n", first, count)
+				local row
+				if #list == 0 then row = "model-anim scene=1 name=AH64D_APACHE_LONGBOW status=empty source=built succeeded=1 count=0 capacity=0 filled=0 ids=-\n"
+				else row = string.format ("model-anim scene=1 name=AH64D_APACHE_LONGBOW status=listed source=built succeeded=1 count=%d capacity=8 filled=%d ids=%s\n", #list, #list, table.concat (list, ",")) end
+				return head .. row .. string.format ("model-anim-end first=%d count=%d rows=1\n", first, count)
+			end
+		end
 		function engine:model_host_counters () return "model-host catalogue=1 scene=3026\n" end
 		function engine:model_host_probe (scene, depth)
 			if ask == "probe" then native_triangle (config) end
@@ -2641,7 +2809,10 @@ dofile (host.args.script)
 "#;
 
 fn stand_in_run(extra: &[&str], standin: &str) -> ScriptRun {
-    let root = standard();
+    stand_in_run_with(standard(), extra, standin)
+}
+
+fn stand_in_run_with(root: Root, extra: &[&str], standin: &str) -> ScriptRun {
     let mut args = vec![
         format!("root={}", slashes(&root.dir)),
         "script={dir}/model-authority.lua".to_string(),
@@ -2659,6 +2830,47 @@ fn stand_in_run(extra: &[&str], standin: &str) -> ScriptRun {
         "stand-in.lua",
         &args,
     )
+}
+
+/// scene 1 is defined by a custom file whose object has one animated surface (the file's animation index 3, a compiled name)
+fn animated_root() -> Root {
+    let root = standard();
+    root.write(&format!("OBJECTS/MODDIR/{}.ees", compiled_scene_name(1).unwrap()), &ees("Chassis"));
+    root.write("OBJECTS/MODDIR/chassis.eeo", &eeo_animated(&chassis(), 3, b""));
+    root
+}
+
+#[test]
+fn a_changed_host_control_is_covered_only_when_it_was_given_and_its_consequence_is_in_the_final_list() {
+    // the dropped list: the host answers `end` at the first reference, so the final list of that scene is empty where the reference host's had an entry
+    let run = stand_in_run_with(animated_root(), &["mode=animation_dropped", "animation=core"], "healthy");
+    assert!(run.status.success(), "{}", run.stderr);
+    let changed = run.row("changed_control");
+    assert_eq!((changed["scene"].as_i64(), changed["definition"].as_i64(), changed["final_status"].as_str()), (Some(1), Some(1), Some("empty")));
+    assert_eq!((changed["final_count"].as_i64(), changed["consequence"].as_bool()), (Some(0), Some(true)));
+    assert_eq!(changed["replaced"].as_str(), compiled_animation_name(3), "the reference answer it replaced is the compiled name of index 3");
+    assert_eq!(run.row("summary")["tripped"].as_bool(), Some(true));
+
+    // an unknown name is NOT a refusal: the campaign applies its accepted tolerance (animation 0), and the final list shows it
+    let run = stand_in_run_with(animated_root(), &["mode=animation_unknown", "animation=core"], "healthy");
+    assert!(run.status.success(), "{}", run.stderr);
+    let changed = run.row("changed_control");
+    assert_eq!((changed["final_status"].as_str(), changed["final_ids"].as_str(), changed["consequence"].as_bool()), (Some("listed"), Some("0"), Some(true)));
+
+    for mode in ["animation_dropped", "animation_unknown"] {
+        // never asked: the change was never given, and an exit 0 would be a false coverage
+        let run = stand_in_run_with(animated_root(), &[&format!("mode={mode}"), "animation=none"], "healthy");
+        assert!(!run.status.success() && run.stderr.contains("UNREACHED") && run.stderr.contains("never given"), "{mode}: {}", run.stderr);
+        // the installation has no custom scene at all: the same
+        let run = stand_in_run(&[&format!("mode={mode}"), "animation=none"], "healthy");
+        assert!(!run.status.success() && run.stderr.contains("UNREACHED"), "{mode}: {}", run.stderr);
+        // given, but the module cannot show the consequence (no host-profile row): unavailable, not covered
+        let run = stand_in_run_with(animated_root(), &[&format!("mode={mode}"), "animation=core", "norows=1"], "healthy");
+        assert!(!run.status.success() && run.stderr.contains("UNREACHED") && run.stderr.contains("model-host-fixture"), "{mode}: {}", run.stderr);
+        // given, but the engine ignored it and kept the reference list: the final list does not show the change
+        let run = stand_in_run_with(animated_root(), &[&format!("mode={mode}"), "animation=core", "ignore=1"], "healthy");
+        assert!(!run.status.success() && run.stderr.contains("does not show it"), "{mode}: {}", run.stderr);
+    }
 }
 
 #[test]

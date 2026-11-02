@@ -47,8 +47,9 @@
  *              rows from FOUND answers before anything reads them; an object two references name differently, or a name the host has no object for, stops the engine.
  *              ANIMATION: for an .EES scene, the ordered animated-surface references of its objects in the order the original's add_animation_object visits them. FOUND
  *              carries `animation_name`, the LOGICAL name of the texture animation (never a file's animation index: the host resolves the file's own numbering to the name); END
- *              ends the list, ABSENT says the scene is not an .EES scene (it keeps its list in its own record). A reference the host cannot name is a refusal of the provider. The
- *              campaign maps the name to its own private animation table, de-duplicates in its own add_animation, as the original did, and stops on a name its table does not hold.
+ *              ends the list, ABSENT says the scene is not an .EES scene (it keeps its list in its own record). A reference the host cannot name (an index with no compiled name,
+ *              bytes that are not text) is a refusal of the provider. The campaign maps the name to its own private animation table with its original add_new_animation, so the
+ *              decision for a valid name its table lacks stays the campaign's (the accepted build's T2 tolerance), and de-duplicates in its own add_animation, as the original did.
  *
  *   ROUTE_NODE / ROUTE_FACE   the route data of an airfield scene (EEDCS-50, D3). A route is the line object a scene files under a sub-object kind (the landing, take-off
  *              and holding routes of airfields); the campaign's own hierarchy lookup still says whether the scene has one, and the campaign keeps the route
@@ -124,6 +125,9 @@ typedef struct campaign_model_request
 	int kind;
 	/* OBJECT: the role the object has in `scene` (campaign_model_object_role); `depth` is the approximation or sub-object cursor. ANIMATION: `depth` is the reference cursor */
 	int role;
+	/* OBJECT, CUSTOM_OBJECT and ANIMATION: which DEFINITION of the scene is meant: the campaign reads a scene once for every definition the files give it (the record of the scene
+	   database, then each custom scene file that defines it again), and `definition` counts those reads from 0, in the order the campaign makes them */
+	int definition;
 } campaign_model_request;
 
 typedef struct campaign_model_reply
