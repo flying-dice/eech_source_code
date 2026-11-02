@@ -43,7 +43,9 @@ python eech-campaign/tools/migration-progress.py --action fix-blocker --blocker 
 ```
 
 The guard rejects another unmotivated preparation batch and rejects cutover or
-delivery with unresolved required gates. It never requests permission or authorizes
+delivery with unresolved required gates. Delivery also rejects every open finding
+in the card, including findings that need not prevent starting a cutover.
+It never requests permission or authorizes
 a merge. Update the card when evidence actually changes, not to bypass a failure.
 
 Keep the live runtime checkpoint outside Git: at most 12 KiB, with objective,

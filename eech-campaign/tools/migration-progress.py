@@ -30,8 +30,9 @@ def check(card, action, blocker):
     if action == "characterize" and batches >= limit:
         if not selected or selected["status"] != "open" or not selected["blocks_cutover"]:
             raise ValueError("Preparation limit reached: make the production change or name its actual correctness blocker")
-    if action == "production-cutover" and any(x["status"] == "open" and x["blocks_cutover"] for x in findings.values()):
-        raise ValueError("Resolve the named correctness blocker before cutover; the preparation limit never permits unsafe work")
+    if action in ("production-cutover", "deliver"):
+        if any(x["status"] == "open" and (action == "deliver" or x["blocks_cutover"]) for x in findings.values()):
+            raise ValueError("Resolve required findings before this action; the preparation limit never permits unsafe work")
     if action == "deliver" and not all(x["complete"] is True for x in card["acceptance"]):
         raise ValueError("Delivery gates remain incomplete; preparation is not acceptance")
 
