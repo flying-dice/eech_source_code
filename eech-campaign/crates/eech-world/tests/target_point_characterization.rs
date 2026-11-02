@@ -1447,7 +1447,10 @@ fn the_probe_scan_is_bounded_validated_and_staged_before_it_calls_the_original()
 fn setup_text(called: [bool; 3]) -> String {
     let mut t = String::from("tp-setup status=complete visited=60 entities=40\n");
     // cases 1 and 2 are drawn from ONE scan: case 1 cannot be available or short of a scene while case 2 has no mobile, and no mobile is both cases' missing candidate
-    assert!(called[1] || !called[0], "case 1 is called only if case 2 is: they share the mobile the scan found");
+    assert!(
+        called[1] || !called[0],
+        "case 1 is called only if case 2 is: they share the mobile the scan found"
+    );
     let first = if called[1] { "no_bbox_scene_without_skin" } else { "no_mobile_with_instance" };
     let unavailable = [first, "no_mobile_with_instance", "no_fixed_structure_with_valid_shape"];
     // (from, from_name, to, to_name, vp_unchanged, counters_restored, host identity): a real mobile's instance scene 3 replaced by the bounding-box scene 4; a real mobile (possibly another) with none; a
@@ -1791,17 +1794,34 @@ fn an_unavailable_setup_case_has_only_its_own_reasons_and_no_names() {
     for reason in ["no_bbox_scene_without_skin", "no_census_pass"] {
         let (mut case, _) = setup_case([false, true, true]);
         if reason != "no_bbox_scene_without_skin" {
-            edit_setup(&mut case, "available=0 reason=no_bbox_scene_without_skin", &format!("available=0 reason={reason}"));
+            edit_setup(
+                &mut case,
+                "available=0 reason=no_bbox_scene_without_skin",
+                &format!("available=0 reason={reason}"),
+            );
         }
-        run(&case).result.unwrap_or_else(|e| panic!("case 1 may be unavailable for {reason} when case 2 is real: {e}"));
+        run(&case)
+            .result
+            .unwrap_or_else(|e| panic!("case 1 may be unavailable for {reason} when case 2 is real: {e}"));
     }
     // case 1 may be available and not called, with either of its source-possible reasons: the constructed scene turned out to have a TARGET_POINT, or the precondition did not take
     for reason in ["scene_has_target_point", "setup_not_applied"] {
         let (mut case, _) = setup_case([false, true, true]);
-        edit_setup(&mut case, &case_one_unavailable("no_bbox_scene_without_skin"), &case_one_available_not_called(reason));
+        edit_setup(
+            &mut case,
+            &case_one_unavailable("no_bbox_scene_without_skin"),
+            &case_one_available_not_called(reason),
+        );
         let outcome = run(&case);
-        outcome.result.as_ref().unwrap_or_else(|e| panic!("case 1 may be available and not called ({reason}): {e}"));
-        assert!(done_row(&outcome).contains(&format!("\"setup_unavailable\":\"1:{reason}\"")), "{}", done_row(&outcome));
+        outcome
+            .result
+            .as_ref()
+            .unwrap_or_else(|e| panic!("case 1 may be available and not called ({reason}): {e}"));
+        assert!(
+            done_row(&outcome).contains(&format!("\"setup_unavailable\":\"1:{reason}\"")),
+            "{}",
+            done_row(&outcome)
+        );
     }
 }
 
@@ -1822,7 +1842,9 @@ fn the_setup_cases_share_one_scan_and_its_population() {
     for (called, entities, need) in [([true; 3], 2, 2), ([true, true, false], 1, 1), ([false, false, true], 1, 1), ([false; 3], 0, 0)] {
         let (mut case, _) = setup_case(called);
         edit_setup(&mut case, "entities=40", &format!("entities={entities}"));
-        run(&case).result.unwrap_or_else(|e| panic!("{called:?} with {entities} entities is coherent: {e}"));
+        run(&case)
+            .result
+            .unwrap_or_else(|e| panic!("{called:?} with {entities} entities is coherent: {e}"));
         if need > 0 {
             let (mut short, _) = setup_case(called);
             edit_setup(&mut short, "entities=40", &format!("entities={}", need - 1));
@@ -1839,11 +1861,23 @@ fn the_setup_cases_share_one_scan_and_its_population() {
 
     // cases 1 and 2 come from one scan of the same mobiles
     let (mut available_without_mobile, _) = setup_case([false, false, true]);
-    edit_setup(&mut available_without_mobile, &case_one_unavailable("no_mobile_with_instance"), &case_one_available_not_called("setup_not_applied"));
+    edit_setup(
+        &mut available_without_mobile,
+        &case_one_unavailable("no_mobile_with_instance"),
+        &case_one_available_not_called("setup_not_applied"),
+    );
     let (mut scene_without_mobile, _) = setup_case([false, false, true]);
-    edit_setup(&mut scene_without_mobile, "available=0 reason=no_mobile_with_instance", "available=0 reason=no_bbox_scene_without_skin");
+    edit_setup(
+        &mut scene_without_mobile,
+        "available=0 reason=no_mobile_with_instance",
+        "available=0 reason=no_bbox_scene_without_skin",
+    );
     let (mut no_mobile_with_mobile, _) = setup_case([false, true, true]);
-    edit_setup(&mut no_mobile_with_mobile, "available=0 reason=no_bbox_scene_without_skin", "available=0 reason=no_mobile_with_instance");
+    edit_setup(
+        &mut no_mobile_with_mobile,
+        "available=0 reason=no_bbox_scene_without_skin",
+        "available=0 reason=no_mobile_with_instance",
+    );
     for (what, case) in [
         ("case 1 available while case 2 found no mobile", available_without_mobile),
         ("case 1 short of a scene while case 2 found no mobile", scene_without_mobile),
@@ -1854,7 +1888,6 @@ fn the_setup_cases_share_one_scan_and_its_population() {
         failure(&outcome, "setup cases 1 and 2 disagree about the mobile with an instance one scan found");
         assert_eq!(count(&outcome, "FRAME"), 0, "{what}: a frame was run");
     }
-
 }
 
 #[test]
