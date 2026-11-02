@@ -39,6 +39,9 @@ fn words(n: u32, count: u32) -> String {
 #[derive(Clone)]
 struct Ev {
     seq: u32,
+    /// the latest census pass that had ended when the query ran, and whether a pass was running
+    gen: i32,
+    gen_open: bool,
     site: usize,
     detail: i32,
     branch: u8,
@@ -59,6 +62,8 @@ fn ev(seq: u32, site: usize, branch: u8, case: &'static str) -> Ev {
     let instance = matches!(branch, 1 | 2);
     Ev {
         seq,
+        gen: 1,
+        gen_open: false,
         site,
         // the detail the observer receives: the caller class 0 has none; 1, 2 and 3 are fill_aim_target with CAMPAIGN_AIM_VECTORS (6), _LEAD (7) and _INTERCEPT (9); 4 is the weapon
         // step's target-point question (1); 5 is any other caller
@@ -111,7 +116,18 @@ fn offset_text(o: [u32; 3]) -> String {
     format!("{:08x},{:08x},{:08x}", o[0], o[1], o[2])
 }
 
-/// branch 3: no instance, a fixed object of a valid shape (5 has a horizontal offset, 3 has none). The offset is that shape's census row. `heading` is what the original read, `xz` whether it
+/// the words census pass `g` recorded for model `i`. Pass 1 is the table of a two-pass boot (`census_offset`); pass 0 recorded other y words for models 2 and 5 (a first pass whose words the
+/// second replaced) and pass 2, a later initialisation, other words for model 4.
+fn census_offset_in(g: usize, i: usize) -> [u32; 3] {
+    let mut o = census_offset(i);
+    if (g == 0 && i % 3 == 2) || (g == 2 && i == 4) {
+        o[1] += 0x100 * (g as u32 + 1);
+    }
+    o
+}
+
+/// branch 3: no instance, a fixed object of a valid shape (5 has a horizontal offset
+, 3 has none). The offset is that shape's census row. `heading` is what the original read, `xz` whether it
 /// added the rotated x/z offsets.
 fn fixed_shape(seq: u32, site: usize, shape: i32, case: &'static str, heading: Option<u32>, xz: bool) -> Ev {
     let horizontal = case != "no_horizontal_offset";
@@ -124,6 +140,17 @@ fn fixed_shape(seq: u32, site: usize, shape: i32, case: &'static str, heading: O
         xz,
         offset: Some(census_offset(shape as usize)),
         ..ev(seq, site, 3, case)
+    }
+}
+
+impl Ev {
+    /// a query that ran after census pass `g` and before the next: the offset a fixed shape read is that pass's word for the shape
+    fn at_pass(mut self, g: i32) -> Ev {
+        self.gen = g;
+        if self.offset.is_some() {
+            self.offset = Some(census_offset_in(g as usize, self.shape as usize));
+        }
+        self
     }
 }
 
@@ -156,9 +183,11 @@ fn event_text(i: usize, e: &Ev) -> String {
         None => ("absent", "host_id_len=0".to_string()),
     };
     format!(
-        "tp-event index={i} seq={} site={} site_name={} detail={} branch={} branch_name={branch_name} case={case} entity_type=14 entity_type_name=TYPE_14 instance={} model={} model_name={model_name} \
+        "tp-event index={i} seq={} gen={} gen_open={} site={} site_name={} detail={} branch={} branch_name={branch_name} case={case} entity_type=14 entity_type_name=TYPE_14 instance={} model={} model_name={model_name} \
          fixed={} shape={} horizontal={} heading={heading} xz_applied={} offset={offset} result={} vp_before={before} vp_after={after} vp_changed={} host_id_state={state} {tail}\n",
         e.seq,
+        e.gen,
+        u8::from(e.gen_open),
         e.site,
         SITES[e.site],
         e.detail,
@@ -174,8 +203,36 @@ fn event_text(i: usize, e: &Ev) -> String {
     )
 }
 
-/// the summary of a process that made these queries, one per call, none dropped; `stale` caller contexts were never consumed
-fn summary_with(events: &[Ev], census_whole: bool, stale: u32) -> String {
+/// what the observer says of one census pass
+#[derive(Clone)]
+struct Pass {
+    ended: bool,
+    interrupted: bool,
+    recorded: usize,
+    sub_object: usize,
+    bbox: usize,
+    duplicates: usize,
+    live_mismatch: usize,
+}
+
+impl Pass {
+    /// a complete pass: every one of the six models recorded once (three from a sub-object, two from the bounding box, the invalid zero)
+    fn full(live_mismatch: usize) -> Pass {
+        Pass { ended: true, interrupted: false, recorded: EXPECTED, sub_object: 3, bbox: 2, duplicates: 0, live_mismatch }
+    }
+
+    fn complete(&self) -> bool {
+        self.ended && !self.interrupted && self.recorded == EXPECTED && self.duplicates == 0
+    }
+}
+
+/// the passes of a two-pass boot: the first recorded other words for two models than the second, which is the table now
+fn two_passes() -> Vec<Pass> {
+    vec![Pass::full(2), Pass::full(0)]
+}
+
+/// the summary of a process that made these queries, one per call, none dropped, after these census passes; `stale` caller contexts were never consumed
+fn summary_passes(events: &[Ev], passes: &[Pass], stale: u32) -> String {
     let n = events.len();
     let branch_calls = |b: u8| events.iter().filter(|e| e.branch == b).count();
     let case_calls = |c: &str| events.iter().filter(|e| e.case == c).count();
@@ -202,46 +259,70 @@ fn summary_with(events: &[Ev], census_whole: bool, stale: u32) -> String {
         events.iter().filter(|e| e.vp_changed).count(),
         n - present,
     );
-    if census_whole {
+    let last = passes.iter().rposition(|p| p.ended).map_or(-1, |i| i as i32);
+    t += &format!("tp-census expected={EXPECTED} generations={} capacity=4 dropped=0 open=0 interrupted=0 stray=0 last={last}\n", passes.len());
+    for (g, p) in passes.iter().enumerate() {
         t += &format!(
-            "tp-census runs=1 ended=1 open=0 expected={EXPECTED} recorded={EXPECTED} sub_object=3 bbox=2 invalid_zero=1 duplicates=0 stray=0 live_mismatch=0\n"
-        );
-    } else {
-        t += &format!(
-            "tp-census runs=1 ended=1 open=0 expected={EXPECTED} recorded=5 sub_object=2 bbox=2 invalid_zero=1 duplicates=0 stray=0 live_mismatch=0\n"
+            "tp-pass ordinal={g} ended={} interrupted={} recorded={} sub_object={} bbox={} invalid_zero=1 duplicates={} out_of_range=0 live_mismatch={} complete={}\n",
+            u8::from(p.ended),
+            u8::from(p.interrupted),
+            p.recorded,
+            p.sub_object,
+            p.bbox,
+            p.duplicates,
+            p.live_mismatch,
+            u8::from(p.complete())
         );
     }
+    // whole: a pass ran, every pass is a complete snapshot, the latest to end is the last kept, and the table is the latest pass's
+    let census_whole = !passes.is_empty() && passes.iter().all(Pass::complete) && last == passes.len() as i32 - 1 && passes.last().is_some_and(|p| p.live_mismatch == 0);
     t += &format!("tp-complete census={} queries_whole={}\n", u8::from(census_whole), u8::from(stale == 0));
     t
+}
+
+/// as `summary_passes` after a two-pass boot; `census_whole` false makes the second pass miss model 5
+fn summary_with(events: &[Ev], census_whole: bool, stale: u32) -> String {
+    let passes = if census_whole {
+        two_passes()
+    } else {
+        vec![Pass::full(2), Pass { recorded: 5, sub_object: 2, ..Pass::full(0) }]
+    };
+    summary_passes(events, &passes, stale)
 }
 
 fn summary(events: &[Ev]) -> String {
     summary_with(events, true, 0)
 }
 
-/// the census of the offset table: index 0 is the invalid index's zero, 1 and 3 and 5 come from a TARGET_POINT sub-object, 2 and 4 from the bounding box. Not whole: index 5 was never recorded.
-fn census_text(whole: bool) -> String {
-    let mut t = format!(
-        "tp-offset index=0 name=- state=invalid_zero offset={} bounds=- live=1\n",
-        "00000000,00000000,00000000"
-    );
+/// the rows census pass `g` recorded, as the observer reports them while the table holds pass `current`: index 0 is the invalid index's zero, 1 and 3 and 5 come from a TARGET_POINT
+/// sub-object, 2 and 4 from the bounding box. `whole` false: pass `g` never recorded model 5.
+fn pass_text(g: usize, current: usize, whole: bool) -> String {
+    let live = |i: usize| u8::from(census_offset_in(g, i) == census_offset_in(current, i));
+    let mut t = format!("tp-offset generation={g} index=0 name=- state=invalid_zero offset={} bounds=- live=1\n", offset_text(census_offset(0)));
     for i in 1..EXPECTED {
         if i == 5 && !whole {
-            t += "tp-offset index=5 name=SCENE_5 state=none offset=- bounds=- live=-\n";
+            t += &format!("tp-offset generation={g} index=5 name=SCENE_5 state=none offset=- bounds=- live=-\n");
         } else if i % 2 == 0 {
             t += &format!(
-                "tp-offset index={i} name=SCENE_{i} state=bbox offset={} bounds={} live=1\n",
-                offset_text(census_offset(i)),
-                words(50 * i as u32, 6)
+                "tp-offset generation={g} index={i} name=SCENE_{i} state=bbox offset={} bounds={} live={}\n",
+                offset_text(census_offset_in(g, i)),
+                words(50 * i as u32, 6),
+                live(i)
             );
         } else {
             t += &format!(
-                "tp-offset index={i} name=SCENE_{i} state=sub_object offset={} bounds=- live=1\n",
-                offset_text(census_offset(i))
+                "tp-offset generation={g} index={i} name=SCENE_{i} state=sub_object offset={} bounds=- live={}\n",
+                offset_text(census_offset_in(g, i)),
+                live(i)
             );
         }
     }
     t
+}
+
+/// the two passes of a boot, as the observer reports them once the second is the table
+fn boot_passes() -> Vec<String> {
+    vec![pass_text(0, 1, true), pass_text(1, 1, true)]
 }
 
 /// one of each kind the original can answer, with the heading-zero quirk and its mirror among them
@@ -281,7 +362,10 @@ struct Outcome {
 struct Case {
     args: Vec<(String, String)>,
     summaries: Vec<String>,
+    /// the rows of each pass, read after the boot (the first request of an ordinal)
     censuses: Vec<String>,
+    /// the rows of each pass read again at the end (an ordinal not listed here is answered from `censuses`)
+    end_censuses: Vec<String>,
     events: Vec<Option<String>>,
     stuck_clock: bool,
     /// "": the clock is the table the engine returns; "text": it answers a string; "fail": the call raises
@@ -306,7 +390,8 @@ fn healthy(events: &[Ev]) -> Case {
         .map(|(k, v)| (k.to_string(), v.to_string()))
         .collect(),
         summaries: vec![summary(&[]), summary(events)],
-        censuses: vec![census_text(true)],
+        censuses: boot_passes(),
+        end_censuses: Vec::new(),
         events: events.iter().enumerate().map(|(i, e)| Some(event_text(i, e))).collect(),
         stuck_clock: false,
         clock_fault: "",
@@ -352,7 +437,8 @@ fn run(case: &Case) -> Outcome {
         r#"
         LOG = {{}}
         FRAMES = 0
-        SUMMARY_AT, CENSUS_AT = 0, 0
+        SUMMARY_AT = 0
+        PASS_READS = {{}}
         local STAGE
         local function note (what) LOG [#LOG + 1] = what end
         host = {{
@@ -406,10 +492,12 @@ fn run(case: &Case) -> Outcome {
                             SUMMARY_AT = SUMMARY_AT + 1
                             return SUMMARIES [math.min (SUMMARY_AT, #SUMMARIES)]
                         end
-                        engine.target_point_offsets = function ()
-                            note ("offsets")
-                            CENSUS_AT = CENSUS_AT + 1
-                            return CENSUSES [math.min (CENSUS_AT, #CENSUSES)]
+                        engine.target_point_offsets = function (self, generation)
+                            note ("offsets " .. generation)
+                            PASS_READS [generation] = (PASS_READS [generation] or 0) + 1
+                            local answer = PASS_READS [generation] == 1 and CENSUSES [generation + 1] or (END_CENSUSES [generation + 1] or CENSUSES [generation + 1])
+                            if not answer then error ("the observer keeps no pass " .. generation, 0) end
+                            return answer
                         end
                         engine.target_point_event = function (self, index)
                             note ("event " .. index)
@@ -438,6 +526,7 @@ fn run(case: &Case) -> Outcome {
     };
     lua.globals().set("SUMMARIES", strings(&case.summaries)).unwrap();
     lua.globals().set("CENSUSES", strings(&case.censuses)).unwrap();
+    lua.globals().set("END_CENSUSES", strings(&case.end_censuses)).unwrap();
     let events = lua.create_table().unwrap();
     for (i, text) in case.events.iter().enumerate() {
         match text {
@@ -518,13 +607,10 @@ fn a_run_reaching_every_branch_passes_in_order_and_keeps_every_native_report_ver
     let events = every_branch();
     let outcome = run(&healthy(&events));
     outcome.result.as_ref().expect("a whole, coherent capture passes");
-    // prepare -> select -> boot -> boot summary -> census -> clock -> 36 frames (3.6 s at 100 ms) -> clock -> end summary -> census again -> every query once, in order
-    let mut expected: Vec<String> = ["prepare", "select", "boot", "summary", "offsets", "clock"]
-        .iter()
-        .map(|s| s.to_string())
-        .collect();
+    // prepare -> select -> boot -> boot summary -> every census pass -> clock -> 36 frames (3.6 s at 100 ms) -> clock -> end summary -> every census pass again -> every query once, in order
+    let mut expected: Vec<String> = ["prepare", "select", "boot", "summary", "offsets 0", "offsets 1", "clock"].iter().map(|s| s.to_string()).collect();
     expected.extend(std::iter::repeat_n("FRAME".to_string(), 36));
-    expected.extend(["clock", "summary", "offsets"].iter().map(|s| s.to_string()));
+    expected.extend(["clock", "summary", "offsets 0", "offsets 1"].iter().map(|s| s.to_string()));
     expected.extend((0..events.len()).map(|i| format!("event {i}")));
     assert_eq!(outcome.log, expected);
     let all = outcome.written.as_ref().unwrap();
@@ -535,7 +621,14 @@ fn a_run_reaching_every_branch_passes_in_order_and_keeps_every_native_report_ver
         assert!(all.contains(escaped), "event {i} is not kept verbatim");
     }
     assert!(all.contains("host_id_len=17 host_id=RV 12 with spaces"));
-    assert!(all.contains(&census_text(true).lines().next().unwrap().to_string()));
+    // both original passes are kept verbatim, at the boot and at the end, and they are not the same words: the first pass was not overwritten by the second
+    for (g, text) in boot_passes().iter().enumerate() {
+        assert!(all.contains(text.lines().next().unwrap()), "pass {g} is not kept");
+    }
+    assert!(all.contains(&format!("index=5 name=SCENE_5 state=sub_object offset={}", offset_text(census_offset_in(0, 5)))));
+    assert!(all.contains(&format!("index=5 name=SCENE_5 state=sub_object offset={}", offset_text(census_offset_in(1, 5)))));
+    assert_ne!(census_offset_in(0, 5), census_offset_in(1, 5));
+    assert_eq!(all.matches("\"event\":\"offsets\"").count(), 4, "two passes read at the boot and again at the end");
     let done = done_row(&outcome);
     assert!(
         done.contains("\"complete\":true") && done.contains("\"branches_reached\":\"1,2,3,4\"") && done.contains("\"natural_queries_reached\":true"),
@@ -564,10 +657,13 @@ fn a_run_that_reaches_no_query_passes_but_says_nothing_is_covered() {
 fn a_census_that_is_not_whole_is_not_measured_and_no_frame_is_run() {
     let mut case = healthy(&[]);
     case.summaries = vec![summary_with(&[], false, 0)];
-    case.censuses = vec![census_text(false)];
+    case.censuses = vec![pass_text(0, 1, true), pass_text(1, 1, false)];
     let outcome = run(&case);
     failure(&outcome, "NOT MEASURED");
     assert_eq!(count(&outcome, "FRAME"), 0);
+    // the failed capture still keeps what it saw: BOTH passes, the incomplete one included, are read and retained before the verdict is judged
+    let all = outcome.written.as_ref().unwrap();
+    assert!(all.contains("tp-offset generation=0 index=1 ") && all.contains("tp-offset generation=1 index=5 name=SCENE_5 state=none"), "{all}");
     assert!(done_row(&outcome).contains("\"census_complete\":false"));
 }
 
@@ -626,7 +722,7 @@ type Damage = (&'static str, fn(&mut Case), &'static str);
 
 #[test]
 fn damaged_or_contradictory_reports_are_malformed_and_stop_the_questions() {
-    let damages: [Damage; 22] = [
+    let damages: [Damage; 30] = [
         (
             "calls that are not the events",
             |c| c.summaries[1] = c.summaries[1].replace("tp-summary calls=7", "tp-summary calls=8"),
@@ -657,12 +753,12 @@ fn damaged_or_contradictory_reports_are_malformed_and_stop_the_questions() {
         ),
         (
             "a census at the end that is not the census at the boot",
-            |c| c.censuses.push(census_text(true).replace("live=1", "live=0")),
+            |c| c.end_censuses = vec![pass_text(0, 1, true), pass_text(1, 1, true).replace(&offset_text(census_offset(3)), &offset_text([0x4000_0000, 0x3f80_0009, 0]))],
             "event 0",
         ),
         (
             "a census row out of order",
-            |c| c.censuses[0] = c.censuses[0].replace("tp-offset index=2 ", "tp-offset index=9 "),
+            |c| c.censuses[0] = c.censuses[0].replace("tp-offset generation=0 index=2 ", "tp-offset generation=0 index=9 "),
             "FRAME",
         ),
         (
@@ -733,18 +829,54 @@ fn damaged_or_contradictory_reports_are_malformed_and_stop_the_questions() {
             "",
         ),
         (
-            "a final census that disagrees with its own unchanged raw rows",
-            |c| c.summaries[1] = c.summaries[1].replace("sub_object=3 bbox=2", "sub_object=2 bbox=3"),
+            "a final pass line whose snapshot facts differ from the boot's",
+            |c| c.summaries[1] = c.summaries[1].replace("ordinal=1 ended=1 interrupted=0 recorded=6 sub_object=3 bbox=2", "ordinal=1 ended=1 interrupted=0 recorded=6 sub_object=2 bbox=3"),
             "event 0",
         ),
         (
-            "a final census history that differs from the boot's",
-            |c| {
-                c.summaries[1] = c.summaries[1]
-                    .replace("runs=1 ended=1", "runs=2 ended=2")
-                    .replace("tp-complete census=1", "tp-complete census=0")
-            },
+            "a final census that lost a pass the boot held",
+            |c| c.summaries[1] = summary_passes(&every_branch(), &[Pass::full(0)], 0),
             "event 0",
+        ),
+        (
+            "a final live fact that changed although no pass was added",
+            |c| c.summaries[1] = c.summaries[1].replace("ordinal=0 ended=1 interrupted=0 recorded=6 sub_object=3 bbox=2 invalid_zero=1 duplicates=0 out_of_range=0 live_mismatch=2", "ordinal=0 ended=1 interrupted=0 recorded=6 sub_object=3 bbox=2 invalid_zero=1 duplicates=0 out_of_range=0 live_mismatch=1"),
+            "event 0",
+        ),
+        (
+            "a pass that claims to be complete although it holds a duplicate inside the pass",
+            |c| c.summaries[0] = c.summaries[0].replacen("recorded=6 sub_object=3 bbox=2 invalid_zero=1 duplicates=0", "recorded=6 sub_object=3 bbox=2 invalid_zero=1 duplicates=1", 1),
+            "FRAME",
+        ),
+        (
+            "a latest pass that differs from the table under a whole verdict",
+            |c| c.summaries[1] = c.summaries[1].replace("ordinal=1 ended=1 interrupted=0 recorded=6 sub_object=3 bbox=2 invalid_zero=1 duplicates=0 out_of_range=0 live_mismatch=0", "ordinal=1 ended=1 interrupted=0 recorded=6 sub_object=3 bbox=2 invalid_zero=1 duplicates=0 out_of_range=0 live_mismatch=1"),
+            "event 0",
+        ),
+        (
+            "a query that names a pass the summary does not hold",
+            |c| c.events[2] = c.events[2].as_ref().map(|t| t.replace("gen=1 gen_open=0", "gen=2 gen_open=0")),
+            "event 3",
+        ),
+        (
+            "a fixed-shape query with no finished pass to bind to",
+            |c| c.events[2] = c.events[2].as_ref().map(|t| t.replace("gen=1 gen_open=0", "gen=-1 gen_open=0")),
+            "event 3",
+        ),
+        (
+            "a fixed-shape query made while a pass was running",
+            |c| c.events[2] = c.events[2].as_ref().map(|t| t.replace("gen=1 gen_open=0", "gen=1 gen_open=1")),
+            "event 3",
+        ),
+        (
+            "a query that names an older pass than the query before it",
+            |c| c.events[5] = c.events[5].as_ref().map(|t| t.replace("gen=1 gen_open=0", "gen=0 gen_open=0")),
+            "event 6",
+        ),
+        (
+            "a fixed-shape offset that is the words of the other pass",
+            |c| c.events[2] = c.events[2].as_ref().map(|t| t.replace(&offset_text(census_offset_in(1, 5)), &offset_text(census_offset_in(0, 5)))),
+            "event 3",
         ),
         (
             "a fixed-shape offset that is not its shape's census row",
@@ -788,6 +920,82 @@ fn damaged_or_contradictory_reports_are_malformed_and_stop_the_questions() {
                 outcome.log
             );
         }
+    }
+}
+
+#[test]
+fn a_later_pass_is_a_new_original_product_and_each_query_binds_to_the_pass_it_ran_after() {
+    // the boot held two passes; a third initialisation ran during the frames. The table is pass 2 now: passes 0 and 1 are historical snapshots that differ from it (a fact about them, not a
+    // lost capture), and each query of model 4 is joined to the pass that had ended when it ran, so the earlier one carries the words of pass 1 and the later one the words of pass 2
+    let events = vec![
+        fixed_shape(0, 3, 4, "rotated_horizontal_offset", Some(0x3f00_0000), true).at_pass(1),
+        fixed_shape(1, 3, 4, "rotated_horizontal_offset", Some(0x3f00_0000), true).at_pass(2),
+    ];
+    assert_ne!(census_offset_in(1, 4), census_offset_in(2, 4));
+    let mut case = healthy(&events);
+    case.summaries = vec![summary(&[]), summary_passes(&events, &[Pass::full(3), Pass::full(1), Pass::full(0)], 0)];
+    case.end_censuses = vec![pass_text(0, 2, true), pass_text(1, 2, true), pass_text(2, 2, true)];
+    let outcome = run(&case);
+    outcome.result.as_ref().expect("a whole capture of three passes, the last the table");
+    assert_eq!(count(&outcome, "offsets 2"), 1, "the pass that appeared during the frames is read once, at the end");
+    let all = outcome.written.as_ref().unwrap();
+    assert_eq!(all.matches("\"event\":\"offsets\"").count(), 5, "two passes at the boot, three at the end");
+    let done = done_row(&outcome);
+    assert!(done.contains("\"complete\":true") && done.contains("\"generations\":3"), "{done}");
+    // the wrong pass for a query is a contradiction even though both passes are whole snapshots
+    let mut crossed = healthy(&events);
+    crossed.summaries = case.summaries.clone();
+    crossed.end_censuses = case.end_censuses.clone();
+    crossed.events[0] = Some(event_text(0, &events[1]).replace("seq=1 ", "seq=0 ").replace("gen=2 ", "gen=1 "));
+    let outcome = run(&crossed);
+    failure(&outcome, MALFORMED);
+    failure(&outcome, "not its shape's census row");
+    // a later pass whose own line disagrees with its own rows is judged by them
+    let mut disagreeing = healthy(&events);
+    disagreeing.summaries = vec![
+        summary(&[]),
+        summary_passes(&events, &[Pass::full(3), Pass::full(1), Pass::full(0)], 0).replace("ordinal=2 ended=1 interrupted=0 recorded=6 sub_object=3 bbox=2", "ordinal=2 ended=1 interrupted=0 recorded=6 sub_object=2 bbox=3"),
+    ];
+    disagreeing.end_censuses = case.end_censuses.clone();
+    let outcome = run(&disagreeing);
+    failure(&outcome, MALFORMED);
+    failure(&outcome, "census rows and the summary's totals of the pass disagree");
+}
+
+#[test]
+fn a_census_that_is_not_whole_keeps_every_pass_it_saw_and_is_not_measured() {
+    type Variant = (&'static str, fn(&mut Case));
+    let variants: [Variant; 3] = [
+        ("a pass begun beyond the bounded history", |c| {
+            c.summaries[0] = c.summaries[0].replace("capacity=4 dropped=0", "capacity=4 dropped=1").replace("tp-complete census=1", "tp-complete census=0");
+        }),
+        ("a duplicate inside the latest pass", |c| {
+            c.summaries[0] = c.summaries[0]
+                .replace(
+                    "ordinal=1 ended=1 interrupted=0 recorded=6 sub_object=3 bbox=2 invalid_zero=1 duplicates=0 out_of_range=0 live_mismatch=0 complete=1",
+                    "ordinal=1 ended=1 interrupted=0 recorded=6 sub_object=3 bbox=2 invalid_zero=1 duplicates=1 out_of_range=0 live_mismatch=0 complete=0",
+                )
+                .replace("tp-complete census=1", "tp-complete census=0");
+        }),
+        ("a latest pass the table no longer holds", |c| {
+            c.summaries[0] = c.summaries[0]
+                .replace(
+                    "ordinal=1 ended=1 interrupted=0 recorded=6 sub_object=3 bbox=2 invalid_zero=1 duplicates=0 out_of_range=0 live_mismatch=0",
+                    "ordinal=1 ended=1 interrupted=0 recorded=6 sub_object=3 bbox=2 invalid_zero=1 duplicates=0 out_of_range=0 live_mismatch=1",
+                )
+                .replace("tp-complete census=1", "tp-complete census=0");
+            c.censuses[1] = c.censuses[1].replacen("live=1", "live=0", 1);
+        }),
+    ];
+    for (what, variant) in variants {
+        let mut case = healthy(&[]);
+        variant(&mut case);
+        let outcome = run(&case);
+        failure(&outcome, "NOT MEASURED");
+        assert_eq!(count(&outcome, "FRAME"), 0, "{what}: a frame was run");
+        let all = outcome.written.as_ref().unwrap();
+        assert!(all.contains("\"generation\":0") && all.contains("\"generation\":1"), "{what}: a pass was not kept");
+        assert!(done_row(&outcome).contains("\"census_complete\":false"), "{what}");
     }
 }
 
@@ -1202,6 +1410,8 @@ fn the_driver_names_and_caps_are_the_emitters() {
     };
     assert_eq!(lua_number("EVENTS_CAPACITY"), define("TP_EVENTS"));
     assert_eq!(lua_number("HOST_ID_MAX"), define("TP_HOST_ID"));
+    assert_eq!(lua_number("GENERATIONS_CAPACITY"), define("TP_GENERATIONS"));
+    assert!(ENGINE_RS.contains(&format!("pub const TARGET_POINT_GENERATIONS_MAX: i32 = {};", define("TP_GENERATIONS"))));
     // the engine's own bound on an event index is the same table
     assert!(ENGINE_RS.contains(&format!("pub const TARGET_POINT_EVENTS_MAX: i32 = {};", define("TP_EVENTS"))));
 }

@@ -5,9 +5,12 @@
 -- no engagement and calls the original function from nowhere: the query calls it reports are only those the campaign's own update loop made.
 --
 -- WHAT IT REPORTS (all native text kept verbatim in the JSON Lines rows).
---   * the CENSUS of the offset table, read right after the boot and again at the end (the two must be byte-equal): per model index whether the offset came from the model's TARGET_POINT
---     sub-object, from the bounding-box fallback (with the six bounds the original used) or is the invalid index's zero, and the float bits. The census is the original's own boot
---     product; nothing is constructed or measured again. It is required to be WHOLE (it ran once, recorded every index once, and the live table still holds what it recorded).
+--   * the CENSUS of the offset table, one report per ORIGINAL initialiser PASS (generation). One public boot has been seen to run the initialiser twice (full_initialise_game, then
+--     reinitialise_entity_system), each pass first running calculate_seeker_limits_from_launch_angle once; no pass count is assumed here, every pass the observer kept is read and
+--     retained in full, right after the boot and again at the end: per model index whether the offset came from the model's TARGET_POINT sub-object, from the bounding-box fallback (with
+--     the six bounds the original used) or is the invalid index's zero, and the float bits. Each pass must be a complete SNAPSHOT (it ended, recorded every index once, nothing strayed
+--     or was lost) and the LATEST pass must be the one the live table holds; an older pass may differ from the table, which is a fact about that pass. Nothing is constructed or
+--     measured again.
 --   * the QUERIES the campaign made while it booted and ran: per call the caller, the branch, the entity type, whether the host had ALREADY issued an identity for the entity (the
 --     observer reads that, it issues none), the semantic model name, the offset and heading it used, the float bits it returned and the instance viewpoint before and after.
 --     A short run may reach no query, or only some branches: that is reported as it is (`queries`, `branches_reached`, `natural_queries_reached`), never as coverage.
@@ -82,6 +85,7 @@ if type (host.create_exclusive) ~= "function" then fail_args ("this host has no 
 
 local EVENTS_CAPACITY = 4096
 local HOST_ID_MAX = 128
+local GENERATIONS_CAPACITY = 4
 local INT_MAX = 2147483647
 
 local SITES = { [0] = "unattributed", "aim_vectors", "aim_lead", "aim_intercept", "weapon_step_target_vec", "other" }
@@ -220,44 +224,66 @@ local function check_summary (text)
 	if m.case.vp_changed > m.branch [1] + m.branch [2] + m.unclassified then malformed ("more instance viewpoints changed than there were instance calls") end
 	if m.case.host_id_present + m.case.host_id_absent + m.overlong ~= finalised then malformed ("the host identity counts are not the finalised calls") end
 
-	local k = take ("tp-census", { "runs", "ended", "open", "expected", "recorded", "sub_object", "bbox", "invalid_zero", "duplicates", "stray", "live_mismatch" })
+	local k = take ("tp-census", { "expected", "generations", "capacity", "dropped", "open", "interrupted", "stray", "last" })
 	m.census = {
-		runs = int (k.runs, 0, INT_MAX, "census runs"), ended = int (k.ended, 0, INT_MAX, "census ended"), open = flag (k.open, "census open"),
-		expected = int (k.expected, 1, INT_MAX, "census expected"), recorded = int (k.recorded, 0, INT_MAX, "census recorded"), sub_object = int (k.sub_object, 0, INT_MAX, "census sub_object"),
-		bbox = int (k.bbox, 0, INT_MAX, "census bbox"), invalid_zero = int (k.invalid_zero, 0, INT_MAX, "census invalid_zero"), duplicates = int (k.duplicates, 0, INT_MAX, "census duplicates"),
-		stray = int (k.stray, 0, INT_MAX, "census stray"), live_mismatch = int (k.live_mismatch, 0, INT_MAX, "census live_mismatch"),
+		expected = int (k.expected, 1, INT_MAX, "census expected"), generations = int (k.generations, 0, GENERATIONS_CAPACITY, "census generations"),
+		dropped = int (k.dropped, 0, INT_MAX, "census dropped"), open = flag (k.open, "census open"), interrupted = int (k.interrupted, 0, INT_MAX, "census interrupted"),
+		stray = int (k.stray, 0, INT_MAX, "census stray"), last = int (k.last, -1, GENERATIONS_CAPACITY - 1, "census last"),
 	}
 	local census = m.census
-	if census.ended > census.runs then malformed ("the census ended more often than it began") end
-	if census.sub_object + census.bbox + census.invalid_zero ~= census.recorded or census.recorded > census.expected or census.invalid_zero > 1 or census.live_mismatch > census.recorded then
-		malformed ("the census totals are incoherent")
+	if int (k.capacity, 0, INT_MAX, "census capacity") ~= GENERATIONS_CAPACITY then malformed ("the census capacity is not the observer's " .. GENERATIONS_CAPACITY) end
+
+	-- every kept initialiser pass has its own line, in ordinal order: the passes are separate original products, none is merged or overwritten
+	m.passes = {}
+	local all_complete, latest_ended = true, -1
+	for g = 0, census.generations - 1 do
+		local p = take ("tp-pass", { "ordinal", "ended", "interrupted", "recorded", "sub_object", "bbox", "invalid_zero", "duplicates", "out_of_range", "live_mismatch", "complete" })
+		if int (p.ordinal, 0, GENERATIONS_CAPACITY - 1, "pass ordinal") ~= g then malformed ("the pass rows are not in order at " .. g) end
+		local pass = {
+			ended = flag (p.ended, "pass ended"), interrupted = flag (p.interrupted, "pass interrupted"), recorded = int (p.recorded, 0, INT_MAX, "pass recorded"),
+			sub_object = int (p.sub_object, 0, INT_MAX, "pass sub_object"), bbox = int (p.bbox, 0, INT_MAX, "pass bbox"), invalid_zero = int (p.invalid_zero, 0, INT_MAX, "pass invalid_zero"),
+			duplicates = int (p.duplicates, 0, INT_MAX, "pass duplicates"), out_of_range = int (p.out_of_range, 0, INT_MAX, "pass out_of_range"),
+			live_mismatch = int (p.live_mismatch, 0, INT_MAX, "pass live_mismatch"), complete = flag (p.complete, "pass complete"),
+		}
+		if pass.sub_object + pass.bbox + pass.invalid_zero ~= pass.recorded or pass.recorded > census.expected or pass.invalid_zero > 1 or pass.live_mismatch > pass.recorded then
+			malformed ("the totals of pass " .. g .. " are incoherent")
+		end
+		-- a pass is a complete SNAPSHOT if it ended, was not abandoned and recorded every index once inside the table; whether it still equals the current table is live_mismatch, a separate fact
+		local snapshot = pass.ended == 1 and pass.interrupted == 0 and pass.recorded == census.expected and pass.duplicates == 0 and pass.out_of_range == 0 and pass.invalid_zero == 1
+		if (pass.complete == 1) ~= snapshot then malformed ("pass " .. g .. " claims complete=" .. pass.complete .. " against its own counters") end
+		if pass.ended == 1 then latest_ended = g end
+		if pass.complete == 0 then all_complete = false end
+		m.passes [g] = pass
 	end
+	if census.last ~= latest_ended then malformed ("the census names pass " .. census.last .. " as the latest ended, the pass rows say " .. latest_ended) end
 
 	local v = take ("tp-complete", { "census", "queries_whole" })
 	m.census_whole = flag (v.census, "census whole")
 	m.queries_whole = flag (v.queries_whole, "queries_whole")
 	if list [at + 1] then malformed ("the summary has extra lines after its last expected one: " .. list [at + 1]) end
 
-	-- a verdict is only believed if the counters say the same, both ways
-	local census_clean = census.runs == 1 and census.ended == 1 and census.open == 0 and census.recorded == census.expected and census.duplicates == 0 and census.stray == 0 and
-		census.live_mismatch == 0 and census.invalid_zero == 1
+	-- a verdict is only believed if the counters say the same, both ways. The census is whole if at least one pass ran, none was lost, abandoned or left open, nothing strayed, every pass is a complete
+	-- snapshot and the LATEST pass is the one the table holds now (an older pass may differ from the table: that is its own fact, not a lost capture)
+	local census_clean = census.generations >= 1 and census.dropped == 0 and census.open == 0 and census.interrupted == 0 and census.stray == 0 and all_complete and
+		census.last == census.generations - 1 and m.passes [census.last].live_mismatch == 0
 	if (m.census_whole == 1) ~= census_clean then malformed ("tp-complete census=" .. m.census_whole .. " contradicts the census counters") end
 	local queries_clean = m.dropped == 0 and m.stale == 0 and m.interrupted == 0 and m.orphans == 0 and m.unclassified == 0 and m.open == 0 and m.out_of_range == 0 and m.overlong == 0
 	if (m.queries_whole == 1) ~= queries_clean then malformed ("tp-complete queries_whole=" .. m.queries_whole .. " contradicts the query counters") end
 	return m
 end
 
--- The census rows: one per model index, in order. Returns the counts they hold, joined against the summary by the caller.
-local function check_offsets (text, summary)
-	local list = lines_of (text, "the census")
+-- The census rows of ONE pass (generation `generation`): one per model index, in order. Returns the counts they hold, joined against that pass's summary line by the caller.
+local function check_offsets (text, summary, generation)
+	local list = lines_of (text, "the census of pass " .. generation)
 	local expected = summary.census.expected
-	if #list ~= expected then malformed (string.format ("the census has %d rows, the summary expects %d", #list, expected)) end
+	if #list ~= expected then malformed (string.format ("the census of pass %d has %d rows, the summary expects %d", generation, #list, expected)) end
 	local counts = { none = 0, sub_object = 0, bbox = 0, invalid_zero = 0, live_mismatch = 0 }
 	-- the rows themselves, by model index, for the joins of the queries that name a shape: its state, name, offset words (as the native text) and whether the live table still held them
 	local rows = {}
 	for i = 0, expected - 1 do
-		local what = "census row " .. i
-		local r = fields (list [i + 1], "tp-offset", { "index", "name", "state", "offset", "bounds", "live" }, what)
+		local what = "census row " .. i .. " of pass " .. generation
+		local r = fields (list [i + 1], "tp-offset", { "generation", "index", "name", "state", "offset", "bounds", "live" }, what)
+		if int (r.generation, 0, INT_MAX, "census generation") ~= generation then malformed (what .. " belongs to another pass") end
 		if int (r.index, 0, INT_MAX, "census index") ~= i then malformed (what .. " is out of order") end
 		name (r.name, what .. " name")
 		if not STATES [r.state] then malformed (what .. " has the state '" .. tostring (r.state) .. "'") end
@@ -280,44 +306,58 @@ local function check_offsets (text, summary)
 	return counts, rows
 end
 
--- The census facts a summary and the rows must agree on (every total of the census line, and the verdict): the rows are joined to the summary that describes them.
-local function join_census_rows (counts, summary)
-	local c = summary.census
-	if counts.sub_object ~= c.sub_object or counts.bbox ~= c.bbox or counts.invalid_zero ~= c.invalid_zero or counts.live_mismatch ~= c.live_mismatch or counts.none ~= c.expected - c.recorded then
-		malformed ("the census rows and the summary's census totals disagree")
+-- The census facts a pass's summary line and its rows must agree on (every total, and the cohort that was not recorded).
+local function join_census_rows (counts, pass, expected)
+	if counts.sub_object ~= pass.sub_object or counts.bbox ~= pass.bbox or counts.invalid_zero ~= pass.invalid_zero or counts.live_mismatch ~= pass.live_mismatch or counts.none ~= expected - pass.recorded then
+		malformed ("the census rows and the summary's totals of the pass disagree")
 	end
 end
 
--- The census is the boot's own product and nothing may change it: every total and the verdict of a later summary equal those measured at the boot. (The QUERY counters grow; these do not.)
-local CENSUS_KEYS = { "runs", "ended", "open", "expected", "recorded", "sub_object", "bbox", "invalid_zero", "duplicates", "stray", "live_mismatch" }
+-- Every pass is an original product of the boot and nothing may change it afterwards: each pass the boot summary holds appears in every later summary with the same snapshot facts. A LATER pass
+-- is a new original product and is allowed (it is judged by its own line and by the final verdict). While no pass was added nothing wrote the table, so even the live facts and the verdict must
+-- be those of the boot; once one was added an older pass may legitimately differ from the table. (The QUERY counters grow; these do not.)
+local PASS_FIXED = { "ended", "interrupted", "recorded", "sub_object", "bbox", "invalid_zero", "duplicates", "out_of_range", "complete" }
 local function same_census (boot, later, when)
-	for _, key in ipairs (CENSUS_KEYS) do
-		if later.census [key] ~= boot.census [key] then malformed ("the census total '" .. key .. "' changed after the boot (" .. when .. ")") end
+	local b, l = boot.census, later.census
+	if l.expected ~= b.expected then malformed ("the census size changed after the boot (" .. when .. ")") end
+	if l.generations < b.generations then malformed ("the census lost a pass after the boot (" .. when .. ")") end
+	for g = 0, b.generations - 1 do
+		for _, key in ipairs (PASS_FIXED) do
+			if later.passes [g] [key] ~= boot.passes [g] [key] then malformed ("the '" .. key .. "' of pass " .. g .. " changed after the boot (" .. when .. ")") end
+		end
+		if l.generations == b.generations and later.passes [g].live_mismatch ~= boot.passes [g].live_mismatch then malformed ("the live facts of pass " .. g .. " changed with no pass added (" .. when .. ")") end
 	end
-	if later.census_whole ~= boot.census_whole then malformed ("the census verdict changed after the boot (" .. when .. ")") end
+	if l.generations == b.generations then
+		for _, key in ipairs { "dropped", "open", "interrupted", "stray", "last" } do
+			if l [key] ~= b [key] then malformed ("the census total '" .. key .. "' changed with no pass added (" .. when .. ")") end
+		end
+		if later.census_whole ~= boot.census_whole then malformed ("the census verdict changed with no pass added (" .. when .. ")") end
+	end
 end
 
 -- The mode values of the host aim operation that fill_aim_target reports as its detail (CAMPAIGN_AIM_VECTORS, _LEAD and _INTERCEPT of aphavoc/source/entity/mobile/mb_hostaim.h), by the
 -- caller class the observer's site_class gives them: tests/target_point_characterization.rs checks these numbers against that header.
 local AIM_DETAIL = { [1] = 6, [2] = 7, [3] = 9 }
 
--- One recorded query. `index` is the number asked for. `rows` are the boot census rows. Returns its facts.
+-- One recorded query. `index` is the number asked for. `rows` are the census rows by pass (rows [generation] [model index]). Returns its facts.
 local function check_event (text, index, summary, rows)
 	local what = "event " .. index
 	local list = lines_of (text, what)
 	if #list ~= 1 then malformed (what .. " is not exactly one line") end
 	local head, length, rest = string.match (list [1], "^(.-) host_id_len=(%d+)(.*)$")
 	if not head then malformed (what .. " has no host_id_len") end
-	local e = fields (head, "tp-event", { "index", "seq", "site", "site_name", "detail", "branch", "branch_name", "case", "entity_type", "entity_type_name", "instance", "model", "model_name",
+	local e = fields (head, "tp-event", { "index", "seq", "gen", "gen_open", "site", "site_name", "detail", "branch", "branch_name", "case", "entity_type", "entity_type_name", "instance", "model", "model_name",
 		"fixed", "shape", "horizontal", "heading", "xz_applied", "offset", "result", "vp_before", "vp_after", "vp_changed", "host_id_state" }, what)
 	if int (e.index, 0, INT_MAX, "event index") ~= index then malformed (what .. " carries another event's index") end
 	local f = {
-		seq = int (e.seq, 0, INT_MAX, "seq"), site = int (e.site, 0, SITE_COUNT - 1, "site"), detail = int (e.detail, -INT_MAX, INT_MAX, "detail"), branch = int (e.branch, 0, 4, "branch"),
+		seq = int (e.seq, 0, INT_MAX, "seq"), gen = int (e.gen, -1, GENERATIONS_CAPACITY - 1, "gen"), gen_open = flag (e.gen_open, "gen_open"), site = int (e.site, 0, SITE_COUNT - 1, "site"), detail = int (e.detail, -INT_MAX, INT_MAX, "detail"), branch = int (e.branch, 0, 4, "branch"),
 		entity_type = int (e.entity_type, 0, INT_MAX, "entity_type"), instance = flag (e.instance, "instance"), model = int (e.model, -1, INT_MAX, "model"), fixed = flag (e.fixed, "fixed"),
 		shape = int (e.shape, -INT_MAX, INT_MAX, "shape"), horizontal = flag (e.horizontal, "horizontal"), xz_applied = flag (e.xz_applied, "xz_applied"), vp_changed = flag (e.vp_changed, "vp_changed"),
 		case = e.case, host_id_state = e.host_id_state,
 	}
 	if f.seq >= summary.calls then malformed (what .. " has a sequence number beyond the calls the summary counts") end
+	-- the census pass the query ran after: one of the kept passes, and one that ended
+	if f.gen >= summary.census.generations or (f.gen >= 0 and summary.passes [f.gen].ended ~= 1) then malformed (what .. " names a census pass that the summary does not hold as ended") end
 	if e.site_name ~= SITES [f.site] then malformed (what .. " names site " .. f.site .. " '" .. e.site_name .. "'") end
 	if f.site == 0 and f.detail ~= 0 then malformed (what .. " is unattributed but carries a caller detail") end
 	if f.site == 4 and f.detail ~= 1 then malformed (what .. " is a weapon step lookup of a question other than the target point") end
@@ -358,10 +398,13 @@ local function check_event (text, index, summary, rows)
 		if (f.offset ~= nil) ~= (f.shape >= 1 and f.shape < summary.census.expected) then malformed (what .. " has an offset that does not agree with its shape being inside the table") end
 		if f.offset then
 			if f.model ~= f.shape then malformed (what .. " has a model other than its shape") end
-			-- the offset the original read is the boot census row of that shape, word for word: the table has one writer, at the boot, and the census holds what it wrote
-			local row = rows [f.shape]
-			if not row or (row.state ~= "sub_object" and row.state ~= "bbox") then malformed (what .. " names a shape the boot census did not record from a model") end
-			if row.live ~= "1" then malformed (what .. " names a shape whose live table entry is no longer the census row") end
+			-- the offset the original read is the row of that shape in the census pass that was the latest to end when the query ran, word for word (the table is written only by the
+			-- initialiser; a query never joins a pass that came later, and none applies to a query made before any pass ended or while one ran)
+			if f.gen < 0 or f.gen_open == 1 then malformed (what .. " read the offset table but no finished census pass applies to it") end
+			local row = (rows [f.gen] or {}) [f.shape]
+			if not row or (row.state ~= "sub_object" and row.state ~= "bbox") then malformed (what .. " names a shape that census pass " .. f.gen .. " did not record from a model") end
+			-- the latest pass is the one the table holds now; an older pass is a snapshot and need not be
+			if f.gen == summary.census.last and row.live ~= "1" then malformed (what .. " names a shape whose live table entry is no longer the latest census row") end
 			if e.offset ~= row.offset then malformed (what .. " has an offset that is not its shape's census row") end
 			if e.model_name ~= row.name then malformed (what .. " names a model other than its shape's census row") end
 			local nonzero = magnitude (f.offset [1]) ~= 0 or magnitude (f.offset [3]) ~= 0
@@ -492,18 +535,32 @@ local function run ()
 		return clock
 	end
 
-	-- THE CENSUS, straight after the boot: it is the boot's own product and must be whole before any frame is run
+	-- one initialiser pass's rows, read once, kept verbatim, checked against the grammar and joined to that pass's line of the summary it belongs to
+	local function read_pass (when, g, summary)
+		local text = ask ("target_point_offsets " .. g, function () return engine:target_point_offsets (g) end)
+		emit { event = "offsets", when = when, generation = g, text = text }
+		local checked, counts, rows = pcall (check_offsets, text, summary, g)
+		if not checked then protocol_failure (counts) end
+		local joined, reason = pcall (join_census_rows, counts, summary.passes [g], summary.census.expected)
+		if not joined then protocol_failure (reason) end
+		return text, rows, counts
+	end
+
+	-- THE CENSUS, straight after the boot: every original pass of the initialiser the boot ran is kept as its own generation, read and kept in full BEFORE the verdict is judged, so a
+	-- capture that is not whole still retains what it saw. It must be whole before any frame is run.
 	local boot_summary = sample ("boot")
-	local census_text = ask ("target_point_offsets", function () return engine:target_point_offsets () end)
-	emit { event = "offsets", when = "boot", text = census_text }
-	local checked, counts, census_rows = pcall (check_offsets, census_text, boot_summary)
-	if not checked then protocol_failure (counts) end
-	local joined, reason = pcall (join_census_rows, counts, boot_summary)
-	if not joined then protocol_failure (reason) end
-	emit { event = "census", expected = boot_summary.census.expected, sub_object = counts.sub_object, bbox = counts.bbox, invalid_zero = counts.invalid_zero, none = counts.none, whole = boot_summary.census_whole == 1 }
+	local boot_texts = {}
+	for g = 0, boot_summary.census.generations - 1 do
+		local text, _, counts = read_pass ("boot", g, boot_summary)
+		boot_texts [g] = text
+		emit { event = "census", generation = g, expected = boot_summary.census.expected, sub_object = counts.sub_object, bbox = counts.bbox, invalid_zero = counts.invalid_zero, none = counts.none,
+			live_mismatch = counts.live_mismatch, complete = boot_summary.passes [g].complete == 1 }
+	end
+	emit { event = "census_summary", generations = boot_summary.census.generations, last = boot_summary.census.last, whole = boot_summary.census_whole == 1 }
 	if boot_summary.census_whole ~= 1 then
 		emit { event = "done", complete = false, malformed = false, census_complete = false }
-		error ("target-point-characterization: NOT MEASURED: the census of the offset table is not whole (runs " .. boot_summary.census.runs .. ", recorded " .. boot_summary.census.recorded .. " of " .. boot_summary.census.expected .. ")", 0)
+		error ("target-point-characterization: NOT MEASURED: the census of the offset table is not whole (" .. boot_summary.census.generations .. " passes kept, latest ended " .. boot_summary.census.last ..
+			", dropped " .. boot_summary.census.dropped .. ", open " .. boot_summary.census.open .. ", interrupted " .. boot_summary.census.interrupted .. ", stray " .. boot_summary.census.stray .. ")", 0)
 	end
 
 	-- THE FRAMES. The campaign decides what is queried; nothing here selects, creates or calls anything.
@@ -540,26 +597,33 @@ local function run ()
 		if final.calls < previous.calls or final.events < previous.events or final.dropped < previous.dropped then malformed ("a query counter went backwards at the end") end
 	end)
 	if not monotone_end then protocol_failure (bad_end) end
-	local census_again = ask ("target_point_offsets", function () return engine:target_point_offsets () end)
-	emit { event = "offsets", when = "end", text = census_again }
-	if census_again ~= census_text then protocol_failure ({ malformed = "the census at the end is not byte-equal to the census after the boot" }) end
-	-- the final summary describes the final rows (which are the boot rows, byte for byte) and the census it reports is the one measured at the boot: no total or verdict may differ
-	local final_checked, final_counts = pcall (check_offsets, census_again, final)
-	if not final_checked then protocol_failure (final_counts) end
-	local final_joined, final_reason = pcall (function ()
-		join_census_rows (final_counts, final)
-		same_census (boot_summary, final, "end")
-	end)
-	if not final_joined then protocol_failure (final_reason) end
+	-- the final summary may add passes (a later initialisation is a new original product) but may not change one the boot held
+	local same, same_reason = pcall (same_census, boot_summary, final, "end")
+	if not same then protocol_failure (same_reason) end
+	-- every pass is read again, in full: each is joined to its own line of the final summary; a pass the boot held must still be the same words (its live flags may differ only if a later pass
+	-- was added; with none added the whole text must be byte-equal), and a later pass is judged only by its own line and the final verdict
+	local end_rows = {}
+	local grown = final.census.generations > boot_summary.census.generations
+	local function without_live (text) return (string.gsub (text, " live=[01%-]\n", "\n")) end
+	for g = 0, final.census.generations - 1 do
+		local text, rows = read_pass ("end", g, final)
+		end_rows [g] = rows
+		if g < boot_summary.census.generations then
+			if without_live (text) ~= without_live (boot_texts [g]) then protocol_failure ({ malformed = "the census of pass " .. g .. " at the end is not the census read after the boot" }) end
+			if not grown and text ~= boot_texts [g] then protocol_failure ({ malformed = "the census of pass " .. g .. " at the end is not byte-equal to the census after the boot although no pass was added" }) end
+		end
+	end
 
-	local events, seen = {}, -1
+	local events, seen, previous_gen = {}, -1, -1
 	for index = 0, final.events - 1 do
 		local text = ask ("target_point_event " .. index, function () return engine:target_point_event (index) end)
 		emit { event = "query", index = index, text = text }
-		local good, event = pcall (check_event, text, index, final, census_rows)
+		local good, event = pcall (check_event, text, index, final, end_rows)
 		if not good then protocol_failure (event) end
 		if event.seq <= seen then protocol_failure ({ malformed = "event " .. index .. " does not follow the previous event's sequence number" }) end
 		seen = event.seq
+		if event.gen < previous_gen then protocol_failure ({ malformed = "event " .. index .. " names an older census pass than the event before it" }) end
+		previous_gen = event.gen
 		events[index] = event
 	end
 
@@ -614,7 +678,7 @@ local function run ()
 	for b = 1, 4 do if final.branch [b] > 0 then reached [#reached + 1] = tostring (b) end end
 	local queries = final.calls - boot_summary.calls
 	local whole = final.queries_whole == 1 and final.census_whole == 1
-	emit { event = "done", complete = whole, census_complete = true, queries_whole = whole, queries = queries, boot_calls = boot_summary.calls, total_calls = final.calls, events = final.events,
+	emit { event = "done", complete = whole, census_complete = true, queries_whole = whole, queries = queries, boot_calls = boot_summary.calls, total_calls = final.calls, events = final.events, generations = final.census.generations,
 		natural_queries_reached = final.calls > 0, branches_reached = #reached > 0 and table.concat (reached, ",") or "none", frames = frames, malformed = false }
 	if final.calls == 0 then
 		emit { event = "unreached", reason = "no query of the original target-point function was made in " .. frames .. " frames; no branch is covered" }

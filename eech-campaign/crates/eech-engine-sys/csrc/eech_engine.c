@@ -2122,7 +2122,7 @@ int eech_engine_route_call (int index, char *text, int capacity)
  * process (eech_tp_fixture.c). Read-only: the entries pass no host, run inside the engine entry (EECH's round-toward-zero mode) and touch no campaign state.
  */
 extern int eech_tp_summary_run (char *text, int capacity);
-extern int eech_tp_offsets_run (char *text, int capacity);
+extern int eech_tp_offsets_run (int generation, char *text, int capacity);
 extern int eech_tp_event_run (int index, char *text, int capacity);
 
 int eech_engine_target_point_summary (char *text, int capacity)
@@ -2139,14 +2139,14 @@ int eech_engine_target_point_summary (char *text, int capacity)
 	LEAVE (EECH_ENGINE_OK);
 }
 
-int eech_engine_target_point_offsets (char *text, int capacity)
+int eech_engine_target_point_offsets (int generation, char *text, int capacity)
 {
 	ENTER (OPERATION_OBSERVE, NULL);
 	if (state != ENGINE_RUNNING)
 	{
 		LEAVE (EECH_ENGINE_STATE);
 	}
-	if (!text || (capacity <= 0) || eech_tp_offsets_run (text, capacity) != 0)
+	if (!text || (capacity <= 0) || generation < 0 || eech_tp_offsets_run (generation, text, capacity) != 0)
 	{
 		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
 	}

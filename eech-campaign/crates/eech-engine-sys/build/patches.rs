@@ -2266,7 +2266,7 @@ pub const TARGET_POINT_FIXTURE_PATCHES: &[Patch] = &[
     Patch {
         file: "aphavoc/source/entity/mobile/weapon/wn_dbase.c",
         id: "TP12-census-begin",
-        why: "the census begins; the hook sits before calculate_seeker_limits_from_launch_angle, which is a separate campaign weapon-policy calculation that keeps its order and single execution",
+        why: "the census begins; the hook sits before calculate_seeker_limits_from_launch_angle, which is a separate campaign weapon-policy calculation that keeps its order and runs once per invocation of this initialiser (one public boot invokes it twice)",
         original: "\tdebug_assert (get_3d_objects_initialised ());\n\n\tcalculate_seeker_limits_from_launch_angle();\n",
         replacement: "\tdebug_assert (get_3d_objects_initialised ());\n\n\teech_tp_census_begin (); /* EECH target-point fixture (TP12) */\n\n\tcalculate_seeker_limits_from_launch_angle();\n",
         count: 1,

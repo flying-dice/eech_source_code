@@ -11,9 +11,14 @@
  *      no identity), the semantic model (the scene name of the instance, or of the shape), the offset it read, for a fixed shape whether a horizontal offset exists, the heading it read and
  *      whether the rotated x/z offsets were added (a heading of zero adds none: the legacy quirk, recorded, not corrected), the float bits it returned, and the instance viewpoint
  *      (position and attitude, twelve words) before and after the call, because branch 1 overwrites it from the entity pose.
- *   2. THE CENSUS. initialise_target_point_offsets (wn_dbase.c) fills target_point_offsets[] once at boot: per model index, whether its offset came from the model's TARGET_POINT
- *      sub-object, from the bounding-box fallback (with the six bounds it used) or is the invalid index's zero, and the float bits. The census records facts the original already
- *      computed; it constructs and measures no model of its own. At report time each recorded entry is compared with the live table, so a later write to it would show.
+ *   2. THE CENSUS. initialise_target_point_offsets (wn_dbase.c) fills target_point_offsets[]. It is called once per initialisation of the entity system, and one public boot runs that
+ *      twice (full_initialise_game, then reinitialise_entity_system: both reach overload_weapon_functions), so a completed boot holds TWO original passes, each of which first runs
+ *      calculate_seeker_limits_from_launch_angle once (campaign weapon policy, unchanged and not deduplicated). The census keeps EVERY pass as its own bounded GENERATION with an
+ *      ordinal: per model index, whether the offset came from the model's TARGET_POINT sub-object, from the bounding-box fallback (with the six bounds it used) or is the invalid
+ *      index's zero, and the float bits. A duplicate inside one pass, an index outside the table, a pass that never ends, a pass beyond the bounded history and a hook outside a pass
+ *      are each counted. A pass is a historical snapshot: it can be complete without equalling the CURRENT table (a later pass may have written other words), so each pass reports how
+ *      many of its rows the live table still holds, and only the latest pass is required to equal it. Each query records the latest ended generation at the time it ran. The census
+ *      records facts the original already computed; it constructs and measures no model of its own.
  *
  * WHAT IT CANNOT SHOW. A call that no boot or frame reached is simply absent: an empty query report says "no calls", which is NOT a measured original, and a branch with no
  * call is not covered. A table that fills, a hook outside an open call, a call that never ends and a call that begins inside another are each counted and make the capture not whole.
@@ -40,6 +45,8 @@
 
 #define TP_EVENTS 4096
 #define TP_HOST_ID 128
+/* the most original initialiser passes kept; one boot has been seen to run two */
+#define TP_GENERATIONS 4
 
 enum
 {
@@ -74,6 +81,8 @@ enum
 struct tp_event
 {
 	int seq, site, detail, branch, entity_type;
+	/* the latest ended census generation when the query began (-1: none yet) and whether an initialiser pass was running */
+	int gen_last, gen_open;
 	int host_id_state, host_id_len;
 	char host_id[TP_HOST_ID + 1];
 	int instance, model, fixed, shape, shape_out_of_range, horizontal, heading_read, xz_applied;
@@ -100,8 +109,16 @@ static int tp_matrix[TP_SITES][5];
 static int tp_case_count[TP_CASES];
 static int tp_vp_changed_count, tp_host_present, tp_host_absent;
 
-static struct tp_census_row tp_census_rows[OBJECT_3D_LAST];
-static int tp_census_runs, tp_census_ended, tp_census_open, tp_census_duplicates, tp_census_stray;
+struct tp_generation
+{
+	int ended, interrupted;
+	int duplicates, out_of_range;
+	struct tp_census_row rows[OBJECT_3D_LAST];
+};
+
+static struct tp_generation tp_generations[TP_GENERATIONS];
+/* passes kept, passes begun beyond the history, the pass running (kept or not), the kept pass it fills (-1: none or not kept), the latest kept pass that ended, passes abandoned by the next begin, hooks outside a pass */
+static int tp_gen_count, tp_gen_dropped, tp_gen_open, tp_gen_current = -1, tp_gen_last = -1, tp_gen_interrupted, tp_census_stray;
 
 static uint32_t bits_of (const float *value)
 {
@@ -333,6 +350,8 @@ void eech_tp_begin (const void *en_pointer, const void *instance)
 	}
 	tp_current.shape = -1;
 	tp_current.model = -1;
+	tp_current.gen_last = tp_gen_last;
+	tp_current.gen_open = tp_gen_open;
 	tp_current_instance = (const object_3d_instance *) instance;
 	if (en)
 	{
@@ -495,22 +514,30 @@ void eech_tp_end (const void *target_point)
 static void census_record (int index, int state, const void *offset, const object_3d_bounds *bounds)
 {
 	const vec3d *point = (const vec3d *) offset;
+	struct tp_generation *generation;
 	struct tp_census_row *row;
 
-	if (!tp_census_open)
+	if (!tp_gen_open)
 	{
 		tp_census_stray++;
 		return;
 	}
+	if (tp_gen_current < 0)
+	{
+		/* a pass beyond the bounded history: counted once by its begin, recorded nowhere */
+		return;
+	}
+	generation = &tp_generations[tp_gen_current];
 	if (index < OBJECT_3D_INVALID_OBJECT_INDEX || index >= OBJECT_3D_LAST)
 	{
-		tp_census_stray++;
+		generation->out_of_range++;
 		return;
 	}
-	row = &tp_census_rows[index];
+	row = &generation->rows[index];
 	if (row->state != 0)
 	{
-		tp_census_duplicates++;
+		/* a second entry for one index WITHIN this pass; the last is kept, the error is counted */
+		generation->duplicates++;
 	}
 	memset (row, 0, sizeof (*row));
 	row->state = state;
@@ -528,8 +555,26 @@ static void census_record (int index, int state, const void *offset, const objec
 
 void eech_tp_census_begin (void)
 {
-	tp_census_runs++;
-	tp_census_open = 1;
+	if (tp_gen_open)
+	{
+		/* the previous pass never ended */
+		tp_gen_interrupted++;
+		if (tp_gen_current >= 0)
+		{
+			tp_generations[tp_gen_current].interrupted = 1;
+		}
+	}
+	tp_gen_open = 1;
+	if (tp_gen_count < TP_GENERATIONS)
+	{
+		tp_gen_current = tp_gen_count;
+		tp_gen_count++;
+	}
+	else
+	{
+		tp_gen_current = -1;
+		tp_gen_dropped++;
+	}
 }
 
 void eech_tp_census_invalid (const void *offset)
@@ -549,13 +594,18 @@ void eech_tp_census_bbox (int index, const void *offset, const void *bounds)
 
 void eech_tp_census_end (void)
 {
-	if (!tp_census_open)
+	if (!tp_gen_open)
 	{
 		tp_census_stray++;
 		return;
 	}
-	tp_census_open = 0;
-	tp_census_ended++;
+	tp_gen_open = 0;
+	if (tp_gen_current >= 0)
+	{
+		tp_generations[tp_gen_current].ended = 1;
+		tp_gen_last = tp_gen_current;
+	}
+	tp_gen_current = -1;
 }
 
 /* ---------------------------------------------------------------------------------------------------------------------------- */
@@ -652,9 +702,10 @@ static void words_text (char *dst, size_t capacity, const uint32_t *words, int c
 	}
 }
 
-static int census_live (int index)
+/* does the CURRENT table still hold the words this pass recorded for the index? (a historical pass may legitimately say no) */
+static int census_live (const struct tp_generation *generation, int index)
 {
-	const struct tp_census_row *row = &tp_census_rows[index];
+	const struct tp_census_row *row = &generation->rows[index];
 
 	return row->offset[0] == bits_of (&target_point_offsets[index].x) && row->offset[1] == bits_of (&target_point_offsets[index].y) &&
 		row->offset[2] == bits_of (&target_point_offsets[index].z);
@@ -685,17 +736,17 @@ static const char *census_state_name (int state)
 
 struct census_totals
 {
-	int recorded, sub_object, bbox, invalid_zero, live_mismatch;
+	int recorded, sub_object, bbox, invalid_zero, live_mismatch, complete;
 };
 
-static void census_totals_of (struct census_totals *totals)
+static void census_totals_of (const struct tp_generation *generation, struct census_totals *totals)
 {
 	int i;
 
 	memset (totals, 0, sizeof (*totals));
 	for (i = 0; i < OBJECT_3D_LAST; i++)
 	{
-		int state = tp_census_rows[i].state;
+		int state = generation->rows[i].state;
 
 		if (state == 0)
 		{
@@ -714,21 +765,24 @@ static void census_totals_of (struct census_totals *totals)
 		{
 			totals->invalid_zero++;
 		}
-		if (!census_live (i))
+		if (!census_live (generation, i))
 		{
 			totals->live_mismatch++;
 		}
 	}
+	/* a pass is a COMPLETE snapshot if it ended, was not abandoned, recorded every index exactly once, inside the table, with the invalid index's zero once; whether it still equals the
+	   current table is a separate fact (live_mismatch) */
+	totals->complete = generation->ended && !generation->interrupted && totals->recorded == (int) OBJECT_3D_LAST && generation->duplicates == 0 && generation->out_of_range == 0 &&
+		totals->invalid_zero == 1;
 }
 
 int eech_tp_summary_run (char *text, int capacity)
 {
 	struct out out;
 	struct census_totals census;
-	int i, b, stale, census_whole, queries_whole;
+	int i, b, stale, census_whole, queries_whole, all_complete;
 
 	out_start (&out, text, capacity);
-	census_totals_of (&census);
 	stale = tp_stale + (tp_pending ? 1 : 0);
 	emit (&out, "tp-summary calls=%d events=%d event_capacity=%d dropped=%d stale=%d interrupted=%d orphans=%d unclassified=%d open=%d out_of_range=%d host_id_overlong=%d\n",
 		tp_calls, tp_event_count, TP_EVENTS, tp_dropped, stale, tp_interrupted, tp_orphans, tp_unclassified, tp_open ? 1 : 0, tp_out_of_range, tp_overlong);
@@ -749,33 +803,55 @@ int eech_tp_summary_run (char *text, int capacity)
 	emit (&out, "tp-case target_point=%d instance_position=%d no_horizontal=%d heading_zero=%d rotated=%d not_fixed=%d invalid_shape=%d vp_changed=%d host_id_present=%d host_id_absent=%d\n",
 		tp_case_count[TP_CASE_TARGET_POINT], tp_case_count[TP_CASE_INSTANCE_POSITION], tp_case_count[TP_CASE_NO_HORIZONTAL], tp_case_count[TP_CASE_HEADING_ZERO],
 		tp_case_count[TP_CASE_ROTATED], tp_case_count[TP_CASE_NOT_FIXED], tp_case_count[TP_CASE_INVALID_SHAPE], tp_vp_changed_count, tp_host_present, tp_host_absent);
-	emit (&out, "tp-census runs=%d ended=%d open=%d expected=%d recorded=%d sub_object=%d bbox=%d invalid_zero=%d duplicates=%d stray=%d live_mismatch=%d\n",
-		tp_census_runs, tp_census_ended, tp_census_open ? 1 : 0, (int) OBJECT_3D_LAST, census.recorded, census.sub_object, census.bbox, census.invalid_zero,
-		tp_census_duplicates, tp_census_stray, census.live_mismatch);
-	/* a census is whole only if it ran exactly once, ended, recorded every index once and the table still holds what it recorded; a query capture is whole only if no call was lost,
-	   interrupted, unclassified or out of range. A capture with NO call is whole but measured nothing: the caller reads `calls` */
-	census_whole = tp_census_runs == 1 && tp_census_ended == 1 && !tp_census_open && census.recorded == (int) OBJECT_3D_LAST && tp_census_duplicates == 0 &&
-		tp_census_stray == 0 && census.live_mismatch == 0 && census.invalid_zero == 1;
+	emit (&out, "tp-census expected=%d generations=%d capacity=%d dropped=%d open=%d interrupted=%d stray=%d last=%d\n", (int) OBJECT_3D_LAST, tp_gen_count, TP_GENERATIONS, tp_gen_dropped,
+		tp_gen_open ? 1 : 0, tp_gen_interrupted, tp_census_stray, tp_gen_last);
+	all_complete = 1;
+	for (i = 0; i < tp_gen_count; i++)
+	{
+		census_totals_of (&tp_generations[i], &census);
+		emit (&out, "tp-pass ordinal=%d ended=%d interrupted=%d recorded=%d sub_object=%d bbox=%d invalid_zero=%d duplicates=%d out_of_range=%d live_mismatch=%d complete=%d\n", i,
+			tp_generations[i].ended, tp_generations[i].interrupted, census.recorded, census.sub_object, census.bbox, census.invalid_zero, tp_generations[i].duplicates,
+			tp_generations[i].out_of_range, census.live_mismatch, census.complete);
+		if (!census.complete)
+		{
+			all_complete = 0;
+		}
+	}
+	/* the census is whole only if at least one pass ran, no pass was lost, abandoned or left open, no hook strayed, every kept pass is a complete snapshot, and the LATEST pass is the one the
+	   table holds now (an older pass may differ: it is a fact about that pass, not a lost capture). A query capture is whole only if no call was lost, interrupted, unclassified or out of
+	   range. A capture with NO call is whole but measured nothing: the caller reads `calls` */
+	census_whole = tp_gen_count >= 1 && tp_gen_dropped == 0 && !tp_gen_open && tp_gen_interrupted == 0 && tp_census_stray == 0 && all_complete && tp_gen_last == tp_gen_count - 1;
+	if (census_whole)
+	{
+		census_totals_of (&tp_generations[tp_gen_last], &census);
+		census_whole = census.live_mismatch == 0;
+	}
 	queries_whole = tp_dropped == 0 && stale == 0 && tp_interrupted == 0 && tp_orphans == 0 && tp_unclassified == 0 && !tp_open && tp_out_of_range == 0 && tp_overlong == 0;
 	emit (&out, "tp-complete census=%d queries_whole=%d\n", census_whole ? 1 : 0, queries_whole ? 1 : 0);
 	return out.overflow ? 1 : 0;
 }
 
-int eech_tp_offsets_run (char *text, int capacity)
+int eech_tp_offsets_run (int generation_index, char *text, int capacity)
 {
 	struct out out;
+	const struct tp_generation *generation;
 	int i;
 
 	out_start (&out, text, capacity);
+	if (generation_index < 0 || generation_index >= tp_gen_count)
+	{
+		return 1;
+	}
+	generation = &tp_generations[generation_index];
 	for (i = 0; i < OBJECT_3D_LAST; i++)
 	{
-		const struct tp_census_row *row = &tp_census_rows[i];
+		const struct tp_census_row *row = &generation->rows[i];
 		char name[96], offset[40], bounds[64];
 
 		clean_name (name, sizeof (name), scene_name (i));
 		if (row->state == 0)
 		{
-			emit (&out, "tp-offset index=%d name=%s state=none offset=- bounds=- live=-\n", i, name);
+			emit (&out, "tp-offset generation=%d index=%d name=%s state=none offset=- bounds=- live=-\n", generation_index, i, name);
 			continue;
 		}
 		words_text (offset, sizeof (offset), row->offset, 3);
@@ -787,7 +863,8 @@ int eech_tp_offsets_run (char *text, int capacity)
 		{
 			strcpy (bounds, "-");
 		}
-		emit (&out, "tp-offset index=%d name=%s state=%s offset=%s bounds=%s live=%d\n", i, name, census_state_name (row->state), offset, bounds, census_live (i) ? 1 : 0);
+		emit (&out, "tp-offset generation=%d index=%d name=%s state=%s offset=%s bounds=%s live=%d\n", generation_index, i, name, census_state_name (row->state), offset, bounds,
+			census_live (generation, i) ? 1 : 0);
 	}
 	return out.overflow ? 1 : 0;
 }
@@ -834,9 +911,9 @@ int eech_tp_event_run (int index, char *text, int capacity)
 		strcpy (before, "-");
 		strcpy (after, "-");
 	}
-	emit (&out, "tp-event index=%d seq=%d site=%d site_name=%s detail=%d branch=%d branch_name=%s case=%s entity_type=%d entity_type_name=%s instance=%d model=%d model_name=%s "
+	emit (&out, "tp-event index=%d seq=%d gen=%d gen_open=%d site=%d site_name=%s detail=%d branch=%d branch_name=%s case=%s entity_type=%d entity_type_name=%s instance=%d model=%d model_name=%s "
 		"fixed=%d shape=%d horizontal=%d heading=%s xz_applied=%d offset=%s result=%08x,%08x,%08x vp_before=%s vp_after=%s vp_changed=%d host_id_state=%s host_id_len=%d",
-		index, e->seq, site_class (e->site, e->detail), site_name (site_class (e->site, e->detail)), e->detail, e->branch, branch_name (e->branch), case_name (kind), e->entity_type,
+		index, e->seq, e->gen_last, e->gen_open, site_class (e->site, e->detail), site_name (site_class (e->site, e->detail)), e->detail, e->branch, branch_name (e->branch), case_name (kind), e->entity_type,
 		type_name, e->instance, e->model, model_name, e->fixed, e->shape, e->horizontal, heading, e->xz_applied, offset, (unsigned int) e->result[0], (unsigned int) e->result[1],
 		(unsigned int) e->result[2], before, after, e->vp_changed, e->host_id_state == TP_HOST_ID_PRESENT ? "present" : (e->host_id_state == TP_HOST_ID_ABSENT ? "absent" : "overlong"),
 		e->host_id_len);

@@ -1006,6 +1006,10 @@ const TARGET_POINT_LINE_CAPACITY: usize = 64 * 1024;
 #[cfg(feature = "target-point-fixture")]
 pub const TARGET_POINT_EVENTS_MAX: i32 = 4096;
 
+/// TEST-ONLY (feature `target-point-fixture`): the most initialiser passes (census generations) the C side keeps. The same number bounds the C table (csrc/eech_tp_fixture.c TP_GENERATIONS).
+#[cfg(feature = "target-point-fixture")]
+pub const TARGET_POINT_GENERATIONS_MAX: i32 = 4;
+
 /// TEST-ONLY (feature `weapon-fixture`): room for one weapon-execution report or one chunk of the event log; a report that does not fit is refused, never cut short.
 #[cfg(feature = "weapon-fixture")]
 const WPN_REPORT_CAPACITY: usize = 160 * 1024;
@@ -6107,13 +6111,19 @@ impl Engine {
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
     }
 
-    /// TEST-ONLY (feature `target-point-fixture`, EEDCS-52 D3): the census of `target_point_offsets[]`, one row per model index, as `key=value` text lines. Read-only; a report that does
-    /// not fit fails.
+    /// TEST-ONLY (feature `target-point-fixture`, EEDCS-52 D3): the census of `target_point_offsets[]` as ONE initialiser pass (generation `generation`, zero-based) recorded it, one row per
+    /// model index, as `key=value` text lines. `generation` is checked here before the engine is entered, and again by the engine, which refuses an ordinal it did not keep. Read-only; a
+    /// report that does not fit fails.
     #[cfg(feature = "target-point-fixture")]
-    pub fn target_point_offsets(&self) -> Result<String, EngineError> {
+    pub fn target_point_offsets(&self, generation: i32) -> Result<String, EngineError> {
+        if !(0..TARGET_POINT_GENERATIONS_MAX).contains(&generation) {
+            return Err(EngineError::BadArgument(format!(
+                "target_point_offsets: generation {generation} must be within 0..{TARGET_POINT_GENERATIONS_MAX}"
+            )));
+        }
         let mut text = vec![0 as std::os::raw::c_char; TARGET_POINT_REPORT_CAPACITY];
         // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
-        check(unsafe { sys::eech_engine_target_point_offsets(text.as_mut_ptr(), text.len() as i32) })?;
+        check(unsafe { sys::eech_engine_target_point_offsets(generation, text.as_mut_ptr(), text.len() as i32) })?;
         // SAFETY: the engine wrote a NUL-terminated string within the buffer.
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
     }
