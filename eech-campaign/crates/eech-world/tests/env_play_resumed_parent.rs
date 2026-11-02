@@ -312,7 +312,10 @@ fn a_natural_run_keeps_the_raw_text_and_reports_the_table_and_the_calls_without_
     let scenario = format!("{{ pages = {} }}", pages(&[(2, &call(0, 0, 6, 12, 1))]));
     let driven = drive(&scenario, &[("seconds", "2"), ("frame_ms", "1000")]);
     driven.result.clone().unwrap_or_else(|e| panic!("a complete natural capture was rejected: {e}"));
-    assert_eq!(driven.order, ["prepare", "select", "arm:true", "boot", "case:14,18", "case:14,18", "case:14,18"]);
+    assert_eq!(
+        driven.order,
+        ["prepare", "select", "arm:true", "boot", "case:14,18", "case:14,18", "case:14,18"]
+    );
     let defaults = &of(&driven, "play_defaults")[0];
     assert_eq!((defaults["nondefault"].as_i64(), defaults["types"].as_str()), (Some(0), Some("")));
     assert_eq!(of(&driven, "census")[0]["types"], "32");
@@ -362,7 +365,10 @@ fn the_controlled_fixture_is_joined_step_by_step_to_the_probes_phase_1_calls() {
     let scenario = format!("{{ case = {}, pages = {} }}", long(&run_case()), pages(&[(2, &run_calls(1))]));
     let driven = drive(&scenario, &[("mode", "fixture")]);
     driven.result.clone().unwrap_or_else(|e| panic!("a complete fixture capture was rejected: {e}"));
-    assert_eq!(driven.order, ["prepare", "select", "arm:true", "boot", "case:14,18", "case:14,19", "case:14,18"]);
+    assert_eq!(
+        driven.order,
+        ["prepare", "select", "arm:true", "boot", "case:14,18", "case:14,19", "case:14,18"]
+    );
     let derived = &of(&driven, "derived")[0];
     assert_eq!(
         (
