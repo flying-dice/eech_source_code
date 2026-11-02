@@ -711,7 +711,11 @@ fn damaged_or_contradictory_reports_are_malformed_and_stop_the_questions() {
         ),
         (
             "an aim caller whose detail is another aim mode",
-            |c| c.events[0] = c.events[0].as_ref().map(|t| t.replace("site=1 site_name=aim_vectors detail=6", "site=1 site_name=aim_vectors detail=7")),
+            |c| {
+                c.events[0] = c.events[0]
+                    .as_ref()
+                    .map(|t| t.replace("site=1 site_name=aim_vectors detail=6", "site=1 site_name=aim_vectors detail=7"))
+            },
             "event 1",
         ),
         (
@@ -735,17 +739,29 @@ fn damaged_or_contradictory_reports_are_malformed_and_stop_the_questions() {
         ),
         (
             "a final census history that differs from the boot's",
-            |c| c.summaries[1] = c.summaries[1].replace("runs=1 ended=1", "runs=2 ended=2").replace("tp-complete census=1", "tp-complete census=0"),
+            |c| {
+                c.summaries[1] = c.summaries[1]
+                    .replace("runs=1 ended=1", "runs=2 ended=2")
+                    .replace("tp-complete census=1", "tp-complete census=0")
+            },
             "event 0",
         ),
         (
             "a fixed-shape offset that is not its shape's census row",
-            |c| c.events[2] = c.events[2].as_ref().map(|t| t.replace(&offset_text(census_offset(5)), &offset_text([0x4000_0000, 0x3f80_0000, 0x3f80_0003]))),
+            |c| {
+                c.events[2] = c.events[2]
+                    .as_ref()
+                    .map(|t| t.replace(&offset_text(census_offset(5)), &offset_text([0x4000_0000, 0x3f80_0000, 0x3f80_0003])))
+            },
             "event 3",
         ),
         (
             "a fixed-shape offset that is another shape's census row",
-            |c| c.events[2] = c.events[2].as_ref().map(|t| t.replace(&offset_text(census_offset(5)), &offset_text(census_offset(4)))),
+            |c| {
+                c.events[2] = c.events[2]
+                    .as_ref()
+                    .map(|t| t.replace(&offset_text(census_offset(5)), &offset_text(census_offset(4))))
+            },
             "event 3",
         ),
         (
@@ -830,7 +846,12 @@ fn the_aim_modes_the_driver_pairs_with_the_caller_classes_are_the_headers() {
     let body = &header[start..];
     let body = &body[..body.find("};").expect("the enum ends")];
     let mut values: Vec<(String, i32)> = Vec::new();
-    for line in body.lines().skip(2).map(str::trim).filter(|l| !l.is_empty() && !l.starts_with("/*") && !l.starts_with("//")) {
+    for line in body
+        .lines()
+        .skip(2)
+        .map(str::trim)
+        .filter(|l| !l.is_empty() && !l.starts_with("/*") && !l.starts_with("//"))
+    {
         let item = line.trim_end_matches(',');
         match item.split_once('=') {
             Some((name, number)) => values.push((name.trim().to_string(), number.trim().parse().expect("an explicit enumerator value"))),
