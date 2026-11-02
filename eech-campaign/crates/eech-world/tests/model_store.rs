@@ -3007,6 +3007,8 @@ package.preload["eech_dc"] = function ()
 	function dc.prepare_installation () end
 	function dc.boot (config)
 		if config.model == nil then error ("eech: [model-provider:missing] boot was given no model provider", 0) end
+		-- the real host supplies the environment provider (its `host.env_provider`); the engine requires it after the model provider, so a missing model is still the first refusal
+		if type (config.environment) ~= "function" then error ("eech: [env-provider:missing] boot was given no environment provider", 0) end
 		io.stderr:write ("stand-in booted\n")
 		assert (config.model ("catalogue").scenes > 0)
 		for scene = 0, 5 do config.model ("scene", scene) end

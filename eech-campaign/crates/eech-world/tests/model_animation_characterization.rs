@@ -142,6 +142,11 @@ fn run(case: &Case) -> Outcome {
                 note ("select")
             end,
             terrain_provider = function () return function () end end,
+            env_provider = function ()
+                return function (request)
+                    error ("the stand-in host answers no physical environment question: " .. tostring (request and request.op), 0)
+                end
+            end,
             model = function () end,
             bind_mobile = function () end, move_vehicle = function () end, observe_loss = function () end,
             supply_reached = function () end, line_of_sight = function () end, sense = function () end, aim = function () end,
@@ -156,6 +161,7 @@ fn run(case: &Case) -> Outcome {
                 prepare_installation = function () STAGE = "prepared"; note ("prepare") end,
                 boot = function (config)
                     assert (STAGE == "selected", "the profile must be selected before the boot")
+                    assert (type (config.environment) == "function", "the environment provider is passed to the boot")
                     assert (config.seed == 1 and config.campaign_directory == "camp01", "the boot is the accepted natural boot")
                     note ("boot")
                     local engine = {{ frame = function () note ("FRAME"); error ("no frame may be run", 0) end }}

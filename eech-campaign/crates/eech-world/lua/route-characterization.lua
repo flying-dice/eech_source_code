@@ -446,7 +446,7 @@ local function run ()
 	emit { event = "header", scenario = scenario_name, seed = 1, frames = 0, observer = "route-fixture", note = "natural boot only; no frame is run" }
 
 	local ok, engine = pcall (dc.boot, {
-		install_root = root, map = scenario.map, terrain = host.terrain_provider (root, scenario.map), campaign_directory = "camp01", campaign = scenario.campaign, gunship = "apache",
+		install_root = root, map = scenario.map, terrain = host.terrain_provider (root, scenario.map), environment = host.env_provider (), campaign_directory = "camp01", campaign = scenario.campaign, gunship = "apache",
 		seed = 1, bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss,
 		supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, model = host.model, sense = host.sense, aim = host.aim,
 	})

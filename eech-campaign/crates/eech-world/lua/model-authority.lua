@@ -382,7 +382,7 @@ local function matches (message) return expected_marker ~= nil and string.find (
 local dc = require ("eech_dc")
 dc.prepare_installation (root)
 local config = {
-	install_root = root, map = scenario.map, terrain = host.terrain_provider (root, scenario.map), campaign_directory = "camp01", campaign = scenario.campaign, gunship = "apache",
+	install_root = root, map = scenario.map, terrain = host.terrain_provider (root, scenario.map), environment = host.env_provider (), campaign_directory = "camp01", campaign = scenario.campaign, gunship = "apache",
 	seed = 1, bind_mobile = host.bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss,
 	supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, model = replying (provider), sense = host.sense, aim = host.aim,
 }
