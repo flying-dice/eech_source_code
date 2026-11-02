@@ -20,14 +20,18 @@ fn original() -> Option<String> {
 #[test]
 fn the_original_reads_a_scene_only_for_a_supported_version_and_skips_the_rest_without_reading_one() {
     let Some(source) = original() else { return };
-    let start = source
-        .find("void read_custom_scene ( const char* filename )")
-        .expect("the original has read_custom_scene");
-    let end = start + source[start..].find("safe_fclose ( fp );").expect("the function closes its file");
+    // the DEFINITION: a line that starts with `void` and is followed by the body's brace. (The forward declaration, `static void read_custom_scene ( const char* filename );`, contains
+    // the same words but is neither at the start of a line nor followed by a body.)
+    let head = "\nvoid read_custom_scene ( const char* filename )\n{\n";
+    assert_eq!(source.matches(head).count(), 1, "exactly one definition of read_custom_scene");
+    let start = source.find(head).expect("the original has read_custom_scene") + head.len();
+    // the body ends at the function's closing brace, the first line that is just `}`
+    let end = start + source[start..].find("\n}\n").expect("the function ends");
     let body = &source[start..end];
+    assert!(body.contains("safe_fclose ( fp );"), "the body is the whole function");
     // the one place a scene is read is inside the supported-version test
     assert_eq!(body.matches("read_scene ( fp, version );").count(), 1);
-    let (supported, skipped) = body.split_once("else").expect("an unsupported version has its own branch");
+    let (supported, skipped) = body.split_once("\telse\n").expect("an unsupported version has its own branch");
     assert!(supported.contains("if ( version <= -1 && version >= -3 )") && supported.contains("read_scene ( fp, version );"));
     // the skipped branch logs and reads nothing: no object row is read for it
     assert!(skipped.contains("Unsupported scene version") && !skipped.contains("read_scene"));
