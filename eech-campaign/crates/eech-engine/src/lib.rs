@@ -57,7 +57,12 @@ fn check(code: c_int) -> Result<(), EngineError> {
 /// (`cmb-case-error reason=... detail=...`) into the report buffer before it returns the argument error, and `check` turns every argument error into "rejected by the engine";
 /// this keeps the reason instead of discarding it. Any other failure, and a rejection that wrote nothing, is unchanged.
 /// The ground-contact probe (feature `ground-fixture`, EEDCS-48) writes `ground-refused reason=...` the same way and uses it too.
-#[cfg(any(feature = "weapon-fixture", feature = "env-fixture", feature = "ground-fixture", feature = "target-point-fixture"))]
+#[cfg(any(
+    feature = "weapon-fixture",
+    feature = "env-fixture",
+    feature = "ground-fixture",
+    feature = "target-point-fixture"
+))]
 fn keep_case_reason(status: Result<(), EngineError>, text: &[std::os::raw::c_char]) -> Result<String, EngineError> {
     // SAFETY: the buffer was zero-filled and the engine NUL-terminates anything it writes within it.
     let report = unsafe { CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned();

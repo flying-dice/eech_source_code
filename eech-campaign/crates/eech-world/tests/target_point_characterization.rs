@@ -1265,7 +1265,10 @@ fn the_probe_follows_a_boot_query_and_its_interval_is_exact() {
     let outcome = run(&coherent());
     outcome.result.as_ref().expect("a boot query, the probe's span and a later natural query");
     let done = done_row(&outcome);
-    assert!(done.contains("\"controlled_queries\":6") && done.contains("\"queries\":1") && done.contains("\"boot_calls\":1"), "{done}");
+    assert!(
+        done.contains("\"controlled_queries\":6") && done.contains("\"queries\":1") && done.contains("\"boot_calls\":1"),
+        "{done}"
+    );
 
     // the probe is IMMEDIATELY after the boot sample: if that sample is taken as having seen no call, the boot query sits inside the span the probe must own
     let mut late = coherent();
@@ -1279,7 +1282,10 @@ fn the_probe_follows_a_boot_query_and_its_interval_is_exact() {
     early.summaries[0] = summary(&probed[..1]);
     let outcome = run(&early);
     failure(&outcome, MALFORMED);
-    failure(&outcome, "controlled query event 0 (call 0) is outside the interval [1, 7) that starts at the boot sample");
+    failure(
+        &outcome,
+        "controlled query event 0 (call 0) is outside the interval [1, 7) that starts at the boot sample",
+    );
 }
 
 #[test]
@@ -1288,9 +1294,24 @@ fn a_probe_population_that_cannot_hold_its_own_candidates_is_malformed() {
     run(&coherent).result.expect("the coherent probe passes");
     let faults: [(&str, &str, &str, &str); 4] = [
         ("fewer entities than candidates", "entities=40", "entities=5", "the probe counts 6 candidates"),
-        ("fewer list nodes than entities", "visited=60", "visited=30", "the probe examined 40 entities of only 30 list nodes"),
-        ("a scan that is not complete", "status=complete", "status=partial", "the probe's scan is not complete"),
-        ("shapes outside the table beyond the entities", "shape_out_of_range=0", "shape_out_of_range=36", "and 36 shapes outside the table among only 40"),
+        (
+            "fewer list nodes than entities",
+            "visited=60",
+            "visited=30",
+            "the probe examined 40 entities of only 30 list nodes",
+        ),
+        (
+            "a scan that is not complete",
+            "status=complete",
+            "status=partial",
+            "the probe's scan is not complete",
+        ),
+        (
+            "shapes outside the table beyond the entities",
+            "shape_out_of_range=0",
+            "shape_out_of_range=36",
+            "and 36 shapes outside the table among only 40",
+        ),
     ];
     for (what, from, to, reason) in faults {
         let (mut case, _) = probe_case(&[1, 2, 3, 4, 5, 6]);
@@ -1313,7 +1334,13 @@ fn a_probe_population_that_cannot_hold_its_own_candidates_is_malformed() {
 #[test]
 fn a_refused_probe_scan_stops_the_run_and_is_never_unavailable_cases() {
     // the engine refuses an incomplete scan (a list longer than the heap, a node outside it) or a report that does not fit: it called nothing, and the reason reaches the failure
-    for reason in ["list_longer_than_heap", "list_node_not_a_heap_slot", "eligible_node_without_entity_data", "report_capacity", "already_run"] {
+    for reason in [
+        "list_longer_than_heap",
+        "list_node_not_a_heap_slot",
+        "eligible_node_without_entity_data",
+        "report_capacity",
+        "already_run",
+    ] {
         let (mut case, _) = probe_case(&[1, 2, 3, 4, 5, 6]);
         let text: &'static str = Box::leak(format!("tp-probe-refused reason={reason} visited=4096").into_boxed_str());
         case.probe_fails = Some(text);
@@ -1322,7 +1349,10 @@ fn a_refused_probe_scan_stops_the_run_and_is_never_unavailable_cases() {
         failure(&outcome, reason);
         assert_eq!(count(&outcome, "FRAME"), 0, "{reason}: a frame was run");
         assert_eq!(count(&outcome, "event 0"), 0, "{reason}: a query was read");
-        assert!(!rows(&outcome).iter().any(|r| r.contains("probe_unavailable")), "{reason}: a refusal was reported as unavailable cases");
+        assert!(
+            !rows(&outcome).iter().any(|r| r.contains("probe_unavailable")),
+            "{reason}: a refusal was reported as unavailable cases"
+        );
     }
 }
 
@@ -1335,15 +1365,43 @@ fn the_probe_scan_is_bounded_validated_and_staged_before_it_calls_the_original()
     let body = &body[..body.find("\n}\n").unwrap()];
     let at = |needle: &str| body.find(needle).unwrap_or_else(|| panic!("the probe has no {needle:?}"));
     assert!(at("visited >= number_of_entities") < at("probe_heap_slot (en)"), "the visit bound comes first");
-    assert!(at("probe_heap_slot (en)") < at("en->type"), "a node is validated as a heap slot before it is read");
-    assert!(at("en->type") < at("get_local_entity_data (en)"), "an eligible node's data is checked after its type is known");
-    assert!(at("get_local_entity_data (en)") < at("probe_bucket (en)"), "an eligible node carries live data BEFORE any typed getter reads it");
-    assert!(at("eligible_node_without_entity_data") < at("probe_bucket (en)"), "a node without data is refused, not skipped or counted");
-    assert!(at("probe_bucket (en)") < at("get_local_entity_succ (en)"), "the successor is read only from a validated node");
-    assert!(at("\"report_capacity\"") < at("tp_probe_done = 1;"), "the report capacity is checked before the once flag is consumed");
-    assert!(at("tp_probe_done = 1;") < at("get_local_entity_target_point ("), "the once flag is consumed before the first original call");
-    assert_eq!(body.matches("get_local_entity_target_point (").count(), 1, "the original is called from one place only");
-    assert!(body.matches("return probe_refused (").count() >= 6, "every incomplete or unsafe path refuses explicitly");
+    assert!(
+        at("probe_heap_slot (en)") < at("en->type"),
+        "a node is validated as a heap slot before it is read"
+    );
+    assert!(
+        at("en->type") < at("get_local_entity_data (en)"),
+        "an eligible node's data is checked after its type is known"
+    );
+    assert!(
+        at("get_local_entity_data (en)") < at("probe_bucket (en)"),
+        "an eligible node carries live data BEFORE any typed getter reads it"
+    );
+    assert!(
+        at("eligible_node_without_entity_data") < at("probe_bucket (en)"),
+        "a node without data is refused, not skipped or counted"
+    );
+    assert!(
+        at("probe_bucket (en)") < at("get_local_entity_succ (en)"),
+        "the successor is read only from a validated node"
+    );
+    assert!(
+        at("\"report_capacity\"") < at("tp_probe_done = 1;"),
+        "the report capacity is checked before the once flag is consumed"
+    );
+    assert!(
+        at("tp_probe_done = 1;") < at("get_local_entity_target_point ("),
+        "the once flag is consumed before the first original call"
+    );
+    assert_eq!(
+        body.matches("get_local_entity_target_point (").count(),
+        1,
+        "the original is called from one place only"
+    );
+    assert!(
+        body.matches("return probe_refused (").count() >= 6,
+        "every incomplete or unsafe path refuses explicitly"
+    );
     // the validation is by integer address and slot alignment, never by comparing unrelated pointers
     let helper = EMITTER.find("static int probe_heap_slot (").expect("the slot check");
     let helper = &EMITTER[helper..];
@@ -1825,7 +1883,12 @@ fn the_driver_grammar_is_the_emitters() {
 fn site_classes() -> Vec<String> {
     let start = EMITTER.find("\tTP_SITE_UNATTRIBUTED,").expect("the caller class enum");
     let end = start + EMITTER[start..].find("TP_SITES").expect("the end of the caller class enum");
-    EMITTER[start..end].lines().map(str::trim).filter(|l| l.starts_with("TP_SITE_")).map(|l| l.trim_end_matches(',').to_string()).collect()
+    EMITTER[start..end]
+        .lines()
+        .map(str::trim)
+        .filter(|l| l.starts_with("TP_SITE_"))
+        .map(|l| l.trim_end_matches(',').to_string())
+        .collect()
 }
 
 /// the name site_name gives each caller class, by class number: the `case` of that class, or the `default` for a class with none
@@ -1898,7 +1961,10 @@ fn the_driver_names_and_caps_are_the_emitters() {
     assert_eq!(lua_number("EVENTS_CAPACITY"), define("TP_EVENTS"));
     assert_eq!(lua_number("HOST_ID_MAX"), define("TP_HOST_ID"));
     assert_eq!(lua_number("SITE_COUNT"), site_classes().len() as u64);
-    assert_eq!(lua_number("CONTROLLED_SITE"), site_classes().iter().position(|c| c == "TP_SITE_CONTROLLED").unwrap() as u64);
+    assert_eq!(
+        lua_number("CONTROLLED_SITE"),
+        site_classes().iter().position(|c| c == "TP_SITE_CONTROLLED").unwrap() as u64
+    );
     assert_eq!(lua_number("PROBE_PICKS"), define("TP_PROBE_PICKS"));
     assert_eq!(lua_names("local PROBE_NAMES = {"), returned("probe_bucket_name"));
     assert_eq!(returned("probe_bucket_name").len() as u64, define("TP_PROBE_BUCKETS"));
