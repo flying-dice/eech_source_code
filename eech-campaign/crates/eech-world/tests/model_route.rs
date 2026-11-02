@@ -389,10 +389,22 @@ fn an_objects_header_facts_are_the_files_true_values_by_the_role_it_has_in_the_s
     let (_root, store) = standard();
     // scene 1: main object 1 (scale 1.0), collision object 1, no approximation, no shadow object; sub-object array [object 3, object 1, object 2 (a child of the first)]
     assert_eq!(store.object_header(1, ROLE_MAIN, 0, 0, false).unwrap(), ObjectHeader::Found(facts(32767.0)));
-    assert_eq!(store.object_header(1, ROLE_COLLISION, 0, 0, false).unwrap(), ObjectHeader::Found(facts(32767.0)));
-    assert_eq!(store.object_header(1, ROLE_SUB_OBJECT, 0, 0, false).unwrap(), ObjectHeader::Found(facts(32767.0)));
-    assert_eq!(store.object_header(1, ROLE_SUB_OBJECT, 1, 0, false).unwrap(), ObjectHeader::Found(facts(32767.0)));
-    assert_eq!(store.object_header(1, ROLE_SUB_OBJECT, 2, 0, false).unwrap(), ObjectHeader::Found(facts(65534.0)));
+    assert_eq!(
+        store.object_header(1, ROLE_COLLISION, 0, 0, false).unwrap(),
+        ObjectHeader::Found(facts(32767.0))
+    );
+    assert_eq!(
+        store.object_header(1, ROLE_SUB_OBJECT, 0, 0, false).unwrap(),
+        ObjectHeader::Found(facts(32767.0))
+    );
+    assert_eq!(
+        store.object_header(1, ROLE_SUB_OBJECT, 1, 0, false).unwrap(),
+        ObjectHeader::Found(facts(32767.0))
+    );
+    assert_eq!(
+        store.object_header(1, ROLE_SUB_OBJECT, 2, 0, false).unwrap(),
+        ObjectHeader::Found(facts(65534.0))
+    );
     // the file names no shadow object (0): no object in that role
     assert_eq!(store.object_header(1, ROLE_SHADOW, 0, 0, false).unwrap(), ObjectHeader::Absent);
     // a cursor past the scene's own arrays is a refusal, not an absence and not a zero object
@@ -405,10 +417,19 @@ fn an_objects_header_facts_are_the_files_true_values_by_the_role_it_has_in_the_s
         ObjectHeader::Refused("sub_object_outside")
     );
     // a scene the files never described has no object in any role
-    assert_eq!(store.object_header(3, ROLE_MAIN, 0, 0, false).unwrap(), ObjectHeader::Refused("definition_outside"));
-    assert_eq!(store.object_header(3, ROLE_COLLISION, 0, 0, false).unwrap(), ObjectHeader::Refused("definition_outside"));
+    assert_eq!(
+        store.object_header(3, ROLE_MAIN, 0, 0, false).unwrap(),
+        ObjectHeader::Refused("definition_outside")
+    );
+    assert_eq!(
+        store.object_header(3, ROLE_COLLISION, 0, 0, false).unwrap(),
+        ObjectHeader::Refused("definition_outside")
+    );
     // scene 1 was read once: there is no second definition to ask about
-    assert_eq!(store.object_header(1, ROLE_MAIN, 0, 1, false).unwrap(), ObjectHeader::Refused("definition_outside"));
+    assert_eq!(
+        store.object_header(1, ROLE_MAIN, 0, 1, false).unwrap(),
+        ObjectHeader::Refused("definition_outside")
+    );
     // arguments the campaign could never produce
     assert!(matches!(store.object_header(0, ROLE_MAIN, 0, 0, false), Err(QueryError::BadScene(0))));
     assert!(matches!(store.object_header(1, 9, 0, 0, false), Err(QueryError::BadRole(9))));

@@ -2760,7 +2760,10 @@ mod animation_tests {
     #[test]
     fn a_reference_is_named_or_refused_never_passed_on_as_a_number_or_repaired() {
         // an index is a position in the compiled names
-        assert_eq!(name_animation(&RawAnimation::Id(0)), AnimationRef::Name(compiled_animation_name(0).unwrap().to_string()));
+        assert_eq!(
+            name_animation(&RawAnimation::Id(0)),
+            AnimationRef::Name(compiled_animation_name(0).unwrap().to_string())
+        );
         let last = compiled_animation_count() - 1;
         assert_eq!(
             name_animation(&RawAnimation::Id(last as u16)),
@@ -2772,8 +2775,14 @@ mod animation_tests {
             AnimationRef::Refused("animation_index_has_no_compiled_name")
         );
         // an override is a truthful text name, upper-cased; a name the campaign's table may not hold is still the name (the campaign applies its own accepted policy)
-        assert_eq!(name_animation(&RawAnimation::Name(b"debris".to_vec())), AnimationRef::Name("DEBRIS".to_string()));
-        assert_eq!(name_animation(&RawAnimation::Name(b"My_Flag".to_vec())), AnimationRef::Name("MY_FLAG".to_string()));
+        assert_eq!(
+            name_animation(&RawAnimation::Name(b"debris".to_vec())),
+            AnimationRef::Name("DEBRIS".to_string())
+        );
+        assert_eq!(
+            name_animation(&RawAnimation::Name(b"My_Flag".to_vec())),
+            AnimationRef::Name("MY_FLAG".to_string())
+        );
         assert_eq!(
             name_animation(&RawAnimation::Name(b"NOT_AN_ANIMATION".to_vec())),
             AnimationRef::Name("NOT_AN_ANIMATION".to_string())

@@ -1036,7 +1036,13 @@ pub enum ModelQuery {
     /// or the sub-object. The campaign never sends its own object number. `custom` says which definition of the scene is meant: the database's record, or the scene a custom
     /// scene file defines. `definition` counts the campaign's reads of the scene from 0, in the order it makes them (the scene database's record, then each custom scene file that
     /// defines the scene again), so an earlier read is answered with the facts of ITS definition and never with a later one's.
-    Object { scene: i32, role: i32, cursor: i32, definition: i32, custom: bool },
+    Object {
+        scene: i32,
+        role: i32,
+        cursor: i32,
+        definition: i32,
+        custom: bool,
+    },
     /// one step of an .EES scene's ordered animated-surface references (the order the original's `add_animation_object` visits the scene's objects)
     Animation { scene: i32, index: i32, definition: i32 },
 }
@@ -9698,11 +9704,19 @@ mod tests {
         // an animation reference is a name, copied with its terminator, and the end of the list is its own result
         let (code, reply, error) = model_crossing(
             Some(Box::new(|query| match query {
-                ModelQuery::Animation { scene: 7, index: 0, definition: 0 } => Ok(ModelAnswer::Animation {
+                ModelQuery::Animation {
+                    scene: 7,
+                    index: 0,
+                    definition: 0,
+                } => Ok(ModelAnswer::Animation {
                     scene_name: "UH60_BLACKHAWK".to_string(),
                     step: ModelAnimation::Name("USA_COPTER_DIGIT__001".to_string()),
                 }),
-                ModelQuery::Animation { scene: 7, index: 1, definition: 0 } => Ok(ModelAnswer::Animation {
+                ModelQuery::Animation {
+                    scene: 7,
+                    index: 1,
+                    definition: 0,
+                } => Ok(ModelAnswer::Animation {
                     scene_name: "UH60_BLACKHAWK".to_string(),
                     step: ModelAnimation::End,
                 }),
@@ -9712,7 +9726,10 @@ mod tests {
         );
         assert_eq!((code, reply.result), (0, sys::EECH_MODEL_TRIANGLE_FOUND), "{error}");
         // SAFETY: the callback NUL-terminated the name within its array, which began zeroed.
-        assert_eq!(unsafe { std::ffi::CStr::from_ptr(reply.animation_name.as_ptr()) }.to_str(), Ok("USA_COPTER_DIGIT__001"));
+        assert_eq!(
+            unsafe { std::ffi::CStr::from_ptr(reply.animation_name.as_ptr()) }.to_str(),
+            Ok("USA_COPTER_DIGIT__001")
+        );
     }
 
     #[test]

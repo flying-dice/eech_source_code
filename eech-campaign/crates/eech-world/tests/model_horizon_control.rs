@@ -22,7 +22,8 @@ const RESIDENCY_OK: &str = "rows=11442 metadata_rows=10252 points=0 faces=0 poin
 const HORIZON_OK: &str = "cached=32 uncached=0";
 // the metadata row of a healthy boot, coherent with RESIDENCY_OK: 21000 questions = 18000 found + 3000 absent; the 18000 found answers filled 10252 rows and confirmed 7748 again; 150 animation
 // questions = 130 names + 20 ends
-const ZERO_METADATA: &str = "objects_asked=0 objects_found=0 objects_absent=0 rows_filled=0 rows_confirmed=0 animation_asked=0 animation_names=0 animation_ends=0";
+const ZERO_METADATA: &str =
+    "objects_asked=0 objects_found=0 objects_absent=0 rows_filled=0 rows_confirmed=0 animation_asked=0 animation_names=0 animation_ends=0";
 const METADATA_OK: &str = concat!(
     "objects_asked=21000 objects_found=18000 objects_absent=3000 rows_filled=10252 rows_confirmed=7748 ",
     "animation_asked=150 animation_names=130 animation_ends=20"
@@ -249,17 +250,41 @@ fn a_counters_report_that_is_not_the_exact_coherent_grammar_is_malformed_and_the
         ("the old three-row report", counters_three_rows()),
         ("an extra row", format!("{good}model-core-extra x=1\n")),
         ("the metadata row before the horizon row", counters_swapped_rows()),
-        ("a metadata field out of order", good.replace("objects_found=18000 objects_absent=3000", "objects_absent=3000 objects_found=18000")),
+        (
+            "a metadata field out of order",
+            good.replace("objects_found=18000 objects_absent=3000", "objects_absent=3000 objects_found=18000"),
+        ),
         ("a metadata field missing", good.replace(" animation_ends=20", "")),
-        ("a metadata trailing field", good.replacen("animation_ends=20\n", "animation_ends=20 extra=1\n", 1)),
+        (
+            "a metadata trailing field",
+            good.replacen("animation_ends=20\n", "animation_ends=20 extra=1\n", 1),
+        ),
         ("a metadata leading zero", good.replace("objects_asked=21000", "objects_asked=021000")),
         ("a metadata sign", good.replace("objects_absent=3000", "objects_absent=-3000")),
-        ("a metadata count outside the C domain", good.replace("objects_asked=21000", "objects_asked=4294967296")),
-        ("found and absent not adding up to asked", good.replace("objects_asked=21000", "objects_asked=21001")),
-        ("filled and confirmed not adding up to found", good.replace("rows_confirmed=7748", "rows_confirmed=7749")),
-        ("animation names and ends not adding up to asked", good.replace("animation_names=130", "animation_names=131")),
-        ("more rows filled than rows", good.replace("rows_filled=10252 rows_confirmed=7748", "rows_filled=11443 rows_confirmed=6557")),
-        ("a row with a true point count that no answer filled", good.replace("rows_filled=10252 rows_confirmed=7748", "rows_filled=10251 rows_confirmed=7749")),
+        (
+            "a metadata count outside the C domain",
+            good.replace("objects_asked=21000", "objects_asked=4294967296"),
+        ),
+        (
+            "found and absent not adding up to asked",
+            good.replace("objects_asked=21000", "objects_asked=21001"),
+        ),
+        (
+            "filled and confirmed not adding up to found",
+            good.replace("rows_confirmed=7748", "rows_confirmed=7749"),
+        ),
+        (
+            "animation names and ends not adding up to asked",
+            good.replace("animation_names=130", "animation_names=131"),
+        ),
+        (
+            "more rows filled than rows",
+            good.replace("rows_filled=10252 rows_confirmed=7748", "rows_filled=11443 rows_confirmed=6557"),
+        ),
+        (
+            "a row with a true point count that no answer filled",
+            good.replace("rows_filled=10252 rows_confirmed=7748", "rows_filled=10251 rows_confirmed=7749"),
+        ),
         (
             "a residency field out of order",
             good.replace("rows=11442 metadata_rows=10252", "metadata_rows=10252 rows=11442"),
@@ -328,7 +353,11 @@ fn a_boot_whose_metadata_took_no_host_answer_fails_and_the_reader_is_not_launche
         let outcome = run(&case);
         // zero metadata_rows fails the residency gate: the reader is not launched either way
         failure_in(what, &outcome, "NOT COMPLETE");
-        assert!(!reader_launched(&outcome), "{what}: the reader was launched on invalid evidence: {:?}", outcome.log);
+        assert!(
+            !reader_launched(&outcome),
+            "{what}: the reader was launched on invalid evidence: {:?}",
+            outcome.log
+        );
     }
     // true point counts present (metadata_rows > 0) is itself incoherent without a filling answer: malformed, never launched
     let mut case = healthy();

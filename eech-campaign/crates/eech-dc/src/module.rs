@@ -2939,7 +2939,13 @@ fn call_model(bridge: &LuaFunction, query: ModelQuery) -> Result<ModelAnswer, St
         ModelQuery::RouteFace { scene, kind, index } => ("route_face", Some(scene), Some(index), Some(kind), None),
         ModelQuery::ObjectTable => ("object_table", None, None, None, None),
         // the fourth place carries the role the object has in the scene
-        ModelQuery::Object { scene, role, cursor, definition, custom } => (
+        ModelQuery::Object {
+            scene,
+            role,
+            cursor,
+            definition,
+            custom,
+        } => (
             if custom { "custom_object" } else { "object" },
             Some(scene),
             Some(cursor),
@@ -4016,18 +4022,39 @@ mod tests {
             ));
         }
         assert_eq!(
-            ask(&mut provider, ModelQuery::Animation { scene: 1, index: 0, definition: 0 })?,
+            ask(
+                &mut provider,
+                ModelQuery::Animation {
+                    scene: 1,
+                    index: 0,
+                    definition: 0
+                }
+            )?,
             ModelAnswer::Animation {
                 scene_name: "AH64D_APACHE_LONGBOW".to_string(),
                 step: ModelAnimation::Name("USA_COPTER_DIGIT__001".to_string())
             }
         );
         assert!(matches!(
-            ask(&mut provider, ModelQuery::Animation { scene: 1, index: 1, definition: 0 })?,
+            ask(
+                &mut provider,
+                ModelQuery::Animation {
+                    scene: 1,
+                    index: 1,
+                    definition: 0
+                }
+            )?,
             ModelAnswer::Animation { step: ModelAnimation::End, .. }
         ));
         assert!(matches!(
-            ask(&mut provider, ModelQuery::Animation { scene: 1, index: 2, definition: 0 })?,
+            ask(
+                &mut provider,
+                ModelQuery::Animation {
+                    scene: 1,
+                    index: 2,
+                    definition: 0
+                }
+            )?,
             ModelAnswer::Animation {
                 step: ModelAnimation::Absent,
                 ..
@@ -4058,7 +4085,16 @@ mod tests {
                return { result = 'object', name = n, counts = { 1, 2, 3, 4, 5, 6 }, radius = 1, bb = { 1, 2, 3, 4, 5, 6 }, bb2 = { 1, 2, 3, 4, 5, -1/0 } }
              end",
         )?;
-        let mut animation = |index: i32| ask(&mut provider, ModelQuery::Animation { scene: 1, index, definition: 0 });
+        let mut animation = |index: i32| {
+            ask(
+                &mut provider,
+                ModelQuery::Animation {
+                    scene: 1,
+                    index,
+                    definition: 0,
+                },
+            )
+        };
         for cursor in [0, 1, 2, 4] {
             let error = animation(cursor).err().ok_or("accepted")?;
             assert!(error.contains("[model-provider:animation.answer]"), "animation {cursor}: {error}");

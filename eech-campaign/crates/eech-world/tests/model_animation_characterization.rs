@@ -593,10 +593,27 @@ fn the_host_profiles_rows_are_in_the_same_grammar_as_the_originals() {
         assert_eq!(lua_list(list), c_keys_in(HOST_FIXTURE_C, row), "{row}");
     }
     // the host profile names every outcome the driver knows, and decides them from RECORDED backing (hooks at the real stages), not from the count
-    for status in ["listed", "empty", "absent", "short_read", "overflow", "unbacked", "stale", "unobserved", "capacity"] {
+    for status in [
+        "listed",
+        "empty",
+        "absent",
+        "short_read",
+        "overflow",
+        "unbacked",
+        "stale",
+        "unobserved",
+        "capacity",
+    ] {
         assert!(HOST_FIXTURE_C.contains(&format!("\"{status}\"")), "{status}");
     }
-    for hook in ["eech_hf_anim_begin", "eech_hf_anim_file_read", "eech_hf_anim_alloc", "eech_hf_anim_append", "eech_hf_anim_done", "eech_hf_anim_reset"] {
+    for hook in [
+        "eech_hf_anim_begin",
+        "eech_hf_anim_file_read",
+        "eech_hf_anim_alloc",
+        "eech_hf_anim_append",
+        "eech_hf_anim_done",
+        "eech_hf_anim_reset",
+    ] {
         assert!(HOST_FIXTURE_C.contains(&format!("void {hook} (")), "{hook} is not defined by the host profile");
         assert!(PATCHES.contains(&format!("{hook} (")), "{hook} is not called by a staged patch");
     }

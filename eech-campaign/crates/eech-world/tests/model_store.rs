@@ -754,7 +754,6 @@ fn a_named_scene_replaces_the_scene_and_numbers_its_objects_from_the_tables_obje
     assert_eq!(store.scene(3).unwrap().source, SceneSource::Table);
 }
 
-
 // ---------------------------------------------------------------------------------------------------------------------------------
 // The campaign reads a scene once for every DEFINITION the files give it, in the order the loader read them, and fills its rows then. What the host says about an object must be
 // what the object was when THAT definition was read: the first named object REPLACES the last table object's number (get_next_object_id returns the table's count), so a table
@@ -847,15 +846,32 @@ fn a_scene_defined_twice_by_custom_files_answers_each_definition_with_its_own_ob
     // definition 0 is the database record, 1 the first custom file (named object 4), 2 the second (named object 5): the order the campaign reads them in
     let first = found(store.object_header(1, ROLE_MAIN, 0, 1, true).unwrap());
     let second = found(store.object_header(1, ROLE_MAIN, 0, 2, true).unwrap());
-    assert_eq!(first.bounding_box2, [0.0, 5.0, 0.0, 6.0, 0.0, 0.0].map(f32::to_bits), "the first custom definition's own object");
-    assert_eq!(second.bounding_box2, [0.0, 32767.0, 0.0, 32767.0, 0.0, 32767.0].map(f32::to_bits), "the second custom definition's own object");
+    assert_eq!(
+        first.bounding_box2,
+        [0.0, 5.0, 0.0, 6.0, 0.0, 0.0].map(f32::to_bits),
+        "the first custom definition's own object"
+    );
+    assert_eq!(
+        second.bounding_box2,
+        [0.0, 32767.0, 0.0, 32767.0, 0.0, 32767.0].map(f32::to_bits),
+        "the second custom definition's own object"
+    );
     assert_ne!(first, second);
     // the final scene is the last definition; the earlier one is NOT answered with it
     assert_eq!(store.scene(1).unwrap().main, 5);
     // a definition of the wrong kind, or one that does not exist, is refused by name and never answered from another definition
-    assert_eq!(store.object_header(1, ROLE_MAIN, 0, 0, true).unwrap(), ObjectHeader::Refused("definition_kind_differs"));
-    assert_eq!(store.object_header(1, ROLE_MAIN, 0, 1, false).unwrap(), ObjectHeader::Refused("definition_kind_differs"));
-    assert_eq!(store.object_header(1, ROLE_MAIN, 0, 3, true).unwrap(), ObjectHeader::Refused("definition_outside"));
+    assert_eq!(
+        store.object_header(1, ROLE_MAIN, 0, 0, true).unwrap(),
+        ObjectHeader::Refused("definition_kind_differs")
+    );
+    assert_eq!(
+        store.object_header(1, ROLE_MAIN, 0, 1, false).unwrap(),
+        ObjectHeader::Refused("definition_kind_differs")
+    );
+    assert_eq!(
+        store.object_header(1, ROLE_MAIN, 0, 3, true).unwrap(),
+        ObjectHeader::Refused("definition_outside")
+    );
     // a scene defined once is unchanged by all this
     assert!(matches!(store.object_header(3, ROLE_MAIN, 0, 0, false).unwrap(), ObjectHeader::Found(_)));
 }
@@ -2846,27 +2862,49 @@ fn a_changed_host_control_is_covered_only_when_it_was_given_and_its_consequence_
     let run = stand_in_run_with(animated_root(), &["mode=animation_dropped", "animation=core"], "healthy");
     assert!(run.status.success(), "{}", run.stderr);
     let changed = run.row("changed_control");
-    assert_eq!((changed["scene"].as_i64(), changed["definition"].as_i64(), changed["final_status"].as_str()), (Some(1), Some(1), Some("empty")));
+    assert_eq!(
+        (changed["scene"].as_i64(), changed["definition"].as_i64(), changed["final_status"].as_str()),
+        (Some(1), Some(1), Some("empty"))
+    );
     assert_eq!((changed["final_count"].as_i64(), changed["consequence"].as_bool()), (Some(0), Some(true)));
-    assert_eq!(changed["replaced"].as_str(), compiled_animation_name(3), "the reference answer it replaced is the compiled name of index 3");
+    assert_eq!(
+        changed["replaced"].as_str(),
+        compiled_animation_name(3),
+        "the reference answer it replaced is the compiled name of index 3"
+    );
     assert_eq!(run.row("summary")["tripped"].as_bool(), Some(true));
 
     // an unknown name is NOT a refusal: the campaign applies its accepted tolerance (animation 0), and the final list shows it
     let run = stand_in_run_with(animated_root(), &["mode=animation_unknown", "animation=core"], "healthy");
     assert!(run.status.success(), "{}", run.stderr);
     let changed = run.row("changed_control");
-    assert_eq!((changed["final_status"].as_str(), changed["final_ids"].as_str(), changed["consequence"].as_bool()), (Some("listed"), Some("0"), Some(true)));
+    assert_eq!(
+        (
+            changed["final_status"].as_str(),
+            changed["final_ids"].as_str(),
+            changed["consequence"].as_bool()
+        ),
+        (Some("listed"), Some("0"), Some(true))
+    );
 
     for mode in ["animation_dropped", "animation_unknown"] {
         // never asked: the change was never given, and an exit 0 would be a false coverage
         let run = stand_in_run_with(animated_root(), &[&format!("mode={mode}"), "animation=none"], "healthy");
-        assert!(!run.status.success() && run.stderr.contains("UNREACHED") && run.stderr.contains("never given"), "{mode}: {}", run.stderr);
+        assert!(
+            !run.status.success() && run.stderr.contains("UNREACHED") && run.stderr.contains("never given"),
+            "{mode}: {}",
+            run.stderr
+        );
         // the installation has no custom scene at all: the same
         let run = stand_in_run(&[&format!("mode={mode}"), "animation=none"], "healthy");
         assert!(!run.status.success() && run.stderr.contains("UNREACHED"), "{mode}: {}", run.stderr);
         // given, but the module cannot show the consequence (no host-profile row): unavailable, not covered
         let run = stand_in_run_with(animated_root(), &[&format!("mode={mode}"), "animation=core", "norows=1"], "healthy");
-        assert!(!run.status.success() && run.stderr.contains("UNREACHED") && run.stderr.contains("model-host-fixture"), "{mode}: {}", run.stderr);
+        assert!(
+            !run.status.success() && run.stderr.contains("UNREACHED") && run.stderr.contains("model-host-fixture"),
+            "{mode}: {}",
+            run.stderr
+        );
         // given, but the engine ignored it and kept the reference list: the final list does not show the change
         let run = stand_in_run_with(animated_root(), &[&format!("mode={mode}"), "animation=core", "ignore=1"], "healthy");
         assert!(!run.status.success() && run.stderr.contains("does not show it"), "{mode}: {}", run.stderr);
