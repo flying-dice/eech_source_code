@@ -1,0 +1,150 @@
+{
+  "schema": 1,
+  "review_kind": "single combined new observer source correctness/clean-code/boundary/noninterference review",
+  "reviewed_head": "2804ca4f7a323493e5bb8f3ba5452958aef9a160",
+  "base": "9e7f7fd64c7b126eef6a79854f5a7990c92729a2",
+  "snapshot": "R:\\d3-evidence\\environment-services-20261030",
+  "frozen_clean_before": true,
+  "frozen_clean_after": true,
+  "disposition": "CHANGES_REQUIRED",
+  "findings": [
+    {
+      "id": "ENV-OBSERVER-TRACE-COHERENCE",
+      "priority": "P2",
+      "path": "eech-campaign/crates/eech-world/lua/env-characterization.lua",
+      "line": 690,
+      "related_locations": [
+        {
+          "path": "eech-campaign/crates/eech-world/lua/env-characterization.lua",
+          "line": 712
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+          "line": 2246
+        }
+      ],
+      "title": "Require a complete, causally ordered original observer transcript",
+      "detail": "The checker verifies row schema, consecutive sequence, RNG word agreement, boot counts, paired frame counts and aggregate TOD counts, but not the initialization families/order or phase context. Its positive stand-in emits only boot_begin/boot_end, with no seed/start/weather events, yet the observer summary succeeds (that guard actually passed in the retained partial Linux log). TOD begin/end can be placed outside a frame while the same total update_server count passes. boot_end placement, actual requested frame milliseconds/clock-delta context, weather-draw ordinals and capacity conservation are likewise not enforced. A self-consistently truncated/relabelled trace can be declared complete even though it omits precisely the shared-entropy/phase evidence this increment intends to protect.",
+      "requested_change": "Add the finite source-known phase grammar and context: mandatory initialization subgroups and ordered ten weather draws within each weather initialization; boot completion before frames; TOD/update events within the matching frame; supplied schedule/frame-ms and integer clock/delta-word correspondence where recorded; report stored/read/capacity/sequence conservation. Enforce applicable lightning/strike/sound event pairing when that path is present without inventing an expected physical occurrence or recomputing weather/elevation answers. Use a coherent positive collaborator and genuine missing-family, misplaced-phase, wrong-draw-ordinal, wrong-frame-context and impossible-report negatives. Retained actual raw data can be independently checked and reused if it satisfies the stronger grammar; no numerical rerun is inherently required."
+    },
+    {
+      "id": "ENV-OBSERVER-OFF-EQUIVALENCE-WORDING",
+      "priority": "P3",
+      "path": "aphavoc/source/entity/special/session/ss_envfx.h",
+      "line": 12,
+      "related_locations": [
+        {
+          "path": "eech-campaign/docs/d3-environment-observer.md",
+          "line": 50
+        }
+      ],
+      "title": "Distinguish feature-off body equivalence from whole-token equality",
+      "detail": "Both ENV_FX enum declarations are outside EECH_ENV_OBSERVER, and the header is included unconditionally by several original translation units. Disabled hooks evaluate no arguments and leave original function operations in place, but preprocessing includes the extra unused enum declarations; added source lines also move __LINE__ diagnostics. Literal whole-file preprocessed equality is therefore not the source property claimed in the header/proposed checks. These declarations alone do not establish a physical behavior defect.",
+      "requested_change": "Either place observer-only declarations behind the feature or qualify the exact claim/check to original executable bodies plus explicitly classified declarations and diagnostic locations. Retain true raw/token comparisons and do not label a normalized whole-file comparison byte-identical."
+    },
+    {
+      "id": "ENV-OBSERVER-SEED-EVENT-TIMING",
+      "priority": "P3",
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_observer.c",
+      "line": 155,
+      "related_locations": [
+        {
+          "path": "modules/maths/random.c",
+          "line": 110
+        },
+        {
+          "path": "aphavoc/source/entity/special/session/ss_envfx.h",
+          "line": 19
+        }
+      ],
+      "title": "Label the seed-set event as prospective or capture the actual current word",
+      "detail": "The seed_set hook runs before random_number_seed=seed and srand, but eech_envobs_seed_set supplies the requested seed as the event rng. This is not the actual shared word AT that point, contrary to the general event contract. Both the current prior word(w0) and requested target(a/rng) are retained, so there is no lost physical datum or demonstrated RNG-order change; the timing interpretation is inaccurate.",
+      "requested_change": "Qualify seed_set as a pre-assignment/prospective target event with explicitly named before/target semantics, or record the actual current word in rng. Keep original assignment/srand/draw order unchanged and ensure phase validation/tests use the declared semantics."
+    }
+  ],
+  "authority_read": {
+    "AGENT_PROJECT_REVIEW_read": true,
+    "live_M5": {
+      "page_id": "11534337",
+      "version": 3,
+      "title": "EECH M5 Goal: EECH_DC into DCS World",
+      "full_body_read_via_read_only_connector": true
+    },
+    "Task51": "EEDCS-51 In Progress: M5 D3 Host weather, wind and environmental time inputs",
+    "parent": "EEDCS-21 In Progress: M5 D3 Terrain and environmental services",
+    "no_scope_change_or_delivery_inferred": true
+  },
+  "source_sha256": {
+    "AGENT.md": "f53284dc85845bace656727025fce612bad1725aaa54315b29330c26884a60c6",
+    "AGENTS.md": "88bc9665322950bf0e757642b5c041daf3166ec44c0621a6d799f37650eaa3b8",
+    "PROJECT.md": "9a6ae8dbdb1c22788d64d4ff46405aca67fda5b01f66be4fc445681499c39406",
+    "docs/governance/REVIEW.md": "4b5533ed943a23caab0bb56d12b1a26363aad4b40d2f40f9e00febe604b5c9f6",
+    "aphavoc/source/ai/parser/parsgen.c": "ef7b324ebf5e466910e102abaf9db4af807bcc38c3bfbe95309af6ba6f2e528a",
+    "aphavoc/source/entity/special/session/session.c": "71f665fc1d1e73dce4b16bf5b07c305cd6da222154da4b14820463ea74327159",
+    "aphavoc/source/entity/special/session/ss_creat.c": "ed48b0dcf2dcca5ed8051c1c4637771366838cfd7b71f463064c597809728023",
+    "aphavoc/source/entity/special/session/ss_envfx.h": "24e5cfa59f8f777dd46b9608b4be4d6dcdf3932fcee6d56d4ee676fe639f8006",
+    "aphavoc/source/entity/special/session/ss_updt.c": "e77e245c0780960c18424fe76cb3fcffccad07b826bf14413aa447ecb83111c7",
+    "modules/maths/random.c": "d8dd524b5086b546e2a690115b44f49d97986e2142d63aa019f3ec06217b5808",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_env_observer.c": "e5f13f087866d701c78bbeaa2e1e6e8d1fe15113d7a1bfbf158b34ab8566807a",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c": "fbe168d01639fc36207de167e14a9d7b6e3cb2e1260c55ba3149ea5298377e0c",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c": "e729495be632c90434f9584f3a4d35fa71a642a5407a829c0ca34b0764bc85ad",
+    "eech-campaign/crates/eech-engine/src/lib.rs": "8308bf378432dfddbd870a362f2452b93dc2b3e7dce313f9686c41b3f8b64761",
+    "eech-campaign/crates/eech-world/lua/env-characterization.lua": "3d2ff66ed0ed15ec2298592254f1b6f522a1ec157ade86f009688c40c53b32ff",
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs": "465ab5905d825c66fa03f2d5492dd4501a10e9f169ecd2a4f9ba4c09798a9daf",
+    "eech-campaign/tools/build-windows-env-observer.sh": "4c731ceef4a5c243ab7700ea416ec0ca2247ab86bd98e850a8523c67c6e50a88",
+    "eech-campaign/docs/d3-environment-observer.md": "854afe83d936efa56f60f1ce871a30631caf9ec3a60b7790d1cfeaae2893cd6b"
+  },
+  "engine_C_NUL_count_before_after": [
+    1,
+    1
+  ],
+  "inspected_facts": {
+    "original_calls_and_entropy": "Original arithmetic, assignment, RNG calls and setter order are not removed or duplicated. Added get_delta_time is a pure macro read; next-free entity access is the existing safe-index macro. Hooks capture already computed values/seed/headless clock and append observational state; no new game allocation, reseed or draw found.",
+    "storage_and_drain": "The fixed16384-event array bounds each append. Private event/text functions are reached through C wrappers validating pointers/positive capacity; snprintf overflow backs out the partial line without consuming that event. Cursor advances only for fully emitted rows. Dropped events are counted and rejected by the driver. The array is total-run storage, not a ring; draining does not reclaim slots, so long observations can exhaust the declared capacity and must remain refused, not complete.",
+    "FFI_and_lifetimes": "Feature-only APIs expose bool/integer arm and owned bounded text buffers, not native pointers. Rust copies NUL-terminated text before buffers drop; event pages are finite under the fixed source capacity. Observer/engine remain the supported single-engine/single-thread model; this review does not establish thread-safe concurrent arm/drain or callbacks.",
+    "controlled_case": "Group9 validates indices before using the two-name table, uses original session setters for timer/local model/radius, reports explicit changed/process-isolated facts and does not pretend to restore entities/libc state. It is opt-in and separate from default witness census/restoring groups.",
+    "driver": "New arguments are validated before output/setup/boot; frame_schedule has finite length/range and120000frame bound. Observer arming precedes boot; probes are prohibited while observing; writer uses the already closed checked JSON/I/O path. Missing feature/refusal is explicit. New grammar weakness is the listed P2.",
+    "feature_wiring": "env-observer implies env-fixture through DC/engine/sys, defines EECH_ENV_OBSERVER, and compiles the observer only under that define. Shipping callbacks/module methods are feature gated. Wrapper changes only feature build selection/fixture label; no shipping extraction/authority is implemented.",
+    "sound_limit": "Sound calls are counted, while facts are deduplicated by terrain scratch hash and camera coordinates, not every changing altitude/wind/input or amplitude. The documentation explicitly limits amplitudes; do not interpret sparse fact rows as every sound transition."
+  },
+  "noninterference_gates": {
+    "same_observer_binary_OFF_ON": "Required but insufficient by itself to prove original hook absence; arguments and helper calls execute even when unarmed.",
+    "same_base_feature_OFF_control": "Root explicitly confirmed it is already planned in addition to OFF/ON; this resolves the plan clarification, not a new implementation finding. Compare non-observer state/clock/RNG/artifacts without normalization, especially possible floating materialization effects.",
+    "actual_numeric_mismatch_asserted": false,
+    "pending": "No completed original observer native OFF/ON/feature-OFF proof supplied or inferred in this source pass. Retained original99 fixed100ms control remains original source evidence, not this observer result."
+  },
+  "available_check_records": [
+    {
+      "kind": "linux",
+      "record": "R:\\d3-evidence\\environment-observer-2804ca4f7-linux-20261031-completion.json",
+      "sha256": "52324cc707b80070942ea694c91213d7154c818537f00e8154b2c48db2831005",
+      "state": "terminal",
+      "actual_exit": 0,
+      "partial_guard_summary": [
+        "test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 24 filtered out; finished in 0.75s"
+      ],
+      "scope": "Only actual terminal results establish completed gates. Driver stand-ins are not original C/numerical/runtime proof."
+    },
+    {
+      "kind": "windows",
+      "record": "R:\\d3-evidence\\environment-observer-2804ca4f7-windows-20261031-completion.json",
+      "sha256": "62f6757080bed160726dd6b678a0a67366b1d148d88dffdcd243b88eff3177da",
+      "state": "terminal",
+      "actual_exit": 0,
+      "partial_guard_summary": [],
+      "scope": "Only actual terminal results establish completed gates. Driver stand-ins are not original C/numerical/runtime proof."
+    }
+  ],
+  "native_readiness": {
+    "verdict": "ALLOW_RETAINED_DIAGNOSTICS_WITH_LIMITS",
+    "meaning": "No new memory-safety or original-query mutation blocker found for bounded fresh-process observer characterization after successful builds. Transcript acceptance/completeness remains held for the P2; source/prepared stand-in results are not original numerical proof. Root owns actual runs and can retain data for independent stronger checking."
+  },
+  "limits": [
+    "No source/kernel move or host authority/cutover, full shipping, current CI/formal approval, Task51 or D3 acceptance.",
+    "Original process isolation remains required for controlled lightning/local weather effects; libc draws/state, client/pack/save paths and sound amplitude causal coverage are not supplied.",
+    "Physical environment state/evolution/lightning/sound/terrain scratch/time inputs/loaders still must move within D3; campaign timers, scheduling and consequences stay Core. No active physical responsibility is deferred to D5.",
+    "Active ground fullpack/processes and build caches were not accessed or controlled. Closed terrain/model/numerical reviews were not repeated."
+  ],
+  "actions": "Read-only source/Git/log/JSON/hash and live authoritative Confluence/Jira reads; no builds/tests/native/process/cache/auth/Git/source mutations, external writes or nested agents. Only this canonical-LF report is written.",
+  "created_utc": "2026-10-31T02:08:14.517089+00:00"
+}

@@ -1,0 +1,45 @@
+{
+  "native_source": "7db2c6a91b4cd0a1fae2d8e20bfa169584618d24",
+  "driver_source": "c090664ec6aed8268a0d8aeb0812f1e60b2bdb51",
+  "changed_files": [
+    "STATUS.md",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c",
+    "eech-campaign/crates/eech-world/lua/env-lightning-host-witness.lua",
+    "eech-campaign/crates/eech-world/lua/env-lightning-queue.lua",
+    "eech-campaign/crates/eech-world/tests/env_lightning_queue.rs",
+    "eech-campaign/docs/d3-lightning-queue.md",
+    "modules/3d/3dstrike.c"
+  ],
+  "production_tokens_equal": true,
+  "production_scope": "All production paths byte-identical except the enumerated C comment-only edits; no Rust production/build-input change. Existing tested7db native is explicitly reused, no new native identity claimed.",
+  "C_comment_proofs": [
+    {
+      "path": "modules/3d/3dstrike.c",
+      "before_sha256": "3b6b0664974706a899be1eea2d81d0c7a330749f108a899065706c4cacd31cda",
+      "after_sha256": "482bfa76871b8511b97589d29e1443e99baf890922cd23b3fa282f09f39fae4f",
+      "C_lexical_tokens_equal": true,
+      "limitation": "Source token proof, not object/runtime identity"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c",
+      "before_sha256": "2f43f0b24c78026226642af6579e1383dd784c745d8d33c02c0650f357c5e821",
+      "after_sha256": "898d5495a0c66ed1304965e33462fddfc68291faf66e841adbf4d0bc26fafd5f",
+      "C_lexical_tokens_equal": true,
+      "limitation": "Source token proof, not object/runtime identity"
+    }
+  ],
+  "primitive_driver_bytes_equal": false,
+  "primitive_driver_tokens_equal": true,
+  "primitive_driver_scope": "Changed header comment lines removed; every remaining byte/line ending equal. Executable Lua unchanged; native delegate remains pinned7db.",
+  "primitive_before_sha256": "57521c4bacba5b2ac448e84709fbc49c96751f227b2693a96b9b6468496e3edf",
+  "primitive_after_sha256": "487060e4a9f73fd138e4f05cff6d9ff0a40be6e31a71828f7c985d9c738c7eae",
+  "new_witness_sha256": "9563e7429fc44e4a3edfef2b92df58558da271c12601fcb80ecaa6793e1b4a38",
+  "new_snapshot": "R:\\d3-evidence\\environment-host-lightning-reply-frame-source-c090664ec",
+  "guard_source": "065e8e2dfd237054c52bb359f36a39b27b38d876",
+  "guard_receipt": "R:\\d3-evidence\\queue-reply-frame-065e8e2df-linux-20261031-completion.json",
+  "guard_reuse_scope": "Actual18 witness tests/fmt/world strict ran at065 and finished0. Currentc090 changes ONLYone documentation line; witness/test blobs and every executable input remain identical. No test rerun or actualc090 test execution is claimed.",
+  "guard_witness_and_test_blobs_equal": true,
+  "guard_subject_changed_files": [
+    "eech-campaign/docs/d3-lightning-queue.md"
+  ]
+}

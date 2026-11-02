@@ -1,0 +1,168 @@
+{
+  "review": "Independent finite sound-backend detachment actual review",
+  "created_utc": "2026-11-01T16:23:56.172774+00:00",
+  "source": {
+    "native_head": "78fe5efdb5cbaff904e3b645d680acbd7776597d",
+    "embedded_drivers_head": "78fe5efdb5cbaff904e3b645d680acbd7776597d",
+    "snapshot": "D:\\EECH-Migration-Evidence\\nb-78fe5efdb",
+    "source_review_sha256": "acd7964497461d400ee33253086c930d7aaac77f2bff2df77bfb10fdd0345a54"
+  },
+  "findings": [],
+  "finite_sound_backend_detachment_closed": true,
+  "scope": "One new combined completed actual/auditor/default-Core object and provenance pass. Closed source333/acd and originale128/fd16/3ff/parent/time reviews reused. No original rerun or reviewer build/test/native execution; no safe-publication package reviewed here.",
+  "identity": {
+    "build_info_sha256": "da5ffd428ba6cef433291ab7da67e35ff1fefd141e2353cbb9d7f6ff9071558c",
+    "image": "f5dca006ab4094cbf2ec95d567e97340c2e017b277dff70e2242c68e718e6c11",
+    "profile": "release x86_64-pc-windows-gnu env-observer fixture, not shipping pack",
+    "payload_count": 74,
+    "all_payloads_rehashed_exact": true,
+    "guard_driver_sha256": "8384683d3d95d7afb744cc776972452b95ae4972b19bce50a6d5fadede621878",
+    "default_driver_sha256": "a63f7617cd4030a6c4ab7a90470dbdc867002d22b04bbfd5a47cfa332a7aaed0",
+    "all_six_input_manifests_match_full_reference_entries": true,
+    "input_files_per_check": 1179,
+    "input_bytes_per_check": 102239559,
+    "input_reference_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+  },
+  "actual_controls": [
+    {
+      "name": "unlink",
+      "case": 23,
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "controller_sha256": "85b3da875eefe19a2c03ebbf1afa3a852f21af69c55b85ec9981e13aef10750d",
+      "completed_utc": "2026-11-01T16:14:31.877640+00:00",
+      "full_input_checks": 2,
+      "reference_entries_exact": true,
+      "json_bytes": 610,
+      "json_rows": 3,
+      "json_sha256": "624dc72068d85f909fdec2e5997123cde2b25964aaedea0d6ce33a509a715b54",
+      "raw_fatal_bytes": 467,
+      "raw_fatal_sha256": "022300218b130e3aa72323654677c7d8ce75c24f5aefd1e3428e2c30968e8f58",
+      "named_cause": "validated_unlink_before_commit",
+      "postpoison_query_or_cleanup_claim": false
+    },
+    {
+      "name": "play-stop",
+      "case": 24,
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "controller_sha256": "ddcf060bdfaf4f137d0d972ba97437f49badd6f78cce28cfd028b4829f4c582a",
+      "completed_utc": "2026-11-01T16:14:31.802995+00:00",
+      "full_input_checks": 2,
+      "reference_entries_exact": true,
+      "json_bytes": 598,
+      "json_rows": 3,
+      "json_sha256": "d687887635524587d6327cd4d343e5be29489bd6585100c1e0377b08513aead2",
+      "raw_fatal_bytes": 471,
+      "raw_fatal_sha256": "d35e82a3a6c858da4c1edd828add98b99ae6d1260027fa6cde77deead5e529d4",
+      "named_cause": "held_handle_playback_entry_before_mixing",
+      "postpoison_query_or_cleanup_claim": false
+    },
+    {
+      "name": "unarmed",
+      "case": null,
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "controller_sha256": "6e2bb16f2cfce5b5e5178a84df4b0490c1fb1232a3951e35bc1f56c0774e9a73",
+      "completed_utc": "2026-11-01T16:21:27.529271+00:00",
+      "full_input_checks": 2,
+      "reference_entries_exact": true,
+      "json_bytes": 5191384,
+      "json_rows": 17283,
+      "json_sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+      "original": "D:\\EECH-Migration-Evidence\\parent-play-original-native8e-driver1fb-20261101\\unarmed\\environment.jsonl",
+      "original_sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+      "all_complete_bytes_and_endings_equal": true
+    }
+  ],
+  "fatal_pair_equal": false,
+  "fatal_pair_disposition": "Different preserved diagnostics for validated unlink decision versus playback entry; no normalization or equal-pair acceptance imposed.",
+  "compiled_boundary_evidence": {
+    "default_build_actual_exit": 0,
+    "controller": "D:\\EECH-Migration-Evidence\\sound-backend-play-entry-default-core-78fe5efdb-20261101\\controller.json",
+    "controller_sha256": "b992fd13f61be56f25aa7a4cc2d247d4d1a72b869c49a35d67b2bd410614a640",
+    "collected_archive_sha256": "89dae6d3f5c17225c8059034953c2eb326f54474a015fd6094ae2696e86fb9df",
+    "archive_hash_limit": "Hash is from actual build collector; independent review rehashed the six exported objects and inspected exported member/symbol data and ELF symbol tables, without accessing or mutating the live build cache.",
+    "members_count": 1247,
+    "five_physical_backend_members_absent": true,
+    "adapter_member_present": true,
+    "exported_objects_hashes_reverified": [
+      {
+        "member": "1fae6ee599bf24be-se_updt.o",
+        "file": "/evidence/1fae6ee599bf24be-se_updt.o",
+        "bytes": 130920,
+        "sha256": "9ba84f22074de126a7521ee0d49188e3365a9e836e5508ed75dd0e038236eaf3"
+      },
+      {
+        "member": "22e3fb83578e391f-ss_hostenv.o",
+        "file": "/evidence/22e3fb83578e391f-ss_hostenv.o",
+        "bytes": 726512,
+        "sha256": "6a143c362b2554fa034fb8119a5e5e0ad6d21b2a3cd56b502c61169cd6e859a3"
+      },
+      {
+        "member": "8eefb7ef25199987-snd_nobackend.o",
+        "file": "/evidence/8eefb7ef25199987-snd_nobackend.o",
+        "bytes": 572216,
+        "sha256": "ab73fbf08a0f963b4be804932e3f0a099aace59ff5e6bb1b86cd188393164b67"
+      },
+      {
+        "member": "1fae6ee599bf24be-se_snd.o",
+        "file": "/evidence/1fae6ee599bf24be-se_snd.o",
+        "bytes": 622080,
+        "sha256": "13392d4154143a58d4bcd5c21d88e9e288be7befe02c2a47bd7d3e622af66c10"
+      },
+      {
+        "member": "c0227ba9890dc6c0-en_snd.o",
+        "file": "/evidence/c0227ba9890dc6c0-en_snd.o",
+        "bytes": 618232,
+        "sha256": "df5b172e4c95e51e6aae67cd5c57c162c2148092a8e92bd43b682fa73f587b61"
+      },
+      {
+        "member": "1fae6ee599bf24be-se_dstry.o",
+        "file": "/evidence/1fae6ee599bf24be-se_dstry.o",
+        "bytes": 147152,
+        "sha256": "c1e93a8bccae76aa9b0c6bf2b48a4f19eededa37822b0be54770ba75c686dc7a"
+      }
+    ],
+    "independent_elf_inspection": [
+      "No observer symbol in any of the six exported objects.",
+      "se_snd.o has the named entry-fatal string and lacks frand1/pow/volume/position/pitch/create/get-playing references of the legacy physical mixer. Its retained destroy reference resolves to the explicit adapter and supports earlier Core policy gates.",
+      "Adapter ELF has no dsound_/IDirectSound undefined imports and retains the named native-backend refusal. Legacy API names are intentional boundary functions, not a retained physical backend."
+    ],
+    "scope": "Default-Core source/compiled boundary proof plus existing source branch/classic preservation review; not a global absence of all compatibility symbols, loaders or UI bodies."
+  },
+  "execution_gates": {
+    "guards": [
+      {
+        "platform": "linux",
+        "controller": "D:\\EECH-Migration-Evidence\\sound-backend-detach-linux-guards-78fe5efdb-20261101\\controller.json",
+        "controller_sha256": "70307b057a5965c45dc6c963444d743f15ee97189affacd2cd8d184624541c44",
+        "actual_exit": 0,
+        "completed_utc": "2026-11-01T16:13:52.268194+00:00"
+      },
+      {
+        "platform": "windows",
+        "controller": "D:\\EECH-Migration-Evidence\\sound-backend-detach-windows-guards-78fe5efdb-20261101\\controller.json",
+        "controller_sha256": "732f49012ae533435bea9944e2d5973604018f32fd4fe25f3534aa4c4f3a558f",
+        "actual_exit": 0,
+        "completed_utc": "2026-11-01T16:14:19.439368+00:00"
+      }
+    ],
+    "root_retained_exact_CI": {
+      "receipt": "R:\\d3-evidence\\current-CI-78fe5efdb-20261101.json",
+      "sha256": "f3f81dd27480bbe5177767d6f2cb03a181716b440aeab9214a22cf95405fa7d1",
+      "head": "78fe5efdb5cbaff904e3b645d680acbd7776597d",
+      "successful_jobs": 9
+    },
+    "root_audit": "R:\\d3-evidence\\sound-backend-detach-candidate-actual-78fe5efdb-20261101.json",
+    "root_audit_sha256": "761aa5bb784d5748fb58a5d67403acceebdea081f281cfd14563613f067cab35",
+    "root_audit_assessment": "Actual case exits, complete raw-byte comparison, full input manifests, payload/script identities and distinct fatal semantics independently reproduced from immutable artifacts. Generic child historical rotor scope is overridden by the explicit parent scope. Collection0 alone is not acceptance."
+  },
+  "finite_decision": "The tested no-backend/default route remains exact and two concrete held-handle requests stop at the meaningful semantic boundaries. Default archive/object evidence supports removal of the five physical backend implementations and the hosted playback mixer. The native fixture record remains controlled static test state; no service silently supplies live native-handle status or success.",
+  "limits": [
+    "No query/census/state/receiver-zero/cleanup/release/restoration after the engine poison is measured or claimed. Source/order and object evidence support refusal before the relevant writes or physical mixer.",
+    "Full unarmed output equality is bounded to the one complete retained reference stream. No new full caller FP or RNG equivalence, all-family/global dormancy or positive device/audio/constructor-product/playing-buffer support.",
+    "Gated legacy loader/UI/flight and classic-game bodies remain classified, not globally proved absent or exercised. No new sample-store or live DCS audio capability is created.",
+    "Ordinary shipping build/preflight readiness is separate context; no full shipping40/all8/Tacview pack or whole Task51/D3/49/50/time/mapping/normal-delivery acceptance. The full shipping pack was not part of these three controls."
+  ]
+}

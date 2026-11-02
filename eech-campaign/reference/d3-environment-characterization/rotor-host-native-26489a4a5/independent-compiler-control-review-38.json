@@ -1,0 +1,164 @@
+{
+  "schema": "independent-compiler-control-actual-review-v1",
+  "created_utc": "2026-11-01T10:56:44.803338+00:00",
+  "reviewer": "/root/d3_environment_review",
+  "source": {
+    "head": "38b200b6c48bf81abca8e817caa9097c2a876a47",
+    "frozen_repository": "D:/EECH-Migration-Evidence/rc-38b200b6c",
+    "unchanged_physical_kernel_source": "dd84bd74815c30bed0a00130a35596f151058853",
+    "runtime_kernel_sha256": "e8162ceb55b517a5e790cb806eeb06cfb1dc57a7021e30bfed8191bc49872dc6",
+    "scope": "New selected-suite, exact CI compiler-control and emitted-assembly evidence. Previously closed source, original, default and public-authority reviews are reused; no product edits, builds, tests, campaigns or nested agents were performed."
+  },
+  "decision": {
+    "numerical_implementation_may_proceed_from_measured_facts": true,
+    "numerical_CI_P1_closed": false,
+    "whole_rotor_extraction_closed": false,
+    "whole_Task51_D3_closed": false,
+    "shipping_or_normal_delivery_accepted": false,
+    "summary": "Three measured code-generation sites justify a focused numerical implementation. Keep the canonical original Win64 word/action contract, oracle, targets, flags, clamps and formulas unchanged. Capture and variant restoration are now evidenced; they do not make the failing arithmetic conformant."
+  },
+  "inspected_facts": [
+    "Independently checked all four literal CI diagnostic blocks, their seven reported source hashes against frozen Git blobs, all 27 sweep diagnostics and the 261-natural-input summaries. Complete diagnostics precede the unchanged first oracle assertion: failing jobs expose all 288 diagnostic inputs but do not complete every 288-row assertion after that first failure.",
+    "Each CI block reports complete capture, 1152 separately bracketed U/d,U/c,S/d,S/c runs and zero post-restoration readback mismatches. Canonical entry is x87 CW 0x0f7f / MXCSR 0x7f80. CW/SW/TW and complete MXCSR are measured; restored environment pointers are not compared, data registers and other threads are outside the claim.",
+    "Independently checked artifact sizes and hashes in both selected-platform directories against the assessment, actual controller/test exits, complete capture and 1152/zero restoration results. Both pinned platforms pass kernel/control 3 tests, all 288 exact word/action rows, and witness 12 tests.",
+    "Both i686 variants have exactly FD1 and FD12 kernel mismatches; Wine has exactly FD7; the passing x64-labelled-OPT2 job has none. All four retain zero natural-input kernel differences. Default-rounding surrogate differences are separate diagnostic observations, never alternate goldens.",
+    "The i686 instruction/constant listings agree across ordinary and original-stack jobs after accounting, for analysis only, for two explicit interleaved test-status lines in one listing. Literal timestamped evidence remains untouched; whole blocks are not claimed byte-identical.",
+    "U retains original arithmetic statements in a surrogate context with stub collaborators/reduced layouts, not the complete original engine's code generation. S changes code through marked volatile stages and an extra magnitude call; notably it does not stage the first FD12 right-pitch assignment.",
+    "Exact current CI receipt has three completed workflows and seven campaign jobs: six of nine total jobs succeed and three numerical jobs fail. The x64 default Lints step succeeds. Earlier lint/Wine-positive-control failures remain retained historical failures."
+  ],
+  "compiler_identity": [
+    {
+      "cases": [
+        "i686",
+        "i686 original-stack"
+      ],
+      "version": "gcc-12 (Ubuntu 12.4.0-2ubuntu1~24.04.1) 12.4.0",
+      "facts": "__VERSION__=12.4.0; __GNUC__=12.4.0; FLT_EVAL_METHOD=2; SSE/SSE2 math=0; sizeof(long double)=12",
+      "target": "i686-unknown-linux-gnu",
+      "machine": "x86_64-linux-gnu",
+      "actual_compile": "-O1 -m32 -march=i686; -ftrivial-auto-var-init=zero; no fast-math",
+      "qualification": "Machine triple alone does not make the output 64-bit. Both records contain actual 32-bit target facts and x87 code."
+    },
+    {
+      "cases": [
+        "Windows/Wine CI"
+      ],
+      "version": "x86_64-w64-mingw32-gcc (GCC) 13-posix",
+      "facts": "__VERSION__=13-posix; __GNUC__=13.0.0; __MINGW64_VERSION_MAJOR=11; FLT_EVAL_METHOD=0; SSE/SSE2 math=1; sizeof(long double)=16",
+      "target": "x86_64-pc-windows-gnu",
+      "actual_compile": "-O1 -m64; -ftrivial-auto-var-init=zero; no fast-math",
+      "qualification": "These are measured compiler strings/macros. They do not establish an exact 13.2 package/compiler identity."
+    },
+    {
+      "cases": [
+        "passing Linux x64 label EECH_C_OPT=2"
+      ],
+      "version": "gcc-12 (Ubuntu 12.4.0-2ubuntu1~24.04.1) 12.4.0",
+      "facts": "FLT_EVAL_METHOD=0; SSE/SSE2 math=1",
+      "actual_compile": "World C command is -O1 -m64; EECH_ENGINE_OPT unset, EECH_C_OPT=2",
+      "qualification": "The job label does not establish an O2 World kernel."
+    },
+    {
+      "cases": [
+        "pinned selected Linux"
+      ],
+      "version": "cc (Debian 12.2.0-14+deb12u1) 12.2.0",
+      "profile": "release; World C -O1; EECH_ENGINE_OPT=1",
+      "kernel_test_sha256": "7e0f611f8b43045668318599b9b3da9ee8c5fd7239cb07aab0df353dffb204c4",
+      "guard_test_sha256": "625c0cb369724b002965288a96ff5f6c4ce6df24d2b9202315cc056251c266c9"
+    },
+    {
+      "cases": [
+        "pinned selected Windows"
+      ],
+      "version": "12-posix; __GNUC__=12.0.0; MinGW major 10",
+      "profile": "release; World C -O1",
+      "kernel_test_sha256": "533debee66730ae27d4239231c178c08b88a6e4a31964ecf0c779c2ae92400f7",
+      "guard_test_sha256": "59d7f64d82df891615c9a82f0e48e9f78bc0c926b9b9fd2a8d0e723c94b81524"
+    }
+  ],
+  "findings": [
+    {
+      "id": "ENV-HOST-ROTOR-CI-1",
+      "priority": "P1",
+      "status": "OPEN; measured correction design supported",
+      "group": "Original stored precision and runtime-rounded saturated arithmetic",
+      "sites": [
+        {
+          "location": "eech-campaign/crates/eech-world/csrc/env_ref.c:2246-2248,2329; emitted env_ref_rotor_sound .L778/.L720 in both i686 records",
+          "case": "FD1 amp0 expected 0x3f2aaaab, actual 0x3f2aaaaa; U/c and S/c match expected.",
+          "evidence": "Kernel calls rotor_vector_magnitude then fdivs(15.0), fmuls(loop level), clamp comparisons and keeps the resulting x87 value through fsub for LOOPING-minus-SLAP. Final outputs are narrowed with fstps only afterwards. U spills the value with fsts to -40(%ebp) before later collaborator calls, and subtracts that stored value with fsubs. Both output slap words are 0x3eaaaaaa; the subtraction consumed different intermediate precision. Magnitude is exactly 5 in this case; both actual magnitude helpers use compatible x87 multiply/add/sqrt and return ST0.",
+          "requirement": "Enforce the original float-assignment boundary before slap participates in LOOPING-minus-SLAP; preserve assignment/clamp/action order and canonical guard. Do not infer a vector-magnitude algorithm change from this exact-5 case."
+        },
+        {
+          "location": "eech-campaign/crates/eech-world/csrc/env_ref.c:2276-2277; tests/csrc/rotor_control_body.h:122-124; emitted i686 kernel .L708 and U/S bodies",
+          "case": "FD12 right pitch3 expected 0x3f8e147a, actual 0x3f8e147b; U/c and S/c also differ.",
+          "evidence": "Input right RPM is 0x424c0001. i686 executes fdivs(100.0), bound comparisons and faddl(0.6) without narrowing the first right_turbine_pitch assignment; fstps follows the addition. S's STAGE(11) is after the second assignment, so S does not test the missing first boundary. Passing SSE code executes divss first, then cvtss2sd, bound/addsd and final cvtsd2ss.",
+          "requirement": "Enforce the first right_turbine_pitch float assignment after rrpm/100.0 before bound-plus-0.6. The evidence does not require changing global x87 precision or attributing this case to an untested double-excess-precision remedy."
+        },
+        {
+          "location": "eech-campaign/crates/eech-world/csrc/env_ref.c:2292; emitted Windows kernel .L446/.LC70, passing Linux x64 bound/add path",
+          "case": "FD7 APU pitch4 expected 0x400ccccc, actual 0x400ccccd; U/c and S/c also differ.",
+          "evidence": "The Windows saturated branch loads movss .LC70, whose .long 1074580685 is 0x400ccccd. It bypasses the runtime bound-plus-0.2 addition and conversion, so the requested rounding mode cannot affect that constant. The passing Linux x64 branch selects the 2.0 double bound, executes addsd(0.2) and cvtsd2ss under the canonical environment. U/S reproduce the compiler fold; this is not evidence of a Wine FP-restoration defect.",
+          "requirement": "Ensure the selected saturated bound plus the original 0.2 executes and narrows at runtime inside the existing canonical guard. Do not hardcode an oracle word, change constants/clamps or add global numerical compiler flags."
+        }
+      ],
+      "acceptance_constraint": "One focused implementation turn may proceed. Preserve integer ingress/egress, full-state guard, formulas, original operation order and every existing assertion/seed/target. P1 closes only after review of changed source and actual exact-word/action/FP gates on the previously failing compilers, alongside required current CI and appropriate existing conformance gates."
+    }
+  ],
+  "additional_gate_results": {
+    "Wine_positive_control": "Actual job 124824088786 independently read from GitHub logs: deliberate divide-by-zero observation and enabled-trap witness both pass; the env_rotor_host_witness executable passes 12/12 at 10:43:01Z. Kernel later fails the unchanged FD7 assertion, job exit 101. No arbitrary Wine exit was accepted.",
+    "strict": "Exact source38 x64 default CI succeeds including cargo clippy --locked --all-targets -- -D warnings. This closes the earlier test-lint follow-up for this head; failed numerical jobs do not imply their skipped Lints steps ran.",
+    "direct_log_excerpts": {
+      "wine": [
+        "2026-11-01T10:43:01.1958517Z test the_trap_control_really_kills_a_child_that_divides_by_zero_so_the_guard_cannot_pass_silently ... ok",
+        "2026-11-01T10:43:01.2551846Z test the_witness_survives_enabled_divide_by_zero_traps_in_an_isolated_process ... ok",
+        "2026-11-01T10:43:01.2552576Z test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s",
+        "2026-11-01T10:43:04.9711082Z test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.68s",
+        "2026-11-01T10:43:24.9177941Z ##[error]Process completed with exit code 101."
+      ],
+      "default": [
+        "2026-11-01T10:43:12.0841058Z \u001b[36;1mcargo clippy --locked --all-targets -- -D warnings\u001b[0m",
+        "2026-11-01T10:46:03.5953200Z     Finished `dev` profile [unoptimized + debuginfo] target(s) in 2m 50s"
+      ]
+    }
+  },
+  "evidence": [
+    {
+      "path": "R:\\d3-evidence\\host-rotor-control-selected38-actual-assessment-20261101.json",
+      "bytes": 12545,
+      "sha256": "812ad03b783f539f91d8efe32915cd2670b8b77c317637828e4bc07bf7448465"
+    },
+    {
+      "path": "R:\\d3-evidence\\rotor-control-CI38-i686-job124824088636-20261101.json",
+      "bytes": 179821,
+      "sha256": "a465e78dca17e10d99f5f8da681277b4a4004ae412e04da120e659557c62b912"
+    },
+    {
+      "path": "R:\\d3-evidence\\rotor-control-CI38-i686-stack-job124824088490-20261101.json",
+      "bytes": 182909,
+      "sha256": "22ae556484b86f279a577c46c6f824c286edc0b69c353e64f007b3ae13441cd6"
+    },
+    {
+      "path": "R:\\d3-evidence\\rotor-control-CI38-windows-wine-job124824088786-20261101.json",
+      "bytes": 157180,
+      "sha256": "26a220af160fd9b15d6ff5161223932bef0dcb95f27df6d4462382b7b8984d38"
+    },
+    {
+      "path": "R:\\d3-evidence\\rotor-control-CI38-linux-x64-label-opt2-job124824088622-20261101.json",
+      "bytes": 157292,
+      "sha256": "e15d28342378fbebcd4728357ef6a9dbec119f0af92d63b37fc128269c9ab831"
+    },
+    {
+      "path": "R:\\d3-evidence\\current-CI-38b200b6c-20261101.json",
+      "bytes": 16461,
+      "sha256": "c9f6c40df72de08d35acd7474cabdd04138cc0b99642cdc4a7e07609431f2af1"
+    }
+  ],
+  "limitations": [
+    "No actual same-target complete original-engine replay is claimed from U/S. The accepted canonical original Win64 oracle remains the contract; measured compiler alternatives are not replacements.",
+    "Capture assembly uses the same recorded source/settings with -S -g0; no claim of whole executable disassembly identity. Entry, actual callees/clones and constant pools were inspected; transient test-output interleavings were disclosed.",
+    "Readback proves the bounded control's declared thread environment restoration, not global engine startup precision, full public C/Lua FP equivalence, x87/XMM data-register preservation, other threads or audio behavior.",
+    "Prior original/default/authority acceptance scopes remain separate. No new retail run, shipping/Tacview proof, full sound ownership, whole Task51/D3 acceptance, publication or normal merge is conferred."
+  ]
+}

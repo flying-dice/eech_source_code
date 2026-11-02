@@ -1,0 +1,18 @@
+{
+  "source": "d8db93cc181a6980c00f9ec17967acf217645382",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-parent-play-needed-only-d8db93cc1-windows-20261101.sh"
+  ],
+  "pid": 17480,
+  "controller_pid": 21560,
+  "state": "terminal",
+  "started_utc": "2026-11-01T12:52:42.767360+00:00",
+  "scope": "Candidate guarded nonSESSION default range/dispatch removal observer build ONLY. Original actual8e/6aec controls and full unarmed comparison reused. Candidate conformance/refusal/independent source+actual review, ordinary shipping40/all8completebytes and wholeD3 remain separate open gates.",
+  "actual_exit": 0,
+  "completed_utc": "2026-11-01T12:55:33.306395+00:00"
+}

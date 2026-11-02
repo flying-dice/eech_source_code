@@ -1,0 +1,46 @@
+{
+  "source": "f6d812c7c8e33179ec7d0a8143ede370da336bf5",
+  "when_utc": "2026-10-31T15:39:09.241946+00:00",
+  "scope": "Three complete original/candidate ambient characterization raw files. Numeric conformance only; not public altered-host authority, Tacview or full shipping acceptance.",
+  "rows": [
+    {
+      "case": "georgia",
+      "controller": "R:\\d3-evidence\\environment-sound-fixed-f6d812c7c-georgia-20261031\\controller.json",
+      "baseline": "R:\\d3-evidence\\environment-ambient-original-nativec0b-driver21ba-georgia-20261031\\environment.jsonl",
+      "candidate": "R:\\d3-evidence\\environment-sound-fixed-f6d812c7c-georgia-20261031\\environment.jsonl",
+      "complete_bytes": 118118,
+      "raw_rows": 108,
+      "equal_including_endings": true,
+      "sha256": "06067c5b0a9522c7545f54a01c8cace2926b1e756d50ff855e64577b90062270",
+      "actual_exit": 0,
+      "all3stage_exits": 0,
+      "verified_payloads": 51
+    },
+    {
+      "case": "lebanon",
+      "controller": "R:\\d3-evidence\\environment-sound-fixed-f6d812c7c-lebanon-20261031\\controller.json",
+      "baseline": "R:\\d3-evidence\\environment-ambient-original-nativec0b-driver21ba-lebanon-20261031\\environment.jsonl",
+      "candidate": "R:\\d3-evidence\\environment-sound-fixed-f6d812c7c-lebanon-20261031\\environment.jsonl",
+      "complete_bytes": 118120,
+      "raw_rows": 108,
+      "equal_including_endings": true,
+      "sha256": "08fce9b0612179ec096bb71eb872ce0d33dc3be44ca1cbe7b04ca5a45fb8f10e",
+      "actual_exit": 0,
+      "all3stage_exits": 0,
+      "verified_payloads": 51
+    },
+    {
+      "case": "lebanon-repeat",
+      "controller": "R:\\d3-evidence\\environment-sound-fixed-f6d812c7c-lebanon-repeat-20261031\\controller.json",
+      "baseline": "R:\\d3-evidence\\environment-ambient-original-nativec0b-driver21ba-lebanon-repeat-20261031\\environment.jsonl",
+      "candidate": "R:\\d3-evidence\\environment-sound-fixed-f6d812c7c-lebanon-repeat-20261031\\environment.jsonl",
+      "complete_bytes": 118120,
+      "raw_rows": 108,
+      "equal_including_endings": true,
+      "sha256": "08fce9b0612179ec096bb71eb872ce0d33dc3be44ca1cbe7b04ca5a45fb8f10e",
+      "actual_exit": 0,
+      "all3stage_exits": 0,
+      "verified_payloads": 51
+    }
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "schema": "independent-source-correction-review-v1",
+  "created_utc": "2026-10-31T21:37:58.521912+00:00",
+  "reviewer": "sole independent Codex reviewer /root/d3_environment_review",
+  "source": {
+    "repo": "R:\\d3-evidence\\environment-services-20261030",
+    "base": "116ffd5fb4230226a1ff98a87c40375eea95e521",
+    "head": "2a4139830e2ec13617635c553a519d9be3015a2d",
+    "tree": "0a06ef60bc991b5a41ff7f1f51db2e1529b00cb2",
+    "clean_at_review": true,
+    "files": [
+      {
+        "path": "STATUS.md",
+        "sha256": "17521fdf0863deee1a3736fce17df5ebbff17b52fb5e147919df9907e22c139a",
+        "git_blob": "6b3463f05b621b305bdb31468e5c655171701b53"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-sound-lifetime.lua",
+        "sha256": "09c2b6a783c067cc3b6695950d86c0ae70921826f9fa57fb65fe1190e11d167a",
+        "git_blob": "369b29fd6026eb3c5eab099d8928fa3d36be3461"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_sound_lifetime.rs",
+        "sha256": "36312693b98239f7c37fb31f2fde20f5a5f3b45d58081238aaf2eae3ff4e3597",
+        "git_blob": "a292286364072fdd68ee205fef48a8f50192dc75"
+      },
+      {
+        "path": "eech-campaign/docs/d3-sound-lifetime.md",
+        "sha256": "0f91de8d3bdb0d93f6149df99227f443e1cc5d7b43c7bf2c8b8d84d029c9f583",
+        "git_blob": "d9f9bf36466d30c3a24f337cb2f200782ea37db5"
+      }
+    ]
+  },
+  "scope": "One narrow new-delta correctness/clean-code/boundary review closing the named descriptor/sequence/cohort-limit residual. Previous native safety, broad protocol/census and original actuals reused; no unchanged source/experiment review.",
+  "prior_review": {
+    "path": "R:/d3-evidence/independent-environment-original-sound-domain-source-review-116ffd5fb-20261031.json",
+    "sha256": "08724f3c44f11ff6ca5b89ee0083b2453ae801fcd4881f12a52292224ed35664"
+  },
+  "findings": [],
+  "source_review_no_blocking_findings": true,
+  "disposition": {
+    "ENV-SOUND-DOMAIN-2-RESIDUAL": "Closed at source for the named metadata and overcall paths. P1 slot-safety and P3 census closures are reused unchanged, not relabelled as new runtime proof."
+  },
+  "verified_corrections": [
+    {
+      "fact": "For every entity-reading probe record, the first sample ID, controlled rate/size, observed original rate and case sequence count now match the declared first descriptor/constructor inputs. Case6 explicitly declares sequence count2, others1. KILLED records are excluded because the native hook reads only the stable slot after raw data is freed. No lifetime or cap is computed from these inputs.",
+      "reference": {
+        "path": "eech-campaign/crates/eech-world/lua/env-sound-lifetime.lua",
+        "line": 433
+      }
+    },
+    {
+      "fact": "Per-cohort made calls are rejected above spec.calls before global sums. Four calls in one cohort cannot cancel a different cohort's skipped call. Earlier legitimate dead/unlinked skips and explicit partial-creation accounting remain intact.",
+      "reference": {
+        "path": "eech-campaign/crates/eech-world/lua/env-sound-lifetime.lua",
+        "line": 361
+      }
+    },
+    {
+      "fact": "Positive probe metadata is generated from each case's controlled descriptor and sequence count; the old generic rate/size/count values are removed. New finite negatives separately target stale CREATED metadata, sequence-count mismatch and the coherent4+2 cancellation form. No physical outcome oracle is introduced.",
+      "reference": {
+        "path": "eech-campaign/crates/eech-world/tests/env_sound_lifetime.rs",
+        "line": 596
+      }
+    },
+    {
+      "fact": "Only two Lua/test paths and two Markdown paths differ from native116. All C, fixture/observer, production Rust and build inputs are byte-identical, so the current driver may use a genuinely built116 native with an explicit pinned override/provenance proof. It is not a rebuilt2a native."
+    },
+    {
+      "fact": "Pause-only transmission of wire delay and resume subtype-only wording are corrected. Resume validity/list state remains separately unmeasured from playback; required remaining D3 responsibilities remain explicit. All four changed files inspected; no new blocking finding in this delta."
+    }
+  ],
+  "retained_evidence": {
+    "old116_red": {
+      "path": "R:\\d3-evidence\\sound-red-actual-116-residual-20261031-r6.log",
+      "sha256": "8a3176a6562cb8e034dc3ffe4d525efa8b0bc58aeb4b8712f2166a46ed4dca2d",
+      "bytes": 3482
+    },
+    "wip_fmt_failure": {
+      "path": "R:\\d3-evidence\\sound-resid-WIP-20261031-j1.log",
+      "sha256": "9f9b6f39e0d8a06056ad82984c922d33fdc3ccc7c1a0f8de538226f4d77a5815",
+      "bytes": 6069
+    },
+    "format_step": {
+      "path": "R:\\d3-evidence\\sound-resid-fmt-WIP-20261031-j2.log",
+      "sha256": "8e6bfae4c76526d936c02bfe1f3a9645bf84a04b9a2a8f772473752d35f867cc",
+      "bytes": 109
+    },
+    "wip_green": {
+      "path": "R:\\d3-evidence\\sound-resid-WIP-20261031-j3.log",
+      "sha256": "7e1db6c0c1c141e57e19efc2f57ff562e8875f6a4cd291591a5308b4be71d032",
+      "bytes": 5458
+    },
+    "scope": "Inspected retained old116 acceptance log: the three named original-grammar metadata/sequence/4+2 forms were accepted, target RED_EXIT101. No schema-only red, unsafe C execution or older red rerun is claimed. WIP checks remain author preparation evidence, not physical results."
+  },
+  "execution_context": {
+    "reviewer": "Read-only source/evidence analysis and private JSON write only. No compiler/test/native/Docker/process/source/auth/public actions or agents.",
+    "root_reported": "Safe116 Windows build0 and Linux default/observer C plus8sound/45host/strict0 completed. Current2a WIP fmt/sound8/world strict0; canonical pinned-driver checks and explicit native116 override identity remain Root gates. Seven new domain roots remain unused; no actual new-domain report supplied."
+  },
+  "retention_gap": "The earlier overwritten first d1 WIP raw log remains unavailable. The labelled excerpt and retained user tool-result failures are partial, not recovered raw. All retained new failures/greens and original measurements remain separate.",
+  "limitations": [
+    "This exact-delta source gate is not positive/sequence/cap/loop/invalid/unlink runtime acceptance. New116 native plus pinned2a driver must execute the seven fresh original controls with actual manifests/payload proof and independent evidence review. No unsafe bcb or old942 binary reuse for changed fixture C.",
+    "No host sound move, playback/device/resume state/destroy/network/per-vehicle delivery/amplitude coverage or full shipping proof is granted. Named unsupported responsibilities remain required D3, not deferred.",
+    "Whole Task51/D3, sound/time/terrain/spatial/model, full40/all8 complete shipping identities/current checks/normal merges remain open; D4/D5 unstarted."
+  ]
+}

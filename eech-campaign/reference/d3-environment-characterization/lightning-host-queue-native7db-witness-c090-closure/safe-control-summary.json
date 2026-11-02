@@ -1,0 +1,179 @@
+{
+  "created_utc": "2026-10-31T19:21:35.477352+00:00",
+  "tested_native": "7db2c6a91b4cd0a1fae2d8e20bfa169584618d24",
+  "new_witness": "c090664ec6aed8268a0d8aeb0812f1e60b2bdb51",
+  "actual_guard_source": "065e8e2dfd237054c52bb359f36a39b27b38d876",
+  "controls": [
+    {
+      "case": "natural",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "payloads": 54,
+      "raw_sha256": "2ba8df21b36eeca7be70ea303d79c9d8ae932034ac250dba9f30d7675434fcb5",
+      "root_consumed": true
+    },
+    {
+      "case": "primitive-1",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "payloads": 54,
+      "raw_sha256": "09372d964448b35ac5eafc0b118150ed7e410c691a179b20ad989b155dc91107",
+      "root_consumed": true
+    },
+    {
+      "case": "primitive-2",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "payloads": 54,
+      "raw_sha256": "98d78a9b9887d54a89cc8d042baf067eb6770a0869d0adb364339d1a7830d313",
+      "root_consumed": true
+    },
+    {
+      "case": "primitive-3",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "payloads": 54,
+      "raw_sha256": "637b2231caf722f477920a4892af4c06cde85085f3033597b1b9af0e826bb14a",
+      "root_consumed": true
+    },
+    {
+      "case": "primitive-4",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "payloads": 54,
+      "raw_sha256": "64ff3722aa2762c1e2961d01deead5c5f08bba9ea52408362163167dac128218",
+      "root_consumed": true
+    },
+    {
+      "case": "authority-healthy",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "payloads": 54,
+      "raw_sha256": "98d78a9b9887d54a89cc8d042baf067eb6770a0869d0adb364339d1a7830d313",
+      "root_consumed": true
+    },
+    {
+      "case": "authority-changed",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "payloads": 54,
+      "raw_sha256": "a5d3cff54c88d723d086f3186f4b9a3274ca5f2c7d3087a9090f0fa001250dd2",
+      "root_consumed": true
+    },
+    {
+      "case": "authority-withheld",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "payloads": 54,
+      "raw_sha256": "00c9bf12404742ec9381e40957125bf9a6e95226e585e33937f6e675e33903b3",
+      "root_consumed": true
+    },
+    {
+      "case": "authority-malformed",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "payloads": 54,
+      "raw_sha256": "bdc3124f7d3702fb46c73faa3391f54a6a223681ed35fa1526d862f83880c341",
+      "root_consumed": true
+    },
+    {
+      "case": "frames-without-fork",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "payloads": 54,
+      "raw_sha256": "9498afe3da20512f4ed66064a5c359fada9b2752b3738fefb979b11323a4e768",
+      "root_consumed": true,
+      "scope": "wrong NeedFrames refused"
+    },
+    {
+      "case": "missing-model-case-5",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "payloads": 54,
+      "raw_sha256": "c03806a74e525581479b9a640c7499d37ae4dc63471a18ccb9304b7eeebe88fa",
+      "root_consumed": true,
+      "scope": "candidate-only forked-age completed; missing-model expectation was wrong, outer1 retained"
+    },
+    {
+      "case": "frame-negative",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "payloads": 54,
+      "raw_sha256": "81a2401ac96b3de17574a39d436461dd85179780b5b76d88664c2d966b6e2f70",
+      "root_consumed": true,
+      "scope": "actual C frame-domain refusal; stopped campaign/no result; not completed physical case"
+    },
+    {
+      "case": "frame-high",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "pre_post_inputs": [
+        0,
+        0
+      ],
+      "payloads": 54,
+      "raw_sha256": "8749cd7b88c6278ac0dbbf994e979d79a1ad325e251f2b34f727d9ac4641ee39",
+      "root_consumed": true,
+      "scope": "actual C frame-domain refusal; stopped campaign/no result; not completed physical case"
+    }
+  ],
+  "total_actual_native_runs": 13,
+  "total_pre_post_input_checks": 26,
+  "all_input_checks_zero": true,
+  "shipping_accepted": false,
+  "current_c090_CI": "pending at final review;7dball9success retained",
+  "strict_comparator_actual_exit": 1,
+  "strict_whole_raw_equal": false,
+  "separate_catalogue_only_classification_exit": 0,
+  "wrong_missing_model_expectation_outer_exit": 1,
+  "all_previous_reds_preserved": true,
+  "remaining": "Main-environment switch/sound order, shared RNG, physical sound creation/lifetimes, time source, texture-model dependency and required terrain/spatial/model, full shipping40/all8completebytes/currentfinalCI/review/normalmerges; campaign policy/calendar/timers remain Core. D4/D5 unstarted."
+}

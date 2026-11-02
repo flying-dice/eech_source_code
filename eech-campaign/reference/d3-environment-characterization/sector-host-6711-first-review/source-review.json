@@ -1,0 +1,215 @@
+{
+  "review_id": "ENV-SECTOR-HOST-6711-20261031",
+  "reviewer": "Sole independent Codex reviewer; no nested agents",
+  "reviewed_utc": "2026-10-31T13:02:46.3732624Z",
+  "scope": "One combined source review of the new production sector operation, C/Rust/Lua boundary, local contracts and public authority witness. Existing field, FP, original-sector and wind evidence reused without repeating those reviews.",
+  "source": {
+    "base": "e3439025ac8217f651d68105d8dd3e81c14b4c73",
+    "head": "6711d5f11804537255d08e5c355f329796cca657",
+    "tree": "bff97f31c01e5794fdad838c59a6f17ea8e622c3",
+    "frozen": "R:/d3-evidence/environment-sector-source-6711d5f11",
+    "working_tree_clean": true,
+    "files": [
+      {
+        "path": "STATUS.md",
+        "blob": "2b5f7ee61f23cb00fa5ee1d7746aa551ec7005b7",
+        "sha256": "e9db316fe498d8725b07451ef65c88e807dcbccc5971f9056d4e96bc56de6649"
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostterrain.c",
+        "blob": "3072bc7506719108c97cc2c714b5ef80ff9e2e7d",
+        "sha256": "e6a863d5cdaa2f6f0c2f93a8ee06a0e293db23abeba391b6e9c8aadc2bd1be8e"
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostterrain.h",
+        "blob": "995ad4b8c22f344d4ce475caf38d5bb2753227aa",
+        "sha256": "7b08a1b424fa08c7e403efca22da03a30441c9ca287d3cc6e946bf061d07d0bd"
+      },
+      {
+        "path": "eech-campaign/crates/eech-dc/src/module.rs",
+        "blob": "69f6861f54b25f7a502ad4d3fb5a7263b1894946",
+        "sha256": "8cf5f64f2c0037e86a6dacd522f40d0f6a80d1e5340d117b4885045ebdc183a7"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c",
+        "blob": "244edee59ea86c6428ffcbbb94aef065f9ca4f7b",
+        "sha256": "2af0a4616585568dafb0f4916459a8de589ccb799dc820979d10c078ac8e8c95"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+        "blob": "66d26eb3275bb48e9985d11bd443446dc92af15a",
+        "sha256": "607da37e05f5c6a1eb3ff8535f3792773dd3756637258e6c75c32b5b3aa02259"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+        "blob": "592b8db82bd8584fa933fb5f097b6d9df0fbb476",
+        "sha256": "fca487c1a2c78f3d8aa821f31753a2006b6f223a7bc5b63606d84b0ed1ff7797"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/csrc/terrain_ref.c",
+        "blob": "a71b9cb0fa00939ed4a55985fd90cdacea0c5626",
+        "sha256": "eb51310f632e5d711bb47266c25082724b3de0fe36c4b35c172f1efce5123307"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/csrc/terrain_ref.h",
+        "blob": "a9e629fcf30fcb66a2d1c23c8c1d9e114e56dbe7",
+        "sha256": "3ff59a6027b0ca5d5a5dc3882c9ac9de2f74c653b03197583ccd3312f5816981"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-sector-authority.lua",
+        "blob": "1c929ab6826626408bae3d67877edc0594be1532",
+        "sha256": "21b4f8a23d8632fe6c97f61d071a52d80fb133467e4a09b69fec44f98a31965d"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/terrain-provider.lua",
+        "blob": "bc04b1ab45b6bef794d5ca480a0ff0b30bd223bb",
+        "sha256": "0ec74f8e3ce5359c3df7eaa3c50f2600321d506b34d1b3be1de1bb0836e1da93"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/terrain.rs",
+        "blob": "07caafebf3f015b834a690ea16d3a495ec01a002",
+        "sha256": "bd480f617989918cf61f1a2118a05e098b2716f53a5fb043cdb09f2586f091aa"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_sector_authority.rs",
+        "blob": "64cd8089765412bad4adeeb49fa2f8d6d58c3057",
+        "sha256": "44ddb96ae46698fd488c94bfd4ef22ab4df2a10115cd367569e80c33f1a0d9db"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/terrain_sector.rs",
+        "blob": "076417a7b33c4f35d203f14fee4b8d006a96624f",
+        "sha256": "871ffe9242d03172a0dff140c411b17e31505e35ab308a9a78c1d1a1adab721c"
+      },
+      {
+        "path": "eech-campaign/docs/d3-environment-provider.md",
+        "blob": "2f306a473888d51c08ea01997fb1a3d82eaf851c",
+        "sha256": "fcf3312c981a9dab45274c827f8c698cb777084ee31c0c19f95a22af0ae216ed"
+      },
+      {
+        "path": "eech-campaign/docs/d3-environment-sector-surface.md",
+        "blob": "9d5b7ff00328cd7826e40a8282665687e71f39f1",
+        "sha256": "caa7e2e494a8bd5f45b020e55563f12032e48d14ed0129e295c8f79236bb6691"
+      },
+      {
+        "path": "eech-campaign/reference/d3-environment-characterization/time-and-DCS-reference-audit/DCS-reference-inventory.json",
+        "blob": "45ee5beedc3387e1e8ed3546b0f093c91273830d",
+        "sha256": "3dd201bb25adb588c0ddef23ffd07831b688931b818cbdeeb6fb2e287e6f1ed4"
+      },
+      {
+        "path": "eech-campaign/reference/d3-environment-characterization/time-and-DCS-reference-audit/independent-bounded-review.json",
+        "blob": "a2cc1025b2e0bbb01a306f174df5b617f5ac2a0c",
+        "sha256": "b9b063a7622d260ab8be79b499ce209d071b77384d19cf32f54b81d58710e57c"
+      },
+      {
+        "path": "eech-campaign/reference/d3-environment-characterization/time-and-DCS-reference-audit/scope.json",
+        "blob": "92878c3966ed148fb3ea37c743d11d3a605535e0",
+        "sha256": "da0559905886736672a6ebfb60162ceb93d889ae64122ccd49470e4fd4cd35b7"
+      },
+      {
+        "path": "eech-campaign/reference/d3-environment-characterization/time-and-DCS-reference-audit/time-input-source-audit.json",
+        "blob": "8415bbd1811b04d7b6ba60f00b0f5a5dc797f609",
+        "sha256": "bf71b224b3351d402376d452ddeb5c479f74124b8490521732917a2537f18e4f"
+      },
+      {
+        "path": "modules/3d/terrain/terrdata.c",
+        "blob": "d606f94b956c84f71e3334afed4b5fdb29be38c3",
+        "sha256": "bb770a8c6a2f39060d8beff57a1f4ad3bac7f342cab0bde06a55bfec89b9826f"
+      }
+    ]
+  },
+  "authority_scope": "Root supplies current Confluence authority M5 11534337v3 and ledger14548994v89 and existing user authorization. AGENT/HOST-HANDOVER/PROJECT read. No independent live authority refresh or merge performed.",
+  "inspected_facts": [
+    {
+      "refs": [
+        "modules/3d/terrain/terrdata.c:1747",
+        "aphavoc/source/entity/mobile/mb_hostterrain.c:350",
+        "aphavoc/source/entity/mobile/mb_hostterrain.h:45",
+        "eech-campaign/crates/eech-engine-sys/src/lib.rs:1133"
+      ],
+      "fact": "Existing HOST_TERRAIN dispatch routes get_terrain_3d_types_in_sector to the provider. C and repr(C) Rust reply fields match in order and types, with the new integer and 64-byte flags appended. The Core client validates all 62 binary characters, terminator and returned/count relation before writing any mirror entry. It has no sector-data fallback."
+    },
+    {
+      "refs": [
+        "eech-campaign/crates/eech-engine/src/lib.rs:1125",
+        "eech-campaign/crates/eech-engine/src/lib.rs:1181",
+        "eech-campaign/crates/eech-dc/src/module.rs:408",
+        "eech-campaign/crates/eech-world/src/terrain.rs:475"
+      ],
+      "fact": "The direct Rust callback stages the complete reply until validation succeeds; Lua sector validation uses the operation captured before invoking the provider. The new FFI buffers and map remain live for the synchronous call. Existing season capture, map/point/fast handling and opaque hints retain their paths."
+    },
+    {
+      "refs": [
+        "eech-campaign/crates/eech-world/csrc/terrain_ref.c:2504",
+        "eech-campaign/crates/eech-world/csrc/terrain_ref.c:3634",
+        "eech-campaign/crates/eech-world/tests/terrain_sector.rs:84"
+      ],
+      "fact": "The host enumerates its independently owned loader copy, first surface plus each surface-change entry; count is transitions plus one, not distinct flags. The existing loader bounds-checks polygon and changes+1 spans before making the copy. New checks bound the chosen sector before indexing and check surface IDs before flag indexing. Synthetic tests cover repeated types, first-entry-only behavior, empty sectors and finite/outside domain, but not FP preservation."
+    },
+    {
+      "refs": [
+        "aphavoc/source/entity/special/session/ss_updt.c:890",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_env_observer.c:109",
+        "eech-campaign/crates/eech-world/lua/env-sector-authority.lua:181",
+        "eech-campaign/docs/d3-environment-sector-surface.md"
+      ],
+      "fact": "Unchanged real sound code calls the query immediately before its scratch observer hook; the observer emits changed scratch/camera records as two events and separately counts calls. The witness sends the six documented flags and returned=11 for changed mode, compares the first observed scratch hash/count/position, and checks named refusal markers. It explicitly excludes sound amplitude, renderer/player and other sector readers. Per-type triangle scratch writers remain named unmoved D3 coupling."
+    }
+  ],
+  "findings": [
+    {
+      "id": "ENV-SECTOR-HOST-1",
+      "priority": "P1",
+      "title": "Preserve the complete caller FP state in the new sector entry",
+      "refs": [
+        "eech-campaign/crates/eech-world/csrc/terrain_ref.c:3658",
+        "eech-campaign/crates/eech-world/csrc/terrain_ref.c:3663",
+        "eech-campaign/crates/eech-world/csrc/terrain_ref.c:3673",
+        "eech-campaign/crates/eech-world/csrc/terrain_ref.h:76",
+        "eech-campaign/crates/eech-world/tests/terrain_sector.rs:114"
+      ],
+      "problem": "The new C entry performs finite classification, float division, comparisons and float-to-int conversion without any FP save/restore. Its stated justification that power-of-two scaling and truncation cannot touch the FP environment is false. For the admitted finite domain, the smallest binary32 subnormal divided by 2048 is not representable in binary32 and can set underflow/precision (or expose FTZ/DAZ/denormal handling); ordinary fractional conversions such as 1.0/2048 to int can set precision, and x87 loads/conversions can change status condition bits. Early refusals are also unguarded. The new tests never seed or compare caller CW/SW/TW/MXCSR.",
+      "impact": "A normal or refused sector query can leak host-kernel FP effects into the caller, violating the required complete caller-state boundary. Numerical flag leakage is not disproved by unchanged sector flags or three-root equality.",
+      "requested_change": "Make the new operation preserve complete caller x87 and SSE state on every success/refusal path, with guard placement and output staging that do not perform floating work before save or after restore; alternatively use a demonstrably integer-only bitwise sector choice with the same complete-state contract. Add focused coverage of normal fractional coordinates, signed zero/subnormals and refusals under seeded full caller state and rounding modes, using the existing component approach. Correct the C/header/docs assertion. Keep this finite to the new sector entry; no generic DLL repair or tolerance change.",
+      "validation_status": "Source-supported finding; no compiler, assembly or runtime experiment performed by reviewer."
+    },
+    {
+      "id": "ENV-SECTOR-HOST-2",
+      "priority": "P2",
+      "title": "Reject incomplete observer evidence before judging authority",
+      "refs": [
+        "eech-campaign/crates/eech-world/lua/env-sector-authority.lua:185",
+        "eech-campaign/crates/eech-world/lua/env-sector-authority.lua:190",
+        "eech-campaign/crates/eech-world/lua/env-sector-authority.lua:198",
+        "eech-campaign/crates/eech-world/tests/env_sector_authority.rs:179",
+        "eech-campaign/crates/eech-world/tests/env_sector_authority.rs:323"
+      ],
+      "problem": "The new Lua driver ignores the actual observer report dropped/overflow/stored/read/next_seq fields and accepts event streams without checking consecutive sequence numbers or consecutive sound-pair halves. It records sound_records but never reconciles it with parsed pairs. Rust Facts::parse binds that field as the unused Result _records, so a missing or invalid sound_records is not even propagated as an error. Only the first pair is judged. Thus correct first scratch evidence followed by dropped, gapped or truncated observer data can still be reported as a healthy judged run. The changed judge also lacks the control judge check that frames equals frames_wanted, allowing a partial completed changed run to pass its current counter checks.",
+      "impact": "The authority gate can bless incomplete evidence or a partial changed run while asserting complete healthy observations. This affects the new witness gate, not the validity of the retained original recordings.",
+      "requested_change": "Validate the existing real observer report loss/cursor/count fields and complete drained stream sequence; reject missing, duplicated, nonconsecutive or malformed paired sound records; reconcile sound_records with parsed pairs before truncating publishable sample rows. Propagate every required counter parse result, check completed frame counts against the requested boot/authority counts in both healthy modes, and add finite driver/judge rejection cases. Retain the honest first-record hash/count scope and refusal final-observer-unavailable disclosure; no new instrumentation or trace framework is needed.",
+      "validation_status": "Source-supported finding; examples follow directly from existing branches, not executed synthetic or product tests."
+    }
+  ],
+  "reuse": [
+    {
+      "report": "independent-environment-sector-original-actual-review-a1002fb8d-20261031.json",
+      "sha256": "1408817f9a1ddf8875fb9f03505ef2251c5b5efe81e1ef8dd38b488a5de16200",
+      "scope": "Closed original helper on hosted-field baseline: three roots, no sampled count/distinct mismatch; no unchanged source/runtime rerun."
+    },
+    {
+      "report": "independent-environment-time-api-inventory-review-20261031.json",
+      "sha256": "f06419f791544ea7c68de1fe4390fe0c08b92b7bc66b624b7e6a6ed2c2b66651",
+      "scope": "Newly curated time/API reference documents are reused at their bounded review identity, not reconsidered as migration acceptance."
+    }
+  ],
+  "checks": {
+    "performed": "Read-only diff/source inspection, identity/hashes, clean-tree and git diff --check (0).",
+    "not_performed": "No edits to source, builds, compilers, native runs, Docker, process changes, external calls, auth or public writes.",
+    "root_reported_runtime_state": "At task handoff Linux and Windows builds/tests were live; no success supplied. Candidate three-root comparison and five-mode authority runs pending."
+  },
+  "verdict": "CHANGES_REQUIRED: two finite grouped findings. Source review is not compiler/runtime/authority/shipping acceptance.",
+  "limitations": [
+    "No new tests were run by the reviewer. Root owns actual component tests on Linux/Windows/i686, original/candidate equivalence, all public modes, source/binary/script/input identities and current CI.",
+    "Hash/count observation supports only the recorded scratch input, not sound amplitudes or full physical/campaign state. No player/renderer inference.",
+    "Whole Task51/D3 and full shipping gates remain open, including physical effects/time, remaining terrain, spatial/object and model services. D4/D5 are unstarted. All old originals, raw files and live ground runs remain preserved."
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "source": "34c7c28bfbd0dd960380de6dc1a479a569c26e97",
+  "artifact": "/target/x86_64-pc-windows-gnu/release/deps/env_wind_authority-9d1dad678964b3a1.exe",
+  "export": "/src/eech-campaign/target/windows-env-wind-tests-34c7c28bf/env_wind_authority.exe",
+  "sha256": "428f0de7e513acf529198b69c4f9216eecb1ac7180bfff229d8bc04a294acc52",
+  "native_source": "47f3d9460fcca0acc341a105b4193321ceca14fa",
+  "scope": "NEW34c7c28bfjudge/embeddedLua compile/export ONLY, runtimeusesimmutable47nativewithverifiedproductionequivalence; actualWindows guards/fivepublicmodespending"
+}

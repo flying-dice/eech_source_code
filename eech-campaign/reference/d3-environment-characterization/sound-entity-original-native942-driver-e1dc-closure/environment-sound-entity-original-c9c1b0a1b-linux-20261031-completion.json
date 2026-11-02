@@ -1,0 +1,18 @@
+{
+  "source": "c9c1b0a1bed1b3e4bbfc31e87b37e18c2b446489",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-sound-entity-original-c9c1b0a1b-linux-20261031.sh"
+  ],
+  "pid": 20372,
+  "controller_pid": 21156,
+  "state": "terminal",
+  "started_utc": "2026-10-31T19:46:13.073898+00:00",
+  "scope": "Original physicalsound entity characterization linux ordinarybuild/affected-packagechecks; realretailconformance/authority/shipping acceptance separate",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T19:55:07.713082+00:00"
+}

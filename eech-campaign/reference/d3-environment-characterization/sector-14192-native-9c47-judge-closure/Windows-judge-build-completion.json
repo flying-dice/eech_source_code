@@ -1,0 +1,18 @@
+{
+  "source": "9c47b972aae4dc6640a09f6d9cc13d5f2de81db0",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-sector-judge-9c47b972a-windows-20261031.sh"
+  ],
+  "pid": 22052,
+  "controller_pid": 7980,
+  "state": "terminal",
+  "started_utc": "2026-10-31T13:52:39.157151+00:00",
+  "scope": "New sector judge-only compileexport, native14192 unchanged; actualruntime separate",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T13:53:42.956428+00:00"
+}

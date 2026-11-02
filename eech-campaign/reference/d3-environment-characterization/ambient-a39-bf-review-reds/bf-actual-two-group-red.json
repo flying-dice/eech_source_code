@@ -1,0 +1,27 @@
+{
+  "source": "bf64653dee245027a5ac46ebe4ad201790639200",
+  "production_same_as": "a39a7a2ec07f5ec9e02008c58463003e9107978a",
+  "EnvFP": {
+    "Linux_actual_exit": 101,
+    "answer_changes": 768,
+    "calls": 3840,
+    "Windows_actual_exit": 101,
+    "Windows_passed": 2,
+    "Windows_failed": 1
+  },
+  "wide": {
+    "actual_native_exit": 1,
+    "actual_controller_exit": 1,
+    "pre_input_exit": 0,
+    "post_input_exit": 0,
+    "verified_payloads": 51,
+    "healthy_case_terrain_children": 16,
+    "failing_case_terrain_children": 17,
+    "marker": "[terrain-provider:ambient.request] the session has more than 16 terrain ambient sound children",
+    "completed20": false,
+    "process_isolated": true,
+    "heap_restored": false
+  },
+  "harness": "3pass1fail innewRust errorwrapperassertion only; rootruntargetEnvseparately, realCpathwide redcapturedindependently. No fakepassingmetadata.",
+  "scope": "Meaningfulactual TWOreviewgroups red. No masks/retailbaseline/tolerancechanges; noFPleakabsence/authority/fullshipping/Task51/D3acceptance."
+}

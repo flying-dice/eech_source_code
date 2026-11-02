@@ -42,6 +42,10 @@ weapon-fixture = ["eech-engine/weapon-fixture"]
 model-fixture = ["eech-engine/model-fixture"]
 # TEST-ONLY (EEDCS-50 D3): the shipping host-owned model data plus a diagnostic that counts the host's answers and overwrites the campaign's own model arrays. Never enabled in the shipping build.
 model-host-fixture = ["eech-engine/model-host-fixture"]
+# TEST-ONLY (EEDCS-51): the original session environment (weather, wind, clock) characterisation. Never enabled in the shipping build.
+env-fixture = ["eech-engine/env-fixture"]
+# TEST-ONLY (EEDCS-51): the read-only observer of the original environment initialisation, shared-entropy order, lightning/sound effects and frame time phase. Never enabled in the shipping build.
+env-observer = ["env-fixture", "eech-engine/env-observer"]
 # TEST-ONLY (EEDCS-48): the ground-contact characterisation probe. Never enabled in the shipping build.
 ground-fixture = ["eech-engine/ground-fixture"]
 # TEST-ONLY (EEDCS-50, D3): the observer of the original airfield route parser (route_summary and route_call). Never enabled in the shipping build.

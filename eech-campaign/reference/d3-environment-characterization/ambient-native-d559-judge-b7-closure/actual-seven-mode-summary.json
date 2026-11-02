@@ -1,0 +1,170 @@
+{
+  "judge_source": "b7fbb2eab20677a6f2efed0116931f97e3a6b320",
+  "native_source": "d559c38592405afcabc172ec876a4fdfa7f9687b",
+  "when_utc": "2026-10-31T16:24:34.143030+00:00",
+  "actual_public_test_exit": 0,
+  "actual_public_test_seconds": 30.84,
+  "actual_Windows_guard_exit": 0,
+  "pre_inputs": 7,
+  "post_inputs": 7,
+  "all14input_exits_zero": true,
+  "native_payloads_exact": 51,
+  "copied_driver_exact": true,
+  "scope": "REALpublicLua->nativecampaign->realG11case27soundchildren. Threecompleted modes reference/changedenv/changedterrain; four stopped-engine refusals at namedexistingguards, not completedcampaigns. Exacthostsentamplitudes/class-order mapping validated by reviewedjudge. No frame/audio/player/render/Tacview/fullshipping/Task51/D3acceptance.",
+  "rows": [
+    {
+      "mode": "control",
+      "json_rows": 6,
+      "completed": true,
+      "case_rows": 1,
+      "sha256": "c67e848d4a1e49c6b94d2dc5b2829032ebfffbd2507685eabaf7d55ec74ca33a",
+      "authority": {
+        "calls": 1,
+        "case": 27,
+        "completed": true,
+        "env_altered": 0,
+        "env_ambient_requests": 1,
+        "event": "authority",
+        "expected_marker": "",
+        "failure": "",
+        "mode": "control",
+        "request_rows_env": 1,
+        "request_rows_terrain": 1,
+        "terrain_altered": 0,
+        "terrain_ambient_requests": 1
+      }
+    },
+    {
+      "mode": "changed_env_ambient",
+      "json_rows": 6,
+      "completed": true,
+      "case_rows": 1,
+      "sha256": "97940f96f78024bd3f2be7ae4b415cd9445b0eca56b5eb516ea3a2eef2bf908d",
+      "authority": {
+        "calls": 1,
+        "case": 27,
+        "completed": true,
+        "env_altered": 1,
+        "env_ambient_requests": 1,
+        "event": "authority",
+        "expected_marker": "",
+        "failure": "",
+        "mode": "changed_env_ambient",
+        "request_rows_env": 1,
+        "request_rows_terrain": 1,
+        "terrain_altered": 0,
+        "terrain_ambient_requests": 1
+      }
+    },
+    {
+      "mode": "changed_terrain_ambient",
+      "json_rows": 6,
+      "completed": true,
+      "case_rows": 1,
+      "sha256": "4566929ea2bf8924487000726e248aa6d44348937d6bd598b6bfa9444f6318ea",
+      "authority": {
+        "calls": 1,
+        "case": 27,
+        "completed": true,
+        "env_altered": 0,
+        "env_ambient_requests": 1,
+        "event": "authority",
+        "expected_marker": "",
+        "failure": "",
+        "mode": "changed_terrain_ambient",
+        "request_rows_env": 1,
+        "request_rows_terrain": 1,
+        "terrain_altered": 1,
+        "terrain_ambient_requests": 1
+      }
+    },
+    {
+      "mode": "withheld_env_ambient",
+      "json_rows": 4,
+      "completed": false,
+      "case_rows": 0,
+      "sha256": "2abde9fb09f943fbf09971ec1632bb96010b3c3ca268e5189088ed72bceb37e3",
+      "authority": {
+        "calls": -1,
+        "case": 27,
+        "completed": false,
+        "env_altered": 1,
+        "env_ambient_requests": 1,
+        "event": "authority",
+        "expected_marker": "[env-provider:ambient.callback]",
+        "failure": "runtime error: eech: EECH fatal error: host environment: [env-provider:ambient.callback] the host withholds its ambient environment answer",
+        "mode": "withheld_env_ambient",
+        "request_rows_env": 1,
+        "request_rows_terrain": 0,
+        "terrain_altered": 0,
+        "terrain_ambient_requests": 0
+      }
+    },
+    {
+      "mode": "malformed_env_ambient",
+      "json_rows": 4,
+      "completed": false,
+      "case_rows": 0,
+      "sha256": "fba4e09d4f4b81ee717425dc4292d68d0740f33a816b64ca30af5e44a3e9cd31",
+      "authority": {
+        "calls": -1,
+        "case": 27,
+        "completed": false,
+        "env_altered": 1,
+        "env_ambient_requests": 1,
+        "event": "authority",
+        "expected_marker": "[env-provider:ambient.answer]",
+        "failure": "runtime error: eech: EECH fatal error: host environment: [env-provider:ambient.answer] wind_light must be within 0 to 1",
+        "mode": "malformed_env_ambient",
+        "request_rows_env": 1,
+        "request_rows_terrain": 0,
+        "terrain_altered": 0,
+        "terrain_ambient_requests": 0
+      }
+    },
+    {
+      "mode": "withheld_terrain_ambient",
+      "json_rows": 5,
+      "completed": false,
+      "case_rows": 0,
+      "sha256": "cab59073db61fa797e30af64890a483ddd7859d77a956a7656f45793da58f1e1",
+      "authority": {
+        "calls": -1,
+        "case": 27,
+        "completed": false,
+        "env_altered": 0,
+        "env_ambient_requests": 1,
+        "event": "authority",
+        "expected_marker": "[terrain-provider:ambient.callback]",
+        "failure": "runtime error: eech: EECH fatal error: host terrain: [terrain-provider:ambient.callback] the host withholds its ambient terrain answer",
+        "mode": "withheld_terrain_ambient",
+        "request_rows_env": 1,
+        "request_rows_terrain": 1,
+        "terrain_altered": 1,
+        "terrain_ambient_requests": 1
+      }
+    },
+    {
+      "mode": "malformed_terrain_ambient",
+      "json_rows": 5,
+      "completed": false,
+      "case_rows": 0,
+      "sha256": "558d74cb7e9ca4d666edf414b61e137c39635e2533d4edcf26ff0eedc43683da",
+      "authority": {
+        "calls": -1,
+        "case": 27,
+        "completed": false,
+        "env_altered": 0,
+        "env_ambient_requests": 1,
+        "event": "authority",
+        "expected_marker": "[terrain-provider:ambient.amplitudes]",
+        "failure": "runtime error: eech: EECH fatal error: host terrain: [terrain-provider:ambient.amplitudes] amplitudes must be a list of exactly 6 numbers, one for each child",
+        "mode": "malformed_terrain_ambient",
+        "request_rows_env": 1,
+        "request_rows_terrain": 1,
+        "terrain_altered": 1,
+        "terrain_ambient_requests": 1
+      }
+    }
+  ]
+}

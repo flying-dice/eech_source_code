@@ -1,0 +1,69 @@
+{
+  "review": "Independent hosted SoundEffect playback-entry correction source review",
+  "created_utc": "2026-11-01T16:12:56.225758+00:00",
+  "source": {
+    "head": "78fe5efdb5cbaff904e3b645d680acbd7776597d",
+    "base": "6a72036984a793c9cf7c7520cb9a65747527a87a",
+    "frozen": "D:\\EECH-Migration-Evidence\\nb-78fe5efdb",
+    "clean": true,
+    "diff_sha256": "31967824dabb1bc5910286db7ae794d6f877c3941b110b56736f12c7bbd1f647",
+    "changed_files": [
+      {
+        "path": "STATUS.md",
+        "git_blob_sha256": "0e3b275a610d4229660b7567f6f27a5e3074cd12b40d09fdbd9e914dc8d08210"
+      },
+      {
+        "path": "aphavoc/source/appsound/snd_nobackend.c",
+        "git_blob_sha256": "000404d0c52743a0941f80e1e3b21b9551c8b155af4ce8c5e1a57bcdc0bf98ef"
+      },
+      {
+        "path": "aphavoc/source/entity/special/effect/soundeff/se_snd.c",
+        "git_blob_sha256": "9259bb7f2a141834ce7f9163dd50cfa716d220ee8ac64f467850776920cc2ee3"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c",
+        "git_blob_sha256": "68b0847ac328feecd42d8fb00ae3b91f0cfacb5e66b96d99fe84484e2248b571"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-sound-native-guard.lua",
+        "git_blob_sha256": "8384683d3d95d7afb744cc776972452b95ae4972b19bce50a6d5fadede621878"
+      },
+      {
+        "path": "eech-campaign/docs/d3-sound-lifetime.md",
+        "git_blob_sha256": "ecec877938eac6d882d17c19f65620fc0f5a51619d6347d19d5eca0b170eba59"
+      }
+    ],
+    "engine_nul_offsets": [
+      40800
+    ]
+  },
+  "scope": "One new six-path correction pass for ENV-SOUND-DETACH-1 from report333dd13956ca75587d12fb4f186622e18188203261efac309972495b1ba32870. Earlier adapter/ABI/loader gate/CD pause/fixture memory/strict witness conclusions reused; no repeated source fleet or reviewer build/test/native execution.",
+  "findings": [],
+  "source_review_no_blocking_findings": true,
+  "closed_findings": [
+    {
+      "id": "ENV-SOUND-DETACH-1",
+      "status": "source_closed",
+      "basis": [
+        "Hosted play_local_sound retains the original Core option, locality, broken-radio and dead-effect policy gates. Their existing held-handle destroy attempts still reach the explicit adapter refusal before pointer mutation.",
+        "The new hosted decision immediately after those gates checks semantic handle presence only, refuses a held-handle playback request by the strict named native-handle fatal, and returns for the empty no-handle request. It precedes range getters/attenuation, amplification, radio frand1, channel/canopy/interior mixing, volume conversion and native create/query/play calls. No handle dereference or new physical solver is introduced.",
+        "The legacy mixer/body is under the non-host #else. Float and integer mixer locals are non-host-only as well. Source branch selection and token comparison show the classic branch unchanged; actual compiled object/link verification is a separate Root gate.",
+        "The supported no-handle request is empty in the reference no-backend contract because constructors cannot produce a native handle. The dropped discarded radio-noise draw is explicitly disclosed. Supported production frame routing remains scan gated false, SESSION default no-op and nonSESSION live-parent refusal; this is bounded route evidence, not global dormancy or arbitrary caller/RNG equivalence.",
+        "Adapter function bodies, lifetime precommit refusal and fixture operational bodies are unchanged6a; only their comments clarify the earlier semantic stop. The candidate Lua executable logic is unchanged except its fixed explanatory note now correctly identifies case24 entry refusal; Rust guard bytes are unchanged. No postpoison census/cleanup/receiver-zero result is claimed."
+      ]
+    }
+  ],
+  "classic_and_host_source_checks": {
+    "method": "Pure read-only selection of the explicit EECH_CAMPAIGN_HOST_ENV branches; preserve other directives; compare C lexical tokens with comments/whitespace excluded. This is not a compiler/preprocessor/object/runtime test.",
+    "classic_tokens_equal": true,
+    "classic_tokens_sha256": "1544ebd17b4ca622d25678cd7882f6ccff12a2f8811a1de58fb5c1c476ebc895",
+    "hosted_playback_body_has_mixer_calls": false,
+    "unchanged_guard_git_blob_sha256": "13135f5fd532268de5ddd06fdad09616804e140d9898bb020aed5f29897508ce"
+  },
+  "execution_context": "Root reported6a observer/defaultCore builds0 and five backend members absent for6a, retained as6a evidence only. Corrected78 named observer/defaultCore-object audit/Linux guard/fmt/strict/Windows guard gates were launching; no new78 success or actual campaign outcome is inferred here.",
+  "limits": [
+    "Finite source correction gate only; candidate native refusals/default conformance and corrected actual archive/object/link absence await execution review. Old6a builds cannot be relabelled78.",
+    "The original-game backend/body remains available to its own build. Legacy gated sample-loader/UI/flight callers and retained compatibility declarations are not claimed globally absent or exercised.",
+    "No positive device/audio/buffer support, full caller FP/RNG, all-family/global dormancy, Tacview/shipping, normal delivery or whole Task51/D3 acceptance. Required49/50/time/mapping/services remain open."
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "created_utc": "2026-11-01T12:21:56.234361+00:00",
+  "native_source": "8e90ab42e41102fb5045a64e7c46f88b7df8048e",
+  "actual_native_exit": 0,
+  "actual_controller_exit": 0,
+  "full_pre_post_input_exits": [
+    0,
+    0
+  ],
+  "verified_payloads_unchanged": 69,
+  "source": "D:\\EECH-Migration-Evidence\\rotor-unarmed-diagnostic-e54423b5c-20261101-0813\\environment.jsonl",
+  "candidate": "D:\\EECH-Migration-Evidence\\parent-play-original-native8e-driver1fb-20261101\\unarmed\\environment.jsonl",
+  "source_bytes": 5191384,
+  "candidate_bytes": 5191384,
+  "source_sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+  "candidate_sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+  "all_complete_bytes_including_endings_equal": true,
+  "rows": 17283,
+  "completed_utc": "2026-11-01T12:19:43.636527+00:00",
+  "scope": "ONE complete original-parentplay-observer-unarmed120 control. Compared complete bytes to retained original (not a prefix, normalized fields or re-recorded golden). New observer hooks compiled but parent probe unarmed; no C fixture run. Retain/reuse across witness-only boot-shape correction with native8e unchanged. Other three controls failed separately before frames/case and are NOT successes. Not shipping/Tacview/removal/wholeTask51/D3 acceptance.",
+  "actual_exit": 0
+}

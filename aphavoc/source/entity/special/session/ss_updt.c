@@ -66,6 +66,10 @@
 
 #include "project.h"
 
+#include "entity/special/session/ss_envfx.h"
+
+#include "entity/mobile/mb_hostterrain.h"
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -92,6 +96,8 @@ static void update_time_of_day (entity *en)
 	// Time of day
 	//
 
+	ENV_FX (ENV_FX_TOD_BEGIN, 0, 0, ENV_FXF (raw->elapsed_time), ENV_FXF (get_delta_time ()), ENV_FXF (raw->time_of_day_acceleration), 0, 0, 0)
+
 	raw->elapsed_time += (get_delta_time () * raw->time_of_day_acceleration);
 
 	time_of_day = calculate_session_time_of_day (en, NULL);
@@ -117,6 +123,8 @@ static void update_time_of_day (entity *en)
 	}
 
 	raw->day_segment_type = get_day_segment_type (time_of_day);
+
+	ENV_FX (ENV_FX_TOD_END, raw->skip_night_time, raw->day_segment_type, ENV_FXF (raw->elapsed_time), ENV_FXF (time_of_day), 0, 0, 0, 0)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -137,6 +145,8 @@ static void update_time_of_day_resync (entity *en)
 	if (raw->time_of_day_resync > SESSION_RESYNC_FREQUENCY)
 	{
 
+		ENV_FXC (ENV_FX_C_RESYNC_CALLS)
+
 		transmit_entity_comms_message (ENTITY_COMMS_UPDATE, en);
 
 		raw->time_of_day_resync = 0.0;
@@ -152,6 +162,193 @@ static void update_time_of_day_resync (entity *en)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef EECH_CAMPAIGN_HOST_ENV
+
+//
+// EECH_CAMPAIGN_HOST_ENV (EEDCS-51, D3): the physical update of the weather, the wind and the lightning timer is the host's (ss_hostenv.h STEP).  The campaign keeps what the
+// original did around it, in the original order: the delta it reads is the previous frame's, the one draw of the shared random word that the next timer needs is made where
+// update_lightning_effect made it (inside campaign_env_step, straight after the host reports the expiry), the timer is set through the campaign's own setter, and then the
+// strikes and the two sound entities (their pitch draws, their allocation) are created in the original order at the position the original struck: the weather centre BEFORE it
+// moved.  The original solver follows, for the original game's build only.
+//
+
+static void create_lightning_effects (entity *en, vec3d *strike_position)
+{
+	env_3d
+		*current_3d_env;
+
+	//
+	// create lightning
+	//
+
+	ENV_FXQ (ENV_FXQ_ENTRY)
+
+	current_3d_env = get_3d_active_environment ();
+
+	if (current_3d_env == main_3d_env)
+	{
+		current_3d_env = NULL;
+	}
+	else
+	{
+		set_3d_active_environment (main_3d_env);
+	}
+
+	ENV_FX (ENV_FX_LIGHTNING_ENV, current_3d_env == NULL, 0, 0, 0, 0, 0, 0, 0)
+
+	ENV_FX (ENV_FX_STRIKE_BEGIN, 1, 0, ENV_FXF (strike_position->x), ENV_FXF (strike_position->z), 0, 0, 0, 0)
+
+	ENV_FXQ (ENV_FXQ_BEFORE_1)
+
+	add_3d_lightning_strike (LIGHTNING_TYPE_CLOUD_BURST, 0.3, strike_position->x, strike_position->z);
+
+	ENV_FXQ (ENV_FXQ_AFTER_1)
+
+	ENV_FX (ENV_FX_STRIKE_END, 1, 0, 0, 0, 0, 0, 0, 0)
+
+	ENV_FX (ENV_FX_STRIKE_BEGIN, 2, 0, ENV_FXF (strike_position->x), ENV_FXF (strike_position->z), 0, 0, 0, 0)
+
+	ENV_FXQ (ENV_FXQ_BEFORE_2)
+
+	add_3d_lightning_strike (LIGHTNING_TYPE_FORKED_1, 0.3, strike_position->x, strike_position->z);
+
+	ENV_FXQ (ENV_FXQ_AFTER_2)
+
+	ENV_FX (ENV_FX_STRIKE_END, 2, 0, 0, 0, 0, 0, 0, 0)
+
+	if (current_3d_env)
+	{
+		set_3d_active_environment (current_3d_env);
+	}
+
+	ENV_FXQ (ENV_FXQ_RESTORED)
+
+	if (get_comms_model () == COMMS_MODEL_SERVER)
+	{
+		sound_sample_indices
+			sound_effect_index;
+
+		//
+		// lightning sound effect
+		//
+
+		sound_effect_index = SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING;
+
+		ENV_FX (ENV_FX_SOUND_BEGIN, 1, 0, get_next_free_entity_index (), get_next_free_local_entity_index (), 0, 0, 0, 0)
+
+		create_client_server_sound_effect_entity
+		(
+			get_local_sector_entity (strike_position),
+			ENTITY_SIDE_NEUTRAL,
+			ENTITY_SUB_TYPE_EFFECT_SOUND_MISC,
+			SOUND_CHANNEL_SOUND_EFFECT,
+			SOUND_LOCALITY_ALL,
+			strike_position,								// position
+			1.0,												// amplification
+			0.85+(0.3* frand1 ()), //pitch
+			TRUE,												// valid sound effect
+			FALSE,											// looping
+			1,													// sample count
+			&sound_effect_index							// sample index list
+		);
+
+		ENV_FX (ENV_FX_SOUND_END, 1, 0, get_next_free_entity_index (), get_next_free_local_entity_index (), 0, 0, 0, 0)
+
+		//
+		// thunder sound effect
+		//
+
+		sound_effect_index = SOUND_SAMPLE_INDEX_AMBIENT_THUNDER;
+
+		ENV_FX (ENV_FX_SOUND_BEGIN, 2, 0, get_next_free_entity_index (), get_next_free_local_entity_index (), 0, 0, 0, 0)
+
+		create_client_server_sound_effect_entity
+		(
+			get_local_sector_entity (strike_position),
+			ENTITY_SIDE_NEUTRAL,
+			ENTITY_SUB_TYPE_EFFECT_SOUND_MISC,
+			SOUND_CHANNEL_SOUND_EFFECT,
+			SOUND_LOCALITY_ALL,
+			strike_position,								// position
+			1.0,												// amplification
+			0.85+(0.3* frand1 ()), //pitch
+			TRUE,												// valid sound effect
+			FALSE,											// looping
+			1,													// sample count
+			&sound_effect_index							// sample index list
+		);
+
+		ENV_FX (ENV_FX_SOUND_END, 2, 0, get_next_free_entity_index (), get_next_free_local_entity_index (), 0, 0, 0, 0)
+	}
+}
+
+void update_transitional_weather (entity *en)
+{
+	vec3d
+		*camera_pos,
+		strike_position;
+
+	session
+		*raw;
+
+	float
+		camera[3],
+		strike[3],
+		new_timer;
+
+	int
+		expired;
+
+	ASSERT (en);
+
+	raw = (session *) get_local_entity_data (en);
+
+	ENV_FXC (ENV_FX_C_WEATHER_CALLS)
+
+	// the observer counts the updates that reach the lightning timer (the local model with a weather zone), as it counted the calls of update_lightning_effect
+	if (raw->local_weather_model && (raw->weather_radius != 0.0))
+	{
+		ENV_FXC (ENV_FX_C_LIGHTNING_CALLS)
+	}
+
+	// the camera the original read (the player's gunship when the player is in the cockpit): by value; the host needs it only in the local model with a weather zone
+	if (in_cockpit)
+	{
+		camera_pos = get_gunship_entity () ? get_local_entity_vec3d_ptr (get_gunship_entity (), VEC3D_TYPE_POSITION) : NULL;
+	}
+	else
+	{
+		camera_pos = get_camera_entity () ? get_local_entity_vec3d_ptr (get_camera_entity (), VEC3D_TYPE_POSITION) : NULL;
+	}
+
+	if (camera_pos)
+	{
+		camera[0] = camera_pos->x;
+		camera[1] = camera_pos->y;
+		camera[2] = camera_pos->z;
+	}
+
+	expired = campaign_env_step ((struct SESSION *) raw, in_cockpit, camera_pos ? camera : NULL, strike, &new_timer);
+
+	if (expired)
+	{
+		strike_position.x = strike[0];
+		strike_position.y = strike[1];
+		strike_position.z = strike[2];
+
+		if (get_comms_model () == COMMS_MODEL_SERVER)
+		{
+			set_client_server_entity_float_value (en, FLOAT_TYPE_LIGHTNING_TIMER, new_timer);
+
+			ENV_FX (ENV_FX_LIGHTNING_TIMER_SET, 0, 0, ENV_FXF (raw->lightning_timer), 0, 0, 0, 0, 0)
+		}
+
+		create_lightning_effects (en, &strike_position);
+	}
+}
+
+#else
 
 #define LIGHTNING_EFFECT_MINIMUM_TIMER		20.0 * ONE_SECOND
 #define LIGHTNING_EFFECT_MAXIMUM_TIMER		4.0 * ONE_MINUTE
@@ -172,6 +369,8 @@ void update_lightning_effect (entity *en)
 
 	raw = (session *) get_local_entity_data (en);
 
+	ENV_FXC (ENV_FX_C_LIGHTNING_CALLS)
+
 	if (get_comms_model () == COMMS_MODEL_SERVER)
 	{
 		//
@@ -184,7 +383,11 @@ void update_lightning_effect (entity *en)
 		{
 			lightning_flag = TRUE;
 
+			ENV_FX (ENV_FX_LIGHTNING_EXPIRED, 1, 0, ENV_FXF (raw->lightning_timer), ENV_FXF (get_delta_time ()), 0, 0, 0, 0)
+
 			new_time = LIGHTNING_EFFECT_MINIMUM_TIMER + ((LIGHTNING_EFFECT_MAXIMUM_TIMER - LIGHTNING_EFFECT_MINIMUM_TIMER) * frand1 ());
+
+			ENV_FX (ENV_FX_LIGHTNING_NEW_TIMER, 0, 0, ENV_FXF (new_time), 0, 0, 0, 0, 0)
 
 			#if DEBUG_MODULES
 
@@ -193,6 +396,8 @@ void update_lightning_effect (entity *en)
 			#endif
 
 			set_client_server_entity_float_value (en, FLOAT_TYPE_LIGHTNING_TIMER, new_time);
+
+			ENV_FX (ENV_FX_LIGHTNING_TIMER_SET, 0, 0, ENV_FXF (raw->lightning_timer), 0, 0, 0, 0, 0)
 		}
 	}
 	else
@@ -223,6 +428,8 @@ void update_lightning_effect (entity *en)
 		env_3d
 			*current_3d_env;
 
+		ENV_FXQ (ENV_FXQ_ENTRY)
+
 		current_3d_env = get_3d_active_environment ();
 
 		if (current_3d_env == main_3d_env)
@@ -234,14 +441,34 @@ void update_lightning_effect (entity *en)
 			set_3d_active_environment (main_3d_env);
 		}
 		
+		ENV_FX (ENV_FX_LIGHTNING_ENV, current_3d_env == NULL, 0, 0, 0, 0, 0, 0, 0)
+
+		ENV_FX (ENV_FX_STRIKE_BEGIN, 1, 0, ENV_FXF (raw->weather_position.x), ENV_FXF (raw->weather_position.z), 0, 0, 0, 0)
+
+		ENV_FXQ (ENV_FXQ_BEFORE_1)
+
 		add_3d_lightning_strike (LIGHTNING_TYPE_CLOUD_BURST, 0.3, raw->weather_position.x, raw->weather_position.z);
 
+		ENV_FXQ (ENV_FXQ_AFTER_1)
+
+		ENV_FX (ENV_FX_STRIKE_END, 1, 0, 0, 0, 0, 0, 0, 0)
+
+		ENV_FX (ENV_FX_STRIKE_BEGIN, 2, 0, ENV_FXF (raw->weather_position.x), ENV_FXF (raw->weather_position.z), 0, 0, 0, 0)
+
+		ENV_FXQ (ENV_FXQ_BEFORE_2)
+
 		add_3d_lightning_strike (LIGHTNING_TYPE_FORKED_1, 0.3, raw->weather_position.x, raw->weather_position.z);
+
+		ENV_FXQ (ENV_FXQ_AFTER_2)
+
+		ENV_FX (ENV_FX_STRIKE_END, 2, 0, 0, 0, 0, 0, 0, 0)
 
 		if (current_3d_env)
 		{
 			set_3d_active_environment (current_3d_env);
 		}
+
+		ENV_FXQ (ENV_FXQ_RESTORED)
 
 		if (get_comms_model () == COMMS_MODEL_SERVER)
 		{
@@ -254,6 +481,8 @@ void update_lightning_effect (entity *en)
 
 			sound_effect_index = SOUND_SAMPLE_INDEX_AMBIENT_LIGHTNING;
 
+			ENV_FX (ENV_FX_SOUND_BEGIN, 1, 0, get_next_free_entity_index (), get_next_free_local_entity_index (), 0, 0, 0, 0)
+
 			create_client_server_sound_effect_entity
 			(
 				get_local_sector_entity (&(raw->weather_position)),
@@ -269,6 +498,8 @@ void update_lightning_effect (entity *en)
 				1,													// sample count
 				&sound_effect_index							// sample index list
 			);
+
+			ENV_FX (ENV_FX_SOUND_END, 1, 0, get_next_free_entity_index (), get_next_free_local_entity_index (), 0, 0, 0, 0)
 
 			//
 			// thunder sound effect
@@ -276,6 +507,8 @@ void update_lightning_effect (entity *en)
 
 			sound_effect_index = SOUND_SAMPLE_INDEX_AMBIENT_THUNDER;
 
+			ENV_FX (ENV_FX_SOUND_BEGIN, 2, 0, get_next_free_entity_index (), get_next_free_local_entity_index (), 0, 0, 0, 0)
+
 			create_client_server_sound_effect_entity
 			(
 				get_local_sector_entity (&(raw->weather_position)),
@@ -291,6 +524,8 @@ void update_lightning_effect (entity *en)
 				1,													// sample count
 				&sound_effect_index							// sample index list
 			);
+
+			ENV_FX (ENV_FX_SOUND_END, 2, 0, get_next_free_entity_index (), get_next_free_local_entity_index (), 0, 0, 0, 0)
 		}
 	}
 #endif
@@ -311,6 +546,8 @@ void update_transitional_weather (entity *en)
 	ASSERT (en);
 
 	raw = (session *) get_local_entity_data (en);
+
+	ENV_FXC (ENV_FX_C_WEATHER_CALLS)
 
 	if (raw->local_weather_model)
 	{
@@ -526,12 +763,228 @@ void update_transitional_weather (entity *en)
 	normalise_any_3d_vector (&raw->wind_direction_vector);
 }
 
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define SESSION_RAIN_SOUND_EFFECT_ZERO_VOLUME_ALTITUDE		180.0
 #define SESSION_TERRAIN_SOUND_EFFECT_ZERO_VOLUME_ALTITUDE	280.0
+
+#if defined(EECH_CAMPAIGN_HOST_ENV) && defined(EECH_CAMPAIGN_HOST_TERRAIN)
+
+//
+// EECH_CAMPAIGN_HOST_ENV + EECH_CAMPAIGN_HOST_TERRAIN (EEDCS-51, D3): the PHYSICAL amplitude of the ambient sound children is the host's.  The rain and wind levels (from the weather and the wind at the
+// point) are the environment provider's answer (ss_hostenv.h AMBIENT), and the smoothed amplitude of the terrain children (from the surfaces of the sector under the point) is the terrain
+// provider's (mb_hostterrain.h AMBIENT); the original arithmetic is the host's kernels' (env_ref.c ambient_at, terrain_ref.c ambient_impl) and is not compiled into the headless campaign module, which has
+// no fallback.  What the campaign keeps, in the original order: the call and its observer counters; the choice of the point (the camera, or the gunship in the cockpit) and its radar altitude; the
+// clamp of the point to the map; the sector query that fills the legacy scratch mirror terrain_types_in_sector for its other readers (the renderer, the observer's hash); the session's
+// special-effect children, their identities, their order, their previous amplification (the smoothing state: the value stored is the SCALED one and compounds) and the writes of the new amplification
+// into them.  The frame delta is the previous frame's, read where the original read it.  Nothing is drawn from the shared random word.  The original solver follows, for the original game's build only.
+//
+// THE SESSION'S CHILD LIST IS NOT BOUNDED BY THIS CODE.  Nothing in the game limits how many terrain ambient sound children a session holds (create_local_sound_effect_entity attaches any subtype to
+// any parent; the compiled comms receiver creates a received child the same way), and the original walked the whole list.  The host transport carries a bounded number of children in ONE question
+// (CAMPAIGN_TERRAIN_AMBIENT_MAX), so the walk below carries them in as many bounded questions as the list needs, in list order: a question is sent when it is full, when the walk reaches a rain or
+// wind child (whose write must come after the writes of the terrain children before it, as in the original), and at the end of the list.  Every child is asked about, none is dropped, clamped or
+// deduplicated, each is asked with ITS OWN previous amplitude (read when the walk reaches it; no write to any other child can change it), duplicates and interleaved subtypes keep their places, and
+// each question's whole reply is checked by campaign_terrain_ambient before any child of that question is written.
+//
+
+typedef struct ambient_terrain_batch
+{
+	entity
+		*child [CAMPAIGN_TERRAIN_AMBIENT_MAX];
+
+	int
+		klass [CAMPAIGN_TERRAIN_AMBIENT_MAX],
+		count;
+
+	float
+		previous [CAMPAIGN_TERRAIN_AMBIENT_MAX];
+} ambient_terrain_batch;
+
+// asks the host about the children gathered so far (nothing is asked when there are none) and writes each answer into its child, in order
+static void flush_ambient_terrain_batch (ambient_terrain_batch *batch, float xpos, float zpos, float alt)
+{
+	float
+		amplitude [CAMPAIGN_TERRAIN_AMBIENT_MAX];
+
+	int
+		i;
+
+	if (batch->count > 0)
+	{
+		campaign_terrain_ambient (xpos, zpos, in_cockpit, alt, get_delta_time (), batch->count, batch->klass, batch->previous, amplitude);
+
+		for (i = 0; i < batch->count; i++)
+		{
+			set_local_entity_float_value (batch->child [i], FLOAT_TYPE_AMPLIFICATION, amplitude [i]);
+		}
+
+		batch->count = 0;
+	}
+}
+
+static void add_ambient_terrain_child (ambient_terrain_batch *batch, entity *spec, int klass, float xpos, float zpos, float alt)
+{
+	batch->child [batch->count] = spec;
+	batch->klass [batch->count] = klass;
+	batch->previous [batch->count] = get_local_entity_float_value (spec, FLOAT_TYPE_AMPLIFICATION);
+	batch->count++;
+
+	if (batch->count == CAMPAIGN_TERRAIN_AMBIENT_MAX)
+	{
+		flush_ambient_terrain_batch (batch, xpos, zpos, alt);
+	}
+}
+
+void update_session_sound_effects (entity *en)
+{
+	ambient_terrain_batch
+		batch;
+
+	entity
+		*spec;
+
+	vec3d
+		*camera_pos;
+
+	float
+		alt,
+		xpos,
+		zpos,
+		rain_light_sound_level,
+		rain_heavy_sound_level,
+		light_wind_sound_level,
+		heavy_wind_sound_level;
+
+	ASSERT (en);
+
+	ENV_FXC (ENV_FX_C_SOUND_CALLS)
+
+	if (in_cockpit)
+	{
+		camera_pos = get_local_entity_vec3d_ptr (get_gunship_entity (), VEC3D_TYPE_POSITION);
+
+		alt = get_local_entity_float_value (get_gunship_entity (), FLOAT_TYPE_RADAR_ALTITUDE);
+	}
+	else
+	{
+		camera_pos = get_local_entity_vec3d_ptr (get_camera_entity (), VEC3D_TYPE_POSITION);
+
+		alt = get_local_entity_float_value (get_camera_entity (), FLOAT_TYPE_RADAR_ALTITUDE);
+	}
+
+	//
+	// rain and wind: the host's levels at the point
+	//
+
+	campaign_env_ambient (in_cockpit, camera_pos->x, camera_pos->y, camera_pos->z, alt, get_cloud_3d_base_height (), &rain_light_sound_level, &rain_heavy_sound_level, &light_wind_sound_level,
+		&heavy_wind_sound_level);
+
+	//
+	// terrain: the sector under the point (clamped to the map), which fills the scratch mirror
+	//
+	{
+		xpos = bound (camera_pos->x, MIN_MAP_X, MAX_MAP_X);
+		zpos = bound (camera_pos->z, MIN_MAP_Z, MAX_MAP_Z);
+
+		get_terrain_3d_types_in_sector (xpos, zpos);
+
+		ENV_FXS (in_cockpit, camera_pos->x, camera_pos->y, camera_pos->z, alt, light_wind_sound_level, heavy_wind_sound_level, xpos, zpos)
+	}
+
+	//
+	// set new values: the whole child list, in order.  The terrain children are gathered (each with the amplification it holds now: read for every one, the host uses it only below the zero-volume
+	// altitude, as the original did) and asked about in bounded questions; a rain or wind child is written when the walk reaches it, after the terrain children before it.
+	//
+
+	batch.count = 0;
+
+	spec = get_local_entity_first_child (en, LIST_TYPE_SPECIAL_EFFECT);
+
+	while (spec)
+	{
+		switch (get_local_entity_int_value (spec, INT_TYPE_ENTITY_SUB_TYPE))
+		{
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_LIGHT_RAIN:
+			{
+				flush_ambient_terrain_batch (&batch, xpos, zpos, alt);
+
+				set_local_entity_float_value (spec, FLOAT_TYPE_AMPLIFICATION, rain_light_sound_level);
+
+				break;
+			}
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_HEAVY_RAIN:
+			{
+				flush_ambient_terrain_batch (&batch, xpos, zpos, alt);
+
+				set_local_entity_float_value (spec, FLOAT_TYPE_AMPLIFICATION, rain_heavy_sound_level);
+
+				break;
+			}
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_LIGHT_WIND:
+			{
+				flush_ambient_terrain_batch (&batch, xpos, zpos, alt);
+
+				set_local_entity_float_value (spec, FLOAT_TYPE_AMPLIFICATION, light_wind_sound_level);
+
+				break;
+			}
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_HEAVY_WIND:
+			{
+				flush_ambient_terrain_batch (&batch, xpos, zpos, alt);
+
+				set_local_entity_float_value (spec, FLOAT_TYPE_AMPLIFICATION, heavy_wind_sound_level);
+
+				break;
+			}
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_SEA:
+			{
+				add_ambient_terrain_child (&batch, spec, CAMPAIGN_TERRAIN_AMBIENT_SEA, xpos, zpos, alt);
+
+				break;
+			}
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMBIENT_JUNGLE:
+			{
+				add_ambient_terrain_child (&batch, spec, CAMPAIGN_TERRAIN_AMBIENT_JUNGLE, xpos, zpos, alt);
+
+				break;
+			}
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB1:
+			{
+				add_ambient_terrain_child (&batch, spec, CAMPAIGN_TERRAIN_AMBIENT_AMB1, xpos, zpos, alt);
+
+				break;
+			}
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB2:
+			{
+				add_ambient_terrain_child (&batch, spec, CAMPAIGN_TERRAIN_AMBIENT_AMB2, xpos, zpos, alt);
+
+				break;
+			}
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB3:
+			{
+				add_ambient_terrain_child (&batch, spec, CAMPAIGN_TERRAIN_AMBIENT_AMB3, xpos, zpos, alt);
+
+				break;
+			}
+			case ENTITY_SUB_TYPE_EFFECT_SOUND_AMB4:
+			{
+				add_ambient_terrain_child (&batch, spec, CAMPAIGN_TERRAIN_AMBIENT_AMB4, xpos, zpos, alt);
+
+				break;
+			}
+		}
+
+		spec = get_local_entity_child_succ (spec, LIST_TYPE_SPECIAL_EFFECT);
+	}
+
+	flush_ambient_terrain_batch (&batch, xpos, zpos, alt);
+}
+
+#else
 
 void update_session_sound_effects (entity *en)
 {
@@ -563,6 +1016,8 @@ void update_session_sound_effects (entity *en)
 	ASSERT (en);
 
 	raw = (session *) get_local_entity_data (en);
+
+	ENV_FXC (ENV_FX_C_SOUND_CALLS)
 
 	if (in_cockpit)
 	{
@@ -673,6 +1128,8 @@ void update_session_sound_effects (entity *en)
 		zpos = bound (camera_pos->z, MIN_MAP_Z, MAX_MAP_Z);
 		
 		get_terrain_3d_types_in_sector (xpos, zpos);
+
+		ENV_FXS (in_cockpit, camera_pos->x, camera_pos->y, camera_pos->z, alt, light_wind_sound_level, heavy_wind_sound_level, xpos, zpos)
 	}
 
 	//
@@ -914,12 +1371,16 @@ void update_session_sound_effects (entity *en)
 	}
 }
 
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static void update_server (entity *en)
 {
+	ENV_FXC (ENV_FX_C_UPDATE_SERVER)
+
 	update_time_of_day (en);
 
 	update_time_of_day_resync (en);
@@ -956,3 +1417,16 @@ void overload_session_update_functions (void)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef EECH_ENV_FIXTURE
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// TEST-ONLY (EEDCS-51, feature env-fixture): the static time of day update, called unchanged. Not compiled in the shipping build.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void eech_env_fixture_update_time_of_day (entity *en)
+{
+	update_time_of_day (en);
+}
+
+#endif

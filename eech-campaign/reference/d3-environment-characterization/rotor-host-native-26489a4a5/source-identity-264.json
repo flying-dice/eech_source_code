@@ -1,0 +1,27 @@
+{
+  "source": "26489a4a597dcbae087ec1bd6a779c2fbf2929e7",
+  "previous": "38b200b6c48bf81abca8e817caa9097c2a876a47",
+  "frozen": "D:\\EECH-Migration-Evidence\\rn-26489a4a5",
+  "created_utc": "2026-11-01T10:58:22.068988+00:00",
+  "actual_exit": 0,
+  "clean": true,
+  "own_git": true,
+  "no_alternates": true,
+  "changed_paths": [
+    "STATUS.md",
+    "eech-campaign/crates/eech-world/csrc/env_ref.c",
+    "eech-campaign/docs/d3-sound-lifetime.md"
+  ],
+  "all_other_tracked_entries_unchanged": true,
+  "unchanged_header_oracle_capture_controls": [
+    "eech-campaign/crates/eech-world/csrc/env_ref.h",
+    "eech-campaign/crates/eech-world/tests/data/rotor_sound_oracle.tsv",
+    "eech-campaign/crates/eech-world/build.rs",
+    "eech-campaign/crates/eech-world/tests/csrc/rotor_control.c",
+    "eech-campaign/crates/eech-world/tests/csrc/rotor_control.h",
+    "eech-campaign/crates/eech-world/tests/csrc/rotor_control_body.h",
+    "eech-campaign/crates/eech-world/tests/csrc/rotor_control_stubs.c"
+  ],
+  "kernel_sha256": "b536099bee27f136a369d0fe0ec2b987aa177d746252815e1f9e80db0c764d21",
+  "scope": "Clean numerical correction source only. No build/runtime/CI/retail equivalence inferred. Prior dd84 native remains older-source evidence."
+}

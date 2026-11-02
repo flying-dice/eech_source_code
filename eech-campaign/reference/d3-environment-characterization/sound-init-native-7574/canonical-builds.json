@@ -1,0 +1,20 @@
+{
+  "windows": {
+    "source": "7574caa2ca87a2a44608a234fd1dd73136b8e4c0",
+    "actual_exit": 0,
+    "started_utc": "2026-11-01T03:23:45.278221+00:00",
+    "completed_utc": "2026-11-01T03:26:42.501832+00:00",
+    "original_receipt": "environment-original-sound-init-7574caa2c-windows-20261101-completion.json",
+    "original_receipt_sha256": "f688283376bba2e152e2be6dbbd32c82d0fff2059792abae3aaee5a8891eb36d",
+    "scope": "ORIGINAL sound metadata/init observer on already hosted82234 baseline windows new observer build/full affected default+observer packages/both strict profiles on accepted ground integration; metadata/backend unchanged, source review/new original retail measurements/observation-off conformance/shipping acceptance separate"
+  },
+  "linux": {
+    "source": "7574caa2ca87a2a44608a234fd1dd73136b8e4c0",
+    "actual_exit": 0,
+    "started_utc": "2026-11-01T03:23:45.246054+00:00",
+    "completed_utc": "2026-11-01T03:32:14.700596+00:00",
+    "original_receipt": "environment-original-sound-init-7574caa2c-linux-20261101-completion.json",
+    "original_receipt_sha256": "e426709c0fa03f32cb77134267bf2f5e895257845a24839c583cdf08ca87624e",
+    "scope": "ORIGINAL sound metadata/init observer on already hosted82234 baseline linux new observer build/full affected default+observer packages/both strict profiles on accepted ground integration; metadata/backend unchanged, source review/new original retail measurements/observation-off conformance/shipping acceptance separate"
+  }
+}

@@ -10,6 +10,7 @@ mod crash;
 
 use eech_world::aim::{self, Aim};
 use eech_world::cmb;
+use eech_world::env;
 use eech_world::flight;
 use eech_world::los::{Los, LosRequest};
 use eech_world::movement::{
@@ -17,6 +18,7 @@ use eech_world::movement::{
     HelicopterEnd, HelicopterGuide, HelicopterPlan, HelicopterSteer, HelicopterStructure, HelicopterTerrainSample, HelicopterWaypointKind, Kind, Lifecycle,
     LifecycleMode, Movers, NavigationMember, Outcome, PersonBegin, PersonEnd, PersonFace, Pose, Request, ShipMove, Terrain,
 };
+use eech_world::output;
 use eech_world::reference_arithmetic;
 use eech_world::sense::{self, Sense};
 use eech_world::tacview::{ObjectInfo, Recorder};
@@ -1275,6 +1277,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     host.set("args", args)?;
     // the host's own terrain (EEDCS-47): host.terrain_open { terrain_dir = ... } loads a map and returns the provider for it
     terrain::install(&lua, &host)?;
+    // the host's own physical weather and wind field (EEDCS-51): host.env_provider () makes a provider to give to dc.boot as environment = ...
+    env::install(&lua, &host)?;
+    // the host's diagnostic output primitive: host.output_create_new (path) creates a file exclusively (the operating system's create-new open) for drivers whose evidence must never overwrite or share a file
+    output::install(&lua, &host)?;
     host.set(
         "log",
         lua.create_function(|_, message: String| {

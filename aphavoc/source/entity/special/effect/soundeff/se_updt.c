@@ -66,6 +66,14 @@
 
 #include "project.h"
 
+#include "entity/special/session/ss_envfx.h"
+
+#ifdef EECH_CAMPAIGN_HOST_ENV
+
+#include "entity/special/session/ss_hostenv.h"
+
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -84,6 +92,8 @@ static void update_server (entity *en)
 
 	raw = (sound_effect *) get_local_entity_data (en);
 
+	ENV_FXE (ENV_FXE_SERVER_ENTER, en)
+
 	ASSERT (raw->effect_index);
 
 	ASSERT (raw->eff.special_effect_link.parent);
@@ -96,6 +106,68 @@ static void update_server (entity *en)
 									raw->valid_sound_effect,
 									raw->valid_effect_lifetime);
 	#endif
+
+	#ifdef EECH_CAMPAIGN_HOST_ENV
+
+	//
+	// EECH_CAMPAIGN_HOST_ENV (EEDCS-51, D3): the physical decisions of this update are the HOST's (aphavoc/source/entity/special/session/ss_hostenv.h SOUND_LIFETIME_UPDATE): the aging of a valid
+	// effect by the frame delta, whether its lifetime went below zero, whether the server kills the entity (no handle), and the countdown and unlink of an invalid effect.
+	// The campaign hands over the stored fields by value (and the frame delta where the original read it) and whether a handle is held, writes both lifetimes from the checked answer and then does what the host
+	// decided, in the original order and at the original points: the kill, the unlink from the update list, the release of the handle.  Whether a NATIVE handle is still playing is not a fact the campaign supplies:
+	// the original asked the sound system (get_system_sound_effect_playing) for an expired server effect that held a handle, this route does not, and a host that asks stops the engine by name
+	// ([env-sound:unsupported_handle_status], ss_hostenv.c) before any status query, state change or destruction.  The headless route creates no native handle, so nothing reaches it today.  The original follows in the #else.
+	//
+
+	{
+		int
+			expired,
+			action;
+
+		campaign_sound_lifetime_update (TRUE, get_delta_time (), raw->valid_sound_effect, raw->looping, &raw->effect_lifetime, &raw->valid_effect_lifetime, (raw->sound_effect_data != NULL), &expired, &action);
+
+		if (expired)
+		{
+			if (raw->sound_effect_data)
+			{
+				if (action == CAMPAIGN_SOUND_ACTION_KILL)
+				{
+					ENV_FXE (ENV_FXE_SERVER_EXPIRED_IDLE, en)
+
+					kill_client_server_entity (en);
+
+					ENV_FXE (ENV_FXE_SERVER_KILLED, en)
+				}
+				else
+				{
+					ENV_FXE (ENV_FXE_SERVER_EXPIRED_PLAYING, en)
+				}
+			}
+			else
+			{
+				ENV_FXE (ENV_FXE_SERVER_EXPIRED_NO_HANDLE, en)
+
+				if (action == CAMPAIGN_SOUND_ACTION_KILL)
+				{
+					kill_client_server_entity (en);
+
+					ENV_FXE (ENV_FXE_SERVER_KILLED, en)
+				}
+			}
+		}
+		else if (action == CAMPAIGN_SOUND_ACTION_UNLINK)
+		{
+			delete_local_entity_from_parents_child_list (en, LIST_TYPE_UPDATE);
+
+			if (raw->sound_effect_data)
+			{
+				destroy_system_sound_effect (raw->sound_effect_data);
+
+				raw->sound_effect_data = NULL;
+			}
+		}
+	}
+
+	#else
 
 	if (raw->valid_sound_effect)
 	{
@@ -121,10 +193,16 @@ static void update_server (entity *en)
 			{
 				if (!get_system_sound_effect_playing (raw->sound_effect_data))
 				{
+					ENV_FXE (ENV_FXE_SERVER_EXPIRED_IDLE, en)
+
 					kill_client_server_entity (en);
+
+					ENV_FXE (ENV_FXE_SERVER_KILLED, en)
 				}
 				else
 				{
+					ENV_FXE (ENV_FXE_SERVER_EXPIRED_PLAYING, en)
+
 					#if DEBUG_MODULE
 
 					debug_log ("SE_UPDT : Not destroying because it's still playing ( index = %s, pos = %f, %f )", application_sound_effects [raw->effect_index [0]].name, raw->eff.position.x, raw->eff.position.z);
@@ -134,7 +212,11 @@ static void update_server (entity *en)
 			}
 			else
 			{
+				ENV_FXE (ENV_FXE_SERVER_EXPIRED_NO_HANDLE, en)
+
 				kill_client_server_entity (en);
+
+				ENV_FXE (ENV_FXE_SERVER_KILLED, en)
 			}
 		}
 	}
@@ -156,6 +238,8 @@ static void update_server (entity *en)
 			}
 		}
 	}
+	#endif
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -168,6 +252,37 @@ static void update_client (entity *en)
 		*raw;
 
 	raw = (sound_effect *) get_local_entity_data (en);
+
+	ENV_FXE (ENV_FXE_CLIENT_ENTER, en)
+
+	#ifdef EECH_CAMPAIGN_HOST_ENV
+
+	//
+	// EECH_CAMPAIGN_HOST_ENV (EEDCS-51, D3): as update_server, for the client routine: the host ages a valid effect and clamps its lifetime at zero (the client never kills), and counts an invalid effect
+	// down and decides its unlink; the campaign writes the checked answer and unlinks and releases the handle as decided.  The original follows in the #else.
+	//
+
+	{
+		int
+			expired,
+			action;
+
+		campaign_sound_lifetime_update (FALSE, get_delta_time (), raw->valid_sound_effect, raw->looping, &raw->effect_lifetime, &raw->valid_effect_lifetime, (raw->sound_effect_data != NULL), &expired, &action);
+
+		if (action == CAMPAIGN_SOUND_ACTION_UNLINK)
+		{
+			delete_local_entity_from_parents_child_list (en, LIST_TYPE_UPDATE);
+
+			if (raw->sound_effect_data)
+			{
+				destroy_system_sound_effect (raw->sound_effect_data);
+
+				raw->sound_effect_data = NULL;
+			}
+		}
+	}
+
+	#else
 
 	if (raw->valid_sound_effect)
 	{
@@ -199,6 +314,10 @@ static void update_client (entity *en)
 			}
 		}
 	}
+
+	#endif
+
+	ENV_FXE (ENV_FXE_CLIENT_EXIT, en)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

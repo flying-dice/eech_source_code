@@ -1,0 +1,56 @@
+{
+  "native_source": "78fe5efdb5cbaff904e3b645d680acbd7776597d",
+  "documentation_source": "5c25092cf5cacfdc630229fe30310a4dac7d53e8",
+  "files": [
+    {
+      "file": "backend-source-6a.json",
+      "source_file": "independent-environment-sound-backend-detach-source-6a7203698-20261101.json",
+      "bytes": 8859,
+      "sha256": "333dd13956ca75587d12fb4f186622e18188203261efac309972495b1ba32870",
+      "literal_copy": true
+    },
+    {
+      "file": "backend-entry-source-78.json",
+      "source_file": "independent-environment-sound-backend-play-entry-correction-source-78fe5efdb-20261101.json",
+      "bytes": 5314,
+      "sha256": "acd7964497461d400ee33253086c930d7aaac77f2bff2df77bfb10fdd0345a54",
+      "literal_copy": true
+    },
+    {
+      "file": "backend-actual-root-78.json",
+      "source_file": "sound-backend-detach-candidate-actual-78fe5efdb-20261101.json",
+      "bytes": 8288,
+      "sha256": "761aa5bb784d5748fb58a5d67403acceebdea081f281cfd14563613f067cab35",
+      "literal_copy": true
+    },
+    {
+      "file": "backend-actual-independent-78.json",
+      "source_file": "independent-environment-sound-backend-detach-actual-78fe5efdb-20261101.json",
+      "bytes": 9773,
+      "sha256": "03369ba4610fd507de6ea78f2cbe5619c5bf590060db562d2baafe80b135e418",
+      "literal_copy": true
+    },
+    {
+      "file": "mapping-source-4d.json",
+      "source_file": "independent-environment-time-DCS-mapping-source-4d84bb335-20261101.json",
+      "bytes": 9815,
+      "sha256": "3f6aa907298b3f9d807b9cab7a9e673f880ecd107d51a19f03537e93de7c13fc",
+      "literal_copy": true
+    },
+    {
+      "file": "mapping-source-ff.json",
+      "source_file": "independent-environment-time-DCS-mapping-correction-source-ff6240022-20261101.json",
+      "bytes": 7834,
+      "sha256": "56790ccdbbcea518117b4d1072726162b90179d2d9de547c93581664d3ff16ea",
+      "literal_copy": true
+    },
+    {
+      "file": "mapping-source-5c.json",
+      "source_file": "independent-environment-time-DCS-mapping-bootstrap-source-5c25092cf-20261101.json",
+      "bytes": 4668,
+      "sha256": "bb1bf59272ff99c60f433062853b03bc5cc95e82928cc9bf5fc9a01ce68a5b1d",
+      "literal_copy": true
+    }
+  ],
+  "scope": "Literal safe assertions, source reviews, actual finite conformance and documentation-plan reviews. No raw retail recordings, allocation/position payloads, process memory, credentials or binaries. Earlier findings remain unchanged and close only in their named successor reports. Full shipping is still running and is not accepted here."
+}

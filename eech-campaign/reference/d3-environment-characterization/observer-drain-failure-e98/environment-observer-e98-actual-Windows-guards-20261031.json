@@ -1,0 +1,16 @@
+{
+  "source": "e98ea3881b6bb76504e0e83ba9bfce947cab218e",
+  "host_source": "76533dd3ae836674c27704040d6ce1b6ed84f80d",
+  "exe_sha256": "f13cb14c1652d340648855d626396b034b3b58862917b2abb1dc8b8a862500de",
+  "verified_host_payloads": 46,
+  "args": [
+    "R:\\d3-evidence\\environment-observer-source-e98ea3881\\eech-campaign\\target\\windows-env-guards-e98ea3881\\host_callbacks.exe",
+    "the_environment_",
+    "--nocapture"
+  ],
+  "started_utc": "2026-10-31T02:29:24.824050+00:00",
+  "scope": "Actual Windows environment-driver contract guards with portable sourcee98 test executable and explicit measured765host; fakeengine contract checks, not retailphysics or shipping.",
+  "pid": 22888,
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T02:29:27.467992+00:00"
+}

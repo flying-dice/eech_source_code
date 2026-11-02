@@ -1,0 +1,43 @@
+{
+  "review": "ONE tiny-delta independent source/evidence review; no agents, source edits, builds, Docker or process changes",
+  "created_utc": "2026-10-31T11:29:24.9210686Z",
+  "source": {
+    "path": "R:/d3-evidence/environment-physical-source-dd5e7c4ce",
+    "head": "dd5e7c4ce46339ebd5bd2ba0e3b0c09653955735",
+    "tree": "fda2b47bef7c0b1d7ed621b3fc2b07578b4eb706",
+    "base": "87e7e0627b8dea2f80798d6a1ec211ab42726321",
+    "status": "Clean git status; diff --check base..HEAD exit 0",
+    "sha256": {
+      "eech-campaign/crates/eech-world/csrc/env_ref.c": "0e6a89c69b9a2d4cb45771c3c028cac769eee773fff858cd96f240e971b90678",
+      "eech-campaign/crates/eech-world/src/env.rs": "bd29e0370bce61e1aa98200357ba8c5c172914bc091d6e4c1636d9870ee9e534"
+    }
+  },
+  "prior_finding": {
+    "id": "ENV-DRAW-POINTER-1",
+    "report_sha256": "97daf469317777267d7b4a30d528643c785fa9ea046ec7012a1d91afbee48c3c",
+    "disposition": "CLOSED IN INSPECTED SOURCE. No new source finding in this tiny delta; new regression execution remains pending."
+  },
+  "judgement": "NO_NEW_SOURCE_FINDINGS. This closes only the unused-draw-read source finding; it is not compiler/runtime/product/shipping approval or Task 51/D3 acceptance.",
+  "findings": [],
+  "inspected_facts": [
+    "env_ref.c:1335-1345 retains the have_draw-and-NULL refusal and now selects the dereference with in_i[4]!=0, after fp_save/fp_enter. A no-draw call evaluates zero without dereferencing either a null or non-null unused address. No new ABI, numeric expression in step_impl, RNG site or public safe API changed.",
+    "New env.rs direct-entry test exercises no_draw plus non-null unused pointer, no_draw plus NULL, and announced_draw plus NULL. Other arrays have the required sizes, raw Field ownership lives through each synchronous call, outputs are independently writable, and C retains no pointer. NeedDraw and unchanged field are asserted; the announced-null refusal asserts error text, zeroed outputs and unchanged field. Reused error storage does not invalidate these assertions.",
+    "The dangling value is an aligned raw pointer, never converted to a Rust reference or dereferenced by Rust. Under the corrected private C contract it is an unused argument, so passing it does not itself dereference invalid storage. The test explicitly states that a regression can terminate the whole unit process; no child framework or masked failure was introduced.",
+    "The unreadability claim relies on the normal unmapped null page of the current Windows/Linux x86/x64 targets, not a universal guarantee of NonNull::dangling. Its alignment-sized address is in that low page; this is a bounded platform test, not a portable allocation/protection abstraction. No present target incompatibility established.",
+    "Both changed documentation sections distinguish source-only correction from runtime acceptance and preserve earlier measured failures. They do not alter baseline, oracle, tolerance, full FP matrix or diagnostic WEATHER_DRAW.w0 classification. Status describes the earlier snapshot of 87e gates; current success reports supplied by Root do not retroactively make that source snapshot false."
+  ],
+  "actual_evidence_inspected": {
+    "root": "R:/d3-evidence/environment-i686-c-abi-fp-isolation-dd5-20261031",
+    "identity": "identity.json pins dd5 exact source, unchanged probe SHA256 8b0a5a56224ba628964a40b6f4479138e6144434dfaa5da5fae3b32e08538092, derived f5e toolchain image and same cases/flags/seeds. Its initial scope still says Nativepending; terminal raw evidence is separately identified here.",
+    "raw_results": "Independently parsed 24 case rows per architecture: every A argument-only control, B real-kernel result and expectation is exact/true; both exit files are 0 and both summaries have zero setup failures. The intentionally separate 32-bit post-call float-copy control differs 16 times; 64-bit control differs zero times.",
+    "hashes": "Probe source hash independently matches the unchanged identity. Independently rehashed probe32 5e720b87d73df83d755f36e4d9a5a1946de9e0310f5992c381792652a0a589d0 and probe64 7bcc2515a5071b0c6218252b902706fd0a556b05f2a53aad6d5be9cacbe3e7f0; both match SHA256SUMS files.",
+    "receipt_limit": "No receipt.json was present in the dd5 probe folder at this review cutoff. The evidence claim above is from actual raw results, exit files, identity and hashes; no terminal controller receipt is invented.",
+    "scope": "The unchanged finite probe does not execute the new dangling/null regression test. It preserves the existing C-entry FP case evidence, not new unused-pointer runtime proof or whole-component acceptance."
+  },
+  "limitations": [
+    "No new dangling/null regression execution or normal dd5 Linux/Windows completion was supplied at cutoff. Root owns those live build/test gates. No pass inferred from the source review or unchanged finite probe.",
+    "Parent 87e all-nine hosted jobs, Windows component, Linux strict and retail numeric successes are reported by Root, not independently reread here. Previously closed reviews, old kernels, originals and 120-second comparisons were reused without repetition.",
+    "No credentials/authentication changes, fake approvals, external publication or merge performed. Frozen source remained clean; wind-authority partial remains external and unaccepted.",
+    "Whole Task 51/D3 remains required and incomplete, including remaining physical/world coupling and full acceptance gates. D4/D5 not started. Existing user-authorized identity and normal review/merge scope are unchanged."
+  ]
+}

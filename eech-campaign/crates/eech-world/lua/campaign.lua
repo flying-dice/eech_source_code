@@ -69,7 +69,7 @@ host.use_reference_arithmetic ()
 local engine = dc.boot {
 	install_root = root,
 	map = args.map or scenario.map,
-	terrain = host.terrain_provider (root, args.map or scenario.map),
+	terrain = host.terrain_provider (root, args.map or scenario.map), environment = host.env_provider (),
 	campaign_directory = scenario.campaign_directory or "camp01",
 	campaign = args.campaign or scenario.campaign,
 	gunship = "apache",

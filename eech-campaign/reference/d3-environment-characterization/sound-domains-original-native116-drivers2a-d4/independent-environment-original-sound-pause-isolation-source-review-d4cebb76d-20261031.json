@@ -1,0 +1,125 @@
+{
+  "schema": "independent-focused-source-failure-review-v1",
+  "created_utc": "2026-10-31T21:48:19.384033+00:00",
+  "reviewer": "sole independent Codex reviewer /root/d3_environment_review",
+  "source": {
+    "repo": "R:\\d3-evidence\\environment-services-20261030",
+    "base": "2a4139830e2ec13617635c553a519d9be3015a2d",
+    "head": "d4cebb76dd2980ac078dc15f07fcd381439a9229",
+    "tree": "72d7b23e57ac09008480b8c8038fd978e3f8d5dc",
+    "clean_at_review": true,
+    "tested_native_reused": "116ffd5fb4230226a1ff98a87c40375eea95e521",
+    "new_driver_sha256": "ad277d1f92c75b7c12c9f1606e512ec49d508804c77c81ffb9ae2c4c1d9909e7",
+    "files": [
+      {
+        "path": "STATUS.md",
+        "sha256": "d7880bb07808dd9320386b579bcde74c50bb4d3a81f60a5c446230d6cf58a380",
+        "git_blob": "d03724362225d4b2ececc4fd6cbd980979593023"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-sound-lifetime.lua",
+        "sha256": "ad277d1f92c75b7c12c9f1606e512ec49d508804c77c81ffb9ae2c4c1d9909e7",
+        "git_blob": "c45b9921c996966552d1db3ac0d2ea0af202f868"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_sound_lifetime.rs",
+        "sha256": "ced0052f5b6a325ca602c22b099e8607e3fe6e696c3bb24ddde9abc9efe957e3",
+        "git_blob": "96eebe88985c79611527d360f46cd7b5d8d7760d"
+      },
+      {
+        "path": "eech-campaign/docs/d3-sound-lifetime.md",
+        "sha256": "39a753cbb164bd9c0d6e3a0450c50174b2b30a8d34c35c8fd902c42d5a299ca2",
+        "git_blob": "bcecb34d0772d527fe7381e35a1b7072957726eb"
+      }
+    ]
+  },
+  "scope": "One focused review of the new pause-isolation guard and new actual case9 witness failure diagnosis. Closed allocation/metadata/FSM/census/old physics reviews reused, not repeated. No next fixture or experiment.",
+  "findings": [],
+  "source_review_no_blocking_findings": true,
+  "failure_diagnosis": {
+    "old_controller": {
+      "path": "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\case-9\\controller.json",
+      "sha256": "027cf9dc869efbf0d1822880098750d2c0ec84d4b530abb4fa9401fa3e887c43",
+      "bytes": 4940
+    },
+    "old_raw": {
+      "path": "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\case-9\\environment.jsonl",
+      "sha256": "b4919c672fe7978d291286591dd1a09264aa3bc2f6a4a6c85eab25b20fe55ee5",
+      "bytes": 10871
+    },
+    "old_driver": "2a4139830e2ec13617635c553a519d9be3015a2d",
+    "old_native_source": "116ffd5fb4230226a1ff98a87c40375eea95e521",
+    "actual_native_exit": 1,
+    "actual_controller_exit": 1,
+    "pre_and_post_inputs_actual_exit": [
+      0,
+      0
+    ],
+    "control_body_completed": {
+      "calls": 3,
+      "skipped": 0,
+      "descriptor_restored": true,
+      "delta_restored": true
+    },
+    "pause_facts": {
+      "all_sound_children": 11,
+      "matching_subtype_children": 1,
+      "returned_changed_valid_children": 1,
+      "own_subtype": 23
+    },
+    "classification": "The original C body returned complete captures and restoration facts, then old Lua rejected a total of11 unrelated-plus-own sound children. Native/application and controller remain ACTUAL1 from that witness error; they are not relabelled green. The driver wrote witness_failure and no result. Source pause_local_entity_sound_type writes only inside matching eff.sub_type and valid_sound_effect conditions (soundeff.c110,116); the sole matching subtype joins the control-created entity. Ten other subtype children are therefore outside the write target. This is a false isolation prerequisite, not changed native physics."
+  },
+  "verified_corrections": [
+    {
+      "fact": "The new guard requires exactly one matching-subtype child and exactly one changed valid child, while allowing any coherent total at least as large as the matching count. The existing pause subtype-to-own-constructor join remains. Other matching targets, returned0/2 and impossible total0 are still rejected. No lifetime or unlink outcome is forced.",
+      "reference": {
+        "path": "eech-campaign/crates/eech-world/lua/env-sound-lifetime.lua",
+        "line": 325
+      }
+    },
+    {
+      "fact": "Finite positive guards cover totals1,2,11 across server/client cases; negative guards cover a second matching target, additional/no changed target and total below matching. The updated subtype23 canned case also preserves its pause/first-ENTER join mismatch negative. These are journal guards, not actual client or physics evidence."
+    },
+    {
+      "fact": "All four changed files inspected; C/fixture/observer, production Rust and build inputs are unchanged. The live guard is inside spec.pause handling for9/10 only, so prior2a executions4..8 remain reusable with their actual native116 and driver2a identities. No new execution or source review of those controls performed here."
+    },
+    {
+      "fact": "Docs distinguish old case9 C completion from witness/application exit1, preserve the consumed failed root and state case10 was unrun. Stale C prose claiming only one total child is explicitly superseded in docs; code behavior is unchanged. No headless/device prerequisite inference added."
+    }
+  ],
+  "retained_regression_evidence": {
+    "old_2a_reproduction": {
+      "path": "R:\\d3-evidence\\sound-red-actual-2a-pause-20261031-r7.log",
+      "sha256": "4c10bfe4f89bdd403077e4bc0768872a9c1aa922e196e37615cbb2792b2e1ef2",
+      "bytes": 2629
+    },
+    "wip_failure": {
+      "path": "R:\\d3-evidence\\sound-pause-WIP-20261031-k1.log",
+      "sha256": "5d85c28c1c67d5891220fa4a12bb00156e21e939b6150955f42070b935c8d7ce",
+      "bytes": 7525
+    },
+    "format_step": {
+      "path": "R:\\d3-evidence\\sound-pause-fmt-WIP-20261031-k2.log",
+      "sha256": "b5e54d1e5c23949b2548f1db6fa9784f812bac4d5e10ce6b44b0cf27c685b213",
+      "bytes": 109
+    },
+    "wip_green": {
+      "path": "R:\\d3-evidence\\sound-pause-WIP-20261031-k3.log",
+      "sha256": "23f72a7322f938c2424de6c8444c2c28d5f1c659a80849e46842833dfa02d3b1",
+      "bytes": 5932
+    },
+    "scope": "Inspected r7 old2a reproduction: actual-shaped total11/matching1/returned1 rejected with the same isolation message, target RED_EXIT101. Current nine-function/strict WIP reported green remains scripted preparation, not a new real case9/10 outcome."
+  },
+  "execution_context": {
+    "reviewer": "Read-only source/retained-artifact analysis and this private report write only; no native runs/builds/tests/Docker/process/source/auth/public changes or agents.",
+    "reuse": "Cases4..8 native/controller0 with old2a and input/payload checks are Root-produced completed observations reused as context. Their full combined actual review is reserved until successful9/10 receipts arrive; they are not silently rerun or reattributed to d4.",
+    "pending": "After exact d4 protocol gate/native116 equivalence, Root may run only fresh replacement9 and untouched10. Actual seven-domain closure remains pending."
+  },
+  "original_domain_characterization_closed": false,
+  "retention_gap": "The earlier overwritten first d1 WIP raw log remains unavailable; labelled excerpt and user tool-result failures are partial only. Old case9 exit1/raw and earlier successful cases are preserved unchanged.",
+  "limitations": [
+    "This source guard clearance is not a new native build, successful case9/10 execution, seven-domain characterization closure or host sound move. The mixed native116/new d4 script needs explicit frozen byte identity and current protocol checks.",
+    "No actual device/playing/idle handle, resume state/device, destroy/network/player/render/audio delivery or generic sound ownership proof. These remain separately required D3 responsibilities.",
+    "Whole Task51/D3/shipping/full40/all8 byte identities/current final checks/normal merges remain open; sound/time/terrain/spatial/model scope preserved, D4/D5 unstarted."
+  ]
+}

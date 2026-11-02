@@ -1,0 +1,63 @@
+{
+  "review": "ONE independent residual-delta source review; no nested agents, source edits, compilation, Docker or experiments",
+  "created_utc": "2026-10-31T10:58:07.1409974Z",
+  "source": {
+    "path": "R:/d3-evidence/environment-physical-source-d4e5c34d2",
+    "head": "d4e5c34d2b85e5ee6e9b98e2edd9b00e3c2505c4",
+    "tree": "5f385bc94b6fd19ac8214fa45f6d39c8c29459ae",
+    "base": "2afd1b4c1e6e694dace4182ec072f9661fa7da70",
+    "status": "Clean git status --porcelain; git diff --check base..HEAD exit 0",
+    "delta": "Six business/documentation files plus eight checkpoint receipts; all changed production C, Rust tests and documentation inspected once. Closed unchanged original/kernel/observer evidence was reused, not rerun.",
+    "sha256": {
+      "eech-campaign/crates/eech-world/csrc/env_ref.c": "32d175005958f4ae499bccc18ad6853dba3b0e15f57650768d3ddf1fade9ff97",
+      "eech-campaign/crates/eech-world/src/env.rs": "e9822b8c72a6db72ea3d1cb1f241c303fac6acffd78232898428f829874e7e43",
+      "eech-campaign/crates/eech-engine/src/lib.rs": "90d9a71390752282e45ea9f18b60f2a2c1ec6c3ac40c6aff0fc9086cfc1db106",
+      "aphavoc/source/entity/special/session/ss_hostenv.c": "eb6b4c9db66f055606f9be7f4af3db6e985c71de3cd2aa13e6c48b46530db360"
+    }
+  },
+  "prior_review": {
+    "path": "R:/d3-evidence/independent-environment-physical-correction-review-2afd1b4c1-20261031.json",
+    "sha256": "70bdcdd0c4903ffcc73955ba788c1e824992e2e743d13c495fd3830b7d75ba20",
+    "disposition": "All four listed residual groups addressed in inspected source. No new actionable source finding established in this delta; runtime validation remains required."
+  },
+  "judgement": "NO_NEW_SOURCE_FINDINGS. This is a bounded source judgement, not compiler/runtime/FP/product/shipping acceptance, formal GitHub approval or Task 51/D3 completion.",
+  "findings": [],
+  "inspected_corrections": [
+    {
+      "prior_id": "ENV-CORRECTION-1",
+      "refs": "eech-world/csrc/env_ref.c:968-1050, 1053-1360; eech-world/src/env.rs:648-917",
+      "facts": "Float initialization, simple-weather selection and result staging now occur within the C guard. ENV_FP_SETTLE forces staged objects into memory before restoration; post-restore output/field transfers use memcpy/memset and integer decisions. Mutating operations retain copy-before-commit, and a failed restore withholds the field commit. The restored x87 CW/SW/TW are read through a saved/reloaded fnstenv image and compared unmasked; full MXCSR is compared. Entry-failure, operation-refusal, normal and need_draw branches retain restoration. No unrelated generic DLL FP repair was introduced.",
+      "test_scope": "Matrix now arranges four x87 by four SSE rounding combinations, two MXCSR sticky arrangements and three complete x87 status arrangements, all-empty tag word. It compares full CW/SW/TW/MXCSR and includes accepted/refused init_random, weather/simple, wind with/without vector, gust, import/export, init_fixed, no-expiry/NeedDraw/Done, missing camera, invalid draw/gust and infinite timer refusals. RestoreFp restores the saved x87 image and MXCSR on test exit/unwind. Numeric equality comparisons happen after the matrix and do not contaminate subsequent checked cases."
+    },
+    {
+      "prior_id": "ENV-CORRECTION-2",
+      "refs": "aphavoc/source/entity/special/session/ss_hostenv.c:333-343; eech-engine/src/lib.rs:9519-9587",
+      "facts": "C requires a finite speed always and a finite vector only when requested, matching the existing Rust/Lua contract. The new test installs an ABI-compatible C callback and invokes the actual campaign_env_wind_at consumer for requested-valid, unrequested-valid and unrequested-nonfinite vectors. Requested-malformed behavior is explicitly left to the later engine-level authority witness, not claimed measured here.",
+      "isolation": "The installed callback is a static function with null user context, copied by C, so no stack-context pointer dangles. It remains installed for the test process. Source search found this is the only campaign_env_set_host/campaign_env_wind_at user within this engine unit binary; other with_host unit cases call Rust callbacks directly and do not install the C environment host or boot an engine. No present competing C environment consumer or cross-test race was established. Separate test executables are separate processes."
+    },
+    {
+      "prior_id": "ENV-CORRECTION-3",
+      "refs": "eech-world/csrc/env_ref.c:701-714; eech-world/src/env.rs:1014-1035",
+      "facts": "The first server expiry answer now checks the decremented timer for finiteness before returning need_draw success. An invalid timer refuses while the field copy remains uncommitted. The focused test retains the infinite-delta refusal, checks unchanged state, then checks ordinary finite NeedDraw. The matrix retains this refusal too. No blanket input validation or arbitrary phase cutoff was restored."
+    },
+    {
+      "prior_id": "ENV-CORRECTION-4",
+      "refs": "eech-world/src/env.rs:957-976",
+      "facts": "The camera test now checks that the first zero-radius local step evolves the radius to 5000 and then legitimately refuses a missing camera without mutation. It re-imports the original calm state before independently checking an absent camera in the original zero-radius/global branch. Production radius evolution and required-camera refusal are preserved."
+    }
+  ],
+  "preserved_evidence": {
+    "checkpoint": "eech-campaign/reference/d3-environment-characterization/physical-2afd1b4c1-correction-checkpoint",
+    "verification": "All seven payload receipts listed by receipt.json matched their declared CRLF-to-LF normalized SHA256 and byte counts. The original raw publication identities and normalization are explicit; immutable originals were not edited or rerun.",
+    "actual_prior_results": "Inspected preserved 2afd records: actual Windows engine 76/76 exit 0 and dc 21/21 exit 0; world 247 pass / 2 fail exit 101, matching Linux. Windows build/export exit 0. The three 164-case retail probes retain complete 705-line equality to 05b (704 original raw lines plus metadata), 46 payloads, native/pre/post exits 0. These are prior-candidate results, not d4 results.",
+    "diagnostics": "WEATHER_DRAW w0 remains a declared private diagnostic-semantic difference. No original RAW/golden/tolerance was changed or treated as physically unchanged by that difference."
+  },
+  "limitations": [
+    "No d4 actual compiler/test/probe completion result was supplied to this review at its cutoff. Root owns running Linux/Windows builds, actual exported Windows tests and fresh numeric/public authority checks; source changes and matrix declarations are not measured success.",
+    "The FP matrix intentionally exercises an empty x87 tag stack and the listed status/mask arrangements, not every possible nonempty x87 register stack or control-mask combination. Its Field/Rust glue also executes in the seeded environment; on x87-only targets a reported status difference must be attributed using the actual call boundary. The documentation acknowledges this, and no runtime success is inferred.",
+    "Source reasoning and receipt hashing do not prove generated machine-code FP ordering across all targets. The new full-status target runs are an outstanding validation gate, not grounds for repeating unchanged originals.",
+    "The C-consumer test is bounded to its current standalone unit process; it is not a public Lua -> DLL -> real campaign wind-authority demonstration or requested-malformed witness. The preserved partial wind driver is outside this source and unaccepted.",
+    "No process changes, builds, native experiments, shared build volumes, credentials/authentication changes, external messages, fake reviews, merges or source edits performed by reviewer. The frozen tree remains clean.",
+    "Root supplies current live authority/user authorization and will handle normal review/merge gates. Whole D3 remains required; physical effects, scratch/time/loader/spatial/model residuals and full 40-check/eight-COMPLETE shipping acceptance are not closed by this review. Task 51/D3 incomplete; D4/D5 not started."
+  ]
+}

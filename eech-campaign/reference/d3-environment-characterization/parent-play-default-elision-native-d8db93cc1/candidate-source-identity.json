@@ -1,0 +1,73 @@
+{
+  "source": "d8db93cc181a6980c00f9ec17967acf217645382",
+  "base": "d4634ebd20335e170764d3da716143ddc91885d2",
+  "frozen": "D:\\EECH-Migration-Evidence\\pe-d8db93cc1",
+  "changed_paths": [
+    "STATUS.md",
+    "aphavoc/source/entity/special/effect/soundeff/soundeff.c",
+    "aphavoc/source/entity/special/session/ss_envfx.h",
+    "aphavoc/source/entity/system/en_funcs/en_snd.c",
+    "aphavoc/source/entity/system/en_funcs/en_snd.h",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_env_observer.c",
+    "eech-campaign/crates/eech-engine/src/lib.rs",
+    "eech-campaign/crates/eech-world/lua/env-play-elided-parent.lua",
+    "eech-campaign/crates/eech-world/tests/env_play_resumed_parent.rs",
+    "eech-campaign/docs/d3-sound-lifetime.md"
+  ],
+  "source_files": [
+    {
+      "path": "STATUS.md",
+      "sha256": "e7c6bfb999b492c966eaa4fe351d5c8e2eb7df9dc5d9207de8dcef1d948c2886"
+    },
+    {
+      "path": "aphavoc/source/entity/special/effect/soundeff/soundeff.c",
+      "sha256": "65777d592530b29c946aaf7779c472319ad4a02b49f928ca0d767bc7b8f609e0"
+    },
+    {
+      "path": "aphavoc/source/entity/special/session/ss_envfx.h",
+      "sha256": "4e967d42e2c745eedcf108209f3e56fd1eed9230d925787ed549ae7a449881d5"
+    },
+    {
+      "path": "aphavoc/source/entity/system/en_funcs/en_snd.c",
+      "sha256": "2f500d9ecc6bec9a2f9cbcdd1c2a3c88cff9bd3027d80e2cabc965300efe2e2d"
+    },
+    {
+      "path": "aphavoc/source/entity/system/en_funcs/en_snd.h",
+      "sha256": "6af12e71a2397003ee8435b6872499e96a31709f58c27b189b95c7953a3501ea"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c",
+      "sha256": "2ec96461dda1ac17136337a4ca32490d20d2eacf935afffac5cbafd8db96d61a"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_observer.c",
+      "sha256": "9cdb48c4c4d7c8ac6e06df423992c53a51b1778744daa40105075cb256d32e7c"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "sha256": "80fbc63e3c2963f29f767b238250245dc456022e85ff7f290a30753e4ac84166"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/env-play-elided-parent.lua",
+      "sha256": "6c8564fbef1237cd91b1e42d9efb9aba9c1d578e06d9c33d1fe5f374e78611d4"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/env_play_resumed_parent.rs",
+      "sha256": "c2d5c9008bb9cdbb0ad842d4c017027a60b2c55e8fc1cf03531d637a61c680f1"
+    },
+    {
+      "path": "eech-campaign/docs/d3-sound-lifetime.md",
+      "sha256": "6bdd74eefae88c03c0e3dbc4af896f9486e5f90666eb2aabc336b6ef3dad2624"
+    }
+  ],
+  "engine_NUL_unchanged": true,
+  "clean": true,
+  "own_git": true,
+  "no_alternates": true,
+  "build_wrapper": "R:\\d3-evidence\\run-environment-parent-play-needed-only-d8db93cc1-windows-20261101.py",
+  "build_shell": "R:\\d3-evidence\\build-environment-parent-play-needed-only-d8db93cc1-windows-20261101.sh",
+  "created_utc": "2026-11-01T12:52:21.909039+00:00",
+  "actual_exit": 0,
+  "scope": "Clean immutable needed-only parent-play candidate SOURCE. Original native8e/external6aec receipts remain named and unchanged. No build/execution/authority/currentCI/shipping/Tacview or wholeD3 acceptance inferred; Root source inspection and same independent review remain required."
+}

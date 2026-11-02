@@ -1,0 +1,49 @@
+{
+  "review": "ONE combined independent new original-sector-characterization delta review; no agents, source edits, builds, native runs, Docker or process changes",
+  "created_utc": "2026-10-31T12:29:52.0113532Z",
+  "source": {
+    "path": "R:/d3-evidence/environment-sector-original-source-a78b6ab3c",
+    "head": "a78b6ab3c2512288c91ceed907379e9fda9ccf34",
+    "tree": "35f831b321441eb62d1baea794c3058189488506",
+    "base": "34c7c28bfbd0dd960380de6dc1a479a569c26e97",
+    "status": "Clean git status; diff --check base..HEAD exit 0",
+    "sha256": {
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c": "58feefb651838d6aa56ebb7342133bc858597e62f37572a035b727dbb06c780c",
+      "eech-campaign/crates/eech-world/lua/env-sector-characterization.lua": "88ddbae3a76bfc2d3f79ff37c31c25386d241413cfa4cbee1269e9fdb1034535",
+      "eech-campaign/crates/eech-world/tests/env_sector_characterization.rs": "2b8d3fa31436768a656b513e726bad9ea20e088435051f4e0b55678a8e8d6e8d"
+    }
+  },
+  "scope": "Only 34..a78 new fixture group10, Lua driver, Rust driver guards and new docs/STATUS. Existing original terrdata serializer/routine/layout/selection were read to verify this new characterization. Closed wind34 actual review843ec6..., field/FP/ABI/oracle/observer evidence reused without new reviews or runs.",
+  "judgement": "CHANGES_REQUIRED for one C syntax defect. Characterization source otherwise supports the described finite observations, subject to compilation and actual three-root collection. No production cutover, full-original-DLL identity or D3 completion accepted.",
+  "findings": [
+    {
+      "id": "ENV-SECTOR-ORIGINAL-1",
+      "priority": "P1",
+      "title": "Escape the newline in the group10 error-report C string",
+      "refs": [
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c:1308-1309"
+      ],
+      "evidence": "The new append format literal ends its source line after `index=%d`, and the closing quote is on the following line. This is an actual unescaped newline within a C string, confirmed in the frozen file, rather than the two-character escape used by surrounding error messages. The env-fixture translation unit cannot compile this string.",
+      "requested_change": "Replace the literal source newline with the escaped newline in a single valid C string. Keep the existing group/index error wording and refusal behavior. Root's existing affected env-fixture builds can then validate the correction; no extra experiment framework or production change is needed.",
+      "evidence_class": "Direct frozen-source syntax finding; reviewer did not run a compiler."
+    }
+  ],
+  "inspected_facts": [
+    "Actual get_terrain_3d_types_in_sector in terrdata.c:1747-1802 selects with get_terrain_3d_sector, clears all TERRAIN_TYPE_LAST scratch ints, flags the first unsigned-byte surface id, advances/flags each polygon surface_change and returns one plus transition count. The fixture does not substitute a distinct-type count or compute the expected surface answer.",
+    "Actual selected routine writes shared terrain_types_in_sector and sets rounding toward zero via sector selection; it does not mutate sector geometry, RNG, entities, campaign time or heap. The engine-entry numeric context and existing X1 conversion patch supply the current hosted truncating sector-selection behavior. This characterizes the unchanged helper on the present hosted baseline, not an unhooked whole original DLL.",
+    "Group10 is explicit-only and branches before the old witness dispatch; default/census/164-case tables are unchanged. The case plan has first/last/middle sectors, 48 sweep samples, finite neighboring-edge floats and sound clamp points. It retains raw IEEE input words and does not silently repair rejected coordinates.",
+    "Domain checks call the original selector and reject out-of-grid indices before grid indexing, missing surface table, missing polygon table when polygon count is positive, and surface ids beyond scratch bounds. surface_id is unsigned char, so a negative-id case is not omitted. Polygon/surface walking follows the original order. On valid loaded retail structures, generated finite coordinates stay in the relevant representable integer range.",
+    "Successful cases save scratch, fill two distinct sentinels for repeat/reset observations, conditionally interleave the reference sector, capture the resulting flags and restore saved bytes before output formatting. Output-capacity failure therefore occurs after restoration. Domain refusal precedes scratch filling, so it changes no scratch. Unavailable reference interleave is explicitly na/-1, not a fabricated success.",
+    "Lua writes raw original lines and complete flags, keeps returned/distinct/polygon counts separate, checks flags against derived count fields and requires restored=1. Repeat/reset/interleave differences are recorded as original anomalies rather than repaired. Checked write/flush/close failures and unavailable env_case cause witness failure; no frames are run by this driver.",
+    "Four Rust controls run the real Lua driver with scripted row/output collaborators, covering answered/rejected samples, return-versus-distinct separation, anomaly/restoration distinction, malformed rows/counts and output failures. They characterize driver bookkeeping only; they supply no physical terrain proof.",
+    "New wind34 receipts are a preservation checkpoint of the already reviewed actual wind evidence, with explicit mixed provenance and retained earlier failures. They were not used to infer sector results. No production provider, ABI, build flag, accepted driver, baseline or tolerance change is present."
+  ],
+  "limitations": [
+    "Root reports actual four Lua-driver guard functions exit0. Native env-fixture compilation and Windows build remain pending terminal results, and no original three-root sector collection exists yet. Source/driver guards are not measured terrain semantics.",
+    "The domain guard validates named semantic bounds/null cases over loaded retail structures, not arbitrary corrupted pointer allocations or complete loader memory bounds. It walks the original polygon/surface pointers and does not know their allocation lengths. No malformed-loader robustness claim or new security framework is inferred.",
+    "Scratch restoration is directly asserted; whole campaign/RNG/heap/frame-order noninterference remains reused original/observer evidence and source disposition, not newly measured by this boot-only driver. No generic DLL FP repair or complete world/terrain ownership proof follows.",
+    "No source edits, native experiments, builds, shared volumes, live process changes, authentication changes, fake approvals, publication or merges performed. Frozen source remains clean and all live ground/other evidence untouched.",
+    "Whole Task 51/D3 remains OPEN: physical effects/time, remaining terrain/spatial/model and full shipping/current-CI/normal-delivery gates remain required. Campaign policy stays Core; D4/D5 unstarted."
+  ],
+  "late_root_update": "Before final delivery Root reports actual a78 Linux four driver guards exit0; native env-fixture compile and Windows fixture build remain live with no terminal compiler exit yet. Reviewer did not independently run or reread those logs. Root also checked real terrain-provider installation and boot-callback equivalence; no extra finding."
+}

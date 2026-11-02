@@ -1,0 +1,37 @@
+{
+  "when_utc": "2026-10-31T17:47:31.385190+00:00",
+  "scope": "COMPLETE current hosted-field PREQUEUE observer baseline RAW vs new queue probe non-queue RAW, including every ending. Separate result: historicalpre-hostfield765 observer comparison remains FALSE; no row normalization or acceptance baseline/tolerance change. No host queue handoff/Tacview/shipping acceptance.",
+  "baseline_native_source": "d559c38592405afcabc172ec876a4fdfa7f9687b",
+  "baseline_code_equivalent_preprobe_source": "12ca0f15f83a6301ac24455788096800345faad6",
+  "new_probe_native_source": "a27f6ead2150fd4047c87a8eb7c5583f6a6d6c01",
+  "new_primitive_driver_source": "60e5ee0bd60b6197d09705e7d388311885fd83ea",
+  "actual_native_controller_exits": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      0
+    ]
+  ],
+  "verified_payloads": [
+    51,
+    53
+  ],
+  "all_four_pre_post_inputs0": true,
+  "raw_row_counts": [
+    17230,
+    17230
+  ],
+  "complete_currenthost_nonqueue_raw_including_endings_equal": true,
+  "differing_rows": 0,
+  "first_difference": null,
+  "baseline_complete_raw_sha256": "e3b660d265b8d231d94a87e087e4d7967837767244e491edc9be2d15dda52f65",
+  "probe_nonqueue_raw_sha256": "e3b660d265b8d231d94a87e087e4d7967837767244e491edc9be2d15dda52f65",
+  "probe_complete_raw_sha256": "3248f58461e40d76b9a8b19e6c827f901e54c4bf1ef314c162735ae03eb9d710",
+  "retained_historical_comparison_whole_nonqueue_equal": false,
+  "historical_differences": 16,
+  "historical_changed_fields_only": "boot weather_draw.w0, a1/3/4/5/6/8/9/10 x2; preexisting05b8 hostedinit rawdraw hooks vslegacy derivedfield hooks; sameRNG/seq/allother17214rows andall10830selectedstate/campaign/runrows exact",
+  "historical_investigation_sha256": "5f97429600fa8b1bf026bd72e00a16958614644cca04105a17e855c7af07b64c"
+}

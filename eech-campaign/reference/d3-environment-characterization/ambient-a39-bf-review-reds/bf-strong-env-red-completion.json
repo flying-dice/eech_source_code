@@ -1,0 +1,18 @@
+{
+  "source": "bf64653dee245027a5ac46ebe4ad201790639200",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-ambient-mode-red-bf64653de-linux-20261031.sh"
+  ],
+  "pid": 19328,
+  "controller_pid": 17368,
+  "state": "terminal",
+  "started_utc": "2026-10-31T15:16:29.265158+00:00",
+  "scope": "IndependenttargetednewEnvFP red onunchangeda39production; priorwideharness3pass1failure isLua-error-wrapper assertion, notproductionred; no broaderchecks.",
+  "actual_exit": 101,
+  "completed_utc": "2026-10-31T15:16:41.981676+00:00"
+}

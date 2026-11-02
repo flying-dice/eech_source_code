@@ -1,0 +1,66 @@
+[
+  {
+    "private_original": "R:\\d3-evidence\\original-sound-pause-resume-native33-driver299-audit-20261031.json",
+    "private_original_sha256": "77abafaf9c6ae36f8178e65ec2289d05f9ce08a08af7686251d7a392eef55e8a",
+    "published": "original-sound-pause-resume-native33-driver299-audit-20261031.json",
+    "published_sha256": "20b7963329dbb7b1bbcabfd9482b2c67ba856fb9283d2df5de48ebcdd1169af1",
+    "decoded_json_values_identical": true,
+    "scope": "LF metadata publication only. Audit is explicitly a derived safe projection; no raw measured bytes copied, normalized or rewritten."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\independent-environment-original-sound-pause-resume-source-review-33c015557-20261031.json",
+    "private_original_sha256": "abafea02e3fd461287f775059665f9a15ceb5d077f9b99e451a263f9770a1d55",
+    "published": "independent-environment-original-sound-pause-resume-source-review-33c015557-20261031.json",
+    "published_sha256": "08be9508cefdfee2b3e8e78cac7896c80f05509e335a016030515f4c46200dc4",
+    "decoded_json_values_identical": true,
+    "scope": "LF metadata publication only. Audit is explicitly a derived safe projection; no raw measured bytes copied, normalized or rewritten."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\independent-environment-original-sound-pause-resume-driver-source-review-299bcf051-20261031.json",
+    "private_original_sha256": "d06782ef482f4943223e4c624162347b3ba863cc9a08a4de7f02bd272b6b51ac",
+    "published": "independent-environment-original-sound-pause-resume-driver-source-review-299bcf051-20261031.json",
+    "published_sha256": "f319ec7db507a6b286c61d4716d1bc57a24f1f883f3ed0ef55a3a6a14665edec",
+    "decoded_json_values_identical": true,
+    "scope": "LF metadata publication only. Audit is explicitly a derived safe projection; no raw measured bytes copied, normalized or rewritten."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\current-CI-299bcf051-20261031.json",
+    "private_original_sha256": "7f8429e26887efb882ae6e472f362dc308b798a3ee8f790e9a03616a5d7d9ad8",
+    "published": "current-CI-299bcf051-20261031.json",
+    "published_sha256": "7f8429e26887efb882ae6e472f362dc308b798a3ee8f790e9a03616a5d7d9ad8",
+    "decoded_json_values_identical": true,
+    "scope": "LF metadata publication only. Audit is explicitly a derived safe projection; no raw measured bytes copied, normalized or rewritten."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\environment-original-sound-pause-resume-33c015557-windows-20261031-completion.json",
+    "private_original_sha256": "10f22f2752327ef18d89baeeca8e170dfb54d05363a00ce64c7967f695f18623",
+    "published": "environment-original-sound-pause-resume-33c015557-windows-20261031-completion.json",
+    "published_sha256": "3a245d5bc50b67d05fae9c45eaf1ab17ee4f7940fb0219eed59c082645a0e23b",
+    "decoded_json_values_identical": true,
+    "scope": "LF metadata publication only. Audit is explicitly a derived safe projection; no raw measured bytes copied, normalized or rewritten."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\environment-original-sound-pause-resume-33c015557-linux-20261031-completion.json",
+    "private_original_sha256": "9678c42032937ac63a4a744a2678c635e25dd0b49d6333add4b2014f57312a05",
+    "published": "environment-original-sound-pause-resume-33c015557-linux-20261031-completion.json",
+    "published_sha256": "3928ca42d28699a480830a667f096ee2c6cdd62a982e1c0e7b0344a48d646065",
+    "decoded_json_values_identical": true,
+    "scope": "LF metadata publication only. Audit is explicitly a derived safe projection; no raw measured bytes copied, normalized or rewritten."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\environment-original-sound-pause-resume-driver-299bcf051-linux-20261031-completion.json",
+    "private_original_sha256": "d709d006decff55e747c1732e9519438635161165e8b1a62b5e499b44d66abf3",
+    "published": "environment-original-sound-pause-resume-driver-299bcf051-linux-20261031-completion.json",
+    "published_sha256": "87053338b4ad0d64ae076fef13f89a3dcb5190c0b4b6650d7b81aacec18dc92e",
+    "decoded_json_values_identical": true,
+    "scope": "LF metadata publication only. Audit is explicitly a derived safe projection; no raw measured bytes copied, normalized or rewritten."
+  },
+  {
+    "private_original": "R:\\d3-evidence\\independent-environment-original-sound-pause-resume-final-actual-review-native33-driver299-20261031.json",
+    "private_original_sha256": "df22d2e9967a6a6580ea0afd2010f0431196e3d235d341bed20e03de6c06fba7",
+    "published": "independent-environment-original-sound-pause-resume-final-actual-review-native33-driver299-20261031.json",
+    "published_sha256": "d5407103bf5d0b878a4e0cd56181f32414e06f0624abcd056fa7ce7eaaf61042",
+    "decoded_json_values_identical": true,
+    "scope": "Literal final actual review metadata copy added afterreview; report additions/futureedits are not called pre-reviewed. Raw measured bytes remain unchanged."
+  }
+]

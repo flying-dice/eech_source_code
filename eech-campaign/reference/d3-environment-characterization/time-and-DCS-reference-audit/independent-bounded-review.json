@@ -1,0 +1,148 @@
+{
+  "review_id": "ENV-TIME-API-INVENTORY-20261031",
+  "reviewer": "sole independent Codex reviewer",
+  "reviewed_utc": "2026-10-31T12:51:05.3762487Z",
+  "scope": "One read-only source/evidence-document pass on two bounded inventories. No production source re-review or migration acceptance.",
+  "artifacts": [
+    {
+      "path": "R:/d3-evidence/environment-time-input-source-audit-e3439025a-20261031.json",
+      "sha256": "c47eb12f99b88022cede01f0499246037e309b7f4261870f9e16dcc56433c889"
+    },
+    {
+      "path": "R:/d3-evidence/environment-DCS-API-reference-inventory-1179554-20261031.json",
+      "sha256": "3dd201bb25adb588c0ddef23ffd07831b688931b818cbdeeb6fb2e287e6f1ed4"
+    }
+  ],
+  "source_identity": {
+    "time_claimed_revision": "e3439025ac8217f651d68105d8dd3e81c14b4c73",
+    "time_read_frozen_revision": "a1002fb8d1381cace7fa76bf404b78335ac85486",
+    "time_files": [
+      {
+        "path": "eech-campaign/crates/eech-dc/src/module.rs",
+        "git_blob": "d128bc1be656bec7bf0b29eed691a0c0fc41b75c",
+        "sha256": "0bd9b287383f11ff30178094d5c87b0933c7ecd62e0dd5b06bfd5a95bc540341",
+        "a100_and_e343_blobs_equal": true,
+        "frozen_disk_hash_matches": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+        "git_blob": "3c340aeed0e91067a3d3752722dfdb1484800ab1",
+        "sha256": "90d9a71390752282e45ea9f18b60f2a2c1ec6c3ac40c6aff0fc9086cfc1db106",
+        "a100_and_e343_blobs_equal": true,
+        "frozen_disk_hash_matches": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+        "git_blob": "e1942158a5ee22568cbc05642fc02f671019dbc0",
+        "sha256": "7fe83d37599ce568797ed06ade429aa63fc46b0f7d8fb917b93243e8edaaa94d",
+        "a100_and_e343_blobs_equal": true,
+        "frozen_disk_hash_matches": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_log.c",
+        "git_blob": "46157254256b21a142c94b7b2aff8d0730d7757f",
+        "sha256": "d375ba2781e687f4e2d10ff502ae22bc234ac20749a6f2f6d1eba3b60b54080b",
+        "a100_and_e343_blobs_equal": true,
+        "frozen_disk_hash_matches": true
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_win32.c",
+        "git_blob": "2c59d5afd24ffbc9dc964397d0a03653b02c7d4d",
+        "sha256": "018eb52de818c39c639116e83d2d7f7458ef38e1bf9a275e57d34bc71af004bc",
+        "a100_and_e343_blobs_equal": true,
+        "frozen_disk_hash_matches": true
+      },
+      {
+        "path": "modules/system/time.c",
+        "git_blob": "6f9110c1d935b4abf80c92a0c36dae9c15ab74a3",
+        "sha256": "9d25618d2c3dc55bd08240da31b4c7ce029d2a9df2bfa1faa00162f4a2062e5b",
+        "a100_and_e343_blobs_equal": true,
+        "frozen_disk_hash_matches": true
+      },
+      {
+        "path": "aphavoc/source/entity/special/session/ss_updt.c",
+        "git_blob": "c7aa8cadf94f272b0acd81a579052ddc73309788",
+        "sha256": "265855d209a81e359cfc47cff437b09c2d396c077b42dd5a94657b11a1219cf7",
+        "a100_and_e343_blobs_equal": true,
+        "frozen_disk_hash_matches": true
+      },
+      {
+        "path": "aphavoc/source/entity/special/session/ss_hostenv.c",
+        "git_blob": "58374607fd11b08981f6a9e9aa25a15b0948b024",
+        "sha256": "eb6b4c9db66f055606f9be7f4af3db6e985c71de3cd2aa13e6c48b46530db360",
+        "a100_and_e343_blobs_equal": true,
+        "frozen_disk_hash_matches": true
+      }
+    ],
+    "api_repository": "flying-dice/tslua-dcs",
+    "api_revision": "1179554fcafcef92d71313336cc09500febf8245",
+    "api_files": [
+      {
+        "path": "packages/tslua-dcs-mission-types/src/atmosphere.ts",
+        "git_blob": "421e6f651978137ea35ed6f6b36bb6954edf3114",
+        "sha256": "80a63a4718e163ae6f30a5baca4ab20bbe7e924cb26cf61cd8de52a46d28032b",
+        "url": "https://github.com/flying-dice/tslua-dcs/blob/1179554fcafcef92d71313336cc09500febf8245/packages/tslua-dcs-mission-types/src/atmosphere.ts",
+        "local_snapshot_blob_matches": true
+      },
+      {
+        "path": "packages/tslua-dcs-mission-types/src/timer.ts",
+        "git_blob": "abc1b98a108c48974cf2b84f3c55792fd30c5521",
+        "sha256": "c66c6ca8dbd99c99160eb9d81f8bfe55096e6d593234c1e200493a47780388d9",
+        "url": "https://github.com/flying-dice/tslua-dcs/blob/1179554fcafcef92d71313336cc09500febf8245/packages/tslua-dcs-mission-types/src/timer.ts",
+        "local_snapshot_blob_matches": true
+      },
+      {
+        "path": "packages/tslua-dcs-mission-types/src/land.ts",
+        "git_blob": "9e5fd4557fd94b7da38f613a36040439b6086fb3",
+        "sha256": "f5578b02a4650185b5374d994f0f785336d0a1217b54b6b4d1bf72e6edd8bfa0",
+        "url": "https://github.com/flying-dice/tslua-dcs/blob/1179554fcafcef92d71313336cc09500febf8245/packages/tslua-dcs-mission-types/src/land.ts",
+        "local_snapshot_blob_matches": true
+      }
+    ]
+  },
+  "inspected_facts": [
+    {
+      "refs": [
+        "eech-campaign/crates/eech-dc/src/module.rs:2136",
+        "eech-campaign/crates/eech-engine/src/lib.rs:4673",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c:330"
+      ],
+      "fact": "Lua accepts milliseconds as u32; Rust forwards the same argument to native frame. Entity/update/timer work occurs before headless millisecond advance and set_delta_time. Paused and accelerated branches remain in Core."
+    },
+    {
+      "refs": [
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_log.c:11",
+        "eech-campaign/crates/eech-engine-sys/csrc/eech_win32.c:933",
+        "modules/system/time.c:117",
+        "modules/system/time.c:142"
+      ],
+      "fact": "The inspected simulated clock mirror is uint32 and exposes set/read/add operations without wall-clock sampling. Delta reset is 0.1; set_delta_time retains float conversion, division, zero-delta handling and locked-rate branch. This is limited to these paths."
+    },
+    {
+      "refs": [
+        "aphavoc/source/entity/special/session/ss_hostenv.c:391",
+        "aphavoc/source/entity/special/session/ss_updt.c:81",
+        "aphavoc/source/entity/special/session/ss_updt.c:132"
+      ],
+      "fact": "Weather request.delta reads the existing delta before the later headless clock advance. Core still updates campaign elapsed time, day segments, skip-night and resynchronization. Initial reset and locked-rate behavior qualify the usual previous-frame description."
+    },
+    {
+      "refs": [
+        "packages/tslua-dcs-mission-types/src/atmosphere.ts",
+        "packages/tslua-dcs-mission-types/src/timer.ts",
+        "packages/tslua-dcs-mission-types/src/land.ts"
+      ],
+      "fact": "Pinned local declaration snapshots contain every candidate signature named in the inventory. The inventory accurately limits this to declarations, does not endorse timer pause prose as measured behavior, and keeps weather metadata, sector flag/count disposition, coordinate mapping and native semantics open."
+    }
+  ],
+  "findings": [],
+  "judgment": "No actionable findings within the two-document scope. Claim accuracy, source identity, clarity and Core/host boundaries are supported by the inspected source and declaration snapshots.",
+  "limitations": [
+    "No complete time-consumer census was performed or claimed. No physical time service cutover or weather/terrain adapter equivalence was established.",
+    "No tests, builds, runtime probes, native DCS calls, external fetches or new oracle comparisons were performed. Existing observer evidence remains reused at its own recorded identity and was not re-audited.",
+    "API snapshot bytes match recorded Git blob identifiers and local provenance at the immutable linked commit; remote commit-tree membership was not independently fetched in this pass. Official FAQ403 history and live M5 authority were not independently rechecked; the unavailable FAQ supplies no factual support here.",
+    "Only Git object identifiers were read from the active author repository; source text was read from frozen a100. No mutable worktree or in-progress sector implementation was reviewed or changed.",
+    "This report closes no Task51/D3 deliverable, authority, runtime, shipping or migration gate. Required remaining D3 work stays open; D4/D5 are unstarted."
+  ],
+  "operations": "Read-only file, Git-object identity and hash inspection; only this report was written."
+}

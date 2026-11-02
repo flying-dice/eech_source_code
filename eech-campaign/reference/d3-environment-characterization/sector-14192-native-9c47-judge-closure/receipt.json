@@ -1,0 +1,93 @@
+{
+  "native_source": "14192c6e292864e573acc8fd8eed94e94f12ce03",
+  "judge_source": "9c47b972aae4dc6640a09f6d9cc13d5f2de81db0",
+  "files": [
+    {
+      "file": "actual-evidence-review.json",
+      "sha256": "1fa64affc0167601eb463c8d459df6b8ecf23e157f8b683d1813665976d09b96",
+      "bytes": 13473,
+      "git_LF_sha256": "48e6cdf3ea569b325e4a00b9d57d0941fe0d541dcb665d5241f0c6f8ae25997d",
+      "git_LF_bytes": 13229
+    },
+    {
+      "file": "judge-source-review.json",
+      "sha256": "41a1cfaf8913fa41f17330cc54f0f69b2042ae684138e068859f2bb2142e8fae",
+      "bytes": 6149,
+      "git_LF_sha256": "61148f49835a48d3f752f580a05a878ce37388aa206b7c54fe3b2bcd4bcb568e",
+      "git_LF_bytes": 6070
+    },
+    {
+      "file": "five-mode-summary.json",
+      "sha256": "b9b1e719b22f5ffc9150b97cf7b9eb3920805c4ed60bc5cf9dcb5a5de2aac12c",
+      "bytes": 7948,
+      "git_LF_sha256": "6e4b8f1d85e1b1a86a4c7ad17d1a75583dcc5f9c18fa04ca6e04dd5b63080979",
+      "git_LF_bytes": 7729
+    },
+    {
+      "file": "five-mode-receipt.json",
+      "sha256": "76996fd541b8fc1c98d4c8f4dd9e638c11f25655245e10a2681d0a4e939d4bb0",
+      "bytes": 13195,
+      "git_LF_sha256": "ddbdff4c0b0b8ee08db54554339f280dfb7e5a6f10b0a7f6129220b1ba6d917f",
+      "git_LF_bytes": 12914
+    },
+    {
+      "file": "judge-native-equivalence.json",
+      "sha256": "73e85bab7b68f5e06b4b5d35e36d8bba13b39218d80e991c53c2602baa6abaed",
+      "bytes": 1388,
+      "git_LF_sha256": "7fb8b74fa3410e85eb7109daa6f9e3a0ac8a2083beab4c1fe1bcb9d1b86d7e04",
+      "git_LF_bytes": 1370
+    },
+    {
+      "file": "default-three-root-comparison.json",
+      "sha256": "98fd7d9c1b5fe52c858aae5bdee9d0c4b08dee9e6f63ae241a323f93eae67452",
+      "bytes": 1389,
+      "git_LF_sha256": "f7447c9a03871689a2d0e91377a4c1beaac9bebdcf17dabacb37ed9fd6ec7fb1",
+      "git_LF_bytes": 1348
+    },
+    {
+      "file": "Linux-judge-strict-completion.json",
+      "sha256": "0e6b698e07eff362d8d19ee03f06721b022f002a929f3a8eb087615f79e30a24",
+      "bytes": 613,
+      "git_LF_sha256": "8e125c5cfe4991b89de62fb5290fdfe2d2be735ee61915ac8df85f15a175e750",
+      "git_LF_bytes": 595
+    },
+    {
+      "file": "Windows-judge-build-completion.json",
+      "sha256": "5102e62dfd8bd0b3b127da8d9054a1a6b07ac6260ccbdfda28966e0b7ee12082",
+      "bytes": 585,
+      "git_LF_sha256": "af2649a591cadb974513620147c1a3a64d3c40c76f127550f64d308c6d464daf",
+      "git_LF_bytes": 567
+    },
+    {
+      "file": "prior-Windows-timeout-failure-audit.json",
+      "sha256": "1baf6b7fbc964c4bc3fc5cabd116db8453000bed689b88fd290481be575e9870",
+      "bytes": 1043,
+      "git_LF_sha256": "acf2d26488d2a9f03910a821e46815b752625df8bf9af88b39df9f5094056aa2",
+      "git_LF_bytes": 1026
+    },
+    {
+      "file": "current-CI.json",
+      "sha256": "f2c1ad54bb64258602fdc3f24eb6d5a84053d96e45b5fdd60772960efc4d2b0e",
+      "bytes": 1825,
+      "git_LF_sha256": "f2c1ad54bb64258602fdc3f24eb6d5a84053d96e45b5fdd60772960efc4d2b0e",
+      "git_LF_bytes": 1825
+    },
+    {
+      "file": "hosted-full-FP-and-timeout.json",
+      "sha256": "c51f99ea09d66cb085381e651e03186496a88eb9fad70341730985e62fdf9089",
+      "bytes": 1647,
+      "git_LF_sha256": "c51f99ea09d66cb085381e651e03186496a88eb9fad70341730985e62fdf9089",
+      "git_LF_bytes": 1647
+    },
+    {
+      "file": "ledger-v90-preservation.json",
+      "sha256": "9f78fc0539ee86759218545cc6f07ac50cf9efbf1cc8dc9829fb9c5079c9e978",
+      "bytes": 426,
+      "git_LF_sha256": "9f78fc0539ee86759218545cc6f07ac50cf9efbf1cc8dc9829fb9c5079c9e978",
+      "git_LF_bytes": 426
+    }
+  ],
+  "scope": "Curated safe receipts/reviews only. No retailpayloads, rawcoordinates, binaries, recordings or observerstreams. Hostsector enumeration/scratchauthority component gates closed; no amplitude/player/render/fullshipping/Task51/D3 acceptance. Windows15functions2.14s; Linux15functions2.04s; public5mode32.87s. All9currentCIgreen. Earlierfailure retained unchanged, vacuousbooleanexplicitlyaudited.",
+  "remaining": "Ambient physicalamplification/lightning/soundexecution/physicaltime +remainingterrain/spatial/modelservices; full40/all8completebytecomparisons/review/currenthead/normalmerges. D4/D5notstarted.",
+  "hash_scope": "sha256/bytes are preserved PRIVATE ORIGINAL bytes; Git normalizes text endings. git_LF_sha256/git_LF_bytes identify each retained Git artifact. Reviewed reports retain hashes of the named private originals."
+}

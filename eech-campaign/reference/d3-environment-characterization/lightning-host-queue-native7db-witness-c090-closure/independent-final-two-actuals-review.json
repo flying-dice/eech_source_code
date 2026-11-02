@@ -1,0 +1,118 @@
+{
+  "review_id": "ENV-HOST-LIGHTNING-QUEUE-FINAL-ACTUAL-7DB-C090-20261031",
+  "reviewed_utc": "2026-10-31T19:20:37.2360799Z",
+  "reviewer": "Sole independent Codex reviewer; no nested agents",
+  "scope": "ONE final NEWactual-only review of two frame-domain controls plus explicit reuse identity chain. Earlier065 combined nine-controls/catalogue/source and model-origin audit reused; no new source pass, old rerun, edit, build, native experiment, process, Docker or public action.",
+  "source": {
+    "head": "c090664ec6aed8268a0d8aeb0812f1e60b2bdb51",
+    "native": "7db2c6a91b4cd0a1fae2d8e20bfa169584618d24",
+    "guard_tested_source": "065e8e2dfd237054c52bb359f36a39b27b38d876",
+    "driver_snapshot": "R:/d3-evidence/environment-host-lightning-reply-frame-source-c090664ec",
+    "witness_sha256": "9563e7429fc44e4a3edfef2b92df58558da271c12601fcb80ecaa6793e1b4a38"
+  },
+  "source_review_no_blocking_findings": true,
+  "findings": [],
+  "functional_queue_extraction_closed": true,
+  "tested_native": "7db2c6a91b4cd0a1fae2d8e20bfa169584618d24",
+  "tested_driver": "c090664ec6aed8268a0d8aeb0812f1e60b2bdb51",
+  "receipts": [
+    {
+      "path": "R:/d3-evidence/environment-host-lightning-reply-frame-controls-native7db-driver-c090664ec-20261031/controller.json",
+      "sha256": "4896796ac681eaf602c9ad8a43e992ac2d46bb7c87ed30966ca64eb467b217f3"
+    },
+    {
+      "path": "R:/d3-evidence/queue-native7db-driver-c090664ec-equivalence-20261031.json",
+      "sha256": "3210b236b557f36307f98c35647b07cb28b3bf3b83d401b65398d46c78676f34"
+    },
+    {
+      "path": "R:/d3-evidence/queue-reply-frame-065e8e2df-linux-20261031-completion.json",
+      "sha256": "89e189f3fd16347b6937f607bcac15727b04e2f6b43dd198835396e7e6cbcd38"
+    },
+    {
+      "path": "R:/d3-evidence/independent-environment-host-lightning-queue-source-review-c090664ec-20261031.json",
+      "sha256": "24bd94a248ba55304351842404c1038705f092c4edd49e1725f319f8060a8bad"
+    },
+    {
+      "path": "R:/d3-evidence/independent-environment-host-lightning-queue-source-review-065e8e2df-20261031.json",
+      "sha256": "8ecc5dbfad310a1e390af374688635d70909ce575877b5755f1ab95b51e795d0"
+    },
+    {
+      "path": "R:/d3-evidence/independent-environment-lightning-case5-model-origin-audit-7db2c6a91-20261031.json",
+      "sha256": "88e3a658dc797bc049885c977a18f76dd5374499d023c0c14455fd1f1e54a863"
+    }
+  ],
+  "actual_cases": [
+    {
+      "mode": "frame_negative",
+      "controller": "R:\\d3-evidence\\environment-host-lightning-reply-frame-controls-native7db-driver-c090664ec-20261031\\frame-negative\\controller.json",
+      "controller_sha256": "46b9daf26441edcdc5e294306587ecdbc6a08964f7514b85d642af205bdbeef7",
+      "raw_path": "R:\\d3-evidence\\environment-host-lightning-reply-frame-controls-native7db-driver-c090664ec-20261031\\frame-negative\\environment.jsonl",
+      "raw_sha256": "81a2401ac96b3de17574a39d436461dd85179780b5b76d88664c2d966b6e2f70",
+      "authority_sha256": "ca168d625c4b30433ced969c145e9e7c08c1fda13c912c1af20d4a48443c6247",
+      "case": 5,
+      "altered_frame": -1,
+      "actual_frame_count_named_by_C": 3,
+      "host_requests": 2,
+      "engine_failure_rows": 1,
+      "result_rows": 0,
+      "completed": false,
+      "stopped": true,
+      "marker": "[env-provider:lightning_update.answer]",
+      "verdict": "stopped_at_boundary",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "all_pre_native_post_zero": true,
+      "verified_payloads": 54,
+      "override_before_after_hash_equal": true
+    },
+    {
+      "mode": "frame_high",
+      "controller": "R:\\d3-evidence\\environment-host-lightning-reply-frame-controls-native7db-driver-c090664ec-20261031\\frame-high\\controller.json",
+      "controller_sha256": "1ce13f2442a4b201c162cb2b7a707e81159e12a142ff469ce4d1f7495a4417f1",
+      "raw_path": "R:\\d3-evidence\\environment-host-lightning-reply-frame-controls-native7db-driver-c090664ec-20261031\\frame-high\\environment.jsonl",
+      "raw_sha256": "8749cd7b88c6278ac0dbbf994e979d79a1ad325e251f2b34f727d9ac4641ee39",
+      "authority_sha256": "60158120a7b5fd4ea1b4285dcf129bb0be34c94b5fde69129dd2fbefcf1a9b64",
+      "case": 5,
+      "altered_frame": 2147483647,
+      "actual_frame_count_named_by_C": 3,
+      "host_requests": 2,
+      "engine_failure_rows": 1,
+      "result_rows": 0,
+      "completed": false,
+      "stopped": true,
+      "marker": "[env-provider:lightning_update.answer]",
+      "verdict": "stopped_at_boundary",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "all_pre_native_post_zero": true,
+      "verified_payloads": 54,
+      "override_before_after_hash_equal": true
+    }
+  ],
+  "independent_checks": [
+    "Parsed both complete delegate JSONL files and separate authority records. Each has exactly one case5engine_failure at lightning_update.answer; its C reason names the injected frame in slot0 outside3actualanimationframes. No result or witness_failure row exists. Authority completedfalse/delegate_ranfalse/stoppedtrue and altered_frame-1/2147483647 agree with raw reasons.",
+    "Both records count2lightning_update requests, consistent with the reviewed base NeedFrames handshake and unchanged second reply except injected frame. The stop is the actual C domain guard, not a schema rejection or missing-model fallback. Processes exit0 because the witness correctly records the stopped engine; neither case is a completed physical campaign.",
+    "Each child controller/native/pre-input/post-input stage is terminal0; four total pre/post input checks0,54retainednativepayloads each. New override path/source and hash checked against frozen c090, and current post-run file hash equals recorded pre-run hash. Roots are consumed, not reusable.",
+    "Read explicit native7db/c090equivalence: all production paths byte-identical except enumerated C comment-only changes with lexical-token equality; no new native identity claimed. Primitive header comment changes preserve all executable text and actual delegate stays pinned7db. c090 differs from actual guard-tested065 by one documentation line only; witness/test executable blobs are equal.",
+    "Actual065fmt/all18witnessfunctions/worldstrict0 is reused with accurately named tested_source; no c090 test rerun claimed. Prior source-clear24bd report and completed065combined8ecc report are unchanged and reused."
+  ],
+  "reused_evidence": {
+    "nine7db_controls": "Previously independently verified9native/controllers0,18inputchecks0,54payloads each; natural+fouroriginalprimitive records and healthy/changed/withheld/malformed add-authority records. Reference host asks/queues1; altered host asks/drops0; withheld/malformed stop under exact existing guards with no result.",
+    "original_comparison": "Strict whole-RAW remains FALSE/actualcomparison1. Separate exact catalogue4-to5 classifier accepted: natural17257rows,17256otherrows/endings exact; each of fourprimitivefiles has only its catalogue row difference, with typed/raw-plan byte replacements checked. No baseline/tolerance edit or normalization.",
+    "model_origin": "Retained retail palette/bininfo and source/init audit identifies114name-alignedanimations,LIGHTNINGindex96/3frames. New C refusal diagnostics now name actual3-frame domain. Runtime global animation index is not separately instrumented. Wrong missing-model expectation outer1 and candidate case5completion0 remain retained; no artificial missing-data setup added.",
+    "prior_full_checks": "Actual188affecteddefault/observerpackages/bothstrict0 reused through explicit production-equivalent7dbdelta, plus new7dbguards/strict/fmt/Windows0. All9CI7dbjobs succeeded. These are accurately scoped prior checks, not currentc090CI results."
+  },
+  "closure_scope": "Finite functional extraction of the32-slot physical lightning queue into host ownership: prior source/kernel/ABI/mirror/dispatch findings corrected, defined original-case numeric/raw facts preserved except explicit test catalogue, replaceable add authority/refusals observed, spurious frames handshake refused, and negative/high live-forked reply frames now refused by the real C consumer before mirror commit. This closes only that bounded queue slice.",
+  "limitations": {
+    "task51_closed": false,
+    "d3_complete": false,
+    "shipping_accepted": false,
+    "normal_merge_acceptance": false,
+    "current_head_ci_complete": false,
+    "current_ci_status": "c090CI pending at review close;7dball9success is retained, no false current green.",
+    "unexercised": "No model-absence runtime proof, old/new original forked-aging conformance, draw/player/render/audio/network/Tacview or arbitrary-world/model coverage. The current frame cases prove rejection boundaries with loaded metadata, not graphics conformance.",
+    "remaining_required": "Sound/effect execution and lifetimes,time inputs,remainingterrain/spatial/model,fullshipping40/all8completeidentity,currentfinalCI/review/normalmerges remain required D3 work; D4/D5 unstarted.",
+    "privacy": "No raw retail position/time/slot payload records reproduced; only control frame values and bounded metadata/counts. All previous red/setup artifacts and originals retained."
+  },
+  "verdict": "No findings in the final new-actual review. Finite functional host queue extraction closed within stated source/controls/reuse scope; not Task51/D3/fullshipping/currentCI/normalmerge acceptance."
+}

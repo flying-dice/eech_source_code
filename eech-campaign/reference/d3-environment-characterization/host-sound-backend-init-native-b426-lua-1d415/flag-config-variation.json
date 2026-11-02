@@ -1,0 +1,30 @@
+{
+  "state": "UNUSED",
+  "actual_exit": 0,
+  "prepared_utc": "2026-11-01T06:47:55.268748+00:00",
+  "root": "D:\\EECH-Migration-Evidence\\backend-flag-skipped-root-20261101-0648",
+  "scope": "Candidate witness prerequisite control ONLY, not accepted-equivalent default/shipping. Fresh private retail copy, ONE declared configuration byte ns=0->1; original1179 inputs unchanged. EECH.INI is engine-written and excluded by repo input reference, so configuration separately hashed/declared. No native executed, bundle and accepted manifests unchanged.",
+  "configuration": {
+    "path": "cohokum/EECH.INI",
+    "source": "aphavoc/source/eechini.c1091-1092 supports alias ns for no_sound",
+    "original_sha256": "10fff29220b157cf944c5e82e852e90be91a631a7fd2752c77835e0291d5865f",
+    "variant_sha256": "04790a889f73b8e147313cacf5335a39abeb85798001d6ab6a99356e687a6a07",
+    "bytes": 20409,
+    "changed_bytes": 1,
+    "original_bundle_unchanged": true
+  },
+  "input_reference": "R:\\d3-evidence\\environment-host-sound-metadata-source-7c85100ef\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+  "input_reference_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+  "args": [
+    "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+    "-B",
+    "-X",
+    "utf8",
+    "R:\\d3-evidence\\environment-host-sound-metadata-source-7c85100ef\\eech-campaign\\tools\\input-manifest.py",
+    "D:\\EECH-Migration-Evidence\\backend-flag-skipped-root-20261101-0648",
+    "--compare",
+    "R:\\d3-evidence\\environment-host-sound-metadata-source-7c85100ef\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+    "--output",
+    "R:\\d3-evidence\\backend-flag-skipped-preparation-20261101-0648\\inputs.json"
+  ]
+}

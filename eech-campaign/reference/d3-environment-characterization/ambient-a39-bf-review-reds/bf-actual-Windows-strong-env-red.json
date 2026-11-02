@@ -1,0 +1,32 @@
+{
+  "source": "bf64653dee245027a5ac46ebe4ad201790639200",
+  "started_utc": "2026-10-31T15:17:45.851072+00:00",
+  "scope": "ACTUAL Windows unit processes. Asset-dependent skips are not retail/authority/shipping proof.",
+  "cases": [
+    {
+      "name": "eech_world",
+      "pid": 6268,
+      "args": [
+        "R:\\d3-evidence\\environment-sound-source-bf64653de\\eech-campaign\\target\\windows-sound-libs-bf64653de\\eech_world.exe",
+        "ambient",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "sha256": "3f9a592da42069a657fcf81eda68db7859d88cd36943d3e7de3e6f9dd682c639",
+      "state": "terminal",
+      "actual_exit": 101,
+      "filter": "ambient",
+      "summaries": [
+        "test result: FAILED. 2 passed; 1 failed; 0 ignored; 0 measured; 251 filtered out; finished in 0.01s"
+      ],
+      "passed_tests": 2,
+      "failed_tests": 1,
+      "nonempty_filtered_execution": true
+    }
+  ],
+  "state": "terminal",
+  "controller_pid": 10900,
+  "verified_payloads": 51,
+  "completed_utc": "2026-10-31T15:17:46.099184+00:00",
+  "all_actual_unit_exits_zero": false
+}

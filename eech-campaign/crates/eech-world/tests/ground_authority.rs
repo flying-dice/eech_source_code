@@ -755,6 +755,7 @@ host = {
 	end,
 	bind_mobile = function () ids = ids + 1 return "eech-world:" .. ids end,
 	aim = function () end,
+	env_provider = function () return function () return {} end end,
 	terrain_provider = function ()
 		return function (request)
 			if request.op == "ground_below" then return { below = false, queried = false } end
@@ -774,6 +775,8 @@ package.preload.eech_dc = function ()
 		prepare_installation = function () profile_stage = "prepared" end,
 		boot = function (config)
 			assert (profile_stage == "selected", "the profile must be selected before the boot")
+			-- the integrated module is also an environment host: a boot without the environment provider would be refused by the real module
+			if type (config.environment) ~= "function" then error ("the integrated module needs the host environment provider", 0) end
 			provider = config.terrain
 			config.bind_mobile { movement_kind = "helicopter", side = "blue" }
 			config.bind_mobile { movement_kind = "ground", side = "red" }

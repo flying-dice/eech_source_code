@@ -1,0 +1,1444 @@
+{
+  "source": "7574caa2ca87a2a44608a234fd1dd73136b8e4c0",
+  "scope": "ORIGINAL sound initialization with a CONTROLLED valid header and data file: seconds=0, frame_ms=100, boot lookup only. Not the closed natural 120 s run, no Tacview, no full-pack equality, no host metadata move, not Task 51 / D3 acceptance.",
+  "controlled_input_variation": "cohokum/audio/sound.hdr and cohokum/audio/sound.dat added to a private copy of the retail Lebanon root; the 1179 original files are unchanged; synthetic bytes, not retail audio",
+  "actual_native_exit": 0,
+  "actual_controller_exit": 0,
+  "actual_checker_exit": 0,
+  "script_sha256": "a40bd591c0b309819f1fcaa5a88464c49a64434df8c04baf95d8d644035c4182",
+  "verified_payloads": 62,
+  "build_info_sha256": "7824726195b658c3849d2f3872f88e4522923c0f182e3160fb6b8174ff51f603",
+  "reference_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+  "controlled_reference_sha256": "8f88c1d3f9dd90c4ecef6ef6fd86c732e31f85d6d44db9a941860414a2429279",
+  "verdict": {
+    "fixture_before": true,
+    "post_controlled": true,
+    "post_vs_original_extras_only": true,
+    "fixture_after": true,
+    "payloads_unchanged": true,
+    "script_unchanged": true
+  },
+  "stages": [
+    {
+      "stage": "pre-inputs-controlled",
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-original-sound-init-source-7574caa2c\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-original-sound-header-present-20261101-0400-root\\lebanon-header-present",
+        "--compare",
+        "R:\\d3-evidence\\original-sound-header-present-20261101-0400-controlled-inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-original-sound-header-present-7574caa2c-20261101-0400\\pre-inputs-controlled.json"
+      ],
+      "cwd": "R:\\d3-evidence\\environment-original-sound-header-present-7574caa2c-20261101-0400",
+      "pid": 25464,
+      "started_utc": "2026-11-01T04:10:33.314656+00:00",
+      "state": "terminal",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-01T04:10:34.303587+00:00"
+    },
+    {
+      "stage": "pre-inputs-vs-original",
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-original-sound-init-source-7574caa2c\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-original-sound-header-present-20261101-0400-root\\lebanon-header-present",
+        "--compare",
+        "R:\\d3-evidence\\environment-original-sound-init-source-7574caa2c\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-original-sound-header-present-7574caa2c-20261101-0400\\pre-inputs-vs-original.json"
+      ],
+      "cwd": "R:\\d3-evidence\\environment-original-sound-header-present-7574caa2c-20261101-0400",
+      "pid": 4856,
+      "started_utc": "2026-11-01T04:10:34.313951+00:00",
+      "state": "terminal",
+      "actual_exit": 1,
+      "completed_utc": "2026-11-01T04:10:35.278334+00:00"
+    },
+    {
+      "stage": "native",
+      "args": [
+        "R:\\d3-evidence\\environment-original-sound-init-source-7574caa2c\\eech-campaign\\target\\env-observer\\sound-init-original-7574caa2c\\eech-world.exe",
+        "R:\\d3-evidence\\environment-original-sound-init-source-7574caa2c\\eech-campaign\\target\\env-observer\\sound-init-original-7574caa2c\\lua\\env-sound-init.lua",
+        "root=R:/d3-evidence/environment-original-sound-header-present-20261101-0400-root/lebanon-header-present",
+        "scenario=lebanon_retail",
+        "out=R:/d3-evidence/environment-original-sound-header-present-7574caa2c-20261101-0400/environment.jsonl",
+        "metrics=R:/d3-evidence/environment-original-sound-header-present-7574caa2c-20261101-0400/metrics.json",
+        "seconds=0",
+        "frame_ms=100"
+      ],
+      "cwd": "R:\\d3-evidence\\environment-original-sound-header-present-7574caa2c-20261101-0400",
+      "pid": 7916,
+      "started_utc": "2026-11-01T04:10:35.287922+00:00",
+      "state": "terminal",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-01T04:10:39.173656+00:00"
+    },
+    {
+      "stage": "post-inputs-controlled",
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-original-sound-init-source-7574caa2c\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-original-sound-header-present-20261101-0400-root\\lebanon-header-present",
+        "--compare",
+        "R:\\d3-evidence\\original-sound-header-present-20261101-0400-controlled-inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-original-sound-header-present-7574caa2c-20261101-0400\\post-inputs-controlled.json"
+      ],
+      "cwd": "R:\\d3-evidence\\environment-original-sound-header-present-7574caa2c-20261101-0400",
+      "pid": 18120,
+      "started_utc": "2026-11-01T04:10:39.183661+00:00",
+      "state": "terminal",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-01T04:10:40.157524+00:00"
+    },
+    {
+      "stage": "post-inputs-vs-original",
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-original-sound-init-source-7574caa2c\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-original-sound-header-present-20261101-0400-root\\lebanon-header-present",
+        "--compare",
+        "R:\\d3-evidence\\environment-original-sound-init-source-7574caa2c\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-original-sound-header-present-7574caa2c-20261101-0400\\post-inputs-vs-original.json"
+      ],
+      "cwd": "R:\\d3-evidence\\environment-original-sound-header-present-7574caa2c-20261101-0400",
+      "pid": 16780,
+      "started_utc": "2026-11-01T04:10:40.167056+00:00",
+      "state": "terminal",
+      "actual_exit": 1,
+      "completed_utc": "2026-11-01T04:10:41.121875+00:00"
+    },
+    {
+      "stage": "expectation-check",
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "-I",
+        "R:\\d3-evidence\\check-original-sound-header-present-20261101-0400.py",
+        "R:\\d3-evidence\\environment-original-sound-header-present-7574caa2c-20261101-0400",
+        "--out",
+        "R:\\d3-evidence\\environment-original-sound-header-present-7574caa2c-20261101-0400\\expectation-check.json"
+      ],
+      "cwd": "R:\\d3-evidence",
+      "pid": 20492,
+      "started_utc": "2026-11-01T04:10:41.184286+00:00",
+      "state": "terminal",
+      "actual_exit": 0,
+      "completed_utc": "2026-11-01T04:10:41.253184+00:00"
+    }
+  ],
+  "raw_json": {
+    "bytes": 18681,
+    "sha256": "12365d8de42e96841f433296edc98a3904078ce6e584b2074247dc780f85c3a4"
+  },
+  "complete_native_sidecar": {
+    "bytes": 6593,
+    "sha256": "d0783687994d943021cd37820c9059b8e07780f5630e6237d816c63b221ffbbb"
+  },
+  "all_returned_raw_bytes_join": true,
+  "measurement": [
+    {
+      "event": "boot",
+      "feature": "env-observer",
+      "frame_ms": 100,
+      "group": 14,
+      "index": 15,
+      "scenario": "lebanon_retail",
+      "seconds": 0,
+      "seed": 1
+    },
+    {
+      "event": "raw_report",
+      "bytes": 6593
+    },
+    {
+      "comms": "0",
+      "event": "env-sndinit-plan",
+      "process_isolated": "not_needed",
+      "read_only": "1",
+      "scope": "case",
+      "version": "1"
+    },
+    {
+      "boots": "1",
+      "capacity": "4",
+      "catalogue_entries": "2122",
+      "dropped": "0",
+      "event": "env-sndinit-store",
+      "opens_outside_effects": "0",
+      "orphans": "0",
+      "saturated": "0",
+      "scope": "case",
+      "stored": "1",
+      "version": "1"
+    },
+    {
+      "backend": "1",
+      "dedicated": "0",
+      "effects_begin": "1",
+      "effects_end": "1",
+      "enabled_backend": "0",
+      "enabled_before": "0",
+      "enabled_exit": "0",
+      "event": "env-sndinit-boot",
+      "exited": "1",
+      "filled": "1",
+      "header_count": "7",
+      "initialised_backend": "0",
+      "initialised_before": "0",
+      "load": "0",
+      "matched": "4",
+      "missed": "2065",
+      "n": "0",
+      "no_sound": "0",
+      "open_false": "0",
+      "open_true": "1",
+      "scope": "case",
+      "skipped": "0"
+    },
+    {
+      "digest_w": "6605372942e1ea2c",
+      "event": "env-sndinit-catalogue",
+      "n": "0",
+      "named": "2069",
+      "nonzero_orate": "2069",
+      "nonzero_rate": "2069",
+      "nonzero_size": "0",
+      "scope": "case",
+      "when": "filled"
+    },
+    {
+      "digest_w": "8c600fed7309b2fc",
+      "event": "env-sndinit-catalogue",
+      "n": "0",
+      "named": "2069",
+      "nonzero_orate": "2069",
+      "nonzero_rate": "2069",
+      "nonzero_size": "3",
+      "scope": "case",
+      "when": "end"
+    },
+    {
+      "digest_w": "8c600fed7309b2fc",
+      "event": "env-sndinit-catalogue",
+      "n": "now",
+      "named": "2069",
+      "nonzero_orate": "2069",
+      "nonzero_rate": "2069",
+      "nonzero_size": "3",
+      "scope": "case",
+      "when": "report"
+    },
+    {
+      "application_samples": "2069",
+      "blocked_count": "7",
+      "dedicated": "1",
+      "enabled": "0",
+      "event": "env-sndinit-now",
+      "initialised": "0",
+      "no_sound": "0",
+      "scope": "case"
+    },
+    {
+      "event": "env-sndinit-samples",
+      "lightning_orate": "22050",
+      "lightning_rate": "22050",
+      "lightning_size": "96",
+      "scope": "case",
+      "thunder_orate": "22050",
+      "thunder_rate": "22050",
+      "thunder_size": "0"
+    },
+    {
+      "calls": "1",
+      "event": "env-sndinit-load-side",
+      "recorded": "1",
+      "scope": "case"
+    },
+    {
+      "dedicated": "1",
+      "enabled": "0",
+      "event": "env-sndinit-load-side-call",
+      "n": "0",
+      "no_sound": "0",
+      "scope": "case",
+      "side": "3"
+    },
+    {
+      "attempts": "2",
+      "event": "env-sndinit-file",
+      "kind": "header",
+      "ok": "2",
+      "scope": "case"
+    },
+    {
+      "attempts": "2",
+      "event": "env-sndinit-file",
+      "kind": "data",
+      "ok": "2",
+      "scope": "case"
+    },
+    {
+      "attempts": "4",
+      "event": "env-sndinit-file-log",
+      "recorded": "4",
+      "scope": "case"
+    },
+    {
+      "event": "env-sndinit-file-attempt",
+      "installation_root_retry": "0",
+      "kind": "header",
+      "n": "0",
+      "ok": "1",
+      "read_mode": "1",
+      "scope": "case"
+    },
+    {
+      "event": "env-sndinit-file-attempt",
+      "installation_root_retry": "0",
+      "kind": "data",
+      "n": "1",
+      "ok": "1",
+      "read_mode": "1",
+      "scope": "case"
+    },
+    {
+      "event": "env-sndinit-file-attempt",
+      "installation_root_retry": "0",
+      "kind": "header",
+      "n": "2",
+      "ok": "1",
+      "read_mode": "1",
+      "scope": "case"
+    },
+    {
+      "event": "env-sndinit-file-attempt",
+      "installation_root_retry": "0",
+      "kind": "data",
+      "n": "3",
+      "ok": "1",
+      "read_mode": "1",
+      "scope": "case"
+    },
+    {
+      "calls": "1",
+      "event": "env-sndinit-com",
+      "function": "DirectSoundCreate",
+      "last_return_w": "80004005",
+      "scope": "case"
+    },
+    {
+      "calls": "0",
+      "event": "env-sndinit-com",
+      "function": "IDirectSound_SetCooperativeLevel",
+      "last_return_w": "00000000",
+      "scope": "case"
+    },
+    {
+      "calls": "0",
+      "event": "env-sndinit-com",
+      "function": "IDirectSound_CreateSoundBuffer",
+      "last_return_w": "00000000",
+      "scope": "case"
+    },
+    {
+      "calls": "0",
+      "event": "env-sndinit-com",
+      "function": "IDirectSound_Release",
+      "last_return_w": "00000000",
+      "scope": "case"
+    },
+    {
+      "calls": "4764",
+      "digest_w": "fb512cf8b558a5cd",
+      "distinct": "49",
+      "event": "env-sndinit-ctor",
+      "looping": "3548",
+      "max_count": "1",
+      "out_of_domain": "0",
+      "sample_reads": "1216",
+      "scope": "case"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2051",
+      "n": "0",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "24",
+      "uses": "4"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2052",
+      "n": "1",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "4"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2056",
+      "n": "2",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "4"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2057",
+      "n": "3",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "4"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1954",
+      "n": "4",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "20"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1955",
+      "n": "5",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "20"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1959",
+      "n": "6",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "20"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1960",
+      "n": "7",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "20"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2",
+      "n": "8",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "40"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "3",
+      "n": "9",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "40"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "5",
+      "n": "10",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "40"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "6",
+      "n": "11",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "40"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1978",
+      "n": "12",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "20"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1979",
+      "n": "13",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "20"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1983",
+      "n": "14",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "20"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1984",
+      "n": "15",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "20"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2087",
+      "n": "16",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "40",
+      "uses": "8"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2088",
+      "n": "17",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "8"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2092",
+      "n": "18",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "8"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2093",
+      "n": "19",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "8"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2029",
+      "n": "20",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "8"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2030",
+      "n": "21",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "8"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2034",
+      "n": "22",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "8"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2035",
+      "n": "23",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "8"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2041",
+      "n": "24",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "12"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2042",
+      "n": "25",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "12"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2046",
+      "n": "26",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "12"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2047",
+      "n": "27",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "12"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2099",
+      "n": "28",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "4"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2100",
+      "n": "29",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "4"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2104",
+      "n": "30",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "4"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2105",
+      "n": "31",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "4"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2063",
+      "n": "32",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "20"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1967",
+      "n": "33",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "104"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1971",
+      "n": "34",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "104"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1972",
+      "n": "35",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "104"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1966",
+      "n": "36",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "84"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "10",
+      "n": "37",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "36"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "11",
+      "n": "38",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "36"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "13",
+      "n": "39",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "36"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "14",
+      "n": "40",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "36"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1990",
+      "n": "41",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "36"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1991",
+      "n": "42",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "36"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1995",
+      "n": "43",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "36"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1996",
+      "n": "44",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "36"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2075",
+      "n": "45",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "12"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2076",
+      "n": "46",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "12"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2080",
+      "n": "47",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "12"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2081",
+      "n": "48",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "12"
+    },
+    {
+      "event": "env-sndinit-unsupported",
+      "item": "positive_playing_backend",
+      "reason": "the_headless_build_has_only_the_null_directsound_entry_points_so_no_device_exists_no_handle_is_created_or_faked",
+      "scope": "case"
+    },
+    {
+      "event": "env-sndinit-unsupported",
+      "item": "second_initialisation",
+      "reason": "initialising_an_already_booted_library_again_would_rewind_state_so_the_first_and_only_boot_initialisation_is_the_observation",
+      "scope": "case"
+    },
+    {
+      "event": "env-sndinit-unsupported",
+      "item": "sample_data_loaded_by_the_original_loader",
+      "reason": "load_application_sound_samples_runs_only_after_a_successful_backend_initialisation_so_the_data_files_are_read_here_for_the_header_only",
+      "scope": "case"
+    },
+    {
+      "event": "env-sndinit-unsupported",
+      "item": "other_descriptor_consumers",
+      "reason": "a_static_census_of_the_compiled_readers_is_in_the_documentation_the_probe_counts_the_constructor_reads_only",
+      "scope": "case"
+    },
+    {
+      "event": "env-sndinit-fingerprint",
+      "unchanged": true
+    },
+    {
+      "changed": "0",
+      "event": "env-sndinit-end",
+      "read_only": "1",
+      "scope": "case"
+    },
+    {
+      "boots": 1,
+      "catalogue_unchanged_since_initialisation": true,
+      "constructor_calls": 4764,
+      "constructor_distinct_samples": 49,
+      "data_open_attempts": 2,
+      "data_opens_ok": 2,
+      "descriptors_matched": 4,
+      "descriptors_missed": 2065,
+      "directsound_last_entry_called": "DirectSoundCreate",
+      "event": "derived",
+      "first_branch": "backend_initialisation_returned_false",
+      "flags_agree_with_branch": true,
+      "header_open_attempts": 2,
+      "header_opened_in_effects": true,
+      "header_opens_ok": 2,
+      "load_routines_ran": false,
+      "load_side_calls": 1,
+      "source": "the driver's join of the rows above; not a measurement"
+    },
+    {
+      "boots": 1,
+      "branch": "backend_initialisation_returned_false",
+      "changed": "0",
+      "comms": "0",
+      "event": "result",
+      "frames": 0,
+      "read_only": "1"
+    }
+  ],
+  "checks": [
+    {
+      "cls": "consistency",
+      "check": "store.boots",
+      "expected": "1",
+      "observed": "1",
+      "ok": true
+    },
+    {
+      "cls": "consistency",
+      "check": "store.stored",
+      "expected": "1",
+      "observed": "1",
+      "ok": true
+    },
+    {
+      "cls": "consistency",
+      "check": "store.dropped",
+      "expected": "0",
+      "observed": "0",
+      "ok": true
+    },
+    {
+      "cls": "consistency",
+      "check": "store.orphans",
+      "expected": "0",
+      "observed": "0",
+      "ok": true
+    },
+    {
+      "cls": "consistency",
+      "check": "store.opens_outside_effects",
+      "expected": "0",
+      "observed": "0",
+      "ok": true
+    },
+    {
+      "cls": "consistency",
+      "check": "store.saturated",
+      "expected": "0",
+      "observed": "0",
+      "ok": true
+    },
+    {
+      "cls": "consistency",
+      "check": "store.catalogue_entries",
+      "expected": "2122",
+      "observed": "2122",
+      "ok": true
+    },
+    {
+      "cls": "consistency",
+      "check": "boot.effects_begin",
+      "expected": "1",
+      "observed": "1",
+      "ok": true
+    },
+    {
+      "cls": "consistency",
+      "check": "boot.filled",
+      "expected": "1",
+      "observed": "1",
+      "ok": true
+    },
+    {
+      "cls": "consistency",
+      "check": "boot.effects_end",
+      "expected": "1",
+      "observed": "1",
+      "ok": true
+    },
+    {
+      "cls": "consistency",
+      "check": "boot.exited",
+      "expected": "1",
+      "observed": "1",
+      "ok": true
+    },
+    {
+      "cls": "header_derived",
+      "check": "boot.open_true",
+      "expected": "1",
+      "observed": "1",
+      "ok": true
+    },
+    {
+      "cls": "header_derived",
+      "check": "boot.open_false",
+      "expected": "0",
+      "observed": "0",
+      "ok": true
+    },
+    {
+      "cls": "header_derived",
+      "check": "boot.header_count",
+      "expected": "7",
+      "observed": "7",
+      "ok": true
+    },
+    {
+      "cls": "header_derived",
+      "check": "boot.matched",
+      "expected": "4",
+      "observed": "4",
+      "ok": true
+    },
+    {
+      "cls": "header_derived",
+      "check": "boot.missed",
+      "expected": "2065",
+      "observed": "2065",
+      "ok": true
+    },
+    {
+      "cls": "carried_over",
+      "check": "boot.no_sound",
+      "expected": "0",
+      "observed": "0",
+      "ok": true
+    },
+    {
+      "cls": "carried_over",
+      "check": "boot.dedicated_at_init",
+      "expected": "0",
+      "observed": "0",
+      "ok": true
+    },
+    {
+      "cls": "carried_over",
+      "check": "boot.backend",
+      "expected": "1",
+      "observed": "1",
+      "ok": true
+    },
+    {
+      "cls": "carried_over",
+      "check": "boot.skipped",
+      "expected": "0",
+      "observed": "0",
+      "ok": true
+    },
+    {
+      "cls": "carried_over",
+      "check": "boot.load",
+      "expected": "0",
+      "observed": "0",
+      "ok": true
+    },
+    {
+      "cls": "carried_over",
+      "check": "boot.enabled_exit",
+      "expected": "0",
+      "observed": "0",
+      "ok": true
+    },
+    {
+      "cls": "header_derived",
+      "check": "catalogue.filled.nonzero_size",
+      "expected": "0",
+      "observed": "0",
+      "ok": true
+    },
+    {
+      "cls": "header_derived",
+      "check": "catalogue.filled.digest_w",
+      "expected": "6605372942e1ea2c",
+      "observed": "6605372942e1ea2c",
+      "ok": true
+    },
+    {
+      "cls": "header_derived",
+      "check": "catalogue.end.nonzero_size",
+      "expected": "3",
+      "observed": "3",
+      "ok": true
+    },
+    {
+      "cls": "header_derived",
+      "check": "catalogue.end.digest_w",
+      "expected": "8c600fed7309b2fc",
+      "observed": "8c600fed7309b2fc",
+      "ok": true
+    },
+    {
+      "cls": "header_derived",
+      "check": "catalogue.report.nonzero_size",
+      "expected": "3",
+      "observed": "3",
+      "ok": true
+    },
+    {
+      "cls": "header_derived",
+      "check": "catalogue.report.digest_w",
+      "expected": "8c600fed7309b2fc",
+      "observed": "8c600fed7309b2fc",
+      "ok": true
+    },
+    {
+      "cls": "consistency",
+      "check": "catalogue.filled.named",
+      "expected": "2069",
+      "observed": "2069",
+      "ok": true
+    },
+    {
+      "cls": "consistency",
+      "check": "catalogue.filled.nonzero_rate",
+      "expected": "2069",
+      "observed": "2069",
+      "ok": true
+    },
+    {
+      "cls": "consistency",
+      "check": "catalogue.filled.nonzero_orate",
+      "expected": "2069",
+      "observed": "2069",
+      "ok": true
+    },
+    {
+      "cls": "consistency",
+      "check": "catalogue.end.named",
+      "expected": "2069",
+      "observed": "2069",
+      "ok": true
+    },
+    {
+      "cls": "consistency",
+      "check": "catalogue.end.nonzero_rate",
+      "expected": "2069",
+      "observed": "2069",
+      "ok": true
+    },
+    {
+      "cls": "consistency",
+      "check": "catalogue.end.nonzero_orate",
+      "expected": "2069",
+      "observed": "2069",
+      "ok": true
+    },
+    {
+      "cls": "consistency",
+      "check": "catalogue.report.named",
+      "expected": "2069",
+      "observed": "2069",
+      "ok": true
+    },
+    {
+      "cls": "consistency",
+      "check": "catalogue.report.nonzero_rate",
+      "expected": "2069",
+      "observed": "2069",
+      "ok": true
+    },
+    {
+      "cls": "consistency",
+      "check": "catalogue.report.nonzero_orate",
+      "expected": "2069",
+      "observed": "2069",
+      "ok": true
+    },
+    {
+      "cls": "carried_over",
+      "check": "now.dedicated",
+      "expected": "1",
+      "observed": "1",
+      "ok": true
+    },
+    {
+      "cls": "carried_over",
+      "check": "now.enabled",
+      "expected": "0",
+      "observed": "0",
+      "ok": true
+    },
+    {
+      "cls": "carried_over",
+      "check": "now.initialised",
+      "expected": "0",
+      "observed": "0",
+      "ok": true
+    },
+    {
+      "cls": "header_derived",
+      "check": "now.blocked_count (number_of_blocked_sound_samples is not reset by close_application_sound_file_system)",
+      "expected": "7",
+      "observed": "7",
+      "ok": true
+    },
+    {
+      "cls": "consistency",
+      "check": "now.application_samples",
+      "expected": "2069",
+      "observed": "2069",
+      "ok": true
+    },
+    {
+      "cls": "header_derived",
+      "check": "samples.lightning_size (FIRST of two records for the key)",
+      "expected": "96",
+      "observed": "96",
+      "ok": true
+    },
+    {
+      "cls": "header_derived",
+      "check": "samples.thunder_size (matched, zero length)",
+      "expected": "0",
+      "observed": "0",
+      "ok": true
+    },
+    {
+      "cls": "consistency",
+      "check": "samples.lightning_rate",
+      "expected": "22050",
+      "observed": "22050",
+      "ok": true
+    },
+    {
+      "cls": "consistency",
+      "check": "samples.lightning_orate",
+      "expected": "22050",
+      "observed": "22050",
+      "ok": true
+    },
+    {
+      "cls": "consistency",
+      "check": "samples.thunder_rate",
+      "expected": "22050",
+      "observed": "22050",
+      "ok": true
+    },
+    {
+      "cls": "consistency",
+      "check": "samples.thunder_orate",
+      "expected": "22050",
+      "observed": "22050",
+      "ok": true
+    },
+    {
+      "cls": "carried_over",
+      "check": "load_side.calls",
+      "expected": "1",
+      "observed": "1",
+      "ok": true
+    },
+    {
+      "cls": "header_derived",
+      "check": "file.header.attempts",
+      "expected": "2",
+      "observed": "2",
+      "ok": true
+    },
+    {
+      "cls": "header_derived",
+      "check": "file.header.ok",
+      "expected": "2",
+      "observed": "2",
+      "ok": true
+    },
+    {
+      "cls": "header_derived",
+      "check": "file.data.attempts",
+      "expected": "2",
+      "observed": "2",
+      "ok": true
+    },
+    {
+      "cls": "header_derived",
+      "check": "file.data.ok",
+      "expected": "2",
+      "observed": "2",
+      "ok": true
+    },
+    {
+      "cls": "header_derived",
+      "check": "file_log.attempts_and_recorded",
+      "expected": [
+        "4",
+        "4"
+      ],
+      "observed": [
+        "4",
+        "4"
+      ],
+      "ok": true
+    },
+    {
+      "cls": "header_derived",
+      "check": "file_log.kinds_in_order",
+      "expected": [
+        "header",
+        "data",
+        "header",
+        "data"
+      ],
+      "observed": [
+        "header",
+        "data",
+        "header",
+        "data"
+      ],
+      "ok": true
+    },
+    {
+      "cls": "header_derived",
+      "check": "file_log.all_ok",
+      "expected": [
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      "observed": [
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      "ok": true
+    },
+    {
+      "cls": "header_derived",
+      "check": "file_log.no_installation_root_retry",
+      "expected": [
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "observed": [
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "ok": true
+    },
+    {
+      "cls": "carried_over",
+      "check": "com.DirectSoundCreate",
+      "expected": [
+        "1",
+        "80004005"
+      ],
+      "observed": [
+        "1",
+        "80004005"
+      ],
+      "ok": true
+    },
+    {
+      "cls": "carried_over",
+      "check": "com.other_calls",
+      "expected": [
+        "0",
+        "0",
+        "0"
+      ],
+      "observed": [
+        "0",
+        "0",
+        "0"
+      ],
+      "ok": true
+    },
+    {
+      "cls": "header_derived",
+      "check": "ctor sample rows: every kept key carries its declared size (rows kept: 49)",
+      "expected": [],
+      "observed": [],
+      "ok": true
+    },
+    {
+      "cls": "consistency",
+      "check": "ctor.distinct_equals_kept_rows",
+      "expected": "49",
+      "observed": "49",
+      "ok": true
+    },
+    {
+      "cls": "consistency",
+      "check": "ctor.out_of_domain",
+      "expected": "0",
+      "observed": "0",
+      "ok": true
+    },
+    {
+      "cls": "consistency",
+      "check": "fingerprint.unchanged",
+      "ok": true,
+      "raw_values": "private; unchanged relationship checked"
+    },
+    {
+      "cls": "consistency",
+      "check": "end.read_only_unchanged",
+      "expected": [
+        "0",
+        "1"
+      ],
+      "observed": [
+        "0",
+        "1"
+      ],
+      "ok": true
+    }
+  ],
+  "independent_actual_review_required": true,
+  "limits": [
+    "Controlled synthetic input variation, not accepted retail-audio or Tacview/full-pack evidence.",
+    "seconds0 boot only; constructor totals are not compared to natural120s.",
+    "First-read rows describe those reads; later per-key values are represented by digest only.",
+    "No positive backend/handle, loader sample-data reads, per-family playback or wholeTask51/D3 claim."
+  ]
+}

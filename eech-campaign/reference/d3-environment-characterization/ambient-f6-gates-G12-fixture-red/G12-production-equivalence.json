@@ -1,0 +1,17 @@
+{
+  "before_source": "f6d812c7c8e33179ec7d0a8143ede370da336bf5",
+  "state": "G12-only uncommitted correction AFTER author actual0, formatteractual0; snapshot commit follows",
+  "when_utc": "2026-10-31T15:43:32.148657+00:00",
+  "changed_files": [
+    "STATUS.md",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c",
+    "eech-campaign/crates/eech-world/lua/env-sound-wide-children.lua",
+    "eech-campaign/crates/eech-world/tests/env_sound_wide_children.rs",
+    "eech-campaign/docs/d3-environment-sound-routine.md"
+  ],
+  "all_other_tracked_files_exact": true,
+  "G11_and_all_prefix_before_G12_exact": true,
+  "all_fixture_dispatch_suffix_exact": true,
+  "engine_C_NUL_count": 1,
+  "reuse": "f6 actual3 complete numeric files/FP matrices/Win units/full Linux packages+strict/current9CI remain production evidence; NEW G12 fixture nativebuild/driverguards/real16-17-20 and independent newdelta review still required"
+}

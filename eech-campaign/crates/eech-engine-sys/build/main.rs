@@ -244,6 +244,7 @@ fn main() {
         .define("EECH_CAMPAIGN_HOST_MOVEMENT", None)
         .define("EECH_CAMPAIGN_HOST_LOS", None)
         .define("EECH_CAMPAIGN_HOST_TERRAIN", None)
+        .define("EECH_CAMPAIGN_HOST_ENV", None)
         .opt_level_str(&opt)
         .debug(true)
         .pic(true)
@@ -292,6 +293,12 @@ fn main() {
     }
     if env::var_os("CARGO_FEATURE_FPU_TEST_SUPPORT").is_some() {
         build.define("EECH_FPU_TEST_SUPPORT", None);
+    }
+    if env::var_os("CARGO_FEATURE_ENV_FIXTURE").is_some() {
+        build.define("EECH_ENV_FIXTURE", None);
+    }
+    if env::var_os("CARGO_FEATURE_ENV_OBSERVER").is_some() {
+        build.define("EECH_ENV_OBSERVER", None);
     }
     if env::var_os("CARGO_FEATURE_GROUND_FIXTURE").is_some() {
         build.define("EECH_GROUND_FIXTURE", None);

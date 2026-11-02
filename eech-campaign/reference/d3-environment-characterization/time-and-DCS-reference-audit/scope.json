@@ -1,0 +1,6 @@
+{
+  "scope": "Bounded source/reference inventories only, no runtime/nativeDCS validation or migration gate. Reviewerf064 nofindings validates claimswithinexplicitlimits. Remainingphysicaltimeandlegacydataworkarounds stillOPEN.",
+  "old_source": "e3439025ac8217f651d68105d8dd3e81c14b4c73",
+  "DCS_reference": "flying-dice/tslua-dcs1179554fcafcef92d71313336cc09500febf8245",
+  "does_not_start_D4_D5_or_historical_port": true
+}

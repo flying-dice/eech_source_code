@@ -1,0 +1,18 @@
+{
+  "source": "f6d812c7c8e33179ec7d0a8143ede370da336bf5",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-sound-host-f6d812c7c-linux-20261031.sh"
+  ],
+  "pid": 13276,
+  "controller_pid": 23024,
+  "state": "terminal",
+  "started_utc": "2026-10-31T15:30:19.309367+00:00",
+  "scope": "New host-amplification linux affected builds/checks only; actual retail/authority/fullshipping acceptance separate",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T15:39:20.684102+00:00"
+}

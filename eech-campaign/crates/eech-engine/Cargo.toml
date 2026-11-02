@@ -30,6 +30,10 @@ model-fixture = ["eech-engine-sys/model-fixture"]
 model-host-fixture = ["eech-engine-sys/model-host-fixture"]
 # TEST SUPPORT (EEDCS-50, D3): see eech-engine-sys.
 fpu-test-support = ["eech-engine-sys/fpu-test-support"]
+# TEST-ONLY (EEDCS-51): see eech-engine-sys.
+env-fixture = ["eech-engine-sys/env-fixture"]
+# TEST-ONLY (EEDCS-51): see eech-engine-sys.
+env-observer = ["env-fixture", "eech-engine-sys/env-observer"]
 # TEST-ONLY (EEDCS-48): see eech-engine-sys.
 ground-fixture = ["eech-engine-sys/ground-fixture"]
 # TEST-ONLY (EEDCS-50, D3): see eech-engine-sys.

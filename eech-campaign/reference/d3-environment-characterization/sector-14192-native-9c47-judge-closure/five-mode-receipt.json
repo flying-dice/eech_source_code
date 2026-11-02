@@ -1,0 +1,281 @@
+{
+  "judge_source": "9c47b972aae4dc6640a09f6d9cc13d5f2de81db0",
+  "native_source": "14192c6e292864e573acc8fd8eed94e94f12ce03",
+  "driver_sha256": "2c3456f9267ad121c003fc97520551ddc9ab2ff6c704d083a26cfe8f23e114ad",
+  "judge_sha256": "18004d4907ee0aad38152af52385ef6fd1a083722190311aca168dc819fa566a",
+  "production_inputs_equivalent": true,
+  "changed_paths": [
+    "STATUS.md",
+    "eech-campaign/crates/eech-world/tests/env_sector_authority.rs",
+    "eech-campaign/crates/eech-world/tests/terrain_sector.rs",
+    "eech-campaign/docs/d3-environment-sector-surface.md",
+    "eech-campaign/reference/d3-environment-characterization/sector-14192-fast-and-Windows/Windows-build-export-completion.json",
+    "eech-campaign/reference/d3-environment-characterization/sector-14192-fast-and-Windows/actual-Windows-kernel.json",
+    "eech-campaign/reference/d3-environment-characterization/sector-14192-fast-and-Windows/actual-Windows-libs.json",
+    "eech-campaign/reference/d3-environment-characterization/sector-14192-fast-and-Windows/receipt.json",
+    "eech-campaign/reference/d3-environment-characterization/sector-14192-fast-and-Windows/source-correction-review.json"
+  ],
+  "controller_pid": 22092,
+  "state": "terminal",
+  "started_utc": "2026-10-31T13:54:13.531363+00:00",
+  "modes": [
+    "control",
+    "changed_sector",
+    "withheld_sector",
+    "malformed_sector_flags",
+    "malformed_sector_returned"
+  ],
+  "roots": [
+    "R:\\d3-evidence\\environment-sector-authority-roots-20261031\\control",
+    "R:\\d3-evidence\\environment-sector-authority-roots-20261031\\changed_sector",
+    "R:\\d3-evidence\\environment-sector-authority-roots-20261031\\withheld_sector",
+    "R:\\d3-evidence\\environment-sector-authority-roots-20261031\\malformed_sector_flags",
+    "R:\\d3-evidence\\environment-sector-authority-roots-20261031\\malformed_sector_returned"
+  ],
+  "verified_payloads": 49,
+  "stages": [
+    {
+      "stage": "actual-Windows-judge-guards",
+      "pid": 25084,
+      "args": [
+        "R:\\d3-evidence\\environment-sector-judge-source-9c47b972a\\eech-campaign\\target\\windows-sector-judge-9c47b972a\\env_sector_authority.exe",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T13:54:13.761728+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T13:54:15.942350+00:00"
+    },
+    {
+      "stage": "pre-inputs-control",
+      "pid": 12480,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-sector-judge-source-9c47b972a\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-sector-authority-roots-20261031\\control",
+        "--compare",
+        "R:\\d3-evidence\\environment-sector-judge-source-9c47b972a\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-sector-five-modes-controller-9c47b972a-20261031\\pre-inputs-control.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T13:54:15.959533+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T13:54:17.776832+00:00"
+    },
+    {
+      "stage": "pre-inputs-changed_sector",
+      "pid": 20424,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-sector-judge-source-9c47b972a\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-sector-authority-roots-20261031\\changed_sector",
+        "--compare",
+        "R:\\d3-evidence\\environment-sector-judge-source-9c47b972a\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-sector-five-modes-controller-9c47b972a-20261031\\pre-inputs-changed_sector.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T13:54:17.794197+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T13:54:19.689016+00:00"
+    },
+    {
+      "stage": "pre-inputs-withheld_sector",
+      "pid": 12656,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-sector-judge-source-9c47b972a\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-sector-authority-roots-20261031\\withheld_sector",
+        "--compare",
+        "R:\\d3-evidence\\environment-sector-judge-source-9c47b972a\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-sector-five-modes-controller-9c47b972a-20261031\\pre-inputs-withheld_sector.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T13:54:19.706605+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T13:54:21.581036+00:00"
+    },
+    {
+      "stage": "pre-inputs-malformed_sector_flags",
+      "pid": 10544,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-sector-judge-source-9c47b972a\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-sector-authority-roots-20261031\\malformed_sector_flags",
+        "--compare",
+        "R:\\d3-evidence\\environment-sector-judge-source-9c47b972a\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-sector-five-modes-controller-9c47b972a-20261031\\pre-inputs-malformed_sector_flags.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T13:54:21.598225+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T13:54:23.402735+00:00"
+    },
+    {
+      "stage": "pre-inputs-malformed_sector_returned",
+      "pid": 20528,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-sector-judge-source-9c47b972a\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-sector-authority-roots-20261031\\malformed_sector_returned",
+        "--compare",
+        "R:\\d3-evidence\\environment-sector-judge-source-9c47b972a\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-sector-five-modes-controller-9c47b972a-20261031\\pre-inputs-malformed_sector_returned.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T13:54:23.420906+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T13:54:25.271129+00:00"
+    },
+    {
+      "stage": "actual-public-five-mode-test",
+      "pid": 1952,
+      "args": [
+        "R:\\d3-evidence\\environment-sector-judge-source-9c47b972a\\eech-campaign\\target\\windows-sector-judge-9c47b972a\\env_sector_authority.exe",
+        "--exact",
+        "the_host_decides_the_sector_surfaces_the_sound_routine_reads_and_a_wrong_host_stops_the_campaign_at_the_sector_boundary",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T13:54:25.287187+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T13:54:58.194140+00:00"
+    },
+    {
+      "stage": "post-inputs-control",
+      "pid": 10432,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-sector-judge-source-9c47b972a\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-sector-authority-roots-20261031\\control",
+        "--compare",
+        "R:\\d3-evidence\\environment-sector-judge-source-9c47b972a\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-sector-five-modes-controller-9c47b972a-20261031\\post-inputs-control.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T13:54:58.354786+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T13:54:59.430152+00:00"
+    },
+    {
+      "stage": "post-inputs-changed_sector",
+      "pid": 8744,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-sector-judge-source-9c47b972a\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-sector-authority-roots-20261031\\changed_sector",
+        "--compare",
+        "R:\\d3-evidence\\environment-sector-judge-source-9c47b972a\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-sector-five-modes-controller-9c47b972a-20261031\\post-inputs-changed_sector.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T13:54:59.442569+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T13:55:00.801878+00:00"
+    },
+    {
+      "stage": "post-inputs-withheld_sector",
+      "pid": 644,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-sector-judge-source-9c47b972a\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-sector-authority-roots-20261031\\withheld_sector",
+        "--compare",
+        "R:\\d3-evidence\\environment-sector-judge-source-9c47b972a\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-sector-five-modes-controller-9c47b972a-20261031\\post-inputs-withheld_sector.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T13:55:00.812498+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T13:55:02.192020+00:00"
+    },
+    {
+      "stage": "post-inputs-malformed_sector_flags",
+      "pid": 6916,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-sector-judge-source-9c47b972a\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-sector-authority-roots-20261031\\malformed_sector_flags",
+        "--compare",
+        "R:\\d3-evidence\\environment-sector-judge-source-9c47b972a\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-sector-five-modes-controller-9c47b972a-20261031\\post-inputs-malformed_sector_flags.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T13:55:02.202399+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T13:55:03.472270+00:00"
+    },
+    {
+      "stage": "post-inputs-malformed_sector_returned",
+      "pid": 6544,
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\environment-sector-judge-source-9c47b972a\\eech-campaign\\tools\\input-manifest.py",
+        "R:\\d3-evidence\\environment-sector-authority-roots-20261031\\malformed_sector_returned",
+        "--compare",
+        "R:\\d3-evidence\\environment-sector-judge-source-9c47b972a\\eech-campaign\\reference\\lebanon-3h\\inputs.json",
+        "--output",
+        "R:\\d3-evidence\\environment-sector-five-modes-controller-9c47b972a-20261031\\post-inputs-malformed_sector_returned.json"
+      ],
+      "state": "terminal",
+      "started_utc": "2026-10-31T13:55:03.484314+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T13:55:04.731165+00:00"
+    }
+  ],
+  "scope": "Actual14Windowsbookkeepingfunctions then realpublic5sector modes. Explicit mixed provenance newjudge+unchanged14192native/Lua. Refusalsarestoppedcampaigns. Boundedfirstscratchrecord observation, notsoundamplitudes/player/render/fullshipping/Task51/D3acceptance.",
+  "actual_public_test_exit": 0,
+  "error": null,
+  "pre_input_checks": 5,
+  "post_input_checks": 5,
+  "all_ten_prepost_inputs_zero": true,
+  "all_payloads_still_match": true,
+  "completed_utc": "2026-10-31T13:55:04.783309+00:00",
+  "copied_driver_files": [
+    {
+      "path": "R:\\d3-evidence\\environment-sector-five-modes-9c47b972a-20261031\\env-sector-authority.lua",
+      "sha256": "2c3456f9267ad121c003fc97520551ddc9ab2ff6c704d083a26cfe8f23e114ad",
+      "exact_source": true
+    }
+  ]
+}

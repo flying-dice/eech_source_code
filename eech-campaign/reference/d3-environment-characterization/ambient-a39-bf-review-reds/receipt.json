@@ -1,0 +1,68 @@
+{
+  "source_a39": "a39a7a2ec07f5ec9e02008c58463003e9107978a",
+  "source_red_controls": "bf64653dee245027a5ac46ebe4ad201790639200",
+  "files": [
+    {
+      "file": "source-review-a39.json",
+      "private_original_sha256": "8cced1aad38a23ea3bf54a4191f5a86ff359ca4b6509a51cd4122c7deba9304c",
+      "retained_Git_LF_sha256": "d97036306d0cd45304f87bc412964cc24770b93f6b67f2dc4ddb8e962c774f1c"
+    },
+    {
+      "file": "a39-actual-checks.json",
+      "private_original_sha256": "333d52b9c32cac74b7533a311edc0c9f366fb26c48ba22ff305b73ce162429ea",
+      "retained_Git_LF_sha256": "086ea296e50c790eb49d3ffac48a2cecce63a7c171a69ca553399013d0550398"
+    },
+    {
+      "file": "a39-first-default-Lebanon-comparison.json",
+      "private_original_sha256": "c4809cff62112181a1bf820e736f022968dee4c517a3238e3c2ef8a1849e04bb",
+      "retained_Git_LF_sha256": "9cb6d6830a1e431860b0d11c80ccca9ee0a01f8bea123f75c555df91038c99d8"
+    },
+    {
+      "file": "a39-hosted-i686-red.json",
+      "private_original_sha256": "1fa6bd9f491c29d131d33cd089ef7a12441fd075a49e7af8591772aafe761b1f",
+      "retained_Git_LF_sha256": "1fa6bd9f491c29d131d33cd089ef7a12441fd075a49e7af8591772aafe761b1f"
+    },
+    {
+      "file": "a39-Linux-first-pipeline.json",
+      "private_original_sha256": "486a294eb08241c71ea8c6b75771292a53ec21747f1c826444f3103ef0070806",
+      "retained_Git_LF_sha256": "96e86cfd243da45adad9c559a7e122502dd839aa6c59e86d3cb73be047948c13"
+    },
+    {
+      "file": "a39-actual-Windows-libraries.json",
+      "private_original_sha256": "1e0eb5bd6fb1c6d84fb83beaed1422c241d6c36bc09c333adf6e6d036671f87f",
+      "retained_Git_LF_sha256": "1425f94fa1c1f908d73fe3a78520026120677c8275a02198a66a463873537092"
+    },
+    {
+      "file": "a39-actual-Windows-terrain-ambient.json",
+      "private_original_sha256": "766370d5577acdac3618f116e99b238286a3143e848671cb1d63ac60c6948e88",
+      "retained_Git_LF_sha256": "4d6a04defe50b14504a968e9e98322696bac78ae3d5a69427fa3996938271bac"
+    },
+    {
+      "file": "bf-actual-two-group-red.json",
+      "private_original_sha256": "b93d254e51b1ed1b7799416fc3cb9b1c8fcbecc31fa3eb3ae2caf488c362b87d",
+      "retained_Git_LF_sha256": "3b6eb37d1fdcb4d4f51a825c692264dbc062466485cd7e2618d9c7c2da4b5e90"
+    },
+    {
+      "file": "bf-strong-env-red-completion.json",
+      "private_original_sha256": "f2b4db6a3da0f3517dbe199f7d676003b6fa378c170c8fb96ee86fa2288abd19",
+      "retained_Git_LF_sha256": "d56abdf087039a8b12f4e7f3d57d9ea5f0c9998029bf0b956ab8649dd16d37af"
+    },
+    {
+      "file": "bf-actual-Windows-strong-env-red.json",
+      "private_original_sha256": "77005372af9ac105012a7124732a276e2b0947d1b3e98fae713b6a57f95d4262",
+      "retained_Git_LF_sha256": "4da18694e2125fa16f495ea6ce3d79efc274a743060241d5ebd07d567f2f112c"
+    },
+    {
+      "file": "bf-real-wide-list-red.json",
+      "private_original_sha256": "fd266d792e388a7ad374c8f3022e06cae38bda0ac2b95764701cfbeb19557aba",
+      "retained_Git_LF_sha256": "9387163be950122c698f8847deaf984a3368b336a0485505a022df1eccf5d66f"
+    },
+    {
+      "file": "bf-bookkeeping-failed-outer-error-assertion.json",
+      "private_original_sha256": "068e50d0e829c5cd834d50e9ebc447659892454b209ab90d59ecaa2e726aa4df",
+      "retained_Git_LF_sha256": "30b545e31158963363dace18a7e76d06f351a583f04931623c5e325bde088411"
+    }
+  ],
+  "scope": "Safefailed/partialcomponentreceipts. Actuala39defaultLeb108rowsEXACToriginal butNOTFPsafe. NewstrongEnv768/3840variations; oldterrain192/5376LinuxWin/576i686. Realwide16healthythen17Corecapfailure; nothealthycompletecampaign. Newharnessfalseoutermlua-traceassertion recorded, driverJSONfirstlinecorrect. No rawassetcoordinates/childwordtraces/binaries/recordings. No acceptedbaseline/tolerancechange.",
+  "correction": "NewsourceUNBUILT/UNRUN; allrecordsretainedunchanged. Aggregatefailuresarenotproofnocallerstateleaks."
+}

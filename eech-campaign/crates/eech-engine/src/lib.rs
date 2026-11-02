@@ -57,7 +57,7 @@ fn check(code: c_int) -> Result<(), EngineError> {
 /// (`cmb-case-error reason=... detail=...`) into the report buffer before it returns the argument error, and `check` turns every argument error into "rejected by the engine";
 /// this keeps the reason instead of discarding it. Any other failure, and a rejection that wrote nothing, is unchanged.
 /// The ground-contact probe (feature `ground-fixture`, EEDCS-48) writes `ground-refused reason=...` the same way and uses it too.
-#[cfg(any(feature = "weapon-fixture", feature = "ground-fixture"))]
+#[cfg(any(feature = "weapon-fixture", feature = "env-fixture", feature = "ground-fixture"))]
 fn keep_case_reason(status: Result<(), EngineError>, text: &[std::os::raw::c_char]) -> Result<String, EngineError> {
     // SAFETY: the buffer was zero-filled and the engine NUL-terminates anything it writes within it.
     let report = unsafe { CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned();
@@ -998,6 +998,38 @@ pub const ROUTE_CALLS_MAX: i32 = 1024;
 #[cfg(feature = "weapon-fixture")]
 const WPN_REPORT_CAPACITY: usize = 160 * 1024;
 
+/// TEST-ONLY (feature `env-fixture`): room for one case of the session environment characterisation; a report that does not fit is refused by the engine, never cut short.
+#[cfg(feature = "env-fixture")]
+const ENV_REPORT_CAPACITY: usize = 32 * 1024;
+
+/// TEST-ONLY (feature `env-fixture`): room for the ONE report of the sound initialisation case (group 14 index 15), which holds a row for each sample key the constructor read, up to the finite catalogue
+/// (`NUM_SOUND_SAMPLE_INDICES`, 2069 in the measured native). The bound is derived in csrc/eech_env_observer.c (a sample row is at most 128 characters, so 2069 rows are 264,832 bytes, plus at most 16 KiB of fixed rows,
+/// 281,216 in all) and checked there at compile time against `ENVA_REPORT_CAPACITY`, which this must equal (a test compares the two). Only this case has it: every other case keeps `ENV_REPORT_CAPACITY`.
+/// A report that does not fit is still refused by the engine, never cut short.
+#[cfg(feature = "env-fixture")]
+pub const ENV_SND_INIT_REPORT_CAPACITY: usize = 320 * 1024;
+
+/// TEST-ONLY (feature `env-observer`): arms (before boot) or disarms the read-only observer of the original environment. Arming after boot is refused, because the evidence would be incomplete.
+#[cfg(feature = "env-observer")]
+pub fn env_observer_arm(on: bool) -> Result<(), EngineError> {
+    // SAFETY: no pointers cross.
+    check(unsafe { sys::eech_engine_env_observer_arm(i32::from(on)) })
+}
+
+/// TEST-ONLY (feature `env-observer`, EEDCS-51, D3): arms (before boot) or disarms the helicopter rotor sound probe, which nothing else arms. Arming after boot is refused, because the evidence would be incomplete.
+#[cfg(feature = "env-observer")]
+pub fn env_rotor_arm(on: bool) -> Result<(), EngineError> {
+    // SAFETY: no pointers cross.
+    check(unsafe { sys::eech_engine_env_rotor_arm(i32::from(on)) })
+}
+
+/// TEST-ONLY (feature `env-observer`, EEDCS-51, D3): arms (before boot) or disarms the resumed-parent playback probe (ENV_FXP), which nothing else arms. Arming after boot is refused, because the evidence would be incomplete.
+#[cfg(feature = "env-observer")]
+pub fn env_play_arm(on: bool) -> Result<(), EngineError> {
+    // SAFETY: no pointers cross.
+    check(unsafe { sys::eech_engine_env_play_arm(i32::from(on)) })
+}
+
 /// the booted engine (one per process)
 pub struct Engine {
     _not_send: std::marker::PhantomData<*const ()>,
@@ -1419,6 +1451,19 @@ pub enum TerrainQuery {
     Point { x: f32, z: f32, hint: Option<String>, winter: bool },
     /// the fast gridpost elevation at a point
     Fast { x: f32, z: f32, winter: bool },
+    /// the surface enumeration of the sector that holds a point (EEDCS-51): the original's `get_terrain_3d_types_in_sector`, asked by the session sound routine every update
+    Sector { x: f32, z: f32, winter: bool },
+    /// the physical amplification of the session's terrain ambient sound children (EEDCS-51, `update_session_sound_effects`): the point, its radar altitude, the frame delta, whether the cockpit is
+    /// the point, and each child's ambient class and previous amplification in the session's child order
+    Ambient {
+        x: f32,
+        z: f32,
+        winter: bool,
+        in_cockpit: bool,
+        alt: f32,
+        delta: f32,
+        children: Vec<TerrainAmbientChild>,
+    },
     /// EEDCS-48 (D3 G2): is the position above the ground (`point_above_ground`)? `world` is the campaign's world-map area `[min_x, min_z, max_x, max_z]`, campaign
     /// geography supplied by value (the host does not assume it equals the terrain's extents); `hint` is the shared record's.
     GroundAbove {
@@ -1442,6 +1487,14 @@ pub enum TerrainQuery {
         hint: Option<String>,
         winter: bool,
     },
+}
+
+/// One terrain ambient sound child of an [`TerrainQuery::Ambient`] question: its class (`0` sea, `1` jungle, `2` amb1, `3` amb2, `4` amb3, `5` amb4: `EECH_TERRAIN_AMBIENT_CLASSES` of them) and the
+/// amplification it held before this update (campaign child state: the smoothing compounds).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct TerrainAmbientChild {
+    pub class: i32,
+    pub previous: f32,
 }
 
 /// The facts about the map the host owns (`TerrainQuery::Map`). `fast_width`/`fast_height` are 0 when the host has no fast grid.
@@ -1477,6 +1530,17 @@ pub enum TerrainAnswer {
     },
     Fast {
         elevation: f32,
+    },
+    /// The sector enumeration: `returned` is the original's return value (1 PLUS THE NUMBER OF SURFACE TRANSITIONS of the sector -- not the number of distinct surfaces) and `flags` the
+    /// complete scratch by value, one entry per terrain type (`EECH_TERRAIN_TYPE_COUNT` of them), true where the type is a surface of the sector. The first surface is always flagged, so
+    /// at least one is, and `returned` is never below the number flagged.
+    Sector {
+        returned: i32,
+        flags: Vec<bool>,
+    },
+    /// The new amplification of each child of the question, in its order (one finite number each).
+    Ambient {
+        amplitudes: Vec<f32>,
     },
     /// EEDCS-48: the answer of `GroundAbove` and `GroundBelow`. `record` is present exactly when the answer read the terrain (otherwise the campaign keeps its whole record).
     GroundPredicate {
@@ -1587,6 +1651,58 @@ unsafe extern "C" fn terrain_callback(
                     winter,
                 },
             ),
+            sys::EECH_TERRAIN_SECTOR => (
+                "sector",
+                TerrainQuery::Sector {
+                    x: source.x,
+                    z: source.z,
+                    winter,
+                },
+            ),
+            sys::EECH_TERRAIN_AMBIENT => {
+                // the request is validated as the campaign built it, before the provider sees it: a bounded count, a class in range, a cockpit flag that is 0 or 1
+                let count = usize::try_from(source.ambient_count)
+                    .ok()
+                    .filter(|count| *count <= sys::EECH_TERRAIN_AMBIENT_MAX)
+                    .ok_or_else(|| {
+                        format!(
+                            "[terrain-provider:ambient.request] {} terrain ambient sound children, not 0 to {}",
+                            source.ambient_count,
+                            sys::EECH_TERRAIN_AMBIENT_MAX
+                        )
+                    })?;
+                if source.ambient_in_cockpit != 0 && source.ambient_in_cockpit != 1 {
+                    return Err(format!(
+                        "[terrain-provider:ambient.request] the cockpit flag is {}, neither 0 nor 1",
+                        source.ambient_in_cockpit
+                    ));
+                }
+                let mut children = Vec::with_capacity(count);
+                for (class, previous) in source.ambient_class.iter().zip(source.ambient_previous.iter()).take(count) {
+                    if !(0..sys::EECH_TERRAIN_AMBIENT_CLASSES).contains(class) {
+                        return Err(format!(
+                            "[terrain-provider:ambient.request] the ambient class {class} is not 0 to {}",
+                            sys::EECH_TERRAIN_AMBIENT_CLASSES - 1
+                        ));
+                    }
+                    children.push(TerrainAmbientChild {
+                        class: *class,
+                        previous: *previous,
+                    });
+                }
+                (
+                    "ambient",
+                    TerrainQuery::Ambient {
+                        x: source.x,
+                        z: source.z,
+                        winter,
+                        in_cockpit: source.ambient_in_cockpit == 1,
+                        alt: source.ambient_alt,
+                        delta: source.ambient_delta,
+                        children,
+                    },
+                )
+            }
             sys::EECH_TERRAIN_GROUND_ABOVE => (
                 "ground_above",
                 TerrainQuery::GroundAbove {
@@ -1663,6 +1779,40 @@ unsafe extern "C" fn terrain_callback(
                 terrain_hint_into(&mut reply.hint, hint.as_deref())?;
             }
             ("fast", TerrainAnswer::Fast { elevation }) => reply.elevation = elevation,
+            ("sector", TerrainAnswer::Sector { returned, flags }) => {
+                // checked here as well as by the campaign, so that a direct Rust provider cannot hand the C side an enumeration that is not one: the flags are one entry for each terrain type, the
+                // sector's first surface is always flagged, and the return value (1 + the transitions) is never below the number of surfaces flagged
+                if flags.len() != sys::EECH_TERRAIN_TYPE_COUNT as usize {
+                    return Err(format!(
+                        "[terrain-provider:sector.flags] the provider answered {} sector flags, not one for each of the {} terrain types",
+                        flags.len(),
+                        sys::EECH_TERRAIN_TYPE_COUNT
+                    ));
+                }
+                let distinct = flags.iter().filter(|flag| **flag).count();
+                if distinct == 0 || i64::from(returned) < i64::try_from(distinct).unwrap_or(i64::MAX) {
+                    return Err(format!(
+                        "[terrain-provider:sector.returned] the sector return value {returned} does not fit its {distinct} flagged surfaces (at least one, and never more than the return value)"
+                    ));
+                }
+                reply.sector_returned = returned;
+                for (slot, flag) in reply.sector_flags.iter_mut().zip(&flags) {
+                    *slot = if *flag { b'1' as c_char } else { b'0' as c_char };
+                }
+            }
+            ("ambient", TerrainAnswer::Ambient { amplitudes }) => {
+                // exactly one finite amplification for each child that was asked about, staged here and written only when all are
+                if amplitudes.len() != usize::try_from(source.ambient_count).unwrap_or(usize::MAX) || !amplitudes.iter().all(|value| value.is_finite()) {
+                    return Err(format!(
+                        "[terrain-provider:ambient.answer] {} amplitudes for {} children (one finite number for each child asked about)",
+                        amplitudes.len(),
+                        source.ambient_count
+                    ));
+                }
+                for (slot, value) in reply.ambient_amplitude.iter_mut().zip(&amplitudes) {
+                    *slot = *value;
+                }
+            }
             ("ground_above" | "ground_below", TerrainAnswer::GroundPredicate { value, record }) => {
                 reply.answer = c_int::from(value);
                 reply.queried = c_int::from(record.is_some());
@@ -1681,6 +1831,8 @@ unsafe extern "C" fn terrain_callback(
                     TerrainAnswer::Map(_) => "map facts",
                     TerrainAnswer::Point { .. } => "a point answer",
                     TerrainAnswer::Fast { .. } => "a fast elevation",
+                    TerrainAnswer::Sector { .. } => "a sector answer",
+                    TerrainAnswer::Ambient { .. } => "an ambient answer",
                     TerrainAnswer::GroundPredicate { .. } => "a ground predicate",
                     TerrainAnswer::GroundImpact { .. } => "a ground impact",
                 };
@@ -1703,6 +1855,591 @@ unsafe extern "C" fn terrain_callback(
         Err(_) => {
             // SAFETY: C owns this writable error buffer for the callback.
             unsafe { write_callback_text(error, error_size, "[terrain-provider:point.callback] the terrain provider panicked") };
+            1
+        }
+    }
+}
+
+/// One question the campaign asks of the host's physical weather and wind field, or one update of it, and the host's answer (aphavoc/.../ss_hostenv.h). They are the C structures
+/// of the callback, plain numbers by value: no EECH pointer, entity index or session layout is in them.
+pub use sys::{eech_env_reply as EnvReply, eech_env_request as EnvRequest, eech_env_state as EnvState, eech_lightning_strike as LightningStrike};
+
+/// The operations of an [`EnvRequest`] and the sizes of the field (the enums of ss_hostenv.h).
+pub use sys::{
+    EECH_ENV_AMBIENT, EECH_ENV_DRAWS, EECH_ENV_EXPORT, EECH_ENV_FLOATS, EECH_ENV_GUST, EECH_ENV_IMPORT, EECH_ENV_INIT_FIXED, EECH_ENV_INIT_RANDOM,
+    EECH_ENV_INTS, EECH_ENV_LIGHTNING_ADD, EECH_ENV_LIGHTNING_UPDATE, EECH_ENV_MODE_COUNT, EECH_ENV_SOUND_LIFETIME_INIT, EECH_ENV_SOUND_LIFETIME_UPDATE,
+    EECH_ENV_SOUND_PAUSE_RESUME, EECH_ENV_STEP, EECH_ENV_WEATHER, EECH_ENV_WIND, EECH_LIGHTNING_SLOTS, EECH_SOUND_ACTION_KILL, EECH_SOUND_ACTION_NONE,
+    EECH_SOUND_ACTION_UNLINK, EECH_SOUND_SAMPLES,
+};
+/// ROTOR_SOUND (the helicopter rotor acoustics): the operation, the logical channels, the player roles, the write mask bits and the most requests a reply may hold.
+pub use sys::{
+    EECH_ENV_ROTOR_SOUND, EECH_ROTOR_ACTIONS, EECH_ROTOR_CHANNELS, EECH_ROTOR_CHANNEL_APU, EECH_ROTOR_CHANNEL_LOOPING, EECH_ROTOR_CHANNEL_SLAP,
+    EECH_ROTOR_CHANNEL_TURBINE1, EECH_ROTOR_CHANNEL_TURBINE2, EECH_ROTOR_CHANNEL_WINDING, EECH_ROTOR_PLAYER_AI, EECH_ROTOR_PLAYER_LOCAL,
+    EECH_ROTOR_PLAYER_REMOTE, EECH_ROTOR_WRITE_AMPLIFICATION, EECH_ROTOR_WRITE_PITCH,
+};
+
+/// The host's environment provider. It is installed once, at boot, and is the only source of the campaign's physical weather and wind: the campaign has no weather or wind solver
+/// of its own to fall back to.
+pub type EnvProvider = Box<dyn FnMut(&EnvRequest) -> Result<EnvReply, String>>;
+
+thread_local! {
+    // the engine and its host run on one thread; a provider is not `Send`
+    static ENVIRONMENT: std::cell::RefCell<Option<EnvProvider>> = std::cell::RefCell::new(None);
+}
+
+fn env_op_label(op: c_int) -> &'static str {
+    match op {
+        sys::EECH_ENV_IMPORT => "import",
+        sys::EECH_ENV_EXPORT => "export",
+        sys::EECH_ENV_INIT_RANDOM => "init_random",
+        sys::EECH_ENV_INIT_FIXED => "init_fixed",
+        sys::EECH_ENV_WEATHER => "weather",
+        sys::EECH_ENV_WIND => "wind",
+        sys::EECH_ENV_GUST => "gust",
+        sys::EECH_ENV_STEP => "step",
+        sys::EECH_ENV_AMBIENT => "ambient",
+        sys::EECH_ENV_LIGHTNING_ADD => "lightning_add",
+        sys::EECH_ENV_LIGHTNING_UPDATE => "lightning_update",
+        sys::EECH_ENV_SOUND_LIFETIME_INIT => "sound_lifetime_init",
+        sys::EECH_ENV_SOUND_LIFETIME_UPDATE => "sound_lifetime_update",
+        sys::EECH_ENV_SOUND_PAUSE_RESUME => "sound_pause_resume",
+        sys::EECH_ENV_ROTOR_SOUND => "rotor_sound",
+        _ => "unknown",
+    }
+}
+
+fn env_state_refusal(state: &EnvState, op: &str) -> Result<(), String> {
+    if !state.f.iter().all(|value| value.is_finite()) {
+        return Err(format!("[env-provider:{op}.state] the field has a number that is not finite"));
+    }
+    if let Some(mode) = state.n.iter().take(2).find(|mode| !(0..sys::EECH_ENV_MODE_COUNT).contains(*mode)) {
+        return Err(format!("[env-provider:{op}.state] the weather mode {mode} is not one of the modes"));
+    }
+    if state.n.iter().skip(2).any(|flag| *flag != 0 && *flag != 1) {
+        return Err(format!("[env-provider:{op}.state] a flag is neither 0 nor 1"));
+    }
+    Ok(())
+}
+
+/// The reply of the environment provider checked against the request IT ANSWERS, by value, at the boundary every provider (a Lua one or a direct Rust one) passes through, before the
+/// C side reads a number of it: before the shared random word is drawn from, and before the session's mirror is written. The decisions that depend on the request (a wind vector the
+/// campaign asked for, the lightning protocol of a server or a client) are made from the request the campaign built, never from anything the provider could have changed.
+fn check_env_reply(request: &EnvRequest, reply: &EnvReply) -> Result<(), String> {
+    let op = env_op_label(request.op);
+    let answer = format!("[env-provider:{op}.answer]");
+    let mode_ok = |mode: c_int| (0..sys::EECH_ENV_MODE_COUNT).contains(&mode);
+    match request.op {
+        sys::EECH_ENV_IMPORT => Ok(()),
+        sys::EECH_ENV_EXPORT | sys::EECH_ENV_INIT_RANDOM | sys::EECH_ENV_INIT_FIXED => env_state_refusal(&reply.state, op),
+        sys::EECH_ENV_WEATHER => {
+            if mode_ok(reply.current_mode) && mode_ok(reply.target_mode) && mode_ok(reply.simple_mode) && reply.transitional_state.is_finite() {
+                Ok(())
+            } else {
+                Err(format!("{answer} the weather answer is malformed"))
+            }
+        }
+        sys::EECH_ENV_WIND => {
+            if reply.speed.is_finite() && (request.want_vector == 0 || reply.vector.iter().all(|value| value.is_finite())) {
+                Ok(())
+            } else {
+                Err(format!(
+                    "{answer} the wind answer is malformed (a speed, and a vector when one was asked for, must be finite)"
+                ))
+            }
+        }
+        sys::EECH_ENV_GUST => {
+            if reply.modulation.is_finite() {
+                Ok(())
+            } else {
+                Err(format!("{answer} the gust answer is malformed"))
+            }
+        }
+        sys::EECH_ENV_AMBIENT => {
+            // four finite levels; the wind levels are the original's piecewise function of r in [0, 1] and never leave it. The rain levels are finite numbers: the original clamps nothing there.
+            let levels = reply.ambient_levels;
+            if levels.iter().all(|level| level.is_finite()) && levels.iter().skip(2).all(|level| (0.0..=1.0).contains(level)) {
+                Ok(())
+            } else {
+                Err(format!(
+                    "{answer} the ambient sound answer is malformed (four finite levels, the wind levels within 0 to 1)"
+                ))
+            }
+        }
+        sys::EECH_ENV_STEP => {
+            if reply.need_draw != 0 {
+                // only a server's first question, before the draw, may be answered with a request for the draw
+                if reply.need_draw != 1 || request.server == 0 || request.have_draw != 0 {
+                    return Err(format!(
+                        "{answer} the provider asked for the lightning draw where none may be asked for (only a server's first question, before the draw)"
+                    ));
+                }
+                return if reply.new_timer.is_finite() {
+                    Ok(())
+                } else {
+                    Err(format!("{answer} the timer is not finite"))
+                };
+            }
+            if reply.expired != 0 && reply.expired != 1 {
+                return Err(format!("{answer} expired is neither 0 nor 1"));
+            }
+            // the draw is made only because the first answer reported an expiry: the final answer must complete AND still report it
+            if request.have_draw != 0 && reply.expired != 1 {
+                return Err(format!("{answer} the lightning draw was made for an expiry the final answer does not report"));
+            }
+            // a server's expiry is negotiated (the host asks for the draw first)
+            if reply.expired == 1 && request.server != 0 && request.have_draw == 0 {
+                return Err(format!("{answer} a server's lightning timer expired without the draw the new timer needs"));
+            }
+            if reply.expired == 1 && (!reply.strike.iter().all(|value| value.is_finite()) || (request.server != 0 && !reply.new_timer.is_finite())) {
+                return Err(format!("{answer} the strike or the new timer is not finite"));
+            }
+            env_state_refusal(&reply.state, op)
+        }
+        sys::EECH_ENV_LIGHTNING_ADD | sys::EECH_ENV_LIGHTNING_UPDATE => {
+            let add = request.op == sys::EECH_ENV_LIGHTNING_ADD;
+            if reply.lightning_need_frames != 0 {
+                // only an update that was not yet given the strike animation's frame count may be answered with a request for it; the queue then stays as it was
+                return if !add && reply.lightning_need_frames == 1 && request.lightning_have_frames == 0 {
+                    Ok(())
+                } else {
+                    Err(format!(
+                        "{answer} the provider asked for the strike animation's frame count where none may be asked for (only an update that was not given it)"
+                    ))
+                };
+            }
+            let slots = i32::try_from(sys::EECH_LIGHTNING_SLOTS).unwrap_or(i32::MAX);
+            let slot_ok = if add {
+                (-1..slots).contains(&reply.lightning_slot)
+            } else {
+                reply.lightning_slot == -1
+            };
+            if !slot_ok {
+                return Err(format!(
+                    "{answer} the slot {} is not {}",
+                    reply.lightning_slot,
+                    if add {
+                        "-1 (none) or one of the queue's slots"
+                    } else {
+                        "-1 (an update fills none)"
+                    }
+                ));
+            }
+            for (index, strike) in reply.lightning_queue.iter().enumerate() {
+                if strike.in_use != 0 && strike.in_use != 1 {
+                    return Err(format!("{answer} slot {index} has an in_use flag that is neither 0 nor 1"));
+                }
+                if ![strike.x, strike.y, strike.z, strike.time_started, strike.time_length]
+                    .iter()
+                    .all(|value| value.is_finite())
+                {
+                    return Err(format!("{answer} slot {index} has a number that is not finite"));
+                }
+                if !(0..=5).contains(&strike.kind) {
+                    return Err(format!("{answer} slot {index} has the type {}, which is not a lightning type", strike.kind));
+                }
+            }
+            Ok(())
+        }
+        sys::EECH_ENV_SOUND_LIFETIME_INIT => {
+            if reply.sound_lifetime.is_finite() && reply.sound_lifetime >= 0.0 {
+                Ok(())
+            } else {
+                Err(format!("{answer} the lifetime is not a finite number from 0 up"))
+            }
+        }
+        sys::EECH_ENV_SOUND_LIFETIME_UPDATE => {
+            if reply.sound_need_playing != 0 {
+                // only the server routine of a valid effect that holds a handle, not yet told whether it is playing, may be answered with a request for that
+                return if reply.sound_need_playing == 1
+                    && request.sound_server != 0
+                    && request.sound_valid != 0
+                    && request.sound_has_handle != 0
+                    && request.sound_have_playing == 0
+                {
+                    Ok(())
+                } else {
+                    Err(format!(
+                        "{answer} the provider asked whether a playback handle is playing where none may be asked about (only the server routine of a valid effect that holds a handle, once)"
+                    ))
+                };
+            }
+            if !(reply.sound_lifetime.is_finite() && reply.sound_valid_lifetime.is_finite()) {
+                return Err(format!("{answer} a lifetime is not finite"));
+            }
+            if reply.sound_expired != 0 && reply.sound_expired != 1 {
+                return Err(format!("{answer} expired is neither 0 nor 1"));
+            }
+            if !(sys::EECH_SOUND_ACTION_NONE..=sys::EECH_SOUND_ACTION_UNLINK).contains(&reply.sound_action) {
+                return Err(format!("{answer} the action {} is not none, kill or unlink", reply.sound_action));
+            }
+            Ok(())
+        }
+        sys::EECH_ENV_SOUND_PAUSE_RESUME => {
+            if ![reply.sound_changed, reply.sound_valid, reply.sound_play, reply.sound_relink]
+                .iter()
+                .all(|flag| *flag == 0 || *flag == 1)
+            {
+                return Err(format!("{answer} changed, valid, play and relink must each be 0 or 1"));
+            }
+            if !reply.sound_valid_lifetime.is_finite() {
+                return Err(format!("{answer} the valid lifetime is not finite"));
+            }
+            Ok(())
+        }
+        sys::EECH_ENV_ROTOR_SOUND => {
+            // the whole reply is held to the protocol here, against the request, before the C side reads a word: the masks, the finite levels, the number and the channel order of the requests
+            let wanted_mask = |channel: usize| {
+                if channel == sys::EECH_ROTOR_CHANNEL_WINDING as usize {
+                    sys::EECH_ROTOR_WRITE_AMPLIFICATION
+                } else {
+                    sys::EECH_ROTOR_WRITE_AMPLIFICATION | sys::EECH_ROTOR_WRITE_PITCH
+                }
+            };
+            for channel in 0..sys::EECH_ROTOR_CHANNELS {
+                if reply.rotor_write[channel] != wanted_mask(channel) {
+                    return Err(format!(
+                        "{answer} the write mask {} of channel {channel} is not the protocol's {}",
+                        reply.rotor_write[channel],
+                        wanted_mask(channel)
+                    ));
+                }
+                if !reply.rotor_amplification[channel].is_finite() || !reply.rotor_pitch[channel].is_finite() {
+                    return Err(format!("{answer} a level of channel {channel} is not finite"));
+                }
+            }
+            if reply.rotor_pitch[sys::EECH_ROTOR_CHANNEL_WINDING as usize].to_bits() != 0 {
+                return Err(format!("{answer} the winding channel has a pitch where it may write none"));
+            }
+            let local_engines = request.rotor_player == sys::EECH_ROTOR_PLAYER_LOCAL && request.rotor_have_flight_model != 0;
+            let channels: &[c_int] = if local_engines {
+                &[
+                    sys::EECH_ROTOR_CHANNEL_TURBINE1,
+                    sys::EECH_ROTOR_CHANNEL_TURBINE2,
+                    sys::EECH_ROTOR_CHANNEL_APU,
+                    sys::EECH_ROTOR_CHANNEL_LOOPING,
+                    sys::EECH_ROTOR_CHANNEL_SLAP,
+                ]
+            } else {
+                &[sys::EECH_ROTOR_CHANNEL_LOOPING, sys::EECH_ROTOR_CHANNEL_SLAP]
+            };
+            let count = usize::try_from(reply.rotor_action_count).unwrap_or(usize::MAX);
+            if count != channels.len() {
+                return Err(format!(
+                    "{answer} {} requests where the original makes {} for this role",
+                    reply.rotor_action_count,
+                    channels.len()
+                ));
+            }
+            for (position, channel) in channels.iter().enumerate() {
+                if reply.rotor_action_channel[position] != *channel {
+                    return Err(format!(
+                        "{answer} request {position} is for channel {} where the original asks channel {channel}",
+                        reply.rotor_action_channel[position]
+                    ));
+                }
+                if reply.rotor_action_resume[position] != 0 && reply.rotor_action_resume[position] != 1 {
+                    return Err(format!("{answer} request {position} has a resume flag that is neither 0 nor 1"));
+                }
+                if !reply.rotor_action_delay[position].is_finite() {
+                    return Err(format!("{answer} the delay of request {position} is not finite"));
+                }
+                if reply.rotor_action_resume[position] == 1 && reply.rotor_action_delay[position].to_bits() != 0 {
+                    return Err(format!("{answer} request {position} resumes with a delay, which a resume does not carry"));
+                }
+            }
+            if reply.rotor_action_resume[channels.len() - 2] != reply.rotor_action_resume[channels.len() - 1] {
+                return Err(format!("{answer} the looping and slap requests are not both pauses or both resumes"));
+            }
+            Ok(())
+        }
+        _ => Err(format!("[env-provider:callback] unknown environment operation {}", request.op)),
+    }
+}
+
+/// The C side's environment callback (ss_hostenv.h). It runs the installed provider; a missing provider, a refusal and a panic all become an error the engine stops on, with the
+/// provider's marker in the message. The reply is written only after the provider has answered: a refusal leaves the C reply as it was.
+unsafe extern "C" fn environment_callback(
+    request: *const sys::eech_env_request,
+    reply_out: *mut sys::eech_env_reply,
+    error: *mut c_char,
+    error_size: usize,
+    _user: *mut c_void,
+) -> c_int {
+    let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
+        if request.is_null() || reply_out.is_null() {
+            return Err("[env-provider:callback] invalid native environment callback context".into());
+        }
+        // SAFETY: C supplies a readable request for the duration of this callback.
+        let source = unsafe { *request };
+        let reply = ENVIRONMENT.with(|slot| -> Result<EnvReply, String> {
+            let mut slot = slot
+                .try_borrow_mut()
+                .map_err(|_| "[env-provider:callback] the environment provider was asked again while it was answering".to_string())?;
+            match slot.as_mut() {
+                Some(provider) => provider(&source).and_then(|reply| check_env_reply(&source, &reply).map(|()| reply)),
+                None => Err("[env-provider:missing] no environment provider is installed".to_string()),
+            }
+        })?;
+        // SAFETY: C supplies a writable reply for the duration of this callback.
+        unsafe { *reply_out = reply };
+        Ok(())
+    }));
+    match result {
+        Ok(Ok(())) => 0,
+        Ok(Err(message)) => {
+            // SAFETY: C owns this writable error buffer for the callback.
+            unsafe { write_callback_text(error, error_size, &message) };
+            1
+        }
+        Err(_) => {
+            // SAFETY: C owns this writable error buffer for the callback.
+            unsafe { write_callback_text(error, error_size, "[env-provider:callback] the environment provider panicked") };
+            1
+        }
+    }
+}
+
+/// One exchange of the host's physical sample metadata (aphavoc/.../ss_hostenv.h campaign_sound_catalogue_request), asked once at boot, before any session exists. The campaign names its descriptors, in its
+/// table's order, each by the slot it fills and the asset name it plays; the host answers each one's rate and original rate and, from its own sound.hdr and sound.dat, whether the header has an entry for
+/// it and that entry's length. `slots` is the size of the catalogue's domain (valid slots are 0 to `slots` - 1); it is not the number of named descriptors, which nothing here assumes.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SoundCatalogueRequest {
+    pub slots: i32,
+    pub descriptors: Vec<(i32, String)>,
+}
+
+/// The host's answer for one descriptor: the sample's rate and original rate (positive), whether the header has an entry for it and, when it has, that entry's length (0 or more; a length of 0 is a valid
+/// size and not a miss). An unmatched descriptor's `size` is 0.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SoundCatalogueEntry {
+    pub rate: i32,
+    pub original_rate: i32,
+    pub matched: bool,
+    pub size: i32,
+}
+
+/// The host's whole answer: whether the header and data files could both be opened for reading (an absent pair is a legitimate answer), how many entries the header holds, and one entry for each descriptor, in the
+/// request's order.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SoundCatalogueReply {
+    pub header_present: bool,
+    pub header_count: i32,
+    pub entries: Vec<SoundCatalogueEntry>,
+}
+
+/// The host's sample metadata provider. It is installed once, at boot, and is the only source of the campaign's sample rates and sizes: the campaign has no sound file reader or lookup of its own to fall back to.
+pub type SoundCatalogueProvider = Box<dyn FnMut(&SoundCatalogueRequest) -> Result<SoundCatalogueReply, String>>;
+
+thread_local! {
+    // the engine and its host run on one thread; a provider is not `Send`
+    static SOUND_CATALOGUE: std::cell::RefCell<Option<SoundCatalogueProvider>> = std::cell::RefCell::new(None);
+}
+
+/// The reply of the sample metadata provider checked against the request it answers, before the C side reads a number of it. The checks are the whole contract: one entry for each descriptor, a header count of 0 or more
+/// (and 0 for an absent pair), a positive rate and original rate, a length that is 0 or more for a matched entry and 0 for an unmatched one, and a match only in a header that holds entries, with no more
+/// distinct (slot, name) matches than the header has entries.
+fn check_sound_catalogue_reply(request: &SoundCatalogueRequest, reply: &SoundCatalogueReply) -> Result<(), String> {
+    let answer = "[sound-data-provider:answer]";
+    if reply.entries.len() != request.descriptors.len() {
+        return Err(format!(
+            "{answer} the provider answered {} descriptors where the campaign asked about {}",
+            reply.entries.len(),
+            request.descriptors.len()
+        ));
+    }
+    if reply.header_count < 0 || (!reply.header_present && reply.header_count != 0) {
+        return Err(format!(
+            "{answer} the header answer is malformed (present {}, entries {})",
+            reply.header_present, reply.header_count
+        ));
+    }
+    let mut matches = std::collections::BTreeSet::new();
+    for (position, (entry, (slot, name))) in reply.entries.iter().zip(request.descriptors.iter()).enumerate() {
+        if entry.rate < 1 || entry.original_rate < 1 || entry.size < 0 || (!entry.matched && entry.size != 0) {
+            return Err(format!(
+                "{answer} the answer for descriptor {position} (slot {slot}, {name}) is malformed (rate {}, original rate {}, matched {}, length {})",
+                entry.rate, entry.original_rate, entry.matched, entry.size
+            ));
+        }
+        if entry.matched {
+            matches.insert((*slot, name.as_str()));
+        }
+    }
+    // the answer must be one a header could give: a match needs a header that holds entries, and a header entry matches one (slot, name) pair, so the distinct pairs matched cannot outnumber the entries
+    // (the same question asked twice is one pair; a present header with no entry and a matched length of 0 are both valid)
+    if !matches.is_empty() && (!reply.header_present || matches.len() as i64 > i64::from(reply.header_count)) {
+        return Err(format!(
+            "{answer} the answer matches {} distinct descriptors in a header that is {} and holds {} entries",
+            matches.len(),
+            if reply.header_present { "present" } else { "absent" },
+            reply.header_count
+        ));
+    }
+    Ok(())
+}
+
+/// The C side's sample metadata callback (ss_hostenv.h). It runs the installed provider; a missing provider, a refusal and a panic all become an error the engine stops on, with the provider's marker in the message. The reply
+/// arrays are written only after the provider has answered AND the whole answer has been checked: a refusal or a malformed answer leaves them as the C side filled them.
+unsafe extern "C" fn sound_catalogue_callback(
+    request: *const sys::eech_sound_catalogue_request,
+    reply_out: *mut sys::eech_sound_catalogue_reply,
+    error: *mut c_char,
+    error_size: usize,
+    _user: *mut c_void,
+) -> c_int {
+    let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
+        if request.is_null() || reply_out.is_null() {
+            return Err("[sound-data-provider:callback] invalid native sample metadata callback context".into());
+        }
+        // SAFETY: C supplies a readable request and a writable reply for the duration of this callback.
+        let (source, out) = unsafe { (&*request, &mut *reply_out) };
+        let count = usize::try_from(source.count).map_err(|_| format!("[sound-data-provider:request] the descriptor count {} is negative", source.count))?;
+        if source.slots < 1 {
+            return Err(format!("[sound-data-provider:request] the catalogue domain {} is not a size", source.slots));
+        }
+        if count > 0
+            && (source.index.is_null()
+                || source.name.is_null()
+                || out.rate.is_null()
+                || out.original_rate.is_null()
+                || out.matched.is_null()
+                || out.size.is_null())
+        {
+            return Err("[sound-data-provider:request] the native request or its reply arrays are missing".into());
+        }
+        let mut descriptors = Vec::with_capacity(count);
+        for position in 0..count {
+            // SAFETY: C supplies `count` slot indices and `count` NUL-terminated names for the duration of this callback.
+            let (slot, name) = unsafe { (*source.index.add(position), *source.name.add(position)) };
+            if name.is_null() {
+                return Err(format!("[sound-data-provider:request] descriptor {position} has no asset name"));
+            }
+            // SAFETY: a non-null name of the request is a NUL-terminated C string.
+            let name = unsafe { std::ffi::CStr::from_ptr(name) }
+                .to_str()
+                .map_err(|_| format!("[sound-data-provider:request] descriptor {position}'s asset name is not UTF-8"))?;
+            descriptors.push((slot, name.to_string()));
+        }
+        let request = SoundCatalogueRequest {
+            slots: source.slots,
+            descriptors,
+        };
+        let reply = SOUND_CATALOGUE.with(|slot| -> Result<SoundCatalogueReply, String> {
+            let mut slot = slot
+                .try_borrow_mut()
+                .map_err(|_| "[sound-data-provider:callback] the sample metadata provider was asked again while it was answering".to_string())?;
+            match slot.as_mut() {
+                Some(provider) => provider(&request).and_then(|reply| check_sound_catalogue_reply(&request, &reply).map(|()| reply)),
+                None => Err("[sound-data-provider:missing] no sample metadata provider is installed".to_string()),
+            }
+        })?;
+        out.header_present = c_int::from(reply.header_present);
+        out.header_count = reply.header_count;
+        for (position, entry) in reply.entries.iter().enumerate() {
+            // SAFETY: C supplies `count` writable entries in each reply array, and the checked reply holds exactly `count` entries.
+            unsafe {
+                *out.rate.add(position) = entry.rate;
+                *out.original_rate.add(position) = entry.original_rate;
+                *out.matched.add(position) = c_int::from(entry.matched);
+                *out.size.add(position) = entry.size;
+            }
+        }
+        Ok(())
+    }));
+    match result {
+        Ok(Ok(())) => 0,
+        Ok(Err(message)) => {
+            // SAFETY: C owns this writable error buffer for the callback.
+            unsafe { write_callback_text(error, error_size, &message) };
+            1
+        }
+        Err(_) => {
+            // SAFETY: C owns this writable error buffer for the callback.
+            unsafe { write_callback_text(error, error_size, "[sound-data-provider:callback] the sample metadata provider panicked") };
+            1
+        }
+    }
+}
+
+/// The only phase of the sound backend exchange: the availability decision of `initialise_application_sound_system` (ss_hostenv.h CAMPAIGN_SOUND_BACKEND_PHASE_INITIALISE).
+pub const SOUND_BACKEND_PHASE_INITIALISE: i32 = 1;
+
+/// One exchange of the host's physical sound backend availability (aphavoc/.../ss_hostenv.h campaign_sound_backend_request), asked once at boot behind the campaign's own flag test. It carries what the campaign
+/// actually knows and intends: the phase, the two command line flags as they stand and whether the samples would be loaded if the backend is available. No pointer, handle or device description crosses.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SoundBackendRequest {
+    pub phase: i32,
+    pub no_sound: bool,
+    pub dedicated: bool,
+    pub load_samples: bool,
+}
+
+/// The host's whole answer: whether a physical sound backend is available. The campaign refuses `true` by name (`[sound-backend-provider:unsupported]`) until the loader bodies and the playback routes are the
+/// host's too; it is carried to the C side exactly as the host gave it.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SoundBackendReply {
+    pub available: bool,
+}
+
+/// The host's sound backend provider. It is installed once, at boot, and is the only source of the campaign's backend availability: the campaign has no device call to fall back to.
+pub type SoundBackendProvider = Box<dyn FnMut(&SoundBackendRequest) -> Result<SoundBackendReply, String>>;
+
+thread_local! {
+    // the engine and its host run on one thread; a provider is not `Send`
+    static SOUND_BACKEND: std::cell::RefCell<Option<SoundBackendProvider>> = std::cell::RefCell::new(None);
+}
+
+/// The C side's sound backend callback (ss_hostenv.h). It runs the installed provider; a missing provider, a refusal and a panic all become an error the engine stops on, with the provider's marker. The reply is written
+/// only after the provider has answered; the request is checked first, so a request that is not the campaign's never reaches the host.
+unsafe extern "C" fn sound_backend_callback(
+    request: *const sys::eech_sound_backend_request,
+    reply_out: *mut sys::eech_sound_backend_reply,
+    error: *mut c_char,
+    error_size: usize,
+    _user: *mut c_void,
+) -> c_int {
+    let result = catch_unwind(AssertUnwindSafe(|| -> Result<(), String> {
+        if request.is_null() || reply_out.is_null() {
+            return Err("[sound-backend-provider:callback] invalid native sound backend callback context".into());
+        }
+        // SAFETY: C supplies a readable request and a writable reply for the duration of this callback.
+        let (source, out) = unsafe { (&*request, &mut *reply_out) };
+        if source.phase != SOUND_BACKEND_PHASE_INITIALISE {
+            return Err(format!("[sound-backend-provider:request] the phase {} is not the initialisation", source.phase));
+        }
+        let flag = |value: c_int, what: &str| match value {
+            0 => Ok(false),
+            1 => Ok(true),
+            other => Err(format!("[sound-backend-provider:request] {what} is {other}, not a flag")),
+        };
+        let request = SoundBackendRequest {
+            phase: source.phase,
+            no_sound: flag(source.no_sound, "no_sound")?,
+            dedicated: flag(source.dedicated, "dedicated")?,
+            load_samples: flag(source.load_samples, "load_samples")?,
+        };
+        let reply = SOUND_BACKEND.with(|slot| -> Result<SoundBackendReply, String> {
+            let mut slot = slot
+                .try_borrow_mut()
+                .map_err(|_| "[sound-backend-provider:callback] the sound backend provider was asked again while it was answering".to_string())?;
+            match slot.as_mut() {
+                Some(provider) => provider(&request),
+                None => Err("[sound-backend-provider:missing] no sound backend provider is installed".to_string()),
+            }
+        })?;
+        out.available = c_int::from(reply.available);
+        Ok(())
+    }));
+    match result {
+        Ok(Ok(())) => 0,
+        Ok(Err(message)) => {
+            // SAFETY: C owns this writable error buffer for the callback.
+            unsafe { write_callback_text(error, error_size, &message) };
+            1
+        }
+        Err(_) => {
+            // SAFETY: C owns this writable error buffer for the callback.
+            unsafe { write_callback_text(error, error_size, "[sound-backend-provider:callback] the sound backend provider panicked") };
             1
         }
     }
@@ -4942,6 +5679,9 @@ where
             .with(|slot| slot.try_borrow().map(|provider| provider.is_some()).unwrap_or(true))
             .then_some(model_callback as sys::eech_model_callback),
         terrain: Some(terrain_callback),
+        environment: Some(environment_callback),
+        sound_catalogue: Some(sound_catalogue_callback),
+        sound_backend: Some(sound_backend_callback),
         user: (&mut context as *mut HostContext<'_, F, G, H, M, L, D, A>).cast::<c_void>(),
     };
     check(call(&host))
@@ -4982,6 +5722,9 @@ impl Engine {
         aim_fn: &mut A,
         model: Option<ModelProvider>,
         terrain: TerrainProvider,
+        environment: EnvProvider,
+        sound_catalogue: SoundCatalogueProvider,
+        sound_backend: SoundBackendProvider,
     ) -> Result<Engine, EngineError>
     where
         F: FnMut(MemberDescriptor) -> Result<String, String>,
@@ -5018,6 +5761,12 @@ impl Engine {
         // The host's terrain provider is installed before the engine boots: the campaign asks about terrain while it loads and places its forces, and
         // from every entry afterwards. It is kept for the life of the process (the engine is one per process).
         TERRAIN.with(|slot| *slot.borrow_mut() = Some(terrain));
+        // The environment provider is installed with it, for the same reason: the campaign creates its session while it loads, and asks about the weather and the wind from every entry.
+        ENVIRONMENT.with(|slot| *slot.borrow_mut() = Some(environment));
+        // The sample metadata provider too: the campaign asks it once, while it initialises its sound database during boot, before any session exists.
+        SOUND_CATALOGUE.with(|slot| *slot.borrow_mut() = Some(sound_catalogue));
+        // And the sound backend provider: the campaign asks it once, in the same initialisation, behind its own flag test.
+        SOUND_BACKEND.with(|slot| *slot.borrow_mut() = Some(sound_backend));
         // SAFETY: every config pointer and the temporary host callback are valid for the call.
         with_host(
             bind_mobile_fn,
@@ -5601,6 +6350,120 @@ impl Engine {
     pub fn model_state(&self) -> Result<String, EngineError> {
         // SAFETY: the buffer outlives the call and the capacity passed is its length.
         Self::model_report(|text, capacity| unsafe { sys::eech_engine_model_state(text, capacity) })
+    }
+
+    /// TEST-ONLY (feature `env-observer`, EEDCS-51): the observer's state (armed, stored, read, dropped, overflow, the counters of the per-frame routines), as one `env-obs-report` line.
+    #[cfg(feature = "env-observer")]
+    pub fn env_observer_report(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; ENV_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_env_observer_report(text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `env-observer`, EEDCS-51): drains the observer's events not yet read, one `env-obs` line each, in the order the original produced them. Read-only apart from advancing the cursor.
+    #[cfg(feature = "env-observer")]
+    pub fn env_observer_events(&self) -> Result<String, EngineError> {
+        let mut all = String::new();
+        loop {
+            let mut text = vec![0 as std::os::raw::c_char; ENV_REPORT_CAPACITY];
+            let mut more: std::os::raw::c_int = 0;
+            // SAFETY: the buffer and `more` outlive the call and the capacity passed is the buffer length; the engine NUL-terminates the text.
+            check(unsafe { sys::eech_engine_env_observer_events(text.as_mut_ptr(), text.len() as i32, &mut more) })?;
+            // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+            all.push_str(&unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy());
+            if more == 0 {
+                return Ok(all);
+            }
+        }
+    }
+
+    /// TEST-ONLY (feature `env-fixture`, EEDCS-51, D3): the same case as `env_case` with a report buffer of the CALLER's size, to prove at the C boundary that a case which stages its report refuses a buffer that
+    /// cannot hold it BEFORE it changes anything (the rotor sweep). A refusal is an error carrying the engine's reason; the engine stays running and nothing it owns is changed.
+    #[cfg(feature = "env-fixture")]
+    pub fn env_case_capacity(&self, group: i32, index: i32, capacity: usize) -> Result<String, EngineError> {
+        if capacity == 0 || capacity > ENV_SND_INIT_REPORT_CAPACITY {
+            return Err(EngineError::BadArgument(format!(
+                "the report capacity {capacity} is not between 1 and {ENV_SND_INIT_REPORT_CAPACITY}"
+            )));
+        }
+        let mut text = vec![0 as std::os::raw::c_char; capacity];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        let status = check(unsafe { sys::eech_engine_env_case(group, index, text.as_mut_ptr(), text.len() as i32) });
+        keep_case_reason(status, &text)
+    }
+
+    /// TEST-ONLY (feature `env-observer`, EEDCS-51, D3): the rotor sound probe's state: its counters and its stated domain limits (calls pending at once, requests and children per call).
+    #[cfg(feature = "env-observer")]
+    pub fn env_rotor_report(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; ENV_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_env_rotor_report(text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `env-observer`, EEDCS-51, D3): drains the rotor sound probe's stored calls, one `env-rotor-call` line each, in the order the original made them; once everything is read the probe's page is
+    /// empty again, so a driver that drains after every frame never exceeds the page.
+    #[cfg(feature = "env-observer")]
+    pub fn env_rotor_events(&self) -> Result<String, EngineError> {
+        let mut all = String::new();
+        loop {
+            let mut text = vec![0 as std::os::raw::c_char; ENV_REPORT_CAPACITY];
+            let mut more: std::os::raw::c_int = 0;
+            // SAFETY: the buffer and `more` outlive the call and the capacity passed is the buffer length; the engine NUL-terminates the text.
+            check(unsafe { sys::eech_engine_env_rotor_events(text.as_mut_ptr(), text.len() as i32, &mut more) })?;
+            // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+            all.push_str(&unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy());
+            if more == 0 {
+                return Ok(all);
+            }
+        }
+    }
+
+    /// TEST-ONLY (feature `env-observer`, EEDCS-51, D3): the resumed-parent playback probe's state: its counters, its page limit and the census of the playback dispatch table taken when the defaults were set.
+    #[cfg(feature = "env-observer")]
+    pub fn env_play_report(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; ENV_REPORT_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_env_play_report(text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
+    /// TEST-ONLY (feature `env-observer`, EEDCS-51, D3): drains the resumed-parent playback probe's stored requests in the order they were made, once everything is read the probe's page is empty again: one `env-play-elided`
+    /// line each (protocol version 2, the default dispatch elided, no range) in the candidate; the original's version 1 wrote `env-play-call` lines with the range word.
+    #[cfg(feature = "env-observer")]
+    pub fn env_play_events(&self) -> Result<String, EngineError> {
+        let mut all = String::new();
+        loop {
+            let mut text = vec![0 as std::os::raw::c_char; ENV_REPORT_CAPACITY];
+            let mut more: std::os::raw::c_int = 0;
+            // SAFETY: the buffer and `more` outlive the call and the capacity passed is the buffer length; the engine NUL-terminates the text.
+            check(unsafe { sys::eech_engine_env_play_events(text.as_mut_ptr(), text.len() as i32, &mut more) })?;
+            // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+            all.push_str(&unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy());
+            if more == 0 {
+                return Ok(all);
+            }
+        }
+    }
+
+    /// TEST-ONLY (feature `env-fixture`, EEDCS-51): one case of the ORIGINAL session environment (weather, wind, clock), as `key=value` text lines: group 0 the census, 1 the unmodified session with
+    /// its original queries (both read-only), 2 to 8 the controlled witnesses (weather, wind, gust, clock, initialisers, time-of-day update, weather and wind update), each of which restores every
+    /// state it touched before it returns and says so. Asks no host anything. An unknown group or index, or a report that does not fit, is an error carrying the reason.
+    #[cfg(feature = "env-fixture")]
+    pub fn env_case(&self, group: i32, index: i32) -> Result<String, EngineError> {
+        let capacity = if group == 14 && index == 15 {
+            ENV_SND_INIT_REPORT_CAPACITY
+        } else {
+            ENV_REPORT_CAPACITY
+        };
+        let mut text = vec![0 as std::os::raw::c_char; capacity];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        let status = check(unsafe { sys::eech_engine_env_case(group, index, text.as_mut_ptr(), text.len() as i32) });
+        keep_case_reason(status, &text)
     }
 
     /// TEST-ONLY (feature `weapon-fixture`, EEDCS-46): the run-wide report of the physical combat-resolution code (damage capability, collisions, blasts, repair writes) since
@@ -10245,5 +11108,1742 @@ mod tests {
         let (code, _, error) = terrain_crossing(sys::EECH_TERRAIN_FAST, 0, "", |_| Err("[terrain-provider:fast.elevation] nope".into()));
         assert_ne!(code, 0);
         assert_eq!(error, "[terrain-provider:fast.elevation] nope");
+    }
+
+    // ---- the environment provider boundary (EEDCS-51, D3): a DIRECT Rust provider is checked against the request it answers, exactly as a Lua one is ----
+
+    /// One crossing of the environment callback, as the C side makes it: this thread's provider is `provider`, the reply starts as a recognisable sentinel (a refusal that wrote
+    /// something shows), and the error text comes back.
+    fn env_crossing(request: EnvRequest, provider: impl FnMut(&EnvRequest) -> Result<EnvReply, String> + 'static) -> (c_int, EnvReply, String) {
+        ENVIRONMENT.with(|slot| *slot.borrow_mut() = Some(Box::new(provider)));
+        let mut reply = EnvReply {
+            current_mode: 77,
+            ..EnvReply::default()
+        };
+        let mut error = [0 as c_char; 256];
+        // SAFETY: the request and reply are valid for the call, and the error buffer is writable for its length.
+        let code = unsafe { environment_callback(&request, &mut reply, error.as_mut_ptr(), error.len(), std::ptr::null_mut()) };
+        ENVIRONMENT.with(|slot| *slot.borrow_mut() = None);
+        let text: Vec<u8> = error.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect();
+        (code, reply, String::from_utf8_lossy(&text).into_owned())
+    }
+
+    fn env_step_request(server: bool, have_draw: bool) -> EnvRequest {
+        EnvRequest {
+            op: sys::EECH_ENV_STEP,
+            server: c_int::from(server),
+            have_draw: c_int::from(have_draw),
+            lightning_draw: if have_draw { 0.5 } else { 0.0 },
+            ..EnvRequest::default()
+        }
+    }
+
+    fn env_valid_state() -> EnvState {
+        EnvState {
+            n: [1, 1, 0, 0, 0],
+            ..EnvState::default()
+        }
+    }
+
+    fn env_refused(request: EnvRequest, reply: EnvReply, marker: &str) {
+        let (code, written, error) = env_crossing(request, move |_| Ok(reply));
+        assert_ne!(code, 0, "{marker}: accepted");
+        assert!(error.contains(marker), "{marker}: {error}");
+        assert_eq!(written.current_mode, 77, "{marker}: a refusal wrote the reply");
+    }
+
+    #[test]
+    fn a_server_step_follows_the_lightning_protocol_and_a_completed_one_is_accepted() {
+        // the first question of an expired server timer: the provider asks for the draw
+        let ask = EnvReply {
+            need_draw: 1,
+            new_timer: -0.5,
+            ..EnvReply::default()
+        };
+        let (code, written, error) = env_crossing(env_step_request(true, false), move |_| Ok(ask));
+        assert_eq!((code, written.need_draw, written.new_timer), (0, 1, -0.5), "{error}");
+        // the second question, with the draw: expired, with a strike and the new timer
+        let done = EnvReply {
+            expired: 1,
+            strike: [1.0, 0.0, 2.0],
+            new_timer: 90.0,
+            state: env_valid_state(),
+            ..EnvReply::default()
+        };
+        let (code, written, error) = env_crossing(env_step_request(true, true), move |_| Ok(done));
+        assert_eq!((code, written.expired, written.new_timer), (0, 1, 90.0), "{error}");
+        // no expiry at all, with no draw
+        let calm = EnvReply {
+            state: env_valid_state(),
+            ..EnvReply::default()
+        };
+        let (code, _, error) = env_crossing(env_step_request(true, false), move |_| Ok(calm));
+        assert_eq!(code, 0, "{error}");
+        // a client's expiry needs no draw and no new timer
+        let client = EnvReply {
+            expired: 1,
+            strike: [1.0, 0.0, 2.0],
+            new_timer: f32::NAN,
+            state: env_valid_state(),
+            ..EnvReply::default()
+        };
+        let (code, written, error) = env_crossing(env_step_request(false, false), move |_| Ok(client));
+        assert_eq!((code, written.expired), (0, 1), "{error}");
+    }
+
+    #[test]
+    fn a_step_answer_that_breaks_the_lightning_protocol_is_refused_before_the_c_side_reads_it() {
+        let ask = EnvReply {
+            need_draw: 1,
+            new_timer: 0.0,
+            ..EnvReply::default()
+        };
+        // a client never draws, and a draw already made is not asked for again
+        env_refused(env_step_request(false, false), ask, "[env-provider:step.answer]");
+        env_refused(env_step_request(true, true), ask, "[env-provider:step.answer]");
+        env_refused(env_step_request(true, false), EnvReply { need_draw: 2, ..ask }, "[env-provider:step.answer]");
+        env_refused(
+            env_step_request(true, false),
+            EnvReply { new_timer: f32::NAN, ..ask },
+            "[env-provider:step.answer]",
+        );
+        // a server's expiry reported without the negotiation
+        let expired = EnvReply {
+            expired: 1,
+            strike: [0.0; 3],
+            new_timer: 5.0,
+            state: env_valid_state(),
+            ..EnvReply::default()
+        };
+        env_refused(env_step_request(true, false), expired, "[env-provider:step.answer]");
+        // the final answer after the draw must still report the expiry
+        let calm = EnvReply {
+            state: env_valid_state(),
+            ..EnvReply::default()
+        };
+        env_refused(env_step_request(true, true), calm, "[env-provider:step.answer]");
+        // malformed pieces
+        env_refused(env_step_request(true, true), EnvReply { expired: 2, ..expired }, "[env-provider:step.answer]");
+        env_refused(
+            env_step_request(true, true),
+            EnvReply {
+                strike: [f32::NAN, 0.0, 0.0],
+                ..expired
+            },
+            "[env-provider:step.answer]",
+        );
+        env_refused(
+            env_step_request(true, true),
+            EnvReply {
+                new_timer: f32::INFINITY,
+                ..expired
+            },
+            "[env-provider:step.answer]",
+        );
+        let mut bad_state = env_valid_state();
+        bad_state.n[0] = 9;
+        env_refused(
+            env_step_request(true, false),
+            EnvReply { state: bad_state, ..calm },
+            "[env-provider:step.state]",
+        );
+    }
+
+    #[test]
+    fn a_wind_vector_the_campaign_asked_for_is_required_of_a_direct_provider() {
+        let speed_only = EnvReply {
+            speed: 3.0,
+            vector: [f32::NAN; 3],
+            ..EnvReply::default()
+        };
+        let wanted = EnvRequest {
+            op: sys::EECH_ENV_WIND,
+            want_vector: 1,
+            ..EnvRequest::default()
+        };
+        env_refused(wanted, speed_only, "[env-provider:wind.answer]");
+        // a vector nobody asked for is not read
+        let unwanted = EnvRequest {
+            op: sys::EECH_ENV_WIND,
+            want_vector: 0,
+            ..EnvRequest::default()
+        };
+        let (code, written, error) = env_crossing(unwanted, move |_| Ok(speed_only));
+        assert_eq!((code, written.speed), (0, 3.0), "{error}");
+        env_refused(
+            unwanted,
+            EnvReply {
+                speed: f32::NAN,
+                ..EnvReply::default()
+            },
+            "[env-provider:wind.answer]",
+        );
+    }
+
+    #[test]
+    fn the_other_environment_answers_are_checked_at_the_boundary_too() {
+        let weather = EnvRequest {
+            op: sys::EECH_ENV_WEATHER,
+            ..EnvRequest::default()
+        };
+        let good = EnvReply {
+            current_mode: 1,
+            target_mode: 2,
+            simple_mode: 2,
+            transitional_state: 0.5,
+            ..EnvReply::default()
+        };
+        let (code, _, error) = env_crossing(weather, move |_| Ok(good));
+        assert_eq!(code, 0, "{error}");
+        env_refused(weather, EnvReply { target_mode: 5, ..good }, "[env-provider:weather.answer]");
+        env_refused(
+            weather,
+            EnvReply {
+                transitional_state: f32::NAN,
+                ..good
+            },
+            "[env-provider:weather.answer]",
+        );
+        let gust = EnvRequest {
+            op: sys::EECH_ENV_GUST,
+            ..EnvRequest::default()
+        };
+        env_refused(
+            gust,
+            EnvReply {
+                modulation: f32::INFINITY,
+                ..EnvReply::default()
+            },
+            "[env-provider:gust.answer]",
+        );
+        let export = EnvRequest {
+            op: sys::EECH_ENV_EXPORT,
+            ..EnvRequest::default()
+        };
+        let mut flag = env_valid_state();
+        flag.n[3] = 2;
+        env_refused(
+            export,
+            EnvReply {
+                state: flag,
+                ..EnvReply::default()
+            },
+            "[env-provider:export.state]",
+        );
+        let mut not_finite = env_valid_state();
+        not_finite.f[4] = f32::NAN;
+        env_refused(
+            export,
+            EnvReply {
+                state: not_finite,
+                ..EnvReply::default()
+            },
+            "[env-provider:export.state]",
+        );
+    }
+
+    // ---- the REAL C consumer of the environment wind answer (EEDCS-51, review ENV-CORRECTION-2): ss_hostenv.c campaign_env_wind_at, called directly, with a C host installed ----
+    //
+    // The callback-only tests above cover the Rust boundary; this drives the C function the campaign's own wind consumers (get_session_wind_velocity_at_point) call. It needs no boot, no
+    // map and no asset: campaign_env_wind_at only builds the request, asks the installed host and checks the answer. What it proves: the C consumer does not READ a vector nobody asked for
+    // (a speed with a not-finite vector is accepted when the campaign passed no vector, as at the Rust boundary) and returns a requested vector. The REQUESTED-and-malformed half ends in
+    // debug_fatal, which needs an engine entry to unwind to; that half is witnessed with the real engine by lua/env-wind-authority.lua (mode malformed_wind_vector), not here.
+
+    #[repr(C)]
+    struct CampaignEnvHost {
+        environment: Option<unsafe extern "C" fn(*const sys::eech_env_request, *mut sys::eech_env_reply, *mut c_char, usize, *mut c_void) -> c_int>,
+        user: *mut c_void,
+    }
+
+    extern "C" {
+        fn campaign_env_set_host(host: *const CampaignEnvHost);
+        fn campaign_env_wind_at(x: f32, z: f32, vector: *mut f32) -> f32;
+    }
+
+    static WIND_SEEN_WANT_VECTOR: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(-1);
+    static WIND_REPLY_NAN_VECTOR: AtomicBool = AtomicBool::new(false);
+
+    unsafe extern "C" fn wind_c_host(
+        request: *const sys::eech_env_request,
+        reply: *mut sys::eech_env_reply,
+        _error: *mut c_char,
+        _size: usize,
+        _user: *mut c_void,
+    ) -> c_int {
+        // SAFETY: the C side passes a readable request and a writable reply for the call.
+        let (request, reply) = unsafe { (&*request, &mut *reply) };
+        WIND_SEEN_WANT_VECTOR.store(request.want_vector, std::sync::atomic::Ordering::SeqCst);
+        reply.speed = 3.0;
+        reply.vector = if WIND_REPLY_NAN_VECTOR.load(Ordering::SeqCst) {
+            [f32::NAN, 0.0, f32::INFINITY]
+        } else {
+            [1.0, 0.0, -2.0]
+        };
+        0
+    }
+
+    #[test]
+    fn the_c_wind_consumer_reads_a_requested_vector_and_does_not_read_one_nobody_asked_for() {
+        let host = CampaignEnvHost {
+            environment: Some(wind_c_host),
+            user: std::ptr::null_mut(),
+        };
+        // SAFETY: the host outlives the calls; the C function copies it.
+        unsafe { campaign_env_set_host(&host) };
+        // a requested vector, valid: the speed and the vector arrive, and the request said a vector was wanted
+        WIND_REPLY_NAN_VECTOR.store(false, Ordering::SeqCst);
+        let mut vector = [9.0f32; 3];
+        // SAFETY: `vector` has the three floats the function writes.
+        let speed = unsafe { campaign_env_wind_at(1.5, -2.5, vector.as_mut_ptr()) };
+        assert_eq!((speed, vector), (3.0, [1.0, 0.0, -2.0]));
+        assert_eq!(WIND_SEEN_WANT_VECTOR.load(std::sync::atomic::Ordering::SeqCst), 1);
+        // a vector nobody asked for (no vector passed), valid: the speed arrives and the request said none was wanted
+        // SAFETY: a null vector is the "no vector" form.
+        let speed = unsafe { campaign_env_wind_at(1.5, -2.5, std::ptr::null_mut()) };
+        assert_eq!(speed, 3.0);
+        assert_eq!(WIND_SEEN_WANT_VECTOR.load(std::sync::atomic::Ordering::SeqCst), 0);
+        // a vector nobody asked for, and a host that put not-finite numbers in it: not read, so not refused (the corrected contract; the old C refused it and fatalled)
+        WIND_REPLY_NAN_VECTOR.store(true, Ordering::SeqCst);
+        // SAFETY: as above.
+        let speed = unsafe { campaign_env_wind_at(1.5, -2.5, std::ptr::null_mut()) };
+        assert_eq!(speed, 3.0);
+        assert_eq!(WIND_SEEN_WANT_VECTOR.load(std::sync::atomic::Ordering::SeqCst), 0);
+        WIND_REPLY_NAN_VECTOR.store(false, Ordering::SeqCst);
+    }
+
+    // ---- the sector surface enumeration (EEDCS-51): the SECTOR operation of the terrain callback ----
+
+    /// The flags of a sector answer: one entry for each terrain type, set at the listed type ids.
+    fn sector_flags(set: &[usize]) -> Vec<bool> {
+        (0..sys::EECH_TERRAIN_TYPE_COUNT as usize).map(|id| set.contains(&id)).collect()
+    }
+
+    /// One crossing of the terrain callback for an AMBIENT question, as mb_hostterrain.c builds it: `count` children (the classes given, previous amplifications 0.125, 0.25, ...) at the point
+    /// (10, 20) in winter, the altitude 12.5 and the delta 0.25. The reply starts as a sentinel (a refusal that wrote something shows).
+    fn ambient_crossing(
+        count: c_int,
+        in_cockpit: c_int,
+        classes: &[c_int],
+        provider: impl FnMut(TerrainQuery) -> Result<TerrainAnswer, String> + 'static,
+    ) -> (c_int, sys::eech_terrain_reply, String) {
+        TERRAIN.with(|slot| *slot.borrow_mut() = Some(Box::new(provider)));
+        // SAFETY: the request and reply are plain data; zero is a valid value for every field.
+        let mut request: sys::eech_terrain_request = unsafe { std::mem::zeroed() };
+        request.op = sys::EECH_TERRAIN_AMBIENT;
+        request.winter = 1;
+        request.x = 10.0;
+        request.z = 20.0;
+        request.ambient_in_cockpit = in_cockpit;
+        request.ambient_count = count;
+        request.ambient_alt = 12.5;
+        request.ambient_delta = 0.25;
+        for (index, class) in classes.iter().enumerate() {
+            request.ambient_class[index] = *class;
+            request.ambient_previous[index] = 0.125 * (index as f32 + 1.0);
+        }
+        // SAFETY: as above.
+        let mut reply: sys::eech_terrain_reply = unsafe { std::mem::zeroed() };
+        reply.ambient_amplitude[0] = 9.0;
+        let mut error = [0 as c_char; 256];
+        // SAFETY: the request and reply are valid for the call, and the error buffer is writable for its length.
+        let code = unsafe { terrain_callback(&request, &mut reply, error.as_mut_ptr(), error.len(), std::ptr::null_mut()) };
+        TERRAIN.with(|slot| *slot.borrow_mut() = None);
+        let text: Vec<u8> = error.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect();
+        (code, reply, String::from_utf8_lossy(&text).into_owned())
+    }
+
+    #[test]
+    fn an_ambient_terrain_question_carries_its_observations_by_value_and_a_malformed_question_or_answer_is_refused_before_anything_is_written() {
+        // the question reaches the provider as the campaign built it, and the answer comes back by value, one amplitude per child, in order
+        let (code, reply, error) = ambient_crossing(2, 0, &[0, 5], |query| {
+            assert_eq!(
+                query,
+                TerrainQuery::Ambient {
+                    x: 10.0,
+                    z: 20.0,
+                    winter: true,
+                    in_cockpit: false,
+                    alt: 12.5,
+                    delta: 0.25,
+                    children: vec![
+                        TerrainAmbientChild { class: 0, previous: 0.125 },
+                        TerrainAmbientChild { class: 5, previous: 0.25 }
+                    ],
+                }
+            );
+            Ok(TerrainAnswer::Ambient { amplitudes: vec![0.5, 0.75] })
+        });
+        assert_eq!(code, 0, "{error}");
+        assert_eq!(&reply.ambient_amplitude[..3], &[0.5, 0.75, 0.0]);
+        // the cockpit flag is carried; no child at all is a question with no answers
+        let (code, _, error) = ambient_crossing(0, 1, &[], |query| {
+            assert!(
+                matches!(query, TerrainQuery::Ambient { in_cockpit: true, ref children, .. } if children.is_empty()),
+                "{query:?}"
+            );
+            Ok(TerrainAnswer::Ambient { amplitudes: Vec::new() })
+        });
+        assert_eq!(code, 0, "{error}");
+        // an answer that is not one finite amplitude for each child asked about, or of another kind, is refused with its marker and writes nothing (the sentinel stays)
+        let refused_answer = |answer: TerrainAnswer, marker: &str| {
+            let (code, reply, error) = ambient_crossing(2, 0, &[0, 5], move |_| Ok(answer.clone()));
+            assert_ne!(code, 0, "{marker}: accepted");
+            assert!(error.starts_with(&format!("[terrain-provider:{marker}]")), "{marker}: {error}");
+            assert_eq!(reply.ambient_amplitude[0], 9.0, "{marker}: wrote into the reply");
+        };
+        refused_answer(TerrainAnswer::Ambient { amplitudes: vec![0.5] }, "ambient.answer");
+        refused_answer(
+            TerrainAnswer::Ambient {
+                amplitudes: vec![0.5, 0.75, 1.0],
+            },
+            "ambient.answer",
+        );
+        refused_answer(
+            TerrainAnswer::Ambient {
+                amplitudes: vec![0.5, f32::NAN],
+            },
+            "ambient.answer",
+        );
+        refused_answer(
+            TerrainAnswer::Ambient {
+                amplitudes: vec![f32::INFINITY, 0.5],
+            },
+            "ambient.answer",
+        );
+        refused_answer(TerrainAnswer::Fast { elevation: 2.0 }, "ambient.answer");
+        // a question that is not well formed never reaches the provider: too many children, a class that is not one of the six, a cockpit flag that is neither 0 nor 1
+        let refused_question = |count: c_int, in_cockpit: c_int, classes: &[c_int]| {
+            let reached = std::rc::Rc::new(std::cell::Cell::new(false));
+            let seen = reached.clone();
+            let (code, reply, error) = ambient_crossing(count, in_cockpit, classes, move |_| {
+                seen.set(true);
+                Ok(TerrainAnswer::Ambient { amplitudes: Vec::new() })
+            });
+            assert_ne!(code, 0, "{count}/{in_cockpit}/{classes:?}: accepted");
+            assert!(error.starts_with("[terrain-provider:ambient.request]"), "{error}");
+            assert!(!reached.get(), "the provider was asked a question that is not well formed");
+            assert_eq!(reply.ambient_amplitude[0], 9.0);
+        };
+        refused_question(sys::EECH_TERRAIN_AMBIENT_MAX as c_int + 1, 0, &[]);
+        refused_question(-1, 0, &[]);
+        refused_question(2, 0, &[0, sys::EECH_TERRAIN_AMBIENT_CLASSES]);
+        refused_question(1, 0, &[-1]);
+        refused_question(1, 2, &[0]);
+    }
+
+    #[test]
+    fn an_ambient_terrain_question_of_exactly_the_transport_limit_is_carried_whole_and_in_order() {
+        // the transport bound (EECH_TERRAIN_AMBIENT_MAX children per question) is an implementation detail of ONE crossing, not a limit of the session: a question of exactly that many
+        // children is carried whole, each with its own class and previous amplification, in order, and answered one amplitude each. (Longer lists are the campaign client's to carry in
+        // several questions; one crossing of more than the bound is refused, see the test above.)
+        let count = sys::EECH_TERRAIN_AMBIENT_MAX;
+        let classes: Vec<c_int> = (0..count).map(|index| (index % 6) as c_int).collect();
+        let (code, reply, error) = ambient_crossing(count as c_int, 0, &classes, move |query| {
+            let TerrainQuery::Ambient { children, .. } = query else {
+                return Err("not an ambient question".to_string());
+            };
+            assert_eq!(children.len(), count);
+            for (index, child) in children.iter().enumerate() {
+                assert_eq!(
+                    (child.class, child.previous),
+                    ((index % 6) as i32, 0.125 * (index as f32 + 1.0)),
+                    "child {index}"
+                );
+            }
+            Ok(TerrainAnswer::Ambient {
+                amplitudes: (0..count).map(|index| index as f32).collect(),
+            })
+        });
+        assert_eq!(code, 0, "{error}");
+        assert_eq!(
+            reply.ambient_amplitude.iter().map(|value| *value as usize).collect::<Vec<_>>(),
+            (0..count).collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn the_ambient_sound_answer_of_a_direct_environment_provider_is_four_finite_levels_and_the_wind_levels_stay_within_zero_and_one() {
+        let ask = || EnvRequest {
+            op: sys::EECH_ENV_AMBIENT,
+            ..EnvRequest::default()
+        };
+        let reply = |levels: [f32; 4]| EnvReply {
+            ambient_levels: levels,
+            ..EnvReply::default()
+        };
+        let (code, written, error) = env_crossing(ask(), move |_| Ok(reply([0.25, 1.5, 0.5, 1.0])));
+        assert_eq!((code, written.ambient_levels), (0, [0.25, 1.5, 0.5, 1.0]), "{error}");
+        // a rain level is any finite number (the original clamps nothing there); a wind level is the original's piecewise function of r in [0, 1]
+        for (levels, why) in [
+            ([f32::NAN, 0.0, 0.0, 0.0], "rain light"),
+            ([0.0, f32::INFINITY, 0.0, 0.0], "rain heavy"),
+            ([0.0, 0.0, f32::NAN, 0.0], "wind light"),
+            ([0.0, 0.0, 0.0, -0.5], "wind heavy below 0"),
+            ([0.0, 0.0, 1.5, 0.0], "wind light above 1"),
+        ] {
+            let (code, written, error) = env_crossing(ask(), move |_| Ok(reply(levels)));
+            assert_ne!(code, 0, "{why}: accepted");
+            assert!(error.contains("[env-provider:ambient.answer]"), "{why}: {error}");
+            assert_eq!(written.current_mode, 77, "{why}: a refusal wrote the reply");
+        }
+    }
+
+    #[test]
+    fn the_sound_lifetime_answer_of_a_direct_environment_provider_is_checked_at_the_boundary_before_anything_is_written() {
+        let init = EnvRequest {
+            op: sys::EECH_ENV_SOUND_LIFETIME_INIT,
+            sound_count: 1,
+            ..EnvRequest::default()
+        };
+        let (code, written, error) = env_crossing(init, |_| {
+            Ok(EnvReply {
+                sound_lifetime: 5.0,
+                ..EnvReply::default()
+            })
+        });
+        assert_eq!((code, written.sound_lifetime), (0, 5.0), "{error}");
+        for (what, lifetime) in [
+            ("a negative lifetime", -1.0f32),
+            ("a lifetime not finite", f32::NAN),
+            ("an infinite lifetime", f32::INFINITY),
+        ] {
+            let (code, written, error) = env_crossing(init, move |_| {
+                Ok(EnvReply {
+                    sound_lifetime: lifetime,
+                    ..EnvReply::default()
+                })
+            });
+            assert_ne!(code, 0, "{what}: accepted");
+            assert!(error.contains("[env-provider:sound_lifetime_init.answer]"), "{what}: {error}");
+            assert_eq!(written.current_mode, 77, "{what}: a refusal wrote the reply");
+        }
+        // an update: a completed answer reaches the campaign whole
+        let update = EnvRequest {
+            op: sys::EECH_ENV_SOUND_LIFETIME_UPDATE,
+            sound_server: 1,
+            sound_valid: 1,
+            ..EnvRequest::default()
+        };
+        let done = |edit: fn(&mut EnvReply)| {
+            move |_: &EnvRequest| {
+                let mut reply = EnvReply {
+                    sound_lifetime: 3.0,
+                    sound_valid_lifetime: 0.0,
+                    sound_expired: 1,
+                    sound_action: sys::EECH_SOUND_ACTION_KILL,
+                    ..EnvReply::default()
+                };
+                edit(&mut reply);
+                Ok(reply)
+            }
+        };
+        let (code, written, error) = env_crossing(update, done(|_| {}));
+        assert_eq!(
+            (code, written.sound_lifetime, written.sound_action),
+            (0, 3.0, sys::EECH_SOUND_ACTION_KILL),
+            "{error}"
+        );
+        for (what, edit) in [
+            (
+                "a lifetime not finite",
+                (|reply: &mut EnvReply| reply.sound_lifetime = f32::NAN) as fn(&mut EnvReply),
+            ),
+            ("a valid lifetime not finite", |reply| reply.sound_valid_lifetime = f32::INFINITY),
+            ("an expired flag of 2", |reply| reply.sound_expired = 2),
+            ("an action outside the three", |reply| reply.sound_action = 3),
+            ("a negative action", |reply| reply.sound_action = -1),
+        ] {
+            let (code, written, error) = env_crossing(update, done(edit));
+            assert_ne!(code, 0, "{what}: accepted");
+            assert!(error.contains("[env-provider:sound_lifetime_update.answer]"), "{what}: {error}");
+            assert_eq!(written.current_mode, 77, "{what}: a refusal wrote the reply");
+        }
+        // the question whether the handle is playing: only the server routine of a valid effect that holds a handle, once
+        let asked = EnvReply {
+            sound_need_playing: 1,
+            ..EnvReply::default()
+        };
+        let with_handle = EnvRequest { sound_has_handle: 1, ..update };
+        let (code, _, error) = env_crossing(with_handle, move |_| Ok(asked));
+        assert_eq!(code, 0, "{error}");
+        for (what, request) in [
+            ("an effect with no handle", update),
+            (
+                "a client routine",
+                EnvRequest {
+                    sound_server: 0,
+                    ..with_handle
+                },
+            ),
+            ("an invalid effect", EnvRequest { sound_valid: 0, ..with_handle }),
+            (
+                "a handle already said to be playing",
+                EnvRequest {
+                    sound_have_playing: 1,
+                    ..with_handle
+                },
+            ),
+        ] {
+            let (code, _, error) = env_crossing(request, move |_| Ok(asked));
+            assert_ne!(code, 0, "{what}: accepted");
+            assert!(error.contains("[env-provider:sound_lifetime_update.answer]"), "{what}: {error}");
+        }
+    }
+
+    #[test]
+    fn the_sound_pause_resume_answer_of_a_direct_environment_provider_is_checked_at_the_boundary_before_anything_is_written() {
+        let request = EnvRequest {
+            op: sys::EECH_ENV_SOUND_PAUSE_RESUME,
+            sound_valid: 1,
+            sound_member: 1,
+            sound_delay: 1.5,
+            ..EnvRequest::default()
+        };
+        let done = |edit: fn(&mut EnvReply)| {
+            move |_: &EnvRequest| {
+                let mut reply = EnvReply {
+                    sound_changed: 1,
+                    sound_valid: 0,
+                    sound_valid_lifetime: 1.5,
+                    ..EnvReply::default()
+                };
+                edit(&mut reply);
+                Ok(reply)
+            }
+        };
+        // a completed answer reaches the campaign whole
+        let (code, written, error) = env_crossing(request, done(|_| {}));
+        assert_eq!(
+            (
+                code,
+                written.sound_changed,
+                written.sound_valid,
+                written.sound_valid_lifetime,
+                written.sound_play,
+                written.sound_relink
+            ),
+            (0, 1, 0, 1.5, 0, 0),
+            "{error}"
+        );
+        for (what, edit) in [
+            ("a changed flag of 2", (|reply: &mut EnvReply| reply.sound_changed = 2) as fn(&mut EnvReply)),
+            ("a negative valid flag", |reply| reply.sound_valid = -1),
+            ("a play flag of 2", |reply| reply.sound_play = 2),
+            ("a relink flag of 3", |reply| reply.sound_relink = 3),
+            ("a valid lifetime not finite", |reply| reply.sound_valid_lifetime = f32::NAN),
+            ("an infinite valid lifetime", |reply| reply.sound_valid_lifetime = f32::INFINITY),
+        ] {
+            let (code, written, error) = env_crossing(request, done(edit));
+            assert_ne!(code, 0, "{what}: accepted");
+            assert!(error.contains("[env-provider:sound_pause_resume.answer]"), "{what}: {error}");
+            assert_eq!(written.current_mode, 77, "{what}: a refusal wrote the reply");
+        }
+    }
+
+    #[test]
+    fn the_rotor_sound_answer_of_a_direct_environment_provider_is_checked_against_the_protocol_and_the_role_before_anything_is_written() {
+        let local = EnvRequest {
+            op: sys::EECH_ENV_ROTOR_SOUND,
+            rotor_player: sys::EECH_ROTOR_PLAYER_LOCAL,
+            rotor_have_flight_model: 1,
+            rotor_rpm: 50.0,
+            rotor_acceleration: [3.0, 4.0, 0.0],
+            rotor_left_rpm: 50.0,
+            rotor_right_rpm: 60.0,
+            rotor_apu_rpm: 5.0,
+            ..EnvRequest::default()
+        };
+        let ai = EnvRequest {
+            rotor_player: sys::EECH_ROTOR_PLAYER_AI,
+            rotor_left_rpm: 0.0,
+            rotor_right_rpm: 0.0,
+            rotor_apu_rpm: 0.0,
+            ..local
+        };
+        // a reply the original could give for the role: every channel with its write mask, the requests of the role in its order (the local role with a flight model: turbine 1, turbine 2, APU, looping, slap)
+        let reply_for = |request: &EnvRequest| {
+            let mut reply = EnvReply {
+                rotor_write: [3, 3, 3, 3, 3, 1],
+                rotor_amplification: [0.5, 0.25, 0.75, 1.0, 0.125, 0.75],
+                rotor_pitch: [1.0, 1.0, 1.3, 1.3, 1.0, 0.0],
+                ..EnvReply::default()
+            };
+            let local_engines = request.rotor_player == sys::EECH_ROTOR_PLAYER_LOCAL && request.rotor_have_flight_model != 0;
+            let channels: &[c_int] = if local_engines {
+                &[
+                    sys::EECH_ROTOR_CHANNEL_TURBINE1,
+                    sys::EECH_ROTOR_CHANNEL_TURBINE2,
+                    sys::EECH_ROTOR_CHANNEL_APU,
+                    sys::EECH_ROTOR_CHANNEL_LOOPING,
+                    sys::EECH_ROTOR_CHANNEL_SLAP,
+                ]
+            } else {
+                &[sys::EECH_ROTOR_CHANNEL_LOOPING, sys::EECH_ROTOR_CHANNEL_SLAP]
+            };
+            reply.rotor_action_count = channels.len() as c_int;
+            for (position, channel) in channels.iter().enumerate() {
+                reply.rotor_action_channel[position] = *channel;
+                reply.rotor_action_resume[position] = 1;
+            }
+            reply
+        };
+        let done = |request: EnvRequest, edit: fn(&mut EnvReply)| {
+            move |_: &EnvRequest| {
+                let mut reply = reply_for(&request);
+                edit(&mut reply);
+                Ok(reply)
+            }
+        };
+        // a completed answer reaches the campaign whole, for the local role and for an AI helicopter under a global flight model
+        for request in [local, ai] {
+            let (code, written, error) = env_crossing(request, done(request, |_| {}));
+            assert_eq!(code, 0, "{error}");
+            assert_eq!(written.rotor_amplification, [0.5, 0.25, 0.75, 1.0, 0.125, 0.75]);
+        }
+        type Case = (&'static str, EnvRequest, fn(&mut EnvReply));
+        let cases: &[Case] = &[
+            ("a write mask that is not the protocol's", local, |reply| reply.rotor_write[0] = 1),
+            ("a winding channel that writes a pitch", local, |reply| reply.rotor_write[5] = 3),
+            ("an amplification that is not finite", local, |reply| reply.rotor_amplification[2] = f32::NAN),
+            ("a pitch that is not finite", local, |reply| reply.rotor_pitch[4] = f32::INFINITY),
+            ("a winding pitch word", local, |reply| reply.rotor_pitch[5] = 1.0),
+            ("fewer requests than the role makes", local, |reply| reply.rotor_action_count = 2),
+            ("turbine and APU requests for an AI helicopter", ai, |reply| reply.rotor_action_count = 5),
+            ("a request count beyond the limit", local, |reply| reply.rotor_action_count = 9),
+            ("a negative request count", local, |reply| reply.rotor_action_count = -1),
+            ("requests in another channel order", local, |reply| reply.rotor_action_channel.swap(0, 1)),
+            ("a resume flag of 2", local, |reply| reply.rotor_action_resume[0] = 2),
+            ("a delay that is not finite", local, |reply| reply.rotor_action_delay[1] = f32::NAN),
+            ("a resume with a delay", local, |reply| reply.rotor_action_delay[2] = 0.5),
+            ("looping and slap that disagree", local, |reply| reply.rotor_action_resume[4] = 0),
+        ];
+        for &(what, request, edit) in cases {
+            let (code, written, error) = env_crossing(request, done(request, edit));
+            assert_ne!(code, 0, "{what}: accepted");
+            assert!(error.contains("[env-provider:rotor_sound.answer]"), "{what}: {error}");
+            assert_eq!(written.current_mode, 77, "{what}: a refusal wrote the reply");
+        }
+    }
+
+    #[test]
+    fn the_lightning_queue_answer_of_a_direct_environment_provider_is_checked_at_the_boundary_before_anything_is_written() {
+        let ask = |op: c_int| EnvRequest { op, ..EnvRequest::default() };
+        let queued = |slot: i32| {
+            let mut reply = EnvReply {
+                lightning_slot: slot,
+                ..EnvReply::default()
+            };
+            if slot >= 0 {
+                reply.lightning_queue[slot as usize] = LightningStrike {
+                    in_use: 1,
+                    kind: 1,
+                    x: 1.0,
+                    y: 6000.0,
+                    z: 2.0,
+                    time_started: 3.0,
+                    time_length: 0.3,
+                    current_frame_number: 0,
+                };
+            }
+            reply
+        };
+        // an add answers the slot it filled and the whole queue, which reach the campaign whole
+        let (code, written, error) = env_crossing(ask(sys::EECH_ENV_LIGHTNING_ADD), move |_| Ok(queued(5)));
+        assert_eq!((code, written.lightning_slot, written.lightning_queue[5].in_use), (0, 5, 1), "{error}");
+        // no slot (-1) is a valid answer of an add: a strike dropped for want of a free slot or an environment
+        let (code, written, error) = env_crossing(ask(sys::EECH_ENV_LIGHTNING_ADD), move |_| Ok(queued(-1)));
+        assert_eq!((code, written.lightning_slot), (0, -1), "{error}");
+        // a slot beyond the queue, a flag that is neither 0 nor 1, a number that is not finite and a type outside the enum are refused under the add marker, and nothing is written
+        let broken = |edit: fn(&mut EnvReply)| {
+            move |_: &EnvRequest| {
+                let mut reply = queued(0);
+                edit(&mut reply);
+                Ok(reply)
+            }
+        };
+        for (what, edit) in [
+            (
+                "a slot beyond the queue",
+                (|reply: &mut EnvReply| reply.lightning_slot = 32) as fn(&mut EnvReply),
+            ),
+            ("a slot below -1", |reply| reply.lightning_slot = -2),
+            ("an in_use flag of 2", |reply| reply.lightning_queue[3].in_use = 2),
+            ("a number not finite", |reply| reply.lightning_queue[0].x = f32::NAN),
+            ("a type outside the enum", |reply| reply.lightning_queue[0].kind = 6),
+            ("a request for the frame count by an add", |reply| reply.lightning_need_frames = 1),
+        ] {
+            let (code, written, error) = env_crossing(ask(sys::EECH_ENV_LIGHTNING_ADD), broken(edit));
+            assert_ne!(code, 0, "{what}: accepted");
+            assert!(error.contains("[env-provider:lightning_add.answer]"), "{what}: {error}");
+            assert_eq!(written.current_mode, 77, "{what}: a refusal wrote the reply");
+        }
+        // an update fills no slot, may ask for the frame count once (not when it was given), and answers the whole queue
+        let update = EnvRequest {
+            op: sys::EECH_ENV_LIGHTNING_UPDATE,
+            ..EnvRequest::default()
+        };
+        let (code, _, error) = env_crossing(update, |_| {
+            Ok(EnvReply {
+                lightning_need_frames: 1,
+                lightning_slot: -1,
+                ..EnvReply::default()
+            })
+        });
+        assert_eq!(code, 0, "{error}");
+        let given = EnvRequest {
+            lightning_have_frames: 1,
+            lightning_frames: 8,
+            ..update
+        };
+        let (code, _, error) = env_crossing(given, |_| {
+            Ok(EnvReply {
+                lightning_need_frames: 1,
+                lightning_slot: -1,
+                ..EnvReply::default()
+            })
+        });
+        assert_ne!(code, 0, "a second request for the frame count was accepted");
+        assert!(error.contains("[env-provider:lightning_update.answer]"), "{error}");
+        let (code, _, error) = env_crossing(update, move |_| Ok(queued(2)));
+        assert_ne!(code, 0, "an update that named a slot was accepted");
+        assert!(error.contains("[env-provider:lightning_update.answer]"), "{error}");
+    }
+
+    #[test]
+    fn a_sector_answer_reaches_the_campaign_by_value_and_a_malformed_one_is_refused_before_anything_is_written() {
+        // the request is the position and the season; the answer is the original's return value (1 + the transitions: 7 here, with two surfaces) and the complete scratch
+        let (code, reply, error) = terrain_crossing(sys::EECH_TERRAIN_SECTOR, 1, "", |query| {
+            assert_eq!(
+                query,
+                TerrainQuery::Sector {
+                    x: 10.0,
+                    z: 20.0,
+                    winter: true
+                }
+            );
+            Ok(TerrainAnswer::Sector {
+                returned: 7,
+                flags: sector_flags(&[9, 46]),
+            })
+        });
+        assert_eq!(code, 0, "{error}");
+        assert_eq!(reply.sector_returned, 7, "the return value is carried, not the number of surfaces flagged (2)");
+        for (id, flag) in reply.sector_flags.iter().enumerate() {
+            let expected = if id == 9 || id == 46 { b'1' } else { b'0' };
+            let expected = if id >= sys::EECH_TERRAIN_TYPE_COUNT as usize { 0 } else { expected };
+            assert_eq!(*flag as u8, expected, "flag {id}");
+        }
+        // a provider's answer that is not an enumeration is refused with its marker, and nothing of it reaches the reply (it is still the sentinel the crossing started with)
+        let refused = |answer: TerrainAnswer, marker: &str| {
+            let (code, reply, error) = terrain_crossing(sys::EECH_TERRAIN_SECTOR, 0, "", move |_| Ok(answer.clone()));
+            assert_ne!(code, 0, "{marker}: accepted");
+            assert!(error.starts_with(&format!("[terrain-provider:{marker}]")), "{marker}: {error}");
+            assert_eq!(
+                (reply.sector_returned, reply.sector_x_max, reply.sector_flags[9]),
+                (0, 7, 0),
+                "{marker}: wrote into the reply"
+            );
+        };
+        // the wrong number of flags (61), none set (the first surface is always flagged), a return value below the number flagged, a return value of zero, a flag count of zero
+        refused(
+            TerrainAnswer::Sector {
+                returned: 3,
+                flags: sector_flags(&[9])[..61].to_vec(),
+            },
+            "sector.flags",
+        );
+        refused(
+            TerrainAnswer::Sector {
+                returned: 3,
+                flags: Vec::new(),
+            },
+            "sector.flags",
+        );
+        refused(
+            TerrainAnswer::Sector {
+                returned: 3,
+                flags: sector_flags(&[]),
+            },
+            "sector.returned",
+        );
+        refused(
+            TerrainAnswer::Sector {
+                returned: 1,
+                flags: sector_flags(&[9, 46]),
+            },
+            "sector.returned",
+        );
+        refused(
+            TerrainAnswer::Sector {
+                returned: 0,
+                flags: sector_flags(&[9]),
+            },
+            "sector.returned",
+        );
+        // an answer of another kind to a sector question is the wrong answer, and the other operations' answers are refused the same way
+        refused(TerrainAnswer::Fast { elevation: 2.0 }, "sector.answer");
+        refused(TerrainAnswer::Map(terrain_facts()), "sector.answer");
+        // the other way round: a sector answer to a point question
+        let (code, _, error) = terrain_crossing(sys::EECH_TERRAIN_POINT, 0, "", |_| {
+            Ok(TerrainAnswer::Sector {
+                returned: 1,
+                flags: sector_flags(&[9]),
+            })
+        });
+        assert_ne!(code, 0);
+        assert!(
+            error.starts_with("[terrain-provider:point.answer]") && error.contains("a sector answer"),
+            "{error}"
+        );
+        // a withheld answer and a missing provider keep their markers
+        let (code, _, error) = terrain_crossing(sys::EECH_TERRAIN_SECTOR, 0, "", |_| Err("[terrain-provider:sector.callback] withheld".into()));
+        assert_ne!(code, 0);
+        assert_eq!(error, "[terrain-provider:sector.callback] withheld");
+    }
+
+    #[cfg(feature = "env-fixture")]
+    #[test]
+    fn the_sound_initialisation_report_buffer_is_the_size_the_collector_proves_it_needs_and_only_that_case_has_it() {
+        // csrc/eech_env_observer.c derives the worst case (a sample row of at most 128 characters for each of the NUM_SOUND_SAMPLE_INDICES keys, plus at most 16 KiB of fixed rows) and checks it against
+        // ENVA_REPORT_CAPACITY at compile time; the Rust buffer of that one case must be that number
+        let source = include_str!("../../eech-engine-sys/csrc/eech_env_observer.c");
+        let declared = source
+            .lines()
+            .find(|line| line.starts_with("#define ENVA_REPORT_CAPACITY "))
+            .map(|line| line.trim_start_matches("#define ENVA_REPORT_CAPACITY ").trim().parse::<usize>().unwrap_or(0))
+            .unwrap_or(0);
+        assert_eq!(declared, ENV_SND_INIT_REPORT_CAPACITY);
+        // a witness for the 2122 catalogue slots the first complete measured report declared (the collector's own compile-time check against its NUM_SOUND_SAMPLE_INDICES is the authoritative proof; 2069 is the NAMED count, not the slot count)
+        const _: () = assert!(2122 * 128 + 16 * 1024 <= ENV_SND_INIT_REPORT_CAPACITY);
+        // every other case keeps the small buffer
+        assert_eq!(ENV_REPORT_CAPACITY, 32 * 1024);
+    }
+
+    // ---- the host-owned physical sample metadata (EEDCS-51, D3): the SOUND CATALOGUE callback, at its Rust boundary and through the REAL C consumer ----
+
+    /// The request of a catalogue question as the C side builds it: arrays the host reads (slots and NUL-terminated names) and the reply arrays the host writes, which start as a recognisable sentinel so that a refusal
+    /// that wrote something shows.
+    struct CatalogueCall {
+        slots: Vec<c_int>,
+        names: Vec<std::ffi::CString>,
+        rate: Vec<c_int>,
+        original_rate: Vec<c_int>,
+        matched: Vec<c_int>,
+        size: Vec<c_int>,
+    }
+
+    impl CatalogueCall {
+        fn new(descriptors: &[(c_int, &str)]) -> Self {
+            let count = descriptors.len();
+            CatalogueCall {
+                slots: descriptors.iter().map(|(slot, _)| *slot).collect(),
+                names: descriptors.iter().filter_map(|(_, name)| std::ffi::CString::new(*name).ok()).collect(),
+                rate: vec![-7; count],
+                original_rate: vec![-7; count],
+                matched: vec![-7; count],
+                size: vec![-7; count],
+            }
+        }
+
+        /// One crossing of the callback with this thread's provider (`None`: no provider installed); the reply header starts as the sentinel 99, and the error text comes back.
+        fn cross(&mut self, domain: c_int, provider: Option<SoundCatalogueProvider>) -> (c_int, c_int, c_int, String) {
+            SOUND_CATALOGUE.with(|slot| *slot.borrow_mut() = provider);
+            let pointers: Vec<*const c_char> = self.names.iter().map(|name| name.as_ptr()).collect();
+            let request = sys::eech_sound_catalogue_request {
+                slots: domain,
+                count: self.slots.len() as c_int,
+                index: self.slots.as_ptr(),
+                name: pointers.as_ptr(),
+            };
+            let mut reply = sys::eech_sound_catalogue_reply {
+                header_present: 99,
+                header_count: 99,
+                rate: self.rate.as_mut_ptr(),
+                original_rate: self.original_rate.as_mut_ptr(),
+                matched: self.matched.as_mut_ptr(),
+                size: self.size.as_mut_ptr(),
+            };
+            let mut error = [0 as c_char; 512];
+            // SAFETY: the request and reply (and the arrays they point at) are valid for the call, and the error buffer is writable for its length.
+            let code = unsafe { sound_catalogue_callback(&request, &mut reply, error.as_mut_ptr(), error.len(), std::ptr::null_mut()) };
+            SOUND_CATALOGUE.with(|slot| *slot.borrow_mut() = None);
+            let text: Vec<u8> = error.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect();
+            (code, reply.header_present, reply.header_count, String::from_utf8_lossy(&text).into_owned())
+        }
+
+        fn untouched(&self) -> bool {
+            [&self.rate, &self.original_rate, &self.matched, &self.size]
+                .iter()
+                .all(|array| array.iter().all(|value| *value == -7))
+        }
+    }
+
+    fn catalogue_answer(entries: &[(i32, i32, bool, i32)]) -> SoundCatalogueReply {
+        SoundCatalogueReply {
+            header_present: true,
+            header_count: 7,
+            entries: entries
+                .iter()
+                .map(|(rate, original_rate, matched, size)| SoundCatalogueEntry {
+                    rate: *rate,
+                    original_rate: *original_rate,
+                    matched: *matched,
+                    size: *size,
+                })
+                .collect(),
+        }
+    }
+
+    #[test]
+    fn a_catalogue_question_reaches_the_provider_by_value_and_a_valid_answer_reaches_the_arrays_exactly() {
+        let mut call = CatalogueCall::new(&[(94, "lstrike.pcm"), (2087, "ch46e_windup_ext.pcm"), (93, "thunder.pcm")]);
+        let (code, present, count, error) = call.cross(
+            2122,
+            Some(Box::new(|request: &SoundCatalogueRequest| {
+                assert_eq!(request.slots, 2122);
+                assert_eq!(
+                    request.descriptors,
+                    vec![
+                        (94, "lstrike.pcm".to_string()),
+                        (2087, "ch46e_windup_ext.pcm".to_string()),
+                        (93, "thunder.pcm".to_string())
+                    ]
+                );
+                Ok(catalogue_answer(&[(22050, 22050, true, 96), (22050, 11025, true, 40), (44100, 44100, true, 0)]))
+            })),
+        );
+        assert_eq!(code, 0, "{error}");
+        assert_eq!((present, count), (1, 7));
+        assert_eq!(call.rate, [22050, 22050, 44100]);
+        assert_eq!(call.original_rate, [22050, 11025, 44100]);
+        assert_eq!(call.matched, [1, 1, 1]);
+        assert_eq!(call.size, [96, 40, 0], "a matched length of 0 is a size and stays 0 beside a matched flag of 1");
+    }
+
+    #[test]
+    fn an_absent_pair_and_an_empty_question_are_valid_answers() {
+        let mut call = CatalogueCall::new(&[(94, "lstrike.pcm"), (93, "thunder.pcm")]);
+        let (code, present, count, error) = call.cross(
+            2122,
+            Some(Box::new(|_: &SoundCatalogueRequest| {
+                Ok(SoundCatalogueReply {
+                    header_present: false,
+                    header_count: 0,
+                    entries: vec![
+                        SoundCatalogueEntry {
+                            rate: 22050,
+                            original_rate: 22050,
+                            matched: false,
+                            size: 0,
+                        };
+                        2
+                    ],
+                })
+            })),
+        );
+        assert_eq!((code, present, count), (0, 0, 0), "{error}");
+        assert_eq!((call.matched.as_slice(), call.size.as_slice()), (&[0, 0][..], &[0, 0][..]));
+        let mut empty = CatalogueCall::new(&[]);
+        let (code, present, _, error) = empty.cross(
+            2122,
+            Some(Box::new(|request: &SoundCatalogueRequest| {
+                assert!(request.descriptors.is_empty());
+                Ok(SoundCatalogueReply {
+                    header_present: true,
+                    header_count: 3,
+                    entries: vec![],
+                })
+            })),
+        );
+        assert_eq!((code, present), (0, 1), "{error}");
+    }
+
+    #[test]
+    fn a_malformed_catalogue_answer_is_refused_by_name_before_anything_is_written() {
+        let good = (22050, 22050, true, 10);
+        let cases: Vec<(&str, SoundCatalogueReply)> = vec![
+            ("too few entries", catalogue_answer(&[good])),
+            ("too many entries", catalogue_answer(&[good, good, good])),
+            ("a rate of zero", catalogue_answer(&[good, (0, 22050, false, 0)])),
+            ("a negative original rate", catalogue_answer(&[good, (22050, -1, false, 0)])),
+            ("a negative length", catalogue_answer(&[good, (22050, 22050, true, -1)])),
+            ("a length on an unmatched entry", catalogue_answer(&[good, (22050, 22050, false, 5)])),
+            (
+                "a negative header count",
+                SoundCatalogueReply {
+                    header_count: -1,
+                    ..catalogue_answer(&[good, good])
+                },
+            ),
+            (
+                "entries in a header that is not there",
+                SoundCatalogueReply {
+                    header_present: false,
+                    header_count: 3,
+                    ..catalogue_answer(&[good, good])
+                },
+            ),
+            (
+                "a match in a header that is not there",
+                SoundCatalogueReply {
+                    header_present: false,
+                    header_count: 0,
+                    ..catalogue_answer(&[good, good])
+                },
+            ),
+        ];
+        for (label, reply) in cases {
+            let mut call = CatalogueCall::new(&[(94, "lstrike.pcm"), (93, "thunder.pcm")]);
+            let (code, present, count, error) = call.cross(2122, Some(Box::new(move |_: &SoundCatalogueRequest| Ok(reply.clone()))));
+            assert_ne!(code, 0, "{label}");
+            assert!(error.starts_with("[sound-data-provider:answer]"), "{label}: {error}");
+            assert!(
+                call.untouched() && (present, count) == (99, 99),
+                "{label}: the arrays or the header were written"
+            );
+        }
+    }
+
+    #[test]
+    fn a_withheld_or_missing_or_panicking_catalogue_provider_is_refused_by_name_and_writes_nothing() {
+        let mut call = CatalogueCall::new(&[(94, "lstrike.pcm")]);
+        let (code, _, _, error) = call.cross(
+            2122,
+            Some(Box::new(|_: &SoundCatalogueRequest| {
+                Err("[sound-data-provider:header] withheld by the host".to_string())
+            })),
+        );
+        assert_ne!(code, 0);
+        assert_eq!(error, "[sound-data-provider:header] withheld by the host");
+        assert!(call.untouched());
+        let (code, _, _, error) = call.cross(2122, None);
+        assert_ne!(code, 0);
+        assert!(error.starts_with("[sound-data-provider:missing]"), "{error}");
+        let (code, _, _, error) = call.cross(
+            2122,
+            Some(Box::new(|_: &SoundCatalogueRequest| -> Result<SoundCatalogueReply, String> {
+                std::panic::resume_unwind(Box::new("the provider panicked"))
+            })),
+        );
+        assert_ne!(code, 0);
+        assert!(error.starts_with("[sound-data-provider:callback]"), "{error}");
+        assert!(call.untouched());
+        // a domain that is not a size is the campaign's error, named
+        let (code, _, _, error) = call.cross(0, Some(Box::new(|_: &SoundCatalogueRequest| Ok(catalogue_answer(&[])))));
+        assert_ne!(code, 0);
+        assert!(error.starts_with("[sound-data-provider:request]"), "{error}");
+    }
+
+    // The REAL C consumer: snd_data.c initialise_application_sound_effects, called directly with a C host installed. It needs no boot, no map and no asset. What it proves: the campaign names every
+    // descriptor of its table to the host and takes the RATES, ORIGINAL RATES and SIZES from the host's answer alone (the host here answers numbers that are in no table), keeps its own names, and
+    // leaves the slots its table does not name as the zero its fill leaves. The refusal half ends in debug_fatal, which needs an engine entry to unwind to; the Rust boundary above and the host's own
+    // tests witness the refusals, and the real engine witnesses them end to end.
+
+    #[repr(C)]
+    struct CampaignSoundCatalogueHost {
+        catalogue: Option<
+            unsafe extern "C" fn(*const sys::eech_sound_catalogue_request, *mut sys::eech_sound_catalogue_reply, *mut c_char, usize, *mut c_void) -> c_int,
+        >,
+        user: *mut c_void,
+    }
+
+    /// The C `sound_effect_information` (aphavoc/source/appsound/snd_data.h).
+    #[repr(C)]
+    #[derive(Clone, Copy)]
+    struct SoundEffectInformation {
+        name: *const c_char,
+        original_rate: c_int,
+        rate: c_int,
+        size: c_int,
+        maximum_volume: c_int,
+        minimum_sound_range: f32,
+        reference_sound_range: f32,
+        maximum_sound_range: f32,
+    }
+
+    /// The enumeration's count the engine was built with, as the test sees it: the array below and the domain the campaign sends must be the same number.
+    const WITNESS_SLOTS: usize = 2122;
+
+    extern "C" {
+        fn campaign_sound_catalogue_set_host(host: *const CampaignSoundCatalogueHost);
+        fn initialise_application_sound_effects();
+        static application_sound_effects: [SoundEffectInformation; WITNESS_SLOTS];
+    }
+
+    static CATALOGUE_CALLS: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(0);
+    static CATALOGUE_SEEN_SLOTS: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(-1);
+    static CATALOGUE_SEEN_COUNT: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(-1);
+    static CATALOGUE_SEEN_VALID: AtomicBool = AtomicBool::new(false);
+
+    /// The rate the C host answers for a slot (a number in no descriptor table), the original rate, and whether and how long its header entry is.
+    fn witness_answer(slot: c_int) -> (c_int, c_int, c_int, c_int) {
+        let matched = c_int::from(slot % 3 == 0);
+        (12_000 + slot % 7, 13_000 + slot % 5, matched, if matched == 1 { slot % 11 } else { 0 })
+    }
+
+    /// The C sound database and the installed host are process-global: the tests that drive them take turns.
+    static C_CATALOGUE_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+    /// What the C host does: 0 answers coherently; 1 answers coherently after recording whether the LIVE catalogue was still the previous one at the moment it was asked; the others answer a refusal's case.
+    static CATALOGUE_MODE: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(0);
+    static CATALOGUE_LIVE_AT_CALLBACK: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+    /// A fingerprint of the live sound database: every slot's name pointer presence, rate, original rate, size and volume.
+    fn live_catalogue_fingerprint() -> u64 {
+        // SAFETY: the array is the engine's own sound database.
+        let effects = unsafe { &*std::ptr::addr_of!(application_sound_effects) };
+        let mut digest = 0xcbf2_9ce4_8422_2325u64;
+        for effect in effects.iter() {
+            for word in [
+                u64::from(!effect.name.is_null()),
+                effect.rate as u64,
+                effect.original_rate as u64,
+                effect.size as u64,
+                effect.maximum_volume as u64,
+            ] {
+                digest = (digest ^ word).wrapping_mul(0x0000_0100_0000_01b3);
+            }
+        }
+        digest
+    }
+
+    unsafe extern "C" fn witness_catalogue_host(
+        request: *const sys::eech_sound_catalogue_request,
+        reply: *mut sys::eech_sound_catalogue_reply,
+        error: *mut c_char,
+        error_size: usize,
+        _user: *mut c_void,
+    ) -> c_int {
+        let mode = CATALOGUE_MODE.load(Ordering::SeqCst);
+        CATALOGUE_LIVE_AT_CALLBACK.store(live_catalogue_fingerprint(), Ordering::SeqCst);
+        // SAFETY: the C side passes a readable request and a writable reply (and `count` entries in each array) for the call.
+        unsafe {
+            let (request, reply) = (&*request, &mut *reply);
+            CATALOGUE_CALLS.fetch_add(1, Ordering::SeqCst);
+            CATALOGUE_SEEN_SLOTS.store(request.slots, Ordering::SeqCst);
+            CATALOGUE_SEEN_COUNT.store(request.count, Ordering::SeqCst);
+            if mode == 6 {
+                write_callback_text(error, error_size, "[sound-data-provider:header] withheld by the C host");
+                return 1;
+            }
+            if mode == 7 {
+                // writes nothing: every entry stays the sentinel the campaign gave it
+                reply.header_present = 1;
+                reply.header_count = 1;
+                return 0;
+            }
+            let mut seen = std::collections::BTreeSet::new();
+            let mut valid = request.count > 0;
+            let mut matches = 0;
+            for position in 0..request.count as usize {
+                let slot = *request.index.add(position);
+                valid &=
+                    (0..request.slots).contains(&slot) && seen.insert(slot) && !(*request.name.add(position)).is_null() && *(*request.name.add(position)) != 0;
+                let (rate, original_rate, matched, size) = witness_answer(slot);
+                *reply.rate.add(position) = rate;
+                *reply.original_rate.add(position) = original_rate;
+                *reply.matched.add(position) = matched;
+                *reply.size.add(position) = size;
+                matches += matched;
+            }
+            CATALOGUE_SEEN_VALID.store(valid, Ordering::SeqCst);
+            // the header holds exactly as many entries as there are distinct matched descriptors (the table names each slot once), so the answer is coherent
+            reply.header_present = 1;
+            reply.header_count = matches;
+            match mode {
+                2 => *reply.rate = 0,
+                3 => {
+                    reply.header_present = 0;
+                    reply.header_count = 0;
+                }
+                4 => {
+                    reply.header_present = 0;
+                    reply.header_count = 3;
+                }
+                5 => reply.header_count = matches - 1,
+                8 => reply.header_count = 0,
+                _ => {}
+            }
+        }
+        0
+    }
+
+    fn install_catalogue_host() {
+        let host = CampaignSoundCatalogueHost {
+            catalogue: Some(witness_catalogue_host),
+            user: std::ptr::null_mut(),
+        };
+        // SAFETY: the C function copies the host before it returns.
+        unsafe { campaign_sound_catalogue_set_host(&host) };
+    }
+
+    #[test]
+    fn the_c_sound_initialisation_takes_every_rate_and_size_from_the_hosts_answer_and_keeps_its_own_names() {
+        let _serial = C_CATALOGUE_LOCK.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+        CATALOGUE_CALLS.store(0, Ordering::SeqCst);
+        CATALOGUE_MODE.store(0, Ordering::SeqCst);
+        install_catalogue_host();
+        // SAFETY: no argument; it fills the sound database from the installed host's answer.
+        unsafe { initialise_application_sound_effects() };
+        assert_eq!(CATALOGUE_CALLS.load(Ordering::SeqCst), 1, "the campaign asks the host once");
+        assert_eq!(
+            CATALOGUE_SEEN_SLOTS.load(Ordering::SeqCst),
+            WITNESS_SLOTS as c_int,
+            "the domain is the enumeration's count, not the named count"
+        );
+        let named = CATALOGUE_SEEN_COUNT.load(Ordering::SeqCst);
+        assert!(named > 0 && (named as usize) <= WITNESS_SLOTS);
+        assert!(
+            CATALOGUE_SEEN_VALID.load(Ordering::SeqCst),
+            "every request slot is in the domain, once, with a name"
+        );
+        // SAFETY: the array is the engine's own sound database, filled by the call above.
+        let effects = unsafe { &*std::ptr::addr_of!(application_sound_effects) };
+        let mut named_slots = 0;
+        for (slot, effect) in effects.iter().enumerate() {
+            if effect.name.is_null() {
+                // a slot the table does not name keeps the zero the fill leaves
+                assert_eq!((effect.rate, effect.original_rate, effect.size), (0, 0, 0), "slot {slot}");
+            } else {
+                named_slots += 1;
+                let (rate, original_rate, _, size) = witness_answer(slot as c_int);
+                assert_eq!(
+                    (effect.rate, effect.original_rate, effect.size),
+                    (rate, original_rate, size),
+                    "slot {slot}: not the host's answer"
+                );
+            }
+        }
+        assert_eq!(named_slots, named, "every descriptor the campaign named is filled, and no other slot");
+    }
+
+    #[test]
+    fn the_live_catalogue_is_still_the_previous_one_when_the_host_is_asked() {
+        let _serial = C_CATALOGUE_LOCK.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+        // a first initialisation fills the live catalogue; the second asks the host again, and at the moment it is asked nothing of the live catalogue (not its names, rates, sizes or volumes) has been cleared or rebuilt
+        CATALOGUE_MODE.store(0, Ordering::SeqCst);
+        install_catalogue_host();
+        // SAFETY: no argument.
+        unsafe { initialise_application_sound_effects() };
+        let first = live_catalogue_fingerprint();
+        CATALOGUE_MODE.store(1, Ordering::SeqCst);
+        // SAFETY: no argument.
+        unsafe { initialise_application_sound_effects() };
+        assert_eq!(
+            CATALOGUE_LIVE_AT_CALLBACK.load(Ordering::SeqCst),
+            first,
+            "the campaign wrote the live catalogue before the host answered"
+        );
+        assert_eq!(live_catalogue_fingerprint(), first, "the same coherent answer rebuilds the same catalogue");
+        CATALOGUE_MODE.store(0, Ordering::SeqCst);
+    }
+
+    // The refusals end in debug_fatal, and outside an engine entry that aborts the process (there is no jump target). So each refusal runs in a CHILD process: the test binary re-runs this test with the case in
+    // the environment, the child fills the live catalogue, installs a host that answers wrongly, initialises again and is stopped by the campaign's refusal (the abort). The parent requires the abnormal stop, the
+    // provider's marker in what the child said, and a fingerprint of the live catalogue printed by the child's abort handler that equals the one it printed before the call: a refused answer left the previous
+    // catalogue exactly as it was. (Unix only: the handler uses the C library's `signal`; the Windows build runs the Rust-boundary and C-consumer tests above.)
+
+    #[cfg(unix)]
+    mod refusal {
+        use super::*;
+        use std::os::unix::process::ExitStatusExt;
+
+        extern "C" {
+            fn signal(signum: c_int, handler: extern "C" fn(c_int)) -> usize;
+            fn write(fd: c_int, buffer: *const c_void, count: usize) -> isize;
+            fn _exit(code: c_int) -> !;
+        }
+
+        const SIGABRT: c_int = 6;
+
+        extern "C" fn on_abort(_signal: c_int) {
+            // the process is stopping: report the live catalogue's fingerprint once, with no allocation
+            let mut digits = [b'0'; 20];
+            let mut value = live_catalogue_fingerprint();
+            let mut at = digits.len();
+            while value > 0 {
+                at -= 1;
+                digits[at] = b'0' + (value % 10) as u8;
+                value /= 10;
+            }
+            let prefix = b"\nLIVE_AFTER=";
+            // SAFETY: writes buffers that live for the call to standard output, then ends the process.
+            unsafe {
+                write(1, prefix.as_ptr().cast(), prefix.len());
+                write(1, digits.as_ptr().cast(), digits.len());
+                write(1, b"\n".as_ptr().cast(), 1);
+                _exit(86);
+            }
+        }
+
+        const CASES: [(c_int, &str); 7] = [
+            (2, "[sound-data-provider:answer]"),
+            (3, "[sound-data-provider:answer]"),
+            (4, "[sound-data-provider:answer]"),
+            (5, "[sound-data-provider:answer]"),
+            (6, "[sound-data-provider:header]"),
+            (7, "[sound-data-provider:answer]"),
+            (8, "[sound-data-provider:answer]"),
+        ];
+
+        fn child(case: c_int) {
+            CATALOGUE_MODE.store(0, Ordering::SeqCst);
+            install_catalogue_host();
+            // SAFETY: no argument; the live catalogue is filled by a coherent answer first.
+            unsafe { initialise_application_sound_effects() };
+            println!("LIVE_BEFORE={}", live_catalogue_fingerprint());
+            CATALOGUE_MODE.store(case, Ordering::SeqCst);
+            // SAFETY: the handler is an `extern "C"` function that lives for the process.
+            unsafe { signal(SIGABRT, on_abort) };
+            // SAFETY: no argument. The refused answer stops the campaign: the process aborts and the handler reports.
+            unsafe { initialise_application_sound_effects() };
+            println!("NOT_REFUSED");
+        }
+
+        #[test]
+        fn a_refused_catalogue_answer_stops_the_campaign_at_the_providers_marker_and_leaves_the_previous_catalogue_untouched() {
+            if let Ok(case) = std::env::var("EECH_SOUND_CATALOGUE_REFUSAL_CASE") {
+                child(case.parse().unwrap_or(0));
+                return;
+            }
+            let exe = std::env::current_exe().map_err(|e| e.to_string());
+            let Ok(exe) = exe else { panic!("no test executable to re-run") };
+            for (case, marker) in CASES {
+                let output = std::process::Command::new(&exe)
+                    .args([
+                        "--exact",
+                        "tests::refusal::a_refused_catalogue_answer_stops_the_campaign_at_the_providers_marker_and_leaves_the_previous_catalogue_untouched",
+                        "--nocapture",
+                        "--test-threads=1",
+                    ])
+                    .env("EECH_SOUND_CATALOGUE_REFUSAL_CASE", case.to_string())
+                    .output();
+                let Ok(output) = output else { panic!("case {case}: the child did not run") };
+                let said = format!("{}{}", String::from_utf8_lossy(&output.stdout), String::from_utf8_lossy(&output.stderr));
+                assert!(!said.contains("NOT_REFUSED"), "case {case}: the campaign accepted a refused answer:\n{said}");
+                assert!(
+                    output.status.code() == Some(86) || output.status.signal() == Some(SIGABRT),
+                    "case {case}: the child did not stop at the refusal:\n{said}"
+                );
+                assert!(
+                    said.contains("host sound data:") && said.contains(marker),
+                    "case {case}: no `{marker}` refusal in:\n{said}"
+                );
+                let number = |label: &str| -> Option<u64> {
+                    let rest = said.split(label).nth(1)?;
+                    rest.split_whitespace().next()?.parse().ok()
+                };
+                let before = number("LIVE_BEFORE=");
+                // the handler pads the decimal with leading zeros to 20 digits
+                let after = number("LIVE_AFTER=");
+                assert!(
+                    before.is_some() && before == after,
+                    "case {case}: the live catalogue changed across the refusal ({before:?} then {after:?}):\n{said}"
+                );
+            }
+        }
+    }
+
+    // ---- review ENV-SOUND-METADATA-3: a whole answer must be COHERENT, not only well formed ----
+    //
+    // Appended inside the `tests` module of eech-engine/src/lib.rs (it uses the `CatalogueCall` and `catalogue_answer` helpers of the catalogue tests). On the frozen 0455 overlay the first two answers below
+    // are ACCEPTED (it checks counts and signs only): that is the behaviour these tests are red for. The last test is the other direction: a coherent answer must stay accepted.
+
+    #[test]
+    fn a_match_needs_a_header_that_holds_entries_and_the_distinct_matches_cannot_outnumber_them() {
+        let good = (22050, 22050, true, 96);
+        type Case<'a> = (&'a str, Vec<(c_int, &'a str)>, SoundCatalogueReply);
+        let cases: Vec<Case<'_>> = vec![
+            (
+                "a match in a header that is present and holds no entry",
+                vec![(94, "lstrike.pcm")],
+                SoundCatalogueReply {
+                    header_count: 0,
+                    ..catalogue_answer(&[good])
+                },
+            ),
+            (
+                "two distinct matched descriptors in a header of one entry",
+                vec![(94, "lstrike.pcm"), (93, "thunder.pcm")],
+                SoundCatalogueReply {
+                    header_count: 1,
+                    ..catalogue_answer(&[good, (22050, 22050, true, 0)])
+                },
+            ),
+            (
+                "the same name under two slots is two distinct matches",
+                vec![(94, "lstrike.pcm"), (95, "lstrike.pcm")],
+                SoundCatalogueReply {
+                    header_count: 1,
+                    ..catalogue_answer(&[good, good])
+                },
+            ),
+        ];
+        for (label, descriptors, reply) in cases {
+            let mut call = CatalogueCall::new(&descriptors);
+            let (code, present, count, error) = call.cross(2122, Some(Box::new(move |_: &SoundCatalogueRequest| Ok(reply.clone()))));
+            assert_ne!(code, 0, "{label}");
+            assert!(error.starts_with("[sound-data-provider:answer]"), "{label}: {error}");
+            assert!(
+                call.untouched() && (present, count) == (99, 99),
+                "{label}: the arrays or the header were written"
+            );
+        }
+    }
+
+    #[test]
+    fn a_coherent_answer_stays_accepted_a_present_empty_header_a_zero_length_match_and_repeated_identical_questions() {
+        // a header that is present and holds no entry, with nothing matched
+        let mut call = CatalogueCall::new(&[(94, "lstrike.pcm")]);
+        let (code, present, count, error) = call.cross(
+            2122,
+            Some(Box::new(|_: &SoundCatalogueRequest| {
+                Ok(SoundCatalogueReply {
+                    header_count: 0,
+                    ..catalogue_answer(&[(22050, 22050, false, 0)])
+                })
+            })),
+        );
+        assert_eq!((code, present, count), (0, 1, 0), "{error}");
+        // the same question twice, both matched by the header's ONE entry (a repeated identical query is one distinct match), one of them a zero length
+        let mut twice = CatalogueCall::new(&[(94, "lstrike.pcm"), (94, "lstrike.pcm")]);
+        let (code, present, count, error) = twice.cross(
+            2122,
+            Some(Box::new(|_: &SoundCatalogueRequest| {
+                Ok(SoundCatalogueReply {
+                    header_count: 1,
+                    ..catalogue_answer(&[(22050, 22050, true, 0), (22050, 22050, true, 0)])
+                })
+            })),
+        );
+        assert_eq!((code, present, count), (0, 1, 1), "{error}");
+        assert_eq!((twice.matched.as_slice(), twice.size.as_slice()), (&[1, 1][..], &[0, 0][..]));
+    }
+
+    // ---- EEDCS-51 D3: the host-owned sound backend availability (ss_hostenv.h campaign_sound_backend_request) ----
+
+    /// One crossing of the backend callback with this thread's provider (`None`: none installed); the reply starts as the sentinel 99 and the error text comes back.
+    fn backend_cross(provider: Option<SoundBackendProvider>, phase: c_int, no_sound: c_int, dedicated: c_int, load_samples: c_int) -> (c_int, c_int, String) {
+        SOUND_BACKEND.with(|slot| *slot.borrow_mut() = provider);
+        let request = sys::eech_sound_backend_request {
+            phase,
+            no_sound,
+            dedicated,
+            load_samples,
+        };
+        let mut reply = sys::eech_sound_backend_reply { available: 99 };
+        let mut error = [0 as c_char; 512];
+        // SAFETY: the request and reply are valid for the call, and the error buffer is writable for its length.
+        let code = unsafe { sound_backend_callback(&request, &mut reply, error.as_mut_ptr(), error.len(), std::ptr::null_mut()) };
+        SOUND_BACKEND.with(|slot| *slot.borrow_mut() = None);
+        let text: Vec<u8> = error.iter().map(|byte| *byte as u8).take_while(|byte| *byte != 0).collect();
+        (code, reply.available, String::from_utf8_lossy(&text).into_owned())
+    }
+
+    #[test]
+    fn the_backend_callback_carries_the_phase_flags_and_intent_to_the_provider_and_the_answer_back() {
+        for available in [false, true] {
+            let seen = std::rc::Rc::new(std::cell::RefCell::new(Vec::new()));
+            let record = seen.clone();
+            let provider: SoundBackendProvider = Box::new(move |request: &SoundBackendRequest| {
+                record.borrow_mut().push(*request);
+                Ok(SoundBackendReply { available })
+            });
+            let (code, written, error) = backend_cross(Some(provider), 1, 0, 0, 1);
+            // the bridge carries the host's answer as it was given; the C side refuses `true` by name
+            assert_eq!((code, written), (0, c_int::from(available)), "{error}");
+            assert_eq!(
+                *seen.borrow(),
+                [SoundBackendRequest {
+                    phase: SOUND_BACKEND_PHASE_INITIALISE,
+                    no_sound: false,
+                    dedicated: false,
+                    load_samples: true
+                }]
+            );
+        }
+        // the flags are carried as they stand
+        let seen = std::rc::Rc::new(std::cell::RefCell::new(Vec::new()));
+        let record = seen.clone();
+        let provider: SoundBackendProvider = Box::new(move |request: &SoundBackendRequest| {
+            record.borrow_mut().push(*request);
+            Ok(SoundBackendReply { available: false })
+        });
+        assert_eq!(backend_cross(Some(provider), 1, 1, 1, 0).0, 0);
+        assert_eq!(
+            (seen.borrow()[0].no_sound, seen.borrow()[0].dedicated, seen.borrow()[0].load_samples),
+            (true, true, false)
+        );
+    }
+
+    #[test]
+    fn a_missing_refusing_or_panicking_backend_provider_is_a_named_boundary_and_writes_no_answer() {
+        let (code, written, error) = backend_cross(None, 1, 0, 0, 1);
+        assert_eq!((code, written), (1, 99));
+        assert!(error.starts_with("[sound-backend-provider:missing]"), "{error}");
+        let refusing: SoundBackendProvider = Box::new(|_: &SoundBackendRequest| Err("[sound-backend-provider:callback] the host refused".to_string()));
+        let (code, written, error) = backend_cross(Some(refusing), 1, 0, 0, 1);
+        assert_eq!((code, written), (1, 99));
+        assert!(error.starts_with("[sound-backend-provider:callback] the host refused"), "{error}");
+        let panicking: SoundBackendProvider = Box::new(|_: &SoundBackendRequest| panic!("a host bug"));
+        let (code, written, error) = backend_cross(Some(panicking), 1, 0, 0, 1);
+        assert_eq!((code, written), (1, 99));
+        assert!(error.starts_with("[sound-backend-provider:callback]") && error.contains("panicked"), "{error}");
+    }
+
+    #[test]
+    fn a_backend_request_that_is_not_the_campaigns_never_reaches_the_host() {
+        for (label, phase, no_sound, dedicated, load_samples) in [
+            ("another phase", 2, 0, 0, 1),
+            ("no phase", 0, 0, 0, 1),
+            ("no_sound that is not a flag", 1, 2, 0, 1),
+            ("dedicated that is not a flag", 1, 0, -1, 1),
+            ("load intent that is not a flag", 1, 0, 0, 7),
+        ] {
+            let asked = std::rc::Rc::new(std::cell::Cell::new(0));
+            let count = asked.clone();
+            let provider: SoundBackendProvider = Box::new(move |_: &SoundBackendRequest| {
+                count.set(count.get() + 1);
+                Ok(SoundBackendReply { available: false })
+            });
+            let (code, written, error) = backend_cross(Some(provider), phase, no_sound, dedicated, load_samples);
+            assert_eq!((code, written, asked.get()), (1, 99, 0), "{label}");
+            assert!(error.starts_with("[sound-backend-provider:request]"), "{label}: {error}");
+        }
+    }
+
+    /// The real C `campaign_sound_backend` (ss_hostenv.c) against a C host function. The process-global host is shared by these tests, so they take turns.
+    #[repr(C)]
+    struct CampaignSoundBackendHost {
+        backend:
+            Option<unsafe extern "C" fn(*const sys::eech_sound_backend_request, *mut sys::eech_sound_backend_reply, *mut c_char, usize, *mut c_void) -> c_int>,
+        user: *mut c_void,
+    }
+
+    extern "C" {
+        fn campaign_sound_backend_set_host(host: *const CampaignSoundBackendHost);
+        fn campaign_sound_backend(no_sound: c_int, dedicated: c_int) -> c_int;
+    }
+
+    static C_BACKEND_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+    /// 0 answers "not available"; 1 "available"; 2 a refusal with a message; 3 a refusal without one; 4 writes nothing; 5 answers 2.
+    static BACKEND_MODE: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(0);
+    static BACKEND_CALLS: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(0);
+    static BACKEND_SEEN: [std::sync::atomic::AtomicI32; 4] = [
+        std::sync::atomic::AtomicI32::new(-1),
+        std::sync::atomic::AtomicI32::new(-1),
+        std::sync::atomic::AtomicI32::new(-1),
+        std::sync::atomic::AtomicI32::new(-1),
+    ];
+
+    unsafe extern "C" fn witness_backend_host(
+        request: *const sys::eech_sound_backend_request,
+        reply: *mut sys::eech_sound_backend_reply,
+        error: *mut c_char,
+        error_size: usize,
+        _user: *mut c_void,
+    ) -> c_int {
+        // SAFETY: the C side passes a readable request and a writable reply for the call.
+        let (request, reply) = unsafe { (&*request, &mut *reply) };
+        BACKEND_CALLS.fetch_add(1, Ordering::SeqCst);
+        for (slot, value) in BACKEND_SEEN
+            .iter()
+            .zip([request.phase, request.no_sound, request.dedicated, request.load_samples])
+        {
+            slot.store(value, Ordering::SeqCst);
+        }
+        match BACKEND_MODE.load(Ordering::SeqCst) {
+            0 => reply.available = 0,
+            1 => reply.available = 1,
+            2 => {
+                // SAFETY: C owns this writable error buffer.
+                unsafe { write_callback_text(error, error_size, "[sound-backend-provider:callback] withheld by the C host") };
+                return 1;
+            }
+            3 => return 1,
+            4 => {}
+            _ => reply.available = 2,
+        }
+        0
+    }
+
+    fn install_backend_host() {
+        let host = CampaignSoundBackendHost {
+            backend: Some(witness_backend_host),
+            user: std::ptr::null_mut(),
+        };
+        // SAFETY: the C function copies the host before it returns.
+        unsafe { campaign_sound_backend_set_host(&host) };
+    }
+
+    #[test]
+    fn the_c_backend_check_asks_once_with_the_real_request_and_returns_only_not_available() {
+        let _serial = C_BACKEND_LOCK.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+        BACKEND_MODE.store(0, Ordering::SeqCst);
+        BACKEND_CALLS.store(0, Ordering::SeqCst);
+        install_backend_host();
+        // SAFETY: the host above is installed; the function returns the host's checked answer.
+        let enabled = unsafe { campaign_sound_backend(0, 0) };
+        assert_eq!(enabled, 0);
+        assert_eq!(BACKEND_CALLS.load(Ordering::SeqCst), 1, "the campaign asks the host once");
+        let seen: Vec<c_int> = BACKEND_SEEN.iter().map(|slot| slot.load(Ordering::SeqCst)).collect();
+        assert_eq!(
+            seen,
+            [1, 0, 0, 1],
+            "phase, no_sound, dedicated and the intent to load, as the campaign had them"
+        );
+    }
+
+    // The refusals end in debug_fatal, and outside an engine entry that aborts the process (there is no jump target). So each refusal runs in a CHILD process: the test binary re-runs this test with the case in the
+    // environment, and the parent requires the abnormal stop and the provider's boundary marker in what the child said. (Unix only, like the catalogue refusals.)
+    #[cfg(unix)]
+    mod backend_refusal {
+        use super::*;
+
+        const CASES: [(c_int, &str); 6] = [
+            (-1, "[sound-backend-provider:missing]"),
+            (2, "[sound-backend-provider:callback] withheld by the C host"),
+            (3, "[sound-backend-provider:callback]"),
+            (4, "[sound-backend-provider:answer]"),
+            (5, "[sound-backend-provider:answer]"),
+            (1, "[sound-backend-provider:unsupported]"),
+        ];
+
+        #[test]
+        fn a_missing_withheld_unwritten_malformed_or_available_backend_answer_stops_the_campaign_at_a_distinct_named_boundary() {
+            if let Ok(case) = std::env::var("EECH_SOUND_BACKEND_REFUSAL_CASE") {
+                let mode: c_int = case.parse().unwrap_or(0);
+                if mode >= 0 {
+                    BACKEND_MODE.store(mode, Ordering::SeqCst);
+                    install_backend_host();
+                }
+                // SAFETY: the refusal stops the process.
+                let enabled = unsafe { campaign_sound_backend(0, 0) };
+                println!("NOT_REFUSED {enabled}");
+                return;
+            }
+            let Ok(exe) = std::env::current_exe() else {
+                panic!("no test executable to re-run")
+            };
+            for (case, marker) in CASES {
+                let output = std::process::Command::new(&exe)
+                    .args([
+                        "--exact",
+                        "tests::backend_refusal::a_missing_withheld_unwritten_malformed_or_available_backend_answer_stops_the_campaign_at_a_distinct_named_boundary",
+                        "--nocapture",
+                        "--test-threads=1",
+                    ])
+                    .env("EECH_SOUND_BACKEND_REFUSAL_CASE", case.to_string())
+                    .output();
+                let Ok(output) = output else { panic!("case {case}: the child did not run") };
+                let said = format!("{}{}", String::from_utf8_lossy(&output.stdout), String::from_utf8_lossy(&output.stderr));
+                assert!(!said.contains("NOT_REFUSED"), "case {case}: the campaign accepted a refused answer:\n{said}");
+                assert!(!output.status.success(), "case {case}: the child did not stop at the refusal:\n{said}");
+                assert!(
+                    said.contains("host sound backend:") && said.contains(marker),
+                    "case {case}: no `{marker}` refusal in:\n{said}"
+                );
+            }
+        }
     }
 }

@@ -1,0 +1,231 @@
+{
+  "review_id": "ENV-AMBIENT-HOST-SOURCE-A39-20261031",
+  "reviewer": "Sole independent Codex reviewer; no nested agents",
+  "reviewed_utc": "2026-10-31T14:53:58.8875195Z",
+  "scope": "One combined NEW production amplification delta correctness/clean-code/boundary review from4779..a39, with Root actual candidate test failures read during the same pass. No unchanged kernel fleet, original rerun or source edit.",
+  "source": {
+    "base": "4779d643456f7aac52bc2731d0faf3eac950d736",
+    "head": "a39a7a2ec07f5ec9e02008c58463003e9107978a",
+    "tree": "9bf227e623981d12fc89e3134ab70df833458761",
+    "repository": "R:/d3-evidence/environment-services-20261030",
+    "clean": true,
+    "changed_files": [
+      {
+        "path": "STATUS.md",
+        "blob": "1f5d4ef8cc4086d2ef5ac5d7bef319250568b7b0",
+        "sha256": "8bfd79e39d2fd833bd7827b84a1f3a9304c53b4bf73b09cf2f943ca0bb01aa33"
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostterrain.c",
+        "blob": "b862f8ce3adf022557fd1af7c09f7d254831ff79",
+        "sha256": "1339d72af9bf956d393ea099b226e116d4ed63cd601d2dc4f630ae7782a8a7b8"
+      },
+      {
+        "path": "aphavoc/source/entity/mobile/mb_hostterrain.h",
+        "blob": "cd42b54baa60c75a2c1ffa3c78919d36cc09b121",
+        "sha256": "7356e60f48738ede3f5bccc38750f73492576b1f4c97105f60fcfdb36c05fb39"
+      },
+      {
+        "path": "aphavoc/source/entity/special/session/ss_hostenv.c",
+        "blob": "2e14c0bba6289a3271698f8105d522429ba6dd13",
+        "sha256": "a08681a689c87b5202ddf45dfa416316ef777fbb2e0ecf10e6426b3dcd76fc00"
+      },
+      {
+        "path": "aphavoc/source/entity/special/session/ss_hostenv.h",
+        "blob": "cd0df93b4ef1cea3af9a37e1b6dd7abe0b311ae8",
+        "sha256": "4ec6c50b4337eea91c9c5cf4ad7f8343469060e213c5e25cdffb4b0704407b36"
+      },
+      {
+        "path": "aphavoc/source/entity/special/session/ss_updt.c",
+        "blob": "2c6a2eed93df67a60490bd10021a9cb549af658e",
+        "sha256": "38df7557496ab222fc1f6d347a26e263ca249bcf98fc7f0079803304097d173c"
+      },
+      {
+        "path": "eech-campaign/crates/eech-dc/src/module.rs",
+        "blob": "ce2f64320dab6994e015c443b7f7fcc1656e959c",
+        "sha256": "988d91bdd035ec4d048f75f4c030ee55922676632261a786cacef8c97ae172b5"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+        "blob": "0cffe055fdf7fc3ec05fbc093048876ae2c5d714",
+        "sha256": "3f5dfce4c55e2e5b771731f4e8bafd92d5ce0d4686c38489584c3dbe5d4bd213"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+        "blob": "af31882e7930baed021e19afe475d50b06bc276b",
+        "sha256": "985446d4d3ee464b0cc27c57ba5fbbff41180a58ed7c42551487c12f49d82943"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/csrc/env_ref.c",
+        "blob": "d4f25383ff7be024f2ffc3f7cf519f0da5431603",
+        "sha256": "5b2270fabe5a775a3ccacd083bccc8034f8580ebd7bb89d742987bc34d686c2e"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/csrc/env_ref.h",
+        "blob": "40fe8e453352aafc399370995e61f4f39f1f5913",
+        "sha256": "9e6c409582e67e64237396bbeb98607340e94db61a4c082c75642a9d20778fbd"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/csrc/terrain_ref.c",
+        "blob": "6a3bcdb00e29a63a6bdabfb4d1e67b64844242a9",
+        "sha256": "b0b2dcc38dd2d6ddbc6c9218ced8da48f104ff0a28e351f730726499bbf7ff29"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/csrc/terrain_ref.h",
+        "blob": "0fa48de6f635ee46c784a6a087336689027439ef",
+        "sha256": "3e36ce7cdbcaaee743a00ad93ca08f4b0d851b8cc7bea547750fc8144460afd4"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/terrain-provider.lua",
+        "blob": "858ca20dc53c26417b6b4829af7d84ca2706a7f8",
+        "sha256": "a5f71994720f6be13347f74cac91f41b382e3c2e3fc58fb3949b412c28094cbd"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/env.rs",
+        "blob": "7855fcb160586ae0fcca3e0d8234d9d49baf2f9c",
+        "sha256": "603622eceaaf8fc2a1b6a192f1ac7e5760b451a3d298427b76d9fa7cd67bdf38"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/src/terrain.rs",
+        "blob": "bddc2852e2ca271c5f3299cd1ba75650b7d68b38",
+        "sha256": "9c3e2e5f78405ee0b33120a407a75a84358af7780bc72be05347f0e0b52ecc65"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/terrain_sector.rs",
+        "blob": "fcfef361020132abf73e555e8c6ce7e093a1137e",
+        "sha256": "324079c8112e00b913d611f7321985e9398f99da7ed59712e9afb072b67fa7fa"
+      },
+      {
+        "path": "eech-campaign/docs/d3-environment-provider.md",
+        "blob": "7c7f2adcf6d741ecf175ae0357ab37600411e2b4",
+        "sha256": "b2820de730235abffd77b477c8e8cc2fbed417ae73eb352c76e18f2155642cd9"
+      },
+      {
+        "path": "eech-campaign/docs/d3-environment-sound-routine.md",
+        "blob": "3109d24693127928b6abea3884cd49b7a0bae6e0",
+        "sha256": "22a6ab57d6ab92d94f65269bd48e4c8ac096978637039f3fbff3f2ae700b0573"
+      },
+      {
+        "path": "eech-campaign/reference/d3-environment-characterization/sound-original-nativec0b-driver21ba/current-CI-21ba.json",
+        "blob": "0f8d4bfdf5508f0495df022bc861fe3b2005cf89",
+        "sha256": "6ef719667259a9085e0484b0207f4f21e8174240c89499126f37040f203a9cc4"
+      },
+      {
+        "path": "eech-campaign/reference/d3-environment-characterization/sound-original-nativec0b-driver21ba/ledger-v91-preservation.json",
+        "blob": "fcbac8b889d671b2379606234707f0a3dded7f54",
+        "sha256": "327fac592f08773ee5ad2326ee2e7a6027593095876b2b11abcece1f0cec8295"
+      }
+    ]
+  },
+  "inspected_facts": [
+    {
+      "refs": [
+        "aphavoc/source/entity/special/session/ss_updt.c:751",
+        "aphavoc/source/entity/special/session/ss_hostenv.c:375",
+        "aphavoc/source/entity/mobile/mb_hostterrain.c:413"
+      ],
+      "fact": "Hosted ss_updt delegates rain/wind levels and per-child terrain smoothing while retaining original body under#else. Core chooses camera/gunship, reads cloud/radar observations and previous delta/child state, asks the existing sector mirror query, then applies replies in child-list order. Equal outdoor rain modes still attenuate the aliased array entry twice in the host; terrain smoothing stores and feeds back the scaled previous value."
+    },
+    {
+      "refs": [
+        "eech-campaign/crates/eech-world/csrc/env_ref.c:1417",
+        "eech-campaign/crates/eech-world/csrc/terrain_ref.c:4024",
+        "eech-campaign/crates/eech-world/src/env.rs:325",
+        "eech-campaign/crates/eech-world/src/terrain.rs:514"
+      ],
+      "fact": "New C entries use pointer/integer ingress, run arithmetic after saving state, stage outputs and restore/read back caller CW/SW/TW and MXCSR before output copies. The terrain helper is noninlined and bit-position ingress has a dependency barrier. Actual Rust callers provide live maps/field and fixed disjoint buffers for the synchronous calls. New computations are queries, not field mutations."
+    },
+    {
+      "refs": [
+        "eech-campaign/crates/eech-engine-sys/src/lib.rs:1140",
+        "eech-campaign/crates/eech-engine/src/lib.rs:1156",
+        "eech-campaign/crates/eech-engine/src/lib.rs:1269",
+        "eech-campaign/crates/eech-dc/src/module.rs:385"
+      ],
+      "fact": "C and repr(C) Rust appended request/reply fields match by order/types. Engine validates count/class/cockpit request shape and stages whole replies; Lua captures child count before handing its table to a provider, so editing that table cannot shrink required output cardinality. Finite semantic outputs and new markers are checked before reply/array commit. Existing map/point/fast/season/hint paths remain in place."
+    },
+    {
+      "refs": [
+        "eech-campaign/crates/eech-world/src/terrain.rs:667",
+        "eech-campaign/crates/eech-world/tests/terrain_sector.rs:445",
+        "eech-campaign/docs/d3-environment-sound-routine.md"
+      ],
+      "fact": "The exact terrain reader explicitly forwards NaN/infinities. Therefore the reviewer initial suspicion that it rejects unused NaN previous amplitude above280 was incorrect and was promptly withdrawn; it is NOT a finding and no change is requested on that premise. The new kernel preserves the altitude>=280 branch without using previous amplitude. Core now reads the plain previous field eagerly, but no concrete regression from that read was established."
+    },
+    {
+      "refs": [
+        "eech-campaign/docs/d3-environment-sound-routine.md",
+        "eech-campaign/crates/eech-world/tests/terrain_sector.rs:414",
+        "eech-campaign/crates/eech-world/src/env.rs:917"
+      ],
+      "fact": "Targeted unit/bridge tests and full register assertions are new source, not authority proof. Unchanged fixture/driver can compare the same original amplitude rows against the candidate. Public changed/withheld/malformed amplitude witness is explicitly still pending. Compiled speaker/player/render consumers and other remaining physical services are named requiredD3 scope, not inferred dead or deferred toD5."
+    }
+  ],
+  "findings": [
+    {
+      "id": "ENV-AMBIENT-HOST-1",
+      "priority": "P1",
+      "title": "Isolate new ambient arithmetic from caller denormal modes and resolve the numeric red without rewriting originals",
+      "refs": [
+        "eech-campaign/crates/eech-world/csrc/terrain_ref.c:3727",
+        "eech-campaign/crates/eech-world/csrc/terrain_ref.c:4008",
+        "eech-campaign/crates/eech-world/csrc/terrain_ref.c:4037",
+        "eech-campaign/crates/eech-world/csrc/env_ref.c:1103",
+        "eech-campaign/crates/eech-world/csrc/env_ref.c:1427",
+        "eech-campaign/crates/eech-world/tests/terrain_sector.rs:439",
+        "eech-campaign/crates/eech-world/src/env.rs:1052"
+      ],
+      "problem": "The guard reused by the new terrain ambient entry changes only MXCSR rounding bits0x6000, preserving caller FTZ/DAZ0x8040 during smoothing. Restoring caller state afterward does not make results independent of those active modes. Root actual5376-question run records192changed answers for subnormal altitude: normal-mode reference0.14999998 versus caller FTZ/DAZ0.14999999. This is directly attributable to denormal treatment in the altitude arithmetic. New env_ref_ambient uses the analogous rounding-only guard; its new7-question matrix varies RC/stickies/status but omits FTZ/DAZ and x87 precision variants, so its3passingtests do not cover this risk. Separately, the new saturation assertion expected0x3e999999 but actual returned0.3; that mismatch is unresolved against the measured original behavior, not automatically a baseline regression or proof the assertion is correct.",
+      "requested_change": "Run the NEW ambient computations in the established intended arithmetic environment, explicitly controlling relevant denormal modes (and x87 precision where applicable) inside the guard while restoring every caller bit afterward. Cover both new ambient entries with the supported FTZ/DAZ and precision variants; retain all existing seeds/cases/masks/full-word comparisons and the terrain5376matrix. Keep the change finite to new ambient operations rather than silently changing old kernel behavior. Resolve the saturation assertion against retained original/candidate evidence and original compiler semantics before changing either implementation or expected bits; the comment alone does not prove a runtime-directed conversion of a constant. Preserve original raw files, thresholds and tolerances.",
+      "evidence": "Measured Linux candidate failure plus source guard analysis. Denormal-mode risk in new environment ambient is a source-supported inference, not a separately measured failure."
+    },
+    {
+      "id": "ENV-AMBIENT-HOST-2",
+      "priority": "P2",
+      "title": "Keep the16-item transport bound from rejecting a legal session child list",
+      "refs": [
+        "aphavoc/source/entity/special/session/ss_updt.c:848",
+        "aphavoc/source/entity/mobile/mb_hostterrain.h:68",
+        "eech-campaign/crates/eech-world/src/terrain.rs:516",
+        "aphavoc/source/entity/special/effect/soundeff/soundeff.c:543",
+        "aphavoc/source/entity/special/effect/soundeff/soundeff.c:659",
+        "aphavoc/source/entity/system/en_comms/en_comms.c:3345",
+        "aphavoc/source/entity/system/en_comms/en_comms.c:3422"
+      ],
+      "problem": "The hosted Core loop now fatally aborts on the17th terrain ambient child. The original routine walks the entire special-effect list with no such cap, and no invariant enforcing16exists at this list boundary. Existing create_local_sound_effect_entity attaches the supplied subtype to the supplied parent without a session terrain-child count cap; the compiled sound-effect comms receiver uses the same path for its received parent/subtype. Multiple children of a class are valid state (the new kernel test itself exercises duplicates). The ten-child original boot sample establishes that sample, not a universal cardinality limit. A fixed transport array has become a new campaign domain restriction.",
+      "requested_change": "Keep any16-item bound as a transport implementation detail: process all existing children through bounded batches, per-child requests or equivalent storage, preserving original list/application order, each child previous value and whole-reply validation. Do not omit children or clamp counts. Add a finite real client/list case with duplicates and more than16terrain children, plus empty and boundary cases; the host backend may still reject an oversized individual transport request.",
+      "evidence": "Direct source counterexample for17matching children and existing construction/comms paths; no retail occurrence or runtime reproduction is claimed."
+    }
+  ],
+  "actual_checks_read": {
+    "evidence": [
+      {
+        "path": "R:/d3-evidence/environment-sound-host-a39a7a2ec-linux-20261031.log",
+        "sha256": "bfe6bbbecb9ae697b234ccaeebe7ed282b53644138ef4d019b642afd92174c7d"
+      },
+      {
+        "path": "R:/d3-evidence/environment-sound-host-a39a7a2ec-linux-20261031-completion.json",
+        "sha256": "486a294eb08241c71ea8c6b75771292a53ec21747f1c826444f3103ef0070806"
+      },
+      {
+        "path": "R:/d3-evidence/environment-sound-host-a39a7a2ec-windows-20261031-completion.json",
+        "sha256": "e3a71dee78925d92ca9e09fb00c88f84656f331acecc5aaa5ef0b64d07e754ce"
+      }
+    ],
+    "linux": "Actual terminal101 at14:48:21.626686UTC. New environment ambient3/3pass; terrain ambient2pass/2fail. Saturation test left[0.3,0] versus right[0.29999998,0]; full14question matrix5376calls records192answerchanges. The answer-change assertion runs before the aggregate leak assertion, so this failing run is not an aggregate proof of no caller-state leaks. Full affected packages and strict phases NOTREACHED.",
+    "windows": "Wrapper completion actual0 at14:50:27.811680UTC for native observer build and test export pipeline. This receipt is not actual execution of exported Windows unit binaries; no all-target runtime pass inferred.",
+    "retail": "Fresh candidate three-root comparison and public amplitude authority were pending at handoff. Closed original44answered/2refused/47calls and repeat byte identity are reused at8755577f identity."
+  },
+  "prior_original": {
+    "report": "independent-environment-ambient-original-actual-review-nativec0b-driver21ba-20261031.json",
+    "sha256": "8755577f55861682e4dd55cc93c6fad0b00f4dee51600e5136afa88ef411cd2c",
+    "scope": "Original body on hosted field/sector baseline; no repeated original/kernel review or experiment."
+  },
+  "verdict": "CHANGES_REQUIRED: two finite grouped findings. No speculative backend backlog and no acceptance from source or compiler receipts.",
+  "operations": "Read-only new-delta/source/blob/hash inspection, existing candidate log/receipt reads and git diff --check0. No source edits/builds/tests/native experiments, process/Docker/auth changes, external calls or public writes; only this private report written.",
+  "limitations": [
+    "Fullx87/SSE boundary intent and source staging are inspected, but generated instruction order and actual target preservation/answers remain Root validation. Do not weaken the failing numerical tests or replace golden output silently.",
+    "Cloud/camera/radar/delta observations, child lifecycle/application, shared scratch consumers and compiled speaker/player/render disposition remain explicit couplings or required follow-up withinD3. A source-only partial extraction is not whole-service acceptance.",
+    "Whole Task51/D3 effects/time/remainingterrain/spatial/model/full shipping/currentCI/review/normal merge gates remain open. D4/D5 unstarted. All old failures/originals/partials/live ground processes preserved."
+  ]
+}

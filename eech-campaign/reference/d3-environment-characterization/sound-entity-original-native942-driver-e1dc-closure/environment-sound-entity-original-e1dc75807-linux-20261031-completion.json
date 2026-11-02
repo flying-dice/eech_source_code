@@ -1,0 +1,18 @@
+{
+  "source": "e1dc758074fba7fa8a4af99604ceecb85cf20483",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-sound-entity-original-e1dc75807-linux-20261031.sh"
+  ],
+  "pid": 22076,
+  "controller_pid": 20372,
+  "state": "terminal",
+  "started_utc": "2026-10-31T20:42:12.032074+00:00",
+  "scope": "CurrentLua-onlyoriginalsoundvalidation: fmt/allsoundandhostcallbackguards/worldalltargetstrict; corrected942nativeC/compileandc9fullgatesreusedONLYwithexplicitbyteidenticalproduction/buildinputsproof. Actualretail/source-review/wholeD3acceptance separate.",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T20:43:56.758675+00:00"
+}

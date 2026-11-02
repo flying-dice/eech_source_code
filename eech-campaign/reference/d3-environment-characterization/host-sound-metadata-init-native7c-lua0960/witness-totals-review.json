@@ -1,0 +1,100 @@
+{
+  "created_utc": "2026-11-01T05:48:34.574966+00:00",
+  "reviewer": "sole independent Codex reviewer; no nested agents",
+  "source": {
+    "head": "7130828b2afa35aa1c4c3dafca69d2ca931e6a72",
+    "base": "7c85100efb1e1aa4669f6c88051f9adce041629c",
+    "repo": "R:/d3-evidence/environment-services-20261030",
+    "clean_at_inspection": true,
+    "changed_files": [
+      {
+        "path": "STATUS.md",
+        "bytes": 432342,
+        "sha256": "85913d2e597159ab819fae65f6ea88983eefc3709a78c0c077078fbfff6969f9"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-sound-data-host-witness.lua",
+        "bytes": 24376,
+        "sha256": "f1df246194706b8317593a7d64a52739c6058d68586dd9980322de81be9f4919"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-sound-init-host.lua",
+        "bytes": 35621,
+        "sha256": "bda7078cac95b0b088df5777ef020e15cf7f765caec8d3feb143ff51886a86af"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_sound_data_witness.rs",
+        "bytes": 21267,
+        "sha256": "0285c1567e6057a4146da1613aa75694186b5e769b0c8e2d543f984fa5e47d4b"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_sound_init.rs",
+        "bytes": 59222,
+        "sha256": "9af5ba9e24f5678a24aa9339566af931cd37cc33b17e59a8d901f3ad522da09f"
+      },
+      {
+        "path": "eech-campaign/docs/d3-sound-lifetime.md",
+        "bytes": 101867,
+        "sha256": "74c79e96923c440ff99a42450e6f3aa23f524161745951f8a3688298d0684357"
+      }
+    ],
+    "all_other_tracked_git_blobs_unchanged": true,
+    "production_native_identity_remains": "7c85100efb1e1aa4669f6c88051f9adce041629c",
+    "original_env_sound_init_lua_unchanged": true
+  },
+  "scope": "One bounded combined source correctness/clean-code/boundary pass on the six-path713 delta only. Prior four production source closures, ce3ca963 correction review, original/kernel/FP/build evidence reused. No compiles/tests, native/retail runs, product edits or publication by reviewer.",
+  "source_review_no_blocking_findings": false,
+  "prior_two_findings_source_closed": true,
+  "findings": [
+    {
+      "id": "ENV-SOUND-METADATA-WITNESS-1",
+      "priority": "P2",
+      "title": "Keep zero-match/empty-header positives consistent with the measured catalogue size count",
+      "locations": [
+        {
+          "path": "eech-campaign/crates/eech-world/tests/env_sound_init.rs",
+          "line": 1243
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/tests/env_sound_init.rs",
+          "line": 1253
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/lua/env-sound-init-host.lua",
+          "line": 259
+        }
+      ],
+      "evidence": "The newly added coherent_host_answers_stay_accepted test begins with opened=hosted(report(hosted_shape(true))). report computes changed from matched5, so its end and report catalogue rows retain nonzero_size5 and digest00000000000000aa. The new positives for a present header that matched nothing and a present empty header replace only the host-answer matched/missed/header-count text. Their catalogue therefore still has5 nonzero sizes while the host matched0; the driver checks the new matched/missed join but accepts that contradiction. The reviewed C initializer clears all sizes and only assigns sizes to matched entries, so within each initialization nonzero size slots cannot exceed matched descriptors. This is a structural count relationship, not a physical amplitude/duration oracle. This finding is source-traced; reviewer ran no tests.",
+      "action": "Build those zero-match positives from genuinely zero-match shapes (end sizes0 and coherent unchanged catalogue digest) instead of only rewriting the host-answer row. Join each initialization end catalogue nonzero_size to its host matched count (nonzero_size<=matched), preserving matched zero lengths and legitimate unmatched zero sizes. Keep the impossible current strings as finite negative guards. Do not edit the original driver, accepted originals, production C or baseline numbers."
+    }
+  ],
+  "closed_dispositions": [
+    {
+      "id": "ENV-SOUND-METADATA-CORRECTION-1",
+      "status": "source_closed; new size-count fixture issue above is separate",
+      "facts": "Driver now requires matched+missed==the same filled named count, matched<=header_count for the actual unique-slot table, and Core boot header_count0. New hosted canonical positive is5+1 beside6named, absent pair0+6 beside6named; named-count and stale-Core-header damaged forms target the new checks. Present empty headers and matched-zero remain legal at the protocol boundary."
+    },
+    {
+      "id": "ENV-SOUND-METADATA-CORRECTION-2",
+      "status": "source_closed",
+      "facts": "Withheld records exactly one withdrawal and raises its unique cause before consulting base. Other modes pcall base and distinguish base_errors before alteration; refused outcomes require one request/alteration or withdrawal, no base error, exact named engine boundary and the intentional withheld cause. Both out and sidecar are read using checked open/read/close and must empty; unreadable evidence is setup failure, boot row contradiction and other text unexpected. Healthy raw read is checked too."
+    }
+  ],
+  "guard_path_inspection": [
+    "New withdrawal tests use healthy and malformed-header roots: the withheld branch runs before base, so both represent the deliberate withdrawal. The generic-stop stand-in removes the cause while retaining the callback marker and reaches the cause guard.",
+    "For malformed/short/incoherent, a negative-count header makes the REAL reference provider fail before alter; base_errors1/altered0 reaches setup_failure_base_provider_error after readable empty evidence. These are scripted witness controls, not native physical measurements.",
+    "Fault injection intercepts only io.open for the precise out/sidecar read-back paths; delegate dofile uses another path and writes use host.output_create_new. Each open/read/close fault therefore targets the witness evidence branch, not campaign creation. Both files and all four refusal modes are covered; missing files and nonempty out/sidecar forms exercise their corresponding branches. No observed test pass is inferred.",
+    "Delegate path is now JSON-escaped in the authority record. Docs explicitly require the ORIGINAL delegate for old7574 capability red, and the hosted delegate for new native; the former must complete and show requests0 before the capability marker. The source test is a canned old-campaign judge control, not real capability evidence.",
+    "Read failures return setup failure; thrown IO errors also propagate as failure. Record write/flush/close remain checked and exclusive. No fallback to evidence absence or fake Core IO is introduced."
+  ],
+  "identity_and_validation_limits": [
+    "Windows Git HEAD/clean state verified. Exact change whitelist is six Lua/test/doc paths; every production C/header, ordinary Rust, generated asset, Cargo/build input and protected original driver tracked blob is identical to7c. No7c native may be relabelled713; later actual runs need explicit new-Lua override and payload/source identity receipts.",
+    "Canonical7c production builds/currentnew-target guards/currentCI/native ownership/refusals/default comparisons were not measured or re-run by reviewer. Source-only author formatting is not test acceptance. Root-reported relative-root old-binary semantic red remains separate evidence; earlier missing-stderr attempt stays retained.",
+    "All four prior production findings remain source-closed; this report leaves only the new finite fixture/count P2. No whole-source/kernel review fleet or old characterization rerun.",
+    "Init-only scope. Core dynamic loaders/blocked file state, backend, campaign policy, other readers, non-session/per-family playback, network/time/terrain/spatial/model duties and wholeTask51/D3/shipping/normal delivery remain open."
+  ],
+  "reused_review": {
+    "path": "R:/d3-evidence/independent-environment-host-sound-metadata-corrected-source-review-7c85100ef-20261101.json",
+    "sha256": "ce3ca963fb7c3b265e1cdb1e1825d70989f38a71d496a0767ea7052966463e47"
+  }
+}

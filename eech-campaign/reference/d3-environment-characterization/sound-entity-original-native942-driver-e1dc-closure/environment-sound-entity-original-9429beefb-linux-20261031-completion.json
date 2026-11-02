@@ -1,0 +1,18 @@
+{
+  "source": "9429beefb9a8e143b648e01c390075882e6e6361",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-sound-entity-original-9429beefb-linux-20261031.sh"
+  ],
+  "pid": 23620,
+  "controller_pid": 24800,
+  "state": "terminal",
+  "started_utc": "2026-10-31T20:10:17.046422+00:00",
+  "scope": "Currentsound instrumentation/fixture/protocolcorrection: fmt, observerreleaseEngine/DC Ccompile, allsound andhost_callback guards,worldalltargetstrict; priorc9fulldefault/observerpackages/bothstrict0reusedwithexplicitsourceequivalence. Newnativeandrealretail/source-review gatesseparate.",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T20:13:27.574807+00:00"
+}

@@ -93,6 +93,14 @@ elseif mode == "raised" then
 elseif mode == "generic" then
 	provider = counted (function (request)
 		if request.op == "map" then return facts end
+		-- the sound routine asks for the sector's surface enumeration every update (EEDCS-51); a host with no EECH data is one land world: the first surface (land, type 9) alone, and the return value 1
+		if request.op == "sector" then return { returned = 1, flags = string.rep ("0", 9) .. "1" .. string.rep ("0", 52) } end
+		-- the sound routine also asks for the amplitude of its terrain ambient sound children (EEDCS-51): this land world has none of the six ambient surfaces, so the host answers silence for each child asked about
+		if request.op == "ambient" then
+			local amplitudes = {}
+			for i = 1, #request.children do amplitudes [i] = 0 end
+			return { amplitudes = amplitudes }
+		end
 		-- the ground operations (EEDCS-48) are physical questions about this world's terrain: an analytic answer here would be a second implementation of the host's ground
 		-- kernel, so this host does not have them, and the first ground question stops the campaign at the named ground boundary
 		if string.sub (request.op, 1, 7) == "ground_" then error ("the generic host has no ground operations", 0) end
@@ -168,7 +176,7 @@ local config = {
 	install_root = root, map = scenario.map, campaign_directory = "camp01", campaign = scenario.campaign, gunship = "apache",
 	seed = 1, bind_mobile = bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss,
 	supply_reached = host.supply_reached, line_of_sight = line_of_sight, sense = host.sense, aim = host.aim,
-	terrain = provider, model = host.model,
+	terrain = provider, environment = host.env_provider (), model = host.model,
 }
 -- THE CONTRACT MARKERS. The campaign's refusals of a missing or malformed terrain provider carry a stable bracketed marker, so that this driver can tell the
 -- contract's refusal from any other failure that merely mentions "terrain" (a missing terrain.ffp, an unrelated boot or frame error). The DLL client that

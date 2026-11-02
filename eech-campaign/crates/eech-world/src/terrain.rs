@@ -13,6 +13,10 @@
 //!   `stored = true`, or leaves `stored` out, which means true). A host that keeps no such state returns no
 //!   hint and ignores one it is given.
 //! - `{ op = "fast", x, z }`: the fast grid's elevation.
+//! - `{ op = "sector", x, z }` (EEDCS-51): the surface enumeration of the sector that holds the position -- the original's `get_terrain_3d_types_in_sector` over the sectors this host
+//!   loaded. The answer is `{ returned, flags }`: `returned` is the original's return value (1 PLUS THE NUMBER OF SURFACE CHANGES of the sector, not the number of surfaces) and `flags` a string
+//!   of one `0` or `1` for each of the 62 terrain types (`1` for the sector's first surface and the surface of every polygon that changes surface). A position whose sector is not in the map
+//!   (or that is not finite) is an error, where the original indexed outside its table.
 //!
 //! A malformed request, a hint this host did not issue and any missing data are errors with a message; nothing falls back to another solver.
 //!
@@ -296,6 +300,27 @@ extern "C" {
     fn host_terrain_get_facts(map: *const c_void, out: *mut Facts);
     fn host_terrain_query(map: *const c_void, x: f32, z: f32, hint: *const Hint, out: *mut RawAnswer, error: *mut c_char, error_size: usize) -> i32;
     fn host_terrain_fast_elevation(map: *const c_void, x: f32, z: f32, out: *mut f32, error: *mut c_char, error_size: usize) -> i32;
+    fn host_terrain_types_in_sector(
+        map: *const c_void,
+        x_bits: u32,
+        z_bits: u32,
+        returned: *mut i32,
+        flags: *mut u8,
+        flags_capacity: usize,
+        error: *mut c_char,
+        error_size: usize,
+    ) -> i32;
+    fn host_terrain_ambient(
+        map: *const c_void,
+        x_bits: u32,
+        z_bits: u32,
+        in_f: *const f32,
+        in_i: *const i32,
+        count: usize,
+        out: *mut f32,
+        error: *mut c_char,
+        error_size: usize,
+    ) -> i32;
     fn host_terrain_conformance_sweep(
         map: *const c_void,
         seed: u32,
@@ -811,7 +836,85 @@ impl Terrain {
         }
         Ok(value)
     }
+
+    /// The surface enumeration of the sector that holds a position (`host_terrain_types_in_sector`): the original's return value (1 + the surface changes of the sector) and one flag for each
+    /// terrain type. An error when the position is not finite or its sector is not in the map. The caller's complete x87 and SSE floating-point state is given back on every path; the position
+    /// crosses the C boundary as the bits of the two floats (integers), so that no float argument is homed before the kernel's guard is entered.
+    pub fn types_in_sector(&self, x: f32, z: f32) -> Result<(i32, Vec<bool>), String> {
+        let mut returned = 0i32;
+        let mut flags = [0u8; SECTOR_TYPES];
+        let mut error = [0 as c_char; 256];
+        // SAFETY: the map is live, `flags` has the room the kernel is told and the out pointers are valid.
+        let status = unsafe {
+            host_terrain_types_in_sector(
+                self.map,
+                x.to_bits(),
+                z.to_bits(),
+                &mut returned,
+                flags.as_mut_ptr(),
+                flags.len(),
+                error.as_mut_ptr(),
+                error.len(),
+            )
+        };
+        if status != 0 {
+            return Err(message(&error));
+        }
+        Ok((returned, flags.iter().map(|flag| *flag != 0).collect()))
+    }
+
+    /// The physical amplitude of the session's terrain ambient sound children (`host_terrain_ambient`): the new amplification of each child from its previous one, the surfaces of the sector that
+    /// holds (`x`, `z`) and the campaign's observations (the radar altitude, the frame delta, whether the cockpit is the point). The floats other than the position cross as arrays read inside the
+    /// kernel's guard. An error when the position is not in the map, a class is not one of the six or there are more than [`AMBIENT_MAX`] children.
+    pub fn ambient(&self, x: f32, z: f32, in_cockpit: bool, alt: f32, delta: f32, children: &[AmbientChild]) -> Result<Vec<f32>, String> {
+        if children.len() > AMBIENT_MAX {
+            return Err(format!("terrain: {} ambient sound children, not 0 to {AMBIENT_MAX}", children.len()));
+        }
+        let mut in_f = [0.0f32; 2 + AMBIENT_MAX];
+        let mut in_i = [0i32; 1 + AMBIENT_MAX];
+        in_f[0] = alt;
+        in_f[1] = delta;
+        in_i[0] = i32::from(in_cockpit);
+        for (index, child) in children.iter().enumerate() {
+            in_f[2 + index] = child.previous;
+            in_i[1 + index] = child.class;
+        }
+        let mut out = [0.0f32; AMBIENT_MAX];
+        let mut error = [0 as c_char; 256];
+        // SAFETY: the map is live; the arrays have the room the kernel reads and writes for the limit of children; the out pointers are valid.
+        let status = unsafe {
+            host_terrain_ambient(
+                self.map,
+                x.to_bits(),
+                z.to_bits(),
+                in_f.as_ptr(),
+                in_i.as_ptr(),
+                children.len(),
+                out.as_mut_ptr(),
+                error.as_mut_ptr(),
+                error.len(),
+            )
+        };
+        if status != 0 {
+            return Err(message(&error));
+        }
+        Ok(out.iter().take(children.len()).copied().collect())
+    }
 }
+
+/// The most children one ambient question carries (`HOST_TERRAIN_AMBIENT_MAX`) and the number of ambient classes (`HOST_TERRAIN_AMBIENT_CLASSES`).
+pub const AMBIENT_MAX: usize = 16;
+pub const AMBIENT_CLASSES: i32 = 6;
+
+/// One terrain ambient sound child of an ambient question: its class (0 sea, 1 jungle, 2 amb1, 3 amb2, 4 amb3, 5 amb4) and its previous amplification.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct AmbientChild {
+    pub class: i32,
+    pub previous: f32,
+}
+
+/// The number of EECH terrain types: the width of a sector's flags (`HOST_TERRAIN_TYPE_COUNT`, checked against the kernel's own enumeration when it is compiled).
+pub const SECTOR_TYPES: usize = 62;
 
 const HINT_PREFIX: &str = "e2";
 const HINT_BYTES: usize = 44;
@@ -888,12 +991,12 @@ return {
 "#;
 
 /// The coordinate reader of a Lua state: made once, kept in the registry.
-struct CoordinateReader {
-    read: LuaFunction,
-    slot: LuaTable,
+pub(crate) struct CoordinateReader {
+    pub(crate) read: LuaFunction,
+    pub(crate) slot: LuaTable,
 }
 
-fn coordinate_reader(lua: &Lua) -> LuaResult<CoordinateReader> {
+pub(crate) fn coordinate_reader(lua: &Lua) -> LuaResult<CoordinateReader> {
     let reader = match lua.named_registry_value::<LuaValue>(COORDINATE_READER_KEY)? {
         LuaValue::Table(reader) => reader,
         _ => {
@@ -1136,6 +1239,61 @@ fn respond(lua: &Lua, terrain: &Terrain, request: &LuaTable) -> LuaResult<LuaTab
                 let elevation = terrain.fast_elevation(x, z).map_err(|e| LuaError::runtime(format!("host.terrain: {e}")))?;
                 let table = lua.create_table()?;
                 table.set("elevation", f64::from(elevation))?;
+                Ok(table)
+            }
+            "sector" => {
+                let reader = coordinate_reader(lua)?;
+                let (x, z) = (coordinate(&reader, request, "x")?, coordinate(&reader, request, "z")?);
+                let (returned, flags) = terrain.types_in_sector(x, z).map_err(|e| LuaError::runtime(format!("host.terrain: {e}")))?;
+                let table = lua.create_table()?;
+                table.set("returned", returned)?;
+                table.set("flags", flags.iter().map(|flag| if *flag { '1' } else { '0' }).collect::<String>())?;
+                Ok(table)
+            }
+            "ambient" => {
+                // the physical amplitude of the terrain ambient sound children (EEDCS-51): the campaign's observations and each child's class and previous amplification, answered with the new amplitudes
+                let reader = coordinate_reader(lua)?;
+                let (x, z) = (coordinate(&reader, request, "x")?, coordinate(&reader, request, "z")?);
+                let (alt, delta) = (coordinate(&reader, request, "alt")?, coordinate(&reader, request, "delta")?);
+                let in_cockpit = match request.get::<LuaValue>("in_cockpit")? {
+                    LuaValue::Boolean(flag) => flag,
+                    other => {
+                        return Err(LuaError::runtime(format!(
+                            "host.terrain: in_cockpit must be a boolean, got {}",
+                            other.type_name()
+                        )))
+                    }
+                };
+                let list = match request.get::<LuaValue>("children")? {
+                    LuaValue::Table(list) => list,
+                    other => return Err(LuaError::runtime(format!("host.terrain: children must be a list, got {}", other.type_name()))),
+                };
+                let count = list.raw_len();
+                if count > AMBIENT_MAX {
+                    return Err(LuaError::runtime(format!(
+                        "host.terrain: {count} ambient sound children, not 0 to {AMBIENT_MAX}"
+                    )));
+                }
+                let mut children = Vec::with_capacity(count);
+                for index in 1..=count {
+                    let entry: LuaTable = list.get(index)?;
+                    let class = coordinate(&reader, &entry, "class")?;
+                    if class.fract() != 0.0 || !(0.0..f32::from(AMBIENT_CLASSES as i16)).contains(&class) {
+                        return Err(LuaError::runtime(format!(
+                            "host.terrain: child {index} has the ambient class {class}, not 0 to {}",
+                            AMBIENT_CLASSES - 1
+                        )));
+                    }
+                    children.push(AmbientChild {
+                        class: class as i32,
+                        previous: coordinate(&reader, &entry, "previous")?,
+                    });
+                }
+                let amplitudes = terrain
+                    .ambient(x, z, in_cockpit, alt, delta, &children)
+                    .map_err(|e| LuaError::runtime(format!("host.terrain: {e}")))?;
+                let table = lua.create_table()?;
+                table.set("amplitudes", amplitudes.iter().map(|value| f64::from(*value)).collect::<Vec<f64>>())?;
                 Ok(table)
             }
             "ground_above" => {

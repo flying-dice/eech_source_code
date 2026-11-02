@@ -1,0 +1,1544 @@
+//! The host-authority and refusal witness of the host-owned terrain-sector surface enumeration (EEDCS-51, D3). SOURCE PREPARED: UNBUILT, UNRUN, UNREVIEWED.
+//!
+//! `lua/env-sector-authority.lua` boots the campaign through the public path (`require ("eech_dc")`, a DLL built with the `env-observer` feature) with the reference host's terrain provider wrapped, runs
+//! a finite number of frames and records what the host was asked (the sector request of every sound update, its position and season) and what the REAL sound routine then held in its scratch (the
+//! observer's hash and count of `terrain_types_in_sector` right after the routine's call). A mode answers the sector question differently (a valid changed enumeration, or a withheld or malformed one).
+//! This file has three parts.
+//!
+//! 1. The JUDGE, strict about its evidence, and its guards on synthetic rows. They prove only what the judge ACCEPTS and REFUSES (a control that really asked once per sound update and whose first scratch is
+//!    the host's first reply; a changed enumeration whose scratch is exactly what was sent and that differs from the host's; refusals that stop at the named marker after a sent alteration).
+//!    The judge also refuses INCOMPLETE observer evidence (the report's armed/dropped/overflow/stored/read/next_seq against the events the driver received, the sound records against the pairs,
+//!    the sound calls against the session updates, every counter required) and a changed run that did not complete its configured frames; the driver's own stream checks (an unbroken numbering from
+//!    boot_begin, adjacent sound-fact halves, no truncated pair) are exercised in part 2. They judge the first record only, as before: a complete stream is required, not every record compared.
+//! 2. DRIVER CONTROLS (no DLL, map or asset): the REAL driver runs in a real Lua state against a SCRIPTED engine that asks the installed provider every frame and wraps a provider's error or a malformed
+//!    answer in the marker the real bridge puts on it, with a scripted observer and output file. They prove what the DRIVER does (what it alters, records and how it fails); they invent no physics.
+//! 3. The PUBLIC WITNESS against a real DLL, driven by the environment and printing SKIPPED without it (never a proof).
+//!
+//!   EECH_WORLD_BIN            the `eech-world` executable (beside the production `eech_dc.dll` built with `env-observer`, and `lua.dll`)
+//!   EECH_SECTOR_ROOTS         fresh verified installation roots, one per mode run (an OS path list), at least as many as the modes run
+//!   EECH_SECTOR_MODES         optional: the modes to run, comma separated (the control is always run first); default: all five
+//!   EECH_SECTOR_SCENARIO      optional: lebanon_retail (default) or georgia_retail
+//!   EECH_SECTOR_DIR           optional: a directory for the outputs (private; they contain map data and never belong in Git)
+//!   EECH_SECTOR_WALL_SECONDS  optional: the wall limit of ONE mode's process, 1 to 14400 seconds (default 3600)
+//!
+//! WHAT THIS SHOWS AND WHAT IT DOES NOT. It shows, for the sector query, that the answer is the host's (a changed answer reaches the scratch the real routine read, exactly), that the routine asks once per
+//! update, and that a withheld or malformed answer stops the engine at the named boundary with no fallback to the campaign's own loaded sectors. It does NOT observe the sound amplitudes the routine then sets
+//! on the session's sound children (the routine's reads of the scratch are not instrumented beyond the observer's scratch hash), it does not exercise the renderer that also reads the scratch (3drain.c,
+//! dormant in the headless campaign and not inferred from it), and the other sector readers (per-type triangle counts and lists of the guide cover code) are unmoved and unobserved here. The unaltered
+//! enumeration's equivalence with the original is the separate three-root comparison of `lua/env-sector-characterization.lua`, not this file.
+
+use mlua::Lua;
+use serde_json::Value;
+use std::io::Read;
+use std::path::{Path, PathBuf};
+use std::time::{Duration, Instant};
+
+const SCRIPT: &str = include_str!("../lua/env-sector-authority.lua");
+
+const ALL_MODES: [&str; 5] = [
+    "control",
+    "changed_sector",
+    "withheld_sector",
+    "malformed_sector_flags",
+    "malformed_sector_returned",
+];
+const TYPES: usize = 62;
+
+fn refusal(mode: &str) -> Option<&'static str> {
+    match mode {
+        "withheld_sector" => Some("sector.callback"),
+        "malformed_sector_flags" => Some("sector.flags"),
+        "malformed_sector_returned" => Some("sector.returned"),
+        _ => None,
+    }
+}
+
+/// The flags the changed mode sends: river 1, reservoir 2, sea 7, altered land 21 and 22, forest top 46 (the types the sound routine reads), and the return value it sends with them.
+fn sent_flags() -> String {
+    (0..TYPES).map(|id| if [1, 2, 7, 21, 22, 46].contains(&id) { '1' } else { '0' }).collect()
+}
+const SENT_RETURNED: &str = "11";
+
+/// The observer's hash of the whole scratch (eech_env_observer.c): FNV-1a style over the entries as ints.
+fn scratch_hash(flags: &str) -> u32 {
+    flags
+        .chars()
+        .fold(2_166_136_261u32, |hash, flag| (hash ^ u32::from(flag == '1')).wrapping_mul(16_777_619))
+}
+
+fn distinct(flags: &str) -> usize {
+    flags.chars().filter(|flag| *flag == '1').count()
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// 1. the judge
+
+#[derive(Clone, Debug)]
+struct Request {
+    x: String,
+    z: String,
+    winter: bool,
+    returned: String,
+    flags: String,
+    sent: bool,
+}
+
+#[derive(Clone, Debug)]
+struct Pair {
+    hash: u32,
+    nonzero: usize,
+    sector_x: String,
+    sector_z: String,
+}
+
+#[derive(Debug)]
+struct Facts {
+    mode: String,
+    scenario: String,
+    frames_wanted: i64,
+    frame_ms: String,
+    requests: Vec<Request>,
+    pairs: Vec<Pair>,
+    authority: Value,
+}
+
+fn rows_of(text: &str) -> Result<Vec<Value>, String> {
+    text.lines()
+        .map(|line| serde_json::from_str(line).map_err(|e| format!("a row is not strict JSON: {line:?}: {e}")))
+        .collect()
+}
+
+fn of<'a>(rows: &'a [Value], name: &str) -> Vec<&'a Value> {
+    rows.iter().filter(|row| row["event"] == name).collect()
+}
+
+fn one<'a>(rows: &'a [Value], name: &str) -> Result<&'a Value, String> {
+    match of(rows, name).as_slice() {
+        [row] => Ok(*row),
+        other => Err(format!("the run wrote {} `{name}` rows, not one", other.len())),
+    }
+}
+
+fn text(row: &Value, field: &str) -> Result<String, String> {
+    let event = row["event"].as_str().unwrap_or("?");
+    match &row[field] {
+        Value::String(s) if !s.is_empty() => Ok(s.clone()),
+        Value::Number(n) => Ok(n.to_string()),
+        Value::String(_) => Err(format!("`{event}` has an empty {field}")),
+        _ => Err(format!("`{event}` is missing {field}")),
+    }
+}
+
+fn int(row: &Value, field: &str) -> Result<i64, String> {
+    row[field]
+        .as_i64()
+        .ok_or_else(|| format!("`{}` has no whole number {field}", row["event"].as_str().unwrap_or("?")))
+}
+
+/// The capacity of the observer's finite event store (`ENVOBS_CAPACITY`, eech_env_observer.c).
+const OBSERVER_CAPACITY: i64 = 16384;
+
+/// The observer's own counters as the driver read them from its report, checked again here so that an incomplete stream cannot become facts: a run the engine stopped carries -1 for every one
+/// (it cannot be asked); a completed run must show an armed observer that dropped nothing and had no overflow, whose store, read cursor and numbering are exactly the events the driver received,
+/// whose sound calls are the session updates it counted, and whose sound records are the pairs the driver found. Only the first records are published as rows; this proves the stream was complete,
+/// not that every later scratch was compared.
+fn observer_evidence(authority: &Value, completed: bool, pair_count: i64, sound_calls: i64, sound_records: i64) -> Result<(), String> {
+    let names = [
+        "observer_armed",
+        "observer_capacity",
+        "observer_stored",
+        "observer_read",
+        "observer_next_seq",
+        "observer_dropped",
+        "observer_overflow",
+        "observer_events",
+        "update_server",
+    ];
+    let mut values = Vec::new();
+    for name in names {
+        values.push(int(authority, name)?);
+    }
+    let Ok([armed, capacity, stored, read, next_seq, dropped, overflow, events, update_server]) = <[i64; 9]>::try_from(values.as_slice()) else {
+        return Err("the observer counters are not all present".into());
+    };
+    if !completed {
+        if values.iter().any(|value| *value != -1) || sound_records != -1 {
+            return Err("a run the engine stopped carries observer counters although the observer could not be read".into());
+        }
+        return Ok(());
+    }
+    if armed != 1 {
+        return Err(format!("the observer was not armed (armed {armed})"));
+    }
+    if dropped != 0 || overflow != 0 {
+        return Err(format!(
+            "the observer dropped {dropped} event(s) (overflow {overflow}): the evidence is incomplete"
+        ));
+    }
+    if !(1..=OBSERVER_CAPACITY).contains(&capacity) || capacity < stored {
+        return Err(format!("the observer reports capacity {capacity} for {stored} stored events"));
+    }
+    if events < 1 || stored != events || read != events || next_seq != events {
+        return Err(format!(
+            "the observer stored {stored}, read {read} and numbered {next_seq} events, but the driver received {events}: the stream is incomplete"
+        ));
+    }
+    if sound_calls != update_server {
+        return Err(format!("the observer counted {sound_calls} sound calls for {update_server} session updates"));
+    }
+    if sound_records != pair_count || sound_records > sound_calls {
+        return Err(format!(
+            "the observer counted {sound_records} sound records for {sound_calls} calls, but the stream holds {pair_count} pairs"
+        ));
+    }
+    Ok(())
+}
+
+impl Facts {
+    fn parse(source: &str) -> Result<Facts, String> {
+        let rows = rows_of(source)?;
+        if let Some(failure) = of(&rows, "witness_failure").first() {
+            return Err(format!("the witness itself failed: {}", failure["reason"].as_str().unwrap_or("no reason")));
+        }
+        let boot = one(&rows, "boot")?;
+        let authority = one(&rows, "authority")?.clone();
+        let mode = text(boot, "mode")?;
+        if text(&authority, "mode")? != mode {
+            return Err("the authority row is for another mode than the boot row".into());
+        }
+        let mut requests = Vec::new();
+        for row in of(&rows, "request") {
+            requests.push(Request {
+                x: text(row, "x")?,
+                z: text(row, "z")?,
+                winter: row["winter"].as_bool().ok_or("a request row has no boolean winter")?,
+                returned: text(row, "returned")?,
+                flags: text(row, "flags")?,
+                sent: row["sent"].as_bool().ok_or("a request row has no boolean sent")?,
+            });
+        }
+        let mut pairs = Vec::new();
+        for row in of(&rows, "pair") {
+            pairs.push(Pair {
+                hash: u32::try_from(int(row, "hash")?).map_err(|_| "a pair row's hash is not an unsigned 32-bit number".to_string())?,
+                nonzero: usize::try_from(int(row, "nonzero")?).map_err(|_| "a pair row has a negative count".to_string())?,
+                sector_x: text(row, "sector_x")?,
+                sector_z: text(row, "sector_z")?,
+            });
+        }
+        let counters = [
+            "sector_requests",
+            "altered_sector",
+            "request_rows",
+            "pair_rows",
+            "pairs",
+            "frames",
+            "frames_wanted",
+            "sound_calls",
+            "sound_records",
+        ]
+        .map(|f| int(&authority, f));
+        let [sector_requests, altered, request_rows, pair_rows, pair_count, frames, frames_wanted, sound_calls, sound_records] = counters;
+        // every counter is required: a missing or malformed one (the sound records included) is an error, not a value that is never looked at
+        let (sector_requests, altered, request_rows, pair_rows, pair_count, frames, frames_wanted, sound_calls, sound_records) = (
+            sector_requests?,
+            altered?,
+            request_rows?,
+            pair_rows?,
+            pair_count?,
+            frames?,
+            frames_wanted?,
+            sound_calls?,
+            sound_records?,
+        );
+        if usize::try_from(request_rows).ok() != Some(requests.len())
+            || usize::try_from(pair_rows).ok() != Some(pairs.len())
+            || pair_rows > pair_count
+            || request_rows > sector_requests
+        {
+            return Err(format!("the counters do not fit the rows: {request_rows} request rows for {} rows, {pair_rows}/{pair_count} pairs for {} rows, {sector_requests} requests", requests.len(), pairs.len()));
+        }
+        if altered < 0 || altered > sector_requests || frames < 0 || frames > frames_wanted {
+            return Err(format!(
+                "incoherent counters: altered {altered} of {sector_requests}, frames {frames} of {frames_wanted}"
+            ));
+        }
+        // the frames the run was CONFIGURED for are the boot row's (the driver's own argument, written before anything ran); the authority row's `frames_wanted` is the terminal row's copy and may not be
+        // the only evidence of it, or a completed run could be judged against a rewritten count. Required, a whole positive number, and the same in both rows, for healthy and stopped runs alike.
+        let boot_frames = int(boot, "frames")?;
+        if boot_frames < 1 || boot_frames != frames_wanted {
+            return Err(format!(
+                "the boot row configured {boot_frames} frames but the authority row says {frames_wanted} were wanted: the configured frame count is not one whole positive number in both rows"
+            ));
+        }
+        let completed = authority["completed"]
+            .as_bool()
+            .ok_or("the authority row does not say whether the run completed")?;
+        // a run the engine stopped cannot be asked for its observer, and says so; a completed one must have been
+        if completed != (authority["observer_checked"] == true) || (completed && sound_calls < 0) || (!completed && sound_calls != -1) {
+            return Err("the observer was not read exactly when the run completed".into());
+        }
+        observer_evidence(&authority, completed, pair_count, sound_calls, sound_records)?;
+        Ok(Facts {
+            mode,
+            scenario: text(boot, "scenario")?,
+            frames_wanted,
+            frame_ms: text(boot, "frame_ms")?,
+            requests,
+            pairs,
+            authority,
+        })
+    }
+
+    fn completed(&self) -> bool {
+        self.authority["completed"] == true
+    }
+    fn failure(&self) -> &str {
+        self.authority["failure"].as_str().unwrap_or_default()
+    }
+    fn number(&self, field: &str) -> i64 {
+        self.authority[field].as_i64().unwrap_or(i64::MIN)
+    }
+    fn first(&self) -> Result<&Request, String> {
+        self.requests
+            .first()
+            .ok_or_else(|| "the run recorded no sector request: the host was never asked".to_string())
+    }
+}
+
+fn matched(control: &Facts, run: &Facts) -> Result<(), String> {
+    if (&control.scenario, control.frames_wanted, &control.frame_ms) != (&run.scenario, run.frames_wanted, &run.frame_ms) {
+        return Err(format!(
+            "the runs were configured differently: {:?} against {:?}",
+            (&control.scenario, control.frames_wanted, &control.frame_ms),
+            (&run.scenario, run.frames_wanted, &run.frame_ms)
+        ));
+    }
+    let (a, b) = (control.first()?, run.first()?);
+    if (&a.x, &a.z, a.winter) != (&b.x, &b.z, b.winter) {
+        return Err(format!(
+            "the first sound updates asked about different positions or seasons: {:?} against {:?}",
+            (&a.x, &a.z, a.winter),
+            (&b.x, &b.z, b.winter)
+        ));
+    }
+    Ok(())
+}
+
+/// A valid enumeration as the host answers it: the flags one `0`/`1` per terrain type, at least one set, and the return value (1 + the surface changes) a whole number not below the flags set.
+fn valid_enumeration(request: &Request) -> Result<(), String> {
+    let well_formed = request.flags.len() == TYPES && request.flags.chars().all(|c| c == '0' || c == '1');
+    let returned = request.returned.parse::<usize>().ok();
+    if !well_formed || distinct(&request.flags) == 0 || returned.is_none_or(|r| r < distinct(&request.flags)) {
+        return Err(format!(
+            "the host's answer is not an enumeration: returned {:?}, flags {:?}",
+            request.returned, request.flags
+        ));
+    }
+    Ok(())
+}
+
+/// What the real routine's scratch held after its first call must be the first answer: the hash of the whole scratch, the number of entries set and the sector words (the clamped camera it asked about).
+fn first_scratch_is(run: &Facts, flags: &str) -> Result<(), String> {
+    let (request, pair) = (
+        run.first()?,
+        run.pairs
+            .first()
+            .ok_or("the observer recorded no sound update: the routine's scratch was not seen")?,
+    );
+    if pair.hash != scratch_hash(flags) || pair.nonzero != distinct(flags) {
+        return Err(format!(
+            "the scratch the sound routine read (hash {:#010x}, {} entries set) is not the answer the host gave (hash {:#010x}, {} flags)",
+            pair.hash,
+            pair.nonzero,
+            scratch_hash(flags),
+            distinct(flags)
+        ));
+    }
+    let same = |word: &str, asked: &str| word.parse::<f64>().ok() == asked.parse::<f64>().ok();
+    if !same(&pair.sector_x, &request.x) || !same(&pair.sector_z, &request.z) {
+        return Err(format!(
+            "the routine's sector words {:?} are not the position the host was asked about {:?}",
+            (&pair.sector_x, &pair.sector_z),
+            (&request.x, &request.z)
+        ));
+    }
+    Ok(())
+}
+
+/// One request for every sound update, for every frame, none lost and none extra, none altered in the control.
+fn asked_once_per_update(run: &Facts) -> Result<(), String> {
+    let (requests, calls, frames) = (run.number("sector_requests"), run.number("sound_calls"), run.number("frames_wanted"));
+    if requests != calls || calls < frames {
+        return Err(format!(
+            "{requests} sector requests for {calls} sound updates in {frames} frames: the host was not asked exactly once per update"
+        ));
+    }
+    Ok(())
+}
+
+fn judge_control(control: &Facts) -> Result<(), String> {
+    if !control.completed() {
+        return Err(format!("SETUP FAILURE: the healthy control stopped: {}", control.failure()));
+    }
+    if control.number("frames") != control.number("frames_wanted") {
+        return Err("SETUP FAILURE: the control did not run its frames".into());
+    }
+    if control.number("altered_sector") != 0 || control.requests.iter().any(|r| r.sent) {
+        return Err("SETUP FAILURE: the control altered a sector answer".into());
+    }
+    asked_once_per_update(control)?;
+    let first = control.first()?;
+    valid_enumeration(first)?;
+    first_scratch_is(control, &first.flags)
+}
+
+fn judge_changed(control: &Facts, run: &Facts) -> Result<(), String> {
+    matched(control, run)?;
+    if !run.completed() {
+        return Err(format!("a valid changed enumeration stopped the engine: {}", run.failure()));
+    }
+    // a changed run is judged only when it ran every frame it was configured for (as the control is): a partial run that completed its counters is not a run
+    if run.number("frames") != run.number("frames_wanted") {
+        return Err(format!(
+            "a changed run completed only {} of its {} frames",
+            run.number("frames"),
+            run.number("frames_wanted")
+        ));
+    }
+    asked_once_per_update(run)?;
+    if run.number("altered_sector") != run.number("sector_requests") || run.number("altered_sector") == 0 {
+        return Err(format!(
+            "{} sector requests but {} altered: not every answer was the host's alternative",
+            run.number("sector_requests"),
+            run.number("altered_sector")
+        ));
+    }
+    let first = run.first()?;
+    if !first.sent || first.flags != sent_flags() || first.returned != SENT_RETURNED {
+        return Err(format!("the enumeration sent is not the one the witness promised: {:?}", first));
+    }
+    if control.first()?.flags == sent_flags() {
+        return Err("the changed enumeration equals what the host answered in the control: nothing could be shown".into());
+    }
+    first_scratch_is(run, &sent_flags())
+}
+
+fn judge_refusal(mode: &str, control: &Facts, run: &Facts) -> Result<(), String> {
+    let marker = refusal(mode).ok_or_else(|| format!("{mode} is not a refusal mode"))?;
+    if run.mode != mode {
+        return Err(format!("the run is for mode {}, not {mode}", run.mode));
+    }
+    matched(control, run)?;
+    if run.completed() {
+        return Err(format!("{mode}: the engine did not stop although the host answered wrongly"));
+    }
+    if run.failure().contains("env-sector-authority:") {
+        return Err(format!("{mode}: the stop is the witness's own failure, not the engine's: {}", run.failure()));
+    }
+    if !run.failure().contains(&format!("[terrain-provider:{marker}]")) {
+        return Err(format!("{mode}: the engine stopped, but not at [terrain-provider:{marker}]: {}", run.failure()));
+    }
+    let first = run.first()?;
+    let shape = match mode {
+        "withheld_sector" => first.flags == "withheld" && first.returned == "withheld",
+        "malformed_sector_flags" => first.flags.len() == TYPES - 1,
+        _ => first.returned == "0" && first.flags.len() == TYPES,
+    };
+    if !first.sent || !shape || run.number("altered_sector") < 1 || run.number("altered_sector") != run.number("sector_requests") {
+        return Err(format!(
+            "{mode}: stopped at the marker without the matching alteration having been sent: {:?}",
+            first
+        ));
+    }
+    Ok(())
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// the guards of the judge, on synthetic rows
+
+struct Synthetic {
+    mode: &'static str,
+    frames: u32,
+    completed: bool,
+    failure: &'static str,
+    request: (&'static str, &'static str, String, String, bool),
+    pair: Option<(u32, usize, &'static str, &'static str)>,
+    authority: Vec<(&'static str, String)>,
+}
+
+fn host_flags() -> String {
+    (0..TYPES).map(|id| if [9, 46].contains(&id) { '1' } else { '0' }).collect()
+}
+
+impl Synthetic {
+    /// A healthy control: 30 frames, 30 sound updates, 30 requests, the host's own enumeration (returned 7, two types flagged), the scratch of the routine equal to it.
+    fn control() -> Synthetic {
+        Synthetic {
+            mode: "control",
+            frames: 30,
+            completed: true,
+            failure: "",
+            request: ("48750", "29651.9766", "7".into(), host_flags(), false),
+            pair: Some((scratch_hash(&host_flags()), 2, "48750", "29651.9766")),
+            authority: Vec::new(),
+        }
+    }
+    fn changed() -> Synthetic {
+        let mut run = Synthetic::control();
+        run.mode = "changed_sector";
+        run.request = ("48750", "29651.9766", SENT_RETURNED.into(), sent_flags(), true);
+        run.pair = Some((scratch_hash(&sent_flags()), 6, "48750", "29651.9766"));
+        run.authority = vec![("altered_sector", "30".into())];
+        run
+    }
+    fn refused(mode: &'static str, marker: &'static str, returned: &str, flags: String) -> Synthetic {
+        let mut run = Synthetic::control();
+        run.mode = mode;
+        run.completed = false;
+        run.failure = Box::leak(format!("host terrain: [terrain-provider:{marker}] detail").into_boxed_str());
+        run.request.2 = returned.into();
+        run.request.3 = flags;
+        run.request.4 = true;
+        run.pair = None;
+        run.authority = vec![
+            ("sector_requests", "1".into()),
+            ("altered_sector", "1".into()),
+            ("frames", "0".into()),
+            ("sound_calls", "-1".into()),
+            ("observer_checked", "false".into()),
+        ];
+        run
+    }
+    fn text(&self) -> String {
+        let mut rows = vec![
+            format!(
+                "{{\"event\":\"boot\",\"mode\":\"{}\",\"scenario\":\"lebanon_retail\",\"seed\":1,\"frames\":{},\"frame_ms\":100}}",
+                self.mode, self.frames
+            ),
+            format!(
+                "{{\"event\":\"request\",\"n\":1,\"x\":\"{}\",\"z\":\"{}\",\"winter\":false,\"returned\":\"{}\",\"flags\":\"{}\",\"sent\":{}}}",
+                self.request.0, self.request.1, self.request.2, self.request.3, self.request.4
+            ),
+        ];
+        if let Some((hash, nonzero, sx, sz)) = self.pair {
+            rows.push(format!(
+                "{{\"event\":\"pair\",\"n\":1,\"hash\":{hash},\"nonzero\":{nonzero},\"sector_x\":\"{sx}\",\"sector_z\":\"{sz}\",\"in_cockpit\":0}}"
+            ));
+        }
+        let mut fields: std::collections::BTreeMap<&str, String> = std::collections::BTreeMap::new();
+        fields.insert("mode", format!("\"{}\"", self.mode));
+        fields.insert("completed", self.completed.to_string());
+        fields.insert("failure", format!("\"{}\"", self.failure));
+        fields.insert("frames", self.frames.to_string());
+        fields.insert("frames_wanted", self.frames.to_string());
+        fields.insert("sector_requests", self.frames.to_string());
+        fields.insert("altered_sector", "0".into());
+        fields.insert("request_rows", "1".into());
+        fields.insert("pair_rows", if self.pair.is_some() { "1" } else { "0" }.into());
+        fields.insert("pairs", if self.pair.is_some() { "1" } else { "0" }.into());
+        fields.insert("sound_calls", if self.completed { self.frames.to_string() } else { "-1".into() });
+        fields.insert("sound_records", if self.completed { "1".into() } else { "-1".into() });
+        fields.insert("observer_checked", self.completed.to_string());
+        // the observer's own counters of a healthy run: armed, nothing dropped, 4 events stored, read and numbered (boot_begin, boot_end and one sound pair), one sound call per update
+        for (field, healthy) in [
+            ("observer_armed", "1".to_string()),
+            ("observer_capacity", OBSERVER_CAPACITY.to_string()),
+            ("observer_stored", "4".to_string()),
+            ("observer_read", "4".to_string()),
+            ("observer_next_seq", "4".to_string()),
+            ("observer_dropped", "0".to_string()),
+            ("observer_overflow", "0".to_string()),
+            ("observer_events", "4".to_string()),
+            ("update_server", self.frames.to_string()),
+        ] {
+            fields.insert(field, if self.completed { healthy } else { "-1".into() });
+        }
+        for (field, value) in &self.authority {
+            fields.insert(field, value.clone());
+        }
+        let body: Vec<String> = fields.iter().map(|(k, v)| format!("\"{k}\":{v}")).collect();
+        rows.push(format!("{{\"event\":\"authority\",{}}}", body.join(",")));
+        rows.join("\n")
+    }
+    fn facts(&self) -> Facts {
+        Facts::parse(&self.text()).unwrap_or_else(|e| panic!("{e}: {}", self.text()))
+    }
+}
+
+#[test]
+fn a_control_is_judged_only_when_the_host_was_asked_once_per_update_and_the_routines_scratch_is_its_first_answer() {
+    judge_control(&Synthetic::control().facts()).expect("a healthy control");
+    let mut extra = Synthetic::control();
+    extra.authority.push(("sector_requests", "31".into()));
+    assert!(judge_control(&extra.facts()).unwrap_err().contains("not asked exactly once per update"));
+    let mut fewer_updates = Synthetic::control();
+    fewer_updates.authority.push(("sound_calls", "29".into()));
+    fewer_updates.authority.push(("sector_requests", "29".into()));
+    fewer_updates.authority.push(("update_server", "29".into()));
+    assert!(
+        judge_control(&fewer_updates.facts()).unwrap_err().contains("not asked exactly once per update"),
+        "fewer updates than frames"
+    );
+    // the scratch the routine read is not the host's first answer: the hash, the count, the position
+    let mut other_hash = Synthetic::control();
+    other_hash.pair = Some((scratch_hash(&sent_flags()), 2, "48750", "29651.9766"));
+    assert!(judge_control(&other_hash.facts()).unwrap_err().contains("is not the answer the host gave"));
+    let mut other_count = Synthetic::control();
+    other_count.pair = Some((scratch_hash(&host_flags()), 3, "48750", "29651.9766"));
+    assert!(judge_control(&other_count.facts()).unwrap_err().contains("is not the answer the host gave"));
+    let mut other_position = Synthetic::control();
+    other_position.pair = Some((scratch_hash(&host_flags()), 2, "48750", "1"));
+    assert!(judge_control(&other_position.facts())
+        .unwrap_err()
+        .contains("not the position the host was asked about"));
+    let mut unseen = Synthetic::control();
+    unseen.pair = None;
+    unseen.authority.push(("pairs", "0".into()));
+    unseen.authority.push(("sound_records", "0".into()));
+    assert!(judge_control(&unseen.facts()).unwrap_err().contains("scratch was not seen"));
+    // an answer that is not an enumeration (a return value below the flags set, no flag, short flags) is not a healthy control either
+    for (returned, flags) in [("1", host_flags()), ("7", "0".repeat(TYPES)), ("7", host_flags()[..61].to_string())] {
+        let mut bad = Synthetic::control();
+        bad.request.2 = returned.into();
+        bad.request.3 = flags;
+        assert!(judge_control(&bad.facts()).unwrap_err().contains("not an enumeration"));
+    }
+    // it altered something, or stopped
+    let mut altering = Synthetic::control();
+    altering.request.4 = true;
+    assert!(judge_control(&altering.facts()).unwrap_err().contains("altered a sector answer"));
+    assert!(
+        judge_control(&Synthetic::refused("control", "sector.callback", "withheld", "withheld".into()).facts())
+            .unwrap_err()
+            .contains("control stopped")
+    );
+}
+
+#[test]
+fn evidence_that_is_incomplete_or_incoherent_has_no_facts() {
+    let control = Synthetic::control().text();
+    let refused = |text: String, fragment: &str| {
+        let error = Facts::parse(&text).unwrap_err();
+        assert!(error.contains(fragment), "expected {fragment:?} in {error:?}");
+    };
+    refused(control.replace("\"request_rows\":1", "\"request_rows\":2"), "do not fit the rows");
+    refused(control.replace("\"altered_sector\":0", "\"altered_sector\":31"), "incoherent counters");
+    refused(
+        control.replace("\"sound_calls\":30", "\"sound_calls\":-1"),
+        "observer was not read exactly when the run completed",
+    );
+    refused(
+        control.replace("\"observer_checked\":true", "\"observer_checked\":false"),
+        "observer was not read exactly when the run completed",
+    );
+    refused(
+        control.replace("\"mode\":\"control\",\"scenario\"", "\"mode\":\"changed_sector\",\"scenario\""),
+        "another mode",
+    );
+    let unwritten: String = control.lines().filter(|line| !line.contains("\"authority\"")).collect::<Vec<_>>().join("\n");
+    refused(unwritten, "`authority` rows");
+    refused(
+        format!("{control}\n{{\"event\":\"witness_failure\",\"reason\":\"STALLED CLOCK\"}}"),
+        "the witness itself failed: STALLED CLOCK",
+    );
+    refused(control.replace("\"hash\":", "\"hash\":-"), "unsigned 32-bit");
+}
+
+#[test]
+fn observer_evidence_that_is_lossy_gapped_unreconciled_or_missing_has_no_facts() {
+    let control = Synthetic::control().text();
+    Facts::parse(&control).expect("the healthy control is complete");
+    let refused = |text: String, fragment: &str| {
+        let error = Facts::parse(&text).unwrap_err();
+        assert!(error.contains(fragment), "expected {fragment:?} in {error:?}");
+    };
+    // the loss and the cursor: dropped or overflowed events, an observer that was not armed, a store/read/numbering that is not the events the driver received
+    refused(control.replace("\"observer_dropped\":0", "\"observer_dropped\":3"), "dropped 3 event(s)");
+    refused(
+        control.replace("\"observer_overflow\":0", "\"observer_overflow\":1"),
+        "the evidence is incomplete",
+    );
+    refused(control.replace("\"observer_armed\":1", "\"observer_armed\":0"), "was not armed");
+    refused(control.replace("\"observer_stored\":4", "\"observer_stored\":5"), "the stream is incomplete");
+    refused(control.replace("\"observer_read\":4", "\"observer_read\":3"), "the stream is incomplete");
+    refused(
+        control.replace("\"observer_next_seq\":4", "\"observer_next_seq\":6"),
+        "the stream is incomplete",
+    );
+    refused(control.replace("\"observer_events\":4", "\"observer_events\":3"), "the stream is incomplete");
+    refused(control.replace("\"observer_events\":4", "\"observer_events\":0"), "the stream is incomplete");
+    refused(control.replace("\"observer_capacity\":16384", "\"observer_capacity\":3"), "reports capacity 3");
+    refused(
+        control.replace("\"observer_capacity\":16384", "\"observer_capacity\":99999"),
+        "reports capacity 99999",
+    );
+    // the reconciliation: records the observer counted against the pairs found, and sound calls against session updates
+    refused(control.replace("\"sound_records\":1", "\"sound_records\":2"), "counted 2 sound records");
+    refused(control.replace("\"sound_records\":1", "\"sound_records\":0"), "counted 0 sound records");
+    refused(
+        control.replace("\"update_server\":30", "\"update_server\":29"),
+        "30 sound calls for 29 session updates",
+    );
+    let mut more_records_than_calls = Synthetic::control();
+    more_records_than_calls.authority = vec![
+        ("sound_calls", "1".into()),
+        ("update_server", "1".into()),
+        ("sound_records", "2".into()),
+        ("pairs", "2".into()),
+    ];
+    assert!(Facts::parse(&more_records_than_calls.text())
+        .unwrap_err()
+        .contains("counted 2 sound records for 1 calls"));
+    // a counter that is missing or malformed is an error, the sound records included (they were once bound and never looked at)
+    refused(control.replace("\"sound_records\":", "\"sound_recordz\":"), "no whole number sound_records");
+    refused(
+        control.replace("\"sound_records\":1", "\"sound_records\":\"1\""),
+        "no whole number sound_records",
+    );
+    refused(control.replace("\"observer_dropped\":0,", ""), "no whole number observer_dropped");
+    refused(
+        control.replace("\"update_server\":30", "\"update_server\":null"),
+        "no whole number update_server",
+    );
+    // a run the engine stopped could not be asked, and must not carry observer counters (nor omit them)
+    let stopped = Synthetic::refused("withheld_sector", "sector.callback", "withheld", "withheld".into()).text();
+    Facts::parse(&stopped).expect("a stopped run says the observer was not read");
+    refused(stopped.replace("\"observer_stored\":-1", "\"observer_stored\":4"), "could not be read");
+    refused(stopped.replace("\"sound_records\":-1", "\"sound_records\":1"), "could not be read");
+    refused(stopped.replace("\"observer_armed\":-1,", ""), "no whole number observer_armed");
+}
+
+#[test]
+fn the_configured_boot_frame_count_must_be_present_valid_and_the_same_as_the_authority_rows_count() {
+    let control = Synthetic::control().text();
+    let refused = |text: String, fragment: &str| {
+        let error = Facts::parse(&text).unwrap_err();
+        assert!(error.contains(fragment), "expected {fragment:?} in {error:?}");
+    };
+    const BOOT: &str = "\"frames\":30,\"frame_ms\"";
+    const AUTHORITY: &str = "\"frames\":30,\"frames_wanted\":30";
+    assert!(
+        control.contains(BOOT) && control.contains(AUTHORITY),
+        "the synthetic rows are not the shape this test rewrites"
+    );
+    // the forged completed run: the authority row says 20 of 20 frames (its 30 sound calls and requests satisfy that), the run was configured for 30 at boot
+    refused(
+        control.replace(AUTHORITY, "\"frames\":20,\"frames_wanted\":20"),
+        "configured 30 frames but the authority row says 20",
+    );
+    // the boot count rewritten alone, in either direction, or removed, or not a whole count
+    refused(
+        control.replace(BOOT, "\"frames\":40,\"frame_ms\""),
+        "configured 40 frames but the authority row says 30",
+    );
+    refused(
+        control.replace(BOOT, "\"frames\":20,\"frame_ms\""),
+        "configured 20 frames but the authority row says 30",
+    );
+    refused(control.replace(BOOT, "\"frame_ms\""), "`boot` has no whole number frames");
+    refused(control.replace(BOOT, "\"frames\":\"30\",\"frame_ms\""), "`boot` has no whole number frames");
+    refused(control.replace(BOOT, "\"frames\":30.5,\"frame_ms\""), "`boot` has no whole number frames");
+    refused(control.replace(BOOT, "\"frames\":null,\"frame_ms\""), "`boot` has no whole number frames");
+    refused(control.replace(BOOT, "\"frames\":-30,\"frame_ms\""), "configured -30 frames");
+    // both rows agreeing on a count that is not a positive one is not a configuration either
+    refused(
+        control
+            .replace(BOOT, "\"frames\":0,\"frame_ms\"")
+            .replace(AUTHORITY, "\"frames\":0,\"frames_wanted\":0"),
+        "configured 0 frames",
+    );
+    // a run the engine stopped is held to the same: its terminal row's count is not the only evidence of the configuration
+    let stopped = Synthetic::refused("withheld_sector", "sector.callback", "withheld", "withheld".into()).text();
+    Facts::parse(&stopped).expect("a stopped run with the configured count in both rows");
+    refused(
+        stopped.replace("\"frames_wanted\":30", "\"frames_wanted\":20"),
+        "configured 30 frames but the authority row says 20",
+    );
+    refused(stopped.replace(BOOT, "\"frame_ms\""), "`boot` has no whole number frames");
+    // and the honest case is not over-refused: a run configured for 20 frames, in both rows, with its 20 sound calls and requests, is a healthy control
+    judge_control(
+        &Synthetic {
+            frames: 20,
+            ..Synthetic::control()
+        }
+        .facts(),
+    )
+    .expect("a control configured for 20 frames and completing 20");
+    // the completed-frames equality still protects ALL the configured frames once the configuration is trusted
+    let mut short = Synthetic::control();
+    short.authority.push(("frames", "20".into()));
+    assert!(judge_control(&short.facts()).unwrap_err().contains("did not run its frames"));
+}
+
+#[test]
+fn a_changed_run_that_completed_only_some_of_its_frames_is_not_judged() {
+    let control = Synthetic::control().facts();
+    judge_changed(&control, &Synthetic::changed().facts()).expect("the full changed run");
+    let mut partial = Synthetic::changed();
+    partial.authority.push(("frames", "20".into()));
+    let facts = partial.facts();
+    assert_eq!(facts.number("frames"), 20, "the partial run parses: its counters are coherent");
+    assert!(judge_changed(&control, &facts).unwrap_err().contains("completed only 20 of its 30 frames"));
+    // the control's own check is the same
+    let mut short_control = Synthetic::control();
+    short_control.authority.push(("frames", "20".into()));
+    assert!(judge_control(&short_control.facts()).unwrap_err().contains("did not run its frames"));
+}
+
+#[test]
+fn a_changed_enumeration_must_reach_the_scratch_exactly_and_differ_from_the_hosts_own() {
+    let control = Synthetic::control().facts();
+    judge_changed(&control, &Synthetic::changed().facts()).expect("the scratch is what was sent");
+    // the scratch the routine read is the host's own, not the one sent: the host's answer did not reach the consumer
+    let mut ignored = Synthetic::changed();
+    ignored.pair = Some((scratch_hash(&host_flags()), 2, "48750", "29651.9766"));
+    assert!(judge_changed(&control, &ignored.facts())
+        .unwrap_err()
+        .contains("is not the answer the host gave"));
+    // not every request altered, a promise broken, a changed answer that equals the host's, a different camera or configuration, a stopped engine
+    let mut partial = Synthetic::changed();
+    partial.authority = vec![("altered_sector", "10".into())];
+    assert!(judge_changed(&control, &partial.facts())
+        .unwrap_err()
+        .contains("not every answer was the host's alternative"));
+    let mut wrong = Synthetic::changed();
+    wrong.request.2 = "12".into();
+    assert!(judge_changed(&control, &wrong.facts())
+        .unwrap_err()
+        .contains("not the one the witness promised"));
+    let mut same_as_control = Synthetic::control();
+    same_as_control.request.3 = sent_flags();
+    same_as_control.request.2 = SENT_RETURNED.into();
+    same_as_control.pair = Some((scratch_hash(&sent_flags()), 6, "48750", "29651.9766"));
+    assert!(judge_changed(&same_as_control.facts(), &Synthetic::changed().facts())
+        .unwrap_err()
+        .contains("nothing could be shown"));
+    let mut elsewhere = Synthetic::changed();
+    elsewhere.request.0 = "1";
+    elsewhere.pair = Some((scratch_hash(&sent_flags()), 6, "1", "29651.9766"));
+    assert!(judge_changed(&control, &elsewhere.facts())
+        .unwrap_err()
+        .contains("different positions or seasons"));
+    let mut other_frames = Synthetic::changed();
+    other_frames.frames = 40;
+    assert!(judge_changed(&control, &other_frames.facts()).unwrap_err().contains("configured differently"));
+    assert!(
+        judge_changed(&control, &Synthetic::refused("changed_sector", "sector.flags", "11", sent_flags()).facts())
+            .unwrap_err()
+            .contains("stopped the engine")
+    );
+}
+
+#[test]
+fn a_refusal_counts_only_at_the_named_marker_after_a_sent_matching_alteration() {
+    let control = Synthetic::control().facts();
+    judge_refusal(
+        "withheld_sector",
+        &control,
+        &Synthetic::refused("withheld_sector", "sector.callback", "withheld", "withheld".into()).facts(),
+    )
+    .expect("withheld");
+    judge_refusal(
+        "malformed_sector_flags",
+        &control,
+        &Synthetic::refused("malformed_sector_flags", "sector.flags", "3", sent_flags()[..61].to_string()).facts(),
+    )
+    .expect("short flags");
+    judge_refusal(
+        "malformed_sector_returned",
+        &control,
+        &Synthetic::refused("malformed_sector_returned", "sector.returned", "0", sent_flags()).facts(),
+    )
+    .expect("zero return value");
+    // the wrong marker, no stop, an alteration of another shape, another mode's evidence, the witness's own failure, not a refusal mode
+    assert!(judge_refusal(
+        "withheld_sector",
+        &control,
+        &Synthetic::refused("withheld_sector", "sector.flags", "withheld", "withheld".into()).facts()
+    )
+    .unwrap_err()
+    .contains("not at"));
+    let healthy = Synthetic::changed().facts();
+    assert!(judge_refusal("changed_sector", &control, &healthy).unwrap_err().contains("not a refusal mode"));
+    let mut unstopped = Synthetic::refused("withheld_sector", "sector.callback", "withheld", "withheld".into());
+    // a run that completed is a coherent completed run: the observer was read and holds the one sound record the base control's counters say it counted (the refusal base has no pair row)
+    unstopped.completed = true;
+    unstopped.pair = Some((scratch_hash(&host_flags()), 2, "48750", "29651.9766"));
+    unstopped.authority = vec![("altered_sector", "30".into())];
+    assert!(judge_refusal("withheld_sector", &control, &unstopped.facts())
+        .unwrap_err()
+        .contains("did not stop"));
+    assert!(judge_refusal(
+        "malformed_sector_flags",
+        &control,
+        &Synthetic::refused("malformed_sector_flags", "sector.flags", "3", sent_flags()).facts()
+    )
+    .unwrap_err()
+    .contains("matching alteration"));
+    assert!(judge_refusal(
+        "malformed_sector_returned",
+        &control,
+        &Synthetic::refused("withheld_sector", "sector.returned", "0", sent_flags()).facts()
+    )
+    .unwrap_err()
+    .contains("the run is for mode withheld_sector"));
+    let mut own = Synthetic::refused("withheld_sector", "sector.callback", "withheld", "withheld".into());
+    own.failure = "env-sector-authority: [terrain-provider:sector.callback]";
+    assert!(judge_refusal("withheld_sector", &control, &own.facts())
+        .unwrap_err()
+        .contains("witness's own failure"));
+    assert_eq!(ALL_MODES.iter().filter(|mode| refusal(mode).is_some()).count(), 3);
+    for mode in ALL_MODES {
+        assert!(SCRIPT.contains(&format!("\t{mode} = ")), "the script does not define {mode}");
+    }
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// 2. driver controls: the REAL driver against a scripted engine
+
+/// The scripted collaborators (a fixture for the driver's bookkeeping: it invents no physics). A scripted `eech_dc` boots a scripted engine that, every frame, asks the provider the driver installed for
+/// the sector of the camera (the position the scenario gives), wraps a provider's error or a malformed answer in the marker the real bridge puts on it, and keeps what it received in `RECEIVED`. The scripted
+/// observer returns the report and the sound-fact lines the scenario gives. `WRITTEN` collects what the driver wrote.
+const COLLABORATORS: &str = r##"
+WRITTEN = {}
+RECEIVED = {}
+local scenario = SCENARIO
+local file = { writes = 0, flushes = 0 }
+function file:write (text)
+	self.writes = self.writes + 1
+	local fail = scenario.io_fail
+	if fail and fail.op == "write" and fail.at == self.writes then return nil, "disk full" end
+	WRITTEN [#WRITTEN + 1] = text
+	return self
+end
+function file:flush ()
+	self.flushes = self.flushes + 1
+	local fail = scenario.io_fail
+	if fail and fail.op == "flush" and fail.at == self.flushes then return nil, "flush failed" end
+	return true
+end
+function file:close ()
+	local fail = scenario.io_fail
+	if fail and fail.op == "close" then return nil, "close failed" end
+	return true
+end
+io.open = function () return file end
+
+local provider
+local function ask_sector ()
+	local request = { op = "sector", x = scenario.x or 48750, z = scenario.z or 29651.5, winter = false }
+	local ok, answer = pcall (provider, request)
+	if not ok then error ("host terrain: [terrain-provider:sector.callback] " .. tostring (answer), 0) end
+	if request.op ~= "sector" or request.x ~= (scenario.x or 48750) then error ("SCRIPTED: the wrapper changed the request", 0) end
+	if type (answer) ~= "table" then error ("host terrain: [terrain-provider:sector.answer] not a table", 0) end
+	local flags, returned = answer.flags, answer.returned
+	if type (flags) ~= "string" or #flags ~= 62 or string.find (flags, "[^01]") then error ("host terrain: [terrain-provider:sector.flags] the flags are not 62 characters of 0 and 1", 0) end
+	local _, distinct = string.gsub (flags, "1", "")
+	if distinct < 1 or type (returned) ~= "number" or returned < distinct or returned ~= math.floor (returned) then
+		error ("host terrain: [terrain-provider:sector.returned] the return value does not fit the flags", 0)
+	end
+	RECEIVED [#RECEIVED + 1] = { returned = returned, flags = flags }
+end
+
+host = {
+	args = ARGS,
+	bind_mobile = function () end,
+	aim = function () end,
+	env_provider = function () return function () return {} end end,
+	terrain_provider = function ()
+		return function (request)
+			if request.op == "sector" then return { returned = 7, flags = string.rep ("0", 9) .. "1" .. string.rep ("0", 36) .. "1" .. string.rep ("0", 15) } end
+			return {}
+		end
+	end,
+}
+
+package.preload.eech_dc = function ()
+	local dc = {
+		prepare_installation = function () end,
+		boot = function (config)
+			provider = config.terrain
+			local now = 0
+			local engine = {}
+			function engine:clock () return { elapsed_seconds = now } end
+			function engine:frame (milliseconds)
+				now = now + (scenario.clock_step or milliseconds / 1000)
+				ask_sector ()
+			end
+			-- the real observer's report: its cursor (`read`) is 0 until the events are drained, and every counter follows the stream the scenario scripts unless `report` overrides it
+			local drained = false
+			function engine:env_observer_report ()
+				if scenario.report_error then error ("the report did not fit", 0) end
+				if scenario.report_text then return scenario.report_text end
+				local lines = scenario.observer or {}
+				local halves = 0
+				for _, line in ipairs (lines) do if string.find (line, " kind=30 ", 1, true) then halves = halves + 1 end end
+				local r = scenario.report or {}
+				local function v (name, default) if r [name] ~= nil then return r [name] end return default end
+				return string.format ("env-obs-report armed=%d capacity=%d stored=%d read=%d dropped=%d overflow=%d next_seq=%d update_server=%d lightning_calls=0 sound_calls=%d resync_calls=0 weather_calls=0 sound_records=%d\n",
+					v ("armed", 1), v ("capacity", 16384), v ("stored", #lines), v ("read", drained and #lines or 0), v ("dropped", 0), v ("overflow", 0), v ("next_seq", #lines),
+					v ("update_server", #RECEIVED), v ("sound_calls", #RECEIVED), v ("sound_records", math.floor (halves / 2)))
+			end
+			function engine:env_observer_events ()
+				drained = true
+				return table.concat (scenario.observer or {}, "\n")
+			end
+			return engine
+		end,
+	}
+	if not scenario.no_observer then dc.env_observer_arm = function () end end
+	return dc
+end
+"##;
+
+struct Driven {
+    result: Result<(), String>,
+    rows: String,
+    received: Vec<(i64, String)>,
+}
+
+/// Runs the real driver once. `scenario` is the inside of the Lua table the collaborators read; `args` are the driver's own arguments.
+fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
+    let lua = Lua::new();
+    let mut table = String::from("{ root = 'unused-root', out = 'unused-out', frames = '5', frame_ms = '100'");
+    for (key, value) in args {
+        table.push_str(&format!(", {key} = '{value}'"));
+    }
+    table.push_str(" }");
+    lua.load(format!("ARGS = {table}\nSCENARIO = {{ {scenario} }}"))
+        .exec()
+        .expect("the scenario is valid Lua");
+    lua.load(COLLABORATORS)
+        .set_name("scripted collaborators")
+        .exec()
+        .expect("the collaborators load");
+    let result = lua.load(SCRIPT).set_name("env-sector-authority.lua").exec().map_err(|e| e.to_string());
+    let written: Vec<String> = lua.globals().get("WRITTEN").expect("the collected output");
+    let received_table: mlua::Table = lua.globals().get("RECEIVED").expect("the received answers");
+    let received = received_table
+        .sequence_values::<mlua::Table>()
+        .map(|entry| {
+            let entry = entry.expect("a received answer");
+            (entry.get::<i64>("returned").expect("returned"), entry.get::<String>("flags").expect("flags"))
+        })
+        .collect();
+    Driven {
+        result,
+        rows: written.concat(),
+        received,
+    }
+}
+
+/// One observer event line in the real grammar (`eech_env_observer.c`: `env-obs seq=%u kind=%d a=%d b=%d rng=%d rng_w=%08x w0..w5=%08x`); the shared seed word is the one word 1.
+fn event(seq: u32, kind: u32, a: i32, b: i32, w0: &str, w1: &str) -> String {
+    format!("env-obs seq={seq} kind={kind} a={a} b={b} rng=1 rng_w=00000001 w0={w0} w1={w1} w2=00000000 w3=00000000 w4=00000000 w5=00000000")
+}
+
+const ZERO: &str = "00000000";
+
+/// The two events of one sound record: the first holds the hash of the whole scratch (as a signed int), the second the number of entries set and the clamped sector words.
+fn sound_pair(seq: u32, flags: &str) -> [String; 2] {
+    [
+        event(seq, 30, 0, scratch_hash(flags) as i32, ZERO, ZERO),
+        event(seq + 1, 30, -1, distinct(flags) as i32, X_WORD, Z_WORD),
+    ]
+}
+
+/// The scripted stream of a healthy run, as the real observer would number it: boot_begin and boot_end (kinds 1 and 2) and the one sound record of the first update, built from the flags the
+/// scenario's engine is to have read.
+fn healthy_stream(flags: &str) -> Vec<String> {
+    let [first, second] = sound_pair(2, flags);
+    vec![event(0, 1, 0, 0, ZERO, ZERO), event(1, 2, 0, 0, ZERO, ZERO), first, second]
+}
+
+/// the IEEE words of 48750.0 and 29651.5
+const X_WORD: &str = "473e6e00";
+const Z_WORD: &str = "46e7a700";
+
+/// A scenario for the scripted engine: the camera position, optional extra fields (each ending with a comma) and the scripted observer's lines.
+fn scenario_with(lines: &[String], extra: &str) -> String {
+    let quoted: Vec<String> = lines.iter().map(|line| format!("'{line}'")).collect();
+    format!("x = 48750, z = 29651.5, {extra}observer = {{ {} }}", quoted.join(", "))
+}
+
+fn healthy_scenario(flags: &str) -> String {
+    scenario_with(&healthy_stream(flags), "")
+}
+
+#[test]
+fn the_driver_records_the_hosts_own_answers_and_the_routines_scratch_in_the_control() {
+    let driven = drive(&healthy_scenario(&host_flags()), &[]);
+    driven.result.expect("a healthy run");
+    let facts = Facts::parse(&driven.rows).expect("complete evidence");
+    assert_eq!(
+        (
+            facts.mode.as_str(),
+            facts.number("sector_requests"),
+            facts.number("altered_sector"),
+            facts.number("sound_calls")
+        ),
+        ("control", 5, 0, 5)
+    );
+    assert!(facts.requests.iter().all(|r| !r.sent && r.flags == host_flags() && r.returned == "7"));
+    judge_control(&facts).expect("a control whose first scratch is the host's first answer (the scripted observer's words are decoded as floats)");
+    // the observer pair is decoded: the clamped position it recorded is the position asked about
+    assert_eq!((facts.pairs[0].sector_x.as_str(), facts.pairs[0].sector_z.as_str()), ("48750", "29651.5"));
+}
+
+#[test]
+fn the_driver_sends_the_changed_enumeration_for_every_request_and_the_judge_requires_it_in_the_scratch() {
+    let control = Facts::parse(&drive(&healthy_scenario(&host_flags()), &[]).rows).unwrap();
+    let driven = drive(&healthy_scenario(&sent_flags()), &[("mode", "changed_sector")]);
+    driven.result.expect("a valid changed enumeration is not a failure of the driver");
+    let facts = Facts::parse(&driven.rows).unwrap();
+    // the engine received exactly the changed enumeration for every update; the host's own was never asked for
+    assert_eq!(driven.received.len(), 5);
+    assert!(driven.received.iter().all(|(returned, flags)| *returned == 11 && *flags == sent_flags()));
+    assert_eq!((facts.number("sector_requests"), facts.number("altered_sector")), (5, 5));
+    judge_changed(&control, &facts).expect("the scratch is what was sent");
+    // a scripted observer that shows the HOST'S scratch although the changed enumeration was sent: the consumer did not use it, and the judge refuses
+    let ignored = Facts::parse(&drive(&healthy_scenario(&host_flags()), &[("mode", "changed_sector")]).rows).unwrap();
+    assert!(judge_changed(&control, &ignored).unwrap_err().contains("is not the answer the host gave"));
+}
+
+#[test]
+fn the_driver_stops_each_refusal_mode_at_its_named_marker_after_the_first_sent_alteration() {
+    let control = Facts::parse(&drive(&healthy_scenario(&host_flags()), &[]).rows).unwrap();
+    for mode in ["withheld_sector", "malformed_sector_flags", "malformed_sector_returned"] {
+        let driven = drive("x = 48750, z = 29651.5", &[("mode", mode)]);
+        driven.result.expect("an engine refusal is evidence, not a driver failure");
+        let facts = Facts::parse(&driven.rows).unwrap_or_else(|e| panic!("{mode}: {e}"));
+        let marker = refusal(mode).expect("a refusal mode");
+        assert!(
+            !facts.completed() && facts.failure().contains(&format!("[terrain-provider:{marker}]")),
+            "{mode}: {}",
+            facts.failure()
+        );
+        assert!(
+            !facts.failure().contains("SCRIPTED"),
+            "{mode}: the wrapper changed the request: {}",
+            facts.failure()
+        );
+        assert_eq!(
+            (
+                facts.number("sector_requests"),
+                facts.number("altered_sector"),
+                facts.number("sound_calls"),
+                facts.authority["observer_checked"].as_bool()
+            ),
+            (1, 1, -1, Some(false)),
+            "{mode}"
+        );
+        judge_refusal(mode, &control, &facts).unwrap_or_else(|e| panic!("{mode}: {e}"));
+    }
+}
+
+/// The driver refuses an observer record that cannot be complete: no judged `authority` row is written, only the witness's own failure, so the judge never sees partial evidence as healthy.
+fn refused_observer_record(scenario: &str, fragment: &str) {
+    let driven = drive(scenario, &[]);
+    let error = driven.result.expect_err("an incomplete observer record must fail the witness");
+    // the witness's own classification (an `env-sector-authority: OBSERVER ...` failure, never an engine stop) AND the specific detail, which need not follow the prefix directly
+    assert!(error.contains("env-sector-authority: OBSERVER"), "not a witness observer failure: {error}");
+    assert!(error.contains(fragment), "expected {fragment:?}: {error}");
+    assert!(driven.rows.contains("witness_failure"), "{}", driven.rows);
+    assert!(
+        !driven.rows.contains("\"event\":\"authority\""),
+        "no authority row is published for incomplete evidence: {}",
+        driven.rows
+    );
+    assert!(Facts::parse(&driven.rows).unwrap_err().contains("the witness itself failed"));
+}
+
+#[test]
+fn the_driver_publishes_an_observer_record_only_when_the_whole_stream_and_report_are_complete_and_reconcile() {
+    // the positive controls: a stream with two records is accepted and both are counted (only the first is judged, and the rows say so)
+    let [third, fourth] = sound_pair(4, &sent_flags());
+    let mut two = healthy_stream(&host_flags());
+    two.extend([third, fourth]);
+    let driven = drive(&scenario_with(&two, ""), &[]);
+    driven.result.expect("a complete stream with two sound records");
+    let facts = Facts::parse(&driven.rows).expect("complete evidence");
+    assert_eq!(
+        (facts.number("pairs"), facts.number("sound_records"), facts.number("observer_events")),
+        (2, 2, 6)
+    );
+    judge_control(&facts).expect("the first record is the host's first answer");
+    // the observer's counters are published as they were read, and the judge checks them again
+    let single = Facts::parse(&drive(&healthy_scenario(&host_flags()), &[]).rows).expect("complete evidence");
+    assert_eq!(
+        [
+            single.number("observer_armed"),
+            single.number("observer_dropped"),
+            single.number("observer_overflow"),
+            single.number("observer_stored"),
+            single.number("observer_read"),
+            single.number("observer_next_seq"),
+            single.number("observer_events"),
+            single.number("update_server"),
+        ],
+        [1, 0, 0, 4, 4, 4, 4, 5]
+    );
+
+    let healthy = healthy_stream(&host_flags());
+    let with = |lines: Vec<String>, extra: &str| scenario_with(&lines, extra);
+    // a gap in the numbering, a repeated number, a first event that is not boot_begin, a kind the observer does not have, a shared seed word that is not one word
+    let mut gap = healthy.clone();
+    gap[2] = gap[2].replace("seq=2", "seq=3");
+    gap[3] = gap[3].replace("seq=3", "seq=4");
+    refused_observer_record(&with(gap, ""), "OBSERVER SEQUENCE: event 3 follows 1");
+    let mut repeated = healthy.clone();
+    repeated[1] = repeated[1].replace("seq=1", "seq=0");
+    refused_observer_record(&with(repeated, ""), "OBSERVER SEQUENCE: event 0 follows 0");
+    refused_observer_record(&with(healthy[1..].to_vec(), ""), "OBSERVER SEQUENCE: event 1 follows -1");
+    let mut unarmed = healthy.clone();
+    unarmed[0] = unarmed[0].replace("kind=1 ", "kind=2 ");
+    refused_observer_record(&with(unarmed, ""), "not boot_begin");
+    let mut kind = healthy.clone();
+    kind[1] = kind[1].replace("kind=2 ", "kind=31 ");
+    refused_observer_record(&with(kind, ""), "OBSERVER KIND");
+    let mut seed = healthy.clone();
+    seed[1] = seed[1].replace("rng=1 ", "rng=2 ");
+    refused_observer_record(&with(seed, ""), "are not one word");
+    refused_observer_record(&with(Vec::new(), ""), "OBSERVER SEQUENCE: no event at all");
+    // a truncated stream, a first half alone, a first half followed by something else or by another first half, a second half alone, an impossible count
+    refused_observer_record(&with(healthy[..3].to_vec(), ""), "the stream ends after the first half of the sound fact 2");
+    let mut interleaved = healthy.clone();
+    interleaved.insert(3, event(3, 20, 0, 0, ZERO, ZERO));
+    interleaved[4] = interleaved[4].replace("seq=3", "seq=4");
+    refused_observer_record(&with(interleaved, ""), "the sound fact 2 is not followed by its second half");
+    let mut doubled = healthy.clone();
+    doubled[3] = event(3, 30, 0, 7, ZERO, ZERO);
+    refused_observer_record(&with(doubled, ""), "the sound fact 2 is not followed by its second half");
+    let mut orphan = healthy[..2].to_vec();
+    orphan.push(event(2, 30, -1, 2, X_WORD, Z_WORD));
+    refused_observer_record(&with(orphan, ""), "has no first half");
+    let mut impossible = healthy.clone();
+    impossible[3] = impossible[3].replace("b=2 ", "b=63 ");
+    refused_observer_record(&with(impossible, ""), "counts 63 scratch entries set, of 62");
+    let mut cockpit = healthy.clone();
+    cockpit[2] = cockpit[2].replace("a=0 ", "a=2 ");
+    refused_observer_record(&with(cockpit, ""), "has in_cockpit 2");
+    // the report: events dropped or overflowed, not armed, a store, cursor or numbering that is not the stream received, an impossible capacity
+    refused_observer_record(
+        &with(healthy.clone(), "report = { dropped = 2 }, "),
+        "OBSERVER LOSS: the observer dropped 2 events",
+    );
+    refused_observer_record(&with(healthy.clone(), "report = { overflow = 1 }, "), "OBSERVER LOSS");
+    refused_observer_record(&with(healthy.clone(), "report = { armed = 0 }, "), "says it is not armed");
+    refused_observer_record(
+        &with(healthy.clone(), "report = { stored = 5 }, "),
+        "OBSERVER CURSOR: the observer stored 5, read 4 and numbered 4 events, but the driver received 4",
+    );
+    refused_observer_record(&with(healthy.clone(), "report = { read = 3 }, "), "OBSERVER CURSOR");
+    refused_observer_record(&with(healthy.clone(), "report = { next_seq = 9 }, "), "OBSERVER CURSOR");
+    refused_observer_record(
+        &with(healthy.clone(), "report = { capacity = 3 }, "),
+        "OBSERVER REPORT: capacity 3 for 4 stored",
+    );
+    refused_observer_record(&with(healthy.clone(), "report = { capacity = 20000 }, "), "OBSERVER REPORT: capacity 20000");
+    // the reconciliation: records counted against pairs found, in both directions, and sound calls against session updates
+    refused_observer_record(
+        &with(healthy.clone(), "report = { sound_records = 2 }, "),
+        "OBSERVER RECONCILE: the report counts 2 sound records",
+    );
+    refused_observer_record(&with(healthy.clone(), "report = { sound_records = 0 }, "), "OBSERVER RECONCILE");
+    refused_observer_record(&with(two.clone(), "report = { sound_records = 1 }, "), "but the stream holds 2 pairs");
+    refused_observer_record(
+        &with(healthy.clone(), "report = { update_server = 3 }, "),
+        "OBSERVER REPORT: 5 sound calls for 3 session updates",
+    );
+    refused_observer_record(
+        &with(healthy.clone(), "report = { sound_calls = 0, update_server = 0 }, "),
+        "OBSERVER RECONCILE: the report counts 1 sound records for 0 calls",
+    );
+    // a report that is not the one line of the real grammar
+    refused_observer_record(&with(healthy.clone(), "report_text = 'env-obs-report armed=1', "), "OBSERVER REPORT GRAMMAR");
+    refused_observer_record(&with(healthy.clone(), "report_text = '', "), "OBSERVER REPORT GRAMMAR");
+}
+
+#[test]
+fn the_driver_fails_distinctly_on_a_missing_observer_a_bad_observer_line_a_stalled_clock_and_every_output_failure() {
+    // a DLL without the observer feature: a refusal row and an error, nothing measured
+    let missing = drive("no_observer = true", &[]);
+    assert!(missing.result.unwrap_err().contains("the module has no env_observer_arm function"));
+    assert!(missing.rows.contains("\"event\":\"refusal\""), "{}", missing.rows);
+    // an observer line that is not the real grammar, an unreadable report (the incomplete streams and reports are the next test)
+    let bad_line = drive("observer = { 'not an observer line' }", &[]);
+    assert!(bad_line.result.unwrap_err().contains("env-sector-authority: OBSERVER GRAMMAR"));
+    assert!(bad_line.rows.contains("witness_failure") && Facts::parse(&bad_line.rows).unwrap_err().contains("the witness itself failed"));
+    assert!(drive(&format!("report_error = true, {}", healthy_scenario(&host_flags())), &[])
+        .result
+        .unwrap_err()
+        .contains("OBSERVER REPORT UNREADABLE"));
+    // a clock that does not advance
+    let stalled = drive("clock_step = 0", &[]);
+    assert!(stalled.result.unwrap_err().contains("env-sector-authority: STALLED CLOCK"));
+    // arguments out of range or unknown are refused before anything runs
+    for (key, value) in [
+        ("frames", "4"),
+        ("frames", "601"),
+        ("frames", "nan"),
+        ("frame_ms", "9"),
+        ("scenario", "mars_retail"),
+        ("mode", "sideways"),
+    ] {
+        let refused = drive("", &[(key, value)]);
+        assert!(refused.result.unwrap_err().contains("env-sector-authority:"), "{key}={value}");
+        assert!(refused.rows.is_empty(), "{key}={value}: nothing was written");
+    }
+    // every kind of output failure, even after the last row
+    for (op, at, fragment) in [
+        ("write", 1, "OUTPUT FAILURE: writing"),
+        ("write", 3, "OUTPUT FAILURE: writing"),
+        ("flush", 2, "OUTPUT FAILURE: flushing"),
+    ] {
+        let driven = drive(&format!("io_fail = {{ op = '{op}', at = {at} }}, {}", healthy_scenario(&host_flags())), &[]);
+        assert!(driven.result.unwrap_err().contains(&format!("env-sector-authority: {fragment}")), "{op} {at}");
+    }
+    let closing = drive(&format!("io_fail = {{ op = 'close' }}, {}", healthy_scenario(&host_flags())), &[]);
+    assert!(closing.result.unwrap_err().contains("env-sector-authority: OUTPUT FAILURE: closing"));
+    assert!(
+        closing.rows.contains("\"event\":\"authority\""),
+        "the authority row was written before the close failed"
+    );
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// the bounded wait for a child process (the closed ground witness's pattern, trimmed to what the public witness uses)
+
+const TAIL: usize = 64 * 1024;
+
+struct Finished {
+    status: std::process::ExitStatus,
+    stderr: String,
+    elapsed: Duration,
+}
+
+fn drain(mut pipe: impl Read + Send + 'static) -> std::thread::JoinHandle<Vec<u8>> {
+    std::thread::spawn(move || {
+        let mut tail: Vec<u8> = Vec::new();
+        let mut chunk = [0u8; 8192];
+        loop {
+            match pipe.read(&mut chunk) {
+                Ok(0) | Err(_) => break,
+                Ok(n) => {
+                    tail.extend(chunk.iter().take(n));
+                    if tail.len() > TAIL {
+                        let excess = tail.len() - TAIL;
+                        tail.drain(..excess);
+                    }
+                }
+            }
+        }
+        tail
+    })
+}
+
+/// Runs ONE child to its end within `wall` (the public witness's target is one `eech-world` process). Both pipes are read as it runs, only the last 64 KiB of each is kept, and a child that outlives the
+/// wall is killed and reported with how long it ran and what it had said. Scope, stated honestly: it kills THE child it started. It does not manage a process tree -- a descendant that inherited the pipes
+/// and outlived the child would keep them open and delay the readers' join -- and no job-object or process-manager framework is added; the controls below use a single-process child for that reason.
+fn run_bounded(command: &mut std::process::Command, wall: Duration) -> Result<Finished, String> {
+    command
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped());
+    let mut child = command.spawn().map_err(|e| format!("the child could not be started: {e}"))?;
+    let started = Instant::now();
+    let out = child.stdout.take().map(drain);
+    let err = child.stderr.take().map(drain);
+    let collect = |handle: Option<std::thread::JoinHandle<Vec<u8>>>| {
+        handle
+            .and_then(|h| h.join().ok())
+            .map(|bytes| String::from_utf8_lossy(&bytes).into_owned())
+            .unwrap_or_default()
+    };
+    loop {
+        match child.try_wait() {
+            Ok(Some(status)) => {
+                let (_, stderr) = (collect(out), collect(err));
+                return Ok(Finished {
+                    status,
+                    stderr,
+                    elapsed: started.elapsed(),
+                });
+            }
+            Ok(None) if started.elapsed() >= wall => {
+                let killed = child.kill();
+                let waited = child.wait();
+                let (_, stderr) = (collect(out), collect(err));
+                return Err(format!(
+                    "the child outlived its wall limit of {} s and was killed after {:.1} s (kill: {killed:?}, wait: {waited:?}); last stderr: {:?}",
+                    wall.as_secs_f64(),
+                    started.elapsed().as_secs_f64(),
+                    stderr.chars().rev().take(2000).collect::<Vec<_>>().into_iter().rev().collect::<String>()
+                ));
+            }
+            Ok(None) => std::thread::sleep(Duration::from_millis(20)),
+            Err(e) => {
+                let _ = child.kill();
+                return Err(format!("waiting for the child failed: {e}"));
+            }
+        }
+    }
+}
+
+fn parse_wall(value: Option<&str>) -> Result<Duration, String> {
+    match value {
+        None => Ok(Duration::from_secs(3600)),
+        Some(text) => match text.trim().parse::<f64>() {
+            Ok(seconds) if seconds.is_finite() && (1.0..=14400.0).contains(&seconds) => Ok(Duration::from_secs_f64(seconds)),
+            _ => Err(format!(
+                "EECH_SECTOR_WALL_SECONDS must be a finite number of seconds from 1 to 14400, got {text:?}"
+            )),
+        },
+    }
+}
+
+/// The child of the bounded-wait controls: THIS test executable, re-run for this one test with ENV_SECTOR_CHILD naming what to do. Without it the test does nothing. It is ONE process on every
+/// operating system -- no shell, no `ping`, no `sleep` binary, no grandchild -- so the pipes the runner reads belong to the one child it kills. (The previous Windows control ran `cmd /C ping`; the runner
+/// killed the shell, the `ping` descendant kept the inherited pipes open, and joining the readers waited about 29 seconds: a defect of that fixture's process shape, not of the witness.)
+#[test]
+fn the_child_of_the_bounded_wait_controls() {
+    match std::env::var("ENV_SECTOR_CHILD").as_deref() {
+        Ok("hang") => {
+            eprintln!("child: about to hang");
+            std::thread::sleep(Duration::from_secs(300));
+        }
+        Ok("fail") => {
+            eprintln!("child: a diagnostic of its own");
+            std::process::exit(3);
+        }
+        _ => {}
+    }
+}
+
+fn child(behaviour: &str) -> std::process::Command {
+    let mut command = std::process::Command::new(std::env::current_exe().expect("this executable"));
+    command
+        .args(["--exact", "the_child_of_the_bounded_wait_controls", "--nocapture", "--test-threads=1"])
+        .env("ENV_SECTOR_CHILD", behaviour);
+    command
+}
+
+#[test]
+fn the_wall_limit_is_a_finite_number_of_seconds_from_one_to_14400_and_a_hung_child_is_killed() {
+    assert_eq!(parse_wall(None).unwrap(), Duration::from_secs(3600));
+    for bad in ["nan", "inf", "0", "14401", "abc", ""] {
+        assert!(parse_wall(Some(bad)).unwrap_err().contains("finite number of seconds from 1 to 14400"), "{bad}");
+    }
+    // a hung single-process child: killed at the 2 second wall, reported with how long it ran and what it had said, and really stopped (the kill succeeded and the wait returned its status)
+    let started = Instant::now();
+    let error = run_bounded(&mut child("hang"), Duration::from_secs(2)).map(|_| ()).unwrap_err();
+    let elapsed = started.elapsed();
+    assert!(error.contains("outlived its wall limit of 2 s"), "{error}");
+    assert!(
+        error.contains("child: about to hang"),
+        "the diagnostic the child had said is not reported: {error}"
+    );
+    assert!(
+        error.contains("kill: Ok(())") && error.contains("wait: Ok("),
+        "the child was not shown to be stopped: {error}"
+    );
+    assert!(elapsed >= Duration::from_secs(2), "the wall was not waited for: {elapsed:?}");
+    assert!(elapsed < Duration::from_secs(25), "the hung child was waited for: {elapsed:?}");
+    // a failing child is not a timeout: its exit status and its diagnostic are read to the end
+    let failed = run_bounded(&mut child("fail"), Duration::from_secs(120)).expect("a child that exits is not a timeout");
+    assert_eq!(failed.status.code(), Some(3));
+    assert!(
+        failed.stderr.contains("child: a diagnostic of its own") && failed.elapsed < Duration::from_secs(120),
+        "{}",
+        failed.stderr
+    );
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// 3. the public witness against a real DLL (environment-driven)
+
+fn forward(path: &Path) -> String {
+    path.to_string_lossy().replace('\\', "/")
+}
+
+fn run_mode(bin: &Path, script: &Path, work: &Path, root: &Path, mode: &str, scenario: &str, wall: Duration) -> Result<String, String> {
+    let out = work.join(format!("{mode}.jsonl"));
+    let mut command = std::process::Command::new(bin);
+    command
+        .arg(forward(script))
+        .arg(format!("root={}", forward(root)))
+        .arg(format!("mode={mode}"))
+        .arg(format!("scenario={scenario}"))
+        .arg(format!("out={}", forward(&out)));
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        command.creation_flags(0x0800_0000);
+    }
+    let finished = run_bounded(&mut command, wall).map_err(|e| format!("{mode}: {e}"))?;
+    if !finished.status.success() {
+        return Err(format!(
+            "{mode}: the witness process failed ({}) after {:.0} s:\n{}",
+            finished.status,
+            finished.elapsed.as_secs_f64(),
+            finished.stderr
+        ));
+    }
+    std::fs::read_to_string(&out).map_err(|e| format!("{mode}: the evidence {} could not be read: {e}", out.display()))
+}
+
+#[test]
+fn the_host_decides_the_sector_surfaces_the_sound_routine_reads_and_a_wrong_host_stops_the_campaign_at_the_sector_boundary() {
+    let (Some(bin), Some(roots)) = (std::env::var_os("EECH_WORLD_BIN"), std::env::var_os("EECH_SECTOR_ROOTS")) else {
+        eprintln!("env_sector_authority: SKIPPED (EECH_WORLD_BIN and EECH_SECTOR_ROOTS are not both set): the product path was NOT exercised");
+        return;
+    };
+    let wall = parse_wall(std::env::var("EECH_SECTOR_WALL_SECONDS").ok().as_deref()).unwrap_or_else(|e| panic!("{e}"));
+    let scenario = std::env::var("EECH_SECTOR_SCENARIO").unwrap_or_else(|_| "lebanon_retail".into());
+    let bin = PathBuf::from(bin);
+    let mut roots: Vec<PathBuf> = std::env::split_paths(&roots).collect();
+    let wanted: Vec<String> = match std::env::var("EECH_SECTOR_MODES") {
+        Ok(list) => std::iter::once("control".to_string())
+            .chain(list.split(',').map(str::trim).filter(|m| !m.is_empty() && *m != "control").map(str::to_owned))
+            .collect(),
+        Err(_) => ALL_MODES.iter().map(|m| m.to_string()).collect(),
+    };
+    for mode in &wanted {
+        assert!(ALL_MODES.contains(&mode.as_str()), "unknown mode {mode}");
+    }
+    assert!(
+        roots.len() >= wanted.len(),
+        "{} modes need {} fresh installation roots, got {}",
+        wanted.len(),
+        wanted.len(),
+        roots.len()
+    );
+    roots.truncate(wanted.len());
+    let work = std::env::var_os("EECH_SECTOR_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| std::env::temp_dir().join(format!("env-sector-authority-{}", std::process::id())));
+    std::fs::create_dir_all(&work).expect("the working directory");
+    let script = work.join("env-sector-authority.lua");
+    std::fs::write(&script, SCRIPT).expect("the script");
+
+    let mut results: Vec<(String, Facts)> = Vec::new();
+    for (mode, root) in wanted.iter().zip(&roots) {
+        let rows = run_mode(&bin, &script, &work, root, mode, &scenario, wall).unwrap_or_else(|e| panic!("{e}"));
+        let facts = Facts::parse(&rows).unwrap_or_else(|e| panic!("{mode}: the evidence is not complete: {e}"));
+        results.push((mode.clone(), facts));
+    }
+    let control = results.iter().find(|(m, _)| m == "control").map(|(_, f)| f).expect("the control ran");
+    judge_control(control).unwrap_or_else(|e| panic!("control: {e}"));
+    for (mode, run) in &results {
+        let verdict = match mode.as_str() {
+            "control" => Ok(()),
+            "changed_sector" => judge_changed(control, run),
+            other => judge_refusal(other, control, run),
+        };
+        verdict.unwrap_or_else(|e| panic!("{mode}: {e}"));
+        eprintln!(
+            "env_sector_authority: {mode}: judged ({} sector request(s), {} altered, {} sound update(s))",
+            run.number("sector_requests"),
+            run.number("altered_sector"),
+            run.number("sound_calls")
+        );
+    }
+}

@@ -3631,6 +3631,514 @@ int host_terrain_query (const host_terrain *map, float x, float z, const host_te
 	return 0;
 }
 
+/* terrdata.c get_terrain_3d_types_in_sector (EEDCS-51), over the sectors this map owns. Nothing is solved differently: the first surface, then the surface of every polygon with surface_change
+   set, each flagged; the count is 1 plus the number of surface changes met. The loader copied exactly (changes + 1) surface entries for each sector and bounds-checked the spans, so the
+   walk below never leaves the table; the surface id of an entry no polygon of the sector uses for its type (the first, when the first polygon itself changes surface) is the one thing the loader
+   did not check, so every id is checked here against the scratch it would index. */
+typedef char host_terrain_type_count_matches[(HOST_TERRAIN_TYPE_COUNT == TERRAIN_TYPE_LAST) ? 1 : -1];
+
+/*
+ * The caller's COMPLETE floating-point state around the sector query (independent review ENV-SECTOR-HOST-1; the actual red: a real public call changed the caller's MXCSR, e.g. 0x1f80 -> 0x1fa0
+ * for the position (1, 1), 0x1f80 -> 0x1fb2 for a subnormal beside a normal). The first version of this function claimed that an exact power-of-two scaling and a truncation cannot touch the
+ * floating-point environment. That is false: the quotient of the smallest subnormal is inexact and underflows, a truncation of any fractional quotient raises the precision flag, an x87 load or
+ * conversion changes the status word (and its condition codes), and the early refusals ran the same instructions before any guard.
+ *
+ * The pattern is the reference host's established guard (env_ref.c, the closed reviewed field kernel, which took it from the closed model and ground components): BEFORE the first floating-point
+ * action -- the validation and the refusals included -- the x87 environment (control, status AND tag words and the exception pointers: fnstenv, reloaded at once so the caller's masks stand) and
+ * the whole of MXCSR (rounding control, masks AND sticky flags: stmxcsr) are saved; round-toward-zero is set for BOTH units and read back (the original's get_terrain_3d_sector runs under it);
+ * everything floating-point happens there; the outputs are staged in a local object; and the caller's state is restored on EVERY exit (fldenv, ldmxcsr) and read back COMPLETE, no mask, before
+ * the staged answer is allowed to reach the caller's buffers. A restore that does not read back as saved withholds the answer. It is copied for this entry only: nothing here is a generic
+ * repair of the DLL's own floating-point handling, and nothing here claims more than the caller's state on the x86 targets it is compiled for (elsewhere the C library's fegetenv/fesetenv is the
+ * whole state).
+ *
+ * The position arrives as the BITS of the two floats (uint32_t), never as float parameters: a 32-bit callee may home a float argument through the x87 stack in its prologue, before any guard
+ * could run, which would change the caller's condition code C1. The bits are integers until they are copied into floats inside the guard, and they are passed through an empty asm after the
+ * guard is entered so that the arithmetic that depends on them cannot be scheduled before it.
+ */
+#if defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__))
+#define SECTOR_FP_X86 1
+#else
+#define SECTOR_FP_X86 0
+#endif
+
+typedef struct sector_fp_state
+{
+#if SECTOR_FP_X86
+	unsigned char x87[28]; /* the fnstenv image */
+	unsigned int mxcsr;
+#else
+	fenv_t env;
+#endif
+} sector_fp_state;
+
+#define SECTOR_MXCSR_ROUNDING_MASK 0x6000u
+#define SECTOR_MXCSR_ROUND_TOWARD_ZERO 0x6000u
+
+#if SECTOR_FP_X86
+static unsigned int sector_fp_read_mxcsr (void)
+{
+	unsigned int mxcsr = 0;
+
+	__asm__ __volatile__ ("stmxcsr %0" : "=m" (mxcsr) : : "memory");
+
+	return mxcsr;
+}
+
+static void sector_fp_write_mxcsr (unsigned int mxcsr)
+{
+	__asm__ __volatile__ ("ldmxcsr %0" : : "m" (mxcsr) : "memory");
+}
+
+/* the x87 control, status AND tag words as they stand (fnstenv masks every exception, so the image is loaded straight back) */
+static void sector_fp_read_x87_words (unsigned int *control, unsigned int *status, unsigned int *tag)
+{
+	unsigned char image[28];
+
+	__asm__ __volatile__ ("fnstenv %0" : "=m" (image) : : "memory");
+	__asm__ __volatile__ ("fldenv %0" : : "m" (image) : "memory");
+
+	*control = (unsigned int) image[0] | ((unsigned int) image[1] << 8);
+	*status = (unsigned int) image[4] | ((unsigned int) image[5] << 8);
+	*tag = (unsigned int) image[8] | ((unsigned int) image[9] << 8);
+}
+#endif
+
+static void sector_fp_save (sector_fp_state *state)
+{
+#if SECTOR_FP_X86
+	__asm__ __volatile__ ("fnstenv %0" : "=m" (state->x87) : : "memory");
+	/* fnstenv masks every x87 exception: reload the image so the caller's masks stand while the kernel runs */
+	__asm__ __volatile__ ("fldenv %0" : : "m" (state->x87) : "memory");
+	state->mxcsr = sector_fp_read_mxcsr ();
+#else
+	fegetenv (&state->env);
+#endif
+}
+
+/* round-toward-zero in BOTH units, read back; 0, or -1 with the message */
+static int sector_fp_enter (char *error, size_t error_size)
+{
+	if (fesetround (FE_TOWARDZERO) != 0)
+	{
+		return fail (error, error_size, "the floating-point environment could not be set to round toward zero");
+	}
+
+#if SECTOR_FP_X86
+	sector_fp_write_mxcsr ((sector_fp_read_mxcsr () & ~SECTOR_MXCSR_ROUNDING_MASK) | SECTOR_MXCSR_ROUND_TOWARD_ZERO);
+
+	if ((sector_fp_read_mxcsr () & SECTOR_MXCSR_ROUNDING_MASK) != SECTOR_MXCSR_ROUND_TOWARD_ZERO)
+	{
+		return fail (error, error_size, "the SSE rounding control could not be set to round toward zero");
+	}
+#endif
+
+	if (fegetround () != FE_TOWARDZERO)
+	{
+		return fail (error, error_size, "the floating-point environment did not read back as round toward zero");
+	}
+
+	return 0;
+}
+
+/*
+ * The CANONICAL arithmetic environment of the NEW terrain ambient entry (EEDCS-51, independent review of a39a7a2ec, ENV-AMBIENT-HOST-1): sector_fp_enter changes only the rounding control, so the smoothing
+ * would inherit the caller's denormal modes and x87 precision (the actual reds: a subnormal altitude gave 0.14999998 in the normal mode and 0.14999999 under caller FTZ/DAZ, and the 32-bit host's
+ * precision variants differed too). The original arithmetic ran in the engine's own environment: round toward zero in both units, the x87 at extended precision (the MinGW runtime's default, which the
+ * measured originals ran under -- an ASSUMPTION about the engine process, which the numeric comparison with the measured originals tests), every exception masked, no flush-to-zero and no denormals-are-zero. This sets exactly that BEFORE any floating-point work and reads it back whole: x87 control 0x0f7f,
+ * MXCSR 0x7f80 (flags clear). sector_fp_save has already taken the caller's COMPLETE state and sector_fp_restore restores and reads back every bit of it on every path. The sector enumeration keeps
+ * sector_fp_enter exactly as it was. Where there is no x87/SSE it is sector_fp_enter.
+ */
+#if SECTOR_FP_X86
+#define SECTOR_X87_CANONICAL_CONTROL 0x0f7fu
+#define SECTOR_MXCSR_CANONICAL 0x7f80u
+
+static int sector_fp_enter_canonical (char *error, size_t error_size)
+{
+	unsigned short control = SECTOR_X87_CANONICAL_CONTROL;
+	unsigned short read_back = 0;
+
+	__asm__ __volatile__ ("fldcw %0" : : "m" (control) : "memory");
+	sector_fp_write_mxcsr (SECTOR_MXCSR_CANONICAL);
+
+	__asm__ __volatile__ ("fnstcw %0" : "=m" (read_back) : : "memory");
+
+	if ((unsigned int) read_back != SECTOR_X87_CANONICAL_CONTROL)
+	{
+		return fail (error, error_size, "the x87 control word could not be set to the canonical arithmetic environment");
+	}
+
+	if (sector_fp_read_mxcsr () != SECTOR_MXCSR_CANONICAL)
+	{
+		return fail (error, error_size, "MXCSR could not be set to the canonical arithmetic environment (round toward zero, every exception masked, flush-to-zero and denormals-are-zero off)");
+	}
+
+	return 0;
+}
+#else
+static int sector_fp_enter_canonical (char *error, size_t error_size)
+{
+	return sector_fp_enter (error, error_size);
+}
+#endif
+
+/* the caller's state back, read back COMPLETE (the condition codes and the stack top are part of the state); 0, or -1 */
+static int sector_fp_restore (const sector_fp_state *state)
+{
+#if SECTOR_FP_X86
+	unsigned int saved_control = (unsigned int) state->x87[0] | ((unsigned int) state->x87[1] << 8);
+	unsigned int saved_status = (unsigned int) state->x87[4] | ((unsigned int) state->x87[5] << 8);
+	unsigned int saved_tag = (unsigned int) state->x87[8] | ((unsigned int) state->x87[9] << 8);
+	unsigned int control, status, tag;
+
+	__asm__ __volatile__ ("fldenv %0" : : "m" (state->x87) : "memory");
+	sector_fp_write_mxcsr (state->mxcsr);
+
+	sector_fp_read_x87_words (&control, &status, &tag);
+
+	if (sector_fp_read_mxcsr () != state->mxcsr || control != saved_control || status != saved_status || tag != saved_tag)
+	{
+		return -1;
+	}
+
+	return 0;
+#else
+	return fesetenv (&state->env) == 0 ? 0 : -1;
+#endif
+}
+
+/* the answer, staged: nothing reaches the caller's buffers until the caller's floating-point state is back */
+typedef struct sector_staged
+{
+	int32_t returned;
+	uint8_t flags[HOST_TERRAIN_TYPE_COUNT];
+	char error[256];
+} sector_staged;
+
+/* the object's stores have been made, and its address has escaped, before the next asm statement (the restore): the compiler may not move them after it */
+#define SECTOR_FP_SETTLE(object) __asm__ __volatile__ ("" : : "r" (&(object)) : "memory")
+
+/* the enumeration itself: ALL its floating-point work, run between the guard's save and restore, writing only into the staged answer */
+static int __attribute__ ((noinline)) types_in_sector_impl (const host_terrain *map, uint32_t x_bits, uint32_t z_bits, sector_staged *out)
+{
+	const terrain_3d_sector *sector;
+	const terrain_3d_surface *surface;
+	const terrain_3d_face *polygon;
+	float x, z, scaled_x, scaled_z;
+	int32_t number_of_types;
+	int x_sec, z_sec, count;
+
+	/* a position that is not finite (an all-ones exponent) is refused; classified on the bits, then copied into floats here, inside the guard */
+	if ((x_bits & 0x7f800000u) == 0x7f800000u || (z_bits & 0x7f800000u) == 0x7f800000u)
+	{
+		return fail (out->error, sizeof (out->error), "terrain: a sector position must be finite");
+	}
+
+	memcpy (&x, &x_bits, sizeof (x));
+	memcpy (&z, &z_bits, sizeof (z));
+
+	/* the original's choice (terrdata.c get_terrain_3d_sector): the position over the sector side, truncated toward zero. A quotient that does not fit an int is outside any map. The
+	   subnormals of the admitted finite domain divide inexactly and truncate to sector 0, as they did; what the arithmetic raises is the guard's to restore, not this function's to ignore. */
+	scaled_x = x / (float) TERRAIN_3D_SECTOR_SIDE_LENGTH;
+	scaled_z = z / (float) TERRAIN_3D_SECTOR_SIDE_LENGTH;
+
+	if (!(fabsf (scaled_x) < 1.0e9f) || !(fabsf (scaled_z) < 1.0e9f))
+	{
+		return fail (out->error, sizeof (out->error), "terrain: the position is outside the map's sectors");
+	}
+
+	x_sec = (int) scaled_x;
+	z_sec = (int) scaled_z;
+
+	if (x_sec < 0 || z_sec < 0 || x_sec >= map->facts.sector_x_max || z_sec >= map->facts.sector_z_max)
+	{
+		return fail (out->error, sizeof (out->error), "terrain: the sector %d,%d of the position is outside the map's %d by %d sectors (the original indexed its table without a check)", x_sec,
+			z_sec, (int) map->facts.sector_x_max, (int) map->facts.sector_z_max);
+	}
+
+	sector = &map->rows[z_sec][x_sec];
+	surface = sector->surface_changes;
+	polygon = sector->polygons;
+
+	if ((int) surface->surface_id >= HOST_TERRAIN_TYPE_COUNT)
+	{
+		return fail (out->error, sizeof (out->error), "terrain: sector %d,%d has a first surface of type %u", x_sec, z_sec, (unsigned) surface->surface_id);
+	}
+
+	out->flags[surface->surface_id] = 1;
+
+	number_of_types = 1;
+
+	for (count = (int) sector->number_of_polygons; count > 0; count--)
+	{
+		if (polygon->surface_change)
+		{
+			surface++;
+
+			if ((int) surface->surface_id >= HOST_TERRAIN_TYPE_COUNT)
+			{
+				memset (out->flags, 0, sizeof (out->flags));
+
+				return fail (out->error, sizeof (out->error), "terrain: sector %d,%d has a surface of type %u", x_sec, z_sec, (unsigned) surface->surface_id);
+			}
+
+			out->flags[surface->surface_id] = 1;
+
+			number_of_types++;
+		}
+
+		polygon++;
+	}
+
+	out->returned = number_of_types;
+
+	return 0;
+}
+
+int host_terrain_types_in_sector (const host_terrain *map, uint32_t x_bits, uint32_t z_bits, int32_t *returned, uint8_t *flags, size_t flags_capacity, char *error, size_t error_size)
+{
+	sector_fp_state saved;
+	sector_staged staged;
+	int result;
+
+	/* nothing before this line touches a floating-point register: the arguments are integers and pointers */
+	sector_fp_save (&saved);
+
+	memset (&staged, 0, sizeof (staged));
+
+	if (sector_fp_enter (staged.error, sizeof (staged.error)) != 0)
+	{
+		result = -1;
+	}
+	else
+	{
+		/* the arithmetic below depends on these values, which now depend on the guard having been entered */
+		__asm__ __volatile__ ("" : "+r" (x_bits), "+r" (z_bits) : : "memory");
+
+		if (!flags || flags_capacity < HOST_TERRAIN_TYPE_COUNT)
+		{
+			result = fail (staged.error, sizeof (staged.error), "terrain: the sector flags need room for %d terrain types", HOST_TERRAIN_TYPE_COUNT);
+		}
+		else
+		{
+			result = types_in_sector_impl (map, x_bits, z_bits, &staged);
+		}
+	}
+
+	SECTOR_FP_SETTLE (staged);
+
+	/* the caller's state is restored FIRST, and only then may the answer stand: from here on only integer tests and bitwise copies remain */
+	if (sector_fp_restore (&saved) != 0)
+	{
+		result = fail (staged.error, sizeof (staged.error), "the caller's floating-point environment did not read back as saved: the answer is withheld");
+	}
+
+	*returned = 0;
+
+	if (flags && flags_capacity >= HOST_TERRAIN_TYPE_COUNT)
+	{
+		memset (flags, 0, flags_capacity);
+	}
+
+	if (result != 0)
+	{
+		if (error && error_size)
+		{
+			size_t length = 0;
+
+			while (length < sizeof (staged.error) - 1 && staged.error[length] != 0)
+			{
+				length++;
+			}
+
+			if (length > error_size - 1)
+			{
+				length = error_size - 1;
+			}
+
+			memcpy (error, staged.error, length);
+			error[length] = '\0';
+		}
+
+		return -1;
+	}
+
+	memcpy (flags, staged.flags, sizeof (staged.flags));
+	*returned = staged.returned;
+
+	return 0;
+}
+
+/*
+ * The physical AMPLITUDE of the session's six terrain ambient sound children (EEDCS-51, D3): ss_updt.c update_session_sound_effects, the part that reads the shared scratch
+ * terrain_types_in_sector and smooths each child's amplification.  The host decides it from ITS sector surfaces (the enumeration above, the same sector the campaign's SECTOR question
+ * is asked about) and the campaign's observations; the campaign keeps its children and writes the answers.  The arithmetic is the original's, expression for expression and in the same
+ * types (the constants are doubles), including that the value stored is the SCALED one and is read back as the child's previous amplification next time:
+ *
+ *   alt >= 280                      value = 0
+ *   otherwise                       value = previous; value +/-= 0.5 * delta (+ when the child's surface is flagged in the sector, - when not);
+ *                                   value = bound (value, 0, 0.3); value *= bound (1 - alt / 280, 0, 1); in the cockpit value *= 0.75
+ *
+ * The arithmetic runs in the CANONICAL environment (sector_fp_enter_canonical: round toward zero in both units, extended x87 precision, every exception masked, FTZ and DAZ off), so the answer does not depend on the caller's denormal modes or precision, and the caller's COMPLETE floating-point state is preserved on every path by the guard above (the sector enumeration's), with its lessons: the position arrives as the BITS of the two floats, the
+ * other floats (the altitude, the delta and the previous amplifications) arrive in a float ARRAY that is read only inside the guard, never as parameters, and the answer is staged and written
+ * only after the caller's state has been restored and read back.  A previous amplification is read only where the original read it (below 280 m).
+ */
+#define SESSION_TERRAIN_SOUND_EFFECT_ZERO_VOLUME_ALTITUDE 280.0
+
+/* the six classes of mb_hostterrain.h campaign_terrain_ambient_class (sea, jungle, amb1 to amb4) and the terrain surface each follows */
+static const int ambient_terrain_types[HOST_TERRAIN_AMBIENT_CLASSES] =
+{
+	TERRAIN_TYPE_SEA,
+	TERRAIN_TYPE_FOREST_TOP,
+	TERRAIN_TYPE_RIVER,
+	TERRAIN_TYPE_RESERVOIR,
+	TERRAIN_TYPE_ALTERED_LAND1,
+	TERRAIN_TYPE_ALTERED_LAND2
+};
+
+typedef struct ambient_staged
+{
+	float amplitude[HOST_TERRAIN_AMBIENT_MAX];
+	char error[256];
+} ambient_staged;
+
+/* ALL the floating-point work of the smoothing, between the guard's save and restore, writing only the staged answer */
+static int __attribute__ ((noinline)) ambient_impl (const sector_staged *sector, const float *in_f, const int32_t *in_i, size_t count, ambient_staged *out)
+{
+	float
+		alt,
+		delta,
+		value;
+
+	size_t
+		i;
+
+	alt = in_f[0];
+	delta = in_f[1];
+
+	for (i = 0; i < count; i++)
+	{
+		int
+			klass;
+
+		klass = in_i[1 + i];
+
+		if ((klass < 0) || (klass >= HOST_TERRAIN_AMBIENT_CLASSES))
+		{
+			return fail (out->error, sizeof (out->error), "terrain: child %d has the ambient class %d, not 0 to %d", (int) i, klass, HOST_TERRAIN_AMBIENT_CLASSES - 1);
+		}
+
+		if (alt >= SESSION_TERRAIN_SOUND_EFFECT_ZERO_VOLUME_ALTITUDE)
+		{
+			value = 0.0;
+		}
+		else
+		{
+			value = in_f[2 + i];
+
+			if (sector->flags[ambient_terrain_types[klass]])
+			{
+				value += (0.5 * delta);
+			}
+			else
+			{
+				value -= (0.5 * delta);
+			}
+
+			value = bound (value, 0.0, 0.3);
+
+			value *= bound (1.0 - (alt / SESSION_TERRAIN_SOUND_EFFECT_ZERO_VOLUME_ALTITUDE), 0.0, 1.0);
+
+			if (in_i[0])
+			{
+				value *= 0.75;
+			}
+		}
+
+		out->amplitude[i] = value;
+	}
+
+	return 0;
+}
+
+/* in_f = { alt, delta, previous[0 .. count) }, in_i = { in_cockpit, class[0 .. count) }, out = count amplitudes, written only on success. The arrays are readable for HOST_TERRAIN_AMBIENT_MAX
+   children whatever `count` is (the wrapper's fixed-size arrays). */
+int host_terrain_ambient (const host_terrain *map, uint32_t x_bits, uint32_t z_bits, const float *in_f, const int32_t *in_i, size_t count, float *out, char *error, size_t error_size)
+{
+	sector_fp_state saved;
+	sector_staged sector;
+	ambient_staged staged;
+	int result;
+
+	/* nothing before this line touches a floating-point register: the arguments are integers and pointers */
+	sector_fp_save (&saved);
+
+	memset (&sector, 0, sizeof (sector));
+	memset (&staged, 0, sizeof (staged));
+
+	if (sector_fp_enter_canonical (staged.error, sizeof (staged.error)) != 0)
+	{
+		result = -1;
+	}
+	else
+	{
+		/* the arithmetic below depends on these values, which now depend on the guard having been entered */
+		__asm__ __volatile__ ("" : "+r" (x_bits), "+r" (z_bits) : : "memory");
+
+		if (!in_f || !in_i || !out || (count > HOST_TERRAIN_AMBIENT_MAX))
+		{
+			result = fail (staged.error, sizeof (staged.error), "terrain: the ambient question needs its arrays and 0 to %d children", HOST_TERRAIN_AMBIENT_MAX);
+		}
+		else
+		{
+			result = types_in_sector_impl (map, x_bits, z_bits, &sector);
+
+			if (result != 0)
+			{
+				memcpy (staged.error, sector.error, sizeof (staged.error));
+			}
+			else
+			{
+				result = ambient_impl (&sector, in_f, in_i, count, &staged);
+			}
+		}
+	}
+
+	SECTOR_FP_SETTLE (staged);
+
+	/* the caller's state is restored FIRST, and only then may the answer stand: from here on only integer tests and bitwise copies remain */
+	if (sector_fp_restore (&saved) != 0)
+	{
+		result = fail (staged.error, sizeof (staged.error), "the caller's floating-point environment did not read back as saved: the answer is withheld");
+	}
+
+	if (result != 0)
+	{
+		if (error && error_size)
+		{
+			size_t length = 0;
+
+			while (length < sizeof (staged.error) - 1 && staged.error[length] != 0)
+			{
+				length++;
+			}
+
+			if (length > error_size - 1)
+			{
+				length = error_size - 1;
+			}
+
+			memcpy (error, staged.error, length);
+			error[length] = '\0';
+		}
+
+		return -1;
+	}
+
+	memcpy (out, staged.amplitude, count * sizeof (float));
+
+	return 0;
+}
+
 /* terrsel.c get_3d_terrain_fast_elevation, over the grid of terrain.sim, expression for expression */
 int host_terrain_fast_elevation (const host_terrain *map, float x, float z, float *out, char *error, size_t error_size)
 {

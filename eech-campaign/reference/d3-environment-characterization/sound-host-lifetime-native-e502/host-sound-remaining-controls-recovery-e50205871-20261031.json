@@ -1,0 +1,49 @@
+{
+  "source": "e5020587153e1922acdc412598c4920501988a9a",
+  "pid": 8124,
+  "state": "terminal",
+  "started_utc": "2026-10-31T23:05:23.316285+00:00",
+  "stages": [
+    {
+      "stage": "authority",
+      "pid": 19824,
+      "state": "terminal",
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\run-host-sound-authority-after-gates-20261031.py",
+        "e5020587153e1922acdc412598c4920501988a9a",
+        "R:\\d3-evidence\\independent-environment-host-sound-lifetime-source-review-e50205871-20261031.json"
+      ],
+      "started_utc": "2026-10-31T23:05:38.356738+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T23:06:46.378571+00:00"
+    },
+    {
+      "stage": "combined-audit",
+      "pid": 2508,
+      "state": "terminal",
+      "args": [
+        "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+        "-B",
+        "-X",
+        "utf8",
+        "R:\\d3-evidence\\audit-host-sound-lifetime-controls-20261031.py",
+        "--source",
+        "e5020587153e1922acdc412598c4920501988a9a",
+        "--out",
+        "R:\\d3-evidence\\host-sound-lifetime-combined-e50205871-20261031.json"
+      ],
+      "started_utc": "2026-10-31T23:06:46.387572+00:00",
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T23:06:46.558328+00:00"
+    }
+  ],
+  "scope": "Finite public sound ownership controls then read-only combined audit. No shipping/Task51/D3 acceptance.",
+  "retained_prior_failure": "host-sound-remaining-controls-e50205871-20261031.json actual1/no child stages; transient live JSON read/write race, not a native/control failure",
+  "actual_exit": 0,
+  "next_gate": "SAME independent reviewer new actual evidence; safe finite publication; remaining physical sound/time/terrain/spatial/model/fullshipping40/all8complete/currentCI/normalmerges, wholeD3 remains.",
+  "completed_utc": "2026-10-31T23:06:46.558328+00:00"
+}

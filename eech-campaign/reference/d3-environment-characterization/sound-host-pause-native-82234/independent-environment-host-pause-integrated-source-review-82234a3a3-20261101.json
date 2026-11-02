@@ -1,0 +1,214 @@
+{
+  "review": "Independent combined host pause/resume and material ground-base integration SOURCE review",
+  "created_utc": "2026-11-01T01:06:18.294123+00:00",
+  "source": {
+    "head": "82234a3a3cb6d54fbbede7a2cf7939c965e353c3",
+    "tree": "7eb4b172c171df75143993e6ea60a9e94ffd923a",
+    "merge_parents": [
+      "f3907195f94dd110fdc77b60047d7f89011c8600",
+      "3fdbe6efd08864898a320373d04be79a24c1a374"
+    ],
+    "new_pause_commit": "f3907195f94dd110fdc77b60047d7f89011c8600",
+    "pre_pause_reviewed_base": "5e7101d87887c83a96eb46d9165b6d903c4eedd0",
+    "accepted_ground_integration_parent": "3fdbe6efd08864898a320373d04be79a24c1a374",
+    "clean_at_review": true
+  },
+  "findings": [],
+  "source_review_no_blocking_findings": true,
+  "scope": "New14-file pause/resume implementation plus actual shared-file merge resolutions and integrated ground-driver boot changes. Prior unchanged field/lifetime/queue/sector/ambient/ground kernels and source/FP/authority/original evidence reused, not re-reviewed or rerun.",
+  "inspected_facts": {
+    "pause_physics": "New private host env_ref_sound_pause_resume implements one matching child using integer word ingress/egress: valid pause invalidates and copies delay, invalid resume validates/requests parent play/relink when not a member, other forms no-op. Changed is the per-effect returned count. No host state, entity pointer/ID/list layout, RNG, allocation or second authoritative world added.",
+    "boundary": "C request and Rust repr(C) tails match sound_resume/member/delay and reply changed/valid/play/relink fields; operation14 agrees in C enum and Rust constant. Synchronous Rust arrays have the fixed lengths C uses and private pointers remain valid for the call. Lua requires explicit boolean flags and a finite lifetime; engine checks flags/finite; C checks whole semantic reply before commit: no-op exact bits/no play/relink, valid-to-invalid changed pause, invalid-to-valid changed resume retaining lifetime, no double relink. Missing/refused/malformed answers name the provider and have no physical fallback.",
+    "caller_and_classic": "Hosted soundeff.c delegates every matching effect, applies checked results and invokes the copied parent-play helper/list insertion/count; classic original bodies remain under #else. Ordinary build defines EECH_CAMPAIGN_HOST_ENV and EECH_CAMPAIGN_HOST_TERRAIN, so those classic bodies are not hosted fallbacks. Type/subtype walk, private fields, caller/network plumbing and per-family/device implementation remain explicit Core couplings.",
+    "ordering_limit": "Membership is observed before the provider call, whereas the original tests it after parent playback. This is explicitly documented; current in-tree playback handlers inspected for the relevant list interaction do not insert/remove the effect update-list link. Core refuses a requested duplicate relink after playback. Non-session/backend behavior remains uncharacterized, not accepted by this source review.",
+    "FP_and_numerics": "The new C pause entry works on32-bit integer words with exponent-bit finite checks and no floating-point arithmetic/float ABI arguments. Copies preserve finite signed-zero/subnormal words; finite policy/refusals explicit. Existing lifetime and terrain/ground FP kernels were not rewritten. New questions/refusals are added to the existing caller-state matrix. Source inspection is not measured FP or i686 acceptance; canonical builds/CI remain required.",
+    "integrated_operations": {
+      "MAP": 1,
+      "POINT": 2,
+      "FAST": 3,
+      "GROUND_ABOVE": 4,
+      "GROUND_BELOW": 5,
+      "GROUND_IMPACT": 6,
+      "SECTOR": 7,
+      "AMBIENT": 8,
+      "facts": "C enum and Rust sys constants align; shared request/reply fields retain both families in identical order. Engine callback dispatch and Lua terrain_provider route ground variants to ground bridge and sector/ambient to existing terrain bridge. World provider has all named operations; existing point/map/fast/hint/season and ground reply handling remain present. This is one terrain callback, not two conflicting operation vocabularies."
+    },
+    "features_boot_and_NUL": "Both terrain/environment production defines retained. env-fixture/env-observer/ground-fixture features and complete test-only entry blocks preserved across Cargo propagation/build defines/sys/Engine/DC registration. eech_engine.c has exactly1 NUL at offset40063; merge adds accepted ground-probe block byte-safely. Ground-authority/characterization/terrain-has-face/terrain-provider now supply environment at boot; stand-ins check that integrated requirement. Generic terrain stand-in supplies sector/ambient and still explicitly refuses ground operations.",
+    "witness": "Six new modes use existing wrapper/delegate: fixture-only arming after real dc.boot returns, boot traffic forwarded/count separate; healthy case12, altered pause3.0 in case11, no-relink resume in case12 with actual state/call differences required; withheld/malformed and incoherent already-invalid pause require named engine_failure/no result. Old33+accepted299 delegate is source-feasible genuine missing-capability red (completed case12, no new requests). Scripted tests demonstrate witness bookkeeping only, not native physics or authority.",
+    "original_identity": {
+      "fixture_sha256": "8bef0d9b3aea77d27218e3ab6125b9534b64323666c9c678397bcefe4dedcd05",
+      "driver299_sha256": "7b1f3d491a200b7cd2fd18f217bb120fab43971be39ae6890186fc5ca074a24e",
+      "both_unchanged_from_pre_pause_base": true
+    },
+    "optional_helpers": "Read proposed freeze/build/default15-comparison/authority controller helpers without executing. They pin source/review and builds before campaign controls, distinguish old/native/script sources, verify accepted299 hash, preserve expected capability-red exit1 and use complete raw byte/endings comparison without normalization. They are preparation code, not evidence of completed gates."
+  },
+  "validation_context": {
+    "reviewer_tests_builds_native_runs": 0,
+    "WIP": "Dirty Linux check/test runs are author context only. engine101/fmt1, missing-DLL, OPT0 undefined symbol and malformed-shell failures remain failures; the claimed preexisting OPT0 cause is unverified as clarified by Root note. OPT1 is the configured build default. Canonical Root immutable default+observer/CDylib-first/hash/bothstrict/new Windows/currentCI and15defaults/7authority controls remain separate pending gates.",
+    "ground": "Accepted Task48 delivery/ground source/FP/weapon authority/full40/all8 complete shipping review a29 reused. This integration is new source and does not inherit runtime acceptance merely by merging accepted ground."
+  },
+  "limitations": [
+    "Source-only no-blocker verdict; no new native conformance, authority, full FP/i686, shipping40/all8, final exact-head CI or normal-merge acceptance. New production C requires a new native; never relabel33/e502/aafb binaries.",
+    "Finite SESSION-parent original observations remain the baseline; non-session range/per-family playback, real device/handles, metadata/assets, persistent mirrors, independent destroy/network/pitch/amplitude and physical time remain required D3 work.",
+    "WholeTask51/D3/all10requirements and required terrain/spatial/model/physical-route/device services remain open; no quietD5deferral and D4/D5 unstarted.",
+    "No source edits, tests/builds/native/process/cache/auth/public actions or nested agents performed. Future source/evidence changes are not pre-reviewed."
+  ],
+  "implementation_file_identities": [
+    {
+      "path": "STATUS.md",
+      "sha256": "5bd3d2888eef3e54e5b3300f8e66c4160e2f584af6ebdf319dacd886c7545e15"
+    },
+    {
+      "path": "aphavoc/source/entity/special/effect/soundeff/soundeff.c",
+      "sha256": "054c31c3dc998130bd7e8b19f9fc6f5f3d4597922ec008f108f35207f768464c"
+    },
+    {
+      "path": "aphavoc/source/entity/special/session/ss_hostenv.c",
+      "sha256": "21a53c0bb77422d9d9920496c9c58ee5b7f893cc8554dd038bf9a8f1ff1363bc"
+    },
+    {
+      "path": "aphavoc/source/entity/special/session/ss_hostenv.h",
+      "sha256": "8d3c1df5b5ba1bd2f57f407ce697cf834ac135d27e8168894a6c1fb0b914986e"
+    },
+    {
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "sha256": "2fc8b4523f5ce075b2bad08f34b5c894b8c9f15df6982fdd13f875cf3c76434e"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "sha256": "a993bcaa50cc6309afa262094bd969d5265e4e9f57c9ab723bae86c34b4f3430"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "sha256": "5d4b06ec1976b7e278fc419b22b72f80077a53f9ca553c8f772dee3ce5415a2d"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/csrc/env_ref.c",
+      "sha256": "df50228e8b7743d6f98c574e1b7af2786e54c3f71e5fb0328e7479f6c09b15f3"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/csrc/env_ref.h",
+      "sha256": "3176e7d7ce59ac3e5b31ebe08bd753f0307f1952bebe94df0aa6d8748f346803"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/env-sound-host-witness.lua",
+      "sha256": "b82e018ff324194e1702872d564d5866ca4d412a168f38a12c01e27df22614be"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/env.rs",
+      "sha256": "0176cad9ab49719a1d98fc78fa53a4949fec49dfedb5ffacdb464a236c41bb9e"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/env_sound_lifetime.rs",
+      "sha256": "5bfcd6dbbb15ae042f46f7474b8f01aa61f63ca19dde0f8a0a069306efb6a54c"
+    },
+    {
+      "path": "eech-campaign/docs/d3-environment-provider.md",
+      "sha256": "9629d1cfcdb724a6f2cd279b0076f0a658a479b0bc8dc04b48b2e13dcd819879"
+    },
+    {
+      "path": "eech-campaign/docs/d3-sound-lifetime.md",
+      "sha256": "ea146cca53888948a8dec461af5178fb03e69ea80651f7253a4fb241642e56b1"
+    }
+  ],
+  "material_merge_file_identities": [
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostterrain.c",
+      "sha256": "1e71452f4b50b8e84b20c381b403ba73faceaf1595dde27abd4699c0bc2c5488"
+    },
+    {
+      "path": "aphavoc/source/entity/mobile/mb_hostterrain.h",
+      "sha256": "4f35305f9690126eff08f4e4ecc8c2e57c3c368264ccf207c3bea86553573f44"
+    },
+    {
+      "path": "eech-campaign/crates/eech-dc/Cargo.toml",
+      "sha256": "8136d20d3aae57f56fd11c52045df8256ac3ffd76119be6219a38a031fd8b81f"
+    },
+    {
+      "path": "eech-campaign/crates/eech-dc/src/module.rs",
+      "sha256": "2fc8b4523f5ce075b2bad08f34b5c894b8c9f15df6982fdd13f875cf3c76434e"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/Cargo.toml",
+      "sha256": "b3447a258c3374376e42076763dac6faf33fbb8259c5f58cee8e6286faf1c91b"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/build/main.rs",
+      "sha256": "7f858087965e74ff7c2a37179b62a1f7762b9b2974c73df8f6dfc2899859728e"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+      "sha256": "370a795358d8b20da701a94c722d4bbdfc52743b0aadade3e230b6b9ae38a86a"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.h",
+      "sha256": "12c4184649792079fc8d78ce526fca84701a08cb83a80a3e14c258ef4df98416"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/src/lib.rs",
+      "sha256": "a993bcaa50cc6309afa262094bd969d5265e4e9f57c9ab723bae86c34b4f3430"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/Cargo.toml",
+      "sha256": "1f22e6e92a2609f5586e134a9a67124fdb4a2ba5c90945057c6c30d1620764df"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "sha256": "5d4b06ec1976b7e278fc419b22b72f80077a53f9ca553c8f772dee3ce5415a2d"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/csrc/terrain_ref.c",
+      "sha256": "b1947b2be6ab284e28cb3c9fa5084615222f501ef47c8337f886ebc0d3c10d59"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/csrc/terrain_ref.h",
+      "sha256": "9f8c48bfa1f2e1461b8a8e05091b68d2e7005553d0214960ef47bea8295d0ba5"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/src/terrain.rs",
+      "sha256": "d757c0b24a5c4d293d34744dabae182299038569af46ce8c458ce5d90a477cef"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/ground-authority.lua",
+      "sha256": "0403ca0d5baa8790e9c2a9ad9498007636e9e39fb034626bab71cb15ffe52e8e"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/ground-characterization.lua",
+      "sha256": "00179558ce915755980f543b3c88383fbce8148f3b2df26435b4492245ebc3c8"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/terrain-has-face.lua",
+      "sha256": "05b708e3805d8c579ae1601c66c7a6cbb5a38db1ddae1c38363eb18185894105"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/terrain-provider.lua",
+      "sha256": "14c8ba17de8daf13fc02a6b06a88124e37117f6f0e7cabef7487f0447ab78a62"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/ground_authority.rs",
+      "sha256": "1ad0e44aaac5228b81050ce334632e41a6f6e7a057f47986adad0a5483f2aafb"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "sha256": "43967893828bd7081e6cd2739673eea0a44062a627cf5087b03930ff6a77fb1c"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/lua/ground-caller.lua",
+      "sha256": "636f152c3f0c496eded04ed8aa51085e683457172f267a17ce1a1f3b45d7aa25"
+    }
+  ],
+  "reused_reports": [
+    {
+      "path": "R:\\d3-evidence\\independent-environment-original-sound-pause-resume-final-actual-review-native33-driver299-20261031.json",
+      "sha256": "df22d2e9967a6a6580ea0afd2010f0431196e3d235d341bed20e03de6c06fba7"
+    },
+    {
+      "path": "R:\\d3-evidence\\independent-environment-host-sound-lifetime-final-actual-review-e50205871-20261031.json",
+      "sha256": "274444e811399bba8985b6b915b2a7bb540bd285b4999c8d079d2f5e51d72289"
+    },
+    {
+      "path": "R:\\d3-evidence\\independent-ground-final-shipping-review-aafb-20261101.json",
+      "sha256": "a29ec02cf5e9831cbb64495a5dbe83210cda4e2b6f73276231f9c4189738474a"
+    }
+  ]
+}
