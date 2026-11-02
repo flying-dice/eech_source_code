@@ -1549,8 +1549,45 @@ fn the_setup_probe_is_separate_from_the_natural_run_and_says_which_cases_were_no
 type SetupFault = (&'static str, fn(&mut Case), &'static str);
 
 #[test]
+fn a_case_applied_but_not_called_is_rejected_apart_from_one_that_was_never_applied() {
+    // Case 3 has no query anywhere in this run: the base report says it is unavailable (no real fixed structure), and the run has the two setup queries of cases 1 and 2 and one natural query.
+    let unavailable = "tp-setup-case case=3 name=fixed_invalid_shape available=0 reason=no_fixed_structure_with_valid_shape applied=0 called=0 restored=0 entity_type=- host_id_state=- from=-1 from_name=- to=-1 to_name=- vp_unchanged=-1 counters_restored=-1\n";
+    // The same case with a real candidate whose precondition did not take: available, not applied, not called, restored, with the reason a not-called case 3 can have and the values the setup gives case 3 (the
+    // original shape 5, the invalid index 0 for the sentinel, no viewpoint or counters to check).
+    let not_applied = "tp-setup-case case=3 name=fixed_invalid_shape available=1 reason=setup_not_applied applied=0 called=0 restored=1 entity_type=TYPE_14 host_id_state=absent from=5 from_name=SCENE_5 to=0 to_name=- vp_unchanged=-1 counters_restored=-1\n";
+    let build = || {
+        let (mut case, _) = setup_case([true, true, false]);
+        let report = case.setup_report.take().unwrap();
+        assert_eq!(report.matches(unavailable).count(), 1, "the unavailable row of case 3 is in the report exactly once");
+        case.setup_report = Some(report.replacen(unavailable, not_applied, 1));
+        assert!(case.events.iter().flatten().all(|e| !e.contains("site=7 site_name=setup_probe detail=3")), "case 3 has no query");
+        case
+    };
+    // positive first: available, never applied, never called, no query
+    let outcome = run(&build());
+    outcome.result.as_ref().expect("an available case 3 whose precondition did not apply is reported not called, with no query");
+    let done = done_row(&outcome);
+    assert!(done.contains("\"setup_queries\":2") && done.contains("\"setup_cases\":\"1,2\"") && done.contains("\"setup_unavailable\":\"3:setup_not_applied\""), "{done}");
+
+    // the single fault: ONLY applied becomes 1 (the case is still not called and still has no query)
+    let applied_not_called = "reason=setup_not_applied applied=1 called=0 restored=1 entity_type=TYPE_14 host_id_state=absent from=5";
+    let was_not_applied = "reason=setup_not_applied applied=0 called=0 restored=1 entity_type=TYPE_14 host_id_state=absent from=5";
+    let mut fault = build();
+    let report = fault.setup_report.take().unwrap();
+    assert_eq!(report.matches(was_not_applied).count(), 1, "the mutation hits exactly once");
+    let mutated = report.replacen(was_not_applied, applied_not_called, 1);
+    assert_eq!(mutated.len(), report.len(), "only one character changed");
+    assert_eq!(mutated.chars().zip(report.chars()).filter(|(a, b)| a != b).count(), 1, "exactly one character differs");
+    fault.setup_report = Some(mutated);
+    let outcome = run(&fault);
+    failure(&outcome, MALFORMED);
+    failure(&outcome, "setup case 3 was called without being applied, or applied and not called");
+    assert_eq!(count(&outcome, "FRAME"), 0, "a frame was run");
+}
+
+#[test]
 fn damaged_setup_reports_and_restorations_are_malformed_and_stop_the_questions() {
-    let faults: [SetupFault; 17] = [
+    let faults: [SetupFault; 16] = [
         (
             "a constructed scene the original did not see",
             |c| change(c, 0, "model=4 model_name=SCENE_4", "model=2 model_name=SCENE_2"),
@@ -1621,17 +1658,6 @@ fn damaged_setup_reports_and_restorations_are_malformed_and_stop_the_questions()
             "a query about another entity family than the one changed",
             |c| c.setup_report = c.setup_report.take().map(|t| t.replacen("entity_type=TYPE_14", "entity_type=TYPE_15", 1)),
             "is not about the entity case 1 changed",
-        ),
-        (
-            "a case applied but never called",
-            |c| {
-                edit_setup(
-                    c,
-                    "reason=- applied=1 called=1 restored=1 entity_type=TYPE_14 host_id_state=absent",
-                    "reason=setup_not_applied applied=1 called=0 restored=1 entity_type=TYPE_14 host_id_state=absent",
-                )
-            },
-            "was called without being applied, or applied and not called",
         ),
         (
             "a reason that case cannot have when it was not called",
