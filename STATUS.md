@@ -1,3 +1,11 @@
+# D3 current — environment shipping40/all8 complete (2 November 2026)
+
+Task51 / PR111: ordinary native `78fe5efdb` completed actual runner0 at07:08:52UTC and launcher gate0 at07:09:06. The exact40 accepted checks pass; ALL EIGHT COMPLETE default Tacview/observation/metric artifacts are byte-identical to the accepted retained pack. All four post-run retail input checks pass and all74 build payloads remain unchanged. The original run was never restarted; earlier partial-prefix evidence retains its own scope.
+
+[Literal safe completion/comparison/audit reports](eech-campaign/reference/d3-environment-characterization/shipping-78-complete-20261102/README.md) preserve source/run/configuration identities and limits. Existing closed finite environment/backend/time reviews remain at their own revisions. All executable input blobs/modes through prior documentation headd456 remain native78; its nine CI checks pass. Publication-head CI, final independent shipping/delivery review and normal merge remain pending. No visual Tacview, native DCS/M6, positive audio or wholeD3 acceptance is claimed.
+
+Task50 physical model metadata correction/validation continues separately; required hierarchy/viewpoint/device/muzzle/target-point services and Task49 physical collision scans/transforms remain D3. Task47/48 accepted evidence is reused. D4/D5 are unstarted. No accepted baseline, tolerance, input, oracle or shipping flag changed. Historical checkpoints below retain their at-the-time status and are superseded by this entry.
+
 # D3 current — environment extraction reviewed; full shipping pack running
 
 Native `78fe5efdb` has finite backend/entry conformance review03369ba4 and sourceacd79644 closed; complete focused default120 is byte-identical (5,191,384B /17,283rows,48307ff). Time/DCS documentation at5c25092cf has source/design reviewbb1bf592 closed. All executable inputs/modes remain78; the restricted DCS workaround is a plan, not native DCS execution. Safe literal reports and manifest: `eech-campaign/reference/d3-environment-characterization/backend-time-closeout-78-5c-20261101/`.

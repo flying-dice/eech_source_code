@@ -1,0 +1,42 @@
+{
+  "created_utc": "2026-11-02T15:31:40.001763+00:00",
+  "native_source": "78fe5efdb5cbaff904e3b645d680acbd7776597d",
+  "reports": [
+    {
+      "file": "runner.json",
+      "bytes": 909,
+      "sha256": "f1f3c3672958006020403cdbf4e1c3d27699c4698f5a55bd1211f57b11b1e8f4",
+      "private_original": "D:\\EECH-Migration-Evidence\\shipping-environment-production-78fe5efdb-20261101-1626\\run.json",
+      "literal_copy": true
+    },
+    {
+      "file": "launcher-completion.json",
+      "bytes": 862,
+      "sha256": "e45a3137e2473debd46ddd3d4c70be8c12012f3386504c3bdcf8527dac7e5c3c",
+      "private_original": "D:\\EECH-Migration-Evidence\\shipping-environment-production-78fe5efdb-20261101-1626\\completion.json",
+      "literal_copy": true
+    },
+    {
+      "file": "complete-comparison.json",
+      "bytes": 3221,
+      "sha256": "cdeec9fe8b0bebc30e8df06ce36f683ffc1815259c1a86cb8e3c52a100e991ad",
+      "private_original": "R:\\d3-evidence\\environment-shipping-complete-78fe5efdb-20261102-1535.json",
+      "literal_copy": true
+    },
+    {
+      "file": "root-audit.json",
+      "bytes": 4188,
+      "sha256": "da56cd98962992c710fba776dd83db3489d8eb0b27dc042c4203148140c0aba0",
+      "private_original": "R:\\d3-evidence\\environment-shipping-audit-78fe5efdb-20261102-1535.json",
+      "literal_copy": true
+    },
+    {
+      "file": "prior-documentation-head-ci.json",
+      "bytes": 28092,
+      "sha256": "63c08c2c209a77f7f9bbbd697643388bf67c31614a1ff3e05297209612598133",
+      "private_original": "R:\\d3-evidence\\environment-CI-d4564f36a8-20261102-1535.json",
+      "literal_copy": true
+    }
+  ],
+  "scope": "Literal safe reports only; no retail assets, raw recordings or binaries. No final review/merge/wholeD3 claim."
+}
