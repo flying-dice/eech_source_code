@@ -1,0 +1,63 @@
+{
+  "created_utc": "2026-11-02T16:46:21.353627+00:00",
+  "current_measured_source": "bce0c3514be13ee4bbc3a571387132989f74e3c6",
+  "reports": [
+    {
+      "file": "current-build-gates.json",
+      "bytes": 7415,
+      "sha256": "fff3fb30286f83bcaa88f3ba6e37bb46275a71a126c9044ce1b60804d6b5afc6",
+      "private_original": "R:\\d3-evidence\\model-integrated-current-builds-bce0c3514b-20261102.json",
+      "literal_copy": true
+    },
+    {
+      "file": "current-original-list-comparison.json",
+      "bytes": 3107,
+      "sha256": "c4506640a72d0a5b74612deaeb9b535c833e27a6e36f06f1503278c954034bd3",
+      "private_original": "R:\\d3-evidence\\model-integrated-literal-lists-bce0c3514b-20261102.json",
+      "literal_copy": true
+    },
+    {
+      "file": "ordinary-short-e9.json",
+      "bytes": 2687,
+      "sha256": "4f973e73433d82ea3eb75b6549b2588c960352a5b1e237d936a1418e81ee3b79",
+      "private_original": "R:\\d3-evidence\\model-integrated-ordinary-short-e9d77de8da-20261102.json",
+      "literal_copy": true
+    },
+    {
+      "file": "environment-source-scope-e9-bce.json",
+      "bytes": 4744,
+      "sha256": "66b6ae09ab9c66e3dbe93c56b034ce3ca0213f9519f6c84074e5d6b62a50a3e6",
+      "private_original": "R:\\d3-evidence\\model-integrated-environment-scope-e9-v-bce-20261102.json",
+      "literal_copy": true
+    },
+    {
+      "file": "windows-caller-profile.json",
+      "bytes": 2749,
+      "sha256": "9746be437bbb89983e3612964aceb93046402412fcb86d4bc1134380ae510fa6",
+      "private_original": "D:\\EECH-Migration-Evidence\\model-integrated-caller-profile-probe-20261102-1612\\report.json",
+      "literal_copy": true
+    },
+    {
+      "file": "current-ci.json",
+      "bytes": 28092,
+      "sha256": "2b3e4bdf6ebd83e826879bad7850dbf860292b6ea7d7b3e87cbe286e7bbd0824",
+      "private_original": "R:\\d3-evidence\\model-integrated-CI-bce0c3514b-20261102.json",
+      "literal_copy": true
+    },
+    {
+      "file": "independent-integration-review.json",
+      "bytes": 17237,
+      "sha256": "69cad05093958bcdfb7b1f2d602a9d5749e7794d7abf544da890c0124f06920f",
+      "private_original": "R:\\d3-evidence\\independent-model-environment-integration-source-actual-bce0c3514b-20261102.json",
+      "literal_copy": true
+    },
+    {
+      "file": "shipping-launch.json",
+      "bytes": 2775,
+      "sha256": "9f230ea5127c359003678a069549949e7950da1b310d7c2f2977681e6dbfab6c",
+      "private_original": "R:\\d3-evidence\\model-integrated-shipping-bce0c3514b-20261102-164316-launch.json",
+      "literal_copy": true
+    }
+  ],
+  "scope": "Eight literal safe reports, source identities separated. Raw retail data/lists/recordings/binaries remain private. Shippinglaunch is STARTED NOTCOMPLETED, not40/all8/Task50/D3acceptance."
+}

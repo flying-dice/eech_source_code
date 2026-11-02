@@ -1,0 +1,49 @@
+{
+  "created_utc": "2026-11-02T16:21:18.475339+00:00",
+  "source": "e9d77de8dab85b1b1f504051a8b8ad9fb4c909a1",
+  "ordinary_binary": "D:\\EECH-Migration-Evidence\\model-integrated-e9d77de8da\\eech-campaign\\target\\windows-model-integrated-e9d77de8da",
+  "controller_exit": 0,
+  "native_exit": 0,
+  "full_pre_post_inputs": [
+    0,
+    0
+  ],
+  "verified_payloads": 83,
+  "files": [
+    {
+      "file": "recording.acmi",
+      "original": "R:\\d3-evidence\\model-reference-profile-recording-80fd62ea4-20261030\\recording.acmi",
+      "candidate": "D:\\EECH-Migration-Evidence\\model-integrated-focused-actual-e9d77de8da-20261102\\short-recording\\recording.acmi",
+      "original_bytes": 230871,
+      "candidate_bytes": 230871,
+      "original_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+      "candidate_sha256": "daf9c9935a407844c034fd57b81d534f1324554cca9b40aca6ade6c7425d619d",
+      "all_complete_bytes_equal": true,
+      "first_difference": null
+    },
+    {
+      "file": "observations.jsonl",
+      "original": "R:\\d3-evidence\\model-reference-profile-recording-80fd62ea4-20261030\\observations.jsonl",
+      "candidate": "D:\\EECH-Migration-Evidence\\model-integrated-focused-actual-e9d77de8da-20261102\\short-recording\\observations.jsonl",
+      "original_bytes": 1553674,
+      "candidate_bytes": 1553674,
+      "original_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+      "candidate_sha256": "d2318f7d510a74f1481540119f1ae1ab94fdbfaab89b4a1d264f85811e6f56dc",
+      "all_complete_bytes_equal": true,
+      "first_difference": null
+    },
+    {
+      "file": "metrics.json",
+      "original": "R:\\d3-evidence\\model-reference-profile-recording-80fd62ea4-20261030\\metrics.json",
+      "candidate": "D:\\EECH-Migration-Evidence\\model-integrated-focused-actual-e9d77de8da-20261102\\short-recording\\metrics.json",
+      "original_bytes": 7477,
+      "candidate_bytes": 7477,
+      "original_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+      "candidate_sha256": "30b037c2bbd20f224ad0bbf32f00290958aa116d0b97c27f6a66bb21b3de90c4",
+      "all_complete_bytes_equal": true,
+      "first_difference": null
+    }
+  ],
+  "all_three_complete_files_literal_equal": true,
+  "scope": "Current integrated e9 ORDINARY short candidate vs retained80fd reference profile, exacthours0.001/record1/record_every10/observe_every1/observe_supply1, seed1/frame100ms. Complete bytes incl endings, not visual/fullshipping/wholeTask50/D3 acceptance. e9modeldiagnostic G/Lfailedmissingenv is separate, preserved; newdrivercorrections not relabelled."
+}

@@ -1,0 +1,65 @@
+{
+  "source": "bce0c3514be13ee4bbc3a571387132989f74e3c6",
+  "original_native_source": "a6cf70b672a6dab771048cc676e230b22ffa0972",
+  "created_utc": "2026-11-02T16:35:48.166027+00:00",
+  "cases": [
+    {
+      "case": "georgia",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "full_input_exits": [
+        0,
+        0
+      ],
+      "scenes": 3025,
+      "statuses": {
+        "listed": 95,
+        "empty": 2742,
+        "absent": 188
+      },
+      "ordered_ids": 510,
+      "all_3025_complete_raw_anim_lines_including_endings_equal_original": true,
+      "all_3025_native_report_anim_lines_including_endings_equal_original": true,
+      "first_different_scene": null,
+      "candidate_raw_bytes": 882442,
+      "original_raw_bytes": 883159,
+      "candidate_raw_sha256": "3ded7e830a95a399acc993d87c88d4f974c9e5254793f791657b94cd10c86816",
+      "original_raw_sha256": "d8bae4ece090569002ac590d8fadfcb64c838c4a325762ced94a6b54b6da4b06",
+      "candidate_anim_raw_sha256": "2ca558ad48e2500a3ff3acd42f6376320580243924a89851b0047b4d0a20e252",
+      "original_anim_raw_sha256": "2ca558ad48e2500a3ff3acd42f6376320580243924a89851b0047b4d0a20e252",
+      "whole_files_equal": false,
+      "candidate": "D:\\EECH-Migration-Evidence\\model-integrated-focused-actual-bce0c3514b-20261102\\georgia\\animations.jsonl",
+      "original": "D:\\EECH-Migration-Evidence\\model-animation-original-actual-a6cf70b672-20261101\\georgia\\animations.jsonl"
+    },
+    {
+      "case": "lebanon",
+      "native_exit": 0,
+      "controller_exit": 0,
+      "full_input_exits": [
+        0,
+        0
+      ],
+      "scenes": 3025,
+      "statuses": {
+        "listed": 95,
+        "empty": 2742,
+        "absent": 188
+      },
+      "ordered_ids": 510,
+      "all_3025_complete_raw_anim_lines_including_endings_equal_original": true,
+      "all_3025_native_report_anim_lines_including_endings_equal_original": true,
+      "first_different_scene": null,
+      "candidate_raw_bytes": 882442,
+      "original_raw_bytes": 883159,
+      "candidate_raw_sha256": "85c9cb55e92d9dd46245c3d10bee577c1f21fed2f7f54e08e72e82fc5637c20d",
+      "original_raw_sha256": "5151f579bedefd38a7db4ca2d313f922163e8079cfdf8121b39af0fe1986cbae",
+      "candidate_anim_raw_sha256": "2ca558ad48e2500a3ff3acd42f6376320580243924a89851b0047b4d0a20e252",
+      "original_anim_raw_sha256": "2ca558ad48e2500a3ff3acd42f6376320580243924a89851b0047b4d0a20e252",
+      "whole_files_equal": false,
+      "candidate": "D:\\EECH-Migration-Evidence\\model-integrated-focused-actual-bce0c3514b-20261102\\lebanon\\animations.jsonl",
+      "original": "D:\\EECH-Migration-Evidence\\model-animation-original-actual-a6cf70b672-20261101\\lebanon\\animations.jsonl"
+    }
+  ],
+  "all_literal_list_cohorts_equal": true,
+  "scope": "Final Core scene-list facts/order/backing compared literally against retained originals. Page digest/header is this profile own observation and not an original equality claim. No raw normalization, new original rerun, fullFP/visual/Tacview/shipping/Task50/D3 acceptance."
+}
