@@ -60,10 +60,15 @@ fn ev(seq: u32, site: usize, branch: u8, case: &'static str) -> Ev {
     Ev {
         seq,
         site,
+        // the detail the observer receives: the caller class 0 has none; 1, 2 and 3 are fill_aim_target with CAMPAIGN_AIM_VECTORS (6), _LEAD (7) and _INTERCEPT (9); 4 is the weapon
+        // step's target-point question (1); 5 is any other caller
         detail: match site {
             0 => 0,
+            1 => 6,
+            2 => 7,
+            3 => 9,
             4 => 1,
-            _ => 3,
+            _ => 4,
         },
         branch,
         case,
@@ -92,17 +97,32 @@ fn instance_position(seq: u32, site: usize) -> Ev {
     ev(seq, site, 2, "instance_without_target_point")
 }
 
-/// branch 3: no instance, a fixed object of a valid shape (5). `heading` is what the original read, `xz` whether it added the rotated x/z offsets.
-fn fixed_shape(seq: u32, site: usize, case: &'static str, heading: Option<u32>, xz: bool) -> Ev {
+/// the census offset of model `i` (the synthetic one): model 3 has a target point on its axis (only y is non-zero), the others have a horizontal offset; index 0 is the invalid zero
+fn census_offset(i: usize) -> [u32; 3] {
+    let n = 10 * i as u32;
+    match i {
+        0 => [0, 0, 0],
+        3 => [0, 0x3f80_0000 + n, 0],
+        _ => [0x3f80_0000 + n, 0x3f80_0001 + n, 0x3f80_0002 + n],
+    }
+}
+
+fn offset_text(o: [u32; 3]) -> String {
+    format!("{:08x},{:08x},{:08x}", o[0], o[1], o[2])
+}
+
+/// branch 3: no instance, a fixed object of a valid shape (5 has a horizontal offset, 3 has none). The offset is that shape's census row. `heading` is what the original read, `xz` whether it
+/// added the rotated x/z offsets.
+fn fixed_shape(seq: u32, site: usize, shape: i32, case: &'static str, heading: Option<u32>, xz: bool) -> Ev {
     let horizontal = case != "no_horizontal_offset";
     Ev {
         fixed: true,
-        shape: 5,
-        model: 5,
+        shape,
+        model: shape,
         horizontal,
         heading,
         xz,
-        offset: Some(if horizontal { [0x4000_0000, 0x3f80_0000, 0] } else { [0, 0x3f80_0000, 0] }),
+        offset: Some(census_offset(shape as usize)),
         ..ev(seq, site, 3, case)
     }
 }
@@ -124,7 +144,7 @@ fn event_text(i: usize, e: &Ev) -> String {
     };
     let model_name = if e.model >= 0 { format!("SCENE_{}", e.model) } else { "-".to_string() };
     let heading = e.heading.map_or("-".to_string(), |h| format!("{h:08x}"));
-    let offset = e.offset.map_or("-".to_string(), |o| format!("{:08x},{:08x},{:08x}", o[0], o[1], o[2]));
+    let offset = e.offset.map_or("-".to_string(), offset_text);
     let before = if e.instance { words(100, 12) } else { "-".to_string() };
     let after = match (e.instance, e.vp_changed) {
         (false, _) => "-".to_string(),
@@ -211,13 +231,13 @@ fn census_text(whole: bool) -> String {
         } else if i % 2 == 0 {
             t += &format!(
                 "tp-offset index={i} name=SCENE_{i} state=bbox offset={} bounds={} live=1\n",
-                words(10 * i as u32, 3),
+                offset_text(census_offset(i)),
                 words(50 * i as u32, 6)
             );
         } else {
             t += &format!(
                 "tp-offset index={i} name=SCENE_{i} state=sub_object offset={} bounds=- live=1\n",
-                words(10 * i as u32, 3)
+                offset_text(census_offset(i))
             );
         }
     }
@@ -229,9 +249,9 @@ fn every_branch() -> Vec<Ev> {
     vec![
         target_point(0, 1),
         instance_position(1, 2),
-        fixed_shape(2, 3, "rotated_horizontal_offset", Some(0x3f00_0000), true),
-        fixed_shape(3, 4, "heading_zero_quirk", Some(0), false),
-        fixed_shape(4, 1, "no_horizontal_offset", None, false),
+        fixed_shape(2, 3, 5, "rotated_horizontal_offset", Some(0x3f00_0000), true),
+        fixed_shape(3, 4, 5, "heading_zero_quirk", Some(0), false),
+        fixed_shape(4, 1, 3, "no_horizontal_offset", None, false),
         fallback(5, 0, false),
         Ev {
             host_id: Some("RV 12 with spaces"),
@@ -264,6 +284,8 @@ struct Case {
     censuses: Vec<String>,
     events: Vec<Option<String>>,
     stuck_clock: bool,
+    /// "": the clock is the table the engine returns; "text": it answers a string; "fail": the call raises
+    clock_fault: &'static str,
     fail_frame: u32,
     feature_off: bool,
     boot_fails: bool,
@@ -287,6 +309,7 @@ fn healthy(events: &[Ev]) -> Case {
         censuses: vec![census_text(true)],
         events: events.iter().enumerate().map(|(i, e)| Some(event_text(i, e))).collect(),
         stuck_clock: false,
+        clock_fault: "",
         fail_frame: 0,
         feature_off: false,
         boot_fails: false,
@@ -367,6 +390,8 @@ fn run(case: &Case) -> Outcome {
                     local engine = {{
                         clock = function ()
                             note ("clock")
+                            if CLOCK_FAULT == "text" then return "elapsed_seconds=0.0" end
+                            if CLOCK_FAULT == "fail" then error ("clock refused", 0) end
                             return {{ elapsed_seconds = STUCK and 5.0 or FRAMES * 0.1, time_of_day_seconds = 43200.0, day = 1 }}
                         end,
                         frame = function (self, ms)
@@ -422,6 +447,7 @@ fn run(case: &Case) -> Outcome {
     }
     lua.globals().set("EVENTS", events).unwrap();
     lua.globals().set("STUCK", case.stuck_clock).unwrap();
+    lua.globals().set("CLOCK_FAULT", case.clock_fault).unwrap();
     lua.globals().set("FAIL_FRAME", case.fail_frame).unwrap();
     lua.globals().set("FEATURE_OFF", case.feature_off).unwrap();
     let host: Table = lua.globals().get("host").unwrap();
@@ -549,21 +575,21 @@ fn a_census_that_is_not_whole_is_not_measured_and_no_frame_is_run() {
 fn the_heading_zero_quirk_is_a_checked_contract_of_the_report() {
     // +0.0 and -0.0 are both zero: no x/z offsets are added, and the report says so
     let mut negative_zero = every_branch();
-    negative_zero[3] = fixed_shape(3, 4, "heading_zero_quirk", Some(0x8000_0000), false);
+    negative_zero[3] = fixed_shape(3, 4, 5, "heading_zero_quirk", Some(0x8000_0000), false);
     run(&healthy(&negative_zero)).result.expect("a negative-zero heading is the quirk too");
     // a zero heading that the report says rotated, a non-zero heading that it says did not, and a horizontal offset with no heading read are each contradictions
     let cases: [(&str, Vec<Ev>); 3] = [
         (
             "a zero heading that rotated",
-            vec![fixed_shape(0, 3, "rotated_horizontal_offset", Some(0), true)],
+            vec![fixed_shape(0, 3, 5, "rotated_horizontal_offset", Some(0), true)],
         ),
         (
             "a non-zero heading that did not rotate",
-            vec![fixed_shape(0, 3, "heading_zero_quirk", Some(0x3f00_0000), false)],
+            vec![fixed_shape(0, 3, 5, "heading_zero_quirk", Some(0x3f00_0000), false)],
         ),
         (
             "a horizontal offset without a heading",
-            vec![fixed_shape(0, 3, "heading_zero_quirk", None, false)],
+            vec![fixed_shape(0, 3, 5, "heading_zero_quirk", None, false)],
         ),
     ];
     for (what, events) in cases {
@@ -600,7 +626,7 @@ type Damage = (&'static str, fn(&mut Case), &'static str);
 
 #[test]
 fn damaged_or_contradictory_reports_are_malformed_and_stop_the_questions() {
-    let damages: [Damage; 14] = [
+    let damages: [Damage; 22] = [
         (
             "calls that are not the events",
             |c| c.summaries[1] = c.summaries[1].replace("tp-summary calls=7", "tp-summary calls=8"),
@@ -664,7 +690,7 @@ fn damaged_or_contradictory_reports_are_malformed_and_stop_the_questions() {
             |c| {
                 c.events[0] = c.events[0]
                     .as_ref()
-                    .map(|t| t.replace("site=1 site_name=aim_vectors", "site=2 site_name=aim_lead"))
+                    .map(|t| t.replace("site=1 site_name=aim_vectors detail=6", "site=2 site_name=aim_lead detail=7"))
             },
             "",
         ),
@@ -682,6 +708,50 @@ fn damaged_or_contradictory_reports_are_malformed_and_stop_the_questions() {
             "events whose sequence does not increase",
             |c| c.events[1] = c.events[1].as_ref().map(|t| t.replace("seq=1 ", "seq=0 ")),
             "event 2",
+        ),
+        (
+            "an aim caller whose detail is another aim mode",
+            |c| c.events[0] = c.events[0].as_ref().map(|t| t.replace("site=1 site_name=aim_vectors detail=6", "site=1 site_name=aim_vectors detail=7")),
+            "event 1",
+        ),
+        (
+            "an intercept caller whose detail is the ballistic mode",
+            |c| {
+                let events = [ev(0, 3, 4, "not_fixed")];
+                c.summaries[1] = summary(&events);
+                c.events = vec![Some(event_text(0, &events[0]).replace("detail=9", "detail=8"))];
+            },
+            "event 1",
+        ),
+        (
+            "case totals that put the rotated call under heading_zero",
+            |c| c.summaries[1] = c.summaries[1].replace("heading_zero=1 rotated=1", "heading_zero=2 rotated=0"),
+            "",
+        ),
+        (
+            "a final census that disagrees with its own unchanged raw rows",
+            |c| c.summaries[1] = c.summaries[1].replace("sub_object=3 bbox=2", "sub_object=2 bbox=3"),
+            "event 0",
+        ),
+        (
+            "a final census history that differs from the boot's",
+            |c| c.summaries[1] = c.summaries[1].replace("runs=1 ended=1", "runs=2 ended=2").replace("tp-complete census=1", "tp-complete census=0"),
+            "event 0",
+        ),
+        (
+            "a fixed-shape offset that is not its shape's census row",
+            |c| c.events[2] = c.events[2].as_ref().map(|t| t.replace(&offset_text(census_offset(5)), &offset_text([0x4000_0000, 0x3f80_0000, 0x3f80_0003]))),
+            "event 3",
+        ),
+        (
+            "a fixed-shape offset that is another shape's census row",
+            |c| c.events[2] = c.events[2].as_ref().map(|t| t.replace(&offset_text(census_offset(5)), &offset_text(census_offset(4)))),
+            "event 3",
+        ),
+        (
+            "a fixed-shape model name that is not its shape's census row",
+            |c| c.events[2] = c.events[2].as_ref().map(|t| t.replace("model_name=SCENE_5", "model_name=SCENE_4")),
+            "event 3",
         ),
         ("a clock that does not advance", |c| c.stuck_clock = true, "event 0"),
     ];
@@ -703,6 +773,87 @@ fn damaged_or_contradictory_reports_are_malformed_and_stop_the_questions() {
             );
         }
     }
+}
+
+#[test]
+fn the_clock_is_a_table_and_is_read_without_being_made_text() {
+    // the coherent run reads the clock twice as the engine answers it, a table (the nominal positives of every other test pass through it); the text reports are the only ones that must be strings
+    let outcome = run(&healthy(&every_branch()));
+    outcome.result.as_ref().expect("a table clock is the engine's own answer");
+    assert_eq!(count(&outcome, "clock"), 2);
+    assert!(rows(&outcome).iter().filter(|r| r.contains("\"event\":\"clock\"")).count() == 2);
+    // a clock answered as text is not a clock: malformed, not stringified, and no frame is run
+    let mut text = healthy(&every_branch());
+    text.clock_fault = "text";
+    let outcome = run(&text);
+    failure(&outcome, MALFORMED);
+    failure(&outcome, "the before clock is not a table");
+    assert_eq!(count(&outcome, "FRAME"), 0);
+    // a clock call that raises is a primary engine failure: the questions stop at once and the output is closed
+    let mut raising = healthy(&every_branch());
+    raising.clock_fault = "fail";
+    raising.io = Io::Fail("close");
+    let outcome = run(&raising);
+    failure(&outcome, "clock failed: clock refused");
+    failure(&outcome, "additionally the output could not be closed");
+    assert_eq!(count(&outcome, "FRAME"), 0);
+    assert_eq!(count(&outcome, "clock"), 1);
+}
+
+#[test]
+fn a_partial_capture_is_bounded_by_the_summary_and_a_row_beyond_it_is_malformed() {
+    // one call was abandoned by the next (interrupted): the six kept rows are all there is, the summary says the capture is not whole, and the rows may not exceed its case totals
+    let all = every_branch();
+    let events = &all[..6];
+    let partial = summary(events)
+        .replace("calls=6 events=6", "calls=7 events=6")
+        .replace("interrupted=0", "interrupted=1")
+        .replace("queries_whole=1", "queries_whole=0");
+    let mut case = healthy(events);
+    case.summaries = vec![summary(&[]), partial.clone()];
+    let outcome = run(&case);
+    failure(&outcome, "NOT COMPLETE");
+    assert_eq!(count(&outcome, "event 5"), 1, "every kept row is still read once");
+    assert!(done_row(&outcome).contains("\"malformed\":false"));
+    // the same partial summary with a case total that the rows exceed is a contradiction
+    let mut beyond = healthy(events);
+    beyond.summaries = vec![summary(&[]), partial.replace("heading_zero=1 rotated=1", "heading_zero=2 rotated=0")];
+    let outcome = run(&beyond);
+    failure(&outcome, MALFORMED);
+    failure(&outcome, "more calls of the case rotated");
+}
+
+#[test]
+fn the_aim_modes_the_driver_pairs_with_the_caller_classes_are_the_headers() {
+    let header = include_str!("../../../../aphavoc/source/entity/mobile/mb_hostaim.h");
+    let start = header.find("enum campaign_aim_mode").expect("the aim mode enum");
+    let body = &header[start..];
+    let body = &body[..body.find("};").expect("the enum ends")];
+    let mut values: Vec<(String, i32)> = Vec::new();
+    for line in body.lines().skip(2).map(str::trim).filter(|l| !l.is_empty() && !l.starts_with("/*") && !l.starts_with("//")) {
+        let item = line.trim_end_matches(',');
+        match item.split_once('=') {
+            Some((name, number)) => values.push((name.trim().to_string(), number.trim().parse().expect("an explicit enumerator value"))),
+            None => {
+                let next = values.last().map_or(0, |v| v.1 + 1);
+                values.push((item.to_string(), next));
+            }
+        }
+    }
+    let mode = |name: &str| values.iter().find(|v| v.0 == name).unwrap_or_else(|| panic!("no {name}")).1;
+    let line = SCRIPT.lines().find(|l| l.starts_with("local AIM_DETAIL = {")).expect("the driver's pairs");
+    assert_eq!(
+        line.trim_end(),
+        format!(
+            "local AIM_DETAIL = {{ [1] = {}, [2] = {}, [3] = {} }}",
+            mode("CAMPAIGN_AIM_VECTORS"),
+            mode("CAMPAIGN_AIM_LEAD"),
+            mode("CAMPAIGN_AIM_INTERCEPT")
+        )
+    );
+    // and the order the observer's caller classes are numbered in is the order the driver names them
+    assert!(EMITTER.find("TP_SITE_AIM_VECTORS,").unwrap() < EMITTER.find("TP_SITE_AIM_LEAD,").unwrap());
+    assert!(EMITTER.find("TP_SITE_AIM_LEAD,").unwrap() < EMITTER.find("TP_SITE_AIM_INTERCEPT,").unwrap());
 }
 
 #[test]

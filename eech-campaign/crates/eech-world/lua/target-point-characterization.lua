@@ -253,6 +253,8 @@ local function check_offsets (text, summary)
 	local expected = summary.census.expected
 	if #list ~= expected then malformed (string.format ("the census has %d rows, the summary expects %d", #list, expected)) end
 	local counts = { none = 0, sub_object = 0, bbox = 0, invalid_zero = 0, live_mismatch = 0 }
+	-- the rows themselves, by model index, for the joins of the queries that name a shape: its state, name, offset words (as the native text) and whether the live table still held them
+	local rows = {}
 	for i = 0, expected - 1 do
 		local what = "census row " .. i
 		local r = fields (list [i + 1], "tp-offset", { "index", "name", "state", "offset", "bounds", "live" }, what)
@@ -260,6 +262,7 @@ local function check_offsets (text, summary)
 		name (r.name, what .. " name")
 		if not STATES [r.state] then malformed (what .. " has the state '" .. tostring (r.state) .. "'") end
 		counts [r.state] = counts [r.state] + 1
+		rows [i] = { state = r.state, name = r.name, offset = r.offset, live = r.live }
 		if r.state == "none" then
 			if r.offset ~= "-" or r.bounds ~= "-" or r.live ~= "-" then malformed (what .. " is not recorded but carries values") end
 		else
@@ -274,11 +277,32 @@ local function check_offsets (text, summary)
 			end
 		end
 	end
-	return counts
+	return counts, rows
 end
 
--- One recorded query. `index` is the number asked for. Returns its facts.
-local function check_event (text, index, summary)
+-- The census facts a summary and the rows must agree on (every total of the census line, and the verdict): the rows are joined to the summary that describes them.
+local function join_census_rows (counts, summary)
+	local c = summary.census
+	if counts.sub_object ~= c.sub_object or counts.bbox ~= c.bbox or counts.invalid_zero ~= c.invalid_zero or counts.live_mismatch ~= c.live_mismatch or counts.none ~= c.expected - c.recorded then
+		malformed ("the census rows and the summary's census totals disagree")
+	end
+end
+
+-- The census is the boot's own product and nothing may change it: every total and the verdict of a later summary equal those measured at the boot. (The QUERY counters grow; these do not.)
+local CENSUS_KEYS = { "runs", "ended", "open", "expected", "recorded", "sub_object", "bbox", "invalid_zero", "duplicates", "stray", "live_mismatch" }
+local function same_census (boot, later, when)
+	for _, key in ipairs (CENSUS_KEYS) do
+		if later.census [key] ~= boot.census [key] then malformed ("the census total '" .. key .. "' changed after the boot (" .. when .. ")") end
+	end
+	if later.census_whole ~= boot.census_whole then malformed ("the census verdict changed after the boot (" .. when .. ")") end
+end
+
+-- The mode values of the host aim operation that fill_aim_target reports as its detail (CAMPAIGN_AIM_VECTORS, _LEAD and _INTERCEPT of aphavoc/source/entity/mobile/mb_hostaim.h), by the
+-- caller class the observer's site_class gives them: tests/target_point_characterization.rs checks these numbers against that header.
+local AIM_DETAIL = { [1] = 6, [2] = 7, [3] = 9 }
+
+-- One recorded query. `index` is the number asked for. `rows` are the boot census rows. Returns its facts.
+local function check_event (text, index, summary, rows)
 	local what = "event " .. index
 	local list = lines_of (text, what)
 	if #list ~= 1 then malformed (what .. " is not exactly one line") end
@@ -297,6 +321,8 @@ local function check_event (text, index, summary)
 	if e.site_name ~= SITES [f.site] then malformed (what .. " names site " .. f.site .. " '" .. e.site_name .. "'") end
 	if f.site == 0 and f.detail ~= 0 then malformed (what .. " is unattributed but carries a caller detail") end
 	if f.site == 4 and f.detail ~= 1 then malformed (what .. " is a weapon step lookup of a question other than the target point") end
+	-- the observer's site_class gives an aim caller its class from the aim mode, and only from it
+	if AIM_DETAIL [f.site] and f.detail ~= AIM_DETAIL [f.site] then malformed (string.format ("%s is aim caller class %d with the detail %d, not the aim mode %d", what, f.site, f.detail, AIM_DETAIL [f.site])) end
 	name (e.entity_type_name, what .. " entity_type_name")
 	name (e.model_name, what .. " model_name")
 	if f.model == -1 and e.model_name ~= "-" then malformed (what .. " has no model but names one") end
@@ -332,6 +358,12 @@ local function check_event (text, index, summary)
 		if (f.offset ~= nil) ~= (f.shape >= 1 and f.shape < summary.census.expected) then malformed (what .. " has an offset that does not agree with its shape being inside the table") end
 		if f.offset then
 			if f.model ~= f.shape then malformed (what .. " has a model other than its shape") end
+			-- the offset the original read is the boot census row of that shape, word for word: the table has one writer, at the boot, and the census holds what it wrote
+			local row = rows [f.shape]
+			if not row or (row.state ~= "sub_object" and row.state ~= "bbox") then malformed (what .. " names a shape the boot census did not record from a model") end
+			if row.live ~= "1" then malformed (what .. " names a shape whose live table entry is no longer the census row") end
+			if e.offset ~= row.offset then malformed (what .. " has an offset that is not its shape's census row") end
+			if e.model_name ~= row.name then malformed (what .. " names a model other than its shape's census row") end
 			local nonzero = magnitude (f.offset [1]) ~= 0 or magnitude (f.offset [3]) ~= 0
 			if nonzero ~= (f.horizontal == 1) then malformed (what .. " horizontal disagrees with the offset's x and z") end
 		end
@@ -423,14 +455,20 @@ local function run ()
 		error ("target-point-characterization: NOT RUN: this module was not built with the target-point-fixture feature", 0)
 	end
 
-	-- one question to the engine; a failure stops all questions (the engine may be poisoned)
-	local function ask (what, call)
-		local good, text = pcall (call)
+	-- one checked call of the engine, whatever it returns; a failure stops all questions (the engine may be poisoned)
+	local function checked_call (what, call)
+		local good, value = pcall (call)
 		if not good then
-			local message = first_line (text)
+			local message = first_line (value)
 			emit { event = "report_failed", what = what, error = message }
 			error ("target-point-characterization: " .. what .. " failed: " .. message .. " (the engine is not asked again)", 0)
 		end
+		return value
+	end
+
+	-- one question to the engine whose answer is a TEXT report (the summary, the census, a recorded query); the clock is a table and is read with checked_call
+	local function ask (what, call)
+		local text = checked_call (what, call)
 		if type (text) ~= "string" then
 			emit { event = "report_failed", what = what, error = "the report is not a string" }
 			error ("target-point-characterization: " .. what .. " returned a " .. type (text), 0)
@@ -447,7 +485,7 @@ local function run ()
 	end
 
 	local function read_clock (when)
-		local raw = ask ("clock", function () return engine:clock () end)
+		local raw = checked_call ("clock", function () return engine:clock () end)
 		local good, clock = pcall (check_clock, raw, when)
 		if not good then protocol_failure (clock) end
 		emit { event = "clock", when = when, elapsed_seconds = clock.elapsed_seconds, time_of_day_seconds = clock.time_of_day_seconds, day = clock.day }
@@ -458,15 +496,9 @@ local function run ()
 	local boot_summary = sample ("boot")
 	local census_text = ask ("target_point_offsets", function () return engine:target_point_offsets () end)
 	emit { event = "offsets", when = "boot", text = census_text }
-	local checked, counts = pcall (check_offsets, census_text, boot_summary)
+	local checked, counts, census_rows = pcall (check_offsets, census_text, boot_summary)
 	if not checked then protocol_failure (counts) end
-	local joined, reason = pcall (function ()
-		local c = boot_summary.census
-		if counts.sub_object ~= c.sub_object or counts.bbox ~= c.bbox or counts.invalid_zero ~= c.invalid_zero or counts.live_mismatch ~= c.live_mismatch or
-				counts.none ~= c.expected - c.recorded then
-			malformed ("the census rows and the summary's census totals disagree")
-		end
-	end)
+	local joined, reason = pcall (join_census_rows, counts, boot_summary)
 	if not joined then protocol_failure (reason) end
 	emit { event = "census", expected = boot_summary.census.expected, sub_object = counts.sub_object, bbox = counts.bbox, invalid_zero = counts.invalid_zero, none = counts.none, whole = boot_summary.census_whole == 1 }
 	if boot_summary.census_whole ~= 1 then
@@ -489,9 +521,7 @@ local function run ()
 			local now = sample ("frame " .. f)
 			local monotone, bad = pcall (function ()
 				if now.calls < previous.calls or now.events < previous.events or now.dropped < previous.dropped then malformed ("a query counter went backwards between two samples") end
-				for _, key in ipairs { "runs", "ended", "expected", "recorded", "sub_object", "bbox", "invalid_zero" } do
-					if now.census [key] ~= boot_summary.census [key] then malformed ("the census total '" .. key .. "' changed after the boot") end
-				end
+				same_census (boot_summary, now, "frame " .. f)
 			end)
 			if not monotone then protocol_failure (bad) end
 			previous = now
@@ -513,12 +543,20 @@ local function run ()
 	local census_again = ask ("target_point_offsets", function () return engine:target_point_offsets () end)
 	emit { event = "offsets", when = "end", text = census_again }
 	if census_again ~= census_text then protocol_failure ({ malformed = "the census at the end is not byte-equal to the census after the boot" }) end
+	-- the final summary describes the final rows (which are the boot rows, byte for byte) and the census it reports is the one measured at the boot: no total or verdict may differ
+	local final_checked, final_counts = pcall (check_offsets, census_again, final)
+	if not final_checked then protocol_failure (final_counts) end
+	local final_joined, final_reason = pcall (function ()
+		join_census_rows (final_counts, final)
+		same_census (boot_summary, final, "end")
+	end)
+	if not final_joined then protocol_failure (final_reason) end
 
 	local events, seen = {}, -1
 	for index = 0, final.events - 1 do
 		local text = ask ("target_point_event " .. index, function () return engine:target_point_event (index) end)
 		emit { event = "query", index = index, text = text }
-		local good, event = pcall (check_event, text, index, final)
+		local good, event = pcall (check_event, text, index, final, census_rows)
 		if not good then protocol_failure (event) end
 		if event.seq <= seen then protocol_failure ({ malformed = "event " .. index .. " does not follow the previous event's sequence number" }) end
 		seen = event.seq
@@ -526,7 +564,10 @@ local function run ()
 	end
 
 	-- the rows must reproduce the summary's matrix when every finalised call was kept (nothing dropped or abandoned)
-	local tally = { branch = { 0, 0, 0, 0 }, present = 0, absent = 0, changed = 0 }
+	-- the event row's case name, by the summary's case-count key
+	local CASE_KEY = { target_point_subobject = "target_point", instance_without_target_point = "instance_position", no_horizontal_offset = "no_horizontal", heading_zero_quirk = "heading_zero",
+		rotated_horizontal_offset = "rotated", not_fixed = "not_fixed", invalid_shape = "invalid_shape" }
+	local tally = { branch = { 0, 0, 0, 0 }, present = 0, absent = 0, changed = 0, case = { target_point = 0, instance_position = 0, no_horizontal = 0, heading_zero = 0, rotated = 0, not_fixed = 0, invalid_shape = 0 } }
 	local per_site = {}
 	for s_index = 0, SITE_COUNT - 1 do per_site [s_index] = { 0, 0, 0, 0 } end
 	for index = 0, final.events - 1 do
@@ -534,6 +575,8 @@ local function run ()
 		if e.branch >= 1 then
 			tally.branch [e.branch] = tally.branch [e.branch] + 1
 			per_site [e.site] [e.branch] = per_site [e.site] [e.branch] + 1
+			local key = CASE_KEY [e.case]
+			tally.case [key] = tally.case [key] + 1
 		end
 		if e.host_id_state == "present" then tally.present = tally.present + 1 elseif e.host_id_state == "absent" then tally.absent = tally.absent + 1 end
 		if e.vp_changed == 1 then tally.changed = tally.changed + 1 end
@@ -549,9 +592,19 @@ local function run ()
 			if tally.present ~= final.case.host_id_present or tally.absent ~= final.case.host_id_absent or tally.changed ~= final.case.vp_changed then
 				malformed ("the event rows and the summary disagree on host identities or changed viewpoints")
 			end
+			for key, n in pairs (tally.case) do
+				if n ~= final.case [key] then malformed ("the event rows hold " .. n .. " calls of the case " .. key .. ", the summary " .. final.case [key]) end
+			end
 		else
 			for b = 1, 4 do
 				if tally.branch [b] > final.branch [b] then malformed ("the event rows hold more calls of branch " .. b .. " than the summary counts") end
+			end
+			-- a capture that kept fewer rows than calls can only be bounded by the summary
+			for key, n in pairs (tally.case) do
+				if n > final.case [key] then malformed ("the event rows hold more calls of the case " .. key .. " than the summary counts") end
+			end
+			if tally.present > final.case.host_id_present or tally.absent > final.case.host_id_absent or tally.changed > final.case.vp_changed then
+				malformed ("the event rows hold more host identities or changed viewpoints than the summary counts")
 			end
 		end
 	end)
