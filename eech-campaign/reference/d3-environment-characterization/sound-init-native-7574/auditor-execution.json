@@ -1,0 +1,22 @@
+{
+  "source": "7574caa2ca87a2a44608a234fd1dd73136b8e4c0",
+  "controller_pid": 19356,
+  "state": "terminal",
+  "started_utc": "2026-11-01T03:47:38.849395+00:00",
+  "args": [
+    "C:\\Users\\starscream\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\python\\python.exe",
+    "-B",
+    "-X",
+    "utf8",
+    "R:\\d3-evidence\\audit-original-sound-init-recovery-20261101.py",
+    "7574caa2ca87a2a44608a234fd1dd73136b8e4c0",
+    "R:\\d3-evidence\\original-sound-init-audit-verified-exit-7574caa2c-20261101\\result.json"
+  ],
+  "auditor_sha256": "2972f30de9e2ecdaff965ae26c89182bfb54ee69fb208fdc054bbc541c8552d0",
+  "scope": "Checker-only verification on unchanged retained complete outputs. Original assertion report retained; its combined shell invocation did not separately preserve checker exit. This invocation records actual child exit explicitly; NO campaign/native/input regeneration.",
+  "pid": 24248,
+  "actual_exit": 0,
+  "completed_utc": "2026-11-01T03:47:39.061790+00:00",
+  "auditor_sha256_after": "2972f30de9e2ecdaff965ae26c89182bfb54ee69fb208fdc054bbc541c8552d0",
+  "result_sha256": "9b98aa6aaee8799be501aebf276233eaef1d3255df7a8c9d7023340ba4fbcf0e"
+}

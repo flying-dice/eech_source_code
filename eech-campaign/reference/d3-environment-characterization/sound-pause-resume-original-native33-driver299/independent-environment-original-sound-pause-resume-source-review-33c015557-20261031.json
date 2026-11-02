@@ -1,0 +1,100 @@
+{
+  "review": "Independent source-only original pause/resume characterization correction/clean-code/boundary/memory/observer/driver-contract pass",
+  "created_utc": "2026-10-31T23:36:26.061596+00:00",
+  "source": {
+    "base": "a6e7369cb032ad90a8d1c19fe1a6edc7f1920c4b",
+    "head": "33c015557fb3fbc26592e20b143ada40ec155e1f",
+    "tree": "17fbb96611a2c274c97797ae398e46fd2babc0b5",
+    "changed_files": [
+      "STATUS.md",
+      "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c",
+      "eech-campaign/crates/eech-world/lua/env-sound-lifetime.lua",
+      "eech-campaign/crates/eech-world/tests/env_sound_lifetime.rs",
+      "eech-campaign/docs/d3-sound-lifetime.md"
+    ],
+    "clean_at_review": true
+  },
+  "source_review_no_blocking_findings": false,
+  "findings": [
+    {
+      "id": "ENV-SOUND-PAUSE-1",
+      "priority": "P2",
+      "title": "Case 12 requires a fourth ENTER that the unchanged probe never stores",
+      "locations": [
+        {
+          "path": "eech-campaign/crates/eech-world/lua/env-sound-lifetime.lua",
+          "line": 491
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/tests/env_sound_lifetime.rs",
+          "line": 1191
+        },
+        {
+          "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_observer.c",
+          "line": 535
+        }
+      ],
+      "evidence": "Case12 declares four updates. The unchanged probe increments its update counter for each call but stores SERVER_ENTER/CLIENT_ENTER/CLIENT_EXIT only while per-entity updates<=ENVE_ENTERS_STORED (3; line438). Lua requires w.enters==calls, hence a real coherent calls=4/report.updates=4 with only three stored ENTERs is rejected. New pause_report emits an ENTER for all four made steps, so its canned positive does not model the real probe.",
+      "impact": "The planned original case12 characterization cannot pass its real unchanged probe even if the original routines complete correctly.",
+      "requested_change": "Keep the probe sampling policy and physical calls unchanged. Reconcile total calls/report updates against the step/state journal while requiring exactly the stored first min(calls,3) entries and joining those entries to their corresponding before states. Correct the canned positive to omit the fourth ENTER; retain a negative for a genuinely missing first/second/third entry and incoherent totals. Do not require or fabricate a fourth stored record."
+    },
+    {
+      "id": "ENV-SOUND-PAUSE-2",
+      "priority": "P2",
+      "title": "Scan counts can contradict the cohort states and still produce a healthy result",
+      "locations": [
+        {
+          "path": "eech-campaign/crates/eech-world/lua/env-sound-lifetime.lua",
+          "line": 413
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/tests/env_sound_lifetime.rs",
+          "line": 1261
+        }
+      ],
+      "evidence": "For pause/resume steps the validator checks of_type==matching, unchanged total/of_type and valid/invalid differences equal the return count. It never checks absolute valid/invalid/linked counts against adjacent state rows or even valid+invalid==of_type and total>=of_type. linked_of_type is only parsed. In case11, changing only the first scan linked_of_type=1 to0 is accepted despite the same entity before the call having member=1. Adding1 to both before/after valid_of_type also preserves its checked delta and is accepted while disagreeing with the captured validity. Existing fourteen damaged forms do not cover these contradictions.",
+      "impact": "A self-contradictory report about the central pause/resume/list-membership observations can be labeled complete; the stated scan/cohort joins are incomplete.",
+      "requested_change": "For both before and after scans, check internal count bounds and join matching-subtype valid/invalid/linked counts to the corresponding cohort state tag (the existing of_type==cohort match requirement already establishes attribution). Add finite damaged forms for contradictory linked count, absolute validity offset and impossible total/count split, with coherent unrelated other-subtype children retained. Describe the scanned structure accurately as the session special-effect child list, bounded by number_of_entities, rather than a whole entity-table scan."
+    }
+  ],
+  "inspected_facts": [
+    "Read all five changed files/diff; no production soundeff/se_updt/ref kernel/binding/ABI/engine changes in this delta. Prior accepted e502 lifetime source/actual/FP evidence reused without re-review.",
+    "New C helper uses existing per-constructor free-slot preflight; partial creation stops further steps, tracking/delta/descriptors are restored before output/report failures. Maximum new snapshots15 (case14:3*(4+1)) fits existing24; maximum tracked3 fits8 and record store80.",
+    "Entity slots remain stable; before updates type/data/update membership guards prevent dereferencing freed sound data, and existing snapshot helper reads stored sound fields only with sound type+data. No new allocation/RNG/production observer hook was added.",
+    "Original pause/resume source matches declared session-parent scope: resume invokes play_local_entity_sound(session), whose initialized default is a no-op and no SESSION overload was found; non-session/device playback is explicitly unsupported. Original routine effects are observations, not a host move.",
+    "Legacy case0..10 C dispatch/bodies remain unchanged; the old Lua state-record join was factored verbatim into a shared helper and new summary nil fields do not add old-result keys.",
+    "Process isolation and entity_state_restored=0 are explicit; only descriptor/delta/tracking restoration is claimed. Source notes/STATUS describe new characterization as unmeasured; docs whole-entity-table wording needs the finding2 scope correction."
+  ],
+  "execution_scope": {
+    "reviewer_builds_tests_native_runs": 0,
+    "new_retail_measurements": "None supplied or accepted. Four fresh roots reported unused; new C requires its own native build.",
+    "WIP": "d2/d3 per-command exit tags are untrusted/actual numeric unavailable due early shell expansion; text failures retained. d4/d5 reported actual-tag checks are author WIP context, not reviewer measurements or campaign acceptance.",
+    "first_d1_raw_gap": "Preserved: overwritten original raw is unavailable; partial excerpt/tool records cannot be called a complete retained raw log."
+  },
+  "limitations": [
+    "This is one source-only new-delta pass, not physical characterization acceptance, a pause/resume host move or device/non-session/network/destroy/audio/player/render/Tacview coverage.",
+    "Task51/D3 and remaining physical sound/time/terrain/spatial/model, full40/all8complete shipping/current-finalCI/normal merges remain open; D4/D5 unstarted. No agents, edits, builds, tests or native/process/public/auth actions performed."
+  ],
+  "inspected_file_identities": [
+    {
+      "path": "STATUS.md",
+      "sha256": "a5bbb66d2a0154d3fdab2200e2737d39f9f497a5982b5b2eeb17d041ac74c7d0"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c",
+      "sha256": "8bef0d9b3aea77d27218e3ab6125b9534b64323666c9c678397bcefe4dedcd05"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/env-sound-lifetime.lua",
+      "sha256": "26487fc2dfa659628404a40c4c22956874413b53289524cae7b2d986899b9fb7"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/env_sound_lifetime.rs",
+      "sha256": "d47b20931f78db5c6478bf3049d3d6ef943b1008c8542b936a6f9ebccd0cfbf2"
+    },
+    {
+      "path": "eech-campaign/docs/d3-sound-lifetime.md",
+      "sha256": "be4a3d9f4d759be9c42e3c2cb92aa9040c80217c5c2ad31427fbda71ea3cffca"
+    }
+  ]
+}

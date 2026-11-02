@@ -1,0 +1,41 @@
+{
+  "created_utc": "2026-11-01T02:44:44.804771+00:00",
+  "scope": "FAILED original-init capture, separately successful observation-off control. No whole-attempt success, metadata ownership or shipping acceptance.",
+  "native_source": "4581461625869a4bf3b9080462c315230af693a4",
+  "driver_source": "50a5504e6cacdcc20e290eab1b3db33a46ee843b",
+  "actual_pair_exit": 1,
+  "controls": {
+    "probe": {
+      "actual_native_exit": 1,
+      "actual_controller_exit": 1,
+      "controller_sha256": "e4ab66c3bd7bbcc4cbfffd3e1c7354751536b236659b587a039901e0b8fd9c3b",
+      "raw_sha256": "4dfd35cd245230cb7b7f92db5432130d22e7951e1328dec2f69a8f831aefdceb",
+      "pre_inputs_exit": 0,
+      "post_inputs_exit": 0
+    },
+    "observer-off": {
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "controller_sha256": "c15bcc562ce9a0397a46d6278a6c3cf9ae6d575f6382eec624c6164e87e0a1da",
+      "raw_sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+      "pre_inputs_exit": 0,
+      "post_inputs_exit": 0
+    }
+  },
+  "verified_payloads_per_control": 62,
+  "pre_post_input_checks0": 4,
+  "complete_observation_off_comparison": {
+    "complete_bytes_and_endings_identical": true,
+    "partial_prefix_only": false,
+    "bytes": 5191384,
+    "rows": 17283,
+    "original_sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+    "candidate_sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d"
+  },
+  "probe_failure": {
+    "event": "witness_failure",
+    "reason": "the probe could not keep 1210 distinct sample reads: the capture is incomplete: env-sndinit-ctor calls=5222 looping=3548 max_count=1 sample_reads=1674 distinct=32 distinct_overflow=1210 digest_w=17e67b8187903754"
+  },
+  "raw_probe_report": "UNAVAILABLE: native report existed only in memory; driver rejected incomplete ctor capture before emitting it. Do not reconstruct or relabel it as retained. Only boot and actual witness_failure are retained.",
+  "next": "Test-only bounded full-catalogue capture/report capacity repair by same Sonnet lane. Changed observer C requires NEW immutable native, source review and fresh recovery probe + relevant observation-off proof. Both attempt1 roots consumed; do not rerun successful458control for handover."
+}

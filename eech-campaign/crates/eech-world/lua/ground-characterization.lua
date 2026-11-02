@@ -498,6 +498,10 @@ local boot_config = {
 if host.terrain_provider ~= nil then
 	boot_config.terrain = host.terrain_provider (root, scenario.map)
 end
+-- The hosted module is also an environment host (EEDCS-51): the integrated module refuses a boot without the host's environment provider, so it is given exactly as lua/campaign.lua gives it. The original module is booted without it.
+if host.env_provider ~= nil then
+	boot_config.environment = host.env_provider ()
+end
 local engine = dc.boot (boot_config)
 emit { event = "boot", scenario = scenario_name, campaign_seed = 1, seed = seed, points = points, impacts = impacts, repeats = repeats, seconds = seconds, after = after,
 	frame_ms = frame_ms, probe = probe }

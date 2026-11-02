@@ -1,0 +1,123 @@
+{
+  "schema": "independent-source-correction-review-v1",
+  "created_utc": "2026-10-31T21:29:52.939586+00:00",
+  "reviewer": "sole independent Codex reviewer /root/d3_environment_review",
+  "source": {
+    "repo": "R:\\d3-evidence\\environment-services-20261030",
+    "base": "bcb7142d4a5383d525a00de72f11d6073b3e43b7",
+    "head": "116ffd5fb4230226a1ff98a87c40375eea95e521",
+    "tree": "af860cd9afb1e9d02bcb440973f26d0b91aac9a6",
+    "clean_at_review": true,
+    "files": [
+      {
+        "path": "STATUS.md",
+        "sha256": "f129d1290a9b3b4b1816876bd71647aa45c4251e7d32b6f78ec9cbccc76ef313",
+        "git_blob": "97a0d8d2b949d8c17eb4908333bced8356e92e3e"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c",
+        "sha256": "5ddaa4151500bba9d8c4a920bd5e5bcd8a2a8841b363e31270cc079cfe36c5d1",
+        "git_blob": "ee1fafa291ae0b4b4a558a5567785376295ab728"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-sound-lifetime.lua",
+        "sha256": "90fd619d75926cfba7bca423bca19bfd60de186ce83d45f73d4d2d47de651115",
+        "git_blob": "d306d2da3e6b5b90b3b15e205144f658817fe2c1"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_sound_lifetime.rs",
+        "sha256": "eb90246d0def88c5555f09b54b7140999b0343f7356d7ea8acd5a3aee09d27c1",
+        "git_blob": "c7449cc1681d9fb09a377b4fdd81320b5da04090"
+      },
+      {
+        "path": "eech-campaign/docs/d3-sound-lifetime.md",
+        "sha256": "a9a36a5c4f154b6e2b67a91e6fde10f50bd72fc0b7bf4ffaddec54d638daa057",
+        "git_blob": "c30783801ff7e41b511abb3e68d6201f690cb961"
+      }
+    ]
+  },
+  "scope": "One combined correction-delta correctness/clean-code/boundary/coherence/census pass against the three bcb findings. Previous sound/queue/field/kernel/retail reviews reused; no unchanged production or experiment review.",
+  "prior_review": {
+    "path": "R:/d3-evidence/independent-environment-original-sound-domain-source-review-bcb7142d4-20261031.json",
+    "sha256": "5fcc60a4b36e626e5c4da682c7b17f10b0ba165465902009fe52033a3b1fd5f6"
+  },
+  "source_review_no_blocking_findings": false,
+  "disposition": {
+    "ENV-SOUND-DOMAIN-1": "Closed at source: initial capacity for planned_entities and checked free slot before each constructor, guarded snapshots/calls and explicit partial-creation fields.",
+    "ENV-SOUND-DOMAIN-2": "Major transition/counter/state-join corrections close the named old paths; one finite residual metadata/per-entity-bound group remains below.",
+    "ENV-SOUND-DOMAIN-3": "Closed at source: corrected compiled-reference counts/groups, no dormancy inference, resume validity/relink separate from unmeasured playback."
+  },
+  "findings": [
+    {
+      "id": "ENV-SOUND-DOMAIN-2-RESIDUAL",
+      "priority": "P2",
+      "title": "Join CREATED metadata to the declared constructor inputs and enforce each cohort call limit",
+      "references": [
+        {
+          "path": "eech-campaign/crates/eech-world/tests/env_sound_lifetime.rs",
+          "line": 439
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/tests/env_sound_lifetime.rs",
+          "line": 446
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/lua/env-sound-lifetime.lua",
+          "line": 294
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/lua/env-sound-lifetime.lua",
+          "line": 365
+        },
+        {
+          "path": "eech-campaign/crates/eech-world/lua/env-sound-lifetime.lua",
+          "line": 397
+        }
+      ],
+      "evidence": "The rewritten positive generator now makes life/valid/list state agree, but probe_row still hard-codes sample12/rate22050/size88200/orate22050/seqcount1. Thus its positive case4 declares controlled rate4/size20 while CREATED reports22050/88200; case6 declares a two-sample constructor while CREATED reports seqcount1. The native probe reads the controlled descriptor and sequence count at construction, with no intervening write, so these are contradictory input facts rather than alternative lifetime outcomes. The new validator checks descriptor constants and cross-capture state fields but does not join CREATED sample/rate/size/original-rate/sequence count to those declared inputs. Separately, made[ent] has only a lower-bound stopping check, not an upper bound of spec.calls. In two-entity case8 an overcall in one cohort can cancel another cohort's skipped call in the global planned6/calls6/skipped0 totals; a coherent 4+2 report can pass even though the C helper runs at most three per entity and the native probe stores only three ENTERs.",
+      "required_change": "Bind each CREATED record to its declared first sample descriptor and case constructor sequence count, using observed/input metadata without computing a lifetime; correct positive generator metadata and guard a coherent metadata/count mismatch. Reject made[ent]>spec.calls before aggregate accounting and add a finite overcall/skip-cancellation guard. Preserve legitimate early kills, early unlinks and explicitly partial creation. No native solver, expected lifetime/cap words, baseline change or new trace framework is needed.",
+      "runtime_status": "Source-derived bookkeeping acceptance paths only; no new-domain execution or fake physical proof."
+    }
+  ],
+  "verified_corrections": [
+    "All five changed files inspected. Free-slot preflight reads at most the fixed required1/2 slots without mutation. Each constructor is checked again; NULL candidates are not snapshotted/updated. Partial creation is counted, exposed and normal descriptor/delta/tracking restoration precedes fallible output. No old unsafe constructor path was executed.",
+    "One shared walk_chain now protects primitive and domain per-entity transitions, current update ordinals, middle client entry/exit pairing, terminal expiry/kill pairing and handle truth. Global sequence checks remain at callers. Old primitive end-call/slot checks remain intact.",
+    "The domain branch now binds named descriptor/delta/pause constants, planned entity count, partial flags, total calls/skips and killed totals; it checks stable/distinct slots and case7 distinct subtype roles. Same-moment snapshots join CREATED, each pre-call ENTER and client post-call EXIT across type/subtype/valid/loop/list/handle/lifetime/slot fields. Canned life/state captures now come from a single description and legitimate early-kill/unlink/partial alternatives are represented.",
+    "The new census correctly distinguishes24 creator-identifier files including helper (23 external) and40 pause/resume identifier files including implementation (39 external), explicitly grouping vehicle/network/33 avionics files. Resume validity and list reinsertion remain separately unmeasured instead of declared device-unavailable. Full required D3 disposition is preserved.",
+    "Ancillary wording qualification: only the pause network message carries delay (soundeff.c223); resume transmits subtype without delay (239). The detailed receive-path paragraph correctly attributes wire delay to pause; do not interpret the nearby grouped transmission wording as a resume-delay ABI.",
+    "Production sound math/hooks/probe storage and Engine C remain unchanged; changed fixture C requires a new116 native. Snapshot bounds and stable-slot safety reuse the previous source findings, not runtime acceptance."
+  ],
+  "retained_evidence": {
+    "old_bcb_red": {
+      "path": "R:\\d3-evidence\\sound-red-actual-bcb-domain-20261031-r5.log",
+      "sha256": "bc676bbf110b8e6131f607157cbb5bac927f284c0a89ca6e98b974fc532899e6",
+      "bytes": 4972
+    },
+    "wip_failure": {
+      "path": "R:\\d3-evidence\\sound-domain-WIP-20261031-h1.log",
+      "sha256": "db5019d79441111530857578ed221bc5a22c7c3ce3bf82f6ae52143b9eb7841b",
+      "bytes": 26729
+    },
+    "format_step": {
+      "path": "R:\\d3-evidence\\sound-domain-fmt-WIP-20261031-h2.log",
+      "sha256": "af88684b5b9241f534efb274c7f63bb00c1fd961c3d5b22c61c593ab7ec4229c",
+      "bytes": 109
+    },
+    "wip_green": {
+      "path": "R:\\d3-evidence\\sound-domain-WIP-20261031-h3.log",
+      "sha256": "aafa117cf0e592cb037d2f0d66df01a0cfdc99cc9f423b7ff3b20e80c000fea9",
+      "bytes": 16248
+    },
+    "scope": "Inspected old-bcb six original-schema acceptance failures/RED_EXIT101; no unsafe C execution. WIP logs remain author checks, not new physical observations."
+  },
+  "execution_context": {
+    "reviewer": "Source/evidence reads and this private JSON write only. No compilers/tests/native runs/Docker/process/source/auth/public changes or agents.",
+    "root_context": "bcb native builds reportedly0 but unused; fresh seven domain roots still unused. New116 immutable builds starting/pending; no successful new-domain measurement inferred."
+  },
+  "retention_gap": "The first d1 raw WIP log remains unavailable; labelled excerpt and retained user tool results are partial, not recovered raw. No old accepted evidence or failure was rewritten.",
+  "limitations": [
+    "Source gate remains false on the single residual P2. P1 and P3 source closure are not runtime claims. Positive/sequence/cap/loop/invalid/unlink controls remain unrun until a correct newly built native and coherent pinned driver execute them.",
+    "No host sound move, playback/device/player/network/render/amplitude authority, full shipping, Task51/D3 or normal-merge acceptance. Resume state/device/destroy/network/per-vehicle responsibilities remain open and are not deferred from required D3.",
+    "Old zero-lifetime characterization remains closed in its finite scope; no old scenarios or closed production reviews repeated. Whole sound/time/terrain/spatial/model/full40/all8/current checks/normal merges remain required; D4/D5 unstarted."
+  ]
+}

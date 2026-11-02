@@ -66,6 +66,16 @@
 
 #include "project.h"
 
+#include "entity/special/session/ss_envfx.h"
+
+#ifdef EECH_CAMPAIGN_HOST_ENV
+
+#include <string.h>
+
+#include "entity/special/session/ss_hostenv.h"
+
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -107,6 +117,32 @@ int pause_local_entity_sound_type (entity *en, entity_sub_types type, float dela
 
 			if (raw->eff.sub_type == type)
 			{
+				#ifdef EECH_CAMPAIGN_HOST_ENV
+
+				//
+				// EECH_CAMPAIGN_HOST_ENV (EEDCS-51, D3): whether this effect is paused, what that does to its validity and valid lifetime, the delay copy and whether it counts are the HOST's
+				// (aphavoc/source/entity/special/session/ss_hostenv.h SOUND_PAUSE_RESUME).  The walk of the children and the sub type match stay the campaign's; the stored fields are handed over
+				// by value and written from the checked answer.  The original follows in the #else, for the original game's build only.
+				//
+
+				{
+					int
+						valid,
+						play,
+						relink;
+
+					valid = raw->valid_sound_effect;
+
+					if (campaign_sound_pause_resume (FALSE, delay, (get_local_entity_parent (spec, LIST_TYPE_UPDATE) != NULL), &valid, &raw->valid_effect_lifetime, &play, &relink))
+					{
+						raw->valid_sound_effect = valid;
+
+						count ++;
+					}
+				}
+
+				#else
+
 				//
 				// "pause" sound
 				//
@@ -119,6 +155,8 @@ int pause_local_entity_sound_type (entity *en, entity_sub_types type, float dela
 
 					count ++;
 				}
+
+				#endif
 			}
 		}
 
@@ -131,6 +169,44 @@ int pause_local_entity_sound_type (entity *en, entity_sub_types type, float dela
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef EECH_CAMPAIGN_HOST_ENV
+
+//
+// the parent's playback request of a resumed effect.  The session plays with the viewpoint and no range, as the original did inline (below, in the #else); the HOST decides only whether to ask.
+//
+// Any other parent: the original took the range from the viewpoint to the parent's position and called fn_play_local_entity_sound[type] with it.  The running original (the 8e90ab42e native) reached only the table's
+// own default no-op from here in its 1200 natural frames (140 requests) and in the controlled fixed-wing and AI-helicopter pause and resume (9 calls); its DELIBERATE recording overload, which made those two entries
+// non-default, reached 9 live non-default recording calls, which were detected as a live consumer and whose entries were restored.  So for a parent whose entry IS the default function the request is empty and
+// neither the range nor the call is made (the range is computed for nothing else): the elision is observed by ENV_FXP_ELIDED.  A parent whose entry is anything else would be a live
+// playback consumer, which this campaign route no longer supports and does not serve silently: it stops here, by name, BEFORE any range is computed or any playback function is called.  What the entry is
+// is asked of the table's real default function (campaign_play_entity_sound_is_default, an entity type outside the table is not default), never of another entry; a non-default entry that the table merely holds
+// (for instance the sound effect type's own) is legal, only a live request through this route is unsupported.  The original game's build keeps the range and the call below.
+//
+
+static void play_resumed_parent_sound (entity *en)
+{
+	if (en == get_session_entity ())
+	{
+		play_local_entity_sound (en, &main_vp, 0);
+	}
+	else
+	{
+		int
+			type;
+
+		type = get_local_entity_type (en);
+
+		if (!campaign_play_entity_sound_is_default (type))
+		{
+			debug_fatal ("host environment: [env-play:unsupported_live_playback] entity_type=%d entity_index=%d: the playback dispatch entry of the resumed parent is not the default no-op; live playback from a resumed parent is not supported (no range was computed and no playback function was called)", type, (int) get_local_entity_index (en));
+		}
+
+		ENV_FXP (ENV_FXP_ELIDED, en, 0)
+	}
+}
+
+#endif
 
 int resume_local_entity_sound_type (entity *en, entity_sub_types type)
 {
@@ -155,6 +231,48 @@ int resume_local_entity_sound_type (entity *en, entity_sub_types type)
 
 			if (raw->eff.sub_type == type)
 			{
+				#ifdef EECH_CAMPAIGN_HOST_ENV
+
+				//
+				// EECH_CAMPAIGN_HOST_ENV (EEDCS-51, D3): whether this effect is resumed, what that does to its validity, whether its parent is asked to play and whether it is put back in the update list,
+				// and whether it counts, are the HOST's (aphavoc/source/entity/special/session/ss_hostenv.h SOUND_PAUSE_RESUME).  The walk of the children and the sub type match stay the campaign's, and so
+				// does HOW the parent is asked to play (play_resumed_parent_sound above: the session's default no-op; any other parent only while its dispatch entry is the default no-op, else a named stop).
+				// The answer is checked whole, then applied in the original order: the validity, the playback request, the relink, the count.  The original follows in the #else, for the original game's build only.
+				//
+
+				{
+					int
+						valid,
+						play,
+						relink;
+
+					valid = raw->valid_sound_effect;
+
+					if (campaign_sound_pause_resume (TRUE, 0.0f, (get_local_entity_parent (spec, LIST_TYPE_UPDATE) != NULL), &valid, &raw->valid_effect_lifetime, &play, &relink))
+					{
+						raw->valid_sound_effect = valid;
+
+						if (play)
+						{
+							play_resumed_parent_sound (en);
+						}
+
+						if (relink)
+						{
+							if (get_local_entity_parent (spec, LIST_TYPE_UPDATE))
+							{
+								debug_fatal ("host environment: [env-provider:sound_pause_resume.answer] the host relinks an effect that the parent's playback left in the update list");
+							}
+
+							insert_local_entity_into_parents_child_list (spec, LIST_TYPE_UPDATE, get_update_entity (), NULL);
+						}
+
+						count ++;
+					}
+				}
+
+				#else
+
 				//
 				// "unpause" sound
 				//
@@ -198,6 +316,8 @@ int resume_local_entity_sound_type (entity *en, entity_sub_types type)
 
 					count ++;
 				}
+
+				#endif
 			}
 		}
 
@@ -502,6 +622,44 @@ void set_local_sound_effect_sample_indices (entity *en, int count, sound_sample_
 	// determine playing time
 	//
 
+
+	#ifdef EECH_CAMPAIGN_HOST_ENV
+
+	//
+	// EECH_CAMPAIGN_HOST_ENV (EEDCS-51, D3): the physical lifetime of the effect is the HOST's (aphavoc/source/entity/special/session/ss_hostenv.h SOUND_LIFETIME_INIT): the sum of the samples'
+	// durations, the 40 s cap (300 s for MUSIC) and the looping case.  What the campaign still holds is the sound database: it reads each sample's rate and size from the descriptor (only for a timed effect,
+	// as the original did) and hands them over by value.  The original arithmetic follows in the #else, for the original game's build only.
+	//
+
+	{
+		int
+			rate [CAMPAIGN_SOUND_SAMPLES],
+			size [CAMPAIGN_SOUND_SAMPLES];
+
+		memset (rate, 0, sizeof (rate));
+
+		memset (size, 0, sizeof (size));
+
+		ENV_FXA (ENV_FXA_CTOR, count, raw->looping, 0, 0)
+
+		if (!raw->looping)
+		{
+			for (loop = 0; (loop < count) && (loop < CAMPAIGN_SOUND_SAMPLES); loop ++)
+			{
+				ASSERT (indices [loop] != SOUND_SAMPLE_INDEX_NONE);
+
+				rate [loop] = application_sound_effects [indices [loop]].rate;
+				size [loop] = application_sound_effects [indices [loop]].size;
+
+				ENV_FXA (ENV_FXA_CTOR_SAMPLE, indices [loop], rate [loop], size [loop], application_sound_effects [indices [loop]].original_rate)
+			}
+		}
+
+		raw->effect_lifetime = campaign_sound_lifetime_init (raw->looping, raw->eff.sub_type == ENTITY_SUB_TYPE_EFFECT_SOUND_MUSIC, count, rate, size);
+	}
+
+	#else
+
 	raw->effect_lifetime = 0;
 
 	if (!raw->looping)
@@ -534,6 +692,8 @@ void set_local_sound_effect_sample_indices (entity *en, int count, sound_sample_
 
 		raw->effect_lifetime = min (raw->effect_lifetime, raw->eff.sub_type != ENTITY_SUB_TYPE_EFFECT_SOUND_MUSIC ? 40.0f : 300.0f);
 	}
+
+	#endif
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -684,6 +844,8 @@ entity *create_local_sound_effect_entity
 	#endif
 
 	set_force_local_entity_create_stack_attributes (create_stack_attributes);
+
+	ENV_FXE (ENV_FXE_CREATED, en)
 
 	return en;
 }

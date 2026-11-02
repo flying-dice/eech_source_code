@@ -1,0 +1,150 @@
+{
+  "schema": "independent-environment-guard-closeout/v1",
+  "reviewed_utc": "2026-10-30T06:47:31.363912+00:00",
+  "base": "8e676a9ae83225d257c2d2a214c1aa12ad531060",
+  "reviewed_head": "aeccdcb29340129e8099e53e19ca05a6cf484540",
+  "reviewed_snapshot": "R:\\d3-evidence\\environment-guard-source-aeccdcb29",
+  "measured_original_C_source": "99352e331527e8aafb2961949536217eab7a8ecf",
+  "measured_driver_source": "29f58387449e2a436b20bab1d1e6388b74517994",
+  "selected_test_literal_recovery_source": "1ee236aa1fda667b96372c33628d83b3025a0079",
+  "head_exact_clean_before_after": true,
+  "scope": "Only new Lua validator/scheduler, portable real-script tests, docs and affected execution/recovery evidence. Prior C/numerical/RNG/restoration review reused; no unchanged kernel or original campaign reruns.",
+  "disposition": "CHANGES_REQUIRED_ONE_RESIDUAL_PROTOCOL_P2",
+  "findings": [
+    {
+      "id": "ENV-REPORT-PREDICATE-COHERENCE",
+      "priority": "P2",
+      "path": "eech-campaign/crates/eech-world/lua/env-characterization.lua",
+      "line": 355,
+      "related_lines": [
+        273,
+        304,
+        342,
+        354,
+        362,
+        388
+      ],
+      "title": "Check the conditions behind supported/refused protocol alternatives",
+      "reason": "The new typed templates still permit removal of required output rows by selecting an impossible refusal/unavailable branch. An update-weather refusal carrying in_cockpit=0,camera=1,comms_model equal to census comms_server is accepted even though the unchanged C refusal predicate is false; its full before/after state rows disappear. The initializer refusal similarly permits the server value. A retail snapshot with an in-domain gusting_value_w can accept wind=unavailable_gust_outside_0_1 instead of the four wind values. The new positive stand-in itself sets gusting_value_w=3f800000 (outside domain) while returning supported wind queries. Its wind row also says null_same=1 with unequal speed_w/null_speed_w; that flag is defined by direct word equality in the emitter. These are local context/diagnostic inconsistencies, not requests to assert a weather/wind solver result.",
+      "correction": "Validate supported/refused guards using reported census/server and snapshot/witness context: refusal must satisfy at least one actual guard, supported context must satisfy its complement, and query wind availability must match the enclosing snapshot gust domain. Make positive collaborators coherent. Validate the null_same flag against its own two printed words with legitimate equal/unequal controls. Add actual real-script negatives for impossible refusal and false wind unavailability; retain existing cases and do not rederive physical speeds/weather answers.",
+      "evidence_basis": "Concrete new source/template paths and new collaborator literals; no new malformed-control execution by reviewer is claimed. Actual retained original/native compatibility reports show none of these defects."
+    }
+  ],
+  "prior_findings": [
+    {
+      "id": "ENV-REPORT-COMPLETENESS",
+      "status": "PARTIALLY_CLOSED_RESIDUAL_PREDICATE_COHERENCE",
+      "assessment": "Bounded ASCII/newline parser, ordered keys, duplicate rejection, typed words/fingerprints, finite nonzero census, family rows/order/counts, requested indices and end/fingerprint equality now close marker-only/wrong-family/missing-field gaps. Conditional alternative selection remains the one finding above."
+    },
+    {
+      "id": "ENV-PERIODIC-SCHEDULE-BOUND",
+      "status": "CLOSED",
+      "assessment": "No per-period loop remains: checked quotient/multiply/add advances once, permits one correction add, then requires finite strictly greater due time. Work is constant per bounded frame. Default60s schedule preserved; actual selected Linux and Windows tiny-period/50s-jump and ordinary/off schedules pass after fixing only the overlong test literal."
+    },
+    {
+      "id": "ENV-WINDOWS-GUARD-PATHS",
+      "status": "CLOSED",
+      "assessment": "Actual driver embedded via include_str and copied per-run. Strict OsString host override is checked before use; empty/relative/missing/directory values refuse without Cargo fallback. Ordinary Cargo default still works. Temp-dir RAII cleanup and bounded child deadline are present. Actual Windows guards execute against the verified original99 host; no source directory needed at runtime."
+    }
+  ],
+  "source_identity": {
+    "changed_paths": [
+      "eech-campaign/crates/eech-world/lua/env-characterization.lua",
+      "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+      "eech-campaign/docs/d3-environment-characterization.md"
+    ],
+    "sha256": {
+      "eech-campaign/crates/eech-world/lua/env-characterization.lua": "281d0f7bb768e8f9f765df9a6a5768aa66532570abe0c30a13ddedad40496ec4",
+      "eech-campaign/crates/eech-world/tests/host_callbacks.rs": "149b6879a54fdb1af5c68e1cec8d5c252cbe70e2a3b5297a67359bdd3b1c8966",
+      "eech-campaign/docs/d3-environment-characterization.md": "fc3a3d812816ff50a90729a2c213acb0249319935d8ef3ffd52534e66d0fd663"
+    },
+    "driver_sha256": "281d0f7bb768e8f9f765df9a6a5768aa66532570abe0c30a13ddedad40496ec4",
+    "driver_bytes_identical_29f_1ee_aecc": true,
+    "unchanged_C_FFI_kernel": true,
+    "history": "29f introduced new driver/tests/docs;1ee changes only overlong test input0.00000000001 to accepted.00000000001;aecc changes only test explicit-auto-deref style. No physical case, C math, original oracle, tolerance or output normalization change."
+  },
+  "actual_compatibility": {
+    "kind": "Explicit original99 compiled DLL/host plus new29f runtime Lua driver; not a new DLL or numerical conformance run",
+    "actual_controller_native_pre_post_exits": 0,
+    "manifest_input_files": 1179,
+    "BINF_sha256": "5d7e4c9817a0cabb8d1def0e2f6b3b7ff5c3566e246a362b5e5a2b5cf4fa7ec8",
+    "all43_file_manifest_entries_rehashed": true,
+    "old_original_rows": 704,
+    "new_rows": 705,
+    "all704_original_raw_lines_exact_including_line_endings": true,
+    "only_added_row": {
+      "event": "validation",
+      "protocol": "env-fixture/1",
+      "refused_witnesses": 2,
+      "reports": 169,
+      "witnesses": 164
+    },
+    "old_raw_sha256": "95fbf3f003bbd2483de7f591511dcd66ba0103f22ad4ed750b2595bcf053a0f8",
+    "new_raw_sha256": "a25f409d468403911b31c7e5827b21264d2b77886016b4794b5655b13461d4a7",
+    "assessment": "Direct public Lua/native compatibility proves actual emitter field order and new validator acceptance for all retained164 cases, including2 deliberate refusals. It supports reuse of original zero-frame/120s data but does not repair the residual validator branch gap."
+  },
+  "actual_guard_evidence": {
+    "Linux29f": {
+      "actual_exit": 101,
+      "six_pass_one_fail": true,
+      "failure": "Scheduling test input had13 characters; unchanged12-character argument refusal occurred before scheduling."
+    },
+    "Windows29f": {
+      "actual_exit": 101,
+      "six_pass_one_fail": true,
+      "test_sha256": "6d4dc5734aed085f945ce0be49fad820cbdac868a250ac640d232eb8e1a5f75b",
+      "failure": "Same overlong scheduling test input; portable runtime path and the other six guards actually execute/pass."
+    },
+    "Linux1ee": {
+      "selected_scheduling_test": 1,
+      "selected_test_exit": 0,
+      "whole_command_actual_exit": 101,
+      "subsequent_failure": "Strict Clippy explicit-auto-deref in a different test."
+    },
+    "Windows1ee": {
+      "selected_scheduling_test": 1,
+      "actual_exit": 0,
+      "test_sha256": "0eb81e3342eba1652d2d247f88efa00bf33d4f8a25e2cda83dbaf402021ec07f"
+    },
+    "aecc_recovery": {
+      "actual_exit": 0,
+      "pid": 12784,
+      "controller_pid": 25424,
+      "completed_utc": "2026-10-30T06:43:16.387670+00:00",
+      "scope": "Formatting + eech-world all-target strict Clippy only; no repeated guards or physical run."
+    },
+    "assessment": "Six unchanged passing guard groups plus the one corrected scheduling test are separately supported. No claim of one uninterrupted7/7 run or original29f/1ee whole command exit0. Current26 malformed-protocol controls protect syntax/shape, not the newly identified missing branch predicates."
+  },
+  "excluded_recovery_evidence": "Retained-response replays v1/v2/v3 could not reconstruct C wire key order from sorted JSON. Their new-driver refusals are controller reconstruction limitations, not product regression/RED proof. Direct real compatibility witness is the evidence used here.",
+  "previous_review_sha256": "7bb4c638d218216f1e55e43bd5535423e2730f9c81abf0eda616cd64aa8935d4",
+  "evidence_sha256": {
+    "R:\\d3-evidence\\independent-environment-original-review-99352-8e676-20261030.json": "7bb4c638d218216f1e55e43bd5535423e2730f9c81abf0eda616cd64aa8935d4",
+    "R:\\d3-evidence\\environment-driver-compatibility-29f583874-validation-20261030.json": "3924bb6d65b313a9b6c3023d42c1635016192485845ca0d96512dc2c8a0daf6a",
+    "R:\\d3-evidence\\environment-driver-compatibility-29f583874-20261030\\controller.json": "d2ffa8186aa14eccd5315c72c3a80d1a74e0faf121887c05e3016bd367673216",
+    "R:\\d3-evidence\\environment-driver-compatibility-29f583874-20261030\\environment.jsonl": "a25f409d468403911b31c7e5827b21264d2b77886016b4794b5655b13461d4a7",
+    "R:\\d3-evidence\\environment-driver-compatibility-29f583874-20261030\\native.log": "8e741ebcbb79336b526995488ea61233fac0f8b4b87a3db713cd5a3efe997094",
+    "R:\\d3-evidence\\environment-driver-compatibility-29f583874-20261030\\pre-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\environment-driver-compatibility-29f583874-20261030\\post-inputs.json": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "R:\\d3-evidence\\environment-original-source-99352e331\\eech-campaign\\target\\env-fixture\\original-99352e331\\BUILD-INFO.txt": "5d7e4c9817a0cabb8d1def0e2f6b3b7ff5c3566e246a362b5e5a2b5cf4fa7ec8",
+    "R:\\d3-evidence\\environment-guard-29f583874-linux-20261030-completion.json": "ed42e648f6376847e16aec6603086592f38ac3fac98d1b2c333f920b79a35687",
+    "R:\\d3-evidence\\environment-guard-29f583874-linux-20261030.log": "7bda01bff086c22f0aa12d581dff9634d3dd6f84354aa56e820d9e48f0674fde",
+    "R:\\d3-evidence\\environment-guard-1ee236aa1-linux-20261030-completion.json": "c0197f8e4176240bb12c4d330ae7985ce12e3d68f16975e71411f1b42e339272",
+    "R:\\d3-evidence\\environment-guard-1ee236aa1-linux-20261030.log": "368f4c3e2e7845bc232c1d6f50da52a5c04c3073beaadc45e871e9dd6da99b95",
+    "R:\\d3-evidence\\environment-guard-lint-aeccdcb29-20261030-completion.json": "15b69ba4edc667993956bbb624d6990cd86e0ca4d73d27256da5f992dc44f7c1",
+    "R:\\d3-evidence\\environment-guard-lint-aeccdcb29-20261030.log": "25d6b0c18e3040b07a76a04ddbd7f52e056707a08b0ab58f4ffd1c3a1f952711",
+    "R:\\d3-evidence\\environment-guards-windows-29f583874-execution-20261030.json": "124fb9dd31bf105c4d71df1de50a897d971f3d9bbd6faab59ef1a03f8836decc",
+    "R:\\d3-evidence\\environment-guards-windows-29f583874-execution-20261030.log": "10643fa7c4419f02e06c21ca6160b294303ed3725cdf18d2eba927c306fd075a",
+    "R:\\d3-evidence\\environment-guards-windows-1ee236aa1-execution-20261030.json": "6be8ff88dc3d60470a50065b8ecf9e53fe688159c6978ab967d1e16e303bd343",
+    "R:\\d3-evidence\\environment-guards-windows-1ee236aa1-execution-20261030.log": "424137c42a997d6f16ab47d839c126fb55104832929107a48525244164eadc13",
+    "R:\\d3-evidence\\environment-guard-source-29f583874\\eech-campaign\\target\\windows-env-guards-29f583874\\host_callbacks.exe": "6d4dc5734aed085f945ce0be49fad820cbdac868a250ac640d232eb8e1a5f75b",
+    "R:\\d3-evidence\\environment-guard-source-29f583874\\eech-campaign\\target\\windows-env-guards-29f583874\\build-receipt.json": "082e197850bd90655f235a8faefe2a3680bd8ddabb6997d66e97a8422c920d03",
+    "R:\\d3-evidence\\environment-guard-source-1ee236aa1\\eech-campaign\\target\\windows-env-guards-1ee236aa1\\host_callbacks.exe": "0eb81e3342eba1652d2d247f88efa00bf33d4f8a25e2cda83dbaf402021ec07f",
+    "R:\\d3-evidence\\environment-guard-source-1ee236aa1\\eech-campaign\\target\\windows-env-guards-1ee236aa1\\build-receipt.json": "8bbf4a7ebc1bd435e57e554327352f37ecc2d550f46be9bc3234174017542bfa"
+  },
+  "limitations": [
+    "No formal GitHub approval, host extraction/authority cutover, Task51 delivery, full shipping or whole-D3 acceptance.",
+    "Prior original99 measurements remain valid and immutable; source review does not relabel them as29f/aecc native C evidence. Driver-only correction can be validated against coherent real-script controls and unchanged original reports, without rerunning environment physics.",
+    "Unsupported lightning/sound/libc reseed/save/client paths and required environment/time/physical solver-loader work remain D3; campaign policy/timers/scheduling remain Core.",
+    "No reviewer source edits/builds/tests/native/campaign/process/cache/Git/auth/external actions or nested agents. Only this private canonical-LF report written."
+  ]
+}

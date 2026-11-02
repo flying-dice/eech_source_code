@@ -1,0 +1,109 @@
+{
+  "review": "Independent bounded correction-delta source review",
+  "created_utc": "2026-10-31T23:50:15.639408+00:00",
+  "source": {
+    "base": "33c015557fb3fbc26592e20b143ada40ec155e1f",
+    "head": "299bcf05128da68e85c8490025594f99969335b8",
+    "tree": "5c5357595363e37a3c67a530f4a54036141547ae",
+    "changed_files": [
+      "STATUS.md",
+      "eech-campaign/crates/eech-world/lua/env-sound-lifetime.lua",
+      "eech-campaign/crates/eech-world/tests/env_sound_lifetime.rs",
+      "eech-campaign/docs/d3-sound-lifetime.md"
+    ],
+    "clean_at_review": true
+  },
+  "findings": [],
+  "source_review_no_blocking_findings": true,
+  "prior_review_reused": {
+    "path": "R:\\d3-evidence\\independent-environment-original-sound-pause-resume-source-review-33c015557-20261031.json",
+    "sha256": "abafea02e3fd461287f775059665f9a15ceb5d077f9b99e451a263f9770a1d55",
+    "scope": "Original 33c fixture memory/allocation/UAF/snapshot/restoration/source facts reused; no unchanged production or fixture re-review."
+  },
+  "closed_groups": [
+    {
+      "id": "ENV-SOUND-PAUSE-1",
+      "disposition": "Closed in source",
+      "facts": "ENTERS_STORED=3 is explicit. The per-entity chain still validates consecutive first stored entries and their before-state joins; entity0 must have min(calls,3) entries. All made steps sum to end calls and probe.updates; all step state rows remain required. Canned case12 now counts four calls but emits only the first three ENTERs. New guards cover fabricated fourth, missing first/second/third, mismatched probe totals and end calls. Existing incorrect fourth-entry mutation now targets the real third entry. Neither C sampling nor physical calls changed.",
+      "limit": "An expiry/kill in fourth update is expressly outside the declared case12 and remains a witness failure requiring investigation, not silently accepted."
+    },
+    {
+      "id": "ENV-SOUND-PAUSE-2",
+      "disposition": "Closed in source",
+      "facts": "Each before and after scan now enforces total>=of_type, valid+invalid==of_type and linked<=of_type; matching counts are joined exactly to validity/member flags at the adjacent cohort tag. Existing subtype attribution, no other-subtype changes, validity delta/direction and returned-count joins remain. Finite negatives cover contradictory linked count, absolute validity offset, impossible total, split and linked bound; extra unrelated other-subtype children remain permitted in a scan pair. Documentation correctly names the session special-effect child list and number_of_entities bound."
+    }
+  ],
+  "inspected_facts": [
+    "Read the entire four-file new delta; only Lua, Rust witness tests and docs/STATUS changed. Git path delta verifies all C/observer/fixture, production Rust and build inputs unchanged from33c; this source fact does not itself verify reused binary payloads or authorize runtime acceptance.",
+    "New refusal checks retain strict record shape, complete scan flags and original parser constraints; test-only modifications correct expectation text for earlier stronger rejection rather than weakening parser checks.",
+    "Cases0..10 behavior/grammar unchanged; ENTER cap and scan rules are scoped to the new pause/resume branch. No production pause/resume host move, arithmetic, ABI/provider or baseline/tolerance change."
+  ],
+  "author_execution_evidence": {
+    "scope": "Read existing logs only; not reviewer-run validation or retail measurements.",
+    "old_parser_red1": {
+      "actual_test_exit": 101,
+      "summary": "16 pass/3 fail; actual correct four-call/three-entry shape refused and contradictory scan accepted."
+    },
+    "old_parser_red2": {
+      "actual_test_exit": 101,
+      "summary": "16 pass/4 fail; invented fourth ENTER plus five absolute/count scan contradictions explicitly listed ACCEPTED."
+    },
+    "green1": "Retained fmt1/test101 with19 pass/1 diagnostic-expectation failure; not a green whole check.",
+    "green2": "Existing steps-file log records fmt0,20 driver tests pass/test0,worldlib264 pass and strict Clippy0.",
+    "disclosures": "Earlier d2/d3 numeric exit tags remain untrusted/unknown; firstd1 original raw remains unavailable, excerpt/tool records only. Recreated WIP runner is disclosed. Canonical Root guards and actual native reuse provenance remain separate gates."
+  },
+  "limitations": [
+    "Source-only correction closure; no new native or retail execution performed or accepted. Four original pause/resume cases remain unmeasured at this source gate.",
+    "Reusing33c native with299 Lua requires explicit all-C/build/native payload identity, pinned script provenance, canonical guards and protected fresh-root inputs; no new Windows binary is claimed here.",
+    "Session default no-op play scope remains; no device/non-session/audible/player/render/network/destroy coverage or general sound-delivery acceptance.",
+    "Whole Task51/D3, required remaining sound/time/terrain/spatial/model, full40/all8complete shipping/current-finalCI/normal merges remain open; D4/D5 unstarted. No agents/source edits/builds/tests/native/process/public/auth actions performed."
+  ],
+  "file_identities": [
+    {
+      "path": "R:\\d3-evidence\\environment-services-20261030\\STATUS.md",
+      "sha256": "f525cada821f99ad987c8ef1c1b94430962c00d0c642533aeaf66372c365b697"
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\crates\\eech-world\\lua\\env-sound-lifetime.lua",
+      "sha256": "7b1f3d491a200b7cd2fd18f217bb120fab43971be39ae6890186fc5ca074a24e"
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\crates\\eech-world\\tests\\env_sound_lifetime.rs",
+      "sha256": "4cee9b64606c48f8eedd886298911506e61057cc07fb24bcf6b7048d7f245418"
+    },
+    {
+      "path": "R:\\d3-evidence\\environment-services-20261030\\eech-campaign\\docs\\d3-sound-lifetime.md",
+      "sha256": "3e5fe7c554dacc689a337ecf89abeba56fb3dbf46d97347f3b922ae0cbf14729"
+    }
+  ],
+  "evidence_identities": [
+    {
+      "path": "R:\\d3-evidence\\sound-pause-33c0155-env-sound-lifetime.lua.orig-20261031",
+      "sha256": "26487fc2dfa659628404a40c4c22956874413b53289524cae7b2d986899b9fb7"
+    },
+    {
+      "path": "R:\\d3-evidence\\sound-pause-red-env_sound_lifetime.rs-20261031",
+      "sha256": "2208032c04f7f66dcf2928047b053696db1924d5b7e9992f1e22cb0ce043c6b5"
+    },
+    {
+      "path": "R:\\d3-evidence\\sound-pause-WIP-20261031-red1.log",
+      "sha256": "e3bd01876712e8fb8c2994e0ef052b1c3f712dc91a46539df6cf6a59a1de995f"
+    },
+    {
+      "path": "R:\\d3-evidence\\sound-pause-WIP-20261031-red2.log",
+      "sha256": "52428907de8a1e20d4396d483f237d024256036c259cc2bdcb22b30ed19f3a23"
+    },
+    {
+      "path": "R:\\d3-evidence\\sound-pause-WIP-20261031-green1.log",
+      "sha256": "443c106084b4802ff9f349f0d216eac73a8f7b07f5fefb1d08a2f5b7a0fceb19"
+    },
+    {
+      "path": "R:\\d3-evidence\\sound-pause-WIP-20261031-green2.log",
+      "sha256": "eddedd48fcdab14356eb304574e96c2ca775065ef672266513a82c43f1181230"
+    },
+    {
+      "path": "R:\\d3-evidence\\sound-pause-steps-green-20261031.sh",
+      "sha256": "a70e027013681777ad3b62a0365200f4bef0e0175363660dc4a5e364bd8b9dd7"
+    }
+  ]
+}

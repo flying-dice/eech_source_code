@@ -1,0 +1,18 @@
+{
+  "source": "60e5ee0bd60b6197d09705e7d388311885fd83ea",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-lightning-queue-original-60e5ee0bd-linux-20261031.sh"
+  ],
+  "pid": 10416,
+  "controller_pid": 8944,
+  "state": "terminal",
+  "started_utc": "2026-10-31T17:25:39.485692+00:00",
+  "scope": "Original lightningqueue characterization linux build/new harness guards only; no retail facts yet, no production cutover or shipping acceptance",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T17:30:55.840972+00:00"
+}

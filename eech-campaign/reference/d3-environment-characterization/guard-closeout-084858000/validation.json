@@ -1,0 +1,31 @@
+{
+  "schema": "d3-environment-guard-closeout/v1",
+  "measured_source": "084858000b8a7190f9e89304be7a8ab849b64c40",
+  "updated_utc": "2026-10-30T07:30:41.613888+00:00",
+  "Linux_guards_pass": 8,
+  "actual_Windows_guards_pass": 8,
+  "Linux_fmt_and_all_target_strict_Clippy_exit": 0,
+  "all_actual_exits": 0,
+  "independent_review": "CLOSED_NO_FINDINGS",
+  "review_sha256": "5916fd108f60f3932fb7a39e0c66cdcc8dcff682512b47525657845a4a67f3f7",
+  "receipt_hashes": {
+    "independent-environment-init-template-closeout-084858000-20261030.json": {
+      "private_raw_sha256": "5916fd108f60f3932fb7a39e0c66cdcc8dcff682512b47525657845a4a67f3f7",
+      "Git_LF_sha256": "5916fd108f60f3932fb7a39e0c66cdcc8dcff682512b47525657845a4a67f3f7"
+    },
+    "environment-guard-084858000-linux-20261030-completion.json": {
+      "private_raw_sha256": "83be4fd39ed8f8aa5677312980bb5bf72c68e7e0b85b49e5376b4318ad3d771b",
+      "Git_LF_sha256": "bd495b6ac5833b6dd61dbe27e7f6d59969a481bd8c5bbecb5cdb11ddb103140f"
+    },
+    "environment-guard-084858000-windows-20261030-completion.json": {
+      "private_raw_sha256": "a2f36c40eabc021d3e352482db3924f9a13ff91b3acf607bdd9d91097d77478d",
+      "Git_LF_sha256": "7c6a6b1ea4de31e17905b1187ad1f9214d486ced0f528faef74c3f9f0e2a62a8"
+    },
+    "environment-guards-windows-084858000-execution-20261030.json": {
+      "private_raw_sha256": "e2c10c0e6f99b6abe926f3b4f5facc9d95e8cd656a2ebe1c7c4534c0b330eaff",
+      "Git_LF_sha256": "ecf59ec9f7e5544f83d12b0f7d9597c01e4c3ac5fecf13298f9c6dc154b5a79a"
+    }
+  },
+  "reuse": "Original99352e331 numerical3-root/1200frame and e116-driver/original99 compatibility are reused with their original identities; no new native numerical run",
+  "remaining": "Physical environment/shared-RNG/lightning/sound/time characterization and extraction, host authority/refusal, shipping regression and normal delivery remain; Task51/D3 not complete."
+}

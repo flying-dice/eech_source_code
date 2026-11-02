@@ -1,0 +1,1320 @@
+{
+  "created_utc": "2026-10-31T23:59:31.920872+00:00",
+  "native_source": "33c015557fb3fbc26592e20b143ada40ec155e1f",
+  "driver_source": "299bcf05128da68e85c8490025594f99969335b8",
+  "scope": "Four genuinely new original pause/resume SESSION-parent controls on existing host-lifetime baseline; not whole-originalDLL or hostpause ownership. Measured raw bytes preserved privately.",
+  "native_controls": 4,
+  "native_controller_exits_all0": true,
+  "input_checks0": 8,
+  "total_raw_rows": 147,
+  "new_driver_source_review": {
+    "file": "independent-environment-original-sound-pause-resume-driver-source-review-299bcf051-20261031.json",
+    "bytes": 7298,
+    "sha256": "d06782ef482f4943223e4c624162347b3ba863cc9a08a4de7f02bd272b6b51ac"
+  },
+  "gates": [
+    {
+      "receipt": {
+        "file": "environment-original-sound-pause-resume-33c015557-windows-20261031-completion.json",
+        "bytes": 801,
+        "sha256": "10f22f2752327ef18d89baeeca8e170dfb54d05363a00ce64c7967f695f18623"
+      },
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T23:38:18.699842+00:00",
+      "scope": "Original pause/resume characterization windows ordinary observer build/affected new-driver and module guards/default+observer C checks and both strict profiles; closed unchanged numerical kernels reused; source review/default raw/public authority/Tacview/shipping acceptance separate"
+    },
+    {
+      "receipt": {
+        "file": "environment-original-sound-pause-resume-33c015557-linux-20261031-completion.json",
+        "bytes": 798,
+        "sha256": "9678c42032937ac63a4a744a2678c635e25dd0b49d6333add4b2014f57312a05"
+      },
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T23:42:14.711102+00:00",
+      "scope": "Original pause/resume characterization linux ordinary observer build/affected new-driver and module guards/default+observer C checks and both strict profiles; closed unchanged numerical kernels reused; source review/default raw/public authority/Tacview/shipping acceptance separate"
+    },
+    {
+      "receipt": {
+        "file": "environment-original-sound-pause-resume-driver-299bcf051-linux-20261031-completion.json",
+        "bytes": 758,
+        "sha256": "d709d006decff55e747c1732e9519438635161165e8b1a62b5e499b44d66abf3"
+      },
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T23:53:28.374023+00:00",
+      "scope": "Parser-only pause/resume correction guard/lint checks; immutable33native reused with verified C/Rust/build identity; no new native/physical/shipping claim; source review/default raw/public authority/Tacview/shipping acceptance separate"
+    }
+  ],
+  "source_equivalence": {
+    "receipt": {
+      "file": "original-sound-pause-resume-native33-driver-299bcf051-equivalence-20261031.json",
+      "bytes": 576556,
+      "sha256": "c3cc26655d0724f2b4e036309829a1f0c61f1e9c5046385a6bb2555a8847cc98"
+    },
+    "checked_C_Rust_build_files": 3597,
+    "all_other_tracked_git_blobs_identical": true,
+    "native_payloads": 56,
+    "driver_sha256": "7b1f3d491a200b7cd2fd18f217bb120fab43971be39ae6890186fc5ca074a24e"
+  },
+  "cases": [
+    {
+      "case": 11,
+      "label": "pause_then_resume_while_still_linked",
+      "raw": {
+        "file": "environment.jsonl",
+        "bytes": 9013,
+        "sha256": "2dafc17e72b0a529f973fa313fa14925daf65ec6ff0f4c57c41c0ea02f67f614"
+      },
+      "rows": 26,
+      "native_controller_exits": [
+        0,
+        0
+      ],
+      "input_checks0": 2,
+      "verified_native_payloads": 56,
+      "actual_driver_sha256": "7b1f3d491a200b7cd2fd18f217bb120fab43971be39ae6890186fc5ca074a24e",
+      "result": {
+        "calls": 0,
+        "case": 11,
+        "changed": "1",
+        "comms": "0",
+        "entities": 1,
+        "event": "result",
+        "expiry": "",
+        "kills": 0,
+        "label": "pause_then_resume_while_still_linked",
+        "partial": false,
+        "records": 1,
+        "refusal": "",
+        "refused": false,
+        "returns": "1,1",
+        "skipped": 0,
+        "steps": 2,
+        "updates": 0
+      },
+      "end": {
+        "calls": "0",
+        "changed": "1",
+        "delta_restored": "1",
+        "descriptor_restored": "1",
+        "entities": "1",
+        "entity_state_restored": "0",
+        "event": "env-sound-end",
+        "i": "11",
+        "planned_entities": "1",
+        "process_isolated": "required",
+        "steps": "2"
+      },
+      "probe_report": {
+        "armed": "1",
+        "capacity": "80",
+        "creations": "1",
+        "dropped": "0",
+        "event": "env-snd-report",
+        "frames": "0",
+        "kills": "0",
+        "open": "0",
+        "overflow": "0",
+        "stored": "1",
+        "track_all": "0",
+        "tracked": "1",
+        "untracked": "0",
+        "updates": "0"
+      },
+      "steps": [
+        {
+          "delay_w": "3fc00000",
+          "event": "env-sound-step",
+          "made": "0",
+          "n": "1",
+          "op": "1",
+          "returned": "1",
+          "sub": "23"
+        },
+        {
+          "delay_w": "00000000",
+          "event": "env-sound-step",
+          "made": "0",
+          "n": "2",
+          "op": "2",
+          "returned": "1",
+          "sub": "23"
+        }
+      ],
+      "scans": [
+        {
+          "complete": "1",
+          "event": "env-sound-scan",
+          "invalid_of_type": "0",
+          "linked_of_type": "1",
+          "n": "1",
+          "of_type": "1",
+          "total": "11",
+          "valid_of_type": "1",
+          "when": "before"
+        },
+        {
+          "complete": "1",
+          "event": "env-sound-scan",
+          "invalid_of_type": "1",
+          "linked_of_type": "1",
+          "n": "1",
+          "of_type": "1",
+          "total": "11",
+          "valid_of_type": "0",
+          "when": "after"
+        },
+        {
+          "complete": "1",
+          "event": "env-sound-scan",
+          "invalid_of_type": "1",
+          "linked_of_type": "1",
+          "n": "2",
+          "of_type": "1",
+          "total": "11",
+          "valid_of_type": "0",
+          "when": "before"
+        },
+        {
+          "complete": "1",
+          "event": "env-sound-scan",
+          "invalid_of_type": "0",
+          "linked_of_type": "1",
+          "n": "2",
+          "of_type": "1",
+          "total": "11",
+          "valid_of_type": "1",
+          "when": "after"
+        }
+      ],
+      "cohort_states": [
+        {
+          "ent": "0",
+          "tag": "0",
+          "etype": "32",
+          "data": "1",
+          "sub": "23",
+          "valid": "1",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "00000000"
+        },
+        {
+          "ent": "0",
+          "tag": "1",
+          "etype": "32",
+          "data": "1",
+          "sub": "23",
+          "valid": "0",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "3fc00000"
+        },
+        {
+          "ent": "0",
+          "tag": "2",
+          "etype": "32",
+          "data": "1",
+          "sub": "23",
+          "valid": "1",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "3fc00000"
+        }
+      ],
+      "sampled_journal": [
+        {
+          "n": "0",
+          "point": "0",
+          "tracked": "0",
+          "upd": "0",
+          "valid": "1",
+          "update_member": "1",
+          "handle": "0",
+          "looping": "0",
+          "life_w": "40a00000",
+          "vlife_w": "00000000",
+          "delta_w": "3dcccccd"
+        }
+      ]
+    },
+    {
+      "case": 12,
+      "label": "resume_after_the_unlink_and_updates_after",
+      "raw": {
+        "file": "environment.jsonl",
+        "bytes": 13697,
+        "sha256": "48b91e6d1a2706c56cd573c8b6d362377e9af715fb34fc898c1ebde397c51a9d"
+      },
+      "rows": 37,
+      "native_controller_exits": [
+        0,
+        0
+      ],
+      "input_checks0": 2,
+      "verified_native_payloads": 56,
+      "actual_driver_sha256": "7b1f3d491a200b7cd2fd18f217bb120fab43971be39ae6890186fc5ca074a24e",
+      "result": {
+        "calls": 4,
+        "case": 12,
+        "changed": "1",
+        "comms": "0",
+        "entities": 1,
+        "event": "result",
+        "expiry": "",
+        "kills": 0,
+        "label": "resume_after_the_unlink_and_updates_after",
+        "partial": false,
+        "records": 4,
+        "refusal": "",
+        "refused": false,
+        "returns": "1,1",
+        "skipped": 0,
+        "steps": 6,
+        "updates": 4
+      },
+      "end": {
+        "calls": "4",
+        "changed": "1",
+        "delta_restored": "1",
+        "descriptor_restored": "1",
+        "entities": "1",
+        "entity_state_restored": "0",
+        "event": "env-sound-end",
+        "i": "12",
+        "planned_entities": "1",
+        "process_isolated": "required",
+        "steps": "6"
+      },
+      "probe_report": {
+        "armed": "1",
+        "capacity": "80",
+        "creations": "1",
+        "dropped": "0",
+        "event": "env-snd-report",
+        "frames": "0",
+        "kills": "0",
+        "open": "0",
+        "overflow": "0",
+        "stored": "4",
+        "track_all": "0",
+        "tracked": "1",
+        "untracked": "0",
+        "updates": "4"
+      },
+      "steps": [
+        {
+          "delay_w": "3fc00000",
+          "event": "env-sound-step",
+          "made": "0",
+          "n": "1",
+          "op": "1",
+          "returned": "1",
+          "sub": "23"
+        },
+        {
+          "delay_w": "00000000",
+          "event": "env-sound-step",
+          "made": "1",
+          "n": "2",
+          "op": "3",
+          "returned": "0",
+          "sub": "0"
+        },
+        {
+          "delay_w": "00000000",
+          "event": "env-sound-step",
+          "made": "1",
+          "n": "3",
+          "op": "3",
+          "returned": "0",
+          "sub": "0"
+        },
+        {
+          "delay_w": "00000000",
+          "event": "env-sound-step",
+          "made": "1",
+          "n": "4",
+          "op": "3",
+          "returned": "0",
+          "sub": "0"
+        },
+        {
+          "delay_w": "00000000",
+          "event": "env-sound-step",
+          "made": "0",
+          "n": "5",
+          "op": "2",
+          "returned": "1",
+          "sub": "23"
+        },
+        {
+          "delay_w": "00000000",
+          "event": "env-sound-step",
+          "made": "1",
+          "n": "6",
+          "op": "3",
+          "returned": "0",
+          "sub": "0"
+        }
+      ],
+      "scans": [
+        {
+          "complete": "1",
+          "event": "env-sound-scan",
+          "invalid_of_type": "0",
+          "linked_of_type": "1",
+          "n": "1",
+          "of_type": "1",
+          "total": "11",
+          "valid_of_type": "1",
+          "when": "before"
+        },
+        {
+          "complete": "1",
+          "event": "env-sound-scan",
+          "invalid_of_type": "1",
+          "linked_of_type": "1",
+          "n": "1",
+          "of_type": "1",
+          "total": "11",
+          "valid_of_type": "0",
+          "when": "after"
+        },
+        {
+          "complete": "1",
+          "event": "env-sound-scan",
+          "invalid_of_type": "1",
+          "linked_of_type": "0",
+          "n": "5",
+          "of_type": "1",
+          "total": "11",
+          "valid_of_type": "0",
+          "when": "before"
+        },
+        {
+          "complete": "1",
+          "event": "env-sound-scan",
+          "invalid_of_type": "0",
+          "linked_of_type": "1",
+          "n": "5",
+          "of_type": "1",
+          "total": "11",
+          "valid_of_type": "1",
+          "when": "after"
+        }
+      ],
+      "cohort_states": [
+        {
+          "ent": "0",
+          "tag": "0",
+          "etype": "32",
+          "data": "1",
+          "sub": "23",
+          "valid": "1",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "00000000"
+        },
+        {
+          "ent": "0",
+          "tag": "1",
+          "etype": "32",
+          "data": "1",
+          "sub": "23",
+          "valid": "0",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "3fc00000"
+        },
+        {
+          "ent": "0",
+          "tag": "2",
+          "etype": "32",
+          "data": "1",
+          "sub": "23",
+          "valid": "0",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "3f000000"
+        },
+        {
+          "ent": "0",
+          "tag": "3",
+          "etype": "32",
+          "data": "1",
+          "sub": "23",
+          "valid": "0",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "00000000"
+        },
+        {
+          "ent": "0",
+          "tag": "4",
+          "etype": "32",
+          "data": "1",
+          "sub": "23",
+          "valid": "0",
+          "looping": "0",
+          "member": "0",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "00000000"
+        },
+        {
+          "ent": "0",
+          "tag": "5",
+          "etype": "32",
+          "data": "1",
+          "sub": "23",
+          "valid": "1",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "00000000"
+        },
+        {
+          "ent": "0",
+          "tag": "6",
+          "etype": "32",
+          "data": "1",
+          "sub": "23",
+          "valid": "1",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40800000",
+          "vlife_w": "00000000"
+        }
+      ],
+      "sampled_journal": [
+        {
+          "n": "0",
+          "point": "0",
+          "tracked": "0",
+          "upd": "0",
+          "valid": "1",
+          "update_member": "1",
+          "handle": "0",
+          "looping": "0",
+          "life_w": "40a00000",
+          "vlife_w": "00000000",
+          "delta_w": "3dcccccd"
+        },
+        {
+          "n": "0",
+          "point": "1",
+          "tracked": "0",
+          "upd": "1",
+          "valid": "0",
+          "update_member": "1",
+          "handle": "0",
+          "looping": "0",
+          "life_w": "40a00000",
+          "vlife_w": "3fc00000",
+          "delta_w": "3f800000"
+        },
+        {
+          "n": "0",
+          "point": "1",
+          "tracked": "0",
+          "upd": "2",
+          "valid": "0",
+          "update_member": "1",
+          "handle": "0",
+          "looping": "0",
+          "life_w": "40a00000",
+          "vlife_w": "3f000000",
+          "delta_w": "3f800000"
+        },
+        {
+          "n": "0",
+          "point": "1",
+          "tracked": "0",
+          "upd": "3",
+          "valid": "0",
+          "update_member": "1",
+          "handle": "0",
+          "looping": "0",
+          "life_w": "40a00000",
+          "vlife_w": "00000000",
+          "delta_w": "3f800000"
+        }
+      ]
+    },
+    {
+      "case": 13,
+      "label": "repeated_and_no_op_pause_and_resume_counts",
+      "raw": {
+        "file": "environment.jsonl",
+        "bytes": 12403,
+        "sha256": "c3fec3e25ec309de130b5c01f7c8dc0dccb0151394a8f54fffc501ed9c63b51e"
+      },
+      "rows": 38,
+      "native_controller_exits": [
+        0,
+        0
+      ],
+      "input_checks0": 2,
+      "verified_native_payloads": 56,
+      "actual_driver_sha256": "7b1f3d491a200b7cd2fd18f217bb120fab43971be39ae6890186fc5ca074a24e",
+      "result": {
+        "calls": 0,
+        "case": 13,
+        "changed": "1",
+        "comms": "0",
+        "entities": 1,
+        "event": "result",
+        "expiry": "",
+        "kills": 0,
+        "label": "repeated_and_no_op_pause_and_resume_counts",
+        "partial": false,
+        "records": 1,
+        "refusal": "",
+        "refused": false,
+        "returns": "0,1,0,1,0",
+        "skipped": 0,
+        "steps": 5,
+        "updates": 0
+      },
+      "end": {
+        "calls": "0",
+        "changed": "1",
+        "delta_restored": "1",
+        "descriptor_restored": "1",
+        "entities": "1",
+        "entity_state_restored": "0",
+        "event": "env-sound-end",
+        "i": "13",
+        "planned_entities": "1",
+        "process_isolated": "required",
+        "steps": "5"
+      },
+      "probe_report": {
+        "armed": "1",
+        "capacity": "80",
+        "creations": "1",
+        "dropped": "0",
+        "event": "env-snd-report",
+        "frames": "0",
+        "kills": "0",
+        "open": "0",
+        "overflow": "0",
+        "stored": "1",
+        "track_all": "0",
+        "tracked": "1",
+        "untracked": "0",
+        "updates": "0"
+      },
+      "steps": [
+        {
+          "delay_w": "00000000",
+          "event": "env-sound-step",
+          "made": "0",
+          "n": "1",
+          "op": "2",
+          "returned": "0",
+          "sub": "23"
+        },
+        {
+          "delay_w": "3fc00000",
+          "event": "env-sound-step",
+          "made": "0",
+          "n": "2",
+          "op": "1",
+          "returned": "1",
+          "sub": "23"
+        },
+        {
+          "delay_w": "41100000",
+          "event": "env-sound-step",
+          "made": "0",
+          "n": "3",
+          "op": "1",
+          "returned": "0",
+          "sub": "23"
+        },
+        {
+          "delay_w": "00000000",
+          "event": "env-sound-step",
+          "made": "0",
+          "n": "4",
+          "op": "2",
+          "returned": "1",
+          "sub": "23"
+        },
+        {
+          "delay_w": "00000000",
+          "event": "env-sound-step",
+          "made": "0",
+          "n": "5",
+          "op": "2",
+          "returned": "0",
+          "sub": "23"
+        }
+      ],
+      "scans": [
+        {
+          "complete": "1",
+          "event": "env-sound-scan",
+          "invalid_of_type": "0",
+          "linked_of_type": "1",
+          "n": "1",
+          "of_type": "1",
+          "total": "11",
+          "valid_of_type": "1",
+          "when": "before"
+        },
+        {
+          "complete": "1",
+          "event": "env-sound-scan",
+          "invalid_of_type": "0",
+          "linked_of_type": "1",
+          "n": "1",
+          "of_type": "1",
+          "total": "11",
+          "valid_of_type": "1",
+          "when": "after"
+        },
+        {
+          "complete": "1",
+          "event": "env-sound-scan",
+          "invalid_of_type": "0",
+          "linked_of_type": "1",
+          "n": "2",
+          "of_type": "1",
+          "total": "11",
+          "valid_of_type": "1",
+          "when": "before"
+        },
+        {
+          "complete": "1",
+          "event": "env-sound-scan",
+          "invalid_of_type": "1",
+          "linked_of_type": "1",
+          "n": "2",
+          "of_type": "1",
+          "total": "11",
+          "valid_of_type": "0",
+          "when": "after"
+        },
+        {
+          "complete": "1",
+          "event": "env-sound-scan",
+          "invalid_of_type": "1",
+          "linked_of_type": "1",
+          "n": "3",
+          "of_type": "1",
+          "total": "11",
+          "valid_of_type": "0",
+          "when": "before"
+        },
+        {
+          "complete": "1",
+          "event": "env-sound-scan",
+          "invalid_of_type": "1",
+          "linked_of_type": "1",
+          "n": "3",
+          "of_type": "1",
+          "total": "11",
+          "valid_of_type": "0",
+          "when": "after"
+        },
+        {
+          "complete": "1",
+          "event": "env-sound-scan",
+          "invalid_of_type": "1",
+          "linked_of_type": "1",
+          "n": "4",
+          "of_type": "1",
+          "total": "11",
+          "valid_of_type": "0",
+          "when": "before"
+        },
+        {
+          "complete": "1",
+          "event": "env-sound-scan",
+          "invalid_of_type": "0",
+          "linked_of_type": "1",
+          "n": "4",
+          "of_type": "1",
+          "total": "11",
+          "valid_of_type": "1",
+          "when": "after"
+        },
+        {
+          "complete": "1",
+          "event": "env-sound-scan",
+          "invalid_of_type": "0",
+          "linked_of_type": "1",
+          "n": "5",
+          "of_type": "1",
+          "total": "11",
+          "valid_of_type": "1",
+          "when": "before"
+        },
+        {
+          "complete": "1",
+          "event": "env-sound-scan",
+          "invalid_of_type": "0",
+          "linked_of_type": "1",
+          "n": "5",
+          "of_type": "1",
+          "total": "11",
+          "valid_of_type": "1",
+          "when": "after"
+        }
+      ],
+      "cohort_states": [
+        {
+          "ent": "0",
+          "tag": "0",
+          "etype": "32",
+          "data": "1",
+          "sub": "23",
+          "valid": "1",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "00000000"
+        },
+        {
+          "ent": "0",
+          "tag": "1",
+          "etype": "32",
+          "data": "1",
+          "sub": "23",
+          "valid": "1",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "00000000"
+        },
+        {
+          "ent": "0",
+          "tag": "2",
+          "etype": "32",
+          "data": "1",
+          "sub": "23",
+          "valid": "0",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "3fc00000"
+        },
+        {
+          "ent": "0",
+          "tag": "3",
+          "etype": "32",
+          "data": "1",
+          "sub": "23",
+          "valid": "0",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "3fc00000"
+        },
+        {
+          "ent": "0",
+          "tag": "4",
+          "etype": "32",
+          "data": "1",
+          "sub": "23",
+          "valid": "1",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "3fc00000"
+        },
+        {
+          "ent": "0",
+          "tag": "5",
+          "etype": "32",
+          "data": "1",
+          "sub": "23",
+          "valid": "1",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "3fc00000"
+        }
+      ],
+      "sampled_journal": [
+        {
+          "n": "0",
+          "point": "0",
+          "tracked": "0",
+          "upd": "0",
+          "valid": "1",
+          "update_member": "1",
+          "handle": "0",
+          "looping": "0",
+          "life_w": "40a00000",
+          "vlife_w": "00000000",
+          "delta_w": "3dcccccd"
+        }
+      ]
+    },
+    {
+      "case": 14,
+      "label": "subtype_isolation_and_every_match",
+      "raw": {
+        "file": "environment.jsonl",
+        "bytes": 16385,
+        "sha256": "dcc998d1c85f18358ab6b4b0abd035a1ba8b5fe34e42dda14dcdd46735bcc539"
+      },
+      "rows": 46,
+      "native_controller_exits": [
+        0,
+        0
+      ],
+      "input_checks0": 2,
+      "verified_native_payloads": 56,
+      "actual_driver_sha256": "7b1f3d491a200b7cd2fd18f217bb120fab43971be39ae6890186fc5ca074a24e",
+      "result": {
+        "calls": 0,
+        "case": 14,
+        "changed": "1",
+        "comms": "0",
+        "entities": 3,
+        "event": "result",
+        "expiry": "",
+        "kills": 0,
+        "label": "subtype_isolation_and_every_match",
+        "partial": false,
+        "records": 3,
+        "refusal": "",
+        "refused": false,
+        "returns": "0,2,0,2",
+        "skipped": 0,
+        "steps": 4,
+        "updates": 0
+      },
+      "end": {
+        "calls": "0",
+        "changed": "1",
+        "delta_restored": "1",
+        "descriptor_restored": "1",
+        "entities": "3",
+        "entity_state_restored": "0",
+        "event": "env-sound-end",
+        "i": "14",
+        "planned_entities": "3",
+        "process_isolated": "required",
+        "steps": "4"
+      },
+      "probe_report": {
+        "armed": "1",
+        "capacity": "80",
+        "creations": "3",
+        "dropped": "0",
+        "event": "env-snd-report",
+        "frames": "0",
+        "kills": "0",
+        "open": "0",
+        "overflow": "0",
+        "stored": "3",
+        "track_all": "0",
+        "tracked": "3",
+        "untracked": "0",
+        "updates": "0"
+      },
+      "steps": [
+        {
+          "delay_w": "3f800000",
+          "event": "env-sound-step",
+          "made": "0",
+          "n": "1",
+          "op": "1",
+          "returned": "0",
+          "sub": "34"
+        },
+        {
+          "delay_w": "40000000",
+          "event": "env-sound-step",
+          "made": "0",
+          "n": "2",
+          "op": "1",
+          "returned": "2",
+          "sub": "23"
+        },
+        {
+          "delay_w": "00000000",
+          "event": "env-sound-step",
+          "made": "0",
+          "n": "3",
+          "op": "2",
+          "returned": "0",
+          "sub": "24"
+        },
+        {
+          "delay_w": "00000000",
+          "event": "env-sound-step",
+          "made": "0",
+          "n": "4",
+          "op": "2",
+          "returned": "2",
+          "sub": "23"
+        }
+      ],
+      "scans": [
+        {
+          "complete": "1",
+          "event": "env-sound-scan",
+          "invalid_of_type": "0",
+          "linked_of_type": "0",
+          "n": "1",
+          "of_type": "0",
+          "total": "13",
+          "valid_of_type": "0",
+          "when": "before"
+        },
+        {
+          "complete": "1",
+          "event": "env-sound-scan",
+          "invalid_of_type": "0",
+          "linked_of_type": "0",
+          "n": "1",
+          "of_type": "0",
+          "total": "13",
+          "valid_of_type": "0",
+          "when": "after"
+        },
+        {
+          "complete": "1",
+          "event": "env-sound-scan",
+          "invalid_of_type": "0",
+          "linked_of_type": "2",
+          "n": "2",
+          "of_type": "2",
+          "total": "13",
+          "valid_of_type": "2",
+          "when": "before"
+        },
+        {
+          "complete": "1",
+          "event": "env-sound-scan",
+          "invalid_of_type": "2",
+          "linked_of_type": "2",
+          "n": "2",
+          "of_type": "2",
+          "total": "13",
+          "valid_of_type": "0",
+          "when": "after"
+        },
+        {
+          "complete": "1",
+          "event": "env-sound-scan",
+          "invalid_of_type": "0",
+          "linked_of_type": "1",
+          "n": "3",
+          "of_type": "1",
+          "total": "13",
+          "valid_of_type": "1",
+          "when": "before"
+        },
+        {
+          "complete": "1",
+          "event": "env-sound-scan",
+          "invalid_of_type": "0",
+          "linked_of_type": "1",
+          "n": "3",
+          "of_type": "1",
+          "total": "13",
+          "valid_of_type": "1",
+          "when": "after"
+        },
+        {
+          "complete": "1",
+          "event": "env-sound-scan",
+          "invalid_of_type": "2",
+          "linked_of_type": "2",
+          "n": "4",
+          "of_type": "2",
+          "total": "13",
+          "valid_of_type": "0",
+          "when": "before"
+        },
+        {
+          "complete": "1",
+          "event": "env-sound-scan",
+          "invalid_of_type": "0",
+          "linked_of_type": "2",
+          "n": "4",
+          "of_type": "2",
+          "total": "13",
+          "valid_of_type": "2",
+          "when": "after"
+        }
+      ],
+      "cohort_states": [
+        {
+          "ent": "0",
+          "tag": "0",
+          "etype": "32",
+          "data": "1",
+          "sub": "23",
+          "valid": "1",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "00000000"
+        },
+        {
+          "ent": "1",
+          "tag": "0",
+          "etype": "32",
+          "data": "1",
+          "sub": "23",
+          "valid": "1",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "00000000"
+        },
+        {
+          "ent": "2",
+          "tag": "0",
+          "etype": "32",
+          "data": "1",
+          "sub": "24",
+          "valid": "1",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "00000000"
+        },
+        {
+          "ent": "0",
+          "tag": "1",
+          "etype": "32",
+          "data": "1",
+          "sub": "23",
+          "valid": "1",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "00000000"
+        },
+        {
+          "ent": "1",
+          "tag": "1",
+          "etype": "32",
+          "data": "1",
+          "sub": "23",
+          "valid": "1",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "00000000"
+        },
+        {
+          "ent": "2",
+          "tag": "1",
+          "etype": "32",
+          "data": "1",
+          "sub": "24",
+          "valid": "1",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "00000000"
+        },
+        {
+          "ent": "0",
+          "tag": "2",
+          "etype": "32",
+          "data": "1",
+          "sub": "23",
+          "valid": "0",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "40000000"
+        },
+        {
+          "ent": "1",
+          "tag": "2",
+          "etype": "32",
+          "data": "1",
+          "sub": "23",
+          "valid": "0",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "40000000"
+        },
+        {
+          "ent": "2",
+          "tag": "2",
+          "etype": "32",
+          "data": "1",
+          "sub": "24",
+          "valid": "1",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "00000000"
+        },
+        {
+          "ent": "0",
+          "tag": "3",
+          "etype": "32",
+          "data": "1",
+          "sub": "23",
+          "valid": "0",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "40000000"
+        },
+        {
+          "ent": "1",
+          "tag": "3",
+          "etype": "32",
+          "data": "1",
+          "sub": "23",
+          "valid": "0",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "40000000"
+        },
+        {
+          "ent": "2",
+          "tag": "3",
+          "etype": "32",
+          "data": "1",
+          "sub": "24",
+          "valid": "1",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "00000000"
+        },
+        {
+          "ent": "0",
+          "tag": "4",
+          "etype": "32",
+          "data": "1",
+          "sub": "23",
+          "valid": "1",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "40000000"
+        },
+        {
+          "ent": "1",
+          "tag": "4",
+          "etype": "32",
+          "data": "1",
+          "sub": "23",
+          "valid": "1",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "40000000"
+        },
+        {
+          "ent": "2",
+          "tag": "4",
+          "etype": "32",
+          "data": "1",
+          "sub": "24",
+          "valid": "1",
+          "looping": "0",
+          "member": "1",
+          "handle": "0",
+          "life_w": "40a00000",
+          "vlife_w": "00000000"
+        }
+      ],
+      "sampled_journal": [
+        {
+          "n": "0",
+          "point": "0",
+          "tracked": "0",
+          "upd": "0",
+          "valid": "1",
+          "update_member": "1",
+          "handle": "0",
+          "looping": "0",
+          "life_w": "40a00000",
+          "vlife_w": "00000000",
+          "delta_w": "3dcccccd"
+        },
+        {
+          "n": "0",
+          "point": "0",
+          "tracked": "1",
+          "upd": "0",
+          "valid": "1",
+          "update_member": "1",
+          "handle": "0",
+          "looping": "0",
+          "life_w": "40a00000",
+          "vlife_w": "00000000",
+          "delta_w": "3dcccccd"
+        },
+        {
+          "n": "0",
+          "point": "0",
+          "tracked": "2",
+          "upd": "0",
+          "valid": "1",
+          "update_member": "1",
+          "handle": "0",
+          "looping": "0",
+          "life_w": "40a00000",
+          "vlife_w": "00000000",
+          "delta_w": "3dcccccd"
+        }
+      ]
+    }
+  ],
+  "projection": "Safe semantic cohort indices and words only. Raw strings, volatile entity slots/IDs and world position words are excluded from this DERIVED projection. All147rawrows/endings remain immutable outsideGit; no normalization/tolerance/baseline edit.",
+  "retained_failures": "33source2P2s preserved; exactoldLua red1/red2Cargo101 beforefix, green1fmt1/test101 then green2all20pass. Earlierd2/d3misleadingtagsuntrusted numericUNKNOWN/fullRootcopiesretained; firstd1rawunavailable/partialonly.",
+  "limitations": [
+    "Source C stays original pause/resume; no host validity/relink move yet",
+    "SESSION default playback no-op; non-session/range/device/handles/audible/network/destroy/per-vehicle paths unmeasured/requiredD3",
+    "Entitystate intentionallynotrestored; isolatedprocesspercase. Descriptor/delta/tracking restored",
+    "No newTask51shipping40/all8completeTacview/currentfinalCI/normalmerge/wholeD3closure; D4D5unstarted"
+  ],
+  "independent_new_actual_review_required": true
+}

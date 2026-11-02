@@ -1,0 +1,18 @@
+{
+  "source": "f6d812c7c8e33179ec7d0a8143ede370da336bf5",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-sound-host-f6d812c7c-windows-20261031.sh"
+  ],
+  "pid": 19292,
+  "controller_pid": 23068,
+  "state": "terminal",
+  "started_utc": "2026-10-31T15:30:19.253174+00:00",
+  "scope": "New host-amplification windows affected builds/checks only; actual retail/authority/fullshipping acceptance separate",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T15:34:26.861147+00:00"
+}

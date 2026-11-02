@@ -1,0 +1,32 @@
+{
+  "before": "12ca0f15f83a6301ac24455788096800345faad6",
+  "after": "60e5ee0bd60b6197d09705e7d388311885fd83ea",
+  "when_utc": "2026-10-31T17:25:33.145758+00:00",
+  "scope": "Selective SOURCE proof: choose EECH_ENV_OBSERVER absent, preserve all other conditional branches, expand only the new macro independently proven empty, ignore comments/whitespace. Original source tokens match in the listed files. __LINE__ diagnostic values and disabled macro definitions can differ; this is not object/binary/runtime/Tacview equality. Fixture13 and new Lua/guards have separate review.",
+  "rows": [
+    {
+      "path": "aphavoc/source/entity/special/session/ss_envfx.h",
+      "observer_off_tokens_equal_except_new_empty_macro": true,
+      "new_empty_macro": "ENV_FXQ(point)",
+      "before_tokens_sha256": "42e450b72bc12765d88c033501d3ee81e6db02252045edbf99f2d47a077e7cca"
+    },
+    {
+      "path": "aphavoc/source/entity/special/session/ss_updt.c",
+      "observer_off_original_source_tokens_equal": true,
+      "proven_empty_hook_expansions": 12,
+      "tokens_sha256": "13f77cb2080f624b28ba0daf7b787bf3f2c30ed018f07fafac9ec82b168f40f1"
+    },
+    {
+      "path": "modules/3d/3dstrike.c",
+      "observer_off_original_source_tokens_equal": true,
+      "proven_empty_hook_expansions": 0,
+      "tokens_sha256": "cdbfc7e4262721c1118139324a5f39ceeab37ea0c774be706f353696828b53f5"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_env_observer.c",
+      "observer_off_original_source_tokens_equal": true,
+      "proven_empty_hook_expansions": 0,
+      "tokens_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "scope": "After-the-call preservation of Root-observed auditor tool exit/output; no standalone subprocess log existed. Auditor assumption failure only, NOT a native/witness failure.",
+  "actual_tool_exit": 1,
+  "executed_auditor": "audit-host-pause-controls-v2-20261101.py",
+  "executed_auditor_sha256": "37c4152d2a220bcf47fb1c212c9d52017d8ee29d901697dbea41876345da9038",
+  "failure_line": 86,
+  "assertion": "answer['state_words']==observed_states and answer['life_words']==observed_lives and answer['returns']==observed_returns",
+  "cause": "State/life words match exactly. Case12 step records include op3 updates with returned0, while the established result returns field is pause/resume only (ops1/2). V2 concatenated every step.",
+  "measured_pause_healthy_steps": [
+    {
+      "op": "1",
+      "returned": "1"
+    },
+    {
+      "op": "3",
+      "returned": "0"
+    },
+    {
+      "op": "3",
+      "returned": "0"
+    },
+    {
+      "op": "3",
+      "returned": "0"
+    },
+    {
+      "op": "2",
+      "returned": "1"
+    },
+    {
+      "op": "3",
+      "returned": "0"
+    }
+  ],
+  "measured_witness_returns": "1,1",
+  "source_protocol": "Original Cfixture env-sound-step op1=pause, op2=resume, op3=update; frozen299 result and actual witness returns aggregate only pause/resume.",
+  "output_json_created": false,
+  "native_scenarios_rerun": false,
+  "raw_or_baseline_changed": false,
+  "corrected_auditor": "audit-host-pause-controls-v3-20261101.py"
+}

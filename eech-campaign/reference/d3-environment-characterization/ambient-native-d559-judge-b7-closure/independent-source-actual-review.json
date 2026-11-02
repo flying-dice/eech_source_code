@@ -1,0 +1,178 @@
+{
+  "review_id": "ENV-AMBIENT-AUTHORITY-CORRECTION-B7-20261031",
+  "reviewed_utc": "2026-10-31T16:25:53.7417771Z",
+  "reviewer": "Sole independent Codex reviewer; no nested agents",
+  "scope": "One finite combined new correction delta correctness, clean-code, boundary and evidence pass: two prior witness groups plus ancillary strict-JSON test correction. No production/G11/native/kernel/FP/original re-review or new builds/runs/process/Docker/source/public actions.",
+  "source": {
+    "repository": "R:/d3-evidence/environment-ambient-judge-source-b7fbb2eab",
+    "base": "8d0c7bb69ef3f8593ced7c443227aa6839ab15fa",
+    "red_prep": "084e1de349a3150624936892495cd4bb628b75c5",
+    "head": "b7fbb2eab20677a6f2efed0116931f97e3a6b320",
+    "tree": "66ece3d01041576653eea5d683ae9291e03cfebf",
+    "clean": true,
+    "identities": [
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-ambient-authority.lua",
+        "blob": "6e9c2c2c5703d30b53bd83600fb5302d5a8371d8",
+        "sha256": "78f1bb65c63a6e83815dff90c3db85f78838df36063adb9696e58ca2230b7f75"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/env_ambient_authority.rs",
+        "blob": "2ac449154aed6d6c79d79b889e57c5ed31abadc0",
+        "sha256": "da282642941044e89cb86a3b3da1979337448788d1e1fc9997d10a3fff02eea6"
+      },
+      {
+        "path": "eech-campaign/docs/d3-environment-sound-routine.md",
+        "blob": "8b0aa17cbc7a1c30b116949e70a4aef098295e6f",
+        "sha256": "fdbed23ce85e4681876eb7468c73cb59b56ad791c2bcc1c3cb9ef8ac1db6f85a"
+      },
+      {
+        "path": "STATUS.md",
+        "blob": "d4279b15babafd9e5ab1f1d20917e98f9e5b7ae4",
+        "sha256": "63bf89983b4a7a376fbb243b21cbbf8fa8b21907ccdc3a23a36d4c40158939b5"
+      }
+    ],
+    "equivalence": {
+      "path": "R:/d3-evidence/environment-ambient-native-d559-judge-b7fbb2eab-equivalence-20261031.json",
+      "sha256": "99d8faa56dde06448b8d3e0d9b44d6ef1180a19bc2f2b2eed8441e0e52ab9a4f",
+      "scope": "All existing production runtime C/Rust/private ABI/providers/G11 exact d559. New judge and embedded Lua require explicit mixed provenance; retained native package is not silently rebuilt or relabeled."
+    }
+  },
+  "prior_review": {
+    "path": "R:/d3-evidence/independent-environment-ambient-authority-source-review-8d0c7bb69-20261031.json",
+    "sha256": "e07e3f371113e5c431e7c918046bd2c8c9f5d4480c0f6255d20ce5287f9d086f"
+  },
+  "finding_closures": [
+    {
+      "id": "ENV-AMBIENT-AUTHORITY-1",
+      "disposition": "Corrected in source and actual healthy real case27 modes verified.",
+      "facts": [
+        "NAMES and scripted child vectors use the real list order amb4, amb3, amb2, amb1, jungle, sea, heavy_wind, light_wind, heavy_rain, light_rain. The terrain question follows classes 5,4,3,2,1,0. Ordinals/subtypes/classes are represented as serialized G11 slots, not entity IDs.",
+        "The judge maps requested terrain classes to the actual list before and after the call and compares each received amplitude word with the corresponding child. Named environment levels map to the proper rain/wind child even though those children are last in the real list. Distinct changed answers and comparison with control remain; no count-only authority verdict."
+      ]
+    },
+    {
+      "id": "ENV-AMBIENT-AUTHORITY-2",
+      "disposition": "Corrected in source; actual Linux/Windows 11-function suites including all28 damaged-record checks passed.",
+      "facts": [
+        "Lua restricts the witness to case27 and exactly one call. It validates a current-index session row and 0/1 session/rng facts, nonempty comma-separated before/after lists, consecutive ordinals, matching subtype/class slots, controlled starting words and six restoration facts with equal 16-digit fingerprints. Session/rng zero remains an observed fact rather than being repaired.",
+        "Rust retains ordinal/subtype/class data. raw_record independently parses the exact head/call/session/end sequence, one-call case record, before/after slot continuity, required restoration/fingerprints and starting words. Facts reconciles raw calls/label/children/children_before/restored with JSON, while the judge pins case27/label and genuine ten-child order.",
+        "check_plan reconciles raw plan and summary, version/camera/completeness/counts and selected case bounds. Ambient rows have sequential per-provider n and environment-before-terrain order. Whole JSON row order is constrained to boot, plan, questions, optional case and authority; counters reconcile, known mode/expected marker/failure-versus-completion are checked, and changed judges require their specific mode.",
+        "Stopped refusals still carry no case row and calls=-1, require the specific engine boundary and matching sent alteration, and make no post-stop restoration/trace assertion. Healthy output cannot be substituted for a refusal or vice versa. The case6 option is removed consistently from supported configuration.",
+        "All 28 genuinely damaged-record assertions are retained from the red prep: eight driver edits, eighteen JSON edits and two relabeled changed-mode checks. Only tuple-target edits follow the corrected reversed healthy order. The healthy-first prerequisite prevents vacuous rejection of all data. Scripted guards remain bookkeeping controls, not native physics evidence."
+      ]
+    }
+  ],
+  "ancillary": {
+    "scope": "Prior guard was failing because the constructed witness-failure test inserted an unintended blank JSON line.",
+    "correction": "It now joins the witness_failure row without the blank, retaining the specific witness-failure expectation. Separate controls retain rejection of blank, non-JSON and truncated records. Changed-word guards damage both raw and summary coherently so their rejection still tests answer-to-child mapping. Mode override guards first verify wrong-mode rejection, then deliberately override mode to reach altered-answer checks.",
+    "parser_loosened": false
+  },
+  "findings": [],
+  "inspected_boundaries": [
+    "Provider wrappers remain armed only for the selected fixture call; only op=ambient is altered and other operations delegate. No production or G11 behavior is changed to satisfy the witness.",
+    "Changed terrain replies remain distinct dyadics in actual request order; environment changes remain finite valid distinct levels. Actual child words, not question counts, are the intended authority outcome.",
+    "Write/flush/close failures and witness failures remain errors. Missing feature/assets are refusals or public-path SKIPPED, not proof. Existing single-owned-child bounded process code is unchanged and its previous scope is reused.",
+    "Rendered-state fingerprints are explicitly hashes, not CPU floating-point proof. Docs preserve focused fixture, no speaker/network/player/render/frame/Tacview/general DCS/full-shipping claims.",
+    "The new Record parser is a finite test-only grammar check and retains the original raw evidence. It introduces no production trace framework, ownership change or numerical solver."
+  ],
+  "retained_red_context": {
+    "directory": "eech-campaign/reference/d3-environment-characterization/ambient-authority-8d0-084-reds/",
+    "facts": [
+      "Actual 8d0 first real control public test exit101 at the known reversed-order judge mismatch; pre/post checks0, all51 native payloads unchanged. The healthy native record is a judge diagnostic, not accepted authority or production failure.",
+      "Actual 084 targeted protocol test exit101: healthy-first then 28 of 28 genuinely damaged records accepted by old source. Completion 16:07:08.941120 UTC; no retail run in that focused test.",
+      "Old ancillary Linux/Windows guard9 pass/1 fail retained, as are first export and setup/controller scopes. Those failures are not silently promoted to green."
+    ],
+    "execution_status": "Corrected Linux pipeline terminal0 at16:24:33.183724 UTC: fmt,11functions,all28negativechecks,bothstrict phases. Windowsjudge export0 at16:22:01.303574 and actual11functions0; unconfigured public path SKIPPED there. Separate configured seven-mode public test actual0,30.84s, controller terminal16:23:44.176914. These do not relabel retained 8d0/084 reds."
+  },
+  "limitations": [
+    "Both witness findings and the finite actual seven-mode ambient authority case27 are closed. This does not establish arbitrary cases/campaigns or remaining D3/shipping delivery gates. Mixed new judge/Lua and unchanged native provenance is explicit.",
+    "No reviewer builds, tests or native experiments. Runtime statuses come only from read Root receipts and are bounded to their measured scopes.",
+    "Prior original/numeric/FP/field/sector/wind/G12 evidence reused without re-review. No raw retail coordinates, flags or amplitude vectors reproduced.",
+    "Whole Task51/D3 remains open including remaining physical sound/effects/time/terrain/spatial/model, full shipping40/all8, current CI/normal merges; D4/D5 unstarted."
+  ],
+  "verdict": "Both finite witness groups corrected and actual guards/strict/seven-mode case27 outcomes verified; no new findings. Focused ambient amplitude authority supported within stated fixture scope. Whole D3/full shipping/current campaign CI/merges remain open.",
+  "actual_new_evidence": {
+    "receipts": [
+      {
+        "path": "R:/d3-evidence/environment-ambient-seven-modes-controller-b7fbb2eab-20261031/receipt.json",
+        "sha256": "4522b668b7deb985d35693cfea2ef4872c958ab8a9814b3d956ce7967ff07105"
+      },
+      {
+        "path": "R:/d3-evidence/environment-ambient-b7-seven-mode-summary-20261031.json",
+        "sha256": "a84d734d6b7bf94cbd989deb213e58d3e13a3088b3d04c29e4e534ee2a93787e"
+      },
+      {
+        "path": "R:/d3-evidence/environment-ambient-judge-b7fbb2eab-linux-20261031-completion.json",
+        "sha256": "ee64b1e0e6457ecc07f96ca97d8ad41a1e57335652cd7c740774082dc69d7c80"
+      },
+      {
+        "path": "R:/d3-evidence/environment-ambient-judge-b7fbb2eab-windows-20261031-completion.json",
+        "sha256": "17ef7fa1ac80885cd2c1ed11abf134454c5c269711ecdbaf6ed6ed5f52e7a548"
+      },
+      {
+        "path": "R:/d3-evidence/environment-ambient-seven-modes-controller-b7fbb2eab-20261031/actual-Windows-judge-guards.log",
+        "sha256": "b3c1469f9fe6e35192ea3aeb4896f318ce31ea69cba18e44209e0045061b6037"
+      },
+      {
+        "path": "R:/d3-evidence/environment-ambient-seven-modes-controller-b7fbb2eab-20261031/actual-public-seven-mode-test.log",
+        "sha256": "3ed52f7b36a3e69ae6e0c131d636ccde66af746abc8e096ba0333e333e3f8323"
+      }
+    ],
+    "raw_modes": [
+      {
+        "mode": "control",
+        "path": "R:\\d3-evidence\\environment-ambient-seven-modes-b7fbb2eab-20261031\\control.jsonl",
+        "sha256": "c67e848d4a1e49c6b94d2dc5b2829032ebfffbd2507685eabaf7d55ec74ca33a"
+      },
+      {
+        "mode": "changed_env_ambient",
+        "path": "R:\\d3-evidence\\environment-ambient-seven-modes-b7fbb2eab-20261031\\changed_env_ambient.jsonl",
+        "sha256": "97940f96f78024bd3f2be7ae4b415cd9445b0eca56b5eb516ea3a2eef2bf908d"
+      },
+      {
+        "mode": "changed_terrain_ambient",
+        "path": "R:\\d3-evidence\\environment-ambient-seven-modes-b7fbb2eab-20261031\\changed_terrain_ambient.jsonl",
+        "sha256": "4566929ea2bf8924487000726e248aa6d44348937d6bd598b6bfa9444f6318ea"
+      },
+      {
+        "mode": "withheld_env_ambient",
+        "path": "R:\\d3-evidence\\environment-ambient-seven-modes-b7fbb2eab-20261031\\withheld_env_ambient.jsonl",
+        "sha256": "2abde9fb09f943fbf09971ec1632bb96010b3c3ca268e5189088ed72bceb37e3"
+      },
+      {
+        "mode": "malformed_env_ambient",
+        "path": "R:\\d3-evidence\\environment-ambient-seven-modes-b7fbb2eab-20261031\\malformed_env_ambient.jsonl",
+        "sha256": "fba4e09d4f4b81ee717425dc4292d68d0740f33a816b64ca30af5e44a3e9cd31"
+      },
+      {
+        "mode": "withheld_terrain_ambient",
+        "path": "R:\\d3-evidence\\environment-ambient-seven-modes-b7fbb2eab-20261031\\withheld_terrain_ambient.jsonl",
+        "sha256": "cab59073db61fa797e30af64890a483ddd7859d77a956a7656f45793da58f1e1"
+      },
+      {
+        "mode": "malformed_terrain_ambient",
+        "path": "R:\\d3-evidence\\environment-ambient-seven-modes-b7fbb2eab-20261031\\malformed_terrain_ambient.jsonl",
+        "sha256": "558d74cb7e9ca4d666edf414b61e137c39635e2533d4edcf26ff0eedc43683da"
+      }
+    ],
+    "provenance": {
+      "judge_source": "b7fbb2eab20677a6f2efed0116931f97e3a6b320",
+      "native_source": "d559c38592405afcabc172ec876a4fdfa7f9687b",
+      "copied_lua_exact_frozen_source": true,
+      "copied_lua_sha256": "78f1bb65c63a6e83815dff90c3db85f78838df36063adb9696e58ca2230b7f75",
+      "exported_judge_sha256": "bdd00c2ceb6d7b169e94a9a1307cf5c72e316c9844d66e8780629a563c65c704",
+      "verified_retained_native_payloads": 51,
+      "pre_inputs_zero": 7,
+      "post_inputs_zero": 7
+    },
+    "reviewer_readonly_checks": [
+      "Parsed all seven raw files and checked hashes against the safe summary. Three healthy files each have6rows,one selected case/call,one env and one terrain request; alteration pairs0/0,1/0,0/1. Each retained four-line raw fixture record agrees with the case summary, restoration and current session/call facts.",
+      "Checked genuine reversed ten-child order and consecutive ordinals/subtypes/classes before/after and across the three healthy cohorts. Actual terrain question classes5,4,3,2,1,0 map each received amplitude to its corresponding actual child word. Each named rain/wind child holds the recorded environment reply word.",
+      "Changed env and terrain replies equal their promised dyadics and actual corresponding child words differ from control. This establishes the finite case27 response-to-consumer mapping, not request-count-only authority.",
+      "All four refused files have completed=false,calls=-1,no case row. Env refusals have1env/0terrain and terrain refusals1/1; exactly the target answer altered once. Checked matching withheld or malformed shape and specific ambient callback/answer/amplitudes engine marker. No post-stop restoration observation invented.",
+      "Actual publictest/log and controller report0; all16 recorded controller stages are0, including seven pre and seven post manifests. Copied Lua and exported judge hashes were independently read back; summary facts/hashes agree. No raw retail words/flags/coordinates reproduced."
+    ],
+    "current_ci": "Root reports b7 structural and historical TypeScript workflows successful; campaign still running. No all-nine-current-CI claim."
+  }
+}

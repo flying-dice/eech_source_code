@@ -1,0 +1,18 @@
+{
+  "source": "e5020587153e1922acdc412598c4920501988a9a",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-host-sound-lifetime-e50205871-windows-20261031.sh"
+  ],
+  "pid": 9200,
+  "controller_pid": 6148,
+  "state": "terminal",
+  "started_utc": "2026-10-31T22:48:27.857424+00:00",
+  "scope": "ACTUAL HOST sound lifetime candidate windows ordinary observer build/full affected default+observer packages and both strict profiles; source review/default raw/public authority/Tacview/shipping acceptance separate",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T22:51:42.776145+00:00"
+}

@@ -1,0 +1,126 @@
+{
+  "created_utc": "2026-11-01T11:12:40.235913+00:00",
+  "original_native": "e54423b5c17b4386c099240ea02158ec525c05f7",
+  "original_rotor_driver": "06de242ae9b4050873207925d79a7a2e58be0c87",
+  "candidate_native": "26489a4a597dcbae087ec1bd6a779c2fbf2929e7",
+  "controllers": [
+    {
+      "name": "natural",
+      "actual_exit": 0,
+      "actual_native_exit": 0,
+      "completed_utc": "2026-11-01T11:12:19.412808+00:00",
+      "verified_payloads": 68,
+      "stages": [
+        [
+          "pre-inputs",
+          0
+        ],
+        [
+          "native",
+          0
+        ],
+        [
+          "post-inputs",
+          0
+        ]
+      ]
+    },
+    {
+      "name": "unarmed",
+      "actual_exit": 0,
+      "actual_native_exit": 0,
+      "completed_utc": "2026-11-01T11:11:50.440143+00:00",
+      "verified_payloads": 68,
+      "stages": [
+        [
+          "pre-inputs",
+          0
+        ],
+        [
+          "native",
+          0
+        ],
+        [
+          "post-inputs",
+          0
+        ]
+      ]
+    },
+    {
+      "name": "ai-sweep",
+      "actual_exit": 0,
+      "actual_native_exit": 0,
+      "completed_utc": "2026-11-01T11:05:32.288589+00:00",
+      "verified_payloads": 68,
+      "stages": [
+        [
+          "pre-inputs",
+          0
+        ],
+        [
+          "native",
+          0
+        ],
+        [
+          "post-inputs",
+          0
+        ]
+      ]
+    },
+    {
+      "name": "fd-sweep",
+      "actual_exit": 0,
+      "actual_native_exit": 0,
+      "completed_utc": "2026-11-01T11:05:31.701811+00:00",
+      "verified_payloads": 68,
+      "stages": [
+        [
+          "pre-inputs",
+          0
+        ],
+        [
+          "native",
+          0
+        ],
+        [
+          "post-inputs",
+          0
+        ]
+      ]
+    }
+  ],
+  "complete_comparisons": [
+    {
+      "name": "natural:environment.jsonl.rotor.raw",
+      "original": "D:\\EECH-Migration-Evidence\\rotor-original-seven-native-e544-driver-06de-20261101\\natural\\environment.jsonl.rotor.raw",
+      "candidate": "D:\\EECH-Migration-Evidence\\host-rotor-numeric-defaults-26489a4a5-20261101\\natural\\environment.jsonl.rotor.raw",
+      "original_bytes": 304394730,
+      "candidate_bytes": 304394730,
+      "original_sha256": "e5593222ec73e84fe705e01fda0486eb103a5aa1a16db03cb75b788fd91c2591",
+      "candidate_sha256": "e5593222ec73e84fe705e01fda0486eb103a5aa1a16db03cb75b788fd91c2591",
+      "whole_file_bytes_including_endings_equal": true
+    },
+    {
+      "name": "natural:environment.jsonl.sndinit.raw",
+      "original": "D:\\EECH-Migration-Evidence\\rotor-original-seven-native-e544-driver-06de-20261101\\natural\\environment.jsonl.sndinit.raw",
+      "candidate": "D:\\EECH-Migration-Evidence\\host-rotor-numeric-defaults-26489a4a5-20261101\\natural\\environment.jsonl.sndinit.raw",
+      "original_bytes": 7516,
+      "candidate_bytes": 7516,
+      "original_sha256": "ce688f8595aec01c57f1bbaaa19acfe07d430b5eda8483d63477e7fc1c7ebaa4",
+      "candidate_sha256": "ce688f8595aec01c57f1bbaaa19acfe07d430b5eda8483d63477e7fc1c7ebaa4",
+      "whole_file_bytes_including_endings_equal": true
+    },
+    {
+      "name": "unarmed:complete_environment_stream",
+      "original": "D:\\EECH-Migration-Evidence\\rotor-unarmed-diagnostic-e54423b5c-20261101-0813\\environment.jsonl",
+      "candidate": "D:\\EECH-Migration-Evidence\\host-rotor-numeric-defaults-26489a4a5-20261101\\unarmed\\environment.jsonl",
+      "original_bytes": 5191384,
+      "candidate_bytes": 5191384,
+      "original_sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+      "candidate_sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+      "whole_file_bytes_including_endings_equal": true
+    }
+  ],
+  "scope": "Four default candidate runs, eight actual pre/post input checks. Complete natural120 rotor inputs/requests/all child before/after records and constructor sidecar; complete unarmed120 stream. No prefixes, field filtering, tolerance, endings normalization or original rerun. Controlled 12AI/15FD words/probe and retained raw fenv differences in separate controlled comparison. No shipping/Tacview/public-authority acceptance.",
+  "actual_exit": 0
+}

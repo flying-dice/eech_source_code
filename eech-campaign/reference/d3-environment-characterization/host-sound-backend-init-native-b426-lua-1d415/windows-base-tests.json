@@ -1,0 +1,147 @@
+{
+  "controller_pid": 7536,
+  "state": "terminal",
+  "started_utc": "2026-11-01T06:40:44.936832+00:00",
+  "native_source": "b4265e529cfa2bd6113993d404f60b5819a01b86",
+  "effective_source": "b4265e529cfa2bd6113993d404f60b5819a01b86",
+  "image_from_canonical_build_info": "sha256:361634d294f2a5f441b6b0cd08a6b5ff45874a98bf1a9ecb59c68faeff477a93",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "docker",
+    "run",
+    "--rm",
+    "--network",
+    "none",
+    "-i",
+    "-v",
+    "/mnt/d/EECH-Migration-Evidence/be-b4265e529:/src:ro",
+    "-v",
+    "/mnt/d/EECH-Migration-Evidence/backend-windows-tests-b4265e529-build-image-recovery-20261101:/evidence",
+    "-v",
+    "eech-win-target-d3-environment-physical-05b8caf82-20261031:/target",
+    "-v",
+    "eech-cargo:/usr/local/cargo/registry",
+    "-e",
+    "CARGO_TARGET_DIR=/target",
+    "-e",
+    "LUA_LIB=/opt/lua-mingw",
+    "-e",
+    "LUA_LIB_NAME=lua",
+    "-e",
+    "EECH_ENGINE_OPT=1",
+    "-w",
+    "/src/eech-campaign",
+    "sha256:361634d294f2a5f441b6b0cd08a6b5ff45874a98bf1a9ecb59c68faeff477a93",
+    "sh",
+    "-s"
+  ],
+  "scope": "Windows full immutable b426 source cross-build followed by ACTUAL Windows lib and six sound integration test executables. No overlay, no runtime /src fixture, not shipping.",
+  "build_pid": 18520,
+  "actual_build_exit": 0,
+  "cases": [
+    {
+      "name": "eech_engine",
+      "pid": 23472,
+      "args": [
+        "D:\\EECH-Migration-Evidence\\backend-windows-tests-b4265e529-build-image-recovery-20261101\\eech_engine.exe",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "state": "terminal",
+      "actual_exit": 0
+    },
+    {
+      "name": "eech_dc",
+      "pid": 15936,
+      "args": [
+        "D:\\EECH-Migration-Evidence\\backend-windows-tests-b4265e529-build-image-recovery-20261101\\eech_dc.exe",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "state": "terminal",
+      "actual_exit": 0
+    },
+    {
+      "name": "eech_world",
+      "pid": 2376,
+      "args": [
+        "D:\\EECH-Migration-Evidence\\backend-windows-tests-b4265e529-build-image-recovery-20261101\\eech_world.exe",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "state": "terminal",
+      "actual_exit": 0
+    },
+    {
+      "name": "env_sound_init",
+      "pid": 16204,
+      "args": [
+        "D:\\EECH-Migration-Evidence\\backend-windows-tests-b4265e529-build-image-recovery-20261101\\env_sound_init.exe",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "state": "terminal",
+      "actual_exit": 101
+    },
+    {
+      "name": "env_sound_data_witness",
+      "pid": 14824,
+      "args": [
+        "D:\\EECH-Migration-Evidence\\backend-windows-tests-b4265e529-build-image-recovery-20261101\\env_sound_data_witness.exe",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "state": "terminal",
+      "actual_exit": 0
+    },
+    {
+      "name": "env_sound_backend_witness",
+      "pid": 5068,
+      "args": [
+        "D:\\EECH-Migration-Evidence\\backend-windows-tests-b4265e529-build-image-recovery-20261101\\env_sound_backend_witness.exe",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "state": "terminal",
+      "actual_exit": 0
+    },
+    {
+      "name": "sound_backend_provider",
+      "pid": 3960,
+      "args": [
+        "D:\\EECH-Migration-Evidence\\backend-windows-tests-b4265e529-build-image-recovery-20261101\\sound_backend_provider.exe",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "state": "terminal",
+      "actual_exit": 0
+    },
+    {
+      "name": "sound_catalogue_provider",
+      "pid": 12004,
+      "args": [
+        "D:\\EECH-Migration-Evidence\\backend-windows-tests-b4265e529-build-image-recovery-20261101\\sound_catalogue_provider.exe",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "state": "terminal",
+      "actual_exit": 0
+    },
+    {
+      "name": "sound_root_cwd",
+      "pid": 1488,
+      "args": [
+        "D:\\EECH-Migration-Evidence\\backend-windows-tests-b4265e529-build-image-recovery-20261101\\sound_root_cwd.exe",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "state": "terminal",
+      "actual_exit": 0
+    }
+  ],
+  "actual_exit": 1,
+  "completed_utc": "2026-11-01T06:42:51.826779+00:00"
+}

@@ -1,0 +1,151 @@
+{
+  "schema": "independent-prepared-publication-review-v1",
+  "created_utc": "2026-11-01T11:21:03.601783+00:00",
+  "reviewer": "/root/d3_environment_review",
+  "scope": "One new publication-only correctness, content safety, identity and provenance pass. Candidate is outside the active writer and not yet committed. No unchanged arithmetic/runtime review, product/source/staging changes, builds, campaigns, external writes or nested agents.",
+  "candidate": {
+    "path": "D:\\EECH-Migration-Evidence\\rotor-host-native264-safe-publication-20261101",
+    "tested_native": "26489a4a597dcbae087ec1bd6a779c2fbf2929e7",
+    "comment_only_source": "a0bb76d2c2ba61841c92095e55cc9de764fc8b7c",
+    "accepted_actual_review_sha256": "a5551db0a7f4d4e8842f979353bec61587ebc1c0cab3221f1e8457926ae99154",
+    "file_count": 13,
+    "literal_JSON_receipts": 11,
+    "projections": 0
+  },
+  "findings": [],
+  "finite_prepared_publication_closed": true,
+  "inspected_facts": [
+    "Exact directory inventory contains only the eleven declared JSON receipts, README and copy-identities.json. Independently recomputed every declared byte count/SHA256 and compared every literal receipt byte-for-byte with its private original. All JSON parses; no receipt, newline or historical finding was rewritten.",
+    "Reviewed generator source: it copies each receipt with shutil.copyfile, asserts literal byte equality and parses the copied JSON. README and copy manifest are new explanatory metadata, accurately distinguished from receipts or projections. The generator was not executed by the reviewer.",
+    "Content safety checked against the complete candidate texts and JSON structures: no retail inputs, raw coordinates/position records, raw entity/slot/seed values, recordings, binaries or full logs are bundled. Private handover paths and hashes are references, not copied private datasets. Floating-point masks, compiler identities and finite diagnostic excerpts remain explicitly scoped.",
+    "README accurately distinguishes native264, retained originale544/native delegate06, comment-onlya0bb, pinned selected suites and actual observer image842. It does not relabel binaries or turn test controls into original-engine/compiler oracles.",
+    "Ten new executions/twenty successful input checks/68 payloads, complete natural/constructor/unarmed byte equality, all12AI/15FD controlled word/action matches and six public authority controls agree with accepted actual reviewa555. The old capability red is reused and not counted as another new execution.",
+    "AI whole-sweep equality remains false because of the same ten hexadecimal0x02-to0x22 diagnostic mask rows; rounding3072, all other AI lines and the complete FD sweep remain exact. README preserves that qualification and avoids full public FP, audio, device, shipping, Tacview, Task51/D3 or normal-delivery acceptance.",
+    "Literal source reviewefdeed retains its original comment P2; literala555 closes it through the a0bb comment delta and closes the numerical P1. Historical failures, partial evidence and prior review scopes are not silently relabelled.",
+    "Active next-characterization working tree was neither read nor modified; only the prepared candidate, generator, accepted reports and retained ledger context were inspected."
+  ],
+  "ledger108_verification": {
+    "context": "D:\\EECH-Migration-Evidence\\ledger-host-rotor-numeric-v108-context-20261101.json",
+    "context_sha256": "ee23075b05bd1788d059f49a5317e46259ee75cc9bbd37aadfbd44c129fd8d70",
+    "before_snapshot": "v:107",
+    "after_snapshot": "v:108",
+    "before_authored_HTML_characters": 257480,
+    "new_authored_section_characters_after_explicit_normalization": 3493,
+    "removed_metadata": "Exactly five insertions of ,&quot;_parentId&quot;:{&quot;value&quot;:&quot;14548994&quot;} in readback report configuration, and nothing else.",
+    "prior_authored_prefix_exact_after_only_parentId_normalization": true,
+    "all_five_complete_report_wrappers_exact_after_same_normalization": true,
+    "queries_and_all_other_configuration_exact": true,
+    "epic_reports": [
+      "EEDCS-15",
+      "EEDCS-18",
+      "EEDCS-21",
+      "EEDCS-23",
+      "EEDCS-25"
+    ],
+    "whole_HTML_or_raw_wrapper_byte_equality": false,
+    "scope": "Independently compared the retained before/readback HTML and parsed report configuration. The full readback is not the old HTML: it includes new authored content and server parent binding. No live-authority update or current-version claim is made by this review."
+  },
+  "copy_verification": [
+    {
+      "path": "source-identity-264.json",
+      "bytes": 1266,
+      "sha256": "e01943a11f0197234e62b3c938c1204d9ccc6b7134110b35351652c670eca72a",
+      "literal_byte_copy": true,
+      "contains_CRLF": true
+    },
+    {
+      "path": "comment-identity-a0bb.json",
+      "bytes": 1684,
+      "sha256": "700c894134e356bbd3704e8e39e8b422cdc6ff67eba10e543ee49c26732600af",
+      "literal_byte_copy": true,
+      "contains_CRLF": true
+    },
+    {
+      "path": "exact-source-ci.json",
+      "bytes": 11217,
+      "sha256": "2b6bc683840f01b7b966dd287b4bc301accf9395e6b7ae3973556e7e2d22297b",
+      "literal_byte_copy": true,
+      "contains_CRLF": false
+    },
+    {
+      "path": "selected-platform-checks.json",
+      "bytes": 12535,
+      "sha256": "ef0f33cc62d0c19b47ba696a448e0ddcd4a6e6eb0efa43bdc7b1ede081cae65d",
+      "literal_byte_copy": true,
+      "contains_CRLF": true
+    },
+    {
+      "path": "complete-default-comparison.json",
+      "bytes": 4332,
+      "sha256": "6d7fb7dde256a0beec958e91b68927e645843c240741de2739b7b6a009bc7a7f",
+      "literal_byte_copy": true,
+      "contains_CRLF": true
+    },
+    {
+      "path": "controlled-default-comparison.json",
+      "bytes": 4604,
+      "sha256": "ec4253a21514a93265a9640d37662a7dbfd4c3cbbdc781657faa306d8994ff52",
+      "literal_byte_copy": true,
+      "contains_CRLF": true
+    },
+    {
+      "path": "public-authority-assessment.json",
+      "bytes": 19251,
+      "sha256": "b392b386fe3b0ccf4d3da5e4eb120a75ae0105652b9cdf624c0e211ec3409737",
+      "literal_byte_copy": true,
+      "contains_CRLF": true
+    },
+    {
+      "path": "independent-compiler-control-review-38.json",
+      "bytes": 13140,
+      "sha256": "9a3385f390a7cbf53903a4562d1356f0051407fb45527cefe98a80e4b8ffdee6",
+      "literal_byte_copy": true,
+      "contains_CRLF": false
+    },
+    {
+      "path": "independent-source-review-264.json",
+      "bytes": 6462,
+      "sha256": "efdeed6c11c490230a8ef5ba8f15ef7f518126f17b89f8590e50d878a951b29f",
+      "literal_byte_copy": true,
+      "contains_CRLF": false
+    },
+    {
+      "path": "independent-final-actual-review-264.json",
+      "bytes": 16351,
+      "sha256": "a5551db0a7f4d4e8842f979353bec61587ebc1c0cab3221f1e8457926ae99154",
+      "literal_byte_copy": true,
+      "contains_CRLF": false
+    },
+    {
+      "path": "ledger108-preservation.json",
+      "bytes": 456,
+      "sha256": "800deecda223120a32bf96e39a67be1ab311057858e17528dd2caa3f7fd05fee",
+      "literal_byte_copy": true,
+      "contains_CRLF": false
+    },
+    {
+      "path": "README.md",
+      "bytes": 4510,
+      "sha256": "ad12d792e3dd859c16ac5b9f60862ebbbe9af20493b73ff1e5319bfb5685dd22",
+      "literal_byte_copy": false,
+      "contains_CRLF": false
+    }
+  ],
+  "identity_files": [
+    {
+      "path": "D:\\EECH-Migration-Evidence\\rotor-host-native264-safe-publication-20261101\\copy-identities.json",
+      "bytes": 4098,
+      "sha256": "6cc8595a4e7221bfbca6775032ef39ce7cad230beb159e4687598167988c3233"
+    },
+    {
+      "path": "R:\\d3-evidence\\prepare-host-rotor-numeric-safe-publication-20261101.py",
+      "bytes": 7055,
+      "sha256": "61d36ef0eac07c3db8469938f5a2832350df9261a7afd3837b8849779cdbff36"
+    }
+  ],
+  "handover_limits": [
+    "This accepts only the prepared bytes and prose identified here. No committed Git blobs, new publication CI, staging, merge or external publication is reviewed or authorized by this report.",
+    "Six literal JSON receipts contain CRLF. Preserve these exact bytes during later repository import, for example with the repository's explicit JSON -text policy, and check resulting Git blob hashes against copy-identities.json. A future report copy/closure receipt is a transparent later addition, not retrospectively included in this inventory.",
+    "No new runtime gate is conferred. Finite arithmetic/authority closure remains a555's named slice; remaining non-SESSION/per-family/loading/device/destroy/network/time and required terrain/spatial/model responsibilities, full shipping/current-final-CI/normal-delivery gates and wholeTask51/D3 remain open."
+  ]
+}

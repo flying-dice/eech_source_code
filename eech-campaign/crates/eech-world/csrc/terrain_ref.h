@@ -64,6 +64,42 @@ int host_terrain_copy_grid (const host_terrain *map, uint8_t *out, size_t capaci
 int host_terrain_query (const host_terrain *map, float x, float z, const host_terrain_hint *hint, host_terrain_answer *out, char *error, size_t error_size);
 int host_terrain_fast_elevation (const host_terrain *map, float x, float z, float *out, char *error, size_t error_size);
 
+/* The number of EECH terrain types (TERRAIN_TYPE_LAST): the width of a sector's flags. */
+#define HOST_TERRAIN_TYPE_COUNT 62
+
+/*
+ * The surface enumeration of the sector that holds (x, z) (EEDCS-51): the original's get_terrain_3d_types_in_sector (terrdata.c) over the sectors this map owns. The sector is chosen as
+ * the original chose it (x / 2048 and z / 2048, truncated toward zero) and must lie in the map; the original indexed its table without checking, and a position outside it is refused here
+ * with a message (as is one that is not finite). `flags` (at least HOST_TERRAIN_TYPE_COUNT bytes) is the complete scratch: 1 for the sector's first surface and for the surface of EVERY
+ * polygon that changes surface, 0 elsewhere; `*returned` is the original's return value, 1 PLUS THE NUMBER OF SURFACE CHANGES met, which is not the number of flags set (a surface met
+ * twice is flagged once and counted twice). A surface id outside the terrain types, which the original would use to index outside its scratch, is refused. On a refusal the flags are
+ * all zero and *returned is 0. 0 on success.
+ *
+ * The caller's COMPLETE floating-point state is preserved on every path (the x87 control, status and tag words, and the whole of MXCSR, restored and read back; the answer is withheld if they do
+ * not read back). An earlier version of this comment said the choice of sector -- an exact scaling and a truncation -- cannot touch the floating-point environment; that was wrong (a subnormal
+ * quotient is inexact and underflows, a fractional truncation raises the precision flag, an x87 conversion changes the status word). The position is therefore passed as the BITS of the two
+ * floats (x_bits, z_bits: the IEEE single-precision words, so a 32-bit callee cannot home a float argument through the x87 stack before the guard is entered) and is turned into floats inside
+ * the guard. Private ABI between this library and its Rust wrapper; no legacy pointer or layout is exposed.
+ */
+int host_terrain_types_in_sector (const host_terrain *map, uint32_t x_bits, uint32_t z_bits, int32_t *returned, uint8_t *flags, size_t flags_capacity, char *error, size_t error_size);
+
+/* The most children one ambient question carries, and the number of ambient classes (sea, jungle, amb1 to amb4). */
+#define HOST_TERRAIN_AMBIENT_MAX 16
+#define HOST_TERRAIN_AMBIENT_CLASSES 6
+
+/*
+ * The physical amplitude of the session's terrain ambient sound children (EEDCS-51, D3; ss_updt.c update_session_sound_effects): the new amplification of `count` children from the previous one
+ * each held, the surfaces of the sector that holds (x, z) (the enumeration above) and the campaign's observations, with the original's arithmetic (see terrain_ref.c).
+ *   in_f = { alt, delta, previous[0 .. count) }   the point's radar altitude, the frame delta and each child's previous amplification
+ *   in_i = { in_cockpit, class[0 .. count) }      class: 0 sea, 1 jungle (forest top), 2 amb1 (river), 3 amb2 (reservoir), 4 amb3 (altered land 1), 5 amb4 (altered land 2)
+ *   out  = `count` amplitudes, written only on success
+ * The arithmetic runs in the CANONICAL environment (x87 extended precision, round toward zero, MXCSR round toward zero with FTZ and DAZ off, every exception masked, set before any floating-point work and
+ * read back), so the answer does not depend on the caller's denormal modes or precision. Both arrays are readable for HOST_TERRAIN_AMBIENT_MAX children whatever `count` is. Like the enumeration it has the caller's COMPLETE floating-point state preserved on every path, takes the
+ * position as the BITS of the two floats and reads every other float inside its guard, from memory. A position outside the map, a class outside the six or a count above the limit is refused with a
+ * message and changes nothing. 0 on success.
+ */
+int host_terrain_ambient (const host_terrain *map, uint32_t x_bits, uint32_t z_bits, const float *in_f, const int32_t *in_i, size_t count, float *out, char *error, size_t error_size);
+
 /*
  * CONFORMANCE ONLY. The deterministic sweep of eech-engine-sys/csrc/eech_terrain_fixture.c (the probe the original solver was characterised
  * with), driven against this kernel instead of the DLL, with the same point generator, the same hints carried between queries and the same

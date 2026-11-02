@@ -1,0 +1,35 @@
+{
+  "source": "9c47b972aae4dc6640a09f6d9cc13d5f2de81db0",
+  "all_nine_jobs_green": true,
+  "proofs": [
+    {
+      "job_id": 124555500941,
+      "lines": [
+        "2026-10-31T13:55:51.7386414Z test the_wall_limit_is_a_finite_number_of_seconds_from_one_to_14400_and_a_hung_child_is_killed ... ok",
+        "2026-10-31T13:55:56.6256323Z test the_callers_complete_floating_point_state_survives_every_sector_query_in_every_mode ... ok"
+      ]
+    },
+    {
+      "job_id": 124555500965,
+      "lines": [
+        "2026-10-31T13:56:29.7242225Z test the_wall_limit_is_a_finite_number_of_seconds_from_one_to_14400_and_a_hung_child_is_killed ... ok",
+        "2026-10-31T13:56:43.3720159Z test the_callers_complete_floating_point_state_survives_every_sector_query_in_every_mode ... ok"
+      ]
+    },
+    {
+      "job_id": 124555500974,
+      "lines": [
+        "2026-10-31T13:56:20.3692994Z test the_wall_limit_is_a_finite_number_of_seconds_from_one_to_14400_and_a_hung_child_is_killed ... ok",
+        "2026-10-31T13:56:25.3570119Z test the_callers_complete_floating_point_state_survives_every_sector_query_in_every_mode ... ok"
+      ]
+    },
+    {
+      "job_id": 124555500953,
+      "lines": [
+        "2026-10-31T13:55:54.6320298Z test the_wall_limit_is_a_finite_number_of_seconds_from_one_to_14400_and_a_hung_child_is_killed ... ok",
+        "2026-10-31T13:55:59.4306121Z test the_callers_complete_floating_point_state_survives_every_sector_query_in_every_mode ... ok"
+      ]
+    }
+  ],
+  "scope": "Actual decoded hosted logs prove samefullFP and correctedfiniteownedchildtimeout pass onbothi686/Wine/x64. No fullshipping/Task51/D3 acceptance."
+}

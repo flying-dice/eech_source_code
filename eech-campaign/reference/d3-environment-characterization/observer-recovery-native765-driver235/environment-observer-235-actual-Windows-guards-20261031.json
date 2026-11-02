@@ -1,0 +1,16 @@
+{
+  "source": "235290e0d4b48cb1bfce2cc5556217d14251ec97",
+  "host_source": "76533dd3ae836674c27704040d6ce1b6ed84f80d",
+  "exe_sha256": "c53f05c00176eb6f8c85e9e8485914a28b2cf0641d9f32d8059a6aecdcf1f444",
+  "verified_host_payloads": 46,
+  "args": [
+    "R:\\d3-evidence\\environment-observer-source-235290e0d\\eech-campaign\\target\\windows-env-guards-235290e0d\\host_callbacks.exe",
+    "the_environment_",
+    "--nocapture"
+  ],
+  "started_utc": "2026-10-31T02:34:39.543758+00:00",
+  "scope": "Actual Windows environment-driver contract guards, including200frame multichunk positive; fakeengine contracts, notretailphysics orshipping.",
+  "pid": 24648,
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T02:34:43.265507+00:00"
+}

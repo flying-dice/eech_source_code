@@ -1,11 +1,17 @@
 //! The Lua surface of the module.
 
 use eech_engine::{
-    AimEvent, AimReply, AimRequest, AimStepKind, AimTarget, AimWeapon, AimWorld, ArrivalAnswer, Engine, EngineConfig, EngineError, Gunship,
-    HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor, MemberDescriptor, MovementMode, MovementResult,
-    MovementStep, ObjectReport, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side, SupplyReachDescriptor, TerrainAnswer, TerrainMapFacts,
-    TerrainProvider, TerrainQuery, TerrainRecord, VehiclePose, WeaponFigures,
+    AimEvent, AimReply, AimRequest, AimStepKind, AimTarget, AimWeapon, AimWorld, ArrivalAnswer, Engine, EngineConfig, EngineError, EnvProvider, EnvReply,
+    EnvRequest, EnvState, Gunship, HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor, MemberDescriptor,
+    MovementMode, MovementResult, MovementStep, ObjectReport, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side, SupplyReachDescriptor,
+    TerrainAnswer, TerrainMapFacts, TerrainProvider, TerrainQuery, TerrainRecord, VehiclePose, WeaponFigures, EECH_ENV_AMBIENT, EECH_ENV_EXPORT,
+    EECH_ENV_FLOATS, EECH_ENV_GUST, EECH_ENV_IMPORT, EECH_ENV_INIT_FIXED, EECH_ENV_INIT_RANDOM, EECH_ENV_INTS, EECH_ENV_LIGHTNING_ADD,
+    EECH_ENV_LIGHTNING_UPDATE, EECH_ENV_MODE_COUNT, EECH_ENV_ROTOR_SOUND, EECH_ENV_SOUND_LIFETIME_INIT, EECH_ENV_SOUND_LIFETIME_UPDATE,
+    EECH_ENV_SOUND_PAUSE_RESUME, EECH_ENV_STEP, EECH_ENV_WEATHER, EECH_ENV_WIND, EECH_LIGHTNING_SLOTS, EECH_ROTOR_ACTIONS, EECH_ROTOR_CHANNELS,
+    EECH_ROTOR_PLAYER_AI, EECH_ROTOR_PLAYER_LOCAL, EECH_ROTOR_PLAYER_REMOTE, EECH_SOUND_SAMPLES,
 };
+use eech_engine::{SoundBackendProvider, SoundBackendReply, SoundBackendRequest, SOUND_BACKEND_PHASE_INITIALISE};
+use eech_engine::{SoundCatalogueEntry, SoundCatalogueProvider, SoundCatalogueReply, SoundCatalogueRequest};
 use mlua::prelude::*;
 use std::path::PathBuf;
 
@@ -369,14 +375,25 @@ fn call_line_of_sight(lua: &Lua, function: &LuaFunction, message: LosMessage) ->
 ///   point.hint                                    `hint` is neither nil nor a string of 1 to the limit of printable ASCII bytes
 ///   point.stored                                  `stored` is neither nil nor a boolean (nil means true: a provider that returns a surface for the point has stored one)
 ///   fast.elevation                                `elevation` is missing or not a finite number
+///   sector.callback, sector.answer                the provider raised an error, or the answer is not a table
+///   sector.flags                                  `flags` is not a string of exactly one `0` or `1` for each terrain type
+///   ambient.callback, ambient.answer              the provider raised an error, or the answer is not a table
+///   ambient.amplitudes                            `amplitudes` is not a list of exactly one finite number for each child asked about
+///   sector.returned                               no flag is set (the sector's first surface is always flagged), or `returned` is not an integer of at least the number of flags set
 const TERRAIN_BRIDGE: &str = r#"
 local provider, types, hint_max = ...
 local huge = math.huge
 local function finite (v) return type (v) == 'number' and v == v and v ~= huge and v ~= -huge end
 local function integer (v) return finite (v) and v == math.floor (v) end
 local map_floats = { 'min_x', 'min_z', 'max_x', 'max_z', 'min_height', 'max_height', 'scaled_height_difference' }
-return function (op, x, z, hint, winter)
-	local ok, answer = pcall (provider, { op = op, x = x, z = z, hint = hint, winter = winter })
+return function (op, x, z, hint, winter, extra)
+	-- THE CONTRACT IS CAPTURED BEFORE the provider is called (it is handed the request table and may change it): for an ambient question, the number of children asked about
+	local children_asked = extra and #extra.children or 0
+	local request = { op = op, x = x, z = z, hint = hint, winter = winter }
+	if extra then
+		request.alt, request.delta, request.in_cockpit, request.children = extra.alt, extra.delta, extra.in_cockpit, extra.children
+	end
+	local ok, answer = pcall (provider, request)
 	if not ok then return op .. '.callback', tostring (answer) end
 	if type (answer) ~= 'table' then return op .. '.answer', 'the ' .. op .. ' answer must be a table, got ' .. type (answer) end
 	if op == 'point' then
@@ -401,6 +418,28 @@ return function (op, x, z, hint, winter)
 	elseif op == 'fast' then
 		if not finite (answer.elevation) then return 'fast.elevation', 'elevation must be a finite number' end
 		return nil, string.format ('%.17g', answer.elevation)
+	elseif op == 'ambient' then
+		-- the new amplification of each terrain ambient sound child asked about (EEDCS-51), in the order asked: exactly that many finite numbers
+		local a = answer.amplitudes
+		if type (a) ~= 'table' or #a ~= children_asked then return 'ambient.amplitudes', 'amplitudes must be a list of exactly ' .. children_asked .. ' numbers, one for each child' end
+		local out = {}
+		for i = 1, children_asked do
+			if not finite (a [i]) then return 'ambient.amplitudes', 'amplitude ' .. i .. ' must be a finite number' end
+			out [#out + 1] = string.format ('%.17g', a [i])
+		end
+		return nil, table.concat (out, ' ')
+	elseif op == 'sector' then
+		-- the surface enumeration of a sector (EEDCS-51): the original's return value (1 + the surface transitions, NOT the number of distinct surfaces) and the whole scratch, one 0 or 1 per type
+		local flags, returned = answer.flags, answer.returned
+		if type (flags) ~= 'string' or #flags ~= types or string.find (flags, '[^01]') ~= nil then
+			return 'sector.flags', 'flags must be a string of exactly ' .. types .. ' characters, each 0 or 1'
+		end
+		local _, distinct = string.gsub (flags, '1', '')
+		if distinct < 1 then return 'sector.returned', 'the first surface of a sector is always flagged: at least one flag must be 1' end
+		if not integer (returned) or returned < distinct or returned > 2147483647 then
+			return 'sector.returned', 'returned must be an integer of at least the ' .. distinct .. ' surfaces flagged'
+		end
+		return nil, flags, returned
 	end
 	for _, field in ipairs { 'sector_x_max', 'sector_z_max' } do
 		if not integer (answer [field]) or answer [field] < 1 then return 'map.facts', field .. ' must be an integer of at least 1' end
@@ -506,9 +545,10 @@ fn terrain_provider(lua: &Lua, function: LuaFunction) -> LuaResult<TerrainProvid
     let bridge: LuaFunction = build.call((function.clone(), TERRAIN_TYPE_COUNT, TERRAIN_HINT_MAX))?;
     let ground_build: LuaFunction = lua.load(GROUND_BRIDGE).set_name("eech ground bridge").into_function()?;
     let ground: LuaFunction = ground_build.call((function, TERRAIN_TYPE_COUNT, TERRAIN_HINT_MAX))?;
+    let lua = lua.clone();
     Ok(Box::new(move |query| match query {
         TerrainQuery::GroundAbove { .. } | TerrainQuery::GroundBelow { .. } | TerrainQuery::GroundImpact { .. } => call_ground(&ground, query),
-        query => call_terrain(&bridge, query),
+        query => call_terrain(&lua, &bridge, query),
     }))
 }
 
@@ -545,18 +585,49 @@ fn terrain_i32(value: f64, marker: &str) -> Result<i32, String> {
 /// surface is stored (each absent when the answer does not carry it).
 type BridgeAnswer = (Option<String>, Option<String>, Option<i64>, Option<String>, Option<bool>);
 
-fn call_terrain(bridge: &LuaFunction, query: TerrainQuery) -> Result<TerrainAnswer, String> {
+/// The extra fields of an ambient question as a table for the bridge (`alt`, `delta`, `in_cockpit` and the `children` list of `{ class, previous }`), or nothing for any other question.
+fn terrain_extra(lua: &Lua, query: &TerrainQuery) -> Result<Option<LuaTable>, String> {
+    let e = |error: LuaError| error.to_string();
+    let TerrainQuery::Ambient {
+        in_cockpit,
+        alt,
+        delta,
+        children,
+        ..
+    } = query
+    else {
+        return Ok(None);
+    };
+    let extra = lua.create_table().map_err(e)?;
+    extra.set("alt", f64::from(*alt)).map_err(e)?;
+    extra.set("delta", f64::from(*delta)).map_err(e)?;
+    extra.set("in_cockpit", *in_cockpit).map_err(e)?;
+    let list = lua.create_table().map_err(e)?;
+    for (index, child) in children.iter().enumerate() {
+        let entry = lua.create_table().map_err(e)?;
+        entry.set("class", child.class).map_err(e)?;
+        entry.set("previous", f64::from(child.previous)).map_err(e)?;
+        list.set(index + 1, entry).map_err(e)?;
+    }
+    extra.set("children", list).map_err(e)?;
+    Ok(Some(extra))
+}
+
+fn call_terrain(lua: &Lua, bridge: &LuaFunction, query: TerrainQuery) -> Result<TerrainAnswer, String> {
+    let extra = terrain_extra(lua, &query).map_err(|error| format!("[terrain-provider:ambient.callback] {error}"))?;
     let (op, x, z, hint, winter) = match &query {
         TerrainQuery::Map { winter } => ("map", None, None, None, *winter),
         TerrainQuery::Point { x, z, hint, winter } => ("point", Some(f64::from(*x)), Some(f64::from(*z)), hint.clone(), *winter),
         TerrainQuery::Fast { x, z, winter } => ("fast", Some(f64::from(*x)), Some(f64::from(*z)), None, *winter),
+        TerrainQuery::Sector { x, z, winter } => ("sector", Some(f64::from(*x)), Some(f64::from(*z)), None, *winter),
+        TerrainQuery::Ambient { x, z, winter, .. } => ("ambient", Some(f64::from(*x)), Some(f64::from(*z)), None, *winter),
         // the ground questions go to the ground bridge (`terrain_provider`), never here
         TerrainQuery::GroundAbove { .. } | TerrainQuery::GroundBelow { .. } | TerrainQuery::GroundImpact { .. } => {
             return Err("[terrain-provider:point.callback] a ground question reached the point bridge".to_string())
         }
     };
     let (marker, text, kind, hint_out, stored): BridgeAnswer = bridge
-        .call((op, x, z, hint, winter))
+        .call((op, x, z, hint, winter, extra))
         .map_err(|error| format!("[terrain-provider:{op}.callback] {error}"))?;
     if let Some(marker) = marker {
         return Err(format!("[terrain-provider:{marker}] {}", text.unwrap_or_default()));
@@ -596,6 +667,29 @@ fn call_terrain(bridge: &LuaFunction, query: TerrainQuery) -> Result<TerrainAnsw
                 stored: stored.ok_or_else(|| "[terrain-provider:point.stored] the terrain bridge returned no stored flag".to_string())?,
             })
         }
+        "ambient" => {
+            // the bridge returns the amplitudes as the text, exactly as many as the children asked about (the bridge checked the count; the engine boundary checks it again)
+            let amplitudes = text
+                .split_whitespace()
+                .map(|part| {
+                    part.parse::<f64>()
+                        .ok()
+                        .filter(|value| value.is_finite())
+                        .ok_or_else(|| "[terrain-provider:ambient.amplitudes] an amplitude is malformed".to_string())
+                        .and_then(|value| terrain_f32(value, "ambient.amplitudes"))
+                })
+                .collect::<Result<Vec<f32>, String>>()?;
+            Ok(TerrainAnswer::Ambient { amplitudes })
+        }
+        "sector" => {
+            // the bridge returns the flags as the text and the return value in the type slot
+            let returned = kind.ok_or_else(|| "[terrain-provider:sector.returned] the terrain bridge returned no return value".to_string())?;
+            let returned = i32::try_from(returned).map_err(|_| "[terrain-provider:sector.returned] the return value is out of range".to_string())?;
+            Ok(TerrainAnswer::Sector {
+                returned,
+                flags: text.chars().map(|flag| flag == '1').collect(),
+            })
+        }
         _ => {
             let n = terrain_numbers::<1>(&text, "fast.elevation")?;
             Ok(TerrainAnswer::Fast {
@@ -603,6 +697,841 @@ fn call_terrain(bridge: &LuaFunction, query: TerrainQuery) -> Result<TerrainAnsw
             })
         }
     }
+}
+
+/// The host's environment provider as the campaign calls it (EEDCS-51, D3): the physical weather and wind field and its update. The campaign hands the provider a request table
+/// `{ op = "import" | "export" | "init_random" | "init_fixed" | "weather" | "wind" | "gust" | "ambient" | "step", winter, ... }` and reads a table back (the fields of each operation are in
+/// aphavoc/.../ss_hostenv.h and docs/d3-environment-provider.md). Everything about the shape of the answer is checked here, in Lua, where the values are, and reaches Rust as plain
+/// text: the numbers are formatted exactly (`%.17g`) and parsed with `nearest_f32`, as every number the engine takes from a host callback (the engine calls a callback under
+/// round-toward-zero). The request's numbers are handed to the provider as Lua numbers, unchanged: a negative zero, a subnormal and a draw reach it bit for bit.
+///
+/// Markers (the first line of the error the engine stops with carries `[env-provider:<marker>]`):
+///   <op>.callback   the provider raised an error (its text follows)
+///   <op>.answer     the answer is not a table, or a number of it is missing, not finite, or out of its domain (a mode, a flag)
+///   ambient.answer  one of rain_light, rain_heavy, wind_light, wind_heavy is not a finite number, or a wind level is outside 0 to 1
+///   <op>.state      the field in the answer is missing a number, not finite, a mode outside 0 to 4, or a flag that is not a boolean
+const ENV_BRIDGE: &str = r#"
+local provider, floats, ints = ...
+local huge = math.huge
+local function finite (v) return type (v) == 'number' and v == v and v ~= huge and v ~= -huge end
+local function integer (v) return finite (v) and v == math.floor (v) end
+local function fmt (v) return string.format ('%.17g', v) end
+local function state_text (state, op)
+	if type (state) ~= 'table' then return nil, op .. '.state', 'the field must be a table, got ' .. type (state) end
+	local out = {}
+	for _, name in ipairs (floats) do
+		if not finite (state [name]) then return nil, op .. '.state', name .. ' must be a finite number' end
+		out [#out + 1] = fmt (state [name])
+	end
+	for i, name in ipairs (ints) do
+		local v = state [name]
+		if i <= 2 then
+			if not integer (v) or v < 0 or v > 4 then return nil, op .. '.state', name .. ' must be an integer from 0 to 4' end
+		else
+			if type (v) ~= 'boolean' then return nil, op .. '.state', name .. ' must be a boolean' end
+			v = v and 1 or 0
+		end
+		out [#out + 1] = string.format ('%d', v)
+	end
+	return table.concat (out, ' ')
+end
+local function mode (v) return integer (v) and v >= 0 and v <= 4 end
+local function vector3 (v) return type (v) == 'table' and finite (v [1]) and finite (v [2]) and finite (v [3]) end
+return function (request)
+	-- THE CONTRACT IS CAPTURED HERE, BEFORE the provider is called: the provider is handed the request table and may change it, so every decision below that depends on what the campaign
+	-- asked (the operation, whether a wind vector was wanted, whether this is a server, whether the lightning draw was already made) is made from these values, never from the table
+	local op = request.op
+	local want_vector = request.want_vector == true
+	local server = request.server == true
+	local has_draw = request.lightning_draw ~= nil
+	local has_frames = request.frames ~= nil
+	local request_valid = request.valid == true
+	local request_has_handle = request.has_handle == true
+	local request_have_playing = request.playing ~= nil
+	local ok, answer = pcall (provider, request)
+	if not ok then return op .. '.callback', tostring (answer) end
+	if type (answer) ~= 'table' then return op .. '.answer', 'the ' .. op .. ' answer must be a table, got ' .. type (answer) end
+	if op == 'import' then
+		return nil, 'ok'
+	elseif op == 'export' or op == 'init_random' or op == 'init_fixed' then
+		local text, marker, message = state_text (answer.state, op)
+		if not text then return marker, message end
+		return nil, text
+	elseif op == 'weather' then
+		if not (mode (answer.current_mode) and mode (answer.target_mode) and mode (answer.simple_mode)) then return 'weather.answer', 'the modes must be integers from 0 to 4' end
+		if not finite (answer.transitional_state) then return 'weather.answer', 'transitional_state must be a finite number' end
+		return nil, string.format ('%d %d %s %d', answer.current_mode, answer.target_mode, fmt (answer.transitional_state), answer.simple_mode)
+	elseif op == 'wind' then
+		if not finite (answer.speed) then return 'wind.answer', 'speed must be a finite number' end
+		local v = answer.vector
+		if want_vector then
+			if not vector3 (v) then return 'wind.answer', 'vector must be three finite numbers' end
+		else
+			v = { 0, 0, 0 }
+		end
+		return nil, string.format ('%s %s %s %s', fmt (answer.speed), fmt (v [1]), fmt (v [2]), fmt (v [3]))
+	elseif op == 'gust' then
+		if not finite (answer.modulation) then return 'gust.answer', 'modulation must be a finite number' end
+		return nil, fmt (answer.modulation)
+	elseif op == 'ambient' then
+		-- the four ambient sound levels (EEDCS-51): rain light, rain heavy, wind light, wind heavy; the wind levels are the original's piecewise function of r in [0, 1]
+		for _, name in ipairs { 'rain_light', 'rain_heavy', 'wind_light', 'wind_heavy' } do
+			if not finite (answer [name]) then return 'ambient.answer', name .. ' must be a finite number' end
+		end
+		for _, name in ipairs { 'wind_light', 'wind_heavy' } do
+			if answer [name] < 0 or answer [name] > 1 then return 'ambient.answer', name .. ' must be within 0 to 1' end
+		end
+		return nil, string.format ('%s %s %s %s', fmt (answer.rain_light), fmt (answer.rain_heavy), fmt (answer.wind_light), fmt (answer.wind_heavy))
+	elseif op == 'sound_lifetime_init' then
+		-- the physical lifetime of a new sound effect (EEDCS-51): one finite number from 0 up
+		if not finite (answer.lifetime) or answer.lifetime < 0 then return op .. '.answer', 'lifetime must be a finite number from 0 up' end
+		return nil, fmt (answer.lifetime)
+	elseif op == 'sound_lifetime_update' then
+		-- one call of a sound effect's update routine: a request to know whether the handle is playing (once, only for the server's valid effect that holds one), or the lifetimes after the call, whether a valid
+		-- effect's lifetime went below zero and the decision
+		if answer.need_playing == true then
+			if not (server and request_valid and request_has_handle) then return op .. '.answer', 'the provider asked whether a handle is playing where none may be asked about' end
+			if request_have_playing then return op .. '.answer', 'the provider asked whether the handle is playing after it was told' end
+			return nil, '1'
+		end
+		if answer.need_playing ~= nil and answer.need_playing ~= false then return op .. '.answer', 'need_playing must be a boolean or nil' end
+		if not finite (answer.lifetime) then return op .. '.answer', 'lifetime must be a finite number' end
+		if not finite (answer.valid_lifetime) then return op .. '.answer', 'valid_lifetime must be a finite number' end
+		if type (answer.expired) ~= 'boolean' then return op .. '.answer', 'expired must be a boolean, got ' .. type (answer.expired) end
+		local action = ({ none = 0, kill = 1, unlink = 2 }) [answer.action]
+		if action == nil then return op .. '.answer', "action must be 'none', 'kill' or 'unlink'" end
+		return nil, string.format ('0 %s %s %d %d', fmt (answer.lifetime), fmt (answer.valid_lifetime), answer.expired and 1 or 0, action)
+	elseif op == 'sound_pause_resume' then
+		-- one effect under a pause or a resume (EEDCS-51): the host's answer is explicit in every field (a missing flag is not false) and the valid lifetime is the exact stored or copied number
+		for _, name in ipairs { 'changed', 'valid', 'play', 'relink' } do
+			if type (answer [name]) ~= 'boolean' then return op .. '.answer', name .. ' must be a boolean, got ' .. type (answer [name]) end
+		end
+		if not finite (answer.valid_lifetime) then return op .. '.answer', 'valid_lifetime must be a finite number' end
+		return nil, string.format ('0 %d %d %s %d %d', answer.changed and 1 or 0, answer.valid and 1 or 0, fmt (answer.valid_lifetime), answer.play and 1 or 0, answer.relink and 1 or 0)
+	elseif op == 'rotor_sound' then
+		-- the acoustics of ONE helicopter (EEDCS-51, D3): every logical channel by name with its levels and the ordered requests; an unknown name, an extra field, a missing or non-finite level, a pitch on the
+		-- winding channel and a delay on a resume are refused, and a missing number is never read as zero
+		local names = { 'looping', 'slap', 'turbine1', 'turbine2', 'apu', 'winding' }
+		local known = {}
+		for i, name in ipairs (names) do known [name] = i end
+		local channels = answer.channels
+		if type (channels) ~= 'table' then return op .. '.answer', 'channels must be a table, got ' .. type (channels) end
+		for name in pairs (channels) do
+			if known [name] == nil then return op .. '.answer', 'channels has the unknown channel ' .. tostring (name) end
+		end
+		local out = { '0' }
+		for _, name in ipairs (names) do
+			local c = channels [name]
+			if type (c) ~= 'table' then return op .. '.answer', 'channels.' .. name .. ' must be a table, got ' .. type (c) end
+			for key in pairs (c) do
+				if key ~= 'amplification' and key ~= 'pitch' then return op .. '.answer', 'channels.' .. name .. ' has the unknown field ' .. tostring (key) end
+			end
+			if not finite (c.amplification) then return op .. '.answer', 'channels.' .. name .. '.amplification must be a finite number' end
+			local mask, pitch = 3, c.pitch
+			if name == 'winding' then
+				if pitch ~= nil then return op .. '.answer', 'the winding channel writes the amplification only and must carry no pitch' end
+				mask, pitch = 1, 0
+			elseif not finite (pitch) then
+				return op .. '.answer', 'channels.' .. name .. '.pitch must be a finite number'
+			end
+			out [#out + 1] = string.format ('%d %s %s', mask, fmt (c.amplification), fmt (pitch))
+		end
+		local actions = answer.actions
+		if type (actions) ~= 'table' or actions [9] ~= nil then return op .. '.answer', 'actions must be a list of at most 8 requests' end
+		local listed = 0
+		for _ in pairs (actions) do listed = listed + 1 end
+		if listed ~= #actions then return op .. '.answer', 'actions must be a plain list' end
+		out [#out + 1] = string.format ('%d', listed)
+		local kinds = { pause = 0, resume = 1 }
+		for i, request in ipairs (actions) do
+			if type (request) ~= 'table' then return op .. '.answer', 'actions [' .. i .. '] must be a table, got ' .. type (request) end
+			for key in pairs (request) do
+				if key ~= 'action' and key ~= 'channel' and key ~= 'delay' then return op .. '.answer', 'actions [' .. i .. '] has the unknown field ' .. tostring (key) end
+			end
+			local kind = kinds [request.action]
+			if kind == nil then return op .. '.answer', 'actions [' .. i .. "].action must be 'pause' or 'resume'" end
+			local channel = known [request.channel]
+			if channel == nil or channel > 5 then return op .. '.answer', 'actions [' .. i .. '].channel must be looping, slap, turbine1, turbine2 or apu' end
+			local delay = request.delay
+			if kind == 1 then
+				if delay ~= nil then return op .. '.answer', 'actions [' .. i .. '] resumes with a delay, which a resume does not carry' end
+				delay = 0
+			elseif not finite (delay) then
+				return op .. '.answer', 'actions [' .. i .. '].delay must be a finite number'
+			end
+			out [#out + 1] = string.format ('%d %d %s', kind, channel - 1, fmt (delay))
+		end
+		return nil, table.concat (out, ' ')
+	elseif op == 'lightning_add' or op == 'lightning_update' then
+		-- the physical lightning queue (EEDCS-51): an update the host cannot finish without the strike animation's frame count says so and changes nothing, once
+		if answer.need_frames == true then
+			if op ~= 'lightning_update' then return op .. '.answer', 'an add never needs the frame count' end
+			if has_frames then return op .. '.answer', 'the provider asked for the frame count it was given' end
+			return nil, '1'
+		end
+		if answer.need_frames ~= nil and answer.need_frames ~= false then return op .. '.answer', 'need_frames must be a boolean or nil' end
+		local slot = -1
+		if op == 'lightning_add' then
+			slot = answer.slot
+			if not integer (slot) or slot < -1 or slot > 31 then return op .. '.answer', 'slot must be an integer from -1 (none) to 31' end
+		end
+		local queue = answer.queue
+		if type (queue) ~= 'table' or queue [33] ~= nil then return op .. '.answer', 'queue must be a list of exactly 32 strikes' end
+		local out = { '0', string.format ('%d', slot) }
+		for i = 1, 32 do
+			local s = queue [i]
+			if type (s) ~= 'table' then return op .. '.answer', 'queue [' .. i .. '] must be a table' end
+			if type (s.in_use) ~= 'boolean' then return op .. '.answer', 'queue [' .. i .. '].in_use must be a boolean' end
+			if not integer (s.type) or s.type < 0 or s.type > 5 then return op .. '.answer', 'queue [' .. i .. '].type must be an integer from 0 to 5' end
+			if not integer (s.frame) then return op .. '.answer', 'queue [' .. i .. '].frame must be an integer' end
+			out [#out + 1] = s.in_use and '1' or '0'
+			out [#out + 1] = string.format ('%d', s.type)
+			for _, name in ipairs { 'x', 'y', 'z', 'time_started', 'time_length' } do
+				if not finite (s [name]) then return op .. '.answer', 'queue [' .. i .. '].' .. name .. ' must be a finite number' end
+				out [#out + 1] = fmt (s [name])
+			end
+			out [#out + 1] = string.format ('%d', s.frame)
+		end
+		return nil, table.concat (out, ' ')
+	end
+	-- step
+	if answer.need_draw == true then
+		-- only a SERVER's FIRST question, before the draw, may be answered with a request for the draw: a client never draws, and a draw already made is not asked for again
+		if not server then return 'step.answer', 'the provider asked for the lightning draw of a client, which never draws' end
+		if has_draw then return 'step.answer', 'the provider asked for the lightning draw it was given' end
+		if not finite (answer.timer) then return 'step.answer', 'timer must be a finite number' end
+		return nil, '1 ' .. fmt (answer.timer)
+	end
+	if answer.need_draw ~= nil and answer.need_draw ~= false then return 'step.answer', 'need_draw must be a boolean or nil' end
+	-- a completed step says whether the timer expired, explicitly (a missing field is not 'false')
+	local expired = answer.expired
+	if type (expired) ~= 'boolean' then return 'step.answer', 'expired must be a boolean, got ' .. type (expired) end
+	-- the draw was made because the first answer reported an expiry: the final answer must complete and still report it
+	if has_draw and not expired then return 'step.answer', 'the lightning draw was made for an expiry the final answer does not report' end
+	local strike, new_timer = { 0, 0, 0 }, 0
+	if expired then
+		-- a server's expiry is negotiated: it is reported only with the draw its new timer needs (a client's new timer is set by the server, and is not read)
+		if server and not has_draw then return 'step.answer', 'the lightning timer expired without the draw the new timer needs' end
+		strike = answer.strike
+		if not vector3 (strike) then return 'step.answer', 'strike must be three finite numbers' end
+		if server then
+			new_timer = answer.new_timer
+			if not finite (new_timer) then return 'step.answer', 'new_timer must be a finite number' end
+		end
+	end
+	local text, marker, message = state_text (answer.state, 'step')
+	if not text then return marker, message end
+	return nil, string.format ('0 %d %s %s %s %s %s', expired and 1 or 0, fmt (strike [1]), fmt (strike [2]), fmt (strike [3]), fmt (new_timer), text)
+end
+"#;
+
+/// The names of the field's floats and integers in the tables of the provider's protocol, in the order of the arrays of the engine's state (the enums of ss_hostenv.h). The last
+/// three integers are booleans in the tables.
+const ENV_FLOAT_NAMES: [&str; EECH_ENV_FLOATS] = [
+    "weather_radius",
+    "weather_mode_transitional_period",
+    "weather_mode_transitional_status",
+    "weather_position_x",
+    "weather_position_y",
+    "weather_position_z",
+    "weather_velocity_x",
+    "weather_velocity_y",
+    "weather_velocity_z",
+    "wind_effect_radius",
+    "wind_gusting_value",
+    "wind_minimum_speed",
+    "wind_maximum_speed",
+    "wind_direction_x",
+    "wind_direction_y",
+    "wind_direction_z",
+    "wind_effect_position_x",
+    "wind_effect_position_y",
+    "wind_effect_position_z",
+    "wind_effect_velocity_x",
+    "wind_effect_velocity_y",
+    "wind_effect_velocity_z",
+    "lightning_timer",
+];
+
+const ENV_INT_NAMES: [&str; EECH_ENV_INTS] = [
+    "weather_mode",
+    "target_weather_mode",
+    "local_weather_model",
+    "weather_increasing",
+    "wind_increasing",
+];
+
+/// Builds the provider the engine keeps from the host's Lua function.
+fn environment_provider(lua: &Lua, function: LuaFunction) -> LuaResult<EnvProvider> {
+    let build: LuaFunction = lua.load(ENV_BRIDGE).set_name("eech environment bridge").into_function()?;
+    let bridge: LuaFunction = build.call((function, ENV_FLOAT_NAMES.to_vec(), ENV_INT_NAMES.to_vec()))?;
+    let lua = lua.clone();
+    Ok(Box::new(move |request| call_environment(&lua, &bridge, request)))
+}
+
+/// The function that answers the sample metadata question: the boot's `sound_data` when it gave one, else the host's environment provider (the reference host's answers it). There is no campaign reader to
+/// fall back to, so a `sound_data` that is not a function is refused, with the stable marker; a provider that cannot answer is refused with the same marker at the first question, which the engine
+/// asks before it applies anything.
+fn sound_data_function(config: &LuaTable, environment: &LuaFunction) -> LuaResult<LuaFunction> {
+    match config.get::<LuaValue>("sound_data")? {
+        LuaValue::Nil => Ok(environment.clone()),
+        LuaValue::Function(function) => Ok(function),
+        value => Err(LuaError::runtime(format!(
+            "eech: [sound-data-provider:missing] the sample metadata provider must be a function, got {}",
+            value.type_name()
+        ))),
+    }
+}
+
+/// A Lua number that is a whole number inside an `i32` (an integer, or a float with no fraction), or the stable refusal naming the field.
+fn catalogue_integer(value: LuaValue, what: &str) -> Result<i32, String> {
+    let refuse = || format!("[sound-data-provider:answer] {what} must be a whole number that fits a 32-bit integer");
+    match value {
+        LuaValue::Integer(number) => i32::try_from(number).map_err(|_| refuse()),
+        LuaValue::Number(number) if number.is_finite() && number.fract() == 0.0 && number >= f64::from(i32::MIN) && number <= f64::from(i32::MAX) => {
+            Ok(number as i32)
+        }
+        _ => Err(refuse()),
+    }
+}
+
+fn catalogue_boolean(value: LuaValue, what: &str) -> Result<bool, String> {
+    match value {
+        LuaValue::Boolean(flag) => Ok(flag),
+        other => Err(format!("[sound-data-provider:answer] {what} must be a boolean, got {}", other.type_name())),
+    }
+}
+
+/// Builds the sample metadata provider the engine keeps from the host's Lua function (the host's environment provider unless the boot gave a separate `sound_data` function). The request is
+/// `{ op = "sound_catalogue", slots = N, entries = { { index = slot, name = asset }, ... } }` and the answer `{ header_present = bool, header_count = n, entries = { { rate, original_rate, matched = bool, size }, ... } }`
+/// in the request's order. A Lua error, a missing field and a value of the wrong kind are refusals that name the sample metadata provider; the engine's boundary then checks the whole answer.
+fn sound_catalogue_provider(lua: &Lua, function: LuaFunction) -> SoundCatalogueProvider {
+    let lua = lua.clone();
+    Box::new(move |request: &SoundCatalogueRequest| -> Result<SoundCatalogueReply, String> {
+        let callback = |error: LuaError| format!("[sound-data-provider:callback] {error}");
+        let table = lua.create_table().map_err(callback)?;
+        table.set("op", "sound_catalogue").map_err(callback)?;
+        table.set("slots", request.slots).map_err(callback)?;
+        let entries = lua.create_table().map_err(callback)?;
+        for (position, (slot, name)) in request.descriptors.iter().enumerate() {
+            let entry = lua.create_table().map_err(callback)?;
+            entry.set("index", *slot).map_err(callback)?;
+            entry.set("name", name.as_str()).map_err(callback)?;
+            entries.set(position + 1, entry).map_err(callback)?;
+        }
+        table.set("entries", entries).map_err(callback)?;
+        let answer: LuaTable = match function.call::<LuaValue>(table).map_err(callback)? {
+            LuaValue::Table(answer) => answer,
+            other => {
+                return Err(format!(
+                    "[sound-data-provider:answer] the provider answered with {} where a table was expected",
+                    other.type_name()
+                ))
+            }
+        };
+        let field = |name: &str| answer.get::<LuaValue>(name).map_err(callback);
+        let header_present = catalogue_boolean(field("header_present")?, "header_present")?;
+        let header_count = catalogue_integer(field("header_count")?, "header_count")?;
+        let listed = match field("entries")? {
+            LuaValue::Table(listed) => listed,
+            other => return Err(format!("[sound-data-provider:answer] entries must be a table, got {}", other.type_name())),
+        };
+        let mut entries = Vec::with_capacity(request.descriptors.len());
+        for position in 1..=listed.raw_len() {
+            let entry = match listed.get::<LuaValue>(position).map_err(callback)? {
+                LuaValue::Table(entry) => entry,
+                other => {
+                    return Err(format!(
+                        "[sound-data-provider:answer] entries[{position}] must be a table, got {}",
+                        other.type_name()
+                    ))
+                }
+            };
+            let member = |name: &str| entry.get::<LuaValue>(name).map_err(callback);
+            entries.push(SoundCatalogueEntry {
+                rate: catalogue_integer(member("rate")?, &format!("entries[{position}].rate"))?,
+                original_rate: catalogue_integer(member("original_rate")?, &format!("entries[{position}].original_rate"))?,
+                matched: catalogue_boolean(member("matched")?, &format!("entries[{position}].matched"))?,
+                size: catalogue_integer(member("size")?, &format!("entries[{position}].size"))?,
+            });
+        }
+        Ok(SoundCatalogueReply {
+            header_present,
+            header_count,
+            entries,
+        })
+    })
+}
+
+/// The function that answers the sound backend availability question: the boot's `sound_backend` when it gave one, else the host's environment provider (the reference host answers it). There is no campaign device
+/// call to fall back to, so a `sound_backend` that is not a function is refused, with the stable marker; a provider that cannot answer is refused with the same marker family at the question, which the engine asks
+/// before it stores anything.
+fn sound_backend_function(config: &LuaTable, environment: &LuaFunction) -> LuaResult<LuaFunction> {
+    match config.get::<LuaValue>("sound_backend")? {
+        LuaValue::Nil => Ok(environment.clone()),
+        LuaValue::Function(function) => Ok(function),
+        value => Err(LuaError::runtime(format!(
+            "eech: [sound-backend-provider:missing] the sound backend provider must be a function, got {}",
+            value.type_name()
+        ))),
+    }
+}
+
+/// Builds the sound backend provider the engine keeps from the host's Lua function. The request is
+/// `{ op = "sound_backend", phase = "initialise", no_sound = bool, dedicated = bool, load_samples = bool }` and the answer `{ available = bool }`. A Lua error, a missing field and a value of the wrong kind are
+/// refusals that name the sound backend provider; whether `available = true` is acceptable is the campaign's decision at the C boundary (it is refused by name until the loader and playback routes are the host's).
+fn sound_backend_provider(lua: &Lua, function: LuaFunction) -> SoundBackendProvider {
+    let lua = lua.clone();
+    Box::new(move |request: &SoundBackendRequest| -> Result<SoundBackendReply, String> {
+        let callback = |error: LuaError| format!("[sound-backend-provider:callback] {error}");
+        if request.phase != SOUND_BACKEND_PHASE_INITIALISE {
+            return Err(format!(
+                "[sound-backend-provider:request] the phase {} is not the initialisation",
+                request.phase
+            ));
+        }
+        let table = lua.create_table().map_err(callback)?;
+        table.set("op", "sound_backend").map_err(callback)?;
+        table.set("phase", "initialise").map_err(callback)?;
+        table.set("no_sound", request.no_sound).map_err(callback)?;
+        table.set("dedicated", request.dedicated).map_err(callback)?;
+        table.set("load_samples", request.load_samples).map_err(callback)?;
+        let answer: LuaTable = match function.call::<LuaValue>(table).map_err(callback)? {
+            LuaValue::Table(answer) => answer,
+            other => {
+                return Err(format!(
+                    "[sound-backend-provider:answer] the provider answered with {} where a table was expected",
+                    other.type_name()
+                ))
+            }
+        };
+        match answer.get::<LuaValue>("available").map_err(callback)? {
+            LuaValue::Boolean(available) => Ok(SoundBackendReply { available }),
+            other => Err(format!(
+                "[sound-backend-provider:answer] available must be a boolean, got {}",
+                other.type_name()
+            )),
+        }
+    })
+}
+
+fn env_state_table(lua: &Lua, state: &EnvState) -> LuaResult<LuaTable> {
+    let table = lua.create_table()?;
+    for (name, value) in ENV_FLOAT_NAMES.iter().zip(state.f.iter()) {
+        table.set(*name, f64::from(*value))?;
+    }
+    for (index, (name, value)) in ENV_INT_NAMES.iter().zip(state.n.iter()).enumerate() {
+        if index < 2 {
+            table.set(*name, *value)?;
+        } else {
+            table.set(*name, *value != 0)?;
+        }
+    }
+    Ok(table)
+}
+
+fn env_named_floats(lua: &Lua, names: &[&str], values: &[f32]) -> LuaResult<LuaTable> {
+    let table = lua.create_table()?;
+    for (name, value) in names.iter().zip(values.iter()) {
+        table.set(*name, f64::from(*value))?;
+    }
+    Ok(table)
+}
+
+fn env_op_name(op: i32) -> &'static str {
+    match op {
+        EECH_ENV_IMPORT => "import",
+        EECH_ENV_EXPORT => "export",
+        EECH_ENV_INIT_RANDOM => "init_random",
+        EECH_ENV_INIT_FIXED => "init_fixed",
+        EECH_ENV_WEATHER => "weather",
+        EECH_ENV_WIND => "wind",
+        EECH_ENV_GUST => "gust",
+        EECH_ENV_STEP => "step",
+        EECH_ENV_AMBIENT => "ambient",
+        EECH_ENV_LIGHTNING_ADD => "lightning_add",
+        EECH_ENV_LIGHTNING_UPDATE => "lightning_update",
+        EECH_ENV_SOUND_LIFETIME_INIT => "sound_lifetime_init",
+        EECH_ENV_SOUND_LIFETIME_UPDATE => "sound_lifetime_update",
+        EECH_ENV_SOUND_PAUSE_RESUME => "sound_pause_resume",
+        EECH_ENV_ROTOR_SOUND => "rotor_sound",
+        _ => "unknown",
+    }
+}
+
+/// The request as the provider's table: the numbers are Lua numbers, unchanged (a negative zero and a draw arrive bit for bit).
+fn env_request_table(lua: &Lua, request: &EnvRequest) -> LuaResult<LuaTable> {
+    let table = lua.create_table()?;
+    table.set("op", env_op_name(request.op))?;
+    table.set("winter", request.winter != 0)?;
+    let map_names = ["min_x", "max_x", "min_z", "max_z", "mid_x", "mid_z"];
+    match request.op {
+        EECH_ENV_IMPORT => table.set("state", env_state_table(lua, &request.state)?)?,
+        EECH_ENV_EXPORT => {}
+        EECH_ENV_INIT_RANDOM => {
+            let draws = lua.create_table()?;
+            for (index, draw) in request.draw.iter().enumerate() {
+                draws.set(index + 1, *draw)?;
+            }
+            table.set("draws", draws)?;
+            let config_names = [
+                "rain_radius_minimum",
+                "rain_radius_maximum",
+                "rain_speed",
+                "wind_radius_minimum",
+                "wind_radius_maximum",
+                "wind_speed",
+            ];
+            table.set("config", env_named_floats(lua, &config_names, &request.init_config)?)?;
+            table.set("map", env_named_floats(lua, &map_names, &request.map)?)?;
+        }
+        EECH_ENV_INIT_FIXED => table.set("mode", request.fixed_mode)?,
+        EECH_ENV_WEATHER => {
+            table.set("x", f64::from(request.x))?;
+            table.set("z", f64::from(request.z))?;
+        }
+        EECH_ENV_WIND => {
+            table.set("x", f64::from(request.x))?;
+            table.set("z", f64::from(request.z))?;
+            table.set("want_vector", request.want_vector != 0)?;
+        }
+        EECH_ENV_GUST => table.set("phase", f64::from(request.phase))?,
+        EECH_ENV_AMBIENT => {
+            table.set("x", f64::from(request.x))?;
+            table.set("z", f64::from(request.z))?;
+            table.set("y", f64::from(request.ambient_y))?;
+            table.set("alt", f64::from(request.ambient_alt))?;
+            table.set("cloud_base", f64::from(request.ambient_cloud_base))?;
+            table.set("in_cockpit", request.in_cockpit != 0)?;
+        }
+        EECH_ENV_LIGHTNING_ADD => {
+            table.set("type", request.lightning_type)?;
+            table.set("length", f64::from(request.lightning_length))?;
+            table.set("x", f64::from(request.x))?;
+            table.set("z", f64::from(request.z))?;
+            table.set("environment_active", request.lightning_environment_active != 0)?;
+            // the time of day is what the original read from the active environment: with none there is nothing to give
+            if request.lightning_environment_active != 0 {
+                table.set("time_of_day", f64::from(request.lightning_time_of_day))?;
+            }
+        }
+        EECH_ENV_LIGHTNING_UPDATE => {
+            table.set("time_of_day", f64::from(request.lightning_time_of_day))?;
+            if request.lightning_have_frames != 0 {
+                table.set("frames", request.lightning_frames)?;
+            }
+        }
+        EECH_ENV_SOUND_LIFETIME_INIT => {
+            table.set("looping", request.sound_looping != 0)?;
+            table.set("music", request.sound_music != 0)?;
+            let samples = lua.create_table()?;
+            let count = usize::try_from(request.sound_count).unwrap_or(0);
+            for (index, (rate, size)) in request
+                .sound_rate
+                .iter()
+                .zip(request.sound_size.iter())
+                .take(count.min(EECH_SOUND_SAMPLES))
+                .enumerate()
+            {
+                let sample = lua.create_table()?;
+                sample.set("rate", *rate)?;
+                sample.set("size", *size)?;
+                samples.set(index + 1, sample)?;
+            }
+            table.set("samples", samples)?;
+        }
+        EECH_ENV_SOUND_LIFETIME_UPDATE => {
+            table.set("server", request.sound_server != 0)?;
+            table.set("delta", f64::from(request.sound_delta))?;
+            table.set("valid", request.sound_valid != 0)?;
+            table.set("looping", request.sound_looping != 0)?;
+            table.set("lifetime", f64::from(request.sound_lifetime))?;
+            table.set("valid_lifetime", f64::from(request.sound_valid_lifetime))?;
+            table.set("has_handle", request.sound_has_handle != 0)?;
+            if request.sound_have_playing != 0 {
+                table.set("playing", request.sound_playing != 0)?;
+            }
+        }
+        EECH_ENV_SOUND_PAUSE_RESUME => {
+            table.set("resume", request.sound_resume != 0)?;
+            table.set("valid", request.sound_valid != 0)?;
+            table.set("member", request.sound_member != 0)?;
+            table.set("valid_lifetime", f64::from(request.sound_valid_lifetime))?;
+            if request.sound_resume == 0 {
+                table.set("delay", f64::from(request.sound_delay))?;
+            }
+        }
+        EECH_ENV_ROTOR_SOUND => {
+            // the semantic role (never the EECH enumeration), the stored rpm, the global flight model and its acceleration, and the engine words only where the original reads them
+            let role = match request.rotor_player {
+                EECH_ROTOR_PLAYER_AI => "ai",
+                EECH_ROTOR_PLAYER_LOCAL => "local",
+                EECH_ROTOR_PLAYER_REMOTE => "remote",
+                other => return Err(LuaError::runtime(format!("the rotor player role {other} is not one of the protocol's roles"))),
+            };
+            table.set("player", role)?;
+            table.set("rpm", f64::from(request.rotor_rpm))?;
+            table.set("flight_model", request.rotor_have_flight_model != 0)?;
+            if request.rotor_have_flight_model != 0 {
+                table.set("acceleration", env_named_floats(lua, &["x", "y", "z"], &request.rotor_acceleration)?)?;
+                if request.rotor_player == EECH_ROTOR_PLAYER_LOCAL {
+                    table.set("left_rpm", f64::from(request.rotor_left_rpm))?;
+                    table.set("right_rpm", f64::from(request.rotor_right_rpm))?;
+                    table.set("apu_rpm", f64::from(request.rotor_apu_rpm))?;
+                }
+            }
+        }
+        EECH_ENV_STEP => {
+            table.set("delta", f64::from(request.delta))?;
+            table.set("server", request.server != 0)?;
+            table.set("in_cockpit", request.in_cockpit != 0)?;
+            if request.have_camera != 0 {
+                table.set("camera", env_named_floats(lua, &["x", "y", "z"], &request.camera)?)?;
+            }
+            if request.have_draw != 0 {
+                table.set("lightning_draw", request.lightning_draw)?;
+            }
+            table.set("map", env_named_floats(lua, &map_names, &request.map)?)?;
+        }
+        other => return Err(LuaError::runtime(format!("unknown environment operation {other}"))),
+    }
+    Ok(table)
+}
+
+/// The numbers of an answer's text; a count that is not `count`, or a number that is not finite, is a refusal under `marker`.
+fn env_numbers<const N: usize>(text: &str, marker: &str) -> Result<[f64; N], String> {
+    let mut numbers = [0.0f64; N];
+    let mut parts = text.split_whitespace();
+    for slot in &mut numbers {
+        *slot = parts
+            .next()
+            .and_then(|part| part.parse::<f64>().ok())
+            .filter(|value| value.is_finite())
+            .ok_or_else(|| format!("[env-provider:{marker}] the answer's numbers are malformed or too few"))?;
+    }
+    if parts.next().is_some() {
+        return Err(format!("[env-provider:{marker}] the answer has more numbers than the {N} expected"));
+    }
+    Ok(numbers)
+}
+
+/// The numbers of a field (the floats, then the integers) and of a step answer (its six leading numbers, then the field).
+const ENV_STATE_NUMBERS: usize = EECH_ENV_FLOATS + EECH_ENV_INTS;
+const ENV_STEP_NUMBERS: usize = 6 + ENV_STATE_NUMBERS;
+/// The numbers of a lightning queue answer: the leading `0`, the slot, and eight numbers for each slot of the queue.
+const ENV_LIGHTNING_NUMBERS: usize = 2 + 8 * EECH_LIGHTNING_SLOTS;
+
+fn env_f32(value: f64, marker: &str) -> Result<f32, String> {
+    nearest_f32(value).ok_or_else(|| format!("[env-provider:{marker}] a number is beyond the single-precision range"))
+}
+
+fn env_i32(value: f64, marker: &str) -> Result<i32, String> {
+    if value.fract() == 0.0 && value.abs() <= f64::from(i32::MAX) {
+        Ok(value as i32)
+    } else {
+        Err(format!("[env-provider:{marker}] an integer is out of range"))
+    }
+}
+
+/// The field from the front of an answer's numbers: the floats, then the integers (the modes, then the flags as 0 or 1).
+fn env_state_from<'a>(numbers: &mut impl Iterator<Item = &'a f64>, marker: &str) -> Result<EnvState, String> {
+    let mut state = EnvState::default();
+    for slot in state.f.iter_mut() {
+        let value = numbers.next().ok_or_else(|| format!("[env-provider:{marker}] the field is short"))?;
+        *slot = env_f32(*value, marker)?;
+    }
+    for slot in state.n.iter_mut() {
+        let value = numbers.next().ok_or_else(|| format!("[env-provider:{marker}] the field is short"))?;
+        *slot = env_i32(*value, marker)?;
+    }
+    Ok(state)
+}
+
+fn env_mode(value: f64, marker: &str) -> Result<i32, String> {
+    let mode = env_i32(value, marker)?;
+    if (0..EECH_ENV_MODE_COUNT).contains(&mode) {
+        Ok(mode)
+    } else {
+        Err(format!("[env-provider:{marker}] the mode {mode} is not one of the modes"))
+    }
+}
+
+/// What the Lua environment bridge returns: the refusal marker and the text of the answer's numbers (or the refusal's message).
+type EnvBridgeAnswer = (Option<String>, Option<String>);
+
+fn call_environment(lua: &Lua, bridge: &LuaFunction, request: &EnvRequest) -> Result<EnvReply, String> {
+    let op = env_op_name(request.op);
+    let table = env_request_table(lua, request).map_err(|error| format!("[env-provider:{op}.callback] {error}"))?;
+    let (marker, text): EnvBridgeAnswer = bridge.call(table).map_err(|error| format!("[env-provider:{op}.callback] {error}"))?;
+    if let Some(marker) = marker {
+        return Err(format!("[env-provider:{marker}] {}", text.unwrap_or_default()));
+    }
+    let text = text.ok_or_else(|| format!("[env-provider:{op}.answer] the environment bridge returned nothing"))?;
+    let answer = format!("{op}.answer");
+    let state = format!("{op}.state");
+    let mut reply = EnvReply::default();
+    match request.op {
+        EECH_ENV_IMPORT => {}
+        EECH_ENV_EXPORT | EECH_ENV_INIT_RANDOM | EECH_ENV_INIT_FIXED => {
+            let numbers = env_numbers::<ENV_STATE_NUMBERS>(&text, &state)?;
+            reply.state = env_state_from(&mut numbers.iter(), &state)?;
+        }
+        EECH_ENV_WEATHER => {
+            let n = env_numbers::<4>(&text, &answer)?;
+            reply.current_mode = env_mode(n[0], &answer)?;
+            reply.target_mode = env_mode(n[1], &answer)?;
+            reply.transitional_state = env_f32(n[2], &answer)?;
+            reply.simple_mode = env_mode(n[3], &answer)?;
+        }
+        EECH_ENV_WIND => {
+            let n = env_numbers::<4>(&text, &answer)?;
+            reply.speed = env_f32(n[0], &answer)?;
+            reply.vector = [env_f32(n[1], &answer)?, env_f32(n[2], &answer)?, env_f32(n[3], &answer)?];
+        }
+        EECH_ENV_GUST => {
+            let n = env_numbers::<1>(&text, &answer)?;
+            reply.modulation = env_f32(n[0], &answer)?;
+        }
+        EECH_ENV_AMBIENT => {
+            let n = env_numbers::<4>(&text, &answer)?;
+            reply.ambient_levels = [
+                env_f32(n[0], &answer)?,
+                env_f32(n[1], &answer)?,
+                env_f32(n[2], &answer)?,
+                env_f32(n[3], &answer)?,
+            ];
+        }
+        EECH_ENV_SOUND_LIFETIME_INIT => {
+            let n = env_numbers::<1>(&text, &answer)?;
+            reply.sound_lifetime = env_f32(n[0], &answer)?;
+        }
+        EECH_ENV_SOUND_LIFETIME_UPDATE => {
+            // "1" when the host needs to know whether the handle is playing; else "0 <lifetime> <valid lifetime> <expired> <action>"
+            if text.trim() == "1" {
+                reply.sound_need_playing = 1;
+            } else {
+                let n = env_numbers::<5>(&text, &answer)?;
+                reply.sound_lifetime = env_f32(n[1], &answer)?;
+                reply.sound_valid_lifetime = env_f32(n[2], &answer)?;
+                reply.sound_expired = env_i32(n[3], &answer)?;
+                reply.sound_action = env_i32(n[4], &answer)?;
+            }
+        }
+        EECH_ENV_SOUND_PAUSE_RESUME => {
+            // "0 <changed> <valid> <valid lifetime> <play> <relink>"
+            let n = env_numbers::<6>(&text, &answer)?;
+            reply.sound_changed = env_i32(n[1], &answer)?;
+            reply.sound_valid = env_i32(n[2], &answer)?;
+            reply.sound_valid_lifetime = env_f32(n[3], &answer)?;
+            reply.sound_play = env_i32(n[4], &answer)?;
+            reply.sound_relink = env_i32(n[5], &answer)?;
+        }
+        EECH_ENV_ROTOR_SOUND => {
+            // "0", then for each of the channels "<write mask> <amplification> <pitch>", then "<count>" and for each request "<resume> <channel> <delay>"
+            let n = text
+                .split_whitespace()
+                .map(|part| part.parse::<f64>().ok().filter(|value| value.is_finite()))
+                .collect::<Option<Vec<f64>>>()
+                .ok_or_else(|| format!("[env-provider:{answer}] the answer's numbers are malformed"))?;
+            let fixed = 2 + 3 * EECH_ROTOR_CHANNELS;
+            // the status, the channel triples, the count and the request triples, taken by structure: the whole length and the count are checked before anything is written
+            let (Some(channel_numbers), Some(&count_number), Some(request_numbers)) = (n.get(1..fixed - 1), n.get(fixed - 1), n.get(fixed..)) else {
+                return Err(format!("[env-provider:{answer}] the answer's numbers are too few"));
+            };
+            let count = env_i32(count_number, &answer)?;
+            let count = usize::try_from(count)
+                .ok()
+                .filter(|count| *count <= EECH_ROTOR_ACTIONS)
+                .ok_or_else(|| format!("[env-provider:{answer}] the number of requests is out of range"))?;
+            if request_numbers.len() != 3 * count {
+                return Err(format!(
+                    "[env-provider:{answer}] the answer has {} numbers where {} requests need {}",
+                    n.len(),
+                    count,
+                    fixed + 3 * count
+                ));
+            }
+            let malformed = || format!("[env-provider:{answer}] the answer's numbers are malformed");
+            // the destinations are the reply's own arrays, so no position can be out of them
+            for (((write, amplification), pitch), triple) in reply
+                .rotor_write
+                .iter_mut()
+                .zip(reply.rotor_amplification.iter_mut())
+                .zip(reply.rotor_pitch.iter_mut())
+                .zip(channel_numbers.chunks(3))
+            {
+                let &[mask, level, tone] = triple else {
+                    return Err(malformed());
+                };
+                *write = env_i32(mask, &answer)?;
+                *amplification = env_f32(level, &answer)?;
+                *pitch = env_f32(tone, &answer)?;
+            }
+            reply.rotor_action_count = env_i32(count_number, &answer)?;
+            for (((resume, channel), delay), triple) in reply
+                .rotor_action_resume
+                .iter_mut()
+                .zip(reply.rotor_action_channel.iter_mut())
+                .zip(reply.rotor_action_delay.iter_mut())
+                .zip(request_numbers.chunks(3))
+            {
+                let &[flag, which, wait] = triple else {
+                    return Err(malformed());
+                };
+                *resume = env_i32(flag, &answer)?;
+                *channel = env_i32(which, &answer)?;
+                *delay = env_f32(wait, &answer)?;
+            }
+        }
+        EECH_ENV_LIGHTNING_ADD | EECH_ENV_LIGHTNING_UPDATE => {
+            // "1" when an update needs the strike animation's frame count; else "0 <slot>" and eight numbers for each of the queue's slots (in_use, type, x, y, z, time started, length, frame)
+            if text.trim() == "1" {
+                reply.lightning_need_frames = 1;
+                reply.lightning_slot = -1;
+            } else {
+                let n = env_numbers::<ENV_LIGHTNING_NUMBERS>(&text, &answer)?;
+                // the leading 0 is skipped; the count was checked whole by env_numbers
+                let mut numbers = n.iter().skip(1);
+                let mut next = || -> Result<f64, String> {
+                    numbers
+                        .next()
+                        .copied()
+                        .ok_or_else(|| format!("[env-provider:{answer}] the queue answer is short"))
+                };
+                reply.lightning_slot = env_i32(next()?, &answer)?;
+                for strike in reply.lightning_queue.iter_mut() {
+                    strike.in_use = env_i32(next()?, &answer)?;
+                    strike.kind = env_i32(next()?, &answer)?;
+                    strike.x = env_f32(next()?, &answer)?;
+                    strike.y = env_f32(next()?, &answer)?;
+                    strike.z = env_f32(next()?, &answer)?;
+                    strike.time_started = env_f32(next()?, &answer)?;
+                    strike.time_length = env_f32(next()?, &answer)?;
+                    strike.current_frame_number = env_i32(next()?, &answer)?;
+                }
+            }
+        }
+        _ => {
+            // step: "1 <timer>" when the host needs the draw, else "0 <expired> <strike x y z> <new timer> <the field>"
+            let first = text.split_whitespace().next().unwrap_or_default();
+            if first == "1" {
+                let n = env_numbers::<2>(&text, &answer)?;
+                reply.need_draw = 1;
+                reply.new_timer = env_f32(n[1], &answer)?;
+            } else {
+                let n = env_numbers::<ENV_STEP_NUMBERS>(&text, &answer)?;
+                let expired = env_i32(n[1], &answer)?;
+                if expired != 0 && expired != 1 {
+                    return Err(format!("[env-provider:{answer}] expired is neither 0 nor 1"));
+                }
+                reply.expired = expired;
+                reply.strike = [env_f32(n[2], &answer)?, env_f32(n[3], &answer)?, env_f32(n[4], &answer)?];
+                reply.new_timer = env_f32(n[5], &answer)?;
+                reply.state = env_state_from(&mut n.iter().skip(6), &state)?;
+            }
+        }
+    }
+    Ok(reply)
 }
 
 /// What the Lua ground bridge returns, in order: the refusal marker, the answer's numbers as text, then the record's surface type, hint and stored flag, the predicate and
@@ -2188,6 +3117,31 @@ impl LuaUserData for LuaEngine {
         // TEST-ONLY (feature `aim-fixture`, EEDCS-44): clears that trace; not part of the shipping module.
         #[cfg(feature = "aim-fixture")]
         methods.add_method("aim_trace_reset", |_, this, ()| this.engine.aim_trace_reset().map_err(lua_error));
+        // TEST-ONLY (feature `env-observer`, EEDCS-51): the read-only observer's report and unread events; not part of the shipping module.
+        #[cfg(feature = "env-observer")]
+        methods.add_method("env_observer_report", |_, this, ()| this.engine.env_observer_report().map_err(lua_error));
+        #[cfg(feature = "env-observer")]
+        methods.add_method("env_observer_events", |_, this, ()| this.engine.env_observer_events().map_err(lua_error));
+        // TEST-ONLY (feature `env-fixture`, EEDCS-51, D3): `env_case` with a report buffer of the caller's size (a short-buffer guard); not part of the shipping module.
+        #[cfg(feature = "env-fixture")]
+        methods.add_method("env_case_capacity", |_, this, (group, index, capacity): (i32, i32, usize)| {
+            this.engine.env_case_capacity(group, index, capacity).map_err(lua_error)
+        });
+        // TEST-ONLY (feature `env-observer`, EEDCS-51, D3): the helicopter rotor sound probe's report and its drained calls; not part of the shipping module.
+        #[cfg(feature = "env-observer")]
+        methods.add_method("env_rotor_report", |_, this, ()| this.engine.env_rotor_report().map_err(lua_error));
+        #[cfg(feature = "env-observer")]
+        methods.add_method("env_rotor_events", |_, this, ()| this.engine.env_rotor_events().map_err(lua_error));
+        // TEST-ONLY (feature `env-observer`, EEDCS-51, D3): the resumed-parent playback probe's report and its drained calls; not part of the shipping module.
+        #[cfg(feature = "env-observer")]
+        methods.add_method("env_play_report", |_, this, ()| this.engine.env_play_report().map_err(lua_error));
+        #[cfg(feature = "env-observer")]
+        methods.add_method("env_play_events", |_, this, ()| this.engine.env_play_events().map_err(lua_error));
+        // TEST-ONLY (feature `env-fixture`, EEDCS-51): one case of the original session environment characterisation (group, index); not part of the shipping module.
+        #[cfg(feature = "env-fixture")]
+        methods.add_method("env_case", |_, this, (group, index): (i32, i32)| {
+            this.engine.env_case(group, index).map_err(lua_error)
+        });
         // TEST-ONLY (feature `weapon-fixture`, EEDCS-46): the run-wide report of the physical combat-resolution code; not part of the shipping module.
         #[cfg(feature = "weapon-fixture")]
         methods.add_method("cmb_trace", |_, this, ()| this.engine.cmb_trace().map_err(lua_error));
@@ -2633,6 +3587,26 @@ fn boot(lua: &Lua, config: LuaTable) -> LuaResult<LuaEngine> {
             )))
         }
     };
+    // EEDCS-51 (D3): the host owns the physical weather and wind field and the campaign has no solver of its own to fall back to, so this provider is required too, and is refused
+    // here, before anything boots, with the stable marker a driver can tell from any other failure
+    let environment = match config.get::<LuaValue>("environment")? {
+        LuaValue::Function(function) => function,
+        LuaValue::Nil => {
+            return Err(LuaError::runtime(
+                "eech: [env-provider:missing] boot was given no environment provider; the host supplies the physical weather and wind field (its queries, its initialisation, its evolution and the lightning timer)",
+            ))
+        }
+        value => {
+            return Err(LuaError::runtime(format!(
+                "eech: [env-provider:missing] the environment provider must be a function, got {}",
+                value.type_name()
+            )))
+        }
+    };
+    // EEDCS-51 (D3): the host owns the physical sample metadata at initialisation (rates, and the sizes in its own sound.hdr / sound.dat). A provider that is not a function is refused here, before anything boots.
+    let sound_data = sound_data_function(&config, &environment)?;
+    // EEDCS-51 (D3): and the physical sound backend availability at initialisation, asked in the same boot behind the campaign's own flag test.
+    let sound_backend = sound_backend_function(&config, &environment)?;
     let arguments: Vec<String> = config.get::<Option<Vec<String>>>("arguments")?.unwrap_or_default();
     let config = EngineConfig {
         install_root: PathBuf::from(config.get::<String>("install_root")?),
@@ -2661,6 +3635,9 @@ fn boot(lua: &Lua, config: LuaTable) -> LuaResult<LuaEngine> {
         &mut sensor,
         &mut aimer,
         terrain_provider(lua, terrain)?,
+        environment_provider(lua, environment)?,
+        sound_catalogue_provider(lua, sound_data),
+        sound_backend_provider(lua, sound_backend),
     )
     .map_err(lua_error)?;
     Ok(LuaEngine {
@@ -2683,6 +3660,24 @@ pub fn eech_dc(lua: &Lua) -> LuaResult<LuaTable> {
     exports.set(
         "prepare_installation",
         lua.create_function(|_, root: String| eech_engine::prepare_installation(std::path::Path::new(&root)).map_err(lua_error))?,
+    )?;
+    // TEST-ONLY (feature `env-observer`, EEDCS-51): arms (true) or disarms (false) the read-only observer; arming is valid only before boot
+    #[cfg(feature = "env-observer")]
+    exports.set(
+        "env_observer_arm",
+        lua.create_function(|_, on: bool| eech_engine::env_observer_arm(on).map_err(lua_error))?,
+    )?;
+    // TEST-ONLY (feature `env-observer`, EEDCS-51, D3): arms (true) or disarms (false) the helicopter rotor sound probe, which nothing else arms; arming is valid only before boot
+    #[cfg(feature = "env-observer")]
+    exports.set(
+        "env_rotor_arm",
+        lua.create_function(|_, on: bool| eech_engine::env_rotor_arm(on).map_err(lua_error))?,
+    )?;
+    // TEST-ONLY (feature `env-observer`, EEDCS-51, D3): arms (true) or disarms (false) the resumed-parent playback probe, which nothing else arms; arming is valid only before boot
+    #[cfg(feature = "env-observer")]
+    exports.set(
+        "env_play_arm",
+        lua.create_function(|_, on: bool| eech_engine::env_play_arm(on).map_err(lua_error))?,
     )?;
     Ok(exports)
 }
@@ -3488,6 +4483,1056 @@ mod tests {
         Ok(())
     }
 
+    // ---- the host environment provider as the campaign calls it (EEDCS-51, D3): the real bridge and the real answer parsing, with Lua providers of the test's choosing ----
+
+    fn env_of(lua: &Lua, source: &str) -> Result<EnvProvider, Box<dyn std::error::Error>> {
+        let state = format!(
+            "local function state () local s = {{}} for _, n in ipairs {{ {} }} do s [n] = 0 end s.weather_mode = 1 s.target_weather_mode = 1 s.local_weather_model = false s.weather_increasing = false s.wind_increasing = false return s end",
+            ENV_FLOAT_NAMES.iter().map(|name| format!("'{name}'")).collect::<Vec<_>>().join(", ")
+        );
+        let function: LuaFunction = lua.load(format!("{state} return function (r) {source} end")).eval()?;
+        Ok(environment_provider(lua, function)?)
+    }
+
+    fn env_request(op: i32) -> EnvRequest {
+        EnvRequest { op, ..EnvRequest::default() }
+    }
+
+    fn env_refusal(provider: &mut EnvProvider, request: &EnvRequest, marker: &str) {
+        let result = provider(request);
+        assert!(result.is_err(), "{marker}: the call must be refused, got {result:?}");
+        let message = result.err().unwrap_or_default();
+        assert!(message.contains(&format!("[env-provider:{marker}]")), "{marker}: {message}");
+    }
+
+    #[test]
+    fn an_environment_weather_answer_reaches_the_campaign_exactly_and_the_request_reaches_the_provider_by_value() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let mut provider = env_of(
+            &lua,
+            "assert (r.op == 'weather' and r.x == 1.5 and r.z == -2.5 and r.winter == true)
+             return { current_mode = 2, target_mode = 3, transitional_state = 2 ^ -130, simple_mode = 3 }",
+        )?;
+        let request = EnvRequest {
+            x: 1.5,
+            z: -2.5,
+            winter: 1,
+            ..env_request(EECH_ENV_WEATHER)
+        };
+        let reply = provider(&request)?;
+        assert_eq!((reply.current_mode, reply.target_mode, reply.simple_mode), (2, 3, 3));
+        assert_eq!(reply.transitional_state.to_bits(), 0x0008_0000, "a subnormal is kept exactly");
+        Ok(())
+    }
+
+    #[test]
+    fn an_environment_step_reaches_the_provider_with_its_signed_zero_camera_and_draw_and_its_answer_is_read_whole() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        // a negative-zero delta, the camera and the draw arrive as Lua numbers, unchanged; the map extents are named
+        let mut provider = env_of(
+            &lua,
+            "assert (r.op == 'step' and 1 / r.delta == -math.huge and r.server == true and r.in_cockpit == false)
+             assert (r.camera.x == 1 and r.camera.y == 2 and r.camera.z == 3 and r.lightning_draw == 0.25 and r.map.mid_z == 7)
+             local s = state () s.lightning_timer = 31.5
+             return { expired = true, strike = { 10, 0, -20 }, new_timer = 31.5, state = s }",
+        )?;
+        let request = EnvRequest {
+            delta: -0.0,
+            server: 1,
+            have_camera: 1,
+            camera: [1.0, 2.0, 3.0],
+            have_draw: 1,
+            lightning_draw: 0.25,
+            map: [0.0, 1.0, 2.0, 3.0, 4.0, 7.0],
+            ..env_request(EECH_ENV_STEP)
+        };
+        let reply = provider(&request)?;
+        assert_eq!(
+            (reply.need_draw, reply.expired, reply.strike, reply.new_timer),
+            (0, 1, [10.0, 0.0, -20.0], 31.5)
+        );
+        assert_eq!(reply.state.f.get(EECH_ENV_FLOATS - 1).copied(), Some(31.5));
+        assert_eq!(reply.state.n, [1, 1, 0, 0, 0]);
+        Ok(())
+    }
+
+    #[test]
+    fn an_environment_step_that_needs_the_draw_is_answered_once_and_a_second_ask_for_it_is_refused() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let mut asking = env_of(&lua, "return { need_draw = true, timer = -0.5 }")?;
+        let reply = asking(&EnvRequest {
+            server: 1,
+            ..env_request(EECH_ENV_STEP)
+        })?;
+        assert_eq!((reply.need_draw, reply.new_timer), (1, -0.5));
+        // asked again WITH the draw it already has, the same answer is a refusal
+        env_refusal(
+            &mut asking,
+            &EnvRequest {
+                server: 1,
+                have_draw: 1,
+                lightning_draw: 0.5,
+                ..env_request(EECH_ENV_STEP)
+            },
+            "step.answer",
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_server_expiry_without_the_draw_is_refused_and_a_client_expiry_needs_none() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let mut expiring = env_of(&lua, "return { expired = true, strike = { 0, 0, 0 }, new_timer = 0, state = state () }")?;
+        env_refusal(
+            &mut expiring,
+            &EnvRequest {
+                server: 1,
+                ..env_request(EECH_ENV_STEP)
+            },
+            "step.answer",
+        );
+        let reply = expiring(&EnvRequest {
+            server: 0,
+            ..env_request(EECH_ENV_STEP)
+        })?;
+        assert_eq!((reply.expired, reply.new_timer), (1, 0.0));
+        Ok(())
+    }
+
+    #[test]
+    fn an_environment_state_that_is_not_a_field_is_refused_with_the_state_marker() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        for (what, mutation) in [
+            ("nan", "s.weather_radius = 0 / 0"),
+            ("infinity", "s.wind_gusting_value = 1 / 0"),
+            ("missing_float", "s.lightning_timer = nil"),
+            ("string_float", "s.lightning_timer = '1'"),
+            ("mode_out_of_range", "s.weather_mode = 5"),
+            ("mode_fraction", "s.target_weather_mode = 1.5"),
+            ("numeric_flag", "s.local_weather_model = 1"),
+            ("missing_flag", "s.wind_increasing = nil"),
+        ] {
+            let mut provider = env_of(&lua, &format!("local s = state () {mutation} return {{ state = s }}"))?;
+            for op in [EECH_ENV_EXPORT, EECH_ENV_INIT_FIXED, EECH_ENV_INIT_RANDOM] {
+                let marker = format!("{}.state", env_op_name(op));
+                let result = provider(&env_request(op));
+                assert!(result.is_err(), "{what}/{marker}: accepted");
+                assert!(
+                    result.err().unwrap_or_default().contains(&format!("[env-provider:{marker}]")),
+                    "{what}/{marker}"
+                );
+            }
+        }
+        // a valid field round-trips, with its flags as 0 or 1
+        let mut provider = env_of(&lua, "local s = state () s.weather_increasing = true return { state = s }")?;
+        let reply = provider(&env_request(EECH_ENV_EXPORT))?;
+        assert_eq!(reply.state.n, [1, 1, 0, 1, 0]);
+        Ok(())
+    }
+
+    #[test]
+    fn a_malformed_environment_answer_is_refused_by_operation_and_nothing_falls_back() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let mut nothing = env_of(&lua, "return 'nothing'")?;
+        let mut raising = env_of(&lua, "error ('no field')")?;
+        for op in [
+            EECH_ENV_IMPORT,
+            EECH_ENV_EXPORT,
+            EECH_ENV_INIT_RANDOM,
+            EECH_ENV_INIT_FIXED,
+            EECH_ENV_WEATHER,
+            EECH_ENV_WIND,
+            EECH_ENV_GUST,
+            EECH_ENV_STEP,
+        ] {
+            let name = env_op_name(op);
+            env_refusal(&mut nothing, &env_request(op), &format!("{name}.answer"));
+            env_refusal(&mut raising, &env_request(op), &format!("{name}.callback"));
+        }
+        let mut modes = env_of(&lua, "return { current_mode = 9, target_mode = 1, transitional_state = 0, simple_mode = 1 }")?;
+        env_refusal(&mut modes, &env_request(EECH_ENV_WEATHER), "weather.answer");
+        let mut speed = env_of(&lua, "return { speed = 0 / 0, vector = { 0, 0, 0 } }")?;
+        env_refusal(
+            &mut speed,
+            &EnvRequest {
+                want_vector: 1,
+                ..env_request(EECH_ENV_WIND)
+            },
+            "wind.answer",
+        );
+        let mut no_vector = env_of(&lua, "return { speed = 3 }")?;
+        env_refusal(
+            &mut no_vector,
+            &EnvRequest {
+                want_vector: 1,
+                ..env_request(EECH_ENV_WIND)
+            },
+            "wind.answer",
+        );
+        assert_eq!(no_vector(&env_request(EECH_ENV_WIND))?.speed, 3.0, "a vector nobody asked for is not required");
+        let mut gust = env_of(&lua, "return { modulation = 1 / 0 }")?;
+        env_refusal(&mut gust, &env_request(EECH_ENV_GUST), "gust.answer");
+        Ok(())
+    }
+
+    // ---- the request contract is captured BEFORE the provider is called (EEDCS-51, review ENV-PHYSICAL-2): a provider that edits the request it is handed gains nothing ----
+
+    #[test]
+    fn a_provider_that_edits_the_request_cannot_change_what_the_campaign_asked() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        // a wind vector was asked for; the provider clears the flag in the table and answers with a speed only: refused, not a silent zero vector
+        let mut wind = env_of(&lua, "r.want_vector = false return { speed = 3 }")?;
+        env_refusal(
+            &mut wind,
+            &EnvRequest {
+                want_vector: 1,
+                ..env_request(EECH_ENV_WIND)
+            },
+            "wind.answer",
+        );
+        // and with the flag as asked, the vector it sent is the one that arrives
+        let mut vector = env_of(&lua, "return { speed = 3, vector = { 1, 0, -2 } }")?;
+        let reply = vector(&EnvRequest {
+            want_vector: 1,
+            ..env_request(EECH_ENV_WIND)
+        })?;
+        assert_eq!((reply.speed, reply.vector), (3.0, [1.0, 0.0, -2.0]));
+        // the draw was made; the provider erases it from the table and asks for it again: refused
+        let mut again = env_of(&lua, "r.lightning_draw = nil return { need_draw = true, timer = 0 }")?;
+        env_refusal(
+            &mut again,
+            &EnvRequest {
+                server: 1,
+                have_draw: 1,
+                lightning_draw: 0.5,
+                ..env_request(EECH_ENV_STEP)
+            },
+            "step.answer",
+        );
+        // a client; the provider says it is a server and asks for the draw (which would advance the shared random word): refused
+        let mut client = env_of(&lua, "r.server = true return { need_draw = true, timer = 0 }")?;
+        env_refusal(
+            &mut client,
+            &EnvRequest {
+                server: 0,
+                ..env_request(EECH_ENV_STEP)
+            },
+            "step.answer",
+        );
+        // a server's expiry the provider reports as complete by claiming the draw was made
+        let mut claimed = env_of(
+            &lua,
+            "r.lightning_draw = 0.5 return { expired = true, strike = { 0, 0, 0 }, new_timer = 5, state = state () }",
+        )?;
+        env_refusal(
+            &mut claimed,
+            &EnvRequest {
+                server: 1,
+                ..env_request(EECH_ENV_STEP)
+            },
+            "step.answer",
+        );
+        // the operation itself is read once: a provider that renames it cannot turn one answer into another
+        let mut renamed = env_of(&lua, "r.op = 'gust' return { modulation = 0.25 }")?;
+        env_refusal(&mut renamed, &env_request(EECH_ENV_WIND), "wind.answer");
+        Ok(())
+    }
+
+    #[test]
+    fn a_completed_step_must_say_explicitly_whether_it_expired_and_a_draw_needs_an_expiry() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        for (what, source) in [
+            ("missing", "return { state = state () }"),
+            ("nil", "return { expired = nil, state = state () }"),
+            ("number", "return { expired = 0, state = state () }"),
+            ("string", "return { expired = 'false', state = state () }"),
+        ] {
+            let mut provider = env_of(&lua, source)?;
+            let message = provider(&env_request(EECH_ENV_STEP)).err().unwrap_or_default();
+            assert!(
+                message.contains("[env-provider:step.answer]") && message.contains("expired"),
+                "{what}: {message}"
+            );
+        }
+        // an explicit false is a completed step with no expiry, for a server and for a client
+        let mut calm = env_of(&lua, "return { expired = false, state = state () }")?;
+        for server in [0, 1] {
+            let reply = calm(&EnvRequest {
+                server,
+                ..env_request(EECH_ENV_STEP)
+            })?;
+            assert_eq!((reply.need_draw, reply.expired), (0, 0));
+        }
+        // after the draw the final answer must complete AND still report the expiry
+        env_refusal(
+            &mut calm,
+            &EnvRequest {
+                server: 1,
+                have_draw: 1,
+                lightning_draw: 0.5,
+                ..env_request(EECH_ENV_STEP)
+            },
+            "step.answer",
+        );
+        // a client that is asked nothing and expires is accepted without any draw
+        let mut expiring = env_of(&lua, "return { expired = true, strike = { 3, 0, 4 }, state = state () }")?;
+        let reply = expiring(&EnvRequest {
+            server: 0,
+            ..env_request(EECH_ENV_STEP)
+        })?;
+        assert_eq!((reply.expired, reply.strike, reply.new_timer), (1, [3.0, 0.0, 4.0], 0.0));
+        // the server's normal order: the question asks for the draw once, the second answer reports the expiry
+        let mut server = env_of(&lua, "if r.lightning_draw == nil then return { need_draw = true, timer = -1 } end return { expired = true, strike = { 0, 0, 0 }, new_timer = 60, state = state () }")?;
+        let first = server(&EnvRequest {
+            server: 1,
+            ..env_request(EECH_ENV_STEP)
+        })?;
+        assert_eq!((first.need_draw, first.new_timer), (1, -1.0));
+        let second = server(&EnvRequest {
+            server: 1,
+            have_draw: 1,
+            lightning_draw: 0.5,
+            ..env_request(EECH_ENV_STEP)
+        })?;
+        assert_eq!((second.need_draw, second.expired, second.new_timer), (0, 1, 60.0));
+        Ok(())
+    }
+
+    // ---- the sector surface enumeration through the Lua bridge (EEDCS-51): the request by value, the answer checked in full ----
+
+    #[test]
+    fn a_sector_answer_keeps_the_original_return_value_apart_from_the_flags_and_a_malformed_one_is_refused_by_marker() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let lua = Lua::new();
+        let flags = |set: &[usize]| -> String { (0..62).map(|id| if set.contains(&id) { '1' } else { '0' }).collect() };
+        let query = || TerrainQuery::Sector { x: 1.5, z: -2.5, winter: true };
+        // the request reaches the provider as op, position and season; the return value (7: 1 + six transitions) is NOT the number of flagged surfaces (2), and both arrive
+        let mut provider = terrain_of(
+            &lua,
+            &format!(
+                "assert (r.op == 'sector' and r.x == 1.5 and r.z == -2.5 and r.winter == true and r.hint == nil) return {{ returned = 7, flags = '{}' }}",
+                flags(&[9, 46])
+            ),
+        )?;
+        let TerrainAnswer::Sector { returned, flags: read } = provider(query())? else {
+            return Err("not a sector answer".into());
+        };
+        assert_eq!(returned, 7);
+        assert_eq!((read.len(), read.iter().filter(|flag| **flag).count()), (62, 2));
+        assert_eq!(
+            [9usize, 46, 0, 61].map(|id| read.get(id).copied()),
+            [Some(true), Some(true), Some(false), Some(false)]
+        );
+        // a return value equal to the number of flags is the smallest valid one
+        let mut single = terrain_of(&lua, &format!("return {{ returned = 1, flags = '{}' }}", flags(&[9])))?;
+        assert!(matches!(single(query())?, TerrainAnswer::Sector { returned: 1, .. }));
+        // each malformed answer is refused under its own marker
+        for (what, source, marker) in [
+            (
+                "flags too short",
+                format!("return {{ returned = 3, flags = '{}' }}", flags(&[9]).chars().take(61).collect::<String>()),
+                "sector.flags",
+            ),
+            (
+                "flags too long",
+                format!("return {{ returned = 3, flags = '{}0' }}", flags(&[9])),
+                "sector.flags",
+            ),
+            (
+                "flags not binary",
+                format!("return {{ returned = 3, flags = '{}' }}", flags(&[9]).replacen("0", "2", 1)),
+                "sector.flags",
+            ),
+            ("flags a table", "return { returned = 3, flags = {} }".to_string(), "sector.flags"),
+            ("no flags", "return { returned = 3 }".to_string(), "sector.flags"),
+            (
+                "no surface flagged",
+                format!("return {{ returned = 3, flags = '{}' }}", flags(&[])),
+                "sector.returned",
+            ),
+            (
+                "return value below the flags",
+                format!("return {{ returned = 1, flags = '{}' }}", flags(&[9, 46])),
+                "sector.returned",
+            ),
+            (
+                "return value zero",
+                format!("return {{ returned = 0, flags = '{}' }}", flags(&[9])),
+                "sector.returned",
+            ),
+            (
+                "return value fractional",
+                format!("return {{ returned = 2.5, flags = '{}' }}", flags(&[9])),
+                "sector.returned",
+            ),
+            ("return value missing", format!("return {{ flags = '{}' }}", flags(&[9])), "sector.returned"),
+            (
+                "return value not finite",
+                format!("return {{ returned = 1 / 0, flags = '{}' }}", flags(&[9])),
+                "sector.returned",
+            ),
+            ("not a table", "return 'nothing'".to_string(), "sector.answer"),
+            ("withheld", "error ('withheld')".to_string(), "sector.callback"),
+        ] {
+            let mut bad = terrain_of(&lua, &source)?;
+            let error = refusal_of(bad(query()), what);
+            assert!(error.starts_with(&format!("[terrain-provider:{marker}]")), "{what}: {error}");
+        }
+        Ok(())
+    }
+
+    use eech_engine::TerrainAmbientChild;
+
+    // ---- the ambient sound questions through the Lua bridges (EEDCS-51): the request by value, the answer checked in full under its marker ----
+
+    #[test]
+    fn an_ambient_environment_answer_is_four_levels_read_exactly_and_a_malformed_one_is_refused_by_marker() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let request = EnvRequest {
+            x: 1.5,
+            z: -2.5,
+            ambient_y: 100.0,
+            ambient_alt: 12.5,
+            ambient_cloud_base: 6000.0,
+            in_cockpit: 1,
+            winter: 1,
+            ..env_request(EECH_ENV_AMBIENT)
+        };
+        // the observations reach the provider as numbers and a boolean; the four levels come back exactly (a subnormal rain level is kept)
+        let mut provider = env_of(
+            &lua,
+            "assert (r.op == 'ambient' and r.x == 1.5 and r.z == -2.5 and r.y == 100 and r.alt == 12.5 and r.cloud_base == 6000 and r.in_cockpit == true and r.winter == true)
+             return { rain_light = 2 ^ -130, rain_heavy = 1.5, wind_light = 0.5, wind_heavy = 1 }",
+        )?;
+        let reply = provider(&request)?;
+        assert_eq!(
+            reply.ambient_levels.map(f32::to_bits),
+            [0x0008_0000, 1.5f32.to_bits(), 0.5f32.to_bits(), 1.0f32.to_bits()]
+        );
+        // each malformed answer is refused under the ambient marker: not a table, a level missing, not finite, or a wind level outside 0 to 1; a withheld answer under its callback marker
+        for (what, source, marker) in [
+            ("not a table", "return 'levels'", "ambient.answer"),
+            (
+                "rain level missing",
+                "return { rain_heavy = 0, wind_light = 0, wind_heavy = 0 }",
+                "ambient.answer",
+            ),
+            (
+                "rain level not finite",
+                "return { rain_light = 1 / 0, rain_heavy = 0, wind_light = 0, wind_heavy = 0 }",
+                "ambient.answer",
+            ),
+            (
+                "wind level not a number",
+                "return { rain_light = 0, rain_heavy = 0, wind_light = '0', wind_heavy = 0 }",
+                "ambient.answer",
+            ),
+            (
+                "wind level above 1",
+                "return { rain_light = 0, rain_heavy = 0, wind_light = 1.5, wind_heavy = 0 }",
+                "ambient.answer",
+            ),
+            (
+                "wind level below 0",
+                "return { rain_light = 0, rain_heavy = 0, wind_light = 0, wind_heavy = -0.5 }",
+                "ambient.answer",
+            ),
+            ("withheld", "error ('withheld')", "ambient.callback"),
+        ] {
+            let mut bad = env_of(&lua, source)?;
+            let result = bad(&request);
+            assert!(
+                matches!(&result, Err(message) if message.contains(&format!("[env-provider:{marker}]"))),
+                "{what}: {result:?}"
+            );
+        }
+        Ok(())
+    }
+
+    // ---- the physical lightning queue through the Lua bridge (EEDCS-51): the request by value, the whole queue read exactly, a malformed answer refused by marker ----
+
+    /// A Lua source for a list of 32 strikes where `edit` (Lua) may change the first.
+    fn queue_source(first: &str) -> String {
+        format!(
+            "local q = {{}} for i = 1, 32 do q [i] = {{ in_use = false, type = 0, x = 0, y = 0, z = 0, time_started = 0, time_length = 0, frame = 0 }} end
+             local s = q [1] {first}"
+        )
+    }
+
+    #[test]
+    fn a_lightning_add_reaches_the_provider_by_value_and_the_whole_queue_comes_back_exactly() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let request = EnvRequest {
+            lightning_type: 2,
+            lightning_length: 0.3,
+            x: 1500.0,
+            z: -2500.0,
+            lightning_environment_active: 1,
+            lightning_time_of_day: 100.25,
+            ..env_request(EECH_ENV_LIGHTNING_ADD)
+        };
+        let mut provider = env_of(
+            &lua,
+            &format!(
+                "assert (r.op == 'lightning_add' and r.type == 2 and r.length == 0.30000001192092896 and r.x == 1500 and r.z == -2500 and r.environment_active == true and r.time_of_day == 100.25)
+                 {}
+                 s.in_use = true s.type = 2 s.x = r.x s.y = 6000 s.z = r.z s.time_started = r.time_of_day s.time_length = r.length s.frame = 0
+                 return {{ slot = 0, queue = q }}",
+                queue_source("")
+            ),
+        )?;
+        let reply = provider(&request)?;
+        assert_eq!(reply.lightning_slot, 0);
+        assert_eq!(reply.lightning_need_frames, 0);
+        let first = reply.lightning_queue[0];
+        assert_eq!((first.in_use, first.kind, first.current_frame_number), (1, 2, 0));
+        assert_eq!(
+            [first.x, first.y, first.z, first.time_started, first.time_length].map(f32::to_bits),
+            [1500.0f32, 6000.0, -2500.0, 100.25, 0.3].map(f32::to_bits)
+        );
+        assert!(reply.lightning_queue.iter().skip(1).all(|strike| strike.in_use == 0));
+        // with no active environment nothing is given for the time of day
+        let none = EnvRequest {
+            lightning_environment_active: 0,
+            ..request
+        };
+        let mut absent = env_of(
+            &lua,
+            &format!(
+                "assert (r.environment_active == false and r.time_of_day == nil) {} return {{ slot = -1, queue = q }}",
+                queue_source("")
+            ),
+        )?;
+        assert_eq!(absent(&none)?.lightning_slot, -1);
+        Ok(())
+    }
+
+    #[test]
+    fn a_lightning_update_may_ask_for_the_frame_count_once_and_a_malformed_queue_is_refused_by_marker() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let update = EnvRequest {
+            lightning_time_of_day: 10.5,
+            ..env_request(EECH_ENV_LIGHTNING_UPDATE)
+        };
+        // the host needs the frame count: nothing else is read from the answer
+        let mut asks = env_of(
+            &lua,
+            "assert (r.op == 'lightning_update' and r.time_of_day == 10.5 and r.frames == nil) return { need_frames = true }",
+        )?;
+        let reply = asks(&update)?;
+        assert_eq!((reply.lightning_need_frames, reply.lightning_slot), (1, -1));
+        // given the count the request carries it, and a second request for it is refused
+        let given = EnvRequest {
+            lightning_have_frames: 1,
+            lightning_frames: 8,
+            ..update
+        };
+        let mut again = env_of(&lua, "return { need_frames = true }")?;
+        assert!(matches!(again(&given), Err(message) if message.contains("[env-provider:lightning_update.answer]")));
+        let mut done = env_of(
+            &lua,
+            &format!(
+                "assert (r.frames == 8) {} s.in_use = true s.type = 2 s.frame = 4 return {{ queue = q }}",
+                queue_source("")
+            ),
+        )?;
+        let reply = done(&given)?;
+        assert_eq!(
+            (reply.lightning_need_frames, reply.lightning_slot, reply.lightning_queue[0].current_frame_number),
+            (0, -1, 4)
+        );
+        // an add never asks for a frame count
+        let add = env_request(EECH_ENV_LIGHTNING_ADD);
+        let mut wrong = env_of(&lua, "return { need_frames = true }")?;
+        assert!(matches!(wrong(&add), Err(message) if message.contains("[env-provider:lightning_add.answer]")));
+        // each malformed add answer is refused under the add marker, a withheld one under its callback marker
+        for (what, source, marker) in [
+            ("not a table", "return 'queue'".to_string(), "lightning_add.answer"),
+            (
+                "slot beyond the queue",
+                format!("{} return {{ slot = 32, queue = q }}", queue_source("")),
+                "lightning_add.answer",
+            ),
+            ("slot missing", format!("{} return {{ queue = q }}", queue_source("")), "lightning_add.answer"),
+            ("queue missing", "return { slot = 0 }".to_string(), "lightning_add.answer"),
+            ("a short queue", "return { slot = 0, queue = { {} } }".to_string(), "lightning_add.answer"),
+            (
+                "a long queue",
+                format!("{} q [33] = q [1] return {{ slot = 0, queue = q }}", queue_source("")),
+                "lightning_add.answer",
+            ),
+            (
+                "in_use not a boolean",
+                format!("{} s.in_use = 1 return {{ slot = 0, queue = q }}", queue_source("")),
+                "lightning_add.answer",
+            ),
+            (
+                "a type outside the enum",
+                format!("{} s.type = 6 return {{ slot = 0, queue = q }}", queue_source("")),
+                "lightning_add.answer",
+            ),
+            (
+                "a number not finite",
+                format!("{} s.x = 1 / 0 return {{ slot = 0, queue = q }}", queue_source("")),
+                "lightning_add.answer",
+            ),
+            (
+                "a frame that is not an integer",
+                format!("{} s.frame = 1.5 return {{ slot = 0, queue = q }}", queue_source("")),
+                "lightning_add.answer",
+            ),
+            ("withheld", "error ('withheld')".to_string(), "lightning_add.callback"),
+        ] {
+            let mut bad = env_of(&lua, &source)?;
+            let result = bad(&add);
+            assert!(
+                matches!(&result, Err(message) if message.contains(&format!("[env-provider:{marker}]"))),
+                "{what}: {result:?}"
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn a_sound_lifetime_init_reaches_the_provider_by_value_and_one_finite_lifetime_comes_back_exactly() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let mut request = EnvRequest {
+            sound_count: 2,
+            sound_looping: 0,
+            sound_music: 1,
+            ..env_request(EECH_ENV_SOUND_LIFETIME_INIT)
+        };
+        request.sound_rate[..2].copy_from_slice(&[4, 2]);
+        request.sound_size[..2].copy_from_slice(&[6, 5]);
+        let mut provider = env_of(
+            &lua,
+            "assert (r.op == 'sound_lifetime_init' and r.looping == false and r.music == true and #r.samples == 2)
+             assert (r.samples [1].rate == 4 and r.samples [1].size == 6 and r.samples [2].rate == 2 and r.samples [2].size == 5)
+             return { lifetime = 4 }",
+        )?;
+        assert_eq!(provider(&request)?.sound_lifetime, 4.0);
+        for (_what, source, marker) in [
+            ("not a table", "return 4", "sound_lifetime_init.answer"),
+            ("a missing lifetime", "return {}", "sound_lifetime_init.answer"),
+            ("a negative lifetime", "return { lifetime = -1 }", "sound_lifetime_init.answer"),
+            ("a lifetime that is not finite", "return { lifetime = 1 / 0 }", "sound_lifetime_init.answer"),
+            ("a lifetime that is a string", "return { lifetime = '4' }", "sound_lifetime_init.answer"),
+            ("withheld", "error ('withheld')", "sound_lifetime_init.callback"),
+        ] {
+            let mut bad = env_of(&lua, source)?;
+            env_refusal(&mut bad, &request, marker);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn a_sound_lifetime_update_reaches_the_provider_by_value_and_its_decision_comes_back_exactly() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let request = EnvRequest {
+            sound_server: 1,
+            sound_valid: 1,
+            sound_looping: 0,
+            sound_has_handle: 1,
+            sound_delta: 2.0,
+            sound_lifetime: 1.0,
+            sound_valid_lifetime: 0.0,
+            ..env_request(EECH_ENV_SOUND_LIFETIME_UPDATE)
+        };
+        let mut provider = env_of(
+            &lua,
+            "assert (r.op == 'sound_lifetime_update' and r.server == true and r.valid == true and r.looping == false and r.has_handle == true and r.playing == nil)
+             assert (r.delta == 2 and r.lifetime == 1 and r.valid_lifetime == 0)
+             return { lifetime = -1, valid_lifetime = 0, expired = true, action = 'kill' }",
+        )?;
+        let reply = provider(&request)?;
+        assert_eq!(
+            (reply.sound_lifetime, reply.sound_valid_lifetime, reply.sound_expired, reply.sound_action),
+            (-1.0, 0.0, 1, eech_engine::EECH_SOUND_ACTION_KILL)
+        );
+        // the question whether the handle is playing, then the answer with the campaign's reply in the request
+        let mut asking = env_of(&lua, "if r.playing == nil then return { need_playing = true } end assert (r.playing == false) return { lifetime = 1, valid_lifetime = 0, expired = false, action = 'none' }")?;
+        assert_eq!(asking(&request)?.sound_need_playing, 1);
+        let told = EnvRequest {
+            sound_have_playing: 1,
+            sound_playing: 0,
+            ..request
+        };
+        let reply = asking(&told)?;
+        assert_eq!((reply.sound_need_playing, reply.sound_action, reply.sound_expired), (0, 0, 0));
+        for (_what, source, marker) in [
+            (
+                "an action that is not one of the three",
+                "return { lifetime = 1, valid_lifetime = 0, expired = false, action = 'explode' }",
+                "sound_lifetime_update.answer",
+            ),
+            (
+                "an action as a number",
+                "return { lifetime = 1, valid_lifetime = 0, expired = false, action = 1 }",
+                "sound_lifetime_update.answer",
+            ),
+            (
+                "expired as a number",
+                "return { lifetime = 1, valid_lifetime = 0, expired = 1, action = 'none' }",
+                "sound_lifetime_update.answer",
+            ),
+            (
+                "a lifetime that is not finite",
+                "return { lifetime = 0 / 0, valid_lifetime = 0, expired = false, action = 'none' }",
+                "sound_lifetime_update.answer",
+            ),
+            (
+                "a valid lifetime missing",
+                "return { lifetime = 1, expired = false, action = 'none' }",
+                "sound_lifetime_update.answer",
+            ),
+            ("withheld", "error ('withheld')", "sound_lifetime_update.callback"),
+        ] {
+            let mut bad = env_of(&lua, source)?;
+            env_refusal(&mut bad, &request, marker);
+        }
+        // the question about the handle where none may be asked: an effect with no handle, a client, an invalid effect, and a handle already said to be playing
+        for (what, asked) in [
+            (
+                "an effect with no handle",
+                EnvRequest {
+                    sound_has_handle: 0,
+                    ..request
+                },
+            ),
+            ("a client routine", EnvRequest { sound_server: 0, ..request }),
+            ("an invalid effect", EnvRequest { sound_valid: 0, ..request }),
+            (
+                "a handle already said to be playing",
+                EnvRequest {
+                    sound_have_playing: 1,
+                    ..request
+                },
+            ),
+        ] {
+            let mut ask = env_of(&lua, "return { need_playing = true }")?;
+            let result = ask(&asked);
+            assert!(
+                matches!(&result, Err(message) if message.contains("[env-provider:sound_lifetime_update.answer]")),
+                "{what}: {result:?}"
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn a_sound_pause_resume_reaches_the_provider_by_value_and_its_decision_comes_back_exactly() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let pause = EnvRequest {
+            sound_resume: 0,
+            sound_valid: 1,
+            sound_member: 1,
+            sound_delay: 1.5,
+            sound_valid_lifetime: 0.25,
+            ..env_request(EECH_ENV_SOUND_PAUSE_RESUME)
+        };
+        let mut provider = env_of(
+            &lua,
+            "assert (r.op == 'sound_pause_resume' and r.resume == false and r.valid == true and r.member == true and r.delay == 1.5 and r.valid_lifetime == 0.25)
+             return { changed = true, valid = false, valid_lifetime = 1.5, play = false, relink = false }",
+        )?;
+        let reply = provider(&pause)?;
+        assert_eq!(
+            (
+                reply.sound_changed,
+                reply.sound_valid,
+                reply.sound_valid_lifetime,
+                reply.sound_play,
+                reply.sound_relink
+            ),
+            (1, 0, 1.5, 0, 0)
+        );
+        // a resume carries no delay; the stored valid lifetime comes back as the exact word it went with, and the host may ask to play and to relink
+        let resume = EnvRequest {
+            sound_resume: 1,
+            sound_valid: 0,
+            sound_member: 0,
+            sound_delay: 0.0,
+            sound_valid_lifetime: -0.0,
+            ..env_request(EECH_ENV_SOUND_PAUSE_RESUME)
+        };
+        let mut resuming = env_of(
+            &lua,
+            "assert (r.resume == true and r.valid == false and r.member == false and r.delay == nil and 1 / r.valid_lifetime < 0)
+             return { changed = true, valid = true, valid_lifetime = r.valid_lifetime, play = true, relink = true }",
+        )?;
+        let reply = resuming(&resume)?;
+        assert_eq!(
+            (
+                reply.sound_changed,
+                reply.sound_valid,
+                reply.sound_valid_lifetime.to_bits(),
+                reply.sound_play,
+                reply.sound_relink
+            ),
+            (1, 1, (-0.0f32).to_bits(), 1, 1)
+        );
+        for (_what, source, marker) in [
+            (
+                "a flag as a number",
+                "return { changed = 1, valid = false, valid_lifetime = 1.5, play = false, relink = false }",
+                "sound_pause_resume.answer",
+            ),
+            (
+                "a flag missing",
+                "return { changed = true, valid = false, valid_lifetime = 1.5, play = false }",
+                "sound_pause_resume.answer",
+            ),
+            (
+                "a valid lifetime that is not finite",
+                "return { changed = true, valid = false, valid_lifetime = 1 / 0, play = false, relink = false }",
+                "sound_pause_resume.answer",
+            ),
+            (
+                "a valid lifetime missing",
+                "return { changed = true, valid = false, play = false, relink = false }",
+                "sound_pause_resume.answer",
+            ),
+            ("not a table", "return 1", "sound_pause_resume.answer"),
+            ("withheld", "error ('withheld')", "sound_pause_resume.callback"),
+        ] {
+            let mut bad = env_of(&lua, source)?;
+            env_refusal(&mut bad, &pause, marker);
+        }
+        Ok(())
+    }
+
+    const ROTOR_CHANNELS: &str = "channels = { looping = { amplification = 0.5, pitch = 1 }, slap = { amplification = 0.25, pitch = 1 }, turbine1 = { amplification = 0.75, pitch = 1.5 }, \
+        turbine2 = { amplification = 1, pitch = 1.25 }, apu = { amplification = 0.125, pitch = 0.5 }, winding = { amplification = 0.75 } }";
+
+    #[test]
+    fn a_rotor_sound_question_reaches_the_provider_by_value_and_its_whole_answer_comes_back_exactly() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let local = EnvRequest {
+            rotor_player: EECH_ROTOR_PLAYER_LOCAL,
+            rotor_have_flight_model: 1,
+            rotor_rpm: 50.0,
+            rotor_acceleration: [3.0, 4.0, -0.0],
+            rotor_left_rpm: 50.0,
+            rotor_right_rpm: 60.0,
+            rotor_apu_rpm: 5.0,
+            ..env_request(EECH_ENV_ROTOR_SOUND)
+        };
+        let mut provider = env_of(
+            &lua,
+            &format!(
+                "assert (r.op == 'rotor_sound' and r.player == 'local' and r.rpm == 50 and r.flight_model == true)
+                 assert (r.acceleration.x == 3 and r.acceleration.y == 4 and 1 / r.acceleration.z < 0)
+                 assert (r.left_rpm == 50 and r.right_rpm == 60 and r.apu_rpm == 5)
+                 return {{ {ROTOR_CHANNELS}, actions = {{
+                   {{ action = 'resume', channel = 'turbine1' }}, {{ action = 'pause', channel = 'turbine2', delay = 0 }}, {{ action = 'resume', channel = 'apu' }},
+                   {{ action = 'pause', channel = 'looping', delay = 0 }}, {{ action = 'pause', channel = 'slap', delay = 0 }} }} }}"
+            ),
+        )?;
+        let reply = provider(&local)?;
+        assert_eq!(reply.rotor_write, [3, 3, 3, 3, 3, 1]);
+        assert_eq!(reply.rotor_amplification, [0.5, 0.25, 0.75, 1.0, 0.125, 0.75]);
+        assert_eq!(reply.rotor_pitch, [1.0, 1.0, 1.5, 1.25, 0.5, 0.0]);
+        assert_eq!(reply.rotor_action_count, 5);
+        assert_eq!(reply.rotor_action_resume[..5], [1, 0, 1, 0, 0]);
+        assert_eq!(reply.rotor_action_channel[..5], [2, 3, 4, 0, 1]);
+        // an AI helicopter under a global flight model: the acceleration is given, the engine words are not
+        let ai = EnvRequest {
+            rotor_player: EECH_ROTOR_PLAYER_AI,
+            rotor_left_rpm: 0.0,
+            rotor_right_rpm: 0.0,
+            rotor_apu_rpm: 0.0,
+            ..local
+        };
+        let mut ai_provider = env_of(
+            &lua,
+            &format!(
+                "assert (r.player == 'ai' and r.flight_model == true and r.acceleration.x == 3 and r.left_rpm == nil and r.right_rpm == nil and r.apu_rpm == nil)
+                 return {{ {ROTOR_CHANNELS}, actions = {{ {{ action = 'resume', channel = 'looping' }}, {{ action = 'resume', channel = 'slap' }} }} }}"
+            ),
+        )?;
+        assert_eq!(ai_provider(&ai)?.rotor_action_count, 2);
+        // no flight model: no acceleration, and a remote helicopter is a role of its own
+        let remote = EnvRequest {
+            rotor_player: EECH_ROTOR_PLAYER_REMOTE,
+            rotor_have_flight_model: 0,
+            rotor_acceleration: [0.0; 3],
+            ..local
+        };
+        let mut remote_provider = env_of(
+            &lua,
+            &format!(
+                "assert (r.player == 'remote' and r.flight_model == false and r.acceleration == nil and r.left_rpm == nil)
+                 return {{ {ROTOR_CHANNELS}, actions = {{ {{ action = 'pause', channel = 'looping', delay = 0 }}, {{ action = 'pause', channel = 'slap', delay = 0 }} }} }}"
+            ),
+        )?;
+        assert_eq!(remote_provider(&remote)?.rotor_action_resume[..2], [0, 0]);
+        // a role that is not the protocol's is refused before the provider is asked
+        let mut never = env_of(&lua, "error ('must not be asked')")?;
+        assert!(never(&EnvRequest { rotor_player: 9, ..local }).is_err());
+        // every damaged answer is refused under its marker, and a withheld one under the callback marker
+        let two = "actions = { { action = 'resume', channel = 'looping' }, { action = 'resume', channel = 'slap' } }";
+        let channels = ROTOR_CHANNELS;
+        for (_what, source, marker) in [
+            ("not a table", "return 1".to_string(), "rotor_sound.answer"),
+            ("no channels", format!("return {{ {two} }}"), "rotor_sound.answer"),
+            (
+                "an unknown channel",
+                format!(
+                    "return {{ {}, {two} }}",
+                    channels.replace("channels = {", "channels = { extra = { amplification = 1, pitch = 1 },")
+                ),
+                "rotor_sound.answer",
+            ),
+            (
+                "a channel missing",
+                format!("return {{ {}, {two} }}", channels.replace("slap = { amplification = 0.25, pitch = 1 }, ", "")),
+                "rotor_sound.answer",
+            ),
+            (
+                "a pitch on the winding channel",
+                format!(
+                    "return {{ {}, {two} }}",
+                    channels.replace("winding = { amplification = 0.75 }", "winding = { amplification = 0.75, pitch = 1 }")
+                ),
+                "rotor_sound.answer",
+            ),
+            (
+                "a pitch missing",
+                format!(
+                    "return {{ {}, {two} }}",
+                    channels.replace("looping = { amplification = 0.5, pitch = 1 }", "looping = { amplification = 0.5 }")
+                ),
+                "rotor_sound.answer",
+            ),
+            (
+                "an amplification missing",
+                format!(
+                    "return {{ {}, {two} }}",
+                    channels.replace("looping = { amplification = 0.5, pitch = 1 }", "looping = { pitch = 1 }")
+                ),
+                "rotor_sound.answer",
+            ),
+            (
+                "an amplification that is not finite",
+                format!("return {{ {}, {two} }}", channels.replace("amplification = 0.5", "amplification = 1 / 0")),
+                "rotor_sound.answer",
+            ),
+            (
+                "a field that is not one",
+                format!(
+                    "return {{ {}, {two} }}",
+                    channels.replace("amplification = 0.5, pitch = 1 }", "amplification = 0.5, pitch = 1, volume = 1 }")
+                ),
+                "rotor_sound.answer",
+            ),
+            ("no actions", format!("return {{ {channels} }}"), "rotor_sound.answer"),
+            (
+                "nine actions",
+                format!(
+                    "return {{ {channels}, actions = {{ {} }} }}",
+                    ["{ action = 'resume', channel = 'looping' }"; 9].join(", ")
+                ),
+                "rotor_sound.answer",
+            ),
+            (
+                "an unknown action",
+                format!("return {{ {channels}, actions = {{ {{ action = 'play', channel = 'looping' }} }} }}"),
+                "rotor_sound.answer",
+            ),
+            (
+                "a winding request",
+                format!("return {{ {channels}, actions = {{ {{ action = 'resume', channel = 'winding' }} }} }}"),
+                "rotor_sound.answer",
+            ),
+            (
+                "a resume with a delay",
+                format!("return {{ {channels}, actions = {{ {{ action = 'resume', channel = 'looping', delay = 0 }} }} }}"),
+                "rotor_sound.answer",
+            ),
+            (
+                "a pause with no delay",
+                format!("return {{ {channels}, actions = {{ {{ action = 'pause', channel = 'looping' }} }} }}"),
+                "rotor_sound.answer",
+            ),
+            (
+                "a delay that is not finite",
+                format!("return {{ {channels}, actions = {{ {{ action = 'pause', channel = 'looping', delay = 0 / 0 }} }} }}"),
+                "rotor_sound.answer",
+            ),
+            (
+                "a request with a field that is not one",
+                format!("return {{ {channels}, actions = {{ {{ action = 'resume', channel = 'looping', volume = 1 }} }} }}"),
+                "rotor_sound.answer",
+            ),
+            ("withheld", "error ('withheld')".to_string(), "rotor_sound.callback"),
+        ] {
+            let mut bad = env_of(&lua, &source)?;
+            env_refusal(&mut bad, &ai, marker);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn an_ambient_terrain_question_reaches_the_provider_by_value_and_its_amplitudes_are_one_finite_number_per_child() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let lua = Lua::new();
+        let query = |children: Vec<TerrainAmbientChild>| TerrainQuery::Ambient {
+            x: 1.5,
+            z: -2.5,
+            winter: true,
+            in_cockpit: false,
+            alt: 12.5,
+            delta: 0.25,
+            children,
+        };
+        let two = || {
+            vec![
+                TerrainAmbientChild { class: 0, previous: 0.125 },
+                TerrainAmbientChild { class: 5, previous: 0.25 },
+            ]
+        };
+        let mut provider = terrain_of(
+            &lua,
+            "assert (r.op == 'ambient' and r.x == 1.5 and r.z == -2.5 and r.winter == true and r.alt == 12.5 and r.delta == 0.25 and r.in_cockpit == false and #r.children == 2
+                     and r.children [1].class == 0 and r.children [1].previous == 0.125 and r.children [2].class == 5 and r.children [2].previous == 0.25)
+             return { amplitudes = { 0.5, 2 ^ -130 } }",
+        )?;
+        let TerrainAnswer::Ambient { amplitudes } = provider(query(two()))? else {
+            return Err("not an ambient answer".into());
+        };
+        assert_eq!(
+            amplitudes.iter().map(|value| value.to_bits()).collect::<Vec<_>>(),
+            vec![0.5f32.to_bits(), 0x0008_0000]
+        );
+        // no child: an empty list is the answer
+        let mut none = terrain_of(&lua, "return { amplitudes = {} }")?;
+        assert!(matches!(none(query(Vec::new()))?, TerrainAnswer::Ambient { amplitudes } if amplitudes.is_empty()));
+        // the count of the amplitudes is checked against the count of the children CAPTURED before the provider ran (it may change its request), and each must be finite
+        for (what, source, marker) in [
+            ("one amplitude for two children", "return { amplitudes = { 0.5 } }", "ambient.amplitudes"),
+            (
+                "three amplitudes for two children",
+                "return { amplitudes = { 0.5, 0.5, 0.5 } }",
+                "ambient.amplitudes",
+            ),
+            ("not finite", "return { amplitudes = { 0.5, 0 / 0 } }", "ambient.amplitudes"),
+            ("not numbers", "return { amplitudes = { 0.5, '0.5' } }", "ambient.amplitudes"),
+            ("no list", "return {}", "ambient.amplitudes"),
+            ("not a table", "return 'silence'", "ambient.answer"),
+            ("withheld", "error ('withheld')", "ambient.callback"),
+            (
+                "a provider that empties its request still owes two",
+                "r.children = {} return { amplitudes = {} }",
+                "ambient.amplitudes",
+            ),
+        ] {
+            let mut bad = terrain_of(&lua, source)?;
+            let error = refusal_of(bad(query(two())), what);
+            assert!(error.starts_with(&format!("[terrain-provider:{marker}]")), "{what}: {error}");
+        }
+        Ok(())
+    }
+
     // ---- the ground-contact operations (EEDCS-48, D3 G2): the real ground bridge and answer parsing, with Lua providers of the test's choosing ----
 
     const WORLD: [f32; 4] = [-10.5, -20.5, 3000.25, 4000.75];
@@ -3747,6 +5792,224 @@ mod tests {
             integers(above_of([0.0; 3], None))?,
             TerrainAnswer::GroundPredicate { value: true, record: Some(TerrainRecord { last_elevation, kind: 2, .. }) } if last_elevation == 3.0
         ));
+        Ok(())
+    }
+
+    // ---- the host's sample metadata provider as a Lua function (EEDCS-51, D3): the request it is given and the answer it may give ----
+
+    fn catalogue_provider_of(lua: &Lua, body: &str) -> Result<SoundCatalogueProvider, Box<dyn std::error::Error>> {
+        let function: LuaFunction = lua.load(format!("return function (request) {body} end")).eval()?;
+        Ok(sound_catalogue_provider(lua, function))
+    }
+
+    fn catalogue_request() -> SoundCatalogueRequest {
+        SoundCatalogueRequest {
+            slots: 2122,
+            descriptors: vec![(94, "lstrike.pcm".to_string()), (2087, "ch46e_windup_ext.pcm".to_string())],
+        }
+    }
+
+    #[test]
+    fn the_catalogue_question_reaches_the_hosts_lua_by_value_and_its_answer_is_read_entry_by_entry() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let mut provider = catalogue_provider_of(
+            &lua,
+            "assert (request.op == 'sound_catalogue' and request.slots == 2122 and #request.entries == 2) \
+             assert (request.entries[1].index == 94 and request.entries[1].name == 'lstrike.pcm') \
+             assert (request.entries[2].index == 2087 and request.entries[2].name == 'ch46e_windup_ext.pcm') \
+             return { header_present = true, header_count = 7, entries = { \
+               { rate = 22050, original_rate = 22050, matched = true, size = 96 }, \
+               { rate = 11025.0, original_rate = 11025, matched = false, size = 0 } } }",
+        )?;
+        let reply = provider(&catalogue_request())?;
+        assert!(reply.header_present);
+        assert_eq!(reply.header_count, 7);
+        assert_eq!(
+            reply.entries,
+            vec![
+                SoundCatalogueEntry {
+                    rate: 22050,
+                    original_rate: 22050,
+                    matched: true,
+                    size: 96
+                },
+                SoundCatalogueEntry {
+                    rate: 11025,
+                    original_rate: 11025,
+                    matched: false,
+                    size: 0
+                }
+            ]
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn a_catalogue_answer_of_the_wrong_kind_or_shape_is_refused_by_name() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let entry = "{ rate = 22050, original_rate = 22050, matched = true, size = 1 }";
+        let cases: Vec<(&str, String)> = vec![
+            ("nothing", "return nil".to_string()),
+            ("a string", "return 'yes'".to_string()),
+            ("a count that is not whole", format!("return {{ header_present = true, header_count = 1.5, entries = {{ {entry}, {entry} }} }}")),
+            ("a count that does not fit", format!("return {{ header_present = true, header_count = 4294967296, entries = {{ {entry}, {entry} }} }}")),
+            ("a present flag that is a number", format!("return {{ header_present = 1, header_count = 1, entries = {{ {entry}, {entry} }} }}")),
+            ("no entries table", "return { header_present = true, header_count = 1 }".to_string()),
+            ("an entry that is not a table", format!("return {{ header_present = true, header_count = 1, entries = {{ {entry}, 5 }} }}")),
+            (
+                "a rate that is a string",
+                format!("return {{ header_present = true, header_count = 1, entries = {{ {entry}, {{ rate = '22050', original_rate = 1, matched = true, size = 1 }} }} }}"),
+            ),
+            (
+                "a matched flag that is a number",
+                format!("return {{ header_present = true, header_count = 1, entries = {{ {entry}, {{ rate = 1, original_rate = 1, matched = 1, size = 1 }} }} }}"),
+            ),
+            (
+                "a missing size",
+                format!("return {{ header_present = true, header_count = 1, entries = {{ {entry}, {{ rate = 1, original_rate = 1, matched = false }} }} }}"),
+            ),
+            (
+                "a length that is not a number",
+                format!("return {{ header_present = true, header_count = 1, entries = {{ {entry}, {{ rate = 1, original_rate = 1, matched = true, size = 0/0 }} }} }}"),
+            ),
+        ];
+        for (label, body) in cases {
+            let mut provider = catalogue_provider_of(&lua, &body)?;
+            let Err(error) = provider(&catalogue_request()) else {
+                return Err(format!("{label}: the answer was accepted").into());
+            };
+            assert!(error.starts_with("[sound-data-provider:answer]"), "{label}: {error}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn a_catalogue_provider_that_raises_is_refused_by_name_and_a_provider_that_is_not_a_function_is_refused_before_boot(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let mut provider = catalogue_provider_of(&lua, "error ('the host has no sound files', 0)")?;
+        let Err(error) = provider(&catalogue_request()) else {
+            return Err("a raising provider answered".into());
+        };
+        assert!(
+            error.starts_with("[sound-data-provider:callback]") && error.contains("the host has no sound files"),
+            "{error}"
+        );
+        // an old host's environment provider answers every operation it knows and raises on one it does not: that is the same refusal, named
+        let mut old_host = catalogue_provider_of(
+            &lua,
+            "if request.op ~= 'weather' then error ('host.env: unknown op ' .. request.op, 0) end return {}",
+        )?;
+        let Err(error) = old_host(&catalogue_request()) else {
+            return Err("a host that does not know the operation answered".into());
+        };
+        assert!(
+            error.starts_with("[sound-data-provider:callback]") && error.contains("unknown op sound_catalogue"),
+            "{error}"
+        );
+        // the boot's choice of the function: its own `sound_data`, else the environment provider; one that is given and is not a function stops the boot with the stable marker before the engine is touched
+        let environment: LuaFunction = lua.load("return function () return 'environment' end").eval()?;
+        let empty: LuaTable = lua.load("return {}").eval()?;
+        assert_eq!(sound_data_function(&empty, &environment)?.call::<String>(())?, "environment");
+        let separate: LuaTable = lua.load("return { sound_data = function () return 'separate' end }").eval()?;
+        assert_eq!(sound_data_function(&separate, &environment)?.call::<String>(())?, "separate");
+        for given in ["5", "'text'", "{}", "true"] {
+            let config: LuaTable = lua.load(format!("return {{ sound_data = {given} }}")).eval()?;
+            match sound_data_function(&config, &environment) {
+                Ok(_) => return Err(format!("a sample metadata provider {given} was accepted").into()),
+                Err(error) => assert!(error.to_string().contains("[sound-data-provider:missing]"), "{error}"),
+            }
+        }
+        Ok(())
+    }
+
+    // ---- the host's sound backend availability provider as a Lua function (EEDCS-51, D3): the request it is given and the answer it may give ----
+
+    fn backend_provider_of(lua: &Lua, body: &str) -> Result<SoundBackendProvider, Box<dyn std::error::Error>> {
+        let function: LuaFunction = lua.load(format!("return function (request) {body} end")).eval()?;
+        Ok(sound_backend_provider(lua, function))
+    }
+
+    fn backend_request() -> SoundBackendRequest {
+        SoundBackendRequest {
+            phase: SOUND_BACKEND_PHASE_INITIALISE,
+            no_sound: false,
+            dedicated: true,
+            load_samples: true,
+        }
+    }
+
+    #[test]
+    fn the_backend_question_reaches_the_hosts_lua_by_value_and_only_a_boolean_answer_is_read() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let mut provider = backend_provider_of(
+            &lua,
+            "assert (request.op == 'sound_backend' and request.phase == 'initialise') \
+             assert (request.no_sound == false and request.dedicated == true and request.load_samples == true) \
+             return { available = false }",
+        )?;
+        assert!(!provider(&backend_request())?.available);
+        // the host's answer is carried as it is, whatever it is: the campaign decides what it accepts
+        let mut available = backend_provider_of(&lua, "return { available = true }")?;
+        assert!(available(&backend_request())?.available);
+        for (label, body) in [
+            ("a nil", "return nil"),
+            ("a number", "return 5"),
+            ("a string", "return 'yes'"),
+            ("no field", "return {}"),
+            ("a number as the flag", "return { available = 0 }"),
+            ("a string as the flag", "return { available = 'false' }"),
+        ] {
+            let mut provider = backend_provider_of(&lua, body)?;
+            let Err(error) = provider(&backend_request()) else {
+                return Err(format!("{label}: an unreadable answer was accepted").into());
+            };
+            assert!(error.starts_with("[sound-backend-provider:answer]"), "{label}: {error}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn a_backend_provider_that_raises_or_is_not_a_function_is_refused_by_name_and_a_foreign_phase_is_never_sent() -> Result<(), Box<dyn std::error::Error>> {
+        let lua = Lua::new();
+        let mut provider = backend_provider_of(&lua, "error ('the host has no audio', 0)")?;
+        let Err(error) = provider(&backend_request()) else {
+            return Err("a raising provider answered".into());
+        };
+        assert!(
+            error.starts_with("[sound-backend-provider:callback]") && error.contains("the host has no audio"),
+            "{error}"
+        );
+        // a host whose environment provider does not know the operation is the same named refusal
+        let mut old_host = backend_provider_of(
+            &lua,
+            "if request.op ~= 'weather' then error ('host.env: unknown op ' .. request.op, 0) end return {}",
+        )?;
+        let Err(error) = old_host(&backend_request()) else {
+            return Err("a host that does not know the operation answered".into());
+        };
+        assert!(
+            error.starts_with("[sound-backend-provider:callback]") && error.contains("unknown op sound_backend"),
+            "{error}"
+        );
+        let mut calls = backend_provider_of(&lua, "return { available = false }")?;
+        let Err(error) = calls(&SoundBackendRequest { phase: 2, ..backend_request() }) else {
+            return Err("a foreign phase was sent".into());
+        };
+        assert!(error.starts_with("[sound-backend-provider:request]"), "{error}");
+        // the boot's choice of the function: its own `sound_backend`, else the environment provider; one that is given and is not a function stops the boot with the stable marker before the engine is touched
+        let environment: LuaFunction = lua.load("return function () return 'environment' end").eval()?;
+        let empty: LuaTable = lua.load("return {}").eval()?;
+        assert_eq!(sound_backend_function(&empty, &environment)?.call::<String>(())?, "environment");
+        let separate: LuaTable = lua.load("return { sound_backend = function () return 'separate' end }").eval()?;
+        assert_eq!(sound_backend_function(&separate, &environment)?.call::<String>(())?, "separate");
+        for given in ["5", "'text'", "{}", "true"] {
+            let config: LuaTable = lua.load(format!("return {{ sound_backend = {given} }}")).eval()?;
+            match sound_backend_function(&config, &environment) {
+                Ok(_) => return Err(format!("a sound backend provider {given} was accepted").into()),
+                Err(error) => assert!(error.to_string().contains("[sound-backend-provider:missing]"), "{error}"),
+            }
+        }
         Ok(())
     }
 }

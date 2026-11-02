@@ -1,0 +1,32 @@
+[
+  {
+    "file": "fixture-declaration.json",
+    "retained_original": "fixture-declaration.json",
+    "original_sha256": "55a0c7ecd86cf78505f59927c57cab4b02e579747a08716a0b153aae413125c8",
+    "bytes": 4553
+  },
+  {
+    "file": "generate-fixture.py",
+    "retained_original": "generate-original-sound-header-present-20261101-0400.py",
+    "original_sha256": "a28fcbcd105fc4b78f03d46c4e11d3cc42d65b7a58343fadcd6718e71a6f1e58",
+    "bytes": 11178
+  },
+  {
+    "file": "prepare-control.py",
+    "retained_original": "prepare-original-sound-header-present-20261101-0400.py",
+    "original_sha256": "cff386e6f10fb81c04f87ebf96b7aa3af6300c93280e0e9626778cf10a6f8e59",
+    "bytes": 7102
+  },
+  {
+    "file": "run-control.py",
+    "retained_original": "run-original-sound-header-present-20261101-0400.py",
+    "original_sha256": "376be52f23d3cbabae4871b89a6f188155d10ec60685f56e4638aa870bc55bc9",
+    "bytes": 9145
+  },
+  {
+    "file": "check-control.py",
+    "retained_original": "check-original-sound-header-present-20261101-0400.py",
+    "original_sha256": "7960ab4f5682142115a27e09f6e6113f6f4189ead695577a1ccd43d845fa938e",
+    "bytes": 13744
+  }
+]

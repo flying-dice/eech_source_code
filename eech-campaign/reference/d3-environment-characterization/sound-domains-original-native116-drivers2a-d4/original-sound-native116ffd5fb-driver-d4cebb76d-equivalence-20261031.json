@@ -1,0 +1,15 @@
+{
+  "native_source": "116ffd5fb4230226a1ff98a87c40375eea95e521",
+  "driver_source": "d4cebb76dd2980ac078dc15f07fcd381439a9229",
+  "changed_files": [
+    "STATUS.md",
+    "eech-campaign/crates/eech-world/lua/env-sound-lifetime.lua",
+    "eech-campaign/crates/eech-world/tests/env_sound_lifetime.rs",
+    "eech-campaign/docs/d3-sound-lifetime.md"
+  ],
+  "C_Rust_production_and_build_inputs_byte_identical": true,
+  "all_C_including_fixture_and_observer_byte_identical": true,
+  "script_sha256": "ad277d1f92c75b7c12c9f1606e512ec49d508804c77c81ffb9ae2c4c1d9909e7",
+  "native_validation_actual_gate": "R:\\d3-evidence\\environment-sound-entity-original-116ffd5fb-linux-20261031-completion.json",
+  "scope": "Only dedicated Lua/report guards/tests/docs changed from safe116. ALL C including fixture/observer and Rust production/build inputs byte-identical. Actual116 native and all55 payload hashes are retained; use explicit pinned new script override, never relabel binary source. Current fmt/sound guards/World strict are additional. No new physical/host/shipping acceptance."
+}

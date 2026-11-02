@@ -1,0 +1,28 @@
+{
+  "schema": "independent-parent-play-needed-only-publication-correction-v2",
+  "created_utc": "2026-11-01T13:14:04.668421+00:00",
+  "source": {
+    "tested_native": "d8db93cc181a6980c00f9ec17967acf217645382",
+    "prepared_directory": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-safe-publication-d8db93cc1-v2-20261101",
+    "manifest_sha256": "ea58b961c44b4ee49c6a06422d30693a69cef937ad1c70a2028ac8c052362fcb",
+    "readme_sha256": "9daea1676bc076c711affa7f2772ca75fa12a53c53bd2d8c158cdc18f40676f1",
+    "comparison_projection_sha256": "96edff9a46197e9003c89f3e4b1684879c0c9d1c63d7a59bdf91bc764c7cf4b6",
+    "private_comparison_sha256": "a542e8a1f0b2b65d758ff6ed6234060731d0d72c2ff845db9e714abc64dc6b0e"
+  },
+  "review_scope": "Only three changed publication files vs retained V1. Prior211992 publication review reused for all unchanged claims/content; no source/runtime/kernel/test/campaign review repeated.",
+  "findings": [],
+  "closed_findings": [
+    "ENV-PARENT-PLAY-PUBLICATION-1"
+  ],
+  "finite_publication_closed": true,
+  "verified_facts": [
+    "Exactly three files changed: comparison, README and copy manifest; other eleven aliases are byte-identical to V1 and their private originals. All14 current file identities/counts and all12 manifest entries verified.",
+    "Independently reconstructed the projection from private original: remove only overload named_refusal.entity_index, redact exactly its one message token, add explicit publication_projection declaration. Every other decoded field/value is equal. No numerical/raw acceptance data were normalized or replaced.",
+    "README/manifest truthfully declare11 literal JSON aliases plus1 explicit projection, retain private a542 identity and state acceptance used the private original. The original receipt, V1 bundle and P2report are unchanged. No runtime allocation index remains in the new comparison.",
+    "Previous precise source/binary/driver identities, actual results, fatal poison limits and finite scope remain unchanged. No new runtime/CI/shipping acceptance is inferred."
+  ],
+  "limitations": [
+    "Prepared outside-repository publication only. Root must still verify scoped attributes plus staged/committed blob identities; those future import steps are not claimed reviewed here.",
+    "Sourcec18 and actual0e/0cff closures reused. WholeTask51/D3, shipping/Tacview and normal delivery/merge remain separate."
+  ]
+}

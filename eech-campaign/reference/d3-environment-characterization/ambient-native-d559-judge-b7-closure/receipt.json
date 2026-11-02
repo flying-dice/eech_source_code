@@ -1,0 +1,47 @@
+{
+  "scope": "Bounded physicalambientamplitudeauthority G11case27 closed: explicit b7judge/newLua +unchangedd559native51payloads, real7modes/14inputchecks/all11guardfunctions/all28negativechecks/bothstrict/current9CI andindependentreview. No frame/audio/player/render/Tacview/fullshipping/Task51/D3acceptance; no rawretailassets/coordinates copied.",
+  "entries": [
+    {
+      "file": "native-judge-equivalence.json",
+      "original_private": "R:\\d3-evidence\\environment-ambient-native-d559-judge-b7fbb2eab-equivalence-20261031.json",
+      "original_SHA256": "99d8faa56dde06448b8d3e0d9b44d6ef1180a19bc2f2b2eed8441e0e52ab9a4f",
+      "retained_Git_LF_SHA256": "8c32386cca2d7e9e2a36dbe5d2ff2d12b096a3ff09149fe7f063ce2b88093e10"
+    },
+    {
+      "file": "Linux-guards-both-strict-completion.json",
+      "original_private": "R:\\d3-evidence\\environment-ambient-judge-b7fbb2eab-linux-20261031-completion.json",
+      "original_SHA256": "ee64b1e0e6457ecc07f96ca97d8ad41a1e57335652cd7c740774082dc69d7c80",
+      "retained_Git_LF_SHA256": "50b77836d6f666a74ca2637beb2265d9c5c3c1b96e8852c9d18d675e408d9ca7"
+    },
+    {
+      "file": "Windows-judge-export-completion.json",
+      "original_private": "R:\\d3-evidence\\environment-ambient-judge-b7fbb2eab-windows-20261031-completion.json",
+      "original_SHA256": "17ef7fa1ac80885cd2c1ed11abf134454c5c269711ecdbaf6ed6ed5f52e7a548",
+      "retained_Git_LF_SHA256": "df5de50dde3dde80b6652ce86e1394b1eadc3d5823afab7a076f8939e1d5aa0b"
+    },
+    {
+      "file": "actual-Windows-seven-mode-controller.json",
+      "original_private": "R:\\d3-evidence\\environment-ambient-seven-modes-controller-b7fbb2eab-20261031\\receipt.json",
+      "original_SHA256": "4522b668b7deb985d35693cfea2ef4872c958ab8a9814b3d956ce7967ff07105",
+      "retained_Git_LF_SHA256": "3070bb71560f4d0ba87b22f8576d0fe89f2a59efad4c86b7c72f4f9f95a7f800"
+    },
+    {
+      "file": "actual-seven-mode-summary.json",
+      "original_private": "R:\\d3-evidence\\environment-ambient-b7-seven-mode-summary-20261031.json",
+      "original_SHA256": "a84d734d6b7bf94cbd989deb213e58d3e13a3088b3d04c29e4e534ee2a93787e",
+      "retained_Git_LF_SHA256": "1d5ab4c671cfab495a54c24d133a5a5d49ad25564073e97741e8b8cd0de35f73"
+    },
+    {
+      "file": "independent-source-actual-review.json",
+      "original_private": "R:\\d3-evidence\\independent-environment-ambient-authority-correction-review-b7fbb2eab-20261031.json",
+      "original_SHA256": "6fc6829126897dc27d9bf601a52235f84ac940eb292119cac7d7f87b17888d9f",
+      "retained_Git_LF_SHA256": "9900d9dc73e93a4069474f613f135d222b211bc45a9e03b47e698974d99d3734"
+    },
+    {
+      "file": "current-CI.json",
+      "original_private": "R:\\d3-evidence\\current-CI-b7fbb2eab-20261031.json",
+      "original_SHA256": "453f3252f22ffd4cfb8bce53c4d27320cba9c97b01139f3a44bc3fbb4c75b4ea",
+      "retained_Git_LF_SHA256": "453f3252f22ffd4cfb8bce53c4d27320cba9c97b01139f3a44bc3fbb4c75b4ea"
+    }
+  ]
+}

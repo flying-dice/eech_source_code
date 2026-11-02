@@ -1,0 +1,32 @@
+{
+  "source": "a39a7a2ec07f5ec9e02008c58463003e9107978a",
+  "scope": "Actual decoded hosted i686 logs, knownnewambient numeric/FP failures. Notpassed or newphysicalAPIacceptance.",
+  "items": [
+    {
+      "job_id": 124567762884,
+      "selected_lines": [
+        "2026-10-31T14:50:33.4096349Z test the_host_decides_the_terrain_ambient_amplitude_from_its_own_sector_surfaces_with_the_originals_smoothing ... FAILED",
+        "2026-10-31T14:50:33.4228272Z test the_callers_complete_floating_point_state_survives_every_terrain_ambient_question_in_every_mode ... FAILED",
+        "2026-10-31T14:50:33.4263527Z thread 'the_host_decides_the_terrain_ambient_amplitude_from_its_own_sector_surfaces_with_the_originals_smoothing' (11555) panicked at crates/eech-world/tests/terrain_sector.rs:440:5:",
+        "2026-10-31T14:50:33.4264431Z   left: [0.3, 0.0]",
+        "2026-10-31T14:50:33.4264655Z  right: [0.29999998, 0.0]",
+        "2026-10-31T14:50:33.4267468Z thread 'the_callers_complete_floating_point_state_survives_every_terrain_ambient_question_in_every_mode' (11554) panicked at crates/eech-world/tests/terrain_sector.rs:640:5:",
+        "2026-10-31T14:50:33.4268448Z the caller's state reached the kernel's answers (576 of 5376 calls):",
+        "2026-10-31T14:50:33.4842737Z test result: FAILED. 7 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s"
+      ]
+    },
+    {
+      "job_id": 124567763071,
+      "selected_lines": [
+        "2026-10-31T14:50:20.3335071Z test the_host_decides_the_terrain_ambient_amplitude_from_its_own_sector_surfaces_with_the_originals_smoothing ... FAILED",
+        "2026-10-31T14:50:20.3450892Z test the_callers_complete_floating_point_state_survives_every_terrain_ambient_question_in_every_mode ... FAILED",
+        "2026-10-31T14:50:20.3481425Z thread 'the_host_decides_the_terrain_ambient_amplitude_from_its_own_sector_surfaces_with_the_originals_smoothing' (11756) panicked at crates/eech-world/tests/terrain_sector.rs:440:5:",
+        "2026-10-31T14:50:20.3483445Z   left: [0.3, 0.0]",
+        "2026-10-31T14:50:20.3484091Z  right: [0.29999998, 0.0]",
+        "2026-10-31T14:50:20.3487714Z thread 'the_callers_complete_floating_point_state_survives_every_terrain_ambient_question_in_every_mode' (11755) panicked at crates/eech-world/tests/terrain_sector.rs:640:5:",
+        "2026-10-31T14:50:20.3489091Z the caller's state reached the kernel's answers (576 of 5376 calls):",
+        "2026-10-31T14:50:20.4328219Z test result: FAILED. 7 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,150 @@
+{
+  "review_id": "ENV-LIGHTNING-CASE5-MODEL-ORIGIN-7DB-20261031",
+  "reviewed_utc": "2026-10-31T19:10:30.3800843Z",
+  "reviewer": "Sole independent Codex reviewer; no nested agents",
+  "scope": "Narrow NEWactual case5-completion model-origin/init source trace, not repeated extraction/original review. Only read-only source, existing manifests/raw and binary metadata parsing; no native/tool experiment, source edit, new fixture, process, Docker or public action.",
+  "source": {
+    "repository": "R:/d3-evidence/environment-host-lightning-queue-source-7db2c6a91",
+    "head": "7db2c6a91b4cd0a1fae2d8e20bfa169584618d24",
+    "tree": "6dba0af4656624007755780e34d21487c7cc7e79",
+    "identities": [
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c",
+        "blob": "e1942158a5ee22568cbc05642fc02f671019dbc0",
+        "sha256": "7fe83d37599ce568797ed06ade429aa63fc46b0f7d8fb917b93243e8edaaa94d"
+      },
+      {
+        "path": "eech-campaign/crates/eech-engine-sys/csrc/eech_synth3d.c",
+        "blob": "2c5233f57a6c31c8f4a2ec59667a8b23e191caf9",
+        "sha256": "80ad8be036aafde68f940ab0e593f23e71daa31c4667d2739fb7131e8ef1dd50"
+      },
+      {
+        "path": "aphavoc/source/init.c",
+        "blob": "abcbb32108bd7b3c1c4c71d7873d222d81ac4bd2",
+        "sha256": "c5e15107fc4c0ba6e164a678d83159d41686f50739cee9c7690413c208ab612a"
+      },
+      {
+        "path": "aphavoc/source/ui_menu/initsc/init_sc.c",
+        "blob": "442c5004911febab9d6556c24d65784f99ba722f",
+        "sha256": "21b72afe26c8aa9d14d810d6dd75b5f515f3d80c88d8e3d0a1c8683b854c6ace"
+      },
+      {
+        "path": "modules/userint2/ui_obj/screen/screen.c",
+        "blob": "5e886df1d5631c4daffcb85ec337bd3d3f685695",
+        "sha256": "a0a52512a00ee484cb3697ad7d2ba5f8f342809925d4e806a05c4e94182ef06f"
+      },
+      {
+        "path": "aphavoc/source/app3d/3d_init.c",
+        "blob": "78a2509aed20d332c0681b08bef76ba174f0689c",
+        "sha256": "2384fe69e0852935befa15c4c139db801770212ad50c2f29f5a9cbff52d7e94e"
+      },
+      {
+        "path": "modules/3d/3dobjdb.c",
+        "blob": "731b4323e6f6251303ffe98fa08ebac2d1a443ee",
+        "sha256": "fc3e86ba9cffd570a9827bae817e425b6cad1c9df098b2090bbe3e3628ea2b19"
+      },
+      {
+        "path": "modules/3d/3dobjid.c",
+        "blob": "3fb2174ce41b62cf6656ca41c669b34a98f354f6",
+        "sha256": "7bd079ade2d5d5aab5b2800c9a9467069e55e1744eb2c254b7dc1fc10cb7f4dc"
+      },
+      {
+        "path": "modules/3d/textanim.h",
+        "blob": "4cc2e6721c7b13c402bc1f063ccb25a80f9993a1",
+        "sha256": "5c7328f6fbb3ffb56d92737eb0e168306134ed08affe9246f733970c55766515"
+      },
+      {
+        "path": "modules/3d/3dstrike.c",
+        "blob": "e52b1fffa5e1c45b671ddddefa590d97d1b72c6d",
+        "sha256": "3b6b0664974706a899be1eea2d81d0c7a330749f108a899065706c4cacd31cda"
+      }
+    ]
+  },
+  "receipts": [
+    {
+      "path": "R:/d3-evidence/environment-host-lightning-frame-guards-7db2c6a91-20261031/missing-model-case-5/controller.json",
+      "sha256": "099414885949f214885209544913de01154190a9d12e40f7506eb817778ccd4a"
+    },
+    {
+      "path": "R:/d3-evidence/environment-host-lightning-frame-guards-7db2c6a91-20261031/missing-model-case-5/environment.jsonl",
+      "sha256": "c03806a74e525581479b9a640c7499d37ae4dc63471a18ccb9304b7eeebe88fa"
+    },
+    {
+      "path": "R:/d3-evidence/environment-host-lightning-frame-guards-7db2c6a91-20261031/missing-model-case-5/pre-inputs.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "path": "R:/d3-evidence/environment-host-lightning-frame-guards-7db2c6a91-20261031/missing-model-case-5/post-inputs.json",
+      "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+    },
+    {
+      "path": "R:/d3-evidence/environment-host-lightning-frame-guards-7db2c6a91-20261031/controller.json",
+      "sha256": "061de36c69a92af30ac45e11cb73a107c911f4b313ac25a022e09d1a2b81c72c"
+    }
+  ],
+  "actual_facts": {
+    "case": 5,
+    "native_exit": 0,
+    "case_controller_exit": 0,
+    "verified_payloads": 54,
+    "all_pre_native_post_stages_zero": true,
+    "completed_utc": "2026-10-31T19:04:38.934474+00:00",
+    "result_refused": false,
+    "engine_failure_row_present": false,
+    "raw_sha256": "c03806a74e525581479b9a640c7499d37ae4dc63471a18ccb9304b7eeebe88fa",
+    "slot_observations": "Actual type2(FORKED_1), frame0 in all three snapshots;in_use1 when added,1 inside its length,0 after expiry. Result row present. No raw position/time words reproduced.",
+    "outer_expected_refusal_controller_exit": 1,
+    "outer_failure": "Expected native1 for missing-model case5 but observed native0. Preserve this failed expectation and its completed candidate output; do not relabel it as a successful missing-model guard."
+  },
+  "data_origin": {
+    "root": "R:/d3-evidence/environment-host-lightning-queue-frame-guard-roots-20261031/missing-model-case-5",
+    "palette": {
+      "path": "cohokum/3ddata/textures.pal",
+      "bytes": 9352071,
+      "sha256": "79ab1ad1238c6d965d89dd165f5b42711933074ffeb0e8bc7af3d7d8d91340e2"
+    },
+    "bininfo": {
+      "path": "cohokum/3ddata/bininfo.bin",
+      "bytes": 119164,
+      "sha256": "daa13899d32688cfcfb2610b2c56c2ab0dca4b32ad6a9b6f1f9a29be8b58f29c",
+      "loaded_animation_entries": 114,
+      "all114_animation_names_align_source_order": true,
+      "index0_name": "USA_COPTER_DIGIT__001",
+      "index0_frames": 10,
+      "source_LIGHTNING_index": 96,
+      "database_index96_name": "LIGHTNING",
+      "database_index96_frames": 3
+    },
+    "manifest_verification": "Both metadata files occur identically in pre/post input manifests. The read-only parser followed3dobjid.c binary schema: scene/subobject/camera/camouflage sections, then114 animation names/frame counts/index lists. No parser output exposed retail coordinates or texture payload arrays.",
+    "palette_gate": "eech_engine_prepare_installation at eech_engine.c495..500 checks textures.pal. If present it preserves the existing3Ddatabase; only absent palette calls synth3d writer. Actual premanifest already contains this palette, so the existing retail-data path is supported, not a new synthetic fallback.",
+    "synthetic_distinction": "synth3d write_bininfo would emit one frame/first texture for each old animation. This actual file has index0 ten frames and LIGHTNING three frames, so that source workaround is not evidence of this run using a dummy one-frame table."
+  },
+  "source_init_trace": [
+    "eech_engine.c198..200 calls brief_initialise_game and pushes init_screen. init_sc.c106 binds init_function; push_ui_screen invokes the screen callback; init_sc.c227 calls full_initialise_game.",
+    "init.c880 calls initialise_application_3d_system.3d_init.c145 calls initialise_3d_objects, which calls initialise_3d_objects_info at3dobjdb.c1793.3dobjid.c332..402 loads bininfo names, frame counts and allocated texture index lists. Its fallback file lookup uses install_root/cohokum/3ddata.",
+    "Then non-OGRE3d_init.c170 calls initialise_3d_lightning(TEXTURE_ANIMATION_INDEX_LIGHTNING,...), BEFORE main_3d_env=create_3d_environment. The initializer assigns lightning_strike_animation at3dstrike.c150. The global C zero value is not evidence the normal boot left it0.",
+    "The new safe getter checks actual availability/index/count. Given the above data/init path, source-supported expectation is a valid LIGHTNING entry96 with3frames. Frame0 at the interior sample is consistent with the truncated t*3 expression; frame0 alone does not uniquely measure the selected index/count."
+  ],
+  "actual_vs_inferred": {
+    "measured_from_files": "Input file identity,114 names and counts, exact source-name alignment, candidate case5 result and slot facts, manifests/controller exits.",
+    "source_supported_inference": "Normal boot selects and loads the correct LIGHTNING animation metadata rather than leaving default index0/dummy. The source is compiled/called as traced; no separate runtime pointer/index/frame-count telemetry was captured in this case.",
+    "not_proven": [
+      "Missing texture/model refusal runtime path was NOT exercised.",
+      "No old-versus-new original forked-aging conformance or frame/render/Tacview/speaker result is established by this single candidate case.",
+      "Retail texture rendering or arbitrary model data safety is not measured; source-only checks retain their prior limits."
+    ]
+  },
+  "findings": [
+    {
+      "id": "ENV-LIGHTNING-CASE5-EXPECTATION-1",
+      "priority": "P2",
+      "kind": "evidence/precondition classification",
+      "title": "The headless-missing-model expectation is unsupported for the actual retail-data boot",
+      "action": "Correct only the expectation/docs/witness scope while preserving outer1 and actual candidate0. Do not change production lookup or force absent model data to manufacture the expected failure. Existing loaded-metadata case5 is a usable prerequisite for bounded negative/high-frame reply tests through the real C consumer; it is not old/new forked conformance. Explicit missing-model runtime coverage may remain unexercised and honestly limited rather than requiring an artificial missing-table fixture solely to repair this expectation."
+    }
+  ],
+  "no_new_production_finding": true,
+  "missing_model_runtime_exercised": false,
+  "original_forked_conformance_proven": false,
+  "verdict": "Existing retail animation metadata and normal initializer explain candidate case5 completion; default0/synthetic-one-frame and headless-missing-table claims are unsupported. Preserve failed expectation and actual result; no production change justified by this audit. WholeTask51/D3/remaining gates stay open."
+}

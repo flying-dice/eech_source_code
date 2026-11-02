@@ -2,9 +2,13 @@
 //! campaign script observes.
 pub mod aim;
 pub mod cmb;
+pub mod env;
 pub mod flight;
 pub mod los;
 pub mod movement;
+pub mod output;
 pub mod sense;
+pub mod sound_assets;
+pub mod sound_data;
 pub mod tacview;
 pub mod terrain;

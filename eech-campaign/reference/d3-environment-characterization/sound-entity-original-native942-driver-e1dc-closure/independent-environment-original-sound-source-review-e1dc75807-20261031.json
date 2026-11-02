@@ -1,0 +1,112 @@
+{
+  "schema": "independent-source-correction-review-v1",
+  "created_utc": "2026-10-31T20:42:30.689963+00:00",
+  "reviewer": "sole independent Codex reviewer /root/d3_environment_review",
+  "source": {
+    "repo": "R:\\d3-evidence\\environment-services-20261030",
+    "base": "4dc9296b32e12685e34f1bed5be2ead61486d02a",
+    "head": "e1dc758074fba7fa8a4af99604ceecb85cf20483",
+    "tree": "bbdd4eca2c017e81ed88ff706098e95f83acf2fe",
+    "clean_at_review": true,
+    "files": [
+      {
+        "path": "STATUS.md",
+        "sha256": "c1cd1170fc2666d84e6b78d6f860835c497bf436f7f04ddaa1a42e9684c00ebc",
+        "git_blob": "2bea7a467fcd40037429f44dc888150f87f2fdda"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/lua/env-characterization.lua",
+        "sha256": "a63f7617cd4030a6c4ab7a90470dbdc867002d22b04bbfd5a47cfa332a7aaed0",
+        "git_blob": "7e5099f654498716fc87a161defa2808c0961382"
+      },
+      {
+        "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+        "sha256": "2ea4ad885074aa0d398c46c9052fdf6bf41b9cc22b930e41add2bdbc80e2895e",
+        "git_blob": "a95d17b01b35cdaf4223b84dc0b6d0ff6f7094a3"
+      },
+      {
+        "path": "eech-campaign/docs/d3-sound-lifetime.md",
+        "sha256": "599f4b1e91da7eedc4425e874b50a6ee81b63bf241febdce7c15579603aade80",
+        "git_blob": "01cb7ba4f72f01f8165d6b76ff29d8cb204b2702"
+      }
+    ]
+  },
+  "scope": "One compact new-delta correctness, clean-code, boundary and protocol pass. Only terminal playing-counter/frame P2 correction and new guards/docs inspected. Closed native safety, counters, interval/handle checks and prior production reviews reused.",
+  "prior_review": {
+    "path": "R:/d3-evidence/independent-environment-original-sound-source-review-4dc9296b3-20261031.json",
+    "sha256": "c05fb0a6b67a341ad7432a0b50c717b6a1042d1610caf6a49f0bcb77e1bf9ce0"
+  },
+  "findings": [],
+  "source_review_no_blocking_findings": true,
+  "correction_disposition": {
+    "ENV-SOUND-ORIGINAL-2-JOURNAL-TAIL": "Closed at source. Prior P1 and related P2 corrections remain closed/reused; no new blocking finding in this delta."
+  },
+  "inspected_facts": [
+    {
+      "fact": "In the explicitly supported unchanged-state valid nonlooping positive-delta journal, an observed expiry now makes its last counter exact even while alive. Exact totals therefore reject a hidden trailing update; genuine pre-expiry >=3-update alive lower bounds remain inexact. No lifetime/playing-time computation added.",
+      "reference": {
+        "path": "eech-campaign/crates/eech-world/lua/env-characterization.lua",
+        "line": 1270
+      }
+    },
+    {
+      "fact": "Probe frames must equal the independent observer frame_begin count, and every sound record must stay inside that frame extent. This is capture bookkeeping rather than a fabricated headless prerequisite.",
+      "reference": {
+        "path": "eech-campaign/crates/eech-world/lua/env-characterization.lua",
+        "line": 1170
+      }
+    },
+    {
+      "fact": "Corrected positive journal has two entities, 20 records, three entries and consecutive playing expiries 3..8 per entity, last update8/frame10, total16, no kills. Handle truth and ordered creation provenance are retained. New scalar assertions audit these actual canned values; negative guards independently cover hidden update total18 and record frame11.",
+      "reference": {
+        "path": "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+        "line": 3594
+      }
+    },
+    {
+      "fact": "All four delta files inspected. Comparing native942 to this head changes only the six explicit Lua/test/Markdown paths. C, observer, fixture, production Rust and build inputs are unchanged. Native942 with pinned e1dc Lua overrides is appropriate mixed provenance, not an e1dc native rebuild.",
+      "reference": {
+        "base_native_source": "9429beefb9a8e143b648e01c390075882e6e6361"
+      }
+    },
+    {
+      "fact": "Docs scope matches the bounded counter/frame rule, retains unsupported playback/invalid/loop/device/player cases and does not claim original retail measurement. No accepted baseline, tolerance, physical word or native arithmetic changed."
+    }
+  ],
+  "retained_evidence": {
+    "old4dc_tail_red": {
+      "path": "R:\\d3-evidence\\sound-red-actual-4dc-tail-20261031-r4.log",
+      "sha256": "654d24804a5cf9ad9d85060253320e770aeedd7b6eb31ccf03470ad5be25eed4",
+      "bytes": 2399
+    },
+    "exclusive_wip_failure": {
+      "path": "R:\\d3-evidence\\sound-tail-WIP-20261031-e1.log",
+      "sha256": "21f2c40d9ebdbdd335aef6bc77ab79443555986ac4582527f29310499f16c9d9",
+      "bytes": 17171
+    },
+    "exclusive_wip_green": {
+      "path": "R:\\d3-evidence\\sound-tail-WIP-20261031-e2.log",
+      "sha256": "eae4037c8c80323713f4c301a1457cc9e2ee740d880fa66bf5153013468fdfcf",
+      "bytes": 14208
+    },
+    "partial_prior_excerpt": {
+      "path": "R:\\d3-evidence\\sound-journal-WIP-20261031-d1-first-run-excerpt.txt",
+      "sha256": "c31d83f1b81e4a1415eb8ef01c10bc723a3a432c85851691a8b64ff428a0da74",
+      "bytes": 1152
+    },
+    "prior_overwritten_raw_available": false,
+    "preservation_gap": "The first d1 raw WIP log was overwritten and remains unavailable. The labelled excerpt and any retained user-facing tool results are partial evidence, not a recovered full log. This gap persists after source closure. New e1 failure/e2 green logs and Root canonical logs are distinct; no claim that all historical logs survived.",
+    "scope": "Inspected r4 old-validator acceptance/exit101 and the retained e1 formatting/assertion failure and e2 CLIPPY_EXIT=0/WSL_DOCKER_EXIT=0. WIP scripted guards are not original physical behavior evidence or canonical retail acceptance."
+  },
+  "execution_context": {
+    "reviewer": "Read-only source/evidence analysis and private report write only. No compiler/test/native run, Docker/process/source/auth/public action or agents.",
+    "runtime_acceptance": false,
+    "physical_acceptance": false,
+    "shipping_acceptance": false
+  },
+  "limitations": [
+    "Source gate applies to this exact new delta only. Four fresh original sound characterizations, full non-sound raw comparison, native/Lua/input/payload identity and current canonical checks/CI remain Root gates before a physical sound handoff.",
+    "No actual playback handle/device, invalid/unlink, looping, general external-state/lifecycle, audible/network/player/render/Tacview behavior is established. Scripted positive journals are bookkeeping guards, not fake physics proof.",
+    "Sound is not moved; Task51/D3/full shipping/normal merges remain open. Remaining sound/time/terrain/spatial/model responsibilities stay required; D4/D5 not started."
+  ]
+}

@@ -1,0 +1,266 @@
+{
+  "when_utc": "2026-10-31T19:12:01.606936+00:00",
+  "scope": "DEFAULT complete raw originalqueue vs hostqueue candidate bytes including endings, plus four REAL public host modes under distinct scope. Not shipping Tacview/full40/Task51/D3 acceptance.",
+  "all_five_default_complete_raw_including_endings_equal": false,
+  "defaults": [
+    {
+      "case": "natural",
+      "original_source": "a27f6ead2150fd4047c87a8eb7c5583f6a6d6c01",
+      "candidate_source": "7db2c6a91b4cd0a1fae2d8e20bfa169584618d24",
+      "actual_native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 54,
+      "complete_raw_bytes": [
+        5181498,
+        5181498
+      ],
+      "complete_raw_rows": [
+        17257,
+        17257
+      ],
+      "complete_raw_including_endings_equal": false,
+      "original_sha256": "3248f58461e40d76b9a8b19e6c827f901e54c4bf1ef314c162735ae03eb9d710",
+      "candidate_sha256": "2ba8df21b36eeca7be70ea303d79c9d8ae932034ac250dba9f30d7675434fcb5",
+      "first_byte_difference": 5172902
+    },
+    {
+      "case": "primitive-1",
+      "original_source": "a27f6ead2150fd4047c87a8eb7c5583f6a6d6c01",
+      "candidate_source": "7db2c6a91b4cd0a1fae2d8e20bfa169584618d24",
+      "actual_native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 54,
+      "complete_raw_bytes": [
+        2585,
+        2585
+      ],
+      "complete_raw_rows": [
+        8,
+        8
+      ],
+      "complete_raw_including_endings_equal": false,
+      "original_sha256": "bbd61178c4b0d113d072de3cfec42320284b81835713ade1721e6055f9a613f5",
+      "candidate_sha256": "09372d964448b35ac5eafc0b118150ed7e410c691a179b20ad989b155dc91107",
+      "first_byte_difference": 164
+    },
+    {
+      "case": "primitive-2",
+      "original_source": "a27f6ead2150fd4047c87a8eb7c5583f6a6d6c01",
+      "candidate_source": "7db2c6a91b4cd0a1fae2d8e20bfa169584618d24",
+      "actual_native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 54,
+      "complete_raw_bytes": [
+        3181,
+        3181
+      ],
+      "complete_raw_rows": [
+        10,
+        10
+      ],
+      "complete_raw_including_endings_equal": false,
+      "original_sha256": "929d0f151e8a9bf9615fdd75e2cfa50e877fed86c1a2d43b0797470409b744ff",
+      "candidate_sha256": "98d78a9b9887d54a89cc8d042baf067eb6770a0869d0adb364339d1a7830d313",
+      "first_byte_difference": 163
+    },
+    {
+      "case": "primitive-3",
+      "original_source": "a27f6ead2150fd4047c87a8eb7c5583f6a6d6c01",
+      "candidate_source": "7db2c6a91b4cd0a1fae2d8e20bfa169584618d24",
+      "actual_native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 54,
+      "complete_raw_bytes": [
+        13860,
+        13860
+      ],
+      "complete_raw_rows": [
+        42,
+        42
+      ],
+      "complete_raw_including_endings_equal": false,
+      "original_sha256": "028abbfc794cce455247352bb586411e99631ef7862034bc3fcf93011e507d99",
+      "candidate_sha256": "637b2231caf722f477920a4892af4c06cde85085f3033597b1b9af0e826bb14a",
+      "first_byte_difference": 166
+    },
+    {
+      "case": "primitive-4",
+      "original_source": "a27f6ead2150fd4047c87a8eb7c5583f6a6d6c01",
+      "candidate_source": "7db2c6a91b4cd0a1fae2d8e20bfa169584618d24",
+      "actual_native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 54,
+      "complete_raw_bytes": [
+        3993,
+        3993
+      ],
+      "complete_raw_rows": [
+        12,
+        12
+      ],
+      "complete_raw_including_endings_equal": false,
+      "original_sha256": "d6ee22ef0bb6bd06b384f7b2d6a50bdb555df088bf9972b5247ac29d148d339f",
+      "candidate_sha256": "64ff3722aa2762c1e2961d01deead5c5f08bba9ea52408362163167dac128218",
+      "first_byte_difference": 170
+    }
+  ],
+  "authority": [
+    {
+      "mode": "healthy",
+      "actual_native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 54,
+      "authority": {
+        "case": 2,
+        "completed": true,
+        "delegate_ran": true,
+        "forwarded_other_requests": 3,
+        "mode": "healthy",
+        "op": "lightning_add",
+        "requests": 1,
+        "mask_after_w": "00000001",
+        "occupancy_after": "1",
+        "source": "host.env_provider wrapper on the public path",
+        "verdict": "host_asked_and_queued"
+      },
+      "real_case_result": [
+        {
+          "case": 2,
+          "changed": "1",
+          "event": "result",
+          "label": "add_with_the_main_environment",
+          "mask_after_w": "00000001",
+          "mask_before_w": "00000000",
+          "occupancy_after": "1",
+          "occupancy_before": "0",
+          "refusal": "",
+          "refused": false,
+          "update_calls_after": "0",
+          "update_calls_before": "0"
+        }
+      ],
+      "engine_failure_rows": 0,
+      "result_rows": 1,
+      "raw_sha256": "98d78a9b9887d54a89cc8d042baf067eb6770a0869d0adb364339d1a7830d313",
+      "authority_sha256": "b24eb71802defe7313ccc24d6a0f33358bcde33cc8f59197d2106c3a32cc2ba2",
+      "scope": "completed physical control"
+    },
+    {
+      "mode": "changed",
+      "actual_native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 54,
+      "authority": {
+        "case": 2,
+        "completed": true,
+        "delegate_ran": true,
+        "forwarded_other_requests": 3,
+        "mode": "changed",
+        "op": "lightning_add",
+        "requests": 1,
+        "mask_after_w": "00000000",
+        "occupancy_after": "0",
+        "source": "host.env_provider wrapper on the public path",
+        "verdict": "host_changed_the_queue"
+      },
+      "real_case_result": [
+        {
+          "case": 2,
+          "changed": "1",
+          "event": "result",
+          "label": "add_with_the_main_environment",
+          "mask_after_w": "00000000",
+          "mask_before_w": "00000000",
+          "occupancy_after": "0",
+          "occupancy_before": "0",
+          "refusal": "",
+          "refused": false,
+          "update_calls_after": "0",
+          "update_calls_before": "0"
+        }
+      ],
+      "engine_failure_rows": 0,
+      "result_rows": 1,
+      "raw_sha256": "a5d3cff54c88d723d086f3186f4b9a3274ca5f2c7d3087a9090f0fa001250dd2",
+      "authority_sha256": "a5d03209bd2eff7e49309557693b7cddb12e5e4698d8e5a924a430b9929fefcb",
+      "scope": "completed physical control"
+    },
+    {
+      "mode": "withheld",
+      "actual_native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 54,
+      "authority": {
+        "case": 2,
+        "completed": false,
+        "delegate_ran": false,
+        "forwarded_other_requests": 3,
+        "mode": "withheld",
+        "op": "lightning_add",
+        "requests": 1,
+        "marker": "[env-provider:lightning_add.callback]",
+        "stopped": true,
+        "source": "host.env_provider wrapper on the public path",
+        "verdict": "stopped_at_boundary"
+      },
+      "real_case_result": [],
+      "engine_failure_rows": 1,
+      "result_rows": 0,
+      "raw_sha256": "00c9bf12404742ec9381e40957125bf9a6e95226e585e33937f6e675e33903b3",
+      "authority_sha256": "685558414a5ea349a1bd868211230f4d6ebe6cea3dcfec4d6b26e601821e2f27",
+      "scope": "stopped campaign at expected boundary; not a completed physical case"
+    },
+    {
+      "mode": "malformed",
+      "actual_native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 54,
+      "authority": {
+        "case": 2,
+        "completed": false,
+        "delegate_ran": false,
+        "forwarded_other_requests": 3,
+        "mode": "malformed",
+        "op": "lightning_add",
+        "requests": 1,
+        "marker": "[env-provider:lightning_add.answer]",
+        "stopped": true,
+        "source": "host.env_provider wrapper on the public path",
+        "verdict": "stopped_at_boundary"
+      },
+      "real_case_result": [],
+      "engine_failure_rows": 1,
+      "result_rows": 0,
+      "raw_sha256": "bdc3124f7d3702fb46c73faa3391f54a6a223681ed35fa1526d862f83880c341",
+      "authority_sha256": "b1a6d78d17903e26b2bb90dcc851e547705f5c116402f61dbc80147488e1be97",
+      "scope": "stopped campaign at expected boundary; not a completed physical case"
+    }
+  ]
+}

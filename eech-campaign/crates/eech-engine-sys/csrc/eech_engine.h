@@ -21,6 +21,7 @@
 #include "entity/mobile/mb_hostaim.h"
 #include "entity/mobile/mb_hostobj.h"
 #include "entity/mobile/mb_hostterrain.h"
+#include "entity/special/session/ss_hostenv.h"
 
 #define EECH_ENGINE_OK 0
 #define EECH_ENGINE_FATAL 1
@@ -71,6 +72,9 @@ typedef campaign_movement_result eech_movement_result;
 typedef campaign_move_vehicle_fn eech_move_vehicle_callback;
 typedef campaign_los_fn eech_line_of_sight_callback;
 typedef campaign_terrain_fn eech_terrain_callback;
+typedef campaign_env_fn eech_environment_callback;
+typedef campaign_sound_catalogue_fn eech_sound_catalogue_callback;
+typedef campaign_sound_backend_fn eech_sound_backend_callback;
 typedef campaign_sense_fn eech_sense_callback;
 typedef campaign_aim_fn eech_aim_callback;
 
@@ -92,6 +96,12 @@ struct eech_engine_host
 	eech_aim_callback aim;
 	/* Called synchronously for every physical terrain question (mb_hostterrain.h): the map facts, the surface at a point (elevation, normal, type, and the record's opaque hint) and the fast gridpost elevation. Unlike the dialogue callbacks above it is installed for the rest of the process by the first entry that carries it (boot requires it), because the campaign asks about terrain from every entry. The host owns the physical terrain; there is no campaign fallback. */
 	eech_terrain_callback terrain;
+	/* Called synchronously for every physical weather and wind question and for the physical update of the field (ss_hostenv.h): the host owns the weather and wind zones, their evolution, the gusts and the lightning timer; the campaign keeps the clock, the draws of the shared random word, the entity effects of a strike and every consequence. Installed for the rest of the process by the first entry that carries it (boot requires it); there is no campaign fallback. */
+	eech_environment_callback environment;
+	/* Called synchronously ONCE at boot (ss_hostenv.h campaign_sound_catalogue_request, snd_data.c): the host owns the physical sample metadata at initialisation: each named descriptor's rate and original rate and, from the host's own sound.hdr / sound.dat (its data root, presence and lookup), the length of the header's entry for it. Installed for the rest of the process by the first entry that carries it (boot requires it); there is no campaign fallback. */
+	eech_sound_catalogue_callback sound_catalogue;
+	/* Called synchronously ONCE at boot (ss_hostenv.h campaign_sound_backend_request, snd_init.c): the host owns the physical sound backend AVAILABILITY at initialisation. The request carries the phase, the two command line flags and whether the samples would be loaded; the reply is one flag. An answer of available is refused by name until the loader bodies and playback routes are the host's. Installed like the other hosts and kept for the process. */
+	eech_sound_backend_callback sound_backend;
 	void *user;
 };
 
@@ -396,6 +406,39 @@ int eech_engine_cmb_case_act (int op, const char *kind, int ordinal, const char 
 /* The controlled bridge case of the ORIGINAL collapse (EEDCS-46, R5, see eech_cmb_case.c): op 0 survey of every bridge, op 1 state of the bridge at ordinal, op 2 the declared structural failure of one\n   segment of it (index, or -1 for the first by criterion), op 3 disarm the observer.  Given the same complete host as a frame. */
 int eech_engine_cmb_case_bridge (int op, int ordinal, int index, int criterion, char *text, int capacity, const struct eech_engine_host *host);
 int eech_engine_cmb_events (char *text, int capacity, int *more);
+#endif
+
+#ifdef EECH_ENV_FIXTURE
+/*
+ * TEST-ONLY (feature env-fixture, EEDCS-51): see eech_env_fixture.c. Not part of the shipping module.
+ * One call is one case, as `key=value` text lines. group 0 the census (case counts, enum values, constants, unsupported items), 1 the unmodified session environment with its original
+ * queries (read-only); 2 weather, 3 wind, 4 gust, 5 clock, 6 initialisers, 7 time-of-day update, 8 weather/wind update: controlled witnesses that restore everything they touch.
+ * Fails (bad argument, the reason in the text) for an unknown group or index or a report that does not fit `capacity`.
+ */
+int eech_engine_env_case (int group, int index, char *text, int capacity);
+#endif
+
+#ifdef EECH_ENV_OBSERVER
+/*
+ * TEST-ONLY (feature env-observer, EEDCS-51): see eech_env_observer.c. arm is valid only before boot (on) or at any time (off); the report and the events are read after boot.
+ * The events are drained incrementally: more is set to 1 while unread events remain. Not part of the shipping module.
+ */
+int eech_engine_env_observer_arm (int on);
+int eech_engine_env_observer_report (char *text, int capacity);
+int eech_engine_env_observer_events (char *text, int capacity, int *more);
+/*
+ * TEST-ONLY (feature env-observer, EEDCS-51, D3): the helicopter rotor sound probe (see eech_env_observer.c ENV_FXR). It is armed ONLY by its own arm call, valid before boot (on) or at any time (off); nothing else arms it
+ * and the observation-off stream is unchanged. The report states its counters and domain limits; the events are DRAINED in pages: `more` is set to 1 while stored calls remain unread, and the page is empty again once
+ * everything has been read. Not part of the shipping module.
+ */
+int eech_engine_env_rotor_arm (int on);
+int eech_engine_env_rotor_report (char *text, int capacity);
+int eech_engine_env_rotor_events (char *text, int capacity, int *more);
+
+/* TEST-ONLY (env-observer): the resumed-parent playback probe (ENV_FXP): armed only by its own call, before boot, and drained in pages */
+int eech_engine_env_play_arm (int on);
+int eech_engine_env_play_report (char *text, int capacity);
+int eech_engine_env_play_events (char *text, int capacity, int *more);
 #endif
 
 #ifdef EECH_GROUND_FIXTURE

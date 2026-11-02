@@ -1,0 +1,136 @@
+{
+  "created_utc": "2026-11-01T04:16:03.248803+00:00",
+  "reviewer": "sole independent Codex reviewer",
+  "source": {
+    "head": "41d8c617304d35d5d79e0c80ef6a186527ed3114",
+    "physical_native_and_lua": "7574caa2ca87a2a44608a234fd1dd73136b8e4c0",
+    "repo_clean_at_inspection": true,
+    "safe_candidate_directory": "R:/d3-evidence/curated-original-sound-header-present-7574-20261101",
+    "safe_candidate_not_yet_in_git": true
+  },
+  "scope": "One new bounded actual/helper/checker/safe-projection review of the declared valid-header original boot prerequisite. Closed7574/144e/5d96 source/build/FP/hook gates reused. No new tests, builds, native executions, retail experiments, agents or source edits by reviewer.",
+  "findings": [],
+  "finite_header_present_original_control_closed": true,
+  "inspected_facts": {
+    "execution": "Retained controller9896 and native7916 terminalactual0; expectation checker20492 terminalactual0 at2026-11-01T04:10:41.253184Z. Native arguments seconds0/frame_ms100; boot and result report0frames. This is not a natural120s comparison.",
+    "input_boundary": {
+      "original_files": 1179,
+      "controlled_files": 1181,
+      "original_reference_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+      "controlled_reference_sha256": "8f88c1d3f9dd90c4ecef6ef6fd86c732e31f85d6d44db9a941860414a2429279",
+      "controlled_combined_sha256": "0b9a3643fb7347d6281237eeee22884601251b32dae8579f8be9c707c4848820",
+      "facts": "Preparation copied a private root and passed the original manifest before adding files. Independently compared all1179 original manifest entries and all four retained pre/post manifest arrays; precisely the two declared audio extras appear. Original-reference comparisons remain actual1, controlled-reference comparisons actual0. Independently rehashed all1181 retained root files against the controlled manifest; frozen/current original reference bytes and fixture bytes remain unchanged."
+    },
+    "fixture_generation": "Read all four helper scripts and curator. Independently decoded282-byte little-endian header:7 complete bounded records, positive NUL-terminated ASCII names and offsets/lengths within208-byte deterministic synthetic data. Fixture bytes match declaration and root hashes. Reconstructed the2122-slot/2069-named initial descriptor digest6605372942e1ea2c from frozen enum/table; this is the real original lookup prerequisite, not a refusal for header presence.",
+    "original_source_rules": "Read snd_data.c open/lookup/init paths2910..3180 and engine chdir site. The original unconditionally fills descriptors, opens header/data, reads count and four int32 fields plus filename, then finds the FIRST equal-hash/name/index entry. Data is opened but this init path does not read sample bytes. Source plus actual first-path successful opens supports the declared cohokum/audio location. All names here use exact original spelling; no case-variation conformance is inferred.",
+    "measured_header_lookup": {
+      "header_records": 7,
+      "matched_descriptors": 4,
+      "missed_descriptors": 2065,
+      "nonzero_size_slots": 3,
+      "lightning_first_duplicate_size": 96,
+      "later_duplicate_size_not_selected": 48,
+      "matched_thunder_size": 0,
+      "other_nonzero_slot_sizes": {
+        "2051": 24,
+        "2087": 40
+      },
+      "filled_digest": "6605372942e1ea2c",
+      "end_and_report_digest": "8c600fed7309b2fc",
+      "scope": "Independent source-derived reconstruction agrees with declaration and complete measured catalogue digest. Wrong name and a real name under a wrong key remain unmatched. This covers these literal valid records only."
+    },
+    "measured_runtime_context": "Four first-path open attempts header,data,header,data all succeed without retry; header2/data2. Backend still fails once at DirectSoundCreate80004005, other3 observed COM calls0; no positive backend/handle. Constructor boot totals4764calls/3548looping/1216reads/49unique keys, digestfb512cf8b558a5cd.49 first-read rows use counts sum1216 and agree with declared sizes. They are not compared with natural120s totals.",
+    "completeness_and_identity": {
+      "payloads_verified": 62,
+      "built_lua_sha256": "a40bd591c0b309819f1fcaa5a88464c49a64434df8c04baf95d8d644035c4182",
+      "json_rows": 81,
+      "json_sha256": "12365d8de42e96841f433296edc98a3904078ce6e584b2074247dc780f85c3a4",
+      "sidecar_bytes": 6593,
+      "sidecar_sha256": "d0783687994d943021cd37820c9059b8e07780f5630e6237d816c63b221ffbbb",
+      "facts": "Independently hashed all62 unchanged BUILD-INFO payloads and the script. Every JSON raw row exactly joins the complete sidecar and each key/value joins its projection; strict JSON duplicate/nonfinite rejection used for inspection. No refusal/engine_failure/witness_failure. Fingerprint seed/entity/local before-after equal; report changed0/read_only1."
+    },
+    "checker": "Read entire checker and source-derived generator. Retained actualchecker0 reports64 passing comparisons, separated23header_derived/12carried_over/29consistency. Independently reconciled observed header/catalogue/open/constructor/fingerprint facts and all64 retained outcomes. Self-test source checks the absent-header report, a rewritten coherent positive and wrong duplicate result; these are checker controls, not physics proof. The expectation checker supplements the already reviewed strict Lua parser; no standalone arbitrary-malformed-protocol completeness claim is made.",
+    "safe_projection": "All eight candidate files inspected. Five declared source/declaration copies match private original bytes/SHA. Measured projection exactly joins private JSON, excluding raw strings, sidecar path and seed/entity/local values;64 checks match private outcomes except explicit fingerprint-value redaction. No positions, allocation identifiers, retail bytes or raw reports included. Semantic sample catalogue keys and synthetic fixture specification are retained. README scope and measured facts agree. This review binds these private candidate bytes, not a later unreviewed Git serialization."
+  },
+  "reused_reviews": [
+    {
+      "report": "independent-environment-original-sound-init-capacity-source-review-7574caa2c-20261101.json",
+      "sha256": "144e578209b5631e6d275341cdfd538fca8a195efb70cb39f83cf16e92139ef4"
+    },
+    {
+      "report": "independent-environment-original-sound-init-final-actual-review-7574caa2c-20261101.json",
+      "sha256": "5d96cd8b7519aed751fe75ff15ea468da2e89f99c60cac2be090f55a9206fc35"
+    }
+  ],
+  "limitations": [
+    "Controlled synthetic additions are explicitly outside the accepted original1179-file input set. Expected original-reference exit1 is preserved, never relabelled as0 or waived.",
+    "Only one boot on the existing hosted baseline is measured. No malformed/truncated header, reload, all filename/hash conditions, data-byte loading, positive device/backend/handle or runtime-all-path conformance is accepted.",
+    "First-read tuples and aggregate use/digest facts are distinguished. No assertion that all later read values were individually recorded.",
+    "Failed original458probe and unavailable full returned report, earlier WIP failures/raw gaps and accepted original baselines remain unchanged. No prior characterization was repeated by reviewer.",
+    "No metadata/backend ownership move, Tacview, shipping40/all8, wholeTask51/D3, normal merge or D4/D5 acceptance. Required remaining metadata/assets/readers/backend/per-family/time/terrain/spatial/model responsibilities stay open."
+  ],
+  "evidence": [
+    {
+      "path": "R:/d3-evidence/environment-original-sound-header-present-7574caa2c-20261101-0400/controller.json",
+      "bytes": 11501,
+      "sha256": "370eef9ead0dc23d9e94f45895ea7bbbb88fc69ad6801b22a603a260915e5ee5"
+    },
+    {
+      "path": "R:/d3-evidence/environment-original-sound-header-present-7574caa2c-20261101-0400/expectation-check.json",
+      "bytes": 9458,
+      "sha256": "b96b63212d4d2d54c2b2b4f6956234dab109d29cdbdc36f89d9aa365d09f3e82"
+    },
+    {
+      "path": "R:/d3-evidence/original-sound-header-present-20261101-0400-prepare.json",
+      "bytes": 5631,
+      "sha256": "2c51b8dce22929136af18ae3dc9024459ac7e137f17777cda0577920f52a2d6e"
+    },
+    {
+      "path": "R:/d3-evidence/curate-original-header-present-20261101.py",
+      "bytes": 5298,
+      "sha256": "0413b58ae3306ce5fced5f481b86af8f95591883b4b663abaa8d8b4191261ad3"
+    }
+  ],
+  "safe_candidate_files": [
+    {
+      "path": "R:/d3-evidence/curated-original-sound-header-present-7574-20261101/check-control.py",
+      "bytes": 13744,
+      "sha256": "7960ab4f5682142115a27e09f6e6113f6f4189ead695577a1ccd43d845fa938e"
+    },
+    {
+      "path": "R:/d3-evidence/curated-original-sound-header-present-7574-20261101/fixture-declaration.json",
+      "bytes": 4553,
+      "sha256": "55a0c7ecd86cf78505f59927c57cab4b02e579747a08716a0b153aae413125c8"
+    },
+    {
+      "path": "R:/d3-evidence/curated-original-sound-header-present-7574-20261101/generate-fixture.py",
+      "bytes": 11178,
+      "sha256": "a28fcbcd105fc4b78f03d46c4e11d3cc42d65b7a58343fadcd6718e71a6f1e58"
+    },
+    {
+      "path": "R:/d3-evidence/curated-original-sound-header-present-7574-20261101/measured-header-present.json",
+      "bytes": 35086,
+      "sha256": "a23e55449009f96ada92523c8076cd13cf394c4be79c475778eb0525d72698c0"
+    },
+    {
+      "path": "R:/d3-evidence/curated-original-sound-header-present-7574-20261101/prepare-control.py",
+      "bytes": 7102,
+      "sha256": "cff386e6f10fb81c04f87ebf96b7aa3af6300c93280e0e9626778cf10a6f8e59"
+    },
+    {
+      "path": "R:/d3-evidence/curated-original-sound-header-present-7574-20261101/README.md",
+      "bytes": 1935,
+      "sha256": "3bf941b0ba5d3f714e5f9d178a284af9a0f672197c10fdf92ff4391d8d8e0e4a"
+    },
+    {
+      "path": "R:/d3-evidence/curated-original-sound-header-present-7574-20261101/retained-identities.json",
+      "bytes": 1146,
+      "sha256": "0545528d5ae45ce5f23c0df0cf971e9640ab6131cb4f3cb3fdff7599349b927a"
+    },
+    {
+      "path": "R:/d3-evidence/curated-original-sound-header-present-7574-20261101/run-control.py",
+      "bytes": 9145,
+      "sha256": "376be52f23d3cbabae4871b89a6f188155d10ec60685f56e4638aa870bc55bc9"
+    }
+  ]
+}

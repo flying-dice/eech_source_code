@@ -42,7 +42,7 @@ end
 local engine = dc.boot {
 	install_root = root,
 	map = scenario.map,
-	terrain = host.terrain_provider (root, scenario.map),
+	terrain = host.terrain_provider (root, scenario.map), environment = host.env_provider (),
 	campaign_directory = "camp01",
 	campaign = scenario.campaign,
 	gunship = "apache",

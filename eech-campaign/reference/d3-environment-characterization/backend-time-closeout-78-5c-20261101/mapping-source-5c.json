@@ -1,0 +1,50 @@
+{
+  "review": "Independent residual bootstrap and lightning qualification documentation review",
+  "created_utc": "2026-11-01T16:58:31.122104+00:00",
+  "source": {
+    "documentation_head": "5c25092cf5cacfdc630229fe30310a4dac7d53e8",
+    "previous_reviewed_doc_head": "ff6240022b78a539a0ee41c1a98518655c906407",
+    "unchanged_physical_source_and_native": "78fe5efdb5cbaff904e3b645d680acbd7776597d",
+    "diff_sha256": "d2e9cedb42d10e0db52e1a06d43fe0d8dd63051b8e13d38b53b5ac4aa709f01a",
+    "changed_files": [
+      {
+        "path": "STATUS.md",
+        "git_blob_sha256": "a81e59ee78b8a1d5b60ac0c6c30f043625647977faaa6d8ff2f28cc720808c0c"
+      },
+      {
+        "path": "eech-campaign/docs/d3-environment-time-DCS-mapping.md",
+        "git_blob_sha256": "6be8651777440fd682108a4cad2d853f00d5b9748d86473c58d2401b0d6c0d8b"
+      }
+    ],
+    "all_other_tracked_entries_and_modes_exact78": true
+  },
+  "scope": "Only the new two-document residual correction from56790ccdbbcea518117b4d1072726162b90179d2d9de547c93581664d3ff16ea. Prior time/input-domain/API, source ownership, scalar/vector validation and concrete restricted provider-plan conclusions reused. No old corpus/source fleet, runtime test, native rerun, active-worktree edit or DCS observation.",
+  "findings": [],
+  "documentation_review_no_blocking_findings": true,
+  "finite_doc_source_time_input_API_workaround_plan_closed": true,
+  "restricted_static_weather_workaround_plan_closed": true,
+  "closed_findings": [
+    {
+      "id": "D3-MAPPING-BOOT-1",
+      "status": "closed",
+      "basis": [
+        "The document now expresses acceptance through the observed request sequence rather than an inferred game.cfg cause. A compatible fixed request may originate in a campaign rain tag0 or configured GOOD/FAIR/POOR; once the mirror is global, RANDOM makes no additional init_random request.",
+        "It explicitly accepts authoredDRY plus campaign rain tag0 even with missing/default-RANDOM game.cfg, and limits refusal to no compatible fixed sequence, an actual later random request, or an incompatible fixed request. Each fixed request still has to match the authored mode.",
+        "No extra configuration prevalidation, boot control or API restriction is introduced, and the provider is no longer claimed to distinguish otherwise identical init_fixed requests by origin. Restricted import/load/save/client outcomes remain as the existing table specifies, not general positive lifecycle support."
+      ]
+    }
+  ],
+  "lightning_source_qualification": "Corrected: reference wind-zone/gust evolution is outside the local/global weather branch; lightning-timer evolution is local-model-only and stops under fixed/global mode. The planned frozen F(M) step remains explicitly a separate DCS-provider behavior.",
+  "finite_plan_decision": "The named existing time input, timer/terrain/atmosphere declaration mapping and TL-selected static authored compatibility workaround are coherent at this bounded documentation/design level. C0/F(M), import acknowledgement versus mirror writes, bootstrap fixed-request requirement, chosen10m horizontal wind observation plane, scalar derivation/unity gust and per-request ambient relationships are planned-provider decisions, not implementation or DCS measurement. This closes these documentation findings and the finite workaround-plan review only.",
+  "preserved_unmet_native_checks": [
+    "Actual mission-state availability, field types/stability, pairing and truth of the author-declared static restriction; no decoded weather enum or captured mission is invented.",
+    "C0 bit patterns/map facts and the restricted boot/import/export/step and supported/refused lifecycle matrix in the future provider. No general reload, second-mission, save or client-state support follows from a matrix being named.",
+    "DCS wind Vec3 axes/units/height behavior, coordinate transform and float32 narrowing; actual DCS time pause/stall/acceleration/callback and fractional-ms conversion/lifecycle behavior.",
+    "The authored weather may differ from real DCS precipitation by its declared compatibility restriction; this is not an observational weather-equivalence claim."
+  ],
+  "limitations": [
+    "No code, build, configuration, test, baseline, oracle, runtime input domain or native identity changed. Native78 remains78.",
+    "No implemented DCS provider/schema, live M6 result, full physical-time service/all-weather support, whole M5/Task51/D3/49/50, shipping40/all8/Tacview, final CI or normal-delivery acceptance.",
+    "Running shipping processes/prefix comparisons are outside this review; partial prefix equality is not completed shipping evidence."
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "source": "e5020587153e1922acdc412598c4920501988a9a",
+  "pid": 25520,
+  "state": "terminal",
+  "started_utc": "2026-10-31T22:56:49.853892+00:00",
+  "stages": [],
+  "scope": "Finite public sound ownership controls then read-only combined audit. No shipping/Task51/D3 acceptance.",
+  "actual_exit": 1,
+  "error": "JSONDecodeError('Expecting value: line 1 column 1 (char 0)')",
+  "completed_utc": "2026-10-31T23:03:59.923297+00:00"
+}

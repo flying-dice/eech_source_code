@@ -1,0 +1,106 @@
+[
+  {
+    "private_original": "R:\\d3-evidence\\environment-original-sound-entity-controls-e1dc75807-20261031\\natural\\controller.json",
+    "private_original_sha256": "fb02154b05e9b996c9a80b19dab00a6807945a3f9fb407447849086bb8273843",
+    "published": "natural-controller.json",
+    "published_sha256": "a72a9a3181cdf424c467aa7cb84f4c5c638eefba536411be8a202c5a8ffbf8d7",
+    "scope": "Safe metadata with LF publication; measured raw outputs are untouched"
+  },
+  {
+    "private_original": "R:\\d3-evidence\\environment-original-sound-entity-controls-e1dc75807-20261031\\primitive-1\\controller.json",
+    "private_original_sha256": "12452236c6ad44f310bc123f7ce02b0c2fe6998d7c31b2864722c363da7517bd",
+    "published": "primitive-1-controller.json",
+    "published_sha256": "ce50e1befcbd6f5dc45568b06e93d17bd0c14de75742ec26fe9e0f250dca76ee",
+    "scope": "Safe metadata with LF publication; measured raw outputs are untouched"
+  },
+  {
+    "private_original": "R:\\d3-evidence\\environment-original-sound-entity-controls-e1dc75807-20261031\\primitive-2\\controller.json",
+    "private_original_sha256": "932227a2f14ac45cb56e905221cbf7f1f3c85e6a2f749497e62f985df447b0bb",
+    "published": "primitive-2-controller.json",
+    "published_sha256": "495f5b05bee70df8b754c4986ea759c71d3d3186d223f7bd2b57061433d591b5",
+    "scope": "Safe metadata with LF publication; measured raw outputs are untouched"
+  },
+  {
+    "private_original": "R:\\d3-evidence\\environment-original-sound-entity-controls-e1dc75807-20261031\\primitive-3\\controller.json",
+    "private_original_sha256": "c53416705778825ed7dcdd5db78428cc53a16f360c808815c1a635eb847b8ef7",
+    "published": "primitive-3-controller.json",
+    "published_sha256": "2bdb42faa848fe88cacfab8f3d8795690f79b23f380031e29eb928b9c389edd7",
+    "scope": "Safe metadata with LF publication; measured raw outputs are untouched"
+  },
+  {
+    "private_original": "R:\\d3-evidence\\original-sound-e1dc-vs-queue7db-complete-raw-20261031.json",
+    "private_original_sha256": "9da947b7f5d3b0f0b7f63e682406b2a0af5c22fb43183a5ab0f71f220d4b34bd",
+    "published": "complete-raw-comparison-safe.json",
+    "published_sha256": "2d0145f4c865e82a99059e8e90d5985e60cbb4d6673090e8a2ad6e36e9b19477",
+    "scope": "Safe metadata with LF publication; measured raw outputs are untouched"
+  },
+  {
+    "private_original": "R:\\d3-evidence\\environment-sound-entity-original-9429beefb-windows-20261031-completion.json",
+    "private_original_sha256": "a317b326fa6ff2ca411edb6b69a60cb2eb3b5b82c17714a39278fd633be4e56e",
+    "published": "environment-sound-entity-original-9429beefb-windows-20261031-completion.json",
+    "published_sha256": "1b6de17b72def1e9f5165ec22e450f737aff74303e0e1850847bda1363bc598d",
+    "scope": "Safe metadata with LF publication; measured raw outputs are untouched"
+  },
+  {
+    "private_original": "R:\\d3-evidence\\environment-sound-entity-original-9429beefb-linux-20261031-completion.json",
+    "private_original_sha256": "ec40e96a5615b873170fe5222442ab0377ef6b1baa47a8c49703243b7f6c9a70",
+    "published": "environment-sound-entity-original-9429beefb-linux-20261031-completion.json",
+    "published_sha256": "3dcdda022a0786b69471bcc1012422c70d14b099ee3613fd3c95620df33921a1",
+    "scope": "Safe metadata with LF publication; measured raw outputs are untouched"
+  },
+  {
+    "private_original": "R:\\d3-evidence\\environment-sound-entity-original-e1dc75807-linux-20261031-completion.json",
+    "private_original_sha256": "a7d10e3d3fa3ac6810d42a94a97dcf7fbfe2211e883e90f09e49ce325c960a42",
+    "published": "environment-sound-entity-original-e1dc75807-linux-20261031-completion.json",
+    "published_sha256": "208b68b9713fca9f3064d1a7065a325d1d29ac693d410dd50c3c22bfa302bc1e",
+    "scope": "Safe metadata with LF publication; measured raw outputs are untouched"
+  },
+  {
+    "private_original": "R:\\d3-evidence\\original-sound-native9429beefb-driver-e1dc75807-equivalence-20261031.json",
+    "private_original_sha256": "eacdf38d62ac0b241cf058f10e17b5adf85d7a480d821161b25a6c67c0bab725",
+    "published": "original-sound-native9429beefb-driver-e1dc75807-equivalence-20261031.json",
+    "published_sha256": "7617fe0210ef849b8629c1789d039713adc2b9529aa4fe567ee4ce8fbfb59820",
+    "scope": "Safe metadata with LF publication; measured raw outputs are untouched"
+  },
+  {
+    "private_original": "R:\\d3-evidence\\original-sound-c9-to-9429beefb-validation-equivalence-20261031.json",
+    "private_original_sha256": "45623fc412c77433eb57b63d2f6433af73fc22bce0beda6949deaa2ac986eb9c",
+    "published": "original-sound-c9-to-9429beefb-validation-equivalence-20261031.json",
+    "published_sha256": "37f0a9f6f7ec58bc7ccad917587291ec5fda7d789846c2583a3b923d98fe508e",
+    "scope": "Safe metadata with LF publication; measured raw outputs are untouched"
+  },
+  {
+    "private_original": "R:\\d3-evidence\\environment-sound-entity-original-c9c1b0a1b-linux-20261031-completion.json",
+    "private_original_sha256": "eaab612b0aa0d8d7cac7d46cced19bb98a7add28319bcccb1746011481556a6c",
+    "published": "environment-sound-entity-original-c9c1b0a1b-linux-20261031-completion.json",
+    "published_sha256": "2f4e5c1bf4933e7c1229423ff0296dd9c7bf021b1fccaa6b0301d6f9139b4a98",
+    "scope": "Safe metadata with LF publication; measured raw outputs are untouched"
+  },
+  {
+    "private_original": "R:\\d3-evidence\\independent-environment-original-sound-source-review-e1dc75807-20261031.json",
+    "private_original_sha256": "4e8664c7c34322311d6555de015cf909a981d5d16bebaa3a9a05eede5074374d",
+    "published": "independent-environment-original-sound-source-review-e1dc75807-20261031.json",
+    "published_sha256": "0504e3b9407179b067ce69990787c0f25244dd14e19cd312b3bc54f890f12542",
+    "scope": "Safe metadata with LF publication; measured raw outputs are untouched"
+  },
+  {
+    "private_original": "R:\\d3-evidence\\environment-sound-entity-original-source-9429beefb\\eech-campaign\\target\\env-observer\\sound-entity-original-9429beefb\\BUILD-INFO.txt",
+    "private_original_sha256": "5f89b32e93190b8ef22d8d46675f70dd4ec8567b4ad0dbcffce4e63cdbbd2930",
+    "published": "BUILD-INFO.txt",
+    "published_sha256": "5f89b32e93190b8ef22d8d46675f70dd4ec8567b4ad0dbcffce4e63cdbbd2930"
+  },
+  {
+    "private_original": "R:\\d3-evidence\\independent-environment-original-sound-final-actual-review-native942-driver-e1dc-20261031.json",
+    "private_original_sha256": "c0119559a4de76b6dde864dc50417dba53a2c90d4114830dabd41c266a044f0d",
+    "published": "independent-environment-original-sound-final-actual-review-native942-driver-e1dc-20261031.json",
+    "published_sha256": "5d6e66356f9946771889b556b52b11fc6652c7481a238b45c28d06a880e4ba68",
+    "scope": "Safe review/current-source CI metadata, LF publication only"
+  },
+  {
+    "private_original": "R:\\d3-evidence\\current-CI-e1dc75807-20261031.json",
+    "private_original_sha256": "cc9d7ac5c45f2195a9a488b0df22c024a64a7b00f19b2a388e4052b4e7603d40",
+    "published": "current-CI-e1dc75807-20261031.json",
+    "published_sha256": "cc9d7ac5c45f2195a9a488b0df22c024a64a7b00f19b2a388e4052b4e7603d40",
+    "scope": "Safe review/current-source CI metadata, LF publication only"
+  }
+]

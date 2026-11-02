@@ -1,0 +1,32 @@
+{
+  "source": "f6d812c7c8e33179ec7d0a8143ede370da336bf5",
+  "started_utc": "2026-10-31T15:34:40.752268+00:00",
+  "scope": "ACTUAL Windows unit processes. Asset-dependent skips are not retail/authority/shipping proof.",
+  "cases": [
+    {
+      "name": "terrain_sector",
+      "pid": 17960,
+      "args": [
+        "R:\\d3-evidence\\environment-sound-source-f6d812c7c\\eech-campaign\\target\\windows-sound-extras-f6d812c7c\\terrain_sector.exe",
+        "ambient",
+        "--test-threads=1",
+        "--nocapture"
+      ],
+      "sha256": "31d0a4778b8eb33449ed85fe0b6216ec29e1a2364ba5ec3cdafdaccb0dadaf26",
+      "state": "terminal",
+      "actual_exit": 0,
+      "filter": "ambient",
+      "summaries": [
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.01s"
+      ],
+      "passed_tests": 4,
+      "failed_tests": 0,
+      "nonempty_filtered_execution": true
+    }
+  ],
+  "state": "terminal",
+  "controller_pid": 11888,
+  "verified_payloads": 51,
+  "completed_utc": "2026-10-31T15:34:41.095331+00:00",
+  "all_actual_unit_exits_zero": true
+}

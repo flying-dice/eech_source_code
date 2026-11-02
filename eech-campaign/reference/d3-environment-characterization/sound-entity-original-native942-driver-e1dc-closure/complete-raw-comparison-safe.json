@@ -1,0 +1,236 @@
+{
+  "created_utc": "2026-10-31T20:51:07.631458+00:00",
+  "scope": "Original-sound characterization only. Exact whole-raw comparison retained separately from explicit added diagnostic rows; no baseline/raw/tolerance rewritten. Not Tacview/shipping/Task51/D3 acceptance.",
+  "old_source": "7db2c6a91b4cd0a1fae2d8e20bfa169584618d24",
+  "native_source": "9429beefb9a8e143b648e01c390075882e6e6361",
+  "driver_source": "e1dc758074fba7fa8a4af99604ceecb85cf20483",
+  "whole_raw_equal": false,
+  "whole_raw_sha256": [
+    "2ba8df21b36eeca7be70ea303d79c9d8ae932034ac250dba9f30d7675434fcb5",
+    "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d"
+  ],
+  "whole_raw_bytes": [
+    5181498,
+    5191384
+  ],
+  "whole_raw_rows": [
+    17257,
+    17283
+  ],
+  "added_sound_rows": 26,
+  "added_sound_event_counts": {
+    "env-snd-plan": 1,
+    "env-snd-facts": 1,
+    "env-snd-unsupported": 2,
+    "env-snd-report": 1,
+    "env-snd": 16,
+    "sound_entity": 4,
+    "sound_summary": 1
+  },
+  "every_retained_legacy_raw_line_and_ending_equal": true,
+  "retained_legacy_rows": 17257,
+  "legacy_differences": [],
+  "natural_sound_summary": [
+    {
+      "creations": 4,
+      "entities": 4,
+      "event": "sound_summary",
+      "expired": 4,
+      "frames": 1200,
+      "kills": 4,
+      "lifetimes_complete": true,
+      "records": 16,
+      "untracked_creations": 0,
+      "updates": 4
+    }
+  ],
+  "natural_sound_entities": [
+    {
+      "created_frame": 600,
+      "event": "sound_entity",
+      "expiry": "no_handle",
+      "first_life_w": "00000000",
+      "handle_ever": false,
+      "killed": true,
+      "last_life_w": "bdcccccc",
+      "n": 1,
+      "updates_at_last_record": 1,
+      "updates_exact": true
+    },
+    {
+      "created_frame": 600,
+      "event": "sound_entity",
+      "expiry": "no_handle",
+      "first_life_w": "00000000",
+      "handle_ever": false,
+      "killed": true,
+      "last_life_w": "bdcccccc",
+      "n": 2,
+      "updates_at_last_record": 1,
+      "updates_exact": true
+    },
+    {
+      "created_frame": 1076,
+      "event": "sound_entity",
+      "expiry": "no_handle",
+      "first_life_w": "00000000",
+      "handle_ever": false,
+      "killed": true,
+      "last_life_w": "bdcccccc",
+      "n": 1,
+      "updates_at_last_record": 1,
+      "updates_exact": true
+    },
+    {
+      "created_frame": 1076,
+      "event": "sound_entity",
+      "expiry": "no_handle",
+      "first_life_w": "00000000",
+      "handle_ever": false,
+      "killed": true,
+      "last_life_w": "bdcccccc",
+      "n": 2,
+      "updates_at_last_record": 1,
+      "updates_exact": true
+    }
+  ],
+  "natural_sound_facts": [
+    {
+      "application_sound_system_enabled": 0,
+      "at": 119.99835968017578,
+      "comms": 0,
+      "event": "env-snd-facts",
+      "lightning_original_rate": 22050,
+      "lightning_rate": 22050,
+      "lightning_size": 0,
+      "samples": 2069,
+      "scope": "sound:report",
+      "sound_system_initialised": 0,
+      "sound_system_paused": 0,
+      "tag": "plan",
+      "thunder_original_rate": 22050,
+      "thunder_rate": 22050,
+      "thunder_size": 0
+    }
+  ],
+  "controls": [
+    {
+      "case": 1,
+      "actual_exit": 0,
+      "actual_native_exit": 0,
+      "payloads": 55,
+      "all_pre_post_inputs0": true,
+      "raw_sha256": "2ecb2a518367931a02b30d2c88df9bdd22adb3c6e6a2a2993e1c98f445037ee1",
+      "raw_bytes": 7139,
+      "rows": 16,
+      "event_counts": {
+        "boot": 1,
+        "env-snd-plan": 1,
+        "env-snd-facts": 2,
+        "env-snd-unsupported": 2,
+        "env-snd-report": 2,
+        "env-sound": 1,
+        "env-sound-input": 1,
+        "env-snd": 4,
+        "env-sound-end": 1,
+        "result": 1
+      },
+      "results": [
+        {
+          "calls": 1,
+          "case": 1,
+          "changed": "1",
+          "comms": "0",
+          "data_after": "0",
+          "etype_after": "0",
+          "event": "result",
+          "expiry": "no_handle",
+          "kills": 1,
+          "label": "server_branch_ages_then_expires",
+          "records": 4,
+          "refusal": "",
+          "refused": false,
+          "second_skipped": "1",
+          "updates": 1
+        }
+      ],
+      "scope": "New ORIGINAL physical control, no equivalent retained old primitive sound report; not compared against unrelated queue primitives"
+    },
+    {
+      "case": 2,
+      "actual_exit": 0,
+      "actual_native_exit": 0,
+      "payloads": 55,
+      "all_pre_post_inputs0": true,
+      "raw_sha256": "b47ae58074dddd78f54aa4c1e93f0c9abb1899966de344e38310a2ea5ed13324",
+      "raw_bytes": 7995,
+      "rows": 17,
+      "event_counts": {
+        "boot": 1,
+        "env-snd-plan": 1,
+        "env-snd-facts": 2,
+        "env-snd-unsupported": 2,
+        "env-snd-report": 2,
+        "env-sound": 1,
+        "env-sound-input": 1,
+        "env-snd": 5,
+        "env-sound-end": 1,
+        "result": 1
+      },
+      "results": [
+        {
+          "calls": 2,
+          "case": 2,
+          "changed": "1",
+          "comms": "0",
+          "data_after": "1",
+          "etype_after": "32",
+          "event": "result",
+          "expiry": "none",
+          "kills": 0,
+          "label": "client_branch_ages_and_clamps",
+          "records": 5,
+          "refusal": "",
+          "refused": false,
+          "second_skipped": "0",
+          "updates": 2
+        }
+      ],
+      "scope": "New ORIGINAL physical control, no equivalent retained old primitive sound report; not compared against unrelated queue primitives"
+    },
+    {
+      "case": 3,
+      "actual_exit": 0,
+      "actual_native_exit": 0,
+      "payloads": 55,
+      "all_pre_post_inputs0": true,
+      "raw_sha256": "43f8c4fc73617b6c7a26d6410a3e4a175329c5d8f6b3cdf1df87f42a7a27b289",
+      "raw_bytes": 3488,
+      "rows": 12,
+      "event_counts": {
+        "boot": 1,
+        "env-snd-plan": 1,
+        "env-snd-facts": 2,
+        "env-snd-unsupported": 4,
+        "env-snd-report": 1,
+        "env-sound": 1,
+        "env-sound-end": 1,
+        "result": 1
+      },
+      "results": [
+        {
+          "case": 3,
+          "changed": "0",
+          "comms": "0",
+          "event": "result",
+          "label": "playback_prerequisites",
+          "refusal": "",
+          "refused": false
+        }
+      ],
+      "scope": "New ORIGINAL physical control, no equivalent retained old primitive sound report; not compared against unrelated queue primitives"
+    }
+  ],
+  "publication_note": "Natural per-entity allocation identities omitted; private measured bytes and complete strict comparison retained unchanged.",
+  "strict_comparator_actual_exit": 1
+}

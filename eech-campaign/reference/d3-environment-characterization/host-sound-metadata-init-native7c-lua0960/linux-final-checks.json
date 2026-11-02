@@ -1,0 +1,87 @@
+{
+  "controller_pid": 6644,
+  "state": "terminal",
+  "started_utc": "2026-11-01T06:05:55.833478+00:00",
+  "base_source": "7c85100efb1e1aa4669f6c88051f9adce041629c",
+  "effective_source": "0e25c5e00ee7e9aae41b4e97582c4d12a4681ac0",
+  "overlays": [
+    {
+      "path": "STATUS.md",
+      "sha256": "f650d09ee0fdbb3fed0b4309582a55b8dddd70e6152d4ce27789cccb3ac123e3"
+    },
+    {
+      "path": "eech-campaign/crates/eech-engine/src/lib.rs",
+      "sha256": "48057c74135d23853e51c89b6638357a0360b5a9586222d69df780264fd112a6"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/env-sound-data-host-witness.lua",
+      "sha256": "f1df246194706b8317593a7d64a52739c6058d68586dd9980322de81be9f4919"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/lua/env-sound-init-host.lua",
+      "sha256": "d7db76cb045f87613d82398cc8ca5f1908374f4e52b97e857e9c2462382c91c7"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/env_sound_data_witness.rs",
+      "sha256": "0285c1567e6057a4146da1613aa75694186b5e769b0c8e2d543f984fa5e47d4b"
+    },
+    {
+      "path": "eech-campaign/crates/eech-world/tests/env_sound_init.rs",
+      "sha256": "66c41e84cc8242b892adf7c34aefad7675218509141c614a1ebf4f6bab1efa3d"
+    },
+    {
+      "path": "eech-campaign/docs/d3-sound-lifetime.md",
+      "sha256": "74c79e96923c440ff99a42450e6f3aa23f524161745951f8a3688298d0684357"
+    }
+  ],
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "docker",
+    "run",
+    "--rm",
+    "--network",
+    "none",
+    "-i",
+    "-v",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/environment-host-sound-metadata-source-7c85100ef:/src:ro",
+    "-v",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/metadata-linux-test-lints-overlay-0e25-20261101:/evidence",
+    "-v",
+    "eech-linux-d3-collision-driver-5416adb3b-20261029:/target",
+    "-v",
+    "eech-cargo:/usr/local/cargo/registry",
+    "-e",
+    "CARGO_TARGET_DIR=/target",
+    "-e",
+    "CARGO_NET_OFFLINE=true",
+    "-e",
+    "EECH_ENGINE_OPT=1",
+    "-w",
+    "/src/eech-campaign",
+    "-v",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/metadata-linux-test-lints-overlay-0e25-20261101/overlay/STATUS.md:/src/STATUS.md:ro",
+    "-v",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/metadata-linux-test-lints-overlay-0e25-20261101/overlay/eech-campaign/crates/eech-engine/src/lib.rs:/src/eech-campaign/crates/eech-engine/src/lib.rs:ro",
+    "-v",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/metadata-linux-test-lints-overlay-0e25-20261101/overlay/eech-campaign/crates/eech-world/lua/env-sound-data-host-witness.lua:/src/eech-campaign/crates/eech-world/lua/env-sound-data-host-witness.lua:ro",
+    "-v",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/metadata-linux-test-lints-overlay-0e25-20261101/overlay/eech-campaign/crates/eech-world/lua/env-sound-init-host.lua:/src/eech-campaign/crates/eech-world/lua/env-sound-init-host.lua:ro",
+    "-v",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/metadata-linux-test-lints-overlay-0e25-20261101/overlay/eech-campaign/crates/eech-world/tests/env_sound_data_witness.rs:/src/eech-campaign/crates/eech-world/tests/env_sound_data_witness.rs:ro",
+    "-v",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/metadata-linux-test-lints-overlay-0e25-20261101/overlay/eech-campaign/crates/eech-world/tests/env_sound_init.rs:/src/eech-campaign/crates/eech-world/tests/env_sound_init.rs:ro",
+    "-v",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/metadata-linux-test-lints-overlay-0e25-20261101/overlay/eech-campaign/docs/d3-sound-lifetime.md:/src/eech-campaign/docs/d3-sound-lifetime.md:ro",
+    "sha256:4a5618cbc1e13e96caa4cb1ff0076c4c24dc883876d0bdec1398024f3a2d6c51",
+    "sh",
+    "-s"
+  ],
+  "scope": "All effective-source differences explicitly mounted from exact head blobs over unchanged clean7c snapshot; native production source remains7c. Default engine unit tests for changed cfg(test) code and both strict profiles. Earlier0960 full default/observer affected tests passed; no shipping or retail claim.",
+  "pid": 24164,
+  "actual_exit": 0,
+  "completed_utc": "2026-11-01T06:08:18.021218+00:00",
+  "overlay_unchanged": true
+}

@@ -1,0 +1,498 @@
+{
+  "created_utc": "2026-11-01T11:07:20.533833+00:00",
+  "native_source": "26489a4a597dcbae087ec1bd6a779c2fbf2929e7",
+  "script_source": "26489a4a597dcbae087ec1bd6a779c2fbf2929e7",
+  "wrapper_sha256": "ee0df5407d4a3b7a602d9bd320649d2b38f6f72319e8c7804c52809e076da471",
+  "delegate_source": "06de242ae9b4050873207925d79a7a2e58be0c87",
+  "delegate_sha256": "c02df5dbf4b951bc6c3ed1728325e8a0d29cc195ddc37ac5abf59e72f0f4519e",
+  "cases": [
+    {
+      "name": "ai-healthy",
+      "sweep": "ai",
+      "mode": "healthy",
+      "native_source": "26489a4a597dcbae087ec1bd6a779c2fbf2929e7",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "pre_input_exit": 0,
+      "post_input_exit": 0,
+      "verified_payloads": 68,
+      "authority": {
+        "altered": 0,
+        "base_errors": 0,
+        "completed": true,
+        "delegate_ran": true,
+        "forwarded_other_requests": 4817,
+        "mode": "healthy",
+        "op": "rotor_sound",
+        "requests": 12,
+        "calls": 12,
+        "children_checked": 276,
+        "looping_children": 24,
+        "other_children": 60,
+        "pauses": 10,
+        "requests_checked": 24,
+        "slap_children": 24,
+        "sweep_rows": 12,
+        "source": "host.env_provider wrapper on the public path",
+        "sweep": "ai",
+        "verdict": "host_answer_shown_by_every_child",
+        "withdrawals": 0
+      },
+      "delegate_json_rows": 22,
+      "last_delegate_event": "result",
+      "classification": "Completed public healthy/changed witness joins every measured request, answer, sound child and sweep row; changed host results applied, unaffected fields checked by retained witness.",
+      "artifacts": {
+        "controller.json": {
+          "bytes": 4764,
+          "sha256": "d175af51a382e8837e51d6db914aa4fb0965a3a9004a430f9e8725ea99c0e300"
+        },
+        "environment.jsonl": {
+          "bytes": 9642,
+          "sha256": "854dd97a74a0b8dc0ad21dcfb238d0e354ffc85d7cf688fea2de6f0df5be24ce"
+        },
+        "environment.jsonl.authority.jsonl": {
+          "bytes": 424,
+          "sha256": "2f65b652049a3954ce3a58f46c09faf1a46230c1ab8b23b6d57b7f1d19fbeb97"
+        },
+        "environment.jsonl.rotor.raw": {
+          "bytes": 18530,
+          "sha256": "273912412a43c7953c744b07bbe25a8008a187a54956b487f7dcd1648f78ed27"
+        },
+        "environment.jsonl.sndinit.raw": {
+          "bytes": 6441,
+          "sha256": "652e313d90d0144f297bd016992bc10e129a0140e636a8d90314eaee13f46efb"
+        },
+        "environment.jsonl.sweep.raw": {
+          "bytes": 9059,
+          "sha256": "59a225177ec882830f546d52139412c0afbb1a1e90d1d6b096a004baecf9fa03"
+        },
+        "native.log": {
+          "bytes": 44419,
+          "sha256": "bd6ac35c0bf6079a1d5b460a8585643c3fb4869409c16195c9403e4dd8cb23bd"
+        },
+        "post-inputs.json": {
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        "post-inputs.log": {
+          "bytes": 313,
+          "sha256": "e36d518da62e53d70576aba2f686c2b26624a67101d8a0a4a64247ff443f76ab"
+        },
+        "pre-inputs.json": {
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        "pre-inputs.log": {
+          "bytes": 313,
+          "sha256": "e36d518da62e53d70576aba2f686c2b26624a67101d8a0a4a64247ff443f76ab"
+        }
+      }
+    },
+    {
+      "name": "ai-changed",
+      "sweep": "ai",
+      "mode": "changed",
+      "native_source": "26489a4a597dcbae087ec1bd6a779c2fbf2929e7",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "pre_input_exit": 0,
+      "post_input_exit": 0,
+      "verified_payloads": 68,
+      "authority": {
+        "altered": 12,
+        "base_errors": 0,
+        "completed": true,
+        "delegate_ran": true,
+        "forwarded_other_requests": 4817,
+        "mode": "changed",
+        "op": "rotor_sound",
+        "requests": 12,
+        "calls": 12,
+        "children_checked": 276,
+        "looping_children": 24,
+        "other_children": 60,
+        "pauses": 10,
+        "requests_checked": 24,
+        "slap_children": 24,
+        "sweep_rows": 12,
+        "source": "host.env_provider wrapper on the public path",
+        "sweep": "ai",
+        "verdict": "host_changed_the_acoustics",
+        "withdrawals": 0
+      },
+      "delegate_json_rows": 22,
+      "last_delegate_event": "result",
+      "classification": "Completed public healthy/changed witness joins every measured request, answer, sound child and sweep row; changed host results applied, unaffected fields checked by retained witness.",
+      "artifacts": {
+        "controller.json": {
+          "bytes": 4764,
+          "sha256": "b877faf91271b5cec00a4b439faa259c9bc9fce46deb3dfde86dbafa97d25e65"
+        },
+        "environment.jsonl": {
+          "bytes": 9642,
+          "sha256": "4772940bd344075cc5a24865e0d0438406997bda2ec306307aff4505f65bcf14"
+        },
+        "environment.jsonl.authority.jsonl": {
+          "bytes": 419,
+          "sha256": "667afb492d955fcfa2e41879efa43f7cf18664c0354b7f13043437f2def08437"
+        },
+        "environment.jsonl.rotor.raw": {
+          "bytes": 18530,
+          "sha256": "0f887921acc50a428506ea2c1f2959f4c66c50702c5930622a377ef699e824d8"
+        },
+        "environment.jsonl.sndinit.raw": {
+          "bytes": 6441,
+          "sha256": "652e313d90d0144f297bd016992bc10e129a0140e636a8d90314eaee13f46efb"
+        },
+        "environment.jsonl.sweep.raw": {
+          "bytes": 9059,
+          "sha256": "ce499f3a0682a7d29fe4059233bb2ad22fbfa6062872e9671d19084f3561be98"
+        },
+        "native.log": {
+          "bytes": 44419,
+          "sha256": "d6c1ea10ebee9dd35ae1fe465a155cd15cdc46085bc594382b56b40df2c18885"
+        },
+        "post-inputs.json": {
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        "post-inputs.log": {
+          "bytes": 313,
+          "sha256": "db808e5bff264a3979052884963dd1be2795a00909ea0ae90bfa3e76f3d5a9c5"
+        },
+        "pre-inputs.json": {
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        "pre-inputs.log": {
+          "bytes": 313,
+          "sha256": "db808e5bff264a3979052884963dd1be2795a00909ea0ae90bfa3e76f3d5a9c5"
+        }
+      }
+    },
+    {
+      "name": "ai-withheld",
+      "sweep": "ai",
+      "mode": "withheld",
+      "native_source": "26489a4a597dcbae087ec1bd6a779c2fbf2929e7",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "pre_input_exit": 0,
+      "post_input_exit": 0,
+      "verified_payloads": 68,
+      "authority": {
+        "altered": 0,
+        "base_errors": 0,
+        "completed": false,
+        "delegate_ran": false,
+        "forwarded_other_requests": 4769,
+        "mode": "withheld",
+        "op": "rotor_sound",
+        "requests": 1,
+        "branch": "engine_failure_row",
+        "marker": "[env-provider:rotor_sound.callback]",
+        "stopped": true,
+        "source": "host.env_provider wrapper on the public path",
+        "sweep": "ai",
+        "verdict": "stopped_at_boundary",
+        "withdrawals": 1
+      },
+      "delegate_json_rows": 7,
+      "last_delegate_event": "engine_failure",
+      "classification": "Expected first-request fail-closed boundary stop, not a setup failure. Native wrapper0 with ending engine_failure and exact marker; rotor/sweep sidecars empty, prior constructor sidecar explicitly nonempty.",
+      "artifacts": {
+        "controller.json": {
+          "bytes": 4507,
+          "sha256": "7f924a525e80dd1448832aa1825f506eda6e599acf9f26be96b7862b8c670bee"
+        },
+        "environment.jsonl": {
+          "bytes": 1450,
+          "sha256": "09a67976a774d0407a38074b43f0b4164c245b96fc3f0c521b17b3607946f762"
+        },
+        "environment.jsonl.authority.jsonl": {
+          "bytes": 360,
+          "sha256": "f5224a7ce50aefba1f29f06674373e71c36d0d562e63525961459d6b23db3ae9"
+        },
+        "environment.jsonl.rotor.raw": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "environment.jsonl.sndinit.raw": {
+          "bytes": 6441,
+          "sha256": "652e313d90d0144f297bd016992bc10e129a0140e636a8d90314eaee13f46efb"
+        },
+        "environment.jsonl.sweep.raw": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "native.log": {
+          "bytes": 44754,
+          "sha256": "86075a29ec566c89e38e03c9e3bc9bc75accc14b438264892db77043a7891c7b"
+        },
+        "post-inputs.json": {
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        "post-inputs.log": {
+          "bytes": 314,
+          "sha256": "9cd53fbe458a24750b8f7e235114a9453b6c78a0474e7f8083e914907d1438f9"
+        },
+        "pre-inputs.json": {
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        "pre-inputs.log": {
+          "bytes": 314,
+          "sha256": "9cd53fbe458a24750b8f7e235114a9453b6c78a0474e7f8083e914907d1438f9"
+        }
+      }
+    },
+    {
+      "name": "ai-malformed",
+      "sweep": "ai",
+      "mode": "malformed",
+      "native_source": "26489a4a597dcbae087ec1bd6a779c2fbf2929e7",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "pre_input_exit": 0,
+      "post_input_exit": 0,
+      "verified_payloads": 68,
+      "authority": {
+        "altered": 1,
+        "base_errors": 0,
+        "completed": false,
+        "delegate_ran": false,
+        "forwarded_other_requests": 4769,
+        "mode": "malformed",
+        "op": "rotor_sound",
+        "requests": 1,
+        "branch": "engine_failure_row",
+        "marker": "[env-provider:rotor_sound.answer]",
+        "stopped": true,
+        "source": "host.env_provider wrapper on the public path",
+        "sweep": "ai",
+        "verdict": "stopped_at_boundary",
+        "withdrawals": 0
+      },
+      "delegate_json_rows": 7,
+      "last_delegate_event": "engine_failure",
+      "classification": "Expected first-request fail-closed boundary stop, not a setup failure. Native wrapper0 with ending engine_failure and exact marker; rotor/sweep sidecars empty, prior constructor sidecar explicitly nonempty.",
+      "artifacts": {
+        "controller.json": {
+          "bytes": 4517,
+          "sha256": "cc501e0db8d81744390730013be1ce1d32c6030f57ea65217826dd231d2c3b8f"
+        },
+        "environment.jsonl": {
+          "bytes": 1445,
+          "sha256": "33cf3ce08c67d602b1e483955c4a7d3a92eb985e73bbe4e5cf59550d6cc6b094"
+        },
+        "environment.jsonl.authority.jsonl": {
+          "bytes": 359,
+          "sha256": "40d21e2befe820a1997bd671e352ae169065f6ce7da53142bef3b9b47229e942"
+        },
+        "environment.jsonl.rotor.raw": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "environment.jsonl.sndinit.raw": {
+          "bytes": 6441,
+          "sha256": "652e313d90d0144f297bd016992bc10e129a0140e636a8d90314eaee13f46efb"
+        },
+        "environment.jsonl.sweep.raw": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "native.log": {
+          "bytes": 44989,
+          "sha256": "7ee0690189b4d6ae2f86a395d4049c2cac3b23c3d5b07fc7209948f67250a9c9"
+        },
+        "post-inputs.json": {
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        "post-inputs.log": {
+          "bytes": 315,
+          "sha256": "9dba45340ba589ffe6e53bb4357794b66f72d32c610b55b71cd0a1e28a75e331"
+        },
+        "pre-inputs.json": {
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        "pre-inputs.log": {
+          "bytes": 315,
+          "sha256": "9dba45340ba589ffe6e53bb4357794b66f72d32c610b55b71cd0a1e28a75e331"
+        }
+      }
+    },
+    {
+      "name": "fd-healthy",
+      "sweep": "fd",
+      "mode": "healthy",
+      "native_source": "26489a4a597dcbae087ec1bd6a779c2fbf2929e7",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "pre_input_exit": 0,
+      "post_input_exit": 0,
+      "verified_payloads": 68,
+      "authority": {
+        "altered": 0,
+        "base_errors": 0,
+        "completed": true,
+        "delegate_ran": true,
+        "forwarded_other_requests": 4919,
+        "mode": "healthy",
+        "op": "rotor_sound",
+        "requests": 15,
+        "calls": 15,
+        "children_checked": 345,
+        "looping_children": 30,
+        "other_children": 75,
+        "pauses": 11,
+        "requests_checked": 75,
+        "slap_children": 30,
+        "sweep_rows": 15,
+        "source": "host.env_provider wrapper on the public path",
+        "sweep": "fd",
+        "verdict": "host_answer_shown_by_every_child",
+        "withdrawals": 0
+      },
+      "delegate_json_rows": 25,
+      "last_delegate_event": "result",
+      "classification": "Completed public healthy/changed witness joins every measured request, answer, sound child and sweep row; changed host results applied, unaffected fields checked by retained witness.",
+      "artifacts": {
+        "controller.json": {
+          "bytes": 4831,
+          "sha256": "7698d622e34a71298b2c28425dfe618920fd7bddba2f652c8f6349dfb478d8a5"
+        },
+        "environment.jsonl": {
+          "bytes": 11643,
+          "sha256": "33f9de6e4218196f085c7d35b9d80a557f98a6bea9a37aa4c4032e4970b0c4cc"
+        },
+        "environment.jsonl.authority.jsonl": {
+          "bytes": 424,
+          "sha256": "f622d95885e4fae14aeabaf1c98601b4db962cef845a1d2e2d00fe6653d002e5"
+        },
+        "environment.jsonl.rotor.raw": {
+          "bytes": 23795,
+          "sha256": "6f6ce5c0eb3f579edc6a18b2e73a59ec089c67fa39c8ea6f2d184a057de0a421"
+        },
+        "environment.jsonl.sndinit.raw": {
+          "bytes": 6441,
+          "sha256": "652e313d90d0144f297bd016992bc10e129a0140e636a8d90314eaee13f46efb"
+        },
+        "environment.jsonl.sweep.raw": {
+          "bytes": 11261,
+          "sha256": "bb463a6a18360b324b6b7b8ea48029086c6b9162ccd4e2a537469a1b6c8e8172"
+        },
+        "native.log": {
+          "bytes": 45142,
+          "sha256": "809d8f5b498c13be1a83db145c5d3e58a0a812d02b67352672add1fc84c05c0b"
+        },
+        "post-inputs.json": {
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        "post-inputs.log": {
+          "bytes": 316,
+          "sha256": "f445c94a9f55090a00ff97db0addbafd19354fd71d115c540718ae07245b9cb8"
+        },
+        "pre-inputs.json": {
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        "pre-inputs.log": {
+          "bytes": 316,
+          "sha256": "f445c94a9f55090a00ff97db0addbafd19354fd71d115c540718ae07245b9cb8"
+        }
+      }
+    },
+    {
+      "name": "fd-changed",
+      "sweep": "fd",
+      "mode": "changed",
+      "native_source": "26489a4a597dcbae087ec1bd6a779c2fbf2929e7",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "pre_input_exit": 0,
+      "post_input_exit": 0,
+      "verified_payloads": 68,
+      "authority": {
+        "altered": 15,
+        "base_errors": 0,
+        "completed": true,
+        "delegate_ran": true,
+        "forwarded_other_requests": 4919,
+        "mode": "changed",
+        "op": "rotor_sound",
+        "requests": 15,
+        "calls": 15,
+        "children_checked": 345,
+        "looping_children": 30,
+        "other_children": 75,
+        "pauses": 11,
+        "requests_checked": 75,
+        "slap_children": 30,
+        "sweep_rows": 15,
+        "source": "host.env_provider wrapper on the public path",
+        "sweep": "fd",
+        "verdict": "host_changed_the_acoustics",
+        "withdrawals": 0
+      },
+      "delegate_json_rows": 25,
+      "last_delegate_event": "result",
+      "classification": "Completed public healthy/changed witness joins every measured request, answer, sound child and sweep row; changed host results applied, unaffected fields checked by retained witness.",
+      "artifacts": {
+        "controller.json": {
+          "bytes": 4829,
+          "sha256": "11ca19443598cb529d99d1b0f8d9aedc0beb0403e78e2c50c0e09f3da7bc2544"
+        },
+        "environment.jsonl": {
+          "bytes": 11643,
+          "sha256": "0d834bc7c1a7dd4cd571e4b48448388b7f9f6c83b98e7627a510c4106a5627b1"
+        },
+        "environment.jsonl.authority.jsonl": {
+          "bytes": 419,
+          "sha256": "0e8c1f5d29914636c2a31d1000189de28be0c2c940a10e496d0a7c24b8318cf2"
+        },
+        "environment.jsonl.rotor.raw": {
+          "bytes": 23795,
+          "sha256": "6e1f2269268e849302e15424d8f183b6b698fff0b5b7c362509b7ddcc8eb7532"
+        },
+        "environment.jsonl.sndinit.raw": {
+          "bytes": 6441,
+          "sha256": "652e313d90d0144f297bd016992bc10e129a0140e636a8d90314eaee13f46efb"
+        },
+        "environment.jsonl.sweep.raw": {
+          "bytes": 11261,
+          "sha256": "7c5b22f39a7b36a23997b43d430489fdcc7b2b75658b9f6ab40fa5ca7b0969d6"
+        },
+        "native.log": {
+          "bytes": 45142,
+          "sha256": "7a673241ce5d4973b387c5fbea3dd890452e436558e6c7ff6b860155e4a15daf"
+        },
+        "post-inputs.json": {
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        "post-inputs.log": {
+          "bytes": 316,
+          "sha256": "97f37e101e88529385aed43df5e6bdfd9bcc9d9e75376201051b75d41021efc5"
+        },
+        "pre-inputs.json": {
+          "bytes": 209622,
+          "sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1"
+        },
+        "pre-inputs.log": {
+          "bytes": 316,
+          "sha256": "97f37e101e88529385aed43df5e6bdfd9bcc9d9e75376201051b75d41021efc5"
+        }
+      }
+    }
+  ],
+  "all6_native_and_controller_exits_zero": true,
+  "all12_full_input_checks_zero": true,
+  "all68_payloads_unchanged_each": true,
+  "root_audit_actual_exit": 0,
+  "independent_acceptance": "PENDING same reviewer actual pass",
+  "scope": "Six new candidate public controls; extends older AI-only evidence with actual FD healthy/changed using existing witness modes. Actual old e544 capability red reused, not repeated. This audit is not complete defaults, full callerFP, audio, shipping/Tacview, merge, Task51 or D3 acceptance."
+}

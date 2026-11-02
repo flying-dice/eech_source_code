@@ -40,6 +40,8 @@ const COLLABORATOR: &str = r#"
                 return { elevation = 10, last_elevation = 10, normal = { 0, 1, 0 }, type = 9, hint = "opaque", stored = true }
             end
         end,
+        -- the environment provider the script gives the (stand-in) boot: this harness is about the terrain
+        env_provider = function () return function () error ("the environment provider was asked in a terrain guard", 0) end end,
         bind_mobile = function () end, move_vehicle = function () end, observe_loss = function () end,
         supply_reached = function () end, line_of_sight = function () end, sense = function () end, aim = function () end,
     }

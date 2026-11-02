@@ -1,0 +1,1028 @@
+{
+  "created_utc": "2026-11-01T03:47:39.051794+00:00",
+  "source": "7574caa2ca87a2a44608a234fd1dd73136b8e4c0",
+  "scope": "Recovered ORIGINAL initialization/sample-data characterization, no host metadata/backend ownership move or shipping/Tacview/Task51/D3 acceptance.",
+  "all_measured_gates_pass": true,
+  "independent_actual_review_required": true,
+  "builds": {
+    "windows": {
+      "actual_exit": 0,
+      "completed_utc": "2026-11-01T03:26:42.501832+00:00",
+      "receipt": {
+        "file": "environment-original-sound-init-7574caa2c-windows-20261101-completion.json",
+        "bytes": 831,
+        "sha256": "f688283376bba2e152e2be6dbbd32c82d0fff2059792abae3aaee5a8891eb36d"
+      }
+    },
+    "linux": {
+      "actual_exit": 0,
+      "completed_utc": "2026-11-01T03:32:14.700596+00:00",
+      "receipt": {
+        "file": "environment-original-sound-init-7574caa2c-linux-20261101-completion.json",
+        "bytes": 827,
+        "sha256": "e426709c0fa03f32cb77134267bf2f5e895257845a24839c583cdf08ca87624e"
+      }
+    }
+  },
+  "source_review": {
+    "file": "independent-environment-original-sound-init-capacity-source-review-7574caa2c-20261101.json",
+    "bytes": 9903,
+    "sha256": "144e578209b5631e6d275341cdfd538fca8a195efb70cb39f83cf16e92139ef4"
+  },
+  "windows_output_probe": {
+    "file": "completion.json",
+    "bytes": 1823,
+    "sha256": "d2a6bb19e6fdfeebaa97854e3a1d08a1f7963ff7889cf124da3f187ad859a1e2"
+  },
+  "current9_ci": {
+    "file": "current-CI-7574caa2c-20261101.json",
+    "bytes": 15745,
+    "sha256": "b8b4c127284bca16894490539aba73fef481edaf6ee8c15c5796b083817b50e0"
+  },
+  "native_payloads_verified": 62,
+  "build_info_sha256": "7824726195b658c3849d2f3872f88e4522923c0f182e3160fb6b8174ff51f603",
+  "controls": {
+    "probe": {
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "controller": {
+        "file": "controller.json",
+        "bytes": 6804,
+        "sha256": "c87773e034b38e119e038c4faad49a9f7746fd4c770c06270cfa219c79bc9612"
+      },
+      "raw_json": {
+        "file": "environment.jsonl",
+        "bytes": 21492,
+        "sha256": "a089e14f7238a1e579dae537fc6dedb6c8516016aace23dcfb39a2fedd9b72db"
+      }
+    },
+    "observer-off": {
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "controller": {
+        "file": "controller.json",
+        "bytes": 348700,
+        "sha256": "b23c0ec5375c9c38419b9c7070027944bcedc32291fcaf62c74803127b396187"
+      },
+      "raw_json": {
+        "file": "environment.jsonl",
+        "bytes": 5191384,
+        "sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d"
+      }
+    }
+  },
+  "pre_post_input_checks0": 4,
+  "complete_native_report_sidecar": {
+    "file": "environment.jsonl.case15.raw",
+    "bytes": 7582,
+    "sha256": "74401e0cb6bb973ed02a6d4b280bfc688aea72b53001f0935c4b88e6b18a5c43"
+  },
+  "all_returned_native_bytes_join_json_raw_rows": true,
+  "observation_off_complete_byte_comparison": {
+    "original": "R:\\d3-evidence\\environment-host-pause-defaults-82234a3a3-20261101\\natural\\environment.jsonl",
+    "candidate": "R:\\d3-evidence\\environment-original-sound-init-recovery-7574caa2c-20261101\\observer-off\\environment.jsonl",
+    "complete_bytes_and_endings_identical": true,
+    "partial_prefix_only": false,
+    "original_sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+    "candidate_sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+    "original_bytes": 5191384,
+    "candidate_bytes": 5191384
+  },
+  "old_failed_capture": {
+    "file": "original-sound-init-attempt1-failure-and-control-20261101.json",
+    "bytes": 2332,
+    "sha256": "b96147700b4d71ded0f6e7a3ac4d6ebb6536e41af3756a680c4207ced2881692"
+  },
+  "retained_old_ctor_totals_and_digest_equal": {
+    "calls": "5222",
+    "looping": "3548",
+    "max_count": "1",
+    "sample_reads": "1674",
+    "digest_w": "17e67b8187903754"
+  },
+  "measured_probe_projection": [
+    {
+      "event": "boot",
+      "feature": "env-observer",
+      "frame_ms": 100,
+      "group": 14,
+      "index": 15,
+      "scenario": "lebanon_retail",
+      "seconds": 120,
+      "seed": 1
+    },
+    {
+      "event": "raw_report",
+      "bytes": 7582
+    },
+    {
+      "comms": "0",
+      "event": "env-sndinit-plan",
+      "process_isolated": "not_needed",
+      "read_only": "1",
+      "scope": "case",
+      "version": "1"
+    },
+    {
+      "boots": "1",
+      "capacity": "4",
+      "catalogue_entries": "2122",
+      "dropped": "0",
+      "event": "env-sndinit-store",
+      "opens_outside_effects": "0",
+      "orphans": "0",
+      "saturated": "0",
+      "scope": "case",
+      "stored": "1",
+      "version": "1"
+    },
+    {
+      "backend": "1",
+      "dedicated": "0",
+      "effects_begin": "1",
+      "effects_end": "1",
+      "enabled_backend": "0",
+      "enabled_before": "0",
+      "enabled_exit": "0",
+      "event": "env-sndinit-boot",
+      "exited": "1",
+      "filled": "1",
+      "header_count": "0",
+      "initialised_backend": "0",
+      "initialised_before": "0",
+      "load": "0",
+      "matched": "0",
+      "missed": "0",
+      "n": "0",
+      "no_sound": "0",
+      "open_false": "1",
+      "open_true": "0",
+      "scope": "case",
+      "skipped": "0"
+    },
+    {
+      "digest_w": "6605372942e1ea2c",
+      "event": "env-sndinit-catalogue",
+      "n": "0",
+      "named": "2069",
+      "nonzero_orate": "2069",
+      "nonzero_rate": "2069",
+      "nonzero_size": "0",
+      "scope": "case",
+      "when": "filled"
+    },
+    {
+      "digest_w": "6605372942e1ea2c",
+      "event": "env-sndinit-catalogue",
+      "n": "0",
+      "named": "2069",
+      "nonzero_orate": "2069",
+      "nonzero_rate": "2069",
+      "nonzero_size": "0",
+      "scope": "case",
+      "when": "end"
+    },
+    {
+      "digest_w": "6605372942e1ea2c",
+      "event": "env-sndinit-catalogue",
+      "n": "now",
+      "named": "2069",
+      "nonzero_orate": "2069",
+      "nonzero_rate": "2069",
+      "nonzero_size": "0",
+      "scope": "case",
+      "when": "report"
+    },
+    {
+      "application_samples": "2069",
+      "blocked_count": "0",
+      "dedicated": "1",
+      "enabled": "0",
+      "event": "env-sndinit-now",
+      "initialised": "0",
+      "no_sound": "0",
+      "scope": "case"
+    },
+    {
+      "event": "env-sndinit-samples",
+      "lightning_orate": "22050",
+      "lightning_rate": "22050",
+      "lightning_size": "0",
+      "scope": "case",
+      "thunder_orate": "22050",
+      "thunder_rate": "22050",
+      "thunder_size": "0"
+    },
+    {
+      "calls": "1",
+      "event": "env-sndinit-load-side",
+      "recorded": "1",
+      "scope": "case"
+    },
+    {
+      "dedicated": "1",
+      "enabled": "0",
+      "event": "env-sndinit-load-side-call",
+      "n": "0",
+      "no_sound": "0",
+      "scope": "case",
+      "side": "3"
+    },
+    {
+      "attempts": "3",
+      "event": "env-sndinit-file",
+      "kind": "header",
+      "ok": "0",
+      "scope": "case"
+    },
+    {
+      "attempts": "0",
+      "event": "env-sndinit-file",
+      "kind": "data",
+      "ok": "0",
+      "scope": "case"
+    },
+    {
+      "attempts": "3",
+      "event": "env-sndinit-file-log",
+      "recorded": "3",
+      "scope": "case"
+    },
+    {
+      "event": "env-sndinit-file-attempt",
+      "installation_root_retry": "0",
+      "kind": "header",
+      "n": "0",
+      "ok": "0",
+      "read_mode": "1",
+      "scope": "case"
+    },
+    {
+      "event": "env-sndinit-file-attempt",
+      "installation_root_retry": "1",
+      "kind": "header",
+      "n": "1",
+      "ok": "0",
+      "read_mode": "1",
+      "scope": "case"
+    },
+    {
+      "event": "env-sndinit-file-attempt",
+      "installation_root_retry": "0",
+      "kind": "header",
+      "n": "2",
+      "ok": "0",
+      "read_mode": "1",
+      "scope": "case"
+    },
+    {
+      "calls": "1",
+      "event": "env-sndinit-com",
+      "function": "DirectSoundCreate",
+      "last_return_w": "80004005",
+      "scope": "case"
+    },
+    {
+      "calls": "0",
+      "event": "env-sndinit-com",
+      "function": "IDirectSound_SetCooperativeLevel",
+      "last_return_w": "00000000",
+      "scope": "case"
+    },
+    {
+      "calls": "0",
+      "event": "env-sndinit-com",
+      "function": "IDirectSound_CreateSoundBuffer",
+      "last_return_w": "00000000",
+      "scope": "case"
+    },
+    {
+      "calls": "0",
+      "event": "env-sndinit-com",
+      "function": "IDirectSound_Release",
+      "last_return_w": "00000000",
+      "scope": "case"
+    },
+    {
+      "calls": "5222",
+      "digest_w": "17e67b8187903754",
+      "distinct": "64",
+      "event": "env-sndinit-ctor",
+      "looping": "3548",
+      "max_count": "1",
+      "out_of_domain": "0",
+      "sample_reads": "1674",
+      "scope": "case"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2051",
+      "n": "0",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "4"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2052",
+      "n": "1",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "4"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2056",
+      "n": "2",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "4"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2057",
+      "n": "3",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "4"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1954",
+      "n": "4",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "20"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1955",
+      "n": "5",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "20"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1959",
+      "n": "6",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "20"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1960",
+      "n": "7",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "20"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2",
+      "n": "8",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "40"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "3",
+      "n": "9",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "40"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "5",
+      "n": "10",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "40"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "6",
+      "n": "11",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "40"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1978",
+      "n": "12",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "20"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1979",
+      "n": "13",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "20"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1983",
+      "n": "14",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "20"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1984",
+      "n": "15",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "20"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2087",
+      "n": "16",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "8"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2088",
+      "n": "17",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "8"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2092",
+      "n": "18",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "8"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2093",
+      "n": "19",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "8"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2029",
+      "n": "20",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "8"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2030",
+      "n": "21",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "8"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2034",
+      "n": "22",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "8"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2035",
+      "n": "23",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "8"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2041",
+      "n": "24",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "12"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2042",
+      "n": "25",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "12"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2046",
+      "n": "26",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "12"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2047",
+      "n": "27",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "12"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2099",
+      "n": "28",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "4"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2100",
+      "n": "29",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "4"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2104",
+      "n": "30",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "4"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2105",
+      "n": "31",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "4"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2063",
+      "n": "32",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "20"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1967",
+      "n": "33",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "104"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1971",
+      "n": "34",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "104"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1972",
+      "n": "35",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "104"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1966",
+      "n": "36",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "84"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "10",
+      "n": "37",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "36"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "11",
+      "n": "38",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "36"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "13",
+      "n": "39",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "36"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "14",
+      "n": "40",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "36"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1990",
+      "n": "41",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "36"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1991",
+      "n": "42",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "36"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1995",
+      "n": "43",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "36"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "1996",
+      "n": "44",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "36"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2075",
+      "n": "45",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "12"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2076",
+      "n": "46",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "12"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2080",
+      "n": "47",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "12"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2081",
+      "n": "48",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "12"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "47",
+      "n": "49",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "85"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "23",
+      "n": "50",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "176"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "94",
+      "n": "51",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "2"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "93",
+      "n": "52",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "2"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "77",
+      "n": "53",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "90"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2001",
+      "n": "54",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "13"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2004",
+      "n": "55",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "14"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2002",
+      "n": "56",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "13"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2006",
+      "n": "57",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "15"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "62",
+      "n": "58",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "6"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2005",
+      "n": "59",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "13"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "78",
+      "n": "60",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "1"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2003",
+      "n": "61",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "12"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "2007",
+      "n": "62",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "12"
+    },
+    {
+      "event": "env-sndinit-sample",
+      "index": "84",
+      "n": "63",
+      "orate": "22050",
+      "rate": "22050",
+      "scope": "case",
+      "size": "0",
+      "uses": "4"
+    },
+    {
+      "event": "env-sndinit-unsupported",
+      "item": "positive_playing_backend",
+      "reason": "the_headless_build_has_only_the_null_directsound_entry_points_so_no_device_exists_no_handle_is_created_or_faked",
+      "scope": "case"
+    },
+    {
+      "event": "env-sndinit-unsupported",
+      "item": "second_initialisation",
+      "reason": "initialising_an_already_booted_library_again_would_rewind_state_so_the_first_and_only_boot_initialisation_is_the_observation",
+      "scope": "case"
+    },
+    {
+      "event": "env-sndinit-unsupported",
+      "item": "sample_data_loaded_by_the_original_loader",
+      "reason": "load_application_sound_samples_runs_only_after_a_successful_backend_initialisation_so_the_data_files_are_read_here_for_the_header_only",
+      "scope": "case"
+    },
+    {
+      "event": "env-sndinit-unsupported",
+      "item": "other_descriptor_consumers",
+      "reason": "a_static_census_of_the_compiled_readers_is_in_the_documentation_the_probe_counts_the_constructor_reads_only",
+      "scope": "case"
+    },
+    {
+      "event": "env-sndinit-fingerprint",
+      "unchanged": true
+    },
+    {
+      "changed": "0",
+      "event": "env-sndinit-end",
+      "read_only": "1",
+      "scope": "case"
+    },
+    {
+      "boots": 1,
+      "catalogue_unchanged_since_initialisation": true,
+      "constructor_calls": 5222,
+      "constructor_distinct_samples": 64,
+      "data_open_attempts": 0,
+      "data_opens_ok": 0,
+      "descriptors_matched": 0,
+      "descriptors_missed": 0,
+      "directsound_last_entry_called": "DirectSoundCreate",
+      "event": "derived",
+      "first_branch": "backend_initialisation_returned_false",
+      "flags_agree_with_branch": true,
+      "header_open_attempts": 3,
+      "header_opened_in_effects": false,
+      "header_opens_ok": 0,
+      "load_routines_ran": false,
+      "load_side_calls": 1,
+      "source": "the driver's join of the rows above; not a measurement"
+    },
+    {
+      "boots": 1,
+      "branch": "backend_initialisation_returned_false",
+      "changed": "0",
+      "comms": "0",
+      "event": "result",
+      "frames": 1200,
+      "read_only": "1"
+    }
+  ],
+  "limitations": [
+    "Original full attempt1 in-memory report remains UNAVAILABLE; recovery does not recover it. Only retained old ctor summary/digest are compared.",
+    "New JSON includes sidecar path provenance; no claim that whole new wrapper JSON equals unavailable old capture. Complete native sidecar and oldoff whole bytes have separate proofs.",
+    "No positive device/playing handle, loader data reads, other compiled consumer liveness or reinitialization measured. No fake handle or absence-of-assets inference.",
+    "Earlier development/raw gaps, failed red/compile/lint/command/preprocess attempts retained.",
+    "Metadata/assets/per-family/backend/destroy/network/pitch/amplitude/time/terrain/spatial/model duties remain D3; campaign policy/calendar/timers/scheduling stay Core."
+  ]
+}

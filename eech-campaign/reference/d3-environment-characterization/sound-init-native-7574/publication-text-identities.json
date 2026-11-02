@@ -1,0 +1,71 @@
+{
+  "physical_source": "7574caa2ca87a2a44608a234fd1dd73136b8e4c0",
+  "evidence_parent": "372d4bdecb2108f86c67fe0f7b237663a3de2a17",
+  "scope": "Receipt text publication only. Original private receipts remain byte-for-byte retained. Measured raw sidecar/oldoff/baselines are never normalized or changed. Hashes below distinguish originals from Git-stored text.",
+  "files": [
+    {
+      "file": "measured-original-init.json",
+      "retained_original_sha256": "9b98aa6aaee8799be501aebf276233eaef1d3255df7a8c9d7023340ba4fbcf0e",
+      "committed_text_blob_sha256": "4bc47b606833756467eef88e0f985d4f362de7357346346091344d92946ca7ad",
+      "retained_original_bytes": 25361,
+      "committed_text_bytes": 24333,
+      "publication_transform": "Git text publication CRLF to LF only; native/raw comparison files are not changed"
+    },
+    {
+      "file": "independent-source-correction-review.json",
+      "retained_original_sha256": "144e578209b5631e6d275341cdfd538fca8a195efb70cb39f83cf16e92139ef4",
+      "committed_text_blob_sha256": "144e578209b5631e6d275341cdfd538fca8a195efb70cb39f83cf16e92139ef4",
+      "retained_original_bytes": 9903,
+      "committed_text_bytes": 9903,
+      "publication_transform": "byte-identical"
+    },
+    {
+      "file": "current-source-CI.json",
+      "retained_original_sha256": "b8b4c127284bca16894490539aba73fef481edaf6ee8c15c5796b083817b50e0",
+      "committed_text_blob_sha256": "b8b4c127284bca16894490539aba73fef481edaf6ee8c15c5796b083817b50e0",
+      "retained_original_bytes": 15745,
+      "committed_text_bytes": 15745,
+      "publication_transform": "byte-identical"
+    },
+    {
+      "file": "windows-output-primitive.json",
+      "retained_original_sha256": "d2a6bb19e6fdfeebaa97854e3a1d08a1f7963ff7889cf124da3f187ad859a1e2",
+      "committed_text_blob_sha256": "4e569a124f5a0ca44e0b2e4faff500bf334948969294f7a53a13446d5e10d242",
+      "retained_original_bytes": 1823,
+      "committed_text_bytes": 1783,
+      "publication_transform": "Git text publication CRLF to LF only; native/raw comparison files are not changed"
+    },
+    {
+      "file": "prior-failed-capture-and-successful-control.json",
+      "retained_original_sha256": "b96147700b4d71ded0f6e7a3ac4d6ebb6536e41af3756a680c4207ced2881692",
+      "committed_text_blob_sha256": "a0a59fbd5415446009cc1987b5e863764a9d426a7e2bbfdbb4adc811a98dc4e3",
+      "retained_original_bytes": 2332,
+      "committed_text_bytes": 2291,
+      "publication_transform": "Git text publication CRLF to LF only; native/raw comparison files are not changed"
+    },
+    {
+      "file": "feature-off-changed-unit.json",
+      "retained_original_sha256": "106315f8b9e9fc9a0afdb5d02857d39aed4a781119a5c2b03a5242388504732b",
+      "committed_text_blob_sha256": "e7150f7d3fd6b980e686881f09264132fd3a9e4c2517c33518f55e45e3ea8ef1",
+      "retained_original_bytes": 1477,
+      "committed_text_bytes": 1433,
+      "publication_transform": "Git text publication CRLF to LF only; native/raw comparison files are not changed"
+    },
+    {
+      "file": "audit-original-sound-init-recovery.py",
+      "retained_original_sha256": "2972f30de9e2ecdaff965ae26c89182bfb54ee69fb208fdc054bbc541c8552d0",
+      "committed_text_blob_sha256": "2972f30de9e2ecdaff965ae26c89182bfb54ee69fb208fdc054bbc541c8552d0",
+      "retained_original_bytes": 8322,
+      "committed_text_bytes": 8322,
+      "publication_transform": "byte-identical"
+    },
+    {
+      "file": "auditor-execution.json",
+      "retained_original_sha256": "d3725136531c6c799412128fba9f79d949edfb25abf48b72bb701ae63a25468e",
+      "committed_text_blob_sha256": "9bad2394d8748fd58e06a722bf523a605e5b52ab0c2e2849bd7871785b1cfd1b",
+      "retained_original_bytes": 1198,
+      "committed_text_bytes": 1176,
+      "publication_transform": "Git text publication CRLF to LF only; native/raw comparison files are not changed"
+    }
+  ]
+}

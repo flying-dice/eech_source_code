@@ -17,8 +17,11 @@ local mode = '@MODE@'
 local profile = '@PROFILE@'
 local semantic = profile == 'semantic' or profile == 'swap_legacy_host' -- the REPORT is the host-semantic profile
 local host_has_provider = profile == 'semantic' or profile == 'swap_semantic_host'
+host.env_provider = nil
 host.terrain_provider = nil
 if host_has_provider then
+  -- the integrated (hosted) module is also an environment host and refuses a boot without the environment provider; the original module is booted without it
+  host.env_provider = function() return function() return {} end end
   host.terrain_provider = function(root, map)
     note('terrain-provider ' .. tostring(map))
     return { stand_in_provider = true }
@@ -356,7 +359,7 @@ end
 
 package.loaded['eech_dc'] = {
   prepare_installation = function() note('prepare') end,
-  boot = function(config) note('boot terrain=' .. tostring(config ~= nil and config.terrain ~= nil)) return engine end,
+  boot = function(config) if host_has_provider and (config == nil or type(config.environment) ~= 'function') then error('the integrated module needs the host environment provider', 0) end note('boot terrain=' .. tostring(config ~= nil and config.terrain ~= nil)) return engine end,
 }
 dofile('@LUA_DIR@/ground-characterization.lua')
 print('GROUND_CALLER_DONE')

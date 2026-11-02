@@ -1,0 +1,20 @@
+{
+  "native_source": "47f3d9460fcca0acc341a105b4193321ceca14fa",
+  "judge_and_embedded_driver_source": "34c7c28bfbd0dd960380de6dc1a479a569c26e97",
+  "all_production_inputs_unchanged": true,
+  "changed_files": [
+    "STATUS.md",
+    "eech-campaign/crates/eech-world/lua/env-wind-authority.lua",
+    "eech-campaign/crates/eech-world/tests/env_wind_authority.rs",
+    "eech-campaign/docs/d3-environment-provider.md",
+    "eech-campaign/reference/d3-environment-characterization/wind-witness-47f3d9460-review-red/actual-windows-guards-and-real-control-red.json",
+    "eech-campaign/reference/d3-environment-characterization/wind-witness-47f3d9460-review-red/dd120-control-comparison.json",
+    "eech-campaign/reference/d3-environment-characterization/wind-witness-47f3d9460-review-red/ledger88-preservation.json",
+    "eech-campaign/reference/d3-environment-characterization/wind-witness-47f3d9460-review-red/linux-completion.json",
+    "eech-campaign/reference/d3-environment-characterization/wind-witness-47f3d9460-review-red/receipt.json",
+    "eech-campaign/reference/d3-environment-characterization/wind-witness-47f3d9460-review-red/source-review.json",
+    "eech-campaign/reference/d3-environment-characterization/wind-witness-47f3d9460-review-red/windows-build-export-completion.json"
+  ],
+  "driver_sha256": "23cc7082275306209d2776a7a0c5cc15e5353e067e428dca9905ce43b5407e55",
+  "scope": "Explicit mixed provenance: new test-only source, immutable47native; runtime pending"
+}

@@ -1,0 +1,29 @@
+{
+  "source": "a39a7a2ec07f5ec9e02008c58463003e9107978a",
+  "Linux_actual_pipeline_exit": 101,
+  "Linux_env_new_tests_passed": 3,
+  "Linux_terrain_new_tests": {
+    "passed": 2,
+    "failed": 2,
+    "matrix_calls": 5376,
+    "answer_changes": 192
+  },
+  "Linux_full_packages_and_strict": "NOT_REACHED",
+  "Windows_native_export_pipeline_exit": 0,
+  "actual_Windows_libs": {
+    "engine": 80,
+    "module": 24,
+    "world": 254,
+    "all_exit_zero": true
+  },
+  "actual_Windows_new_terrain": {
+    "passed": 2,
+    "failed": 2,
+    "actual_exit": 101
+  },
+  "first_Lebanon_complete108rows_including_endings_equal_original": true,
+  "first_Lebanon_native_pre_post_controller_exit": 0,
+  "payloads": 50,
+  "review_sha256": "8cced1aad38a23ea3bf54a4191f5a86ff359ca4b6509a51cd4122c7deba9304c",
+  "scope": "Actualfirstcandidatechecks/numericdefaultONLY. FPmode and16childdomainfindingsOPEN; NOTauthority/fullshipping/Task51/D3acceptance. Allfailedlogs/source/originals retained."
+}

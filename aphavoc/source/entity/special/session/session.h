@@ -241,6 +241,8 @@ extern int check_point_inside_population_area (vec3d *point);
 
 #include "ss_funcs.h"
 
+#include "ss_hostenv.h"
+
 #include "ss_int.h"
 
 #include "ss_list.h"

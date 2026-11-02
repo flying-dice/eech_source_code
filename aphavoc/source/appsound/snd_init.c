@@ -66,6 +66,14 @@
 
 #include "project.h"
 
+#include "entity/special/session/ss_envfx.h"
+
+#ifdef EECH_CAMPAIGN_HOST_ENV
+
+#include "entity/special/session/ss_hostenv.h"
+
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -80,6 +88,8 @@ int
 void initialise_application_sound_system (void)
 {
 
+	ENV_FXA (ENV_FXA_INIT_ENTER, 0, 0, 0, 0)
+
 	//
 	// create effects database ( required even if no sound )
 	//
@@ -93,7 +103,25 @@ void initialise_application_sound_system (void)
 		// Initialise the modules sound system
 		//
 
+#ifdef EECH_CAMPAIGN_HOST_ENV
+
+		//
+		// EECH_CAMPAIGN_HOST_ENV (EEDCS-51, D3): the physical backend AVAILABILITY is the host's (ss_hostenv.h campaign_sound_backend_request).  The campaign keeps the flag test above and the order of
+		// everything around this statement; it makes no DirectSound or other device call here and has no backend of its own to fall back to.  An answer of "available" is refused by name until the loader
+		// bodies and the playback routes are the host's too, so what is stored below is always the host's "not available".
+		//
+
+		application_sound_system_enabled = campaign_sound_backend ( command_line_no_sound, command_line_comms_dedicated_server );
+
+		ENV_FXA (ENV_FXA_HOST_BACKEND, application_sound_system_enabled, 0, 0, 0)
+
+#else
+
 		application_sound_system_enabled = initialise_sound_system ();
+
+#endif
+
+		ENV_FXA (ENV_FXA_BACKEND, 0, 0, 0, 0)
 	
 		if ( application_sound_system_enabled )
 		{
@@ -102,6 +130,8 @@ void initialise_application_sound_system (void)
 			// Load the sound effects up
 			//
 
+			ENV_FXA (ENV_FXA_LOAD, 0, 0, 0, 0)
+
 			load_application_sound_samples ();
 		}
 	}
@@ -109,7 +139,11 @@ void initialise_application_sound_system (void)
 	{
 
 		application_sound_system_enabled = FALSE;
+
+		ENV_FXA (ENV_FXA_SKIPPED, 0, 0, 0, 0)
 	}
+
+	ENV_FXA (ENV_FXA_INIT_EXIT, 0, 0, 0, 0)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

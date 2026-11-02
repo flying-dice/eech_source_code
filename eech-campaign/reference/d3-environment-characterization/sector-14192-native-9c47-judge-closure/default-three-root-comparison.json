@@ -1,0 +1,41 @@
+{
+  "native_source": "14192c6e292864e573acc8fd8eed94e94f12ce03",
+  "original_source": "b2e55b18b556d04bc1512a1553a8e1b859347c36",
+  "cases": [
+    {
+      "case": "georgia",
+      "state": "terminal",
+      "native": 0,
+      "controller": 0,
+      "prepost_inputs_zero": true,
+      "verified_payloads": 49,
+      "raw_lines": 95,
+      "complete_raw_bytes_equal_original": true,
+      "sha256": "0c349fcdc6b82bb5552cf3875d2652038ee596e2edb4178aa1cd5ca8e93eac61"
+    },
+    {
+      "case": "lebanon",
+      "state": "terminal",
+      "native": 0,
+      "controller": 0,
+      "prepost_inputs_zero": true,
+      "verified_payloads": 49,
+      "raw_lines": 95,
+      "complete_raw_bytes_equal_original": true,
+      "sha256": "ac7700d86797bf72be7ad0b38fb8c4ef2b94dc46fcebed5131064e16cc86cec6"
+    },
+    {
+      "case": "lebanon-repeat",
+      "state": "terminal",
+      "native": 0,
+      "controller": 0,
+      "prepost_inputs_zero": true,
+      "verified_payloads": 49,
+      "raw_lines": 95,
+      "complete_raw_bytes_equal_original": true,
+      "sha256": "ac7700d86797bf72be7ad0b38fb8c4ef2b94dc46fcebed5131064e16cc86cec6"
+    }
+  ],
+  "scope": "Correctedkerneldefault95rawline query conformance, envobserverinstrumentedbutunarmed. Not Tacview/authority/fullshipping/Task51/D3acceptance.",
+  "created_utc": "2026-10-31T13:42:45.112170+00:00"
+}

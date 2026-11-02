@@ -1,0 +1,22 @@
+{
+  "created_utc": "2026-11-01T08:21:24.416272+00:00",
+  "native_source": "e54423b5c17b4386c099240ea02158ec525c05f7",
+  "reference_native_source": "b4265e529cfa2bd6113993d404f60b5819a01b86",
+  "original": "D:\\EECH-Migration-Evidence\\backend-default-off-b4265e529-20261101-0649\\environment.jsonl",
+  "candidate": "D:\\EECH-Migration-Evidence\\rotor-unarmed-diagnostic-e54423b5c-20261101-0813\\environment.jsonl",
+  "original_bytes": 5191384,
+  "candidate_bytes": 5191384,
+  "candidate_rows": 17283,
+  "original_sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+  "candidate_sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+  "complete_bytes_and_endings_identical": true,
+  "partial_prefix_only": false,
+  "native_exit": 0,
+  "input_stages": [
+    0,
+    0
+  ],
+  "verified_payloads": 67,
+  "actual_exit": 0,
+  "scope": "Complete120s new-rotor-probe-UNARMED diagnostic with unchanged general-observer-on/queue/sound script. Full observation bytes including endings only; no rotor output-word transparency, Tacview/audio/shipping or ownership claim. Source/driver/P2 fixes retain separate identities."
+}

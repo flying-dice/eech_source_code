@@ -1,0 +1,23 @@
+{
+  "prior_full_check_source": "c9c1b0a1bed1b3e4bbfc31e87b37e18c2b446489",
+  "current_source": "9429beefb9a8e143b648e01c390075882e6e6361",
+  "changed_files": [
+    "STATUS.md",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_env_fixture.c",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_env_observer.c",
+    "eech-campaign/crates/eech-world/lua/env-characterization.lua",
+    "eech-campaign/crates/eech-world/lua/env-sound-lifetime.lua",
+    "eech-campaign/crates/eech-world/tests/env_sound_lifetime.rs",
+    "eech-campaign/crates/eech-world/tests/host_callbacks.rs",
+    "eech-campaign/docs/d3-sound-lifetime.md"
+  ],
+  "physical_hook_and_algorithm_files_identical": [
+    "aphavoc/source/entity/special/effect/soundeff/se_updt.c",
+    "aphavoc/source/entity/special/effect/soundeff/soundeff.c",
+    "aphavoc/source/entity/special/session/ss_envfx.h",
+    "eech-campaign/crates/eech-engine-sys/csrc/eech_engine.c"
+  ],
+  "prior_actual_full_check_gate": "R:\\d3-evidence\\environment-sound-entity-original-c9c1b0a1b-linux-20261031-completion.json",
+  "prior_actual_exit": 0,
+  "scope": "Current corrections are observer/fixture/report/guard/docs only. Priorc9 full default+observer packages and both strict profiles passed. Actualnewnative cannot reusec9: Cfixture/observer changed. Current focused gate compilesnewobserver Engine/DC C atrelease, runsall current sound/host-callback protocols and world all-target strict; shipping/originalretail/source-review gates remain separate."
+}

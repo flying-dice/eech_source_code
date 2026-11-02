@@ -1,0 +1,96 @@
+{
+  "review": "ONE combined independent correction-delta review; no agents, source edits, compilation or experiments",
+  "created_utc": "2026-10-31T10:46:23.2408583Z",
+  "source": {
+    "path": "R:/d3-evidence/environment-physical-source-2afd1b4c1",
+    "head": "2afd1b4c1e6e694dace4182ec072f9661fa7da70",
+    "tree": "2ec2c28cc4ad5ce99f797ca0001bc4292cf93377",
+    "base": "05b8caf82fbb37ee4e7e9ecfbd412bbc598a9ebd",
+    "working_tree": "git status --porcelain empty; git diff --check base..HEAD exit 0",
+    "delta": "Eight files; reviewed all corrected C/Rust production code, new tests and documentation; unchanged original kernels/oracles/observer census not repeated.",
+    "sha256": {
+      "eech-world/csrc/env_ref.c": "4e48cc83b88fa1142e7af73ac301f323bb315a70e03c88a731a56ffe73c309c7",
+      "eech-world/src/env.rs": "aba6968017d4bb5ff30c9a0787c8dc4a162d2c17c5bb9212aa1067f92bd0f8a9",
+      "eech-engine/src/lib.rs": "71fbe50e39371d11582df81cbf4aac4ee0ada422b26a0c6829057d208654a563",
+      "eech-dc/src/module.rs": "0bd9b287383f11ff30178094d5c87b0933c7ecd62e0dd5b06bfd5a95bc540341"
+    }
+  },
+  "prior_review": {
+    "path": "R:/d3-evidence/independent-environment-physical-source-review-05b8caf82-20261031.json",
+    "sha256": "9c9e85b8ae1f45ec0057322af3823f87fec6295271ce274977f0cef2baa49e86",
+    "disposition": "ENV-PHYSICAL-2 request mutation/client RNG loopholes corrected in inspected source. ENV-PHYSICAL-3 blanket camera/delta/phase restrictions corrected in source; new edge/test issues below. ENV-PHYSICAL-1 explicit full-state save/restore substantially corrected, but guard extent and proof remain incomplete."
+  },
+  "judgement": "CHANGES_REQUIRED. Four bounded actionable findings in this one batch. Source review supplies no Task 51/D3 acceptance.",
+  "findings": [
+    {
+      "id": "ENV-CORRECTION-1",
+      "priority": "P1",
+      "title": "Keep floating-point work inside the guard and test the full x87 status promised",
+      "refs": [
+        "eech-campaign/crates/eech-world/csrc/env_ref.c:1165-1195, 1205-1233, 1243-1259, 1271-1292",
+        "eech-campaign/crates/eech-world/src/env.rs:645-769",
+        "eech-campaign/docs/d3-environment-provider.md:28-41"
+      ],
+      "evidence": "The explicit fnstenv/fldenv and full-MXCSR guard is present and mutating field copies commit only after restoration succeeds. However env_ref_weather calls fp_leave at 1185, then performs ts < 0.5 at 1193 and float output work at 1195; wind/gust similarly copy float outputs after restoration. Floating initializers/output clearing also precede fp_save. On supported x87/i686 paths these operations can change condition/status bits (for example C1) even when the numeric value is exact. The matrix compares x87 status only through &0x3f and only seeds MXCSR sticky flags, so such changes cannot be detected. It also does not call init_random or exercise the need_draw success branch despite claiming every operation/path.",
+      "requested_change": "Arrange the entire FP operation, including simple-mode comparison and result staging/output work, within the saved environment, with final restoration after any operation that can affect FP state. Cover the required complete x87 status, not just exception bits, and deliberately arrange relevant status cases. Include init_random and need_draw normal/refusal coverage in the same bounded matrix, or state its actual narrower scope until separately proved. Preserve atomic field commits and existing numeric expressions.",
+      "evidence_class": "Source-inferred incomplete x87 isolation/proof; no candidate status-leak experiment performed. Existing MinGW fenv-only failure remains closed reused evidence, not a new measurement."
+    },
+    {
+      "id": "ENV-CORRECTION-2",
+      "priority": "P2",
+      "title": "Make C honor the corrected unrequested-wind-vector contract",
+      "refs": [
+        "eech-campaign/crates/eech-engine/src/lib.rs:1257-1265, 9427-9454",
+        "aphavoc/source/entity/special/session/ss_hostenv.c:329-342"
+      ],
+      "evidence": "The new direct-provider validator deliberately accepts finite speed with NaN vector when want_vector==0, and its new test asserts that a vector nobody requested is not read. But campaign_env_wind_at still unconditionally checks all_finite(reply.vector,3) at C line 333. Thus that reply crosses the tested Rust boundary successfully and then fatals in the actual campaign. Lua masks this discrepancy by synthesizing zeros for an unrequested vector.",
+      "requested_change": "Check vector finiteness in C only when request.want_vector is true, or normalize the unused vector at the shared boundary consistently. Keep requested vectors mandatory. Verify through the real C consumer rather than claiming the callback-only test covers it.",
+      "evidence_class": "Source deduction; no native reproduction run by reviewer."
+    },
+    {
+      "id": "ENV-CORRECTION-3",
+      "priority": "P2",
+      "title": "Refuse a non-finite need_draw timer before the reference kernel reports success",
+      "refs": [
+        "eech-campaign/crates/eech-world/csrc/env_ref.c:695-707",
+        "eech-campaign/crates/eech-world/src/env.rs:756-762",
+        "R:/d3-evidence/environment-physical-2afd1b4c1-linux-20261031.log"
+      ],
+      "evidence": "Removing the blanket delta check exposes an early success path: an infinite delta makes the local server timer -Inf, and the no-draw branch returns need_draw with that timer before final check_state. Field::step reports Ok although the provider protocol requires a finite timer. Root's actual Linux run fails at env.rs:761 because this operation unexpectedly succeeds. Lua/direct-engine validation subsequently rejects the non-finite timer, so this is not evidence that shipping Core consumed RNG for this malformed value.",
+      "requested_change": "Validate the need_draw result timer at that early return, refuse it without committing, and retain the meaningful refusal assertion. Do not restore blanket input checks that break the original supported short circuits.",
+      "evidence_class": "Actual Root failure inspected plus matching source explanation."
+    },
+    {
+      "id": "ENV-CORRECTION-4",
+      "priority": "P2",
+      "title": "Reset the radius-zero test state before independently testing an absent camera",
+      "refs": [
+        "eech-campaign/crates/eech-world/src/env.rs:882-891",
+        "eech-campaign/crates/eech-world/csrc/env_ref.c:775-782",
+        "R:/d3-evidence/environment-physical-2afd1b4c1-linux-20261031.log"
+      ],
+      "evidence": "The test imports a local zero-radius field, successfully steps it with the unused NaN camera, then removes the camera and steps the already-evolved field. The original radius evolution has by then clamped radius to MIN_WEATHER_RADIUS, so the second step legitimately needs a camera. Root's actual Linux test fails at env.rs:891 with the expected missing-camera refusal.",
+      "requested_change": "Re-import/reset the calm zero-radius state before the independent no-camera assertion. Preserve the real missing-camera refusal and radius evolution; fix this test sequence rather than loosening production behavior.",
+      "evidence_class": "Actual Root failure inspected plus matching source explanation."
+    }
+  ],
+  "verified_correction_facts": [
+    "Lua captures op, want_vector, server and draw presence before the provider callback. Request mutation cannot remove requested-vector validation or disguise a re-ask/client draw. Completed Lua steps require explicit expired booleans.",
+    "New shared Rust check_env_reply validates direct providers before writing the C reply, with panic/reentry handling retained. C repeats the server/client and post-draw protocol before shared RNG consumption/mirror commit. New tests exercise request mutation, client need_draw, repeated draw, missing expired, and final expiry requirements without mocking the physical arithmetic.",
+    "Step now reads camera only in the required local-zone branch; removes the arbitrary [0,1e6) phase cutoff and blanket delta/camera/map preconditions; retains original update/wrap expressions and refuses positive infinite post-update phase before its loop. New negative-delta/dyadic/large-phase tests are bounded and source relevant.",
+    "The gust test replaces an invalid cross-platform exact 1/7 expectation with exact dyadic 1/8 and 1/16 words. Existing oracle cases, goldens, tolerances and old evidence remain unchanged. Root's retained hosted 05b failures explain the change; this does not prove 2afd tests pass.",
+    "Full x87 environment and MXCSR snapshots now occur in each C operation, with restoration on fp_enter failure and normal/refusal returns. Work-copy field updates commit only after fp_leave success. No generic campaign-DLL FP repair was inferred or requested.",
+    "The diagnostic WEATHER_DRAW w0 semantic difference remains explicitly documented; no old RAW was updated or reclassified as byte-unchanged."
+  ],
+  "actual_evidence_inspected": {
+    "windows_build": "environment-physical-2afd1b4c1-windows-20261031-completion.json: source exact, actual_exit 0, terminal 2026-10-31T10:43:09.214953+00:00. Build only, not unit/runtime/shipping acceptance.",
+    "linux": "environment-physical-2afd1b4c1-linux-20261031-completion.json: source exact, actual_exit 101, terminal 2026-10-31T10:44:01.545703+00:00. Log: world unit tests 247 passed, 2 failed at env.rs:891 and :761; feature/strict phases not reached as conveyed by Root. The failed matrix did not complete all mode/status iterations.",
+    "retail_numeric_comparison": "Inspected environment-physical-original-comparison-2afd1b4c1-20261031.json: exact source; Georgia, Lebanon and fresh Lebanon repeat all native/pre/post exits 0, 46 payloads each; complete 705-line files including endings equal retained 05b, preserving all 704 original993 raw lines plus explicit metadata. Georgia SHA256 5165602d132abefb8a975f24cf909dcfbf7790a9a3e710edb90e62f179dca56f; both Lebanon SHA256 a25f409d468403911b31c7e5827b21264d2b77886016b4794b5655b13461d4a7. Numeric conformance only; original not rerun. Underlying files not independently rehashed by reviewer."
+  },
+  "limitations": [
+    "No reviewer builds, compilers, Docker/shared volumes, retail runs, process changes or source edits. Frozen source remained clean. Root's production 2afd and ongoing test-only author lane were not modified.",
+    "Windows exported tests remain pending at report cutoff (Root reports crosscompile/export live, actual native execution pending). Three actual retail numeric probes are recorded above. No FP/authority/shipping pass inferred from numeric conformance, build completion or author terminal status.",
+    "Root supplies live authority context (M5 11534337 v3 / ledger 14548994 v85) and existing-identity/independent-review/normal-merge authorization. No authentication changes, fake approvals or external writes performed.",
+    "This is the one review of the new delta, reusing the prior review and closed originals. Compiler/runtime/public host authority, projectile controls, current CI, full 40 checks/eight COMPLETE recordings and normal merge remain separate Root gates. Whole D3 remains required; EEDCS-51/D3 incomplete, D4/D5 not started."
+  ]
+}

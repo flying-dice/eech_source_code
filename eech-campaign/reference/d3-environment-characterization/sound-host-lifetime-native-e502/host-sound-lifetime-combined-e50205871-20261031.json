@@ -1,0 +1,591 @@
+{
+  "created_utc": "2026-10-31T23:06:46.547948+00:00",
+  "source": "e5020587153e1922acdc412598c4920501988a9a",
+  "scope": "Finite host sound duration/lifetime extraction: same original11default controls and7public ownership controls. Complete raw bytes and endings; no normalization. This audit needs independent new-actual review.",
+  "all_measured_gates_pass": true,
+  "independent_actual_review_required": true,
+  "builds": {
+    "windows": {
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T22:51:42.776145+00:00",
+      "receipt": {
+        "file": "environment-host-sound-lifetime-e50205871-windows-20261031-completion.json",
+        "sha256": "d2667f4ca2db60dad519afbe45df772a7869a9416d8c93b6f4d66caed0460a28",
+        "bytes": 723
+      }
+    },
+    "linux": {
+      "actual_exit": 0,
+      "completed_utc": "2026-10-31T22:57:21.015470+00:00",
+      "receipt": {
+        "file": "environment-host-sound-lifetime-e50205871-linux-20261031-completion.json",
+        "sha256": "64165dbae6fa66f02ac9c4523b8115a8e9209a55b65773a1231537c93daaf6b7",
+        "bytes": 719
+      }
+    }
+  },
+  "source_review": {
+    "file": "independent-environment-host-sound-lifetime-source-review-e50205871-20261031.json",
+    "sha256": "0c30b9a625e98e5d62c5931931767bd2642f1728e154d69b38007944ae0b6264",
+    "bytes": 8925
+  },
+  "current9_ci": {
+    "file": "current-CI-e50205871-20261031.json",
+    "sha256": "2c0380ece650c79a344c4ed3545b43566a956b00a5c48749402fe778cb858287",
+    "bytes": 16921
+  },
+  "native_controls": 18,
+  "pre_post_input_checks0": 36,
+  "all11_complete_original_raw_bytes_equal": true,
+  "defaults": [
+    {
+      "case": "natural",
+      "original_native_source": "9429beefb9a8e143b648e01c390075882e6e6361",
+      "original_driver_source": "e1dc758074fba7fa8a4af99604ceecb85cf20483",
+      "candidate_native_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "candidate_driver_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 56,
+      "whole_raw_including_endings_equal": true,
+      "raw_bytes": [
+        5191384,
+        5191384
+      ],
+      "raw_lines": [
+        17283,
+        17283
+      ],
+      "raw_sha256": [
+        "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+        "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d"
+      ],
+      "first_byte_difference": null
+    },
+    {
+      "case": "case-1",
+      "original_native_source": "9429beefb9a8e143b648e01c390075882e6e6361",
+      "original_driver_source": "e1dc758074fba7fa8a4af99604ceecb85cf20483",
+      "candidate_native_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "candidate_driver_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 56,
+      "whole_raw_including_endings_equal": true,
+      "raw_bytes": [
+        7139,
+        7139
+      ],
+      "raw_lines": [
+        16,
+        16
+      ],
+      "raw_sha256": [
+        "2ecb2a518367931a02b30d2c88df9bdd22adb3c6e6a2a2993e1c98f445037ee1",
+        "2ecb2a518367931a02b30d2c88df9bdd22adb3c6e6a2a2993e1c98f445037ee1"
+      ],
+      "first_byte_difference": null
+    },
+    {
+      "case": "case-2",
+      "original_native_source": "9429beefb9a8e143b648e01c390075882e6e6361",
+      "original_driver_source": "e1dc758074fba7fa8a4af99604ceecb85cf20483",
+      "candidate_native_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "candidate_driver_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 56,
+      "whole_raw_including_endings_equal": true,
+      "raw_bytes": [
+        7995,
+        7995
+      ],
+      "raw_lines": [
+        17,
+        17
+      ],
+      "raw_sha256": [
+        "b47ae58074dddd78f54aa4c1e93f0c9abb1899966de344e38310a2ea5ed13324",
+        "b47ae58074dddd78f54aa4c1e93f0c9abb1899966de344e38310a2ea5ed13324"
+      ],
+      "first_byte_difference": null
+    },
+    {
+      "case": "case-3",
+      "original_native_source": "9429beefb9a8e143b648e01c390075882e6e6361",
+      "original_driver_source": "e1dc758074fba7fa8a4af99604ceecb85cf20483",
+      "candidate_native_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "candidate_driver_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 56,
+      "whole_raw_including_endings_equal": true,
+      "raw_bytes": [
+        3488,
+        3488
+      ],
+      "raw_lines": [
+        12,
+        12
+      ],
+      "raw_sha256": [
+        "43f8c4fc73617b6c7a26d6410a3e4a175329c5d8f6b3cdf1df87f42a7a27b289",
+        "43f8c4fc73617b6c7a26d6410a3e4a175329c5d8f6b3cdf1df87f42a7a27b289"
+      ],
+      "first_byte_difference": null
+    },
+    {
+      "case": "case-4",
+      "original_native_source": "116ffd5fb4230226a1ff98a87c40375eea95e521",
+      "original_driver_source": "2a4139830e2ec13617635c553a519d9be3015a2d",
+      "candidate_native_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "candidate_driver_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 56,
+      "whole_raw_including_endings_equal": true,
+      "raw_bytes": [
+        11971,
+        11971
+      ],
+      "raw_lines": [
+        27,
+        27
+      ],
+      "raw_sha256": [
+        "16984dfebbcfa07a5f3e699ad29afe20cbb61768edc72bc5834b83f30b0fac58",
+        "16984dfebbcfa07a5f3e699ad29afe20cbb61768edc72bc5834b83f30b0fac58"
+      ],
+      "first_byte_difference": null
+    },
+    {
+      "case": "case-5",
+      "original_native_source": "116ffd5fb4230226a1ff98a87c40375eea95e521",
+      "original_driver_source": "2a4139830e2ec13617635c553a519d9be3015a2d",
+      "candidate_native_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "candidate_driver_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 56,
+      "whole_raw_including_endings_equal": true,
+      "raw_bytes": [
+        12789,
+        12789
+      ],
+      "raw_lines": [
+        28,
+        28
+      ],
+      "raw_sha256": [
+        "7308a1efd48c90712a6c09d4f3e9ddbb0df31fd979bc186862c9df49a4e2c267",
+        "7308a1efd48c90712a6c09d4f3e9ddbb0df31fd979bc186862c9df49a4e2c267"
+      ],
+      "first_byte_difference": null
+    },
+    {
+      "case": "case-6",
+      "original_native_source": "116ffd5fb4230226a1ff98a87c40375eea95e521",
+      "original_driver_source": "2a4139830e2ec13617635c553a519d9be3015a2d",
+      "candidate_native_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "candidate_driver_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 56,
+      "whole_raw_including_endings_equal": true,
+      "raw_bytes": [
+        6691,
+        6691
+      ],
+      "raw_lines": [
+        19,
+        19
+      ],
+      "raw_sha256": [
+        "2178f85d28a08a82bacde5b4589ebccdff7ac79e6895abba8dd2f232f70dfb65",
+        "2178f85d28a08a82bacde5b4589ebccdff7ac79e6895abba8dd2f232f70dfb65"
+      ],
+      "first_byte_difference": null
+    },
+    {
+      "case": "case-7",
+      "original_native_source": "116ffd5fb4230226a1ff98a87c40375eea95e521",
+      "original_driver_source": "2a4139830e2ec13617635c553a519d9be3015a2d",
+      "candidate_native_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "candidate_driver_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 56,
+      "whole_raw_including_endings_equal": true,
+      "raw_bytes": [
+        7907,
+        7907
+      ],
+      "raw_lines": [
+        21,
+        21
+      ],
+      "raw_sha256": [
+        "f12086a63729c3c8e327c2c56e942ac2d3e34581ad0556892016df2dbf2790d4",
+        "f12086a63729c3c8e327c2c56e942ac2d3e34581ad0556892016df2dbf2790d4"
+      ],
+      "first_byte_difference": null
+    },
+    {
+      "case": "case-8",
+      "original_native_source": "116ffd5fb4230226a1ff98a87c40375eea95e521",
+      "original_driver_source": "2a4139830e2ec13617635c553a519d9be3015a2d",
+      "candidate_native_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "candidate_driver_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 56,
+      "whole_raw_including_endings_equal": true,
+      "raw_bytes": [
+        17586,
+        17586
+      ],
+      "raw_lines": [
+        36,
+        36
+      ],
+      "raw_sha256": [
+        "9e5aa62f10ff7ed38d6e609a1fd3bb2142e0e12dc6ecfd8d473e2353f58d6362",
+        "9e5aa62f10ff7ed38d6e609a1fd3bb2142e0e12dc6ecfd8d473e2353f58d6362"
+      ],
+      "first_byte_difference": null
+    },
+    {
+      "case": "case-9",
+      "original_native_source": "116ffd5fb4230226a1ff98a87c40375eea95e521",
+      "original_driver_source": "d4cebb76dd2980ac078dc15f07fcd381439a9229",
+      "candidate_native_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "candidate_driver_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 56,
+      "whole_raw_including_endings_equal": true,
+      "raw_bytes": [
+        10901,
+        10901
+      ],
+      "raw_lines": [
+        27,
+        27
+      ],
+      "raw_sha256": [
+        "aaf562c423b2736ab3722199cf0158e2220a0c26d2d809c661c9af90a43d5104",
+        "aaf562c423b2736ab3722199cf0158e2220a0c26d2d809c661c9af90a43d5104"
+      ],
+      "first_byte_difference": null
+    },
+    {
+      "case": "case-10",
+      "original_native_source": "116ffd5fb4230226a1ff98a87c40375eea95e521",
+      "original_driver_source": "d4cebb76dd2980ac078dc15f07fcd381439a9229",
+      "candidate_native_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "candidate_driver_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 56,
+      "whole_raw_including_endings_equal": true,
+      "raw_bytes": [
+        13427,
+        13427
+      ],
+      "raw_lines": [
+        30,
+        30
+      ],
+      "raw_sha256": [
+        "df3c7b2dd178848245f4b8dbd8ee85a51ed5216e98d6836b03d0e5e6534b29f3",
+        "df3c7b2dd178848245f4b8dbd8ee85a51ed5216e98d6836b03d0e5e6534b29f3"
+      ],
+      "first_byte_difference": null
+    }
+  ],
+  "ownership": [
+    {
+      "mode": "old-capability-red",
+      "actual_native_exit": 1,
+      "actual_controller_exit": 1,
+      "verified_payloads": 55,
+      "delegate_source": "d4cebb76dd2980ac078dc15f07fcd381439a9229",
+      "delegate_sha256": "ad277d1f92c75b7c12c9f1606e512ec49d508804c77c81ffb9ae2c4c1d9909e7",
+      "wrapper_sha256": "5e33b55e1730b4484bdc82a47da17d5cf6044abfdc5a74dfab8ce1d49344a891",
+      "raw": {
+        "file": "environment.jsonl",
+        "sha256": "16984dfebbcfa07a5f3e699ad29afe20cbb61768edc72bc5834b83f30b0fac58",
+        "bytes": 11971
+      },
+      "authority": {
+        "boot_requests": 0,
+        "case": 4,
+        "completed": true,
+        "delegate_ran": true,
+        "forwarded_other_requests": 3,
+        "mode": "healthy",
+        "op": "sound_lifetime_update",
+        "requests": 0,
+        "calls": 3,
+        "creation_life_w": "40a00000",
+        "kills": 1,
+        "life_words": "40a00000,40400000,3f800000,00000000",
+        "source": "host.env_provider wrapper on the public path",
+        "verdict": "sound_host_capability_missing"
+      },
+      "authority_receipt": {
+        "file": "environment.jsonl.authority.jsonl",
+        "sha256": "79267a247c8810f2d8b90c49fae0c5e6fe77b295ac8e7fd8e3be2050850cb073",
+        "bytes": 353
+      }
+    },
+    {
+      "mode": "healthy",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "verified_payloads": 56,
+      "delegate_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "delegate_sha256": "ad277d1f92c75b7c12c9f1606e512ec49d508804c77c81ffb9ae2c4c1d9909e7",
+      "wrapper_sha256": "5e33b55e1730b4484bdc82a47da17d5cf6044abfdc5a74dfab8ce1d49344a891",
+      "raw": {
+        "file": "environment.jsonl",
+        "sha256": "16984dfebbcfa07a5f3e699ad29afe20cbb61768edc72bc5834b83f30b0fac58",
+        "bytes": 11971
+      },
+      "authority": {
+        "boot_requests": 0,
+        "case": 4,
+        "completed": true,
+        "delegate_ran": true,
+        "forwarded_other_requests": 4768,
+        "mode": "healthy",
+        "op": "sound_lifetime_update",
+        "requests": 3,
+        "calls": 3,
+        "creation_life_w": "40a00000",
+        "kills": 1,
+        "life_words": "40a00000,40400000,3f800000,00000000",
+        "source": "host.env_provider wrapper on the public path",
+        "verdict": "host_asked_and_decided"
+      },
+      "authority_receipt": {
+        "file": "environment.jsonl.authority.jsonl",
+        "sha256": "3b8c03c001fa2601084d7e57f6a35605c2e22097fe072516fd0ddab5ea750499",
+        "bytes": 349
+      }
+    },
+    {
+      "mode": "changed",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "verified_payloads": 56,
+      "delegate_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "delegate_sha256": "ad277d1f92c75b7c12c9f1606e512ec49d508804c77c81ffb9ae2c4c1d9909e7",
+      "wrapper_sha256": "5e33b55e1730b4484bdc82a47da17d5cf6044abfdc5a74dfab8ce1d49344a891",
+      "raw": {
+        "file": "environment.jsonl",
+        "sha256": "64ec79a0719c2ef0010947da87cbe5458e2ea27e8348fa6a70f27cd7a8db651a",
+        "bytes": 10309
+      },
+      "authority": {
+        "boot_requests": 0,
+        "case": 4,
+        "completed": true,
+        "delegate_ran": true,
+        "forwarded_other_requests": 4768,
+        "mode": "changed",
+        "op": "sound_lifetime_update",
+        "requests": 3,
+        "calls": 3,
+        "creation_life_w": "40a00000",
+        "kills": 0,
+        "life_words": "40a00000,40a00000,40a00000,40a00000",
+        "source": "host.env_provider wrapper on the public path",
+        "verdict": "host_changed_the_decision"
+      },
+      "authority_receipt": {
+        "file": "environment.jsonl.authority.jsonl",
+        "sha256": "54927e91f9616c8b5d59481cd0c6d41fa7f0ff7af868dbb3aabba5e828aaef50",
+        "bytes": 352
+      }
+    },
+    {
+      "mode": "changed_init",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "verified_payloads": 56,
+      "delegate_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "delegate_sha256": "ad277d1f92c75b7c12c9f1606e512ec49d508804c77c81ffb9ae2c4c1d9909e7",
+      "wrapper_sha256": "5e33b55e1730b4484bdc82a47da17d5cf6044abfdc5a74dfab8ce1d49344a891",
+      "raw": {
+        "file": "environment.jsonl",
+        "sha256": "37ab5beedb98d3d08e56fd0cfceb4a390d7dad802d793934a8f9db479038ac1b",
+        "bytes": 6691
+      },
+      "authority": {
+        "boot_requests": 4764,
+        "case": 6,
+        "completed": true,
+        "delegate_ran": true,
+        "forwarded_other_requests": 3,
+        "mode": "changed_init",
+        "op": "sound_lifetime_init",
+        "requests": 1,
+        "calls": 0,
+        "creation_life_w": "3e800000",
+        "kills": 0,
+        "life_words": "3e800000",
+        "source": "host.env_provider wrapper on the public path",
+        "verdict": "host_changed_the_decision"
+      },
+      "authority_receipt": {
+        "file": "environment.jsonl.authority.jsonl",
+        "sha256": "d2ed4064d2b77f09df86c42356f5997c6beee522c96960ec44c7e6fa5ef22641",
+        "bytes": 328
+      }
+    },
+    {
+      "mode": "withheld",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "verified_payloads": 56,
+      "delegate_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "delegate_sha256": "ad277d1f92c75b7c12c9f1606e512ec49d508804c77c81ffb9ae2c4c1d9909e7",
+      "wrapper_sha256": "5e33b55e1730b4484bdc82a47da17d5cf6044abfdc5a74dfab8ce1d49344a891",
+      "raw": {
+        "file": "environment.jsonl",
+        "sha256": "bb7f84a38a8f43be77ad07a4eae58c8d35723f7d8727d01518680a56218c5021",
+        "bytes": 2431
+      },
+      "authority": {
+        "boot_requests": 0,
+        "case": 4,
+        "completed": false,
+        "delegate_ran": false,
+        "forwarded_other_requests": 4768,
+        "mode": "withheld",
+        "op": "sound_lifetime_update",
+        "requests": 1,
+        "marker": "[env-provider:sound_lifetime_update.callback]",
+        "stopped": true,
+        "source": "host.env_provider wrapper on the public path",
+        "verdict": "stopped_at_boundary"
+      },
+      "authority_receipt": {
+        "file": "environment.jsonl.authority.jsonl",
+        "sha256": "5c0c725878c5f588ffa0693d97fac9a30f00b8e291981c348a664e37af49a889",
+        "bytes": 321
+      }
+    },
+    {
+      "mode": "malformed",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "verified_payloads": 56,
+      "delegate_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "delegate_sha256": "ad277d1f92c75b7c12c9f1606e512ec49d508804c77c81ffb9ae2c4c1d9909e7",
+      "wrapper_sha256": "5e33b55e1730b4484bdc82a47da17d5cf6044abfdc5a74dfab8ce1d49344a891",
+      "raw": {
+        "file": "environment.jsonl",
+        "sha256": "9c6486a9e7c7a154e83fe025f7cc4b37b52b47852e3052c891b727f244683039",
+        "bytes": 2419
+      },
+      "authority": {
+        "boot_requests": 0,
+        "case": 4,
+        "completed": false,
+        "delegate_ran": false,
+        "forwarded_other_requests": 4768,
+        "mode": "malformed",
+        "op": "sound_lifetime_update",
+        "requests": 1,
+        "marker": "[env-provider:sound_lifetime_update.answer]",
+        "stopped": true,
+        "source": "host.env_provider wrapper on the public path",
+        "verdict": "stopped_at_boundary"
+      },
+      "authority_receipt": {
+        "file": "environment.jsonl.authority.jsonl",
+        "sha256": "8d3fef890082b4663e8d5c865e3b2c1d55aab25a3ddd2ad9887f3522117b245c",
+        "bytes": 320
+      }
+    },
+    {
+      "mode": "withheld_init",
+      "actual_native_exit": 0,
+      "actual_controller_exit": 0,
+      "verified_payloads": 56,
+      "delegate_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "delegate_sha256": "ad277d1f92c75b7c12c9f1606e512ec49d508804c77c81ffb9ae2c4c1d9909e7",
+      "wrapper_sha256": "5e33b55e1730b4484bdc82a47da17d5cf6044abfdc5a74dfab8ce1d49344a891",
+      "raw": {
+        "file": "environment.jsonl",
+        "sha256": "7b3df495d6caad1c401144180adb8f82c568ae051fcb5282c785f38b74df4070",
+        "bytes": 2415
+      },
+      "authority": {
+        "boot_requests": 4764,
+        "case": 6,
+        "completed": false,
+        "delegate_ran": false,
+        "forwarded_other_requests": 3,
+        "mode": "withheld_init",
+        "op": "sound_lifetime_init",
+        "requests": 1,
+        "marker": "[env-provider:sound_lifetime_init.callback]",
+        "stopped": true,
+        "source": "host.env_provider wrapper on the public path",
+        "verdict": "stopped_at_boundary"
+      },
+      "authority_receipt": {
+        "file": "environment.jsonl.authority.jsonl",
+        "sha256": "f09bed4237acffa13b8f696a96c311713598418a7715dcadf85f2305ad66b2fa",
+        "bytes": 322
+      }
+    }
+  ],
+  "retained_failures": "402source review two groups and both i686 actual101 logs retained. Original9 witness failure1 retained; originalfirstd1 raw unavailable, only labelled partial excerpt/tool results.",
+  "remaining_core_coupling": [
+    "sample metadata and asset lookup",
+    "persistent legacy mirrors/list/heap adapters",
+    "pause/resume validity/relink",
+    "independent destroy/network state",
+    "playback handles/device",
+    "per-vehicle amplitude/pitch",
+    "remaining physical time and required terrain/spatial/model services"
+  ],
+  "delivery_limits": "No Task51 shipping40/all8complete Tacview/observations/metrics or wholeD3/normal-merge acceptance. Separate ground run is not this source. D4/D5 unstarted."
+}

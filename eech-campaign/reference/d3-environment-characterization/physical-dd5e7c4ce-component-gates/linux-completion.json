@@ -1,0 +1,18 @@
+{
+  "source": "dd5e7c4ce46339ebd5bd2ba0e3b0c09653955735",
+  "args": [
+    "wsl",
+    "-d",
+    "EECH-D2-Build",
+    "--",
+    "sh",
+    "/mnt/c/Users/starscream/Documents/ChatGPT/Enemy Engaged DCS/d3-evidence/build-environment-physical-dd5e7c4ce-linux-20261031.sh"
+  ],
+  "pid": 3348,
+  "controller_pid": 16348,
+  "state": "terminal",
+  "started_utc": "2026-10-31T11:28:15.501168+00:00",
+  "scope": "Physical candidate linux build and affected checks only; asset-dependent test functions without inputs are not retail evidence; no shipping acceptance",
+  "actual_exit": 0,
+  "completed_utc": "2026-10-31T11:37:02.657769+00:00"
+}

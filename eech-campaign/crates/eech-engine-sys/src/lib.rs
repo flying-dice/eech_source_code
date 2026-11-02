@@ -1127,6 +1127,14 @@ pub const EECH_TERRAIN_FAST: c_int = 3;
 pub const EECH_TERRAIN_GROUND_ABOVE: c_int = 4;
 pub const EECH_TERRAIN_GROUND_BELOW: c_int = 5;
 pub const EECH_TERRAIN_GROUND_IMPACT: c_int = 6;
+/// The SECTOR operation (EEDCS-51): the surface enumeration of the sector that holds a position, with the original's return value and the complete scratch by value.
+pub const EECH_TERRAIN_SECTOR: c_int = 7;
+pub const EECH_TERRAIN_AMBIENT: c_int = 8;
+/// The most children one AMBIENT question carries (`CAMPAIGN_TERRAIN_AMBIENT_MAX`) and the number of ambient classes (`CAMPAIGN_TERRAIN_AMBIENT_CLASSES`: sea, jungle, amb1 to amb4).
+pub const EECH_TERRAIN_AMBIENT_MAX: usize = 16;
+pub const EECH_TERRAIN_AMBIENT_CLASSES: c_int = 6;
+/// The room of a SECTOR reply's flags (`CAMPAIGN_TERRAIN_FLAGS_MAX`): `EECH_TERRAIN_TYPE_COUNT` characters `0` or `1` and a terminator, zero-padded.
+pub const EECH_TERRAIN_FLAGS_MAX: usize = 64;
 /// The number of EECH terrain types (`TERRAIN_TYPE_LAST` in modules/3d/terrain/terrtype.h): a surface type answer is in `0..EECH_TERRAIN_TYPE_COUNT`.
 pub const EECH_TERRAIN_TYPE_COUNT: c_int = 62;
 
@@ -1138,6 +1146,15 @@ pub struct eech_terrain_request {
     pub x: f32,
     pub z: f32,
     pub hint: [c_char; EECH_TERRAIN_HINT_MAX + 1],
+    /// AMBIENT: whether the cockpit is the point and the number of children
+    pub ambient_in_cockpit: c_int,
+    pub ambient_count: c_int,
+    /// AMBIENT: the point's radar altitude and the frame delta
+    pub ambient_alt: f32,
+    pub ambient_delta: f32,
+    /// AMBIENT: for each child, its class and its previous amplification
+    pub ambient_class: [c_int; EECH_TERRAIN_AMBIENT_MAX],
+    pub ambient_previous: [f32; EECH_TERRAIN_AMBIENT_MAX],
     /// GROUND_ABOVE and GROUND_BELOW: the position is (x, y, z); GROUND_IMPACT: the above endpoint is (x, y, z) and `below` the below endpoint
     pub y: f32,
     pub below: [f32; 3],
@@ -1165,6 +1182,12 @@ pub struct eech_terrain_reply {
     /// POINT: nonzero when the record holds a surface after this reply (independent of the hint)
     pub stored: c_int,
     pub hint: [c_char; EECH_TERRAIN_HINT_MAX + 1],
+    /// SECTOR: the original's return value (1 + the surface transitions)
+    pub sector_returned: c_int,
+    /// SECTOR: one `0` or `1` per terrain type, then the terminator
+    pub sector_flags: [c_char; EECH_TERRAIN_FLAGS_MAX],
+    /// AMBIENT: the new amplification of each child of the request, in its order
+    pub ambient_amplitude: [f32; EECH_TERRAIN_AMBIENT_MAX],
     /// GROUND_ABOVE and GROUND_BELOW: the predicate, and whether the answer read the terrain (the record above is meaningful only then); each 0 or 1
     pub answer: c_int,
     pub queried: c_int,
@@ -1182,6 +1205,253 @@ pub type eech_terrain_callback = unsafe extern "C" fn(
     user: *mut c_void,
 ) -> c_int;
 
+/// Host-owned weather and wind field (aphavoc/.../ss_hostenv.h): the counts of the field's floats and integers, the error buffer, the draws of an initialisation and the operations.
+pub const EECH_ENV_FLOATS: usize = 23;
+pub const EECH_ENV_INTS: usize = 5;
+pub const EECH_ENV_DRAWS: usize = 10;
+pub const EECH_ENV_ERROR_MAX: usize = 512;
+pub const EECH_ENV_IMPORT: c_int = 1;
+pub const EECH_ENV_EXPORT: c_int = 2;
+pub const EECH_ENV_INIT_RANDOM: c_int = 3;
+pub const EECH_ENV_INIT_FIXED: c_int = 4;
+pub const EECH_ENV_WEATHER: c_int = 5;
+pub const EECH_ENV_WIND: c_int = 6;
+pub const EECH_ENV_GUST: c_int = 7;
+pub const EECH_ENV_STEP: c_int = 8;
+pub const EECH_ENV_AMBIENT: c_int = 9;
+pub const EECH_ENV_LIGHTNING_ADD: c_int = 10;
+pub const EECH_ENV_LIGHTNING_UPDATE: c_int = 11;
+pub const EECH_ENV_SOUND_LIFETIME_INIT: c_int = 12;
+pub const EECH_ENV_SOUND_LIFETIME_UPDATE: c_int = 13;
+pub const EECH_ENV_SOUND_PAUSE_RESUME: c_int = 14;
+pub const EECH_ENV_ROTOR_SOUND: c_int = 15;
+/// ROTOR_SOUND: the logical channels (`CAMPAIGN_ROTOR_CHANNEL_*`: looping, slap, turbine 1, turbine 2, APU, winding), the pause and resume requests a reply may hold, the player roles and the write mask bits.
+pub const EECH_ROTOR_CHANNELS: usize = 6;
+pub const EECH_ROTOR_ACTIONS: usize = 8;
+pub const EECH_ROTOR_PLAYER_AI: c_int = 0;
+pub const EECH_ROTOR_PLAYER_LOCAL: c_int = 1;
+pub const EECH_ROTOR_PLAYER_REMOTE: c_int = 2;
+pub const EECH_ROTOR_CHANNEL_LOOPING: c_int = 0;
+pub const EECH_ROTOR_CHANNEL_SLAP: c_int = 1;
+pub const EECH_ROTOR_CHANNEL_TURBINE1: c_int = 2;
+pub const EECH_ROTOR_CHANNEL_TURBINE2: c_int = 3;
+pub const EECH_ROTOR_CHANNEL_APU: c_int = 4;
+pub const EECH_ROTOR_CHANNEL_WINDING: c_int = 5;
+pub const EECH_ROTOR_WRITE_AMPLIFICATION: c_int = 1;
+pub const EECH_ROTOR_WRITE_PITCH: c_int = 2;
+/// The samples of one sound effect's sequence that cross the boundary by value (`CAMPAIGN_SOUND_SAMPLES`).
+pub const EECH_SOUND_SAMPLES: usize = 16;
+/// The host's decisions for a sound effect's update (`CAMPAIGN_SOUND_ACTION_*`).
+pub const EECH_SOUND_ACTION_NONE: c_int = 0;
+pub const EECH_SOUND_ACTION_KILL: c_int = 1;
+pub const EECH_SOUND_ACTION_UNLINK: c_int = 2;
+/// The slots of the physical lightning queue (`CAMPAIGN_LIGHTNING_SLOTS`).
+pub const EECH_LIGHTNING_SLOTS: usize = 32;
+/// The number of EECH weather modes (`WEATHERMODE_LAST`): a mode is in `0..EECH_ENV_MODE_COUNT`.
+pub const EECH_ENV_MODE_COUNT: c_int = 5;
+
+/// One slot of the physical lightning queue by value, field for field as campaign_lightning_strike.
+#[repr(C)]
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct eech_lightning_strike {
+    pub in_use: c_int,
+    pub kind: c_int,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+    pub time_started: f32,
+    pub time_length: f32,
+    pub current_frame_number: c_int,
+}
+
+/// The physical field, field for field as campaign_env_state (the order of the floats and of the integers is the enums of ss_hostenv.h).
+#[repr(C)]
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct eech_env_state {
+    pub f: [f32; EECH_ENV_FLOATS],
+    pub n: [c_int; EECH_ENV_INTS],
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct eech_env_request {
+    pub op: c_int,
+    /// the season is winter (the global season the original reads at each weather question)
+    pub winter: c_int,
+    pub state: eech_env_state,
+    pub draw: [f64; EECH_ENV_DRAWS],
+    pub init_config: [f32; 6],
+    pub map: [f32; 6],
+    pub fixed_mode: c_int,
+    pub x: f32,
+    pub z: f32,
+    pub want_vector: c_int,
+    pub phase: f32,
+    pub delta: f32,
+    pub server: c_int,
+    pub in_cockpit: c_int,
+    pub have_camera: c_int,
+    pub camera: [f32; 3],
+    pub have_draw: c_int,
+    pub lightning_draw: f64,
+    /// AMBIENT (with `x`, `z` and `in_cockpit`): the point's height, its radar altitude and the cloud base height
+    pub ambient_y: f32,
+    pub ambient_alt: f32,
+    pub ambient_cloud_base: f32,
+    /// LIGHTNING_ADD (with `x`, `z`): the strike type and length, whether an active 3D environment exists and its time of day; LIGHTNING_UPDATE: the time of day and,
+    /// once the host has asked for it, the strike animation frame count
+    pub lightning_type: c_int,
+    pub lightning_length: f32,
+    pub lightning_environment_active: c_int,
+    pub lightning_time_of_day: f32,
+    pub lightning_have_frames: c_int,
+    pub lightning_frames: c_int,
+    /// SOUND_LIFETIME_INIT: whether the effect loops, whether it is MUSIC, the sequence's sample count and each sample's descriptor rate and size by value; SOUND_LIFETIME_UPDATE (with `sound_looping`): the routine,
+    /// the validity, whether it holds a handle and, once the host has asked, whether that handle is playing, the frame delta and the stored lifetime and valid lifetime
+    pub sound_looping: c_int,
+    pub sound_music: c_int,
+    pub sound_count: c_int,
+    pub sound_rate: [c_int; EECH_SOUND_SAMPLES],
+    pub sound_size: [c_int; EECH_SOUND_SAMPLES],
+    pub sound_server: c_int,
+    pub sound_valid: c_int,
+    pub sound_has_handle: c_int,
+    pub sound_have_playing: c_int,
+    pub sound_playing: c_int,
+    pub sound_delta: f32,
+    pub sound_lifetime: f32,
+    pub sound_valid_lifetime: f32,
+    /// SOUND_PAUSE_RESUME (with `sound_valid` and `sound_valid_lifetime`): whether it is a resume (else a pause), whether the effect is in the update list and the delay a pause carries
+    pub sound_resume: c_int,
+    pub sound_member: c_int,
+    pub sound_delay: f32,
+    /// ROTOR_SOUND: the player role (`EECH_ROTOR_PLAYER_*`), the stored main rotor rpm, whether a flight model is current (global) and its acceleration vector, and the left, right and APU rpm (zero unless the role is local
+    /// and a flight model exists)
+    pub rotor_player: c_int,
+    pub rotor_have_flight_model: c_int,
+    pub rotor_rpm: f32,
+    pub rotor_acceleration: [f32; 3],
+    pub rotor_left_rpm: f32,
+    pub rotor_right_rpm: f32,
+    pub rotor_apu_rpm: f32,
+}
+
+#[repr(C)]
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct eech_env_reply {
+    pub state: eech_env_state,
+    pub current_mode: c_int,
+    pub target_mode: c_int,
+    pub simple_mode: c_int,
+    pub transitional_state: f32,
+    pub speed: f32,
+    pub vector: [f32; 3],
+    pub modulation: f32,
+    pub need_draw: c_int,
+    pub expired: c_int,
+    pub strike: [f32; 3],
+    pub new_timer: f32,
+    /// AMBIENT: rain light, rain heavy, wind light, wind heavy
+    pub ambient_levels: [f32; 4],
+    /// LIGHTNING_ADD: the slot filled (-1: none); LIGHTNING_UPDATE: the host needs the frame count; both: the whole queue after the operation
+    pub lightning_slot: c_int,
+    pub lightning_need_frames: c_int,
+    pub lightning_queue: [eech_lightning_strike; EECH_LIGHTNING_SLOTS],
+    /// SOUND_LIFETIME_INIT: the lifetime; SOUND_LIFETIME_UPDATE: the lifetime and valid lifetime after the update, whether a valid effect's lifetime went below zero, the decision, or that the host needs to know
+    /// whether the handle is still playing (nothing changed)
+    pub sound_lifetime: f32,
+    pub sound_valid_lifetime: f32,
+    pub sound_expired: c_int,
+    pub sound_action: c_int,
+    pub sound_need_playing: c_int,
+    /// SOUND_PAUSE_RESUME: whether the call changed the effect, its validity (and, in `sound_valid_lifetime`, valid lifetime) after the call, whether its parent is asked to play and whether it is put back in the update list
+    pub sound_changed: c_int,
+    pub sound_valid: c_int,
+    pub sound_play: c_int,
+    pub sound_relink: c_int,
+    /// ROTOR_SOUND: for each channel the write mask and the two levels; then the ordered pause and resume requests (resume flag, channel, the delay a pause carries)
+    pub rotor_write: [c_int; EECH_ROTOR_CHANNELS],
+    pub rotor_amplification: [f32; EECH_ROTOR_CHANNELS],
+    pub rotor_pitch: [f32; EECH_ROTOR_CHANNELS],
+    pub rotor_action_count: c_int,
+    pub rotor_action_resume: [c_int; EECH_ROTOR_ACTIONS],
+    pub rotor_action_channel: [c_int; EECH_ROTOR_ACTIONS],
+    pub rotor_action_delay: [f32; EECH_ROTOR_ACTIONS],
+}
+
+impl Default for eech_env_state {
+    fn default() -> Self {
+        // SAFETY: plain numbers; zero is a valid value of every field
+        unsafe { std::mem::zeroed() }
+    }
+}
+
+impl Default for eech_env_request {
+    fn default() -> Self {
+        // SAFETY: plain numbers; zero is a valid value of every field
+        unsafe { std::mem::zeroed() }
+    }
+}
+
+impl Default for eech_env_reply {
+    fn default() -> Self {
+        // SAFETY: plain numbers; zero is a valid value of every field
+        unsafe { std::mem::zeroed() }
+    }
+}
+
+pub type eech_environment_callback =
+    unsafe extern "C" fn(request: *const eech_env_request, reply: *mut eech_env_reply, error: *mut c_char, error_size: usize, user: *mut c_void) -> c_int;
+
+/// The host-owned physical sample metadata exchange (ss_hostenv.h campaign_sound_catalogue_request): plain data owned by the C caller for the callback.
+#[repr(C)]
+pub struct eech_sound_catalogue_request {
+    pub slots: c_int,
+    pub count: c_int,
+    pub index: *const c_int,
+    pub name: *const *const c_char,
+}
+
+#[repr(C)]
+pub struct eech_sound_catalogue_reply {
+    pub header_present: c_int,
+    pub header_count: c_int,
+    pub rate: *mut c_int,
+    pub original_rate: *mut c_int,
+    pub matched: *mut c_int,
+    pub size: *mut c_int,
+}
+
+pub type eech_sound_catalogue_callback = unsafe extern "C" fn(
+    request: *const eech_sound_catalogue_request,
+    reply: *mut eech_sound_catalogue_reply,
+    error: *mut c_char,
+    error_size: usize,
+    user: *mut c_void,
+) -> c_int;
+
+/// The host-owned physical sound backend availability exchange (ss_hostenv.h campaign_sound_backend_request): plain integers, owned by the C caller for the callback.
+#[repr(C)]
+pub struct eech_sound_backend_request {
+    pub phase: c_int,
+    pub no_sound: c_int,
+    pub dedicated: c_int,
+    pub load_samples: c_int,
+}
+
+#[repr(C)]
+pub struct eech_sound_backend_reply {
+    pub available: c_int,
+}
+
+pub type eech_sound_backend_callback = unsafe extern "C" fn(
+    request: *const eech_sound_backend_request,
+    reply: *mut eech_sound_backend_reply,
+    error: *mut c_char,
+    error_size: usize,
+    user: *mut c_void,
+) -> c_int;
+
 #[repr(C)]
 pub struct eech_engine_host {
     pub bind_mobile: Option<eech_bind_mobile_callback>,
@@ -1192,6 +1462,9 @@ pub struct eech_engine_host {
     pub sense: Option<eech_sense_callback>,
     pub aim: Option<eech_aim_callback>,
     pub terrain: Option<eech_terrain_callback>,
+    pub environment: Option<eech_environment_callback>,
+    pub sound_catalogue: Option<eech_sound_catalogue_callback>,
+    pub sound_backend: Option<eech_sound_backend_callback>,
     pub user: *mut c_void,
 }
 
@@ -1389,6 +1662,28 @@ extern "C" {
     pub fn eech_engine_los_trace_reset() -> c_int;
     pub fn eech_engine_los_probe(source_id: c_int, target_id: c_int, seed: u32, count: c_int, out: *mut eech_los_trace, host: *const eech_engine_host)
         -> c_int;
+}
+
+// TEST-ONLY (feature env-fixture, EEDCS-51): one case of the original session environment characterisation; see csrc/eech_env_fixture.c.
+#[cfg(feature = "env-fixture")]
+extern "C" {
+    pub fn eech_engine_env_case(group: c_int, index: c_int, text: *mut c_char, capacity: c_int) -> c_int;
+}
+
+// TEST-ONLY (feature env-observer, EEDCS-51): the read-only observer of the original environment; see csrc/eech_env_observer.c.
+#[cfg(feature = "env-observer")]
+extern "C" {
+    pub fn eech_engine_env_observer_arm(on: c_int) -> c_int;
+    pub fn eech_engine_env_observer_report(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_env_observer_events(text: *mut c_char, capacity: c_int, more: *mut c_int) -> c_int;
+    // the helicopter rotor sound probe (ENV_FXR): armed only by its own call, drained in pages
+    pub fn eech_engine_env_rotor_arm(on: c_int) -> c_int;
+    pub fn eech_engine_env_rotor_report(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_env_rotor_events(text: *mut c_char, capacity: c_int, more: *mut c_int) -> c_int;
+    // the resumed-parent playback probe (ENV_FXP): armed only by its own call, drained in pages
+    pub fn eech_engine_env_play_arm(on: c_int) -> c_int;
+    pub fn eech_engine_env_play_report(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_env_play_events(text: *mut c_char, capacity: c_int, more: *mut c_int) -> c_int;
 }
 
 #[cfg(feature = "sensor-fixture")]

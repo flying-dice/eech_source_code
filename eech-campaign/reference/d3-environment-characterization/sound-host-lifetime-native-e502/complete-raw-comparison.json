@@ -1,0 +1,326 @@
+{
+  "created_utc": "2026-10-31T23:05:36.265758+00:00",
+  "scope": "Same ORIGINAL natural120s and initial3+new7 sound controls; strict COMPLETE raw byte and ending comparison. Original runs reused, never rerun or normalized. This is not shipping/Tacview/full40/Task51/D3 acceptance.",
+  "all11_whole_raw_including_endings_equal": true,
+  "cases": [
+    {
+      "case": "natural",
+      "original_output": "R:\\d3-evidence\\environment-original-sound-entity-controls-e1dc75807-20261031\\natural",
+      "candidate_output": "R:\\d3-evidence\\environment-host-sound-lifetime-defaults-e50205871-20261031\\natural",
+      "original_native_source": "9429beefb9a8e143b648e01c390075882e6e6361",
+      "original_driver_source": "e1dc758074fba7fa8a4af99604ceecb85cf20483",
+      "candidate_native_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "candidate_driver_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 56,
+      "whole_raw_including_endings_equal": true,
+      "raw_bytes": [
+        5191384,
+        5191384
+      ],
+      "raw_lines": [
+        17283,
+        17283
+      ],
+      "raw_sha256": [
+        "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d",
+        "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d"
+      ],
+      "first_byte_difference": null
+    },
+    {
+      "case": "case-1",
+      "original_output": "R:\\d3-evidence\\environment-original-sound-entity-controls-e1dc75807-20261031\\primitive-1",
+      "candidate_output": "R:\\d3-evidence\\environment-host-sound-lifetime-defaults-e50205871-20261031\\case-1",
+      "original_native_source": "9429beefb9a8e143b648e01c390075882e6e6361",
+      "original_driver_source": "e1dc758074fba7fa8a4af99604ceecb85cf20483",
+      "candidate_native_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "candidate_driver_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 56,
+      "whole_raw_including_endings_equal": true,
+      "raw_bytes": [
+        7139,
+        7139
+      ],
+      "raw_lines": [
+        16,
+        16
+      ],
+      "raw_sha256": [
+        "2ecb2a518367931a02b30d2c88df9bdd22adb3c6e6a2a2993e1c98f445037ee1",
+        "2ecb2a518367931a02b30d2c88df9bdd22adb3c6e6a2a2993e1c98f445037ee1"
+      ],
+      "first_byte_difference": null
+    },
+    {
+      "case": "case-2",
+      "original_output": "R:\\d3-evidence\\environment-original-sound-entity-controls-e1dc75807-20261031\\primitive-2",
+      "candidate_output": "R:\\d3-evidence\\environment-host-sound-lifetime-defaults-e50205871-20261031\\case-2",
+      "original_native_source": "9429beefb9a8e143b648e01c390075882e6e6361",
+      "original_driver_source": "e1dc758074fba7fa8a4af99604ceecb85cf20483",
+      "candidate_native_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "candidate_driver_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 56,
+      "whole_raw_including_endings_equal": true,
+      "raw_bytes": [
+        7995,
+        7995
+      ],
+      "raw_lines": [
+        17,
+        17
+      ],
+      "raw_sha256": [
+        "b47ae58074dddd78f54aa4c1e93f0c9abb1899966de344e38310a2ea5ed13324",
+        "b47ae58074dddd78f54aa4c1e93f0c9abb1899966de344e38310a2ea5ed13324"
+      ],
+      "first_byte_difference": null
+    },
+    {
+      "case": "case-3",
+      "original_output": "R:\\d3-evidence\\environment-original-sound-entity-controls-e1dc75807-20261031\\primitive-3",
+      "candidate_output": "R:\\d3-evidence\\environment-host-sound-lifetime-defaults-e50205871-20261031\\case-3",
+      "original_native_source": "9429beefb9a8e143b648e01c390075882e6e6361",
+      "original_driver_source": "e1dc758074fba7fa8a4af99604ceecb85cf20483",
+      "candidate_native_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "candidate_driver_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 56,
+      "whole_raw_including_endings_equal": true,
+      "raw_bytes": [
+        3488,
+        3488
+      ],
+      "raw_lines": [
+        12,
+        12
+      ],
+      "raw_sha256": [
+        "43f8c4fc73617b6c7a26d6410a3e4a175329c5d8f6b3cdf1df87f42a7a27b289",
+        "43f8c4fc73617b6c7a26d6410a3e4a175329c5d8f6b3cdf1df87f42a7a27b289"
+      ],
+      "first_byte_difference": null
+    },
+    {
+      "case": "case-4",
+      "original_output": "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\case-4",
+      "candidate_output": "R:\\d3-evidence\\environment-host-sound-lifetime-defaults-e50205871-20261031\\case-4",
+      "original_native_source": "116ffd5fb4230226a1ff98a87c40375eea95e521",
+      "original_driver_source": "2a4139830e2ec13617635c553a519d9be3015a2d",
+      "candidate_native_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "candidate_driver_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 56,
+      "whole_raw_including_endings_equal": true,
+      "raw_bytes": [
+        11971,
+        11971
+      ],
+      "raw_lines": [
+        27,
+        27
+      ],
+      "raw_sha256": [
+        "16984dfebbcfa07a5f3e699ad29afe20cbb61768edc72bc5834b83f30b0fac58",
+        "16984dfebbcfa07a5f3e699ad29afe20cbb61768edc72bc5834b83f30b0fac58"
+      ],
+      "first_byte_difference": null
+    },
+    {
+      "case": "case-5",
+      "original_output": "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\case-5",
+      "candidate_output": "R:\\d3-evidence\\environment-host-sound-lifetime-defaults-e50205871-20261031\\case-5",
+      "original_native_source": "116ffd5fb4230226a1ff98a87c40375eea95e521",
+      "original_driver_source": "2a4139830e2ec13617635c553a519d9be3015a2d",
+      "candidate_native_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "candidate_driver_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 56,
+      "whole_raw_including_endings_equal": true,
+      "raw_bytes": [
+        12789,
+        12789
+      ],
+      "raw_lines": [
+        28,
+        28
+      ],
+      "raw_sha256": [
+        "7308a1efd48c90712a6c09d4f3e9ddbb0df31fd979bc186862c9df49a4e2c267",
+        "7308a1efd48c90712a6c09d4f3e9ddbb0df31fd979bc186862c9df49a4e2c267"
+      ],
+      "first_byte_difference": null
+    },
+    {
+      "case": "case-6",
+      "original_output": "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\case-6",
+      "candidate_output": "R:\\d3-evidence\\environment-host-sound-lifetime-defaults-e50205871-20261031\\case-6",
+      "original_native_source": "116ffd5fb4230226a1ff98a87c40375eea95e521",
+      "original_driver_source": "2a4139830e2ec13617635c553a519d9be3015a2d",
+      "candidate_native_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "candidate_driver_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 56,
+      "whole_raw_including_endings_equal": true,
+      "raw_bytes": [
+        6691,
+        6691
+      ],
+      "raw_lines": [
+        19,
+        19
+      ],
+      "raw_sha256": [
+        "2178f85d28a08a82bacde5b4589ebccdff7ac79e6895abba8dd2f232f70dfb65",
+        "2178f85d28a08a82bacde5b4589ebccdff7ac79e6895abba8dd2f232f70dfb65"
+      ],
+      "first_byte_difference": null
+    },
+    {
+      "case": "case-7",
+      "original_output": "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\case-7",
+      "candidate_output": "R:\\d3-evidence\\environment-host-sound-lifetime-defaults-e50205871-20261031\\case-7",
+      "original_native_source": "116ffd5fb4230226a1ff98a87c40375eea95e521",
+      "original_driver_source": "2a4139830e2ec13617635c553a519d9be3015a2d",
+      "candidate_native_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "candidate_driver_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 56,
+      "whole_raw_including_endings_equal": true,
+      "raw_bytes": [
+        7907,
+        7907
+      ],
+      "raw_lines": [
+        21,
+        21
+      ],
+      "raw_sha256": [
+        "f12086a63729c3c8e327c2c56e942ac2d3e34581ad0556892016df2dbf2790d4",
+        "f12086a63729c3c8e327c2c56e942ac2d3e34581ad0556892016df2dbf2790d4"
+      ],
+      "first_byte_difference": null
+    },
+    {
+      "case": "case-8",
+      "original_output": "R:\\d3-evidence\\environment-original-sound-domain-controls-2a4139830-20261031\\case-8",
+      "candidate_output": "R:\\d3-evidence\\environment-host-sound-lifetime-defaults-e50205871-20261031\\case-8",
+      "original_native_source": "116ffd5fb4230226a1ff98a87c40375eea95e521",
+      "original_driver_source": "2a4139830e2ec13617635c553a519d9be3015a2d",
+      "candidate_native_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "candidate_driver_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 56,
+      "whole_raw_including_endings_equal": true,
+      "raw_bytes": [
+        17586,
+        17586
+      ],
+      "raw_lines": [
+        36,
+        36
+      ],
+      "raw_sha256": [
+        "9e5aa62f10ff7ed38d6e609a1fd3bb2142e0e12dc6ecfd8d473e2353f58d6362",
+        "9e5aa62f10ff7ed38d6e609a1fd3bb2142e0e12dc6ecfd8d473e2353f58d6362"
+      ],
+      "first_byte_difference": null
+    },
+    {
+      "case": "case-9",
+      "original_output": "R:\\d3-evidence\\environment-original-sound-domain-controls-d4cebb76d-20261031\\case-9",
+      "candidate_output": "R:\\d3-evidence\\environment-host-sound-lifetime-defaults-e50205871-20261031\\case-9",
+      "original_native_source": "116ffd5fb4230226a1ff98a87c40375eea95e521",
+      "original_driver_source": "d4cebb76dd2980ac078dc15f07fcd381439a9229",
+      "candidate_native_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "candidate_driver_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 56,
+      "whole_raw_including_endings_equal": true,
+      "raw_bytes": [
+        10901,
+        10901
+      ],
+      "raw_lines": [
+        27,
+        27
+      ],
+      "raw_sha256": [
+        "aaf562c423b2736ab3722199cf0158e2220a0c26d2d809c661c9af90a43d5104",
+        "aaf562c423b2736ab3722199cf0158e2220a0c26d2d809c661c9af90a43d5104"
+      ],
+      "first_byte_difference": null
+    },
+    {
+      "case": "case-10",
+      "original_output": "R:\\d3-evidence\\environment-original-sound-domain-controls-d4cebb76d-20261031\\case-10",
+      "candidate_output": "R:\\d3-evidence\\environment-host-sound-lifetime-defaults-e50205871-20261031\\case-10",
+      "original_native_source": "116ffd5fb4230226a1ff98a87c40375eea95e521",
+      "original_driver_source": "d4cebb76dd2980ac078dc15f07fcd381439a9229",
+      "candidate_native_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "candidate_driver_source": "e5020587153e1922acdc412598c4920501988a9a",
+      "native_controller_exits": [
+        0,
+        0
+      ],
+      "all_pre_post_inputs0": true,
+      "verified_payloads": 56,
+      "whole_raw_including_endings_equal": true,
+      "raw_bytes": [
+        13427,
+        13427
+      ],
+      "raw_lines": [
+        30,
+        30
+      ],
+      "raw_sha256": [
+        "df3c7b2dd178848245f4b8dbd8ee85a51ed5216e98d6836b03d0e5e6534b29f3",
+        "df3c7b2dd178848245f4b8dbd8ee85a51ed5216e98d6836b03d0e5e6534b29f3"
+      ],
+      "first_byte_difference": null
+    }
+  ]
+}

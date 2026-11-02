@@ -1,0 +1,184 @@
+{
+  "schema": "independent-parent-play-needed-only-actual-review-v1",
+  "created_utc": "2026-11-01T13:10:01.552260+00:00",
+  "source": {
+    "head": "d8db93cc181a6980c00f9ec17967acf217645382",
+    "frozen_snapshot": "D:\\EECH-Migration-Evidence\\pe-d8db93cc1",
+    "review_reused": {
+      "path": "R:\\d3-evidence\\independent-environment-parent-play-needed-only-source-d8db93cc1-20261101.json",
+      "bytes": 10596,
+      "sha256": "c18eca7bdc4cc7cde25fa9770947c7c83a10eccbaab8296cec40ccab521fb612"
+    },
+    "original_characterization_review_reused": {
+      "path": "R:\\d3-evidence\\independent-environment-original-parent-play-actual-native8e-driver6aec-20261101.json",
+      "bytes": 11388,
+      "sha256": "0cff09b4b293e44e59a564241bc24cc98cf43837fb3a3769f8df7d50d51cc3e3"
+    },
+    "original_native": "8e90ab42e41102fb5045a64e7c46f88b7df8048e",
+    "original_parent_driver": "6aec433636ffffe2a913e886f86333a0e983d8a8"
+  },
+  "findings": [],
+  "finite_parent_play_needed_only_slice_closed": true,
+  "decision": "The measured true-default non-SESSION path can omit range calculation and no-op dispatch. The tested non-default request stops at the named unsupported-live-playback fatal boundary. This closes only that bounded needed-only implementation and its measured controls.",
+  "actual_runs": {
+    "distinct_candidate_runs": 4,
+    "names": [
+      "natural",
+      "fixture",
+      "overload",
+      "unarmed"
+    ],
+    "all_native_exits": 0,
+    "all_per_case_controller_exits": 0,
+    "pre_post_input_checks": 8,
+    "all_input_checks_exit": 0,
+    "retail_files_per_manifest": 1179,
+    "all_input_manifests_equal_reference": true,
+    "input_reference_sha256": "62249d15bb294526f8e98d508b9bdb2f9ea8184835e7ddf7211d12af0d25d2d1",
+    "all70_payloads_verified_at_launch_and_after_native": true,
+    "all70_payloads_independently_rehashed_after_completion": true,
+    "parent_collection_exit_is_not_itself_semantic_acceptance": true,
+    "first_candidate_controls_no_original_campaign_reruns": true
+  },
+  "runtime_identity": {
+    "build_info": {
+      "path": "D:\\EECH-Migration-Evidence\\pe-d8db93cc1\\eech-campaign\\target\\env-observer\\parent-play-needed-only-d8db93cc1\\BUILD-INFO.txt",
+      "bytes": 7119,
+      "sha256": "bb186988135d741240d51734fc1fbe5c3c116454584cec4e8a2bc1c5d3073d00"
+    },
+    "image": "sha256:f503d760d85e8db44565951d3c96768750a22852464b6c34a3bc216945545789",
+    "compiler": "gcc 12-posix; gcc-mingw-w64-x86-64-posix 12.2.0-14+deb12u1+25.2+b1",
+    "profile": "x86_64-pc-windows-gnu release env-observer, test-only not shipping artifact",
+    "engine_module_sha256": "ad595e15b0808bbcf4e8f7560bcdd621aae195fdca8d9c1cbd865751f57e523b",
+    "world_exe_sha256": "e7e80ff4a5a048c62db7c5fc3fc1f469438986a5fea8f9b984b682dc4aca0124",
+    "lua_dll_sha256": "7b2ec3f3fd174f6b65a2159ee46dc8e9102624a350d978e16ddf4396d7c2be0b",
+    "candidate_driver_sha256": "6c8564fbef1237cd91b1e42d9efb9aba9c1d578e06d9c33d1fe5f374e78611d4",
+    "unarmed_driver_sha256": "a63f7617cd4030a6c4ab7a90470dbdc867002d22b04bbfd5a47cfa332a7aaed0",
+    "original_driver_retained_sha256": "4a77db2c57292c8ca2ce0aec993b0e8211a07197fed3f3b23637440ba8dfb6c6"
+  },
+  "inspected_facts": [
+    "All four per-case terminal receipts explicitly contain native/pre-input/post-input exits0. The parent has four explicit controller exits0. Input manifest decoded values equal the retained original 1179-file reference, and all candidate payload bytes still match BUILD-INFO.",
+    "Natural completes the requested1200-frame driver loop with140 phase0 elisions: routed_vehicle106, helicopter32, fixed_wing2. All140 ordered sequence/time/entity/type/session/RNG tuples equal original requests after explicitly excluding only the old default and range fields. No live range values are fabricated.",
+    "The entire natural425242-byte case.raw, including all1201 complete dispatch census records and line endings, is literally byte-identical to the original. Only SoundEffect32 remains non-default in each census; its table presence is legal. Derived census_changes1 includes the initial observation, not an observed post-boot mutation.",
+    "Fixture complete4134-byte case.raw is literally byte-identical to the original, SHA4baa09437581add9b1cd80a0f8bfd444a78c83aebee79df8576aab32a75dbc31. All six viewpoint/child transitions, state/FNV restoration flags, RNG observations, standard rounding3072 and exception mask0x02 remain identical. Nine former dispatch records join nine elisions, fixed_wing3/helicopter6.",
+    "Natural/fixture protocol2 reports have anchored defaults_taken2, contiguous sequence numbers and exact total/drained140 or9, pending/dropped/bad_points0. Complete play.raw bytes remain FALSE against protocol1: version, record name and intentional absence of default/range fields are retained differences. Original raw/goldens were not normalized or overwritten.",
+    "The deliberate live-consumer case catches the exact [env-play:unsupported_live_playback] engine fatal on its first fixed-wing request. The typed failure and previously reviewed source order support stopping before range computation/dispatch. The engine is poisoned; there is no subsequent receiver/census/restoration query and no measured zero-receiver or successful-restoration claim. Original overload remains the separate nine-call recording-consumer control.",
+    "Unarmed native completes1200 frames and the COMPLETE5191384-byte/17283-row JSON stream is literally byte-identical, including endings, to retained original8e. SHA48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d. This uses unchanged env-characterization.lua, not the new parent-play driver.",
+    "Read-only comparator code launches no campaign, requires terminal native/controller/stage exits, retains original/full candidate hashes and whole-probe false results, compares request projections explicitly, and separately verifies complete unarmed bytes. Every comparator artifact size/hash was independently rechecked. Assertions accept no observed FP difference in the present fixture/natural C rows."
+  ],
+  "production_and_test_context": {
+    "default_core_audit": {
+      "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-default-core-d8db93cc1-20261101\\actual-default-core.json",
+      "bytes": 1375,
+      "sha256": "4f4c638816cf4c2c690219c4360e23104c95fe083b98c94089e5016b7749dd25"
+    },
+    "default_core_controller": {
+      "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-default-core-d8db93cc1-20261101\\controller.json",
+      "bytes": 2700,
+      "sha256": "3c685d7cc088a7c49216c2b066e03a932734e9402a326d85093026a7df74f39d"
+    },
+    "default_core_helper": {
+      "path": "R:\\d3-evidence\\run-parent-play-needed-only-default-core-20261101.py",
+      "bytes": 4477,
+      "sha256": "5fad02b51c15f5b1f7b9363998ab66a7e704ac3be584313f94e9eb64964fc0fa"
+    },
+    "default_core_observation": "Actual default-feature Linux Engine/DC build0, true-default predicate definition present and referenced from soundeff; no observer symbols in archive. Both affected retained object hashes and selected-symbols hash independently verified. This is ordinary hosted build evidence, not a runtime test of classic non-host #else.",
+    "world_guards": "Previously collected Linux15/strict0 and Windows15/ordinary observer build0, reused from source context without rerun.",
+    "ci_receipt": {
+      "path": "R:\\d3-evidence\\current-CI-d8db93cc1-20261101.json",
+      "bytes": 10623,
+      "sha256": "3337bcb11519df011beb1a015ee3c8153a01f8fc52aedb0877d1c11c8510ac2a"
+    },
+    "ci": "Exact d8 head all9 jobs/workflow checks successful; no later publication head inferred tested."
+  },
+  "evidence": {
+    "root_comparison": {
+      "path": "R:\\d3-evidence\\parent-play-needed-only-candidate-comparison-d8db93cc1-20261101.json",
+      "bytes": 18287,
+      "sha256": "a542e8a1f0b2b65d758ff6ed6234060731d0d72c2ff845db9e714abc64dc6b0e"
+    },
+    "comparator_source": {
+      "path": "R:\\d3-evidence\\compare-parent-play-needed-only-candidate-20261101.py",
+      "bytes": 6104,
+      "sha256": "8adc26e5184d5e125150a2733aad79a6accd3205f1d9328230c5fb67060345bc"
+    },
+    "single_case_launcher": {
+      "path": "R:\\d3-evidence\\run-host-rotor-control-20261101.py",
+      "bytes": 6508,
+      "sha256": "4cfce58d9a0db5280394e7ed5bad40ff03a4a984c87e124f7b09897a56af0e09"
+    },
+    "four_case_launcher": {
+      "path": "R:\\d3-evidence\\run-parent-play-needed-only-candidate-controls-20261101.py",
+      "bytes": 4351,
+      "sha256": "56daa79a99f845eed987a2e2b8dabc435b0d799986b19e4dc66153a591211ff1"
+    },
+    "parent_controller": {
+      "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\controller.json",
+      "bytes": 6325,
+      "sha256": "b0af6a3ac83880800c4e997722053871e79589e191c2c852469fa218d1fac0f8"
+    },
+    "cases": [
+      {
+        "mode": "natural",
+        "controller": {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\natural\\controller.json",
+          "bytes": 4828,
+          "sha256": "93fe113ae23b788db5bdd004ccd2efbcac1c13c9b0ca615ef1dc7b5b99719c29"
+        },
+        "output": {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\natural\\environment.jsonl",
+          "bytes": 2402,
+          "sha256": "c1a999e3f40e481c321ab39792a4734b2b117a5d8e28c638c3e3fcdadbe72325"
+        }
+      },
+      {
+        "mode": "fixture",
+        "controller": {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\fixture\\controller.json",
+          "bytes": 4345,
+          "sha256": "ea3bb86dc4822e937bfa4b28c428fad02f8b2312490cf72717a3f5fa7ba370f6"
+        },
+        "output": {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\fixture\\environment.jsonl",
+          "bytes": 1297,
+          "sha256": "3437a3c33d6d783fc5cefc9624eb00b41135d643f83c016b6f2f7b1b52feba63"
+        }
+      },
+      {
+        "mode": "overload",
+        "controller": {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\overload\\controller.json",
+          "bytes": 4379,
+          "sha256": "faf92d74a8198b55b41ff57019e56cff9976faf8982872c3f9c41f65073082df"
+        },
+        "output": {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\overload\\environment.jsonl",
+          "bytes": 1927,
+          "sha256": "8cd3689a3a7a1b9733951a488478b1863ef3aa282f44c757f99c3fc6f4beb728"
+        }
+      },
+      {
+        "mode": "unarmed",
+        "controller": {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\unarmed\\controller.json",
+          "bytes": 348627,
+          "sha256": "554c978caa6622779244b9601fd0891a711340a2deff2b7df71036671b1e81c5"
+        },
+        "output": {
+          "path": "D:\\EECH-Migration-Evidence\\parent-play-needed-only-candidate-controls-d8db93cc1-20261101\\unarmed\\environment.jsonl",
+          "bytes": 5191384,
+          "sha256": "48307ff0286cff2219a89d7d8b807a3624fa1cb673c440c4ed70d55a7b40d81d"
+        }
+      }
+    ]
+  },
+  "verification_note": "A provisional read-only check initially mistook sparse call-bearing play_frame diagnostics for a per-frame completion counter; that assertion was corrected to the driver completion contract and all1201 complete C census records. This was a reviewer check assumption, not a product/raw-data failure. All final stated checks passed; no native or raw artifact was rerun/changed.",
+  "limitations": [
+    "No new source audit, build, test execution, native run or original campaign rerun by the reviewer. Closed source/original/kernel/rotor reviews reused.",
+    "Measured natural coverage is only the one Lebanon120-second control and those three observed entity types. Two controlled parent cohorts and the deliberately installed recording callback are not all-family or global-dormancy proof.",
+    "Standard fixture rounding/exception diagnostics and exact observed words do not prove complete public/caller x87/MXCSR equivalence, audibility, backend/device playback, non-SESSION service delivery or future non-default-handler support.",
+    "State restoration is proved only for the completed controlled default fixture. The expected fatal control is process-isolated and poisoned, not a healthy campaign or restored state.",
+    "Safe publication has not been reviewed in this pass. Private allocation IDs, raw RNG words, world positions and retail assets are not copied into this report.",
+    "No shipping40/all8 Tacview, full Task51/D3, final normal delivery/merge or D4/D5 acceptance. All remaining required D3 responsibilities retain their existing scope."
+  ]
+}

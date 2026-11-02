@@ -1,0 +1,19 @@
+{
+  "scope": "After-the-call preservation of Root-observed tool stdout/stderr and exit; no standalone subprocess log existed. Auditor failure only, NOT a native failure.",
+  "actual_tool_exit": 1,
+  "original_executed_auditor": "audit-host-pause-controls-20261101.py",
+  "original_executed_auditor_sha256": "70b66c179fa254a28bcb88d7c821e8e9edd4cbbe23bc126df2a4c5457d83a79c",
+  "observed_tool_output": "Traceback (most recent call last):\n  File \"R:\\d3-evidence\\audit-host-pause-controls-20261101.py\", line 40, in <module>\n    name=item['name'];c=read(defaults/name/'controller.json');controller(c,0)\n                                                              ^^^^^^^^^^^^^^^\n  File \"R:\\d3-evidence\\audit-host-pause-controls-20261101.py\", line 34, in controller\n    assert c['verified_payloads']==56\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+  "output_json_created": false,
+  "cause": "Hardcoded56 was true for original33 but not combined82234. Actual new61 includes five newly integrated ground Lua scripts; all are required and hash-verified by v2.",
+  "new_payloads": [
+    "lua/ground-authority.lua",
+    "lua/ground-characterization.lua",
+    "lua/ground-handoff-verdict.lua",
+    "lua/ground-handoff.lua",
+    "lua/ground-provider-transport.lua"
+  ],
+  "native_scenarios_rerun": false,
+  "raw_or_baseline_changed": false,
+  "corrected_auditor": "audit-host-pause-controls-v2-20261101.py"
+}
