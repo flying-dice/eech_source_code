@@ -1892,9 +1892,15 @@ fn the_probe_refusal_is_the_error_channel_and_not_a_report_row() {
     let start = EMITTER.find("static int probe_refused (").expect("probe_refused");
     let function = &EMITTER[start..];
     let function = &function[..function.find("\n}\n").unwrap()];
-    assert!(function.contains(literal) && function.contains("snprintf (text, (size_t) capacity,") && function.contains("return 1;"), "{function}");
+    assert!(
+        function.contains(literal) && function.contains("snprintf (text, (size_t) capacity,") && function.contains("return 1;"),
+        "{function}"
+    );
     // it is never written into the report a successful probe builds (that buffer is filled by `emit (&out, ...)`)
-    assert!(!EMITTER.contains("emit (&out, \"tp-probe-refused"), "a refusal must not be a row of the successful report");
+    assert!(
+        !EMITTER.contains("emit (&out, \"tp-probe-refused"),
+        "a refusal must not be a row of the successful report"
+    );
     // and the other tp-probe rows the report does hold are the status head and the case rows
     for row in ["emit (&out, \"tp-probe status=complete", "emit (&out, \"tp-probe-bucket bucket="] {
         assert!(EMITTER.contains(row), "the report row {row:?} is not emitted");
@@ -1903,14 +1909,23 @@ fn the_probe_refusal_is_the_error_channel_and_not_a_report_row() {
     let method = ENGINE_RS.find("pub fn target_point_probe(").expect("the engine method");
     let method = &ENGINE_RS[method..];
     let method = &method[..method.find("\n    }\n").unwrap()];
-    assert!(method.contains("let status = check(") && method.contains("keep_case_reason(status, &text)"), "{method}");
+    assert!(
+        method.contains("let status = check(") && method.contains("keep_case_reason(status, &text)"),
+        "{method}"
+    );
     let keeper = ENGINE_RS.find("fn keep_case_reason(").expect("keep_case_reason");
     let keeper = &ENGINE_RS[keeper..];
     let keeper = &keeper[..keeper.find("\n}\n").unwrap()];
-    assert!(keeper.contains("Err(EngineError::BadArgument(_)) if !report.trim().is_empty() => Err(EngineError::BadArgument(report.trim().to_string()))"), "{keeper}");
+    assert!(
+        keeper.contains("Err(EngineError::BadArgument(_)) if !report.trim().is_empty() => Err(EngineError::BadArgument(report.trim().to_string()))"),
+        "{keeper}"
+    );
     // the driver takes a probe failure through its checked engine call (the stop-after-engine-failure path, whose behaviour the refusal guards run) and has no parser for the refusal row
     assert!(SCRIPT.contains("ask (\"target_point_probe\""), "the probe is asked through the checked call");
-    assert!(!SCRIPT.contains("\"tp-probe-refused\""), "the driver must not parse the refusal as a report row (a comment may name it)");
+    assert!(
+        !SCRIPT.contains("\"tp-probe-refused\""),
+        "the driver must not parse the refusal as a report row (a comment may name it)"
+    );
 }
 
 /// the emitter's caller classes in numeric order (the enum that precedes TP_SITES)
