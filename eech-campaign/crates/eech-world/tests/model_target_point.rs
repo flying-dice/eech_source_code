@@ -1,0 +1,614 @@
+//! The host-owned TARGET POINT geometry of the collision-model store (EEDCS-52, D3; src/models.rs `target_point_local` / `target_point_world`) against minimal format fixtures.
+//!
+//! These are contract guards for the lookup and the arithmetic the host answers with, not an oracle for any retail scene: the files are written here in the original's formats
+//! from tiny hand-made objects. What is asserted is what the original's `initialise_target_point_offsets` and `get_3d_sub_object_world_viewpoint` make observable: which
+//! sub-object a scene's FIRST TARGET_POINT record names (the scene's own records, then each top-level sub-object's own records before its children), the chain of placements
+//! composed from the topmost sub-object down (position scaled by the scale so far, the root's attitude applied in the original's row-vector convention, the scale multiplied
+//! on), the bounding-box centre fallback with its y clamp, the invalid scene's zero, and the difference between an answer, a true absence and a refusal. Every position
+//! below is chosen so that the arithmetic is exact (whole numbers, scales of 1 and 2, permutation matrices); the sin / cos of a non-trivial angle is not asserted here, and
+//! neither is anything about the retail data: what the retail scenes answer is the Root's comparison with the retained original census and queries (the host Lua
+//! `compare_target_points`), never these tests. Only the state `keyframe0` is exercised; a live instance's moved sub-objects are not claimed.
+use eech_world::models::{
+    compiled_scene_name, compiled_subobject_name, fp_state, old_last, subobject_last, ModelStore, OffsetSource, QueryError, TargetPointLocal, TargetPointWorld,
+};
+use std::path::PathBuf;
+use std::sync::atomic::{AtomicUsize, Ordering};
+
+#[derive(Default)]
+struct W(Vec<u8>);
+
+impl W {
+    fn i32(&mut self, v: i32) -> &mut Self {
+        self.0.extend_from_slice(&v.to_le_bytes());
+        self
+    }
+    fn u32(&mut self, v: u32) -> &mut Self {
+        self.0.extend_from_slice(&v.to_le_bytes());
+        self
+    }
+    fn u16(&mut self, v: u16) -> &mut Self {
+        self.0.extend_from_slice(&v.to_le_bytes());
+        self
+    }
+    fn f32(&mut self, v: f32) -> &mut Self {
+        self.0.extend_from_slice(&v.to_le_bytes());
+        self
+    }
+    fn bytes(&mut self, v: &[u8]) -> &mut Self {
+        self.0.extend_from_slice(v);
+        self
+    }
+    fn floats(&mut self, v: &[f32]) -> &mut Self {
+        for x in v {
+            self.f32(*x);
+        }
+        self
+    }
+}
+
+/// a line object (the shape the route tests load): points, the bounding box the scene bounds are taken from, (flags word, faces, colour word) per surface, the face point
+/// list and the surface-point references
+struct Mesh {
+    points: Vec<[i16; 3]>,
+    bb: [f32; 6],
+    surfaces: Vec<(u32, u16, u32)>,
+    list: Vec<u8>,
+    sp: Vec<u16>,
+}
+
+fn mesh(bb: [f32; 6]) -> Mesh {
+    Mesh {
+        points: vec![[0, 0, 0], [32767, 0, 0], [0, -32767, 5], [1000, 2000, -3000]],
+        bb,
+        surfaces: vec![(3 << 24, 2, 0x00A0_B0C0), (2 << 24, 1, 0x0001_0203)],
+        list: vec![0, 1, 1, 2, 0, 1],
+        sp: vec![0, 1, 2, 2, 3],
+    }
+}
+
+fn table(objects: &[Mesh]) -> (Vec<u8>, Vec<u8>, Vec<u8>) {
+    let surfaces: usize = objects.iter().map(|m| m.surfaces.len()).sum();
+    let points: usize = objects.iter().map(|m| m.points.len()).sum();
+    let plain: usize = objects.iter().map(|m| m.list.len()).sum();
+    let mut bin = W::default();
+    bin.i32(objects.len() as i32).i32(surfaces as i32).i32(points as i32).i32(0).i32(plain as i32).i32(0).i32(0).i32(0);
+    let (mut pts, mut sp) = (W::default(), W::default());
+    for m in objects {
+        let faces: i32 = m.surfaces.iter().map(|s| s.1 as i32).sum();
+        bin.i32(0).i32(m.points.len() as i32).i32(m.surfaces.len() as i32).i32(faces).i32(0).i32(0).i32(0);
+        bin.f32(1.0).i32(m.sp.len() as i32).i32(0).i32(0);
+        bin.floats(&m.bb).floats(&m.bb);
+        for (flags, count, colour) in &m.surfaces {
+            bin.u32(*flags).u16(0).u16(0).i32(*count as i32).u32(*colour).bytes(&[0, 0]);
+        }
+        bin.i32(m.list.len() as i32).i32(0);
+        bin.bytes(&m.list);
+        for p in &m.points {
+            for c in p {
+                pts.0.extend_from_slice(&c.to_le_bytes());
+            }
+        }
+        for s in &m.sp {
+            sp.u16(*s);
+        }
+    }
+    (bin.0, pts.0, sp.0)
+}
+
+/// keyframe 0 of a sub-object: x y z, heading pitch roll, scale x y z (the three words after them are the interpolation parameters)
+fn keyframe(w: &mut W, key: &[f32; 9]) {
+    w.i32(0).i32(0).floats(key).floats(&[0.0, 0.0, 0.0]);
+}
+
+/// a keyframe that places nothing: no offset, no angle, scale 1
+const REST: [f32; 9] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0];
+
+fn at(x: f32, y: f32, z: f32) -> [f32; 9] {
+    [x, y, z, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0]
+}
+
+/// one sub-object record: its object, its keyframe 0, its (kind, offset) records, its children
+struct Sub {
+    object: i32,
+    key: [f32; 9],
+    indices: Vec<(i32, i32)>,
+    children: Vec<Sub>,
+}
+
+fn sub(key: [f32; 9], indices: Vec<(i32, i32)>, children: Vec<Sub>) -> Sub {
+    Sub { object: 1, key, indices, children }
+}
+
+fn sub_record(w: &mut W, s: &Sub) {
+    w.i32(s.object).i32(0).i32(0).i32(0).i32(0); // object, contributes, in level, out level, no limits
+    w.i32(1);
+    keyframe(w, &s.key);
+    w.f32(1.0).i32(0); // dissolve, value keyframes
+    w.i32(s.indices.len() as i32);
+    for (kind, offset) in &s.indices {
+        w.i32(*kind).i32(*offset);
+    }
+    w.i32(s.children.len() as i32);
+    for child in &s.children {
+        sub_record(w, child);
+    }
+}
+
+fn nodes_in(subs: &[Sub]) -> (i32, i32) {
+    subs.iter().fold((0, 0), |(n, i), s| {
+        let (cn, ci) = nodes_in(&s.children);
+        (n + 1 + cn, i + s.indices.len() as i32 + ci)
+    })
+}
+
+/// a 3dobjdb.bin scene record with sub-objects and scene-level (kind, offset) records
+fn scene_record(scene: i32, main: i32, indices: &[(i32, i32)], subs: &[Sub]) -> Vec<u8> {
+    let (nodes, node_indices) = nodes_in(subs);
+    let mut w = W::default();
+    for _ in 0..16 {
+        w.i32(-1);
+    }
+    w.i32(scene).i32(0); // scene_index, self_shadows
+    w.i32(0).i32(0).i32(0).i32(0); // lights, cameras, links, sprite lights
+    w.i32(nodes).i32(indices.len() as i32 + node_indices).i32(0); // sub-objects, named sub-objects, texture animations
+    w.i32(0).i32(main); // approximations, main object
+    w.i32(0).i32(0).floats(&[1.0, 1.0, 1.0]); // shadow_approximation_index, shadow polygon object, scale
+    w.i32(1); // collision object
+    w.i32(1);
+    keyframe(&mut w, &REST);
+    w.f32(1.0).i32(0);
+    w.i32(0).i32(0); // displacement sequence index, its keyframes
+    w.i32(indices.len() as i32);
+    for (kind, offset) in indices {
+        w.i32(*kind).i32(*offset);
+    }
+    w.i32(subs.len() as i32);
+    for s in subs {
+        sub_record(&mut w, s);
+    }
+    w.0
+}
+
+fn database(scenes: &[Vec<u8>]) -> Vec<u8> {
+    let mut w = W::default();
+    w.i32(scenes.len() as i32);
+    for _ in 0..9 {
+        w.i32(0);
+    }
+    for s in scenes {
+        w.bytes(s);
+    }
+    w.0
+}
+
+fn bininfo() -> Vec<u8> {
+    let mut w = W::default();
+    w.i32(old_last() as i32).i32(0);
+    for scene in 1..old_last() {
+        let name = compiled_scene_name(scene).unwrap();
+        w.i32(name.len() as i32 + 1).bytes(name.as_bytes()).bytes(&[0]).f32(0.0);
+    }
+    w.0
+}
+
+struct Root {
+    dir: PathBuf,
+}
+
+impl Root {
+    fn new(objects: &[Mesh], scenes: &[Vec<u8>]) -> Root {
+        static COUNTER: AtomicUsize = AtomicUsize::new(0);
+        let dir = std::env::temp_dir().join(format!("eech-world-model-target-point-{}-{}", std::process::id(), COUNTER.fetch_add(1, Ordering::SeqCst)));
+        let _ = std::fs::remove_dir_all(&dir);
+        let data = dir.join("cohokum").join("3ddata");
+        std::fs::create_dir_all(&data).unwrap();
+        let (bin, pts, sp) = table(objects);
+        std::fs::write(data.join("bininfo.bin"), bininfo()).unwrap();
+        std::fs::write(data.join("3dobjs.bin"), bin).unwrap();
+        std::fs::write(data.join("3dobjs.pts"), pts).unwrap();
+        std::fs::write(data.join("3dobjs.sp"), sp).unwrap();
+        std::fs::write(data.join("3dobjdb.bin"), database(scenes)).unwrap();
+        Root { dir }
+    }
+}
+
+impl Drop for Root {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.dir);
+    }
+}
+
+fn kind(name: &str) -> i32 {
+    (1..subobject_last()).find(|k| compiled_subobject_name(*k) == Some(name)).unwrap_or_else(|| panic!("no compiled sub-object kind {name}")) as i32
+}
+
+fn target_point() -> i32 {
+    kind("TARGET_POINT")
+}
+
+/// permutation matrix, row-major, that sends the row vector (x, y, z) to (z, x, y) in the original's convention (`v.x * m[0][0] + v.y * m[1][0] + v.z * m[2][0]`, ...)
+const CYCLE: [f32; 9] = [0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0];
+const IDENTITY: [f32; 9] = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
+
+/// objects: 1 a box with bounds that need no clamp, 2 a box whose y centre is negative, 3 a box whose y centre is positive.
+///
+/// scene 1: the scene's own record names top-level 1 (at 1,0,0); top-level 0 (at 100,0,0) holds a TARGET_POINT record of its own for its child, which must not win.
+/// scene 2: no scene-level record. Depth first: top-level 0 (3,0,0) holds none; its child (0,1,0) holds a record for ITS child (0,0,9), and top-level 1 (50,0,0) holds a
+///          record too, but later. The answer is the three-deep chain (3,1,9).
+/// scene 3: a placement with a scale: top-level 0 at (1,0,0) with scale 2 holds the record for its child at (0,2,0), so the child's offset is doubled: (1,4,0).
+/// scene 4: the scene's own record names top-level 0 at (1,2,3), for composing with a root pose.
+/// scene 5: a main object and no sub-objects (bounding box of object 2). scene 6: the same with object 3. scene 7: sub-objects but no TARGET_POINT record.
+fn standard() -> (Root, ModelStore) {
+    let tp = target_point();
+    let other = kind("FIXED_WING_LANDING_ROUTE");
+    let scaled_parent = {
+        let mut key = at(1.0, 0.0, 0.0);
+        key[6..].copy_from_slice(&[2.0, 2.0, 2.0]);
+        key
+    };
+    let scenes = vec![
+        scene_record(1, 1, &[(tp, 1)], &[sub(at(100.0, 0.0, 0.0), vec![(tp, 0)], vec![sub(at(7.0, 0.0, 0.0), vec![], vec![])]), sub(at(1.0, 0.0, 0.0), vec![], vec![])]),
+        scene_record(
+            2,
+            1,
+            &[],
+            &[
+                sub(at(3.0, 0.0, 0.0), vec![], vec![sub(at(0.0, 1.0, 0.0), vec![(tp, 0)], vec![sub(at(0.0, 0.0, 9.0), vec![], vec![])])]),
+                sub(at(50.0, 0.0, 0.0), vec![(tp, 0)], vec![sub(at(0.0, 0.0, 0.0), vec![], vec![])]),
+            ],
+        ),
+        scene_record(3, 1, &[], &[sub(scaled_parent, vec![(tp, 0)], vec![sub(at(0.0, 2.0, 0.0), vec![], vec![])])]),
+        scene_record(4, 1, &[(tp, 0)], &[sub(at(1.0, 2.0, 3.0), vec![], vec![])]),
+        scene_record(5, 2, &[], &[]),
+        scene_record(6, 3, &[], &[]),
+        scene_record(7, 1, &[(other, 0)], &[sub(at(5.0, 5.0, 5.0), vec![], vec![])]),
+    ];
+    let root = Root::new(
+        &[mesh([-1.0, 1.0, -1.0, 1.0, -1.0, 1.0]), mesh([-4.0, 2.0, -10.0, -2.0, 0.0, 6.0]), mesh([-4.0, 2.0, 2.0, 10.0, 0.0, 6.0])],
+        &scenes,
+    );
+    let store = ModelStore::load(&root.dir).expect("the fixture installation loads");
+    (root, store)
+}
+
+fn bits3(v: [f32; 3]) -> [u32; 3] {
+    v.map(f32::to_bits)
+}
+
+fn bits9(v: [f32; 9]) -> [u32; 9] {
+    v.map(f32::to_bits)
+}
+
+fn floats<const N: usize>(bits: [u32; N]) -> [f32; N] {
+    bits.map(f32::from_bits)
+}
+
+/// the local answer as floats (so that +0.0 and -0.0 are the same zero) and its source
+fn local(store: &ModelStore, scene: i64) -> ([f32; 3], OffsetSource) {
+    match store.target_point_local(scene).unwrap() {
+        TargetPointLocal::Offset { offset, source } => (floats(offset), source),
+        other => panic!("scene {scene}: {other:?}"),
+    }
+}
+
+fn world(store: &ModelStore, scene: i64, position: [f32; 3], attitude: [f32; 9], scale: [f32; 3]) -> TargetPointWorld {
+    store.target_point_world(scene, bits3(position), bits9(attitude), bits3(scale)).unwrap()
+}
+
+fn found(store: &ModelStore, scene: i64, position: [f32; 3], attitude: [f32; 9], scale: [f32; 3]) -> ([f32; 3], [f32; 9]) {
+    match world(store, scene, position, attitude, scale) {
+        TargetPointWorld::Found { position, attitude } => (floats(position), floats(attitude)),
+        other => panic!("scene {scene}: {other:?}"),
+    }
+}
+
+#[test]
+fn the_scenes_own_record_names_the_target_point_before_any_sub_objects_records() {
+    let (_root, store) = standard();
+    // scene 1: the scene-level record names top-level 1 (at 1,0,0); top-level 0 (at 100,0,0) and its child hold later records for the same kind
+    assert_eq!(local(&store, 1), ([1.0, 0.0, 0.0], OffsetSource::SubObject));
+}
+
+#[test]
+fn without_a_scene_record_the_search_runs_depth_first_with_each_sub_objects_own_records_before_its_children() {
+    let (_root, store) = standard();
+    // scene 2: top-level 0 holds no record, its child does (naming the grandchild); top-level 1 also holds one, but it is reached only after the whole of top-level 0's subtree
+    assert_eq!(local(&store, 2), ([3.0, 1.0, 9.0], OffsetSource::SubObject));
+}
+
+#[test]
+fn the_placement_chain_is_composed_from_the_topmost_sub_object_with_the_scale_so_far() {
+    let (_root, store) = standard();
+    // scene 3: the parent places at (1,0,0) and doubles the scale; the child's own (0,2,0) is therefore doubled before it is added: (1,4,0), not (1,2,0)
+    assert_eq!(local(&store, 3), ([1.0, 4.0, 0.0], OffsetSource::SubObject));
+}
+
+#[test]
+fn an_instances_world_target_point_applies_the_root_pose_in_the_originals_convention() {
+    let (_root, store) = standard();
+    let one = [1.0, 1.0, 1.0];
+    // an identity pose at the origin is the local offset
+    let (position, attitude) = found(&store, 4, [0.0; 3], IDENTITY, one);
+    assert_eq!(position, [1.0, 2.0, 3.0]);
+    assert_eq!(attitude, IDENTITY);
+    // the offset (1,2,3) is a row vector times the root attitude, then added to the root position: (3,1,2) + (10,20,30)
+    let (position, attitude) = found(&store, 4, [10.0, 20.0, 30.0], CYCLE, one);
+    assert_eq!(position, [13.0, 21.0, 32.0]);
+    // the sub-object's own keyframe has no angle, so the world attitude is the root's
+    assert_eq!(attitude, CYCLE);
+    // the root's relative scale multiplies the placement before the attitude is applied: (2,4,6) -> (6,2,4)
+    let (position, _) = found(&store, 4, [10.0, 20.0, 30.0], CYCLE, [2.0, 2.0, 2.0]);
+    assert_eq!(position, [16.0, 22.0, 34.0]);
+    // the whole chain of a deeper scene follows the same pose: scene 3's (1,4,0) turned by the cycle is (0,1,4)
+    let (position, _) = found(&store, 3, [0.0; 3], CYCLE, one);
+    assert_eq!(position, [0.0, 1.0, 4.0]);
+}
+
+#[test]
+fn a_scene_without_a_target_point_falls_back_to_its_bounding_box_centre_with_y_clamped_at_zero() {
+    let (_root, store) = standard();
+    // the fixture's scene bounds are those of its main object (no sub-objects widen them)
+    assert_eq!(store.scene(5).unwrap().bounding_box, bits6([-4.0, 2.0, -10.0, -2.0, 0.0, 6.0]));
+    // x and z are the centres; y centre is -6 and is clamped to zero
+    assert_eq!(local(&store, 5), ([-1.0, 0.0, 3.0], OffsetSource::BoundingBox));
+    // a positive y centre is kept
+    assert_eq!(local(&store, 6), ([-1.0, 6.0, 3.0], OffsetSource::BoundingBox));
+    // sub-objects without a TARGET_POINT record do not make one: the bounding box still decides (the scene bounds, whatever they are, are the store's own)
+    let bounds = floats(store.scene(7).unwrap().bounding_box);
+    let expected = [(bounds[0] + bounds[1]) * 0.5, ((bounds[2] + bounds[3]) * 0.5).max(0.0), (bounds[4] + bounds[5]) * 0.5];
+    assert_eq!(local(&store, 7), (expected, OffsetSource::BoundingBox));
+}
+
+#[test]
+fn an_instance_of_a_scene_without_a_target_point_is_the_originals_second_branch_not_a_number() {
+    let (_root, store) = standard();
+    assert_eq!(world(&store, 5, [1.0, 2.0, 3.0], IDENTITY, [1.0; 3]), TargetPointWorld::NoTargetPoint);
+    assert_eq!(world(&store, 7, [1.0, 2.0, 3.0], IDENTITY, [1.0; 3]), TargetPointWorld::NoTargetPoint);
+}
+
+fn bits6(v: [f32; 6]) -> [u32; 6] {
+    v.map(f32::to_bits)
+}
+
+#[test]
+fn the_invalid_scene_is_zero_a_scene_never_read_is_refused_and_a_scene_outside_the_catalogue_is_an_argument_error() {
+    let (_root, store) = standard();
+    // scene 0 is the original's invalid object index: its offset is the zero it sets, from no data
+    assert_eq!(store.target_point_local(0).unwrap(), TargetPointLocal::Offset { offset: [0; 3], source: OffsetSource::InvalidZero });
+    // scene 8 is in the catalogue but the files never defined it: no number is invented for it
+    assert_eq!(store.target_point_local(8).unwrap(), TargetPointLocal::Refused("scene_not_loaded"));
+    assert_eq!(world(&store, 8, [0.0; 3], IDENTITY, [1.0; 3]), TargetPointWorld::Refused("scene_not_loaded"));
+    // arguments the original could never produce are refused as arguments
+    assert!(matches!(store.target_point_local(-1), Err(QueryError::BadScene(-1))));
+    assert!(matches!(store.target_point_local(i64::MAX), Err(QueryError::BadScene(_))));
+    // the invalid scene has no instance to ask about
+    assert!(matches!(store.target_point_world(0, [0; 3], [0; 9], [0; 3]), Err(QueryError::BadScene(0))));
+}
+
+#[test]
+fn the_answers_do_not_move_between_asks() {
+    let (_root, store) = standard();
+    for scene in 1..=7 {
+        let first = store.target_point_local(scene).unwrap();
+        assert_eq!(store.target_point_local(scene).unwrap(), first, "scene {scene}");
+    }
+}
+
+#[cfg(target_arch = "x86_64")]
+mod fpu {
+    use std::arch::asm;
+
+    pub fn mxcsr() -> u32 {
+        let mut value: u32 = 0;
+        let pointer = &mut value as *mut u32;
+        // SAFETY: stmxcsr writes four bytes to the valid local.
+        unsafe { asm!("stmxcsr [{0}]", in(reg) pointer, options(nostack)) };
+        value
+    }
+
+    pub fn set_mxcsr(value: u32) {
+        let pointer = &value as *const u32;
+        // SAFETY: ldmxcsr reads four bytes from the valid local; the values used set only rounding control and sticky flags, with every exception masked.
+        unsafe { asm!("ldmxcsr [{0}]", in(reg) pointer, options(nostack)) };
+    }
+
+    pub fn x87_control() -> u16 {
+        let mut value: u16 = 0;
+        let pointer = &mut value as *mut u16;
+        // SAFETY: fnstcw writes two bytes to the valid local.
+        unsafe { asm!("fnstcw [{0}]", in(reg) pointer, options(nostack)) };
+        value
+    }
+
+    pub fn set_x87_control(value: u16) {
+        let pointer = &value as *const u16;
+        // SAFETY: fldcw reads two bytes from the valid local; the values used set only rounding control, with every exception masked.
+        unsafe { asm!("fldcw [{0}]", in(reg) pointer, options(nostack)) };
+    }
+}
+
+#[cfg(target_arch = "x86_64")]
+#[test]
+fn a_target_point_query_hands_the_callers_floating_point_state_back_and_does_not_depend_on_it() {
+    let (_root, store) = standard();
+    let original_mxcsr = fpu::mxcsr();
+    let original_x87 = fpu::x87_control();
+    // a pose whose arithmetic is rounding-sensitive (0.1 is not representable), through the bounding-box path, the chain path and the root-pose path
+    let pose = |store: &ModelStore| {
+        (
+            store.target_point_local(3).unwrap(),
+            store.target_point_local(5).unwrap(),
+            store.target_point_world(4, bits3([0.1, 0.2, 0.3]), bits9(CYCLE), bits3([0.7, 0.7, 0.7])).unwrap(),
+        )
+    };
+    let reference = pose(&store);
+    assert!(matches!(reference.2, TargetPointWorld::Found { .. }));
+
+    for rounding in 0u32..4 {
+        let mxcsr = 0x1f80 | (rounding << 13) | 0x21; // all masked, invalid and precision flags set
+        let x87 = 0x037f | ((rounding as u16) << 10);
+        fpu::set_mxcsr(mxcsr);
+        fpu::set_x87_control(x87);
+        let before = fp_state().unwrap();
+        let answers = pose(&store);
+        let after = fp_state().unwrap();
+        // restore the thread's own state before asserting, so a failure cannot leak a strange mode into this thread
+        fpu::set_mxcsr(original_mxcsr);
+        fpu::set_x87_control(original_x87);
+        assert_eq!(after, before, "rounding {rounding}: the caller's floating-point state after the queries");
+        assert_eq!(answers, reference, "rounding {rounding}: the answers depended on the caller's rounding mode");
+    }
+    assert_eq!(fpu::mxcsr(), original_mxcsr);
+    assert_eq!(fpu::x87_control(), original_x87);
+}
+
+#[cfg(target_arch = "x86_64")]
+#[test]
+fn a_caller_with_an_exception_unmasked_is_refused_for_every_target_point_question_and_its_state_is_untouched() {
+    let (_root, store) = standard();
+    let original_mxcsr = fpu::mxcsr();
+    // unmask the SSE invalid-operation exception (bit 7): the original's arithmetic never runs with an exception unmasked
+    fpu::set_mxcsr(original_mxcsr & !0x80);
+    let before = fp_state().unwrap();
+    let chain = store.target_point_local(3).unwrap();
+    let bbox = store.target_point_local(5).unwrap();
+    let in_world = store.target_point_world(4, bits3([0.0; 3]), bits9(IDENTITY), bits3([1.0; 3])).unwrap();
+    let after = fp_state().unwrap();
+    fpu::set_mxcsr(original_mxcsr);
+    assert_eq!(chain, TargetPointLocal::Refused("fp_masks"));
+    assert_eq!(bbox, TargetPointLocal::Refused("fp_masks"));
+    assert_eq!(in_world, TargetPointWorld::Refused("fp_masks"));
+    assert_eq!(before, after);
+}
+
+// ---------------------------------------------------------------------------------------------------------------------------------
+// the host Lua face: the diagnostic path Root compares the retained original census and queries through
+
+fn lua_with_store(root: &std::path::Path) -> mlua::Lua {
+    use mlua::Lua;
+    let lua = Lua::new();
+    let host = lua.create_table().unwrap();
+    let args = lua.create_table().unwrap();
+    args.set("root", root.to_string_lossy().into_owned()).unwrap();
+    host.set("args", args).unwrap();
+    eech_world::model_host::register(&lua, &host).unwrap();
+    lua.globals().set("host", host).unwrap();
+    lua.globals().set("ROOT", root.to_string_lossy().into_owned()).unwrap();
+    lua
+}
+
+/// the observer's text for a scene name (`clean_name`)
+fn observer_name(scene: usize) -> String {
+    compiled_scene_name(scene).unwrap().chars().map(|c| if c.is_ascii_alphanumeric() || matches!(c, '_' | '.' | '-') { c } else { '_' }).collect()
+}
+
+/// A retained report in the observer's shape, with literal hex words. Both passes of the census carry the same rows (scene 9 is not recorded by the original); the queries
+/// are three: branch 1 at scene 4 with the root pose (10,20,30) and the cycle attitude (the original's answer 13,21,32), the same with a result that is one ulp off, and one
+/// that took another branch. `damaged` changes one census word.
+fn report_file(dir: &std::path::Path, damaged: bool) -> PathBuf {
+    let pass = |generation: u32| {
+        let z = if damaged && generation == 1 { "41100001" } else { "41100000" };
+        format!(
+            "tp-offset generation={generation} index=0 name=- state=invalid_zero offset=00000000,00000000,00000000 bounds=- live=1\n\
+             tp-offset generation={generation} index=1 name=S1 state=sub_object offset=3f800000,00000000,00000000 bounds=- live=1\n\
+             tp-offset generation={generation} index=2 name=S2 state=sub_object offset=40400000,3f800000,{z} bounds=- live=1\n\
+             tp-offset generation={generation} index=3 name=S3 state=sub_object offset=3f800000,40800000,00000000 bounds=- live=1\n\
+             tp-offset generation={generation} index=5 name=S5 state=bbox offset=bf800000,00000000,40400000 bounds=c0800000,40000000,c1200000,c0000000,00000000,40c00000 live=1\n\
+             tp-offset generation={generation} index=6 name=S6 state=bbox offset=bf800000,40c00000,40400000 bounds=c0800000,40000000,40000000,41200000,00000000,40c00000 live=1\n\
+             tp-offset generation={generation} index=9 name=S9 state=none offset=- bounds=- live=-\n"
+        )
+    };
+    let name = observer_name(4);
+    let pose = "vp_after=41200000,41a00000,41f00000,00000000,3f800000,00000000,00000000,00000000,3f800000,3f800000,00000000,00000000";
+    let query = |index: u32, branch: u32, result: &str| {
+        format!("tp-event index={index} seq={index} gen=1 gen_open=0 branch={branch} model=4 model_name={name} {pose} result={result} host_id_len=0\n")
+    };
+    let mut lines = Vec::new();
+    for (when, generation) in [("boot", 0u32), ("boot", 1), ("end", 0), ("end", 1)] {
+        lines.push(serde_json::json!({ "event": "offsets", "when": when, "generation": generation, "text": pass(generation) }));
+    }
+    for (index, branch, result) in [(0, 1, "41500000,41a80000,42000000"), (1, 1, "41500000,41a80000,42000001"), (2, 3, "00000000,00000000,00000000")] {
+        lines.push(serde_json::json!({ "event": "query", "index": index, "text": query(index, branch, result) }));
+    }
+    let path = dir.join(if damaged { "damaged.jsonl" } else { "report.jsonl" });
+    std::fs::write(&path, lines.iter().map(|l| l.to_string() + "\n").collect::<String>()).unwrap();
+    path
+}
+
+#[test]
+fn the_host_lua_face_answers_local_offsets_and_instance_poses_as_plain_bit_patterns() {
+    let (root, _store) = standard();
+    let lua = lua_with_store(&root.dir);
+    lua.globals().set("NAME4", compiled_scene_name(4).unwrap()).unwrap();
+    lua.load(
+        r#"
+        local store = host.model_store (ROOT)
+        local o = store:target_point_local (1)
+        assert (o.result == "offset" and o.source == "sub_object" and o.offset == "0x3f800000,0x00000000,0x00000000", o.offset)
+        o = store:target_point_local (5)
+        assert (o.source == "bbox" and o.offset == "0xbf800000,0x00000000,0x40400000", o.offset)
+        o = store:target_point_local (0)
+        assert (o.source == "invalid_zero" and o.offset == "0x00000000,0x00000000,0x00000000")
+        o = store:target_point_local (8)
+        assert (o.result == "refused" and o.reason == "scene_not_loaded")
+        assert (not pcall (store.target_point_local, store, -1))
+        assert (not pcall (store.target_point_local, store, 1.5))
+
+        local pose = {
+            position = "0x41200000,0x41a00000,0x41f00000",
+            attitude = "0x00000000,0x3f800000,0x00000000,0x00000000,0x00000000,0x3f800000,0x3f800000,0x00000000,0x00000000",
+        }
+        local w = store:target_point_world (4, pose)
+        assert (w.result == "found" and w.state == "keyframe0" and w.position == "0x41500000,0x41a80000,0x42000000", w.position)
+        pose.scale = "0x40000000,0x40000000,0x40000000"
+        w = store:target_point_world (4, pose)
+        assert (w.position == "0x41800000,0x41b00000,0x42080000", w.position)
+        assert (store:target_point_world (5, pose).result == "no_target_point")
+        assert (store:target_point_world (8, pose).reason == "scene_not_loaded")
+        -- a pose that is not a pose is refused before the store is asked
+        assert (not pcall (store.target_point_world, store, 4, { position = pose.position }))
+        assert (not pcall (store.target_point_world, store, 4, { position = "0x1,0x2", attitude = pose.attitude }))
+        assert (not pcall (store.target_point_world, store, 4, { position = "1,2,3", attitude = pose.attitude }))
+        assert (store:scene_index ("NO_SUCH_SCENE") == nil)
+        assert (store:scene_index (NAME4) == 4)
+        "#,
+    )
+    .exec()
+    .expect("the host Lua face answers as the store does");
+}
+
+#[test]
+fn the_host_lua_comparison_checks_every_recorded_offset_row_of_both_passes_and_each_branch_one_query() {
+    let (root, _store) = standard();
+    let lua = lua_with_store(&root.dir);
+    lua.globals().set("NAME4", compiled_scene_name(4).unwrap()).unwrap();
+    let dir = root.dir.join("reports");
+    std::fs::create_dir_all(&dir).unwrap();
+    let whole = report_file(&dir, false);
+    let damaged = report_file(&dir, true);
+    lua.globals().set("WHOLE", whole.to_string_lossy().into_owned()).unwrap();
+    lua.globals().set("DAMAGED", damaged.to_string_lossy().into_owned()).unwrap();
+    lua.load(
+        r#"
+        local store = host.model_store (ROOT)
+        local r = store:compare_target_points (WHOLE)
+        -- two events of two passes each, seven rows a pass, one of them not recorded by the original: twelve rows compared
+        assert (r.offset_events == 4 and r.offset_rows == 28 and r.offset_rows_compared == 24 and r.offset_rows_not_recorded == 4, "rows")
+        assert (r.offset_sub_object == 12 and r.offset_bbox == 8 and r.offset_invalid_zero == 4, "states")
+        assert (r.offset_mismatches == 0, table.concat (r.listed, "; "))
+        assert (r.queries == 3 and r.other_branch_queries == 1 and r.branch1_queries == 2, "queries")
+        assert (r.branch1_matched == 1 and r.branch1_mismatches == 1 and r.branch1_refused == 0, "branch 1")
+        assert (r.state == "keyframe0")
+        -- the query whose result is one ulp off is listed, with both answers
+        assert (#r.listed == 1 and r.listed [1]:find ("41500000,41a80000,42000001", 1, true) and r.listed [1]:find ("41500000,41a80000,42000000", 1, true), r.listed [1])
+        -- one damaged census word in the second pass is one mismatch in each of its two events, and is named
+        local d = store:compare_target_points (DAMAGED)
+        assert (d.offset_mismatches == 2, d.offset_mismatches)
+        assert (d.listed [1]:find ("pass 1 scene 2", 1, true), d.listed [1])
+        -- a report that is not the observer's is refused, never compared clean
+        assert (not pcall (store.compare_target_points, store, ROOT .. "/no-such-report.jsonl"))
+        "#,
+    )
+    .exec()
+    .expect("the comparison reports what the retained rows hold");
+}
