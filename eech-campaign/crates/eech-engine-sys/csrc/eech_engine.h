@@ -542,6 +542,7 @@ int eech_engine_route_call (int index, char *text, int capacity);
 int eech_engine_target_point_summary (char *text, int capacity);
 int eech_engine_target_point_offsets (int generation, char *text, int capacity);
 int eech_engine_target_point_event (int index, char *text, int capacity);
+int eech_engine_target_point_probe (char *text, int capacity);
 #endif
 
 #endif

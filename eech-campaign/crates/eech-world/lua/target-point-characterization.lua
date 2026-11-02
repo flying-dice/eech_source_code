@@ -24,7 +24,15 @@
 --     not support, a clock that does not advance, a census that changed. The text is already written verbatim; a `malformed` row and done complete=false follow, the script FAILS, and
 --     the engine is NOT asked again. An engine call that itself fails stops the questions at once.
 --
--- host.args: root (installation root, required), out (the JSON Lines file, required; created exclusively), scenario (lebanon_retail, the default, or georgia_retail),
+-- THE CONTROLLED PROBE (probe=controlled; absent by default). The natural runs reach only branch 1 (an instance with a TARGET_POINT sub-object). With this argument the observer's probe runs ONCE,
+-- after the boot census is whole and before any frame: it finds live entities of the families a target can be for which the ORIGINAL takes branch 2, branch 3 (no horizontal offset, a rotated
+-- offset, and the zero-heading quirk) and branch 4 (not fixed, invalid shape), using only reads the original makes, and calls the ORIGINAL get_local_entity_target_point on at most two of each
+-- as the controlled caller. This is NOT a campaign target selection and NOT aim or weapon coverage; branches 2 to 4 write nothing (branch 1, the only writer of the instance viewpoint, is not
+-- probed), so no state is set or restored. Each controlled query is checked to have taken exactly the case it was picked for, its identity and words are the original's, and the controlled queries
+-- are counted apart from the natural ones (`controlled_*` in the done row; `queries`, `branches_reached` and `natural_queries_reached` are the natural run's). A case with no candidate is
+-- UNAVAILABLE (`controlled_unavailable`), never a success.
+--
+-- host.args: root (installation root, required), out (the JSON Lines file, required; created exclusively), probe (controlled, or absent), scenario (lebanon_retail, the default, or georgia_retail),
 --            seconds (default 3.6), frame_ms (default 100; seconds*1000/frame_ms must be a whole number of frames), checkpoint_every (simulated seconds between summary samples,
 --            default 1; 0 samples only at the start and the end).
 --
@@ -50,7 +58,7 @@ local scenarios = {
 
 local function fail_args (message) error ("target-point-characterization: " .. message, 0) end
 
-local known = { root = true, out = true, scenario = true, seconds = true, frame_ms = true, checkpoint_every = true }
+local known = { root = true, out = true, scenario = true, seconds = true, frame_ms = true, checkpoint_every = true, probe = true }
 for key in pairs (args) do
 	if not known [key] then fail_args ("unknown argument " .. tostring (key)) end
 end
@@ -61,6 +69,10 @@ if type (out_path) ~= "string" or out_path == "" then fail_args ("out=<JSON Line
 local scenario_name = args.scenario or "lebanon_retail"
 local scenario = scenarios [scenario_name]
 if not scenario then fail_args ("scenario=lebanon_retail|georgia_retail") end
+-- probe=controlled asks for the CONTROLLED probe: once, after the boot and before any frame, the original is called on real entities picked by the fixture for the cases the natural run does not
+-- reach. Those queries are the controlled caller class, are not campaign target selection, and are kept apart from the natural ones in every count below.
+if args.probe ~= nil and args.probe ~= "controlled" then fail_args ("probe=controlled (or absent)") end
+local probe_requested = args.probe == "controlled"
 
 local MAX_FRAMES = 108000
 local function number_arg (name, text, default)
@@ -88,8 +100,13 @@ local HOST_ID_MAX = 128
 local GENERATIONS_CAPACITY = 4
 local INT_MAX = 2147483647
 
-local SITES = { [0] = "unattributed", "aim_vectors", "aim_lead", "aim_intercept", "weapon_step_target_vec", "other" }
-local SITE_COUNT = 6
+local SITES = { [0] = "unattributed", "aim_vectors", "aim_lead", "aim_intercept", "weapon_step_target_vec", "other", "controlled_probe" }
+local SITE_COUNT = 7
+local CONTROLLED_SITE = 6
+-- the controlled probe's cases (csrc/eech_tp_fixture.c probe_bucket): the event's detail, the branch and case the original must be seen to take for it
+local PROBE_NAMES = { "instance_without_target_point", "fixed_no_horizontal", "fixed_rotated", "fixed_heading_zero", "not_fixed_no_instance", "fixed_invalid_shape" }
+local PROBE_CASE = { { 2, "instance_without_target_point" }, { 3, "no_horizontal_offset" }, { 3, "rotated_horizontal_offset" }, { 3, "heading_zero_quirk" }, { 4, "not_fixed" }, { 4, "invalid_shape" } }
+local PROBE_PICKS = 2
 local BRANCHES = { "instance_target_point", "instance_position", "fixed_shape_offset", "position_fallback" }
 local CASES = {
 	[1] = { "target_point_subobject" },
@@ -361,6 +378,12 @@ local function check_event (text, index, summary, rows)
 	if e.site_name ~= SITES [f.site] then malformed (what .. " names site " .. f.site .. " '" .. e.site_name .. "'") end
 	if f.site == 0 and f.detail ~= 0 then malformed (what .. " is unattributed but carries a caller detail") end
 	if f.site == 4 and f.detail ~= 1 then malformed (what .. " is a weapon step lookup of a question other than the target point") end
+	-- a controlled query names its case in its detail, and the original must be seen to take exactly that case
+	if f.site == CONTROLLED_SITE then
+		local wanted = PROBE_CASE [f.detail]
+		if not wanted then malformed (what .. " is a controlled query of the case " .. f.detail .. ", which the probe does not have") end
+		if f.branch ~= wanted [1] or f.case ~= wanted [2] then malformed (string.format ("%s was picked as %s but the original took branch %d case '%s'", what, PROBE_NAMES [f.detail], f.branch, tostring (f.case))) end
+	end
 	-- the observer's site_class gives an aim caller its class from the aim mode, and only from it
 	if AIM_DETAIL [f.site] and f.detail ~= AIM_DETAIL [f.site] then malformed (string.format ("%s is aim caller class %d with the detail %d, not the aim mode %d", what, f.site, f.detail, AIM_DETAIL [f.site])) end
 	name (e.entity_type_name, what .. " entity_type_name")
@@ -440,6 +463,22 @@ local function check_event (text, index, summary, rows)
 	return f
 end
 
+-- The controlled probe's report: the entities examined, then one line per case with its candidates and picks. A case with no candidate is UNAVAILABLE, said so and never succeeded.
+local function check_probe (text)
+	local list = lines_of (text, "the probe report")
+	if #list ~= #PROBE_NAMES + 1 then malformed ("the probe report has " .. #list .. " lines, expected " .. (#PROBE_NAMES + 1)) end
+	local head = fields (list [1], "tp-probe", { "entities", "shape_out_of_range" }, "the probe head")
+	local report = { entities = int (head.entities, 0, INT_MAX, "probe entities"), out_of_range = int (head.shape_out_of_range, 0, INT_MAX, "probe shape_out_of_range"), picked = {}, candidates = {} }
+	for b = 1, #PROBE_NAMES do
+		local v = fields (list [b + 1], "tp-probe-bucket", { "bucket", "name", "candidates", "picked", "available" }, "probe case " .. b)
+		if int (v.bucket, 1, #PROBE_NAMES, "probe bucket") ~= b or v.name ~= PROBE_NAMES [b] then malformed ("the probe case rows are not in order at " .. b) end
+		local candidates, picked, available = int (v.candidates, 0, INT_MAX, "probe candidates"), int (v.picked, 0, PROBE_PICKS, "probe picked"), flag (v.available, "probe available")
+		if picked ~= math.min (candidates, PROBE_PICKS) or (available == 1) ~= (picked > 0) then malformed ("probe case " .. b .. " has picks that are not its candidates bounded by " .. PROBE_PICKS) end
+		report.picked [b], report.candidates [b] = picked, candidates
+	end
+	return report
+end
+
 -- ---------------------------------------------------------------------------------------------------------------------------------
 -- the run. The output is created here and is closed on every exit.
 
@@ -492,7 +531,7 @@ local function run ()
 	emit { event = "boot", booted = true }
 
 	-- the fixture entries are methods of the BOOTED engine, so a feature-off module is recognised here, before any question, and reported as NOT RUN: never a zero-success
-	if type (engine.target_point_summary) ~= "function" or type (engine.target_point_offsets) ~= "function" or type (engine.target_point_event) ~= "function" or type (engine.clock) ~= "function" or type (engine.frame) ~= "function" then
+	if type (engine.target_point_summary) ~= "function" or type (engine.target_point_offsets) ~= "function" or type (engine.target_point_event) ~= "function" or type (engine.clock) ~= "function" or type (engine.frame) ~= "function" or (probe_requested and type (engine.target_point_probe) ~= "function") then
 		emit { event = "not_run", reason = "this module was not built with the target-point-fixture feature" }
 		emit { event = "done", complete = false, malformed = false }
 		error ("target-point-characterization: NOT RUN: this module was not built with the target-point-fixture feature", 0)
@@ -563,6 +602,17 @@ local function run ()
 			", dropped " .. boot_summary.census.dropped .. ", open " .. boot_summary.census.open .. ", interrupted " .. boot_summary.census.interrupted .. ", stray " .. boot_summary.census.stray .. ")", 0)
 	end
 
+	-- THE CONTROLLED PROBE (only when asked): once, after the boot census is whole and before any frame. It is NOT the natural run: the fixture picks the entities, calls the original on them as the
+	-- controlled caller and writes nothing (only branch 1 writes the instance viewpoint, and it is not probed). Its queries are read with the others and joined to this report below.
+	local probe_report
+	if probe_requested then
+		local probe_text = ask ("target_point_probe", function () return engine:target_point_probe () end)
+		emit { event = "probe", text = probe_text }
+		local probed, report = pcall (check_probe, probe_text)
+		if not probed then protocol_failure (report) end
+		probe_report = report
+	end
+
 	-- THE FRAMES. The campaign decides what is queried; nothing here selects, creates or calls anything.
 	local clock_before = read_clock ("before")
 	local previous = boot_summary
@@ -630,6 +680,7 @@ local function run ()
 		if not good then protocol_failure (event) end
 		if event.seq <= seen then protocol_failure ({ malformed = "event " .. index .. " does not follow the previous event's sequence number" }) end
 		seen = event.seq
+		if event.site == CONTROLLED_SITE and not probe_report then protocol_failure ({ malformed = "event " .. index .. " is a controlled query but no probe was asked for" }) end
 		if event.gen < previous_gen then protocol_failure ({ malformed = "event " .. index .. " names an older census pass than the event before it" }) end
 		previous_gen = event.gen
 		for _, b in ipairs (boundaries) do
@@ -689,17 +740,46 @@ local function run ()
 	end)
 	if not rows_agree then protocol_failure (disagreement) end
 
+	-- the controlled queries are exactly the probe's picks, case by case
+	local controlled_total, controlled_cases, unavailable = 0, {}, {}
+	if probe_report then
+		local seen_cases = {}
+		for b = 1, #PROBE_NAMES do seen_cases [b] = 0 end
+		for index = 0, final.events - 1 do
+			if events [index].site == CONTROLLED_SITE then seen_cases [events [index].detail] = seen_cases [events [index].detail] + 1 end
+		end
+		local probe_joined, probe_why = pcall (function ()
+			for b = 1, #PROBE_NAMES do
+				if seen_cases [b] ~= probe_report.picked [b] then malformed (string.format ("the probe picked %d entities for %s but %d controlled queries were recorded", probe_report.picked [b], PROBE_NAMES [b], seen_cases [b])) end
+				controlled_total = controlled_total + seen_cases [b]
+				if probe_report.picked [b] == 0 then unavailable [#unavailable + 1] = tostring (b) end
+				if seen_cases [b] > 0 then controlled_cases [#controlled_cases + 1] = tostring (b) end
+			end
+		end)
+		if not probe_joined then protocol_failure (probe_why) end
+	end
 	local reached = {}
-	for b = 1, 4 do if final.branch [b] > 0 then reached [#reached + 1] = tostring (b) end end
-	local queries = final.calls - boot_summary.calls
+	for b = 1, 4 do
+		local natural = 0
+		for s_index = 0, CONTROLLED_SITE - 1 do natural = natural + final.site [s_index] [b] end
+		if natural > 0 then reached [#reached + 1] = tostring (b) end
+	end
+	local natural_calls = final.calls - controlled_total
+	local queries = final.calls - boot_summary.calls - controlled_total
 	local whole = final.queries_whole == 1 and final.census_whole == 1
 	emit { event = "done", complete = whole, census_complete = true, queries_whole = whole, queries = queries, boot_calls = boot_summary.calls, total_calls = final.calls, events = final.events, generations = final.census.generations,
-		natural_queries_reached = final.calls > 0, branches_reached = #reached > 0 and table.concat (reached, ",") or "none", frames = frames, malformed = false }
-	if final.calls == 0 then
+		natural_queries_reached = natural_calls > 0, branches_reached = #reached > 0 and table.concat (reached, ",") or "none", frames = frames, malformed = false,
+		controlled_probe = probe_requested, controlled_queries = controlled_total, controlled_cases = #controlled_cases > 0 and table.concat (controlled_cases, ",") or "none",
+		controlled_unavailable = #unavailable > 0 and table.concat (unavailable, ",") or "none" }
+	if probe_requested and #unavailable > 0 then
+		emit { event = "probe_unavailable", cases = table.concat (unavailable, ","), reason = "no live entity of the examined families takes these cases; nothing is claimed for them" }
+		io.stderr:write (string.format ("target-point-characterization: controlled probe: cases %s are UNAVAILABLE (no candidate); the other cases were picked\n", table.concat (unavailable, ",")))
+	end
+	if natural_calls == 0 then
 		emit { event = "unreached", reason = "no query of the original target-point function was made in " .. frames .. " frames; no branch is covered" }
 		io.stderr:write (string.format ("target-point-characterization: census whole; NO natural target-point query was reached in %d frames (nothing is covered)\n", frames))
 	else
-		io.stderr:write (string.format ("target-point-characterization: census whole; %d queries (%d at boot), branches reached: %s\n", final.calls, boot_summary.calls, #reached > 0 and table.concat (reached, ",") or "none"))
+		io.stderr:write (string.format ("target-point-characterization: census whole; %d queries (%d at boot), branches reached: %s\n", natural_calls, boot_summary.calls, #reached > 0 and table.concat (reached, ",") or "none"))
 	end
 	if not whole then
 		error (string.format ("target-point-characterization: NOT COMPLETE: the query capture is not whole (dropped %d, stale %d, interrupted %d, orphans %d, unclassified %d, open %d, out_of_range %d)",

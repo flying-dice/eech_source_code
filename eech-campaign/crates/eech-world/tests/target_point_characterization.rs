@@ -22,7 +22,8 @@ const ENGINE_RS: &str = include_str!("../../eech-engine/src/lib.rs");
 // ---------------------------------------------------------------------------------------------------------------------------------
 // C-shaped synthetic reports
 
-const SITES: [&str; 6] = ["unattributed", "aim_vectors", "aim_lead", "aim_intercept", "weapon_step_target_vec", "other"];
+const SITES: [&str; 7] = ["unattributed", "aim_vectors", "aim_lead", "aim_intercept", "weapon_step_target_vec", "other", "controlled_probe"];
+const PROBE_NAMES: [&str; 6] = ["instance_without_target_point", "fixed_no_horizontal", "fixed_rotated", "fixed_heading_zero", "not_fixed_no_instance", "fixed_invalid_shape"];
 const BRANCHES: [&str; 4] = ["instance_target_point", "instance_position", "fixed_shape_offset", "position_fallback"];
 /// the number of model indices the synthetic census holds
 const EXPECTED: usize = 6;
@@ -393,6 +394,9 @@ struct Case {
     clock_fault: &'static str,
     fail_frame: u32,
     feature_off: bool,
+    /// the controlled probe's report (None: the module has no probe), and whether the probe call raises
+    probe_report: Option<String>,
+    probe_fails: bool,
     boot_fails: bool,
     existing: Option<&'static str>,
     io: Io,
@@ -418,6 +422,8 @@ fn healthy(events: &[Ev]) -> Case {
         clock_fault: "",
         fail_frame: 0,
         feature_off: false,
+        probe_report: None,
+        probe_fails: false,
         boot_fails: false,
         existing: None,
         io: Io::Real,
@@ -527,6 +533,13 @@ fn run(case: &Case) -> Outcome {
                             if not answer then error ("the observer keeps no pass " .. generation, 0) end
                             return answer
                         end
+                        if PROBE_REPORT then
+                            engine.target_point_probe = function ()
+                                note ("probe")
+                                if PROBE_FAIL then error ("probe refused", 0) end
+                                return PROBE_REPORT
+                            end
+                        end
                         engine.target_point_event = function (self, index)
                             note ("event " .. index)
                             local answer = EVENTS [index + 1]
@@ -567,6 +580,11 @@ fn run(case: &Case) -> Outcome {
     lua.globals().set("CLOCK_FAULT", case.clock_fault).unwrap();
     lua.globals().set("FAIL_FRAME", case.fail_frame).unwrap();
     lua.globals().set("FEATURE_OFF", case.feature_off).unwrap();
+    match &case.probe_report {
+        Some(text) => lua.globals().set("PROBE_REPORT", lua.create_string(text.as_bytes()).unwrap()).unwrap(),
+        None => lua.globals().set("PROBE_REPORT", false).unwrap(),
+    }
+    lua.globals().set("PROBE_FAIL", case.probe_fails).unwrap();
     let host: Table = lua.globals().get("host").unwrap();
     match case.io {
         Io::Real => eech_world::exclusive_output::register(&lua, &host).unwrap(),
@@ -1109,6 +1127,134 @@ fn a_query_is_anchored_to_the_sampled_call_boundaries() {
     failure(&outcome, "event 1 began at or after the boot sample (1 calls) yet names pass 0");
 }
 
+/// the probe's report when it picked this many entities for each case (a case with one candidate has that one; with more it has more than the bound)
+fn probe_text(picked: [usize; 6]) -> String {
+    let mut t = String::from("tp-probe entities=40 shape_out_of_range=0\n");
+    for (i, name) in PROBE_NAMES.iter().enumerate() {
+        let p = picked[i];
+        let candidates = if p < 2 { p } else { p + 3 };
+        t += &format!("tp-probe-bucket bucket={} name={name} candidates={candidates} picked={p} available={}\n", i + 1, u8::from(p > 0));
+    }
+    t
+}
+
+/// the controlled query of a probe case: the caller class is the probe's and its detail the case
+fn controlled(seq: u32, bucket: i32) -> Ev {
+    let base = match bucket {
+        1 => instance_position(seq, 6),
+        2 => fixed_shape(seq, 6, 3, "no_horizontal_offset", None, false),
+        3 => fixed_shape(seq, 6, 5, "rotated_horizontal_offset", Some(0x3f00_0000), true),
+        4 => fixed_shape(seq, 6, 5, "heading_zero_quirk", Some(0), false),
+        5 => fallback(seq, 6, false),
+        _ => fallback(seq, 6, true),
+    };
+    Ev { detail: bucket, ..base }
+}
+
+/// a run with the controlled probe: one controlled query per listed case (none for the others), then one natural branch-1 query during the frames
+fn probe_case(buckets: &[i32]) -> (Case, Vec<Ev>) {
+    let mut events: Vec<Ev> = buckets.iter().enumerate().map(|(i, b)| controlled(i as u32, *b)).collect();
+    events.push(target_point(events.len() as u32, 1));
+    let mut picked = [0usize; 6];
+    for b in buckets {
+        picked[*b as usize - 1] = 1;
+    }
+    let mut case = healthy(&events);
+    arg(&mut case, "probe", "controlled");
+    case.probe_report = Some(probe_text(picked));
+    (case, events)
+}
+
+#[test]
+fn the_controlled_probe_is_kept_apart_from_the_natural_run_and_says_which_cases_were_unavailable() {
+    // every case has a candidate: six controlled queries, each the original taking exactly the case it was picked for, and one natural query; the natural counts do not include the probe
+    let (case, events) = probe_case(&[1, 2, 3, 4, 5, 6]);
+    let outcome = run(&case);
+    outcome.result.as_ref().expect("a coherent probe and a natural query");
+    let at = |entry: &str| outcome.log.iter().position(|l| l == entry).unwrap();
+    assert!(at("probe") < at("FRAME"), "the probe runs after the boot census and before any frame: {:?}", outcome.log);
+    let done = done_row(&outcome);
+    assert!(
+        done.contains("\"controlled_queries\":6") && done.contains("\"controlled_cases\":\"1,2,3,4,5,6\"") && done.contains("\"controlled_unavailable\":\"none\""),
+        "{done}"
+    );
+    assert!(
+        done.contains("\"queries\":1") && done.contains("\"branches_reached\":\"1\"") && done.contains("\"natural_queries_reached\":true"),
+        "the natural counts exclude the controlled queries: {done}"
+    );
+    let all = outcome.written.as_ref().unwrap();
+    for (i, e) in events.iter().enumerate() {
+        assert!(all.contains(event_text(i, e).trim_end_matches('\n')), "event {i} is not kept verbatim");
+    }
+    // a case with no candidate is UNAVAILABLE: said so, not picked, not claimed
+    let (unavailable, _) = probe_case(&[1, 2, 3, 5, 6]);
+    let outcome = run(&unavailable);
+    outcome.result.as_ref().expect("an unavailable case is reported, not a failure");
+    let done = done_row(&outcome);
+    assert!(done.contains("\"controlled_unavailable\":\"4\"") && done.contains("\"controlled_cases\":\"1,2,3,5,6\""), "{done}");
+    assert!(rows(&outcome).iter().any(|r| r.contains("\"event\":\"probe_unavailable\"") && r.contains("\"cases\":\"4\"")));
+    // with no natural query at all the run still says nothing natural was reached
+    let mut only_probe = healthy(&[]);
+    let probed: Vec<Ev> = (1..=6).map(|b| controlled(b as u32 - 1, b)).collect();
+    only_probe = Case { events: probed.iter().enumerate().map(|(i, e)| Some(event_text(i, e))).collect(), ..only_probe };
+    arg(&mut only_probe, "probe", "controlled");
+    only_probe.probe_report = Some(probe_text([1; 6]));
+    only_probe.summaries = vec![summary(&[]), summary(&probed)];
+    let outcome = run(&only_probe);
+    outcome.result.as_ref().expect("controlled queries alone are a whole capture");
+    let done = done_row(&outcome);
+    assert!(done.contains("\"natural_queries_reached\":false") && done.contains("\"branches_reached\":\"none\""), "{done}");
+    assert!(rows(&outcome).iter().any(|r| r.contains("\"event\":\"unreached\"")), "nothing natural was reached and the run says so");
+}
+
+#[test]
+fn damaged_or_contradictory_probe_reports_are_malformed_and_stop_the_questions() {
+    // a controlled query whose case is not the one the original took: the pick was for a heading-zero shape and the original is said to have rotated
+    let (mut wrong_case, _) = probe_case(&[1, 2, 3, 4, 5, 6]);
+    change(&mut wrong_case, 3, "site=6 site_name=controlled_probe detail=4", "site=6 site_name=controlled_probe detail=3");
+    let outcome = run(&wrong_case);
+    failure(&outcome, MALFORMED);
+    failure(&outcome, "event 3 was picked as fixed_rotated but the original took branch 3 case 'heading_zero_quirk'");
+    assert_eq!(count(&outcome, "event 4"), 0, "the engine was asked past the contradiction");
+    // a controlled query the report says nobody picked
+    let (mut unpicked, _) = probe_case(&[1, 2, 3, 4, 5, 6]);
+    unpicked.probe_report = Some(probe_text([0, 1, 1, 1, 1, 1]));
+    let outcome = run(&unpicked);
+    failure(&outcome, MALFORMED);
+    failure(&outcome, "the probe picked 0 entities for instance_without_target_point but 1 controlled queries were recorded");
+    // a controlled query when no probe was asked for
+    let (mut unasked, _) = probe_case(&[1, 2, 3, 4, 5, 6]);
+    unasked.args.retain(|(k, _)| k != "probe");
+    let outcome = run(&unasked);
+    failure(&outcome, MALFORMED);
+    failure(&outcome, "event 0 is a controlled query but no probe was asked for");
+    // picks that are not the candidates bounded by the probe's limit
+    let (mut too_many, _) = probe_case(&[1, 2, 3, 4, 5, 6]);
+    too_many.probe_report = too_many.probe_report.map(|t| t.replace("candidates=1 picked=1 available=1", "candidates=1 picked=2 available=1"));
+    let outcome = run(&too_many);
+    failure(&outcome, MALFORMED);
+    failure(&outcome, "picks that are not its candidates");
+    assert_eq!(count(&outcome, "FRAME"), 0);
+    // a probe that raises is a primary engine failure: no frame, nothing asked again
+    let (mut raising, _) = probe_case(&[1, 2, 3, 4, 5, 6]);
+    raising.probe_fails = true;
+    let outcome = run(&raising);
+    failure(&outcome, "target_point_probe failed: probe refused");
+    assert_eq!(count(&outcome, "FRAME"), 0);
+    // a probe asked of a module that has none is not run
+    let (mut absent, _) = probe_case(&[1, 2, 3, 4, 5, 6]);
+    absent.probe_report = None;
+    let outcome = run(&absent);
+    failure(&outcome, "NOT RUN");
+    assert_eq!(count(&outcome, "FRAME"), 0);
+    // an unknown probe mode is refused before anything is touched
+    let (mut unknown, _) = probe_case(&[1]);
+    arg(&mut unknown, "probe", "maybe");
+    let outcome = run(&unknown);
+    failure(&outcome, "probe=controlled (or absent)");
+    assert!(outcome.log.is_empty() && outcome.written.is_none());
+}
+
 #[test]
 fn a_census_that_is_not_whole_keeps_every_pass_it_saw_and_is_not_measured() {
     type Variant = (&'static str, fn(&mut Case));
@@ -1568,6 +1714,9 @@ fn the_driver_names_and_caps_are_the_emitters() {
     };
     assert_eq!(lua_number("EVENTS_CAPACITY"), define("TP_EVENTS"));
     assert_eq!(lua_number("HOST_ID_MAX"), define("TP_HOST_ID"));
+    assert_eq!(lua_number("PROBE_PICKS"), define("TP_PROBE_PICKS"));
+    assert_eq!(lua_names("local PROBE_NAMES = {"), returned("probe_bucket_name"));
+    assert_eq!(returned("probe_bucket_name").len() as u64, define("TP_PROBE_BUCKETS"));
     assert_eq!(lua_number("GENERATIONS_CAPACITY"), define("TP_GENERATIONS"));
     assert!(ENGINE_RS.contains(&format!("pub const TARGET_POINT_GENERATIONS_MAX: i32 = {};", define("TP_GENERATIONS"))));
     // the engine's own bound on an event index is the same table

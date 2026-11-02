@@ -6128,6 +6128,19 @@ impl Engine {
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
     }
 
+    /// TEST-ONLY (feature `target-point-fixture`, EEDCS-52 D3): the CONTROLLED probe, once per process and only between queries and census passes (a second call, or one made while a query or
+    /// a pass is running, is refused). It finds live entities for which the original takes each unreached case and calls the ORIGINAL `get_local_entity_target_point` once per pick as the
+    /// controlled caller; it is not a campaign target selection. The report lists the cases, their candidates and picks (a case with none is unavailable); the picks' queries are read
+    /// as ordinary recorded queries (see `csrc/eech_tp_fixture.c`).
+    #[cfg(feature = "target-point-fixture")]
+    pub fn target_point_probe(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; TARGET_POINT_LINE_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        check(unsafe { sys::eech_engine_target_point_probe(text.as_mut_ptr(), text.len() as i32) })?;
+        // SAFETY: the engine wrote a NUL-terminated string within the buffer.
+        Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
+    }
+
     /// TEST-ONLY (feature `target-point-fixture`, EEDCS-52 D3): one recorded query by its zero-based index, as one `key=value` text line. `index` is checked here before the engine is
     /// entered, and again by the engine, which refuses an index it did not record.
     #[cfg(feature = "target-point-fixture")]

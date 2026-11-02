@@ -20,6 +20,15 @@
  *      many of its rows the live table still holds, and only the latest pass is required to equal it. Each query records the latest ended generation at the time it ran. The census
  *      records facts the original already computed; it constructs and measures no model of its own.
  *
+ *   3. THE CONTROLLED PROBE (eech_tp_probe_run, only when the driver asks, once, after the boot and before any frame). The natural witnesses reach only branch 1. The probe finds, among
+ *      the live entities of the families a target can be (anti-aircraft, fixed wing, helicopter, person, routed vehicle, ship, and the structures), those for which the original takes
+ *      each unreached case, using only reads the original itself makes (the instance and the TARGET_POINT search, the fixed flag, the shape, whether the shape's offset has a horizontal
+ *      part, the heading), and then calls the ORIGINAL get_local_entity_target_point once per pick (at most TP_PROBE_PICKS per case). The call is observed by the same hooks as any
+ *      other, as caller class "controlled_probe" with the case as its detail, so its answer, its identity and its (absent) viewpoint write are the original's own. It is NOT a campaign
+ *      target selection and NOT aim or weapon coverage: the entity is chosen by the fixture, and the driver keeps these queries apart from the natural ones. Branches 2, 3 and 4 write
+ *      nothing (only branch 1 writes the instance viewpoint, and it is not probed), so the probe changes no campaign state; the picks, the counts of candidates and the cases with no
+ *      candidate are reported, and a case with none is UNAVAILABLE, never succeeded. Nothing is constructed, set or restored.
+ *
  * WHAT IT CANNOT SHOW. A call that no boot or frame reached is simply absent: an empty query report says "no calls", which is NOT a measured original, and a branch with no
  * call is not covered. A table that fills, a hook outside an open call, a call that never ends and a call that begins inside another are each counted and make the capture not whole.
  * The camera, HUD and player callers are not hooked; their calls are counted as unattributed when they happen. The AI attack guidance (gd_attck.c) reads target_point_offsets[]
@@ -56,6 +65,8 @@ enum
 	TP_SITE_AIM_INTERCEPT,
 	TP_SITE_WEAPON_STEP,
 	TP_SITE_OTHER,
+	/* the controlled probe (eech_tp_probe_run): never a natural caller */
+	TP_SITE_CONTROLLED,
 	TP_SITES
 };
 
@@ -180,6 +191,10 @@ static int site_class (int site, int detail)
 	{
 		return TP_SITE_UNATTRIBUTED;
 	}
+	if (site == 3)
+	{
+		return TP_SITE_CONTROLLED;
+	}
 	return TP_SITE_OTHER;
 }
 
@@ -206,6 +221,10 @@ static const char *site_name (int site_class_value)
 		case TP_SITE_WEAPON_STEP:
 		{
 			return "weapon_step_target_vec";
+		}
+		case TP_SITE_CONTROLLED:
+		{
+			return "controlled_probe";
 		}
 		default:
 		{
@@ -923,6 +942,175 @@ int eech_tp_event_run (int index, char *text, int capacity)
 		emit (&out, " host_id=%s", e->host_id);
 	}
 	emit (&out, "\n");
+	return out.overflow ? 1 : 0;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* the controlled probe */
+
+#define TP_PROBE_BUCKETS 6
+#define TP_PROBE_PICKS 2
+
+static int tp_probe_done;
+
+static const char *probe_bucket_name (int bucket)
+{
+	switch (bucket)
+	{
+		case 1:
+		{
+			return "instance_without_target_point";
+		}
+		case 2:
+		{
+			return "fixed_no_horizontal";
+		}
+		case 3:
+		{
+			return "fixed_rotated";
+		}
+		case 4:
+		{
+			return "fixed_heading_zero";
+		}
+		case 5:
+		{
+			return "not_fixed_no_instance";
+		}
+		case 6:
+		{
+			return "fixed_invalid_shape";
+		}
+		default:
+		{
+			return "-";
+		}
+	}
+}
+
+/* the families a target can be: the mobiles that answer the instance pointer, and the structures */
+static int probe_type_considered (int type)
+{
+	switch (type)
+	{
+		case ENTITY_TYPE_ANTI_AIRCRAFT:
+		case ENTITY_TYPE_FIXED_WING:
+		case ENTITY_TYPE_HELICOPTER:
+		case ENTITY_TYPE_PERSON:
+		case ENTITY_TYPE_ROUTED_VEHICLE:
+		case ENTITY_TYPE_SHIP_VEHICLE:
+		{
+			return 1;
+		}
+		default:
+		{
+			return campaign_object_is_structure (type) ? 1 : 0;
+		}
+	}
+}
+
+/* Which unreached case the original takes for this entity: 0 none to probe (an instance WITH a TARGET_POINT sub-object is branch 1, already measured, and the only branch that writes), 1 an
+   instance without one, 2 a fixed object whose shape has no horizontal offset, 3 one with a horizontal offset and a non-zero heading, 4 one with a horizontal offset and a zero heading (the
+   legacy quirk), 5 not a fixed object and no instance, 6 a fixed object with the invalid shape; -1 a fixed object whose shape is outside the table (the original would index outside it). Only
+   reads the original itself makes, and no floating-point arithmetic: a float is zero if its magnitude bits are. */
+static int probe_bucket (entity *en)
+{
+	object_3d_instance *instance;
+	object_3d_sub_object_search_data search;
+	object_3d_index_numbers index;
+
+	instance = (object_3d_instance *) get_local_entity_ptr_value (en, PTR_TYPE_INSTANCE_3D_OBJECT);
+	if (instance)
+	{
+		search.search_depth = 0;
+		search.search_object = instance;
+		search.sub_object_index = OBJECT_3D_SUB_OBJECT_TARGET_POINT;
+		return find_object_3d_sub_object (&search) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND ? 0 : 1;
+	}
+	if (!get_local_entity_int_value (en, INT_TYPE_IDENTIFY_FIXED))
+	{
+		return 5;
+	}
+	index = get_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE);
+	if (index == OBJECT_3D_INVALID_OBJECT_INDEX)
+	{
+		return 6;
+	}
+	if ((int) index < OBJECT_3D_INVALID_OBJECT_INDEX || (int) index >= OBJECT_3D_LAST)
+	{
+		return -1;
+	}
+	if ((bits_of (&target_point_offsets[index].x) & 0x7fffffffu) == 0 && (bits_of (&target_point_offsets[index].z) & 0x7fffffffu) == 0)
+	{
+		return 2;
+	}
+	{
+		float heading = get_local_entity_float_value (en, FLOAT_TYPE_HEADING);
+
+		return (bits_of (&heading) & 0x7fffffffu) != 0 ? 3 : 4;
+	}
+}
+
+int eech_tp_probe_run (char *text, int capacity)
+{
+	struct out out;
+	entity *picks[TP_PROBE_BUCKETS + 1][TP_PROBE_PICKS];
+	int candidates[TP_PROBE_BUCKETS + 1], picked[TP_PROBE_BUCKETS + 1];
+	int examined = 0, out_of_range = 0, b, k;
+	entity *en;
+
+	out_start (&out, text, capacity);
+	/* once, and only between queries and passes */
+	if (tp_probe_done || tp_open || tp_gen_open || tp_pending)
+	{
+		return 1;
+	}
+	tp_probe_done = 1;
+	memset (candidates, 0, sizeof (candidates));
+	memset (picked, 0, sizeof (picked));
+	for (en = get_local_entity_list (); en; en = get_local_entity_succ (en))
+	{
+		int bucket;
+
+		if (!(entities && en >= entities && en < entities + number_of_entities))
+		{
+			break;
+		}
+		if (!probe_type_considered ((int) en->type))
+		{
+			continue;
+		}
+		examined++;
+		bucket = probe_bucket (en);
+		if (bucket < 0)
+		{
+			out_of_range++;
+			continue;
+		}
+		if (bucket == 0)
+		{
+			continue;
+		}
+		candidates[bucket]++;
+		if (picked[bucket] < TP_PROBE_PICKS)
+		{
+			picks[bucket][picked[bucket]] = en;
+			picked[bucket]++;
+		}
+	}
+	emit (&out, "tp-probe entities=%d shape_out_of_range=%d\n", examined, out_of_range);
+	for (b = 1; b <= TP_PROBE_BUCKETS; b++)
+	{
+		for (k = 0; k < picked[b]; k++)
+		{
+			vec3d point;
+
+			/* the ORIGINAL, once, as the controlled caller with the case as its detail; the hooks record it like any other query */
+			eech_tp_caller (3, b);
+			get_local_entity_target_point (picks[b][k], &point);
+		}
+		emit (&out, "tp-probe-bucket bucket=%d name=%s candidates=%d picked=%d available=%d\n", b, probe_bucket_name (b), candidates[b], picked[b], picked[b] > 0 ? 1 : 0);
+	}
 	return out.overflow ? 1 : 0;
 }
 

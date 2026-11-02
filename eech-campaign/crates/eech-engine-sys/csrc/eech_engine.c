@@ -2167,4 +2167,21 @@ int eech_engine_target_point_event (int index, char *text, int capacity)
 	LEAVE (EECH_ENGINE_OK);
 }
 
+/* TEST-ONLY (EEDCS-52): the controlled probe, once, after the boot: see eech_tp_fixture.c eech_tp_probe_run */
+extern int eech_tp_probe_run (char *text, int capacity);
+
+int eech_engine_target_point_probe (char *text, int capacity)
+{
+	ENTER (OPERATION_OBSERVE, NULL);
+	if (state != ENGINE_RUNNING)
+	{
+		LEAVE (EECH_ENGINE_STATE);
+	}
+	if (!text || (capacity <= 0) || eech_tp_probe_run (text, capacity) != 0)
+	{
+		LEAVE (EECH_ENGINE_BAD_ARGUMENT);
+	}
+	LEAVE (EECH_ENGINE_OK);
+}
+
 #endif
