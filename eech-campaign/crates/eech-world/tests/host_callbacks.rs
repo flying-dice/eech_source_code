@@ -2229,16 +2229,32 @@ end
 -- ---- group 13, index 0: the lightning queue probe's report (csrc/eech_env_fixture.c env_lightning_case, csrc/eech_env_observer.c eech_envobs_queue_report). The number of lightning events is the
 -- number of episodes the stand-in observer wrote (LIGHTNING_EPISODES, counted by its lightning ()); the shape says what the stand-in's queue did with each add: ok (both queued), no_environment (nothing
 -- active, nothing queued) or full (every slot already in use, nothing queued). The numbers are canned; the ORDER, the grammar and the reconciliation with the observer's events are the real ones.
+-- The queue's slot masks are 32-bit integers. Their bit weights are built here by exact doubling from 1 (every power of two to 2^31 is a double, and the sum of two equal doubles of
+-- this size is exact in every rounding mode), not by the runtime exponentiation `2 ^ n`, which the C library computes and which the caller's rounding mode (the new Linux SSE
+-- round-toward-zero of the reference host) can make inexact: it rendered the second add's mask as 00000002 instead of 00000003. Division by a power of two is exact as well.
+local LQ_BIT = {}
+do
+  local weight = 1
+  for i = 0, 31 do
+    LQ_BIT[i] = weight
+    weight = weight + weight
+  end
+end
+local function lq_bit(i)
+  local weight = LQ_BIT[i]
+  if weight == nil then error('stand-in: the queue bit ' .. tostring(i) .. ' is outside 0..31', 0) end
+  return weight
+end
 local function lq_pop(m)
   local count = 0
   for i = 0, 31 do
-    if math.floor(m / 2 ^ i) % 2 == 1 then count = count + 1 end
+    if math.floor(m / lq_bit(i)) % 2 == 1 then count = count + 1 end
   end
   return count
 end
 local function lq_lowest_zero(m)
   for i = 0, 31 do
-    if math.floor(m / 2 ^ i) % 2 == 0 then return i end
+    if math.floor(m / lq_bit(i)) % 2 == 0 then return i end
   end
   return -1
 end
@@ -2265,7 +2281,7 @@ local function queue_report(events, shape)
       local slot = -1
       if shape == 'ok' then
         slot = lq_lowest_zero(mask)
-        mask = mask + 2 ^ slot
+        mask = mask + lq_bit(slot)
       end
       record(ev, 2 * k, active, mask, slot, slot >= 0 and LQ_QUEUED or LQ_ZERO)
     end
@@ -2277,7 +2293,7 @@ local function queue_report(events, shape)
     .. string.format('env-lq-report armed=1 capacity=96 stored=%d dropped=0 overflow=0 lightning_events=%d update_calls=0 queue_capacity=32 final_mask_w=%08x final_occupancy=%d\n', #records, events, mask, lq_pop(mask))
     .. table.concat(records)
   for slot = 0, 31 do
-    if math.floor(mask / 2 ^ slot) % 2 == 1 then text = text .. string.format('env-lq-slot slot=%d %s\n', slot, LQ_QUEUED) end
+    if math.floor(mask / lq_bit(slot)) % 2 == 1 then text = text .. string.format('env-lq-slot slot=%d %s\n', slot, LQ_QUEUED) end
   end
   return text
 end
@@ -2532,7 +2548,13 @@ local mutations = {
 function engine:env_case(group, index)
   note('case ' .. group .. ':' .. index)
   local text = report(group, index)
-  if MUTATION ~= 'none' and group == TARGET_GROUP and (TARGET_INDEX < 0 or index == TARGET_INDEX) then text = mutations[MUTATION](text) end
+  if MUTATION ~= 'none' and group == TARGET_GROUP and (TARGET_INDEX < 0 or index == TARGET_INDEX) then
+    local coherent = text
+    text = mutations[MUTATION](coherent)
+    -- a lightning queue corruption is only a test of the driver's refusal if it really changed the coherent report it was applied to (a text edit that matches nothing is a silent no-op);
+    -- every `queue_` form is applied to the queue report only, and each one differs from the healthy report of the shape it is run with. A no-op is therefore a stand-in error (the Rust side refuses to count it), never a refusal by the driver.
+    if MUTATION:sub(1, 6) == 'queue_' and text == coherent then error('stand-in: NO-OP MUTATION ' .. MUTATION .. ' left the coherent lightning queue report unchanged', 0) end
+  end
   return text
 end
 "#;
@@ -3992,6 +4014,9 @@ const QUEUE_ROW_EVENTS: [&str; 8] = [
     "lightning_queue_summary",
 ];
 
+// what the queue stand-in raises when a corruption left the coherent report unchanged: such a form tested nothing, and a refusal by it must not be counted as the driver's
+const QUEUE_NO_OP_MUTATION: &str = "NO-OP MUTATION";
+
 fn queue_stand_in(observer_mutation: &'static str, mutation: &'static str) -> EnvStandIn {
     EnvStandIn {
         mutation,
@@ -4106,6 +4131,11 @@ fn a_lightning_queue_report_that_is_incomplete_out_of_order_or_at_odds_with_the_
     ];
     for (observer_mutation, mutation, says) in cases {
         let run = run_env_scenario(&queue_stand_in(observer_mutation, mutation), &queue_args());
+        assert!(
+            !run.stderr.contains(QUEUE_NO_OP_MUTATION),
+            "{mutation} changed nothing in the coherent report it corrupts:\n{}",
+            run.stderr
+        );
         assert!(!run.status.success(), "{mutation} was accepted:\n{}", run.out_text);
         assert!(
             run.stderr.contains("env-characterization:") && run.stderr.contains(*says),
@@ -4381,6 +4411,11 @@ fn the_natural_queue_report_rejects_incomplete_slot_cohorts() {
     let mut accepted: Vec<String> = Vec::new();
     for (mutation, what) in damaged {
         let run = run_env_scenario(&queue_stand_in("lightning_episode", mutation), &queue_args());
+        assert!(
+            !run.stderr.contains(QUEUE_NO_OP_MUTATION),
+            "{mutation} changed nothing in the coherent report it corrupts:\n{}",
+            run.stderr
+        );
         if run.status.success() {
             accepted.push(format!("{mutation}: {what}"));
         }
