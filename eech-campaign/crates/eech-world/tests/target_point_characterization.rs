@@ -1624,17 +1624,35 @@ fn damaged_setup_reports_and_restorations_are_malformed_and_stop_the_questions()
         ),
         (
             "a case applied but never called",
-            |c| edit_setup(c, "reason=- applied=1 called=1 restored=1 entity_type=TYPE_14 host_id_state=absent", "reason=setup_not_applied applied=1 called=0 restored=1 entity_type=TYPE_14 host_id_state=absent"),
+            |c| {
+                edit_setup(
+                    c,
+                    "reason=- applied=1 called=1 restored=1 entity_type=TYPE_14 host_id_state=absent",
+                    "reason=setup_not_applied applied=1 called=0 restored=1 entity_type=TYPE_14 host_id_state=absent",
+                )
+            },
             "was called without being applied, or applied and not called",
         ),
         (
             "a reason that case cannot have when it was not called",
-            |c| edit_setup(c, "name=not_fixed_no_instance available=1 reason=- applied=1 called=1", "name=not_fixed_no_instance available=1 reason=scene_has_target_point applied=0 called=0"),
+            |c| {
+                edit_setup(
+                    c,
+                    "name=not_fixed_no_instance available=1 reason=- applied=1 called=1",
+                    "name=not_fixed_no_instance available=1 reason=scene_has_target_point applied=0 called=0",
+                )
+            },
             "was not called for the reason 'scene_has_target_point', which that case cannot have",
         ),
         (
             "a missing-candidate reason on an available case",
-            |c| edit_setup(c, "name=fixed_invalid_shape available=1 reason=- applied=1 called=1", "name=fixed_invalid_shape available=1 reason=no_fixed_structure_with_valid_shape applied=0 called=0"),
+            |c| {
+                edit_setup(
+                    c,
+                    "name=fixed_invalid_shape available=1 reason=- applied=1 called=1",
+                    "name=fixed_invalid_shape available=1 reason=no_fixed_structure_with_valid_shape applied=0 called=0",
+                )
+            },
             "was not called for the reason 'no_fixed_structure_with_valid_shape', which that case cannot have",
         ),
         (
@@ -1710,7 +1728,10 @@ fn an_unavailable_setup_case_has_only_its_own_reasons_and_no_names() {
     edit_setup(&mut wrong_case, "reason=no_fixed_structure_with_valid_shape", "reason=no_mobile_with_instance");
     let outcome = run(&wrong_case);
     failure(&outcome, MALFORMED);
-    failure(&outcome, "setup case 3 is unavailable for the reason 'no_mobile_with_instance', which that case cannot have");
+    failure(
+        &outcome,
+        "setup case 3 is unavailable for the reason 'no_mobile_with_instance', which that case cannot have",
+    );
     let (mut named, _) = setup_case([true, true, false]);
     edit_setup(
         &mut named,
@@ -1724,12 +1745,18 @@ fn an_unavailable_setup_case_has_only_its_own_reasons_and_no_names() {
     for (which, reason) in [(1usize, "no_census_pass"), (1, "no_bbox_scene_without_skin")] {
         let (mut case, _) = setup_case([false, false, true]);
         let mut report = case.setup_report.take().unwrap();
-        let from = if which == 1 { "available=0 reason=no_mobile_with_instance" } else { "name=not_fixed_no_instance available=0 reason=no_mobile_with_instance" };
+        let from = if which == 1 {
+            "available=0 reason=no_mobile_with_instance"
+        } else {
+            "name=not_fixed_no_instance available=0 reason=no_mobile_with_instance"
+        };
         let to = from.replace("reason=no_mobile_with_instance", &format!("reason={reason}"));
         assert!(report.contains(from));
         report = report.replacen(from, &to, 1);
         case.setup_report = Some(report);
-        run(&case).result.unwrap_or_else(|e| panic!("case {which} may be unavailable for {reason}: {e}"));
+        run(&case)
+            .result
+            .unwrap_or_else(|e| panic!("case {which} may be unavailable for {reason}: {e}"));
     }
 }
 
@@ -1745,7 +1772,10 @@ fn the_setup_scene_is_joined_to_the_pass_that_applied_when_the_query_ran() {
         case
     };
     let outcome = run(&grown());
-    outcome.result.as_ref().expect("a setup that applied in pass 1 stays valid when a later pass says otherwise of the same model");
+    outcome
+        .result
+        .as_ref()
+        .expect("a setup that applied in pass 1 stays valid when a later pass says otherwise of the same model");
     let done = done_row(&outcome);
     assert!(done.contains("\"generations\":3") && done.contains("\"setup_cases\":\"1,2,3\""), "{done}");
     // the same queries claiming the LAST pass are joined to its rows, where the scene is not a bounding-box model
