@@ -9,7 +9,8 @@
 //! neither is anything about the retail data: what the retail scenes answer is the Root's comparison with the retained original census and queries (the host Lua
 //! `compare_target_points`), never these tests. Only the state `keyframe0` is exercised; a live instance's moved sub-objects are not claimed.
 use eech_world::models::{
-    compiled_scene_name, compiled_subobject_name, fp_state, old_last, subobject_last, ModelStore, OffsetSource, QueryError, TargetPointLocal, TargetPointWorld,
+    compiled_scene_name, compiled_subobject_name, fp_state, old_last, scene_last, subobject_last, ModelStore, OffsetSource, QueryError, TargetPointLocal,
+    TargetPointWorld,
 };
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -425,14 +426,64 @@ fn the_invalid_scene_is_zero_a_scene_never_read_is_refused_and_a_scene_outside_t
             source: OffsetSource::InvalidZero
         }
     );
-    // scene 8 is in the catalogue but the files never defined it: no number is invented for it
-    assert_eq!(store.target_point_local(8).unwrap(), TargetPointLocal::Refused("scene_not_loaded"));
-    assert_eq!(world(&store, 8, [0.0; 3], IDENTITY, [1.0; 3]), TargetPointWorld::Refused("scene_not_loaded"));
+    // scene 8 is in the catalogue but no file defined it: the original still constructs it (a zeroed slot), so its offset is the zero bounding box and it has no target point.
+    // That is an answer, and it is not the invalid scene's zero: the source says which.
+    assert_eq!(
+        store.target_point_local(8).unwrap(),
+        TargetPointLocal::Offset {
+            offset: [0; 3],
+            source: OffsetSource::BoundingBox
+        }
+    );
+    assert_eq!(world(&store, 8, [0.0; 3], IDENTITY, [1.0; 3]), TargetPointWorld::NoTargetPoint);
+    // the last scene of the catalogue is still in the domain; one past it is not
+    let last = scene_last() as i64 - 1;
+    assert!(matches!(
+        store.target_point_local(last).unwrap(),
+        TargetPointLocal::Offset {
+            source: OffsetSource::BoundingBox,
+            ..
+        }
+    ));
+    assert!(matches!(store.target_point_local(last + 1), Err(QueryError::BadScene(_))));
+    assert!(matches!(
+        store.target_point_world(last + 1, [0; 3], [0; 9], [0; 3]),
+        Err(QueryError::BadScene(_))
+    ));
     // arguments the original could never produce are refused as arguments
     assert!(matches!(store.target_point_local(-1), Err(QueryError::BadScene(-1))));
     assert!(matches!(store.target_point_local(i64::MAX), Err(QueryError::BadScene(_))));
     // the invalid scene has no instance to ask about
     assert!(matches!(store.target_point_world(0, [0; 3], [0; 9], [0; 3]), Err(QueryError::BadScene(0))));
+}
+
+#[test]
+fn a_store_that_never_read_the_custom_files_cannot_say_what_a_slot_holds_and_a_missing_installation_does_not_load() {
+    let (root, _store) = standard();
+    let inventory = ModelStore::load_inventory(&root.dir).expect("the fixture inventory loads");
+    for scene in [1, 5, 8] {
+        assert_eq!(
+            inventory.target_point_local(scene).unwrap(),
+            TargetPointLocal::Refused("custom_definitions_not_loaded"),
+            "scene {scene}"
+        );
+        assert_eq!(
+            world(&inventory, scene, [0.0; 3], IDENTITY, [1.0; 3]),
+            TargetPointWorld::Refused("custom_definitions_not_loaded"),
+            "scene {scene}"
+        );
+    }
+    // the invalid scene needs no data
+    assert!(matches!(
+        inventory.target_point_local(0).unwrap(),
+        TargetPointLocal::Offset {
+            source: OffsetSource::InvalidZero,
+            ..
+        }
+    ));
+    // an installation with a required file missing is a load failure, never a store whose slots answer zero
+    std::fs::remove_file(root.dir.join("cohokum").join("3ddata").join("3dobjdb.bin")).unwrap();
+    assert!(ModelStore::load(&root.dir).is_err());
 }
 
 #[test]
@@ -571,7 +622,8 @@ fn report_file(dir: &std::path::Path, damaged: bool) -> PathBuf {
              tp-offset generation={generation} index=3 name=S3 state=sub_object offset=3f800000,40800000,00000000 bounds=- live=1\n\
              tp-offset generation={generation} index=5 name=S5 state=bbox offset=bf800000,00000000,40000000 bounds=c0800000,40000000,c1200000,40000000,c0000000,40c00000 live=1\n\
              tp-offset generation={generation} index=6 name=S6 state=bbox offset=bf800000,40800000,40400000 bounds=c0800000,40000000,c0000000,41200000,00000000,40c00000 live=1\n\
-             tp-offset generation={generation} index=9 name=S9 state=none offset=- bounds=- live=-\n"
+             tp-offset generation={generation} index=8 name=S8 state=bbox offset=00000000,00000000,00000000 bounds=00000000,00000000,00000000,00000000,00000000,00000000 live=1
+\n             tp-offset generation={generation} index=9 name=S9 state=none offset=- bounds=- live=-\n"
         )
     };
     let name = observer_name(4);
@@ -609,8 +661,9 @@ fn the_host_lua_face_answers_local_offsets_and_instance_poses_as_plain_bit_patte
         assert (o.source == "bbox" and o.offset == "0xbf800000,0x00000000,0x40000000", o.offset)
         o = store:target_point_local (0)
         assert (o.source == "invalid_zero" and o.offset == "0x00000000,0x00000000,0x00000000")
+        -- an in-domain slot no file defined is the original's zeroed slot: the zero bounding box, not a refusal and not the invalid scene's zero
         o = store:target_point_local (8)
-        assert (o.result == "refused" and o.reason == "scene_not_loaded")
+        assert (o.result == "offset" and o.source == "bbox" and o.offset == "0x00000000,0x00000000,0x00000000", o.offset)
         assert (not pcall (store.target_point_local, store, -1))
         assert (not pcall (store.target_point_local, store, 1.5))
 
@@ -624,7 +677,7 @@ fn the_host_lua_face_answers_local_offsets_and_instance_poses_as_plain_bit_patte
         w = store:target_point_world (4, pose)
         assert (w.position == "0x41800000,0x41b00000,0x42080000", w.position)
         assert (store:target_point_world (5, pose).result == "no_target_point")
-        assert (store:target_point_world (8, pose).reason == "scene_not_loaded")
+        assert (store:target_point_world (8, pose).result == "no_target_point")
         -- a pose that is not a pose is refused before the store is asked
         assert (not pcall (store.target_point_world, store, 4, { position = pose.position }))
         assert (not pcall (store.target_point_world, store, 4, { position = "0x1,0x2", attitude = pose.attitude }))
@@ -652,9 +705,9 @@ fn the_host_lua_comparison_checks_every_recorded_offset_row_of_both_passes_and_e
         r#"
         local store = host.model_store (ROOT)
         local r = store:compare_target_points (WHOLE)
-        -- two events of two passes each, seven rows a pass, one of them not recorded by the original: twelve rows compared
-        assert (r.offset_events == 4 and r.offset_rows == 28 and r.offset_rows_compared == 24 and r.offset_rows_not_recorded == 4, "rows")
-        assert (r.offset_sub_object == 12 and r.offset_bbox == 8 and r.offset_invalid_zero == 4, "states")
+        -- two events of two passes each, eight rows a pass, one of them not recorded by the original: seven rows compared a pass (one is an empty slot with the zero box)
+        assert (r.offset_events == 4 and r.offset_rows == 32 and r.offset_rows_compared == 28 and r.offset_rows_not_recorded == 4, "rows")
+        assert (r.offset_sub_object == 12 and r.offset_bbox == 12 and r.offset_invalid_zero == 4, "states")
         assert (r.offset_mismatches == 0, table.concat (r.listed, "; "))
         assert (r.queries == 3 and r.other_branch_queries == 1 and r.branch1_queries == 2, "queries")
         assert (r.branch1_matched == 1 and r.branch1_mismatches == 1 and r.branch1_refused == 0, "branch 1")

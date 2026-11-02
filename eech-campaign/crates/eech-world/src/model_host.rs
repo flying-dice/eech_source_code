@@ -1051,7 +1051,7 @@ fn compare_offset_row(store: &ModelStore, report: &mut TargetPointReport, entry:
         // the data under the arithmetic: the bounds the original centred are the bounds the host holds, so that a bbox row that differs says whether the INPUT or the MATH differs
         let bounds = parse_plain_words(get("bounds")?, 6).ok_or_else(|| format!("a bbox tp-offset row with bad bounds: {entry}"))?;
         match store.scene(scene) {
-            Ok(view) if view.loaded && view.bounding_box[..] == bounds[..] => {}
+            Ok(view) if view.bounding_box[..] == bounds[..] => {}
             Ok(view) => {
                 report.offset_mismatches += 1;
                 report.list(format!(

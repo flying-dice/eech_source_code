@@ -2579,7 +2579,8 @@ impl ModelStore {
 
     /// The scene's LOCAL target-point offset, as `initialise_target_point_offsets` computes it for `target_point_offsets[scene]`: scene 0 is the invalid scene and is zero; a scene
     /// with a TARGET_POINT sub-object gives that sub-object's world position under an identity pose (a main object at the origin, identity attitude, scale 1); any other
-    /// loaded scene gives its bounding-box centre with y clamped at zero. A scene the files never defined is refused, not zero.
+    /// scene gives its bounding-box centre with y clamped at zero (a slot no file defined has the zeroed box, so zero). A scene outside the catalogue is an argument error, and a
+    /// store that never read the custom files refuses.
     pub fn target_point_local(&self, scene: i64) -> Result<TargetPointLocal, QueryError> {
         if scene == 0 {
             return Ok(TargetPointLocal::Offset {
@@ -2588,8 +2589,10 @@ impl ModelStore {
             });
         }
         let id = self.check_scene(scene)?;
-        if !self.scenes[id].loaded {
-            return Ok(TargetPointLocal::Refused("scene_not_loaded"));
+        // `initialise_target_point_offsets` constructs EVERY in-domain scene, a slot no file defined (zero bounds, no sub-objects) included: that is the original's zero bounding box
+        // and no target point, not a refusal. Only a store whose custom files were never read cannot say what a slot holds.
+        if self.inventory_only {
+            return Ok(TargetPointLocal::Refused("custom_definitions_not_loaded"));
         }
         const IDENTITY: [f32; 9] = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
         match self.target_point_viewpoint(id, [0.0; 3], IDENTITY, [1.0; 3]) {
@@ -2621,8 +2624,9 @@ impl ModelStore {
     /// Poses are float bit patterns; no legacy structure crosses.
     pub fn target_point_world(&self, scene: i64, position: [u32; 3], attitude: [u32; 9], scale: [u32; 3]) -> Result<TargetPointWorld, QueryError> {
         let id = self.check_scene(scene)?;
-        if !self.scenes[id].loaded {
-            return Ok(TargetPointWorld::Refused("scene_not_loaded"));
+        // an in-domain slot no file defined has no sub-objects: the original's second branch (see `target_point_local`); a store that never read the custom files cannot say
+        if self.inventory_only {
+            return Ok(TargetPointWorld::Refused("custom_definitions_not_loaded"));
         }
         let float = |bits: u32| f32::from_bits(bits);
         let position = position.map(float);
