@@ -3445,6 +3445,8 @@ impl LuaUserData for LuaEngine {
         });
         #[cfg(feature = "target-point-fixture")]
         methods.add_method("target_point_probe", |_, this, ()| this.engine.target_point_probe().map_err(lua_error));
+        #[cfg(feature = "target-point-fixture")]
+        methods.add_method("target_point_setup", |_, this, ()| this.engine.target_point_setup().map_err(lua_error));
         // TEST-ONLY (feature `dependent-fixture`, EEDCS-40): not part of the shipping module.
         #[cfg(feature = "dependent-fixture")]
         methods.add_method(

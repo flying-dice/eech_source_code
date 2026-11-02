@@ -6133,6 +6133,18 @@ impl Engine {
         Ok(unsafe { std::ffi::CStr::from_ptr(text.as_ptr()) }.to_string_lossy().into_owned())
     }
 
+    /// TEST-ONLY (feature `target-point-fixture`, EEDCS-52 D3): the SETUP probe, a separate opt-in mode, once per process and only between queries and census passes. For three cases the read-only
+    /// probe found no live candidate (an instance without a TARGET_POINT, a mobile with no instance, a fixed object with the invalid shape) it gives a real live entity an explicit physical
+    /// PRECONDITION, calls the ORIGINAL `get_local_entity_target_point` once, and restores the precondition and verifies the restoration before it returns; a restoration that fails, an incomplete
+    /// scan or a buffer that is too small is refused with its reason (see `csrc/eech_tp_fixture.c`). It is not a campaign target selection.
+    #[cfg(feature = "target-point-fixture")]
+    pub fn target_point_setup(&self) -> Result<String, EngineError> {
+        let mut text = vec![0 as std::os::raw::c_char; TARGET_POINT_LINE_CAPACITY];
+        // SAFETY: the buffer outlives the call and the capacity passed is its length; the engine NUL-terminates it.
+        let status = check(unsafe { sys::eech_engine_target_point_setup(text.as_mut_ptr(), text.len() as i32) });
+        keep_case_reason(status, &text)
+    }
+
     /// TEST-ONLY (feature `target-point-fixture`, EEDCS-52 D3): the CONTROLLED probe, once per process and only between queries and census passes (a second call, or one made while a query or
     /// a pass is running, is refused). It finds live entities for which the original takes each unreached case and calls the ORIGINAL `get_local_entity_target_point` once per pick as the
     /// controlled caller; it is not a campaign target selection. The report lists the cases, their candidates and picks (a case with none is unavailable); the picks' queries are read

@@ -1836,6 +1836,7 @@ extern "C" {
     pub fn eech_engine_target_point_offsets(generation: c_int, text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_target_point_event(index: c_int, text: *mut c_char, capacity: c_int) -> c_int;
     pub fn eech_engine_target_point_probe(text: *mut c_char, capacity: c_int) -> c_int;
+    pub fn eech_engine_target_point_setup(text: *mut c_char, capacity: c_int) -> c_int;
 }
 
 #[cfg(feature = "aim-fixture")]

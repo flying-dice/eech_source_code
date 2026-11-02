@@ -32,7 +32,14 @@
 -- are counted apart from the natural ones (`controlled_*` in the done row; `queries`, `branches_reached` and `natural_queries_reached` are the natural run's). A case with no candidate is
 -- UNAVAILABLE (`controlled_unavailable`), never a success.
 --
--- host.args: root (installation root, required), out (the JSON Lines file, required; created exclusively), probe (controlled, or absent), scenario (lebanon_retail, the default, or georgia_retail),
+-- THE SETUP PROBE (probe=setup; a separate opt-in mode, exclusive with probe=controlled). The read-only probe finds NO live candidate for an instance without a TARGET_POINT, a mobile with no instance
+-- and a fixed object with the invalid shape, so this mode gives each a real, explicitly declared physical PRECONDITION on a real live entity (a real aircraft or vehicle's instance replaced by a
+-- temporarily constructed instance of a real census bounding-box scene, then NULL; a real fixed structure's shape set to the invalid index), calls the ORIGINAL once and restores it, all before any
+-- frame, with the change, the original's answer and the restoration verified inside the engine (a failed restoration is a refusal that stops the run here). Each case is reported as applied/called/
+-- restored by semantic identity (families, model and shape indices and names) with the real instance's viewpoint and the construction counters checked; a case with no real candidate is NOT called and
+-- says why. Its queries are caller class setup_probe (counted apart, never natural, never aim or weapon coverage, never host authority).
+--
+-- host.args: root (installation root, required), out (the JSON Lines file, required; created exclusively), probe (controlled, setup, or absent), scenario (lebanon_retail, the default, or georgia_retail),
 --            seconds (default 3.6), frame_ms (default 100; seconds*1000/frame_ms must be a whole number of frames), checkpoint_every (simulated seconds between summary samples,
 --            default 1; 0 samples only at the start and the end).
 --
@@ -71,8 +78,11 @@ local scenario = scenarios [scenario_name]
 if not scenario then fail_args ("scenario=lebanon_retail|georgia_retail") end
 -- probe=controlled asks for the CONTROLLED probe: once, after the boot and before any frame, the original is called on real entities picked by the fixture for the cases the natural run does not
 -- reach. Those queries are the controlled caller class, are not campaign target selection, and are kept apart from the natural ones in every count below.
-if args.probe ~= nil and args.probe ~= "controlled" then fail_args ("probe=controlled (or absent)") end
+-- probe=setup is a SEPARATE, opt-in mode: for the three cases the read-only probe finds no candidate it gives a real live entity an explicit physical precondition, calls the original once,
+-- and restores and verifies the precondition before any frame (see the setup section below). It is exclusive with probe=controlled.
+if args.probe ~= nil and args.probe ~= "controlled" and args.probe ~= "setup" then fail_args ("probe=controlled|setup (or absent)") end
 local probe_requested = args.probe == "controlled"
+local setup_requested = args.probe == "setup"
 
 local MAX_FRAMES = 108000
 local function number_arg (name, text, default)
@@ -100,9 +110,13 @@ local HOST_ID_MAX = 128
 local GENERATIONS_CAPACITY = 4
 local INT_MAX = 2147483647
 
-local SITES = { [0] = "unattributed", "aim_vectors", "aim_lead", "aim_intercept", "weapon_step_target_vec", "other", "controlled_probe" }
-local SITE_COUNT = 7
+local SITES = { [0] = "unattributed", "aim_vectors", "aim_lead", "aim_intercept", "weapon_step_target_vec", "other", "controlled_probe", "setup_probe" }
+local SITE_COUNT = 8
 local CONTROLLED_SITE = 6
+local SETUP_SITE = 7
+-- the setup probe's cases (csrc/eech_tp_fixture.c setup_case_name): the event's detail, and the branch and case the original must be seen to take for it
+local SETUP_NAMES = { "instance_without_target_point", "not_fixed_no_instance", "fixed_invalid_shape" }
+local SETUP_CASE = { { 2, "instance_without_target_point" }, { 4, "not_fixed" }, { 4, "invalid_shape" } }
 -- the controlled probe's cases (csrc/eech_tp_fixture.c probe_bucket): the event's detail, the branch and case the original must be seen to take for it
 local PROBE_NAMES = { "instance_without_target_point", "fixed_no_horizontal", "fixed_rotated", "fixed_heading_zero", "not_fixed_no_instance", "fixed_invalid_shape" }
 local PROBE_CASE = { { 2, "instance_without_target_point" }, { 3, "no_horizontal_offset" }, { 3, "rotated_horizontal_offset" }, { 3, "heading_zero_quirk" }, { 4, "not_fixed" }, { 4, "invalid_shape" } }
@@ -370,7 +384,7 @@ local function check_event (text, index, summary, rows)
 		seq = int (e.seq, 0, INT_MAX, "seq"), gen = int (e.gen, -1, GENERATIONS_CAPACITY - 1, "gen"), gen_open = flag (e.gen_open, "gen_open"), site = int (e.site, 0, SITE_COUNT - 1, "site"), detail = int (e.detail, -INT_MAX, INT_MAX, "detail"), branch = int (e.branch, 0, 4, "branch"),
 		entity_type = int (e.entity_type, 0, INT_MAX, "entity_type"), instance = flag (e.instance, "instance"), model = int (e.model, -1, INT_MAX, "model"), fixed = flag (e.fixed, "fixed"),
 		shape = int (e.shape, -INT_MAX, INT_MAX, "shape"), horizontal = flag (e.horizontal, "horizontal"), xz_applied = flag (e.xz_applied, "xz_applied"), vp_changed = flag (e.vp_changed, "vp_changed"),
-		case = e.case, host_id_state = e.host_id_state,
+		case = e.case, host_id_state = e.host_id_state, entity_type_name = e.entity_type_name, model_name = e.model_name,
 	}
 	if f.seq >= summary.calls then malformed (what .. " has a sequence number beyond the calls the summary counts") end
 	-- the census pass the query ran after: one of the kept passes, and one that ended
@@ -383,6 +397,11 @@ local function check_event (text, index, summary, rows)
 		local wanted = PROBE_CASE [f.detail]
 		if not wanted then malformed (what .. " is a controlled query of the case " .. f.detail .. ", which the probe does not have") end
 		if f.branch ~= wanted [1] or f.case ~= wanted [2] then malformed (string.format ("%s was picked as %s but the original took branch %d case '%s'", what, PROBE_NAMES [f.detail], f.branch, tostring (f.case))) end
+	end
+	if f.site == SETUP_SITE then
+		local wanted = SETUP_CASE [f.detail]
+		if not wanted then malformed (what .. " is a setup query of the case " .. f.detail .. ", which the setup does not have") end
+		if f.branch ~= wanted [1] or f.case ~= wanted [2] then malformed (string.format ("%s was set up as %s but the original took branch %d case '%s'", what, SETUP_NAMES [f.detail], f.branch, tostring (f.case))) end
 	end
 	-- the observer's site_class gives an aim caller its class from the aim mode, and only from it
 	if AIM_DETAIL [f.site] and f.detail ~= AIM_DETAIL [f.site] then malformed (string.format ("%s is aim caller class %d with the detail %d, not the aim mode %d", what, f.site, f.detail, AIM_DETAIL [f.site])) end
@@ -489,6 +508,49 @@ local function check_probe (text)
 	return report
 end
 
+-- The setup probe's report. Each case is either unavailable (no real candidate, said so with its reason, nothing changed) or a real entity given an explicit physical precondition, observed once
+-- through the original and restored. A case that was called must have been applied AND restored, and what the original cannot have written (the real instance's viewpoint) unchanged.
+local function check_setup (text)
+	local list = lines_of (text, "the setup report")
+	if #list ~= #SETUP_NAMES + 1 then malformed ("the setup report has " .. #list .. " lines, expected " .. (#SETUP_NAMES + 1)) end
+	local head = fields (list [1], "tp-setup", { "status", "visited", "entities" }, "the setup head")
+	if head.status ~= "complete" then malformed ("the setup scan is not complete: " .. tostring (head.status)) end
+	local report = { visited = int (head.visited, 0, INT_MAX, "setup visited"), entities = int (head.entities, 0, INT_MAX, "setup entities"), cases = {}, called_total = 0 }
+	if report.entities > report.visited then malformed ("the setup examined more entities than list nodes") end
+	for b = 1, #SETUP_NAMES do
+		local v = fields (list [b + 1], "tp-setup-case", { "case", "name", "available", "reason", "applied", "called", "restored", "entity_type", "host_id_state", "from", "from_name", "to", "to_name", "vp_unchanged", "counters_restored" }, "setup case " .. b)
+		if int (v.case, 1, #SETUP_NAMES, "setup case") ~= b or v.name ~= SETUP_NAMES [b] then malformed ("the setup case rows are not in order at " .. b) end
+		local c = {
+			available = flag (v.available, "setup available"), applied = flag (v.applied, "setup applied"), called = flag (v.called, "setup called"), restored = flag (v.restored, "setup restored"),
+			reason = name (v.reason, "setup reason"), entity_type = name (v.entity_type, "setup entity_type"), from = int (v.from, -1, INT_MAX, "setup from"), to = int (v.to, -1, INT_MAX, "setup to"),
+			vp_unchanged = int (v.vp_unchanged, -1, 1, "setup vp_unchanged"), counters_restored = int (v.counters_restored, -1, 1, "setup counters_restored"), host_id_state = v.host_id_state,
+			from_name = name (v.from_name, "setup from_name"), to_name = name (v.to_name, "setup to_name"),
+		}
+		local what = "setup case " .. b
+		if c.available == 0 then
+			if c.reason == "-" or c.applied ~= 0 or c.called ~= 0 or c.restored ~= 0 or c.entity_type ~= "-" or c.host_id_state ~= "-" or c.from ~= -1 or c.to ~= -1 or c.vp_unchanged ~= -1 or c.counters_restored ~= -1 then
+				malformed (what .. " is unavailable but carries a reason-less or changed state")
+			end
+		else
+			if c.host_id_state ~= "present" and c.host_id_state ~= "absent" then malformed (what .. " has the host identity state '" .. tostring (c.host_id_state) .. "'") end
+			if c.entity_type == "-" or c.from < 1 then malformed (what .. " is available but names no entity or original value") end
+			-- what was done is restored: a restoration that did not hold is never reported, the engine refuses instead
+			if c.restored ~= 1 then malformed (what .. " was given a precondition that was not restored") end
+			if c.called == 1 then
+				if c.applied ~= 1 or c.reason ~= "-" then malformed (what .. " was called without being applied or with a reason") end
+			elseif c.reason == "-" then
+				malformed (what .. " was not called and gives no reason")
+			end
+			if b == 1 and (c.vp_unchanged ~= 1 or c.counters_restored ~= 1 or c.to < 1) then malformed (what .. " did not restore the real instance's viewpoint and the construction counters") end
+			if b == 2 and (c.vp_unchanged ~= 1 or c.counters_restored ~= -1 or c.to ~= -1) then malformed (what .. " did not restore the real instance's viewpoint") end
+			if b == 3 and (c.vp_unchanged ~= -1 or c.counters_restored ~= -1 or c.to ~= 0) then malformed (what .. " is not the shape set to the invalid index") end
+		end
+		report.cases [b] = c
+		report.called_total = report.called_total + c.called
+	end
+	return report
+end
+
 -- ---------------------------------------------------------------------------------------------------------------------------------
 -- the run. The output is created here and is closed on every exit.
 
@@ -541,7 +603,7 @@ local function run ()
 	emit { event = "boot", booted = true }
 
 	-- the fixture entries are methods of the BOOTED engine, so a feature-off module is recognised here, before any question, and reported as NOT RUN: never a zero-success
-	if type (engine.target_point_summary) ~= "function" or type (engine.target_point_offsets) ~= "function" or type (engine.target_point_event) ~= "function" or type (engine.clock) ~= "function" or type (engine.frame) ~= "function" or (probe_requested and type (engine.target_point_probe) ~= "function") then
+	if type (engine.target_point_summary) ~= "function" or type (engine.target_point_offsets) ~= "function" or type (engine.target_point_event) ~= "function" or type (engine.clock) ~= "function" or type (engine.frame) ~= "function" or (probe_requested and type (engine.target_point_probe) ~= "function") or (setup_requested and type (engine.target_point_setup) ~= "function") then
 		emit { event = "not_run", reason = "this module was not built with the target-point-fixture feature" }
 		emit { event = "done", complete = false, malformed = false }
 		error ("target-point-characterization: NOT RUN: this module was not built with the target-point-fixture feature", 0)
@@ -623,6 +685,17 @@ local function run ()
 		probe_report = report
 	end
 
+	-- THE SETUP PROBE (only when asked, and then INSTEAD of the read-only probe): once, after the boot census and before any frame. It changes real physical preconditions, calls the original
+	-- and restores them, case by case, with the restoration verified inside the engine (a failure is a refusal that stops the run here, before any frame). Not natural, not host authority.
+	local setup_report
+	if setup_requested then
+		local setup_text = ask ("target_point_setup", function () return engine:target_point_setup () end)
+		emit { event = "setup", text = setup_text }
+		local prepared, report = pcall (check_setup, setup_text)
+		if not prepared then protocol_failure (report) end
+		setup_report = report
+	end
+
 	-- THE FRAMES. The campaign decides what is queried; nothing here selects, creates or calls anything.
 	local clock_before = read_clock ("before")
 	local previous = boot_summary
@@ -690,6 +763,7 @@ local function run ()
 		if not good then protocol_failure (event) end
 		if event.seq <= seen then protocol_failure ({ malformed = "event " .. index .. " does not follow the previous event's sequence number" }) end
 		seen = event.seq
+		if event.site == SETUP_SITE and not setup_report then protocol_failure ({ malformed = "event " .. index .. " is a setup query but no setup was asked for" }) end
 		if event.site == CONTROLLED_SITE and not probe_report then protocol_failure ({ malformed = "event " .. index .. " is a controlled query but no probe was asked for" }) end
 		if event.gen < previous_gen then protocol_failure ({ malformed = "event " .. index .. " names an older census pass than the event before it" }) end
 		previous_gen = event.gen
@@ -781,19 +855,66 @@ local function run ()
 		end)
 		if not interval_ok then protocol_failure (interval_why) end
 	end
+	-- the setup queries are exactly the setup's called cases, in the contiguous span after the boot sample, each one the case it was set up as and the entity it was set up on
+	local setup_total, setup_called, setup_unavailable = 0, {}, {}
+	if setup_report then
+		local seen_setup = { 0, 0, 0 }
+		for index = 0, final.events - 1 do
+			local e = events [index]
+			if e.site == SETUP_SITE then seen_setup [e.detail] = seen_setup [e.detail] + 1 end
+		end
+		local first_call, last_call = boot_summary.calls, boot_summary.calls + setup_report.called_total
+		local setup_joined, setup_why = pcall (function ()
+			if last_call > final.calls then malformed ("the setup's queries do not fit after the boot sample in the calls the observer counts") end
+			for b = 1, #SETUP_NAMES do
+				local c = setup_report.cases [b]
+				if seen_setup [b] ~= c.called then malformed (string.format ("the setup called %d times for %s but %d setup queries were recorded", c.called, SETUP_NAMES [b], seen_setup [b])) end
+				setup_total = setup_total + seen_setup [b]
+				if c.called == 1 then setup_called [#setup_called + 1] = tostring (b) else setup_unavailable [#setup_unavailable + 1] = b .. ":" .. c.reason end
+			end
+			local last_detail = 0
+			for index = 0, final.events - 1 do
+				local e = events [index]
+				local inside = e.seq >= first_call and e.seq < last_call
+				if e.site == SETUP_SITE and not inside then malformed (string.format ("setup query event %d (call %d) is outside the interval [%d, %d) that starts at the boot sample", index, e.seq, first_call, last_call)) end
+				if e.site ~= SETUP_SITE and inside then malformed (string.format ("other query event %d (call %d) is inside the setup interval [%d, %d)", index, e.seq, first_call, last_call)) end
+				if e.site == SETUP_SITE then
+					if e.detail < last_detail then malformed ("the setup queries are not in the order of the cases") end
+					last_detail = e.detail
+					local c = setup_report.cases [e.detail]
+					-- the entity the original was asked about is the one the setup changed: its family, and whether it had a host identity
+					if e.entity_type_name ~= c.entity_type or e.host_id_state ~= c.host_id_state then malformed (string.format ("setup query event %d is not about the entity case %d changed", index, e.detail)) end
+					if e.detail == 1 then
+						-- the constructed instance is a real census bounding-box scene: the model the original saw is that scene, with the census's own name
+						local row = (end_rows [final.census.last] or {}) [c.to]
+						if e.model ~= c.to or not row or row.state ~= "bbox" or e.model_name ~= row.name or e.model_name ~= c.to_name then malformed (string.format ("setup query event %d did not see the bounding-box scene it was set up with", index)) end
+					elseif e.detail == 3 then
+						if e.shape ~= 0 then malformed (string.format ("setup query event %d did not read the invalid shape", index)) end
+					end
+				end
+			end
+		end)
+		if not setup_joined then protocol_failure (setup_why) end
+	end
 	local reached = {}
 	for b = 1, 4 do
 		local natural = 0
 		for s_index = 0, CONTROLLED_SITE - 1 do natural = natural + final.site [s_index] [b] end
 		if natural > 0 then reached [#reached + 1] = tostring (b) end
 	end
-	local natural_calls = final.calls - controlled_total
-	local queries = final.calls - boot_summary.calls - controlled_total
+	local natural_calls = final.calls - controlled_total - setup_total
+	local queries = final.calls - boot_summary.calls - controlled_total - setup_total
 	local whole = final.queries_whole == 1 and final.census_whole == 1
 	emit { event = "done", complete = whole, census_complete = true, queries_whole = whole, queries = queries, boot_calls = boot_summary.calls, total_calls = final.calls, events = final.events, generations = final.census.generations,
 		natural_queries_reached = natural_calls > 0, branches_reached = #reached > 0 and table.concat (reached, ",") or "none", frames = frames, malformed = false,
 		controlled_probe = probe_requested, controlled_queries = controlled_total, controlled_cases = #controlled_cases > 0 and table.concat (controlled_cases, ",") or "none",
-		controlled_unavailable = #unavailable > 0 and table.concat (unavailable, ",") or "none" }
+		controlled_unavailable = #unavailable > 0 and table.concat (unavailable, ",") or "none",
+		setup_probe = setup_requested, setup_queries = setup_total, setup_cases = #setup_called > 0 and table.concat (setup_called, ",") or "none",
+		setup_unavailable = #setup_unavailable > 0 and table.concat (setup_unavailable, ",") or "none" }
+	if setup_requested and #setup_unavailable > 0 then
+		emit { event = "setup_unavailable", cases = table.concat (setup_unavailable, ","), reason = "no real candidate or the precondition did not apply; nothing is claimed for these cases" }
+		io.stderr:write (string.format ("target-point-characterization: setup probe: cases %s were NOT called\n", table.concat (setup_unavailable, ",")))
+	end
 	if probe_requested and #unavailable > 0 then
 		emit { event = "probe_unavailable", cases = table.concat (unavailable, ","), reason = "no live entity of the examined families takes these cases; nothing is claimed for them" }
 		io.stderr:write (string.format ("target-point-characterization: controlled probe: cases %s are UNAVAILABLE (no candidate); the other cases were picked\n", table.concat (unavailable, ",")))

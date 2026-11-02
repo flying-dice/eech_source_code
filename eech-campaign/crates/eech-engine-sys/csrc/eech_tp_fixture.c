@@ -29,6 +29,17 @@
  *      nothing (only branch 1 writes the instance viewpoint, and it is not probed), so the probe changes no campaign state; the picks, the counts of candidates and the cases with no
  *      candidate are reported, and a case with none is UNAVAILABLE, never succeeded. Nothing is constructed, set or restored.
  *
+ *   4. THE SETUP PROBE (eech_tp_setup_run, a separate opt-in mode, once, after the boot and before any frame). The read-only probe found NO live candidate for three cases: an instance
+ *      without a TARGET_POINT, a mobile with no instance, a fixed object with the invalid shape. This mode gives each a real, explicitly declared physical PRECONDITION on a real live
+ *      entity, calls the ORIGINAL once, and restores the precondition before anything else runs: (1) a real aircraft or vehicle with an instance has that instance pointer replaced by a
+ *      temporarily constructed instance of a real census bounding-box scene that carries no random skin (construct_3d_object draws rand() only for a skin, so the choice needs none), then
+ *      restored and the temporary instance destructed; (2) the same pointer set to NULL, then restored; (3) a real fixed structure's shape set to the invalid index through its typed
+ *      setter, then restored. There is no typed setter for the instance pointer (the aircraft and vehicle pointer setters handle only the sound effect), so the field the typed getter
+ *      reads is written directly: a fixture-only use of the private layout that never reaches the wire. Each case verifies the change took (through the typed getters), verifies the
+ *      restoration (the pointer, the shape, the real instance's viewpoint words and, for the constructed instance, the engine's three construction counters), and a restoration that fails
+ *      stops the run before any frame. The queries are caller class "setup_probe", not natural, not aim/weapon coverage and not host authority; the temporary instance is an environment
+ *      precondition. The allocator's internal state is not claimed identical, only the counters named above.
+ *
  * WHAT IT CANNOT SHOW. A call that no boot or frame reached is simply absent: an empty query report says "no calls", which is NOT a measured original, and a branch with no
  * call is not covered. A table that fills, a hook outside an open call, a call that never ends and a call that begins inside another are each counted and make the capture not whole.
  * The camera, HUD and player callers are not hooked; their calls are counted as unattributed when they happen. The AI attack guidance (gd_attck.c) reads target_point_offsets[]
@@ -67,6 +78,8 @@ enum
 	TP_SITE_OTHER,
 	/* the controlled probe (eech_tp_probe_run): never a natural caller */
 	TP_SITE_CONTROLLED,
+	/* the setup probe (eech_tp_setup_run): never a natural caller either */
+	TP_SITE_SETUP,
 	TP_SITES
 };
 
@@ -195,6 +208,10 @@ static int site_class (int site, int detail)
 	{
 		return TP_SITE_CONTROLLED;
 	}
+	if (site == 4)
+	{
+		return TP_SITE_SETUP;
+	}
 	return TP_SITE_OTHER;
 }
 
@@ -225,6 +242,10 @@ static const char *site_name (int site_class_value)
 		case TP_SITE_CONTROLLED:
 		{
 			return "controlled_probe";
+		}
+		case TP_SITE_SETUP:
+		{
+			return "setup_probe";
 		}
 		default:
 		{
@@ -1162,6 +1183,336 @@ int eech_tp_probe_run (char *text, int capacity)
 			eech_tp_caller (3, b);
 			get_local_entity_target_point (picks[b][k], &point);
 		}
+	}
+	return 0;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------------------- */
+/* the setup probe */
+
+#define TP_SETUP_CASES 3
+/* the report holds at most three bounded rows: a buffer below this refuses BEFORE anything is changed */
+#define TP_SETUP_MIN_CAPACITY 4096
+
+extern int object_3d_scenes_creation_count[];
+
+static int tp_setup_done;
+
+static const char *setup_case_name (int which)
+{
+	switch (which)
+	{
+		case 1:
+		{
+			return "instance_without_target_point";
+		}
+		case 2:
+		{
+			return "not_fixed_no_instance";
+		}
+		case 3:
+		{
+			return "fixed_invalid_shape";
+		}
+		default:
+		{
+			return "-";
+		}
+	}
+}
+
+/* the field the typed instance getter reads, for the families that have one and that the setup touches (there is no typed setter for it) */
+static object_3d_instance **setup_instance_field (entity *en)
+{
+	void *data = get_local_entity_data (en);
+
+	switch ((int) en->type)
+	{
+		case ENTITY_TYPE_FIXED_WING:
+		case ENTITY_TYPE_HELICOPTER:
+		{
+			return &((aircraft *) data)->inst3d;
+		}
+		case ENTITY_TYPE_ANTI_AIRCRAFT:
+		case ENTITY_TYPE_ROUTED_VEHICLE:
+		case ENTITY_TYPE_SHIP_VEHICLE:
+		{
+			return &((vehicle *) data)->inst3d;
+		}
+		default:
+		{
+			return NULL;
+		}
+	}
+}
+
+struct tp_setup_row
+{
+	int available, applied, called, restored;
+	int entity_type, host_id_state, from, to, vp_unchanged, counters_restored;
+	const char *reason;
+};
+
+static void setup_identity (struct tp_setup_row *row, entity *en)
+{
+	const char *id = campaign_object_host_id (en);
+
+	row->entity_type = (int) en->type;
+	row->host_id_state = (id && id[0]) ? 1 : 0;
+}
+
+/* case 1: the instance pointer of a real mobile is a temporarily constructed instance of a bounding-box scene (no TARGET_POINT) */
+static void setup_instance_case (struct tp_setup_row *row, entity *en, int scene)
+{
+	object_3d_instance **field = setup_instance_field (en);
+	object_3d_instance *original = *field;
+	object_3d_instance *temporary;
+	object_3d_sub_object_search_data search;
+	uint32_t before[12], after[12];
+	vec3d point;
+	int constructed = current_number_of_3d_objects_constructed;
+	int memory = current_amount_of_3d_objects_memory;
+	int created = object_3d_scenes_creation_count[scene];
+
+	setup_identity (row, en);
+	row->from = original->object_number;
+	row->to = scene;
+	copy_vp (before, original);
+	temporary = construct_3d_object ((object_3d_index_numbers) scene);
+	search.search_depth = 0;
+	search.search_object = temporary;
+	search.sub_object_index = OBJECT_3D_SUB_OBJECT_TARGET_POINT;
+	if (find_object_3d_sub_object (&search) == SUB_OBJECT_SEARCH_RESULT_OBJECT_FOUND)
+	{
+		/* the census said bounding box and a fresh instance says otherwise: nothing was changed on the entity */
+		destruct_3d_object (temporary);
+		row->reason = "scene_has_target_point";
+		row->restored = 1;
+		row->vp_unchanged = 1;
+		row->counters_restored = constructed == current_number_of_3d_objects_constructed && memory == current_amount_of_3d_objects_memory && created == object_3d_scenes_creation_count[scene];
+		return;
+	}
+	*field = temporary;
+	row->applied = get_local_entity_ptr_value (en, PTR_TYPE_INSTANCE_3D_OBJECT) == (void *) temporary;
+	if (row->applied)
+	{
+		eech_tp_caller (4, 1);
+		get_local_entity_target_point (en, &point);
+		row->called = 1;
+	}
+	else
+	{
+		row->reason = "setup_not_applied";
+	}
+	*field = original;
+	destruct_3d_object (temporary);
+	copy_vp (after, original);
+	row->restored = get_local_entity_ptr_value (en, PTR_TYPE_INSTANCE_3D_OBJECT) == (void *) original;
+	row->vp_unchanged = memcmp (before, after, sizeof (before)) == 0;
+	row->counters_restored = constructed == current_number_of_3d_objects_constructed && memory == current_amount_of_3d_objects_memory &&
+		created == object_3d_scenes_creation_count[scene];
+}
+
+/* case 2: the instance pointer of a real mobile is NULL */
+static void setup_no_instance_case (struct tp_setup_row *row, entity *en)
+{
+	object_3d_instance **field = setup_instance_field (en);
+	object_3d_instance *original = *field;
+	uint32_t before[12], after[12];
+	vec3d point;
+
+	setup_identity (row, en);
+	row->from = original->object_number;
+	row->to = -1;
+	row->counters_restored = -1;
+	copy_vp (before, original);
+	*field = NULL;
+	row->applied = get_local_entity_ptr_value (en, PTR_TYPE_INSTANCE_3D_OBJECT) == NULL;
+	if (row->applied)
+	{
+		eech_tp_caller (4, 2);
+		get_local_entity_target_point (en, &point);
+		row->called = 1;
+	}
+	else
+	{
+		row->reason = "setup_not_applied";
+	}
+	*field = original;
+	copy_vp (after, original);
+	row->restored = get_local_entity_ptr_value (en, PTR_TYPE_INSTANCE_3D_OBJECT) == (void *) original;
+	row->vp_unchanged = memcmp (before, after, sizeof (before)) == 0;
+}
+
+/* case 3: the shape of a real fixed structure is the invalid index, through its typed setter */
+static void setup_invalid_shape_case (struct tp_setup_row *row, entity *en)
+{
+	int original = (int) get_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE);
+	vec3d point;
+
+	setup_identity (row, en);
+	row->from = original;
+	row->to = OBJECT_3D_INVALID_OBJECT_INDEX;
+	row->vp_unchanged = -1;
+	row->counters_restored = -1;
+	set_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE, OBJECT_3D_INVALID_OBJECT_INDEX);
+	row->applied = get_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE) == OBJECT_3D_INVALID_OBJECT_INDEX;
+	if (row->applied)
+	{
+		eech_tp_caller (4, 3);
+		get_local_entity_target_point (en, &point);
+		row->called = 1;
+	}
+	else
+	{
+		row->reason = "setup_not_applied";
+	}
+	set_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE, original);
+	row->restored = (int) get_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE) == original;
+}
+
+static void setup_emit_row (struct out *out, int which, const struct tp_setup_row *row)
+{
+	char type[96], from_name[96], to_name[96];
+
+	clean_name (type, sizeof (type), row->available ? entity_type_name (row->entity_type) : NULL);
+	clean_name (from_name, sizeof (from_name), row->available && row->from > 0 ? scene_name (row->from) : NULL);
+	clean_name (to_name, sizeof (to_name), row->available && row->to > 0 ? scene_name (row->to) : NULL);
+	emit (out, "tp-setup-case case=%d name=%s available=%d reason=%s applied=%d called=%d restored=%d entity_type=%s host_id_state=%s from=%d from_name=%s to=%d to_name=%s "
+		"vp_unchanged=%d counters_restored=%d\n", which, setup_case_name (which), row->available, row->reason, row->applied, row->called, row->restored, type,
+		row->available ? (row->host_id_state ? "present" : "absent") : "-", row->available ? row->from : -1, from_name, row->available ? row->to : -1, to_name,
+		row->available ? row->vp_unchanged : -1, row->available ? row->counters_restored : -1);
+}
+
+int eech_tp_setup_run (char *text, int capacity)
+{
+	struct out out;
+	struct tp_setup_row rows[TP_SETUP_CASES + 1];
+	entity *mobile[2];
+	entity *structure = NULL;
+	int mobiles = 0, visited = 0, examined = 0, scene = -1, i, which;
+	entity *en;
+
+	if (capacity <= 0)
+	{
+		return 1;
+	}
+	text[0] = '\0';
+	if (tp_setup_done)
+	{
+		return probe_refused (text, capacity, "already_run", 0);
+	}
+	if (tp_open || tp_gen_open || tp_pending)
+	{
+		return probe_refused (text, capacity, "a_query_or_pass_is_running", 0);
+	}
+	/* the report is bounded, so its capacity is checked before anything is changed */
+	if (capacity < TP_SETUP_MIN_CAPACITY)
+	{
+		return probe_refused (text, capacity, "report_capacity", 0);
+	}
+	memset (rows, 0, sizeof (rows));
+	for (which = 1; which <= TP_SETUP_CASES; which++)
+	{
+		rows[which].reason = "-";
+		rows[which].from = -1;
+		rows[which].to = -1;
+		rows[which].vp_unchanged = -1;
+		rows[which].counters_restored = -1;
+	}
+	/* THE SCAN, as the read-only probe's: bounded by the heap's slot count, every node validated as an aligned heap slot and every eligible node required to carry live data BEFORE any typed
+	   getter; an incomplete scan refuses the whole setup and changes nothing. Only reads here. */
+	for (en = get_local_entity_list (); en;)
+	{
+		if (visited >= number_of_entities)
+		{
+			return probe_refused (text, capacity, "list_longer_than_heap", visited);
+		}
+		if (!probe_heap_slot (en))
+		{
+			return probe_refused (text, capacity, "list_node_not_a_heap_slot", visited);
+		}
+		visited++;
+		if (probe_type_considered ((int) en->type))
+		{
+			if (!get_local_entity_data (en))
+			{
+				return probe_refused (text, capacity, "eligible_node_without_entity_data", visited);
+			}
+			examined++;
+			if (setup_instance_field (en))
+			{
+				if (mobiles < 2 && get_local_entity_ptr_value (en, PTR_TYPE_INSTANCE_3D_OBJECT))
+				{
+					mobile[mobiles] = en;
+					mobiles++;
+				}
+			}
+			else if (!structure && campaign_object_is_structure ((int) en->type) && get_local_entity_int_value (en, INT_TYPE_IDENTIFY_FIXED))
+			{
+				int shape = (int) get_local_entity_int_value (en, INT_TYPE_OBJECT_3D_SHAPE);
+
+				if (shape > OBJECT_3D_INVALID_OBJECT_INDEX && shape < OBJECT_3D_LAST)
+				{
+					structure = en;
+				}
+			}
+		}
+		en = get_local_entity_succ (en);
+	}
+	/* a real census bounding-box scene (the latest finished pass) that needs no random skin, so constructing it draws nothing */
+	if (tp_gen_last >= 0)
+	{
+		for (i = OBJECT_3D_INVALID_OBJECT_INDEX + 1; i < OBJECT_3D_LAST; i++)
+		{
+			if (tp_generations[tp_gen_last].rows[i].state == 2 && objects_3d_scene_database[i].skin.animation < 0)
+			{
+				scene = i;
+				break;
+			}
+		}
+	}
+	/* the three cases, each applied, observed, restored and checked before the next; a restoration that fails stops everything (the state is then not trusted, and no frame may run) */
+	tp_setup_done = 1;
+	rows[1].available = mobiles > 0 && scene > 0;
+	rows[1].reason = mobiles == 0 ? "no_mobile_with_instance" : (scene < 0 ? (tp_gen_last < 0 ? "no_census_pass" : "no_bbox_scene_without_skin") : "-");
+	rows[2].available = mobiles > 0;
+	rows[2].reason = mobiles == 0 ? "no_mobile_with_instance" : "-";
+	rows[3].available = structure != NULL;
+	rows[3].reason = structure ? "-" : "no_fixed_structure_with_valid_shape";
+	if (rows[1].available)
+	{
+		setup_instance_case (&rows[1], mobile[0], scene);
+	}
+	if (rows[1].available && (!rows[1].restored || !rows[1].counters_restored || !rows[1].vp_unchanged))
+	{
+		return probe_refused (text, capacity, "restoration_mismatch_case_1", visited);
+	}
+	if (rows[2].available)
+	{
+		setup_no_instance_case (&rows[2], mobile[mobiles - 1]);
+	}
+	if (rows[2].available && (!rows[2].restored || !rows[2].vp_unchanged))
+	{
+		return probe_refused (text, capacity, "restoration_mismatch_case_2", visited);
+	}
+	if (rows[3].available)
+	{
+		setup_invalid_shape_case (&rows[3], structure);
+	}
+	if (rows[3].available && !rows[3].restored)
+	{
+		return probe_refused (text, capacity, "restoration_mismatch_case_3", visited);
+	}
+	out_start (&out, text, capacity);
+	emit (&out, "tp-setup status=complete visited=%d entities=%d\n", visited, examined);
+	for (which = 1; which <= TP_SETUP_CASES; which++)
+	{
+		setup_emit_row (&out, which, &rows[which]);
+	}
+	if (out.overflow)
+	{
+		return probe_refused (text, capacity, "report_capacity_after_restoration", visited);
 	}
 	return 0;
 }
