@@ -1545,9 +1545,12 @@ fn the_setup_probe_is_separate_from_the_natural_run_and_says_which_cases_were_no
     assert!(rows(&outcome).iter().any(|r| r.contains("\"event\":\"setup_unavailable\"")));
 }
 
+/// a damaged setup report or query: what is wrong, how the case is damaged, and the reason the run must fail with
+type SetupFault = (&'static str, fn(&mut Case), &'static str);
+
 #[test]
 fn damaged_setup_reports_and_restorations_are_malformed_and_stop_the_questions() {
-    let faults: [(&str, fn(&mut Case), &str); 17] = [
+    let faults: [SetupFault; 17] = [
         (
             "a constructed scene the original did not see",
             |c| change(c, 0, "model=4 model_name=SCENE_4", "model=2 model_name=SCENE_2"),
