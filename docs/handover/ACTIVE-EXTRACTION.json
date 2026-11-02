@@ -3,8 +3,11 @@
   "epic": "EEDCS-21",
   "task": "EEDCS-52",
   "pr": 112,
-  "authority": ["https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337", "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"],
-  "phase": "fix-blocker",
+  "authority": [
+    "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/11534337",
+    "https://flying-dice.atlassian.net/wiki/spaces/SD/pages/14548994"
+  ],
+  "phase": "production-cutover",
   "preparation_batches_without_cutover": 5,
   "preparation_limit": 2,
   "next_production_change": "Replace initialise_target_point_offsets geometry construction/search/bbox computation with the existing host ModelStore local-offset service. Keep seeker policy once per invocation and all three host-authored offset coordinates for gd_attck. Remove dummy Core constructor work; preserve the measured RNG/reseed and VP contracts.",
@@ -17,11 +20,11 @@
   "blockers": [
     {
       "id": "rng-evidence",
-      "status": "open",
+      "status": "closed",
       "blocks_cutover": true,
-      "evidence": "Independent9519 interim89c49d89: one consolidated RNG generation/seed/sample/overflow/decision-rule group.",
-      "missing_fact": "Corrected validator and overflow latch must establish the actual pass/reseed trace without false safety conclusions.",
-      "next_fix": "Finish the current single Sonnet correction, run affected checks and corrected named captures, then close the same review."
+      "evidence": "Independent final25f64cd419d3e420bbd8398545229a1c19ff6355f8b7a69a0295c691d70915de: original-C1c30/checkerebcb; all6actuals/12inputs/84payloads, consecutive trace/reseed checks clear.",
+      "missing_fact": "Resolved for the finite reference-profile trace; preserve actual initializer caller/seed policy in production.",
+      "next_fix": "None for this closed group; proceed to host offset initialization."
     },
     {
       "id": "comparer-honesty",
@@ -32,12 +35,28 @@
       "next_fix": "Repair in the same bounded production-offset implementation batch; retain the verified valid numeric evidence."
     }
   ],
-  "next_action": "fix-blocker",
+  "next_action": "production-cutover",
   "acceptance": [
-    {"gate": "Production physical offset initialization uses host data and old solver path is absent", "complete": false},
-    {"gate": "Changed/withheld host authority and direct guidance consumer exercised", "complete": false},
-    {"gate": "Established scenario and required complete byte-identical regression pass", "complete": false},
-    {"gate": "Current independent review/checks and normal merge; Task50 dependency delivered", "complete": false}
+    {
+      "gate": "Production physical offset initialization uses host data and old solver path is absent",
+      "complete": false
+    },
+    {
+      "gate": "Changed/withheld host authority and direct guidance consumer exercised",
+      "complete": false
+    },
+    {
+      "gate": "Established scenario and required complete byte-identical regression pass",
+      "complete": false
+    },
+    {
+      "gate": "Current independent review/checks and normal merge; Task50 dependency delivered",
+      "complete": false
+    },
+    {
+      "gate": "Complete all Task52 physical target-point queries and offset consumers, not merely the initializer increment",
+      "complete": false
+    }
   ],
   "runtime_checkpoint": "R:/d3-evidence/D3-CURRENT.json",
   "do_not_restart": "Task50 original bce pack; verify actual PID/birth/argv and receipts before any action.",
