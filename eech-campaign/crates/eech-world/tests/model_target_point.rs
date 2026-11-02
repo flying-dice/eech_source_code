@@ -77,7 +77,6 @@ fn table(objects: &[Mesh]) -> (Vec<u8>, Vec<u8>, Vec<u8>) {
         .i32(0)
         .i32(plain as i32)
         .i32(0)
-        .i32(0)
         .i32(0);
     let (mut pts, mut sp) = (W::default(), W::default());
     for m in objects {
@@ -254,7 +253,7 @@ fn target_point() -> i32 {
 const CYCLE: [f32; 9] = [0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0];
 const IDENTITY: [f32; 9] = [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0];
 
-/// objects: 1 a box with bounds that need no clamp, 2 a box whose y centre is negative, 3 a box whose y centre is positive.
+/// objects: 1 a box with bounds that need no clamp, 2 a box whose y centre is negative, 3 a box whose y centre is positive. Both straddle the origin on every axis: the original's scene bounds start from a zeroed box, so they always include the origin and an object wholly to one side would be widened to it.
 ///
 /// scene 1: the scene's own record names top-level 1 (at 1,0,0); top-level 0 (at 100,0,0) holds a TARGET_POINT record of its own for its child, which must not win.
 /// scene 2: no scene-level record. Depth first: top-level 0 (3,0,0) holds none; its child (0,1,0) holds a record for ITS child (0,0,9), and top-level 1 (50,0,0) holds a
@@ -302,8 +301,8 @@ fn standard() -> (Root, ModelStore) {
     let root = Root::new(
         &[
             mesh([-1.0, 1.0, -1.0, 1.0, -1.0, 1.0]),
-            mesh([-4.0, 2.0, -10.0, -2.0, 0.0, 6.0]),
-            mesh([-4.0, 2.0, 2.0, 10.0, 0.0, 6.0]),
+            mesh([-4.0, 2.0, -10.0, 2.0, -2.0, 6.0]),
+            mesh([-4.0, 2.0, -2.0, 10.0, 0.0, 6.0]),
         ],
         &scenes,
     );
@@ -387,12 +386,13 @@ fn an_instances_world_target_point_applies_the_root_pose_in_the_originals_conven
 #[test]
 fn a_scene_without_a_target_point_falls_back_to_its_bounding_box_centre_with_y_clamped_at_zero() {
     let (_root, store) = standard();
-    // the fixture's scene bounds are those of its main object (no sub-objects widen them)
-    assert_eq!(store.scene(5).unwrap().bounding_box, bits6([-4.0, 2.0, -10.0, -2.0, 0.0, 6.0]));
-    // x and z are the centres; y centre is -6 and is clamped to zero
-    assert_eq!(local(&store, 5), ([-1.0, 0.0, 3.0], OffsetSource::BoundingBox));
+    // the fixture's scene bounds are those of its main object (it straddles the origin, and no sub-objects widen it)
+    assert_eq!(store.scene(5).unwrap().bounding_box, bits6([-4.0, 2.0, -10.0, 2.0, -2.0, 6.0]));
+    // x and z are the centres; the y centre is -4 and is clamped to zero
+    assert_eq!(local(&store, 5), ([-1.0, 0.0, 2.0], OffsetSource::BoundingBox));
     // a positive y centre is kept
-    assert_eq!(local(&store, 6), ([-1.0, 6.0, 3.0], OffsetSource::BoundingBox));
+    assert_eq!(store.scene(6).unwrap().bounding_box, bits6([-4.0, 2.0, -2.0, 10.0, 0.0, 6.0]));
+    assert_eq!(local(&store, 6), ([-1.0, 4.0, 3.0], OffsetSource::BoundingBox));
     // sub-objects without a TARGET_POINT record do not make one: the bounding box still decides (the scene bounds, whatever they are, are the store's own)
     let bounds = floats(store.scene(7).unwrap().bounding_box);
     let expected = [
@@ -569,8 +569,8 @@ fn report_file(dir: &std::path::Path, damaged: bool) -> PathBuf {
              tp-offset generation={generation} index=1 name=S1 state=sub_object offset=3f800000,00000000,00000000 bounds=- live=1\n\
              tp-offset generation={generation} index=2 name=S2 state=sub_object offset=40400000,3f800000,{z} bounds=- live=1\n\
              tp-offset generation={generation} index=3 name=S3 state=sub_object offset=3f800000,40800000,00000000 bounds=- live=1\n\
-             tp-offset generation={generation} index=5 name=S5 state=bbox offset=bf800000,00000000,40400000 bounds=c0800000,40000000,c1200000,c0000000,00000000,40c00000 live=1\n\
-             tp-offset generation={generation} index=6 name=S6 state=bbox offset=bf800000,40c00000,40400000 bounds=c0800000,40000000,40000000,41200000,00000000,40c00000 live=1\n\
+             tp-offset generation={generation} index=5 name=S5 state=bbox offset=bf800000,00000000,40000000 bounds=c0800000,40000000,c1200000,40000000,c0000000,40c00000 live=1\n\
+             tp-offset generation={generation} index=6 name=S6 state=bbox offset=bf800000,40800000,40400000 bounds=c0800000,40000000,c0000000,41200000,00000000,40c00000 live=1\n\
              tp-offset generation={generation} index=9 name=S9 state=none offset=- bounds=- live=-\n"
         )
     };
@@ -606,7 +606,7 @@ fn the_host_lua_face_answers_local_offsets_and_instance_poses_as_plain_bit_patte
         local o = store:target_point_local (1)
         assert (o.result == "offset" and o.source == "sub_object" and o.offset == "0x3f800000,0x00000000,0x00000000", o.offset)
         o = store:target_point_local (5)
-        assert (o.source == "bbox" and o.offset == "0xbf800000,0x00000000,0x40400000", o.offset)
+        assert (o.source == "bbox" and o.offset == "0xbf800000,0x00000000,0x40000000", o.offset)
         o = store:target_point_local (0)
         assert (o.source == "invalid_zero" and o.offset == "0x00000000,0x00000000,0x00000000")
         o = store:target_point_local (8)

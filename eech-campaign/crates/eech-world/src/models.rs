@@ -2151,6 +2151,9 @@ pub enum OffsetSource {
     InvalidZero,
 }
 
+/// A world position and attitude (row-major 3x3) as floats, the kernel's answer for a sub-object.
+type WorldViewpoint = ([f32; 3], [f32; 9]);
+
 /// The host's answer to a scene's LOCAL target-point offset: the three float bit patterns, or the statement that the scene was never read / the data or float state cannot be
 /// trusted. A refusal is never a number.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -2531,13 +2534,7 @@ impl ModelStore {
 
     /// The world viewpoint of the scene's first TARGET_POINT sub-object, for a main object at `position` / `attitude` (row-major 3x3) / `scale`, in keyframe-0 state.
     /// `Ok(None)` when the scene has no such sub-object.
-    fn target_point_viewpoint(
-        &self,
-        scene: usize,
-        position: [f32; 3],
-        attitude: [f32; 9],
-        scale: [f32; 3],
-    ) -> Result<Option<([f32; 3], [f32; 9])>, &'static str> {
+    fn target_point_viewpoint(&self, scene: usize, position: [f32; 3], attitude: [f32; 9], scale: [f32; 3]) -> Result<Option<WorldViewpoint>, &'static str> {
         let Some(kind) = target_point_kind() else {
             return Err("target_point_kind_not_compiled");
         };
