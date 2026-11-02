@@ -1063,9 +1063,15 @@ fn a_query_is_anchored_to_the_sampled_call_boundaries() {
         case
     };
     let outcome = run(&coherent());
-    outcome.result.as_ref().expect("a boot query between two passes and a pass added between samples are coherent");
+    outcome
+        .result
+        .as_ref()
+        .expect("a boot query between two passes and a pass added between samples are coherent");
     let done = done_row(&outcome);
-    assert!(done.contains("\"generations\":3") && done.contains("\"boot_calls\":1") && done.contains("\"queries\":2"), "{done}");
+    assert!(
+        done.contains("\"generations\":3") && done.contains("\"boot_calls\":1") && done.contains("\"queries\":2"),
+        "{done}"
+    );
 
     // a pre-boot query (it began before the boot sample's one call) cannot name the third pass, which ended only during the frames
     let mut future = coherent();
