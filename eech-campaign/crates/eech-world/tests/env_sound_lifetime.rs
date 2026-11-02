@@ -160,12 +160,18 @@ local function ask (config, request)
 		end
 	end
 end
+local stage = "new"
+host.use_reference_arithmetic = function ()
+	if stage ~= "prepared" then error ("SCRIPTED: the reference arithmetic profile is selected right after the installation is prepared, not from the stage " .. stage, 0) end
+	stage = "selected"
+end
 
 package.preload.eech_dc = function ()
 	local armed = false
 	local module = {{
-		prepare_installation = function () end,
+		prepare_installation = function () stage = "prepared" end,
 		boot = function (config)
+			if stage ~= "selected" then error ("SCRIPTED: boot before the reference arithmetic profile was selected (stage " .. stage .. ")", 0) end
 			if not armed and not SCENARIO.no_arm then error ('SCRIPTED: the observer was not armed before the boot', 0) end
 			-- the boot's own constructors: the looping ambient sounds ask the host for a lifetime before any fixture case runs
 			if SCENARIO.boot_asks and config and config.environment then

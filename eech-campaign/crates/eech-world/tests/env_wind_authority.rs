@@ -1055,11 +1055,17 @@ host = {
 		end
 	end,
 }
+local stage = "new"
+host.use_reference_arithmetic = function ()
+	if stage ~= "prepared" then error ("SCRIPTED: the reference arithmetic profile is selected right after the installation is prepared, not from the stage " .. stage, 0) end
+	stage = "selected"
+end
 
 package.preload.eech_dc = function ()
 	return {
-		prepare_installation = function () end,
+		prepare_installation = function () stage = "prepared" end,
 		boot = function (config)
+			if stage ~= "selected" then error ("SCRIPTED: boot before the reference arithmetic profile was selected (stage " .. stage .. ")", 0) end
 			provider = config.environment
 			config.bind_mobile { movement_kind = "helicopter", side = "blue" }
 			config.bind_mobile { movement_kind = "ground", side = "red" }

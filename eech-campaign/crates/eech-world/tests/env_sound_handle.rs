@@ -77,6 +77,7 @@ do
 end
 host.terrain_provider = function () return function () end end
 host.env_provider = function () return function () end end
+host.use_reference_arithmetic = function () ORDER [#ORDER + 1] = "select" end
 package.preload.eech_dc = function ()
 	local module = {
 		prepare_installation = function () ORDER [#ORDER + 1] = "prepare" end,
@@ -358,7 +359,7 @@ fn a_coherent_c_shaped_report_is_kept_whole_joined_and_never_judged_and_the_gett
             Some(text.as_str()),
             "{what}: the report is kept exactly as the engine wrote it"
         );
-        assert_eq!(driven.order, ["prepare", "arm:true", "boot", &format!("case:14,{}", run.case)]);
+        assert_eq!(driven.order, ["prepare", "select", "arm:true", "boot", &format!("case:14,{}", run.case)]);
         let derived = &of(&driven, "derived")[0];
         assert_eq!(derived["getter_status"].as_str(), Some(status), "{what}");
         assert_eq!(derived["getter_call_measured_by_marker"].as_bool(), Some(measured), "{what}");

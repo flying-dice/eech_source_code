@@ -75,6 +75,7 @@ do
 end
 host.terrain_provider = function () return function () end end
 host.env_provider = function () return function () end end
+host.use_reference_arithmetic = function () ORDER [#ORDER + 1] = "select" end
 package.preload.eech_dc = function ()
 	local module = {
 		prepare_installation = function () ORDER [#ORDER + 1] = "prepare" end,
@@ -191,7 +192,7 @@ fn the_named_unsupported_handle_status_stop_is_the_only_accepted_outcome_and_not
             .clone()
             .unwrap_or_else(|e| panic!("case {case}: the named stop was rejected: {e}"));
         // the engine is poisoned by the stop: the driver asked it nothing more (no census, report or restoration), and the order is exactly the four steps
-        assert_eq!(driven.order, ["prepare", "arm:true", "boot", &format!("case:14,{case}")]);
+        assert_eq!(driven.order, ["prepare", "select", "arm:true", "boot", &format!("case:14,{case}")]);
         let refusal = &of(&driven, "expected_refusal")[0];
         assert_eq!(refusal["boundary"].as_str(), Some("unsupported_handle_status"));
         assert_eq!(refusal["engine_continued"].as_bool(), Some(false));

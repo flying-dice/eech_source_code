@@ -87,10 +87,17 @@ if not SCENARIO.no_create then
 end
 FRAMES = 0
 ARMED = 0
+local stage = "new"
+host.use_reference_arithmetic = function ()
+	if stage ~= "prepared" then error ("SCRIPTED: the reference arithmetic profile is selected right after the installation is prepared, not from the stage " .. stage, 0) end
+	stage = "selected"
+end
+
 package.preload.eech_dc = function ()
 	local module = {
-		prepare_installation = function () end,
+		prepare_installation = function () stage = "prepared" end,
 		boot = function ()
+			if stage ~= "selected" then error ("SCRIPTED: boot before the reference arithmetic profile was selected (stage " .. stage .. ")", 0) end
 			local engine = {}
 			function engine:frame (ms)
 				FRAMES = FRAMES + 1
