@@ -418,7 +418,10 @@ fn discover_custom_files(objects_dir: &Path, summary: &mut LoadSummary) -> Resul
                 return fail(
                     ErrorKind::Inconsistent,
                     &format!("{directory}/{file_name}"),
-                    format!("scene {scene} is also defined by {}/{}: the two cannot be told apart by directory", other.directory, other.file_name),
+                    format!(
+                        "scene {scene} is also defined by {}/{}: the two cannot be told apart by directory",
+                        other.directory, other.file_name
+                    ),
                 );
             }
             out.push(CustomFile {
@@ -451,7 +454,9 @@ fn ordered_custom_files(files: Vec<CustomFile>, order: Option<&[(usize, String)]
                 return fail(
                     ErrorKind::Inconsistent,
                     "OBJECTS",
-                    format!("the campaign's walk names the custom scene file of scene {scene} in directory {key}, which the host does not have (or names twice)"),
+                    format!(
+                        "the campaign's walk names the custom scene file of scene {scene} in directory {key}, which the host does not have (or names twice)"
+                    ),
                 )
             }
         }
@@ -1989,10 +1994,14 @@ impl Loader {
                 loader.summary.ees_applied += 1;
             }
         } else if order.is_some_and(|walk| !walk.is_empty()) {
-            return fail(ErrorKind::Inconsistent, "OBJECTS", "the campaign's walk visited custom scene files, the host has no OBJECTS directory");
+            return fail(
+                ErrorKind::Inconsistent,
+                "OBJECTS",
+                "the campaign's walk visited custom scene files, the host has no OBJECTS directory",
+            );
         }
 
-                loader.finish()
+        loader.finish()
     }
 
     /// The consolidated surface block (the original's "reallocates surfaces memory"), the summary, the store.
@@ -2504,7 +2513,11 @@ impl ModelStore {
                 None => Err("definition_outside"),
             }
         } else {
-            self.definitions[id].iter().filter(|s| s.source == SceneSource::Table).nth(n).ok_or("definition_outside")
+            self.definitions[id]
+                .iter()
+                .filter(|s| s.source == SceneSource::Table)
+                .nth(n)
+                .ok_or("definition_outside")
         }
     }
 

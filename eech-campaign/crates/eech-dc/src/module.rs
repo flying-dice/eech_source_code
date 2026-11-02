@@ -2,10 +2,10 @@
 
 use eech_engine::{
     AimEvent, AimReply, AimRequest, AimStepKind, AimTarget, AimWeapon, AimWorld, ArrivalAnswer, Engine, EngineConfig, EngineError, Gunship,
-    HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor, MemberDescriptor, ModelAnimation, ModelAnswer, ModelObject, ModelOrder,
-    ModelObjectFacts, ModelProvider, ModelQuery, ModelRouteFace, ModelRouteNode, ModelScene, ModelTriangle, MovementMode, MovementResult, MovementStep,
-    ObjectReport, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side, SupplyReachDescriptor, TerrainAnswer, TerrainMapFacts, TerrainProvider,
-    TerrainQuery, TerrainRecord, VehiclePose, WeaponFigures,
+    HelicopterGuidanceAnswer, HelicopterQuery, LosMessage, LosReply, LossDecision, LossDescriptor, MemberDescriptor, ModelAnimation, ModelAnswer, ModelObject,
+    ModelObjectFacts, ModelOrder, ModelProvider, ModelQuery, ModelRouteFace, ModelRouteNode, ModelScene, ModelTriangle, MovementMode, MovementResult,
+    MovementStep, ObjectReport, SenseMessage, SenseReason, SenseReply, SenseScan, SenseState, Side, SupplyReachDescriptor, TerrainAnswer, TerrainMapFacts,
+    TerrainProvider, TerrainQuery, TerrainRecord, VehiclePose, WeaponFigures,
 };
 use mlua::prelude::*;
 use std::path::PathBuf;
@@ -4096,12 +4096,20 @@ mod tests {
                return { result = 'refused', reason = 'unexpected ' .. tostring (key) }
              end",
         )?;
-        let step = |scene: i32, position: i32, end: bool, key: &str| ModelQuery::CustomOrder { scene, position, end, key: key.to_string() };
+        let step = |scene: i32, position: i32, end: bool, key: &str| ModelQuery::CustomOrder {
+            scene,
+            position,
+            end,
+            key: key.to_string(),
+        };
         assert_eq!(ask(&mut provider, step(7, 2, false, "MODDIR"))?, ModelAnswer::CustomOrder(ModelOrder::Accepted));
         assert_eq!(ask(&mut provider, step(7, 3, false, "GONE"))?, ModelAnswer::CustomOrder(ModelOrder::Absent));
         assert_eq!(ask(&mut provider, step(0, 4, true, ""))?, ModelAnswer::CustomOrder(ModelOrder::End));
         let refused = ask(&mut provider, step(7, 0, false, "OTHER")).err().ok_or("accepted")?;
-        assert!(refused.contains("[model-provider:custom_order.refused]") && refused.contains("OTHER"), "{refused}");
+        assert!(
+            refused.contains("[model-provider:custom_order.refused]") && refused.contains("OTHER"),
+            "{refused}"
+        );
         Ok(())
     }
 

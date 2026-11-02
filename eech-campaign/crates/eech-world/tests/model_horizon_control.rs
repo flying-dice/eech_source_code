@@ -292,18 +292,12 @@ fn a_counters_report_that_is_not_the_exact_coherent_grammar_is_malformed_and_the
             "more rows filled than rows",
             good.replace("rows_filled=10252 rows_confirmed=7748", "rows_filled=11443 rows_confirmed=6557"),
         ),
-        (
-            "more rows replaced than ever filled",
-            good.replace("rows_replaced=0", "rows_replaced=10253"),
-        ),
+        ("more rows replaced than ever filled", good.replace("rows_replaced=0", "rows_replaced=10253")),
         (
             "a row with a true point count that replacement left undescribed",
             good.replace("rows_replaced=0", "rows_replaced=1"),
         ),
-        (
-            "a metadata row without the replaced field",
-            good.replace(" rows_replaced=0", ""),
-        ),
+        ("a metadata row without the replaced field", good.replace(" rows_replaced=0", "")),
         (
             "a row with a true point count that no answer filled",
             good.replace("rows_filled=10252 rows_confirmed=7748", "rows_filled=10251 rows_confirmed=7749"),
@@ -364,9 +358,11 @@ fn counters_swapped_rows() -> String {
 #[test]
 fn a_boot_whose_metadata_took_no_host_answer_fails_and_the_reader_is_not_launched() {
     // coherent, but nothing was asked of the host and no row was filled by it: zero everywhere is not a host-owned load
-    let none = "objects_asked=0 objects_found=0 objects_absent=0 rows_filled=0 rows_confirmed=0 rows_replaced=0 animation_asked=0 animation_names=0 animation_ends=0";
+    let none =
+        "objects_asked=0 objects_found=0 objects_absent=0 rows_filled=0 rows_confirmed=0 rows_replaced=0 animation_asked=0 animation_names=0 animation_ends=0";
     // a coherent report with rows filled but nothing found is impossible (rows_filled <= objects_found); asked-only-absent leaves no row filled
-    let absent_only = "objects_asked=5 objects_found=0 objects_absent=5 rows_filled=0 rows_confirmed=0 rows_replaced=0 animation_asked=0 animation_names=0 animation_ends=0";
+    let absent_only =
+        "objects_asked=5 objects_found=0 objects_absent=5 rows_filled=0 rows_confirmed=0 rows_replaced=0 animation_asked=0 animation_names=0 animation_ends=0";
     for (what, text, residency_text) in [
         ("nothing asked", none, residency(11442, 0, [0, 0, 0, 0])),
         ("only absences answered", absent_only, residency(11442, 0, [0, 0, 0, 0])),

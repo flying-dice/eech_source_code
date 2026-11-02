@@ -9784,7 +9784,12 @@ mod tests {
             }
             let (code, reply, error) = model_crossing(
                 Some(Box::new(move |query| match query {
-                    ModelQuery::CustomOrder { scene: 7, position: 2, end: false, key } if key == "MODDIR" => Ok(ModelAnswer::CustomOrder(answer)),
+                    ModelQuery::CustomOrder {
+                        scene: 7,
+                        position: 2,
+                        end: false,
+                        key,
+                    } if key == "MODDIR" => Ok(ModelAnswer::CustomOrder(answer)),
                     other => Err(format!("unexpected {other:?}")),
                 })),
                 request,
@@ -9796,7 +9801,12 @@ mod tests {
         request.role = 1;
         let (code, reply, error) = model_crossing(
             Some(Box::new(|query| match query {
-                ModelQuery::CustomOrder { scene: 0, position: 3, end: true, key } if key.is_empty() => Ok(ModelAnswer::CustomOrder(ModelOrder::End)),
+                ModelQuery::CustomOrder {
+                    scene: 0,
+                    position: 3,
+                    end: true,
+                    key,
+                } if key.is_empty() => Ok(ModelAnswer::CustomOrder(ModelOrder::End)),
                 other => Err(format!("unexpected {other:?}")),
             })),
             request,

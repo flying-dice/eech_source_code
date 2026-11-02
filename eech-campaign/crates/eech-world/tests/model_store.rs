@@ -865,9 +865,18 @@ fn a_scene_defined_twice_by_custom_files_answers_each_definition_with_its_own_ob
     // the final scene is the last definition; the earlier one is NOT answered with it
     assert_eq!(store.scene(1).unwrap().main, 5);
     // a definition of the wrong kind, or one that does not exist, is refused by name and never answered from another definition
-    assert_eq!(store.object_header(1, ROLE_MAIN, 0, 1, false).unwrap(), ObjectHeader::Refused("definition_outside"));
-    assert_eq!(store.object_header(1, ROLE_MAIN, 0, 2, true).unwrap(), ObjectHeader::Refused("definition_outside"));
-    assert_eq!(store.object_header(2, ROLE_MAIN, 0, 0, true).unwrap(), ObjectHeader::Refused("definition_scene_differs"));
+    assert_eq!(
+        store.object_header(1, ROLE_MAIN, 0, 1, false).unwrap(),
+        ObjectHeader::Refused("definition_outside")
+    );
+    assert_eq!(
+        store.object_header(1, ROLE_MAIN, 0, 2, true).unwrap(),
+        ObjectHeader::Refused("definition_outside")
+    );
+    assert_eq!(
+        store.object_header(2, ROLE_MAIN, 0, 0, true).unwrap(),
+        ObjectHeader::Refused("definition_scene_differs")
+    );
     // a scene defined once is unchanged by all this
     assert!(matches!(store.object_header(3, ROLE_MAIN, 0, 0, false).unwrap(), ObjectHeader::Found(_)));
 }
@@ -924,20 +933,34 @@ fn the_campaigns_walk_order_and_not_a_sorted_one_decides_what_a_custom_definitio
     // sorted (the host's order when the campaign announced none): A then B, so B sees the named object that replaced object 4
     let sorted = root.load().unwrap();
     assert_eq!(sorted.custom_walk(), [(1, "A".to_string()), (2, "B".to_string())]);
-    assert_eq!(found(sorted.object_header(2, ROLE_MAIN, 0, 1, true).unwrap()).counts[2], 1, "B was read after A: object 4 is the named object, one surface");
+    assert_eq!(
+        found(sorted.object_header(2, ROLE_MAIN, 0, 1, true).unwrap()).counts[2],
+        1,
+        "B was read after A: object 4 is the named object, one surface"
+    );
     assert_eq!(sorted.scene(2).unwrap().bounding_box2, chassis_bounds, "and its bounds were computed from it");
 
     // the campaign's own walk visited B first (an unsorted directory order): B sees the table's object 4, whatever a sorted walk would have shown
     let order = [(2, "B".to_string()), (1, "A".to_string())];
     let walked = ModelStore::load_in_order(&root.dir, &order).unwrap();
     assert_eq!(walked.custom_walk(), order);
-    assert_eq!(found(walked.object_header(2, ROLE_MAIN, 0, 0, true).unwrap()).counts[2], 2, "B was read first: object 4 is still the table's, two surfaces");
+    assert_eq!(
+        found(walked.object_header(2, ROLE_MAIN, 0, 0, true).unwrap()).counts[2],
+        2,
+        "B was read first: object 4 is still the table's, two surfaces"
+    );
     assert_eq!(walked.scene(2).unwrap().bounding_box2, table_bounds, "and its bounds were computed from it");
     // A's own object is the named one in both orders (the first named object takes number 4 whenever it is read)
     assert_eq!(found(walked.object_header(1, ROLE_MAIN, 0, 1, true).unwrap()).counts[2], 1);
     // a position is the campaign's own: scene 2's file is position 1 in the sorted store and position 0 in the walked one, and is refused at the other
-    assert_eq!(sorted.object_header(2, ROLE_MAIN, 0, 0, true).unwrap(), ObjectHeader::Refused("definition_scene_differs"));
-    assert_eq!(walked.object_header(2, ROLE_MAIN, 0, 1, true).unwrap(), ObjectHeader::Refused("definition_scene_differs"));
+    assert_eq!(
+        sorted.object_header(2, ROLE_MAIN, 0, 0, true).unwrap(),
+        ObjectHeader::Refused("definition_scene_differs")
+    );
+    assert_eq!(
+        walked.object_header(2, ROLE_MAIN, 0, 1, true).unwrap(),
+        ObjectHeader::Refused("definition_scene_differs")
+    );
     // the file system's names are the identity: a walk that names a file the host lacks, names one twice or leaves one out is refused by name
     for (what, bad) in [
         ("a file the host lacks", vec![(2, "B".to_string()), (1, "A".to_string()), (3, "C".to_string())]),
@@ -975,7 +998,11 @@ io.stdout:write ("order-witness ok\n")
 #[test]
 fn the_reference_host_replays_the_campaigns_announced_walk_and_answers_by_its_positions() {
     let root = two_directory_root();
-    let run = run_lua(&[("order-witness.lua", ORDER_WITNESS)], "order-witness.lua", &[format!("root={}", slashes(&root.dir))]);
+    let run = run_lua(
+        &[("order-witness.lua", ORDER_WITNESS)],
+        "order-witness.lua",
+        &[format!("root={}", slashes(&root.dir))],
+    );
     assert!(run.status.success(), "{}", run.stderr);
 }
 
@@ -990,7 +1017,13 @@ fn a_replaced_row_keeps_the_header_field_read_object_never_assigns() {
     let table = build_table(&[Entry::Mesh(identity_quad()), Entry::Null, Entry::Mesh(other), Entry::Mesh(with_offset)], None);
     let root = Root::new(
         &table,
-        &[binary_scene(1, 1, 1), binary_scene(2, 1, 0), binary_scene(3, 3, 3), binary_scene(4, 4, 4), binary_scene(5, 1, 2)],
+        &[
+            binary_scene(1, 1, 1),
+            binary_scene(2, 1, 0),
+            binary_scene(3, 3, 3),
+            binary_scene(4, 4, 4),
+            binary_scene(5, 1, 2),
+        ],
     );
     let scene = compiled_scene_name(1).unwrap();
     let mut turret = identity_quad();

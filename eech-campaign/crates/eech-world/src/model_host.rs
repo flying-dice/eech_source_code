@@ -9,7 +9,8 @@
 //! No pointer, offset or legacy layout reaches Lua; the store is immutable and shared (`Arc`), so a value a script keeps never refers into it. Arguments are whole
 //! numbers within range or the call is refused before the store is touched. A missing asset is reported as `NOT RUN`, never as a pass.
 use crate::models::{
-    compiled_scene_name, hex_list, scene_last, AnimationRef, CustomWalk, ErrorKind, ModelStore, ObjectHeader, ObjectSource, RouteFace, RouteNode, SceneSource, Triangle,
+    compiled_scene_name, hex_list, scene_last, AnimationRef, CustomWalk, ErrorKind, ModelStore, ObjectHeader, ObjectSource, RouteFace, RouteNode, SceneSource,
+    Triangle,
 };
 use crate::original_report;
 use mlua::prelude::*;
@@ -485,7 +486,10 @@ fn custom_order(
             if scene < 1 || scene >= scene_last() as i64 {
                 return Err(fail(format!("scene {scene} is outside 1 to {}", scene_last() - 1)));
             }
-            let key = key.filter(|k| !k.is_empty()).ok_or_else(|| fail("a walk step needs the name of the directory (the key argument)".into()))?.to_ascii_uppercase();
+            let key = key
+                .filter(|k| !k.is_empty())
+                .ok_or_else(|| fail("a walk step needs the name of the directory (the key argument)".into()))?
+                .to_ascii_uppercase();
             if store.has_custom_scene(scene as usize, &key) {
                 list.push((scene as usize, key));
                 table.set("result", "found")?;
