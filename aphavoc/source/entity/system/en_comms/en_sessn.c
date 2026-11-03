@@ -1377,10 +1377,10 @@ void process_entity_smoke_list_creation (void)
 
 		ASSERT (this_smoke_list_creation->en);
 
-		attach_local_meta_smoke_lists_to_object (this_smoke_list_creation->en,
-																this_smoke_list_creation->meta_smoke_type,
-																this_smoke_list_creation->attachment_point,
-																this_smoke_list_creation->entity_index_list);
+
+
+
+
 
 		if (get_local_entity_int_value (this_smoke_list_creation->en, INT_TYPE_MOBILE_MOVING))
 		{

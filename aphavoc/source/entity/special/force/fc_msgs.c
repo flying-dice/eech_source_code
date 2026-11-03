@@ -1055,13 +1055,13 @@ static int response_to_request_assistance (entity_messages message, entity *rece
 	{
 		victim_group = victim;
 
-		play_keysite_under_attack_speech (victim, aggressor);
+
 	}
 	else
 	{
 		victim_group = get_local_entity_parent (victim, LIST_TYPE_MEMBER);
 
-		play_mobile_under_attack_speech (victim, aggressor);
+
 	}
 	
 	ASSERT (victim_group);

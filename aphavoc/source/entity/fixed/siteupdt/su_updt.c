@@ -86,9 +86,9 @@ static void update_server (entity *en)
 
 	ASSERT (raw->fix.alive);
 
-	update_site_loading_doors (en);
 
-	update_site_radar (en);
+
+
 
 	update_ground_crew (en);
 
@@ -120,9 +120,9 @@ static void update_client (entity *en)
 
 	ASSERT (raw->fix.alive);
 	
-	update_site_loading_doors (en);
 
-	update_site_radar (en);
+
+
 
 	update_ground_crew (en);
 }

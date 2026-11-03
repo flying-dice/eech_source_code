@@ -89,7 +89,7 @@ static void update_server (entity *en)
 
 	raw = (anti_aircraft *) get_local_entity_data (en);
 
-	update_local_entity_view_interest_level (en);
+
 
 	raw->vh.sleep -= get_delta_time ();
 
@@ -113,9 +113,9 @@ static void update_server (entity *en)
 	
 
 
-		update_vehicle_loading_doors (en);
 
-		update_vehicle_radar (en);
+
+
 
 
 		//
@@ -139,18 +139,18 @@ static void update_server (entity *en)
 		//
 
 
-		if (tacview_is_logging() && raw->vh.mob.alive)
-		{
-			int
-				moved = get_local_entity_int_value(en, INT_TYPE_MOBILE_MOVING),
-				rotated = get_local_entity_int_value(en, INT_TYPE_ROTATED);
 
-			// TODO.  Actually recorde rotation, so we can use it
-			rotated = moved;
 
-			if (moved || rotated || command_line_tacview_logging < 3)
-				write_tacview_unit_update(en, moved, rotated, FALSE);
-		}
+
+
+
+
+
+
+
+
+
+
 	}
 	else if (get_local_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE) == OPERATIONAL_STATE_DEAD)
 	{
@@ -169,7 +169,7 @@ static void update_client (entity *en)
 
 	raw = (anti_aircraft *) get_local_entity_data (en);
 
-	update_local_entity_view_interest_level (en);
+
 
 	raw->vh.sleep -= get_delta_time ();
 
@@ -180,9 +180,9 @@ static void update_client (entity *en)
 
 
 
-		update_vehicle_loading_doors (en);
 
-		update_vehicle_radar (en);
+
+
 
 
 		//
@@ -201,17 +201,17 @@ static void update_client (entity *en)
 
 
 
-		if (tacview_is_logging() && raw->vh.mob.alive)
-		{
-			int
-				moved = get_local_entity_int_value(en, INT_TYPE_MOBILE_MOVING),
-				rotated = get_local_entity_int_value(en, INT_TYPE_ROTATED);
 
-			rotated = moved;
 
-			if (moved || rotated || command_line_tacview_logging < 3)
-				write_tacview_unit_update(en, moved, rotated, FALSE);
-		}
+
+
+
+
+
+
+
+
+
 	}
 	else if (get_local_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE) == OPERATIONAL_STATE_DEAD)
 	{

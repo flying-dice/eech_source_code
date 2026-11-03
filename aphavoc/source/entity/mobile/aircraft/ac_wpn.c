@@ -363,7 +363,7 @@ aircraft_fire_result aircraft_fire_weapon (entity *en, unsigned int check_flags,
 
 	// Play Speech
 
-	play_aircraft_weapon_launched_speech (en, raw->selected_weapon);
+
 
 	// Fire weapon
 
@@ -658,7 +658,7 @@ while(TRUE)
 
 	if (burst_timer_state > 0.0 && raw->weapon_burst_timer <= 0.0)
 	{
-		pause_client_server_continuous_weapon_sound_effect (en, raw->selected_weapon);
+
 	}
 }
 

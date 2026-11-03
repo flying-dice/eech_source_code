@@ -303,8 +303,8 @@ void assign_entity_to_user (entity *en)
 		//
 
 
-		if (tacview_is_logging() && command_line_tacview_logging < 3)
-			close_tacview_log();
+
+
 
 		primary_task = get_local_entity_primary_task (gunship_entity);
 
@@ -1565,9 +1565,9 @@ void update_local_helicopter_rotor_sounds (entity *en)
 		left_turbine_amp = 0.2 + bound((lrpm - 20.0) * 0.01, 0.0, 0.4);
 
 		if (lrpm > 1)
-			resume_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE1);
+
 		else
-			pause_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE1, 0.0);
+
 
 		if (play_both_sounds)
 		{
@@ -1577,13 +1577,13 @@ void update_local_helicopter_rotor_sounds (entity *en)
 			right_turbine_amp = 0.2 + bound((rrpm - 40.0) * 0.02, 0.0, 0.4);
 
 			if (rrpm > 1)
-				resume_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE2);
+
 			else
-				pause_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE2, 0.0);
+
 		}
 		else
 		{
-			pause_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_TURBINE2, 0.0);
+
 			left_turbine_amp *= 1.2;  // if only one sound is used for both engines, compensate by making it louder
 		}
 
@@ -1592,10 +1592,10 @@ void update_local_helicopter_rotor_sounds (entity *en)
 		{
 			apu_pitch = bound(apu_rpm * 0.02, 0.0, 2.0) + 0.2;
 			apu_amp = bound(apu_rpm * 0.01, 0.0, 0.25);
-			resume_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_APU_TURBINE);
+
 		}
 		else
-			pause_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_APU_TURBINE, 0.0);
+
 	}
 	else
 	{
@@ -1611,13 +1611,13 @@ void update_local_helicopter_rotor_sounds (entity *en)
 
 	if (looping_amp == 0.0)
 	{
-		pause_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_LOOPING, 0.0);
-		pause_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_SLAP, 0.0);
+
+
 	}
 	else
 	{
-		resume_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_LOOPING);
-		resume_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ROTOR_SLAP);
+
+
 	}
 
 	//

@@ -95,7 +95,7 @@ void update_helicopter_weapon_fire (entity *en)
 
 		if (raw->ac.selected_weapon == ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
 		{
-			pause_client_server_continuous_weapon_sound_effect (en, raw->ac.selected_weapon);
+
 
 			raw->ac.weapon_burst_timer = 0.0;
 
@@ -108,7 +108,7 @@ void update_helicopter_weapon_fire (entity *en)
 
 		if (!raw->ac.selected_weapon_system_ready)
 		{
-			pause_client_server_continuous_weapon_sound_effect (en, raw->ac.selected_weapon);
+
 
 			raw->ac.weapon_burst_timer = 0.0;
 
@@ -121,7 +121,7 @@ void update_helicopter_weapon_fire (entity *en)
 
 		if (!raw->ac.mob.target_link.parent)
 		{
-			pause_client_server_continuous_weapon_sound_effect (en, raw->ac.selected_weapon);
+
 
 			raw->ac.weapon_burst_timer = 0.0;
 
@@ -142,7 +142,7 @@ void update_helicopter_weapon_fire (entity *en)
 
 		if (raw->ac.weapon_burst_timer <= 0.0)
 		{
-			pause_client_server_continuous_weapon_sound_effect (en, raw->ac.selected_weapon);
+
 
 			raw->ac.weapon_burst_timer = 0.0;
 

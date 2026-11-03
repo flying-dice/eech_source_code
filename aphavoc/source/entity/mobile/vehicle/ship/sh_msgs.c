@@ -157,7 +157,7 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 
 						multiply_matrix3x3_vec3d (&rel_pos, inv, &rel_vec);
 
-						create_client_server_meta_smoke_list_specified_offset (META_SMOKE_LIST_TYPE_FIRE_SHORT_DURATION, receiver, &rel_pos);
+
 					}
 				}
 			}
@@ -187,7 +187,7 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 	{
 		if (aggressor)
 		{
-			play_vehicle_destroyed_speech (receiver, aggressor);
+
 
 //			credit_client_server_mobile_kill (receiver, aggressor);
 		}
@@ -209,7 +209,7 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 
 		if (aggressor)
 		{
-			play_vehicle_shot_at_speech (receiver, aggressor);
+
 		}
 
 

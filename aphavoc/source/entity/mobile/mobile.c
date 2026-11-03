@@ -611,8 +611,8 @@ int insert_mobile_into_takeoff_route (entity *member, entity *landing_entity)
 
 	attach_group_member_to_guide_entity (member, guide);
 
-	if(get_local_entity_int_value (member, INT_TYPE_IDENTIFY_AIRCRAFT))
-		play_landing_clear_for_takeoff_speech (member);
+
+
 
 	//
 	// Unlock landed site, do after locking takeoff route in case entity can't takeoff.

@@ -363,8 +363,8 @@ static entity *create_local (entity_types type, int index, char *pargs)
 
 		insert_local_entity_into_parents_child_list (en, LIST_TYPE_UPDATE, get_update_entity (), NULL);
 
-		if (tacview_is_logging())
-			write_tacview_new_unit(en);
+
+
 	}
 
 	return (en);
@@ -374,9 +374,6 @@ static entity *create_local (entity_types type, int index, char *pargs)
 
 
 
-static entity *create_remote (entity_types type, int index, char *pargs)
-{
-	validate_remote_create_entity_index (index);
 
 
 
@@ -384,58 +381,61 @@ static entity *create_remote (entity_types type, int index, char *pargs)
 
 
 
-	transmit_entity_comms_message (ENTITY_COMMS_CREATE, NULL, type, index, pargs);
-
-	return (NULL);
-}
 
 
 
 
 
-static entity *create_server (entity_types type, int index, char *pargs)
-{
-	entity
-		*en;
-
-	validate_client_server_local_fn ();
-
-	en = create_local (type, index, pargs);
-
-	if (en)
-	{
-		validate_client_server_remote_fn ();
-
-		create_remote (type, get_local_entity_index (en), pargs);
-	}
-
-	return (en);
-}
 
 
 
 
 
-static entity *create_client (entity_types type, int index, char *pargs)
-{
-	entity
-		*en;
 
-	if (get_comms_data_flow () == COMMS_DATA_FLOW_TX)
-	{
-		validate_client_server_remote_fn ();
 
-		en = create_remote (type, index, pargs);
-	}
-	else
-	{
-		validate_client_server_local_fn ();
 
-		en = create_local (type, index, pargs);
-	}
 
-	return (en);
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -486,9 +486,9 @@ entity *create_client_server_entity_helicopter (int index, entity_sub_types sub_
 	// damage smoke
 	//
 
-	attach_aircraft_meta_smoke_lists (new_entity);
 
-	create_helicopter_rotor_sound_effects (new_entity);
+
+
 
 	{
 		sound_sample_indices
@@ -620,11 +620,11 @@ entity *create_client_server_entity_helicopter (int index, entity_sub_types sub_
 			// end new entities by GCsDriver  08-12-2007
 		}
 
-		create_helicopter_cockpit_sound_effect (new_entity, ENTITY_SUB_TYPE_EFFECT_SOUND_MCA, mca_effect_index);
-		create_helicopter_cockpit_sound_effect (new_entity, ENTITY_SUB_TYPE_EFFECT_SOUND_LOCK_ON_TONE, lock_on_effect_index);
-		create_helicopter_cockpit_sound_effect (new_entity, ENTITY_SUB_TYPE_EFFECT_SOUND_RADAR_TRACKED, tracked_effect_index);
-		create_helicopter_cockpit_sound_effect (new_entity, ENTITY_SUB_TYPE_EFFECT_SOUND_RADAR_LOCKED, locked_effect_index);
-		create_helicopter_cockpit_sound_effect (new_entity, ENTITY_SUB_TYPE_EFFECT_SOUND_INCOMING_MISSILE_WARNING, incoming_effect_index);
+
+
+
+
+
 	}
 
 	//

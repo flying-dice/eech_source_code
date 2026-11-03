@@ -220,7 +220,7 @@ void attach_aircraft_meta_smoke_lists (entity *en)
 					debug_fatal ("AIRCRAFT: Attach meta smoke lists - too many attachment points");
 				}
 
-				attach_local_meta_smoke_lists_to_object (en, type, attachment_point, NULL);
+
 
 				point ++;
 			}
@@ -492,7 +492,7 @@ void play_aircraft_shot_at_speech (entity *victim, entity *aggressor)
 			//
 
 
-			play_aircraft_destroyed_speech (victim, aggressor);
+
 		}
 		else
 		{

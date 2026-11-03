@@ -86,7 +86,7 @@ void initialise_entity_databases (void)
 
 	initialise_smoke_list_database ();
 
-	initialise_meta_smoke_list_database ();
+
 
 	initialise_explosion_database ();
 
@@ -118,7 +118,7 @@ void deinitialise_entity_databases (void)
 
 	deinitialise_explosion_database ();
 
-	deinitialise_meta_smoke_list_database ();
+
 
 	deinitialise_smoke_list_database ();
 

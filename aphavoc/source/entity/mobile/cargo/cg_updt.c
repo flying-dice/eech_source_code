@@ -128,7 +128,7 @@ static void update_client (entity *en)
 
 	raw = (cargo *) get_local_entity_data (en);
 
-	update_local_entity_view_interest_level (en);
+
 
 	if (raw->mob.alive)
 	{

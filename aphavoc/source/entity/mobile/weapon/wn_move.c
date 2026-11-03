@@ -1287,8 +1287,8 @@ void weapon_movement (entity *en)
 	}
 
 	// TODO check rotation
-	if (tacview_is_logging())
-		write_tacview_unit_update(en, TRUE, TRUE, FALSE);
+
+
 
 	if (raw->kill_code != WEAPON_KILL_CODE_OK)
 	{
@@ -1537,7 +1537,7 @@ void weapon_movement (entity *en)
 					{
 						raw->kill_code = WEAPON_KILL_CODE_HIT_LAND;
 
-						create_client_server_weapon_killed_explosion_effect (en);
+
 
 						raw->kill_code = WEAPON_KILL_CODE_OK;
 					}

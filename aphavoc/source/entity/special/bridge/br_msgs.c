@@ -207,7 +207,7 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 			{
 				kill_client_server_entity (sender);
 
-				create_client_server_object_killed_explosion_effect (sender);
+
 			}
 		}
 	}

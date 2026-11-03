@@ -90,7 +90,7 @@ static void update_server (entity *en)
 
 	raw = (ship_vehicle *) get_local_entity_data (en);
 
-	update_local_entity_view_interest_level (en);
+
 
 	raw->vh.sleep -= get_delta_time ();
 
@@ -122,9 +122,9 @@ static void update_server (entity *en)
 
 
 
-		update_vehicle_loading_doors (en);
 
-		update_vehicle_radar (en);
+
+
 
 
 		//
@@ -145,12 +145,12 @@ static void update_server (entity *en)
 		
 		update_vehicle_missile_defence(en);
 				
-		if (tacview_is_logging() && command_line_tacview_logging < 3)
-		{
-			// for modes < 3 we have to check if it's visible now and add or remove it accordingly
-			// ships never move, so no need to update for that
-			write_tacview_unit_update(en, FALSE, FALSE, FALSE);
-		}
+
+
+
+
+
+
 
 		//
 
@@ -179,7 +179,7 @@ static void update_client (entity *en)
 
 	raw = (ship_vehicle *) get_local_entity_data (en);
 
-	update_local_entity_view_interest_level (en);
+
 
 	raw->vh.sleep -= get_delta_time ();
 
@@ -198,9 +198,9 @@ static void update_client (entity *en)
 
 
 
-		update_vehicle_loading_doors (en);
 
-		update_vehicle_radar (en);
+
+
 
 
 		//
@@ -218,12 +218,12 @@ static void update_client (entity *en)
 		//
 
 		
-		if (tacview_is_logging() && command_line_tacview_logging < 3)
-		{
-			// for modes < 3 we have to check if it's visible now and add or remove it accordingly
-			// ships never move, so no need to update for that
-			write_tacview_unit_update(en, FALSE, FALSE, FALSE);
-		}
+
+
+
+
+
+
 	}
 	else if (!raw->vh.mob.alive) // do not sink ship until it burn out!
 	{

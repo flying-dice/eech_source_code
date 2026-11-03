@@ -135,12 +135,12 @@ void update_client_server_entities (void)
 		iterations = set_entity_update_frame_rate (command_line_entity_update_frame_rate);
 	}
 
-	if (tacview_is_logging() && tacview_reset_frame())
-	{
-		write_tacview_frame_header();
-		memset (moved_entities, 0, MAX_NUM_ENTITIES / (sizeof (unsigned int) * 8));
-		memset (rotated_entities, 0, MAX_NUM_ENTITIES / (sizeof (unsigned int) * 8));
-	}
+
+
+
+
+
+
 
 	for (loop = 0; loop < iterations; loop ++)
 	{

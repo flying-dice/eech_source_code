@@ -3265,7 +3265,7 @@ void process_received_entity_comms_messages (void)
 					entity_index_list [loop] = unpack_entity_safe_index ();
 				}
 
-				create_meta_smoke_list_specified_offset (type, parent, &rel_pos, entity_index_list);
+
 
 				free_mem (entity_index_list);
 
@@ -3320,7 +3320,7 @@ void process_received_entity_comms_messages (void)
 					entity_index_list [loop] = unpack_entity_safe_index ();
 				}
 
-				create_meta_smoke_list_sub_object_offset (type, parent, sub_object_type, sub_object_depth, entity_index_list);
+
 
 				free_mem (entity_index_list);
 
@@ -4131,7 +4131,7 @@ void process_received_entity_comms_messages (void)
 
 				delay = unpack_float_value (en, FLOAT_TYPE_VALID_EFFECT_LIFETIME);
 
-				pause_local_entity_sound_type (en, type, delay);
+
 
 
 
@@ -4161,7 +4161,7 @@ void process_received_entity_comms_messages (void)
 
 				weapon_sub_type = unpack_int_value (en, INT_TYPE_ENTITY_SUB_TYPE);
 
-				pause_local_continuous_weapon_sound_effect (en, weapon_sub_type);
+
 
 
 
@@ -4831,7 +4831,7 @@ void process_received_entity_comms_messages (void)
 
 				type = unpack_int_value (en, INT_TYPE_ENTITY_SUB_TYPE);
 
-				resume_local_entity_sound_type (en, type);
+
 
 
 

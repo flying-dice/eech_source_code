@@ -606,7 +606,7 @@ void routed_vehicle_falling_movement (entity *en)
 
 					set_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &temp_pos);
 
-					create_client_server_collision_effect (&temp_pos, DYNAMICS_COLLISION_SURFACE_WATER, 1);
+
 				}
 
 				//
@@ -670,7 +670,7 @@ void routed_vehicle_falling_movement (entity *en)
 
 				set_local_entity_vec3d (en, VEC3D_TYPE_POSITION, &temp_pos);
 
-				create_client_server_collision_effect (&temp_pos, DYNAMICS_COLLISION_SURFACE_GROUND, 2);
+
 			}
 
 			velocity->y = 0.0;

@@ -276,9 +276,9 @@ static void set_local_int_value (entity *en, int_types type, int value)
 				}
 
 				// sound effects
-				pause_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING1, 0.5);
 
-				resume_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING2);
+
+
 			}
 			else if ((state1 == TRUE) && (state2 == FALSE))
 			{
@@ -290,9 +290,9 @@ static void set_local_int_value (entity *en, int_types type, int value)
 
 				set_vehicle_headlight_state (en, OFF);
 
-				pause_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING2, 0.5);
 
-				resume_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING1);
+
+
 			}
 
 			break;
@@ -307,7 +307,7 @@ static void set_local_int_value (entity *en, int_types type, int value)
 
 //			if (raw->selected_weapon != value)
 			{
-				pause_local_continuous_weapon_sound_effect (en, raw->selected_weapon);
+
 			}
 
 			raw->selected_weapon = value;

@@ -125,7 +125,7 @@ static void update_server (entity *en)
 
 	raw = (fixed_wing *) get_local_entity_data (en);
 
-	update_local_entity_view_interest_level (en);
+
 
 	damage_type = aircraft_critically_damaged (en);
 
@@ -150,21 +150,21 @@ static void update_server (entity *en)
 
 
 
-		update_propellors (en);
 
-		update_fixed_wing_afterburners (en);
 
-		update_fixed_wing_airbrakes (en);
 
-		update_fixed_wing_flaps (en);
 
-		update_aircraft_loading_doors (en);
 
-		update_aircraft_cargo_doors (en);
 
-		update_aircraft_undercarriage (en);
 
-		update_aircraft_rudder (en);
+
+
+
+
+
+
+
+
 
 
 		//
@@ -188,15 +188,15 @@ static void update_server (entity *en)
 
 		update_fixed_wing_crate_dropping (en);
 
-		if (tacview_is_logging() && raw->ac.mob.alive)
-		{
-			int
-				moved = get_local_entity_int_value(en, INT_TYPE_MOBILE_MOVING),
-				rotated = get_local_entity_int_value(en, INT_TYPE_ROTATED);
 
-			if (moved || rotated || command_line_tacview_logging < 3)
-				write_tacview_unit_update(en, moved, rotated, FALSE);
-		}
+
+
+
+
+
+
+
+
 		
 		if (damage_type > AIRCRAFT_DAMAGE_NONE)
 			if (frand1() < pow((float)damage_type, 4) * get_delta_time())
@@ -213,7 +213,7 @@ static void update_server (entity *en)
 	}
 	else
 	{
-		update_fixed_wing_afterburners (en);
+
 
 		if (get_local_entity_int_value (en, INT_TYPE_OPERATIONAL_STATE) == OPERATIONAL_STATE_DEAD)
 		{
@@ -249,7 +249,7 @@ static void update_client (entity *en)
 
 	raw = (fixed_wing *) get_local_entity_data (en);
 
-	update_local_entity_view_interest_level (en);
+
 
 	if (raw->ac.mob.alive)
 	{
@@ -272,21 +272,21 @@ static void update_client (entity *en)
 
 
 
-		update_propellors (en);
 
-		update_fixed_wing_afterburners (en);
 
-		update_fixed_wing_airbrakes (en);
 
-		update_fixed_wing_flaps (en);
 
-		update_aircraft_loading_doors (en);
 
-		update_aircraft_cargo_doors (en);
 
-		update_aircraft_undercarriage (en);
 
-		update_aircraft_rudder (en);
+
+
+
+
+
+
+
+
 
 
 		//
@@ -302,15 +302,15 @@ static void update_client (entity *en)
 		//
 
 
-		if (tacview_is_logging() && raw->ac.mob.alive)
-		{
-			int
-				moved = get_local_entity_int_value(en, INT_TYPE_MOBILE_MOVING),
-				rotated = get_local_entity_int_value(en, INT_TYPE_ROTATED);
 
-			if (moved || rotated || command_line_tacview_logging < 3)
-				write_tacview_unit_update(en, moved, rotated, FALSE);
-		}
+
+
+
+
+
+
+
+
 	}
 	else
 	{

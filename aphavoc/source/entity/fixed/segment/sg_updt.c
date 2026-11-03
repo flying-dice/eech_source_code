@@ -147,7 +147,7 @@ static void update_server (entity *en)
 			delete_local_entity_from_parents_child_list (en, LIST_TYPE_UPDATE);
 	
 			if (get_comms_model () == COMMS_MODEL_SERVER)
-				create_client_server_collision_effect (pos, DYNAMICS_COLLISION_SURFACE_GROUND, 2);
+
 		}
 	}
 	else

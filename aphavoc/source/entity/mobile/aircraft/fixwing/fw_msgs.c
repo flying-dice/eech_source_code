@@ -228,7 +228,7 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 
 		if (aggressor)
 		{
-			play_aircraft_destroyed_speech (receiver, aggressor);
+
 		}
 	}
 	else
@@ -242,7 +242,7 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 
 		if (aggressor)
 		{
-			play_aircraft_shot_at_speech (receiver, aggressor);
+
 		}
 
 
@@ -278,7 +278,7 @@ static int response_to_waypoint_lift_off_reached (entity_messages message, entit
 
 		set_client_server_entity_int_value (receiver, INT_TYPE_OPERATIONAL_STATE, OPERATIONAL_STATE_TAKEOFF);
 
-		write_tacview_unit_event(receiver, TACVIEW_UNIT_TOOK_OFF, NULL);
+
 	}
 
 	return (TRUE);
@@ -340,7 +340,7 @@ static int response_to_waypoint_touch_down_reached (entity_messages message, ent
 
 		close_client_server_entity_flaps( receiver );
 
-		write_tacview_unit_event(receiver, TACVIEW_UNIT_LANDED, NULL);
+
 
 		//
 		// sound effect

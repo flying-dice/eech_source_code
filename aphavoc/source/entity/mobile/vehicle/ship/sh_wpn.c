@@ -116,7 +116,7 @@ void update_ship_vehicle_weapon_fire (entity *en)
 	{
 		if (raw->vh.weapon_burst_timer > 0.0)
 		{
-			pause_client_server_continuous_weapon_sound_effect (en, raw->vh.selected_weapon);
+
 		}
 
 		return;
@@ -130,7 +130,7 @@ void update_ship_vehicle_weapon_fire (entity *en)
 	{
 		if (raw->vh.weapon_burst_timer > 0.0)
 		{
-			pause_client_server_continuous_weapon_sound_effect (en, raw->vh.selected_weapon);
+
 		}
 
 		return;
@@ -144,7 +144,7 @@ void update_ship_vehicle_weapon_fire (entity *en)
 	{
 		if (raw->vh.weapon_burst_timer > 0.0)
 		{
-			pause_client_server_continuous_weapon_sound_effect (en, raw->vh.selected_weapon);
+
 		}
 
 		return;
@@ -164,7 +164,7 @@ void update_ship_vehicle_weapon_fire (entity *en)
 	{
 		if (raw->vh.weapon_burst_timer > 0.0)
 		{
-			pause_client_server_continuous_weapon_sound_effect (en, raw->vh.selected_weapon);
+
 		}
 
 		return;
@@ -186,7 +186,7 @@ void update_ship_vehicle_weapon_fire (entity *en)
 		}
 		else
 		{
-			pause_client_server_continuous_weapon_sound_effect (en, raw->vh.selected_weapon);
+
 		}
 	}
 

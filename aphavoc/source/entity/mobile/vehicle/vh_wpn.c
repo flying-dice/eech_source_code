@@ -407,7 +407,7 @@ while(TRUE)
 
 	if (burst_timer_state > 0.0 && raw->weapon_burst_timer <= 0.0)
 	{
-		pause_client_server_continuous_weapon_sound_effect (en, raw->selected_weapon);
+
 	}
 
 
@@ -422,7 +422,7 @@ while(TRUE)
 
 /*	if (raw->selected_weapon == ENTITY_SUB_TYPE_WEAPON_NO_WEAPON)
 	{
-		pause_client_server_continuous_weapon_sound_effect (en, raw->selected_weapon);
+
 	} */
 }
 

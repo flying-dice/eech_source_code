@@ -101,7 +101,7 @@ static void update_server (entity *en)
 
 	if (raw->kill_code != WEAPON_KILL_CODE_OK)
 	{
-		create_client_server_weapon_killed_explosion_effect (en);
+
 
 		raw->mob.kill_next_update = TRUE;
 	}

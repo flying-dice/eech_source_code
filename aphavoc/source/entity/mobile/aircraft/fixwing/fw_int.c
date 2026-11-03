@@ -111,7 +111,7 @@ static void set_local_int_value (entity *en, int_types type, int value)
 				// wasn't moving, but is now
 				//
 
-				resume_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING1);
+
 			}
 			else if ((state1 == TRUE) && (state2 == FALSE))
 			{
@@ -119,9 +119,9 @@ static void set_local_int_value (entity *en, int_types type, int value)
 				// was moving, but isn't anymore
 				//
 
-				pause_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING1, 0.5);
 
-				pause_local_entity_sound_type (en, ENTITY_SUB_TYPE_EFFECT_SOUND_ENGINE_LOOPING2, 0.5);
+
+
 			}
 
 			break;

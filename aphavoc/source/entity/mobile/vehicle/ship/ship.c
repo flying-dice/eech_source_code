@@ -161,7 +161,7 @@ void attach_ship_meta_smoke_lists (entity *en)
 					break;
 				}
 
-				attach_local_meta_smoke_lists_to_object (en, type, attachment_point, NULL);
+
 			}
 		}
 
@@ -379,7 +379,7 @@ void unpack_ship_meta_smoke_lists (entity *en, pack_modes mode)
 
 								//attach_local_meta_smoke_lists_to_object (en, type, attachment_point, entity_index_list);
 
-								register_attach_meta_smoke_list_to_object (en, type, attachment_point, entity_index_list, count);
+
 
 								free_mem (entity_index_list);
 							}

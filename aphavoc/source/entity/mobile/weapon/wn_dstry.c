@@ -147,10 +147,10 @@ static void destroy_local (entity *en)
 	// if the weapon is a decoy then any locked on weapons should re-acquire lock on the target (decoy launcher) if any
 	//
 
-	if (tacview_is_logging())
-	{
-		write_tacview_unit_event(en, TACVIEW_UNIT_DESTROYED, NULL);
-	}
+
+
+
+
 
 	if (weapon_database[raw->mob.sub_type].decoy_type != WEAPON_DECOY_TYPE_NONE)
 	{
@@ -221,63 +221,63 @@ static void destroy_local (entity *en)
 
 
 
-static void destroy_remote (entity *en)
-{
 
 
 
 
 
 
-	transmit_entity_comms_message (ENTITY_COMMS_DESTROY, en);
-}
 
 
 
 
 
-static void destroy_server (entity *en)
-{
-	//
-	// destroy remote entity first (keeping local entity valid)
-	//
-
-	validate_client_server_remote_fn ();
-
-	destroy_remote (en);
-
-	validate_client_server_local_fn ();
-
-	//
-	// destroy local using 'full' function
-	//
-
-	destroy_local_entity (en);
-}
 
 
 
 
 
-static void destroy_client (entity *en)
-{
-	if (get_comms_data_flow () == COMMS_DATA_FLOW_TX)
-	{
-		validate_client_server_remote_fn ();
 
-		destroy_remote (en);
-	}
-	else
-	{
-		validate_client_server_local_fn ();
 
-		//
-		// destroy local using 'full' function
-		//
 
-		destroy_local_entity (en);
-	}
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

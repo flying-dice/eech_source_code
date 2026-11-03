@@ -449,12 +449,12 @@ void assess_vehicle_damage_level (entity *en, int old_damage_level)
 
 			if (get_local_entity_int_value (en, INT_TYPE_EXPLOSIVE_POWER) > 2)
 			{
-				create_client_server_meta_smoke_list_specified_offset (META_SMOKE_LIST_TYPE_INFINITE_FIRE, en, NULL);
+
 				set_client_server_entity_float_value(en, FLOAT_TYPE_SLEEP, 6000);
 			}
 			else
 			{
-				create_client_server_meta_smoke_list_specified_offset (META_SMOKE_LIST_TYPE_SMALL_FIRE_SHORT_DURATION, en, NULL);
+
 				set_client_server_entity_float_value(en, FLOAT_TYPE_SLEEP, 300);
 			}
 

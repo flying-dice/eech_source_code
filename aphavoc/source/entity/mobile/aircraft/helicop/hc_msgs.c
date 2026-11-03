@@ -341,7 +341,7 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 
 		if (aggressor)
 		{
-			play_aircraft_destroyed_speech (receiver, aggressor);
+
 		}
 	}
 	else
@@ -386,7 +386,7 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 
 		if (aggressor)
 		{
-			play_aircraft_shot_at_speech (receiver, aggressor);
+
 		}
 
 

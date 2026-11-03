@@ -149,7 +149,7 @@ void attach_routed_vehicle_meta_smoke_lists (entity *en)
 					break;
 				}
 
-				attach_local_meta_smoke_lists_to_object (en, type, attachment_point, NULL);
+
 			}
 		}
 
@@ -365,7 +365,7 @@ void unpack_routed_vehicle_meta_smoke_lists (entity *en, pack_modes mode)
 
 								}
 
-								register_attach_meta_smoke_list_to_object (en, type, attachment_point, entity_index_list, count);
+
 
 								free_mem (entity_index_list);
 							}

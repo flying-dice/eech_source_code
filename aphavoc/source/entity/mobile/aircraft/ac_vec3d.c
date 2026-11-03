@@ -212,7 +212,7 @@ static void set_local_vec3d (entity *en, vec3d_types type, vec3d *v)
 				{
 					if (get_local_entity_int_value (new_sector, INT_TYPE_SIDE) != get_local_entity_int_value (old_sector, INT_TYPE_SIDE))
 					{
-						play_aircraft_flown_into_new_sector_speech (en, old_sector, new_sector);
+
 					}
 				}
          }

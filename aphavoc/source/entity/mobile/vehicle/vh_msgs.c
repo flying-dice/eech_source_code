@@ -160,7 +160,7 @@ static int response_to_link_parent (entity_messages message, entity *receiver, e
 
 			if (get_comms_model () == COMMS_MODEL_SERVER)
 			{
-				play_aircraft_targeted_speech (sender, receiver);
+
 			}
 
 			break;

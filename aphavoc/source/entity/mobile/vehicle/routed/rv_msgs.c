@@ -140,7 +140,7 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 	{
 		if (aggressor)
 		{
-			play_vehicle_destroyed_speech (receiver, aggressor);
+
 
 //			credit_client_server_mobile_kill (receiver, aggressor);
 		}
@@ -162,7 +162,7 @@ static int response_to_collision (entity_messages message, entity *receiver, ent
 
 		if (aggressor)
 		{
-			play_vehicle_shot_at_speech (receiver, aggressor);
+
 		}
 
 

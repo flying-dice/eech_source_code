@@ -256,7 +256,7 @@ static void set_local_int_value (entity *en, int_types type, int value)
 
 //			if (raw->selected_weapon != value)
 			{
-				pause_local_continuous_weapon_sound_effect (en, raw->selected_weapon);
+
 			}
 
 			//
@@ -265,7 +265,7 @@ static void set_local_int_value (entity *en, int_types type, int value)
 
 			if (get_comms_model () == COMMS_MODEL_SERVER)
 			{
-				play_entity_weapon_selected_speech (en, value);
+
 			}
 
 			raw->selected_weapon = value;

@@ -87,7 +87,7 @@ static void update_server (entity *en)
 
 	raw = (person *) get_local_entity_data (en);
 
-	update_local_entity_view_interest_level (en);
+
 
 	raw->vh.sleep -= get_delta_time ();
 
@@ -177,7 +177,7 @@ static void update_client (entity *en)
 
 	raw = (person *) get_local_entity_data (en);
 
-	update_local_entity_view_interest_level (en);
+
 
 	raw->vh.sleep -= get_delta_time ();
 

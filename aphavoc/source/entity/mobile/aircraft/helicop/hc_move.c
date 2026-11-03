@@ -501,7 +501,7 @@ void helicopter_death_movement (entity *en)
 
 			if (get_comms_model() == COMMS_MODEL_SERVER)
 			{
-				kill_helicopter_rotor_sound_effects (en);
+
 			}
 
 			//
@@ -593,14 +593,14 @@ void helicopter_death_movement (entity *en)
 					case TERRAIN_CLASS_WATER:
 					{
 						power = (int) (bound(total_velocity / 5, 0, 1));
-						create_client_server_collision_effect (&temp_pos, DYNAMICS_COLLISION_SURFACE_WATER, power);
+
 						break;
 					}
 					case TERRAIN_CLASS_LAND:
 					case TERRAIN_CLASS_FOREST:
 					{
 						power = (int) (bound(total_velocity / 5, 0, 4));
-						create_client_server_collision_effect (&temp_pos, DYNAMICS_COLLISION_SURFACE_GROUND, power);
+
 						if (power > 1)
 							create_client_server_crater ((crater_types)(CRATER_TYPE_SMALL_EXPLOSION + (power - 2)), pos);
 						
@@ -614,7 +614,7 @@ void helicopter_death_movement (entity *en)
 
 				if (get_comms_model() == COMMS_MODEL_SERVER)
 				{
-					kill_helicopter_rotor_sound_effects (en);
+
 				}
 			}
 		}

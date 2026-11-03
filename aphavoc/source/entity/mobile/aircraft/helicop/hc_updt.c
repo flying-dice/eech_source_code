@@ -222,9 +222,9 @@ static void update_server (entity *en)
 
 	raw = (helicopter *) get_local_entity_data (en);
 
-	update_local_entity_view_interest_level (en);
 
-	update_local_helicopter_rotor_sounds (en);
+
+
 
 	damage_type = aircraft_critically_damaged (en);
 	
@@ -284,17 +284,17 @@ static void update_server (entity *en)
 
 				if (raw->ac.mob.alive)
 				{
-					update_rotors (en);
+
 
 					update_fuel_weight (en);
 					
-					update_aircraft_loading_doors (en);
 
-					update_aircraft_cargo_doors (en);
 
-					update_aircraft_undercarriage (en);
 
-					update_aircraft_rudder (en);
+
+
+
+
 
 					update_aircraft_target_scan (en);
 
@@ -412,11 +412,11 @@ static void update_server (entity *en)
 
 				if (raw->ac.mob.alive)
 				{
-					update_aircraft_loading_doors (en);
 
-					update_aircraft_cargo_doors (en);
 
-					update_aircraft_undercarriage (en);
+
+
+
 
 					update_aircraft_weapon_system_ready (en);
 
@@ -512,11 +512,11 @@ static void update_server (entity *en)
 
 				if (raw->ac.mob.alive)
 				{
-					update_aircraft_loading_doors (en);
 
-					update_aircraft_cargo_doors (en);
 
-					update_aircraft_undercarriage (en);
+
+
+
 
 					update_aircraft_weapon_system_ready (en);
 
@@ -532,18 +532,18 @@ static void update_server (entity *en)
 			}
 		}
 
-		if (tacview_is_logging() && raw->ac.mob.alive)
-		{
-			int
-				moved = get_local_entity_int_value(en, INT_TYPE_MOBILE_MOVING),
-				rotated = get_local_entity_int_value(en, INT_TYPE_ROTATED);
 
-			if (en == get_gunship_entity())
-				tacview_update_gunship();
 
-			if (moved || rotated || command_line_tacview_logging < 3)
-				write_tacview_unit_update(en, moved, rotated, FALSE);
-		}
+
+
+
+
+
+
+
+
+
+
 	}
 	else
 	{
@@ -595,9 +595,9 @@ static void update_client (entity *en)
 
 	raw = (helicopter *) get_local_entity_data (en);
 
-	update_local_entity_view_interest_level (en);
 
-	update_local_helicopter_rotor_sounds (en);
+
+
 
 	damage_type = aircraft_critically_damaged (en);
 
@@ -644,13 +644,13 @@ static void update_client (entity *en)
 
 				if (raw->ac.mob.alive)
 				{
-					update_rotors (en);
 
-					update_aircraft_loading_doors (en);
 
-					update_aircraft_cargo_doors (en);
 
-					update_aircraft_undercarriage (en);
+
+
+
+
 
 					update_aircraft_weapon_system_ready (en);
 
@@ -689,7 +689,7 @@ static void update_client (entity *en)
 
 				if ((!fire_continuous_weapon) && (get_local_entity_sound_type_valid (en, weapon_database [raw->ac.selected_weapon].launch_sound_effect_sub_type)))
 				{
-					pause_client_server_continuous_weapon_sound_effect (en, raw->ac.selected_weapon);
+
 				}
 
 				//helicopter_death_movement (en);
@@ -761,11 +761,11 @@ static void update_client (entity *en)
 
 				if (raw->ac.mob.alive)
 				{
-					update_aircraft_loading_doors (en);
 
-					update_aircraft_cargo_doors (en);
 
-					update_aircraft_undercarriage (en);
+
+
+
 
 					update_aircraft_weapon_system_ready (en);
 
@@ -811,11 +811,11 @@ static void update_client (entity *en)
 
 				if (raw->ac.mob.alive)
 				{
-					update_aircraft_loading_doors (en);
 
-					update_aircraft_cargo_doors (en);
 
-					update_aircraft_undercarriage (en);
+
+
+
 
 					update_aircraft_weapon_system_ready (en);
 
@@ -864,18 +864,18 @@ static void update_client (entity *en)
 			}
 		}
 
-		if (tacview_is_logging() && raw->ac.mob.alive)
-		{
-			int
-				moved = get_local_entity_int_value(en, INT_TYPE_MOVED),
-				rotated = get_local_entity_int_value(en, INT_TYPE_ROTATED);
 
-			if (en == get_gunship_entity())
-				tacview_update_gunship();
 
-			if (moved || rotated)
-				write_tacview_unit_update(en, moved, rotated, FALSE);
-		}
+
+
+
+
+
+
+
+
+
+
 
 	}
 	else
