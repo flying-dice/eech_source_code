@@ -18,6 +18,29 @@ const SCRIPT: &str = include_str!("../lua/tree-authority.lua");
 /// frame, the fixture API, the counter, the output file's failures, and a scripted engine stop. `WRITTEN` collects what the driver wrote; `CLOSED` counts closes.
 const COLLABORATORS: &str = r#"
 WRITTEN, CLOSED, CREATED = {}, 0, false
+AIM_LOG, CALLER_MUTATED, ORIGINAL = {}, false, nil
+local function deep_copy (value)
+	if type (value) ~= "table" then return value end
+	local copy = {}
+	for key, inner in pairs (value) do copy [key] = deep_copy (inner) end
+	return copy
+end
+-- the paths at which two requests differ; numbers are compared by their printed form so that a signed zero is a difference
+local function differences (a, b, path, out)
+	if type (a) == "table" and type (b) == "table" then
+		local seen = {}
+		for key in pairs (a) do seen [key] = true end
+		for key in pairs (b) do seen [key] = true end
+		for key in pairs (seen) do
+			local inner = type (key) == "number" and (path .. "[" .. key .. "]") or (path == "" and key or (path .. "." .. key))
+			differences (a [key], b [key], inner, out)
+		end
+	elseif type (a) == "number" and type (b) == "number" then
+		if string.format ("%g", a) ~= string.format ("%g", b) then out [#out + 1] = path end
+	elseif a ~= b then
+		out [#out + 1] = path
+	end
+end
 local scenario = SCENARIO
 local file = { writes = 0, flushes = 0 }
 function file:write (text)
@@ -81,7 +104,16 @@ host = {
 		profile_stage = "selected"
 	end,
 	bind_mobile = function () ids = ids + 1 return "eech-world:" .. ids end,
-	aim = function () end,
+	-- the unmodified host aim: it records every request it receives, the paths where it differs from the engine's pristine request, and whether a signed zero survived
+	aim = function (request)
+		local paths = {}
+		differences (ORIGINAL, request, "", paths)
+		table.sort (paths)
+		local answers = request.answers
+		local zero = type (answers) == "table" and type (answers [1]) == "table" and type (answers [1].f) == "table" and string.format ("%g", answers [1].f [1]) or "-"
+		AIM_LOG [#AIM_LOG + 1] = { mode = request.mode, launched = ARMED_NOW, paths = table.concat (paths, ","), zero = zero, request = request }
+		return { state = "done" }
+	end,
 	env_provider = function () return function () return {} end end,
 	terrain_provider = function () return real_provider () end,
 	create_exclusive = function ()
@@ -115,6 +147,28 @@ package.preload.eech_dc = function ()
 				if not ok then stop (marker .. ".callback", tostring (answer)) end
 				return answer
 			end
+			-- one weapon step as the campaign sends it: the lookup answers of the round (a first round has none), VIEW_WEAPON (kind 1) among them, with a signed zero in an unrelated word
+			local function weapon_step (mode, with_answers)
+				local request = { mode = mode, weapon = 7, delta_time = 0.1, position = { 1, 2, 3 }, answers = {} }
+				if with_answers and not scenario.no_view_answer then
+					request.answers = {
+						{ kind = 3, a = 1, b = 2, c = 3, d = 4, f = { -0.0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 } },
+						{ kind = 1, a = 0, b = 0, c = 0, d = 0, f = { 0, 0, 0, 0, 0, 0, scenario.view_preset or 0, 0, 0, 0, 0, 0 } },
+						{ kind = 14, a = 0, b = 0, c = 0, d = 0, f = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 } },
+					}
+					if scenario.short_view then request.answers [2].f [12] = nil end
+				end
+				ORIGINAL, ARMED_NOW = deep_copy (request), launched
+				local pristine = deep_copy (request)
+				config.aim (request)
+				local mutated = {}
+				differences (pristine, request, "", mutated)
+				if #mutated > 0 then CALLER_MUTATED = true end
+				-- the host's step uses the view only if the request it received carries a viewed answer
+				local seen = AIM_LOG [#AIM_LOG].request.answers
+				return with_answers and type (seen) == "table" and type (seen [2]) == "table" and seen [2].kind == 1 and seen [2].f [7] == 1 and not scenario.view_ignored
+			end
+			local precision = 0
 			local function tree_test ()
 				tests = tests + 1
 				-- the ORIGINAL profile's flight: the solver runs inside the module and the host is asked nothing
@@ -145,14 +199,19 @@ package.preload.eech_dc = function ()
 			end
 			function engine:frame (milliseconds)
 				if not (launched and scenario.stall_after_launch) then now = now + (scenario.clock_step or milliseconds / 1000) end
+				-- every frame: a first round (no answers), then the full round, and a birth step that must reach the host untouched
+				weapon_step ("weapon_step", false)
+				local effective = weapon_step ("weapon_step", true)
+				weapon_step ("weapon_birth", true)
+				if launched and effective then precision = precision + 1 end
 				if launched then
 					since_launch = since_launch + 1
-					if not scenario.no_tree_tests then tree_test () end
+					if effective and not scenario.no_tree_tests then tree_test () end
 					for _, line in ipairs ((scenario.after or {}) [since_launch] or {}) do queue [#queue + 1] = line end
 				end
 			end
 			-- the scripted roster: positions by roster id (scenario.positions), and the launchers with a ballistic weapon in stock (scenario.armed; default only the first mobile)
-			local positions = scenario.positions or { ["eech-world:1"] = "0,0,0", ["eech-world:2"] = "30,0,20" }
+			local positions = scenario.positions or { ["eech-world:1"] = "0,0,0", ["eech-world:2"] = "100,0,100" }
 			local armed = scenario.armed or { ["eech-world:1"] = true }
 			function engine:wpn_case_query (id, weapon)
 				local position = positions [id] or "1000000,0,1000000"
@@ -170,7 +229,7 @@ package.preload.eech_dc = function ()
 				queue = {}
 				return text
 			end
-			function engine:wpn_trace () return "wpn-counter name=other value=9\nwpn-counter name=contact_trees_tests value=" .. (launched and (scenario.extra_tests or 0) or 0) + tests .. "\n" end
+			function engine:wpn_trace () return "wpn-counter name=other value=9\nwpn-counter name=contact_trees_tests value=" .. (launched and (scenario.extra_tests or 0) or 0) + tests .. "\nwpn-counter name=precision_high value=" .. precision .. "\n" end
 			return engine
 		end,
 	}
@@ -182,6 +241,9 @@ struct Driven {
     rows: String,
     closed: i64,
     created: bool,
+    /// (mode, armed at the call, paths where the host's aim differed from the engine's pristine request, the printed first word of the unrelated answer)
+    aim_log: Vec<(String, bool, String, String)>,
+    caller_mutated: bool,
 }
 
 /// Runs the real driver once. `scenario` is the inside of the Lua table the collaborators read; `args` are the driver's own arguments.
@@ -206,6 +268,21 @@ fn drive(scenario: &str, args: &[(&str, &str)]) -> Driven {
         rows: written.concat(),
         closed: lua.globals().get("CLOSED").expect("the close count"),
         created: lua.globals().get("CREATED").expect("the creation flag"),
+        aim_log: {
+            let log: mlua::Table = lua.globals().get("AIM_LOG").expect("the aim log");
+            log.sequence_values::<mlua::Table>()
+                .map(|entry| {
+                    let entry = entry.expect("a log entry");
+                    (
+                        entry.get::<String>("mode").unwrap(),
+                        entry.get::<Option<bool>>("launched").unwrap().unwrap_or(false),
+                        entry.get::<String>("paths").unwrap(),
+                        entry.get::<String>("zero").unwrap(),
+                    )
+                })
+                .collect()
+        },
+        caller_mutated: lua.globals().get("CALLER_MUTATED").expect("the mutation flag"),
     }
 }
 
@@ -498,9 +575,11 @@ fn selected(driven: &Driven) -> Value {
         .unwrap_or_else(|| panic!("no case_selected row: {}", driven.rows))
 }
 
+// The selection tests of the previous batch (a grid of launcher-target pairs within 50 m) asserted a private rule that the second native actual disproved: the nearest pair AT LAUNCH is not
+// the weapon's NEW position, and the precision input the original flight reads is the VIEW_WEAPON lookup. They are replaced by the contract that matters, the controlled view input below;
+// the launch is back to the simple known one (the first launcher with an unguided ballistic weapon in stock and its nearest enemy).
 #[test]
-fn the_controlled_launch_takes_the_nearest_valid_target_of_any_side_within_the_collision_precision_range() {
-    // positive first: the default war has the armed launcher with a red target 36 m away (inside the 50 m of wn_flight.c) and the run passes
+fn the_launch_is_the_first_ballistic_launcher_and_its_nearest_enemy_the_known_baseline() {
     let driven = drive(&healthy(""), &[]);
     let outcome = driven.result.clone();
     assert!(outcome.is_ok(), "{outcome:?}\n{}", driven.rows);
@@ -509,50 +588,103 @@ fn the_controlled_launch_takes_the_nearest_valid_target_of_any_side_within_the_c
         (row["launcher"].clone(), row["target"].clone(), row["weapon"].clone()),
         (Value::from("eech-world:1"), Value::from("eech-world:2"), Value::from(7))
     );
-    assert_eq!(row["distance"], "36.056");
-    assert_eq!(row["precision_range"], 50);
-    // the nearest target of ANY side: a blue (same side) entity 20 m away is taken over the red one at 40 m, and the row says so
-    let scenario =
-        healthy(", extra_mobiles = { 'blue' }, positions = { ['eech-world:1'] = '0,0,0', ['eech-world:2'] = '40,0,0', ['eech-world:3'] = '20,0,0' }");
+    assert_eq!(row["selection"], "first_ballistic_launcher_nearest_enemy");
+    // a nearer ENEMY is taken over a farther one, a nearer friend is not a candidate
+    let scenario = healthy(", extra_mobiles = { 'red', 'blue' }, positions = { ['eech-world:1'] = '0,0,0', ['eech-world:2'] = '100,0,100', ['eech-world:3'] = '40,0,0', ['eech-world:4'] = '5,0,0' }");
     let driven = drive(&scenario, &[]);
     let outcome = driven.result.clone();
     assert!(outcome.is_ok(), "{outcome:?}\n{}", driven.rows);
-    let row = selected(&driven);
-    assert_eq!(
-        (row["target"].clone(), row["distance"].clone(), row["same_side"].clone()),
-        (Value::from("eech-world:3"), Value::from("20.000"), Value::from(true))
-    );
-    // a nearer pair whose launcher has no ballistic weapon is skipped: the first ARMED launcher's nearest target is the case
-    let scenario = healthy(", extra_mobiles = { 'red' }, positions = { ['eech-world:1'] = '0,0,0', ['eech-world:2'] = '45,0,0', ['eech-world:3'] = '47,0,0' }");
-    let driven = drive(&scenario, &[]);
+    assert_eq!(selected(&driven)["target"], "eech-world:3");
+}
+
+#[test]
+fn the_armed_weapon_step_is_given_the_configured_view_and_everything_else_reaches_the_host_unchanged() {
+    // positive first: the healthy run is complete, the host's step used the view (precision rose), and the tree questions reached the unmodified provider
+    let driven = drive(&healthy(""), &[]);
     let outcome = driven.result.clone();
     assert!(outcome.is_ok(), "{outcome:?}\n{}", driven.rows);
-    let row = selected(&driven);
+    let row = authority(&driven);
+    assert_eq!(row["view_input"], "configured_view_weapon_true_on_armed_weapon_steps");
     assert_eq!(
-        (row["launcher"].clone(), row["target"].clone(), row["distance"].clone()),
-        (Value::from("eech-world:1"), Value::from("eech-world:2"), Value::from("45.000"))
+        (
+            row["view_steps_seen"].clone(),
+            row["view_answers_seen"].clone(),
+            row["view_applied"].clone(),
+            row["view_already_set"].clone()
+        ),
+        (Value::from(2), Value::from(1), Value::from(1), Value::from(0))
     );
-    assert_eq!(row["pairs_in_range"], 6, "all six ordered pairs of the three entities are within 50 m");
-    // single faults: the only target is at or beyond the precision range (the range is strict: 50 m is outside), or no launcher is armed: a named setup failure, never a chosen distant pair
-    for positions in ["['eech-world:2'] = '50,0,0'", "['eech-world:2'] = '100,0,100'", "['eech-world:2'] = '0,60,0'"] {
-        let scenario = format!("positions = {{ ['eech-world:1'] = '0,0,0', {positions} }}, {}", healthy(""));
-        let driven = drive(&scenario, &[]);
-        let rows_text = driven.rows.clone();
-        let error = error_of(driven);
-        assert!(
-            error.contains("SETUP FAILURE") && error.contains("50 m collision-precision range"),
-            "{positions}: {error}"
-        );
-        assert!(
-            rows_text.contains("\"launcher\":\"none\"") && !rows_text.contains("\"event\":\"case_launch\""),
-            "{positions}: {rows_text}"
-        );
+    assert_eq!(
+        (row["precision_high_delta"].clone(), row["tests_delta"].clone(), row["tree_begin_after"].clone()),
+        (Value::from(1), Value::from(1), Value::from(1))
+    );
+    assert!(!driven.caller_mutated, "the caller's request table must not change");
+    for (mode, armed, paths, zero) in &driven.aim_log {
+        // only an ARMED weapon_step WITH the lookup answer differs, and only in the sixth result word of the VIEW_WEAPON answer (f[7] in Lua)
+        // a first round has no answers (zero is "-"); the full round carries the signed zero of its unrelated word
+        let expected = if *armed && mode == "weapon_step" && zero != "-" {
+            "answers[2].f[7]"
+        } else {
+            ""
+        };
+        assert_eq!(paths, expected, "{mode} armed={armed}: {paths}");
     }
-    let error = error_of(drive(&format!("armed = {{}}, {}", healthy("")), &[]));
-    assert!(error.contains("SETUP FAILURE"), "{error}");
-    // and a selected pair that still makes no tree test remains UNREACHED: the counter guard is not weakened
+    let armed_full: Vec<_> = driven
+        .aim_log
+        .iter()
+        .filter(|(mode, armed, paths, _)| *armed && mode == "weapon_step" && !paths.is_empty())
+        .collect();
+    assert_eq!(
+        armed_full.len(),
+        1,
+        "one armed full-round weapon step carries the VIEW_WEAPON answer: {:?}",
+        driven.aim_log
+    );
+    assert_eq!(
+        armed_full[0].3, "-0",
+        "a signed zero in an unrelated result word reached the host as a signed zero"
+    );
+    // the warmup steps (not armed), the armed first round (no answers) and the armed birth step are passed through untouched
+    assert!(driven
+        .aim_log
+        .iter()
+        .any(|(mode, armed, paths, _)| !*armed && mode == "weapon_step" && paths.is_empty()));
+    assert!(driven
+        .aim_log
+        .iter()
+        .any(|(mode, armed, paths, _)| *armed && mode == "weapon_birth" && paths.is_empty()));
+    // the unrelated word is also the same in the unmodified warmup request
+    assert!(driven.aim_log.iter().filter(|(_, _, _, zero)| zero != "-").all(|(_, _, _, zero)| zero == "-0"));
+}
+
+#[test]
+fn a_view_input_that_was_not_used_or_never_reached_a_weapon_step_is_unreached_and_never_a_pass() {
+    // the host ignores the viewed answer: the step never took the high-precision path
+    let error = error_of(drive(&healthy(", view_ignored = true"), &[]));
+    assert!(error.contains("UNREACHED") && error.contains("precision_high did not rise"), "{error}");
+    // the campaign sent no VIEW_WEAPON answer at all: the input never reached a weapon step
+    let error = error_of(drive(&healthy(", no_view_answer = true"), &[]));
+    assert!(error.contains("UNREACHED") && error.contains("never reached a weapon step"), "{error}");
+    // the view is applied and used but the flight makes no tree test: still UNREACHED, the counter guard is not weakened
     let error = error_of(drive(&healthy(", no_tree_tests = true"), &[]));
-    assert!(error.contains("UNREACHED"), "{error}");
+    assert!(error.contains("UNREACHED") && error.contains("no tree test"), "{error}");
+    // a VIEW_WEAPON answer that does not carry twelve result words cannot be applied exactly: a witness failure, not a guess
+    let error = error_of(drive(&healthy(", short_view = true"), &[]));
+    assert!(error.contains("twelve result words"), "{error}");
+    // a view the campaign already answered as set is counted, not hidden
+    let driven = drive(&healthy(", view_preset = 1"), &[]);
+    let outcome = driven.result.clone();
+    assert!(outcome.is_ok(), "{outcome:?}\n{}", driven.rows);
+    assert_eq!(authority(&driven)["view_already_set"], 1);
+    // the Original profile gets the identical input
+    let driven = drive(&healthy(", fixture_api = true, original_tests = true"), &[("profile", "original")]);
+    let rows_text = driven.rows.clone();
+    let error = error_of(driven);
+    assert!(error.contains("CAPABILITY RED"), "{error}");
+    assert!(
+        rows_text.contains("\"view_applied\":1") && rows_text.contains("\"precision_high_delta\":1"),
+        "{rows_text}"
+    );
 }
 
 #[test]

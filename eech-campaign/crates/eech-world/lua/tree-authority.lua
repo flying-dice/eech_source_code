@@ -31,10 +31,16 @@
 --   old_twice         tree_begin asks OLD, and tree_terrain asks OLD again:                                             [terrain-provider:tree.lookups]
 --   third_lookup      tree_begin asks OLD, tree_terrain asks NEW, and the next tree_terrain asks NEW again:             [terrain-provider:tree.lookups]
 --
--- THE CONTROLLED LAUNCH. The original flight asks for the tree lookup only after an entity-collision miss and only at high collision precision (wn_flight.c: a non-AI target or launcher, a viewed
--- weapon, or the weapon's new position within 50 m of its target). The witness therefore launches from the launcher that has an unguided ballistic weapon in stock and the NEAREST valid target of
--- any side within that 50 m of it (`case_selected` records the selection, the distance and whether the sides are equal): a test precondition, not a campaign decision, applied identically in the
--- hosted and Original profiles. A near target does not imply a miss; a run that still makes no tree test is UNREACHED, and with no such pair in the war the setup fails by name.
+-- THE CONTROLLED VIEW INPUT. The original flight asks for the tree lookup only after an entity-collision MISS and only at high collision precision (wn_flight.c: a non-AI target or launcher, a
+-- viewed weapon, or the weapon's NEW position within 50 m of its target). A fast projectile fired at a distant target fell to the ground first (first actual), and the nearest launcher-target pair
+-- at launch is not the weapon's new position (second actual: a person and a target 0.039 m apart, a 72-step flight, zero tree tests). The existing host protocol already carries the physical
+-- fact the precision rule reads: the weapon-step lookup VIEW_WEAPON (mb_hostaim.h CAMPAIGN_STEP_LOOKUP_VIEW_WEAPON, answered r0 in wn_move.c, consumed by the host step before its unmodified
+-- precision rule). When armed, the witness's aim delegate therefore answers that existing lookup with viewed = 1 on every weapon_step request, and delegates to the unmodified host.aim. It copies only
+-- the request and the one answer it changes (the answer event of kind 1, its sixth result word f[7]); every other field, event, lookup and mode is passed unchanged. This is a CONFIGURED diagnostic
+-- view input, not a claim that a camera viewed the round, not a player or campaign decision and not a tree call: the entity miss, the tree question and the counters stay measured. It is applied
+-- identically in the hosted and the Original profile, and to every weapon step of the war while armed (the protocol carries no weapon identity, so natural weapons are affected too and the
+-- control is "the TREE provider unmodified under this controlled view input", not a wholly unaltered host). The launch is the simple known one: the first launcher with an unguided ballistic
+-- weapon in stock and its nearest enemy. A run in which the step never used the input, or made no tree test, is UNREACHED.
 --
 -- WHAT COUNTS AS THE ENGINE STOPPING: only the first line of the failure, anchored: `runtime error: eech: EECH fatal error: host terrain: [terrain-provider:<marker>] `. A Lua error that merely
 -- mentions a marker, a witness failure, a failure without that wrapper and a different marker (a callback cause where an answer cause was expected) are failures of the witness, never proof. After
@@ -339,12 +345,54 @@ local function provider (request)
 	return answer
 end
 
+-- ---------------------------------------------------------------------------------------------------------------- the controlled view input (an aim delegate over the unmodified host.aim)
+local VIEW_WEAPON = 1 -- mb_hostaim.h CAMPAIGN_STEP_LOOKUP_VIEW_WEAPON; its answer r0 is f[7] in Lua (f[6..11] hold r0..r5)
+local view = { steps_seen = 0, answers_seen = 0, applied = 0, already_set = 0 }
+local base_aim -- the host's own aim function, resolved inside the owned close scope (main)
+-- a copy of one lookup answer with the sixth word set: kind, a..d and all twelve floats are copied, nothing is shared with the caller's table
+local function viewed_answer (answer)
+	if type (answer.f) ~= "table" or #answer.f ~= 12 then hard ("a VIEW_WEAPON answer does not carry twelve result words, so the controlled view cannot be applied exactly") end
+	local copy = { kind = answer.kind, a = answer.a, b = answer.b, c = answer.c, d = answer.d, f = {} }
+	for index = 1, 12 do copy.f [index] = answer.f [index] end
+	if copy.f [7] ~= 0 then view.already_set = view.already_set + 1 end
+	copy.f [7] = 1
+	return copy
+end
+local function aim (request)
+	if armed and type (request) == "table" and request.mode == "weapon_step" then
+		view.steps_seen = view.steps_seen + 1
+		local answers = request.answers
+		if type (answers) == "table" then
+			local changed, replaced = false, {}
+			for index, answer in ipairs (answers) do
+				if type (answer) == "table" and answer.kind == VIEW_WEAPON then
+					view.answers_seen = view.answers_seen + 1
+					replaced [index] = viewed_answer (answer)
+					changed = true
+				else
+					replaced [index] = answer
+				end
+			end
+			if changed then
+				local copy = {}
+				for key, value in pairs (request) do copy [key] = value end
+				copy.answers = replaced
+				view.applied = view.applied + 1
+				request = copy
+			end
+		end
+	end
+	return base_aim (request)
+end
+
 -- ---------------------------------------------------------------------------------------------------------------- the run
 local function main ()
 	-- every fallible setup step is inside the owned close scope: a missing or raising factory is a failure of the witness with the evidence closed
 	local factory = host.terrain_provider
 	if type (factory) ~= "function" then hard ("this host has no host.terrain_provider") end
 	real = factory (root, map)
+	base_aim = host.aim
+	if type (base_aim) ~= "function" then hard ("this host has no host.aim") end
 	local descriptors, order = {}, {}
 	local function bind_mobile (descriptor)
 		local id = host.bind_mobile (descriptor)
@@ -359,7 +407,7 @@ local function main ()
 	local engine = dc.boot {
 		install_root = root, map = map, terrain = provider, environment = host.env_provider (), campaign_directory = "camp01", campaign = "LEBANON.CHC", gunship = "apache",
 		seed = seed, bind_mobile = bind_mobile, move_vehicle = host.move_vehicle, observe_loss = host.observe_loss,
-		supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, model = host.model, sense = host.sense, aim = host.aim,
+		supply_reached = host.supply_reached, line_of_sight = host.line_of_sight, model = host.model, sense = host.sense, aim = aim,
 	}
 	emit { event = "boot", mode = mode, profile = profile, warmup = warmup, settle = settle, frame_ms = frame_ms, seed = seed, frame_budget = frame_budget }
 
@@ -456,80 +504,36 @@ local function main ()
 		local s = state (id, 0)
 		if s and s.alive == 1 then s.side = descriptors [id].side alive [id] = s end
 	end
-	-- THE CASE PRECONDITION. The original flight asks the campaign for the tree lookup only after an entity-collision MISS and only when its collision precision is high (wn_flight.c
-	-- high_precision_collision: a non-AI target or launcher, a viewed weapon, or the weapon's new position within 50 m of its target). A weapon fired at a distant enemy falls to the ground first
-	-- and never asks (the first actual: a cannon at a distant enemy, zero tree tests, UNREACHED). So the controlled launch takes the pair whose target stands within that 50 m of the launcher:
-	-- the nearest valid target of ANY side. The side is not a measured need of the capability and no campaign decision is asserted: the launch temporarily links the target as a test
-	-- precondition, exactly as before (and restores the link). A near target does not imply a miss or a tree test; the counter guards below still decide, and a run with no tree test is UNREACHED.
-	local PRECISION_RANGE = 50
-	local function distance_between (a, b)
-		local dx, dy, dz = a.position [1] - b.position [1], a.position [2] - b.position [2], a.position [3] - b.position [3]
-		return math.sqrt (dx * dx + dy * dy + dz * dz)
-	end
-	local rank = {}
-	for index, id in ipairs (ordered) do rank [id] = index end
-	-- every ordered pair (launcher, target) of live roster entities that are different and within the precision range, found by a 50 m grid (no all-pairs scan), nearest first, ties by roster order
-	local cells, pairs_near = {}, {}
-	for _, id in ipairs (ordered) do
-		local o = alive [id]
-		if o and #o.position >= 3 then
-			local cx, cz = math.floor (o.position [1] / PRECISION_RANGE), math.floor (o.position [3] / PRECISION_RANGE)
-			o.cx, o.cz = cx, cz
-			local key = cx .. ":" .. cz
-			cells [key] = cells [key] or {}
-			table.insert (cells [key], id)
-		end
-	end
-	for _, id in ipairs (ordered) do
-		local o = alive [id]
-		if o and o.cx then
-			for dx = -1, 1 do
-				for dz = -1, 1 do
-					for _, other in ipairs (cells [(o.cx + dx) .. ":" .. (o.cz + dz)] or {}) do
-						if other ~= id then
-							local distance = distance_between (o, alive [other])
-							if distance < PRECISION_RANGE then pairs_near [#pairs_near + 1] = { launcher = id, target = other, distance = distance } end
-						end
-					end
-				end
+	local function nearest_enemy (id)
+		local s, best, best_d = alive [id], nil, nil
+		for _, other in ipairs (ordered) do
+			local o = alive [other]
+			if o and other ~= id and o.side ~= s.side and (o.side == "blue" or o.side == "red") then
+				local dx, dz = o.position [1] - s.position [1], o.position [3] - s.position [3]
+				local d = math.sqrt (dx * dx + dz * dz)
+				if not best_d or d < best_d then best, best_d = other, d end
 			end
 		end
+		return best
 	end
-	table.sort (pairs_near, function (x, y)
-		if x.distance ~= y.distance then return x.distance < y.distance end
-		if x.launcher ~= y.launcher then return rank [x.launcher] < rank [y.launcher] end
-		return rank [x.target] < rank [y.target]
-	end)
-	-- a launcher qualifies by an unguided ballistic weapon in stock (the first such weapon number), as before; asked once per launcher
-	local weapon_of = {}
-	local function ballistic_weapon (id)
-		if weapon_of [id] == nil then
-			weapon_of [id] = false
+	-- the first launcher (in roster order) with an unguided ballistic weapon in stock and an enemy to aim at: a weapon that flies a ballistic path to the ground or its target
+	local launcher, target, weapon
+	for _, id in ipairs (ordered) do
+		if alive [id] then
+			local enemy = nearest_enemy (id)
 			for w = 1, 127 do
-				local q = state (id, w)
-				if q and q.weapon_count and q.weapon_count > 0 and q.guidance == 0 and q.aiming ~= 0 and q.decoy == 0 then weapon_of [id] = w break end
+				local q = enemy and state (id, w)
+				if q and q.weapon_count and q.weapon_count > 0 and q.guidance == 0 and q.aiming ~= 0 and q.decoy == 0 then launcher, target, weapon = id, enemy, w break end
 			end
 		end
-		return weapon_of [id]
+		if launcher then break end
 	end
-	local launcher, target, weapon, chosen
-	local launchers_checked = 0
-	for _, candidate in ipairs (pairs_near) do
-		if weapon_of [candidate.launcher] == nil then launchers_checked = launchers_checked + 1 end
-		local w = ballistic_weapon (candidate.launcher)
-		if w then launcher, target, weapon, chosen = candidate.launcher, candidate.target, w, candidate break end
-	end
-	emit {
-		event = "case_selected", launcher = launcher or "none", target = target or "none", weapon = weapon or -1, selection = "nearest_valid_target_any_side_within_precision_range",
-		precision_range = PRECISION_RANGE, pairs_in_range = #pairs_near, launchers_checked = launchers_checked,
-		distance = chosen and string.format ("%.3f", chosen.distance) or "none", same_side = chosen and (alive [launcher].side == alive [target].side) or false,
-	}
-	if not launcher then
-		hard (string.format ("SETUP FAILURE: no launcher with an unguided ballistic weapon in stock has a valid target within the %d m collision-precision range of its own position (%d ordered pairs in range, %d launchers checked): the war offers no controlled case that can reach the tree test, which is a missing precondition and not a pass", PRECISION_RANGE, #pairs_near, launchers_checked))
-	end
+	emit { event = "case_selected", launcher = launcher or "none", target = target or "none", weapon = weapon or -1, selection = "first_ballistic_launcher_nearest_enemy" }
+	if not launcher then hard ("SETUP FAILURE: no launcher with an unguided ballistic weapon and an enemy was found") end
 
 	events () -- everything the natural war logged before the launch is taken first, so what is read after is the launch's own
 	local tests_before = counter ("contact_trees_tests")
+	local precision_before = counter ("precision_high")
 	armed = true
 	local launched, launch_text = pcall (engine.wpn_case_launch, engine, launcher, target, weapon, 0)
 	local failure
@@ -590,10 +594,11 @@ local function main ()
 		if failure then break end
 		take ()
 	end
-	local tests_delta
+	local tests_delta, precision_delta
 	if not failure then
 		take ()
 		tests_delta = counter ("contact_trees_tests") - tests_before
+		precision_delta = counter ("precision_high") - precision_before
 	end
 
 	for _, w in ipairs (members) do
@@ -609,7 +614,9 @@ local function main ()
 		failure_marker = failure and failure.marker or "", failure_line = failure and failure.line or "",
 		cohort_size = #members, case_weapons_ended = #terminals, case_weapons_pending = failure and -1 or pending_members (), later_births = #later_births, foreign_terminals = #foreign,
 		duplicate_terminals = #duplicates, elapsed = clock.elapsed_seconds, frames = frames, frame_budget = frame_budget,
-		tests_delta = tests_delta or -1, fixture_api = fixture_api,
+		tests_delta = tests_delta or -1, precision_high_delta = precision_delta or -1, fixture_api = fixture_api,
+		view_input = "configured_view_weapon_true_on_armed_weapon_steps", view_steps_seen = view.steps_seen, view_answers_seen = view.answers_seen, view_applied = view.applied,
+		view_already_set = view.already_set,
 		tree_begin_before = before.tree_begin, tree_begin_after = after.tree_begin, tree_terrain_before = before.tree_terrain, tree_terrain_after = after.tree_terrain,
 		point_after = after.point, queries = queries, need_terrain_replies = need_terrain_replies, done_replies = done_replies, order_faults = order_faults,
 		pairing_faults = pairing_faults, coordinate_faults = coordinate_faults, hint_faults = hint_faults, altered_begin = altered.tree_begin, altered_terrain = altered.tree_terrain,
@@ -622,6 +629,7 @@ local function main ()
 		if failure == nil then return "mode " .. mode .. " completed: the engine did not stop at " .. plan.marker end
 		if failure.marker ~= plan.marker then return "mode " .. mode .. " stopped at [terrain-provider:" .. failure.marker .. "], not at [terrain-provider:" .. plan.marker .. "]: " .. failure.line end
 		if altered.tree_begin + altered.tree_terrain < 1 then return "mode " .. mode .. " stopped without the provider having altered a tree answer: " .. failure.line end
+		if view.applied < 1 then return "mode " .. mode .. " stopped, but the controlled view input never reached a weapon step: the stop is not at a tree question of the configured flight" end
 		return nil
 	end
 	if failure ~= nil then return "mode " .. mode .. " failed in the engine at [terrain-provider:" .. failure.marker .. "]: " .. failure.line end
@@ -634,6 +642,9 @@ local function main ()
 		local problem = terminal_problem (e)
 		if problem then return "the terminal of case weapon " .. w .. " is incomplete (field " .. problem .. " is missing or not in its grammar): " .. e.raw end
 	end
+	-- the controlled input must have reached the host's weapon step and the step must have taken the high-precision path it opens; otherwise the tree counters below say nothing
+	if view.applied < 1 then return string.format ("UNREACHED: the controlled view input never reached a weapon step (%d weapon steps seen, %d VIEW_WEAPON answers): the flight was not under the configured precondition", view.steps_seen, view.answers_seen) end
+	if precision_delta < 1 then return "UNREACHED: the controlled view input was applied but the weapon step never took the high-precision collision path (precision_high did not rise)" end
 	if profile == "original" then
 		if after.tree_begin ~= 0 then return "profile=original, but the host was asked " .. after.tree_begin .. " tree questions: the module is not the original" end
 		if tests_delta < 1 then return "UNREACHED: the weapon step made no tree test (contact_trees_tests did not rise): the original tree call this RED is about never happened" end
